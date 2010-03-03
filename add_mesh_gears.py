@@ -369,7 +369,7 @@ def unregister():
     bpy.types.INFO_MT_mesh_add.remove(menu_func)
 	
 	    # Remove "Gears" menu from the "Add Mesh" menu.
-    space_info.INFO_MT_mesh_add.remove(menu_func)
+    #space_info.INFO_MT_mesh_add.remove(menu_func)
 
 if __name__ == "__main__":
     register()

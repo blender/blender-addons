@@ -1123,7 +1123,7 @@ def unregister():
     bpy.types.unregister(INFO_MT_mesh_pipe_joints_add)
 
     # Remove "Pipe Joints" menu from the "Add Mesh" menu.
-    space_info.INFO_MT_mesh_add.remove(menu_func)
+    #space_info.INFO_MT_mesh_add.remove(menu_func)
 
 if __name__ == "__main__":
     register()
