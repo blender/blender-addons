@@ -358,7 +358,7 @@ class AddGear(bpy.types.Operator):
 # blenderbuttons file from the release/datafiles directory
 
 menu_func = (lambda self, context: self.layout.operator(AddGear.bl_idname,
-                                        text="Gear", icon='GEARS'))
+                                        text="Gear", icon='PLUGIN'))
 
 def register():
     bpy.types.register(AddGear)
@@ -367,3 +367,10 @@ def register():
 def unregister():
     bpy.types.unregister(AddGear)
     bpy.types.INFO_MT_mesh_add.remove(menu_func)
+	
+	    # Remove "Gears" menu from the "Add Mesh" menu.
+    space_info.INFO_MT_mesh_add.remove(menu_func)
+
+if __name__ == "__main__":
+    register()
+

@@ -166,3 +166,10 @@ def register():
 def unregister():
     bpy.types.unregister(AddDiamond)
     bpy.types.INFO_MT_mesh_add.remove(menu_func)
+	
+	    # Remove "Diamond" menu from the "Add Mesh" menu.
+    space_info.INFO_MT_mesh_add.remove(menu_func)
+
+if __name__ == "__main__":
+    register()
+

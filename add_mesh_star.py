@@ -156,7 +156,7 @@ class AddStar(bpy.types.Operator):
 # blenderbuttons file from the release/datafiles directory
 
 menu_func = (lambda self, context: self.layout.operator(AddStar.bl_idname,
-                                        text="Star", icon='GEARS'))
+                                        text="Star", icon='PLUGIN'))
 
 def register():
     bpy.types.register(AddStar)
@@ -165,3 +165,10 @@ def register():
 def unregister():
     bpy.types.unregister(AddStar)
     bpy.types.INFO_MT_mesh_add.remove(menu_func)
+	
+	    # Remove "Star" menu from the "Add Mesh" menu.
+    space_info.INFO_MT_mesh_add.remove(menu_func)
+
+if __name__ == "__main__":
+    register()
+

@@ -663,7 +663,7 @@ class AddWyeJoint(bpy.types.Operator):
 class AddCrossJoint(bpy.types.Operator):
     '''Add a Cross-Joint mesh'''
     # Create the vertices and polygons for a coss (+ or X) pipe joint.
-    bl_idname = "mesh.primitive_cross_joint_add" 
+    bl_idname = "mesh.primitive_cross_joint_add"
     bl_label = "Add Pipe Cross-Joint"
     bl_options = {'REGISTER', 'UNDO'}
 
@@ -1088,7 +1088,7 @@ class INFO_MT_mesh_pipe_joints_add(bpy.types.Menu):
         layout.operator("mesh.primitive_cross_joint_add",
             text="Pipe Cross-Joint")
         layout.operator("mesh.primitive_n_joint_add",
-            text="Pipe N-Joint" )
+            text="Pipe N-Joint")
 #        layout.separator()
 
 ################################
@@ -1096,9 +1096,8 @@ class INFO_MT_mesh_pipe_joints_add(bpy.types.Menu):
 import space_info
 
 # Define "Pipe Joints" menu
-# Define "Pipe Joints" menu
 menu_func = (lambda self,
-    context: self.layout.menu("INFO_MT_mesh_pipe_joints_add", icon='GEARS'))
+    context: self.layout.menu("INFO_MT_mesh_pipe_joints_add", icon='PLUGIN'))
 
 
 def register():
@@ -1124,5 +1123,7 @@ def unregister():
     bpy.types.unregister(INFO_MT_mesh_pipe_joints_add)
 
     # Remove "Pipe Joints" menu from the "Add Mesh" menu.
-    #space_info.INFO_MT_mesh_add.remove(menu_func)
-	
+    space_info.INFO_MT_mesh_add.remove(menu_func)
+
+if __name__ == "__main__":
+    register()

@@ -218,7 +218,7 @@ class AddGem(bpy.types.Operator):
 
 
 menu_func = (lambda self, context: self.layout.operator(AddGem.bl_idname,
-                                        text="Gem", icon='GEARS'))
+                                        text="Gem", icon='PLUGIN'))
 
 def register():
     bpy.types.register(AddGem)
@@ -229,3 +229,10 @@ def register():
 def unregister():
     bpy.types.unregister(AddGem)
     bpy.types.INFO_MT_mesh_add.remove(menu_func)
+	
+	    # Remove "Gem" menu from the "Add Mesh" menu.
+    space_info.INFO_MT_mesh_add.remove(menu_func)
+
+if __name__ == "__main__":
+    register()
+
