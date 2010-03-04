@@ -17,7 +17,7 @@
 # ##### END GPL LICENSE BLOCK #####
 
 # Blender Add-Ons menu registration (in User Prefs)
-"Add Pipe Joint (View3D > Add > Mesh > 3D Function Surface)"
+"3d Function Surface (View3D > Add > Mesh > 3D Function Surface)"
 
 import bpy
 import Mathutils
