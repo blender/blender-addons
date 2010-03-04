@@ -32,16 +32,21 @@ __author__ = ["Buerbaum Martin (Pontiac)"]
 __url__ = ["http://gitorious.org/blender-scripts/blender-pipe-joint-script",
     "http://blenderartists.org/forum/showthread.php?t=154394",
     "http://wiki.blender.org/index.php/Extensions:Py/Scripts/Add/Pipe_Joint"]
-__version__ = '0.9.8'
+__version__ = '0.9.9'
 __bpydoc__ = """
 Pipe Joints
 This script lets the user create various types of pipe joints.
 
 Usage:
-This functionality can be accessed via the "Add Mesh" -> "Pipe Joints" menu.
+You have to activated the script in the "Add-Ons" tab (user preferences).
+The functionality can then be accessed via the
+"Add Mesh" -> "Pipe Joints" menu.
 Note: Currently only the "Elbow" type supports odd number of vertices.
 
 Version history:
+v0.9.9 - Changed the script so it can be managed from the "Add-Ons" tab in
+    the user preferences.
+    Added dummy "PLUGIN" icon.
 v0.9.8 - Fixed some new API stuff.
     Mainly we now have the register/unregister functions.
     Also the new() function for objects now accepts a mesh object.
@@ -1089,7 +1094,6 @@ class INFO_MT_mesh_pipe_joints_add(bpy.types.Menu):
             text="Pipe Cross-Joint")
         layout.operator("mesh.primitive_n_joint_add",
             text="Pipe N-Joint")
-#        layout.separator()
 
 ################################
 
@@ -1097,7 +1101,7 @@ import space_info
 
 # Define "Pipe Joints" menu
 menu_func = (lambda self,
-    context: self.layout.menu("INFO_MT_mesh_pipe_joints_add", icon='PLUGIN'))
+    context: self.layout.menu("INFO_MT_mesh_pipe_joints_add", icon="PLUGIN"))
 
 
 def register():
@@ -1123,7 +1127,7 @@ def unregister():
     bpy.types.unregister(INFO_MT_mesh_pipe_joints_add)
 
     # Remove "Pipe Joints" menu from the "Add Mesh" menu.
-    #space_info.INFO_MT_mesh_add.remove(menu_func)
+    space_info.INFO_MT_mesh_add.remove(menu_func)
 
 if __name__ == "__main__":
     register()
