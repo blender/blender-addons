@@ -20,8 +20,19 @@
 #
 # ***** END GPL LICENCE BLOCK *****
 
-# blender Extensions menu registration (in user Prefs)
-"Add Star (View3D > Add > Mesh > Star)"
+bl_addon_info = {
+    'name': 'Add_Mesh: Star',
+    'author': 'fourmadmen',
+    'version': '2.0',
+    'blender': '2.5.3',
+    'location': 'View3D > Add > Mesh ',
+    'url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/Scripts/Add_Star',
+    'category': 'Add_Mesh'}
+
+"""
+Name: 'Add_Mesh_Star'
+Blender: 250
+"""
 
 """
 Name: 'Star'
@@ -131,6 +142,7 @@ class AddStar(bpy.types.Operator):
 		mesh.add_geometry(int(len(verts_loc) / 3), 0, int(len(faces) / 4))
 		mesh.verts.foreach_set("co", verts_loc)
 		mesh.faces.foreach_set("verts_raw", faces)
+		mesh.faces.foreach_set("smooth", [False] * len(mesh.faces))
 		
 		scene = context.scene
 
