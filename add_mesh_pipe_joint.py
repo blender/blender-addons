@@ -16,23 +16,25 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-# Blender Add-Ons menu registration (in User Prefs)
-"Add Pipe Joint (View3D > Add > Mesh > Pipe Joint)"
-
 import bpy
 import Mathutils
 from math import *
 from bpy.props import *
 
-"""
-Name: 'Pipe Joints'
-Blender: 250
-"""
-__author__ = ["Buerbaum Martin (Pontiac)"]
-__url__ = ["http://gitorious.org/blender-scripts/blender-pipe-joint-script",
-    "http://blenderartists.org/forum/showthread.php?t=154394",
-    "http://wiki.blender.org/index.php/Extensions:Py/Scripts/Add/Pipe_Joint"]
-__version__ = '0.9.9'
+bl_addon_info = {
+    'name': 'Add Mesh: Pipe Joints',
+    'author': 'Buerbaum Martin (Pontiac)',
+    'version': '0.9.10',
+    'blender': '2.5.3',
+    'location': 'View3D > Add > Mesh > Pipe Joint',
+    'url':
+    'http://wiki.blender.org/index.php/Extensions:Py/Scripts/Add/Pipe_Joint',
+    'category': 'Add Mesh'}
+
+# More links:
+# http://gitorious.org/blender-scripts/blender-pipe-joint-script
+# http://blenderartists.org/forum/showthread.php?t=154394
+
 __bpydoc__ = """
 Pipe Joints
 This script lets the user create various types of pipe joints.
@@ -44,6 +46,7 @@ The functionality can then be accessed via the
 Note: Currently only the "Elbow" type supports odd number of vertices.
 
 Version history:
+v0.9.10 - Use bl_addon_info for Add-On information.
 v0.9.9 - Changed the script so it can be managed from the "Add-Ons" tab in
     the user preferences.
     Added dummy "PLUGIN" icon.
