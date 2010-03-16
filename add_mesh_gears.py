@@ -24,8 +24,15 @@
 # ##### END GPL LICENSE BLOCK #####
 
 
-# blender 1 line description
-"Add Gears (View3D > Add > Mesh > Gears)"
+bl_addon_info = {
+    'name': 'Add_Mesh: Gears',
+    'author': 'varkenvarken',
+    'version': '2.1',
+    'blender': '2.5.3',
+    'location': 'View3D > Add > Mesh ',
+    'url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/Scripts/Add_Gears',
+    'category': 'Add_Mesh'}
+
 
 """
 What was needed to port it from 2.49 -> 2.50 alpha 0?
@@ -312,6 +319,7 @@ class AddGear(bpy.types.Operator):
         mesh.add_geometry(int(len(verts_loc) / 3), 0, int(len(faces) / 4))
         mesh.verts.foreach_set("co", verts_loc)
         mesh.faces.foreach_set("verts_raw", faces)
+        mesh.faces.foreach_set("smooth", [False] * len(mesh.faces))
 
         scene = context.scene
 
