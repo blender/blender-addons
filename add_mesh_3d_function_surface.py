@@ -21,17 +21,18 @@ import Mathutils
 from math import *
 from bpy.props import *
 
-
 bl_addon_info = {
-    'name': 'Add_Mesh: 3D Function Surface',
+    'name': 'Add Mesh: 3D Function Surface',
     'author': 'Buerbaum Martin (Pontiac)',
     'version': '0.2.3',
     'blender': '2.5.3',
     'location': 'View3D > Add > Mesh > 3D Function Surface',
-    'url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/Scripts/Add_3d_Function_Surface',
+    'url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/" \
+        "Scripts/Add_3d_Function_Surface',
     'category': 'Add Mesh'}
 
 # More Links:
+# http://gitorious.org/blender-scripts/blender-3d-function-surface
 # http://blenderartists.org/forum/showthread.php?t=179043
 
 __bpydoc__ = """
