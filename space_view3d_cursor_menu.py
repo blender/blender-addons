@@ -22,25 +22,7 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-bl_addon_info = {
-    'name': '3d View: Cursor Menu',
-    'author': 'JayDez',
-    'version': '2.4',
-    'blender': (2, 5, 3),
-    'location': 'View3D > Mouse > Menu ',
-    'url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/Scripts/3d_Cursor_Menu',
-    'category': '3d View'}
-
-
 """
-Name: '3D Cursor Menu'
-Blender: 250
-Group: 'View3D'
-"""
-__author__ = ["Jonathan Smith (JayDez)"]
-__version__ = '2.3'
-__url__ = ["http://blenderartists.org/forum/showthread.php?p=1589350"]
-__bpydoc__= """
 3D Cursor Menu
 
 This adds a 3D Cursor Menu in the 3DView.
@@ -67,33 +49,45 @@ v2.2 - (Crouch) - Fix in register function, fix with random quotation
 v2.1 - (Crouch) - added unregister() and set pivot point to cursor.
 v2.0 - (JayDez) - 2.5 script (initial revision)
 v1.0 - Original 2.49 script
-
 """
+
+bl_addon_info = {
+    'name': '3d View: Cursor Menu',
+    'author': 'JayDez',
+    'version': '2.4',
+    'blender': (2, 5, 3),
+    'location': 'View3D > Mouse > Menu ',
+    'url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/Scripts/3d_Cursor_Menu',
+    'category': '3d View'}
+
 import bpy
 from bpy import *
+
 
 class pivot_cursor(bpy.types.Operator):
     bl_idname = "view3d.pivot_cursor"
     bl_label = "Cursor as Pivot Point"
-    
+
     def poll(self, context):
         return bpy.context.space_data.pivot_point != 'CURSOR'
-    
+
     def execute(self, context):
         bpy.context.space_data.pivot_point = 'CURSOR'
         return {'FINISHED'}
-    
+
+
 class revert_pivot(bpy.types.Operator):
     bl_idname = "view3d.revert_pivot"
     bl_label = "Reverts Pivot Point to median"
 
     def poll(self, context):
         return bpy.context.space_data.pivot_point != 'MEDIAN_POINT'
-    
+
     def execute(self, context):
         bpy.context.space_data.pivot_point = 'MEDIAN_POINT'
         #change this to 'BOUDNING_BOX_CENTER' if needed...
         return{'FINISHED'}
+
 
 class VIEW3D_MT_3D_Cursor_Menu(bpy.types.Menu):
     bl_label = "3D Cursor Menu"
@@ -119,6 +113,7 @@ def register():
     km = bpy.context.manager.active_keyconfig.keymaps['3D View']
     kmi = km.add_item('wm.call_menu', 'SELECTMOUSE', 'CLICK')
     kmi.properties.name = "VIEW3D_MT_3D_Cursor_Menu"
+
 
 def unregister():
     bpy.types.unregister(VIEW3D_MT_3D_Cursor_Menu)

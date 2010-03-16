@@ -41,14 +41,14 @@ def add_diamond(segments, girdle_radius, table_radius, crown_height, pavillion_h
 
     verts = []
     faces = []
-    
+
     tot_verts = segments * 2 + 2
 
     height = crown_height + pavillion_height
     half_height = height * 0.5
 
-    verts.extend( Vector(0.0, 0.0, -half_height) )
-    verts.extend( Vector(0.0, 0.0, half_height) )
+    verts.extend(Vector(0.0, 0.0, -half_height))
+    verts.extend(Vector(0.0, 0.0, half_height))
 
     i = 2
     for index in range(segments):
@@ -61,7 +61,7 @@ def add_diamond(segments, girdle_radius, table_radius, crown_height, pavillion_h
         it1 = i
         i += 1
 
-        vec = Vector(girdle_radius, 0, half_height-pavillion_height) * quat
+        vec = Vector(girdle_radius, 0, half_height - pavillion_height) * quat
         verts.extend([vec.x, vec.y, vec.z])
         ib1 = i
         i += 1
@@ -110,7 +110,7 @@ class AddDiamond(bpy.types.Operator):
             self.properties.pavillion_height)
 
         mesh = bpy.data.meshes.new("Diamond")
-        
+
         mesh.add_geometry(int(len(verts_loc) / 3), 0, int(len(faces) / 4))
         mesh.verts.foreach_set("co", verts_loc)
         mesh.faces.foreach_set("verts_raw", faces)
@@ -126,9 +126,9 @@ class AddDiamond(bpy.types.Operator):
         scene.objects.link(ob_new)
         scene.objects.active = ob_new
         ob_new.selected = True
-        
+
         ob_new.location = tuple(context.scene.cursor_location)
-        
+
         return {'FINISHED'}
 
 
@@ -140,9 +140,11 @@ class AddDiamond(bpy.types.Operator):
 menu_func = (lambda self, context: self.layout.operator(AddDiamond.bl_idname,
                                         text="Add Diamond", icon='PLUGIN'))
 
+
 def register():
     bpy.types.register(AddDiamond)
     bpy.types.INFO_MT_mesh_add.append(menu_func)
+
 
 def unregister():
     bpy.types.unregister(AddDiamond)
