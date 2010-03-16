@@ -16,8 +16,16 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-# blender 1 line description
-"Raw Mesh IO (File > Import/Export > Raw Faces (.raw))"
+bl_addon_info = {
+    'name': 'I/O: Raw mesh',
+    'author': 'Anthony D,Agostino (Scorpius)', 'Aurel Wildfellner',
+    'version': '0.2',
+    'blender': '2.5.3',
+    'location': 'File > Import/Export > Raw faces ',
+    'url': 'http://wiki.blender.org/index.php?title=Extensions:2.5/Py/Scripts/Raw_Mesh_IO',
+    'category': 'Add_Mesh'}
+
+
 
 import bpy
 
