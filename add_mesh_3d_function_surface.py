@@ -16,22 +16,24 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-# Blender Add-Ons menu registration (in User Prefs)
-"3d Function Surface (View3D > Add > Mesh > 3D Function Surface)"
-
 import bpy
 import Mathutils
 from math import *
 from bpy.props import *
 
-"""
-Name: '3D Function Surface'
-Blender: 250
-"""
-__author__ = ["Buerbaum Martin (Pontiac)"]
-__url__ = ["http://gitorious.org/blender-scripts/blender-3d-function-surface",
-    "http://blenderartists.org/forum/showthread.php?t=179043"]
-__version__ = '0.2.1'
+
+bl_addon_info = {
+    'name': 'Add_Mesh: 3D Function Surface',
+    'author': 'Buerbaum Martin (Pontiac)',
+    'version': '0.2.3',
+    'blender': '2.5.3',
+    'location': 'View3D > Add > Mesh > 3D Function Surface',
+    'url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/Scripts/Add_3d_Function_Surface',
+    'category': 'Add Mesh'}
+
+# More Links:
+# http://blenderartists.org/forum/showthread.php?t=179043
+
 __bpydoc__ = """
 3D Function Surface
 
@@ -46,6 +48,8 @@ The functionality can then be accessed via the
 "Add Mesh" -> "3D Function Surface" menu.
 
 Version history:
+v0.2.3 - Use bl_addon_info for Add-On information.
+v0.2.2 - Fixed Add-On registration text.
 v0.2.1 - Fixed some new API stuff.
     Mainly we now have the register/unregister functions.
     Also the new() function for objects now accepts a mesh object.
