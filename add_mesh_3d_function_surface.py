@@ -25,7 +25,7 @@ bl_addon_info = {
     'name': 'Add Mesh: 3D Function Surface',
     'author': 'Buerbaum Martin (Pontiac)',
     'version': '0.2.3',
-    'blender': '2.5.3',
+    'blender': (2, 5, 3),
     'location': 'View3D > Add > Mesh > 3D Function Surface',
     'url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/' \
         'Scripts/Add_3d_Function_Surface',

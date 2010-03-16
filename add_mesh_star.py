@@ -24,7 +24,7 @@ bl_addon_info = {
     'name': 'Add Mesh: Star',
     'author': 'fourmadmen',
     'version': '2.0',
-    'blender': '2.5.3',
+    'blender': (2, 5, 3),
     'location': 'View3D > Add > Mesh ',
     'url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/Scripts/Add_Star',
     'category': 'Add Mesh'}

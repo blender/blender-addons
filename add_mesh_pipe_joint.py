@@ -25,7 +25,7 @@ bl_addon_info = {
     'name': 'Add Mesh: Pipe Joints',
     'author': 'Buerbaum Martin (Pontiac)',
     'version': '0.9.10',
-    'blender': '2.5.3',
+    'blender': (2, 5, 3),
     'location': 'View3D > Add > Mesh > Pipe Joint',
     'url':
     'http://wiki.blender.org/index.php/Extensions:Py/Scripts/Add/Pipe_Joint',
