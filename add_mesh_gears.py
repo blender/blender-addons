@@ -25,13 +25,13 @@
 
 
 bl_addon_info = {
-    'name': 'Add_Mesh: Gears',
+    'name': 'Add Mesh: Gears',
     'author': 'varkenvarken',
     'version': '2.1',
     'blender': '2.5.3',
     'location': 'View3D > Add > Mesh ',
     'url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/Scripts/Add_Gears',
-    'category': 'Add_Mesh'}
+    'category': 'Add Mesh'}
 
 
 """
