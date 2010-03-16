@@ -130,7 +130,6 @@ class AddDiamond(bpy.types.Operator):
 		default=1.0, min=0.01, max=100.0)
 
 	def execute(self, context):
-    
 		verts_loc, faces = add_diamond(self.properties.segments,
 			self.properties.girdle_radius,
 			self.properties.table_radius,
@@ -142,7 +141,6 @@ class AddDiamond(bpy.types.Operator):
 		mesh.add_geometry(int(len(verts_loc) / 3), 0, int(len(faces) / 4))
 		mesh.verts.foreach_set("co", verts_loc)
 		mesh.faces.foreach_set("verts_raw", faces)
-		mesh.faces.foreach_set("smooth", [False] * len(mesh.faces))
 		scene = context.scene
 
 		# ugh

@@ -93,7 +93,6 @@ def readMesh(filename, objName):
     mesh.add_geometry(int(len(verts)), 0, int(len(faces)))
     mesh.verts.foreach_set("co", unpack_list(verts))
     mesh.faces.foreach_set("verts_raw", unpack_face_list(faces))
-    mesh.faces.foreach_set("smooth", [False] * len(mesh.faces))
 
     return mesh
 

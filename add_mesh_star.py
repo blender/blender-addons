@@ -131,7 +131,6 @@ class AddStar(bpy.types.Operator):
 		default=0.5, min=0.01, max=100.0)
 
 	def execute(self, context):
-    
 		verts_loc, faces = add_star(self.properties.points,
 			self.properties.outer_radius,
 			self.properties.innter_radius,
@@ -142,7 +141,6 @@ class AddStar(bpy.types.Operator):
 		mesh.add_geometry(int(len(verts_loc) / 3), 0, int(len(faces) / 4))
 		mesh.verts.foreach_set("co", verts_loc)
 		mesh.faces.foreach_set("verts_raw", faces)
-		mesh.faces.foreach_set("smooth", [False] * len(mesh.faces))
 		
 		scene = context.scene
 
