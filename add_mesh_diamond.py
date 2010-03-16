@@ -20,8 +20,23 @@
 #
 # ***** END GPL LICENCE BLOCK *****
 
-# blender Extensions menu registration (in user Prefs)
-"Add Diamond (View3D > Add > Mesh > Diamond)"
+import bpy
+import Mathutils
+from math import pi
+
+bl_addon_info = {
+    'name': 'Add_Mesh: Diamond',
+    'author': 'fourmadmen',
+    'version': '2.0',
+    'blender': '2.5.3',
+    'location': 'View3D > Add > Mesh ',
+    'url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/Scripts/Add_Diamond',
+    'category': 'Add_Mesh'}
+
+"""
+Name: 'Add_Mesh_Diamond'
+Blender: 250
+"""
 
 """
 Name: 'Diamond'
@@ -44,11 +59,6 @@ Usage:
 
 """
 
-
-
-import bpy
-import Mathutils
-from math import pi
 
 def add_diamond(segments, girdle_radius, table_radius, crown_height, pavillion_height):
 	Vector = Mathutils.Vector
