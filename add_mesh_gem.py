@@ -234,9 +234,10 @@ def register():
 
 def unregister():
     bpy.types.unregister(AddGem)
+    bpy.types.unregister(Parameter_Panel_Gem)
+    bpy.types.unregister(EditGem)
     bpy.types.INFO_MT_mesh_add.remove(menu_func)
-	
-	    # Remove "Gem" menu from the "Add Mesh" menu.
+    # Remove "Gem" menu from the "Add Mesh" menu.
     #space_info.INFO_MT_mesh_add.remove(menu_func)
 
 if __name__ == "__main__":
