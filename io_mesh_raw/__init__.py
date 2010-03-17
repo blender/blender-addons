@@ -23,7 +23,7 @@ bl_addon_info = {
     'blender': '2.5.3',
     'location': 'File > Import/Export > Raw faces ',
     'url': 'http://wiki.blender.org/index.php?title=Extensions:2.5/Py/Scripts/Raw_Mesh_IO',
-    'category': 'Add_Mesh'}
+    'category': 'Import/Export'}
 
 
 
