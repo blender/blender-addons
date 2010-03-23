@@ -17,16 +17,17 @@
 # ##### END GPL LICENSE BLOCK #####
 
 import bpy
-import Mathutils
+from Mathutils import *
 from math import *
 from bpy.props import *
 
 bl_addon_info = {
-    'name': 'Add Mesh: 3D Function Surface',
+    'name': 'Add Mesh: 3D Function Surfaces',
     'author': 'Buerbaum Martin (Pontiac)',
-    'version': '0.2.3',
+    'version': '0.3',
     'blender': (2, 5, 3),
-    'location': 'View3D > Add > Mesh > 3D Function Surface',
+    'location': 'View3D > Add > Mesh > Z Function Surface &' \
+        ' XYZ Function Surface',
     'url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/' \
         'Scripts/Add_3d_Function_Surface',
     'category': 'Add Mesh'}
@@ -36,19 +37,35 @@ bl_addon_info = {
 # http://blenderartists.org/forum/showthread.php?t=179043
 
 __bpydoc__ = """
-3D Function Surface
+Z Function Surface
 
 This script lets the user create a surface where the z coordinate
 is a function of the x and y coordinates.
 
     z = f(x,y)
 
+X,Y,Z Function Surface
+
+This script lets the user create a surface where the x, y and z
+coordinates are defiend by a function.
+
+    x = f(u,v)
+    y = f(u,v)
+    z = f(u,v)
+
 Usage:
 You have to activated the script in the "Add-Ons" tab (user preferences).
 The functionality can then be accessed via the
-"Add Mesh" -> "3D Function Surface" menu.
+"Add Mesh" -> "Z Function Surface"
+and
+"Add Mesh" -> "X,Y,Z Function Surface"
+menu.
 
 Version history:
+v0.3 - X,Y,Z Function Surface (by Ed Mackey & tuga3d).
+    Renamed old function to "Z Function Surface".
+    Align the geometry to the view if the user preference says so.
+    Store recall properties in newly created object.
 v0.2.3 - Use bl_addon_info for Add-On information.
 v0.2.2 - Fixed Add-On registration text.
 v0.2.1 - Fixed some new API stuff.
@@ -66,7 +83,6 @@ v0.1.1 - Use 'CANCELLED' return value when failing.
 v0.1 - Initial revision.
 """
 
-
 # List of safe functions for eval()
 safe_list = ['math', 'acos', 'asin', 'atan', 'atan2', 'ceil', 'cos', 'cosh',
     'degrees', 'e', 'exp', 'fabs', 'floor', 'fmod', 'frexp', 'hypot',
@@ -74,10 +90,34 @@ safe_list = ['math', 'acos', 'asin', 'atan', 'atan2', 'ceil', 'cos', 'cosh',
     'sin', 'sinh', 'sqrt', 'tan', 'tanh']
 
 # Use the list to filter the local namespace
-safe_dict = dict([(k, locals().get(k, None)) for k in safe_list])
+safe_dict = dict([(k, globals().get(k, None)) for k in safe_list])
 
-# Add any needed builtins back in.
-safe_dict['abs'] = abs
+
+# Stores the values of a list of properties in a
+# property group (named like the operator) in the object.
+# Always replaces any existing property group with the same name!
+# @todo: Should we do this in EDIT Mode? Sounds dangerous.
+def obj_store_recall_properties(ob, op, prop_list):
+    if ob and op and prop_list:
+        #print("Storing recall data for operator: " + op.bl_idname)  # DEBUG
+
+        # Store new recall properties.
+        prop_list['recall_op'] = op.bl_idname
+        ob['recall'] = prop_list
+
+
+# Apply view rotation to objects if "Align To" for new objects
+# was set to "VIEW" in the User Preference.
+def apply_view_rotation(context, ob):
+    align = bpy.context.user_preferences.edit.object_align
+
+    if (context.space_data.type == 'VIEW_3D'
+        and align == 'VIEW'):
+            view3d = context.space_data
+            region = view3d.region_3d
+            viewMatrix = region.view_matrix
+            rot = viewMatrix.rotation_part()
+            ob.rotation_euler = rot.invert().to_euler()
 
 
 def createFaces(vertIdx1, vertIdx2, ring):
@@ -110,8 +150,10 @@ def createFaces(vertIdx1, vertIdx2, ring):
     return faces
 
 
-def createObject(scene, verts, faces, name):
+def createObject(context, verts, faces, name):
     '''Creates Meshes & Objects for the given lists of vertices and faces.'''
+
+    scene = context.scene
 
     # Create new mesh
     mesh = bpy.data.meshes.new(name)
@@ -147,6 +189,8 @@ def createObject(scene, verts, faces, name):
 
     obj_act = scene.objects.active
 
+    apply_view_rotation(context, ob_new)
+
     if obj_act and obj_act.mode == 'EDIT':
         # We are in EditMode, switch to ObjectMode.
         bpy.ops.object.mode_set(mode='OBJECT')
@@ -168,14 +212,16 @@ def createObject(scene, verts, faces, name):
         # Make the new object the active one.
         scene.objects.active = ob_new
 
+    return ob_new
 
-class Add3DFunctionSurface(bpy.types.Operator):
+
+class AddZFunctionSurface(bpy.types.Operator):
     '''Add a surface defined defined by a function z=f(x,y)'''
-    bl_idname = "mesh.primitive_3d_function_surface"
-    bl_label = "Add 3D Function Surface"
+    bl_idname = "mesh.primitive_z_function_surface"
+    bl_label = "Add Z Function Surface"
     bl_options = {'REGISTER', 'UNDO'}
 
-    equation = StringProperty(name="Equation",
+    equation = StringProperty(name="Z Equation",
         description="Equation for z=f(x,y)",
         default="1 - ( x**2 + y**2 )")
 
@@ -235,7 +281,7 @@ class Add3DFunctionSurface(bpy.types.Operator):
                     z = eval(equation, {"__builtins__": None}, safe_dict)
 
                 except:
-                    print("Add3DFunctionSurface: " \
+                    print("AddZFunctionSurface: " \
                         "Could not evaluate equation '" + equation + "'\n")
                     return {'CANCELLED'}
 
@@ -244,13 +290,13 @@ class Add3DFunctionSurface(bpy.types.Operator):
                 if not (isinstance(z, int)
                     #or isinstance(z, long)
                     or isinstance(z, float)):
-                    print("Add3DFunctionSurface: " \
+                    print("AddZFunctionSurface: " \
                         "eval() returned unsupported number type '" \
                         + str(z) + "'\n")
                     return {'CANCELLED'}
 
                 edgeloop_cur.append(len(verts))
-                verts.append([x, y, z])
+                verts.append((x, y, z))
 
             if len(edgeloop_prev) > 0:
                 faces_row = createFaces(edgeloop_prev, edgeloop_cur, False)
@@ -258,7 +304,235 @@ class Add3DFunctionSurface(bpy.types.Operator):
 
             edgeloop_prev = edgeloop_cur
 
-        createObject(context.scene, verts, faces, "3D Function")
+        obj = createObject(context, verts, faces, "Z Function")
+
+        # Store 'recall' properties in the object.
+        recall_prop_list = {
+            "equation": equation,
+            "div_x": div_x,
+            "div_x": div_y,
+            "size_x": size_x,
+            "size_y": size_y}
+        obj_store_recall_properties(obj, self, recall_prop_list)
+
+        return {'FINISHED'}
+
+
+def xyz_function_surface_faces(x_eq, y_eq, z_eq,
+    range_u_min, range_u_max, range_u_step, wrap_u,
+    range_v_min, range_v_max, range_v_step, wrap_v):
+
+    verts = []
+    faces = []
+
+    uStep = (range_u_max - range_u_min) / range_u_step
+    vStep = (range_v_max - range_v_min) / range_v_step
+
+    uRange = range_u_step
+    if range_u_step == 0:
+        uRange = uRange + 1
+
+    vRange = range_v_step
+    if range_v_step == 0:
+        vRange = vRange + 1
+
+    for vN in range(vRange):
+        v = range_v_min + (vN * vStep)
+
+        for uN in range(uRange):
+            u = range_u_min + (uN * uStep)
+
+            safe_dict['u'] = u
+            safe_dict['v'] = v
+
+            # Try to evaluate the equation.
+            try:
+                x = eval(x_eq, {"__builtins__": None}, safe_dict)
+
+            except:
+                print("AddXYZFunctionSurface: " \
+                    "Could not evaluate x equation '" + x_eq + "'\n")
+                return {'CANCELLED'}
+
+            try:
+                y = eval(y_eq, {"__builtins__": None}, safe_dict)
+
+            except:
+                print("AddXYZFunctionSurface: " \
+                    "Could not evaluate y equation '" + y_eq + "'\n")
+                return {'CANCELLED'}
+
+            try:
+                z = eval(z_eq, {"__builtins__": None}, safe_dict)
+
+            except:
+                print("AddXYZFunctionSurface: " \
+                    "Could not evaluate z equation '" + z_eq + "'\n")
+                return {'CANCELLED'}
+
+            # Accept only real numbers (no complex types)
+            # @todo: Support for "long" needed?
+            if not (isinstance(x, int)
+                or isinstance(x, float)):
+                print("AddXYZFunctionSurface: " \
+                    "eval() returned unsupported number type '" \
+                    + str(x) + " for x function.'\n")
+                return {'CANCELLED'}
+            if not (isinstance(y, int)
+                or isinstance(y, float)):
+                print("AddXYZFunctionSurface: " \
+                    "eval() returned unsupported number type '" \
+                    + str(y) + " for y function.'\n")
+                return {'CANCELLED'}
+            if not (isinstance(z, int)
+                or isinstance(z, float)):
+                print("AddXYZFunctionSurface: " \
+                    "eval() returned unsupported number type '" \
+                    + str(z) + " for z function.'\n")
+                return {'CANCELLED'}
+
+            verts.append((x, y, z))
+
+    for vN in range(1, range_v_step + 1):
+        vThis = vN
+
+        if (vThis >= vRange):
+            if wrap_v:
+                vThis = 0
+            else:
+                continue
+
+        for uN in range(1, range_u_step + 1):
+            uThis = uN
+
+            if (uThis >= uRange):
+                if wrap_u:
+                    uThis = 0
+                else:
+                    continue
+
+            faces.append([(vThis * uRange) + uThis,
+                (vThis * uRange) + uN - 1,
+                ((vN - 1) * uRange) + uN - 1,
+                ((vN - 1) * uRange) + uThis])
+
+    return verts, faces
+
+
+# Original Script "Parametric.py" by Ed Mackey.
+# -> http://www.blinken.com/blender-plugins.php
+# Partly converted for Blender 2.5 by tuga3d.
+#
+# Sphere:
+# x = sin(2*pi*u)*sin(pi*v)
+# y = cos(2*pi*u)*sin(pi*v)
+# z = cos(pi*v)
+# u_min = v_min = 0
+# u_max = v_max = 1
+#
+# "Snail shell"
+# x = 1.2**v*(sin(u)**2 *sin(v))
+# y = 1.2**v*(sin(u)*cos(u))
+# z = 1.2**v*(sin(u)**2 *cos(v))
+# u_min = 0
+# u_max = pi
+# v_min = -pi/4,
+# v max = 5*pi/2
+class AddXYZFunctionSurface(bpy.types.Operator):
+    '''Add a surface defined defined by 3 functions:''' \
+    + ''' x=f(u,v), y=f(u,v) and z=f(u,v)'''
+    bl_idname = "mesh.primitive_xyz_function_surface"
+    bl_label = "Add X,Y,Z Function Surface"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    x_eq = StringProperty(name="X Equation",
+        description="Equation for x=f(u,v)",
+        default="1.2**v*(sin(u)**2 *sin(v))")
+
+    y_eq = StringProperty(name="Y Equation",
+        description="Equation for y=f(u,v)",
+        default="1.2**v*(sin(u)*cos(u))")
+
+    z_eq = StringProperty(name="Z Equation",
+        description="Equation for z=f(u,v)",
+        default="1.2**v*(sin(u)**2 *cos(v))")
+
+    range_u_min = FloatProperty(name="U min",
+        description="Minimum U value. Lower boundary of U range.",
+        min=-100.00,
+        max=0.00,
+        default=0.00)
+
+    range_u_max = FloatProperty(name="U max",
+        description="Maximum U value. Upper boundary of U range.",
+        min=0.00,
+        max=100.00,
+        default=pi)
+
+    range_u_step = IntProperty(name="U step",
+        description="U Subdivisions",
+        min=1,
+        max=1024,
+        default=32)
+
+    wrap_u = BoolProperty(name="U wrap",
+        description="U Wrap around",
+        default=True)
+
+    range_v_min = FloatProperty(name="V min",
+        description="Minimum V value. Lower boundary of V range.",
+        min=-100.00,
+        max=0.00,
+        default=-pi / 4)
+
+    range_v_max = FloatProperty(name="V max",
+        description="Maximum V value. Upper boundary of V range.",
+        min=0.00,
+        max=100.00,
+        default=5 * pi / 2)
+
+    range_v_step = IntProperty(name="V step",
+        description="V Subdivisions",
+        min=1,
+        max=1024,
+        default=32)
+
+    wrap_v = BoolProperty(name="V wrap",
+        description="V Wrap around",
+        default=False)
+
+    def execute(self, context):
+        props = self.properties
+
+        verts, faces = xyz_function_surface_faces(
+                            props.x_eq,
+                            props.y_eq,
+                            props.z_eq,
+                            props.range_u_min,
+                            props.range_u_max,
+                            props.range_u_step,
+                            props.wrap_u,
+                            props.range_v_min,
+                            props.range_v_max,
+                            props.range_v_step,
+                            props.wrap_v)
+
+        obj = createObject(context, verts, faces, "XYZ Function")
+
+        # Store 'recall' properties in the object.
+        recall_prop_list = {
+            "x_eq": props.x_eq,
+            "y_eq": props.y_eq,
+            "z_eq": props.z_eq,
+            "range_u_min": props.range_u_min,
+            "range_u_max": props.range_u_max,
+            "range_u_step": props.range_u_step,
+            "wrap_u": props.wrap_u,
+            "range_v_min": props.range_v_min,
+            "range_v_max": props.range_v_max,
+            "range_v_step": props.range_v_step,
+            "wrap_v": props.wrap_v}
+        obj_store_recall_properties(obj, self, recall_prop_list)
 
         return {'FINISHED'}
 
@@ -267,26 +541,34 @@ class Add3DFunctionSurface(bpy.types.Operator):
 import space_info
 
 # Define "3D Function Surface" menu
-menu_func = (lambda self, context: self.layout.operator(
-    Add3DFunctionSurface.bl_idname,
-    text="3D Function Surface",
+menu_func_z = (lambda self, context: self.layout.operator(
+    AddZFunctionSurface.bl_idname,
+    text="Z Function Surface",
+    icon="PLUGIN"))
+menu_func_xyz = (lambda self, context: self.layout.operator(
+    AddXYZFunctionSurface.bl_idname,
+    text="X,Y,Z Function Surface",
     icon="PLUGIN"))
 
 
 def register():
     # Register the operators/menus.
-    bpy.types.register(Add3DFunctionSurface)
+    bpy.types.register(AddZFunctionSurface)
+    bpy.types.register(AddXYZFunctionSurface)
 
-    # Add "3D Function Surface" menu to the "Add Mesh" menu
-    space_info.INFO_MT_mesh_add.append(menu_func)
+    # Add menus to the "Add Mesh" menu
+    space_info.INFO_MT_mesh_add.append(menu_func_z)
+    space_info.INFO_MT_mesh_add.append(menu_func_xyz)
 
 
 def unregister():
     # Unregister the operators/menus.
-    bpy.types.unregister(Add3DFunctionSurface)
+    bpy.types.unregister(AddZFunctionSurface)
+    bpy.types.unregister(AddXYZFunctionSurface)
 
-    # Remove "3D Function Surface" menu from the "Add Mesh" menu.
-    space_info.INFO_MT_mesh_add.remove(menu_func)
+    # Remove menus from the "Add Mesh" menu.
+    space_info.INFO_MT_mesh_add.remove(menu_func_z)
+    space_info.INFO_MT_mesh_add.remove(menu_func_xyz)
 
 if __name__ == "__main__":
     register()
