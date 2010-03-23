@@ -109,6 +109,7 @@ class VIEW3D_OT_recall_object_operator(bpy.types.Operator):
             if 'recall' in ob:
                 r = ob['recall'].convert_to_pyobject()
 
+                # Check if an operator string was defined.
                 if "recall_op" in r:
                     op_idname = r["recall_op"]
 
@@ -123,8 +124,12 @@ class VIEW3D_OT_recall_object_operator(bpy.types.Operator):
                         # We need to remove the "recall_op" string.
                         del args["recall_op"]
 
-                        # Execute the operator.
+                        # Execute the operator with the unpacked parameters.
                         op(**args)
+
+                    else:
+                        print("No operator found for idname " + op_idname)
+                        return {'CANCELLED'}
 
                     return {'FINISHED'}
 
