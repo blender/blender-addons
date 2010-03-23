@@ -24,7 +24,7 @@ from bpy.props import *
 bl_addon_info = {
     'name': 'Add Mesh: Pipe Joints',
     'author': 'Buerbaum Martin (Pontiac)',
-    'version': '0.9.10',
+    'version': '0.10',
     'blender': (2, 5, 3),
     'location': 'View3D > Add > Mesh > Pipe Joint',
     'url':
@@ -46,6 +46,8 @@ The functionality can then be accessed via the
 Note: Currently only the "Elbow" type supports odd number of vertices.
 
 Version history:
+v0.10 - Store "recall" properties in the created objects.
+    Align the geometry to the view if the user preference says so.
 v0.9.10 - Use bl_addon_info for Add-On information.
 v0.9.9 - Changed the script so it can be managed from the "Add-Ons" tab in
     the user preferences.
@@ -110,6 +112,33 @@ mesh.transform(rotation_matrix)
 """
 
 
+# Stores the values of a list of properties in a
+# property group (named like the operator) in the object.
+# Always replaces any existing property group with the same name!
+# @todo: Should we do this in EDIT Mode? Sounds dangerous.
+def obj_store_recall_properties(ob, op, prop_list):
+    if ob and op and prop_list:
+        #print("Storing recall data for operator: " + op.bl_idname)  # DEBUG
+
+        # Store new recall properties.
+        prop_list['recall_op'] = op.bl_idname
+        ob['recall'] = prop_list
+
+
+# Apply view rotation to objects if "Align To" for new objects
+# was set to "VIEW" in the User Preference.
+def apply_view_rotation(context, ob):
+    align = bpy.context.user_preferences.edit.object_align
+
+    if (context.space_data.type == 'VIEW_3D'
+        and align == 'VIEW'):
+            view3d = context.space_data
+            region = view3d.region_3d
+            viewMatrix = region.view_matrix
+            rot = viewMatrix.rotation_part()
+            ob.rotation_euler = rot.invert().to_euler()
+
+
 def createFaces(vertIdx1, vertIdx2):
     '''
     A very simple "bridge" tool.
@@ -139,8 +168,10 @@ def createFaces(vertIdx1, vertIdx2):
     return faces
 
 
-def createObject(scene, verts, faces, name):
+def createObject(context, verts, faces, name):
     '''Creates Meshes & Objects for the given lists of vertices and faces.'''
+
+    scene = context.scene
 
     # Create new mesh
     mesh = bpy.data.meshes.new(name)
@@ -176,6 +207,8 @@ def createObject(scene, verts, faces, name):
 
     obj_act = scene.objects.active
 
+    apply_view_rotation(context, ob_new)
+
     if obj_act and obj_act.mode == 'EDIT':
         # We are in EditMode, switch to ObjectMode.
         bpy.ops.object.mode_set(mode='OBJECT')
@@ -196,6 +229,8 @@ def createObject(scene, verts, faces, name):
         # We are in ObjectMode.
         # Make the new object the active one.
         scene.objects.active = ob_new
+
+    return ob_new
 
 
 class AddElbowJoint(bpy.types.Operator):
@@ -292,7 +327,16 @@ class AddElbowJoint(bpy.types.Operator):
         faces.extend(createFaces(loop1, loop2))
         faces.extend(createFaces(loop2, loop3))
 
-        createObject(context.scene, verts, faces, "Elbow Joint")
+        obj = createObject(context, verts, faces, "Elbow Joint")
+
+        # Store 'recall' properties in the object.
+        recall_prop_list = {
+            "radius": radius,
+            "div": div,
+            "angle": angle,
+            "startLength": startLength,
+            "endLength": endLength}
+        obj_store_recall_properties(obj, self, recall_prop_list)
 
         return {'FINISHED'}
 
@@ -470,7 +514,17 @@ class AddTeeJoint(bpy.types.Operator):
         faces.extend(createFaces(loopJoint2, loopArm))
         faces.extend(createFaces(loopJoint3, loopMainEnd))
 
-        createObject(context.scene, verts, faces, "Tee Joint")
+        obj = createObject(context, verts, faces, "Tee Joint")
+
+        # Store 'recall' properties in the object.
+        recall_prop_list = {
+            "radius": radius,
+            "div": div,
+            "angle": angle,
+            "startLength": startLength,
+            "endLength": endLength,
+            "branchLength": branchLength}
+        obj_store_recall_properties(obj, self, recall_prop_list)
 
         return {'FINISHED'}
 
@@ -663,7 +717,18 @@ class AddWyeJoint(bpy.types.Operator):
         faces.extend(createFaces(loopJoint2, loopArm1))
         faces.extend(createFaces(loopJoint3, loopArm2))
 
-        createObject(context.scene, verts, faces, "Wye Joint")
+        obj = createObject(context, verts, faces, "Wye Joint")
+
+        # Store 'recall' properties in the object.
+        recall_prop_list = {
+            "radius": radius,
+            "div": div,
+            "angle1": angle1,
+            "angle2": angle2,
+            "startLength": startLength,
+            "branch1Length": branch1Length,
+            "branch2Length": branch2Length}
+        obj_store_recall_properties(obj, self, recall_prop_list)
 
         return {'FINISHED'}
 
@@ -917,7 +982,20 @@ class AddCrossJoint(bpy.types.Operator):
         faces.extend(createFaces(loopJoint3, loopArm2))
         faces.extend(createFaces(loopJoint4, loopArm3))
 
-        createObject(context.scene, verts, faces, "Cross Joint")
+        obj = createObject(context, verts, faces, "Cross Joint")
+
+        # Store 'recall' properties in the object.
+        recall_prop_list = {
+            "radius": radius,
+            "div": div,
+            "angle1": angle1,
+            "angle2": angle2,
+            "angle3": angle3,
+            "startLength": startLength,
+            "branch1Length": branch1Length,
+            "branch2Length": branch2Length,
+            "branch3Length": branch3Length}
+        obj_store_recall_properties(obj, self, recall_prop_list)
 
         return {'FINISHED'}
 
@@ -1074,7 +1152,15 @@ class AddNJoint(bpy.types.Operator):
                 createFaces(loopsJoints[loopIdx],
                 loopsEndCircles[loopIdx]))
 
-        createObject(context.scene, verts, faces, "N Joint")
+        obj = createObject(context, verts, faces, "N Joint")
+
+        # Store 'recall' properties in the object.
+        recall_prop_list = {
+            "radius": radius,
+            "div": div,
+            "number": number,
+            "length": length}
+        obj_store_recall_properties(obj, self, recall_prop_list)
 
         return {'FINISHED'}
 
