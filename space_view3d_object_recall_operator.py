@@ -24,7 +24,7 @@ from bpy.props import *
 bl_addon_info = {
     'name': 'Recall object operator',
     'author': 'Buerbaum Martin (Pontiac)',
-    'version': '0.1',
+    'version': '0.1.1',
     'blender': (2, 5, 3),
     'location': 'View3D > Tool Shelf > Recall object creation operator',
     'url': '',
@@ -53,6 +53,10 @@ i.e. The new object will be created as if it's created
 manually at the location of the exiting object.
 This also means that "align to view" may affect
 rotation of the new object.
+
+v0.1.1 - Removed changes to 3D cursor.
+    Removed removal of objects (Has to be handled in "Add Mesh" operator now.)
+v0.1 - Initial revision
 """
 
 
@@ -110,13 +114,6 @@ class VIEW3D_OT_recall_object_operator(bpy.types.Operator):
 
                     print("Recalling operator: " + op_idname)
 
-                    # Move the 3D cursor to the object coordinates
-                    bpy.context.scene.cursor_location = ob.location
-
-                    # Remove existing object.
-                    # This assumes only the obj that is replaced is selected.
-                    bpy.ops.object.delete()
-
                     # Find and recall operator
                     op = get_operator_by_idname(op_idname)
                     if op:
@@ -152,6 +149,7 @@ class VIEW3D_OT_recall_panel(bpy.types.Panel):
 
         # Only show this panel if the object has "recall" data.
         if (ob
+            and context.selected_objects
             and len(context.selected_objects) == 1
             and ob == context.selected_objects[0]
             and 'recall' in ob):
@@ -163,11 +161,9 @@ class VIEW3D_OT_recall_panel(bpy.types.Panel):
         layout = self.layout
         layout.operator("view3d.recall_object_operator",
             text="Edit (replace)")
-        #description="Replaced the currently selected object with a" \
-        #" new one created with the same parameters."
-
 
 ################################
+
 
 def register():
     # Register the operators/menus.
