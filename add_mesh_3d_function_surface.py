@@ -24,7 +24,7 @@ from bpy.props import *
 bl_addon_info = {
     'name': 'Add Mesh: 3D Function Surfaces',
     'author': 'Buerbaum Martin (Pontiac)',
-    'version': '0.3',
+    'version': '0.3.1',
     'blender': (2, 5, 3),
     'location': 'View3D > Add > Mesh > Z Function Surface &' \
         ' XYZ Function Surface',
@@ -62,6 +62,8 @@ and
 menu.
 
 Version history:
+v0.3.1 - Use hidden "edit" property for "recall" operator.
+    Bugfix: Z Function was mixing up div_x and div_y
 v0.3 - X,Y,Z Function Surface (by Ed Mackey & tuga3d).
     Renamed old function to "Z Function Surface".
     Align the geometry to the view if the user preference says so.
@@ -150,7 +152,7 @@ def createFaces(vertIdx1, vertIdx2, ring):
     return faces
 
 
-def createObject(context, verts, faces, name):
+def createObject(context, verts, faces, name, edit):
     '''Creates Meshes & Objects for the given lists of vertices and faces.'''
 
     scene = context.scene
@@ -170,42 +172,56 @@ def createObject(context, verts, faces, name):
     # bpy.types.Mesh.html#bpy.types.Mesh.from_pydata
     mesh.from_pydata(verts, [], faces)
 
-    # ugh - Deselect all objects.
-    for ob in scene.objects:
-        ob.selected = False
+    # Deselect all objects.
+    bpy.ops.object.select_all(action='DESELECT')
 
     # Update mesh geometry after adding stuff.
     mesh.update()
 
     # Create a new object.
-    ob_new = bpy.data.objects.new(name, mesh)
+    if edit:
+        # Recreate geometry of existing object
+        obj_act = context.active_object
+        ob_new = obj_act
+        
+        bpy.ops.object.mode_set(mode='EDIT')
+        bpy.ops.mesh.select_all(action='SELECT')
+        bpy.ops.mesh.delete(type='VERT')
+        bpy.ops.object.mode_set(mode='OBJECT')
+        
+        ob_new.data = mesh
 
-    # Link new object to the given scene and select it.
-    scene.objects.link(ob_new)
-    ob_new.selected = True
+    else:
+        # Create new object
+        ob_new = bpy.data.objects.new(name, mesh)
 
-    # Place the object at the 3D cursor location.
-    ob_new.location = scene.cursor_location
+        # Link new object to the given scene and select it.
+        scene.objects.link(ob_new)
+        ob_new.selected = True
 
-    obj_act = scene.objects.active
+        # Place the object at the 3D cursor location.
+        ob_new.location = scene.cursor_location
 
-    apply_view_rotation(context, ob_new)
+        obj_act = scene.objects.active
+    
+        apply_view_rotation(context, ob_new)
 
     if obj_act and obj_act.mode == 'EDIT':
-        # We are in EditMode, switch to ObjectMode.
-        bpy.ops.object.mode_set(mode='OBJECT')
+        if not edit:
+            # We are in EditMode, switch to ObjectMode.
+            bpy.ops.object.mode_set(mode='OBJECT')
 
-        # Select the active object as well.
-        obj_act.selected = True
+            # Select the active object as well.
+            obj_act.selected = True
 
-        # Apply location of new object.
-        scene.update()
+            # Apply location of new object.
+            scene.update()
 
-        # Join new object into the active.
-        bpy.ops.object.join()
+            # Join new object into the active.
+            bpy.ops.object.join()
 
-        # Switching back to EditMode.
-        bpy.ops.object.mode_set(mode='EDIT')
+            # Switching back to EditMode.
+            bpy.ops.object.mode_set(mode='EDIT')
 
     else:
         # We are in ObjectMode.
@@ -220,6 +236,12 @@ class AddZFunctionSurface(bpy.types.Operator):
     bl_idname = "mesh.primitive_z_function_surface"
     bl_label = "Add Z Function Surface"
     bl_options = {'REGISTER', 'UNDO'}
+
+    # edit - Whether to add or update.
+    edit = BoolProperty(name="",
+        description="", 
+        default=False,
+        options={'HIDDEN'})
 
     equation = StringProperty(name="Z Equation",
         description="Equation for z=f(x,y)",
@@ -250,6 +272,7 @@ class AddZFunctionSurface(bpy.types.Operator):
         unit="LENGTH")
 
     def execute(self, context):
+        edit = self.properties.edit
         equation = self.properties.equation
         div_x = self.properties.div_x
         div_y = self.properties.div_y
@@ -304,13 +327,14 @@ class AddZFunctionSurface(bpy.types.Operator):
 
             edgeloop_prev = edgeloop_cur
 
-        obj = createObject(context, verts, faces, "Z Function")
+        obj = createObject(context, verts, faces, "Z Function", edit)
 
         # Store 'recall' properties in the object.
         recall_prop_list = {
+            "edit": True,
             "equation": equation,
             "div_x": div_x,
-            "div_x": div_y,
+            "div_y": div_y,
             "size_x": size_x,
             "size_y": size_y}
         obj_store_recall_properties(obj, self, recall_prop_list)
@@ -445,6 +469,12 @@ class AddXYZFunctionSurface(bpy.types.Operator):
     bl_label = "Add X,Y,Z Function Surface"
     bl_options = {'REGISTER', 'UNDO'}
 
+    # edit - Whether to add or update.
+    edit = BoolProperty(name="",
+        description="", 
+        default=False,
+        options={'HIDDEN'})
+
     x_eq = StringProperty(name="X Equation",
         description="Equation for x=f(u,v)",
         default="1.2**v*(sin(u)**2 *sin(v))")
@@ -517,10 +547,11 @@ class AddXYZFunctionSurface(bpy.types.Operator):
                             props.range_v_step,
                             props.wrap_v)
 
-        obj = createObject(context, verts, faces, "XYZ Function")
+        obj = createObject(context, verts, faces, "XYZ Function", props.edit)
 
         # Store 'recall' properties in the object.
         recall_prop_list = {
+            "edit": True,
             "x_eq": props.x_eq,
             "y_eq": props.y_eq,
             "z_eq": props.z_eq,
