@@ -199,12 +199,12 @@ def createObject(context, verts, faces, name, edit):
         # Recreate geometry of existing object
         obj_act = context.active_object
         ob_new = obj_act
-        
+
         bpy.ops.object.mode_set(mode='EDIT')
         bpy.ops.mesh.select_all(action='SELECT')
         bpy.ops.mesh.delete(type='VERT')
         bpy.ops.object.mode_set(mode='OBJECT')
-        
+
         ob_new.data = mesh
 
         ob_new.selected = True
@@ -221,7 +221,7 @@ def createObject(context, verts, faces, name, edit):
         ob_new.location = scene.cursor_location
 
         obj_act = scene.objects.active
-    
+
         apply_view_rotation(context, ob_new)
 
     if obj_act and obj_act.mode == 'EDIT':
@@ -258,7 +258,7 @@ class AddElbowJoint(bpy.types.Operator):
 
     # edit - Whether to add or update.
     edit = BoolProperty(name="",
-        description="", 
+        description="",
         default=False,
         options={'HIDDEN'})
 
@@ -376,7 +376,7 @@ class AddTeeJoint(bpy.types.Operator):
 
     # edit - Whether to add or update.
     edit = BoolProperty(name="",
-        description="", 
+        description="",
         default=False,
         options={'HIDDEN'})
 
@@ -571,7 +571,7 @@ class AddWyeJoint(bpy.types.Operator):
 
     # edit - Whether to add or update.
     edit = BoolProperty(name="",
-        description="", 
+        description="",
         default=False,
         options={'HIDDEN'})
 
@@ -785,7 +785,7 @@ class AddCrossJoint(bpy.types.Operator):
 
     # edit - Whether to add or update.
     edit = BoolProperty(name="",
-        description="", 
+        description="",
         default=False,
         options={'HIDDEN'})
 
@@ -1061,7 +1061,7 @@ class AddNJoint(bpy.types.Operator):
 
     # edit - Whether to add or update.
     edit = BoolProperty(name="",
-        description="", 
+        description="",
         default=False,
         options={'HIDDEN'})
 
