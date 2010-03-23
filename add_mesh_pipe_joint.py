@@ -24,7 +24,7 @@ from bpy.props import *
 bl_addon_info = {
     'name': 'Add Mesh: Pipe Joints',
     'author': 'Buerbaum Martin (Pontiac)',
-    'version': '0.10',
+    'version': '0.10.1',
     'blender': (2, 5, 3),
     'location': 'View3D > Add > Mesh > Pipe Joint',
     'url':
@@ -46,6 +46,7 @@ The functionality can then be accessed via the
 Note: Currently only the "Elbow" type supports odd number of vertices.
 
 Version history:
+v0.10.1 -  Use hidden "edit" property for "recall" operator.
 v0.10 - Store "recall" properties in the created objects.
     Align the geometry to the view if the user preference says so.
 v0.9.10 - Use bl_addon_info for Add-On information.
@@ -168,7 +169,7 @@ def createFaces(vertIdx1, vertIdx2):
     return faces
 
 
-def createObject(context, verts, faces, name):
+def createObject(context, verts, faces, name, edit):
     '''Creates Meshes & Objects for the given lists of vertices and faces.'''
 
     scene = context.scene
@@ -188,42 +189,57 @@ def createObject(context, verts, faces, name):
     # bpy.types.Mesh.html#bpy.types.Mesh.from_pydata
     mesh.from_pydata(verts, [], faces)
 
-    # ugh - Deselect all objects.
-    for ob in scene.objects:
-        ob.selected = False
+    # Deselect all objects.
+    bpy.ops.object.select_all(action='DESELECT')
 
     # Update mesh geometry after adding stuff.
     mesh.update()
 
-    # Create a new object.
-    ob_new = bpy.data.objects.new(name, mesh)
+    if edit:
+        # Recreate geometry of existing object
+        obj_act = context.active_object
+        ob_new = obj_act
+        
+        bpy.ops.object.mode_set(mode='EDIT')
+        bpy.ops.mesh.select_all(action='SELECT')
+        bpy.ops.mesh.delete(type='VERT')
+        bpy.ops.object.mode_set(mode='OBJECT')
+        
+        ob_new.data = mesh
 
-    # Link new object to the given scene and select it.
-    scene.objects.link(ob_new)
-    ob_new.selected = True
+        ob_new.selected = True
 
-    # Place the object at the 3D cursor location.
-    ob_new.location = scene.cursor_location
+    else:
+        # Create new object
+        ob_new = bpy.data.objects.new(name, mesh)
 
-    obj_act = scene.objects.active
+        # Link new object to the given scene and select it.
+        scene.objects.link(ob_new)
+        ob_new.selected = True
 
-    apply_view_rotation(context, ob_new)
+        # Place the object at the 3D cursor location.
+        ob_new.location = scene.cursor_location
+
+        obj_act = scene.objects.active
+    
+        apply_view_rotation(context, ob_new)
 
     if obj_act and obj_act.mode == 'EDIT':
-        # We are in EditMode, switch to ObjectMode.
-        bpy.ops.object.mode_set(mode='OBJECT')
+        if not edit:
+            # We are in EditMode, switch to ObjectMode.
+            bpy.ops.object.mode_set(mode='OBJECT')
 
-        # Select the active object as well.
-        obj_act.selected = True
+            # Select the active object as well.
+            obj_act.selected = True
 
-        # Apply location of new object.
-        scene.update()
+            # Apply location of new object.
+            scene.update()
 
-        # Join new object into the active.
-        bpy.ops.object.join()
+            # Join new object into the active.
+            bpy.ops.object.join()
 
-        # Switching back to EditMode.
-        bpy.ops.object.mode_set(mode='EDIT')
+            # Switching back to EditMode.
+            bpy.ops.object.mode_set(mode='EDIT')
 
     else:
         # We are in ObjectMode.
@@ -239,6 +255,12 @@ class AddElbowJoint(bpy.types.Operator):
     bl_idname = "mesh.primitive_elbow_joint_add"
     bl_label = "Add Pipe Elbow"
     bl_options = {'REGISTER', 'UNDO'}
+
+    # edit - Whether to add or update.
+    edit = BoolProperty(name="",
+        description="", 
+        default=False,
+        options={'HIDDEN'})
 
     radius = FloatProperty(name="Radius",
         description="The radius of the pipe.",
@@ -272,6 +294,8 @@ class AddElbowJoint(bpy.types.Operator):
         unit="LENGTH")
 
     def execute(self, context):
+        edit = self.properties.edit
+
         radius = self.properties.radius
         div = self.properties.div
 
@@ -327,10 +351,11 @@ class AddElbowJoint(bpy.types.Operator):
         faces.extend(createFaces(loop1, loop2))
         faces.extend(createFaces(loop2, loop3))
 
-        obj = createObject(context, verts, faces, "Elbow Joint")
+        obj = createObject(context, verts, faces, "Elbow Joint", edit)
 
         # Store 'recall' properties in the object.
         recall_prop_list = {
+            "edit": True,
             "radius": radius,
             "div": div,
             "angle": angle,
@@ -348,6 +373,12 @@ class AddTeeJoint(bpy.types.Operator):
     bl_idname = "mesh.primitive_tee_joint_add"
     bl_label = "Add Pipe Tee-Joint"
     bl_options = {'REGISTER', 'UNDO'}
+
+    # edit - Whether to add or update.
+    edit = BoolProperty(name="",
+        description="", 
+        default=False,
+        options={'HIDDEN'})
 
     radius = FloatProperty(name="Radius",
         description="The radius of the pipe.",
@@ -391,6 +422,8 @@ class AddTeeJoint(bpy.types.Operator):
         unit="LENGTH")
 
     def execute(self, context):
+        edit = self.properties.edit
+
         radius = self.properties.radius
         div = self.properties.div
 
@@ -514,10 +547,11 @@ class AddTeeJoint(bpy.types.Operator):
         faces.extend(createFaces(loopJoint2, loopArm))
         faces.extend(createFaces(loopJoint3, loopMainEnd))
 
-        obj = createObject(context, verts, faces, "Tee Joint")
+        obj = createObject(context, verts, faces, "Tee Joint", edit)
 
         # Store 'recall' properties in the object.
         recall_prop_list = {
+            "edit": True,
             "radius": radius,
             "div": div,
             "angle": angle,
@@ -534,6 +568,12 @@ class AddWyeJoint(bpy.types.Operator):
     bl_idname = "mesh.primitive_wye_joint_add"
     bl_label = "Add Pipe Wye-Joint"
     bl_options = {'REGISTER', 'UNDO'}
+
+    # edit - Whether to add or update.
+    edit = BoolProperty(name="",
+        description="", 
+        default=False,
+        options={'HIDDEN'})
 
     radius = FloatProperty(name="Radius",
         description="The radius of the pipe.",
@@ -583,6 +623,8 @@ class AddWyeJoint(bpy.types.Operator):
         unit="LENGTH")
 
     def execute(self, context):
+        edit = self.properties.edit
+
         radius = self.properties.radius
         div = self.properties.div
 
@@ -717,10 +759,11 @@ class AddWyeJoint(bpy.types.Operator):
         faces.extend(createFaces(loopJoint2, loopArm1))
         faces.extend(createFaces(loopJoint3, loopArm2))
 
-        obj = createObject(context, verts, faces, "Wye Joint")
+        obj = createObject(context, verts, faces, "Wye Joint", edit)
 
         # Store 'recall' properties in the object.
         recall_prop_list = {
+            "edit": True,
             "radius": radius,
             "div": div,
             "angle1": angle1,
@@ -739,6 +782,12 @@ class AddCrossJoint(bpy.types.Operator):
     bl_idname = "mesh.primitive_cross_joint_add"
     bl_label = "Add Pipe Cross-Joint"
     bl_options = {'REGISTER', 'UNDO'}
+
+    # edit - Whether to add or update.
+    edit = BoolProperty(name="",
+        description="", 
+        default=False,
+        options={'HIDDEN'})
 
     radius = FloatProperty(name="Radius",
         description="The radius of the pipe.",
@@ -798,6 +847,8 @@ class AddCrossJoint(bpy.types.Operator):
         unit="LENGTH")
 
     def execute(self, context):
+        edit = self.properties.edit
+
         radius = self.properties.radius
         div = self.properties.div
 
@@ -982,10 +1033,11 @@ class AddCrossJoint(bpy.types.Operator):
         faces.extend(createFaces(loopJoint3, loopArm2))
         faces.extend(createFaces(loopJoint4, loopArm3))
 
-        obj = createObject(context, verts, faces, "Cross Joint")
+        obj = createObject(context, verts, faces, "Cross Joint", edit)
 
         # Store 'recall' properties in the object.
         recall_prop_list = {
+            "edit": True,
             "radius": radius,
             "div": div,
             "angle1": angle1,
@@ -1006,6 +1058,12 @@ class AddNJoint(bpy.types.Operator):
     bl_idname = "mesh.primitive_n_joint_add"
     bl_label = "Add Pipe N-Joint"
     bl_options = {'REGISTER', 'UNDO'}
+
+    # edit - Whether to add or update.
+    edit = BoolProperty(name="",
+        description="", 
+        default=False,
+        options={'HIDDEN'})
 
     radius = FloatProperty(name="Radius",
         description="The radius of the pipe.",
@@ -1031,6 +1089,7 @@ class AddNJoint(bpy.types.Operator):
         unit="LENGTH")
 
     def execute(self, context):
+        edit = self.properties.edit
         radius = self.properties.radius
         div = self.properties.div
         number = self.properties.number
@@ -1152,10 +1211,11 @@ class AddNJoint(bpy.types.Operator):
                 createFaces(loopsJoints[loopIdx],
                 loopsEndCircles[loopIdx]))
 
-        obj = createObject(context, verts, faces, "N Joint")
+        obj = createObject(context, verts, faces, "N Joint", edit)
 
         # Store 'recall' properties in the object.
         recall_prop_list = {
+            "edit": True,
             "radius": radius,
             "div": div,
             "number": number,
