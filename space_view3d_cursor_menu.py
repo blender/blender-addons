@@ -58,7 +58,7 @@ bl_addon_info = {
     'blender': (2, 5, 3),
     'location': 'View3D > Mouse > Menu ',
     'url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/Scripts/3d_Cursor_Menu',
-    'category': '3D View'}
+    'category': '3d View'}
 
 import bpy
 from bpy import *
