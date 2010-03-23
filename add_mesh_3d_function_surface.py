@@ -178,7 +178,6 @@ def createObject(context, verts, faces, name, edit):
     # Update mesh geometry after adding stuff.
     mesh.update()
 
-    # Create a new object.
     if edit:
         # Recreate geometry of existing object
         obj_act = context.active_object
@@ -190,6 +189,8 @@ def createObject(context, verts, faces, name, edit):
         bpy.ops.object.mode_set(mode='OBJECT')
         
         ob_new.data = mesh
+
+        ob_new.selected = True
 
     else:
         # Create new object
