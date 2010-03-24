@@ -135,8 +135,6 @@ class VIEW3D_OT_recall_object_operator(bpy.types.Operator):
                         print("No operator found for idname " + op_idname)
                         return {'CANCELLED'}
 
-                    return {'FINISHED'}
-
                 else:
                     print("No operator found in recall data!")
                     return {'CANCELLED'}
@@ -144,6 +142,10 @@ class VIEW3D_OT_recall_object_operator(bpy.types.Operator):
             else:
                 print("No recall information found in object!")
                 return {'CANCELLED'}
+
+            return {'FINISHED'}
+
+        return {'CANCELLED'}
 
 
 class VIEW3D_OT_edit_object_parameters(bpy.types.Panel):
