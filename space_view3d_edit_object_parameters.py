@@ -22,17 +22,19 @@ from math import *
 from bpy.props import *
 
 bl_addon_info = {
-    'name': 'Recall object operator',
+    'name': '3D View: Edit Object Parameters',
     'author': 'Buerbaum Martin (Pontiac)',
-    'version': '0.1.1',
+    'version': '0.1.2',
     'blender': (2, 5, 3),
-    'location': 'View3D > Tool Shelf > Recall object creation operator',
+    'location': 'View3D > Tool Shelf > Edit Object Parameters',
     'url': '',
     'category': '3D View'}
 
 
 __bpydoc__ = """
-Recall object operator
+Edit object parameters
+
+Recalls the "add mesh" object operator.
 
 Generic functions to re-create an object that was created
 with a "Add Mesh" operator.
@@ -43,7 +45,7 @@ in the object properties for this to work.
 Usage:
 
 Select an "recall enabled" object and click the "Edit" button
-in the "recall" apnel of the Tool Shelf.
+in the "Edit Object Parameters" panel of the Tool Shelf.
 
 Known issues:
 
@@ -54,6 +56,8 @@ manually at the location of the exiting object.
 This also means that "align to view" may affect
 rotation of the new object.
 
+v0.1.2 - Changed the name of the operator(s) ('Edit object parameters')
+     Added warning about mesh-deletion.
 v0.1.1 - Removed changes to 3D cursor.
     Removed removal of objects (Has to be handled in "Add Mesh" operator now.)
 v0.1 - Initial revision
@@ -142,11 +146,11 @@ class VIEW3D_OT_recall_object_operator(bpy.types.Operator):
                 return {'CANCELLED'}
 
 
-class VIEW3D_OT_recall_panel(bpy.types.Panel):
+class VIEW3D_OT_edit_object_parameters(bpy.types.Panel):
     bl_space_type = "VIEW_3D"
     bl_region_type = "TOOLS"
     bl_context = "objectmode"
-    bl_label = "Recall object creation operator"
+    bl_label = "Edit Object Parameters"
 
     def poll(self, context):
         scene = context.scene
@@ -164,8 +168,15 @@ class VIEW3D_OT_recall_panel(bpy.types.Panel):
 
     def draw(self, context):
         layout = self.layout
-        layout.operator("view3d.recall_object_operator",
-            text="Edit (replace)")
+        row = layout.row()
+        row.operator("view3d.recall_object_operator",
+            text="Edit")
+
+        row = layout.row()
+        row.label(text="Warning:",
+            icon='INFO')
+        row = layout.row()
+        row.label(text="Manual changes to the mesh geometry will be lost!")
 
 ################################
 
@@ -173,13 +184,13 @@ class VIEW3D_OT_recall_panel(bpy.types.Panel):
 def register():
     # Register the operators/menus.
     bpy.types.register(VIEW3D_OT_recall_object_operator)
-    bpy.types.register(VIEW3D_OT_recall_panel)
+    bpy.types.register(VIEW3D_OT_edit_object_parameters)
 
 
 def unregister():
     # Unregister the operators/menus.
     bpy.types.unregister(VIEW3D_OT_recall_object_operator)
-    bpy.types.unregister(VIEW3D_OT_recall_panel)
+    bpy.types.unregister(VIEW3D_OT_edit_object_parameters)
 
 if __name__ == "__main__":
     register()
