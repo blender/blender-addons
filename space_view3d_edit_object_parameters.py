@@ -27,7 +27,8 @@ bl_addon_info = {
     'version': '0.1.2',
     'blender': (2, 5, 3),
     'location': 'View3D > Tool Shelf > Edit Object Parameters',
-    'url': '',
+    'url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/' \
+        'Scripts/3D_interaction/Edit_Object_Parameters',
     'category': '3D View'}
 
 
