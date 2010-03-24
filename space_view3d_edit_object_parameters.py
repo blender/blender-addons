@@ -24,7 +24,7 @@ from bpy.props import *
 bl_addon_info = {
     'name': '3D View: Edit Object Parameters',
     'author': 'Buerbaum Martin (Pontiac)',
-    'version': '0.1.2',
+    'version': '0.1.3',
     'blender': (2, 5, 3),
     'location': 'View3D > Tool Shelf > Edit Object Parameters',
     'url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/' \
@@ -57,6 +57,7 @@ manually at the location of the exiting object.
 This also means that "align to view" may affect
 rotation of the new object.
 
+v0.1.3 - Display operator name and stored recall parameters.
 v0.1.2 - Changed the name of the operator(s) ('Edit object parameters')
      Added warning about mesh-deletion.
 v0.1.1 - Removed changes to 3D cursor.
@@ -94,6 +95,17 @@ def get_operator_by_idname(bl_idname):
         return None
 
     return op
+
+
+# Find operator class by bl_idname.
+# <SPACE>_OT_xxxx
+def get_operator_class_by_idname(bl_idname):
+    type = getattr(bpy.types, bl_idname, None)
+
+    if not type:
+        return None
+
+    return type
 
 
 class VIEW3D_OT_recall_object_operator(bpy.types.Operator):
@@ -180,6 +192,56 @@ class VIEW3D_OT_edit_object_parameters(bpy.types.Panel):
             icon='INFO')
         row = layout.row()
         row.label(text="Manual changes to the mesh geometry will be lost!")
+
+        scene = context.scene
+        ob = scene.objects.active
+
+        r = ob['recall']
+
+        row = layout.row()
+
+        if "recall_op" in r:
+            op_idname = r["recall_op"]
+
+            # Find and recall operator
+            type = get_operator_class_by_idname(op_idname)
+
+            if type:
+                row.label(text="Operator:")
+
+                box = layout.column().box()
+                column = box.column()
+                row = column.row()
+
+                row.label(text=type.bl_label)
+
+                if len(r) > 1:
+                    row = layout.row()
+                    row.label(text="Properties:")
+
+                    box = layout.column().box()
+                    column = box.column()
+                    row = column.row()
+
+                    for prop_name in r:
+                        if prop_name != "recall_op":
+                            row = column.row()
+                            name = prop_name
+                            if hasattr(type, prop_name):
+                                at = getattr(type, prop_name)
+                                prop_full_name = at[1]["name"]
+                                if prop_full_name != "":
+                                    name = prop_full_name
+
+                            row.label(text=name)
+                            row.label(text=str(r[prop_name]))
+
+            else:
+                row.label(text="Could not find operator " + op_idname + "!",
+                    icon='ERROR')
+        else:
+            row.label(text="Could not find operator info.",
+                icon='ERROR')
 
 ################################
 
