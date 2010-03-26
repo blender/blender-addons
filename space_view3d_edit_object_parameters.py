@@ -84,7 +84,7 @@ def get_operator_by_idname(bl_idname):
 
         # Splitting by _OT_ worked.
         # Make space type lowercase
-        list[0].lower()
+        list[0] = list[0].lower()
 
     space_type = getattr(bpy.ops, list[0], None)
     if not space_type:
