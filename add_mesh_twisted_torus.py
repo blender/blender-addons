@@ -132,7 +132,7 @@ class AddTwistedTorus(bpy.types.Operator):
 
     twists = IntProperty(name="Twists",
     description="Number of twists of the torus",
-    default=0, min=0, max=5)
+    default=0, min=0, max=10)
 
     use_abso = BoolProperty(name="Use Int+Ext Controls",
     description="Use the Int / Ext controls for torus dimensions",
