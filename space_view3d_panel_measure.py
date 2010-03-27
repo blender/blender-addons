@@ -28,7 +28,8 @@ bl_addon_info = {
     'version': '0.6.3',
     'blender': (2, 5, 3),
     'location': 'View3D > Properties > Measure',
-    'url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/Scripts/Panel_Measure',
+    'url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/' \
+	    'Scripts/3D_interaction/Panel_Measure',
     'category': '3D View'}
 
 __bpydoc__ = """

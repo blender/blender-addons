@@ -26,7 +26,8 @@ bl_addon_info = {
     'version': '0.10',
     'blender': (2, 5, 3),
     'location': 'View3D > Add > Mesh ',
-    'url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/Scripts/Add_Twisted_Torus',
+    'url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/' \
+	    'Scripts/Add_Mesh/Add_Twisted_Torus',
     'category': 'Add Mesh'}
 
 

@@ -29,7 +29,7 @@ bl_addon_info = {
     'location': 'View3D > Add > Mesh > Z Function Surface &' \
         ' XYZ Function Surface',
     'url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/' \
-        'Scripts/Add_3d_Function_Surface',
+        'Scripts/Add_Mesh/Add_3d_Function_Surface',
     'category': 'Add Mesh'}
 
 # More Links:
