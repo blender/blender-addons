@@ -28,6 +28,7 @@ bl_addon_info = {
     'version': '0.6.3',
     'blender': (2, 5, 3),
     'location': 'View3D > Properties > Measure',
+    'description': 'Measure distances between objects',
     'url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/' \
 	    'Scripts/3D_interaction/Panel_Measure',
     'category': '3D View'}

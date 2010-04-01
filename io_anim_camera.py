@@ -24,6 +24,7 @@ bl_addon_info = {
     'version': '0.1',
     'blender': (2, 5, 3),
     'location': 'File > Export > Camera Animation',
+    'description': 'Export Cameras & Markers',
     'url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/' \
            'Scripts/File_I-O/Camera_Animation',
     'category': 'Import/Export'}

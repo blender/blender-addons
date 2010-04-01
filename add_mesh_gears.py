@@ -30,6 +30,7 @@ bl_addon_info = {
     'version': '2.1',
     'blender': (2, 5, 3),
     'location': 'View3D > Add > Mesh ',
+    'description': 'Adds a mesh Gear to the Add Mesh menu',
     'url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/' \
 	    'Scripts/Add_Mesh/Add_Gear',
     'category': 'Add Mesh'}
