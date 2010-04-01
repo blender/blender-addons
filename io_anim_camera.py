@@ -33,7 +33,7 @@ bl_addon_info = {
 import bpy
 
 
-def writeCameras(context, path, start_frame, end_frame, only_selected=False):
+def writeCameras(context, path, frame_start, frame_end, only_selected=False):
 
     data_attrs = ['lens', 'shift_x', 'shift_y', 'dof_distance', 'clip_start', 'clip_end', 'draw_size']
     obj_attrs = ['restrict_render']
@@ -52,11 +52,11 @@ def writeCameras(context, path, start_frame, end_frame, only_selected=False):
 
         cameras.append((obj, obj.data))
 
-    frame_range = range(start_frame, end_frame + 1)
+    frame_range = range(frame_start, frame_end + 1)
 
     fw("cameras = {}\n")
     fw("scene = bpy.context.scene\n")
-    fw("frame = scene.current_frame - 1\n")
+    fw("frame = scene.frame_current - 1\n")
     fw("\n")
 
     for obj, obj_data in cameras:
@@ -122,22 +122,22 @@ class CameraExporter(bpy.types.Operator):
     filename = StringProperty(name="File Name", description="Name of the file.")
     directory = StringProperty(name="Directory", description="Directory of the file.")
 
-    start_frame = IntProperty(name="Start Frame",
+    frame_start = IntProperty(name="Start Frame",
             description="Start frame for export",
             default=1, min=1, max=300000)
-    end_frame = IntProperty(name="End Frame",
+    frame_end = IntProperty(name="End Frame",
             description="End frame for export",
             default=250, min=1, max=300000)
     only_selected = BoolProperty(name="Only Selected",
             default=True)
 
     def execute(self, context):
-        writeCameras(context, self.properties.path, self.properties.start_frame, self.properties.end_frame, self.properties.only_selected)
+        writeCameras(context, self.properties.path, self.properties.frame_start, self.properties.frame_end, self.properties.only_selected)
         return {'FINISHED'}
 
     def invoke(self, context, event):
-        self.properties.start_frame = context.scene.start_frame
-        self.properties.end_frame = context.scene.end_frame
+        self.properties.frame_start = context.scene.frame_start
+        self.properties.frame_end = context.scene.frame_end
 
         wm = context.manager
         wm.add_fileselect(self)
