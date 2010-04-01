@@ -135,8 +135,8 @@ class CameraExporter(bpy.types.Operator):
         return {'FINISHED'}
 
     def invoke(self, context, event):
-        self.start_frame = context.scene.start_frame
-        self.end_frame = context.scene.end_frame
+        self.properties.start_frame = context.scene.start_frame
+        self.properties.end_frame = context.scene.end_frame
 
         wm = context.manager
         wm.add_fileselect(self)
