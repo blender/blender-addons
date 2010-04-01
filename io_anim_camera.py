@@ -32,7 +32,7 @@ bl_addon_info = {
 import bpy
 
 
-def writeCameras(context, path, start_frame, end_frame):
+def writeCameras(context, path, start_frame, end_frame, only_selected=False):
 
     data_attrs = ['lens', 'shift_x', 'shift_y', 'dof_distance', 'clip_start', 'clip_end', 'draw_size']
     obj_attrs = ['restrict_render']
@@ -41,12 +41,21 @@ def writeCameras(context, path, start_frame, end_frame):
 
     scene = bpy.context.scene
 
-    cameras = [(obj, obj.data) for obj in scene.objects if obj.type == 'CAMERA']
+    cameras = []
+
+    for obj in scene.objects:
+        if only_selected and not obj.selected:
+            continue
+        if obj.type != 'CAMERA':
+            continue
+
+        cameras.append((obj, obj.data))
 
     frame_range = range(start_frame, end_frame + 1)
 
     fw("cameras = {}\n")
     fw("scene = bpy.context.scene\n")
+    fw("frame = scene.current_frame - 1\n")
     fw("\n")
 
     for obj, obj_data in cameras:
@@ -67,7 +76,7 @@ def writeCameras(context, path, start_frame, end_frame):
     for f in frame_range:
         scene.set_frame(f)
         fw("# new frame\n")
-        fw("scene.set_frame(%d)\n" % f)
+        fw("scene.set_frame(%d + frame)\n" % f)
 
         for obj, obj_data in cameras:
             fw("obj = cameras['%s']\n" % obj.name)
@@ -92,9 +101,11 @@ def writeCameras(context, path, start_frame, end_frame):
     fw("# markers\n")
     for marker in scene.timeline_markers:
         fw("marker = scene.timeline_markers.add('%s')\n" % marker.name)
-        fw("marker.frame = %d\n" % marker.frame)
+        fw("marker.frame = %d + frame\n" % marker.frame)
+        
+        # will fail if the cameras not selected
         if marker.camera:
-            fw("marker.camera = cameras['%s']\n" % marker.camera.name)
+            fw("marker.camera = cameras.get('%s')\n" % marker.camera.name)
         fw("\n")
 
 
@@ -116,9 +127,11 @@ class CameraExporter(bpy.types.Operator):
     end_frame = IntProperty(name="End Frame",
             description="End frame for export",
             default=250, min=1, max=300000)
+    only_selected = BoolProperty(name="Only Selected",
+            default=True)
 
     def execute(self, context):
-        writeCameras(context, self.properties.path, self.start_frame, self.end_frame)
+        writeCameras(context, self.properties.path, self.properties.start_frame, self.properties.end_frame, self.properties.only_selected)
         return {'FINISHED'}
 
     def invoke(self, context, event):
