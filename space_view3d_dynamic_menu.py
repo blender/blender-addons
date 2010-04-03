@@ -238,7 +238,7 @@ def register():
     bpy.types.register(VIEW3D_MT_selectS)
     bpy.types.register(VIEW3D_MT_undoS)
     km = bpy.context.manager.active_keyconfig.keymaps['3D View']
-    kmi = km.add_item('wm.call_menu', 'SELECTMOUSE', 'CLICK')
+    kmi = km.items.add('wm.call_menu', 'SELECTMOUSE', 'CLICK')
     kmi.properties.name = "VIEW3D_MT_Dynamic_Menu"
 
 def unregister():

@@ -548,4 +548,4 @@ def unregister():
 ## @todo Check if we overwrite a setting?
 #wm = bpy.data.window_managers['WinMan']
 #keymap = wm.keyconfigs['Blender'].keymaps['Window']
-#keymap.add_item('reenter_editmode', 'F5', 'PRESS')
+#keymap.items.add('reenter_editmode', 'F5', 'PRESS')

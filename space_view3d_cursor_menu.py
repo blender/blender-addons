@@ -113,7 +113,7 @@ def register():
     bpy.types.register(pivot_cursor)
     bpy.types.register(revert_pivot)
     km = bpy.context.manager.active_keyconfig.keymaps['3D View']
-    kmi = km.add_item('wm.call_menu', 'SELECTMOUSE', 'CLICK')
+    kmi = km.items.add('wm.call_menu', 'SELECTMOUSE', 'CLICK')
     kmi.properties.name = "VIEW3D_MT_3D_Cursor_Menu"
 
 
