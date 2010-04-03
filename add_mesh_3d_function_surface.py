@@ -291,33 +291,30 @@ class AddZFunctionSurface(bpy.types.Operator):
 
         edgeloop_prev = []
 
+        try:
+            expr_args = (compile(equation, __file__, 'eval'), {"__builtins__": None}, safe_dict)
+        except:
+            import traceback
+            self.report({'ERROR'}, "Error parsing expression: " + traceback.format_exc(limit=1))
+            return {'CANCELLED'}
+
         for row_x in range(div_x):
             edgeloop_cur = []
+            x = start_x + row_x * delta_x
 
             for row_y in range(div_y):
-                x = start_x + row_x * delta_x
                 y = start_y + row_y * delta_y
-                z = 0
+                z = 0.0
+
+                safe_dict['x'] = x
+                safe_dict['y'] = y
 
                 # Try to evaluate the equation.
                 try:
-                    safe_dict['x'] = x
-                    safe_dict['y'] = y
-                    z = eval(equation, {"__builtins__": None}, safe_dict)
-
+                    z = float(eval(*expr_args))
                 except:
-                    print("AddZFunctionSurface: " \
-                        "Could not evaluate equation '" + equation + "'\n")
-                    return {'CANCELLED'}
-
-                # Accept only real numbers (no complex types)
-                # @todo: Support for "long" needed?
-                if not (isinstance(z, int)
-                    #or isinstance(z, long)
-                    or isinstance(z, float)):
-                    print("AddZFunctionSurface: " \
-                        "eval() returned unsupported number type '" \
-                        + str(z) + "'\n")
+                    import traceback
+                    self.report({'ERROR'}, "Error evaluating expression: " + traceback.format_exc(limit=1))
                     return {'CANCELLED'}
 
                 edgeloop_cur.append(len(verts))
@@ -344,7 +341,7 @@ class AddZFunctionSurface(bpy.types.Operator):
         return {'FINISHED'}
 
 
-def xyz_function_surface_faces(x_eq, y_eq, z_eq,
+def xyz_function_surface_faces(self, x_eq, y_eq, z_eq,
     range_u_min, range_u_max, range_u_step, wrap_u,
     range_v_min, range_v_max, range_v_step, wrap_v):
 
@@ -362,6 +359,16 @@ def xyz_function_surface_faces(x_eq, y_eq, z_eq,
     if range_v_step == 0:
         vRange = vRange + 1
 
+    try:
+        expr_args_x = (compile(x_eq, __file__.replace(".py", "_x.py"), 'eval'), {"__builtins__": None}, safe_dict)
+        expr_args_y = (compile(y_eq, __file__.replace(".py", "_y.py"), 'eval'), {"__builtins__": None}, safe_dict)
+        expr_args_z = (compile(z_eq, __file__.replace(".py", "_z.py"), 'eval'), {"__builtins__": None}, safe_dict)
+    except:
+        import traceback
+        self.report({'ERROR'}, "Error parsing expression: " + traceback.format_exc(limit=1))
+        return [], []
+    
+
     for vN in range(vRange):
         v = range_v_min + (vN * vStep)
 
@@ -373,51 +380,11 @@ def xyz_function_surface_faces(x_eq, y_eq, z_eq,
 
             # Try to evaluate the equation.
             try:
-                x = eval(x_eq, {"__builtins__": None}, safe_dict)
-
+                verts.append(float(eval(*expr_args_x)), float(eval(*expr_args_y)), float(eval(*expr_args_z)))
             except:
-                print("AddXYZFunctionSurface: " \
-                    "Could not evaluate x equation '" + x_eq + "'\n")
-                return {'CANCELLED'}
-
-            try:
-                y = eval(y_eq, {"__builtins__": None}, safe_dict)
-
-            except:
-                print("AddXYZFunctionSurface: " \
-                    "Could not evaluate y equation '" + y_eq + "'\n")
-                return {'CANCELLED'}
-
-            try:
-                z = eval(z_eq, {"__builtins__": None}, safe_dict)
-
-            except:
-                print("AddXYZFunctionSurface: " \
-                    "Could not evaluate z equation '" + z_eq + "'\n")
-                return {'CANCELLED'}
-
-            # Accept only real numbers (no complex types)
-            # @todo: Support for "long" needed?
-            if not (isinstance(x, int)
-                or isinstance(x, float)):
-                print("AddXYZFunctionSurface: " \
-                    "eval() returned unsupported number type '" \
-                    + str(x) + " for x function.'\n")
-                return {'CANCELLED'}
-            if not (isinstance(y, int)
-                or isinstance(y, float)):
-                print("AddXYZFunctionSurface: " \
-                    "eval() returned unsupported number type '" \
-                    + str(y) + " for y function.'\n")
-                return {'CANCELLED'}
-            if not (isinstance(z, int)
-                or isinstance(z, float)):
-                print("AddXYZFunctionSurface: " \
-                    "eval() returned unsupported number type '" \
-                    + str(z) + " for z function.'\n")
-                return {'CANCELLED'}
-
-            verts.append((x, y, z))
+                import traceback
+                self.report({'ERROR'}, "Error evaluating expression: " + traceback.format_exc(limit=1))
+                return [], []
 
     for vN in range(1, range_v_step + 1):
         vThis = vN
@@ -537,6 +504,7 @@ class AddXYZFunctionSurface(bpy.types.Operator):
         props = self.properties
 
         verts, faces = xyz_function_surface_faces(
+                            self,
                             props.x_eq,
                             props.y_eq,
                             props.z_eq,
@@ -548,6 +516,10 @@ class AddXYZFunctionSurface(bpy.types.Operator):
                             props.range_v_max,
                             props.range_v_step,
                             props.wrap_v)
+
+
+        if not verts:
+            return {'CANCELLED'}
 
         obj = createObject(context, verts, faces, "XYZ Function", props.edit)
 
