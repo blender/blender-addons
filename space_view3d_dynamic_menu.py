@@ -25,7 +25,7 @@
 bl_addon_info = {
     'name': '3d View: Dynamic Menu',
     'author': 'JayDez, sim88, meta-androcto',
-    'version': '2.4',
+    'version': '1.3',
     'blender': (2, 5, 3),
     'location': 'View3D > Mouse > Menu ',
     'description': 'Dynamic Menu Object/Edit mode in the 3D View',
@@ -40,7 +40,7 @@ Blender: 253
 """
 
 __author__ = ["JayDez, sim88, meta-androcto, sam"]
-__version__ = '1.2'
+__version__ = '1.3'
 __url__ = [""]
 __bpydoc__= """
 Dynamic Menu
