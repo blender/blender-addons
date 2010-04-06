@@ -24,7 +24,7 @@ from bpy.props import *
 bl_addon_info = {
     'name': 'Add Mesh: 3D Function Surfaces',
     'author': 'Buerbaum Martin (Pontiac)',
-    'version': '0.3.1',
+    'version': '0.3.2',
     'blender': (2, 5, 3),
     'location': 'View3D > Add > Mesh > Z Function Surface &' \
         ' XYZ Function Surface',
@@ -63,6 +63,15 @@ and
 menu.
 
 Version history:
+v0.3.2 - Various fixes&streamlining by ideasman42/Campbell Barton.
+    r544 Compile expressions for faster execution
+    r544 Use operator reports for errors too
+    r544 Avoid type checks by converting to a float, errors
+    converting to a float are reported too.
+    Fixed an error Campbell overlooked (appending tuples to an
+    array, not single values) Thamnks for the report wild_doogy.
+    Added 'description' field, updated 'url'.
+    Made the script PEP8 compatible again.
 v0.3.1 - Use hidden "edit" property for "recall" operator.
     Bugfix: Z Function was mixing up div_x and div_y
 v0.3 - X,Y,Z Function Surface (by Ed Mackey & tuga3d).
@@ -292,10 +301,14 @@ class AddZFunctionSurface(bpy.types.Operator):
         edgeloop_prev = []
 
         try:
-            expr_args = (compile(equation, __file__, 'eval'), {"__builtins__": None}, safe_dict)
+            expr_args = (
+                compile(equation, __file__, 'eval'),
+                {"__builtins__": None},
+                safe_dict)
         except:
             import traceback
-            self.report({'ERROR'}, "Error parsing expression: " + traceback.format_exc(limit=1))
+            self.report({'ERROR'}, "Error parsing expression: "
+                + traceback.format_exc(limit=1))
             return {'CANCELLED'}
 
         for row_x in range(div_x):
@@ -314,7 +327,8 @@ class AddZFunctionSurface(bpy.types.Operator):
                     z = float(eval(*expr_args))
                 except:
                     import traceback
-                    self.report({'ERROR'}, "Error evaluating expression: " + traceback.format_exc(limit=1))
+                    self.report({'ERROR'}, "Error evaluating expression: "
+                        + traceback.format_exc(limit=1))
                     return {'CANCELLED'}
 
                 edgeloop_cur.append(len(verts))
@@ -360,14 +374,23 @@ def xyz_function_surface_faces(self, x_eq, y_eq, z_eq,
         vRange = vRange + 1
 
     try:
-        expr_args_x = (compile(x_eq, __file__.replace(".py", "_x.py"), 'eval'), {"__builtins__": None}, safe_dict)
-        expr_args_y = (compile(y_eq, __file__.replace(".py", "_y.py"), 'eval'), {"__builtins__": None}, safe_dict)
-        expr_args_z = (compile(z_eq, __file__.replace(".py", "_z.py"), 'eval'), {"__builtins__": None}, safe_dict)
+        expr_args_x = (
+            compile(x_eq, __file__.replace(".py", "_x.py"), 'eval'),
+            {"__builtins__": None},
+            safe_dict)
+        expr_args_y = (
+            compile(y_eq, __file__.replace(".py", "_y.py"), 'eval'),
+            {"__builtins__": None},
+            safe_dict)
+        expr_args_z = (
+            compile(z_eq, __file__.replace(".py", "_z.py"), 'eval'),
+            {"__builtins__": None},
+            safe_dict)
     except:
         import traceback
-        self.report({'ERROR'}, "Error parsing expression: " + traceback.format_exc(limit=1))
+        self.report({'ERROR'}, "Error parsing expression: "
+            + traceback.format_exc(limit=1))
         return [], []
-    
 
     for vN in range(vRange):
         v = range_v_min + (vN * vStep)
@@ -380,10 +403,15 @@ def xyz_function_surface_faces(self, x_eq, y_eq, z_eq,
 
             # Try to evaluate the equation.
             try:
-                verts.append(float(eval(*expr_args_x)), float(eval(*expr_args_y)), float(eval(*expr_args_z)))
+                verts.append((
+                    float(eval(*expr_args_x)),
+                    float(eval(*expr_args_y)),
+                    float(eval(*expr_args_z))))
+
             except:
                 import traceback
-                self.report({'ERROR'}, "Error evaluating expression: " + traceback.format_exc(limit=1))
+                self.report({'ERROR'}, "Error evaluating expression: "
+                    + traceback.format_exc(limit=1))
                 return [], []
 
     for vN in range(1, range_v_step + 1):
@@ -516,7 +544,6 @@ class AddXYZFunctionSurface(bpy.types.Operator):
                             props.range_v_max,
                             props.range_v_step,
                             props.wrap_v)
-
 
         if not verts:
             return {'CANCELLED'}
