@@ -44,6 +44,7 @@ new materials are created.
 So one doesn't has to go through everything if one decides differently
 after importing 236 images.
 
+It also has an option to translate pixeldimensions into Blenderunits.
 """
 
 ##############################################################################
@@ -53,7 +54,7 @@ after importing 236 images.
 bl_addon_info = {
     'name': 'Planes from Images',
     'author': 'Florian Meyer (testscreenings)',
-    'version': '0.6',
+    'version': '0.7',
     'blender': (2, 5, 2),
     'location': 'View3D > Add Mesh',
     'url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/Scripts/Object/Image_To_Planes',
@@ -92,14 +93,19 @@ def apply_view_rotation(ob):
 
 
 #### gets called from createPlane ####
-def createMesh(x):
+def createMesh(dimension, img):
     #### x is x-aspectRatio ####
+    x = img.size[0] / img.size[1]
+    y = 1
+    if dimension[0]:
+        x = (img.size[0] * (1/dimension[1])) * 0.5
+        y = (img.size[1] * (1/dimension[1])) * 0.5
     verts = []
     faces = []
-    v1 = (-x, -1, 0)
-    v2 = (x, -1, 0)
-    v3 = (x, 1, 0)
-    v4 = (-x, 1, 0)
+    v1 = (-x, -y, 0)
+    v2 = (x, -y, 0)
+    v3 = (x, y, 0)
+    v4 = (-x, y, 0)
     verts.append(v1)
     verts.append(v2)
     verts.append(v3)
@@ -109,12 +115,13 @@ def createMesh(x):
     return verts, faces
 
 
-def createPlane(name, aspect):
+def createPlane(img, dimension):
     scene = bpy.context.scene
-    me = bpy.data.meshes.new(name)
-    verts, faces = createMesh(aspect)
+    me = bpy.data.meshes.new(img.name)
+    verts, faces = createMesh(dimension, img)
     me.from_pydata(verts, [], faces)
-    plane = bpy.data.objects.new(name, me)
+    me.update()
+    plane = bpy.data.objects.new(img.name, me)
     plane.data.add_uv_texture()
     scene.objects.link(plane)
     plane.location = scene.cursor_location
@@ -276,7 +283,7 @@ bpy.types.Material.mapping = property(mapget, mapset)
 #######################
 
 
-def main(filePath, options, mapping):
+def main(filePath, options, mapping, dimension):
     #### Lists ####
     images = []
     scene = bpy.context.scene
@@ -294,7 +301,6 @@ def main(filePath, options, mapping):
 
         #### Assign/get all things ####
         for img in images:
-            aspect = img.size[0] / img.size[1]
 
             #### Create/get Texture ####
             tex = getTexture(img.filename, img)
@@ -303,12 +309,10 @@ def main(filePath, options, mapping):
             mat = getMaterial(tex, mapping)
 
             #### Create Plane ####
-            plane = createPlane(img.name, aspect)
+            plane = createPlane(img, dimension)
 
             #### Assign Material ####
             plane.data.add_material(mat)
-
-            scene.objects.active = plane
 
             #### put Image into  UVTextureLayer ####
             plane.data.uv_textures[0].data[0].image = img
@@ -317,6 +321,7 @@ def main(filePath, options, mapping):
             plane.data.uv_textures[0].data[0].twoside = True
 
             plane.selected = True
+            scene.objects.active = plane
 
     #### if Create Single Plane (filename and is image)####
     else:
@@ -327,8 +332,6 @@ def main(filePath, options, mapping):
         #### Check if Image is loaded ####
         img = getImage(filePath[0])
 
-        aspect = img.size[0] / img.size[1]
-
         #### Create/get Texture ####
         tex = getTexture(filePath[0], img)
 
@@ -336,7 +339,7 @@ def main(filePath, options, mapping):
         mat = getMaterial(tex, mapping)
 
         #### Create Plane ####
-        plane = createPlane(img.name, aspect)
+        plane = createPlane(img, dimension)
 
         #### Assign Material ####
         plane.data.add_material(mat)
@@ -348,6 +351,7 @@ def main(filePath, options, mapping):
         plane.data.uv_textures[0].data[0].twoside = True
 
         plane.selected = True
+        scene.objects.active = plane
 
 
 ##############################################################################
@@ -390,7 +394,15 @@ class image_to_planes(bpy.types.Operator):
         ('RAYTRACE', 'RAYTRACE', 'RAYTRACE')]
     transp_method = EnumProperty(items=tEnum,
         description="Transparency Method",
-            name="transMethod")
+        name="transMethod")
+    useDim = BoolProperty(name="use Image dimensions",
+        description="Use the images pixels to derive the size of the plane",
+        default=False)
+    factor = IntProperty(name="pixels/BU",
+        description="Number of pixels per Blenderunit",
+        default=500,
+        min=1)
+
 
 #items=[(cats[i], cats[i], str(i)) for i in range(len(cats))
 
@@ -423,8 +435,13 @@ class image_to_planes(bpy.types.Operator):
                     transp_method,
                     premultiply])
 
+        #### Use Pixelsdimensions ####
+        useDim = self.properties.useDim
+        factor = self.properties.factor
+        dimension = (useDim, factor)
+
         #### Call Main Function ####
-        main(filePath, options, mapping)
+        main(filePath, options, mapping, dimension)
 
         return {'FINISHED'}
 
