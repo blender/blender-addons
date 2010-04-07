@@ -18,6 +18,7 @@
 
 import bpy
 from bpy.props import *
+from Mathutils import Vector, Matrix
 
 # Precicion for display of float values.
 PRECISION = 5
@@ -25,12 +26,12 @@ PRECISION = 5
 bl_addon_info = {
     'name': '3D View: Measure panel',
     'author': 'Buerbaum Martin (Pontiac)',
-    'version': '0.6.3',
+    'version': '0.6.4',
     'blender': (2, 5, 3),
     'location': 'View3D > Properties > Measure',
     'description': 'Measure distances between objects',
     'url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/' \
-	    'Scripts/3D_interaction/Panel_Measure',
+        'Scripts/3D_interaction/Panel_Measure',
     'category': '3D View'}
 
 __bpydoc__ = """
@@ -60,6 +61,11 @@ It's very helpful to use one or two "Empty" objects with
 "Snap during transform" enabled for fast measurement.
 
 Version history:
+v0.6.4 - Fixed unneeded meshdata duplication (sometimes crashes Blender).
+    The script now correctly calculated the surface area (faceAreaGlobal)
+    of scaled meshes.
+    http://projects.blender.org/tracker/
+    ?func=detail&atid=453&aid=21913&group_id=153
 v0.6.3 - Added register & unregister functions.
 v0.6.2 - Fixed precision of second area property.
     Reduced display precision to 5 (instead of 6).
@@ -119,6 +125,75 @@ See the other "todo" comments below.
 """
 
 
+# Return the area of a face (in global space).
+# @note Copies the functionality of the following functions,
+# but also respects the scaling (via the "obj.matrix" parameter):
+# @sa: rna_mesh.c:rna_MeshFace_area_get
+# @sa: math_geom.c:area_quad_v3
+# @sa: math_geom.c:area_tri_v3
+def faceAreaGlobal(face, obj):
+    area = 0.0
+
+    mat = obj.matrix
+
+    if len(face.verts) == 4:
+        # Quad
+
+        # Get vertex indices
+        v1, v2, v3, v4 = face.verts
+
+        # Get vertex data
+        v1 = obj.data.verts[v1]
+        v2 = obj.data.verts[v2]
+        v3 = obj.data.verts[v3]
+        v4 = obj.data.verts[v4]
+
+        # Apply transform matrix to vertex coordinates.
+        v1 = Vector(tuple(v1.co)) * mat
+        v2 = Vector(tuple(v2.co)) * mat
+        v3 = Vector(tuple(v3.co)) * mat
+        v4 = Vector(tuple(v4.co)) * mat
+
+        vec1 = v2 - v1
+        vec2 = v4 - v1
+
+        n = vec1.cross(vec2)
+
+        area = n.length / 2.0
+
+        vec1 = v4 - v3
+        vec2 = v2 - v3
+
+        n = vec1.cross(vec2)
+
+        area += n.length / 2.0
+
+    elif len(face.verts) == 3:
+        # Triangle
+
+        # Get vertex indices
+        v1, v2, v3 = face.verts
+
+        # Get vertex data
+        v1 = obj.data.verts[v1]
+        v2 = obj.data.verts[v2]
+        v3 = obj.data.verts[v3]
+
+        # Apply transform matrix to vertex coordinates.
+        v1 = Vector(tuple(v1.co)) * mat
+        v2 = Vector(tuple(v2.co)) * mat
+        v3 = Vector(tuple(v3.co)) * mat
+
+        vec1 = v3 - v2
+        vec2 = v1 - v2
+
+        n = vec1.cross(vec2)
+
+        area = n.length / 2.0
+
+    return area
+
+
 # Calculate the surface area of a mesh object.
 # *) Set selectedOnly=1 if you only want to count selected faces.
 # *) Set globalSpace=1 if you want to calculate
@@ -126,32 +201,19 @@ See the other "todo" comments below.
 # Note: Be sure you have updated the mesh data before
 #       running this with selectedOnly=1!
 # @todo Support other object types (surfaces, etc...)?
-# @todo Is there a better way to handle
-#       global calculation? (transformed mesh)
-
-
 def objectSurfaceArea(obj, selectedOnly, globalSpace):
     if (obj and obj.type == 'MESH' and obj.data):
         areaTotal = 0
 
-        # Apply transformation if needed.
-#        remove = 0
-        if globalSpace:
-#            remove = 1
-            mesh = obj.data.copy()
-            mesh.transform(obj.matrix)
-        else:
-            mesh = obj.data
+        mesh = obj.data
 
         # Count the area of all the faces.
         for face in mesh.faces:
-            if (not selectedOnly
-                or face.selected):
-                areaTotal += face.area
-
-#        # Remove temp mesh again.
-#        if remove:
-#            bpy.context.main.meshes.remove(mesh)
+            if not selectedOnly or face.selected:
+                if globalSpace:
+                    areaTotal += faceAreaGlobal(face, obj)
+                else:
+                    areaTotal += face.area
 
         return areaTotal
 
@@ -196,8 +258,6 @@ class VIEW3D_PT_measure(bpy.types.Panel):
     bl_default_closed = True
 
     def draw(self, context):
-        from Mathutils import Vector, Matrix
-
         layout = self.layout
         scene = context.scene
 
