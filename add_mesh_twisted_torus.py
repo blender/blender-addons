@@ -112,7 +112,7 @@ from bpy.props import *
 
 class AddTwistedTorus(bpy.types.Operator):
     '''Add a torus mesh'''
-    bl_idname = "mesh.primitive_torus_add"
+    bl_idname = "mesh.primitive_twisted_torus_add"
     bl_label = "Add Torus"
     bl_options = {'REGISTER', 'UNDO'}
 
