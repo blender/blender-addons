@@ -105,6 +105,9 @@ class VIEW3D_MT_Dynamic_Menu(bpy.types.Menu):
         layout.operator_context = 'INVOKE_REGION_WIN'
 
         ob = context
+#Search Block
+        layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
+        layout.separator()
         if ob.mode == 'OBJECT':
 #Add block
             layout.menu("INFO_MT_mesh_add", text="Add Mesh", icon='OUTLINER_OB_MESH')
@@ -161,7 +164,7 @@ class VIEW3D_MT_Dynamic_Menu(bpy.types.Menu):
 #toggle Editmode
         if ob.mode != 'EDIT_MESH':
             layout.operator("object.editmode_toggle", text="Enter Edit Mode", icon='EDITMODE_HLT')
-        else:
+        if ob.mode != 'OBJECT':
             layout.operator("object.editmode_toggle", text="Enter Object Mode", icon = 'OBJECT_DATAMODE')
 
 class VIEW3D_MT_selectS(bpy.types.Menu):
