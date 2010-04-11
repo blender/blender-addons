@@ -18,7 +18,7 @@
 
 import bpy
 from bpy.props import *
-from Mathutils import Vector, Matrix
+from mathutils import Vector, Matrix
 
 # Precicion for display of float values.
 PRECISION = 5

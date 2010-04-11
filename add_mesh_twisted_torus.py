@@ -53,13 +53,13 @@ Usage:
 
 
 import bpy
-import Mathutils
+import mathutils
 from math import cos, sin, pi
 
 
 def add_twisted_torus(major_rad, minor_rad, major_seg, minor_seg, twists):
-    Vector = Mathutils.Vector
-    Quaternion = Mathutils.Quaternion
+    Vector = mathutils.Vector
+    Quaternion = mathutils.Quaternion
 
     PI_2 = pi * 2
     z_axis = (0, 0, 1)

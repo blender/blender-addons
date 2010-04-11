@@ -33,11 +33,11 @@ bl_addon_info = {
 
 
 import bpy
-import Mathutils
+import mathutils
 
 
 def add_star(points, outer_radius, inner_radius, depth):
-    from Mathutils import Vector, Quaternion
+    from mathutils import Vector, Quaternion
     from math import pi
 
     PI_2 = pi * 2

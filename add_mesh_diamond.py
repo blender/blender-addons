@@ -35,7 +35,7 @@ bl_addon_info = {
 
 
 def add_diamond(segments, girdle_radius, table_radius, crown_height, pavillion_height):
-    from Mathutils import Vector, Quaternion
+    from mathutils import Vector, Quaternion
     from math import pi
 
     PI_2 = pi * 2

@@ -69,7 +69,7 @@ with the appropiate aspect ratio',
 import bpy
 from bpy.props import *
 from os import listdir
-from Mathutils import Vector
+from mathutils import Vector
 
 # Apply view rotation to objects if "Align To" for new objects
 # was set to "VIEW" in the User Preference.

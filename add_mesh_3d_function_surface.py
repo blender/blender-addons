@@ -17,7 +17,7 @@
 # ##### END GPL LICENSE BLOCK #####
 
 import bpy
-from Mathutils import *
+from mathutils import *
 from math import *
 from bpy.props import *
 

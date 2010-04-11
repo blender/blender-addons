@@ -17,7 +17,7 @@
 # ##### END GPL LICENSE BLOCK #####
 
 import bpy
-import Mathutils
+import mathutils
 from math import *
 from bpy.props import *
 
@@ -110,7 +110,7 @@ v0.1 - Initial revision.
 TODO:
 
 Use a rotation matrix for rotating the circle vertices:
-rotation_matrix = Mathutils.RotationMatrix(-math.pi/2, 4, 'x')
+rotation_matrix = mathutils.RotationMatrix(-math.pi/2, 4, 'x')
 mesh.transform(rotation_matrix)
 """
 

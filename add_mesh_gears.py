@@ -94,7 +94,7 @@ Unresolved issues:
 """
 
 import bpy
-import Mathutils
+import mathutils
 from math import cos, sin, tan, atan, asin, pi,radians as rad
 from copy import deepcopy as dc
 
