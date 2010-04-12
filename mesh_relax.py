@@ -52,7 +52,6 @@ from bpy.props import IntProperty
 def relax_mesh(self, context):
     
     # get active object and remember some of its mesh info
-    sce = context.scene
     obj = context.active_object
     me_old = obj.data
     me_name = me_old.name
@@ -77,7 +76,7 @@ def relax_mesh(self, context):
     bpy.ops.object.mode_set(mode='OBJECT')
 
     # apply and remove the modifier
-    me = obj.create_mesh(sce, True, 'PREVIEW')
+    me = obj.create_mesh(context.scene, True, 'PREVIEW')
     obj.data = me
     obj.modifiers.remove(sw)
 
