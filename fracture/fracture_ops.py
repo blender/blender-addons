@@ -431,7 +431,9 @@ def import_object(obname):
         s = os.sep
         dpath = bpy.utils.script_paths()[0] + \
             '%saddons%sfracture%sdata.blend\\Object\\' % (s, s, s)
-        print(opath)
+
+        # DEBUG
+        #print('import_object: ' + opath)
 
         bpy.ops.wm.link_append(
                 path=opath,
@@ -442,15 +444,15 @@ def import_object(obname):
                 autoselect=True,
                 active_layer=True,
                 instance_groups=True,
-                relative_paths=True)
+                relative_path=True)
 
         for ob in bpy.context.selected_objects:
             ob.location = bpy.context.scene.cursor_location
 
 
-class ImportRecorder(bpy.types.Operator):
+class ImportFractureRecorder(bpy.types.Operator):
     '''Imports a rigidbody recorder'''
-    bl_idname = "object.import_recorder"
+    bl_idname = "object.import_fracture_recorder"
     bl_label = "Add Rigidbody Recorder (Fracture)"
     bl_options = {'REGISTER', 'UNDO'}
 
@@ -460,9 +462,9 @@ class ImportRecorder(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class ImportBomb(bpy.types.Operator):
+class ImportFractureBomb(bpy.types.Operator):
     '''Import a bomb'''
-    bl_idname = "object.import_bomb"
+    bl_idname = "object.import_fracture_bomb"
     bl_label = "Add Bomb (Fracture)"
     bl_options = {'REGISTER', 'UNDO'}
 
@@ -472,9 +474,9 @@ class ImportBomb(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class ImportProjectile(bpy.types.Operator, ):
+class ImportFractureProjectile(bpy.types.Operator, ):
     '''Imports a projectile'''
-    bl_idname = "object.import_projectile"
+    bl_idname = "object.import_fracture_projectile"
     bl_label = "Add Projectile (Fracture)"
     bl_options = {'REGISTER', 'UNDO'}
 

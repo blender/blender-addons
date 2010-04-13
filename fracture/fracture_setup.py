@@ -61,9 +61,9 @@ def setupshards(context):
         #print(ob)
 
 
-class SetupShards(bpy.types.Operator):
+class SetupFractureShards(bpy.types.Operator):
     ''''''
-    bl_idname = "object.fracture_setup_shards"
+    bl_idname = "object.setup_fracture_shards"
     bl_label = "Setup Fracture Shards"
     bl_options = {'REGISTER', 'UNDO'}
 
@@ -72,8 +72,3 @@ class SetupShards(bpy.types.Operator):
     def execute(self, context):
         setupshards(context)
         return {'FINISHED'}
-
-#bpy.types.register(SetupShards)
-
-#if __name__ == "__main__":
-#    bpy.ops.object.fracture_setup_shards()

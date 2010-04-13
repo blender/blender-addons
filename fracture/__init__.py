@@ -17,7 +17,7 @@
 # ##### END GPL LICENSE BLOCK #####
 
 bl_addon_info = {
-    'name': 'Object: Fracture tools',
+    'name': 'Object: Fracture Tools',
     'author': 'pildanovak',
     'version': '2.0',
     'blender': (2, 5, 3),
@@ -27,26 +27,54 @@ bl_addon_info = {
     'category': 'Object'}
 
 import bpy
+from fracture import fracture_ops, fracture_setup
+
+
+class INFO_MT_add_fracture_objects(bpy.types.Menu):
+    bl_idname = "INFO_MT_add_fracture_objects"
+    bl_label = "Fracture Objects"
+
+    def draw(self, context):
+        layout = self.layout
+        layout.operator_context = 'INVOKE_REGION_WIN'
+
+        layout.operator("object.import_fracture_bomb",
+            text="Bomb")
+        layout.operator("object.import_fracture_projectile",
+            text="Projectile")
+        layout.operator("object.import_fracture_recorder",
+            text="Rigidbody Recorder")
+
+import space_info
+# Define the submenu
+menu_func = (lambda self,
+    context: self.layout.menu("INFO_MT_add_fracture_objects", icon="PLUGIN"))
 
 
 def register():
-    from fracture import fracture_ops, fracture_setup
     bpy.types.register(fracture_ops.FractureSimple)
     bpy.types.register(fracture_ops.FractureGroup)
-    bpy.types.register(fracture_ops.ImportRecorder)
-    bpy.types.register(fracture_ops.ImportBomb)
-    bpy.types.register(fracture_ops.ImportProjectile)
-    bpy.types.register(fracture_setup.SetupShards)
+    bpy.types.register(fracture_ops.ImportFractureRecorder)
+    bpy.types.register(fracture_ops.ImportFractureBomb)
+    bpy.types.register(fracture_ops.ImportFractureProjectile)
+    bpy.types.register(fracture_setup.SetupFractureShards)
+    bpy.types.register(INFO_MT_add_fracture_objects)
+
+    # Add the "add fracture objects" menu to the "Add" menu
+    space_info.INFO_MT_add.append(menu_func)
 
 
 def unregister():
-    from fracture import fracture_ops, fracture_setup
     bpy.types.unregister(fracture_ops.FractureSimple)
     bpy.types.unregister(fracture_ops.FractureGroup)
-    bpy.types.unregister(fracture_ops.ImportRecorder)
-    bpy.types.unregister(fracture_ops.ImportBomb)
-    bpy.types.unregister(fracture_ops.ImportProjectile)
-    bpy.types.unregister(fracture_setup.SetupShards)
+    bpy.types.unregister(fracture_ops.ImportFractureRecorder)
+    bpy.types.unregister(fracture_ops.ImportFractureBomb)
+    bpy.types.unregister(fracture_ops.ImportFractureProjectile)
+    bpy.types.unregister(fracture_setup.SetupFractureShards)
+    bpy.types.unregister(INFO_MT_add_fracture_objects)
+
+    # Remove "add fracture objects" menu from the "Add" menu.
+    space_info.INFO_MT_add.remove(menu_func)
 
 if __name__ == "__main__":
     register()
