@@ -374,6 +374,7 @@ class FractureSimple(bpy.types.Operator):
 
     nshards = IntProperty(name="Number of shards",
         description="Number of shards the object should be split into.",
+        min=2
         default=5)
 
     crack_type = EnumProperty(name='Crack type',
@@ -387,8 +388,8 @@ class FractureSimple(bpy.types.Operator):
 
     roughness = FloatProperty(name="Roughness",
         description="Roughness of the fracture surface",
-        max=3.0,
         min=0.0,
+        max=3.0,
         default=0.5)
 
     def execute(self, context):
