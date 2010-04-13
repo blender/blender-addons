@@ -21,8 +21,8 @@ bl_addon_info = {
     'author': 'pildanovak',
     'version': '2.0',
     'blender': (2, 5, 3),
-    'location': 'Fracture tools (Search > Fracture Object,' \
-        ' Add Bomb, Rigidbody Recorder)',
+    'location': 'Fracture tools (Search > Fracture Object & ,' \
+        'Add -> Fracture Helper Objects',
     'url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/Scripts/',
     'category': 'Object'}
 
@@ -32,7 +32,7 @@ from fracture import fracture_ops, fracture_setup
 
 class INFO_MT_add_fracture_objects(bpy.types.Menu):
     bl_idname = "INFO_MT_add_fracture_objects"
-    bl_label = "Fracture Objects"
+    bl_label = "Fracture Helper Objects"
 
     def draw(self, context):
         layout = self.layout
