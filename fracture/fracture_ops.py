@@ -46,6 +46,7 @@ def create_cutter(context, crack_type, scale, roughness):
             v.co[0] *= scale
             v.co[1] *= scale
             v.co[2] *= scale
+
         bpy.ops.object.editmode_toggle()
         bpy.ops.mesh.faces_shade_smooth()
         bpy.ops.uv.reset()
@@ -94,6 +95,7 @@ def create_cutter(context, crack_type, scale, roughness):
                 v.co[2] += roughness * scale * 0.1 * (random.random() - 0.5)
 
     bpy.context.scene.objects.active.selected = True
+
     '''
     # Adding fracture material
     # @todo Doesn't work at all yet.
@@ -123,6 +125,7 @@ def getIslands(shard):
     islands = []
     vgroups = []
     fgroups = []
+
     vgi = []
     for v in sm.verts:
         vgi.append(-1)
@@ -172,8 +175,8 @@ def getIslands(shard):
 
             for x in range(len(sm.verts) - 1, -1, -1):
                 if vgi[x] != gi:
-                    print('selecting')
-                    print (x)
+                    #print('getIslands: selecting')
+                    #print('getIslands: ' + str(x))
                     a.data.verts[x].selected = True
 
             print(bpy.context.scene.objects.active.name)
@@ -193,8 +196,10 @@ def getIslands(shard):
 
 def boolop(ob, cutter, op):
     sce = bpy.context.scene
+
     fault = 0
     new_shards = []
+
     sizex, sizey, sizez = getsizefrommesh(ob)
     gsize = sizex + sizey + sizez
 
@@ -332,7 +337,7 @@ def fracture_group(context, group):
     cutters = bpy.data.groups[group].objects
 
     # @todo This can be optimized.
-    # Avoid booleans on obs where bbox doesn't intersect
+    # Avoid booleans on obs where bbox doesn't intersect.
     i = 0
     for ob in tobesplit:
         for cutter in cutters:
@@ -372,7 +377,8 @@ class FractureSimple(bpy.types.Operator):
         default=5)
 
     crack_type = EnumProperty(name='Crack type',
-        items=(('FLAT', 'Flat', 'a'),
+        items=(
+            ('FLAT', 'Flat', 'a'),
             ('FLAT_ROUGH', 'Flat rough', 'a'),
             ('SPHERE', 'Spherical', 'a'),
             ('SPHERE_ROUGH', 'Spherical rough', 'a')),
@@ -386,15 +392,14 @@ class FractureSimple(bpy.types.Operator):
         default=0.5)
 
     def execute(self, context):
-        #print(self.properties)
         #getIslands(context.object)
+        props = self.properties
 
-        if self.properties.exe:
-            #print ('go')
+        if props.exe:
             fracture_basic(context,
-                    self.properties.nshards,
-                    self.properties.crack_type,
-                    self.properties.roughness)
+                    props.nshards,
+                    props.crack_type,
+                    props.roughness)
 
         return {'FINISHED'}
 
@@ -425,6 +430,9 @@ class FractureGroup(bpy.types.Operator):
 
         return {'FINISHED'}
 
+
+#####################################################################
+# Import Functions
 
 def import_object(obname):
         opath = "//data.blend\\Object\\" + obname
