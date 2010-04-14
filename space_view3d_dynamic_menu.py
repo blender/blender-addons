@@ -125,7 +125,7 @@ class VIEW3D_MT_Dynamic_Menu(bpy.types.Menu):
             layout.separator()
 
             # Transform block
-            layout.menu('VIEW3D_MT_Transform', icon='MAN_TRANS')
+            layout.menu('VIEW3D_MT_transform', icon='MAN_TRANS')
             layout.separator()
 
             # Other things
@@ -150,7 +150,7 @@ class VIEW3D_MT_Dynamic_Menu(bpy.types.Menu):
             layout.separator()
 
             # Transform block
-            layout.menu('VIEW3D_MT_Transform', icon='MAN_TRANS')
+            layout.menu('VIEW3D_MT_transform', icon='MAN_TRANS')
             layout.separator()
 
             # Select block
