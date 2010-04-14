@@ -47,29 +47,23 @@ after importing 236 images.
 It also has an option to translate pixeldimensions into Blenderunits.
 """
 
-##############################################################################
-##############################################################################
-##############################################################################
-
 bl_addon_info = {
-    'name': 'Planes from Images',
+    'name': 'Add Mesh: Planes from Images',
     'author': 'Florian Meyer (testscreenings)',
     'version': '0.7',
     'blender': (2, 5, 2),
-    'location': 'View3D > Add Mesh',
-    'url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/Scripts/Object/Image_To_Planes',
-    'description': 'Imports images and creates planes \
-with the appropiate aspect ratio',
-    'category': 'Object'}
-
-##############################################################################
-##############################################################################
-##############################################################################
+    'location': 'View3D > Add Mesh > Planes from Images',
+    'url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/' \
+        'Scripts/Object/Image_To_Planes',
+    'description': 'Imports images and creates planes' \
+        ' with the appropiate aspect ratio.',
+    'category': 'Add Mesh'}
 
 import bpy
 from bpy.props import *
 from os import listdir
 from mathutils import Vector
+
 
 # Apply view rotation to objects if "Align To" for new objects
 # was set to "VIEW" in the User Preference.
@@ -86,43 +80,47 @@ def apply_view_rotation(ob):
             ob.rotation_euler = rot.invert().to_euler()
 
 
-
-######################
-#### Create plane ####
-######################
-
-
-#### gets called from createPlane ####
-def createMesh(dimension, img):
-    #### x is x-aspectRatio ####
+# Create plane mesh
+def createPlaneMesh(dimension, img):
+    # x is the x-aspectRatio.
     x = img.size[0] / img.size[1]
     y = 1
+
     if dimension[0]:
-        x = (img.size[0] * (1/dimension[1])) * 0.5
-        y = (img.size[1] * (1/dimension[1])) * 0.5
+        x = (img.size[0] * (1.0 / dimension[1])) * 0.5
+        y = (img.size[1] * (1.0 / dimension[1])) * 0.5
+
     verts = []
     faces = []
+
     v1 = (-x, -y, 0)
     v2 = (x, -y, 0)
     v3 = (x, y, 0)
     v4 = (-x, y, 0)
+
     verts.append(v1)
     verts.append(v2)
     verts.append(v3)
     verts.append(v4)
+
     faces.append([0, 1, 2, 3])
 
     return verts, faces
 
 
-def createPlane(img, dimension):
+# Create plane object
+def createPlaneObj(img, dimension):
     scene = bpy.context.scene
+
+    verts, faces = createPlaneMesh(dimension, img)
+
     me = bpy.data.meshes.new(img.name)
-    verts, faces = createMesh(dimension, img)
     me.from_pydata(verts, [], faces)
     me.update()
+
     plane = bpy.data.objects.new(img.name, me)
     plane.data.add_uv_texture()
+
     scene.objects.link(plane)
     plane.location = scene.cursor_location
     apply_view_rotation(plane)
@@ -130,10 +128,7 @@ def createPlane(img, dimension):
     return plane
 
 
-#######################################
-#### get imagepaths from directory ####
-#######################################
-
+# Get imagepaths from directory
 def getImageFilesInDirectory(directory, extension):
     import os
 
@@ -142,7 +137,7 @@ def getImageFilesInDirectory(directory, extension):
         'tif', 'exr', 'hdr', 'avi', 'mov', 'mp4',
         'ogg', 'bmp', 'cin', 'dpx', 'psd']
 
-    #### get all Files in the directory ####
+    # Get all files in the directory.
     allFiles = listdir(directory)
     allImages = []
 
@@ -152,7 +147,7 @@ def getImageFilesInDirectory(directory, extension):
     if e in extList:
         extList = extension
 
-    #### Put all ImageFiles in List and return ####
+    # Put all image files in the list.
     for file in allFiles:
         # Get the file extension (includes the ".")
         e = os.path.splitext(file)[1]
@@ -169,20 +164,17 @@ def getImageFilesInDirectory(directory, extension):
     return allImages
 
 
-##########################################
-#### get ImageDataBlock from Filepath ####
-##########################################
-
+# Get image datablock from the (image's) filepath.
 def getImage(path):
     img = []
 
-    #### Check every Image if it is allready there ####
+    # Check every Image if it is already there.
     for image in bpy.data.images:
-        #### If image with same path exists take that one ####
+        # If image with same path exists take that one.
         if image.filename == path:
             img = image
 
-    #### Else create new Image and load from path ####
+    # Else create new Image and load from path.
     if not img:
         name = path.rpartition('\\')[2].rpartition('.')[0]
         img = bpy.data.images.new(name)
@@ -192,22 +184,20 @@ def getImage(path):
     return img
 
 
-#############################
-#### Create/get Material ####
-#############################
+# Create/get Material
 def getMaterial(tex, mapping):
     mat = []
-    #### Check all existing Materials ####
+
+    # Check all existing materials.
     for material in bpy.data.materials:
-        #### if Material with name and mapping        ####
-        #### and texture with image                   ####
-        #### exists take that one                     ####
+        # If a material with name and mapping
+        # texture with image exists, take that one...
         if (material.name == tex.image.name
         and tex.name in material.texture_slots
         and material.mapping == mapping):
             mat = material
 
-    #### Else Create new one and apply mapping ####
+    # ... otherwise create new one and apply mapping.
     if not mat:
         mat = bpy.data.materials.new(name=tex.name)
         mat.add_texture(tex, texture_coordinates='UV', map_to='COLOR')
@@ -217,22 +207,19 @@ def getMaterial(tex, mapping):
     return mat
 
 
-############################
-#### Create/get Texture ####
-############################
-
+# Create/get Texture
 def getTexture(path, img):
     tex = []
 
-    #### Check all existing Textures ####
+    # Check all existing textures.
     for texture in bpy.data.textures:
-        #### if (image)texture with image exists take that one ####
+        # If an (image)texture with image exists, take that one...
         if (texture.type == 'IMAGE'
             and texture.image
             and texture.image.filename == path):
             tex = texture
 
-    #### Else Create new one and apply mapping ####
+    # ... otherwise create a new one and apply mapping.
     if not tex:
         name = path.rpartition('\\')[2].rpartition('.')[0]
         tex = bpy.data.textures.new(name=name)
@@ -243,33 +230,34 @@ def getTexture(path, img):
     return tex
 
 
-#########################################
-#### Create custom Material Property ####
-#########################################
-
+# Custom material property - get
 def mapget(self):
-    """custom property of the image_to_planes addon"""
+    """Custom property of the image_to_planes addon."""
     mapping = []
     mapping.append(self.shadeless)
     mapping.append(self.transparency)
     mapping.append(self.alpha)
     mapping.append(self.specular_alpha)
     mapping.append(self.transparency_method)
+
     if (self.texture_slots[0]
         and self.texture_slots[0].texture.type == 'IMAGE'
         and self.texture_slots[0].texture.image):
         mapping.append(self.texture_slots[0].texture.image.premultiply)
     else:
         mapping.append("no image")
+
     return mapping
 
 
+# Custom material property - set
 def mapset(self, value):
     self.shadeless = value[0]
     self.transparency = value[1]
     self.alpha = float(value[2])
     self.specular_alpha = float(value[3])
     self.transparency_method = value[4]
+
     if (self.texture_slots[0]
         and self.texture_slots[0].texture.type == 'IMAGE'
         and self.texture_slots[0].texture.image):
@@ -278,20 +266,16 @@ def mapset(self, value):
 
 bpy.types.Material.mapping = property(mapget, mapset)
 
-#######################
-#### MAIN FUNCTION ####
-#######################
-
 
 def main(filePath, options, mapping, dimension):
-    #### Lists ####
     images = []
     scene = bpy.context.scene
 
-    #### if Create from Directory (no filename or checkbox) ####
+    # If "Create from Directory" (no filename or checkbox) ####
     if options[0] or not filePath[1]:
         imageFiles = getImageFilesInDirectory(filePath[2], options[1])
-        #### Check if images are loaded and put in List ####
+
+        # Check if images are loaded and put them in the list.
         for imageFile in imageFiles:
             img = getImage(str(filePath[2]) + "\\" + str(imageFile))
             images.append(img)
@@ -299,22 +283,21 @@ def main(filePath, options, mapping, dimension):
         # Deselect all objects.
         bpy.ops.object.select_all(action='DESELECT')
 
-        #### Assign/get all things ####
+        # Assign/get all things.
         for img in images:
-
-            #### Create/get Texture ####
+            # Create/get Texture
             tex = getTexture(img.filename, img)
 
-            #### Create/get Material ####
+            # Create/get Material
             mat = getMaterial(tex, mapping)
 
-            #### Create Plane ####
-            plane = createPlane(img, dimension)
+            # Create Plane
+            plane = createPlaneObj(img, dimension)
 
-            #### Assign Material ####
+            # Assign Material
             plane.data.add_material(mat)
 
-            #### put Image into  UVTextureLayer ####
+            # Put Image into  UVTextureLayer
             plane.data.uv_textures[0].data[0].image = img
             plane.data.uv_textures[0].data[0].tex = True
             plane.data.uv_textures[0].data[0].transp = 'ALPHA'
@@ -323,28 +306,27 @@ def main(filePath, options, mapping, dimension):
             plane.selected = True
             scene.objects.active = plane
 
-    #### if Create Single Plane (filename and is image)####
+    # If "Create Single Plane" (filename and is image)
     else:
-
         # Deselect all objects.
         bpy.ops.object.select_all(action='DESELECT')
 
-        #### Check if Image is loaded ####
+        # Check if image is loaded.
         img = getImage(filePath[0])
 
-        #### Create/get Texture ####
+        # Create/get Texture
         tex = getTexture(filePath[0], img)
 
-        #### Create/get Material ####
+        # Create/get Material
         mat = getMaterial(tex, mapping)
 
-        #### Create Plane ####
-        plane = createPlane(img, dimension)
+        # Create Plane
+        plane = createPlaneObj(img, dimension)
 
-        #### Assign Material ####
+        # Assign Material
         plane.data.add_material(mat)
 
-        #### put Image into  UVTextureLayer ####
+        # Put image into UVTextureLayer
         plane.data.uv_textures[0].data[0].image = img
         plane.data.uv_textures[0].data[0].tex = True
         plane.data.uv_textures[0].data[0].transp = 'ALPHA'
@@ -354,10 +336,7 @@ def main(filePath, options, mapping, dimension):
         scene.objects.active = plane
 
 
-##############################################################################
-#################       O P E R A T O R        ###############################
-##############################################################################
-
+# Operator
 class image_to_planes(bpy.types.Operator):
     ''''''
     bl_idname = "mesh.image_to_planes"
@@ -374,7 +353,7 @@ class image_to_planes(bpy.types.Operator):
     directory = StringProperty(name="Directory",
         description="Directory of the file.")
     fromDirectory = BoolProperty(name="All in directory",
-        description="Import all images in this directory",
+        description="Import all images in this directory.",
         default=False)
     extension = StringProperty(name="Extension",
         description="Only import files with this extension " \
@@ -384,47 +363,45 @@ class image_to_planes(bpy.types.Operator):
         description="Set material to shadeless",
         default=False)
     transp = BoolProperty(name="Use alpha",
-        description="Use alphachannel for transparency",
+        description="Use alphachannel for transparency.",
         default=False)
     premultiply = BoolProperty(name="Premultiply",
         description="Premultiply image",
         default=False)
+
     tEnum = [
         ('Z_TRANSPARENCY', 'Z_TRANSPARENCY', 'Z_TRANSPARENCY'),
         ('RAYTRACE', 'RAYTRACE', 'RAYTRACE')]
-    transp_method = EnumProperty(items=tEnum,
+    transp_method = EnumProperty(name="transMethod",
         description="Transparency Method",
-        name="transMethod")
-    useDim = BoolProperty(name="use Image dimensions",
-        description="Use the images pixels to derive the size of the plane",
+        items=tEnum)
+    useDim = BoolProperty(name="Use image dimensions",
+        description="Use the images pixels to derive the size of the plane.",
         default=False)
-    factor = IntProperty(name="pixels/BU",
-        description="Number of pixels per Blenderunit",
-        default=500,
-        min=1)
-
-
-#items=[(cats[i], cats[i], str(i)) for i in range(len(cats))
+    factor = IntProperty(name="Pixels/BU",
+        description="Number of pixels per Blenderunit.",
+        min=1,
+        default=500)
 
     def execute(self, context):
-        #### File Path ####
+        # File Path
         path = self.properties.path
         filename = self.properties.filename
         directory = self.properties.directory
         filePath = [path, filename, directory]
-        #print(filePath)
 
-        #### General Options ####
+        # General Options
         fromDirectory = self.properties.fromDirectory
         extension = self.properties.extension
         options = [fromDirectory, extension]
 
-        #### mapping ####
+        # Mapping
         alphavalue = 1
-        shadeless = self.properties.shadeless
         transp = self.properties.transp
         if transp:
             alphavalue = 0
+
+        shadeless = self.properties.shadeless
         transp_method = self.properties.transp_method
         premultiply = self.properties.premultiply
 
@@ -435,12 +412,12 @@ class image_to_planes(bpy.types.Operator):
                     transp_method,
                     premultiply])
 
-        #### Use Pixelsdimensions ####
+        # Use Pixelsdimensions
         useDim = self.properties.useDim
         factor = self.properties.factor
         dimension = (useDim, factor)
 
-        #### Call Main Function ####
+        # Call Main Function
         main(filePath, options, mapping, dimension)
 
         return {'FINISHED'}
@@ -452,10 +429,13 @@ class image_to_planes(bpy.types.Operator):
         return {'RUNNING_MODAL'}
 
 
-#### Registering ####
+# Registering / Unregister
 
-menu_func = (lambda self, context: self.layout.operator(image_to_planes.bl_idname,
-                                        text="Imageplanes", icon='PLUGIN'))
+menu_func = (lambda self, context: self.layout.operator(
+                    image_to_planes.bl_idname,
+                    text="Planes from Images",
+                    icon='PLUGIN'))
+
 
 def register():
     bpy.types.register(image_to_planes)
