@@ -65,6 +65,23 @@ from os import listdir
 from mathutils import Vector
 
 
+EXT_LIST = {
+    'jpeg': ['jpeg', 'jpg', 'jpe'],
+    'png': ['png'],
+    'tga': ['tga', 'tpic'],
+    'tiff': ['tiff', 'tif'],
+    'exr': ['exr'],
+    'hdr': ['hdr'],
+    'avi': ['avi'],
+    'mov': ['mov', 'qt'],
+    'mp4': ['mp4'],
+    'ogg': ['ogg', 'ogv'],
+    'bmp': ['bmp', 'dib'],
+    'cin': ['cin'],
+    'dpx': ['dpx'],
+    'psd': ['psd']}
+
+
 # Apply view rotation to objects if "Align To" for new objects
 # was set to "VIEW" in the User Preference.
 def apply_view_rotation(ob):
@@ -128,24 +145,34 @@ def createPlaneObj(img, dimension):
     return plane
 
 
+# Check if a file extension matches any
+# valid (i.e. recognized) image/movie format.
+def isImageFile(extension):
+    for ext, ext_list in EXT_LIST.items():
+        if extension in ext_list:
+            return True
+
+    return False
+
+
 # Get imagepaths from directory
 def getImageFilesInDirectory(directory, extension):
     import os
-
-    extList = [
-        'jpeg', 'jpg', 'png', 'tga', 'tiff',
-        'tif', 'exr', 'hdr', 'avi', 'mov', 'mp4',
-        'ogg', 'bmp', 'cin', 'dpx', 'psd']
 
     # Get all files in the directory.
     allFiles = listdir(directory)
     allImages = []
 
-    # Convert to lower case
-    e = extension.lower()
+    extensions = []
 
-    if e in extList:
-        extList = extension
+    # Import all images files?
+    if extension == '*':
+        all = True
+
+    else:
+        all = False
+        # Get the possible extensions
+        extensions = EXT_LIST[extension]
 
     # Put all image files in the list.
     for file in allFiles:
@@ -158,7 +185,8 @@ def getImageFilesInDirectory(directory, extension):
         # Convert to lower case
         e = e.lower()
 
-        if e in extList:
+        if (e in extensions
+            or (all and isImageFile(e))):
             allImages.append(file)
 
     return allImages
@@ -232,7 +260,7 @@ def getTexture(path, img):
 
 # Custom material property - get
 def mapget(self):
-    """Custom property of the image_to_planes addon."""
+    """Custom property of the planes_from_images addon."""
     mapping = []
     mapping.append(self.shadeless)
     mapping.append(self.transparency)
@@ -244,6 +272,7 @@ def mapget(self):
         and self.texture_slots[0].texture.type == 'IMAGE'
         and self.texture_slots[0].texture.image):
         mapping.append(self.texture_slots[0].texture.image.premultiply)
+
     else:
         mapping.append("no image")
 
@@ -272,8 +301,8 @@ def main(filePath, options, mapping, dimension):
     scene = bpy.context.scene
 
     # If "Create from Directory" (no filename or checkbox) ####
-    if options[0] or not filePath[1]:
-        imageFiles = getImageFilesInDirectory(filePath[2], options[1])
+    if options['dir'] or not filePath[1]:
+        imageFiles = getImageFilesInDirectory(filePath[2], options['ext'])
 
         # Check if images are loaded and put them in the list.
         for imageFile in imageFiles:
@@ -337,11 +366,12 @@ def main(filePath, options, mapping, dimension):
 
 
 # Operator
-class image_to_planes(bpy.types.Operator):
+class planes_from_images(bpy.types.Operator):
     ''''''
-    bl_idname = "mesh.image_to_planes"
+    bl_idname = "mesh.planes_from_images"
     bl_label = "Import Images as Planes"
-    bl_description = "Create plane(s) from images"
+    bl_description = "Create mesh plane(s) from image files" \
+        " with the appropiate aspect ratio."
     bl_options = {'REGISTER', 'UNDO'}
 
     path = StringProperty(name="File Path",
@@ -353,11 +383,29 @@ class image_to_planes(bpy.types.Operator):
     directory = StringProperty(name="Directory",
         description="Directory of the file.")
     fromDirectory = BoolProperty(name="All in directory",
-        description="Import all images in this directory.",
+        description="Import all image files (of the selected type)" \
+            " in this directory.",
         default=False)
-    extension = StringProperty(name="Extension",
-        description="Only import files with this extension " \
-            "(e.g. png, jpg, ...")
+
+    extEnum = [
+        ('*', 'All image formats', 'Import all know image (or movie) formats.'),
+        ('jpeg', 'JPEG (.jpg, .jpeg, .jpe)', 'Joint Photographic Experts Group'),
+        ('png', 'PNG (.png)', 'Portable Network Graphics'),
+        ('tga', 'Truevision TGA (.tga, tpic)', ''),
+        ('tiff', 'TIFF (.tif, .tiff)', 'Tagged Image File Format'),
+        ('exr', 'OpenEXR (.exr)', 'OpenEXR HDR imaging image file format'),
+        ('hdr', 'Radiance HDR (.hdr, .pic)', ''),
+        ('avi', 'AVI (.avi)', 'Audio Video Interleave'),
+        ('mov', 'QuickTime (.mov, .qt)', ''),
+        ('mp4', 'MPEG-4 (.mp4)', ' MPEG-4 Part 14'),
+        ('ogg', 'OGG Theora (.ogg, .ogv)', ''),
+        ('bmp', 'BMP (.bmp, .dib)', 'Windows Bitmap'),
+        ('cin', 'CIN (.cin)', ''),
+        ('dpx', 'DPX (.dpx)', 'DPX (Digital Picture Exchange)'),
+        ('psd', 'PSD (.psd)', 'Photoshop Document')]
+    extension = EnumProperty(name="Extension",
+        description="Only import files of this type.",
+        items=extEnum)
 
     shadeless = BoolProperty(name="Shadeless",
         description="Set material to shadeless",
@@ -388,12 +436,12 @@ class image_to_planes(bpy.types.Operator):
         path = self.properties.path
         filename = self.properties.filename
         directory = self.properties.directory
-        filePath = [path, filename, directory]
+        filePath = (path, filename, directory)
 
         # General Options
         fromDirectory = self.properties.fromDirectory
         extension = self.properties.extension
-        options = [fromDirectory, extension]
+        options = {'dir': fromDirectory, 'ext': extension}
 
         # Mapping
         alphavalue = 1
@@ -432,18 +480,18 @@ class image_to_planes(bpy.types.Operator):
 # Registering / Unregister
 
 menu_func = (lambda self, context: self.layout.operator(
-                    image_to_planes.bl_idname,
+                    planes_from_images.bl_idname,
                     text="Planes from Images",
                     icon='PLUGIN'))
 
 
 def register():
-    bpy.types.register(image_to_planes)
+    bpy.types.register(planes_from_images)
     bpy.types.INFO_MT_mesh_add.append(menu_func)
 
 
 def unregister():
-    bpy.types.unregister(image_to_planes)
+    bpy.types.unregister(planes_from_images)
     bpy.types.INFO_MT_mesh_add.remove(menu_func)
 
 
