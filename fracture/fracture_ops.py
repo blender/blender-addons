@@ -374,7 +374,7 @@ class FractureSimple(bpy.types.Operator):
 
     nshards = IntProperty(name="Number of shards",
         description="Number of shards the object should be split into.",
-        min=2
+        min=2,
         default=5)
 
     crack_type = EnumProperty(name='Crack type',
