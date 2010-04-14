@@ -23,14 +23,14 @@
 # ##### END GPL LICENSE BLOCK #####
 
 bl_addon_info = {
-    'name': '3d View: Dynamic Menu',
+    'name': '3D View: Dynamic Menu',
     'author': 'JayDez, sim88, meta-androcto',
     'version': '1.3',
     'blender': (2, 5, 3),
     'location': 'View3D > Mouse > Menu ',
     'description': 'Dynamic Menu Object/Edit mode in the 3D View',
     'url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/' \
-	    'Scripts/3D_interaction/Dynamic_Menu',
+        'Scripts/3D_interaction/Dynamic_Menu',
     'category': '3D View'}
 "Add Dynamic Menu (Right click in View3D)"
 
@@ -42,7 +42,7 @@ Blender: 253
 __author__ = ["JayDez, sim88, meta-androcto, sam"]
 __version__ = '1.3'
 __url__ = [""]
-__bpydoc__= """
+__bpydoc__ = """
 Dynamic Menu
 This adds a the Dynamic Menu in the 3DView.
 
@@ -58,45 +58,45 @@ v1.3 - (JayDez) - Changed toggle editmode to an if statement, so that
     if you are in editmode it will show change to object mode but
     otherwise it shows change to edit mode. Also added seperate icons
     for change to edit mode and to object mode.
-v1.2 - (JayDez) - Editing docs, changing 3d cursor to dynamic menu,
+v1.2 - (JayDez) - Editing docs, changing 3D cursor to dynamic menu,
     reorganizing menu.
 v1.1 - (meta-androcto) - added editmode menu
 v1.0 - (meta-androcto) - initial final revision (commited to contrib)
 v0.1 through 0.9 - various tests/contributions by various people and scripts
     Devs: JayDez, Crouch, sim88, meta-androcto, Sam
     Scripts: 3D Cursor Menu, Original Dynamic Menu
-    
-
 """
 import bpy
 from bpy import *
 
-#Classes for VIEW3D_MT_curs()
+
+# Classes for VIEW3D_MT_curs()
 class pivot_cursor(bpy.types.Operator):
     bl_idname = "view3d.pivot_cursor"
     bl_label = "Cursor as Pivot Point"
-    
+
     def poll(self, context):
         return bpy.context.space_data.pivot_point != 'CURSOR'
-    
+
     def execute(self, context):
         bpy.context.space_data.pivot_point = 'CURSOR'
         return {'FINISHED'}
-    
+
+
 class revert_pivot(bpy.types.Operator):
     bl_idname = "view3d.revert_pivot"
     bl_label = "Reverts Pivot Point to median"
 
     def poll(self, context):
         return bpy.context.space_data.pivot_point != 'MEDIAN_POINT'
-    
+
     def execute(self, context):
         bpy.context.space_data.pivot_point = 'MEDIAN_POINT'
-        #change this to 'BOUDNING_BOX_CENTER' if needed...
+        # @todo Change this to 'BOUDNING_BOX_CENTER' if needed...
         return{'FINISHED'}
 
-    
-#Dynamic Menu
+
+# Dynamic Menu
 class VIEW3D_MT_Dynamic_Menu(bpy.types.Menu):
     bl_label = "Dynamic Menu"
 
@@ -105,73 +105,98 @@ class VIEW3D_MT_Dynamic_Menu(bpy.types.Menu):
         layout.operator_context = 'INVOKE_REGION_WIN'
 
         ob = context
-#Search Block
+
+        # Search Block
         layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
         layout.separator()
+
         if ob.mode == 'OBJECT':
-#Add block
-            layout.menu("INFO_MT_mesh_add", text="Add Mesh", icon='OUTLINER_OB_MESH')
-            layout.operator_menu_enum("object.lamp_add", "type", icon="OUTLINER_OB_LAMP")
-            layout.operator_menu_enum("object.curve_add", "type", icon='OUTLINER_OB_CURVE')
-            layout.menu("INFO_MT_armature_add", text="Add Armature", icon='OUTLINER_OB_ARMATURE')
-            layout.operator("object.add", text="Add Empty", icon='OUTLINER_OB_EMPTY')
+            # Add block
+            layout.menu("INFO_MT_mesh_add", text="Add Mesh",
+                icon='OUTLINER_OB_MESH')
+            layout.operator_menu_enum("object.lamp_add", "type",
+                icon="OUTLINER_OB_LAMP")
+            layout.operator_menu_enum("object.curve_add", "type",
+                icon='OUTLINER_OB_CURVE')
+            layout.menu("INFO_MT_armature_add", text="Add Armature",
+                icon='OUTLINER_OB_ARMATURE')
+            layout.operator("object.add", text="Add Empty",
+                icon='OUTLINER_OB_EMPTY')
             layout.separator()
-#Transform block
+
+            # Transform block
             layout.operator("transform.translate", icon='MAN_TRANS')
             layout.operator("transform.rotate", icon='MAN_ROT')
             layout.operator("transform.resize", text="Scale", icon='MAN_SCALE')
             layout.separator()
-#Other things
+
+            # Other things
             layout.menu("VIEW3D_MT_object_group", icon='GROUP')
             layout.operator("object.modifier_add", icon='MODIFIER')
             layout.separator()
-#Parent block (add delete parent)
-            layout.operator("object.parent_set", icon= 'ROTACTIVE')
+
+            # Parent block (add delete parent)
+            layout.operator("object.parent_set", icon='ROTACTIVE')
             layout.separator()
-#Delete block
-            layout.operator("object.delete", text="Delete Object", icon='CANCEL')
+
+            # Delete block
+            layout.operator("object.delete", text="Delete Object",
+                icon='CANCEL')
 
         elif ob.mode == 'EDIT_MESH':
-
-#Add block
+            # Add block
             bl_label = "Create"
-            layout.menu("INFO_MT_mesh_add", text="Add Mesh", icon='OUTLINER_OB_MESH')
+
+            layout.menu("INFO_MT_mesh_add", text="Add Mesh",
+                icon='OUTLINER_OB_MESH')
             layout.separator()
-#Transform block
+
+            # Transform block
             layout.operator("transform.translate", icon='MAN_TRANS')
             layout.operator("transform.rotate", icon='MAN_ROT')
             layout.operator("transform.resize", text="Scale", icon='MAN_SCALE')
             layout.separator()
-#Select block
+
+            # Select block
             layout.menu("VIEW3D_MT_edit_mesh_selection_mode", icon='EDIT')
             layout.menu("VIEW3D_MT_selectS", icon='OBJECT_DATAMODE')
-#Edit block
+
+            # Edit block
             layout.menu("VIEW3D_MT_edit_mesh_vertices", icon='VERTEXSEL')
             layout.menu("VIEW3D_MT_edit_mesh_edges", icon='EDGESEL')
             layout.menu("VIEW3D_MT_edit_mesh_faces", icon='FACESEL')
             layout.separator()
-#Tools block
-            layout.operator("mesh.loopcut_slide",text="Loopcut", icon= 'EDIT_VEC')
+
+            # Tools block
+            layout.operator("mesh.loopcut_slide", text="Loopcut",
+                icon='EDIT_VEC')
             layout.menu("VIEW3D_MT_edit_mesh_specials", icon='MODIFIER')
             layout.menu("VIEW3D_MT_uv_map", icon='MOD_UVPROJECT')
             layout.separator()
             layout.operator("mesh.delete", icon='CANCEL')
-#History/Cursor Block
+
+        # History/Cursor Block
         layout.menu("VIEW3D_MT_undoS", icon='ARROW_LEFTRIGHT')
-        layout.operator("transform.snap_type", text="Snap Tools", icon= 'SNAP_ON')
-        layout.menu("VIEW3D_MT_curs", icon= 'CURSOR')
+        layout.operator("transform.snap_type", text="Snap Tools",
+            icon='SNAP_ON')
+        layout.menu("VIEW3D_MT_curs", icon='CURSOR')
         layout.separator()
-#toggle Editmode
+
+        # Roggle Editmode
         if ob.mode != 'EDIT_MESH':
-            layout.operator("object.editmode_toggle", text="Enter Edit Mode", icon='EDITMODE_HLT')
+            layout.operator("object.editmode_toggle",
+                text="Enter Edit Mode",
+                icon='EDITMODE_HLT')
         if ob.mode != 'OBJECT':
-            layout.operator("object.editmode_toggle", text="Enter Object Mode", icon = 'OBJECT_DATAMODE')
+            layout.operator("object.editmode_toggle",
+                text="Enter Object Mode",
+                icon='OBJECT_DATAMODE')
+
 
 class VIEW3D_MT_selectS(bpy.types.Menu):
     bl_label = "Selections"
 
     def draw(self, context):
-
         layout = self.layout
         layout.operator_context = 'INVOKE_REGION_WIN'
         layout.operator("mesh.select_all")
@@ -186,7 +211,6 @@ class VIEW3D_MT_undoS(bpy.types.Menu):
     bl_label = "Undo/Redo"
 
     def draw(self, context):
-
         layout = self.layout
         layout.operator_context = 'INVOKE_REGION_WIN'
         layout.operator("ed.undo", icon='TRIA_LEFT')
@@ -197,16 +221,21 @@ class VIEW3D_MT_curs(bpy.types.Menu):
     bl_label = "Cursor Menu"
 
     def draw(self, context):
-
         layout = self.layout
         layout.operator_context = 'INVOKE_REGION_WIN'
-        layout.operator("view3d.snap_cursor_to_center", text="Snap Cursor to Center")
-        layout.operator("view3d.snap_cursor_to_grid", text="Snap Cursor to Grid")
-        layout.operator("view3d.snap_cursor_to_selected", text="Snap Cursor to Selected")
-        layout.operator("view3d.snap_selected_to_cursor", text="Snap Selected to Cursor")
+        layout.operator("view3d.snap_cursor_to_center",
+            text="Snap Cursor to Center")
+        layout.operator("view3d.snap_cursor_to_grid",
+            text="Snap Cursor to Grid")
+        layout.operator("view3d.snap_cursor_to_selected",
+            text="Snap Cursor to Selected")
+        layout.operator("view3d.snap_selected_to_cursor",
+            text="Snap Selected to Cursor")
         layout.separator()
-        layout.operator("view3d.pivot_cursor", text="Set Cursor as Pivot Point")
-        layout.operator("view3d.revert_pivot", text="Revert Pivot Point")
+        layout.operator("view3d.pivot_cursor",
+            text="Set Cursor as Pivot Point")
+        layout.operator("view3d.revert_pivot",
+            text="Revert Pivot Point")
 
 
 class VIEW3D_MT_editM_Edge(bpy.types.Menu):
@@ -221,16 +250,21 @@ class VIEW3D_MT_editM_Edge(bpy.types.Menu):
         layout.separator()
         layout.operator("mesh.mark_sharp")
         layout.operator("mesh.mark_sharp", text="Clear Sharp").clear = True
-        layout.operator("mesh.extrude_move_along_normals",text="Extrude")
+        layout.operator("mesh.extrude_move_along_normals", text="Extrude")
         layout.separator()
-        layout.operator("mesh.edge_rotate", text="Rotate Edge CW").direction = 'CW'
-        layout.operator("mesh.edge_rotate", text="Rotate Edge CCW").direction = 'CCW'
+        layout.operator("mesh.edge_rotate",
+            text="Rotate Edge CW").direction = 'CW'
+        layout.operator("mesh.edge_rotate",
+            text="Rotate Edge CCW").direction = 'CCW'
         layout.separator()
         layout.operator("TFM_OT_edge_slide", text="Edge Slide")
-        layout.operator("mesh.loop_multi_select", text="Edge Loop")
-        layout.operator("mesh.loop_multi_select", text="Edge Ring").ring = True
+        layout.operator("mesh.loop_multi_select",
+            text="Edge Loop")
+        layout.operator("mesh.loop_multi_select",
+            text="Edge Ring").ring = True
         layout.operator("mesh.loop_to_region")
         layout.operator("mesh.region_to_loop")
+
 
 def register():
     bpy.types.register(VIEW3D_MT_Dynamic_Menu)
@@ -240,9 +274,11 @@ def register():
     bpy.types.register(VIEW3D_MT_editM_Edge)
     bpy.types.register(VIEW3D_MT_selectS)
     bpy.types.register(VIEW3D_MT_undoS)
+
     km = bpy.context.manager.active_keyconfig.keymaps['3D View']
     kmi = km.items.add('wm.call_menu', 'SELECTMOUSE', 'CLICK')
     kmi.properties.name = "VIEW3D_MT_Dynamic_Menu"
+
 
 def unregister():
     bpy.types.unregister(VIEW3D_MT_Dynamic_Menu)
@@ -252,6 +288,7 @@ def unregister():
     bpy.types.unregister(VIEW3D_MT_editM_Edge)
     bpy.types.unregister(VIEW3D_MT_selectS)
     bpy.types.unregister(VIEW3D_MT_undoS)
+
     km = bpy.context.manager.active_keyconfig.keymaps['3D View']
     for kmi in km.items:
         if kmi.idname == 'wm.call_menu':
