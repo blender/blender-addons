@@ -388,8 +388,10 @@ class planes_from_images(bpy.types.Operator):
         default=False)
 
     extEnum = [
-        ('*', 'All image formats', 'Import all know image (or movie) formats.'),
-        ('jpeg', 'JPEG (.jpg, .jpeg, .jpe)', 'Joint Photographic Experts Group'),
+        ('*', 'All image formats',
+            'Import all know image (or movie) formats.'),
+        ('jpeg', 'JPEG (.jpg, .jpeg, .jpe)',
+            'Joint Photographic Experts Group'),
         ('png', 'PNG (.png)', 'Portable Network Graphics'),
         ('tga', 'Truevision TGA (.tga, tpic)', ''),
         ('tiff', 'TIFF (.tif, .tiff)', 'Tagged Image File Format'),
@@ -418,9 +420,13 @@ class planes_from_images(bpy.types.Operator):
         default=False)
 
     tEnum = [
-        ('Z_TRANSPARENCY', 'Z_TRANSPARENCY', 'Z_TRANSPARENCY'),
-        ('RAYTRACE', 'RAYTRACE', 'RAYTRACE')]
-    transp_method = EnumProperty(name="transMethod",
+        ('Z_TRANSPARENCY',
+            'Z Transparency',
+            'Use alpha buffer for transparent faces'),
+        ('RAYTRACE',
+            'Raytrace',
+            'Use raytracing for transparent refraction rendering.')]
+    transp_method = EnumProperty(name="Transp. Method",
         description="Transparency Method",
         items=tEnum)
     useDim = BoolProperty(name="Use image dimensions",
