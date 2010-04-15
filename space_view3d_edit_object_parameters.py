@@ -27,7 +27,9 @@ bl_addon_info = {
     'version': '0.1.3',
     'blender': (2, 5, 3),
     'location': 'View3D > Tool Shelf > Edit Object Parameters',
-    'description': 're-call an object menu that was created with a Add Mesh operator',
+    'description': 'Re-call an object menu that was created' \
+        ' with an Add Mesh operator. This operator must have stored'\
+        ' the recall data though.',
     'url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/' \
         'Scripts/3D_interaction/Edit_Object_Parameters',
     'category': '3D View'}
@@ -125,11 +127,12 @@ class VIEW3D_OT_recall_object_operator(bpy.types.Operator):
             and ob.items()):
 
             if 'recall' in ob:
-                r = ob['recall'].convert_to_pyobject()
+                recall_props = ob['recall'].convert_to_pyobject()
 
                 # Check if an operator string was defined.
-                if "recall_op" in r:
-                    op_idname = r["recall_op"]
+                if 'op' in recall_props:
+                    op_idname = recall_props['op']
+                    op_args = recall_props['args']
 
                     print("Recalling operator: " + op_idname)
 
@@ -137,10 +140,7 @@ class VIEW3D_OT_recall_object_operator(bpy.types.Operator):
                     op = get_operator_by_idname(op_idname)
                     if op:
                         # Prepare the stored data as arguments for the op.
-                        args = dict([(k[0], k[1]) for k in r.items()])
-
-                        # We need to remove the "recall_op" string.
-                        del args["recall_op"]
+                        args = dict([(k[0], k[1]) for k in op_args.items()])
 
                         # Execute the operator with the unpacked parameters.
                         op(**args)
@@ -150,7 +150,7 @@ class VIEW3D_OT_recall_object_operator(bpy.types.Operator):
                         return {'CANCELLED'}
 
                 else:
-                    print("No operator found in recall data!")
+                    print("No operator prop found in recall data!")
                     return {'CANCELLED'}
 
             else:
@@ -197,35 +197,35 @@ class VIEW3D_OT_edit_object_parameters(bpy.types.Panel):
         scene = context.scene
         ob = scene.objects.active
 
-        r = ob['recall']
+        if ob:
+            row = layout.row()
 
-        row = layout.row()
+            recall_props = ob['recall']
+            if 'op' in recall_props:
+                op_idname = recall_props['op']
+                op_args = recall_props['args']
 
-        if "recall_op" in r:
-            op_idname = r["recall_op"]
+                # Find and recall operator
+                type = get_operator_class_by_idname(op_idname)
 
-            # Find and recall operator
-            type = get_operator_class_by_idname(op_idname)
-
-            if type:
-                row.label(text="Operator:")
-
-                box = layout.column().box()
-                column = box.column()
-                row = column.row()
-
-                row.label(text=type.bl_label)
-
-                if len(r) > 1:
-                    row = layout.row()
-                    row.label(text="Properties:")
+                if type:
+                    row.label(text="Operator:")
 
                     box = layout.column().box()
                     column = box.column()
                     row = column.row()
 
-                    for prop_name in r:
-                        if prop_name != "recall_op":
+                    row.label(text=type.bl_label)
+
+                    if op_args:
+                        row = layout.row()
+                        row.label(text="Properties:")
+
+                        box = layout.column().box()
+                        column = box.column()
+                        row = column.row()
+
+                        for prop_name, prop_val in op_args.items():
                             row = column.row()
                             name = prop_name
                             if hasattr(type, prop_name):
@@ -235,14 +235,15 @@ class VIEW3D_OT_edit_object_parameters(bpy.types.Panel):
                                     name = prop_full_name
 
                             row.label(text=name)
-                            row.label(text=str(r[prop_name]))
+                            row.label(text=str(prop_val))
 
+                else:
+                    row.label(text="Could not find operator "
+                        + op_idname + "!",
+                        icon='ERROR')
             else:
-                row.label(text="Could not find operator " + op_idname + "!",
+                row.label(text="Could not find operatorID in object.",
                     icon='ERROR')
-        else:
-            row.label(text="Could not find operator info.",
-                icon='ERROR')
 
 ################################
 
