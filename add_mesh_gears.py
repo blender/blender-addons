@@ -22,7 +22,7 @@
 
 bl_addon_info = {
     'name': 'Add Mesh: Gears',
-    'author': 'varkenvarken',
+    'author': 'Michel J. Anders (varkenvarken)',
     'version': '2.2',
     'blender': (2, 5, 3),
     'location': 'View3D > Add > Mesh ',
@@ -30,7 +30,6 @@ bl_addon_info = {
     'url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/' \
         'Scripts/Add_Mesh/Add_Gear',
     'category': 'Add Mesh'}
-
 
 """
 What was needed to port it from 2.49 -> 2.50 alpha 0?
@@ -462,9 +461,6 @@ def add_gear(teethNum, radius, Ad, De, base, p_angle,
                 for i in VERTS_TOOTH])
             vgroup_val.extend([i + toothCnt * VERT_NUM * 2
                 for i in VERTS_VALLEY])
-
-            if toothCnt == 2:
-                break
 
     # EXPERIMENTAL: add spokes
     if not worm and spoke > 0:
