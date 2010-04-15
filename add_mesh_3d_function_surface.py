@@ -24,7 +24,7 @@ from bpy.props import *
 bl_addon_info = {
     'name': 'Add Mesh: 3D Function Surfaces',
     'author': 'Buerbaum Martin (Pontiac)',
-    'version': '0.3.3',
+    'version': '0.3.4',
     'blender': (2, 5, 3),
     'location': 'View3D > Add > Mesh > Z Function Surface &' \
         ' XYZ Function Surface',
@@ -63,9 +63,10 @@ and
 menu.
 
 Version history:
-v0.3.3 - Updated store_recall_properties, apply_object_align
+v0.3.4 - Updated store_recall_properties, apply_object_align
     and create_mesh_object.
     Changed how recall data is stored.
+v0.3.3 - API change Mathutils -> mathutils (r557)
 v0.3.2 - Various fixes&streamlining by ideasman42/Campbell Barton.
     r544 Compile expressions for faster execution
     r544 Use operator reports for errors too
