@@ -24,7 +24,7 @@ from bpy.props import *
 bl_addon_info = {
     'name': 'Add Mesh: Pipe Joints',
     'author': 'Buerbaum Martin (Pontiac)',
-    'version': '0.10.2',
+    'version': '0.10.3',
     'blender': (2, 5, 3),
     'location': 'View3D > Add > Mesh > Pipe Joint',
     'description': 'Adds 5 pipe Joint types to the Add Mesh menu',
@@ -48,9 +48,12 @@ The functionality can then be accessed via the
 Note: Currently only the "Elbow" type supports odd number of vertices.
 
 Version history:
-v0.10.2 - Updated store_recall_properties, apply_object_align
+v0.10.3 - Updated store_recall_properties, apply_object_align
     and create_mesh_object.
     Changed how recall data is stored.
+    Added 'description'.
+v0.10.2 - API change Mathutils -> mathutils (r557)
+    Fixed wiki url.
 v0.10.1 - Use hidden "edit" property for "recall" operator.
 v0.10 - Store "recall" properties in the created objects.
     Align the geometry to the view if the user preference says so.
