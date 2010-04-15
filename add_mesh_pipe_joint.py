@@ -24,13 +24,13 @@ from bpy.props import *
 bl_addon_info = {
     'name': 'Add Mesh: Pipe Joints',
     'author': 'Buerbaum Martin (Pontiac)',
-    'version': '0.10.1',
+    'version': '0.10.2',
     'blender': (2, 5, 3),
     'location': 'View3D > Add > Mesh > Pipe Joint',
     'description': 'Adds 5 pipe Joint types to the Add Mesh menu',
     'url':
     'http://wiki.blender.org/index.php/Extensions:2.5/Py/' \
-	    'Scripts/Add_Mesh/Add_Pipe_Joints',
+        'Scripts/Add_Mesh/Add_Pipe_Joints',
     'category': 'Add Mesh'}
 
 # More links:
@@ -48,7 +48,10 @@ The functionality can then be accessed via the
 Note: Currently only the "Elbow" type supports odd number of vertices.
 
 Version history:
-v0.10.1 -  Use hidden "edit" property for "recall" operator.
+v0.10.2 - Updated store_recall_properties, apply_object_align
+    and create_mesh_object.
+    Changed how recall data is stored.
+v0.10.1 - Use hidden "edit" property for "recall" operator.
 v0.10 - Store "recall" properties in the created objects.
     Align the geometry to the view if the user preference says so.
 v0.9.10 - Use bl_addon_info for Add-On information.
@@ -115,31 +118,128 @@ mesh.transform(rotation_matrix)
 """
 
 
-# Stores the values of a list of properties in a
-# property group (named like the operator) in the object.
-# Always replaces any existing property group with the same name!
-# @todo: Should we do this in EDIT Mode? Sounds dangerous.
-def obj_store_recall_properties(ob, op, prop_list):
-    if ob and op and prop_list:
-        #print("Storing recall data for operator: " + op.bl_idname)  # DEBUG
+# Stores the values of a list of properties and the
+# operator id in a property group ('recall_op') inside the object.
+# Could (in theory) be used for non-objects.
+# Note: Replaces any existing property group with the same name!
+# ob ... Object to store the properties in.
+# op ... The operator that should be used.
+# op_args ... A dictionary with valid Blender
+#             properties (operator arguments/parameters).
+def store_recall_properties(ob, op, op_args):
+    if ob and op and op_args:
+        recall_properties = {}
+
+        # Add the operator identifier and op parameters to the properties.
+        recall_properties['op'] = op.bl_idname
+        recall_properties['args'] = op_args
 
         # Store new recall properties.
-        prop_list['recall_op'] = op.bl_idname
-        ob['recall'] = prop_list
+        ob['recall'] = recall_properties
 
 
-# Apply view rotation to objects if "Align To" for new objects
-# was set to "VIEW" in the User Preference.
-def apply_view_rotation(context, ob):
-    align = bpy.context.user_preferences.edit.object_align
+# Apply view rotation to objects if "Align To" for
+# new objects was set to "VIEW" in the User Preference.
+def apply_object_align(context, ob):
+    obj_align = bpy.context.user_preferences.edit.object_align
 
     if (context.space_data.type == 'VIEW_3D'
-        and align == 'VIEW'):
+        and obj_align == 'VIEW'):
             view3d = context.space_data
             region = view3d.region_3d
             viewMatrix = region.view_matrix
             rot = viewMatrix.rotation_part()
             ob.rotation_euler = rot.invert().to_euler()
+
+
+# Create a new mesh (object) from verts/edges/faces.
+# verts/edges/faces ... List of vertices/edges/faces for the
+#                       new mesh (as used in from_pydata).
+# name ... Name of the new mesh (& object).
+# edit ... Replace existing mesh data.
+# Note: Using "edit" will destroy/delete existing mesh data.
+def create_mesh_object(context, verts, edges, faces, name, edit):
+    scene = context.scene
+    obj_act = scene.objects.active
+
+    # Can't edit anything, unless we have an active obj.
+    if edit and not obj_act:
+        return None
+
+    # Create new mesh
+    mesh = bpy.data.meshes.new(name)
+
+    # Make a mesh from a list of verts/edges/faces.
+    mesh.from_pydata(verts, edges, faces)
+
+    # Update mesh geometry after adding stuff.
+    mesh.update()
+
+    # Deselect all objects.
+    bpy.ops.object.select_all(action='DESELECT')
+
+    if edit:
+        # Replace geometry of existing object
+
+        # Use the active obj and select it.
+        ob_new = obj_act
+        ob_new.selected = True
+
+        if obj_act.mode == 'OBJECT':
+            # Get existing mesh datablock.
+            old_mesh = ob_new.data
+
+            # Set object data to nothing
+            ob_new.data = None
+
+            # Clear users of existing mesh datablock.
+            old_mesh.user_clear()
+
+            # Remove old mesh datablock if no users are left.
+            if (old_mesh.users == 0):
+                bpy.data.meshes.remove(old_mesh)
+
+            # Assign new mesh datablock.
+            ob_new.data = mesh
+
+    else:
+        # Create new object
+        ob_new = bpy.data.objects.new(name, mesh)
+
+        # Link new object to the given scene and select it.
+        scene.objects.link(ob_new)
+        ob_new.selected = True
+
+        # Place the object at the 3D cursor location.
+        ob_new.location = scene.cursor_location
+
+        apply_object_align(context, ob_new)
+
+    if obj_act and obj_act.mode == 'EDIT':
+        if not edit:
+            # We are in EditMode, switch to ObjectMode.
+            bpy.ops.object.mode_set(mode='OBJECT')
+
+            # Select the active object as well.
+            obj_act.selected = True
+
+            # Apply location of new object.
+            scene.update()
+
+            # Join new object into the active.
+            bpy.ops.object.join()
+
+            # Switching back to EditMode.
+            bpy.ops.object.mode_set(mode='EDIT')
+
+            ob_new = obj_act
+
+    else:
+        # We are in ObjectMode.
+        # Make the new object the active one.
+        scene.objects.active = ob_new
+
+    return ob_new
 
 
 def createFaces(vertIdx1, vertIdx2):
@@ -169,86 +269,6 @@ def createFaces(vertIdx1, vertIdx2):
             vertIdx2[num + 1], vertIdx1[num + 1]])
 
     return faces
-
-
-def createObject(context, verts, faces, name, edit):
-    '''Creates Meshes & Objects for the given lists of vertices and faces.'''
-
-    scene = context.scene
-
-    # Create new mesh
-    mesh = bpy.data.meshes.new(name)
-
-    # Add the geometry to the mesh.
-    #mesh.add_geometry(len(verts), 0, len(faces))
-    #mesh.verts.foreach_set("co", unpack_list(verts))
-    #mesh.faces.foreach_set("verts_raw", unpack_face_list(faces))
-
-    # To quote the documentation:
-    # "Make a mesh from a list of verts/edges/faces Until we have a nicer
-    #  way to make geometry, use this."
-    # http://www.blender.org/documentation/250PythonDoc/
-    # bpy.types.Mesh.html#bpy.types.Mesh.from_pydata
-    mesh.from_pydata(verts, [], faces)
-
-    # Deselect all objects.
-    bpy.ops.object.select_all(action='DESELECT')
-
-    # Update mesh geometry after adding stuff.
-    mesh.update()
-
-    if edit:
-        # Recreate geometry of existing object
-        obj_act = context.active_object
-        ob_new = obj_act
-
-        bpy.ops.object.mode_set(mode='EDIT')
-        bpy.ops.mesh.select_all(action='SELECT')
-        bpy.ops.mesh.delete(type='VERT')
-        bpy.ops.object.mode_set(mode='OBJECT')
-
-        ob_new.data = mesh
-
-        ob_new.selected = True
-
-    else:
-        # Create new object
-        ob_new = bpy.data.objects.new(name, mesh)
-
-        # Link new object to the given scene and select it.
-        scene.objects.link(ob_new)
-        ob_new.selected = True
-
-        # Place the object at the 3D cursor location.
-        ob_new.location = scene.cursor_location
-
-        obj_act = scene.objects.active
-
-        apply_view_rotation(context, ob_new)
-
-    if obj_act and obj_act.mode == 'EDIT':
-        if not edit:
-            # We are in EditMode, switch to ObjectMode.
-            bpy.ops.object.mode_set(mode='OBJECT')
-
-            # Select the active object as well.
-            obj_act.selected = True
-
-            # Apply location of new object.
-            scene.update()
-
-            # Join new object into the active.
-            bpy.ops.object.join()
-
-            # Switching back to EditMode.
-            bpy.ops.object.mode_set(mode='EDIT')
-
-    else:
-        # We are in ObjectMode.
-        # Make the new object the active one.
-        scene.objects.active = ob_new
-
-    return ob_new
 
 
 class AddElbowJoint(bpy.types.Operator):
@@ -353,17 +373,18 @@ class AddElbowJoint(bpy.types.Operator):
         faces.extend(createFaces(loop1, loop2))
         faces.extend(createFaces(loop2, loop3))
 
-        obj = createObject(context, verts, faces, "Elbow Joint", edit)
+        obj = create_mesh_object(context, verts, [], faces,
+            "Elbow Joint", edit)
 
         # Store 'recall' properties in the object.
-        recall_prop_list = {
+        recall_args_list = {
             "edit": True,
             "radius": radius,
             "div": div,
             "angle": angle,
             "startLength": startLength,
             "endLength": endLength}
-        obj_store_recall_properties(obj, self, recall_prop_list)
+        store_recall_properties(obj, self, recall_args_list)
 
         return {'FINISHED'}
 
@@ -549,10 +570,10 @@ class AddTeeJoint(bpy.types.Operator):
         faces.extend(createFaces(loopJoint2, loopArm))
         faces.extend(createFaces(loopJoint3, loopMainEnd))
 
-        obj = createObject(context, verts, faces, "Tee Joint", edit)
+        obj = create_mesh_object(context, verts, [], faces, "Tee Joint", edit)
 
         # Store 'recall' properties in the object.
-        recall_prop_list = {
+        recall_args_list = {
             "edit": True,
             "radius": radius,
             "div": div,
@@ -560,7 +581,7 @@ class AddTeeJoint(bpy.types.Operator):
             "startLength": startLength,
             "endLength": endLength,
             "branchLength": branchLength}
-        obj_store_recall_properties(obj, self, recall_prop_list)
+        store_recall_properties(obj, self, recall_args_list)
 
         return {'FINISHED'}
 
@@ -761,10 +782,10 @@ class AddWyeJoint(bpy.types.Operator):
         faces.extend(createFaces(loopJoint2, loopArm1))
         faces.extend(createFaces(loopJoint3, loopArm2))
 
-        obj = createObject(context, verts, faces, "Wye Joint", edit)
+        obj = create_mesh_object(context, verts, [], faces, "Wye Joint", edit)
 
         # Store 'recall' properties in the object.
-        recall_prop_list = {
+        recall_args_list = {
             "edit": True,
             "radius": radius,
             "div": div,
@@ -773,7 +794,7 @@ class AddWyeJoint(bpy.types.Operator):
             "startLength": startLength,
             "branch1Length": branch1Length,
             "branch2Length": branch2Length}
-        obj_store_recall_properties(obj, self, recall_prop_list)
+        store_recall_properties(obj, self, recall_args_list)
 
         return {'FINISHED'}
 
@@ -1035,10 +1056,11 @@ class AddCrossJoint(bpy.types.Operator):
         faces.extend(createFaces(loopJoint3, loopArm2))
         faces.extend(createFaces(loopJoint4, loopArm3))
 
-        obj = createObject(context, verts, faces, "Cross Joint", edit)
+        obj = create_mesh_object(context, verts, [], faces,
+            "Cross Joint", edit)
 
         # Store 'recall' properties in the object.
-        recall_prop_list = {
+        recall_args_list = {
             "edit": True,
             "radius": radius,
             "div": div,
@@ -1049,7 +1071,7 @@ class AddCrossJoint(bpy.types.Operator):
             "branch1Length": branch1Length,
             "branch2Length": branch2Length,
             "branch3Length": branch3Length}
-        obj_store_recall_properties(obj, self, recall_prop_list)
+        store_recall_properties(obj, self, recall_args_list)
 
         return {'FINISHED'}
 
@@ -1213,16 +1235,16 @@ class AddNJoint(bpy.types.Operator):
                 createFaces(loopsJoints[loopIdx],
                 loopsEndCircles[loopIdx]))
 
-        obj = createObject(context, verts, faces, "N Joint", edit)
+        obj = create_mesh_object(context, verts, [], faces, "N Joint", edit)
 
         # Store 'recall' properties in the object.
-        recall_prop_list = {
+        recall_args_list = {
             "edit": True,
             "radius": radius,
             "div": div,
             "number": number,
             "length": length}
-        obj_store_recall_properties(obj, self, recall_prop_list)
+        store_recall_properties(obj, self, recall_args_list)
 
         return {'FINISHED'}
 
