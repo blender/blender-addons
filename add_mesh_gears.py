@@ -23,9 +23,9 @@
 bl_addon_info = {
     'name': 'Add Mesh: Gears',
     'author': 'Michel J. Anders (varkenvarken)',
-    'version': '2.2',
+    'version': '2.3',
     'blender': (2, 5, 3),
-    'location': 'View3D > Add > Mesh ',
+    'location': 'View3D > Add > Mesh > Gears ',
     'description': 'Adds a mesh Gear to the Add Mesh menu',
     'url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/' \
         'Scripts/Add_Mesh/Add_Gear',
@@ -35,7 +35,7 @@ bl_addon_info = {
 What was needed to port it from 2.49 -> 2.50 alpha 0?
 
 The basic functions that calculate the geometry (verts and faces) are mostly
-unchanged (add_tooth, add_spoke2, add_gear)
+unchanged (add_tooth, add_spoke, add_gear)
 
 Also, the vertex group API is changed a little bit but the concepts
 are the same:
@@ -67,28 +67,6 @@ zip object to a list of tuples first.
 
 The code to actually implement the AddGear() function is mostly copied from
 add_mesh_torus() (distributed with Blender).
-
-Unresolved issues:
-
-- Removing doubles:
-    The algorithm should not generate a full section to begin with.
-    At least the last 4 vertices don't need to be created, because the
-    next section will have them as their first 4 vertices anyway.
-    OLD COMMENT ON DOUBLES:
-    "The code that produces the teeth of the gears produces some duplicate
-    vertices. The original script just called remove_doubles() but if we
-    do that in 2.50 we have a problem.
-    To apply the bpy.ops.mesh.remove_doubles() operator we have to change
-    to edit mode. The moment we do that we loose to possibilty to
-    interactively change the properties.
-    Also changing back to object mode raises a strange exception (to
-    investigate). So for now, removing doubles is left to the user
-    once satisfied with the chosen setting for a gear."
-
-- No suitable icon:
-    A rather minor point but I reused the torus icon for the add->mesh->gear
-    menu entry as there doesn't seem to be a generic mesh icon or a way to
-    add custom icons. Too bad, but as this is just eye candy it's no big deal.
 """
 
 import bpy
@@ -96,40 +74,6 @@ import mathutils
 from math import *
 from copy import deepcopy
 from bpy.props import *
-
-# Constants
-FACES = [
-    [0, 5, 6, 1],
-    [1, 6, 7, 2],
-    [2, 7, 8, 3],
-    [3, 8, 9, 4],
-    [6, 10, 11, 7],
-    [7, 11, 12, 8],
-    [10, 13, 14, 11],
-    [11, 14, 15, 12]]
-
-VERT_NUM = 16   # Number of vertices
-
-# Edgefaces
-EDGEFACES = [5, 6, 10, 13, 14, 15, 12, 8, 9]
-EDGEFACES2 = [i + VERT_NUM for i in EDGEFACES]  # i.e. Indices are offset by 16
-
-# In python 3, zip() returns a zip object so we have to force the
-# result into a list of lists to keep deepcopy happy later on in the script.
-EFC = [[i, j, k, l] for i, j, k, l
-    in zip(EDGEFACES[:-1], EDGEFACES2[:-1], EDGEFACES2[1:], EDGEFACES[1:])]
-VERTS_TOOTH = [13, 14, 15, 29, 30, 31]        # Vertices on a tooth
-VERTS_VALLEY = [5, 6, 8, 9, 21, 22, 24, 25]   # Vertices in a valley
-
-#SPOKEFACES = (
-#    (0, 1, 2, 5),
-#    (2, 3, 4, 7),
-#    (5, 2, 7, 6),
-#    (5, 6, 9, 8),
-#    (6, 7, 10, 9),
-#    (11, 8, 13, 12),
-#    (8, 9, 10, 13),
-#    (13, 10, 15, 14))
 
 
 # Stores the values of a list of properties and the
@@ -256,6 +200,54 @@ def create_mesh_object(context, verts, edges, faces, name, edit):
     return ob_new
 
 
+# A very simple "bridge" tool.
+# Connects two equally long vertex rows with faces.
+# Returns a list of the new faces (list of lists)
+#
+# vertIdx1 ... First vertex list (list of vertex indices).
+# vertIdx2 ... Second vertex list (list of vertex indices).
+# closed ... Creates a loop (first & last are closed).
+# flipped ... Invert the normal of the face(s).
+def createFaces(vertIdx1, vertIdx2, closed=False, flipped=False):
+    faces = []
+
+    if (len(vertIdx1) != len(vertIdx2)) or (len(vertIdx1) < 2):
+        return None
+
+    total = len(vertIdx1)
+
+    if closed:
+        # Bridge the start with the end.
+        if flipped:
+            faces.append([vertIdx1[0], vertIdx2[0],
+                vertIdx2[total - 1], vertIdx1[total - 1]])
+        else:
+            faces.append([vertIdx2[0], vertIdx1[0],
+                vertIdx1[total - 1], vertIdx2[total - 1]])
+
+    # Bridge the rest of the faces.
+    for num in range(total - 1):
+        if flipped:
+            faces.append([vertIdx2[num], vertIdx1[num],
+                vertIdx1[num + 1], vertIdx2[num + 1]])
+        else:
+            faces.append([vertIdx1[num], vertIdx2[num],
+                vertIdx2[num + 1], vertIdx1[num + 1]])
+
+    return faces
+
+
+# Calculate the vertex coordinates for a single
+# section of a gear tooth.
+# Returns 4 lists of vertex coords (list of tuples):
+#  *-*---*---*	(1.) verts_inner_base
+#  | |   |   |
+#  *-*---*---*	(2.) verts_outer_base
+#    |   |   |
+#    *---*---*	(3.) verts_middle_tooth
+#     \  |  /
+#      *-*-*	(4.) verts_tip_tooth
+#
 # a
 # t
 # d
@@ -267,13 +259,7 @@ def create_mesh_object(context, verts, edges, faces, name, edit):
 # rack
 # crown
 def add_tooth(a, t, d, radius, Ad, De, base, p_angle, rack=0, crown=0.0):
-    """
-    private function: calculate the vertex coords for a single side
-    section of a gear tooth.
-    Returns them as a list of tuples.
-    """
-
-    A = [a, a + t / 4, a + t / 2, a + 3 * t / 4, a + t]
+    A = [a, a + t / 4, a + t / 2, a + 3 * t / 4]
     C = [cos(i) for i in A]
     S = [sin(i) for i in A]
 
@@ -292,10 +278,10 @@ def add_tooth(a, t, d, radius, Ad, De, base, p_angle, rack=0, crown=0.0):
         S = [sin(t / 4) * I for I in range(-2, 3)]
         Sp = [0, sin(-t / 4 + p_angle), 0, sin(t / 4 - p_angle)]
 
-        verts = [(Rb, radius * S[I], d) for I in range(5)]
-        verts.extend([(Rd, radius * S[I], d) for I in range(5)])
-        verts.extend([(radius, radius * S[I], d) for I in range(1, 4)])
-        verts.extend([(Ra, radius * Sp[I], d) for I in range(1, 4)])
+        verts_inner_base = [(Rb, radius * S[I], d) for I in range(4)]
+        verts_outer_base = [(Rd, radius * S[I], d) for I in range(4)]
+        verts_middle_tooth = [(radius, radius * S[I], d) for I in range(1, 4)]
+        verts_tip_tooth = [(Ra, radius * Sp[I], d) for I in range(1, 4)]
 
     else:
         Cp = [
@@ -308,17 +294,23 @@ def add_tooth(a, t, d, radius, Ad, De, base, p_angle, rack=0, crown=0.0):
             sin(a + t / 2),
             sin(a + 3 * t / 4 - p_angle)]
 
-        verts = [(Rb * C[I], Rb * S[I], d)
-            for I in range(5)]
-        verts.extend([(Rd * C[I], Rd * S[I], d) for I in range(5)])
-        verts.extend([(radius * C[I], radius * S[I], d + crown / 3)
-            for I in range(1, 4)])
-        verts.extend([(Ra * Cp[I], Ra * Sp[I], d + crown)
-            for I in range(1, 4)])
+        verts_inner_base = [(Rb * C[I], Rb * S[I], d)
+            for I in range(4)]
+        verts_outer_base = [(Rd * C[I], Rd * S[I], d)
+            for I in range(4)]
+        verts_middle_tooth = [(radius * C[I], radius * S[I], d + crown / 3)
+            for I in range(1, 4)]
+        verts_tip_tooth = [(Ra * Cp[I], Ra * Sp[I], d + crown)
+            for I in range(1, 4)]
 
-    return verts
+    return (verts_inner_base, verts_outer_base,
+        verts_middle_tooth, verts_tip_tooth)
 
 
+# EXPERIMENTAL Calculate the vertex coordinates for a single
+# section of a gearspoke.
+# Returns them as a list of tuples.
+#
 # a
 # t
 # d
@@ -330,13 +322,9 @@ def add_tooth(a, t, d, radius, Ad, De, base, p_angle, rack=0, crown=0.0):
 # l
 # gap
 # width
-def add_spoke2(a, t, d, radius, De, base, s, w, l, gap=0, width=19):
-    """
-    EXPERIMENTAL private function: calculate the vertex coords for
-    a single side section of a gearspoke.
-    Returns them as a list of lists.
-    """
-
+#
+# @todo Finish this.
+def add_spoke(a, t, d, radius, De, base, s, w, l, gap=0, width=19):
     Rd = radius - De
     Rb = Rd - base
     Rl = Rb
@@ -348,7 +336,7 @@ def add_spoke2(a, t, d, radius, De, base, s, w, l, gap=0, width=19):
 
     if not gap:
         for N in range(width, 1, -2):
-            edgefaces.append(len(v))
+            edgefaces.append(len(verts))
             ts = t / 4
             tm = a + 2 * ts
             te = asin(w / Rb)
@@ -359,7 +347,7 @@ def add_spoke2(a, t, d, radius, De, base, s, w, l, gap=0, width=19):
             S = [sin(i) for i in A]
 
             verts.extend([(Rb * I, Rb * J, d) for (I, J) in zip(C, S)])
-            edgefaces2.append(len(v) - 1)
+            edgefaces2.append(len(verts) - 1)
 
             Rb = Rb - s
 
@@ -372,17 +360,233 @@ def add_spoke2(a, t, d, radius, De, base, s, w, l, gap=0, width=19):
 
             n = n + N
 
-    return v, edgefaces, edgefaces2, sf
+    return verts, edgefaces, edgefaces2, sf
 
 
 # Create gear geometry.
+# Returns:
+# * A list of vertices (list of tuples)
+# * A list of faces (list of lists)
+# * A list (group) of vertices of the tip (list of vertex indices).
+# * A list (group) of vertices of the valley (list of vertex indices).
+#
+# teethNum ... Number of teeth on the gear.
+# radius ... Radius of the gear, negative for crown gear
+# Ad ... Addendum, extent of tooth above radius.
+# De ... Dedendum, extent of tooth below radius.
+# base ... Base, extent of gear below radius.
+# p_angle ... Pressure angle. Skewness of tooth tip. (radiant)
+# width ... Width, thickness of gear.
+# skew ... Skew of teeth. (radiant)
+# conangle ... Conical angle of gear. (radiant)
+# rack
+# crown ... Inward pointing extend of crown teeth.
+#
+# inner radius = radius - (De + base)
+def add_gear(teethNum, radius, Ad, De, base, p_angle,
+    width=1, skew=0, conangle=0, rack=0, crown=0.0):
+
+    if teethNum < 2:
+        return None, None, None, None
+
+    t = 2 * pi / teethNum
+
+    if rack:
+        teethNum = 1
+
+    scale = (radius - 2 * width * tan(conangle)) / radius
+
+    verts = []
+    faces = []
+    vgroup_top = []  # Vertex group of top/tip? vertices.
+    vgroup_valley = []  # Vertex group of valley vertices
+
+    verts_bridge_prev = []
+    for toothCnt in range(teethNum):
+        a = toothCnt * t
+
+        verts_bridge_start = []
+        verts_bridge_end = []
+
+        verts_outside_top = []
+        verts_outside_bottom = []
+        for (s, d, c, top) \
+            in [(0, -width, 1, True), \
+            (skew, width, scale, False)]:
+
+            verts1, verts2, verts3, verts4 = add_tooth(a + s, t, d,
+                radius * c, Ad * c, De * c, base * c, p_angle,
+                rack, crown)
+
+            vertsIdx1 = list(range(len(verts), len(verts) + len(verts1)))
+            verts.extend(verts1)
+            vertsIdx2 = list(range(len(verts), len(verts) + len(verts2)))
+            verts.extend(verts2)
+            vertsIdx3 = list(range(len(verts), len(verts) + len(verts3)))
+            verts.extend(verts3)
+            vertsIdx4 = list(range(len(verts), len(verts) + len(verts4)))
+            verts.extend(verts4)
+
+            verts_outside = []
+            verts_outside.extend(vertsIdx2[:2])
+            verts_outside.append(vertsIdx3[0])
+            verts_outside.extend(vertsIdx4)
+            verts_outside.append(vertsIdx3[-1])
+            verts_outside.append(vertsIdx2[-1])
+
+            if top:
+                #verts_inside_top = vertsIdx1
+                verts_outside_top = verts_outside
+
+                verts_bridge_start.append(vertsIdx1[0])
+                verts_bridge_start.append(vertsIdx2[0])
+                verts_bridge_end.append(vertsIdx1[-1])
+                verts_bridge_end.append(vertsIdx2[-1])
+
+            else:
+                #verts_inside_bottom = vertsIdx1
+                verts_outside_bottom = verts_outside
+
+                verts_bridge_start.append(vertsIdx2[0])
+                verts_bridge_start.append(vertsIdx1[0])
+                verts_bridge_end.append(vertsIdx2[-1])
+                verts_bridge_end.append(vertsIdx1[-1])
+
+            # Valley = first 2 vertices of outer base:
+            vgroup_valley.extend(vertsIdx2[:1])
+            # Top/tip vertices:
+            vgroup_top.extend(vertsIdx4)
+
+            faces_tooth_middle_top = createFaces(vertsIdx2[1:], vertsIdx3,
+                flipped=top)
+            faces_tooth_outer_top = createFaces(vertsIdx3, vertsIdx4,
+                flipped=top)
+
+            faces_base_top = createFaces(vertsIdx1, vertsIdx2, flipped=top)
+            faces.extend(faces_base_top)
+
+            faces.extend(faces_tooth_middle_top)
+            faces.extend(faces_tooth_outer_top)
+
+        #faces_inside = createFaces(verts_inside_top, verts_inside_bottom)
+        #faces.extend(faces_inside)
+
+        faces_outside = createFaces(verts_outside_top, verts_outside_bottom,
+            flipped=True)
+        faces.extend(faces_outside)
+
+        if toothCnt == 0:
+            verts_bridge_first = verts_bridge_start
+
+        # Bridge one tooth to the next
+        if verts_bridge_prev:
+            faces_bridge = createFaces(verts_bridge_prev, verts_bridge_start)
+                            #, closed=True (for "inside" faces)
+            faces.extend(faces_bridge)
+
+        # Remember "end" vertices for next tooth.
+        verts_bridge_prev = verts_bridge_end
+
+    # Bridge the first to the last tooth.
+    faces_bridge_f_l = createFaces(verts_bridge_prev, verts_bridge_first)
+                        #, closed=True (for "inside" faces)
+    faces.extend(faces_bridge_f_l)
+
+    return verts, faces, vgroup_top, vgroup_valley
+
+
+# Create spokes geometry.
+# Returns:
+# * A list of vertices (list of tuples)
+# * A list of faces (list of lists)
+#
+# teethNum ... Number of teeth on the gear.
+# radius ... Radius of the gear, negative for crown gear
+# De ... Dedendum, extent of tooth below radius.
+# base ... Base, extent of gear below radius.
+# width ... Width, thickness of gear.
+# conangle ... Conical angle of gear. (radiant)
+# rack
+# spoke
+# spbevel
+# spwidth
+# splength
+# spresol
+#
+# @todo Finish this
+# @todo Create a function that takes a "Gear" and creates a
+#       matching "Gear Spokes" object.
+def add_spokes(teethNum, radius, De, base, width=1, conangle=0, rack=0,
+    spoke=3, spbevel=0.1, spwidth=0.2, splength=1.0, spresol=9):
+
+    if teethNum < 2:
+        return None, None, None, None
+
+    if spoke < 2:
+        return None, None, None, None
+
+    t = 2 * pi / teethNum
+
+    if rack:
+        teethNum = 1
+
+    scale = (radius - 2 * width * tan(conangle)) / radius
+
+    verts = []
+    faces = []
+
+    c = scale   # debug
+
+    fl = len(verts)
+    for toothCnt in range(teethNum):
+        a = toothCnt * t
+        s = 0       # For test
+
+        if toothCnt % spoke == 0:
+            for d in (-width, width):
+                sv, edgefaces, edgefaces2, sf = add_spoke(a + s, t, d,
+                    radius * c, De * c, base * c,
+                    spbevel, spwidth, splength, 0, spresol)
+                verts.extend(sv)
+                faces.extend([[j + fl for j in i] for i in sf])
+                fl += len(sv)
+
+            d1 = fl - len(sv)
+            d2 = fl - 2 * len(sv)
+
+            faces.extend([(i + d2, j + d2, j + d1, i + d1)
+                for (i, j) in zip(edgefaces[:-1], edgefaces[1:])])
+            faces.extend([(i + d2, j + d2, j + d1, i + d1)
+                for (i, j) in zip(edgefaces2[:-1], edgefaces2[1:])])
+
+        else:
+            for d in (-width, width):
+                sv, edgefaces, edgefaces2, sf = add_spoke(a + s, t, d,
+                    radius * c, De * c, base * c,
+                    spbevel, spwidth, splength, 1, spresol)
+
+                verts.extend(sv)
+                fl += len(sv)
+
+            d1 = fl - len(sv)
+            d2 = fl - 2 * len(sv)
+
+            faces.extend([[i + d2, i + 1 + d2, i + 1 + d1, i + d1]
+                for (i) in range(0, 3)])
+            faces.extend([[i + d2, i + 1 + d2, i + 1 + d1, i + d1]
+                for (i) in range(5, 8)])
+
+    return verts, faces
+
+
+# Create worm geometry.
 # Returns:
 # * A list of vertices
 # * A list of faces
 # * A list (group) of vertices of the tip
 # * A list (group) of vertices of the valley
 #
-# teethNum ... Number of teeth on the gear. Set to 4 for "worm"
+# teethNum ... Number of teeth on the worm
 # radius ... Radius of the gear, negative for crown gear
 # Ad ... Addendum, extent of tooth above radius.
 # De ... Dedendum, extent of tooth below radius.
@@ -398,14 +602,15 @@ def add_spoke2(a, t, d, radius, De, base, s, w, l, gap=0, width=19):
 # spwidth
 # splength
 # spresol
-def add_gear(teethNum, radius, Ad, De, base, p_angle,
+#
+# @todo Prevent double vertices.
+#       (Change it so only one row of verts is calculated for each step.)
+def add_worm(teethNum, radius, Ad, De, base, p_angle,
     width=1, skew=0, conangle=0, rack=0, crown=0.0, spoke=0,
     spbevel=0.1, spwidth=0.2, splength=1.0, spresol=9):
-    worm = 0
 
-    if teethNum < 5:
-        worm = teethNum
-        teethNum = 24
+    worm = teethNum
+    teethNum = 24
 
     t = 2 * pi / teethNum
 
@@ -417,98 +622,98 @@ def add_gear(teethNum, radius, Ad, De, base, p_angle,
     verts = []
     faces = []
     vgroup_top = []  # Vertex group of top/tip? vertices.
-    vgroup_val = []  # Vertex group of valley vertices
+    vgroup_valley = []  # Vertex group of valley vertices
 
-    M = [0]
-    if worm:
-        M = range(32)
-        skew = radians(11.25)
-        width = width / 2.0
+    rows = 32
+    M = range(rows)
+    skew = radians(11.25)
+    width = width / 2.0
 
     for W in M:
-        fl = W * teethNum * VERT_NUM * 2
-        vertNum = 0   # Number of vertices
-
+        verts_bridge_prev = []
         for toothCnt in range(teethNum):
             a = toothCnt * t
 
-            for (s, d, c, first) \
-                in [(W * skew, W * 2 * width - width, 1, 1), \
-                ((W + 1) * skew, W * 2 * width + width, scale, 0)]:
-                if worm and toothCnt % (teethNum / worm) != 0:
-                    verts_tooth = add_tooth(a + s, t, d,
-                        radius - De, 0.0, 0.0, base, p_angle)
-                    verts.extend(verts_tooth)
+            verts_bridge_start = []
+            verts_bridge_end = []
 
+            verts_outside_top = []
+            verts_outside_bottom = []
+            for (s, d, c, top) \
+                in [(W * skew, W * 2 * width - width, 1, True), \
+                ((W + 1) * skew, W * 2 * width + width, scale, False)]:
+
+                if toothCnt % (teethNum / worm) != 0:
+                    verts1, verts2, verts3, verts4 = add_tooth(a + s, t, d,
+                        radius - De, 0.0, 0.0, base, p_angle)
                 else:
-                    verts_tooth = add_tooth(a + s, t, d,
+                    verts1, verts2, verts3, verts4 = add_tooth(a + s, t, d,
                         radius * c, Ad * c, De * c, base * c, p_angle,
                         rack, crown)
-                    verts.extend(verts_tooth)
 
-                if (not worm
-                    or (W == 0 and first)
-                    or (W == (len(M) - 1) and not first)):
-                    faces.extend([[j + vertNum + fl for j in i]
-                        for i in deepcopy(FACES)])
+                # Remove various unneeded vertices (if we are inside the worm)
+                del(verts2[2])  # Central vertex in the base of the tooth.
+                del(verts3[1])  # Central vertex in the middle of the tooth.
 
-                vertNum += len(verts_tooth)
+                vertsIdx2 = list(range(len(verts), len(verts) + len(verts2)))
+                verts.extend(verts2)
+                vertsIdx3 = list(range(len(verts), len(verts) + len(verts3)))
+                verts.extend(verts3)
+                vertsIdx4 = list(range(len(verts), len(verts) + len(verts4)))
+                verts.extend(verts4)
 
-            faces.extend([[j + toothCnt * VERT_NUM * 2 + fl for j in i]
-                for i in deepcopy(EFC)])
+                verts_outside = []
+                verts_outside.extend(vertsIdx2[:2])
+                verts_outside.append(vertsIdx3[0])
+                verts_outside.extend(vertsIdx4)
+                verts_outside.append(vertsIdx3[-1])
+                verts_outside.append(vertsIdx2[-1])
 
-            vgroup_top.extend([i + toothCnt * VERT_NUM * 2
-                for i in VERTS_TOOTH])
-            vgroup_val.extend([i + toothCnt * VERT_NUM * 2
-                for i in VERTS_VALLEY])
+                if top:
+                    verts_outside_top = verts_outside
 
-    # EXPERIMENTAL: add spokes
-    if not worm and spoke > 0:
-        fl = len(v)
-        for toothCnt in range(teethNum):
-            a = toothCnt * t
-            s = 0       # For test
+                    verts_bridge_start.append(vertsIdx2[0])
+                    verts_bridge_end.append(vertsIdx2[-1])
+                else:
+                    verts_outside_bottom = verts_outside
 
-            if toothCnt % spoke == 0:
-                for d in (-width, width):
-                    sv, edgefaces, edgefaces2, sf = add_spoke2(a + s, t, d,
-                        radius * c, De * c, base * c,
-                        spbevel, spwidth, splength, 0, spresol)
-                    verts.extend(sv)
-                    faces.extend([[j + fl for j in i] for i in sf])
-                    fl += len(sv)
+                    verts_bridge_start.append(vertsIdx2[0])
+                    verts_bridge_end.append(vertsIdx2[-1])
 
-                d1 = fl - len(sv)
-                d2 = fl - 2 * len(sv)
+                # Valley = first 2 vertices of outer base:
+                vgroup_valley.extend(vertsIdx2[:1])
+                # Top/tip vertices:
+                vgroup_top.extend(vertsIdx4)
 
-                faces.extend([(i + d2, j + d2, j + d1, i + d1)
-                    for (i, j) in zip(edgefaces[:-1], edgefaces[1:])])
-                faces.extend([(i + d2, j + d2, j + d1, i + d1)
-                    for (i, j) in zip(edgefaces2[:-1], edgefaces2[1:])])
+            faces_outside = createFaces(
+                verts_outside_top,
+                verts_outside_bottom,
+                flipped=True)
+            faces.extend(faces_outside)
 
-            else:
-                for d in (-width, width):
-                    sv, edgefaces, edgefaces2, sf = add_spoke2(a + s, t, d,
-                        radius * c, De * c, base * c,
-                        spbevel, spwidth, splength, 1, spresol)
+            if toothCnt == 0:
+                verts_bridge_first = verts_bridge_start
 
-                    verts.extend(sv)
-                    fl += len(sv)
+            # Bridge one tooth to the next
+            if verts_bridge_prev:
+                faces_bridge = createFaces(
+                    verts_bridge_prev,
+                    verts_bridge_start)
+                faces.extend(faces_bridge)
 
-                d1 = fl - len(sv)
-                d2 = fl - 2 * len(sv)
+            # Remember "end" vertices for next tooth.
+            verts_bridge_prev = verts_bridge_end
 
-                #faces.extend([(i+d2, i+1+d2, i+1+d1, i+d1)
-                #    for (i) in (0, 1, 2, 3)])
-                #faces.extend([(i+d2, i+1+d2, i+1+d1, i+d1)
-                #    for (i) in (5, 6, 7, 8)])
+        # Bridge the first to the last tooth.
+        faces_bridge_f_l = createFaces(verts_bridge_prev, verts_bridge_first)
+        faces.extend(faces_bridge_f_l)
 
-    return verts, faces, vgroup_top, vgroup_val
+    return verts, faces, vgroup_top, vgroup_valley
 
 
 class AddGear(bpy.types.Operator):
     '''Add a gear mesh.'''
-    bl_idname = "mesh.gear_add"
+    bl_idname = "mesh.primitive_gear"
     bl_label = "Add Gear"
     bl_options = {'REGISTER', 'UNDO'}
 
@@ -519,8 +724,8 @@ class AddGear(bpy.types.Operator):
         options={'HIDDEN'})
     number_of_teeth = IntProperty(name="Number of Teeth",
         description="Number of teeth on the gear",
-        min=4,
-        max=200,
+        min=2,
+        max=265,
         default=12)
     radius = FloatProperty(name="Radius",
         description="Radius of the gear, negative for crown gear",
@@ -578,7 +783,7 @@ class AddGear(bpy.types.Operator):
             props.dedendum,
             props.base,
             radians(props.angle),
-            props.width,
+            width=props.width,
             skew=radians(props.skew),
             conangle=radians(props.conangle),
             crown=props.crown)
@@ -613,12 +818,137 @@ class AddGear(bpy.types.Operator):
         return {'FINISHED'}
 
 
-menu_func = (lambda self, context: self.layout.operator(AddGear.bl_idname,
-                                        text="Gear", icon='PLUGIN'))
+class AddWormGear(bpy.types.Operator):
+    '''Add a worm gear mesh.'''
+    bl_idname = "mesh.primitive_worm_gear"
+    bl_label = "Add Worm Gear"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    # edit - Whether to add or update.
+    edit = BoolProperty(name="",
+        description="",
+        default=False,
+        options={'HIDDEN'})
+    number_of_teeth = IntProperty(name="Number of Teeth",
+        description="Number of teeth on the gear",
+        min=2,
+        max=265,
+        default=12)
+    radius = FloatProperty(name="Radius",
+        description="Radius of the gear, negative for crown gear",
+        min=-100.0,
+        max=100.0,
+        default=1.0)
+    addendum = FloatProperty(name="Addendum",
+        description="Addendum, extent of tooth above radius",
+        min=0.01,
+        max=100.0,
+        default=0.1)
+    dedendum = FloatProperty(name="Dedendum",
+        description="Dedendum, extent of tooth below radius",
+        min=0.0,
+        max=100.0,
+        default=0.1)
+    angle = FloatProperty(name="Pressure Angle",
+        description="Pressure angle, skewness of tooth tip (degrees)",
+        min=0.0,
+        max=45.0,
+        default=20.0)
+    base = FloatProperty(name="Base",
+        description="Base, extent of gear below radius",
+        min=0.0,
+        max=100.0,
+        default=0.2)
+    width = FloatProperty(name="Width",
+        description="Width, thickness of gear",
+        min=0.05,
+        max=100.0,
+        default=0.2)
+    skew = FloatProperty(name="Skewness",
+        description="Skew of teeth (degrees)",
+        min=-90.0,
+        max=90.0,
+        default=0.0)
+    conangle = FloatProperty(name="Conical angle",
+        description="Conical angle of gear (degrees)",
+        min=0.0,
+        max=90.0,
+        default=0.0)
+    crown = FloatProperty(name="Crown",
+        description="Inward pointing extend of crown teeth",
+        min=0.0,
+        max=100.0,
+        default=0.0)
+
+    def execute(self, context):
+        props = self.properties
+
+        verts, faces, verts_tip, verts_valley = add_worm(
+            props.number_of_teeth,
+            props.radius,
+            props.addendum,
+            props.dedendum,
+            props.base,
+            radians(props.angle),
+            props.width,
+            skew=radians(props.skew),
+            conangle=radians(props.conangle),
+            crown=props.crown)
+
+        # Actually create the mesh object from this geometry data.
+        obj = create_mesh_object(context, verts, [], faces, "Worm Gear",
+            props.edit)
+
+        # Store 'recall' properties in the object.
+        recall_args_list = {
+            "edit": True,
+            "number_of_teeth": props.number_of_teeth,
+            "radius": props.radius,
+            "addendum": props.addendum,
+            "dedendum": props.dedendum,
+            "angle": props.angle,
+            "base": props.base,
+            "width": props.width,
+            "skew": props.skew,
+            "conangle": props.conangle,
+            "crown": props.crown}
+        store_recall_properties(obj, self, recall_args_list)
+
+        # Create vertex groups from stored vertices.
+        tipGroup = obj.add_vertex_group('Tips')
+        for vert in verts_tip:
+            obj.add_vertex_to_group(vert, tipGroup, 1.0, 'ADD')
+
+        valleyGroup = obj.add_vertex_group('Valleys')
+        for vert in verts_valley:
+            obj.add_vertex_to_group(vert, valleyGroup, 1.0, 'ADD')
+
+        return {'FINISHED'}
+
+
+class INFO_MT_mesh_gears_add(bpy.types.Menu):
+    # Define the "Gears" menu
+    bl_idname = "INFO_MT_mesh_gears_add"
+    bl_label = "Gears"
+
+    def draw(self, context):
+        layout = self.layout
+        layout.operator_context = 'INVOKE_REGION_WIN'
+        layout.operator("mesh.primitive_gear",
+            text="Gear")
+        layout.operator("mesh.primitive_worm_gear",
+            text="Worm")
+
+
+# Define "Gears" menu
+menu_func = (lambda self,
+    context: self.layout.menu("INFO_MT_mesh_gears_add", icon="PLUGIN"))
 
 
 def register():
     bpy.types.register(AddGear)
+    bpy.types.register(AddWormGear)
+    bpy.types.register(INFO_MT_mesh_gears_add)
 
     # Add "Gears" entry to the "Add Mesh" menu.
     bpy.types.INFO_MT_mesh_add.append(menu_func)
@@ -626,6 +956,8 @@ def register():
 
 def unregister():
     bpy.types.unregister(AddGear)
+    bpy.types.unregister(AddWormGear)
+    bpy.types.unregister(INFO_MT_mesh_gears_add)
 
     # Remove "Gears" entry from the "Add Mesh" menu.
     bpy.types.INFO_MT_mesh_add.remove(menu_func)
