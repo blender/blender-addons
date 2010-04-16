@@ -23,7 +23,7 @@
 bl_addon_info = {
     'name': 'Add Mesh: Gears',
     'author': 'Michel J. Anders (varkenvarken)',
-    'version': '2.3',
+    'version': '2.4',
     'blender': (2, 5, 3),
     'location': 'View3D > Add > Mesh > Gears ',
     'description': 'Adds a mesh Gear to the Add Mesh menu',
@@ -58,13 +58,6 @@ the user with instant feedback.
 Finally we had to convert/throw away some print statements to print functions
 as Blender nows uses Python 3.x
 
-The most puzzling issue was that the built in Python zip()
-function changed its behavior.
-In 3.x it returns a zip object (that can be iterated over)
-instead of a list of tuples.
-This meant we could no longer use deepcopy(zip(...)) but had to convert the
-zip object to a list of tuples first.
-
 The code to actually implement the AddGear() function is mostly copied from
 add_mesh_torus() (distributed with Blender).
 """
@@ -72,7 +65,6 @@ add_mesh_torus() (distributed with Blender).
 import bpy
 import mathutils
 from math import *
-from copy import deepcopy
 from bpy.props import *
 
 
@@ -590,123 +582,93 @@ def add_spokes(teethNum, radius, De, base, width=1, conangle=0, rack=0,
 # radius ... Radius of the gear, negative for crown gear
 # Ad ... Addendum, extent of tooth above radius.
 # De ... Dedendum, extent of tooth below radius.
-# base ... Base, extent of gear below radius.
 # p_angle ... Pressure angle. Skewness of tooth tip. (radiant)
 # width ... Width, thickness of gear.
-# skew ... Skew of teeth. (radiant)
-# conangle ... Conical angle of gear. (radiant)
-# rack
 # crown ... Inward pointing extend of crown teeth.
-# spoke
-# spbevel
-# spwidth
-# splength
-# spresol
 #
-# @todo Prevent double vertices.
-#       (Change it so only one row of verts is calculated for each step.)
-def add_worm(teethNum, radius, Ad, De, base, p_angle,
-    width=1, skew=0, conangle=0, rack=0, crown=0.0, spoke=0,
-    spbevel=0.1, spwidth=0.2, splength=1.0, spresol=9):
+# @todo: Fix teethNum. Some numbers are not possible yet.
+# @todo: Create start & end geoemtry (closing faces)
+def add_worm(teethNum, rowNum, radius, Ad, De, p_angle,
+    width=1, skew=radians(11.25), crown=0.0):
 
     worm = teethNum
     teethNum = 24
 
     t = 2 * pi / teethNum
 
-    if rack:
-        teethNum = 1
-
-    scale = (radius - 2 * width * tan(conangle)) / radius
-
     verts = []
     faces = []
     vgroup_top = []  # Vertex group of top/tip? vertices.
     vgroup_valley = []  # Vertex group of valley vertices
 
-    rows = 32
-    M = range(rows)
-    skew = radians(11.25)
-    width = width / 2.0
+    #width = width / 2.0
 
-    for W in M:
-        verts_bridge_prev = []
+    edgeloop_prev = []
+    for Row in range(rowNum):
+        edgeloop = []
+
         for toothCnt in range(teethNum):
             a = toothCnt * t
 
-            verts_bridge_start = []
-            verts_bridge_end = []
+            s = Row * skew
+            d = Row * width
+            c = 1
 
-            verts_outside_top = []
-            verts_outside_bottom = []
-            for (s, d, c, top) \
-                in [(W * skew, W * 2 * width - width, 1, True), \
-                ((W + 1) * skew, W * 2 * width + width, scale, False)]:
+            isTooth = False
+            if toothCnt % (teethNum / worm) != 0:
+                # Flat
+                verts1, verts2, verts3, verts4 = add_tooth(a + s, t, d,
+                    radius - De, 0.0, 0.0, 0, p_angle)
 
-                if toothCnt % (teethNum / worm) != 0:
-                    verts1, verts2, verts3, verts4 = add_tooth(a + s, t, d,
-                        radius - De, 0.0, 0.0, base, p_angle)
-                else:
-                    verts1, verts2, verts3, verts4 = add_tooth(a + s, t, d,
-                        radius * c, Ad * c, De * c, base * c, p_angle,
-                        rack, crown)
+                # Ignore other verts than the "other base".
+                verts1 = verts3 = verts4 = []
 
-                # Remove various unneeded vertices (if we are inside the worm)
+            else:
+                # Tooth
+                isTooth = True
+                verts1, verts2, verts3, verts4 = add_tooth(a + s, t, d,
+                    radius * c, Ad * c, De * c, 0 * c, p_angle, 0, crown)
+
+                # Remove various unneeded verts (if we are "inside" the tooth)
                 del(verts2[2])  # Central vertex in the base of the tooth.
                 del(verts3[1])  # Central vertex in the middle of the tooth.
 
-                vertsIdx2 = list(range(len(verts), len(verts) + len(verts2)))
-                verts.extend(verts2)
-                vertsIdx3 = list(range(len(verts), len(verts) + len(verts3)))
-                verts.extend(verts3)
-                vertsIdx4 = list(range(len(verts), len(verts) + len(verts4)))
-                verts.extend(verts4)
+            vertsIdx2 = list(range(len(verts), len(verts) + len(verts2)))
+            verts.extend(verts2)
+            vertsIdx3 = list(range(len(verts), len(verts) + len(verts3)))
+            verts.extend(verts3)
+            vertsIdx4 = list(range(len(verts), len(verts) + len(verts4)))
+            verts.extend(verts4)
 
-                verts_outside = []
-                verts_outside.extend(vertsIdx2[:2])
-                verts_outside.append(vertsIdx3[0])
-                verts_outside.extend(vertsIdx4)
-                verts_outside.append(vertsIdx3[-1])
-                verts_outside.append(vertsIdx2[-1])
-
-                if top:
-                    verts_outside_top = verts_outside
-
-                    verts_bridge_start.append(vertsIdx2[0])
-                    verts_bridge_end.append(vertsIdx2[-1])
-                else:
-                    verts_outside_bottom = verts_outside
-
-                    verts_bridge_start.append(vertsIdx2[0])
-                    verts_bridge_end.append(vertsIdx2[-1])
+            if isTooth:
+                verts_current = []
+                verts_current.extend(vertsIdx2[:2])
+                verts_current.append(vertsIdx3[0])
+                verts_current.extend(vertsIdx4)
+                verts_current.append(vertsIdx3[-1])
+                verts_current.append(vertsIdx2[-1])
 
                 # Valley = first 2 vertices of outer base:
                 vgroup_valley.extend(vertsIdx2[:1])
                 # Top/tip vertices:
                 vgroup_top.extend(vertsIdx4)
 
-            faces_outside = createFaces(
-                verts_outside_top,
-                verts_outside_bottom,
-                flipped=True)
-            faces.extend(faces_outside)
+            else:
+                # Flat
+                verts_current = vertsIdx2
 
-            if toothCnt == 0:
-                verts_bridge_first = verts_bridge_start
+                # Valley - all of them.
+                vgroup_valley.extend(vertsIdx2)
 
-            # Bridge one tooth to the next
-            if verts_bridge_prev:
-                faces_bridge = createFaces(
-                    verts_bridge_prev,
-                    verts_bridge_start)
-                faces.extend(faces_bridge)
+            edgeloop.extend(verts_current)
 
-            # Remember "end" vertices for next tooth.
-            verts_bridge_prev = verts_bridge_end
+        # Create faces between rings/rows.
+        if edgeloop_prev:
+            faces_row = createFaces(edgeloop, edgeloop_prev, closed=True)
+            faces.extend(faces_row)
 
-        # Bridge the first to the last tooth.
-        faces_bridge_f_l = createFaces(verts_bridge_prev, verts_bridge_first)
-        faces.extend(faces_bridge_f_l)
+        # Remember last ring/row of vertices for next ring/row iteration.
+        edgeloop_prev = edgeloop
 
     return verts, faces, vgroup_top, vgroup_valley
 
@@ -834,6 +796,11 @@ class AddWormGear(bpy.types.Operator):
         min=2,
         max=265,
         default=12)
+    number_of_rows = IntProperty(name="Number of Rows",
+        description="Number of rows on the worm gear",
+        min=2,
+        max=265,
+        default=32)
     radius = FloatProperty(name="Radius",
         description="Radius of the gear, negative for crown gear",
         min=-100.0,
@@ -854,26 +821,16 @@ class AddWormGear(bpy.types.Operator):
         min=0.0,
         max=45.0,
         default=20.0)
-    base = FloatProperty(name="Base",
-        description="Base, extent of gear below radius",
-        min=0.0,
-        max=100.0,
-        default=0.2)
-    width = FloatProperty(name="Width",
-        description="Width, thickness of gear",
+    row_height = FloatProperty(name="Row Height",
+        description="Height of each Row",
         min=0.05,
         max=100.0,
         default=0.2)
-    skew = FloatProperty(name="Skewness",
-        description="Skew of teeth (degrees)",
+    skew = FloatProperty(name="Skewness per Row",
+        description="Skew of each row (degrees)",
         min=-90.0,
         max=90.0,
-        default=0.0)
-    conangle = FloatProperty(name="Conical angle",
-        description="Conical angle of gear (degrees)",
-        min=0.0,
-        max=90.0,
-        default=0.0)
+        default=11.25)
     crown = FloatProperty(name="Crown",
         description="Inward pointing extend of crown teeth",
         min=0.0,
@@ -885,14 +842,13 @@ class AddWormGear(bpy.types.Operator):
 
         verts, faces, verts_tip, verts_valley = add_worm(
             props.number_of_teeth,
+            props.number_of_rows,
             props.radius,
             props.addendum,
             props.dedendum,
-            props.base,
             radians(props.angle),
-            props.width,
+            width=props.row_height,
             skew=radians(props.skew),
-            conangle=radians(props.conangle),
             crown=props.crown)
 
         # Actually create the mesh object from this geometry data.
@@ -903,14 +859,13 @@ class AddWormGear(bpy.types.Operator):
         recall_args_list = {
             "edit": True,
             "number_of_teeth": props.number_of_teeth,
+            "number_of_rows": props.number_of_rows,
             "radius": props.radius,
             "addendum": props.addendum,
             "dedendum": props.dedendum,
             "angle": props.angle,
-            "base": props.base,
-            "width": props.width,
+            "row_height": props.row_height,
             "skew": props.skew,
-            "conangle": props.conangle,
             "crown": props.crown}
         store_recall_properties(obj, self, recall_args_list)
 
