@@ -48,7 +48,7 @@ It also has an option to translate pixeldimensions into Blenderunits.
 """
 
 bl_addon_info = {
-    'name': 'Add Mesh: Planes from Images',
+    'name': 'Object: Planes from Images',
     'author': 'Florian Meyer (testscreenings)',
     'version': '0.7',
     'blender': (2, 5, 2),
@@ -57,7 +57,7 @@ bl_addon_info = {
         'Scripts/Add_Mesh/Planes_from_Images',
     'description': 'Imports images and creates planes' \
         ' with the appropiate aspect ratio.',
-    'category': 'Add Mesh'}
+    'category': 'Object'}
 
 import bpy
 from bpy.props import *
