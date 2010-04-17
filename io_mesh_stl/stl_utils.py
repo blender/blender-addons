@@ -145,7 +145,7 @@ def _binary_write(filename, faces):
 
 def _ascii_write(filename, faces):
     with open(filename, 'w') as data:
-        f.write('solid Exported from blender\n')
+        data.write('solid Exported from blender\n')
 
         for face in faces:
             data.write('''facet normal 0 0 0\nouter loop\n''')
