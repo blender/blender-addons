@@ -23,8 +23,10 @@ bl_addon_info = {
     'blender': (2, 5, 3),
     'location': 'Fracture tools (Search > Fracture Object & ,' \
         'Add -> Fracture Helper Objects',
-    'url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/Scripts/',
-    'category': 'Object'}
+    'description': 'Fractured Object, Bomb, Projectile, Recorder',
+    'url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/' \
+        'Scripts/Object/Fracture'}
+
 
 import bpy
 from fracture import fracture_ops, fracture_setup
