@@ -28,11 +28,11 @@ bl_addon_info = {
     'version': '1.3',
     'blender': (2, 5, 3),
     'location': 'View3D > Mouse > Menu ',
-    'description': 'Dynamic Menu Object/Edit mode in the 3D View',
+    'description': 'Context sensitive spacebar menu',
     'url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/' \
-        'Scripts/3D_interaction/Dynamic_Menu',
+        'Scripts/3D_interaction/Dynamic_Spacebar_Menu',
     'category': '3D View'}
-"Add Dynamic Menu (Right click in View3D)"
+"Add Dynamic Spacebar Menu"
 
 """
 Name: 'Dynamic Spacebar Menu'
@@ -47,11 +47,10 @@ Dynamic Menu
 This adds a the Dynamic Spacebar Menu in the 3DView.
 
 Usage:
-* Right click in an empty space in the 3D View(that means nothing
-selectable is there). If your select mouse is set to left then left
-click in the 3D View.
-
-* Choose your function from the menu.
+*  This script gives a basic menu with common simple tools for easy access.
+* Very similar to the Spacebar menu in 2.49
+* Context sensitive for Object. Edit, Sculpt, Pose, Weight/Texture/Vertex Paint.
+* Object sensitive based on object selected in edit mode. 
 
 Version history:
 v1.5 - (meta-androcto) - adding context sensitive menus.
