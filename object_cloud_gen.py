@@ -18,7 +18,7 @@
 
 
 bl_addon_info = {
-    'name': 'Cloud generator',
+    'name': 'Object: Cloud generator',
     'author': 'Nick Keeline(nrk)',
     'version': '0.1',
     'blender': (2, 5, 3),
