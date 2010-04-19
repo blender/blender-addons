@@ -24,7 +24,7 @@ from bpy.props import *
 bl_addon_info = {
     'name': 'Add Mesh: Pipe Joints',
     'author': 'Buerbaum Martin (Pontiac)',
-    'version': '0.10.4',
+    'version': '0.10.5',
     'blender': (2, 5, 3),
     'location': 'View3D > Add > Mesh > Pipe Joint',
     'description': 'Adds 5 pipe Joint types to the Add Mesh menu',
@@ -48,6 +48,7 @@ The functionality can then be accessed via the
 Note: Currently only the "Elbow" type supports odd number of vertices.
 
 Version history:
+v0.10.5 - createFaces can now create fan/star like faces.
 v0.10.4 - Updated the function "createFaces" a bit. No functional changes.
 v0.10.3 - Updated store_recall_properties, apply_object_align
     and create_mesh_object.
@@ -248,37 +249,69 @@ def create_mesh_object(context, verts, edges, faces, name, edit):
 
 # A very simple "bridge" tool.
 # Connects two equally long vertex rows with faces.
-# Returns a list of the new faces (list of lists)
+# Returns a list of the new faces (list of  lists)
 #
 # vertIdx1 ... First vertex list (list of vertex indices).
 # vertIdx2 ... Second vertex list (list of vertex indices).
 # closed ... Creates a loop (first & last are closed).
 # flipped ... Invert the normal of the face(s).
+#
+# Note: You can set vertIdx1 to a single vertex index to create
+#       a fan/star of faces.
+# Note: If both vertex idx list are the same length they have
+#       to have at least 2 vertices.
 def createFaces(vertIdx1, vertIdx2, closed=False, flipped=False):
     faces = []
 
-    if (len(vertIdx1) != len(vertIdx2)) or (len(vertIdx1) < 2):
+    if not vertIdx1 or not vertIdx2:
         return None
 
-    total = len(vertIdx1)
+    if len(vertIdx1) < 2 and len(vertIdx2) < 2:
+        return None
+
+    fan = False
+    if (len(vertIdx1) != len(vertIdx2)):
+        if (len(vertIdx1) == 1 and len(vertIdx2) > 1):
+            fan = True
+        else:
+            return None
+
+    total = len(vertIdx2)
 
     if closed:
         # Bridge the start with the end.
         if flipped:
-            faces.append([vertIdx1[0], vertIdx2[0],
-                vertIdx2[total - 1], vertIdx1[total - 1]])
+            face = [
+                vertIdx1[0],
+                vertIdx2[0],
+                vertIdx2[total - 1]]
+            if not fan:
+                face.append(vertIdx1[total - 1])
+            faces.append(face)
+
         else:
-            faces.append([vertIdx2[0], vertIdx1[0],
-                vertIdx1[total - 1], vertIdx2[total - 1]])
+            face = [vertIdx2[0], vertIdx1[0]]
+            if not fan:
+                face.append(vertIdx1[total - 1])
+            face.append(vertIdx2[total - 1])
+            faces.append(face)
 
     # Bridge the rest of the faces.
     for num in range(total - 1):
         if flipped:
-            faces.append([vertIdx2[num], vertIdx1[num],
-                vertIdx1[num + 1], vertIdx2[num + 1]])
+            if fan:
+                face = [vertIdx2[num], vertIdx1[0], vertIdx2[num + 1]]
+            else:
+                face = [vertIdx2[num], vertIdx1[num],
+                    vertIdx1[num + 1], vertIdx2[num + 1]]
+            faces.append(face)
         else:
-            faces.append([vertIdx1[num], vertIdx2[num],
-                vertIdx2[num + 1], vertIdx1[num + 1]])
+            if fan:
+                face = [vertIdx1[0], vertIdx2[num], vertIdx2[num + 1]]
+            else:
+                face = [vertIdx1[num], vertIdx2[num],
+                    vertIdx2[num + 1], vertIdx1[num + 1]]
+            faces.append(face)
 
     return faces
 
