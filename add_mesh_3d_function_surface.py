@@ -24,7 +24,7 @@ from bpy.props import *
 bl_addon_info = {
     'name': 'Add Mesh: 3D Function Surfaces',
     'author': 'Buerbaum Martin (Pontiac)',
-    'version': '0.3.4',
+    'version': '0.3.5',
     'blender': (2, 5, 3),
     'location': 'View3D > Add > Mesh > Z Function Surface &' \
         ' XYZ Function Surface',
@@ -63,6 +63,7 @@ and
 menu.
 
 Version history:
+v0.3.5 - createFaces can now "Flip" faces and create fan/star like faces.
 v0.3.4 - Updated store_recall_properties, apply_object_align
     and create_mesh_object.
     Changed how recall data is stored.
@@ -233,32 +234,71 @@ def create_mesh_object(context, verts, edges, faces, name, edit):
     return ob_new
 
 
-def createFaces(vertIdx1, vertIdx2, ring):
-    '''
-    A very simple "bridge" tool.
-    Connects two equally long vertex-loops with faces and
-    returns a list of the new faces.
-
-    Parameters
-        vertIdx1 ... List of vertex indices of the first loop.
-        vertIdx2 ... List of vertex indices of the second loop.
-    '''
+# A very simple "bridge" tool.
+# Connects two equally long vertex rows with faces.
+# Returns a list of the new faces (list of  lists)
+#
+# vertIdx1 ... First vertex list (list of vertex indices).
+# vertIdx2 ... Second vertex list (list of vertex indices).
+# closed ... Creates a loop (first & last are closed).
+# flipped ... Invert the normal of the face(s).
+#
+# Note: You can set vertIdx1 to a single vertex index to create
+#       a fan/star of faces.
+# Note: If both vertex idx list are the same length they have
+#       to have at least 2 vertices.
+def createFaces(vertIdx1, vertIdx2, closed=False, flipped=False):
     faces = []
 
-    if (len(vertIdx1) != len(vertIdx2)) or (len(vertIdx1) < 2):
+    if not vertIdx1 or not vertIdx2:
         return None
 
-    total = len(vertIdx1)
+    if len(vertIdx1) < 2 and len(vertIdx2) < 2:
+        return None
 
-    if (ring):
+    fan = False
+    if (len(vertIdx1) != len(vertIdx2)):
+        if (len(vertIdx1) == 1 and len(vertIdx2) > 1):
+            fan = True
+        else:
+            return None
+
+    total = len(vertIdx2)
+
+    if closed:
         # Bridge the start with the end.
-        faces.append([vertIdx2[0], vertIdx1[0],
-            vertIdx1[total - 1], vertIdx2[total - 1]])
+        if flipped:
+            face = [
+                vertIdx1[0],
+                vertIdx2[0],
+                vertIdx2[total - 1]]
+            if not fan:
+                face.append(vertIdx1[total - 1])
+            faces.append(face)
+
+        else:
+            face = [vertIdx2[0], vertIdx1[0]]
+            if not fan:
+                face.append(vertIdx1[total - 1])
+            face.append(vertIdx2[total - 1])
+            faces.append(face)
 
     # Bridge the rest of the faces.
     for num in range(total - 1):
-        faces.append([vertIdx1[num], vertIdx2[num],
-            vertIdx2[num + 1], vertIdx1[num + 1]])
+        if flipped:
+            if fan:
+                face = [vertIdx2[num], vertIdx1[0], vertIdx2[num + 1]]
+            else:
+                face = [vertIdx2[num], vertIdx1[num],
+                    vertIdx1[num + 1], vertIdx2[num + 1]]
+            faces.append(face)
+        else:
+            if fan:
+                face = [vertIdx1[0], vertIdx2[num], vertIdx2[num + 1]]
+            else:
+                face = [vertIdx1[num], vertIdx2[num],
+                    vertIdx2[num + 1], vertIdx1[num + 1]]
+            faces.append(face)
 
     return faces
 
@@ -356,7 +396,7 @@ class AddZFunctionSurface(bpy.types.Operator):
                 verts.append((x, y, z))
 
             if len(edgeloop_prev) > 0:
-                faces_row = createFaces(edgeloop_prev, edgeloop_cur, False)
+                faces_row = createFaces(edgeloop_prev, edgeloop_cur)
                 faces.extend(faces_row)
 
             edgeloop_prev = edgeloop_cur
