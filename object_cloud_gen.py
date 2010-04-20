@@ -18,9 +18,9 @@
 
 
 bl_addon_info = {
-    'name': 'Object: Cloud generator',
+    'name': 'Cloud generator',
     'author': 'Nick Keeline(nrk)',
-    'version': '0.1',
+    'version': '0.3',
     'blender': (2, 5, 3),
     'location': 'Tool Shelf ',
     'description': 'Creates Volumetric Clouds',
@@ -37,6 +37,8 @@ are selected
 
 Rev 0 initial release
 Rev 0.1 added scene to create_mesh per python api change.
+Rev 0.2 Added Point Density turbulence and fixed degenerate
+Rev 0.3 Fixed bug in degenerate
 """
 
 import bpy
@@ -223,10 +225,11 @@ def degenerateCloud(obj):
     if "CloudMember" in obj:
         if obj["CloudMember"] != None:
             if obj.parent:
-                return True
+               if "CloudMember" not in obj.parent:
+                return False
 
             else:
-                del(obj["CloudMember"])
+                return True
 
     return False
 
@@ -251,6 +254,20 @@ class VIEW3D_PT_tools_cloud(View3DPanel):
             col = layout.column(align=True)
             col.operator("cloud.generate_cloud", text="DeGenerate")
 
+        elif active_obj == 'NoneType':
+            layout = self.layout
+
+            col = layout.column(align=True)
+            col.label(text="Select one or more")
+            col.label(text="objects to generate")
+            col.label(text="a cloud.")
+        elif "CloudMember" in  active_obj:
+            layout = self.layout
+
+            col = layout.column(align=True)
+            col.label(text="Must select")
+            col.label(text="bound box")
+           
         elif active_obj and active_obj.type == 'MESH':
             layout = self.layout
 
@@ -264,6 +281,7 @@ class VIEW3D_PT_tools_cloud(View3DPanel):
             col.label(text="Select one or more")
             col.label(text="objects to generate")
             col.label(text="a cloud.")
+        # col.label(active_obj["CloudMember"])
 
 classes = [VIEW3D_PT_tools_cloud]
 
@@ -306,70 +324,67 @@ class GenerateCloud(bpy.types.Operator):
             # the number of points the scripts will put in the volume.
             numOfPoints = 35
             maxNumOfPoints = 100000
-            scattering = 3
+            scattering = 2.5
             pointDensityRadius = 0.4
+            densityScale = 1.5
 
             # Should we degnerate?
             degenerate = degenerateCloud(active_object)
 
             if degenerate:
-                # Degenerate Cloud
-                if active_object["CloudMember"] == "MainObj":
-                    mainObj = active_object
+                if active_object != 'NoneType':
+                   # Degenerate Cloud
+                   mainObj = active_object
 
-                else:
-                    mainObj = active_object.parent
+                   cloudMembers = active_object.children
 
-                cloudMembers = active_object.children
+                   createdObjects = []
+                   definitionObjects = []
+                   for member in cloudMembers:
+                       applyScaleRotLoc(scene, member)
+                       if (member["CloudMember"] == "CreatedObj"):
+                          createdObjects.append(member)
+                       else:
+                          definitionObjects.append(member)
 
-                # Find the created objects children of main and delete.
-                createdObjFound = False
+                   for defObj in definitionObjects:
+                       # @todo check if it wouldn't be better to remove this
+                       # in the first place (see del() in degenerateCloud)
+                       #totally agree didn't know how before now...thanks! done.
+                       if "CloudMember" in defObj:
+                          del(defObj["CloudMember"])
 
-                createdObjects = []
-                i = 0
-                for member in cloudMembers:
-                    applyScaleRotLoc(scene, member)
+                   for createdObj in createdObjects:
+                       # Deselect All
+                       bpy.ops.object.select_all(action='DESELECT')
+   
+                       # Select the object and delete it.
+                       createdObj.selected = True
+                       scene.objects.active = createdObj
+                       bpy.ops.object.delete()
 
-                    if (member["CloudMember"] == "CreatedObj"):
-                        createdObjects.append(member)
-                        del cloudMembers[i]
-
-                    # @todo check if it wouldn't be better to remove this
-                    # in the first place (see del() in degenerateCloud)
-                    member["CloudMember"] = None
-                    i += 1
-
-                for createdObj in createdObjects:
-                    # Deselect All
-                    bpy.ops.object.select_all(action='DESELECT')
-
-                    # Select the object and delete it.
-                    createdObj.selected = True
-                    scene.objects.active = createdObj
-                    bpy.ops.object.delete()
-
-                # Delete the main object
-                # Deselect All
-                bpy.ops.object.select_all(action='DESELECT')
-
-                # Select the object and delete it.
-                mainObj.selected = True
-                scene.objects.active = mainObj
-
-                # Delete all material slots in mainObj object
-                for i in range(len(mainObj.material_slots)):
-                    mainObj.active_material_index = i - 1
-                    bpy.ops.object.material_slot_remove()
-
-                # Delete the Main Object
-                bpy.ops.object.delete()
-
-                # Select all of the left over boxes so people can immediately
-                # press generate again if they want.
-                for eachMember in cloudMembers:
-                    eachMember.max_draw_type = 'SOLID'
-                    eachMember.selected = True
-                    scene.objects.active = eachMember
+                   # Delete the main object
+                   # Deselect All
+                   bpy.ops.object.select_all(action='DESELECT')
+   
+                   # Select the object and delete it.
+                   mainObj.selected = True
+                   scene.objects.active = mainObj
+   
+                   # Delete all material slots in mainObj object
+                   for i in range(len(mainObj.material_slots)):
+                       mainObj.active_material_index = i - 1
+                       bpy.ops.object.material_slot_remove()
+  
+                   # Delete the Main Object
+                   bpy.ops.object.delete()
+  
+                   # Select all of the left over boxes so people can immediately
+                   # press generate again if they want.
+                   for eachMember in definitionObjects:
+                       eachMember.max_draw_type = 'SOLID'
+                       eachMember.selected = True
+                       scene.objects.active = eachMember
 
             else:
                 # Generate Cloud
@@ -379,7 +394,7 @@ class GenerateCloud(bpy.types.Operator):
                 selectedObjects = bpy.context.selected_objects
 
                 # Create a new object bounds
-                if len(selectedObjects) == 0:
+                if selectedObjects == 'NoneType':
                     bounds = addNewObject(scene,
                         "CloudBounds",
                         [])
@@ -490,7 +505,7 @@ class GenerateCloud(bpy.types.Operator):
                 mVolume = cloudMaterial.volume
                 mVolume.scattering = scattering
                 mVolume.density = 0
-                mVolume.density_scale = 1
+                mVolume.density_scale = densityScale
                 mVolume.transmission_color = [3, 3, 3]
                 mVolume.step_size = 0.1
                 mVolume.light_cache = True
@@ -514,6 +529,10 @@ class GenerateCloud(bpy.types.Operator):
                 vMaterialTextureSlots[1].texture_coordinates = 'GLOBAL'
                 pDensity.pointdensity.radius = pointDensityRadius
                 pDensity.pointdensity.vertices_cache = 'WORLD_SPACE'
+                pDensity.pointdensity.turbulence = True
+                pDensity.pointdensity.noise_basis = 'VORONOI_F2'
+                pDensity.pointdensity.turbulence_depth = 3
+
                 pDensity.use_color_ramp = True
                 pRamp = pDensity.color_ramp
                 pRamp.interpolation = 'LINEAR'
