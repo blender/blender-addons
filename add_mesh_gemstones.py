@@ -23,12 +23,13 @@ from bpy.props import *
 
 bl_addon_info = {
     'name': 'Add Mesh: Gemstones',
-    'author': 'Pontiac, Fourmadmen, Dreampainter)',
+    'author': 'Pontiac, Fourmadmen, Dreampainter',
     'version': '0.3',
     'blender': (2, 5, 3),
     'location': 'View3D > Add > Mesh > Gemstones',
     'description': 'Adds various gemstone (Diamond & Gem) meshes.',
-    'url': 'http://wiki.blender.org/index.php/Extensions:Py/Scripts/',
+    'url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/' \
+        'Scripts/Add_Mesh/',  # @todo Create page and fix this link.
     'category': 'Add Mesh'}
 
 
@@ -238,7 +239,7 @@ def add_gem(r1, r2, seg, h1, h2):
 
     verts = []
 
-    a = 2.0 * pi / seg               # Angle between segments
+    a = 2.0 * pi / seg             # Angle between segments
     offset = a / 2.0               # Middle between segments
 
     r3 = ((r1 + r2) / 2.0) / cos(offset)  # Middle of crown
