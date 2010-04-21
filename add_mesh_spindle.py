@@ -366,7 +366,7 @@ class AddSpindle(bpy.types.Operator):
 
 # Register the operator
 menu_func = (lambda self, context: self.layout.operator(AddSpindle.bl_idname,
-    text="Add Spindle", icon='PLUGIN'))
+    text="Spindle", icon='PLUGIN'))
 
 
 def register():
