@@ -1250,7 +1250,7 @@ def unregister():
     km = bpy.context.manager.active_keyconfig.keymaps['3D View']
     for kmi in km.items:
         if kmi.idname == 'wm.call_menu':
-            if kmi.properties.name == "VIEW3D_MT__Space_Dynamic_Menu":
+            if kmi.properties.name == "VIEW3D_MT_Space_Dynamic_Menu":
                 km.remove_item(kmi)
                 break
 
