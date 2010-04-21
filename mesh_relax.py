@@ -57,8 +57,9 @@ def relax_mesh(self, context):
     me_name = me_old.name
 
     # deselect everything that's not related
-    for o in bpy.context.selected_objects:
-        o.selected = False
+    if bpy.context.selected_objects:
+        for o in bpy.context.selected_objects:
+            o.selected = False
 
     # duplicate the object so it can be used for the shrinkwrap modifier
     obj.selected = True # make sure the object is selected!
