@@ -19,7 +19,7 @@
 # version 0.8 Beta
 
 bl_addon_info = {
-    'name': 'object: Surface Sketch',
+    'name': 'Mesh: Surface Sketch',
     'author': 'Eclectiel',
     'version': '0.8',
     'blender': (2, 5, 3),
