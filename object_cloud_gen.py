@@ -254,7 +254,7 @@ class VIEW3D_PT_tools_cloud(View3DPanel):
             col = layout.column(align=True)
             col.operator("cloud.generate_cloud", text="DeGenerate")
 
-        elif active_obj == 'NoneType':
+        elif active_obj is None:
             layout = self.layout
 
             col = layout.column(align=True)
@@ -332,7 +332,7 @@ class GenerateCloud(bpy.types.Operator):
             degenerate = degenerateCloud(active_object)
 
             if degenerate:
-                if active_object != 'NoneType':
+                if active_object is not None:
                    # Degenerate Cloud
                    mainObj = active_object
 
@@ -394,7 +394,7 @@ class GenerateCloud(bpy.types.Operator):
                 selectedObjects = bpy.context.selected_objects
 
                 # Create a new object bounds
-                if selectedObjects == 'NoneType':
+                if selectedObjects is None:
                     bounds = addNewObject(scene,
                         "CloudBounds",
                         [])
