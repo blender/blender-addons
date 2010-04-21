@@ -25,7 +25,8 @@ bl_addon_info = {
         'Add -> Fracture Helper Objects',
     'description': 'Fractured Object, Bomb, Projectile, Recorder',
     'url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/' \
-        'Scripts/Object/Fracture'}
+        'Scripts/Object/Fracture',
+    'category': 'Object'}
 
 
 import bpy
