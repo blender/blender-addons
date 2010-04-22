@@ -22,7 +22,7 @@ from math import *
 from bpy.props import *
 
 bl_addon_info = {
-    'name': '3D View: Edit Object Parameters',
+    'name': 'Edit Object Parameters (Search: Recall)',
     'author': 'Buerbaum Martin (Pontiac)',
     'version': '0.1.3',
     'blender': (2, 5, 3),
@@ -32,7 +32,7 @@ bl_addon_info = {
         ' the recall data though.',
     'url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/' \
         'Scripts/3D_interaction/Edit_Object_Parameters',
-    'category': '3D View'}
+    'category': 'Add Mesh'}
 
 
 __bpydoc__ = """
