@@ -80,10 +80,7 @@ def relax_mesh(context):
     bpy.ops.object.mode_set(mode='OBJECT')
 
     # apply the modifier
-    # (this is temporary, applying needs to be done properly at some point)
-    C_py = bpy.types.Context.copy(context)
-    C_py["modifier"] = sw
-    bpy.ops.object.modifier_apply(C_py)
+    bpy.ops.object.modifier_apply(modifier='relax_target')
     
     # delete the target object
     obj.selected = False
