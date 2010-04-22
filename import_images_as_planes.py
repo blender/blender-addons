@@ -48,16 +48,17 @@ It also has an option to translate pixeldimensions into Blenderunits.
 """
 
 bl_addon_info = {
-    'name': 'Object: Planes from Images',
+    'name': 'Import: Images as Planes',
     'author': 'Florian Meyer (testscreenings)',
     'version': '0.7',
     'blender': (2, 5, 2),
-    'location': 'View3D > Add Mesh > Planes from Images',
+    'location': 'File > Import > Images as Planes',
     'url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/' \
         'Scripts/Add_Mesh/Planes_from_Images',
     'description': 'Imports images and creates planes' \
-        ' with the appropiate aspect ratio.',
-    'category': 'Object'}
+        ' with the appropiate aspect ratio.' \
+        ' The images are mapped to the planes.',
+    'category': 'Import/Export'}
 
 import bpy
 from bpy.props import *
@@ -260,7 +261,7 @@ def getTexture(path, img):
 
 # Custom material property - get
 def mapget(self):
-    """Custom property of the planes_from_images addon."""
+    """Custom property of the images_as_planes addon."""
     mapping = []
     mapping.append(self.shadeless)
     mapping.append(self.transparency)
@@ -366,9 +367,9 @@ def main(filePath, options, mapping, dimension):
 
 
 # Operator
-class planes_from_images(bpy.types.Operator):
+class ImportImagesAsPlanes(bpy.types.Operator):
     ''''''
-    bl_idname = "mesh.planes_from_images"
+    bl_idname = "import.images_as_planes"
     bl_label = "Import Images as Planes"
     bl_description = "Create mesh plane(s) from image files" \
         " with the appropiate aspect ratio."
@@ -484,21 +485,20 @@ class planes_from_images(bpy.types.Operator):
 
 
 # Registering / Unregister
-
 menu_func = (lambda self, context: self.layout.operator(
-                    planes_from_images.bl_idname,
-                    text="Planes from Images",
+                    ImportImagesAsPlanes.bl_idname,
+                    text="Images as Planes",
                     icon='PLUGIN'))
 
 
 def register():
-    bpy.types.register(planes_from_images)
-    bpy.types.INFO_MT_mesh_add.append(menu_func)
+    bpy.types.register(ImportImagesAsPlanes)
+    bpy.types.INFO_MT_file_import.append(menu_func)
 
 
 def unregister():
-    bpy.types.unregister(planes_from_images)
-    bpy.types.INFO_MT_mesh_add.remove(menu_func)
+    bpy.types.unregister(ImportImagesAsPlanes)
+    bpy.types.INFO_MT_file_import.remove(menu_func)
 
 
 if __name__ == "__main__":
