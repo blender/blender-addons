@@ -24,7 +24,7 @@
 bl_addon_info = {
     'name': 'Mesh: Relax',
     'author': 'Fabian Fricke',
-    'version': '1.0  2010/04/03',
+    'version': '1.1  2010/04/22',
     'blender': (2, 5, 3),
     'location': 'View3D > Specials > Relax ',
     'description': 'Relax the selected verts while retaining the shape',
@@ -49,16 +49,14 @@ Additional links:
 import bpy
 from bpy.props import IntProperty
 
-def relax_mesh(self, context):
+def relax_mesh(context):
     
-    # get active object and remember some of its mesh info
+    # get active object
     obj = context.active_object
-    me_old = obj.data
-    me_name = me_old.name
-
+    
     # deselect everything that's not related
-    if bpy.context.selected_objects:
-        for o in bpy.context.selected_objects:
+    if context.selected_objects:
+        for o in context.selected_objects:
             o.selected = False
 
     # duplicate the object so it can be used for the shrinkwrap modifier
@@ -66,9 +64,14 @@ def relax_mesh(self, context):
     bpy.ops.object.mode_set(mode='OBJECT')
     bpy.ops.object.duplicate()
     target = context.active_object
-    bpy.context.scene.objects.active = obj
+
+    # remove all other modifiers from the target
+    for m in range(0, len(target.modifiers)):
+        target.modifiers.remove(target.modifiers[m])
+
+    context.scene.objects.active = obj
     
-    sw = obj.modifiers.new(type='SHRINKWRAP', name='target')
+    sw = obj.modifiers.new(type='SHRINKWRAP', name='relax_target')
     sw.target = target
     
     # run smooth operator to relax the mesh
@@ -76,14 +79,11 @@ def relax_mesh(self, context):
     bpy.ops.mesh.vertices_smooth()
     bpy.ops.object.mode_set(mode='OBJECT')
 
-    # apply and remove the modifier
-    me = obj.create_mesh(context.scene, True, 'PREVIEW')
-    obj.data = me
-    obj.modifiers.remove(sw)
-
-    # clean up the old mesh and rename the new one
-    bpy.data.meshes.remove(me_old)
-    obj.data.name = me_name
+    # apply the modifier
+    # (this is temporary, applying needs to be done properly at some point)
+    C_py = bpy.types.Context.copy(context)
+    C_py["modifier"] = sw
+    bpy.ops.object.modifier_apply(C_py)
     
     # delete the target object
     obj.selected = False
@@ -109,7 +109,7 @@ class Relax(bpy.types.Operator):
 
     def execute(self, context):
         for i in range(0,self.properties.iterations):
-            relax_mesh(self, context)
+            relax_mesh(context)
         return {'FINISHED'}
 
 menu_func = (lambda self, context: self.layout.operator(Relax.bl_idname, text="Relax"))
