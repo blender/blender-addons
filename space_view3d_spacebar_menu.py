@@ -1152,22 +1152,20 @@ class VIEW3D_MT_CursorMenu(bpy.types.Menu):
 
         layout = self.layout
         layout.operator_context = 'INVOKE_REGION_WIN'
-        layout.operator("view3d.snap_cursor_to_center",
-            text="Snap Cursor to Center")
-        layout.operator("view3d.snap_selected_to_cursor",
-            text="Selection to Cursor")
         layout.operator("view3d.snap_cursor_to_selected",
-            text="Snap Cursor to Selected")
-        layout.separator()
-
+            text="Cursor to Selected")
+        layout.operator("view3d.snap_cursor_to_center",
+            text="Cursor to Center")
         layout.operator("view3d.snap_cursor_to_grid",
-            text="Snap Cursor to Grid")
+            text="Cursor to Grid")
         layout.operator("view3d.snap_cursor_to_active",
             text="Cursor to Active")
+        layout.separator()
+        layout.operator("view3d.snap_selected_to_cursor",
+            text="Selection to Cursor")
         layout.operator("view3d.snap_selected_to_grid",
             text="Selection to Grid")
         layout.separator()
-
         layout.operator("view3d.pivot_cursor",
             text="Set Cursor as Pivot Point")
         layout.operator("view3d.revert_pivot",
