@@ -67,7 +67,7 @@ def relax_mesh(context):
 
     # remove all other modifiers from the target
     for m in range(0, len(target.modifiers)):
-        target.modifiers.remove(target.modifiers[m])
+        target.modifiers.remove(target.modifiers[0])
 
     context.scene.objects.active = obj
     
