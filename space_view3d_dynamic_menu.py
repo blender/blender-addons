@@ -104,13 +104,18 @@ class VIEW3D_MT_Dynamic_Menu(bpy.types.Menu):
         layout = self.layout
         layout.operator_context = 'INVOKE_REGION_WIN'
 
-        ob = context
+        obj_act = context.active_object
+
+        sel_objs = 0
+        if context.selected_objects:
+            sel_objs = len(context.selected_objects)
 
         # Search Block
         layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
+
         layout.separator()
 
-        if ob.mode == 'OBJECT':
+        if context.mode == 'OBJECT':
             # Add block
             layout.menu("INFO_MT_mesh_add", text="Add Mesh",
                 icon='OUTLINER_OB_MESH')
@@ -122,35 +127,49 @@ class VIEW3D_MT_Dynamic_Menu(bpy.types.Menu):
                 icon='OUTLINER_OB_ARMATURE')
             layout.operator("object.add", text="Add Empty",
                 icon='OUTLINER_OB_EMPTY')
-            layout.separator()
 
-            # Transform block
-            layout.menu('VIEW3D_MT_transform', icon='MAN_TRANS')
+            if sel_objs:
+                layout.separator()
+
+                # Transform block
+                layout.menu('VIEW3D_MT_transform', icon='MAN_TRANS')
+
             layout.separator()
 
             # Other things
             layout.menu("VIEW3D_MT_object_group", icon='GROUP')
             layout.operator("object.modifier_add", icon='MODIFIER')
-            layout.separator()
 
-            # Parent block (add delete parent)
-            layout.operator("object.parent_set", icon='ROTACTIVE')
-            layout.separator()
+            # Display only when objects are actually selected.
+            if sel_objs:
+                layout.separator()
 
-            # Delete block
-            layout.operator("object.delete", text="Delete Object",
-                icon='CANCEL')
+                # Parent block (add delete parent)
+                layout.operator("object.parent_set", icon='ROTACTIVE')
 
-        elif ob.mode == 'EDIT_MESH':
+                layout.separator()
+
+                if sel_objs == 1:
+                    # Delete block
+                    layout.operator("object.delete", text="Delete Object",
+                        icon='CANCEL')
+                elif sel_objs > 1:
+                    # Delete block
+                    layout.operator("object.delete", text="Delete Objects",
+                        icon='CANCEL')
+
+        elif context.mode == 'EDIT_MESH':
             # Add block
             bl_label = "Create"
 
             layout.menu("INFO_MT_mesh_add", text="Add Mesh",
                 icon='OUTLINER_OB_MESH')
+
             layout.separator()
 
             # Transform block
             layout.menu('VIEW3D_MT_transform', icon='MAN_TRANS')
+
             layout.separator()
 
             # Select block
@@ -161,6 +180,7 @@ class VIEW3D_MT_Dynamic_Menu(bpy.types.Menu):
             layout.menu("VIEW3D_MT_edit_mesh_vertices", icon='VERTEXSEL')
             layout.menu("VIEW3D_MT_edit_mesh_edges", icon='EDGESEL')
             layout.menu("VIEW3D_MT_edit_mesh_faces", icon='FACESEL')
+
             layout.separator()
 
             # Tools block
@@ -176,17 +196,20 @@ class VIEW3D_MT_Dynamic_Menu(bpy.types.Menu):
         layout.operator("transform.snap_type", text="Snap Tools",
             icon='SNAP_ON')
         layout.menu("VIEW3D_MT_curs", icon='CURSOR')
-        layout.separator()
 
-        # Roggle Editmode
-        if ob.mode != 'EDIT_MESH':
-            layout.operator("object.editmode_toggle",
-                text="Enter Edit Mode",
-                icon='EDITMODE_HLT')
-        if ob.mode != 'OBJECT':
-            layout.operator("object.editmode_toggle",
-                text="Enter Object Mode",
-                icon='OBJECT_DATAMODE')
+        # Display editmode/objectmode toggle if active obj. is a mesh.
+        if obj_act.type == 'MESH':
+            layout.separator()
+
+            # Toggle Editmode
+            if context.mode != 'EDIT_MESH':
+                layout.operator("object.editmode_toggle",
+                    text="Enter Edit Mode",
+                    icon='EDITMODE_HLT')
+            if context.mode != 'OBJECT':
+                layout.operator("object.editmode_toggle",
+                    text="Enter Object Mode",
+                    icon='OBJECT_DATAMODE')
 
 
 class VIEW3D_MT_selectS(bpy.types.Menu):
