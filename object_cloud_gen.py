@@ -394,7 +394,7 @@ class GenerateCloud(bpy.types.Operator):
                 selectedObjects = bpy.context.selected_objects
 
                 # Create a new object bounds
-                if selectedObjects is None:
+                if not selectedObjects:
                     bounds = addNewObject(scene,
                         "CloudBounds",
                         [])

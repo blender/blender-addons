@@ -156,8 +156,7 @@ COLOR_GLOBAL = (0.0, 0.0, 1.0, 0.8)
 # Returns None if more than one (or nothing) is selected.
 # Note: Ignores the active object.
 def getSingleObject(context):
-    if (context.selected_objects
-        and len(context.selected_objects) == 1):
+    if len(context.selected_objects) == 1:
         return context.selected_objects[0]
 
     return None
@@ -251,17 +250,14 @@ def getMeasurePoints(context):
     elif (context.mode == 'OBJECT'):
         # We are working on object mode.
 
-        if (context.selected_objects
-            and len(context.selected_objects) > 2):
+        if len(context.selected_objects) > 2:
             return None
-        elif (context.selected_objects
-              and len(context.selected_objects) == 2):
+        elif len(context.selected_objects) == 2:
             # 2 objects selected.
             # We measure the distance between the 2 selected objects.
-            obj1 = context.selected_objects[0]
-            obj2 = context.selected_objects[1]
-            obj1_loc = Vector(tuple(obj1.location))
-            obj2_loc = Vector(tuple(obj2.location))
+            obj1, obj2 = context.selected_objects
+            obj1_loc = obj1.location.copy()
+            obj2_loc = obj2.location.copy()
             return (obj1_loc, obj2_loc, COLOR_GLOBAL)
 
         elif (obj):
@@ -271,8 +267,7 @@ def getMeasurePoints(context):
             obj_loc = Vector(tuple(obj.location))
             return (obj_loc, cur_loc, COLOR_GLOBAL)
 
-        elif (not context.selected_objects
-              or len(context.selected_objects) == 0):
+        elif not context.selected_objects:
             # Nothing selected.
             # We measure the distance from the origin to the 3D cursor.
             p1 = Vector(0, 0, 0)
@@ -822,8 +817,7 @@ class VIEW3D_PT_measure(bpy.types.Panel):
         elif (context.mode == 'OBJECT'):
             # We are working on object mode.
 
-            if (context.selected_objects
-                and len(context.selected_objects) > 2):
+            if len(context.selected_objects) > 2:
                 # We have more that 2 objects selected...
 
                 row = layout.row()
@@ -833,7 +827,7 @@ class VIEW3D_PT_measure(bpy.types.Panel):
                 if (sce.measure_panel_calc_area):
 
                     mesh_objects = [o for o in context.selected_objects
-                        if (o.type == 'MESH' and o.data)]
+                        if (o.type == 'MESH')]
 
                     if (len(mesh_objects) > 0):
                         # ... and at least one of them is a mesh.
@@ -857,13 +851,11 @@ class VIEW3D_PT_measure(bpy.types.Panel):
                             "measure_panel_transform",
                             expand=True)
 
-            elif (context.selected_objects
-                  and len(context.selected_objects) == 2):
+            elif len(context.selected_objects) == 2:
                 # 2 objects selected.
                 # We measure the distance between the 2 selected objects.
 
-                obj1 = context.selected_objects[0]
-                obj2 = context.selected_objects[1]
+                obj1, obj2 = context.selected_objects
 
                 # Get the 2 measure points
                 line = getMeasurePoints(context)
@@ -951,8 +943,7 @@ class VIEW3D_PT_measure(bpy.types.Panel):
                             "measure_panel_transform",
                             expand=True)
 
-            elif (not context.selected_objects
-                  or len(context.selected_objects) == 0):
+            elif not context.selected_objects:
                 # Nothing selected.
                 # We measure the distance from the origin to the 3D cursor.
 

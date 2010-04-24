@@ -50,14 +50,13 @@ import bpy
 from bpy.props import IntProperty
 
 def relax_mesh(context):
-    
+
+    # deselect everything that's not related
+    for obj in context.selected_objects:
+        obj.selected = False
+
     # get active object
     obj = context.active_object
-    
-    # deselect everything that's not related
-    if context.selected_objects:
-        for o in context.selected_objects:
-            o.selected = False
 
     # duplicate the object so it can be used for the shrinkwrap modifier
     obj.selected = True # make sure the object is selected!

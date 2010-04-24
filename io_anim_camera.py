@@ -103,7 +103,7 @@ def writeCameras(context, path, frame_start, frame_end, only_selected=False):
     for marker in scene.timeline_markers:
         fw("marker = scene.timeline_markers.add('%s')\n" % marker.name)
         fw("marker.frame = %d + frame\n" % marker.frame)
-        
+
         # will fail if the cameras not selected
         if marker.camera:
             fw("marker.camera = cameras.get('%s')\n" % marker.camera.name)

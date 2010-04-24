@@ -174,7 +174,6 @@ class VIEW3D_OT_edit_object_parameters(bpy.types.Panel):
 
         # Only show this panel if the object has "recall" data.
         if (ob
-            and context.selected_objects
             and len(context.selected_objects) == 1
             and ob == context.selected_objects[0]
             and 'recall' in ob):
