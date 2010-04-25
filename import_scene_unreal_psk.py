@@ -57,8 +57,6 @@ from math import *
 
 import mathutils
 
-vector = mathutils.Vector
-
 #output log in to txt file
 DEBUGLOG = False
 
@@ -315,12 +313,12 @@ def pskimport(infile):
 		#w,x,y,z
 		if (counter == 0):#main parent
 			print("no parent bone")
-			createbone.bindmat = mathutils.Quaternion(indata[7],indata[4],indata[5],indata[6])
-			#createbone.bindmat = mathutils.Quaternion(indata[7],-indata[4],-indata[5],-indata[6])
+			createbone.bindmat = mathutils.Quaternion((indata[7],indata[4],indata[5],indata[6]))
+			#createbone.bindmat = mathutils.Quaternion((indata[7],-indata[4],-indata[5],-indata[6]))
 		else:#parent
 			print("parent bone")
-			createbone.bindmat = mathutils.Quaternion(indata[7],-indata[4],-indata[5],-indata[6])
-			#createbone.bindmat = mathutils.Quaternion(indata[7],indata[4],indata[5],indata[6])
+			createbone.bindmat = mathutils.Quaternion((indata[7],-indata[4],-indata[5],-indata[6]))
+			#createbone.bindmat = mathutils.Quaternion((indata[7],indata[4],indata[5],indata[6]))
 			
 		md5_bones.append(createbone)
 		counter = counter + 1
@@ -392,7 +390,7 @@ def pskimport(infile):
 				
 				#parent_head = parentbone.head * parentbone.matrix.to_quat().inverse()
 				#parent_tail = parentbone.tail * parentbone.matrix.to_quat().inverse()
-				#location=vector(pos_x,pos_y,pos_z)
+				#location=Vector(pos_x,pos_y,pos_z)
 				#set_position = (parent_tail - parent_head) + location
 				#print("tmp head:",set_position)
 				

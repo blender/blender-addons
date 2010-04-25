@@ -271,10 +271,10 @@ def add_twisted_torus(major_rad, minor_rad, major_seg, minor_seg, twists):
         for minor_index in range(minor_seg):
             angle = (PI_2 * minor_index / minor_seg) + rot_twists
 
-            vec = Vector(
+            vec = Vector((
                 major_rad + (cos(angle) * minor_rad),
                 0.0,
-                sin(angle) * minor_rad)
+                sin(angle) * minor_rad))
             vec = vec * quat
 
             edgeloop.append(len(verts))

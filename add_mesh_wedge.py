@@ -262,19 +262,19 @@ def add_wedge(size_x, size_y, size_z):
     vIdx_bot = []
 
     vIdx_top.append(len(verts))
-    verts.append(Vector(-size_x, -size_y, size_z))
+    verts.append(Vector((-size_x, -size_y, size_z)))
     vIdx_bot.append(len(verts))
-    verts.append(Vector(-size_x, -size_y, -size_z))
+    verts.append(Vector((-size_x, -size_y, -size_z)))
 
     vIdx_top.append(len(verts))
-    verts.append(Vector(size_x, -size_y, size_z))
+    verts.append(Vector((size_x, -size_y, size_z)))
     vIdx_bot.append(len(verts))
-    verts.append(Vector(size_x, -size_y, -size_z))
+    verts.append(Vector((size_x, -size_y, -size_z)))
 
     vIdx_top.append(len(verts))
-    verts.append(Vector(-size_x, size_y, size_z))
+    verts.append(Vector((-size_x, size_y, size_z)))
     vIdx_bot.append(len(verts))
-    verts.append(Vector(-size_x, size_y, -size_z))
+    verts.append(Vector((-size_x, size_y, -size_z)))
 
     faces.append(vIdx_top)
     faces.append(vIdx_bot)

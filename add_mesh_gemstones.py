@@ -249,11 +249,11 @@ def add_gem(r1, r2, seg, h1, h2):
 
     # Tip
     vert_tip = len(verts)
-    verts.append(Vector(0.0, 0.0, -h1))
+    verts.append(Vector((0.0, 0.0, -h1)))
 
     # Middle vertex of the flat side (crown)
     vert_flat = len(verts)
-    verts.append(Vector(0.0, 0.0, h2))
+    verts.append(Vector((0.0, 0.0, h2)))
 
     edgeloop_flat = []
     for i in range(seg):
@@ -301,11 +301,11 @@ def add_diamond(segments, girdle_radius, table_radius,
 
     # Middle vertex of the flat side (crown)
     vert_flat = len(verts)
-    verts.append(Vector(0.0, 0.0, height_flat))
+    verts.append(Vector((0.0, 0.0, height_flat)))
 
     # Tip
     vert_tip = len(verts)
-    verts.append(Vector(0.0, 0.0, height_tip))
+    verts.append(Vector((0.0, 0.0, height_tip)))
 
     verts_flat = []
     verts_girdle = []
@@ -317,12 +317,12 @@ def add_diamond(segments, girdle_radius, table_radius,
 
         # Row for flat side
         verts_flat.append(len(verts))
-        vec = Vector(table_radius, 0.0, height_flat) * quat
+        vec = Vector((table_radius, 0.0, height_flat)) * quat
         verts.append(vec)
 
         # Row for the middle/girdle
         verts_girdle.append(len(verts))
-        vec = Vector(girdle_radius, 0.0, height_middle) * quat
+        vec = Vector((girdle_radius, 0.0, height_middle)) * quat
         verts.append(vec)
 
     # Flat face

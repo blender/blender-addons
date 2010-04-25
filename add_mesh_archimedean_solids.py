@@ -239,13 +239,13 @@ def add_rhombicuboctahedron(quad_size=sqrt(2.0) / (1.0 + sqrt(2) / 2.0)):
     for z, up in [(size / 2.0, True), (-size / 2.0, False)]:
         face = []
         face.append(len(verts))
-        verts.append(Vector(quad_size / 2.0, quad_size / 2.0, z))
+        verts.append(Vector((quad_size / 2.0, quad_size / 2.0, z)))
         face.append(len(verts))
-        verts.append(Vector(quad_size / 2.0, -quad_size / 2.0, z))
+        verts.append(Vector((quad_size / 2.0, -quad_size / 2.0, z)))
         face.append(len(verts))
-        verts.append(Vector(-quad_size / 2.0, -quad_size / 2.0, z))
+        verts.append(Vector((-quad_size / 2.0, -quad_size / 2.0, z)))
         face.append(len(verts))
-        verts.append(Vector(-quad_size / 2.0, quad_size / 2.0, z))
+        verts.append(Vector((-quad_size / 2.0, quad_size / 2.0, z)))
 
         if up:
             # Top face (quad)
@@ -260,21 +260,21 @@ def add_rhombicuboctahedron(quad_size=sqrt(2.0) / (1.0 + sqrt(2) / 2.0)):
         edgeloop = []
 
         edgeloop.append(len(verts))
-        verts.append(Vector(size / 2.0, quad_size / 2.0, z))
+        verts.append(Vector((size / 2.0, quad_size / 2.0, z)))
         edgeloop.append(len(verts))
-        verts.append(Vector(size / 2.0, -quad_size / 2.0, z))
+        verts.append(Vector((size / 2.0, -quad_size / 2.0, z)))
         edgeloop.append(len(verts))
-        verts.append(Vector(quad_size / 2.0, -size / 2.0, z))
+        verts.append(Vector((quad_size / 2.0, -size / 2.0, z)))
         edgeloop.append(len(verts))
-        verts.append(Vector(-quad_size / 2.0, -size / 2.0, z))
+        verts.append(Vector((-quad_size / 2.0, -size / 2.0, z)))
         edgeloop.append(len(verts))
-        verts.append(Vector(-size / 2.0, -quad_size / 2.0, z))
+        verts.append(Vector((-size / 2.0, -quad_size / 2.0, z)))
         edgeloop.append(len(verts))
-        verts.append(Vector(-size / 2.0, quad_size / 2.0, z))
+        verts.append(Vector((-size / 2.0, quad_size / 2.0, z)))
         edgeloop.append(len(verts))
-        verts.append(Vector(-quad_size / 2.0, size / 2.0, z))
+        verts.append(Vector((-quad_size / 2.0, size / 2.0, z)))
         edgeloop.append(len(verts))
-        verts.append(Vector(quad_size / 2.0, size / 2.0, z))
+        verts.append(Vector((quad_size / 2.0, size / 2.0, z)))
 
         if up:
             # Upper 8-sider
@@ -325,7 +325,7 @@ def get_polygon_center(verts, ngons):
     faces = []
 
     for f in ngons:
-        loc = Vector(0.0, 0.0, 0.0)
+        loc = Vector((0.0, 0.0, 0.0))
 
         for vert_idx in f:
             loc = loc + Vector(verts[vert_idx])

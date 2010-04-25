@@ -1076,11 +1076,11 @@ def make_filename_ext(filename, extension):
 # (ie. the same as B*A if A and B are matrices representing 
 # the rotations described by quaternions a and b)
 def grassman(a, b):	
-	return mathutils.Quaternion(
+	return mathutils.Quaternion((
 		a.w*b.w - a.x*b.x - a.y*b.y - a.z*b.z,
 		a.w*b.x + a.x*b.w + a.y*b.z - a.z*b.y,
 		a.w*b.y - a.x*b.z + a.y*b.w + a.z*b.x,
-		a.w*b.z + a.x*b.y - a.y*b.x + a.z*b.w)
+		a.w*b.z + a.x*b.y - a.y*b.x + a.z*b.w))
 		
 def parse_animation(blender_scene, blender_armatures, psa_file):
 	#to do list:

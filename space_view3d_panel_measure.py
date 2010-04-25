@@ -193,7 +193,7 @@ def getMeasurePoints(context):
                 # local  ... the object center to the 3D cursor.
                 # global ... the origin to the 3D cursor.
                 cur_loc = sce.cursor_location
-                obj_loc = Vector(tuple(obj.location))
+                obj_loc = obj.location.copy()
 
                 # Convert to local space, if needed.
                 if measureLocal(sce):
@@ -202,7 +202,7 @@ def getMeasurePoints(context):
                     return (p1, p2, COLOR_GLOBAL)
 
                 else:
-                    p1 = Vector(0, 0, 0)
+                    p1 = Vector((0.0, 0.0, 0.0))
                     p2 = cur_loc
                     return (p1, p2, COLOR_GLOBAL)
 
@@ -211,8 +211,8 @@ def getMeasurePoints(context):
                 # We measure the distance from the
                 # selected vertex object to the 3D cursor.
                 cur_loc = sce.cursor_location
-                vert_loc = Vector(tuple(verts_selected[0].co))
-                obj_loc = Vector(tuple(obj.location))
+                vert_loc = verts_selected[0].co.copy()
+                obj_loc = obj.location.copy()
 
                 # Convert to local or global space.
                 if measureLocal(sce):
@@ -229,9 +229,9 @@ def getMeasurePoints(context):
                 # Two vertices selected.
                 # We measure the distance between the
                 # two selected vertices.
-                obj_loc = Vector(tuple(obj.location))
-                vert1_loc = Vector(tuple(verts_selected[0].co))
-                vert2_loc = Vector(tuple(verts_selected[1].co))
+                obj_loc = obj.location.copy()
+                vert1_loc = verts_selected[0].co.copy()
+                vert2_loc = verts_selected[1].co.copy()
 
                 # Convert to local or global space.
                 if measureLocal(sce):
@@ -264,13 +264,13 @@ def getMeasurePoints(context):
             # One object selected.
             # We measure the distance from the object to the 3D cursor.
             cur_loc = sce.cursor_location
-            obj_loc = Vector(tuple(obj.location))
+            obj_loc = obj.location.copy()
             return (obj_loc, cur_loc, COLOR_GLOBAL)
 
         elif not context.selected_objects:
             # Nothing selected.
             # We measure the distance from the origin to the 3D cursor.
-            p1 = Vector(0, 0, 0)
+            p1 = Vector((0.0, 0.0, 0.0))
             p2 = sce.cursor_location
             return (p1, p2, COLOR_GLOBAL)
 
@@ -302,10 +302,10 @@ def faceAreaGlobal(face, obj):
         v4 = obj.data.verts[v4]
 
         # Apply transform matrix to vertex coordinates.
-        v1 = Vector(tuple(v1.co)) * mat
-        v2 = Vector(tuple(v2.co)) * mat
-        v3 = Vector(tuple(v3.co)) * mat
-        v4 = Vector(tuple(v4.co)) * mat
+        v1 = v1.co * mat
+        v2 = v2.co * mat
+        v3 = v3.co * mat
+        v4 = v4.co * mat
 
         vec1 = v2 - v1
         vec2 = v4 - v1
@@ -333,9 +333,9 @@ def faceAreaGlobal(face, obj):
         v3 = obj.data.verts[v3]
 
         # Apply transform matrix to vertex coordinates.
-        v1 = Vector(tuple(v1.co)) * mat
-        v2 = Vector(tuple(v2.co)) * mat
-        v3 = Vector(tuple(v3.co)) * mat
+        v1 = v1.co * mat
+        v2 = v2.co * mat
+        v3 = v3.co * mat
 
         vec1 = v3 - v2
         vec2 = v1 - v2
@@ -398,18 +398,18 @@ def region3d_get_2d_coordinates(context, loc_3d):
     total_mat = view_mat
 
     # order is important
-    vec = total_mat * Vector(loc_3d[0], loc_3d[1], loc_3d[2], 1.0)
+    vec = total_mat * Vector((loc_3d[0], loc_3d[1], loc_3d[2], 1.0))
 
     # dehomogenise
-    vec = Vector(
+    vec = Vector((
         vec[0] / vec[3],
         vec[1] / vec[3],
-        vec[2] / vec[3])
+        vec[2] / vec[3]))
 
     x = int(mid_x + vec[0] * width / 2.0)
     y = int(mid_y + vec[1] * height / 2.0)
 
-    return Vector(x, y, 0)
+    return Vector((x, y, 0))
 
 
 def draw_measurements_callback(self, context):

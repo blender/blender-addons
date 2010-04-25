@@ -260,11 +260,11 @@ def add_spindle(segments, radius, height, cap_height):
 
     # Upper tip
     idx_upper_tip = len(verts)
-    verts.append(Vector(0, 0, half_height + cap_height))
+    verts.append(Vector((0, 0, half_height + cap_height)))
 
     # Lower tip
     idx_lower_tip = len(verts)
-    verts.append(Vector(0, 0, -half_height - cap_height))
+    verts.append(Vector((0.0, 0.0, -half_height - cap_height)))
 
     upper_edgeloop = []
     lower_edgeloop = []
@@ -274,12 +274,12 @@ def add_spindle(segments, radius, height, cap_height):
         # Calculate index & location of upper verte4x tip.
         idx_up = len(verts)
         upper_edgeloop.append(idx_up)
-        verts.append(Vector(radius, 0.0, half_height) * mtx)
+        verts.append(Vector((radius, 0.0, half_height)) * mtx)
 
         if height > 0:
             idx_low = len(verts)
             lower_edgeloop.append(idx_low)
-            verts.append(Vector(radius, 0.0, -half_height) * mtx)
+            verts.append(Vector((radius, 0.0, -half_height)) * mtx)
 
     # Create faces for the upper tip.
     tip_up_faces = createFaces([idx_upper_tip], upper_edgeloop,

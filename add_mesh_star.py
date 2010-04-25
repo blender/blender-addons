@@ -244,10 +244,10 @@ def add_star(points, outer_radius, inner_radius, height):
     half_height = height / 2.0
 
     vert_idx_top = len(verts)
-    verts.append(Vector(0.0, 0.0, half_height))
+    verts.append(Vector((0.0, 0.0, half_height)))
 
     vert_idx_bottom = len(verts)
-    verts.append(Vector(0.0, 0.0, -half_height))
+    verts.append(Vector((0.0, 0.0, -half_height)))
 
     edgeloop_top = []
     edgeloop_bottom = []
@@ -263,11 +263,11 @@ def add_star(points, outer_radius, inner_radius, height):
             radius = inner_radius
 
         edgeloop_top.append(len(verts))
-        vec = Vector(radius, 0, half_height) * quat
+        vec = Vector((radius, 0, half_height)) * quat
         verts.append(vec)
 
         edgeloop_bottom.append(len(verts))
-        vec = Vector(radius, 0, -half_height) * quat
+        vec = Vector((radius, 0, -half_height)) * quat
         verts.append(vec)
 
 
