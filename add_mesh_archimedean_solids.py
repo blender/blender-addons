@@ -229,6 +229,30 @@ def createFaces(vertIdx1, vertIdx2, closed=False, flipped=False):
 ########################
 
 
+# Converts regular ngons to quads
+# Note: Exists because most "fill" functions can not be
+# controlled as easily.
+def ngon_fill(ngon, offset=0):
+    if offset:
+        ngon = ngon[1:] + [ngon[0]]
+
+    if len(ngon) == 6:
+        # Hexagon
+        return [
+            [ngon[0], ngon[1], ngon[2], ngon[3]],
+            [ngon[0], ngon[3], ngon[4], ngon[5]]]
+
+    elif len(ngon) == 8:
+        # Octagon
+        return [
+            [ngon[0], ngon[1], ngon[2], ngon[3]],
+            [ngon[0], ngon[3], ngon[4], ngon[7]],
+            [ngon[7], ngon[4], ngon[5], ngon[6]]]
+
+    else:
+        return None
+        # Not supported (yet)
+
 # Returns the middle location of a _regular_ polygon.
 # verts ... List of vertex coordinates (Vector) used by the ngon.
 # ngon ... List of ngones (vertex indices of each ngon point)
@@ -344,22 +368,14 @@ def add_truncated_tetrahedron(hexagon_side=2.0 * sqrt(2.0) / 3.0,
 
     else:
         # Create quads from hexagons
-        (quad1, quad2) = (
-            [ngon012[0], ngon012[1], ngon012[2], ngon012[3]],
-            [ngon012[0], ngon012[3], ngon012[4], ngon012[5]])
-        faces.extend([quad1, quad2])
-        (quad1, quad2) = (
-            [ngon031[0], ngon031[1], ngon031[2], ngon031[3]],
-            [ngon031[0], ngon031[3], ngon031[4], ngon031[5]])
-        faces.extend([quad1, quad2])
-        (quad1, quad2) = (
-            [ngon023[0], ngon023[1], ngon023[2], ngon023[3]],
-            [ngon023[0], ngon023[3], ngon023[4], ngon023[5]])
-        faces.extend([quad1, quad2])
-        (quad1, quad2) = (
-            [ngon132[0], ngon132[1], ngon132[2], ngon132[3]],
-            [ngon132[0], ngon132[3], ngon132[4], ngon132[5]])
-        faces.extend([quad1, quad2])
+        hex_quads = ngon_fill(ngon012)
+        faces.extend(hex_quads)
+        hex_quads = ngon_fill(ngon031)
+        faces.extend(hex_quads)
+        hex_quads = ngon_fill(ngon023)
+        faces.extend(hex_quads)
+        hex_quads = ngon_fill(ngon132)
+        faces.extend(hex_quads)
 
     # Invert face normals
     tri1 = [tri1[0]] + list(reversed(tri1[1:]))
@@ -563,27 +579,25 @@ def add_cuboctahedron(octagon_side=0.0, star_ngons=False):
         faces.extend([tri_xp_yp_zp, tri_xp_yn_zp, tri_xn_yp_zp, tri_xn_yn_zp])
         faces.extend([tri_xp_yp_zn, tri_xp_yn_zn, tri_xn_yp_zn, tri_xn_yn_zn])
 
-        # Offset vertices so QUADS are created with orthagonal edges.
-        # Superficial change - Could be omitted, especially for stars.
-        ngon_bot = ngon_bot[1:] + [ngon_bot[0]]
-        ngon_0 = ngon_0[1:] + [ngon_0[0]]
-        ngon_1 = ngon_1[1:] + [ngon_1[0]]
-        ngon_2 = ngon_2[1:] + [ngon_2[0]]
-        ngon_3 = ngon_3[1:] + [ngon_3[0]]
-
-        ngons = [ngon_top, ngon_bot, ngon_0, ngon_1, ngon_2, ngon_3]
         if star_ngons:
+            ngons = [ngon_top, ngon_bot, ngon_0, ngon_1, ngon_2, ngon_3]
             # Create stars from octagons.
             verts, faces_star = get_polygon_center(verts, ngons)
             faces.extend(faces_star)
 
         else:
             # Create quads from octagons.
+            
+            # The octagon ont he top is the only polygon we don't need to offset.
+            oct_quads = ngon_fill(ngon_top)
+            faces.extend(oct_quads)
+
+            ngons = [ngon_bot, ngon_0, ngon_1, ngon_2, ngon_3]
             for ngon in ngons:
-                faces.extend([
-                    [ngon[0], ngon[1], ngon[2], ngon[3]],
-                    [ngon[0], ngon[3], ngon[4], ngon[7]],
-                    [ngon[7], ngon[4], ngon[5], ngon[6]]])
+                # offset=1 Offset vertices so QUADS are created with orthagonal edges.
+                # Superficial change - Could be omitted.
+                oct_quads = ngon_fill(ngon, offset=1)
+                faces.extend(oct_quads)
 
     return verts, faces, name
 
