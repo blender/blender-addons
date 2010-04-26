@@ -233,8 +233,9 @@ def createFaces(vertIdx1, vertIdx2, closed=False, flipped=False):
 # Note: Exists because most "fill" functions can not be
 # controlled as easily.
 def ngon_fill(ngon, offset=0):
-    if offset:
-        ngon = ngon[1:] + [ngon[0]]
+    if offset > 0:
+        for i in range(offset):
+            ngon = ngon[1:] + [ngon[0]]
 
     if len(ngon) == 6:
         # Hexagon
@@ -252,6 +253,7 @@ def ngon_fill(ngon, offset=0):
     else:
         return None
         # Not supported (yet)
+
 
 # Returns the middle location of a _regular_ polygon.
 # verts ... List of vertex coordinates (Vector) used by the ngon.
@@ -587,15 +589,15 @@ def add_cuboctahedron(octagon_side=0.0, star_ngons=False):
 
         else:
             # Create quads from octagons.
-            
-            # The octagon ont he top is the only polygon we don't need to offset.
+
+            # The top octagon is the only polygon we don't need to offset.
             oct_quads = ngon_fill(ngon_top)
             faces.extend(oct_quads)
 
             ngons = [ngon_bot, ngon_0, ngon_1, ngon_2, ngon_3]
             for ngon in ngons:
-                # offset=1 Offset vertices so QUADS are created with orthagonal edges.
-                # Superficial change - Could be omitted.
+                # offset=1 Offset vertices so QUADS are created with
+                # orthagonal edges. Superficial change - Could be omitted.
                 oct_quads = ngon_fill(ngon, offset=1)
                 faces.extend(oct_quads)
 
@@ -694,6 +696,168 @@ def add_rhombicuboctahedron(quad_size=sqrt(2.0) / (1.0 + sqrt(2) / 2.0)):
     # Invert face normal
     f = faces[face_top_idx]
     faces[face_top_idx] = invert_face_normal(faces[face_top_idx])
+
+    return verts, faces
+
+
+def add_truncated_octahedron(hexagon_side=sqrt(2) / 3.0, star_ngons=False):
+    if (hexagon_side < 0.0
+        or hexagon_side > sqrt(2)):
+        return None, None
+
+    hs = hexagon_side
+
+    verts = []
+    faces = []
+
+    # Vertices of a simple Octahedron
+    verts_oct = [
+        Vector((0.0, 0.0, 1.0)),    # tip 0 - Top
+        Vector((1.0, 0.0, 0.0)),    # tip 1 - xp y0
+        Vector((0.0, -1.0, 0.0)),   # tip 2 - x0 yn
+        Vector((-1.0, 0.0, 0.0)),   # tip 3 - xn y0
+        Vector((0.0, 1.0, 0.0)),    # tip 4 - x0 yp
+        Vector((0.0, 0.0, -1.0))]   # tip 5 - Bottom
+
+    tip_top = []
+    tip_1 = []
+    tip_2 = []
+    tip_3 = []
+    tip_4 = []
+    tip_bot = []
+
+    # Top edges
+    va, vb = subdivide_edge_2_cuts(verts_oct[0], verts_oct[1], hs)
+    va_idx, vb_idx = len(verts), len(verts) + 1
+    verts.extend([va, vb])
+    tip_top.append(va_idx)
+    tip_1.append(vb_idx)
+    va, vb = subdivide_edge_2_cuts(verts_oct[0], verts_oct[2], hs)
+    va_idx, vb_idx = len(verts), len(verts) + 1
+    verts.extend([va, vb])
+    tip_top.append(va_idx)
+    tip_2.append(vb_idx)
+    va, vb = subdivide_edge_2_cuts(verts_oct[0], verts_oct[3], hs)
+    va_idx, vb_idx = len(verts), len(verts) + 1
+    verts.extend([va, vb])
+    tip_top.append(va_idx)
+    tip_3.append(vb_idx)
+    va, vb = subdivide_edge_2_cuts(verts_oct[0], verts_oct[4], hs)
+    va_idx, vb_idx = len(verts), len(verts) + 1
+    verts.extend([va, vb])
+    tip_top.append(va_idx)
+    tip_4.append(vb_idx)
+
+    # Circumference edges
+    va, vb = subdivide_edge_2_cuts(verts_oct[1], verts_oct[2], hs)
+    va_idx, vb_idx = len(verts), len(verts) + 1
+    verts.extend([va, vb])
+    tip_1.append(va_idx)
+    tip_2.append(vb_idx)
+    va, vb = subdivide_edge_2_cuts(verts_oct[2], verts_oct[3], hs)
+    va_idx, vb_idx = len(verts), len(verts) + 1
+    verts.extend([va, vb])
+    tip_2.append(va_idx)
+    tip_3.append(vb_idx)
+    va, vb = subdivide_edge_2_cuts(verts_oct[3], verts_oct[4], hs)
+    va_idx, vb_idx = len(verts), len(verts) + 1
+    verts.extend([va, vb])
+    tip_3.append(va_idx)
+    tip_4.append(vb_idx)
+    va, vb = subdivide_edge_2_cuts(verts_oct[4], verts_oct[1], hs)
+    va_idx, vb_idx = len(verts), len(verts) + 1
+    verts.extend([va, vb])
+    tip_4.append(va_idx)
+    tip_1.append(vb_idx)
+
+    # Bottom edges
+    va, vb = subdivide_edge_2_cuts(verts_oct[5], verts_oct[1], hs)
+    va_idx, vb_idx = len(verts), len(verts) + 1
+    verts.extend([va, vb])
+    tip_bot.append(va_idx)
+    tip_1.append(vb_idx)
+    va, vb = subdivide_edge_2_cuts(verts_oct[5], verts_oct[2], hs)
+    va_idx, vb_idx = len(verts), len(verts) + 1
+    verts.extend([va, vb])
+    tip_bot.append(va_idx)
+    tip_2.append(vb_idx)
+    va, vb = subdivide_edge_2_cuts(verts_oct[5], verts_oct[3], hs)
+    va_idx, vb_idx = len(verts), len(verts) + 1
+    verts.extend([va, vb])
+    tip_bot.append(va_idx)
+    tip_3.append(vb_idx)
+    va, vb = subdivide_edge_2_cuts(verts_oct[5], verts_oct[4], hs)
+    va_idx, vb_idx = len(verts), len(verts) + 1
+    verts.extend([va, vb])
+    tip_bot.append(va_idx)
+    tip_4.append(vb_idx)
+
+    # Hexagons
+    ngon_12_zp = [tip_top[0], tip_top[1],
+        tip_2[0], tip_2[1],
+        tip_1[1], tip_1[0]]
+    ngon_23_zp = [tip_top[1], tip_top[2],
+        tip_3[0], tip_3[1],
+        tip_2[2], tip_2[0]]
+    ngon_34_zp = [tip_top[2], tip_top[3],
+        tip_4[0], tip_4[1],
+        tip_3[2], tip_3[0]]
+    ngon_41_zp = [tip_top[3], tip_top[0],
+        tip_1[0], tip_1[2],
+        tip_4[2], tip_4[0]]
+
+    ngon_12_zn = [tip_bot[0], tip_bot[1],
+        tip_2[3], tip_2[1],
+        tip_1[1], tip_1[3]]
+    ngon_23_zn = [tip_bot[1], tip_bot[2],
+        tip_3[3], tip_3[1],
+        tip_2[2], tip_2[3]]
+    ngon_34_zn = [tip_bot[2], tip_bot[3],
+        tip_4[3], tip_4[1],
+        tip_3[2], tip_3[3]]
+    ngon_41_zn = [tip_bot[3], tip_bot[0],
+        tip_1[3], tip_1[2],
+        tip_4[2], tip_4[3]]
+
+    # Fix vertex order (and fix normal at the same time)
+    tip_1 = tip_1[:2] + list(reversed(tip_1[2:]))
+    tip_2 = list(reversed(tip_2[:2])) + tip_2[2:]
+    tip_3 = list(reversed(tip_3[:2])) + tip_3[2:]
+    tip_4 = list(reversed(tip_4[:2])) + tip_4[2:]
+
+    # Invert face normals
+    tip_top = invert_face_normal(tip_top)
+    ngon_12_zn = invert_face_normal(ngon_12_zn)
+    ngon_23_zn = invert_face_normal(ngon_23_zn)
+    ngon_34_zn = invert_face_normal(ngon_34_zn)
+    ngon_41_zn = invert_face_normal(ngon_41_zn)
+
+    # Tip quads
+    faces.extend([tip_top, tip_bot])
+    faces.extend([tip_1, tip_2, tip_3, tip_4])
+
+    if star_ngons:
+            ngons = [ngon_12_zp, ngon_23_zp, ngon_34_zp, ngon_41_zp,
+                ngon_12_zn, ngon_23_zn, ngon_34_zn, ngon_41_zn]
+            # Create stars from octagons.
+            verts, faces_star = get_polygon_center(verts, ngons)
+            faces.extend(faces_star)
+
+    else:
+        # Create quads from hexagons.
+        ngons = [ngon_12_zp, ngon_23_zp, ngon_34_zp, ngon_41_zp]
+        for ngon in ngons:
+            # offset=2 Offset vertices so QUADS are created with
+            # orthagonal edges. Superficial change - Could be omitted.
+            hex_quads = ngon_fill(ngon, offset=2)
+            faces.extend(hex_quads)
+
+        ngons = [ngon_12_zn, ngon_23_zn, ngon_34_zn, ngon_41_zn]
+        for ngon in ngons:
+            # offset=1 Offset vertices so QUADS are created with
+            # orthagonal edges. Superficial change - Could be omitted.
+            hex_quads = ngon_fill(ngon, offset=1)
+            faces.extend(hex_quads)
 
     return verts, faces
 
@@ -825,6 +989,51 @@ class AddRhombicuboctahedron(bpy.types.Operator):
         return {'FINISHED'}
 
 
+class AddTruncatedOctahedron(bpy.types.Operator):
+    '''Add a mesh for a truncated octahedron.'''
+    bl_idname = 'mesh.primitive_truncated_octahedron_add'
+    bl_label = 'Add Truncated Octahedron'
+    bl_description = 'Create a mesh for a truncated octahedron.'
+    bl_options = {'REGISTER', 'UNDO'}
+
+    # edit - Whether to add or update.
+    edit = BoolProperty(name='',
+        description='',
+        default=False,
+        options={'HIDDEN'})
+    hexagon_side = FloatProperty(name='Hexagon Side',
+        description='One length of the hexagon side' \
+            ' (on the original octahedron edge).',
+        min=0.01,
+        max=sqrt(2) - 0.1,
+        default=sqrt(2) / 3.0)
+    star_ngons = BoolProperty(name='Star N-Gon',
+        description='Create star-shaped hexagons.',
+        default=False)
+
+    def execute(self, context):
+        props = self.properties
+
+        verts, faces = add_truncated_octahedron(
+            props.hexagon_side,
+            props.star_ngons)
+
+        if not verts:
+            return {'CANCELLED'}
+
+        obj = create_mesh_object(context, verts, [], faces,
+            'TrOctahedron', props.edit)
+
+        # Store 'recall' properties in the object.
+        recall_args_list = {
+            'edit': True,
+            'hexagon_side': props.hexagon_side,
+            'star_ngons': props.star_ngons}
+        store_recall_properties(obj, self, recall_args_list)
+
+        return {'FINISHED'}
+
+
 class INFO_MT_mesh_archimedean_solids_add(bpy.types.Menu):
     # Define the "Archimedean Solids" menu
     bl_idname = "INFO_MT_mesh_archimedean_solids_add"
@@ -839,6 +1048,8 @@ class INFO_MT_mesh_archimedean_solids_add(bpy.types.Menu):
             text="Cuboctahedron")
         layout.operator("mesh.primitive_thombicuboctahedron_add",
             text="Rhombicuboctahedron")
+        layout.operator("mesh.primitive_truncated_octahedron_add",
+            text="Truncated Octahedron")
 
 import space_info
 
@@ -852,6 +1063,7 @@ def register():
     bpy.types.register(AddTruncatedTetrahedron)
     bpy.types.register(AddCuboctahedron)
     bpy.types.register(AddRhombicuboctahedron)
+    bpy.types.register(AddTruncatedOctahedron)
     bpy.types.register(INFO_MT_mesh_archimedean_solids_add)
 
     # Add "Archimedean Solids" menu to the "Add Mesh" menu
@@ -863,6 +1075,7 @@ def unregister():
     bpy.types.unregister(AddTruncatedTetrahedron)
     bpy.types.unregister(AddCuboctahedron)
     bpy.types.unregister(AddRhombicuboctahedron)
+    bpy.types.unregister(AddTruncatedOctahedron)
     bpy.types.unregister(INFO_MT_mesh_archimedean_solids_add)
 
     # Remove "Archimedean Solids" menu from the "Add Mesh" menu.
