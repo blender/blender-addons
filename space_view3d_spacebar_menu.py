@@ -159,7 +159,6 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
                 icon='CANCEL')
 
 
-
         elif ob.mode == 'EDIT_MESH':
             # Edit mode
 
@@ -334,6 +333,82 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
 
             # Toggle Objectmode
             layout.operator("object.editmode_toggle", text="Enter Object Mode",
+                icon='OBJECT_DATA') 
+
+            # Delete block
+            layout.operator("object.delete", text="Delete Object",
+                icon='CANCEL')
+
+        elif ob.mode == 'EDIT_LATTICE':
+            # Lattice menu
+
+            #Search Menu
+            layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
+
+            # Transform block
+            layout.menu("VIEW3D_MT_TransformMenu", icon='MANIPUL')
+            layout.separator()
+
+            # Mirror block
+            layout.menu("VIEW3D_MT_MirrorMenu", icon='MOD_MIRROR')
+            layout.separator()
+
+            # Proportional block
+            layout.prop_menu_enum(settings, "proportional_editing", icon= "PROP_CON")
+            layout.prop_menu_enum(settings, "proportional_editing_falloff", icon= "SMOOTHCURVE")
+
+            # Cursor block
+            layout.menu("VIEW3D_MT_CursorMenu", icon='CURSOR')
+            layout.separator()
+
+            #Select Lattice
+            layout.menu("VIEW3D_MT_select_edit_lattice", icon='RESTRICT_SELECT_OFF')
+            layout.separator()
+
+            layout.operator("lattice.make_regular")
+            layout.separator()
+
+            # Toolshelf block
+            layout.operator("view3d.toolshelf", icon='MENU_PANEL')
+            layout.separator()
+
+            # Toggle Objectmode
+            layout.operator("object.editmode_toggle", text="Enter Object Mode",
+                icon='OBJECT_DATA')
+
+            # Delete block
+            layout.operator("object.delete", text="Delete Object",
+                icon='CANCEL')
+				
+
+        if  context.mode == 'PARTICLE':
+            # Particle menu
+
+            #Search Menu
+            layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
+
+            # Transform block
+            layout.menu("VIEW3D_MT_TransformMenu", icon='MANIPUL')
+            layout.separator()
+
+            # Mirror block
+            layout.menu("VIEW3D_MT_MirrorMenu", icon='MOD_MIRROR')
+            layout.separator()
+
+            # Proportional block
+            layout.prop_menu_enum(settings, "proportional_editing", icon= "PROP_CON")
+            layout.prop_menu_enum(settings, "proportional_editing_falloff", icon= "SMOOTHCURVE")
+
+            # Cursor block
+            layout.menu("VIEW3D_MT_CursorMenu", icon='CURSOR')
+            layout.separator()
+
+            # Toolshelf block
+            layout.operator("view3d.toolshelf", icon='MENU_PANEL')
+            layout.separator()
+
+            # Toggle Objectmode
+            layout.operator("object.editmode_toggle", text="Enter Object Mode",
                 icon='OBJECT_DATA')
 
             # Delete block
@@ -458,10 +533,6 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
             # Toggle Editmode
             layout.operator("object.editmode_toggle", text="Enter Edit Mode",
                 icon='EDITMODE_HLT')
-
-            # Toggle Objectmode
-            layout.operator("object.editmode_toggle", text="Enter Object Mode",
-                icon='OBJECT_DATA')
 
         elif ob.mode == 'EDIT_ARMATURE':
             # Armature menu
@@ -608,12 +679,11 @@ class VIEW3D_MT_AddMenu(bpy.types.Menu):
         layout.operator("object.text_add", text="Add Text",
             icon='OUTLINER_OB_FONT')
         layout.separator()
-
         layout.menu("INFO_MT_armature_add", text="Add Armature",
             icon='OUTLINER_OB_ARMATURE')
-        #layout.operator_menu_enum("object.lattice.add", "type",
-        #    text="Lattice",
-        #    icon='OUTLINER_OB_LATTICE')
+        layout.operator("object.add", text="Lattice",
+            icon='OUTLINER_OB_LATTICE').type = 'LATTICE'
+        layout.separator()
         layout.operator("object.add", text="Add Empty",
             icon='OUTLINER_OB_EMPTY')
         layout.separator()
