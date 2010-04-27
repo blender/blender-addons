@@ -306,8 +306,10 @@ def invert_face_normal(face):
 def add_truncated_tetrahedron(hexagon_side=2.0 * sqrt(2.0) / 3.0,
     star_ngons=False):
 
+    size = 2.0
+
     if (hexagon_side < 0.0
-        or hexagon_side > 2.0 * sqrt(2.0)):
+        or hexagon_side > size * sqrt(2.0)):
         return None, None
 
     verts = []
@@ -393,14 +395,14 @@ def add_truncated_tetrahedron(hexagon_side=2.0 * sqrt(2.0) / 3.0,
 # http://en.wikipedia.org/wiki/Truncated_cube
 # http://en.wikipedia.org/wiki/Cuboctahedron
 def add_cuboctahedron(octagon_side=0.0, star_ngons=False):
-    if (octagon_side > 2.0 or octagon_side < 0.0):
+    size = 2.0
+
+    if (octagon_side > size or octagon_side < 0.0):
         return None, None, None
 
     s = octagon_side
     verts = []
     faces = []
-
-    size = 2.0
 
     name = "Cuboctahedron"
     if s == 0.0:
@@ -573,7 +575,7 @@ def add_cuboctahedron(octagon_side=0.0, star_ngons=False):
             top_down_3[1], top_down_3[0], ngon_top[6], ngon_top[7],
             top_down_0[0], top_down_0[1], ngon_bot[7], ngon_bot[6]]
 
-         # Invert face normals where needed.
+        # Invert face normals where needed.
         ngon_top = invert_face_normal(ngon_top)
         tri_xp_yp_zp = invert_face_normal(tri_xp_yp_zp)
         tri_xp_yn_zn = invert_face_normal(tri_xp_yn_zn)
@@ -610,13 +612,13 @@ def add_cuboctahedron(octagon_side=0.0, star_ngons=False):
 # http://en.wikipedia.org/wiki/Rhombicuboctahedron
 # Note: quad_size=0 would result in a Cuboctahedron
 def add_rhombicuboctahedron(quad_size=sqrt(2.0) / (1.0 + sqrt(2) / 2.0)):
-    if (quad_size > 2.0 or quad_size < 0.0):
+    size = 2.0
+
+    if (quad_size > size or quad_size < 0.0):
         return None, None
 
     faces = []
     verts = []
-
-    size = 2.0
 
     # Top & bottom faces (quads)
     face_top = []
@@ -867,6 +869,292 @@ def add_truncated_octahedron(hexagon_side=sqrt(2) / 3.0, star_ngons=False):
 
     return verts, faces
 
+
+# http://en.wikipedia.org/wiki/Truncated_cuboctahedron
+def add_truncated_cuboctahedron(
+    octagon_size=2.0 - (2.0 / sqrt(2.0)) * (2.0 / (4.0 / sqrt(2.0) + 1.0)),
+    octagon_side=2.0 / (4.0 / sqrt(2.0) + 1.0),
+    star_ngons=False):
+
+    size = 2.0
+
+    if (octagon_side < 0.0
+        or octagon_size < 0.0
+        or octagon_size < octagon_side
+        or octagon_size > size
+        or octagon_side > size):
+        return None, None
+
+    verts = []
+    faces = []
+    
+    oside = octagon_side
+
+    # Vertices of a simple Cube
+    verts_cube = [
+        Vector((1.0, 1.0, 1.0)),     # tip 0
+        Vector((1.0, -1.0, 1.0)),    # tip 1
+        Vector((-1.0, -1.0, 1.0)),   # tip 2
+        Vector((-1.0, 1.0, 1.0)),    # tip 3
+        Vector((1.0, 1.0, -1.0)),    # tip 4
+        Vector((1.0, -1.0, -1.0)),   # tip 5
+        Vector((-1.0, -1.0, -1.0)),  # tip 6
+        Vector((-1.0, 1.0, -1.0))]   # tip 7
+
+    tri_xp_yp_zp = []
+    tri_xp_yn_zp = []
+    tri_xn_yp_zp = []
+    tri_xn_yn_zp = []
+    tri_xp_yp_zn = []
+    tri_xp_yn_zn = []
+    tri_xn_yp_zn = []
+    tri_xn_yn_zn = []
+
+    # Prepare top & bottom octagons.
+    oct_top = []
+    oct_bot = []
+    hex_0_zp = []
+    hex_1_zp = []
+    hex_2_zp = []
+    hex_3_zp = []
+    hex_0_zn = []
+    hex_1_zn = []
+    hex_2_zn = []
+    hex_3_zn = []
+
+    bevel_size = (size - octagon_size) / 2.0
+
+    # Top edges ####
+    bevel_z = Vector((0.0, 0.0, -bevel_size))
+
+    va, vb = subdivide_edge_2_cuts(verts_cube[0], verts_cube[1], oside)
+    va1, vb1 = va + Vector((-bevel_size, 0, 0)), vb + Vector((-bevel_size, 0, 0))
+    va2, vb2 = va + bevel_z, vb + bevel_z
+    va1_idx, vb1_idx = len(verts), len(verts) + 1
+    va2_idx, vb2_idx = len(verts) + 2, len(verts) + 3
+    verts.extend([va1, vb1, va2, vb2])
+    #tri_xp_yp_zp.append(va_idx)
+    #tri_xp_yn_zp.append(vb_idx)
+    oct_top.extend([va1_idx, vb1_idx])
+    quad_01_zp = [va1_idx, vb1_idx, vb2_idx, va2_idx]
+    hex_0_zp.extend([va2_idx, va1_idx])
+    hex_1_zp.extend([vb2_idx, vb1_idx])
+
+    va, vb = subdivide_edge_2_cuts(verts_cube[1], verts_cube[2], oside)
+    va1, vb1 = va + Vector((0, bevel_size, 0)), vb + Vector((0, bevel_size, 0))
+    va2, vb2 = va + bevel_z, vb + bevel_z
+    va1_idx, vb1_idx = len(verts), len(verts) + 1
+    va2_idx, vb2_idx = len(verts) + 2, len(verts) + 3
+    verts.extend([va1, vb1, va2, vb2])
+    #tri_xp_yn_zp.append(va_idx)
+    #tri_xn_yn_zp.append(vb_idx)
+    oct_top.extend([va1_idx, vb1_idx])
+    quad_12_zp = [va1_idx, vb1_idx, vb2_idx, va2_idx]
+    hex_1_zp.extend([va1_idx, va2_idx])
+    hex_2_zp.extend([vb2_idx, vb1_idx])
+
+    va, vb = subdivide_edge_2_cuts(verts_cube[2], verts_cube[3], oside)
+    va1, vb1 = va + Vector((bevel_size, 0, 0)), vb + Vector((bevel_size, 0, 0))
+    va2, vb2 = va + bevel_z, vb + bevel_z
+    va1_idx, vb1_idx = len(verts), len(verts) + 1
+    va2_idx, vb2_idx = len(verts) + 2, len(verts) + 3
+    verts.extend([va1, vb1, va2, vb2])
+    oct_top.extend([va1_idx, vb1_idx])
+    quad_23_zp = [va1_idx, vb1_idx, vb2_idx, va2_idx]
+    hex_2_zp.extend([va1_idx, va2_idx])
+    hex_3_zp.extend([vb2_idx, vb1_idx])
+
+    va, vb = subdivide_edge_2_cuts(verts_cube[3], verts_cube[0], oside)
+    va1, vb1 = va + Vector((0, -bevel_size, 0)), vb + Vector((0, -bevel_size, 0))
+    va2, vb2 = va + bevel_z, vb + bevel_z
+    va1_idx, vb1_idx = len(verts), len(verts) + 1
+    va2_idx, vb2_idx = len(verts) + 2, len(verts) + 3
+    verts.extend([va1, vb1, va2, vb2])
+    #tri_xn_yp_zp.append(va_idx)
+    #tri_xp_yp_zp.append(vb_idx)
+    oct_top.extend([va1_idx, vb1_idx])
+    quad_30_zp = [va1_idx, vb1_idx, vb2_idx, va2_idx]
+    hex_3_zp.extend([va1_idx, va2_idx])
+    hex_0_zp.extend([vb1_idx, vb2_idx])
+
+    # Top-down edges ####
+    va, vb = subdivide_edge_2_cuts(verts_cube[0], verts_cube[4], oside)
+    va1, vb1 = va + Vector((-bevel_size, 0, 0)), vb + Vector((-bevel_size, 0, 0))
+    va2, vb2 = va + Vector((0, -bevel_size, 0)), vb + Vector((0, -bevel_size, 0))
+    va1_idx, vb1_idx = len(verts), len(verts) + 1
+    va2_idx, vb2_idx = len(verts) + 2, len(verts) + 3
+    verts.extend([va1, vb1, va2, vb2])
+    #tri_xp_yp_zp.append(va_idx)
+    #tri_xp_yp_zn.append(vb_idx)
+    top_down_0_1 = [va1_idx, vb1_idx]
+    top_down_0_2 = [va2_idx, vb2_idx]
+    quad_04 = [vb1_idx, va1_idx, va2_idx, vb2_idx]
+    hex_0_zp.extend([va1_idx, va2_idx])
+    hex_0_zn.extend([vb1_idx, vb2_idx])
+
+    va, vb = subdivide_edge_2_cuts(verts_cube[1], verts_cube[5], oside)
+    va1, vb1 = va + Vector((-bevel_size, 0, 0)), vb + Vector((-bevel_size, 0, 0))
+    va2, vb2 = va + Vector((0, bevel_size, 0)), vb + Vector((0, bevel_size, 0))
+    va1_idx, vb1_idx = len(verts), len(verts) + 1
+    va2_idx, vb2_idx = len(verts) + 2, len(verts) + 3
+    verts.extend([va1, vb1, va2, vb2])
+    #tri_xp_yn_zp.append(va_idx)
+    #tri_xp_yn_zn.append(vb_idx)
+    top_down_1_1 = [va1_idx, vb1_idx]
+    top_down_1_2 = [va2_idx, vb2_idx]
+    quad_15 = [va1_idx, vb1_idx, vb2_idx, va2_idx]
+    hex_1_zp.extend([va1_idx, va2_idx])
+    hex_1_zn.extend([vb1_idx, vb2_idx])
+
+    va, vb = subdivide_edge_2_cuts(verts_cube[2], verts_cube[6], oside)
+    va1, vb1 = va + Vector((bevel_size, 0, 0)), vb + Vector((bevel_size, 0, 0))
+    va2, vb2 = va + Vector((0, bevel_size, 0)), vb + Vector((0, bevel_size, 0))
+    va1_idx, vb1_idx = len(verts), len(verts) + 1
+    va2_idx, vb2_idx = len(verts) + 2, len(verts) + 3
+    verts.extend([va1, vb1, va2, vb2])
+    #tri_xn_yn_zp.append(va_idx)
+    #tri_xn_yn_zn.append(vb_idx)
+    top_down_2_1 = [va1_idx, vb1_idx]
+    top_down_2_2 = [va2_idx, vb2_idx]
+    quad_26 = [vb1_idx, va1_idx, va2_idx, vb2_idx]
+    hex_2_zp.extend([va2_idx, va1_idx])
+    hex_2_zn.extend([vb2_idx, vb1_idx])
+
+    va, vb = subdivide_edge_2_cuts(verts_cube[3], verts_cube[7], oside)
+    va1, vb1 = va + Vector((bevel_size, 0, 0)), vb + Vector((bevel_size, 0, 0))
+    va2, vb2 = va + Vector((0, -bevel_size, 0)), vb + Vector((0, -bevel_size, 0))
+    va1_idx, vb1_idx = len(verts), len(verts) + 1
+    va2_idx, vb2_idx = len(verts) + 2, len(verts) + 3
+    verts.extend([va1, vb1, va2, vb2])
+    #tri_xn_yp_zp.append(va_idx)
+    #tri_xn_yp_zn.append(vb_idx)
+    top_down_3_1 = [va1_idx, vb1_idx]
+    top_down_3_2 = [va2_idx, vb2_idx]
+    quad_37 = [va1_idx, vb1_idx, vb2_idx, va2_idx]
+    hex_3_zp.extend([va1_idx, va2_idx])
+    hex_3_zn.extend([vb1_idx, vb2_idx])
+    
+    # Bottom edges ####
+    bevel_z = Vector((0.0, 0.0, bevel_size))
+
+    va, vb = subdivide_edge_2_cuts(verts_cube[4], verts_cube[5], oside)
+    va1, vb1 = va + Vector((-bevel_size, 0, 0)), vb + Vector((-bevel_size, 0, 0))
+    va2, vb2 = va + bevel_z, vb + bevel_z
+    va1_idx, vb1_idx = len(verts), len(verts) + 1
+    va2_idx, vb2_idx = len(verts) + 2, len(verts) + 3
+    verts.extend([va1, vb1, va2, vb2])
+    #tri_xp_yp_zn.append(va_idx)
+    #tri_xp_yn_zn.append(vb_idx)
+    oct_bot.extend([va1_idx, vb1_idx])
+    quad_45_zn = [vb1_idx, va1_idx, va2_idx, vb2_idx]
+    hex_0_zn.extend([va2_idx, va1_idx])
+    hex_1_zn.extend([vb2_idx, vb1_idx])
+
+    va, vb = subdivide_edge_2_cuts(verts_cube[5], verts_cube[6], oside)
+    va1, vb1 = va + Vector((0, bevel_size, 0)), vb + Vector((0, bevel_size, 0))
+    va2, vb2 = va + bevel_z, vb + bevel_z
+    va1_idx, vb1_idx = len(verts), len(verts) + 1
+    va2_idx, vb2_idx = len(verts) + 2, len(verts) + 3
+    verts.extend([va1, vb1, va2, vb2])
+    #tri_xp_yn_zn.append(va_idx)
+    #tri_xn_yn_zn.append(vb_idx)
+    oct_bot.extend([va1_idx, vb1_idx])
+    quad_56_zn = [vb1_idx, va1_idx, va2_idx, vb2_idx]
+    hex_1_zn.extend([va1_idx, va2_idx])
+    hex_2_zn.extend([vb2_idx, vb1_idx])
+
+    va, vb = subdivide_edge_2_cuts(verts_cube[6], verts_cube[7], oside)
+    va1, vb1 = va + Vector((bevel_size, 0, 0)), vb + Vector((bevel_size, 0, 0))
+    va2, vb2 = va + bevel_z, vb + bevel_z
+    va1_idx, vb1_idx = len(verts), len(verts) + 1
+    va2_idx, vb2_idx = len(verts) + 2, len(verts) + 3
+    verts.extend([va1, vb1, va2, vb2])
+    #tri_xn_yn_zn.append(va_idx)
+    #tri_xn_yp_zn.append(vb_idx)
+    oct_bot.extend([va1_idx, vb1_idx])
+    quad_67_zn = [vb1_idx, va1_idx, va2_idx, vb2_idx]
+    hex_2_zn.extend([va1_idx, va2_idx])
+    hex_3_zn.extend([vb2_idx, vb1_idx])
+
+    va, vb = subdivide_edge_2_cuts(verts_cube[7], verts_cube[4], oside)
+    va1, vb1 = va + Vector((0, -bevel_size, 0)), vb + Vector((0, -bevel_size, 0))
+    va2, vb2 = va + bevel_z, vb + bevel_z
+    va1_idx, vb1_idx = len(verts), len(verts) + 1
+    va2_idx, vb2_idx = len(verts) + 2, len(verts) + 3
+    verts.extend([va1, vb1, va2, vb2])
+    #tri_xn_yp_zn.append(va_idx)
+    #tri_xp_yp_zn.append(vb_idx)
+    oct_bot.extend([va1_idx, vb1_idx])
+    quad_74_zn = [vb1_idx, va1_idx, va2_idx, vb2_idx]
+    hex_3_zn.extend([va1_idx, va2_idx])
+    hex_0_zn.extend([vb1_idx, vb2_idx])
+
+    # Octagon polygons (n-gons)
+    oct_0 = [
+        top_down_0_2[1], top_down_0_2[0], quad_01_zp[3], quad_01_zp[2],
+        top_down_1_2[0], top_down_1_2[1], quad_45_zn[3], quad_45_zn[2]]
+    oct_1 = [
+        top_down_1_1[1], top_down_1_1[0], quad_12_zp[3], quad_12_zp[2],
+        top_down_2_1[0], top_down_2_1[1], quad_56_zn[3], quad_56_zn[2]]
+    oct_2 = [
+        top_down_2_2[1], top_down_2_2[0], quad_23_zp[3], quad_23_zp[2],
+        top_down_3_2[0], top_down_3_2[1], quad_67_zn[3], quad_67_zn[2]]
+    oct_3 = [
+        top_down_3_1[1], top_down_3_1[0], quad_30_zp[3], quad_30_zp[2],
+        top_down_0_1[0], top_down_0_1[1], quad_74_zn[3], quad_74_zn[2]]
+
+    # Invert face normals where needed.
+    oct_top = invert_face_normal(oct_top)
+    hex_0_zp = invert_face_normal(hex_0_zp)
+    hex_1_zn = invert_face_normal(hex_1_zn)
+    hex_2_zn = invert_face_normal(hex_2_zn)
+    hex_3_zn = invert_face_normal(hex_3_zn)
+
+    # Quads
+    faces.extend([quad_01_zp, quad_12_zp, quad_23_zp, quad_30_zp])
+    faces.extend([quad_04, quad_15, quad_26, quad_37])
+    faces.extend([quad_45_zn, quad_56_zn, quad_67_zn, quad_74_zn])
+
+    if star_ngons:
+        # Create stars from octagons.
+        ngons = [oct_top, oct_bot, oct_bot, oct_0, oct_1, oct_2, oct_3]
+
+        verts, faces_star = get_polygon_center(verts, ngons)
+        faces.extend(faces_star)
+        
+        # Create stars from hexagons.
+        # @todo
+
+    else:
+        # Create quads from octagons.
+
+        # The top octagon is the only polygon we don't need to offset.
+        oct_quads = ngon_fill(oct_top)
+        faces.extend(oct_quads)
+
+        ngons = [oct_bot, oct_0, oct_1, oct_2, oct_3]
+        for ngon in ngons:
+            # offset=1 Offset vertices so QUADS are created with
+            # orthagonal edges. Superficial change - Could be omitted.
+            oct_quads = ngon_fill(ngon, offset=1)
+            faces.extend(oct_quads)
+        
+        # Create quads from hexagons.
+        ngons = [hex_0_zp, hex_1_zp, hex_2_zp, hex_3_zp]
+        for ngon in ngons:
+            hex_quads = ngon_fill(ngon)
+            faces.extend(hex_quads)
+
+        hex_quads = ngon_fill(hex_0_zn, offset=2)
+        faces.extend(hex_quads)
+
+        ngons = [hex_1_zn, hex_2_zn, hex_3_zn]
+        for ngon in ngons:
+            hex_quads = ngon_fill(ngon, offset=1)
+            faces.extend(hex_quads)
+
+    return verts, faces
+
 ########################
 
 
@@ -1043,6 +1331,58 @@ class AddTruncatedOctahedron(bpy.types.Operator):
         return {'FINISHED'}
 
 
+class AddTruncatedCuboctahedron(bpy.types.Operator):
+    '''Add a mesh for a truncated cuboctahedron.'''
+    bl_idname = 'mesh.primitive_truncated_cuboctahedron_add'
+    bl_label = 'Add Truncated Cuboctahedron'
+    bl_description = 'Create a mesh for a truncated cuboctahedron.'
+    bl_options = {'REGISTER', 'UNDO'}
+
+    # edit - Whether to add or update.
+    edit = BoolProperty(name='',
+        description='',
+        default=False,
+        options={'HIDDEN'})
+    octagon_size = FloatProperty(name='Octagon Size',
+        description='The size (height/width) of the octagon.',
+        min=0.02,
+        max=1.99,
+        default=2.0 - (2.0 / sqrt(2.0)) * (2.0 / (4.0 / sqrt(2.0) + 1.0)))
+    octagon_side = FloatProperty(name='Octagon Side',
+        description='One length of the octagon side' \
+            ' (on the original cube edge).',
+        min=0.01,
+        max=1.98,
+        default=2.0 / (4.0 / sqrt(2.0) + 1.0))
+    star_ngons = BoolProperty(name='Star N-Gon',
+        description='Create star-shaped octagons.',
+        default=False)
+
+    def execute(self, context):
+        props = self.properties
+
+        verts, faces = add_truncated_cuboctahedron(
+            props.octagon_size,
+            props.octagon_side,
+            props.star_ngons)
+
+        if not verts:
+            return {'CANCELLED'}
+
+        obj = create_mesh_object(context, verts, [], faces,
+            'TrCuboctahedron', props.edit)
+
+        # Store 'recall' properties in the object.
+        recall_args_list = {
+            'edit': True,
+            'octagon_size': props.octagon_size,
+            'octagon_side': props.octagon_side,
+            'star_ngons': props.star_ngons}
+        store_recall_properties(obj, self, recall_args_list)
+
+        return {'FINISHED'}
+
+
 class INFO_MT_mesh_archimedean_solids_add(bpy.types.Menu):
     # Define the "Archimedean Solids" menu
     bl_idname = "INFO_MT_mesh_archimedean_solids_add"
@@ -1059,6 +1399,8 @@ class INFO_MT_mesh_archimedean_solids_add(bpy.types.Menu):
             text="Rhombicuboctahedron")
         layout.operator("mesh.primitive_truncated_octahedron_add",
             text="Truncated Octahedron")
+        layout.operator("mesh.primitive_truncated_cuboctahedron_add",
+            text="Truncated Cuboctahedron")
 
 ########################
 import space_info
@@ -1074,6 +1416,7 @@ def register():
     bpy.types.register(AddCuboctahedron)
     bpy.types.register(AddRhombicuboctahedron)
     bpy.types.register(AddTruncatedOctahedron)
+    bpy.types.register(AddTruncatedCuboctahedron)
     bpy.types.register(INFO_MT_mesh_archimedean_solids_add)
 
     # Add "Archimedean Solids" menu to the "Add Mesh" menu
@@ -1086,6 +1429,7 @@ def unregister():
     bpy.types.unregister(AddCuboctahedron)
     bpy.types.unregister(AddRhombicuboctahedron)
     bpy.types.unregister(AddTruncatedOctahedron)
+    bpy.types.unregister(AddTruncatedCuboctahedron)
     bpy.types.unregister(INFO_MT_mesh_archimedean_solids_add)
 
     # Remove "Archimedean Solids" menu from the "Add Mesh" menu.
