@@ -302,6 +302,7 @@ def invert_face_normal(face):
 ########################
 
 
+# http://en.wikipedia.org/wiki/Truncated_tetrahedron
 def add_truncated_tetrahedron(hexagon_side=2.0 * sqrt(2.0) / 3.0,
     star_ngons=False):
 
@@ -389,6 +390,8 @@ def add_truncated_tetrahedron(hexagon_side=2.0 * sqrt(2.0) / 3.0,
     return verts, faces
 
 
+# http://en.wikipedia.org/wiki/Truncated_cube
+# http://en.wikipedia.org/wiki/Cuboctahedron
 def add_cuboctahedron(octagon_side=0.0, star_ngons=False):
     if (octagon_side > 2.0 or octagon_side < 0.0):
         return None, None, None
@@ -604,6 +607,8 @@ def add_cuboctahedron(octagon_side=0.0, star_ngons=False):
     return verts, faces, name
 
 
+# http://en.wikipedia.org/wiki/Rhombicuboctahedron
+# Note: quad_size=0 would result in a Cuboctahedron
 def add_rhombicuboctahedron(quad_size=sqrt(2.0) / (1.0 + sqrt(2) / 2.0)):
     if (quad_size > 2.0 or quad_size < 0.0):
         return None, None
@@ -700,6 +705,7 @@ def add_rhombicuboctahedron(quad_size=sqrt(2.0) / (1.0 + sqrt(2) / 2.0)):
     return verts, faces
 
 
+# http://en.wikipedia.org/wiki/Truncated_octahedron
 def add_truncated_octahedron(hexagon_side=sqrt(2) / 3.0, star_ngons=False):
     if (hexagon_side < 0.0
         or hexagon_side > sqrt(2)):
@@ -861,6 +867,8 @@ def add_truncated_octahedron(hexagon_side=sqrt(2) / 3.0, star_ngons=False):
 
     return verts, faces
 
+########################
+
 
 class AddTruncatedTetrahedron(bpy.types.Operator):
     '''Add a mesh for a truncated tetrahedron.'''
@@ -910,8 +918,8 @@ class AddTruncatedTetrahedron(bpy.types.Operator):
 class AddCuboctahedron(bpy.types.Operator):
     '''Add a mesh for a cuboctahedron (truncated cube).'''
     bl_idname = 'mesh.primitive_cuboctahedron_add'
-    bl_label = 'Add Cuboctahedron'
-    bl_description = 'Create a mesh for a cuboctahedron (truncated cube).'
+    bl_label = 'Add Cuboctahedron or Truncated Cube'
+    bl_description = 'Create a mesh for a cuboctahedron (or truncated cube).'
     bl_options = {'REGISTER', 'UNDO'}
 
     # edit - Whether to add or update.
@@ -921,7 +929,8 @@ class AddCuboctahedron(bpy.types.Operator):
         options={'HIDDEN'})
     octagon_side = FloatProperty(name='Octagon Side',
         description='One length of the octagon side' \
-            ' (on the original cube edge).',
+            ' (on the original cube edge).' \
+            ' 0: Cuboctahedron, >0: Truncated Cube',
         min=0.00,
         max=1.99,
         default=0.0)
@@ -952,10 +961,10 @@ class AddCuboctahedron(bpy.types.Operator):
 
 
 class AddRhombicuboctahedron(bpy.types.Operator):
-    '''Add a mesh for a thombicuboctahedron.'''
-    bl_idname = 'mesh.primitive_thombicuboctahedron_add'
+    '''Add a mesh for a rhombicuboctahedron.'''
+    bl_idname = 'mesh.primitive_rhombicuboctahedron_add'
     bl_label = 'Add Rhombicuboctahedron'
-    bl_description = 'Create a mesh for a thombicuboctahedron.'
+    bl_description = 'Create a mesh for a rhombicuboctahedron.'
     bl_options = {'REGISTER', 'UNDO'}
 
     # edit - Whether to add or update.
@@ -1045,12 +1054,13 @@ class INFO_MT_mesh_archimedean_solids_add(bpy.types.Menu):
         layout.operator("mesh.primitive_truncated_tetrahedron_add",
             text="Truncated Tetrahedron")
         layout.operator("mesh.primitive_cuboctahedron_add",
-            text="Cuboctahedron")
-        layout.operator("mesh.primitive_thombicuboctahedron_add",
+            text="Cuboctahedron or Truncated Cube")
+        layout.operator("mesh.primitive_rhombicuboctahedron_add",
             text="Rhombicuboctahedron")
         layout.operator("mesh.primitive_truncated_octahedron_add",
             text="Truncated Octahedron")
 
+########################
 import space_info
 
 # Define "Archimedean Solids" menu
