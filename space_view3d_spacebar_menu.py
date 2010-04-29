@@ -150,6 +150,10 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
             layout.operator("view3d.toolshelf", icon='MENU_PANEL')
             layout.separator()
 
+            # Properties block
+            layout.operator("view3d.properties", icon='MENU_PANEL')
+            layout.separator()
+
             # Toggle Editmode
             layout.operator("object.editmode_toggle", text="Enter Edit Mode",
                 icon='EDITMODE_HLT')
@@ -202,6 +206,10 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
             layout.operator("view3d.toolshelf", icon='MENU_PANEL')
             layout.separator()
 
+            # Properties block
+            layout.operator("view3d.properties", icon='MENU_PANEL')
+            layout.separator()
+
             # Toggle Object Mode
             layout.operator("object.editmode_toggle", text="Enter Object Mode",
                 icon='OBJECT_DATAMODE')
@@ -250,6 +258,10 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
             layout.operator("view3d.toolshelf", icon='MENU_PANEL')
             layout.separator()
 
+            # Properties block
+            layout.operator("view3d.properties", icon='MENU_PANEL')
+            layout.separator()
+
             # Toggle Objectmode
             layout.operator("object.editmode_toggle", text="Enter Object Mode",
                 icon='OBJECT_DATA')
@@ -293,6 +305,10 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
             layout.operator("view3d.toolshelf", icon='MENU_PANEL')
             layout.separator()
 
+            # Properties block
+            layout.operator("view3d.properties", icon='MENU_PANEL')
+            layout.separator()
+
             # Toggle Objectmode
             layout.operator("object.editmode_toggle", text="Enter Object Mode",
                 icon='OBJECT_DATA')
@@ -329,6 +345,10 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
 
             # Toolshelf block
             layout.operator("view3d.toolshelf", icon='MENU_PANEL')
+            layout.separator()
+
+            # Properties block
+            layout.operator("view3d.properties", icon='MENU_PANEL')
             layout.separator()
 
             # Toggle Objectmode
@@ -372,6 +392,10 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
             layout.operator("view3d.toolshelf", icon='MENU_PANEL')
             layout.separator()
 
+            # Properties block
+            layout.operator("view3d.properties", icon='MENU_PANEL')
+            layout.separator()
+
             # Toggle Objectmode
             layout.operator("object.editmode_toggle", text="Enter Object Mode",
                 icon='OBJECT_DATA')
@@ -405,6 +429,10 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
 
             # Toolshelf block
             layout.operator("view3d.toolshelf", icon='MENU_PANEL')
+            layout.separator()
+
+            # Properties block
+            layout.operator("view3d.properties", icon='MENU_PANEL')
             layout.separator()
 
             # Toggle Objectmode
@@ -441,6 +469,10 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
             layout.operator("view3d.toolshelf", icon='MENU_PANEL')
             layout.separator()
 
+            # Properties block
+            layout.operator("view3d.properties", icon='MENU_PANEL')
+            layout.separator()
+
             # Toggle Objectmode
             layout.operator("object.editmode_toggle", text="Enter Object Mode",
                 icon='OBJECT_DATA')
@@ -472,6 +504,10 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
             layout.operator("view3d.toolshelf", icon='MENU_PANEL')
             layout.separator()
 
+            # Properties block
+            layout.operator("view3d.properties", icon='MENU_PANEL')
+            layout.separator()
+
             # Toggle Objectmode
             layout.operator("object.editmode_toggle", text="Enter Object Mode",
                 icon='OBJECT_DATA')
@@ -495,6 +531,10 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
 
             # Toolshelf block
             layout.operator("view3d.toolshelf", icon='MENU_PANEL')
+            layout.separator()
+
+            # Properties block
+            layout.operator("view3d.properties", icon='MENU_PANEL')
             layout.separator()
 
             # Toggle Objectmode
@@ -528,6 +568,10 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
 
             # Toolshelf block
             layout.operator("view3d.toolshelf", icon='MENU_PANEL')
+            layout.separator()
+
+            # Properties block
+            layout.operator("view3d.properties", icon='MENU_PANEL')
             layout.separator()
 
             # Toggle Editmode
