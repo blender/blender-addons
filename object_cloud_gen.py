@@ -1,4 +1,4 @@
- # ##### BEGIN GPL LICENSE BLOCK #####
+# ##### BEGIN GPL LICENSE BLOCK #####
 #
 #  This program is free software; you can redistribute it and/or
 #  modify it under the terms of the GNU General Public License
@@ -20,7 +20,7 @@
 bl_addon_info = {
     'name': 'Object: Cloud Generator',
     'author': 'Nick Keeline(nrk)',
-    'version': '0.5',
+    'version': '0.6',
     'blender': (2, 5, 3),
     'location': 'Tool Shelf ',
     'description': 'Creates Volumetric Clouds',
@@ -41,15 +41,13 @@ Rev 0.2 Added Point Density turbulence and fixed degenerate
 Rev 0.3 Fixed bug in degenerate
 Rev 0.4 updated for api change/changed to new apply modifier technique
 Rev 0.5 made particle count equation with radius so radius increases with cloud volume
+Rev 0.6 added poll function to operator, fixing crash with no selected objects
 """
 
 import bpy
 import mathutils
 from math import *
 from bpy.props import *
-
-# Deselect All
-bpy.ops.object.select_all(action='DESELECT')
 
 
 # This routine takes an object and deletes all of the geometry in it
@@ -281,7 +279,342 @@ class VIEW3D_PT_tools_cloud(View3DPanel):
             col.label(text="a cloud.")
         # col.label(active_obj["CloudMember"])
 
-classes = [VIEW3D_PT_tools_cloud]
+
+class GenerateCloud(bpy.types.Operator):
+    bl_idname = "cloud.generate_cloud"
+    bl_label = "Generate Cloud"
+    bl_description = "Create a Cloud."
+    bl_register = True
+    bl_undo = True
+
+    def poll(self, context):
+        if not context.active_object:
+            return False
+        else:
+            return (context.active_object.type=='MESH')
+
+    def execute(self, context):
+        # Make variable that is the current .blend file main data blocks
+        main = context.main
+
+        # Make variable that is the active object selected by user
+        active_object = context.active_object
+
+        # Make variable scene that is current scene
+        scene = context.scene
+
+        # Parameters the user may want to change:
+        # Number of points this number is multiplied by the volume to get
+        # the number of points the scripts will put in the volume.
+        numOfPoints = 1.0
+        maxNumOfPoints = 100000
+        scattering = 2.5
+        pointDensityRadiusFactor = 1.0
+        densityScale = 1.5
+
+        # Should we degnerate?
+        degenerate = degenerateCloud(active_object)
+
+        if degenerate:
+           # Degenerate Cloud
+           mainObj = active_object
+
+           cloudMembers = active_object.children
+
+           createdObjects = []
+           definitionObjects = []
+           for member in cloudMembers:
+               applyScaleRotLoc(scene, member)
+               if (member["CloudMember"] == "CreatedObj"):
+                  createdObjects.append(member)
+               else:
+                  definitionObjects.append(member)
+
+           for defObj in definitionObjects:
+               # @todo check if it wouldn't be better to remove this
+               # in the first place (see del() in degenerateCloud)
+               #totally agree didn't know how before now...thanks! done.
+               if "CloudMember" in defObj:
+                  del(defObj["CloudMember"])
+
+           for createdObj in createdObjects:
+               # Deselect All
+               bpy.ops.object.select_all(action='DESELECT')
+   
+               # Select the object and delete it.
+               createdObj.selected = True
+               scene.objects.active = createdObj
+               bpy.ops.object.delete()
+
+           # Delete the main object
+           # Deselect All
+           bpy.ops.object.select_all(action='DESELECT')
+   
+           # Select the object and delete it.
+           mainObj.selected = True
+           scene.objects.active = mainObj
+   
+           # Delete all material slots in mainObj object
+           for i in range(len(mainObj.material_slots)):
+               mainObj.active_material_index = i - 1
+               bpy.ops.object.material_slot_remove()
+  
+           # Delete the Main Object
+           bpy.ops.object.delete()
+  
+           # Select all of the left over boxes so people can immediately
+           # press generate again if they want.
+           for eachMember in definitionObjects:
+               eachMember.max_draw_type = 'SOLID'
+               eachMember.selected = True
+               scene.objects.active = eachMember
+
+        else:
+            # Generate Cloud
+
+            ###############Create Combined Object bounds##################
+            # Make a list of all Selected objects.
+            selectedObjects = bpy.context.selected_objects
+            if not selectedObjects:
+                selectedObjects = [bpy.context.active_object]
+
+            # Create a new object bounds
+            bounds = addNewObject(scene,
+                    "CloudBounds",
+                    selectedObjects[0])
+
+            bounds.max_draw_type = 'BOUNDS'
+            bounds.restrict_render = False
+
+            # Just add a Definition Property designating this
+            # as the main object.
+            bounds["CloudMember"] = "MainObj"
+
+            # Since we used iteration 0 to copy with object we
+            # delete it off the list.
+            firstObject = selectedObjects[0]
+            del selectedObjects[0]
+
+            # Apply location Rotation and Scale to all objects involved.
+            applyScaleRotLoc(scene, bounds)
+            for each in selectedObjects:
+                applyScaleRotLoc(scene, each)
+
+            # Let's combine all of them together.
+            combineObjects(scene, bounds, selectedObjects)
+
+            # Let's add some property info to the objects.
+            for selObj in selectedObjects:
+                selObj["CloudMember"] = "DefinitioinObj"
+                selObj.name = "DefinitioinObj"
+                selObj.max_draw_type = 'WIRE'
+                selObj.restrict_render = True
+                makeParent(bounds, selObj, scene)
+
+            # Do the same to the 1. object since it is no longer in list.
+            firstObject["CloudMember"] = "DefinitioinObj"
+            firstObject.name = "DefinitioinObj"
+            firstObject.max_draw_type = 'WIRE'
+            firstObject.restrict_render = True
+            makeParent(bounds, firstObject, scene)
+
+            ###############Create Cloud for putting Cloud Mesh############
+            # Create a new object cloud.
+            cloud = addNewObject(scene, "CloudMesh", bounds)
+            cloud["CloudMember"] = "CreatedObj"
+            cloud.max_draw_type = 'WIRE'
+            cloud.restrict_render = True
+
+            makeParent(bounds, cloud, scene)
+
+            bpy.ops.object.editmode_toggle()
+            bpy.ops.mesh.select_all(action='SELECT')
+            bpy.ops.mesh.subdivide(number_cuts=2, fractal=0, smoothness=1)
+            bpy.ops.object.location_apply()
+            bpy.ops.mesh.vertices_smooth(repeat=20)
+            bpy.ops.mesh.tris_convert_to_quads()
+            bpy.ops.mesh.faces_shade_smooth()
+            bpy.ops.object.editmode_toggle()
+
+            ###############Create Particles in cloud obj##################
+            # Turn off gravity.
+            scene.use_gravity = False
+
+            # Set time to 0.
+            scene.frame_current = 0
+
+            # Add a new particle system.
+            bpy.ops.object.particle_system_add()
+
+            #Particle settings setting it up!
+            cloudParticles = cloud.active_particle_system
+            cloudParticles.name = "CloudParticles"
+            cloudParticles.settings.frame_start = 0
+            cloudParticles.settings.frame_end = 0
+            cloudParticles.settings.emit_from = 'VOLUME'
+            cloudParticles.settings.draw_as = 'DOT'
+            cloudParticles.settings.ren_as = 'NONE'
+            cloudParticles.settings.normal_factor = 0
+            cloudParticles.settings.distribution = 'RAND'
+
+            ####################Create Volume Material####################
+            # Deselect All
+            bpy.ops.object.select_all(action='DESELECT')
+
+            # Select the object.
+            bounds.selected = True
+            scene.objects.active = bounds
+
+            # Turn bounds object into a box.
+            makeObjectIntoBoundBox(bounds, .2)
+
+            # Delete all material slots in bounds object.
+            for i in range(len(bounds.material_slots)):
+                bounds.active_material_index = i - 1
+                bpy.ops.object.material_slot_remove()
+
+            # Add a new material.
+            cloudMaterial = main.materials.new("CloudMaterial")
+            bpy.ops.object.material_slot_add()
+            bounds.material_slots[0].material = cloudMaterial
+
+            # Set Up the Cloud Material
+            cloudMaterial.name = "CloudMaterial"
+            cloudMaterial.type = 'VOLUME'
+            mVolume = cloudMaterial.volume
+            mVolume.scattering = scattering
+            mVolume.density = 0
+            mVolume.density_scale = densityScale
+            mVolume.transmission_color = [3, 3, 3]
+            mVolume.step_size = 0.1
+            mVolume.light_cache = True
+            mVolume.cache_resolution = 75
+
+            # Add a texture
+            vMaterialTextureSlots = cloudMaterial.texture_slots
+            cloudtex = main.textures.new("CloudTex")
+            cloudMaterial.add_texture(cloudtex, 'ORCO')
+            cloudtex.type = 'CLOUDS'
+            cloudtex.noise_type = 'HARD_NOISE'
+            cloudtex.noise_size = 2
+
+            # Add a texture
+            cloudPointDensity = main.textures.new("CloudPointDensity")
+            cloudPointDensity.type = 'POINT_DENSITY'
+            cloudMaterial.add_texture(cloudPointDensity, 'ORCO')
+            pDensity = vMaterialTextureSlots[1].texture
+            vMaterialTextureSlots[1].map_density = True
+            vMaterialTextureSlots[1].rgb_to_intensity = True
+            vMaterialTextureSlots[1].texture_coordinates = 'GLOBAL'
+            pDensity.pointdensity.vertices_cache = 'WORLD_SPACE'
+            pDensity.pointdensity.turbulence = True
+            pDensity.pointdensity.noise_basis = 'VORONOI_F2'
+            pDensity.pointdensity.turbulence_depth = 3
+
+            pDensity.use_color_ramp = True
+            pRamp = pDensity.color_ramp
+            pRamp.interpolation = 'LINEAR'
+            pRampElements = pRamp.elements
+            #pRampElements[1].position = .9
+            #pRampElements[1].color = [.18,.18,.18,.8]
+
+            # Estimate the number of particles for the size of bounds.
+            volumeBoundBox = (bounds.dimensions[0] * bounds.dimensions[1]* bounds.dimensions[2])
+            numParticles = int((2.4462 * volumeBoundBox + 430.4) * numOfPoints)
+            if numParticles > maxNumOfPoints:
+                numParticles = maxNumOfPoints
+            print(numParticles)
+ 
+            # Set the number of particles according to the volume
+            # of bounds.
+            cloudParticles.settings.amount = numParticles
+
+            pDensity.pointdensity.radius = (.00013764 * volumeBoundBox + .3989) * pointDensityRadiusFactor
+
+            # Set time to 1.
+            scene.frame_current = 1
+
+            ###############Create CloudPnts for putting points in#########
+            # Create a new object cloudPnts
+            cloudPnts = addNewObject(scene, "CloudPoints", bounds)
+            cloudPnts["CloudMember"] = "CreatedObj"
+            cloudPnts.max_draw_type = 'WIRE'
+            cloudPnts.restrict_render = True
+
+            makeParent(bounds, cloudPnts, scene)
+
+            bpy.ops.object.editmode_toggle()
+            bpy.ops.mesh.select_all(action='SELECT')
+
+            bpy.ops.mesh.delete(type='ALL')
+
+            meshPnts = cloudPnts.data
+
+            listCloudParticles = cloudParticles.particles
+
+            listMeshPnts = []
+            for pTicle in listCloudParticles:
+                listMeshPnts.append(pTicle.location)
+
+            # Must be in object mode fro from_pydata to work.
+            bpy.ops.object.mode_set(mode='OBJECT')
+
+            # Add in the mesh data.
+            meshPnts.from_pydata(listMeshPnts, [], [])
+
+            # Update the mesh.
+            meshPnts.update()
+
+            # Add a modifier.
+            bpy.ops.object.modifier_add(type='DISPLACE')
+
+            cldPntsModifiers = cloudPnts.modifiers
+            cldPntsModifiers[0].name = "CloudPnts"
+            cldPntsModifiers[0].texture = cloudtex
+            cldPntsModifiers[0].texture_coordinates = 'OBJECT'
+            cldPntsModifiers[0].texture_coordinate_object = cloud
+            cldPntsModifiers[0].strength = -1.4
+
+            # Apply modifier
+            bpy.ops.object.modifier_apply(apply_as='DATA', modifier=cldPntsModifiers[0].name)
+
+            pDensity.pointdensity.point_source = 'OBJECT'
+            pDensity.pointdensity.object = cloudPnts
+
+            # Deselect All
+            bpy.ops.object.select_all(action='DESELECT')
+
+            # Select the object.
+            cloud.selected = True
+            scene.objects.active = cloud
+
+            bpy.ops.object.particle_system_remove()
+
+            # Deselect All
+            bpy.ops.object.select_all(action='DESELECT')
+
+            # Select the object.
+            bounds.selected = True
+            scene.objects.active = bounds
+
+            # Add a force field to the points.
+            #cloudField = bounds.field
+            #cloudField.type = 'TEXTURE'
+            #cloudField.strength = 2
+            #cloudField.texture = cloudtex
+
+            # Set time
+            #for i in range(12):
+            #    scene.current_frame = i
+            #    scene.update()
+            #bpy.ops.ptcache.bake_all(bake=False)
+
+
+        return {'FINISHED'}
+
+
+classes = [VIEW3D_PT_tools_cloud,
+        GenerateCloud]
 
 
 def register():
@@ -295,344 +628,6 @@ def unregister():
     for cls in classes:
         unregister(cls)
 
+
 if __name__ == "__main__":
     register()
-
-
-class GenerateCloud(bpy.types.Operator):
-    bl_idname = "cloud.generate_cloud"
-    bl_label = "Generate Cloud"
-    bl_description = "Create a Cloud."
-    bl_register = True
-    bl_undo = True
-
-    def execute(self, context):
-        # Make variable that is the current .blend file main data blocks
-        main = context.main
-
-        # Make variable that is the active object selected by user
-        active_object = context.active_object
-
-        # Make variable scene that is current scene
-        scene = context.scene
-
-        if active_object and active_object.type == 'MESH':
-            # Parameters the user may want to change:
-            # Number of points this number is multiplied by the volume to get
-            # the number of points the scripts will put in the volume.
-            numOfPoints = 1.0
-            maxNumOfPoints = 100000
-            scattering = 2.5
-            pointDensityRadiusFactor = 1.0
-            densityScale = 1.5
-
-            # Should we degnerate?
-            degenerate = degenerateCloud(active_object)
-
-            if degenerate:
-                if active_object is not None:
-                   # Degenerate Cloud
-                   mainObj = active_object
-
-                   cloudMembers = active_object.children
-
-                   createdObjects = []
-                   definitionObjects = []
-                   for member in cloudMembers:
-                       applyScaleRotLoc(scene, member)
-                       if (member["CloudMember"] == "CreatedObj"):
-                          createdObjects.append(member)
-                       else:
-                          definitionObjects.append(member)
-
-                   for defObj in definitionObjects:
-                       # @todo check if it wouldn't be better to remove this
-                       # in the first place (see del() in degenerateCloud)
-                       #totally agree didn't know how before now...thanks! done.
-                       if "CloudMember" in defObj:
-                          del(defObj["CloudMember"])
-
-                   for createdObj in createdObjects:
-                       # Deselect All
-                       bpy.ops.object.select_all(action='DESELECT')
-   
-                       # Select the object and delete it.
-                       createdObj.selected = True
-                       scene.objects.active = createdObj
-                       bpy.ops.object.delete()
-
-                   # Delete the main object
-                   # Deselect All
-                   bpy.ops.object.select_all(action='DESELECT')
-   
-                   # Select the object and delete it.
-                   mainObj.selected = True
-                   scene.objects.active = mainObj
-   
-                   # Delete all material slots in mainObj object
-                   for i in range(len(mainObj.material_slots)):
-                       mainObj.active_material_index = i - 1
-                       bpy.ops.object.material_slot_remove()
-  
-                   # Delete the Main Object
-                   bpy.ops.object.delete()
-  
-                   # Select all of the left over boxes so people can immediately
-                   # press generate again if they want.
-                   for eachMember in definitionObjects:
-                       eachMember.max_draw_type = 'SOLID'
-                       eachMember.selected = True
-                       scene.objects.active = eachMember
-
-            else:
-                # Generate Cloud
-
-                ###############Create Combined Object bounds##################
-                # Make a list of all Selected objects.
-                selectedObjects = bpy.context.selected_objects
-
-                # Create a new object bounds
-                if selectedObjects is None:
-                    bounds = addNewObject(scene,
-                        "CloudBounds",
-                        [])
-
-                else:
-                    bounds = addNewObject(scene,
-                        "CloudBounds",
-                        selectedObjects[0])
-
-                bounds.max_draw_type = 'BOUNDS'
-                bounds.restrict_render = False
-
-                # Just add a Definition Property designating this
-                # as the main object.
-                bounds["CloudMember"] = "MainObj"
-
-                # Since we used iteration 0 to copy with object we
-                # delete it off the list.
-                firstObject = selectedObjects[0]
-                del selectedObjects[0]
-
-                # Apply location Rotation and Scale to all objects involved.
-                applyScaleRotLoc(scene, bounds)
-                for each in selectedObjects:
-                    applyScaleRotLoc(scene, each)
-
-                # Let's combine all of them together.
-                combineObjects(scene, bounds, selectedObjects)
-
-                # Let's add some property info to the objects.
-                for selObj in selectedObjects:
-                    selObj["CloudMember"] = "DefinitioinObj"
-                    selObj.name = "DefinitioinObj"
-                    selObj.max_draw_type = 'WIRE'
-                    selObj.restrict_render = True
-                    makeParent(bounds, selObj, scene)
-
-                # Do the same to the 1. object since it is no longer in list.
-                firstObject["CloudMember"] = "DefinitioinObj"
-                firstObject.name = "DefinitioinObj"
-                firstObject.max_draw_type = 'WIRE'
-                firstObject.restrict_render = True
-                makeParent(bounds, firstObject, scene)
-
-                ###############Create Cloud for putting Cloud Mesh############
-                # Create a new object cloud.
-                cloud = addNewObject(scene, "CloudMesh", bounds)
-                cloud["CloudMember"] = "CreatedObj"
-                cloud.max_draw_type = 'WIRE'
-                cloud.restrict_render = True
-
-                makeParent(bounds, cloud, scene)
-
-                bpy.ops.object.editmode_toggle()
-                bpy.ops.mesh.select_all(action='SELECT')
-                bpy.ops.mesh.subdivide(number_cuts=2, fractal=0, smoothness=1)
-                bpy.ops.object.location_apply()
-                bpy.ops.mesh.vertices_smooth(repeat=20)
-                bpy.ops.mesh.tris_convert_to_quads()
-                bpy.ops.mesh.faces_shade_smooth()
-                bpy.ops.object.editmode_toggle()
-
-                ###############Create Particles in cloud obj##################
-                # Turn off gravity.
-                scene.use_gravity = False
-
-                # Set time to 0.
-                scene.frame_current = 0
-
-                # Add a new particle system.
-                bpy.ops.object.particle_system_add()
-
-                #Particle settings setting it up!
-                cloudParticles = cloud.active_particle_system
-                cloudParticles.name = "CloudParticles"
-                cloudParticles.settings.frame_start = 0
-                cloudParticles.settings.frame_end = 0
-                cloudParticles.settings.emit_from = 'VOLUME'
-                cloudParticles.settings.draw_as = 'DOT'
-                cloudParticles.settings.ren_as = 'NONE'
-                cloudParticles.settings.normal_factor = 0
-                cloudParticles.settings.distribution = 'RAND'
-
-                ####################Create Volume Material####################
-                # Deselect All
-                bpy.ops.object.select_all(action='DESELECT')
-
-                # Select the object.
-                bounds.selected = True
-                scene.objects.active = bounds
-
-                # Turn bounds object into a box.
-                makeObjectIntoBoundBox(bounds, .2)
-
-                # Delete all material slots in bounds object.
-                for i in range(len(bounds.material_slots)):
-                    bounds.active_material_index = i - 1
-                    bpy.ops.object.material_slot_remove()
-
-                # Add a new material.
-                cloudMaterial = main.materials.new("CloudMaterial")
-                bpy.ops.object.material_slot_add()
-                bounds.material_slots[0].material = cloudMaterial
-
-                # Set Up the Cloud Material
-                cloudMaterial.name = "CloudMaterial"
-                cloudMaterial.type = 'VOLUME'
-                mVolume = cloudMaterial.volume
-                mVolume.scattering = scattering
-                mVolume.density = 0
-                mVolume.density_scale = densityScale
-                mVolume.transmission_color = [3, 3, 3]
-                mVolume.step_size = 0.1
-                mVolume.light_cache = True
-                mVolume.cache_resolution = 75
-
-                # Add a texture
-                vMaterialTextureSlots = cloudMaterial.texture_slots
-                cloudtex = main.textures.new("CloudTex")
-                cloudMaterial.add_texture(cloudtex, 'ORCO')
-                cloudtex.type = 'CLOUDS'
-                cloudtex.noise_type = 'HARD_NOISE'
-                cloudtex.noise_size = 2
-
-                # Add a texture
-                cloudPointDensity = main.textures.new("CloudPointDensity")
-                cloudPointDensity.type = 'POINT_DENSITY'
-                cloudMaterial.add_texture(cloudPointDensity, 'ORCO')
-                pDensity = vMaterialTextureSlots[1].texture
-                vMaterialTextureSlots[1].map_density = True
-                vMaterialTextureSlots[1].rgb_to_intensity = True
-                vMaterialTextureSlots[1].texture_coordinates = 'GLOBAL'
-                pDensity.pointdensity.vertices_cache = 'WORLD_SPACE'
-                pDensity.pointdensity.turbulence = True
-                pDensity.pointdensity.noise_basis = 'VORONOI_F2'
-                pDensity.pointdensity.turbulence_depth = 3
-
-                pDensity.use_color_ramp = True
-                pRamp = pDensity.color_ramp
-                pRamp.interpolation = 'LINEAR'
-                pRampElements = pRamp.elements
-                #pRampElements[1].position = .9
-                #pRampElements[1].color = [.18,.18,.18,.8]
-
-                # Estimate the number of particles for the size of bounds.
-                volumeBoundBox = (bounds.dimensions[0] * bounds.dimensions[1]* bounds.dimensions[2])
-                numParticles = int((2.4462 * volumeBoundBox + 430.4) * numOfPoints)
-                if numParticles > maxNumOfPoints:
-                    numParticles = maxNumOfPoints
-                print(numParticles)
- 
-                # Set the number of particles according to the volume
-                # of bounds.
-                cloudParticles.settings.amount = numParticles
-
-                pDensity.pointdensity.radius = (.00013764 * volumeBoundBox + .3989) * pointDensityRadiusFactor
-
-                # Set time to 1.
-                scene.frame_current = 1
-
-                ###############Create CloudPnts for putting points in#########
-                # Create a new object cloudPnts
-                cloudPnts = addNewObject(scene, "CloudPoints", bounds)
-                cloudPnts["CloudMember"] = "CreatedObj"
-                cloudPnts.max_draw_type = 'WIRE'
-                cloudPnts.restrict_render = True
-
-                makeParent(bounds, cloudPnts, scene)
-
-                bpy.ops.object.editmode_toggle()
-                bpy.ops.mesh.select_all(action='SELECT')
-
-                bpy.ops.mesh.delete(type='ALL')
-
-                meshPnts = cloudPnts.data
-
-                listCloudParticles = cloudParticles.particles
-
-                listMeshPnts = []
-                for pTicle in listCloudParticles:
-                    listMeshPnts.append(pTicle.location)
-
-                # Must be in object mode fro from_pydata to work.
-                bpy.ops.object.mode_set(mode='OBJECT')
-
-                # Add in the mesh data.
-                meshPnts.from_pydata(listMeshPnts, [], [])
-
-                # Update the mesh.
-                meshPnts.update()
-
-                # Add a modifier.
-                bpy.ops.object.modifier_add(type='DISPLACE')
-
-                cldPntsModifiers = cloudPnts.modifiers
-                cldPntsModifiers[0].name = "CloudPnts"
-                cldPntsModifiers[0].texture = cloudtex
-                cldPntsModifiers[0].texture_coordinates = 'OBJECT'
-                cldPntsModifiers[0].texture_coordinate_object = cloud
-                cldPntsModifiers[0].strength = -1.4
-
-                # Apply modifier
-                bpy.ops.object.modifier_apply(apply_as='DATA', modifier=cldPntsModifiers[0].name)
-
-                pDensity.pointdensity.point_source = 'OBJECT'
-                pDensity.pointdensity.object = cloudPnts
-
-                # Deselect All
-                bpy.ops.object.select_all(action='DESELECT')
-
-                # Select the object.
-                cloud.selected = True
-                scene.objects.active = cloud
-
-                bpy.ops.object.particle_system_remove()
-
-                # Deselect All
-                bpy.ops.object.select_all(action='DESELECT')
-
-                # Select the object.
-                bounds.selected = True
-                scene.objects.active = bounds
-
-                # Add a force field to the points.
-                #cloudField = bounds.field
-                #cloudField.type = 'TEXTURE'
-                #cloudField.strength = 2
-                #cloudField.texture = cloudtex
-
-                # Set time
-                #for i in range(12):
-                #    scene.current_frame = i
-                #    scene.update()
-                #bpy.ops.ptcache.bake_all(bake=False)
-
-            #self.report({'WARNING'}, "Generating Cloud")
-
-        return {'FINISHED'}
-
-bpy.types.register(GenerateCloud)
-
-if __name__ == "__main__":
-    bpy.ops.cloud.generate_cloud()
