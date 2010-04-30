@@ -470,8 +470,8 @@ class GenerateCloud(bpy.types.Operator):
                 #Particle settings setting it up!
                 cloudParticles = cloud.active_particle_system
                 cloudParticles.name = "CloudParticles"
-                cloudParticles.settings.start = 0
-                cloudParticles.settings.end = 0
+                cloudParticles.settings.frame_start = 0
+                cloudParticles.settings.frame_end = 0
                 cloudParticles.settings.emit_from = 'VOLUME'
                 cloudParticles.settings.draw_as = 'DOT'
                 cloudParticles.settings.ren_as = 'NONE'
