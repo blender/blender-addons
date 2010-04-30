@@ -97,7 +97,7 @@ class Relax(bpy.types.Operator):
     bl_options = {'REGISTER', 'UNDO'}
 
     iterations = IntProperty(name="Relax iterations",
-                default=1, min=0, max=10, soft_min=0, soft_max=10)
+                default=1, min=0, max=100, soft_min=0, soft_max=10)
 
     def poll(self, context):
         obj = context.active_object
