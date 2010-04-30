@@ -1,4 +1,4 @@
-# ##### BEGIN GPL LICENSE BLOCK #####
+ # ##### BEGIN GPL LICENSE BLOCK #####
 #
 #  This program is free software; you can redistribute it and/or
 #  modify it under the terms of the GNU General Public License
@@ -20,7 +20,7 @@
 bl_addon_info = {
     'name': 'Object: Cloud Generator',
     'author': 'Nick Keeline(nrk)',
-    'version': '0.3',
+    'version': '0.5',
     'blender': (2, 5, 3),
     'location': 'Tool Shelf ',
     'description': 'Creates Volumetric Clouds',
@@ -39,6 +39,8 @@ Rev 0 initial release
 Rev 0.1 added scene to create_mesh per python api change.
 Rev 0.2 Added Point Density turbulence and fixed degenerate
 Rev 0.3 Fixed bug in degenerate
+Rev 0.4 updated for api change/changed to new apply modifier technique
+Rev 0.5 made particle count equation with radius so radius increases with cloud volume
 """
 
 import bpy
@@ -209,11 +211,7 @@ def combineObjects(scene, combined, listobjs):
                 union[0].operation = 'UNION'
 
                 # Apply modifier
-                # Can't use bpy.ops.object.modifier_apply because poll fails.
-                combined.data = combined.create_mesh(scene,
-                    apply_modifiers=True,
-                    settings='PREVIEW')
-                combined.modifiers.remove(union[0])
+                bpy.ops.object.modifier_apply(apply_as='DATA', modifier=union[0].name)
 
 
 # Returns True if we want to degenerate
@@ -322,10 +320,10 @@ class GenerateCloud(bpy.types.Operator):
             # Parameters the user may want to change:
             # Number of points this number is multiplied by the volume to get
             # the number of points the scripts will put in the volume.
-            numOfPoints = 35
+            numOfPoints = 1.0
             maxNumOfPoints = 100000
             scattering = 2.5
-            pointDensityRadius = 0.4
+            pointDensityRadiusFactor = 1.0
             densityScale = 1.5
 
             # Should we degnerate?
@@ -394,7 +392,7 @@ class GenerateCloud(bpy.types.Operator):
                 selectedObjects = bpy.context.selected_objects
 
                 # Create a new object bounds
-                if not selectedObjects:
+                if selectedObjects is None:
                     bounds = addNewObject(scene,
                         "CloudBounds",
                         [])
@@ -527,7 +525,6 @@ class GenerateCloud(bpy.types.Operator):
                 vMaterialTextureSlots[1].map_density = True
                 vMaterialTextureSlots[1].rgb_to_intensity = True
                 vMaterialTextureSlots[1].texture_coordinates = 'GLOBAL'
-                pDensity.pointdensity.radius = pointDensityRadius
                 pDensity.pointdensity.vertices_cache = 'WORLD_SPACE'
                 pDensity.pointdensity.turbulence = True
                 pDensity.pointdensity.noise_basis = 'VORONOI_F2'
@@ -541,15 +538,17 @@ class GenerateCloud(bpy.types.Operator):
                 #pRampElements[1].color = [.18,.18,.18,.8]
 
                 # Estimate the number of particles for the size of bounds.
-                numParticles = int(bounds.dimensions[0] * bounds.dimensions[1]
-                    * bounds.dimensions[2]) * numOfPoints
+                volumeBoundBox = (bounds.dimensions[0] * bounds.dimensions[1]* bounds.dimensions[2])
+                numParticles = int((2.4462 * volumeBoundBox + 430.4) * numOfPoints)
                 if numParticles > maxNumOfPoints:
                     numParticles = maxNumOfPoints
                 print(numParticles)
-
+ 
                 # Set the number of particles according to the volume
                 # of bounds.
                 cloudParticles.settings.amount = numParticles
+
+                pDensity.pointdensity.radius = (.00013764 * volumeBoundBox + .3989) * pointDensityRadiusFactor
 
                 # Set time to 1.
                 scene.frame_current = 1
@@ -596,11 +595,7 @@ class GenerateCloud(bpy.types.Operator):
                 cldPntsModifiers[0].strength = -1.4
 
                 # Apply modifier
-                # Can't use bpy.ops.object.modifier_apply because poll fails.
-                cloudPnts.data = cloudPnts.create_mesh(scene,
-                    apply_modifiers=True,
-                    settings='PREVIEW')
-                cloudPnts.modifiers.remove(cldPntsModifiers[0])
+                bpy.ops.object.modifier_apply(apply_as='DATA', modifier=cldPntsModifiers[0].name)
 
                 pDensity.pointdensity.point_source = 'OBJECT'
                 pDensity.pointdensity.object = cloudPnts
