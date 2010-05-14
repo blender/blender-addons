@@ -757,7 +757,6 @@ class AddGear(bpy.types.Operator):
     def draw(self, context):
         props = self.properties
         layout = self.layout
-        col = layout.column()
         box = layout.box()
         box.prop(props, 'number_of_teeth')
         box = layout.box()
@@ -887,6 +886,22 @@ class AddWormGear(bpy.types.Operator):
         max=100.0,
         default=0.0)
     newMatrix = 'fromInvoke'
+
+    def draw(self, context):
+        props = self.properties
+        layout = self.layout
+        box = layout.box()
+        box.prop(props, 'number_of_teeth')
+        box.prop(props, 'number_of_rows')
+        box.prop(props, 'radius')
+        box.prop(props, 'row_height')
+        box = layout.box()
+        box.prop(props, 'addendum')
+        box.prop(props, 'dedendum')
+        box = layout.box()
+        box.prop(props, 'angle')
+        box.prop(props, 'skew')
+        box.prop(props, 'crown')
 
     def execute(self, context):
         props = self.properties
