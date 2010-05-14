@@ -754,6 +754,26 @@ class AddGear(bpy.types.Operator):
         default=0.0)
     newMatrix = 'fromInvoke'
 
+    def draw(self, context):
+        props = self.properties
+        layout = self.layout
+        col = layout.column()
+        box = layout.box()
+        box.prop(props, 'number_of_teeth')
+        box = layout.box()
+        box.prop(props, 'radius')
+        box.prop(props, 'width')
+        box.prop(props, 'base')
+        box = layout.box()
+        box.prop(props, 'dedendum')
+        box.prop(props, 'addendum')
+        box = layout.box()
+        box.prop(props, 'angle')
+        box.prop(props, 'skew')
+        box.prop(props, 'conangle')
+        box.prop(props, 'crown')
+
+
     def execute(self, context):
         props = self.properties
 
