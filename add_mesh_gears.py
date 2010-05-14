@@ -88,27 +88,13 @@ def store_recall_properties(ob, op, op_args):
         ob['recall'] = recall_properties
 
 
-# Apply view rotation to objects if "Align To" for
-# new objects was set to "VIEW" in the User Preference.
-def apply_object_align(context, ob):
-    obj_align = bpy.context.user_preferences.edit.object_align
-
-    if (context.space_data.type == 'VIEW_3D'
-        and obj_align == 'VIEW'):
-            view3d = context.space_data
-            region = view3d.region_3d
-            viewMatrix = region.view_matrix
-            rot = viewMatrix.rotation_part()
-            ob.rotation_euler = rot.invert().to_euler()
-
-
 # Create a new mesh (object) from verts/edges/faces.
 # verts/edges/faces ... List of vertices/edges/faces for the
 #                       new mesh (as used in from_pydata).
 # name ... Name of the new mesh (& object).
 # edit ... Replace existing mesh data.
 # Note: Using "edit" will destroy/delete existing mesh data.
-def create_mesh_object(context, verts, edges, faces, name, edit):
+def create_mesh_object(context, verts, edges, faces, name, edit, newMatrix):
     scene = context.scene
     obj_act = scene.objects.active
 
@@ -161,9 +147,9 @@ def create_mesh_object(context, verts, edges, faces, name, edit):
         ob_new.selected = True
 
         # Place the object at the 3D cursor location.
-        ob_new.location = scene.cursor_location
+        # apply viewRotaion
+        ob_new.matrix = newMatrix
 
-        apply_object_align(context, ob_new)
 
     if obj_act and obj_act.mode == 'EDIT':
         if not edit:
@@ -766,6 +752,7 @@ class AddGear(bpy.types.Operator):
         min=0.0,
         max=100.0,
         default=0.0)
+    newMatrix = 'fromInvoke'
 
     def execute(self, context):
         props = self.properties
@@ -783,7 +770,7 @@ class AddGear(bpy.types.Operator):
             crown=props.crown)
 
         # Actually create the mesh object from this geometry data.
-        obj = create_mesh_object(context, verts, [], faces, "Gear", props.edit)
+        obj = create_mesh_object(context, verts, [], faces, "Gear", props.edit, self.newMatrix)
 
         # Store 'recall' properties in the object.
         recall_args_list = {
@@ -811,6 +798,17 @@ class AddGear(bpy.types.Operator):
 
         return {'FINISHED'}
 
+    def invoke(self, context, event):
+        loc = mathutils.TranslationMatrix(context.scene.cursor_location)
+        obj_align = context.user_preferences.edit.object_align
+        if (context.space_data.type == 'VIEW_3D'
+            and obj_align == 'VIEW'):
+            rot = context.space_data.region_3d.view_matrix.rotation_part().invert().resize4x4()
+        else:
+            rot = mathutils.RotationMatrix()
+        self.newMatrix = loc * rot
+        self.execute(context)
+        return {'FINISHED'}
 
 class AddWormGear(bpy.types.Operator):
     '''Add a worm gear mesh.'''
@@ -868,6 +866,7 @@ class AddWormGear(bpy.types.Operator):
         min=0.0,
         max=100.0,
         default=0.0)
+    newMatrix = 'fromInvoke'
 
     def execute(self, context):
         props = self.properties
@@ -885,7 +884,7 @@ class AddWormGear(bpy.types.Operator):
 
         # Actually create the mesh object from this geometry data.
         obj = create_mesh_object(context, verts, [], faces, "Worm Gear",
-            props.edit)
+            props.edit, self.newMatrix)
 
         # Store 'recall' properties in the object.
         recall_args_list = {
@@ -912,6 +911,17 @@ class AddWormGear(bpy.types.Operator):
 
         return {'FINISHED'}
 
+    def invoke(self, context, event):
+        loc = mathutils.TranslationMatrix(context.scene.cursor_location)
+        obj_align = context.user_preferences.edit.object_align
+        if (context.space_data.type == 'VIEW_3D'
+            and obj_align == 'VIEW'):
+            rot = context.space_data.region_3d.view_matrix.rotation_part().invert().resize4x4()
+        else:
+            rot = mathutils.RotationMatrix()
+        self.newMatrix = loc * rot
+        self.execute(context)
+        return {'FINISHED'}
 
 class INFO_MT_mesh_gears_add(bpy.types.Menu):
     # Define the "Gears" menu
