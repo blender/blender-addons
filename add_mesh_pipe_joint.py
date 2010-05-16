@@ -156,15 +156,15 @@ def align_matrix(context):
         rot = context.space_data.region_3d.view_matrix.rotation_part().invert().resize4x4()
     else:
         rot = mathutils.Matrix()
-    newMatrix = loc * rot
-    return newMatrix
+    align_matrix = loc * rot
+    return align_matrix
 # Create a new mesh (object) from verts/edges/faces.
 # verts/edges/faces ... List of vertices/edges/faces for the
 #                       new mesh (as used in from_pydata).
 # name ... Name of the new mesh (& object).
 # edit ... Replace existing mesh data.
 # Note: Using "edit" will destroy/delete existing mesh data.
-def create_mesh_object(context, verts, edges, faces, name, edit, newMatrix):
+def create_mesh_object(context, verts, edges, faces, name, edit, align_matrix):
     scene = context.scene
     obj_act = scene.objects.active
 
@@ -217,7 +217,7 @@ def create_mesh_object(context, verts, edges, faces, name, edit, newMatrix):
         ob_new.selected = True
 
         # Place the object at the 3D cursor location.
-        ob_new.matrix = newMatrix
+        ob_new.matrix = align_matrix
 
     if obj_act and obj_act.mode == 'EDIT':
         if not edit:
@@ -358,7 +358,7 @@ class AddElbowJoint(bpy.types.Operator):
         min=0.01,
         max=100.0,
         unit="LENGTH")
-    newMatrix = mathutils.Matrix()
+    align_matrix = mathutils.Matrix()
 
     def execute(self, context):
         edit = self.properties.edit
@@ -419,7 +419,7 @@ class AddElbowJoint(bpy.types.Operator):
         faces.extend(createFaces(loop2, loop3, closed=True))
 
         obj = create_mesh_object(context, verts, [], faces,
-            "Elbow Joint", edit, self.newMatrix)
+            "Elbow Joint", edit, self.align_matrix)
 
         # Store 'recall' properties in the object.
         recall_args_list = {
@@ -434,7 +434,7 @@ class AddElbowJoint(bpy.types.Operator):
         return {'FINISHED'}
 
     def invoke(self, context, event):
-        self.newMatrix = align_matrix(context)
+        self.align_matrix = align_matrix(context)
         self.execute(context)
         return {'FINISHED'}
 
@@ -492,7 +492,7 @@ class AddTeeJoint(bpy.types.Operator):
         min=0.01,
         max=100.0,
         unit="LENGTH")
-    newMatrix = mathutils.Matrix()
+    align_matrix = mathutils.Matrix()
 
     def execute(self, context):
         edit = self.properties.edit
@@ -620,7 +620,7 @@ class AddTeeJoint(bpy.types.Operator):
         faces.extend(createFaces(loopJoint2, loopArm, closed=True))
         faces.extend(createFaces(loopJoint3, loopMainEnd, closed=True))
 
-        obj = create_mesh_object(context, verts, [], faces, "Tee Joint", edit, self.newMatrix)
+        obj = create_mesh_object(context, verts, [], faces, "Tee Joint", edit, self.align_matrix)
 
         # Store 'recall' properties in the object.
         recall_args_list = {
@@ -636,7 +636,7 @@ class AddTeeJoint(bpy.types.Operator):
         return {'FINISHED'}
 
     def invoke(self, context, event):
-        self.newMatrix = align_matrix(context)
+        self.align_matrix = align_matrix(context)
         self.execute(context)
         return {'FINISHED'}
 
@@ -698,7 +698,7 @@ class AddWyeJoint(bpy.types.Operator):
         min=0.01,
         max=100.0,
         unit="LENGTH")
-    newMatrix = mathutils.Matrix()
+    align_matrix = mathutils.Matrix()
 
     def execute(self, context):
         edit = self.properties.edit
@@ -837,7 +837,7 @@ class AddWyeJoint(bpy.types.Operator):
         faces.extend(createFaces(loopJoint2, loopArm1, closed=True))
         faces.extend(createFaces(loopJoint3, loopArm2, closed=True))
 
-        obj = create_mesh_object(context, verts, [], faces, "Wye Joint", edit, self.newMatrix)
+        obj = create_mesh_object(context, verts, [], faces, "Wye Joint", edit, self.align_matrix)
 
         # Store 'recall' properties in the object.
         recall_args_list = {
@@ -854,7 +854,7 @@ class AddWyeJoint(bpy.types.Operator):
         return {'FINISHED'}
 
     def invoke(self, context, event):
-        self.newMatrix = align_matrix(context)
+        self.align_matrix = align_matrix(context)
         self.execute(context)
         return {'FINISHED'}
 
@@ -927,7 +927,7 @@ class AddCrossJoint(bpy.types.Operator):
         min=0.01,
         max=100.0,
         unit="LENGTH")
-    newMatrix = mathutils.Matrix()
+    align_matrix = mathutils.Matrix()
 
     def execute(self, context):
         edit = self.properties.edit
@@ -1117,7 +1117,7 @@ class AddCrossJoint(bpy.types.Operator):
         faces.extend(createFaces(loopJoint4, loopArm3, closed=True))
 
         obj = create_mesh_object(context, verts, [], faces,
-            "Cross Joint", edit, self.newMatrix)
+            "Cross Joint", edit, self.align_matrix)
 
         # Store 'recall' properties in the object.
         recall_args_list = {
@@ -1136,7 +1136,7 @@ class AddCrossJoint(bpy.types.Operator):
         return {'FINISHED'}
 
     def invoke(self, context, event):
-        self.newMatrix = align_matrix(context)
+        self.align_matrix = align_matrix(context)
         self.execute(context)
         return {'FINISHED'}
 
@@ -1175,7 +1175,7 @@ class AddNJoint(bpy.types.Operator):
         min=0.01,
         max=100.0,
         unit="LENGTH")
-    newMatrix = mathutils.Matrix()
+    align_matrix = mathutils.Matrix()
 
     def execute(self, context):
         edit = self.properties.edit
@@ -1300,7 +1300,7 @@ class AddNJoint(bpy.types.Operator):
                 createFaces(loopsJoints[loopIdx],
                 loopsEndCircles[loopIdx], closed=True))
 
-        obj = create_mesh_object(context, verts, [], faces, "N Joint", edit, self.newMatrix)
+        obj = create_mesh_object(context, verts, [], faces, "N Joint", edit, self.align_matrix)
 
         # Store 'recall' properties in the object.
         recall_args_list = {
@@ -1314,7 +1314,7 @@ class AddNJoint(bpy.types.Operator):
         return {'FINISHED'}
 
     def invoke(self, context, event):
-        self.newMatrix = align_matrix(context)
+        self.align_matrix = align_matrix(context)
         self.execute(context)
         return {'FINISHED'}
 

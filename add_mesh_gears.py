@@ -77,8 +77,8 @@ def align_matrix(context):
         rot = context.space_data.region_3d.view_matrix.rotation_part().invert().resize4x4()
     else:
         rot = mathutils.Matrix()
-    newMatrix = loc * rot
-    return newMatrix
+    align_matrix = loc * rot
+    return align_matrix
 
 # Stores the values of a list of properties and the
 # operator id in a property group ('recall_op') inside the object.
@@ -106,7 +106,7 @@ def store_recall_properties(ob, op, op_args):
 # name ... Name of the new mesh (& object).
 # edit ... Replace existing mesh data.
 # Note: Using "edit" will destroy/delete existing mesh data.
-def create_mesh_object(context, verts, edges, faces, name, edit, newMatrix):
+def create_mesh_object(context, verts, edges, faces, name, edit, align_matrix):
     scene = context.scene
     obj_act = scene.objects.active
 
@@ -160,7 +160,7 @@ def create_mesh_object(context, verts, edges, faces, name, edit, newMatrix):
 
         # Place the object at the 3D cursor location.
         # apply viewRotaion
-        ob_new.matrix = newMatrix
+        ob_new.matrix = align_matrix
 
 
     if obj_act and obj_act.mode == 'EDIT':
@@ -764,7 +764,7 @@ class AddGear(bpy.types.Operator):
         min=0.0,
         max=100.0,
         default=0.0)
-    newMatrix = mathutils.Matrix()
+    align_matrix = mathutils.Matrix()
 
     def draw(self, context):
         props = self.properties
@@ -801,7 +801,7 @@ class AddGear(bpy.types.Operator):
             crown=props.crown)
 
         # Actually create the mesh object from this geometry data.
-        obj = create_mesh_object(context, verts, [], faces, "Gear", props.edit, self.newMatrix)
+        obj = create_mesh_object(context, verts, [], faces, "Gear", props.edit, self.align_matrix)
 
         # Store 'recall' properties in the object.
         recall_args_list = {
@@ -830,7 +830,7 @@ class AddGear(bpy.types.Operator):
         return {'FINISHED'}
 
     def invoke(self, context, event):
-        self.newMatrix = align_matrix(context)
+        self.align_matrix = align_matrix(context)
         self.execute(context)
         return {'FINISHED'}
 
@@ -890,7 +890,7 @@ class AddWormGear(bpy.types.Operator):
         min=0.0,
         max=100.0,
         default=0.0)
-    newMatrix = mathutils.Matrix()
+    align_matrix = mathutils.Matrix()
 
     def draw(self, context):
         props = self.properties
@@ -924,7 +924,7 @@ class AddWormGear(bpy.types.Operator):
 
         # Actually create the mesh object from this geometry data.
         obj = create_mesh_object(context, verts, [], faces, "Worm Gear",
-            props.edit, self.newMatrix)
+            props.edit, self.align_matrix)
 
         # Store 'recall' properties in the object.
         recall_args_list = {
@@ -952,7 +952,7 @@ class AddWormGear(bpy.types.Operator):
         return {'FINISHED'}
 
     def invoke(self, context, event):
-        self.newMatrix = align_matrix(context)
+        self.align_matrix = align_matrix(context)
         self.execute(context)
         return {'FINISHED'}
 
