@@ -34,7 +34,7 @@ bl_addon_info = {
 
 import bpy
 import mathutils
-from mathutils import Vector, Quaternion
+from mathutils import Vector, Quaternion, TranslationMatrix, Matrix
 from math import pi
 from bpy.props import IntProperty, FloatProperty, BoolProperty
 
@@ -59,18 +59,18 @@ def store_recall_properties(ob, op, op_args):
         ob['recall'] = recall_properties
 
 
-# Apply view rotation to objects if "Align To" for
-# new objects was set to "VIEW" in the User Preference.
-def apply_object_align(context, ob):
-    obj_align = bpy.context.user_preferences.edit.object_align
-
+# calculates the matrix for the new object
+# depending on user pref
+def align_matrix(context):
+    loc = TranslationMatrix(context.scene.cursor_location)
+    obj_align = context.user_preferences.edit.object_align
     if (context.space_data.type == 'VIEW_3D'
         and obj_align == 'VIEW'):
-            view3d = context.space_data
-            region = view3d.region_3d
-            viewMatrix = region.view_matrix
-            rot = viewMatrix.rotation_part()
-            ob.rotation_euler = rot.invert().to_euler()
+        rot = context.space_data.region_3d.view_matrix.rotation_part().invert().resize4x4()
+    else:
+        rot = Matrix()
+    align_matrix = loc * rot
+    return align_matrix
 
 
 # Create a new mesh (object) from verts/edges/faces.
@@ -79,7 +79,7 @@ def apply_object_align(context, ob):
 # name ... Name of the new mesh (& object).
 # edit ... Replace existing mesh data.
 # Note: Using "edit" will destroy/delete existing mesh data.
-def create_mesh_object(context, verts, edges, faces, name, edit):
+def create_mesh_object(context, verts, edges, faces, name, edit, align_matrix):
     scene = context.scene
     obj_act = scene.objects.active
 
@@ -132,9 +132,8 @@ def create_mesh_object(context, verts, edges, faces, name, edit):
         ob_new.selected = True
 
         # Place the object at the 3D cursor location.
-        ob_new.location = scene.cursor_location
-
-        apply_object_align(context, ob_new)
+        # apply viewRotaion
+        ob_new.matrix = align_matrix
 
     if obj_act and obj_act.mode == 'EDIT':
         if not edit:
@@ -315,6 +314,7 @@ class AddStar(bpy.types.Operator):
         min=0.01,
         max=9999.0,
         default=0.5)
+    align_matrix = Matrix()
 
     def execute(self, context):
         props = self.properties
@@ -326,7 +326,7 @@ class AddStar(bpy.types.Operator):
             props.height)
 
         obj = create_mesh_object(context, verts, [], faces, "Star",
-            props.edit)
+            props.edit, self.align_matrix)
 
         # Store 'recall' properties in the object.
         recall_args_list = {
@@ -337,6 +337,11 @@ class AddStar(bpy.types.Operator):
             "height": props.height}
         store_recall_properties(obj, self, recall_args_list)
 
+        return {'FINISHED'}
+
+    def invoke(self, context, event):
+        self.align_matrix = align_matrix(context)
+        self.execute(context)
         return {'FINISHED'}
 
 # Register the operator
