@@ -44,7 +44,7 @@ __version__ = '1.5'
 __url__ = [""]
 __bpydoc__ = """
 Dynamic Menu
-This adds a the Dynamic Spacebar Menu in the 3DView.
+This adds a the Dynamic Spacebar Menu in the View3D.
 
 Usage:
 *  This script gives a basic menu with common simple tools for easy access.
@@ -741,7 +741,7 @@ class VIEW3D_MT_AddMenu(bpy.types.Menu):
         layout.operator_menu_enum("object.effector_add", "type",
             text="Force Field",
             icon='OUTLINER_OB_EMPTY')
-        layout.operator_menu_enum("object.group_instance_add", "type",
+        layout.operator_menu_enum("object.group_instance_add", "group",
             text="Group Instance",
             icon='OUTLINER_OB_EMPTY')
 
