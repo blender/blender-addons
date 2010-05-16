@@ -14,22 +14,11 @@
  #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  #  All rights reserved.
  #  ***** GPL LICENSE BLOCK *****
- 
-bl_addon_info = {
-    'name': 'Export: Unreal Skeletal Mesh/Animation (.psk & .psa)',
-    'author': 'Darknet',
-    'version': '2.0',
-    'blender': (2, 5, 3),
-    'location': 'File > Export ',
-    'description': 'Export Unreal Engine (.psk & .psa)',
-    'url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/Scripts/File_I-O/Unreal_psk_psa',
-    'category': 'Import/Export'}
-
 
 """
 Name: 'Unreal Skeletal Mesh/Animation (.psk and .psa) Export'
 Blender: 250
-Group: 'Export'
+Group: 'Import/Export'
 Tooltip: 'Unreal Skeletal Mesh and Animation Export (*.psk, *.psa)'
 """
 
@@ -94,6 +83,16 @@ import operator
 from struct import pack, calcsize
 
 MENUPANELBOOL = True
+
+bl_addon_info = {
+    'name': 'Export Skeleletal Mesh/Animation Data',
+    'author': 'Darknet/Optimus_P-Fat/Active_Trash/Sinsoft',
+    'version': '2.0',
+    'blender': (2, 5, 3),
+    'location': 'File > Export > Skeletal Mesh/Animation Data (.psk/.psa)',
+    'url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/' \
+        'Scripts/File_I-O/Unreal_psk_psa',
+    'category': 'Import/Export'}
 
 # REFERENCE MATERIAL JUST IN CASE:
 # 
@@ -786,7 +785,7 @@ def parse_meshes(blender_meshes, psk_file):
 
 					
 					# RE - Append untransformed vector (for normal calc below)
-					# TODO: convert to Blender.mathutils
+					# TODO: convert to Blender.Mathutils
 					vect_list.append(FVector(vert.co.x, vert.co.y, vert.co.z))
 					
 					# Transform position for export
@@ -819,7 +818,7 @@ def parse_meshes(blender_meshes, psk_file):
 				# get normal from blender
 				no = current_face.normal
 				
-				# TODO: convert to Blender.mathutils
+				# TODO: convert to Blender.Mathutils
 				# convert to FVector
 				norm = FVector(no[0], no[1], no[2])
 				
@@ -1076,11 +1075,11 @@ def make_filename_ext(filename, extension):
 # (ie. the same as B*A if A and B are matrices representing 
 # the rotations described by quaternions a and b)
 def grassman(a, b):	
-	return mathutils.Quaternion((
+	return mathutils.Quaternion(
 		a.w*b.w - a.x*b.x - a.y*b.y - a.z*b.z,
 		a.w*b.x + a.x*b.w + a.y*b.z - a.z*b.y,
 		a.w*b.y - a.x*b.z + a.y*b.w + a.z*b.x,
-		a.w*b.z + a.x*b.y - a.y*b.x + a.z*b.w))
+		a.w*b.z + a.x*b.y - a.y*b.x + a.z*b.w)
 		
 def parse_animation(blender_scene, blender_armatures, psa_file):
 	#to do list:
@@ -1094,7 +1093,7 @@ def parse_animation(blender_scene, blender_armatures, psa_file):
 	
 	anim_rate = render_data.fps
 	print("==== Blender Settings ====")
-	print ('Scene: %s Start Frame: %i, End Frame: %i' % (blender_scene.name, blender_scene.start_frame, blender_scene.end_frame))
+	print ('Scene: %s Start Frame: %i, End Frame: %i' % (blender_scene.name, blender_scene.frame_start, blender_scene.frame_end))
 	print ('Frames Per Sec: %i' % anim_rate)
 	print ("Default FPS: 24" )
 	
@@ -1280,7 +1279,7 @@ def fs_callback(filename, context, user_setting):
 	selectarmature = []
 	
 	current_scene = context.scene
-	cur_frame = current_scene.current_frame #store current frame before we start walking them during animation parse
+	cur_frame = current_scene.frame_current #store current frame before we start walking them during animation parse
 	objects = current_scene.objects
 	
 	print("Checking object count...")
@@ -1440,6 +1439,11 @@ bpy.types.Scene.BoolProperty( attr="unrealtriangulatebool",
     description="Convert Quad to Tri Mesh Boolean...",
     default=False)
 	
+bpy.types.Scene.BoolProperty( attr="unrealactionexportall",
+    name="All Actions",
+    description="This let you export all actions from current armature.[Not Build Yet]",
+    default=False)	
+	
 bpy.types.Scene.BoolProperty( attr="unrealexportpsk",
     name="bool export psa",
     description="bool for exporting this psk format",
@@ -1460,14 +1464,13 @@ class ExportUDKAnimData(bpy.types.Operator):
 	# List of operator properties, the attributes will be assigned
 	# to the class instance from the operator settings before calling.
 
-	# TODO, add props
 	path = StringProperty(name="File Path", description="File path used for exporting the PSA file", maxlen= 1024, default= "")
 	use_setting = BoolProperty(name="No Options Yet", description="No Options Yet", default= True)
 	filename = StringProperty(name="filename", description="", maxlen= 1024, default= "")
 	directory = StringProperty(name="directory", description="", maxlen= 1024, default= "")
 	pskexportbool = BoolProperty(name="Export PSK", description="Export Skeletal Mesh", default= True)
 	psaexportbool = BoolProperty(name="Export PSA", description="Export Action Set (Animation Data)", default= True)
-	#fpssettomg = IntProperty(name="FPS", attr="fpsunrealexport",description="", default=24, min=1, max=120, soft_min=1, soft_max=120, step=1, options={'ANIMATABLE'})
+	actionexportall = BoolProperty(name="All Actions", description="This will export all the actions that matches the current armature.", default=False)
 
 	def poll(self, context):
 		return context.active_object != None
@@ -1484,9 +1487,6 @@ class ExportUDKAnimData(bpy.types.Operator):
 		else:
 			bpy.context.scene.unrealexportpsa = False
 			
-		#print(">>>>>",dir(self))
-		#self.properties.pskexportbool
-		#self.layout.prop(context,context.scene.render,"fps")
 		write_data(self.properties.path, context, self.properties.use_setting)
 		
 		self.report({'WARNING', 'INFO'}, exportmessage)
@@ -1523,6 +1523,8 @@ class VIEW3D_PT_unrealtools_objectmode(bpy.types.Panel):
 		#FPS #it use the real data from your scene
 		layout.prop(rd.render, "fps")
 		
+		
+		layout.prop(rd, "unrealactionexportall")
 		#row = layout.row()
 		#row.label(text="Action Set(s)(not build)")
 		#for action in  bpy.data.actions:
