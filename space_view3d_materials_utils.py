@@ -403,47 +403,92 @@ def assign_mat(matname="Default"):
     if editmode:
         bpy.ops.object.mode_set(mode = 'EDIT')
 
-def texface_to_mat():
-    
-    for ob in bpy.context.selected_editable_objects:
-        img = 0
-        m = 0
-        #get Image from active_uv_texture
-        if (ob.data.uv_textures
-        and ob.data.active_uv_texture.data[0].image):
-            img = ob.data.active_uv_texture.data[0].image
-        #if not look in other uv_textures, take first one
-        else:
-            for uv_tex in ob.data.uv_textures:
-                if uv_tex.data[0].image:
-                    img = uv_tex.data[0].image
-                    break
-        
-        #get material to assign image to if object has an image in uv_textures
-        if img:
-            #get active material
-            if ob.active_material:
-                m = ob.active_material
-            #if not look if there are others, take first one
-            if not m and ob.material_slots:
-                ms = ob.material_slots.values()
-                for matslot in ms:
-                    if matslot.material:
-                        m = matslot.material
-                        break
-        
-        #if ob has no material but we have an image create a material
-        if not m and img:
-            m = bpy.data.materials.new(name=img.name)
-            ob.data.add_material(m)
 
-        #if image is there create texture and apply to material
-        if img:
-            tex = bpy.data.textures.new(name=img.name)
-            tex.type = 'IMAGE'
-            tex = tex.recast_type()
-            tex.image = img
-            m.add_texture(tex, texture_coordinates='UV', map_to='COLOR')
+
+def check_texture(img,mat):
+    #finds a texture from an image
+    #makes a texture if needed
+    #adds it to the material if it isn't there already
+
+    try: 
+        tex = bpy.data.textures[img.name]
+    except:
+        tex = bpy.data.textures.new(name=img.name)
+    finally:
+        tex.type = 'IMAGE'
+        tex = tex.recast_type()
+        tex.image = img
+
+        #see if the material already uses this tex
+        #add it if needed
+        found = False
+        for m in mat.texture_slots:
+            if m and m.texture == tex:
+                found = True
+                break
+        if not found and mat:
+            mat.add_texture(tex, texture_coordinates='UV', map_to='COLOR')
+    
+def texface_to_mat():
+    # editmode check here!
+    editmode = False
+    ob = bpy.context.object
+    if ob.mode =='EDIT':
+        editmode = True
+        bpy.ops.object.mode_set()
+
+    for ob in bpy.context.selected_editable_objects:
+
+        faceindex = []
+        unique_images = []
+        
+        # get the texface images and store indices
+        if (ob.data.uv_textures):
+            for f in ob.data.active_uv_texture.data:
+                if f.image: 
+                    img = f.image
+                    #build list of unique images
+                    if img not in unique_images:
+                        unique_images.append(img)
+                    faceindex.append(unique_images.index(img))
+
+                else:
+                    img = None
+                    faceindex.append(None)   
+      
+        
+
+        #check materials for images exist; create if needed
+        matlist = []
+        for i in unique_images:
+            if i:
+                print(i.name)
+                try:
+                    m = bpy.data.materials[i.name]
+    
+                except:
+                    m = bpy.data.materials.new(name = i.name)
+                    continue
+
+                finally:
+                    matlist.append(m.name)
+                    # add textures if needed
+                    check_texture(i,m)
+
+        #set up the object material slots
+        assignmatslots(ob, matlist)
+        
+        #set texface indices to material slot indices..
+        me = ob.data
+
+        i = 0
+        for f in faceindex:
+            if f != None:
+                me.faces[i].material_index = f
+            i += 1
+    if editmode:
+        bpy.ops.object.mode_set(mode = 'EDIT')
+
 
 #operator classes:
 #---------------------------------------------------------------------
@@ -458,8 +503,12 @@ class VIEW3D_OT_texface_to_material(bpy.types.Operator):
         return context.active_object != None
 
     def execute(self, context):
-        texface_to_mat()
-        return {'FINISHED'}
+        if context.selected_editable_objects:
+            texface_to_mat()
+            return {'FINISHED'}
+        else:
+            self.report({'WARNING'}, "No editable selected objects, could not finish")
+            return {'CANCELLED'}
 
 class VIEW3D_OT_assign_material(bpy.types.Operator):
     '''assign a material to the selection'''
