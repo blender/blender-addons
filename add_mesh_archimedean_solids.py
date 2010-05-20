@@ -25,7 +25,7 @@ bl_addon_info = {
     'description': 'Adds various archimedean solids to the Add Mesh menu',
     'url':
     'http://wiki.blender.org/index.php/Extensions:2.5/Py/' \
-        'Scripts/Add_Mesh/',  # @todo Create wiki page and fix this link.
+        'Scripts/Add_Mesh/Archimedean_Solids',  # @todo write the page
     'category': 'Add Mesh'}
 
 import bpy

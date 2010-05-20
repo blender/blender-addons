@@ -40,7 +40,8 @@ bl_addon_info = {
     'blender': (2, 5, 3),
     'location': 'File > Import/Export > Stl',
     'description': 'Import/Export Stl files',
-    'url': '...',
+     'url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/' \
+        'Scripts/File I-O/STL',  # @todo write the page
     'category': 'Import/Export'}
 
 import bpy
