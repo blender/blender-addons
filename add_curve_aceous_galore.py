@@ -1126,7 +1126,7 @@ class Curveaceous_galore(bpy.types.Operator):
 ##### REGISTER #####
 
 Curveaceous_galore_button = (lambda self, context: self.layout.operator
-            (Curveaceous_galore.bl_idname, text="curvatures gallore"))
+            (Curveaceous_galore.bl_idname, text="curvatures gallore", icon="PLUGIN"))
 
 classes = [
 Curveaceous_galore
