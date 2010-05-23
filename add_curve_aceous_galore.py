@@ -565,7 +565,6 @@ def CycloidCurve( number=24, length=2.0, type=0, a=1.0, b=1.0, startangle=0.0, e
 
     else:
         newpoints = [[-1,-1,0], [-1,1,0], [1,1,0], [1,-1,0]]
-    print("\n", newpoints)
     return newpoints
 
 ##------------------------------------------------------------
@@ -900,7 +899,7 @@ class Curveaceous_galore(bpy.types.Operator):
                         default=0.0,
                         description="Helix var2")
 
-    #### Cycloid properties                     not yet implemented
+    #### Cycloid properties
     cycloPoints = IntProperty(name="resolution",
                             default=200,
                             min=3, soft_min=3,
@@ -911,7 +910,7 @@ class Curveaceous_galore(bpy.types.Operator):
     cycloType = IntProperty(name="Type",
                             default=0,
                             min=0, soft_min=0,
-                            max=4, soft_max=4,
+                            max=0, soft_max=0,
                             description="resolution")
     cyclo_a = FloatProperty(name="var_1",
                             default=5.0,
@@ -993,7 +992,7 @@ class Curveaceous_galore(bpy.types.Operator):
             box.prop(props, 'helix_b')
         if props.GalloreType == 'Cycloid':
             box.prop(props, 'cycloPoints')
-            box.prop(props, 'cycloType')
+            #box.prop(props, 'cycloType') # needs the other types first
             box.prop(props, 'cycloStart')
             box.prop(props, 'cycloEnd')
             box.prop(props, 'cyclo_a')
@@ -1012,7 +1011,7 @@ class Curveaceous_galore(bpy.types.Operator):
         if props.outputType == 'NURBS':
             box.row().prop(props, 'shape', expand=True)
             box.prop(props, 'cyclic_u')
-            box.prop(props, 'endp_u')
+            #box.prop(props, 'endp_u')
             box.prop(props, 'order_u')
 
         if props.outputType == 'POLY':
@@ -1038,7 +1037,8 @@ class Curveaceous_galore(bpy.types.Operator):
         props = self.properties
         if props.GalloreType in ['Helix', 'Cycloid']:
             props.shape = '3D'
-            #props.cyclic_u = False
+        if props.GalloreType in ['Helix']:
+            props.cyclic_u = False
 
         # Options
         options = [
