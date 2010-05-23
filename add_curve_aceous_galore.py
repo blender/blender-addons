@@ -761,89 +761,89 @@ class Curveaceous_galore(bpy.types.Operator):
                 items=bezHandles)
 
     #### ProfileCurve properties
-    ProfileCurveType = IntProperty(name="Nr",
+    ProfileCurveType = IntProperty(name="Type",
                     min=1, soft_min=1,
                     max=5, soft_max=5,
                     default=1,
                     description="Type of ProfileCurve")
-    ProfileCurvevar1 = FloatProperty(name="var1",
+    ProfileCurvevar1 = FloatProperty(name="var_1",
                     default=0.25,
                     description="var1 of ProfileCurve")
-    ProfileCurvevar2 = FloatProperty(name="var2",
+    ProfileCurvevar2 = FloatProperty(name="var_2",
                     default=0.25,
                     description="var2 of ProfileCurve")
 
     #### MiscCurve properties
-    MiscCurveType = IntProperty(name="Nr",
+    MiscCurveType = IntProperty(name="Type",
                     min=1, soft_min=1,
                     max=5, soft_max=5,
                     default=1,
                     description="Type of ProfileCurve")
-    MiscCurvevar1 = FloatProperty(name="var1",
+    MiscCurvevar1 = FloatProperty(name="var_1",
                     default=1.0,
                     description="var1 of ProfileCurve")
-    MiscCurvevar2 = FloatProperty(name="var2",
+    MiscCurvevar2 = FloatProperty(name="var_2",
                     default=0.5,
                     description="var2 of ProfileCurve")
-    MiscCurvevar3 = FloatProperty(name="var3", # doesn't seem to do anything
+    MiscCurvevar3 = FloatProperty(name="var_3", # doesn't seem to do anything
                     default=90.0,
                     description="var3 of ProfileCurve")
                     
     #### Common properties
-    innerRadius = FloatProperty(name="innerRadius",
+    innerRadius = FloatProperty(name="Inner radius",
                     default=0.5,
                     min=0, soft_min=0,
-                    description="innerRadius")
-    middleRadius = FloatProperty(name="middleRadius",
+                    description="Inner radius")
+    middleRadius = FloatProperty(name="Middle radius",
                     default=0.95,
                     min=0, soft_min=0,
-                    description="middleRadius")
-    outerRadius = FloatProperty(name="outerRadius",
+                    description="Middle radius")
+    outerRadius = FloatProperty(name="Outer radius",
                     default=1.0,
                     min=0, soft_min=0,
-                    description="outerRadius")
+                    description="Outer radius")
                     
     #### Flower properties
     petals = IntProperty(name="Petals",
                     default=8,
                     min=2, soft_min=2,
-                    description="number of petals")
+                    description="Number of petals")
     petalWidth = FloatProperty(name="Petal width",
                     default=2.0,
                     min=0.01, soft_min=0.01,
                     description="Petal width")
 
     #### Star properties
-    starPoints = IntProperty(name="Star Points",
+    starPoints = IntProperty(name="Star points",
                     default=8,
                     min=2, soft_min=2,
-                    description="number of Star Points")
+                    description="Number of star points")
     starTwist = FloatProperty(name="Twist",
                     default=0.0,
                     description="Twist")
 
     #### Arc properties
-    arcSides = IntProperty(name="Arc Sides",
+    arcSides = IntProperty(name="Arc sides",
                     default=6,
                     min=1, soft_min=1,
-                    description="Sides of Arc")
-    startAngle = FloatProperty(name="start angle",
+                    description="Sides of arc")
+    startAngle = FloatProperty(name="Start angle",
                     default=0.0,
-                    description="start angle")
-    endAngle = FloatProperty(name="end angle",
+                    description="Start angle")
+    endAngle = FloatProperty(name="End angle",
                     default=90.0,
-                    description="end angle")
-    arcType = IntProperty(name="Arc Type",
+                    description="End angle")
+    arcType = IntProperty(name="Arc type",
                     default=2,
                     min=1, soft_min=2,
                     max=2, soft_max=2,
-                    description="Sides of Arc")
+                    description="Sides of arc")
 
     #### Cogwheel properties
     teeth = IntProperty(name="Teeth",
                     default=8,
                     min=2, soft_min=2,
-                    description="number of Teeth")
+                    description="number of teeth")
     bevel = FloatProperty(name="Bevel",
                     default=0.5,
                     min=0, soft_min=0,
@@ -854,17 +854,17 @@ class Curveaceous_galore(bpy.types.Operator):
     Nsides = IntProperty(name="Sides",
                     default=8,
                     min=3, soft_min=3,
-                    description="number of Sides")
+                    description="Number of sides")
 
     #### Splat properties
-    splatSides = IntProperty(name="Splat Sides",
+    splatSides = IntProperty(name="Splat sides",
                     default=24,
                     min=3, soft_min=3,
-                    description="Splat Sides")
-    splatScale = FloatProperty(name="Splat Scale",
+                    description="Splat sides")
+    splatScale = FloatProperty(name="Splat scale",
                     default=1.0,
                     min=0, soft_min=0,
-                    description="Splat Scale")
+                    description="Splat scale")
     seed = IntProperty(name="Seed",
                     default=0,
                     min=0, soft_min=0,
@@ -883,12 +883,12 @@ class Curveaceous_galore(bpy.types.Operator):
                         default=2.0,
                         min=0, soft_min=0,
                         description="Helix height")
-    helixStart = FloatProperty(name="Startangle",
+    helixStart = FloatProperty(name="Start angle",
                         default=0.0,
-                        description="Helix Startangle")
+                        description="Helix start angle")
     helixEnd = FloatProperty(name="Endangle",
                         default=360.0,
-                        description="Helix Endangle")
+                        description="Helix end angle")
     helixWidth = FloatProperty(name="Width",
                         default=1.0,
                         description="Helix width")
@@ -900,11 +900,11 @@ class Curveaceous_galore(bpy.types.Operator):
                         description="Helix var2")
 
     #### Cycloid properties
-    cycloPoints = IntProperty(name="resolution",
-                            default=200,
+    cycloPoints = IntProperty(name="Resolution",
+                            default=100,
                             min=3, soft_min=3,
-                            description="resolution")
-    cyclo_d = FloatProperty(name="var3",
+                            description="Resolution")
+    cyclo_d = FloatProperty(name="var_3",
                             default=1.5,
                             description="Cycloid var3")
     cycloType = IntProperty(name="Type",
@@ -920,12 +920,12 @@ class Curveaceous_galore(bpy.types.Operator):
                             default=0.5,
                             min=0.01, soft_min=0.01,
                             description="Cycloid var2")
-    cycloStart = FloatProperty(name="Startangle",
+    cycloStart = FloatProperty(name="Start angle",
                             default=0.0,
-                            description="Cycloid Startangle")
-    cycloEnd = FloatProperty(name="Endangle",
+                            description="Cycloid start angle")
+    cycloEnd = FloatProperty(name="End angle",
                             default=360.0,
-                            description="Cycloid Endangle")
+                            description="Cycloid end angle")
 
     ##### DRAW #####
     def draw(self, context):
@@ -960,7 +960,7 @@ class Curveaceous_galore(bpy.types.Operator):
             box.prop(props, 'outerRadius')
         if props.GalloreType == 'Arc':
             box.prop(props, 'arcSides')
-            box.prop(props, 'arcType')
+            #box.prop(props, 'arcType') # has only one Type?
             box.prop(props, 'startAngle')
             box.prop(props, 'endAngle')
             #box.prop(props, 'innerRadius') # doesn't seem to do anything
