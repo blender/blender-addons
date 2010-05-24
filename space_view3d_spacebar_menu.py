@@ -68,32 +68,8 @@ v0.1 through 0.9 - various tests/contributions by various people and scripts
 """
 import bpy
 from bpy import *
-
-
-# Classes for VIEW3D_MT_CursorMenu()
-class pivot_cursor(bpy.types.Operator):
-    bl_idname = "view3d.pivot_cursor"
-    bl_label = "Cursor as Pivot Point"
-
-    def poll(self, context):
-        return bpy.context.space_data.pivot_point != 'CURSOR'
-
-    def execute(self, context):
-        bpy.context.space_data.pivot_point = 'CURSOR'
-        return {'FINISHED'}
-
-
-class revert_pivot(bpy.types.Operator):
-    bl_idname = "view3d.revert_pivot"
-    bl_label = "Reverts Pivot Point to median"
-
-    def poll(self, context):
-        return bpy.context.space_data.pivot_point != 'MEDIAN_POINT'
-
-    def execute(self, context):
-        bpy.context.space_data.pivot_point = 'MEDIAN_POINT'
-        # @todo Change this to 'BOUDNING_BOX_CENTER' if needed...
-        return{'FINISHED'}
+from mathutils import Vector, Matrix
+import math
 
 
 # Dynamic Menu
@@ -184,7 +160,7 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
             layout.separator()
 
             # Cursor block
-            layout.menu("VIEW3D_MT_CursorMenu", icon='CURSOR')
+            layout.menu("VIEW3D_MT_EditCursorMenu", icon='CURSOR')
             layout.separator()
 
             # Edit block
@@ -1259,6 +1235,32 @@ class VIEW3D_MT_KeyframeMenu(bpy.types.Menu):
             text="Change Keying Set...")
         layout.separator()
 
+# Classes for VIEW3D_MT_CursorMenu()
+class VIEW3D_OT_pivot_cursor(bpy.types.Operator):
+    "Cursor as Pivot Point"
+    bl_idname = "view3d.pivot_cursor"
+    bl_label = "Cursor as Pivot Point"
+
+    def poll(self, context):
+        return bpy.context.space_data.pivot_point != 'CURSOR'
+
+    def execute(self, context):
+        bpy.context.space_data.pivot_point = 'CURSOR'
+        return {'FINISHED'}
+
+class VIEW3D_OT_revert_pivot(bpy.types.Operator):
+    "Revert Pivot Point"
+    bl_idname = "view3d.revert_pivot"
+    bl_label = "Reverts Pivot Point to median"
+
+    def poll(self, context):
+        return bpy.context.space_data.pivot_point != 'MEDIAN_POINT'
+
+    def execute(self, context):
+        bpy.context.space_data.pivot_point = 'MEDIAN_POINT'
+        # @todo Change this to 'BOUDNING_BOX_CENTER' if needed...
+        return{'FINISHED'}
+
 class VIEW3D_MT_CursorMenu(bpy.types.Menu):
     bl_label = "Snap Cursor Menu"
 
@@ -1284,6 +1286,130 @@ class VIEW3D_MT_CursorMenu(bpy.types.Menu):
             text="Set Cursor as Pivot Point")
         layout.operator("view3d.revert_pivot",
             text="Revert Pivot Point")
+
+class VIEW3D_MT_EditCursorMenu(bpy.types.Menu):
+    bl_label = "Snap Cursor Menu"
+
+    def draw(self, context):
+
+        layout = self.layout
+        layout.operator_context = 'INVOKE_REGION_WIN'
+        layout.operator("view3d.snap_cursor_to_selected",
+            text="Cursor to Selected")
+        layout.operator("view3d.snap_cursor_to_center",
+            text="Cursor to Center")
+        layout.operator("view3d.snap_cursor_to_grid",
+            text="Cursor to Grid")
+        layout.operator("view3d.snap_cursor_to_active",
+            text="Cursor to Active")
+        layout.separator()
+        layout.operator("view3d.snap_selected_to_cursor",
+            text="Selection to Cursor")
+        layout.operator("view3d.snap_selected_to_grid",
+            text="Selection to Grid")
+        layout.separator()
+        layout.operator("view3d.pivot_cursor",
+            text="Set Cursor as Pivot Point")
+        layout.operator("view3d.revert_pivot",
+            text="Revert Pivot Point")
+        layout.operator("view3d.snap_cursor_to_edge_intersection",
+            text="Cursor to Edge Intersection")
+
+def abs(val):
+    if val > 0:
+        return val
+    return -val
+
+def LineLineIntersect (p1, p2, p3, p4):
+    # based on Paul Bourke's Shortest Line Between 2 lines
+    
+    min = 0.0000001
+    
+    v1 = Vector((p1.x - p3.x, p1.y - p3.y, p1.z - p3.z))
+    v2 = Vector((p4.x - p3.x, p4.y - p3.y, p4.z - p3.z))
+    
+    if abs(v2.x) < min and abs(v2.y) < min and abs(v2.z)  < min:
+        return None
+        
+    v3 = Vector((p2.x - p1.x, p2.y - p1.y, p2.z - p1.z))
+    
+    if abs(v3.x) < min and abs(v3.y) < min and abs(v3.z) < min:
+        return None
+
+    d1 = v1.dot(v2)
+    d2 = v2.dot(v3)
+    d3 = v1.dot(v3)
+    d4 = v2.dot(v2)
+    d5 = v3.dot(v3)
+
+    d = d5 * d4 - d2 * d2
+    
+    if abs(d) < min:
+        return None
+        
+    n = d1 * d2 - d3 * d4
+
+    mua = n / d
+    mub = (d1 + d2 * (mua)) / d4
+
+    return [Vector((p1.x + mua * v3.x, p1.y + mua * v3.y, p1.z + mua * v3.z)), 
+        Vector((p3.x + mub * v2.x, p3.y + mub * v2.y, p3.z + mub * v2.z))]
+
+def edgeIntersect(context, operator):
+    
+    obj = context.active_object
+    
+    if (obj.type != "MESH"):
+        operator.report({'ERROR'}, "Object must be a mesh")
+        return None
+    
+    edges = [];
+    mesh = obj.data
+    verts = mesh.verts
+
+    is_editmode = (obj.mode == 'EDIT')
+    if is_editmode:
+        bpy.ops.object.mode_set(mode='OBJECT')
+    
+    for e in mesh.edges:
+        if e.selected:
+            edges.append(e)
+
+    if is_editmode:
+        bpy.ops.object.mode_set(mode='EDIT')
+            
+    if len(edges) != 2:
+        operator.report({'ERROR'}, "Operator requires exactly 2 edges to be selected.")
+        return
+        
+    line = LineLineIntersect(verts[edges[0].verts[0]].co, verts[edges[0].verts[1]].co, verts[edges[1].verts[0]].co, verts[edges[1].verts[1]].co)
+
+    if (line == None):
+        operator.report({'ERROR'}, "Selected edges are parallel.")
+        return
+
+    tm = obj.matrix.copy()
+    point = ((line[0] + line[1]) / 2)
+    point = tm * point
+
+    context.scene.cursor_location = point
+            
+    return point
+    
+class VIEW3D_OT_CursorToEdgeIntersection(bpy.types.Operator):
+    '''Finds the mid-point of the shortest distance between two edges, the point may not lie
+    between the edges as the edges are projected beyond their bounds'''
+    
+    bl_idname = "view3d.snap_cursor_to_edge_intersection"
+    bl_label = "Cursor to Edge Intersection"
+
+    def poll(self, context):
+        obj = context.active_object
+        return obj != None and obj.type == 'MESH'
+
+    def execute(self, context):
+        edgeIntersect(context, self)
+        return {'FINISHED'}
 
 class VIEW3D_MT_undoS(bpy.types.Menu):
     bl_label = "Undo/Redo"
@@ -1319,9 +1445,11 @@ def register():
     bpy.types.register(VIEW3D_MT_EditCurveCtrlpoints)
     bpy.types.register(VIEW3D_MT_EditCurveSegments)
     bpy.types.register(VIEW3D_MT_EditCurveSpecials)
-    bpy.types.register(pivot_cursor)
-    bpy.types.register(revert_pivot)
+    bpy.types.register(VIEW3D_OT_pivot_cursor)
+    bpy.types.register(VIEW3D_OT_revert_pivot)
     bpy.types.register(VIEW3D_MT_CursorMenu)
+    bpy.types.register(VIEW3D_MT_EditCursorMenu)
+    bpy.types.register(VIEW3D_OT_CursorToEdgeIntersection)
     bpy.types.register(VIEW3D_MT_undoS)
 
     km = bpy.context.manager.active_keyconfig.keymaps['3D View']
@@ -1354,9 +1482,11 @@ def unregister():
     bpy.types.unregister(VIEW3D_MT_EditCurveCtrlpoints)
     bpy.types.unregister(VIEW3D_MT_EditCurveSegments)
     bpy.types.unregister(VIEW3D_MT_EditCurveSpecials)
-    bpy.types.unregister(pivot_cursor)
-    bpy.types.unregister(revert_pivot)
+    bpy.types.unregister(VIEW3D_OT_pivot_cursor)
+    bpy.types.unregister(VIEW3D_OT_revert_pivot)
     bpy.types.unregister(VIEW3D_MT_CursorMenu)
+    bpy.types.unregister(VIEW3D_MT_EditCursorMenu)
+    bpy.types.unregister(VIEW3D_OT_CursorToEdgeIntersection)
     bpy.types.unregister(VIEW3D_MT_undoS)
 
     km = bpy.context.manager.active_keyconfig.keymaps['3D View']
