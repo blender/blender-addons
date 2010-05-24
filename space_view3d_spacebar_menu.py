@@ -1314,6 +1314,8 @@ class VIEW3D_MT_EditCursorMenu(bpy.types.Menu):
             text="Revert Pivot Point")
         layout.operator("view3d.snap_cursor_to_edge_intersection",
             text="Cursor to Edge Intersection")
+        layout.operator("transform.snap_type", text="Snap Tools",
+            icon='SNAP_ON')
 
 def abs(val):
     if val > 0:
@@ -1397,8 +1399,7 @@ def edgeIntersect(context, operator):
     return point
     
 class VIEW3D_OT_CursorToEdgeIntersection(bpy.types.Operator):
-    '''Finds the mid-point of the shortest distance between two edges, the point may not lie
-    between the edges as the edges are projected beyond their bounds'''
+    "Finds the mid-point of the shortest distance between two edges"
     
     bl_idname = "view3d.snap_cursor_to_edge_intersection"
     bl_label = "Cursor to Edge Intersection"
