@@ -389,7 +389,7 @@ class torus_knot_plus(bpy.types.Operator):
         box.prop(props, 'geo_bDepth')
         box.prop(props, 'geo_bRes')
         box.prop(props, 'geo_extrude')
-        box.prop(props, 'geo_width')
+        #box.prop(props, 'geo_width') # not really good
         box.prop(props, 'geo_res')
 
     ##### POLL #####
