@@ -331,7 +331,7 @@ def fracture_group(context, group):
 
     for ob in context.scene.objects:
         if (ob.selected
-            and (len(ob.group_users) == 0 or ob.group_users[0].name != group)):
+            and (len(ob.users_group) == 0 or ob.users_group[0].name != group)):
             tobesplit.append(ob)
 
     cutters = bpy.data.groups[group].objects
