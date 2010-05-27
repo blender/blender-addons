@@ -262,12 +262,13 @@ class torus_knot_plus(bpy.types.Operator):
         col.label(text="Geometry Options")
         box = layout.box()
         box.prop(props, 'geo_surf')
-        box.prop(props, 'geo_bDepth')
-        box.prop(props, 'geo_bRes')
-        box.prop(props, 'geo_extrude')
-        #box.prop(props, 'geo_width') # not really good
-        box.prop(props, 'geo_res')
-
+        if props.geo_surf:
+            box.prop(props, 'geo_bDepth')
+            box.prop(props, 'geo_bRes')
+            box.prop(props, 'geo_extrude')
+            #box.prop(props, 'geo_width') # not really good
+            box.prop(props, 'geo_res')
+    
     ##### POLL #####
     def poll(self, context):
         return context.scene != None
