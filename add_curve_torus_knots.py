@@ -49,42 +49,22 @@ def align_matrix(context):
 
 ##------------------------------------------------------------
 #### Curve creation functions
-# sets bezierhandles to auto
-def setBezierHandles(obj, mode = 'AUTOMATIC'):
-    scene = bpy.context.scene
-    if obj.type != 'CURVE':
-        return
-    scene.objects.active = obj
-    bpy.ops.object.mode_set(mode='EDIT', toggle=True)
-    bpy.ops.curve.select_all(action='SELECT')
-    bpy.ops.curve.handle_type_set(type=mode)
-    bpy.ops.object.mode_set(mode='OBJECT', toggle=True)
 
 # get array of vertcoordinates acording to splinetype
-def vertsToPoints(Verts, splineType):
-    # main vars
+def vertsToPoints(Verts):
     vertArray = []
 
-    # array for BEZIER spline output (V3)
-    if splineType == 'BEZIER':
-        for v in Verts:
-            vertArray += v
+    for v in Verts:
+        vertArray += v
+        vertArray.append(1) #for nurbs w=1
 
-    # array for nonBEZIER output (V4)
-    else:
-        for v in Verts:
-            vertArray += v
-            if splineType == 'NURBS':
-                vertArray.append(1) #for nurbs w=1
-            else: #for poly w=0
-                vertArray.append(0)
     return vertArray
 
 # create new CurveObject from vertarray and splineType
-def createCurve(vertArray, GEO, options, curveOptions, align_matrix):
+def createCurve(vertArray, GEO, align_matrix):
     # options to vars
-    splineType = options[0] # output splineType 'POLY' 'NURBS' 'BEZIER'
-    name = options[1] # KnotType as name
+    splineType = 'NURBS'
+    name = 'Torus_Knot'
 
     # create curve
     scene = bpy.context.scene
@@ -92,25 +72,15 @@ def createCurve(vertArray, GEO, options, curveOptions, align_matrix):
     newSpline = newCurve.splines.new(type = splineType) # spline
 
     # create spline from vertarray
-    if splineType == 'BEZIER':
-        newSpline.bezier_points.add(int(len(vertArray)*0.33))
-        newSpline.bezier_points.foreach_set('co', vertArray)
-    else:
-        newSpline.points.add(int(len(vertArray)*0.25 - 1))
-        newSpline.points.foreach_set('co', vertArray)
-        newSpline.endpoint_u = True
+    newSpline.points.add(int(len(vertArray)*0.25 - 1))
+    newSpline.points.foreach_set('co', vertArray)
+    newSpline.endpoint_u = True
 
-    # set curveOptions
-    shape = curveOptions[0]
-    cyclic_u = curveOptions[1]
-    endp_u = curveOptions[2]
-    order_u = curveOptions[3]
-    handleType = curveOptions[4]
-
-    newCurve.dimensions = shape
-    newSpline.cyclic_u = cyclic_u
-    newSpline.endpoint_u = endp_u
-    newSpline.order_u = order_u
+    # Curve settings
+    newCurve.dimensions = '3D'
+    newSpline.cyclic_u = True
+    newSpline.endpoint_u = True
+    newSpline.order_u = 4
 
     # GEO Options
     surf = GEO[0]
@@ -136,10 +106,6 @@ def createCurve(vertArray, GEO, options, curveOptions, align_matrix):
     scene.objects.active = new_obj  # set as active
     new_obj.matrix = align_matrix # apply matrix
 
-    # set bezierhandles
-    if splineType == 'BEZIER':
-        setBezierHandles(new_obj, handleType)
-
     return
 
 ########################################################################
@@ -149,72 +115,41 @@ def createCurve(vertArray, GEO, options, curveOptions, align_matrix):
 #### TORUS KNOT
 def Torus_Knot_Curve(p=2, q=3, w=1, res=24, formula=0, h=1, u=1 ,v=1, rounds=2):
     newPoints = []
-    angle = (2.0/360.0)*360*rounds
-    #angle = 360/pi
+    angle = 2*rounds
     step = angle/(res-1)
     scale = h
     height = w
 
-    if formula == 0:
-        for i in range(res-1):
-            t = ( i*step*pi)
-            
-            x = (2 * scale + cos((q*t)/p*v)) * cos(t * u)
-            y = (2 * scale + cos((q*t)/p*v)) * sin(t * u)
-            z = sin(q*t/p) * height
-            
-            newPoints.append([x,y,z])
-    
-    if formula == 1:
-        for i in range(res-1):
-            t = ( i*step)
-            
-            x = ((2*w + cos((q*t)/p)) * cos(t*p)) * sin(t/p)
-            y = ((2*w + cos((q*t)/p)) * sin(t*p)) * sin(t/p)
-            z = sin(q*t/p)
-            
-            newPoints.append([x,y,z])
-    
-    if formula == 2:
-        for i in range(res-1):
-            t = ( i*step)
-            beta = t*pi
-            
-            r = 0.8 + 1.6 * sin(q * beta/p)
-            theta = 2 * beta
-            phi = 0.6 * pi * sin(q * beta/p)
-            
-            x = r * cos(phi) * cos(theta)
-            y = r * cos(phi) * sin(theta)
-            z = r * sin(phi)
-            
-            newPoints.append([x,y,z])
+    for i in range(res-1):
+        t = ( i*step*pi)
+        
+        x = (2 * scale + cos((q*t)/p*v)) * cos(t * u)
+        y = (2 * scale + cos((q*t)/p*v)) * sin(t * u)
+        z = sin(q*t/p) * height
+        
+        newPoints.append([x,y,z])
 
-
-    #newPoints = [[-1,-1,0], [-1,1,0], [1,1,0], [1,-1,0]]
     return newPoints
 
 ##------------------------------------------------------------
 # Main Function
-def main(context, param, GEO, options, curveOptions, align_matrix):
+def main(context, param, GEO, options, align_matrix):
     # deselect all objects
     bpy.ops.object.select_all(action='DESELECT')
 
     # options
-    knotType = options[1]
-    splineType = options[0]
+    splineType = 'NURBS'
 
 
     # get verts
-    if knotType == 'Torus_Knot':
-        verts = Torus_Knot_Curve(param[0], param[1], param[2], param[3], param[4],
-                                  param[5], param[6], param[7], param[8])
+    verts = Torus_Knot_Curve(param[0], param[1], param[2], param[3], param[4],
+                              param[5], param[6], param[7], param[8])
 
     # turn verts into array
-    vertArray = vertsToPoints(verts, splineType)
+    vertArray = vertsToPoints(verts)
 
     # create object
-    createCurve(vertArray, GEO, options, curveOptions, align_matrix)
+    createCurve(vertArray, GEO, align_matrix)
 
     return
 
@@ -229,19 +164,9 @@ class torus_knot_plus(bpy.types.Operator):
     align_matrix = Matrix()
 
     #### general options
-    KnotTypes = [
-                ('Torus_Knot', 'Torus Knot', 'Torus_Knot')
-                ]
-    KnotType = EnumProperty(name="Type",
-                description="Form of Curve to create",
-                items=KnotTypes)
-    SplineTypes = [
-                ('NURBS', 'Nurbs', 'NURBS'),
-                ('POLY', 'Poly', 'POLY'),
-                ('BEZIER', 'Bezier', 'BEZIER')]
-    outputType = EnumProperty(name="Output splines",
-                description="Type of splines to output",
-                items=SplineTypes)
+    options_plus = BoolProperty(name="plus options",
+                default=False,
+                description="Show more options (the plus part).")
 
     #### GEO Options
     geo_surf = BoolProperty(name="Surface",
@@ -263,36 +188,12 @@ class torus_knot_plus(bpy.types.Operator):
                 default=12,
                 min=1, soft_min=1)
 
-    #### Curve Options
-    shapeItems = [
-                ('3D', '3D', '3D'),
-                ('2D', '2D', '2D')]
-    shape = EnumProperty(name="2D / 3D",
-                items=shapeItems,
-                description="2D or 3D Curve")
-    cyclic_u = BoolProperty(name="Cyclic",
-                default=True,
-                description="make curve closed")
-    endp_u = BoolProperty(name="endpoint_u",
-                default=True,
-                description="stretch to endpoints")
-    order_u = IntProperty(name="order_u",
-                default=4,
-                min=2, soft_min=2,
-                max=6, soft_max=6,
-                description="Order of nurbs spline")
-    bezHandles = [
-                ('VECTOR', 'Vector', 'VECTOR'),
-                ('AUTOMATIC', 'Auto', 'AUTOMATIC')]
-    handleType = EnumProperty(name="Handle type",
-                description="bezier handles type",
-                items=bezHandles)
 
     #### Parameters
     torus_res = IntProperty(name="Resoulution",
                 default=200,
                 min=3, soft_min=3,
-                description='Resolution')
+                description='Resolution, Number of controlverticies.')
     torus_p = IntProperty(name="p",
                 default=2,
                 min=1, soft_min=1,
@@ -303,16 +204,16 @@ class torus_knot_plus(bpy.types.Operator):
                 min=1, soft_min=1,
                 #max=1, soft_max=1,
                 description="q")
-    torus_w = FloatProperty(name="height",
+    torus_w = FloatProperty(name="Height",
                 default=1,
                 #min=0, soft_min=0,
                 #max=1, soft_max=1,
-                description="height")
-    torus_h = FloatProperty(name="scale",
+                description="Height in Z")
+    torus_h = FloatProperty(name="Scale",
                 default=1,
                 #min=0, soft_min=0,
                 #max=1, soft_max=1,
-                description="scale")
+                description="Scale, in XY")
     torus_u = IntProperty(name="u",
                 default=1,
                 min=1, soft_min=1,
@@ -327,11 +228,11 @@ class torus_knot_plus(bpy.types.Operator):
                 default=0,
                 min=0, soft_min=0,
                 max=10, soft_max=10)
-    torus_rounds = IntProperty(name="rounds",
+    torus_rounds = IntProperty(name="Rounds",
                 default=2,
                 min=1, soft_min=1,
                 #max=1, soft_max=1,
-                description="rounds")
+                description="Rounds")
 
     ##### DRAW #####
     def draw(self, context):
@@ -341,45 +242,20 @@ class torus_knot_plus(bpy.types.Operator):
         # general options        
         col = layout.column()
         #col.prop(props, 'KnotType') waits for more knottypes
-        col.label(text=props.KnotType+" Parameters")
+        col.label(text="Torus Knot Parameters")
 
-        # Parameters per KnotType
+        # Parameters 
         box = layout.box()
-        if props.KnotType == 'Torus_Knot':
-            #box.prop(props, 'torus_formula')
-            box.prop(props, 'torus_res')
-            box.prop(props, 'torus_p')
-            box.prop(props, 'torus_q')
+        box.prop(props, 'torus_res')
+        box.prop(props, 'torus_w')
+        box.prop(props, 'torus_h')
+        box.prop(props, 'torus_p')
+        box.prop(props, 'torus_q')
+        box.prop(props, 'options_plus')
+        if props.options_plus:
             box.prop(props, 'torus_u')
             box.prop(props, 'torus_v')
             box.prop(props, 'torus_rounds')
-            box.prop(props, 'torus_w')
-            box.prop(props, 'torus_h')
-
-        # Output Type
-        col = layout.column()
-        #col.label(text="Output Curve Type")
-        #row = layout.row()
-        #row.prop(props, 'outputType', expand=True)
-        #col = layout.column()
-        #col.label(text="Curve Options")
-
-        # Curve options
-        #box = layout.box()
-        #if props.outputType == 'NURBS':
-            #box.row().prop(props, 'shape', expand=True)
-            #box.prop(props, 'cyclic_u')
-            #box.prop(props, 'endp_u')
-            #box.prop(props, 'order_u')
-
-        #if props.outputType == 'POLY':
-            #box.row().prop(props, 'shape', expand=True)
-            #box.prop(props, 'cyclic_u')
-
-        if props.outputType == 'BEZIER':
-            #box.row().prop(props, 'shape', expand=True)
-            col.row().prop(props, 'handleType', expand=True)
-            #box.prop(props, 'cyclic_u')
 
         # surface Options
         col = layout.column()
@@ -403,6 +279,9 @@ class torus_knot_plus(bpy.types.Operator):
         bpy.context.user_preferences.edit.global_undo = False
 
         props = self.properties
+
+        if not props.options_plus:
+            props.torus_rounds = props.torus_p
 
         # Parameters
         param = [
@@ -430,21 +309,11 @@ class torus_knot_plus(bpy.types.Operator):
         # Options
         options = [
             # general properties
-            props.outputType,       #0
-            props.KnotType          #1
             ]
 
-        # Curve options
-        curveOptions = [
-            props.shape,            #0
-            props.cyclic_u,         #1
-            props.endp_u,           #2
-            props.order_u,          #4
-            props.handleType        #5
-            ]
 
         # main function
-        main(context, param, GEO, options, curveOptions, self.align_matrix)
+        main(context, param, GEO, options, self.align_matrix)
         
         # restore pre operator undo state
         bpy.context.user_preferences.edit.global_undo = undo
