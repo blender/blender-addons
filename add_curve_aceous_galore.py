@@ -21,7 +21,6 @@ bl_addon_info = {
     'version': '0.1',
     'blender': (2, 5, 2),
     'location': 'Add Curve menu',
-    'wiki_url': '',
     'description': 'adds many types of curves',
     'wiki_url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/' \
         'Scripts/Curve/Curves_Galore',
