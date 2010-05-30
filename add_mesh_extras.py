@@ -494,6 +494,39 @@ def add_star(points, outer_radius, inner_radius, height):
 
     return verts, faces
 
+def trapezohedron(s,r,h):
+    """
+    s = segments
+    r = base radius
+    h = tip height
+    """
+    
+    # calculate constants
+    a = 2*pi/(2*s)          # angle between points along the equator
+    l = r*cos(a)            # helper for  e
+    e = h*(r-l)/(l+r)       # the z offset for each vector along the equator so faces are planar
+
+    # rotation for the points
+    quat = Quaternion((0,0,1),a)
+    
+    # first 3 vectors, every next one is calculated from the last, and the z-value is negated
+    verts = [Vector(i) for i in [(0,0,h),(0,0,-h),(r,0,e)]]
+    for i in range(2*s-1):
+        verts.append(verts[-1]*quat)    # rotate further "a" radians around the z-axis
+        verts[-1].z *= -1               # negate last z-value to account for the zigzag 
+    
+    faces = []
+    for i in range(2,2+2*s,2):
+        n = [i+1,i+2,i+3]               # vertices in current section
+        for j in range(3):              # check whether the numbers dont go over len(verts)
+            if n[j]>=2*s+2: n[j]-=2*s   # if so, subtract len(verts)-2
+        
+        # add faces of current section
+        faces.append([0,i]+n[:2])
+        faces.append([1,n[2],n[1],n[0]])
+    
+    return verts,faces
+
 class AddSqorus(bpy.types.Operator):
     '''Add a sqorus mesh.'''
     bl_idname = "mesh.primitive_sqorus_add"
@@ -719,6 +752,47 @@ class AddStar(bpy.types.Operator):
         self.execute(context)
         return {'FINISHED'}
 
+class AddTrapezohedron(bpy.types.Operator):
+    """Add a trapezohedron"""
+    bl_idname = "mesh.primitive_trapezohedron_add"
+    bl_label = "Add trapezohedron"
+    bl_description = "Create one of the regular solids"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    segments = IntProperty(name = "Segments",
+                description = "Number of repeated segments",
+                default = 4, min = 2, max = 256)
+    radius = FloatProperty(name = "Base radius",
+                description = "Radius of the middle",
+                default = 1.0, min = 0.01, max = 100.0)
+    height = FloatProperty(name = "Tip height",
+                description = "Height of the tip",
+                default = 1, min = 0.01, max = 100.0)
+    edit = BoolProperty(name="",
+                        description="",
+                        default=False,
+                        options={'HIDDEN'})
+    align_matrix = Matrix()
+    def execute(self,context):
+        props = self.properties
+        # generate mesh
+        verts,faces = trapezohedron(props.segments,
+                                    props.radius,
+                                    props.height)
+        
+        obj = create_mesh_object(context, verts, [], faces, "Trapazohedron",
+            props.edit, self.align_matrix)
+        
+        # store recall properties in object
+        recall_args_list = {
+                "edit": True,
+                "segments" : props.segments,
+                "radius" : props.radius,
+                "height": props.height}
+        store_recall_properties(obj,self,recall_args_list)
+
+        return {'FINISHED'}
+
 class INFO_MT_mesh_extras_add(bpy.types.Menu):
     # Define the "Extras" menu
     bl_idname = "INFO_MT_mesh_extras_add"
@@ -733,9 +807,10 @@ class INFO_MT_mesh_extras_add(bpy.types.Menu):
             text="Wedge")
         layout.operator("mesh.primitive_spindle_add",
             text="Spindle")
-
         layout.operator("mesh.primitive_star_add",
             text="Star")
+        layout.operator("mesh.primitive_trapezohedron_add",
+            text="Trapezohedron")
 
 
 # Register all operators and panels
@@ -752,6 +827,7 @@ def register():
     bpy.types.register(AddWedge)
     bpy.types.register(AddSpindle)
     bpy.types.register(AddStar)
+    bpy.types.register(AddTrapezohedron)
     bpy.types.register(INFO_MT_mesh_extras_add)
 
     # Add "Gemstones" menu to the "Add Mesh" menu
@@ -764,6 +840,7 @@ def unregister():
     bpy.types.unregister(AddWedge)
     bpy.types.unregister(AddSpindle)
     bpy.types.unregister(AddStar)
+    bpy.types.unregister(AddTrapezohedron)
     bpy.types.unregister(INFO_MT_mesh_extras_add)
 
     # Remove "Gemstones" menu from the "Add Mesh" menu.
