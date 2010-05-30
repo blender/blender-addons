@@ -25,7 +25,7 @@ bl_addon_info = {
     'blender': (2, 5, 3),
     'location': 'View3D > Add > Mesh > Chain',
     'description': 'Adds Chain with curve guide for easy creation',
-    'url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/' \
+    'wiki_url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/' \
         'Scripts/Object/Add_Chain',
     'category': 'Object'}
 #

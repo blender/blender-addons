@@ -90,7 +90,7 @@ bl_addon_info = {
     'version': '2.0',
     'blender': (2, 5, 3),
     'location': 'File > Export > Skeletal Mesh/Animation Data (.psk/.psa)',
-    'url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/' \
+    'wiki_url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/' \
         'Scripts/File_I-O/Unreal_psk_psa',
     'category': 'Import/Export'}
 

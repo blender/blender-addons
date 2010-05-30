@@ -29,7 +29,7 @@ bl_addon_info = {
     'location': 'View3D > Add > Mesh > Z Function Surface &' \
         ' XYZ Function Surface',
     'description': 'Create Objects using Math Formulas',
-    'url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/' \
+    'wiki_url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/' \
         'Scripts/Add_Mesh/Add_3d_Function_Surface',
     'category': 'Add Mesh'}
 
@@ -75,7 +75,7 @@ v0.3.2 - Various fixes&streamlining by ideasman42/Campbell Barton.
     converting to a float are reported too.
     Fixed an error Campbell overlooked (appending tuples to an
     array, not single values) Thamnks for the report wild_doogy.
-    Added 'description' field, updated 'url'.
+    Added 'description' field, updated 'wiki_url'.
     Made the script PEP8 compatible again.
 v0.3.1 - Use hidden "edit" property for "recall" operator.
     Bugfix: Z Function was mixing up div_x and div_y

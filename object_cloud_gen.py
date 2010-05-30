@@ -24,7 +24,7 @@ bl_addon_info = {
     'blender': (2, 5, 3),
     'location': 'Tool Shelf ',
     'description': 'Creates Volumetric Clouds',
-    'url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/' \
+    'wiki_url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/' \
         'Scripts/Object/Cloud_Gen',
     'category': 'Object'}
 

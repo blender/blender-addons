@@ -30,7 +30,7 @@ bl_addon_info = {
     'description': 'Re-call an object menu that was created' \
         ' with an Add Mesh operator. This operator must have stored'\
         ' the recall data though.',
-    'url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/' \
+    'wiki_url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/' \
         'Scripts/3D_interaction/Edit_Object_Parameters',
     'category': 'Add Mesh'}
 

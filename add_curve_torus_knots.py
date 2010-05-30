@@ -21,9 +21,9 @@ bl_addon_info = {
     'version': '0.1',
     'blender': (2, 5, 2),
     'location': 'Add Curve Menu',
-    'url': '',
+    'wiki_url': '',
     'description': 'adds many types of knots',
-    'url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/' \
+    'wiki_url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/' \
         'Scripts/Curve/Torus_Knot',
     'category': 'Add Curve'}
 ##------------------------------------------------------------

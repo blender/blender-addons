@@ -28,7 +28,7 @@ bl_addon_info = {
     'blender': (2, 5, 3),
     'location': 'View3D > Add > Mesh > Pipe Joint',
     'description': 'Adds 5 pipe Joint types to the Add Mesh menu',
-    'url':
+    'wiki_url':
     'http://wiki.blender.org/index.php/Extensions:2.5/Py/' \
         'Scripts/Add_Mesh/Add_Pipe_Joints',
     'category': 'Add Mesh'}

@@ -29,7 +29,7 @@ bl_addon_info = {
     'blender': (2, 5, 3),
     'location': 'View3D > Q key',
     'description': 'Menu of material tools (assign, select by etc)  in the 3D View',
-    'url':
+    'wiki_url':
     'http://wiki.blender.org/index.php/Extensions:2.5/Py/' \
         'Scripts',  # @todo Create wiki page and fix this link.
     'category': '3D View'}
