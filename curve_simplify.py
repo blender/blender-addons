@@ -127,6 +127,9 @@ def getCurvature(deriv1, deriv2):
 def altitude(point1, point2, pointn):
     edge1 = point2 - point1
     edge2 = pointn - point1
+    if edge2.length == 0:
+        altitude = 0
+        return altitude
     alpha = edge1.angle(edge2)
     altitude = math.sin(alpha) * edge2.length
     return altitude
