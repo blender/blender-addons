@@ -29,9 +29,8 @@ bl_addon_info = {
     'location': 'View3D > Add > Mesh > Extras',
     'description': 'Adds Star, Wedge, Sqorus & Spindle objects.',
     'url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/' \
-        'Scripts/Add_Mesh/',
+        'Scripts/Add_Mesh/Add_Extra',
     'category': 'Add Mesh'}
-
 
 # Stores the values of a list of properties and the
 # operator id in a property group ('recall_op') inside the object.
