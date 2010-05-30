@@ -26,6 +26,8 @@ bl_addon_info = {
     'location': 'Toolshelf > search > simplify curves',
     'wiki_url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/' \
         'Scripts/Curve/Curve_Simplify',
+    'tracker_url': 'https://projects.blender.org/tracker/index.php?'\
+        'func=detail&aid=22327&group_id=153&atid=468',
     'description': 'this script simplifies curves',
     'category': 'Add Curve'}
 ####################################################

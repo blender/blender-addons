@@ -14,6 +14,8 @@ bl_addon_info = {
     'description': 'Add a Regular Solid mesh.',
     'wiki_url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/' \
         'Scripts/Add_Mesh/Add_Solid',
+    'tracker_url': 'https://projects.blender.org/tracker/index.php?'\
+        'func=detail&aid=22405&group_id=153&atid=469',
     'category': 'Add Mesh'}
 
 # Stores the values of a list of properties and the

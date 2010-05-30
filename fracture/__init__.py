@@ -26,6 +26,8 @@ bl_addon_info = {
     'description': 'Fractured Object, Bomb, Projectile, Recorder',
     'wiki_url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/' \
         'Scripts/Object/Fracture',
+    'tracker_url': 'https://projects.blender.org/tracker/index.php?'\
+        'func=detail&aid=21793&group_id=153&atid=469',
     'category': 'Object'}
 
 

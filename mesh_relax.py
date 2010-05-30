@@ -30,6 +30,8 @@ bl_addon_info = {
     'description': 'Relax the selected verts while retaining the shape',
     'wiki_url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/' \
 	    'Scripts/Modeling/Relax',
+    'tracker_url': 'https://projects.blender.org/tracker/index.php?'\
+        'func=detail&aid=21421&group_id=153&atid=469',
     'category': 'Mesh'}
 
 """

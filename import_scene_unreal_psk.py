@@ -19,7 +19,10 @@ bl_addon_info = {
     'blender': (2, 5, 3),
     'location': 'File > Import ',
     'description': 'Import Unreal Engine (.psk)',
-    'wiki_url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/Scripts/File_I-O/Unreal_psk_psa',
+    'wiki_url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/'\
+        'Scripts/File_I-O/Unreal_psk_psa',
+    'tracker_url': 'https://projects.blender.org/tracker/index.php?'\
+        'func=detail&aid=21366&group_id=153&atid=469',
     'category': 'Import/Export'}
 
 """

@@ -27,6 +27,8 @@ bl_addon_info = {
     'description': 'Draw meshes and re-topologies with Grease Pencil',
     'wiki_url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/' \
         'Scripts/Mesh/Surface_Sketch',
+    'tracker_url': 'https://projects.blender.org/tracker/index.php?'\
+        'func=detail&aid=22062&group_id=153&atid=469',
     'category': 'Mesh'}
 
 

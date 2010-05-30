@@ -28,6 +28,8 @@ bl_addon_info = {
 	'description': 'Import files in the MakeHuman eXchange format (.mhx)',
 	'wiki_url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/' \
         'Scripts/File_I-O/Make_Human',
+    'tracker_url': 'https://projects.blender.org/tracker/index.php?'\
+        'func=detail&aid=21872&group_id=153&atid=469',
 	'category': 'Import/Export'}
 
 """

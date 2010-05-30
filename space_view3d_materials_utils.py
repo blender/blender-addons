@@ -31,7 +31,9 @@ bl_addon_info = {
     'description': 'Menu of material tools (assign, select by etc)  in the 3D View',
     'wiki_url':
     'http://wiki.blender.org/index.php/Extensions:2.5/Py/' \
-        'Scripts',  # @todo Create wiki page and fix this link.
+        'Scripts/3D interaction/Materials Utils',
+    'tracker_url': 'https://projects.blender.org/tracker/index.php?'\
+        'func=detail&aid=22140&group_id=153&atid=469',
     'category': '3D View'}
 "a menu of material tools"
 

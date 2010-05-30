@@ -31,6 +31,8 @@ bl_addon_info = {
     'description': 'Create Objects using Math Formulas',
     'wiki_url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/' \
         'Scripts/Add_Mesh/Add_3d_Function_Surface',
+    'tracker_url': 'https://projects.blender.org/tracker/index.php?'\
+        'func=detail&aid=21444&group_id=153&atid=469',
     'category': 'Add Mesh'}
 
 # More Links:

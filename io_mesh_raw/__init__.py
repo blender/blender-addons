@@ -25,6 +25,8 @@ bl_addon_info = {
     'description': 'Import Raw Faces (.raw format)',
     'wiki_url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/' \
 	    'Scripts/File_I-O/Raw_Mesh_IO',
+    'tracker_url': 'https://projects.blender.org/tracker/index.php?'\
+        'func=detail&aid=21733&group_id=153&atid=469',
     'category': 'Import/Export'}
 
 import bpy

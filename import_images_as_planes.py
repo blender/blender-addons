@@ -53,11 +53,13 @@ bl_addon_info = {
     'version': '0.7',
     'blender': (2, 5, 2),
     'location': 'File > Import > Images as Planes',
-    'wiki_url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/' \
-        'Scripts/Add_Mesh/Planes_from_Images',
     'description': 'Imports images and creates planes' \
         ' with the appropiate aspect ratio.' \
         ' The images are mapped to the planes.',
+    'wiki_url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/' \
+        'Scripts/Add_Mesh/Planes_from_Images',
+    'tracker_url': 'https://projects.blender.org/tracker/index.php?'\
+        'func=detail&aid=21751&group_id=153&atid=469',
     'category': 'Import/Export'}
 
 import bpy
