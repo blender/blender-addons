@@ -27,7 +27,7 @@ bl_addon_info = {
     'author': 'JayDez, sim88, meta-androcto',
     'version': '1.3',
     'blender': (2, 5, 3),
-    'location': 'View3D > Mouse > Menu ',
+    'location': 'View3D > Spacebar',
     'description': 'Context sensitive spacebar menu',
     'wiki_url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/' \
         'Scripts/3D_interaction/Dynamic_Spacebar_Menu',
