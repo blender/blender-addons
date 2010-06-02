@@ -202,7 +202,7 @@ def getImage(path):
     # Check every Image if it is already there.
     for image in bpy.data.images:
         # If image with same path exists take that one.
-        if image.filename == path:
+        if image.filepath == path:
             img = image
 
     # Else create new Image and load from path.
@@ -210,7 +210,7 @@ def getImage(path):
         name = path.rpartition('\\')[2].rpartition('.')[0]
         img = bpy.data.images.new(name)
         img.source = 'FILE'
-        img.filename = path
+        img.filepath = path
 
     return img
 
@@ -247,7 +247,7 @@ def getTexture(path, img):
         # If an (image)texture with image exists, take that one...
         if (texture.type == 'IMAGE'
             and texture.image
-            and texture.image.filename == path):
+            and texture.image.filepath == path):
             tex = texture
 
     # ... otherwise create a new one and apply mapping.
@@ -303,7 +303,7 @@ def main(filePath, options, mapping, dimension):
     images = []
     scene = bpy.context.scene
 
-    # If "Create from Directory" (no filename or checkbox) ####
+    # If "Create from Directory" (no filepath or checkbox) ####
     if options['dir'] or not filePath[1]:
         imageFiles = getImageFilesInDirectory(filePath[2], options['ext'])
 
@@ -318,7 +318,7 @@ def main(filePath, options, mapping, dimension):
         # Assign/get all things.
         for img in images:
             # Create/get Texture
-            tex = getTexture(img.filename, img)
+            tex = getTexture(img.filepath, img)
 
             # Create/get Material
             mat = getMaterial(tex, mapping)
@@ -338,7 +338,7 @@ def main(filePath, options, mapping, dimension):
             plane.selected = True
             scene.objects.active = plane
 
-    # If "Create Single Plane" (filename and is image)
+    # If "Create Single Plane" (filepath and is image)
     else:
         # Deselect all objects.
         bpy.ops.object.select_all(action='DESELECT')

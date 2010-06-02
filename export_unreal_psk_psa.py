@@ -1502,7 +1502,7 @@ class ExportUDKAnimData(bpy.types.Operator):
 def menu_func(self, context):
 	bpy.context.scene.unrealexportpsk = True
 	bpy.context.scene.unrealexportpsa = True
-	default_path = bpy.data.filename.replace(".blend", ".psk")
+	default_path = bpy.data.filepath.replace(".blend", ".psk")
 	self.layout.operator ("export.udk_anim_data", text="Skeleton Mesh / Animation Data (.psk/.psa)").path = default_path
 
 class VIEW3D_PT_unrealtools_objectmode(bpy.types.Panel):
@@ -1567,7 +1567,7 @@ class OBJECT_OT_UnrealExport(bpy.types.Operator):
 			bpy.context.scene.unrealexportpsk = True
 			bpy.context.scene.unrealexportpsa = True
 			print("Exporting ALL...")
-		default_path = bpy.data.filename.replace(".blend", ".psk")
+		default_path = bpy.data.filepath.replace(".blend", ".psk")
 		fs_callback(default_path, bpy.context, False)
 		self.report({'WARNING', 'INFO'}, exportmessage)
 		return{'FINISHED'}	

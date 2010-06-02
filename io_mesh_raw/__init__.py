@@ -39,7 +39,7 @@ def menu_import(self, context):
 
 def menu_export(self, context):
     from io_mesh_raw import export_raw
-    default_path = bpy.data.filename.replace(".blend", ".raw")
+    default_path = bpy.data.filepath.replace(".blend", ".raw")
     self.layout.operator(export_raw.RawExporter.bl_idname, text="Raw Faces (.raw)").path = default_path
 
 

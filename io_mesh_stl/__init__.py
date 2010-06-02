@@ -133,7 +133,7 @@ def menu_import(self, context):
 
 
 def menu_export(self, context):
-    default_path = bpy.data.filename.replace(".blend", ".stl")
+    default_path = bpy.data.filepath.replace(".blend", ".stl")
     self.layout.operator(StlExporter.bl_idname,
                          text="Stl (.stl)").path = default_path
 

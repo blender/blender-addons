@@ -145,7 +145,7 @@ class CameraExporter(bpy.types.Operator):
 
 
 def menu_export(self, context):
-    default_path = bpy.data.filename.replace(".blend", ".py")
+    default_path = bpy.data.filepath.replace(".blend", ".py")
     self.layout.operator(CameraExporter.bl_idname, text="Cameras & Markers (.py)").path = default_path
 
 
