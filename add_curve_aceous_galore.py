@@ -836,7 +836,7 @@ class Curveaceous_galore(bpy.types.Operator):
                     description="End angle")
     arcType = IntProperty(name="Arc type",
                     default=3,
-                    min=3, soft_min=3,
+                    min=1, soft_min=1,
                     max=3, soft_max=3,
                     description="Sides of arc")
 
@@ -961,7 +961,7 @@ class Curveaceous_galore(bpy.types.Operator):
             box.prop(props, 'outerRadius')
         if props.GalloreType == 'Arc':
             box.prop(props, 'arcSides')
-            #box.prop(props, 'arcType') # has only one Type?
+            box.prop(props, 'arcType') # has only one Type?
             box.prop(props, 'startAngle')
             box.prop(props, 'endAngle')
             box.prop(props, 'innerRadius') # doesn't seem to do anything
