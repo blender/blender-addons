@@ -835,9 +835,9 @@ class Curveaceous_galore(bpy.types.Operator):
                     default=90.0,
                     description="End angle")
     arcType = IntProperty(name="Arc type",
-                    default=2,
-                    min=1, soft_min=2,
-                    max=2, soft_max=2,
+                    default=3,
+                    min=3, soft_min=3,
+                    max=3, soft_max=3,
                     description="Sides of arc")
 
     #### Cogwheel properties
@@ -964,7 +964,7 @@ class Curveaceous_galore(bpy.types.Operator):
             #box.prop(props, 'arcType') # has only one Type?
             box.prop(props, 'startAngle')
             box.prop(props, 'endAngle')
-            #box.prop(props, 'innerRadius') # doesn't seem to do anything
+            box.prop(props, 'innerRadius') # doesn't seem to do anything
             box.prop(props, 'outerRadius')
         if props.GalloreType == 'Cogwheel':
             box.prop(props, 'teeth')
