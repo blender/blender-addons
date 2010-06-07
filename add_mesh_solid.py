@@ -18,26 +18,6 @@ bl_addon_info = {
         'func=detail&aid=22405&group_id=153&atid=469',
     'category': 'Add Mesh'}
 
-# Stores the values of a list of properties and the
-# operator id in a property group ('recall_op') inside the object.
-# Could (in theory) be used for non-objects.
-# Note: Replaces any existing property group with the same name!
-# ob ... Object to store the properties in.
-# op ... The operator that should be used.
-# op_args ... A dictionary with valid Blender
-#             properties (operator arguments/parameters).
-def store_recall_properties(ob, op, op_args):
-    if ob and op and op_args:
-        recall_properties = {}
-
-        # Add the operator identifier and op parameters to the properties.
-        recall_properties['op'] = op.bl_idname
-        recall_properties['args'] = op_args
-
-        # Store new recall properties.
-        ob['recall'] = recall_properties
-
-
 # Apply view rotation to objects if "Align To" for
 # new objects was set to "VIEW" in the User Preference.
 def apply_object_align(context, ob):
@@ -793,17 +773,6 @@ class Solids(bpy.types.Operator):
             bpy.ops.mesh.select_all(action='SELECT')
             bpy.ops.mesh.normals_make_consistent()
             bpy.ops.object.mode_set(mode=current_mode)
-
-        # store recall properties in object
-        recall_args_list = {
-                "edit": True,
-                "source" : props.source,
-                "size" : props.size,
-                "vTrunc": props.vTrunc,
-                "eTrunc": props.eTrunc,
-                "dual": props.dual,
-                "snub": props.snub}
-        store_recall_properties(obj,self,recall_args_list)
 
         # turn undo back on
         bpy.context.user_preferences.edit.global_undo = True 

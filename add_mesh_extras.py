@@ -34,26 +34,6 @@ bl_addon_info = {
         'func=detail&aid=22457&group_id=153&atid=469',
     'category': 'Add Mesh'}
 
-# Stores the values of a list of properties and the
-# operator id in a property group ('recall_op') inside the object.
-# Could (in theory) be used for non-objects.
-# Note: Replaces any existing property group with the same name!
-# ob ... Object to store the properties in.
-# op ... The operator that should be used.
-# op_args ... A dictionary with valid Blender
-#             properties (operator arguments/parameters).
-def store_recall_properties(ob, op, op_args):
-    if ob and op and op_args:
-        recall_properties = {}
-
-        # Add the operator identifier and op parameters to the properties.
-        recall_properties['op'] = op.bl_idname
-        recall_properties['args'] = op_args
-
-        # Store new recall properties.
-        ob['recall'] = recall_properties
-
-
 # calculates the matrix for the new object
 # depending on user pref
 def align_matrix(context):
@@ -562,13 +542,6 @@ class AddSqorus(bpy.types.Operator):
         obj = create_mesh_object(context, verts, [], faces, "Sqorus",
             props.edit, self.align_matrix)
 
-        # Store 'recall' properties in the object.
-        recall_args_list = {
-            "edit": True,
-            "hole_size": props.hole_size,
-            "subdivide": props.subdivide}
-        store_recall_properties(obj, self, recall_args_list)
-
         return {'FINISHED'}
 
     def invoke(self, context, event):
@@ -614,14 +587,6 @@ class AddWedge(bpy.types.Operator):
 
         obj = create_mesh_object(context, verts, [], faces, "Wedge",
             props.edit, self.align_matrix)
-
-        # Store 'recall' properties in the object.
-        recall_args_list = {
-            "edit": True,
-            "size_x": props.size_x,
-            "size_y": props.size_y,
-            "size_z": props.size_z}
-        store_recall_properties(obj, self, recall_args_list)
 
         return {'FINISHED'}
 
@@ -676,15 +641,6 @@ class AddSpindle(bpy.types.Operator):
         obj = create_mesh_object(context, verts, [], faces, "Spindle",
             props.edit, self.align_matrix)
 
-        # Store 'recall' properties in the object.
-        recall_args_list = {
-            "edit": True,
-            "segments": props.segments,
-            "radius": props.radius,
-            "height": props.height,
-            "cap_height": props.cap_height}
-        store_recall_properties(obj, self, recall_args_list)
-
         return {'FINISHED'}
 
     def invoke(self, context, event):
@@ -737,15 +693,6 @@ class AddStar(bpy.types.Operator):
         obj = create_mesh_object(context, verts, [], faces, "Star",
             props.edit, self.align_matrix)
 
-        # Store 'recall' properties in the object.
-        recall_args_list = {
-            "edit": True,
-            "points": props.points,
-            "outer_radius": props.outer_radius,
-            "innter_radius": props.innter_radius,
-            "height": props.height}
-        store_recall_properties(obj, self, recall_args_list)
-
         return {'FINISHED'}
 
     def invoke(self, context, event):
@@ -783,14 +730,6 @@ class AddTrapezohedron(bpy.types.Operator):
         
         obj = create_mesh_object(context, verts, [], faces, "Trapazohedron",
             props.edit, self.align_matrix)
-        
-        # store recall properties in object
-        recall_args_list = {
-                "edit": True,
-                "segments" : props.segments,
-                "radius" : props.radius,
-                "height": props.height}
-        store_recall_properties(obj,self,recall_args_list)
 
         return {'FINISHED'}
 

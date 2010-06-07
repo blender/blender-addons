@@ -120,16 +120,6 @@ safe_dict = dict([(k, globals().get(k, None)) for k in safe_list])
 # op ... The operator that should be used.
 # op_args ... A dictionary with valid Blender
 #             properties (operator arguments/parameters).
-def store_recall_properties(ob, op, op_args):
-    if ob and op and op_args:
-        recall_properties = {}
-
-        # Add the operator identifier and op parameters to the properties.
-        recall_properties['op'] = op.bl_idname
-        recall_properties['args'] = op_args
-
-        # Store new recall properties.
-        ob['recall'] = recall_properties
 
 
 # calculates the matrix for the new object
@@ -405,16 +395,6 @@ class AddZFunctionSurface(bpy.types.Operator):
 
         obj = create_mesh_object(context, verts, [], faces, "Z Function", edit, self.align_matrix)
 
-        # Store 'recall' properties in the object.
-        recall_args_list = {
-            "edit": True,
-            "equation": equation,
-            "div_x": div_x,
-            "div_y": div_y,
-            "size_x": size_x,
-            "size_y": size_y}
-        store_recall_properties(obj, self, recall_args_list)
-
         return {'FINISHED'}
 
     def invoke(self, context, event):
@@ -619,22 +599,6 @@ class AddXYZFunctionSurface(bpy.types.Operator):
 
         obj = create_mesh_object(context, verts, [], faces,
             "XYZ Function", props.edit, self.align_matrix)
-
-        # Store 'recall' properties in the object.
-        recall_args_list = {
-            "edit": True,
-            "x_eq": props.x_eq,
-            "y_eq": props.y_eq,
-            "z_eq": props.z_eq,
-            "range_u_min": props.range_u_min,
-            "range_u_max": props.range_u_max,
-            "range_u_step": props.range_u_step,
-            "wrap_u": props.wrap_u,
-            "range_v_min": props.range_v_min,
-            "range_v_max": props.range_v_max,
-            "range_v_step": props.range_v_step,
-            "wrap_v": props.wrap_v}
-        store_recall_properties(obj, self, recall_args_list)
 
         return {'FINISHED'}
 

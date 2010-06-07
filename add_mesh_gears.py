@@ -82,26 +82,6 @@ def align_matrix(context):
     align_matrix = loc * rot
     return align_matrix
 
-# Stores the values of a list of properties and the
-# operator id in a property group ('recall_op') inside the object.
-# Could (in theory) be used for non-objects.
-# Note: Replaces any existing property group with the same name!
-# ob ... Object to store the properties in.
-# op ... The operator that should be used.
-# op_args ... A dictionary with valid Blender
-#             properties (operator arguments/parameters).
-def store_recall_properties(ob, op, op_args):
-    if ob and op and op_args:
-        recall_properties = {}
-
-        # Add the operator identifier and op parameters to the properties.
-        recall_properties['op'] = op.bl_idname
-        recall_properties['args'] = op_args
-
-        # Store new recall properties.
-        ob['recall'] = recall_properties
-
-
 # Create a new mesh (object) from verts/edges/faces.
 # verts/edges/faces ... List of vertices/edges/faces for the
 #                       new mesh (as used in from_pydata).
@@ -805,21 +785,6 @@ class AddGear(bpy.types.Operator):
         # Actually create the mesh object from this geometry data.
         obj = create_mesh_object(context, verts, [], faces, "Gear", props.edit, self.align_matrix)
 
-        # Store 'recall' properties in the object.
-        recall_args_list = {
-            "edit": True,
-            "number_of_teeth": props.number_of_teeth,
-            "radius": props.radius,
-            "addendum": props.addendum,
-            "dedendum": props.dedendum,
-            "angle": props.angle,
-            "base": props.base,
-            "width": props.width,
-            "skew": props.skew,
-            "conangle": props.conangle,
-            "crown": props.crown}
-        store_recall_properties(obj, self, recall_args_list)
-
         # Create vertex groups from stored vertices.
         tipGroup = obj.add_vertex_group('Tips')
         for vert in verts_tip:
@@ -927,20 +892,6 @@ class AddWormGear(bpy.types.Operator):
         # Actually create the mesh object from this geometry data.
         obj = create_mesh_object(context, verts, [], faces, "Worm Gear",
             props.edit, self.align_matrix)
-
-        # Store 'recall' properties in the object.
-        recall_args_list = {
-            "edit": True,
-            "number_of_teeth": props.number_of_teeth,
-            "number_of_rows": props.number_of_rows,
-            "radius": props.radius,
-            "addendum": props.addendum,
-            "dedendum": props.dedendum,
-            "angle": props.angle,
-            "row_height": props.row_height,
-            "skew": props.skew,
-            "crown": props.crown}
-        store_recall_properties(obj, self, recall_args_list)
 
         # Create vertex groups from stored vertices.
         tipGroup = obj.add_vertex_group('Tips')

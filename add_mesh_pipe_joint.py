@@ -124,27 +124,6 @@ rotation_matrix = mathutils.RotationMatrix(-math.pi/2, 4, 'x')
 mesh.transform(rotation_matrix)
 """
 
-
-# Stores the values of a list of properties and the
-# operator id in a property group ('recall_op') inside the object.
-# Could (in theory) be used for non-objects.
-# Note: Replaces any existing property group with the same name!
-# ob ... Object to store the properties in.
-# op ... The operator that should be used.
-# op_args ... A dictionary with valid Blender
-#             properties (operator arguments/parameters).
-def store_recall_properties(ob, op, op_args):
-    if ob and op and op_args:
-        recall_properties = {}
-
-        # Add the operator identifier and op parameters to the properties.
-        recall_properties['op'] = op.bl_idname
-        recall_properties['args'] = op_args
-
-        # Store new recall properties.
-        ob['recall'] = recall_properties
-
-
 # Apply view rotation to objects if "Align To" for
 # new objects was set to "VIEW" in the User Preference.
 # Is now handled in the invoke functions
@@ -422,17 +401,6 @@ class AddElbowJoint(bpy.types.Operator):
 
         obj = create_mesh_object(context, verts, [], faces,
             "Elbow Joint", edit, self.align_matrix)
-
-        # Store 'recall' properties in the object.
-        recall_args_list = {
-            "edit": True,
-            "radius": radius,
-            "div": div,
-            "angle": angle,
-            "startLength": startLength,
-            "endLength": endLength}
-        store_recall_properties(obj, self, recall_args_list)
-
         return {'FINISHED'}
 
     def invoke(self, context, event):
@@ -623,17 +591,6 @@ class AddTeeJoint(bpy.types.Operator):
         faces.extend(createFaces(loopJoint3, loopMainEnd, closed=True))
 
         obj = create_mesh_object(context, verts, [], faces, "Tee Joint", edit, self.align_matrix)
-
-        # Store 'recall' properties in the object.
-        recall_args_list = {
-            "edit": True,
-            "radius": radius,
-            "div": div,
-            "angle": angle,
-            "startLength": startLength,
-            "endLength": endLength,
-            "branchLength": branchLength}
-        store_recall_properties(obj, self, recall_args_list)
 
         return {'FINISHED'}
 
@@ -840,18 +797,6 @@ class AddWyeJoint(bpy.types.Operator):
         faces.extend(createFaces(loopJoint3, loopArm2, closed=True))
 
         obj = create_mesh_object(context, verts, [], faces, "Wye Joint", edit, self.align_matrix)
-
-        # Store 'recall' properties in the object.
-        recall_args_list = {
-            "edit": True,
-            "radius": radius,
-            "div": div,
-            "angle1": angle1,
-            "angle2": angle2,
-            "startLength": startLength,
-            "branch1Length": branch1Length,
-            "branch2Length": branch2Length}
-        store_recall_properties(obj, self, recall_args_list)
 
         return {'FINISHED'}
 
@@ -1121,20 +1066,6 @@ class AddCrossJoint(bpy.types.Operator):
         obj = create_mesh_object(context, verts, [], faces,
             "Cross Joint", edit, self.align_matrix)
 
-        # Store 'recall' properties in the object.
-        recall_args_list = {
-            "edit": True,
-            "radius": radius,
-            "div": div,
-            "angle1": angle1,
-            "angle2": angle2,
-            "angle3": angle3,
-            "startLength": startLength,
-            "branch1Length": branch1Length,
-            "branch2Length": branch2Length,
-            "branch3Length": branch3Length}
-        store_recall_properties(obj, self, recall_args_list)
-
         return {'FINISHED'}
 
     def invoke(self, context, event):
@@ -1303,15 +1234,6 @@ class AddNJoint(bpy.types.Operator):
                 loopsEndCircles[loopIdx], closed=True))
 
         obj = create_mesh_object(context, verts, [], faces, "N Joint", edit, self.align_matrix)
-
-        # Store 'recall' properties in the object.
-        recall_args_list = {
-            "edit": True,
-            "radius": radius,
-            "div": div,
-            "number": number,
-            "length": length}
-        store_recall_properties(obj, self, recall_args_list)
 
         return {'FINISHED'}
 
