@@ -101,17 +101,27 @@ def binom(n, m):
 def getDerivative(verts, t, nth):
     order = len(verts) - 1 - nth
     QVerts = []
-    for i in range(nth):
-        if QVerts:
-            verts = QVerts
-        derivVerts = []
-        for i in range(len(verts)-1):
-            derivVerts.append(verts[i+1] - verts[i])
-        QVerts = derivVerts
-    point = mathutils.Vector((0, 0, 0))
+
+    if nth:
+        for i in range(nth):
+            if QVerts:
+                verts = QVerts
+            derivVerts = []
+            for i in range(len(verts)-1):
+                derivVerts.append(verts[i+1] - verts[i])
+            QVerts = derivVerts
+    else:
+        QVerts = verts
+
+    if len(verts[0]) == 3:
+        point = mathutils.Vector((0, 0, 0))
+    if len(verts[0]) == 2:
+        point = mathutils.Vector((0, 0))
+
     for i, vert in enumerate(QVerts):
         point += binom(order, i) * math.pow(t, i) * math.pow(1-t, order-i) * vert
     deriv = point
+
     return deriv
 
 # get curvature from first, second derivative
@@ -232,7 +242,6 @@ def main(context, obj, options):
             
             # get vec3 list to simplify
             if spline.type == 'BEZIER': # get bezierverts
-                splineVerts = spline.bezier_points.values()
                 splineVerts = [splineVert.co.copy()
                                 for splineVert in spline.bezier_points.values()]
 
@@ -400,14 +409,21 @@ class GRAPH_OT_simplify(bpy.types.Operator):
             box.prop(props, 'dis_error', expand=True)
         col = layout.column()
 
-    ## Check for curve
+    ## Check for animdata
     def poll(self, context):
-        objs = context.selected_objects
-        return (objs)
+        obj = context.active_object
+        fcurves = False
+        if obj:
+            animdata = obj.animation_data
+            if animdata:
+                act = animdata.action
+                if act:
+                    fcurves = act.fcurves
+        return (obj and fcurves)
 
     ## execute
     def execute(self, context):
-        print("------START------")
+        #print("------START------")
 
         options = [
                 self.properties.mode,       #0
@@ -425,7 +441,7 @@ class GRAPH_OT_simplify(bpy.types.Operator):
         
         fcurves_simplify(context, obj, options, self.fcurves)
 
-        print("-------END-------")
+        #print("-------END-------")
         return {'FINISHED'}
 
 ###########################
