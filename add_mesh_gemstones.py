@@ -29,7 +29,7 @@ bl_addon_info = {
     'location': 'View3D > Add > Mesh > Gemstones',
     'description': 'Adds various gemstone (Diamond & Gem) meshes.',
     'wiki_url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/' \
-        'Scripts/Add_Mesh/Add_Gem',
+        'Scripts/Add_Mesh/Add_Gemstones',
     'tracker_url': 'https://projects.blender.org/tracker/index.php?'\
         'func=detail&aid=21432&group_id=153&atid=469',
     'category': 'Add Mesh'}
