@@ -78,8 +78,8 @@ def simplypoly(splineVerts, options):
     # tested against averaged curvatures and distances of neighbour verts
     newVerts.append(0) # first vert is always kept
     for i, curv in enumerate(curvatures):
-        if (curv > k_thresh*0.1
-        or distances[i] > dis_error*0.1):
+        if (curv >= k_thresh*0.1
+        or distances[i] >= dis_error*0.1):
             newVerts.append(i)
     newVerts.append(len(curvatures)-1) # last vert is always kept
 
@@ -366,18 +366,18 @@ class GRAPH_OT_simplify(bpy.types.Operator):
                             items=opModes)
     k_thresh = FloatProperty(name="k",
                             min=0, soft_min=0,
-                            default=0,
+                            default=0, precision=3,
                             description="threshold")
     pointsNr = IntProperty(name="n",
                             min=5, soft_min=5,
                             max=16, soft_max=9,
                             default=5,
                             description="degree of curve to get averaged curvatures")
-    error = FloatProperty(name="error in Bu",
-                            description="maximum error in Blenderunits to allow - distance",
+    error = FloatProperty(name="error",
+                            description="maximum error to allow - distance",
                             min=0.0,
                             soft_min=0.0,
-                            default=0.001)
+                            default=0.00, precision=3)
     degreeOut = IntProperty(name="degree",
                             min=3, soft_min=3,
                             max=7, soft_max=7,
@@ -386,15 +386,15 @@ class GRAPH_OT_simplify(bpy.types.Operator):
     dis_error = FloatProperty(name="distance error",
                             description="maximum error in Blenderunits to allow - distance",
                             min=0, soft_min=0,
-                            default=0.0)
+                            default=0.0, precision=3)
     fcurves = []
 
     def draw(self, context):
         props = self.properties
         layout = self.layout
         col = layout.column()
-        #col.label('Mode:')
-        #col.prop(props, 'mode', expand=True)
+        col.label('Mode:')
+        col.prop(props, 'mode', expand=True)
         if self.properties.mode == 'distance':
             box = layout.box()
             box.label(props.mode, icon='ARROW_LEFTRIGHT')
