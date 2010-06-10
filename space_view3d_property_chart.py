@@ -86,7 +86,7 @@ class View3DEditProps(bpy.types.Panel):
                     if val_new is not Ellipsis:
                         row.prop(val_old, attrs[-1], text="")
                     else:
-                        row.label(text="")
+                        row.label(text="<unknown>")
         
         col.label(text="Display Properties")
         col.prop(id_storage, '["%s"]' % self._PROP_STORAGE_ID, text="")
