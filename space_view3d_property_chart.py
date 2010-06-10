@@ -62,6 +62,19 @@ class View3DEditProps(bpy.types.Panel):
             strings = id_storage[self._PROP_STORAGE_ID] = ""
 
         if strings:
+            
+            def obj_prop_get(obj, attr_string):
+                """return a pair (rna_base, "rna_property") to give to the rna UI property function"""
+                attrs = attr_string.split(".")
+                val_new = obj
+                for i, attr in enumerate(attrs):
+                    val_old = val_new
+                    val_new = getattr(val_old, attr, Ellipsis)
+                    
+                    if val_new == Ellipsis:
+                        return None, None                        
+                return val_old, attrs[-1]
+
             strings = strings.split()
 
             prop_all = []
@@ -70,31 +83,21 @@ class View3DEditProps(bpy.types.Panel):
                 prop_pairs = []
                 prop_found = False
                 for attr_string in strings:
-                    attrs = attr_string.split(".")
-                    val_new = obj
-                    for i, attr in enumerate(attrs):
-                        val_old = val_new
-                        val_new = getattr(val_old, attr, Ellipsis)
-                        
-                        if val_new == Ellipsis:
-                            break
-
-                    if val_new is not Ellipsis:
-                        prop_pairs.append((val_old, attrs[-1]))
+                    prop_pairs.append(obj_prop_get(obj, attr_string))
+                    if prop_found == False and prop_pairs[-1] != (None, None): 
                         prop_found = True
-                    else:
-                        prop_pairs.append(None)
-                
+
                 if prop_found:
                     prop_all.append((obj, prop_pairs))
 
-            # now we built a list of props, display them all
+
+            # Collected all props, now display them all
             row = layout.row()
 
             col = row.column()
-            col.label(text="")
+            col.label(text="name")
             for obj, prop_pairs in prop_all:
-                col.label(text=obj.name)
+                col.prop(obj, "name", text="")
 
             for i in range(len(strings)):
                 col = row.column()
@@ -105,11 +108,8 @@ class View3DEditProps(bpy.types.Panel):
                         col.prop(pair[0], pair[1], text="")
                     else:
                         col.label(text="<missing>")
-            
-            #row = col.row(align=True)
-            #for attr_string in strings:
-            #    row.label(text=attr_string.rsplit(".", 1)[-1])
-        
+
+        # edit the display props
         col = layout.column()
         col.label(text="Display Properties")
         col.prop(id_storage, '["%s"]' % self._PROP_STORAGE_ID, text="")
