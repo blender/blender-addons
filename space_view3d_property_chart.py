@@ -21,12 +21,17 @@
 '''List properties of selected objects'''
 
 bl_addon_info = {
-    "name": "3D View: Object Property Chart",
-    "author": "Campbell Barton (ideasman42)",
-    "version": "0.1",
-    "blender": (2, 5, 3),
-    "location": "Tool Shelf",
-    "description": "Edit arbitrary selected properties for objects of the same type"}
+    'name': '3D View: Object Property Chart',
+    'author': 'Campbell Barton (ideasman42)',
+    'version': '0.1',
+    'blender': (2, 5, 3),
+    'location': 'Tool Shelf',
+    'description': 'Edit arbitrary selected properties for objects of the same type',
+    'wiki_url':
+    'http://wiki.blender.org/index.php/Extensions:2.5/Py/' \
+        'Scripts/',
+    'tracker_url': 'https://projects.blender.org/projects/bf-extensions/',
+    'category': '3D View'}
 
 import bpy
 
@@ -114,7 +119,7 @@ class View3DEditProps(bpy.types.Panel):
         col.label(text="Display Properties")
         col.prop(id_storage, '["%s"]' % self._PROP_STORAGE_ID, text="")
 
-
+	
 def register():
     bpy.types.register(View3DEditProps)
 
