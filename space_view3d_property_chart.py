@@ -47,14 +47,12 @@ class View3DEditProps(bpy.types.Panel):
         if obj is None:
             return
 
-        obj_type_sel = [obj_sel for obj_sel in context.selected_objects if obj.type == obj_sel.type]
+        selected_objects = context.selected_objects
 
-        if not obj_type_sel:
+        if not selected_objects:
             return
 
         # box = layout.separator()
-        
-        col = layout.column()
         
         id_storage = context.scene
         
@@ -66,16 +64,12 @@ class View3DEditProps(bpy.types.Panel):
         if strings:
             strings = strings.split()
 
-            row = col.row(align=True)
-            row.label(text="         ")
-            for attr_string in strings:
-                row.label(text=attr_string.rsplit(".", 1)[-1])
+            prop_all = []
 
-            for obj in obj_type_sel:
-                row = col.row(align=True)
-                row.label(text=obj.name)
+            for obj in selected_objects:
+                prop_pairs = []
+                prop_found = False
                 for attr_string in strings:
-
                     attrs = attr_string.split(".")
                     val_new = obj
                     for i, attr in enumerate(attrs):
@@ -86,10 +80,37 @@ class View3DEditProps(bpy.types.Panel):
                             break
 
                     if val_new is not Ellipsis:
-                        row.prop(val_old, attrs[-1], text="")
+                        prop_pairs.append((val_old, attrs[-1]))
+                        prop_found = True
                     else:
-                        row.label(text="<unknown>")
+                        prop_pairs.append(None)
+                
+                if prop_found:
+                    prop_all.append((obj, prop_pairs))
+
+            # now we built a list of props, display them all
+            row = layout.row()
+
+            col = row.column()
+            col.label(text="")
+            for obj, prop_pairs in prop_all:
+                col.label(text=obj.name)
+
+            for i in range(len(strings)):
+                col = row.column()
+                col.label(text=strings[i].rsplit(".", 1)[-1])
+                for obj, prop_pairs in prop_all:
+                    pair = prop_pairs[i]
+                    if pair:
+                        col.prop(pair[0], pair[1], text="")
+                    else:
+                        col.label(text="<missing>")
+            
+            #row = col.row(align=True)
+            #for attr_string in strings:
+            #    row.label(text=attr_string.rsplit(".", 1)[-1])
         
+        col = layout.column()
         col.label(text="Display Properties")
         col.prop(id_storage, '["%s"]' % self._PROP_STORAGE_ID, text="")
 
