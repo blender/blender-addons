@@ -142,6 +142,9 @@ def altitude(point1, point2, pointn):
     if edge2.length == 0:
         altitude = 0
         return altitude
+    if edge1.length == 0:
+        altitude = edge2.length
+        return altitude
     alpha = edge1.angle(edge2)
     altitude = math.sin(alpha) * edge2.length
     return altitude
