@@ -64,7 +64,7 @@ class View3DEditProps(bpy.types.Panel):
         strings = id_storage.get(self._PROP_STORAGE_ID)
         
         if strings is None:
-            strings = id_storage[self._PROP_STORAGE_ID] = ""
+            strings = id_storage[self._PROP_STORAGE_ID] = "data data.name"
 
         if strings:
             
@@ -108,15 +108,15 @@ class View3DEditProps(bpy.types.Panel):
                 col = row.column()
                 col.label(text=strings[i].rsplit(".", 1)[-1])
                 for obj, prop_pairs in prop_all:
-                    pair = prop_pairs[i]
-                    if pair:
-                        col.prop(pair[0], pair[1], text="")
+                    data, attr = prop_pairs[i]
+                    if data:
+                        col.prop(data, attr, text="")
                     else:
                         col.label(text="<missing>")
 
         # edit the display props
         col = layout.column()
-        col.label(text="Display Properties")
+        col.label(text="Object Properties")
         col.prop(id_storage, '["%s"]' % self._PROP_STORAGE_ID, text="")
 
 	
