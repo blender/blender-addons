@@ -53,12 +53,14 @@ class AlignUi(View3DPanel):
 
         if obj != None:
             row = layout.row()
-            row.label(text="Active object is: " + obj.name, icon='OBJECT_DATA')
+            row.label(text="Active object is: ", icon='OBJECT_DATA')
+            row = layout.row()
+            row.label(obj.name, icon='EDITMODE_HLT')
         
         box = layout.separator()
         
         col = layout.column()
-        col.label(text="Align Location and Rotation:", icon='MANIPUL')
+        col.label(text="Align Loc + Rot:", icon='MANIPUL')
 
         
         col = layout.column(align=False)
