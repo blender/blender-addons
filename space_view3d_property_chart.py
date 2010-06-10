@@ -67,11 +67,13 @@ class View3DEditProps(bpy.types.Panel):
             strings = strings.split()
 
             row = col.row(align=True)
+            row.label(text="         ")
             for attr_string in strings:
                 row.label(text=attr_string.rsplit(".", 1)[-1])
 
             for obj in obj_type_sel:
                 row = col.row(align=True)
+                row.label(text=obj.name)
                 for attr_string in strings:
 
                     attrs = attr_string.split(".")
