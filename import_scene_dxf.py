@@ -23,7 +23,7 @@ bl_addon_info = {
 	'blender': (2, 5, 3),
 	'location': 'File > Import',
 	'description': 'Import files in the Autocad DXF format (.dxf)',
-	'url': 'http://www.makehuman.org',
+	'url': 'http://wiki.blender.org/index.php/Extensions:Py/Scripts',
 	'category': 'Import/Export'}
 
 """
