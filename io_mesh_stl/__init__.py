@@ -57,7 +57,7 @@ class StlImporter(bpy.types.Operator):
     bl_idname = "import_mesh.stl"
     bl_label = "Import STL"
 
-    path = StringProperty(name="File Path",
+    filepath = StringProperty(name="File Path",
                           description="File path used for importing "
                                       "the STL file",
                           maxlen=1024,
@@ -69,7 +69,7 @@ class StlImporter(bpy.types.Operator):
 
     def execute(self, context):
         objName = bpy.utils.display_name(self.properties.filename)
-        tris, pts = stl_utils.read_stl(self.properties.path)
+        tris, pts = stl_utils.read_stl(self.properties.filepath)
 
         blender_utils.create_and_link_mesh(objName, tris, pts)
 
@@ -89,7 +89,7 @@ class StlExporter(bpy.types.Operator):
     bl_idname = "export_mesh.stl"
     bl_label = "Export STL"
 
-    path = StringProperty(name="File Path",
+    filepath = StringProperty(name="File Path",
                           description="File path used for exporting "
                                       "the active object to STL file",
                           maxlen=1024,
@@ -117,7 +117,7 @@ class StlExporter(bpy.types.Operator):
 
         faces = blender_utils.faces_from_mesh(ob,
                                               self.properties.apply_modifiers)
-        stl_utils.write_stl(self.properties.path, faces, self.properties.ascii)
+        stl_utils.write_stl(self.properties.filepath, faces, self.properties.ascii)
 
         return {'FINISHED'}
 
@@ -129,13 +129,13 @@ class StlExporter(bpy.types.Operator):
 
 def menu_import(self, context):
     self.layout.operator(StlImporter.bl_idname,
-                         text="Stl (.stl)").path = "*.stl"
+                         text="Stl (.stl)").filepath = "*.stl"
 
 
 def menu_export(self, context):
     default_path = bpy.data.filepath.replace(".blend", ".stl")
     self.layout.operator(StlExporter.bl_idname,
-                         text="Stl (.stl)").path = default_path
+                         text="Stl (.stl)").filepath = default_path
 
 
 def register():

@@ -33,12 +33,12 @@ bl_addon_info = {
 import bpy
 
 
-def writeCameras(context, path, frame_start, frame_end, only_selected=False):
+def writeCameras(context, filepath, frame_start, frame_end, only_selected=False):
 
     data_attrs = ['lens', 'shift_x', 'shift_y', 'dof_distance', 'clip_start', 'clip_end', 'draw_size']
     obj_attrs = ['restrict_render']
 
-    fw = open(path, 'w').write
+    fw = open(filepath, 'w').write
 
     scene = bpy.context.scene
 
@@ -118,7 +118,7 @@ class CameraExporter(bpy.types.Operator):
     bl_idname = "export_animation.cameras"
     bl_label = "Export Camera & Markers"
 
-    path = StringProperty(name="File Path", description="File path used for importing the RAW file", maxlen=1024, default="")
+    filepath = StringProperty(name="File Path", description="File path used for importing the RAW file", maxlen=1024, default="")
     filename = StringProperty(name="File Name", description="Name of the file.")
     directory = StringProperty(name="Directory", description="Directory of the file.")
 
@@ -132,7 +132,7 @@ class CameraExporter(bpy.types.Operator):
             default=True)
 
     def execute(self, context):
-        writeCameras(context, self.properties.path, self.properties.frame_start, self.properties.frame_end, self.properties.only_selected)
+        writeCameras(context, self.properties.filepath, self.properties.frame_start, self.properties.frame_end, self.properties.only_selected)
         return {'FINISHED'}
 
     def invoke(self, context, event):
@@ -146,7 +146,7 @@ class CameraExporter(bpy.types.Operator):
 
 def menu_export(self, context):
     default_path = bpy.data.filepath.replace(".blend", ".py")
-    self.layout.operator(CameraExporter.bl_idname, text="Cameras & Markers (.py)").path = default_path
+    self.layout.operator(CameraExporter.bl_idname, text="Cameras & Markers (.py)").filepath = default_path
 
 
 def register():

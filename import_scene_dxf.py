@@ -2025,7 +2025,7 @@ class IMPORT_OT_autocad_dxf(bpy.types.Operator):
 	bl_space_type = "PROPERTIES"
 	bl_region_type = "WINDOW"
 
-	path = StringProperty(name="File Path", description="File path used for importing the DXF file", maxlen= 1024, default= "")
+	filepath = StringProperty(name="File Path", description="Filepath used for importing the DXF file", maxlen= 1024, default= "")
 
 	merge = BoolProperty(name="Remove doubles", description="Merge coincident vertices", default=toggle&T_Merge)
 	mergeLimit = FloatProperty(name="Merge limit", description="Merge limit", default = theMergeLimit*1e4)
@@ -2051,7 +2051,7 @@ class IMPORT_OT_autocad_dxf(bpy.types.Operator):
 		theMergeLimit = self.properties.mergeLimit*1e-4
 		theCodec = self.properties.codec
 
-		readAndBuildDxfFile(self.properties.path)
+		readAndBuildDxfFile(self.properties.filepath)
 		return {'FINISHED'}
 
 	def invoke(self, context, event):

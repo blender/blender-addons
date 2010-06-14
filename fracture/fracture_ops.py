@@ -445,7 +445,7 @@ def import_object(obname):
         #print('import_object: ' + opath)
 
         bpy.ops.wm.link_append(
-                path=opath,
+                filepath=opath,
                 filename=obname,
                 directory=dpath,
                 filemode=1,

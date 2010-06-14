@@ -1087,19 +1087,19 @@ class VIEW3D_MT_edit_TK(bpy.types.Menu):
         prop = layout.operator("wm.context_set_value",
             text="Select By Vertex", icon='VERTEXSEL')
         prop.value = "(True, False, False)"
-        prop.path = "tool_settings.mesh_selection_mode"
+        prop.data_path = "tool_settings.mesh_selection_mode"
         layout.menu("VIEW3D_MT_edit_mesh_vertices", icon='VERTEXSEL')
 
         prop = layout.operator("wm.context_set_value",
             text="Select By Edge", icon='EDGESEL')
         prop.value = "(False, True, False)"
-        prop.path = "tool_settings.mesh_selection_mode"
+        prop.data_path = "tool_settings.mesh_selection_mode"
         layout.menu("VIEW3D_MT_edit_mesh_edges", icon='EDGESEL')
 
         prop = layout.operator("wm.context_set_value",
             text="Select By Face", icon='FACESEL')
         prop.value = "(False, False, True)"
-        prop.path = "tool_settings.mesh_selection_mode"
+        prop.data_path = "tool_settings.mesh_selection_mode"
         layout.menu("VIEW3D_MT_edit_mesh_faces", icon='FACESEL')
         layout.separator()
 

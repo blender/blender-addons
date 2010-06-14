@@ -34,13 +34,13 @@ import bpy
 
 def menu_import(self, context):
     from io_mesh_raw import import_raw
-    self.layout.operator(import_raw.RawImporter.bl_idname, text="Raw Faces (.raw)").path = "*.raw"
+    self.layout.operator(import_raw.RawImporter.bl_idname, text="Raw Faces (.raw)").filepath = "*.raw"
 
 
 def menu_export(self, context):
     from io_mesh_raw import export_raw
     default_path = bpy.data.filepath.replace(".blend", ".raw")
-    self.layout.operator(export_raw.RawExporter.bl_idname, text="Raw Faces (.raw)").path = default_path
+    self.layout.operator(export_raw.RawExporter.bl_idname, text="Raw Faces (.raw)").filepath = default_path
 
 
 def register():

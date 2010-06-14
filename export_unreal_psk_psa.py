@@ -1466,7 +1466,7 @@ class ExportUDKAnimData(bpy.types.Operator):
 	# List of operator properties, the attributes will be assigned
 	# to the class instance from the operator settings before calling.
 
-	path = StringProperty(name="File Path", description="File path used for exporting the PSA file", maxlen= 1024, default= "")
+	filepath = StringProperty(name="File Path", description="Filepath used for exporting the PSA file", maxlen= 1024, default= "")
 	use_setting = BoolProperty(name="No Options Yet", description="No Options Yet", default= True)
 	filename = StringProperty(name="filename", description="", maxlen= 1024, default= "")
 	directory = StringProperty(name="directory", description="", maxlen= 1024, default= "")
@@ -1489,7 +1489,7 @@ class ExportUDKAnimData(bpy.types.Operator):
 		else:
 			bpy.context.scene.unrealexportpsa = False
 			
-		write_data(self.properties.path, context, self.properties.use_setting)
+		write_data(self.properties.filepath, context, self.properties.use_setting)
 		
 		self.report({'WARNING', 'INFO'}, exportmessage)
 		return {'FINISHED'}
@@ -1503,7 +1503,7 @@ def menu_func(self, context):
 	bpy.context.scene.unrealexportpsk = True
 	bpy.context.scene.unrealexportpsa = True
 	default_path = bpy.data.filepath.replace(".blend", ".psk")
-	self.layout.operator ("export.udk_anim_data", text="Skeleton Mesh / Animation Data (.psk/.psa)").path = default_path
+	self.layout.operator("export.udk_anim_data", text="Skeleton Mesh / Animation Data (.psk/.psa)").filepath = default_path
 
 class VIEW3D_PT_unrealtools_objectmode(bpy.types.Panel):
 	bl_space_type = "VIEW_3D"
@@ -1553,7 +1553,7 @@ class OBJECT_OT_UnrealExport(bpy.types.Operator):
 	__doc__ = "Select export setting for .psk/.psa or both."
 	
 	def invoke(self, context, event):
-		path = StringProperty(name="File Path", description="File path used for exporting the PSA file", maxlen= 1024, default= "")
+		filepath = StringProperty(name="File Path", description="Filepath used for exporting the PSA file", maxlen= 1024, default= "")
 		print("Init Export Script:")
 		if(int(bpy.context.scene.unrealexport_settings) == 0):
 			bpy.context.scene.unrealexportpsk = True

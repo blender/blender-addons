@@ -61,7 +61,7 @@ def faceToLine(face):
     return line[:-1] + "\n"
 
 
-def export_raw(path, applyMods, triangulate):
+def export_raw(filepath, applyMods, triangulate):
     faces = []
     for obj in bpy.context.selected_objects:
         if obj.type == 'MESH':
@@ -80,7 +80,7 @@ def export_raw(path, applyMods, triangulate):
                     faces.append(fv)
 
     # write the faces to a file
-    file = open(path, "w")
+    file = open(filepath, "w")
     for face in faces:
         file.write(faceToLine(face))
     file.close()
@@ -94,7 +94,7 @@ class RawExporter(bpy.types.Operator):
     bl_idname = "export_mesh.raw"
     bl_label = "Export RAW"
 
-    path = StringProperty(name="File Path", description="File path used for exporting the RAW file", maxlen= 1024, default= "")
+    filepath = StringProperty(name="File Path", description="Filepath used for exporting the RAW file", maxlen= 1024, default= "")
     filename = StringProperty(name="File Name", description="Name of the file.")
     directory = StringProperty(name="Directory", description="Directory of the file.")
     check_existing = BoolProperty(name="Check Existing", description="Check and warn on overwriting existing files", default=True, options={'HIDDEN'})
@@ -103,7 +103,7 @@ class RawExporter(bpy.types.Operator):
     triangulate = BoolProperty(name="Triangulate", description="Triangulate quads.", default=True)
 
     def execute(self, context):
-        export_raw(self.properties.path, self.properties.apply_modifiers, self.properties.triangulate)
+        export_raw(self.properties.filepath, self.properties.apply_modifiers, self.properties.triangulate)
         return {'FINISHED'}
 
     def invoke(self, context, event):

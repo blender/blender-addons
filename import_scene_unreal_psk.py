@@ -570,10 +570,10 @@ class IMPORT_OT_psk(bpy.types.Operator):
 
 	# List of operator properties, the attributes will be assigned
 	# to the class instance from the operator settings before calling.
-	path = StringProperty(name="File Path", description="File path used for importing the OBJ file", maxlen= 1024, default= "")
+	filepath = StringProperty(name="File Path", description="Filepath used for importing the OBJ file", maxlen= 1024, default= "")
 
 	def execute(self, context):
-		getInputFilename(self.properties.path)
+		getInputFilename(self.properties.filepath)
 		return {'FINISHED'}
 
 	def invoke(self, context, event):

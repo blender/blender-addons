@@ -2097,7 +2097,7 @@ class IMPORT_OT_makehuman_mhx(bpy.types.Operator):
 	bl_space_type = "PROPERTIES"
 	bl_region_type = "WINDOW"
 
-	path = StringProperty(name="File Path", description="File path used for importing the MHX file", maxlen= 1024, default= "")
+	filepath = StringProperty(name="File Path", description="Filepath used for importing the MHX file", maxlen= 1024, default= "")
 
 	#preset = BoolProperty(name="Use rig preset", description="Use rig preset (Classic/Gobo)?", default=True)
 	#presetRig = EnumProperty(name="Rig", description="Choose preset rig", 
@@ -2128,7 +2128,7 @@ class IMPORT_OT_makehuman_mhx(bpy.types.Operator):
 		toggle =  O_Mesh | O_Armature | O_Proxy | T_ArmIK | T_LegIK | O_Replace | O_Face | O_Shape | O_Symm | T_MHX 
 
 		
-		readMhxFile(self.properties.path, 	
+		readMhxFile(self.properties.filepath, 	
 			(self.properties.footRig, 
 			self.properties.fingerRig))
 		return {'FINISHED'}

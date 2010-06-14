@@ -377,8 +377,8 @@ class ImportImagesAsPlanes(bpy.types.Operator):
         " with the appropiate aspect ratio."
     bl_options = {'REGISTER', 'UNDO'}
 
-    path = StringProperty(name="File Path",
-        description="File path used for importing the file",
+    filepath = StringProperty(name="File Path",
+        description="Filepath used for importing the file",
         maxlen=1024,
         default="")
     filename = StringProperty(name="File Name",
@@ -460,10 +460,10 @@ class ImportImagesAsPlanes(bpy.types.Operator):
 
     def execute(self, context):
         # File Path
-        path = self.properties.path
+        filepath = self.properties.filepath
         filename = self.properties.filename
         directory = self.properties.directory
-        filePath = (path, filename, directory)
+        filePath = (filepath, filename, directory)
 
         # General Options
         fromDirectory = self.properties.fromDirectory

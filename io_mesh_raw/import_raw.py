@@ -119,7 +119,7 @@ class RawImporter(bpy.types.Operator):
     bl_idname = "import_mesh.raw"
     bl_label = "Import RAW"
 
-    path = StringProperty(name="File Path", description="File path used for importing the RAW file", maxlen=1024, default="")
+    filepath = StringProperty(name="File Path", description="Filepath used for importing the RAW file", maxlen=1024, default="")
     filename = StringProperty(name="File Name", description="Name of the file.")
     directory = StringProperty(name="Directory", description="Directory of the file.")
 
@@ -128,7 +128,7 @@ class RawImporter(bpy.types.Operator):
         #convert the filename to an object name
         objName = bpy.utils.display_name(self.properties.filename)
 
-        mesh = readMesh(self.properties.path, objName)
+        mesh = readMesh(self.properties.filepath, objName)
         addMeshObj(mesh, objName)
 
         return {'FINISHED'}
