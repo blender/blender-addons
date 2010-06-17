@@ -50,7 +50,7 @@ False, False, False, False, False, False, False, False, False, False, False, Fal
     emp.rotation_euler = [1.570796, 0, 0]
 
     ##Adds Curve Path to scene
-    bpy.ops.object.curve_add(type='PATH', view_align=False, enter_editmode=False, location=(0, 0, 0), 
+    bpy.ops.curve.primitive_nurbs_path_add( view_align=False, enter_editmode=False, location=(0, 0, 0), 
 rotation=(0, 0, 0), layer=(True, False, False, False, False, False, 
 False, False, False, False, False, False, False, False, False, False, False, False, False, 
 False, False, False, False, False, False, False, False, False, False, False, False, False))
