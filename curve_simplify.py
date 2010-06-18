@@ -78,7 +78,7 @@ def simplypoly(splineVerts, options):
     # tested against averaged curvatures and distances of neighbour verts
     newVerts.append(0) # first vert is always kept
     for i, curv in enumerate(curvatures):
-        if (curv >= k_thresh*0.1
+        if (curv >= k_thresh*0.01
         or distances[i] >= dis_error*0.1):
             newVerts.append(i)
     newVerts.append(len(curvatures)-1) # last vert is always kept
@@ -474,7 +474,7 @@ class CURVE_OT_simplify(bpy.types.Operator):
                             items=SplineTypes)
     k_thresh = FloatProperty(name="k",
                             min=0, soft_min=0,
-                            default=0,
+                            default=0, precision=3,
                             description="threshold")
     pointsNr = IntProperty(name="n",
                             min=5, soft_min=5,
