@@ -159,7 +159,7 @@ def iterate(points, newVerts, error):
             alti = altitude(points[newVerts[newIndex]], points[newVerts[newIndex+1]], point)
             if alti > alti_store:
                 alti_store = alti
-                if alti_store > error:
+                if alti_store >= error:
                    bigVert = i+1+newVerts[newIndex]
         if bigVert:
             new.append(bigVert)
@@ -378,9 +378,8 @@ class GRAPH_OT_simplify(bpy.types.Operator):
                             description="degree of curve to get averaged curvatures")
     error = FloatProperty(name="error",
                             description="maximum error to allow - distance",
-                            min=0.0,
-                            soft_min=0.0,
-                            default=0.00, precision=3)
+                            min=0.0, soft_min=0.0,
+                            default=0, precision=3)
     degreeOut = IntProperty(name="degree",
                             min=3, soft_min=3,
                             max=7, soft_max=7,
@@ -483,9 +482,8 @@ class CURVE_OT_simplify(bpy.types.Operator):
                             description="degree of curve to get averaged curvatures")
     error = FloatProperty(name="error in Bu",
                             description="maximum error in Blenderunits to allow - distance",
-                            min=0,
-                            soft_min=0,
-                            default=0.0)
+                            min=0, soft_min=0,
+                            default=0.0, precision=3)
     degreeOut = IntProperty(name="degree",
                             min=3, soft_min=3,
                             max=7, soft_max=7,
@@ -493,8 +491,7 @@ class CURVE_OT_simplify(bpy.types.Operator):
                             description="degree of new curve")
     dis_error = FloatProperty(name="distance error",
                             description="maximum error in Blenderunits to allow - distance",
-                            min=0,
-                            soft_min=0,
+                            min=0, soft_min=0,
                             default=0.0)
     keepShort = BoolProperty(name="keep short Splines",
                             description="keep short splines (less then 7 points)",
