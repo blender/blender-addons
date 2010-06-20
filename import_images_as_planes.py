@@ -294,6 +294,8 @@ def mapset(self, value):
         and self.texture_slots[0].texture.type == 'IMAGE'
         and self.texture_slots[0].texture.image):
         self.texture_slots[0].texture.image.premultiply = value[5]
+    if self.alpha:
+        self.texture_slots[0].map_alpha=True
 
 
 bpy.types.Material.mapping = property(mapget, mapset)
