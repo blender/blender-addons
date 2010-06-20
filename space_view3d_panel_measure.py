@@ -502,14 +502,14 @@ def draw_measurements_callback(self, context):
         # we can draw it OVER the line.
         coord_2d = region3d_get_2d_coordinates(context, p2 + (p1 - p2) * 0.5)
         offset = 10  # Offset the text a bit to the right.
-        blf.position(coord_2d[0] + offset, coord_2d[1], 0)
+        blf.position(0, coord_2d[0] + offset, coord_2d[1], 0)
 
         dist = (p1 - p2).length
         text = "Distance: " + str(round(dist, PRECISION)) + " BU"
         # @todo Get user pref for text color in 3D View
         bgl.glColor4f(1.0, 1.0, 1.0, 1.0)
-        blf.size(12, 72)  # Prevent font size to randomly change.
-        blf.draw(text)
+        blf.size(0, 12, 72)  # Prevent font size to randomly change.
+        blf.draw(0, text)
 
 
 class VIEW3D_OT_display_measurements(bpy.types.Operator):
