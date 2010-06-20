@@ -144,19 +144,19 @@ def RotZ(context):
 ## Aling Scale
 def ScaleAll(context):
     for i in bpy.context.selected_objects:
-        i.Scale = bpy.context.active_object.Scale
+        i.scale = bpy.context.active_object.scale
 
 def ScaleX(context):
     for i in bpy.context.selected_objects:
-        i.Scale.x = bpy.context.active_object.Scale.x
+        i.scale.x = bpy.context.active_object.scale.x
 
 def ScaleY(context):
     for i in bpy.context.selected_objects:
-        i.Scale.y = bpy.context.active_object.Scale.y
+        i.scale.y = bpy.context.active_object.scale.y
 
 def ScaleZ(context):
     for i in bpy.context.selected_objects:
-        i.Scale.z = bpy.context.active_object.Scale.z
+        i.scale.z = bpy.context.active_object.scale.z
 
 ## Classes
 
