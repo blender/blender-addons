@@ -694,7 +694,7 @@ class VIEW3D_MT_AddMenu(bpy.types.Menu):
             icon='OUTLINER_OB_MESH')
         layout.menu("INFO_MT_curve_add", text="Add Curve",
             icon='OUTLINER_OB_CURVE')
-        layout.operator_menu_enum("object.surface_add", "type",
+        layout.menu("INFO_MT_surface_add", text="Add Surface",
             icon='OUTLINER_OB_SURFACE')
         layout.operator_menu_enum("object.metaball_add", "type",
             icon='OUTLINER_OB_META')
