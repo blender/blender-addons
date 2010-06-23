@@ -25,7 +25,7 @@
 bl_addon_info = {
     'name': '3D View: Dynamic Spacebar Menu',
     'author': 'JayDez, sim88, meta-androcto',
-    'version': '1.3',
+    'version': '1.5',
     'blender': (2, 5, 3),
     'location': 'View3D > Spacebar',
     'description': 'Context sensitive spacebar menu',
@@ -452,7 +452,7 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
             layout.separator()
 
             # Toggle Objectmode
-            layout.operator("object.editmode_toggle", text="Enter Object Mode",
+            layout.operator("object.mode_set", text="Enter Object Mode",
                 icon='OBJECT_DATA')
 
 
@@ -487,7 +487,7 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
             layout.separator()
 
             # Toggle Objectmode
-            layout.operator("object.editmode_toggle", text="Enter Object Mode",
+            layout.operator("object.mode_set", text="Enter Object Mode",
                 icon='OBJECT_DATA')
 
         elif ob.mode == 'PAINT_TEXTURE':
@@ -516,7 +516,7 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
             layout.separator()
 
             # Toggle Objectmode
-            layout.operator("object.editmode_toggle", text="Enter Object Mode",
+            layout.operator("object.mode_set", text="Enter Object Mode",
                 icon='OBJECT_DATA')
 
         elif ob.mode == 'SCULPT':
@@ -604,13 +604,18 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
             layout.menu("VIEW3D_MT_armature_specials", icon='MODIFIER')
             layout.separator()
 
+            # Toggle Posemode
+            layout.operator("object.posemode_toggle", text="Enter Pose Mode",
+                icon='EDITMODE_HLT')
+
+            # Toggle Posemode
+            layout.operator("object.editmode_toggle", text="Enter Object Mode",
+                icon='OBJECT_DATA')
+
             # Delete block
             layout.operator("object.delete", text="Delete Object",
                 icon='CANCEL')
 
-            # Toggle Posemode
-            layout.operator("object.posemode_toggle", text="Enter Pose Mode",
-                icon='EDITMODE_HLT')
 
         if context.mode == 'POSE':
             # Pose mode menu
