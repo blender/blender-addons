@@ -95,8 +95,6 @@ class RawExporter(bpy.types.Operator):
     bl_label = "Export RAW"
 
     filepath = StringProperty(name="File Path", description="Filepath used for exporting the RAW file", maxlen= 1024, default= "")
-    filename = StringProperty(name="File Name", description="Name of the file.")
-    directory = StringProperty(name="Directory", description="Directory of the file.")
     check_existing = BoolProperty(name="Check Existing", description="Check and warn on overwriting existing files", default=True, options={'HIDDEN'})
 
     apply_modifiers = BoolProperty(name="Apply Modifiers", description="Use transformed mesh data from each object", default=True)

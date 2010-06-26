@@ -62,13 +62,9 @@ class StlImporter(bpy.types.Operator):
                                       "the STL file",
                           maxlen=1024,
                           default="")
-    filename = StringProperty(name="File Name",
-                              description="Name of the file.")
-    directory = StringProperty(name="Directory",
-                               description="Directory of the file.")
 
     def execute(self, context):
-        objName = bpy.utils.display_name(self.properties.filename)
+        objName = bpy.utils.display_name(self.properties.filepath.split("\\")[-1].split("/")[-1])
         tris, pts = stl_utils.read_stl(self.properties.filepath)
 
         blender_utils.create_and_link_mesh(objName, tris, pts)
@@ -94,10 +90,6 @@ class StlExporter(bpy.types.Operator):
                                       "the active object to STL file",
                           maxlen=1024,
                           default="")
-    filename = StringProperty(name="File Name",
-                              description="Name of the file.")
-    directory = StringProperty(name="Directory",
-                               description="Directory of the file.")
     check_existing = BoolProperty(name="Check Existing",
                                   description="Check and warn on "
                                               "overwriting existing files",

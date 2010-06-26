@@ -119,8 +119,6 @@ class CameraExporter(bpy.types.Operator):
     bl_label = "Export Camera & Markers"
 
     filepath = StringProperty(name="File Path", description="File path used for importing the RAW file", maxlen=1024, default="")
-    filename = StringProperty(name="File Name", description="Name of the file.")
-    directory = StringProperty(name="Directory", description="Directory of the file.")
 
     frame_start = IntProperty(name="Start Frame",
             description="Start frame for export",

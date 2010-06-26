@@ -1468,8 +1468,6 @@ class ExportUDKAnimData(bpy.types.Operator):
 
 	filepath = StringProperty(name="File Path", description="Filepath used for exporting the PSA file", maxlen= 1024, default= "")
 	use_setting = BoolProperty(name="No Options Yet", description="No Options Yet", default= True)
-	filename = StringProperty(name="filename", description="", maxlen= 1024, default= "")
-	directory = StringProperty(name="directory", description="", maxlen= 1024, default= "")
 	pskexportbool = BoolProperty(name="Export PSK", description="Export Skeletal Mesh", default= True)
 	psaexportbool = BoolProperty(name="Export PSA", description="Export Action Set (Animation Data)", default= True)
 	actionexportall = BoolProperty(name="All Actions", description="This will export all the actions that matches the current armature.", default=False)

@@ -120,8 +120,6 @@ class RawImporter(bpy.types.Operator):
     bl_label = "Import RAW"
 
     filepath = StringProperty(name="File Path", description="Filepath used for importing the RAW file", maxlen=1024, default="")
-    filename = StringProperty(name="File Name", description="Name of the file.")
-    directory = StringProperty(name="Directory", description="Directory of the file.")
 
     def execute(self, context):
 
