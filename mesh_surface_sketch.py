@@ -811,6 +811,7 @@ def unregister():
     bpy.types.unregister(GPENCIL_OT_SURFSK_add_surface) 
     bpy.types.unregister(GPENCIL_OT_SURFSK_strokes_to_curves) 
     bpy.types.unregister(VIEW3D_PT_tools_SURF_SKETCH)
+    km = bpy.data.window_managers[0].active_keyconfig.keymaps["3D View"]
     for kmi in km.items:
         if kmi.idname == 'wm.call_menu':
             if kmi.properties.name == "GPENCIL_OT_SURFSK_add_surface":

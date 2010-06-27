@@ -20,7 +20,7 @@ bl_addon_info = {
     'name': 'I/O: Raw mesh',
     'author': 'Anthony D,Agostino (Scorpius), Aurel Wildfellner',
     'version': '0.2',
-    'blender': '2.5.3',
+    'blender': (2, 5, 3),
     'location': 'File > Import/Export > Raw faces ',
     'description': 'Import Raw Faces (.raw format)',
     'wiki_url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/' \
