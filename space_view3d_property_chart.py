@@ -27,10 +27,10 @@ bl_addon_info = {
     'blender': (2, 5, 3),
     'location': 'Tool Shelf',
     'description': 'Edit arbitrary selected properties for objects of the same type',
-    'wiki_url':
-    'http://wiki.blender.org/index.php/Extensions:2.5/Py/' \
-        'Scripts/',
-    'tracker_url': 'https://projects.blender.org/projects/bf-extensions/',
+    'wiki_url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/' \
+        'Scripts/Object/Property_Chart',
+    'tracker_url': 'https://projects.blender.org/tracker/index.php?',
+        'func=detail&aid=22701&group_id=153&atid=469',
     'category': '3D View'}
 
 import bpy
