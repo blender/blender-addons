@@ -82,7 +82,7 @@ def writeCameras(context, filepath, frame_start, frame_end, only_selected=False)
         for obj, obj_data in cameras:
             fw("obj = cameras['%s']\n" % obj.name)
 
-            matrix = obj.matrix.copy()
+            matrix = obj.matrix_world.copy()
             fw("obj.location = %s\n" % repr(tuple(matrix.translation_part())))
             fw("obj.scale = %s\n" % repr(tuple(matrix.scale_part())))
             fw("obj.rotation_euler = %s\n" % repr(tuple(matrix.to_euler())))

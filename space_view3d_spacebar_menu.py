@@ -1397,7 +1397,7 @@ def edgeIntersect(context, operator):
         operator.report({'ERROR'}, "Selected edges are parallel.")
         return
 
-    tm = obj.matrix.copy()
+    tm = obj.matrix_world.copy()
     point = ((line[0] + line[1]) / 2)
     point = tm * point
 

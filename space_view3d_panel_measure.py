@@ -180,10 +180,9 @@ def getMeasurePoints(context):
             mesh = obj.data
 
             # Get transformation matrix from object.
-            ob_mat = obj.matrix
+            ob_mat = obj.matrix_world
             # Also make an inversed copy! of the matrix.
-            ob_mat_inv = ob_mat.copy()
-            Matrix.invert(ob_mat_inv)
+            ob_mat_inv = ob_mat.copy().invert()
 
             # Get the selected vertices.
             # @todo: Better (more efficient) way to do this?
@@ -282,14 +281,14 @@ def getMeasurePoints(context):
 
 # Return the area of a face (in global space).
 # @note Copies the functionality of the following functions,
-# but also respects the scaling (via the "obj.matrix" parameter):
+# but also respects the scaling (via the "obj.matrix_world" parameter):
 # @sa: rna_mesh.c:rna_MeshFace_area_get
 # @sa: math_geom.c:area_quad_v3
 # @sa: math_geom.c:area_tri_v3
 def faceAreaGlobal(face, obj):
     area = 0.0
 
-    mat = obj.matrix
+    mat = obj.matrix_world
 
     if len(face.verts) == 4:
         # Quad
@@ -665,7 +664,7 @@ class VIEW3D_PT_measure(bpy.types.Panel):
                 mesh = obj.data
 
                 # Get transformation matrix from object.
-                ob_mat = obj.matrix
+                ob_mat = obj.matrix_world
                 # Also make an inversed copy! of the matrix.
                 ob_mat_inv = ob_mat.copy()
                 Matrix.invert(ob_mat_inv)

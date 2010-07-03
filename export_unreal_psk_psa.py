@@ -792,7 +792,7 @@ def parse_meshes(blender_meshes, psk_file):
 					
 					# Transform position for export
 					#vpos = vert.co * object_material_index
-					vpos = vert.co * current_obj.matrix
+					vpos = vert.co * current_obj.matrix_world
 					# Create the point
 					p = VPoint()
 					p.Point.X = vpos.x
@@ -891,7 +891,7 @@ def parse_meshes(blender_meshes, psk_file):
 					vert_weight = vgroup.weight
 					if(bonegroup.index == vgroup.group):
 						p = VPoint()
-						vpos = current_vert.co * current_obj.matrix
+						vpos = current_vert.co * current_obj.matrix_world
 						p.Point.X = vpos.x
 						p.Point.Y = vpos.y 
 						p.Point.Z = vpos.z
@@ -1053,7 +1053,7 @@ def parse_armature(blender_armature, psk_file, psa_file):
 		"""
 		for current_bone in current_armature.bones: #list the bone. #note this will list all the bones.
 			if(current_bone.parent == None):
-				parse_bone(current_bone, psk_file, psa_file, 0, 0, current_obj.matrix, None)
+				parse_bone(current_bone, psk_file, psa_file, 0, 0, current_obj.matrix_world, None)
 				break
 
 # get blender objects by type		

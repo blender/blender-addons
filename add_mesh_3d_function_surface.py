@@ -196,7 +196,7 @@ def create_mesh_object(context, verts, edges, faces, name, edit, align_matrix):
 
         # Place the object at the 3D cursor location.
         # apply viewRotaion
-        ob_new.matrix = align_matrix
+        ob_new.matrix_world = align_matrix
 
     if obj_act and obj_act.mode == 'EDIT':
         if not edit:

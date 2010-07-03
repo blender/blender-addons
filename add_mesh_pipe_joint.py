@@ -198,7 +198,7 @@ def create_mesh_object(context, verts, edges, faces, name, edit, align_matrix):
         ob_new.selected = True
 
         # Place the object at the 3D cursor location.
-        ob_new.matrix = align_matrix
+        ob_new.matrix_world = align_matrix
 
     if obj_act and obj_act.mode == 'EDIT':
         if not edit:

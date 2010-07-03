@@ -65,7 +65,7 @@ def export_raw(filepath, applyMods, triangulate):
     faces = []
     for obj in bpy.context.selected_objects:
         if obj.type == 'MESH':
-            matrix = obj.matrix
+            matrix = obj.matrix_world
 
             if (applyMods):
                 me = obj.create_mesh(True, "PREVIEW")

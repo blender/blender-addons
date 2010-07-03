@@ -105,7 +105,7 @@ def createCurve(vertArray, GEO, align_matrix):
     scene.objects.link(new_obj) # place in active scene
     new_obj.selected = True # set as selected
     scene.objects.active = new_obj  # set as active
-    new_obj.matrix = align_matrix # apply matrix
+    new_obj.matrix_world = align_matrix # apply matrix
 
     return
 

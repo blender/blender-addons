@@ -285,7 +285,7 @@ def main(context, obj, options):
     scene.objects.link(newCurve)
     newCurve.selected = True
     scene.objects.active = newCurve
-    newCurve.matrix = obj.matrix
+    newCurve.matrix = obj.matrix_world
 
     # set bezierhandles to auto
     setBezierHandles(newCurve)
