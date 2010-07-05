@@ -285,7 +285,7 @@ def main(context, obj, options):
     scene.objects.link(newCurve)
     newCurve.selected = True
     scene.objects.active = newCurve
-    newCurve.matrix = obj.matrix_world
+    newCurve.matrix_world = obj.matrix_world
 
     # set bezierhandles to auto
     setBezierHandles(newCurve)
@@ -391,6 +391,8 @@ class GRAPH_OT_simplify(bpy.types.Operator):
                             default=0.0, precision=3)
     fcurves = []
 
+    '''  Remove curvature mode as long as it isnn't significantly improved
+    
     def draw(self, context):
         props = self.properties
         layout = self.layout
@@ -410,7 +412,14 @@ class GRAPH_OT_simplify(bpy.types.Operator):
             box.label('distance', icon='ARROW_LEFTRIGHT')
             box.prop(props, 'dis_error', expand=True)
         col = layout.column()
-
+    '''
+    
+    def draw(self, context):
+        props = self.properties
+        layout = self.layout
+        col = layout.column()
+        col.prop(props, 'error', expand=True)
+        
     ## Check for animdata
     def poll(self, context):
         obj = context.active_object
@@ -497,6 +506,8 @@ class CURVE_OT_simplify(bpy.types.Operator):
                             description="keep short splines (less then 7 points)",
                             default=True)
 
+    '''  Remove curvature mode as long as it isnn't significantly improved
+
     def draw(self, context):
         props = self.properties
         layout = self.layout
@@ -521,7 +532,19 @@ class CURVE_OT_simplify(bpy.types.Operator):
         if props.output == 'NURBS':
             col.prop(props, 'degreeOut', expand=True)
         col.prop(props, 'keepShort', expand=True)
-
+    '''
+        
+    def draw(self, context):
+        props = self.properties
+        layout = self.layout
+        col = layout.column()
+        col.prop(props, 'error', expand=True)
+        col.prop(props, 'output', text='Output', icon='OUTLINER_OB_CURVE')
+        if props.output == 'NURBS':
+            col.prop(props, 'degreeOut', expand=True)
+        col.prop(props, 'keepShort', expand=True)
+        
+        
     ## Check for curve
     def poll(self, context):
         obj = context.active_object
