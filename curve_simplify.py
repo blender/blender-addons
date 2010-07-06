@@ -28,7 +28,7 @@ bl_addon_info = {
         'Scripts/Curve/Curve_Simplify',
     'tracker_url': 'https://projects.blender.org/tracker/index.php?'\
         'func=detail&aid=22327&group_id=153&atid=468',
-    'description': 'this script simplifies curves',
+    'description': 'this script simplifies 3D curves and fcurves',
     'category': 'Add Curve'}
 ####################################################
 import bpy
