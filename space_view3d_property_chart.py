@@ -35,6 +35,110 @@ bl_addon_info = {
 
 import bpy
 
+def _property_chart_data_get(self, context):
+    # eg. context.active_object
+    obj = eval("context.%s" % self.context_data_path_active)
+
+    if obj is None:
+        return None, None
+    
+    # eg. context.selected_objects[:]
+    selected_objects = eval("context.%s" % self.context_data_path_selected)[:]
+
+    if not selected_objects:
+        return None, None
+    
+    return obj, selected_objects
+
+
+def _property_chart_draw(self, context):
+    '''
+    This function can run for different types.
+    '''
+    obj, selected_objects = _property_chart_data_get(self, context)
+    
+    if not obj:
+        return
+
+    # active first
+    try:
+        active_index = selected_objects.index(obj)
+    except ValueError:
+        active_index = -1
+    
+    if active_index > 0: # not the first alredy
+        selected_objects[0], selected_objects[active_index] = selected_objects[active_index], selected_objects[0]
+    
+    id_storage = context.scene
+    
+    strings = id_storage.get(self._PROP_STORAGE_ID)
+    
+    if strings is None:
+        strings = id_storage[self._PROP_STORAGE_ID] = "data data.name"
+
+    if strings:
+
+        def obj_prop_get(obj, attr_string):
+            """return a pair (rna_base, "rna_property") to give to the rna UI property function"""
+            attrs = attr_string.split(".")
+            val_new = obj
+            for i, attr in enumerate(attrs):
+                val_old = val_new
+                val_new = getattr(val_old, attr, Ellipsis)
+                
+                if val_new == Ellipsis:
+                    return None, None                        
+            return val_old, attrs[-1]
+
+        strings = strings.split()
+
+        prop_all = []
+
+        for obj in selected_objects:
+            prop_pairs = []
+            prop_found = False
+            for attr_string in strings:
+                prop_pairs.append(obj_prop_get(obj, attr_string))
+                if prop_found == False and prop_pairs[-1] != (None, None): 
+                    prop_found = True
+
+            if prop_found:
+                prop_all.append((obj, prop_pairs))
+
+
+        # Collected all props, now display them all
+        layout = self.layout
+
+        row = layout.row(align=True)
+
+        col = row.column()
+        col.label(text="name")
+        for obj, prop_pairs in prop_all:
+            col.prop(obj, "name", text="")
+
+        for i in range(len(strings)):
+            col = row.column()
+
+            # name and copy button
+            rowsub = col.row(align=False)
+            rowsub.label(text=strings[i].rsplit(".", 1)[-1])
+            props = rowsub.operator("wm.chart_copy", text="", icon='PASTEDOWN', emboss=False)
+            props.data_path_active = self.context_data_path_active
+            props.data_path_selected = self.context_data_path_selected
+            props.data_path_storage = self._PROP_STORAGE_ID
+
+            for obj, prop_pairs in prop_all:
+                data, attr = prop_pairs[i]
+                if data:
+                    col.prop(data, attr, text="")# , emboss=obj==active_object
+                else:
+                    col.label(text="<missing>")
+
+    # edit the display props
+    col = layout.column()
+    col.label(text="Object Properties")
+    col.prop(id_storage, '["%s"]' % self._PROP_STORAGE_ID, text="")
+
 
 class View3DEditProps(bpy.types.Panel):
     bl_space_type = 'VIEW_3D'
@@ -44,88 +148,88 @@ class View3DEditProps(bpy.types.Panel):
     bl_context = "objectmode"
     
     _PROP_STORAGE_ID = "view3d_edit_props"
+    
+    # _property_chart_draw needs these
+    context_data_path_active = "active_object"
+    context_data_path_selected = "selected_objects"
 
-    def draw(self, context):
-        layout = self.layout
-        obj = context.object
-        
-        if obj is None:
-            return
-
-        selected_objects = context.selected_objects
-
-        if not selected_objects:
-            return
-
-        # box = layout.separator()
-        
-        id_storage = context.scene
-        
-        strings = id_storage.get(self._PROP_STORAGE_ID)
-        
-        if strings is None:
-            strings = id_storage[self._PROP_STORAGE_ID] = "data data.name"
-
-        if strings:
-            
-            def obj_prop_get(obj, attr_string):
-                """return a pair (rna_base, "rna_property") to give to the rna UI property function"""
-                attrs = attr_string.split(".")
-                val_new = obj
-                for i, attr in enumerate(attrs):
-                    val_old = val_new
-                    val_new = getattr(val_old, attr, Ellipsis)
-                    
-                    if val_new == Ellipsis:
-                        return None, None                        
-                return val_old, attrs[-1]
-
-            strings = strings.split()
-
-            prop_all = []
-
-            for obj in selected_objects:
-                prop_pairs = []
-                prop_found = False
-                for attr_string in strings:
-                    prop_pairs.append(obj_prop_get(obj, attr_string))
-                    if prop_found == False and prop_pairs[-1] != (None, None): 
-                        prop_found = True
-
-                if prop_found:
-                    prop_all.append((obj, prop_pairs))
+    draw = _property_chart_draw
 
 
-            # Collected all props, now display them all
-            row = layout.row()
+class SequencerEditProps(bpy.types.Panel):
+    bl_space_type = 'SEQUENCE_EDITOR'
+    bl_region_type = 'UI'
+    
+    bl_label = "Property Chart"
+    
+    _PROP_STORAGE_ID = "sequencer_edit_props"
+    
+    # _property_chart_draw needs these
+    context_data_path_active = "scene.sequence_editor.active_strip"
+    context_data_path_selected = "selected_sequences"
 
-            col = row.column()
-            col.label(text="name")
-            for obj, prop_pairs in prop_all:
-                col.prop(obj, "name", text="")
+    draw = _property_chart_draw
 
-            for i in range(len(strings)):
-                col = row.column()
-                col.label(text=strings[i].rsplit(".", 1)[-1])
-                for obj, prop_pairs in prop_all:
-                    data, attr = prop_pairs[i]
-                    if data:
-                        col.prop(data, attr, text="")
-                    else:
-                        col.label(text="<missing>")
 
-        # edit the display props
-        col = layout.column()
-        col.label(text="Object Properties")
-        col.prop(id_storage, '["%s"]' % self._PROP_STORAGE_ID, text="")
+# Operator to copy properties
 
-	
+
+def _property_chart_copy(self, context):
+    obj, selected_objects = _property_chart_data_get(self, context)
+    
+    if not obj:
+        return
+
+    id_storage = context.scene
+    
+    strings = id_storage.get(self.properties.data_path_storage)
+    
+    if strings:
+        strings = strings.split()
+
+        # quick & nasty method!
+        for obj_iter in selected_objects:
+            if obj != obj_iter:
+                for prop_path in strings:
+                    try:
+                        exec("obj_iter.%s = obj.%s" % (prop_path, prop_path))
+                    except:
+                        # just incase we need to know what went wrong!
+                        import traceback
+                        traceback.print_exc()
+
+from bpy.props import StringProperty
+
+
+class CopyPropertyChart(bpy.types.Operator):
+    "Open a path in a file browser"
+    bl_idname = "wm.chart_copy"
+    bl_label = "Copy properties from active to selected"
+
+    data_path_active = StringProperty()
+    data_path_selected = StringProperty()
+    data_path_storage = StringProperty()
+
+    def execute(self, context):
+        # so attributes are found for '_property_chart_data_get()'
+        self.context_data_path_active = self.properties.data_path_active
+        self.context_data_path_selected = self.properties.data_path_selected
+
+        _property_chart_copy(self, context)
+
+        return {'FINISHED'}
+
+
 def register():
     bpy.types.register(View3DEditProps)
+    bpy.types.register(SequencerEditProps)
+    bpy.types.register(CopyPropertyChart)
 
 
 def unregister():
     bpy.types.unregister(View3DEditProps)
+    bpy.types.unregister(SequencerEditProps)
+    bpy.types.unregister(CopyPropertyChart)
 
 if __name__ == "__main__":
     register()
