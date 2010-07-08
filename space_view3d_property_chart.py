@@ -125,7 +125,7 @@ def _property_chart_draw(self, context):
             props = rowsub.operator("wm.chart_copy", text="", icon='PASTEDOWN', emboss=False)
             props.data_path_active = self.context_data_path_active
             props.data_path_selected = self.context_data_path_selected
-            props.data_path_storage = self._PROP_STORAGE_ID
+            props.data_path = strings[i]
 
             for obj, prop_pairs in prop_all:
                 data, attr = prop_pairs[i]
@@ -180,23 +180,17 @@ def _property_chart_copy(self, context):
     if not obj:
         return
 
-    id_storage = context.scene
-    
-    strings = id_storage.get(self.properties.data_path_storage)
-    
-    if strings:
-        strings = strings.split()
+    data_path = self.properties.data_path
 
-        # quick & nasty method!
-        for obj_iter in selected_objects:
-            if obj != obj_iter:
-                for prop_path in strings:
-                    try:
-                        exec("obj_iter.%s = obj.%s" % (prop_path, prop_path))
-                    except:
-                        # just incase we need to know what went wrong!
-                        import traceback
-                        traceback.print_exc()
+    # quick & nasty method!
+    for obj_iter in selected_objects:
+        if obj != obj_iter:
+            try:
+                exec("obj_iter.%s = obj.%s" % (data_path, data_path))
+            except:
+                # just incase we need to know what went wrong!
+                import traceback
+                traceback.print_exc()
 
 from bpy.props import StringProperty
 
@@ -208,7 +202,7 @@ class CopyPropertyChart(bpy.types.Operator):
 
     data_path_active = StringProperty()
     data_path_selected = StringProperty()
-    data_path_storage = StringProperty()
+    data_path = StringProperty()
 
     def execute(self, context):
         # so attributes are found for '_property_chart_data_get()'
