@@ -14,11 +14,10 @@
  #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  #  All rights reserved.
  #  ***** GPL LICENSE BLOCK *****
-
 """
 Name: 'Unreal Skeletal Mesh/Animation (.psk and .psa) Export'
 Blender: 250
-Group: 'Import/Export'
+Group: 'Export'
 Tooltip: 'Unreal Skeletal Mesh and Animation Export (*.psk, *.psa)'
 """
 
@@ -90,11 +89,9 @@ bl_addon_info = {
     'version': '2.0',
     'blender': (2, 5, 3),
     'location': 'File > Export > Skeletal Mesh/Animation Data (.psk/.psa)',
-    'wiki_url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/' \
+    'url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/' \
         'Scripts/File_I-O/Unreal_psk_psa',
-    'tracker_url': 'https://projects.blender.org/tracker/index.php?'\
-        'func=detail&aid=21366&group_id=153&atid=469',
-    'category': 'Import/Export'}
+    'category': 'Export'}
 
 # REFERENCE MATERIAL JUST IN CASE:
 # 
@@ -697,6 +694,7 @@ def parse_meshes(blender_meshes, psk_file):
 	for current_obj in blender_meshes: #number of mesh that should be one mesh here
 	
 		current_obj = triangulateNMesh(current_obj)
+		#print(dir(current_obj))
 		print("Mesh Name:",current_obj.name)
 		current_mesh = current_obj.data
 		
@@ -714,7 +712,7 @@ def parse_meshes(blender_meshes, psk_file):
 			#print current_face.uv_textures
 			
 			if len(current_face.verts) != 3:
-				raise RuntimeError("Non-triangular face (%i)" % len(current_face.v))
+				raise RuntimeError("Non-triangular face (%i)" % len(current_face.verts))
 			
 			#No Triangulate Yet
 			#			if len(current_face.verts) != 3:
@@ -744,7 +742,13 @@ def parse_meshes(blender_meshes, psk_file):
 				
 				if len(current_mesh.uv_textures) > 0:
 					has_UV = True	
-					faceUV = current_mesh.active_uv_texture.data[face_index]#UVs for current face
+					#print("face index: ",face_index)
+					#faceUV = current_mesh.active_uv_texture.data[face_index]#UVs for current face
+					#faceUV = current_mesh.active_uv_texture.data[0]#UVs for current face
+					#print(face_index,"<[FACE NUMBER")
+					uv_layer = current_mesh.active_uv_texture
+					faceUV = uv_layer.data[face_index]
+					#print("============================")
 					#size(data) is number of texture faces. Each face has UVs
 					#print("DATA face uv: ",len(faceUV.uv), " >> ",(faceUV.uv[0][0]))
 				
@@ -792,7 +796,7 @@ def parse_meshes(blender_meshes, psk_file):
 					
 					# Transform position for export
 					#vpos = vert.co * object_material_index
-					vpos = vert.co * current_obj.matrix_world
+					vpos = vert.co * current_obj.matrix_local
 					# Create the point
 					p = VPoint()
 					p.Point.X = vpos.x
@@ -891,7 +895,7 @@ def parse_meshes(blender_meshes, psk_file):
 					vert_weight = vgroup.weight
 					if(bonegroup.index == vgroup.group):
 						p = VPoint()
-						vpos = current_vert.co * current_obj.matrix_world
+						vpos = current_vert.co * current_obj.matrix_local
 						p.Point.X = vpos.x
 						p.Point.Y = vpos.y 
 						p.Point.Z = vpos.z
@@ -908,7 +912,7 @@ def parse_meshes(blender_meshes, psk_file):
 			print("Remove tmp Mesh [ " ,current_obj.name, " ] from scene >"  ,(bpy.context.scene.unrealtriangulatebool ))
 			bpy.ops.object.mode_set(mode='OBJECT') # set it in object
 			bpy.context.scene.objects.unlink(current_obj)
-			
+		
 def make_fquat(bquat):
 	quat = FQuat()
 	
@@ -950,9 +954,6 @@ def parse_bone(blender_bone, psk_file, psa_file, parent_id, is_root_bone, parent
 		print ("--Bone Name:",blender_bone.name ," parent:" , blender_bone.parent.name, "ID:", nbone)
 	else:
 		print ("--Bone Name:",blender_bone.name ," parent: None" , "ID:", nbone)
-	
-	
-	
 	
 	if child_parent != None:
 		quat_root = blender_bone.matrix
@@ -1053,7 +1054,7 @@ def parse_armature(blender_armature, psk_file, psa_file):
 		"""
 		for current_bone in current_armature.bones: #list the bone. #note this will list all the bones.
 			if(current_bone.parent == None):
-				parse_bone(current_bone, psk_file, psa_file, 0, 0, current_obj.matrix_world, None)
+				parse_bone(current_bone, psk_file, psa_file, 0, 0, current_obj.matrix_local, None)
 				break
 
 # get blender objects by type		
@@ -1089,11 +1090,20 @@ def parse_animation(blender_scene, blender_armatures, psa_file):
 	#need to check if there animation
 	#need to check if animation is has one frame then exit it
 	print ('\n----- parsing animation -----')
-	#print(dir(blender_scene.render))
+	##print(dir(blender_scene))
+	
+	#print(dir(blender_armatures))
+	
 	render_data = blender_scene.render
 	bHaveAction = True
 	
 	anim_rate = render_data.fps
+	
+	#print("dir:",dir(blender_scene))
+	#print(dir(bpy.data.actions))
+	#print("dir:",dir(bpy.data.actions[0]))
+	
+	
 	print("==== Blender Settings ====")
 	print ('Scene: %s Start Frame: %i, End Frame: %i' % (blender_scene.name, blender_scene.frame_start, blender_scene.frame_end))
 	print ('Frames Per Sec: %i' % anim_rate)
@@ -1107,6 +1117,8 @@ def parse_animation(blender_scene, blender_armatures, psa_file):
 	#list of armature objects
 	for arm in blender_armatures:
 		#check if there animation data from armature or something
+		#print(dir(arm.animation_data))
+		#print("[["+dir(arm.animation_data.action))
 		if not arm.animation_data:
 			print("======================================")
 			print("Check Animation Data: None")
@@ -1495,13 +1507,14 @@ class ExportUDKAnimData(bpy.types.Operator):
 	def invoke(self, context, event):
 		wm = context.manager
 		wm.add_fileselect(self)
-		return {'RUNNING_MODAL'}	
+		return {'RUNNING_MODAL'}
 		
 def menu_func(self, context):
 	bpy.context.scene.unrealexportpsk = True
 	bpy.context.scene.unrealexportpsa = True
 	default_path = bpy.data.filepath.replace(".blend", ".psk")
 	self.layout.operator("export.udk_anim_data", text="Skeleton Mesh / Animation Data (.psk/.psa)").filepath = default_path
+	
 
 class VIEW3D_PT_unrealtools_objectmode(bpy.types.Panel):
 	bl_space_type = "VIEW_3D"
@@ -1522,7 +1535,6 @@ class VIEW3D_PT_unrealtools_objectmode(bpy.types.Panel):
 		layout.operator("object.UnrealExport")
 		#FPS #it use the real data from your scene
 		layout.prop(rd.render, "fps")
-		
 		
 		layout.prop(rd, "unrealactionexportall")
 		#row = layout.row()
@@ -1551,7 +1563,7 @@ class OBJECT_OT_UnrealExport(bpy.types.Operator):
 	__doc__ = "Select export setting for .psk/.psa or both."
 	
 	def invoke(self, context, event):
-		filepath = StringProperty(name="File Path", description="Filepath used for exporting the PSA file", maxlen= 1024, default= "")
+		#path = StringProperty(name="File Path", description="File path used for exporting the PSA file", maxlen= 1024, default= "")
 		print("Init Export Script:")
 		if(int(bpy.context.scene.unrealexport_settings) == 0):
 			bpy.context.scene.unrealexportpsk = True
@@ -1566,8 +1578,11 @@ class OBJECT_OT_UnrealExport(bpy.types.Operator):
 			bpy.context.scene.unrealexportpsa = True
 			print("Exporting ALL...")
 		default_path = bpy.data.filepath.replace(".blend", ".psk")
+		print(dir(bpy.data.filepath))
 		fs_callback(default_path, bpy.context, False)
-		self.report({'WARNING', 'INFO'}, exportmessage)
+		
+		#self.report({'WARNING', 'INFO'}, exportmessage)
+		self.report({'INFO'}, exportmessage)
 		return{'FINISHED'}	
 	
 def register():
