@@ -40,7 +40,7 @@ def Add_Chain():
     bpy.ops.object.add(type='EMPTY', view_align=False, enter_editmode=False, location=(0, 0, 0), 
 rotation=(0, 0, 0), layer=(True, False, False, False, False, False,
 False, False, False, False, False, False, False, False, False, False, False, False, False, 
-False, False, False, False, False, False, False, False, False, False, False, False, False))
+False))
 
     ##Changes name of Empty to rot_link adds variable emp
     emp = bpy.context.object
@@ -53,7 +53,7 @@ False, False, False, False, False, False, False, False, False, False, False, Fal
     bpy.ops.curve.primitive_nurbs_path_add( view_align=False, enter_editmode=False, location=(0, 0, 0), 
 rotation=(0, 0, 0), layer=(True, False, False, False, False, False, 
 False, False, False, False, False, False, False, False, False, False, False, False, False, 
-False, False, False, False, False, False, False, False, False, False, False, False, False))
+False))
 
     ##Change Curve name to deform adds variable curv
     curv = bpy.context.object
