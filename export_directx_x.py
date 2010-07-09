@@ -23,12 +23,12 @@ bl_addon_info = {
     'author': 'Chris Foster (Kira Vakaan)',
     'version': '1.1',
     'blender': (2, 5, 3),
-    'location': 'location":"File > Export',
+    'location': 'File > Export',
     'description': 'Export to the DirectX Model Format',
     'wiki_url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/' \
         'Scripts/File_I-O/DirectX_Exporter',
     'tracker_url': 'https://projects.blender.org/tracker/index.php?'\
-        'func=detail&aid=22795&group_id=153&atid=467',
+        'func=detail&aid=22795&group_id=153&atid=469',
     'category': 'Import/Export'}
 """
 Name: 'DirectX Exporter'
