@@ -170,6 +170,8 @@ class SequencerEditProps(bpy.types.Panel):
 
     draw = _property_chart_draw
 
+    def poll(self, context):
+        return context.scene.sequence_editor is not None
 
 # Operator to copy properties
 
