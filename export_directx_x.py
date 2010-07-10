@@ -43,11 +43,11 @@ __version__ = "1.1"
 __bpydoc__ = """\
 """
 
-import bpy
-from math import radians
-from mathutils import *
 import os
+from math import radians
 
+import bpy
+from mathutils import *
 
 #Container for the exporter settings
 class DirectXExporterSettings:
