@@ -15,6 +15,15 @@
 #  All rights reserved.
 #  ***** GPL LICENSE BLOCK *****
 
+
+#NOTE: ========================================================
+#I've begun work on a Full Animation feature to more accurately export 
+#FCurve data.  It's going pretty well, but I'm having some trouble with
+#axis flipping.  To "enable" the feature, uncomment line #988
+#The problem is in the WriteFullAnimationSet function at line #948
+# - Chris (2010-7-11)
+
+
 #One line description for early versions of Blender 2.52.
 "Export: DirectX Model Format (.x)"
 
@@ -30,6 +39,7 @@ bl_addon_info = {
     'tracker_url': 'https://projects.blender.org/tracker/index.php?'\
         'func=detail&aid=22795&group_id=153&atid=469',
     'category': 'Import/Export'}
+
 """
 Name: 'DirectX Exporter'
 Blender: 252
@@ -38,7 +48,8 @@ Tooltip: 'Exports to the DirectX model file format (.x)'
 """
 
 __author__ = "Chris Foster (Kira Vakaan)"
-__url__ = "www.tobedecided.com"
+__url__ = "http://wiki.blender.org/index.php/Extensions:2.5/Py/" \
+        "Scripts/File_I-O/DirectX_Exporter"
 __version__ = "1.1"
 __bpydoc__ = """\
 """
@@ -165,7 +176,10 @@ def ExportDirectX(Config):
                 print("Done")
         if Config.Verbose:
             print("Writing Animation...")
-        WriteAnimationSet(Config)
+        if Config.ExportAnimation==1:
+            WriteKeyedAnimationSet(Config)
+        else:
+            WriteFullAnimationSet(Config)
         bpy.context.scene.frame_current = CurrentFrame
         if Config.Verbose:
             print("Done")
@@ -178,17 +192,19 @@ def GetObjectChildren(Parent):
     return [Object for Object in Parent.children
             if Object.type in ("ARMATURE", "EMPTY", "MESH")]
 
-
+#Returns the vertex count of Mesh, counting each vertex for every face.
 def GetMeshVertexCount(Mesh):
     VertexCount = 0
     for Face in Mesh.faces:
         VertexCount += len(Face.verts)
     return VertexCount
 
-
+#Returns the file path of first image texture from Material.
 def GetMaterialTexture(Material):
     if Material:
+        #Create a list of Textures that have type "IMAGE"
         ImageTextures = [Material.texture_slots[TextureSlot].texture for TextureSlot in Material.texture_slots.keys() if Material.texture_slots[TextureSlot].texture.type == "IMAGE"]
+        #Refine a new list with only image textures that have a file source
         ImageFiles = [os.path.basename(Texture.image.filename) for Texture in ImageTextures if Texture.image.source == "FILE"]
         if ImageFiles:
             return ImageFiles[0]
@@ -529,9 +545,11 @@ def WriteMeshSkinWeights(Config, Object, Mesh):
 
         MaxInfluences = 0
         UsedBones = set()
+        #Maps bones to a list of vertices they affect
         VertexGroups = {}
-
+        
         for Vertex in Mesh.verts:
+            #BoneInfluences contains the bones of the armature that affect the current vertex
             BoneInfluences = [PoseBones[Object.vertex_groups[Group.group].name] for Group in Vertex.groups if Object.vertex_groups[Group.group].name in PoseBones]
             if len(BoneInfluences) > MaxInfluences:
                 MaxInfluences = len(BoneInfluences)
@@ -617,7 +635,7 @@ def WriteMeshSkinWeights(Config, Object, Mesh):
             Config.File.write("{}}}  //End of {} Skin Weights\n".format("  " * Config.Whitespace, LegalName(ArmatureObject.name) + "_" + LegalName(Bone.name)))
 
 
-def WriteAnimationSet(Config):
+def WriteKeyedAnimationSet(Config):
     Config.File.write("{}AnimationSet {{\n".format("  " * Config.Whitespace))
     Config.Whitespace += 1
     for Object in [Object for Object in Config.ObjectList if Object.animation_data]:
@@ -894,6 +912,61 @@ def WriteAnimationSet(Config):
         if Config.Verbose:
             print("  Done")
 
+    Config.Whitespace -= 1
+    Config.File.write("{}}} //End of AnimationSet\n".format("  " * Config.Whitespace))
+    
+    
+def WriteFullAnimationSet(Config):
+    Config.File.write("{}AnimationSet {{\n".format("  " * Config.Whitespace))
+    Config.Whitespace += 1
+    
+    KeyframeCount = bpy.context.scene.frame_end - bpy.context.scene.frame_start + 1
+    
+    for Object in Config.ObjectList:
+        Config.File.write("{}Animation {{\n".format("  " * Config.Whitespace))
+        Config.Whitespace += 1
+        Config.File.write("{}{{{}}}\n".format("  " * Config.Whitespace, LegalName(Object.name)))
+        
+        #Position
+        Config.File.write("{}AnimationKey {{ //Position\n".format("  " * Config.Whitespace))
+        Config.Whitespace += 1
+        Config.File.write("{}2;\n{}{};\n".format("  " * Config.Whitespace,"  " * Config.Whitespace,KeyframeCount))
+        for Frame in range(0, KeyframeCount):
+            bpy.context.scene.set_frame(Frame)
+            Position = Config.SystemMatrix * Object.location
+            Config.File.write("{}{}{:9f},{:9f},{:9f};;\n".format("  " * Config.Whitespace, (str(Frame) + ";3;").ljust(8), Position[0], Position[1], Position[2]))
+        Config.Whitespace -= 1
+        Config.File.write("{}}}\n".format("  " * Config.Whitespace))
+        
+        #Rotation
+        Config.File.write("{}AnimationKey {{ //Rotation\n".format("  " * Config.Whitespace))
+        Config.Whitespace += 1
+        Config.File.write("{}0;\n{}{};\n".format("  " * Config.Whitespace, "  " * Config.Whitespace, KeyframeCount))
+        for Frame in range(0, KeyframeCount):
+            bpy.context.scene.set_frame(Frame)
+            #Works pretty well, but causes a slightly noticeable axis flip at 180*
+            Rotation = (Config.SystemMatrix * (Object.rotation_euler.to_matrix().to_4x4()) * Config.InverseSystemMatrix).to_quat()
+            Config.File.write("{}{}{:9f},{:9f},{:9f},{:9f};;\n".format("  " * Config.Whitespace,(str(Frame) + ";4;").ljust(8), -Rotation[0], Rotation[1], Rotation[2], Rotation[3]))
+        Config.Whitespace -= 1
+        Config.File.write("{}}}\n".format("  " * Config.Whitespace))
+        
+        #Scale
+        Config.File.write("{}AnimationKey {{ //Scale\n".format("  " * Config.Whitespace))
+        Config.Whitespace += 1
+        Config.File.write("{}1;\n{}{};\n".format("  " * Config.Whitespace, "  " * Config.Whitespace, KeyframeCount))
+        for Frame in range(0, KeyframeCount):
+            bpy.context.scene.set_frame(Frame)
+            Scale = Config.SystemMatrix * Object.scale
+            Config.File.write("{}{}{:9f},{:9f},{:9f};;\n".format("  " * Config.Whitespace,(str(Frame) + ";3;").ljust(8), Scale[0], Scale[1], Scale[2]))
+        Config.Whitespace -= 1
+        Config.File.write("{}}}\n".format("  " * Config.Whitespace))
+        
+        Config.Whitespace -= 1
+        Config.File.write("{}}}\n".format("  " * Config.Whitespace))
+        
+        if Config.ExportArmatures and Object.type == "ARMATURE":
+            pass
+    
     Config.Whitespace -= 1
     Config.File.write("{}}} //End of AnimationSet\n".format("  " * Config.Whitespace))
 
