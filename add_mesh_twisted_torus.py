@@ -1,5 +1,5 @@
 # add_mesh_twisted_torus.py Copyright (C) 2009-2010, Paulo Gomes
-#
+# email__=["tuga3d {at} gmail {dot} com"]
 # add twisted torus to the blender 2.50 add->mesh menu
 # ***** BEGIN GPL LICENSE BLOCK *****
 #
@@ -32,27 +32,6 @@ bl_addon_info = {
     'tracker_url': 'https://projects.blender.org/tracker/index.php?'\
         'func=detail&aid=21622&group_id=153&atid=469',
     'category': 'Add Mesh'}
-
-
-"""
-Name: 'Twisted Torus'
-Blender: 250
-Group: 'AddMesh'
-Tip: 'Add a Twisted Torus Object...'
-__author__ = ["Paulo_Gomes"]
-__version__ = '0.10'
-__url__ = [
-    ""]
-email__=["tuga3d {at} gmail {dot} com"]
-
-Usage:
-
-* Launch from Add Mesh menu
-
-* Modify parameters as desired or keep defaults
-
-"""
-
 
 import bpy
 from bpy.props import *
