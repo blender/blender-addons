@@ -33,7 +33,7 @@ bl_addon_info = {
 
 
 import bpy
-from fracture import fracture_ops, fracture_setup
+from object_fracture import fracture_ops, fracture_setup
 
 
 class INFO_MT_add_fracture_objects(bpy.types.Menu):
