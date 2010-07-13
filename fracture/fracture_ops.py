@@ -36,9 +36,6 @@ def create_cutter(context, crack_type, scale, roughness):
                 False, False, False, False,
                 False, False, False, False,
                 False, False, False, False,
-                False, False, False, False,
-                False, False, False, False,
-                False, False, False, False,
                 False, False, False, False))
 
         for v in context.scene.objects.active.data.verts:
