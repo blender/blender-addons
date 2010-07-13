@@ -17,7 +17,7 @@
 # ##### END GPL LICENSE BLOCK #####
 
 bl_addon_info = {
-    'name': 'I/O: Raw mesh',
+    'name': 'Import/Export: Raw mesh',
     'author': 'Anthony D,Agostino (Scorpius), Aurel Wildfellner',
     'version': '0.2',
     'blender': (2, 5, 3),
