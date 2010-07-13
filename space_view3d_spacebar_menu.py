@@ -22,29 +22,7 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-bl_addon_info = {
-    'name': '3D View: Dynamic Spacebar Menu',
-    'author': 'JayDez, sim88, meta-androcto',
-    'version': '1.5',
-    'blender': (2, 5, 3),
-    'location': 'View3D > Spacebar',
-    'description': 'Context sensitive spacebar menu',
-    'wiki_url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/' \
-        'Scripts/3D_interaction/Dynamic_Spacebar_Menu',
-    'tracker_url': 'https://projects.blender.org/tracker/index.php?'\
-        'func=detail&aid=22060&group_id=153&atid=469',
-    'category': '3D View'}
-"Add Dynamic Spacebar Menu"
-
 """
-Name: 'Dynamic Spacebar Menu'
-Blender: 253
-"""
-
-__author__ = ["JayDez, sim88, meta-androcto, sam"]
-__version__ = '1.5'
-__url__ = [""]
-__bpydoc__ = """
 Dynamic Menu
 This adds a the Dynamic Spacebar Menu in the View3D.
 
@@ -68,11 +46,26 @@ v0.1 through 0.9 - various tests/contributions by various people and scripts
     Devs: JayDez, Crouch, sim88, meta-androcto, Sam
     Scripts: 3D Cursor Menu, Original Dynamic Menu
 """
+
+
+bl_addon_info = {
+    'name': '3D View: Dynamic Spacebar Menu',
+    'author': 'JayDez, sim88, meta-androcto', 'sam'
+    'version': '1.5',
+    'blender': (2, 5, 3),
+    'location': 'View3D > Spacebar',
+    'description': 'Context sensitive spacebar menu',
+    'warning': '', # used for warning icon and text in addons panel
+    'wiki_url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/' \
+        'Scripts/3D_interaction/Dynamic_Spacebar_Menu',
+    'tracker_url': 'https://projects.blender.org/tracker/index.php?'\
+        'func=detail&aid=22060&group_id=153&atid=469',
+    'category': '3D View'}
+
 import bpy
 from bpy import *
 from mathutils import Vector, Matrix
 import math
-
 
 # Dynamic Menu
 class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):

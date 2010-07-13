@@ -1,9 +1,22 @@
-import bpy
-from bpy.props import FloatProperty,EnumProperty,BoolProperty
-from math import sqrt
-from mathutils import Vector,Matrix
-#from rawMeshUtils import *
-from functools import reduce
+# ***** BEGIN GPL LICENSE BLOCK *****
+#
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 2
+# of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software Foundation,
+# Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+#
+# ***** END GPL LICENCE BLOCK *****
+
 
 bl_addon_info = {
     'name': 'Add Mesh: Regular Solids',
@@ -12,11 +25,20 @@ bl_addon_info = {
     'blender': (2, 5, 3),
     'location': 'View3D > Add > Mesh > Regular Solids',
     'description': 'Add a Regular Solid mesh.',
+    'warning': '', # used for warning icon and text in addons panel
     'wiki_url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/' \
         'Scripts/Add_Mesh/Add_Solid',
     'tracker_url': 'https://projects.blender.org/tracker/index.php?'\
         'func=detail&aid=22405&group_id=153&atid=469',
     'category': 'Add Mesh'}
+
+
+import bpy
+from bpy.props import FloatProperty,EnumProperty,BoolProperty
+from math import sqrt
+from mathutils import Vector,Matrix
+#from rawMeshUtils import *
+from functools import reduce
 
 # Apply view rotation to objects if "Align To" for
 # new objects was set to "VIEW" in the User Preference.

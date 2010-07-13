@@ -19,14 +19,17 @@
 # <pep8 compliant>
 
 bl_addon_info = {
-    'name': 'I/O: Camera Animation',
+    'name': 'Export: Camera Animation',
     'author': 'Campbell Barton',
     'version': '0.1',
     'blender': (2, 5, 3),
     'location': 'File > Export > Camera Animation',
     'description': 'Export Cameras & Markers',
+    'warning': '', # used for warning icon and text in addons panel
     'wiki_url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/' \
-           'Scripts/File_I-O/Camera_Animation',
+        'Scripts/File_I-O/Camera_Animation',
+    'tracker_url': 'https://projects.blender.org/tracker/index.php?'\
+        'func=detail&aid=22835&group_id=153&atid=469',
     'category': 'Import/Export'}
 
 

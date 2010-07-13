@@ -19,6 +19,8 @@
 #
 # ***** END GPL LICENCE BLOCK *****
 
+"""Align Selected Objects"""
+
 bl_addon_info = {
     'name': '3D View: Align Tools',
     'author': 'Gabriel Beaudin (gabhead)',
@@ -26,13 +28,12 @@ bl_addon_info = {
     'blender': (2, 5, 3),
     'location': 'Tool Shelf',
     'description': 'Align selected objects to the active object',
-    'wiki_url':
-    'http://wiki.blender.org/index.php/Extensions:2.5/Py/' \
+    'warning': '', # used for warning icon and text in addons panel
+    'wiki_url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/' \
         'Scripts/3D interaction/Align_Tools',
     'tracker_url': 'https://projects.blender.org/tracker/index.php?'\
         'func=detail&aid==22389&group_id=153&atid=468',
     'category': '3D View'}
-"Align Selected Objects"
 
 import bpy
 

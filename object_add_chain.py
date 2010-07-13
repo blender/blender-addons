@@ -15,9 +15,8 @@
 #  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # ##### END GPL LICENSE BLOCK #####
-#
-import bpy
-#
+
+
 bl_addon_info = {
     'name': 'Object: Add Chain',
     'author': 'Brian Hinton (Nichod)',
@@ -25,14 +24,16 @@ bl_addon_info = {
     'blender': (2, 5, 3),
     'location': 'View3D > Add > Mesh > Chain',
     'description': 'Adds Chain with curve guide for easy creation',
+    'warning': '', # used for warning icon and text in addons panel
     'wiki_url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/' \
         'Scripts/Object/Add_Chain',
     'tracker_url': 'https://projects.blender.org/tracker/index.php?'\
         'func=detail&aid=22203&group_id=153&atid=469',
     'category': 'Object'}
-#
-#
-#
+
+
+import bpy
+
 def Add_Chain():
   
 

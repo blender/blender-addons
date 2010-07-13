@@ -16,30 +16,7 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-import bpy
-import mathutils
-from math import *
-from bpy.props import *
-
-bl_addon_info = {
-    'name': 'Add Mesh: Pipe Joints',
-    'author': 'Buerbaum Martin (Pontiac)',
-    'version': '0.10.5',
-    'blender': (2, 5, 3),
-    'location': 'View3D > Add > Mesh > Pipe Joint',
-    'description': 'Adds 5 pipe Joint types to the Add Mesh menu',
-    'wiki_url':
-    'http://wiki.blender.org/index.php/Extensions:2.5/Py/' \
-        'Scripts/Add_Mesh/Add_Pipe_Joints',
-    'tracker_url': 'https://projects.blender.org/tracker/index.php?'\
-        'func=detail&aid=21443&group_id=153&atid=469',
-    'category': 'Add Mesh'}
-
-# More links:
-# http://gitorious.org/blender-scripts/blender-pipe-joint-script
-# http://blenderartists.org/forum/showthread.php?t=154394
-
-__bpydoc__ = """
+"""
 Pipe Joints
 This script lets the user create various types of pipe joints.
 
@@ -117,12 +94,36 @@ v0.3 - Code for wye (Y) shape (straight pipe with "branch" for now)
 v0.2 - Restructured to allow different types of pipe (joints).
 v0.1 - Initial revision.
 
+More links:
+http://gitorious.org/blender-scripts/blender-pipe-joint-script
+http://blenderartists.org/forum/showthread.php?t=154394
+
 TODO:
 
 Use a rotation matrix for rotating the circle vertices:
 rotation_matrix = mathutils.RotationMatrix(-math.pi/2, 4, 'x')
 mesh.transform(rotation_matrix)
 """
+
+bl_addon_info = {
+    'name': 'Add Mesh: Pipe Joints',
+    'author': 'Buerbaum Martin (Pontiac)',
+    'version': '0.10.5',
+    'blender': (2, 5, 3),
+    'location': 'View3D > Add > Mesh > Pipe Joint',
+    'description': 'Adds 5 pipe Joint types to the Add Mesh menu',
+    'warning': '', # used for warning icon and text in addons panel
+    'wiki_url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/' \
+        'Scripts/Add_Mesh/Add_Pipe_Joints',
+    'tracker_url': 'https://projects.blender.org/tracker/index.php?'\
+        'func=detail&aid=21443&group_id=153&atid=469',
+    'category': 'Add Mesh'}
+
+import bpy
+import mathutils
+from math import *
+from bpy.props import *
+
 
 # Apply view rotation to objects if "Align To" for
 # new objects was set to "VIEW" in the User Preference.

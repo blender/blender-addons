@@ -12,6 +12,20 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA	02111-1307	USA
 
+"""
+Version': '2.0' ported by Darknet
+
+Unreal Tournament PSK file to Blender mesh converter V1.0
+Author: D.M. Sturgeon (camg188 at the elYsium forum), ported by Darknet
+Imports a *psk file to a new mesh
+
+-No UV Texutre
+-No Weight
+-No Armature Bones
+-No Material ID
+-Export Text Log From Current Location File (Bool )
+"""
+
 bl_addon_info = {
     'name': 'Import: Unreal Skeleton Mesh(.psk)',
     'author': 'Darknet',
@@ -19,30 +33,13 @@ bl_addon_info = {
     'blender': (2, 5, 3),
     'location': 'File > Import ',
     'description': 'Import Unreal Engine (.psk)',
+    'warning': '', # used for warning icon and text in addons panel
     'wiki_url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/'\
         'Scripts/File_I-O/Unreal_psk_psa',
     'tracker_url': 'https://projects.blender.org/tracker/index.php?'\
         'func=detail&aid=21366&group_id=153&atid=469',
     'category': 'Import/Export'}
 
-"""
-Name: 'Skeleton Mesh Import(.psk)'
-Blender: 250
-Group: 'Import'
-Tip: 'Import mesh data from Unreal Tournament PSK file.'
-
-Updated by: Darknet
-
-# Unreal Tournament PSK file to Blender mesh converter V1.0
-# Author: D.M. Sturgeon (camg188 at the elYsium forum)
-# Imports a *psk file to a new mesh
-
-#-No UV Texutre
-#-No Weight
-#-No Armature Bones
-#-No Material ID
-#-Export Text Log From Current Location File (Bool )
-"""
 
 import bpy
 import mathutils

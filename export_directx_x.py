@@ -15,17 +15,18 @@
 #  All rights reserved.
 #  ***** GPL LICENSE BLOCK *****
 
+"""
 
-#NOTE: ========================================================
-#I've begun work on a Full Animation feature to more accurately export 
-#FCurve data.  It's going pretty well, but I'm having some trouble with
-#axis flipping.  To "enable" the feature, uncomment line #988
-#The problem is in the WriteFullAnimationSet function at line #948
-# - Chris (2010-7-11)
+Export: DirectX Model Format (.x)
 
+NOTE: ========================================================
+I've begun work on a Full Animation feature to more accurately export 
+FCurve data.  It's going pretty well, but I'm having some trouble with
+axis flipping.  To "enable" the feature, uncomment line #988
+The problem is in the WriteFullAnimationSet function at line #948
+ - Chris (2010-7-11)
 
-#One line description for early versions of Blender 2.52.
-"Export: DirectX Model Format (.x)"
+"""
 
 bl_addon_info = {
     'name': 'Export: DirectX Model Format (.x)',
@@ -33,26 +34,14 @@ bl_addon_info = {
     'version': '1.1',
     'blender': (2, 5, 3),
     'location': 'File > Export',
-    'description': 'Export to the DirectX Model Format',
+    'description': 'Export to the DirectX Model Format (.x)',
+    'warning': '', # used for warning icon and text in addons panel
     'wiki_url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/' \
         'Scripts/File_I-O/DirectX_Exporter',
     'tracker_url': 'https://projects.blender.org/tracker/index.php?'\
         'func=detail&aid=22795&group_id=153&atid=469',
     'category': 'Import/Export'}
 
-"""
-Name: 'DirectX Exporter'
-Blender: 252
-Group: 'Export'
-Tooltip: 'Exports to the DirectX model file format (.x)'
-"""
-
-__author__ = "Chris Foster (Kira Vakaan)"
-__url__ = "http://wiki.blender.org/index.php/Extensions:2.5/Py/" \
-        "Scripts/File_I-O/DirectX_Exporter"
-__version__ = "1.1"
-__bpydoc__ = """\
-"""
 
 import os
 from math import radians

@@ -22,31 +22,8 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-bl_addon_info = {
-    'name': '3D View: Material Utils',
-    'author': 'michaelw',
-    'version': '0.9',
-    'blender': (2, 5, 3),
-    'location': 'View3D > Q key',
-    'description': 'Menu of material tools (assign, select by etc)  in the 3D View',
-    'wiki_url':
-    'http://wiki.blender.org/index.php/Extensions:2.5/Py/' \
-        'Scripts/3D interaction/Materials Utils',
-    'tracker_url': 'https://projects.blender.org/tracker/index.php?'\
-        'func=detail&aid=22140&group_id=153&atid=469',
-    'category': '3D View'}
-"a menu of material tools"
-
 """
-Name: 'Master Material Menu'
-Blender: 253
-"""
-
-__author__ = ["michaelW"]
-__version__ = '1.3'
-__url__ = [""]
-__bpydoc__ = """
-this script has several functions and operators... grouped for convenience
+This script has several functions and operators... grouped for convenience
 * assign material:
     offers the user a list of ALL the materials in the blend file and an additional "new" entry
     the chosen material will be assigned to all the selected objects in object mode.
@@ -57,21 +34,32 @@ this script has several functions and operators... grouped for convenience
     After assigning the material "clean material slots" and "material to texface" are auto run to keep things tidy (see description bellow)
 
 
-*select by material
+* select by material
     in object mode this offers the user a menu of all materials in the blend file
     any objects using the selected material will become selected, any objects without the material will be removed from selection.
     
     in edit mode:  the menu offers only the materials attached to the current object. It will select the faces that use the material and deselect those that do not.
 
-*clean material slots
+* clean material slots
     for all selected objects any empty material slots or material slots with materials that are not used by the mesh faces will be removed.
 
-*
-
-
- Any un-used materials and slots will be removed 
+* Any un-used materials and slots will be removed 
 """
 
+
+bl_addon_info = {
+    'name': '3D View: Material Utils',
+    'author': 'michaelw',
+    'version': '1.3',
+    'blender': (2, 5, 3),
+    'location': 'View3D > Q key',
+    'description': 'Menu of material tools (assign, select by etc)  in the 3D View',
+    'warning': '', # used for warning icon and text in addons panel
+    'wiki_url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/' \
+        'Scripts/3D interaction/Materials Utils',
+    'tracker_url': 'https://projects.blender.org/tracker/index.php?'\
+        'func=detail&aid=22140&group_id=153&atid=469',
+    'category': '3D View'}
 
 
 import bpy

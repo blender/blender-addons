@@ -16,11 +16,6 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-import bpy
-from mathutils import *
-from math import *
-from bpy.props import *
-
 bl_addon_info = {
     'name': 'Add Mesh: Extras',
     'author': 'Pontiac, Fourmadmen, meta-androcto',
@@ -28,11 +23,17 @@ bl_addon_info = {
     'blender': (2, 5, 3),
     'location': 'View3D > Add > Mesh > Extras',
     'description': 'Adds Star, Wedge, Sqorus & Spindle objects.',
+    'warning': '', # used for warning icon and text in addons panel
     'wiki_url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/' \
         'Scripts/Add_Mesh/Add_Extra',
     'tracker_url': 'https://projects.blender.org/tracker/index.php?'\
         'func=detail&aid=22457&group_id=153&atid=469',
     'category': 'Add Mesh'}
+
+import bpy
+from mathutils import *
+from math import *
+from bpy.props import *
 
 # calculates the matrix for the new object
 # depending on user pref

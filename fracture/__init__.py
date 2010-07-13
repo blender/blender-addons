@@ -24,6 +24,7 @@ bl_addon_info = {
     'location': 'Fracture tools (Search > Fracture Object & ,' \
         'Add -> Fracture Helper Objects',
     'description': 'Fractured Object, Bomb, Projectile, Recorder',
+    'warning': '', # used for warning icon and text in addons panel
     'wiki_url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/' \
         'Scripts/Object/Fracture',
     'tracker_url': 'https://projects.blender.org/tracker/index.php?'\

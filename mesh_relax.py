@@ -21,19 +21,6 @@
 #
 # ***** END GPL LICENCE BLOCK *****
 
-bl_addon_info = {
-    'name': 'Mesh: Relax',
-    'author': 'Fabian Fricke',
-    'version': '1.1  2010/04/22',
-    'blender': (2, 5, 3),
-    'location': 'View3D > Specials > Relax ',
-    'description': 'Relax the selected verts while retaining the shape',
-    'wiki_url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/' \
-	    'Scripts/Modeling/Relax',
-    'tracker_url': 'https://projects.blender.org/tracker/index.php?'\
-        'func=detail&aid=21421&group_id=153&atid=469',
-    'category': 'Mesh'}
-
 """
 
 Usage:
@@ -46,6 +33,21 @@ Additional links:
     e-mail: frigi.f {at} gmail {dot} com
 
 """
+
+
+bl_addon_info = {
+    'name': 'Mesh: Relax',
+    'author': 'Fabian Fricke',
+    'version': '1.1  2010/04/22',
+    'blender': (2, 5, 3),
+    'location': 'View3D > Specials > Relax ',
+    'description': 'Relax the selected verts while retaining the shape',
+    'warning': '', # used for warning icon and text in addons panel
+    'wiki_url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/' \
+        'Scripts/Modeling/Relax',
+    'tracker_url': 'https://projects.blender.org/tracker/index.php?'\
+        'func=detail&aid=21421&group_id=153&atid=469',
+    'category': 'Mesh'}
 
 
 import bpy

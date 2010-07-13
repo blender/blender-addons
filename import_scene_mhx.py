@@ -20,17 +20,18 @@ Version 0.9
 """
 
 bl_addon_info = {
-	'name': 'Import MakeHuman (.mhx)',
-	'author': 'Thomas Larsson',
-	'version': '0.9, Make Human Alpha 5',
-	'blender': (2, 5, 3),
-	'location': 'File > Import',
-	'description': 'Import files in the MakeHuman eXchange format (.mhx)',
-	'wiki_url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/' \
+    'name': 'Import MakeHuman (.mhx)',
+    'author': 'Thomas Larsson',
+    'version': '0.9, Make Human Alpha 5',
+    'blender': (2, 5, 3),
+    'location': 'File > Import',
+    'description': 'Import files in the MakeHuman eXchange format (.mhx)',
+    'warning': '', # used for warning icon and text in addons panel
+    'wiki_url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/' \
         'Scripts/File_I-O/Make_Human',
     'tracker_url': 'https://projects.blender.org/tracker/index.php?'\
         'func=detail&aid=21872&group_id=153&atid=469',
-	'category': 'Import/Export'}
+    'category': 'Import/Export'}
 
 """
 Place this file in the .blender/scripts/addons dir
