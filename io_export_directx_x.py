@@ -21,7 +21,8 @@ bl_addon_info = {
     'version': '1.2',
     'blender': (2, 5, 3),
     'location': 'File > Export',
-    'description': 'Export to the DirectX Model Format',
+    'description': 'Export to the DirectX Model Format (.x)',
+    'warning': '', # used for warning icon and text in addons panel
     'wiki_url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/' \
         'Scripts/File_I-O/DirectX_Exporter',
     'tracker_url': 'https://projects.blender.org/tracker/index.php?'\
