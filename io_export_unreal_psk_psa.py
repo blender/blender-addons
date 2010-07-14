@@ -1510,7 +1510,7 @@ class ExportUDKAnimData(bpy.types.Operator):
 def menu_func(self, context):
 	bpy.context.scene.unrealexportpsk = True
 	bpy.context.scene.unrealexportpsa = True
-	default_path = bpy.data.filepath.replace(".blend", ".psk")
+	default_path = os.path.splitext(bpy.data.filepath)[0] + ".psk"
 	self.layout.operator("export.udk_anim_data", text="Skeleton Mesh / Animation Data (.psk/.psa)").filepath = default_path
 	
 
@@ -1521,7 +1521,7 @@ class VIEW3D_PT_unrealtools_objectmode(bpy.types.Panel):
 	
 	def poll(self, context):
 		return context.active_object
-    
+
 	def draw(self, context):
 		layout = self.layout
 		#layout.label(text="Unreal Tools")
@@ -1575,8 +1575,8 @@ class OBJECT_OT_UnrealExport(bpy.types.Operator):
 			bpy.context.scene.unrealexportpsk = True
 			bpy.context.scene.unrealexportpsa = True
 			print("Exporting ALL...")
-		default_path = bpy.data.filepath.replace(".blend", ".psk")
-		print(dir(bpy.data.filepath))
+
+		default_path = os.path.splitext(bpy.data.filepath)[0] + ".psk"
 		fs_callback(default_path, bpy.context, False)
 		
 		#self.report({'WARNING', 'INFO'}, exportmessage)
@@ -1590,7 +1590,7 @@ def register():
 		bpy.types.register(VIEW3D_PT_unrealtools_objectmode)
 	bpy.types.register(ExportUDKAnimData)
 	bpy.types.INFO_MT_file_export.append(menu_func)
-    
+
 def unregister():
 	global MENUPANELBOOL
 	if MENUPANELBOOL:

@@ -1038,9 +1038,7 @@ class DirectXExporter(bpy.types.Operator):
 
 
 def menu_func(self, context):
-    DefaultPath = bpy.data.filepath
-    if DefaultPath.endswith(".blend"):
-        DefaultPath = DefaultPath[:-6] + ".x"
+    DefaultPath = os.path.splitext(bpy.data.filepath)[0] + ".x"
     self.layout.operator(DirectXExporter.bl_idname, text="DirectX (.x)").filepath = DefaultPath
 
 
