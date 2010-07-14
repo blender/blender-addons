@@ -15,27 +15,13 @@
 #  All rights reserved.
 #  ***** GPL LICENSE BLOCK *****
 
-"""
-
-Export: DirectX Model Format (.x)
-
-NOTE: ========================================================
-I've begun work on a Full Animation feature to more accurately export 
-FCurve data.  It's going pretty well, but I'm having some trouble with
-axis flipping.  To "enable" the feature, uncomment line #988
-The problem is in the WriteFullAnimationSet function at line #948
- - Chris (2010-7-11)
-
-"""
-
 bl_addon_info = {
     'name': 'Export: DirectX Model Format (.x)',
     'author': 'Chris Foster (Kira Vakaan)',
-    'version': '1.1',
+    'version': '1.2',
     'blender': (2, 5, 3),
     'location': 'File > Export',
-    'description': 'Export to the DirectX Model Format (.x)',
-    'warning': '', # used for warning icon and text in addons panel
+    'description': 'Export to the DirectX Model Format',
     'wiki_url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/' \
         'Scripts/File_I-O/DirectX_Exporter',
     'tracker_url': 'https://projects.blender.org/tracker/index.php?'\
@@ -253,14 +239,26 @@ def WriteObjects(Config, ObjectList):
         if Object.type == "MESH":
             if Config.Verbose:
                 print("    Generating Mesh...", end=" ")
-            Mesh = Object.create_mesh(bpy.context.scene, (Config.ApplyModifiers | Config.ExportArmatures), "PREVIEW")
+            if Config.ApplyModifiers:
+                if Config.ExportArmatures:
+                    #Create a copy of the object and remove all armature modifiers so an unshaped
+                    #mesh can be created from it.
+                    Object2 = Object.copy()
+                    for Modifier in [Modifier for Modifier in Object2.modifiers if Modifier.type == "ARMATURE"]:
+                        Object2.modifiers.remove(Modifier)
+                    Mesh = Object2.create_mesh(bpy.context.scene, True, "PREVIEW")
+                else:
+                    Mesh = Object.create_mesh(bpy.context.scene, True, "PREVIEW")
+            else:
+                Mesh = Object.create_mesh(bpy.context.scene, False, "PREVIEW")
             if Config.Verbose:
                 print("Done")
-            if Config.Verbose:
                 print("    Writing Mesh...")
             WriteMesh(Config, Object, Mesh)
             if Config.Verbose:
                 print("    Done")
+            if Config.ApplyModifiers and Config.ExportArmatures:
+                bpy.data.objects.remove(Object2)
             bpy.data.meshes.remove(Mesh)
 
         Config.Whitespace -= 1
@@ -270,12 +268,7 @@ def WriteObjects(Config, ObjectList):
 
 
 def WriteLocalMatrix(Config, Object):
-    if Object.parent:
-        LocalMatrix = Object.parent.matrix_world.copy().invert()
-    else:
-        LocalMatrix = Matrix()
-    LocalMatrix *= Object.matrix_world
-    LocalMatrix = Config.SystemMatrix * LocalMatrix * Config.InverseSystemMatrix
+    LocalMatrix = Config.SystemMatrix * Object.matrix_local * Config.InverseSystemMatrix
 
     Config.File.write("{}FrameTransformMatrix {{\n".format("  " * Config.Whitespace))
     Config.Whitespace += 1
@@ -528,7 +521,7 @@ def WriteMeshSkinWeights(Config, Object, Mesh):
     ArmatureList = [Modifier for Modifier in Object.modifiers if Modifier.type == "ARMATURE"]
     if ArmatureList:
         ArmatureObject = ArmatureList[0].object
-        Armature = ArmatureObject.data
+        ArmatureBones = ArmatureObject.data.bones
 
         PoseBones = ArmatureObject.pose.bones
 
@@ -603,15 +596,18 @@ def WriteMeshSkinWeights(Config, Object, Mesh):
                     Config.File.write(";\n")
                 else:
                     Config.File.write(",\n")
-
-            PoseBone = PoseBones[Bone.name]
-
-            BoneMatrix = (PoseBone.matrix * RotationMatrix(radians(-90), 4, "X")).invert()
+            
+            RestBone = ArmatureBones[Bone.name]
+            
+            #BoneMatrix transforms mesh vertices into the space of the bone.
+            #Here are the final transformations in order:
+            #  - Object Space to World Space
+            #  - World Space to Armature Space
+            #  - Armature Space to Bone Space (The bone matrix needs to be rotated 90 degrees to align with Blender's world axes)
+            #This way, when BoneMatrix is transformed by the bone's Frame matrix, the vertices will be in their final world position.
+            
+            BoneMatrix = (RestBone.matrix_local * RotationMatrix(radians(-90), 4, "X")).invert()
             BoneMatrix *= ArmatureObject.matrix_world.copy().invert()
-
-            if Object.parent and Object.parent != ArmatureObject:
-                BoneMatrix *= Object.parent.matrix_world.copy().invert()
-
             BoneMatrix *= Object.matrix_world
 
             BoneMatrix = Config.SystemMatrix * BoneMatrix * Config.InverseSystemMatrix
@@ -999,10 +995,10 @@ class DirectXExporter(bpy.types.Operator):
     #General Options
     RotateX = BoolProperty(name="Rotate X 90 Degrees", description="Rotate the entire scene 90 degrees around the X axis so Y is up", default=True)
     FlipNormals = BoolProperty(name="Flip Normals", description="", default=False)
-    ApplyModifiers = BoolProperty(name="Apply Modifiers", description="Apply all object modifiers before export.", default=False)
+    ApplyModifiers = BoolProperty(name="Apply Modifiers", description="Apply object modifiers before export.", default=False)
     IncludeFrameRate = BoolProperty(name="Include Frame Rate", description="Include the AnimTicksPerSecond template which is used by some engines to control animation speed.", default=False)
     ExportTextures = BoolProperty(name="Export Textures", description="Reference external image files to be used by the model", default=True)
-    ExportArmatures = BoolProperty(name="Export Armatures", description="Export the bones of any armatures to deform meshes.  Warning: This option also applies all modifiers.", default=False)
+    ExportArmatures = BoolProperty(name="Export Armatures", description="Export the bones of any armatures to deform meshes.", default=False)
     ExportAnimation = EnumProperty(name="Animations", description="Select the type of animations to export.  Only object and armature bone animations can be exported.", items=AnimationModes, default="0")
 
     #Export Mode
