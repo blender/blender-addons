@@ -436,7 +436,7 @@ def import_object(obname):
         opath = "//data.blend\\Object\\" + obname
         s = os.sep
         dpath = bpy.utils.script_paths()[0] + \
-            '%saddons%sfracture%sdata.blend\\Object\\' % (s, s, s)
+            '%saddons%sobject_fracture%sdata.blend\\Object\\' % (s, s, s)
 
         # DEBUG
         #print('import_object: ' + opath)
