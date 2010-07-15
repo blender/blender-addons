@@ -96,7 +96,7 @@ def create_mesh_object(context, verts, edges, faces, name, edit, align_matrix):
 
         # Use the active obj and select it.
         ob_new = obj_act
-        ob_new.selected = True
+        ob_new.select = True
 
         if obj_act.mode == 'OBJECT':
             # Get existing mesh datablock.
@@ -121,7 +121,7 @@ def create_mesh_object(context, verts, edges, faces, name, edit, align_matrix):
 
         # Link new object to the given scene and select it.
         scene.objects.link(ob_new)
-        ob_new.selected = True
+        ob_new.select = True
 
         # Place the object at the 3D cursor location.
         # apply viewRotaion
@@ -133,7 +133,7 @@ def create_mesh_object(context, verts, edges, faces, name, edit, align_matrix):
             bpy.ops.object.mode_set(mode='OBJECT')
 
             # Select the active object as well.
-            obj_act.selected = True
+            obj_act.select = True
 
             # Apply location of new object.
             scene.update()

@@ -184,7 +184,7 @@ class GPENCIL_OT_SURFSK_add_surface(bpy.types.Operator):
         all_selected_verts = []
         all_verts_idx = []
         for ed in self.main_object.data.edges:
-            if ed.selected:
+            if ed.select:
                 all_selected_edges_idx.append(ed.index)
                 
                 # Selected vertexes.
@@ -717,8 +717,8 @@ class GPENCIL_OT_SURFSK_add_surface(bpy.types.Operator):
         
         
         #### Join the new mesh to the main object.
-        ob_surface.selected = True
-        self.main_object.selected = True
+        ob_surface.select = True
+        self.main_object.select = True
         bpy.context.scene.objects.active = bpy.data.objects[self.main_object.name]
         bpy.ops.object.join()
         bpy.ops.object.editmode_toggle()

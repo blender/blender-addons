@@ -191,7 +191,7 @@ def getMeasurePoints(context):
 
             # Get the selected vertices.
             # @todo: Better (more efficient) way to do this?
-            verts_selected = [v for v in mesh.verts if v.selected == 1]
+            verts_selected = [v for v in mesh.verts if v.select == 1]
 
             if len(verts_selected) == 0:
                 # Nothing selected.
@@ -368,7 +368,7 @@ def objectSurfaceArea(obj, selectedOnly, globalSpace):
 
         # Count the area of all the faces.
         for face in mesh.faces:
-            if not selectedOnly or face.selected:
+            if not selectedOnly or face.select:
                 if globalSpace:
                     areaTotal += faceAreaGlobal(face, obj)
                 else:
@@ -676,7 +676,7 @@ class VIEW3D_PT_measure(bpy.types.Panel):
 
                 # Get the selected vertices.
                 # @todo: Better (more efficient) way to do this?
-                verts_selected = [v for v in mesh.verts if v.selected == 1]
+                verts_selected = [v for v in mesh.verts if v.select == 1]
 
                 if len(verts_selected) == 0:
                     # Nothing selected.
@@ -784,7 +784,7 @@ class VIEW3D_PT_measure(bpy.types.Panel):
                         # Get selected faces
                         # @todo: Better (more efficient) way to do this?
                         faces_selected = [f for f in mesh.faces
-                            if f.selected == 1]
+                            if f.select == 1]
 
                         if len(faces_selected) > 0:
                             area = objectSurfaceArea(obj, True,

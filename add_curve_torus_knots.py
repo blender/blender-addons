@@ -108,7 +108,7 @@ def createCurve(vertArray, GEO, align_matrix):
     # create object with newCurve
     new_obj = bpy.data.objects.new(name, newCurve) # object
     scene.objects.link(new_obj) # place in active scene
-    new_obj.selected = True # set as selected
+    new_obj.select = True # set as selected
     scene.objects.active = new_obj  # set as active
     new_obj.matrix_world = align_matrix # apply matrix
 

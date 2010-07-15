@@ -39,7 +39,7 @@ import bpy
 def writeCameras(context, filepath, frame_start, frame_end, only_selected=False):
 
     data_attrs = ['lens', 'shift_x', 'shift_y', 'dof_distance', 'clip_start', 'clip_end', 'draw_size']
-    obj_attrs = ['restrict_render']
+    obj_attrs = ['hide_render']
 
     fw = open(filepath, 'w').write
 
@@ -48,7 +48,7 @@ def writeCameras(context, filepath, frame_start, frame_end, only_selected=False)
     cameras = []
 
     for obj in scene.objects:
-        if only_selected and not obj.selected:
+        if only_selected and not obj.select:
             continue
         if obj.type != 'CAMERA':
             continue

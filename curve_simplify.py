@@ -288,7 +288,7 @@ def main(context, obj, options):
     # create ne object and put into scene
     newCurve = bpy.data.objects.new("simple_"+obj.name, curve)
     scene.objects.link(newCurve)
-    newCurve.selected = True
+    newCurve.select = True
     scene.objects.active = newCurve
     newCurve.matrix_world = obj.matrix_world
 
@@ -303,7 +303,7 @@ def main(context, obj, options):
 def getFcurveData(obj):
     fcurves = []
     for fc in obj.animation_data.action.fcurves:
-        if fc.selected:
+        if fc.select:
             fcVerts = [vcVert.co.copy().resize3D()
                         for vcVert in fc.keyframe_points.values()]
             fcurves.append(fcVerts)
@@ -312,7 +312,7 @@ def getFcurveData(obj):
 def selectedfcurves(obj):
     fcurves_sel = []
     for i, fc in enumerate(obj.animation_data.action.fcurves):
-        if fc.selected:
+        if fc.select:
             fcurves_sel.append(fc)
     return fcurves_sel
 

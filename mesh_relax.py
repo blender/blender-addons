@@ -57,13 +57,13 @@ def relax_mesh(context):
 
     # deselect everything that's not related
     for obj in context.selected_objects:
-        obj.selected = False
+        obj.select = False
 
     # get active object
     obj = context.active_object
 
     # duplicate the object so it can be used for the shrinkwrap modifier
-    obj.selected = True # make sure the object is selected!
+    obj.select = True # make sure the object is selected!
     bpy.ops.object.mode_set(mode='OBJECT')
     bpy.ops.object.duplicate()
     target = context.active_object
@@ -86,12 +86,12 @@ def relax_mesh(context):
     bpy.ops.object.modifier_apply(modifier='relax_target')
     
     # delete the target object
-    obj.selected = False
-    target.selected = True
+    obj.select = False
+    target.select = True
     bpy.ops.object.delete()
     
     # go back to initial state
-    obj.selected = True
+    obj.select = True
     bpy.ops.object.mode_set(mode='EDIT')
 
 class Relax(bpy.types.Operator):

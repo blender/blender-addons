@@ -62,7 +62,7 @@ def makeObjectIntoBoundBox(object, sizeDifference):
     bpy.ops.object.select_all(action='DESELECT')
 
     # Select the object
-    object.selected = True
+    object.select = True
 
     # Go into Edit Mode
     bpy.ops.object.mode_set(mode='EDIT')
@@ -149,7 +149,7 @@ def applyScaleRotLoc(scene, obj):
     bpy.ops.object.select_all(action='DESELECT')
 
     # Select the object
-    obj.selected = True
+    obj.select = True
     scene.objects.active = obj
 
     #bpy.ops.object.rotation_apply()
@@ -164,7 +164,7 @@ def totallyDeleteObject(scene, obj):
     bpy.ops.object.select_all(action='DESELECT')
    
     # Select the object and delete it.
-    obj.selected = True
+    obj.select = True
     scene.objects.active = obj
    
     # Delete all material slots in obj
@@ -207,7 +207,7 @@ def addNewObject(scene, name, copyobj):
 
     # Link new object to the given scene and select it.
     scene.objects.link(ob_new)
-    ob_new.selected = True
+    ob_new.select = True
 
     return ob_new
 
@@ -221,7 +221,7 @@ def combineObjects(scene, combined, listobjs):
     bpy.ops.object.select_all(action='DESELECT')
 
     # Select the new object.
-    combined.selected = True
+    combined.select = True
     scene.objects.active = combined
 
     # Add data
@@ -381,7 +381,7 @@ class GenerateCloud(bpy.types.Operator):
            # press generate again if they want.
            for eachMember in definitionObjects:
                eachMember.max_draw_type = 'SOLID'
-               eachMember.selected = True
+               eachMember.select = True
                #scene.objects.active = eachMember
 
            #TODO Delete this when render bug caused by degenerate is fixed.
@@ -402,7 +402,7 @@ class GenerateCloud(bpy.types.Operator):
                     selectedObjects[0])
 
             bounds.max_draw_type = 'BOUNDS'
-            bounds.restrict_render = False
+            bounds.hide_render = False
 
             # Just add a Definition Property designating this
             # as the main object.
@@ -426,14 +426,14 @@ class GenerateCloud(bpy.types.Operator):
                 selObj["CloudMember"] = "DefinitioinObj"
                 selObj.name = "DefinitioinObj"
                 selObj.max_draw_type = 'WIRE'
-                selObj.restrict_render = True
+                selObj.hide_render = True
                 makeParent(bounds, selObj, scene)
 
             # Do the same to the 1. object since it is no longer in list.
             firstObject["CloudMember"] = "DefinitioinObj"
             firstObject.name = "DefinitioinObj"
             firstObject.max_draw_type = 'WIRE'
-            firstObject.restrict_render = True
+            firstObject.hide_render = True
             makeParent(bounds, firstObject, scene)
 
             ###############Create Cloud for putting Cloud Mesh############
@@ -441,7 +441,7 @@ class GenerateCloud(bpy.types.Operator):
             cloud = addNewObject(scene, "CloudMesh", bounds)
             cloud["CloudMember"] = "CreatedObj"
             cloud.max_draw_type = 'WIRE'
-            cloud.restrict_render = True
+            cloud.hide_render = True
 
             makeParent(bounds, cloud, scene)
 
@@ -481,7 +481,7 @@ class GenerateCloud(bpy.types.Operator):
             bpy.ops.object.select_all(action='DESELECT')
 
             # Select the object.
-            bounds.selected = True
+            bounds.select = True
             scene.objects.active = bounds
 
             # Turn bounds object into a box.
@@ -577,7 +577,7 @@ class GenerateCloud(bpy.types.Operator):
                 cloudPnts = addNewObject(scene, "CloudPoints", bounds)
                 cloudPnts["CloudMember"] = "CreatedObj"
                 cloudPnts.max_draw_type = 'WIRE'
-                cloudPnts.restrict_render = True
+                cloudPnts.hide_render = True
 
                 makeParent(bounds, cloudPnts, scene)
 
@@ -623,7 +623,7 @@ class GenerateCloud(bpy.types.Operator):
                 bpy.ops.object.select_all(action='DESELECT')
 
                 # Select the object.
-                cloud.selected = True
+                cloud.select = True
                 scene.objects.active = cloud
 
                 bpy.ops.object.particle_system_remove()
@@ -653,7 +653,7 @@ class GenerateCloud(bpy.types.Operator):
                 mVolume.scattering = .13
 
             # Select the object.
-            bounds.selected = True
+            bounds.select = True
             scene.objects.active = bounds
 
         return {'FINISHED'}

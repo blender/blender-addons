@@ -1448,7 +1448,7 @@ def parseBone(bone, bones, tokens, heads, tails):
 				bone.tail = tails[bone.name] + bones[target].tail - tails[target]
 			else:
 				raise NameError("tail-as %s" % val)
-		elif key == 'restrict_select':
+		elif key == 'hide_select':
 			pass
 		else:
 			defaultKey(key, val,  sub, "bone", [], globals(), locals())

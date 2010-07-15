@@ -91,7 +91,7 @@ def create_cutter(context, crack_type, scale, roughness):
                 v.co[1] += roughness * scale * 0.1 * (random.random() - 0.5)
                 v.co[2] += roughness * scale * 0.1 * (random.random() - 0.5)
 
-    bpy.context.scene.objects.active.selected = True
+    bpy.context.scene.objects.active.select = True
 
     '''
     # Adding fracture material
@@ -160,7 +160,7 @@ def getIslands(shard):
         for gi in range(0, gindex):
             bpy.ops.object.select_all(action='DESELECT')
             bpy.context.scene.objects.active = shard
-            shard.selected = True
+            shard.select = True
             bpy.ops.object.duplicate(linked=False, mode=1)
             a = bpy.context.scene.objects.active
             sm = a.data
@@ -174,7 +174,7 @@ def getIslands(shard):
                 if vgi[x] != gi:
                     #print('getIslands: selecting')
                     #print('getIslands: ' + str(x))
-                    a.data.verts[x].selected = True
+                    a.data.verts[x].select = True
 
             print(bpy.context.scene.objects.active.name)
 
@@ -201,9 +201,9 @@ def boolop(ob, cutter, op):
     gsize = sizex + sizey + sizez
 
     bpy.ops.object.select_all()
-    ob.selected = True
+    ob.select = True
     sce.objects.active = ob
-    cutter.selected = False
+    cutter.select = False
 
     bpy.ops.object.modifier_add(type='BOOLEAN')
     a = sce.objects.active
@@ -295,7 +295,7 @@ def fracture_basic(context, nshards, crack_type, roughness):
     shards = []
 
     for ob in context.scene.objects:
-        if ob.selected:
+        if ob.select:
             tobesplit.append(ob)
 
     i = 1     # I counts shards, starts with 1 - the original object
@@ -327,7 +327,7 @@ def fracture_group(context, group):
     shards = []
 
     for ob in context.scene.objects:
-        if (ob.selected
+        if (ob.select
             and (len(ob.users_group) == 0 or ob.users_group[0].name != group)):
             tobesplit.append(ob)
 

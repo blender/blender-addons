@@ -360,8 +360,8 @@ def pskimport(infile):
 		#ob_new.data = armdata
 		bpy.context.scene.objects.link(ob_new)
 		#bpy.ops.object.mode_set(mode='OBJECT')
-		for i in bpy.context.scene.objects: i.selected = False #deselect all objects
-		ob_new.selected = True
+		for i in bpy.context.scene.objects: i.select = False #deselect all objects
+		ob_new.select = True
 		#set current armature to edit the bone
 		bpy.context.scene.objects.active = ob_new
 		#set mode to able to edit the bone

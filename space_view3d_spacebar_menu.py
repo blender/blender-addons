@@ -1374,7 +1374,7 @@ def edgeIntersect(context, operator):
         bpy.ops.object.mode_set(mode='OBJECT')
     
     for e in mesh.edges:
-        if e.selected:
+        if e.select:
             edges.append(e)
 
     if is_editmode:

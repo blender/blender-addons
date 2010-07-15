@@ -124,17 +124,17 @@ def select_material_by_name(find_mat):
                 ms = ob.material_slots.values()
                 for m in ms:
                     if m.material.name == find_mat:
-                        ob.selected = True
+                        ob.select = True
                         #the active object may not have the mat!
                         #set it to one that does!
                         scn.objects.active = ob
                         break
                     else:
-                        ob.selected = False
+                        ob.select = False
                             
             #deselect non-meshes                
             else:
-                ob.selected = False
+                ob.select = False
     
     else:
         #it's editmode, so select the faces
@@ -152,9 +152,9 @@ def select_material_by_name(find_mat):
         me = ob.data
         for f in me.faces:
             if f.material_index in slot_indeces:
-                f.selected = True
+                f.select = True
             else:
-                f.selected = False
+                f.select = False
         me.update   
     if editmode:
         bpy.ops.object.mode_set(mode = 'EDIT')
@@ -384,7 +384,7 @@ def assign_mat(matname="Default"):
                     f.material_index = index
             elif allfaces == False:
                 for f in me.faces:
-                    if f.selected:
+                    if f.select:
                         f.material_index = index
             me.update
 

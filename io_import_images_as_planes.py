@@ -338,7 +338,7 @@ def main(filePath, options, mapping, dimension):
             plane.data.uv_textures[0].data[0].transp = 'ALPHA'
             plane.data.uv_textures[0].data[0].twoside = True
 
-            plane.selected = True
+            plane.select = True
             scene.objects.active = plane
 
     # If "Create Single Plane" (filepath and is image)
@@ -367,7 +367,7 @@ def main(filePath, options, mapping, dimension):
         plane.data.uv_textures[0].data[0].transp = 'ALPHA'
         plane.data.uv_textures[0].data[0].twoside = True
 
-        plane.selected = True
+        plane.select = True
         scene.objects.active = plane
 
 

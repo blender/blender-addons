@@ -615,8 +615,8 @@ def triangulateNMesh(object):
 	bneedtri = False
 	scene = bpy.context.scene
 	bpy.ops.object.mode_set(mode='OBJECT')
-	for i in scene.objects: i.selected = False #deselect all objects
-	object.selected = True
+	for i in scene.objects: i.select = False #deselect all objects
+	object.select = True
 	scene.objects.active = object #set the mesh object to current
 	bpy.ops.object.mode_set(mode='OBJECT')
 	print("Checking mesh if needs to convert quad to Tri...")
@@ -633,8 +633,8 @@ def triangulateNMesh(object):
 		#note two copy two types else it will use the current data or mesh
 		me_ob.data = me_da
 		bpy.context.scene.objects.link(me_ob)#link the object to the scene #current object location
-		for i in scene.objects: i.selected = False #deselect all objects
-		me_ob.selected = True
+		for i in scene.objects: i.select = False #deselect all objects
+		me_ob.select = True
 		scene.objects.active = me_ob #set the mesh object to current
 		bpy.ops.object.mode_set(mode='EDIT') #Operators
 		bpy.ops.mesh.select_all(action='SELECT')#select all the face/vertex/edge
@@ -1298,12 +1298,12 @@ def fs_callback(filename, context, user_setting):
 	for next_obj in objects:
 		if next_obj.type == 'MESH':
 			blender_meshes.append(next_obj)
-			if (next_obj.selected):
+			if (next_obj.select):
 				#print("mesh object select")
 				selectmesh.append(next_obj)
 		if next_obj.type == 'ARMATURE':
 			blender_armature.append(next_obj)
-			if (next_obj.selected):
+			if (next_obj.select):
 				#print("armature object select")
 				selectarmature.append(next_obj)
 	
