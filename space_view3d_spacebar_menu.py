@@ -103,7 +103,7 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
             layout.separator()
 
             # Modifier block
-            layout.operator("object.modifier_add", icon='MODIFIER')
+            layout.operator_menu_enum("object.modifier_add", "type" , icon='MODIFIER')
             layout.separator()
 
             # Cursor Block
