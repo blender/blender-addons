@@ -21,8 +21,7 @@ bl_addon_info = {
     'version': '1.2',
     'blender': (2, 5, 3),
     'location': 'File > Export',
-    'description': 'Export to the DirectX Model Format (.x)',
-    'warning': '', # used for warning icon and text in addons panel
+    'description': 'Export to the DirectX Model Format',
     'wiki_url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/' \
         'Scripts/File_I-O/DirectX_Exporter',
     'tracker_url': 'https://projects.blender.org/tracker/index.php?'\
@@ -181,7 +180,7 @@ def GetMaterialTexture(Material):
         #Create a list of Textures that have type "IMAGE"
         ImageTextures = [Material.texture_slots[TextureSlot].texture for TextureSlot in Material.texture_slots.keys() if Material.texture_slots[TextureSlot].texture.type == "IMAGE"]
         #Refine a new list with only image textures that have a file source
-        ImageFiles = [os.path.basename(Texture.image.filename) for Texture in ImageTextures if Texture.image.source == "FILE"]
+        ImageFiles = [os.path.basename(Texture.image.filepath) for Texture in ImageTextures if Texture.image.source == "FILE"]
         if ImageFiles:
             return ImageFiles[0]
     return None
