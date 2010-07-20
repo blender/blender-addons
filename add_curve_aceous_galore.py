@@ -22,8 +22,8 @@ bl_addon_info = {
     'author': 'Jimmy Hazevoet, testscreenings',
     'version': '0.1',
     'blender': (2, 5, 3),
-    'location': 'Add Curve menu',
-    'description': 'adds many types of curves',
+    'location': 'View3D > Add > Curve',
+    'description': 'Adds many types of curves',
     'warning': '', # used for warning icon and text in addons panel
     'wiki_url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/' \
         'Scripts/Curve/Curves_Galore',
