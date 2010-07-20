@@ -18,7 +18,7 @@
 bl_addon_info = {
     'name': 'Export: DirectX Model Format (.x)',
     'author': 'Chris Foster (Kira Vakaan)',
-    'version': '1.2',
+    'version': '1.4',
     'blender': (2, 5, 3),
     'location': 'File > Export',
     'description': 'Export to the DirectX Model Format (.x)',
@@ -118,6 +118,13 @@ def ExportDirectX(Config):
     if Config.CoordinateSystem == 1:
         Config.SystemMatrix *= ScaleMatrix(-1, 4, Vector((0, 1, 0)))
     Config.InverseSystemMatrix = Config.SystemMatrix.copy().invert()
+    
+    #Used for animating rotations
+    Config.SystemQuaternion = Quaternion((1,0,0,0))
+    if Config.RotateX:
+        Config.SystemQuaternion = RotationMatrix(radians(-90), 3, "X").to_quat()
+    Config.InverseSystemQuaternion = Config.SystemQuaternion.copy().inverse()
+    Config.FlipZ = -1 if Config.CoordinateSystem == 1 else 1
 
     if Config.ExportAnimation:
         CurrentFrame = bpy.context.scene.frame_current
@@ -892,11 +899,11 @@ def WriteKeyedAnimationSet(Config):
                     Config.Whitespace -= 1
                     Config.File.write("{}}}\n".format("  " * Config.Whitespace))
                     if Config.Verbose:
-                        print("      Done")
+                        print("      Done") #Done with Armature Bone
                 if Config.Verbose:
-                    print("    Done")
+                    print("    Done") #Done with Armature Bone data
         if Config.Verbose:
-            print("  Done")
+            print("  Done") #Done with Object
 
     Config.Whitespace -= 1
     Config.File.write("{}}} //End of AnimationSet\n".format("  " * Config.Whitespace))
@@ -909,49 +916,66 @@ def WriteFullAnimationSet(Config):
     KeyframeCount = bpy.context.scene.frame_end - bpy.context.scene.frame_start + 1
     
     for Object in Config.ObjectList:
+        if Config.Verbose:
+            print("  Writing Animation Data for Object: {}".format(Object.name))
+        
         Config.File.write("{}Animation {{\n".format("  " * Config.Whitespace))
         Config.Whitespace += 1
         Config.File.write("{}{{{}}}\n".format("  " * Config.Whitespace, LegalName(Object.name)))
         
         #Position
+        if Config.Verbose:
+            print("    Writing Position...", end=" ")
         Config.File.write("{}AnimationKey {{ //Position\n".format("  " * Config.Whitespace))
         Config.Whitespace += 1
-        Config.File.write("{}2;\n{}{};\n".format("  " * Config.Whitespace,"  " * Config.Whitespace,KeyframeCount))
+        Config.File.write("{}2;\n{}{};\n".format("  " * Config.Whitespace, "  " * Config.Whitespace, KeyframeCount))
         for Frame in range(0, KeyframeCount):
-            bpy.context.scene.set_frame(Frame)
+            bpy.context.scene.set_frame(Frame + bpy.context.scene.frame_start)
             Position = Config.SystemMatrix * Object.location
             Config.File.write("{}{}{:9f},{:9f},{:9f};;\n".format("  " * Config.Whitespace, (str(Frame) + ";3;").ljust(8), Position[0], Position[1], Position[2]))
         Config.Whitespace -= 1
         Config.File.write("{}}}\n".format("  " * Config.Whitespace))
+        if Config.Verbose:
+            print("Done")
         
         #Rotation
+        if Config.Verbose:
+            print("    Writing Rotation...", end=" ")
         Config.File.write("{}AnimationKey {{ //Rotation\n".format("  " * Config.Whitespace))
         Config.Whitespace += 1
         Config.File.write("{}0;\n{}{};\n".format("  " * Config.Whitespace, "  " * Config.Whitespace, KeyframeCount))
         for Frame in range(0, KeyframeCount):
-            bpy.context.scene.set_frame(Frame)
-            #Works pretty well, but causes a slightly noticeable axis flip at 180*
-            Rotation = (Config.SystemMatrix * (Object.rotation_euler.to_matrix().to_4x4()) * Config.InverseSystemMatrix).to_quat()
-            Config.File.write("{}{}{:9f},{:9f},{:9f},{:9f};;\n".format("  " * Config.Whitespace,(str(Frame) + ";4;").ljust(8), -Rotation[0], Rotation[1], Rotation[2], Rotation[3]))
+            bpy.context.scene.set_frame(Frame + bpy.context.scene.frame_start)
+            Rotation = Config.SystemQuaternion.cross(Object.rotation_euler.to_quat().cross(Config.InverseSystemQuaternion))
+            Config.File.write("{}{}{:9f},{:9f},{:9f},{:9f};;\n".format("  " * Config.Whitespace, (str(Frame) + ";4;").ljust(8), Rotation[0], Rotation[1], Rotation[2], Config.FlipZ * Rotation[3]))
         Config.Whitespace -= 1
         Config.File.write("{}}}\n".format("  " * Config.Whitespace))
+        if Config.Verbose:
+            print("Done")
         
         #Scale
+        if Config.Verbose:
+            print("    Writing Scale...", end=" ")
         Config.File.write("{}AnimationKey {{ //Scale\n".format("  " * Config.Whitespace))
         Config.Whitespace += 1
         Config.File.write("{}1;\n{}{};\n".format("  " * Config.Whitespace, "  " * Config.Whitespace, KeyframeCount))
         for Frame in range(0, KeyframeCount):
-            bpy.context.scene.set_frame(Frame)
+            bpy.context.scene.set_frame(Frame + bpy.context.scene.frame_start)
             Scale = Config.SystemMatrix * Object.scale
-            Config.File.write("{}{}{:9f},{:9f},{:9f};;\n".format("  " * Config.Whitespace,(str(Frame) + ";3;").ljust(8), Scale[0], Scale[1], Scale[2]))
+            Config.File.write("{}{}{:9f},{:9f},{:9f};;\n".format("  " * Config.Whitespace, (str(Frame) + ";3;").ljust(8), Scale[0], Scale[1], Scale[2]))
         Config.Whitespace -= 1
         Config.File.write("{}}}\n".format("  " * Config.Whitespace))
+        if Config.Verbose:
+            print("Done")
         
         Config.Whitespace -= 1
         Config.File.write("{}}}\n".format("  " * Config.Whitespace))
         
         if Config.ExportArmatures and Object.type == "ARMATURE":
-            pass
+            if Config.Verbose:
+                print("    Done") #Done with Armature Bone data
+        if Config.Verbose:
+            print("  Done")  #Done with Object
     
     Config.Whitespace -= 1
     Config.File.write("{}}} //End of AnimationSet\n".format("  " * Config.Whitespace))
@@ -971,7 +995,7 @@ CoordinateSystems.append(("2", "Right-Handed", ""))
 AnimationModes = []
 AnimationModes.append(("0", "None", ""))
 AnimationModes.append(("1", "Keyframes Only", ""))
-#AnimationModes.append(("2", "Full Animation", ""))
+AnimationModes.append(("2", "Full Animation", ""))
 
 ExportModes = []
 ExportModes.append(("1", "All Objects", ""))
@@ -994,13 +1018,13 @@ class DirectXExporter(bpy.types.Operator):
     CoordinateSystem = EnumProperty(name="System", description="Select a coordinate system to export to", items=CoordinateSystems, default="1")
 
     #General Options
-    RotateX = BoolProperty(name="Rotate X 90 Degrees", description="Rotate the entire scene 90 degrees around the X axis so Y is up", default=True)
+    RotateX = BoolProperty(name="Rotate X 90 Degrees", description="Rotate the entire scene 90 degrees around the X axis so Y is up.", default=True)
     FlipNormals = BoolProperty(name="Flip Normals", description="", default=False)
     ApplyModifiers = BoolProperty(name="Apply Modifiers", description="Apply object modifiers before export.", default=False)
     IncludeFrameRate = BoolProperty(name="Include Frame Rate", description="Include the AnimTicksPerSecond template which is used by some engines to control animation speed.", default=False)
-    ExportTextures = BoolProperty(name="Export Textures", description="Reference external image files to be used by the model", default=True)
+    ExportTextures = BoolProperty(name="Export Textures", description="Reference external image files to be used by the model.", default=True)
     ExportArmatures = BoolProperty(name="Export Armatures", description="Export the bones of any armatures to deform meshes.", default=False)
-    ExportAnimation = EnumProperty(name="Animations", description="Select the type of animations to export.  Only object and armature bone animations can be exported.", items=AnimationModes, default="0")
+    ExportAnimation = EnumProperty(name="Animations", description="Select the type of animations to export.  Only object and armature bone animations can be exported.  Full Animation exports every frame.", items=AnimationModes, default="0")
 
     #Export Mode
     ExportMode = EnumProperty(name="Export", description="Select which objects to export.  Only Mesh, Empty, and Armature objects will be exported.", items=ExportModes, default="1")
