@@ -39,9 +39,11 @@ bl_addon_info = {
     'location': 'Render > Engine > Renderfarm.fi',
     'description': 'Send .blend as session to http://www.renderfarm.fi to render',
     'warning': '', # used for warning icon and text in addons panel
-    'wiki_url': 'http://www.renderfarm.fi',
-    'tracker_url': 'http://www.renderfarm.fi',
-    'category': 'Render Engine'}
+    'wiki_url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/' \
+        'Scripts/Render/Renderfarm.fi',
+    'tracker_url': 'https://projects.blender.org/tracker/index.php?'\
+        'func=detail&aid=22927&group_id=153&atid=469',
+    'category': 'Render'}
 
 bpy.errorMessages = {
     'missing_desc': 'You need to enter a title, short and long description',
