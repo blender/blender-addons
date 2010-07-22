@@ -692,7 +692,7 @@ class ORE_PrepareOp(bpy.types.Operator):
         if (rd.use_sss == True or hasSSSMaterial()) and ore.parts > 1:
             print("Subsurface Scattering is not supported when rendering with parts > 1. Disabling")
             self.report({'WARNING'}, "Subsurface Scattering is not supported when rendering with parts > 1. Disabling")
-	    rd.use_sss = False # disabling because ore.parts > 1. It's ok to use SSS with 1part/frame
+            rd.use_sss = False # disabling because ore.parts > 1. It's ok to use SSS with 1part/frame
             errors = True
         if hasUnsupportedSimulation() == True:
             print("An unsupported simulation was detected. Please check your settings and remove them")
