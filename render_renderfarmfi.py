@@ -689,7 +689,7 @@ class ORE_PrepareOp(bpy.types.Operator):
             self.report({'WARNING'}, "Color mode must be set to RGBA. Changing to RGBA.")
             errors = True
         rd.color_mode = 'RGBA'
-        if (rd.use_sss == True or hasSSSMaterial())and ore.parts > 1:
+        if (rd.use_sss == True or hasSSSMaterial()) and ore.parts > 1:
             print("Subsurface Scattering is not supported when rendering with parts > 1. Disabling")
             self.report({'WARNING'}, "Subsurface Scattering is not supported when rendering with parts > 1. Disabling")
             errors = True
@@ -697,7 +697,6 @@ class ORE_PrepareOp(bpy.types.Operator):
             print("An unsupported simulation was detected. Please check your settings and remove them")
             self.report({'WARNING'}, "An unsupported simulation was detected. Please check your settings and remove them")
             errors = True
-        rd.use_sss = False
         rd.save_buffers = False
         rd.free_image_textures = True
         print("Done checking the scene. Now do a test render")
