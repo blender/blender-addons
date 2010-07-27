@@ -44,6 +44,7 @@ It's very helpful to use one or two "Empty" objects with
 "Snap during transform" enabled for fast measurement.
 
 Version history:
+v0.7.3.1 - Fixed bug that made all lines in Blender stippled :-)
 v0.7.3 - Added display of delta x/y/z value in 3d view.
     * Inspired by warpi's patch here:
     http://blenderartists.org/forum/showpost.php?p=1671033&postcount=47
@@ -482,6 +483,10 @@ def draw_measurements_callback(self, context):
         bgl.glGetFloatv(bgl.GL_BLEND, blend_prev)
         blend_prev = blend_prev[0]
 
+        line_stipple_prev = bgl.Buffer(bgl.GL_BYTE, [1])
+        bgl.glGetFloatv(bgl.GL_LINE_STIPPLE, line_stipple_prev)
+        line_stipple_prev = line_stipple_prev[0]
+
         # Store glColor4f
         color_prev = bgl.Buffer(bgl.GL_FLOAT, [4])
         bgl.glGetFloatv(bgl.GL_COLOR, color_prev)
@@ -535,6 +540,8 @@ def draw_measurements_callback(self, context):
         bgl.glLineWidth(lineWidth_prev)
         if not blend_prev:
             bgl.glDisable(bgl.GL_BLEND)
+        if not line_stipple_prev:
+            bgl.glDisable(bgl.GL_LINE_STIPPLE)
         bgl.glColor4f(color_prev[0],
             color_prev[1],
             color_prev[2],
