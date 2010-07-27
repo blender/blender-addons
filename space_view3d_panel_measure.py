@@ -44,6 +44,24 @@ It's very helpful to use one or two "Empty" objects with
 "Snap during transform" enabled for fast measurement.
 
 Version history:
+v0.7.3 - Added display of delta x/y/z value in 3d view.
+    * Inspired by warpi's patch here:
+    http://blenderartists.org/forum/showpost.php?p=1671033&postcount=47
+    * Also added display of dx,dy,dz lines
+    * Changed the "dist" colors to something not already used
+    by x/y/z axes.
+v0.7.2 - Merged changes from trunk (scripts_addons r847):
+    * obj.matrix -> obj.matrix_world
+    * vert.selected -> vert.select
+    * face.selected -> face.select
+    * bl_addon_info: warning, wiki_url, tracker_url
+    * removed __bpydoc__
+    * Use fontid=0 for blf functions. 0 is the default font.
+v0.7.1 - Merged changes by Campbell:
+    * Fix for API change: Collections like context.selected_objects
+    no longer return None for empty lists.
+    * Update for mathutils, also stripped some redundant
+    conversions (Mostly "Vector()" stuff)
 v0.7 - Initial support for drawing lines.
     (Thanks to Algorith for applying my perspective_matrix patch.)
     The distance value (in BUs) is also drawn in the 3D view now.
@@ -54,7 +72,7 @@ v0.7 - Initial support for drawing lines.
     Renamed reenter_editmode to view3d.reenter_editmode.
     Renamed panel_measure.py into space_view3d_panel_measure.py
     Active object is only used for edit-mode now. Measurement
-    with exactly one sel. (but not neccessarily active) object
+    with exactly one sel. (but not necessarily active) object
     now gets the obj via the sel-object array.
     API change Mathutils -> mathutils (r557)
     Deselecting 1 of 2 objects now works correctly (active object is ignored).
@@ -136,7 +154,7 @@ bl_addon_info = {
     'blender': (2, 5, 3),
     'location': 'View3D > Properties > Measure',
     'description': 'Measure distances between objects',
-    'warning': '', # used for warning icon and text in addons panel
+    'warning': '',  # Used for warning icon and text in addons panel.
     'wiki_url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/' \
         'Scripts/3D_interaction/Panel_Measure',
     'tracker_url': 'https://projects.blender.org/tracker/index.php?'\
@@ -155,8 +173,8 @@ import blf
 PRECISION = 4
 
 # Name of the custom properties as stored in the scene.
-COLOR_LOCAL = (1.0, 0.0, 0.0, 0.8)
-COLOR_GLOBAL = (0.0, 0.0, 1.0, 0.8)
+COLOR_LOCAL = (1.0, 0.5, 0.0, 0.8)
+COLOR_GLOBAL = (0.5, 0.0, 1.0, 0.8)
 
 
 # Returns a single selected object.
@@ -474,13 +492,36 @@ def draw_measurements_callback(self, context):
         bgl.glMatrixMode(bgl.GL_PROJECTION)
         bgl.glLoadMatrixf(perspBuff)
 
-        bgl.glColor4f(color[0], color[1], color[2], color[3])
         bgl.glEnable(bgl.GL_BLEND)
+        bgl.glEnable(bgl.GL_LINE_STIPPLE)
 
         # ---
         # Draw 3D stuff.
+        width = 1
+        bgl.glLineWidth(width)
+        # X
+        bgl.glColor4f(1, 0, 0, 0.8)
+        bgl.glBegin(bgl.GL_LINE_STRIP)
+        bgl.glVertex3f(p1[0], p1[1], p1[2])
+        bgl.glVertex3f(p2[0], p1[1], p1[2])
+        bgl.glEnd()
+        # Y
+        bgl.glColor4f(0, 1, 0, 0.8)
+        bgl.glBegin(bgl.GL_LINE_STRIP)
+        bgl.glVertex3f(p1[0], p1[1], p1[2])
+        bgl.glVertex3f(p1[0], p2[1], p1[2])
+        bgl.glEnd()
+        # Z
+        bgl.glColor4f(0, 0, 1, 0.8)
+        bgl.glBegin(bgl.GL_LINE_STRIP)
+        bgl.glVertex3f(p1[0], p1[1], p1[2])
+        bgl.glVertex3f(p1[0], p1[1], p2[2])
+        bgl.glEnd()
+
+        # Dist
         width = 2
         bgl.glLineWidth(width)
+        bgl.glColor4f(color[0], color[1], color[2], color[3])
         bgl.glBegin(bgl.GL_LINE_STRIP)
         bgl.glVertex3f(p1[0], p1[1], p1[2])
         bgl.glVertex3f(p2[0], p2[1], p2[2])
@@ -504,15 +545,33 @@ def draw_measurements_callback(self, context):
         # We do this after drawing the lines so
         # we can draw it OVER the line.
         coord_2d = region3d_get_2d_coordinates(context, p2 + (p1 - p2) * 0.5)
-        offset = 10  # Offset the text a bit to the right.
-        blf.position(0, coord_2d[0] + offset, coord_2d[1], 0)
-
+        OFFSET_LINE = 10   # Offset the text a bit to the right.
+        OFFSET_Y = 15      # Offset of the lines.
+        OFFSET_VALUE = 30  # Offset of value(s) from the text.
         dist = (p1 - p2).length
-        text = "Distance: " + str(round(dist, PRECISION)) + " BU"
+
+        texts = [("Dist:", round(dist, PRECISION)),
+            ("X:", round(abs(p1[0] - p2[0]), PRECISION)),
+            ("Y:", round(abs(p1[1] - p2[1]), PRECISION)),
+            ("Z:", round(abs(p1[2] - p2[2]), PRECISION))]
+
+        # Draw all texts
         # @todo Get user pref for text color in 3D View
         bgl.glColor4f(1.0, 1.0, 1.0, 1.0)
         blf.size(0, 12, 72)  # Prevent font size to randomly change.
-        blf.draw(0, text)
+
+        loc_x = coord_2d[0] + OFFSET_LINE
+        loc_y = coord_2d[1]
+        for t in texts:
+            text = t[0]
+            value = str(t[1]) + " BU"
+
+            blf.position(0, loc_x, loc_y, 0)
+            blf.draw(0, text)
+            blf.position(0, loc_x + OFFSET_VALUE, loc_y, 0)
+            blf.draw(0, value)
+
+            loc_y -= OFFSET_Y
 
 
 class VIEW3D_OT_display_measurements(bpy.types.Operator):
