@@ -46,5 +46,5 @@ def faces_from_mesh(ob, apply_modifier=False, triangulate=True):
             else:
                 yield list(face.verts)
 
-    return ([tuple(mesh.verts[index].co)
+    return ([tuple(ob.matrix_world * mesh.verts[index].co)
              for index in indexes] for indexes in iter_face_index())
