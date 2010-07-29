@@ -23,7 +23,7 @@ import os, sys
 
 def getPresets():
 
-    scriptPath = sys.path[0] + os.sep + "add_mesh_BoltFactory"
+    scriptPath = sys.path[1] + os.sep + "add_mesh_BoltFactory"
     presetPath = scriptPath + os.sep +"presets"
     presetFiles = os.listdir(presetPath)
     #presetFiles.sort()
