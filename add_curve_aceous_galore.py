@@ -621,10 +621,10 @@ def vertsToPoints(Verts, splineType):
     return vertArray
 
 # create new CurveObject from vertarray and splineType
-def createCurve(vertArray, options, curveOptions, align_matrix):
+def createCurve(vertArray, props, align_matrix):
     # options to vars
-    splineType = options[0] # output splineType 'POLY' 'NURBS' 'BEZIER'
-    name = options[1] # GalloreType as name
+    splineType = props.outputType    # output splineType 'POLY' 'NURBS' 'BEZIER'
+    name = props.GalloreType         # GalloreType as name
 
     # create curve
     scene = bpy.context.scene
@@ -641,16 +641,10 @@ def createCurve(vertArray, options, curveOptions, align_matrix):
         newSpline.endpoint_u = True
 
     # set curveOptions
-    shape = curveOptions[0]
-    cyclic_u = curveOptions[1]
-    endp_u = curveOptions[2]
-    order_u = curveOptions[3]
-    handleType = curveOptions[4]
-
-    newCurve.dimensions = shape
-    newSpline.cyclic_u = cyclic_u
-    newSpline.endpoint_u = endp_u
-    newSpline.order_u = order_u
+    newCurve.dimensions = props.shape
+    newSpline.cyclic_u = props.cyclic_u
+    newSpline.endpoint_u = props.endp_u
+    newSpline.order_u = props.order_u
 
     # create object with newCurve
     new_obj = bpy.data.objects.new(name, newCurve) # object
@@ -661,50 +655,89 @@ def createCurve(vertArray, options, curveOptions, align_matrix):
 
     # set bezierhandles
     if splineType == 'BEZIER':
-        setBezierHandles(new_obj, handleType)
+        setBezierHandles(new_obj, props.handleType)
 
     return
 
 ##------------------------------------------------------------
 # Main Function
-def main(context, options, curveOptions, align_matrix):
+def main(context, props, align_matrix):
     # deselect all objects
     bpy.ops.object.select_all(action='DESELECT')
 
     # options
-    galType = options[1]
-    splineType = options[0]
-    innerRadius = options[9]
-    middleRadius = options[10]
-    outerRadius = options[11]
+    galType = props.GalloreType
+    splineType = props.outputType
+    innerRadius = props.innerRadius
+    middleRadius = props.middleRadius
+    outerRadius = props.outerRadius
 
     # get verts
     if galType == 'Profile':
-        verts = ProfileCurve(options[2], options[3], options[4])
+        verts = ProfileCurve(props.ProfileCurveType,
+                            props.ProfileCurvevar1,
+                            props.ProfileCurvevar2)
     if galType == 'Miscellaneous':
-        verts = MiscCurve(options[5], options[6], options[7], options[8])
+        verts = MiscCurve(props.MiscCurveType,
+                            props.MiscCurvevar1,
+                            props.MiscCurvevar2,
+                            props.MiscCurvevar3)
     if galType == 'Flower':
-        verts = FlowerCurve(options[12], innerRadius, outerRadius, options[13])
+        verts = FlowerCurve(props.petals,
+                            innerRadius,
+                            outerRadius,
+                            props.petalWidth)
     if galType == 'Star':
-        verts = StarCurve(options[14], innerRadius, outerRadius, options[15])
+        verts = StarCurve(props.starPoints,
+                            innerRadius,
+                            outerRadius,
+                            props.starTwist)
     if galType == 'Arc':
-        verts = ArcCurve(options[16], options[17], options[18], innerRadius, outerRadius, options[19])
+        verts = ArcCurve(props.arcSides,
+                            props.startAngle,
+                            props.endAngle,
+                            innerRadius,
+                            outerRadius,
+                            props.arcType)
     if galType == 'Cogwheel':
-        verts = CogCurve(options[20], innerRadius, middleRadius, outerRadius, options[21])
+        verts = CogCurve(props.teeth,
+                            innerRadius,
+                            middleRadius,
+                            outerRadius,
+                            props.bevel)
     if galType == 'Nsided':
-        verts = nSideCurve(options[22], outerRadius)
-#    if galType == 'Splat':
-#        verts = SplatCurve(options[23], options[24], options[25], options[26], outerRadius)
+        verts = nSideCurve(props.Nsides,
+                            outerRadius)
+    '''
+    if galType == 'Splat':
+        verts = SplatCurve(props.splatSides,
+                            props.splatScale,
+                            props.seed,
+                            props.basis,
+                            outerRadius)
+    '''
     if galType == 'Helix':
-        verts = HelixCurve(options[27], options[28], options[29], options[30], options[31], options[32], options[33])
+        verts = HelixCurve(props.helixPoints,
+                            props.helixHeight,
+                            props.helixStart,
+                            props.helixEnd,
+                            props.helixWidth,
+                            props.helix_a,
+                            props.helix_b)
     if galType == 'Cycloid':
-        verts = CycloidCurve(options[34], options[35], options[36], options[37], options[38], options[39], options[40])
+        verts = CycloidCurve(props.cycloPoints,
+                            props.cyclo_d,
+                            props.cycloType,
+                            props.cyclo_a,
+                            props.cyclo_b,
+                            props.cycloStart,
+                            props.cycloEnd)
         
     # turn verts into array
     vertArray = vertsToPoints(verts, splineType)
 
     # create object
-    createCurve(vertArray, options, curveOptions, align_matrix)
+    createCurve(vertArray, props, align_matrix)
 
     return
 
@@ -1016,18 +1049,18 @@ class Curveaceous_galore(bpy.types.Operator):
         box = layout.box()
         if props.outputType == 'NURBS':
             box.row().prop(props, 'shape', expand=True)
-            box.prop(props, 'cyclic_u')
+            #box.prop(props, 'cyclic_u')
             #box.prop(props, 'endp_u')
             box.prop(props, 'order_u')
 
         if props.outputType == 'POLY':
             box.row().prop(props, 'shape', expand=True)
-            box.prop(props, 'cyclic_u')
+            #box.prop(props, 'cyclic_u')
 
         if props.outputType == 'BEZIER':
             box.row().prop(props, 'shape', expand=True)
             box.row().prop(props, 'handleType', expand=True)
-            box.prop(props, 'cyclic_u')
+            #box.prop(props, 'cyclic_u')
 
 
     ##### POLL #####
@@ -1040,80 +1073,21 @@ class Curveaceous_galore(bpy.types.Operator):
         undo = bpy.context.user_preferences.edit.global_undo
         bpy.context.user_preferences.edit.global_undo = False
 
+        # deal with 2D - 3D curve differences
         props = self.properties
         if props.GalloreType in ['Helix', 'Cycloid']:
             props.shape = '3D'
+        #else:
+            #props.shape = '2D'     # someone decide if we want this
+
         if props.GalloreType in ['Helix']:
             props.cyclic_u = False
+        else:
+            props.cyclic_u = True
 
-        # Options
-        options = [
-            # general properties
-            props.outputType,           #0
-            props.GalloreType,          #1
-            # ProfileCurve properties
-            props.ProfileCurveType,     #2
-            props.ProfileCurvevar1,     #3
-            props.ProfileCurvevar2,     #4
-            # MiscCurve properties
-            props.MiscCurveType,        #5
-            props.MiscCurvevar1,        #6
-            props.MiscCurvevar2,        #7
-            props.MiscCurvevar3,        #8
-            # Common properties
-            props.innerRadius,          #9
-            props.middleRadius,         #10
-            props.outerRadius,          #11
-            # Flower properties
-            props.petals,               #12
-            props.petalWidth,           #13
-            # Star properties
-            props.starPoints,           #14
-            props.starTwist,            #15
-            # Arc properties
-            props.arcSides,             #16
-            props.startAngle,           #17
-            props.endAngle,             #18
-            props.arcType,              #19
-            # Cogwheel properties
-            props.teeth,                #20
-            props.bevel,                #21
-            # Nsided property
-            props.Nsides,               #22
-            # Splat properties
-            props.splatSides,           #23
-            props.splatScale,           #24
-            props.seed,                 #25
-            props.basis,                #26
-            # Helix properties
-            props.helixPoints,          #27
-            props.helixHeight,          #28
-            props.helixStart,           #29
-            props.helixEnd,             #30
-            props.helixWidth,           #31
-            props.helix_a,              #32
-            props.helix_b,              #33
-            # Cycloid properties
-            props.cycloPoints,          #34
-            props.cyclo_d,          #35
-            props.cycloType,            #36
-            props.cyclo_a,              #37
-            props.cyclo_b,              #38
-            props.cycloStart,           #39
-            props.cycloEnd              #40
-            ]
-
-        # Curve options
-        curveOptions = [
-            props.shape,        #0
-            props.cyclic_u,     #1
-            props.endp_u,       #2
-            props.order_u,      #4
-            props.handleType    #5
-            ]
 
         # main function
-        main(context, options, curveOptions, self.align_matrix)
+        main(context, props, self.align_matrix)
         
         # restore pre operator undo state
         bpy.context.user_preferences.edit.global_undo = undo
