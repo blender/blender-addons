@@ -658,10 +658,18 @@ class VIEW3D_PT_measure(bpy.types.Panel):
     def draw_header(self, context):
         layout = self.layout
         sce = context.scene
-
-        # Execute operator (this adds the callback)
-        # if it wasn't done yet.
-        bpy.ops.view3d.display_measurements()
+        
+        # Force a redraw.
+        # This prevents the lines still be drawn after
+        # disabling the "measure_panel_draw" checkbox.
+        # @todo Better solution?
+        context.area.tag_redraw()
+        
+        # auto-execution on startup (adds the callback)
+        sce.BoolProperty(attr="measure_panel_init", default=1)  
+        if sce.measure_panel_init:
+            bpy.ops.view3d.display_measurements()
+            sce.measure_panel_init = 0
 
         # Define property for the draw setting.
         sce.BoolProperty(
@@ -682,12 +690,6 @@ class VIEW3D_PT_measure(bpy.types.Panel):
     def draw(self, context):
         layout = self.layout
         sce = context.scene
-
-        # Force a redraw.
-        # This prevents the lines still be drawn after
-        # disabling the "measure_panel_draw" checkbox.
-        # @todo Better solution?
-        context.area.tag_redraw()
 
         # Get a single selected object (or nothing).
         obj = getSingleObject(context)
