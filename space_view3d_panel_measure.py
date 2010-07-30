@@ -44,6 +44,8 @@ It's very helpful to use one or two "Empty" objects with
 "Snap during transform" enabled for fast measurement.
 
 Version history:
+v0.7.4 - Fixed the add_modal_handler and callback_add code.
+    Thanks to jesterKing for pointing that out :-)
 v0.7.3.1 - Fixed bug that made all lines in Blender stippled :-)
 v0.7.3 - Added display of delta x/y/z value in 3d view.
     * Inspired by warpi's patch here:
@@ -155,8 +157,7 @@ bl_addon_info = {
     'blender': (2, 5, 3),
     'location': 'View3D > Properties > Measure',
     'description': 'Measure distances between objects',
-    'warning': 'Need maintenance, it can make weird stuff in the UI!',\
-        # Used for warning icon and text in addons panel.
+    'warning': '',  # Used for warning icon and text in addons panel.
     'wiki_url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/' \
         'Scripts/3D_interaction/Panel_Measure',
     'tracker_url': 'https://projects.blender.org/tracker/index.php?'\
@@ -600,17 +601,17 @@ class VIEW3D_OT_display_measurements(bpy.types.Operator):
                 # Add the region OpenGL drawing callback
                 for WINregion in context.area.regions:
                     if WINregion.type == 'WINDOW':
-                        break
+                        context.manager.add_modal_handler(self)
+                        self._handle = WINregion.callback_add(
+                            draw_measurements_callback,
+                            (self, context),
+                            'POST_PIXEL')
 
-                context.manager.add_modal_handler(self)
-                self._handle = WINregion.callback_add(
-                    draw_measurements_callback,
-                    (self, context),
-                    'POST_PIXEL')
+                        print("Measure panel display callback added")
 
-                print("Measure panel display callback added")
+                        return {'RUNNING_MODAL'}
 
-            return {'RUNNING_MODAL'}
+            return {'CANCELLED'}
 
         else:
             self.report({'WARNING'}, "View3D not found, cannot run operator")
