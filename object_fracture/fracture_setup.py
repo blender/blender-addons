@@ -35,7 +35,7 @@ def setupshards(context):
 
     tobeprocessed = []
     for ob in sce.objects:
-        if ob.selected:
+        if ob.select:
             tobeprocessed.append(ob)
 
     for ob in tobeprocessed:
