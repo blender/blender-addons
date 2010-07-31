@@ -44,6 +44,8 @@ It's very helpful to use one or two "Empty" objects with
 "Snap during transform" enabled for fast measurement.
 
 Version history:
+v0.7.5.3 - Small fix for bug in v0.7.5.1
+    (location was off when object was moved)
 v0.7.5.2 - Changed callback registration back to original code &
     fixed bug in there (use bl_idname instead of bl_label)
 v0.7.5.1 - Global mode is now taking rotation into account properly.
@@ -254,7 +256,7 @@ def getMeasurePoints(context):
                     return (p1, p2, COLOR_LOCAL)
 
                 else:
-                    p1 = vert_loc * ob_mat_trans + obj_loc
+                    p1 = vert_loc * ob_mat_trans
                     p2 = cur_loc
                     return (p1, p2, COLOR_GLOBAL)
 
@@ -273,8 +275,8 @@ def getMeasurePoints(context):
                     return (p1, p2, COLOR_LOCAL)
 
                 else:
-                    p1 = obj_loc + vert1_loc * ob_mat_trans
-                    p2 = obj_loc + vert2_loc * ob_mat_trans
+                    p1 = vert1_loc * ob_mat_trans
+                    p2 = vert2_loc * ob_mat_trans
                     return (p1, p2, COLOR_GLOBAL)
 
             else:
