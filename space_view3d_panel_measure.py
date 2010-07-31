@@ -210,6 +210,8 @@ def getMeasurePoints(context):
             ob_mat = obj.matrix_world
             # Also make an inversed copy! of the matrix.
             ob_mat_inv = ob_mat.copy().invert()
+            # And a transposed one...
+            ob_mat_trans = ob_mat.copy().transpose()
 
             # Get the selected vertices.
             # @todo: Better (more efficient) way to do this?
@@ -249,7 +251,7 @@ def getMeasurePoints(context):
                     return (p1, p2, COLOR_LOCAL)
 
                 else:
-                    p1 = vert_loc * ob_mat + obj_loc
+                    p1 = vert_loc * ob_mat_trans + obj_loc
                     p2 = cur_loc
                     return (p1, p2, COLOR_GLOBAL)
 
@@ -268,8 +270,8 @@ def getMeasurePoints(context):
                     return (p1, p2, COLOR_LOCAL)
 
                 else:
-                    p1 = obj_loc + vert1_loc * ob_mat
-                    p2 = obj_loc + vert2_loc * ob_mat
+                    p1 = obj_loc + vert1_loc * ob_mat_trans
+                    p2 = obj_loc + vert2_loc * ob_mat_trans
                     return (p1, p2, COLOR_GLOBAL)
 
             else:
