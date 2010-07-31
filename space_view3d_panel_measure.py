@@ -44,6 +44,8 @@ It's very helpful to use one or two "Empty" objects with
 "Snap during transform" enabled for fast measurement.
 
 Version history:
+v0.7.5.2 - Changed callback registration back to original code &
+    fixed bug in there (use bl_idname instead of bl_label)
 v0.7.5.1 - Global mode is now taking rotation into account properly.
 v0.7.5 - Fixed lagging and drawing issues.
 v0.7.4 - Fixed the add_modal_handler and callback_add code.
@@ -159,7 +161,7 @@ bl_addon_info = {
     'blender': (2, 5, 3),
     'location': 'View3D > Properties > Measure',
     'description': 'Measure distances between objects',
-    'warning': '', # used for warning icon and text in addons panel
+    'warning': '',  # Used for warning icon and text in addons panel.
     'wiki_url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/' \
         'Scripts/3D_interaction/Panel_Measure',
     'tracker_url': 'https://projects.blender.org/tracker/index.php?'\
@@ -601,7 +603,7 @@ class VIEW3D_OT_display_measurements(bpy.types.Operator):
 
     def execute(self, context):
         if context.area.type == 'VIEW_3D':
-            if not self.bl_label in context.manager.operators.keys():
+            if not self.bl_idname in context.manager.operators.keys():
                 # Add the region OpenGL drawing callback
                 for WINregion in context.area.regions:
                     if WINregion.type == 'WINDOW':
@@ -661,18 +663,16 @@ class VIEW3D_PT_measure(bpy.types.Panel):
     def draw_header(self, context):
         layout = self.layout
         sce = context.scene
-        
+
         # Force a redraw.
         # This prevents the lines still be drawn after
         # disabling the "measure_panel_draw" checkbox.
         # @todo Better solution?
         context.area.tag_redraw()
-        
-        # auto-execution on startup (adds the callback)
-        sce.BoolProperty(attr="measure_panel_init", default=1)  
-        if sce.measure_panel_init:
-            bpy.ops.view3d.display_measurements()
-            sce.measure_panel_init = 0
+
+        # Execute operator (this adds the callback)
+        # if it wasn't done yet.
+        bpy.ops.view3d.display_measurements()
 
         # Define property for the draw setting.
         sce.BoolProperty(
