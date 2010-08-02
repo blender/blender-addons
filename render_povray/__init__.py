@@ -30,25 +30,24 @@ bl_addon_info = {
         'func=detail&aid=23145&group_id=153&atid=469',
     'category': 'Render'}
 
+try:
+    init_data
+
+    reload(render)
+    reload(ui)
+except:
+    from render_povray import render
+    from render_povray import ui
+
+init_data = True
 
 def register():
-    import bpy
-    from render_povray import ui, render
-    classes = [render.PovrayRender,ui.RENDER_PT_povray_radiosity]
-    register = bpy.types.register
-    for cls in classes:
-        register(cls)
+    pass
 
 
 def unregister():
-    import bpy
-    from render_povray import ui, render
-    classes = [render.PovrayRender,ui.RENDER_PT_povray_radiosity]
-    unregister = bpy.types.unregister
-    for cls in classes:
-        unregister(cls)
+    pass
+
 
 if __name__ == "__main__":
     register()
-
-

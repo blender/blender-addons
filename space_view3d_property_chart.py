@@ -218,15 +218,11 @@ class CopyPropertyChart(bpy.types.Operator):
 
 
 def register():
-    bpy.types.register(View3DEditProps)
-    bpy.types.register(SequencerEditProps)
-    bpy.types.register(CopyPropertyChart)
+    pass
 
 
 def unregister():
-    bpy.types.unregister(View3DEditProps)
-    bpy.types.unregister(SequencerEditProps)
-    bpy.types.unregister(CopyPropertyChart)
+    pass
 
 if __name__ == "__main__":
     register()

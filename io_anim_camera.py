@@ -152,8 +152,12 @@ def menu_export(self, context):
 
 
 def register():
-    bpy.types.register(CameraExporter)
     bpy.types.INFO_MT_file_export.append(menu_export)
+
+
+def unregister():
+    bpy.types.INFO_MT_file_export.remove(menu_export)
+
 
 if __name__ == "__main__":
     register()

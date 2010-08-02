@@ -659,20 +659,12 @@ class GenerateCloud(bpy.types.Operator):
         return {'FINISHED'}
 
 
-classes = [VIEW3D_PT_tools_cloud,
-        GenerateCloud]
-
-
 def register():
-    register = bpy.types.register
-    for cls in classes:
-        register(cls)
+    pass
 
 
 def unregister():
-    unregister = bpy.types.unregister
-    for cls in classes:
-        unregister(cls)
+    pass
 
 
 if __name__ == "__main__":

@@ -796,21 +796,12 @@ class GPENCIL_OT_SURFSK_strokes_to_curves(bpy.types.Operator):
         return {"FINISHED"}
 
 
-
-
-
 def register(): 
-    bpy.types.register(GPENCIL_OT_SURFSK_add_surface) 
-    bpy.types.register(GPENCIL_OT_SURFSK_strokes_to_curves) 
-    bpy.types.register(VIEW3D_PT_tools_SURF_SKETCH)
-    
     keymap_item_add_surf = bpy.data.window_managers[0].active_keyconfig.keymaps["3D View"].items.add("GPENCIL_OT_SURFSK_add_surface","E","PRESS", key_modifier="D")
     keymap_item_stroke_to_curve = bpy.data.window_managers[0].active_keyconfig.keymaps["3D View"].items.add("GPENCIL_OT_SURFSK_strokes_to_curves","C","PRESS", key_modifier="D")
 
+
 def unregister(): 
-    bpy.types.unregister(GPENCIL_OT_SURFSK_add_surface) 
-    bpy.types.unregister(GPENCIL_OT_SURFSK_strokes_to_curves) 
-    bpy.types.unregister(VIEW3D_PT_tools_SURF_SKETCH)
     km = bpy.data.window_managers[0].active_keyconfig.keymaps["3D View"]
     for kmi in km.items:
         if kmi.idname == 'wm.call_menu':

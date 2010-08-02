@@ -1059,17 +1059,15 @@ class DirectXExporter(bpy.types.Operator):
 
 
 def menu_func(self, context):
-    DefaultPath = os.path.splitext(bpy.data.filepath)[0] + ".x"
-    self.layout.operator(DirectXExporter.bl_idname, text="DirectX (.x)").filepath = DefaultPath
+    default_path = os.path.splitext(bpy.data.filepath)[0] + ".x"
+    self.layout.operator(DirectXExporter.bl_idname, text="DirectX (.x)").filepath = default_path
 
 
 def register():
-    bpy.types.register(DirectXExporter)
     bpy.types.INFO_MT_file_export.append(menu_func)
 
 
 def unregister():
-    bpy.types.unregister(DirectXExporter)
     bpy.types.INFO_MT_file_export.remove(menu_func)
 
 

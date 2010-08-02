@@ -758,32 +758,16 @@ class INFO_MT_mesh_extras_add(bpy.types.Menu):
 import space_info
 
 # Define "Gemstones" menu
-menu_func = (lambda self,
-    context: self.layout.menu("INFO_MT_mesh_extras_add", icon="PLUGIN"))
+def menu_func(self, context):
+    self.layout.menu("INFO_MT_mesh_extras_add", icon="PLUGIN")
 
 
 def register():
-    # Register the operators/menus.
-    bpy.types.register(AddSqorus)
-    bpy.types.register(AddWedge)
-    bpy.types.register(AddSpindle)
-    bpy.types.register(AddStar)
-    bpy.types.register(AddTrapezohedron)
-    bpy.types.register(INFO_MT_mesh_extras_add)
-
     # Add "Gemstones" menu to the "Add Mesh" menu
     space_info.INFO_MT_mesh_add.append(menu_func)
 
 
 def unregister():
-    # Unregister the operators/menus.
-    bpy.types.unregister(AddSqorus)
-    bpy.types.unregister(AddWedge)
-    bpy.types.unregister(AddSpindle)
-    bpy.types.unregister(AddStar)
-    bpy.types.unregister(AddTrapezohedron)
-    bpy.types.unregister(INFO_MT_mesh_extras_add)
-
     # Remove "Gemstones" menu from the "Add Mesh" menu.
     space_info.INFO_MT_mesh_add.remove(menu_func)
 

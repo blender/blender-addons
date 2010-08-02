@@ -112,15 +112,16 @@ class Relax(bpy.types.Operator):
             relax_mesh(context)
         return {'FINISHED'}
 
-menu_func = (lambda self, context: self.layout.operator(Relax.bl_idname, text="Relax"))
+
+def menu_func(self, context):
+    self.layout.operator(Relax.bl_idname, text="Relax")
+
 
 def register():
-    bpy.types.register(Relax)
     bpy.types.VIEW3D_MT_edit_mesh_specials.append(menu_func)
     bpy.types.VIEW3D_MT_edit_mesh_vertices.append(menu_func)
 
 def unregister():
-    bpy.types.unregister(Relax)
     bpy.types.VIEW3D_MT_edit_mesh_specials.remove(menu_func)
     bpy.types.VIEW3D_MT_edit_mesh_vertices.remove(menu_func)
 

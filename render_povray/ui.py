@@ -153,7 +153,7 @@ del properties_data_camera
 
 
 
-class RenderButtonsPanel(bpy.types.Panel):
+class RenderButtonsPanel():
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = "render"
@@ -164,7 +164,7 @@ class RenderButtonsPanel(bpy.types.Panel):
         return (rd.use_game_engine == False) and (rd.engine in self.COMPAT_ENGINES)
 
 
-class RENDER_PT_povray_radiosity(RenderButtonsPanel):
+class RENDER_PT_povray_radiosity(RenderButtonsPanel, bpy.types.Panel):
     bl_label = "Radiosity"
     COMPAT_ENGINES = {'POVRAY_RENDER'}
 

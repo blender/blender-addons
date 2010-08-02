@@ -89,7 +89,6 @@ import operator
 
 from struct import pack, calcsize
 
-MENUPANELBOOL = True
 
 # REFERENCE MATERIAL JUST IN CASE:
 # 
@@ -1506,13 +1505,7 @@ class ExportUDKAnimData(bpy.types.Operator):
 		wm = context.manager
 		wm.add_fileselect(self)
 		return {'RUNNING_MODAL'}
-		
-def menu_func(self, context):
-	bpy.context.scene.unrealexportpsk = True
-	bpy.context.scene.unrealexportpsa = True
-	default_path = os.path.splitext(bpy.data.filepath)[0] + ".psk"
-	self.layout.operator("export.udk_anim_data", text="Skeleton Mesh / Animation Data (.psk/.psa)").filepath = default_path
-	
+
 
 class VIEW3D_PT_unrealtools_objectmode(bpy.types.Panel):
 	bl_space_type = "VIEW_3D"
@@ -1582,21 +1575,19 @@ class OBJECT_OT_UnrealExport(bpy.types.Operator):
 		#self.report({'WARNING', 'INFO'}, exportmessage)
 		self.report({'INFO'}, exportmessage)
 		return{'FINISHED'}	
-	
+
+
+def menu_func(self, context):
+	bpy.context.scene.unrealexportpsk = True
+	bpy.context.scene.unrealexportpsa = True
+	default_path = os.path.splitext(bpy.data.filepath)[0] + ".psk"
+	self.layout.operator("export.udk_anim_data", text="Skeleton Mesh / Animation Data (.psk/.psa)").filepath = default_path
+
+
 def register():
-	global MENUPANELBOOL
-	if MENUPANELBOOL:
-		bpy.types.register(OBJECT_OT_UnrealExport)
-		bpy.types.register(VIEW3D_PT_unrealtools_objectmode)
-	bpy.types.register(ExportUDKAnimData)
 	bpy.types.INFO_MT_file_export.append(menu_func)
 
 def unregister():
-	global MENUPANELBOOL
-	if MENUPANELBOOL:
-		bpy.types.unregister(OBJECT_OT_UnrealExport)
-		bpy.types.unregister(VIEW3D_PT_unrealtools_objectmode)
-	bpy.types.unregister(ExportUDKAnimData)
 	bpy.types.INFO_MT_file_export.remove(menu_func)
 
 if __name__ == "__main__":

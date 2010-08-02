@@ -1267,32 +1267,16 @@ class INFO_MT_mesh_pipe_joints_add(bpy.types.Menu):
 import space_info
 
 # Define "Pipe Joints" menu
-menu_func = (lambda self,
-    context: self.layout.menu("INFO_MT_mesh_pipe_joints_add", icon="PLUGIN"))
+def menu_func(self, context):
+    self.layout.menu("INFO_MT_mesh_pipe_joints_add", icon="PLUGIN")
 
 
 def register():
-    # Register the operators/menus.
-    bpy.types.register(AddElbowJoint)
-    bpy.types.register(AddTeeJoint)
-    bpy.types.register(AddWyeJoint)
-    bpy.types.register(AddCrossJoint)
-    bpy.types.register(AddNJoint)
-    bpy.types.register(INFO_MT_mesh_pipe_joints_add)
-
     # Add "Pipe Joints" menu to the "Add Mesh" menu
     space_info.INFO_MT_mesh_add.append(menu_func)
 
 
 def unregister():
-    # Unregister the operators/menus.
-    bpy.types.unregister(AddElbowJoint)
-    bpy.types.unregister(AddTeeJoint)
-    bpy.types.unregister(AddWyeJoint)
-    bpy.types.unregister(AddCrossJoint)
-    bpy.types.unregister(AddNJoint)
-    bpy.types.unregister(INFO_MT_mesh_pipe_joints_add)
-
     # Remove "Pipe Joints" menu from the "Add Mesh" menu.
     space_info.INFO_MT_mesh_add.remove(menu_func)
 

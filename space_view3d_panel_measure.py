@@ -1051,15 +1051,11 @@ class VIEW3D_PT_measure(bpy.types.Panel):
 
 
 def register():
-    bpy.types.register(VIEW3D_PT_measure)
-    bpy.types.register(VIEW3D_OT_reenter_editmode)
-    bpy.types.register(VIEW3D_OT_display_measurements)
+    pass
 
 
 def unregister():
-    bpy.types.unregister(VIEW3D_PT_measure)
-    bpy.types.unregister(VIEW3D_OT_reenter_editmode)
-    bpy.types.unregister(VIEW3D_OT_display_measurements)
+    pass
 
 if __name__ == "__main__":
     register()

@@ -34,7 +34,7 @@ bpy.download_location = 'http://www.renderfarm.fi/blender'
 bl_addon_info = {
     'name': 'Render: Renderfarm.fi',
     'author': 'Nathan Letwory <nathan@letworyinteractive.com>, Jesse Kaukonen <jesse.kaukonen@gmail.com>',
-    'version': str(bpy.CURRENT_VERSION),
+    'version': "2",
     'blender': (2, 5, 3),
     'location': 'Render > Engine > Renderfarm.fi',
     'description': 'Send .blend as session to http://www.renderfarm.fi to render',
@@ -770,30 +770,10 @@ def menu_export(self, context):
     self.layout.operator(RenderfarmFi.bl_idname, text=RenderfarmFi.bl_label)
 
 def register():
-    bpy.types.register(RenderfarmFi)
-    bpy.types.register(ORE_OpenDownloadLocation)
-    bpy.types.register(ORE_CancelSession)
-    bpy.types.register(ORE_GetCompletedSessions)
-    bpy.types.register(ORE_GetCancelledSessions)
-    bpy.types.register(ORE_GetActiveSessions)
-    bpy.types.register(ORE_GetPendingSessions)
-    bpy.types.register(ORE_CheckUpdate)
-    bpy.types.register(ORE_LoginOp)
-    bpy.types.register(ORE_PrepareOp)
-    bpy.types.register(ORE_ResetOp)
-    bpy.types.register(ORE_UploaderOp)
-    bpy.types.register(ORE_UseBlenderReso)
-    bpy.types.register(ORE_ChangeUser)
-    bpy.types.register(RENDERFARM_MT_Session)
-    bpy.types.register(LOGIN_PT_RenderfarmFi)
-    bpy.types.register(CHECK_PT_RenderfarmFi)
-    bpy.types.register(SESSIONS_PT_RenderfarmFi)
-    bpy.types.register(RENDER_PT_RenderfarmFi)
     bpy.types.INFO_MT_render.append(menu_export)
 
 def unregister():
-    bpy.types.unregister(ORESession)
-    bpy.types.unregister(ORESettings)
+    bpy.types.INFO_MT_render.remove(menu_export)
 
 if __name__ == "__main__":
     register()

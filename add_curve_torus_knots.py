@@ -338,25 +338,14 @@ class torus_knot_plus(bpy.types.Operator):
 ################################################################################
 ##### REGISTER #####
 
-torus_knot_plus_button = (lambda self, context: self.layout.operator
-            (torus_knot_plus.bl_idname, text="Torus Knot +", icon="PLUGIN"))
+def torus_knot_plus_button(self, context):
+    self.layout.operator(torus_knot_plus.bl_idname, text="Torus Knot +", icon="PLUGIN")
 
-classes = [
-torus_knot_plus
-    ]
 
 def register():
-    register = bpy.types.register
-    for cls in classes:
-        register(cls)
-
     bpy.types.INFO_MT_curve_add.append(torus_knot_plus_button)
 
 def unregister():
-    unregister = bpy.types.unregister
-    for cls in classes:
-        unregister(cls)
-
     bpy.types.INFO_MT_curve_add.remove(torus_knot_plus_button)
 
 if __name__ == "__main__":

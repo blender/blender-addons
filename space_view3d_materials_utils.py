@@ -664,35 +664,12 @@ class VIEW3D_MT_select_material(bpy.types.Menu):
                     icon='MATERIAL_DATA').matname = m
 
 
-
-
-       
-
-classes = [
-VIEW3D_OT_assign_material,
-VIEW3D_OT_clean_material_slots,
-VIEW3D_OT_material_to_texface,
-VIEW3D_OT_select_material_by_name,
-VIEW3D_OT_replace_material,
-VIEW3D_OT_texface_to_material,
-VIEW3D_MT_master_material,
-VIEW3D_MT_assign_material,
-VIEW3D_MT_select_material]
-
 def register():
-    register = bpy.types.register
-    for cls in classes:
-        register(cls)
-
     km = bpy.context.manager.active_keyconfig.keymaps['3D View']
     kmi = km.items.add('wm.call_menu', 'Q', 'PRESS')
     kmi.properties.name = "VIEW3D_MT_master_material"
 
 def unregister():
-    unregister = bpy.types.unregister
-    for cls in classes:
-        unregister(cls)
-
     km = bpy.context.manager.active_keyconfig.keymaps['3D View']
     for kmi in km.items:
         if kmi.idname == 'wm.call_menu':

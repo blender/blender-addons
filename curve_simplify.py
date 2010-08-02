@@ -586,12 +586,10 @@ class CURVE_OT_simplify(bpy.types.Operator):
 #### REGISTER ###################################
 #################################################
 def register():
-    bpy.types.register(CURVE_OT_simplify)
-    bpy.types.register(GRAPH_OT_simplify)
+    pass
 
 def unregister():
-    bpy.types.unregister(CURVE_OT_simplify)
-    bpy.types.unregister(GRAPH_OT_simplify)
+    pass
 
 if __name__ == "__main__":
     register()

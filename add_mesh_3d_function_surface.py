@@ -615,31 +615,20 @@ class AddXYZFunctionSurface(bpy.types.Operator):
 import space_info
 
 # Define "3D Function Surface" menu
-menu_func_z = (lambda self, context: self.layout.operator(
-    AddZFunctionSurface.bl_idname,
-    text="Z Function Surface",
-    icon="PLUGIN"))
-menu_func_xyz = (lambda self, context: self.layout.operator(
-    AddXYZFunctionSurface.bl_idname,
-    text="X,Y,Z Function Surface",
-    icon="PLUGIN"))
+def menu_func_z(self, context):
+    self.layout.operator(AddZFunctionSurface.bl_idname, text="Z Function Surface", icon="PLUGIN")
+
+def menu_func_xyz(self, context):
+    self.layout.operator(AddXYZFunctionSurface.bl_idname, text="X,Y,Z Function Surface", icon="PLUGIN")
 
 
 def register():
-    # Register the operators/menus.
-    bpy.types.register(AddZFunctionSurface)
-    bpy.types.register(AddXYZFunctionSurface)
-
     # Add menus to the "Add Mesh" menu
     space_info.INFO_MT_mesh_add.append(menu_func_z)
     space_info.INFO_MT_mesh_add.append(menu_func_xyz)
 
 
 def unregister():
-    # Unregister the operators/menus.
-    bpy.types.unregister(AddZFunctionSurface)
-    bpy.types.unregister(AddXYZFunctionSurface)
-
     # Remove menus from the "Add Mesh" menu.
     space_info.INFO_MT_mesh_add.remove(menu_func_z)
     space_info.INFO_MT_mesh_add.remove(menu_func_xyz)

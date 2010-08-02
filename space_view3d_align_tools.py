@@ -325,37 +325,10 @@ class AlignScaleZOperator(bpy.types.Operator):
 
 ## registring
 def register():
-        bpy.types.register(AlignUi)
-        bpy.types.register(AlignOperator)
-        bpy.types.register(AlignLocationOperator)
-        bpy.types.register(AlignLocationXOperator)
-        bpy.types.register(AlignLocationYOperator)
-        bpy.types.register(AlignLocationZOperator)
-        bpy.types.register(AlignRotationOperator)
-        bpy.types.register(AlignRotationXOperator)
-        bpy.types.register(AlignRotationYOperator)
-        bpy.types.register(AlignRotationZOperator)
-        bpy.types.register(AlignScaleOperator)
-        bpy.types.register(AlignScaleXOperator)
-        bpy.types.register(AlignScaleYOperator)
-        bpy.types.register(AlignScaleZOperator)
-
+    pass
 
 def unregister():
-        bpy.types.unregister(AlignUi)
-        bpy.types.unregister(AlignOperator)
-        bpy.types.unregister(AlignLocationOperator)
-        bpy.types.unregister(AlignLocationXOperator)
-        bpy.types.unregister(AlignLocationYOperator)
-        bpy.types.unregister(AlignLocationZOperator)
-        bpy.types.unregister(AlignRotationOperator)
-        bpy.types.unregister(AlignRotationXOperator)
-        bpy.types.unregister(AlignRotationYOperator)
-        bpy.types.unregister(AlignRotationZOperator)
-        bpy.types.unregister(AlignScaleOperator)
-        bpy.types.unregister(AlignScaleXOperator)
-        bpy.types.unregister(AlignScaleYOperator)
-        bpy.types.unregister(AlignScaleZOperator)
+    pass
 
 if __name__ == "__main__":
     register()

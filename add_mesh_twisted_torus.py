@@ -348,18 +348,15 @@ class AddTwistedTorus(bpy.types.Operator):
         return {'FINISHED'}
 
 # Add to the menu
-menu_func = (lambda self,
-            context: self.layout.operator(AddTwistedTorus.bl_idname,
-            text="Twisted Torus", icon='MESH_DONUT'))
+def menu_func(self, context):
+    self.layout.operator(AddTwistedTorus.bl_idname, text="Twisted Torus", icon='MESH_DONUT')
 
 
 def register():
-    bpy.types.register(AddTwistedTorus)
     bpy.types.INFO_MT_mesh_add.append(menu_func)
 
 
 def unregister():
-    bpy.types.unregister(AddTwistedTorus)
     bpy.types.INFO_MT_mesh_add.remove(menu_func)
 
 if __name__ == "__main__":

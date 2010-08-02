@@ -33,6 +33,17 @@ bl_addon_info = {
 import bpy
 
 
+try:
+    init_data
+
+    reload(import_raw)
+    reload(export_raw)
+except:
+    from io_mesh_raw import import_raw
+    from io_mesh_raw import export_raw
+
+init_data = True
+
 def menu_import(self, context):
     from io_mesh_raw import import_raw
     self.layout.operator(import_raw.RawImporter.bl_idname, text="Raw Faces (.raw)").filepath = "*.raw"
@@ -46,16 +57,10 @@ def menu_export(self, context):
 
 
 def register():
-    from io_mesh_raw import import_raw, export_raw
-    bpy.types.register(import_raw.RawImporter)
-    bpy.types.register(export_raw.RawExporter)
     bpy.types.INFO_MT_file_import.append(menu_import)
     bpy.types.INFO_MT_file_export.append(menu_export)
 
 def unregister():
-    from io_mesh_raw import import_raw, export_raw
-    bpy.types.unregister(import_raw.RawImporter)
-    bpy.types.unregister(export_raw.RawExporter)
     bpy.types.INFO_MT_file_import.remove(menu_import)
     bpy.types.INFO_MT_file_export.remove(menu_export)
 

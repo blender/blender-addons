@@ -50,7 +50,17 @@ bl_addon_info = {
 import bpy
 from bpy.props import *
 
-from io_mesh_stl import stl_utils, blender_utils
+
+try:
+    init_data
+
+    reload(stl_utils)
+    reload(blender_utils)
+except:
+    from io_mesh_stl import stl_utils
+    from io_mesh_stl import blender_utils
+
+init_data = True
 
 
 class StlImporter(bpy.types.Operator):
@@ -135,15 +145,11 @@ def menu_export(self, context):
 
 
 def register():
-    bpy.types.register(StlImporter)
-    bpy.types.register(StlExporter)
     bpy.types.INFO_MT_file_import.append(menu_import)
     bpy.types.INFO_MT_file_export.append(menu_export)
 
 
 def unregister():
-    bpy.types.unregister(StlImporter)
-    bpy.types.unregister(StlExporter)
     bpy.types.INFO_MT_file_import.remove(menu_import)
     bpy.types.INFO_MT_file_export.remove(menu_export)
 

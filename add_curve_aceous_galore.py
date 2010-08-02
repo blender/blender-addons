@@ -1105,25 +1105,14 @@ class Curveaceous_galore(bpy.types.Operator):
 ################################################################################
 ##### REGISTER #####
 
-Curveaceous_galore_button = (lambda self, context: self.layout.operator
-            (Curveaceous_galore.bl_idname, text="curvatures gallore", icon="PLUGIN"))
+def Curveaceous_galore_button(self, context):
+    self.layout.operator(Curveaceous_galore.bl_idname, text="curvatures gallore", icon="PLUGIN")
 
-classes = [
-Curveaceous_galore
-    ]
 
 def register():
-    register = bpy.types.register
-    for cls in classes:
-        register(cls)
-
     bpy.types.INFO_MT_curve_add.append(Curveaceous_galore_button)
 
 def unregister():
-    unregister = bpy.types.unregister
-    for cls in classes:
-        unregister(cls)
-
     bpy.types.INFO_MT_curve_add.remove(Curveaceous_galore_button)
 
 if __name__ == "__main__":

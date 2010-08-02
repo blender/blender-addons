@@ -28,31 +28,28 @@ bl_addon_info = {
     'category': 'Add Mesh'}
 
 import bpy
-from add_mesh_BoltFactory.Boltfactory import add_mesh_bolt
+
+try:
+    init_data
+
+    reload(Boltfactory)
+except:
+    from add_mesh_BoltFactory import Boltfactory
+
+init_data = True
 
 ################################################################################
 ##### REGISTER #####
 
-add_mesh_bolt_button = (lambda self, context: self.layout.operator
-            (add_mesh_bolt.bl_idname, text="BOLT", icon="PLUGIN"))
+def add_mesh_bolt_button(self, context):
+    self.layout.operator(Boltfactory.add_mesh_bolt.bl_idname, text="BOLT", icon="PLUGIN")
 
-classes = [
-add_mesh_bolt
-    ]
 
 def register():
-    register = bpy.types.register
-    for cls in classes:
-        register(cls)
-
     bpy.types.INFO_MT_mesh_add.append(add_mesh_bolt_button)
     #bpy.types.VIEW3D_PT_tools_objectmode.prepend(add_mesh_bolt_button) #just for testing
 
 def unregister():
-    unregister = bpy.types.unregister
-    for cls in classes:
-        unregister(cls)
-
     bpy.types.INFO_MT_mesh_add.remove(add_mesh_bolt_button)
     #bpy.types.VIEW3D_PT_tools_objectmode.remove(add_mesh_bolt_button) #just for testing
     

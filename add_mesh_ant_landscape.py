@@ -749,17 +749,13 @@ class landscape_add(bpy.types.Operator):
 import space_info
 
 # Define "Landscape" menu
-menu_func_landscape = (lambda self, context: self.layout.operator(
-    landscape_add.bl_idname,
-    text="Landscape",
-    icon="PLUGIN"))
+def menu_func_landscape(self, context):
+    self.layout.operator(landscape_add.bl_idname, text="Landscape", icon="PLUGIN")
 
 def register():
-    bpy.types.register(landscape_add)
     space_info.INFO_MT_mesh_add.append(menu_func_landscape)
 
 def unregister():
-    bpy.types.unregister(landscape_add)
     space_info.INFO_MT_mesh_add.remove(menu_func_landscape)
 
 if __name__ == "__main__":

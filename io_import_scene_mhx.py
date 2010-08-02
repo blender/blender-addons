@@ -2203,17 +2203,16 @@ def unregisterPanels():
 	bpy.types.unregister(MakeHumanFingerPanel)
 	'''
 
+
+def menu_func(self, context):
+    self.layout.operator(IMPORT_OT_makehuman_mhx.bl_idname, text="MakeHuman (.mhx)...")
+
+
 def register():
-	# registerPanels()
-	bpy.types.register(IMPORT_OT_makehuman_mhx)
-	menu_func = lambda self, context: self.layout.operator(IMPORT_OT_makehuman_mhx.bl_idname, text="MakeHuman (.mhx)...")
 	bpy.types.INFO_MT_file_import.append(menu_func)
-	return
- 
+
+
 def unregister():
-	# unregisterPanels()
-	bpy.types.unregister(IMPORT_OT_makehuman_mhx)
-	menu_func = lambda self, context: self.layout.operator(IMPORT_OT_makehuman_mhx.bl_idname, text="MakeHuman (.mhx)...")
 	bpy.types.INFO_MT_file_import.remove(menu_func)
 
 if __name__ == "__main__":
@@ -2239,8 +2238,3 @@ readMhxFile("C:/Documents and Settings/xxxxxxxxxxxxxxxxxxxx/Mina dokument/makehu
 #readMhxFile("/home/thomas/myblends/gobo/gobo.mhx")
 #readMhxFile("/home/thomas/myblends/sintel/simple.mhx")
 """
-
-
-
-
-

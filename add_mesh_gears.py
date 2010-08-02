@@ -924,24 +924,16 @@ class INFO_MT_mesh_gears_add(bpy.types.Menu):
 
 
 # Define "Gears" menu
-menu_func = (lambda self,
-    context: self.layout.menu("INFO_MT_mesh_gears_add", icon="PLUGIN"))
+def menu_func(self, context):
+    self.layout.menu("INFO_MT_mesh_gears_add", icon="PLUGIN")
 
 
 def register():
-    bpy.types.register(AddGear)
-    bpy.types.register(AddWormGear)
-    bpy.types.register(INFO_MT_mesh_gears_add)
-
     # Add "Gears" entry to the "Add Mesh" menu.
     bpy.types.INFO_MT_mesh_add.append(menu_func)
 
 
 def unregister():
-    bpy.types.unregister(AddGear)
-    bpy.types.unregister(AddWormGear)
-    bpy.types.unregister(INFO_MT_mesh_gears_add)
-
     # Remove "Gears" entry from the "Add Mesh" menu.
     bpy.types.INFO_MT_mesh_add.remove(menu_func)
 

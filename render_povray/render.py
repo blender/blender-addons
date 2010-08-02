@@ -18,7 +18,6 @@
 
 import bpy
 import subprocess, os, sys, time
-from render_povray.write import write_pov, write_pov_ini
 
 import platform as pltfrm
 if pltfrm.architecture()[0] == '64bit':

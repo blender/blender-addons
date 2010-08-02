@@ -33,8 +33,17 @@ bl_addon_info = {
 
 
 import bpy
-from object_fracture import fracture_ops, fracture_setup
 
+try:
+    init_data
+    
+    reload(fracture_ops)
+    reload(fracture_setup)
+except:
+    from object_fracture import fracture_ops
+    from object_fracture import fracture_setup
+
+init_data = True
 
 class INFO_MT_add_fracture_objects(bpy.types.Menu):
     bl_idname = "INFO_MT_add_fracture_objects"
@@ -52,33 +61,18 @@ class INFO_MT_add_fracture_objects(bpy.types.Menu):
             text="Rigidbody Recorder")
 
 import space_info
-# Define the submenu
-menu_func = (lambda self,
-    context: self.layout.menu("INFO_MT_add_fracture_objects", icon="PLUGIN"))
+
+
+def menu_func(self, context):
+    self.layout.menu("INFO_MT_add_fracture_objects", icon="PLUGIN")
 
 
 def register():
-    bpy.types.register(fracture_ops.FractureSimple)
-    bpy.types.register(fracture_ops.FractureGroup)
-    bpy.types.register(fracture_ops.ImportFractureRecorder)
-    bpy.types.register(fracture_ops.ImportFractureBomb)
-    bpy.types.register(fracture_ops.ImportFractureProjectile)
-    bpy.types.register(fracture_setup.SetupFractureShards)
-    bpy.types.register(INFO_MT_add_fracture_objects)
-
     # Add the "add fracture objects" menu to the "Add" menu
     space_info.INFO_MT_add.append(menu_func)
 
 
 def unregister():
-    bpy.types.unregister(fracture_ops.FractureSimple)
-    bpy.types.unregister(fracture_ops.FractureGroup)
-    bpy.types.unregister(fracture_ops.ImportFractureRecorder)
-    bpy.types.unregister(fracture_ops.ImportFractureBomb)
-    bpy.types.unregister(fracture_ops.ImportFractureProjectile)
-    bpy.types.unregister(fracture_setup.SetupFractureShards)
-    bpy.types.unregister(INFO_MT_add_fracture_objects)
-
     # Remove "add fracture objects" menu from the "Add" menu.
     space_info.INFO_MT_add.remove(menu_func)
 

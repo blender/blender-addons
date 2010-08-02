@@ -557,7 +557,7 @@ def getInputFilename(filename):
 		print ("  Selected file = ",filename)
 		raise (IOError, "The selected input file is not a *.psk file")
 	pskimport(filename)
-  
+
 from bpy.props import *
 
 class IMPORT_OT_psk(bpy.types.Operator):
@@ -577,19 +577,20 @@ class IMPORT_OT_psk(bpy.types.Operator):
 		wm = context.manager
 		wm.add_fileselect(self)
 		return {'RUNNING_MODAL'}  
-  
-menu_func = lambda self, context: self.layout.operator(IMPORT_OT_psk.bl_idname, text="Skeleton Mesh (.psk)")
+
+def menu_func(self, context):
+    self.layout.operator(IMPORT_OT_psk.bl_idname, text="Skeleton Mesh (.psk)")
+
 
 def register():
-    bpy.types.register(IMPORT_OT_psk)
     bpy.types.INFO_MT_file_import.append(menu_func)
     
 def unregister():
-    bpy.types.unregister(IMPORT_OT_psk)
     bpy.types.INFO_MT_file_import.remove(menu_func)
 
 if __name__ == "__main__":
 	register()
+
 #note this only read the data and will not be place in the scene	
 #getInputFilename('C:\\blenderfiles\\BotA.psk') 
 #getInputFilename('C:\\blenderfiles\\AA.PSK')

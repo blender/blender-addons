@@ -508,19 +508,15 @@ class ImportImagesAsPlanes(bpy.types.Operator):
 
 
 # Registering / Unregister
-menu_func = (lambda self, context: self.layout.operator(
-                    ImportImagesAsPlanes.bl_idname,
-                    text="Images as Planes",
-                    icon='PLUGIN'))
+def menu_func(self, context):
+    self.layout.operator(ImportImagesAsPlanes.bl_idname, text="Images as Planes", icon='PLUGIN')
 
 
 def register():
-    bpy.types.register(ImportImagesAsPlanes)
     bpy.types.INFO_MT_file_import.append(menu_func)
 
 
 def unregister():
-    bpy.types.unregister(ImportImagesAsPlanes)
     bpy.types.INFO_MT_file_import.remove(menu_func)
 
 

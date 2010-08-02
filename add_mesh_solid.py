@@ -887,26 +887,15 @@ class OtherMenu(bpy.types.Menu):
 
 import space_info
 
-classes = [
-    Solids,
-    Solids_add_menu,
-    PlatonicMenu,
-    ArchiMenu,
-    CatalanMenu,
-    OtherMenu
-]
 
-menu_func = (lambda self,
-            context: self.layout.menu(Solids_add_menu.bl_idname, icon="PLUGIN"))
+def menu_func(self, context):
+    self.layout.menu(Solids_add_menu.bl_idname, icon="PLUGIN")
+
 
 def register():
-    for i in classes:
-        bpy.types.register(i)
     space_info.INFO_MT_mesh_add.append(menu_func)
 
 def unregister():
-    for i in classes:
-        bpy.types.unregister(i)
     space_info.INFO_MT_mesh_add.remove(menu_func)
       
 if __name__ == "__main__":
