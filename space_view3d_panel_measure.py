@@ -16,6 +16,17 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
+bl_addon_info = {
+    "name": "3D View: Measure Panel",
+    "author": "Buerbaum Martin (Pontiac)",
+    "version": "0.7",
+    "blender": (2, 5, 3),
+    "location": "View3D > Properties > Measure",
+    "description": "Measure distances between objects",
+    "warning": "",
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/Scripts/3D_interaction/Panel_Measure",
+    "tracker_url": "https://projects.blender.org/tracker/index.php?func=detail&aid=21445&group_id=153&atid=469",
+    "category": "3D View"}
 
 """
 Measure panel
@@ -153,23 +164,7 @@ See the other "todo" comments below.
 More links:
 http://gitorious.org/blender-scripts/blender-measure-panel-script
 http://blenderartists.org/forum/showthread.php?t=177800
-
 """
-
-bl_addon_info = {
-    'name': '3D View: Measure panel',
-    'author': 'Buerbaum Martin (Pontiac)',
-    'version': '0.7',
-    'blender': (2, 5, 3),
-    'location': 'View3D > Properties > Measure',
-    'description': 'Measure distances between objects',
-    'warning': '',  # Used for warning icon and text in addons panel.
-    'wiki_url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/' \
-        'Scripts/3D_interaction/Panel_Measure',
-    'tracker_url': 'https://projects.blender.org/tracker/index.php?'\
-        'func=detail&aid=21445&group_id=153&atid=469',
-    'category': '3D View'}
-
 
 import bpy
 from bpy.props import *

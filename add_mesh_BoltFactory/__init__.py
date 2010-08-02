@@ -16,16 +16,15 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-
 bl_addon_info = {
-    'name': 'Add Mesh: BoltFactory',
-    'author': 'Aaron Keith',
-    'version': '3.9',
-    'blender': (2, 5, 3),
-    'location': 'add Mesh',
-    'wiki_url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/Scripts/Add_Mesh/BoltFactory',
-    'tracker_url': 'https://projects.blender.org/tracker/index.php?func=detail&aid=22842&group_id=153&atid=468',
-    'category': 'Add Mesh'}
+    "name": "Add Mesh: BoltFactory",
+    "author": "Aaron Keith",
+    "version": "3.9",
+    "blender": (2, 5, 3),
+    "location": "add Mesh",
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/Scripts/Add_Mesh/BoltFactory",
+    "tracker_url": "https://projects.blender.org/tracker/index.php?func=detail&aid=22842&group_id=153&atid=468",
+    "category": "Add Mesh"}
 
 import bpy
 

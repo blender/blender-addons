@@ -16,6 +16,20 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
+bl_addon_info = {
+    "name": "Import/Export: STL format",
+    "author": "Guillaume Bouchard (Guillaum)",
+    "version": "1",
+    "blender": (2, 5, 3),
+    "location": "File > Import/Export > Stl",
+    "description": "Import/Export Stl files",
+    "warning": "",
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/Scripts/File I-O/STL",
+    "tracker_url": "https://projects.blender.org/tracker/index.php?func=detail&aid=22837&group_id=153&atid=469",
+    "category": "Import/Export"}
+
+# @todo write the wiki page
+
 """
 Import/Export STL files (binary or ascii)
 
@@ -32,20 +46,6 @@ Export:
     - Does not do the object space transformation
     - Export only one object (the selected one)
 """
-
-bl_addon_info = {
-    'name': 'Import/Export: STL format',
-    'author': 'Guillaume Bouchard (Guillaum)',
-    'version': '1',
-    'blender': (2, 5, 3),
-    'location': 'File > Import/Export > Stl',
-    'description': 'Import/Export Stl files',
-    'warning': '', # used for warning icon and text in addons panel
-     'wiki_url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/' \
-        'Scripts/File I-O/STL',  # @todo write the page
-    'tracker_url': 'https://projects.blender.org/tracker/index.php?' \
-        'func=detail&aid=22837&group_id=153&atid=469',
-    'category': 'Import/Export'}
 
 import bpy
 from bpy.props import *

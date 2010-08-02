@@ -16,6 +16,18 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
+bl_addon_info = {
+    "name": "Add Mesh: 3D Function Surfaces",
+    "author": "Buerbaum Martin (Pontiac)",
+    "version": "0.3.5",
+    "blender": (2, 5, 3),
+    "location": "View3D > Add > Mesh > Z Function Surface & XYZ Function Surface",
+    "description": "Create Objects using Math Formulas",
+    "warning": "",
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/Scripts/Add_Mesh/Add_3d_Function_Surface",
+    "tracker_url": "https://projects.blender.org/tracker/index.php?func=detail&aid=21444&group_id=153&atid=469",
+    "category": "Add Mesh"}
+
 """
 Z Function Surface
 
@@ -81,24 +93,8 @@ v0.1 - Initial revision.
 More Links:
 http://gitorious.org/blender-scripts/blender-3d-function-surface
 http://blenderartists.org/forum/showthread.php?t=179043
-
 """
 
-
-bl_addon_info = {
-    'name': 'Add Mesh: 3D Function Surfaces',
-    'author': 'Buerbaum Martin (Pontiac)',
-    'version': '0.3.5',
-    'blender': (2, 5, 3),
-    'location': 'View3D > Add > Mesh > Z Function Surface &' \
-        ' XYZ Function Surface',
-    'description': 'Create Objects using Math Formulas',
-    'warning': '', # used for warning icon and text in addons panel
-    'wiki_url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/' \
-        'Scripts/Add_Mesh/Add_3d_Function_Surface',
-    'tracker_url': 'https://projects.blender.org/tracker/index.php?'\
-        'func=detail&aid=21444&group_id=153&atid=469',
-    'category': 'Add Mesh'}
 
 import bpy
 from mathutils import *

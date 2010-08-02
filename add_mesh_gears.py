@@ -19,6 +19,18 @@
 #
 # ***** END GPL LICENCE BLOCK *****
 
+bl_addon_info = {
+    "name": "Add Mesh: Gears",
+    "author": "Michel J. Anders (varkenvarken)",
+    "version": "2.4.1",
+    "blender": (2, 5, 3),
+    "location": "View3D > Add > Mesh > Gears ",
+    "description": "Adds a mesh Gear to the Add Mesh menu",
+    "warning": "",
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/Scripts/Add_Mesh/Add_Gear",
+    "tracker_url": "https://projects.blender.org/tracker/index.php?func=detail&aid=21732&group_id=153&atid=469",
+    "category": "Add Mesh"}
+
 """
 What was needed to port it from 2.49 -> 2.50 alpha 0?
 
@@ -49,20 +61,6 @@ as Blender nows uses Python 3.x
 The code to actually implement the AddGear() function is mostly copied from
 add_mesh_torus() (distributed with Blender).
 """
-
-bl_addon_info = {
-    'name': 'Add Mesh: Gears',
-    'author': 'Michel J. Anders (varkenvarken)',
-    'version': '2.4.1',
-    'blender': (2, 5, 3),
-    'location': 'View3D > Add > Mesh > Gears ',
-    'description': 'Adds a mesh Gear to the Add Mesh menu',
-    'warning': '', # used for warning icon and text in addons panel
-    'wiki_url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/' \
-        'Scripts/Add_Mesh/Add_Gear',
-    'tracker_url': 'https://projects.blender.org/tracker/index.php?'\
-        'func=detail&aid=21732&group_id=153&atid=469',
-    'category': 'Add Mesh'}
 
 import bpy
 import mathutils

@@ -1,16 +1,32 @@
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
+# ##### BEGIN GPL LICENSE BLOCK #####
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
+#  This program is free software; you can redistribute it and/or
+#  modify it under the terms of the GNU General Public License
+#  as published by the Free Software Foundation; either version 2
+#  of the License, or (at your option) any later version.
 #
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA	02111-1307	USA
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with this program; if not, write to the Free Software Foundation,
+#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+#
+# ##### END GPL LICENSE BLOCK #####
+
+bl_addon_info = {
+    "name": "Import: Unreal Skeleton Mesh(.psk)",
+    "author": "Darknet",
+    "version": "2.0",
+    "blender": (2, 5, 3),
+    "location": "File > Import ",
+    "description": "Import Unreal Engine (.psk)",
+    "warning": "",
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/Scripts/File_I-O/Unreal_psk_psa",
+    "tracker_url": "https://projects.blender.org/tracker/index.php?func=detail&aid=21366&group_id=153&atid=469",
+    "category": "Import/Export"}
 
 """
 Version': '2.0' ported by Darknet
@@ -25,21 +41,6 @@ Imports a *psk file to a new mesh
 -No Material ID
 -Export Text Log From Current Location File (Bool )
 """
-
-bl_addon_info = {
-    'name': 'Import: Unreal Skeleton Mesh(.psk)',
-    'author': 'Darknet',
-    'version': '2.0',
-    'blender': (2, 5, 3),
-    'location': 'File > Import ',
-    'description': 'Import Unreal Engine (.psk)',
-    'warning': '', # used for warning icon and text in addons panel
-    'wiki_url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/'\
-        'Scripts/File_I-O/Unreal_psk_psa',
-    'tracker_url': 'https://projects.blender.org/tracker/index.php?'\
-        'func=detail&aid=21366&group_id=153&atid=469',
-    'category': 'Import/Export'}
-
 
 import bpy
 import mathutils

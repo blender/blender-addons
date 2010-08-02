@@ -1,3 +1,33 @@
+# ##### BEGIN GPL LICENSE BLOCK #####
+#
+#  This program is free software; you can redistribute it and/or
+#  modify it under the terms of the GNU General Public License
+#  as published by the Free Software Foundation; either version 2
+#  of the License, or (at your option) any later version.
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with this program; if not, write to the Free Software Foundation,
+#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+#
+# ##### END GPL LICENSE BLOCK #####
+
+bl_addon_info = {
+    "name": "Import MakeHuman (.mhx)",
+    "author": "Thomas Larsson",
+    "version": "0.9, Make Human Alpha 5",
+    "blender": (2, 5, 3),
+    "location": "File > Import",
+    "description": "Import files in the MakeHuman eXchange format (.mhx)",
+    "warning": "",
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/Scripts/File_I-O/Make_Human",
+    "tracker_url": "https://projects.blender.org/tracker/index.php?func=detail&aid=21872&group_id=153&atid=469",
+    "category": "Import/Export"}
+
 """ 
 **Project Name:**	  MakeHuman
 
@@ -18,20 +48,6 @@ MHX (MakeHuman eXchange format) importer for Blender 2.5x.
 Version 0.9
 
 """
-
-bl_addon_info = {
-    'name': 'Import MakeHuman (.mhx)',
-    'author': 'Thomas Larsson',
-    'version': '0.9, Make Human Alpha 5',
-    'blender': (2, 5, 3),
-    'location': 'File > Import',
-    'description': 'Import files in the MakeHuman eXchange format (.mhx)',
-    'warning': '', # used for warning icon and text in addons panel
-    'wiki_url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/' \
-        'Scripts/File_I-O/Make_Human',
-    'tracker_url': 'https://projects.blender.org/tracker/index.php?'\
-        'func=detail&aid=21872&group_id=153&atid=469',
-    'category': 'Import/Export'}
 
 """
 Place this file in the .blender/scripts/addons dir

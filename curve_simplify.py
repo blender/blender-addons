@@ -16,24 +16,21 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
+bl_addon_info = {
+    "name": "Curve: simplify curves",
+    "author": "testscreenings",
+    "version": "1",
+    "blender": (2, 5, 3),
+    "location": "Toolshelf > search > simplify curves",
+    "description": "This script simplifies 3D curves and fcurves",
+    "warning": "",
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/Scripts/Curve/Curve_Simplify",
+    "tracker_url": "https://projects.blender.org/tracker/index.php?func=detail&aid=22327&group_id=153&atid=468",
+    "category": "Add Curve"}
+
 """
 This script simplifies Curves.
 """
-
-bl_addon_info = {
-    'name': 'Curve: simplify curves',
-    'author': 'testscreenings',
-    'version': '1',
-    'blender': (2, 5, 3),
-    'location': 'Toolshelf > search > simplify curves',
-    'description': 'This script simplifies 3D curves and fcurves',
-    'warning': '', # used for warning icon and text in addons panel
-    'wiki_url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/' \
-        'Scripts/Curve/Curve_Simplify',
-    'tracker_url': 'https://projects.blender.org/tracker/index.php?'\
-        'func=detail&aid=22327&group_id=153&atid=468',
-    'category': 'Add Curve'}
-
 
 ####################################################
 import bpy

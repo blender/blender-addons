@@ -16,24 +16,22 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
+bl_addon_info = {
+    "name": "Add Mesh: Gemstones",
+    "author": "Pontiac, Fourmadmen, Dreampainter",
+    "version": "0.3",
+    "blender": (2, 5, 3),
+    "location": "View3D > Add > Mesh > Gemstones",
+    "description": "Adds various gemstone (Diamond & Gem) meshes.",
+    "warning": "",
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/Scripts/Add_Mesh/Add_Gemstones",
+    "tracker_url": "https://projects.blender.org/tracker/index.php?func=detail&aid=21432&group_id=153&atid=469",
+    "category": "Add Mesh"}
+
 import bpy
 from mathutils import *
 from math import *
 from bpy.props import *
-
-bl_addon_info = {
-    'name': 'Add Mesh: Gemstones',
-    'author': 'Pontiac, Fourmadmen, Dreampainter',
-    'version': '0.3',
-    'blender': (2, 5, 3),
-    'location': 'View3D > Add > Mesh > Gemstones',
-    'description': 'Adds various gemstone (Diamond & Gem) meshes.',
-    'warning': '', # used for warning icon and text in addons panel
-    'wiki_url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/' \
-        'Scripts/Add_Mesh/Add_Gemstones',
-    'tracker_url': 'https://projects.blender.org/tracker/index.php?'\
-        'func=detail&aid=21432&group_id=153&atid=469',
-    'category': 'Add Mesh'}
 
 # calculates the matrix for the new object
 # depending on user pref

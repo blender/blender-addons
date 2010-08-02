@@ -18,18 +18,16 @@
 
 
 bl_addon_info = {
-    'name': 'Add Curve: Torus Knots',
-    'author': 'testscreenings',
-    'version': '0.1',
-    'blender': (2, 5, 3),
-    'location': 'View3D > Add > Curve',
-    'description': 'Adds many types of knots',
-    'warning': '', # used for warning icon and text in addons panel
-    'wiki_url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/' \
-        'Scripts/Curve/Torus_Knot',
-    'tracker_url': 'https://projects.blender.org/tracker/index.php?'\
-        'func=detail&aid=22403&group_id=153&atid=469',
-    'category': 'Add Curve'}
+    "name": "Add Curve: Torus Knots",
+    "author": "testscreenings",
+    "version": "0.1",
+    "blender": (2, 5, 3),
+    "location": "View3D > Add > Curve",
+    "description": "Adds many types of knots",
+    "warning": "",
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/Scripts/Curve/Torus_Knot",
+    "tracker_url": "https://projects.blender.org/tracker/index.php?func=detail&aid=22403&group_id=153&atid=469",
+    "category": "Add Curve"}
     
     
 ##------------------------------------------------------------

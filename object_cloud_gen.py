@@ -16,6 +16,18 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
+bl_addon_info = {
+    "name": "Object: Cloud Generator",
+    "author": "Nick Keeline(nrk)",
+    "version": "0.7",
+    "blender": (2, 5, 3),
+    "location": "Tool Shelf ",
+    "description": "Creates Volumetric Clouds",
+    "warning": "",
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/Scripts/Object/Cloud_Gen",
+    "tracker_url": "https://projects.blender.org/tracker/index.php?func=detail&aid=22015&group_id=153&atid=469",
+    "category": "Object"}
+
 """
 Place this file in the .blender/scripts/addons dir
 You have to activated the script in the "Add-Ons" tab (user preferences).
@@ -31,22 +43,6 @@ Rev 0.5 made particle count equation with radius so radius increases with cloud 
 Rev 0.6 added poll function to operator, fixing crash with no selected objects
 Rev 0.7 added particles option and Type of Cloud wanted selector
 """
-
-
-bl_addon_info = {
-    'name': 'Object: Cloud Generator',
-    'author': 'Nick Keeline(nrk)',
-    'version': '0.7',
-    'blender': (2, 5, 3),
-    'location': 'Tool Shelf ',
-    'description': 'Creates Volumetric Clouds',
-    'warning': '', # used for warning icon and text in addons panel
-    'wiki_url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/' \
-        'Scripts/Object/Cloud_Gen',
-    'tracker_url': 'https://projects.blender.org/tracker/index.php?'\
-        'func=detail&aid=22015&group_id=153&atid=469',
-    'category': 'Object'}
-
 
 import bpy
 import mathutils
@@ -256,12 +252,11 @@ def degenerateCloud(obj):
 
     return False
 
-class View3DPanel(bpy.types.Panel):
+
+class VIEW3D_PT_tools_cloud(bpy.types.Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'TOOLS'
 
-
-class VIEW3D_PT_tools_cloud(View3DPanel):
     bl_label = "Cloud Generator"
     bl_context = "objectmode"
 

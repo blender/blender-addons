@@ -18,21 +18,19 @@
 #
 # ***** END GPL LICENCE BLOCK *****
 
-"""List properties of selected objects"""
-
 bl_addon_info = {
-    'name': '3D View: Object Property Chart',
-    'author': 'Campbell Barton (ideasman42)',
-    'version': '0.1',
-    'blender': (2, 5, 3),
-    'location': 'Tool Shelf',
-    'description': 'Edit arbitrary selected properties for objects of the same type',
-    'warning': '', # used for warning icon and text in addons panel
-    'wiki_url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/' \
-        'Scripts/3D interaction/Object Property Chart',
-    'tracker_url': 'https://projects.blender.org/tracker/index.php?' \
-        'func=detail&aid=22701&group_id=153&atid=469',
-    'category': '3D View'}
+    "name": "3D View: Object Property Chart",
+    "author": "Campbell Barton (ideasman42)",
+    "version": "0.1",
+    "blender": (2, 5, 3),
+    "location": "Tool Shelf",
+    "description": "Edit arbitrary selected properties for objects of the same type",
+    "warning": "",
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/Scripts/3D interaction/Object Property Chart",
+    "tracker_url": "https://projects.blender.org/tracker/index.php?func=detail&aid=22701&group_id=153&atid=469",
+    "category": "3D View"}
+
+"""List properties of selected objects"""
 
 import bpy
 

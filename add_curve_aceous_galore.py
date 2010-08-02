@@ -16,7 +16,6 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-
 bl_addon_info = {
     'name': 'Add Curve: Curveaceous Galore!',
     'author': 'Jimmy Hazevoet, testscreenings',

@@ -15,9 +15,23 @@
 #  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # ##### END GPL LICENSE BLOCK #####
-#
-# Copyright 2009-2010 Laurea University of Applied Sciences
-# Authors: Nathan Letwory, Jesse Kaukonen
+
+bl_addon_info = {
+    "name": "Render: Renderfarm.fi",
+    "author": "Nathan Letwory <nathan@letworyinteractive.com>, Jesse Kaukonen <jesse.kaukonen@gmail.com>",
+    "version": "2",
+    "blender": (2, 5, 3),
+    "location": "Render > Engine > Renderfarm.fi",
+    "description": "Send .blend as session to http://www.renderfarm.fi to render",
+    "warning": "",
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/Scripts/Render/Renderfarm.fi",
+    "tracker_url": "https://projects.blender.org/tracker/index.php?func=detail&aid=22927&group_id=153&atid=469",
+    "category": "Render"}
+
+"""
+Copyright 2009-2010 Laurea University of Applied Sciences
+Authors: Nathan Letwory, Jesse Kaukonen
+"""
 
 import bpy
 import hashlib
@@ -26,24 +40,10 @@ import xmlrpc.client
 import math
 from os.path import abspath, isabs, join, isfile
 
-bpy.CURRENT_VERSION = 2
+bpy.CURRENT_VERSION = int(bl_addon_info["version"])
 bpy.found_newer_version = False
 bpy.up_to_date = False
 bpy.download_location = 'http://www.renderfarm.fi/blender'
-
-bl_addon_info = {
-    'name': 'Render: Renderfarm.fi',
-    'author': 'Nathan Letwory <nathan@letworyinteractive.com>, Jesse Kaukonen <jesse.kaukonen@gmail.com>',
-    'version': "2",
-    'blender': (2, 5, 3),
-    'location': 'Render > Engine > Renderfarm.fi',
-    'description': 'Send .blend as session to http://www.renderfarm.fi to render',
-    'warning': '', # used for warning icon and text in addons panel
-    'wiki_url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/' \
-        'Scripts/Render/Renderfarm.fi',
-    'tracker_url': 'https://projects.blender.org/tracker/index.php?'\
-        'func=detail&aid=22927&group_id=153&atid=469',
-    'category': 'Render'}
 
 bpy.errorMessages = {
     'missing_desc': 'You need to enter a title, short and long description',
@@ -62,19 +62,14 @@ bpy.errors = []
 bpy.ore_sessions = []
 bpy.queue_selected = -1
 
-def rnaType(rna_type):
-	bpy.types.register(rna_type)
-	return rna_type
-
 def renderEngine(render_engine):
     bpy.types.register(render_engine)
     return render_engine
 
-@rnaType
+
 class ORESession(bpy.types.IDPropertyGroup):
     pass
 
-@rnaType
 class ORESettings(bpy.types.IDPropertyGroup):
     pass
 
@@ -150,7 +145,7 @@ for member in dir(properties_object):
     except:    pass
 del properties_object
 
-class RenderButtonsPanel(bpy.types.Panel):
+class RenderButtonsPanel():
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = "render"
@@ -172,7 +167,7 @@ class RENDERFARM_MT_Session(bpy.types.Menu):
         layout.separator()
         layout.operator('ore.cancelled_sessions')
 
-class LOGIN_PT_RenderfarmFi(RenderButtonsPanel):
+class LOGIN_PT_RenderfarmFi(RenderButtonsPanel, bpy.types.Panel):
     bl_label = 'Login to Renderfarm.fi'
     COMPAT_ENGINES = set(['RENDERFARMFI_RENDER'])
     def draw(self, context):
@@ -192,7 +187,7 @@ class LOGIN_PT_RenderfarmFi(RenderButtonsPanel):
             layout.label(text='E-mail and password entered.', icon='INFO')
             layout.operator('ore.change_user')
 
-class CHECK_PT_RenderfarmFi(RenderButtonsPanel):
+class CHECK_PT_RenderfarmFi(RenderButtonsPanel, bpy.types.Panel):
     bl_label = 'Check for updates'
     COMPAT_ENGINES = set(['RENDERFARMFI_RENDER'])
 
@@ -207,7 +202,7 @@ class CHECK_PT_RenderfarmFi(RenderButtonsPanel):
                 layout.label(text='You have the latest version')
             layout.operator('ore.check_update')
 
-class SESSIONS_PT_RenderfarmFi(RenderButtonsPanel):
+class SESSIONS_PT_RenderfarmFi(RenderButtonsPanel, bpy.types.Panel):
     bl_label = 'Sessions'
     COMPAT_ENGINES = set(['RENDERFARMFI_RENDER'])
 
@@ -228,7 +223,7 @@ class SESSIONS_PT_RenderfarmFi(RenderButtonsPanel):
         if bpy.queue_selected == 3:
             layout.operator('ore.cancel_session')
 
-class RENDER_PT_RenderfarmFi(RenderButtonsPanel):
+class RENDER_PT_RenderfarmFi(RenderButtonsPanel, bpy.types.Panel):
     bl_label = "Scene Settings"
     COMPAT_ENGINES = set(['RENDERFARMFI_RENDER'])
 

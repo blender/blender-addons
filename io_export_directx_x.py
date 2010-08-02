@@ -16,19 +16,16 @@
 #  ***** GPL LICENSE BLOCK *****
 
 bl_addon_info = {
-    'name': 'Export: DirectX Model Format (.x)',
-    'author': 'Chris Foster (Kira Vakaan)',
-    'version': '1.4',
-    'blender': (2, 5, 3),
-    'location': 'File > Export',
-    'description': 'Export to the DirectX Model Format (.x)',
-    'warning': '', # used for warning icon and text in addons panel
-    'wiki_url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/' \
-        'Scripts/File_I-O/DirectX_Exporter',
-    'tracker_url': 'https://projects.blender.org/tracker/index.php?'\
-        'func=detail&aid=22795&group_id=153&atid=469',
-    'category': 'Import/Export'}
-
+    "name": "Export: DirectX Model Format (.x)",
+    "author": "Chris Foster (Kira Vakaan)",
+    "version": "1.4",
+    "blender": (2, 5, 3),
+    "location": "File > Export",
+    "description": "Export to the DirectX Model Format (.x)",
+    "warning": "",
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/Scripts/File_I-O/DirectX_Exporter",
+    "tracker_url": "https://projects.blender.org/tracker/index.php?func=detail&aid=22795&group_id=153&atid=469",
+    "category": "Import/Export"}
 
 import os
 from math import radians

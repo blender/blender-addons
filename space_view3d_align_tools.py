@@ -19,34 +19,29 @@
 #
 # ***** END GPL LICENCE BLOCK *****
 
-"""Align Selected Objects"""
-
 bl_addon_info = {
-    'name': '3D View: Align Tools',
-    'author': 'Gabriel Beaudin (gabhead)',
-    'version': '0.1',
-    'blender': (2, 5, 3),
-    'location': 'Tool Shelf',
-    'description': 'Align selected objects to the active object',
-    'warning': '', # used for warning icon and text in addons panel
-    'wiki_url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/' \
-        'Scripts/3D interaction/Align_Tools',
-    'tracker_url': 'https://projects.blender.org/tracker/index.php?'\
-        'func=detail&aid==22389&group_id=153&atid=468',
-    'category': '3D View'}
+    "name": "3D View: Align Tools",
+    "author": "Gabriel Beaudin (gabhead)",
+    "version": "0.1",
+    "blender": (2, 5, 3),
+    "location": "Tool Shelf",
+    "description": "Align selected objects to the active object",
+    "warning": "",
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/Scripts/3D interaction/Align_Tools",
+    "tracker_url": "https://projects.blender.org/tracker/index.php?func=detail&aid==22389&group_id=153&atid=468",
+    "category": "3D View"}
+
+"""Align Selected Objects"""
 
 import bpy
 
-##interface
-######################
-class View3DPanel(bpy.types.Panel):
+
+class AlignUi(bpy.types.Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'TOOLS'
 
-class AlignUi(View3DPanel):
     bl_label = "Align Tools"
     bl_context = "objectmode"
-    
 
     def draw(self, context):
         layout = self.layout
@@ -94,13 +89,6 @@ class AlignUi(View3DPanel):
         col.operator("object.AlignObjectsScaleZ",text="Z")
         col.operator("object.AlignObjectsScaleAll",text="All")
 
-
-        
-    
-##Ops
-##################
-
-## Def
 
 ##Align all
 def main(context):

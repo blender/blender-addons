@@ -16,42 +16,29 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-
 bl_addon_info = {
-    'name': 'Mesh: Surface Sketch',
-    'author': 'Eclectiel',
-    'version': '0.8 Beta',
-    'blender': (2, 5, 3),
-    'location': 'View3D > EditMode > ToolShelf',
-    'description': 'Draw meshes and re-topologies with Grease Pencil',
-    'warning': '', # used for warning icon and text in addons panel
-    'wiki_url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/' \
-        'Scripts/Mesh/Surface_Sketch',
-    'tracker_url': 'https://projects.blender.org/tracker/index.php?'\
-        'func=detail&aid=22062&group_id=153&atid=469',
-    'category': 'Mesh'}
+    "name": "Mesh: Surface Sketch",
+    "author": "Eclectiel",
+    "version": "0.8 Beta",
+    "blender": (2, 5, 3),
+    "location": "View3D > EditMode > ToolShelf",
+    "description": "Draw meshes and re-topologies with Grease Pencil",
+    "warning": "",
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/Scripts/Mesh/Surface_Sketch",
+    "tracker_url": "https://projects.blender.org/tracker/index.php?func=detail&aid=22062&group_id=153&atid=469",
+    "category": "Mesh"}
 
 
 import bpy
 import math
 
 from math import *
+   
 
-
-bpy.types.Scene.IntProperty(attr = "SURFSK_edges_U", name = "Cross", description = "Number of edge rings crossing the strokes (perpendicular to strokes direction)", default = 10, min = 0, max = 100000)
-bpy.types.Scene.IntProperty(attr = "SURFSK_edges_V", name = "Follow", description = "Number of edge rings following the strokes (parallel to strokes direction)", default = 10, min = 0, max = 100000)
-bpy.types.Scene.IntProperty(attr = "SURFSK_precision", name = "Precision", description = "Precision level of the surface calculation", default = 4, min = 0, max = 100000)
-bpy.types.Scene.BoolProperty(attr = "SURFSK_keep_strokes", name = "Keep strokes", description = "Keeps the sketched strokes after adding the surface", default = False)
-
-
-
-
-class View3DPanel(bpy.types.Panel):
+class VIEW3D_PT_tools_SURF_SKETCH(bpy.types.Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'TOOLS'
-    
 
-class VIEW3D_PT_tools_SURF_SKETCH(View3DPanel):
     bl_context = "mesh_edit"
     bl_label = "Surface Sketching"
     
@@ -796,12 +783,22 @@ class GPENCIL_OT_SURFSK_strokes_to_curves(bpy.types.Operator):
         return {"FINISHED"}
 
 
-def register(): 
+def register():
+    bpy.types.Scene.IntProperty(attr = "SURFSK_edges_U", name = "Cross", description = "Number of edge rings crossing the strokes (perpendicular to strokes direction)", default = 10, min = 0, max = 100000)
+    bpy.types.Scene.IntProperty(attr = "SURFSK_edges_V", name = "Follow", description = "Number of edge rings following the strokes (parallel to strokes direction)", default = 10, min = 0, max = 100000)
+    bpy.types.Scene.IntProperty(attr = "SURFSK_precision", name = "Precision", description = "Precision level of the surface calculation", default = 4, min = 0, max = 100000)
+    bpy.types.Scene.BoolProperty(attr = "SURFSK_keep_strokes", name = "Keep strokes", description = "Keeps the sketched strokes after adding the surface", default = False)
+
     keymap_item_add_surf = bpy.data.window_managers[0].active_keyconfig.keymaps["3D View"].items.add("GPENCIL_OT_SURFSK_add_surface","E","PRESS", key_modifier="D")
     keymap_item_stroke_to_curve = bpy.data.window_managers[0].active_keyconfig.keymaps["3D View"].items.add("GPENCIL_OT_SURFSK_strokes_to_curves","C","PRESS", key_modifier="D")
 
 
-def unregister(): 
+def unregister():
+    bpy.types.Scene.RemoveProperty("SURFSK_edges_U")
+    bpy.types.Scene.RemoveProperty("SURFSK_edges_V")
+    bpy.types.Scene.RemoveProperty("SURFSK_precision")
+    bpy.types.Scene.RemoveProperty("SURFSK_keep_strokes")
+
     km = bpy.data.window_managers[0].active_keyconfig.keymaps["3D View"]
     for kmi in km.items:
         if kmi.idname == 'wm.call_menu':

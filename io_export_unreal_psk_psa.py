@@ -15,8 +15,19 @@
  #  All rights reserved.
  #  ***** GPL LICENSE BLOCK *****
 
-"""
+bl_addon_info = {
+    "name": "Export Skeleletal Mesh/Animation Data",
+    "author": "Darknet/Optimus_P-Fat/Active_Trash/Sinsoft",
+    "version": "2.0",
+    "blender": (2, 5, 3),
+    "location": "File > Export > Skeletal Mesh/Animation Data (.psk/.psa)",
+    "description": "Export Unreal Engine (.psk)",
+    "warning": "",
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/Scripts/File_I-O/Unreal_psk_psa",
+    "tracker_url": "https://projects.blender.org/tracker/index.php?func=detail&aid=21366&group_id=153&atid=469",
+    "category": "Import/Export"}
 
+"""
 -- Unreal Skeletal Mesh and Animation Export (.psk  and .psa) export script v0.0.1 --<br> 
 
 - NOTES:
@@ -63,22 +74,6 @@ Credit to:
 
 - http://sinsoft.com
 """
-
-
-bl_addon_info = {
-    'name': 'Export Skeleletal Mesh/Animation Data',
-    'author': 'Darknet/Optimus_P-Fat/Active_Trash/Sinsoft',
-    'version': '2.0',
-    'blender': (2, 5, 3),
-    'location': 'File > Export > Skeletal Mesh/Animation Data (.psk/.psa)',
-    'description': 'Export Unreal Engine (.psk)',
-    'warning': '', # used for warning icon and text in addons panel
-    'wiki_url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/' \
-        'Scripts/File_I-O/Unreal_psk_psa',
-    'tracker_url': 'https://projects.blender.org/tracker/index.php?'\
-        'func=detail&aid=21366&group_id=153&atid=469',
-    'category': 'Import/Export'}
-
 
 import os
 import time
