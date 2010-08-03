@@ -607,7 +607,7 @@ class VIEW3D_OT_display_measurements(bpy.types.Operator):
 
     def execute(self, context):
         if context.area.type == 'VIEW_3D':
-            mgr_ops = context.manager.operators.values();
+            mgr_ops = context.manager.operators.values()
             if not self.bl_idname in [op.bl_idname for op in mgr_ops]:
                 # Add the region OpenGL drawing callback
                 for WINregion in context.area.regions:
