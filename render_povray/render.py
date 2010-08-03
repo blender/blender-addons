@@ -17,7 +17,11 @@
 # ##### END GPL LICENSE BLOCK #####
 
 import bpy
-import subprocess, os, sys, time
+import subprocess
+import os
+import sys
+import time
+import math
 
 import platform as pltfrm
 if pltfrm.architecture()[0] == '64bit':
@@ -136,9 +140,9 @@ def write_pov(filename, scene=None, info_callback=None):
         file.write('\tlook_at  <0, 0, -1>\n')
         file.write('\tright <%s, 0, 0>\n' % - Qsize)
         file.write('\tup <0, 1, 0>\n')
-        file.write('\tangle  %f \n' % (360.0 * atan(16.0 / camera.data.lens) / pi))
+        file.write('\tangle  %f \n' % (360.0 * math.atan(16.0 / camera.data.lens) / math.pi))
 
-        file.write('\trotate  <%.6f, %.6f, %.6f>\n' % tuple([degrees(e) for e in matrix.rotation_part().to_euler()]))
+        file.write('\trotate  <%.6f, %.6f, %.6f>\n' % tuple([math.degrees(e) for e in matrix.rotation_part().to_euler()]))
         file.write('\ttranslate <%.6f, %.6f, %.6f>\n' % (matrix[3][0], matrix[3][1], matrix[3][2]))
         file.write('}\n')
 
@@ -266,7 +270,7 @@ def write_pov(filename, scene=None, info_callback=None):
         for ob in sel:
             ob_num += 1
 
-            if ob.type in ('LAMP', 'CAMERA', 'EMPTY', 'META', 'ARMATURE'):
+            if ob.type in ('LAMP', 'CAMERA', 'EMPTY', 'META', 'ARMATURE', 'LATTICE'):
                 continue
 
             me = ob.data
