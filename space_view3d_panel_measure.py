@@ -19,13 +19,15 @@
 bl_addon_info = {
     "name": "3D View: Measure Panel",
     "author": "Buerbaum Martin (Pontiac)",
-    "version": "0.7",
+    "version": "0.7.7",
     "blender": (2, 5, 3),
     "location": "View3D > Properties > Measure",
     "description": "Measure distances between objects",
     "warning": "",
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/Scripts/3D_interaction/Panel_Measure",
-    "tracker_url": "https://projects.blender.org/tracker/index.php?func=detail&aid=21445&group_id=153&atid=469",
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/" \
+        "Scripts/3D_interaction/Panel_Measure",
+    "tracker_url": "https://projects.blender.org/tracker/index.php?" \
+        "func=detail&aid=21445&group_id=153&atid=469",
     "category": "3D View"}
 
 """
@@ -55,6 +57,9 @@ It's very helpful to use one or two "Empty" objects with
 "Snap during transform" enabled for fast measurement.
 
 Version history:
+v0.7.7 - One more change to the callback registration code.
+    Now it should finally work as intended.
+v0.7.6 - API changes (r885, r886) - register & unregister function
 v0.7.5.3 - Small fix for bug in v0.7.5.1
     (location was off when object was moved)
 v0.7.5.2 - Changed callback registration back to original code &
@@ -588,7 +593,9 @@ def draw_measurements_callback(self, context):
 
 class VIEW3D_OT_display_measurements(bpy.types.Operator):
     '''Display the measurements made in the 'Measure' panel'''
-    bl_idname = "view3d.display_measurements"
+    # Do not use bl_idname here (class name is used instead),
+    # so the callback can be added easily.
+    #bl_idname = "view3d.display_measurements"
     bl_label = "Display the measurements made in the" \
         " 'Measure' panel in the 3D View."
     bl_options = {'REGISTER'}
@@ -600,7 +607,8 @@ class VIEW3D_OT_display_measurements(bpy.types.Operator):
 
     def execute(self, context):
         if context.area.type == 'VIEW_3D':
-            if not self.bl_idname in context.manager.operators.keys():
+            mgr_ops = context.manager.operators.values();
+            if not self.bl_idname in [op.bl_idname for op in mgr_ops]:
                 # Add the region OpenGL drawing callback
                 for WINregion in context.area.regions:
                     if WINregion.type == 'WINDOW':
