@@ -1476,7 +1476,8 @@ class ExportUDKAnimData(bpy.types.Operator):
 	psaexportbool = BoolProperty(name="Export PSA", description="Export Action Set (Animation Data)", default= True)
 	actionexportall = BoolProperty(name="All Actions", description="This will export all the actions that matches the current armature.", default=False)
 
-	def poll(self, context):
+	@staticmethod
+	def poll(context):
 		return context.active_object != None
 
 	def execute(self, context):
@@ -1507,7 +1508,8 @@ class VIEW3D_PT_unrealtools_objectmode(bpy.types.Panel):
 	bl_region_type = "TOOLS"
 	bl_label = "Unreal Tools"
 	
-	def poll(self, context):
+	@staticmethod
+	def poll(context):
 		return context.active_object
 
 	def draw(self, context):

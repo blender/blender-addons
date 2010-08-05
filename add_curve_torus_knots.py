@@ -274,7 +274,8 @@ class torus_knot_plus(bpy.types.Operator):
             box.prop(props, 'geo_res')
     
     ##### POLL #####
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         return context.scene != None
 
     ##### EXECUTE #####

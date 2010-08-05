@@ -1063,7 +1063,8 @@ class Curveaceous_galore(bpy.types.Operator):
 
 
     ##### POLL #####
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         return context.scene != None
 
     ##### EXECUTE #####

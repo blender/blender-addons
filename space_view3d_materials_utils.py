@@ -486,7 +486,8 @@ class VIEW3D_OT_texface_to_material(bpy.types.Operator):
     bl_label = "MW Texface Images to Material/Texture"
     bl_options = {'REGISTER', 'UNDO'}
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         return context.active_object != None
 
     def execute(self, context):
@@ -507,7 +508,8 @@ class VIEW3D_OT_assign_material(bpy.types.Operator):
         description = 'Name of Material to Assign', 
         default = "", maxlen = 21)
     
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         return context.active_object != None
 
     def execute(self, context):
@@ -525,7 +527,8 @@ class VIEW3D_OT_clean_material_slots(bpy.types.Operator):
     bl_label = "MW Clean Material Slots"
     bl_options = {'REGISTER', 'UNDO'}
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         return context.active_object != None
 
     def execute(self, context):
@@ -538,7 +541,8 @@ class VIEW3D_OT_material_to_texface(bpy.types.Operator):
     bl_label = "MW Material Images to Texface"
     bl_options = {'REGISTER', 'UNDO'}
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         return context.active_object != None
 
     def execute(self, context):
@@ -554,7 +558,8 @@ class VIEW3D_OT_select_material_by_name(bpy.types.Operator):
         description = 'Name of Material to Select', 
         default = "", maxlen = 21)
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         return context.active_object != None
 
     def execute(self, context):
@@ -581,7 +586,8 @@ class VIEW3D_OT_replace_material(bpy.types.Operator):
         description="replace for all objects in this blend file",
         default = True)
     
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         return context.active_object != None
 
     def execute(self, context):

@@ -155,7 +155,8 @@ class AlignOperator(bpy.types.Operator):
     bl_idname = "object.AlignObjects"
     bl_label = "Align Selected To Active"
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         return context.active_object != None
 
     def execute(self, context):
@@ -169,7 +170,8 @@ class AlignLocationOperator(bpy.types.Operator):
     bl_idname = "object.AlignObjectsLocationAll"
     bl_label = "Align Selected Location To Active"
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         return context.active_object != None
 
     def execute(self, context):
@@ -181,7 +183,8 @@ class AlignLocationXOperator(bpy.types.Operator):
     bl_idname = "object.AlignObjectsLocationX"
     bl_label = "Align Selected Location X To Active"
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         return context.active_object != None
 
     def execute(self, context):
@@ -193,7 +196,8 @@ class AlignLocationYOperator(bpy.types.Operator):
     bl_idname = "object.AlignObjectsLocationY"
     bl_label = "Align Selected Location Y To Active"
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         return context.active_object != None
 
     def execute(self, context):
@@ -205,7 +209,8 @@ class AlignLocationZOperator(bpy.types.Operator):
     bl_idname = "object.AlignObjectsLocationZ"
     bl_label = "Align Selected Location Z To Active"
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         return context.active_object != None
 
     def execute(self, context):
@@ -219,7 +224,8 @@ class AlignRotationOperator(bpy.types.Operator):
     bl_idname = "object.AlignObjectsRotationAll"
     bl_label = "Align Selected Rotation To Active"
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         return context.active_object != None
 
     def execute(self, context):
@@ -231,7 +237,8 @@ class AlignRotationXOperator(bpy.types.Operator):
     bl_idname = "object.AlignObjectsRotationX"
     bl_label = "Align Selected Rotation X To Active"
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         return context.active_object != None
 
     def execute(self, context):
@@ -243,7 +250,8 @@ class AlignRotationYOperator(bpy.types.Operator):
     bl_idname = "object.AlignObjectsRotationY"
     bl_label = "Align Selected Rotation Y To Active"
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         return context.active_object != None
 
     def execute(self, context):
@@ -255,7 +263,8 @@ class AlignRotationZOperator(bpy.types.Operator):
     bl_idname = "object.AlignObjectsRotationZ"
     bl_label = "Align Selected Rotation Z To Active"
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         return context.active_object != None
 
     def execute(self, context):
@@ -268,7 +277,8 @@ class AlignScaleOperator(bpy.types.Operator):
     bl_idname = "object.AlignObjectsScaleAll"
     bl_label = "Align Selected Scale To Active"
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         return context.active_object != None
 
     def execute(self, context):
@@ -280,7 +290,8 @@ class AlignScaleXOperator(bpy.types.Operator):
     bl_idname = "object.AlignObjectsScaleX"
     bl_label = "Align Selected Scale X To Active"
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         return context.active_object != None
 
     def execute(self, context):
@@ -292,7 +303,8 @@ class AlignScaleYOperator(bpy.types.Operator):
     bl_idname = "object.AlignObjectsScaleY"
     bl_label = "Align Selected Scale Y To Active"
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         return context.active_object != None
 
     def execute(self, context):
@@ -304,7 +316,8 @@ class AlignScaleZOperator(bpy.types.Operator):
     bl_idname = "object.AlignObjectsScaleZ"
     bl_label = "Align Selected Scale Z To Active"
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         return context.active_object != None
 
     def execute(self, context):

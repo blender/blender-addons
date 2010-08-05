@@ -259,7 +259,8 @@ class add_mesh_bolt(bpy.types.Operator):
 
 
     ##### POLL #####
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         return context.scene != None
 
     ##### EXECUTE #####

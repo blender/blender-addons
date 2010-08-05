@@ -656,7 +656,8 @@ class VIEW3D_PT_measure(bpy.types.Panel):
     bl_label = "Measure"
     bl_default_closed = True
 
-    def poll(self, context):
+    @staticmethod
+    def poll(context):
         # Only display this panel in the object and edit mode 3D view.
         if (context.area.type == 'VIEW_3D' and
             (context.mode == 'EDIT_MESH'
