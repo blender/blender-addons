@@ -80,7 +80,7 @@ def write_pov(filename, scene=None, info_callback=None):
         else:
             name_orig = DEF_MAT_NAME
 
-        name = materialNames[name_orig] = uniqueName(bpy.utils.clean_name(name_orig), materialNames)
+        name = materialNames[name_orig] = uniqueName(bpy.path.clean_name(name_orig), materialNames)
 
         file.write('#declare %s = finish {\n' % name)
 

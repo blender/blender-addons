@@ -77,7 +77,7 @@ class StlImporter(bpy.types.Operator):
                           default="")
 
     def execute(self, context):
-        objName = bpy.utils.display_name(self.properties.filepath.split("\\")[-1].split("/")[-1])
+        objName = bpy.path.display_name(self.properties.filepath.split("\\")[-1].split("/")[-1])
         tris, pts = stl_utils.read_stl(self.properties.filepath)
 
         blender_utils.create_and_link_mesh(objName, tris, pts)

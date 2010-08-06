@@ -222,7 +222,7 @@ if __name__ == '__main__':
     filenames = sys.argv[sys.argv.index('--') + 1:]
 
     for filename in filenames:
-        objName = bpy.utils.display_name(filename)
+        objName = bpy.path.display_name(filename)
         tris, pts = read_stl(filename)
 
         blender_utils.create_and_link_mesh(objName, tris, pts)
