@@ -65,7 +65,7 @@ def vertsToPoints(Verts):
     return vertArray
 
 # create new CurveObject from vertarray and splineType
-def createCurve(vertArray, GEO, align_matrix):
+def createCurve(vertArray, props, align_matrix):
     # options to vars
     splineType = 'NURBS'
     name = 'Torus_Knot'
@@ -73,7 +73,7 @@ def createCurve(vertArray, GEO, align_matrix):
     # create curve
     scene = bpy.context.scene
     newCurve = bpy.data.curves.new(name, type = 'CURVE') # curvedatablock
-    newSpline = newCurve.splines.new(type = splineType) # spline
+    newSpline = newCurve.splines.new(type = splineType)  # spline
 
     # create spline from vertarray
     newSpline.points.add(int(len(vertArray)*0.25 - 1))
@@ -86,29 +86,21 @@ def createCurve(vertArray, GEO, align_matrix):
     newSpline.endpoint_u = True
     newSpline.order_u = 4
 
-    # GEO Options
-    surf = GEO[0]
-    bDepth = GEO[1]
-    bRes = GEO[2]
-    extrude = GEO[3]
-    width = GEO[4]
-    res = GEO[5]
-
-    if surf:
-        newCurve.bevel_depth = bDepth
-        newCurve.bevel_resolution = bRes
+    if props.geo_surf:
+        newCurve.bevel_depth = props.geo_bDepth
+        newCurve.bevel_resolution = props.geo_bRes
         newCurve.front = False
         newCurve.back = False
-        newCurve.extrude = extrude
-        newCurve.width = width
-        newCurve.resolution_u = res
+        newCurve.extrude = props.geo_extrude
+        newCurve.width = props.geo_width
+        newCurve.resolution_u = props.geo_res
 
     # create object with newCurve
-    new_obj = bpy.data.objects.new(name, newCurve) # object
-    scene.objects.link(new_obj) # place in active scene
-    new_obj.select = True # set as selected
-    scene.objects.active = new_obj  # set as active
-    new_obj.matrix_world = align_matrix # apply matrix
+    new_obj = bpy.data.objects.new(name, newCurve)  # object
+    scene.objects.link(new_obj)                     # place in active scene
+    new_obj.select = True                           # set as selected
+    scene.objects.active = new_obj                  # set as active
+    new_obj.matrix_world = align_matrix             # apply matrix
 
     return
 
@@ -137,7 +129,7 @@ def Torus_Knot_Curve(p=2, q=3, w=1, res=24, formula=0, h=1, u=1 ,v=1, rounds=2):
 
 ##------------------------------------------------------------
 # Main Function
-def main(context, param, GEO, options, align_matrix):
+def main(context, props, align_matrix):
     # deselect all objects
     bpy.ops.object.select_all(action='DESELECT')
 
@@ -146,14 +138,21 @@ def main(context, param, GEO, options, align_matrix):
 
 
     # get verts
-    verts = Torus_Knot_Curve(param[0], param[1], param[2], param[3], param[4],
-                              param[5], param[6], param[7], param[8])
+    verts = Torus_Knot_Curve(props.torus_p,
+                            props.torus_q,
+                            props.torus_w,
+                            props.torus_res,
+                            props.torus_formula,
+                            props.torus_h,
+                            props.torus_u,
+                            props.torus_v,
+                            props.torus_rounds)
 
     # turn verts into array
     vertArray = vertsToPoints(verts)
 
     # create object
-    createCurve(vertArray, GEO, align_matrix)
+    createCurve(vertArray, props, align_matrix)
 
     return
 
@@ -289,37 +288,8 @@ class torus_knot_plus(bpy.types.Operator):
         if not props.options_plus:
             props.torus_rounds = props.torus_p
 
-        # Parameters
-        param = [
-            props.torus_p,          #0
-            props.torus_q,          #1
-            props.torus_w,          #2
-            props.torus_res,        #3
-            props.torus_formula,    #4
-            props.torus_h,          #5
-            props.torus_u,          #6
-            props.torus_v,          #7
-            props.torus_rounds      #8
-            ]
-
-        # GEO Options
-        GEO = [
-            props.geo_surf,         #0
-            props.geo_bDepth,       #1
-            props.geo_bRes,         #2
-            props.geo_extrude,      #3
-            props.geo_width,        #4
-            props.geo_res           #5
-            ]
-
-        # Options
-        options = [
-            # general properties
-            ]
-
-
         # main function
-        main(context, param, GEO, options, self.align_matrix)
+        main(context, props, self.align_matrix)
         
         # restore pre operator undo state
         bpy.context.user_preferences.edit.global_undo = undo
