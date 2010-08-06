@@ -151,10 +151,6 @@ class RenderButtonsPanel():
     bl_context = "render"
     # COMPAT_ENGINES must be defined in each subclass, external engines can add themselves here
     
-    @staticmethod
-    def poll(context):
-        rd = context.scene.render
-        return (rd.use_game_engine==False) and (rd.engine in self.COMPAT_ENGINES)
 
 class RENDERFARM_MT_Session(bpy.types.Menu):
     bl_label = "Show Session"
@@ -171,6 +167,12 @@ class RENDERFARM_MT_Session(bpy.types.Menu):
 class LOGIN_PT_RenderfarmFi(RenderButtonsPanel, bpy.types.Panel):
     bl_label = 'Login to Renderfarm.fi'
     COMPAT_ENGINES = set(['RENDERFARMFI_RENDER'])
+
+    @staticmethod
+    def poll(context):
+        rd = context.scene.render
+        return (rd.use_game_engine==False) and (rd.engine in __class__.COMPAT_ENGINES)
+
     def draw(self, context):
         layout = self.layout
         # XXX layout.operator('ore.check_update')
@@ -192,6 +194,11 @@ class CHECK_PT_RenderfarmFi(RenderButtonsPanel, bpy.types.Panel):
     bl_label = 'Check for updates'
     COMPAT_ENGINES = set(['RENDERFARMFI_RENDER'])
 
+    @staticmethod
+    def poll(context):
+        rd = context.scene.render
+        return (rd.use_game_engine==False) and (rd.engine in __class__.COMPAT_ENGINES)
+
     def draw(self, context):
         layout = self.layout
         ore = context.scene.ore_render
@@ -206,6 +213,11 @@ class CHECK_PT_RenderfarmFi(RenderButtonsPanel, bpy.types.Panel):
 class SESSIONS_PT_RenderfarmFi(RenderButtonsPanel, bpy.types.Panel):
     bl_label = 'Sessions'
     COMPAT_ENGINES = set(['RENDERFARMFI_RENDER'])
+
+    @staticmethod
+    def poll(context):
+        rd = context.scene.render
+        return (rd.use_game_engine==False) and (rd.engine in __class__.COMPAT_ENGINES)
 
     def draw(self, context):
         layout = self.layout
@@ -227,6 +239,11 @@ class SESSIONS_PT_RenderfarmFi(RenderButtonsPanel, bpy.types.Panel):
 class RENDER_PT_RenderfarmFi(RenderButtonsPanel, bpy.types.Panel):
     bl_label = "Scene Settings"
     COMPAT_ENGINES = set(['RENDERFARMFI_RENDER'])
+
+    @staticmethod
+    def poll(context):
+        rd = context.scene.render
+        return (rd.use_game_engine==False) and (rd.engine in __class__.COMPAT_ENGINES)
 
     def draw(self, context):
         layout = self.layout
@@ -653,6 +670,26 @@ class ORE_PrepareOp(bpy.types.Operator):
         def hasUnsupportedSimulation():
             return hasSoftbodySimulation() or hasCollisionSimulation() or hasClothSimulation() or hasSmokeSimulation or hasFluidSimulation() or hasParticleSystem()
 
+        def isFilterNode(node):
+            t = type(node)
+            return t==bpy.types.CompositorNodeBlur or t==bpy.types.CompositorNodeDBlur
+
+        def hasCompositingErrors(use_nodes, nodetree, parts):
+            if not use_nodes: # no nodes in use, ignore check
+                return False
+
+            for node in nodetree.nodes:
+                # output file absolutely forbidden
+                if type(node)==bpy.types.CompositorNodeOutputFile:
+                    self.report({'ERROR'}, 'File output node is disallowed, remove them from your compositing nodetrees.')
+                    return True
+                # blur et al are problematic when rendering ore.parts>1
+                if isFilterNode(node) and parts>1:
+                    self.report({'WARNING'}, 'A filtering node found and parts > 1. This combination will give bad output.')
+                    return True
+
+            return False
+
         sce = context.scene
         ore = sce.ore_render
         
@@ -696,18 +733,26 @@ class ORE_PrepareOp(bpy.types.Operator):
             errors = True
         rd.save_buffers = False
         rd.free_image_textures = True
+        if rd.use_compositing:
+            if hasCompositingErrors(sce.use_nodes, sce.nodetree, ore.parts):
+                print("Found disallowed nodes or problematic setup")
+                self.report({'WARNING'}, "Found disallowed nodes or problematic setup")
+                errors = True
         print("Done checking the scene. Now do a test render")
         self.report({'INFO'}, "Done checking the scene. Now do a test render")
         print("=============================================")
         
-        if (errors == True):
+        # if errors found, don't allow to upload, instead have user
+        # go through this until everything is ok
+        if errors:
             self.report({'WARNING'}, "Settings were changed or other issues found. Check console and do a test render to make sure everything works.")
-        
-        ore.prepared = True
-        rd.engine = 'BLENDER_RENDER'
-        bpy.ops.wm.save_mainfile()
-        rd.engine = 'RENDERFARMFI_RENDER'
-        
+            ore.prepared = False
+        else:
+            ore.prepared = True
+            rd.engine = 'BLENDER_RENDER'
+            bpy.ops.wm.save_mainfile()
+            rd.engine = 'RENDERFARMFI_RENDER'
+            
         return {'FINISHED'}
 
 class ORE_ResetOp(bpy.types.Operator):
