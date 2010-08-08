@@ -23,8 +23,8 @@ import os, sys
 
 def getPresets():
 
-    scriptPath = bpy.utils.script_paths()[0] + os.sep  + "addons" + os.sep + "add_mesh_BoltFactory"
-    presetPath = scriptPath + os.sep + "presets"
+    scriptPath = os.path.join(bpy.utils.script_paths()[0], "addons" , "add_mesh_BoltFactory")
+    presetPath = os.path.join(scriptPath, "presets")
     presetFiles = os.listdir(presetPath)
     #presetFiles.sort()
 
@@ -43,7 +43,7 @@ def setProps(props, preset, presetsPath):
     
     #bpy.ops.script.python_file_run(filepath=presetsPath + '\\' + preset)
 
-    file = open(presetsPath + os.sep + preset)
+    file = open(os.path.join(presetsPath, preset))
 
     for line in file:
         exec(line)
