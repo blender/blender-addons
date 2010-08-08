@@ -146,6 +146,7 @@ def select_material_by_name(find_mat):
             if m.material.name == find_mat:
                 slot_indeces.append(i)
                 found = True
+            i += 1
         me = ob.data
         for f in me.faces:
             if f.material_index in slot_indeces:
