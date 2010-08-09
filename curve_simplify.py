@@ -423,8 +423,8 @@ class GRAPH_OT_simplify(bpy.types.Operator):
         col.prop(props, 'error', expand=True)
         
     ## Check for animdata
-    @staticmethod
-    def poll(context):
+    @classmethod
+    def poll(cls, context):
         obj = context.active_object
         fcurves = False
         if obj:
@@ -549,8 +549,8 @@ class CURVE_OT_simplify(bpy.types.Operator):
         
         
     ## Check for curve
-    @staticmethod
-    def poll(context):
+    @classmethod
+    def poll(cls, context):
         obj = context.active_object
         return (obj and obj.type == 'CURVE')
 

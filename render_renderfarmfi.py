@@ -168,10 +168,10 @@ class LOGIN_PT_RenderfarmFi(RenderButtonsPanel, bpy.types.Panel):
     bl_label = 'Login to Renderfarm.fi'
     COMPAT_ENGINES = set(['RENDERFARMFI_RENDER'])
 
-    @staticmethod
-    def poll(context):
+    @classmethod
+    def poll(cls, context):
         rd = context.scene.render
-        return (rd.use_game_engine==False) and (rd.engine in __class__.COMPAT_ENGINES)
+        return (rd.use_game_engine==False) and (rd.engine in cls.COMPAT_ENGINES)
 
     def draw(self, context):
         layout = self.layout
@@ -194,10 +194,10 @@ class CHECK_PT_RenderfarmFi(RenderButtonsPanel, bpy.types.Panel):
     bl_label = 'Check for updates'
     COMPAT_ENGINES = set(['RENDERFARMFI_RENDER'])
 
-    @staticmethod
-    def poll(context):
+    @classmethod
+    def poll(cls, context):
         rd = context.scene.render
-        return (rd.use_game_engine==False) and (rd.engine in __class__.COMPAT_ENGINES)
+        return (rd.use_game_engine==False) and (rd.engine in cls.COMPAT_ENGINES)
 
     def draw(self, context):
         layout = self.layout
@@ -214,10 +214,10 @@ class SESSIONS_PT_RenderfarmFi(RenderButtonsPanel, bpy.types.Panel):
     bl_label = 'Sessions'
     COMPAT_ENGINES = set(['RENDERFARMFI_RENDER'])
 
-    @staticmethod
-    def poll(context):
+    @classmethod
+    def poll(cls, context):
         rd = context.scene.render
-        return (rd.use_game_engine==False) and (rd.engine in __class__.COMPAT_ENGINES)
+        return (rd.use_game_engine==False) and (rd.engine in cls.COMPAT_ENGINES)
 
     def draw(self, context):
         layout = self.layout
@@ -240,10 +240,10 @@ class RENDER_PT_RenderfarmFi(RenderButtonsPanel, bpy.types.Panel):
     bl_label = "Scene Settings"
     COMPAT_ENGINES = set(['RENDERFARMFI_RENDER'])
 
-    @staticmethod
-    def poll(context):
+    @classmethod
+    def poll(cls, context):
         rd = context.scene.render
-        return (rd.use_game_engine==False) and (rd.engine in __class__.COMPAT_ENGINES)
+        return (rd.use_game_engine==False) and (rd.engine in cls.COMPAT_ENGINES)
 
     def draw(self, context):
         layout = self.layout

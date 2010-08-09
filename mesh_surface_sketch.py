@@ -42,8 +42,8 @@ class VIEW3D_PT_tools_SURF_SKETCH(bpy.types.Panel):
     bl_context = "mesh_edit"
     bl_label = "Surface Sketching"
     
-    @staticmethod
-    def poll(context):
+    @classmethod
+    def poll(cls, context):
         return context.active_object
 
     def draw(self, context):

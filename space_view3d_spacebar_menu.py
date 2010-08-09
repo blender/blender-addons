@@ -1238,8 +1238,8 @@ class VIEW3D_OT_pivot_cursor(bpy.types.Operator):
     bl_idname = "view3d.pivot_cursor"
     bl_label = "Cursor as Pivot Point"
 
-    @staticmethod
-    def poll(context):
+    @classmethod
+    def poll(cls, context):
         return bpy.context.space_data.pivot_point != 'CURSOR'
 
     def execute(self, context):
@@ -1251,8 +1251,8 @@ class VIEW3D_OT_revert_pivot(bpy.types.Operator):
     bl_idname = "view3d.revert_pivot"
     bl_label = "Reverts Pivot Point to median"
 
-    @staticmethod
-    def poll(context):
+    @classmethod
+    def poll(cls, context):
         return bpy.context.space_data.pivot_point != 'MEDIAN_POINT'
 
     def execute(self, context):
@@ -1403,8 +1403,8 @@ class VIEW3D_OT_CursorToEdgeIntersection(bpy.types.Operator):
     bl_idname = "view3d.snap_cursor_to_edge_intersection"
     bl_label = "Cursor to Edge Intersection"
 
-    @staticmethod
-    def poll(context):
+    @classmethod
+    def poll(cls, context):
         obj = context.active_object
         return obj != None and obj.type == 'MESH'
 

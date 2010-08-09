@@ -318,8 +318,8 @@ class GenerateCloud(bpy.types.Operator):
     bl_register = True
     bl_undo = True
 
-    @staticmethod
-    def poll(context):
+    @classmethod
+    def poll(cls, context):
         if not context.active_object:
             return False
         else:

@@ -159,8 +159,8 @@ class RenderButtonsPanel():
     bl_context = "render"
     # COMPAT_ENGINES must be defined in each subclass, external engines can add themselves here
 
-    @staticmethod
-    def poll(context):
+    @classmethod
+    def poll(cls, context):
         rd = context.scene.render
         return (rd.use_game_engine == False) and (rd.engine in self.COMPAT_ENGINES)
 

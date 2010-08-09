@@ -98,8 +98,8 @@ class Relax(bpy.types.Operator):
     iterations = IntProperty(name="Relax iterations",
                 default=1, min=0, max=100, soft_min=0, soft_max=10)
 
-    @staticmethod
-    def poll(context):
+    @classmethod
+    def poll(cls, context):
         obj = context.active_object
         return (obj and obj.type == 'MESH')
 
