@@ -162,7 +162,7 @@ class RenderButtonsPanel():
     @classmethod
     def poll(cls, context):
         rd = context.scene.render
-        return (rd.use_game_engine == False) and (rd.engine in self.COMPAT_ENGINES)
+        return (rd.use_game_engine == False) and (rd.engine in cls.COMPAT_ENGINES)
 
 
 class RENDER_PT_povray_radiosity(RenderButtonsPanel, bpy.types.Panel):
