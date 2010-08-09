@@ -19,7 +19,7 @@
 bl_addon_info = {
     "name": "Render: Renderfarm.fi",
     "author": "Nathan Letwory <nathan@letworyinteractive.com>, Jesse Kaukonen <jesse.kaukonen@gmail.com>",
-    "version": "2",
+    "version": "3",
     "blender": (2, 5, 3),
     "location": "Render > Engine > Renderfarm.fi",
     "description": "Send .blend as session to http://www.renderfarm.fi to render",
