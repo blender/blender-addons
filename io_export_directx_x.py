@@ -111,15 +111,15 @@ def ExportDirectX(Config):
         print("Setting up...", end=" ")
     Config.SystemMatrix = Matrix()
     if Config.RotateX:
-        Config.SystemMatrix *= RotationMatrix(radians(-90), 4, "X")
+        Config.SystemMatrix *= Matrix.Rotation(radians(-90), 4, "X")
     if Config.CoordinateSystem == 1:
-        Config.SystemMatrix *= ScaleMatrix(-1, 4, Vector((0, 1, 0)))
+        Config.SystemMatrix *= Matrix.Scale(-1, 4, Vector((0, 1, 0)))
     Config.InverseSystemMatrix = Config.SystemMatrix.copy().invert()
     
     #Used for animating rotations
     Config.SystemQuaternion = Quaternion((1,0,0,0))
     if Config.RotateX:
-        Config.SystemQuaternion = RotationMatrix(radians(-90), 3, "X").to_quat()
+        Config.SystemQuaternion = Matrix.Rotation(radians(-90), 3, "X").to_quat()
     Config.InverseSystemQuaternion = Config.SystemQuaternion.copy().inverse()
     Config.FlipZ = -1 if Config.CoordinateSystem == 1 else 1
 
@@ -297,11 +297,11 @@ def WriteArmatureBones(Config, Object, ChildList):
 
         if Bone.parent:
             BoneMatrix = (PoseBone.parent.matrix *
-                          RotationMatrix(radians(-90), 4, "X")).invert()
+                          Matrix.Rotation(radians(-90), 4, "X")).invert()
         else:
             BoneMatrix = Matrix()
 
-        BoneMatrix *= PoseBone.matrix * RotationMatrix(radians(-90), 4, "X")
+        BoneMatrix *= PoseBone.matrix * Matrix.Rotation(radians(-90), 4, "X")
         BoneMatrix = Config.SystemMatrix * BoneMatrix * Config.InverseSystemMatrix
 
         Config.File.write("{}FrameTransformMatrix {{\n".format("  " * Config.Whitespace))
@@ -611,7 +611,7 @@ def WriteMeshSkinWeights(Config, Object, Mesh):
             #  - Armature Space to Bone Space (The bone matrix needs to be rotated 90 degrees to align with Blender's world axes)
             #This way, when BoneMatrix is transformed by the bone's Frame matrix, the vertices will be in their final world position.
             
-            BoneMatrix = (RestBone.matrix_local * RotationMatrix(radians(-90), 4, "X")).invert()
+            BoneMatrix = (RestBone.matrix_local * Matrix.Rotation(radians(-90), 4, "X")).invert()
             BoneMatrix *= ArmatureObject.matrix_world.copy().invert()
             BoneMatrix *= Object.matrix_world
 
@@ -807,10 +807,10 @@ def WriteKeyedAnimationSet(Config):
                         bpy.context.scene.set_frame(Keyframe)
 
                         if Bone.parent:
-                            PoseMatrix = (Bone.parent.matrix * RotationMatrix(radians(-90), 4, "X")).invert()
+                            PoseMatrix = (Bone.parent.matrix * Matrix.Rotation(radians(-90), 4, "X")).invert()
                         else:
                             PoseMatrix = Matrix()
-                        PoseMatrix *= Bone.matrix * RotationMatrix(radians(-90), 4, "X")
+                        PoseMatrix *= Bone.matrix * Matrix.Rotation(radians(-90), 4, "X")
 
                         PoseMatrix = Config.SystemMatrix * PoseMatrix * Config.InverseSystemMatrix
 
@@ -843,10 +843,10 @@ def WriteKeyedAnimationSet(Config):
                         bpy.context.scene.set_frame(Keyframe)
 
                         if Bone.parent:
-                            PoseMatrix = (Bone.parent.matrix * RotationMatrix(radians(-90), 4, "X")).invert()
+                            PoseMatrix = (Bone.parent.matrix * Matrix.Rotation(radians(-90), 4, "X")).invert()
                         else:
                             PoseMatrix = Matrix()
-                        PoseMatrix *= Bone.matrix * RotationMatrix(radians(-90), 4, "X")
+                        PoseMatrix *= Bone.matrix * Matrix.Rotation(radians(-90), 4, "X")
 
                         PoseMatrix = Config.SystemMatrix * PoseMatrix * Config.InverseSystemMatrix
 
@@ -879,10 +879,10 @@ def WriteKeyedAnimationSet(Config):
                         bpy.context.scene.set_frame(Keyframe)
 
                         if Bone.parent:
-                            PoseMatrix = (Bone.parent.matrix * RotationMatrix(radians(-90), 4, "X")).invert()
+                            PoseMatrix = (Bone.parent.matrix * Matrix.Rotation(radians(-90), 4, "X")).invert()
                         else:
                             PoseMatrix = Matrix()
-                        PoseMatrix *= Bone.matrix * RotationMatrix(radians(-90), 4, "X")
+                        PoseMatrix *= Bone.matrix * Matrix.Rotation(radians(-90), 4, "X")
 
                         PoseMatrix = Config.SystemMatrix * PoseMatrix * Config.InverseSystemMatrix
 

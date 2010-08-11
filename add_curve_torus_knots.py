@@ -41,7 +41,7 @@ from math import *
 # calculates the matrix for the new object
 # depending on user pref
 def align_matrix(context):
-    loc = TranslationMatrix(context.scene.cursor_location)
+    loc = Matrix.Translation(context.scene.cursor_location)
     obj_align = context.user_preferences.edit.object_align
     if (context.space_data.type == 'VIEW_3D'
         and obj_align == 'VIEW'):

@@ -113,7 +113,7 @@ http://blenderartists.org/forum/showthread.php?t=154394
 TODO:
 
 Use a rotation matrix for rotating the circle vertices:
-rotation_matrix = mathutils.RotationMatrix(-math.pi/2, 4, 'x')
+rotation_matrix = mathutils.Matrix.Rotation(-math.pi/2, 4, 'x')
 mesh.transform(rotation_matrix)
 """
 
@@ -129,7 +129,7 @@ from bpy.props import *
 # calculates the matrix for the new object
 # depending on user pref
 def align_matrix(context):
-    loc = mathutils.TranslationMatrix(context.scene.cursor_location)
+    loc = mathutils.Matrix.Translation(context.scene.cursor_location)
     obj_align = context.user_preferences.edit.object_align
     if (context.space_data.type == 'VIEW_3D'
         and obj_align == 'VIEW'):

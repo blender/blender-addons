@@ -1805,7 +1805,7 @@ def parseProcess(args, tokens):
 			print(val)
 			axis = val[1]
 			angle = float(val[2])
-			mat = mathutils.RotationMatrix(angle, 4, axis)
+			mat = mathutils.Matrix.Rotation(angle, 4, axis)
 			try:
 				pb = pbones[val[0]]
 				prod = pb.matrix_local * mat
