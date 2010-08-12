@@ -16,7 +16,7 @@
  #  ***** GPL LICENSE BLOCK *****
 
 bl_addon_info = {
-    "name": "Export Skeleletal Mesh/Animation Data",
+    "name": "Export: Skeleletal Mesh/Animation Data",
     "author": "Darknet/Optimus_P-Fat/Active_Trash/Sinsoft",
     "version": "2.0",
     "blender": (2, 5, 3),

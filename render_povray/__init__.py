@@ -17,7 +17,7 @@
 # ##### END GPL LICENSE BLOCK #####
 
 bl_addon_info = {
-    "name": "Render:PovRay",
+    "name": "Render: PovRay",
     "author": "Campbell Barton",
     "version": "0.1",
     "blender": (2, 5, 4),

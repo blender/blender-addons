@@ -17,7 +17,7 @@
 # ##### END GPL LICENSE BLOCK #####
 
 bl_addon_info = {
-    "name": "Import MakeHuman (.mhx)",
+    "name": "Import: MakeHuman (.mhx)",
     "author": "Thomas Larsson",
     "version": "0.9, Make Human Alpha 5",
     "blender": (2, 5, 3),
