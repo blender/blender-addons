@@ -771,8 +771,8 @@ class GPENCIL_OT_SURFSK_strokes_to_curves(bpy.types.Operator):
         curve_crv = ob_gp_strokes.data
         bpy.ops.curve.spline_type_set(type="BEZIER")
         bpy.ops.curve.handle_type_set(type="AUTOMATIC")
-        bpy.data.curves[curve_crv.name].draw_handles = False
-        bpy.data.curves[curve_crv.name].draw_normals = False
+        bpy.data.curves[curve_crv.name].show_handles = False
+        bpy.data.curves[curve_crv.name].show_normal_face = False
        
        
     def invoke (self, context, event):

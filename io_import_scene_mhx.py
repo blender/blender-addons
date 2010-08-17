@@ -1547,7 +1547,7 @@ def parsePoseBone(pbones, ob, args, tokens):
 			print("pb", bpy.context.active_pose_bone)
 			print("md", bpy.context.mode)
 			exec(expr)
-			print("alive")
+			print("show_alive")
 		elif key == 'ik_dof':
 			parseArray(pb, ["ik_dof_x", "ik_dof_y", "ik_dof_z"], val)
 		elif key == 'ik_limit':
