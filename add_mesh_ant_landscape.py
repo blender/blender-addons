@@ -669,8 +669,8 @@ class landscape_add(bpy.types.Operator):
     # Execute
     def execute(self, context):
         # turn off undo
-        undo = bpy.context.user_preferences.edit.global_undo
-        bpy.context.user_preferences.edit.global_undo = False
+        undo = bpy.context.user_preferences.edit.use_global_undo
+        bpy.context.user_preferences.edit.use_global_undo = False
 
         # deselect all objects
         bpy.ops.object.select_all(action='DESELECT')
@@ -734,7 +734,7 @@ class landscape_add(bpy.types.Operator):
 
         obj = create_mesh_object(context, verts, [], faces, "Landscape", edit, self.align_matrix)
         # restore pre operator undo state
-        bpy.context.user_preferences.edit.global_undo = undo
+        bpy.context.user_preferences.edit.use_global_undo = undo
         return {'FINISHED'}
 
     def invoke(self, context, event):

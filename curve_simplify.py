@@ -569,14 +569,14 @@ class CURVE_OT_simplify(bpy.types.Operator):
                 self.properties.keepShort]  #7
 
 
-        bpy.context.user_preferences.edit.global_undo = False
+        bpy.context.user_preferences.edit.use_global_undo = False
 
         bpy.ops.object.mode_set(mode='OBJECT', toggle=True)
         obj = context.active_object
 
         main(context, obj, options)
 
-        bpy.context.user_preferences.edit.global_undo = True
+        bpy.context.user_preferences.edit.use_global_undo = True
 
         #print("-------END-------")
         return {'FINISHED'}

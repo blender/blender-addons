@@ -1070,8 +1070,8 @@ class Curveaceous_galore(bpy.types.Operator):
     ##### EXECUTE #####
     def execute(self, context):
         # turn off undo
-        undo = bpy.context.user_preferences.edit.global_undo
-        bpy.context.user_preferences.edit.global_undo = False
+        undo = bpy.context.user_preferences.edit.use_global_undo
+        bpy.context.user_preferences.edit.use_global_undo = False
 
         # deal with 2D - 3D curve differences
         props = self.properties
@@ -1090,7 +1090,7 @@ class Curveaceous_galore(bpy.types.Operator):
         main(context, props, self.align_matrix)
         
         # restore pre operator undo state
-        bpy.context.user_preferences.edit.global_undo = undo
+        bpy.context.user_preferences.edit.use_global_undo = undo
 
         return {'FINISHED'}
 

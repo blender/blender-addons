@@ -741,7 +741,7 @@ class Solids(bpy.types.Operator):
     def execute(self,context):
         # turn off undo for better performance (3 - 5x faster), also makes sure
         #  that mesh ops are undoable and entire script acts as one operator
-        bpy.context.user_preferences.edit.global_undo = False
+        bpy.context.user_preferences.edit.use_global_undo = False
 
         props = self.properties
 
@@ -794,7 +794,7 @@ class Solids(bpy.types.Operator):
             bpy.ops.object.mode_set(mode=current_mode)
 
         # turn undo back on
-        bpy.context.user_preferences.edit.global_undo = True 
+        bpy.context.user_preferences.edit.use_global_undo = True 
 
         return {'FINISHED'}
 

@@ -280,8 +280,8 @@ class torus_knot_plus(bpy.types.Operator):
     ##### EXECUTE #####
     def execute(self, context):
         # turn off undo
-        undo = bpy.context.user_preferences.edit.global_undo
-        bpy.context.user_preferences.edit.global_undo = False
+        undo = bpy.context.user_preferences.edit.use_global_undo
+        bpy.context.user_preferences.edit.use_global_undo = False
 
         props = self.properties
 
@@ -292,7 +292,7 @@ class torus_knot_plus(bpy.types.Operator):
         main(context, props, self.align_matrix)
         
         # restore pre operator undo state
-        bpy.context.user_preferences.edit.global_undo = undo
+        bpy.context.user_preferences.edit.use_global_undo = undo
 
         return {'FINISHED'}
 
