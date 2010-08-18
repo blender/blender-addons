@@ -535,10 +535,10 @@ class GenerateCloud(bpy.types.Operator):
             vMaterialTextureSlots[1].map_density = True
             vMaterialTextureSlots[1].rgb_to_intensity = True
             vMaterialTextureSlots[1].texture_coordinates = 'GLOBAL'
-            pDensity.pointdensity.vertices_cache = 'WORLD_SPACE'
-            pDensity.pointdensity.turbulence = True
-            pDensity.pointdensity.noise_basis = 'VORONOI_F2'
-            pDensity.pointdensity.turbulence_depth = 3
+            pDensity.point_density.vertices_cache = 'WORLD_SPACE'
+            pDensity.point_density.turbulence = True
+            pDensity.point_density.noise_basis = 'VORONOI_F2'
+            pDensity.point_density.turbulence_depth = 3
 
             pDensity.use_color_ramp = True
             pRamp = pDensity.color_ramp
@@ -562,7 +562,7 @@ class GenerateCloud(bpy.types.Operator):
             # of bounds.
             cloudParticles.settings.amount = numParticles
 
-            pDensity.pointdensity.radius = (.00013764 * volumeBoundBox + .3989) * pointDensityRadiusFactor
+            pDensity.point_density.radius = (.00013764 * volumeBoundBox + .3989) * pointDensityRadiusFactor
 
             # Set time to 1.
             scene.frame_current = 1
@@ -612,8 +612,8 @@ class GenerateCloud(bpy.types.Operator):
                 # Apply modifier
                 bpy.ops.object.modifier_apply(apply_as='DATA', modifier=cldPntsModifiers[0].name)
 
-                pDensity.pointdensity.point_source = 'OBJECT'
-                pDensity.pointdensity.object = cloudPnts
+                pDensity.point_density.point_source = 'OBJECT'
+                pDensity.point_density.object = cloudPnts
 
                 # Deselect All
                 bpy.ops.object.select_all(action='DESELECT')
@@ -629,22 +629,22 @@ class GenerateCloud(bpy.types.Operator):
 
             else:
     
-                pDensity.pointdensity.point_source = 'PARTICLE_SYSTEM'
-                pDensity.pointdensity.object = cloud
-                pDensity.pointdensity.particle_system = cloudParticles
+                pDensity.point_density.point_source = 'PARTICLE_SYSTEM'
+                pDensity.point_density.object = cloud
+                pDensity.point_density.particle_system = cloudParticles
 
             if scene.cloud_type == '1':    #  Cumulous 
                 print("Cumulous")
                 mVolume.density_scale = 2.22
-                pDensity.pointdensity.turbulence_depth = 10
-                pDensity.pointdensity.turbulence_strength = 6.3
-                pDensity.pointdensity.turbulence_size = 2.9
+                pDensity.point_density.turbulence_depth = 10
+                pDensity.point_density.turbulence_strength = 6.3
+                pDensity.point_density.turbulence_size = 2.9
                 pRampElements[1].position = .606
-                pDensity.pointdensity.radius = pDensity.pointdensity.radius + .1
+                pDensity.point_density.radius = pDensity.point_density.radius + .1
 
             elif scene.cloud_type == '2':    #  Cirrus 
                 print("Cirrus")
-                pDensity.pointdensity.turbulence_strength = 22
+                pDensity.point_density.turbulence_strength = 22
                 mVolume.transmission_color = [3.5, 3.5, 3.5]
                 mVolume.scattering = .13
 

@@ -31,7 +31,7 @@ def getsizefrommesh(ob):
 def setupshards(context):
     sce = context.scene
     #print(dir(context))
-    #bpy.data.scenes[0].game_data.all_frames
+    #bpy.data.scenes[0].game_settings.all_frames
 
     tobeprocessed = []
     for ob in sce.objects:

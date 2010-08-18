@@ -622,8 +622,8 @@ def parseActionFCurve(act, ob, args, tokens):
 def parseKeyFramePoint(pt, args, tokens):
 	pt.co = (float(args[0]), float(args[1]))
 	if len(args) > 2:
-		pt.handle1 = (float(args[2]), float(args[3]))
-		pt.handle2 = (float(args[3]), float(args[5]))
+		pt.handle_left = (float(args[2]), float(args[3]))
+		pt.handle_right = (float(args[3]), float(args[5]))
 	return pt
 
 #
@@ -909,7 +909,7 @@ def parseImage(args, tokens):
 				return None
 			img.name = imgName
 		else:
-			defaultKey(key, val,  sub, "img", ['depth', 'dirty', 'has_data', 'size', 'type'], globals(), locals())
+			defaultKey(key, val,  sub, "img", ['depth', 'is_dirty', 'has_data', 'size', 'type'], globals(), locals())
 	print ("Image %s" % img )
 	loadedData['Image'][imgName] = img
 	return img
@@ -1055,7 +1055,7 @@ def parseParticle(par, args, tokens):
 	n = 0
 	for (key, val, sub) in tokens:
 		if key == 'h':
-			h = par.hair[n]
+			h = par.is_hair[n]
 			h.location = eval(val[0])
 			h.time = int(val[1])
 			h.weight = float(val[2])
@@ -1615,7 +1615,7 @@ def insertInfluenceIpo(cns, bone):
 		var.targets[0].bone_target = bone
 		var.targets[0].transform_type = 'LOC_X'
 		# controller_path = fk_chain.arm_p.path_to_id()
-		#var.targets[0].data_path = controller_path + '["hinge"]'
+		#var.targets[0].data_path = controller_path + '["use_hinge"]'
 
 		mod = fcurve.modifiers[0]
 		mod.poly_order = 2
@@ -1680,10 +1680,10 @@ def parseNurb(cu, nNurbs, args, tokens):
 def parseBezier(nurb, n, args, tokens):
 	bez = nurb[n]
 	bez.co = eval(args[0])	
-	bez.handle1 = eval(args[1])	
-	bez.handle1_type = args[2]
-	bez.handle2 = eval(args[3])	
-	bez.handle2_type = args[4]
+	bez.handle_left = eval(args[1])	
+	bez.handle_left_type = args[2]
+	bez.handle_right = eval(args[3])	
+	bez.handle_right_type = args[4]
 	return
 
 def parsePoint(nurb, n, args, tokens):
@@ -1853,7 +1853,7 @@ def parseProcess(args, tokens):
 	for (bname, pname) in parents.items():
 		eb = ebones[bname]
 		par = ebones[pname]
-		if eb.connected:
+		if eb.use_connect:
 			par.tail = eb.head
 		eb.parent = par
 	bpy.ops.object.mode_set(mode='OBJECT')
