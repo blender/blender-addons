@@ -76,20 +76,20 @@ class GPENCIL_OT_SURFSK_add_surface(bpy.types.Operator):
     def get_ordered_verts(self, ob, all_selected_edges_idx, all_selected_verts_idx, first_vert_idx, middle_vertex_idx):
         # Order selected vertexes.
         verts_ordered = []
-        verts_ordered.append(self.main_object.data.verts[first_vert_idx])
+        verts_ordered.append(self.main_object.data.vertices[first_vert_idx])
         prev_v = first_vert_idx
         prev_ed = None
         finish_while = False
         while True:
             edges_non_matched = 0
             for i in all_selected_edges_idx:
-                if ob.data.edges[i] != prev_ed and ob.data.edges[i].verts[0] == prev_v and ob.data.edges[i].verts[1] in all_selected_verts_idx:
-                    verts_ordered.append(self.main_object.data.verts[ob.data.edges[i].verts[1]])
-                    prev_v = ob.data.edges[i].verts[1]
+                if ob.data.edges[i] != prev_ed and ob.data.edges[i].vertices[0] == prev_v and ob.data.edges[i].vertices[1] in all_selected_verts_idx:
+                    verts_ordered.append(self.main_object.data.vertices[ob.data.edges[i].vertices[1]])
+                    prev_v = ob.data.edges[i].vertices[1]
                     prev_ed = ob.data.edges[i]
-                elif ob.data.edges[i] != prev_ed and ob.data.edges[i].verts[1] == prev_v and ob.data.edges[i].verts[0] in all_selected_verts_idx:
-                    verts_ordered.append(self.main_object.data.verts[ob.data.edges[i].verts[0]])
-                    prev_v = ob.data.edges[i].verts[0]
+                elif ob.data.edges[i] != prev_ed and ob.data.edges[i].vertices[1] == prev_v and ob.data.edges[i].vertices[0] in all_selected_verts_idx:
+                    verts_ordered.append(self.main_object.data.vertices[ob.data.edges[i].vertices[0]])
+                    prev_v = ob.data.edges[i].vertices[0]
                     prev_ed = ob.data.edges[i]
                 else:
                     edges_non_matched += 1
@@ -101,7 +101,7 @@ class GPENCIL_OT_SURFSK_add_surface(bpy.types.Operator):
                 break
         
         if middle_vertex_idx != None:
-            verts_ordered.append(self.main_object.data.verts[middle_vertex_idx])
+            verts_ordered.append(self.main_object.data.vertices[middle_vertex_idx])
             verts_ordered.reverse()
         
         return verts_ordered
@@ -176,14 +176,14 @@ class GPENCIL_OT_SURFSK_add_surface(bpy.types.Operator):
                 all_selected_edges_idx.append(ed.index)
                 
                 # Selected vertexes.
-                if not ed.verts[0] in all_selected_verts:
-                    all_selected_verts.append(self.main_object.data.verts[ed.verts[0]])
-                if not ed.verts[1] in all_selected_verts:
-                    all_selected_verts.append(self.main_object.data.verts[ed.verts[1]])
+                if not ed.vertices[0] in all_selected_verts:
+                    all_selected_verts.append(self.main_object.data.vertices[ed.vertices[0]])
+                if not ed.vertices[1] in all_selected_verts:
+                    all_selected_verts.append(self.main_object.data.vertices[ed.vertices[1]])
                     
                 # All verts (both from each edge) to determine later which are at the tips (those not repeated twice).
-                all_verts_idx.append(ed.verts[0])
-                all_verts_idx.append(ed.verts[1])
+                all_verts_idx.append(ed.vertices[0])
+                all_verts_idx.append(ed.vertices[1])
         
         
         #### Identify the tips and "middle-vertex" that separates U from V, if there is one.
@@ -194,7 +194,7 @@ class GPENCIL_OT_SURFSK_add_surface(bpy.types.Operator):
         
         edges_connected_to_tips = []
         for ed in self.main_object.data.edges:
-            if (ed.verts[0] in all_chains_tips_idx or ed.verts[1] in all_chains_tips_idx) and not (ed.verts[0] in all_verts_idx and ed.verts[1] in all_verts_idx):
+            if (ed.vertices[0] in all_chains_tips_idx or ed.vertices[1] in all_chains_tips_idx) and not (ed.vertices[0] in all_verts_idx and ed.vertices[1] in all_verts_idx):
                 edges_connected_to_tips.append(ed)
         
         middle_vertex_idx = None
@@ -202,12 +202,12 @@ class GPENCIL_OT_SURFSK_add_surface(bpy.types.Operator):
         for ed_tips in edges_connected_to_tips:
             for ed_tips_b in edges_connected_to_tips:
                 if (ed_tips != ed_tips_b):
-                    if ed_tips.verts[0] in all_verts_idx and (((ed_tips.verts[1] == ed_tips_b.verts[0]) or ed_tips.verts[1] == ed_tips_b.verts[1])):
-                        middle_vertex_idx = ed_tips.verts[1]
-                        tips_to_discard_idx.append(ed_tips.verts[0])
-                    elif ed_tips.verts[1] in all_verts_idx and (((ed_tips.verts[0] == ed_tips_b.verts[0]) or ed_tips.verts[0] == ed_tips_b.verts[1])):
-                        middle_vertex_idx = ed_tips.verts[0]
-                        tips_to_discard_idx.append(ed_tips.verts[1])
+                    if ed_tips.vertices[0] in all_verts_idx and (((ed_tips.vertices[1] == ed_tips_b.vertices[0]) or ed_tips.vertices[1] == ed_tips_b.vertices[1])):
+                        middle_vertex_idx = ed_tips.vertices[1]
+                        tips_to_discard_idx.append(ed_tips.vertices[0])
+                    elif ed_tips.vertices[1] in all_verts_idx and (((ed_tips.vertices[0] == ed_tips_b.vertices[0]) or ed_tips.vertices[0] == ed_tips_b.vertices[1])):
+                        middle_vertex_idx = ed_tips.vertices[0]
+                        tips_to_discard_idx.append(ed_tips.vertices[1])
         
         
         #### List with pairs of verts that belong to the tips of each selection chain (row).
@@ -316,11 +316,11 @@ class GPENCIL_OT_SURFSK_add_surface(bpy.types.Operator):
             points_B = []
             points_first_stroke_tips = []
             
-            points_A.append(self.main_object.data.verts[verts_tips_parsed_idx[0]].co)
-            points_A.append(self.main_object.data.verts[middle_vertex_idx].co)
+            points_A.append(self.main_object.data.vertices[verts_tips_parsed_idx[0]].co)
+            points_A.append(self.main_object.data.vertices[middle_vertex_idx].co)
             
-            points_B.append(self.main_object.data.verts[verts_tips_parsed_idx[1]].co)
-            points_B.append(self.main_object.data.verts[middle_vertex_idx].co)
+            points_B.append(self.main_object.data.vertices[verts_tips_parsed_idx[1]].co)
+            points_B.append(self.main_object.data.vertices[middle_vertex_idx].co)
             
             points_first_stroke_tips.append(ob_gp_strokes.data.splines[0].bezier_points[0].co)
             points_first_stroke_tips.append(ob_gp_strokes.data.splines[0].bezier_points[len(ob_gp_strokes.data.splines[0].bezier_points) - 1].co)
@@ -345,7 +345,7 @@ class GPENCIL_OT_SURFSK_add_surface(bpy.types.Operator):
             prev_dist = 999999999999
             for i in range(0, len(verts_tips_same_chain_idx)):
                 for v_idx in range(0, len(verts_tips_same_chain_idx[i])):
-                    dist = self.pts_distance(first_sketched_point_first_stroke_co, self.main_object.data.verts[verts_tips_same_chain_idx[i][v_idx]].co)
+                    dist = self.pts_distance(first_sketched_point_first_stroke_co, self.main_object.data.vertices[verts_tips_same_chain_idx[i][v_idx]].co)
                     if dist < prev_dist:
                         prev_dist = dist
                         
@@ -361,7 +361,7 @@ class GPENCIL_OT_SURFSK_add_surface(bpy.types.Operator):
             prev_dist = 999999999999
             for i in range(0, len(verts_tips_same_chain_idx)):
                 for v_idx in range(0, len(verts_tips_same_chain_idx[i])):
-                    dist = self.pts_distance(last_sketched_point_first_stroke_co, self.main_object.data.verts[verts_tips_same_chain_idx[i][v_idx]].co)
+                    dist = self.pts_distance(last_sketched_point_first_stroke_co, self.main_object.data.vertices[verts_tips_same_chain_idx[i][v_idx]].co)
                     if dist < prev_dist:
                         prev_dist = dist
                         
@@ -373,7 +373,7 @@ class GPENCIL_OT_SURFSK_add_surface(bpy.types.Operator):
             prev_dist = 999999999999
             for i in range(0, len(verts_tips_same_chain_idx)):
                 for v_idx in range(0, len(verts_tips_same_chain_idx[i])):
-                    dist = self.pts_distance(first_sketched_point_last_stroke_co, self.main_object.data.verts[verts_tips_same_chain_idx[i][v_idx]].co)
+                    dist = self.pts_distance(first_sketched_point_last_stroke_co, self.main_object.data.vertices[verts_tips_same_chain_idx[i][v_idx]].co)
                     if dist < prev_dist:
                         prev_dist = dist
                         
@@ -387,7 +387,7 @@ class GPENCIL_OT_SURFSK_add_surface(bpy.types.Operator):
             # Determine if the single selection will be treated as U or as V.
             edges_sum = 0
             for i in all_selected_edges_idx:
-                edges_sum += self.pts_distance(self.main_object.data.verts[self.main_object.data.edges[i].verts[0]].co, self.main_object.data.verts[self.main_object.data.edges[i].verts[1]].co)
+                edges_sum += self.pts_distance(self.main_object.data.vertices[self.main_object.data.edges[i].vertices[0]].co, self.main_object.data.vertices[self.main_object.data.edges[i].vertices[1]].co)
             
             average_edge_length = edges_sum / len(all_selected_edges_idx)
             
@@ -412,8 +412,8 @@ class GPENCIL_OT_SURFSK_add_surface(bpy.types.Operator):
                 selection_U_exists = True
                 selection_V_exists = False
                 
-                points_tips.append(self.main_object.data.verts[verts_tips_same_chain_idx[nearest_tip_first_st_first_pt_idx][0]].co)
-                points_tips.append(self.main_object.data.verts[verts_tips_same_chain_idx[nearest_tip_first_st_first_pt_idx][1]].co)
+                points_tips.append(self.main_object.data.vertices[verts_tips_same_chain_idx[nearest_tip_first_st_first_pt_idx][0]].co)
+                points_tips.append(self.main_object.data.vertices[verts_tips_same_chain_idx[nearest_tip_first_st_first_pt_idx][1]].co)
                 
                 points_first_stroke_tips.append(ob_gp_strokes.data.splines[0].bezier_points[0].co)
                 points_first_stroke_tips.append(ob_gp_strokes.data.splines[0].bezier_points[len(ob_gp_strokes.data.splines[0].bezier_points) - 1].co)
@@ -563,20 +563,20 @@ class GPENCIL_OT_SURFSK_add_surface(bpy.types.Operator):
             
             if selection_U_exists:
                 ob_ctrl_pts.data.add_geometry(1,0,0)
-                last_v = ob_ctrl_pts.data.verts[len(ob_ctrl_pts.data.verts) - 1]
+                last_v = ob_ctrl_pts.data.vertices[len(ob_ctrl_pts.data.vertices) - 1]
                 last_v.co = verts_ordered_U[i].co
                 
                 vert_num_in_spline += 1
                 
             for sp in sketched_splines_parsed:
                 ob_ctrl_pts.data.add_geometry(1,0,0)
-                v = ob_ctrl_pts.data.verts[len(ob_ctrl_pts.data.verts) - 1]
+                v = ob_ctrl_pts.data.vertices[len(ob_ctrl_pts.data.vertices) - 1]
                 v.co = sp[i]
                 
                 if vert_num_in_spline > 1:
                     ob_ctrl_pts.data.add_geometry(0,1,0)
-                    ob_ctrl_pts.data.edges[len(ob_ctrl_pts.data.edges) - 1].verts[0] = len(ob_ctrl_pts.data.verts) - 2
-                    ob_ctrl_pts.data.edges[len(ob_ctrl_pts.data.edges) - 1].verts[1] = len(ob_ctrl_pts.data.verts) - 1
+                    ob_ctrl_pts.data.edges[len(ob_ctrl_pts.data.edges) - 1].vertices[0] = len(ob_ctrl_pts.data.vertices) - 2
+                    ob_ctrl_pts.data.edges[len(ob_ctrl_pts.data.edges) - 1].vertices[1] = len(ob_ctrl_pts.data.vertices) - 1
 
                 last_v = v
                 

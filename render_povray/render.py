@@ -299,17 +299,17 @@ def write_pov(filename, scene=None, info_callback=None):
             except:
                 vcol_layer = None
 
-            faces_verts = [f.verts for f in me.faces]
+            faces_verts = [f.vertices for f in me.faces]
             faces_normals = [tuple(f.normal) for f in me.faces]
-            verts_normals = [tuple(v.normal) for v in me.verts]
+            verts_normals = [tuple(v.normal) for v in me.vertices]
 
             # quads incur an extra face
             quadCount = len([f for f in faces_verts if len(f) == 4])
 
             file.write('mesh2 {\n')
             file.write('\tvertex_vectors {\n')
-            file.write('\t\t%s' % (len(me.verts))) # vert count
-            for v in me.verts:
+            file.write('\t\t%s' % (len(me.vertices))) # vert count
+            for v in me.vertices:
                 file.write(',\n\t\t<%.6f, %.6f, %.6f>' % tuple(v.co)) # vert count
             file.write('\n  }\n')
 

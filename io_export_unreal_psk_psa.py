@@ -592,13 +592,13 @@ def make_namedbonebinary(name, parent_index, child_count, orientation_quat, posi
 #The face has to be triangle not a line
 def is_1d_face(blender_face,mesh):
 	#ID Vertex of id point
-	v0 = blender_face.verts[0]
-	v1 = blender_face.verts[1]
-	v2 = blender_face.verts[2]
+	v0 = blender_face.vertices[0]
+	v1 = blender_face.vertices[1]
+	v2 = blender_face.vertices[2]
 	
-	return (mesh.verts[v0].co == mesh.verts[v1].co or \
-	mesh.verts[v1].co == mesh.verts[v2].co or \
-	mesh.verts[v2].co == mesh.verts[v0].co)
+	return (mesh.vertices[v0].co == mesh.vertices[v1].co or \
+	mesh.vertices[v1].co == mesh.vertices[v2].co or \
+	mesh.vertices[v2].co == mesh.vertices[v0].co)
 	return False
 
 ##################################################
@@ -615,7 +615,7 @@ def triangulateNMesh(object):
 	bpy.ops.object.mode_set(mode='OBJECT')
 	print("Checking mesh if needs to convert quad to Tri...")
 	for face in object.data.faces:
-		if (len(face.verts) > 3):
+		if (len(face.vertices) > 3):
 			bneedtri = True
 			break
 	
@@ -703,12 +703,12 @@ def parse_meshes(blender_meshes, psk_file):
 			#print ' -- Dumping UVs -- '
 			#print current_face.uv_textures
 			
-			if len(current_face.verts) != 3:
-				raise RuntimeError("Non-triangular face (%i)" % len(current_face.verts))
+			if len(current_face.vertices) != 3:
+				raise RuntimeError("Non-triangular face (%i)" % len(current_face.vertices))
 			
 			#No Triangulate Yet
-			#			if len(current_face.verts) != 3:
-			#				raise RuntimeError("Non-triangular face (%i)" % len(current_face.verts))
+			#			if len(current_face.vertices) != 3:
+			#				raise RuntimeError("Non-triangular face (%i)" % len(current_face.vertices))
 			#				#TODO: add two fake faces made of triangles?
 			
 			#RG - apparently blender sometimes has problems when you do quad to triangle 
@@ -745,8 +745,8 @@ def parse_meshes(blender_meshes, psk_file):
 					#print("DATA face uv: ",len(faceUV.uv), " >> ",(faceUV.uv[0][0]))
 				
 				for i in range(3):
-					vert_index = current_face.verts[i]
-					vert = current_mesh.verts[vert_index]
+					vert_index = current_face.vertices[i]
+					vert = current_mesh.vertices[vert_index]
 					uv = []
 					#assumes 3 UVs Per face (for now).
 					if (has_UV):
@@ -844,10 +844,10 @@ def parse_meshes(blender_meshes, psk_file):
 				elif (dot < 0):
 					(tri.WedgeIndex0, tri.WedgeIndex1, tri.WedgeIndex2) = wedge_list
 				else:
-					dindex0 = current_face.verts[0];
-					dindex1 = current_face.verts[1];
-					dindex2 = current_face.verts[2];
-					raise RuntimeError("normal vector coplanar with face! points:", current_mesh.verts[dindex0].co, current_mesh.verts[dindex1].co, current_mesh.verts[dindex2].co)
+					dindex0 = current_face.vertices[0];
+					dindex1 = current_face.vertices[1];
+					dindex2 = current_face.vertices[2];
+					raise RuntimeError("normal vector coplanar with face! points:", current_mesh.vertices[dindex0].co, current_mesh.vertices[dindex1].co, current_mesh.vertices[dindex2].co)
 				
 				tri.MatIndex = object_material_index
 				#print(tri)
@@ -880,7 +880,7 @@ def parse_meshes(blender_meshes, psk_file):
 		for bonegroup in bonedata:
 			#print("bone gourp build:",bonegroup.bone)
 			vert_list = []
-			for current_vert in current_mesh.verts:
+			for current_vert in current_mesh.vertices:
 				#print("INDEX V:",current_vert.index)
 				vert_index = current_vert.index
 				for vgroup in current_vert.groups:#vertex groupd id

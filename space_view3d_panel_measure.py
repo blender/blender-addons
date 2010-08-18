@@ -220,7 +220,7 @@ def getMeasurePoints(context):
 
             # Get the selected vertices.
             # @todo: Better (more efficient) way to do this?
-            verts_selected = [v for v in mesh.verts if v.select == 1]
+            verts_selected = [v for v in mesh.vertices if v.select == 1]
 
             if len(verts_selected) == 0:
                 # Nothing selected.
@@ -324,17 +324,17 @@ def faceAreaGlobal(face, obj):
 
     mat = obj.matrix_world
 
-    if len(face.verts) == 4:
+    if len(face.vertices) == 4:
         # Quad
 
         # Get vertex indices
-        v1, v2, v3, v4 = face.verts
+        v1, v2, v3, v4 = face.vertices
 
         # Get vertex data
-        v1 = obj.data.verts[v1]
-        v2 = obj.data.verts[v2]
-        v3 = obj.data.verts[v3]
-        v4 = obj.data.verts[v4]
+        v1 = obj.data.vertices[v1]
+        v2 = obj.data.vertices[v2]
+        v3 = obj.data.vertices[v3]
+        v4 = obj.data.vertices[v4]
 
         # Apply transform matrix to vertex coordinates.
         v1 = v1.co * mat
@@ -356,16 +356,16 @@ def faceAreaGlobal(face, obj):
 
         area += n.length / 2.0
 
-    elif len(face.verts) == 3:
+    elif len(face.vertices) == 3:
         # Triangle
 
         # Get vertex indices
-        v1, v2, v3 = face.verts
+        v1, v2, v3 = face.vertices
 
         # Get vertex data
-        v1 = obj.data.verts[v1]
-        v2 = obj.data.verts[v2]
-        v3 = obj.data.verts[v3]
+        v1 = obj.data.vertices[v1]
+        v2 = obj.data.vertices[v2]
+        v3 = obj.data.vertices[v3]
 
         # Apply transform matrix to vertex coordinates.
         v1 = v1.co * mat
@@ -756,7 +756,7 @@ class VIEW3D_PT_measure(bpy.types.Panel):
 
                 # Get the selected vertices.
                 # @todo: Better (more efficient) way to do this?
-                verts_selected = [v for v in mesh.verts if v.select == 1]
+                verts_selected = [v for v in mesh.vertices if v.select == 1]
 
                 if len(verts_selected) == 0:
                     # Nothing selected.

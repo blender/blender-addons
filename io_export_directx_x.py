@@ -176,7 +176,7 @@ def GetObjectChildren(Parent):
 def GetMeshVertexCount(Mesh):
     VertexCount = 0
     for Face in Mesh.faces:
-        VertexCount += len(Face.verts)
+        VertexCount += len(Face.vertices)
     return VertexCount
 
 #Returns the file path of first image texture from Material.
@@ -359,11 +359,11 @@ def WriteMeshVertices(Config, Mesh):
     Config.File.write("{}{};\n".format("  " * Config.Whitespace, VertexCount))
 
     for Face in Mesh.faces:
-        Vertices = list(Face.verts)
+        Vertices = list(Face.vertices)
 
         if Config.CoordinateSystem == 1:
             Vertices = Vertices[::-1]
-        for Vertex in [Mesh.verts[Vertex] for Vertex in Vertices]:
+        for Vertex in [Mesh.vertices[Vertex] for Vertex in Vertices]:
             Position = Config.SystemMatrix * Vertex.co
             Config.File.write("{}{:9f};{:9f};{:9f};".format("  " * Config.Whitespace, Position[0], Position[1], Position[2]))
             Index += 1
@@ -376,8 +376,8 @@ def WriteMeshVertices(Config, Mesh):
     Config.File.write("{}{};\n".format("  " * Config.Whitespace, len(Mesh.faces)))
 
     for Face in Mesh.faces:
-        Config.File.write("{}{};".format("  " * Config.Whitespace, len(Face.verts)))
-        for Vertex in Face.verts:
+        Config.File.write("{}{};".format("  " * Config.Whitespace, len(Face.vertices)))
+        for Vertex in Face.vertices:
             Config.File.write("{};".format(Index))
             Index += 1
         if Index == VertexCount:
@@ -395,11 +395,11 @@ def WriteMeshNormals(Config, Mesh):
     Config.File.write("{}{};\n".format("  " * Config.Whitespace, VertexCount))
 
     for Face in Mesh.faces:
-        Vertices = list(Face.verts)
+        Vertices = list(Face.vertices)
 
         if Config.CoordinateSystem == 1:
             Vertices = Vertices[::-1]
-        for Vertex in [Mesh.verts[Vertex] for Vertex in Vertices]:
+        for Vertex in [Mesh.vertices[Vertex] for Vertex in Vertices]:
             if Face.smooth:
                 Normal = Config.SystemMatrix * Vertex.normal
             else:
@@ -417,8 +417,8 @@ def WriteMeshNormals(Config, Mesh):
     Config.File.write("{}{};\n".format("  " * Config.Whitespace, len(Mesh.faces)))
 
     for Face in Mesh.faces:
-        Config.File.write("{}{};".format("  " * Config.Whitespace, len(Face.verts)))
-        for Vertex in Face.verts:
+        Config.File.write("{}{};".format("  " * Config.Whitespace, len(Face.vertices)))
+        for Vertex in Face.vertices:
             Config.File.write("{};".format(Index))
             Index += 1
         if Index == VertexCount:
@@ -535,7 +535,7 @@ def WriteMeshSkinWeights(Config, Object, Mesh):
         #Maps bones to a list of vertices they affect
         VertexGroups = {}
         
-        for Vertex in Mesh.verts:
+        for Vertex in Mesh.vertices:
             #BoneInfluences contains the bones of the armature that affect the current vertex
             BoneInfluences = [PoseBones[Object.vertex_groups[Group.group].name] for Group in Vertex.groups if Object.vertex_groups[Group.group].name in PoseBones]
             if len(BoneInfluences) > MaxInfluences:
@@ -558,7 +558,7 @@ def WriteMeshSkinWeights(Config, Object, Mesh):
             VertexCount = 0
             VertexIndexes = [Vertex.index for Vertex in VertexGroups[Bone]]
             for Face in Mesh.faces:
-                for Vertex in Face.verts:
+                for Vertex in Face.vertices:
                     if Vertex in VertexIndexes:
                         VertexCount += 1
 
@@ -570,21 +570,21 @@ def WriteMeshSkinWeights(Config, Object, Mesh):
             Index = 0
             WrittenIndexes = 0
             for Face in Mesh.faces:
-                FaceVertices = list(Face.verts)
+                FaceVertices = list(Face.vertices)
                 if Config.CoordinateSystem == 1:
                     FaceVertices = FaceVertices[::-1]
                 for Vertex in FaceVertices:
                     if Vertex in VertexIndexes:
                         Config.File.write("{}{}".format("  " * Config.Whitespace, Index))
 
-                        GroupIndexes = {Object.vertex_groups[Group.group].name: Index for Index, Group in enumerate(Mesh.verts[Vertex].groups) if Object.vertex_groups[Group.group].name in PoseBones}
+                        GroupIndexes = {Object.vertex_groups[Group.group].name: Index for Index, Group in enumerate(Mesh.vertices[Vertex].groups) if Object.vertex_groups[Group.group].name in PoseBones}
 
                         WeightTotal = 0.0
-                        for Weight in [Group.weight for Group in Mesh.verts[Vertex].groups if Object.vertex_groups[Group.group].name in PoseBones]:
+                        for Weight in [Group.weight for Group in Mesh.vertices[Vertex].groups if Object.vertex_groups[Group.group].name in PoseBones]:
                             WeightTotal += Weight
 
                         if WeightTotal:
-                            VertexWeights.append(Mesh.verts[Vertex].groups[GroupIndexes[Bone.name]].weight / WeightTotal)
+                            VertexWeights.append(Mesh.vertices[Vertex].groups[GroupIndexes[Bone.name]].weight / WeightTotal)
                         else:
                             VertexWeights.append(0.0)
 

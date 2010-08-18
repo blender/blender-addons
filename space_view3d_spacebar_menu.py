@@ -200,8 +200,8 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
             layout.separator()
 
             # Proportional block
-            layout.prop_menu_enum(settings, "proportional_editing", icon= "PROP_CON")
-            layout.prop_menu_enum(settings, "proportional_editing_falloff", icon= "SMOOTHCURVE")
+            layout.prop_menu_enum(settings, "proportional_edit", icon= "PROP_CON")
+            layout.prop_menu_enum(settings, "proportional_edit_falloff", icon= "SMOOTHCURVE")
             layout.separator()
 
             # Edit Control Points
@@ -253,8 +253,8 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
             layout.separator()
 
             # Proportional block
-            layout.prop_menu_enum(settings, "proportional_editing", icon= "PROP_CON")
-            layout.prop_menu_enum(settings, "proportional_editing_falloff", icon= "SMOOTHCURVE")
+            layout.prop_menu_enum(settings, "proportional_edit", icon= "PROP_CON")
+            layout.prop_menu_enum(settings, "proportional_edit_falloff", icon= "SMOOTHCURVE")
 
             # Edit Curve Specials
             layout.menu("VIEW3D_MT_EditCurveSpecials",
@@ -300,8 +300,8 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
             layout.separator()
 
             # Proportional block
-            layout.prop_menu_enum(settings, "proportional_editing", icon= "PROP_CON")
-            layout.prop_menu_enum(settings, "proportional_editing_falloff", icon= "SMOOTHCURVE")
+            layout.prop_menu_enum(settings, "proportional_edit", icon= "PROP_CON")
+            layout.prop_menu_enum(settings, "proportional_edit_falloff", icon= "SMOOTHCURVE")
 
             # Cursor block
             layout.menu("VIEW3D_MT_CursorMenu", icon='CURSOR')
@@ -342,8 +342,8 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
             layout.separator()
 
             # Proportional block
-            layout.prop_menu_enum(settings, "proportional_editing", icon= "PROP_CON")
-            layout.prop_menu_enum(settings, "proportional_editing_falloff", icon= "SMOOTHCURVE")
+            layout.prop_menu_enum(settings, "proportional_edit", icon= "PROP_CON")
+            layout.prop_menu_enum(settings, "proportional_edit_falloff", icon= "SMOOTHCURVE")
 
             # Cursor block
             layout.menu("VIEW3D_MT_CursorMenu", icon='CURSOR')
@@ -388,8 +388,8 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
             layout.separator()
 
             # Proportional block
-            layout.prop_menu_enum(settings, "proportional_editing", icon= "PROP_CON")
-            layout.prop_menu_enum(settings, "proportional_editing_falloff", icon= "SMOOTHCURVE")
+            layout.prop_menu_enum(settings, "proportional_edit", icon= "PROP_CON")
+            layout.prop_menu_enum(settings, "proportional_edit_falloff", icon= "SMOOTHCURVE")
 
             # Cursor block
             layout.menu("VIEW3D_MT_CursorMenu", icon='CURSOR')
@@ -880,7 +880,7 @@ class VIEW3D_MT_SelectEditMenu(bpy.types.Menu):
 
         layout.operator("mesh.select_by_number_vertices", text="Triangles").type = 'TRIANGLES'
         layout.operator("mesh.select_by_number_vertices", text="Quads").type = 'QUADS'
-        if context.scene.tool_settings.mesh_selection_mode[2] == False:
+        if context.scene.tool_settings.mesh_select_mode[2] == False:
                 layout.operator("mesh.select_non_manifold", text="Non Manifold")
         layout.operator("mesh.select_by_number_vertices", text="Loose Verts/Edges").type = 'OTHER'
         layout.operator("mesh.select_similar", text="Similar")
@@ -1082,19 +1082,19 @@ class VIEW3D_MT_edit_TK(bpy.types.Menu):
         prop = layout.operator("wm.context_set_value",
             text="Select By Vertex", icon='VERTEXSEL')
         prop.value = "(True, False, False)"
-        prop.data_path = "tool_settings.mesh_selection_mode"
+        prop.data_path = "tool_settings.mesh_select_mode"
         layout.menu("VIEW3D_MT_edit_mesh_vertices", icon='VERTEXSEL')
 
         prop = layout.operator("wm.context_set_value",
             text="Select By Edge", icon='EDGESEL')
         prop.value = "(False, True, False)"
-        prop.data_path = "tool_settings.mesh_selection_mode"
+        prop.data_path = "tool_settings.mesh_select_mode"
         layout.menu("VIEW3D_MT_edit_mesh_edges", icon='EDGESEL')
 
         prop = layout.operator("wm.context_set_value",
             text="Select By Face", icon='FACESEL')
         prop.value = "(False, False, True)"
-        prop.data_path = "tool_settings.mesh_selection_mode"
+        prop.data_path = "tool_settings.mesh_select_mode"
         layout.menu("VIEW3D_MT_edit_mesh_faces", icon='FACESEL')
         layout.separator()
 
@@ -1366,7 +1366,7 @@ def edgeIntersect(context, operator):
     
     edges = [];
     mesh = obj.data
-    verts = mesh.verts
+    verts = mesh.vertices
 
     is_editmode = (obj.mode == 'EDIT')
     if is_editmode:
@@ -1383,7 +1383,7 @@ def edgeIntersect(context, operator):
         operator.report({'ERROR'}, "Operator requires exactly 2 edges to be selected.")
         return
         
-    line = LineLineIntersect(verts[edges[0].verts[0]].co, verts[edges[0].verts[1]].co, verts[edges[1].verts[0]].co, verts[edges[1].verts[1]].co)
+    line = LineLineIntersect(verts[edges[0].vertices[0]].co, verts[edges[0].vertices[1]].co, verts[edges[1].vertices[0]].co, verts[edges[1].vertices[1]].co)
 
     if (line == None):
         operator.report({'ERROR'}, "Selected edges are parallel.")

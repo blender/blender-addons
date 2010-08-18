@@ -64,7 +64,7 @@ def makeObjectIntoBoundBox(object, sizeDifference):
     bpy.ops.object.mode_set(mode='EDIT')
 
     mesh = object.data
-    verts = mesh.verts
+    verts = mesh.vertices
 
     #Set the max and min verts to the first vertex on the list
     maxVert = [verts[0].co[0], verts[0].co[1], verts[0].co[2]]

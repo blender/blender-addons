@@ -38,7 +38,7 @@ def create_cutter(context, crack_type, scale, roughness):
                 False, False, False, False,
                 False, False, False, False))
 
-        for v in context.scene.objects.active.data.verts:
+        for v in context.scene.objects.active.data.vertices:
             v.co[0] += 1
             v.co[0] *= scale
             v.co[1] *= scale
@@ -79,14 +79,14 @@ def create_cutter(context, crack_type, scale, roughness):
         bpy.ops.uv.smart_project(angle_limit=66, island_margin=0)
 
         bpy.ops.object.editmode_toggle()
-        for v in context.scene.objects.active.data.verts:
+        for v in context.scene.objects.active.data.vertices:
             v.co[0] += 1
             v.co[0] *= scale
             v.co[1] *= scale
             v.co[2] *= scale
 
         if crack_type == 'SPHERE_ROUGH':
-            for v in context.scene.objects.active.data.verts:
+            for v in context.scene.objects.active.data.vertices:
                 v.co[0] += roughness * scale * 0.2 * (random.random() - 0.5)
                 v.co[1] += roughness * scale * 0.1 * (random.random() - 0.5)
                 v.co[2] += roughness * scale * 0.1 * (random.random() - 0.5)
@@ -124,7 +124,7 @@ def getIslands(shard):
     fgroups = []
 
     vgi = []
-    for v in sm.verts:
+    for v in sm.vertices:
         vgi.append(-1)
 
     gindex = 0
@@ -137,10 +137,10 @@ def getIslands(shard):
             while len(gproc) > 0:
                 i = gproc.pop(0)
                 for f in sm.faces:
-                    #if i in f.verts:
-                    for v in f.verts:
+                    #if i in f.vertices:
+                    for v in f.vertices:
                         if v == i:
-                            for v1 in f.verts:
+                            for v1 in f.vertices:
                                 if vgi[v1] == -1:
                                     vgi[v1] = gindex
                                     vgroups[gindex].append(v1)
@@ -170,11 +170,11 @@ def getIslands(shard):
             bpy.ops.mesh.select_all(action='DESELECT')
             bpy.ops.object.editmode_toggle()
 
-            for x in range(len(sm.verts) - 1, -1, -1):
+            for x in range(len(sm.vertices) - 1, -1, -1):
                 if vgi[x] != gi:
                     #print('getIslands: selecting')
                     #print('getIslands: ' + str(x))
-                    a.data.verts[x].select = True
+                    a.data.vertices[x].select = True
 
             print(bpy.context.scene.objects.active.name)
 
@@ -212,7 +212,7 @@ def boolop(ob, cutter, op):
 
     nmesh = a.create_mesh(sce, apply_modifiers=True, settings='PREVIEW')
 
-    if len(nmesh.verts) > 0:
+    if len(nmesh.vertices) > 0:
         a.modifiers.remove(a.modifiers['Boolean'])
         bpy.ops.object.duplicate(linked=False, mode=1)
 

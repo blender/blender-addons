@@ -183,7 +183,7 @@ def pskimport(infile):
 		indata = unpack('3f',pskfile.read(12))
 		#print(indata[0],indata[1],indata[2])
 		verts.extend([(indata[0],indata[1],indata[2])])
-		#Tmsh.verts.append(NMesh.Vert(indata[0],indata[1],indata[2]))
+		#Tmsh.vertices.append(NMesh.Vert(indata[0],indata[1],indata[2]))
 		
 	#================================================================================================== 
 	# UV
@@ -486,9 +486,9 @@ def pskimport(infile):
 	#================================================================================================== 
 	print("vertex:",len(verts),"faces:",len(faces))
 	me_ob.add_geometry(len(verts), 0, int(len(faces)/4))
-	me_ob.verts.foreach_set("co", unpack_list(verts))
+	me_ob.vertices.foreach_set("co", unpack_list(verts))
 	
-	me_ob.faces.foreach_set("verts_raw", faces)
+	me_ob.faces.foreach_set("vertices_raw", faces)
 	me_ob.faces.foreach_set("smooth", [False] * len(me_ob.faces))
 	me_ob.update()
 	

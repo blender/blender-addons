@@ -1105,13 +1105,13 @@ def parseMesh (args, tokens):
 	if faces:
 		#x = me.from_pydata(verts, [], faces)
 		me.add_geometry(len(verts), 0, len(faces))
-		me.verts.foreach_set("co", unpackList(verts))
-		me.faces.foreach_set("verts_raw", unpackList(faces))
+		me.vertices.foreach_set("co", unpackList(verts))
+		me.faces.foreach_set("vertices_raw", unpackList(faces))
 	else:
 		#x = me.from_pydata(verts, edges, [])
 		me.add_geometry(len(verts), len(edges), 0)
-		me.verts.foreach_set("co", unpackList(verts))
-		me.edges.foreach_set("verts", unpackList(edges))
+		me.vertices.foreach_set("co", unpackList(verts))
+		me.edges.foreach_set("vertices", unpackList(edges))
 	#print(x)
 	me.update()
 	#print(me)

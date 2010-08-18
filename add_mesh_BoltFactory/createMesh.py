@@ -2035,8 +2035,8 @@ def Create_New_Mesh(props, context, align_matrix):
     mesh = bpy.data.meshes.new(sMeshName)
     
     mesh.add_geometry((len(verts)), 0, int(len(faces)))
-    mesh.verts.foreach_set("co", unpack_list(verts))
-    mesh.faces.foreach_set("verts_raw", unpack_face_list(faces))
+    mesh.vertices.foreach_set("co", unpack_list(verts))
+    mesh.faces.foreach_set("vertices_raw", unpack_face_list(faces))
 
 
     scene = context.scene
