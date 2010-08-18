@@ -102,7 +102,7 @@ def write_pov(filename, scene=None, info_callback=None):
 
             # 'phong 70.0 '
 
-            if material.raytrace_mirror.enabled:
+            if material.raytrace_mirror.use:
                 raytrace_mirror = material.raytrace_mirror
                 if raytrace_mirror.reflect_factor:
                     file.write('\treflection {\n')
@@ -224,10 +224,10 @@ def write_pov(filename, scene=None, info_callback=None):
                 if elem.type not in ('BALL', 'ELLIPSOID'):
                     continue # Not supported
 
-                loc = elem.location
+                loc = elem.co
 
                 stiffness = elem.stiffness
-                if elem.negative:
+                if elem.use_negative:
                     stiffness = - stiffness
 
                 if elem.type == 'BALL':
@@ -319,7 +319,7 @@ def write_pov(filename, scene=None, info_callback=None):
             for fi, f in enumerate(me.faces):
                 fv = faces_verts[fi]
                 # [-1] is a dummy index, use a list so we can modify in place
-                if f.smooth: # Use vertex normals
+                if f.use_smooth: # Use vertex normals
                     for v in fv:
                         key = verts_normals[v]
                         uniqueNormals[key] = [-1]
@@ -492,7 +492,7 @@ def write_pov(filename, scene=None, info_callback=None):
                     indicies = ((0, 1, 2),)
 
                 for i1, i2, i3 in indicies:
-                    if f.smooth:
+                    if f.use_smooth:
                         file.write(',\n\t\t<%d,%d,%d>' %\
                         (uniqueNormals[verts_normals[fv[i1]]][0],\
                          uniqueNormals[verts_normals[fv[i2]]][0],\

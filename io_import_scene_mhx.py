@@ -730,7 +730,7 @@ def parseDriverTarget(var, nTarget, rna, args, tokens):
 	targ.id = loadedData['Object'][args[0]]
 	for (key, val, sub) in tokens:
 		defaultKey(key, val, sub, 'targ', [], globals(), locals())
-	#print("Targ", targ, targ.id, targ.data_path, targ.id_type, targ.bone_target, targ.use_local_space_transforms)
+	#print("Targ", targ, targ.id, targ.data_path, targ.id_type, targ.bone_target, targ.use_local_space_transform)
 	return targ
 
 	
@@ -1180,14 +1180,14 @@ def parseFaces2(tokens, me):
 		if key == 'ft':
 			f = me.faces[n]
 			f.material_index = int(val[0])
-			f.smooth = int(val[1])
+			f.use_smooth = int(val[1])
 			n += 1
 		elif key == 'ftall':
 			mat = int(val[0])
 			smooth = int(val[1])
 			for f in me.faces:
 				f.material_index = mat
-				f.smooth = smooth
+				f.use_smooth = smooth
 	return
 
 
@@ -1718,7 +1718,7 @@ def parseLatticePoints(args, tokens, points):
 			v.y = y
 			v.z = z
 
-			v = points[n].deformed_co
+			v = points[n].co_deform
 			(x,y,z) = eval(val[1])
 			v.x = x
 			v.y = y

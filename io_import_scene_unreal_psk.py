@@ -489,7 +489,7 @@ def pskimport(infile):
 	me_ob.vertices.foreach_set("co", unpack_list(verts))
 	
 	me_ob.faces.foreach_set("vertices_raw", faces)
-	me_ob.faces.foreach_set("smooth", [False] * len(me_ob.faces))
+	me_ob.faces.foreach_set("use_smooth", [False] * len(me_ob.faces))
 	me_ob.update()
 	
 	#===================================================================================================

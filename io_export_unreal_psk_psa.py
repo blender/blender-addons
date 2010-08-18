@@ -1104,7 +1104,7 @@ def parse_animation(blender_scene, blender_armatures, psa_file):
 	cur_frame_index = 0
 	
 	#print(dir(bpy.data.actions))
-	#print(dir(bpy.context.scene.set))
+	#print(dir(bpy.context.scene.background_set))
 	
 	#list of armature objects
 	for arm in blender_armatures:

@@ -400,7 +400,7 @@ def WriteMeshNormals(Config, Mesh):
         if Config.CoordinateSystem == 1:
             Vertices = Vertices[::-1]
         for Vertex in [Mesh.vertices[Vertex] for Vertex in Vertices]:
-            if Face.smooth:
+            if Face.use_smooth:
                 Normal = Config.SystemMatrix * Vertex.normal
             else:
                 Normal = Config.SystemMatrix * Face.normal
