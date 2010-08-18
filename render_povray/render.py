@@ -626,7 +626,7 @@ def write_pov_ini(filename_ini, filename_pov, filename_image):
     file.write('Output_File_Type=T\n') # TGA, best progressive loading
     file.write('Output_Alpha=1\n')
 
-    if render.render_antialiasing:
+    if render.use_antialiasing:
         aa_mapping = {'5': 2, '8': 3, '11': 4, '16': 5} # method 1 assumed
         file.write('Antialias=1\n')
         file.write('Antialias_Depth=%d\n' % aa_mapping[render.antialiasing_samples])

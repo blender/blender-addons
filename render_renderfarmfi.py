@@ -731,8 +731,8 @@ class ORE_PrepareOp(bpy.types.Operator):
             print("An unsupported simulation was detected. Please check your settings and remove them")
             self.report({'WARNING'}, "An unsupported simulation was detected. Please check your settings and remove them")
             errors = True
-        rd.save_buffers = False
-        rd.free_image_textures = True
+        rd.use_save_buffers = False
+        rd.use_free_image_textures = True
         if rd.use_compositing:
             if hasCompositingErrors(sce.use_nodes, sce.nodetree, ore.parts):
                 print("Found disallowed nodes or problematic setup")
