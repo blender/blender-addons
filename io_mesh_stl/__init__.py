@@ -41,11 +41,10 @@ Issues:
 Import:
     - Does not handle the normal of the triangles
     - Does not handle endien
-
-Export:
-    - Does not do the object space transformation
-    - Export only one object (the selected one)
 """
+
+import itertools
+import os
 
 import bpy
 from bpy.props import *
@@ -70,17 +69,21 @@ class StlImporter(bpy.types.Operator):
     bl_idname = "import_mesh.stl"
     bl_label = "Import STL"
 
-    filepath = StringProperty(name="File Path",
+    files = CollectionProperty(name="File Path",
                           description="File path used for importing "
                                       "the STL file",
-                          maxlen=1024,
-                          default="")
+                          type=bpy.types.OperatorFileListElement)
+
+    directory = StringProperty()
 
     def execute(self, context):
-        objName = bpy.path.display_name(self.properties.filepath.split("\\")[-1].split("/")[-1])
-        tris, pts = stl_utils.read_stl(self.properties.filepath)
+        paths = (os.path.join(self.properties.directory, name.name) for name in self.properties.files)
 
-        blender_utils.create_and_link_mesh(objName, tris, pts)
+        for path in paths:
+            objName = bpy.path.display_name(path.split("\\")[-1].split("/")[-1])
+            tris, pts = stl_utils.read_stl(path)
+
+            blender_utils.create_and_link_mesh(objName, tris, pts)
 
         return {'FINISHED'}
 
@@ -118,10 +121,10 @@ class StlExporter(bpy.types.Operator):
                                    default=True)
 
     def execute(self, context):
-        ob = context.active_object
+        faces = itertools.chain.from_iterable(
+            blender_utils.faces_from_mesh(ob, self.properties.apply_modifiers)
+            for ob in context.selected_objects)
 
-        faces = blender_utils.faces_from_mesh(ob,
-                                              self.properties.apply_modifiers)
         stl_utils.write_stl(self.properties.filepath, faces, self.properties.ascii)
 
         return {'FINISHED'}
@@ -138,7 +141,6 @@ def menu_import(self, context):
 
 
 def menu_export(self, context):
-    import os
     default_path = os.path.splitext(bpy.data.filepath)[0] + ".stl"
     self.layout.operator(StlExporter.bl_idname,
                          text="Stl (.stl)").filepath = default_path
