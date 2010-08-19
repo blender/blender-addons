@@ -213,11 +213,11 @@ def mat_to_texface():
                     #check that material had an image!
                     if images[f.material_index] != None:
                         uvtex[f.index].image = images[f.material_index]
-                        uvtex[f.index].tex =True
+                        uvtex[f.index].use_texture = True
                     else:
-                        uvtex[f.index].tex =False
-    
-        me.update
+                        uvtex[f.index].use_texture = False
+
+        me.update()
         
     
     if editmode:

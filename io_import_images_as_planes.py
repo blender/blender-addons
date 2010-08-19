@@ -330,9 +330,9 @@ def main(filePath, options, mapping, dimension):
 
             # Put Image into  UVTextureLayer
             plane.data.uv_textures[0].data[0].image = img
-            plane.data.uv_textures[0].data[0].tex = True
-            plane.data.uv_textures[0].data[0].transp = 'ALPHA'
-            plane.data.uv_textures[0].data[0].twoside = True
+            plane.data.uv_textures[0].data[0].use_texture = True
+            plane.data.uv_textures[0].data[0].blend_mode = 'ALPHA'
+            plane.data.uv_textures[0].data[0].use_twoside = True
 
             plane.select = True
             scene.objects.active = plane
@@ -359,9 +359,9 @@ def main(filePath, options, mapping, dimension):
 
         # Put image into UVTextureLayer
         plane.data.uv_textures[0].data[0].image = img
-        plane.data.uv_textures[0].data[0].tex = True
-        plane.data.uv_textures[0].data[0].transp = 'ALPHA'
-        plane.data.uv_textures[0].data[0].twoside = True
+        plane.data.uv_textures[0].data[0].use_texture = True
+        plane.data.uv_textures[0].data[0].blend_mode = 'ALPHA'
+        plane.data.uv_textures[0].data[0].use_twoside = True
 
         plane.select = True
         scene.objects.active = plane
