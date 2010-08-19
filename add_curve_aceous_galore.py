@@ -637,12 +637,12 @@ def createCurve(vertArray, props, align_matrix):
     else:
         newSpline.points.add(int(len(vertArray)*0.25 - 1))
         newSpline.points.foreach_set('co', vertArray)
-        newSpline.endpoint_u = True
+        newSpline.use_endpoint_u = True
 
     # set curveOptions
     newCurve.dimensions = props.shape
-    newSpline.cyclic_u = props.cyclic_u
-    newSpline.endpoint_u = props.endp_u
+    newSpline.use_cyclic_u = props.use_cyclic_u
+    newSpline.use_endpoint_u = props.endp_u
     newSpline.order_u = props.order_u
 
     # create object with newCurve
@@ -783,7 +783,7 @@ class Curveaceous_galore(bpy.types.Operator):
     cyclic_u = BoolProperty(name="Cyclic",
                 default=True,
                 description="make curve closed")
-    endp_u = BoolProperty(name="endpoint_u",
+    endp_u = BoolProperty(name="use_endpoint_u",
                 default=True,
                 description="stretch to endpoints")
     order_u = IntProperty(name="order_u",
@@ -1048,18 +1048,18 @@ class Curveaceous_galore(bpy.types.Operator):
         box = layout.box()
         if props.outputType == 'NURBS':
             box.row().prop(props, 'shape', expand=True)
-            #box.prop(props, 'cyclic_u')
+            #box.prop(props, 'use_cyclic_u')
             #box.prop(props, 'endp_u')
             box.prop(props, 'order_u')
 
         if props.outputType == 'POLY':
             box.row().prop(props, 'shape', expand=True)
-            #box.prop(props, 'cyclic_u')
+            #box.prop(props, 'use_cyclic_u')
 
         if props.outputType == 'BEZIER':
             box.row().prop(props, 'shape', expand=True)
             box.row().prop(props, 'handleType', expand=True)
-            #box.prop(props, 'cyclic_u')
+            #box.prop(props, 'use_cyclic_u')
 
 
     ##### POLL #####
@@ -1081,9 +1081,9 @@ class Curveaceous_galore(bpy.types.Operator):
             #props.shape = '2D'     # someone decide if we want this
 
         if props.GalloreType in ['Helix']:
-            props.cyclic_u = False
+            props.use_cyclic_u = False
         else:
-            props.cyclic_u = True
+            props.use_cyclic_u = True
 
 
         # main function

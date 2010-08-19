@@ -280,7 +280,7 @@ def main(context, obj, options):
                 newSpline.order_u = degreeOut
 
             # splineoptions
-            newSpline.endpoint_u = spline.endpoint_u
+            newSpline.use_endpoint_u = spline.use_endpoint_u
 
     # create ne object and put into scene
     newCurve = bpy.data.objects.new("simple_"+obj.name, curve)

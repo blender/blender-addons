@@ -78,12 +78,12 @@ def createCurve(vertArray, props, align_matrix):
     # create spline from vertarray
     newSpline.points.add(int(len(vertArray)*0.25 - 1))
     newSpline.points.foreach_set('co', vertArray)
-    newSpline.endpoint_u = True
+    newSpline.use_endpoint_u = True
 
     # Curve settings
     newCurve.dimensions = '3D'
-    newSpline.cyclic_u = True
-    newSpline.endpoint_u = True
+    newSpline.use_cyclic_u = True
+    newSpline.use_endpoint_u = True
     newSpline.order_u = 4
 
     if props.geo_surf:

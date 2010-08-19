@@ -43,7 +43,7 @@ def setupshards(context):
 
         g.physics_type = 'RIGID_BODY'
         g.use_collision_bounds = 1
-        g.collision_bounds = 'CONVEX_HULL'
+        g.collision_bounds_type = 'CONVEX_HULL'
         g.rotation_damping = 0.9
 
         sizex, sizey, sizez = getsizefrommesh(ob)
