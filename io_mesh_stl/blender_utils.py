@@ -31,6 +31,9 @@ def faces_from_mesh(ob, apply_modifier=False, triangulate=True):
         Split the quad into two triangles
     '''
 
+    if ob.type not in ('MESH', 'CURVE', 'SURFACE', 'META'):
+        return ()
+
     # get the modifiers
     mesh = ob.create_mesh(bpy.context.scene,
                           True, "PREVIEW") if apply_modifier else ob.data
