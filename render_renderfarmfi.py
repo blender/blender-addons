@@ -717,11 +717,6 @@ class ORE_PrepareOp(bpy.types.Operator):
             self.report({'WARNING'}, "Renderfarm.fi always uses PNG for output. Changing to PNG.")
             errors = True
         rd.file_format = 'PNG'
-        if rd.color_mode != 'RGBA':
-            print("Color mode must be set to RGBA. Changing to RGBA.")
-            self.report({'WARNING'}, "Color mode must be set to RGBA. Changing to RGBA.")
-            errors = True
-        rd.color_mode = 'RGBA'
         if (rd.use_sss == True or hasSSSMaterial()) and ore.parts > 1:
             print("Subsurface Scattering is not supported when rendering with parts > 1. Disabling")
             self.report({'WARNING'}, "Subsurface Scattering is not supported when rendering with parts > 1. Disabling")
