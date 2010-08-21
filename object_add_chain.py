@@ -35,7 +35,7 @@ def Add_Chain():
 
     ##Adds Empty to scene
     bpy.ops.object.add(type='EMPTY', view_align=False, enter_editmode=False, location=(0, 0, 0), 
-rotation=(0, 0, 0), layer=(True, False, False, False, False, False,
+rotation=(0, 0, 0), layers=(True, False, False, False, False, False,
 False, False, False, False, False, False, False, False, False, False, False, False, False, 
 False))
 
@@ -48,7 +48,7 @@ False))
 
     ##Adds Curve Path to scene
     bpy.ops.curve.primitive_nurbs_path_add( view_align=False, enter_editmode=False, location=(0, 0, 0), 
-rotation=(0, 0, 0), layer=(True, False, False, False, False, False, 
+rotation=(0, 0, 0), layers=(True, False, False, False, False, False, 
 False, False, False, False, False, False, False, False, False, False, False, False, False, 
 False))
 
@@ -87,7 +87,7 @@ abso_minor_rad=0.5)
     ##Translate curve object
     bpy.ops.transform.translate(value=(2, 0, 0), constraint_axis=(True, False, False), 
 constraint_orientation='GLOBAL', mirror=False, proportional='DISABLED', 
-proportional_editing_falloff='SMOOTH', proportional_size=1, snap=False, 
+proportional_edit_falloff='SMOOTH', proportional_size=1, snap=False, 
 snap_target='CLOSEST', snap_point=(0, 0, 0), snap_align=False, snap_normal=(0, 0, 0), 
 release_confirm=False)
 
