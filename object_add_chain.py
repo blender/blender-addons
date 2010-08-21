@@ -104,8 +104,8 @@ release_confirm=False)
     array.fit_type = ('FIT_CURVE')
     array.curve = curv
     array.offset_object = emp
-    array.add_offset_object = True
-    array.relative_offset_displacement = [ 0.549, 0, 0 ]
+    array.use_object_offset = True
+    array.relative_offset_displace = [ 0.549, 0, 0 ]
 
     ##Add curve modifier
     bpy.ops.object.modifier_add(type='CURVE')

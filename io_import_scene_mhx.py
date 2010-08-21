@@ -608,7 +608,7 @@ def parseActionFCurve(act, ob, args, tokens):
 		if key == 'kp':
 			try:
 				pt = fcu.keyframe_points[n]
-				pt.interpolation = 'LINEAR'
+				pt.use_interpolation = 'LINEAR'
 				pt = parseKeyFramePoint(pt, val, sub)
 				n += 1
 			except:
@@ -759,7 +759,7 @@ def parseMaterial(args, tokens):
 		elif key == 'Strand':
 			parseStrand(mat, val, sub)
 		else:
-			exclude = ['specular_intensity', 'tangent_shading']
+			exclude = ['specular_intensity', 'use_tangent_shading']
 			defaultKey(key, val, sub, 'mat', [], globals(), locals())
 	#print("Done ", mat)
 	
@@ -1549,9 +1549,9 @@ def parsePoseBone(pbones, ob, args, tokens):
 			exec(expr)
 			print("show_alive")
 		elif key == 'ik_dof':
-			parseArray(pb, ["ik_dof_x", "ik_dof_y", "ik_dof_z"], val)
+			parseArray(pb, ["lock_ik_x", "lock_ik_y", "lock_ik_z"], val)
 		elif key == 'ik_limit':
-			parseArray(pb, ["ik_limit_x", "ik_limit_y", "ik_limit_z"], val)
+			parseArray(pb, ["use_ik_limit_x", "use_ik_limit_y", "use_ik_limit_z"], val)
 		elif key == 'ik_max':
 			parseArray(pb, ["ik_max_x", "ik_max_y", "ik_max_z"], val)
 		elif key == 'ik_min':
@@ -1591,9 +1591,9 @@ def parseConstraint(constraints, args, tokens):
 		elif key == 'use':
 			parseArray(cns, ["use_x", "use_y", "use_z"], val)
 		elif key == 'pos_lock':
-			parseArray(cns, ["pos_lock_x", "pos_lock_y", "pos_lock_z"], val)
+			parseArray(cns, ["lock_location_x", "lock_location_y", "lock_location_z"], val)
 		elif key == 'rot_lock':
-			parseArray(cns, ["rot_lock_x", "rot_lock_y", "rot_lock_z"], val)
+			parseArray(cns, ["lock_rotation_x", "lock_rotation_y", "lock_rotation_z"], val)
 		else:
 			defaultKey(key, val,  sub, "cns", [], globals(), locals())
 	#print("cns %s done" % cns.name)

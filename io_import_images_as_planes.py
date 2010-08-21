@@ -262,8 +262,8 @@ def getTexture(path, img):
 def mapget(self):
     """Custom property of the images_as_planes addon."""
     mapping = []
-    mapping.append(self.shadeless)
-    mapping.append(self.transparency)
+    mapping.append(self.use_shadeless)
+    mapping.append(self.use_transparency)
     mapping.append(self.alpha)
     mapping.append(self.specular_alpha)
     mapping.append(self.transparency_method)
@@ -271,7 +271,7 @@ def mapget(self):
     if (self.texture_slots[0]
         and self.texture_slots[0].texture.type == 'IMAGE'
         and self.texture_slots[0].texture.image):
-        mapping.append(self.texture_slots[0].texture.image.premultiply)
+        mapping.append(self.texture_slots[0].texture.image.use_premultiply)
 
     else:
         mapping.append("no image")
@@ -281,8 +281,8 @@ def mapget(self):
 
 # Custom material property - set
 def mapset(self, value):
-    self.shadeless = value[0]
-    self.transparency = value[1]
+    self.use_shadeless = value[0]
+    self.use_transparency = value[1]
     self.alpha = float(value[2])
     self.specular_alpha = float(value[3])
     self.transparency_method = value[4]
@@ -290,9 +290,9 @@ def mapset(self, value):
     if (self.texture_slots[0]
         and self.texture_slots[0].texture.type == 'IMAGE'
         and self.texture_slots[0].texture.image):
-        self.texture_slots[0].texture.image.premultiply = value[5]
+        self.texture_slots[0].texture.image.use_premultiply = value[5]
     if self.alpha:
-        self.texture_slots[0].map_alpha=True
+        self.texture_slots[0].use_map_alpha=True
 
 
 bpy.types.Material.mapping = property(mapget, mapset)
@@ -330,8 +330,8 @@ def main(filePath, options, mapping, dimension):
 
             # Put Image into  UVTextureLayer
             plane.data.uv_textures[0].data[0].image = img
-            plane.data.uv_textures[0].data[0].use_texture = True
-            plane.data.uv_textures[0].data[0].blend_mode = 'ALPHA'
+            plane.data.uv_textures[0].data[0].use_image = True
+            plane.data.uv_textures[0].data[0].blend_type = 'ALPHA'
             plane.data.uv_textures[0].data[0].use_twoside = True
 
             plane.select = True
@@ -359,8 +359,8 @@ def main(filePath, options, mapping, dimension):
 
         # Put image into UVTextureLayer
         plane.data.uv_textures[0].data[0].image = img
-        plane.data.uv_textures[0].data[0].use_texture = True
-        plane.data.uv_textures[0].data[0].blend_mode = 'ALPHA'
+        plane.data.uv_textures[0].data[0].use_image = True
+        plane.data.uv_textures[0].data[0].blend_type = 'ALPHA'
         plane.data.uv_textures[0].data[0].use_twoside = True
 
         plane.select = True
@@ -448,9 +448,9 @@ class ImportImagesAsPlanes(bpy.types.Operator):
         box.prop(props, 'extension', icon='FILE_IMAGE')
         box = layout.box()
         box.label('Material mappings:', icon='MATERIAL')
-        box.prop(props, 'shadeless')
+        box.prop(props, 'use_shadeless')
         box.prop(props, 'transp')
-        box.prop(props, 'premultiply')
+        box.prop(props, 'use_premultiply')
         box.prop(props, 'transp_method', expand=True)
         box = layout.box()
         box.label('Plane dimensions:', icon='ARROW_LEFTRIGHT')
@@ -475,9 +475,9 @@ class ImportImagesAsPlanes(bpy.types.Operator):
         if transp:
             alphavalue = 0
 
-        shadeless = self.properties.shadeless
+        shadeless = self.properties.use_shadeless
         transp_method = self.properties.transp_method
-        premultiply = self.properties.premultiply
+        premultiply = self.properties.use_premultiply
 
         mapping = ([shadeless,
                     transp,

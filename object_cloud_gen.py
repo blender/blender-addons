@@ -376,7 +376,7 @@ class GenerateCloud(bpy.types.Operator):
            # Select all of the left over boxes so people can immediately
            # press generate again if they want.
            for eachMember in definitionObjects:
-               eachMember.max_draw_type = 'SOLID'
+               eachMember.draw_type = 'SOLID'
                eachMember.select = True
                #scene.objects.active = eachMember
 
@@ -397,7 +397,7 @@ class GenerateCloud(bpy.types.Operator):
                     "CloudBounds",
                     selectedObjects[0])
 
-            bounds.max_draw_type = 'BOUNDS'
+            bounds.draw_type = 'BOUNDS'
             bounds.hide_render = False
 
             # Just add a Definition Property designating this
@@ -421,14 +421,14 @@ class GenerateCloud(bpy.types.Operator):
             for selObj in selectedObjects:
                 selObj["CloudMember"] = "DefinitioinObj"
                 selObj.name = "DefinitioinObj"
-                selObj.max_draw_type = 'WIRE'
+                selObj.draw_type = 'WIRE'
                 selObj.hide_render = True
                 makeParent(bounds, selObj, scene)
 
             # Do the same to the 1. object since it is no longer in list.
             firstObject["CloudMember"] = "DefinitioinObj"
             firstObject.name = "DefinitioinObj"
-            firstObject.max_draw_type = 'WIRE'
+            firstObject.draw_type = 'WIRE'
             firstObject.hide_render = True
             makeParent(bounds, firstObject, scene)
 
@@ -436,7 +436,7 @@ class GenerateCloud(bpy.types.Operator):
             # Create a new object cloud.
             cloud = addNewObject(scene, "CloudMesh", bounds)
             cloud["CloudMember"] = "CreatedObj"
-            cloud.max_draw_type = 'WIRE'
+            cloud.draw_type = 'WIRE'
             cloud.hide_render = True
 
             makeParent(bounds, cloud, scene)
@@ -466,8 +466,8 @@ class GenerateCloud(bpy.types.Operator):
             cloudParticles.settings.frame_start = 0
             cloudParticles.settings.frame_end = 0
             cloudParticles.settings.emit_from = 'VOLUME'
-            cloudParticles.settings.draw_as = 'DOT'
-            cloudParticles.settings.ren_as = 'NONE'
+            cloudParticles.settings.draw_method = 'DOT'
+            cloudParticles.settings.render_type = 'NONE'
             cloudParticles.settings.normal_factor = 0
             cloudParticles.settings.distribution = 'RAND'
             cloudParticles.settings.physics_type = 'NO'
@@ -502,7 +502,7 @@ class GenerateCloud(bpy.types.Operator):
             mVolume.density_scale = densityScale
             mVolume.transmission_color = [3, 3, 3]
             mVolume.step_size = 0.1
-            mVolume.light_cache = True
+            mVolume.use_light_cache = True
             mVolume.cache_resolution = 75
 
             # Add a texture
@@ -511,7 +511,7 @@ class GenerateCloud(bpy.types.Operator):
             cloudMaterial.add_texture(cloudtex, 'ORCO')
             cloudtex.type = 'CLOUDS'
             cloudtex.noise_type = 'HARD_NOISE'
-            cloudtex.noise_size = 2
+            cloudtex.noise_scale = 2
 
             # Add a force field to the points.
             cloudField = bounds.field
@@ -532,17 +532,17 @@ class GenerateCloud(bpy.types.Operator):
             cloudPointDensity.type = 'POINT_DENSITY'
             cloudMaterial.add_texture(cloudPointDensity, 'ORCO')
             pDensity = vMaterialTextureSlots[1].texture
-            vMaterialTextureSlots[1].map_density = True
-            vMaterialTextureSlots[1].rgb_to_intensity = True
-            vMaterialTextureSlots[1].texture_coordinates = 'GLOBAL'
-            pDensity.point_density.vertices_cache = 'WORLD_SPACE'
-            pDensity.point_density.turbulence = True
+            vMaterialTextureSlots[1].use_map_density = True
+            vMaterialTextureSlots[1].use_rgb_to_intensity = True
+            vMaterialTextureSlots[1].texture_coords = 'GLOBAL'
+            pDensity.point_density.vertex_cache_space = 'WORLD_SPACE'
+            pDensity.point_density.use_turbulence = True
             pDensity.point_density.noise_basis = 'VORONOI_F2'
             pDensity.point_density.turbulence_depth = 3
 
             pDensity.use_color_ramp = True
             pRamp = pDensity.color_ramp
-            pRamp.interpolation = 'LINEAR'
+            pRamp.use_interpolation = 'LINEAR'
             pRampElements = pRamp.elements
             #pRampElements[1].position = .9
             #pRampElements[1].color = [.18,.18,.18,.8]
@@ -572,7 +572,7 @@ class GenerateCloud(bpy.types.Operator):
                 # Create a new object cloudPnts
                 cloudPnts = addNewObject(scene, "CloudPoints", bounds)
                 cloudPnts["CloudMember"] = "CreatedObj"
-                cloudPnts.max_draw_type = 'WIRE'
+                cloudPnts.draw_type = 'WIRE'
                 cloudPnts.hide_render = True
 
                 makeParent(bounds, cloudPnts, scene)
@@ -605,7 +605,7 @@ class GenerateCloud(bpy.types.Operator):
                 cldPntsModifiers = cloudPnts.modifiers
                 cldPntsModifiers[0].name = "CloudPnts"
                 cldPntsModifiers[0].texture = cloudtex
-                cldPntsModifiers[0].texture_coordinates = 'OBJECT'
+                cldPntsModifiers[0].texture_coords = 'OBJECT'
                 cldPntsModifiers[0].texture_coordinate_object = cloud
                 cldPntsModifiers[0].strength = -1.4
 
@@ -638,7 +638,7 @@ class GenerateCloud(bpy.types.Operator):
                 mVolume.density_scale = 2.22
                 pDensity.point_density.turbulence_depth = 10
                 pDensity.point_density.turbulence_strength = 6.3
-                pDensity.point_density.turbulence_size = 2.9
+                pDensity.point_density.turbulence_scale = 2.9
                 pRampElements[1].position = .606
                 pDensity.point_density.radius = pDensity.point_density.radius + .1
 

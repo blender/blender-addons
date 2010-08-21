@@ -188,7 +188,7 @@ def write_pov(filename, scene=None, info_callback=None):
                     samples_y = lamp.shadow_ray_samples_y
 
                 file.write('\tarea_light <%d,0,0>,<0,0,%d> %d, %d\n' % (size_x, size_y, samples_x, samples_y))
-                if lamp.shadow_ray_sampling_method == 'CONSTANT_JITTERED':
+                if lamp.shadow_ray_sample_method == 'CONSTANT_JITTERED':
                     if lamp.jitter:
                         file.write('\tjitter\n')
                 else:
@@ -246,7 +246,7 @@ def write_pov(filename, scene=None, info_callback=None):
                 if material:
                     diffuse_color = material.diffuse_color
 
-                    if material.transparency and material.transparency_method == 'RAYTRACE':
+                    if material.use_transparency and material.transparency_method == 'RAYTRACE':
                         trans = 1.0 - material.raytrace_transparency.filter
                     else:
                         trans = 0.0
@@ -377,7 +377,7 @@ def write_pov(filename, scene=None, info_callback=None):
                     material_index = f.material_index
                     material = me_materials[material_index]
 
-                    if material and material.vertex_color_paint:
+                    if material and material.use_vertex_color_paint:
 
                         col = vcol_layer[fi]
 
@@ -417,7 +417,7 @@ def write_pov(filename, scene=None, info_callback=None):
                     material = me_materials[col[3]]
                     material_finish = materialNames[material.name]
 
-                    if material.transparency and material.transparency_method == 'RAYTRACE':
+                    if material.use_transparency and material.transparency_method == 'RAYTRACE':
                         trans = 1.0 - material.raytrace_transparency.filter
                     else:
                         trans = 0.0
@@ -461,7 +461,7 @@ def write_pov(filename, scene=None, info_callback=None):
                 else:
                     material = me_materials[material_index]
                     for i1, i2, i3 in indicies:
-                        if me.vertex_colors and material.vertex_color_paint:
+                        if me.vertex_colors and material.use_vertex_color_paint:
                             # Colour per vertex - vertex colour
 
                             col1 = cols[i1]
