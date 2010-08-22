@@ -278,7 +278,7 @@ def write_pov(filename, scene=None, info_callback=None):
 
             me = ob.create_mesh(scene, True, 'RENDER')
 
-            if not me:
+            if not me or not me.faces:
                 continue
 
             if info_callback:
@@ -299,7 +299,7 @@ def write_pov(filename, scene=None, info_callback=None):
             except:
                 vcol_layer = None
 
-            faces_verts = [f.vertices for f in me.faces]
+            faces_verts = [f.vertices[:] for f in me.faces]
             faces_normals = [tuple(f.normal) for f in me.faces]
             verts_normals = [tuple(v.normal) for v in me.vertices]
 
@@ -539,7 +539,7 @@ def write_pov(filename, scene=None, info_callback=None):
         if not world:
             return
 
-        mist = world.mist
+        mist = world.mist_settings
 
         if mist.use_mist:
             file.write('fog {\n')
