@@ -16,6 +16,7 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
+
 import os  #remove this
 import bpy
 
@@ -576,7 +577,7 @@ def Create_Pan_Head(HOLE_DIA,HEAD_DIA,SHANK_DIA,HEIGHT,RAD1,RAD2,FACE_OFFSET):
     sVerts,sFaces = SpinDup(verts,faces,360,DIV,'z')
     sVerts.extend(verts)        #add the start verts to the Spin verts to complete the loop
     
-    faces.extend(Build_Face_List_Quads(FaceStart,Row-1,DIV,1))
+    faces.extend(Build_Face_List_Quads(FaceStart,Row-1,DIV))
 
     Global_Head_Height = HEIGHT ;
 
@@ -644,9 +645,57 @@ def Create_Dome_Head(HOLE_DIA,HEAD_DIA,SHANK_DIA,HEIGHT,RAD1,RAD2,FACE_OFFSET):
     sVerts,sFaces = SpinDup(verts,faces,360,DIV,'z')
     sVerts.extend(verts)        #add the start verts to the Spin verts to complete the loop
     
-    faces.extend(Build_Face_List_Quads(FaceStart,Row-1,DIV,1))
+    faces.extend(Build_Face_List_Quads(FaceStart,Row-1,DIV))
 
     return sVerts,faces,Dome_Height
+
+
+
+def Create_CounterSink_Head(HOLE_DIA,HEAD_DIA,SHANK_DIA,HEIGHT,RAD1):
+    DIV = 36
+    
+    HOLE_RADIUS = HOLE_DIA * 0.5
+    HEAD_RADIUS = HEAD_DIA * 0.5
+    SHANK_RADIUS = SHANK_DIA * 0.5
+    
+    
+    verts = []
+    faces = []
+    Row = 0
+    BEVEL = HEIGHT * 0.01
+
+
+
+#    HEAD_RADIUS = (HEIGHT/tan(radians(60))) + SHANK_RADIUS
+    HEIGHT = tan(radians(60)) * (HEAD_RADIUS - SHANK_RADIUS)
+    #print (RAD1)
+    
+    FaceStart = len(verts)
+
+    verts.append([HOLE_RADIUS,0.0,0.0])
+    Row += 1
+
+    #rad
+    
+    for i in range(0,100,10):
+        x = sin(radians(i))*RAD1
+        z = cos(radians(i))*RAD1
+        verts.append([(HEAD_RADIUS-RAD1)+x,0.0,(0.0-RAD1)+z])
+        Row += 1
+    
+
+    verts.append([SHANK_RADIUS,0.0,0.0-HEIGHT])
+    Row += 1
+
+
+    sVerts,sFaces = SpinDup(verts,faces,360,DIV,'z')
+    sVerts.extend(verts)        #add the start verts to the Spin verts to complete the loop
+    
+
+    faces.extend(Build_Face_List_Quads(FaceStart,Row-1,DIV,1))
+    
+    return sVerts,faces,HEIGHT
+
 
 
 
@@ -696,10 +745,9 @@ def Create_Cap_Head(HOLE_DIA,HEAD_DIA,SHANK_DIA,HEIGHT,RAD1,RAD2):
     sVerts.extend(verts)        #add the start verts to the Spin verts to complete the loop
     
 
-    faces.extend(Build_Face_List_Quads(FaceStart,Row-1,DIV,1))
+    faces.extend(Build_Face_List_Quads(FaceStart,Row-1,DIV))
     
     return sVerts,faces,HEIGHT+RAD2
-
 
 
 def Create_Hex_Head(FLAT,HOLE_DIA,SHANK_DIA,HEIGHT):
@@ -1599,7 +1647,7 @@ def add_Nylon_Head(OUTSIDE_RADIUS,Z_LOCATION = 0):
     sVerts.extend(verts)        #add the start verts to the Spin verts to complete the loop
     
     faces.extend(Build_Face_List_Quads(FaceStart,Row-1,DIV))
-    
+
     return Move_Verts_Up_Z(sVerts,0),faces,Lowest_Z_Vert
 
 
@@ -1652,7 +1700,7 @@ def add_Nylon_Part(OUTSIDE_RADIUS,Z_LOCATION = 0):
     sVerts,sFaces = SpinDup(verts,faces,360,DIV,'z')
     sVerts.extend(verts)  #add the start verts to the Spin verts to complete the loop
     
-    faces.extend(Build_Face_List_Quads(FaceStart,Row-1,DIV))
+    faces.extend(Build_Face_List_Quads(FaceStart,Row-1,DIV,1))
 
     return sVerts,faces,0 - Lowest_Z_Vert
 
@@ -1989,6 +2037,9 @@ def Bolt_Mesh(props, context):
     elif props.bf_Head_Type == 'bf_Head_Pan':  
         Head_Verts,Head_Faces,Head_Height = Create_Pan_Head(Bit_Dia,props.bf_Pan_Head_Dia,props.bf_Shank_Dia,props.bf_Hex_Head_Height,1,1,0)
 
+    elif props.bf_Head_Type == 'bf_Head_CounterSink':  
+        Head_Verts,Head_Faces,Head_Height = Create_CounterSink_Head(Bit_Dia,props.bf_CounterSink_Head_Dia,props.bf_Shank_Dia,props.bf_CounterSink_Head_Dia,props.bf_CounterSink_Head_Dia*(0.09/6.31))
+#Head_Verts,Head_Faces,Head_Height = Create_CounterSink_Head(Bit_Dia,props.bf_CounterSink_Head_Dia,props.bf_Shank_Dia,props.bf_CounterSink_Head_Dia,props.bf_CounterSink_Head_Dia*(1.0/19.0))
 
     Face_Start = len(verts)
     verts.extend(Move_Verts_Up_Z(Bit_Verts,Head_Height))
@@ -2055,3 +2106,4 @@ def Create_New_Mesh(props, context, align_matrix):
     #print("Created_Object")
     return
     
+

@@ -59,11 +59,12 @@ class add_mesh_bolt(bpy.types.Operator):
             description='Choose the type off model you would like',
             items = Model_Type_List, default = 'bf_Model_Bolt')
 
-    #Head Types
+    #Head Types 
     Model_Type_List = [('bf_Head_Hex','HEX','Hex Head'),
                         ('bf_Head_Cap','CAP','Cap Head'),
                         ('bf_Head_Dome','DOME','Dome Head'),
-                        ('bf_Head_Pan','PAN','Pan Head')]
+                        ('bf_Head_Pan','PAN','Pan Head'),
+			('bf_Head_CounterSink','COUNTER SINK','Counter Sink Head')]
     bf_Head_Type = EnumProperty( attr='bf_Head_Type',
             name='Head',
             description='Choose the type off Head you would like',
@@ -122,6 +123,11 @@ class add_mesh_bolt(bpy.types.Operator):
             name='Flat Dist', default = 5.5,
             min = 0, soft_min = 0, max = MAX_INPUT_NUMBER,
             description='Flat Distance of the Hex Head')
+
+    bf_CounterSink_Head_Dia = FloatProperty( attr='bf_CounterSink_Head_Dia',
+            name='Head Dia', default = 5.5,
+            min = 0, soft_min = 0, max = MAX_INPUT_NUMBER,
+            description='Diameter of the Counter Sink Head')
 
     bf_Cap_Head_Height = FloatProperty( attr='bf_Cap_Head_Height',
             name='Head Height', default = 5.5,
@@ -210,12 +216,20 @@ class add_mesh_bolt(bpy.types.Operator):
         col.prop(props, 'bf_Model_Type')
         col.prop(props, 'bf_presets')
         col.separator()
-        #Shank
+
+        #Bit
         if props.bf_Model_Type == 'bf_Model_Bolt':
-            col.label(text='Shank')
-            col.prop(props, 'bf_Shank_Length')
-            col.prop(props, 'bf_Shank_Dia')
+            col.prop(props, 'bf_Bit_Type')
+            if props.bf_Bit_Type == 'bf_Bit_None':
+                DoNothing = 1;
+            elif props.bf_Bit_Type == 'bf_Bit_Allen':
+                 col.prop(props,'bf_Allen_Bit_Depth')
+                 col.prop(props,'bf_Allen_Bit_Flat_Distance')
+            elif props.bf_Bit_Type == 'bf_Bit_Philips':
+                col.prop(props,'bf_Phillips_Bit_Depth')
+                col.prop(props,'bf_Philips_Bit_Dia')
             col.separator()
+
         #Head
         if props.bf_Model_Type == 'bf_Model_Bolt':
             col.prop(props, 'bf_Head_Type')
@@ -229,19 +243,20 @@ class add_mesh_bolt(bpy.types.Operator):
                 col.prop(props,'bf_Dome_Head_Dia')
             elif props.bf_Head_Type == 'bf_Head_Pan':
                 col.prop(props,'bf_Pan_Head_Dia')
+            elif props.bf_Head_Type == 'bf_Head_CounterSink':
+                col.prop(props,'bf_CounterSink_Head_Dia')
             col.separator()
-        #Bit
+        #Shank
         if props.bf_Model_Type == 'bf_Model_Bolt':
-            col.prop(props, 'bf_Bit_Type')
-            if props.bf_Bit_Type == 'bf_Bit_None':
-                DoNothing = 1;
-            elif props.bf_Bit_Type == 'bf_Bit_Allen':
-                 col.prop(props,'bf_Allen_Bit_Depth')
-                 col.prop(props,'bf_Allen_Bit_Flat_Distance')
-            elif props.bf_Bit_Type == 'bf_Bit_Philips':
-                col.prop(props,'bf_Phillips_Bit_Depth')
-                col.prop(props,'bf_Philips_Bit_Dia')
+            col.label(text='Shank')
+            col.prop(props, 'bf_Shank_Length')
+            col.prop(props, 'bf_Shank_Dia')
             col.separator()
+        #Nut
+        if props.bf_Model_Type == 'bf_Model_Nut':
+            col.prop(props, 'bf_Nut_Type')
+            col.prop(props,'bf_Hex_Nut_Height')
+            col.prop(props,'bf_Hex_Nut_Flat_Distance')
         #Thread
         col.label(text='Thread')
         if props.bf_Model_Type == 'bf_Model_Bolt':
@@ -251,11 +266,7 @@ class add_mesh_bolt(bpy.types.Operator):
         col.prop(props,'bf_Pitch')
         col.prop(props,'bf_Crest_Percent')
         col.prop(props,'bf_Root_Percent')
-        #Nut
-        if props.bf_Model_Type == 'bf_Model_Nut':
-            col.prop(props, 'bf_Nut_Type')
-            col.prop(props,'bf_Hex_Nut_Height')
-            col.prop(props,'bf_Hex_Nut_Flat_Distance')
+
 
 
     ##### POLL #####
@@ -272,13 +283,14 @@ class add_mesh_bolt(bpy.types.Operator):
         if not self.last_preset or props.bf_presets != self.last_preset:
             #print('setting Preset', props.bf_presets)
             setProps(props, props.bf_presets, self.presetsPath)
+            props.bf_Phillips_Bit_Depth = float(Get_Phillips_Bit_Height(props.bf_Philips_Bit_Dia))
 
             self.last_preset = props.bf_presets
 
 
-        props.bf_Phillips_Bit_Depth = float(Get_Phillips_Bit_Height(props.bf_Philips_Bit_Dia))
-        props.bf_Philips_Bit_Dia = props.bf_Pan_Head_Dia*(1.82/5.6)
-        props.bf_Minor_Dia = props.bf_Major_Dia - (1.082532 * props.bf_Pitch)
+        #props.bf_Phillips_Bit_Depth = float(Get_Phillips_Bit_Height(props.bf_Philips_Bit_Dia))
+        #props.bf_Philips_Bit_Dia = props.bf_Pan_Head_Dia*(1.82/5.6)
+        #props.bf_Minor_Dia = props.bf_Major_Dia - (1.082532 * props.bf_Pitch)
         
         Create_New_Mesh(props, context, self.align_matrix)
 
