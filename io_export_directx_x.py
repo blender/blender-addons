@@ -18,7 +18,7 @@
 bl_addon_info = {
     "name": "Export: DirectX Model Format (.x)",
     "author": "Chris Foster (Kira Vakaan)",
-    "version": "1.4",
+    "version": "1.6",
     "blender": (2, 5, 3),
     "location": "File > Export",
     "description": "Export to the DirectX Model Format (.x)",
@@ -805,15 +805,15 @@ def WriteKeyedAnimationSet(Config):
                     Config.File.write("{}2;\n{}{};\n".format("  " * Config.Whitespace, "  " * Config.Whitespace, len(AllKeyframes)))
                     for Keyframe in AllKeyframes:
                         bpy.context.scene.set_frame(Keyframe)
-
+                        
                         if Bone.parent:
                             PoseMatrix = (Bone.parent.matrix * Matrix.Rotation(radians(-90), 4, "X")).invert()
                         else:
                             PoseMatrix = Matrix()
                         PoseMatrix *= Bone.matrix * Matrix.Rotation(radians(-90), 4, "X")
-
+                        
                         PoseMatrix = Config.SystemMatrix * PoseMatrix * Config.InverseSystemMatrix
-
+                        
                         Position = PoseMatrix.translation_part()
                         Config.File.write("{}{}{:9f},{:9f},{:9f};;\n".format("  " * Config.Whitespace, (str(Keyframe - bpy.context.scene.frame_start) + ";3;").ljust(8), Position[0], Position[1], Position[2]))
                     Config.Whitespace -= 1
@@ -841,15 +841,15 @@ def WriteKeyedAnimationSet(Config):
                     Config.File.write("{}0;\n{}{};\n".format("  " * Config.Whitespace, "  " * Config.Whitespace, len(AllKeyframes)))
                     for Keyframe in AllKeyframes:
                         bpy.context.scene.set_frame(Keyframe)
-
+                        
                         if Bone.parent:
                             PoseMatrix = (Bone.parent.matrix * Matrix.Rotation(radians(-90), 4, "X")).invert()
                         else:
                             PoseMatrix = Matrix()
                         PoseMatrix *= Bone.matrix * Matrix.Rotation(radians(-90), 4, "X")
-
+                        
                         PoseMatrix = Config.SystemMatrix * PoseMatrix * Config.InverseSystemMatrix
-
+                        
                         Rotation = PoseMatrix.rotation_part().to_quat()
                         Config.File.write("{}{}{:9f},{:9f},{:9f},{:9f};;\n".format("  " * Config.Whitespace, (str(Keyframe - bpy.context.scene.frame_start) + ";4;").ljust(8), -Rotation[0], Rotation[1], Rotation[2], Rotation[3]))
                     Config.Whitespace -= 1
@@ -877,15 +877,15 @@ def WriteKeyedAnimationSet(Config):
                     Config.File.write("{}1;\n{}{};\n".format("  " * Config.Whitespace, "  " * Config.Whitespace, len(AllKeyframes)))
                     for Keyframe in AllKeyframes:
                         bpy.context.scene.set_frame(Keyframe)
-
+                        
                         if Bone.parent:
                             PoseMatrix = (Bone.parent.matrix * Matrix.Rotation(radians(-90), 4, "X")).invert()
                         else:
                             PoseMatrix = Matrix()
                         PoseMatrix *= Bone.matrix * Matrix.Rotation(radians(-90), 4, "X")
-
+                        
                         PoseMatrix = Config.SystemMatrix * PoseMatrix * Config.InverseSystemMatrix
-
+                        
                         Scale = PoseMatrix.scale_part()
                         Config.File.write("{}{}{:9f},{:9f},{:9f};;\n".format("  " * Config.Whitespace, (str(Keyframe - bpy.context.scene.frame_start) + ";3;").ljust(8), Scale[0], Scale[1], Scale[2]))
                     Config.Whitespace -= 1
@@ -969,6 +969,85 @@ def WriteFullAnimationSet(Config):
         Config.File.write("{}}}\n".format("  " * Config.Whitespace))
         
         if Config.ExportArmatures and Object.type == "ARMATURE":
+            if Config.Verbose:
+                print("    Writing Armature Bone Animation Data...")
+            PoseBones = Object.pose.bones
+            for Bone in PoseBones:
+                if Config.Verbose:
+                    print("      Writing Bone: {}...".format(Bone.name))
+                
+                Config.File.write("{}Animation {{\n".format("  " * Config.Whitespace))
+                Config.Whitespace += 1
+                Config.File.write("{}{{{}}}\n".format("  " * Config.Whitespace, LegalName(Object.name) + "_" + LegalName(Bone.name)))
+                
+                #Position
+                if Config.Verbose:
+                    print("        Writing Position...", end=" ")
+                Config.File.write("{}AnimationKey {{ //Position\n".format("  " * Config.Whitespace))
+                Config.Whitespace += 1
+                Config.File.write("{}2;\n{}{};\n".format("  " * Config.Whitespace, "  " * Config.Whitespace, KeyframeCount))
+                for Frame in range(0, KeyframeCount):
+                    bpy.context.scene.set_frame(Frame + bpy.context.scene.frame_start)
+                    
+                    if Bone.parent:
+                        PoseMatrix = (Bone.parent.matrix * Matrix.Rotation(radians(-90), 4, "X")).invert()
+                    else:
+                        PoseMatrix = Matrix()
+                    PoseMatrix *= Bone.matrix * Matrix.Rotation(radians(-90), 4, "X")
+                    
+                    PoseMatrix = Config.SystemMatrix * PoseMatrix * Config.InverseSystemMatrix
+                    
+                    Position = PoseMatrix.translation_part()
+                    Config.File.write("{}{}{:9f},{:9f},{:9f};;\n".format("  " * Config.Whitespace, (str(Frame) + ";3;").ljust(8), Position[0], Position[1], Position[2]))
+                Config.Whitespace -= 1
+                Config.File.write("{}}}\n".format("  " * Config.Whitespace))
+                if Config.Verbose:
+                    print("Done")
+                
+                #Rotation
+                if Config.Verbose:
+                    print("        Writing Rotation...", end=" ")
+                Config.File.write("{}AnimationKey {{ //Rotation\n".format("  " * Config.Whitespace))
+                Config.Whitespace += 1
+                Config.File.write("{}0;\n{}{};\n".format("  " * Config.Whitespace, "  " * Config.Whitespace, KeyframeCount))
+                for Frame in range(0, KeyframeCount):
+                    bpy.context.scene.set_frame(Frame + bpy.context.scene.frame_start)
+                    #Whew! I'm sure this could be simplified.
+                    Rotation = Config.SystemQuaternion.cross(Matrix.Rotation(radians(90), 4, "X").to_quat().cross(Bone.rotation_quaternion.cross(Matrix.Rotation(radians(-90), 4, "X").to_quat().cross(Config.InverseSystemQuaternion))))
+                    Config.File.write("{}{}{:9f},{:9f},{:9f},{:9f};;\n".format("  " * Config.Whitespace, (str(Frame) + ";4;").ljust(8), Rotation[0], Rotation[1], Rotation[2], Config.FlipZ * Rotation[3]))
+                Config.Whitespace -= 1
+                Config.File.write("{}}}\n".format("  " * Config.Whitespace))
+                if Config.Verbose:
+                    print("Done")
+                
+                #Scale
+                if Config.Verbose:
+                    print("        Writing Scale...", end=" ")
+                Config.File.write("{}AnimationKey {{ //Scale\n".format("  " * Config.Whitespace, KeyframeCount))
+                Config.Whitespace += 1
+                Config.File.write("{}1;\n{}{};\n".format("  " * Config.Whitespace, "  " * Config.Whitespace, KeyframeCount))
+                for Frame in range(0, KeyframeCount):
+                    bpy.context.scene.set_frame(Frame + bpy.context.scene.frame_start)
+                    
+                    if Bone.parent:
+                        PoseMatrix = (Bone.parent.matrix * Matrix.Rotation(radians(-90), 4, "X")).invert()
+                    else:
+                        PoseMatrix = Matrix()
+                    PoseMatrix *= Bone.matrix * Matrix.Rotation(radians(-90), 4, "X")
+                    
+                    PoseMatrix = Config.SystemMatrix * PoseMatrix * Config.InverseSystemMatrix
+                    
+                    Scale = PoseMatrix.scale_part()
+                    Config.File.write("{}{}{:9f},{:9f},{:9f};;\n".format("  " * Config.Whitespace, (str(Frame) + ";3;").ljust(8), Scale[0], Scale[1], Scale[2])) 
+                Config.Whitespace -= 1
+                Config.File.write("{}}}\n".format("  " * Config.Whitespace))
+                if Config.Verbose:
+                    print("Done")
+                
+                Config.Whitespace -= 1
+                Config.File.write("{}}}\n".format("  " * Config.Whitespace))
+                if Config.Verbose:
+                    print("      Done") #Done with Armature Bone
             if Config.Verbose:
                 print("    Done") #Done with Armature Bone data
         if Config.Verbose:
