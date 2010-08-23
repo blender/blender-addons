@@ -499,13 +499,13 @@ def pskimport(infile):
 	texturename = "text1"
 	#print(dir(bpy.data))
 	if (len(faceuv) > 0):
-		me_ob.add_uv_texture() #add one uv texture
+		uvtex = me_ob.uv_textures.new() #add one uv texture
 		for i, face in enumerate(me_ob.faces):
-			blender_tface= me_ob.uv_textures[0].data[i] #face
+			blender_tface= uvtex.data[i] #face
 			blender_tface.uv1 = faceuv[i][0] #uv = (0,0)
 			blender_tface.uv2 = faceuv[i][1] #uv = (0,0)
 			blender_tface.uv3 = faceuv[i][2] #uv = (0,0)
-		texture.append(me_ob.uv_textures[0])
+		texture.append(uvtex)
 		
 		#for tex in me_ob.uv_textures:
 			#print("mesh tex:",dir(tex))

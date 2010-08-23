@@ -735,10 +735,10 @@ def parse_meshes(blender_meshes, psk_file):
 				if len(current_mesh.uv_textures) > 0:
 					has_UV = True	
 					#print("face index: ",face_index)
-					#faceUV = current_mesh.active_uv_texture.data[face_index]#UVs for current face
-					#faceUV = current_mesh.active_uv_texture.data[0]#UVs for current face
+					#faceUV = current_mesh.uv_textures.active.data[face_index]#UVs for current face
+					#faceUV = current_mesh.uv_textures.active.data[0]#UVs for current face
 					#print(face_index,"<[FACE NUMBER")
-					uv_layer = current_mesh.active_uv_texture
+					uv_layer = current_mesh.uv_textures.active
 					faceUV = uv_layer.data[face_index]
 					#print("============================")
 					#size(data) is number of texture faces. Each face has UVs

@@ -229,19 +229,13 @@ Plural = {
 
 def uvtexCreator(me, name):
 	print("uvtexCreator", me, name)
-	me.add_uv_texture()
-	uvtex = me.uv_textures[-1]
-	uvtex.name = name
-	return uvtex
+	return me.uv_textures.new(name)
 
 
 def vertcolCreator(me, name):
 	print("vertcolCreator", me, name)
-	me.add_vertex_color()
-	vcol = me.vertex_colors[-1]
-	vcol.name = name
-	return vcol
-		
+	return me.vertex_colors.new(name)
+
 
 #
 #	loadMhx(filePath, context, flags):
@@ -1197,10 +1191,8 @@ def parseFaces2(tokens, me):
 #
 
 def parseUvTexture(args, tokens, me):
-	me.add_uv_texture()
-	uvtex = me.uv_textures[-1]
 	name = args[0]
-	uvtex.name = name
+	uvtex = me.uv_textures.new(name)
 	loadedData['MeshTextureFaceLayer'][name] = uvtex
 	for (key, val, sub) in tokens:
 		if key == 'Data':
@@ -1233,9 +1225,7 @@ def parseUvTexData(args, tokens, data):
 def parseVertColorLayer(args, tokens, me):
 	name = args[0]
 	print("VertColorLayer", name)
-	me.add_vertex_color()
-	vcol = me.vertex_colors[-1]
-	vcol.name = name
+	vcol = me.vertex_colors.new(name)
 	loadedData['MeshColorLayer'][name] = vcol
 	for (key, val, sub) in tokens:
 		if key == 'Data':

@@ -290,12 +290,12 @@ def write_pov(filename, scene=None, info_callback=None):
 
             matrix = ob.matrix_world
             try:
-                uv_layer = me.active_uv_texture.data
+                uv_layer = me.uv_textures.active.data
             except:
                 uv_layer = None
 
             try:
-                vcol_layer = me.active_vertex_color.data
+                vcol_layer = me.vertex_colors.active.data
             except:
                 vcol_layer = None
 

@@ -432,7 +432,7 @@ def texface_to_mat():
         
         # get the texface images and store indices
         if (ob.data.uv_textures):
-            for f in ob.data.active_uv_texture.data:
+            for f in ob.data.uv_textures.active.data:
                 if f.image: 
                     img = f.image
                     #build list of unique images
@@ -669,12 +669,12 @@ class VIEW3D_MT_select_material(bpy.types.Menu):
 
 
 def register():
-    km = bpy.context.manager.active_keyconfig.keymaps['3D View']
+    km = bpy.context.manager.keyconfigs.active.keymaps['3D View']
     kmi = km.items.add('wm.call_menu', 'Q', 'PRESS')
     kmi.properties.name = "VIEW3D_MT_master_material"
 
 def unregister():
-    km = bpy.context.manager.active_keyconfig.keymaps['3D View']
+    km = bpy.context.manager.keyconfigs.active.keymaps['3D View']
     for kmi in km.items:
         if kmi.idname == 'wm.call_menu':
             if kmi.properties.name ==  "VIEW3D_MT_master_material":

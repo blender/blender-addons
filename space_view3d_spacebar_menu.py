@@ -1451,13 +1451,13 @@ class VIEW3D_MT_undoS(bpy.types.Menu):
         layout.operator("ed.redo", icon='TRIA_RIGHT')
 
 def register():
-    km = bpy.context.manager.active_keyconfig.keymaps['3D View']
+    km = bpy.context.manager.keyconfigs.active.keymaps['3D View']
     kmi = km.items.add('wm.call_menu', 'SPACE', 'PRESS')
     kmi.properties.name = "VIEW3D_MT_Space_Dynamic_Menu"
 
 
 def unregister():
-    km = bpy.context.manager.active_keyconfig.keymaps['3D View']
+    km = bpy.context.manager.keyconfigs.active.keymaps['3D View']
     for kmi in km.items:
         if kmi.idname == 'wm.call_menu':
             if kmi.properties.name == "VIEW3D_MT_Space_Dynamic_Menu":

@@ -136,7 +136,7 @@ def createPlaneObj(img, dimension):
     me.update()
 
     plane = bpy.data.objects.new(img.name, me)
-    plane.data.add_uv_texture()
+    plane.data.uv_textures.new()
 
     scene.objects.link(plane)
     plane.location = scene.cursor_location
