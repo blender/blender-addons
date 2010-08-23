@@ -159,6 +159,10 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
             layout.menu("VIEW3D_MT_edit_TK", icon='OUTLINER_OB_MESH')
             layout.separator()
 
+            # Multi Select
+            layout.menu("VIEW3D_MT_edit_multi", icon='VERTEXSEL')
+            layout.separator()
+            
             # Extrude block
             layout.menu("VIEW3D_MT_edit_mesh_extrude", icon='EDITMODE_HLT')
             layout.separator()
@@ -166,7 +170,7 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
             # Tools block
             layout.menu("VIEW3D_MT_edit_mesh_specials", icon='MODIFIER')
             layout.menu("VIEW3D_MT_uv_map", icon='MOD_UVPROJECT')
-			
+
             # Select block
             layout.menu("VIEW3D_MT_SelectMenu", icon='RESTRICT_SELECT_OFF')
 
@@ -1071,7 +1075,7 @@ class VIEW3D_MT_SelectMetaball(bpy.types.Menu):
         layout.operator("mball.select_random_metaelems")
 
 class VIEW3D_MT_edit_TK(bpy.types.Menu):
-    bl_label = "Edit Mesh"
+    bl_label = "Edit Mesh Tools"
 
     def draw(self, context):
         layout = self.layout
@@ -1079,28 +1083,53 @@ class VIEW3D_MT_edit_TK(bpy.types.Menu):
 
         layout.operator_context = 'INVOKE_REGION_WIN'
 
-        prop = layout.operator("wm.context_set_value",
-            text="Select By Vertex", icon='VERTEXSEL')
-        prop.value = "(True, False, False)"
-        prop.data_path = "tool_settings.mesh_select_mode"
         layout.menu("VIEW3D_MT_edit_mesh_vertices", icon='VERTEXSEL')
-
-        prop = layout.operator("wm.context_set_value",
-            text="Select By Edge", icon='EDGESEL')
-        prop.value = "(False, True, False)"
-        prop.data_path = "tool_settings.mesh_select_mode"
         layout.menu("VIEW3D_MT_edit_mesh_edges", icon='EDGESEL')
-
-        prop = layout.operator("wm.context_set_value",
-            text="Select By Face", icon='FACESEL')
-        prop.value = "(False, False, True)"
-        prop.data_path = "tool_settings.mesh_select_mode"
         layout.menu("VIEW3D_MT_edit_mesh_faces", icon='FACESEL')
         layout.separator()
-
         layout.menu("VIEW3D_MT_edit_mesh_normals", icon='META_DATA')
         layout.operator("mesh.loopcut_slide",
             text="Loopcut", icon='EDIT_VEC')
+
+
+
+class VIEW3D_MT_edit_multi(bpy.types.Menu):
+    bl_label = "Multi Select"
+
+    def draw(self, context):
+        layout = self.layout
+        layout.operator_context = 'INVOKE_REGION_WIN'
+
+        layout.separator()
+        prop = layout.operator("wm.context_set_value", text="Vertex Select", icon='VERTEXSEL')
+        prop.value = "(True, False, False)"
+        prop.data_path = "tool_settings.mesh_select_mode"
+
+        prop = layout.operator("wm.context_set_value", text="Edge Select", icon='EDGESEL')
+        prop.value = "(False, True, False)"
+        prop.data_path = "tool_settings.mesh_select_mode"
+
+        prop = layout.operator("wm.context_set_value", text="Face Select", icon='FACESEL')
+        prop.value = "(False, False, True)"
+        prop.data_path = "tool_settings.mesh_select_mode"
+        layout.separator()
+
+        prop = layout.operator("wm.context_set_value", text="Vertex & Edge Select", icon='EDITMODE_HLT')
+        prop.value = "(True, True, False)"
+        prop.data_path = "tool_settings.mesh_select_mode"
+
+        prop = layout.operator("wm.context_set_value", text="Vertex & Face Select", icon='ORTHO')
+        prop.value = "(True, False, True)"
+        prop.data_path = "tool_settings.mesh_select_mode"
+
+        prop = layout.operator("wm.context_set_value", text="Edge & Face Select", icon='SNAP_FACE')
+        prop.value = "(False, True, True)"
+        prop.data_path = "tool_settings.mesh_select_mode"
+        layout.separator()
+
+        prop = layout.operator("wm.context_set_value", text="Vertex & Edge & Face Select", icon='SNAP_VOLUME')
+        prop.value = "(True, True, True)"
+        prop.data_path = "tool_settings.mesh_select_mode"
 
 class VIEW3D_MT_editM_Edge(bpy.types.Menu):
     bl_label = "Edges"
