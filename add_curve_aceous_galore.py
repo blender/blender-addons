@@ -780,7 +780,7 @@ class Curveaceous_galore(bpy.types.Operator):
     shape = EnumProperty(name="2D / 3D",
                 items=shapeItems,
                 description="2D or 3D Curve")
-    cyclic_u = BoolProperty(name="Cyclic",
+    use_cyclic_u = BoolProperty(name="Cyclic",
                 default=True,
                 description="make curve closed")
     endp_u = BoolProperty(name="use_endpoint_u",
