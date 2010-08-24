@@ -89,10 +89,10 @@ def createCurve(vertArray, props, align_matrix):
     if props.geo_surf:
         newCurve.bevel_depth = props.geo_bDepth
         newCurve.bevel_resolution = props.geo_bRes
-        newCurve.front = False
-        newCurve.back = False
+        newCurve.use_fill_front = False
+        newCurve.use_fill_back = False
         newCurve.extrude = props.geo_extrude
-        newCurve.width = props.geo_width
+        newCurve.offset = props.geo_width
         newCurve.resolution_u = props.geo_res
 
     # create object with newCurve
