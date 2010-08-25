@@ -461,7 +461,7 @@ class GenerateCloud(bpy.types.Operator):
             bpy.ops.object.particle_system_add()
 
             #Particle settings setting it up!
-            cloudParticles = cloud.active_particle_system
+            cloudParticles = cloud.particle_systems.active
             cloudParticles.name = "CloudParticles"
             cloudParticles.settings.frame_start = 0
             cloudParticles.settings.frame_end = 0
@@ -507,11 +507,10 @@ class GenerateCloud(bpy.types.Operator):
 
             # Add a texture
             vMaterialTextureSlots = cloudMaterial.texture_slots
-            cloudtex = main.textures.new("CloudTex")
-            cloudMaterial.add_texture(cloudtex, 'ORCO')
-            cloudtex.type = 'CLOUDS'
+            cloudtex = main.textures.new("CloudTex", type='CLOUDS')
             cloudtex.noise_type = 'HARD_NOISE'
             cloudtex.noise_scale = 2
+            cloudMaterial.add_texture(cloudtex, 'ORCO')
 
             # Add a force field to the points.
             cloudField = bounds.field
@@ -528,10 +527,8 @@ class GenerateCloud(bpy.types.Operator):
             #bpy.ops.ptcache.bake(bake=False)
 
             # Add a Point Density texture
-            cloudPointDensity = main.textures.new("CloudPointDensity")
-            cloudPointDensity.type = 'POINT_DENSITY'
-            cloudMaterial.add_texture(cloudPointDensity, 'ORCO')
-            pDensity = vMaterialTextureSlots[1].texture
+            pDensity = main.textures.new("CloudPointDensity", 'POINT_DENSITY')
+            cloudMaterial.add_texture(pDensity, 'ORCO')
             vMaterialTextureSlots[1].use_map_density = True
             vMaterialTextureSlots[1].use_rgb_to_intensity = True
             vMaterialTextureSlots[1].texture_coords = 'GLOBAL'

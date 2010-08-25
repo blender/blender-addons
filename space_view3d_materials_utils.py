@@ -398,25 +398,23 @@ def check_texture(img,mat):
     #makes a texture if needed
     #adds it to the material if it isn't there already
 
-    try: 
-        tex = bpy.data.textures[img.name]
-    except:
-        tex = bpy.data.textures.new(name=img.name)
-    finally:
-        tex.type = 'IMAGE'
-        tex = tex.recast_type()
-        tex.image = img
+    tex = bpy.data.textures.get(img.name)
 
-        #see if the material already uses this tex
-        #add it if needed
-        found = False
-        for m in mat.texture_slots:
-            if m and m.texture == tex:
-                found = True
-                break
-        if not found and mat:
-            mat.add_texture(tex, texture_coordinates='UV', map_to='COLOR')
-    
+    if tex is None:
+        tex = bpy.data.textures.new(name=img.name, type='IMAGE')
+
+    tex.image = img
+
+    #see if the material already uses this tex
+    #add it if needed
+    found = False
+    for m in mat.texture_slots:
+        if m and m.texture == tex:
+            found = True
+            break
+    if not found and mat:
+        mat.add_texture(tex, texture_coordinates='UV', map_to='COLOR')
+
 def texface_to_mat():
     # editmode check here!
     editmode = False

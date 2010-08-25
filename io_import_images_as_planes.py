@@ -250,9 +250,7 @@ def getTexture(path, img):
     # ... otherwise create a new one and apply mapping.
     if not tex:
         name = path.rpartition('\\')[2].rpartition('.')[0]
-        tex = bpy.data.textures.new(name=name)
-        tex.type = 'IMAGE'
-        tex = tex.recast_type()
+        tex = bpy.data.textures.new(name=name, type='IMAGE')
         tex.image = img
 
     return tex

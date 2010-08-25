@@ -779,11 +779,7 @@ def parseTexture(args, tokens):
 	global todo
 	if verbosity > 2:
 		print( "Parsing texture %s" % args )
-	name = args[0]
-	tex = bpy.data.textures.new(name)
-	typ = args[1]
-	tex.type = typ
-	tex = tex.recast_type()
+	tex = bpy.data.textures.new(name=args[0], type=args[1])
 	loadedData['Texture'][name] = tex
 	
 	for (key, val, sub) in tokens:
