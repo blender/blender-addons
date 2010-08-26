@@ -562,19 +562,19 @@ class GPENCIL_OT_SURFSK_add_surface(bpy.types.Operator):
             vert_num_in_spline = 1
             
             if selection_U_exists:
-                ob_ctrl_pts.data.add_geometry(1,0,0)
+                ob_ctrl_pts.data.vertices.add(1)
                 last_v = ob_ctrl_pts.data.vertices[len(ob_ctrl_pts.data.vertices) - 1]
                 last_v.co = verts_ordered_U[i].co
                 
                 vert_num_in_spline += 1
                 
             for sp in sketched_splines_parsed:
-                ob_ctrl_pts.data.add_geometry(1,0,0)
+                ob_ctrl_pts.data.vertices.add(1)
                 v = ob_ctrl_pts.data.vertices[len(ob_ctrl_pts.data.vertices) - 1]
                 v.co = sp[i]
                 
                 if vert_num_in_spline > 1:
-                    ob_ctrl_pts.data.add_geometry(0,1,0)
+                    ob_ctrl_pts.data.edges.add(1)
                     ob_ctrl_pts.data.edges[len(ob_ctrl_pts.data.edges) - 1].vertices[0] = len(ob_ctrl_pts.data.vertices) - 2
                     ob_ctrl_pts.data.edges[len(ob_ctrl_pts.data.edges) - 1].vertices[1] = len(ob_ctrl_pts.data.vertices) - 1
 

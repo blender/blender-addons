@@ -324,7 +324,7 @@ def main(filePath, options, mapping, dimension):
             plane = createPlaneObj(img, dimension)
 
             # Assign Material
-            plane.data.add_material(mat)
+            plane.data.materials.link(mat)
 
             # Put Image into  UVTextureLayer
             plane.data.uv_textures[0].data[0].image = img
@@ -353,7 +353,7 @@ def main(filePath, options, mapping, dimension):
         plane = createPlaneObj(img, dimension)
 
         # Assign Material
-        plane.data.add_material(mat)
+        plane.data.materials.link(mat)
 
         # Put image into UVTextureLayer
         plane.data.uv_textures[0].data[0].image = img

@@ -68,7 +68,7 @@ v0.9.4 - Creating of the pipe now works in mesh edit mode too.
     Thanks to ideasman42 (Campbell Barton) for his nice work
     on the torus script code :-).
 v0.9.3 - Changed to a saner vertex/polygon creation process (previously
-    my usage of add_geometry could only do quads)
+    my usage of mesh.faces.add could only do quads)
     For this I've copied the functions unpack_list and unpack_face_list
     from import_scene_obj.py.
     Elbow joint actually supports 3 vertices per circle.

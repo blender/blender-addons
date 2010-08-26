@@ -485,7 +485,9 @@ def pskimport(infile):
 	#Building Mesh
 	#================================================================================================== 
 	print("vertex:",len(verts),"faces:",len(faces))
-	me_ob.add_geometry(len(verts), 0, int(len(faces)/4))
+	me_ob.vertices.add(len(verts))
+	me_ob.faces.add(len(faces)//4)
+
 	me_ob.vertices.foreach_set("co", unpack_list(verts))
 	
 	me_ob.faces.foreach_set("vertices_raw", faces)
@@ -535,7 +537,7 @@ def pskimport(infile):
 	#= make sure the list isnt too big
 	for material in materials:
 		#add material to the mesh list of materials
-		me_ob.add_material(material)
+		me_ob.materials.link(material)
 	#===================================================================================================
 	#
 	#===================================================================================================

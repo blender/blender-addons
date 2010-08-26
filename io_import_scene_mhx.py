@@ -1094,12 +1094,14 @@ def parseMesh (args, tokens):
 
 	if faces:
 		#x = me.from_pydata(verts, [], faces)
-		me.add_geometry(len(verts), 0, len(faces))
+		me.vertices.add(len(verts))
+		me.faces.add(len(faces))
 		me.vertices.foreach_set("co", unpackList(verts))
 		me.faces.foreach_set("vertices_raw", unpackList(faces))
 	else:
 		#x = me.from_pydata(verts, edges, [])
-		me.add_geometry(len(verts), len(edges), 0)
+		me.vertices.add(len(verts))
+		me.edges.add(len(edges))
 		me.vertices.foreach_set("co", unpackList(verts))
 		me.edges.foreach_set("vertices", unpackList(edges))
 	#print(x)
@@ -1109,9 +1111,8 @@ def parseMesh (args, tokens):
 		
 	mats = []
 	for (key, val, sub) in tokens:
-		if key == 'Verts' or \
-		   key == 'Edges':
-				pass
+		if key in ('Verts', 'Edges'):
+			pass
 		elif key == 'Faces':
 			parseFaces2(sub, me)
 		elif key == 'MeshTextureFaceLayer':
@@ -1124,7 +1125,7 @@ def parseMesh (args, tokens):
 			parseShapeKeys(ob, me, val, sub)
 		elif key == 'Material':
 			try:
-				me.add_material(loadedData['Material'][val[0]])
+				me.materials.link(loadedData['Material'][val[0]])
 			except:
 				print("Could not add material", val[0])
 		else:

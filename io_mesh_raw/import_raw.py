@@ -78,19 +78,22 @@ def readMesh(filename, objName):
     # Generate verts and faces lists, without duplicates
     verts = []
     coords = {}
-    index = 0
-
+    index_tot = 0
+    
     for f in faces:
         for i, v in enumerate(f):
-            try:
-                f[i] = coords[v]
-            except:
-                f[i] = coords[v] = index
-                index += 1
+            index = coords.get(v)
+
+            if index is None:
+                index = coords[v] = index_tot
+                index_tot += 1
                 verts.append(v)
 
+            fi[i] = index
+
     mesh = bpy.data.meshes.new(objName)
-    mesh.add_geometry(int(len(verts)), 0, int(len(faces)))
+    mesh.vertices.add(len(verts))
+    mesh.faces.add(len(faces))
     mesh.vertices.foreach_set("co", unpack_list(verts))
     mesh.faces.foreach_set("vertices_raw", unpack_face_list(faces))
 
