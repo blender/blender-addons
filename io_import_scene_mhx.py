@@ -1260,12 +1260,12 @@ def parseVertexGroup(ob, me, args, tokens):
 		return
 
 	if (toggle & T_Armature) or (grpName in ['Eye_L', 'Eye_R', 'Gums', 'Head', 'Jaw', 'Left', 'Middle', 'Right', 'Scalp']):
-		group = ob.add_vertex_group(grpName)
+		group = ob.vertex_groups.new(grpName)
 		group.name = grpName
 		loadedData['VertexGroup'][grpName] = group
 		for (key, val, sub) in tokens:
 			if key == 'wv':
-				ob.add_vertex_to_group( int(val[0]), group, float(val[1]), 'REPLACE')
+				ob.vertex_groups.assign(int(val[0]), group, float(val[1]), 'REPLACE')
 	return
 
 
