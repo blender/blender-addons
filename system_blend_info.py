@@ -25,11 +25,11 @@ bl_addon_info = {
     "author": "uselessdreamer",
     "version": "0.3",
     "blender": (2, 5, 3),
-    "location": "Object Properties > Scene",
+    "location": "Properties space > Scene tab > Blend Info panel",
     "description": "Show information about the .blend",
     "warning": "",
     "wiki_url": 'http://wiki.blender.org/index.php/Extensions:2.5/Py/' \
-        'Scripts/',
+        'Scripts/System/Blend Info',
     "tracker_url": "https://projects.blender.org/tracker/index.php?" \
         "func=detail&aid=22102&group_id=153&atid=469",
     "category": "System"}
