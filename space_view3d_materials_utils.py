@@ -668,7 +668,7 @@ class VIEW3D_MT_select_material(bpy.types.Menu):
 
 def register():
     km = bpy.context.manager.keyconfigs.active.keymaps['3D View']
-    kmi = km.items.add('wm.call_menu', 'Q', 'PRESS')
+    kmi = km.items.new('wm.call_menu', 'Q', 'PRESS')
     kmi.properties.name = "VIEW3D_MT_master_material"
 
 def unregister():
@@ -676,7 +676,7 @@ def unregister():
     for kmi in km.items:
         if kmi.idname == 'wm.call_menu':
             if kmi.properties.name ==  "VIEW3D_MT_master_material":
-                km.remove_item(kmi)
+                km.items.remove(kmi)
                 break
 
 if __name__ == "__main__":

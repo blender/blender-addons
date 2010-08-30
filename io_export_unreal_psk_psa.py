@@ -1140,10 +1140,10 @@ def parse_animation(blender_scene, blender_armatures, psa_file):
 			print("==== Action Set ====")
 			print("Action Name:",action_name)
 			#look for min and max frame that current set keys
-			framemin, framemax = act.get_frame_range()
+			framemin, framemax = act.frame_range
 			#print("max frame:",framemax)
-			start_frame = framemin
-			end_frame = framemax
+			start_frame = int(framemin)
+			end_frame = int(framemax)
 			scene_frames = range(start_frame, end_frame+1)
 			frame_count = len(scene_frames)
 			#===================================================
@@ -1529,7 +1529,7 @@ class VIEW3D_PT_unrealtools_objectmode(bpy.types.Panel):
 		#row.label(text="Action Set(s)(not build)")
 		#for action in  bpy.data.actions:
 			#print(dir( action))
-			#print(action.get_frame_range())
+			#print(action.frame_range)
 			#row = layout.row()
 			#row.prop(action, "name")
 			

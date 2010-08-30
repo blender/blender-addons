@@ -1452,7 +1452,7 @@ class VIEW3D_MT_undoS(bpy.types.Menu):
 
 def register():
     km = bpy.context.manager.keyconfigs.active.keymaps['3D View']
-    kmi = km.items.add('wm.call_menu', 'SPACE', 'PRESS')
+    kmi = km.items.new('wm.call_menu', 'SPACE', 'PRESS')
     kmi.properties.name = "VIEW3D_MT_Space_Dynamic_Menu"
 
 
@@ -1461,7 +1461,7 @@ def unregister():
     for kmi in km.items:
         if kmi.idname == 'wm.call_menu':
             if kmi.properties.name == "VIEW3D_MT_Space_Dynamic_Menu":
-                km.remove_item(kmi)
+                km.items.remove(kmi)
                 break
 
 if __name__ == "__main__":
