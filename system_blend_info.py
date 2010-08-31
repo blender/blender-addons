@@ -21,10 +21,11 @@
 # ***** END GPL LICENCE BLOCK *****
 
 bl_addon_info = {
-    "name": "System: Scene Information",
+    "name": "Scene Information",
     "author": "uselessdreamer",
-    "version": "0.3",
+    "version": (0,3),
     "blender": (2, 5, 3),
+    "api": 31667,
     "location": "Properties space > Scene tab > Blend Info panel",
     "description": "Show information about the .blend",
     "warning": "",

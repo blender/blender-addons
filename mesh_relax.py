@@ -22,15 +22,18 @@
 # ***** END GPL LICENCE BLOCK *****
 
 bl_addon_info = {
-    "name": "Mesh: Relax",
+    "name": "Relax",
     "author": "Fabian Fricke",
-    "version": "1.1  2010/04/22",
+    "version": (1,1),
     "blender": (2, 5, 3),
+    "api": 31667,
     "location": "View3D > Specials > Relax ",
     "description": "Relax the selected verts while retaining the shape",
     "warning": "",
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/Scripts/Modeling/Relax",
-    "tracker_url": "https://projects.blender.org/tracker/index.php?func=detail&aid=21421&group_id=153&atid=469",
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"\
+        "Scripts/Modeling/Relax",
+    "tracker_url": "https://projects.blender.org/tracker/index.php?"\
+        "func=detail&aid=21421&group_id=153&atid=469",
     "category": "Mesh"}
 
 """

@@ -17,15 +17,18 @@
 # ##### END GPL LICENSE BLOCK #####
 
 bl_addon_info = {
-    "name": "Import/Export: Raw mesh",
+    "name": "Raw mesh",
     "author": "Anthony D,Agostino (Scorpius), Aurel Wildfellner",
-    "version": "0.2",
+    "version": (0,2),
     "blender": (2, 5, 3),
+    "api": 31667,
     "location": "File > Import/Export > Raw faces ",
     "description": "Import Raw Faces (.raw format)",
     "warning": "",
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/Scripts/File_I-O/Raw_Mesh_IO",
-    "tracker_url": "https://projects.blender.org/tracker/index.php?func=detail&aid=21733&group_id=153&atid=469",
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"\
+        "Scripts/File_I-O/Raw_Mesh_IO",
+    "tracker_url": "https://projects.blender.org/tracker/index.php?"\
+        "func=detail&aid=21733&group_id=153&atid=469",
     "category": "Import/Export"}
 
 import bpy

@@ -17,15 +17,18 @@
 # ##### END GPL LICENSE BLOCK #####
 
 bl_addon_info = {
-    "name": "Object: Fracture Tools",
+    "name": "Fracture Tools",
     "author": "pildanovak",
-    "version": "2.0",
+    "version": (2,0),
     "blender": (2, 5, 3),
+    "api": 31667,
     "location": "Fracture tools (Search > Fracture Object & Add -> Fracture Helper Objects",
     "description": "Fractured Object, Bomb, Projectile, Recorder",
     "warning": "script is returning errors",
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/Scripts/Object/Fracture",
-    "tracker_url": "https://projects.blender.org/tracker/index.php?func=detail&aid=21793&group_id=153&atid=469",
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"\
+        "Scripts/Object/Fracture",
+    "tracker_url": "https://projects.blender.org/tracker/index.php?"\
+        "func=detail&aid=21793&group_id=153&atid=469",
     "category": "Object"}
 
 

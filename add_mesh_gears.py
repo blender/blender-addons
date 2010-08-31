@@ -20,15 +20,18 @@
 # ***** END GPL LICENCE BLOCK *****
 
 bl_addon_info = {
-    "name": "Add Mesh: Gears",
+    "name": "Gears",
     "author": "Michel J. Anders (varkenvarken)",
-    "version": "2.4.1",
+    "version": (2,4,1),
     "blender": (2, 5, 3),
+    "api": 31667,
     "location": "View3D > Add > Mesh > Gears ",
     "description": "Adds a mesh Gear to the Add Mesh menu",
     "warning": "",
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/Scripts/Add_Mesh/Add_Gear",
-    "tracker_url": "https://projects.blender.org/tracker/index.php?func=detail&aid=21732&group_id=153&atid=469",
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"\
+        "Scripts/Add_Mesh/Add_Gear",
+    "tracker_url": "https://projects.blender.org/tracker/index.php?"\
+        "func=detail&aid=21732&group_id=153&atid=469",
     "category": "Add Mesh"}
 
 """

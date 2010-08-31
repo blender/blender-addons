@@ -21,15 +21,18 @@
 # ***** END GPL LICENCE BLOCK *****
 
 bl_addon_info = {
-    "name": "Add Mesh: Twisted Torus",
+    "name": "Twisted Torus",
     "author": "Paulo_Gomes",
-    "version": "0.11",
+    "version": (0,11),
     "blender": (2, 5, 3),
+    "api": 31667,
     "location": "View3D > Add > Mesh ",
     "description": "Adds a mesh Twisted Torus to the Add Mesh menu",
     "warning": "",
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/Scripts/Add_Mesh/Add_Twisted_Torus",
-    "tracker_url": "https://projects.blender.org/tracker/index.php?func=detail&aid=21622&group_id=153&atid=469",
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"\
+        "Scripts/Add_Mesh/Add_Twisted_Torus",
+    "tracker_url": "https://projects.blender.org/tracker/index.php?"\
+        "func=detail&aid=21622&group_id=153&atid=469",
     "category": "Add Mesh"}
 
 """

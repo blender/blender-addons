@@ -17,10 +17,11 @@
 # ##### END GPL LICENSE BLOCK #####
 
 bl_addon_info = {
-    "name": "3D View: Measure Panel",
+    "name": "Measure Panel",
     "author": "Buerbaum Martin (Pontiac)",
-    "version": "0.7.7",
+    "version": (0,7,7),
     "blender": (2, 5, 3),
+    "api": 31667,
     "location": "View3D > Properties > Measure",
     "description": "Measure distances between objects",
     "warning": "",
@@ -57,7 +58,7 @@ It's very helpful to use one or two "Empty" objects with
 "Snap during transform" enabled for fast measurement.
 
 Version history:
-v0.7.7 - One more change to the callback registration code.
+v0.7.7 - One more change to he callback registration code.
     Now it should finally work as intended.
 v0.7.6 - API changes (r885, r886) - register & unregister function
 v0.7.5.3 - Small fix for bug in v0.7.5.1

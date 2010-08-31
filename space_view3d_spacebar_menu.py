@@ -23,15 +23,18 @@
 # ##### END GPL LICENSE BLOCK #####
 
 bl_addon_info = {
-    "name": "3D View: Dynamic Spacebar Menu",
+    "name": "Dynamic Spacebar Menu",
     "author": "JayDez, sim88, meta-androcto", "sam"
-    "version": "1.5",
+    "version": (1,5),
     "blender": (2, 5, 3),
+    "api": 31667,
     "location": "View3D > Spacebar",
     "description": "Context sensitive spacebar menu",
     "warning": "",
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/Scripts/3D_interaction/Dynamic_Spacebar_Menu",
-    "tracker_url": "https://projects.blender.org/tracker/index.php?func=detail&aid=22060&group_id=153&atid=469",
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"\
+        "Scripts/3D_interaction/Dynamic_Spacebar_Menu",
+    "tracker_url": "https://projects.blender.org/tracker/index.php?"\
+        "func=detail&aid=22060&group_id=153&atid=469",
     "category": "3D View"}
 
 """

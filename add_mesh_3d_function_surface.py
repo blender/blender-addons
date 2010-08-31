@@ -17,15 +17,18 @@
 # ##### END GPL LICENSE BLOCK #####
 
 bl_addon_info = {
-    "name": "Add Mesh: 3D Function Surfaces",
+    "name": "3D Function Surfaces",
     "author": "Buerbaum Martin (Pontiac)",
-    "version": "0.3.5",
+    "version": (0,3,5),
     "blender": (2, 5, 3),
+    "api": 31667,
     "location": "View3D > Add > Mesh > Z Function Surface & XYZ Function Surface",
     "description": "Create Objects using Math Formulas",
     "warning": "",
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/Scripts/Add_Mesh/Add_3d_Function_Surface",
-    "tracker_url": "https://projects.blender.org/tracker/index.php?func=detail&aid=21444&group_id=153&atid=469",
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"\
+        "Scripts/Add_Mesh/Add_3d_Function_Surface",
+    "tracker_url": "https://projects.blender.org/tracker/index.php?"\
+        "func=detail&aid=21444&group_id=153&atid=469",
     "category": "Add Mesh"}
 
 """

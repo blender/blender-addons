@@ -17,15 +17,18 @@
 # ##### END GPL LICENSE BLOCK #####
 
 bl_addon_info = {
-    "name": "Add Mesh: Extras",
+    "name": "Extras",
     "author": "Pontiac, Fourmadmen, meta-androcto",
-    "version": "0.3",
+    "version": (0,3),
     "blender": (2, 5, 3),
+    "api": 31667,
     "location": "View3D > Add > Mesh > Extras",
     "description": "Adds Star, Wedge, Sqorus & Spindle objects.",
     "warning": "",
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/Scripts/Add_Mesh/Add_Extra",
-    "tracker_url": "https://projects.blender.org/tracker/index.php?func=detail&aid=22457&group_id=153&atid=469",
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"\
+        "Scripts/Add_Mesh/Add_Extra",
+    "tracker_url": "https://projects.blender.org/tracker/index.php?"\
+        "func=detail&aid=22457&group_id=153&atid=469",
     "category": "Add Mesh"}
 
 import bpy

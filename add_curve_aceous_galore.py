@@ -17,10 +17,11 @@
 # ##### END GPL LICENSE BLOCK #####
 
 bl_addon_info = {
-    'name': 'Add Curve: Curveaceous Galore!',
+    'name': 'Curveaceous Galore!',
     'author': 'Jimmy Hazevoet, testscreenings',
-    'version': '0.1',
+    'version': (0,1),
     'blender': (2, 5, 3),
+    'api': 31667,
     'location': 'Add Curve menu',
     'description': 'adds many types of curves',
     'warning': '', # used for warning icon and text in addons panel

@@ -17,15 +17,18 @@
 # ##### END GPL LICENSE BLOCK #####
 
 bl_addon_info = {
-    "name": "Render: Renderfarm.fi",
+    "name": "Renderfarm.fi",
     "author": "Nathan Letwory <nathan@letworyinteractive.com>, Jesse Kaukonen <jesse.kaukonen@gmail.com>",
-    "version": "3",
+    "version": (3,),
     "blender": (2, 5, 3),
+    "api": 31667,
     "location": "Render > Engine > Renderfarm.fi",
     "description": "Send .blend as session to http://www.renderfarm.fi to render",
     "warning": "",
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/Scripts/Render/Renderfarm.fi",
-    "tracker_url": "https://projects.blender.org/tracker/index.php?func=detail&aid=22927&group_id=153&atid=469",
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"\
+        "Scripts/Render/Renderfarm.fi",
+    "tracker_url": "https://projects.blender.org/tracker/index.php?"\
+        "func=detail&aid=22927&group_id=153&atid=469",
     "category": "Render"}
 
 """
@@ -40,7 +43,7 @@ import xmlrpc.client
 import math
 from os.path import abspath, isabs, join, isfile
 
-bpy.CURRENT_VERSION = int(bl_addon_info["version"])
+bpy.CURRENT_VERSION = bl_addon_info["version"][0]
 bpy.found_newer_version = False
 bpy.up_to_date = False
 bpy.download_location = 'http://www.renderfarm.fi/blender'

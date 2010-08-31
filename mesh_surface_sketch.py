@@ -17,15 +17,18 @@
 # ##### END GPL LICENSE BLOCK #####
 
 bl_addon_info = {
-    "name": "Mesh: Surface Sketch",
+    "name": "Surface Sketch",
     "author": "Eclectiel",
-    "version": "0.8 Beta",
+    "version": (0,8),
     "blender": (2, 5, 3),
+    "api": 31667,
     "location": "View3D > EditMode > ToolShelf",
     "description": "Draw meshes and re-topologies with Grease Pencil",
-    "warning": "",
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/Scripts/Mesh/Surface_Sketch",
-    "tracker_url": "https://projects.blender.org/tracker/index.php?func=detail&aid=22062&group_id=153&atid=469",
+    "warning": "Beta",
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"\
+        "Scripts/Mesh/Surface_Sketch",
+    "tracker_url": "https://projects.blender.org/tracker/index.php?"\
+        "func=detail&aid=22062&group_id=153&atid=469",
     "category": "Mesh"}
 
 

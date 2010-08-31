@@ -17,15 +17,18 @@
 # ##### END GPL LICENSE BLOCK #####
 
 bl_addon_info = {
-    "name": "Render: PovRay",
+    "name": "PovRay",
     "author": "Campbell Barton",
-    "version": "0.1",
+    "version": (0,1),
     "blender": (2, 5, 4),
+    "api": 31667,
     "location": "Info Header (engine dropdown)",
     "description": "Basic povray integration for blender",
     "warning": "",
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/Scripts/Render/PovRay",
-    "tracker_url": "https://projects.blender.org/tracker/index.php?func=detail&aid=23145&group_id=153&atid=469",
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"\
+        "Scripts/Render/PovRay",
+    "tracker_url": "https://projects.blender.org/tracker/index.php?"\
+        "func=detail&aid=23145&group_id=153&atid=469",
     "category": "Render"}
 
 try:

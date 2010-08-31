@@ -17,15 +17,18 @@
 # ##### END GPL LICENSE BLOCK #####
 
 bl_addon_info = {
-    "name": "Add Mesh: Pipe Joints",
+    "name": "Pipe Joints",
     "author": "Buerbaum Martin (Pontiac)",
-    "version": "0.10.5",
+    "version": (0,10,5),
     "blender": (2, 5, 3),
+    "api": 31667,
     "location": "View3D > Add > Mesh > Pipe Joint",
     "description": "Adds 5 pipe Joint types to the Add Mesh menu",
     "warning": "",
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/Scripts/Add_Mesh/Add_Pipe_Joints",
-    "tracker_url": "https://projects.blender.org/tracker/index.php?func=detail&aid=21443&group_id=153&atid=469",
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"\
+        "Scripts/Add_Mesh/Add_Pipe_Joints",
+    "tracker_url": "https://projects.blender.org/tracker/index.php?"\
+        "func=detail&aid=21443&group_id=153&atid=469",
     "category": "Add Mesh"}
 
 """

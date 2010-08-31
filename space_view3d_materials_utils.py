@@ -23,15 +23,18 @@
 # ##### END GPL LICENSE BLOCK #####
 
 bl_addon_info = {
-    "name": "3D View: Material Utils",
+    "name": "Material Utils",
     "author": "michaelw",
-    "version": "1.3",
+    "version": (1,3),
     "blender": (2, 5, 3),
+    "api": 31667,
     "location": "View3D > Q key",
     "description": "Menu of material tools (assign, select by etc)  in the 3D View",
     "warning": "",
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/Scripts/3D interaction/Materials Utils",
-    "tracker_url": "https://projects.blender.org/tracker/index.php?func=detail&aid=22140&group_id=153&atid=469",
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"\
+        "Scripts/3D interaction/Materials Utils",
+    "tracker_url": "https://projects.blender.org/tracker/index.php?"\
+        "func=detail&aid=22140&group_id=153&atid=469",
     "category": "3D View"}
 
 """
