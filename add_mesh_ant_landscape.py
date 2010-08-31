@@ -16,6 +16,21 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
+bl_addon_info = {
+    "name": "ANT Landscape",
+    "author": "Jimmy Hazevoet",
+    "version": (0,1,0),
+    "blender": (2, 5, 3),
+    "api": 31667,
+    "location": "Add Mesh menu",
+    "description": "Adds a landscape primitive",
+    "warning": "", # used for warning icon and text in addons panel
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"\
+        "Scripts/Add_Mesh/ANT_Landscape",
+    "tracker_url": "https://projects.blender.org/tracker/index.php?"\
+        "func=detail&aid=23130&group_id=153&atid=469",
+    "category": "Add Mesh"}
+
 '''
 Another Noise Tool: Landscape mesh generator
 
@@ -53,22 +68,6 @@ Platlevel:       Flattens terrain above plateau level.
 Strata:          Strata amount, number of strata/terrace layers.
 Strata type:     Strata types, Smooth, Sharp-sub, Sharp-add
 '''
-
-
-bl_addon_info = {
-    "name": "ANT Landscape",
-    "author": "Jimmy Hazevoet",
-    "version": (0,1,0),
-    "blender": (2, 5, 3),
-    "api": 31667,
-    "location": "Add Mesh menu",
-    "description": "Adds a landscape primitive",
-    "warning": "", # used for warning icon and text in addons panel
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"\
-        "Scripts/Add_Mesh/ANT_Landscape",
-    "tracker_url": "https://projects.blender.org/tracker/index.php?"\
-        "func=detail&aid=23130&group_id=153&atid=469",
-    "category": "Add Mesh"}
 
 # import modules
 import bpy
