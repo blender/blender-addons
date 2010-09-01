@@ -19,7 +19,7 @@
 bl_addon_info = {
     "name": "Measure Panel",
     "author": "Buerbaum Martin (Pontiac)",
-    "version": (0,7,7),
+    "version": (0,7,8),
     "blender": (2, 5, 3),
     "api": 31667,
     "location": "View3D > Properties > Measure",
@@ -58,7 +58,13 @@ It's very helpful to use one or two "Empty" objects with
 "Snap during transform" enabled for fast measurement.
 
 Version history:
-v0.7.7 - One more change to he callback registration code.
+v0.7.8 - Various Py API changes by Campbell ...
+    bl_default_closed -> bl_options = {'DEFAULT_CLOSED'}
+    x.verts -> x.vertices
+    @classmethod    def poll(cls, context)
+    No "location" in bl_addon_info->name
+    bl_addon_info->api
+v0.7.7 - One more change to the callback registration code.
     Now it should finally work as intended.
 v0.7.6 - API changes (r885, r886) - register & unregister function
 v0.7.5.3 - Small fix for bug in v0.7.5.1
@@ -158,14 +164,6 @@ v0.2 - Distance value is now displayed via a FloatProperty widget (and
     The value is save inside the scene right now.)
     Thanks goes to ideasman42 (Campbell Barton) for helping me out on this.
 v0.1 - Initial revision. Seems to work fine for most purposes.
-
-TODO:
-
-There is a random segmentation fault when moving the 3D cursor in edit mode.
-Mainly this happens when clicking inside the white circle of the translation
-manipulator. There may be other cases though.
-
-See the other "todo" comments below.
 
 More links:
 http://gitorious.org/blender-scripts/blender-measure-panel-script
