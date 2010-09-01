@@ -349,7 +349,7 @@ class AddTwistedTorus(bpy.types.Operator):
 
 # Add to the menu
 def menu_func(self, context):
-    self.layout.operator(AddTwistedTorus.bl_idname, text="Twisted Torus", icon='MESH_DONUT')
+    self.layout.operator(AddTwistedTorus.bl_idname, text="Twisted Torus", icon='MESH_TORUS')
 
 
 def register():
