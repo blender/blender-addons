@@ -498,7 +498,7 @@ class ImportImagesAsPlanes(bpy.types.Operator):
         return {'FINISHED'}
 
     def invoke(self, context, event):
-        wm = bpy.context.manager
+        wm = bpy.context.window_manager
         wm.add_fileselect(self)
 
         return {'RUNNING_MODAL'}

@@ -330,7 +330,7 @@ class GenerateCloud(bpy.types.Operator):
 
     def execute(self, context):
         # Make variable that is the current .blend file main data blocks
-        main = context.main
+        blend_data = context.blend_data
 
         # Make variable that is the active object selected by user
         active_object = context.active_object
@@ -373,7 +373,7 @@ class GenerateCloud(bpy.types.Operator):
            for createdObj in createdObjects:
                totallyDeleteObject(scene, createdObj)
 
-           # Delete the main object
+           # Delete the blend_data object
            totallyDeleteObject(scene, mainObj)
 
            # Select all of the left over boxes so people can immediately
@@ -404,7 +404,7 @@ class GenerateCloud(bpy.types.Operator):
             bounds.hide_render = False
 
             # Just add a Definition Property designating this
-            # as the main object.
+            # as the blend_data object.
             bounds["CloudMember"] = "MainObj"
 
             # Since we used iteration 0 to copy with object we
@@ -492,7 +492,7 @@ class GenerateCloud(bpy.types.Operator):
                 bpy.ops.object.material_slot_remove()
 
             # Add a new material.
-            cloudMaterial = main.materials.new("CloudMaterial")
+            cloudMaterial = blend_data.materials.new("CloudMaterial")
             bpy.ops.object.material_slot_add()
             bounds.material_slots[0].material = cloudMaterial
 
@@ -510,7 +510,7 @@ class GenerateCloud(bpy.types.Operator):
 
             # Add a texture
             vMaterialTextureSlots = cloudMaterial.texture_slots
-            cloudtex = main.textures.new("CloudTex", type='CLOUDS')
+            cloudtex = blend_data.textures.new("CloudTex", type='CLOUDS')
             cloudtex.noise_type = 'HARD_NOISE'
             cloudtex.noise_scale = 2
             cloudMaterial.add_texture(cloudtex, 'ORCO')
@@ -530,7 +530,7 @@ class GenerateCloud(bpy.types.Operator):
             #bpy.ops.ptcache.bake(bake=False)
 
             # Add a Point Density texture
-            pDensity = main.textures.new("CloudPointDensity", 'POINT_DENSITY')
+            pDensity = blend_data.textures.new("CloudPointDensity", 'POINT_DENSITY')
             cloudMaterial.add_texture(pDensity, 'ORCO')
             vMaterialTextureSlots[1].use_map_density = True
             vMaterialTextureSlots[1].use_rgb_to_intensity = True
