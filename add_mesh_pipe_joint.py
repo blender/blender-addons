@@ -172,7 +172,7 @@ def create_mesh_object(context, verts, edges, faces, name, edit, align_matrix):
 
         # Use the active obj and select it.
         ob_new = obj_act
-        ob_new.selected = True
+        ob_new.select = True
 
         if obj_act.mode == 'OBJECT':
             # Get existing mesh datablock.
