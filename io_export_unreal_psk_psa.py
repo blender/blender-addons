@@ -1193,7 +1193,7 @@ def parse_animation(blender_scene, blender_armatures, psa_file):
                     #print "This Frame: %i, Next Frame: NONE" % frame
                 
                 #frame start from 1 as number one from blender
-                blender_scene.set_frame(frame)
+                blender_scene.frame_set(frame)
                 
                 cur_frame_index = cur_frame_index + 1
                 for bone_data in ordered_bones:
@@ -1346,7 +1346,7 @@ def fs_callback(filename, context, user_setting):
             print("//===============================")
             parse_meshes(blender_meshes, psk)
         except:
-            context.scene.set_frame(cur_frame) #set frame back to original frame
+            context.scene.frame_set(cur_frame) #set frame back to original frame
             print ("Exception during Mesh Parse")
             raise
         
@@ -1361,7 +1361,7 @@ def fs_callback(filename, context, user_setting):
             parse_armature(blender_armature, psk, psa) 
             
         except:
-            context.scene.set_frame(cur_frame) #set frame back to original frame
+            context.scene.frame_set(cur_frame) #set frame back to original frame
             print ("Exception during Armature Parse")
             raise
 
@@ -1375,13 +1375,13 @@ def fs_callback(filename, context, user_setting):
             parse_animation(current_scene, blender_armature, psa) 
             
         except:
-            context.scene.set_frame(cur_frame) #set frame back to original frame
+            context.scene.frame_set(cur_frame) #set frame back to original frame
             print ("Exception during Animation Parse")
             raise
 
         # reset current frame
         
-        context.scene.set_frame(cur_frame) #set frame back to original frame
+        context.scene.frame_set(cur_frame) #set frame back to original frame
         
         ##########################
         # FILE WRITE

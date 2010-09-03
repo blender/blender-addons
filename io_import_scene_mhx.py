@@ -1128,7 +1128,7 @@ def parseMesh (args, tokens):
             parseShapeKeys(ob, me, val, sub)
         elif key == 'Material':
             try:
-                me.materials.link(loadedData['Material'][val[0]])
+                me.materials.append(loadedData['Material'][val[0]])
             except:
                 print("Could not add material", val[0])
         else:

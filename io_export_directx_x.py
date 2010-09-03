@@ -669,7 +669,7 @@ def WriteKeyedAnimationSet(Config):
                 if len(AllKeyframes):
                     Config.File.write("{}2;\n{}{};\n".format("  " * Config.Whitespace, "  " * Config.Whitespace, len(AllKeyframes)))
                     for Keyframe in AllKeyframes:
-                        bpy.context.scene.set_frame(Keyframe)
+                        bpy.context.scene.frame_set(Keyframe)
                         Position = Vector()
                         Position[0] = ((PositionFCurves[0][Keyframe] if Keyframe in PositionFCurves[0] else Object.location[0]) if PositionFCurves[0] else Object.location[0])
                         Position[1] = ((PositionFCurves[1][Keyframe] if Keyframe in PositionFCurves[1] else Object.location[1]) if PositionFCurves[1] else Object.location[1])
@@ -678,7 +678,7 @@ def WriteKeyedAnimationSet(Config):
                         Config.File.write("{}{}{:9f},{:9f},{:9f};;\n".format("  " * Config.Whitespace, (str(Keyframe - bpy.context.scene.frame_start) + ";3;").ljust(8), Position[0], Position[1], Position[2]))
                 else:
                     Config.File.write("{}2;\n{}1;\n".format("  " * Config.Whitespace, "  " * Config.Whitespace))
-                    bpy.context.scene.set_frame(bpy.context.scene.frame_start)
+                    bpy.context.scene.frame_set(bpy.context.scene.frame_start)
                     Position = Config.SystemMatrix * Object.location
                     Config.File.write("{}{}{:9f},{:9f},{:9f};;\n".format("  " * Config.Whitespace, ("0;3;").ljust(8), Position[0], Position[1], Position[2]))
                 Config.Whitespace -= 1
@@ -704,7 +704,7 @@ def WriteKeyedAnimationSet(Config):
                 if len(AllKeyframes):
                     Config.File.write("{}0;\n{}{};\n".format("  " * Config.Whitespace, "  " * Config.Whitespace, len(AllKeyframes)))
                     for Keyframe in AllKeyframes:
-                        bpy.context.scene.set_frame(Keyframe)
+                        bpy.context.scene.frame_set(Keyframe)
                         Rotation = Euler()
                         Rotation[0] = ((RotationFCurves[0][Keyframe] if Keyframe in RotationFCurves[0] else Object.rotation_euler[0]) if RotationFCurves[0] else Object.rotation_euler[0])
                         Rotation[1] = ((RotationFCurves[1][Keyframe] if Keyframe in RotationFCurves[1] else Object.rotation_euler[1]) if RotationFCurves[1] else Object.rotation_euler[1])
@@ -713,7 +713,7 @@ def WriteKeyedAnimationSet(Config):
                         Config.File.write("{}{}{:9f},{:9f},{:9f},{:9f};;\n".format("  " * Config.Whitespace, (str(Keyframe - bpy.context.scene.frame_start) + ";4;").ljust(8), - Rotation[0], Rotation[1], Rotation[2], Rotation[3]))
                 else:
                     Config.File.write("{}0;\n{}1;\n".format("  " * Config.Whitespace, "  " * Config.Whitespace))
-                    bpy.context.scene.set_frame(bpy.context.scene.frame_start)
+                    bpy.context.scene.frame_set(bpy.context.scene.frame_start)
                     Rotation = (Config.SystemMatrix * (Object.rotation_euler.to_matrix().to_4x4()) * Config.InverseSystemMatrix).to_quat()
                     Config.File.write("{}{}{:9f},{:9f},{:9f},{:9f};;\n".format("  " * Config.Whitespace, ("0;4;").ljust(8), -Rotation[0], Rotation[1], Rotation[2], Rotation[3]))
                 Config.Whitespace -= 1
@@ -739,7 +739,7 @@ def WriteKeyedAnimationSet(Config):
                 if len(AllKeyframes):
                     Config.File.write("{}1;\n{}{};\n".format("  " * Config.Whitespace, "  " * Config.Whitespace, len(AllKeyframes)))
                     for Keyframe in AllKeyframes:
-                        bpy.context.scene.set_frame(Keyframe)
+                        bpy.context.scene.frame_set(Keyframe)
                         Scale = Vector()
                         Scale[0] = ((ScaleFCurves[0][Keyframe] if Keyframe in ScaleFCurves[0] else Object.scale[0]) if ScaleFCurves[0] else Object.scale[0])
                         Scale[1] = ((ScaleFCurves[1][Keyframe] if Keyframe in ScaleFCurves[1] else Object.scale[1]) if ScaleFCurves[1] else Object.scale[1])
@@ -748,7 +748,7 @@ def WriteKeyedAnimationSet(Config):
                         Config.File.write("{}{}{:9f},{:9f},{:9f};;\n".format("  " * Config.Whitespace, (str(Keyframe - bpy.context.scene.frame_start) + ";3;").ljust(8), Scale[0], Scale[1], Scale[2]))
                 else:
                     Config.File.write("{}1;\n{}1;\n".format("  " * Config.Whitespace, "  " * Config.Whitespace))
-                    bpy.context.scene.set_frame(bpy.context.scene.frame_start)
+                    bpy.context.scene.frame_set(bpy.context.scene.frame_start)
                     Scale = Config.SystemMatrix * Object.scale
                     Config.File.write("{}{}{:9f},{:9f},{:9f};;\n".format("  " * Config.Whitespace, ("0;3;").ljust(8), Scale[0], Scale[1], Scale[2]))
                 Config.Whitespace -= 1
@@ -807,7 +807,7 @@ def WriteKeyedAnimationSet(Config):
                         AllKeyframes = [bpy.context.scene.frame_start]
                     Config.File.write("{}2;\n{}{};\n".format("  " * Config.Whitespace, "  " * Config.Whitespace, len(AllKeyframes)))
                     for Keyframe in AllKeyframes:
-                        bpy.context.scene.set_frame(Keyframe)
+                        bpy.context.scene.frame_set(Keyframe)
                         
                         if Bone.parent:
                             PoseMatrix = (Bone.parent.matrix * Matrix.Rotation(radians(-90), 4, "X")).invert()
@@ -843,7 +843,7 @@ def WriteKeyedAnimationSet(Config):
                         AllKeyframes = [bpy.context.scene.frame_start]
                     Config.File.write("{}0;\n{}{};\n".format("  " * Config.Whitespace, "  " * Config.Whitespace, len(AllKeyframes)))
                     for Keyframe in AllKeyframes:
-                        bpy.context.scene.set_frame(Keyframe)
+                        bpy.context.scene.frame_set(Keyframe)
                         
                         if Bone.parent:
                             PoseMatrix = (Bone.parent.matrix * Matrix.Rotation(radians(-90), 4, "X")).invert()
@@ -879,7 +879,7 @@ def WriteKeyedAnimationSet(Config):
                         AllKeyframes = [bpy.context.scene.frame_start]
                     Config.File.write("{}1;\n{}{};\n".format("  " * Config.Whitespace, "  " * Config.Whitespace, len(AllKeyframes)))
                     for Keyframe in AllKeyframes:
-                        bpy.context.scene.set_frame(Keyframe)
+                        bpy.context.scene.frame_set(Keyframe)
                         
                         if Bone.parent:
                             PoseMatrix = (Bone.parent.matrix * Matrix.Rotation(radians(-90), 4, "X")).invert()
@@ -930,7 +930,7 @@ def WriteFullAnimationSet(Config):
         Config.Whitespace += 1
         Config.File.write("{}2;\n{}{};\n".format("  " * Config.Whitespace, "  " * Config.Whitespace, KeyframeCount))
         for Frame in range(0, KeyframeCount):
-            bpy.context.scene.set_frame(Frame + bpy.context.scene.frame_start)
+            bpy.context.scene.frame_set(Frame + bpy.context.scene.frame_start)
             Position = Config.SystemMatrix * Object.location
             Config.File.write("{}{}{:9f},{:9f},{:9f};;\n".format("  " * Config.Whitespace, (str(Frame) + ";3;").ljust(8), Position[0], Position[1], Position[2]))
         Config.Whitespace -= 1
@@ -945,7 +945,7 @@ def WriteFullAnimationSet(Config):
         Config.Whitespace += 1
         Config.File.write("{}0;\n{}{};\n".format("  " * Config.Whitespace, "  " * Config.Whitespace, KeyframeCount))
         for Frame in range(0, KeyframeCount):
-            bpy.context.scene.set_frame(Frame + bpy.context.scene.frame_start)
+            bpy.context.scene.frame_set(Frame + bpy.context.scene.frame_start)
             Rotation = Config.SystemQuaternion.cross(Object.rotation_euler.to_quat().cross(Config.InverseSystemQuaternion))
             Config.File.write("{}{}{:9f},{:9f},{:9f},{:9f};;\n".format("  " * Config.Whitespace, (str(Frame) + ";4;").ljust(8), Rotation[0], Rotation[1], Rotation[2], Config.FlipZ * Rotation[3]))
         Config.Whitespace -= 1
@@ -960,7 +960,7 @@ def WriteFullAnimationSet(Config):
         Config.Whitespace += 1
         Config.File.write("{}1;\n{}{};\n".format("  " * Config.Whitespace, "  " * Config.Whitespace, KeyframeCount))
         for Frame in range(0, KeyframeCount):
-            bpy.context.scene.set_frame(Frame + bpy.context.scene.frame_start)
+            bpy.context.scene.frame_set(Frame + bpy.context.scene.frame_start)
             Scale = Config.SystemMatrix * Object.scale
             Config.File.write("{}{}{:9f},{:9f},{:9f};;\n".format("  " * Config.Whitespace, (str(Frame) + ";3;").ljust(8), Scale[0], Scale[1], Scale[2]))
         Config.Whitespace -= 1
@@ -990,7 +990,7 @@ def WriteFullAnimationSet(Config):
                 Config.Whitespace += 1
                 Config.File.write("{}2;\n{}{};\n".format("  " * Config.Whitespace, "  " * Config.Whitespace, KeyframeCount))
                 for Frame in range(0, KeyframeCount):
-                    bpy.context.scene.set_frame(Frame + bpy.context.scene.frame_start)
+                    bpy.context.scene.frame_set(Frame + bpy.context.scene.frame_start)
                     
                     if Bone.parent:
                         PoseMatrix = (Bone.parent.matrix * Matrix.Rotation(radians(-90), 4, "X")).invert()
@@ -1014,7 +1014,7 @@ def WriteFullAnimationSet(Config):
                 Config.Whitespace += 1
                 Config.File.write("{}0;\n{}{};\n".format("  " * Config.Whitespace, "  " * Config.Whitespace, KeyframeCount))
                 for Frame in range(0, KeyframeCount):
-                    bpy.context.scene.set_frame(Frame + bpy.context.scene.frame_start)
+                    bpy.context.scene.frame_set(Frame + bpy.context.scene.frame_start)
                     #Whew! I'm sure this could be simplified.
                     Rotation = Config.SystemQuaternion.cross(Matrix.Rotation(radians(90), 4, "X").to_quat().cross(Bone.rotation_quaternion.cross(Matrix.Rotation(radians(-90), 4, "X").to_quat().cross(Config.InverseSystemQuaternion))))
                     Config.File.write("{}{}{:9f},{:9f},{:9f},{:9f};;\n".format("  " * Config.Whitespace, (str(Frame) + ";4;").ljust(8), Rotation[0], Rotation[1], Rotation[2], Config.FlipZ * Rotation[3]))
@@ -1030,7 +1030,7 @@ def WriteFullAnimationSet(Config):
                 Config.Whitespace += 1
                 Config.File.write("{}1;\n{}{};\n".format("  " * Config.Whitespace, "  " * Config.Whitespace, KeyframeCount))
                 for Frame in range(0, KeyframeCount):
-                    bpy.context.scene.set_frame(Frame + bpy.context.scene.frame_start)
+                    bpy.context.scene.frame_set(Frame + bpy.context.scene.frame_start)
                     
                     if Bone.parent:
                         PoseMatrix = (Bone.parent.matrix * Matrix.Rotation(radians(-90), 4, "X")).invert()

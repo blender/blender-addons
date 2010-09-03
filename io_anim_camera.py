@@ -79,9 +79,9 @@ def writeCameras(context, filepath, frame_start, frame_end, only_selected=False)
 
 
     for f in frame_range:
-        scene.set_frame(f)
+        scene.frame_set(f)
         fw("# new frame\n")
-        fw("scene.set_frame(%d + frame)\n" % f)
+        fw("scene.frame_set(%d + frame)\n" % f)
 
         for obj, obj_data in cameras:
             fw("obj = cameras['%s']\n" % obj.name)

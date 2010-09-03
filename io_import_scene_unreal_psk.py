@@ -540,7 +540,7 @@ def pskimport(infile):
     #= make sure the list isnt too big
     for material in materials:
         #add material to the mesh list of materials
-        me_ob.materials.link(material)
+        me_ob.materials.append(material)
     #===================================================================================================
     #
     #===================================================================================================
