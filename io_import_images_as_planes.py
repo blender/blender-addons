@@ -231,7 +231,11 @@ def getMaterial(tex, mapping):
     # ... otherwise create new one and apply mapping.
     if not mat:
         mat = bpy.data.materials.new(name=tex.name)
-        mat.add_texture(tex, texture_coordinates='UV', map_to='COLOR')
+        mtex = mat.texture_slots.add()
+        mtex.texture = tex
+        mtex.texture_coords = 'UV'
+        mtex.use_map_color_diffuse = True
+
         mat.mapping = mapping
         mat.name = tex.name
 

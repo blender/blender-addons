@@ -513,7 +513,10 @@ class GenerateCloud(bpy.types.Operator):
             cloudtex = blend_data.textures.new("CloudTex", type='CLOUDS')
             cloudtex.noise_type = 'HARD_NOISE'
             cloudtex.noise_scale = 2
-            cloudMaterial.add_texture(cloudtex, 'ORCO')
+            mtex = cloudMaterial.texture_slots.add()
+            mtex.texture = cloudtex
+            mtex.texture_coords = 'ORCO'
+            mtex.use_map_color_diffuse = True
 
             # Add a force field to the points.
             cloudField = bounds.field
@@ -531,10 +534,14 @@ class GenerateCloud(bpy.types.Operator):
 
             # Add a Point Density texture
             pDensity = blend_data.textures.new("CloudPointDensity", 'POINT_DENSITY')
-            cloudMaterial.add_texture(pDensity, 'ORCO')
-            vMaterialTextureSlots[1].use_map_density = True
-            vMaterialTextureSlots[1].use_rgb_to_intensity = True
-            vMaterialTextureSlots[1].texture_coords = 'GLOBAL'
+            
+            mtex = cloudMaterial.texture_slots.add()
+            mtex.texture = pDensity
+            mtex.texture_coords = 'GLOBAL'
+            mtex.use_map_density = True
+            mtex.use_rgb_to_intensity = True
+            mtex.texture_coords = 'GLOBAL'
+
             pDensity.point_density.vertex_cache_space = 'WORLD_SPACE'
             pDensity.point_density.use_turbulence = True
             pDensity.point_density.noise_basis = 'VORONOI_F2'

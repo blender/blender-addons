@@ -416,7 +416,10 @@ def check_texture(img,mat):
             found = True
             break
     if not found and mat:
-        mat.add_texture(tex, texture_coordinates='UV', map_to='COLOR')
+        mtex = mat.texture_slots.add()
+        mtex.texture = tex
+        mtex.texture_coords = 'UV'
+        mtex.use_map_color_diffuse = True
 
 def texface_to_mat():
     # editmode check here!

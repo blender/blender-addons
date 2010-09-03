@@ -769,9 +769,10 @@ def parseMTex(mat, args, tokens):
     texco = args[2]
     mapto = args[3]
 
-    mat.add_texture(texture = loadedData['Texture'][texname], texture_coordinates = texco, map_to = mapto)
-    mtex = mat.texture_slots[index]
-    #mat.use_textures[index] = Bool(use)
+    mtex = mat.texture_slots.add()
+    mtex.texture = loadedData['Texture'][texname]
+    mtex.texture_coords = texco
+    mtex.use_map_color_diffuse = True # XXX, fixme, mapto not used
 
     for (key, val, sub) in tokens:
         defaultKey(key, val, sub, "mtex", [], globals(), locals())
