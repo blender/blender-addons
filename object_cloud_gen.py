@@ -24,7 +24,7 @@ bl_addon_info = {
     "api": 31667,
     "location": "Tool Shelf ",
     "description": "Creates Volumetric Clouds",
-    "warning": "returns error at line 542",
+    "warning": "",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"\
         "Scripts/Object/Cloud_Gen",
     "tracker_url": "https://projects.blender.org/tracker/index.php?"\
@@ -330,7 +330,7 @@ class GenerateCloud(bpy.types.Operator):
 
     def execute(self, context):
         # Make variable that is the current .blend file main data blocks
-        main = context.main
+        blend_data = context.blend_data
 
         # Make variable that is the active object selected by user
         active_object = context.active_object
@@ -373,7 +373,7 @@ class GenerateCloud(bpy.types.Operator):
            for createdObj in createdObjects:
                totallyDeleteObject(scene, createdObj)
 
-           # Delete the main object
+           # Delete the blend_data object
            totallyDeleteObject(scene, mainObj)
 
            # Select all of the left over boxes so people can immediately
@@ -404,7 +404,7 @@ class GenerateCloud(bpy.types.Operator):
             bounds.hide_render = False
 
             # Just add a Definition Property designating this
-            # as the main object.
+            # as the blend_data object.
             bounds["CloudMember"] = "MainObj"
 
             # Since we used iteration 0 to copy with object we
@@ -492,7 +492,7 @@ class GenerateCloud(bpy.types.Operator):
                 bpy.ops.object.material_slot_remove()
 
             # Add a new material.
-            cloudMaterial = main.materials.new("CloudMaterial")
+            cloudMaterial = blend_data.materials.new("CloudMaterial")
             bpy.ops.object.material_slot_add()
             bounds.material_slots[0].material = cloudMaterial
 
@@ -510,10 +510,13 @@ class GenerateCloud(bpy.types.Operator):
 
             # Add a texture
             vMaterialTextureSlots = cloudMaterial.texture_slots
-            cloudtex = main.textures.new("CloudTex", type='CLOUDS')
+            cloudtex = blend_data.textures.new("CloudTex", type='CLOUDS')
             cloudtex.noise_type = 'HARD_NOISE'
             cloudtex.noise_scale = 2
-            cloudMaterial.add_texture(cloudtex, 'ORCO')
+            mtex = cloudMaterial.texture_slots.add()
+            mtex.texture = cloudtex
+            mtex.texture_coords = 'ORCO'
+            mtex.use_map_color_diffuse = True
 
             # Add a force field to the points.
             cloudField = bounds.field
@@ -530,11 +533,15 @@ class GenerateCloud(bpy.types.Operator):
             #bpy.ops.ptcache.bake(bake=False)
 
             # Add a Point Density texture
-            pDensity = main.textures.new("CloudPointDensity", 'POINT_DENSITY')
-            cloudMaterial.add_texture(pDensity, 'ORCO')
-            vMaterialTextureSlots[1].use_map_density = True
-            vMaterialTextureSlots[1].use_rgb_to_intensity = True
-            vMaterialTextureSlots[1].texture_coords = 'GLOBAL'
+            pDensity = blend_data.textures.new("CloudPointDensity", 'POINT_DENSITY')
+            
+            mtex = cloudMaterial.texture_slots.add()
+            mtex.texture = pDensity
+            mtex.texture_coords = 'GLOBAL'
+            mtex.use_map_density = True
+            mtex.use_rgb_to_intensity = True
+            mtex.texture_coords = 'GLOBAL'
+
             pDensity.point_density.vertex_cache_space = 'WORLD_SPACE'
             pDensity.point_density.use_turbulence = True
             pDensity.point_density.noise_basis = 'VORONOI_F2'
