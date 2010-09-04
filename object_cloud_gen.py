@@ -330,7 +330,7 @@ class GenerateCloud(bpy.types.Operator):
 
     def execute(self, context):
         # Make variable that is the current .blend file main data blocks
-        blend_data = context.blend_data
+        main = context.main
 
         # Make variable that is the active object selected by user
         active_object = context.active_object
@@ -373,7 +373,7 @@ class GenerateCloud(bpy.types.Operator):
            for createdObj in createdObjects:
                totallyDeleteObject(scene, createdObj)
 
-           # Delete the blend_data object
+           # Delete the main object
            totallyDeleteObject(scene, mainObj)
 
            # Select all of the left over boxes so people can immediately
@@ -404,7 +404,7 @@ class GenerateCloud(bpy.types.Operator):
             bounds.hide_render = False
 
             # Just add a Definition Property designating this
-            # as the blend_data object.
+            # as the main object.
             bounds["CloudMember"] = "MainObj"
 
             # Since we used iteration 0 to copy with object we
@@ -492,7 +492,7 @@ class GenerateCloud(bpy.types.Operator):
                 bpy.ops.object.material_slot_remove()
 
             # Add a new material.
-            cloudMaterial = blend_data.materials.new("CloudMaterial")
+            cloudMaterial = main.materials.new("CloudMaterial")
             bpy.ops.object.material_slot_add()
             bounds.material_slots[0].material = cloudMaterial
 
@@ -510,13 +510,10 @@ class GenerateCloud(bpy.types.Operator):
 
             # Add a texture
             vMaterialTextureSlots = cloudMaterial.texture_slots
-            cloudtex = blend_data.textures.new("CloudTex", type='CLOUDS')
+            cloudtex = main.textures.new("CloudTex", type='CLOUDS')
             cloudtex.noise_type = 'HARD_NOISE'
             cloudtex.noise_scale = 2
-            mtex = cloudMaterial.texture_slots.add()
-            mtex.texture = cloudtex
-            mtex.texture_coords = 'ORCO'
-            mtex.use_map_color_diffuse = True
+            cloudMaterial.add_texture(cloudtex, 'ORCO')
 
             # Add a force field to the points.
             cloudField = bounds.field
@@ -533,15 +530,11 @@ class GenerateCloud(bpy.types.Operator):
             #bpy.ops.ptcache.bake(bake=False)
 
             # Add a Point Density texture
-            pDensity = blend_data.textures.new("CloudPointDensity", 'POINT_DENSITY')
-            
-            mtex = cloudMaterial.texture_slots.add()
-            mtex.texture = pDensity
-            mtex.texture_coords = 'GLOBAL'
-            mtex.use_map_density = True
-            mtex.use_rgb_to_intensity = True
-            mtex.texture_coords = 'GLOBAL'
-
+            pDensity = main.textures.new("CloudPointDensity", 'POINT_DENSITY')
+            cloudMaterial.add_texture(pDensity, 'ORCO')
+            vMaterialTextureSlots[1].use_map_density = True
+            vMaterialTextureSlots[1].use_rgb_to_intensity = True
+            vMaterialTextureSlots[1].texture_coords = 'GLOBAL'
             pDensity.point_density.vertex_cache_space = 'WORLD_SPACE'
             pDensity.point_density.use_turbulence = True
             pDensity.point_density.noise_basis = 'VORONOI_F2'
@@ -549,7 +542,7 @@ class GenerateCloud(bpy.types.Operator):
 
             pDensity.use_color_ramp = True
             pRamp = pDensity.color_ramp
-            pRamp.use_interpolation = 'LINEAR'
+            #pRamp.use_interpolation = 'LINEAR'
             pRampElements = pRamp.elements
             #pRampElements[1].position = .9
             #pRampElements[1].color = [.18,.18,.18,.8]
@@ -567,7 +560,7 @@ class GenerateCloud(bpy.types.Operator):
  
             # Set the number of particles according to the volume
             # of bounds.
-            cloudParticles.settings.amount = numParticles
+            cloudParticles.settings.count = numParticles
 
             pDensity.point_density.radius = (.00013764 * volumeBoundBox + .3989) * pointDensityRadiusFactor
 
