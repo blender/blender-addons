@@ -19,7 +19,7 @@
 bl_addon_info = {
     "name": "Pipe Joints",
     "author": "Buerbaum Martin (Pontiac)",
-    "version": (0,10,5),
+    "version": (0, 10, 6),
     "blender": (2, 5, 3),
     "api": 31667,
     "location": "View3D > Add > Mesh > Pipe Joint",
@@ -42,6 +42,14 @@ The functionality can then be accessed via the
 Note: Currently only the "Elbow" type supports odd number of vertices.
 
 Version history:
+v0.10.6 - Removed "recall properties" from all functions.
+    Updated various code for new API.
+    API: mathutils.RotationMatrix -> mathutils.Matrix.Rotation
+    API: xxx.selected -> xxx.select
+    API: "invoke" function for each operator.
+    Updated for new bl_addon_info structure.
+    New code for the "align_matrix".
+    made script PEP8 compatible.
 v0.10.5 - createFaces can now create fan/star like faces.
 v0.10.4 - Updated the function "createFaces" a bit. No functional changes.
 v0.10.3 - Updated store_recall_properties, apply_object_align
@@ -136,11 +144,14 @@ def align_matrix(context):
     obj_align = context.user_preferences.edit.object_align
     if (context.space_data.type == 'VIEW_3D'
         and obj_align == 'VIEW'):
-        rot = context.space_data.region_3d.view_matrix.rotation_part().invert().resize4x4()
+        view_mat = context.space_data.region_3d.view_matrix
+        rot = view_mat.rotation_part().invert().resize4x4()
     else:
         rot = mathutils.Matrix()
     align_matrix = loc * rot
     return align_matrix
+
+
 # Create a new mesh (object) from verts/edges/faces.
 # verts/edges/faces ... List of vertices/edges/faces for the
 #                       new mesh (as used in from_pydata).
@@ -403,12 +414,14 @@ class AddElbowJoint(bpy.types.Operator):
 
         obj = create_mesh_object(context, verts, [], faces,
             "Elbow Joint", edit, self.align_matrix)
+
         return {'FINISHED'}
 
     def invoke(self, context, event):
         self.align_matrix = align_matrix(context)
         self.execute(context)
         return {'FINISHED'}
+
 
 class AddTeeJoint(bpy.types.Operator):
     # Create the vertices and polygons for a simple tee (T) joint.
@@ -592,7 +605,8 @@ class AddTeeJoint(bpy.types.Operator):
         faces.extend(createFaces(loopJoint2, loopArm, closed=True))
         faces.extend(createFaces(loopJoint3, loopMainEnd, closed=True))
 
-        obj = create_mesh_object(context, verts, [], faces, "Tee Joint", edit, self.align_matrix)
+        obj = create_mesh_object(context, verts, [], faces,
+            "Tee Joint", edit, self.align_matrix)
 
         return {'FINISHED'}
 
@@ -600,6 +614,7 @@ class AddTeeJoint(bpy.types.Operator):
         self.align_matrix = align_matrix(context)
         self.execute(context)
         return {'FINISHED'}
+
 
 class AddWyeJoint(bpy.types.Operator):
     '''Add a Wye-Joint mesh'''
@@ -798,7 +813,8 @@ class AddWyeJoint(bpy.types.Operator):
         faces.extend(createFaces(loopJoint2, loopArm1, closed=True))
         faces.extend(createFaces(loopJoint3, loopArm2, closed=True))
 
-        obj = create_mesh_object(context, verts, [], faces, "Wye Joint", edit, self.align_matrix)
+        obj = create_mesh_object(context, verts, [], faces,
+            "Wye Joint", edit, self.align_matrix)
 
         return {'FINISHED'}
 
@@ -806,6 +822,7 @@ class AddWyeJoint(bpy.types.Operator):
         self.align_matrix = align_matrix(context)
         self.execute(context)
         return {'FINISHED'}
+
 
 class AddCrossJoint(bpy.types.Operator):
     '''Add a Cross-Joint mesh'''
@@ -1075,6 +1092,7 @@ class AddCrossJoint(bpy.types.Operator):
         self.execute(context)
         return {'FINISHED'}
 
+
 class AddNJoint(bpy.types.Operator):
     '''Add a N-Joint mesh'''
     # Create the vertices and polygons for a regular n-joint.
@@ -1235,7 +1253,8 @@ class AddNJoint(bpy.types.Operator):
                 createFaces(loopsJoints[loopIdx],
                 loopsEndCircles[loopIdx], closed=True))
 
-        obj = create_mesh_object(context, verts, [], faces, "N Joint", edit, self.align_matrix)
+        obj = create_mesh_object(context, verts, [], faces,
+            "N Joint", edit, self.align_matrix)
 
         return {'FINISHED'}
 
@@ -1243,6 +1262,7 @@ class AddNJoint(bpy.types.Operator):
         self.align_matrix = align_matrix(context)
         self.execute(context)
         return {'FINISHED'}
+
 
 class INFO_MT_mesh_pipe_joints_add(bpy.types.Menu):
     # Define the "Pipe Joints" menu
@@ -1266,6 +1286,7 @@ class INFO_MT_mesh_pipe_joints_add(bpy.types.Menu):
 ################################
 
 import space_info
+
 
 # Define "Pipe Joints" menu
 def menu_func(self, context):
