@@ -18,6 +18,20 @@
 
 # <pep8 compliant>
 
+bl_addon_info= {
+    "name": "Import LightWave Objects",
+    "author": "Ken Nign (Ken9)",
+    "version": (1,0),
+    "blender": (2, 5, 3),
+    "api": 31744,
+    "location": "File > Import > LightWave Object (.lwo)",
+    "description": "Imports a LWO file including any UV, Morph and Color maps. Can convert Skelegons to an Armature.",
+    "warning": "",
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"\
+        "Scripts/File_I-O/LightWave_Object",
+    "tracker_url": "",
+    "category": "Import/Export"}
+
 # Copyright (c) Ken Nign 2010
 # ken@virginpi.com
 #
@@ -40,22 +54,6 @@
 # Blender is limited to only 8 UV Texture and 8 Vertex Color maps,
 # thus only the first 8 of each can be imported.
 
-
-bl_addon_info= {
-    "name": "Import LightWave Objects",
-    "author": "Ken Nign (Ken9)",
-    "version": (1,0),
-    "blender": (2, 5, 3),
-    "api": 31744,
-    "location": "File > Import > LightWave Object (.lwo)",
-    "description": "Imports a LWO file including any UV, Morph and Color maps. Can convert Skelegons to an Armature.",
-    "warning": "",
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"\
-        "Scripts/File_I-O/LightWave_Object",
-    "tracker_url": "",
-    "category": "Import/Export"}
-
-
 import os
 import io
 import time
@@ -67,7 +65,24 @@ import mathutils
 from geometry import PolyFill
 
 
-class _obj_layer():
+class _obj_layer(object):
+    __slots__ = (
+        "name",
+        "index",
+        "parent_index",
+        "pivot",
+        "pols",
+        "bones",
+        "bone_names",
+        "bone_rolls",
+        "pnts",
+        "wmaps",
+        "colmaps",
+        "uvmaps",
+        "morphs",
+        "surf_tags",
+        "has_subds",
+        )
     def __init__(self):
         self.name= ""
         self.index= -1
@@ -86,7 +101,25 @@ class _obj_layer():
         self.has_subds= False
 
 
-class _obj_surf():
+class _obj_surf(object):
+    __slots__ = (
+        "bl_mat",
+        "name",
+        "colr",
+        "diff",
+        "lumi",
+        "spec",
+        "refl",
+        "rblr",
+        "tran",
+        "rind",
+        "tblr",
+        "trnl",
+        "glos",
+        "shrp",
+        "smooth",
+        )
+
     def __init__(self):
         self.bl_mat= None
         self.name= "Default"
@@ -104,7 +137,7 @@ class _obj_surf():
         self.glos= 0.4   # Glossiness
         self.shrp= 0.0   # Diffuse Sharpness
         self.smooth= False  # Surface Smoothing
-        
+
 
 def load_lwo(filename,
              context,
@@ -221,7 +254,7 @@ def read_lwo2(file, filename, layers, surfs, tags, add_subd_mod, load_hidden, sk
             read_surf(rootchunk.read(), surfs)
         else:
             #if handle_layer:
-                #print("Skipping Chunk: " + str(rootchunk.chunkname))
+                #print("Skipping Chunk:", rootchunk.chunkname)
             rootchunk.skip()
 
 
@@ -262,7 +295,7 @@ def read_lwob(file, filename, layers, surfs, tags, add_subd_mod):
         else:
             # For Debugging \/.
             #if handle_layer:
-                #print("Skipping Chunk: " + str(rootchunk.chunkname))
+                #print("Skipping Chunk: ", rootchunk.chunkname)
             rootchunk.skip()
 
 
@@ -324,7 +357,7 @@ def read_layr(layr_bytes, object_layers, load_hidden):
     if layr_name:
         new_layr.name= layr_name
     else:
-        new_layr.name= "Layer " + str(new_layr.index + 1)
+        new_layr.name= "Layer %d" % (new_layr.index + 1)
         
     if len(layr_bytes) == offset+2:
         new_layr.parent_index,= struct.unpack(">h", layr_bytes[offset:offset+2])
@@ -347,7 +380,7 @@ def read_layr_5(layr_bytes, object_layers):
     if name_len > 2 and layr_name != 'noname':
         new_layr.name= layr_name
     else:
-        new_layr.name= "Layer " + str(new_layr.index)
+        new_layr.name= "Layer %d" % new_layr.index
         
     object_layers.append(new_layr)
     
@@ -887,7 +920,7 @@ def build_armature(layer_data, bones):
 def build_objects(object_layers, object_surfs, object_tags, object_name, add_subd_mod, skel_to_arm):
     '''Using the gathered data, create the objects.'''
     ob_dict= {} # Used for the parenting setup.
-    print("Adding "+str(len(object_surfs))+" Materials")
+    print("Adding %d Materials" % len(object_surfs))
 
     for surf_key in object_surfs:
         surf_data= object_surfs[surf_key]
@@ -913,46 +946,50 @@ def build_objects(object_layers, object_surfs, object_tags, object_name, add_sub
     # Single layer objects use the object file's name instead.
     if len(object_layers) and object_layers[-1].name == 'Layer 1':
         object_layers[-1].name= object_name
-        print("Building "+object_name+" Object")
+        print("Building '%s' Object" % object_name)
     else:
-        print("Building "+str(len(object_layers))+" Objects")
+        print("Building %d Objects" % len(object_layers))
     
     for layer_data in object_layers:
         me= bpy.data.meshes.new(layer_data.name)        
         me.vertices.add(len(layer_data.pnts))
         me.faces.add(len(layer_data.pols))
-        
-        for vi in range(len(layer_data.pnts)):
-            me.vertices[vi].co= layer_data.pnts[vi]
-        
+
+        # for vi in range(len(layer_data.pnts)):
+        #     me.vertices[vi].co= layer_data.pnts[vi]
+
+        # faster, would be faster again to use an array
+        me.vertices.foreach_set("co", [axis co for co in layer_data.pnts for axis in co])
+
         ngons= {}   # To keep the FaceIdx consistant, handle NGons later.
         has_edges= False
-        for fi in range(len(layer_data.pols)):
-            layer_data.pols[fi].reverse()   # Reversing gives correct normal directions
+        for fi, fpol in enumerate(len(layer_data.pols)):
+            fpol.reverse()   # Reversing gives correct normal directions
             # PointID 0 in the last element causes Blender to think it's un-used.
-            if layer_data.pols[fi][-1] == 0:
-                layer_data.pols[fi].insert(0, layer_data.pols[fi][-1])
-                del layer_data.pols[fi][-1]
+            if fpol[-1] == 0:
+                fpol.insert(0, fpol[-1])
+                del fpol[-1]
             
-            vlen= len(layer_data.pols[fi])
+            vlen= len(fpol)
             if vlen == 3 or vlen == 4:
                 for i in range(vlen):
-                    me.faces[fi].vertices_raw[i]= layer_data.pols[fi][i]
+                    me.faces[fi].vertices_raw[i]= fpol[i]
             elif vlen == 2:
                 has_edges= True
                 # This IS an odd way to create edges, but using edges.add() was causing
                 # crashes if there were faces and edges being created in the same layer.
-                opp= layer_data.pols[fi]
-                me.faces[fi].vertices= [opp[0], opp[1], opp[0]]
+                # XXX, this should set edges instead!
+                opp= fpol
+                me.faces[fi].vertices= opp[0], opp[1], opp[0]
             elif vlen != 1:
-                ngons[fi]= layer_data.pols[fi]  # Deal with them later
+                ngons[fi]= fpol  # Deal with them later
         
         ob= bpy.data.objects.new(layer_data.name, me)
         bpy.context.scene.objects.link(ob)
         ob_dict[layer_data.index]= [ob, layer_data.parent_index]
         
         # Move the object so the pivot is in the right place.
-        ob.location= [layer_data.pivot[0], layer_data.pivot[2], layer_data.pivot[1]]
+        ob.location= layer_data.pivot
     
         # Create the Material Slots and assign the MatIndex to the correct faces.
         mat_slot= 0
@@ -968,7 +1005,7 @@ def build_objects(object_layers, object_surfs, object_tags, object_name, add_sub
         
         # Create the Vertex Groups (LW's Weight Maps).
         if len(layer_data.wmaps) > 0:
-            print("Adding "+str(len(layer_data.wmaps))+" Vertex Groups")
+            print("Adding %d Vertex Groups" % len(layer_data.wmaps))
             for wmap_key in layer_data.wmaps:
                 vgroup= ob.vertex_groups.new()
                 vgroup.name= wmap_key
@@ -978,7 +1015,7 @@ def build_objects(object_layers, object_surfs, object_tags, object_name, add_sub
         
         # Create the Shape Keys (LW's Endomorphs).
         if len(layer_data.morphs) > 0:
-            print("Adding "+str(len(layer_data.morphs))+" Shapes Keys")
+            print("Adding %d Shapes Keys" % len(layer_data.morphs))
             ob.add_shape_key('Basis')   # Got to have a Base Shape.
             for morph_key in layer_data.morphs:
                 skey= ob.add_shape_key(morph_key)
@@ -988,7 +1025,7 @@ def build_objects(object_layers, object_surfs, object_tags, object_name, add_sub
         
         # Create the Vertex Color maps.
         if len(layer_data.colmaps) > 0:
-            print("Adding "+str(len(layer_data.colmaps))+" Vertex Color Maps")
+            print("Adding %d Vertex Color Maps" % len(layer_data.colmaps))
             for cmap_key in layer_data.colmaps:
                 map_pack= create_mappack(layer_data, cmap_key, "COLOR")
                 vcol= me.vertex_colors.new(cmap_key)
@@ -1009,7 +1046,7 @@ def build_objects(object_layers, object_surfs, object_tags, object_name, add_sub
                         
         # Create the UV Maps.
         if len(layer_data.uvmaps) > 0:
-            print("Adding "+str(len(layer_data.uvmaps))+" UV Textures")
+            print("Adding %d UV Textures" % len(layer_data.uvmaps))
             for uvmap_key in layer_data.uvmaps:
                 map_pack= create_mappack(layer_data, uvmap_key, "UV")
                 uvm= me.uv_textures.new(uvmap_key)
@@ -1047,15 +1084,8 @@ def build_objects(object_layers, object_surfs, object_tags, object_name, add_sub
                     face.use_smooth= me.faces[ng_key].use_smooth
                     face_offset+= 1
         
-        me.update()
-        
-        # Non-face edges won't show up until Edit Mode cycling
-        if has_edges:
-            bpy.ops.object.select_all(action='DESELECT')
-            ob.users_scene[0].objects.active= ob
-            bpy.ops.object.mode_set(mode='EDIT')
-            bpy.ops.object.mode_set(mode='OBJECT')
-        
+        me.update(calc_edges=has_edges)
+
         # Unfortunately we can't exlude certain faces from the subdivision.
         if layer_data.has_subds and add_subd_mod:
             ob.modifiers.new(name="Subsurf", type='SUBSURF')
