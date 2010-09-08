@@ -114,6 +114,7 @@ class _obj_surf(object):
     __slots__ = (
         "bl_mat",
         "name",
+        "source_name",
         "colr",
         "diff",
         "lumi",
@@ -366,7 +367,9 @@ def read_layr(layr_bytes, object_layers, load_hidden):
 
     print("Reading Object Layer")
     offset= 4
-    new_layr.pivot= struct.unpack(">fff", layr_bytes[offset:offset+12])
+    pivot= struct.unpack(">fff", layr_bytes[offset:offset+12])
+    # Swap Y and Z to match Blender's pitch.
+    new_layr.pivot= [pivot[0], pivot[2], pivot[1]]
     offset+= 12
     layr_name, name_len = read_lwostring(layr_bytes[offset:])
     offset+= name_len
@@ -411,10 +414,11 @@ def read_pnts(pnt_bytes, object_layers):
     while offset < chunk_len:
         pnts= struct.unpack(">fff", pnt_bytes[offset:offset+12])
         offset+= 12
-        # Re-order the points so that the mesh has the right pitch.
+        # Re-order the points so that the mesh has the right pitch,
+        # the pivot already has the correct order.
         pnts= [pnts[0] - object_layers[-1].pivot[0],\
-               pnts[2] - object_layers[-1].pivot[2],\
-               pnts[1] - object_layers[-1].pivot[1]]
+               pnts[2] - object_layers[-1].pivot[1],\
+               pnts[1] - object_layers[-1].pivot[2]]
         object_layers[-1].pnts.append(pnts)
 
 
@@ -1022,11 +1026,11 @@ def build_objects(object_layers, object_surfs, object_tags, object_name, add_sub
         #     me.vertices[vi].co= layer_data.pnts[vi]
 
         # faster, would be faster again to use an array
-        me.vertices.foreach_set("co", [axis co for co in layer_data.pnts for axis in co])
+        me.vertices.foreach_set("co", [axis for co in layer_data.pnts for axis in co])
 
         ngons= {}   # To keep the FaceIdx consistant, handle NGons later.
         edges= []   # Holds the FaceIdx of the 2-point polys.
-        for fi, fpol in enumerate(len(layer_data.pols)):
+        for fi, fpol in enumerate(layer_data.pols):
             fpol.reverse()   # Reversing gives correct normal directions
             # PointID 0 in the last element causes Blender to think it's un-used.
             if fpol[-1] == 0:
@@ -1157,8 +1161,8 @@ def build_objects(object_layers, object_surfs, object_tags, object_name, add_sub
         # Apply the Edge Weighting.
         if len(layer_data.edge_weights) > 0:
             for edge in me.edges:
-                edge_sa= "{0} {1}".format(edge.vertices[0]), edge.vertices[1])
-                edge_sb= "{0} {1}".format(edge.vertices[1]), edge.vertices[0])
+                edge_sa= "{0} {1}".format(edge.vertices[0], edge.vertices[1])
+                edge_sb= "{0} {1}".format(edge.vertices[1], edge.vertices[0])
                 if edge_sa in layer_data.edge_weights:
                     edge.crease= layer_data.edge_weights[edge_sa]
                 elif edge_sb in layer_data.edge_weights:
