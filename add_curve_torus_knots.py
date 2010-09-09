@@ -136,10 +136,6 @@ def main(context, props, align_matrix):
     # deselect all objects
     bpy.ops.object.select_all(action='DESELECT')
 
-    # options
-    splineType = 'NURBS'
-
-
     # get verts
     verts = Torus_Knot_Curve(props.torus_p,
                             props.torus_q,
