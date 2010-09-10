@@ -21,7 +21,7 @@ bl_addon_info = {
     "author": "Florian Meyer (testscreenings)",
     "version": (0,7),
     "blender": (2, 5, 3),
-    "api": 31667,
+    "api": 31847,
     "location": "File > Import > Images as Planes",
     "description": "Imports images and creates planes with the appropriate aspect ratio. The images are mapped to the planes.",
     "warning": "",
@@ -445,44 +445,43 @@ class ImportImagesAsPlanes(bpy.types.Operator):
         default=500)
 
     def draw(self, context):
-        props = self.properties
         layout = self.layout
         box = layout.box()
         box.label('Filter:', icon='FILTER')
-        box.prop(props, 'fromDirectory')
-        box.prop(props, 'extension', icon='FILE_IMAGE')
+        box.prop(self.properties, 'fromDirectory')
+        box.prop(self.properties, 'extension', icon='FILE_IMAGE')
         box = layout.box()
         box.label('Material mappings:', icon='MATERIAL')
-        box.prop(props, 'use_shadeless')
-        box.prop(props, 'transp')
-        box.prop(props, 'use_premultiply')
-        box.prop(props, 'transp_method', expand=True)
+        box.prop(self.properties, 'use_shadeless')
+        box.prop(self.properties, 'transp')
+        box.prop(self.properties, 'use_premultiply')
+        box.prop(self.properties, 'transp_method', expand=True)
         box = layout.box()
         box.label('Plane dimensions:', icon='ARROW_LEFTRIGHT')
-        box.prop(props, 'useDim')
-        box.prop(props, 'factor', expand=True)
+        box.prop(self.properties, 'useDim')
+        box.prop(self.properties, 'factor', expand=True)
 
     def execute(self, context):
         # File Path
-        filepath = self.properties.filepath
-        filename = self.properties.filename
-        directory = self.properties.directory
+        filepath = self.filepath
+        filename = self.filename
+        directory = self.directory
         filePath = (filepath, filename, directory)
 
         # General Options
-        fromDirectory = self.properties.fromDirectory
-        extension = self.properties.extension
+        fromDirectory = self.fromDirectory
+        extension = self.extension
         options = {'dir': fromDirectory, 'ext': extension}
 
         # Mapping
         alphavalue = 1
-        transp = self.properties.transp
+        transp = self.transp
         if transp:
             alphavalue = 0
 
-        shadeless = self.properties.use_shadeless
-        transp_method = self.properties.transp_method
-        premultiply = self.properties.use_premultiply
+        shadeless = self.use_shadeless
+        transp_method = self.transp_method
+        premultiply = self.use_premultiply
 
         mapping = ([shadeless,
                     transp,
@@ -492,8 +491,8 @@ class ImportImagesAsPlanes(bpy.types.Operator):
                     premultiply])
 
         # Use Pixelsdimensions
-        useDim = self.properties.useDim
-        factor = self.properties.factor
+        useDim = self.useDim
+        factor = self.factor
         dimension = (useDim, factor)
 
         # Call Main Function

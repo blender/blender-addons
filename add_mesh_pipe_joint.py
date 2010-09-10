@@ -355,15 +355,15 @@ class AddElbowJoint(bpy.types.Operator):
     align_matrix = mathutils.Matrix()
 
     def execute(self, context):
-        edit = self.properties.edit
+        edit = self.edit
 
-        radius = self.properties.radius
-        div = self.properties.div
+        radius = self.radius
+        div = self.div
 
-        angle = self.properties.angle
+        angle = self.angle
 
-        startLength = self.properties.startLength
-        endLength = self.properties.endLength
+        startLength = self.startLength
+        endLength = self.endLength
 
         verts = []
         faces = []
@@ -480,16 +480,16 @@ class AddTeeJoint(bpy.types.Operator):
     align_matrix = mathutils.Matrix()
 
     def execute(self, context):
-        edit = self.properties.edit
+        edit = self.edit
 
-        radius = self.properties.radius
-        div = self.properties.div
+        radius = self.radius
+        div = self.div
 
-        angle = self.properties.angle
+        angle = self.angle
 
-        startLength = self.properties.startLength
-        endLength = self.properties.endLength
-        branchLength = self.properties.branchLength
+        startLength = self.startLength
+        endLength = self.endLength
+        branchLength = self.branchLength
 
         if (div % 2):
             # Odd vertice number not supported (yet).
@@ -677,17 +677,17 @@ class AddWyeJoint(bpy.types.Operator):
     align_matrix = mathutils.Matrix()
 
     def execute(self, context):
-        edit = self.properties.edit
+        edit = self.edit
 
-        radius = self.properties.radius
-        div = self.properties.div
+        radius = self.radius
+        div = self.div
 
-        angle1 = self.properties.angle1
-        angle2 = self.properties.angle2
+        angle1 = self.angle1
+        angle2 = self.angle2
 
-        startLength = self.properties.startLength
-        branch1Length = self.properties.branch1Length
-        branch2Length = self.properties.branch2Length
+        startLength = self.startLength
+        branch1Length = self.branch1Length
+        branch2Length = self.branch2Length
 
         if (div % 2):
             # Odd vertice number not supported (yet).
@@ -896,19 +896,19 @@ class AddCrossJoint(bpy.types.Operator):
     align_matrix = mathutils.Matrix()
 
     def execute(self, context):
-        edit = self.properties.edit
+        edit = self.edit
 
-        radius = self.properties.radius
-        div = self.properties.div
+        radius = self.radius
+        div = self.div
 
-        angle1 = self.properties.angle1
-        angle2 = self.properties.angle2
-        angle3 = self.properties.angle3
+        angle1 = self.angle1
+        angle2 = self.angle2
+        angle3 = self.angle3
 
-        startLength = self.properties.startLength
-        branch1Length = self.properties.branch1Length
-        branch2Length = self.properties.branch2Length
-        branch3Length = self.properties.branch3Length
+        startLength = self.startLength
+        branch1Length = self.branch1Length
+        branch2Length = self.branch2Length
+        branch3Length = self.branch3Length
         if (div % 2):
             # Odd vertice number not supported (yet).
             return {'CANCELLED'}
@@ -1131,11 +1131,11 @@ class AddNJoint(bpy.types.Operator):
     align_matrix = mathutils.Matrix()
 
     def execute(self, context):
-        edit = self.properties.edit
-        radius = self.properties.radius
-        div = self.properties.div
-        number = self.properties.number
-        length = self.properties.length
+        edit = self.edit
+        radius = self.radius
+        div = self.div
+        number = self.number
+        length = self.length
 
         if (div % 2):
             # Odd vertice number not supported (yet).

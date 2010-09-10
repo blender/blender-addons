@@ -101,7 +101,7 @@ class RawExporter(bpy.types.Operator):
     triangulate = BoolProperty(name="Triangulate", description="Triangulate quads.", default=True)
 
     def execute(self, context):
-        export_raw(self.properties.filepath, self.properties.apply_modifiers, self.properties.triangulate)
+        export_raw(self.filepath, self.apply_modifiers, self.triangulate)
         return {'FINISHED'}
 
     def invoke(self, context, event):

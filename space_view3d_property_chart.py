@@ -23,7 +23,7 @@ bl_addon_info = {
     "author": "Campbell Barton (ideasman42)",
     "version": (0,1),
     "blender": (2, 5, 3),
-    "api": 31667,
+    "api": 31847,
     "location": "Tool Shelf",
     "description": "Edit arbitrary selected properties for objects of the same type",
     "warning": "",
@@ -185,7 +185,7 @@ def _property_chart_copy(self, context):
     if not obj:
         return
 
-    data_path = self.properties.data_path
+    data_path = self.data_path
 
     # quick & nasty method!
     for obj_iter in selected_objects:
@@ -211,8 +211,8 @@ class CopyPropertyChart(bpy.types.Operator):
 
     def execute(self, context):
         # so attributes are found for '_property_chart_data_get()'
-        self.context_data_path_active = self.properties.data_path_active
-        self.context_data_path_selected = self.properties.data_path_selected
+        self.context_data_path_active = self.data_path_active
+        self.context_data_path_selected = self.data_path_selected
 
         _property_chart_copy(self, context)
 

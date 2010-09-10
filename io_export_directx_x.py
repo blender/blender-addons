@@ -20,7 +20,7 @@ bl_addon_info = {
     "author": "Chris Foster (Kira Vakaan)",
     "version": (1,6),
     "blender": (2, 5, 3),
-    "api": 31667,
+    "api": 31847,
     "location": "File > Export",
     "description": "Export to the DirectX Model Format (.x)",
     "warning": "",
@@ -1112,22 +1112,22 @@ class DirectXExporter(bpy.types.Operator):
 
     def execute(self, context):
         #Append .x if needed
-        FilePath = self.properties.filepath
+        FilePath = self.filepath
         if not FilePath.lower().endswith(".x"):
             FilePath += ".x"
 
         Config = DirectXExporterSettings(context,
                                          FilePath,
-                                         CoordinateSystem=self.properties.CoordinateSystem,
-                                         RotateX=self.properties.RotateX,
-                                         FlipNormals=self.properties.FlipNormals,
-                                         ApplyModifiers=self.properties.ApplyModifiers,
-                                         IncludeFrameRate=self.properties.IncludeFrameRate,
-                                         ExportTextures=self.properties.ExportTextures,
-                                         ExportArmatures=self.properties.ExportArmatures,
-                                         ExportAnimation=self.properties.ExportAnimation,
-                                         ExportMode=self.properties.ExportMode,
-                                         Verbose=self.properties.Verbose)
+                                         CoordinateSystem=self.CoordinateSystem,
+                                         RotateX=self.RotateX,
+                                         FlipNormals=self.FlipNormals,
+                                         ApplyModifiers=self.ApplyModifiers,
+                                         IncludeFrameRate=self.IncludeFrameRate,
+                                         ExportTextures=self.ExportTextures,
+                                         ExportArmatures=self.ExportArmatures,
+                                         ExportAnimation=self.ExportAnimation,
+                                         ExportMode=self.ExportMode,
+                                         Verbose=self.Verbose)
         ExportDirectX(Config)
         return {"FINISHED"}
 

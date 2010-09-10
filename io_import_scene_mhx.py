@@ -21,7 +21,7 @@ bl_addon_info = {
     "author": "Thomas Larsson",
     "version": (0,9,5),
     "blender": (2, 5, 3),
-    "api": 31667,
+    "api": 31847,
     "location": "File > Import",
     "description": "Import files in the MakeHuman eXchange format (.mhx)",
     "warning": "Alpha version",
@@ -2123,20 +2123,20 @@ class IMPORT_OT_makehuman_mhx(bpy.types.Operator):
         
     def execute(self, context):
         global toggle
-        O_Mesh = T_Mesh if self.properties.mesh else 0
-        O_Armature = T_Armature if self.properties.armature else 0
-        O_Proxy = T_Proxy if self.properties.proxy else 0
-        O_Replace = T_Replace if self.properties.replace else 0
-        O_Face = T_Face if self.properties.face else 0
-        O_Shape = T_Shape if self.properties.shape else 0
-        O_Symm = T_Symm if self.properties.symm else 0
-        #O_Preset = T_Preset if self.properties.preset else 0
+        O_Mesh = T_Mesh if self.mesh else 0
+        O_Armature = T_Armature if self.armature else 0
+        O_Proxy = T_Proxy if self.proxy else 0
+        O_Replace = T_Replace if self.replace else 0
+        O_Face = T_Face if self.face else 0
+        O_Shape = T_Shape if self.shape else 0
+        O_Symm = T_Symm if self.symm else 0
+        #O_Preset = T_Preset if self.preset else 0
         toggle =  O_Mesh | O_Armature | O_Proxy | T_ArmIK | T_LegIK | O_Replace | O_Face | O_Shape | O_Symm | T_MHX 
 
         
-        readMhxFile(self.properties.filepath,     
-            (self.properties.footRig, 
-            self.properties.fingerRig))
+        readMhxFile(self.filepath,     
+            (self.footRig, 
+            self.fingerRig))
         return {'FINISHED'}
 
     def invoke(self, context, event):
@@ -2183,22 +2183,22 @@ class MakeHumanFingerPanel(bpy.types.Panel):
           
 
 def registerPanels():
-    bpy.types.Object.FloatProperty(attr="PArmIK_L", name="L arm - IK", default = 0, min = 0.0, max = 1.0)
-    bpy.types.Object.FloatProperty(attr="PArmIK_R", name="R arm - IK", default = 0, min = 0.0, max = 1.0)
-    bpy.types.Object.FloatProperty(attr="PLegIK_L", name="L leg - IK", default = 0, min = 0.0, max = 1.0)
-    bpy.types.Object.FloatProperty(attr="PLegIK_R", name="R leg - IK", default = 0, min = 0.0, max = 1.0)
+    bpy.types.Object.PArmIK_L = FloatProperty(name="L arm - IK", default = 0, min = 0.0, max = 1.0)
+    bpy.types.Object.PArmIK_R = FloatProperty(name="R arm - IK", default = 0, min = 0.0, max = 1.0)
+    bpy.types.Object.PLegIK_L = FloatProperty(name="L leg - IK", default = 0, min = 0.0, max = 1.0)
+    bpy.types.Object.PLegIK_R = FloatProperty(name="R leg - IK", default = 0, min = 0.0, max = 1.0)
 
-    bpy.types.Object.FloatProperty(attr="PHandLocal_L", name="L hand - Loc", default = 0, min = 0.0, max = 1.0)
-    bpy.types.Object.FloatProperty(attr="PHandLocal_R", name="R hand - Loc", default = 0, min = 0.0, max = 1.0)
-    bpy.types.Object.FloatProperty(attr="PFootLocal_L", name="L foot - Loc", default = 0, min = 0.0, max = 1.0)
-    bpy.types.Object.FloatProperty(attr="PFootLocal_R", name="R foot - Loc", default = 0, min = 0.0, max = 1.0)
+    bpy.types.Object.PHandLocal_L = FloatProperty(name="L hand - Loc", default = 0, min = 0.0, max = 1.0)
+    bpy.types.Object.PHandLocal_R = FloatProperty(name="R hand - Loc", default = 0, min = 0.0, max = 1.0)
+    bpy.types.Object.PFootLocal_L = FloatProperty(name="L foot - Loc", default = 0, min = 0.0, max = 1.0)
+    bpy.types.Object.PFootLocal_R = FloatProperty(name="R foot - Loc", default = 0, min = 0.0, max = 1.0)
 
-    bpy.types.PoseBone.FloatProperty(attr="MHCone", name="Cone", default = 0, min = -0.5, max = 1.0)
-    bpy.types.PoseBone.FloatProperty(attr="MHRelax", name="Relax", default = 0, min = -0.5, max = 1.0)
-    bpy.types.PoseBone.FloatProperty(attr="MHCurl", name="Curl", default = 0, min = -0.5, max = 1.0)
-    bpy.types.PoseBone.FloatProperty(attr="MHLean", name="Lean", default = 0, min = -1.0, max = 1.0)
-    bpy.types.PoseBone.FloatProperty(attr="MHScrunch", name="Scrunch", default = 0, min = -0.5, max = 1.0)
-    bpy.types.PoseBone.FloatProperty(attr="MHSpread", name="Spread", default = 0, min = -0.5, max = 1.0)
+    bpy.types.PoseBone.MHCone = FloatProperty(name="Cone", default = 0, min = -0.5, max = 1.0)
+    bpy.types.PoseBone.MHRelax = FloatProperty(name="Relax", default = 0, min = -0.5, max = 1.0)
+    bpy.types.PoseBone.MHCurl = FloatProperty(name="Curl", default = 0, min = -0.5, max = 1.0)
+    bpy.types.PoseBone.MHLean = FloatProperty(name="Lean", default = 0, min = -1.0, max = 1.0)
+    bpy.types.PoseBone.MHScrunch = FloatProperty(name="Scrunch", default = 0, min = -0.5, max = 1.0)
+    bpy.types.PoseBone.MHSpread = FloatProperty(name="Spread", default = 0, min = -0.5, max = 1.0)
 
     bpy.types.register(MakeHumanFKIKPanel)
     bpy.types.register(MakeHumanFingerPanel)

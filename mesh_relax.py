@@ -26,7 +26,7 @@ bl_addon_info = {
     "author": "Fabian Fricke",
     "version": (1,1),
     "blender": (2, 5, 3),
-    "api": 31667,
+    "api": 31847,
     "location": "View3D > Specials > Relax ",
     "description": "Relax the selected verts while retaining the shape",
     "warning": "",
@@ -107,7 +107,7 @@ class Relax(bpy.types.Operator):
         return (obj and obj.type == 'MESH')
 
     def execute(self, context):
-        for i in range(0,self.properties.iterations):
+        for i in range(0,self.iterations):
             relax_mesh(context)
         return {'FINISHED'}
 

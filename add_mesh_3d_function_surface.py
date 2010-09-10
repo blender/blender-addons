@@ -338,12 +338,12 @@ class AddZFunctionSurface(bpy.types.Operator):
     align_matrix = Matrix()
 
     def execute(self, context):
-        edit = self.properties.edit
-        equation = self.properties.equation
-        div_x = self.properties.div_x
-        div_y = self.properties.div_y
-        size_x = self.properties.size_x
-        size_y = self.properties.size_y
+        edit = self.edit
+        equation = self.equation
+        div_x = self.div_x
+        div_y = self.div_y
+        size_x = self.size_x
+        size_y = self.size_y
 
         verts = []
         faces = []
@@ -580,27 +580,26 @@ class AddXYZFunctionSurface(bpy.types.Operator):
     align_matrix = Matrix()
 
     def execute(self, context):
-        props = self.properties
 
         verts, faces = xyz_function_surface_faces(
                             self,
-                            props.x_eq,
-                            props.y_eq,
-                            props.z_eq,
-                            props.range_u_min,
-                            props.range_u_max,
-                            props.range_u_step,
-                            props.wrap_u,
-                            props.range_v_min,
-                            props.range_v_max,
-                            props.range_v_step,
-                            props.wrap_v)
+                            self.x_eq,
+                            self.y_eq,
+                            self.z_eq,
+                            self.range_u_min,
+                            self.range_u_max,
+                            self.range_u_step,
+                            self.wrap_u,
+                            self.range_v_min,
+                            self.range_v_max,
+                            self.range_v_step,
+                            self.wrap_v)
 
         if not verts:
             return {'CANCELLED'}
 
         obj = create_mesh_object(context, verts, [], faces,
-            "XYZ Function", props.edit, self.align_matrix)
+            "XYZ Function", self.edit, self.align_matrix)
 
         return {'FINISHED'}
 

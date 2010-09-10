@@ -23,7 +23,7 @@ bl_addon_info = {
     "author": "Campbell Barton",
     "version": (0,1),
     "blender": (2, 5, 3),
-    "api": 31667,
+    "api": 31847,
     "location": "File > Export > Camera Animation",
     "description": "Export Cameras & Markers",
     "warning": "",
@@ -134,12 +134,12 @@ class CameraExporter(bpy.types.Operator):
             default=True)
 
     def execute(self, context):
-        writeCameras(context, self.properties.filepath, self.properties.frame_start, self.properties.frame_end, self.properties.show_only_selected)
+        writeCameras(context, self.filepath, self.frame_start, self.frame_end, self.show_only_selected)
         return {'FINISHED'}
 
     def invoke(self, context, event):
-        self.properties.frame_start = context.scene.frame_start
-        self.properties.frame_end = context.scene.frame_end
+        self.frame_start = context.scene.frame_start
+        self.frame_end = context.scene.frame_end
 
         wm = context.window_manager
         wm.add_fileselect(self)

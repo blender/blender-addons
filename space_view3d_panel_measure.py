@@ -707,15 +707,12 @@ class VIEW3D_PT_measure(bpy.types.Panel):
         # Define a temporary attribute for the distance value
         bpy.types.Scene.measure_panel_dist = bpy.props.FloatProperty(
             name="Distance",
-            attr="measure_panel_dist",
             precision=PRECISION,
             unit="LENGTH")
         bpy.types.Scene.measure_panel_area1 = bpy.props.FloatProperty(
-            attr="measure_panel_area1",
             precision=PRECISION,
             unit="AREA")
         bpy.types.Scene.measure_panel_area2 = bpy.props.FloatProperty(
-            attr="measure_panel_area2",
             precision=PRECISION,
             unit="AREA")
 

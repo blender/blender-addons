@@ -22,7 +22,7 @@ bl_addon_info = {
     "author": "testscreenings",
     "version": (0,1),
     "blender": (2, 5, 3),
-    "api": 31667,
+    "api": 31847,
     "location": "View3D > Add > Curve",
     "description": "Adds many types of knots",
     "warning": "",
@@ -68,7 +68,7 @@ def vertsToPoints(Verts):
     return vertArray
 
 # create new CurveObject from vertarray and splineType
-def createCurve(vertArray, props, align_matrix):
+def createCurve(vertArray, self, align_matrix):
     # options to vars
     splineType = 'NURBS'
     name = 'Torus_Knot'
@@ -89,14 +89,14 @@ def createCurve(vertArray, props, align_matrix):
     newSpline.use_endpoint_u = True
     newSpline.order_u = 4
 
-    if props.geo_surf:
-        newCurve.bevel_depth = props.geo_bDepth
-        newCurve.bevel_resolution = props.geo_bRes
+    if self.geo_surf:
+        newCurve.bevel_depth = self.geo_bDepth
+        newCurve.bevel_resolution = self.geo_bRes
         newCurve.use_fill_front = False
         newCurve.use_fill_back = False
-        newCurve.extrude = props.geo_extrude
-        newCurve.offset = props.geo_width
-        newCurve.resolution_u = props.geo_res
+        newCurve.extrude = self.geo_extrude
+        newCurve.offset = self.geo_width
+        newCurve.resolution_u = self.geo_res
 
     # create object with newCurve
     new_obj = bpy.data.objects.new(name, newCurve)  # object
@@ -132,26 +132,26 @@ def Torus_Knot_Curve(p=2, q=3, w=1, res=24, formula=0, h=1, u=1 ,v=1, rounds=2):
 
 ##------------------------------------------------------------
 # Main Function
-def main(context, props, align_matrix):
+def main(context, self, align_matrix):
     # deselect all objects
     bpy.ops.object.select_all(action='DESELECT')
 
     # get verts
-    verts = Torus_Knot_Curve(props.torus_p,
-                            props.torus_q,
-                            props.torus_w,
-                            props.torus_res,
-                            props.torus_formula,
-                            props.torus_h,
-                            props.torus_u,
-                            props.torus_v,
-                            props.torus_rounds)
+    verts = Torus_Knot_Curve(self.torus_p,
+                            self.torus_q,
+                            self.torus_w,
+                            self.torus_res,
+                            self.torus_formula,
+                            self.torus_h,
+                            self.torus_u,
+                            self.torus_v,
+                            self.torus_rounds)
 
     # turn verts into array
     vertArray = vertsToPoints(verts)
 
     # create object
-    createCurve(vertArray, props, align_matrix)
+    createCurve(vertArray, self, align_matrix)
 
     return
 
@@ -238,38 +238,37 @@ class torus_knot_plus(bpy.types.Operator):
 
     ##### DRAW #####
     def draw(self, context):
-        props = self.properties
         layout = self.layout
 
         # general options        
         col = layout.column()
-        #col.prop(props, 'KnotType') waits for more knottypes
+        #col.prop(self.properties, 'KnotType') waits for more knottypes
         col.label(text="Torus Knot Parameters")
 
         # Parameters 
         box = layout.box()
-        box.prop(props, 'torus_res')
-        box.prop(props, 'torus_w')
-        box.prop(props, 'torus_h')
-        box.prop(props, 'torus_p')
-        box.prop(props, 'torus_q')
-        box.prop(props, 'options_plus')
-        if props.options_plus:
-            box.prop(props, 'torus_u')
-            box.prop(props, 'torus_v')
-            box.prop(props, 'torus_rounds')
+        box.prop(self.properties, 'torus_res')
+        box.prop(self.properties, 'torus_w')
+        box.prop(self.properties, 'torus_h')
+        box.prop(self.properties, 'torus_p')
+        box.prop(self.properties, 'torus_q')
+        box.prop(self.properties, 'options_plus')
+        if self.options_plus:
+            box.prop(self.properties, 'torus_u')
+            box.prop(self.properties, 'torus_v')
+            box.prop(self.properties, 'torus_rounds')
 
         # surface Options
         col = layout.column()
         col.label(text="Geometry Options")
         box = layout.box()
-        box.prop(props, 'geo_surf')
-        if props.geo_surf:
-            box.prop(props, 'geo_bDepth')
-            box.prop(props, 'geo_bRes')
-            box.prop(props, 'geo_extrude')
-            #box.prop(props, 'geo_width') # not really good
-            box.prop(props, 'geo_res')
+        box.prop(self.properties, 'geo_surf')
+        if self.geo_surf:
+            box.prop(self.properties, 'geo_bDepth')
+            box.prop(self.properties, 'geo_bRes')
+            box.prop(self.properties, 'geo_extrude')
+            #box.prop(self.properties, 'geo_width') # not really good
+            box.prop(self.properties, 'geo_res')
     
     ##### POLL #####
     @classmethod
@@ -282,13 +281,12 @@ class torus_knot_plus(bpy.types.Operator):
         undo = bpy.context.user_preferences.edit.use_global_undo
         bpy.context.user_preferences.edit.use_global_undo = False
 
-        props = self.properties
 
-        if not props.options_plus:
-            props.torus_rounds = props.torus_p
+        if not self.options_plus:
+            self.torus_rounds = self.torus_p
 
         # main function
-        main(context, props, self.align_matrix)
+        main(context, self, self.align_matrix)
         
         # restore pre operator undo state
         bpy.context.user_preferences.edit.use_global_undo = undo

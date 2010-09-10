@@ -80,7 +80,7 @@ class StlImporter(bpy.types.Operator):
     directory = StringProperty()
 
     def execute(self, context):
-        paths = (os.path.join(self.properties.directory, name.name) for name in self.properties.files)
+        paths = (os.path.join(self.directory, name.name) for name in self.files)
 
         for path in paths:
             objName = bpy.path.display_name(path.split("\\")[-1].split("/")[-1])
@@ -125,10 +125,10 @@ class StlExporter(bpy.types.Operator):
 
     def execute(self, context):
         faces = itertools.chain.from_iterable(
-            blender_utils.faces_from_mesh(ob, self.properties.apply_modifiers)
+            blender_utils.faces_from_mesh(ob, self.apply_modifiers)
             for ob in context.selected_objects)
 
-        stl_utils.write_stl(self.properties.filepath, faces, self.properties.ascii)
+        stl_utils.write_stl(self.filepath, faces, self.ascii)
 
         return {'FINISHED'}
 

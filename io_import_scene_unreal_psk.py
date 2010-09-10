@@ -21,7 +21,7 @@ bl_addon_info = {
     "author": "Darknet",
     "version": (2,0),
     "blender": (2, 5, 3),
-    "api": 31667,
+    "api": 31847,
     "location": "File > Import ",
     "description": "Import Unreal Engine (.psk)",
     "warning": "",
@@ -576,7 +576,7 @@ class IMPORT_OT_psk(bpy.types.Operator):
     filepath = StringProperty(name="File Path", description="Filepath used for importing the OBJ file", maxlen= 1024, default= "")
 
     def execute(self, context):
-        getInputFilename(self.properties.filepath)
+        getInputFilename(self.filepath)
         return {'FINISHED'}
 
     def invoke(self, context, event):

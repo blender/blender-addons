@@ -749,41 +749,39 @@ class AddGear(bpy.types.Operator):
     align_matrix = mathutils.Matrix()
 
     def draw(self, context):
-        props = self.properties
         layout = self.layout
         box = layout.box()
-        box.prop(props, 'number_of_teeth')
+        box.prop(self.properties, 'number_of_teeth')
         box = layout.box()
-        box.prop(props, 'radius')
-        box.prop(props, 'width')
-        box.prop(props, 'base')
+        box.prop(self.properties, 'radius')
+        box.prop(self.properties, 'width')
+        box.prop(self.properties, 'base')
         box = layout.box()
-        box.prop(props, 'dedendum')
-        box.prop(props, 'addendum')
+        box.prop(self.properties, 'dedendum')
+        box.prop(self.properties, 'addendum')
         box = layout.box()
-        box.prop(props, 'angle')
-        box.prop(props, 'skew')
-        box.prop(props, 'conangle')
-        box.prop(props, 'crown')
+        box.prop(self.properties, 'angle')
+        box.prop(self.properties, 'skew')
+        box.prop(self.properties, 'conangle')
+        box.prop(self.properties, 'crown')
 
 
     def execute(self, context):
-        props = self.properties
 
         verts, faces, verts_tip, verts_valley = add_gear(
-            props.number_of_teeth,
-            props.radius,
-            props.addendum,
-            props.dedendum,
-            props.base,
-            radians(props.angle),
-            width=props.width,
-            skew=radians(props.skew),
-            conangle=radians(props.conangle),
-            crown=props.crown)
+            self.number_of_teeth,
+            self.radius,
+            self.addendum,
+            self.dedendum,
+            self.base,
+            radians(self.angle),
+            width=self.width,
+            skew=radians(self.skew),
+            conangle=radians(self.conangle),
+            crown=self.crown)
 
         # Actually create the mesh object from this geometry data.
-        obj = create_mesh_object(context, verts, [], faces, "Gear", props.edit, self.align_matrix)
+        obj = create_mesh_object(context, verts, [], faces, "Gear", self.edit, self.align_matrix)
 
         # Create vertex groups from stored vertices.
         tipGroup = obj.vertex_groups.new('Tips')
@@ -858,38 +856,36 @@ class AddWormGear(bpy.types.Operator):
     align_matrix = mathutils.Matrix()
 
     def draw(self, context):
-        props = self.properties
         layout = self.layout
         box = layout.box()
-        box.prop(props, 'number_of_teeth')
-        box.prop(props, 'number_of_rows')
-        box.prop(props, 'radius')
-        box.prop(props, 'row_height')
+        box.prop(self.properties, 'number_of_teeth')
+        box.prop(self.properties, 'number_of_rows')
+        box.prop(self.properties, 'radius')
+        box.prop(self.properties, 'row_height')
         box = layout.box()
-        box.prop(props, 'addendum')
-        box.prop(props, 'dedendum')
+        box.prop(self.properties, 'addendum')
+        box.prop(self.properties, 'dedendum')
         box = layout.box()
-        box.prop(props, 'angle')
-        box.prop(props, 'skew')
-        box.prop(props, 'crown')
+        box.prop(self.properties, 'angle')
+        box.prop(self.properties, 'skew')
+        box.prop(self.properties, 'crown')
 
     def execute(self, context):
-        props = self.properties
 
         verts, faces, verts_tip, verts_valley = add_worm(
-            props.number_of_teeth,
-            props.number_of_rows,
-            props.radius,
-            props.addendum,
-            props.dedendum,
-            radians(props.angle),
-            width=props.row_height,
-            skew=radians(props.skew),
-            crown=props.crown)
+            self.number_of_teeth,
+            self.number_of_rows,
+            self.radius,
+            self.addendum,
+            self.dedendum,
+            radians(self.angle),
+            width=self.row_height,
+            skew=radians(self.skew),
+            crown=self.crown)
 
         # Actually create the mesh object from this geometry data.
         obj = create_mesh_object(context, verts, [], faces, "Worm Gear",
-            props.edit, self.align_matrix)
+            self.edit, self.align_matrix)
 
         # Create vertex groups from stored vertices.
         tipGroup = obj.vertex_groups.new('Tips')

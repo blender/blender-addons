@@ -21,7 +21,7 @@ bl_addon_info = {
     "author": "testscreenings",
     "version": (1,),
     "blender": (2, 5, 3),
-    "api": 31667,
+    "api": 31847,
     "location": "Toolshelf > search > simplify curves",
     "description": "This script simplifies 3D curves and fcurves",
     "warning": "",
@@ -399,31 +399,29 @@ class GRAPH_OT_simplify(bpy.types.Operator):
     '''  Remove curvature mode as long as it isnn't significantly improved
     
     def draw(self, context):
-        props = self.properties
         layout = self.layout
         col = layout.column()
         col.label('Mode:')
-        col.prop(props, 'mode', expand=True)
-        if self.properties.mode == 'distance':
+        col.prop(self.properties, 'mode', expand=True)
+        if self.mode == 'distance':
             box = layout.box()
-            box.label(props.mode, icon='ARROW_LEFTRIGHT')
-            box.prop(props, 'error', expand=True)
-        if self.properties.mode == 'curvature':
+            box.label(self.mode, icon='ARROW_LEFTRIGHT')
+            box.prop(self.properties, 'error', expand=True)
+        if self.mode == 'curvature':
             box = layout.box()
             box.label('degree', icon='SMOOTHCURVE')
-            box.prop(props, 'pointsNr', expand=True)
+            box.prop(self.properties, 'pointsNr', expand=True)
             box.label('threshold', icon='PARTICLE_PATH')
-            box.prop(props, 'k_thresh', expand=True)
+            box.prop(self.properties, 'k_thresh', expand=True)
             box.label('distance', icon='ARROW_LEFTRIGHT')
-            box.prop(props, 'dis_error', expand=True)
+            box.prop(self.properties, 'dis_error', expand=True)
         col = layout.column()
     '''
     
     def draw(self, context):
-        props = self.properties
         layout = self.layout
         col = layout.column()
-        col.prop(props, 'error', expand=True)
+        col.prop(self.properties, 'error', expand=True)
         
     ## Check for animdata
     @classmethod
@@ -443,13 +441,13 @@ class GRAPH_OT_simplify(bpy.types.Operator):
         #print("------START------")
 
         options = [
-                self.properties.mode,       #0
-                self.properties.mode,       #1
-                self.properties.k_thresh,   #2
-                self.properties.pointsNr,   #3
-                self.properties.error,      #4
-                self.properties.degreeOut,  #6
-                self.properties.dis_error]  #7
+                self.mode,       #0
+                self.mode,       #1
+                self.k_thresh,   #2
+                self.pointsNr,   #3
+                self.error,      #4
+                self.degreeOut,  #6
+                self.dis_error]  #7
 
         obj = context.active_object
 
@@ -515,40 +513,38 @@ class CURVE_OT_simplify(bpy.types.Operator):
     '''  Remove curvature mode as long as it isnn't significantly improved
 
     def draw(self, context):
-        props = self.properties
         layout = self.layout
         col = layout.column()
         col.label('Mode:')
-        col.prop(props, 'mode', expand=True)
-        if self.properties.mode == 'distance':
+        col.prop(self.properties, 'mode', expand=True)
+        if self.mode == 'distance':
             box = layout.box()
-            box.label(props.mode, icon='ARROW_LEFTRIGHT')
-            box.prop(props, 'error', expand=True)
-        if self.properties.mode == 'curvature':
+            box.label(self.mode, icon='ARROW_LEFTRIGHT')
+            box.prop(self.properties, 'error', expand=True)
+        if self.mode == 'curvature':
             box = layout.box()
             box.label('degree', icon='SMOOTHCURVE')
-            box.prop(props, 'pointsNr', expand=True)
+            box.prop(self.properties, 'pointsNr', expand=True)
             box.label('threshold', icon='PARTICLE_PATH')
-            box.prop(props, 'k_thresh', expand=True)
+            box.prop(self.properties, 'k_thresh', expand=True)
             box.label('distance', icon='ARROW_LEFTRIGHT')
-            box.prop(props, 'dis_error', expand=True)
+            box.prop(self.properties, 'dis_error', expand=True)
         col = layout.column()
         col.separator()
-        col.prop(props, 'output', text='Output', icon='OUTLINER_OB_CURVE')
-        if props.output == 'NURBS':
-            col.prop(props, 'degreeOut', expand=True)
-        col.prop(props, 'keepShort', expand=True)
+        col.prop(self.properties, 'output', text='Output', icon='OUTLINER_OB_CURVE')
+        if self.output == 'NURBS':
+            col.prop(self.properties, 'degreeOut', expand=True)
+        col.prop(self.properties, 'keepShort', expand=True)
     '''
         
     def draw(self, context):
-        props = self.properties
         layout = self.layout
         col = layout.column()
-        col.prop(props, 'error', expand=True)
-        col.prop(props, 'output', text='Output', icon='OUTLINER_OB_CURVE')
-        if props.output == 'NURBS':
-            col.prop(props, 'degreeOut', expand=True)
-        col.prop(props, 'keepShort', expand=True)
+        col.prop(self.properties, 'error', expand=True)
+        col.prop(self.properties, 'output', text='Output', icon='OUTLINER_OB_CURVE')
+        if self.output == 'NURBS':
+            col.prop(self.properties, 'degreeOut', expand=True)
+        col.prop(self.properties, 'keepShort', expand=True)
         
         
     ## Check for curve
@@ -562,14 +558,14 @@ class CURVE_OT_simplify(bpy.types.Operator):
         #print("------START------")
 
         options = [
-                self.properties.mode,       #0
-                self.properties.output,     #1
-                self.properties.k_thresh,   #2
-                self.properties.pointsNr,   #3
-                self.properties.error,      #4
-                self.properties.degreeOut,  #5
-                self.properties.dis_error,  #6
-                self.properties.keepShort]  #7
+                self.mode,       #0
+                self.output,     #1
+                self.k_thresh,   #2
+                self.pointsNr,   #3
+                self.error,      #4
+                self.degreeOut,  #5
+                self.dis_error,  #6
+                self.keepShort]  #7
 
 
         bpy.context.user_preferences.edit.use_global_undo = False

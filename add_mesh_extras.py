@@ -533,16 +533,15 @@ class AddSqorus(bpy.types.Operator):
     align_matrix = Matrix()
 
     def execute(self, context):
-        props = self.properties
 
         # Create mesh geometry
         verts, faces = add_sqorus(
-            props.hole_size,
-            props.subdivide)
+            self.hole_size,
+            self.subdivide)
 
         # Create mesh object (and meshdata)
         obj = create_mesh_object(context, verts, [], faces, "Sqorus",
-            props.edit, self.align_matrix)
+            self.edit, self.align_matrix)
 
         return {'FINISHED'}
 
@@ -580,15 +579,14 @@ class AddWedge(bpy.types.Operator):
     align_matrix = Matrix()
 
     def execute(self, context):
-        props = self.properties
 
         verts, faces = add_wedge(
-            props.size_x,
-            props.size_y,
-            props.size_z)
+            self.size_x,
+            self.size_y,
+            self.size_z)
 
         obj = create_mesh_object(context, verts, [], faces, "Wedge",
-            props.edit, self.align_matrix)
+            self.edit, self.align_matrix)
 
         return {'FINISHED'}
 
@@ -632,16 +630,15 @@ class AddSpindle(bpy.types.Operator):
     align_matrix = Matrix()
 
     def execute(self, context):
-        props = self.properties
 
         verts, faces = add_spindle(
-            props.segments,
-            props.radius,
-            props.height,
-            props.cap_height)
+            self.segments,
+            self.radius,
+            self.height,
+            self.cap_height)
 
         obj = create_mesh_object(context, verts, [], faces, "Spindle",
-            props.edit, self.align_matrix)
+            self.edit, self.align_matrix)
 
         return {'FINISHED'}
 
@@ -684,16 +681,15 @@ class AddStar(bpy.types.Operator):
     align_matrix = Matrix()
 
     def execute(self, context):
-        props = self.properties
 
         verts, faces = add_star(
-            props.points,
-            props.outer_radius,
-            props.innter_radius,
-            props.height)
+            self.points,
+            self.outer_radius,
+            self.innter_radius,
+            self.height)
 
         obj = create_mesh_object(context, verts, [], faces, "Star",
-            props.edit, self.align_matrix)
+            self.edit, self.align_matrix)
 
         return {'FINISHED'}
 
@@ -724,14 +720,13 @@ class AddTrapezohedron(bpy.types.Operator):
                         options={'HIDDEN'})
     align_matrix = Matrix()
     def execute(self,context):
-        props = self.properties
         # generate mesh
-        verts,faces = trapezohedron(props.segments,
-                                    props.radius,
-                                    props.height)
+        verts,faces = trapezohedron(self.segments,
+                                    self.radius,
+                                    self.height)
         
         obj = create_mesh_object(context, verts, [], faces, "Trapazohedron",
-            props.edit, self.align_matrix)
+            self.edit, self.align_matrix)
 
         return {'FINISHED'}
 

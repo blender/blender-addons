@@ -322,23 +322,22 @@ class AddTwistedTorus(bpy.types.Operator):
     align_matrix = Matrix()
 
     def execute(self, context):
-        props = self.properties
 
-        if props.use_abso == True:
-            extra_helper = (props.abso_major_rad - props.abso_minor_rad) * 0.5
-            props.major_radius = props.abso_minor_rad + extra_helper
-            props.minor_radius = extra_helper
+        if self.use_abso == True:
+            extra_helper = (self.abso_major_rad - self.abso_minor_rad) * 0.5
+            self.major_radius = self.abso_minor_rad + extra_helper
+            self.minor_radius = extra_helper
 
         verts, faces = add_twisted_torus(
-            props.major_radius,
-            props.minor_radius,
-            props.major_segments,
-            props.minor_segments,
-            props.twists)
+            self.major_radius,
+            self.minor_radius,
+            self.major_segments,
+            self.minor_segments,
+            self.twists)
 
         # Actually create the mesh object from this geometry data.
         obj = create_mesh_object(context, verts, [], faces, "TwistedTorus",
-            props.edit, self.align_matrix)
+            self.edit, self.align_matrix)
 
         return {'FINISHED'}
 

@@ -208,64 +208,63 @@ class add_mesh_bolt(bpy.types.Operator):
 
 
     def draw(self, context):
-        props = self.properties
         layout = self.layout
         col = layout.column()
         
         #ENUMS
-        col.prop(props, 'bf_Model_Type')
-        col.prop(props, 'bf_presets')
+        col.prop(self.properties, 'bf_Model_Type')
+        col.prop(self.properties, 'bf_presets')
         col.separator()
 
         #Bit
-        if props.bf_Model_Type == 'bf_Model_Bolt':
-            col.prop(props, 'bf_Bit_Type')
-            if props.bf_Bit_Type == 'bf_Bit_None':
+        if self.bf_Model_Type == 'bf_Model_Bolt':
+            col.prop(self.properties, 'bf_Bit_Type')
+            if self.bf_Bit_Type == 'bf_Bit_None':
                 DoNothing = 1;
-            elif props.bf_Bit_Type == 'bf_Bit_Allen':
-                 col.prop(props,'bf_Allen_Bit_Depth')
-                 col.prop(props,'bf_Allen_Bit_Flat_Distance')
-            elif props.bf_Bit_Type == 'bf_Bit_Philips':
-                col.prop(props,'bf_Phillips_Bit_Depth')
-                col.prop(props,'bf_Philips_Bit_Dia')
+            elif self.bf_Bit_Type == 'bf_Bit_Allen':
+                 col.prop(self.properties,'bf_Allen_Bit_Depth')
+                 col.prop(self.properties,'bf_Allen_Bit_Flat_Distance')
+            elif self.bf_Bit_Type == 'bf_Bit_Philips':
+                col.prop(self.properties,'bf_Phillips_Bit_Depth')
+                col.prop(self.properties,'bf_Philips_Bit_Dia')
             col.separator()
 
         #Head
-        if props.bf_Model_Type == 'bf_Model_Bolt':
-            col.prop(props, 'bf_Head_Type')
-            if props.bf_Head_Type == 'bf_Head_Hex':
-                col.prop(props, 'bf_Hex_Head_Height')
-                col.prop(props, 'bf_Hex_Head_Flat_Distance')
-            elif props.bf_Head_Type == 'bf_Head_Cap':
-                col.prop(props,'bf_Cap_Head_Height')
-                col.prop(props,'bf_Cap_Head_Dia')
-            elif props.bf_Head_Type == 'bf_Head_Dome':
-                col.prop(props,'bf_Dome_Head_Dia')
-            elif props.bf_Head_Type == 'bf_Head_Pan':
-                col.prop(props,'bf_Pan_Head_Dia')
-            elif props.bf_Head_Type == 'bf_Head_CounterSink':
-                col.prop(props,'bf_CounterSink_Head_Dia')
+        if self.bf_Model_Type == 'bf_Model_Bolt':
+            col.prop(self.properties, 'bf_Head_Type')
+            if self.bf_Head_Type == 'bf_Head_Hex':
+                col.prop(self.properties, 'bf_Hex_Head_Height')
+                col.prop(self.properties, 'bf_Hex_Head_Flat_Distance')
+            elif self.bf_Head_Type == 'bf_Head_Cap':
+                col.prop(self.properties,'bf_Cap_Head_Height')
+                col.prop(self.properties,'bf_Cap_Head_Dia')
+            elif self.bf_Head_Type == 'bf_Head_Dome':
+                col.prop(self.properties,'bf_Dome_Head_Dia')
+            elif self.bf_Head_Type == 'bf_Head_Pan':
+                col.prop(self.properties,'bf_Pan_Head_Dia')
+            elif self.bf_Head_Type == 'bf_Head_CounterSink':
+                col.prop(self.properties,'bf_CounterSink_Head_Dia')
             col.separator()
         #Shank
-        if props.bf_Model_Type == 'bf_Model_Bolt':
+        if self.bf_Model_Type == 'bf_Model_Bolt':
             col.label(text='Shank')
-            col.prop(props, 'bf_Shank_Length')
-            col.prop(props, 'bf_Shank_Dia')
+            col.prop(self.properties, 'bf_Shank_Length')
+            col.prop(self.properties, 'bf_Shank_Dia')
             col.separator()
         #Nut
-        if props.bf_Model_Type == 'bf_Model_Nut':
-            col.prop(props, 'bf_Nut_Type')
-            col.prop(props,'bf_Hex_Nut_Height')
-            col.prop(props,'bf_Hex_Nut_Flat_Distance')
+        if self.bf_Model_Type == 'bf_Model_Nut':
+            col.prop(self.properties, 'bf_Nut_Type')
+            col.prop(self.properties,'bf_Hex_Nut_Height')
+            col.prop(self.properties,'bf_Hex_Nut_Flat_Distance')
         #Thread
         col.label(text='Thread')
-        if props.bf_Model_Type == 'bf_Model_Bolt':
-            col.prop(props,'bf_Thread_Length')
-        col.prop(props,'bf_Major_Dia')
-        col.prop(props,'bf_Minor_Dia')
-        col.prop(props,'bf_Pitch')
-        col.prop(props,'bf_Crest_Percent')
-        col.prop(props,'bf_Root_Percent')
+        if self.bf_Model_Type == 'bf_Model_Bolt':
+            col.prop(self.properties,'bf_Thread_Length')
+        col.prop(self.properties,'bf_Major_Dia')
+        col.prop(self.properties,'bf_Minor_Dia')
+        col.prop(self.properties,'bf_Pitch')
+        col.prop(self.properties,'bf_Crest_Percent')
+        col.prop(self.properties,'bf_Root_Percent')
 
 
 
@@ -278,21 +277,20 @@ class add_mesh_bolt(bpy.types.Operator):
     def execute(self, context):
     
         #print('EXECUTING...')
-        props = self.properties
 
-        if not self.last_preset or props.bf_presets != self.last_preset:
-            #print('setting Preset', props.bf_presets)
-            setProps(props, props.bf_presets, self.presetsPath)
-            props.bf_Phillips_Bit_Depth = float(Get_Phillips_Bit_Height(props.bf_Philips_Bit_Dia))
+        if not self.last_preset or self.bf_presets != self.last_preset:
+            #print('setting Preset', self.bf_presets)
+            setProps(self.properties, self.bf_presets, self.presetsPath)
+            self.bf_Phillips_Bit_Depth = float(Get_Phillips_Bit_Height(self.bf_Philips_Bit_Dia))
 
-            self.last_preset = props.bf_presets
+            self.last_preset = self.bf_presets
 
 
-        #props.bf_Phillips_Bit_Depth = float(Get_Phillips_Bit_Height(props.bf_Philips_Bit_Dia))
-        #props.bf_Philips_Bit_Dia = props.bf_Pan_Head_Dia*(1.82/5.6)
-        #props.bf_Minor_Dia = props.bf_Major_Dia - (1.082532 * props.bf_Pitch)
+        #self.bf_Phillips_Bit_Depth = float(Get_Phillips_Bit_Height(self.bf_Philips_Bit_Dia))
+        #self.bf_Philips_Bit_Dia = self.bf_Pan_Head_Dia*(1.82/5.6)
+        #self.bf_Minor_Dia = self.bf_Major_Dia - (1.082532 * self.bf_Pitch)
         
-        Create_New_Mesh(props, context, self.align_matrix)
+        Create_New_Mesh(self.properties, context, self.align_matrix)
 
         return {'FINISHED'}
         

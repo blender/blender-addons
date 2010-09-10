@@ -128,9 +128,9 @@ class RawImporter(bpy.types.Operator):
     def execute(self, context):
 
         #convert the filename to an object name
-        objName = bpy.path.display_name(self.properties.filename)
+        objName = bpy.path.display_name(self.filename)
 
-        mesh = readMesh(self.properties.filepath, objName)
+        mesh = readMesh(self.filepath, objName)
         addMeshObj(mesh, objName)
 
         return {'FINISHED'}

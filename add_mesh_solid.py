@@ -746,40 +746,39 @@ class Solids(bpy.types.Operator):
         #  that mesh ops are undoable and entire script acts as one operator
         bpy.context.user_preferences.edit.use_global_undo = False
 
-        props = self.properties
 
         #if preset, set preset
-        if props.preset != "0":
-            using = self.p[props.preset]
-            props.source = using[0]
-            props.vTrunc = using[1]
-            props.eTrunc = using[2]
-            props.dual = using[3]
-            props.snub = using[4]
-            props.preset = "0"
+        if self.preset != "0":
+            using = self.p[self.preset]
+            self.source = using[0]
+            self.vTrunc = using[1]
+            self.eTrunc = using[2]
+            self.dual = using[3]
+            self.snub = using[4]
+            self.preset = "0"
 
         # generate mesh    
-        verts,faces = createSolid(props.source,
-                                  props.vTrunc,
-                                  props.eTrunc,
-                                  props.dual,
-                                  props.snub)
+        verts,faces = createSolid(self.source,
+                                  self.vTrunc,
+                                  self.eTrunc,
+                                  self.dual,
+                                  self.snub)
 
         # turn n-gons in quads and tri's
         faces = createPolys(faces)
         
         # resize to normal size, or if keepSize, make sure all verts are of length 'size'
-        if props.keepSize:
-            rad = props.size/verts[0].length
-        else: rad = props.size
+        if self.keepSize:
+            rad = self.size/verts[0].length
+        else: rad = self.size
         verts = [i*rad for i in verts]
 
         # generate object
-        obj = create_mesh_object(context,verts,[],faces,"Solid",props.edit)
+        obj = create_mesh_object(context,verts,[],faces,"Solid",self.edit)
 
         # vertices will be on top of each other in some cases,
         #    so remove doubles then
-        if ((props.vTrunc == 1) and (props.eTrunc == 0)) or (props.eTrunc == 1):
+        if ((self.vTrunc == 1) and (self.eTrunc == 0)) or (self.eTrunc == 1):
             current_mode = obj.mode
             if current_mode == 'OBJECT':
                 bpy.ops.object.mode_set(mode='EDIT')
@@ -788,7 +787,7 @@ class Solids(bpy.types.Operator):
             bpy.ops.object.mode_set(mode=current_mode)
 
         # snub duals suck, so make all normals point outwards
-        if props.dual and (props.snub != "0"):
+        if self.dual and (self.snub != "0"):
             current_mode = obj.mode
             if current_mode == 'OBJECT':
                 bpy.ops.object.mode_set(mode='EDIT')

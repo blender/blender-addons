@@ -23,7 +23,7 @@ bl_addon_info= {
     "author": "Ken Nign (Ken9)",
     "version": (1, 2),
     "blender": (2, 5, 3),
-    "api": 31744,
+    "api": 31847,
     "location": "File > Import > LightWave Object (.lwo)",
     "description": "Imports a LWO file including any UV, Morph and Color maps. Can convert Skelegons to an Armature.",
     "warning": "",
@@ -1221,11 +1221,11 @@ class IMPORT_OT_lwo(bpy.types.Operator):
     SKEL_TO_ARM= BoolProperty(name="Create Armature", description="Create an armature from an embedded Skelegon rig", default=True)
 
     def execute(self, context):
-        load_lwo(self.properties.filepath,
+        load_lwo(self.filepath,
                  context,
-                 self.properties.ADD_SUBD_MOD,
-                 self.properties.LOAD_HIDDEN,
-                 self.properties.SKEL_TO_ARM)
+                 self.ADD_SUBD_MOD,
+                 self.LOAD_HIDDEN,
+                 self.SKEL_TO_ARM)
         return {'FINISHED'}
 
     def invoke(self, context, event):

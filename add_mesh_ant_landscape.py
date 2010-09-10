@@ -738,94 +738,92 @@ class landscape_add(bpy.types.Operator):
     ###------------------------------------------------------------
     # Draw
     def draw(self, context):
-        props = self.properties
         layout = self.layout
 
         box = layout.box()
-        box.prop(props, 'AutoUpdate')
-        box.prop(props, 'SphereMesh')
-        box.prop(props, 'SmoothMesh')
-        box.prop(props, 'Subdivision')
-        box.prop(props, 'MeshSize')
+        box.prop(self.properties, 'AutoUpdate')
+        box.prop(self.properties, 'SphereMesh')
+        box.prop(self.properties, 'SmoothMesh')
+        box.prop(self.properties, 'Subdivision')
+        box.prop(self.properties, 'MeshSize')
 
         box = layout.box()
-        box.prop(props, 'NoiseType')
-        if props.NoiseType != '7':
-            box.prop(props, 'BasisType')
-        box.prop(props, 'RandomSeed')
-        box.prop(props, 'NoiseSize')
-        if props.NoiseType == '0':
-            box.prop(props, 'NoiseDepth')
-            box.prop(props, 'mDimension')
-            box.prop(props, 'mLacunarity')
-        if props.NoiseType == '1':
-            box.prop(props, 'NoiseDepth')
-            box.prop(props, 'mDimension')
-            box.prop(props, 'mLacunarity')
-            box.prop(props, 'mOffset')
-            box.prop(props, 'mGain')
-        if props.NoiseType == '2':
-            box.prop(props, 'NoiseDepth')
-            box.prop(props, 'mDimension')
-            box.prop(props, 'mLacunarity')
-            box.prop(props, 'mOffset')
-            box.prop(props, 'mGain')
-        if props.NoiseType == '3':
-            box.prop(props, 'NoiseDepth')
-            box.prop(props, 'mDimension')
-            box.prop(props, 'mLacunarity')
-            box.prop(props, 'mOffset')
-        if props.NoiseType == '4':
-            box.prop(props, 'NoiseDepth')
-            box.prop(props, 'mDimension')
-            box.prop(props, 'mLacunarity')
-        if props.NoiseType == '5':
-            box.prop(props, 'NoiseDepth')
-            box.prop(props, 'HardNoise')
-        if props.NoiseType == '6':
-            box.prop(props, 'VLBasisType')
-            box.prop(props, 'Distortion')
-        if props.NoiseType == '7':
-            box.prop(props, 'MarbleShape')
-            box.prop(props, 'MarbleBias')
-            box.prop(props, 'MarbleSharp')
-            box.prop(props, 'Distortion')
-            box.prop(props, 'NoiseDepth')
-            box.prop(props, 'HardNoise')
-        if props.NoiseType == '8':
-            box.prop(props, 'NoiseDepth')
-            box.prop(props, 'mDimension')
-            box.prop(props, 'mLacunarity')
-            box.prop(props, 'mOffset')
-            box.prop(props, 'Distortion')
-        if props.NoiseType == '9':
-            box.prop(props, 'NoiseDepth')
-            box.prop(props, 'mDimension')
-            box.prop(props, 'mLacunarity')
-            box.prop(props, 'mOffset')
-            box.prop(props, 'Distortion')
+        box.prop(self.properties, 'NoiseType')
+        if self.NoiseType != '7':
+            box.prop(self.properties, 'BasisType')
+        box.prop(self.properties, 'RandomSeed')
+        box.prop(self.properties, 'NoiseSize')
+        if self.NoiseType == '0':
+            box.prop(self.properties, 'NoiseDepth')
+            box.prop(self.properties, 'mDimension')
+            box.prop(self.properties, 'mLacunarity')
+        if self.NoiseType == '1':
+            box.prop(self.properties, 'NoiseDepth')
+            box.prop(self.properties, 'mDimension')
+            box.prop(self.properties, 'mLacunarity')
+            box.prop(self.properties, 'mOffset')
+            box.prop(self.properties, 'mGain')
+        if self.NoiseType == '2':
+            box.prop(self.properties, 'NoiseDepth')
+            box.prop(self.properties, 'mDimension')
+            box.prop(self.properties, 'mLacunarity')
+            box.prop(self.properties, 'mOffset')
+            box.prop(self.properties, 'mGain')
+        if self.NoiseType == '3':
+            box.prop(self.properties, 'NoiseDepth')
+            box.prop(self.properties, 'mDimension')
+            box.prop(self.properties, 'mLacunarity')
+            box.prop(self.properties, 'mOffset')
+        if self.NoiseType == '4':
+            box.prop(self.properties, 'NoiseDepth')
+            box.prop(self.properties, 'mDimension')
+            box.prop(self.properties, 'mLacunarity')
+        if self.NoiseType == '5':
+            box.prop(self.properties, 'NoiseDepth')
+            box.prop(self.properties, 'HardNoise')
+        if self.NoiseType == '6':
+            box.prop(self.properties, 'VLBasisType')
+            box.prop(self.properties, 'Distortion')
+        if self.NoiseType == '7':
+            box.prop(self.properties, 'MarbleShape')
+            box.prop(self.properties, 'MarbleBias')
+            box.prop(self.properties, 'MarbleSharp')
+            box.prop(self.properties, 'Distortion')
+            box.prop(self.properties, 'NoiseDepth')
+            box.prop(self.properties, 'HardNoise')
+        if self.NoiseType == '8':
+            box.prop(self.properties, 'NoiseDepth')
+            box.prop(self.properties, 'mDimension')
+            box.prop(self.properties, 'mLacunarity')
+            box.prop(self.properties, 'mOffset')
+            box.prop(self.properties, 'Distortion')
+        if self.NoiseType == '9':
+            box.prop(self.properties, 'NoiseDepth')
+            box.prop(self.properties, 'mDimension')
+            box.prop(self.properties, 'mLacunarity')
+            box.prop(self.properties, 'mOffset')
+            box.prop(self.properties, 'Distortion')
 
         box = layout.box()
-        box.prop(props, 'Invert')
-        box.prop(props, 'Height')
-        box.prop(props, 'Offset')
-        box.prop(props, 'Plateaulevel')
-        box.prop(props, 'Sealevel')
-        if props.SphereMesh == False:
-            box.prop(props, 'Falloff')
-        box.prop(props, 'StrataType')
-        if props.StrataType != '0':
-            box.prop(props, 'Strata')
+        box.prop(self.properties, 'Invert')
+        box.prop(self.properties, 'Height')
+        box.prop(self.properties, 'Offset')
+        box.prop(self.properties, 'Plateaulevel')
+        box.prop(self.properties, 'Sealevel')
+        if self.SphereMesh == False:
+            box.prop(self.properties, 'Falloff')
+        box.prop(self.properties, 'StrataType')
+        if self.StrataType != '0':
+            box.prop(self.properties, 'Strata')
 
     ###------------------------------------------------------------
     # Execute
     def execute(self, context):
 
-        props = self.properties
-        edit = props.edit
+        edit = self.edit
 
         #mesh update
-        if props.AutoUpdate != 0:
+        if self.AutoUpdate != 0:
 
             # turn off undo
             undo = bpy.context.user_preferences.edit.use_global_undo
@@ -836,51 +834,51 @@ class landscape_add(bpy.types.Operator):
 
             # options
             options = [
-                props.RandomSeed,    #0
-                props.NoiseSize,     #1
-                props.NoiseType,     #2
-                props.BasisType,     #3
-                props.VLBasisType,   #4
-                props.Distortion,    #5
-                props.HardNoise,     #6
-                props.NoiseDepth,    #7
-                props.mDimension,    #8
-                props.mLacunarity,   #9
-                props.mOffset,       #10
-                props.mGain,         #11
-                props.MarbleBias,    #12
-                props.MarbleSharp,   #13
-                props.MarbleShape,   #14
-                props.Invert,        #15
-                props.Height,        #16
-                props.Offset,        #17
-                props.Falloff,       #18
-                props.Sealevel,      #19
-                props.Plateaulevel,  #20
-                props.Strata,        #21
-                props.StrataType,    #22
-                props.SphereMesh     #23
+                self.RandomSeed,    #0
+                self.NoiseSize,     #1
+                self.NoiseType,     #2
+                self.BasisType,     #3
+                self.VLBasisType,   #4
+                self.Distortion,    #5
+                self.HardNoise,     #6
+                self.NoiseDepth,    #7
+                self.mDimension,    #8
+                self.mLacunarity,   #9
+                self.mOffset,       #10
+                self.mGain,         #11
+                self.MarbleBias,    #12
+                self.MarbleSharp,   #13
+                self.MarbleShape,   #14
+                self.Invert,        #15
+                self.Height,        #16
+                self.Offset,        #17
+                self.Falloff,       #18
+                self.Sealevel,      #19
+                self.Plateaulevel,  #20
+                self.Strata,        #21
+                self.StrataType,    #22
+                self.SphereMesh     #23
                 ]
 
             # Main function
-            if props.SphereMesh !=0:
+            if self.SphereMesh !=0:
                 # sphere
-                verts, faces = sphere_gen( props.Subdivision, props.MeshSize, options )
+                verts, faces = sphere_gen( self.Subdivision, self.MeshSize, options )
             else:
                 # grid
-                verts, faces = grid_gen( props.Subdivision, props.MeshSize, options )
+                verts, faces = grid_gen( self.Subdivision, self.MeshSize, options )
 
             # create mesh object
             obj = create_mesh_object(context, verts, [], faces, "Landscape", edit, self.align_matrix)
 
             # sphere, remove doubles
-            if props.SphereMesh !=0:
+            if self.SphereMesh !=0:
                 bpy.ops.object.mode_set(mode='EDIT')
                 bpy.ops.mesh.remove_doubles(limit=0.0001)
                 bpy.ops.object.mode_set(mode='OBJECT')
 
             # Shade smooth
-            if props.SmoothMesh !=0:
+            if self.SmoothMesh !=0:
                 bpy.ops.object.shade_smooth()
 
             # restore pre operator undo state

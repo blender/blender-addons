@@ -518,7 +518,7 @@ class VIEW3D_OT_assign_material(bpy.types.Operator):
         return context.active_object != None
 
     def execute(self, context):
-        mn = self.properties.matname
+        mn = self.matname
         print(mn)
         assign_mat(mn)
         cleanmatslots()
@@ -568,7 +568,7 @@ class VIEW3D_OT_select_material_by_name(bpy.types.Operator):
         return context.active_object != None
 
     def execute(self, context):
-        mn = self.properties.matname
+        mn = self.matname
         select_material_by_name(mn)
         return {'FINISHED'}
 
@@ -596,9 +596,9 @@ class VIEW3D_OT_replace_material(bpy.types.Operator):
         return context.active_object != None
 
     def execute(self, context):
-        m1 = self.properties.matorg
-        m2 = self.properties.matrep
-        all = self.properties.all_objects
+        m1 = self.matorg
+        m2 = self.matrep
+        all = self.all_objects
         replace_material(m1,m2,all)
         return {'FINISHED'}
 

@@ -360,15 +360,14 @@ class AddDiamond(bpy.types.Operator):
     align_matrix = Matrix()
 
     def execute(self, context):
-        props = self.properties
-        verts, faces = add_diamond(props.segments,
-            props.girdle_radius,
-            props.table_radius,
-            props.crown_height,
-            props.pavilion_height)
+        verts, faces = add_diamond(self.segments,
+            self.girdle_radius,
+            self.table_radius,
+            self.crown_height,
+            self.pavilion_height)
 
         obj = create_mesh_object(context, verts, [], faces,
-            "Diamond", props.edit, self.align_matrix)
+            "Diamond", self.edit, self.align_matrix)
 
         return {'FINISHED'}
 
@@ -417,17 +416,16 @@ class AddGem(bpy.types.Operator):
     align_matrix = Matrix()
 
     def execute(self, context):
-        props = self.properties
 
         # create mesh
         verts, faces = add_gem(
-            props.pavilion_radius,
-            props.crown_radius,
-            props.segments,
-            props.pavilion_height,
-            props.crown_height)
+            self.pavilion_radius,
+            self.crown_radius,
+            self.segments,
+            self.pavilion_height,
+            self.crown_height)
 
-        obj = create_mesh_object(context, verts, [], faces, "Gem", props.edit, self.align_matrix)
+        obj = create_mesh_object(context, verts, [], faces, "Gem", self.edit, self.align_matrix)
 
         return {'FINISHED'}
 
