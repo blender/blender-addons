@@ -1432,33 +1432,32 @@ exporttypedata.append(("0","PSK","Export PSK"))
 exporttypedata.append(("1","PSA","Export PSA"))
 exporttypedata.append(("2","ALL","Export ALL"))
 
-IntProperty= bpy.types.Scene.IntProperty
-
-IntProperty(attr="unrealfpsrate", name="fps rate",
+bpy.types.Scene.unrealfpsrate = IntProperty(
+    name="fps rate",
     description="Set the frame per second (fps) for unreal.",
     default=24,min=1,max=100)
     
-bpy.types.Scene.EnumProperty( attr="unrealexport_settings",
+bpy.types.Scene.unrealexport_settings = EnumProperty(
     name="Export:",
     description="Select a export settings (psk/psa/all)...",
     items = exporttypedata, default = '0')
         
-bpy.types.Scene.BoolProperty( attr="unrealtriangulatebool",
+bpy.types.Scene.unrealtriangulatebool = BoolProperty(
     name="Triangulate Mesh",
     description="Convert Quad to Tri Mesh Boolean...",
     default=False)
     
-bpy.types.Scene.BoolProperty( attr="unrealactionexportall",
+bpy.types.Scene.unrealactionexportall = BoolProperty(
     name="All Actions",
     description="This let you export all actions from current armature.[Not Build Yet]",
     default=False)    
     
-bpy.types.Scene.BoolProperty( attr="unrealexportpsk",
+bpy.types.Scene.unrealexportpsk = BoolProperty(
     name="bool export psa",
     description="bool for exporting this psk format",
     default=False)
     
-bpy.types.Scene.BoolProperty( attr="unrealexportpsa",
+bpy.types.Scene.unrealexportpsa = BoolProperty(
     name="bool export psa",
     description="bool for exporting this psa format",
     default=False)
