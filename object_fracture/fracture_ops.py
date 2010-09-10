@@ -421,8 +421,8 @@ class FractureGroup(bpy.types.Operator):
     def execute(self, context):
         #getIslands(context.object)
 
-        if self.properties.exe:
-            fracture_group(context, self.properties.group)
+        if self.exe:
+            fracture_group(context, self.group)
 
         return {'FINISHED'}
 

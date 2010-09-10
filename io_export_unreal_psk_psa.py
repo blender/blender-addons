@@ -20,7 +20,7 @@ bl_addon_info = {
     "author": "Darknet/Optimus_P-Fat/Active_Trash/Sinsoft",
     "version": (2,0),
     "blender": (2, 5, 3),
-    "api": 31667,
+    "api": 31847,
     "location": "File > Export > Skeletal Mesh/Animation Data (.psk/.psa)",
     "description": "Export Unreal Engine (.psk)",
     "warning": "",
@@ -1484,17 +1484,17 @@ class ExportUDKAnimData(bpy.types.Operator):
 
     def execute(self, context):
         #check if  skeleton mesh is needed to be exported
-        if (self.properties.pskexportbool):
+        if (self.pskexportbool):
             bpy.context.scene.unrealexportpsk = True
         else:
             bpy.context.scene.unrealexportpsk = False
         #check if  animation data is needed to be exported
-        if (self.properties.psaexportbool):
+        if (self.psaexportbool):
             bpy.context.scene.unrealexportpsa = True
         else:
             bpy.context.scene.unrealexportpsa = False
             
-        write_data(self.properties.filepath, context, self.properties.use_setting)
+        write_data(self.filepath, context, self.use_setting)
         
         self.report({'WARNING', 'INFO'}, exportmessage)
         return {'FINISHED'}
