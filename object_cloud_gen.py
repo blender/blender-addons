@@ -304,12 +304,12 @@ cloudTypes.append(("2","Cirrus","Generate Cirrus_wispy Cloud"))
 #cloudTypes.append(("3","Nimbus","Generate Nimbus Cloud"))
 
 
-bpy.types.Scene.BoolProperty( attr="cloudparticles",
+bpy.types.Scene.cloudparticles = BoolProperty(
     name="Particles",
     description="Generate Cloud as Particle System",
     default=False)
 
-bpy.types.Scene.EnumProperty( attr="cloud_type",
+bpy.types.Scene.cloud_type = EnumProperty(
     name="Type",
     description="Select the type of cloud to create with material settings",
     items = cloudTypes, default = '0')
