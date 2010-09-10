@@ -25,7 +25,7 @@ bl_addon_info = {
     "author": "Paulo_Gomes",
     "version": (0,11),
     "blender": (2, 5, 3),
-    "api": 31667,
+    "api": 31854,
     "location": "View3D > Add > Mesh ",
     "description": "Adds a mesh Twisted Torus to the Add Mesh menu",
     "warning": "",
