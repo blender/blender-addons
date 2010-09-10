@@ -19,9 +19,9 @@
 bl_addon_info = {
     "name": "Measure Panel",
     "author": "Buerbaum Martin (Pontiac)",
-    "version": (0,7,8),
+    "version": (0, 7, 9),
     "blender": (2, 5, 3),
-    "api": 31667,
+    "api": 31854,
     "location": "View3D > Properties > Measure",
     "description": "Measure distances between objects",
     "warning": "",
@@ -58,6 +58,10 @@ It's very helpful to use one or two "Empty" objects with
 "Snap during transform" enabled for fast measurement.
 
 Version history:
+v0.7.9 - Updated scene properties for changes in property API.
+    See http://lists.blender.org/pipermail/bf-committers/
+        2010-September/028654.html
+    Synced API changes in7from local copy.
 v0.7.8 - Various Py API changes by Campbell ...
     bl_default_closed -> bl_options = {'DEFAULT_CLOSED'}
     x.verts -> x.vertices
@@ -680,15 +684,13 @@ class VIEW3D_PT_measure(bpy.types.Panel):
         bpy.ops.view3d.display_measurements()
 
         # Define property for the draw setting.
-        sce.BoolProperty(
-            attr="measure_panel_draw",
+        bpy.types.Scene.measure_panel_draw = bpy.props.BoolProperty(
             description="Draw distances in 3D View",
             default=1)
 
         # Define property for the calc-area setting.
         # @todo prevent double calculations for each refresh automatically?
-        sce.BoolProperty(
-            attr="measure_panel_calc_area",
+        bpy.types.Scene.measure_panel_calc_area = bpy.props.BoolProperty(
             description="Calculate mesh surface area (heavy CPU" \
                 " usage on bigger meshes)",
             default=0)
@@ -703,16 +705,16 @@ class VIEW3D_PT_measure(bpy.types.Panel):
         obj = getSingleObject(context)
 
         # Define a temporary attribute for the distance value
-        sce.FloatProperty(
+        bpy.types.Scene.measure_panel_dist = bpy.props.FloatProperty(
             name="Distance",
             attr="measure_panel_dist",
             precision=PRECISION,
             unit="LENGTH")
-        sce.FloatProperty(
+        bpy.types.Scene.measure_panel_area1 = bpy.props.FloatProperty(
             attr="measure_panel_area1",
             precision=PRECISION,
             unit="AREA")
-        sce.FloatProperty(
+        bpy.types.Scene.measure_panel_area2 = bpy.props.FloatProperty(
             attr="measure_panel_area2",
             precision=PRECISION,
             unit="AREA")
@@ -724,8 +726,7 @@ class VIEW3D_PT_measure(bpy.types.Panel):
                 "Calculate values inside the local object space.")]
 
         # Define dropdown for the global/local setting
-        bpy.types.Scene.EnumProperty(
-            attr="measure_panel_transform",
+        bpy.types.Scene.measure_panel_transform = bpy.props.EnumProperty(
             name="Space",
             description="Choose in which space you want to measure.",
             items=TRANSFORM,
