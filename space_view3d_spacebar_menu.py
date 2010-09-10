@@ -27,7 +27,7 @@ bl_addon_info = {
     "author": "JayDez, sim88, meta-androcto", "sam"
     "version": (1,5),
     "blender": (2, 5, 3),
-    "api": 31667,
+    "api": 31854,
     "location": "View3D > Spacebar",
     "description": "Context sensitive spacebar menu",
     "warning": "",
