@@ -32,7 +32,7 @@ def create_cutter(context, crack_type, scale, roughness):
             enter_editmode=False,
             location=(0, 0, 0),
             rotation=(0, 0, 0),
-            layer=(True, False, False, False,
+            layers=(True, False, False, False,
                 False, False, False, False,
                 False, False, False, False,
                 False, False, False, False,
@@ -65,7 +65,7 @@ def create_cutter(context, crack_type, scale, roughness):
             enter_editmode=False,
             location=(0, 0, 0),
             rotation=(0, 0, 0),
-            layer=(True, False, False, False,
+            layers=(True, False, False, False,
                 False, False, False, False,
                 False, False, False, False,
                 False, False, False, False,
@@ -391,13 +391,11 @@ class FractureSimple(bpy.types.Operator):
 
     def execute(self, context):
         #getIslands(context.object)
-        props = self.properties
-
-        if props.exe:
+        if self.exe:
             fracture_basic(context,
-                    props.nshards,
-                    props.crack_type,
-                    props.roughness)
+                    self.nshards,
+                    self.crack_type,
+                    self.roughness)
 
         return {'FINISHED'}
 
