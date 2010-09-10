@@ -788,20 +788,20 @@ class GPENCIL_OT_SURFSK_strokes_to_curves(bpy.types.Operator):
 
 
 def register():
-    bpy.types.Scene.IntProperty(attr = "SURFSK_edges_U", name = "Cross", description = "Number of edge rings crossing the strokes (perpendicular to strokes direction)", default = 10, min = 0, max = 100000)
-    bpy.types.Scene.IntProperty(attr = "SURFSK_edges_V", name = "Follow", description = "Number of edge rings following the strokes (parallel to strokes direction)", default = 10, min = 0, max = 100000)
-    bpy.types.Scene.IntProperty(attr = "SURFSK_precision", name = "Precision", description = "Precision level of the surface calculation", default = 4, min = 0, max = 100000)
-    bpy.types.Scene.BoolProperty(attr = "SURFSK_keep_strokes", name = "Keep strokes", description = "Keeps the sketched strokes after adding the surface", default = False)
+    bpy.types.Scene.SURFSK_edges_U = bpy.props.IntProperty(name="Cross", description="Number of edge rings crossing the strokes (perpendicular to strokes direction)", default=10, min=0, max=100000)
+    bpy.types.Scene.SURFSK_edges_V = bpy.props.IntProperty(name="Follow", description="Number of edge rings following the strokes (parallel to strokes direction)", default=10, min=0, max=100000)
+    bpy.types.Scene.SURFSK_precision = bpy.props.IntProperty(name="Precision", description="Precision level of the surface calculation", default=4, min=0, max=100000)
+    bpy.types.Scene.SURFSK_keep_strokes = bpy.props.BoolProperty(name="Keep strokes", description="Keeps the sketched strokes after adding the surface", default=False)
 
     keymap_item_add_surf = bpy.data.window_managers[0].keyconfigs.active.keymaps["3D View"].items.new("GPENCIL_OT_SURFSK_add_surface","E","PRESS", key_modifier="D")
     keymap_item_stroke_to_curve = bpy.data.window_managers[0].keyconfigs.active.keymaps["3D View"].items.new("GPENCIL_OT_SURFSK_strokes_to_curves","C","PRESS", key_modifier="D")
 
 
 def unregister():
-    bpy.types.Scene.RemoveProperty("SURFSK_edges_U")
-    bpy.types.Scene.RemoveProperty("SURFSK_edges_V")
-    bpy.types.Scene.RemoveProperty("SURFSK_precision")
-    bpy.types.Scene.RemoveProperty("SURFSK_keep_strokes")
+    del bpy.types.Scene.SURFSK_edges_U
+    del bpy.types.Scene.SURFSK_edges_V
+    del bpy.types.Scene.SURFSK_precision
+    del bpy.types.Scene.SURFSK_keep_strokes
 
     km = bpy.data.window_managers[0].keyconfigs.active.keymaps["3D View"]
     for kmi in km.items:
