@@ -1,4 +1,4 @@
-# ##### BEGIN GPL LICENSE BLOCK #####
+﻿# ##### BEGIN GPL LICENSE BLOCK #####
 #
 #  This program is free software; you can redistribute it and/or
 #  modify it under the terms of the GNU General Public License
@@ -19,9 +19,9 @@
 bl_addon_info = {
     'name': 'Curveaceous Galore!',
     'author': 'Jimmy Hazevoet, testscreenings',
-    'version': (0,1),
+    'version': (0,2),
     'blender': (2, 5, 3),
-    'api': 31847,
+    'api': 31885,
     'location': 'Add Curve menu',
     'description': 'adds many types of curves',
     'warning': '', # used for warning icon and text in addons panel
@@ -38,13 +38,14 @@ import bpy
 from bpy.props import *
 from mathutils import *
 from math import *
+import noise as Noise
 ###------------------------------------------------------------
 #### Some functions to use with others:
 ###------------------------------------------------------------
-'''
+
 #------------------------------------------------------------
 # Generate random number:
-def randnum( low=0.0, high=1.0, seed=0 ):
+def randnum(low=0.0, high=1.0, seed=0):
     """
     randnum( low=0.0, high=1.0, seed=0 )
     
@@ -62,17 +63,16 @@ def randnum( low=0.0, high=1.0, seed=0 ):
                 (type=float)
     """
 
-    s = Noise.setRandomSeed( seed )
+    s = Noise.seed_set(seed)
     rnum = Noise.random()
     rnum = rnum*(high-low)
     rnum = rnum+low
     return rnum
 
 
-
 #------------------------------------------------------------
 # Make some noise:
-def vTurbNoise((x,y,z), iScale=0.25, Size=1.0, Depth=6, Hard=0, Basis=0, Seed=0 ):
+def vTurbNoise(x,y,z, iScale=0.25, Size=1.0, Depth=6, Hard=0, Basis=0, Seed=0):
     """
     vTurbNoise((x,y,z), iScale=0.25, Size=1.0, Depth=6, Hard=0, Basis=0, Seed=0 )
     
@@ -97,20 +97,20 @@ def vTurbNoise((x,y,z), iScale=0.25, Size=1.0, Depth=6, Hard=0, Basis=0, Seed=0 
             the generated turbulence vector.
                 (type=3-float list)
     """
-
+    sn = 0.001
     rand = randnum(-100,100,Seed)
-    if Basis ==9: Basis = 14
-    vTurb = Noise.vTurbulence(( x/Size+rand, y/Size+rand, z/Size+rand ), Depth, Hard, Basis )
+    if Basis == 9: Basis = 14
+    print('x', x, 'y' ,y ,'z' ,z ,'size', Size)
+    vTurb = Noise.turbulence_vector((x/Size+rand, y/Size+rand, z/Size+rand), Depth, Hard, Basis)
     tx = vTurb[0]*iScale
     ty = vTurb[1]*iScale
     tz = vTurb[2]*iScale
     return tx,ty,tz
 
 
-
 #------------------------------------------------------------
 # Axis: ( used in 3DCurve Turbulence )
-def AxisFlip((x,y,z), x_axis=1, y_axis=1, z_axis=1, flip=0 ):
+def AxisFlip(x,y,z, x_axis=1, y_axis=1, z_axis=1, flip=0 ):
     if flip != 0:
         flip *= -1
     else: flip = 1
@@ -118,7 +118,7 @@ def AxisFlip((x,y,z), x_axis=1, y_axis=1, z_axis=1, flip=0 ):
     y *= y_axis*flip
     z *= z_axis*flip
     return x,y,z
-'''
+
 
 ###-------------------------------------------------------------------
 #### 2D Curve shape functions:
@@ -446,7 +446,7 @@ def nSideCurve(sides=6, radius=1.0):
         i+=1
     return newpoints
 
-'''
+
 ##------------------------------------------------------------
 # 2DCurve: Splat:
 def SplatCurve(sides=24, scale=1.0, seed=0, basis=0, radius=1.0):
@@ -476,14 +476,14 @@ def SplatCurve(sides=24, scale=1.0, seed=0, basis=0, radius=1.0):
     i = 0
     while i < sides:
         t = (i*step)
-        turb = vTurbNoise(t, 1.0, scale, 6, 0, basis, seed )
+        turb = vTurbNoise(t,t,t, 1.0, scale, 6, 0, basis, seed )
         turb = turb[2] * 0.5 + 0.5
         x = sin(t*pi)*radius * turb
         y = cos(t*pi)*radius * turb
         newpoints.append([x,y,0])
         i+=1
     return newpoints
-'''
+
 ###-----------------------------------------------------------
 #### 3D curve shape functions:
 ###-----------------------------------------------------------
@@ -708,14 +708,14 @@ def main(context, self, align_matrix):
     if galType == 'Nsided':
         verts = nSideCurve(self.Nsides,
                             outerRadius)
-    '''
+
     if galType == 'Splat':
         verts = SplatCurve(self.splatSides,
                             self.splatScale,
                             self.seed,
                             self.basis,
                             outerRadius)
-    '''
+
     if galType == 'Helix':
         verts = HelixCurve(self.helixPoints,
                             self.helixHeight,
@@ -760,7 +760,7 @@ class Curveaceous_galore(bpy.types.Operator):
                 ('Arc', 'Arc', 'Arc'),
                 ('Cogwheel', 'Cogwheel', 'Cogwheel'),
                 ('Nsided', 'Nsided', 'Nsided'),
-#                ('Splat', 'Splat', 'Splat'),
+                ('Splat', 'Splat', 'Splat'),
                 ('Cycloid', 'Cycloid', 'Cycloid'),
                 ('Helix', 'Helix (3D)', 'Helix')]
     GalloreType = EnumProperty(name="Type",
@@ -902,7 +902,7 @@ class Curveaceous_galore(bpy.types.Operator):
                     description="Splat sides")
     splatScale = FloatProperty(name="Splat scale",
                     default=1.0,
-                    min=0, soft_min=0,
+                    min=0.0001, soft_min=0.0001,
                     description="Splat scale")
     seed = IntProperty(name="Seed",
                     default=0,
@@ -911,6 +911,7 @@ class Curveaceous_galore(bpy.types.Operator):
     basis = IntProperty(name="Basis",
                     default=0,
                     min=0, soft_min=0,
+                    max=14, soft_max=14,
                     description="Basis")
 
     #### Helix properties
@@ -1012,14 +1013,14 @@ class Curveaceous_galore(bpy.types.Operator):
         if self.GalloreType == 'Nsided':
             box.prop(self.properties, 'Nsides')
             box.prop(self.properties, 'outerRadius', text='Radius')
-        '''
+
         if self.GalloreType == 'Splat':
             box.prop(self.properties, 'splatSides')
             box.prop(self.properties, 'outerRadius')
             box.prop(self.properties, 'splatScale')
             box.prop(self.properties, 'seed')
             box.prop(self.properties, 'basis')
-        '''
+
         if self.GalloreType == 'Helix':
             box.prop(self.properties, 'helixPoints')
             box.prop(self.properties, 'helixHeight')
