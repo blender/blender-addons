@@ -100,7 +100,6 @@ def vTurbNoise(x,y,z, iScale=0.25, Size=1.0, Depth=6, Hard=0, Basis=0, Seed=0):
     sn = 0.001
     rand = randnum(-100,100,Seed)
     if Basis == 9: Basis = 14
-    print('x', x, 'y' ,y ,'z' ,z ,'size', Size)
     vTurb = Noise.turbulence_vector((x/Size+rand, y/Size+rand, z/Size+rand), Depth, Hard, Basis)
     tx = vTurb[0]*iScale
     ty = vTurb[1]*iScale
