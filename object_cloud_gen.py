@@ -312,7 +312,8 @@ bpy.types.Scene.cloudparticles = BoolProperty(
 bpy.types.Scene.cloud_type = EnumProperty(
     name="Type",
     description="Select the type of cloud to create with material settings",
-    items = cloudTypes, default = '0')
+    items=cloudTypes, default='0')
+
 
 class GenerateCloud(bpy.types.Operator):
     bl_idname = "cloud.generate_cloud"
