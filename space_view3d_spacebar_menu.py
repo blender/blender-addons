@@ -642,7 +642,7 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
 
             if arm.drawtype in ('BBONE', 'ENVELOPE'):
                 layout.operator("transform.transform",
-                    text="Scale Envelope Distance").mode = 'BONESIZE'
+                    text="Scale Envelope Distance").mode = 'BONE_SIZE'
 
             layout.menu("VIEW3D_MT_pose_apply")
             layout.separator()
@@ -1215,9 +1215,9 @@ class VIEW3D_MT_EditArmatureTK(bpy.types.Menu):
 
         # Edit Armature
 
-        layout.operator("transform.transform", text="Scale Envelope Distance").mode = 'BONESIZE'
+        layout.operator("transform.transform", text="Scale Envelope Distance").mode = 'BONE_SIZE'
 
-        layout.operator("transform.transform", text="Scale B-Bone Width").mode = 'BONESIZE'
+        layout.operator("transform.transform", text="Scale B-Bone Width").mode = 'BONE_SIZE'
 
         layout.separator()
 
