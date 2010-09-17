@@ -25,7 +25,7 @@ bl_addon_info = {
     "author": "uselessdreamer",
     "version": (0,3),
     "blender": (2, 5, 3),
-    "api": 31854,
+    "api": 31965,
     "location": "Properties space > Scene tab > Blend Info panel",
     "description": "Show information about the .blend",
     "warning": "",

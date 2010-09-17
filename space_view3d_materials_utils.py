@@ -27,7 +27,7 @@ bl_addon_info = {
     "author": "michaelw",
     "version": (1,3),
     "blender": (2, 5, 3),
-    "api": 31854,
+    "api": 31965,
     "location": "View3D > Q key",
     "description": "Menu of material tools (assign, select by etc)  in the 3D View",
     "warning": "",
