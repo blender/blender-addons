@@ -21,7 +21,7 @@ bl_addon_info = {
     "author": "Nick Keeline(nrk)",
     "version": (0,7),
     "blender": (2, 5, 3),
-    "api": 31847,
+    "api": 31965,
     "location": "Tool Shelf ",
     "description": "Creates Volumetric Clouds",
     "warning": "",

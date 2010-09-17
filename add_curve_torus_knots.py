@@ -22,7 +22,7 @@ bl_addon_info = {
     "author": "testscreenings",
     "version": (0,1),
     "blender": (2, 5, 3),
-    "api": 31885,
+    "api": 31965,
     "location": "View3D > Add > Curve",
     "description": "Adds many types of knots",
     "warning": "",

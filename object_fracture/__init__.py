@@ -21,7 +21,7 @@ bl_addon_info = {
     "author": "pildanovak",
     "version": (2,0),
     "blender": (2, 5, 3),
-    "api": 31886,
+    "api": 31965,
     "location": "Fracture tools (Search > Fracture Object & Add -> Fracture Helper Objects",
     "description": "Fractured Object, Bomb, Projectile, Recorder",
     "warning": "",

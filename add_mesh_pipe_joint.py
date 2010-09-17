@@ -21,7 +21,7 @@ bl_addon_info = {
     "author": "Buerbaum Martin (Pontiac)",
     "version": (0, 10, 6),
     "blender": (2, 5, 3),
-    "api": 31854,
+    "api": 31965,
     "location": "View3D > Add > Mesh > Pipe Joint",
     "description": "Adds 5 pipe Joint types to the Add Mesh menu",
     "warning": "",

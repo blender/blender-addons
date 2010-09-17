@@ -21,7 +21,7 @@ bl_addon_info = {
     "author": "Pontiac, Fourmadmen, meta-androcto",
     "version": (0,3),
     "blender": (2, 5, 3),
-    "api": 31854,
+    "api": 31965,
     "location": "View3D > Add > Mesh > Extras",
     "description": "Adds Star, Wedge, Sqorus & Spindle objects.",
     "warning": "",
