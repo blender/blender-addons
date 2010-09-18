@@ -738,6 +738,8 @@ def register():
     except KeyError:
         kmi = km.items.new('wm.call_menu', 'C', 'PRESS', ctrl=True)
     kmi.properties.name = 'VIEW3D_MT_posecopypopup'
+    for menu in _layer_menus:
+        bpy.types.register(menu)
     bpy.types.DATA_PT_texface.append(_add_tface_buttons)
     km = bpy.context.window_manager.keyconfigs.active.keymaps['Mesh']
     kmi = km.items.new('wm.call_menu', 'C', 'PRESS')
@@ -753,6 +755,8 @@ def unregister():
            item.properties.name == 'VIEW3D_MT_posecopypopup':
             item.idname = 'pose.copy'
             break
+    for menu in _layer_menus:
+        bpy.types.unregister(menu)
     bpy.types.DATA_PT_texface.remove(_add_tface_buttons)
     km = bpy.context.window_manager.keyconfigs.active.keymaps['Mesh']
     for kmi in km.items:
