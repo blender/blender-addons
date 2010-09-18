@@ -25,13 +25,13 @@ bl_addon_info = {
     "name": "3D Navigation",
     "author": "Demohero, uriel",
     "version": (1, 2),
-    "blender": (2, 5, 3),
+    "blender": (2, 5, 4),
     "api": 31965,
     "location": "View3D > Toolbar",
-    "description": "You can navigate to views from 3D Toolbar (Shortcut: T)",
+    "description": "Navigate the Camera & 3d Views",
     "warning": "",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"\
-        "Scripts/",
+        "Scripts/3D_interaction/3D_Navigation",
     "tracker_url": "http://projects.blender.org/tracker/index.php?"\
 	    "func=detail&aid=23530&group_id=153&atid=468",
     "category": "3D View"}
