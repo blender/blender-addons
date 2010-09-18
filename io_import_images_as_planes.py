@@ -21,7 +21,7 @@ bl_addon_info = {
     "author": "Florian Meyer (testscreenings)",
     "version": (0,7),
     "blender": (2, 5, 3),
-    "api": 31847,
+    "api": 31998,
     "location": "File > Import > Images as Planes",
     "description": "Imports images and creates planes with the appropriate aspect ratio. The images are mapped to the planes.",
     "warning": "",
@@ -416,13 +416,13 @@ class ImportImagesAsPlanes(bpy.types.Operator):
         description="Only import files of this type.",
         items=extEnum)
 
-    shadeless = BoolProperty(name="Shadeless",
+    use_shadeless = BoolProperty(name="Shadeless",
         description="Set material to shadeless",
         default=False)
     transp = BoolProperty(name="Use alpha",
         description="Use alphachannel for transparency.",
         default=False)
-    premultiply = BoolProperty(name="Premultiply",
+    use_premultiply = BoolProperty(name="Premultiply",
         description="Premultiply image",
         default=False)
 
