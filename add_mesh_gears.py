@@ -350,7 +350,7 @@ def add_spoke(a, t, d, radius, De, base, s, w, l, gap=0, width=19):
             C = [cos(i) for i in A]
             S = [sin(i) for i in A]
 
-            verts.extend([(Rb * I, Rb * J, d) for (I, J) in zip(C, S)])
+            verts.extend((Rb * I, Rb * J, d) for (I, J) in zip(C, S))
             edgefaces2.append(len(verts) - 1)
 
             Rb = Rb - s
@@ -552,7 +552,7 @@ def add_spokes(teethNum, radius, De, base, width=1, conangle=0, rack=0,
                     radius * c, De * c, base * c,
                     spbevel, spwidth, splength, 0, spresol)
                 verts.extend(sv)
-                faces.extend([[j + fl for j in i] for i in sf])
+                faces.extend([j + fl for j in i] for i in sf)
                 fl += len(sv)
 
             d1 = fl - len(sv)

@@ -1417,7 +1417,7 @@ def edgeIntersect(context, operator):
         
     line = LineLineIntersect(verts[edges[0].vertices[0]].co, verts[edges[0].vertices[1]].co, verts[edges[1].vertices[0]].co, verts[edges[1].vertices[1]].co)
 
-    if (line == None):
+    if (line is None):
         operator.report({'ERROR'}, "Selected edges are parallel.")
         return
 

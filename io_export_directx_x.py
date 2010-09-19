@@ -101,7 +101,7 @@ def ExportDirectX(Config):
     if Config.ExportMode == 1:
         Config.ExportList = [Object for Object in Config.context.scene.objects
                              if Object.type in ("ARMATURE", "EMPTY", "MESH")
-                             and Object.parent == None]
+                             and Object.parent is None]
     else:
         ExportList = [Object for Object in Config.context.selected_objects
                       if Object.type in ("ARMATURE", "EMPTY", "MESH")]
@@ -230,7 +230,7 @@ def WriteObjects(Config, ObjectList):
 
         if Config.ExportArmatures and Object.type == "ARMATURE":
             Armature = Object.data
-            ParentList = [Bone for Bone in Armature.bones if Bone.parent == None]
+            ParentList = [Bone for Bone in Armature.bones if Bone.parent is None]
             if Config.Verbose:
                 print("    Writing Armature Bones...")
             WriteArmatureBones(Config, Object, ParentList)

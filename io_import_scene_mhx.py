@@ -473,7 +473,7 @@ def parseDefaultType(typ, args, tokens):
     bpyType = typ.capitalize()
     print(bpyType, name, data)
     loadedData[bpyType][name] = data
-    if data == None:
+    if data is None:
         return None
 
     for (key, val, sub) in tokens:
@@ -514,7 +514,7 @@ def parseAction(args, tokens):
         
     act = ob.animation_data.action
     loadedData['Action'][name] = act
-    if act == None:
+    if act is None:
         print("Ignoring action %s" % name)
         return act
     act.name = name
@@ -632,7 +632,7 @@ def parseKeyFramePoint(pt, args, tokens):
 def parseAnimationData(rna, tokens):
     if 0 and toggle & T_MHX:
         return
-    if rna.animation_data == None:    
+    if rna.animation_data is None:    
         rna.animation_data_create()
     adata = rna.animation_data
     for (key, val, sub) in tokens:
@@ -742,7 +742,7 @@ def parseMaterial(args, tokens):
     name = args[0]
     #print("Parse material "+name)
     mat = bpy.data.materials.new(name)
-    if mat == None:
+    if mat is None:
         return None
     loadedData['Material'][name] = mat
     #print("Material %s %s %s" % (mat, name, loadedData['Material'][name]))
@@ -899,7 +899,7 @@ def parseImage(args, tokens):
             for n in range(1,len(val)):
                 filename += " " + val[n]
             img = loadImage(filename)
-            if img == None:
+            if img is None:
                 return None
             img.name = imgName
         else:
@@ -925,7 +925,7 @@ def parseObject(args, tokens):
     except:
         data = None
 
-    if data == None and typ != 'EMPTY':
+    if data is None and typ != 'EMPTY':
         print("Failed to find data: %s %s %s" % (name, typ, datName))
         return
 
@@ -966,7 +966,7 @@ def createObject(typ, name, data, datName):
     
 def linkObject(ob, data):
     #print("Data", data, ob.data)
-    if data and ob.data == None:
+    if data and ob.data is None:
         ob.data = data
     scn = bpy.context.scene
     scn.objects.link(ob)
@@ -1267,7 +1267,7 @@ def parseVertexGroup(ob, me, args, tokens):
         group = ob.vertex_groups.new(grpName)
         group.name = grpName
         loadedData['VertexGroup'][grpName] = group
-        ob.vertex_groups.assign([int(val[0]) for (key, val, sub) in tokens if key == 'wv'], group, float(val[1]), 'REPLACE')
+        ob.vertex_groups.assign(int(val[0]) for (key, val, sub) in tokens if key == 'wv', group, float(val[1]), 'REPLACE')
     return
 
 
@@ -1285,7 +1285,7 @@ def doShape(name):
         return (toggle & T_Face)
 
 def parseShapeKeys(ob, me, args, tokens):
-    if bpy.context.object == None:
+    if bpy.context.object is None:
         return
     for (key, val, sub) in tokens:
         if key == 'ShapeKey':
@@ -1897,7 +1897,7 @@ def defaultKey(ext, args, tokens, var, exclude, glbals, lcals):
             data = None            
         # print("Old structrna", nvar, data)
 
-        if data == None:
+        if data is None:
             try:
                 creator = args[3]
             except:

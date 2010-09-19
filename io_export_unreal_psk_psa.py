@@ -674,7 +674,7 @@ def BoneIndexArmature(blender_armature):
     #print(dir(ArmatureData))
     
     for bone in objectbone.bones:
-        if(bone.parent == None):
+        if(bone.parent is None):
             BoneIndex(bone)
             #BBCount += 1
             break
@@ -937,7 +937,7 @@ def parse_bone(blender_bone, psk_file, psa_file, parent_id, is_root_bone, parent
     #print '-------------------- Dumping Bone ---------------------- '
 
     #If bone does not have parent that mean it the root bone
-    if blender_bone.parent == None:
+    if blender_bone.parent is None:
         parent_root = blender_bone
     
     
@@ -1033,7 +1033,7 @@ def parse_armature(blender_armature, psk_file, psa_file):
     child_count = 0
     for current_obj in blender_armature: 
         current_armature = current_obj.data
-        bones = [x for x in current_armature.bones if not x.parent == None]
+        bones = [x for x in current_armature.bones if not x.parent is None]
         child_count += len(bones)
 
     for current_obj in blender_armature:
@@ -1044,11 +1044,11 @@ def parse_armature(blender_armature, psk_file, psa_file):
         #we dont want children here - only the top level bones of the armature itself
         #we will recursively dump the child bones as we dump these bones
         """
-        bones = [x for x in current_armature.bones if not x.parent == None]
+        bones = [x for x in current_armature.bones if not x.parent is None]
         #will ingore this part of the ocde
         """
         for current_bone in current_armature.bones: #list the bone. #note this will list all the bones.
-            if(current_bone.parent == None):
+            if(current_bone.parent is None):
                 parse_bone(current_bone, psk_file, psa_file, 0, 0, current_obj.matrix_local, None)
                 break
 
@@ -1174,7 +1174,7 @@ def parse_animation(blender_scene, blender_armatures, psa_file):
         
             #these must be ordered in the order the bones will show up in the PSA file!
             ordered_bones = {}
-            ordered_bones = sorted([(psa_file.UseBone(x.name), x) for x in pose_data.bones], key=operator.itemgetter(0))
+            ordered_bones = sorted((psa_file.UseBone(x.name), x) for x in pose_data.bones, key=operator.itemgetter(0))
             
             #############################
             # ORDERED FRAME, BONE

@@ -111,7 +111,7 @@ safe_list = ['math', 'acos', 'asin', 'atan', 'atan2', 'ceil', 'cos', 'cosh',
     'sin', 'sinh', 'sqrt', 'tan', 'tanh']
 
 # Use the list to filter the local namespace
-safe_dict = dict([(k, globals().get(k, None)) for k in safe_list])
+safe_dict = dict((k, globals().get(k, None)) for k in safe_list)
 
 
 # Stores the values of a list of properties and the

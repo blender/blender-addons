@@ -342,7 +342,7 @@ def createSolid(plato,vtrunc,etrunc,dual,snub):
     if vtrunc == 0:
         if dual: # dual is as simple as another, but mirrored platonic solid
             vInput,fInput = source(dualSource[plato])
-            supposed_size = Asum([vInput[i] for i in fInput[0]]).length/len(fInput[0])
+            supposed_size = Asum(vInput[i] for i in fInput[0]).length / len(fInput[0])
             vInput = [-i*supposed_size for i in vInput]            # mirror it
             return vInput,fInput
         return source(plato)
@@ -352,7 +352,7 @@ def createSolid(plato,vtrunc,etrunc,dual,snub):
     # truncation is now equal to simple truncation of the dual of the source
     elif vtrunc > 0.5: 
         vInput,fInput = source(dualSource[plato])
-        supposed_size = Asum([vInput[i] for i in fInput[0]]).length/len(fInput[0])
+        supposed_size = Asum(vInput[i] for i in fInput[0]).length / len(fInput[0])
         # account for the source being a dual
         vtrunc = 1-vtrunc
         if vtrunc == 0: # no truncation
@@ -504,7 +504,7 @@ def createSolid(plato,vtrunc,etrunc,dual,snub):
 
     # calculate supposed vertex length to ensure continuity
     if supposed_size:
-        supposed_size *= len(vert_faces[0])/Asum([verts[i] for i in vert_faces[0]]).length
+        supposed_size *= len(vert_faces[0])/Asum(verts[i] for i in vert_faces[0]).length
         verts = [-i*supposed_size for i in verts]
         
     # generate face-faces by looking up the old verts and replacing them with
@@ -532,14 +532,14 @@ def createSolid(plato,vtrunc,etrunc,dual,snub):
         #  face. do it in this order to ease the following face creation
         nVerts = []
         for i in vert_faces:
-            nVerts.append(Asum([verts[j] for j in i])/len(i))
+            nVerts.append(Asum(verts[j] for j in i)/len(i))
         if etrunc:
             eStart = len(nVerts)
             for i in edge_faces:
-                nVerts.append(Asum([verts[j] for j in i])/len(i))
+                nVerts.append(Asum(verts[j] for j in i)/len(i))
         fStart = len(nVerts)
         for i in face_faces:
-            nVerts.append(Asum([verts[j] for j in i])/len(i))
+            nVerts.append(Asum(verts[j] for j in i)/len(i))
         # the special face generation for snub duals, it sucks, even i dont get it
         if lSnub or rSnub:
             for x in range(len(fInput)):

@@ -97,7 +97,7 @@ def create_cutter(context, crack_type, scale, roughness):
     # Adding fracture material
     # @todo Doesn't work at all yet.
     sce = bpy.context.scene
-    if bpy.data.materials.get('fracture')==None:
+    if bpy.data.materials.get('fracture') is None:
         bpy.ops.material.new()
         bpy.ops.object.material_slot_add()
         sce.objects.active.material_slots[0].material.name = 'fracture'

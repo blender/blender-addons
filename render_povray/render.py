@@ -89,7 +89,7 @@ def write_pov(filename, scene=None, info_callback=None):
             file.write('\tspecular %.3g\n' % material.specular_intensity)
 
             file.write('\tambient %.3g\n' % material.ambient)
-            #file.write('\tambient rgb <%.3g, %.3g, %.3g>\n' % tuple([c*material.ambient for c in world.ambient_color])) # povray blends the global value
+            #file.write('\tambient rgb <%.3g, %.3g, %.3g>\n' % tuple(c*material.ambient for c in world.ambient_color)) # povray blends the global value
 
             # map hardness between 0.0 and 1.0
             roughness = ((1.0 - ((material.specular_hardness - 1.0) / 510.0)))
@@ -142,7 +142,7 @@ def write_pov(filename, scene=None, info_callback=None):
         file.write('\tup <0, 1, 0>\n')
         file.write('\tangle  %f \n' % (360.0 * math.atan(16.0 / camera.data.lens) / math.pi))
 
-        file.write('\trotate  <%.6f, %.6f, %.6f>\n' % tuple([math.degrees(e) for e in matrix.rotation_part().to_euler()]))
+        file.write('\trotate  <%.6f, %.6f, %.6f>\n' % tuple(math.degrees(e) for e in matrix.rotation_part().to_euler()))
         file.write('\ttranslate <%.6f, %.6f, %.6f>\n' % (matrix[3][0], matrix[3][1], matrix[3][2]))
         file.write('}\n')
 
@@ -153,7 +153,7 @@ def write_pov(filename, scene=None, info_callback=None):
 
             matrix = ob.matrix_world
 
-            color = tuple([c * lamp.energy for c in lamp.color]) # Colour is modified by energy
+            color = tuple(c * lamp.energy for c in lamp.color) # Colour is modified by energy
 
             file.write('light_source {\n')
             file.write('\t< 0,0,0 >\n')
@@ -304,7 +304,7 @@ def write_pov(filename, scene=None, info_callback=None):
             verts_normals = [tuple(v.normal) for v in me.vertices]
 
             # quads incur an extra face
-            quadCount = len([f for f in faces_verts if len(f) == 4])
+            quadCount = sum(1 for f in faces_verts if len(f) == 4)
 
             file.write('mesh2 {\n')
             file.write('\tvertex_vectors {\n')
@@ -455,7 +455,7 @@ def write_pov(filename, scene=None, info_callback=None):
                         cols = col.color1, col.color2, col.color3
 
 
-                if not me_materials or me_materials[material_index] == None: # No materials
+                if not me_materials or me_materials[material_index] is None: # No materials
                     for i1, i2, i3 in indicies:
                         file.write(',\n\t\t<%d,%d,%d>' % (fv[i1], fv[i2], fv[i3])) # vert count
                 else:
@@ -587,8 +587,8 @@ def write_pov(filename, scene=None, info_callback=None):
     exportCamera()
     #exportMaterials()
     sel = scene.objects
-    exportLamps([l for l in sel if l.type == 'LAMP'])
-    exportMeta([l for l in sel if l.type == 'META'])
+    exportLamps(l for l in sel if l.type == 'LAMP')
+    exportMeta(l for l in sel if l.type == 'META')
     exportMeshs(scene, sel)
     exportWorld(scene.world)
     exportGlobalSettings(scene)

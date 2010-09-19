@@ -195,7 +195,7 @@ def read_stl(filename):
        >>> pts = list(pts)
        >>>
        >>> # print the coordinate of the triangle n
-       >>> print([pts[i] for i in tris[n]])
+       >>> print(pts[i] for i in tris[n])
     '''
 
     tris, pts = [], ListDict()
@@ -209,7 +209,7 @@ def read_stl(filename):
             # If the point is allready in the list of points, the
             # index returned by pts.add() will be the one from the
             # first equal point inserted.
-            tris.append([pts.add(p) for p in pt])
+            tris.append(pts.add(p) for p in pt)
 
     return tris, pts.list
 

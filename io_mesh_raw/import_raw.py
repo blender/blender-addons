@@ -111,7 +111,7 @@ def addMeshObj(mesh, objName):
     scn.objects.link(nobj)
     nobj.select = True
 
-    if scn.objects.active == None or scn.objects.active.mode == 'OBJECT':
+    if scn.objects.active is None or scn.objects.active.mode == 'OBJECT':
         scn.objects.active = nobj
 
 
