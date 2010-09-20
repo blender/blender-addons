@@ -1174,7 +1174,7 @@ def parse_animation(blender_scene, blender_armatures, psa_file):
         
             #these must be ordered in the order the bones will show up in the PSA file!
             ordered_bones = {}
-            ordered_bones = sorted((psa_file.UseBone(x.name), x) for x in pose_data.bones, key=operator.itemgetter(0))
+            ordered_bones = sorted([(psa_file.UseBone(x.name), x) for x in pose_data.bones], key=operator.itemgetter(0))
             
             #############################
             # ORDERED FRAME, BONE

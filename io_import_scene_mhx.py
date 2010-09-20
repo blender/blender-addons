@@ -1267,7 +1267,7 @@ def parseVertexGroup(ob, me, args, tokens):
         group = ob.vertex_groups.new(grpName)
         group.name = grpName
         loadedData['VertexGroup'][grpName] = group
-        ob.vertex_groups.assign(int(val[0]) for (key, val, sub) in tokens if key == 'wv', group, float(val[1]), 'REPLACE')
+        ob.vertex_groups.assign([int(val[0]) for (key, val, sub) in tokens if key == 'wv'], group, float(val[1]), 'REPLACE')
     return
 
 
