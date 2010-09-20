@@ -23,13 +23,13 @@ import os, sys
 
 def getPresets():
 
-    scriptPath = os.path.join(bpy.utils.script_paths()[0], "addons" , "add_mesh_BoltFactory")
+    scriptPath = os.path.dirname(__file__)
     presetPath = os.path.join(scriptPath, "presets")
     presetFiles = os.listdir(presetPath)
     #presetFiles.sort()
 
     presets = [(presetFile, presetFile.rpartition(".")[0], presetFile)
-                for i, presetFile in enumerate(presetFiles)]
+                for i, presetFile in enumerate(presetFiles) if presetFile.endswith(".py")]
 
     #print(presets)
     return presets, presetPath
