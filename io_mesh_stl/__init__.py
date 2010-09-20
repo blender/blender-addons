@@ -51,6 +51,7 @@ import os
 
 import bpy
 from bpy.props import *
+from io_utils import ExportHelper, ImportHelper
 
 
 try:
@@ -65,12 +66,14 @@ except:
 init_data = True
 
 
-class StlImporter(bpy.types.Operator):
+class StlImporter(bpy.types.Operator, ImportHelper):
     '''
     Load STL triangle mesh data
     '''
     bl_idname = "import_mesh.stl"
     bl_label = "Import STL"
+    
+    filename_ext = ".stl"
 
     files = CollectionProperty(name="File Path",
                           description="File path used for importing "
@@ -90,30 +93,15 @@ class StlImporter(bpy.types.Operator):
 
         return {'FINISHED'}
 
-    def invoke(self, context, event):
-        wm = context.window_manager
-        wm.add_fileselect(self)
 
-        return {'RUNNING_MODAL'}
-
-
-class StlExporter(bpy.types.Operator):
+class StlExporter(bpy.types.Operator, ExportHelper):
     '''
     Save STL triangle mesh data from the active object
     '''
     bl_idname = "export_mesh.stl"
     bl_label = "Export STL"
 
-    filepath = StringProperty(name="File Path",
-                          description="File path used for exporting "
-                                      "the active object to STL file",
-                          maxlen=1024,
-                          default="")
-    check_existing = BoolProperty(name="Check Existing",
-                                  description="Check and warn on "
-                                              "overwriting existing files",
-                                  default=True,
-                                  options={'HIDDEN'})
+    filename_ext = ".stl"
 
     ascii = BoolProperty(name="Ascii",
                          description="Save the file in ASCII file format",
@@ -131,11 +119,6 @@ class StlExporter(bpy.types.Operator):
         stl_utils.write_stl(self.filepath, faces, self.ascii)
 
         return {'FINISHED'}
-
-    def invoke(self, context, event):
-        wm = context.window_manager
-        wm.add_fileselect(self)
-        return {'RUNNING_MODAL'}
 
 
 def menu_import(self, context):
