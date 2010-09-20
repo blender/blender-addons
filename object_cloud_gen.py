@@ -157,26 +157,8 @@ def applyScaleRotLoc(scene, obj):
 
 
 def totallyDeleteObject(scene, obj):
-    #To Do this section to be updated when
-    #Ability to completely delet objects added to blender
-    # Deselect All
-    bpy.ops.object.select_all(action='DESELECT')
-   
-    # Select the object and delete it.
-    obj.select = True
-    scene.objects.active = obj
-   
-    # Delete all material slots in obj
-    for i in range(len(obj.material_slots)):
-       #textureSlots = cloudMaterial.texture_slots
-       obj.active_material_index = i - 1
-       bpy.ops.object.material_slot_remove()
-  
-    #bpy.ops.object.parent_clear(type='CLEAR')
-
-    # Delete the Main Object
-    bpy.ops.object.delete()
-    #bpy.data.objects.remove(obj)
+    scene.objects.unlink(obj)
+    bpy.data.objects.remove(obj)
 
 
 def makeParent(parentobj, childobj, scene):
@@ -296,24 +278,6 @@ class VIEW3D_PT_tools_cloud(bpy.types.Panel):
             col.label(text="objects to generate")
             col.label(text="a cloud.")
 
-cloudTypes = []
-
-cloudTypes.append(("0","Stratus","Generate Stratus_foggy Cloud"))
-cloudTypes.append(("1","Cumulous","Generate Cumulous_puffy Cloud"))
-cloudTypes.append(("2","Cirrus","Generate Cirrus_wispy Cloud"))
-#cloudTypes.append(("3","Nimbus","Generate Nimbus Cloud"))
-
-
-bpy.types.Scene.cloudparticles = BoolProperty(
-    name="Particles",
-    description="Generate Cloud as Particle System",
-    default=False)
-
-bpy.types.Scene.cloud_type = EnumProperty(
-    name="Type",
-    description="Select the type of cloud to create with material settings",
-    items=cloudTypes, default='0')
-
 
 class GenerateCloud(bpy.types.Operator):
     bl_idname = "cloud.generate_cloud"
@@ -382,11 +346,7 @@ class GenerateCloud(bpy.types.Operator):
            for eachMember in definitionObjects:
                eachMember.draw_type = 'SOLID'
                eachMember.select = True
-               #scene.objects.active = eachMember
-
-           #TODO Delete this when render bug caused by degenerate is fixed.
-           self.report({'WARNING'}, "Please save file exit and reenter blender before rendering to clean memory and prevent crash")
-
+               eachMember.hide_render = False
         else:
             # Generate Cloud
 
@@ -664,11 +624,24 @@ class GenerateCloud(bpy.types.Operator):
 
 
 def register():
-    pass
+    bpy.types.Scene.cloudparticles = BoolProperty(
+        name="Particles",
+        description="Generate Cloud as Particle System",
+        default=False)
+
+    bpy.types.Scene.cloud_type = EnumProperty(
+        name="Type",
+        description="Select the type of cloud to create with material settings",
+        items=[("0","Stratus","Generate Stratus_foggy Cloud"),
+               ("1","Cumulous","Generate Cumulous_puffy Cloud"),
+               ("2","Cirrus","Generate Cirrus_wispy Cloud"),
+              ],
+        default='0')
 
 
 def unregister():
-    pass
+    del bpy.types.Scene.cloudparticles
+    del bpy.types.Scene.cloud_type
 
 
 if __name__ == "__main__":
