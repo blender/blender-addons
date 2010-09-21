@@ -306,6 +306,7 @@ def obDrw(ob, active, context):
     ob.show_texture_space = active.show_texture_space
     ob.show_transparent = active.show_transparent
     ob.show_wire = active.show_wire
+    ob.show_x_ray = active.show_x_ray
     ob.empty_draw_type = active.empty_draw_type
     ob.empty_draw_size = active.empty_draw_size
 
