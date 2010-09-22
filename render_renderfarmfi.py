@@ -734,7 +734,7 @@ class ORE_PrepareOp(bpy.types.Operator):
         rd.use_save_buffers = False
         rd.use_free_image_textures = True
         if rd.use_compositing:
-            if hasCompositingErrors(sce.use_nodes, sce.nodetree, ore.parts):
+            if hasCompositingErrors(sce.use_nodes, sce.node_tree, ore.parts):
                 print("Found disallowed nodes or problematic setup")
                 self.report({'WARNING'}, "Found disallowed nodes or problematic setup")
                 errors = True
