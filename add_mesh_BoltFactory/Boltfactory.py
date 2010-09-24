@@ -212,59 +212,59 @@ class add_mesh_bolt(bpy.types.Operator):
         col = layout.column()
         
         #ENUMS
-        col.prop(self.properties, 'bf_Model_Type')
-        col.prop(self.properties, 'bf_presets')
+        col.prop(self, 'bf_Model_Type')
+        col.prop(self, 'bf_presets')
         col.separator()
 
         #Bit
         if self.bf_Model_Type == 'bf_Model_Bolt':
-            col.prop(self.properties, 'bf_Bit_Type')
+            col.prop(self, 'bf_Bit_Type')
             if self.bf_Bit_Type == 'bf_Bit_None':
                 DoNothing = 1;
             elif self.bf_Bit_Type == 'bf_Bit_Allen':
-                 col.prop(self.properties,'bf_Allen_Bit_Depth')
-                 col.prop(self.properties,'bf_Allen_Bit_Flat_Distance')
+                 col.prop(self, 'bf_Allen_Bit_Depth')
+                 col.prop(self, 'bf_Allen_Bit_Flat_Distance')
             elif self.bf_Bit_Type == 'bf_Bit_Philips':
-                col.prop(self.properties,'bf_Phillips_Bit_Depth')
-                col.prop(self.properties,'bf_Philips_Bit_Dia')
+                col.prop(self, 'bf_Phillips_Bit_Depth')
+                col.prop(self, 'bf_Philips_Bit_Dia')
             col.separator()
 
         #Head
         if self.bf_Model_Type == 'bf_Model_Bolt':
-            col.prop(self.properties, 'bf_Head_Type')
+            col.prop(self, 'bf_Head_Type')
             if self.bf_Head_Type == 'bf_Head_Hex':
-                col.prop(self.properties, 'bf_Hex_Head_Height')
-                col.prop(self.properties, 'bf_Hex_Head_Flat_Distance')
+                col.prop(self, 'bf_Hex_Head_Height')
+                col.prop(self, 'bf_Hex_Head_Flat_Distance')
             elif self.bf_Head_Type == 'bf_Head_Cap':
-                col.prop(self.properties,'bf_Cap_Head_Height')
-                col.prop(self.properties,'bf_Cap_Head_Dia')
+                col.prop(self, 'bf_Cap_Head_Height')
+                col.prop(self, 'bf_Cap_Head_Dia')
             elif self.bf_Head_Type == 'bf_Head_Dome':
-                col.prop(self.properties,'bf_Dome_Head_Dia')
+                col.prop(self, 'bf_Dome_Head_Dia')
             elif self.bf_Head_Type == 'bf_Head_Pan':
-                col.prop(self.properties,'bf_Pan_Head_Dia')
+                col.prop(self, 'bf_Pan_Head_Dia')
             elif self.bf_Head_Type == 'bf_Head_CounterSink':
-                col.prop(self.properties,'bf_CounterSink_Head_Dia')
+                col.prop(self, 'bf_CounterSink_Head_Dia')
             col.separator()
         #Shank
         if self.bf_Model_Type == 'bf_Model_Bolt':
             col.label(text='Shank')
-            col.prop(self.properties, 'bf_Shank_Length')
-            col.prop(self.properties, 'bf_Shank_Dia')
+            col.prop(self, 'bf_Shank_Length')
+            col.prop(self, 'bf_Shank_Dia')
             col.separator()
         #Nut
         if self.bf_Model_Type == 'bf_Model_Nut':
-            col.prop(self.properties, 'bf_Nut_Type')
-            col.prop(self.properties,'bf_Hex_Nut_Height')
-            col.prop(self.properties,'bf_Hex_Nut_Flat_Distance')
+            col.prop(self, 'bf_Nut_Type')
+            col.prop(self, 'bf_Hex_Nut_Height')
+            col.prop(self, 'bf_Hex_Nut_Flat_Distance')
         #Thread
         col.label(text='Thread')
         if self.bf_Model_Type == 'bf_Model_Bolt':
-            col.prop(self.properties,'bf_Thread_Length')
-        col.prop(self.properties,'bf_Major_Dia')
-        col.prop(self.properties,'bf_Minor_Dia')
-        col.prop(self.properties,'bf_Pitch')
-        col.prop(self.properties,'bf_Crest_Percent')
-        col.prop(self.properties,'bf_Root_Percent')
+            col.prop(self, 'bf_Thread_Length')
+        col.prop(self, 'bf_Major_Dia')
+        col.prop(self, 'bf_Minor_Dia')
+        col.prop(self, 'bf_Pitch')
+        col.prop(self, 'bf_Crest_Percent')
+        col.prop(self, 'bf_Root_Percent')
 
 
 
@@ -280,7 +280,7 @@ class add_mesh_bolt(bpy.types.Operator):
 
         if not self.last_preset or self.bf_presets != self.last_preset:
             #print('setting Preset', self.bf_presets)
-            setProps(self.properties, self.bf_presets, self.presetsPath)
+            setProps(self, self.bf_presets, self.presetsPath)
             self.bf_Phillips_Bit_Depth = float(Get_Phillips_Bit_Height(self.bf_Philips_Bit_Dia))
 
             self.last_preset = self.bf_presets
@@ -290,7 +290,7 @@ class add_mesh_bolt(bpy.types.Operator):
         #self.bf_Philips_Bit_Dia = self.bf_Pan_Head_Dia*(1.82/5.6)
         #self.bf_Minor_Dia = self.bf_Major_Dia - (1.082532 * self.bf_Pitch)
         
-        Create_New_Mesh(self.properties, context, self.align_matrix)
+        Create_New_Mesh(self, context, self.align_matrix)
 
         return {'FINISHED'}
         

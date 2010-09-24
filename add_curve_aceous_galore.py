@@ -972,94 +972,94 @@ class Curveaceous_galore(bpy.types.Operator):
 
         # general options        
         col = layout.column()
-        col.prop(self.properties, 'GalloreType')
+        col.prop(self, 'GalloreType')
         col.label(text=self.GalloreType+" Options")
 
         # options per GalloreType
         box = layout.box()
         if self.GalloreType == 'Profile':
-            box.prop(self.properties, 'ProfileCurveType')
-            box.prop(self.properties, 'ProfileCurvevar1')
-            box.prop(self.properties, 'ProfileCurvevar2')
+            box.prop(self, 'ProfileCurveType')
+            box.prop(self, 'ProfileCurvevar1')
+            box.prop(self, 'ProfileCurvevar2')
         if self.GalloreType == 'Miscellaneous':
-            box.prop(self.properties, 'MiscCurveType')
-            box.prop(self.properties, 'MiscCurvevar1')
-            box.prop(self.properties, 'MiscCurvevar2')
-            #box.prop(self.properties, 'MiscCurvevar3') # doesn't seem to do anything
+            box.prop(self, 'MiscCurveType')
+            box.prop(self, 'MiscCurvevar1')
+            box.prop(self, 'MiscCurvevar2')
+            #box.prop(self, 'MiscCurvevar3') # doesn't seem to do anything
         if self.GalloreType == 'Flower':
-            box.prop(self.properties, 'petals')
-            box.prop(self.properties, 'petalWidth')
-            box.prop(self.properties, 'innerRadius')
-            box.prop(self.properties, 'outerRadius')
+            box.prop(self, 'petals')
+            box.prop(self, 'petalWidth')
+            box.prop(self, 'innerRadius')
+            box.prop(self, 'outerRadius')
         if self.GalloreType == 'Star':
-            box.prop(self.properties, 'starPoints')
-            box.prop(self.properties, 'starTwist')
-            box.prop(self.properties, 'innerRadius')
-            box.prop(self.properties, 'outerRadius')
+            box.prop(self, 'starPoints')
+            box.prop(self, 'starTwist')
+            box.prop(self, 'innerRadius')
+            box.prop(self, 'outerRadius')
         if self.GalloreType == 'Arc':
-            box.prop(self.properties, 'arcSides')
-            box.prop(self.properties, 'arcType') # has only one Type?
-            box.prop(self.properties, 'startAngle')
-            box.prop(self.properties, 'endAngle')
-            box.prop(self.properties, 'innerRadius') # doesn't seem to do anything
-            box.prop(self.properties, 'outerRadius')
+            box.prop(self, 'arcSides')
+            box.prop(self, 'arcType') # has only one Type?
+            box.prop(self, 'startAngle')
+            box.prop(self, 'endAngle')
+            box.prop(self, 'innerRadius') # doesn't seem to do anything
+            box.prop(self, 'outerRadius')
         if self.GalloreType == 'Cogwheel':
-            box.prop(self.properties, 'teeth')
-            box.prop(self.properties, 'bevel')
-            box.prop(self.properties, 'innerRadius')
-            box.prop(self.properties, 'middleRadius')
-            box.prop(self.properties, 'outerRadius')
+            box.prop(self, 'teeth')
+            box.prop(self, 'bevel')
+            box.prop(self, 'innerRadius')
+            box.prop(self, 'middleRadius')
+            box.prop(self, 'outerRadius')
         if self.GalloreType == 'Nsided':
-            box.prop(self.properties, 'Nsides')
-            box.prop(self.properties, 'outerRadius', text='Radius')
+            box.prop(self, 'Nsides')
+            box.prop(self, 'outerRadius', text='Radius')
 
         if self.GalloreType == 'Splat':
-            box.prop(self.properties, 'splatSides')
-            box.prop(self.properties, 'outerRadius')
-            box.prop(self.properties, 'splatScale')
-            box.prop(self.properties, 'seed')
-            box.prop(self.properties, 'basis')
+            box.prop(self, 'splatSides')
+            box.prop(self, 'outerRadius')
+            box.prop(self, 'splatScale')
+            box.prop(self, 'seed')
+            box.prop(self, 'basis')
 
         if self.GalloreType == 'Helix':
-            box.prop(self.properties, 'helixPoints')
-            box.prop(self.properties, 'helixHeight')
-            box.prop(self.properties, 'helixWidth')
-            box.prop(self.properties, 'helixStart')
-            box.prop(self.properties, 'helixEnd')
-            box.prop(self.properties, 'helix_a')
-            box.prop(self.properties, 'helix_b')
+            box.prop(self, 'helixPoints')
+            box.prop(self, 'helixHeight')
+            box.prop(self, 'helixWidth')
+            box.prop(self, 'helixStart')
+            box.prop(self, 'helixEnd')
+            box.prop(self, 'helix_a')
+            box.prop(self, 'helix_b')
         if self.GalloreType == 'Cycloid':
-            box.prop(self.properties, 'cycloPoints')
-            #box.prop(self.properties, 'cycloType') # needs the other types first
-            box.prop(self.properties, 'cycloStart')
-            box.prop(self.properties, 'cycloEnd')
-            box.prop(self.properties, 'cyclo_a')
-            box.prop(self.properties, 'cyclo_b')
-            box.prop(self.properties, 'cyclo_d')
+            box.prop(self, 'cycloPoints')
+            #box.prop(self, 'cycloType') # needs the other types first
+            box.prop(self, 'cycloStart')
+            box.prop(self, 'cycloEnd')
+            box.prop(self, 'cyclo_a')
+            box.prop(self, 'cyclo_b')
+            box.prop(self, 'cyclo_d')
 
         col = layout.column()
         col.label(text="Output Curve Type")
         row = layout.row()
-        row.prop(self.properties, 'outputType', expand=True)
+        row.prop(self, 'outputType', expand=True)
         col = layout.column()
         col.label(text="Curve Options")
 
         # output options
         box = layout.box()
         if self.outputType == 'NURBS':
-            box.row().prop(self.properties, 'shape', expand=True)
-            #box.prop(self.properties, 'use_cyclic_u')
-            #box.prop(self.properties, 'endp_u')
-            box.prop(self.properties, 'order_u')
+            box.row().prop(self, 'shape', expand=True)
+            #box.prop(self, 'use_cyclic_u')
+            #box.prop(self, 'endp_u')
+            box.prop(self, 'order_u')
 
         if self.outputType == 'POLY':
-            box.row().prop(self.properties, 'shape', expand=True)
-            #box.prop(self.properties, 'use_cyclic_u')
+            box.row().prop(self, 'shape', expand=True)
+            #box.prop(self, 'use_cyclic_u')
 
         if self.outputType == 'BEZIER':
-            box.row().prop(self.properties, 'shape', expand=True)
-            box.row().prop(self.properties, 'handleType', expand=True)
-            #box.prop(self.properties, 'use_cyclic_u')
+            box.row().prop(self, 'shape', expand=True)
+            box.row().prop(self, 'handleType', expand=True)
+            #box.prop(self, 'use_cyclic_u')
 
 
     ##### POLL #####

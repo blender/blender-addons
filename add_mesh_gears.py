@@ -751,19 +751,19 @@ class AddGear(bpy.types.Operator):
     def draw(self, context):
         layout = self.layout
         box = layout.box()
-        box.prop(self.properties, 'number_of_teeth')
+        box.prop(self, 'number_of_teeth')
         box = layout.box()
-        box.prop(self.properties, 'radius')
-        box.prop(self.properties, 'width')
-        box.prop(self.properties, 'base')
+        box.prop(self, 'radius')
+        box.prop(self, 'width')
+        box.prop(self, 'base')
         box = layout.box()
-        box.prop(self.properties, 'dedendum')
-        box.prop(self.properties, 'addendum')
+        box.prop(self, 'dedendum')
+        box.prop(self, 'addendum')
         box = layout.box()
-        box.prop(self.properties, 'angle')
-        box.prop(self.properties, 'skew')
-        box.prop(self.properties, 'conangle')
-        box.prop(self.properties, 'crown')
+        box.prop(self, 'angle')
+        box.prop(self, 'skew')
+        box.prop(self, 'conangle')
+        box.prop(self, 'crown')
 
 
     def execute(self, context):
@@ -858,17 +858,17 @@ class AddWormGear(bpy.types.Operator):
     def draw(self, context):
         layout = self.layout
         box = layout.box()
-        box.prop(self.properties, 'number_of_teeth')
-        box.prop(self.properties, 'number_of_rows')
-        box.prop(self.properties, 'radius')
-        box.prop(self.properties, 'row_height')
+        box.prop(self, 'number_of_teeth')
+        box.prop(self, 'number_of_rows')
+        box.prop(self, 'radius')
+        box.prop(self, 'row_height')
         box = layout.box()
-        box.prop(self.properties, 'addendum')
-        box.prop(self.properties, 'dedendum')
+        box.prop(self, 'addendum')
+        box.prop(self, 'dedendum')
         box = layout.box()
-        box.prop(self.properties, 'angle')
-        box.prop(self.properties, 'skew')
-        box.prop(self.properties, 'crown')
+        box.prop(self, 'angle')
+        box.prop(self, 'skew')
+        box.prop(self, 'crown')
 
     def execute(self, context):
 

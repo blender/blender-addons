@@ -238,38 +238,37 @@ class torus_knot_plus(bpy.types.Operator):
 
     ##### DRAW #####
     def draw(self, context):
-        props = self.properties
         layout = self.layout
 
         # general options        
         col = layout.column()
-        #col.prop(props, 'KnotType') waits for more knottypes
+        #col.prop(self, 'KnotType') waits for more knottypes
         col.label(text="Torus Knot Parameters")
 
         # Parameters 
         box = layout.box()
-        box.prop(props, 'torus_res')
-        box.prop(props, 'torus_w')
-        box.prop(props, 'torus_h')
-        box.prop(props, 'torus_p')
-        box.prop(props, 'torus_q')
-        box.prop(props, 'options_plus')
-        if props.options_plus:
-            box.prop(props, 'torus_u')
-            box.prop(props, 'torus_v')
-            box.prop(props, 'torus_rounds')
+        box.prop(self, 'torus_res')
+        box.prop(self, 'torus_w')
+        box.prop(self, 'torus_h')
+        box.prop(self, 'torus_p')
+        box.prop(self, 'torus_q')
+        box.prop(self, 'options_plus')
+        if self.options_plus:
+            box.prop(self, 'torus_u')
+            box.prop(self, 'torus_v')
+            box.prop(self, 'torus_rounds')
 
         # surface Options
         col = layout.column()
         col.label(text="Geometry Options")
         box = layout.box()
-        box.prop(props, 'geo_surf')
-        if props.geo_surf:
-            box.prop(props, 'geo_bDepth')
-            box.prop(props, 'geo_bRes')
-            box.prop(props, 'geo_extrude')
-            #box.prop(props, 'geo_width') # not really good
-            box.prop(props, 'geo_res')
+        box.prop(self, 'geo_surf')
+        if self.geo_surf:
+            box.prop(self, 'geo_bDepth')
+            box.prop(self, 'geo_bRes')
+            box.prop(self, 'geo_extrude')
+            #box.prop(self, 'geo_width') # not really good
+            box.prop(self, 'geo_res')
     
     ##### POLL #####
     @classmethod
@@ -281,14 +280,12 @@ class torus_knot_plus(bpy.types.Operator):
         # turn off undo
         undo = bpy.context.user_preferences.edit.use_global_undo
         bpy.context.user_preferences.edit.use_global_undo = False
-
-        props = self.properties
         
         if not self.options_plus:
             self.torus_rounds = self.torus_p
 
         # main function
-        main(context, props, self.align_matrix)
+        main(context, self, self.align_matrix)
         
         # restore pre operator undo state
         bpy.context.user_preferences.edit.use_global_undo = undo

@@ -448,18 +448,18 @@ class ImportImagesAsPlanes(bpy.types.Operator):
         layout = self.layout
         box = layout.box()
         box.label('Filter:', icon='FILTER')
-        box.prop(self.properties, 'fromDirectory')
-        box.prop(self.properties, 'extension', icon='FILE_IMAGE')
+        box.prop(self, 'fromDirectory')
+        box.prop(self, 'extension', icon='FILE_IMAGE')
         box = layout.box()
         box.label('Material mappings:', icon='MATERIAL')
-        box.prop(self.properties, 'use_shadeless')
-        box.prop(self.properties, 'transp')
-        box.prop(self.properties, 'use_premultiply')
-        box.prop(self.properties, 'transp_method', expand=True)
+        box.prop(self, 'use_shadeless')
+        box.prop(self, 'transp')
+        box.prop(self, 'use_premultiply')
+        box.prop(self, 'transp_method', expand=True)
         box = layout.box()
         box.label('Plane dimensions:', icon='ARROW_LEFTRIGHT')
-        box.prop(self.properties, 'useDim')
-        box.prop(self.properties, 'factor', expand=True)
+        box.prop(self, 'useDim')
+        box.prop(self, 'factor', expand=True)
 
     def execute(self, context):
         # File Path

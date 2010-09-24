@@ -236,9 +236,8 @@ class CopySelectedPoseConstraints(bpy.types.Operator):
 
     def draw(self, context):
         layout = self.layout
-        props = self.properties
         for idx, const in enumerate(context.active_pose_bone.constraints):
-            layout.prop(props, 'selection', index=idx, text=const.name,
+            layout.prop(self, "selection", index=idx, text=const.name,
                toggle=True)
 
     def execute(self, context):
@@ -490,9 +489,8 @@ class CopySelectedObjectConstraints(bpy.types.Operator):
 
     def draw(self, context):
         layout = self.layout
-        props = self.properties
         for idx, const in enumerate(context.active_object.constraints):
-            layout.prop(props, 'selection', index=idx, text=const.name,
+            layout.prop(self, "selection", index=idx, text=const.name,
                toggle=True)
 
     def execute(self, context):
@@ -521,9 +519,8 @@ class CopySelectedObjectModifiers(bpy.types.Operator):
 
     def draw(self, context):
         layout = self.layout
-        props = self.properties
         for idx, const in enumerate(context.active_object.modifiers):
-            layout.prop(props, 'selection', index=idx, text=const.name,
+            layout.prop(self, 'selection', index=idx, text=const.name,
                toggle=True)
 
     def execute(self, context):
@@ -653,8 +650,8 @@ class MESH_OT_CopyFaceSettings(bpy.types.Operator):
 
     def execute(self, context):
         mesh = context.object.data
-        mode = self.properties.get('mode', 'MODE')
-        layername = self.properties.get('layer')
+        mode = getattr(self, 'mode', 'MODE')
+        layername = getattr(self, 'layer', None)
 
         # Switching out of edit mode updates the selected state of faces and
         # makes the data from the uv texture and vertex color layers available.

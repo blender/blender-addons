@@ -402,26 +402,26 @@ class GRAPH_OT_simplify(bpy.types.Operator):
         layout = self.layout
         col = layout.column()
         col.label('Mode:')
-        col.prop(self.properties, 'mode', expand=True)
+        col.prop(self, 'mode', expand=True)
         if self.mode == 'distance':
             box = layout.box()
             box.label(self.mode, icon='ARROW_LEFTRIGHT')
-            box.prop(self.properties, 'error', expand=True)
+            box.prop(self, 'error', expand=True)
         if self.mode == 'curvature':
             box = layout.box()
             box.label('degree', icon='SMOOTHCURVE')
-            box.prop(self.properties, 'pointsNr', expand=True)
+            box.prop(self, 'pointsNr', expand=True)
             box.label('threshold', icon='PARTICLE_PATH')
-            box.prop(self.properties, 'k_thresh', expand=True)
+            box.prop(self, 'k_thresh', expand=True)
             box.label('distance', icon='ARROW_LEFTRIGHT')
-            box.prop(self.properties, 'dis_error', expand=True)
+            box.prop(self, 'dis_error', expand=True)
         col = layout.column()
     '''
     
     def draw(self, context):
         layout = self.layout
         col = layout.column()
-        col.prop(self.properties, 'error', expand=True)
+        col.prop(self, 'error', expand=True)
         
     ## Check for animdata
     @classmethod
@@ -516,35 +516,35 @@ class CURVE_OT_simplify(bpy.types.Operator):
         layout = self.layout
         col = layout.column()
         col.label('Mode:')
-        col.prop(self.properties, 'mode', expand=True)
+        col.prop(self, 'mode', expand=True)
         if self.mode == 'distance':
             box = layout.box()
             box.label(self.mode, icon='ARROW_LEFTRIGHT')
-            box.prop(self.properties, 'error', expand=True)
+            box.prop(self, 'error', expand=True)
         if self.mode == 'curvature':
             box = layout.box()
             box.label('degree', icon='SMOOTHCURVE')
-            box.prop(self.properties, 'pointsNr', expand=True)
+            box.prop(self, 'pointsNr', expand=True)
             box.label('threshold', icon='PARTICLE_PATH')
-            box.prop(self.properties, 'k_thresh', expand=True)
+            box.prop(self, 'k_thresh', expand=True)
             box.label('distance', icon='ARROW_LEFTRIGHT')
-            box.prop(self.properties, 'dis_error', expand=True)
+            box.prop(self, 'dis_error', expand=True)
         col = layout.column()
         col.separator()
-        col.prop(self.properties, 'output', text='Output', icon='OUTLINER_OB_CURVE')
+        col.prop(self, 'output', text='Output', icon='OUTLINER_OB_CURVE')
         if self.output == 'NURBS':
-            col.prop(self.properties, 'degreeOut', expand=True)
-        col.prop(self.properties, 'keepShort', expand=True)
+            col.prop(self, 'degreeOut', expand=True)
+        col.prop(self, 'keepShort', expand=True)
     '''
         
     def draw(self, context):
         layout = self.layout
         col = layout.column()
-        col.prop(self.properties, 'error', expand=True)
-        col.prop(self.properties, 'output', text='Output', icon='OUTLINER_OB_CURVE')
+        col.prop(self, 'error', expand=True)
+        col.prop(self, 'output', text='Output', icon='OUTLINER_OB_CURVE')
         if self.output == 'NURBS':
-            col.prop(self.properties, 'degreeOut', expand=True)
-        col.prop(self.properties, 'keepShort', expand=True)
+            col.prop(self, 'degreeOut', expand=True)
+        col.prop(self, 'keepShort', expand=True)
         
         
     ## Check for curve
