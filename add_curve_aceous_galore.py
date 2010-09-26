@@ -181,9 +181,9 @@ def ProfileCurve(type=0, a=0.25, b=0.25):
 
 ##------------------------------------------------------------
 # 2DCurve: Miscellaneous.: Diamond, Arrow1, Arrow2, Square, ....
-def MiscCurve(type=1, a=1.0, b=0.5, c=90.0):
+def MiscCurve(type=1, a=1.0, b=0.5, c=1.0):
     """
-    MiscCurve( type=1, a=1.0, b=0.5, c=90.0 )
+    MiscCurve( type=1, a=1.0, b=0.5, c=1.0 )
     
     Create miscellaneous curves
     
@@ -205,28 +205,51 @@ def MiscCurve(type=1, a=1.0, b=0.5, c=90.0):
     newpoints = []
     a*=0.5
     b*=0.5
-    if type ==1:
+    if type == 1:
         ## diamond:
         newpoints = [ [ 0.0, b, 0.0 ], [ a, 0.0, 0.0 ], [ 0.0, -b, 0.0 ], [ -a, 0.0, 0.0 ]  ]
-    elif type ==2:
+    elif type == 2:
         ## Arrow1:
         newpoints = [ [ -a, b, 0.0 ], [ a, 0.0, 0.0 ], [ -a, -b, 0.0 ], [ 0.0, 0.0, 0.0 ]  ]
-    elif type ==3:
+    elif type == 3:
         ## Arrow2:
         newpoints = [ [ -1.0, b, 0.0 ], [ -1.0+a, b, 0.0 ],
         [ -1.0+a, 1.0, 0.0 ], [ 1.0, 0.0, 0.0 ],
         [ -1.0+a, -1.0, 0.0 ], [ -1.0+a, -b, 0.0 ],
         [ -1.0, -b, 0.0 ] ]
-    elif type ==4:
+    elif type == 4:
         ## Rounded square:
         newpoints = [ [ -a, b-b*0.2, 0.0 ], [ -a+a*0.05, b-b*0.05, 0.0 ], [ -a+a*0.2, b, 0.0 ],
         [ a-a*0.2, b, 0.0 ], [ a-a*0.05, b-b*0.05, 0.0 ], [ a, b-b*0.2, 0.0 ],
         [ a, -b+b*0.2, 0.0 ], [ a-a*0.05, -b+b*0.05, 0.0 ], [ a-a*0.2, -b, 0.0 ],
         [ -a+a*0.2, -b, 0.0 ], [ -a+a*0.05, -b+b*0.05, 0.0 ], [ -a, -b+b*0.2, 0.0 ] ]
+    elif type == 5:
+        ## Rounded Rectangle II:
+        newpoints = []
+        x = a / 2
+        y = b / 2
+        r = c / 2
+        
+        if r > x:
+            r = x - 0.0001
+        if r > y:
+            r = y - 0.0001
+        
+        if r>0:
+            newpoints.append([-x+r,y,0])
+            newpoints.append([x-r,y,0])
+            newpoints.append([x,y-r,0])
+            newpoints.append([x,-y+r,0])
+            newpoints.append([x-r,-y,0])
+            newpoints.append([-x+r,-y,0])
+            newpoints.append([-x,-y+r,0])
+            newpoints.append([-x,y-r,0])
+        else:
+            newpoints.append([-x,y,0])
+            newpoints.append([x,y,0])
+            newpoints.append([x,-y,0])
+            newpoints.append([-x,-y,0])
 
-    #elif type ==15:
-        ## :
-        #newpoints = [ [ x,y,z ] ]
     else:
         ## Square:
         newpoints = [ [ -a, b, 0.0 ], [ a, b, 0.0 ], [ a, -b, 0.0 ], [ -a, -b, 0.0 ]  ]
@@ -814,18 +837,19 @@ class Curveaceous_galore(bpy.types.Operator):
     #### MiscCurve properties
     MiscCurveType = IntProperty(name="Type",
                     min=1, soft_min=1,
-                    max=5, soft_max=5,
+                    max=6, soft_max=6,
                     default=1,
-                    description="Type of ProfileCurve")
+                    description="Type of MiscCurve")
     MiscCurvevar1 = FloatProperty(name="var_1",
                     default=1.0,
-                    description="var1 of ProfileCurve")
+                    description="var1 of MiscCurve")
     MiscCurvevar2 = FloatProperty(name="var_2",
                     default=0.5,
-                    description="var2 of ProfileCurve")
-    MiscCurvevar3 = FloatProperty(name="var_3", # doesn't seem to do anything
-                    default=90.0,
-                    description="var3 of ProfileCurve")
+                    description="var2 of MiscCurve")
+    MiscCurvevar3 = FloatProperty(name="var_3",
+                    default=0.1,
+                    min=0, soft_min=0,
+                    description="var3 of MiscCurve")
                     
     #### Common properties
     innerRadius = FloatProperty(name="Inner radius",
@@ -973,7 +997,7 @@ class Curveaceous_galore(bpy.types.Operator):
         # general options        
         col = layout.column()
         col.prop(self, 'GalloreType')
-        col.label(text=self.GalloreType+" Options")
+        col.label(text=self.GalloreType + " Options")
 
         # options per GalloreType
         box = layout.box()
@@ -983,9 +1007,10 @@ class Curveaceous_galore(bpy.types.Operator):
             box.prop(self, 'ProfileCurvevar2')
         if self.GalloreType == 'Miscellaneous':
             box.prop(self, 'MiscCurveType')
-            box.prop(self, 'MiscCurvevar1')
-            box.prop(self, 'MiscCurvevar2')
-            #box.prop(self, 'MiscCurvevar3') # doesn't seem to do anything
+            box.prop(self, 'MiscCurvevar1', text='Width')
+            box.prop(self, 'MiscCurvevar2', text='Height')
+            if self.MiscCurveType == 5:
+                box.prop(self, 'MiscCurvevar3', text='Rounded')
         if self.GalloreType == 'Flower':
             box.prop(self, 'petals')
             box.prop(self, 'petalWidth')
