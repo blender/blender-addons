@@ -851,8 +851,17 @@ def parse_meshes(blender_meshes, psk_file):
 					dindex1 = current_face.vertices[1];
 					dindex2 = current_face.vertices[2];
 					raise RuntimeError("normal vector coplanar with face! points:", current_mesh.vertices[dindex0].co, current_mesh.vertices[dindex1].co, current_mesh.vertices[dindex2].co)
+				#print((current_face.use_smooth))
+				#not sure if this right
+				#tri.SmoothingGroups
+				if current_face.use_smooth == True:
+					tri.SmoothingGroups = 1
+				else:
+					tri.SmoothingGroups = 0
 				
 				tri.MatIndex = object_material_index
+				
+				
 				#print(tri)
 				psk_file.AddFace(tri)
 				
