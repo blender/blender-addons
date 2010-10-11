@@ -641,6 +641,7 @@ def triangulateNMesh(object):
 		bpy.context.scene.unrealtriangulatebool = True
 		print("Triangulate Mesh Done!")
 	else:
+		bpy.context.scene.unrealtriangulatebool = False
 		print("No need to convert tri mesh.")
 		me_ob = object
 	return me_ob
@@ -687,7 +688,7 @@ def parse_meshes(blender_meshes, psk_file):
 	print ("----- parsing meshes -----")
 	print("Number of Object Meshes:",len(blender_meshes))
 	for current_obj in blender_meshes: #number of mesh that should be one mesh here
-	
+		bpy.ops.object.mode_set(mode='EDIT')
 		current_obj = triangulateNMesh(current_obj)
 		#print(dir(current_obj))
 		print("Mesh Name:",current_obj.name)
@@ -850,7 +851,29 @@ def parse_meshes(blender_meshes, psk_file):
 					dindex0 = current_face.vertices[0];
 					dindex1 = current_face.vertices[1];
 					dindex2 = current_face.vertices[2];
+					print(dir(current_mesh.vertices[dindex0]))
+					#current_mesh.vertices[dindex0].co.x = 0;
+					#current_mesh.vertices[dindex0].co.y = 0;
+					#current_mesh.vertices[dindex0].co.z = 0;
+					#current_mesh.vertices[dindex1].co.x = 0;
+					#current_mesh.vertices[dindex1].co.y = 0;
+					#current_mesh.vertices[dindex1].co.z = 0;
+					#current_mesh.vertices[dindex2].co.x = 0;
+					#current_mesh.vertices[dindex2].co.y = 0;
+					#current_mesh.vertices[dindex2].co.z = 0;
+					
+					current_mesh.vertices[dindex0].select = True
+					current_mesh.vertices[dindex1].select = True
+					current_mesh.vertices[dindex2].select = True
+					
+					#print(dir(current_mesh))
+					
+					#current_mesh.vertices[dindex1] = 0
+					#current_mesh.vertices[dindex2] = 0
+					#print(dir(current_face))
 					raise RuntimeError("normal vector coplanar with face! points:", current_mesh.vertices[dindex0].co, current_mesh.vertices[dindex1].co, current_mesh.vertices[dindex2].co)
+				#print(dir(current_face))
+				current_face.select = True
 				#print((current_face.use_smooth))
 				#not sure if this right
 				#tri.SmoothingGroups
@@ -1037,6 +1060,9 @@ def parse_armature(blender_armature, psk_file, psa_file):
 	
 	#magic 0 sized root bone for UT - this is where all armature dummy bones will attach
 	#dont increment nbone here because we initialize it to 1 (hackity hackity hack)
+	
+	print(dir(bpy))
+	#bpy.types.report({'INFO'}, exportmessage)
 
 	#count top level bones first. NOT EFFICIENT.
 	child_count = 0
