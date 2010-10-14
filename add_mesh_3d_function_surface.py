@@ -21,7 +21,7 @@ bl_addon_info = {
     "author": "Buerbaum Martin (Pontiac)",
     "version": (0,3,5),
     "blender": (2, 5, 3),
-    "api": 31965,
+    "api": 32411,
     "location": "View3D > Add > Mesh > Z Function Surface & XYZ Function Surface",
     "description": "Create Objects using Math Formulas",
     "warning": "",

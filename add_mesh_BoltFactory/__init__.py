@@ -21,7 +21,7 @@ bl_addon_info = {
     "author": "Aaron Keith",
     "version": (3,9),
     "blender": (2, 5, 3),
-    "api": 31965,
+    "api": 32411,
     "location": "add Mesh",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"\
         "Scripts/Add_Mesh/BoltFactory",

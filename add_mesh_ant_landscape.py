@@ -21,7 +21,7 @@ bl_addon_info = {
     "author": "Jimmy Hazevoet",
     "version": (0,1,0),
     "blender": (2, 5, 4),
-    "api": 31984,
+    "api": 32411,
     "location": "Add Mesh menu",
     "description": "Adds a landscape primitive",
     "warning": "", # used for warning icon and text in addons panel
