@@ -26,7 +26,7 @@ bl_addon_info = {
     "author": "Demohero, uriel",
     "version": (1, 2),
     "blender": (2, 5, 4),
-    "api": 31965,
+    "api": 32411,
     "location": "View3D > Toolbar",
     "description": "Navigate the Camera & 3d Views",
     "warning": "",

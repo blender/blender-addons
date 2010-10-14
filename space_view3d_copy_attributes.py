@@ -23,7 +23,7 @@ bl_addon_info = {
     'author': 'Bassam Kurdali, Fabian Fricke, wiseman303',
     'version': (0, 40),
     'blender': (2, 5, 4),
-    'api': 31989,
+    'api': 32411,
     'location': 'View3D > Ctrl/C',
     'description': 'Copy Attributes Menu from Blender 2.4',
     'wiki_url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/'\

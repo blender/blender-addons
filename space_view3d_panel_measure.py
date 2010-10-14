@@ -21,7 +21,7 @@ bl_addon_info = {
     "author": "Buerbaum Martin (Pontiac)",
     "version": (0, 7, 9),
     "blender": (2, 5, 3),
-    "api": 31965,
+    "api": 32411,
     "location": "View3D > Properties > Measure",
     "description": "Measure distances between objects",
     "warning": "",

@@ -24,7 +24,7 @@ bl_addon_info = {
     "author": "Gabriel Beaudin (gabhead)",
     "version": (0,1),
     "blender": (2, 5, 3),
-    "api": 31965,
+    "api": 32411,
     "location": "Tool Shelf",
     "description": "Align selected objects to the active object",
     "warning": "",
