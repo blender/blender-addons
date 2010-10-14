@@ -21,7 +21,7 @@ bl_addon_info = {
     'author': 'Jimmy Hazevoet, testscreenings',
     'version': (0,2),
     'blender': (2, 5, 3),
-    'api': 31965,
+    'api': 32411,
     'location': 'Add Curve menu',
     'description': 'adds many types of curves',
     'warning': '', # used for warning icon and text in addons panel

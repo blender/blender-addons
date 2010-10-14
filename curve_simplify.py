@@ -21,7 +21,7 @@ bl_addon_info = {
     "author": "testscreenings",
     "version": (1,),
     "blender": (2, 5, 3),
-    "api": 31965,
+    "api": 32411,
     "location": "Toolshelf > search > simplify curves",
     "description": "This script simplifies 3D curves and fcurves",
     "warning": "",
