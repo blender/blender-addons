@@ -1233,7 +1233,7 @@ class VIEW3D_MT_EditArmatureTK(bpy.types.Menu):
 
         layout.separator()
 
-        layout.operator("armature.subdivide_multi", text="Subdivide")
+        layout.operator("armature.subdivide", text="Subdivide")
         layout.operator("armature.switch_direction", text="Switch Direction")
 
 class VIEW3D_MT_ArmatureName(bpy.types.Menu):
