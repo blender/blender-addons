@@ -134,7 +134,7 @@ class CameraExporter(bpy.types.Operator):
             default=True)
 
     def execute(self, context):
-        writeCameras(context, self.filepath, self.frame_start, self.frame_end, self.show_only_selected)
+        writeCameras(context, self.filepath, self.frame_start, self.frame_end, self.only_selected)
         return {'FINISHED'}
 
     def invoke(self, context, event):
