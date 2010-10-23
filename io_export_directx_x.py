@@ -1089,9 +1089,7 @@ class DirectXExporter(bpy.types.Operator):
     bl_idname = "export.directx"
     bl_label = "Export DirectX"
 
-    filepath = StringProperty()
-    filename = StringProperty()
-    directory = StringProperty()
+    filepath = StringProperty(subtype='FILE_PATH')
 
     #Coordinate System
     CoordinateSystem = EnumProperty(name="System", description="Select a coordinate system to export to", items=CoordinateSystems, default="1")

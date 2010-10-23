@@ -115,14 +115,16 @@ def writeCameras(context, filepath, frame_start, frame_end, only_selected=False)
 
 
 from bpy.props import *
+from io_utils import ExportHelper
 
 
-class CameraExporter(bpy.types.Operator):
+class CameraExporter(bpy.types.Operator, ExportHelper):
     '''Save a python script which re-creartes cameras and markers elsewhere'''
     bl_idname = "export_animation.cameras"
     bl_label = "Export Camera & Markers"
 
-    filepath = StringProperty(name="File Path", description="File path used for importing the RAW file", maxlen=1024, default="")
+    filename_ext = ".py"
+    filter_glob = StringProperty(default="*.py", options={'HIDDEN'})
 
     frame_start = IntProperty(name="Start Frame",
             description="Start frame for export",
