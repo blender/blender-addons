@@ -159,7 +159,7 @@ def pVisLocExec(bone, active, context):
 
 def pVisRotExec(bone, active, context):
     rotcopy(bone, getmat(bone, active,
-      context, not context.active_object.data.bones[bone.name].use_inherit_rotate))
+      context, not context.active_object.data.bones[bone.name].use_inherit_rotation))
 
 
 def pVisScaExec(bone, active, context):
