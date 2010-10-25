@@ -51,7 +51,6 @@ import os
 import time
 import mathutils
 from mathutils import *
-import geometry
 import string
 
 MHX249 = False
