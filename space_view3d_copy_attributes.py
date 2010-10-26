@@ -725,21 +725,28 @@ def _add_tface_buttons(self, context):
 
 def register():
     ''' mostly to get the keymap working '''
-    km = bpy.context.window_manager.keyconfigs['Blender'].\
-       keymaps['Object Mode']
+    kc = bpy.context.window_manager.keyconfigs['Blender']
+    km = kc.keymaps.get("Object Mode")
+    if km is None:
+         km = kc.keymaps.new(name="Object Mode")
     kmi = km.items.new('wm.call_menu', 'C', 'PRESS', ctrl=True)
     kmi.properties.name = 'VIEW3D_MT_copypopup'
-    km = bpy.context.window_manager.keyconfigs['Blender'].keymaps['Pose']
-    try:
-        kmi = km.items['pose.copy']
+    km = kc.keymaps.get("Pose")
+    if km is None:
+        km = kc.keymaps.new(name="Pose")
+
+    kmi = km.items.get("pose.copy")
+    if kmi is not None:
         kmi.idname = 'wm.call_menu'
-    except KeyError:
+    else:
         kmi = km.items.new('wm.call_menu', 'C', 'PRESS', ctrl=True)
     kmi.properties.name = 'VIEW3D_MT_posecopypopup'
     for menu in _layer_menus:
         bpy.types.register(menu)
     bpy.types.DATA_PT_texface.append(_add_tface_buttons)
-    km = bpy.context.window_manager.keyconfigs.active.keymaps['Mesh']
+    km = kc.keymaps.get("Mesh")
+    if km is None:
+        km = kc.keymaps.new(name="Mesh")
     kmi = km.items.new('wm.call_menu', 'C', 'PRESS')
     kmi.ctrl = True
     kmi.properties.name = 'MESH_MT_CopyFaceSettings'
