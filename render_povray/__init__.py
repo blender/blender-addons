@@ -17,31 +17,30 @@
 # ##### END GPL LICENSE BLOCK #####
 
 bl_addon_info = {
-    "name": "PovRay",
-    "author": "Campbell Barton",
-    "version": (0,1),
+    "name": "PovRay 3.7",
+    "author": "Campbell Barton, Silvio Falcinelli, Maurice Raybaud",
+    "version": (0, 0, 3),
     "blender": (2, 5, 4),
     "api": 31667,
     "location": "Info Header (engine dropdown)",
-    "description": "Basic povray integration for blender",
-    "warning": "",
+    "description": "Basic povray 3.7 integration for blender",
+    "warning": "both povray 3.7 and this script are beta",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"\
         "Scripts/Render/PovRay",
     "tracker_url": "https://projects.blender.org/tracker/index.php?"\
-        "func=detail&aid=23145&group_id=153&atid=469",
+        "func=detail&atid=468&aid=22717&group_id=153",
     "category": "Render"}
 
 
 if "bpy" in locals():
-    reload(render)
     reload(ui)
+    reload(render)
 
 else:
     import bpy
     from bpy.props import *
-    from render_povray import render
-    from render_povray import ui
-
+    from render_povray_37 import ui
+    from render_povray_37 import render
 
 def register():
     Scene = bpy.types.Scene
@@ -106,11 +105,88 @@ def register():
             name="Recursion Limit", description="how many recursion levels are used to calculate the diffuse inter-reflection",
             min=1, max=20, default=3)
 
+    ########################################MR######################################
+    Mat = bpy.types.Material
+
+    Mat.pov_irid_enable = BoolProperty(
+            name="Enable Iridescence",
+            description="Newton's thin film interference (like an oil slick on a puddle of water or the rainbow hues of a soap bubble.)",
+            default=False)            
+
+    Mat.pov_mirror_use_IOR = BoolProperty(
+            name="Correct Reflection",
+            description="Use same IOR as raytrace transparency to calculate mirror reflections. More physically correct",
+            default=False)
+
+    Mat.pov_mirror_metallic = BoolProperty(
+            name="Metallic Reflection",
+            description="mirror reflections get colored as diffuse (for metallic materials)",
+            default=False)
+
+    Mat.pov_conserve_energy = BoolProperty(
+            name="Conserve Energy",
+            description="Light transmitted is more correctly reduced by mirror reflections, also the sum of diffuse and translucency gets reduced below one ",
+            default=True)
+
+    Mat.pov_irid_amount = FloatProperty(
+            name="amount",
+            description="Contribution of the iridescence effect to the overall surface color. As a rule of thumb keep to around 0.25 (25% contribution) or less, but experiment. If the surface is coming out too white, try lowering the diffuse and possibly the ambient values of the surface.",
+            min=0.0, max=1.0, soft_min=0.01, soft_max=1.0, default=0.25)
+
+    Mat.pov_irid_thickness = FloatProperty(
+            name="thickness",
+            description="A very thin film will have a high frequency of color changes while a thick film will have large areas of color.",
+            min=0.0, max=1000.0, soft_min=0.1, soft_max=10.0, default=1)
+
+    Mat.pov_irid_turbulence = FloatProperty(
+            name="turbulence",
+            description="This parameter varies the thickness.",
+            min=0.0, max=10.0, soft_min=0.000, soft_max=1.0, default=0)
+
+    Mat.pov_caustics_enable = BoolProperty(
+            name="Caustics",
+            description="use only fake refractive caustics (default) or photon based reflective/refractive caustics",
+            default=True)
+
+    Mat.pov_fake_caustics = BoolProperty(
+            name="Fake Caustics",
+            description="use only (Fast) fake refractive caustics",
+            default=True)
+
+    Mat.pov_fake_caustics_power = FloatProperty(
+            name="Fake caustics power",
+            description="Values typically range from 0.0 to 1.0 or higher. Zero is no caustics. Low, non-zero values give broad hot-spots while higher values give tighter, smaller simulated focal points",
+            min=0.00, max=10.0, soft_min=0.00, soft_max=1.10, default=0.1)
+
+    Mat.pov_photons_refraction = BoolProperty(
+            name="Refractive Photon Caustics",
+            description="more physically correct",
+            default=False)
+
+    Mat.pov_photons_dispersion = FloatProperty(
+            name="chromatic dispersion",
+            description="Light passing through will be separated according to wavelength. This ratio of refractive indices for violet to red controls how much the colors are spread out 1 = no dispersion, good values are 1.01 to 1.1",
+            min=1.00, max=10.0, soft_min=1.00, soft_max=1.10, default=1.00)
+
+    Mat.pov_photons_reflection = BoolProperty(
+            name="Reflective Photon Caustics",
+            description="Use this to make your Sauron's ring ;-P",
+            default=False)
+
+    Mat.pov_refraction_type = EnumProperty(
+            items=[("0","None","use only reflective caustics"),
+                   ("1","Fake Caustics","use fake caustics"),
+                   ("2","Photons Caustics","use photons for refractive caustics"),
+                   ],
+            name="Refractive",
+            description="use fake caustics (fast) or true photons for refractive Caustics",
+            default="1")#ui.py has to be loaded before render.py with this. 
+    ######################################EndMR#####################################
 
 def unregister():
     import bpy
     Scene = bpy.types.Scene
-
+    Mat = bpy.types.Material#MR
     del Scene.pov_radio_enable
     del Scene.pov_radio_display_advanced
     del Scene.pov_radio_adc_bailout
@@ -125,7 +201,20 @@ def unregister():
     del Scene.pov_radio_nearest_count
     del Scene.pov_radio_normal
     del Scene.pov_radio_recursion_limit
-
+    del Mat.pov_irid_enable#MR
+    del Mat.pov_mirror_use_IOR#MR
+    del Mat.pov_mirror_metallic#MR    
+    del Mat.pov_conserve_energy#MR
+    del Mat.pov_irid_amount#MR
+    del Mat.pov_irid_thickness#MR  
+    del Mat.pov_irid_turbulence#MR
+    del Mat.pov_caustics_enable#MR
+    del Mat.pov_fake_caustics#MR    
+    del Mat.pov_fake_caustics_power#MR
+    del Mat.pov_photons_refraction#MR
+    del Mat.pov_photons_dispersion#MR  
+    del Mat.pov_photons_reflection#MR 
+    del Mat.pov_refraction_type#MR
 
 if __name__ == "__main__":
     register()
