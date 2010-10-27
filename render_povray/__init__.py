@@ -39,8 +39,8 @@ if "bpy" in locals():
 else:
     import bpy
     from bpy.props import *
-    from render_povray_37 import ui
-    from render_povray_37 import render
+    from render_povray import ui
+    from render_povray import render
 
 def register():
     Scene = bpy.types.Scene
