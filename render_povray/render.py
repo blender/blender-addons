@@ -1331,7 +1331,7 @@ def write_pov_ini(filename_ini, filename_pov, filename_image):
 
 
 class PovrayRender(bpy.types.RenderEngine):
-    bl_idname = 'povray_RENDER'
+    bl_idname = 'POVRAY_RENDER'
     bl_label = "Povray 3.7"
     DELAY = 0.02
 
