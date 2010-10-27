@@ -859,28 +859,28 @@ def write_pov(filename, scene=None, info_callback=None):
                 texturesAlpha=''
                 for t in material.texture_slots:
                     if t and t.texture.type == 'IMAGE' and t.use and t.texture.image: 
-                        image_filename  = path_image(t.texture.image.filepath)
-                        if t.texture.image.filepath != image_filename: t.texture.image.filepath = image_filename
-                        if image_filename != '' and t.use_map_color_diffuse: 
-                            texturesDif = image_filename
-                            colvalue = t.default_value
-                            t_dif = t
-                        if image_filename != '' and (t.use_map_specular or t.use_map_raymir): 
-                            texturesSpec = image_filename
-                            colvalue = t.default_value
-                            t_spec = t
-                        if image_filename != '' and t.use_map_normal: 
-                            texturesNorm = image_filename
-                            colvalue = t.normal_factor * 10
-                            #textNormName=t.texture.image.name + '.normal'
-                            #was the above used? --MR
-                            t_nor = t
-                        if image_filename != '' and t.use_map_alpha: 
-                            texturesAlpha = image_filename
-                            colvalue = t.alpha_factor * 10
-                            #textDispName=t.texture.image.name + '.displ'
-                            #was the above used? --MR
-                            t_alpha = t
+                        image_filename = path_image(t.texture.image.filepath)
+                        if image_filename:
+                            if t.use_map_color_diffuse: 
+                                texturesDif = image_filename
+                                colvalue = t.default_value
+                                t_dif = t
+                            if t.use_map_specular or t.use_map_raymir: 
+                                texturesSpec = image_filename
+                                colvalue = t.default_value
+                                t_spec = t
+                            if t.use_map_normal: 
+                                texturesNorm = image_filename
+                                colvalue = t.normal_factor * 10.0
+                                #textNormName=t.texture.image.name + '.normal'
+                                #was the above used? --MR
+                                t_nor = t
+                            if t.use_map_alpha: 
+                                texturesAlpha = image_filename
+                                colvalue = t.alpha_factor * 10.0
+                                #textDispName=t.texture.image.name + '.displ'
+                                #was the above used? --MR
+                                t_alpha = t
 
 
 
