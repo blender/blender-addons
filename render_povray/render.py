@@ -858,7 +858,7 @@ def write_pov(filename, scene=None, info_callback=None):
                 texturesNorm=''
                 texturesAlpha=''
                 for t in material.texture_slots:
-                    if t and t.texture.type == 'IMAGE' and t.use: 
+                    if t and t.texture.type == 'IMAGE' and t.use and t.texture.image: 
                         image_filename  = path_image(t.texture.image.filepath)
                         if t.texture.image.filepath != image_filename: t.texture.image.filepath = image_filename
                         if image_filename != '' and t.use_map_color_diffuse: 
