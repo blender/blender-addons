@@ -577,10 +577,12 @@ def write_pov(filename, scene=None, info_callback=None):
                     file.write('\tadaptive 1\n')
                     file.write('\tjitter\n')
 
-            if lamp.shadow_method == 'NOSHADOW':
+            if lamp.type == 'HEMI':#HEMI never has any shadow attribute
                 file.write('\tshadowless\n')
+            elif lamp.shadow_method == 'NOSHADOW':
+                    file.write('\tshadowless\n')
 
-            if lamp.type != 'SUN' and lamp.type!='AREA':#Sun shouldn't be attenuated. and area lights have no falloff attribute so they are put to type 2 attenuation a little higher above.
+            if lamp.type != 'SUN' and lamp.type!='AREA' and lamp.type!='HEMI':#Sun shouldn't be attenuated. Hemi and area lights have no falloff attribute so they are put to type 2 attenuation a little higher above.
                 file.write('\tfade_distance %.6f\n' % (lamp.distance / 5) )
                 if lamp.falloff_type == 'INVERSE_SQUARE':
                     file.write('\tfade_power %d\n' % 2) # Use blenders lamp quad equivalent
