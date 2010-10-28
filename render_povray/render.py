@@ -570,7 +570,7 @@ def write_pov(filename, scene=None, info_callback=None):
                     samples_y = lamp.shadow_ray_samples_y
 
                 file.write('\tarea_light <%d,0,0>,<0,0,%d> %d, %d\n' % (size_x, size_y, samples_x, samples_y))
-                if lamp.shadow_ray_sampling_method == 'CONSTANT_JITTERED':
+                if lamp.shadow_ray_sample_method == 'CONSTANT_JITTERED':
                     if lamp.jitter:
                         file.write('\tjitter\n')
                 else:
