@@ -851,26 +851,11 @@ def parse_meshes(blender_meshes, psk_file):
 					dindex0 = current_face.vertices[0];
 					dindex1 = current_face.vertices[1];
 					dindex2 = current_face.vertices[2];
-					print(dir(current_mesh.vertices[dindex0]))
-					#current_mesh.vertices[dindex0].co.x = 0;
-					#current_mesh.vertices[dindex0].co.y = 0;
-					#current_mesh.vertices[dindex0].co.z = 0;
-					#current_mesh.vertices[dindex1].co.x = 0;
-					#current_mesh.vertices[dindex1].co.y = 0;
-					#current_mesh.vertices[dindex1].co.z = 0;
-					#current_mesh.vertices[dindex2].co.x = 0;
-					#current_mesh.vertices[dindex2].co.y = 0;
-					#current_mesh.vertices[dindex2].co.z = 0;
-					
+
 					current_mesh.vertices[dindex0].select = True
 					current_mesh.vertices[dindex1].select = True
 					current_mesh.vertices[dindex2].select = True
 					
-					#print(dir(current_mesh))
-					
-					#current_mesh.vertices[dindex1] = 0
-					#current_mesh.vertices[dindex2] = 0
-					#print(dir(current_face))
 					raise RuntimeError("normal vector coplanar with face! points:", current_mesh.vertices[dindex0].co, current_mesh.vertices[dindex1].co, current_mesh.vertices[dindex2].co)
 				#print(dir(current_face))
 				current_face.select = True
@@ -1039,10 +1024,8 @@ def parse_bone(blender_bone, psk_file, psa_file, parent_id, is_root_bone, parent
 			vertex_weight = vertex_data[1]
 			influence = VRawBoneInfluence()
 			influence.Weight = vertex_weight
-			#influence.BoneIndex = my_id
 			influence.BoneIndex = my_id
 			influence.PointIndex = point_index
-			#print(influence)
 			#print ('Adding Bone Influence for [%s] = Point Index=%i, Weight=%f' % (blender_bone.name, point_index, vertex_weight))
 			#print("adding influence")
 			psk_file.AddInfluence(influence)
@@ -1060,9 +1043,6 @@ def parse_armature(blender_armature, psk_file, psa_file):
 	
 	#magic 0 sized root bone for UT - this is where all armature dummy bones will attach
 	#dont increment nbone here because we initialize it to 1 (hackity hackity hack)
-	
-	print(dir(bpy))
-	#bpy.types.report({'INFO'}, exportmessage)
 
 	#count top level bones first. NOT EFFICIENT.
 	child_count = 0
@@ -1120,10 +1100,6 @@ def parse_animation(blender_scene, blender_armatures, psa_file):
 	#need to check if there animation
 	#need to check if animation is has one frame then exit it
 	print ('\n----- parsing animation -----')
-	##print(dir(blender_scene))
-	
-	#print(dir(blender_armatures))
-	
 	render_data = blender_scene.render
 	bHaveAction = True
 	
@@ -1738,13 +1714,9 @@ class VIEW3D_PT_unrealtools_objectmode(bpy.types.Panel):
 
 	def draw(self, context):
 		layout = self.layout
-		#layout.label(text="Unreal Tools")
 		rd = context.scene
-		#drop box
-		layout.prop(rd, "unrealexport_settings",expand=True)
-		#layout.prop(rd, "unrealexport_settings")
-		#button
-		layout.operator("object.UnrealExport")
+		layout.prop(rd, "unrealexport_settings",expand=True)		
+		layout.operator("object.UnrealExport")#button
 		#FPS #it use the real data from your scene
 		layout.prop(rd.render, "fps")
 		
@@ -1775,7 +1747,6 @@ class OBJECT_OT_UnrealExport(bpy.types.Operator):
 	__doc__ = "Select export setting for .psk/.psa or both."
 	
 	def invoke(self, context, event):
-		#path = StringProperty(name="File Path", description="File path used for exporting the PSA file", maxlen= 1024, default= "")
 		print("Init Export Script:")
 		if(int(bpy.context.scene.unrealexport_settings) == 0):
 			bpy.context.scene.unrealexportpsk = True
