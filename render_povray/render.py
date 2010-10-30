@@ -188,14 +188,9 @@ def write_pov(filename, scene=None, info_callback=None):
             if material.pov_caustics_enable:
                 if material.pov_fake_caustics:
                     file.write('\tcaustics %.3g\n' % material.pov_fake_caustics_power)
-                    #material.pov_photons_refraction=0
                 if material.pov_photons_refraction:
-                    material.pov_fake_caustics=0 #How to deactivate fake caustics when refr photons on?
-
                     file.write('\tdispersion %.3g\n' % material.pov_photons_dispersion) #Default of 1 means no dispersion
-                    
-                #bpy.types.MATERIAL_PT_povray_caustics.Display = 1 - bpy.types.MATERIAL_PT_povray_caustics.Display
-        #mat = context.material
+            #TODO        
             # Other interior args
             # fade_distance 2
             # fade_power [Value]
