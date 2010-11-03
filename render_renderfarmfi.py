@@ -459,8 +459,13 @@ class OreSession:
 
     def percentageComplete(self):
         totFrames = self.endframe - self.startframe
-        done = math.floor((self.frames / totFrames)*100)
-        if done > 100: done = 100
+        if totFrames != 0:
+            done = math.floor((self.frames / totFrames)*100)
+        else:
+            done = math.floor((self.frames / (totFrames+0.01))*100)
+        
+        if done > 100:
+            done = 100
         return done
 
 def xmlSessionsToOreSessions(sessions, queue):
