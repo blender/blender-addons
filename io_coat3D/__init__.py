@@ -26,9 +26,9 @@ bl_addon_info = {
     "description": "Transfer data between 3D-Coat/Blender",
     "warning": "",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/' \
-        'Scripts/",
+        'Scripts/File_I-O/3dcoat_applink",
     "tracker_url": "https://projects.blender.org/tracker/?"\
-        "func=detail&atid=467&aid=24446&group_id=153",
+        "func=detail&aid=24446&group_id=153&atid=469",
     "category": "Import/Export"}
 
 
