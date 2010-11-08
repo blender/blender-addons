@@ -462,7 +462,7 @@ class SCENE_OT_pickname(bpy.types.Operator):
     def invoke(self, context, event):
         coat3D = bpy.context.scene.coat3D
         scene = context.scene
-        new_name = tex.stripFile(coat3D.objectdir)
+        new_name = os.path.dirname(coat3D.objectdir) + os.sep
         new_name += ("%s.obj"%(bpy.context.active_object.name))
         coat3D.objectdir = new_name
     
@@ -478,7 +478,7 @@ class SCENE_OT_deltex(bpy.types.Operator):
         coat3D = bpy.context.scene.coat3D
         scene = context.scene
         nimi = tex.objname(coat3D.objectdir)
-        osoite = tex.stripFile(coat3D.objectdir)
+        osoite = os.path.dirname(coat3D.objectdir) + os.sep
         just_nimi = tex.justname(nimi)
         just_nimi += '_'
 
