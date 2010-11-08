@@ -44,7 +44,7 @@ init_data = True
 ##### REGISTER #####
 
 def add_mesh_bolt_button(self, context):
-    self.layout.operator(Boltfactory.add_mesh_bolt.bl_idname, text="BOLT", icon="PLUGIN")
+    self.layout.operator(Boltfactory.add_mesh_bolt.bl_idname, text="Bolt", icon="PLUGIN")
 
 
 def register():

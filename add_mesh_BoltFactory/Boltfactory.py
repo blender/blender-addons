@@ -50,6 +50,13 @@ class add_mesh_bolt(bpy.types.Operator):
     
     align_matrix = mathutils.Matrix()
     MAX_INPUT_NUMBER = 50
+  
+  # edit - Whether to add or update.
+    edit = BoolProperty(name="",
+        description="",
+        default=False,
+        options={'HIDDEN'})
+
     
     #Model Types
     Model_Type_List = [('bf_Model_Bolt','BOLT','Bolt Model'),
@@ -291,7 +298,7 @@ class add_mesh_bolt(bpy.types.Operator):
         #self.bf_Minor_Dia = self.bf_Major_Dia - (1.082532 * self.bf_Pitch)
         
         Create_New_Mesh(self, context, self.align_matrix)
-
+	
         return {'FINISHED'}
         
     ##### INVOKE #####
