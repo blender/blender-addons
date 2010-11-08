@@ -6,7 +6,6 @@ import filecmp
 def objname(path):
 
     path2 = os.path.dirname(path) + os.sep
-    print("kalle:%s"%path2)
     pituus = len(path2)
     nimi = path[pituus:]
 
