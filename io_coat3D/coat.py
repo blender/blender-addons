@@ -20,21 +20,6 @@
 #
 # ***** END GPL LICENCE BLOCK *****
 
-bl_addon_info = {
-    "name": "Coat Applink",
-    "author": "Kalle-Samuli Riihikoski (haikalle)",
-    "version": (1,6),
-    "blender": (2, 5, 4),
-    "api": 31965,
-    "location": "Properties space > Scene tab > 3D-Coat Applink",
-    "description": "Show information about the .blend",
-    "warning": "",
-    "wiki_url": 'http://wiki.blender.org/index.php/Extensions:2.5/Py/' \
-        'Scripts/System/Blend Info',
-    "tracker_url": "https://projects.blender.org/tracker/index.php?" \
-        "func=detail&aid=22102&group_id=153&atid=469",
-    "category": "System"}
-
 import bpy
 from bpy.props import *
 from io_coat3D import tex
