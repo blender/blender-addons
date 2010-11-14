@@ -296,7 +296,7 @@ def mapset(self, value):
         and self.texture_slots[0].texture.type == 'IMAGE'
         and self.texture_slots[0].texture.image):
         self.texture_slots[0].texture.image.use_premultiply = value[5]
-    if self.alpha:
+    if self.use_transparency:
         self.texture_slots[0].use_map_alpha=True
 
 
