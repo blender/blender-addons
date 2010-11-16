@@ -2019,7 +2019,7 @@ def parseProcess(args, tokens):
 			mat = mathutils.Matrix.Rotation(angle, 4, axis)
 			try:
 				pb = pbones[val[0]]
-				prod = pb.matrix_local * mat
+				prod = pb.matrix_basis * mat
 				for i in range(4):
 					for j in range(4):
 						pb.matrix_local[i][j] = prod[i][j]
