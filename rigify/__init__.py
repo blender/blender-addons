@@ -47,17 +47,21 @@ def get_rig_list(path):
     MODULE_DIR = os.path.dirname(__file__)
     RIG_DIR_ABS = os.path.join(MODULE_DIR, utils.RIG_DIR)
     SEARCH_DIR_ABS = os.path.join(RIG_DIR_ABS, path)
-    path_strip = path.strip(os.sep)
     files = os.listdir(SEARCH_DIR_ABS)
     files.sort()
 
     for f in files:
-        if not f.startswith("_") and not f.startswith("."):
+        if f[0] in (".", "_"):
+            pass
+        elif "." in f:
+            print("Warning: %r, filename contains a '.', skipping" % os.path.join(SEARCH_DIR_ABS, f))
+        else:
             f_abs = os.path.join(SEARCH_DIR_ABS, f)
             if os.path.isdir(f_abs):
                 # Check directories
+                module_name = os.path.join(path, f).replace(os.sep, ".")
                 try:
-                    rig = utils.get_rig_type(os.path.join(path_strip, f).replace(os.sep, "."))
+                    rig = utils.get_rig_type(module_name)
                 except ImportError as e:
                     print("Rigify: " + str(e))
                 else:
@@ -72,8 +76,9 @@ def get_rig_list(path):
             elif f.endswith(".py"):
                 # Check straight-up python files
                 t = f[:-3]
+                module_name = os.path.join(path, t).replace(os.sep, ".")
                 try:
-                    utils.get_rig_type((path + t).replace("/", ".")).Rig
+                    utils.get_rig_type(module_name).Rig
                 except (ImportError, AttributeError):
                     pass
                 else:
