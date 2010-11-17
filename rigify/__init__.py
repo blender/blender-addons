@@ -27,45 +27,45 @@ bl_addon_info = {
     "tracker_url": "",
     "category": "Rigging"}
 
-import bpy
-import bpy_types
-import os
-from imp import reload
-
-
-try:
+if "bpy" in locals():
     reload(generate)
     reload(ui)
     reload(utils)
     reload(metarig_menu)
-except NameError:
+else:
     from rigify import generate, ui, utils, metarig_menu
+
+import bpy
+import bpy_types
+import os
 
 
 def get_rig_list(path):
     """ Recursively searches for rig types, and returns a list.
     """
     rigs = []
-    files = os.listdir(os.path.dirname(__file__) + "/" + utils.RIG_DIR + "/" + path)
-    files = sorted(files)
+    MODULE_DIR = os.path.dirname(__file__)
+    RIG_DIR_ABS = os.path.join(MODULE_DIR, utils.RIG_DIR)
+    SEARCH_DIR_ABS = os.path.join(RIG_DIR_ABS, path)
+    path_strip = path.strip(os.sep)
+    files = os.listdir(SEARCH_DIR_ABS)
+    files.sort()
 
     for f in files:
-        if not f.startswith("_"):
-            if os.path.isdir(os.path.dirname(__file__) + "/" + utils.RIG_DIR + "/" + path + f):
+        if not f.startswith("_") and not f.startswith("."):
+            f_abs = os.path.join(SEARCH_DIR_ABS, f)
+            if os.path.isdir(f_abs):
                 # Check directories
                 try:
-                    rig = utils.get_rig_type((path + f).replace("/", "."))
+                    rig = utils.get_rig_type(os.path.join(path_strip, f).replace(os.sep, "."))
                 except ImportError as e:
                     print("Rigify: " + str(e))
                 else:
                     # Check if it's a rig itself
-                    try:
-                        rig.Rig
-                    except AttributeError:
+                    if not hasattr(rig, "Rig"):
                         # Check for sub-rigs
-                        ls = get_rig_list(path + f + "/")
-                        for l in ls:
-                            rigs += [f + '.' + l]
+                        ls = get_rig_list(os.path.join(path, f, "")) # "" adds a final slash
+                        rigs.extend(["%s.%s" % (f, l) for l in ls])
                     else:
                         rigs += [f]
 
