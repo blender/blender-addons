@@ -51,13 +51,13 @@ def get_rig_list(path):
     files.sort()
 
     for f in files:
+        is_dir = os.path.isdir(os.path.join(SEARCH_DIR_ABS, f))  # Whether the file is a directory
         if f[0] in (".", "_"):
             pass
-        elif "." in f:
+        elif f.count(".") >= 2 or (is_dir and "." in f):
             print("Warning: %r, filename contains a '.', skipping" % os.path.join(SEARCH_DIR_ABS, f))
         else:
-            f_abs = os.path.join(SEARCH_DIR_ABS, f)
-            if os.path.isdir(f_abs):
+            if is_dir:
                 # Check directories
                 module_name = os.path.join(path, f).replace(os.sep, ".")
                 try:
