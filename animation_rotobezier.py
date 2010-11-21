@@ -56,10 +56,25 @@ class OBJECT_PT_rotobezier(bpy.types.Panel):
     # draw the gui
     def draw(self, context):
         layout = self.layout
-
+        
+        Obj = context.active_object
+        
+        row = layout.row()
+        row.label(text="Keyframing:")
         row = layout.row()
         row.operator('curve.insert_keyframe_rotobezier')
         row.operator('curve.delete_keyframe_rotobezier')
+        row = layout.row()
+        row.label(text="Display:")
+        row = layout.row()
+        row.operator('curve.toggle_draw_rotobezier')
+        if context.mode == 'EDIT_CURVE':
+            row.operator('curve.toggle_handles_rotobezier')
+        row = layout.row()
+        row.label(text="Tools:")
+        row = layout.row()
+        row.operator('curve.make_white_matte_rotobezier')
+        row.operator('curve.make_black_matte_rotobezier')
 
 
 class CURVE_OT_insert_keyframe_rotobezier(bpy.types.Operator):
@@ -71,20 +86,20 @@ class CURVE_OT_insert_keyframe_rotobezier(bpy.types.Operator):
     # on mouse up:
     def invoke(self, context, event):
 
-        self.insert_keyframe(context)
+        self.main_func(context)
 
         return {'FINISHED'}
 
 
-    def insert_keyframe(op, context):
+    def main_func(op, context):
         
         import bpy
 
-        Obj = bpy.context.active_object
+        Obj = context.active_object
 
         if Obj.type == 'CURVE':
             Mode = False
-            if bpy.context.mode != 'OBJECT':
+            if context.mode != 'OBJECT':
                 Mode = not Mode
                 bpy.ops.object.editmode_toggle()
             Data = Obj.data
@@ -106,24 +121,25 @@ class CURVE_OT_delete_keyframe_rotobezier(bpy.types.Operator):
     bl_label = 'Delete Keyframe'
     bl_idname = 'curve.delete_keyframe_rotobezier'
     bl_description = 'Delete a RotoBezier Keyframe'
+    bl_options = {'REGISTER', 'UNDO'}
 
     # on mouse up:
     def invoke(self, context, event):
 
-        self.delete_keyframe(context)
+        self.main_func(context)
 
         return {'FINISHED'}
 
 
-    def delete_keyframe(op, context):
+    def main_func(op, context):
         
         import bpy
 
-        Obj = bpy.context.active_object
+        Obj = context.active_object
 
         if Obj.type == 'CURVE':
             Mode = False
-            if bpy.context.mode != 'OBJECT':
+            if context.mode != 'OBJECT':
                 Mode = not Mode
                 bpy.ops.object.editmode_toggle()
             Data = Obj.data
@@ -138,8 +154,165 @@ class CURVE_OT_delete_keyframe_rotobezier(bpy.types.Operator):
                 bpy.ops.object.editmode_toggle()
 
 
-        return {'FINISHED'} 
+        return {'FINISHED'}
 
+
+# Matte Material Assignment Func
+def MakeMatte (Type):
+    
+    Obj = bpy.context.active_object
+    
+    # Material
+    def CheckMat (MatName):
+        
+        Result = False
+        
+        Mats = bpy.data.materials
+        
+        for Mat in Mats:
+            if Mat.name == MatName:
+                Result = not Result
+        
+        return Result
+    
+    
+    if Type == 'White':
+        
+        MatName = 'RotoBezier_WhiteMatte'
+        MatCol = (1,1,1)
+    
+    elif Type == 'Black':
+        
+        MatName = 'RotoBezier_BlackMatte'
+        MatCol = (0,0,0)
+    
+    if CheckMat(MatName):
+        
+        Mat = bpy.data.materials[MatName]
+        
+        if not Obj.material_slots:
+            bpy.ops.object.material_slot_add()
+            
+        Obj.material_slots[0].material = Mat
+    
+    else:
+        
+        Mat = bpy.data.materials.new(MatName)
+        Mat.diffuse_color = MatCol
+        Mat.use_shadeless = True
+        Mat.use_raytrace = False
+        Mat.use_shadows = False
+        Mat.use_cast_buffer_shadows = False
+        Mat.use_cast_approximate = False
+        
+        if not Obj.material_slots:
+            bpy.ops.object.material_slot_add()
+            
+        Obj.material_slots[0].material = Mat
+    
+    # Settings
+    Curve = Obj.data
+    
+    Curve.dimensions = '2D'
+    Curve.use_fill_front = False
+    Curve.use_fill_back = False
+
+class CURVE_OT_make_white_matte_rotobezier(bpy.types.Operator):
+    bl_label = 'Make White Matte'
+    bl_idname = 'curve.make_white_matte_rotobezier'
+    bl_description = 'Make this curve a white matte'
+    bl_options = {'REGISTER', 'UNDO'}
+
+    # on mouse up:
+    def invoke(self, context, event):
+
+        self.main_func(context)
+
+        return {'FINISHED'}
+
+
+    def main_func(op, context):
+        
+        MakeMatte('White')
+
+        return {'FINISHED'}
+
+
+class CURVE_OT_make_black_matte_rotobezier(bpy.types.Operator):
+    bl_label = 'Make Black Matte'
+    bl_idname = 'curve.make_black_matte_rotobezier'
+    bl_description = 'Make this curve a black matte'
+    bl_options = {'REGISTER', 'UNDO'}
+
+    # on mouse up:
+    def invoke(self, context, event):
+
+        self.main_func(context)
+
+        return {'FINISHED'}
+
+
+    def main_func(op, context):
+        
+        MakeMatte('Black')
+        
+        return {'FINISHED'}
+
+
+class CURVE_OT_toggle_handles_rotobezier(bpy.types.Operator):
+    bl_label = 'Toggle Handles'
+    bl_idname = 'curve.toggle_handles_rotobezier'
+    bl_description = 'Toggle the curve handle display in edit mode'
+    bl_options = {'REGISTER', 'UNDO'}
+
+    # on mouse up:
+    def invoke(self, context, event):
+        
+        self.main_func(context)
+        
+        return {'FINISHED'}
+    
+    
+    def main_func(op, context):
+        
+        Obj = context.active_object
+        Curve = Obj.data
+        if Curve.show_handles:
+            Curve.show_handles = False
+        else:
+            Curve.show_handles = True
+        
+        return {'FINISHED'}
+
+
+class CURVE_OT_toggle_draw_rotobezier(bpy.types.Operator):
+    bl_label = 'Toggle Draw'
+    bl_idname = 'curve.toggle_draw_rotobezier'
+    bl_description = 'Toggle the curve display mode between Wire and Solid'
+    bl_options = {'REGISTER', 'UNDO'}
+
+    # on mouse up:
+    def invoke(self, context, event):
+        
+        self.main_func(context)
+        
+        return {'FINISHED'}
+    
+    
+    def main_func(op, context):
+        
+        Obj = context.active_object
+        
+        if Obj.draw_type == 'SOLID':
+            Obj.draw_type = 'WIRE'
+            
+        elif Obj.draw_type == 'WIRE':
+            Obj.draw_type = 'SOLID'
+            
+        else:
+            Obj.draw_type = 'WIRE'
+        
+        return {'FINISHED'}
 
 
 def register():
