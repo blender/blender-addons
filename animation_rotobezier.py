@@ -65,6 +65,8 @@ class OBJECT_PT_rotobezier(bpy.types.Panel):
         row.operator('curve.insert_keyframe_rotobezier')
         row.operator('curve.delete_keyframe_rotobezier')
         row = layout.row()
+        row.operator('curve.clear_animation_rotobezier')
+        row = layout.row()
         row.label(text="Display:")
         row = layout.row()
         row.operator('curve.toggle_draw_rotobezier')
@@ -154,6 +156,27 @@ class CURVE_OT_delete_keyframe_rotobezier(bpy.types.Operator):
                 bpy.ops.object.editmode_toggle()
 
 
+        return {'FINISHED'}
+
+class CURVE_OT_clear_animation_rotobezier(bpy.types.Operator):
+    bl_label = 'Clear Animation'
+    bl_idname = 'curve.clear_animation_rotobezier'
+    bl_description = 'Clear all animation from the curve'
+    bl_options = {'REGISTER', 'UNDO'}
+
+    # on mouse up:
+    def invoke(self, context, event):
+        
+        self.main_func(context)
+        
+        return {'FINISHED'}
+    
+    
+    def main_func(op, context):
+        
+        Data = context.active_object.data
+        Data.animation_data_clear()
+        
         return {'FINISHED'}
 
 
