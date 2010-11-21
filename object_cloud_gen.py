@@ -19,8 +19,8 @@
 bl_addon_info = {
     "name": "Cloud Generator",
     "author": "Nick Keeline(nrk)",
-    "version": (0,7),
-    "blender": (2, 5, 3),
+    "version": (1,0),
+    "blender": (2, 5, 5),
     "api": 31965,
     "location": "Tool Shelf ",
     "description": "Creates Volumetric Clouds",
@@ -45,6 +45,9 @@ Rev 0.4 updated for api change/changed to new apply modifier technique
 Rev 0.5 made particle count equation with radius so radius increases with cloud volume
 Rev 0.6 added poll function to operator, fixing crash with no selected objects
 Rev 0.7 added particles option and Type of Cloud wanted selector
+Rev 0.8 fixed particles by commenting out add cloud texture force field
+Rev 0.9 Added smoothing and explosion material
+Rev 1.0 Added ability to convert object with particle system to cloud and auto resizing of bound box
 """
 
 import bpy
@@ -56,17 +59,27 @@ from bpy.props import *
 # This routine takes an object and deletes all of the geometry in it
 # and adds a bounding box to it.
 # It will add or subtract the bound box size by the variable sizeDifference.
-def makeObjectIntoBoundBox(object, sizeDifference):
+
+def getMeshandPutinEditMode(scene, object):
+    
+     # Go into Object Mode
+    bpy.ops.object.mode_set(mode='OBJECT')   
+    
     # Deselect All
     bpy.ops.object.select_all(action='DESELECT')
 
     # Select the object
     object.select = True
-
+    scene.objects.active = object
+    
     # Go into Edit Mode
     bpy.ops.object.mode_set(mode='EDIT')
 
-    mesh = object.data
+    return object.data
+   
+def maxAndMinVerts(scene, object):
+    
+    mesh = getMeshandPutinEditMode(scene, object)
     verts = mesh.vertices
 
     #Set the max and min verts to the first vertex on the list
@@ -90,6 +103,16 @@ def makeObjectIntoBoundBox(object, sizeDifference):
             minVert[1] = vert.co[1]
         if vert.co[2] < minVert[2]:
             minVert[2] = vert.co[2]
+            
+    return [maxVert, minVert]
+    
+def makeObjectIntoBoundBox(scene, object, sizeDifference, takeFromObject):
+    
+    #Let's find the max and min of the reference object, it can be the same as the destination object
+    [maxVert, minVert] = maxAndMinVerts(scene, takeFromObject)
+
+    #get objects mesh
+    mesh = getMeshandPutinEditMode(scene, object)
 
     #Add the size difference to the max size of the box
     maxVert[0] = maxVert[0] + sizeDifference
@@ -142,7 +165,6 @@ def makeObjectIntoBoundBox(object, sizeDifference):
     # Update the mesh
     mesh.update()
 
-
 def applyScaleRotLoc(scene, obj):
     # Deselect All
     bpy.ops.object.select_all(action='DESELECT')
@@ -151,11 +173,10 @@ def applyScaleRotLoc(scene, obj):
     obj.select = True
     scene.objects.active = obj
 
-    #bpy.ops.object.rotation_apply()
+    bpy.ops.object.rotation_apply()
     bpy.ops.object.location_apply()
     bpy.ops.object.scale_apply()
-
-
+   
 def totallyDeleteObject(scene, obj):
     scene.objects.unlink(obj)
     bpy.data.objects.remove(obj)
@@ -164,18 +185,12 @@ def totallyDeleteObject(scene, obj):
 def makeParent(parentobj, childobj, scene):
 
     applyScaleRotLoc(scene, parentobj)
-
     applyScaleRotLoc(scene, childobj)
-
     childobj.parent = parentobj
-
-    #childobj.location = childobj.location - parentobj.location
 
 
 def addNewObject(scene, name, copyobj):
-    '''
-    Add an object and do other silly stuff.
-    '''
+
     # Create new mesh
     mesh = bpy.data.meshes.new(name)
 
@@ -192,6 +207,61 @@ def addNewObject(scene, name, copyobj):
 
     return ob_new
 
+def getpdensitytexture(object):
+    
+    for mslot in object.material_slots:
+        mat = mslot.material
+        for tslot in mat.texture_slots:
+            if tslot!= 'NoneType':
+                tex = tslot.texture
+                if tex.type == 'POINT_DENSITY':
+                    if tex.point_density.point_source == 'PARTICLE_SYSTEM':
+                        return tex
+    
+def removeParticleSystemFromObj(scene, object):
+
+    # Deselect All
+    bpy.ops.object.select_all(action='DESELECT')
+
+    # Select the object.
+    object.select = True
+    scene.objects.active = object
+
+    bpy.ops.object.particle_system_remove()
+
+    # Deselect All
+    bpy.ops.object.select_all(action='DESELECT')
+    
+def convertParticlesToMesh(scene, particlesobj, destobj, replacemesh):
+    
+    # Select the Destination object.
+    destobj.select = True
+    scene.objects.active = destobj
+    
+    #Go to Edit Mode
+    bpy.ops.object.mode_set(mode='EDIT',toggle=False)
+    
+    #Delete everything in mesh if replace true
+    if replacemesh:
+        bpy.ops.mesh.select_all(action='SELECT')
+        bpy.ops.mesh.delete(type='ALL')
+
+    meshPnts = destobj.data
+
+    listCloudParticles = particlesobj.particles
+
+    listMeshPnts = []
+    for pTicle in listCloudParticles:
+        listMeshPnts.append(pTicle.location)
+
+    # Must be in object mode for from_pydata to work.
+    bpy.ops.object.mode_set(mode='OBJECT')
+
+    # Add in the mesh data.
+    meshPnts.from_pydata(listMeshPnts, [], [])
+
+    # Update the mesh.
+    meshPnts.update()
 
 def combineObjects(scene, combined, listobjs):
     # scene is the current scene
@@ -219,24 +289,25 @@ def combineObjects(scene, combined, listobjs):
                 # Apply modifier
                 bpy.ops.object.modifier_apply(apply_as='DATA', modifier=union[0].name)
 
-
-# Returns True if we want to degenerate
-# and False if we want to generate a new cloud.
-def degenerateCloud(obj):
-    if not obj:
-        return False
-
-    if "CloudMember" in obj:
+# Returns the action we want to take
+def getActionToDo(obj):
+    
+    if not obj or obj.type != 'MESH':
+        return 'NOT_OBJ_DO_NOTHING'
+    elif obj is None:
+        return 'NO_SELECTION_DO_NOTHING'
+    elif "CloudMember" in obj:
         if obj["CloudMember"] != None:
-            if obj.parent:
-               if "CloudMember" not in obj.parent:
-                return False
-
+            if obj["CloudMember"] == "MainObj":
+                return 'DEGENERATE'            
+            elif obj["CloudMember"] == "CreatedObj" and len(obj.particle_systems) > 0:
+                return 'CLOUD_CONVERT_TO_MESH'
             else:
-                return True
-
-    return False
-
+                return 'CLOUD_DO_NOTHING'
+    elif obj.type == 'MESH':
+        return 'GENERATE'
+    else:
+        return 'DO_NOTHING'
 
 class VIEW3D_PT_tools_cloud(bpy.types.Panel):
     bl_space_type = 'VIEW_3D'
@@ -250,39 +321,44 @@ class VIEW3D_PT_tools_cloud(bpy.types.Panel):
         layout = self.layout
         col = layout.column(align=True)
 
-        degenerate = degenerateCloud(active_obj)
+        WhatToDo = getActionToDo(active_obj)
 
-        if active_obj and degenerate:
+        if WhatToDo == 'DEGENERATE':
 
             col.operator("cloud.generate_cloud", text="DeGenerate")
 
-        elif active_obj is None:
+        elif WhatToDo == 'CLOUD_CONVERT_TO_MESH':
+
+            col.operator("cloud.generate_cloud", text="Convert to Mesh")
+
+        elif WhatToDo == 'NO_SELECTION_DO_NOTHING':
 
             col.label(text="Select one or more")
             col.label(text="objects to generate")
             col.label(text="a cloud.")
 
-        elif "CloudMember" in  active_obj:
+        elif WhatToDo == 'CLOUD_DO_NOTHING':
 
             col.label(text="Must select")
             col.label(text="bound box")
            
-        elif active_obj and active_obj.type == 'MESH':
+        elif WhatToDo == 'GENERATE':
 
             col.operator("cloud.generate_cloud", text="Generate Cloud")
 
-            col.prop(context.scene, "cloudparticles")
             col.prop(context.scene, "cloud_type")
+            col.prop(context.scene, "cloudparticles")
+            col.prop(context.scene, "cloudsmoothing")
         else:
             col.label(text="Select one or more")
             col.label(text="objects to generate")
             col.label(text="a cloud.")
 
-
+                                
 class GenerateCloud(bpy.types.Operator):
     bl_idname = "cloud.generate_cloud"
     bl_label = "Generate Cloud"
-    bl_description = "Create a Cloud."
+    bl_description = "Create a Cloud,Undo Cloud, or convert to Mesh Cloud depending on selection"
     bl_register = True
     bl_undo = True
 
@@ -308,14 +384,15 @@ class GenerateCloud(bpy.types.Operator):
         # the number of points the scripts will put in the volume.
         numOfPoints = 1.0
         maxNumOfPoints = 100000
+        maxPointDensityRadius = 1.5
         scattering = 2.5
         pointDensityRadiusFactor = 1.0
         densityScale = 1.5
 
-        # Should we degnerate?
-        degenerate = degenerateCloud(active_object)
+        # What should we do?
+        WhatToDo = getActionToDo(active_object)
 
-        if degenerate:
+        if WhatToDo == 'DEGENERATE':
            # Degenerate Cloud
            mainObj = active_object
 
@@ -347,6 +424,34 @@ class GenerateCloud(bpy.types.Operator):
                eachMember.draw_type = 'SOLID'
                eachMember.select = True
                eachMember.hide_render = False
+               
+        elif WhatToDo == 'CLOUD_CONVERT_TO_MESH':
+            
+           cloudParticles = active_object.particle_systems.active
+           
+           bounds = active_object.parent
+           
+           ###############Create CloudPnts for putting points in#########
+           # Create a new object cloudPnts
+           cloudPnts = addNewObject(scene, "CloudPoints", bounds)
+           cloudPnts["CloudMember"] = "CreatedObj"
+           cloudPnts.draw_type = 'WIRE'
+           cloudPnts.hide_render = True
+
+           makeParent(bounds, cloudPnts, scene) 
+            
+           convertParticlesToMesh(scene, cloudParticles, cloudPnts, True)
+          
+           removeParticleSystemFromObj(scene, active_object)
+           
+           pDensity = getpdensitytexture(bounds)
+           pDensity.point_density.point_source = 'OBJECT'
+           pDensity.point_density.object = cloudPnts
+           
+           #Let's resize the bound box to be more accurate.
+           how_much_bigger =  pDensity.point_density.radius 
+           makeObjectIntoBoundBox(scene, bounds, how_much_bigger, cloudPnts)
+           
         else:
             # Generate Cloud
 
@@ -407,16 +512,17 @@ class GenerateCloud(bpy.types.Operator):
 
             bpy.ops.object.editmode_toggle()
             bpy.ops.mesh.select_all(action='SELECT')
-            bpy.ops.mesh.subdivide(number_cuts=2, fractal=0, smoothness=1)
-            bpy.ops.object.location_apply()
-            bpy.ops.mesh.vertices_smooth(repeat=20)
+            
+            #Don't subdivide object or smooth if smoothing box not checked.
+            if scene.cloudsmoothing:            
+                bpy.ops.mesh.subdivide(number_cuts=2, fractal=0, smoothness=1)
+                bpy.ops.object.location_apply()
+                bpy.ops.mesh.vertices_smooth(repeat=20)
             bpy.ops.mesh.tris_convert_to_quads()
             bpy.ops.mesh.faces_shade_smooth()
             bpy.ops.object.editmode_toggle()
 
             ###############Create Particles in cloud obj##################
-            # Turn off gravity.
-            scene.use_gravity = False
 
             # Set time to 0.
             scene.frame_current = 0
@@ -430,12 +536,17 @@ class GenerateCloud(bpy.types.Operator):
             cloudParticles.settings.frame_start = 0
             cloudParticles.settings.frame_end = 0
             cloudParticles.settings.emit_from = 'VOLUME'
+            cloudParticles.settings.lifetime = scene.frame_end
             cloudParticles.settings.draw_method = 'DOT'
             cloudParticles.settings.render_type = 'NONE'
-            cloudParticles.settings.normal_factor = 0
             cloudParticles.settings.distribution = 'RAND'
-            cloudParticles.settings.physics_type = 'NO'
+            cloudParticles.settings.physics_type = 'NEWTON'
+            cloudParticles.settings.normal_factor = 0
 
+            #Gravity does not effect the particle system
+            eWeights = cloudParticles.settings.effector_weights
+            eWeights.gravity = 0
+                
             ####################Create Volume Material####################
             # Deselect All
             bpy.ops.object.select_all(action='DESELECT')
@@ -444,8 +555,8 @@ class GenerateCloud(bpy.types.Operator):
             bounds.select = True
             scene.objects.active = bounds
 
-            # Turn bounds object into a box.
-            makeObjectIntoBoundBox(bounds, .6)
+            # Turn bounds object into a box.  Use itself as a reference.
+            makeObjectIntoBoundBox(scene, bounds,  1.0, bounds)
 
             # Delete all material slots in bounds object.
             for i in range(len(bounds.material_slots)):
@@ -467,7 +578,7 @@ class GenerateCloud(bpy.types.Operator):
             mVolume.transmission_color = [3, 3, 3]
             mVolume.step_size = 0.1
             mVolume.use_light_cache = True
-            mVolume.cache_resolution = 75
+            mVolume.cache_resolution = 45
 
             # Add a texture
             vMaterialTextureSlots = cloudMaterial.texture_slots
@@ -479,19 +590,8 @@ class GenerateCloud(bpy.types.Operator):
             mtex.texture_coords = 'ORCO'
             mtex.use_map_color_diffuse = True
 
-            # Add a force field to the points.
-            cloudField = bounds.field
-            cloudField.type = 'TEXTURE'
-            cloudField.strength = 2
-            cloudField.texture = cloudtex
-
             # Set time
-            #for i in range(12):
-            #    scene.current_frame = i
-            #    scene.update()
             scene.frame_current = 1
-
-            #bpy.ops.ptcache.bake(bake=False)
 
             # Add a Point Density texture
             pDensity = blend_data.textures.new("CloudPointDensity", 'POINT_DENSITY')
@@ -532,6 +632,9 @@ class GenerateCloud(bpy.types.Operator):
 
             pDensity.point_density.radius = (.00013764 * volumeBoundBox + .3989) * pointDensityRadiusFactor
 
+            if pDensity.point_density.radius > maxPointDensityRadius:
+                pDensity.point_density.radius = maxPointDensityRadius
+                
             # Set time to 1.
             scene.frame_current = 1
 
@@ -545,27 +648,7 @@ class GenerateCloud(bpy.types.Operator):
 
                 makeParent(bounds, cloudPnts, scene)
 
-                bpy.ops.object.editmode_toggle()
-                bpy.ops.mesh.select_all(action='SELECT')
-
-                bpy.ops.mesh.delete(type='ALL')
-
-                meshPnts = cloudPnts.data
-
-                listCloudParticles = cloudParticles.particles
-
-                listMeshPnts = []
-                for pTicle in listCloudParticles:
-                    listMeshPnts.append(pTicle.location)
-
-                # Must be in object mode fro from_pydata to work.
-                bpy.ops.object.mode_set(mode='OBJECT')
-
-                # Add in the mesh data.
-                meshPnts.from_pydata(listMeshPnts, [], [])
-
-                # Update the mesh.
-                meshPnts.update()
+                convertParticlesToMesh(scene, cloudParticles, cloudPnts, True)
 
                 # Add a modifier.
                 bpy.ops.object.modifier_add(type='DISPLACE')
@@ -583,17 +666,7 @@ class GenerateCloud(bpy.types.Operator):
                 pDensity.point_density.point_source = 'OBJECT'
                 pDensity.point_density.object = cloudPnts
 
-                # Deselect All
-                bpy.ops.object.select_all(action='DESELECT')
-
-                # Select the object.
-                cloud.select = True
-                scene.objects.active = cloud
-
-                bpy.ops.object.particle_system_remove()
-
-                # Deselect All
-                bpy.ops.object.select_all(action='DESELECT')
+                removeParticleSystemFromObj(scene, cloud)
 
             else:
     
@@ -616,9 +689,33 @@ class GenerateCloud(bpy.types.Operator):
                 mVolume.transmission_color = [3.5, 3.5, 3.5]
                 mVolume.scattering = .13
 
+            elif scene.cloud_type == '3':    #  Explosion
+                mVolume.emission = 1.42
+                mtex.use_rgb_to_intensity = False
+                pRampElements[0].position = .825
+                pRampElements[0].color = [.119,.119,.119,1]
+                pRampElements[1].position = .049
+                pRampElements[1].color = [1.0,1.0,1.0,0]
+                pDensity.point_density.turbulence_strength = 1.5
+                pRampElement1 = pRampElements.new(.452)
+                pRampElement1.color = [.814,.112,0,1]
+                pRampElement2 = pRampElements.new(.234)
+                pRampElement2.color = [.814,.310,.002,1]
+                pRampElement3 = pRampElements.new(.669)
+                pRampElement3.color = [0,.0,.040,1]
+                
             # Select the object.
             bounds.select = True
             scene.objects.active = bounds
+ 
+            #Let's resize the bound box to be more accurate.
+            how_much_bigger =  pDensity.point_density.radius + .1
+            
+            #If it's a particle cloud use cloud mesh if otherwise use point mesh         
+            if not scene.cloudparticles:
+                makeObjectIntoBoundBox(scene, bounds, how_much_bigger, cloudPnts)
+            else:
+                makeObjectIntoBoundBox(scene, bounds, how_much_bigger, cloud)
 
         return {'FINISHED'}
 
@@ -629,12 +726,18 @@ def register():
         description="Generate Cloud as Particle System",
         default=False)
 
+    bpy.types.Scene.cloudsmoothing = BoolProperty(
+        name="Smoothing",
+        description="Smooth Resultant Geometry From Gen Cloud Operation",
+        default=True)
+
     bpy.types.Scene.cloud_type = EnumProperty(
         name="Type",
         description="Select the type of cloud to create with material settings",
         items=[("0","Stratus","Generate Stratus_foggy Cloud"),
                ("1","Cumulous","Generate Cumulous_puffy Cloud"),
                ("2","Cirrus","Generate Cirrus_wispy Cloud"),
+               ("3","Explosion","Generate Explosion"),
               ],
         default='0')
 
