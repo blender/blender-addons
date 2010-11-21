@@ -31,7 +31,7 @@ bl_addon_info = {
     'location': 'Select a Curve > Properties > Curve > RotoBezier',
     'description': 'Allows animation of bezier curves for rotoscoping',
     'warning': '', 
-    'wiki_url': '',
+    'wiki_url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/Scripts/Animation/RotoBezier',
     'tracker_url': '',
     'category': 'Animation'}
 
