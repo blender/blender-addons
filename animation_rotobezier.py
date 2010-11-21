@@ -25,7 +25,7 @@
 bl_addon_info = {
     'name': 'RotoBezier',
     'author': 'Daniel Salazar <zanqdo@gmail.com>',
-    'version': (0,1),
+    'version': (0,2),
     'blender': (2, 5, 5),
     'api': 33198,
     'location': 'Select a Curve > Properties > Curve > RotoBezier',
