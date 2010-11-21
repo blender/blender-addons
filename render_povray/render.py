@@ -106,7 +106,8 @@ def findInSubDir(filename, subdirectory=''):
             if filename in names:
                 pahFile = os.path.join(root, filename)
         return pahFile
-    except: return ''
+    except: #OSError: #was that the proper error type?
+        return '' 
 
 def path_image(image):
     import os
@@ -228,10 +229,11 @@ def write_pov(filename, scene=None, info_callback=None):
             frontDiffuse=material.diffuse_intensity
             backDiffuse=material.translucency
             
-        
+            #But the conserve energy keyword does not keep their sum realistic in pov
+            #we can add this feature before the script writes their values to pov scene 
             if material.pov_conserve_energy:
 
-                #Total should not go above one
+                #Total of spec + diff should not go above one
                 if (frontDiffuse + backDiffuse) <= 1.0:
                     pass
                 elif frontDiffuse==backDiffuse:
@@ -505,6 +507,7 @@ def write_pov(filename, scene=None, info_callback=None):
     def exportCamera():
         camera = scene.camera
         matrix = camera.matrix_world
+        focal_point = camera.data.dof_distance
 
         # compute resolution
         Qsize = float(render.resolution_x) / float(render.resolution_y)
@@ -520,6 +523,11 @@ def write_pov(filename, scene=None, info_callback=None):
 
         file.write('\trotate  <%.6f, %.6f, %.6f>\n' % tuple([degrees(e) for e in matrix.rotation_part().to_euler()]))
         file.write('\ttranslate <%.6f, %.6f, %.6f>\n' % (matrix[3][0], matrix[3][1], matrix[3][2]))
+        if focal_point != 0:
+            file.write('\taperture 0.25\n') # fixed blur amount for now to do, add slider a button? 
+            file.write('\tblur_samples 96 128\n')
+            file.write('\tvariance 1/10000\n')
+            file.write('\tfocal_point <0, 0, %f>\n' % focal_point)
         file.write('}\n')
 
     def exportLamps(lamps):
@@ -1152,6 +1160,7 @@ def write_pov(filename, scene=None, info_callback=None):
             bpy.data.meshes.remove(me)
 
     def exportWorld(world):
+        render = scene.render
         camera = scene.camera
         matrix = camera.matrix_world
         if not world:
@@ -1161,7 +1170,13 @@ def write_pov(filename, scene=None, info_callback=None):
         if world:
             #For simple flat background:
             if not world.use_sky_blend:
-                file.write('background {rgbt<%.3g, %.3g, %.3g, 1>}\n' % (tuple(world.horizon_color)))#Non fully transparent background could premultiply alpha and avoid anti-aliasing problem. Put transmit to 1 reveals pov problem with nonpremult antialiased.
+                #Non fully transparent background could premultiply alpha and avoid anti-aliasing display issue. 
+                if render.alpha_mode == 'SKY' or render.alpha_mode == 'PREMUL' :
+                    file.write('background {rgbt<%.3g, %.3g, %.3g, 0.75>}\n' % (tuple(world.horizon_color)))
+                else:
+                    file.write('background {rgbt<%.3g, %.3g, %.3g, 1>}\n' % (tuple(world.horizon_color)))
+
+                    
 
             #For Background image textures
             for t in world.texture_slots: #risk to write several sky_spheres but maybe ok.
@@ -1192,17 +1207,24 @@ def write_pov(filename, scene=None, info_callback=None):
                     file.write('\tpigment {\n')
                     file.write('\t\tgradient z\n')#maybe Should follow the advice of POV doc about replacing gradient for skysphere..5.5
                     file.write('\t\tcolor_map {\n')
-                    file.write('\t\t\t[0.0 rgbt<%.3g, %.3g, %.3g, 1>]\n' % (tuple(world.zenith_color)))           
-                    file.write('\t\t\t[1.0 rgbt<%.3g, %.3g, %.3g, 0.99>]\n' % (tuple(world.horizon_color))) #aa premult not solved with transmit 1
+                    if render.alpha_mode == 'STRAIGHT':
+                        file.write('\t\t\t[0.0 rgbt<%.3g, %.3g, %.3g, 1>]\n' % (tuple(world.zenith_color)))
+                        file.write('\t\t\t[0.0 rgbt<%.3g, %.3g, %.3g, 1>]\n' % (tuple(world.zenith_color)))
+                    elif render.alpha_mode == 'PREMUL':
+                        file.write('\t\t\t[0.0 rgbt<%.3g, %.3g, %.3g, 0.99>]\n' % (tuple(world.zenith_color)))
+                        file.write('\t\t\t[0.0 rgbt<%.3g, %.3g, %.3g, 0.99>]\n' % (tuple(world.zenith_color))) #aa premult not solved with transmit 1
+                    else:
+                        file.write('\t\t\t[0.0 rgbt<%.3g, %.3g, %.3g, 1>]\n' % (tuple(world.zenith_color)))
+                        file.write('\t\t\t[0.0 rgbt<%.3g, %.3g, %.3g, 0.99>]\n' % (tuple(world.zenith_color)))
                     file.write('\t\t}\n')
                     file.write('\t}\n')
                     file.write('}\n')
-                    #problem with sky_sphere alpha (transmit) not translating into image alpha as well as "background" replace 0.75 by 1 when solved and later by some variable linked to background alpha state
+                    #sky_sphere alpha (transmit) is not translating into image alpha the same way as "background"
 
             if world.light_settings.use_indirect_light:
-                scene.pov_radio_enable=1
+                scene.pov_radio_enable=1 
                 
-
+            #Maybe change the above to scene.pov_radio_enable = world.light_settings.use_indirect_light ?
 
 
         ###############################################################
@@ -1355,7 +1377,7 @@ class PovrayRender(bpy.types.RenderEngine):
 
         try:
             os.remove(self._temp_file_out) # so as not to load the old file
-        except:
+        except: #OSError: #was that the proper error type?
             pass
 
         write_pov_ini(self._temp_file_ini, self._temp_file_in, self._temp_file_out)
@@ -1396,7 +1418,7 @@ class PovrayRender(bpy.types.RenderEngine):
         for f in (self._temp_file_in, self._temp_file_ini, self._temp_file_out):
             try:
                 os.remove(f)
-            except:
+            except OSError:  #was that the proper error type?
                 pass
 
         self.update_stats("", "")
@@ -1430,7 +1452,7 @@ class PovrayRender(bpy.types.RenderEngine):
             if self.test_break():
                 try:
                     self._process.terminate()
-                except:
+                except: #OSError: #was that the proper error type?
                     pass
                 break
 
@@ -1452,7 +1474,7 @@ class PovrayRender(bpy.types.RenderEngine):
                 # possible the image wont load early on.
                 try:
                     lay.load_from_file(self._temp_file_out)
-                except:
+                except: #OSError: #was that the proper error type?
                     pass
                 self.end_result(result)
 
@@ -1468,7 +1490,7 @@ class PovrayRender(bpy.types.RenderEngine):
                 if self.test_break():
                     try:
                         self._process.terminate()
-                    except:
+                    except: #OSError: #was that the proper error type?
                         pass
 
                     break
