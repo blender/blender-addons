@@ -21,9 +21,9 @@
 bl_addon_info = {
     'name': 'Copy Attributes Menu',
     'author': 'Bassam Kurdali, Fabian Fricke, wiseman303',
-    'version': (0, 40),
-    'blender': (2, 5, 4),
-    'api': 32411,
+    'version': (0, 41),
+    'blender': (2, 5, 5),
+    'api': 33215,
     'location': 'View3D > Ctrl/C',
     'description': 'Copy Attributes Menu from Blender 2.4',
     'wiki_url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/'\
@@ -146,7 +146,7 @@ def pLocLocExec(bone, active, context):
 
 
 def pLocRotExec(bone, active, context):
-    rotcopy(bone, active.matrix_local.rotation_part())
+    rotcopy(bone, active.matrix_basis.rotation_part())
 
 
 def pLocScaExec(bone, active, context):
