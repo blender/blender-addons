@@ -26,7 +26,7 @@ Rev 0.2 new make matte object tools and convenient display toggles
 Rev 0.3 tool to clear all animation from the curve
 Rev 0.4 moved from curve properties to toolbar
 Rev 0.5 added pass index property
-Rev 0.6 re-aranged UI
+Rev 0.6 re-arranged UI
 -------------------------------------------------------------------------'''
 
 bl_addon_info = {
@@ -35,7 +35,7 @@ bl_addon_info = {
     'version': (0,6),
     'blender': (2, 5, 5),
     'api': 33232,
-    'location': 'Select a Curve > Properties > Curve > RotoBezier',
+    'location': 'Select a Curve > 3D View Toolbar > RotoBezier',
     'description': 'Allows animation of bezier curves for rotoscoping',
     'warning': '', 
     'wiki_url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/Scripts/Animation/RotoBezier',
