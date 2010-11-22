@@ -25,12 +25,13 @@ Rev 0.1 initial release
 Rev 0.2 new make matte object tools and convenient display toggles
 Rev 0.3 tool to clear all animation from the curve
 Rev 0.4 moved from curve properties to toolbar
+Rev 0.5 added pass index property
 -------------------------------------------------------------------------'''
 
 bl_addon_info = {
     'name': 'RotoBezier',
     'author': 'Daniel Salazar <zanqdo@gmail.com>',
-    'version': (0,4),
+    'version': (0,5),
     'blender': (2, 5, 5),
     'api': 33232,
     'location': 'Select a Curve > Properties > Curve > RotoBezier',
@@ -55,7 +56,7 @@ class VIEW3D_PT_rotobezier(bpy.types.Panel):
     # show this add-on only in the Camera-Data-Panel
     @classmethod
     def poll(self, context):
-        if bpy.context.active_object:
+        if context.active_object:
             return context.active_object.type  == 'CURVE'
 
     # draw the gui
@@ -63,23 +64,26 @@ class VIEW3D_PT_rotobezier(bpy.types.Panel):
         layout = self.layout
         
         row = layout.row()
-        row.label(text="Keyframing:")
+        row.label(text="Keyframing")
         row = layout.row()
         row.operator('curve.insert_keyframe_rotobezier')
         row.operator('curve.delete_keyframe_rotobezier')
         row = layout.row()
         row.operator('curve.clear_animation_rotobezier')
         row = layout.row()
-        row.label(text="Display:")
+        row.label(text="Display")
         row = layout.row()
         row.operator('curve.toggle_draw_rotobezier')
         if context.mode == 'EDIT_CURVE':
             row.operator('curve.toggle_handles_rotobezier')
         row = layout.row()
-        row.label(text="Tools:")
+        row.label(text="Tools")
         row = layout.row()
         row.operator('curve.make_white_matte_rotobezier')
         row.operator('curve.make_black_matte_rotobezier')
+        row = layout.row()
+        ob = context.active_object
+        row.prop(ob, "pass_index")
 
 
 class CURVE_OT_insert_keyframe_rotobezier(bpy.types.Operator):
@@ -97,8 +101,7 @@ class CURVE_OT_insert_keyframe_rotobezier(bpy.types.Operator):
 
 
     def execute(op, context):
-        
-        import bpy
+
 
         Obj = context.active_object
 
@@ -119,7 +122,7 @@ class CURVE_OT_insert_keyframe_rotobezier(bpy.types.Operator):
                 bpy.ops.object.editmode_toggle()
 
 
-        return {'FINISHED'} 
+        return {'FINISHED'}
 
 
 class CURVE_OT_delete_keyframe_rotobezier(bpy.types.Operator):
@@ -137,8 +140,6 @@ class CURVE_OT_delete_keyframe_rotobezier(bpy.types.Operator):
 
 
     def execute(op, context):
-        
-        import bpy
 
         Obj = context.active_object
 
@@ -158,8 +159,8 @@ class CURVE_OT_delete_keyframe_rotobezier(bpy.types.Operator):
             if Mode:
                 bpy.ops.object.editmode_toggle()
 
-
         return {'FINISHED'}
+
 
 class CURVE_OT_clear_animation_rotobezier(bpy.types.Operator):
     bl_label = 'Clear Animation'
