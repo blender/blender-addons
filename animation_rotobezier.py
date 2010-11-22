@@ -26,12 +26,13 @@ Rev 0.2 new make matte object tools and convenient display toggles
 Rev 0.3 tool to clear all animation from the curve
 Rev 0.4 moved from curve properties to toolbar
 Rev 0.5 added pass index property
+Rev 0.6 re-aranged UI
 -------------------------------------------------------------------------'''
 
 bl_addon_info = {
     'name': 'RotoBezier',
     'author': 'Daniel Salazar <zanqdo@gmail.com>',
-    'version': (0,5),
+    'version': (0,6),
     'blender': (2, 5, 5),
     'api': 33232,
     'location': 'Select a Curve > Properties > Curve > RotoBezier',
@@ -63,22 +64,28 @@ class VIEW3D_PT_rotobezier(bpy.types.Panel):
     def draw(self, context):
         layout = self.layout
         
-        row = layout.row()
-        row.label(text="Keyframing")
-        row = layout.row()
+        col = layout.column(align=True)
+        
+        col.label(text="Keyframing:")
+        row = col.row()
         row.operator('curve.insert_keyframe_rotobezier')
         row.operator('curve.delete_keyframe_rotobezier')
         row = layout.row()
         row.operator('curve.clear_animation_rotobezier')
-        row = layout.row()
-        row.label(text="Display")
-        row = layout.row()
+        
+        col = layout.column()
+        
+        col.label(text="Display:")
+        row = col.row()
         row.operator('curve.toggle_draw_rotobezier')
+        
         if context.mode == 'EDIT_CURVE':
             row.operator('curve.toggle_handles_rotobezier')
-        row = layout.row()
-        row.label(text="Tools")
-        row = layout.row()
+        
+        col = layout.column(align=True)
+        
+        col.label(text="Tools:")
+        row = col.row()
         row.operator('curve.make_white_matte_rotobezier')
         row.operator('curve.make_black_matte_rotobezier')
         row = layout.row()
