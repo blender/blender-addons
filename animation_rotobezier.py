@@ -16,18 +16,23 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-#-------------------------------------------------------------------------
-# WARNING: Currently adding new CVs to an already animated curve isn't safe
-# Thanks to Campbell Barton for hes API additions and fixes
-# Daniel Salazar - ZanQdo
-#-------------------------------------------------------------------------
+'''-------------------------------------------------------------------------
+WARNING: Currently adding new CVs to an already animated curve isn't safe
+Thanks to Campbell Barton for hes API additions and fixes
+Daniel Salazar - ZanQdo
+
+Rev 0.1 initial release
+Rev 0.2 new make matte object tools and convenient display toggles
+Rev 0.3 tool to clear all animation from the curve
+Rev 0.4 moved from curve properties to toolbar
+-------------------------------------------------------------------------'''
 
 bl_addon_info = {
     'name': 'RotoBezier',
     'author': 'Daniel Salazar <zanqdo@gmail.com>',
-    'version': (0,2),
+    'version': (0,4),
     'blender': (2, 5, 5),
-    'api': 33198,
+    'api': 33232,
     'location': 'Select a Curve > Properties > Curve > RotoBezier',
     'description': 'Allows animation of bezier curves for rotoscoping',
     'warning': '', 
@@ -41,23 +46,21 @@ import bpy
 #
 # GUI (Panel)
 #
-class OBJECT_PT_rotobezier(bpy.types.Panel):
+class VIEW3D_PT_rotobezier(bpy.types.Panel):
 
-    bl_label = "RotoBezier"
-    bl_space_type = "PROPERTIES"
-    bl_region_type = "WINDOW"
-    bl_context = "data"
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'TOOLS'
+    bl_label = 'RotoBezier'
 
     # show this add-on only in the Camera-Data-Panel
     @classmethod
     def poll(self, context):
-        return context.active_object.type  == 'CURVE'
+        if bpy.context.active_object:
+            return context.active_object.type  == 'CURVE'
 
     # draw the gui
     def draw(self, context):
         layout = self.layout
-        
-        Obj = context.active_object
         
         row = layout.row()
         row.label(text="Keyframing:")
@@ -80,7 +83,7 @@ class OBJECT_PT_rotobezier(bpy.types.Panel):
 
 
 class CURVE_OT_insert_keyframe_rotobezier(bpy.types.Operator):
-    bl_label = 'Insert Keyframe'
+    bl_label = 'Insert'
     bl_idname = 'curve.insert_keyframe_rotobezier'
     bl_description = 'Insert a RotoBezier Keyframe'
     bl_options = {'REGISTER', 'UNDO'}
@@ -88,12 +91,12 @@ class CURVE_OT_insert_keyframe_rotobezier(bpy.types.Operator):
     # on mouse up:
     def invoke(self, context, event):
 
-        self.main_func(context)
+        self.execute(context)
 
         return {'FINISHED'}
 
 
-    def main_func(op, context):
+    def execute(op, context):
         
         import bpy
 
@@ -120,7 +123,7 @@ class CURVE_OT_insert_keyframe_rotobezier(bpy.types.Operator):
 
 
 class CURVE_OT_delete_keyframe_rotobezier(bpy.types.Operator):
-    bl_label = 'Delete Keyframe'
+    bl_label = 'Delete'
     bl_idname = 'curve.delete_keyframe_rotobezier'
     bl_description = 'Delete a RotoBezier Keyframe'
     bl_options = {'REGISTER', 'UNDO'}
@@ -128,12 +131,12 @@ class CURVE_OT_delete_keyframe_rotobezier(bpy.types.Operator):
     # on mouse up:
     def invoke(self, context, event):
 
-        self.main_func(context)
+        self.execute(context)
 
         return {'FINISHED'}
 
 
-    def main_func(op, context):
+    def execute(op, context):
         
         import bpy
 
@@ -167,12 +170,11 @@ class CURVE_OT_clear_animation_rotobezier(bpy.types.Operator):
     # on mouse up:
     def invoke(self, context, event):
         
-        self.main_func(context)
-        
-        return {'FINISHED'}
+        wm = context.window_manager
+        return wm.invoke_confirm(self, event)
     
     
-    def main_func(op, context):
+    def execute(op, context):
         
         Data = context.active_object.data
         Data.animation_data_clear()
@@ -241,7 +243,7 @@ def MakeMatte (Type):
     Curve.use_fill_back = False
 
 class CURVE_OT_make_white_matte_rotobezier(bpy.types.Operator):
-    bl_label = 'Make White Matte'
+    bl_label = 'White Matte'
     bl_idname = 'curve.make_white_matte_rotobezier'
     bl_description = 'Make this curve a white matte'
     bl_options = {'REGISTER', 'UNDO'}
@@ -249,12 +251,12 @@ class CURVE_OT_make_white_matte_rotobezier(bpy.types.Operator):
     # on mouse up:
     def invoke(self, context, event):
 
-        self.main_func(context)
+        self.execute(context)
 
         return {'FINISHED'}
 
 
-    def main_func(op, context):
+    def execute(op, context):
         
         MakeMatte('White')
 
@@ -262,7 +264,7 @@ class CURVE_OT_make_white_matte_rotobezier(bpy.types.Operator):
 
 
 class CURVE_OT_make_black_matte_rotobezier(bpy.types.Operator):
-    bl_label = 'Make Black Matte'
+    bl_label = 'Black Matte'
     bl_idname = 'curve.make_black_matte_rotobezier'
     bl_description = 'Make this curve a black matte'
     bl_options = {'REGISTER', 'UNDO'}
@@ -270,12 +272,12 @@ class CURVE_OT_make_black_matte_rotobezier(bpy.types.Operator):
     # on mouse up:
     def invoke(self, context, event):
 
-        self.main_func(context)
+        self.execute(context)
 
         return {'FINISHED'}
 
 
-    def main_func(op, context):
+    def execute(op, context):
         
         MakeMatte('Black')
         
@@ -283,20 +285,20 @@ class CURVE_OT_make_black_matte_rotobezier(bpy.types.Operator):
 
 
 class CURVE_OT_toggle_handles_rotobezier(bpy.types.Operator):
-    bl_label = 'Toggle Handles'
+    bl_label = 'Handles'
     bl_idname = 'curve.toggle_handles_rotobezier'
-    bl_description = 'Toggle the curve handle display in edit mode'
+    bl_description = 'Toggle the curve handles display in edit mode'
     bl_options = {'REGISTER', 'UNDO'}
 
     # on mouse up:
     def invoke(self, context, event):
         
-        self.main_func(context)
+        self.execute(context)
         
         return {'FINISHED'}
     
     
-    def main_func(op, context):
+    def execute(op, context):
         
         Obj = context.active_object
         Curve = Obj.data
@@ -309,7 +311,7 @@ class CURVE_OT_toggle_handles_rotobezier(bpy.types.Operator):
 
 
 class CURVE_OT_toggle_draw_rotobezier(bpy.types.Operator):
-    bl_label = 'Toggle Draw'
+    bl_label = 'Fill'
     bl_idname = 'curve.toggle_draw_rotobezier'
     bl_description = 'Toggle the curve display mode between Wire and Solid'
     bl_options = {'REGISTER', 'UNDO'}
@@ -317,12 +319,12 @@ class CURVE_OT_toggle_draw_rotobezier(bpy.types.Operator):
     # on mouse up:
     def invoke(self, context, event):
         
-        self.main_func(context)
+        self.execute(context)
         
         return {'FINISHED'}
     
     
-    def main_func(op, context):
+    def execute(op, context):
         
         Obj = context.active_object
         
