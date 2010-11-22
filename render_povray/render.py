@@ -1170,9 +1170,13 @@ def write_pov(filename, scene=None, info_callback=None):
         if world:
             #For simple flat background:
             if not world.use_sky_blend:
-                #Non fully transparent background could premultiply alpha and avoid anti-aliasing display issue. 
-                if render.alpha_mode == 'SKY' or render.alpha_mode == 'PREMUL' :
+                #Non fully transparent background could premultiply alpha and avoid anti-aliasing display issue: 
+                if render.alpha_mode == 'PREMUL' or render.alpha_mode == 'PREMUL' :
                     file.write('background {rgbt<%.3g, %.3g, %.3g, 0.75>}\n' % (tuple(world.horizon_color)))
+                #Currently using no alpha with Sky option:
+                elif render.alpha_mode == 'SKY':
+                    file.write('background {rgbt<%.3g, %.3g, %.3g, 0>}\n' % (tuple(world.horizon_color)))
+                #StraightAlpha:
                 else:
                     file.write('background {rgbt<%.3g, %.3g, %.3g, 1>}\n' % (tuple(world.horizon_color)))
 
@@ -1208,14 +1212,14 @@ def write_pov(filename, scene=None, info_callback=None):
                     file.write('\t\tgradient z\n')#maybe Should follow the advice of POV doc about replacing gradient for skysphere..5.5
                     file.write('\t\tcolor_map {\n')
                     if render.alpha_mode == 'STRAIGHT':
-                        file.write('\t\t\t[0.0 rgbt<%.3g, %.3g, %.3g, 1>]\n' % (tuple(world.zenith_color)))
-                        file.write('\t\t\t[0.0 rgbt<%.3g, %.3g, %.3g, 1>]\n' % (tuple(world.zenith_color)))
+                        file.write('\t\t\t[0.0 rgbt<%.3g, %.3g, %.3g, 1>]\n' % (tuple(world.horizon_color)))
+                        file.write('\t\t\t[1.0 rgbt<%.3g, %.3g, %.3g, 1>]\n' % (tuple(world.zenith_color)))
                     elif render.alpha_mode == 'PREMUL':
-                        file.write('\t\t\t[0.0 rgbt<%.3g, %.3g, %.3g, 0.99>]\n' % (tuple(world.zenith_color)))
-                        file.write('\t\t\t[0.0 rgbt<%.3g, %.3g, %.3g, 0.99>]\n' % (tuple(world.zenith_color))) #aa premult not solved with transmit 1
+                        file.write('\t\t\t[0.0 rgbt<%.3g, %.3g, %.3g, 0.99>]\n' % (tuple(world.horizon_color)))
+                        file.write('\t\t\t[1.0 rgbt<%.3g, %.3g, %.3g, 0.99>]\n' % (tuple(world.zenith_color))) #aa premult not solved with transmit 1
                     else:
-                        file.write('\t\t\t[0.0 rgbt<%.3g, %.3g, %.3g, 1>]\n' % (tuple(world.zenith_color)))
-                        file.write('\t\t\t[0.0 rgbt<%.3g, %.3g, %.3g, 0.99>]\n' % (tuple(world.zenith_color)))
+                        file.write('\t\t\t[0.0 rgbt<%.3g, %.3g, %.3g, 0>]\n' % (tuple(world.horizon_color)))
+                        file.write('\t\t\t[1.0 rgbt<%.3g, %.3g, %.3g, 0>]\n' % (tuple(world.zenith_color)))
                     file.write('\t\t}\n')
                     file.write('\t}\n')
                     file.write('}\n')
