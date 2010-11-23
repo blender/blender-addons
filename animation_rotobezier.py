@@ -16,8 +16,22 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
+bl_addon_info = {
+    'name': 'RotoBezier',
+    'author': 'Daniel Salazar <zanqdo@gmail.com>',
+    'version': (0, 6),
+    'blender': (2, 5, 5),
+    'api': 33232,
+    'location': 'Select a Curve: Properties > Curve > RotoBezier panel',
+    'description': 'Allows animation of bezier curves for rotoscoping',
+    'warning': 'Currently adding new CVs to an already animated curve isn\'t safe', 
+    'wiki_url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/'\
+        'Scripts/Animation/RotoBezier',
+    'tracker_url': 'http://projects.blender.org/tracker/index.php?'\
+        'func=detail&aid=24839&group_id=153&atid=469',
+    'category': 'Animation'}
+
 '''-------------------------------------------------------------------------
-WARNING: Currently adding new CVs to an already animated curve isn't safe
 Thanks to Campbell Barton for hes API additions and fixes
 Daniel Salazar - ZanQdo
 
@@ -28,19 +42,6 @@ Rev 0.4 moved from curve properties to toolbar
 Rev 0.5 added pass index property
 Rev 0.6 re-arranged UI
 -------------------------------------------------------------------------'''
-
-bl_addon_info = {
-    'name': 'RotoBezier',
-    'author': 'Daniel Salazar <zanqdo@gmail.com>',
-    'version': (0,6),
-    'blender': (2, 5, 5),
-    'api': 33232,
-    'location': 'Select a Curve > 3D View Toolbar > RotoBezier',
-    'description': 'Allows animation of bezier curves for rotoscoping',
-    'warning': '', 
-    'wiki_url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/Scripts/Animation/RotoBezier',
-    'tracker_url': 'http://projects.blender.org/tracker/index.php?func=detail&aid=24839&group_id=153&atid=469',
-    'category': 'Animation'}
 
 
 import bpy
