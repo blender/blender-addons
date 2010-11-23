@@ -19,10 +19,10 @@
 bl_addon_info = {
     'name': 'RotoBezier',
     'author': 'Daniel Salazar <zanqdo@gmail.com>',
-    'version': (0, 6),
+    'version': (0, 7),
     'blender': (2, 5, 5),
     'api': 33232,
-    'location': 'Select a Curve: Toolbar > RotoBezier panel',
+    'location': 'Select a Curve: Properties > Curve > RotoBezier panel',
     'description': 'Allows animation of bezier curves for rotoscoping',
     'warning': 'Currently adding new CVs to an already animated curve isn\'t safe', 
     'wiki_url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/'\
@@ -41,10 +41,31 @@ Rev 0.3 tool to clear all animation from the curve
 Rev 0.4 moved from curve properties to toolbar
 Rev 0.5 added pass index property
 Rev 0.6 re-arranged UI
+Rev 0.7 Adding options for what properties to keyframe
 -------------------------------------------------------------------------'''
 
-
 import bpy
+from bpy.props import *
+
+
+#
+# Property Definitions
+#
+bpy.types.WindowManager.key_points = BoolProperty(
+    name="Points",
+    description="Insert keyframes on points",
+    default=True)
+
+bpy.types.WindowManager.key_bevel = BoolProperty(
+    name="Bevel",
+    description="Insert keyframes on bevel",
+    default=False)
+
+bpy.types.WindowManager.key_tilt = BoolProperty(
+    name="Tilt",
+    description="Insert keyframes on tilt",
+    default=False)
+
 
 #
 # GUI (Panel)
@@ -60,7 +81,7 @@ class VIEW3D_PT_rotobezier(bpy.types.Panel):
     def poll(self, context):
         if context.active_object:
             return context.active_object.type  == 'CURVE'
-
+    
     # draw the gui
     def draw(self, context):
         layout = self.layout
@@ -68,6 +89,11 @@ class VIEW3D_PT_rotobezier(bpy.types.Panel):
         col = layout.column(align=True)
         
         col.label(text="Keyframing:")
+        row = col.row()
+        row.prop(context.window_manager, "key_points")
+        row.prop(context.window_manager, "key_bevel")
+        row.prop(context.window_manager, "key_tilt")
+        
         row = col.row()
         row.operator('curve.insert_keyframe_rotobezier')
         row.operator('curve.delete_keyframe_rotobezier')
@@ -99,7 +125,8 @@ class CURVE_OT_insert_keyframe_rotobezier(bpy.types.Operator):
     bl_idname = 'curve.insert_keyframe_rotobezier'
     bl_description = 'Insert a RotoBezier Keyframe'
     bl_options = {'REGISTER', 'UNDO'}
-
+    
+    
     # on mouse up:
     def invoke(self, context, event):
 
@@ -109,10 +136,9 @@ class CURVE_OT_insert_keyframe_rotobezier(bpy.types.Operator):
 
 
     def execute(op, context):
-
-
+        
         Obj = context.active_object
-
+        
         if Obj.type == 'CURVE':
             Mode = False
             if context.mode != 'OBJECT':
@@ -122,9 +148,14 @@ class CURVE_OT_insert_keyframe_rotobezier(bpy.types.Operator):
             
             for Splines in Data.splines:
                 for CVs in Splines.bezier_points:
-                    CVs.keyframe_insert('co')
-                    CVs.keyframe_insert('handle_left')
-                    CVs.keyframe_insert('handle_right')
+                    if context.window_manager.key_points:
+                        CVs.keyframe_insert('co')
+                        CVs.keyframe_insert('handle_left')
+                        CVs.keyframe_insert('handle_right')
+                    if context.window_manager.key_bevel:
+                        CVs.keyframe_insert('radius')
+                    if context.window_manager.key_tilt:
+                        CVs.keyframe_insert('tilt')
             
             if Mode:
                 bpy.ops.object.editmode_toggle()
@@ -138,7 +169,8 @@ class CURVE_OT_delete_keyframe_rotobezier(bpy.types.Operator):
     bl_idname = 'curve.delete_keyframe_rotobezier'
     bl_description = 'Delete a RotoBezier Keyframe'
     bl_options = {'REGISTER', 'UNDO'}
-
+    
+    
     # on mouse up:
     def invoke(self, context, event):
 
@@ -148,7 +180,7 @@ class CURVE_OT_delete_keyframe_rotobezier(bpy.types.Operator):
 
 
     def execute(op, context):
-
+        
         Obj = context.active_object
 
         if Obj.type == 'CURVE':
@@ -160,9 +192,14 @@ class CURVE_OT_delete_keyframe_rotobezier(bpy.types.Operator):
             
             for Splines in Data.splines:
                 for CVs in Splines.bezier_points:
-                    CVs.keyframe_delete('co')
-                    CVs.keyframe_delete('handle_left')
-                    CVs.keyframe_delete('handle_right')
+                    if context.window_manager.key_points:
+                        CVs.keyframe_delete('co')
+                        CVs.keyframe_delete('handle_left')
+                        CVs.keyframe_delete('handle_right')
+                    if context.window_manager.key_bevel:
+                        CVs.keyframe_delete('radius')
+                    if context.window_manager.key_tilt:
+                        CVs.keyframe_delete('tilt')
             
             if Mode:
                 bpy.ops.object.editmode_toggle()
