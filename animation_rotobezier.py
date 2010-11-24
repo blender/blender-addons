@@ -53,17 +53,17 @@ from bpy.props import *
 #
 bpy.types.WindowManager.key_points = BoolProperty(
     name="Points",
-    description="Insert keyframes on points",
+    description="Insert keyframes on point locations",
     default=True)
 
 bpy.types.WindowManager.key_bevel = BoolProperty(
     name="Bevel",
-    description="Insert keyframes on bevel",
+    description="Insert keyframes on point bevel (Shrink/Fatten)",
     default=False)
 
 bpy.types.WindowManager.key_tilt = BoolProperty(
     name="Tilt",
-    description="Insert keyframes on tilt",
+    description="Insert keyframes on point tilt",
     default=False)
 
 
