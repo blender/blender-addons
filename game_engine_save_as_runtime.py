@@ -32,10 +32,8 @@ bl_addon_info = {
     'category': 'Game Engine'}
 
 import bpy
-import struct
 import os
-import sys
-import time
+
 
 def WriteAppleRuntime(player_path, output_path):
     # Use the system's cp command to preserve some meta-data
@@ -43,7 +41,9 @@ def WriteAppleRuntime(player_path, output_path):
     
     bpy.ops.save_as_mainfile(filepath=output_path+"/Contents/Resources/game.blend", copy=True)
 
+
 def WriteRuntime(player_path, output_path):
+    import struct
 
     # Check the paths
     if not os.path.isfile(player_path):
@@ -96,7 +96,7 @@ def WriteRuntime(player_path, output_path):
     output.write(struct.pack('B', (offset>>0)&0xFF))
     
     # Stuff for the runtime
-    output.write("BRUNTIME".encode())
+    output.write(b'BRUNTIME')
     output.close()
     
     # Make the runtime executable on Linux
@@ -105,6 +105,7 @@ def WriteRuntime(player_path, output_path):
 
 
 from bpy.props import *
+
 
 class SaveAsRuntime(bpy.types.Operator):
     bl_idname = "wm.save_as_runtime"
@@ -120,8 +121,9 @@ class SaveAsRuntime(bpy.types.Operator):
     filepath = StringProperty(name="Output Path", description="Where to save the runtime", default="")
     
     def execute(self, context):
-        print("Saving runtime to", self.properties.filepath)
+        import time
         start_time = time.clock()
+        print("Saving runtime to", self.properties.filepath)
         WriteRuntime(self.properties.player_path,
                     self.properties.filepath)
         print("Finished in %.4fs" % (time.clock()-start_time))
@@ -132,6 +134,7 @@ class SaveAsRuntime(bpy.types.Operator):
         wm.add_fileselect(self)
         return {'RUNNING_MODAL'}
 
+
 def menu_func(self, context):
 
     ext = os.path.splitext(bpy.app.binary_path)[-1]
@@ -141,9 +144,11 @@ def menu_func(self, context):
 
 def register():
     bpy.types.INFO_MT_file_export.append(menu_func)
-    
+
+
 def unregister():
     bpy.types.INFO_MT_file_export.remove(menu_func)
-    
+
+
 if __name__ == "__main__":
     register()
