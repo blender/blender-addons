@@ -31,8 +31,9 @@ bl_addon_info = {
         'func=detail&aid=24839&group_id=153&atid=469',
     'category': 'Animation'}
 
-'''-------------------------------------------------------------------------
-Thanks to Campbell Barton for hes API additions and fixes
+'''
+-------------------------------------------------------------------------
+Thanks to Campbell Barton for his API additions and fixes
 Daniel Salazar - ZanQdo
 
 Rev 0.1 initial release
@@ -42,7 +43,8 @@ Rev 0.4 moved from curve properties to toolbar
 Rev 0.5 added pass index property
 Rev 0.6 re-arranged UI
 Rev 0.7 Adding options for what properties to keyframe
--------------------------------------------------------------------------'''
+-------------------------------------------------------------------------
+'''
 
 import bpy
 from bpy.props import *
@@ -71,7 +73,6 @@ bpy.types.WindowManager.key_tilt = BoolProperty(
 # GUI (Panel)
 #
 class VIEW3D_PT_rotobezier(bpy.types.Panel):
-
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'TOOLS'
     bl_label = 'RotoBezier'
@@ -126,39 +127,38 @@ class CURVE_OT_insert_keyframe_rotobezier(bpy.types.Operator):
     bl_description = 'Insert a RotoBezier Keyframe'
     bl_options = {'REGISTER', 'UNDO'}
     
-    
     # on mouse up:
     def invoke(self, context, event):
-
         self.execute(context)
-
         return {'FINISHED'}
-
-
+    
+    @classmethod
+    def poll(cls, context):
+        return (context.active_object.type == 'CURVE')
+    
     def execute(op, context):
         
         Obj = context.active_object
         
-        if Obj.type == 'CURVE':
-            Mode = False
-            if context.mode != 'OBJECT':
-                Mode = not Mode
-                bpy.ops.object.editmode_toggle()
-            Data = Obj.data
+        Mode = False
+        if context.mode != 'OBJECT':
+            Mode = not Mode
+            bpy.ops.object.editmode_toggle()
+        Data = Obj.data
+        
+        for Splines in Data.splines:
+            for CVs in Splines.bezier_points:
+                if context.window_manager.key_points:
+                    CVs.keyframe_insert('co')
+                    CVs.keyframe_insert('handle_left')
+                    CVs.keyframe_insert('handle_right')
+                if context.window_manager.key_bevel:
+                    CVs.keyframe_insert('radius')
+                if context.window_manager.key_tilt:
+                    CVs.keyframe_insert('tilt')
             
-            for Splines in Data.splines:
-                for CVs in Splines.bezier_points:
-                    if context.window_manager.key_points:
-                        CVs.keyframe_insert('co')
-                        CVs.keyframe_insert('handle_left')
-                        CVs.keyframe_insert('handle_right')
-                    if context.window_manager.key_bevel:
-                        CVs.keyframe_insert('radius')
-                    if context.window_manager.key_tilt:
-                        CVs.keyframe_insert('tilt')
-            
-            if Mode:
-                bpy.ops.object.editmode_toggle()
+        if Mode:
+            bpy.ops.object.editmode_toggle()
 
 
         return {'FINISHED'}
@@ -170,39 +170,38 @@ class CURVE_OT_delete_keyframe_rotobezier(bpy.types.Operator):
     bl_description = 'Delete a RotoBezier Keyframe'
     bl_options = {'REGISTER', 'UNDO'}
     
-    
     # on mouse up:
     def invoke(self, context, event):
-
         self.execute(context)
-
         return {'FINISHED'}
 
+    @classmethod
+    def poll(cls, context):
+        return (context.active_object.type == 'CURVE')
 
     def execute(op, context):
         
         Obj = context.active_object
 
-        if Obj.type == 'CURVE':
-            Mode = False
-            if context.mode != 'OBJECT':
-                Mode = not Mode
-                bpy.ops.object.editmode_toggle()
-            Data = Obj.data
-            
-            for Splines in Data.splines:
-                for CVs in Splines.bezier_points:
-                    if context.window_manager.key_points:
-                        CVs.keyframe_delete('co')
-                        CVs.keyframe_delete('handle_left')
-                        CVs.keyframe_delete('handle_right')
-                    if context.window_manager.key_bevel:
-                        CVs.keyframe_delete('radius')
-                    if context.window_manager.key_tilt:
-                        CVs.keyframe_delete('tilt')
-            
-            if Mode:
-                bpy.ops.object.editmode_toggle()
+        Mode = False
+        if context.mode != 'OBJECT':
+            Mode = not Mode
+            bpy.ops.object.editmode_toggle()
+        Data = Obj.data
+        
+        for Splines in Data.splines:
+            for CVs in Splines.bezier_points:
+                if context.window_manager.key_points:
+                    CVs.keyframe_delete('co')
+                    CVs.keyframe_delete('handle_left')
+                    CVs.keyframe_delete('handle_right')
+                if context.window_manager.key_bevel:
+                    CVs.keyframe_delete('radius')
+                if context.window_manager.key_tilt:
+                    CVs.keyframe_delete('tilt')
+        
+        if Mode:
+            bpy.ops.object.editmode_toggle()
 
         return {'FINISHED'}
 
@@ -215,59 +214,47 @@ class CURVE_OT_clear_animation_rotobezier(bpy.types.Operator):
 
     # on mouse up:
     def invoke(self, context, event):
-        
         wm = context.window_manager
         return wm.invoke_confirm(self, event)
     
-    
     def execute(op, context):
-        
         Data = context.active_object.data
         Data.animation_data_clear()
-        
         return {'FINISHED'}
 
 
-# Matte Material Assignment Func
 def MakeMatte (Type):
+    '''
+    Matte Material Assignment Function
+    '''
     
     Obj = bpy.context.active_object
     
     # Material
     def CheckMat (MatName):
-        
         Result = False
-        
         Mats = bpy.data.materials
-        
         for Mat in Mats:
             if Mat.name == MatName:
                 Result = not Result
         
         return Result
     
-    
     if Type == 'White':
-        
         MatName = 'RotoBezier_WhiteMatte'
         MatCol = (1,1,1)
-    
+
     elif Type == 'Black':
-        
         MatName = 'RotoBezier_BlackMatte'
         MatCol = (0,0,0)
-    
+
     if CheckMat(MatName):
-        
         Mat = bpy.data.materials[MatName]
-        
         if not Obj.material_slots:
             bpy.ops.object.material_slot_add()
-            
         Obj.material_slots[0].material = Mat
     
     else:
-        
         Mat = bpy.data.materials.new(MatName)
         Mat.diffuse_color = MatCol
         Mat.use_shadeless = True
@@ -288,6 +275,7 @@ def MakeMatte (Type):
     Curve.use_fill_front = False
     Curve.use_fill_back = False
 
+
 class CURVE_OT_make_white_matte_rotobezier(bpy.types.Operator):
     bl_label = 'White Matte'
     bl_idname = 'curve.make_white_matte_rotobezier'
@@ -296,16 +284,11 @@ class CURVE_OT_make_white_matte_rotobezier(bpy.types.Operator):
 
     # on mouse up:
     def invoke(self, context, event):
-
         self.execute(context)
-
         return {'FINISHED'}
 
-
     def execute(op, context):
-        
         MakeMatte('White')
-
         return {'FINISHED'}
 
 
@@ -317,16 +300,11 @@ class CURVE_OT_make_black_matte_rotobezier(bpy.types.Operator):
 
     # on mouse up:
     def invoke(self, context, event):
-
         self.execute(context)
-
         return {'FINISHED'}
 
-
     def execute(op, context):
-        
         MakeMatte('Black')
-        
         return {'FINISHED'}
 
 
@@ -338,21 +316,16 @@ class CURVE_OT_toggle_handles_rotobezier(bpy.types.Operator):
 
     # on mouse up:
     def invoke(self, context, event):
-        
         self.execute(context)
-        
         return {'FINISHED'}
     
-    
     def execute(op, context):
-        
         Obj = context.active_object
         Curve = Obj.data
         if Curve.show_handles:
             Curve.show_handles = False
         else:
             Curve.show_handles = True
-        
         return {'FINISHED'}
 
 
@@ -364,14 +337,10 @@ class CURVE_OT_toggle_draw_rotobezier(bpy.types.Operator):
 
     # on mouse up:
     def invoke(self, context, event):
-        
         self.execute(context)
-        
         return {'FINISHED'}
     
-    
     def execute(op, context):
-        
         Obj = context.active_object
         
         if Obj.draw_type == 'SOLID':
