@@ -62,11 +62,25 @@ class ListDict(dict):
 
         return value
 
+BINARY_HEADER = 80
+BINARY_STRIDE = 12 * 4 + 2
+
+def _is_ascii_file(data):
+    '''
+    This function returns True if the data represents an ASCII file.
+
+    Please note that a False value does not necessary means that the data
+    represents a binary file. It can be a (very *RARE* in real life, but
+    can easily be forged) ascii file.
+    '''
+    size = struct.unpack_from('<I', data, BINARY_HEADER)[0]
+
+    return not data.size() == BINARY_HEADER + 4 + BINARY_STRIDE * size
 
 def _binary_read(data):
     # an stl binary file is
     # - 80 bytes of description
-    # - 2 bytes of size (unsigned int)
+    # - 4 bytes of size (unsigned int)
     # - size triangles :
     #
     #   - 12 bytes of normal
@@ -75,15 +89,15 @@ def _binary_read(data):
 
     # OFFSET for the first byte of coordinate (headers + first normal bytes)
     # STRIDE between each triangle (first normal + coordinates + garbage)
-    OFFSET, STRIDE = 84 + 12, 12 * 4 + 2
+    OFFSET = BINARY_HEADER + 4 + 12
 
     # read header size, ignore description
-    size = struct.unpack_from('<I', data, 80)[0]
+    size = struct.unpack_from('<I', data, BINARY_HEADER)[0]
     unpack = struct.Struct('<9f').unpack_from
 
     for i in range(size):
         # read the points coordinates of each triangle
-        pt = unpack(data, OFFSET + STRIDE * i)
+        pt = unpack(data, OFFSET + BINARY_STRIDE * i)
         yield pt[:3], pt[3:6], pt[6:]
 
 
@@ -202,7 +216,7 @@ def read_stl(filename):
 
     with mmap_file(filename) as data:
         # check for ascii or binary
-        gen = _ascii_read if data.read(5) == b'solid' else _binary_read
+        gen = _ascii_read if _is_ascii_file(data) else _binary_read
 
         for pt in gen(data):
             # Add the triangle and the point.
