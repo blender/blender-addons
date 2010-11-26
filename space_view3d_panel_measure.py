@@ -19,9 +19,9 @@
 bl_addon_info = {
     "name": "Measure Panel",
     "author": "Buerbaum Martin (Pontiac)",
-    "version": (0, 7, 9),
+    "version": (0, 7, 10),
     "blender": (2, 5, 3),
-    "api": 32411,
+    "api": 33331,
     "location": "View3D > Properties > Measure",
     "description": "Measure distances between objects",
     "warning": "",
@@ -58,10 +58,15 @@ It's very helpful to use one or two "Empty" objects with
 "Snap during transform" enabled for fast measurement.
 
 Version history:
+v0.7.10 - Applied patch by Filiciss Muhgue that (mostly) fixes the quad view.
+    Patch link: https://projects.blender.org/tracker/?func=
+    detail&atid=127&aid=24932&group_id=9
+    Thanks for that!
+    Removed (now) unneeded "attr" setting for properties.
 v0.7.9 - Updated scene properties for changes in property API.
     See http://lists.blender.org/pipermail/bf-committers/
         2010-September/028654.html
-    Synced API changes in7from local copy.
+    Synced API changes in/from local copy.
 v0.7.8 - Various Py API changes by Campbell ...
     bl_default_closed -> bl_options = {'DEFAULT_CLOSED'}
     x.verts -> x.vertices
@@ -436,7 +441,7 @@ def region3d_get_2d_coordinates(context, loc_3d):
     total_mat = view_mat
 
     # order is important
-    vec = total_mat * Vector((loc_3d[0], loc_3d[1], loc_3d[2], 1.0))
+    vec = Vector((loc_3d[0], loc_3d[1], loc_3d[2], 1.0)) * total_mat
 
     # dehomogenise
     vec = Vector((
@@ -469,8 +474,8 @@ def draw_measurements_callback(self, context):
         p1, p2, color = line
 
         # Get and convert the Perspective Matrix of the current view/region.
-        view3d = bpy.context.space_data
-        region = view3d.region_3d
+        view3d = bpy.context
+        region = view3d.region_data
         perspMatrix = region.perspective_matrix
         tempMat = [perspMatrix[i][j] for i in range(4) for j in range(4)]
         perspBuff = bgl.Buffer(bgl.GL_FLOAT, 16, tempMat)
