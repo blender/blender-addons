@@ -19,7 +19,7 @@
 bl_addon_info = {
     "name": "Measure Panel",
     "author": "Buerbaum Martin (Pontiac)",
-    "version": (0, 7, 10),
+    "version": (0, 7, 11),
     "blender": (2, 5, 3),
     "api": 33331,
     "location": "View3D > Properties > Measure",
@@ -58,6 +58,7 @@ It's very helpful to use one or two "Empty" objects with
 "Snap during transform" enabled for fast measurement.
 
 Version history:
+v0.7.11 - Applied patch by Filiciss Muhgue that fixes the text in quad view.
 v0.7.10 - Applied patch by Filiciss Muhgue that (mostly) fixes the quad view.
     Patch link: https://projects.blender.org/tracker/?func=
     detail&atid=127&aid=24932&group_id=9
@@ -437,10 +438,10 @@ def region3d_get_2d_coordinates(context, loc_3d):
     height = context.region.height
 
     # Get matrices
-    view_mat = context.space_data.region_3d.perspective_matrix
+    view_mat = context.region_data.perspective_matrix
     total_mat = view_mat
 
-    # order is important
+    # Order is important
     vec = Vector((loc_3d[0], loc_3d[1], loc_3d[2], 1.0)) * total_mat
 
     # dehomogenise
