@@ -36,12 +36,7 @@ def align_x_axis(obj, bone, vec):
     """
     vec.normalize()
     bone_e = obj.data.edit_bones[bone]
-    dot = bone_e.x_axis.dot(vec)
-    if dot < -1:
-        dot = -1
-    elif dot > 1:
-        dot = 1
-
+    dot = max(-1.0, min(1.0, bone_e.x_axis.dot(vec)))
     angle = acos(dot)
 
     bone_e.roll += angle
@@ -54,6 +49,33 @@ def align_x_axis(obj, bone, vec):
 
     if dot1 > dot2:
         bone_e.roll += angle * 2
+
+
+def angle_on_plane(plane, vec1, vec2):
+    """ Return the angle between two vectors projected onto a plane.
+    """
+    plane.normalize()
+    vec1 = vec1 - (plane * (vec1.dot(plane)))
+    vec2 = vec2 - (plane * (vec2.dot(plane)))
+    vec1.normalize()
+    vec2.normalize()
+
+    # Determine the angle
+    angle = acos(max(-1.0, min(1.0, vec1.dot(vec2))))
+
+    if angle < 0.00001:  # close enough to zero that sign doesn't matter
+        return angle
+
+    # Determine the sign of the angle
+    vec3 = vec2.cross(vec1)
+    vec3.normalize()
+    sign = vec3.dot(plane)
+    if sign >= 0:
+        sign = 1
+    else:
+        sign = -1
+
+    return angle * sign
 
 
 class Rig:
@@ -258,6 +280,12 @@ class Rig:
         foot_ik_target_e.head = Vector(org_foot_e.head)
         foot_ik_target_e.tail = Vector(org_foot_e.tail)
 
+        # Determine the pole offset value
+        plane = (shin_e.tail - thigh_e.head).normalize()
+        vec1 = thigh_e.x_axis.normalize()
+        vec2 = (pole_e.head - thigh_e.head).normalize()
+        pole_offset = angle_on_plane(plane, vec1, vec2)
+
         # Object mode, get pose bones
         bpy.ops.object.mode_set(mode='OBJECT')
         pb = self.obj.pose.bones
@@ -312,14 +340,7 @@ class Rig:
         con.subtarget = foot_ik_target
         con.pole_target = self.obj
         con.pole_subtarget = pole
-        if self.primary_rotation_axis == 'X' or self.primary_rotation_axis == 'Y':
-            con.pole_angle = -pi / 2
-        elif self.primary_rotation_axis == '-X' or self.primary_rotation_axis == '-Y':
-            con.pole_angle = pi / 2
-        elif self.primary_rotation_axis == 'Z':
-            con.pole_angle = 0.0
-        elif self.primary_rotation_axis == '-Z':
-            con.pole_angle = pi
+        con.pole_angle = pole_offset
         con.chain_count = 2
 
         # toe_parent constraint

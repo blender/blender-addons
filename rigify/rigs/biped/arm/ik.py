@@ -18,7 +18,7 @@
 
 import bpy
 from mathutils import Vector
-from math import pi
+from math import pi, acos
 from rigify.utils import MetarigError
 from rigify.utils import copy_bone
 from rigify.utils import connected_children_names
@@ -26,6 +26,33 @@ from rigify.utils import strip_org, make_mechanism_name, insert_before_lr
 from rigify.utils import get_layers
 from rigify.utils import create_widget, create_line_widget, create_sphere_widget
 from rna_prop_ui import rna_idprop_ui_prop_get
+
+
+def angle_on_plane(plane, vec1, vec2):
+    """ Return the angle between two vectors projected onto a plane.
+    """
+    plane.normalize()
+    vec1 = vec1 - (plane * (vec1.dot(plane)))
+    vec2 = vec2 - (plane * (vec2.dot(plane)))
+    vec1.normalize()
+    vec2.normalize()
+
+    # Determine the angle
+    angle = acos(max(-1.0, min(1.0, vec1.dot(vec2))))
+
+    if angle < 0.00001:  # close enough to zero that sign doesn't matter
+        return angle
+
+    # Determine the sign of the angle
+    vec3 = vec2.cross(vec1)
+    vec3.normalize()
+    sign = vec3.dot(plane)
+    if sign >= 0:
+        sign = 1
+    else:
+        sign = -1
+
+    return angle * sign
 
 
 class Rig:
@@ -130,6 +157,12 @@ class Rig:
         vishand_e.tail = vishand_e.head + Vector((0, 0, v1.length / 32))
         vispole_e.tail = vispole_e.head + Vector((0, 0, v1.length / 32))
 
+        # Determine the pole offset value
+        plane = (farm_e.tail - uarm_e.head).normalize()
+        vec1 = uarm_e.x_axis.normalize()
+        vec2 = (pole_e.head - uarm_e.head).normalize()
+        pole_offset = angle_on_plane(plane, vec1, vec2)
+
         # Object mode, get pose bones
         bpy.ops.object.mode_set(mode='OBJECT')
         pb = self.obj.pose.bones
@@ -172,14 +205,7 @@ class Rig:
         con.subtarget = hand
         con.pole_target = self.obj
         con.pole_subtarget = pole
-        if self.primary_rotation_axis == 'X' or self.primary_rotation_axis == 'Y':
-            con.pole_angle = -pi / 2
-        elif self.primary_rotation_axis == '-X' or self.primary_rotation_axis == '-Y':
-            con.pole_angle = pi / 2
-        elif self.primary_rotation_axis == 'Z':
-            con.pole_angle = 0.0
-        elif self.primary_rotation_axis == '-Z':
-            con.pole_angle = pi
+        con.pole_angle = pole_offset
         con.chain_count = 2
 
         # Constrain org bones to controls
