@@ -231,14 +231,6 @@ def MakeMatte (Type):
     Obj = bpy.context.active_object
     
     # Material
-    def CheckMat (MatName):
-        Result = False
-        Mats = bpy.data.materials
-        for Mat in Mats:
-            if Mat.name == MatName:
-                Result = not Result
-        
-        return Result
     
     if Type == 'White':
         MatName = 'RotoBezier_WhiteMatte'
@@ -248,7 +240,7 @@ def MakeMatte (Type):
         MatName = 'RotoBezier_BlackMatte'
         MatCol = (0,0,0)
 
-    if CheckMat(MatName):
+    if bpy.data.materials.get(MatName):
         Mat = bpy.data.materials[MatName]
         if not Obj.material_slots:
             bpy.ops.object.material_slot_add()
