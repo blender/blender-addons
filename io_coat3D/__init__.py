@@ -199,7 +199,8 @@ def register():
         ("vox",  "Mesh As Voxel Object", ""),
         ("alpha",  "Mesh As New Pen Alpha", ""),
         ("prim",  "Mesh As Voxel Primitive", ""),
-        ("autopo",  "Mesh for Auto-retopology", ""),
+        ("curv", "Mesh As a Curve Profile", ""),
+        ("autopo",  "Mesh For Auto-retopology", ""),
     ),
     default= "ppp"
     )
