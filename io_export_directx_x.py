@@ -18,9 +18,9 @@
 bl_addon_info = {
     "name": "Export DirectX Model Format (.x)",
     "author": "Chris Foster (Kira Vakaan)",
-    "version": (1,9),
+    "version": (2,0),
     "blender": (2, 5, 3),
-    "api": 32681,
+    "api": 33427,
     "location": "File > Export",
     "description": "Export to the DirectX Model Format (.x)",
     "warning": "",
@@ -668,8 +668,13 @@ def WriteKeyedAnimationSet(Config):
                     if FCurve:
                         Keyframes = []
                         for Keyframe in FCurve.keyframe_points:
-                            Keyframes.append(Keyframe.co)
-                            AllKeyframes.add(int(Keyframe.co[0]))
+                            if Keyframe.co[0] < bpy.context.scene.frame_start:
+                                AllKeyframes.add(bpy.context.scene.frame_start)
+                            elif Keyframe.co[0] > bpy.context.scene.frame_end:
+                                AllKeyframes.add(bpy.context.scene.frame_end)
+                            else:
+                                Keyframes.append(Keyframe.co)
+                                AllKeyframes.add(int(Keyframe.co[0]))
                         PositionFCurves[Index] = {int(Keyframe): Value for Keyframe, Value in Keyframes}
                 Config.File.write("{}AnimationKey {{ //Position\n".format("  " * Config.Whitespace))
                 Config.Whitespace += 1
@@ -683,12 +688,17 @@ def WriteKeyedAnimationSet(Config):
                         Position[0] = ((PositionFCurves[0][Keyframe] if Keyframe in PositionFCurves[0] else Object.location[0]) if PositionFCurves[0] else Object.location[0])
                         Position[1] = ((PositionFCurves[1][Keyframe] if Keyframe in PositionFCurves[1] else Object.location[1]) if PositionFCurves[1] else Object.location[1])
                         Position[2] = ((PositionFCurves[2][Keyframe] if Keyframe in PositionFCurves[2] else Object.location[2]) if PositionFCurves[2] else Object.location[2])
-                        Config.File.write("{}{}{:9f},{:9f},{:9f};;\n".format("  " * Config.Whitespace, (str(Keyframe - bpy.context.scene.frame_start) + ";3;").ljust(8), Position[0], Position[1], Position[2]))
+                        Config.File.write("{}{}{:9f},{:9f},{:9f};;".format("  " * Config.Whitespace, (str(Keyframe - bpy.context.scene.frame_start) + ";3;").ljust(8), Position[0], Position[1], Position[2]))
+                        if Keyframe == AllKeyframes[-1]:
+                            Config.File.write(";\n")
+                        else:
+                            Config.File.write(",\n")
+                        
                 else:
                     Config.File.write("{}2;\n{}1;\n".format("  " * Config.Whitespace, "  " * Config.Whitespace))
                     bpy.context.scene.frame_set(bpy.context.scene.frame_start)
                     Position = Object.matrix_local.translation_part()
-                    Config.File.write("{}{}{:9f},{:9f},{:9f};;\n".format("  " * Config.Whitespace, ("0;3;").ljust(8), Position[0], Position[1], Position[2]))
+                    Config.File.write("{}{}{:9f},{:9f},{:9f};;;\n".format("  " * Config.Whitespace, ("0;3;").ljust(8), Position[0], Position[1], Position[2]))
                 Config.Whitespace -= 1
                 Config.File.write("{}}}\n".format("  " * Config.Whitespace))
                 if Config.Verbose:
@@ -702,8 +712,13 @@ def WriteKeyedAnimationSet(Config):
                     if FCurve:
                         Keyframes = []
                         for Keyframe in FCurve.keyframe_points:
-                            Keyframes.append(Keyframe.co)
-                            AllKeyframes.add(int(Keyframe.co[0]))
+                            if Keyframe.co[0] < bpy.context.scene.frame_start:
+                                AllKeyframes.add(bpy.context.scene.frame_start)
+                            elif Keyframe.co[0] > bpy.context.scene.frame_end:
+                                AllKeyframes.add(bpy.context.scene.frame_end)
+                            else:
+                                Keyframes.append(Keyframe.co)
+                                AllKeyframes.add(int(Keyframe.co[0]))
                         RotationFCurves[Index] = {int(Keyframe): Value for Keyframe, Value in Keyframes}
                 Config.File.write("{}AnimationKey {{ //Rotation\n".format("  " * Config.Whitespace))
                 Config.Whitespace += 1
@@ -718,12 +733,16 @@ def WriteKeyedAnimationSet(Config):
                         Rotation[1] = ((RotationFCurves[1][Keyframe] if Keyframe in RotationFCurves[1] else Object.rotation_euler[1]) if RotationFCurves[1] else Object.rotation_euler[1])
                         Rotation[2] = ((RotationFCurves[2][Keyframe] if Keyframe in RotationFCurves[2] else Object.rotation_euler[2]) if RotationFCurves[2] else Object.rotation_euler[2])
                         Rotation = Rotation.to_quat()
-                        Config.File.write("{}{}{:9f},{:9f},{:9f},{:9f};;\n".format("  " * Config.Whitespace, (str(Keyframe - bpy.context.scene.frame_start) + ";4;").ljust(8), - Rotation[0], Rotation[1], Rotation[2], Rotation[3]))
+                        Config.File.write("{}{}{:9f},{:9f},{:9f},{:9f};;".format("  " * Config.Whitespace, (str(Keyframe - bpy.context.scene.frame_start) + ";4;").ljust(8), - Rotation[0], Rotation[1], Rotation[2], Rotation[3]))
+                        if Keyframe == AllKeyframes[-1]:
+                            Config.File.write(";\n")
+                        else:
+                            Config.File.write(",\n")
                 else:
                     Config.File.write("{}0;\n{}1;\n".format("  " * Config.Whitespace, "  " * Config.Whitespace))
                     bpy.context.scene.frame_set(bpy.context.scene.frame_start)
                     Rotation = Object.rotation_euler.to_quat()
-                    Config.File.write("{}{}{:9f},{:9f},{:9f},{:9f};;\n".format("  " * Config.Whitespace, ("0;4;").ljust(8), -Rotation[0], Rotation[1], Rotation[2], Rotation[3]))
+                    Config.File.write("{}{}{:9f},{:9f},{:9f},{:9f};;;\n".format("  " * Config.Whitespace, ("0;4;").ljust(8), -Rotation[0], Rotation[1], Rotation[2], Rotation[3]))
                 Config.Whitespace -= 1
                 Config.File.write("{}}}\n".format("  " * Config.Whitespace))
                 if Config.Verbose:
@@ -737,8 +756,13 @@ def WriteKeyedAnimationSet(Config):
                     if FCurve:
                         Keyframes = []
                         for Keyframe in FCurve.keyframe_points:
-                            Keyframes.append(Keyframe.co)
-                            AllKeyframes.add(int(Keyframe.co[0]))
+                            if Keyframe.co[0] < bpy.context.scene.frame_start:
+                                AllKeyframes.add(bpy.context.scene.frame_start)
+                            elif Keyframe.co[0] > bpy.context.scene.frame_end:
+                                AllKeyframes.add(bpy.context.scene.frame_end)
+                            else:
+                                Keyframes.append(Keyframe.co)
+                                AllKeyframes.add(int(Keyframe.co[0]))
                         ScaleFCurves[Index] = {int(Keyframe): Value for Keyframe, Value in Keyframes}
                 Config.File.write("{}AnimationKey {{ //Scale\n".format("  " * Config.Whitespace))
                 Config.Whitespace += 1
@@ -752,12 +776,16 @@ def WriteKeyedAnimationSet(Config):
                         Scale[0] = ((ScaleFCurves[0][Keyframe] if Keyframe in ScaleFCurves[0] else Object.scale[0]) if ScaleFCurves[0] else Object.scale[0])
                         Scale[1] = ((ScaleFCurves[1][Keyframe] if Keyframe in ScaleFCurves[1] else Object.scale[1]) if ScaleFCurves[1] else Object.scale[1])
                         Scale[2] = ((ScaleFCurves[2][Keyframe] if Keyframe in ScaleFCurves[2] else Object.scale[2]) if ScaleFCurves[2] else Object.scale[2])
-                        Config.File.write("{}{}{:9f},{:9f},{:9f};;\n".format("  " * Config.Whitespace, (str(Keyframe - bpy.context.scene.frame_start) + ";3;").ljust(8), Scale[0], Scale[1], Scale[2]))
+                        Config.File.write("{}{}{:9f},{:9f},{:9f};;".format("  " * Config.Whitespace, (str(Keyframe - bpy.context.scene.frame_start) + ";3;").ljust(8), Scale[0], Scale[1], Scale[2]))
+                        if Keyframe == AllKeyframes[-1]:
+                            Config.File.write(";\n")
+                        else:
+                            Config.File.write(",\n")
                 else:
                     Config.File.write("{}1;\n{}1;\n".format("  " * Config.Whitespace, "  " * Config.Whitespace))
                     bpy.context.scene.frame_set(bpy.context.scene.frame_start)
                     Scale = Object.matrix_local.scale_part()
-                    Config.File.write("{}{}{:9f},{:9f},{:9f};;\n".format("  " * Config.Whitespace, ("0;3;").ljust(8), Scale[0], Scale[1], Scale[2]))
+                    Config.File.write("{}{}{:9f},{:9f},{:9f};;;\n".format("  " * Config.Whitespace, ("0;3;").ljust(8), Scale[0], Scale[1], Scale[2]))
                 Config.Whitespace -= 1
                 Config.File.write("{}}}\n".format("  " * Config.Whitespace))
                 if Config.Verbose:
@@ -803,8 +831,13 @@ def WriteKeyedAnimationSet(Config):
                         if FCurve:
                             Keyframes = []
                             for Keyframe in FCurve.keyframe_points:
-                                Keyframes.append(Keyframe.co)
-                                AllKeyframes.add(int(Keyframe.co[0]))
+                                if Keyframe.co[0] < bpy.context.scene.frame_start:
+                                    AllKeyframes.add(bpy.context.scene.frame_start)
+                                elif Keyframe.co[0] > bpy.context.scene.frame_end:
+                                    AllKeyframes.add(bpy.context.scene.frame_end)
+                                else:
+                                    Keyframes.append(Keyframe.co)
+                                    AllKeyframes.add(int(Keyframe.co[0]))
                             PositionFCurves[Index] = {int(Keyframe): Value for Keyframe, Value in Keyframes}
                     Config.File.write("{}AnimationKey {{ //Position\n".format("  " * Config.Whitespace))
                     Config.Whitespace += 1
@@ -823,7 +856,11 @@ def WriteKeyedAnimationSet(Config):
                         PoseMatrix *= Bone.matrix
                         
                         Position = PoseMatrix.translation_part()
-                        Config.File.write("{}{}{:9f},{:9f},{:9f};;\n".format("  " * Config.Whitespace, (str(Keyframe - bpy.context.scene.frame_start) + ";3;").ljust(8), Position[0], Position[1], Position[2]))
+                        Config.File.write("{}{}{:9f},{:9f},{:9f};;".format("  " * Config.Whitespace, (str(Keyframe - bpy.context.scene.frame_start) + ";3;").ljust(8), Position[0], Position[1], Position[2]))
+                        if Keyframe == AllKeyframes[-1]:
+                            Config.File.write(";\n")
+                        else:
+                            Config.File.write(",\n")
                     Config.Whitespace -= 1
                     Config.File.write("{}}}\n".format("  " * Config.Whitespace))
                     if Config.Verbose:
@@ -837,8 +874,13 @@ def WriteKeyedAnimationSet(Config):
                         if FCurve:
                             Keyframes = []
                             for Keyframe in FCurve.keyframe_points:
-                                Keyframes.append(Keyframe.co)
-                                AllKeyframes.add(int(Keyframe.co[0]))
+                                if Keyframe.co[0] < bpy.context.scene.frame_start:
+                                    AllKeyframes.add(bpy.context.scene.frame_start)
+                                elif Keyframe.co[0] > bpy.context.scene.frame_end:
+                                    AllKeyframes.add(bpy.context.scene.frame_end)
+                                else:
+                                    Keyframes.append(Keyframe.co)
+                                    AllKeyframes.add(int(Keyframe.co[0]))
                             RotationFCurves[Index] = {int(Keyframe): Value for Keyframe, Value in Keyframes}
                     Config.File.write("{}AnimationKey {{ //Rotation\n".format("  " * Config.Whitespace))
                     Config.Whitespace += 1
@@ -857,7 +899,11 @@ def WriteKeyedAnimationSet(Config):
                         PoseMatrix *= Bone.matrix
                         
                         Rotation = PoseMatrix.rotation_part().to_quat()
-                        Config.File.write("{}{}{:9f},{:9f},{:9f},{:9f};;\n".format("  " * Config.Whitespace, (str(Keyframe - bpy.context.scene.frame_start) + ";4;").ljust(8), -Rotation[0], Rotation[1], Rotation[2], Rotation[3]))
+                        Config.File.write("{}{}{:9f},{:9f},{:9f},{:9f};;".format("  " * Config.Whitespace, (str(Keyframe - bpy.context.scene.frame_start) + ";4;").ljust(8), -Rotation[0], Rotation[1], Rotation[2], Rotation[3]))
+                        if Keyframe == AllKeyframes[-1]:
+                            Config.File.write(";\n")
+                        else:
+                            Config.File.write(",\n")
                     Config.Whitespace -= 1
                     Config.File.write("{}}}\n".format("  " * Config.Whitespace))
                     if Config.Verbose:
@@ -871,8 +917,13 @@ def WriteKeyedAnimationSet(Config):
                         if FCurve:
                             Keyframes = []
                             for Keyframe in FCurve.keyframe_points:
-                                Keyframes.append(Keyframe.co)
-                                AllKeyframes.add(int(Keyframe.co[0]))
+                                if Keyframe.co[0] < bpy.context.scene.frame_start:
+                                    AllKeyframes.add(bpy.context.scene.frame_start)
+                                elif Keyframe.co[0] > bpy.context.scene.frame_end:
+                                    AllKeyframes.add(bpy.context.scene.frame_end)
+                                else:
+                                    Keyframes.append(Keyframe.co)
+                                    AllKeyframes.add(int(Keyframe.co[0]))
                             ScaleFCurves[Index] = {int(Keyframe): Value for Keyframe, Value in Keyframes}
                     Config.File.write("{}AnimationKey {{ //Scale\n".format("  " * Config.Whitespace))
                     Config.Whitespace += 1
@@ -891,7 +942,11 @@ def WriteKeyedAnimationSet(Config):
                         PoseMatrix *= Bone.matrix
                         
                         Scale = PoseMatrix.scale_part()
-                        Config.File.write("{}{}{:9f},{:9f},{:9f};;\n".format("  " * Config.Whitespace, (str(Keyframe - bpy.context.scene.frame_start) + ";3;").ljust(8), Scale[0], Scale[1], Scale[2]))
+                        Config.File.write("{}{}{:9f},{:9f},{:9f};;".format("  " * Config.Whitespace, (str(Keyframe - bpy.context.scene.frame_start) + ";3;").ljust(8), Scale[0], Scale[1], Scale[2]))
+                        if Keyframe == AllKeyframes[-1]:
+                            Config.File.write(";\n")
+                        else:
+                            Config.File.write(",\n")
                     Config.Whitespace -= 1
                     Config.File.write("{}}}\n".format("  " * Config.Whitespace))
                     if Config.Verbose:
@@ -932,7 +987,11 @@ def WriteFullAnimationSet(Config):
         for Frame in range(0, KeyframeCount):
             bpy.context.scene.frame_set(Frame + bpy.context.scene.frame_start)
             Position = Object.matrix_local.translation_part()
-            Config.File.write("{}{}{:9f},{:9f},{:9f};;\n".format("  " * Config.Whitespace, (str(Frame) + ";3;").ljust(8), Position[0], Position[1], Position[2]))
+            Config.File.write("{}{}{:9f},{:9f},{:9f};;".format("  " * Config.Whitespace, (str(Frame) + ";3;").ljust(8), Position[0], Position[1], Position[2]))
+            if Frame == KeyframeCount-1:
+                Config.File.write(";\n")
+            else:
+                Config.File.write(",\n")
         Config.Whitespace -= 1
         Config.File.write("{}}}\n".format("  " * Config.Whitespace))
         if Config.Verbose:
@@ -947,7 +1006,11 @@ def WriteFullAnimationSet(Config):
         for Frame in range(0, KeyframeCount):
             bpy.context.scene.frame_set(Frame + bpy.context.scene.frame_start)
             Rotation = Object.rotation_euler.to_quat()
-            Config.File.write("{}{}{:9f},{:9f},{:9f},{:9f};;\n".format("  " * Config.Whitespace, (str(Frame) + ";4;").ljust(8), -Rotation[0], Rotation[1], Rotation[2], Rotation[3]))
+            Config.File.write("{}{}{:9f},{:9f},{:9f},{:9f};;".format("  " * Config.Whitespace, (str(Frame) + ";4;").ljust(8), -Rotation[0], Rotation[1], Rotation[2], Rotation[3]))
+            if Frame == KeyframeCount-1:
+                Config.File.write(";\n")
+            else:
+                Config.File.write(",\n")
         Config.Whitespace -= 1
         Config.File.write("{}}}\n".format("  " * Config.Whitespace))
         if Config.Verbose:
@@ -962,7 +1025,11 @@ def WriteFullAnimationSet(Config):
         for Frame in range(0, KeyframeCount):
             bpy.context.scene.frame_set(Frame + bpy.context.scene.frame_start)
             Scale = Object.matrix_local.scale_part()
-            Config.File.write("{}{}{:9f},{:9f},{:9f};;\n".format("  " * Config.Whitespace, (str(Frame) + ";3;").ljust(8), Scale[0], Scale[1], Scale[2]))
+            Config.File.write("{}{}{:9f},{:9f},{:9f};;".format("  " * Config.Whitespace, (str(Frame) + ";3;").ljust(8), Scale[0], Scale[1], Scale[2]))
+            if Frame == KeyframeCount-1:
+                Config.File.write(";\n")
+            else:
+                Config.File.write(",\n")
         Config.Whitespace -= 1
         Config.File.write("{}}}\n".format("  " * Config.Whitespace))
         if Config.Verbose:
@@ -1000,7 +1067,11 @@ def WriteFullAnimationSet(Config):
                     PoseMatrix *= Bone.matrix
                     
                     Position = PoseMatrix.translation_part()
-                    Config.File.write("{}{}{:9f},{:9f},{:9f};;\n".format("  " * Config.Whitespace, (str(Frame) + ";3;").ljust(8), Position[0], Position[1], Position[2]))
+                    Config.File.write("{}{}{:9f},{:9f},{:9f};;".format("  " * Config.Whitespace, (str(Frame) + ";3;").ljust(8), Position[0], Position[1], Position[2]))
+                    if Frame == KeyframeCount-1:
+                        Config.File.write(";\n")
+                    else:
+                        Config.File.write(",\n")
                 Config.Whitespace -= 1
                 Config.File.write("{}}}\n".format("  " * Config.Whitespace))
                 if Config.Verbose:
@@ -1017,7 +1088,11 @@ def WriteFullAnimationSet(Config):
                     
                     Rotation = Bones[Bone.name].matrix.to_quat() * Bone.rotation_quaternion
                     
-                    Config.File.write("{}{}{:9f},{:9f},{:9f},{:9f};;\n".format("  " * Config.Whitespace, (str(Frame) + ";4;").ljust(8), -Rotation[0], Rotation[1], Rotation[2], Rotation[3]))
+                    Config.File.write("{}{}{:9f},{:9f},{:9f},{:9f};;".format("  " * Config.Whitespace, (str(Frame) + ";4;").ljust(8), -Rotation[0], Rotation[1], Rotation[2], Rotation[3]))
+                    if Frame == KeyframeCount-1:
+                        Config.File.write(";\n")
+                    else:
+                        Config.File.write(",\n")
                 Config.Whitespace -= 1
                 Config.File.write("{}}}\n".format("  " * Config.Whitespace))
                 if Config.Verbose:
@@ -1039,7 +1114,11 @@ def WriteFullAnimationSet(Config):
                     PoseMatrix *= Bone.matrix
                     
                     Scale = PoseMatrix.scale_part()
-                    Config.File.write("{}{}{:9f},{:9f},{:9f};;\n".format("  " * Config.Whitespace, (str(Frame) + ";3;").ljust(8), Scale[0], Scale[1], Scale[2])) 
+                    Config.File.write("{}{}{:9f},{:9f},{:9f};;".format("  " * Config.Whitespace, (str(Frame) + ";3;").ljust(8), Scale[0], Scale[1], Scale[2]))
+                    if Frame == KeyframeCount-1:
+                        Config.File.write(";\n")
+                    else:
+                        Config.File.write(",\n")
                 Config.Whitespace -= 1
                 Config.File.write("{}}}\n".format("  " * Config.Whitespace))
                 if Config.Verbose:
