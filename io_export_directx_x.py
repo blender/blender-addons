@@ -19,7 +19,7 @@ bl_addon_info = {
     "name": "Export DirectX Model Format (.x)",
     "author": "Chris Foster (Kira Vakaan)",
     "version": (2,0),
-    "blender": (2, 5, 3),
+    "blender": (2, 5, 5),
     "api": 33427,
     "location": "File > Export",
     "description": "Export to the DirectX Model Format (.x)",
