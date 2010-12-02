@@ -236,3 +236,17 @@ especially with more complex samples.  There is a function in utils.py
 that will generate the code for create_sample() for you, based on a selected
 armature.  The function is called write_metarig()
 
+
+GENERATING A PYTHON UI
+----------------------
+The generate() method can also, optionally, return python code as a string.
+This python code is added to the "rig properties" panel that gets
+auto-generated along with the rig.  This is useful for exposing things like
+IK/FK switches in a nice way to the animator.
+
+The string must be returned in a list:
+
+return ["my python code"]
+
+Otherwise it won't work.
+
