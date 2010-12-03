@@ -146,17 +146,27 @@ class CURVE_OT_insert_keyframe_rotobezier(bpy.types.Operator):
             bpy.ops.object.editmode_toggle()
         Data = Obj.data
         
-        for Splines in Data.splines:
-            for CVs in Splines.bezier_points:
-                if context.window_manager.key_points:
-                    CVs.keyframe_insert('co')
-                    CVs.keyframe_insert('handle_left')
-                    CVs.keyframe_insert('handle_right')
-                if context.window_manager.key_bevel:
-                    CVs.keyframe_insert('radius')
-                if context.window_manager.key_tilt:
-                    CVs.keyframe_insert('tilt')
-            
+        for Spline in Data.splines:
+            if Spline.type == 'BEZIER':
+                for CV in Spline.bezier_points:
+                    if context.window_manager.key_points:
+                        CV.keyframe_insert('co')
+                        CV.keyframe_insert('handle_left')
+                        CV.keyframe_insert('handle_right')
+                    if context.window_manager.key_bevel:
+                        CV.keyframe_insert('radius')
+                    if context.window_manager.key_tilt:
+                        CV.keyframe_insert('tilt')
+                    
+            elif Spline.type == 'NURBS':
+                for CV in Spline.points:
+                    if context.window_manager.key_points:
+                        CV.keyframe_insert('co')
+                    if context.window_manager.key_bevel:
+                        CV.keyframe_insert('radius')
+                    if context.window_manager.key_tilt:
+                        CV.keyframe_insert('tilt')
+                        
         if Mode:
             bpy.ops.object.editmode_toggle()
 
@@ -189,17 +199,27 @@ class CURVE_OT_delete_keyframe_rotobezier(bpy.types.Operator):
             bpy.ops.object.editmode_toggle()
         Data = Obj.data
         
-        for Splines in Data.splines:
-            for CVs in Splines.bezier_points:
-                if context.window_manager.key_points:
-                    CVs.keyframe_delete('co')
-                    CVs.keyframe_delete('handle_left')
-                    CVs.keyframe_delete('handle_right')
-                if context.window_manager.key_bevel:
-                    CVs.keyframe_delete('radius')
-                if context.window_manager.key_tilt:
-                    CVs.keyframe_delete('tilt')
-        
+        for Spline in Data.splines:
+            if Spline.type == 'BEZIER':
+                for CV in Spline.bezier_points:
+                    if context.window_manager.key_points:
+                        CV.keyframe_delete('co')
+                        CV.keyframe_delete('handle_left')
+                        CV.keyframe_delete('handle_right')
+                    if context.window_manager.key_bevel:
+                        CV.keyframe_delete('radius')
+                    if context.window_manager.key_tilt:
+                        CV.keyframe_delete('tilt')
+                    
+            elif Spline.type == 'NURBS':
+                for CV in Spline.points:
+                    if context.window_manager.key_points:
+                        CV.keyframe_delete('co')
+                    if context.window_manager.key_bevel:
+                        CV.keyframe_delete('radius')
+                    if context.window_manager.key_tilt:
+                        CV.keyframe_delete('tilt')
+                        
         if Mode:
             bpy.ops.object.editmode_toggle()
 
