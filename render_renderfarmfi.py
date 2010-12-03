@@ -802,6 +802,7 @@ class ORE_PrepareOp(bpy.types.Operator):
         
         rd = sce.render
         
+        bpy.ops.file.pack_all()
         print("=============================================")
         rd.threads_mode = 'FIXED'
         rd.threads = 1
