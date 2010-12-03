@@ -19,7 +19,7 @@
 bl_addon_info = {
     'name': 'RotoBezier',
     'author': 'Daniel Salazar <zanqdo@gmail.com>',
-    'version': (0, 7),
+    'version': (0, 8),
     'blender': (2, 5, 5),
     'api': 33232,
     'location': 'Select a Curve: Toolbar > RotoBezier panel',
@@ -36,13 +36,14 @@ bl_addon_info = {
 Thanks to Campbell Barton for his API additions and fixes
 Daniel Salazar - ZanQdo
 
-Rev 0.1 initial release
-Rev 0.2 new make matte object tools and convenient display toggles
-Rev 0.3 tool to clear all animation from the curve
-Rev 0.4 moved from curve properties to toolbar
-Rev 0.5 added pass index property
-Rev 0.6 re-arranged UI
+Rev 0.1 Initial release
+Rev 0.2 New make matte object tools and convenient display toggles
+Rev 0.3 Tool to clear all animation from the curve
+Rev 0.4 Moved from curve properties to toolbar
+Rev 0.5 Added pass index property
+Rev 0.6 Re-arranged UI
 Rev 0.7 Adding options for what properties to keyframe
+Rev 0.8 Allowing to key NURBS
 -------------------------------------------------------------------------
 '''
 
