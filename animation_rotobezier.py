@@ -100,7 +100,7 @@ class VIEW3D_PT_rotobezier(bpy.types.Panel):
         row.operator('curve.insert_keyframe_rotobezier', icon='KEY_HLT')
         row.operator('curve.delete_keyframe_rotobezier', icon='KEY_DEHLT')
         row = layout.row()
-        row.operator('curve.clear_animation_rotobezier', icon='CANCEL')
+        row.operator('curve.clear_animation_rotobezier', icon='X')
         
         col = layout.column()
         
