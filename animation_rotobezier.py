@@ -97,19 +97,19 @@ class VIEW3D_PT_rotobezier(bpy.types.Panel):
         row.prop(context.window_manager, "key_tilt")
         
         row = col.row()
-        row.operator('curve.insert_keyframe_rotobezier')
-        row.operator('curve.delete_keyframe_rotobezier')
+        row.operator('curve.insert_keyframe_rotobezier', icon='KEY_HLT')
+        row.operator('curve.delete_keyframe_rotobezier', icon='KEY_DEHLT')
         row = layout.row()
-        row.operator('curve.clear_animation_rotobezier')
+        row.operator('curve.clear_animation_rotobezier', icon='CANCEL')
         
         col = layout.column()
         
         col.label(text="Display:")
         row = col.row()
-        row.operator('curve.toggle_draw_rotobezier')
+        row.operator('curve.toggle_draw_rotobezier', icon='MESH_CIRCLE')
         
         if context.mode == 'EDIT_CURVE':
-            row.operator('curve.toggle_handles_rotobezier')
+            row.operator('curve.toggle_handles_rotobezier', icon='CURVE_BEZCIRCLE')
         
         col = layout.column(align=True)
         
