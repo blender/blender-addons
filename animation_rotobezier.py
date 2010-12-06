@@ -24,7 +24,7 @@ bl_addon_info = {
     'api': 33232,
     'location': 'Select a Curve: Toolbar > RotoBezier panel',
     'description': 'Allows animation of bezier curves for rotoscoping',
-    'warning': 'Currently adding new CVs to an already animated curve isn\'t safe', 
+    'warning': '',
     'wiki_url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/'\
         'Scripts/Animation/RotoBezier',
     'tracker_url': 'http://projects.blender.org/tracker/index.php?'\
