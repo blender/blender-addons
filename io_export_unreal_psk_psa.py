@@ -1769,8 +1769,6 @@ class OBJECT_OT_UnrealExport(bpy.types.Operator):
 		return{'FINISHED'}    
 
 def menu_func(self, context):
-	bpy.context.scene.unrealexportpsk = True
-	bpy.context.scene.unrealexportpsa = True
 	default_path = os.path.splitext(bpy.data.filepath)[0] + ".psk"
 	self.layout.operator("export.udk_anim_data", text="Skeleton Mesh / Animation Data (.psk/.psa)").filepath = default_path
 
