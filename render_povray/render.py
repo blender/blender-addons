@@ -221,288 +221,151 @@ def write_pov(filename, scene=None, info_callback=None):
 
         name = materialNames[name_orig] = uniqueName(bpy.path.clean_name(name_orig), materialNames)
 
-        file.write('#declare %s = finish {\n' % safety0(name))
 
-        if material:
+        ##################Several versions of the finish: Level conditions are variations for specular/Mirror texture channel map with alternative finish of 0 specular and no mirror reflection
+        def povHasnoSpecularMaps():
+            if Level == 2:
+                file.write('#declare %s = finish {\n' % safety(name))
+            elif Level == 1:
+                file.write('#declare %s = finish {\n' % safety0(name))
+            elif Level == 3:
+                file.write('#declare %s = finish {\n' % safety1(name))
 
-            #Povray 3.7 now uses two diffuse values respectively for front and back shading (the back diffuse is like blender translucency)
-            frontDiffuse=material.diffuse_intensity
-            backDiffuse=material.translucency
-            
-            #But the conserve energy keyword does not keep their sum realistic in pov
-            #we can add this feature before the script writes their values to pov scene 
-            if material.pov_conserve_energy:
 
-                #Total of spec + diff should not go above one
-                if (frontDiffuse + backDiffuse) <= 1.0:
-                    pass
-                elif frontDiffuse==backDiffuse:
-                    frontDiffuse = backDiffuse = 0.5 # Try to respect the user's "intention" by comparing the two values but bringing the total back to one
-                elif frontDiffuse>backDiffuse:       # Let the highest value stay the highest value
-                    backDiffuse = 1-(1-frontDiffuse)
-                else:
-                    frontDiffuse = 1-(1-backDiffuse)
-                
-
-            # map hardness between 0.0 and 1.0
-            roughness = ((1.0 - ((material.specular_hardness - 1.0) / 510.0)))
-            ## scale from 0.0 to 0.1
-            roughness *= 0.1
-            # add a small value because 0.0 is invalid
-            roughness += (1 / 511.0)
-
-            #####################################Diffuse Shader######################################
-            if material.diffuse_shader == 'OREN_NAYAR':
-                file.write('\tbrilliance %.3g\n' % (0.9+material.roughness))#blender roughness is what is generally called oren nayar Sigma, and brilliance in povray
-
-            if material.diffuse_shader == 'TOON':
-                file.write('\tbrilliance %.3g\n' % (0.01+material.diffuse_toon_smooth*0.25))
-                frontDiffuse*=0.5 #Lower diffuse and increase specular for toon effect seems to look better in povray
-            
-            if material.diffuse_shader == 'MINNAERT':
-                #file.write('\taoi %.3g\n' % material.darkness) #not real syntax, aoi is a pattern.
-                pass # Have to put this in texture since AOI and slope map are patterns
-            if material.diffuse_shader == 'FRESNEL':
-                #file.write('\taoi %.3g\n' % material.diffuse_fresnel_factor) #not real syntax, aoi is a pattern.
-                pass # Have to put this in texture since AOI and slope map are patterns
-            if material.diffuse_shader == 'LAMBERT':
-                file.write('\tbrilliance 1.8\n') #trying to best match lambert attenuation by that constant brilliance value
+            if material:
+                #Povray 3.7 now uses two diffuse values respectively for front and back shading (the back diffuse is like blender translucency)
+                frontDiffuse=material.diffuse_intensity
+                backDiffuse=material.translucency
                 
             
-            #########################################################################################
+                if material.pov_conserve_energy:
 
-            file.write('\tdiffuse %.3g %.3g\n' % (frontDiffuse, backDiffuse))
+                    #Total should not go above one
+                    if (frontDiffuse + backDiffuse) <= 1.0:
+                        pass
+                    elif frontDiffuse==backDiffuse:
+                        frontDiffuse = backDiffuse = 0.5 # Try to respect the user's "intention" by comparing the two values but bringing the total back to one
+                    elif frontDiffuse>backDiffuse:       # Let the highest value stay the highest value
+                        backDiffuse = 1-(1-frontDiffuse)
+                    else:
+                        frontDiffuse = 1-(1-backDiffuse)
+                    
 
+                # map hardness between 0.0 and 1.0
+                roughness = ((1.0 - ((material.specular_hardness - 1.0) / 510.0)))
+                ## scale from 0.0 to 0.1
+                roughness *= 0.1 
+                # add a small value because 0.0 is invalid
+                roughness += (1 / 511.0)
+
+                #####################################Diffuse Shader######################################
+                if material.diffuse_shader == 'OREN_NAYAR':
+                    file.write('\tbrilliance %.3g\n' % (0.9+material.roughness))#blender roughness is what is generally called oren nayar Sigma, and brilliance in povray
+
+                if material.diffuse_shader == 'TOON':
+                    file.write('\tbrilliance %.3g\n' % (0.01+material.diffuse_toon_smooth*0.25))
+                    frontDiffuse*=0.5 #Lower diffuse and increase specular for toon effect seems to look better in povray
                 
-            file.write('\tspecular 0\n')
+                if material.diffuse_shader == 'MINNAERT':
+                    #file.write('\taoi %.3g\n' % material.darkness)
+                    pass #let's keep things simple for now
+                if material.diffuse_shader == 'FRESNEL':
+                    #file.write('\taoi %.3g\n' % material.diffuse_fresnel_factor)
+                    pass #let's keep things simple for now
+                if material.diffuse_shader == 'LAMBERT':
+                    file.write('\tbrilliance 1.8\n') #trying to best match lambert attenuation by that constant brilliance value
 
-            file.write('\tambient %.3g\n' % material.ambient)
-            #file.write('\tambient rgb <%.3g, %.3g, %.3g>\n' % tuple([c*material.ambient for c in world.ambient_color])) # povray blends the global value
-            file.write('\temission %.3g\n' % material.emit) #New in povray 3.7
+                if Level == 2:   
+                    ####################################Specular Shader######################################
+                    if material.specular_shader == 'COOKTORR' or material.specular_shader == 'PHONG':#No difference between phong and cook torrence in blender HaHa!
+                        file.write('\tphong %.3g\n' % (material.specular_intensity))
+                        file.write('\tphong_size %.3g\n'% (material.specular_hardness / 2 + 0.25)) 
 
-            if material.pov_conserve_energy:
-                file.write('\tconserve_energy\n')#added for more realistic shading. Needs some checking to see if it really works. --Maurice.
+                    if material.specular_shader == 'BLINN':#Povray "specular" keyword corresponds to a Blinn model, without the ior.
+                        file.write('\tspecular %.3g\n' % (material.specular_intensity * (material.specular_ior/4))) #Use blender Blinn's IOR just as some factor for spec intensity
+                        file.write('\troughness %.3g\n' % roughness) 
+                        #Could use brilliance 2(or varying around 2 depending on ior or factor) too.
 
-            # 'phong 70.0 '
 
-            if material.subsurface_scattering.use:
-                subsurface_scattering = material.subsurface_scattering
-                file.write('\tsubsurface { <%.3g, %.3g, %.3g>, <%.3g, %.3g, %.3g> }\n' % (sqrt(subsurface_scattering.radius[0])*1.5, sqrt(subsurface_scattering.radius[1])*1.5, sqrt(subsurface_scattering.radius[2])*1.5, 1-subsurface_scattering.color[0], 1-subsurface_scattering.color[1], 1-subsurface_scattering.color[2]))
+                    if material.specular_shader == 'TOON':
+                        file.write('\tphong %.3g\n' % (material.specular_intensity * 2))
+                        file.write('\tphong_size %.3g\n' % (0.1+material.specular_toon_smooth / 2)) #use extreme phong_size
 
-            if material.pov_irid_enable:
-                file.write('\tirid { %.4g thickness %.4g turbulence %.4g }' % (material.pov_irid_amount, material.pov_irid_thickness, material.pov_irid_turbulence))
 
-        file.write('}\n')
-        ##################Plain version of the finish (previous ones are variations for specular/Mirror texture channel map with alternative finish of 0 specular and no mirror reflection###
-        file.write('#declare %s = finish {\n' % safety(name))
+                    if material.specular_shader == 'WARDISO':
+                        file.write('\tspecular %.3g\n' % (material.specular_intensity / (material.specular_slope+0.0005))) #find best suited default constant for brilliance Use both phong and specular for some values.
+                        file.write('\troughness %.4g\n' % (0.0005+material.specular_slope/10)) #find best suited default constant for brilliance Use both phong and specular for some values.
+                        file.write('\tbrilliance %.4g\n' % (1.8-material.specular_slope*1.8)) #find best suited default constant for brilliance Use both phong and specular for some values.
+                        
 
-        if material:
-            #Povray 3.7 now uses two diffuse values respectively for front and back shading (the back diffuse is like blender translucency)
-            frontDiffuse=material.diffuse_intensity
-            backDiffuse=material.translucency
-            
+                    
+                    #########################################################################################
+                elif Level == 1:
+                    file.write('\tspecular 0\n')
+                elif Level == 3:
+                    file.write('\tspecular 1\n')
+                
+                file.write('\tdiffuse %.3g %.3g\n' % (frontDiffuse, backDiffuse))
+
+
+                file.write('\tambient %.3g\n' % material.ambient)
+                #file.write('\tambient rgb <%.3g, %.3g, %.3g>\n' % tuple([c*material.ambient for c in world.ambient_color])) # povray blends the global value
+                file.write('\temission %.3g\n' % material.emit) #New in povray 3.7
+                
+                #file.write('\troughness %.3g\n' % roughness) #povray just ignores roughness if there's no specular keyword
+                
+                if material.pov_conserve_energy:
+                    file.write('\tconserve_energy\n')#added for more realistic shading. Needs some checking to see if it really works. --Maurice.
+
+                # 'phong 70.0 '
+                if Level != 1:
+                    if material.raytrace_mirror.use:
+                        raytrace_mirror = material.raytrace_mirror
+                        if raytrace_mirror.reflect_factor:
+                            file.write('\treflection {\n')
+                            file.write('\t\trgb <%.3g, %.3g, %.3g>' % tuple(material.mirror_color))
+                            if material.pov_mirror_metallic:
+                                file.write('\t\tmetallic %.3g' % (raytrace_mirror.reflect_factor))
+                            if material.pov_mirror_use_IOR: #WORKING ?
+                                file.write('\t\tfresnel 1 ')#Removed from the line below: gives a more physically correct material but needs proper IOR. --Maurice
+                            file.write('\t\tfalloff %.3g exponent %.3g} ' % (raytrace_mirror.fresnel, raytrace_mirror.fresnel_factor))
+
+                if material.subsurface_scattering.use:
+                    subsurface_scattering = material.subsurface_scattering
+                    file.write('\tsubsurface { <%.3g, %.3g, %.3g>, <%.3g, %.3g, %.3g> }\n' % (sqrt(subsurface_scattering.radius[0])*1.5, sqrt(subsurface_scattering.radius[1])*1.5, sqrt(subsurface_scattering.radius[2])*1.5, 1-subsurface_scattering.color[0], 1-subsurface_scattering.color[1], 1-subsurface_scattering.color[2]))
+
+                if material.pov_irid_enable:
+                    file.write('\tirid { %.4g thickness %.4g turbulence %.4g }' % (material.pov_irid_amount, material.pov_irid_thickness, material.pov_irid_turbulence))
+
+            else:
+                file.write('\tdiffuse 0.8\n')
+                file.write('\tphong 70.0\n')
+                
+                #file.write('\tspecular 0.2\n')
+
+
+            # This is written into the object
+            '''
+            if material and material.transparency_method=='RAYTRACE':
+                'interior { ior %.3g} ' % material.raytrace_transparency.ior
+            '''
+
+            #file.write('\t\t\tcrand 1.0\n') # Sand granyness
+            #file.write('\t\t\tmetallic %.6f\n' % material.spec)
+            #file.write('\t\t\tphong %.6f\n' % material.spec)
+            #file.write('\t\t\tphong_size %.6f\n' % material.spec)
+            #file.write('\t\t\tbrilliance %.6f ' % (material.specular_hardness/256.0) # Like hardness
+
+            file.write('}\n')
+
+        Level=1
+        povHasnoSpecularMaps()
+
+        Level=2
+        povHasnoSpecularMaps()
         
-            if material.pov_conserve_energy:
-
-                #Total should not go above one
-                if (frontDiffuse + backDiffuse) <= 1.0:
-                    pass
-                elif frontDiffuse==backDiffuse:
-                    frontDiffuse = backDiffuse = 0.5 # Try to respect the user's "intention" by comparing the two values but bringing the total back to one
-                elif frontDiffuse>backDiffuse:       # Let the highest value stay the highest value
-                    backDiffuse = 1-(1-frontDiffuse)
-                else:
-                    frontDiffuse = 1-(1-backDiffuse)
-                
-
-            # map hardness between 0.0 and 1.0
-            roughness = ((1.0 - ((material.specular_hardness - 1.0) / 510.0)))
-            ## scale from 0.0 to 0.1
-            roughness *= 0.1 
-            # add a small value because 0.0 is invalid
-            roughness += (1 / 511.0)
-
-            #####################################Diffuse Shader######################################
-            if material.diffuse_shader == 'OREN_NAYAR':
-                file.write('\tbrilliance %.3g\n' % (0.9+material.roughness))#blender roughness is what is generally called oren nayar Sigma, and brilliance in povray
-
-            if material.diffuse_shader == 'TOON':
-                file.write('\tbrilliance %.3g\n' % (0.01+material.diffuse_toon_smooth*0.25))
-                frontDiffuse*=0.5 #Lower diffuse and increase specular for toon effect seems to look better in povray
-            
-            if material.diffuse_shader == 'MINNAERT':
-                #file.write('\taoi %.3g\n' % material.darkness)
-                pass #let's keep things simple for now
-            if material.diffuse_shader == 'FRESNEL':
-                #file.write('\taoi %.3g\n' % material.diffuse_fresnel_factor)
-                pass #let's keep things simple for now
-            if material.diffuse_shader == 'LAMBERT':
-                file.write('\tbrilliance 1.8\n') #trying to best match lambert attenuation by that constant brilliance value
-                
-            ####################################Specular Shader######################################
-            if material.specular_shader == 'COOKTORR' or material.specular_shader == 'PHONG':#No difference between phong and cook torrence in blender HaHa!
-                file.write('\tphong %.3g\n' % (material.specular_intensity))
-                file.write('\tphong_size %.3g\n'% (material.specular_hardness / 2 + 0.25)) 
-
-            if material.specular_shader == 'BLINN':#Povray "specular" keyword corresponds to a Blinn model, without the ior.
-                file.write('\tspecular %.3g\n' % (material.specular_intensity * (material.specular_ior/4))) #Use blender Blinn's IOR just as some factor for spec intensity
-                file.write('\troughness %.3g\n' % roughness) 
-                #Could use brilliance 2(or varying around 2 depending on ior or factor) too.
-
-
-            if material.specular_shader == 'TOON':
-                file.write('\tphong %.3g\n' % (material.specular_intensity * 2))
-                file.write('\tphong_size %.3g\n' % (0.1+material.specular_toon_smooth / 2)) #use extreme phong_size
-
-
-            if material.specular_shader == 'WARDISO':
-                file.write('\tspecular %.3g\n' % (material.specular_intensity / (material.specular_slope+0.0005))) #find best suited default constant for brilliance Use both phong and specular for some values.
-                file.write('\troughness %.4g\n' % (0.0005+material.specular_slope/10)) #find best suited default constant for brilliance Use both phong and specular for some values.
-                file.write('\tbrilliance %.4g\n' % (1.8-material.specular_slope*1.8)) #find best suited default constant for brilliance Use both phong and specular for some values.
-                
-
-            
-            #########################################################################################
-
-            file.write('\tdiffuse %.3g %.3g\n' % (frontDiffuse, backDiffuse))
-
-
-            file.write('\tambient %.3g\n' % material.ambient)
-            #file.write('\tambient rgb <%.3g, %.3g, %.3g>\n' % tuple([c*material.ambient for c in world.ambient_color])) # povray blends the global value
-            file.write('\temission %.3g\n' % material.emit) #New in povray 3.7
-            
-            #file.write('\troughness %.3g\n' % roughness) #povray just ignores roughness if there's no specular keyword
-            
-            if material.pov_conserve_energy:
-                file.write('\tconserve_energy\n')#added for more realistic shading. Needs some checking to see if it really works. --Maurice.
-
-            # 'phong 70.0 '
-
-            if material.raytrace_mirror.use:
-                raytrace_mirror = material.raytrace_mirror
-                if raytrace_mirror.reflect_factor:
-                    file.write('\treflection {\n')
-                    file.write('\t\trgb <%.3g, %.3g, %.3g>' % tuple(material.mirror_color))
-                    if material.pov_mirror_metallic:
-                        file.write('\t\tmetallic %.3g' % (raytrace_mirror.reflect_factor))
-                    if material.pov_mirror_use_IOR: #WORKING ?
-                        file.write('\t\tfresnel 1 ')#Removed from the line below: gives a more physically correct material but needs proper IOR. --Maurice
-                    file.write('\t\tfalloff %.3g exponent %.3g} ' % (raytrace_mirror.fresnel, raytrace_mirror.fresnel_factor))
-
-            if material.subsurface_scattering.use:
-                subsurface_scattering = material.subsurface_scattering
-                file.write('\tsubsurface { <%.3g, %.3g, %.3g>, <%.3g, %.3g, %.3g> }\n' % (sqrt(subsurface_scattering.radius[0])*1.5, sqrt(subsurface_scattering.radius[1])*1.5, sqrt(subsurface_scattering.radius[2])*1.5, 1-subsurface_scattering.color[0], 1-subsurface_scattering.color[1], 1-subsurface_scattering.color[2]))
-
-            if material.pov_irid_enable:
-                file.write('\tirid { %.4g thickness %.4g turbulence %.4g }' % (material.pov_irid_amount, material.pov_irid_thickness, material.pov_irid_turbulence))
-
-        file.write('}\n')
-        ##################Full specular version of the finish an increased roughness seems necessary here to perceive anything###
-        file.write('#declare %s = finish {\n' % safety1(name))
-
-        if material:
-            #Povray 3.7 now uses two diffuse values respectively for front and back shading (the back diffuse is like blender translucency)
-            frontDiffuse=material.diffuse_intensity
-            backDiffuse=material.translucency
-            if material.pov_conserve_energy:
-
-                #Total should not go above one
-                if (frontDiffuse + backDiffuse) <= 1.0:
-                    pass
-                elif frontDiffuse==backDiffuse:
-                    frontDiffuse = backDiffuse = 0.5 # Try to respect the user's "intention" by comparing the two values but bringing the total back to one
-                elif frontDiffuse>backDiffuse:       # Let the highest value stay the highest value
-                    backDiffuse = 1-(1-frontDiffuse)
-                else:
-                    frontDiffuse = 1-(1-backDiffuse)
-
-            # map hardness between 0.0 and 1.0
-            roughness = ((1.0 - ((material.specular_hardness - 1.0) / 510.0)))
-            ## scale from 0.0 to 0.1
-            roughness *= 0.1 
-            # add a small value because 0.0 is invalid
-            roughness += (1 / 511.0)
-
- 
-                
-            ####################################Specular Shader######################################
-            if material.specular_shader == 'COOKTORR' or material.specular_shader == 'PHONG':#No difference between phong and cook torrence in blender HaHa!
-                file.write('\tphong %.3g\n' % (material.specular_intensity*3))#Multiplied for max value of Textured Spec.
-                file.write('\tphong_size %.3g\n'% (material.specular_hardness /100 + 0.0005)) # /2-->/500; 0.25-->0.0025 Larger highlight for max value of Textured Spec.
-
-            if material.specular_shader == 'BLINN':#Povray "specular" keyword corresponds to a Blinn model, hmhmmmm...
-                file.write('\tspecular %.3g\n' % (material.specular_intensity * 5)) #Multiplied for max value of Textured Spec.
-                file.write('\troughness %.3g\n' % (roughness*10)) #Multiplied for max value of Textured Spec.
-
-
-
-            if material.specular_shader == 'TOON':
-                file.write('\tphong %.3g\n' % (material.specular_intensity*3))#Multiplied for max value of Textured Spec.
-                file.write('\tphong_size %.3g\n' % (0.1+material.specular_toon_smooth / 10)) #use extreme phong_size
-
-
-            if material.specular_shader == 'WARDISO':
-                file.write('\tspecular %.3g\n' % (material.specular_intensity / (material.specular_slope+0.0005))) #find best suited default constant for brilliance Use both phong and specular for some values.
-                file.write('\troughness %.4g\n' % (0.0005+material.specular_slope*5)) #Multiplied for max value of Textured Spec.
-                file.write('\tbrilliance %.4g\n' % (1.8-material.specular_slope*1.8)) #find best suited default constant for brilliance Use both phong and specular for some values.
-
-
-            
-            #########################################################################################
-                
-            file.write('\tdiffuse %.3g %.3g\n' % (frontDiffuse, backDiffuse))
-
-            file.write('\tambient %.3g\n' % material.ambient)
-            #file.write('\tambient rgb <%.3g, %.3g, %.3g>\n' % tuple([c*material.ambient for c in world.ambient_color])) # povray blends the global value
-            file.write('\temission %.3g\n' % material.emit) #New in povray 3.7
-            
-            if material.pov_conserve_energy:
-                file.write('\tconserve_energy\n')#added for more realistic shading. Needs some checking to see if it really works. --Maurice.
-
-            # 'phong 70.0 '
-
-            if material.raytrace_mirror.use:
-                raytrace_mirror = material.raytrace_mirror
-                if raytrace_mirror.reflect_factor:
-                    file.write('\treflection {\n')
-                    file.write('\t\trgb <%.3g, %.3g, %.3g>' % tuple(material.mirror_color))
-                    if material.pov_mirror_metallic:
-                        file.write('\t\tmetallic %.3g' % (raytrace_mirror.reflect_factor))
-                    if material.pov_mirror_use_IOR: #WORKING ?
-                        file.write('\t\tfresnel 1 ')#Removed from the line below: gives a more physically correct material but needs proper IOR. --Maurice
-                    file.write('\t\tfalloff %.3g exponent %.3g} ' % (raytrace_mirror.fresnel, raytrace_mirror.fresnel_factor))
-
-            if material.subsurface_scattering.use:
-                subsurface_scattering = material.subsurface_scattering
-                file.write('\tsubsurface { <%.3g, %.3g, %.3g>, <%.3g, %.3g, %.3g> }\n' % (sqrt(subsurface_scattering.radius[0])*1.5, sqrt(subsurface_scattering.radius[1])*1.5, sqrt(subsurface_scattering.radius[2])*1.5, 1-subsurface_scattering.color[0], 1-subsurface_scattering.color[1], 1-subsurface_scattering.color[2]))
-                ##sqrt(subsurface_scattering.radius[1] above is just some non linear relation to keep "proportions" between blender presets values and povray. The following paper has samples of sigma numbers we can put directly into pov to get good results:
-                ##http://graphics.stanford.edu/papers/bssrdf/bssrdf.pdf
-                ##Whereas Blender probably uses That:
-                ##http://graphics.stanford.edu/papers/fast_bssrdf/fast_bssrdf.pdf
-
-            if material.pov_irid_enable:
-                file.write('\tirid { %.4g thickness %.4g turbulence %.4g }' % (material.pov_irid_amount, material.pov_irid_thickness, material.pov_irid_turbulence))
-
-        else:
-            file.write('\tdiffuse 0.8\n')
-            file.write('\tphong 70.0\n')
-            
-            #file.write('\tspecular 0.2\n')
-
-
-        # This is written into the object
-        '''
-        if material and material.transparency_method=='RAYTRACE':
-            'interior { ior %.3g} ' % material.raytrace_transparency.ior
-        '''
-
-        #file.write('\t\t\tcrand 1.0\n') # Sand granyness
-        #file.write('\t\t\tmetallic %.6f\n' % material.spec)
-        #file.write('\t\t\tphong %.6f\n' % material.spec)
-        #file.write('\t\t\tphong_size %.6f\n' % material.spec)
-        #file.write('\t\t\tbrilliance %.6f ' % (material.specular_hardness/256.0) # Like hardness
-
-        file.write('}\n')
+        Level=3
+        povHasnoSpecularMaps()
 
     def exportCamera():
         camera = scene.camera
