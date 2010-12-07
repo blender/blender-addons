@@ -1650,12 +1650,12 @@ bpy.types.Scene.unrealactionexportall = BoolProperty(
 bpy.types.Scene.unrealexportpsk = BoolProperty(
 	name="bool export psa",
 	description="bool for exporting this psk format",
-	default=False)
+	default=True)
 	
 bpy.types.Scene.unrealexportpsa = BoolProperty(
 	name="bool export psa",
 	description="bool for exporting this psa format",
-	default=False)
+	default=True)
 
 class ExportUDKAnimData(bpy.types.Operator):
 	global exportmessage
@@ -1769,6 +1769,8 @@ class OBJECT_OT_UnrealExport(bpy.types.Operator):
 		return{'FINISHED'}    
 
 def menu_func(self, context):
+	#bpy.context.scene.unrealexportpsk = True
+	#bpy.context.scene.unrealexportpsa = True
 	default_path = os.path.splitext(bpy.data.filepath)[0] + ".psk"
 	self.layout.operator("export.udk_anim_data", text="Skeleton Mesh / Animation Data (.psk/.psa)").filepath = default_path
 
