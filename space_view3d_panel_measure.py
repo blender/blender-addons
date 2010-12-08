@@ -83,7 +83,7 @@ v0.7.5.2 - Changed callback registration back to original code &
     fixed bug in there (use bl_idname instead of bl_label)
 v0.7.5.1 - Global mode is now taking rotation into account properly.
 v0.7.5 - Fixed lagging and drawing issues.
-v0.7.4 - Fixed the add_modal_handler and callback_add code.
+v0.7.4 - Fixed the modal_handler_add and callback_add code.
     Thanks to jesterKing for pointing that out :-)
 v0.7.3.1 - Fixed bug that made all lines in Blender stippled :-)
 v0.7.3 - Added display of delta x/y/z value in 3d view.
@@ -621,7 +621,7 @@ class VIEW3D_OT_display_measurements(bpy.types.Operator):
                 # Add the region OpenGL drawing callback
                 for WINregion in context.area.regions:
                     if WINregion.type == 'WINDOW':
-                        context.window_manager.add_modal_handler(self)
+                        context.window_manager.modal_handler_add(self)
                         self._handle = WINregion.callback_add(
                             draw_measurements_callback,
                             (self, context),

@@ -193,7 +193,7 @@ def draw_callback_view(self, context):
         glBegin(GL_POINTS)
         glColor3f(0.5, 0.5, 1)
         for key, vec in data_vector.items():
-            glVertex3f(*vec)
+            glVertex3f(*vec.copy().resize3D())
         glEnd();
         glPointSize(1.0)
 

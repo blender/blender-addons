@@ -1208,7 +1208,7 @@ class DirectXExporter(bpy.types.Operator):
 
     def invoke(self, context, event):
         WindowManager = context.window_manager
-        WindowManager.add_fileselect(self)
+        WindowManager.fileselect_add(self)
         return {"RUNNING_MODAL"}
 
 

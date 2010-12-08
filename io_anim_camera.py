@@ -144,7 +144,7 @@ class CameraExporter(bpy.types.Operator, ExportHelper):
         self.frame_end = context.scene.frame_end
 
         wm = context.window_manager
-        wm.add_fileselect(self)
+        wm.fileselect_add(self)
         return {'RUNNING_MODAL'}
 
 

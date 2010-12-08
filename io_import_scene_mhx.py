@@ -2429,7 +2429,7 @@ class IMPORT_OT_makehuman_mhx(bpy.types.Operator):
 		return {'FINISHED'}
 
 	def invoke(self, context, event):
-		context.window_manager.add_fileselect(self)
+		context.window_manager.fileselect_add(self)
 		return {'RUNNING_MODAL'}
 
 def menu_func(self, context):

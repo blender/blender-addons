@@ -1082,9 +1082,9 @@ def build_objects(object_layers, object_surfs, object_tags, object_name, add_sub
         # Create the Shape Keys (LW's Endomorphs).
         if len(layer_data.morphs) > 0:
             print("Adding %d Shapes Keys" % len(layer_data.morphs))
-            ob.add_shape_key('Basis')   # Got to have a Base Shape.
+            ob.shape_key_add('Basis')   # Got to have a Base Shape.
             for morph_key in layer_data.morphs:
-                skey= ob.add_shape_key(morph_key)
+                skey= ob.shape_key_add(morph_key)
                 dlist= layer_data.morphs[morph_key]
                 for pdp in dlist:
                     me.shape_keys.keys[skey.name].data[pdp[0]].co= [pdp[1], pdp[2], pdp[3]]
@@ -1234,7 +1234,7 @@ class IMPORT_OT_lwo(bpy.types.Operator):
 
     def invoke(self, context, event):
         wm= context.window_manager
-        wm.add_fileselect(self)
+        wm.fileselect_add(self)
         return {'RUNNING_MODAL'}
 
 
