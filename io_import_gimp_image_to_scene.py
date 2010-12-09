@@ -17,7 +17,7 @@
 # ##### END GPL LICENSE BLOCK #####
 
 bl_addon_info = {
-	"name": "Convert GIMP Image to Scene (.xcf, .xjt)",
+	"name": "Import GIMP Image to Scene (.xcf, .xjt)",
 	"author": "Daniel Salazar (ZanQdo)",
 	"version": (2,0,0),
 	"blender": (2, 5, 5),
