@@ -50,6 +50,7 @@ def register():
     bpy.coat3D['status'] = 0
     bpy.coat3D['was'] = ''
     bpy.coat3D['exchange'] = ''
+    bpy.coat3D['export_off'] = 0
     
     class coat3D(bpy.types.IDPropertyGroup):
         pass
