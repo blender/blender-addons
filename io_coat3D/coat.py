@@ -26,13 +26,6 @@ from io_coat3D import tex
 import os
 import linecache
 
-bpy.coat3D = dict()
-bpy.coat3D['active_coat'] = ''
-bpy.coat3D['status'] = 0
-bpy.coat3D['kuva'] = 1
-
-#bpy.context.user_preferences.filepaths.use_relative_paths = False
-
 class ObjectButtonsPanel():
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
@@ -51,17 +44,12 @@ class SCENE_PT_Borgleader(ObjectButtonsPanel,bpy.types.Panel):
         mat_list = []
         import_no = 0
         coat = bpy.coat3D
-        coat3D = bpy.context.scene.coat3D
-
-        if(coat['kuva'] == 1):
-                        bpy.context.scene.game_settings.material_mode = 'GLSL'
-                        coat['kuva'] = 0
-                
+        coat3D = bpy.context.scene.coat3D               
         
         if(os.path.isdir(coat3D.exchangedir)):
             foldder = coat3D.exchangedir
             if(foldder.rfind('Exchange') >= 0):
-                coat3D.exchangedir = foldder
+                coat['exchange'] = foldder
                 coat['status'] = 1
             else:
                 coat['status'] = 0
@@ -125,15 +113,7 @@ class SCENE_PT_Borgleader(ObjectButtonsPanel,bpy.types.Panel):
         row = layout.row()
         row.label(text="Object Path:")
         row = layout.row()
-        row.prop(coat3D,"objectdir",text="")
-        if(bpy.context.active_object):
-            if(bpy.context.active_object.name != coat3D.wasactive):
-                coat3D.wasactive = bpy.context.active_object.name
-                if(bpy.context.active_object.coat3D.objpath):
-                    coat3D.objectdir = bpy.context.active_object.coat3D.objpath
-            else:
-                bpy.context.active_object.coat3D.objpath = coat3D.objectdir
-                    
+        row.prop(coat3D,"objectdir",text="")                 
         row = layout.row()
         
         if(coat['status'] == 1):
