@@ -343,6 +343,10 @@ def main(File, Path, LayerViewers, MixerViewers, LayerOffset,\
 			if PremulAlpha: Img.use_premultiply = True
 			Img.filepath = '%s%s%s' % (PathSaveRaw, Name, ExtSave)
 			
+			UVFace = Active.data.uv_textures[0].data[0]
+			UVFace.image = Img
+			UVFace.use_image = True
+			
 			Tex.image = Img
 			
 			Mat.texture_slots.add()
@@ -361,6 +365,10 @@ def main(File, Path, LayerViewers, MixerViewers, LayerOffset,\
 			Img = bpy.data.images.new(NameShort)
 			Img.source = 'FILE'
 			Img.filepath = '%s%s%s' % (PathSaveRaw, Name, ExtSave)
+			
+			UVFace = Active.data.uv_textures[0].data[0]
+			UVFace.image = Img
+			UVFace.use_image = True
 			
 			Tex.image = Img
 			
