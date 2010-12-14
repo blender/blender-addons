@@ -343,7 +343,7 @@ class CURVE_OT_toggle_handles_rotobezier(bpy.types.Operator):
 
 
 class CURVE_OT_toggle_draw_rotobezier(bpy.types.Operator):
-    bl_label = 'Fill'
+    bl_label = 'Filling'
     bl_idname = 'curve.toggle_draw_rotobezier'
     bl_description = 'Toggle the curve display mode between Wire and Solid'
     bl_options = {'REGISTER', 'UNDO'}
