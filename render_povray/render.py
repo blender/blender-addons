@@ -137,19 +137,6 @@ def safety(name, Level):
     elif Level == 3:
         return prefix+name+'1'#used for 1 of specular map
 
-##def safety0(name): #used for 0 of specular map
-##    try:
-##        if int(name) > 0: prefix='shader'
-##    except: prefix=''
-##    prefix='shader_'
-##    return prefix+name+'0'
-##
-##def safety1(name): #used for 1 of specular map
-##    try:
-##        if int(name) > 0: prefix='shader'
-##    except: prefix=''
-##    prefix='shader_'
-##    return prefix+name+'1'
 ##############end safety string name material
 ##############################EndSF###########################
 
@@ -190,7 +177,16 @@ def write_pov(filename, scene=None, info_callback=None):
             else:
                 file.write('\tinterior { ior %.6f\n' % material.raytrace_transparency.ior)
 
-
+            if material.pov_refraction_type=="0":
+                material.pov_fake_caustics = False
+                material.pov_photons_refraction = False
+                material.pov_photons_reflection = True
+            elif material.pov_refraction_type=="1":
+                material.pov_fake_caustics = True
+                material.pov_photons_refraction = False
+            elif material.pov_refraction_type=="2":
+                material.pov_fake_caustics = False
+                material.pov_photons_refraction = True
 
             #If only Raytrace transparency is set, its IOR will be used for refraction, but user can set up "un-physical" fresnel reflections in raytrace mirror parameters. 
             #Last, if none of the above is specified, user can set up "un-physical" fresnel reflections in raytrace mirror parameters. And pov IOR defaults to 1. 
@@ -201,6 +197,7 @@ def write_pov(filename, scene=None, info_callback=None):
                     file.write('\tdispersion %.3g\n' % material.pov_photons_dispersion) #Default of 1 means no dispersion
             #TODO        
             # Other interior args
+            # if material.use_transparency and material.transparency_method == 'RAYTRACE':
             # fade_distance 2
             # fade_power [Value]
             # fade_color
@@ -270,7 +267,7 @@ def write_pov(filename, scene=None, info_callback=None):
                 roughness += (1 / 511.0)
 
                 #####################################Diffuse Shader######################################
-                # Not used for Full spec level(3) of the shader
+                # Not used for Full spec (Level=3) of the shader
                 if material.diffuse_shader == 'OREN_NAYAR' and Level != 3:
                     file.write('\tbrilliance %.3g\n' % (0.9+material.roughness))#blender roughness is what is generally called oren nayar Sigma, and brilliance in povray
 
@@ -722,8 +719,8 @@ def write_pov(filename, scene=None, info_callback=None):
                     material = me_materials[col[3]]
                     material_finish = materialNames[material.name]
 
-                    if material.use_transparency and material.transparency_method == 'RAYTRACE':
-                        trans = 1.0 - material.raytrace_transparency.filter
+                    if material.use_transparency:
+                        trans = 1.0 - material.alpha
                     else:
                         trans = 0.0
 

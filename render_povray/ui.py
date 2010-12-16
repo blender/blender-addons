@@ -209,17 +209,17 @@ class MATERIAL_PT_povray_caustics(MaterialButtonsPanel, bpy.types.Panel):
 
             col = split.column()
             col.prop(mat, "pov_refraction_type")
-            if mat.pov_refraction_type=="0":
-                mat.pov_fake_caustics = False
-                mat.pov_photons_refraction = False
-                mat.pov_photons_reflection = True
-            elif mat.pov_refraction_type=="1":
-                mat.pov_fake_caustics = True
-                mat.pov_photons_refraction = False
+##            if mat.pov_refraction_type=="0":
+##                mat.pov_fake_caustics = False
+##                mat.pov_photons_refraction = False
+##                mat.pov_photons_reflection = True
+            if mat.pov_refraction_type=="1":
+##                mat.pov_fake_caustics = True
+##                mat.pov_photons_refraction = False
                 col.prop(mat, "pov_fake_caustics_power", slider=True)
             elif mat.pov_refraction_type=="2":
-                mat.pov_fake_caustics = False
-                mat.pov_photons_refraction = True
+##                mat.pov_fake_caustics = False
+##                mat.pov_photons_refraction = True
                 col.prop(mat, "pov_photons_dispersion", slider=True)
             col.prop(mat, "pov_photons_reflection")
                 
