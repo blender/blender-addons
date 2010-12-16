@@ -377,6 +377,7 @@ def write_pov(filename, scene=None, info_callback=None):
 
     def exportCamera():
         camera = scene.camera
+        active_object = bpy.context.active_object # MR
         matrix = camera.matrix_world
         focal_point = camera.data.dof_distance
 
@@ -386,19 +387,27 @@ def write_pov(filename, scene=None, info_callback=None):
         file.write('#declare camLookAt = <%.6f, %.6f, %.6f>;\n' % tuple([degrees(e) for e in matrix.rotation_part().to_euler()]))
 
         file.write('camera {\n')
-        file.write('\tlocation  <0, 0, 0>\n')
-        file.write('\tlook_at  <0, 0, -1>\n')
-        file.write('\tright <%s, 0, 0>\n' % - Qsize)
-        file.write('\tup <0, 1, 0>\n')
-        file.write('\tangle  %f \n' % (360.0 * atan(16.0 / camera.data.lens) / pi))
+        if scene.pov_baking_enable and active_object.type=='MESH':
+            file.write('\tmesh_camera{ 1 3\n') # distribution 3 is what we want here
+            file.write('\t\tmesh{%s}\n' % active_object.name)
+            file.write('\t}\n')
+            file.write('location <0,0,.01>')
+            file.write('direction <0,0,-1>')
+        # Using standard camera otherwise
+        else:
+            file.write('\tlocation  <0, 0, 0>\n')
+            file.write('\tlook_at  <0, 0, -1>\n')
+            file.write('\tright <%s, 0, 0>\n' % - Qsize)
+            file.write('\tup <0, 1, 0>\n')
+            file.write('\tangle  %f \n' % (360.0 * atan(16.0 / camera.data.lens) / pi))
 
-        file.write('\trotate  <%.6f, %.6f, %.6f>\n' % tuple([degrees(e) for e in matrix.rotation_part().to_euler()]))
-        file.write('\ttranslate <%.6f, %.6f, %.6f>\n' % (matrix[3][0], matrix[3][1], matrix[3][2]))
-        if focal_point != 0:
-            file.write('\taperture 0.25\n') # fixed blur amount for now to do, add slider a button? 
-            file.write('\tblur_samples 96 128\n')
-            file.write('\tvariance 1/10000\n')
-            file.write('\tfocal_point <0, 0, %f>\n' % focal_point)
+            file.write('\trotate  <%.6f, %.6f, %.6f>\n' % tuple([degrees(e) for e in matrix.rotation_part().to_euler()]))
+            file.write('\ttranslate <%.6f, %.6f, %.6f>\n' % (matrix[3][0], matrix[3][1], matrix[3][2]))
+            if focal_point != 0:
+                file.write('\taperture 0.25\n') # fixed blur amount for now to do, add slider a button? 
+                file.write('\tblur_samples 96 128\n')
+                file.write('\tvariance 1/10000\n')
+                file.write('\tfocal_point <0, 0, %f>\n' % focal_point)
         file.write('}\n')
 
     def exportLamps(lamps):
@@ -608,6 +617,8 @@ def write_pov(filename, scene=None, info_callback=None):
             # quads incur an extra face
             quadCount = sum(1 for f in faces_verts if len(f) == 4)
 
+            # Use named declaration to allow reference e.g. for baking. MR
+            file.write('#declare %s=\n' % ob.name) 
             file.write('mesh2 {\n')
             file.write('\tvertex_vectors {\n')
             file.write('\t\t%s' % (len(me.vertices))) # vert count
@@ -1027,6 +1038,7 @@ def write_pov(filename, scene=None, info_callback=None):
 
             writeMatrix(matrix)
             file.write('}\n')
+            file.write('%s\n' % ob.name) # Use named declaration to allow reference e.g. for baking. MR
 
             bpy.data.meshes.remove(me)
 
@@ -1165,12 +1177,13 @@ def write_pov(filename, scene=None, info_callback=None):
     for material in bpy.data.materials:
         writeMaterial(material)
 
-    exportCamera()
+    
     #exportMaterials()
     sel = scene.objects
     exportLamps([l for l in sel if l.type == 'LAMP'])
     exportMeta([l for l in sel if l.type == 'META'])
     exportMeshs(scene, sel)
+    exportCamera()
     exportWorld(scene.world)
     exportGlobalSettings(scene)
 

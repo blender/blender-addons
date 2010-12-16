@@ -54,6 +54,10 @@ def register():
             name="Advanced Options",
             description="Show advanced options",
             default=False)
+    Scene.pov_baking_enable = BoolProperty(
+            name="Enable Baking",
+            description="Enable povrays texture baking",
+            default=False)
 
     # Real pov options
     Scene.pov_radio_adc_bailout = FloatProperty(
@@ -186,7 +190,7 @@ def register():
 def unregister():
     import bpy
     Scene = bpy.types.Scene
-    Mat = bpy.types.Material#MR
+    Mat = bpy.types.Material # MR
     del Scene.pov_radio_enable
     del Scene.pov_radio_display_advanced
     del Scene.pov_radio_adc_bailout
@@ -201,20 +205,21 @@ def unregister():
     del Scene.pov_radio_nearest_count
     del Scene.pov_radio_normal
     del Scene.pov_radio_recursion_limit
-    del Mat.pov_irid_enable#MR
-    del Mat.pov_mirror_use_IOR#MR
-    del Mat.pov_mirror_metallic#MR    
-    del Mat.pov_conserve_energy#MR
-    del Mat.pov_irid_amount#MR
-    del Mat.pov_irid_thickness#MR  
-    del Mat.pov_irid_turbulence#MR
-    del Mat.pov_caustics_enable#MR
-    del Mat.pov_fake_caustics#MR    
-    del Mat.pov_fake_caustics_power#MR
-    del Mat.pov_photons_refraction#MR
-    del Mat.pov_photons_dispersion#MR  
-    del Mat.pov_photons_reflection#MR 
-    del Mat.pov_refraction_type#MR
+    del Scene.pov_baking_enable # MR
+    del Mat.pov_irid_enable # MR
+    del Mat.pov_mirror_use_IOR # MR
+    del Mat.pov_mirror_metallic # MR    
+    del Mat.pov_conserve_energy # MR
+    del Mat.pov_irid_amount # MR
+    del Mat.pov_irid_thickness # MR  
+    del Mat.pov_irid_turbulence # MR
+    del Mat.pov_caustics_enable # MR
+    del Mat.pov_fake_caustics # MR    
+    del Mat.pov_fake_caustics_power # MR
+    del Mat.pov_photons_refraction # MR
+    del Mat.pov_photons_dispersion # MR  
+    del Mat.pov_photons_reflection # MR 
+    del Mat.pov_refraction_type # MR
 
 if __name__ == "__main__":
     register()

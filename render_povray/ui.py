@@ -288,3 +288,20 @@ class RENDER_PT_povray_radiosity(RenderButtonsPanel, bpy.types.Panel):
 
             col = split.column()
             col.prop(scene, "pov_radio_always_sample")
+
+class RENDER_PT_povray_baking(RenderButtonsPanel, bpy.types.Panel):
+    bl_label = "Baking"
+    COMPAT_ENGINES = {'POVRAY_RENDER'}
+
+    def draw_header(self, context):
+        scene = context.scene
+
+        self.layout.prop(scene, "pov_baking_enable", text="")
+
+    def draw(self, context):
+        layout = self.layout
+
+        scene = context.scene
+        rd = scene.render
+
+        layout.active = scene.pov_baking_enable
