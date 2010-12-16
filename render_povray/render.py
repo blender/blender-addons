@@ -122,26 +122,34 @@ def path_image(image):
 
 
 ##############safety string name material
-def safety(name):
+def safety(name, Level):
+    # Level=1 is for texture with No specular nor Mirror reflection
+    # Level=2 is for texture with translation of spec and mir levels for when no map influences them
+    # Level=3 is for texture with Maximum Spec and Mirror 
     try:
         if int(name) > 0: prefix='shader'
     except: prefix=''
     prefix='shader_'
-    return prefix+name
+    if Level == 2:
+        return prefix+name
+    elif Level == 1:
+        return prefix+name+'0'#used for 0 of specular map
+    elif Level == 3:
+        return prefix+name+'1'#used for 1 of specular map
 
-def safety0(name): #used for 0 of specular map
-    try:
-        if int(name) > 0: prefix='shader'
-    except: prefix=''
-    prefix='shader_'
-    return prefix+name+'0'
-
-def safety1(name): #used for 1 of specular map
-    try:
-        if int(name) > 0: prefix='shader'
-    except: prefix=''
-    prefix='shader_'
-    return prefix+name+'1'
+##def safety0(name): #used for 0 of specular map
+##    try:
+##        if int(name) > 0: prefix='shader'
+##    except: prefix=''
+##    prefix='shader_'
+##    return prefix+name+'0'
+##
+##def safety1(name): #used for 1 of specular map
+##    try:
+##        if int(name) > 0: prefix='shader'
+##    except: prefix=''
+##    prefix='shader_'
+##    return prefix+name+'1'
 ##############end safety string name material
 ##############################EndSF###########################
 
@@ -223,13 +231,16 @@ def write_pov(filename, scene=None, info_callback=None):
 
 
         ##################Several versions of the finish: Level conditions are variations for specular/Mirror texture channel map with alternative finish of 0 specular and no mirror reflection
-        def povHasnoSpecularMaps():
+        # Level=1 Means No specular nor Mirror reflection
+        # Level=2 Means translation of spec and mir levels for when no map influences them
+        # Level=3 Means Maximum Spec and Mirror 
+        def povHasnoSpecularMaps(Level):
             if Level == 2:
-                file.write('#declare %s = finish {\n' % safety(name))
+                file.write('#declare %s = finish {\n' % safety(name, Level = 2))
             elif Level == 1:
-                file.write('#declare %s = finish {\n' % safety0(name))
+                file.write('#declare %s = finish {\n' % safety(name, Level = 1))
             elif Level == 3:
-                file.write('#declare %s = finish {\n' % safety1(name))
+                file.write('#declare %s = finish {\n' % safety(name, Level = 3))
 
 
             if material:
@@ -259,20 +270,21 @@ def write_pov(filename, scene=None, info_callback=None):
                 roughness += (1 / 511.0)
 
                 #####################################Diffuse Shader######################################
-                if material.diffuse_shader == 'OREN_NAYAR':
+                # Not used for Full spec level(3) of the shader
+                if material.diffuse_shader == 'OREN_NAYAR' and Level != 3:
                     file.write('\tbrilliance %.3g\n' % (0.9+material.roughness))#blender roughness is what is generally called oren nayar Sigma, and brilliance in povray
 
-                if material.diffuse_shader == 'TOON':
+                if material.diffuse_shader == 'TOON' and Level != 3:
                     file.write('\tbrilliance %.3g\n' % (0.01+material.diffuse_toon_smooth*0.25))
                     frontDiffuse*=0.5 #Lower diffuse and increase specular for toon effect seems to look better in povray
                 
-                if material.diffuse_shader == 'MINNAERT':
+                if material.diffuse_shader == 'MINNAERT' and Level != 3:
                     #file.write('\taoi %.3g\n' % material.darkness)
                     pass #let's keep things simple for now
-                if material.diffuse_shader == 'FRESNEL':
+                if material.diffuse_shader == 'FRESNEL' and Level != 3:
                     #file.write('\taoi %.3g\n' % material.diffuse_fresnel_factor)
                     pass #let's keep things simple for now
-                if material.diffuse_shader == 'LAMBERT':
+                if material.diffuse_shader == 'LAMBERT' and Level != 3:
                     file.write('\tbrilliance 1.8\n') #trying to best match lambert attenuation by that constant brilliance value
 
                 if Level == 2:   
@@ -304,7 +316,6 @@ def write_pov(filename, scene=None, info_callback=None):
                     file.write('\tspecular 0\n')
                 elif Level == 3:
                     file.write('\tspecular 1\n')
-                
                 file.write('\tdiffuse %.3g %.3g\n' % (frontDiffuse, backDiffuse))
 
 
@@ -358,14 +369,14 @@ def write_pov(filename, scene=None, info_callback=None):
 
             file.write('}\n')
 
-        Level=1
-        povHasnoSpecularMaps()
+        # Level=1 Means No specular nor Mirror reflection
+        povHasnoSpecularMaps(Level=1)
 
-        Level=2
-        povHasnoSpecularMaps()
+        # Level=2 Means translation of spec and mir levels for when no map influences them
+        povHasnoSpecularMaps(Level=2)
         
-        Level=3
-        povHasnoSpecularMaps()
+        # Level=3 Means Maximum Spec and Mirror
+        povHasnoSpecularMaps(Level=3)
 
     def exportCamera():
         camera = scene.camera
@@ -816,10 +827,10 @@ def write_pov(filename, scene=None, info_callback=None):
                         file.write('\n\t\t\t\tpigment {rgbft<%.3g, %.3g, %.3g, %.3g, %.3g>}' % (col[0], col[1], col[2], 1.0 - material.alpha, trans))
 
                     if texturesSpec !='':
-                        file.write('finish {%s}' % (safety0(material_finish)))
+                        file.write('finish {%s}' % (safety(material_finish, Level=1)))# Level 1 is no specular
                         
                     else:
-                        file.write('finish {%s}' % (safety(material_finish)))
+                        file.write('finish {%s}' % (safety(material_finish, Level=2)))# Level 2 is translated spec
 
                 else:
                     mappingDif = (" translate <%.4g-0.75,%.4g-0.75,%.4g-0.75> scale <%.4g,%.4g,%.4g>" % (t_dif.offset.x / 10 ,t_dif.offset.y / 10 ,t_dif.offset.z / 10, t_dif.scale.x / 2.25, t_dif.scale.y / 2.25, t_dif.scale.z / 2.25)) #strange that the translation factor for scale is not the same as for translate. ToDo: verify both matches with blender internal. 
@@ -835,10 +846,10 @@ def write_pov(filename, scene=None, info_callback=None):
                         file.write("\n\t\t\t\tpigment {uv_mapping image_map {%s \"%s\" %s}%s}" % (imageFormat(texturesDif),texturesDif,imgMap(t_dif),mappingDif))
 
                     if texturesSpec !='':
-                        file.write('finish {%s}' % (safety0(material_finish)))
+                        file.write('finish {%s}' % (safety(material_finish, Level=1)))# Level 1 is no specular
                             
                     else:
-                        file.write('finish {%s}' % (safety(material_finish)))
+                        file.write('finish {%s}' % (safety(material_finish, Level=2)))# Level 2 is translated specular
 
                     ## scale 1 rotate y*0
                     #imageMap = ("{image_map {%s \"%s\" %s }" % (imageFormat(textures),textures,imgMap(t_dif)))
@@ -868,10 +879,10 @@ def write_pov(filename, scene=None, info_callback=None):
                         file.write('\n\t\t\t\tpigment {rgbft<%.3g, %.3g, %.3g, %.3g, %.3g>}' % (col[0], col[1], col[2], 1.0 - material.alpha, trans))
 
                     if texturesSpec !='':
-                        file.write('finish {%s}' % (safety1(material_finish)))
+                        file.write('finish {%s}' % (safety(material_finish, Level=3)))# Level 3 is full specular
                         
                     else:
-                        file.write('finish {%s}' % (safety(material_finish)))
+                        file.write('finish {%s}' % (safety(material_finish, Level=2)))# Level 2 is translated specular
 
                 else:
                     mappingDif = (" translate <%.4g-0.75,%.4g-0.75,%.4g-0.75> scale <%.4g,%.4g,%.4g>" % (t_dif.offset.x / 10 ,t_dif.offset.y / 10 ,t_dif.offset.z / 10, t_dif.scale.x / 2.25, t_dif.scale.y / 2.25, t_dif.scale.z / 2.25)) #strange that the translation factor for scale is not the same as for translate. ToDo: verify both matches with blender internal. 
@@ -886,9 +897,9 @@ def write_pov(filename, scene=None, info_callback=None):
                     else:
                         file.write("\n\t\t\tpigment {uv_mapping image_map {%s \"%s\" %s}%s}" % (imageFormat(texturesDif),texturesDif,imgMap(t_dif),mappingDif))
                     if texturesSpec !='':
-                        file.write('finish {%s}' % (safety1(material_finish)))
+                        file.write('finish {%s}' % (safety(material_finish, Level=3)))# Level 3 is full specular
                     else:
-                        file.write('finish {%s}' % (safety(material_finish)))
+                        file.write('finish {%s}' % (safety(material_finish, Level=2)))# Level 2 is translated specular
 
                     ## scale 1 rotate y*0
                     #imageMap = ("{image_map {%s \"%s\" %s }" % (imageFormat(textures),textures,imgMap(t_dif)))
