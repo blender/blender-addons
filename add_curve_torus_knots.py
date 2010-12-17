@@ -37,82 +37,38 @@ bl_addon_info = {
 #### import modules
 import bpy
 from bpy.props import *
-from mathutils import *
+#from mathutils import *
 from math import *
-
-##------------------------------------------------------------
-# calculates the matrix for the new object
-# depending on user pref
-def align_matrix(context):
-    loc = Matrix.Translation(context.scene.cursor_location)
-    obj_align = context.user_preferences.edit.object_align
-    if (context.space_data.type == 'VIEW_3D'
-        and obj_align == 'VIEW'):
-        rot = context.space_data.region_3d.view_matrix.rotation_part().invert().resize4x4()
-    else:
-        rot = Matrix()
-    align_matrix = loc * rot
-    return align_matrix
+from add_utils import *
 
 ##------------------------------------------------------------
 #### Curve creation functions
 
-# get array of vertcoordinates acording to splinetype
-def vertsToPoints(Verts):
-    vertArray = []
-
-    for v in Verts:
-        vertArray += v
-        vertArray.append(1) #for nurbs w=1
-
-    return vertArray
-
-# create new CurveObject from vertarray and splineType
-def createCurve(vertArray, props, align_matrix):
-    # options to vars
-    splineType = 'NURBS'
-    name = 'Torus_Knot'
-
-    # create curve
-    scene = bpy.context.scene
-    newCurve = bpy.data.curves.new(name, type = 'CURVE') # curvedatablock
-    newSpline = newCurve.splines.new(type = splineType)  # spline
-
-    # create spline from vertarray
-    newSpline.points.add(int(len(vertArray)*0.25 - 1))
-    newSpline.points.foreach_set('co', vertArray)
-    newSpline.use_endpoint_u = True
-
-    # Curve settings
-    newCurve.dimensions = '3D'
-    newSpline.use_cyclic_u = True
-    newSpline.use_endpoint_u = True
-    newSpline.order_u = 4
-
-    if props.geo_surf:
-        newCurve.bevel_depth = props.geo_bDepth
-        newCurve.bevel_resolution = props.geo_bRes
-        newCurve.use_fill_front = False
-        newCurve.use_fill_back = False
-        newCurve.extrude = props.geo_extrude
-        #newCurve.offset = props.geo_width # removed, somehow screws things up all of a sudden
-        newCurve.resolution_u = props.geo_res
-
-    # create object with newCurve
-    new_obj = bpy.data.objects.new(name, newCurve)  # object
-    scene.objects.link(new_obj)                     # place in active scene
-    new_obj.select = True                           # set as selected
-    scene.objects.active = new_obj                  # set as active
-    new_obj.matrix_world = align_matrix             # apply matrix
-
-    return
-
+def create_curve_data(verts):
+    curve_data = bpy.data.curves.new(name='Torus Knot', type='CURVE')
+    spline = curve_data.splines.new(type='NURBS')
+    spline.points.add(int(len(verts)*0.25 - 1))
+    spline.points.foreach_set('co', verts)
+    spline.use_endpoint_u = True
+    spline.use_cyclic_u = True
+    spline.order_u = 4
+    curve_data.dimensions = '3D'
+    
+    return curve_data
+    
 ########################################################################
 ####################### Knot Definitions ###############################
 ########################################################################
-
-#### TORUS KNOT
-def Torus_Knot_Curve(p=2, q=3, w=1, res=24, formula=0, h=1, u=1 ,v=1, rounds=2):
+def Torus_Knot(self):
+    p = self.torus_p
+    q = self.torus_q
+    w = self.torus_w
+    res = self.torus_res
+    h = self.torus_h
+    u = self.torus_u
+    v = self.torus_v
+    rounds = self.torus_rounds
+    
     newPoints = []
     angle = 2*rounds
     step = angle/(res-1)
@@ -126,44 +82,36 @@ def Torus_Knot_Curve(p=2, q=3, w=1, res=24, formula=0, h=1, u=1 ,v=1, rounds=2):
         y = (2 * scale + cos((q*t)/p*v)) * sin(t * u)
         z = sin(q*t/p) * height
         
-        newPoints.append([x,y,z])
+        newPoints.extend([x,y,z,1])
 
     return newPoints
 
+
 ##------------------------------------------------------------
 # Main Function
-def main(context, props, align_matrix):
-    # deselect all objects
-    bpy.ops.object.select_all(action='DESELECT')
+def create_torus_knot(self, context):
+    verts = Torus_Knot(self)
 
-    # get verts
-    verts = Torus_Knot_Curve(props.torus_p,
-                            props.torus_q,
-                            props.torus_w,
-                            props.torus_res,
-                            props.torus_formula,
-                            props.torus_h,
-                            props.torus_u,
-                            props.torus_v,
-                            props.torus_rounds)
+    curve_data = create_curve_data(verts)
+    
+    if self.geo_surf:
+        curve_data.bevel_depth = self.geo_bDepth
+        curve_data.bevel_resolution = self.geo_bRes
+        curve_data.use_fill_front = False
+        curve_data.use_fill_back = False
+        curve_data.extrude = self.geo_extrude
+        #curve_data.offset = self.geo_width # removed, somehow screws things up all of a sudden
+        curve_data.resolution_u = self.geo_res
+    
+    new_obj = add_object_data(context, curve_data, operator=self)
 
-    # turn verts into array
-    vertArray = vertsToPoints(verts)
 
-    # create object
-    createCurve(vertArray, props, align_matrix)
-
-    return
-
-class torus_knot_plus(bpy.types.Operator):
+class torus_knot_plus(bpy.types.Operator, AddObjectHelper):
     ''''''
     bl_idname = "torus_knot_plus"
     bl_label = "Torus Knot +"
     bl_options = {'REGISTER', 'UNDO'}
     bl_description = "adds many types of knots"
-
-    # align_matrix for the invoke
-    align_matrix = Matrix()
 
     #### general options
     options_plus = BoolProperty(name="plus options",
@@ -284,19 +232,11 @@ class torus_knot_plus(bpy.types.Operator):
         if not self.options_plus:
             self.torus_rounds = self.torus_p
 
-        # main function
-        main(context, self, self.align_matrix)
+        #recoded for add_utils
+        create_torus_knot(self, context)
         
         # restore pre operator undo state
         bpy.context.user_preferences.edit.use_global_undo = undo
-
-        return {'FINISHED'}
-
-    ##### INVOKE #####
-    def invoke(self, context, event):
-        # store creation_matrix
-        self.align_matrix = align_matrix(context)
-        self.execute(context)
 
         return {'FINISHED'}
 
