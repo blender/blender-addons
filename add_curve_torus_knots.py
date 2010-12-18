@@ -21,10 +21,10 @@ bl_addon_info = {
     "name": "Torus Knots",
     "author": "testscreenings",
     "version": (0,1),
-    "blender": (2, 5, 3),
-    "api": 32411,
+    "blender": (2, 5, 5),
+    "api": 33754,
     "location": "View3D > Add > Curve",
-    "description": "Adds many types of knots",
+    "description": "Adds many types of (torus) knots",
     "warning": "",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"\
         "Scripts/Curve/Torus_Knot",
@@ -37,24 +37,9 @@ bl_addon_info = {
 #### import modules
 import bpy
 from bpy.props import *
-#from mathutils import *
-from math import *
+from math import sin, cos, pi
 from add_utils import *
 
-##------------------------------------------------------------
-#### Curve creation functions
-
-def create_curve_data(verts):
-    curve_data = bpy.data.curves.new(name='Torus Knot', type='CURVE')
-    spline = curve_data.splines.new(type='NURBS')
-    spline.points.add(int(len(verts)*0.25 - 1))
-    spline.points.foreach_set('co', verts)
-    spline.use_endpoint_u = True
-    spline.use_cyclic_u = True
-    spline.order_u = 4
-    curve_data.dimensions = '3D'
-    
-    return curve_data
     
 ########################################################################
 ####################### Knot Definitions ###############################
@@ -92,7 +77,14 @@ def Torus_Knot(self):
 def create_torus_knot(self, context):
     verts = Torus_Knot(self)
 
-    curve_data = create_curve_data(verts)
+    curve_data = bpy.data.curves.new(name='Torus Knot', type='CURVE')
+    spline = curve_data.splines.new(type='NURBS')
+    spline.points.add(int(len(verts)*0.25 - 1))
+    spline.points.foreach_set('co', verts)
+    spline.use_endpoint_u = True
+    spline.use_cyclic_u = True
+    spline.order_u = 4
+    curve_data.dimensions = '3D'    
     
     if self.geo_surf:
         curve_data.bevel_depth = self.geo_bDepth
