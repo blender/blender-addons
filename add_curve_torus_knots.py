@@ -123,9 +123,6 @@ class torus_knot_plus(bpy.types.Operator, AddObjectHelper):
     geo_extrude = FloatProperty(name="extrude",
                 default=0.0,
                 min=0, soft_min=0)
-    geo_width = FloatProperty(name="width",
-                default=1.0,
-                min=0, soft_min=0)
     geo_res = IntProperty(name="resolution",
                 default=12,
                 min=1, soft_min=1)
@@ -133,7 +130,7 @@ class torus_knot_plus(bpy.types.Operator, AddObjectHelper):
 
     #### Parameters
     torus_res = IntProperty(name="Resoulution",
-                default=200,
+                default=100,
                 min=3, soft_min=3,
                 description='Resolution, Number of controlverticies.')
     torus_p = IntProperty(name="p",
@@ -166,10 +163,6 @@ class torus_knot_plus(bpy.types.Operator, AddObjectHelper):
                 min=1, soft_min=1,
                 #max=1, soft_max=1,
                 description="v")
-    torus_formula = IntProperty(name="Variation",
-                default=0,
-                min=0, soft_min=0,
-                max=10, soft_max=10)
     torus_rounds = IntProperty(name="Rounds",
                 default=2,
                 min=1, soft_min=1,
@@ -182,7 +175,6 @@ class torus_knot_plus(bpy.types.Operator, AddObjectHelper):
 
         # general options        
         col = layout.column()
-        #col.prop(self, 'KnotType') waits for more knottypes
         col.label(text="Torus Knot Parameters")
 
         # Parameters 
@@ -207,8 +199,10 @@ class torus_knot_plus(bpy.types.Operator, AddObjectHelper):
             box.prop(self, 'geo_bDepth')
             box.prop(self, 'geo_bRes')
             box.prop(self, 'geo_extrude')
-            #box.prop(self, 'geo_width') # not really good
             box.prop(self, 'geo_res')
+        col = layout.column()
+        col.prop(self, 'location')
+        col.prop(self, 'rotation')
     
     ##### POLL #####
     @classmethod
