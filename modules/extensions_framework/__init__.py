@@ -29,10 +29,8 @@ import time
 import bpy
 
 from extensions_framework.ui import EF_OT_msg
-
 bpy.types.register(EF_OT_msg)
 del EF_OT_msg
-
 
 def log(str, popup=False, module_name='EF'):
 	"""Print a message to the console, prefixed with the module_name

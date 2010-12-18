@@ -35,10 +35,12 @@ import bpy
 
 """List of possibly appropriate paths to load/save addon config from/to"""
 config_paths = []
-if bpy.utils.user_resource('CONFIG') != "": config_paths.append(bpy.utils.user_resource('CONFIG'))
-if bpy.utils.user_resource('SCRIPTS') != "": config_paths.append(bpy.utils.user_resource('SCRIPTS'))
-for pth in bpy.utils.script_paths():
-	if pth != "": config_paths.append(pth)
+if bpy.utils.user_resource('CONFIG', '') != "": config_paths.append(bpy.utils.user_resource('CONFIG', '', create=True))
+if bpy.utils.user_resource('SCRIPTS', '') != "": config_paths.append(bpy.utils.user_resource('SCRIPTS', '', create=True))
+# want to scan other script paths in reverse order, since the user path comes last
+sp = [p for p in bpy.utils.script_paths() if p != '']
+sp.reverse()
+config_paths.extend(sp)
 
 """This path is set at the start of export, so that calls to
 path_relative_to_export() can make all exported paths relative to
