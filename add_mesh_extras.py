@@ -19,16 +19,16 @@
 bl_addon_info = {
     "name": "Extras",
     "author": "Pontiac, Fourmadmen, meta-androcto",
-    "version": (0,3),
-    "blender": (2, 5, 3),
-    "api": 32411,
+    "version": (0,4),
+    "blender": (2, 5, 5),
+    "api": 33832,
     "location": "View3D > Add > Mesh > Extras",
-    "description": "Adds Star, Wedge, Sqorus & Spindle objects.",
+    "description": "Adds Star, Wedge, & Sqorus objects.",
     "warning": "",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"\
         "Scripts/Add_Mesh/Add_Extra",
-    "tracker_url": "https://projects.blender.org/tracker/index.php?"\
-        "func=detail&aid=22457&group_id=153&atid=469",
+    "tracker_url": "http://projects.blender.org/tracker/index.php?func=detail"\
+        "&aid=22457&group_id=153&atid=469",
     "category": "Add Mesh"}
 
 import bpy
@@ -370,62 +370,6 @@ def add_wedge(size_x, size_y, size_z):
 
     return verts, faces
 
-def add_spindle(segments, radius, height, cap_height):
-    verts = []
-    faces = []
-
-    tot_verts = segments * 2 + 2
-
-    half_height = height / 2.0
-
-    # Upper tip
-    idx_upper_tip = len(verts)
-    verts.append(Vector((0, 0, half_height + cap_height)))
-
-    # Lower tip
-    idx_lower_tip = len(verts)
-    verts.append(Vector((0.0, 0.0, -half_height - cap_height)))
-
-    upper_edgeloop = []
-    lower_edgeloop = []
-    for index in range(segments):
-        mtx = Matrix.Rotation(2.0 * pi * float(index) / segments, 3, 'Z')
-
-        # Calculate index & location of upper verte4x tip.
-        idx_up = len(verts)
-        upper_edgeloop.append(idx_up)
-        verts.append(Vector((radius, 0.0, half_height)) * mtx)
-
-        if height > 0:
-            idx_low = len(verts)
-            lower_edgeloop.append(idx_low)
-            verts.append(Vector((radius, 0.0, -half_height)) * mtx)
-
-    # Create faces for the upper tip.
-    tip_up_faces = createFaces([idx_upper_tip], upper_edgeloop,
-        closed=True, flipped=True)
-    faces.extend(tip_up_faces)
-
-    if height > 0:
-        # Create faces for the middle cylinder.
-        cyl_faces = createFaces(lower_edgeloop, upper_edgeloop, closed=True)
-        faces.extend(cyl_faces)
-
-        # Create faces for the lower tip.
-        tip_low_faces = createFaces([idx_lower_tip], lower_edgeloop,
-            closed=True)
-        faces.extend(tip_low_faces)
-
-    else:
-        # Skipping middle part/cylinder (height=0).
-
-        # Create faces for the lower tip.
-        tip_low_faces = createFaces([idx_lower_tip], upper_edgeloop,
-            closed=True)
-        faces.extend(tip_low_faces)
-
-    return verts, faces
-
 def add_star(points, outer_radius, inner_radius, height):
     PI_2 = pi * 2
     z_axis = (0, 0, 1)
@@ -595,57 +539,6 @@ class AddWedge(bpy.types.Operator):
         self.execute(context)
         return {'FINISHED'}
 
-class AddSpindle(bpy.types.Operator):
-    '''Add a spindle mesh.'''
-    bl_idname = "mesh.primitive_spindle_add"
-    bl_label = "Add Spindle"
-    bl_description = "Create a spindle mesh."
-    bl_options = {'REGISTER', 'UNDO'}
-
-    # edit - Whether to add or update.
-    edit = BoolProperty(name="",
-        description="",
-        default=False,
-        options={'HIDDEN'})
-    segments = IntProperty(name="Segments",
-        description="Number of segments of the spindle",
-        min=3,
-        max=512,
-        default=32)
-    radius = FloatProperty(name="Radius",
-        description="Radius of the spindle",
-        min=0.01,
-        max=9999.0,
-        default=1.0)
-    height = FloatProperty(name="Height",
-        description="Height of the spindle",
-        min=0.0,
-        max=100.0,
-        default=1.0)
-    cap_height = FloatProperty(name="Cap Height",
-        description="Cap height of the spindle",
-        min=-9999.0,
-        max=9999.0,
-        default=0.5)
-    align_matrix = Matrix()
-
-    def execute(self, context):
-
-        verts, faces = add_spindle(
-            self.segments,
-            self.radius,
-            self.height,
-            self.cap_height)
-
-        obj = create_mesh_object(context, verts, [], faces, "Spindle",
-            self.edit, self.align_matrix)
-
-        return {'FINISHED'}
-
-    def invoke(self, context, event):
-        self.align_matrix = align_matrix(context)
-        self.execute(context)
-        return {'FINISHED'}
 
 class AddStar(bpy.types.Operator):
     '''Add a star mesh.'''
@@ -698,6 +591,7 @@ class AddStar(bpy.types.Operator):
         self.execute(context)
         return {'FINISHED'}
 
+
 class AddTrapezohedron(bpy.types.Operator):
     """Add a trapezohedron"""
     bl_idname = "mesh.primitive_trapezohedron_add"
@@ -730,6 +624,7 @@ class AddTrapezohedron(bpy.types.Operator):
 
         return {'FINISHED'}
 
+
 class INFO_MT_mesh_extras_add(bpy.types.Menu):
     # Define the "Extras" menu
     bl_idname = "INFO_MT_mesh_extras_add"
@@ -741,9 +636,6 @@ class INFO_MT_mesh_extras_add(bpy.types.Menu):
         layout.operator("mesh.primitive_sqorus_add",
             text="Sqorus")
         layout.operator("mesh.primitive_wedge_add",
-            text="Wedge")
-        layout.operator("mesh.primitive_spindle_add",
-            text="Spindle")
         layout.operator("mesh.primitive_star_add",
             text="Star")
         layout.operator("mesh.primitive_trapezohedron_add",
@@ -753,18 +645,18 @@ class INFO_MT_mesh_extras_add(bpy.types.Menu):
 # Register all operators and panels
 import space_info
 
-# Define "Gemstones" menu
+# Define "Extras" menu
 def menu_func(self, context):
     self.layout.menu("INFO_MT_mesh_extras_add", icon="PLUGIN")
 
 
 def register():
-    # Add "Gemstones" menu to the "Add Mesh" menu
+    # Add "Extras" menu to the "Add Mesh" menu
     space_info.INFO_MT_mesh_add.append(menu_func)
 
 
 def unregister():
-    # Remove "Gemstones" menu from the "Add Mesh" menu.
+    # Remove "Extras" menu from the "Add Mesh" menu.
     space_info.INFO_MT_mesh_add.remove(menu_func)
 
 if __name__ == "__main__":
