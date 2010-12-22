@@ -1327,9 +1327,7 @@ class PovrayRender(bpy.types.RenderEngine):
                 pass
 
         self.update_stats("", "")
-    
-    _process = None
-    
+
     def render(self, scene):
 
         self.update_stats("", "POVRAY 3.7: Exporting data from Blender")
