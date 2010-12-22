@@ -80,6 +80,7 @@ def add_object_data(context, obdata, operator=None):
     for ob in scene.objects:
         ob.select = False
 
+    obdata.update()
     obj_new = bpy.data.objects.new(obdata.name, obdata)
 
     base = scene.objects.link(obj_new)
