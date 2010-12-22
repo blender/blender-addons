@@ -104,7 +104,7 @@ class MaterialButtonsPanel():
     def poll(cls, context):
         mat = context.material
         rd = context.scene.render
-        return (rd.use_game_engine == False) and (rd.engine in cls.COMPAT_ENGINES)
+        return mat and (rd.use_game_engine == False) and (rd.engine in cls.COMPAT_ENGINES)
 
 ########################################MR######################################
 class MATERIAL_PT_povray_mirrorIOR(MaterialButtonsPanel, bpy.types.Panel):
