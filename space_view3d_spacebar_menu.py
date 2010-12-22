@@ -1418,12 +1418,10 @@ def edgeIntersect(context, operator):
     line = LineLineIntersect(verts[edges[0].vertices[0]].co, verts[edges[0].vertices[1]].co, verts[edges[1].vertices[0]].co, verts[edges[1].vertices[1]].co)
 
     if (line is None):
-        operator.report({'ERROR'}, "Selected edges are parallel.")
+        operator.report({'ERROR'}, "Selected edges do not intersect.")
         return
 
-    tm = obj.matrix_world.copy()
     point = ((line[0] + line[1]) / 2)
-    point = tm * point
 
     context.scene.cursor_location = point
             
