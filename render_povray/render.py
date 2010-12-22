@@ -106,7 +106,7 @@ def findInSubDir(filename, subdirectory=''):
             if filename in names:
                 pahFile = os.path.join(root, filename)
         return pahFile
-    except: #OSError: #was that the proper error type?
+    except OSError:
         return '' 
 
 def path_image(image):
@@ -127,8 +127,10 @@ def safety(name, Level):
     # Level=2 is for texture with translation of spec and mir levels for when no map influences them
     # Level=3 is for texture with Maximum Spec and Mirror 
     try:
-        if int(name) > 0: prefix='shader'
-    except: prefix=''
+        if int(name) > 0:
+            prefix='shader'
+    except:
+        prefix = ''
     prefix='shader_'
     if Level == 2:
         return prefix+name
@@ -612,12 +614,12 @@ def write_pov(filename, scene=None, info_callback=None):
             matrix = ob.matrix_world
             try:
                 uv_layer = me.uv_textures.active.data
-            except:
+            except AttributeError:
                 uv_layer = None
 
             try:
                 vcol_layer = me.vertex_colors.active.data
-            except:
+            except AttributeError:
                 vcol_layer = None
 
             faces_verts = [f.vertices[:] for f in me.faces]
@@ -1275,7 +1277,7 @@ class PovrayRender(bpy.types.RenderEngine):
 
         try:
             os.remove(self._temp_file_out) # so as not to load the old file
-        except: #OSError: #was that the proper error type?
+        except OSError:
             pass
 
         write_pov_ini(self._temp_file_ini, self._temp_file_in, self._temp_file_out)
@@ -1321,7 +1323,6 @@ class PovrayRender(bpy.types.RenderEngine):
         for f in (self._temp_file_in, self._temp_file_ini, self._temp_file_out):
             try:
                 os.remove(f)
-                pass
             except OSError:  #was that the proper error type?
                 pass
 
@@ -1358,15 +1359,14 @@ class PovrayRender(bpy.types.RenderEngine):
             # print("***POV WAITING FOR FILE***")
             if self.test_break():
                 try:
-                    # DH - added various checks for _process and some debug output print()s
-                    if self._process: self._process.terminate()
+                    self._process.terminate()
                     print("***POV INTERRUPTED***")
-                except: #OSError: #was that the proper error type?
+                except OSError:
                     pass
                 break
             
             poll_result = self._process.poll()
-            if self._process and poll_result != None:
+            if poll_result is not None:
                 print("***POV PROCESS FAILED : %s ***" % poll_result)
                 self.update_stats("", "POVRAY 3.7: Failed")
                 break
@@ -1386,7 +1386,7 @@ class PovrayRender(bpy.types.RenderEngine):
                 # possible the image wont load early on.
                 try:
                     lay.load_from_file(self._temp_file_out)
-                except: #OSError: #was that the proper error type?
+                except SystemError:
                     pass
                 self.end_result(result)
 
@@ -1395,7 +1395,7 @@ class PovrayRender(bpy.types.RenderEngine):
                 # print("***POV RENDER LOOP***")
 
                 # test if povray exists
-                if self._process and self._process.poll() != None:
+                if self._process.poll() is not None:
                     print("***POV PROCESS FINISHED***")
                     update_image()
                     break
@@ -1403,9 +1403,9 @@ class PovrayRender(bpy.types.RenderEngine):
                 # user exit
                 if self.test_break():
                     try:
-                        if self._process: self._process.terminate()
+                        self._process.terminate()
                         print("***POV PROCESS INTERRUPTED***")
-                    except: #OSError: #was that the proper error type?
+                    except OSError:
                         pass
 
                     break
