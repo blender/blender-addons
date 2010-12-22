@@ -29,12 +29,11 @@ bl_addon_info = {
     "category": "3D View"}
 
 if "bpy" in locals():
-    from imp import reload
-    reload(utils)
-    reload(draw)
+    import imp
+    imp.reload(utils)
+    imp.reload(draw)
 else:
     from . import utils, draw
-
 
 import bpy
 

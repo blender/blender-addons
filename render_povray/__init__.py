@@ -33,8 +33,9 @@ bl_addon_info = {
 
 
 if "bpy" in locals():
-    reload(ui)
-    reload(render)
+    import imp
+    imp.reload(ui)
+    imp.reload(render)
 
 else:
     import bpy

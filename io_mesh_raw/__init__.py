@@ -31,27 +31,22 @@ bl_addon_info = {
         "func=detail&aid=21733&group_id=153&atid=469",
     "category": "Import/Export"}
 
+if "bpy" in locals():
+    import imp
+    imp.reload(import_raw)
+    imp.reload(export_raw)
+else:
+    from . import import_raw
+    from . import export_raw
+
+
 import bpy
 
-
-try:
-    init_data
-
-    reload(import_raw)
-    reload(export_raw)
-except:
-    from io_mesh_raw import import_raw
-    from io_mesh_raw import export_raw
-
-init_data = True
-
 def menu_import(self, context):
-    from io_mesh_raw import import_raw
     self.layout.operator(import_raw.RawImporter.bl_idname, text="Raw Faces (.raw)").filepath = "*.raw"
 
 
 def menu_export(self, context):
-    from io_mesh_raw import export_raw
     import os
     default_path = os.path.splitext(bpy.data.filepath)[0] + ".raw"
     self.layout.operator(export_raw.RawExporter.bl_idname, text="Raw Faces (.raw)").filepath = default_path

@@ -28,12 +28,13 @@ bl_addon_info = {
     "category": "Rigging"}
 
 if "bpy" in locals():
-    reload(generate)
-    reload(ui)
-    reload(utils)
-    reload(metarig_menu)
+    import imp
+    imp.reload(generate)
+    imp.reload(ui)
+    imp.reload(utils)
+    imp.reload(metarig_menu)
 else:
-    from rigify import generate, ui, utils, metarig_menu
+    from . import generate, ui, utils, metarig_menu
 
 import bpy
 import bpy_types

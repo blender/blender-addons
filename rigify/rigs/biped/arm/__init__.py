@@ -17,13 +17,13 @@
 #======================= END GPL LICENSE BLOCK ========================
 
 import bpy
-from imp import reload
+import imp
 from . import fk, ik, deform
 from rigify.utils import MetarigError, get_layers
 
-reload(fk)
-reload(ik)
-reload(deform)
+imp.reload(fk)
+imp.reload(ik)
+imp.reload(deform)
 
 script = """
 fk_arm = ["%s", "%s", "%s"]

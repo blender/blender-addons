@@ -32,16 +32,17 @@ bl_addon_info = {
     "category": "Import/Export"}
 
 
+if "bpy" in locals():
+    import imp
+    imp.reload(coat)
+    imp.reload(tex)
+else:
+    from . import coat
+    from . import tex
 
-#if "bpy" in locals(): Don't know if this is important
-#    reload(render)
-#    reload(ui)
-
-#else:
 import bpy
 from bpy.props import *
-from io_coat3D import coat
-from io_coat3D import tex
+
 
 def register():
 

@@ -46,24 +46,20 @@ Import:
     - Does not handle endien
 """
 
+if "bpy" in locals():
+    import imp
+    imp.reload(stl_utils)
+    imp.reload(blender_utils)
+else:
+    from . import stl_utils
+    from . import blender_utils
+
 import itertools
 import os
 
 import bpy
 from bpy.props import *
 from io_utils import ExportHelper, ImportHelper
-
-
-try:
-    init_data
-
-    reload(stl_utils)
-    reload(blender_utils)
-except:
-    from io_mesh_stl import stl_utils
-    from io_mesh_stl import blender_utils
-
-init_data = True
 
 
 class StlImporter(bpy.types.Operator, ImportHelper):

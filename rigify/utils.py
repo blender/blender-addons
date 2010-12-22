@@ -17,7 +17,7 @@
 #======================= END GPL LICENSE BLOCK ========================
 
 import bpy
-from imp import reload
+import imp
 from random import randint
 from mathutils import Vector
 from math import ceil, floor
@@ -355,7 +355,7 @@ def get_rig_type(rig_type):
     """
     #print("%s.%s.%s" % (__package__,RIG_DIR,rig_type))
     submod = __import__(name="%s.%s.%s" % (MODULE_NAME, RIG_DIR, rig_type), fromlist=[rig_type])
-    reload(submod)
+    imp.reload(submod)
     return submod
 
 

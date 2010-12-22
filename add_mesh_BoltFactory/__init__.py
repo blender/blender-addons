@@ -29,16 +29,13 @@ bl_addon_info = {
         "func=detail&aid=22842&group_id=153&atid=468",
     "category": "Add Mesh"}
 
-import bpy
-
-try:
-    init_data
-
-    reload(Boltfactory)
-except:
+if "bpy" in locals():
+    import imp
+    imp.reload(Boltfactory)
+else:
     from add_mesh_BoltFactory import Boltfactory
 
-init_data = True
+import bpy
 
 ################################################################################
 ##### REGISTER #####

@@ -635,7 +635,7 @@ class INFO_MT_mesh_extras_add(bpy.types.Menu):
         layout.operator_context = 'INVOKE_REGION_WIN'
         layout.operator("mesh.primitive_sqorus_add",
             text="Sqorus")
-        layout.operator("mesh.primitive_wedge_add",
+        layout.operator("mesh.primitive_wedge_add")
         layout.operator("mesh.primitive_star_add",
             text="Star")
         layout.operator("mesh.primitive_trapezohedron_add",

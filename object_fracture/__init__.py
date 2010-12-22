@@ -32,18 +32,16 @@ bl_addon_info = {
     "category": "Object"}
 
 
+if "bpy" in locals():
+    import imp
+    imp.reload(fracture_ops)
+    imp.reload(fracture_setup)
+else:
+    from . import fracture_ops
+    from . import fracture_setup
+
 import bpy
 
-try:
-    init_data
-    
-    reload(fracture_ops)
-    reload(fracture_setup)
-except:
-    from object_fracture import fracture_ops
-    from object_fracture import fracture_setup
-
-init_data = True
 
 class INFO_MT_add_fracture_objects(bpy.types.Menu):
     bl_idname = "INFO_MT_add_fracture_objects"

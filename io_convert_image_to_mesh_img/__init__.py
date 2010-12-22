@@ -39,17 +39,18 @@ bl_addon_info = {
         "func=detail&aid=24897&group_id=153&atid=467",
     "category": "Import/Export"}
 
+
+if "bpy" in locals():
+    import imp
+    imp.reload(import_img)
+else:
+    from . import import_img
+
+
 import bpy
 from bpy.props import *
 from io_utils import ImportHelper
 
-try:
-    init_data
-    reload( io_convert_image_to_mesh_img.import_img )
-except:
-    import io_convert_image_to_mesh_img.import_img
-
-init_data = True
 
 class ImportHiRISEIMGDTM(bpy.types.Operator, ImportHelper):
     '''Import a HiRISE DTM formatted as a PDS IMG file'''
@@ -59,14 +60,13 @@ class ImportHiRISEIMGDTM(bpy.types.Operator, ImportHelper):
     filename_ext = ".IMG"
     filter_glob = StringProperty(default="*.IMG", options={'HIDDEN'})
 
-    scale = FloatProperty(
-                          name="Scale",
-			  description="Scale the IMG by this value",
-			  min=0.0001,
-			  max=10.0,
-			  soft_min=0.001,
-			  soft_max=100.0,
-			  default=0.01)
+    scale = FloatProperty(name="Scale",
+                          description="Scale the IMG by this value",
+                          min=0.0001,
+                          max=10.0,
+                          soft_min=0.001,
+                          soft_max=100.0,
+                          default=0.01)
 
     bin_mode = EnumProperty(items=(
                                    ('NONE', "None", "Don't bin the image"),
@@ -79,7 +79,7 @@ class ImportHiRISEIMGDTM(bpy.types.Operator, ImportHelper):
                             name="Binning",
                             description="Import Binning.",
                             default='BIN12-FAST'
-			    )
+                            )
 
     #red_material = BoolProperty(name="Mars Red Mesh",
     #                            description="Set the mesh as a 'Mars' red value",

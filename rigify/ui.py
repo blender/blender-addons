@@ -18,7 +18,6 @@
 
 import bpy
 from bpy.props import *
-from imp import reload
 import rigify
 from rigify.utils import get_rig_type
 from rigify import generate
@@ -194,7 +193,8 @@ class Generate(bpy.types.Operator):
     bl_label = "Rigify Generate Rig"
 
     def execute(self, context):
-        reload(generate)
+        import imp
+        imp.reload(generate)
 
         try:
             generate.generate_rig(context, context.object)
