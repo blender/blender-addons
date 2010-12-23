@@ -19,17 +19,17 @@
 bl_addon_info = {
     "name": "Import Unreal Skeleton Mesh(.psk)",
     "author": "Darknet",
-    "version": (2,0),
+    "version": (2, 0),
     "blender": (2, 5, 3),
     "api": 31847,
     "location": "File > Import ",
     "description": "Import Unreal Engine (.psk)",
     "warning": "",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"
-        "Scripts/File_I-O/Unreal_psk_psa",
+        "Scripts/Import-Export/Unreal_psk_psa",
     "tracker_url": "https://projects.blender.org/tracker/index.php?"\
         "func=detail&aid=21366&group_id=153&atid=469",
-    "category": "Import/Export"}
+    "category": "Import-Export"}
 
 """
 Version': '2.0' ported by Darknet

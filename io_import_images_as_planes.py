@@ -19,17 +19,18 @@
 bl_addon_info = {
     "name": "Import Images as Planes",
     "author": "Florian Meyer (tstscr)",
-    "version": (1,0),
+    "version": (1, 0),
     "blender": (2, 5, 5),
     "api": 33754,
     "location": "File > Import > Images as Planes",
-    "description": "Imports images and creates planes with the appropriate aspect ratio. The images are mapped to the planes.",
+    "description": "Imports images and creates planes with the appropriate aspect ratio. "\
+        "The images are mapped to the planes.",
     "warning": "",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"\
         "Scripts/Add_Mesh/Planes_from_Images",
     "tracker_url": "https://projects.blender.org/tracker/index.php?"\
         "func=detail&aid=21751&group_id=153&atid=469",
-    "category": "Import/Export"}
+    "category": "Import-Export"}
 
 import bpy, os, mathutils
 from bpy.props import *

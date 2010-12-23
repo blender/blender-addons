@@ -25,13 +25,14 @@ bl_addon_info= {
     "blender": (2, 5, 3),
     "api": 31847,
     "location": "File > Import > LightWave Object (.lwo)",
-    "description": "Imports a LWO file including any UV, Morph and Color maps. Can convert Skelegons to an Armature.",
+    "description": "Imports a LWO file including any UV, Morph and Color maps. "\
+        "Can convert Skelegons to an Armature.",
     "warning": "",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"\
-        "Scripts/File_I-O/LightWave_Object",
+        "Scripts/Import-Export/LightWave_Object",
     "tracker_url": "https://projects.blender.org/tracker/index.php?"\
         "func=detail&aid=23623&group_id=153&atid=469",
-    "category": "Import/Export"}
+    "category": "Import-Export"}
 
 # Copyright (c) Ken Nign 2010
 # ken@virginpi.com

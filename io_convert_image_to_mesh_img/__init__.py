@@ -16,6 +16,22 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
+bl_addon_info = {
+    "name": "HiRISE DTM from PDS IMG",
+    "author": "Tim Spriggs (tims@uahirise.org)",
+    "version": (0, 1, 2),
+    "blender": (2, 5, 3),
+    "api": 31998,
+    "location": "File > Import > HiRISE DTM from PDS IMG (.IMG)",
+    "description": "Import a HiRISE DTM formatted as a PDS IMG file",
+    "warning": "May consume a lot of memory",
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"\
+        "Scripts/Import-Export/HiRISE_DTM_from_PDS_IMG",
+    "tracker_url": "https://projects.blender.org/tracker/index.php?"\
+        "func=detail&aid=24897&group_id=153&atid=469",
+    "category": "Import-Export"}
+
+
 # Revision History:
 # 0.1.1 - make default import 12x12 bin (fast) to not consume too much memory
 #         by default (TJS - 2010-12-07)
@@ -23,21 +39,6 @@
 #         trunk/py/scripts/addons/io_convert_image_to_mesh_img
 #         may be moved out to contrib once the blender downloader works well
 #         (TJS - 2010-12-14)
-
-bl_addon_info = {
-    "name": "HiRISE DTM from PDS IMG",
-    "author": "Tim Spriggs (tims@uahirise.org)",
-    "version": (0,1,2),
-    "blender": (2,5,3),
-    "api": 31998,
-    "location": "File > Import > HiRISE DTM from PDS IMG (.IMG)",
-    "description": "Import a HiRISE DTM formatted as a PDS IMG file",
-    "warning": "This is beta quality code and the final product may consume a lot of memory",
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"\
-        "Scripts/File_I-O/HiRISE_DTM_from_PDS_IMG",
-    "tracker_url": "https://projects.blender.org/tracker/index.php?"\
-        "func=detail&aid=24897&group_id=153&atid=469",
-    "category": "Import/Export"}
 
 
 if "bpy" in locals():

@@ -19,17 +19,17 @@
 bl_addon_info = {
     "name": "3D-Coat Applink",
     "author": "Kalle-Samuli Riihikoski (haikalle)",
-    "version": (1,61),
+    "version": (1, 61),
     "blender": (2, 5, 4),
     "api": 31667,
     "location": "Scene -> 3D-Coat Applink",
     "description": "Transfer data between 3D-Coat/Blender",
     "warning": "",
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/" \
-        "Scripts/File_I-O/3dcoat_applink",
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"\
+        "Scripts/Import-Export/3dcoat_applink",
     "tracker_url": "https://projects.blender.org/tracker/?"\
         "func=detail&aid=24446&group_id=153&atid=469",
-    "category": "Import/Export"}
+    "category": "Import-Export"}
 
 
 if "bpy" in locals():

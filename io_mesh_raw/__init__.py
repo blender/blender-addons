@@ -19,17 +19,17 @@
 bl_addon_info = {
     "name": "Raw mesh",
     "author": "Anthony D,Agostino (Scorpius), Aurel Wildfellner",
-    "version": (0,2),
+    "version": (0, 2),
     "blender": (2, 5, 3),
     "api": 31667,
-    "location": "File > Import/Export > Raw faces ",
+    "location": "File > Import-Export > Raw faces ",
     "description": "Import Raw Faces (.raw format)",
     "warning": "",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"\
-        "Scripts/File_I-O/Raw_Mesh_IO",
+        "Scripts/Import-Export/Raw_Mesh_IO",
     "tracker_url": "https://projects.blender.org/tracker/index.php?"\
         "func=detail&aid=21733&group_id=153&atid=469",
-    "category": "Import/Export"}
+    "category": "Import-Export"}
 
 if "bpy" in locals():
     import imp
