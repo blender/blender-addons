@@ -45,39 +45,40 @@ class DATA_PT_rigify_buttons(bpy.types.Panel):
         C = context
         layout = self.layout
         obj = context.object
+        id_store = C.window_manager
 
         if obj.mode in ('POSE', 'OBJECT'):
             row = layout.row()
             row.operator("pose.rigify_generate", text="Generate")
         elif obj.mode == 'EDIT':
             # Build types list
-            collection_name = str(C.scene.rigify_collection).replace(" ", "")
+            collection_name = str(id_store.rigify_collection).replace(" ", "")
 
-            for i in range(0, len(C.scene.rigify_types)):
-                C.scene.rigify_types.remove(0)
+            for i in range(0, len(id_store.rigify_types)):
+                id_store.rigify_types.remove(0)
 
             for r in rigify.rig_list:
                 collection = r.split('.')[0]
                 if collection_name == "All":
-                    a = C.scene.rigify_types.add()
+                    a = id_store.rigify_types.add()
                     a.name = r
                 elif r.startswith(collection_name + '.'):
-                    a = C.scene.rigify_types.add()
+                    a = id_store.rigify_types.add()
                     a.name = r
                 elif collection_name == "None" and len(r.split('.')) == 1:
-                    a = C.scene.rigify_types.add()
+                    a = id_store.rigify_types.add()
                     a.name = r
 
             ## Rig collection field
             #row = layout.row()
-            #row.prop(C.scene, 'rigify_collection', text="Category")
+            #row.prop(id_store, 'rigify_collection', text="Category")
 
             # Rig type list
             row = layout.row()
-            row.template_list(C.scene, "rigify_types", C.scene, 'rigify_active_type')
+            row.template_list(id_store, "rigify_types", id_store, 'rigify_active_type')
             row = layout.row()
             op = row.operator("armature.metarig_sample_add", text="Add sample")
-            op.metarig_type = C.scene.rigify_types[C.scene.rigify_active_type].name
+            op.metarig_type = id_store.rigify_types[id_store.rigify_active_type].name
 
 
 class BONE_PT_rigify_buttons(bpy.types.Panel):
@@ -98,31 +99,32 @@ class BONE_PT_rigify_buttons(bpy.types.Panel):
 
     def draw(self, context):
         C = context
+        id_store = C.window_manager
         bone = context.active_pose_bone
-        collection_name = str(C.scene.rigify_collection).replace(" ", "")
+        collection_name = str(id_store.rigify_collection).replace(" ", "")
         rig_name = str(context.active_pose_bone.rigify_type).replace(" ", "")
 
         layout = self.layout
 
         # Build types list
-        for i in range(0, len(C.scene.rigify_types)):
-            C.scene.rigify_types.remove(0)
+        for i in range(0, len(id_store.rigify_types)):
+            id_store.rigify_types.remove(0)
 
         for r in rigify.rig_list:
             collection = r.split('.')[0]
             if collection_name == "All":
-                a = C.scene.rigify_types.add()
+                a = id_store.rigify_types.add()
                 a.name = r
             elif r.startswith(collection_name + '.'):
-                a = C.scene.rigify_types.add()
+                a = id_store.rigify_types.add()
                 a.name = r
             elif collection_name == "None" and len(r.split('.')) == 1:
-                a = C.scene.rigify_types.add()
+                a = id_store.rigify_types.add()
                 a.name = r
 
         # Rig type field
         row = layout.row()
-        row.prop_search(bone, "rigify_type", C.scene, "rigify_types", text="Rig type:")
+        row.prop_search(bone, "rigify_type", id_store, "rigify_types", text="Rig type:")
 
         # Rig type parameters / Rig type non-exist alert
         if rig_name != "":
