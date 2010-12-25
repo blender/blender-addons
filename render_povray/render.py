@@ -39,6 +39,7 @@ def splitExt(path):
     else:
         return (path[dotidx:]).upper().replace('.','')
 
+
 def imageFormat(imgF):
     ext = ""
     ext_orig = splitExt(imgF)
@@ -120,24 +121,33 @@ def path_image(image):
 
 ##############end find image texture 
 
+def splitHyphen(name):
+    hyphidx = name.find('-')
+    if hyphidx == -1:
+        return name
+    else:
+        return (name[hyphidx:]).replace('-','')
 
 ##############safety string name material
 def safety(name, Level):
     # Level=1 is for texture with No specular nor Mirror reflection
     # Level=2 is for texture with translation of spec and mir levels for when no map influences them
     # Level=3 is for texture with Maximum Spec and Mirror 
+
     try:
         if int(name) > 0:
             prefix='shader'
     except:
         prefix = ''
     prefix='shader_'
+    name = splitHyphen(name)
     if Level == 2:
         return prefix+name
     elif Level == 1:
         return prefix+name+'0'#used for 0 of specular map
     elif Level == 3:
         return prefix+name+'1'#used for 1 of specular map
+
 
 ##############end safety string name material
 ##############################EndSF###########################
@@ -162,7 +172,7 @@ def write_pov(filename, scene=None, info_callback=None):
         while name in nameSeq:
             name = '%s_%.3d' % (name_orig, i)
             i += 1
-
+        name = splitHyphen(name)
         return name
 
     def writeMatrix(matrix):
@@ -190,7 +200,7 @@ def write_pov(filename, scene=None, info_callback=None):
             if material.pov_refraction_type=="0":
                 pov_fake_caustics = False
                 pov_photons_refraction = False
-                pov_photons_reflection = True
+                pov_photons_reflection = True #should respond only to proper checkerbox
             elif material.pov_refraction_type=="1":
                 pov_fake_caustics = True
                 pov_photons_refraction = False
@@ -203,7 +213,7 @@ def write_pov(filename, scene=None, info_callback=None):
             if material.pov_caustics_enable:
                 if pov_fake_caustics:
                     file.write('\tcaustics %.3g\n' % material.pov_fake_caustics_power)
-                if material.pov_photons_refraction:
+                if pov_photons_refraction:
                     file.write('\tdispersion %.3g\n' % material.pov_photons_dispersion) #Default of 1 means no dispersion
             #TODO        
             # Other interior args
@@ -389,7 +399,7 @@ def write_pov(filename, scene=None, info_callback=None):
         camera = scene.camera
         
         # DH disabled for now, this isn't the correct context
-        active_object = None #bpy.context.active_object # MR
+        active_object = None #bpy.context.active_object # does not always work  MR
         matrix = camera.matrix_world
         focal_point = camera.data.dof_distance
 
@@ -586,13 +596,22 @@ def write_pov(filename, scene=None, info_callback=None):
 
             file.write('}\n')
 
+    objectNames = {}
+    DEF_OBJ_NAME = 'Default'
     def exportMeshs(scene, sel):
 
         ob_num = 0
 
         for ob in sel:
             ob_num += 1
-
+#############################################
+            #Generating a name for object just like materials to be able to use it (baking for now or anything else).
+            if sel:
+                name_orig = ob.name
+            else:
+                name_orig = DEF_OBJ_NAME
+            name = objectNames[name_orig] = uniqueName(bpy.path.clean_name(name_orig), objectNames)
+#############################################
             if ob.type in ('LAMP', 'CAMERA', 'EMPTY', 'META', 'ARMATURE', 'LATTICE'):
                 continue
 
@@ -630,7 +649,7 @@ def write_pov(filename, scene=None, info_callback=None):
             quadCount = sum(1 for f in faces_verts if len(f) == 4)
 
             # Use named declaration to allow reference e.g. for baking. MR
-            file.write('#declare %s=\n' % ob.name) 
+            file.write('#declare %s=\n' % name) 
             file.write('mesh2 {\n')
             file.write('\tvertex_vectors {\n')
             file.write('\t\t%s' % (len(me.vertices))) # vert count
@@ -1050,7 +1069,7 @@ def write_pov(filename, scene=None, info_callback=None):
 
             writeMatrix(matrix)
             file.write('}\n')
-            file.write('%s\n' % ob.name) # Use named declaration to allow reference e.g. for baking. MR
+            file.write('%s\n' % name) # Use named declaration to allow reference e.g. for baking. MR
 
             bpy.data.meshes.remove(me)
 
@@ -1211,7 +1230,6 @@ def write_pov_ini(filename_ini, filename_pov, filename_image):
     y = int(render.resolution_y * render.resolution_percentage * 0.01)
 
     file = open(filename_ini, 'w')
-
     file.write('Input_File_Name="%s"\n' % filename_pov)
     file.write('Output_File_Name="%s"\n' % filename_image)
 
@@ -1245,7 +1263,7 @@ def write_pov_ini(filename_ini, filename_pov, filename_image):
  
     else:
         file.write('Antialias=0\n')
-
+    file.write('Version=3.7')
     file.close()
 
 
