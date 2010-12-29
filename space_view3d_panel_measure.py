@@ -19,9 +19,9 @@
 bl_addon_info = {
     "name": "Measure Panel",
     "author": "Buerbaum Martin (Pontiac)",
-    "version": (0, 7, 11),
-    "blender": (2, 5, 3),
-    "api": 33331,
+    "version": (0, 7, 12),
+    "blender": (2, 5, 5),
+    "api": 33931,
     "location": "View3D > Properties > Measure",
     "description": "Measure distances between objects",
     "warning": "",
@@ -58,6 +58,13 @@ It's very helpful to use one or two "Empty" objects with
 "Snap during transform" enabled for fast measurement.
 
 Version history:
+v0.7.12 -  Moved setting of properties to callback function
+    (it is bad practise to set it in the draw code).
+    Fixed distance calculation of parented objects.
+    API change: add_modal_handler -> modal_handler_add
+    Regression: Had to disable area display for selection with
+    more than 2 meshes.
+    Fixed Local/Global vert-loc calculations in EditMode.
 v0.7.11 - Applied patch by Filiciss Muhgue that fixes the text in quad view.
 v0.7.10 - Applied patch by Filiciss Muhgue that (mostly) fixes the quad view.
     Patch link: https://projects.blender.org/tracker/?func=
@@ -220,13 +227,6 @@ def getMeasurePoints(context):
             # Get mesh data from Object.
             mesh = obj.data
 
-            # Get transformation matrix from object.
-            ob_mat = obj.matrix_world
-            # Also make an inversed copy! of the matrix.
-            ob_mat_inv = ob_mat.copy().invert()
-            # And a transposed one...
-            ob_mat_trans = ob_mat.copy().transpose()
-
             # Get the selected vertices.
             # @todo: Better (more efficient) way to do this?
             verts_selected = [v for v in mesh.vertices if v.select == 1]
@@ -237,7 +237,7 @@ def getMeasurePoints(context):
                 # local  ... the object center to the 3D cursor.
                 # global ... the origin to the 3D cursor.
                 cur_loc = sce.cursor_location
-                obj_loc = obj.location.copy()
+                obj_loc = obj.matrix_world.translation_part()
 
                 # Convert to local space, if needed.
                 if measureLocal(sce):
@@ -256,16 +256,15 @@ def getMeasurePoints(context):
                 # selected vertex object to the 3D cursor.
                 cur_loc = sce.cursor_location
                 vert_loc = verts_selected[0].co.copy()
-                obj_loc = obj.location.copy()
 
                 # Convert to local or global space.
                 if measureLocal(sce):
-                    p1 = obj_loc + vert_loc
+                    p1 = vert_loc 
                     p2 = cur_loc
                     return (p1, p2, COLOR_LOCAL)
 
                 else:
-                    p1 = vert_loc * ob_mat_trans
+                    p1 = vert_loc * obj.matrix_world
                     p2 = cur_loc
                     return (p1, p2, COLOR_GLOBAL)
 
@@ -273,26 +272,26 @@ def getMeasurePoints(context):
                 # Two vertices selected.
                 # We measure the distance between the
                 # two selected vertices.
-                obj_loc = obj.location.copy()
+                obj_loc = obj.matrix_world.translation_part()
                 vert1_loc = verts_selected[0].co.copy()
                 vert2_loc = verts_selected[1].co.copy()
 
                 # Convert to local or global space.
                 if measureLocal(sce):
-                    p1 = obj_loc + vert1_loc
-                    p2 = obj_loc + vert2_loc
+                    p1 = vert1_loc
+                    p2 = vert2_loc
                     return (p1, p2, COLOR_LOCAL)
 
                 else:
-                    p1 = vert1_loc * ob_mat_trans
-                    p2 = vert2_loc * ob_mat_trans
+                    p1 = vert1_loc * obj.matrix_world
+                    p2 = vert2_loc * obj.matrix_world
                     return (p1, p2, COLOR_GLOBAL)
 
             else:
                 return None
 
     elif (context.mode == 'OBJECT'):
-        # We are working on object mode.
+        # We are working in object mode.
 
         if len(context.selected_objects) > 2:
             return None
@@ -300,15 +299,15 @@ def getMeasurePoints(context):
             # 2 objects selected.
             # We measure the distance between the 2 selected objects.
             obj1, obj2 = context.selected_objects
-            obj1_loc = obj1.location.copy()
-            obj2_loc = obj2.location.copy()
+            obj1_loc = obj1.matrix_world.translation_part()
+            obj2_loc = obj2.matrix_world.translation_part()
             return (obj1_loc, obj2_loc, COLOR_GLOBAL)
 
         elif (obj):
             # One object selected.
             # We measure the distance from the object to the 3D cursor.
             cur_loc = sce.cursor_location
-            obj_loc = obj.location.copy()
+            obj_loc = obj.matrix_world.translation_part()
             return (obj_loc, cur_loc, COLOR_GLOBAL)
 
         elif not context.selected_objects:
@@ -576,6 +575,12 @@ def draw_measurements_callback(self, context):
         OFFSET_VALUE = 30  # Offset of value(s) from the text.
         dist = (p1 - p2).length
 
+        # Write distance value into the scene property,
+        # so we can display it in the panel & refresh the panel.
+        if hasattr(sce, "measure_panel_dist"):
+            sce.measure_panel_dist = dist
+            context.area.tag_redraw()
+
         texts = [("Dist:", round(dist, PRECISION)),
             ("X:", round(abs(p1[0] - p2[0]), PRECISION)),
             ("Y:", round(abs(p1[1] - p2[1]), PRECISION)),
@@ -598,6 +603,90 @@ def draw_measurements_callback(self, context):
             blf.draw(0, value)
 
             loc_y -= OFFSET_Y
+
+    # Handle mesh surface area calulations
+    if (sce.measure_panel_calc_area):
+        # Get a single selected object (or nothing).
+        obj = getSingleObject(context)
+
+        if (context.mode == 'EDIT_MESH'):
+            obj = context.active_object
+
+            if (obj and obj.type == 'MESH' and obj.data):
+                # "Note: a Mesh will return the selection state of the mesh
+                # when EditMode was last exited. A Python script operating
+                # in EditMode must exit EditMode before getting the current
+                # selection state of the mesh."
+                # http://www.blender.org/documentation/249PythonDoc/
+                # /Mesh.MVert-class.html#sel
+                # We can only provide this by existing & re-entering EditMode.
+                # @todo: Better way to do this?
+
+                # Get mesh data from Object.
+                mesh = obj.data
+
+                # Get transformation matrix from object.
+                ob_mat = obj.matrix_world
+                # Also make an inversed copy! of the matrix.
+                ob_mat_inv = ob_mat.copy()
+                Matrix.invert(ob_mat_inv)
+
+                # Get the selected vertices.
+                # @todo: Better (more efficient) way to do this?
+                verts_selected = [v for v in mesh.vertices if v.select == 1]
+
+                if len(verts_selected) >= 3:
+                    # Get selected faces
+                    # @todo: Better (more efficient) way to do this?
+                    faces_selected = [f for f in mesh.faces
+                        if f.select == 1]
+
+                    if len(faces_selected) > 0:
+                        area = objectSurfaceArea(obj, True,
+                            measureGlobal(sce))
+                        if (area >= 0):
+                            sce.measure_panel_area1 = area
+
+        elif (context.mode == 'OBJECT'):
+            # We are working in object mode.
+
+            if len(context.selected_objects) > 2:
+                return
+# @todo Make this work again.
+#                # We have more that 2 objects selected...
+#
+#                mesh_objects = [o for o in context.selected_objects
+#                    if (o.type == 'MESH')]
+
+#                if (len(mesh_objects) > 0):
+#                    # ... and at least one of them is a mesh.
+#
+#                    for o in mesh_objects:
+#                        area = objectSurfaceArea(o, False,
+#                            measureGlobal(sce))
+#                        if (area >= 0):
+#                            #row.label(text=o.name, icon='OBJECT_DATA')
+#                            #row.label(text=str(round(area, PRECISION))
+#                            #    + " BU^2")
+
+            elif len(context.selected_objects) == 2:
+                # 2 objects selected.
+
+                obj1, obj2 = context.selected_objects
+
+                # Calculate surface area of the objects.
+                area1 = objectSurfaceArea(obj1, False, measureGlobal(sce))
+                area2 = objectSurfaceArea(obj2, False, measureGlobal(sce))
+                sce.measure_panel_area1 = area1
+                sce.measure_panel_area2 = area2
+
+            elif (obj):
+                # One object selected.
+
+                # Calculate surface area of the object.
+                area = objectSurfaceArea(obj, False, measureGlobal(sce))
+                if (area >= 0):
+                    sce.measure_panel_area1 = area
 
 
 class VIEW3D_OT_display_measurements(bpy.types.Operator):
@@ -767,13 +856,6 @@ class VIEW3D_PT_measure(bpy.types.Panel):
                     # local  ... the object center to the 3D cursor.
                     # global ... the origin to the 3D cursor.
 
-                    # Get the 2 measure points
-                    line = getMeasurePoints(context)
-                    if line != 0:
-                        dist_vec = line[0] - line[1]
-
-                    sce.measure_panel_dist = dist_vec.length
-
                     row = layout.row()
                     row.prop(sce, "measure_panel_dist")
 
@@ -805,13 +887,6 @@ class VIEW3D_PT_measure(bpy.types.Panel):
                     # We measure the distance from the
                     # selected vertex object to the 3D cursor.
 
-                    # Get the 2 measure points
-                    line = getMeasurePoints(context)
-                    if line != 0:
-                        dist_vec = line[0] - line[1]
-
-                    sce.measure_panel_dist = dist_vec.length
-
                     row = layout.row()
                     row.prop(sce, "measure_panel_dist")
 
@@ -833,13 +908,6 @@ class VIEW3D_PT_measure(bpy.types.Panel):
                     # Two vertices selected.
                     # We measure the distance between the
                     # two selected vertices.
-
-                    # Get the 2 measure points
-                    line = getMeasurePoints(context)
-                    if line != 0:
-                        dist_vec = line[0] - line[1]
-
-                    sce.measure_panel_dist = dist_vec.length
 
                     row = layout.row()
                     row.prop(sce, "measure_panel_dist")
@@ -870,14 +938,11 @@ class VIEW3D_PT_measure(bpy.types.Panel):
                             if f.select == 1]
 
                         if len(faces_selected) > 0:
-                            area = objectSurfaceArea(obj, True,
-                                measureGlobal(sce))
-                            if (area >= 0):
+                            if (sce.measure_panel_area1 >= 0):
                                 row = layout.row()
                                 row.label(
                                     text=str(len(faces_selected)),
                                     icon='FACESEL')
-                                sce.measure_panel_area1 = area
                                 row.prop(sce, "measure_panel_area1")
 
                                 row = layout.row()
@@ -904,7 +969,7 @@ class VIEW3D_PT_measure(bpy.types.Panel):
                             text="Update selection")
 
         elif (context.mode == 'OBJECT'):
-            # We are working on object mode.
+            # We are working in object mode.
 
             if len(context.selected_objects) > 2:
                 # We have more that 2 objects selected...
@@ -914,7 +979,6 @@ class VIEW3D_PT_measure(bpy.types.Panel):
                         text="Surface area (selected faces):")
 
                 if (sce.measure_panel_calc_area):
-
                     mesh_objects = [o for o in context.selected_objects
                         if (o.type == 'MESH')]
 
@@ -926,14 +990,20 @@ class VIEW3D_PT_measure(bpy.types.Panel):
                         # FloatProperty field here for automatic conversion.
 
                         row = layout.row()
-                        for o in mesh_objects:
-                            area = objectSurfaceArea(o, False,
-                                measureGlobal(sce))
-                            if (area >= 0):
-                                row = layout.row()
-                                row.label(text=o.name, icon='OBJECT_DATA')
-                                row.label(text=str(round(area, PRECISION))
-                                    + " BU^2")
+                        row.label(text="Multiple objects not yet supported",
+                            icon='INFO')
+                        row = layout.row()
+                        row.label(text="(= More than two meshes)",
+                            icon='INFO')
+# @todo Make this work again.
+#                        for o in mesh_objects:
+#                            area = objectSurfaceArea(o, False,
+#                                measureGlobal(sce))
+#                            if (area >= 0):
+#                                row = layout.row()
+#                                row.label(text=o.name, icon='OBJECT_DATA')
+#                                row.label(text=str(round(area, PRECISION))
+#                                    + " BU^2")
 
                         row = layout.row()
                         row.prop(sce,
@@ -945,13 +1015,6 @@ class VIEW3D_PT_measure(bpy.types.Panel):
                 # We measure the distance between the 2 selected objects.
 
                 obj1, obj2 = context.selected_objects
-
-                # Get the 2 measure points
-                line = getMeasurePoints(context)
-                if line != 0:
-                    dist_vec = line[0] - line[1]
-
-                sce.measure_panel_dist = dist_vec.length
 
                 row = layout.row()
                 row.prop(sce, "measure_panel_dist")
@@ -970,20 +1033,17 @@ class VIEW3D_PT_measure(bpy.types.Panel):
                     text="Surface area:")
 
                 if (sce.measure_panel_calc_area):
-                    # Calculate and display surface area of the objects.
-                    area1 = objectSurfaceArea(obj1, False, measureGlobal(sce))
-                    area2 = objectSurfaceArea(obj2, False, measureGlobal(sce))
-                    if (area1 >= 0 or area2 >= 0):
-                        if (area1 >= 0):
+                    # Display surface area of the objects.
+                    if (sce.measure_panel_area1 >= 0
+                    or sce.measure_panel_area2 >= 0):
+                        if (sce.measure_panel_area1 >= 0):
                             row = layout.row()
                             row.label(text=obj1.name, icon='OBJECT_DATA')
-                            sce.measure_panel_area1 = area1
                             row.prop(sce, "measure_panel_area1")
 
-                        if (area2 >= 0):
+                        if (sce.measure_panel_area2 >= 0):
                             row = layout.row()
                             row.label(text=obj2.name, icon='OBJECT_DATA')
-                            sce.measure_panel_area2 = area2
                             row.prop(sce, "measure_panel_area2")
 
                         row = layout.row()
@@ -995,15 +1055,7 @@ class VIEW3D_PT_measure(bpy.types.Panel):
                 # One object selected.
                 # We measure the distance from the object to the 3D cursor.
 
-                # Get the 2 measure points
-                line = getMeasurePoints(context)
-                if line != 0:
-                    dist_vec = line[0] - line[1]
-
-                sce.measure_panel_dist = dist_vec.length
-
                 row = layout.row()
-                #row.label(text=str(dist_vec.length))
                 row.prop(sce, "measure_panel_dist")
 
                 row = layout.row()
@@ -1019,12 +1071,11 @@ class VIEW3D_PT_measure(bpy.types.Panel):
                     text="Surface area:")
 
                 if (sce.measure_panel_calc_area):
-                    # Calculate and display surface area of the object.
-                    area = objectSurfaceArea(obj, False, measureGlobal(sce))
-                    if (area >= 0):
+                    # Display surface area of the object.
+
+                    if (sce.measure_panel_area1 >= 0):
                         row = layout.row()
                         row.label(text=obj.name, icon='OBJECT_DATA')
-                        sce.measure_panel_area1 = area
                         row.prop(sce, "measure_panel_area1")
 
                         row = layout.row()
@@ -1035,13 +1086,6 @@ class VIEW3D_PT_measure(bpy.types.Panel):
             elif not context.selected_objects:
                 # Nothing selected.
                 # We measure the distance from the origin to the 3D cursor.
-
-                # Get the 2 measure points
-                line = getMeasurePoints(context)
-                if line != 0:
-                    dist_vec = line[0] - line[1]
-
-                sce.measure_panel_dist = dist_vec.length
 
                 row = layout.row()
                 row.prop(sce, "measure_panel_dist")
