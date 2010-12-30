@@ -640,7 +640,7 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
             layout.separator()
 			
 
-            if arm.drawtype in ('BBONE', 'ENVELOPE'):
+            if arm.draw_type in ('BBONE', 'ENVELOPE'):
                 layout.operator("transform.transform",
                     text="Scale Envelope Distance").mode = 'BONE_SIZE'
 
