@@ -25,7 +25,7 @@
 bl_addon_info = {
     "name": "Dynamic Spacebar Menu",
     "author": "JayDez, sim88, meta-androcto", "sam"
-    "version": (1,5),
+    "version": (1,5,1),
     "blender": (2, 5, 3),
     "api": 32411,
     "location": "View3D > Spacebar",
@@ -48,6 +48,7 @@ Usage:
 * Object sensitive based on object selected in edit mode. 
 
 Version history:
+v1.51 - (JayDez) - Changing formatting to be more uniform.
 v1.5 - (meta-androcto) - adding context sensitive menus.
 v1.3 - (JayDez) - Changed toggle editmode to an if statement, so that
     if you are in editmode it will show change to object mode but
@@ -93,6 +94,9 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
 
             # Mirror block
             layout.menu("VIEW3D_MT_MirrorMenu", icon='MOD_MIRROR')
+
+            # Cursor Block
+            layout.menu("VIEW3D_MT_CursorMenu", icon='CURSOR')
             layout.separator()
 
             # Parent block
@@ -104,10 +108,6 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
 
             # Modifier block
             layout.operator_menu_enum("object.modifier_add", "type" , icon='MODIFIER')
-            layout.separator()
-
-            # Cursor Block
-            layout.menu("VIEW3D_MT_CursorMenu", icon='CURSOR')
             layout.separator()
 
             # Align block
@@ -139,20 +139,18 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
 
             # Search Menu
             layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
+            layout.separator()
 
             # Add block
-            bl_label = "Create"
             layout.menu("INFO_MT_mesh_add", text="Add Mesh",
                 icon='EDITMODE_HLT')
             layout.separator()
 
             # Transform block
             layout.menu("VIEW3D_MT_TransformMenu", icon='MANIPUL')
-            layout.separator()
 
             # Mirror block
             layout.menu("VIEW3D_MT_MirrorMenu", icon='MOD_MIRROR')
-            layout.separator()
 
             # Cursor block
             layout.menu("VIEW3D_MT_EditCursorMenu", icon='CURSOR')
@@ -200,10 +198,12 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
 
             # Transform block
             layout.menu("VIEW3D_MT_TransformMenu", icon='MANIPUL')
-            layout.separator()
 
             # Mirror block
             layout.menu("VIEW3D_MT_MirrorMenu", icon='MOD_MIRROR')
+
+            # Cursor block
+            layout.menu("VIEW3D_MT_CursorMenu", icon='CURSOR')
             layout.separator()
 
             # Proportional block
@@ -221,13 +221,8 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
                 icon='MODIFIER')
             layout.separator()
 
-            # Cursor block
-            layout.menu("VIEW3D_MT_CursorMenu", icon='CURSOR')
-            layout.separator()
-
 			# Select Curve Block
             layout.menu("VIEW3D_MT_SelectCurveMenu", icon='RESTRICT_SELECT_OFF')
-            layout.separator()
 
             # Toolshelf block
             layout.operator("view3d.toolshelf", icon='MENU_PANEL')
@@ -253,28 +248,26 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
 
             # Transform block
             layout.menu("VIEW3D_MT_TransformMenu", icon='MANIPUL')
-            layout.separator()
 
             # Mirror block
             layout.menu("VIEW3D_MT_MirrorMenu", icon='MOD_MIRROR')
+
+            # Cursor block
+            layout.menu("VIEW3D_MT_CursorMenu", icon='CURSOR')
             layout.separator()
 
             # Proportional block
             layout.prop_menu_enum(settings, "proportional_edit", icon= "PROP_CON")
             layout.prop_menu_enum(settings, "proportional_edit_falloff", icon= "SMOOTHCURVE")
+            layout.separator()
 
             # Edit Curve Specials
             layout.menu("VIEW3D_MT_EditCurveSpecials",
                 icon='MODIFIER')
             layout.separator()
 
-            # Cursor block
-            layout.menu("VIEW3D_MT_CursorMenu", icon='CURSOR')
-            layout.separator()
-
             # Select Surface
             layout.menu("VIEW3D_MT_SelectSurface", icon='RESTRICT_SELECT_OFF')
-            layout.separator()
 
             # Toolshelf block
             layout.operator("view3d.toolshelf", icon='MENU_PANEL')
@@ -300,23 +293,21 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
 
             # Transform block
             layout.menu("VIEW3D_MT_TransformMenu", icon='MANIPUL')
-            layout.separator()
 
             # Mirror block
             layout.menu("VIEW3D_MT_MirrorMenu", icon='MOD_MIRROR')
-            layout.separator()
-
-            # Proportional block
-            layout.prop_menu_enum(settings, "proportional_edit", icon= "PROP_CON")
-            layout.prop_menu_enum(settings, "proportional_edit_falloff", icon= "SMOOTHCURVE")
 
             # Cursor block
             layout.menu("VIEW3D_MT_CursorMenu", icon='CURSOR')
             layout.separator()
 
+            # Proportional block
+            layout.prop_menu_enum(settings, "proportional_edit", icon= "PROP_CON")
+            layout.prop_menu_enum(settings, "proportional_edit_falloff", icon= "SMOOTHCURVE")
+            layout.separator()
+
             #Select Metaball
             layout.menu("VIEW3D_MT_SelectMetaball", icon='RESTRICT_SELECT_OFF')
-            layout.separator()
 
             # Toolshelf block
             layout.operator("view3d.toolshelf", icon='MENU_PANEL')
@@ -342,26 +333,24 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
 
             # Transform block
             layout.menu("VIEW3D_MT_TransformMenu", icon='MANIPUL')
-            layout.separator()
 
             # Mirror block
             layout.menu("VIEW3D_MT_MirrorMenu", icon='MOD_MIRROR')
-            layout.separator()
-
-            # Proportional block
-            layout.prop_menu_enum(settings, "proportional_edit", icon= "PROP_CON")
-            layout.prop_menu_enum(settings, "proportional_edit_falloff", icon= "SMOOTHCURVE")
 
             # Cursor block
             layout.menu("VIEW3D_MT_CursorMenu", icon='CURSOR')
             layout.separator()
 
-            #Select Lattice
-            layout.menu("VIEW3D_MT_select_edit_lattice", icon='RESTRICT_SELECT_OFF')
+            # Proportional block
+            layout.prop_menu_enum(settings, "proportional_edit", icon= "PROP_CON")
+            layout.prop_menu_enum(settings, "proportional_edit_falloff", icon= "SMOOTHCURVE")
             layout.separator()
 
             layout.operator("lattice.make_regular")
             layout.separator()
+
+            #Select Lattice
+            layout.menu("VIEW3D_MT_select_edit_lattice", icon='RESTRICT_SELECT_OFF')
 
             # Toolshelf block
             layout.operator("view3d.toolshelf", icon='MENU_PANEL')
@@ -388,18 +377,17 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
 
             # Transform block
             layout.menu("VIEW3D_MT_TransformMenu", icon='MANIPUL')
-            layout.separator()
 
             # Mirror block
             layout.menu("VIEW3D_MT_MirrorMenu", icon='MOD_MIRROR')
+
+            # Cursor block
+            layout.menu("VIEW3D_MT_CursorMenu", icon='CURSOR')
             layout.separator()
 
             # Proportional block
             layout.prop_menu_enum(settings, "proportional_edit", icon= "PROP_CON")
             layout.prop_menu_enum(settings, "proportional_edit_falloff", icon= "SMOOTHCURVE")
-
-            # Cursor block
-            layout.menu("VIEW3D_MT_CursorMenu", icon='CURSOR')
             layout.separator()
 
             # Toolshelf block
@@ -424,10 +412,10 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
 
             # Search Menu
             layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
+            layout.separator()
 
             # Transform block
             layout.menu("VIEW3D_MT_TransformMenu", icon='MANIPUL')
-            layout.separator()
 
             # Cursor block
             layout.menu("VIEW3D_MT_CursorMenu", icon='CURSOR')
@@ -459,10 +447,10 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
 
             # Search Menu
             layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
+            layout.separator()
 
             # Transform block
             layout.menu("VIEW3D_MT_TransformMenu", icon='MANIPUL')
-            layout.separator()
 
             # Cursor block
             layout.menu("VIEW3D_MT_CursorMenu", icon='CURSOR')
@@ -492,10 +480,10 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
 
             # Search Menu
             layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
+            layout.separator()
 
             # Transform block
             layout.menu("VIEW3D_MT_TransformMenu", icon='MANIPUL')
-            layout.separator()
 
             # Cursor block
             layout.menu("VIEW3D_MT_CursorMenu", icon='CURSOR')
@@ -521,21 +509,20 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
 
             # Search Menu
             layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
+            layout.separator()
 
             # Transform block
             layout.menu("VIEW3D_MT_TransformMenu", icon='MANIPUL')
-            layout.separator()
 
             # Mirror block
             layout.menu("VIEW3D_MT_MirrorMenu", icon='MOD_MIRROR')
+
+            # Cursor block
+            layout.menu("VIEW3D_MT_CursorMenu", icon='CURSOR')
             layout.separator()
 
             # Sculpt block
             layout.menu("VIEW3D_MT_sculpt", icon='SCULPTMODE_HLT')
-            layout.separator()
-
-            # Cursor block
-            layout.menu("VIEW3D_MT_CursorMenu", icon='CURSOR')
             layout.separator()
 
             # History/Cursor Block
@@ -558,14 +545,13 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
 
             # Search Menu
             layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
+            layout.separator()
 
             # Transform block
             layout.menu("VIEW3D_MT_TransformMenu", icon='MANIPUL')
-            layout.separator()
 
             # Mirror block
             layout.menu("VIEW3D_MT_MirrorMenu", icon='MOD_MIRROR')
-            layout.separator()
 
             # Cursor block
             layout.menu("VIEW3D_MT_CursorMenu", icon='CURSOR')
@@ -620,6 +606,7 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
 
             # Search Menu
             layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
+            layout.separator()
 
             # Transform Menu
             layout.menu("VIEW3D_MT_TransformMenu", icon='MANIPUL')
@@ -1072,9 +1059,6 @@ class VIEW3D_MT_SelectMetaball(bpy.types.Menu):
 
         #layout.operator("mball.select_deselect_all_metaelems")
         layout.operator("mball.select_inverse_metaelems")
-
-        layout.separator()
-
         layout.operator("mball.select_random_metaelems")
 
 class VIEW3D_MT_edit_TK(bpy.types.Menu):
