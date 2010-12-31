@@ -1057,7 +1057,7 @@ class VIEW3D_MT_SelectMetaball(bpy.types.Menu):
 
         layout.separator()
 
-        #layout.operator("mball.select_deselect_all_metaelems")
+        layout.operator("mball.select_all").action = 'TOGGLE'
         layout.operator("mball.select_inverse_metaelems")
         layout.operator("mball.select_random_metaelems")
 
