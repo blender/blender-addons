@@ -1036,7 +1036,7 @@ class VIEW3D_MT_SelectSurface(bpy.types.Menu):
         layout.operator("curve.select_all", text="Select/Deselect All")
         layout.operator("curve.select_inverse")
         layout.operator("curve.select_random")
-        layout.operator("curve.select_every_nth")
+        layout.operator("curve.select_nth")
 
         layout.separator()
 
