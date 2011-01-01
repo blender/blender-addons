@@ -26,6 +26,7 @@ import bpy
 import mathutils
 from bpy.props import FloatVectorProperty
 
+
 class AddObjectHelper:
     '''Helper Class for Add Object Operators'''
     location = FloatVectorProperty(name='Location', description='Location of new Object')
@@ -66,11 +67,11 @@ def add_object_align_init(context, operator):
 
 def add_object_data(context, obdata, operator=None):
     '''Create Object from data
-    
+
     context: Blender Context
     obdata: Object data (mesh, curve, camera,...)
     operator: the active operator (self)
-    
+
     Returns the Object
     '''
 
@@ -115,26 +116,26 @@ def flatten_vector_list(list):
     '''flatten a list of vetcors to use in foreach_set and the like'''
     if not list:
         return None
-    
-    result=[]
+
+    result = []
     for vec in list:
         result.extend([i for i in vec])
-        
+
     return result
-    
+
 
 def list_to_vector_list(list, dimension=3):
     '''make Vector objects out of a list'''
     #test if list contains right number of elements
-    
+
     result = []
     for i in range(0, len(list), dimension):
         try:
-            vec = mathutils.Vector( [list[i+ind] for ind in range(dimension)] )
+            vec = mathutils.Vector([list[i + ind] for ind in range(dimension)])
         except:
             print('Number of elemnts doesnt match into the vectors.')
             return None
-            
+
         result.append(vec)
-    
+
     return result

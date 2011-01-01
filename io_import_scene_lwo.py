@@ -1242,8 +1242,10 @@ class IMPORT_OT_lwo(bpy.types.Operator):
 def menu_func(self, context):
     self.layout.operator(IMPORT_OT_lwo.bl_idname, text="LightWave Object (.lwo)")
 
+
 def register():
     bpy.types.INFO_MT_file_import.append(menu_func)
+
 
 def unregister():
     bpy.types.INFO_MT_file_import.remove(menu_func)

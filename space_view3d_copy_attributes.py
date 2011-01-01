@@ -100,8 +100,8 @@ def getmat(bone, active, context, ignoreparent):
     '''
     data_bone = context.active_object.data.bones[bone.name]
     #all matrices are in armature space unless commented otherwise
-    otherloc = active.matrix #final 4x4 mat of target, location.
-    bonemat_local = Matrix(data_bone.matrix_local) #self rest matrix
+    otherloc = active.matrix  # final 4x4 mat of target, location.
+    bonemat_local = Matrix(data_bone.matrix_local)  # self rest matrix
     if data_bone.parent:
         parentposemat = Matrix(
            context.active_object.pose.bones[data_bone.parent.name].matrix)
@@ -253,7 +253,7 @@ class CopySelectedPoseConstraints(bpy.types.Operator):
                     generic_copy(old_constraint, new_constraint)
         return {'FINISHED'}
 
-pose_ops = [] #list of pose mode copy operators
+pose_ops = []  # list of pose mode copy operators
 
 genops(pose_copies, pose_ops, "pose.copy_", pose_poll_func, pLoopExec)
 
@@ -387,7 +387,7 @@ def obWei(ob, active, context):
     for i in range(0, len(active.vertex_groups)):
         groups = active.vertex_groups[i]
         vgroups_IndexName[groups.index] = groups.name
-    data = {} # vert_indices, [(vgroup_index, weights)]
+    data = {}  # vert_indices, [(vgroup_index, weights)]
     for v in me_source.vertices:
         vg = v.groups
         vi = v.index
@@ -728,7 +728,7 @@ def register():
     kc = bpy.context.window_manager.keyconfigs['Blender']
     km = kc.keymaps.get("Object Mode")
     if km is None:
-         km = kc.keymaps.new(name="Object Mode")
+        km = kc.keymaps.new(name="Object Mode")
     kmi = km.items.new('wm.call_menu', 'C', 'PRESS', ctrl=True)
     kmi.properties.name = 'VIEW3D_MT_copypopup'
     km = kc.keymaps.get("Pose")
