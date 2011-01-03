@@ -25,7 +25,7 @@
 bl_addon_info = {
     "name": "Dynamic Spacebar Menu",
     "author": "JayDez, sim88, meta-androcto", "sam"
-    "version": (1,6),
+    "version": (1, 6),
     "blender": (2, 5, 6),
     "api": 34036,
     "location": "View3D > Spacebar",
@@ -166,7 +166,7 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
             # Multi Select
             layout.menu("VIEW3D_MT_edit_multi", icon='VERTEXSEL')
             layout.separator()
-            
+
             # Extrude block
             layout.menu("VIEW3D_MT_edit_mesh_extrude", icon='EDITMODE_HLT')
             layout.separator()
@@ -188,7 +188,7 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
             layout.separator()
 
             # Toggle Object Mode
-            layout.operator("object.editmode_toggle", 
+            layout.operator("object.editmode_toggle",
                 text="Enter Object Mode", icon='OBJECT_DATAMODE')
 
             # Delete Block
@@ -212,9 +212,9 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
 
             # Proportional block
             layout.prop_menu_enum(settings, "proportional_edit",
-                icon= "PROP_CON")
+                icon="PROP_CON")
             layout.prop_menu_enum(settings, "proportional_edit_falloff",
-                icon= "SMOOTHCURVE")
+                icon="SMOOTHCURVE")
             layout.separator()
 
             # Edit Control Points
@@ -227,7 +227,7 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
                 icon='MODIFIER')
             layout.separator()
 
-			# Select Curve Block
+            # Select Curve Block
             layout.menu("VIEW3D_MT_SelectCurveMenu",
                 icon='RESTRICT_SELECT_OFF')
 
@@ -265,9 +265,9 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
 
             # Proportional block
             layout.prop_menu_enum(settings, "proportional_edit",
-                icon= "PROP_CON")
+                icon="PROP_CON")
             layout.prop_menu_enum(settings, "proportional_edit_falloff",
-                icon= "SMOOTHCURVE")
+                icon="SMOOTHCURVE")
             layout.separator()
 
             # Edit Curve Specials
@@ -312,9 +312,9 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
 
             # Proportional block
             layout.prop_menu_enum(settings, "proportional_edit",
-                icon= "PROP_CON")
+                icon="PROP_CON")
             layout.prop_menu_enum(settings, "proportional_edit_falloff",
-                icon= "SMOOTHCURVE")
+                icon="SMOOTHCURVE")
             layout.separator()
 
             #Select Metaball
@@ -380,8 +380,7 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
 
             # Delete block
             layout.operator("object.delete", text="Delete Object",
-                icon='CANCEL')
-				
+                icon='CANCEL')				
 
         if  context.mode == 'PARTICLE':
             # Particle menu
@@ -467,8 +466,6 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
             # Toggle Objectmode
             layout.operator("object.mode_set", text="Enter Object Mode",
                 icon='OBJECT_DATA')
-
-
 
         elif ob.mode == 'PAINT_VERTEX':
             # Vertex paint menu
@@ -587,7 +584,7 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
 
             # Edit Armature roll
             layout.menu("VIEW3D_MT_edit_armature_roll",
-			    icon='BONE_DATA')
+                icon='BONE_DATA')
             layout.separator()
 
             # Edit Armature Toolkit
@@ -680,8 +677,6 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
 
             layout.menu("VIEW3D_MT_pose_constraints")
             layout.separator()
-
-
 
             layout.operator("pose.quaternions_flip")
             layout.separator()
@@ -1381,9 +1376,9 @@ def abs(val):
         return val
     return -val
 
-def LineLineIntersect (p1, p2, p3, p4):
+def LineLineIntersect(p1, p2, p3, p4):
     # based on Paul Bourke's Shortest Line Between 2 lines
-    
+
     min = 0.0000001
     
     v1 = Vector((p1.x - p3.x, p1.y - p3.y, p1.z - p3.z))
@@ -1424,7 +1419,7 @@ def edgeIntersect(context, operator):
         operator.report({'ERROR'}, "Object must be a mesh")
         return None
     
-    edges = [];
+    edges = []
     mesh = obj.data
     verts = mesh.vertices
 
