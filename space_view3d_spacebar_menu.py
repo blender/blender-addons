@@ -173,7 +173,7 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
             layout.menu("VIEW3D_MT_uv_map", icon='MOD_UVPROJECT')
 
             # Select block
-            layout.menu("VIEW3D_MT_SelectMenu", icon='RESTRICT_SELECT_OFF')
+            layout.menu("VIEW3D_MT_SelectEditMenu", icon='RESTRICT_SELECT_OFF')
 
             # Toolshelf block
             layout.operator("view3d.toolshelf", icon='MENU_PANEL')
