@@ -25,9 +25,9 @@
 bl_addon_info = {
     "name": "Dynamic Spacebar Menu",
     "author": "JayDez, sim88, meta-androcto", "sam"
-    "version": (1,5,1),
-    "blender": (2, 5, 3),
-    "api": 32411,
+    "version": (1,6),
+    "blender": (2, 5, 6),
+    "api": 34036,
     "location": "View3D > Spacebar",
     "description": "Context sensitive spacebar menu",
     "warning": "",
@@ -45,10 +45,11 @@ Usage:
 *  This script gives a basic menu with common simple tools for easy access.
 * Very similar to the Spacebar menu in 2.49
 * Context sensitive for Object. Edit, Sculpt, Pose, Weight/Texture/Vertex Paint.
-* Object sensitive based on object selected in edit mode. 
+* Object sensitive based on object selected in edit mode.
 
 Version history:
-v1.51 - (JayDez) - Changing formatting to be more uniform.
+v1.6 - (JayDez) - Fixed a couple wrong names. (Thanks Bao2 and Dennis)
+v1.5.1 - (JayDez) - Changing formatting to be more uniform.
 v1.5 - (meta-androcto) - adding context sensitive menus.
 v1.3 - (JayDez) - Changed toggle editmode to an if statement, so that
     if you are in editmode it will show change to object mode but
