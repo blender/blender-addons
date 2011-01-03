@@ -375,6 +375,7 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
 
             #Search Menu
             layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
+            layout.separator()
 
             # Transform block
             layout.menu("VIEW3D_MT_TransformMenu", icon='MANIPUL')
@@ -390,6 +391,16 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
             layout.prop_menu_enum(settings, "proportional_edit", icon= "PROP_CON")
             layout.prop_menu_enum(settings, "proportional_edit_falloff", icon= "SMOOTHCURVE")
             layout.separator()
+
+            # Particle block
+            layout.menu("VIEW3D_MT_particle", icon='PARTICLEMODE')
+            layout.separator()
+
+            #Select Particle
+            layout.menu("VIEW3D_MT_select_particle", icon='RESTRICT_SELECT_OFF')
+
+            # History/Cursor Block
+            layout.menu("VIEW3D_MT_undoS", icon='ARROW_LEFTRIGHT')
 
             # Toolshelf block
             layout.operator("view3d.toolshelf", icon='MENU_PANEL')
