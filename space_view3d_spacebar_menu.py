@@ -24,7 +24,7 @@
 
 bl_addon_info = {
     "name": "Dynamic Spacebar Menu",
-    "author": "JayDez, sim88, meta-androcto, sam"
+    "author": "JayDez, sim88, meta-androcto, sam",
     "version": (1, 6, 1),
     "blender": (2, 5, 6),
     "api": 34036,
