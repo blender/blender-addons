@@ -24,8 +24,8 @@
 
 bl_addon_info = {
     "name": "Dynamic Spacebar Menu",
-    "author": "JayDez, sim88, meta-androcto", "sam"
-    "version": (1, 6),
+    "author": "JayDez, sim88, meta-androcto, sam"
+    "version": (1, 6, 1),
     "blender": (2, 5, 6),
     "api": 34036,
     "location": "View3D > Spacebar",
@@ -49,6 +49,7 @@ Usage:
 * Object sensitive based on object selected in edit mode.
 
 Version history:
+v1.6.1 - (JayDez) - Added Add Menu to Curve and Surface (respectively)
 v1.6 - (JayDez) - Fixed a couple wrong names. (Thanks Bao2 and Dennis)
 v1.5.1 - (JayDez) - Changing formatting to be more uniform.
 v1.5 - (meta-androcto) - adding context sensitive menus.
@@ -199,6 +200,12 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
 
             # Search Menu
             layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
+            layout.separator()
+
+            # Add block
+            layout.menu("INFO_MT_curve_add", text="Add Curve",
+                icon='OUTLINER_OB_CURVE')
+            layout.separator()
 
             # Transform block
             layout.menu("VIEW3D_MT_TransformMenu", icon='MANIPUL')
@@ -252,6 +259,12 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
 
             # Search Menu
             layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
+            layout.separator()
+
+            # Add block
+            layout.menu("INFO_MT_surface_add", text="Add Surface",
+                icon='OUTLINER_OB_SURFACE')
+            layout.separator()
 
             # Transform block
             layout.menu("VIEW3D_MT_TransformMenu", icon='MANIPUL')
@@ -299,6 +312,14 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
 
             #Search Menu
             layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
+            layout.separator()
+
+            # Add block
+            #No INFO_MT_metaball_add find out why.. and how to use,
+            #for some reason also there is no add menu when editing mballs...
+            #layout.menu("INFO_MT_metaball_add", text="Add Metaball",
+            #    icon='OUTLINER_OB_META')
+            #layout.separator()
 
             # Transform block
             layout.menu("VIEW3D_MT_TransformMenu", icon='MANIPUL')
