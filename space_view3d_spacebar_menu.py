@@ -447,7 +447,7 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
             layout.separator()
 
             # Toggle Objectmode
-            layout.operator("object.editmode_toggle", text="Enter Object Mode",
+            layout.operator("object.mode_set", text="Enter Object Mode",
                 icon='OBJECT_DATA')
 
             # Delete block
@@ -582,9 +582,9 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
             layout.operator("view3d.properties", icon='MENU_PANEL')
             layout.separator()
 
-            # Toggle Editmode
-            layout.operator("object.editmode_toggle", text="Enter Edit Mode",
-                icon='EDITMODE_HLT')
+            # Toggle Objectmode
+            layout.operator("object.mode_set", text="Enter Object Mode",
+                icon='OBJECT_DATA')
 
         elif ob.mode == 'EDIT_ARMATURE':
             # Armature menu
