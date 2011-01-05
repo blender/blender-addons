@@ -16,6 +16,21 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
+bl_addon_info = {
+    'name': 'Import Autocad DXF (.dxf)',
+    'author': 'Thomas Larsson',
+    'version': (0, 1, 3),
+    'blender': (2, 5, 6),
+    'api': 32738,
+    'location': 'File > Import',
+    'description': 'Import files in the Autocad DXF format (.dxf)',
+    'warning': 'supporting only a sub-set of DXF specification',
+    'wiki_url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/'\
+        'Scripts/Import-Export/DXF_Importer',
+    'tracker_url': 'https://projects.blender.org/tracker/index.php?'\
+        'func=detail&aid=23480&group_id=153&atid=469',
+    'category': 'Import-Export'}
+
 """
 Release note by migius (DXF support maintainer) 2011.01.02:
 Script supports only a small part of DXF specification:
@@ -57,19 +72,6 @@ ver 0.1.1 - 2010.09.07 by migius
 - fixed registering for 2.53beta
 ver 0.1 - 2010.06.10 by Thomas Larsson
 """
-
-bl_addon_info = {
-    'name': 'Import Autocad DXF (.dxf)',
-    'author': 'Thomas Larsson',
-    'version': (0,1,3),
-    'blender': (2, 5, 6),
-    'api': 32738,
-    'location': 'File > Import',
-    'description': 'Import files in the Autocad DXF format (.dxf)',
-    'warning': 'supporting only a sub-set of DXF specification',
-    'wiki_url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/Scripts/Import-Export/DXF_Importer',
-    'tracker_url': 'https://projects.blender.org/tracker/index.php?func=detail&aid=23480&group_id=153&atid=469',
-    'category': 'Import-Export'}
 
 __version__ = '.'.join([str(s) for s in bl_addon_info['version']])
 
