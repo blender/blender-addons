@@ -19,10 +19,11 @@
 bl_addon_info = {
     "name": "3D Function Surfaces",
     "author": "Buerbaum Martin (Pontiac)",
-    "version": (0,3,5),
-    "blender": (2, 5, 3),
-    "api": 32411,
-    "location": "View3D > Add > Mesh > Z Function Surface & XYZ Function Surface",
+    "version": (0, 3, 6),
+    "blender": (2, 5, 6),
+    "api": 34093,
+    "location": "View3D > Add > Mesh >"\
+        " Z Function Surface & XYZ Function Surface",
     "description": "Create Objects using Math Formulas",
     "warning": "",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"\
@@ -57,6 +58,10 @@ and
 menu.
 
 Version history:
+v0.3.6 - Various updates to match current Blender API.
+    Removed recall functionality.
+    Better code for align_matrix
+    Hopefully fixed bug where uMax was never reached. May cause other stuff.
 v0.3.5 - createFaces can now "Flip" faces and create fan/star like faces.
 v0.3.4 - Updated store_recall_properties, apply_object_align
     and create_mesh_object.
@@ -92,13 +97,10 @@ v0.2 - Added security check for eval() function
 v0.1.1 - Use 'CANCELLED' return value when failing.
     Updated web links.
 v0.1 - Initial revision.
-
 More Links:
 http://gitorious.org/blender-scripts/blender-3d-function-surface
 http://blenderartists.org/forum/showthread.php?t=179043
 """
-
-
 import bpy
 from mathutils import *
 from math import *
@@ -129,9 +131,11 @@ safe_dict = dict((k, globals().get(k, None)) for k in safe_list)
 def align_matrix(context):
     loc = Matrix.Translation(context.scene.cursor_location)
     obj_align = context.user_preferences.edit.object_align
+
     if (context.space_data.type == 'VIEW_3D'
         and obj_align == 'VIEW'):
-        rot = context.space_data.region_3d.view_matrix.rotation_part().invert().resize4x4()
+        viewMat = context.space_data.region_3d.view_matrix
+        rot = viewMat.rotation_part().invert().resize4x4()
     else:
         rot = Matrix()
     align_matrix = loc * rot
@@ -395,7 +399,8 @@ class AddZFunctionSurface(bpy.types.Operator):
 
             edgeloop_prev = edgeloop_cur
 
-        obj = create_mesh_object(context, verts, [], faces, "Z Function", edit, self.align_matrix)
+        obj = create_mesh_object(context, verts, [], faces,
+            "Z Function", edit, self.align_matrix)
 
         return {'FINISHED'}
 
@@ -404,6 +409,7 @@ class AddZFunctionSurface(bpy.types.Operator):
         self.execute(context)
         return {'FINISHED'}
 
+
 def xyz_function_surface_faces(self, x_eq, y_eq, z_eq,
     range_u_min, range_u_max, range_u_step, wrap_u,
     range_v_min, range_v_max, range_v_step, wrap_v):
@@ -411,16 +417,13 @@ def xyz_function_surface_faces(self, x_eq, y_eq, z_eq,
     verts = []
     faces = []
 
+    # Distance of each step in Blender Units
     uStep = (range_u_max - range_u_min) / range_u_step
     vStep = (range_v_max - range_v_min) / range_v_step
 
-    uRange = range_u_step
-    if range_u_step == 0:
-        uRange = uRange + 1
-
-    vRange = range_v_step
-    if range_v_step == 0:
-        vRange = vRange + 1
+    # Number of steps in the vertex creation loops
+    uRange = range_u_step + 1
+    vRange = range_v_step + 1
 
     try:
         expr_args_x = (
@@ -580,7 +583,6 @@ class AddXYZFunctionSurface(bpy.types.Operator):
     align_matrix = Matrix()
 
     def execute(self, context):
-
         verts, faces = xyz_function_surface_faces(
                             self,
                             self.x_eq,
@@ -612,12 +614,18 @@ class AddXYZFunctionSurface(bpy.types.Operator):
 ################################
 import space_info
 
+
 # Define "3D Function Surface" menu
 def menu_func_z(self, context):
-    self.layout.operator(AddZFunctionSurface.bl_idname, text="Z Function Surface", icon="PLUGIN")
+    self.layout.operator(AddZFunctionSurface.bl_idname,
+        text="Z Function Surface",
+        icon="PLUGIN")
+
 
 def menu_func_xyz(self, context):
-    self.layout.operator(AddXYZFunctionSurface.bl_idname, text="X,Y,Z Function Surface", icon="PLUGIN")
+    self.layout.operator(AddXYZFunctionSurface.bl_idname,
+        text="X,Y,Z Function Surface",
+        icon="PLUGIN")
 
 
 def register():
