@@ -1245,7 +1245,7 @@ def write_pov_ini(filename_ini, filename_pov, filename_image):
     file.write('End_Row=%d\n' % (part.y+part.h))
     '''
 
-    file.write('Bounding_method=2\n')#The new automatic BSP is faster in most scenes
+    file.write('Bounding_Method=2\n')#The new automatic BSP is faster in most scenes
 
     file.write('Display=1\n')#Activated (turn this back off when better live exchange is done between the two programs (see next comment)
     file.write('Pause_When_Done=0\n')
@@ -1256,7 +1256,7 @@ def write_pov_ini(filename_ini, filename_pov, filename_image):
     if render.use_antialiasing:
         aa_mapping = {'5': 2, '8': 3, '11': 4, '16': 5} # method 2 (recursive) with higher max subdiv forced because no mipmapping in povray needs higher sampling.
         file.write('Antialias=1\n')
-        file.write('Sampling_Method=2n')
+        file.write('Sampling_Method=2\n')
         file.write('Antialias_Depth=%d\n' % aa_mapping[render.antialiasing_samples])
         file.write('Antialias_Threshold=0.1\n')#rather high settings but necessary.
         file.write('Jitter=off\n')#prevent animation flicker
