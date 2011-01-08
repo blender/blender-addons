@@ -28,7 +28,7 @@ bl_addon_info = {
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"\
         "Scripts/Add_Mesh/Add_Pipe_Joints",
     "tracker_url": "https://projects.blender.org/tracker/index.php?"\
-        "func=detail&aid=21443&group_id=153&atid=469",
+        "func=detail&aid=21443",
     "category": "Add Mesh"}
 
 """

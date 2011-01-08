@@ -28,7 +28,7 @@ bl_addon_info = {
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"\
         "Scripts/Import-Export/M3_Import",
     "tracker_url": "http://projects.blender.org/tracker/index.php?"\
-        "func=detail&aid=24017&group_id=153&atid=469",
+        "func=detail&aid=24017",
     "category": "Import-Export"}
 
 """

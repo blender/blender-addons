@@ -27,8 +27,8 @@ bl_addon_info = {
     "warning": "",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"\
         "Scripts/Add_Mesh/Add_Extra",
-    "tracker_url": "http://projects.blender.org/tracker/index.php?func=detail"\
-        "&aid=22457&group_id=153&atid=469",
+    "tracker_url": "http://projects.blender.org/tracker/index.php?"\
+        "func=detail&aid=22457",
     "category": "Add Mesh"}
 
 import bpy

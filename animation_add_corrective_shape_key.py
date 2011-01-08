@@ -26,7 +26,7 @@ bl_addon_info = {
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"\
         "Scripts/Animation/Corrective_Shape_Key",
     "tracker_url": "https://projects.blender.org/tracker/index.php?"\
-        "func=detail&aid=22129&group_id=153&atid=469",
+        "func=detail&aid=22129",
     'category': 'Animation'}
 
 """

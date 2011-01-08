@@ -27,7 +27,7 @@ bl_addon_info = {
     'wiki_url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/' \
         'Scripts/Object/Animated_Render_Baker',
     'tracker_url': 'https://projects.blender.org/tracker/index.php?'\
-        'func=detail&aid=24836&group_id=153&atid=467'}
+        'func=detail&aid=24836'}
 
 import bpy
 from bpy.props import *

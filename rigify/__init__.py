@@ -21,11 +21,15 @@ bl_addon_info = {
     "author": "Nathan Vegdahl",
     "version": (0, 5),
     "blender": (2, 5, 5),
+    "description": "?",
     "api": 33110,
     "location": "Armature properties",
-    "wiki_url": "",
-    "tracker_url": "",
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"\
+        "Scripts/Rigging/Rigify",
+    "tracker_url": "http://projects.blender.org/tracker/index.php?"\
+        "func=detail&aid=25546",
     "category": "Rigging"}
+
 
 if "bpy" in locals():
     import imp

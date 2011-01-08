@@ -33,7 +33,7 @@ bl_addon_info = {
     'wiki_url': 'http://wiki.blender.org/index.php/Extensions:2.5/'\
         'Py/Scripts/System/Display_All_Icons',
     'tracker_url': 'http://projects.blender.org/tracker/index.php?'\
-        'func=detail&aid=22011&group_id=153&atid=469',
+        'func=detail&aid=22011',
     'category': 'System'}
 
 

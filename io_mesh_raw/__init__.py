@@ -28,7 +28,7 @@ bl_addon_info = {
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"\
         "Scripts/Import-Export/Raw_Mesh_IO",
     "tracker_url": "https://projects.blender.org/tracker/index.php?"\
-        "func=detail&aid=21733&group_id=153&atid=469",
+        "func=detail&aid=21733",
     "category": "Import-Export"}
 
 if "bpy" in locals():

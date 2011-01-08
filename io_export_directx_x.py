@@ -27,7 +27,7 @@ bl_addon_info = {
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"\
         "Scripts/Import-Export/DirectX_Exporter",
     "tracker_url": "https://projects.blender.org/tracker/index.php?"\
-        "func=detail&aid=22795&group_id=153&atid=469",
+        "func=detail&aid=22795",
     "category": "Import-Export"}
 
 import os

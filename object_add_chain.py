@@ -28,7 +28,7 @@ bl_addon_info = {
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"\
         "Scripts/Object/Add_Chain",
     "tracker_url": "https://projects.blender.org/tracker/index.php?"\
-        "func=detail&aid=22203&group_id=153&atid=469",
+        "func=detail&aid=22203",
     "category": "Object"}
 
 import bpy
@@ -37,10 +37,12 @@ def Add_Chain():
   
 
     ##Adds Empty to scene
-    bpy.ops.object.add(type='EMPTY', view_align=False, enter_editmode=False, location=(0, 0, 0), 
-rotation=(0, 0, 0), layers=(True, False, False, False, False, False,
-False, False, False, False, False, False, False, False, False, False, False, False, False, 
-False))
+    bpy.ops.object.add(
+        type='EMPTY', view_align=False, enter_editmode=False, location=(0, 0, 0), 
+        rotation=(0, 0, 0),
+        layers=(True, False, False, False, False, False, False, False, False,
+                False, False, False, False, False, False, False, False, False, 
+                False, False))
 
     ##Changes name of Empty to rot_link adds variable emp
     emp = bpy.context.object
@@ -50,19 +52,21 @@ False))
     emp.rotation_euler = [1.570796, 0, 0]
 
     ##Adds Curve Path to scene
-    bpy.ops.curve.primitive_nurbs_path_add( view_align=False, enter_editmode=False, location=(0, 0, 0), 
-rotation=(0, 0, 0), layers=(True, False, False, False, False, False, 
-False, False, False, False, False, False, False, False, False, False, False, False, False, 
-False))
+    bpy.ops.curve.primitive_nurbs_path_add(
+        view_align=False, enter_editmode=False, location=(0, 0, 0), 
+        rotation=(0, 0, 0), 
+        layers=(True, False, False, False, False, False, False, False, False, 
+        False, False, False, False, False, False, False, False, False, False, 
+        False))
 
     ##Change Curve name to deform adds variable curv
     curv = bpy.context.object
     curv.name = "deform"
 
     ##Inserts Torus primitive
-    bpy.ops.mesh.primitive_torus_add(major_radius=1, minor_radius=0.25, 
-major_segments=12, minor_segments=4, use_abso=False, abso_major_rad=1, 
-abso_minor_rad=0.5)
+    bpy.ops.mesh.primitive_torus_add(
+        major_radius=1, minor_radius=0.25, major_segments=12, minor_segments=4, 
+        use_abso=False, abso_major_rad=1, abso_minor_rad=0.5)
 
     ##Positions Torus primitive to center of scene
     bpy.context.active_object.location = [0, 0, 0]
@@ -88,11 +92,12 @@ abso_minor_rad=0.5)
     bpy.ops.object.editmode_toggle()
 
     ##Translate curve object
-    bpy.ops.transform.translate(value=(2, 0, 0), constraint_axis=(True, False, False), 
-constraint_orientation='GLOBAL', mirror=False, proportional='DISABLED', 
-proportional_edit_falloff='SMOOTH', proportional_size=1, snap=False, 
-snap_target='CLOSEST', snap_point=(0, 0, 0), snap_align=False, snap_normal=(0, 0, 0), 
-release_confirm=False)
+    bpy.ops.transform.translate(
+        value=(2, 0, 0), constraint_axis=(True, False, False), 
+        constraint_orientation='GLOBAL', mirror=False, proportional='DISABLED', 
+        proportional_edit_falloff='SMOOTH', proportional_size=1, snap=False, 
+        snap_target='CLOSEST', snap_point=(0, 0, 0), snap_align=False,
+        snap_normal=(0, 0, 0), release_confirm=False)
 
     ##Toggle into objectmode
     bpy.ops.object.editmode_toggle()
