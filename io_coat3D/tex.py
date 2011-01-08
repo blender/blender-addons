@@ -72,8 +72,10 @@ def gettex(mat_list, objekti, scene,export):
                     if(tex_slot.texture.type == 'IMAGE'):
                                                 tex_slot.texture.image.reload()
     else:
-        nimi = objname(coat3D.objectdir)
-        osoite = os.path.dirname(coat3D.objectdir) + os.sep
+        activeobj = bpy.context.active_object.name
+        pathname = coat3D.objectdir + activeobj + ".obj"
+        nimi = objname(pathname)
+        osoite = os.path.dirname(pathname) + os.sep
     just_nimi = justname(nimi)
     just_nimi += '_'
     just_nimi_len = len(just_nimi)
@@ -217,7 +219,7 @@ def gettex(mat_list, objekti, scene,export):
 
             else:
                 bpy.data.textures[name_tex].use_normal_map = True
-                bpy.data.textures[name_tex].normal_space = 'TANGENT'
+                objekti.active_material.texture_slots[index].normal_map_space = 'TANGENT'
             
 
         elif(useold != ''):

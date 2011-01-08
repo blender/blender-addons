@@ -91,11 +91,9 @@ class SCENE_PT_Borgleader(ObjectButtonsPanel,bpy.types.Panel):
         colR.prop(coat3D,"importtextures")
         row = layout.row()
         colL = row.column()
-        colM = row.column()
         colR = row.column()
         colL.operator("deltex",text="Del Tex")
         if(bpy.context.active_object):
-            colM.active = True
             if(bpy.context.active_object.coat3D.coatpath and os.path.isfile(bpy.context.active_object.coat3D.coatpath)):
                 colR.active = True
                 if(coat['active_coat'] == bpy.context.active_object.coat3D.coatpath):
@@ -106,12 +104,10 @@ class SCENE_PT_Borgleader(ObjectButtonsPanel,bpy.types.Panel):
                 colR.active = False
                 colR.operator("no3b",text="No 3b")
         else:
-            colM.active = False
             colR.active = False
             colR.operator("no3b",text="")
-        colM.operator("pickname",text="Object name")
         row = layout.row()
-        row.label(text="Object Path:")
+        row.label(text="Object Folder:")
         row = layout.row()
         row.prop(coat3D,"objectdir",text="")                 
         row = layout.row()
@@ -204,9 +200,8 @@ class SCENE_OT_export(bpy.types.Operator):
                 os.remove(texturefile)
         
         checkname = coat3D.objectdir
-        
-        if(coat3D.objectdir[-4:] != '.obj'):
-            checkname += ('%s.obj'%(activeobj))
+            
+        checkname += ('%s.obj'%(activeobj))
 
         if(not(os.path.isfile(checkname)) or coat3D.exportover):
             
@@ -232,7 +227,6 @@ class SCENE_OT_export(bpy.types.Operator):
             file.write("\n%s"%(checkname))
             file.write("\n[%s]"%(coat3D.type))
             file.close()
-        coat3D.objectdir = checkname
         bpy.context.active_object.coat3D.objpath = coat3D.objectdir
 
         return('FINISHED')
@@ -248,6 +242,7 @@ class SCENE_OT_import(bpy.types.Operator):
         coat3D = bpy.context.scene.coat3D
         coat = bpy.coat3D
         activeobj = bpy.context.active_object.name
+        pathname = coat3D.objectdir + activeobj + ".obj"
         mat_list = []
         scene.objects[activeobj].select = True
         objekti = scene.objects[activeobj]
@@ -274,14 +269,14 @@ class SCENE_OT_import(bpy.types.Operator):
             act_mat_index = objekti.active_material_index
 
 
-        if(coat3D.importmesh and os.path.isfile(coat3D.objectdir)):
-            mtl = coat3D.objectdir
+        if(coat3D.importmesh and os.path.isfile(pathname)):
+            mtl = pathname
             mtl = mtl.replace('.obj','.mtl')
             if(os.path.isfile(mtl)):
                 os.remove(mtl)
 
             
-            bpy.ops.import_scene.obj(filepath=coat3D.objectdir)
+            bpy.ops.import_scene.obj(filepath=pathname)
             obj_proxy = scene.objects[0]
             proxy_mat = obj_proxy.material_slots[0].material
             obj_proxy.data.materials.pop(0)
@@ -343,7 +338,7 @@ class SCENE_OT_import(bpy.types.Operator):
             else:
                 bpy.ops.object.shade_flat()
                 
-        if(coat3D.importmesh and not(os.path.isfile(coat3D.objectdir))):
+        if(coat3D.importmesh and not(os.path.isfile(pathname))):
             coat3D.importmesh = False
 
         if(mat_list and coat3D.importmesh):
@@ -413,21 +408,6 @@ class SCENE_OT_no3b(bpy.types.Operator):
     
     def invoke(self, context, event):
         scene = context.scene
-    
-        return('FINISHED')
-
-class SCENE_OT_pickname(bpy.types.Operator):
-    bl_idname = "pickname"
-    bl_label = "Picks Object's name into path"
-    bl_description = "Loads 3b linked into object"
-
-    
-    def invoke(self, context, event):
-        coat3D = bpy.context.scene.coat3D
-        scene = context.scene
-        new_name = os.path.dirname(coat3D.objectdir) + os.sep
-        new_name += ("%s.obj"%(bpy.context.active_object.name))
-        coat3D.objectdir = new_name
     
         return('FINISHED')
 
