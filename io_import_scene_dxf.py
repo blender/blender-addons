@@ -1410,7 +1410,7 @@ def getOCS(az):  #--------------------------------------------------------------
 def transform(normal, rotation, obj):  #--------------------------------------------
     """Use the calculated ocs to determine the objects location/orientation in space.
     """
-    ma = Matrix([1,0,0,0],[0,1,0,0],[0,0,1,0],[0,0,0,1])
+    ma = Matrix(((1,0,0,0),(0,1,0,0),(0,0,1,0),(0,0,0,1)))
     o = Vector(obj.location)
     ma_new = getOCS(normal)
     if ma_new:
@@ -1419,7 +1419,7 @@ def transform(normal, rotation, obj):  #----------------------------------------
 
     if rotation != 0:
         g = radians(-rotation)
-        rmat = Matrix([cos(g), -sin(g), 0], [sin(g), cos(g), 0], [0, 0, 1])
+        rmat = Matrix(((cos(g), -sin(g), 0), (sin(g), cos(g), 0), (0, 0, 1)))
         ma = ma * rmat.resize4x4()
 
     obj.matrix_world = ma #must be matrix4x4

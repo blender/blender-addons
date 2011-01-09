@@ -142,11 +142,11 @@ def Simple_RotationMatrix(angle, matSize, axisFlag):
     q = radians(angle)  #make the rotation go clockwise
     
     if axisFlag == 'x':
-        matrix = MATHUTILS.Matrix([1,0,0,0],[0,cos(q),sin(q),0],[0,-sin(q),cos(q),0],[0,0,0,1])
+        matrix = MATHUTILS.Matrix(((1,0,0,0),(0,cos(q),sin(q),0),(0,-sin(q),cos(q),0),(0,0,0,1)))
     elif  axisFlag == 'y':
-        matrix = MATHUTILS.Matrix([cos(q),0,-sin(q),0],[0,1,0,0],[sin(q),0,cos(q),0],[0,0,0,1])  
+        matrix = MATHUTILS.Matrix(((cos(q),0,-sin(q),0),(0,1,0,0),(sin(q),0,cos(q),0),(0,0,0,1)))
     elif axisFlag == 'z':
-        matrix = MATHUTILS.Matrix([cos(q),sin(q),0,0],[-sin(q),cos(q),0,0],[0,0,1,0],[0,0,0,1])  
+        matrix = MATHUTILS.Matrix(((cos(q),sin(q),0,0),(-sin(q),cos(q),0,0),(0,0,1,0),(0,0,0,1)))
     else:
         print   ("Simple_RotationMatrix can only do x y z axis")
     return matrix
