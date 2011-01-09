@@ -106,6 +106,17 @@ class MaterialButtonsPanel():
         rd = context.scene.render
         return mat and (rd.use_game_engine == False) and (rd.engine in cls.COMPAT_ENGINES)
 
+class TextureButtonsPanel():
+    bl_space_type = 'PROPERTIES'
+    bl_region_type = 'WINDOW'
+    bl_context = "texture"
+    # COMPAT_ENGINES must be defined in each subclass, external engines can add themselves here
+
+    @classmethod
+    def poll(cls, context):
+        tex = context.texture
+        rd = context.scene.render
+        return tex and (rd.use_game_engine == False) and (rd.engine in cls.COMPAT_ENGINES)
 ########################################MR######################################
 class MATERIAL_PT_povray_mirrorIOR(MaterialButtonsPanel, bpy.types.Panel):
     bl_label = "IOR Mirror"
@@ -289,6 +300,29 @@ class RENDER_PT_povray_radiosity(RenderButtonsPanel, bpy.types.Panel):
             col = split.column()
             col.prop(scene, "pov_radio_always_sample")
 
+class RENDER_PT_povray_media(RenderButtonsPanel, bpy.types.Panel):
+    bl_label = "Atmosphere Media"
+    COMPAT_ENGINES = {'POVRAY_RENDER'}
+
+    def draw_header(self, context):
+        scene = context.scene
+
+        self.layout.prop(scene, "pov_media_enable", text="")
+
+    def draw(self, context):
+        layout = self.layout
+
+        scene = context.scene
+        rd = scene.render
+
+        layout.active = scene.pov_media_enable
+        split = layout.split()
+
+        col = split.column()
+        col.prop(scene, "pov_media_samples", text="Samples")
+        col.prop(scene, "pov_media_color", text="Color")
+
+
 class RENDER_PT_povray_baking(RenderButtonsPanel, bpy.types.Panel):
     bl_label = "Baking"
     COMPAT_ENGINES = {'POVRAY_RENDER'}
@@ -305,3 +339,24 @@ class RENDER_PT_povray_baking(RenderButtonsPanel, bpy.types.Panel):
         rd = scene.render
 
         layout.active = scene.pov_baking_enable
+
+class TEXTURE_PT_povray_tex_gamma(TextureButtonsPanel, bpy.types.Panel):
+    bl_label = "Image Gamma"
+    COMPAT_ENGINES = {'POVRAY_RENDER'}
+
+    def draw_header(self, context):
+        tex = context.texture
+
+        self.layout.prop(tex, "pov_tex_gamma_enable", text="")
+
+    def draw(self, context):
+        layout = self.layout
+
+        tex = context.texture
+
+        layout.active = tex.pov_tex_gamma_enable
+        split = layout.split()
+
+        col = split.column()
+        col.prop(tex, "pov_tex_gamma_value", text="Gamma Value")
+        

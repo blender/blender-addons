@@ -778,11 +778,14 @@ def write_pov(filename, scene=None, info_callback=None):
                 for t in material.texture_slots:
                     if t and t.texture.type == 'IMAGE' and t.use and t.texture.image: 
                         image_filename = path_image(t.texture.image.filepath)
+                        imgGamma = ''
                         if image_filename:
                             if t.use_map_color_diffuse: 
                                 texturesDif = image_filename
                                 colvalue = t.default_value
                                 t_dif = t
+                                if t_dif.texture.pov_tex_gamma_enable:
+                                    imgGamma = (" gamma %.3g " % t_dif.texture.pov_tex_gamma_value)
                             if t.use_map_specular or t.use_map_raymir: 
                                 texturesSpec = image_filename
                                 colvalue = t.default_value
@@ -873,16 +876,15 @@ def write_pov(filename, scene=None, info_callback=None):
 
                 else:
                     mappingDif = (" translate <%.4g-0.75,%.4g-0.75,%.4g-0.75> scale <%.4g,%.4g,%.4g>" % (t_dif.offset.x / 10 ,t_dif.offset.y / 10 ,t_dif.offset.z / 10, t_dif.scale.x / 2.25, t_dif.scale.y / 2.25, t_dif.scale.z / 2.25)) #strange that the translation factor for scale is not the same as for translate. ToDo: verify both matches with blender internal. 
-
                     if texturesAlpha !='':
                         mappingAlpha = (" translate <%.4g-0.75,%.4g-0.75,%.4g-0.75> scale <%.4g,%.4g,%.4g>" % (t_alpha.offset.x / 10 ,t_alpha.offset.y / 10 ,t_alpha.offset.z / 10, t_alpha.scale.x / 2.25, t_alpha.scale.y / 2.25, t_alpha.scale.z / 2.25)) #strange that the translation factor for scale is not the same as for translate. ToDo: verify both matches with blender internal. 
                         file.write('\n\t\t\t\tpigment {pigment_pattern {uv_mapping image_map{%s \"%s\" %s}%s}' % (imageFormat(texturesAlpha),texturesAlpha,imgMap(t_alpha),mappingAlpha))
                         file.write('\n\t\t\t\t\tpigment_map {\n\t\t\t\t\t\t[0 color rgbft<0,0,0,1,1>]')
-                        file.write('\n\t\t\t\t\t\t[1 uv_mapping image_map {%s \"%s\" %s}%s]\n\t\t\t\t}' % (imageFormat(texturesDif),texturesDif,imgMap(t_dif),mappingDif))
+                        file.write('\n\t\t\t\t\t\t[1 uv_mapping image_map {%s \"%s\" %s}%s]\n\t\t\t\t}' % (imageFormat(texturesDif),texturesDif,(imgGamma + imgMap(t_dif)),mappingDif))
                         file.write('\n\t\t\t\t}')
 
                     else:
-                        file.write("\n\t\t\t\tpigment {uv_mapping image_map {%s \"%s\" %s}%s}" % (imageFormat(texturesDif),texturesDif,imgMap(t_dif),mappingDif))
+                        file.write("\n\t\t\t\tpigment {uv_mapping image_map {%s \"%s\" %s}%s}" % (imageFormat(texturesDif),texturesDif,(imgGamma + imgMap(t_dif)),mappingDif))
 
                     if texturesSpec !='':
                         file.write('finish {%s}' % (safety(material_finish, Level=1)))# Level 1 is no specular
@@ -924,17 +926,16 @@ def write_pov(filename, scene=None, info_callback=None):
                         file.write('finish {%s}' % (safety(material_finish, Level=2)))# Level 2 is translated specular
 
                 else:
-                    mappingDif = (" translate <%.4g-0.75,%.4g-0.75,%.4g-0.75> scale <%.4g,%.4g,%.4g>" % (t_dif.offset.x / 10 ,t_dif.offset.y / 10 ,t_dif.offset.z / 10, t_dif.scale.x / 2.25, t_dif.scale.y / 2.25, t_dif.scale.z / 2.25)) #strange that the translation factor for scale is not the same as for translate. ToDo: verify both matches with blender internal. 
-
+                    mappingDif = (" translate <%.4g-0.75,%.4g-0.75,%.4g-0.75> scale <%.4g,%.4g,%.4g>" % (t_dif.offset.x / 10 ,t_dif.offset.y / 10 ,t_dif.offset.z / 10, t_dif.scale.x / 2.25, t_dif.scale.y / 2.25, t_dif.scale.z / 2.25)) #strange that the translation factor for scale is not the same as for translate. ToDo: verify both matches with blender internal.
                     if texturesAlpha !='':
                         mappingAlpha = (" translate <%.4g-0.75,%.4g-0.75,%.4g-0.75> scale <%.4g,%.4g,%.4g>" % (t_alpha.offset.x / 10 ,t_alpha.offset.y / 10 ,t_alpha.offset.z / 10, t_alpha.scale.x / 2.25, t_alpha.scale.y / 2.25, t_alpha.scale.z / 2.25)) #strange that the translation factor for scale is not the same as for translate. ToDo: verify both matches with blender internal. 
                         file.write('\n\t\t\t\tpigment {pigment_pattern {uv_mapping image_map{%s \"%s\" %s}%s}' % (imageFormat(texturesAlpha),texturesAlpha,imgMap(t_alpha),mappingAlpha))
                         file.write('\n\t\t\t\tpigment_map {\n\t\t\t\t\t[0 color rgbft<0,0,0,1,1>]')
-                        file.write('\n\t\t\t\t\t\t[1 uv_mapping image_map {%s \"%s\" %s}%s]\n\t\t\t\t\t}' % (imageFormat(texturesDif),texturesDif,imgMap(t_dif),mappingDif))
+                        file.write('\n\t\t\t\t\t\t[1 uv_mapping image_map {%s \"%s\" %s}%s]\n\t\t\t\t\t}' % (imageFormat(texturesDif),texturesDif,(imgMap(t_dif)+imgGamma),mappingDif))
                         file.write('\n\t\t\t\t}')
 
                     else:
-                        file.write("\n\t\t\tpigment {uv_mapping image_map {%s \"%s\" %s}%s}" % (imageFormat(texturesDif),texturesDif,imgMap(t_dif),mappingDif))
+                        file.write("\n\t\t\tpigment {uv_mapping image_map {%s \"%s\" %s}%s}" % (imageFormat(texturesDif),texturesDif,(imgGamma + imgMap(t_dif)),mappingDif))
                     if texturesSpec !='':
                         file.write('finish {%s}' % (safety(material_finish, Level=3)))# Level 3 is full specular
                     else:
@@ -1159,10 +1160,16 @@ def write_pov(filename, scene=None, info_callback=None):
             #file.write('\tturb_depth 0.3\n')
             file.write('\tfog_type 1\n')
             file.write('}\n')
+        if scene.pov_media_enable:
+            file.write('media {\n')
+            file.write('\tscattering { 1, rgb %.3g}\n' % scene.pov_media_color)
+            file.write('\tsamples %.d\n' % scene.pov_media_samples)
+            file.write('}\n')
 
     def exportGlobalSettings(scene):
 
         file.write('global_settings {\n')
+        file.write('\tassumed_gamma 1.0\n')
         file.write('\tmax_trace_level 7\n')
 
         if scene.pov_radio_enable:

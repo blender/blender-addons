@@ -28,7 +28,7 @@ bl_addon_info = {
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"\
         "Scripts/Render/PovRay",
     "tracker_url": "https://projects.blender.org/tracker/index.php?"\
-        "func=detail&aid=22717",
+        "func=detail&atid=468&aid=22717&group_id=153",
     "category": "Render"}
 
 
@@ -55,6 +55,16 @@ def register():
             name="Advanced Options",
             description="Show advanced options",
             default=False)
+    Scene.pov_media_enable = BoolProperty(
+        name="Enable Media",
+        description="Enable povrays atmospheric media",
+        default=False)
+    Scene.pov_media_samples = IntProperty(
+            name="Samples", description="Number of samples taken from camera to first object encountered along ray path for media calculation",
+            min=1, max=100, default=35)
+    Scene.pov_media_color = FloatProperty(
+            name="Media Color", description="The atmospheric media color. Grey value for now",
+            min=0.00, max=1.00, soft_min=0.01, soft_max=1.00, default=0.01)
     Scene.pov_baking_enable = BoolProperty(
             name="Enable Baking",
             description="Enable povrays texture baking",
@@ -185,13 +195,27 @@ def register():
                    ],
             name="Refractive",
             description="use fake caustics (fast) or true photons for refractive Caustics",
-            default="1")#ui.py has to be loaded before render.py with this. 
+            default="1")#ui.py has to be loaded before render.py with this.
+    
+    ########################################################################################
+    #Custom texture gamma
+    Tex = bpy.types.Texture 
+    Tex.pov_tex_gamma_enable = BoolProperty(
+            name="Enable custom texture gamma",
+            description="Notify some custom gamma for which texture has been precorrected without the file format carrying it and only if it differs from your OS expected standard (see pov doc)",
+            default=False)
+    Tex.pov_tex_gamma_value = FloatProperty(
+            name="Custom texture gamma",
+            description="value for which the file was issued e.g. a Raw photo is gamma 1.0",
+            min=0.45, max=5.00, soft_min=1.00, soft_max=2.50, default=1.00)
+    
     ######################################EndMR#####################################
 
 def unregister():
     import bpy
     Scene = bpy.types.Scene
     Mat = bpy.types.Material # MR
+    Tex = bpy.types.Texture # MR
     del Scene.pov_radio_enable
     del Scene.pov_radio_display_advanced
     del Scene.pov_radio_adc_bailout
@@ -206,6 +230,9 @@ def unregister():
     del Scene.pov_radio_nearest_count
     del Scene.pov_radio_normal
     del Scene.pov_radio_recursion_limit
+    del Scene.pov_media_enable # MR
+    del Scene.pov_media_samples # MR
+    del Scene.pov_media_color # MR
     del Scene.pov_baking_enable # MR
     del Mat.pov_irid_enable # MR
     del Mat.pov_mirror_use_IOR # MR
@@ -221,6 +248,8 @@ def unregister():
     del Mat.pov_photons_dispersion # MR  
     del Mat.pov_photons_reflection # MR 
     del Mat.pov_refraction_type # MR
+    del Tex.pov_tex_gamma_enable # MR
+    del Tex.pov_tex_gamma_value # MR
 
 if __name__ == "__main__":
     register()
