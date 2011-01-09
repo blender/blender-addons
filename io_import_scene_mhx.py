@@ -2279,7 +2279,7 @@ def parseBoolArray(mask):
 #
 
 def parseMatrix(args, tokens):
-    matrix = Matrix( [1,0,0,0], [0,1,0,0], [0,0,1,0], [0,0,0,1] )
+    matrix = Matrix()
     i = 0
     for (key, val, sub) in tokens:
         if key == 'row':    
