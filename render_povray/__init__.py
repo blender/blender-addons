@@ -28,7 +28,7 @@ bl_addon_info = {
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"\
         "Scripts/Render/PovRay",
     "tracker_url": "https://projects.blender.org/tracker/index.php?"\
-        "func=detail&atid=468&aid=22717&group_id=153",
+        "func=detail&aid=22717",
     "category": "Render"}
 
 
