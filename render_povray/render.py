@@ -584,8 +584,10 @@ def write_pov(filename, scene=None, info_callback=None):
                     else:
                         trans = 0.0
 
+                    material_finish = materialNames[material.name]
+
                     file.write('pigment {rgbft<%.3g, %.3g, %.3g, %.3g, %.3g>} finish {%s} }\n' % \
-                        (diffuse_color[0], diffuse_color[1], diffuse_color[2], 1.0 - material.alpha, trans, materialNames[material.name]))
+                        (diffuse_color[0], diffuse_color[1], diffuse_color[2], 1.0 - material.alpha, trans, safety(material_finish, Level=2)))
 
                 else:
                     file.write('pigment {rgb<1 1 1>} finish {%s} }\n' % DEF_MAT_NAME)		# Write the finish last.
