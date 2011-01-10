@@ -153,6 +153,7 @@ def safety(name, Level):
 ##############################EndSF###########################
 
 def write_pov(filename, scene=None, info_callback=None):
+    import mathutils
     file = open(filename, 'w')
 
     # Only for testing
@@ -161,6 +162,7 @@ def write_pov(filename, scene=None, info_callback=None):
 
     render = scene.render
     world = scene.world
+    global_matrix = mathutils.Matrix.Rotation(-pi / 2.0, 4, 'X')
 
     def uniqueName(name, nameSeq):
 
@@ -400,7 +402,7 @@ def write_pov(filename, scene=None, info_callback=None):
         
         # DH disabled for now, this isn't the correct context
         active_object = None #bpy.context.active_object # does not always work  MR
-        matrix = camera.matrix_world
+        matrix = global_matrix * camera.matrix_world
         focal_point = camera.data.dof_distance
 
         # compute resolution
@@ -437,7 +439,7 @@ def write_pov(filename, scene=None, info_callback=None):
         for ob in lamps:
             lamp = ob.data
 
-            matrix = ob.matrix_world
+            matrix = global_matrix * ob.matrix_world
 
             color = tuple([c * lamp.energy *2 for c in lamp.color]) # Colour is modified by energy #muiltiplie by 2 for a better match --Maurice
 
@@ -594,7 +596,7 @@ def write_pov(filename, scene=None, info_callback=None):
 
             writeObjectMaterial(material)
 
-            writeMatrix(ob.matrix_world)
+            writeMatrix(global_matrix * ob.matrix_world)
 
             file.write('}\n')
 
@@ -632,7 +634,7 @@ def write_pov(filename, scene=None, info_callback=None):
             #	continue
             # me = ob.data
 
-            matrix = ob.matrix_world
+            matrix = global_matrix * ob.matrix_world
             try:
                 uv_layer = me.uv_textures.active.data
             except AttributeError:
@@ -1079,7 +1081,7 @@ def write_pov(filename, scene=None, info_callback=None):
     def exportWorld(world):
         render = scene.render
         camera = scene.camera
-        matrix = camera.matrix_world
+        matrix = global_matrix * camera.matrix_world
         if not world:
             return
         #############Maurice#################################### 
