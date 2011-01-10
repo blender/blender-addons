@@ -199,7 +199,7 @@ def func_add_corrective_pose_shape( source, target):
                 Gx = list((dx[0][i] - dx[1][i])/epsilon)
                 Gy = list((dx[2][i] - dx[3][i])/epsilon)
                 Gz = list((dx[4][i] - dx[5][i])/epsilon)
-                G = mathutils.Matrix(Gx, Gy, Gz)
+                G = mathutils.Matrix((Gx, Gy, Gz))
                 G = flip_matrix_direction(G)
     
                 x[i] += (targetx[i] - mapx[i]) * G
