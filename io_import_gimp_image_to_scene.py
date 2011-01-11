@@ -338,7 +338,7 @@ def main(File, Path, LayerViewers, MixerViewers, LayerOffset,\
             Tex.extension = 'CLIP'
             Tex.use_preview_alpha = True
             
-            Img = bpy.data.images.new(NameShort)
+            Img = bpy.data.images.new(NameShort, 128, 128)
             Img.source = 'FILE'
             if PremulAlpha: Img.use_premultiply = True
             Img.filepath = '%s%s%s' % (PathSaveRaw, Name, ExtSave)
@@ -362,7 +362,7 @@ def main(File, Path, LayerViewers, MixerViewers, LayerOffset,\
             Tex = bpy.data.textures.new(NameShort, 'IMAGE')
             Tex.extension = 'CLIP'
             
-            Img = bpy.data.images.new(NameShort)
+            Img = bpy.data.images.new(NameShort, 128, 128)
             Img.source = 'FILE'
             Img.filepath = '%s%s%s' % (PathSaveRaw, Name, ExtSave)
             
@@ -384,7 +384,7 @@ def main(File, Path, LayerViewers, MixerViewers, LayerOffset,\
                 Tex.use_preview_alpha = True
                 Tex.use_alpha = False
                 
-                Img = bpy.data.images.new(NameShort+'_A')
+                Img = bpy.data.images.new(NameShort+'_A', 128, 128)
                 Img.source = 'FILE'
                 if PremulAlpha: Img.use_premultiply = True
                 Img.filepath = '%s%s_A%s' % (PathSaveRaw, Name, ExtSave)
