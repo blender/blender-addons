@@ -16,23 +16,76 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
+__author__ = "Cory Perry (muraj)"
+__version__ = "0.0.2"
+__bpydoc__ = """\
+This script imports m3 format files to Blender.
 
-import bpy, mathutils, time, struct, os.path
+The m3 file format, used by Blizzard in several games, is based around the
+mdx and m2 file format.  Thanks to the efforts of Volcore, madyavic and the
+people working on libm3, the file format has been reversed engineered
+enough to make this script possible (Thanks guys!).
+
+This script currently imports the following:<br>
+ - Geometry data (vertices, faces, submeshes [in vertex groups])
+ - Model Textures (currently only the first material is supported)
+
+   Blender supports the DDS file format and needs the image in the same
+   directory.  This script will notify you of any missing textures.
+
+TODO:<br>
+ - Documentation & clean up
+ - Full MD34 and MD33 testing (possibly batch importing for a testing suite)
+ - Import *ALL* materials and bind accordingly (currently supports diffuse,
+    specular, and normal.
+ - Adjust vertices to bind pose (import IREF matrices)
+ - Import Bone data
+ - Import Animation data
+
+Usage:<br>
+    Execute this script from the "File->Import" menu and choose a m3 file to
+open.
+
+Notes:<br>
+    Generates the standard verts and faces lists.
+"""
+
+import bpy
+import mathutils
+import time
+import datetime
+import struct
+import os.path
 from bpy.props import *
+##################
+#LOG = open('C:\m3_log.txt','w')
+LOG = None
 
+
+def debug(*args):    # TODO: make a little more robust, right now just a hack
+    if LOG == None:
+        print(*args)
+    else:
+        for i in args:
+            LOG.write(str(i) + ' ')
+        LOG.write('\n')
+        LOG.flush()
 ##################
 ## Struct setup ##
 ##################
+verFlag = False        # Version flag (MD34 == True, MD33 == False)
 
-verFlag = False        #Version flag (MD34 == True, MD33 == False)
 
 class ref:
     fmt = 'LL'
+
     def __init__(self, file):
         global verFlag
-        if verFlag: self.fmt += 'L'    #Extra unknown...
-        _s=file.read(struct.calcsize(self.fmt))
+        if verFlag:
+            self.fmt += 'L'    # Extra unknown...
+        _s = file.read(struct.calcsize(self.fmt))
         self.entries, self.refid = struct.unpack(self.fmt, _s)[:2]
+
     @classmethod
     def size(cls):
         global verFlag
@@ -41,107 +94,121 @@ class ref:
 
 class animref:
     fmt = 'HHL'
+
     def __init__(self, file):
-        _s=file.read(struct.calcsize(self.fmt))
+        _s = file.read(struct.calcsize(self.fmt))
         self.flags, self.animflags, self.animid = struct.unpack(self.fmt, _s)
 
 
 class Tag:
     fmt = '4sLLL'
+
     def __init__(self, file):
-        _s=file.read(struct.calcsize(self.fmt))
-        self.name, self.ofs, self.nTag, self.version = struct.unpack(self.fmt, _s)
+        _s = file.read(struct.calcsize(self.fmt))
+        self.name, self.ofs, self.nTag, self.version = \
+            struct.unpack(self.fmt, _s)
 
 
 class matrix:
-    fmt='f'*16
+    fmt = 'f' * 16
+
     def __init__(self, file):
-        _s=file.read(struct.calcsize(self.fmt))
+        _s = file.read(struct.calcsize(self.fmt))
         self.mat = struct.unpack(self.fmt, _s)
 
 
 class vect:
-    fmt='fff'
+    fmt = 'fff'
+
     def __init__(self, file):
-        _s=file.read(struct.calcsize(self.fmt))
+        _s = file.read(struct.calcsize(self.fmt))
         self.v = struct.unpack(self.fmt, _s)
 
 
 class vertex:
-    fmt="4B4b4B%dH4B"
-    ver = { 0x020000: 2, 0x060000: 4, 0x0A0000: 6, 0x120000: 8 }
+    fmt = "4B4b4B%dH4B"
+    ver = {0x020000: 2, 0x060000: 4, 0x0A0000: 6, 0x120000: 8}
+
     def __init__(self, file, flag):
         self.pos = vect(file)
-        fmt = self.fmt % (self.ver[flag])
-        _s=file.read(struct.calcsize(fmt))
-        print(file.tell())
-        _s = struct.unpack(fmt, _s)
+        _fmt = self.fmt % (self.ver[flag])
+        _s = file.read(struct.calcsize(_fmt))
+        _s = struct.unpack(_fmt, _s)
         self.boneWeight = _s[0:4]
         self.boneIndex = _s[4:8]
         self.normal = _s[8:12]
         self.uv = _s[12:14]
-        self.tan = _s[-4:]    #Skipping the middle ukn value if needed
-        self.boneWeight = [b/255.0 for b in self.boneWeight]
-        self.normal = [x*2.0/255.0-1.0 for x in self.normal]
-        self.tan = [x*2.0/255.0-1.0 for x in self.tan]
-        self.uv = [x/2046.0 for x in self.uv]
+        self.tan = _s[-4:]    # Skipping the middle ukn value if needed
+        self.boneWeight = [b / 255.0 for b in self.boneWeight]
+        self.normal = [x * 2.0 / 255.0 - 1.0 for x in self.normal]
+        self.tan = [x * 2.0 / 255.0 - 1.0 for x in self.tan]
+        self.uv = [x / 2046.0 for x in self.uv]
         self.uv[1] = 1.0 - self.uv[1]
+
     @classmethod
-    def size(cls, flag):
-        return struct.calcsize(cls.fmt % (cls.ver[flag]))
+    def size(cls, flag=0x020000):
+        return struct.calcsize('fff' + cls.fmt % (cls.ver[flag]))
 
 
 class quat:
-    fmt='ffff'
+    fmt = 'ffff'
+
     def __init__(self, file):
-        _s=file.read(struct.calcsize(self.fmt))
+        _s = file.read(struct.calcsize(self.fmt))
         self.v = struct.unpack(self.fmt, _s)
-        self.v = [self.v[-1], self.v[0], self.v[1], self.v[2]]    #Quats are stored x,y,z,w - this fixes it
+        #Quats are stored x,y,z,w - this fixes it
+        self.v = [self.v[-1], self.v[0], self.v[1], self.v[2]]
 
 
 class bone:
+
     def __init__(self, file):
-        file.read(4)    #ukn1
+        file.read(4)    # ukn1
         self.name = ref(file)
-        self.flag, self.parent, _ = struct.unpack('LhH',file.read(8))
+        self.flag, self.parent, _ = struct.unpack('LhH', file.read(8))
         self.posid = animref(file)
         self.pos = vect(file)
-        file.read(4*4)    #ukn
+        file.read(4 * 4)    # ukn
         self.rotid = animref(file)
         self.rot = quat(file)
-        file.read(4*5)    #ukn
+        file.read(4 * 5)    # ukn
         self.scaleid = animref(file)
         self.scale = vect(file)
-        vect(file)        #ukn
-        file.read(4*6)    #ukn
+        vect(file)          # ukn
+        file.read(4 * 6)    # ukn
 
 
 class div:
+
     def __init__(self, file):
         self.faces = ref(file)
         self.regn = ref(file)
         self.bat = ref(file)
         self.msec = ref(file)
-        file.read(4)    #ukn
+        file.read(4)    # ukn
 
 
 class regn:
-    fmt = 'LHHLL6H'
+    fmt = 'L2H2L6H'
+
     def __init__(self, file):
-        _s=file.read(struct.calcsize(self.fmt))
+        _s = file.read(struct.calcsize(self.fmt))
         _ukn1, self.ofsVert, self.nVerts, self.ofsIndex, self.nIndex, \
-            self.boneCount, self.indBone, self.nBone = struct.unpack(self.fmt, _s)[:8]
+            self.boneCount, self.indBone, self.nBone = \
+            struct.unpack(self.fmt, _s)[:8]
 
 
 class mat:
+
     def __init__(self, file):
         self.name = ref(file)
-        file.read(4*10)    #ukn
+        file.read(4 * 10)    # ukn
         self.layers = [ref(file) for _ in range(13)]
-        file.read(4*15)    #ukn
+        file.read(4 * 15)    # ukn
 
 
 class layr:
+
     def __init__(self, file):
         file.read(4)
         self.name = ref(file)
@@ -150,6 +217,7 @@ class layr:
 
 class hdr:
     fmt = '4sLL'
+
     def __init__(self, file):
         _s = file.read(struct.calcsize(self.fmt))
         self.magic, self.ofsTag, self.nTag = struct.unpack(self.fmt, _s)
@@ -157,152 +225,153 @@ class hdr:
 
 
 class MODL:
+
     def __init__(self, file, flag=20):
         global verFlag
         self.name = ref(file)
-        self.ver = struct.unpack('L',file.read(4))[0]
+        self.ver = struct.unpack('L', file.read(4))[0]
         self.seqHdr = ref(file)
         self.seqData = ref(file)
         self.seqLookup = ref(file)
-        file.read(0x1C if verFlag else 0x14)            #ukn1
+        file.read(0x1C if verFlag else 0x14)            # ukn1
         self.bones = ref(file)
-        file.read(4)            #ukn2
-        self.flags = struct.unpack('L',file.read(4))[0]
+        file.read(4)            # ukn2
+        self.flags = struct.unpack('L', file.read(4))[0]
         self.vert = ref(file)
         self.views = ref(file)
         self.boneLookup = ref(file)
         self.extents = [vect(file), vect(file)]
-        self.radius = struct.unpack('f',file.read(4))[0]
-        if verFlag: file.read(4)            #ukn MD34 addition
+        self.radius = struct.unpack('f', file.read(4))[0]
+        if verFlag:
+            file.read(4)            # ukn MD34 addition
         if not verFlag:
-            if flag == 20: file.read(0x2C)
-            else: file.read(0x34)
+            if flag == 20:
+                file.read(0x2C)
+            else:
+                file.read(0x34)
         else:
-            if flag == 20: file.read(0x30)
-            else: file.read(0x3C)
+            if flag == 20:
+                file.read(0x30)
+            else:
+                file.read(0x3C)
         self.attach = ref(file)
-        file.read(5*ref.size())
+        file.read(5 * ref.size())
         self.materialsLookup = ref(file)
         self.materials = ref(file)
         file.read(ref.size())
         if not verFlag:
             file.read(0x90)
-        else: file.read(0xD8)
+        else:
+            file.read(0xD8)
         self.iref = ref(file)
 
 
 def read(file, context, op):
-    '''Imports as an m3 file'''
-    
+    """Imports as an m3 file"""
     global verFlag
-    h=hdr(file)
-    if h.magic == b'43DM':
-        print('m3_import: !WARNING! MD34 files not full tested...')
+    h = hdr(file)
+    if h.magic[::-1] == b'MD34':
+        debug('m3_import: !WARNING! MD34 files not full tested...')
         verFlag = True
-    elif h.magic == b'33DM':
+    elif h.magic[::-1] == b'MD33':
         verFlag = False
     else:
         raise Exception('m3_import: !ERROR! Not a valid or supported m3 file')
-    file.seek(h.ofsTag)    #Jump to the Tag table
-    print('m3_import: !INFO! Reading TagTable...')
+    file.seek(h.ofsTag)    # Jump to the Tag table
+    debug('m3_import: !INFO! Reading TagTable...')
     tagTable = [Tag(file) for _ in range(h.nTag)]
     file.seek(tagTable[h.MODLref.refid].ofs)
     m = MODL(file, tagTable[h.MODLref.refid].version)
     if not m.flags & 0x20000:
-        raise Exception('m3_import: !ERROR! Model doesn\'t contain any vertices')
-    vert_flags = m.flags & 0x1E0000        #Mask out the vertex version
-    file.seek(tagTable[m.vert.refid].ofs)
-    print('m3_import: !INFO! Reading Vertices...')
-    verts = [ vertex(file, vert_flags) for _ in range(int(tagTable[m.vert.refid].nTag / vertex.size(vert_flags))) ]
+        raise Exception('m3_import: !ERROR! Model doesn\'t have any vertices')
+    debug('m3_import: !INFO! Reading Vertices...')
+    vert_flags = m.flags & 0x1E0000        # Mask out the vertex version
     file.seek(tagTable[m.views.refid].ofs)
     d = div(file)
+    file.seek(tagTable[m.vert.refid].ofs)
+    verts = [vertex(file, vert_flags) \
+       for _ in range(tagTable[m.vert.refid].nTag // vertex.size(vert_flags))]
     file.seek(tagTable[d.faces.refid].ofs)
-    print('m3_import: !INFO! Reading Faces...')
-    rawfaceTable = struct.unpack('H'*(tagTable[d.faces.refid].nTag), file.read(tagTable[d.faces.refid].nTag*2))
+    debug('m3_import: !INFO! Reading Faces...')
+    rawfaceTable = struct.unpack('H' * (tagTable[d.faces.refid].nTag), \
+                    file.read(tagTable[d.faces.refid].nTag * 2))
     faceTable = []
-    for i in range(1, len(rawfaceTable)+1):
-        faceTable.append(rawfaceTable[i-1])
-        if i % 3 == 0: faceTable.append(0)    #Add a zero for the fourth index to the face.
-    print('m3_import: !INFO! Adding Geometry...')
+    for i in range(1, len(rawfaceTable) + 1):
+        faceTable.append(rawfaceTable[i - 1])
+        if i % 3 == 0:    # Add a zero for the fourth index to the face.
+            faceTable.append(0)
+    debug('m3_import: !INFO! Adding Geometry...')
     mesh = bpy.data.meshes.new(os.path.basename(op.properties.filepath))
     mobj = bpy.data.objects.new(os.path.basename(op.properties.filepath), mesh)
     context.scene.objects.link(mobj)
-    v = []
-    for vert in verts:        #"Flatten" the vertex array...
+    v, n = [], []
+    for vert in verts:        # "Flatten" the vertex array...
         v.extend(vert.pos.v)
+        n.extend(vert.normal)
     mesh.vertices.add(len(verts))
-    mesh.faces.add(len(rawfaceTable)//3)
+    mesh.faces.add(len(rawfaceTable) // 3)
     mesh.vertices.foreach_set('co', v)
+    mesh.vertices.foreach_set('normal', n)
     mesh.faces.foreach_set('vertices_raw', faceTable)
     uvtex = mesh.uv_textures.new()
+    debug(len(verts), len(faceTable))
     for i, face in enumerate(mesh.faces):
         uf = uvtex.data[i]
-        uf.uv1 = verts[faceTable[i*4+0]].uv
-        uf.uv2 = verts[faceTable[i*4+1]].uv
-        uf.uv3 = verts[faceTable[i*4+2]].uv
-        uf.uv4 = (0,0)
-    print('m3_import: !INFO! Importing materials...')
+        uf.uv1 = verts[faceTable[i * 4 + 0]].uv
+        uf.uv2 = verts[faceTable[i * 4 + 1]].uv
+        uf.uv3 = verts[faceTable[i * 4 + 2]].uv
+        uf.uv4 = (0, 0)
+    debug('m3_import: !INFO! Importing materials...')
     material = bpy.data.materials.new('Mat00')
     mesh.materials.append(material)
     file.seek(tagTable[m.materials.refid].ofs)
     mm = mat(file)
-    for map, i in [('use_map_diffuse', 0), ('use_map_specular', 2), ('use_map_normal', 9)]:
+    tex_map = [('use_map_diffuse', 0), ('use_map_specular', 2),\
+                ('use_map_normal', 9)]
+    for map, i in tex_map:
         file.seek(tagTable[mm.layers[i].refid].ofs)
         nref = layr(file).name
         file.seek(tagTable[nref.refid].ofs)
-        name = bytes.decode(file.read(nref.entries-1))
-        path = os.path.join(os.path.dirname(op.properties.filepath), os.path.basename(str(name)))
+        name = bytes.decode(file.read(nref.entries - 1))
+        path = os.path.join(os.path.dirname(op.properties.filepath),\
+                os.path.basename(str(name)))
         tex = bpy.data.textures.new(name=os.path.basename(path), type='IMAGE')
         if os.path.exists(path):
             tex.image = bpy.data.images.load(path)
-            print("m3_import: !INFO! Loaded %s" % (path))
+            debug("m3_import: !INFO! Loaded %s" % (path))
         else:
-            print("m3_import: !WARNING! Cannot find texture \"%s\"" % (path))
+            debug("m3_import: !WARNING! Cannot find texture \"%s\"" % (path))
         mtex = material.texture_slots.add()
         mtex.texture = tex
         mtex.texture_coords = 'UV'
         mtex.use_map_color_diffuse = (i == 0)
-        setattr(mtex, map, True)    # <- This is really dumb to have to do, just expose a bitmask or something.
+        setattr(mtex, map, True)
 
 
 class M3Importer(bpy.types.Operator):
     '''Import from M3 file format (.m3)'''
-    
     bl_idname = "import_mesh.blizzard_m3"
     bl_label = 'Import M3'
 
     # List of operator properties, the attributes will be assigned
     # to the class instance from the operator settings before calling.
 
-    filepath = StringProperty(name="File Path", description="Filepath used for importing the M3 file", maxlen= 1024, default= "")
+    filepath = StringProperty(
+                name="File Path",\
+                description="Filepath used for importing the M3 file",\
+                maxlen=1024,\
+                default="")
 
     def execute(self, context):
-        t = time.clock()
+        t = time.mktime(datetime.datetime.now().timetuple())
         with open(self.properties.filepath, 'rb') as file:
             print('Importing file', self.properties.filepath)
             read(file, context, self)
-        print('Finished importing in', time.clock() - t, 'seconds')
+        t = time.mktime(datetime.datetime.now().timetuple()) - t
+        print('Finished importing in', t, 'seconds')
         return {'FINISHED'}
 
     def invoke(self, context, event):
         wm = context.window_manager
-        wm.fileselect_add(self)
+        wm.add_fileselect(self)
         return {'RUNNING_MODAL'}
-
-
-def menu_func(self, context):
-    self.layout.operator(M3Importer.bl_idname, text="M3 (.m3)")
-
-
-def register():
-    bpy.types.register(M3Importer)
-    bpy.types.INFO_MT_file_import.append(menu_func)
-
-
-def unregister():
-    bpy.types.unregister(M3Importer)
-    bpy.types.INFO_MT_file_import.remove(menu_func)
-
-
-if __name__ == "__main__":
-    register()
