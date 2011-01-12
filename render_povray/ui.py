@@ -117,6 +117,18 @@ class TextureButtonsPanel():
         tex = context.texture
         rd = context.scene.render
         return tex and (rd.use_game_engine == False) and (rd.engine in cls.COMPAT_ENGINES)
+
+class ObjectButtonsPanel():
+    bl_space_type = 'PROPERTIES'
+    bl_region_type = 'WINDOW'
+    bl_context = "object"
+    # COMPAT_ENGINES must be defined in each subclass, external engines can add themselves here
+
+    @classmethod
+    def poll(cls, context):
+        obj = context.object
+        rd = context.scene.render
+        return obj and (rd.use_game_engine == False) and (rd.engine in cls.COMPAT_ENGINES)
 ########################################MR######################################
 class MATERIAL_PT_povray_mirrorIOR(MaterialButtonsPanel, bpy.types.Panel):
     bl_label = "IOR Mirror"
@@ -249,6 +261,21 @@ class MATERIAL_PT_povray_caustics(MaterialButtonsPanel, bpy.types.Panel):
 ##            col.prop(mat, "pov_photons_reflection")
 ####TODO : MAKE THIS A real RADIO BUTTON (using EnumProperty?)
 ######################################EndMR#####################################
+class RENDER_PT_povray_max_trace_level(RenderButtonsPanel, bpy.types.Panel):
+    bl_label = "Global Settings"
+    COMPAT_ENGINES = {'POVRAY_RENDER'}
+
+    def draw(self, context):
+        layout = self.layout
+
+        scene = context.scene
+        rd = scene.render
+
+        layout.active = scene.pov_max_trace_level
+        split = layout.split()
+
+        col = split.column()
+        col.prop(scene, "pov_max_trace_level", text="Ray Depth")
 
 class RENDER_PT_povray_radiosity(RenderButtonsPanel, bpy.types.Panel):
     bl_label = "Radiosity"
@@ -284,11 +311,13 @@ class RENDER_PT_povray_radiosity(RenderButtonsPanel, bpy.types.Panel):
             col.prop(scene, "pov_radio_adc_bailout", slider=True)
             col.prop(scene, "pov_radio_gray_threshold", slider=True)
             col.prop(scene, "pov_radio_low_error_factor", slider=True)
+            col.prop(scene, "pov_radio_pretrace_start", slider=True)
 
             col = split.column()
             col.prop(scene, "pov_radio_brightness")
             col.prop(scene, "pov_radio_minimum_reuse", text="Min Reuse")
             col.prop(scene, "pov_radio_nearest_count")
+            col.prop(scene, "pov_radio_pretrace_end", slider=True)
 
             split = layout.split()
 
@@ -359,4 +388,19 @@ class TEXTURE_PT_povray_tex_gamma(TextureButtonsPanel, bpy.types.Panel):
 
         col = split.column()
         col.prop(tex, "pov_tex_gamma_value", text="Gamma Value")
+
+class OBJECT_PT_povray_obj_importance(ObjectButtonsPanel, bpy.types.Panel):
+    bl_label = "POV-Ray"
+    COMPAT_ENGINES = {'POVRAY_RENDER'}
+
+    def draw(self, context):
+        layout = self.layout
+
+        obj = context.object
+
+        layout.active = obj.pov_importance_value
+        split = layout.split()
+
+        col = split.column()
+        col.prop(obj, "pov_importance_value", text="Importance")
         

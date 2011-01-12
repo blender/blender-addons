@@ -71,6 +71,10 @@ def register():
             default=False)
 
     # Real pov options
+    Scene.pov_max_trace_level = IntProperty(
+            name="Max Trace Level", description="Number of reflections/refractions allowed on ray path",
+            min=1, max=256, default=5)
+    
     Scene.pov_radio_adc_bailout = FloatProperty(
             name="ADC Bailout", description="The adc_bailout for radiosity rays. Use adc_bailout = 0.01 / brightest_ambient_object for good results",
             min=0.0, max=1000.0, soft_min=0.0, soft_max=1.0, default=0.01)
@@ -84,8 +88,8 @@ def register():
             min=0.0, max=1000.0, soft_min=0.0, soft_max=10.0, default=1.0)
 
     Scene.pov_radio_count = IntProperty(
-            name="Ray Count", description="Number of rays that are sent out whenever a new radiosity value has to be calculated",
-            min=1, max=1600, default=35)
+            name="Ray Count", description="Number of rays for each new radiosity value to be calculated (halton sequence over 1600)",
+            min=1, max=10000, soft_max=1600, default=35)
 
     Scene.pov_radio_error_bound = FloatProperty(
             name="Error Bound", description="One of the two main speed/quality tuning values, lower values are more accurate",
@@ -96,7 +100,7 @@ def register():
             min=0.0, max=1.0, soft_min=0, soft_max=1, default=0.0)
 
     Scene.pov_radio_low_error_factor = FloatProperty(
-            name="Low Error Factor", description="If you calculate just enough samples, but no more, you will get an image which has slightly blotchy lighting",
+            name="Low Error Factor", description="Just enough samples is slightly blotchy. Low error changes error tolerance for less critical last refining pass",
             min=0.0, max=1.0, soft_min=0.0, soft_max=1.0, default=0.5)
 
     # max_sample - not available yet
@@ -119,6 +123,14 @@ def register():
     Scene.pov_radio_recursion_limit = IntProperty(
             name="Recursion Limit", description="how many recursion levels are used to calculate the diffuse inter-reflection",
             min=1, max=20, default=3)
+
+    Scene.pov_radio_pretrace_start = FloatProperty(
+            name="Pretrace Start", description="Fraction of the screen width which sets the size of the blocks in the mosaic preview first pass",
+            min=0.01, max=1.00, soft_min=0.02, soft_max=1.0, default=0.08)
+
+    Scene.pov_radio_pretrace_end = FloatProperty(
+            name="Pretrace End", description="Fraction of the screen width which sets the size of the blocks in the mosaic preview last pass",
+            min=0.01, max=1.00, soft_min=0.02, soft_max=1.0, default=0.04)
 
     ########################################MR######################################
     Mat = bpy.types.Material
@@ -208,6 +220,13 @@ def register():
             name="Custom texture gamma",
             description="value for which the file was issued e.g. a Raw photo is gamma 1.0",
             min=0.45, max=5.00, soft_min=1.00, soft_max=2.50, default=1.00)
+
+    #Importance sampling
+    Obj = bpy.types.Object
+    Obj.pov_importance_value = FloatProperty(
+            name="Radiosity Importance",
+            description="Priority value relative to other objects for sampling radiosity rays. Increase to get more radiosity rays at comparatively small yet bright objects",
+            min=0.01, max=1.00, default=1.00)
     
     ######################################EndMR#####################################
 
@@ -216,6 +235,7 @@ def unregister():
     Scene = bpy.types.Scene
     Mat = bpy.types.Material # MR
     Tex = bpy.types.Texture # MR
+    Obj = bpy.types.Object # MR
     del Scene.pov_radio_enable
     del Scene.pov_radio_display_advanced
     del Scene.pov_radio_adc_bailout
@@ -230,10 +250,13 @@ def unregister():
     del Scene.pov_radio_nearest_count
     del Scene.pov_radio_normal
     del Scene.pov_radio_recursion_limit
+    del Scene.pov_radio_pretrace_start # MR
+    del Scene.pov_radio_pretrace_end # MR
     del Scene.pov_media_enable # MR
     del Scene.pov_media_samples # MR
     del Scene.pov_media_color # MR
     del Scene.pov_baking_enable # MR
+    del Scene.pov_max_trace_level # MR
     del Mat.pov_irid_enable # MR
     del Mat.pov_mirror_use_IOR # MR
     del Mat.pov_mirror_metallic # MR    
@@ -250,6 +273,7 @@ def unregister():
     del Mat.pov_refraction_type # MR
     del Tex.pov_tex_gamma_enable # MR
     del Tex.pov_tex_gamma_value # MR
+    del Obj.pov_importance_value # MR
 
 if __name__ == "__main__":
     register()

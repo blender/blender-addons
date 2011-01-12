@@ -545,6 +545,7 @@ def write_pov(filename, scene=None, info_callback=None):
 
         for ob in metas:
             meta = ob.data
+            importance=ob.pov_importance_value              
 
             file.write('blob {\n')
             file.write('\t\tthreshold %.4g\n' % meta.threshold)
@@ -597,6 +598,10 @@ def write_pov(filename, scene=None, info_callback=None):
             writeObjectMaterial(material)
 
             writeMatrix(global_matrix * ob.matrix_world)
+            #Importance for radiosity sampling added here: 
+            file.write('\tradiosity { importance %3g }\n' % importance)
+            
+            file.write('}\n') #End of Metaball block
 
             file.write('}\n')
 
@@ -620,6 +625,7 @@ def write_pov(filename, scene=None, info_callback=None):
                 continue
 
             me = ob.data
+            importance=ob.pov_importance_value            
             me_materials = me.materials
 
             me = ob.create_mesh(scene, True, 'RENDER')
@@ -1073,7 +1079,11 @@ def write_pov(filename, scene=None, info_callback=None):
                     print(me)
 
             writeMatrix(matrix)
-            file.write('}\n')
+            
+            #Importance for radiosity sampling added here: 
+            file.write('\tradiosity { importance %3g }\n' % importance) 
+
+            file.write('}\n') # End of mesh block
             file.write('%s\n' % name) # Use named declaration to allow reference e.g. for baking. MR
 
             bpy.data.meshes.remove(me)
@@ -1100,9 +1110,10 @@ def write_pov(filename, scene=None, info_callback=None):
                     file.write('background {rgbt<%.3g, %.3g, %.3g, 1>}\n' % (tuple(world.horizon_color)))
 
                     
-
+            worldTexCount=0
             #For Background image textures
             for t in world.texture_slots: #risk to write several sky_spheres but maybe ok.
+                worldTexCount+=1
                 if t and t.texture.type == 'IMAGE': #and t.use: #No enable checkbox for world textures yet (report it?)
                     image_filename  = path_image(t.texture.image.filepath)
                     if t.texture.image.filepath != image_filename: t.texture.image.filepath = image_filename
@@ -1113,7 +1124,11 @@ def write_pov(filename, scene=None, info_callback=None):
                     #commented below was an idea to make the Background image oriented as camera taken here: http://news.povray.org/povray.newusers/thread/%3Cweb.4a5cddf4e9c9822ba2f93e20@news.povray.org%3E/
                     #mappingBlend = (" translate <%.4g,%.4g,%.4g> rotate z*degrees(atan((camLocation - camLookAt).x/(camLocation - camLookAt).y)) rotate x*degrees(atan((camLocation - camLookAt).y/(camLocation - camLookAt).z)) rotate y*degrees(atan((camLocation - camLookAt).z/(camLocation - camLookAt).x)) scale <%.4g,%.4g,%.4g>b" % (t_blend.offset.x / 10 ,t_blend.offset.y / 10 ,t_blend.offset.z / 10, t_blend.scale.x ,t_blend.scale.y ,t_blend.scale.z))#replace 4/3 by the ratio of each image found by some custom or existing function
                     #using camera rotation valuesdirectly from blender seems much easier
-                    mappingBlend = (" translate <%.4g-0.5,%.4g-0.5,%.4g-0.5> rotate<%.4g,%.4g,%.4g>  scale <%.4g,%.4g,%.4g>" % (t_blend.offset.x / 10 ,t_blend.offset.y / 10 ,t_blend.offset.z / 10, degrees(camera.rotation_euler[0]), degrees(camera.rotation_euler[1]), degrees(camera.rotation_euler[2]), t_blend.scale.x*0.85 , t_blend.scale.y*0.85 , t_blend.scale.z*0.85 ))
+                    if t_blend.texture_coords!='ANGMAP':
+                        mappingBlend = (" translate <%.4g-0.5,%.4g-0.5,%.4g-0.5> rotate<0,0,0>  scale <%.4g,%.4g,%.4g>" % (t_blend.offset.x / 10 ,t_blend.offset.y / 10 ,t_blend.offset.z / 10, t_blend.scale.x*0.85 , t_blend.scale.y*0.85 , t_blend.scale.z*0.85 ))
+                        #The initial position and rotation of the pov camera is probably creating the rotation offset should look into it someday but at least background won't rotate with the camera now. 
+                    else:
+                        mappingBlend = ("")
                     #Putting the map on a plane would not introduce the skysphere distortion and allow for better image scale matching but also some waay to chose depth and size of the plane relative to camera.
                     file.write('sky_sphere {\n')            
                     file.write('\tpigment {\n')
@@ -1124,11 +1139,11 @@ def write_pov(filename, scene=None, info_callback=None):
       
             #For only Background gradient        
         
-            if not t:
+            if worldTexCount==0:
                 if world.use_sky_blend:
                     file.write('sky_sphere {\n')            
                     file.write('\tpigment {\n')
-                    file.write('\t\tgradient z\n')#maybe Should follow the advice of POV doc about replacing gradient for skysphere..5.5
+                    file.write('\t\tgradient y\n')#maybe Should follow the advice of POV doc about replacing gradient for skysphere..5.5
                     file.write('\t\tcolor_map {\n')
                     if render.alpha_mode == 'STRAIGHT':
                         file.write('\t\t\t[0.0 rgbt<%.3g, %.3g, %.3g, 1>]\n' % (tuple(world.horizon_color)))
@@ -1174,7 +1189,7 @@ def write_pov(filename, scene=None, info_callback=None):
 
         file.write('global_settings {\n')
         file.write('\tassumed_gamma 1.0\n')
-        file.write('\tmax_trace_level 7\n')
+        file.write('\tmax_trace_level %d\n' % scene.pov_max_trace_level)
 
         if scene.pov_radio_enable:
             file.write('\tradiosity {\n')
@@ -1189,6 +1204,8 @@ def write_pov(filename, scene=None, info_callback=None):
             file.write("\t\tminimum_reuse %.4g\n" % scene.pov_radio_minimum_reuse)
             file.write("\t\tnearest_count %d\n" % scene.pov_radio_nearest_count)
             file.write("\t\tnormal %d\n" % scene.pov_radio_normal)
+            file.write("\t\tpretrace_start %.3g\n" % scene.pov_radio_pretrace_start)
+            file.write("\t\tpretrace_end %.3g\n" % scene.pov_radio_pretrace_end)
             file.write("\t\trecursion_limit %d\n" % scene.pov_radio_recursion_limit)
             file.write('\t}\n')
         once=1
@@ -1203,7 +1220,7 @@ def write_pov(filename, scene=None, info_callback=None):
         if material.pov_photons_refraction or material.pov_photons_reflection:
             file.write("\tphotons {\n")
             file.write("\t\tspacing 0.003\n")
-            file.write("\t\tmax_trace_level 4\n")
+            file.write("\t\tmax_trace_level 5\n")
             file.write("\t\tadc_bailout 0.1\n")
             file.write("\t\tgather 30, 150\n")
 
@@ -1266,7 +1283,7 @@ def write_pov_ini(filename_ini, filename_pov, filename_image):
 
     if render.use_antialiasing:
         aa_mapping = {'5': 2, '8': 3, '11': 4, '16': 5} # method 2 (recursive) with higher max subdiv forced because no mipmapping in povray needs higher sampling.
-        file.write('Antialias=1\n')
+        file.write('Antialias=on\n')
         file.write('Sampling_Method=2\n')
         file.write('Antialias_Depth=%d\n' % aa_mapping[render.antialiasing_samples])
         file.write('Antialias_Threshold=0.1\n')#rather high settings but necessary.
