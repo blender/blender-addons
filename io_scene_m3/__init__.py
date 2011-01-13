@@ -32,7 +32,7 @@ bl_addon_info = {
         "Import-Export/M3_Import",
     "tracker_url": "http://projects.blender.org/tracker/index.php?"\
         "func=detail&aid=24017",
-    "category": "Import/Export",
+    "category": "Import-Export",
     "description": "This script imports m3 format files to Blender."}
 
 import bpy
