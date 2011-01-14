@@ -18,9 +18,9 @@
 
 bl_info = {
     "name": "PovRay 3.7",
-    "author": "Campbell Barton, Silvio Falcinelli, Maurice Raybaud",
-    "version": (0, 0, 3),
-    "blender": (2, 5, 4),
+    "author": "Campbell Barton, Silvio Falcinelli, Maurice Raybaud, Constantin Rahn",
+    "version": (0, 0, 4),
+    "blender": (2, 5, 6),
     "api": 31667,
     "location": "Info Header (engine dropdown)",
     "description": "Basic povray 3.7 integration for blender",
@@ -77,7 +77,7 @@ def register():
     
     Scene.pov_radio_adc_bailout = FloatProperty(
             name="ADC Bailout", description="The adc_bailout for radiosity rays. Use adc_bailout = 0.01 / brightest_ambient_object for good results",
-            min=0.0, max=1000.0, soft_min=0.0, soft_max=1.0, default=0.01)
+            min=0.0, max=1000.0, soft_min=0.0, soft_max=1.0, default=0.01, precision=3)
 
     Scene.pov_radio_always_sample = BoolProperty(
             name="Always Sample", description="Only use the data from the pretrace step and not gather any new samples during the final radiosity pass",
@@ -110,7 +110,7 @@ def register():
 
     Scene.pov_radio_minimum_reuse = FloatProperty(
             name="Minimum Reuse", description="Fraction of the screen width which sets the minimum radius of reuse for each sample point (At values higher than 2% expect errors)",
-            min=0.0, max=1.0, soft_min=0.1, soft_max=0.1, default=0.015)
+            min=0.0, max=1.0, soft_min=0.1, soft_max=0.1, default=0.015, precision=3)
 
     Scene.pov_radio_nearest_count = IntProperty(
             name="Nearest Count", description="Number of old ambient values blended together to create a new interpolated value",
@@ -130,7 +130,7 @@ def register():
 
     Scene.pov_radio_pretrace_end = FloatProperty(
             name="Pretrace End", description="Fraction of the screen width which sets the size of the blocks in the mosaic preview last pass",
-            min=0.01, max=1.00, soft_min=0.02, soft_max=1.0, default=0.04)
+            min=0.001, max=1.00, soft_min=0.01, soft_max=1.00, default=0.04, precision=3)
 
     ########################################MR######################################
     Mat = bpy.types.Material

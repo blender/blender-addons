@@ -189,11 +189,11 @@ def write_pov(filename, scene=None, info_callback=None):
         if material: #and material.transparency_method == 'RAYTRACE':#Commented out: always write IOR to be able to use it for SSS, Fresnel reflections...
             #But there can be only one!
             if material.subsurface_scattering.use:#SSS IOR get highest priority
-                file.write('\tinterior { ior %.6f\n' % material.subsurface_scattering.ior)
+                file.write('\tinterior {\n\t\tior %.6f\n' % material.subsurface_scattering.ior)
             elif material.pov_mirror_use_IOR:#Then the raytrace IOR taken from raytrace transparency properties and used for reflections if IOR Mirror option is checked
-                file.write('\tinterior { ior %.6f\n' % material.raytrace_transparency.ior)
+                file.write('\tinterior {\n\t\tior %.6f\n' % material.raytrace_transparency.ior)
             else:
-                file.write('\tinterior { ior %.6f\n' % material.raytrace_transparency.ior)
+                file.write('\tinterior {\n\t\tior %.6f\n' % material.raytrace_transparency.ior)
                 
             pov_fake_caustics = False
             pov_photons_refraction = False
@@ -214,9 +214,9 @@ def write_pov(filename, scene=None, info_callback=None):
             #Last, if none of the above is specified, user can set up "un-physical" fresnel reflections in raytrace mirror parameters. And pov IOR defaults to 1. 
             if material.pov_caustics_enable:
                 if pov_fake_caustics:
-                    file.write('\tcaustics %.3g\n' % material.pov_fake_caustics_power)
+                    file.write('\t\tcaustics %.3g\n' % material.pov_fake_caustics_power)
                 if pov_photons_refraction:
-                    file.write('\tdispersion %.3g\n' % material.pov_photons_dispersion) #Default of 1 means no dispersion
+                    file.write('\t\tdispersion %.3g\n' % material.pov_photons_dispersion) #Default of 1 means no dispersion
             #TODO        
             # Other interior args
             # if material.use_transparency and material.transparency_method == 'RAYTRACE':
@@ -665,7 +665,7 @@ def write_pov(filename, scene=None, info_callback=None):
             file.write('\t\t%s' % (len(me.vertices))) # vert count
             for v in me.vertices:
                 file.write(',\n\t\t<%.6f, %.6f, %.6f>' % tuple(v.co)) # vert count
-            file.write('\n  }\n')
+            file.write('\n\t}\n')
 
 
             # Build unique Normal list
@@ -688,7 +688,7 @@ def write_pov(filename, scene=None, info_callback=None):
                 file.write(',\n\t\t<%.6f, %.6f, %.6f>' % no) # vert count
                 index[0] = idx
                 idx += 1
-            file.write('\n  }\n')
+            file.write('\n\t}\n')
 
 
             # Vertex colours
@@ -722,7 +722,7 @@ def write_pov(filename, scene=None, info_callback=None):
                     file.write('\t\t1') # vert count
                     file.write(',\n\t\t<0.0, 0.0>')
                 '''
-                file.write('\n  }\n')
+                file.write('\n\t}\n')
 
 
             if me.vertex_colors:
@@ -868,7 +868,7 @@ def write_pov(filename, scene=None, info_callback=None):
                 if texturesDif == '':
                     if texturesAlpha !='':
                         mappingAlpha = (" translate <%.4g-0.75,%.4g-0.75,%.4g-0.75> scale <%.4g,%.4g,%.4g>" % (t_alpha.offset.x / 10 ,t_alpha.offset.y / 10 ,t_alpha.offset.z / 10, t_alpha.scale.x / 2.25, t_alpha.scale.y / 2.25, t_alpha.scale.z / 2.25)) #strange that the translation factor for scale is not the same as for translate. ToDo: verify both matches with blender internal. 
-                        file.write('\n\t\t\t\tpigment {pigment_pattern {uv_mapping image_map{%s \"%s\" %s}%s}' % (imageFormat(texturesAlpha) ,texturesAlpha ,imgMap(t_alpha),mappingAlpha))
+                        file.write('\n\t\t\tpigment {pigment_pattern {uv_mapping image_map{%s \"%s\" %s}%s}' % (imageFormat(texturesAlpha) ,texturesAlpha ,imgMap(t_alpha),mappingAlpha))
                         file.write('\n\t\t\t\t\tpigment_map {')
                         file.write('\n\t\t\t\t\t\t[0 color rgbft<0,0,0,1,1>]')
                         file.write('\n\t\t\t\t\t\t[1 color rgbft<%.3g, %.3g, %.3g, %.3g, %.3g>]\n\t\t\t\t\t}' % (col[0], col[1], col[2], 1.0 - material.alpha, trans))
@@ -876,7 +876,7 @@ def write_pov(filename, scene=None, info_callback=None):
 
                     else:
 
-                        file.write('\n\t\t\t\tpigment {rgbft<%.3g, %.3g, %.3g, %.3g, %.3g>}' % (col[0], col[1], col[2], 1.0 - material.alpha, trans))
+                        file.write('\n\t\t\tpigment {rgbft<%.3g, %.3g, %.3g, %.3g, %.3g>}' % (col[0], col[1], col[2], 1.0 - material.alpha, trans))
 
                     if texturesSpec !='':
                         file.write('finish {%s}' % (safety(material_finish, Level=1)))# Level 1 is no specular
@@ -888,13 +888,13 @@ def write_pov(filename, scene=None, info_callback=None):
                     mappingDif = (" translate <%.4g-0.75,%.4g-0.75,%.4g-0.75> scale <%.4g,%.4g,%.4g>" % (t_dif.offset.x / 10 ,t_dif.offset.y / 10 ,t_dif.offset.z / 10, t_dif.scale.x / 2.25, t_dif.scale.y / 2.25, t_dif.scale.z / 2.25)) #strange that the translation factor for scale is not the same as for translate. ToDo: verify both matches with blender internal. 
                     if texturesAlpha !='':
                         mappingAlpha = (" translate <%.4g-0.75,%.4g-0.75,%.4g-0.75> scale <%.4g,%.4g,%.4g>" % (t_alpha.offset.x / 10 ,t_alpha.offset.y / 10 ,t_alpha.offset.z / 10, t_alpha.scale.x / 2.25, t_alpha.scale.y / 2.25, t_alpha.scale.z / 2.25)) #strange that the translation factor for scale is not the same as for translate. ToDo: verify both matches with blender internal. 
-                        file.write('\n\t\t\t\tpigment {pigment_pattern {uv_mapping image_map{%s \"%s\" %s}%s}' % (imageFormat(texturesAlpha),texturesAlpha,imgMap(t_alpha),mappingAlpha))
+                        file.write('\n\t\t\tpigment {pigment_pattern {uv_mapping image_map{%s \"%s\" %s}%s}' % (imageFormat(texturesAlpha),texturesAlpha,imgMap(t_alpha),mappingAlpha))
                         file.write('\n\t\t\t\t\tpigment_map {\n\t\t\t\t\t\t[0 color rgbft<0,0,0,1,1>]')
                         file.write('\n\t\t\t\t\t\t[1 uv_mapping image_map {%s \"%s\" %s}%s]\n\t\t\t\t}' % (imageFormat(texturesDif),texturesDif,(imgGamma + imgMap(t_dif)),mappingDif))
                         file.write('\n\t\t\t\t}')
 
                     else:
-                        file.write("\n\t\t\t\tpigment {uv_mapping image_map {%s \"%s\" %s}%s}" % (imageFormat(texturesDif),texturesDif,(imgGamma + imgMap(t_dif)),mappingDif))
+                        file.write("\n\t\t\tpigment {uv_mapping image_map {%s \"%s\" %s}%s}" % (imageFormat(texturesDif),texturesDif,(imgGamma + imgMap(t_dif)),mappingDif))
 
                     if texturesSpec !='':
                         file.write('finish {%s}' % (safety(material_finish, Level=1)))# Level 1 is no specular
@@ -920,14 +920,14 @@ def write_pov(filename, scene=None, info_callback=None):
                 if texturesDif == '':
                     if texturesAlpha !='':
                         mappingAlpha = (" translate <%.4g-0.75,%.4g-0.75,%.4g-0.75> scale <%.4g,%.4g,%.4g>" % (t_alpha.offset.x / 10 ,t_alpha.offset.y / 10 ,t_alpha.offset.z / 10, t_alpha.scale.x / 2.25, t_alpha.scale.y / 2.25, t_alpha.scale.z / 2.25)) #strange that the translation factor for scale is not the same as for translate. ToDo: verify both matches with blender internal. 
-                        file.write('\n\t\t\t\tpigment {pigment_pattern {uv_mapping image_map{%s \"%s\" %s}%s}' % (imageFormat(texturesAlpha) ,texturesAlpha ,imgMap(t_alpha),mappingAlpha))
+                        file.write('\n\t\t\tpigment {pigment_pattern {uv_mapping image_map{%s \"%s\" %s}%s}' % (imageFormat(texturesAlpha) ,texturesAlpha ,imgMap(t_alpha),mappingAlpha))
                         file.write('\n\t\t\t\t\tpigment_map {')
                         file.write('\n\t\t\t\t\t\t[0 color rgbft<0,0,0,1,1>]')
                         file.write('\n\t\t\t\t\t\t[1 color rgbft<%.3g, %.3g, %.3g, %.3g, %.3g>]\n\t\t\t\t\t}' % (col[0], col[1], col[2], 1.0 - material.alpha, trans))
                         file.write('\n\t\t\t\t}')
 
                     else:
-                        file.write('\n\t\t\t\tpigment {rgbft<%.3g, %.3g, %.3g, %.3g, %.3g>}' % (col[0], col[1], col[2], 1.0 - material.alpha, trans))
+                        file.write('\n\t\t\tpigment {rgbft<%.3g, %.3g, %.3g, %.3g, %.3g>}' % (col[0], col[1], col[2], 1.0 - material.alpha, trans))
 
                     if texturesSpec !='':
                         file.write('finish {%s}' % (safety(material_finish, Level=3)))# Level 3 is full specular
@@ -939,7 +939,7 @@ def write_pov(filename, scene=None, info_callback=None):
                     mappingDif = (" translate <%.4g-0.75,%.4g-0.75,%.4g-0.75> scale <%.4g,%.4g,%.4g>" % (t_dif.offset.x / 10 ,t_dif.offset.y / 10 ,t_dif.offset.z / 10, t_dif.scale.x / 2.25, t_dif.scale.y / 2.25, t_dif.scale.z / 2.25)) #strange that the translation factor for scale is not the same as for translate. ToDo: verify both matches with blender internal.
                     if texturesAlpha !='':
                         mappingAlpha = (" translate <%.4g-0.75,%.4g-0.75,%.4g-0.75> scale <%.4g,%.4g,%.4g>" % (t_alpha.offset.x / 10 ,t_alpha.offset.y / 10 ,t_alpha.offset.z / 10, t_alpha.scale.x / 2.25, t_alpha.scale.y / 2.25, t_alpha.scale.z / 2.25)) #strange that the translation factor for scale is not the same as for translate. ToDo: verify both matches with blender internal. 
-                        file.write('\n\t\t\t\tpigment {pigment_pattern {uv_mapping image_map{%s \"%s\" %s}%s}' % (imageFormat(texturesAlpha),texturesAlpha,imgMap(t_alpha),mappingAlpha))
+                        file.write('\n\t\t\tpigment {pigment_pattern {uv_mapping image_map{%s \"%s\" %s}%s}' % (imageFormat(texturesAlpha),texturesAlpha,imgMap(t_alpha),mappingAlpha))
                         file.write('\n\t\t\t\tpigment_map {\n\t\t\t\t\t[0 color rgbft<0,0,0,1,1>]')
                         file.write('\n\t\t\t\t\t\t[1 uv_mapping image_map {%s \"%s\" %s}%s]\n\t\t\t\t\t}' % (imageFormat(texturesDif),texturesDif,(imgMap(t_dif)+imgGamma),mappingDif))
                         file.write('\n\t\t\t\t}')
@@ -1024,7 +1024,7 @@ def write_pov(filename, scene=None, info_callback=None):
                         file.write(',\n\t\t<%d,%d,%d>, %d,%d,%d' % (fv[i1], fv[i2], fv[i3], ci1, ci2, ci3)) # vert count
 
 
-            file.write('\n  }\n')
+            file.write('\n\t}\n')
 
             # normal_indices indicies
             file.write('\tnormal_indices {\n')
@@ -1046,7 +1046,7 @@ def write_pov(filename, scene=None, info_callback=None):
                         idx = uniqueNormals[faces_normals[fi]][0]
                         file.write(',\n\t\t<%d,%d,%d>' % (idx, idx, idx)) # vert count
 
-            file.write('\n  }\n')
+            file.write('\n\t}\n')
 
             if uv_layer:
                 file.write('\tuv_indices {\n')
@@ -1124,11 +1124,11 @@ def write_pov(filename, scene=None, info_callback=None):
                     #commented below was an idea to make the Background image oriented as camera taken here: http://news.povray.org/povray.newusers/thread/%3Cweb.4a5cddf4e9c9822ba2f93e20@news.povray.org%3E/
                     #mappingBlend = (" translate <%.4g,%.4g,%.4g> rotate z*degrees(atan((camLocation - camLookAt).x/(camLocation - camLookAt).y)) rotate x*degrees(atan((camLocation - camLookAt).y/(camLocation - camLookAt).z)) rotate y*degrees(atan((camLocation - camLookAt).z/(camLocation - camLookAt).x)) scale <%.4g,%.4g,%.4g>b" % (t_blend.offset.x / 10 ,t_blend.offset.y / 10 ,t_blend.offset.z / 10, t_blend.scale.x ,t_blend.scale.y ,t_blend.scale.z))#replace 4/3 by the ratio of each image found by some custom or existing function
                     #using camera rotation valuesdirectly from blender seems much easier
-                    if t_blend.texture_coords!='ANGMAP':
+                    if t_blend.texture_coords=='ANGMAP':
+                        mappingBlend = ("")
+                    else:
                         mappingBlend = (" translate <%.4g-0.5,%.4g-0.5,%.4g-0.5> rotate<0,0,0>  scale <%.4g,%.4g,%.4g>" % (t_blend.offset.x / 10 ,t_blend.offset.y / 10 ,t_blend.offset.z / 10, t_blend.scale.x*0.85 , t_blend.scale.y*0.85 , t_blend.scale.z*0.85 ))
                         #The initial position and rotation of the pov camera is probably creating the rotation offset should look into it someday but at least background won't rotate with the camera now. 
-                    else:
-                        mappingBlend = ("")
                     #Putting the map on a plane would not introduce the skysphere distortion and allow for better image scale matching but also some waay to chose depth and size of the plane relative to camera.
                     file.write('sky_sphere {\n')            
                     file.write('\tpigment {\n')
