@@ -16,7 +16,7 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-bl_addon_info = {
+bl_info = {
     "name": "Fracture Tools",
     "author": "pildanovak",
     "version": (2,0),

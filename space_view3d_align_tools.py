@@ -19,7 +19,7 @@
 #
 # ***** END GPL LICENCE BLOCK *****
 
-bl_addon_info = {
+bl_info = {
     "name": "Align Tools",
     "author": "Gabriel Beaudin (gabhead)",
     "version": (0,1),

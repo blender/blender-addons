@@ -16,7 +16,7 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-bl_addon_info = {
+bl_info = {
     "name": "Pipe Joints",
     "author": "Buerbaum Martin (Pontiac)",
     "version": (0, 10, 6),
@@ -47,7 +47,7 @@ v0.10.6 - Removed "recall properties" from all functions.
     API: mathutils.RotationMatrix -> mathutils.Matrix.Rotation
     API: xxx.selected -> xxx.select
     API: "invoke" function for each operator.
-    Updated for new bl_addon_info structure.
+    Updated for new bl_info structure.
     New code for the "align_matrix".
     made script PEP8 compatible.
 v0.10.5 - createFaces can now create fan/star like faces.
@@ -61,7 +61,7 @@ v0.10.2 - API change Mathutils -> mathutils (r557)
 v0.10.1 - Use hidden "edit" property for "recall" operator.
 v0.10 - Store "recall" properties in the created objects.
     Align the geometry to the view if the user preference says so.
-v0.9.10 - Use bl_addon_info for Add-On information.
+v0.9.10 - Use bl_info for Add-On information.
 v0.9.9 - Changed the script so it can be managed from the "Add-Ons" tab in
     the user preferences.
     Added dummy "PLUGIN" icon.

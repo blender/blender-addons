@@ -16,7 +16,7 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-bl_addon_info = {
+bl_info = {
     "name": "PovRay 3.7",
     "author": "Campbell Barton, Silvio Falcinelli, Maurice Raybaud",
     "version": (0, 0, 3),

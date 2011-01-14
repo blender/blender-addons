@@ -18,7 +18,7 @@
 #
 # ***** END GPL LICENCE BLOCK *****
 
-bl_addon_info = {
+bl_info = {
     "name": "Object Property Chart",
     "author": "Campbell Barton (ideasman42)",
     "version": (0, 1),

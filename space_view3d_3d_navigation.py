@@ -21,7 +21,7 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-bl_addon_info = {
+bl_info = {
     "name": "3D Navigation",
     "author": "Demohero, uriel",
     "version": (1, 2),

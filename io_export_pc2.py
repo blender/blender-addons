@@ -16,7 +16,7 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-bl_addon_info = {
+bl_info = {
     "name": "Export Pointcache (.pc2)",
     "author": "Florian Meyer (tstscr)",
     "version": (1, 0),

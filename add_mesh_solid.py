@@ -17,7 +17,7 @@
 #
 # ***** END GPL LICENCE BLOCK *****
 
-bl_addon_info = {
+bl_info = {
     "name": "Regular Solids",
     "author": "DreamPainter",
     "version": (1,),

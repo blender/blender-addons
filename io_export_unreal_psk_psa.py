@@ -15,7 +15,7 @@
 #  All rights reserved.
 #  ***** GPL LICENSE BLOCK *****
 
-bl_addon_info = {
+bl_info = {
     "name": "Export Skeleletal Mesh/Animation Data",
     "author": "Darknet/Optimus_P-Fat/Active_Trash/Sinsoft",
     "version": (2, 0),
@@ -1604,7 +1604,7 @@ def fs_callback(filename, context):
                 print ("No Animations (.psa file) to Export")
 
         print ('PSK/PSA Export Script finished in %.2f seconds' % (time.clock() - start_time))
-        print( "Current Script version: ",bl_addon_info['version'])
+        print( "Current Script version: ",bl_info['version'])
         #MSG BOX EXPORT COMPLETE
         #...
 

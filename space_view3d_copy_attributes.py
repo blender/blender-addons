@@ -18,7 +18,7 @@
 
 # <pep8 compliant>
 
-bl_addon_info = {
+bl_info = {
     'name': 'Copy Attributes Menu',
     'author': 'Bassam Kurdali, Fabian Fricke, wiseman303',
     'version': (0, 41),

@@ -17,7 +17,7 @@
 # ##### END GPL LICENSE BLOCK #####
 
 
-bl_addon_info = {
+bl_info = {
     "name": "Torus Knots",
     "author": "testscreenings",
     "version": (0,1),

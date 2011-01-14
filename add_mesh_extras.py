@@ -16,7 +16,7 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-bl_addon_info = {
+bl_info = {
     "name": "Extras",
     "author": "Pontiac, Fourmadmen, meta-androcto",
     "version": (0,4),

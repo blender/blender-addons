@@ -16,7 +16,7 @@
 #
 #======================= END GPL LICENSE BLOCK ========================
 
-bl_addon_info = {
+bl_info = {
     "name": "Math Vis (Console)",
     "author": "Campbell Barton",
     "version": (0, 1),
@@ -28,6 +28,7 @@ bl_addon_info = {
         "Scripts/3D_interaction/Math_Viz",
     "tracker_url": "http://projects.blender.org/tracker/index.php?"\
         "func=detail&aid=25545",
+    "support": "OFFICIAL",
     "category": "3D View"}
 
 if "bpy" in locals():

@@ -19,7 +19,7 @@ Version 1.0.3
 
 """
 
-bl_addon_info = {
+bl_info = {
     'name': 'Import: MakeHuman (.mhx)',
     'author': 'Thomas Larsson',
     'version': (1, 0, 3),

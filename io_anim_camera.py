@@ -18,7 +18,7 @@
 
 # <pep8 compliant>
 
-bl_addon_info = {
+bl_info = {
     "name": "Export Camera Animation",
     "author": "Campbell Barton",
     "version": (0, 1),
@@ -31,6 +31,7 @@ bl_addon_info = {
         "Scripts/Import-Export/Camera_Animation",
     "tracker_url": "https://projects.blender.org/tracker/index.php?"\
         "func=detail&aid=22835",
+    "support": 'OFFICIAL',
     "category": "Import-Export"}
 
 

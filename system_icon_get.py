@@ -19,7 +19,7 @@
 # <pep8 compliant>
 
 
-bl_addon_info = {
+bl_info = {
     'name': 'Icons',
     'author': 'Crouch, N.tox, PKHG, Campbell Barton, Dany Lebel',
     'version': (1, 4, 2),

@@ -16,7 +16,7 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-bl_addon_info = {
+bl_info = {
     "name": "3D Function Surfaces",
     "author": "Buerbaum Martin (Pontiac)",
     "version": (0, 3, 6),
@@ -82,7 +82,7 @@ v0.3 - X,Y,Z Function Surface (by Ed Mackey & tuga3d).
     Renamed old function to "Z Function Surface".
     Align the geometry to the view if the user preference says so.
     Store recall properties in newly created object.
-v0.2.3 - Use bl_addon_info for Add-On information.
+v0.2.3 - Use bl_info for Add-On information.
 v0.2.2 - Fixed Add-On registration text.
 v0.2.1 - Fixed some new API stuff.
     Mainly we now have the register/unregister functions.

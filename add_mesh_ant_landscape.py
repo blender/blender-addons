@@ -16,7 +16,7 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-bl_addon_info = {
+bl_info = {
     "name": "ANT Landscape",
     "author": "Jimmy Hazevoet",
     "version": (0,1,0),

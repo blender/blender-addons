@@ -15,7 +15,7 @@
 #  All rights reserved.
 #  ***** GPL LICENSE BLOCK *****
 
-bl_addon_info = {
+bl_info = {
     "name": "Export DirectX Model Format (.x)",
     "author": "Chris Foster (Kira Vakaan)",
     "version": (2, 0),

@@ -16,7 +16,7 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-bl_addon_info = {
+bl_info = {
     "name": "Import GIMP Image to Scene (.xcf, .xjt)",
     "author": "Daniel Salazar (ZanQdo)",
     "version": (2, 0, 0),

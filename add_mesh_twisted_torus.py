@@ -20,7 +20,7 @@
 #
 # ***** END GPL LICENCE BLOCK *****
 
-bl_addon_info = {
+bl_info = {
     "name": "Twisted Torus",
     "author": "Paulo_Gomes",
     "version": (0,11),

@@ -21,7 +21,7 @@
 #
 # ***** END GPL LICENCE BLOCK *****
 
-bl_addon_info = {
+bl_info = {
     "name": "Relax",
     "author": "Fabian Fricke",
     "version": (1,1),

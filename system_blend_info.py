@@ -20,7 +20,7 @@
 #
 # ***** END GPL LICENCE BLOCK *****
 
-bl_addon_info = {
+bl_info = {
     "name": "Scene Information",
     "author": "uselessdreamer",
     "version": (0,3),

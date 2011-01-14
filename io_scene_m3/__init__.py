@@ -20,7 +20,7 @@ MAJOR_VERSION = 0
 MINOR_VERSION = 2
 BLENDER_VERSION = (2, 54, 0)
 __version__ = "%d.%d.0" % (MAJOR_VERSION, MINOR_VERSION)
-bl_addon_info = {
+bl_info = {
     'name': 'Import: M3 (.m3)',
     'author': 'Cory Perry',
     'version': (0, 2, 0),

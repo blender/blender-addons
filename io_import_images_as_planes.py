@@ -16,7 +16,7 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-bl_addon_info = {
+bl_info = {
     "name": "Import Images as Planes",
     "author": "Florian Meyer (tstscr)",
     "version": (1, 0),

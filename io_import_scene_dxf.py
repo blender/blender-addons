@@ -16,7 +16,7 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-bl_addon_info = {
+bl_info = {
     'name': 'Import Autocad DXF (.dxf)',
     'author': 'Thomas Larsson',
     'version': (0, 1, 3),
@@ -73,7 +73,7 @@ ver 0.1.1 - 2010.09.07 by migius
 ver 0.1 - 2010.06.10 by Thomas Larsson
 """
 
-__version__ = '.'.join([str(s) for s in bl_addon_info['version']])
+__version__ = '.'.join([str(s) for s in bl_info['version']])
 
 import os
 import codecs

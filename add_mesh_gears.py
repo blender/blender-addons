@@ -19,7 +19,7 @@
 #
 # ***** END GPL LICENCE BLOCK *****
 
-bl_addon_info = {
+bl_info = {
     "name": "Gears",
     "author": "Michel J. Anders (varkenvarken)",
     "version": (2,4,1),

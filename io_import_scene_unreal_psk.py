@@ -16,7 +16,7 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-bl_addon_info = {
+bl_info = {
     "name": "Import Unreal Skeleton Mesh(.psk)",
     "author": "Darknet",
     "version": (2, 0),

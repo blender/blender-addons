@@ -16,7 +16,7 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-bl_addon_info = {
+bl_info = {
     "name": "Add Chain",
     "author": "Brian Hinton (Nichod)",
     "version": (0,1),

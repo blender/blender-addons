@@ -16,7 +16,7 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-bl_addon_info = {
+bl_info = {
     'name': 'Save As Runtime',
     'author': 'Mitchell Stokes (Moguri)',
     'version': (0, 3, 0),

@@ -22,7 +22,7 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-bl_addon_info = {
+bl_info = {
     "name": "Material Utils",
     "author": "michaelw",
     "version": (1,3),

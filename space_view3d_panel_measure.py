@@ -16,7 +16,7 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-bl_addon_info = {
+bl_info = {
     "name": "Measure Panel",
     "author": "Buerbaum Martin (Pontiac)",
     "version": (0, 7, 12),
@@ -79,8 +79,8 @@ v0.7.8 - Various Py API changes by Campbell ...
     bl_default_closed -> bl_options = {'DEFAULT_CLOSED'}
     x.verts -> x.vertices
     @classmethod    def poll(cls, context)
-    No "location" in bl_addon_info->name
-    bl_addon_info->api
+    No "location" in bl_info->name
+    bl_info->api
 v0.7.7 - One more change to the callback registration code.
     Now it should finally work as intended.
 v0.7.6 - API changes (r885, r886) - register & unregister function
@@ -103,7 +103,7 @@ v0.7.2 - Merged changes from trunk (scripts_addons r847):
     * obj.matrix -> obj.matrix_world
     * vert.selected -> vert.select
     * face.selected -> face.select
-    * bl_addon_info: warning, wiki_url, tracker_url
+    * bl_info: warning, wiki_url, tracker_url
     * removed __bpydoc__
     * Use fontid=0 for blf functions. 0 is the default font.
 v0.7.1 - Merged changes by Campbell:
@@ -116,7 +116,7 @@ v0.7 - Initial support for drawing lines.
     The distance value (in BUs) is also drawn in the 3D view now.
     Also fixed some wrong calculations of global/local distances.
     Now it's really "what you see is what is calculated".
-    Use bl_addon_info for Add-On information.
+    Use bl_info for Add-On information.
     Use "3D View" in category & name
     Renamed reenter_editmode to view3d.reenter_editmode.
     Renamed panel_measure.py into space_view3d_panel_measure.py

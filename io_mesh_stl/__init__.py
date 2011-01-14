@@ -16,7 +16,7 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-bl_addon_info = {
+bl_info = {
     "name": "STL format",
     "author": "Guillaume Bouchard (Guillaum)",
     "version": (1, ),

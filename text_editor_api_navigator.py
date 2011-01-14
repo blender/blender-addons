@@ -19,7 +19,7 @@
 #
 # ***** END GPL LICENCE BLOCK *****
 
-bl_addon_info = {
+bl_info = {
     "name": "API Navigator",
     "author": "Dany Lebel (Axon_D)",
     "version": (1, 0),
