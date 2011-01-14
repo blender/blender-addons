@@ -480,13 +480,13 @@ class add_corrective_pose_shape_fast(bpy.types.Operator):
 def vgroups_draw(self, context):
     layout = self.layout
 
+    layout.row().operator("object.object_duplicate_flatten_modifiers", text='Create duplicate for editing' )
     layout.row().operator("object.add_corrective_pose_shape_fast", text='Add as corrective pose-shape (fast, armatures only)', icon='COPY_ID') # icon is not ideal
     layout.row().operator("object.add_corrective_pose_shape", text='Add as corrective pose-shape (slow, all modifiers)', icon='COPY_ID') # icon is not ideal
 
 def modifiers_draw(self, context):
     layout = self.layout
 
-    layout.operator("object.object_duplicate_flatten_modifiers" )
 
 
 def register():
