@@ -65,6 +65,7 @@ class ListDict(dict):
 BINARY_HEADER = 80
 BINARY_STRIDE = 12 * 4 + 2
 
+
 def _is_ascii_file(data):
     '''
     This function returns True if the data represents an ASCII file.
@@ -76,6 +77,7 @@ def _is_ascii_file(data):
     size = struct.unpack_from('<I', data, BINARY_HEADER)[0]
 
     return not data.size() == BINARY_HEADER + 4 + BINARY_STRIDE * size
+
 
 def _binary_read(data):
     # an stl binary file is

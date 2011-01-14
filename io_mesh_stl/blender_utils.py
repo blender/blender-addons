@@ -38,16 +38,20 @@ def faces_from_mesh(ob, apply_modifier=False, triangulate=True):
     except SystemError:
         return ()
 
-    def iter_face_index():
-        '''
-        From a list of faces, return the face triangulated if needed.
-        '''
-        for face in mesh.faces:
-            if triangulate and len(face.vertices) == 4:
-                yield face.vertices[:3]
-                yield face.vertices[2:] + [face.vertices[0]]
-            else:
-                yield list(face.vertices)
+    if triangulate:
+        # From a list of faces, return the face triangulated if needed.
+        def iter_face_index():
+            for face in mesh.faces:
+                vertices = face.vertices[:]
+                if len(vertices) == 4:
+                    yield vertices[0], vertices[1], vertices[2]
+                    yield vertices[2], vertices[3], vertices[0]
+                else:
+                    yield vertices
+    else:
+        def iter_face_index():
+            for face in mesh.faces:
+                yield face.vertices[:]
 
-    return ([tuple(mesh.vertices[index].co * ob.matrix_world)
+    return ([(mesh.vertices[index].co * ob.matrix_world)[:]
              for index in indexes] for indexes in iter_face_index())
