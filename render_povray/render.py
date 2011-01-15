@@ -1229,11 +1229,12 @@ def write_pov(filename, scene=None, info_callback=None):
                     tabWrite('}\n')
                     #sky_sphere alpha (transmit) is not translating into image alpha the same way as 'background'
 
-            if world.light_settings.use_indirect_light:
-                scene.pov_radio_enable=1 
+            #if world.light_settings.use_indirect_light:
+            #    scene.pov_radio_enable=1 
                 
-            #Maybe change the above to scene.pov_radio_enable = world.light_settings.use_indirect_light ?
-
+            #Maybe change the above to a funtion copyInternalRenderer settings when user pushes a button, then:
+            #scene.pov_radio_enable = world.light_settings.use_indirect_light 
+            #and other such translations but maybe this would not be allowed either?
 
         ###############################################################
 
