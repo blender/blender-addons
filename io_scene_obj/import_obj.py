@@ -752,8 +752,8 @@ def create_mesh(new_objects, has_ngons, CREATE_FGONS, CREATE_EDGES, verts_loc, v
     # content of the vertex_groups. If the user selects to NOT have vertex groups saved then
     # the following test will never run
     for group_name, group_indicies in vertex_groups.items():
-        group= ob.vertex_groups.new(group_name)
-        ob.vertex_groups.assign(group_indicies, group, 1.0, 'REPLACE')
+        group = ob.vertex_groups.new(group_name)
+        group.add(group_indicies, 1.0, 'REPLACE')
 
 
 def create_nurbs(context_nurbs, vert_loc, new_objects):
