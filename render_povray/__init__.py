@@ -16,10 +16,10 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-bl_info = {
+bl_addon_info = {
     "name": "PovRay 3.7",
     "author": "Campbell Barton, Silvio Falcinelli, Maurice Raybaud, Constantin Rahn",
-    "version": (0, 0, 4),
+    "version": (0, 0, 6),
     "blender": (2, 5, 6),
     "api": 31667,
     "location": "Info Header (engine dropdown)",
@@ -83,10 +83,14 @@ def register():
     
     Scene.pov_comments_enable = BoolProperty(
             name="Enable Comments",
-            description="Add comments to pov and ini files",
+            description="Add comments to pov file",
             default=True)
 
     # Real pov options
+    Scene.pov_command_line_switches = StringProperty(name="Command Line Switches",
+            description="Command line switches consist of a + (plus) or - (minus) sign, followed by one or more alphabetic characters and possibly a numeric value.",
+            default="", maxlen=500)
+    
     Scene.pov_max_trace_level = IntProperty(
             name="Max Trace Level", description="Number of reflections/refractions allowed on ray path",
             min=1, max=256, default=5)
@@ -273,6 +277,7 @@ def unregister():
     del Scene.pov_media_color # MR
     del Scene.pov_baking_enable # MR
     del Scene.pov_max_trace_level # MR
+    del Scene.pov_command_line_switches #CR
     del Scene.pov_indentation_character # CR
     del Scene.pov_indentation_spaces #CR
     del Scene.pov_comments_enable #CR

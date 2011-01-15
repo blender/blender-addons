@@ -275,6 +275,8 @@ class RENDER_PT_povray_max_trace_level(RenderButtonsPanel, bpy.types.Panel):
         split = layout.split()
 
         col = split.column()
+        col.label(text="Command line switches:")
+        col.prop(scene, "pov_command_line_switches", text="" )
         col.prop(scene, "pov_max_trace_level", text="Ray Depth")
 
 class RENDER_PT_povray_radiosity(RenderButtonsPanel, bpy.types.Panel):
@@ -372,7 +374,7 @@ class RENDER_PT_povray_baking(RenderButtonsPanel, bpy.types.Panel):
 
 
 class RENDER_PT_povray_formatting(RenderButtonsPanel, bpy.types.Panel):
-    bl_label = "Formatting files"
+    bl_label = "Formatting pov file"
     COMPAT_ENGINES = {'POVRAY_RENDER'}
 
     def draw(self, context):
