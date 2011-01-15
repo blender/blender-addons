@@ -69,6 +69,22 @@ def register():
             name="Enable Baking",
             description="Enable povrays texture baking",
             default=False)
+    Scene.pov_indentation_character = EnumProperty(
+            name="Indentation",
+            description="Select the indentation type",
+            items=(("0", "None", "No indentation"),
+               ("1", "Tabs", "Indentation with tabs"),
+               ("2", "Spaces", "Indentation with spaces")),
+            default="1")
+    Scene.pov_indentation_spaces = IntProperty(
+            name="Quantity of spaces",
+            description="The number of spaces for indentation",
+            min=1, max=10, default=3)
+    
+    Scene.pov_comments_enable = BoolProperty(
+            name="Enable Comments",
+            description="Add comments to pov and ini files",
+            default=True)
 
     # Real pov options
     Scene.pov_max_trace_level = IntProperty(
@@ -257,6 +273,9 @@ def unregister():
     del Scene.pov_media_color # MR
     del Scene.pov_baking_enable # MR
     del Scene.pov_max_trace_level # MR
+    del Scene.pov_indentation_character # CR
+    del Scene.pov_indentation_spaces #CR
+    del Scene.pov_comments_enable #CR
     del Mat.pov_irid_enable # MR
     del Mat.pov_mirror_use_IOR # MR
     del Mat.pov_mirror_metallic # MR    

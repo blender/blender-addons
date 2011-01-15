@@ -300,7 +300,7 @@ class RENDER_PT_povray_radiosity(RenderButtonsPanel, bpy.types.Panel):
         col.prop(scene, "pov_radio_count", text="Rays")
         col.prop(scene, "pov_radio_recursion_limit", text="Recursions")
         col = split.column()
-        col.prop(scene, "pov_radio_error_bound", text="Error")
+        col.prop(scene, "pov_radio_error_bound", text="Error Bound")
 
         layout.prop(scene, "pov_radio_display_advanced")
 
@@ -349,6 +349,7 @@ class RENDER_PT_povray_media(RenderButtonsPanel, bpy.types.Panel):
 
         col = split.column()
         col.prop(scene, "pov_media_samples", text="Samples")
+        col = split.column()
         col.prop(scene, "pov_media_color", text="Color")
 
 
@@ -368,6 +369,29 @@ class RENDER_PT_povray_baking(RenderButtonsPanel, bpy.types.Panel):
         rd = scene.render
 
         layout.active = scene.pov_baking_enable
+
+
+class RENDER_PT_povray_formatting(RenderButtonsPanel, bpy.types.Panel):
+    bl_label = "Formatting files"
+    COMPAT_ENGINES = {'POVRAY_RENDER'}
+
+    def draw(self, context):
+        layout = self.layout
+
+        scene = context.scene
+        rd = scene.render
+
+        split = layout.split()
+
+        col = split.column()
+        col.prop(scene, "pov_indentation_character", text="Indent")
+        col = split.column()
+        if scene.pov_indentation_character=="2": 
+            col.prop(scene, "pov_indentation_spaces", text="Spaces")
+        split = layout.split()
+        col = split.column()
+        col.prop(scene, "pov_comments_enable", text="Comments")
+
 
 class TEXTURE_PT_povray_tex_gamma(TextureButtonsPanel, bpy.types.Panel):
     bl_label = "Image Gamma"
