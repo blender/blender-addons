@@ -19,9 +19,9 @@
 bl_info = {
     'name': 'Import Autocad DXF (.dxf)',
     'author': 'Thomas Larsson',
-    'version': (0, 1, 3),
+    'version': (0, 1, 4),
     'blender': (2, 5, 6),
-    'api': 32738,
+    'api': 34300,
     'location': 'File > Import',
     'description': 'Import files in the Autocad DXF format (.dxf)',
     'warning': 'supporting only a sub-set of DXF specification',
@@ -55,6 +55,8 @@ You must activate the script in the "Add-Ons" tab (user preferences).
 Access it from File > Import menu.
 
 History:
+ver 0.1.4 - 2011.01.13 by Filiciss Muhgue
+- modified for latest API in rev.34300
 ver 0.1.3 - 2011.01.02 by migius
 - added draw curves as sequence for "Draw_as_Curve"
 - added toggle "Draw as one" as user preset in UI
@@ -1393,7 +1395,7 @@ def getOCS(az):  #--------------------------------------------------------------
         if az.z > 0.0:
             return False
         elif az.z < 0.0:
-            return Matrix(-WORLDX, WORLDY*1, -WORLDZ)
+            return Matrix((-WORLDX, WORLDY*1, -WORLDZ))
 
     cap = 0.015625 # square polar cap value (1/64.0)
     if abs(az.x) < cap and abs(az.y) < cap:
@@ -1403,7 +1405,7 @@ def getOCS(az):  #--------------------------------------------------------------
     ax = ax.normalize()
     ay = az.cross(ax)
     ay = ay.normalize()
-    return Matrix(ax, ay, az)
+    return Matrix((ax, ay, az))
 
 
 
@@ -2313,7 +2315,7 @@ def buildSplines(cu, verts, edges):
         for points in point_list:
             #spline = cu.splines.new('BEZIER')
             spline = cu.splines.new('POLY')
-            #spline.endpoint_u = True
+            #spline.use_endpoint_u = True
             #spline.order_u = 2
             #spline.resolution_u = 1
             #spline.bezier_points.add(2)
@@ -2415,7 +2417,7 @@ class IMPORT_OT_autocad_dxf(bpy.types.Operator):
     bl_space_type = "PROPERTIES"
     bl_region_type = "WINDOW"
 
-    filepath = StringProperty(name="File Path", description="Filepath used for importing the DXF file", maxlen= 1024, default= "")
+    filepath = StringProperty(name="File Path", description="Filepath used for importing the DXF file", maxlen= 1024, default= "", subtype='FILE_PATH')
 
     new_scene = BoolProperty(name="Replace scene", description="Replace scene", default=toggle&T_NewScene)
     #new_scene = BoolProperty(name="New scene", description="Create new scene", default=toggle&T_NewScene)
@@ -2471,21 +2473,21 @@ class IMPORT_OT_autocad_dxf(bpy.types.Operator):
          
     def execute(self, context):
         global toggle, theMergeLimit, theCodec, theCircleRes
-        O_Merge = T_Merge if self.properties.merge else 0
-        #O_Replace = T_Replace if self.properties.replace else 0
-        O_NewScene = T_NewScene if self.properties.new_scene else 0
-        O_Curves = T_Curves if self.properties.curves else 0
-        O_ThicON = T_ThicON if self.properties.thic_on else 0
-        O_DrawOne = T_DrawOne if self.properties.draw_one else 0
-        O_Debug = T_Debug if self.properties.debug else 0
-        O_Verbose = T_Verbose if self.properties.verbose else 0
+        O_Merge = T_Merge if self.merge else 0
+        #O_Replace = T_Replace if self.replace else 0
+        O_NewScene = T_NewScene if self.new_scene else 0
+        O_Curves = T_Curves if self.curves else 0
+        O_ThicON = T_ThicON if self.thic_on else 0
+        O_DrawOne = T_DrawOne if self.draw_one else 0
+        O_Debug = T_Debug if self.debug else 0
+        O_Verbose = T_Verbose if self.verbose else 0
 
         toggle =  O_Merge | O_DrawOne | O_NewScene | O_Curves | O_ThicON | O_Debug | O_Verbose
-        theMergeLimit = self.properties.mergeLimit*1e-4
-        theCircleRes = self.properties.circleResolution
-        theCodec = self.properties.codec
+        theMergeLimit = self.mergeLimit*1e-4
+        theCircleRes = self.circleResolution
+        theCodec = self.codec
 
-        readAndBuildDxfFile(self.properties.filepath)
+        readAndBuildDxfFile(self.filepath)
         return {'FINISHED'}
 
     def invoke(self, context, event):
