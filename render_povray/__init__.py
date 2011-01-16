@@ -16,12 +16,12 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-bl_addon_info = {
+bl_info = {
     "name": "PovRay 3.7",
     "author": "Campbell Barton, Silvio Falcinelli, Maurice Raybaud, Constantin Rahn",
     "version": (0, 0, 6),
     "blender": (2, 5, 6),
-    "api": 31667,
+    "api": 34318,
     "location": "Info Header (engine dropdown)",
     "description": "Basic povray 3.7 integration for blender",
     "warning": "both povray 3.7 and this script are beta",
