@@ -17,14 +17,14 @@
 # ##### END GPL LICENSE BLOCK #####
 
 bl_info = {
-    "name": "PovRay 3.7",
+    "name": "POV-Ray 3.7",
     "author": "Campbell Barton, Silvio Falcinelli, Maurice Raybaud, Constantin Rahn",
     "version": (0, 0, 6),
     "blender": (2, 5, 6),
     "api": 34318,
     "location": "Info Header (engine dropdown)",
-    "description": "Basic povray 3.7 integration for blender",
-    "warning": "both povray 3.7 and this script are beta",
+    "description": "Basic POV-Ray 3.7 integration for blender",
+    "warning": "both POV-Ray 3.7 and this script are beta",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"\
         "Scripts/Render/PovRay",
     "tracker_url": "https://projects.blender.org/tracker/index.php?"\
@@ -49,7 +49,7 @@ def register():
     # Not a real pov option, just to know if we should write
     Scene.pov_radio_enable = BoolProperty(
             name="Enable Radiosity",
-            description="Enable povrays radiosity calculation",
+            description="Enable POV-Rays radiosity calculation",
             default=False)
     Scene.pov_radio_display_advanced = BoolProperty(
             name="Advanced Options",
@@ -57,7 +57,7 @@ def register():
             default=False)
     Scene.pov_media_enable = BoolProperty(
         name="Enable Media",
-        description="Enable povrays atmospheric media",
+        description="Enable POV-Rays atmospheric media",
         default=False)
     Scene.pov_media_samples = IntProperty(
             name="Samples", description="Number of samples taken from camera to first object encountered along ray path for media calculation",
@@ -67,7 +67,7 @@ def register():
             min=0.00, max=1.00, soft_min=0.01, soft_max=1.00, default=0.01)
     Scene.pov_baking_enable = BoolProperty(
             name="Enable Baking",
-            description="Enable povrays texture baking",
+            description="Enable POV-Rays texture baking",
             default=False)
     Scene.pov_indentation_character = EnumProperty(
             name="Indentation",

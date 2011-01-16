@@ -374,7 +374,7 @@ class RENDER_PT_povray_baking(RenderButtonsPanel, bpy.types.Panel):
 
 
 class RENDER_PT_povray_formatting(RenderButtonsPanel, bpy.types.Panel):
-    bl_label = "Formatting pov file"
+    bl_label = "Formatting POV-Ray file"
     COMPAT_ENGINES = {'POVRAY_RENDER'}
 
     def draw(self, context):

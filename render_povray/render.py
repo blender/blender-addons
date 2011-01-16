@@ -63,8 +63,8 @@ def imgMap(ts):
     if ts.mapping=='FLAT':image_map= ' map_type 0 ' 
     if ts.mapping=='SPHERE':image_map= ' map_type 1 '# map_type 7 in megapov
     if ts.mapping=='TUBE':image_map= ' map_type 2 '
-    #if ts.mapping=='?':image_map= ' map_type 3 '# map_type 3 and 4 in development (?) for Povray, currently they just seem to default back to Flat (type 0)
-    #if ts.mapping=='?':image_map= ' map_type 4 '# map_type 3 and 4 in development (?) for Povray, currently they just seem to default back to Flat (type 0)
+    #if ts.mapping=='?':image_map= ' map_type 3 '# map_type 3 and 4 in development (?) for POV-Ray, currently they just seem to default back to Flat (type 0)
+    #if ts.mapping=='?':image_map= ' map_type 4 '# map_type 3 and 4 in development (?) for POV-Ray, currently they just seem to default back to Flat (type 0)
     if ts.texture.use_interpolation: image_map+= ' interpolate 2 '
     if ts.texture.extension == 'CLIP': image_map+=' once '
     #image_map+='}'
@@ -301,7 +301,7 @@ def write_pov(filename, scene=None, info_callback=None):
 
 
             if material:
-                #Povray 3.7 now uses two diffuse values respectively for front and back shading (the back diffuse is like blender translucency)
+                #POV-Ray 3.7 now uses two diffuse values respectively for front and back shading (the back diffuse is like blender translucency)
                 frontDiffuse=material.diffuse_intensity
                 backDiffuse=material.translucency
                 
@@ -329,11 +329,11 @@ def write_pov(filename, scene=None, info_callback=None):
                 #####################################Diffuse Shader######################################
                 # Not used for Full spec (Level=3) of the shader
                 if material.diffuse_shader == 'OREN_NAYAR' and Level != 3:
-                    tabWrite('brilliance %.3g\n' % (0.9+material.roughness))#blender roughness is what is generally called oren nayar Sigma, and brilliance in povray
+                    tabWrite('brilliance %.3g\n' % (0.9+material.roughness))#blender roughness is what is generally called oren nayar Sigma, and brilliance in POV-Ray
 
                 if material.diffuse_shader == 'TOON' and Level != 3:
                     tabWrite('brilliance %.3g\n' % (0.01+material.diffuse_toon_smooth*0.25))
-                    frontDiffuse*=0.5 #Lower diffuse and increase specular for toon effect seems to look better in povray
+                    frontDiffuse*=0.5 #Lower diffuse and increase specular for toon effect seems to look better in POV-Ray
                 
                 if material.diffuse_shader == 'MINNAERT' and Level != 3:
                     #tabWrite('aoi %.3g\n' % material.darkness)
@@ -350,7 +350,7 @@ def write_pov(filename, scene=None, info_callback=None):
                         tabWrite('phong %.3g\n' % (material.specular_intensity))
                         tabWrite('phong_size %.3g\n'% (material.specular_hardness / 2 + 0.25)) 
 
-                    if material.specular_shader == 'BLINN':#Povray 'specular' keyword corresponds to a Blinn model, without the ior.
+                    if material.specular_shader == 'BLINN':#POV-Ray 'specular' keyword corresponds to a Blinn model, without the ior.
                         tabWrite('specular %.3g\n' % (material.specular_intensity * (material.specular_ior/4))) #Use blender Blinn's IOR just as some factor for spec intensity
                         tabWrite('roughness %.3g\n' % roughness) 
                         #Could use brilliance 2(or varying around 2 depending on ior or factor) too.
@@ -377,10 +377,10 @@ def write_pov(filename, scene=None, info_callback=None):
 
 
                 tabWrite('ambient %.3g\n' % material.ambient)
-                #tabWrite('ambient rgb <%.3g, %.3g, %.3g>\n' % tuple([c*material.ambient for c in world.ambient_color])) # povray blends the global value
-                tabWrite('emission %.3g\n' % material.emit) #New in povray 3.7
+                #tabWrite('ambient rgb <%.3g, %.3g, %.3g>\n' % tuple([c*material.ambient for c in world.ambient_color])) # POV-Ray blends the global value
+                tabWrite('emission %.3g\n' % material.emit) #New in POV-Ray 3.7
                 
-                #tabWrite('roughness %.3g\n' % roughness) #povray just ignores roughness if there's no specular keyword
+                #tabWrite('roughness %.3g\n' % roughness) #POV-Ray just ignores roughness if there's no specular keyword
                 
                 if material.pov_conserve_energy:
                     tabWrite('conserve_energy\n')#added for more realistic shading. Needs some checking to see if it really works. --Maurice.
@@ -1283,7 +1283,7 @@ def write_pov(filename, scene=None, info_callback=None):
         for material in bpy.data.materials:
             if material.subsurface_scattering.use and once:
                 tabWrite('mm_per_unit %.6f\n' % (material.subsurface_scattering.scale * (-100) + 15))#In pov, the scale has reversed influence compared to blender. these number should correct that
-                once=0 #In povray, the scale factor for all subsurface shaders needs to be the same
+                once=0 #In POV-Ray, the scale factor for all subsurface shaders needs to be the same
 
         if world: 
             tabWrite('ambient_light rgb<%.3g, %.3g, %.3g>\n' % tuple(world.ambient_color))
@@ -1301,7 +1301,7 @@ def write_pov(filename, scene=None, info_callback=None):
         
     sel = scene.objects
     comments = scene.pov_comments_enable
-    if comments: file.write('//---------------------------------------------\n//--Exported with Povray exporter for Blender--\n//---------------------------------------------\n')
+    if comments: file.write('//---------------------------------------------\n//--Exported with POV-Ray exporter for Blender--\n//---------------------------------------------\n')
     if comments: file.write('\n//--Global settings and background--\n\n')
     
     exportGlobalSettings(scene)
@@ -1375,12 +1375,12 @@ def write_pov_ini(filename_ini, filename_pov, filename_image):
 
     file.write('Display=1\n')#Activated (turn this back off when better live exchange is done between the two programs (see next comment)
     file.write('Pause_When_Done=0\n')
-    file.write('Output_File_Type=N\n') # PNG, with POV 3.7, can show background color with alpha. In the long run using the Povray interactive preview like bishop 3D could solve the preview for all formats. 
+    file.write('Output_File_Type=N\n') # PNG, with POV-Ray 3.7, can show background color with alpha. In the long run using the POV-Ray interactive preview like bishop 3D could solve the preview for all formats. 
     #file.write('Output_File_Type=T\n') # TGA, best progressive loading
     file.write('Output_Alpha=1\n')
 
     if render.use_antialiasing:
-        aa_mapping = {'5': 2, '8': 3, '11': 4, '16': 5} # method 2 (recursive) with higher max subdiv forced because no mipmapping in povray needs higher sampling.
+        aa_mapping = {'5': 2, '8': 3, '11': 4, '16': 5} # method 2 (recursive) with higher max subdiv forced because no mipmapping in POV-Ray needs higher sampling.
         file.write('Antialias=on\n')
         file.write('Sampling_Method=2\n')
         file.write('Antialias_Depth=%d\n' % aa_mapping[render.antialiasing_samples])
@@ -1397,7 +1397,7 @@ def write_pov_ini(filename_ini, filename_pov, filename_image):
 
 class PovrayRender(bpy.types.RenderEngine):
     bl_idname = 'POVRAY_RENDER'
-    bl_label = 'Povray 3.7'
+    bl_label = 'POV-Ray 3.7'
     DELAY = 0.05
     
     def _export(self, scene):
@@ -1405,18 +1405,18 @@ class PovrayRender(bpy.types.RenderEngine):
         
         # mktemp is Deprecated since version 2.3, replaced with NamedTemporaryFile() #CR
         self._temp_file_in = tempfile.NamedTemporaryFile(suffix='.pov', delete=False)
-        self._temp_file_out = tempfile.NamedTemporaryFile(suffix='.png', delete=False)#PNG with POV 3.7, can show the background color with alpha. In the long run using the Povray interactive preview like bishop 3D could solve the preview for all formats.
+        self._temp_file_out = tempfile.NamedTemporaryFile(suffix='.png', delete=False)#PNG with POV 3.7, can show the background color with alpha. In the long run using the POV-Ray interactive preview like bishop 3D could solve the preview for all formats.
         #self._temp_file_out = tempfile.NamedTemporaryFile(suffix='.tga', delete=False)
         self._temp_file_ini = tempfile.NamedTemporaryFile(suffix='.ini', delete=False)
         '''
         self._temp_file_in = '/test.pov'
-        self._temp_file_out = '/test.png'#PNG with POV 3.7, can show the background color with alpha. In the long run using the Povray interactive preview like bishop 3D could solve the preview for all formats.
+        self._temp_file_out = '/test.png'#PNG with POV-Ray 3.7, can show the background color with alpha. In the long run using the POV-Ray interactive preview like bishop 3D could solve the preview for all formats.
         #self._temp_file_out = '/test.tga'
         self._temp_file_ini = '/test.ini'
         '''
 
         def info_callback(txt):
-            self.update_stats('', 'POVRAY 3.7: ' + txt)
+            self.update_stats('', 'POV-Ray 3.7: ' + txt)
 
         write_pov(self._temp_file_in, scene, info_callback)
 
@@ -1454,12 +1454,12 @@ class PovrayRender(bpy.types.RenderEngine):
         # print('Extra Args: ' + str(extra_args))
         
         if 1:
-            # TODO, when povray isnt found this gives a cryptic error, would be nice to be able to detect if it exists
+            # TODO, when POV-Ray isn't found this gives a cryptic error, would be nice to be able to detect if it exists
             try:
                 self._process = subprocess.Popen([pov_binary, self._temp_file_ini.name] + extra_args) # stdout=subprocess.PIPE, stderr=subprocess.PIPE
             except OSError:
                 # TODO, report api
-                print("POVRAY 3.7: could not execute '%s', possibly povray isn't installed" % pov_binary)
+                print("POV-Ray 3.7: could not execute '%s', possibly POV-Ray isn't installed" % pov_binary)
                 import traceback
                 traceback.print_exc()
                 print ('***-DONE-***')
@@ -1489,12 +1489,12 @@ class PovrayRender(bpy.types.RenderEngine):
 
     def render(self, scene):
 
-        self.update_stats('', 'POVRAY 3.7: Exporting data from Blender')
+        self.update_stats('', 'POV-Ray 3.7: Exporting data from Blender')
         self._export(scene)
-        self.update_stats('', 'POVRAY 3.7: Parsing File')
+        self.update_stats('', 'POV-Ray 3.7: Parsing File')
 
         if not self._render(scene):
-            self.update_stats('', 'POVRAY 3.7: Not found')
+            self.update_stats('', 'POV-Ray 3.7: Not found')
             return
 
         r = scene.render
@@ -1525,14 +1525,14 @@ class PovrayRender(bpy.types.RenderEngine):
             poll_result = self._process.poll()
             if poll_result is not None:
                 print('***POV PROCESS FAILED : %s ***' % poll_result)
-                self.update_stats('', 'POVRAY 3.7: Failed')
+                self.update_stats('', 'POV-Ray 3.7: Failed')
                 break
 
             time.sleep(self.DELAY)
 
         if os.path.exists(self._temp_file_out.name):
             # print('***POV FILE OK***')
-            self.update_stats('', 'POVRAY 3.7: Rendering')
+            self.update_stats('', 'POV-Ray 3.7: Rendering')
 
             prev_size = -1
 
@@ -1547,11 +1547,11 @@ class PovrayRender(bpy.types.RenderEngine):
                     pass
                 self.end_result(result)
 
-            # Update while povray renders
+            # Update while POV-Ray renders
             while True:
                 # print('***POV RENDER LOOP***')
 
-                # test if povray exists
+                # test if POV-Ray exists
                 if self._process.poll() is not None:
                     print('***POV PROCESS FINISHED***')
                     update_image()
