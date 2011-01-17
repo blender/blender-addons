@@ -254,7 +254,7 @@ def load_ply(filepath):
         if uvindices:
             mesh_uvs.append([(vertices[index][uvindices[0]], 1.0 - vertices[index][uvindices[1]]) for index in indices])
         if colindices:
-            mesh_colors.append([(vertices[index][colindices[0]], vertices[index][colindices[1]], vertices[index][colindices[2]]) for index in indices])
+            mesh_colors.append([(vertices[index][colindices[0]] / 255.0, vertices[index][colindices[1]] / 255.0, vertices[index][colindices[2]] / 255.0) for index in indices])
 
     if uvindices or colindices:
         # If we have Cols or UVs then we need to check the face order.
@@ -309,11 +309,10 @@ def load_ply(filepath):
                         uv[:] = ply_uv[j]
 
             if colindices:
-                faces = obj['face']
                 for i, f in enumerate(vcol_lay.data):
                     # XXX, colors dont come in right, needs further investigation.
                     ply_col = mesh_colors[i]
-                    if len(faces[i]) == 4:
+                    if len(ply_col) == 4:
                         f_col = f.color1, f.color2, f.color3, f.color4
                     else:
                         f_col = f.color1, f.color2, f.color3
