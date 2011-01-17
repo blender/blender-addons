@@ -37,6 +37,7 @@ def find_index(objekti):
 def gettex(mat_list, objekti, scene,export):
 
     coat3D = bpy.context.scene.coat3D
+    coa = bpy.context.scene.objects.active.coat3D
     
     if(bpy.context.scene.render.engine == 'VRAY_RENDER' or bpy.context.scene.render.engine == 'VRAY_RENDER_PREVIEW'):
         vray = True
@@ -72,10 +73,8 @@ def gettex(mat_list, objekti, scene,export):
                     if(tex_slot.texture.type == 'IMAGE'):
                                                 tex_slot.texture.image.reload()
     else:
-        activeobj = bpy.context.active_object.name
-        pathname = coat3D.objectdir + activeobj + ".obj"
-        nimi = objname(pathname)
-        osoite = os.path.dirname(pathname) + os.sep
+        nimi = objname(coa.objectdir)
+        osoite = os.path.dirname(coa.objectdir) + os.sep
     just_nimi = justname(nimi)
     just_nimi += '_'
     just_nimi_len = len(just_nimi)
@@ -220,6 +219,7 @@ def gettex(mat_list, objekti, scene,export):
             else:
                 bpy.data.textures[name_tex].use_normal_map = True
                 objekti.active_material.texture_slots[index].normal_map_space = 'TANGENT'
+
             
 
         elif(useold != ''):

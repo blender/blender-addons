@@ -20,16 +20,17 @@ bl_info = {
     "name": "3D-Coat Applink",
     "author": "Kalle-Samuli Riihikoski (haikalle)",
     "version": (1, 61),
-    "blender": (2, 5, 4),
+    "blender": (2, 5, 6),
     "api": 31667,
     "location": "Scene -> 3D-Coat Applink",
     "description": "Transfer data between 3D-Coat/Blender",
     "warning": "",
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"\
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/" \
         "Scripts/Import-Export/3dcoat_applink",
     "tracker_url": "https://projects.blender.org/tracker/?"\
         "func=detail&aid=24446",
-    "category": "Import-Export"}
+    "category": "Import/Export"}
+
 
 
 if "bpy" in locals():
@@ -43,15 +44,13 @@ else:
 import bpy
 from bpy.props import *
 
-
+    
 def register():
 
     bpy.coat3D = dict()
     bpy.coat3D['active_coat'] = ''
     bpy.coat3D['status'] = 0
-    bpy.coat3D['was'] = ''
-    bpy.coat3D['exchange'] = ''
-    bpy.coat3D['export_off'] = 0
+    bpy.coat3D['kuva'] = 1
     
     class coat3D(bpy.types.IDPropertyGroup):
         pass
@@ -72,6 +71,12 @@ def register():
         default= ""
     )
 
+    coat3D.objectdir = StringProperty(
+        name="ObjectPath",
+        subtype="FILE_PATH",
+        default= ""
+    )
+
 
     class coat3D(bpy.types.IDPropertyGroup):
         pass
@@ -80,12 +85,6 @@ def register():
         name= "Applink Variables",
         type=  coat3D,
         description= "Applink variables"
-    )
-
-    coat3D.objectdir = StringProperty(
-        name="ObjectPath",
-        subtype="FILE_PATH",
-        default= ""
     )
 
     coat3D.exchangedir = StringProperty(
