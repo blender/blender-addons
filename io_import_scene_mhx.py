@@ -15,16 +15,16 @@
 
 Abstract
 MHX (MakeHuman eXchange format) importer for Blender 2.5x.
-Version 1.0.3
+Version 1.0.4
 
 """
 
 bl_info = {
     'name': 'Import: MakeHuman (.mhx)',
     'author': 'Thomas Larsson',
-    'version': (1, 0, 3),
-    'blender': (2, 5, 5),
-    'api': 33590,
+    'version': (1, 0, 4),
+    'blender': (2, 5, 6),
+    'api': 34326,
     'location': "File > Import",
     'description': 'Import files in the MakeHuman eXchange format (.mhx)',
     'warning': '',
@@ -42,8 +42,8 @@ Access from the File > Import menu.
 
 MAJOR_VERSION = 1
 MINOR_VERSION = 0
-SUB_VERSION = 3
-BLENDER_VERSION = (2, 55, 1)
+SUB_VERSION = 4
+BLENDER_VERSION = (2, 56, 0)
 
 #
 #
@@ -1387,7 +1387,7 @@ def parseVertexGroup(ob, me, args, tokens):
         loadedData['VertexGroup'][grpName] = group
         for (key, val, sub) in tokens:
             if key == 'wv':
-                ob.vertex_groups.assign( [int(val[0])], group, float(val[1]), 'REPLACE' )
+                group.add( [int(val[0])], float(val[1]), 'REPLACE' )
     return
 
 
