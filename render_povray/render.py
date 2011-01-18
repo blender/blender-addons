@@ -606,7 +606,7 @@ def write_pov(filename, scene=None, info_callback=None):
 
                 if elem.type == 'BALL':
 
-                    tabWrite('sphere { <%.6g, %.6g, %.6g>, %.4g, %.4g ' % (loc.x, loc.y, loc.z, elem.radius, stiffness))
+                    tabWrite('sphere { <%.6g, %.6g, %.6g>, %.4g, %.4g }\n' % (loc.x, loc.y, loc.z, elem.radius, stiffness))
 
                     # After this wecould do something simple like...
                     # 	'pigment {Blue} }'
@@ -614,24 +614,26 @@ def write_pov(filename, scene=None, info_callback=None):
 
                 elif elem.type == 'ELLIPSOID':
                     # location is modified by scale
-                    tabWrite('sphere { <%.6g, %.6g, %.6g>, %.4g, %.4g ' % (loc.x / elem.size_x, loc.y / elem.size_y, loc.z / elem.size_z, elem.radius, stiffness))
-                    tabWrite('scale <%.6g, %.6g, %.6g> ' % (elem.size_x, elem.size_y, elem.size_z))
+                    tabWrite('sphere { <%.6g, %.6g, %.6g>, %.4g, %.4g }\n' % (loc.x / elem.size_x, loc.y / elem.size_y, loc.z / elem.size_z, elem.radius, stiffness))
+                    tabWrite('scale <%.6g, %.6g, %.6g> \n' % (elem.size_x, elem.size_y, elem.size_z))
 
-                if material:
-                    diffuse_color = material.diffuse_color
+            if material:
+                diffuse_color = material.diffuse_color
 
-                    if material.use_transparency and material.transparency_method == 'RAYTRACE':
-                        trans = 1.0 - material.raytrace_transparency.filter
-                    else:
-                        trans = 0.0
-
-                    material_finish = materialNames[material.name]
-
-                    tabWrite('pigment {rgbft<%.3g, %.3g, %.3g, %.3g, %.3g>} finish {%s} }\n' % \
-                        (diffuse_color[0], diffuse_color[1], diffuse_color[2], 1.0 - material.alpha, trans, safety(material_finish, Level=2)))
-
+                if material.use_transparency and material.transparency_method == 'RAYTRACE':
+                    trans = 1.0 - material.raytrace_transparency.filter
                 else:
-                    tabWrite('pigment {rgb<1 1 1>} finish {%s} }\n' % DEF_MAT_NAME)		# Write the finish last.
+                    trans = 0.0
+
+                material_finish = materialNames[material.name]
+
+                tabWrite('pigment {rgbft<%.3g, %.3g, %.3g, %.3g, %.3g>} \n' %(diffuse_color[0], diffuse_color[1], diffuse_color[2], 1.0 - material.alpha, trans, ))
+                tabWrite('finish {%s}\n' % safety(material_finish, Level=2))
+                    
+
+            else:
+                tabWrite('pigment {rgb<1 1 1>} \n')
+                tabWrite('finish {%s}\n' % (safety(DEF_MAT_NAME, Level=1)))		# Write the finish last.
 
             writeObjectMaterial(material)
 
@@ -643,7 +645,7 @@ def write_pov(filename, scene=None, info_callback=None):
             
             tabWrite('}\n') #End of Metaball block
 
-            tabWrite('}\n')
+            # tabWrite('}\n')
 
     objectNames = {}
     DEF_OBJ_NAME = 'Default'
