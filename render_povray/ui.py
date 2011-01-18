@@ -355,22 +355,22 @@ class RENDER_PT_povray_media(RenderButtonsPanel, bpy.types.Panel):
         col.prop(scene, "pov_media_color", text="Color")
 
 
-class RENDER_PT_povray_baking(RenderButtonsPanel, bpy.types.Panel):
-    bl_label = "Baking"
-    COMPAT_ENGINES = {'POVRAY_RENDER'}
-
-    def draw_header(self, context):
-        scene = context.scene
-
-        self.layout.prop(scene, "pov_baking_enable", text="")
-
-    def draw(self, context):
-        layout = self.layout
-
-        scene = context.scene
-        rd = scene.render
-
-        layout.active = scene.pov_baking_enable
+##class RENDER_PT_povray_baking(RenderButtonsPanel, bpy.types.Panel):
+##    bl_label = "Baking"
+##    COMPAT_ENGINES = {'POVRAY_RENDER'}
+##
+##    def draw_header(self, context):
+##        scene = context.scene
+##
+##        self.layout.prop(scene, "pov_baking_enable", text="")
+##
+##    def draw(self, context):
+##        layout = self.layout
+##
+##        scene = context.scene
+##        rd = scene.render
+##
+##        layout.active = scene.pov_baking_enable
 
 
 class RENDER_PT_povray_formatting(RenderButtonsPanel, bpy.types.Panel):
