@@ -667,10 +667,11 @@ def write_pov(filename, scene=None, info_callback=None):
             me = ob.data
             importance=ob.pov_importance_value            
             me_materials = me.materials
+            me_faces = me.faces[:]
 
             me = ob.create_mesh(scene, True, 'RENDER')
 
-            if not me or not me.faces:
+            if not me or not me_faces:
                 continue
 
             if info_callback:
@@ -691,8 +692,8 @@ def write_pov(filename, scene=None, info_callback=None):
             except AttributeError:
                 vcol_layer = None
 
-            faces_verts = [f.vertices[:] for f in me.faces]
-            faces_normals = [tuple(f.normal) for f in me.faces]
+            faces_verts = [f.vertices[:] for f in me_faces]
+            faces_normals = [tuple(f.normal) for f in me_faces]
             verts_normals = [tuple(v.normal) for v in me.vertices]
 
             # quads incur an extra face
@@ -714,7 +715,7 @@ def write_pov(filename, scene=None, info_callback=None):
 
             # Build unique Normal list
             uniqueNormals = {}
-            for fi, f in enumerate(me.faces):
+            for fi, f in enumerate(me_faces):
                 fv = faces_verts[fi]
                 # [-1] is a dummy index, use a list so we can modify in place
                 if f.use_smooth: # Use vertex normals
@@ -775,7 +776,7 @@ def write_pov(filename, scene=None, info_callback=None):
 
             if me.vertex_colors:
 
-                for fi, f in enumerate(me.faces):
+                for fi, f in enumerate(me_faces):
                     material_index = f.material_index
                     material = me_materials[material_index]
 
@@ -1057,8 +1058,8 @@ def write_pov(filename, scene=None, info_callback=None):
 
             # Face indices
             tabWrite('face_indices {\n')
-            tabWrite('%d' % (len(me.faces) + quadCount)) # faces count
-            for fi, f in enumerate(me.faces):
+            tabWrite('%d' % (len(me_faces) + quadCount)) # faces count
+            for fi, f in enumerate(me_faces):
                 fv = faces_verts[fi]
                 material_index = f.material_index
                 if len(fv) == 4:
@@ -1106,7 +1107,7 @@ def write_pov(filename, scene=None, info_callback=None):
 
             # normal_indices indices
             tabWrite('normal_indices {\n')
-            tabWrite('%d' % (len(me.faces) + quadCount)) # faces count
+            tabWrite('%d' % (len(me_faces) + quadCount)) # faces count
             for fi, fv in enumerate(faces_verts):
 
                 if len(fv) == 4:
@@ -1115,7 +1116,7 @@ def write_pov(filename, scene=None, info_callback=None):
                     indices = ((0, 1, 2),)
 
                 for i1, i2, i3 in indices:
-                    if me.faces[fi].use_smooth:
+                    if me_faces[fi].use_smooth:
                         file.write(',\n')
                         tabWrite('<%d,%d,%d>' %\
                         (uniqueNormals[verts_normals[fv[i1]]][0],\
@@ -1131,7 +1132,7 @@ def write_pov(filename, scene=None, info_callback=None):
 
             if uv_layer:
                 tabWrite('uv_indices {\n')
-                tabWrite('%d' % (len(me.faces) + quadCount)) # faces count
+                tabWrite('%d' % (len(me_faces) + quadCount)) # faces count
                 for fi, fv in enumerate(faces_verts):
 
                     if len(fv) == 4:
