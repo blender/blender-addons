@@ -693,7 +693,7 @@ def parseAnimDataFCurve(adata, rna, args, tokens):
         elif key == 'FModifier':
             parseFModifier(fcu, val, sub)
         elif key == 'kp':
-            pt = fcu.keyframe_points.add(n, 0)
+            pt = fcu.keyframe_points.insert(n, 0)
             pt.interpolation = 'LINEAR'
             pt = parseKeyFramePoint(pt, val, sub)
             n += 1

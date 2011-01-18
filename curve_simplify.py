@@ -351,7 +351,7 @@ def fcurves_simplify(context, obj, options, fcurves):
                 fcurve_sel[fcurve_i].keyframe_points.remove(fcurve_sel[fcurve_i].keyframe_points[i])
             # put newPoints into fcurve
             for v in newPoints:
-                fcurve_sel[fcurve_i].keyframe_points.add(frame=v[0],value=v[1])
+                fcurve_sel[fcurve_i].keyframe_points.insert(frame=v[0],value=v[1])
             #fcurve.points.foreach_set('co', newPoints)
     return
 
