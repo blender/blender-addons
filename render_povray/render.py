@@ -661,7 +661,7 @@ def write_pov(filename, scene=None, info_callback=None):
                 name_orig = DEF_OBJ_NAME
             name = objectNames[name_orig] = uniqueName(bpy.path.clean_name(name_orig), objectNames)
 #############################################
-            if ob.type in ('LAMP', 'CAMERA', 'EMPTY', 'META', 'ARMATURE', 'LATTICE'):
+            if ob.type in ('LAMP', 'CAMERA', 'EMPTY', 'META', 'ARMATURE', 'LATTICE', 'CURVE'):
                 continue
 
             me = ob.data
