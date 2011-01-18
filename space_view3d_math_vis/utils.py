@@ -43,8 +43,12 @@ def console_math_data():
         var_type = type(var)
 
         if var_type is Matrix:
+            if var.col_size != 4 or var.row_size != 4:
+               var = var.copy().resize4x4() 
             data_matrix[key] = var
         elif var_type is Vector:
+            if len(var) < 3:
+                var = var.copy().resize3D()
             data_vector[key] = var
         elif var_type is Quaternion:
             data_quat[key] = var
