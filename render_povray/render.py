@@ -699,7 +699,8 @@ def write_pov(filename, scene=None, info_callback=None):
             quadCount = sum(1 for f in faces_verts if len(f) == 4)
 
             # Use named declaration to allow reference e.g. for baking. MR
-            tabWrite('#declare %s=\n' % name) 
+            file.write('\n')
+            tabWrite('#declare %s =\n' % name) 
             tabWrite('mesh2 {\n')
             tabWrite('vertex_vectors {\n')
             tabWrite('%s' % (len(me.vertices))) # vert count
@@ -1348,7 +1349,7 @@ def write_pov(filename, scene=None, info_callback=None):
     exportMeta([l for l in sel if l.type == 'META'])
     
     if comments: file.write('\n')  # <- How can this be written only if the scene contains META?
-    if comments: file.write('//--Mesh objecs--\n\n')
+    if comments: file.write('//--Mesh objecs--\n')
     
     exportMeshs(scene, sel)
     #What follow used to happen here:
