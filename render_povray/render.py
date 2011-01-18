@@ -391,7 +391,7 @@ def write_pov(filename, scene=None, info_callback=None):
                         raytrace_mirror = material.raytrace_mirror
                         if raytrace_mirror.reflect_factor:
                             tabWrite('reflection {\n')
-                            tabWrite('rgb <%.3g, %.3g, %.3g>' % tuple(material.mirror_color))
+                            tabWrite('rgb <%.3g, %.3g, %.3g>' % material.mirror_color[:])
                             if material.pov_mirror_metallic:
                                 tabWrite('metallic %.3g' % (raytrace_mirror.reflect_factor))
                             if material.pov_mirror_use_IOR: #WORKING ?
@@ -693,8 +693,8 @@ def write_pov(filename, scene=None, info_callback=None):
                 vcol_layer = None
 
             faces_verts = [f.vertices[:] for f in me_faces]
-            faces_normals = [tuple(f.normal) for f in me_faces]
-            verts_normals = [tuple(v.normal) for v in me.vertices]
+            faces_normals = [f.normal[:] for f in me_faces]
+            verts_normals = [v.normal[:] for v in me.vertices]
 
             # quads incur an extra face
             quadCount = sum(1 for f in faces_verts if len(f) == 4)
@@ -708,7 +708,7 @@ def write_pov(filename, scene=None, info_callback=None):
             
             for v in me.vertices:
                 file.write(',\n')
-                tabWrite('<%.6f, %.6f, %.6f>' % tuple(v.co)) # vert count
+                tabWrite('<%.6f, %.6f, %.6f>' % v.co[:]) # vert count
             file.write('\n')
             tabWrite('}\n')
 
@@ -795,7 +795,7 @@ def write_pov(filename, scene=None, info_callback=None):
 
                     else:
                         if material:
-                            diffuse_color = tuple(material.diffuse_color)
+                            diffuse_color = material.diffuse_color[:]
                             key = diffuse_color[0], diffuse_color[1], diffuse_color[2], material_index
                             vertCols[key] = [-1]
 
@@ -805,7 +805,7 @@ def write_pov(filename, scene=None, info_callback=None):
                 for i, material in enumerate(me_materials):
 
                     if material:
-                        diffuse_color = tuple(material.diffuse_color)
+                        diffuse_color = material.diffuse_color[:]
                         key = diffuse_color[0], diffuse_color[1], diffuse_color[2], i # i == f.mat
                         vertCols[key] = [-1]
 
@@ -1187,13 +1187,13 @@ def write_pov(filename, scene=None, info_callback=None):
             if not world.use_sky_blend:
                 #Non fully transparent background could premultiply alpha and avoid anti-aliasing display issue: 
                 if render.alpha_mode == 'PREMUL' or render.alpha_mode == 'PREMUL' :
-                    tabWrite('background {rgbt<%.3g, %.3g, %.3g, 0.75>}\n' % (tuple(world.horizon_color)))
+                    tabWrite('background {rgbt<%.3g, %.3g, %.3g, 0.75>}\n' % (world.horizon_color[:]))
                 #Currently using no alpha with Sky option:
                 elif render.alpha_mode == 'SKY':
-                    tabWrite('background {rgbt<%.3g, %.3g, %.3g, 0>}\n' % (tuple(world.horizon_color)))
+                    tabWrite('background {rgbt<%.3g, %.3g, %.3g, 0>}\n' % (world.horizon_color[:]))
                 #StraightAlpha:
                 else:
-                    tabWrite('background {rgbt<%.3g, %.3g, %.3g, 1>}\n' % (tuple(world.horizon_color)))
+                    tabWrite('background {rgbt<%.3g, %.3g, %.3g, 1>}\n' % (world.horizon_color[:]))
 
                     
             worldTexCount=0
@@ -1234,14 +1234,14 @@ def write_pov(filename, scene=None, info_callback=None):
                     tabWrite('gradient y\n')#maybe Should follow the advice of POV doc about replacing gradient for skysphere..5.5
                     tabWrite('color_map {\n')
                     if render.alpha_mode == 'STRAIGHT':
-                        tabWrite('[0.0 rgbt<%.3g, %.3g, %.3g, 1>]\n' % (tuple(world.horizon_color)))
-                        tabWrite('[1.0 rgbt<%.3g, %.3g, %.3g, 1>]\n' % (tuple(world.zenith_color)))
+                        tabWrite('[0.0 rgbt<%.3g, %.3g, %.3g, 1>]\n' % (world.horizon_color[:]))
+                        tabWrite('[1.0 rgbt<%.3g, %.3g, %.3g, 1>]\n' % (world.zenith_color[:]))
                     elif render.alpha_mode == 'PREMUL':
-                        tabWrite('[0.0 rgbt<%.3g, %.3g, %.3g, 0.99>]\n' % (tuple(world.horizon_color)))
-                        tabWrite('[1.0 rgbt<%.3g, %.3g, %.3g, 0.99>]\n' % (tuple(world.zenith_color))) #aa premult not solved with transmit 1
+                        tabWrite('[0.0 rgbt<%.3g, %.3g, %.3g, 0.99>]\n' % (world.horizon_color[:]))
+                        tabWrite('[1.0 rgbt<%.3g, %.3g, %.3g, 0.99>]\n' % (world.zenith_color[:])) #aa premult not solved with transmit 1
                     else:
-                        tabWrite('[0.0 rgbt<%.3g, %.3g, %.3g, 0>]\n' % (tuple(world.horizon_color)))
-                        tabWrite('[1.0 rgbt<%.3g, %.3g, %.3g, 0>]\n' % (tuple(world.zenith_color)))
+                        tabWrite('[0.0 rgbt<%.3g, %.3g, %.3g, 0>]\n' % (world.horizon_color[:]))
+                        tabWrite('[1.0 rgbt<%.3g, %.3g, %.3g, 0>]\n' % (world.zenith_color[:]))
                     tabWrite('}\n')
                     tabWrite('}\n')
                     tabWrite('}\n')
@@ -1261,7 +1261,7 @@ def write_pov(filename, scene=None, info_callback=None):
         if mist.use_mist:
             tabWrite('fog {\n')
             tabWrite('distance %.6f\n' % mist.depth)
-            tabWrite('color rgbt<%.3g, %.3g, %.3g, %.3g>\n' % (tuple(world.horizon_color) + (1 - mist.intensity,)))
+            tabWrite('color rgbt<%.3g, %.3g, %.3g, %.3g>\n' % (world.horizon_color[:] + (1 - mist.intensity,)))
             #tabWrite('fog_offset %.6f\n' % mist.start)
             #tabWrite('fog_alt 5\n')
             #tabWrite('turbulence 0.2\n')
@@ -1304,7 +1304,7 @@ def write_pov(filename, scene=None, info_callback=None):
                 once=0 #In POV-Ray, the scale factor for all subsurface shaders needs to be the same
 
         if world: 
-            tabWrite('ambient_light rgb<%.3g, %.3g, %.3g>\n' % tuple(world.ambient_color))
+            tabWrite('ambient_light rgb<%.3g, %.3g, %.3g>\n' % world.ambient_color[:])
 
         if material.pov_photons_refraction or material.pov_photons_reflection:
             tabWrite('photons {\n')
