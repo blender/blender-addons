@@ -1153,7 +1153,7 @@ def write_pov(filename, scene=None, info_callback=None):
                          uniqueUVs[uvs[i2]][0],\
                          uniqueUVs[uvs[i3]][0]))
                 file.write('\n')
-                file.write('}\n')
+                tabWrite('}\n')
 
             if me.materials:
                 try:
