@@ -1115,7 +1115,7 @@ def write_pov(filename, scene=None, info_callback=None):
                     indices = ((0, 1, 2),)
 
                 for i1, i2, i3 in indices:
-                    if f.use_smooth:
+                    if me.faces[fi].use_smooth:
                         file.write(',\n')
                         tabWrite('<%d,%d,%d>' %\
                         (uniqueNormals[verts_normals[fv[i1]]][0],\
