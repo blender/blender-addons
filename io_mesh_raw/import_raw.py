@@ -28,12 +28,12 @@ imported as a quad. This may be in conflict with some other
 applications, which use a raw format, but this is how it was
 implemented back in blender 2.42.
 
-Usage:<br>
-    Execute this script from the "File->Import" menu and choose a Raw file to
+Usage:
+Execute this script from the "File->Import" menu and choose a Raw file to
 open.
 
-Notes:<br>
-    Generates the standard verts and faces lists, but without duplicate
+Notes:
+Generates the standard verts and faces lists, but without duplicate
 verts. Only *exact* duplicates are removed, there is no way to specify a
 tolerance.
 """

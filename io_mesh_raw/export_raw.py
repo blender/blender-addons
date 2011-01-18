@@ -27,8 +27,8 @@ listed on each line. In addition, also quads can be exported as a line
 of 12 values (this was the default before blender 2.5). Now default
 settings will triangulate the mesh.
 
-Usage:<br>
-    Execute this script from the "File->Export" menu. You can select
+Usage:
+Execute this script from the "File->Export" menu. You can select
 whether modifiers should be applied and if the mesh is triangulated.
 
 """
