@@ -753,7 +753,7 @@ def write_pov(filename, scene=None, info_callback=None):
                         uvs = uv.uv1, uv.uv2, uv.uv3
 
                     for uv in uvs:
-                        uniqueUVs[tuple(uv)] = [-1]
+                        uniqueUVs[uv[:]] = [-1]
 
                 tabWrite('uv_vectors {\n')
                 #print unique_uvs
