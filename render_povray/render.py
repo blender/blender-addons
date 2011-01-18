@@ -1142,9 +1142,9 @@ def write_pov(filename, scene=None, info_callback=None):
 
                     uv = uv_layer[fi]
                     if len(faces_verts[fi]) == 4:
-                        uvs = tuple(uv.uv1), tuple(uv.uv2), tuple(uv.uv3), tuple(uv.uv4)
+                        uvs = uv.uv1[:], uv.uv2[:], uv.uv3[:], uv.uv4[:]
                     else:
-                        uvs = tuple(uv.uv1), tuple(uv.uv2), tuple(uv.uv3)
+                        uvs = uv.uv1[:], uv.uv2[:], uv.uv3[:]
 
                     for i1, i2, i3 in indices:
                         file.write(',\n')
