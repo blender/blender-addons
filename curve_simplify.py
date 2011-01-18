@@ -44,7 +44,7 @@ import math
 ##############################
 #### simplipoly algorithm ####
 ##############################
-# get SplineVertIndicies to keep
+# get SplineVertIndices to keep
 def simplypoly(splineVerts, options):
     # main vars
     newVerts = [] # list of vertindices to keep
@@ -79,7 +79,7 @@ def simplypoly(splineVerts, options):
         distances.append(dist)
     distances.append(0.0) # last vert is always kept
 
-    # generate list of vertindicies to keep
+    # generate list of vertindices to keep
     # tested against averaged curvatures and distances of neighbour verts
     newVerts.append(0) # first vert is always kept
     for i, curv in enumerate(curvatures):
@@ -172,7 +172,7 @@ def iterate(points, newVerts, error):
         return False
     return new
 
-#### get SplineVertIndicies to keep
+#### get SplineVertIndices to keep
 def simplify_RDP(splineVerts, options):
     #main vars
     error = options[4]
@@ -264,7 +264,7 @@ def main(context, obj, options):
             if mode == 'curvature':
                 newVerts = simplypoly(splineVerts, options)
 
-            # convert indicies into vectors3D
+            # convert indices into vectors3D
             newPoints = vertsToPoints(newVerts, splineVerts, splineType)
 
             # create new spline            
@@ -324,7 +324,7 @@ def fcurves_simplify(context, obj, options, fcurves):
     scene = context.scene
     fcurves_obj = obj.animation_data.action.fcurves
 
-    #get indicies of selected fcurves
+    #get indices of selected fcurves
     fcurve_sel = selectedfcurves(obj)
     
     # go through fcurves
@@ -339,7 +339,7 @@ def fcurves_simplify(context, obj, options, fcurves):
             if mode == 'curvature':
                 newVerts = simplypoly(fcurve, options)
 
-            # convert indicies into vectors3D
+            # convert indices into vectors3D
             newPoints = []
         
             #this is different from the main() function for normal curves, different api...

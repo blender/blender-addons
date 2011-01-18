@@ -38,7 +38,7 @@ class bvh_node_class(object):
     'rest_tail_world',  # worldspace rest location for the tail of this node
     'rest_tail_local',  # worldspace rest location for the tail of this node
     'channels',  # list of 6 ints, -1 for an unused channel, otherwise an index for the BVH motion data lines, lock triple then rot triple
-    'rot_order',  # a triple of indicies as to the order rotation is applied. [0,1,2] is x/y/z - [None, None, None] if no rotation.
+    'rot_order',  # a triple of indices as to the order rotation is applied. [0,1,2] is x/y/z - [None, None, None] if no rotation.
     'rot_order_str',  # same as above but a string 'XYZ' format.
     'anim_data',  # a list one tuple's one for each frame. (locx, locy, locz, rotx, roty, rotz), euler rotation ALWAYS stored xyz order, even when native used.
     'has_loc',  # Conveinience function, bool, same as (channels[0]!=-1 or channels[1]!=-1 channels[2]!=-1)

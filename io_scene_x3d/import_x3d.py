@@ -1695,7 +1695,7 @@ def importMesh_IndexedFaceSet(geom, bpyima, ancestry):
         bpymesh.faces.add(len(faces))
         bpymesh.faces.foreach_set("vertices_raw", [a for f in faces for a in (f + [0] if len(f) == 3 else f)])  # XXX25 speed
     except KeyError:
-        print("one or more vert indicies out of range. corrupt file?")
+        print("one or more vert indices out of range. corrupt file?")
         #for f in faces:
         #   bpymesh.faces.extend(faces, smooth=True)
 
@@ -1716,7 +1716,7 @@ def importMesh_IndexedFaceSet(geom, bpyima, ancestry):
 
         for i, f in enumerate(uvlay.data):
             f.image = bpyima
-            fuv = faces_uv[i]  # uv indicies
+            fuv = faces_uv[i]  # uv indices
             for j, uv in enumerate(f.uv):
                 # print(fuv, j, len(ifs_texpoints))
                 try:

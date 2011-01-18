@@ -1054,16 +1054,16 @@ def write_pov(filename, scene=None, info_callback=None):
             file.write('\n')
             tabWrite('}\n')
 
-            # Face indicies
+            # Face indices
             tabWrite('face_indices {\n')
             tabWrite('%d' % (len(me.faces) + quadCount)) # faces count
             for fi, f in enumerate(me.faces):
                 fv = faces_verts[fi]
                 material_index = f.material_index
                 if len(fv) == 4:
-                    indicies = (0, 1, 2), (0, 2, 3)
+                    indices = (0, 1, 2), (0, 2, 3)
                 else:
-                    indicies = ((0, 1, 2),)
+                    indices = ((0, 1, 2),)
 
                 if vcol_layer:
                     col = vcol_layer[fi]
@@ -1075,12 +1075,12 @@ def write_pov(filename, scene=None, info_callback=None):
 
 
                 if not me_materials or me_materials[material_index] is None: # No materials
-                    for i1, i2, i3 in indicies:
+                    for i1, i2, i3 in indices:
                         file.write(',\n')
                         tabWrite('<%d,%d,%d>' % (fv[i1], fv[i2], fv[i3])) # vert count
                 else:
                     material = me_materials[material_index]
-                    for i1, i2, i3 in indicies:
+                    for i1, i2, i3 in indices:
                         if me.vertex_colors and material.use_vertex_color_paint:
                             # Colour per vertex - vertex colour
 
@@ -1103,17 +1103,17 @@ def write_pov(filename, scene=None, info_callback=None):
             file.write('\n')
             tabWrite('}\n')
 
-            # normal_indices indicies
+            # normal_indices indices
             tabWrite('normal_indices {\n')
             tabWrite('%d' % (len(me.faces) + quadCount)) # faces count
             for fi, fv in enumerate(faces_verts):
 
                 if len(fv) == 4:
-                    indicies = (0, 1, 2), (0, 2, 3)
+                    indices = (0, 1, 2), (0, 2, 3)
                 else:
-                    indicies = ((0, 1, 2),)
+                    indices = ((0, 1, 2),)
 
-                for i1, i2, i3 in indicies:
+                for i1, i2, i3 in indices:
                     if f.use_smooth:
                         file.write(',\n')
                         tabWrite('<%d,%d,%d>' %\
@@ -1134,9 +1134,9 @@ def write_pov(filename, scene=None, info_callback=None):
                 for fi, fv in enumerate(faces_verts):
 
                     if len(fv) == 4:
-                        indicies = (0, 1, 2), (0, 2, 3)
+                        indices = (0, 1, 2), (0, 2, 3)
                     else:
-                        indicies = ((0, 1, 2),)
+                        indices = ((0, 1, 2),)
 
                     uv = uv_layer[fi]
                     if len(faces_verts[fi]) == 4:
@@ -1144,7 +1144,7 @@ def write_pov(filename, scene=None, info_callback=None):
                     else:
                         uvs = tuple(uv.uv1), tuple(uv.uv2), tuple(uv.uv3)
 
-                    for i1, i2, i3 in indicies:
+                    for i1, i2, i3 in indices:
                         file.write(',\n')
                         tabWrite('<%d,%d,%d>' %\
                         (uniqueUVs[uvs[i1]][0],\

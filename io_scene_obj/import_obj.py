@@ -46,7 +46,7 @@ def BPyMesh_ngon(from_data, indices, PREF_FIX_LOOPS= True):
     Designed to be used for importers that need indices for an fgon to create from existing verts.
 
     from_data: either a mesh, or a list/tuple of vectors.
-    indices: a list of indicies to use this list is the ordered closed polyline to fill, and can be a subset of the data given.
+    indices: a list of indices to use this list is the ordered closed polyline to fill, and can be a subset of the data given.
     PREF_FIX_LOOPS: If this is enabled polylines that use loops to make multiple polylines are delt with correctly.
     '''
 
@@ -195,7 +195,7 @@ def BPyMesh_ngon(from_data, indices, PREF_FIX_LOOPS= True):
         fill= tesselate_polygon([ [v[0] for v in loop] for loop in loop_list ])
         #draw_loops(loop_list)
         #raise 'done loop'
-        # map to original indicies
+        # map to original indices
         fill= [[vert_map[i] for i in reversed(f)] for f in fill]
 
 
@@ -474,17 +474,17 @@ def split_mesh(verts_loc, faces, unique_materials, filepath, SPLIT_OB_OR_GROUP):
 
             oldkey= key
 
-        face_vert_loc_indicies= face[0]
+        face_vert_loc_indices= face[0]
 
         # Remap verts to new vert list and add where needed
-        for enum, i in enumerate(face_vert_loc_indicies):
+        for enum, i in enumerate(face_vert_loc_indices):
             if vert_remap[i] == -1:
                 new_index= len(verts_split)
                 vert_remap[i]= new_index # set the new remapped index so we only add once and can reference next time.
-                face_vert_loc_indicies[enum] = new_index # remap to the local index
+                face_vert_loc_indices[enum] = new_index # remap to the local index
                 verts_split.append( verts_loc[i] ) # add the vert to the local verts
             else:
-                face_vert_loc_indicies[enum] = vert_remap[i] # remap to the local index
+                face_vert_loc_indices[enum] = vert_remap[i] # remap to the local index
 
             matname= face[2]
             if matname and matname not in unique_materials_split:
@@ -516,25 +516,25 @@ def create_mesh(new_objects, has_ngons, CREATE_FGONS, CREATE_EDGES, verts_loc, v
 
     context_object= None
 
-    # reverse loop through face indicies
+    # reverse loop through face indices
     for f_idx in range(len(faces)-1, -1, -1):
 
-        face_vert_loc_indicies,\
-        face_vert_tex_indicies,\
+        face_vert_loc_indices,\
+        face_vert_tex_indices,\
         context_material,\
         context_smooth_group,\
         context_object= faces[f_idx]
 
-        len_face_vert_loc_indicies = len(face_vert_loc_indicies)
+        len_face_vert_loc_indices = len(face_vert_loc_indices)
 
-        if len_face_vert_loc_indicies==1:
+        if len_face_vert_loc_indices==1:
             faces.pop(f_idx)# cant add single vert faces
 
-        elif not face_vert_tex_indicies or len_face_vert_loc_indicies == 2: # faces that have no texture coords are lines
+        elif not face_vert_tex_indices or len_face_vert_loc_indices == 2: # faces that have no texture coords are lines
             if CREATE_EDGES:
                 # generators are better in python 2.4+ but can't be used in 2.3
-                # edges.extend( (face_vert_loc_indicies[i], face_vert_loc_indicies[i+1]) for i in xrange(len_face_vert_loc_indicies-1) )
-                edges.extend( [(face_vert_loc_indicies[i], face_vert_loc_indicies[i+1]) for i in range(len_face_vert_loc_indicies-1)] )
+                # edges.extend( (face_vert_loc_indices[i], face_vert_loc_indices[i+1]) for i in xrange(len_face_vert_loc_indices-1) )
+                edges.extend( [(face_vert_loc_indices[i], face_vert_loc_indices[i+1]) for i in range(len_face_vert_loc_indices-1)] )
 
             faces.pop(f_idx)
         else:
@@ -546,9 +546,9 @@ def create_mesh(new_objects, has_ngons, CREATE_FGONS, CREATE_EDGES, verts_loc, v
                     edge_dict= smooth_group_users[context_smooth_group]
                     context_smooth_group_old= context_smooth_group
 
-                for i in range(len_face_vert_loc_indicies):
-                    i1= face_vert_loc_indicies[i]
-                    i2= face_vert_loc_indicies[i-1]
+                for i in range(len_face_vert_loc_indices):
+                    i1= face_vert_loc_indices[i]
+                    i2= face_vert_loc_indices[i-1]
                     if i1>i2: i1,i2= i2,i1
 
                     try:
@@ -557,13 +557,13 @@ def create_mesh(new_objects, has_ngons, CREATE_FGONS, CREATE_EDGES, verts_loc, v
                         edge_dict[i1,i2]=  1
 
             # FGons into triangles
-            if has_ngons and len_face_vert_loc_indicies > 4:
+            if has_ngons and len_face_vert_loc_indices > 4:
 
-                ngon_face_indices= BPyMesh_ngon(verts_loc, face_vert_loc_indicies)
+                ngon_face_indices= BPyMesh_ngon(verts_loc, face_vert_loc_indices)
                 faces.extend(
                     [(
-                    [face_vert_loc_indicies[ngon[0]], face_vert_loc_indicies[ngon[1]], face_vert_loc_indicies[ngon[2]] ],
-                    [face_vert_tex_indicies[ngon[0]], face_vert_tex_indicies[ngon[1]], face_vert_tex_indicies[ngon[2]] ],
+                    [face_vert_loc_indices[ngon[0]], face_vert_loc_indices[ngon[1]], face_vert_loc_indices[ngon[2]] ],
+                    [face_vert_tex_indices[ngon[0]], face_vert_tex_indices[ngon[1]], face_vert_tex_indices[ngon[2]] ],
                     context_material,
                     context_smooth_group,
                     context_object)
@@ -575,8 +575,8 @@ def create_mesh(new_objects, has_ngons, CREATE_FGONS, CREATE_EDGES, verts_loc, v
                     edge_users= {}
                     for ngon in ngon_face_indices:
                         for i in (0,1,2):
-                            i1= face_vert_loc_indicies[ngon[i  ]]
-                            i2= face_vert_loc_indicies[ngon[i-1]]
+                            i1= face_vert_loc_indices[ngon[i  ]]
+                            i2= face_vert_loc_indices[ngon[i-1]]
                             if i1>i2: i1,i2= i2,i1
 
                             try:
@@ -642,8 +642,8 @@ def create_mesh(new_objects, has_ngons, CREATE_FGONS, CREATE_EDGES, verts_loc, v
 
                 blender_face = me.faces[i]
 
-                face_vert_loc_indicies,\
-                face_vert_tex_indicies,\
+                face_vert_loc_indices,\
+                face_vert_tex_indices,\
                 context_material,\
                 context_smooth_group,\
                 context_object= face
@@ -675,24 +675,24 @@ def create_mesh(new_objects, has_ngons, CREATE_FGONS, CREATE_EDGES, verts_loc, v
                                 blender_tface.blend_type = 'ALPHA'
 
                     # BUG - Evil eekadoodle problem where faces that have vert index 0 location at 3 or 4 are shuffled.
-                    if len(face_vert_loc_indicies)==4:
-                        if face_vert_loc_indicies[2]==0 or face_vert_loc_indicies[3]==0:
-                            face_vert_tex_indicies= face_vert_tex_indicies[2], face_vert_tex_indicies[3], face_vert_tex_indicies[0], face_vert_tex_indicies[1]
+                    if len(face_vert_loc_indices)==4:
+                        if face_vert_loc_indices[2]==0 or face_vert_loc_indices[3]==0:
+                            face_vert_tex_indices= face_vert_tex_indices[2], face_vert_tex_indices[3], face_vert_tex_indices[0], face_vert_tex_indices[1]
                     else: # length of 3
-                        if face_vert_loc_indicies[2]==0:
-                            face_vert_tex_indicies= face_vert_tex_indicies[1], face_vert_tex_indicies[2], face_vert_tex_indicies[0]
+                        if face_vert_loc_indices[2]==0:
+                            face_vert_tex_indices= face_vert_tex_indices[1], face_vert_tex_indices[2], face_vert_tex_indices[0]
                     # END EEEKADOODLE FIX
 
                     # assign material, uv's and image
-                    blender_tface.uv1= verts_tex[face_vert_tex_indicies[0]]
-                    blender_tface.uv2= verts_tex[face_vert_tex_indicies[1]]
-                    blender_tface.uv3= verts_tex[face_vert_tex_indicies[2]]
+                    blender_tface.uv1= verts_tex[face_vert_tex_indices[0]]
+                    blender_tface.uv2= verts_tex[face_vert_tex_indices[1]]
+                    blender_tface.uv3= verts_tex[face_vert_tex_indices[2]]
 
-                    if len(face_vert_loc_indicies)==4:
-                        blender_tface.uv4= verts_tex[face_vert_tex_indicies[3]]
+                    if len(face_vert_loc_indices)==4:
+                        blender_tface.uv4= verts_tex[face_vert_tex_indices[3]]
 
 #                     for ii, uv in enumerate(blender_face.uv):
-#                         uv.x, uv.y=  verts_tex[face_vert_tex_indicies[ii]]
+#                         uv.x, uv.y=  verts_tex[face_vert_tex_indices[ii]]
     del me_faces
 #     del ALPHA
 
@@ -751,9 +751,9 @@ def create_mesh(new_objects, has_ngons, CREATE_FGONS, CREATE_EDGES, verts_loc, v
     # Create the vertex groups. No need to have the flag passed here since we test for the
     # content of the vertex_groups. If the user selects to NOT have vertex groups saved then
     # the following test will never run
-    for group_name, group_indicies in vertex_groups.items():
+    for group_name, group_indices in vertex_groups.items():
         group = ob.vertex_groups.new(group_name)
-        group.add(group_indicies, 1.0, 'REPLACE')
+        group.add(group_indices, 1.0, 'REPLACE')
 
 
 def create_nurbs(context_nurbs, vert_loc, new_objects):
@@ -942,18 +942,18 @@ def load(operator, context, filepath,
         elif line.startswith('f') or context_multi_line == 'f':
 
             if context_multi_line:
-                # use face_vert_loc_indicies and face_vert_tex_indicies previously defined and used the obj_face
+                # use face_vert_loc_indices and face_vert_tex_indices previously defined and used the obj_face
                 line_split= line.split()
 
             else:
                 line_split= line[2:].split()
-                face_vert_loc_indicies= []
-                face_vert_tex_indicies= []
+                face_vert_loc_indices= []
+                face_vert_tex_indices= []
 
                 # Instance a face
                 faces.append((\
-                face_vert_loc_indicies,\
-                face_vert_tex_indicies,\
+                face_vert_loc_indices,\
+                face_vert_tex_indices,\
                 context_material,\
                 context_smooth_group,\
                 context_object\
@@ -973,45 +973,45 @@ def load(operator, context, filepath,
                 if    POLYGROUPS and context_vgroup:
                     vertex_groups[context_vgroup].append(vert_loc_index)
 
-                # Make relative negative vert indicies absolute
+                # Make relative negative vert indices absolute
                 if vert_loc_index < 0:
                     vert_loc_index= len(verts_loc) + vert_loc_index + 1
 
-                face_vert_loc_indicies.append(vert_loc_index)
+                face_vert_loc_indices.append(vert_loc_index)
 
                 if len(obj_vert)>1 and obj_vert[1]:
                     # formatting for faces with normals and textures us
                     # loc_index/tex_index/nor_index
 
                     vert_tex_index= int(obj_vert[1])-1
-                    # Make relative negative vert indicies absolute
+                    # Make relative negative vert indices absolute
                     if vert_tex_index < 0:
                         vert_tex_index= len(verts_tex) + vert_tex_index + 1
 
-                    face_vert_tex_indicies.append(vert_tex_index)
+                    face_vert_tex_indices.append(vert_tex_index)
                 else:
                     # dummy
-                    face_vert_tex_indicies.append(0)
+                    face_vert_tex_indices.append(0)
 
-            if len(face_vert_loc_indicies) > 4:
+            if len(face_vert_loc_indices) > 4:
                 has_ngons= True
 
         elif CREATE_EDGES and (line.startswith('l ') or context_multi_line == 'l'):
             # very similar to the face load function above with some parts removed
 
             if context_multi_line:
-                # use face_vert_loc_indicies and face_vert_tex_indicies previously defined and used the obj_face
+                # use face_vert_loc_indices and face_vert_tex_indices previously defined and used the obj_face
                 line_split= line.split()
 
             else:
                 line_split= line[2:].split()
-                face_vert_loc_indicies= []
-                face_vert_tex_indicies= []
+                face_vert_loc_indices= []
+                face_vert_tex_indices= []
 
                 # Instance a face
                 faces.append((\
-                face_vert_loc_indicies,\
-                face_vert_tex_indicies,\
+                face_vert_loc_indices,\
+                face_vert_tex_indices,\
                 context_material,\
                 context_smooth_group,\
                 context_object\
@@ -1027,11 +1027,11 @@ def load(operator, context, filepath,
             for v in line_split:
                 vert_loc_index= int(v)-1
 
-                # Make relative negative vert indicies absolute
+                # Make relative negative vert indices absolute
                 if vert_loc_index < 0:
                     vert_loc_index= len(verts_loc) + vert_loc_index + 1
 
-                face_vert_loc_indicies.append(vert_loc_index)
+                face_vert_loc_indices.append(vert_loc_index)
 
         elif line.startswith('s'):
             if CREATE_SMOOTH_GROUPS:

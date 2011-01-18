@@ -18,18 +18,6 @@
 
 # <pep8 compliant>
 
-bl_info = {
-    "name": "Autodesk FBX format",
-    "author": "Campbell Barton",
-    "location": "File > Import-Export",
-    "description": "Import-Export FBX meshes, UV's, vertex colors, materials, textures, cameras and lamps",
-    "warning": "",
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"\
-        "Scripts/Import-Export/Autodesk_FBX",
-    "tracker_url": "",
-    "support": 'OFFICIAL',
-    "category": "Import-Export"}
-
 # To support reload properly, try to access a package var, if it's there, reload everything
 if "bpy" in locals():
     import imp

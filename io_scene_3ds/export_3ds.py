@@ -485,7 +485,7 @@ class tri_wrapper(object):
         self.mat= mat
         self.image= image
         self.faceuvs= faceuvs
-        self.offset= [0, 0, 0] # offset indicies
+        self.offset= [0, 0, 0] # offset indices
 
 
 def extract_triangles(mesh):
