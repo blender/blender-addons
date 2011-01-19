@@ -1420,7 +1420,7 @@ def write_pov_ini(filename_ini, filename_pov, filename_image):
 class PovrayRender(bpy.types.RenderEngine):
     bl_idname = 'POVRAY_RENDER'
     bl_label = 'POV-Ray 3.7'
-    DELAY = 0.1
+    DELAY = 0.2
     
     def _export(self, scene):
         import tempfile
@@ -1503,9 +1503,9 @@ class PovrayRender(bpy.types.RenderEngine):
                 os.unlink(f.name)
                 #os.remove(f.name)
             except OSError:  #was that the proper error type?
-                #print('Couldn't remove/unlink TEMP file %s' % f.name)
+                #print('Couldn\'t remove/unlink TEMP file %s' % f.name)
                 pass
-            print('')
+            #print('')
 
         self.update_stats('', '')
 
