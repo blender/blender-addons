@@ -1344,7 +1344,8 @@ def write_pov(filename, scene=None, info_callback=None):
     #exportMaterials()
     writeMaterial(None) # default material
     for material in bpy.data.materials:
-        writeMaterial(material)
+        if material.users > 0: 
+            writeMaterial(material)
 
     if comments: file.write('\n')
     if comments: file.write('//--Meta objects--\n\n')  # <- How can this be written only if the scene contains META?
