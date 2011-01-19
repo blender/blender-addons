@@ -60,9 +60,9 @@ def imageFormat(imgF):
 
 def imgMap(ts):
     image_map=''
-    if ts.mapping=='FLAT':image_map= ' map_type 0 ' 
-    if ts.mapping=='SPHERE':image_map= ' map_type 1 '# map_type 7 in megapov
-    if ts.mapping=='TUBE':image_map= ' map_type 2 '
+    if ts.mapping=='FLAT':image_map= 'map_type 0 ' 
+    if ts.mapping=='SPHERE':image_map= 'map_type 1 '# map_type 7 in megapov
+    if ts.mapping=='TUBE':image_map= 'map_type 2 '
     #if ts.mapping=='?':image_map= ' map_type 3 '# map_type 3 and 4 in development (?) for POV-Ray, currently they just seem to default back to Flat (type 0)
     #if ts.mapping=='?':image_map= ' map_type 4 '# map_type 3 and 4 in development (?) for POV-Ray, currently they just seem to default back to Flat (type 0)
     if ts.texture.use_interpolation: image_map+= ' interpolate 2 '
@@ -182,7 +182,7 @@ def write_pov(filename, scene=None, info_callback=None):
     
     def tabWrite(str_o):
         global TabLevel
-        brackets = str_o.count('{') - str_o.count('}')
+        brackets = str_o.count('{') - str_o.count('}') + str_o.count('[') - str_o.count(']') 
         if brackets < 0:
             TabLevel = TabLevel + brackets 
         if TabLevel < 0:
@@ -921,80 +921,95 @@ def write_pov(filename, scene=None, info_callback=None):
               
                 
                 #if material.diffuse_shader == 'FRESNEL': pigment pattern aoi pigment and texture map above, the rest below as one of its entry
-                ##########################################################################################################################            
-                if texturesSpec !='':
-                    tabWrite('\n')
-                    tabWrite('pigment_pattern {\n')
-                    # POV-Ray "scale" is not a number of repetitions factor, but its inverse, a standard scale factor.
-                    # Offset seems needed relatively to scale so probably center of the scale is not the same in blender and POV
-                    mappingSpec = (' translate <%.4g,%.4g,%.4g> scale <%.4g,%.4g,%.4g>\n' % (-t_spec.offset.x ,t_spec.offset.y ,t_spec.offset.z, 1 / t_spec.scale.x, 1 / t_spec.scale.y, 1 / t_spec.scale.z)) 
-                    tabWrite('uv_mapping image_map{%s \"%s\" %s}%s}\n' % (imageFormat(texturesSpec) ,texturesSpec ,imgMap(t_spec),mappingSpec))
-                    tabWrite('texture_map {\n')
-                    tabWrite('[0 \n')
+                ##########################################################################################################################  
 
-                if texturesDif == '':
-                    if texturesAlpha !='':
-                        tabWrite('\n')
+                #special_texture_found = False
+                #for t in material.texture_slots:
+                #    if t and t.texture.type == 'IMAGE' and t.use and t.texture.image and (t.use_map_specular or t.use_map_raymir or t.use_map_normal or t.use_map_alpha): 
+                #        special_texture_found = True
+                #        continue # Some texture found
+                
+                #if special_texture_found:
+
+                if texturesSpec !='' or texturesAlpha !='' or texturesNorm !='':
+                    if texturesSpec !='':
+                        # tabWrite('\n')
+                        tabWrite('pigment_pattern {\n')
                         # POV-Ray "scale" is not a number of repetitions factor, but its inverse, a standard scale factor.
                         # Offset seems needed relatively to scale so probably center of the scale is not the same in blender and POV
-                        mappingAlpha = (' translate <%.4g,%.4g,%.4g> scale <%.4g,%.4g,%.4g>\n' % (-t_alpha.offset.x,t_alpha.offset.y,t_alpha.offset.z, 1 / t_alpha.scale.x, 1 / t_alpha.scale.y, 1 / t_alpha.scale.z))  
-                        tabWrite('pigment {pigment_pattern {uv_mapping image_map{%s \"%s\" %s}%s}\n' % (imageFormat(texturesAlpha) ,texturesAlpha ,imgMap(t_alpha),mappingAlpha))
-                        tabWrite('pigment_map {\n')
-                        tabWrite('[0 color rgbft<0,0,0,1,1>]\n')
-                        tabWrite('[1 color rgbft<%.3g, %.3g, %.3g, %.3g, %.3g>]\n'  % (col[0], col[1], col[2], 1.0 - material.alpha, trans) )
+                        mappingSpec = ('translate <%.4g,%.4g,%.4g> scale <%.4g,%.4g,%.4g>\n' % (-t_spec.offset.x ,t_spec.offset.y ,t_spec.offset.z, 1 / t_spec.scale.x, 1 / t_spec.scale.y, 1 / t_spec.scale.z)) 
+                        tabWrite('uv_mapping image_map{%s \"%s\" %s}\n' % (imageFormat(texturesSpec) ,texturesSpec ,imgMap(t_spec)))
+                        tabWrite('%s\n' % mappingSpec)
                         tabWrite('}\n')
-                        tabWrite('}\n')
+                        tabWrite('texture_map {\n')
+                        tabWrite('[0 \n')
 
-                    else:
+                    if texturesDif == '':
+                        if texturesAlpha !='':
+                            tabWrite('\n')
+                            # POV-Ray "scale" is not a number of repetitions factor, but its inverse, a standard scale factor.
+                            # Offset seems needed relatively to scale so probably center of the scale is not the same in blender and POV
+                            mappingAlpha = (' translate <%.4g,%.4g,%.4g> scale <%.4g,%.4g,%.4g>\n' % (-t_alpha.offset.x,t_alpha.offset.y,t_alpha.offset.z, 1 / t_alpha.scale.x, 1 / t_alpha.scale.y, 1 / t_alpha.scale.z))  
+                            tabWrite('pigment {pigment_pattern {uv_mapping image_map{%s \"%s\" %s}%s' % (imageFormat(texturesAlpha) ,texturesAlpha ,imgMap(t_alpha),mappingAlpha))
+                            tabWrite('}\n')
+                            tabWrite('pigment_map {\n')
+                            tabWrite('[0 color rgbft<0,0,0,1,1>]\n')
+                            tabWrite('[1 color rgbft<%.3g, %.3g, %.3g, %.3g, %.3g>]\n'  % (col[0], col[1], col[2], 1.0 - material.alpha, trans) )
+                            tabWrite('}\n')
+                            tabWrite('}\n')
 
-                        tabWrite('pigment {rgbft<%.3g, %.3g, %.3g, %.3g, %.3g>}\n' % (col[0], col[1], col[2], 1.0 - material.alpha, trans))
+                        else:
 
-                    if texturesSpec !='':
-                        tabWrite('finish {%s}\n' % (safety(material_finish, Level=1)))# Level 1 is no specular
-                        
-                    else:
-                        tabWrite('finish {%s}\n' % (safety(material_finish, Level=2)))# Level 2 is translated spec
+                            tabWrite('pigment {rgbft<%.3g, %.3g, %.3g, %.3g, %.3g>}\n' % (col[0], col[1], col[2], 1.0 - material.alpha, trans))
 
-                else:
-                    # POV-Ray "scale" is not a number of repetitions factor, but its inverse, a standard scale factor.
-                    # Offset seems needed relatively to scale so probably center of the scale is not the same in blender and POV
-                    mappingDif = (' translate <%.4g,%.4g,%.4g> scale <%.4g,%.4g,%.4g>\n' % (-t_dif.offset.x,t_dif.offset.y,t_dif.offset.z, 1 / t_dif.scale.x, 1 / t_dif.scale.y, 1 / t_dif.scale.z)) 
-                    if texturesAlpha !='':
-                        # POV-Ray "scale" is not a number of repetitions factor, but its inverse, a standard scale factor.
-                        # Offset seems needed relatively to scale so probably center of the scale is not the same in blender and POV
-                        mappingAlpha = (' translate <%.4g,%.4g,%.4g> scale <%.4g,%.4g,%.4g>\n' % (t_alpha.offset.x,t_alpha.offset.y,t_alpha.offset.z,1 / t_alpha.scale.x, 1 / t_alpha.scale.y, 1 / t_alpha.scale.z)) 
-                        tabWrite('pigment {pigment_pattern {uv_mapping image_map{%s \"%s\" %s}%s}\n' % (imageFormat(texturesAlpha),texturesAlpha,imgMap(t_alpha),mappingAlpha))
-                        tabWrite('pigment_map {\n')
-                        tabWrite('[0 color rgbft<0,0,0,1,1>]\n')
-                        tabWrite('[1 uv_mapping image_map {%s \"%s\" %s}%s]\n' % (imageFormat(texturesDif),texturesDif,(imgGamma + imgMap(t_dif)),mappingDif))
-                        tabWrite('}\n' )
-                        tabWrite('}\n')
-
-                    else:
-                        tabWrite('pigment {uv_mapping image_map {%s \"%s\" %s}%s}\n' % (imageFormat(texturesDif),texturesDif,(imgGamma + imgMap(t_dif)),mappingDif))
-
-                    if texturesSpec !='':
-                        tabWrite('finish {%s}\n' % (safety(material_finish, Level=1)))# Level 1 is no specular
+                        if texturesSpec !='':
+                            tabWrite('finish {%s}\n' % (safety(material_finish, Level=1)))# Level 1 is no specular
                             
-                    else:
-                        tabWrite('finish {%s}\n' % (safety(material_finish, Level=2)))# Level 2 is translated specular
+                        else:
+                            tabWrite('finish {%s}\n' % (safety(material_finish, Level=2)))# Level 2 is translated spec
 
-                    ## scale 1 rotate y*0
-                    #imageMap = ('{image_map {%s \"%s\" %s }\n' % (imageFormat(textures),textures,imgMap(t_dif)))
-                    #tabWrite('uv_mapping pigment %s} %s finish {%s}\n' % (imageMap,mapping,safety(material_finish)))
-                    #tabWrite('pigment {uv_mapping image_map {%s \"%s\" %s}%s} finish {%s}\n' % (imageFormat(texturesDif),texturesDif,imgMap(t_dif),mappingDif,safety(material_finish)))
-                if texturesNorm !='':
-                    ## scale 1 rotate y*0
-                    # POV-Ray "scale" is not a number of repetitions factor, but its inverse, a standard scale factor.
-                    # Offset seems needed relatively to scale so probably center of the scale is not the same in blender and POV
-                    mappingNor = (' translate <%.4g,%.4g,%.4g> scale <%.4g,%.4g,%.4g>\n' % (-t_nor.offset.x,t_nor.offset.y,t_nor.offset.z, 1 / t_nor.scale.x, 1 / t_nor.scale.y, 1 / t_nor.scale.z))
-                    #imageMapNor = ('{bump_map {%s \"%s\" %s mapping}' % (imageFormat(texturesNorm),texturesNorm,imgMap(t_nor)))
-                    #We were not using the above maybe we should?
-                    tabWrite('normal {uv_mapping bump_map {%s \"%s\" %s  bump_size %.4g }%s}\n' % (imageFormat(texturesNorm),texturesNorm,imgMap(t_nor),(t_nor.normal_factor * 10),mappingNor))
-                if texturesSpec !='':                
-                    tabWrite(']\n')
-                ################################Second index for mapping specular max value##################################################################################################
-                    tabWrite('[1 \n')
+                    else:
+                        # POV-Ray "scale" is not a number of repetitions factor, but its inverse, a standard scale factor.
+                        # Offset seems needed relatively to scale so probably center of the scale is not the same in blender and POV
+                        mappingDif = ('translate <%.4g,%.4g,%.4g> scale <%.4g,%.4g,%.4g>' % (-t_dif.offset.x,t_dif.offset.y,t_dif.offset.z, 1 / t_dif.scale.x, 1 / t_dif.scale.y, 1 / t_dif.scale.z)) 
+                        if texturesAlpha !='':
+                            # POV-Ray "scale" is not a number of repetitions factor, but its inverse, a standard scale factor.
+                            # Offset seems needed relatively to scale so probably center of the scale is not the same in blender and POV
+                            mappingAlpha = (' translate <%.4g,%.4g,%.4g> scale <%.4g,%.4g,%.4g>' % (t_alpha.offset.x,t_alpha.offset.y,t_alpha.offset.z,1 / t_alpha.scale.x, 1 / t_alpha.scale.y, 1 / t_alpha.scale.z)) 
+                            tabWrite('pigment {\n')
+                            tabWrite('pigment_pattern {\n')
+                            tabWrite('uv_mapping image_map{%s \"%s\" %s}%s}\n' % (imageFormat(texturesAlpha),texturesAlpha,imgMap(t_alpha),mappingAlpha))
+                            tabWrite('pigment_map {\n')
+                            tabWrite('[0 color rgbft<0,0,0,1,1>]\n')
+                            tabWrite('[1 uv_mapping image_map {%s \"%s\" %s} %s]\n' % (imageFormat(texturesDif),texturesDif,(imgGamma + imgMap(t_dif)),mappingDif))
+                            tabWrite('}\n' )
+                            tabWrite('}\n')
+
+                        else:
+                            tabWrite('pigment {uv_mapping image_map {%s \"%s\" %s}%s}\n' % (imageFormat(texturesDif),texturesDif,(imgGamma + imgMap(t_dif)),mappingDif))
+
+                        if texturesSpec !='':
+                            tabWrite('finish {%s}\n' % (safety(material_finish, Level=1)))# Level 1 is no specular
+                                
+                        else:
+                            tabWrite('finish {%s}\n' % (safety(material_finish, Level=2)))# Level 2 is translated specular
+
+                        ## scale 1 rotate y*0
+                        #imageMap = ('{image_map {%s \"%s\" %s }\n' % (imageFormat(textures),textures,imgMap(t_dif)))
+                        #tabWrite('uv_mapping pigment %s} %s finish {%s}\n' % (imageMap,mapping,safety(material_finish)))
+                        #tabWrite('pigment {uv_mapping image_map {%s \"%s\" %s}%s} finish {%s}\n' % (imageFormat(texturesDif),texturesDif,imgMap(t_dif),mappingDif,safety(material_finish)))
+                    if texturesNorm !='':
+                        ## scale 1 rotate y*0
+                        # POV-Ray "scale" is not a number of repetitions factor, but its inverse, a standard scale factor.
+                        # Offset seems needed relatively to scale so probably center of the scale is not the same in blender and POV
+                        mappingNor = (' translate <%.4g,%.4g,%.4g> scale <%.4g,%.4g,%.4g>' % (-t_nor.offset.x,t_nor.offset.y,t_nor.offset.z, 1 / t_nor.scale.x, 1 / t_nor.scale.y, 1 / t_nor.scale.z))
+                        #imageMapNor = ('{bump_map {%s \"%s\" %s mapping}' % (imageFormat(texturesNorm),texturesNorm,imgMap(t_nor)))
+                        #We were not using the above maybe we should?
+                        tabWrite('normal {uv_mapping bump_map {%s \"%s\" %s  bump_size %.4g }%s}\n' % (imageFormat(texturesNorm),texturesNorm,imgMap(t_nor),(t_nor.normal_factor * 10),mappingNor))
+                    if texturesSpec !='':                
+                        tabWrite(']\n')
+                    ################################Second index for mapping specular max value##################################################################################################
+                        tabWrite('[1 \n')
 
                 if texturesDif == '':
                     if texturesAlpha !='':
@@ -1020,18 +1035,25 @@ def write_pov(filename, scene=None, info_callback=None):
                 else:
                     # POV-Ray "scale" is not a number of repetitions factor, but its inverse, a standard scale factor.
                     # Offset seems needed relatively to scale so probably center of the scale is not the same in blender and POV
-                    mappingDif = (' translate <%.4g,%.4g,%.4g> scale <%.4g,%.4g,%.4g>\n' % (-t_dif.offset.x,t_dif.offset.y,t_dif.offset.z, 1 / t_dif.scale.x, 1 / t_dif.scale.y, 1 / t_dif.scale.z)) #strange that the translation factor for scale is not the same as for translate. ToDo: verify both matches with blender internal.
+                    mappingDif = ('translate <%.4g,%.4g,%.4g> scale <%.4g,%.4g,%.4g>' % (-t_dif.offset.x,t_dif.offset.y,t_dif.offset.z, 1 / t_dif.scale.x, 1 / t_dif.scale.y, 1 / t_dif.scale.z)) #strange that the translation factor for scale is not the same as for translate. ToDo: verify both matches with blender internal.
                     if texturesAlpha !='':
-                        mappingAlpha = (' translate <%.4g,%.4g,%.4g> scale <%.4g,%.4g,%.4g>\n' % (-t_alpha.offset.x,t_alpha.offset.y,t_alpha.offset.z, 1 / t_alpha.scale.x, 1 / t_alpha.scale.y, 1 / t_alpha.scale.z)) #strange that the translation factor for scale is not the same as for translate. ToDo: verify both matches with blender internal. 
+                        mappingAlpha = ('translate <%.4g,%.4g,%.4g> scale <%.4g,%.4g,%.4g>' % (-t_alpha.offset.x,t_alpha.offset.y,t_alpha.offset.z, 1 / t_alpha.scale.x, 1 / t_alpha.scale.y, 1 / t_alpha.scale.z)) #strange that the translation factor for scale is not the same as for translate. ToDo: verify both matches with blender internal. 
                         tabWrite('pigment {pigment_pattern {uv_mapping image_map{%s \"%s\" %s}%s}\n' % (imageFormat(texturesAlpha),texturesAlpha,imgMap(t_alpha),mappingAlpha))
                         tabWrite('pigment_map {\n')
                         tabWrite('[0 color rgbft<0,0,0,1,1>]\n')
-                        tabWrite('[1 uv_mapping image_map {%s \"%s\" %s}%s]\n' % (imageFormat(texturesDif),texturesDif,(imgMap(t_dif)+imgGamma),mappingDif))
+                        tabWrite('[1 uv_mapping image_map {%s \"%s\" %s} %s]\n' % (imageFormat(texturesDif),texturesDif,(imgMap(t_dif)+imgGamma),mappingDif))
                         tabWrite('}\n')
                         tabWrite('}\n')
 
                     else:
-                        tabWrite('pigment {uv_mapping image_map {%s \"%s\" %s}%s}\n' % (imageFormat(texturesDif),texturesDif,(imgGamma + imgMap(t_dif)),mappingDif))
+                        tabWrite('pigment {\n')
+                        tabWrite('uv_mapping image_map {\n')
+                        #tabWrite('%s \"%s\" %s}%s\n' % (imageFormat(texturesDif),texturesDif,(imgGamma + imgMap(t_dif)),mappingDif))
+                        tabWrite('%s \"%s\" \n'%(imageFormat(texturesDif),texturesDif))
+                        tabWrite('%s\n' % (imgGamma + imgMap(t_dif)))
+                        tabWrite('}\n')
+                        tabWrite('%s\n' % mappingDif)
+                        tabWrite('}\n')
                     if texturesSpec !='':
                         tabWrite('finish {%s}\n' % (safety(material_finish, Level=3)))# Level 3 is full specular
                     else:
@@ -1045,7 +1067,7 @@ def write_pov(filename, scene=None, info_callback=None):
                     ## scale 1 rotate y*0
                     # POV-Ray "scale" is not a number of repetitions factor, but its inverse, a standard scale factor.
                     # Offset seems needed relatively to scale so probably center of the scale is not the same in blender and POV
-                    mappingNor = (' translate <%.4g,%.4g,%.4g> scale <%.4g,%.4g,%.4g>\n' % (-t_nor.offset.x,t_nor.offset.y,t_nor.offset.z, 1 / t_nor.scale.x, 1 / t_nor.scale.y, 1 / t_nor.scale.z))
+                    mappingNor = (' translate <%.4g,%.4g,%.4g> scale <%.4g,%.4g,%.4g>' % (-t_nor.offset.x,t_nor.offset.y,t_nor.offset.z, 1 / t_nor.scale.x, 1 / t_nor.scale.y, 1 / t_nor.scale.z))
                     #imageMapNor = ('{bump_map {%s \"%s\" %s mapping}' % (imageFormat(texturesNorm),texturesNorm,imgMap(t_nor)))
                     #We were not using the above maybe we should?
                     tabWrite('normal {uv_mapping bump_map {%s \"%s\" %s  bump_size %.4g }%s}\n' % (imageFormat(texturesNorm),texturesNorm,imgMap(t_nor),(t_nor.normal_factor * 10),mappingNor))
@@ -1066,7 +1088,6 @@ def write_pov(filename, scene=None, info_callback=None):
                 index[0] = idx
                 idx += 1
 
-            file.write('\n')
             tabWrite('}\n')
 
             # Face indices
@@ -1427,7 +1448,7 @@ def write_pov_ini(filename_ini, filename_pov, filename_image):
 class PovrayRender(bpy.types.RenderEngine):
     bl_idname = 'POVRAY_RENDER'
     bl_label = 'POV-Ray 3.7'
-    DELAY = 1.5
+    DELAY = 0.5
     
     def _export(self, scene):
         import tempfile
