@@ -1353,7 +1353,10 @@ def write_pov(filename, scene=None, info_callback=None):
         
     sel = scene.objects
     comments = scene.pov_comments_enable
-    if comments: file.write('//---------------------------------------------\n//--Exported with POV-Ray exporter for Blender--\n//---------------------------------------------\n')
+    if comments: file.write('//---------------------------------------------\n//--Exported with POV-Ray exporter for Blender--\n//---------------------------------------------\n\n')
+    
+    file.write('#version 3.7;\n')
+    
     if comments: file.write('\n//--Global settings and background--\n\n')
     
     exportGlobalSettings(scene)
@@ -1429,16 +1432,18 @@ def write_pov_ini(filename_ini, filename_pov, filename_image):
     #file.write('Output_File_Type=T\n') # TGA, best progressive loading
     file.write('Output_Alpha=1\n')
 
-    if render.use_antialiasing:
-        aa_mapping = {'5': 2, '8': 3, '11': 4, '16': 5} # method 2 (recursive) with higher max subdiv forced because no mipmapping in POV-Ray needs higher sampling.
+    if scene.pov_antialias_enable:
+        # aa_mapping = {'5': 2, '8': 3, '11': 4, '16': 5} # method 2 (recursive) with higher max subdiv forced because no mipmapping in POV-Ray needs higher sampling.
+        method = {'0':1, '1':2}
         file.write('Antialias=on\n')
-        file.write('Sampling_Method=2\n')
-        file.write('Antialias_Depth=%d\n' % aa_mapping[render.antialiasing_samples])
-        file.write('Antialias_Threshold=0.1\n')#rather high settings but necessary.
+        print("Method: " + str(scene.pov_antialias_method))
+        file.write('Sampling_Method=%s\n' % method[scene.pov_antialias_method])
+        file.write('Antialias_Depth=%d\n' % scene.pov_antialias_depth)
+        file.write('Antialias_Threshold=%.3g\n' % scene.pov_antialias_threshold)
         file.write('Jitter=off\n')#prevent animation flicker
  
     else:
-        file.write('Antialias=0\n')
+        file.write('Antialias=off\n')
     file.write('Version=3.7')
     #print('ini file closed %s' % file.closed)
     file.close()
