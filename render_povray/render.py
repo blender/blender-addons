@@ -1427,7 +1427,7 @@ def write_pov_ini(filename_ini, filename_pov, filename_image):
 class PovrayRender(bpy.types.RenderEngine):
     bl_idname = 'POVRAY_RENDER'
     bl_label = 'POV-Ray 3.7'
-    DELAY = 0.2
+    DELAY = 1.5
     
     def _export(self, scene):
         import tempfile
