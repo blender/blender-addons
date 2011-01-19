@@ -22,7 +22,7 @@ import bpy
 import properties_render
 properties_render.RENDER_PT_render.COMPAT_ENGINES.add('POVRAY_RENDER')
 properties_render.RENDER_PT_dimensions.COMPAT_ENGINES.add('POVRAY_RENDER')
-properties_render.RENDER_PT_antialiasing.COMPAT_ENGINES.add('POVRAY_RENDER')
+# properties_render.RENDER_PT_antialiasing.COMPAT_ENGINES.add('POVRAY_RENDER')
 properties_render.RENDER_PT_shading.COMPAT_ENGINES.add('POVRAY_RENDER')
 properties_render.RENDER_PT_output.COMPAT_ENGINES.add('POVRAY_RENDER')
 del properties_render
@@ -261,7 +261,7 @@ class MATERIAL_PT_povray_caustics(MaterialButtonsPanel, bpy.types.Panel):
 ##            col.prop(mat, "pov_photons_reflection")
 ####TODO : MAKE THIS A real RADIO BUTTON (using EnumProperty?)
 ######################################EndMR#####################################
-class RENDER_PT_povray_max_trace_level(RenderButtonsPanel, bpy.types.Panel):
+class RENDER_PT_povray_global_settings(RenderButtonsPanel, bpy.types.Panel):
     bl_label = "Global Settings"
     COMPAT_ENGINES = {'POVRAY_RENDER'}
 
@@ -277,8 +277,40 @@ class RENDER_PT_povray_max_trace_level(RenderButtonsPanel, bpy.types.Panel):
         col = split.column()
         col.label(text="Command line switches:")
         col.prop(scene, "pov_command_line_switches", text="" )
+        split = layout.split()
+        col = split.column()
         col.prop(scene, "pov_max_trace_level", text="Ray Depth")
+        col = split.column()
 
+class RENDER_PT_povray_antialias(RenderButtonsPanel, bpy.types.Panel):
+    bl_label = "Anti-Aliasing"
+    COMPAT_ENGINES = {'POVRAY_RENDER'}
+
+    def draw_header(self, context):
+        scene = context.scene
+
+        self.layout.prop(scene, "pov_antialias_enable", text="")
+
+    def draw(self, context):
+        layout = self.layout
+
+        scene = context.scene
+        rd = scene.render
+
+        layout.active = scene.pov_antialias_enable
+
+        split = layout.split()
+        col = split.column()
+        col.prop(scene, "pov_antialias_method", text="")
+        col = split.column()
+       
+        split = layout.split()
+        col = split.column()
+        col.prop(scene, "pov_antialias_depth", text="Depth")
+        col = split.column()
+        col.prop(scene, "pov_antialias_threshold", text="Threshold")
+        
+        
 class RENDER_PT_povray_radiosity(RenderButtonsPanel, bpy.types.Panel):
     bl_label = "Radiosity"
     COMPAT_ENGINES = {'POVRAY_RENDER'}
