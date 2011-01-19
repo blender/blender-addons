@@ -179,7 +179,7 @@ def write_pov(filename, scene=None, info_callback=None):
         return TabStr
 
     Tab = setTab(scene.pov_indentation_character, scene.pov_indentation_spaces)
-
+    
     def tabWrite(str_o):
         global TabLevel
         brackets = str_o.count('{') - str_o.count('}')
@@ -580,7 +580,9 @@ def write_pov(filename, scene=None, info_callback=None):
     def exportMeta(metas):
 
         # TODO - blenders 'motherball' naming is not supported.
-
+        
+        if scene.pov_comments_enable and len(metas)>= 1: file.write('//--Blob objects--\n\n')
+        
         for ob in metas:
             meta = ob.data
             importance=ob.pov_importance_value              
@@ -645,7 +647,7 @@ def write_pov(filename, scene=None, info_callback=None):
             
             tabWrite('}\n') #End of Metaball block
 
-            # tabWrite('}\n')
+            if scene.pov_comments_enable and len(metas)>= 1: file.write('\n')
 
     objectNames = {}
     DEF_OBJ_NAME = 'Default'
@@ -1346,13 +1348,12 @@ def write_pov(filename, scene=None, info_callback=None):
     for material in bpy.data.materials:
         if material.users > 0: 
             writeMaterial(material)
-
     if comments: file.write('\n')
-    if comments: file.write('//--Meta objects--\n\n')  # <- How can this be written only if the scene contains META?
-    
+
+    # if comments: file.write('//--Blob objects--\n\n')
     exportMeta([l for l in sel if l.type == 'META'])
-    
-    if comments: file.write('\n')  # <- How can this be written only if the scene contains META?
+    # if comments: file.write('\n')
+
     if comments: file.write('//--Mesh objecs--\n')
     
     exportMeshs(scene, sel)
@@ -1419,7 +1420,7 @@ def write_pov_ini(filename_ini, filename_pov, filename_image):
 class PovrayRender(bpy.types.RenderEngine):
     bl_idname = 'POVRAY_RENDER'
     bl_label = 'POV-Ray 3.7'
-    DELAY = 0.05
+    DELAY = 0.1
     
     def _export(self, scene):
         import tempfile
