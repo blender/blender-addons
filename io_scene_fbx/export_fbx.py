@@ -250,7 +250,7 @@ header_comment = \
 # This func can be called with just the filepath
 def save(operator, context, filepath="",
         GLOBAL_MATRIX=None,
-        EXP_OBS_SELECTED=True,
+        use_selection=True,
         EXP_MESH=True,
         EXP_MESH_APPLY_MOD=True,
         EXP_ARMATURE=True,
@@ -1041,18 +1041,12 @@ def save(operator, context, filepath="",
         if light_type > 2:
             light_type = 1  # hemi and area lights become directional
 
-# 		mode = light.mode
-        if light.shadow_method == 'RAY_SHADOW' or light.shadow_method == 'BUFFER_SHADOW':
-# 		if mode & Blender.Lamp.Modes.RayShadow or mode & Blender.Lamp.Modes.Shadows:
-            do_shadow = 1
+        if light.type in ('HEMI', ):
+            do_light = not (light.use_diffuse or light.use_specular)
+            do_shadow = False
         else:
-            do_shadow = 0
-
-        if light.use_only_shadow or (not light.use_diffuse and not light.use_specular):
-# 		if mode & Blender.Lamp.Modes.OnlyShadow or (mode & Blender.Lamp.Modes.NoDiffuse and mode & Blender.Lamp.Modes.NoSpecular):
-            do_light = 0
-        else:
-            do_light = 1
+            do_light = not (light.use_only_shadow or (not light.use_diffuse and not light.use_specular))
+            do_shadow = (light.shadow_method in ('RAY_SHADOW', 'BUFFER_SHADOW'))
 
         scale = abs(GLOBAL_MATRIX.scale_part()[0])  # scale is always uniform in this case
 
@@ -1896,9 +1890,9 @@ def save(operator, context, filepath="",
 
     tmp_ob_type = ob_type = None  # incase no objects are exported, so as not to raise an error
 
-    # if EXP_OBS_SELECTED is false, use sceens objects
+    # if use_selection is false, use sceens objects
     if not batch_objects:
-        if EXP_OBS_SELECTED:
+        if use_selection:
             tmp_objects = context.selected_objects
         else:
             tmp_objects = scene.objects
