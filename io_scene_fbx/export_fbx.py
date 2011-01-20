@@ -265,7 +265,8 @@ def save(operator, context, filepath="",
         BATCH_ENABLE=False,
         BATCH_GROUP=True,
         BATCH_FILE_PREFIX='',
-        BATCH_OWN_DIR=False
+        BATCH_OWN_DIR=False,
+        use_metadata=True,
     ):
 
     #XXX, missing arg
@@ -557,7 +558,7 @@ def save(operator, context, filepath="",
 
     # ---------------------------- Write the header first
     file.write(header_comment)
-    if time:
+    if use_metadata:
         curtime = time.localtime()[0:6]
     else:
         curtime = (0, 0, 0, 0, 0, 0)
@@ -2036,6 +2037,10 @@ def save(operator, context, filepath="",
                     my_mesh.blenMaterialList = mats
                     my_mesh.blenTextures = list(texture_mapping_local.keys())
 
+                    # sort the name so we get pradictable output, some items may be NULL
+                    my_mesh.blenMaterials.sort(key=lambda m: (getattr(m[0], "name", ""), getattr(m[1], "name", "")))
+                    my_mesh.blenTextures.sort(key=lambda m: getattr(m, "name", ""))
+
                     # if only 1 null texture then empty the list
                     if len(my_mesh.blenTextures) == 1 and my_mesh.blenTextures[0] is None:
                         my_mesh.blenTextures = []
@@ -2163,8 +2168,8 @@ def save(operator, context, filepath="",
 
     materials = [(sane_matname(mat_tex_pair), mat_tex_pair) for mat_tex_pair in materials.keys()]
     textures = [(sane_texname(tex), tex) for tex in textures.keys()  if tex]
-    materials.sort()  # sort by name
-    textures.sort()
+    materials.sort(key=lambda m: m[0])  # sort by name
+    textures.sort(key=lambda m: m[0])
 
     camera_count = 8
     file.write('''

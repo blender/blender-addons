@@ -79,6 +79,7 @@ class ExportFBX(bpy.types.Operator, ExportHelper):
     BATCH_GROUP = BoolProperty(name="Group > File", description="Export each group as an FBX file, if false, export each scene as an FBX file", default=False)
     BATCH_OWN_DIR = BoolProperty(name="Own Dir", description="Create a dir for each exported file", default=True)
     BATCH_FILE_PREFIX = StringProperty(name="Prefix", description="Prefix each file with this name", maxlen=1024, default="")
+    use_metadata = BoolProperty(name="Use Metadata", default=True, options={'HIDDEN'})
 
     def execute(self, context):
         import math
