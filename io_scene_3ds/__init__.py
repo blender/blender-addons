@@ -69,6 +69,8 @@ class Export3DS(bpy.types.Operator, ExportHelper):
     filename_ext = ".3ds"
     filter_glob = StringProperty(default="*.3ds", options={'HIDDEN'})
 
+    use_selection = BoolProperty(name="Selection Only", description="Export selected objects only", default=False)
+
     def execute(self, context):
         from . import export_3ds
         return export_3ds.save(self, context, **self.as_keywords(ignore=("check_existing", "filter_glob")))

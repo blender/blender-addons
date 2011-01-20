@@ -859,13 +859,16 @@ def make_kf_obj_node(obj, name_to_id):
 """
 
 
-def save(operator, context, filepath=""):
+def save(operator, context, filepath="",
+          use_selection=True,
+          ):
+
     import bpy
     import time
     from io_utils import create_derived_objects, free_derived_objects
-    
+
     '''Save the Blender scene to a 3ds file.'''
-    
+
     # Time the export
     time1 = time.clock()
 #	Blender.Window.WaitCursor(1)
@@ -900,9 +903,14 @@ def save(operator, context, filepath=""):
     materialDict = {}
     mesh_objects = []
     scene = context.scene
-    for ob in [ob for ob in scene.objects if ob.is_visible(scene)]:
-# 	for ob in sce.objects.context:
 
+
+    if use_selection:
+        objects = (ob for ob in scene.objects if ob.is_visible(scene) and ob.select)
+    else:
+        objects = (ob for ob in scene.objects if ob.is_visible(scene))
+
+    for ob in objects:
         # get derived objects
         free, derived = create_derived_objects(scene, ob)
 
@@ -915,8 +923,11 @@ def save(operator, context, filepath=""):
             if ob.type not in ('MESH', 'CURVE', 'SURFACE', 'FONT', 'META'):
                 continue
 
-            data = ob_derived.create_mesh(scene, True, 'PREVIEW')
-# 			data = getMeshFromObject(ob_derived, None, True, False, sce)
+            try:
+                data = ob_derived.create_mesh(scene, True, 'PREVIEW')
+            except:
+                data = None
+
             if data:
                 data.transform(mat)
 # 				data.transform(mat, recalc_normals=False)
@@ -1040,5 +1051,5 @@ def save(operator, context, filepath=""):
 
     # Debugging only: dump the chunk hierarchy:
     #primary.dump()
-    
+
     return {'FINISHED'}
