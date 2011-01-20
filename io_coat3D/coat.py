@@ -204,7 +204,7 @@ class SCENE_OT_export(bpy.types.Operator):
             if(coat3D.export_pos):
 
                 bpy.ops.export_scene.obj(filepath=checkname,use_selection=True,
-                use_modifiers=coat3D.exportmod,use_blen_objects=False, group_by_material= True,
+                use_apply_modifiers=coat3D.exportmod,use_blen_objects=False, group_by_material= True,
                 use_materials = False,keep_vertex_order = True)
 
                 coat3D.export_on = True
@@ -217,7 +217,7 @@ class SCENE_OT_export(bpy.types.Operator):
                 obj.scale = (1,1,1)
 
                 bpy.ops.export_scene.obj(filepath=checkname,use_selection=True,
-                use_modifiers=coat3D.exportmod,use_blen_objects=False, group_by_material= True,
+                use_apply_modifiers=coat3D.exportmod,use_blen_objects=False, group_by_material= True,
                 use_materials = False,keep_vertex_order = True)
 
                 obj.location = coat3D.loca
