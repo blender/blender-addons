@@ -1233,7 +1233,8 @@ def write_pov(filename, scene=None, info_callback=None):
             worldTexCount=0
             #For Background image textures
             for t in world.texture_slots: #risk to write several sky_spheres but maybe ok.
-                worldTexCount+=1
+                if t and t.texture.type is not None:
+                    worldTexCount+=1
                 if t and t.texture.type == 'IMAGE': #and t.use: #No enable checkbox for world textures yet (report it?)
                     image_filename  = path_image(t.texture.image.filepath)
                     if t.texture.image.filepath != image_filename: t.texture.image.filepath = image_filename
