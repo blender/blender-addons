@@ -232,7 +232,7 @@ def write_nurb(file, ob, ob_mat):
                 pt_num += DEG_ORDER_U
                 curve_ls = curve_ls + curve_ls[0:DEG_ORDER_U]
 
-        file.write('curv 0.0 1.0 %s\n' % (' '.join([str(i) for i in curve_ls]))) # Blender has no U and V values for the curve
+        file.write('curv 0.0 1.0 %s\n' % (" ".join([str(i) for i in curve_ls]))) # Blender has no U and V values for the curve
 
         # 'parm' keyword
         tot_parm = (DEG_ORDER_U + 1) + pt_num
@@ -244,7 +244,7 @@ def write_nurb(file, ob, ob_mat):
                 parm_ls[i] = 0.0
                 parm_ls[-(1+i)] = 1.0
 
-        file.write('parm u %s\n' % ' '.join( [str(i) for i in parm_ls] ))
+        file.write("parm u %s\n" % " ".join(["%.6f" % i for i in parm_ls]))
 
         file.write('end\n')
 
@@ -799,7 +799,7 @@ def save(operator, context, filepath="",
          use_uvs=True,
          use_materials=True,
          copy_images=False,
-         use_modifiers=True,
+         use_apply_modifiers=True,
          use_rotate_x90=True,
          use_blen_objects=True,
          group_by_object=False,
@@ -820,7 +820,7 @@ def save(operator, context, filepath="",
            EXPORT_UV=use_uvs,
            EXPORT_MTL=use_materials,
            EXPORT_COPY_IMAGES=copy_images,
-           EXPORT_APPLY_MODIFIERS=use_modifiers,
+           EXPORT_APPLY_MODIFIERS=use_apply_modifiers,
            EXPORT_ROTX90=use_rotate_x90,
            EXPORT_BLEN_OBS=use_blen_objects,
            EXPORT_GROUP_BY_OB=group_by_object,

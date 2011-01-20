@@ -90,7 +90,7 @@ class ExportOBJ(bpy.types.Operator, ExportHelper):
     use_animation = BoolProperty(name="Animation", description="", default=False)
 
     # object group
-    use_modifiers = BoolProperty(name="Apply Modifiers", description="Apply modifiers (preview resolution)", default=True)
+    use_apply_modifiers = BoolProperty(name="Apply Modifiers", description="Apply modifiers (preview resolution)", default=True)
     use_rotate_x90 = BoolProperty(name="Rotate X90", description="", default=True)
 
     # extra data group
