@@ -63,6 +63,7 @@ class ExportX3D(bpy.types.Operator, ExportHelper):
     filename_ext = ".x3d"
     filter_glob = StringProperty(default="*.x3d", options={'HIDDEN'})
 
+    use_selection = BoolProperty(name="Selection Only", description="Export selected objects only", default=False)
     use_apply_modifiers = BoolProperty(name="Apply Modifiers", description="Use transformed mesh data from each object", default=True)
     use_triangulate = BoolProperty(name="Triangulate", description="Triangulate quads.", default=False)
     use_compress = BoolProperty(name="Compress", description="GZip the resulting file, requires a full python install", default=False)

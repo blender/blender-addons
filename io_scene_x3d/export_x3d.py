@@ -680,7 +680,8 @@ class x3d_class:
 ##########################################################
 
     def export(self, scene, world, alltextures,
-                EXPORT_APPLY_MODIFIERS=False,
+                use_apply_modifiers=False,
+                use_selection=True,
                 EXPORT_TRI=False,
                 ):
 
@@ -697,7 +698,12 @@ class x3d_class:
         self.writeFog(world)
         self.proto = 0
 
-        for ob_main in [o for o in scene.objects if o.is_visible(scene)]:
+        if use_selection:
+            objects = (o for o in scene.objects if o.is_visible(scene) and o.select)
+        else:
+            objects = (o for o in scene.objects if o.is_visible(scene))
+
+        for ob_main in objects:
 
             free, derived = create_derived_objects(scene, ob_main)
 
@@ -712,16 +718,20 @@ class x3d_class:
                 if objType == 'CAMERA':
                     self.writeViewpoint(ob, ob_mat, scene)
                 elif objType in ('MESH', 'CURVE', 'SURF', 'FONT'):
-                    if EXPORT_APPLY_MODIFIERS or objType != 'MESH':
-                        me = ob.create_mesh(scene, EXPORT_APPLY_MODIFIERS, 'PREVIEW')
+                    if use_apply_modifiers or objType != 'MESH':
+                        try:
+                            me = ob.create_mesh(scene, use_apply_modifiers, 'PREVIEW')
+                        except:
+                            me = None
                     else:
                         me = ob.data
 
-                    self.writeIndexedFaceSet(ob, me, ob_mat, world, EXPORT_TRI=EXPORT_TRI)
+                    if me is not None:
+                        self.writeIndexedFaceSet(ob, me, ob_mat, world, EXPORT_TRI=EXPORT_TRI)
 
-                    # free mesh created with create_mesh()
-                    if me != ob.data:
-                        bpy.data.meshes.remove(me)
+                        # free mesh created with create_mesh()
+                        if me != ob.data:
+                            bpy.data.meshes.remove(me)
 
                 elif objType == 'LAMP':
                     data = ob.data
@@ -743,7 +753,7 @@ class x3d_class:
 
         self.file.write("\n</Scene>\n</X3D>")
 
-        # if EXPORT_APPLY_MODIFIERS:
+        # if use_apply_modifiers:
         # 	if containerMesh:
         # 		containerMesh.vertices = None
 
@@ -827,6 +837,7 @@ class x3d_class:
 
 
 def save(operator, context, filepath="",
+          use_selection=True,
           use_apply_modifiers=False,
           use_triangulate=False,
           use_compress=False):
@@ -852,7 +863,8 @@ def save(operator, context, filepath="",
     wrlexport.export(scene,
                      world,
                      alltextures,
-                     EXPORT_APPLY_MODIFIERS=use_apply_modifiers,
+                     use_apply_modifiers=use_apply_modifiers,
+                     use_selection=use_selection,
                      EXPORT_TRI=use_triangulate,
                      )
 
