@@ -191,10 +191,10 @@ class x3d_class:
         safeName = self.cleanStr(ob.name)
         if world:
             ambi = world.ambient_color
-            ambientIntensity = ((ambi[0] + ambi[1] + ambi[2]) / 3.0) / 2.5
+            amb_intensity = ((ambi[0] + ambi[1] + ambi[2]) / 3.0) / 2.5
             del ambi
         else:
-            ambientIntensity = 0.0
+            amb_intensity = 0.0
 
         # compute cutoff and beamwidth
         intensity = min(lamp.energy / 1.75, 1.0)
@@ -204,57 +204,58 @@ class x3d_class:
 
         dx, dy, dz = matrix_direction(mtx)
 
-        location = mtx.translation_part()
+        location = mtx.translation_part()[:]
 
         radius = lamp.distance * math.cos(beamWidth)
         # radius = lamp.dist*math.cos(beamWidth)
         self.file.write("<SpotLight DEF=\"%s\" " % safeName)
-        self.file.write("radius=\"%s\" " % (round(radius, self.cp)))
-        self.file.write("ambientIntensity=\"%s\" " % (round(ambientIntensity, self.cp)))
-        self.file.write("intensity=\"%s\" " % (round(intensity, self.cp)))
-        self.file.write("color=\"%s %s %s\" " % round_color(lamp.color, self.cp))
-        self.file.write("beamWidth=\"%s\" " % (round(beamWidth, self.cp)))
-        self.file.write("cutOffAngle=\"%s\" " % (round(cutOffAngle, self.cp)))
-        self.file.write("direction=\"%s %s %s\" " % (round(dx, 3), round(dy, 3), round(dz, 3)))
-        self.file.write("location=\"%s %s %s\" />\n\n" % (round(location[0], 3), round(location[1], 3), round(location[2], 3)))
+        self.file.write("radius=\"%.4f\" " % radius)
+        self.file.write("ambientIntensity=\"%.4f\" " % amb_intensity)
+        self.file.write("intensity=\"%.4f\" " % intensity)
+        self.file.write("color=\"%.4f %.4f %.4f\" " % round_color(lamp.color, 4))
+        self.file.write("beamWidth=\"%.4f\" " % beamWidth)
+        self.file.write("cutOffAngle=\"%.4f\" " % cutOffAngle)
+        self.file.write("direction=\"%.4f %.4f %.4f\" " % (dx, dy, dz))
+        self.file.write("location=\"%.4f %.4f %.4f\" />\n\n" % location)
 
     def writeDirectionalLight(self, ob, mtx, lamp, world):
         safeName = self.cleanStr(ob.name)
         if world:
             ambi = world.ambient_color
             # ambi = world.amb
-            ambientIntensity = ((float(ambi[0] + ambi[1] + ambi[2])) / 3.0) / 2.5
+            amb_intensity = ((float(ambi[0] + ambi[1] + ambi[2])) / 3.0) / 2.5
         else:
             ambi = 0
-            ambientIntensity = 0
+            amb_intensity = 0.0
 
         intensity = min(lamp.energy / 1.75, 1.0)
         dx, dy, dz = matrix_direction(mtx)
         self.file.write("<DirectionalLight DEF=\"%s\" " % safeName)
-        self.file.write("ambientIntensity=\"%s\" " % (round(ambientIntensity, self.cp)))
-        self.file.write("color=\"%s %s %s\" " % (round(lamp.color[0], self.cp), round(lamp.color[1], self.cp), round(lamp.color[2], self.cp)))
-        self.file.write("intensity=\"%s\" " % (round(intensity, self.cp)))
-        self.file.write("direction=\"%s %s %s\" />\n\n" % (round(dx, 4), round(dy, 4), round(dz, 4)))
+        self.file.write("ambientIntensity=\"%.4f\" " % amb_intensity)
+        self.file.write("color=\"%.4f %.4f %.4f\" " % round_color(lamp.color, 4))
+        self.file.write("intensity=\"%.4f\" " % intensity)
+        self.file.write("direction=\"%.4f %.4f %.4f\" />\n\n" % (dx, dy, dz))
 
     def writePointLight(self, ob, mtx, lamp, world):
         safeName = self.cleanStr(ob.name)
         if world:
             ambi = world.ambient_color
             # ambi = world.amb
-            ambientIntensity = ((float(ambi[0] + ambi[1] + ambi[2])) / 3) / 2.5
+            amb_intensity = ((float(ambi[0] + ambi[1] + ambi[2])) / 3) / 2.5
         else:
-            ambi = 0
-            ambientIntensity = 0
+            ambi = 0.0
+            amb_intensity = 0.0
 
-        location = mtx.translation_part()
+        intensity = min(lamp.energy / 1.75, 1.0)
+        location = mtx.translation_part()[:]
 
         self.file.write("<PointLight DEF=\"%s\" " % safeName)
-        self.file.write("ambientIntensity=\"%s\" " % (round(ambientIntensity, self.cp)))
-        self.file.write("color=\"%s %s %s\" " % (round(lamp.color[0], self.cp), round(lamp.color[1], self.cp), round(lamp.color[2], self.cp)))
+        self.file.write("ambientIntensity=\"%.4f\" " % amb_intensity)
+        self.file.write("color=\"%.4f %.4f %.4f\" " % round_color(lamp.color, 4))
 
-        self.file.write("intensity=\"%s\" " % (round(min(lamp.energy / 1.75, 1.0), self.cp)))
-        self.file.write("radius=\"%s\" " % lamp.distance)
-        self.file.write("location=\"%s %s %s\" />\n\n" % (round(location[0], 3), round(location[1], 3), round(location[2], 3)))
+        self.file.write("intensity=\"%.4f\" " % intensity)
+        self.file.write("radius=\"%.4f\" " % lamp.distance)
+        self.file.write("location=\"%.4f %.4f %.4f\" />\n\n" % location)
 
     def secureName(self, name):
         name = name + str(self.nodeID)
