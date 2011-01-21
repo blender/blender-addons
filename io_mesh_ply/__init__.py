@@ -46,7 +46,7 @@ from io_utils import ImportHelper, ExportHelper
 
 
 class ImportPLY(bpy.types.Operator, ImportHelper):
-    '''Load a BVH motion capture file'''
+    '''Load a PLY geometry file'''
     bl_idname = "import_mesh.ply"
     bl_label = "Import PLY"
     
