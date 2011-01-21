@@ -34,8 +34,8 @@ class element_spec(object):
         self.properties = []
 
     def load(self, format, stream):
-        if format == 'ascii':
-            stream = re.split('\s+', stream.readline())
+        if format == b'ascii':
+            stream = re.split(b'\s+', stream.readline())
         return [x.load(format, stream) for x in self.properties]
 
     def index(self, name):
@@ -57,7 +57,7 @@ class property_spec(object):
         self.numeric_type = numeric_type
 
     def read_format(self, format, count, num_type, stream):
-        if format == 'ascii':
+        if format == b'ascii':
             if num_type == 's':
                 ans = []
                 for i in range(count):
@@ -125,92 +125,79 @@ class object_spec(object):
 
 
 def read(filepath):
-    format = ''
-    version = '1.0'
-    format_specs = {'binary_little_endian': '<',
-            'binary_big_endian': '>',
-            'ascii': 'ascii'}
-    type_specs = {'char': 'b',
-              'uchar': 'B',
-              'int8': 'b',
-              'uint8': 'B',
-              'int16': 'h',
-              'uint16': 'H',
-              'ushort': 'H',
-              'int': 'i',
-              'int32': 'i',
-              'uint': 'I',
-              'uint32': 'I',
-              'float': 'f',
-              'float32': 'f',
-              'float64': 'd',
-              'double': 'd',
-              'string': 's'}
+    format = b''
+    version = b'1.0'
+    format_specs = {b'binary_little_endian': '<',
+                    b'binary_big_endian': '>',
+                    b'ascii': b'ascii'}
+    type_specs = {b'char': 'b',
+                  b'uchar': 'B',
+                  b'int8': 'b',
+                  b'uint8': 'B',
+                  b'int16': 'h',
+                  b'uint16': 'H',
+                  b'ushort': 'H',
+                  b'int': 'i',
+                  b'int32': 'i',
+                  b'uint': 'I',
+                  b'uint32': 'I',
+                  b'float': 'f',
+                  b'float32': 'f',
+                  b'float64': 'd',
+                  b'double': 'd',
+                  b'string': 's'}
     obj_spec = object_spec()
 
-    try:
-        file = open(filepath, 'rU')  # Only for parsing the header, not binary data
-        signature = file.readline()
+    file = open(filepath, 'rb')  # Only for parsing the header, not binary data
+    signature = file.readline()
 
-        if not signature.startswith('ply'):
-            print('Signature line was invalid')
-            return None
+    if not signature.startswith(b'ply'):
+        print('Signature line was invalid')
+        return None
 
-        while 1:
-            tokens = re.split(r'[ \n]+', file.readline())
+    while 1:
+        tokens = re.split(r'[ \n]+'.encode("ASCII"), file.readline())
 
-            if len(tokens) == 0:
-                continue
-            if tokens[0] == 'end_header':
-                break
-            elif tokens[0] == 'comment' or tokens[0] == 'obj_info':
-                continue
-            elif tokens[0] == 'format':
-                if len(tokens) < 3:
-                    print('Invalid format line')
-                    return None
-                if tokens[1] not in format_specs:  # .keys(): # keys is implicit
-                    print('Unknown format', tokens[1])
-                    return None
-                if tokens[2] != version:
-                    print('Unknown version', tokens[2])
-                    return None
-                format = tokens[1]
-            elif tokens[0] == 'element':
-                if len(tokens) < 3:
-                    print('Invalid element line')
-                    return None
-                obj_spec.specs.append(element_spec(tokens[1], int(tokens[2])))
-            elif tokens[0] == 'property':
-                if not len(obj_spec.specs):
-                    print('Property without element')
-                    return None
-                if tokens[1] == 'list':
-                    obj_spec.specs[-1].properties.append(property_spec(tokens[4], type_specs[tokens[2]], type_specs[tokens[3]]))
-                else:
-                    obj_spec.specs[-1].properties.append(property_spec(tokens[2], None, type_specs[tokens[1]]))
+        if len(tokens) == 0:
+            continue
+        if tokens[0] == b'end_header':
+            break
+        elif tokens[0] == b'comment' or tokens[0] == b'obj_info':
+            continue
+        elif tokens[0] == b'format':
+            if len(tokens) < 3:
+                print('Invalid format line')
+                return None
+            if tokens[1] not in format_specs:  # .keys(): # keys is implicit
+                print('Unknown format', tokens[1])
+                return None
+            if tokens[2] != version:
+                print('Unknown version', tokens[2])
+                return None
+            format = tokens[1]
+        elif tokens[0] == b'element':
+            if len(tokens) < 3:
+                print(b'Invalid element line')
+                return None
+            obj_spec.specs.append(element_spec(tokens[1], int(tokens[2])))
+        elif tokens[0] == b'property':
+            if not len(obj_spec.specs):
+                print('Property without element')
+                return None
+            if tokens[1] == b'list':
+                obj_spec.specs[-1].properties.append(property_spec(tokens[4], type_specs[tokens[2]], type_specs[tokens[3]]))
+            else:
+                obj_spec.specs[-1].properties.append(property_spec(tokens[2], None, type_specs[tokens[1]]))
 
-        if format != 'ascii':
-            file.close()  # was ascii, now binary
-            file = open(filepath, 'rb')
+    if format != b'ascii':
+        file.close()  # was ascii, now binary
+        file = open(filepath, 'rb')
 
-            # skip the header...
-            while not file.readline().startswith('end_header'):
-                pass
-
-        obj = obj_spec.load(format_specs[format], file)
-
-    except IOError:
-        try:
-            file.close()
-        except:
+        # skip the header...
+        while not file.readline().startswith(b'end_header'):
             pass
 
-        return None
-    try:
-        file.close()
-    except:
-        pass
+    obj = obj_spec.load(format_specs[format], file)
 
     return obj_spec, obj
 
@@ -232,18 +219,18 @@ def load_ply(filepath):
     # noindices = None # Ignore normals
 
     for el in obj_spec.specs:
-        if el.name == 'vertex':
-            vindices = vindices_x, vindices_y, vindices_z = (el.index('x'), el.index('y'), el.index('z'))
+        if el.name == b'vertex':
+            vindices = vindices_x, vindices_y, vindices_z = (el.index(b'x'), el.index(b'y'), el.index(b'z'))
             # noindices = (el.index('nx'), el.index('ny'), el.index('nz'))
             # if -1 in noindices: noindices = None
-            uvindices = (el.index('s'), el.index('t'))
+            uvindices = (el.index(b's'), el.index(b't'))
             if -1 in uvindices:
                 uvindices = None
-            colindices = (el.index('red'), el.index('green'), el.index('blue'))
+            colindices = (el.index(b'red'), el.index(b'green'), el.index(b'blue'))
             if -1 in colindices:
                 colindices = None
-        elif el.name == 'face':
-            findex = el.index('vertex_indices')
+        elif el.name == b'face':
+            findex = el.index(b'vertex_indices')
 
     mesh_faces = []
     mesh_uvs = []
@@ -271,10 +258,10 @@ def load_ply(filepath):
 
             add_face_simple(vertices, indices, uvindices, colindices)
 
-    verts = obj['vertex']
+    verts = obj[b'vertex']
 
-    if 'face' in obj:
-        for f in obj['face']:
+    if b'face' in obj:
+        for f in obj[b'face']:
             ind = f[findex]
             len_ind = len(ind)
             if len_ind <= 4:
@@ -288,9 +275,9 @@ def load_ply(filepath):
 
     mesh = bpy.data.meshes.new(name=ply_name)
 
-    mesh.vertices.add(len(obj['vertex']))
+    mesh.vertices.add(len(obj[b'vertex']))
 
-    mesh.vertices.foreach_set("co", [a for v in obj['vertex'] for a in (v[vindices_x], v[vindices_y], v[vindices_z])])
+    mesh.vertices.foreach_set("co", [a for v in obj[b'vertex'] for a in (v[vindices_x], v[vindices_y], v[vindices_z])])
 
     if mesh_faces:
         mesh.faces.add(len(mesh_faces))
@@ -306,7 +293,7 @@ def load_ply(filepath):
                 for i, f in enumerate(uvlay.data):
                     ply_uv = mesh_uvs[i]
                     for j, uv in enumerate(f.uv):
-                        uv[:] = ply_uv[j]
+                        uv[0], uv[1] = ply_uv[j]
 
             if colindices:
                 for i, f in enumerate(vcol_lay.data):
