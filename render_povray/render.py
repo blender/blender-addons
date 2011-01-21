@@ -1503,10 +1503,37 @@ class PovrayRender(bpy.types.RenderEngine):
             import winreg
             regKey = winreg.OpenKey(winreg.HKEY_CURRENT_USER, 'Software\\POV-Ray\\v3.7\\Windows')
 
+            #64 bits blender 
             if bitness == 64:
-                pov_binary = winreg.QueryValueEx(regKey, 'Home')[0] + '\\bin\\pvengine64'
+                try:
+                    pov_binary = winreg.QueryValueEx(regKey, 'Home')[0] + '\\bin\\pvengine64'
+                except OSError:
+                    # someone might run povray 32 bits on a 64 bits blender machine
+                    try:
+                        pov_binary = winreg.QueryValueEx(regKey, 'Home')[0] + '\\bin\\pvengine'
+                    except OSError:
+                        print("POV-Ray 3.7: could not execute '%s', possibly POV-Ray isn't installed" % pov_binary)
+                    else:
+                        print("POV-Ray 3.7 64 bits could not execute, running 32 bits instead")
+                else:
+                    print("POV-Ray 3.7 64 bits found")
+                    
+                        
+            #32 bits blender            
             else:
-                pov_binary = winreg.QueryValueEx(regKey, 'Home')[0] + '\\bin\\pvengine'
+                try:
+                    pov_binary = winreg.QueryValueEx(regKey, 'Home')[0] + '\\bin\\pvengine'
+                # someone might also run povray 64 bits with a 32 bits build of blender. 
+                except OSError:
+                    try:
+                        pov_binary = winreg.QueryValueEx(regKey, 'Home')[0] + '\\bin\\pvengine64'
+                    except OSError:
+                        print("POV-Ray 3.7: could not execute '%s', possibly POV-Ray isn't installed" % pov_binary)
+                    else:
+                        print("Running POV-Ray 3.7 64 bits build with 32 bits Blender, \nYou might want to run Blender 64 bits as well.")
+                else:
+                    print("POV-Ray 3.7 32 bits found")
+                    
         else:
             # DH - added -d option to prevent render window popup which leads to segfault on linux
             extra_args.append('-d')
