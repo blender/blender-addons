@@ -39,7 +39,7 @@ from mathutils.geometry import tesselate_polygon
 from io_utils import load_image, unpack_list, unpack_face_list
 
 
-def BPyMesh_ngon(from_data, indices, PREF_FIX_LOOPS= True):
+def BPyMesh_ngon(from_data, indices, PREF_FIX_LOOPS=True):
     '''
     Takes a polyline of indices (fgon)
     and returns a list of face indicie lists.
@@ -50,16 +50,19 @@ def BPyMesh_ngon(from_data, indices, PREF_FIX_LOOPS= True):
     PREF_FIX_LOOPS: If this is enabled polylines that use loops to make multiple polylines are delt with correctly.
     '''
 
-    if not set: # Need sets for this, otherwise do a normal fill.
-        PREF_FIX_LOOPS= False
+    if not set:  # Need sets for this, otherwise do a normal fill.
+        PREF_FIX_LOOPS = False
 
-    Vector= mathutils.Vector
+    Vector = mathutils.Vector
     if not indices:
         return []
 
     #    return []
-    def rvec(co): return round(co.x, 6), round(co.y, 6), round(co.z, 6)
-    def mlen(co): return abs(co[0])+abs(co[1])+abs(co[2]) # manhatten length of a vector, faster then length
+    def rvec(co):
+        return round(co.x, 6), round(co.y, 6), round(co.z, 6)
+
+    def mlen(co):
+        return abs(co[0]) + abs(co[1]) + abs(co[2])  # manhatten length of a vector, faster then length
 
     def vert_treplet(v, i):
         return v, rvec(v), i, mlen(v)
@@ -70,21 +73,20 @@ def BPyMesh_ngon(from_data, indices, PREF_FIX_LOOPS= True):
         else:
             return v1[1], v2[1]
 
-
     if not PREF_FIX_LOOPS:
         '''
         Normal single concave loop filling
         '''
         if type(from_data) in (tuple, list):
-            verts= [Vector(from_data[i]) for ii, i in enumerate(indices)]
+            verts = [Vector(from_data[i]) for ii, i in enumerate(indices)]
         else:
-            verts= [from_data.vertices[i].co for ii, i in enumerate(indices)]
+            verts = [from_data.vertices[i].co for ii, i in enumerate(indices)]
 
-        for i in range(len(verts)-1, 0, -1): # same as reversed(xrange(1, len(verts))):
-            if verts[i][1]==verts[i-1][0]:
-                verts.pop(i-1)
+        for i in range(len(verts) - 1, 0, -1):  # same as reversed(xrange(1, len(verts))):
+            if verts[i][1] == verts[i - 1][0]:
+                verts.pop(i - 1)
 
-        fill= fill_polygon([verts])
+        fill = fill_polygon([verts])
 
     else:
         '''
@@ -93,23 +95,22 @@ def BPyMesh_ngon(from_data, indices, PREF_FIX_LOOPS= True):
         '''
 
         if type(from_data) in (tuple, list):
-            verts= [vert_treplet(Vector(from_data[i]), ii) for ii, i in enumerate(indices)]
+            verts = [vert_treplet(Vector(from_data[i]), ii) for ii, i in enumerate(indices)]
         else:
-            verts= [vert_treplet(from_data.vertices[i].co, ii) for ii, i in enumerate(indices)]
+            verts = [vert_treplet(from_data.vertices[i].co, ii) for ii, i in enumerate(indices)]
 
-        edges= [(i, i-1) for i in range(len(verts))]
+        edges = [(i, i - 1) for i in range(len(verts))]
         if edges:
-            edges[0]= (0,len(verts)-1)
+            edges[0] = (0, len(verts) - 1)
 
         if not verts:
             return []
 
-
-        edges_used= set()
-        edges_doubles= set()
+        edges_used = set()
+        edges_doubles = set()
         # We need to check if any edges are used twice location based.
         for ed in edges:
-            edkey= ed_key_mlen(verts[ed[0]], verts[ed[1]])
+            edkey = ed_key_mlen(verts[ed[0]], verts[ed[1]])
             if edkey in edges_used:
                 edges_doubles.add(edkey)
             else:
@@ -117,118 +118,117 @@ def BPyMesh_ngon(from_data, indices, PREF_FIX_LOOPS= True):
 
         # Store a list of unconnected loop segments split by double edges.
         # will join later
-        loop_segments= []
+        loop_segments = []
 
-        v_prev= verts[0]
-        context_loop= [v_prev]
-        loop_segments= [context_loop]
+        v_prev = verts[0]
+        context_loop = [v_prev]
+        loop_segments = [context_loop]
 
         for v in verts:
-            if v!=v_prev:
+            if v != v_prev:
                 # Are we crossing an edge we removed?
                 if ed_key_mlen(v, v_prev) in edges_doubles:
-                    context_loop= [v]
+                    context_loop = [v]
                     loop_segments.append(context_loop)
                 else:
-                    if context_loop and context_loop[-1][1]==v[1]:
+                    if context_loop and context_loop[-1][1] == v[1]:
                         #raise "as"
                         pass
                     else:
                         context_loop.append(v)
 
-                v_prev= v
+                v_prev = v
         # Now join loop segments
 
-        def join_seg(s1,s2):
-            if s2[-1][1]==s1[0][1]: #
-                s1,s2= s2,s1
-            elif s1[-1][1]==s2[0][1]:
+        def join_seg(s1, s2):
+            if s2[-1][1] == s1[0][1]:
+                s1, s2 = s2, s1
+            elif s1[-1][1] == s2[0][1]:
                 pass
             else:
                 return False
 
             # If were stuill here s1 and s2 are 2 segments in the same polyline
-            s1.pop() # remove the last vert from s1
-            s1.extend(s2) # add segment 2 to segment 1
+            s1.pop()  # remove the last vert from s1
+            s1.extend(s2)  # add segment 2 to segment 1
 
-            if s1[0][1]==s1[-1][1]: # remove endpoints double
+            if s1[0][1] == s1[-1][1]:  # remove endpoints double
                 s1.pop()
 
-            s2[:]= [] # Empty this segment s2 so we dont use it again.
+            s2[:] = []  # Empty this segment s2 so we dont use it again.
             return True
 
-        joining_segments= True
+        joining_segments = True
         while joining_segments:
-            joining_segments= False
-            segcount= len(loop_segments)
+            joining_segments = False
+            segcount = len(loop_segments)
 
-            for j in range(segcount-1, -1, -1): #reversed(range(segcount)):
-                seg_j= loop_segments[j]
+            for j in range(segcount - 1, -1, -1):  # reversed(range(segcount)):
+                seg_j = loop_segments[j]
                 if seg_j:
-                    for k in range(j-1, -1, -1): # reversed(range(j)):
+                    for k in range(j - 1, -1, -1):  # reversed(range(j)):
                         if not seg_j:
                             break
-                        seg_k= loop_segments[k]
+                        seg_k = loop_segments[k]
 
                         if seg_k and join_seg(seg_j, seg_k):
-                            joining_segments= True
+                            joining_segments = True
 
-        loop_list= loop_segments
+        loop_list = loop_segments
 
         for verts in loop_list:
-            while verts and verts[0][1]==verts[-1][1]:
+            while verts and verts[0][1] == verts[-1][1]:
                 verts.pop()
 
-        loop_list= [verts for verts in loop_list if len(verts)>2]
+        loop_list = [verts for verts in loop_list if len(verts) > 2]
         # DONE DEALING WITH LOOP FIXING
 
-
         # vert mapping
-        vert_map= [None]*len(indices)
-        ii=0
+        vert_map = [None] * len(indices)
+        ii = 0
         for verts in loop_list:
-            if len(verts)>2:
+            if len(verts) > 2:
                 for i, vert in enumerate(verts):
-                    vert_map[i+ii]= vert[2]
-                ii+=len(verts)
+                    vert_map[i + ii] = vert[2]
+                ii += len(verts)
 
-        fill= tesselate_polygon([ [v[0] for v in loop] for loop in loop_list ])
+        fill = tesselate_polygon([[v[0] for v in loop] for loop in loop_list])
         #draw_loops(loop_list)
         #raise 'done loop'
         # map to original indices
-        fill= [[vert_map[i] for i in reversed(f)] for f in fill]
-
+        fill = [[vert_map[i] for i in reversed(f)] for f in fill]
 
     if not fill:
         print('Warning Cannot scanfill, fallback on a triangle fan.')
-        fill= [ [0, i-1, i] for i in range(2, len(indices)) ]
+        fill = [[0, i - 1, i] for i in range(2, len(indices))]
     else:
         # Use real scanfill.
         # See if its flipped the wrong way.
-        flip= None
+        flip = None
         for fi in fill:
             if flip != None:
                 break
             for i, vi in enumerate(fi):
-                if vi==0 and fi[i-1]==1:
-                    flip= False
+                if vi == 0 and fi[i - 1] == 1:
+                    flip = False
                     break
-                elif vi==1 and fi[i-1]==0:
-                    flip= True
+                elif vi == 1 and fi[i - 1] == 0:
+                    flip = True
                     break
 
         if not flip:
             for i, fi in enumerate(fill):
-                fill[i]= tuple([ii for ii in reversed(fi)])
+                fill[i] = tuple([ii for ii in reversed(fi)])
 
     return fill
+
 
 def line_value(line_split):
     '''
     Returns 1 string represneting the value for this line
     None will be returned if theres only 1 word
     '''
-    length= len(line_split)
+    length = len(line_split)
     if length == 1:
         return None
 
@@ -236,12 +236,12 @@ def line_value(line_split):
         return line_split[1]
 
     elif length > 2:
-        return ' '.join( line_split[1:] )
+        return ' '.join(line_split[1:])
 
 
 def obj_image_load(imagepath, DIR, IMAGE_SEARCH):
     if '_' in imagepath:
-        image= load_image(imagepath.replace('_', ' '), DIR)
+        image = load_image(imagepath.replace('_', ' '), DIR)
         if image:
             return image
 
@@ -275,14 +275,14 @@ def create_materials(filepath, material_libs, unique_materials, unique_material_
     Create all the used materials in this obj,
     assign colors and images to the materials from all referenced material libs
     '''
-    DIR= os.path.dirname(filepath)
+    DIR = os.path.dirname(filepath)
 
     #==================================================================================#
     # This function sets textures defined in .mtl file                                 #
     #==================================================================================#
     def load_material_image(blender_material, context_material_name, imagepath, type):
 
-        texture= bpy.data.textures.new(name=type, type='IMAGE')
+        texture = bpy.data.textures.new(name=type, type='IMAGE')
 
         # Absolute path - c:\.. etc would work here
         image = obj_image_load(imagepath, DIR, IMAGE_SEARCH)
@@ -316,7 +316,7 @@ def create_materials(filepath, material_libs, unique_materials, unique_material_
 
             # adds textures to faces (Textured/Alt-Z mode)
             # Only apply the diffuse texture to the face if the image has not been set with the inline usemat func.
-            unique_material_images[context_material_name]= image, has_data # set the texface image
+            unique_material_images[context_material_name] = image, has_data  # set the texface image
 
         elif type == 'Ka':
             mtex = blender_material.texture_slots.add()
@@ -352,43 +352,42 @@ def create_materials(filepath, material_libs, unique_materials, unique_material_
             mtex.texture_coords = 'UV'
             mtex.use_map_reflect = True
 
-
     # Add an MTL with the same name as the obj if no MTLs are spesified.
     temp_mtl = os.path.splitext((os.path.basename(filepath)))[0] + '.mtl'
 
     if os.path.exists(os.path.join(DIR, temp_mtl)) and temp_mtl not in material_libs:
-        material_libs.append( temp_mtl )
+        material_libs.append(temp_mtl)
     del temp_mtl
 
     #Create new materials
-    for name in unique_materials: # .keys()
+    for name in unique_materials:  # .keys()
         if name != None:
-            unique_materials[name]= bpy.data.materials.new(name)
-            unique_material_images[name]= None, False # assign None to all material images to start with, add to later.
+            unique_materials[name] = bpy.data.materials.new(name)
+            unique_material_images[name] = None, False  # assign None to all material images to start with, add to later.
 
-    unique_materials[None]= None
-    unique_material_images[None]= None, False
+    unique_materials[None] = None
+    unique_material_images[None] = None, False
 
     for libname in material_libs:
-        mtlpath= os.path.join(DIR, libname)
+        mtlpath = os.path.join(DIR, libname)
         if not os.path.exists(mtlpath):
             print ("\tError Missing MTL: '%s'" % mtlpath)
         else:
             #print '\t\tloading mtl: "%s"' % mtlpath
-            context_material= None
-            mtl= open(mtlpath, 'rU')
-            for line in mtl: #.xreadlines():
+            context_material = None
+            mtl = open(mtlpath, 'rU')
+            for line in mtl:  # .readlines():
                 if line.startswith('newmtl'):
-                    context_material_name= line_value(line.split())
+                    context_material_name = line_value(line.split())
                     if context_material_name in unique_materials:
-                        context_material = unique_materials[ context_material_name ]
+                        context_material = unique_materials[context_material_name]
                     else:
                         context_material = None
 
                 elif context_material:
                     # we need to make a material to assign properties to it.
-                    line_split= line.split()
-                    line_lower= line.lower().lstrip()
+                    line_split = line.split()
+                    line_lower = line.lower().lstrip()
                     if line_lower.startswith('ka'):
                         context_material.mirror_color = float(line_split[1]), float(line_split[2]), float(line_split[3])
                     elif line_lower.startswith('kd'):
@@ -397,40 +396,38 @@ def create_materials(filepath, material_libs, unique_materials, unique_material_
                         context_material.specular_color = float(line_split[1]), float(line_split[2]), float(line_split[3])
                     elif line_lower.startswith('ns'):
                         context_material.specular_hardness = int((float(line_split[1]) * 0.51))
-                    elif line_lower.startswith('ni'): # Refraction index
+                    elif line_lower.startswith('ni'):  # Refraction index
                         context_material.raytrace_transparency.ior = max(1, min(float(line_split[1]), 3))  # between 1 and 3
                     elif line_lower.startswith('d') or line_lower.startswith('tr'):
                         context_material.alpha = float(line_split[1])
                         context_material.use_transparency = True
                         context_material.transparency_method = 'Z_TRANSPARENCY'
                     elif line_lower.startswith('map_ka'):
-                        img_filepath= line_value(line.split())
+                        img_filepath = line_value(line.split())
                         if img_filepath:
                             load_material_image(context_material, context_material_name, img_filepath, 'Ka')
                     elif line_lower.startswith('map_ks'):
-                        img_filepath= line_value(line.split())
+                        img_filepath = line_value(line.split())
                         if img_filepath:
                             load_material_image(context_material, context_material_name, img_filepath, 'Ks')
                     elif line_lower.startswith('map_kd'):
-                        img_filepath= line_value(line.split())
+                        img_filepath = line_value(line.split())
                         if img_filepath:
                             load_material_image(context_material, context_material_name, img_filepath, 'Kd')
                     elif line_lower.startswith('map_bump'):
-                        img_filepath= line_value(line.split())
+                        img_filepath = line_value(line.split())
                         if img_filepath:
                             load_material_image(context_material, context_material_name, img_filepath, 'Bump')
                     elif line_lower.startswith('map_d') or line_lower.startswith('map_tr'):  # Alpha map - Dissolve
-                        img_filepath= line_value(line.split())
+                        img_filepath = line_value(line.split())
                         if img_filepath:
                             load_material_image(context_material, context_material_name, img_filepath, 'D')
 
                     elif line_lower.startswith('refl'):  # reflectionmap
-                        img_filepath= line_value(line.split())
+                        img_filepath = line_value(line.split())
                         if img_filepath:
                             load_material_image(context_material, context_material_name, img_filepath, 'refl')
             mtl.close()
-
-
 
 
 def split_mesh(verts_loc, faces, unique_materials, filepath, SPLIT_OB_OR_GROUP):
@@ -448,45 +445,45 @@ def split_mesh(verts_loc, faces, unique_materials, filepath, SPLIT_OB_OR_GROUP):
     def key_to_name(key):
         # if the key is a tuple, join it to make a string
         if not key:
-            return filename # assume its a string. make sure this is true if the splitting code is changed
+            return filename  # assume its a string. make sure this is true if the splitting code is changed
         else:
             return key
 
     # Return a key that makes the faces unique.
-    face_split_dict= {}
+    face_split_dict = {}
 
-    oldkey= -1 # initialize to a value that will never match the key
+    oldkey = -1  # initialize to a value that will never match the key
 
     for face in faces:
-        key= face[4]
+        key = face[4]
 
         if oldkey != key:
             # Check the key has changed.
             try:
-                verts_split, faces_split, unique_materials_split, vert_remap= face_split_dict[key]
+                verts_split, faces_split, unique_materials_split, vert_remap = face_split_dict[key]
             except KeyError:
-                faces_split= []
-                verts_split= []
-                unique_materials_split= {}
-                vert_remap= [-1]*len(verts_loc)
+                faces_split = []
+                verts_split = []
+                unique_materials_split = {}
+                vert_remap = [-1] * len(verts_loc)
 
-                face_split_dict[key]= (verts_split, faces_split, unique_materials_split, vert_remap)
+                face_split_dict[key] = (verts_split, faces_split, unique_materials_split, vert_remap)
 
-            oldkey= key
+            oldkey = key
 
-        face_vert_loc_indices= face[0]
+        face_vert_loc_indices = face[0]
 
         # Remap verts to new vert list and add where needed
         for enum, i in enumerate(face_vert_loc_indices):
             if vert_remap[i] == -1:
-                new_index= len(verts_split)
-                vert_remap[i]= new_index # set the new remapped index so we only add once and can reference next time.
-                face_vert_loc_indices[enum] = new_index # remap to the local index
-                verts_split.append( verts_loc[i] ) # add the vert to the local verts
+                new_index = len(verts_split)
+                vert_remap[i] = new_index  # set the new remapped index so we only add once and can reference next time.
+                face_vert_loc_indices[enum] = new_index  # remap to the local index
+                verts_split.append(verts_loc[i])  # add the vert to the local verts
             else:
-                face_vert_loc_indices[enum] = vert_remap[i] # remap to the local index
+                face_vert_loc_indices[enum] = vert_remap[i]  # remap to the local index
 
-            matname= face[2]
+            matname = face[2]
             if matname and matname not in unique_materials_split:
                 unique_materials_split[matname] = unique_materials[matname]
 
@@ -502,39 +499,39 @@ def create_mesh(new_objects, has_ngons, CREATE_FGONS, CREATE_EDGES, verts_loc, v
     deals with fgons, sharp edges and assigning materials
     '''
     if not has_ngons:
-        CREATE_FGONS= False
+        CREATE_FGONS = False
 
     if unique_smooth_groups:
-        sharp_edges= {}
+        sharp_edges = {}
         smooth_group_users = {context_smooth_group: {} for context_smooth_group in list(unique_smooth_groups.keys())}
-        context_smooth_group_old= -1
+        context_smooth_group_old = -1
 
     # Split fgons into tri's
-    fgon_edges= {} # Used for storing fgon keys
+    fgon_edges = {}  # Used for storing fgon keys
     if CREATE_EDGES:
-        edges= []
+        edges = []
 
-    context_object= None
+    context_object = None
 
     # reverse loop through face indices
-    for f_idx in range(len(faces)-1, -1, -1):
+    for f_idx in range(len(faces) - 1, -1, -1):
 
         face_vert_loc_indices,\
         face_vert_tex_indices,\
         context_material,\
         context_smooth_group,\
-        context_object= faces[f_idx]
+        context_object = faces[f_idx]
 
         len_face_vert_loc_indices = len(face_vert_loc_indices)
 
-        if len_face_vert_loc_indices==1:
-            faces.pop(f_idx)# cant add single vert faces
+        if len_face_vert_loc_indices == 1:
+            faces.pop(f_idx)  # cant add single vert faces
 
-        elif not face_vert_tex_indices or len_face_vert_loc_indices == 2: # faces that have no texture coords are lines
+        elif not face_vert_tex_indices or len_face_vert_loc_indices == 2:  # faces that have no texture coords are lines
             if CREATE_EDGES:
                 # generators are better in python 2.4+ but can't be used in 2.3
                 # edges.extend( (face_vert_loc_indices[i], face_vert_loc_indices[i+1]) for i in xrange(len_face_vert_loc_indices-1) )
-                edges.extend( [(face_vert_loc_indices[i], face_vert_loc_indices[i+1]) for i in range(len_face_vert_loc_indices-1)] )
+                edges.extend([(face_vert_loc_indices[i], face_vert_loc_indices[i + 1]) for i in range(len_face_vert_loc_indices - 1)])
 
             faces.pop(f_idx)
         else:
@@ -543,27 +540,28 @@ def create_mesh(new_objects, has_ngons, CREATE_FGONS, CREATE_EDGES, verts_loc, v
             if unique_smooth_groups and context_smooth_group:
                 # Is a part of of a smooth group and is a face
                 if context_smooth_group_old is not context_smooth_group:
-                    edge_dict= smooth_group_users[context_smooth_group]
-                    context_smooth_group_old= context_smooth_group
+                    edge_dict = smooth_group_users[context_smooth_group]
+                    context_smooth_group_old = context_smooth_group
 
                 for i in range(len_face_vert_loc_indices):
-                    i1= face_vert_loc_indices[i]
-                    i2= face_vert_loc_indices[i-1]
-                    if i1>i2: i1,i2= i2,i1
+                    i1 = face_vert_loc_indices[i]
+                    i2 = face_vert_loc_indices[i - 1]
+                    if i1 > i2:
+                        i1, i2 = i2, i1
 
                     try:
-                        edge_dict[i1,i2]+= 1
+                        edge_dict[i1, i2] += 1
                     except KeyError:
-                        edge_dict[i1,i2]=  1
+                        edge_dict[i1, i2] = 1
 
             # FGons into triangles
             if has_ngons and len_face_vert_loc_indices > 4:
 
-                ngon_face_indices= BPyMesh_ngon(verts_loc, face_vert_loc_indices)
+                ngon_face_indices = BPyMesh_ngon(verts_loc, face_vert_loc_indices)
                 faces.extend(
                     [(
-                    [face_vert_loc_indices[ngon[0]], face_vert_loc_indices[ngon[1]], face_vert_loc_indices[ngon[2]] ],
-                    [face_vert_tex_indices[ngon[0]], face_vert_tex_indices[ngon[1]], face_vert_tex_indices[ngon[2]] ],
+                    [face_vert_loc_indices[ngon[0]], face_vert_loc_indices[ngon[1]], face_vert_loc_indices[ngon[2]]],
+                    [face_vert_tex_indices[ngon[0]], face_vert_tex_indices[ngon[1]], face_vert_tex_indices[ngon[2]]],
                     context_material,
                     context_smooth_group,
                     context_object)
@@ -572,43 +570,42 @@ def create_mesh(new_objects, has_ngons, CREATE_FGONS, CREATE_EDGES, verts_loc, v
 
                 # edges to make fgons
                 if CREATE_FGONS:
-                    edge_users= {}
+                    edge_users = {}
                     for ngon in ngon_face_indices:
-                        for i in (0,1,2):
-                            i1= face_vert_loc_indices[ngon[i  ]]
-                            i2= face_vert_loc_indices[ngon[i-1]]
-                            if i1>i2: i1,i2= i2,i1
+                        for i in (0, 1, 2):
+                            i1 = face_vert_loc_indices[ngon[i]]
+                            i2 = face_vert_loc_indices[ngon[i - 1]]
+                            if i1 > i2:
+                                i1, i2 = i2, i1
 
                             try:
-                                edge_users[i1,i2]+=1
+                                edge_users[i1, i2] += 1
                             except KeyError:
-                                edge_users[i1,i2]= 1
+                                edge_users[i1, i2] = 1
 
                     for key, users in edge_users.items():
-                        if users>1:
-                            fgon_edges[key]= None
+                        if users > 1:
+                            fgon_edges[key] = None
 
                 # remove all after 3, means we dont have to pop this one.
                 faces.pop(f_idx)
-
 
     # Build sharp edges
     if unique_smooth_groups:
         for edge_dict in list(smooth_group_users.values()):
             for key, users in list(edge_dict.items()):
-                if users==1: # This edge is on the boundry of a group
-                    sharp_edges[key]= None
-
+                if users == 1:  # This edge is on the boundry of a group
+                    sharp_edges[key] = None
 
     # map the material names to an index
-    material_mapping = {name: i for i, name in enumerate(unique_materials)} # enumerate over unique_materials keys()
+    material_mapping = {name: i for i, name in enumerate(unique_materials)}  # enumerate over unique_materials keys()
 
-    materials= [None] * len(unique_materials)
+    materials = [None] * len(unique_materials)
 
     for name, index in list(material_mapping.items()):
-        materials[index]= unique_materials[name]
+        materials[index] = unique_materials[name]
 
-    me= bpy.data.meshes.new(dataname)
+    me = bpy.data.meshes.new(dataname)
 
     # make sure the list isnt too big
     for material in materials:
@@ -628,14 +625,14 @@ def create_mesh(new_objects, has_ngons, CREATE_FGONS, CREATE_EDGES, verts_loc, v
     if verts_tex and me.faces:
         me.uv_textures.new()
 
-    context_material_old= -1 # avoid a dict lookup
-    mat= 0 # rare case it may be un-initialized.
-    me_faces= me.faces
+    context_material_old = -1  # avoid a dict lookup
+    mat = 0  # rare case it may be un-initialized.
+    me_faces = me.faces
 
     for i, face in enumerate(faces):
         if len(face[0]) < 2:
-            pass #raise "bad face"
-        elif len(face[0])==2:
+            pass  # raise "bad face"
+        elif len(face[0]) == 2:
             if CREATE_EDGES:
                 edges.append(face[0])
         else:
@@ -646,50 +643,47 @@ def create_mesh(new_objects, has_ngons, CREATE_FGONS, CREATE_EDGES, verts_loc, v
                 face_vert_tex_indices,\
                 context_material,\
                 context_smooth_group,\
-                context_object= face
-
-
+                context_object = face
 
                 if context_smooth_group:
                     blender_face.use_smooth = True
 
                 if context_material:
                     if context_material_old is not context_material:
-                        mat= material_mapping[context_material]
-                        context_material_old= context_material
+                        mat = material_mapping[context_material]
+                        context_material_old = context_material
 
-                    blender_face.material_index= mat
+                    blender_face.material_index = mat
 #                     blender_face.mat= mat
-
 
                 if verts_tex:
 
-                    blender_tface= me.uv_textures[0].data[i]
+                    blender_tface = me.uv_textures[0].data[i]
 
                     if context_material:
                         image, has_data = unique_material_images[context_material]
-                        if image: # Can be none if the material dosnt have an image.
+                        if image:  # Can be none if the material dosnt have an image.
                             blender_tface.image = image
                             blender_tface.use_image = True
                             if has_data and image.depth == 32:
                                 blender_tface.blend_type = 'ALPHA'
 
                     # BUG - Evil eekadoodle problem where faces that have vert index 0 location at 3 or 4 are shuffled.
-                    if len(face_vert_loc_indices)==4:
-                        if face_vert_loc_indices[2]==0 or face_vert_loc_indices[3]==0:
-                            face_vert_tex_indices= face_vert_tex_indices[2], face_vert_tex_indices[3], face_vert_tex_indices[0], face_vert_tex_indices[1]
-                    else: # length of 3
-                        if face_vert_loc_indices[2]==0:
-                            face_vert_tex_indices= face_vert_tex_indices[1], face_vert_tex_indices[2], face_vert_tex_indices[0]
+                    if len(face_vert_loc_indices) == 4:
+                        if face_vert_loc_indices[2] == 0 or face_vert_loc_indices[3] == 0:
+                            face_vert_tex_indices = face_vert_tex_indices[2], face_vert_tex_indices[3], face_vert_tex_indices[0], face_vert_tex_indices[1]
+                    else:  # length of 3
+                        if face_vert_loc_indices[2] == 0:
+                            face_vert_tex_indices = face_vert_tex_indices[1], face_vert_tex_indices[2], face_vert_tex_indices[0]
                     # END EEEKADOODLE FIX
 
                     # assign material, uv's and image
-                    blender_tface.uv1= verts_tex[face_vert_tex_indices[0]]
-                    blender_tface.uv2= verts_tex[face_vert_tex_indices[1]]
-                    blender_tface.uv3= verts_tex[face_vert_tex_indices[2]]
+                    blender_tface.uv1 = verts_tex[face_vert_tex_indices[0]]
+                    blender_tface.uv2 = verts_tex[face_vert_tex_indices[1]]
+                    blender_tface.uv3 = verts_tex[face_vert_tex_indices[2]]
 
-                    if len(face_vert_loc_indices)==4:
-                        blender_tface.uv4= verts_tex[face_vert_tex_indices[3]]
+                    if len(face_vert_loc_indices) == 4:
+                        blender_tface.uv4 = verts_tex[face_vert_tex_indices[3]]
 
 #                     for ii, uv in enumerate(blender_face.uv):
 #                         uv.x, uv.y=  verts_tex[face_vert_tex_indices[ii]]
@@ -745,7 +739,7 @@ def create_mesh(new_objects, has_ngons, CREATE_FGONS, CREATE_EDGES, verts_loc, v
     me.update(calc_edges=CREATE_EDGES)
 #     me.calcNormals()
 
-    ob= bpy.data.objects.new("Mesh", me)
+    ob = bpy.data.objects.new("Mesh", me)
     new_objects.append(ob)
 
     # Create the vertex groups. No need to have the flag passed here since we test for the
@@ -785,21 +779,21 @@ def create_nurbs(context_nurbs, vert_loc, new_objects):
     cu.dimensions = '3D'
 
     nu = cu.splines.new('NURBS')
-    nu.points.add(len(curv_idx) - 1) # a point is added to start with
+    nu.points.add(len(curv_idx) - 1)  # a point is added to start with
     nu.points.foreach_set("co", [co_axis for vt_idx in curv_idx for co_axis in (vert_loc[vt_idx] + (1.0,))])
 
     nu.order_u = deg[0] + 1
 
     # get for endpoint flag from the weighting
-    if curv_range and len(parm_u) > deg[0]+1:
+    if curv_range and len(parm_u) > deg[0] + 1:
         do_endpoints = True
-        for i in range(deg[0]+1):
+        for i in range(deg[0] + 1):
 
-            if abs(parm_u[i]-curv_range[0]) > 0.0001:
+            if abs(parm_u[i] - curv_range[0]) > 0.0001:
                 do_endpoints = False
                 break
 
-            if abs(parm_u[-(i+1)]-curv_range[1]) > 0.0001:
+            if abs(parm_u[-(i + 1)] - curv_range[1]) > 0.0001:
                 do_endpoints = False
                 break
 
@@ -808,7 +802,6 @@ def create_nurbs(context_nurbs, vert_loc, new_objects):
 
     if do_endpoints:
         nu.use_endpoint_u = True
-
 
     # close
     '''
@@ -824,21 +817,20 @@ def create_nurbs(context_nurbs, vert_loc, new_objects):
     if do_closed:
         nu.use_cyclic_u = True
     '''
-    
-    ob= bpy.data.objects.new("Nurb", cu)
+
+    ob = bpy.data.objects.new("Nurb", cu)
 
     new_objects.append(ob)
 
 
 def strip_slash(line_split):
-    if line_split[-1][-1]== '\\':
-        if len(line_split[-1])==1:
-            line_split.pop() # remove the \ item
+    if line_split[-1][-1] == "\\":
+        if len(line_split[-1]) == 1:
+            line_split.pop()  # remove the \ item
         else:
-            line_split[-1]= line_split[-1][:-1] # remove the \ from the end last number
+            line_split[-1] = line_split[-1][:-1]  # remove the \ from the end last number
         return True
     return False
-
 
 
 def get_float_func(filepath):
@@ -846,10 +838,10 @@ def get_float_func(filepath):
     find the float function for this obj file
     - whether to replace commas or not
     '''
-    file= open(filepath, 'rU')
-    for line in file: #.xreadlines():
+    file = open(filepath, 'rU')
+    for line in file:  # .readlines():
         line = line.lstrip()
-        if line.startswith('v'): # vn vt v
+        if line.startswith('v'):  # vn vt v
             if ',' in line:
                 return lambda f: float(f.replace(',', '.'))
             elif '.' in line:
@@ -858,14 +850,15 @@ def get_float_func(filepath):
     # incase all vert values were ints
     return float
 
+
 def load(operator, context, filepath,
-         CLAMP_SIZE= 0.0,
-         CREATE_FGONS= True,
-         CREATE_SMOOTH_GROUPS= True,
-         CREATE_EDGES= True,
-         SPLIT_OBJECTS= True,
-         SPLIT_GROUPS= True,
-         ROTATE_X90= True,
+         CLAMP_SIZE=0.0,
+         CREATE_FGONS=True,
+         CREATE_SMOOTH_GROUPS=True,
+         CREATE_EDGES=True,
+         SPLIT_OBJECTS=True,
+         SPLIT_GROUPS=True,
+         ROTATE_X90=True,
          IMAGE_SEARCH=True,
          POLYGROUPS=False):
     '''
@@ -879,63 +872,62 @@ def load(operator, context, filepath,
     if SPLIT_OBJECTS or SPLIT_GROUPS:
         POLYGROUPS = False
 
-    time_main= time.time()
-#     time_main= sys.time()
+    time_main = time.time()
 
-    verts_loc= []
-    verts_tex= []
-    faces= [] # tuples of the faces
-    material_libs= [] # filanems to material libs this uses
-    vertex_groups = {} # when POLYGROUPS is true
+    verts_loc = []
+    verts_tex = []
+    faces = []  # tuples of the faces
+    material_libs = []  # filanems to material libs this uses
+    vertex_groups = {}  # when POLYGROUPS is true
 
     # Get the string to float conversion func for this file- is 'float' for almost all files.
-    float_func= get_float_func(filepath)
+    float_func = get_float_func(filepath)
 
     # Context variables
-    context_material= None
-    context_smooth_group= None
-    context_object= None
+    context_material = None
+    context_smooth_group = None
+    context_object = None
     context_vgroup = None
 
     # Nurbs
     context_nurbs = {}
     nurbs = []
-    context_parm = '' # used by nurbs too but could be used elsewhere
+    context_parm = ''  # used by nurbs too but could be used elsewhere
 
-    has_ngons= False
+    has_ngons = False
     # has_smoothgroups= False - is explicit with len(unique_smooth_groups) being > 0
 
     # Until we can use sets
-    unique_materials= {}
-    unique_material_images= {}
-    unique_smooth_groups= {}
+    unique_materials = {}
+    unique_material_images = {}
+    unique_smooth_groups = {}
     # unique_obects= {} - no use for this variable since the objects are stored in the face.
 
     # when there are faces that end with \
     # it means they are multiline-
     # since we use xreadline we cant skip to the next line
     # so we need to know whether
-    context_multi_line= ''
+    context_multi_line = ""
 
     print("\tparsing obj file...")
-    time_sub= time.time()
+    time_sub = time.time()
 #     time_sub= sys.time()
 
-    file= open(filepath, 'rU')
-    for line in file: #.xreadlines():
-        line = line.lstrip() # rare cases there is white space at the start of the line
+    file = open(filepath, 'rU')
+    for line in file:  # .readlines():
+        line = line.lstrip()  # rare cases there is white space at the start of the line
 
-        if line.startswith('v '):
-            line_split= line.split()
+        if line.startswith("v "):
+            line_split = line.split()
             # rotate X90: (x,-z,y)
-            verts_loc.append( (float_func(line_split[1]), -float_func(line_split[3]), float_func(line_split[2])) )
+            verts_loc.append((float_func(line_split[1]), -float_func(line_split[3]), float_func(line_split[2])))
 
-        elif line.startswith('vn '):
+        elif line.startswith("vn "):
             pass
 
-        elif line.startswith('vt '):
-            line_split= line.split()
-            verts_tex.append( (float_func(line_split[1]), float_func(line_split[2])) )
+        elif line.startswith("vt "):
+            line_split = line.split()
+            verts_tex.append((float_func(line_split[1]), float_func(line_split[2])))
 
         # Handel faces lines (as faces) and the second+ lines of fa multiline face here
         # use 'f' not 'f ' because some objs (very rare have 'fo ' for faces)
@@ -943,12 +935,12 @@ def load(operator, context, filepath,
 
             if context_multi_line:
                 # use face_vert_loc_indices and face_vert_tex_indices previously defined and used the obj_face
-                line_split= line.split()
+                line_split = line.split()
 
             else:
-                line_split= line[2:].split()
-                face_vert_loc_indices= []
-                face_vert_tex_indices= []
+                line_split = line[2:].split()
+                face_vert_loc_indices = []
+                face_vert_tex_indices = []
 
                 # Instance a face
                 faces.append((\
@@ -965,9 +957,9 @@ def load(operator, context, filepath,
                 context_multi_line = ''
 
             for v in line_split:
-                obj_vert= v.split('/')
+                obj_vert = v.split('/')
 
-                vert_loc_index= int(obj_vert[0])-1
+                vert_loc_index = int(obj_vert[0]) - 1
                 # Add the vertex to the current group
                 # *warning*, this wont work for files that have groups defined around verts
                 if    POLYGROUPS and context_vgroup:
@@ -975,18 +967,18 @@ def load(operator, context, filepath,
 
                 # Make relative negative vert indices absolute
                 if vert_loc_index < 0:
-                    vert_loc_index= len(verts_loc) + vert_loc_index + 1
+                    vert_loc_index = len(verts_loc) + vert_loc_index + 1
 
                 face_vert_loc_indices.append(vert_loc_index)
 
-                if len(obj_vert)>1 and obj_vert[1]:
+                if len(obj_vert) > 1 and obj_vert[1]:
                     # formatting for faces with normals and textures us
                     # loc_index/tex_index/nor_index
 
-                    vert_tex_index= int(obj_vert[1])-1
+                    vert_tex_index = int(obj_vert[1]) - 1
                     # Make relative negative vert indices absolute
                     if vert_tex_index < 0:
-                        vert_tex_index= len(verts_tex) + vert_tex_index + 1
+                        vert_tex_index = len(verts_tex) + vert_tex_index + 1
 
                     face_vert_tex_indices.append(vert_tex_index)
                 else:
@@ -994,19 +986,19 @@ def load(operator, context, filepath,
                     face_vert_tex_indices.append(0)
 
             if len(face_vert_loc_indices) > 4:
-                has_ngons= True
+                has_ngons = True
 
         elif CREATE_EDGES and (line.startswith('l ') or context_multi_line == 'l'):
             # very similar to the face load function above with some parts removed
 
             if context_multi_line:
                 # use face_vert_loc_indices and face_vert_tex_indices previously defined and used the obj_face
-                line_split= line.split()
+                line_split = line.split()
 
             else:
-                line_split= line[2:].split()
-                face_vert_loc_indices= []
-                face_vert_tex_indices= []
+                line_split = line[2:].split()
+                face_vert_loc_indices = []
+                face_vert_tex_indices = []
 
                 # Instance a face
                 faces.append((\
@@ -1022,33 +1014,33 @@ def load(operator, context, filepath,
             else:
                 context_multi_line = ''
 
-            isline= line.startswith('l')
+            isline = line.startswith('l')
 
             for v in line_split:
-                vert_loc_index= int(v)-1
+                vert_loc_index = int(v) - 1
 
                 # Make relative negative vert indices absolute
                 if vert_loc_index < 0:
-                    vert_loc_index= len(verts_loc) + vert_loc_index + 1
+                    vert_loc_index = len(verts_loc) + vert_loc_index + 1
 
                 face_vert_loc_indices.append(vert_loc_index)
 
         elif line.startswith('s'):
             if CREATE_SMOOTH_GROUPS:
-                context_smooth_group= line_value(line.split())
-                if context_smooth_group=='off':
-                    context_smooth_group= None
-                elif context_smooth_group: # is not None
-                    unique_smooth_groups[context_smooth_group]= None
+                context_smooth_group = line_value(line.split())
+                if context_smooth_group == 'off':
+                    context_smooth_group = None
+                elif context_smooth_group:  # is not None
+                    unique_smooth_groups[context_smooth_group] = None
 
         elif line.startswith('o'):
             if SPLIT_OBJECTS:
-                context_object= line_value(line.split())
+                context_object = line_value(line.split())
                 # unique_obects[context_object]= None
 
         elif line.startswith('g'):
             if SPLIT_GROUPS:
-                context_object= line_value(line.split())
+                context_object = line_value(line.split())
                 # print 'context_object', context_object
                 # unique_obects[context_object]= None
             elif POLYGROUPS:
@@ -1056,48 +1048,47 @@ def load(operator, context, filepath,
                 if context_vgroup and context_vgroup != '(null)':
                     vertex_groups.setdefault(context_vgroup, [])
                 else:
-                    context_vgroup = None # dont assign a vgroup
+                    context_vgroup = None  # dont assign a vgroup
 
         elif line.startswith('usemtl'):
-            context_material= line_value(line.split())
-            unique_materials[context_material]= None
-        elif line.startswith('mtllib'): # usemap or usemat
-            material_libs = list(set(material_libs) | set(line.split()[1:])) # can have multiple mtllib filenames per line, mtllib can appear more than once, so make sure only occurance of material exists
+            context_material = line_value(line.split())
+            unique_materials[context_material] = None
+        elif line.startswith('mtllib'):  # usemap or usemat
+            material_libs = list(set(material_libs) | set(line.split()[1:]))  # can have multiple mtllib filenames per line, mtllib can appear more than once, so make sure only occurance of material exists
 
             # Nurbs support
         elif line.startswith('cstype '):
-            context_nurbs['cstype']= line_value(line.split()) # 'rat bspline' / 'bspline'
+            context_nurbs['cstype'] = line_value(line.split())  # 'rat bspline' / 'bspline'
         elif line.startswith('curv ') or context_multi_line == 'curv':
-            line_split= line.split()
+            line_split = line.split()
 
-            curv_idx = context_nurbs['curv_idx'] = context_nurbs.get('curv_idx', []) # incase were multiline
+            curv_idx = context_nurbs['curv_idx'] = context_nurbs.get('curv_idx', [])  # incase were multiline
 
             if not context_multi_line:
                 context_nurbs['curv_range'] = float_func(line_split[1]), float_func(line_split[2])
-                line_split[0:3] = [] # remove first 3 items
+                line_split[0:3] = []  # remove first 3 items
 
             if strip_slash(line_split):
                 context_multi_line = 'curv'
             else:
                 context_multi_line = ''
 
-
             for i in line_split:
-                vert_loc_index = int(i)-1
+                vert_loc_index = int(i) - 1
 
                 if vert_loc_index < 0:
-                    vert_loc_index= len(verts_loc) + vert_loc_index + 1
+                    vert_loc_index = len(verts_loc) + vert_loc_index + 1
 
                 curv_idx.append(vert_loc_index)
 
         elif line.startswith('parm') or context_multi_line == 'parm':
-            line_split= line.split()
+            line_split = line.split()
 
             if context_multi_line:
                 context_multi_line = ''
             else:
                 context_parm = line_split[1]
-                line_split[0:2] = [] # remove first 2
+                line_split[0:2] = []  # remove first 2
 
             if strip_slash(line_split):
                 context_multi_line = 'parm'
@@ -1105,13 +1096,13 @@ def load(operator, context, filepath,
                 context_multi_line = ''
 
             if context_parm.lower() == 'u':
-                context_nurbs.setdefault('parm_u', []).extend( [float_func(f) for f in line_split] )
-            elif context_parm.lower() == 'v': # surfaces not suported yet
-                context_nurbs.setdefault('parm_v', []).extend( [float_func(f) for f in line_split] )
+                context_nurbs.setdefault('parm_u', []).extend([float_func(f) for f in line_split])
+            elif context_parm.lower() == 'v':  # surfaces not suported yet
+                context_nurbs.setdefault('parm_v', []).extend([float_func(f) for f in line_split])
             # else: # may want to support other parm's ?
 
         elif line.startswith('deg '):
-            context_nurbs['deg']= [int(i) for i in line.split()[1:]]
+            context_nurbs['deg'] = [int(i) for i in line.split()[1:]]
         elif line.startswith('end'):
             # Add the nurbs curve
             if context_object:
@@ -1126,19 +1117,16 @@ def load(operator, context, filepath,
         '''
 
     file.close()
-    time_new= time.time()
-#     time_new= sys.time()
-    print('%.4f sec' % (time_new-time_sub))
-    time_sub= time_new
-
+    time_new = time.time()
+    print("%.4f sec" % (time_new - time_sub))
+    time_sub = time_new
 
     print('\tloading materials and images...')
     create_materials(filepath, material_libs, unique_materials, unique_material_images, IMAGE_SEARCH)
 
-    time_new= time.time()
-#     time_new= sys.time()
-    print('%.4f sec' % (time_new-time_sub))
-    time_sub= time_new
+    time_new = time.time()
+    print("%.4f sec" % (time_new - time_sub))
+    time_sub = time_new
 
     if not ROTATE_X90:
         verts_loc[:] = [(v[0], v[2], -v[1]) for v in verts_loc]
@@ -1148,12 +1136,14 @@ def load(operator, context, filepath,
 
     scene = context.scene
 #     scn.objects.selected = []
-    new_objects= [] # put new objects here
+    new_objects = []  # put new objects here
 
-    print('\tbuilding geometry...\n\tverts:%i faces:%i materials: %i smoothgroups:%i ...' % ( len(verts_loc), len(faces), len(unique_materials), len(unique_smooth_groups) ))
+    print('\tbuilding geometry...\n\tverts:%i faces:%i materials: %i smoothgroups:%i ...' % (len(verts_loc), len(faces), len(unique_materials), len(unique_smooth_groups)))
     # Split the mesh by objects/materials, may
-    if SPLIT_OBJECTS or SPLIT_GROUPS:    SPLIT_OB_OR_GROUP = True
-    else:                                SPLIT_OB_OR_GROUP = False
+    if SPLIT_OBJECTS or SPLIT_GROUPS:
+        SPLIT_OB_OR_GROUP = True
+    else:
+        SPLIT_OB_OR_GROUP = False
 
     for verts_loc_split, faces_split, unique_materials_split, dataname in split_mesh(verts_loc, faces, unique_materials, filepath, SPLIT_OB_OR_GROUP):
         # Create meshes from the data, warning 'vertex_groups' wont support splitting
@@ -1170,9 +1160,8 @@ def load(operator, context, filepath,
 
     scene.update()
 
-
-    axis_min= [ 1000000000]*3
-    axis_max= [-1000000000]*3
+    axis_min = [1000000000] * 3
+    axis_max = [-1000000000] * 3
 
 #     if CLAMP_SIZE:
 #         # Get all object bounds
@@ -1197,10 +1186,9 @@ def load(operator, context, filepath,
     #    for ob in new_objects:
     #        ob.RotX = -1.570796326794896558
 
-    time_new= time.time()
-#    time_new= sys.time()
+    time_new = time.time()
 
-    print('finished importing: %r in %.4f sec.' % (filepath, (time_new-time_main)))
+    print("finished importing: %r in %.4f sec." % (filepath, (time_new - time_main)))
     return {'FINISHED'}
 
 
