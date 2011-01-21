@@ -22,9 +22,9 @@
 bl_info = {
     'name': 'Icons',
     'author': 'Crouch, N.tox, PKHG, Campbell Barton, Dany Lebel',
-    'version': (1, 4, 2),
-    'blender': (2, 5, 6),
-    'api': 33928,
+    'version': (1, 5, 0),
+    'blender': (2, 5, 7),
+    'api': 34404,
     'location': 'Text window > Properties panel (ctrl+F) or '\
         'Console > Console menu',
     'warning': '',
@@ -34,16 +34,22 @@ bl_info = {
         'Py/Scripts/System/Display_All_Icons',
     'tracker_url': 'http://projects.blender.org/tracker/index.php?'\
         'func=detail&aid=22011',
-    'category': 'System'}
+    'category': 'Development'}
 
 
 import bpy
 
 
 def create_icon_list():
-    list = bpy.types.UILayout.bl_rna.functions['prop'].\
-        parameters['icon'].items.keys()
-    list.remove("BLENDER")
+    props = bpy.context.scene.icon_props
+    keys = bpy.types.UILayout.bl_rna.functions['prop'].parameters['icon'].\
+        items.keys()
+    if props.search == '':
+        list = keys
+    else:
+        list = [key for key in keys if props.search.lower() in key.lower()]
+    if "BLENDER" in list:
+        list.remove("BLENDER")
     return list
 
 
@@ -67,6 +73,18 @@ class WM_OT_icon_info(bpy.types.Operator):
         return {'FINISHED'}
 
 
+class WM_OT_icon_prop_update(bpy.types.Operator):
+    bl_label = "Icon Search"
+    bl_description = "Update icon_prop values"
+    
+    def execute(self, context):
+        props = context.scene.icon_props
+        # set old values to new values
+        props.search_old = props.search
+        
+        return {'FINISHED'}
+
+
 class OBJECT_PT_icons(bpy.types.Panel):
     bl_space_type = "TEXT_EDITOR"
     bl_region_type = "UI"
@@ -77,37 +95,72 @@ class OBJECT_PT_icons(bpy.types.Panel):
         self.icon_list = create_icon_list()
     
     def draw(self, context):
-        box = self.layout.box()
+        props = context.scene.icon_props
+        # polling for updates
+        if props.search != props.search_old:
+            bpy.ops.wm.icon_prop_update()
+            self.icon_list = create_icon_list()
+            # adjusting max value of scroller
+            IconProps.scroll = bpy.props.IntProperty(default=1, min=1,
+                max=max(1, len(self.icon_list) - self.amount + 1),
+                description="Drag to scroll icons")
         
+        box = self.layout.box()
         # scroll view
-        if not context.scene.icon_props.expand:
-            row = box.row()
-            row.prop(context.scene.icon_props, "expand",
-                icon="TRIA_RIGHT", icon_only=True, emboss=False)
-            row.prop(context.scene.icon_props, "scroll")
-
+        if not props.expand:
+            # expand button
+            toprow = box.row()
+            toprow.prop(props, "expand", icon="TRIA_RIGHT", icon_only=True,
+                emboss=False)
+            # search buttons
+            row = toprow.row(align=True)
+            row.prop(props, "search", icon="VIEWZOOM")
+            # scroll button
+            row = toprow.row()
+            row.active = props.bl_rna.scroll[1]['max'] > 1
+            row.prop(props, "scroll")
+            
+            # icons
             row = box.row(align=True)
-            for icon in self.icon_list[context.scene.icon_props.scroll-1:
-            context.scene.icon_props.scroll-1+self.amount]:
-                row.operator("wm.icon_info", text=" ", icon=icon,
-                    emboss=False).icon = icon
+            if len(self.icon_list) == 0:
+                row.label("No icons found")
+            else:
+                for icon in self.icon_list[props.scroll-1:
+                props.scroll-1+self.amount]:
+                    row.operator("wm.icon_info", text=" ", icon=icon,
+                        emboss=False).icon = icon
+                if len(self.icon_list) < self.amount:
+                    for i in range(self.amount - len(self.icon_list) \
+                    % self.amount):
+                        row.label("")
         
         # expanded view
         else:
-            row = box.row()
-            row.prop(context.scene.icon_props, "expand",
-                icon="TRIA_DOWN", icon_only=True, emboss=False)
-            row = row.row()
+            # expand button
+            toprow = box.row()
+            toprow.prop(props, "expand", icon="TRIA_DOWN", icon_only=True,
+                emboss=False)
+            # search buttons
+            row = toprow.row(align=True)
+            row.prop(props, "search", icon="VIEWZOOM")
+            # scroll button
+            row = toprow.row()
             row.active = False
-            row.prop(context.scene.icon_props, "scroll")
-
+            row.prop(props, "scroll")
+            
+            # icons
             col = box.column(align=True)
-            row = col.row(align=True)
-            for i, icon in enumerate(self.icon_list):
-                if i % self.amount == 0:
-                    row = col.row(align=True)
-                row.operator("wm.icon_info", text=" ", icon=icon,
-                    emboss=False).icon = icon
+            if len(self.icon_list) == 0:
+                row.label("No icons found")
+            else:
+                for i, icon in enumerate(self.icon_list):
+                    if i % self.amount == 0:
+                        row = col.row(align=True)
+                    row.operator("wm.icon_info", text=" ", icon=icon,
+                        emboss=False).icon = icon
+                for i in range(self.amount - len(self.icon_list) \
+                % self.amount):
+                    row.label("")
 
 
 class CONSOLE_HT_icons(bpy.types.Header):
@@ -118,18 +171,37 @@ class CONSOLE_HT_icons(bpy.types.Header):
         self.icon_list = create_icon_list()
     
     def draw(self, context):
+        props = context.scene.icon_props
+        # polling for updates
+        if props.search != props.search_old:
+            bpy.ops.wm.icon_prop_update()
+            self.icon_list = create_icon_list()
+            # adjusting max value of scroller
+            IconProps.scroll = bpy.props.IntProperty(default=1, min=1,
+                max=max(1, len(self.icon_list) - self.amount + 1),
+                description="Drag to scroll icons")
+        
         # scroll view
-        if context.scene.icon_props.console:
+        if props.console:
             layout = self.layout
             layout.separator()
+            # search buttons
             row = layout.row()
-            row.prop(context.scene.icon_props, "scroll")
-            row = layout.row(align=True)
+            row.prop(props, "search", icon="VIEWZOOM")
+            # scroll button
+            row = layout.row()
+            row.active = props.bl_rna.scroll[1]['max'] > 1
+            row.prop(props, "scroll")
             
-            for icon in self.icon_list[context.scene.icon_props.scroll-1:
-            context.scene.icon_props.scroll-1+self.amount]:
-                row.operator("wm.icon_info", text="", icon=icon,
-                    emboss=False).icon = icon
+            # icons
+            row = layout.row(align=True)
+            if len(self.icon_list) == 0:
+                row.label("No icons found")
+            else:
+                for icon in self.icon_list[props.scroll-1:
+                props.scroll-1+self.amount]:
+                    row.operator("wm.icon_info", text="", icon=icon,
+                        emboss=False).icon = icon
 
 
 def menu_func(self, context):
@@ -137,17 +209,20 @@ def menu_func(self, context):
 
 
 def register():
-    icons_total = len(create_icon_list())
-    icons_per_row = 10
-    
     bpy.types.Scene.icon_props = bpy.props.PointerProperty(type = IconProps)
-    IconProps.console = bpy.props.BoolProperty(
-        name='Show System Icons',
+    IconProps.console = bpy.props.BoolProperty(name='Show System Icons',
         description='Display the Icons in the console header', default=False)
     IconProps.expand = bpy.props.BoolProperty(default=False,
         description="Expand, to display all icons at once")
+    IconProps.search = bpy.props.StringProperty(default="",
+        description = "Search for icons by name")
+    IconProps.search_old = bpy.props.StringProperty(default="",
+        description = "Used to keep track of changes in IconProps.search")
+    
+    icons_total = len(create_icon_list())
+    icons_per_row = 10
     IconProps.scroll = bpy.props.IntProperty(default=1, min=1,
-        max=icons_total - icons_per_row + 1,
+        max=max(1, icons_total - icons_per_row + 1),
         description="Drag to scroll icons")
     
     bpy.types.CONSOLE_MT_console.append(menu_func)
