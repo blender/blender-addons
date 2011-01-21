@@ -1410,8 +1410,9 @@ def write_pov_ini(filename_ini, filename_pov, filename_image):
     y = int(render.resolution_y * render.resolution_percentage * 0.01)
 
     file = open(filename_ini.name, 'w')
-    file.write("Input_File_Name='%s'\n" % filename_pov.name)
-    file.write("Output_File_Name='%s'\n" % filename_image.name)
+    file.write('Version=3.7\n')
+    file.write('Input_File_Name=\'%s\'\n' % filename_pov.name)
+    file.write('Output_File_Name=\'%s\'\n' % filename_image.name)
 
     file.write('Width=%d\n' % x)
     file.write('Height=%d\n' % y)
@@ -1437,15 +1438,18 @@ def write_pov_ini(filename_ini, filename_pov, filename_image):
         # aa_mapping = {'5': 2, '8': 3, '11': 4, '16': 5} # method 2 (recursive) with higher max subdiv forced because no mipmapping in POV-Ray needs higher sampling.
         method = {'0':1, '1':2}
         file.write('Antialias=on\n')
-        print("Method: " + str(scene.pov_antialias_method))
         file.write('Sampling_Method=%s\n' % method[scene.pov_antialias_method])
         file.write('Antialias_Depth=%d\n' % scene.pov_antialias_depth)
         file.write('Antialias_Threshold=%.3g\n' % scene.pov_antialias_threshold)
-        file.write('Jitter=off\n')#prevent animation flicker
+        file.write('Antialias_Gamma=%.3g\n' % scene.pov_antialias_gamma)
+        if scene.pov_jitter_enable:
+            file.write('Jitter=on\n')
+            file.write('Jitter_Amount=%3g\n' % scene.pov_jitter_amount)
+        else:
+            file.write('Jitter=off\n')#prevent animation flicker
  
     else:
         file.write('Antialias=off\n')
-    file.write('Version=3.7')
     #print('ini file closed %s' % file.closed)
     file.close()
     #print('ini file closed %s' % file.closed)

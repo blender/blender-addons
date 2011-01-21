@@ -303,12 +303,23 @@ class RENDER_PT_povray_antialias(RenderButtonsPanel, bpy.types.Panel):
         col = split.column()
         col.prop(scene, "pov_antialias_method", text="")
         col = split.column()
-       
+        col.prop(scene, "pov_jitter_enable", text="Jitter")
+      
         split = layout.split()
         col = split.column()
-        col.prop(scene, "pov_antialias_depth", text="Depth")
+        col.prop(scene, "pov_antialias_depth", text="AA Depth")
+        sub = split.column()
+        sub.prop(scene, "pov_jitter_amount", text="Jitter Amount")
+        if scene.pov_jitter_enable:
+            sub.enabled = True
+        else:
+            sub.enabled = False
+
+        split = layout.split()
         col = split.column()
-        col.prop(scene, "pov_antialias_threshold", text="Threshold")
+        col.prop(scene, "pov_antialias_threshold", text="AA Threshold")
+        col = split.column()
+        col.prop(scene, "pov_antialias_gamma", text="AA Gamma")    
         
         
 class RENDER_PT_povray_radiosity(RenderButtonsPanel, bpy.types.Panel):

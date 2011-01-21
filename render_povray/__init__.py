@@ -110,6 +110,18 @@ def register():
             name="Antialias Threshold", description="Tolerance for sub-pixels",
             min=0.0, max=1.0, soft_min=0.05, soft_max=0.5, default=0.1)
     
+    Scene.pov_jitter_enable = BoolProperty(
+            name="Jitter", description="Enable Jittering. Adds noise into the sampling process (it should be avoided to use jitter in animation).",
+            default=True)
+
+    Scene.pov_jitter_amount = FloatProperty(
+            name="Jitter Amount", description="Amount of jittering.",
+            min=0.0, max=1.0, soft_min=0.01, soft_max=1.0, default=1.0)
+    
+    Scene.pov_antialias_gamma = FloatProperty(
+            name="Antialias Gamma", description="POV-Ray compares gamma-adjusted values for super sampling. Antialias Gamma sets the Gamma before comparison.",
+            min=0.0, max=5.0, soft_min=0.01, soft_max=2.5, default=2.5)
+    
     Scene.pov_max_trace_level = IntProperty(
             name="Max Trace Level", description="Number of reflections/refractions allowed on ray path",
             min=1, max=256, default=5)
@@ -296,14 +308,17 @@ def unregister():
     del Scene.pov_media_color # MR
     del Scene.pov_baking_enable # MR
     del Scene.pov_max_trace_level # MR
-    del Scene.pov_antialias_enable # CR
-    del Scene.pov_antialias_method # CR 
-    del Scene.pov_antialias_depth # CR
-    del Scene.pov_antialias_threshold # CR
-    del Scene.pov_command_line_switches # CR
-    del Scene.pov_indentation_character # CR
-    del Scene.pov_indentation_spaces # CR
-    del Scene.pov_comments_enable # CR
+    del Scene.pov_antialias_enable  # CR
+    del Scene.pov_antialias_method  # CR 
+    del Scene.pov_antialias_depth  # CR
+    del Scene.pov_antialias_threshold  # CR
+    del Scene.pov_antialias_gamma  # CR
+    del Scene.pov_jitter_enable  # CR
+    del Scene.pov_jitter_amount  # CR
+    del Scene.pov_command_line_switches  # CR
+    del Scene.pov_indentation_character  # CR
+    del Scene.pov_indentation_spaces  # CR
+    del Scene.pov_comments_enable  # CR
     del Mat.pov_irid_enable # MR
     del Mat.pov_mirror_use_IOR # MR
     del Mat.pov_mirror_metallic # MR    
