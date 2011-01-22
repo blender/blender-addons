@@ -1463,14 +1463,13 @@ def write_pov_ini(filename_ini, filename_pov, filename_image):
     file.write("Width=%d\n" % x)
     file.write("Height=%d\n" % y)
 
-    # Needed for border render.
-    '''
-    file.write("Start_Column=%d\n" % part.x)
-    file.write("End_Column=%d\n" % (part.x+part.w))
+    # Border render.
+    if render.use_border:
+        file.write("Start_Column=%4g\n" % render.border_min_x)
+        file.write("End_Column=%4g\n" % (render.border_max_x))
 
-    file.write("Start_Row=%d\n" % (part.y))
-    file.write("End_Row=%d\n" % (part.y+part.h))
-    '''
+        file.write("Start_Row=%4g\n" % (render.border_min_y))
+        file.write("End_Row=%4g\n" % (render.border_max_y))
 
     file.write("Bounding_Method=2\n")  # The new automatic BSP is faster in most scenes
 
