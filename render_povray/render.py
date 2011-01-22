@@ -359,9 +359,9 @@ def write_pov(filename, scene=None, info_callback=None):
                     elif frontDiffuse == backDiffuse:
                         frontDiffuse = backDiffuse = 0.5  # Try to respect the user's 'intention' by comparing the two values but bringing the total back to one
                     elif frontDiffuse > backDiffuse:  # Let the highest value stay the highest value
-                        backDiffuse = 1 - (1 - frontDiffuse)  # XXX FIXME!
+                        backDiffuse = min(backDiffuse, (1.0 - frontDiffuse)) # clamps the sum below 1
                     else:
-                        frontDiffuse = 1 - (1 - backDiffuse)  # XXX FIXME!
+                        frontDiffuse = min(frontDiffuse, (1.0 - backDiffuse))
 
                 # map hardness between 0.0 and 1.0
                 roughness = ((1.0 - ((material.specular_hardness - 1.0) / 510.0)))
@@ -1256,7 +1256,7 @@ def write_pov(filename, scene=None, info_callback=None):
             #For simple flat background:
             if not world.use_sky_blend:
                 #Non fully transparent background could premultiply alpha and avoid anti-aliasing display issue:
-                if render.alpha_mode == 'PREMUL' or render.alpha_mode == 'PREMUL':  # XXX FIXME!
+                if render.alpha_mode == 'PREMUL':
                     tabWrite("background {rgbt<%.3g, %.3g, %.3g, 0.75>}\n" % (world.horizon_color[:]))
                 #Currently using no alpha with Sky option:
                 elif render.alpha_mode == 'SKY':
