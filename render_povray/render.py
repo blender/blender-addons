@@ -594,69 +594,69 @@ def write_pov(filename, scene=None, info_callback=None):
         
         for ob in metas:
             meta = ob.data
-            importance=ob.pov_importance_value              
 
-            tabWrite('blob {\n')
-            tabWrite('threshold %.4g\n' % meta.threshold)
+            # important because no elements will break parsing.
+            elements = [elem for elem in meta.elements if elem.type in ('BALL', 'ELLIPSOID')]
 
-            try:
-                material = meta.materials[0] # lame! - blender cant do enything else.
-            except:
-                material = None
+            if elements:
+                tabWrite('blob {\n')
+                tabWrite('threshold %.4g\n' % meta.threshold)
+                importance = ob.pov_importance_value
 
-            for elem in meta.elements:
+                try:
+                    material = meta.materials[0] # lame! - blender cant do enything else.
+                except:
+                    material = None
 
-                if elem.type not in ('BALL', 'ELLIPSOID'):
-                    continue # Not supported
+                for elem in elements:
+                    loc = elem.co
 
-                loc = elem.co
+                    stiffness = elem.stiffness
+                    if elem.use_negative:
+                        stiffness = - stiffness
 
-                stiffness = elem.stiffness
-                if elem.use_negative:
-                    stiffness = - stiffness
+                    if elem.type == 'BALL':
 
-                if elem.type == 'BALL':
+                        tabWrite('sphere { <%.6g, %.6g, %.6g>, %.4g, %.4g }\n' % (loc.x, loc.y, loc.z, elem.radius, stiffness))
 
-                    tabWrite('sphere { <%.6g, %.6g, %.6g>, %.4g, %.4g }\n' % (loc.x, loc.y, loc.z, elem.radius, stiffness))
+                        # After this wecould do something simple like...
+                        # 	'pigment {Blue} }'
+                        # except we'll write the color
 
-                    # After this wecould do something simple like...
-                    # 	'pigment {Blue} }'
-                    # except we'll write the color
+                    elif elem.type == 'ELLIPSOID':
+                        # location is modified by scale
+                        tabWrite('sphere { <%.6g, %.6g, %.6g>, %.4g, %.4g }\n' % (loc.x / elem.size_x, loc.y / elem.size_y, loc.z / elem.size_z, elem.radius, stiffness))
+                        tabWrite('scale <%.6g, %.6g, %.6g> \n' % (elem.size_x, elem.size_y, elem.size_z))
 
-                elif elem.type == 'ELLIPSOID':
-                    # location is modified by scale
-                    tabWrite('sphere { <%.6g, %.6g, %.6g>, %.4g, %.4g }\n' % (loc.x / elem.size_x, loc.y / elem.size_y, loc.z / elem.size_z, elem.radius, stiffness))
-                    tabWrite('scale <%.6g, %.6g, %.6g> \n' % (elem.size_x, elem.size_y, elem.size_z))
+                if material:
+                    diffuse_color = material.diffuse_color
 
-            if material:
-                diffuse_color = material.diffuse_color
+                    if material.use_transparency and material.transparency_method == 'RAYTRACE':
+                        trans = 1.0 - material.raytrace_transparency.filter
+                    else:
+                        trans = 0.0
 
-                if material.use_transparency and material.transparency_method == 'RAYTRACE':
-                    trans = 1.0 - material.raytrace_transparency.filter
+                    material_finish = materialNames[material.name]
+
+                    tabWrite('pigment {rgbft<%.3g, %.3g, %.3g, %.3g, %.3g>} \n' %(diffuse_color[0], diffuse_color[1], diffuse_color[2], 1.0 - material.alpha, trans, ))
+                    tabWrite('finish {%s}\n' % safety(material_finish, Level=2))
+                        
+
                 else:
-                    trans = 0.0
+                    tabWrite('pigment {rgb<1 1 1>} \n')
+                    tabWrite('finish {%s}\n' % (safety(DEF_MAT_NAME, Level=1)))		# Write the finish last.
 
-                material_finish = materialNames[material.name]
+                writeObjectMaterial(material)
 
-                tabWrite('pigment {rgbft<%.3g, %.3g, %.3g, %.3g, %.3g>} \n' %(diffuse_color[0], diffuse_color[1], diffuse_color[2], 1.0 - material.alpha, trans, ))
-                tabWrite('finish {%s}\n' % safety(material_finish, Level=2))
-                    
+                writeMatrix(global_matrix * ob.matrix_world)
+                #Importance for radiosity sampling added here: 
+                tabWrite('radiosity { \n')
+                tabWrite('importance %3g \n' % importance)
+                tabWrite('}\n')
+                
+                tabWrite('}\n') #End of Metaball block
 
-            else:
-                tabWrite('pigment {rgb<1 1 1>} \n')
-                tabWrite('finish {%s}\n' % (safety(DEF_MAT_NAME, Level=1)))		# Write the finish last.
-
-            writeObjectMaterial(material)
-
-            writeMatrix(global_matrix * ob.matrix_world)
-            #Importance for radiosity sampling added here: 
-            tabWrite('radiosity { \n')
-            tabWrite('importance %3g \n' % importance)
-            tabWrite('}\n')
-            
-            tabWrite('}\n') #End of Metaball block
-
-            if scene.pov_comments_enable and len(metas)>= 1: file.write('\n')
+                if scene.pov_comments_enable and len(metas)>= 1: file.write('\n')
 
     objectNames = {}
     DEF_OBJ_NAME = 'Default'
@@ -674,15 +674,18 @@ def write_pov(filename, scene=None, info_callback=None):
                 name_orig = DEF_OBJ_NAME
             name = objectNames[name_orig] = uniqueName(bpy.path.clean_name(name_orig), objectNames)
 #############################################
-            if ob.type in ('LAMP', 'CAMERA', 'EMPTY', 'META', 'ARMATURE', 'LATTICE', 'CURVE'):
+            if ob.type in ('LAMP', 'CAMERA', 'EMPTY', 'META', 'ARMATURE', 'LATTICE'):
                 continue
 
-            me = ob.data
-            importance=ob.pov_importance_value            
+            try:
+                me = ob.create_mesh(scene, True, 'RENDER')
+            except:
+                # happens when curves cant be made into meshes because of no-data
+                continue
+
+            importance = ob.pov_importance_value            
             me_materials = me.materials
             me_faces = me.faces[:]
-
-            me = ob.create_mesh(scene, True, 'RENDER')
 
             if not me or not me_faces:
                 continue
