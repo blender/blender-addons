@@ -16,6 +16,8 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
+# <pep8 compliant>
+
 import bpy
 
 # Use some of the existing buttons.
@@ -82,7 +84,6 @@ for member in dir(properties_data_lamp):
 del properties_data_lamp
 
 
-
 class RenderButtonsPanel():
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
@@ -93,6 +94,7 @@ class RenderButtonsPanel():
     def poll(cls, context):
         rd = context.scene.render
         return (rd.use_game_engine == False) and (rd.engine in cls.COMPAT_ENGINES)
+
 
 class MaterialButtonsPanel():
     bl_space_type = 'PROPERTIES'
@@ -106,6 +108,7 @@ class MaterialButtonsPanel():
         rd = context.scene.render
         return mat and (rd.use_game_engine == False) and (rd.engine in cls.COMPAT_ENGINES)
 
+
 class TextureButtonsPanel():
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
@@ -118,6 +121,7 @@ class TextureButtonsPanel():
         rd = context.scene.render
         return tex and (rd.use_game_engine == False) and (rd.engine in cls.COMPAT_ENGINES)
 
+
 class ObjectButtonsPanel():
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
@@ -129,7 +133,10 @@ class ObjectButtonsPanel():
         obj = context.object
         rd = context.scene.render
         return obj and (rd.use_game_engine == False) and (rd.engine in cls.COMPAT_ENGINES)
+
 ########################################MR######################################
+
+
 class MATERIAL_PT_povray_mirrorIOR(MaterialButtonsPanel, bpy.types.Panel):
     bl_label = "IOR Mirror"
     COMPAT_ENGINES = {'POVRAY_RENDER'}
@@ -153,8 +160,8 @@ class MATERIAL_PT_povray_mirrorIOR(MaterialButtonsPanel, bpy.types.Panel):
             row.label(text="The current Raytrace ")
             row = col.row()
             row.alignment = 'CENTER'
-            row.label(text="Transparency IOR is: "+str(mat.raytrace_transparency.ior))
-  
+            row.label(text="Transparency IOR is: " + str(mat.raytrace_transparency.ior))
+
 
 class MATERIAL_PT_povray_metallic(MaterialButtonsPanel, bpy.types.Panel):
     bl_label = "metallic Mirror"
@@ -171,6 +178,7 @@ class MATERIAL_PT_povray_metallic(MaterialButtonsPanel, bpy.types.Panel):
         mat = context.material
         layout.active = mat.pov_mirror_metallic
 
+
 class MATERIAL_PT_povray_conserve_energy(MaterialButtonsPanel, bpy.types.Panel):
     bl_label = "conserve energy"
     COMPAT_ENGINES = {'POVRAY_RENDER'}
@@ -186,6 +194,7 @@ class MATERIAL_PT_povray_conserve_energy(MaterialButtonsPanel, bpy.types.Panel):
         mat = context.material
         layout.active = mat.pov_conserve_energy
 
+
 class MATERIAL_PT_povray_iridescence(MaterialButtonsPanel, bpy.types.Panel):
     bl_label = "iridescence"
     COMPAT_ENGINES = {'POVRAY_RENDER'}
@@ -200,7 +209,7 @@ class MATERIAL_PT_povray_iridescence(MaterialButtonsPanel, bpy.types.Panel):
 
         mat = context.material
         layout.active = mat.pov_irid_enable
-        
+
         if mat.pov_irid_enable:
             split = layout.split()
 
@@ -214,14 +223,13 @@ class MATERIAL_PT_povray_caustics(MaterialButtonsPanel, bpy.types.Panel):
     bl_label = "Caustics"
     COMPAT_ENGINES = {'POVRAY_RENDER'}
 
-
     def draw_header(self, context):
         mat = context.material
 
         self.layout.prop(mat, "pov_caustics_enable", text="")
 
     def draw(self, context):
-        
+
         layout = self.layout
 
         mat = context.material
@@ -236,17 +244,15 @@ class MATERIAL_PT_povray_caustics(MaterialButtonsPanel, bpy.types.Panel):
 ##                mat.pov_fake_caustics = False
 ##                mat.pov_photons_refraction = False
 ##                mat.pov_photons_reflection = True
-            if mat.pov_refraction_type=="1":
+            if mat.pov_refraction_type == "1":
 ##                mat.pov_fake_caustics = True
 ##                mat.pov_photons_refraction = False
                 col.prop(mat, "pov_fake_caustics_power", slider=True)
-            elif mat.pov_refraction_type=="2":
+            elif mat.pov_refraction_type == "2":
 ##                mat.pov_fake_caustics = False
 ##                mat.pov_photons_refraction = True
                 col.prop(mat, "pov_photons_dispersion", slider=True)
             col.prop(mat, "pov_photons_reflection")
-                
-                
 
 ##            col.prop(mat, "pov_fake_caustics")
 ##            if mat.pov_fake_caustics:
@@ -261,6 +267,8 @@ class MATERIAL_PT_povray_caustics(MaterialButtonsPanel, bpy.types.Panel):
 ##            col.prop(mat, "pov_photons_reflection")
 ####TODO : MAKE THIS A real RADIO BUTTON (using EnumProperty?)
 ######################################EndMR#####################################
+
+
 class RENDER_PT_povray_global_settings(RenderButtonsPanel, bpy.types.Panel):
     bl_label = "Global Settings"
     COMPAT_ENGINES = {'POVRAY_RENDER'}
@@ -276,11 +284,12 @@ class RENDER_PT_povray_global_settings(RenderButtonsPanel, bpy.types.Panel):
 
         col = split.column()
         col.label(text="Command line switches:")
-        col.prop(scene, "pov_command_line_switches", text="" )
+        col.prop(scene, "pov_command_line_switches", text="")
         split = layout.split()
         col = split.column()
         col.prop(scene, "pov_max_trace_level", text="Ray Depth")
         col = split.column()
+
 
 class RENDER_PT_povray_antialias(RenderButtonsPanel, bpy.types.Panel):
     bl_label = "Anti-Aliasing"
@@ -304,7 +313,7 @@ class RENDER_PT_povray_antialias(RenderButtonsPanel, bpy.types.Panel):
         col.prop(scene, "pov_antialias_method", text="")
         col = split.column()
         col.prop(scene, "pov_jitter_enable", text="Jitter")
-      
+
         split = layout.split()
         col = split.column()
         col.prop(scene, "pov_antialias_depth", text="AA Depth")
@@ -319,9 +328,9 @@ class RENDER_PT_povray_antialias(RenderButtonsPanel, bpy.types.Panel):
         col = split.column()
         col.prop(scene, "pov_antialias_threshold", text="AA Threshold")
         col = split.column()
-        col.prop(scene, "pov_antialias_gamma", text="AA Gamma")    
-        
-        
+        col.prop(scene, "pov_antialias_gamma", text="AA Gamma")
+
+
 class RENDER_PT_povray_radiosity(RenderButtonsPanel, bpy.types.Panel):
     bl_label = "Radiosity"
     COMPAT_ENGINES = {'POVRAY_RENDER'}
@@ -373,6 +382,7 @@ class RENDER_PT_povray_radiosity(RenderButtonsPanel, bpy.types.Panel):
 
             col = split.column()
             col.prop(scene, "pov_radio_always_sample")
+
 
 class RENDER_PT_povray_media(RenderButtonsPanel, bpy.types.Panel):
     bl_label = "Atmosphere Media"
@@ -431,7 +441,7 @@ class RENDER_PT_povray_formatting(RenderButtonsPanel, bpy.types.Panel):
         col = split.column()
         col.prop(scene, "pov_indentation_character", text="Indent")
         col = split.column()
-        if scene.pov_indentation_character=="2": 
+        if scene.pov_indentation_character == "2":
             col.prop(scene, "pov_indentation_spaces", text="Spaces")
         split = layout.split()
         col = split.column()
@@ -458,6 +468,7 @@ class TEXTURE_PT_povray_tex_gamma(TextureButtonsPanel, bpy.types.Panel):
         col = split.column()
         col.prop(tex, "pov_tex_gamma_value", text="Gamma Value")
 
+
 class OBJECT_PT_povray_obj_importance(ObjectButtonsPanel, bpy.types.Panel):
     bl_label = "POV-Ray"
     COMPAT_ENGINES = {'POVRAY_RENDER'}
@@ -472,4 +483,3 @@ class OBJECT_PT_povray_obj_importance(ObjectButtonsPanel, bpy.types.Panel):
 
         col = split.column()
         col.prop(obj, "pov_importance_value", text="Importance")
-        
