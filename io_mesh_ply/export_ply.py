@@ -45,7 +45,7 @@ def save(operator, context, filepath="", use_modifiers=True, use_normals=True, u
     if not obj:
         raise Exception("Error, Select 1 active object")
 
-    file = open(filepath, 'w')
+    file = open(filepath, "w", encoding="utf8", newline="\n")
 
     if scene.objects.active:
         bpy.ops.object.mode_set(mode='OBJECT')

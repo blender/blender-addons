@@ -84,7 +84,7 @@ class x3d_class:
                 self.filepath = filepath[:-1]  # remove trailing z
 
         if self.file is None:
-            self.file = open(self.filepath, "w", encoding='utf8')
+            self.file = open(self.filepath, "w", encoding="utf8", newline="\n")
 
         self.bNav = 0
         self.nodeID = 0
@@ -357,7 +357,7 @@ class x3d_class:
 
             mesh_faces = mesh.faces[:]
             mesh_faces_materials = [f.material_index for f in mesh_faces]
-            
+
             if is_uv and True in mesh_materials_use_face_texture:
                 mesh_faces_image = [(fuv.image if (mesh_materials_use_face_texture[mesh_faces_materials[i]] and fuv.use_image) else mesh_material_images[mesh_faces_materials[i]]) for i, fuv in enumerate(mesh.uv_textures.active.data)]
                 mesh_faces_image_unique = set(mesh_faces_image)

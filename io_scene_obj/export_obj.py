@@ -59,7 +59,7 @@ def write_mtl(scene, filepath, copy_images, mtl_dict):
             rel = fn
         return rel
 
-    file = open(filepath, "w", encoding='utf8')
+    file = open(filepath, "w", encoding="utf8", newline="\n")
     file.write('# Blender MTL File: %r\n' % os.path.basename(bpy.data.filepath))
     file.write('# Material Count: %i\n' % len(mtl_dict))
     # Write material/image combinations we have used.
@@ -315,7 +315,7 @@ def write_file(filepath, objects, scene,
 #   time1 = sys.time()
 #   scn = Scene.GetCurrent()
 
-    file = open(filepath, "w")
+    file = open(filepath, "w", encoding="utf8", newline="\n")
 
     # Write Header
     file.write('# Blender v%s OBJ File: %r\n' % (bpy.app.version_string, os.path.basename(bpy.data.filepath)))

@@ -29,7 +29,7 @@ def write_armature(context, filepath, frame_start, frame_end, global_scale=1.0):
     from mathutils import Matrix, Vector, Euler
     from math import degrees
 
-    file = open(filepath, "w")
+    file = open(filepath, "w", encoding="utf8", newline="\n")
 
     obj = context.object
     arm = obj.data

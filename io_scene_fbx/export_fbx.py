@@ -549,7 +549,7 @@ def save(operator, context, filepath="",
     print('\nFBX export starting... %r' % filepath)
     start_time = time.clock()
     try:
-        file = open(filepath, 'w', encoding='utf8')
+        file = open(filepath, "w", encoding="utf8", newline="\n")
     except:
         return False
 
