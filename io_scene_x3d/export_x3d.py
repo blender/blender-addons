@@ -378,7 +378,11 @@ class x3d_class:
             for i, (material_index, image) in enumerate(zip(mesh_faces_materials, mesh_faces_image)):
                 face_groups[material_index, image].append(i)
 
-            for (material_index, image), face_group in face_groups.items():
+            # same as face_groups.items() but sorted so we can get predictable output.
+            face_groups_items = list(face_groups.items())
+            face_groups_items.sort(key=lambda m: (m[0][0], getattr(m[0][1], "name", "")))
+
+            for (material_index, image), face_group in face_groups_items:  # face_groups.items()
                 if face_group:
                     material = mesh_materials[material_index]
 
