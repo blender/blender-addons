@@ -62,8 +62,13 @@ def write_mtl(scene, filepath, copy_images, mtl_dict):
     file = open(filepath, "w", encoding="utf8", newline="\n")
     file.write('# Blender MTL File: %r\n' % os.path.basename(bpy.data.filepath))
     file.write('# Material Count: %i\n' % len(mtl_dict))
+
+    mtl_dict_values = list(mtl_dict.values())
+    mtl_dict_values.sort(key=lambda m: m[0])
+
     # Write material/image combinations we have used.
-    for key, (mtl_mat_name, mat, img) in mtl_dict.items():
+    # Using mtl_dict.values() directly gives un-pradictable order.
+    for mtl_mat_name, mat, img in mtl_dict_values:
 
         # Get the Blender data for the material and the image.
         # Having an image named None will make a bug, dont do it :)
