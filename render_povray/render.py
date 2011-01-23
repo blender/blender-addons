@@ -35,6 +35,8 @@ else:
 
 ##############################SF###########################
 ##############find image texture
+
+
 def splitExt(path):
     dotidx = path.rfind(".")
     if dotidx == -1:
@@ -42,7 +44,7 @@ def splitExt(path):
     else:
         return path[dotidx:].upper().replace(".", "")
 
-
+    
 def imageFormat(imgF):
     ext = ""
     ext_orig = splitExt(imgF)
@@ -69,7 +71,7 @@ def imageFormat(imgF):
 
     print(imgF)
     if not ext:
-        print(" WARNING: texture image  format not supported ")  # % (imgF , "")) #(ext_orig)))
+        print(" WARNING: texture image format not supported ")  # % (imgF , "")) #(ext_orig)))
 
     return ext
 
@@ -199,7 +201,7 @@ TabLevel = 0
 def write_pov(filename, scene=None, info_callback=None):
     import mathutils
     #file = filename
-    file = open(filename.name, "w")
+    file = open(filename, "w")
 
     # Only for testing
     if not scene:
@@ -326,6 +328,7 @@ def write_pov(filename, scene=None, info_callback=None):
         # Level=1 Means No specular nor Mirror reflection
         # Level=2 Means translation of spec and mir levels for when no map influences them
         # Level=3 Means Maximum Spec and Mirror
+
         def povHasnoSpecularMaps(Level):
             if Level == 1:
                 tabWrite("#declare %s = finish {" % safety(name, Level=1))
@@ -359,7 +362,7 @@ def write_pov(filename, scene=None, info_callback=None):
                     elif frontDiffuse == backDiffuse:
                         frontDiffuse = backDiffuse = 0.5  # Try to respect the user's 'intention' by comparing the two values but bringing the total back to one
                     elif frontDiffuse > backDiffuse:  # Let the highest value stay the highest value
-                        backDiffuse = min(backDiffuse, (1.0 - frontDiffuse)) # clamps the sum below 1
+                        backDiffuse = min(backDiffuse, (1.0 - frontDiffuse))  # clamps the sum below 1
                     else:
                         frontDiffuse = min(frontDiffuse, (1.0 - backDiffuse))
 
@@ -1455,10 +1458,10 @@ def write_pov_ini(filename_ini, filename_pov, filename_image):
     x = int(render.resolution_x * render.resolution_percentage * 0.01)
     y = int(render.resolution_y * render.resolution_percentage * 0.01)
 
-    file = open(filename_ini.name, "w")
+    file = open(filename_ini, "w")
     file.write("Version=3.7\n")
-    file.write("Input_File_Name='%s'\n" % filename_pov.name)
-    file.write("Output_File_Name='%s'\n" % filename_image.name)
+    file.write("Input_File_Name='%s'\n" % filename_pov)
+    file.write("Output_File_Name='%s'\n" % filename_image)
 
     file.write("Width=%d\n" % x)
     file.write("Height=%d\n" % y)
@@ -1505,20 +1508,26 @@ class PovrayRender(bpy.types.RenderEngine):
     bl_label = "POV-Ray 3.7"
     DELAY = 0.5
 
-    def _export(self, scene):
+    def _export(self, scene, povPath, renderImagePath):
         import tempfile
+        import os
 
-        # mktemp is Deprecated since version 2.3, replaced with NamedTemporaryFile() #CR
-        self._temp_file_in = tempfile.NamedTemporaryFile(suffix=".pov", delete=False)
-        self._temp_file_out = tempfile.NamedTemporaryFile(suffix=".png", delete=False)  # PNG with POV 3.7, can show the background color with alpha. In the long run using the POV-Ray interactive preview like bishop 3D could solve the preview for all formats.
-        #self._temp_file_out = tempfile.NamedTemporaryFile(suffix=".tga", delete=False)
-        self._temp_file_ini = tempfile.NamedTemporaryFile(suffix=".ini", delete=False)
-        '''
-        self._temp_file_in = "/test.pov"
-        self._temp_file_out = "/test.png"  # PNG with POV-Ray 3.7, can show the background color with alpha. In the long run using the POV-Ray interactive preview like bishop 3D could solve the preview for all formats.
-        #self._temp_file_out = "/test.tga"
-        self._temp_file_ini = "/test.ini"
-        '''
+        if scene.pov_tempfiles_enable:
+            self._temp_file_in = tempfile.NamedTemporaryFile(suffix=".pov", delete=False).name
+            self._temp_file_out = tempfile.NamedTemporaryFile(suffix=".png", delete=False).name  # PNG with POV 3.7, can show the background color with alpha. In the long run using the POV-Ray interactive preview like bishop 3D could solve the preview for all formats.
+            #self._temp_file_out = tempfile.NamedTemporaryFile(suffix=".tga", delete=False).name
+            self._temp_file_ini = tempfile.NamedTemporaryFile(suffix=".ini", delete=False).name
+        else:
+            self._temp_file_in = povPath + ".pov"
+            self._temp_file_out = renderImagePath + ".png"  # PNG with POV-Ray 3.7, can show the background color with alpha. In the long run using the POV-Ray interactive preview like bishop 3D could solve the preview for all formats.
+            #self._temp_file_out = renderImagePath + ".tga"
+            self._temp_file_ini = povPath + ".ini"
+            '''
+            self._temp_file_in = "/test.pov"
+            self._temp_file_out = "/test.png"  # PNG with POV-Ray 3.7, can show the background color with alpha. In the long run using the POV-Ray interactive preview like bishop 3D could solve the preview for all formats.
+            #self._temp_file_out = "/test.tga"
+            self._temp_file_ini = "/test.ini"
+            '''
 
         def info_callback(txt):
             self.update_stats("", "POV-Ray 3.7: " + txt)
@@ -1528,7 +1537,7 @@ class PovrayRender(bpy.types.RenderEngine):
     def _render(self, scene):
 
         try:
-            os.remove(self._temp_file_out.name)  # so as not to load the old file
+            os.remove(self._temp_file_out)  # so as not to load the old file
         except OSError:
             pass
 
@@ -1587,7 +1596,7 @@ class PovrayRender(bpy.types.RenderEngine):
         if 1:
             # TODO, when POV-Ray isn't found this gives a cryptic error, would be nice to be able to detect if it exists
             try:
-                self._process = subprocess.Popen([pov_binary, self._temp_file_ini.name] + extra_args)  # stdout=subprocess.PIPE, stderr=subprocess.PIPE
+                self._process = subprocess.Popen([pov_binary, self._temp_file_ini] + extra_args)  # stdout=subprocess.PIPE, stderr=subprocess.PIPE
             except OSError:
                 # TODO, report api
                 print("POV-Ray 3.7: could not execute '%s', possibly POV-Ray isn't installed" % pov_binary)
@@ -1598,37 +1607,27 @@ class PovrayRender(bpy.types.RenderEngine):
 
         else:
             # This works too but means we have to wait until its done
-            os.system("%s %s" % (pov_binary, self._temp_file_ini.name))
+            os.system("%s %s" % (pov_binary, self._temp_file_ini))
 
         # print ("***-DONE-***")
         return True
 
     def _cleanup(self):
         for f in (self._temp_file_in, self._temp_file_ini, self._temp_file_out):
-            #print("Name: %s" % f.name)
-            #print("File closed %s" % f.closed)
-            f.close()  # Why do I have to close them again? Without closeing the pov and ini files are not deletable. PNG is not closable!
             try:
-                os.unlink(f.name)
-                #os.remove(f.name)
+                os.unlink(f)
             except OSError:  # was that the proper error type?
-                #print("Couldn\'t remove/unlink TEMP file %s" % f.name)
+                #print("POV-Ray 3.7: could not remove/unlink TEMP file %s" % f.name)
                 pass
             #print("")
 
         self.update_stats("", "")
 
     def render(self, scene):
+        import tempfile
 
-        self.update_stats("", "POV-Ray 3.7: Exporting data from Blender")
-        self._export(scene)
-        self.update_stats("", "POV-Ray 3.7: Parsing File")
+        print("***INITIALIZING***")
 
-        if not self._render(scene):
-            self.update_stats("", "POV-Ray 3.7: Not found")
-            return
-
-        r = scene.render
 ##WIP output format
 ##        if r.file_format == 'OPENEXR':
 ##            fformat = 'EXR'
@@ -1638,12 +1637,99 @@ class PovrayRender(bpy.types.RenderEngine):
 ##            r.file_format = 'TARGA'
 ##            r.color_mode = 'RGBA'
 
+        blendSceneName = bpy.data.filepath.split(os.path.sep)[-1].split(".")[0]
+        povSceneName = ""
+        povPath = ""
+        renderImagePath = ""
+
+        if not scene.pov_tempfiles_enable:
+
+            # check paths
+            povPath = bpy.path.abspath(scene.pov_scene_path).replace('\\', '/')
+            if povPath == "":
+                if bpy.path.abspath("//") != "":
+                    povPath = bpy.path.abspath("//")
+                else:
+                    povPath = tempfile.gettempdir()
+            elif povPath.endswith("/"):
+                if povPath == "/":
+                    povPath = bpy.path.abspath("//")
+                else:
+                    povPath = bpy.path.abspath(scene.pov_scene_path)
+            if not os.path.exists(povPath):
+                print("POV-Ray 3.7: Cannot find scenes directory")
+                self.update_stats("", "POV-Ray 3.7: Cannot find scenes directory")
+                print("Path: " + povPath)
+                time.sleep(2.0)
+                return
+            
+            '''
+            # Bug in POV-Ray RC3
+            renderImagePath = bpy.path.abspath(scene.pov_renderimage_path).replace('\\','/')
+            if renderImagePath == "":
+                if bpy.path.abspath("//") != "":
+                    renderImagePath = bpy.path.abspath("//")
+                else:
+                    renderImagePath = tempfile.gettempdir()
+                #print("Path: " + renderImagePath)
+            elif path.endswith("/"):
+                if renderImagePath == "/":
+                    renderImagePath = bpy.path.abspath("//")
+                else:
+                    renderImagePath = bpy.path.abspath(scene.pov_renderimage_path)
+            if not os.path.exists(path):
+                print("POV-Ray 3.7: Cannot find render image directory")
+                self.update_stats("", "POV-Ray 3.7: Cannot find render image directory")
+                time.sleep(2.0)
+                return
+            '''
+
+            # check name
+            if scene.pov_scene_name == "":
+                if blendSceneName != "":
+                    povSceneName = blendSceneName
+                else:
+                    povSceneName = "untitled"
+            else:
+                povSceneName = scene.pov_scene_name
+                if os.path.isfile(povSceneName):
+                    povSceneName = os.path.basename(povSceneName)
+                povSceneName = povSceneName.split('/')[-1].split('\\')[-1]
+                if not povSceneName:
+                    print("POV-Ray 3.7: Invalid scene name")
+                    self.update_stats("", "POV-Ray 3.7: Invalid scene name")
+                    time.sleep(2.0)
+                    return
+                povSceneName = os.path.splitext(povSceneName)[0]
+
+            print("Scene name: " + povSceneName)
+            print("Export path: " + povPath)
+            povPath = povPath + "\\" + povSceneName
+            povPath = os.path.realpath(povPath)
+
+            # renderImagePath = renderImagePath + "\\" + povSceneName  # for now this has to be the same like the pov output. Bug in POV-Ray RC3.
+            renderImagePath = povPath  # Bugfix for POV-Ray RC3 bug
+            renderImagePath = os.path.realpath(renderImagePath)
+
+            #print("Export path: %s" % povPath)
+            #print("Render Image path: %s" % renderImagePath)
+
+        # start export
+        self.update_stats("", "POV-Ray 3.7: Exporting data from Blender")
+        self._export(scene, povPath, renderImagePath)
+        self.update_stats("", "POV-Ray 3.7: Parsing File")
+
+        if not self._render(scene):
+            self.update_stats("", "POV-Ray 3.7: Not found")
+            return
+
+        r = scene.render
         # compute resolution
         x = int(r.resolution_x * r.resolution_percentage * 0.01)
         y = int(r.resolution_y * r.resolution_percentage * 0.01)
 
         # Wait for the file to be created
-        while not os.path.exists(self._temp_file_out.name):
+        while not os.path.exists(self._temp_file_out):
             # print("***POV WAITING FOR FILE***")
             if self.test_break():
                 try:
@@ -1661,7 +1747,7 @@ class PovrayRender(bpy.types.RenderEngine):
 
             time.sleep(self.DELAY)
 
-        if os.path.exists(self._temp_file_out.name):
+        if os.path.exists(self._temp_file_out):
             # print("***POV FILE OK***")
             self.update_stats("", "POV-Ray 3.7: Rendering")
 
@@ -1673,7 +1759,7 @@ class PovrayRender(bpy.types.RenderEngine):
                 lay = result.layers[0]
                 # possible the image wont load early on.
                 try:
-                    lay.load_from_file(self._temp_file_out.name)
+                    lay.load_from_file(self._temp_file_out)
                 except SystemError:
                     pass
                 self.end_result(result)
@@ -1702,7 +1788,7 @@ class PovrayRender(bpy.types.RenderEngine):
                 # stdout_value, stderr_value = self._process.communicate() # locks
 
                 # check if the file updated
-                new_size = os.path.getsize(self._temp_file_out.name)
+                new_size = os.path.getsize(self._temp_file_out)
 
                 if new_size != prev_size:
                     update_image()
@@ -1714,4 +1800,5 @@ class PovrayRender(bpy.types.RenderEngine):
 
         print("***POV FINISHED***")
         #time.sleep(self.DELAY)
-        self._cleanup()
+        if scene.pov_deletefiles_enable:
+            self._cleanup()

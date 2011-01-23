@@ -25,7 +25,7 @@ import properties_render
 properties_render.RENDER_PT_render.COMPAT_ENGINES.add('POVRAY_RENDER')
 properties_render.RENDER_PT_dimensions.COMPAT_ENGINES.add('POVRAY_RENDER')
 # properties_render.RENDER_PT_antialiasing.COMPAT_ENGINES.add('POVRAY_RENDER')
-properties_render.RENDER_PT_shading.COMPAT_ENGINES.add('POVRAY_RENDER')
+properties_render.RENDER_PT_shading.COMPAT_ENGINES.add('POVRAY_RENDER')  # We don't use it right now. Should be implemented later.
 properties_render.RENDER_PT_output.COMPAT_ENGINES.add('POVRAY_RENDER')
 del properties_render
 
@@ -134,7 +134,204 @@ class ObjectButtonsPanel():
         rd = context.scene.render
         return obj and (rd.use_game_engine == False) and (rd.engine in cls.COMPAT_ENGINES)
 
-########################################MR######################################
+
+class RENDER_PT_povray_export_settings(RenderButtonsPanel, bpy.types.Panel):
+    bl_label = "Export Settings"
+    COMPAT_ENGINES = {'POVRAY_RENDER'}
+
+    def draw(self, context):
+        layout = self.layout
+
+        scene = context.scene
+        rd = scene.render
+
+        layout.active = scene.pov_max_trace_level
+        split = layout.split()
+
+        col = split.column()
+        col.label(text="Command line switches:")
+        col.prop(scene, "pov_command_line_switches", text="")
+        split = layout.split()
+        col = split.column()
+        col.prop(scene, "pov_tempfiles_enable", text="OS Tempfiles")
+        if not scene.pov_tempfiles_enable:
+            col = split.column()
+            col.prop(scene, "pov_deletefiles_enable", text="Delete files")
+        else:
+            col = split.column()
+
+        split = layout.split()
+        if not scene.pov_tempfiles_enable:
+            col = split.column()
+            col.prop(scene, "pov_scene_name", text="Name")
+            split = layout.split()
+            col = split.column()
+            col.prop(scene, "pov_scene_path", text="Path to files")
+            #col.prop(scene, "pov_scene_path", text="Path to POV-file")
+            split = layout.split()
+            #col = split.column()  # Bug in POV-Ray RC3
+            #col.prop(scene, "pov_renderimage_path", text="Path to image")
+            #split = layout.split()
+
+            col = split.column()
+            col.prop(scene, "pov_indentation_character", text="Indent")
+            col = split.column()
+            if scene.pov_indentation_character == "2": 
+                col.prop(scene, "pov_indentation_spaces", text="Spaces")
+            split = layout.split()
+            col = split.column()
+            col.prop(scene, "pov_comments_enable", text="Comments")
+
+
+class RENDER_PT_povray_render_settings(RenderButtonsPanel, bpy.types.Panel):
+    bl_label = "Render Settings"
+    COMPAT_ENGINES = {'POVRAY_RENDER'}
+
+    def draw(self, context):
+        layout = self.layout
+
+        scene = context.scene
+        rd = scene.render
+
+        layout.active = scene.pov_max_trace_level
+        split = layout.split()
+        col = split.column()
+        col.prop(scene, "pov_max_trace_level", text="Ray Depth")
+        col = split.column()
+
+
+class RENDER_PT_povray_antialias(RenderButtonsPanel, bpy.types.Panel):
+    bl_label = "Anti-Aliasing"
+    COMPAT_ENGINES = {'POVRAY_RENDER'}
+
+    def draw_header(self, context):
+        scene = context.scene
+
+        self.layout.prop(scene, "pov_antialias_enable", text="")
+
+    def draw(self, context):
+        layout = self.layout
+
+        scene = context.scene
+        rd = scene.render
+
+        layout.active = scene.pov_antialias_enable
+
+        split = layout.split()
+        col = split.column()
+        col.prop(scene, "pov_antialias_method", text="")
+        col = split.column()
+        col.prop(scene, "pov_jitter_enable", text="Jitter")
+
+        split = layout.split()
+        col = split.column()
+        col.prop(scene, "pov_antialias_depth", text="AA Depth")
+        sub = split.column()
+        sub.prop(scene, "pov_jitter_amount", text="Jitter Amount")
+        if scene.pov_jitter_enable:
+            sub.enabled = True
+        else:
+            sub.enabled = False
+
+        split = layout.split()
+        col = split.column()
+        col.prop(scene, "pov_antialias_threshold", text="AA Threshold")
+        col = split.column()
+        col.prop(scene, "pov_antialias_gamma", text="AA Gamma")
+
+
+class RENDER_PT_povray_radiosity(RenderButtonsPanel, bpy.types.Panel):
+    bl_label = "Radiosity"
+    COMPAT_ENGINES = {'POVRAY_RENDER'}
+
+    def draw_header(self, context):
+        scene = context.scene
+
+        self.layout.prop(scene, "pov_radio_enable", text="")
+
+    def draw(self, context):
+        layout = self.layout
+
+        scene = context.scene
+        rd = scene.render
+
+        layout.active = scene.pov_radio_enable
+
+        split = layout.split()
+
+        col = split.column()
+        col.prop(scene, "pov_radio_count", text="Rays")
+        col.prop(scene, "pov_radio_recursion_limit", text="Recursions")
+        col = split.column()
+        col.prop(scene, "pov_radio_error_bound", text="Error Bound")
+
+        layout.prop(scene, "pov_radio_display_advanced")
+
+        if scene.pov_radio_display_advanced:
+            split = layout.split()
+
+            col = split.column()
+            col.prop(scene, "pov_radio_adc_bailout", slider=True)
+            col.prop(scene, "pov_radio_gray_threshold", slider=True)
+            col.prop(scene, "pov_radio_low_error_factor", slider=True)
+            col.prop(scene, "pov_radio_pretrace_start", slider=True)
+
+            col = split.column()
+            col.prop(scene, "pov_radio_brightness")
+            col.prop(scene, "pov_radio_minimum_reuse", text="Min Reuse")
+            col.prop(scene, "pov_radio_nearest_count")
+            col.prop(scene, "pov_radio_pretrace_end", slider=True)
+
+            split = layout.split()
+
+            col = split.column()
+            col.label(text="Estimation Influence:")
+            col.prop(scene, "pov_radio_media")
+            col.prop(scene, "pov_radio_normal")
+
+            col = split.column()
+            col.prop(scene, "pov_radio_always_sample")
+
+
+class RENDER_PT_povray_media(RenderButtonsPanel, bpy.types.Panel):
+    bl_label = "Atmosphere Media"
+    COMPAT_ENGINES = {'POVRAY_RENDER'}
+
+    def draw_header(self, context):
+        scene = context.scene
+
+        self.layout.prop(scene, "pov_media_enable", text="")
+
+    def draw(self, context):
+        layout = self.layout
+
+        scene = context.scene
+        rd = scene.render
+
+        layout.active = scene.pov_media_enable
+        split = layout.split()
+
+        col = split.column()
+        col.prop(scene, "pov_media_samples", text="Samples")
+        col = split.column()
+        col.prop(scene, "pov_media_color", text="Color")
+
+##class RENDER_PT_povray_baking(RenderButtonsPanel, bpy.types.Panel):
+##    bl_label = "Baking"
+##    COMPAT_ENGINES = {'POVRAY_RENDER'}
+##
+##    def draw_header(self, context):
+##        scene = context.scene
+##
+##        self.layout.prop(scene, "pov_baking_enable", text="")
+##
+##    def draw(self, context):
+##        layout = self.layout
+##
+##        scene = context.scene
+##        rd = scene.render
+##
+##        layout.active = scene.pov_baking_enable
 
 
 class MATERIAL_PT_povray_mirrorIOR(MaterialButtonsPanel, bpy.types.Panel):
@@ -266,186 +463,6 @@ class MATERIAL_PT_povray_caustics(MaterialButtonsPanel, bpy.types.Panel):
 ##                mat.pov_fake_caustics=Radio
 ##            col.prop(mat, "pov_photons_reflection")
 ####TODO : MAKE THIS A real RADIO BUTTON (using EnumProperty?)
-######################################EndMR#####################################
-
-
-class RENDER_PT_povray_global_settings(RenderButtonsPanel, bpy.types.Panel):
-    bl_label = "Global Settings"
-    COMPAT_ENGINES = {'POVRAY_RENDER'}
-
-    def draw(self, context):
-        layout = self.layout
-
-        scene = context.scene
-        rd = scene.render
-
-        layout.active = scene.pov_max_trace_level
-        split = layout.split()
-
-        col = split.column()
-        col.label(text="Command line switches:")
-        col.prop(scene, "pov_command_line_switches", text="")
-        split = layout.split()
-        col = split.column()
-        col.prop(scene, "pov_max_trace_level", text="Ray Depth")
-        col = split.column()
-
-
-class RENDER_PT_povray_antialias(RenderButtonsPanel, bpy.types.Panel):
-    bl_label = "Anti-Aliasing"
-    COMPAT_ENGINES = {'POVRAY_RENDER'}
-
-    def draw_header(self, context):
-        scene = context.scene
-
-        self.layout.prop(scene, "pov_antialias_enable", text="")
-
-    def draw(self, context):
-        layout = self.layout
-
-        scene = context.scene
-        rd = scene.render
-
-        layout.active = scene.pov_antialias_enable
-
-        split = layout.split()
-        col = split.column()
-        col.prop(scene, "pov_antialias_method", text="")
-        col = split.column()
-        col.prop(scene, "pov_jitter_enable", text="Jitter")
-
-        split = layout.split()
-        col = split.column()
-        col.prop(scene, "pov_antialias_depth", text="AA Depth")
-        sub = split.column()
-        sub.prop(scene, "pov_jitter_amount", text="Jitter Amount")
-        if scene.pov_jitter_enable:
-            sub.enabled = True
-        else:
-            sub.enabled = False
-
-        split = layout.split()
-        col = split.column()
-        col.prop(scene, "pov_antialias_threshold", text="AA Threshold")
-        col = split.column()
-        col.prop(scene, "pov_antialias_gamma", text="AA Gamma")
-
-
-class RENDER_PT_povray_radiosity(RenderButtonsPanel, bpy.types.Panel):
-    bl_label = "Radiosity"
-    COMPAT_ENGINES = {'POVRAY_RENDER'}
-
-    def draw_header(self, context):
-        scene = context.scene
-
-        self.layout.prop(scene, "pov_radio_enable", text="")
-
-    def draw(self, context):
-        layout = self.layout
-
-        scene = context.scene
-        rd = scene.render
-
-        layout.active = scene.pov_radio_enable
-
-        split = layout.split()
-
-        col = split.column()
-        col.prop(scene, "pov_radio_count", text="Rays")
-        col.prop(scene, "pov_radio_recursion_limit", text="Recursions")
-        col = split.column()
-        col.prop(scene, "pov_radio_error_bound", text="Error Bound")
-
-        layout.prop(scene, "pov_radio_display_advanced")
-
-        if scene.pov_radio_display_advanced:
-            split = layout.split()
-
-            col = split.column()
-            col.prop(scene, "pov_radio_adc_bailout", slider=True)
-            col.prop(scene, "pov_radio_gray_threshold", slider=True)
-            col.prop(scene, "pov_radio_low_error_factor", slider=True)
-            col.prop(scene, "pov_radio_pretrace_start", slider=True)
-
-            col = split.column()
-            col.prop(scene, "pov_radio_brightness")
-            col.prop(scene, "pov_radio_minimum_reuse", text="Min Reuse")
-            col.prop(scene, "pov_radio_nearest_count")
-            col.prop(scene, "pov_radio_pretrace_end", slider=True)
-
-            split = layout.split()
-
-            col = split.column()
-            col.label(text="Estimation Influence:")
-            col.prop(scene, "pov_radio_media")
-            col.prop(scene, "pov_radio_normal")
-
-            col = split.column()
-            col.prop(scene, "pov_radio_always_sample")
-
-
-class RENDER_PT_povray_media(RenderButtonsPanel, bpy.types.Panel):
-    bl_label = "Atmosphere Media"
-    COMPAT_ENGINES = {'POVRAY_RENDER'}
-
-    def draw_header(self, context):
-        scene = context.scene
-
-        self.layout.prop(scene, "pov_media_enable", text="")
-
-    def draw(self, context):
-        layout = self.layout
-
-        scene = context.scene
-        rd = scene.render
-
-        layout.active = scene.pov_media_enable
-        split = layout.split()
-
-        col = split.column()
-        col.prop(scene, "pov_media_samples", text="Samples")
-        col = split.column()
-        col.prop(scene, "pov_media_color", text="Color")
-
-
-##class RENDER_PT_povray_baking(RenderButtonsPanel, bpy.types.Panel):
-##    bl_label = "Baking"
-##    COMPAT_ENGINES = {'POVRAY_RENDER'}
-##
-##    def draw_header(self, context):
-##        scene = context.scene
-##
-##        self.layout.prop(scene, "pov_baking_enable", text="")
-##
-##    def draw(self, context):
-##        layout = self.layout
-##
-##        scene = context.scene
-##        rd = scene.render
-##
-##        layout.active = scene.pov_baking_enable
-
-
-class RENDER_PT_povray_formatting(RenderButtonsPanel, bpy.types.Panel):
-    bl_label = "Formatting POV-Ray file"
-    COMPAT_ENGINES = {'POVRAY_RENDER'}
-
-    def draw(self, context):
-        layout = self.layout
-
-        scene = context.scene
-        rd = scene.render
-
-        split = layout.split()
-
-        col = split.column()
-        col.prop(scene, "pov_indentation_character", text="Indent")
-        col = split.column()
-        if scene.pov_indentation_character == "2":
-            col.prop(scene, "pov_indentation_spaces", text="Spaces")
-        split = layout.split()
-        col = split.column()
-        col.prop(scene, "pov_comments_enable", text="Comments")
 
 
 class TEXTURE_PT_povray_tex_gamma(TextureButtonsPanel, bpy.types.Panel):

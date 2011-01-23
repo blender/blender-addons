@@ -21,7 +21,7 @@
 bl_info = {
     "name": "POV-Ray 3.7",
     "author": "Campbell Barton, Silvio Falcinelli, Maurice Raybaud, Constantin Rahn",
-    "version": (0, 0, 6),
+    "version": (0, 0, 7),
     "blender": (2, 5, 6),
     "api": 34318,
     "location": "Info Header (engine dropdown)",
@@ -32,7 +32,6 @@ bl_info = {
     "tracker_url": "https://projects.blender.org/tracker/index.php?"\
         "func=detail&aid=23145",
     "category": "Render"}
-
 
 if "bpy" in locals():
     import imp
@@ -48,6 +47,29 @@ else:
 
 def register():
     Scene = bpy.types.Scene
+
+    # File Options
+    Scene.pov_tempfiles_enable = BoolProperty(
+            name="Enable Tempfiles",
+            description="Enable the OS-Tempfiles. Otherwise set the path where to save the files.",
+            default=True)
+    Scene.pov_deletefiles_enable = BoolProperty(
+            name="Delete files",
+            description="Delete files after rendering. Doesn't work with the image.",
+            default=True)
+    Scene.pov_scene_name = StringProperty(
+            name="Scene Name",
+            description="Name of POV-Ray scene to create. Empty name will use the name of the blend file.",
+            default="", maxlen=1024)
+    Scene.pov_scene_path = StringProperty(
+            name="Export scene path",
+            # description="Path to directory where the exported scene (POV and INI) is created",  # Bug in POV-Ray RC3
+            description="Path to directory where the files are created",
+            default="", maxlen=1024, subtype="DIR_PATH")
+    Scene.pov_renderimage_path = StringProperty(
+            name="Rendered image path",
+            description="Full path to directory where the rendered image is saved.",
+            default="", maxlen=1024, subtype="DIR_PATH")
 
     # Not a real pov option, just to know if we should write
     Scene.pov_radio_enable = BoolProperty(
@@ -78,11 +100,11 @@ def register():
             items=(("0", "None", "No indentation"),
                ("1", "Tabs", "Indentation with tabs"),
                ("2", "Spaces", "Indentation with spaces")),
-            default="1")
+            default="2")
     Scene.pov_indentation_spaces = IntProperty(
             name="Quantity of spaces",
             description="The number of spaces for indentation",
-            min=1, max=10, default=3)
+            min=1, max=10, default=4)
 
     Scene.pov_comments_enable = BoolProperty(
             name="Enable Comments",
@@ -291,6 +313,11 @@ def unregister():
     Mat = bpy.types.Material  # MR
     Tex = bpy.types.Texture  # MR
     Obj = bpy.types.Object  # MR
+    del Scene.pov_tempfiles_enable  # CR
+    del Scene.pov_scene_name  # CR
+    del Scene.pov_deletefiles_enable  # CR
+    del Scene.pov_scene_path  # CR
+    del Scene.pov_renderimage_path  # CR
     del Scene.pov_radio_enable
     del Scene.pov_radio_display_advanced
     del Scene.pov_radio_adc_bailout
