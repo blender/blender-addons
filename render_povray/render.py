@@ -195,7 +195,7 @@ def safety(name, Level):
 ##############end safety string name material
 ##############################EndSF###########################
 
-TabLevel = 0
+tabLevel = 0
 
 
 def write_pov(filename, scene=None, info_callback=None):
@@ -221,21 +221,21 @@ def write_pov(filename, scene=None, info_callback=None):
             TabStr = spaces * " "
         return TabStr
 
-    Tab = setTab(scene.pov_indentation_character, scene.pov_indentation_spaces)
+    tab = setTab(scene.pov_indentation_character, scene.pov_indentation_spaces)
 
     def tabWrite(str_o):
-        global TabLevel
+        global tabLevel
         brackets = str_o.count("{") - str_o.count("}") + str_o.count("[") - str_o.count("]")
         if brackets < 0:
-            TabLevel = TabLevel + brackets
-        if TabLevel < 0:
-            print("Indentation Warning: TabLevel = %s" % TabLevel)
-            TabLevel = 0
-        if TabLevel >= 1:
-            file.write("%s" % Tab * TabLevel)
+            tabLevel = tabLevel + brackets
+        if tabLevel < 0:
+            print("Indentation Warning: tabLevel = %s" % tabLevel)
+            tabLevel = 0
+        if tabLevel >= 1:
+            file.write("%s" % tab * tabLevel)
         file.write(str_o)
         if brackets > 0:
-            TabLevel = TabLevel + brackets
+            tabLevel = tabLevel + brackets
 
     def uniqueName(name, nameSeq):
 
@@ -772,9 +772,11 @@ def write_pov(filename, scene=None, info_callback=None):
             tabWrite("vertex_vectors {\n")
             tabWrite("%d" % len(me.vertices))  # vert count
 
+            tabStr = tab * tabLevel
             for v in me.vertices:
                 file.write(",\n")
-                tabWrite("<%.6f, %.6f, %.6f>" % v.co[:])  # vert count
+                file.write(tabStr + "<%.6f, %.6f, %.6f>" % v.co[:])  # vert count
+                #tabWrite("<%.6f, %.6f, %.6f>" % v.co[:])  # vert count
             file.write("\n")
             tabWrite("}\n")
 
@@ -794,9 +796,10 @@ def write_pov(filename, scene=None, info_callback=None):
             tabWrite("normal_vectors {\n")
             tabWrite("%d" % len(uniqueNormals))  # vert count
             idx = 0
+            tabStr = tab * tabLevel
             for no, index in uniqueNormals.items():
                 file.write(",\n")
-                tabWrite("<%.6f, %.6f, %.6f>" % no)  # vert count
+                file.write(tabStr + "<%.6f, %.6f, %.6f>" % no)  # vert count
                 index[0] = idx
                 idx += 1
             file.write("\n")
@@ -823,9 +826,10 @@ def write_pov(filename, scene=None, info_callback=None):
                 #print unique_uvs
                 tabWrite("%d" % len(uniqueUVs))  # vert count
                 idx = 0
+                tabStr = tab * tabLevel
                 for uv, index in uniqueUVs.items():
                     file.write(",\n")
-                    tabWrite("<%.6f, %.6f>" % uv)
+                    file.write(tabStr + "<%.6f, %.6f>" % uv)
                     index[0] = idx
                     idx += 1
                 '''
@@ -873,7 +877,7 @@ def write_pov(filename, scene=None, info_callback=None):
 
             # Vert Colours
             tabWrite("texture_list {\n")
-            tabWrite("%s" % (len(vertCols)))  # vert count
+            file.write(tabStr + "%s" % (len(vertCols)))  # vert count
             idx = 0
 
             for col, index in vertCols.items():
@@ -924,7 +928,7 @@ def write_pov(filename, scene=None, info_callback=None):
                                 t_alpha = t
 
                 ##############################################################################################################
-                tabWrite("\n")
+                file.write("\n")
                 tabWrite("texture {\n")  # THIS AREA NEEDS TO LEAVE THE TEXTURE OPEN UNTIL ALL MAPS ARE WRITTEN DOWN.   --MR
 
                 ##############################################################################################################
@@ -1132,6 +1136,8 @@ def write_pov(filename, scene=None, info_callback=None):
             # Face indices
             tabWrite("face_indices {\n")
             tabWrite("%d" % (len(me_faces) + quadCount))  # faces count
+            tabStr = tab * tabLevel
+
             for fi, f in enumerate(me_faces):
                 fv = faces_verts[fi]
                 material_index = f.material_index
@@ -1151,7 +1157,7 @@ def write_pov(filename, scene=None, info_callback=None):
                 if not me_materials or me_materials[material_index] is None:  # No materials
                     for i1, i2, i3 in indices:
                         file.write(",\n")
-                        tabWrite("<%d,%d,%d>" % (fv[i1], fv[i2], fv[i3]))  # vert count
+                        file.write(tabStr + "<%d,%d,%d>" % (fv[i1], fv[i2], fv[i3]))  # vert count
                 else:
                     material = me_materials[material_index]
                     for i1, i2, i3 in indices:
@@ -1171,7 +1177,7 @@ def write_pov(filename, scene=None, info_callback=None):
                             ci1 = ci2 = ci3 = vertCols[diffuse_color[0], diffuse_color[1], diffuse_color[2], f.material_index][0]
 
                         file.write(",\n")
-                        tabWrite("<%d,%d,%d>, %d,%d,%d" % (fv[i1], fv[i2], fv[i3], ci1, ci2, ci3))  # vert count
+                        file.write(tabStr + "<%d,%d,%d>, %d,%d,%d" % (fv[i1], fv[i2], fv[i3], ci1, ci2, ci3))  # vert count
 
             file.write("\n")
             tabWrite("}\n")
@@ -1179,6 +1185,7 @@ def write_pov(filename, scene=None, info_callback=None):
             # normal_indices indices
             tabWrite("normal_indices {\n")
             tabWrite("%d" % (len(me_faces) + quadCount))  # faces count
+            tabStr = tab * tabLevel
             for fi, fv in enumerate(faces_verts):
 
                 if len(fv) == 4:
@@ -1189,14 +1196,14 @@ def write_pov(filename, scene=None, info_callback=None):
                 for i1, i2, i3 in indices:
                     if me_faces[fi].use_smooth:
                         file.write(",\n")
-                        tabWrite("<%d,%d,%d>" %\
+                        file.write(tabStr + "<%d,%d,%d>" %\
                         (uniqueNormals[verts_normals[fv[i1]]][0],\
                          uniqueNormals[verts_normals[fv[i2]]][0],\
                          uniqueNormals[verts_normals[fv[i3]]][0]))  # vert count
                     else:
                         idx = uniqueNormals[faces_normals[fi]][0]
                         file.write(",\n")
-                        tabWrite("<%d,%d,%d>" % (idx, idx, idx))  # vert count
+                        file.write(tabStr + "<%d,%d,%d>" % (idx, idx, idx))  # vert count
 
             file.write("\n")
             tabWrite("}\n")
@@ -1204,6 +1211,7 @@ def write_pov(filename, scene=None, info_callback=None):
             if uv_layer:
                 tabWrite("uv_indices {\n")
                 tabWrite("%d" % (len(me_faces) + quadCount))  # faces count
+                tabStr = tab * tabLevel
                 for fi, fv in enumerate(faces_verts):
 
                     if len(fv) == 4:
@@ -1219,7 +1227,7 @@ def write_pov(filename, scene=None, info_callback=None):
 
                     for i1, i2, i3 in indices:
                         file.write(",\n")
-                        tabWrite("<%d,%d,%d>" % (
+                        file.write(tabStr + "<%d,%d,%d>" % (
                                  uniqueUVs[uvs[i1]][0],\
                                  uniqueUVs[uvs[i2]][0],\
                                  uniqueUVs[uvs[i3]][0],
@@ -1800,5 +1808,5 @@ class PovrayRender(bpy.types.RenderEngine):
 
         print("***POV FINISHED***")
         #time.sleep(self.DELAY)
-        if scene.pov_deletefiles_enable:
+        if scene.pov_tempfiles_enable or scene.pov_deletefiles_enable:
             self._cleanup()
