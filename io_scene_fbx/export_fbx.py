@@ -446,6 +446,9 @@ def save(operator, context, filepath="",
 
             self.__anim_poselist[f] = self.__pose_bone.matrix.copy()
 
+        def getPoseBone(self):
+            return self.__pose_bone
+        
         # get pose from frame.
         def getPoseMatrix(self, f):  # ----------------------------------------------
             return self.__anim_poselist[f]
@@ -798,7 +801,7 @@ def save(operator, context, filepath="",
         file.write('\n\t\tVersion: 232')
 
         #poseMatrix = write_object_props(my_bone.blenBone, None, None, my_bone.fbxArm.parRelMatrix())[3]
-        poseMatrix = write_object_props(my_bone.blenBone, pose_bone=my_bone.__pose_bone)[3]  # dont apply bone matricies anymore
+        poseMatrix = write_object_props(my_bone.blenBone, pose_bone=my_bone.getPoseBone())[3]  # dont apply bone matricies anymore
         pose_items.append((my_bone.fbxName, poseMatrix))
 
         # file.write('\n\t\t\tProperty: "Size", "double", "",%.6f' % ((my_bone.blenData.head['ARMATURESPACE'] - my_bone.blenData.tail['ARMATURESPACE']) * my_bone.fbxArm.parRelMatrix()).length)
@@ -2076,7 +2079,7 @@ def save(operator, context, filepath="",
                     my_mesh.blenMaterialList = mats
                     my_mesh.blenTextures = list(texture_mapping_local.keys())
 
-                    # sort the name so we get pradictable output, some items may be NULL
+                    # sort the name so we get predictable output, some items may be NULL
                     my_mesh.blenMaterials.sort(key=lambda m: (getattr(m[0], "name", ""), getattr(m[1], "name", "")))
                     my_mesh.blenTextures.sort(key=lambda m: getattr(m, "name", ""))
 
