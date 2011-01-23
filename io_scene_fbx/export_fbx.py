@@ -661,7 +661,47 @@ def save(operator, context, filepath="",
         file.write('\n\t\t\tProperty: "Lcl Scaling", "Lcl Scaling", "A+",%.15f,%.15f,%.15f' % scale)
         return loc, rot, scale, matrix, matrix_rot
 
-    def write_object_props(ob=None, loc=None, matrix=None, matrix_mod=None):
+    def get_constraints(ob=None):
+        # Set variables to their defaults.
+        constraint_values = {"loc_min": (0.0, 0.0, 0.0),
+                             "loc_max": (0.0, 0.0, 0.0),
+                             "loc_limit": (0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
+                             "rot_min": (0.0, 0.0, 0.0),
+                             "rot_max": (0.0, 0.0, 0.0),
+                             "rot_limit": (0.0, 0.0, 0.0),
+                             "sca_min": (1.0, 1.0, 1.0),
+                             "sca_max": (1.0, 1.0, 1.0),
+                             "sca_limit": (0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
+                            }
+
+        # Iterate through the list of constraints for this object to get the information in a format which is compatible with the FBX format.
+        if ob is not None:
+            for constraint in ob.constraints:
+                if constraint.type == 'LIMIT_LOCATION':
+                    constraint_values["loc_min"] = constraint.min_x, constraint.min_y, constraint.min_z
+                    constraint_values["loc_max"] = constraint.max_x, constraint.max_y, constraint.max_z
+                    constraint_values["loc_limit"] = constraint.use_min_x, constraint.use_min_y, constraint.use_min_z, constraint.use_max_x, constraint.use_max_y, constraint.use_max_z
+                elif constraint.type == 'LIMIT_ROTATION':
+                    constraint_values["rot_min"] = math.degrees(constraint.min_x), math.degrees(constraint.min_y), math.degrees(constraint.min_z)
+                    constraint_values["rot_max"] = math.degrees(constraint.max_x), math.degrees(constraint.max_y), math.degrees(constraint.max_z)
+                    constraint_values["rot_limit"] = constraint.use_limit_x, constraint.use_limit_y, constraint.use_limit_z
+                elif constraint.type == 'LIMIT_SCALE':
+                    constraint_values["sca_min"] = constraint.min_x, constraint.min_y, constraint.min_z
+                    constraint_values["sca_max"] = constraint.max_x, constraint.max_y, constraint.max_z
+                    constraint_values["sca_limit"] = constraint.use_min_x, constraint.use_min_y, constraint.use_min_z, constraint.use_max_x, constraint.use_max_y, constraint.use_max_z
+
+        # incase bad values are assigned.
+        assert(len(constraint_values) == 9)
+
+        return constraint_values
+
+    def write_object_props(ob=None, loc=None, matrix=None, matrix_mod=None, pose_bone=None):
+        # Check if a pose exists for this object and set the constraint soruce accordingly. (Poses only exsit if the object is a bone.)
+        if pose_bone:
+            constraints = get_constraints(pose_bone)
+        else:
+            constraints = get_constraints(ob)
+
         # if the type is 0 its an empty otherwise its a mesh
         # only difference at the moment is one has a color
         file.write('''
@@ -680,70 +720,69 @@ def save(operator, context, filepath="",
         # eEULER_ZXY
         # eEULER_ZYX
 
-        file.write('''
-            Property: "RotationOffset", "Vector3D", "",0,0,0
-            Property: "RotationPivot", "Vector3D", "",0,0,0
-            Property: "ScalingOffset", "Vector3D", "",0,0,0
-            Property: "ScalingPivot", "Vector3D", "",0,0,0
-            Property: "TranslationActive", "bool", "",0
-            Property: "TranslationMin", "Vector3D", "",0,0,0
-            Property: "TranslationMax", "Vector3D", "",0,0,0
-            Property: "TranslationMinX", "bool", "",0
-            Property: "TranslationMinY", "bool", "",0
-            Property: "TranslationMinZ", "bool", "",0
-            Property: "TranslationMaxX", "bool", "",0
-            Property: "TranslationMaxY", "bool", "",0
-            Property: "TranslationMaxZ", "bool", "",0
-            Property: "RotationOrder", "enum", "",0
-            Property: "RotationSpaceForLimitOnly", "bool", "",0
-            Property: "AxisLen", "double", "",10
-            Property: "PreRotation", "Vector3D", "",0,0,0
-            Property: "PostRotation", "Vector3D", "",0,0,0
-            Property: "RotationActive", "bool", "",0
-            Property: "RotationMin", "Vector3D", "",0,0,0
-            Property: "RotationMax", "Vector3D", "",0,0,0
-            Property: "RotationMinX", "bool", "",0
-            Property: "RotationMinY", "bool", "",0
-            Property: "RotationMinZ", "bool", "",0
-            Property: "RotationMaxX", "bool", "",0
-            Property: "RotationMaxY", "bool", "",0
-            Property: "RotationMaxZ", "bool", "",0
-            Property: "RotationStiffnessX", "double", "",0
-            Property: "RotationStiffnessY", "double", "",0
-            Property: "RotationStiffnessZ", "double", "",0
-            Property: "MinDampRangeX", "double", "",0
-            Property: "MinDampRangeY", "double", "",0
-            Property: "MinDampRangeZ", "double", "",0
-            Property: "MaxDampRangeX", "double", "",0
-            Property: "MaxDampRangeY", "double", "",0
-            Property: "MaxDampRangeZ", "double", "",0
-            Property: "MinDampStrengthX", "double", "",0
-            Property: "MinDampStrengthY", "double", "",0
-            Property: "MinDampStrengthZ", "double", "",0
-            Property: "MaxDampStrengthX", "double", "",0
-            Property: "MaxDampStrengthY", "double", "",0
-            Property: "MaxDampStrengthZ", "double", "",0
-            Property: "PreferedAngleX", "double", "",0
-            Property: "PreferedAngleY", "double", "",0
-            Property: "PreferedAngleZ", "double", "",0
-            Property: "InheritType", "enum", "",0
-            Property: "ScalingActive", "bool", "",0
-            Property: "ScalingMin", "Vector3D", "",1,1,1
-            Property: "ScalingMax", "Vector3D", "",1,1,1
-            Property: "ScalingMinX", "bool", "",0
-            Property: "ScalingMinY", "bool", "",0
-            Property: "ScalingMinZ", "bool", "",0
-            Property: "ScalingMaxX", "bool", "",0
-            Property: "ScalingMaxY", "bool", "",0
-            Property: "ScalingMaxZ", "bool", "",0
-            Property: "GeometricTranslation", "Vector3D", "",0,0,0
-            Property: "GeometricRotation", "Vector3D", "",0,0,0
-            Property: "GeometricScaling", "Vector3D", "",1,1,1
-            Property: "LookAtProperty", "object", ""
-            Property: "UpVectorProperty", "object", ""
-            Property: "Show", "bool", "",1
-            Property: "NegativePercentShapeSupport", "bool", "",1
-            Property: "DefaultAttributeIndex", "int", "",0''')
+        file.write('\n\t\t\tProperty: "RotationOffset", "Vector3D", "",0,0,0')
+        file.write('\n\t\t\tProperty: "RotationPivot", "Vector3D", "",0,0,0')
+        file.write('\n\t\t\tProperty: "ScalingOffset", "Vector3D", "",0,0,0')
+        file.write('\n\t\t\tProperty: "ScalingPivot", "Vector3D", "",0,0,0')
+        file.write('\n\t\t\tProperty: "TranslationActive", "bool", "",0')
+        file.write('\n\t\t\tProperty: "TranslationMin", "Vector3D", "",%.15g,%.15g,%.15g' % constraints["loc_min"])
+        file.write('\n\t\t\tProperty: "TranslationMax", "Vector3D", "",%.15g,%.15g,%.15g' % constraints["loc_max"])
+        file.write('\n\t\t\tProperty: "TranslationMinX", "bool", "",%d' % constraints["loc_limit"][0])
+        file.write('\n\t\t\tProperty: "TranslationMinY", "bool", "",%d' % constraints["loc_limit"][1])
+        file.write('\n\t\t\tProperty: "TranslationMinZ", "bool", "",%d' % constraints["loc_limit"][2])
+        file.write('\n\t\t\tProperty: "TranslationMaxX", "bool", "",%d' % constraints["loc_limit"][3])
+        file.write('\n\t\t\tProperty: "TranslationMaxY", "bool", "",%d' % constraints["loc_limit"][4])
+        file.write('\n\t\t\tProperty: "TranslationMaxZ", "bool", "",%d' % constraints["loc_limit"][5])
+        file.write('\n\t\t\tProperty: "RotationOrder", "enum", "",0')
+        file.write('\n\t\t\tProperty: "RotationSpaceForLimitOnly", "bool", "",0')
+        file.write('\n\t\t\tProperty: "AxisLen", "double", "",10')
+        file.write('\n\t\t\tProperty: "PreRotation", "Vector3D", "",0,0,0')
+        file.write('\n\t\t\tProperty: "PostRotation", "Vector3D", "",0,0,0')
+        file.write('\n\t\t\tProperty: "RotationActive", "bool", "",0')
+        file.write('\n\t\t\tProperty: "RotationMin", "Vector3D", "",%.15g,%.15g,%.15g' % constraints["rot_min"])
+        file.write('\n\t\t\tProperty: "RotationMax", "Vector3D", "",%.15g,%.15g,%.15g' % constraints["rot_max"])
+        file.write('\n\t\t\tProperty: "RotationMinX", "bool", "",%d' % constraints["rot_limit"][0])
+        file.write('\n\t\t\tProperty: "RotationMinY", "bool", "",%d' % constraints["rot_limit"][1])
+        file.write('\n\t\t\tProperty: "RotationMinZ", "bool", "",%d' % constraints["rot_limit"][2])
+        file.write('\n\t\t\tProperty: "RotationMaxX", "bool", "",%d' % constraints["rot_limit"][0])
+        file.write('\n\t\t\tProperty: "RotationMaxY", "bool", "",%d' % constraints["rot_limit"][1])
+        file.write('\n\t\t\tProperty: "RotationMaxZ", "bool", "",%d' % constraints["rot_limit"][2])
+        file.write('\n\t\t\tProperty: "RotationStiffnessX", "double", "",0')
+        file.write('\n\t\t\tProperty: "RotationStiffnessY", "double", "",0')
+        file.write('\n\t\t\tProperty: "RotationStiffnessZ", "double", "",0')
+        file.write('\n\t\t\tProperty: "MinDampRangeX", "double", "",0')
+        file.write('\n\t\t\tProperty: "MinDampRangeY", "double", "",0')
+        file.write('\n\t\t\tProperty: "MinDampRangeZ", "double", "",0')
+        file.write('\n\t\t\tProperty: "MaxDampRangeX", "double", "",0')
+        file.write('\n\t\t\tProperty: "MaxDampRangeY", "double", "",0')
+        file.write('\n\t\t\tProperty: "MaxDampRangeZ", "double", "",0')
+        file.write('\n\t\t\tProperty: "MinDampStrengthX", "double", "",0')
+        file.write('\n\t\t\tProperty: "MinDampStrengthY", "double", "",0')
+        file.write('\n\t\t\tProperty: "MinDampStrengthZ", "double", "",0')
+        file.write('\n\t\t\tProperty: "MaxDampStrengthX", "double", "",0')
+        file.write('\n\t\t\tProperty: "MaxDampStrengthY", "double", "",0')
+        file.write('\n\t\t\tProperty: "MaxDampStrengthZ", "double", "",0')
+        file.write('\n\t\t\tProperty: "PreferedAngleX", "double", "",0')
+        file.write('\n\t\t\tProperty: "PreferedAngleY", "double", "",0')
+        file.write('\n\t\t\tProperty: "PreferedAngleZ", "double", "",0')
+        file.write('\n\t\t\tProperty: "InheritType", "enum", "",0')
+        file.write('\n\t\t\tProperty: "ScalingActive", "bool", "",0')
+        file.write('\n\t\t\tProperty: "ScalingMin", "Vector3D", "",%.15g,%.15g,%.15g' % constraints["sca_min"])
+        file.write('\n\t\t\tProperty: "ScalingMax", "Vector3D", "",%.15g,%.15g,%.15g' % constraints["sca_max"])
+        file.write('\n\t\t\tProperty: "ScalingMinX", "bool", "",%d' % constraints["sca_limit"][0])
+        file.write('\n\t\t\tProperty: "ScalingMinY", "bool", "",%d' % constraints["sca_limit"][1])
+        file.write('\n\t\t\tProperty: "ScalingMinZ", "bool", "",%d' % constraints["sca_limit"][2])
+        file.write('\n\t\t\tProperty: "ScalingMaxX", "bool", "",%d' % constraints["sca_limit"][3])
+        file.write('\n\t\t\tProperty: "ScalingMaxY", "bool", "",%d' % constraints["sca_limit"][4])
+        file.write('\n\t\t\tProperty: "ScalingMaxZ", "bool", "",%d' % constraints["sca_limit"][5])
+        file.write('\n\t\t\tProperty: "GeometricTranslation", "Vector3D", "",0,0,0')
+        file.write('\n\t\t\tProperty: "GeometricRotation", "Vector3D", "",0,0,0')
+        file.write('\n\t\t\tProperty: "GeometricScaling", "Vector3D", "",1,1,1')
+        file.write('\n\t\t\tProperty: "LookAtProperty", "object", ""')
+        file.write('\n\t\t\tProperty: "UpVectorProperty", "object", ""')
+        file.write('\n\t\t\tProperty: "Show", "bool", "",1')
+        file.write('\n\t\t\tProperty: "NegativePercentShapeSupport", "bool", "",1')
+        file.write('\n\t\t\tProperty: "DefaultAttributeIndex", "int", "",0')
         if ob and not isinstance(ob, bpy.types.Bone):
             # Only mesh objects have color
             file.write('\n\t\t\tProperty: "Color", "Color", "A",0.8,0.8,0.8')
@@ -759,7 +798,7 @@ def save(operator, context, filepath="",
         file.write('\n\t\tVersion: 232')
 
         #poseMatrix = write_object_props(my_bone.blenBone, None, None, my_bone.fbxArm.parRelMatrix())[3]
-        poseMatrix = write_object_props(my_bone.blenBone)[3]  # dont apply bone matricies anymore
+        poseMatrix = write_object_props(my_bone.blenBone, pose_bone=my_bone.__pose_bone)[3]  # dont apply bone matricies anymore
         pose_items.append((my_bone.fbxName, poseMatrix))
 
         # file.write('\n\t\t\tProperty: "Size", "double", "",%.6f' % ((my_bone.blenData.head['ARMATURESPACE'] - my_bone.blenData.tail['ARMATURESPACE']) * my_bone.fbxArm.parRelMatrix()).length)
