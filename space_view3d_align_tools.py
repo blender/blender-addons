@@ -63,34 +63,34 @@ class AlignUi(bpy.types.Panel):
 
         
         col = layout.column(align=False)
-        col.operator("object.AlignObjects",text="XYZ")
+        col.operator("object.align",text="XYZ")
         
         col = layout.column()
         col.label(text="Align Location:", icon='MAN_TRANS')
 
         col = layout.column_flow(columns=5,align=True)
-        col.operator("object.AlignObjectsLocationX",text="X")
-        col.operator("object.AlignObjectsLocationY",text="Y")
-        col.operator("object.AlignObjectsLocationZ",text="Z")
-        col.operator("object.AlignObjectsLocationAll",text="All")
+        col.operator("object.align_location_x",text="X")
+        col.operator("object.align_location_y",text="Y")
+        col.operator("object.align_location_z",text="Z")
+        col.operator("object.align_location_all",text="All")
 
         col = layout.column()
         col.label(text="Align Rotation:", icon='MAN_ROT')
 
         col = layout.column_flow(columns=5,align=True)
-        col.operator("object.AlignObjectsRotationX",text="X")
-        col.operator("object.AlignObjectsRotationY",text="Y")
-        col.operator("object.AlignObjectsRotationZ",text="Z")
-        col.operator("object.AlignObjectsRotationAll",text="All")
+        col.operator("object.align_rotation_x",text="X")
+        col.operator("object.align_rotation_y",text="Y")
+        col.operator("object.align_rotation_z",text="Z")
+        col.operator("object.align_rotation_all",text="All")
         
         col = layout.column()
         col.label(text="Align Scale:", icon='MAN_SCALE')
 
         col = layout.column_flow(columns=5,align=True)
-        col.operator("object.AlignObjectsScaleX",text="X")
-        col.operator("object.AlignObjectsScaleY",text="Y")
-        col.operator("object.AlignObjectsScaleZ",text="Z")
-        col.operator("object.AlignObjectsScaleAll",text="All")
+        col.operator("object.align_objects_scale_x",text="X")
+        col.operator("object.align_objects_scale_y",text="Y")
+        col.operator("object.align_objects_scale_z",text="Z")
+        col.operator("object.align_objects_scale_all",text="All")
 
 
 ##Align all
@@ -155,7 +155,7 @@ def ScaleZ(context):
 ## Align All Rotation And Location
 class AlignOperator(bpy.types.Operator):
     ''''''
-    bl_idname = "object.AlignObjects"
+    bl_idname = "object.align"
     bl_label = "Align Selected To Active"
 
     @classmethod
@@ -170,7 +170,7 @@ class AlignOperator(bpy.types.Operator):
 ## Align LocationAll
 class AlignLocationOperator(bpy.types.Operator):
     ''''''
-    bl_idname = "object.AlignObjectsLocationAll"
+    bl_idname = "object.align_location_all"
     bl_label = "Align Selected Location To Active"
 
     @classmethod
@@ -183,7 +183,7 @@ class AlignLocationOperator(bpy.types.Operator):
 ## Align LocationX
 class AlignLocationXOperator(bpy.types.Operator):
     ''''''
-    bl_idname = "object.AlignObjectsLocationX"
+    bl_idname = "object.align_location_x"
     bl_label = "Align Selected Location X To Active"
 
     @classmethod
@@ -196,7 +196,7 @@ class AlignLocationXOperator(bpy.types.Operator):
 ## Align LocationY
 class AlignLocationYOperator(bpy.types.Operator):
     ''''''
-    bl_idname = "object.AlignObjectsLocationY"
+    bl_idname = "object.align_location_y"
     bl_label = "Align Selected Location Y To Active"
 
     @classmethod
@@ -209,7 +209,7 @@ class AlignLocationYOperator(bpy.types.Operator):
 ## Align LocationZ
 class AlignLocationZOperator(bpy.types.Operator):
     ''''''
-    bl_idname = "object.AlignObjectsLocationZ"
+    bl_idname = "object.align_location_z"
     bl_label = "Align Selected Location Z To Active"
 
     @classmethod
@@ -224,7 +224,7 @@ class AlignLocationZOperator(bpy.types.Operator):
 ## Align RotationAll
 class AlignRotationOperator(bpy.types.Operator):
     ''''''
-    bl_idname = "object.AlignObjectsRotationAll"
+    bl_idname = "object.align_rotation_all"
     bl_label = "Align Selected Rotation To Active"
 
     @classmethod
@@ -237,7 +237,7 @@ class AlignRotationOperator(bpy.types.Operator):
 ## Align RotationX
 class AlignRotationXOperator(bpy.types.Operator):
     ''''''
-    bl_idname = "object.AlignObjectsRotationX"
+    bl_idname = "object.align_rotation_x"
     bl_label = "Align Selected Rotation X To Active"
 
     @classmethod
@@ -250,7 +250,7 @@ class AlignRotationXOperator(bpy.types.Operator):
 ## Align RotationY
 class AlignRotationYOperator(bpy.types.Operator):
     ''''''
-    bl_idname = "object.AlignObjectsRotationY"
+    bl_idname = "object.align_rotation_y"
     bl_label = "Align Selected Rotation Y To Active"
 
     @classmethod
@@ -263,7 +263,7 @@ class AlignRotationYOperator(bpy.types.Operator):
 ## Align RotationZ
 class AlignRotationZOperator(bpy.types.Operator):
     ''''''
-    bl_idname = "object.AlignObjectsRotationZ"
+    bl_idname = "object.align_rotation_z"
     bl_label = "Align Selected Rotation Z To Active"
 
     @classmethod
@@ -277,7 +277,7 @@ class AlignRotationZOperator(bpy.types.Operator):
 ## Scale All
 class AlignScaleOperator(bpy.types.Operator):
     ''''''
-    bl_idname = "object.AlignObjectsScaleAll"
+    bl_idname = "object.align_objects_scale_all"
     bl_label = "Align Selected Scale To Active"
 
     @classmethod
@@ -290,7 +290,7 @@ class AlignScaleOperator(bpy.types.Operator):
 ## Align ScaleX
 class AlignScaleXOperator(bpy.types.Operator):
     ''''''
-    bl_idname = "object.AlignObjectsScaleX"
+    bl_idname = "object.align_objects_scale_x"
     bl_label = "Align Selected Scale X To Active"
 
     @classmethod
@@ -303,7 +303,7 @@ class AlignScaleXOperator(bpy.types.Operator):
 ## Align ScaleY
 class AlignScaleYOperator(bpy.types.Operator):
     ''''''
-    bl_idname = "object.AlignObjectsScaleY"
+    bl_idname = "object.align_objects_scale_y"
     bl_label = "Align Selected Scale Y To Active"
 
     @classmethod
@@ -316,7 +316,7 @@ class AlignScaleYOperator(bpy.types.Operator):
 ## Align ScaleZ
 class AlignScaleZOperator(bpy.types.Operator):
     ''''''
-    bl_idname = "object.AlignObjectsScaleZ"
+    bl_idname = "object.align_objects_scale_z"
     bl_label = "Align Selected Scale Z To Active"
 
     @classmethod
