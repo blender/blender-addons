@@ -182,7 +182,7 @@ class RENDER_PT_povray_export_settings(RenderButtonsPanel, bpy.types.Panel):
             col = split.column()
             col.prop(scene, "pov_comments_enable", text="Comments")
             col = split.column()
-            col.prop(scene, "pov_list_lf_enable", text="Line brakes in lists")
+            col.prop(scene, "pov_list_lf_enable", text="Line breaks in lists")
 
 
 class RENDER_PT_povray_render_settings(RenderButtonsPanel, bpy.types.Panel):

@@ -72,7 +72,7 @@ def register():
             default="", maxlen=1024, subtype="DIR_PATH")
     Scene.pov_list_lf_enable = BoolProperty(
             name="LF in lists",
-            description="Enable line brakes in lists (vectors and indices). Disabled: lists are exported in one line.",
+            description="Enable line breaks in lists (vectors and indices). Disabled: lists are exported in one line.",
             default=True)
 
     # Not a real pov option, just to know if we should write
