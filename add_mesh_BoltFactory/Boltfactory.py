@@ -43,7 +43,7 @@ def align_matrix(context):
 
 class add_mesh_bolt(bpy.types.Operator):
     ''''''
-    bl_idname = 'add_mesh_bolt'
+    bl_idname = "mesh.bolt_add"
     bl_label = "Add Bolt"
     bl_options = {'REGISTER', 'UNDO'}
     bl_description = "adds many types of Bolts"
@@ -71,7 +71,7 @@ class add_mesh_bolt(bpy.types.Operator):
                         ('bf_Head_Cap','CAP','Cap Head'),
                         ('bf_Head_Dome','DOME','Dome Head'),
                         ('bf_Head_Pan','PAN','Pan Head'),
-			('bf_Head_CounterSink','COUNTER SINK','Counter Sink Head')]
+                        ('bf_Head_CounterSink','COUNTER SINK','Counter Sink Head')]
     bf_Head_Type = EnumProperty( attr='bf_Head_Type',
             name='Head',
             description='Choose the type off Head you would like',
@@ -298,7 +298,7 @@ class add_mesh_bolt(bpy.types.Operator):
         #self.bf_Minor_Dia = self.bf_Major_Dia - (1.082532 * self.bf_Pitch)
         
         Create_New_Mesh(self, context, self.align_matrix)
-	
+
         return {'FINISHED'}
         
     ##### INVOKE #####

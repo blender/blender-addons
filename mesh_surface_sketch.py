@@ -58,19 +58,19 @@ class VIEW3D_PT_tools_SURF_SKETCH(bpy.types.Panel):
         col = layout.column(align=True)
         row = layout.row()
         row.separator()
-        col.operator("GPENCIL_OT_SURFSK_add_surface", text="Add Surface")
+        col.operator(GPENCIL_OT_surfsk_surface_add.bl_idname, text="Add Surface")
         col.prop(scn, "SURFSK_edges_U")
         col.prop(scn, "SURFSK_edges_V")
         row.separator()
         col.prop(scn, "SURFSK_keep_strokes")
         col.separator()
         row.separator()
-        col.operator("GPENCIL_OT_SURFSK_strokes_to_curves", text="Strokes to curves")
+        col.operator(GPENCIL_OT_surfsk_strokes_to_curves.bl_idname, text="Strokes to curves")
         
 
 
-class GPENCIL_OT_SURFSK_add_surface(bpy.types.Operator):
-    bl_idname = "GPENCIL_OT_SURFSK_add_surface"
+class GPENCIL_OT_surfsk_surface_add(bpy.types.Operator):
+    bl_idname = "gpencil.surfsk_surface_add"
     bl_label = "Surface generation from grease pencil strokes"
     bl_description = "Surface generation from grease pencil strokes"
     
@@ -734,12 +734,11 @@ class GPENCIL_OT_SURFSK_add_surface(bpy.types.Operator):
 
 
 
-class GPENCIL_OT_SURFSK_strokes_to_curves(bpy.types.Operator):
-    bl_idname = "GPENCIL_OT_SURFSK_strokes_to_curves"
+class GPENCIL_OT_surfsk_strokes_to_curves(bpy.types.Operator):
+    bl_idname = "gpencil.surfsk_strokes_to_curves"
     bl_label = "Convert grease pencil strokes into curves and enter edit mode"
     bl_description = "Convert grease pencil strokes into curves and enter edit mode"
-    
-    
+
     def execute(self, context):
         #### Convert grease pencil strokes to curve.
         bpy.ops.gpencil.convert(type='CURVE')
@@ -797,8 +796,8 @@ def register():
     km = kc.keymaps.get("3D View")
     if km is None:
         km = kc.keymaps.new(name="3D View")
-    keymap_item_add_surf = km.items.new("GPENCIL_OT_SURFSK_add_surface","E","PRESS", key_modifier="D")
-    keymap_item_stroke_to_curve = km.items.new("GPENCIL_OT_SURFSK_strokes_to_curves","C","PRESS", key_modifier="D")
+    keymap_item_add_surf = km.items.new(GPENCIL_OT_surfsk_surface_add.bl_idname,"E","PRESS", key_modifier="D")
+    keymap_item_stroke_to_curve = km.items.new(GPENCIL_OT_surfsk_strokes_to_curves.bl_idname,"C","PRESS", key_modifier="D")
 
 
 def unregister():
@@ -811,9 +810,9 @@ def unregister():
     km = kc.keymaps["3D View"]
     for kmi in km.items:
         if kmi.idname == 'wm.call_menu':
-            if kmi.properties.name == "GPENCIL_OT_SURFSK_add_surface":
+            if kmi.properties.name == GPENCIL_OT_surfsk_surface_add.bl_idname:
                 km.items.remove(kmi)
-            elif kmi.properties.name == "GPENCIL_OT_SURFSK_strokes_to_curves":
+            elif kmi.properties.name == GPENCIL_OT_surfsk_strokes_to_curves.bl_idname:
                 km.items.remove(kmi)   
             else:
                 continue

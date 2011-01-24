@@ -487,7 +487,7 @@ def texface_to_mat():
 
 class VIEW3D_OT_texface_to_material(bpy.types.Operator):
     ''''''
-    bl_idname = "texface_to_material"
+    bl_idname = "view3d.texface_to_material"
     bl_label = "MW Texface Images to Material/Texture"
     bl_options = {'REGISTER', 'UNDO'}
 
@@ -505,7 +505,7 @@ class VIEW3D_OT_texface_to_material(bpy.types.Operator):
 
 class VIEW3D_OT_assign_material(bpy.types.Operator):
     '''assign a material to the selection'''
-    bl_idname = "assign_material"
+    bl_idname = "view3d.assign_material"
     bl_label = "MW Assign Material"
     bl_options = {'REGISTER', 'UNDO'}
 
@@ -528,7 +528,7 @@ class VIEW3D_OT_assign_material(bpy.types.Operator):
 class VIEW3D_OT_clean_material_slots(bpy.types.Operator):
     '''removes any material slots from the 
     selected objects that are not used by the mesh'''
-    bl_idname = "clean_material_slots"
+    bl_idname = "view3d.clean_material_slots"
     bl_label = "MW Clean Material Slots"
     bl_options = {'REGISTER', 'UNDO'}
 
@@ -542,7 +542,7 @@ class VIEW3D_OT_clean_material_slots(bpy.types.Operator):
 
 class VIEW3D_OT_material_to_texface(bpy.types.Operator):
     ''''''
-    bl_idname = "material_to_texface"
+    bl_idname = "view3d.material_to_texface"
     bl_label = "MW Material Images to Texface"
     bl_options = {'REGISTER', 'UNDO'}
 
@@ -556,7 +556,7 @@ class VIEW3D_OT_material_to_texface(bpy.types.Operator):
 
 class VIEW3D_OT_select_material_by_name(bpy.types.Operator):
     ''''''
-    bl_idname = "select_material_by_name"
+    bl_idname = "view3d.select_material_by_name"
     bl_label = "MW Select Material By Name"
     bl_options = {'REGISTER', 'UNDO'}
     matname = StringProperty(name = 'Material Name', 
@@ -575,7 +575,7 @@ class VIEW3D_OT_select_material_by_name(bpy.types.Operator):
 
 class VIEW3D_OT_replace_material(bpy.types.Operator):
     '''assign a material to the selection'''
-    bl_idname = "replace_material"
+    bl_idname = "view3d.replace_material"
     bl_label = "MW Replace Material"
     bl_options = {'REGISTER', 'UNDO'}
 

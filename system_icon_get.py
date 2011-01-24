@@ -56,6 +56,7 @@ class IconProps(bpy.types.IDPropertyGroup):
 
 
 class WM_OT_icon_info(bpy.types.Operator):
+    bl_idname = "wm.icon_info"
     bl_label = "Icon Info"
     bl_description = "Click to copy this icon name to the clipboard"
     icon = bpy.props.StringProperty()

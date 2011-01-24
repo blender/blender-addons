@@ -174,7 +174,7 @@ class SCENE_PT_Borgleader(ObjectButtonsPanel,bpy.types.Panel):
 
 
 class SCENE_OT_export(bpy.types.Operator):
-    bl_idname = "exportbutton"
+    bl_idname = "export_applink.pilgway_3d_coat"
     bl_label = "Export your custom property"
     bl_description = "Export your custom property"
 
@@ -239,7 +239,7 @@ class SCENE_OT_export(bpy.types.Operator):
 
 
 class SCENE_OT_import(bpy.types.Operator):
-    bl_idname = "importbutton"
+    bl_idname = "import_applink.pilgway_3d_coat"
     bl_label = "import your custom property"
     bl_description = "import your custom property"
     
@@ -374,7 +374,7 @@ class SCENE_OT_import(bpy.types.Operator):
         return('FINISHED')
 
 class SCENE_OT_load3b(bpy.types.Operator):
-    bl_idname = "load3b"
+    bl_idname = "import_applink.pilgway_3d_coat_3b"
     bl_label = "Loads 3b linked into object"
     bl_description = "Loads 3b linked into object"
 
@@ -399,7 +399,7 @@ class SCENE_OT_load3b(bpy.types.Operator):
         return('FINISHED')
 
 class SCENE_OT_deltex(bpy.types.Operator):
-    bl_idname = "deltex"
+    bl_idname = "import_applink.pilgway_3d_deltex"  # XXX, name?
     bl_label = "Picks Object's name into path"
     bl_description = "Loads 3b linked into object"
 

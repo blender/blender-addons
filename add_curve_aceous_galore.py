@@ -765,7 +765,7 @@ def main(context, self, align_matrix):
 
 class Curveaceous_galore(bpy.types.Operator):
     ''''''
-    bl_idname = "curveaceous_galore"
+    bl_idname = "mesh.curveaceous_galore"
     bl_label = "Curveaceous galore"
     bl_options = {'REGISTER', 'UNDO'}
     bl_description = "adds many types of curves"

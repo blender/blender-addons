@@ -1660,7 +1660,7 @@ bpy.types.Scene.unrealexportpsa = BoolProperty(
 class ExportUDKAnimData(bpy.types.Operator):
     global exportmessage
     '''Export Skeleton Mesh / Animation Data file(s)'''
-    bl_idname = "export.udk_anim_data" # this is important since its how bpy.ops.export.udk_anim_data is constructed
+    bl_idname = "export_anim.udk" # this is important since its how bpy.ops.export.udk_anim_data is constructed
     bl_label = "Export PSK/PSA"
     __doc__ = "One mesh and one armature else select one mesh or armature to be exported."
 
@@ -1742,7 +1742,7 @@ class VIEW3D_PT_unrealtools_objectmode(bpy.types.Panel):
         
 class OBJECT_OT_UnrealExport(bpy.types.Operator):
     global exportmessage
-    bl_idname = "OBJECT_OT_UnrealExport"
+    bl_idname = "export_mesh.udk"  # XXX, name???
     bl_label = "Unreal Export"
     __doc__ = "Select export setting for .psk/.psa or both."
     
@@ -1772,7 +1772,7 @@ def menu_func(self, context):
     #bpy.context.scene.unrealexportpsk = True
     #bpy.context.scene.unrealexportpsa = True
     default_path = os.path.splitext(bpy.data.filepath)[0] + ".psk"
-    self.layout.operator("export.udk_anim_data", text="Skeleton Mesh / Animation Data (.psk/.psa)").filepath = default_path
+    self.layout.operator(ExportUDKAnimData.bl_idname, text="Skeleton Mesh / Animation Data (.psk/.psa)").filepath = default_path
 
 def register():
     bpy.types.INFO_MT_file_export.append(menu_func)

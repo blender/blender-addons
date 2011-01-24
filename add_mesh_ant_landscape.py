@@ -516,7 +516,7 @@ def sphere_gen( sub_d, size_me, options ):
 # Add landscape
 class landscape_add(bpy.types.Operator):
     '''Add a landscape mesh'''
-    bl_idname = "Add_landscape"
+    bl_idname = "mesh.landscape_add"
     bl_label = "Landscape"
     bl_options = {'REGISTER', 'UNDO'}
     bl_description = "Add landscape mesh"

@@ -107,7 +107,7 @@ def do_export(context, props, filepath):
 ###### EXPORT OPERATOR #######
 class Export_pc2(bpy.types.Operator, ExportHelper):
     '''Exports the active Object as a .pc2 Pointcache file.'''
-    bl_idname = "export_pc2"
+    bl_idname = "export_shape.pc2"
     bl_label = "Export Pointcache (.pc2)"
 
     filename_ext = ".pc2"
