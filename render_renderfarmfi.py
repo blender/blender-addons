@@ -270,7 +270,7 @@ class SUMMARY_PT_RenderfarmFi(RenderButtonsPanel, bpy.types.Panel):
             layout.label(text='The script reports "All settings ok!"', icon='FILE_TICK')
             layout.label(text='Please render one frame using Blender Render first')
             row = layout.row()
-            row.operator('ore.testRender')
+            row.operator('ore.test_render')
             layout.label(text='If you are sure that the render works, click Render on Renderfarm.fi')
 
 class RENDERFARM_MT_Session(bpy.types.Menu):
@@ -892,7 +892,7 @@ class ORE_ResetOp(bpy.types.Operator):
         return {'FINISHED'}
 
 class ORE_TestRenderOp(bpy.types.Operator):
-    bl_idname = "ore.testRender"
+    bl_idname = "ore.test_render"
     bl_label = "Run a test render"
     
     def execute(self, context):
