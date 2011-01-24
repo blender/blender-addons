@@ -70,6 +70,10 @@ def register():
             name="Rendered image path",
             description="Full path to directory where the rendered image is saved.",
             default="", maxlen=1024, subtype="DIR_PATH")
+    Scene.pov_list_lf_enable = BoolProperty(
+            name="LF in lists",
+            description="Enable line brakes in lists (vectors and indices). Disabled: lists are exported in one line.",
+            default=True)
 
     # Not a real pov option, just to know if we should write
     Scene.pov_radio_enable = BoolProperty(
@@ -318,6 +322,7 @@ def unregister():
     del Scene.pov_deletefiles_enable  # CR
     del Scene.pov_scene_path  # CR
     del Scene.pov_renderimage_path  # CR
+    del Scene.pov_list_lf_enable  # CR
     del Scene.pov_radio_enable
     del Scene.pov_radio_display_advanced
     del Scene.pov_radio_adc_bailout
