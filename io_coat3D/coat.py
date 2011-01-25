@@ -74,7 +74,7 @@ class SCENE_PT_Borgleader(ObjectButtonsPanel,bpy.types.Panel):
                 colL.active = False
         else:
             colL.active = False
-        colL.operator("exportbutton", text="Export")
+        colL.operator("export_applink.pilgway_3d_coat", text="Export")
         colL.label(text="Export Settings:")
 
         colL.prop(coat3D,"exportover")
@@ -89,7 +89,7 @@ class SCENE_PT_Borgleader(ObjectButtonsPanel,bpy.types.Panel):
         else:
             colR.active = False
             
-        colR.operator("importbutton", text="Import")
+        colR.operator("import_applink.pilgway_3d_coat", text="Import")
         colR.label(text="Import Settings:")
         colR.prop(coat3D,"importmesh")
         colR.prop(coat3D,"importmod")
@@ -168,7 +168,7 @@ class SCENE_PT_Borgleader(ObjectButtonsPanel,bpy.types.Panel):
         row = layout.row()
         colL = row.column()
         colR = row.column()
-        colL.operator("deltex",text="Del Tex")
+        colL.operator("import_applink.pilgway_3d_deltex",text="Del Tex")
         row = layout.row()
         row.label(text="Author: haikalle@gmail.com")
 
