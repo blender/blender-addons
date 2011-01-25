@@ -456,7 +456,10 @@ class SCENE_OT_deltex(bpy.types.Operator):
         coa = bpy.context.scene.objects.active.coat3D
         scene = context.scene
         nimi = tex.objname(coa.objectdir)
-        osoite = os.path.dirname(coa.objectdir) + os.sep
+        if(coa.texturefolder):
+            osoite = os.path.dirname(coa.texturefolder) + os.sep
+        else:
+            osoite = os.path.dirname(coa.objectdir) + os.sep
         just_nimi = tex.justname(nimi)
         just_nimi += '_'
 
