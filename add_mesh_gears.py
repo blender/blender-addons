@@ -44,7 +44,7 @@ Also, the vertex group API is changed a little bit but the concepts
 are the same:
 =========
 vertexgroup = ob.vertex_groups.new('NAME_OF_VERTEXGROUP')
-ob.vertex_groups.assign(vertexgroup_vertex_indices, vertexgroup, weight, 'ADD')
+vertexgroup.add(vertexgroup_vertex_indices, weight, 'ADD')
 =========
 
 Now for some reason the name does not 'stick' and we have to set it this way:
@@ -785,10 +785,10 @@ class AddGear(bpy.types.Operator):
 
         # Create vertex groups from stored vertices.
         tipGroup = obj.vertex_groups.new('Tips')
-        obj.vertex_groups.assign(verts_tip, tipGroup, 1.0, 'ADD')
+        tipGroup.add(verts_tip, 1.0, 'ADD')
 
         valleyGroup = obj.vertex_groups.new('Valleys')
-        obj.vertex_groups.assign(verts_valley, valleyGroup, 1.0, 'ADD')
+        valleyGroup.add(verts_valley, 1.0, 'ADD')
 
         return {'FINISHED'}
 
@@ -889,10 +889,10 @@ class AddWormGear(bpy.types.Operator):
 
         # Create vertex groups from stored vertices.
         tipGroup = obj.vertex_groups.new('Tips')
-        obj.vertex_groups.assign(verts_tip, tipGroup, 1.0, 'ADD')
+        tipGroup.add(verts_tip, 1.0, 'ADD')
 
         valleyGroup = obj.vertex_groups.new('Valleys')
-        obj.vertex_groups.assign(verts_valley, valleyGroup, 1.0, 'ADD')
+        valleyGroup.add(verts_valley, 1.0, 'ADD')
 
         return {'FINISHED'}
 
