@@ -2387,9 +2387,9 @@ def translatePositionInterpolator(node, action, ancestry):
         except:
             continue
 
-        loc_x.keyframe_points.add(time, x)
-        loc_y.keyframe_points.add(time, y)
-        loc_z.keyframe_points.add(time, z)
+        loc_x.keyframe_points.insert(time, x)
+        loc_y.keyframe_points.insert(time, y)
+        loc_z.keyframe_points.insert(time, z)
 
     for fcu in (loc_x, loc_y, loc_z):
         for kf in fcu.keyframe_points:
@@ -2412,9 +2412,9 @@ def translateOrientationInterpolator(node, action, ancestry):
 
         mtx = translateRotation((x, y, z, w))
         eul = mtx.to_euler()
-        rot_x.keyframe_points.add(time, eul.x)
-        rot_y.keyframe_points.add(time, eul.y)
-        rot_z.keyframe_points.add(time, eul.z)
+        rot_x.keyframe_points.insert(time, eul.x)
+        rot_y.keyframe_points.insert(time, eul.y)
+        rot_z.keyframe_points.insert(time, eul.z)
 
     for fcu in (rot_x, rot_y, rot_z):
         for kf in fcu.keyframe_points:
