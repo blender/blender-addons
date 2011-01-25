@@ -418,7 +418,7 @@ def obWei(ob, active, context):
                         groups = ob.vertex_groups
                         for vgs in range(0, len(groups)):
                             if groups[vgs].name == groupName:
-                                ob.vertex_groups.assign(v.index, groups[vgs],
+                                ob.vertex_groups.assign((v.index,), groups[vgs],
                                    vgroupIndex_weight[i][1], "REPLACE")
     return('INFO', "weights copied")
 
