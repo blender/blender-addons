@@ -184,7 +184,7 @@ class SCENE_PT_Settings(ObjectButtonsPanel,bpy.types.Panel):
         row.label(text="Exchange Folder:")
         row = layout.row()
         row.prop(coat3D,"exchangedir",text="")
-        #row = layout.row()
+        row = layout.row()
         #colL = row.column()
         #colR = row.column()
         #colL.prop(coat3D,"export_box")
@@ -205,7 +205,7 @@ class SCENE_PT_Settings(ObjectButtonsPanel,bpy.types.Panel):
         #row = layout.row()
         #colL = row.column()
         #colR = row.column()
-        #colL.operator("import_applink.pilgway_3d_deltex",text="Delete Textures")
+        row.operator("import_applink.pilgway_3d_deltex",text="Delete Textures")
         #row = layout.row()
         #row.label(text="Author: haikalle@gmail.com")
         
