@@ -77,6 +77,12 @@ def register():
         default= ""
     )
 
+    coat3D.texturefolder = StringProperty(
+        name="Texture folder:",
+        subtype="DIR_PATH",
+        default= ""
+    )
+
 
     class coat3D(bpy.types.IDPropertyGroup):
         pass
@@ -97,6 +103,61 @@ def register():
         name="Pass active object",
         default= ""
     )
+
+    coat3D.import_box = BoolProperty(
+        name="Import window",
+        description="Allows to skip import dialog.",
+        default= True
+    )
+
+    coat3D.export_box = BoolProperty(
+        name="Export window",
+        description="Allows to skip export dialog.",
+        default= True
+    )
+
+    coat3D.export_color = BoolProperty(
+        name="Export color",
+        description="Export color texture.",
+        default= True
+    )
+
+    coat3D.export_spec = BoolProperty(
+        name="Export specular",
+        description="Export specular texture.",
+        default= True
+    )
+
+    coat3D.export_normal = BoolProperty(
+        name="Export Normal",
+        description="Export normal texture.",
+        default= True
+    )
+
+    coat3D.export_disp = BoolProperty(
+        name="Export Displacement",
+        description="Export displacement texture.",
+        default= True
+    )
+
+    coat3D.export_position = BoolProperty(
+        name="Export Source Position",
+        description="Export source position.",
+        default= True
+    )
+
+    coat3D.export_zero_layer = BoolProperty(
+        name="Export from Layer 0",
+        description="Export mesh from Layer 0",
+        default= True
+    )
+
+    coat3D.export_coarse = BoolProperty(
+        name="Export Coarse",
+        description="Export Coarse.",
+        default= True
+    )
+    
 
     coat3D.export_on = BoolProperty(
         name="Export_On",

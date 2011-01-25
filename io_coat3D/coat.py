@@ -36,7 +36,7 @@ class ObjectButtonsPanel():
     bl_region_type = 'WINDOW'
     bl_context = "object"
 
-class SCENE_PT_Borgleader(ObjectButtonsPanel,bpy.types.Panel):
+class SCENE_PT_Main(ObjectButtonsPanel,bpy.types.Panel):
     bl_label = "3D-Coat Applink"
     bl_space_type = "PROPERTIES"
     bl_region_type = "WINDOW"
@@ -105,7 +105,6 @@ class SCENE_PT_Borgleader(ObjectButtonsPanel,bpy.types.Panel):
         row = layout.row()
         
         if(coat['status'] == 1):
-            row.label(text="Exchange Folder: connected")
             Blender_folder = ("%s%sBlender"%(coat3D.exchangedir,os.sep))
             Blender_export = Blender_folder
             Blender_export += ('%sexport.txt'%(os.sep))
@@ -160,17 +159,58 @@ class SCENE_PT_Borgleader(ObjectButtonsPanel,bpy.types.Panel):
 
                 
                 
-            
+        row = layout.row()
+        row.label(text="Texture output folder:")
+        row = layout.row()
+        row.prop(coa,"texturefolder",text="")
+        row = layout.row()
         if(coat['status'] == 0):
             row.label(text="Exchange Folder: not connected")
+        else:
+            row.label(text="Exchange Folder: connected")        
+
+class SCENE_PT_Settings(ObjectButtonsPanel,bpy.types.Panel):
+    bl_label = "Applink Settings"
+    bl_space_type = "PROPERTIES"
+    bl_region_type = "WINDOW"
+    bl_context = "scene"
+
+    def draw(self, context):
+        layout = self.layout
+        scene = context.scene
+        coat3D = bpy.context.scene.coat3D
+
+        row = layout.row()
+        row.label(text="Exchange Folder:")
         row = layout.row()
         row.prop(coat3D,"exchangedir",text="")
-        row = layout.row()
-        colL = row.column()
-        colR = row.column()
-        colL.operator("import_applink.pilgway_3d_deltex",text="Del Tex")
-        row = layout.row()
-        row.label(text="Author: haikalle@gmail.com")
+        #row = layout.row()
+        #colL = row.column()
+        #colR = row.column()
+        #colL.prop(coat3D,"export_box")
+        #colR.prop(coat3D,"import_box")
+        #if(not(coat3D.export_box)):
+        #    row = layout.row()
+        #    colL.label(text="Export settings:")
+        #    row = layout.row()
+        #    colL = row.column()
+        #    colR = row.column()
+        #    colL.prop(coat3D,"export_color")
+        #    colL.prop(coat3D,"export_spec")
+        #    colL.prop(coat3D,"export_normal")
+        #    colL.prop(coat3D,"export_disp")
+        #    colR.prop(coat3D,"export_position")
+        #    colR.prop(coat3D,"export_export_zero_layer")
+        #    colR.prop(coat3D,"export_coarse")
+        #row = layout.row()
+        #colL = row.column()
+        #colR = row.column()
+        #colL.operator("import_applink.pilgway_3d_deltex",text="Delete Textures")
+        #row = layout.row()
+        #row.label(text="Author: haikalle@gmail.com")
+        
+       
+        
 
 
 class SCENE_OT_export(bpy.types.Operator):
@@ -232,6 +272,13 @@ class SCENE_OT_export(bpy.types.Operator):
             file.write("%s"%(checkname))
             file.write("\n%s"%(checkname))
             file.write("\n[%s]"%(coat3D.type))
+            if(coa.texturefolder):
+                file.write("\n[TexOutput:%s"%(coa.texturefolder))
+            
+            
+        
+
+            
             file.close()
         coa.objectdir = checkname
 

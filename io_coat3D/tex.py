@@ -74,7 +74,10 @@ def gettex(mat_list, objekti, scene,export):
                                                 tex_slot.texture.image.reload()
     else:
         nimi = objname(coa.objectdir)
-        osoite = os.path.dirname(coa.objectdir) + os.sep
+        if(coa.texturefolder):
+            osoite = os.path.dirname(coa.texturefolder) + os.sep
+        else:
+            osoite = os.path.dirname(coa.objectdir) + os.sep
     just_nimi = justname(nimi)
     just_nimi += '_'
     just_nimi_len = len(just_nimi)
