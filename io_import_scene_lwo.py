@@ -1078,7 +1078,7 @@ def build_objects(object_layers, object_surfs, object_tags, object_name, add_sub
                 vgroup.name= wmap_key
                 wlist= layer_data.wmaps[wmap_key]
                 for pvp in wlist:
-                    ob.vertex_groups.assign([pvp[0]], vgroup, pvp[1], 'REPLACE')
+                    vgroup.add((pvp[0], ), pvp[1], 'REPLACE')
 
         # Create the Shape Keys (LW's Endomorphs).
         if len(layer_data.morphs) > 0:

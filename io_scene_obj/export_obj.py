@@ -67,7 +67,7 @@ def write_mtl(scene, filepath, copy_images, mtl_dict):
     mtl_dict_values.sort(key=lambda m: m[0])
 
     # Write material/image combinations we have used.
-    # Using mtl_dict.values() directly gives un-pradictable order.
+    # Using mtl_dict.values() directly gives un-predictable order.
     for mtl_mat_name, mat, img in mtl_dict_values:
 
         # Get the Blender data for the material and the image.
