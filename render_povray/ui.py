@@ -197,9 +197,18 @@ class RENDER_PT_povray_render_settings(RenderButtonsPanel, bpy.types.Panel):
 
         layout.active = scene.pov_max_trace_level
         split = layout.split()
+        
         col = split.column()
+        col.label(text="Global Settings")
         col.prop(scene, "pov_max_trace_level", text="Ray Depth")
-        col = split.column()
+        row = col.row()
+        col.label(text="Global Photons")
+        col.prop(scene, "pov_photon_max_trace_level", text="Photon Depth")
+        row = col.row()
+        col.prop(scene, "pov_photon_spacing", text="Spacing")
+        col.prop(scene, "pov_photon_adc_bailout", text="Photon ADC")
+        col.prop(scene, "pov_photon_gather_min", text="Photons gathered min")
+        col.prop(scene, "pov_photon_gather_max", text="Photons gathered max")
 
 
 class RENDER_PT_povray_antialias(RenderButtonsPanel, bpy.types.Panel):
@@ -315,7 +324,6 @@ class RENDER_PT_povray_media(RenderButtonsPanel, bpy.types.Panel):
 
         col = split.column()
         col.prop(scene, "pov_media_samples", text="Samples")
-        col = split.column()
         col.prop(scene, "pov_media_color", text="Color")
 
 ##class RENDER_PT_povray_baking(RenderButtonsPanel, bpy.types.Panel):
@@ -377,6 +385,20 @@ class MATERIAL_PT_povray_metallic(MaterialButtonsPanel, bpy.types.Panel):
         mat = context.material
         layout.active = mat.pov_mirror_metallic
 
+class MATERIAL_PT_povray_fade_color(MaterialButtonsPanel, bpy.types.Panel):
+    bl_label = "Interior Fade Color"
+    COMPAT_ENGINES = {'POVRAY_RENDER'}
+
+    def draw_header(self, context):
+        mat = context.material
+
+        self.layout.prop(mat, "pov_interior_fade_color", text="")
+
+    def draw(self, context):
+        layout = self.layout
+
+        mat = context.material
+        layout.active = mat.pov_interior_fade_color
 
 class MATERIAL_PT_povray_conserve_energy(MaterialButtonsPanel, bpy.types.Panel):
     bl_label = "conserve energy"
@@ -433,38 +455,29 @@ class MATERIAL_PT_povray_caustics(MaterialButtonsPanel, bpy.types.Panel):
 
         mat = context.material
         layout.active = mat.pov_caustics_enable
-        Radio = 1
+
         if mat.pov_caustics_enable:
             split = layout.split()
 
             col = split.column()
             col.prop(mat, "pov_refraction_type")
-##            if mat.pov_refraction_type=="0":
-##                mat.pov_fake_caustics = False
-##                mat.pov_photons_refraction = False
-##                mat.pov_photons_reflection = True
+            
             if mat.pov_refraction_type == "1":
-##                mat.pov_fake_caustics = True
-##                mat.pov_photons_refraction = False
                 col.prop(mat, "pov_fake_caustics_power", slider=True)
             elif mat.pov_refraction_type == "2":
-##                mat.pov_fake_caustics = False
-##                mat.pov_photons_refraction = True
                 col.prop(mat, "pov_photons_dispersion", slider=True)
             col.prop(mat, "pov_photons_reflection")
+            
+            if mat.pov_refraction_type=="0" and not mat.pov_photons_reflection:
+                split = layout.split()
+                col = split.column()
+                row = col.row()
+                row.alignment = 'CENTER'
+                row.label(text="Caustics override is on, ")
+                row = col.row()
+                row.alignment = 'CENTER'
+                row.label(text="but you didn't chose any !")
 
-##            col.prop(mat, "pov_fake_caustics")
-##            if mat.pov_fake_caustics:
-##                col.prop(mat, "pov_fake_caustics_power", slider=True)
-##                mat.pov_photons_refraction=0
-##            else:
-##                col.prop(mat, "pov_photons_refraction")
-##            if mat.pov_photons_refraction:
-##                col.prop(mat, "pov_photons_dispersion", slider=True)
-##                Radio = 0
-##                mat.pov_fake_caustics=Radio
-##            col.prop(mat, "pov_photons_reflection")
-####TODO : MAKE THIS A real RADIO BUTTON (using EnumProperty?)
 
 
 class TEXTURE_PT_povray_tex_gamma(TextureButtonsPanel, bpy.types.Panel):
@@ -501,4 +514,8 @@ class OBJECT_PT_povray_obj_importance(ObjectButtonsPanel, bpy.types.Panel):
         split = layout.split()
 
         col = split.column()
+        col.label(text="Radiosity")
         col.prop(obj, "pov_importance_value", text="Importance")
+        row = col.row()
+        col.label(text="Photons")
+        col.prop(obj, "pov_collect_photons", text="Receive Photon Caustics")

@@ -258,7 +258,7 @@ def write_pov(filename, scene=None, info_callback=None):
         tabWrite("matrix <%.6f, %.6f, %.6f,  %.6f, %.6f, %.6f,  %.6f, %.6f, %.6f,  %.6f, %.6f, %.6f>\n" %\
         (matrix[0][0], matrix[0][1], matrix[0][2], matrix[1][0], matrix[1][1], matrix[1][2], matrix[2][0], matrix[2][1], matrix[2][2], matrix[3][0], matrix[3][1], matrix[3][2]))
 
-    def writeObjectMaterial(material):
+    def writeObjectMaterial(material, ob):
 
         # DH - modified some variables to be function local, avoiding RNA write
         # this should be checked to see if it is functionally correct
@@ -279,10 +279,11 @@ def write_pov(filename, scene=None, info_callback=None):
             pov_photons_refraction = False
             pov_photons_reflection = False
 
+            if material.pov_photons_reflection:
+                pov_photons_reflection = True
             if material.pov_refraction_type == "0":
                 pov_fake_caustics = False
                 pov_photons_refraction = False
-                pov_photons_reflection = True  # should respond only to proper checkerbox
             elif material.pov_refraction_type == "1":
                 pov_fake_caustics = True
                 pov_photons_refraction = False
@@ -299,13 +300,21 @@ def write_pov(filename, scene=None, info_callback=None):
                     tabWrite("dispersion %.3g\n" % material.pov_photons_dispersion)  # Default of 1 means no dispersion
             #TODO
             # Other interior args
-            # if material.use_transparency and material.transparency_method == 'RAYTRACE':
-            # fade_distance 2
-            # fade_power [Value]
-            # fade_color
+            if material.use_transparency and material.transparency_method == 'RAYTRACE':
+                # fade_distance
+                # In Blender this value has always been reversed compared to what tooltip says. 100.001 rather than 100 so that it does not get to 0
+                # which deactivates the feature in POV
+                tabWrite("fade_distance %.3g\n" % (100.001 - material.raytrace_transparency.depth_max))
+                # fade_power
+                tabWrite("fade_power %.3g\n" % material.raytrace_transparency.falloff)
+                # fade_color
+                tabWrite("fade_color <%.3g, %.3g, %.3g>\n" % material.pov_interior_fade_color[:])
 
             # (variable) dispersion_samples (constant count for now)
             tabWrite("}\n")
+            if not ob.pov_collect_photons:
+                tabWrite("photons{collect off}\n")
+                    
             if pov_photons_refraction or pov_photons_reflection:
                 tabWrite("photons{\n")
                 tabWrite("target\n")
@@ -683,22 +692,23 @@ def write_pov(filename, scene=None, info_callback=None):
 
                 if material:
                     diffuse_color = material.diffuse_color
-
+                    trans= 1.0 - material.alpha
                     if material.use_transparency and material.transparency_method == 'RAYTRACE':
-                        trans = 1.0 - material.raytrace_transparency.filter
+                        povFilter = material.raytrace_transparency.filter * (1.0 - material.alpha)
+                        trans = (1.0 - material.alpha) - povFilter
                     else:
-                        trans = 0.0
+                        povFilter = 0.0
 
                     material_finish = materialNames[material.name]
 
-                    tabWrite("pigment {rgbft<%.3g, %.3g, %.3g, %.3g, %.3g>} \n" % (diffuse_color[0], diffuse_color[1], diffuse_color[2], 1.0 - material.alpha, trans))
+                    tabWrite("pigment {rgbft<%.3g, %.3g, %.3g, %.3g, %.3g>} \n" % (diffuse_color[0], diffuse_color[1], diffuse_color[2], povFilter, trans))
                     tabWrite("finish {%s}\n" % safety(material_finish, Level=2))
 
                 else:
                     tabWrite("pigment {rgb<1 1 1>} \n")
                     tabWrite("finish {%s}\n" % (safety(DEF_MAT_NAME, Level=1)))		# Write the finish last.
 
-                writeObjectMaterial(material)
+                writeObjectMaterial(material, ob)
 
                 writeMatrix(global_matrix * ob.matrix_world)
                 #Importance for radiosity sampling added here:
@@ -906,6 +916,11 @@ def write_pov(filename, scene=None, info_callback=None):
                     else:
                         trans = 0.0
 
+                    if material.use_transparency and material.transparency_method == 'RAYTRACE':
+                        povFilter = material.raytrace_transparency.filter * (1.0 - material.alpha)
+                        trans = (1.0 - material.alpha) - povFilter
+                    else:
+                        povFilter = 0.0
                 else:
                     material_finish = DEF_MAT_NAME  # not working properly,
                     trans = 0.0
@@ -1015,13 +1030,13 @@ def write_pov(filename, scene=None, info_callback=None):
                             tabWrite("}\n")
                             tabWrite("pigment_map {\n")
                             tabWrite("[0 color rgbft<0,0,0,1,1>]\n")
-                            tabWrite("[1 color rgbft<%.3g, %.3g, %.3g, %.3g, %.3g>]\n" % (col[0], col[1], col[2], 1.0 - material.alpha, trans))
+                            tabWrite("[1 color rgbft<%.3g, %.3g, %.3g, %.3g, %.3g>]\n" % (col[0], col[1], col[2], povFilter, trans))
                             tabWrite("}\n")
                             tabWrite("}\n")
 
                         else:
 
-                            tabWrite("pigment {rgbft<%.3g, %.3g, %.3g, %.3g, %.3g>}\n" % (col[0], col[1], col[2], 1.0 - material.alpha, trans))
+                            tabWrite("pigment {rgbft<%.3g, %.3g, %.3g, %.3g, %.3g>}\n" % (col[0], col[1], col[2], povFilter, trans))
 
                         if texturesSpec != "":
                             tabWrite("finish {%s}\n" % (safety(material_finish, Level=1)))  # Level 1 is no specular
@@ -1080,12 +1095,12 @@ def write_pov(filename, scene=None, info_callback=None):
                         tabWrite("pigment {pigment_pattern {uv_mapping image_map{%s \"%s\" %s}%s}\n" % (imageFormat(texturesAlpha), texturesAlpha, imgMap(t_alpha), mappingAlpha))
                         tabWrite("pigment_map {\n")
                         tabWrite("[0 color rgbft<0,0,0,1,1>]\n")
-                        tabWrite("[1 color rgbft<%.3g, %.3g, %.3g, %.3g, %.3g>]\n" % (col[0], col[1], col[2], 1.0 - material.alpha, trans))
+                        tabWrite("[1 color rgbft<%.3g, %.3g, %.3g, %.3g, %.3g>]\n" % (col[0], col[1], col[2], povFilter, trans))
                         tabWrite("}\n")
                         tabWrite("}\n")
 
                     else:
-                        tabWrite("pigment {rgbft<%.3g, %.3g, %.3g, %.3g, %.3g>}\n" % (col[0], col[1], col[2], 1.0 - material.alpha, trans))
+                        tabWrite("pigment {rgbft<%.3g, %.3g, %.3g, %.3g, %.3g>}\n" % (col[0], col[1], col[2], povFilter, trans))
 
                     if texturesSpec != "":
                         tabWrite("finish {%s}\n" % (safety(material_finish, Level=3)))  # Level 3 is full specular
@@ -1280,7 +1295,7 @@ def write_pov(filename, scene=None, info_callback=None):
             if me.materials:
                 try:
                     material = me.materials[0]  # dodgy
-                    writeObjectMaterial(material)
+                    writeObjectMaterial(material, ob)
                 except IndexError:
                     print(me)
 
@@ -1397,7 +1412,7 @@ def write_pov(filename, scene=None, info_callback=None):
             tabWrite("}\n")
         if scene.pov_media_enable:
             tabWrite("media {\n")
-            tabWrite("scattering { 1, rgb %.3g}\n" % scene.pov_media_color)
+            tabWrite("scattering { 1, rgb <%.4g, %.4g, %.4g>}\n" % scene.pov_media_color[:])
             tabWrite("samples %.d\n" % scene.pov_media_samples)
             tabWrite("}\n")
 
@@ -1435,10 +1450,10 @@ def write_pov(filename, scene=None, info_callback=None):
 
         if material.pov_photons_refraction or material.pov_photons_reflection:
             tabWrite("photons {\n")
-            tabWrite("spacing 0.003\n")
-            tabWrite("max_trace_level 5\n")
-            tabWrite("adc_bailout 0.1\n")
-            tabWrite("gather 30, 150\n")
+            tabWrite("spacing %.6f\n" % scene.pov_photon_spacing)
+            tabWrite("max_trace_level %d\n" % scene.pov_photon_max_trace_level)
+            tabWrite("adc_bailout %.3g\n" % scene.pov_photon_adc_bailout)
+            tabWrite("gather %d, %d\n" % (scene.pov_photon_gather_min, scene.pov_photon_gather_max))
             tabWrite("}\n")
 
         tabWrite("}\n")

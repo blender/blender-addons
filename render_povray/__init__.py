@@ -91,9 +91,14 @@ def register():
     Scene.pov_media_samples = IntProperty(
             name="Samples", description="Number of samples taken from camera to first object encountered along ray path for media calculation",
             min=1, max=100, default=35)
-    Scene.pov_media_color = FloatProperty(
-            name="Media Color", description="The atmospheric media color. Grey value for now",
-            min=0.00, max=1.00, soft_min=0.01, soft_max=1.00, default=0.01)
+
+    Scene.pov_media_color = FloatVectorProperty(
+            name="Media Color",
+            description="The atmospheric media color.",
+            #min=(0.0, 0.0, 0.0), soft_max=(1.0, 1.0, 1.0),#change this to what's needed for colors
+            subtype='COLOR')
+            #default=(0.01, 0.01, 0.01)#change this to what's needed for colors
+    
     Scene.pov_baking_enable = BoolProperty(
             name="Enable Baking",
             description="Enable POV-Rays texture baking",
@@ -155,6 +160,26 @@ def register():
             name="Max Trace Level", description="Number of reflections/refractions allowed on ray path",
             min=1, max=256, default=5)
 
+    Scene.pov_photon_spacing = FloatProperty(
+            name="Spacing", description="Average distance between photons on surfaces. half this get four times as many surface photons",
+            min=0.001, max=1.000, soft_min=0.001, soft_max=1.000, default=0.005, precision=3)
+
+    Scene.pov_photon_max_trace_level = IntProperty(
+            name="Max Trace Level", description="Number of reflections/refractions allowed on ray path",
+            min=1, max=256, default=5)
+
+    Scene.pov_photon_adc_bailout = FloatProperty(
+            name="ADC Bailout", description="The adc_bailout for radiosity rays. Use adc_bailout = 0.01 / brightest_ambient_object for good results",
+            min=0.0, max=1000.0, soft_min=0.0, soft_max=1.0, default=0.1, precision=3)
+
+    Scene.pov_photon_gather_min = IntProperty(
+            name="Gather Min", description="Minimum number of photons gathered for each point",
+            min=1, max=256, default=20)
+
+    Scene.pov_photon_gather_max = IntProperty(
+            name="Gather Max", description="Maximum number of photons gathered for each point",
+            min=1, max=256, default=100)
+    
     Scene.pov_radio_adc_bailout = FloatProperty(
             name="ADC Bailout", description="The adc_bailout for radiosity rays. Use adc_bailout = 0.01 / brightest_ambient_object for good results",
             min=0.0, max=1000.0, soft_min=0.0, soft_max=1.0, default=0.01, precision=3)
@@ -212,7 +237,7 @@ def register():
             name="Pretrace End", description="Fraction of the screen width which sets the size of the blocks in the mosaic preview last pass",
             min=0.001, max=1.00, soft_min=0.01, soft_max=1.00, default=0.04, precision=3)
 
-    ########################################MR######################################
+    ###########################################################################
     Mat = bpy.types.Material
 
     Mat.pov_irid_enable = BoolProperty(
@@ -249,6 +274,14 @@ def register():
             name="turbulence",
             description="This parameter varies the thickness.",
             min=0.0, max=10.0, soft_min=0.000, soft_max=1.0, default=0)
+
+
+    Mat.pov_interior_fade_color = FloatVectorProperty(
+            name="Fade Color",
+            description="Color of filtered attenuation for transparent materials",
+            #min=(0.0, 0.0, 0.0), soft_max=(1.0, 1.0, 1.0),#change this to what's needed for colors
+            subtype='COLOR')
+            #default=(0.0, 0.0, 0.0)
 
     Mat.pov_caustics_enable = BoolProperty(
             name="Caustics",
@@ -289,34 +322,46 @@ def register():
             description="use fake caustics (fast) or true photons for refractive Caustics",
             default="1")  # ui.py has to be loaded before render.py with this.
 
-    ########################################################################################
-    #Custom texture gamma
+    ###########################################################################
+    
     Tex = bpy.types.Texture
+
+    #Custom texture gamma
     Tex.pov_tex_gamma_enable = BoolProperty(
             name="Enable custom texture gamma",
             description="Notify some custom gamma for which texture has been precorrected without the file format carrying it and only if it differs from your OS expected standard (see pov doc)",
             default=False)
+    
     Tex.pov_tex_gamma_value = FloatProperty(
             name="Custom texture gamma",
             description="value for which the file was issued e.g. a Raw photo is gamma 1.0",
             min=0.45, max=5.00, soft_min=1.00, soft_max=2.50, default=1.00)
 
-    #Importance sampling
+    ###########################################################################
+    
     Obj = bpy.types.Object
+
+    #Importance sampling
     Obj.pov_importance_value = FloatProperty(
             name="Radiosity Importance",
             description="Priority value relative to other objects for sampling radiosity rays. Increase to get more radiosity rays at comparatively small yet bright objects",
             min=0.01, max=1.00, default=1.00)
 
-    ######################################EndMR#####################################
+    #Collect photons
+    Obj.pov_collect_photons = BoolProperty(
+            name="Receive Photon Caustics",
+            description="Enable object to collect photons from other objects caustics. Turn off for objects that don't really need to receive caustics (e.g. objects that generate caustics often don't need to show any on themselves) ",
+            default=True)   
+
+    ###########################################################################
 
 
 def unregister():
     import bpy
     Scene = bpy.types.Scene
-    Mat = bpy.types.Material  # MR
-    Tex = bpy.types.Texture  # MR
-    Obj = bpy.types.Object  # MR
+    Mat = bpy.types.Material
+    Tex = bpy.types.Texture 
+    Obj = bpy.types.Object
     del Scene.pov_tempfiles_enable  # CR
     del Scene.pov_scene_name  # CR
     del Scene.pov_deletefiles_enable  # CR
@@ -344,6 +389,11 @@ def unregister():
     del Scene.pov_media_color  # MR
     del Scene.pov_baking_enable  # MR
     del Scene.pov_max_trace_level  # MR
+    del Scene.pov_photon_spacing # MR
+    del Scene.pov_photon_max_trace_level # MR
+    del Scene.pov_photon_adc_bailout # MR
+    del Scene.pov_photon_gather_min # MR
+    del Scene.pov_photon_gather_max # MR
     del Scene.pov_antialias_enable  # CR
     del Scene.pov_antialias_method  # CR
     del Scene.pov_antialias_depth  # CR
@@ -362,6 +412,7 @@ def unregister():
     del Mat.pov_irid_amount  # MR
     del Mat.pov_irid_thickness  # MR
     del Mat.pov_irid_turbulence  # MR
+    del Mat.pov_interior_fade_color # MR
     del Mat.pov_caustics_enable  # MR
     del Mat.pov_fake_caustics  # MR
     del Mat.pov_fake_caustics_power  # MR
@@ -372,6 +423,7 @@ def unregister():
     del Tex.pov_tex_gamma_enable  # MR
     del Tex.pov_tex_gamma_value  # MR
     del Obj.pov_importance_value  # MR
+    del Obj.pov_collect_photons # MR
 
 if __name__ == "__main__":
     register()
