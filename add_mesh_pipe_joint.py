@@ -19,7 +19,7 @@
 bl_info = {
     "name": "Pipe Joints",
     "author": "Buerbaum Martin (Pontiac)",
-    "version": (0, 10, 6),
+    "version": (0, 10, 7),
     "blender": (2, 5, 3),
     "api": 32411,
     "location": "View3D > Add > Mesh > Pipe Joint",
@@ -134,38 +134,11 @@ from math import *
 from bpy.props import *
 
 
-# Apply view rotation to objects if "Align To" for
-# new objects was set to "VIEW" in the User Preference.
-# Is now handled in the invoke functions
-# calculates the matrix for the new object
-# depending on user pref
-def align_matrix(context):
-    loc = mathutils.Matrix.Translation(context.scene.cursor_location)
-    obj_align = context.user_preferences.edit.object_align
-    if (context.space_data.type == 'VIEW_3D'
-        and obj_align == 'VIEW'):
-        view_mat = context.space_data.region_3d.view_matrix
-        rot = view_mat.rotation_part().invert().resize4x4()
-    else:
-        rot = mathutils.Matrix()
-    align_matrix = loc * rot
-    return align_matrix
-
-
 # Create a new mesh (object) from verts/edges/faces.
 # verts/edges/faces ... List of vertices/edges/faces for the
 #                       new mesh (as used in from_pydata).
 # name ... Name of the new mesh (& object).
-# edit ... Replace existing mesh data.
-# Note: Using "edit" will destroy/delete existing mesh data.
-def create_mesh_object(context, verts, edges, faces, name, edit, align_matrix):
-    scene = context.scene
-    obj_act = scene.objects.active
-
-    # Can't edit anything, unless we have an active obj.
-    if edit and not obj_act:
-        return None
-
+def create_mesh_object(context, verts, edges, faces, name):
     # Create new mesh
     mesh = bpy.data.meshes.new(name)
 
@@ -175,70 +148,8 @@ def create_mesh_object(context, verts, edges, faces, name, edit, align_matrix):
     # Update mesh geometry after adding stuff.
     mesh.update()
 
-    # Deselect all objects.
-    bpy.ops.object.select_all(action='DESELECT')
-
-    if edit:
-        # Replace geometry of existing object
-
-        # Use the active obj and select it.
-        ob_new = obj_act
-        ob_new.select = True
-
-        if obj_act.mode == 'OBJECT':
-            # Get existing mesh datablock.
-            old_mesh = ob_new.data
-
-            # Set object data to nothing
-            ob_new.data = None
-
-            # Clear users of existing mesh datablock.
-            old_mesh.user_clear()
-
-            # Remove old mesh datablock if no users are left.
-            if (old_mesh.users == 0):
-                bpy.data.meshes.remove(old_mesh)
-
-            # Assign new mesh datablock.
-            ob_new.data = mesh
-
-    else:
-        # Create new object
-        ob_new = bpy.data.objects.new(name, mesh)
-
-        # Link new object to the given scene and select it.
-        scene.objects.link(ob_new)
-        ob_new.select = True
-
-        # Place the object at the 3D cursor location.
-        ob_new.matrix_world = align_matrix
-
-    if obj_act and obj_act.mode == 'EDIT':
-        if not edit:
-            # We are in EditMode, switch to ObjectMode.
-            bpy.ops.object.mode_set(mode='OBJECT')
-
-            # Select the active object as well.
-            obj_act.select = True
-
-            # Apply location of new object.
-            scene.update()
-
-            # Join new object into the active.
-            bpy.ops.object.join()
-
-            # Switching back to EditMode.
-            bpy.ops.object.mode_set(mode='EDIT')
-
-            ob_new = obj_act
-
-    else:
-        # We are in ObjectMode.
-        # Make the new object the active one.
-        scene.objects.active = ob_new
-
-    return ob_new
-
+    import add_object_utils
+    return add_object_utils.object_data_add(context, mesh, operator=None)
 
 # A very simple "bridge" tool.
 # Connects two equally long vertex rows with faces.
@@ -316,12 +227,6 @@ class AddElbowJoint(bpy.types.Operator):
     bl_label = "Add Pipe Elbow"
     bl_options = {'REGISTER', 'UNDO'}
 
-    # edit - Whether to add or update.
-    edit = BoolProperty(name="",
-        description="",
-        default=False,
-        options={'HIDDEN'})
-
     radius = FloatProperty(name="Radius",
         description="The radius of the pipe.",
         default=1.0,
@@ -352,10 +257,8 @@ class AddElbowJoint(bpy.types.Operator):
         min=0.01,
         max=100.0,
         unit="LENGTH")
-    align_matrix = mathutils.Matrix()
 
     def execute(self, context):
-        edit = self.edit
 
         radius = self.radius
         div = self.div
@@ -412,14 +315,8 @@ class AddElbowJoint(bpy.types.Operator):
         faces.extend(createFaces(loop1, loop2, closed=True))
         faces.extend(createFaces(loop2, loop3, closed=True))
 
-        obj = create_mesh_object(context, verts, [], faces,
-            "Elbow Joint", edit, self.align_matrix)
+        base = create_mesh_object(context, verts, [], faces, "Elbow Joint")
 
-        return {'FINISHED'}
-
-    def invoke(self, context, event):
-        self.align_matrix = align_matrix(context)
-        self.execute(context)
         return {'FINISHED'}
 
 
@@ -430,12 +327,6 @@ class AddTeeJoint(bpy.types.Operator):
     bl_idname = "mesh.primitive_tee_joint_add"
     bl_label = "Add Pipe Tee-Joint"
     bl_options = {'REGISTER', 'UNDO'}
-
-    # edit - Whether to add or update.
-    edit = BoolProperty(name="",
-        description="",
-        default=False,
-        options={'HIDDEN'})
 
     radius = FloatProperty(name="Radius",
         description="The radius of the pipe.",
@@ -477,10 +368,8 @@ class AddTeeJoint(bpy.types.Operator):
         min=0.01,
         max=100.0,
         unit="LENGTH")
-    align_matrix = mathutils.Matrix()
 
     def execute(self, context):
-        edit = self.edit
 
         radius = self.radius
         div = self.div
@@ -605,14 +494,8 @@ class AddTeeJoint(bpy.types.Operator):
         faces.extend(createFaces(loopJoint2, loopArm, closed=True))
         faces.extend(createFaces(loopJoint3, loopMainEnd, closed=True))
 
-        obj = create_mesh_object(context, verts, [], faces,
-            "Tee Joint", edit, self.align_matrix)
+        base = create_mesh_object(context, verts, [], faces, "Tee Joint")
 
-        return {'FINISHED'}
-
-    def invoke(self, context, event):
-        self.align_matrix = align_matrix(context)
-        self.execute(context)
         return {'FINISHED'}
 
 
@@ -621,12 +504,6 @@ class AddWyeJoint(bpy.types.Operator):
     bl_idname = "mesh.primitive_wye_joint_add"
     bl_label = "Add Pipe Wye-Joint"
     bl_options = {'REGISTER', 'UNDO'}
-
-    # edit - Whether to add or update.
-    edit = BoolProperty(name="",
-        description="",
-        default=False,
-        options={'HIDDEN'})
 
     radius = FloatProperty(name="Radius",
         description="The radius of the pipe.",
@@ -674,10 +551,8 @@ class AddWyeJoint(bpy.types.Operator):
         min=0.01,
         max=100.0,
         unit="LENGTH")
-    align_matrix = mathutils.Matrix()
 
     def execute(self, context):
-        edit = self.edit
 
         radius = self.radius
         div = self.div
@@ -813,14 +688,8 @@ class AddWyeJoint(bpy.types.Operator):
         faces.extend(createFaces(loopJoint2, loopArm1, closed=True))
         faces.extend(createFaces(loopJoint3, loopArm2, closed=True))
 
-        obj = create_mesh_object(context, verts, [], faces,
-            "Wye Joint", edit, self.align_matrix)
+        base = create_mesh_object(context, verts, [], faces, "Wye Joint")
 
-        return {'FINISHED'}
-
-    def invoke(self, context, event):
-        self.align_matrix = align_matrix(context)
-        self.execute(context)
         return {'FINISHED'}
 
 
@@ -830,12 +699,6 @@ class AddCrossJoint(bpy.types.Operator):
     bl_idname = "mesh.primitive_cross_joint_add"
     bl_label = "Add Pipe Cross-Joint"
     bl_options = {'REGISTER', 'UNDO'}
-
-    # edit - Whether to add or update.
-    edit = BoolProperty(name="",
-        description="",
-        default=False,
-        options={'HIDDEN'})
 
     radius = FloatProperty(name="Radius",
         description="The radius of the pipe.",
@@ -893,10 +756,8 @@ class AddCrossJoint(bpy.types.Operator):
         min=0.01,
         max=100.0,
         unit="LENGTH")
-    align_matrix = mathutils.Matrix()
 
     def execute(self, context):
-        edit = self.edit
 
         radius = self.radius
         div = self.div
@@ -1082,14 +943,8 @@ class AddCrossJoint(bpy.types.Operator):
         faces.extend(createFaces(loopJoint3, loopArm2, closed=True))
         faces.extend(createFaces(loopJoint4, loopArm3, closed=True))
 
-        obj = create_mesh_object(context, verts, [], faces,
-            "Cross Joint", edit, self.align_matrix)
+        base = create_mesh_object(context, verts, [], faces, "Cross Joint")
 
-        return {'FINISHED'}
-
-    def invoke(self, context, event):
-        self.align_matrix = align_matrix(context)
-        self.execute(context)
         return {'FINISHED'}
 
 
@@ -1099,12 +954,6 @@ class AddNJoint(bpy.types.Operator):
     bl_idname = "mesh.primitive_n_joint_add"
     bl_label = "Add Pipe N-Joint"
     bl_options = {'REGISTER', 'UNDO'}
-
-    # edit - Whether to add or update.
-    edit = BoolProperty(name="",
-        description="",
-        default=False,
-        options={'HIDDEN'})
 
     radius = FloatProperty(name="Radius",
         description="The radius of the pipe.",
@@ -1128,10 +977,8 @@ class AddNJoint(bpy.types.Operator):
         min=0.01,
         max=100.0,
         unit="LENGTH")
-    align_matrix = mathutils.Matrix()
 
     def execute(self, context):
-        edit = self.edit
         radius = self.radius
         div = self.div
         number = self.number
@@ -1253,14 +1100,8 @@ class AddNJoint(bpy.types.Operator):
                 createFaces(loopsJoints[loopIdx],
                 loopsEndCircles[loopIdx], closed=True))
 
-        obj = create_mesh_object(context, verts, [], faces,
-            "N Joint", edit, self.align_matrix)
+        base = create_mesh_object(context, verts, [], faces, "N Joint")
 
-        return {'FINISHED'}
-
-    def invoke(self, context, event):
-        self.align_matrix = align_matrix(context)
-        self.execute(context)
         return {'FINISHED'}
 
 

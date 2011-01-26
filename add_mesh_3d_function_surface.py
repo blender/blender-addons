@@ -126,29 +126,11 @@ safe_dict = dict((k, globals().get(k, None)) for k in safe_list)
 #             properties (operator arguments/parameters).
 
 
-# calculates the matrix for the new object
-# depending on user pref
-def align_matrix(context):
-    loc = Matrix.Translation(context.scene.cursor_location)
-    obj_align = context.user_preferences.edit.object_align
-
-    if (context.space_data.type == 'VIEW_3D'
-        and obj_align == 'VIEW'):
-        viewMat = context.space_data.region_3d.view_matrix
-        rot = viewMat.rotation_part().invert().resize4x4()
-    else:
-        rot = Matrix()
-    align_matrix = loc * rot
-    return align_matrix
-
-
 # Create a new mesh (object) from verts/edges/faces.
 # verts/edges/faces ... List of vertices/edges/faces for the
 #                       new mesh (as used in from_pydata).
 # name ... Name of the new mesh (& object).
-def create_mesh_object(context, verts, edges, faces, name, align_matrix):
-    scene = context.scene
-    obj_act = scene.objects.active
+def create_mesh_object(context, verts, edges, faces, name):
 
     # Create new mesh
     mesh = bpy.data.meshes.new(name)
@@ -160,7 +142,7 @@ def create_mesh_object(context, verts, edges, faces, name, align_matrix):
     mesh.update()
 
     import add_object_utils
-    add_object_utils.object_data_add(context, mesh, operator=None)
+    return add_object_utils.object_data_add(context, mesh, operator=None)
 
 
 # A very simple "bridge" tool.
@@ -265,7 +247,6 @@ class AddZFunctionSurface(bpy.types.Operator):
         min=0.01,
         max=100.0,
         unit="LENGTH")
-    align_matrix = Matrix()
 
     def execute(self, context):
         equation = self.equation
@@ -324,14 +305,8 @@ class AddZFunctionSurface(bpy.types.Operator):
 
             edgeloop_prev = edgeloop_cur
 
-        obj = create_mesh_object(context, verts, [], faces,
-            "Z Function", self.align_matrix)
+        base = create_mesh_object(context, verts, [], faces, "Z Function")
 
-        return {'FINISHED'}
-
-    def invoke(self, context, event):
-        self.align_matrix = align_matrix(context)
-        self.execute(context)
         return {'FINISHED'}
 
 
@@ -499,8 +474,6 @@ class AddXYZFunctionSurface(bpy.types.Operator):
         description="V Wrap around",
         default=False)
 
-    align_matrix = Matrix()
-
     def execute(self, context):
         verts, faces = xyz_function_surface_faces(
                             self,
@@ -519,14 +492,8 @@ class AddXYZFunctionSurface(bpy.types.Operator):
         if not verts:
             return {'CANCELLED'}
 
-        obj = create_mesh_object(context, verts, [], faces,
-            "XYZ Function", self.align_matrix)
+        obj = create_mesh_object(context, verts, [], faces, "XYZ Function")
 
-        return {'FINISHED'}
-
-    def invoke(self, context, event):
-        self.align_matrix = align_matrix(context)
-        self.execute(context)
         return {'FINISHED'}
 
 
