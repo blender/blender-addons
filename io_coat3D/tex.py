@@ -222,6 +222,7 @@ def gettex(mat_list, objekti, scene,export):
             else:
                 bpy.data.textures[name_tex].use_normal_map = True
                 objekti.active_material.texture_slots[index].normal_map_space = 'TANGENT'
+                objekti.active_material.texture_slots[index].normal_factor = -1
 
             
 

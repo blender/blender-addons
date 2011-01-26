@@ -69,11 +69,11 @@ class SCENE_PT_Main(ObjectButtonsPanel,bpy.types.Panel):
         colR = row.column()
         if(context.selected_objects):
             if(context.selected_objects[0].type == 'MESH'):
-                colL.active = True
+                row.active = True
             else:
-                colL.active = False
+                row.active = False
         else:
-            colL.active = False
+            row.active = False
         colL.operator("export_applink.pilgway_3d_coat", text="Export")
         colL.label(text="Export Settings:")
 
@@ -82,12 +82,6 @@ class SCENE_PT_Main(ObjectButtonsPanel,bpy.types.Panel):
             colL.prop(coat3D,"exportmod")
         colL.prop(coat3D,"exportfile")
         colL.prop(coat3D,"export_pos")
-        
-        
-        if(bpy.context.active_object):
-            colR.active = True
-        else:
-            colR.active = False
             
         colR.operator("import_applink.pilgway_3d_coat", text="Import")
         colR.label(text="Import Settings:")
@@ -97,10 +91,11 @@ class SCENE_PT_Main(ObjectButtonsPanel,bpy.types.Panel):
         colR.prop(coat3D,"importtextures")
         row = layout.row()
         
-        if(bpy.context.scene.objects.active):
-            row.label(text="%s Path:"%(bpy.context.scene.objects.active.name))
-            row = layout.row()
-            row.prop(coa,"objectdir",text="")
+        if(bpy.context.selected_objects):
+            if(context.selected_objects[0].type == 'MESH'):
+                row.label(text="%s Path:"%(bpy.context.scene.objects.active.name))
+                row = layout.row()
+                row.prop(coa,"objectdir",text="")
                     
         row = layout.row()
         
@@ -158,12 +153,12 @@ class SCENE_PT_Main(ObjectButtonsPanel,bpy.types.Panel):
                 
 
                 
-                
-        row = layout.row()
-        row.label(text="Texture output folder:")
         if(context.selected_objects):
-            row = layout.row()
-            row.prop(coa,"texturefolder",text="")
+            if(context.selected_objects[0].type == 'MESH'):
+                row = layout.row()
+                row.label(text="Texture output folder:")
+                row = layout.row()
+                row.prop(coa,"texturefolder",text="")
         row = layout.row()
         if(coat['status'] == 0):
             row.label(text="Exchange Folder: not connected")
@@ -206,6 +201,11 @@ class SCENE_PT_Settings(ObjectButtonsPanel,bpy.types.Panel):
         #row = layout.row()
         #colL = row.column()
         #colR = row.column()
+        if(bpy.context.selected_objects):
+            if(context.selected_objects[0].type == 'MESH'):
+                row.active = True
+        else:
+            row.active = False
         row.operator("import_applink.pilgway_3d_deltex",text="Delete Textures")
         #row = layout.row()
         #row.label(text="Author: haikalle@gmail.com")
@@ -453,22 +453,24 @@ class SCENE_OT_deltex(bpy.types.Operator):
 
     
     def invoke(self, context, event):
-        coat3D = bpy.context.scene.coat3D
-        coa = bpy.context.scene.objects.active.coat3D
-        scene = context.scene
-        nimi = tex.objname(coa.objectdir)
-        if(coa.texturefolder):
-            osoite = os.path.dirname(coa.texturefolder) + os.sep
-        else:
-            osoite = os.path.dirname(coa.objectdir) + os.sep
-        just_nimi = tex.justname(nimi)
-        just_nimi += '_'
+        if(bpy.context.selected_objects):
+            if(context.selected_objects[0].type == 'MESH'):
+                coat3D = bpy.context.scene.coat3D
+                coa = bpy.context.scene.objects.active.coat3D
+                scene = context.scene
+                nimi = tex.objname(coa.objectdir)
+                if(coa.texturefolder):
+                    osoite = os.path.dirname(coa.texturefolder) + os.sep
+                else:
+                    osoite = os.path.dirname(coa.objectdir) + os.sep
+                just_nimi = tex.justname(nimi)
+                just_nimi += '_'
 
-        files = os.listdir(osoite)
-        for i in files:
-            if(i.rfind(just_nimi) >= 0):
-                del_osoite = osoite + i
-                os.remove(del_osoite)
+                files = os.listdir(osoite)
+                for i in files:
+                    if(i.rfind(just_nimi) >= 0):
+                        del_osoite = osoite + i
+                        os.remove(del_osoite)
     
         return('FINISHED')
 
