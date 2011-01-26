@@ -36,24 +36,11 @@ from mathutils import *
 from math import *
 from bpy.props import *
 
-# calculates the matrix for the new object
-# depending on user pref
-def align_matrix(context):
-    loc = Matrix.Translation(context.scene.cursor_location)
-    obj_align = context.user_preferences.edit.object_align
-    if (context.space_data.type == 'VIEW_3D'
-        and obj_align == 'VIEW'):
-        rot = context.space_data.region_3d.view_matrix.rotation_part().invert().resize4x4()
-    else:
-        rot = Matrix()
-    align_matrix = loc * rot
-    return align_matrix
-
 # Create a new mesh (object) from verts/edges/faces.
 # verts/edges/faces ... List of vertices/edges/faces for the
 #                       new mesh (as used in from_pydata).
 # name ... Name of the new mesh (& object).
-def create_mesh_object(context, verts, edges, faces, name, align_matrix):
+def create_mesh_object(context, verts, edges, faces, name):
     scene = context.scene
     obj_act = scene.objects.active
 
@@ -66,44 +53,8 @@ def create_mesh_object(context, verts, edges, faces, name, align_matrix):
     # Update mesh geometry after adding stuff.
     mesh.update()
 
-    # Deselect all objects.
-    bpy.ops.object.select_all(action='DESELECT')
-
-    # Always create new object
-    ob_new = bpy.data.objects.new(name, mesh)
-
-    # Link new object to the given scene and select it.
-    scene.objects.link(ob_new)
-    ob_new.select = True
-
-    # Place the object at the 3D cursor location.
-    # apply viewRotaion
-    ob_new.matrix_world = align_matrix
-
-    if obj_act and obj_act.mode == 'EDIT':
-        # We are in EditMode, switch to ObjectMode.
-        bpy.ops.object.mode_set(mode='OBJECT')
-
-        # Select the active object as well.
-        obj_act.select = True
-
-        # Apply location of new object.
-        scene.update()
-
-        # Join new object into the active.
-        bpy.ops.object.join()
-
-        # Switching back to EditMode.
-        bpy.ops.object.mode_set(mode='EDIT')
-
-        ob_new = obj_act
-
-    else:
-        # We are in ObjectMode.
-        # Make the new object the active one.
-        scene.objects.active = ob_new
-
-    return ob_new
+    import add_object_utils
+    return add_object_utils.object_data_add(context, mesh, operator=None)
 
 
 # A very simple "bridge" tool.
@@ -437,7 +388,6 @@ class AddSqorus(bpy.types.Operator):
         description="Enable to subdivide the faces on the outside." \
             " This results in equally spaced vertices.",
         default=True)
-    align_matrix = Matrix()
 
     def execute(self, context):
 
@@ -447,15 +397,10 @@ class AddSqorus(bpy.types.Operator):
             self.subdivide)
 
         # Create mesh object (and meshdata)
-        obj = create_mesh_object(context, verts, [], faces, "Sqorus",
-            self.align_matrix)
+        obj = create_mesh_object(context, verts, [], faces, "Sqorus")
 
         return {'FINISHED'}
 
-    def invoke(self, context, event):
-        self.align_matrix = align_matrix(context)
-        self.execute(context)
-        return {'FINISHED'}
 
 class AddWedge(bpy.types.Operator):
     '''Add a wedge mesh.'''
@@ -478,7 +423,6 @@ class AddWedge(bpy.types.Operator):
         min=0.01,
         max=9999.0,
         default=2.00)
-    align_matrix = Matrix()
 
     def execute(self, context):
 
@@ -487,14 +431,8 @@ class AddWedge(bpy.types.Operator):
             self.size_y,
             self.size_z)
 
-        obj = create_mesh_object(context, verts, [], faces, "Wedge",
-            self.align_matrix)
+        obj = create_mesh_object(context, verts, [], faces, "Wedge")
 
-        return {'FINISHED'}
-
-    def invoke(self, context, event):
-        self.align_matrix = align_matrix(context)
-        self.execute(context)
         return {'FINISHED'}
 
 
@@ -524,7 +462,6 @@ class AddStar(bpy.types.Operator):
         min=0.01,
         max=9999.0,
         default=0.5)
-    align_matrix = Matrix()
 
     def execute(self, context):
 
@@ -534,14 +471,8 @@ class AddStar(bpy.types.Operator):
             self.innter_radius,
             self.height)
 
-        obj = create_mesh_object(context, verts, [], faces, "Star",
-            self.align_matrix)
+        obj = create_mesh_object(context, verts, [], faces, "Star")
 
-        return {'FINISHED'}
-
-    def invoke(self, context, event):
-        self.align_matrix = align_matrix(context)
-        self.execute(context)
         return {'FINISHED'}
 
 
@@ -561,15 +492,14 @@ class AddTrapezohedron(bpy.types.Operator):
     height = FloatProperty(name = "Tip height",
                 description = "Height of the tip",
                 default = 1, min = 0.01, max = 100.0)
-    align_matrix = Matrix()
+
     def execute(self,context):
         # generate mesh
         verts,faces = trapezohedron(self.segments,
                                     self.radius,
                                     self.height)
         
-        obj = create_mesh_object(context, verts, [], faces, "Trapazohedron",
-            self.align_matrix)
+        obj = create_mesh_object(context, verts, [], faces, "Trapazohedron")
 
         return {'FINISHED'}
 

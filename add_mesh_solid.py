@@ -40,20 +40,6 @@ from mathutils import Vector,Matrix
 #from rawMeshUtils import *
 from functools import reduce
 
-# Apply view rotation to objects if "Align To" for
-# new objects was set to "VIEW" in the User Preference.
-def apply_object_align(context, ob):
-    obj_align = bpy.context.user_preferences.edit.object_align
-
-    if (context.space_data.type == 'VIEW_3D'
-        and obj_align == 'VIEW'):
-            view3d = context.space_data
-            region = view3d.region_3d
-            viewMatrix = region.view_matrix
-            rot = viewMatrix.rotation_part()
-            ob.rotation_euler = rot.invert().to_euler()
-
-
 # Create a new mesh (object) from verts/edges/faces.
 # verts/edges/faces ... List of vertices/edges/faces for the
 #                       new mesh (as used in from_pydata).
@@ -71,45 +57,8 @@ def create_mesh_object(context, verts, edges, faces, name):
     # Update mesh geometry after adding stuff.
     mesh.update()
 
-    # Deselect all objects.
-    bpy.ops.object.select_all(action='DESELECT')
-
-    # Always create new object
-    ob_new = bpy.data.objects.new(name, mesh)
-
-    # Link new object to the given scene and select it.
-    scene.objects.link(ob_new)
-    ob_new.select = True
-
-    # Place the object at the 3D cursor location.
-    ob_new.location = scene.cursor_location
-
-    apply_object_align(context, ob_new)
-
-    if obj_act and obj_act.mode == 'EDIT':
-        # We are in EditMode, switch to ObjectMode.
-        bpy.ops.object.mode_set(mode='OBJECT')
-
-        # Select the active object as well.
-        obj_act.select = True
-
-        # Apply location of new object.
-        scene.update()
-
-        # Join new object into the active.
-        bpy.ops.object.join()
-
-        # Switching back to EditMode.
-        bpy.ops.object.mode_set(mode='EDIT')
-
-        ob_new = obj_act
-
-    else:
-        # We are in ObjectMode.
-        # Make the new object the active one.
-        scene.objects.active = ob_new
-
-    return ob_new
+    import add_object_utils
+    return add_object_utils.object_data_add(context, mesh, operator=None)
 
 
 # A very simple "bridge" tool.

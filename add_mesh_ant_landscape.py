@@ -77,24 +77,11 @@ from noise import *
 from math import *
 
 
-###------------------------------------------------------------
-# calculates the matrix for the new object depending on user pref
-def align_matrix(context):
-    loc = Matrix.Translation(context.scene.cursor_location)
-    obj_align = context.user_preferences.edit.object_align
-    if (context.space_data.type == 'VIEW_3D'
-        and obj_align == 'VIEW'):
-        rot = context.space_data.region_3d.view_matrix.rotation_part().invert().resize4x4()
-    else:
-        rot = Matrix()
-    align_matrix = loc * rot
-    return align_matrix
-
 # Create a new mesh (object) from verts/edges/faces.
 # verts/edges/faces ... List of vertices/edges/faces for the
 #                    new mesh (as used in from_pydata).
 # name ... Name of the new mesh (& object).
-def create_mesh_object(context, verts, edges, faces, name, align_matrix):
+def create_mesh_object(context, verts, edges, faces, name):
     scene = context.scene
     obj_act = scene.objects.active
 
@@ -107,44 +94,8 @@ def create_mesh_object(context, verts, edges, faces, name, align_matrix):
     # Update mesh geometry after adding stuff.
     mesh.update()
 
-    # Deselect all objects.
-    bpy.ops.object.select_all(action='DESELECT')
-
-    # Always create new object
-    ob_new = bpy.data.objects.new(name, mesh)
-
-    # Link new object to the given scene and select it.
-    scene.objects.link(ob_new)
-    ob_new.select = True
-
-    # Place the object at the 3D cursor location.
-    # apply viewRotaion
-    ob_new.matrix_world = align_matrix
-
-    if obj_act and obj_act.mode == 'EDIT':
-        # We are in EditMode, switch to ObjectMode.
-        bpy.ops.object.mode_set(mode='OBJECT')
-
-        # Select the active object as well.
-        obj_act.select = True
-
-        # Apply location of new object.
-        scene.update()
-
-        # Join new object into the active.
-        bpy.ops.object.join()
-
-        # Switching back to EditMode.
-        bpy.ops.object.mode_set(mode='EDIT')
-
-        ob_new = obj_act
-
-    else:
-        # We are in ObjectMode.
-        # Make the new object the active one.
-        scene.objects.active = ob_new
-
-    return ob_new
+    import add_object_utils
+    return add_object_utils.object_data_add(context, mesh, operator=None)
 
 # A very simple "bridge" tool.
 # Connects two equally long vertex rows with faces.
@@ -489,9 +440,6 @@ class landscape_add(bpy.types.Operator):
     bl_options = {'REGISTER', 'UNDO'}
     bl_description = "Add landscape mesh"
 
-    # align_matrix for the invoke
-    align_matrix = Matrix()
-
     # properties
     AutoUpdate = BoolProperty(name="Mesh update",
                 default=True,
@@ -829,7 +777,7 @@ class landscape_add(bpy.types.Operator):
                 verts, faces = grid_gen( self.Subdivision, self.MeshSize, options )
 
             # create mesh object
-            obj = create_mesh_object(context, verts, [], faces, "Landscape", self.align_matrix)
+            obj = create_mesh_object(context, verts, [], faces, "Landscape")
 
             # sphere, remove doubles
             if self.SphereMesh !=0:
@@ -848,10 +796,6 @@ class landscape_add(bpy.types.Operator):
         else:
             return {'PASS_THROUGH'}
 
-    def invoke(self, context, event):
-        self.align_matrix = align_matrix(context)
-        self.execute(context)
-        return {'FINISHED'}
 
 ###------------------------------------------------------------
 # Register
