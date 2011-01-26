@@ -19,7 +19,7 @@
 bl_info = {
     "name": "3D Function Surfaces",
     "author": "Buerbaum Martin (Pontiac)",
-    "version": (0, 3, 6),
+    "version": (0, 3, 7),
     "blender": (2, 5, 6),
     "api": 34093,
     "location": "View3D > Add > Mesh >"\
@@ -146,15 +146,9 @@ def align_matrix(context):
 # verts/edges/faces ... List of vertices/edges/faces for the
 #                       new mesh (as used in from_pydata).
 # name ... Name of the new mesh (& object).
-# edit ... Replace existing mesh data.
-# Note: Using "edit" will destroy/delete existing mesh data.
-def create_mesh_object(context, verts, edges, faces, name, edit, align_matrix):
+def create_mesh_object(context, verts, edges, faces, name, align_matrix):
     scene = context.scene
     obj_act = scene.objects.active
-
-    # Can't edit anything, unless we have an active obj.
-    if edit and not obj_act:
-        return None
 
     # Create new mesh
     mesh = bpy.data.meshes.new(name)
@@ -165,70 +159,8 @@ def create_mesh_object(context, verts, edges, faces, name, edit, align_matrix):
     # Update mesh geometry after adding stuff.
     mesh.update()
 
-    # Deselect all objects.
-    bpy.ops.object.select_all(action='DESELECT')
-
-    if edit:
-        # Replace geometry of existing object
-
-        # Use the active obj and select it.
-        ob_new = obj_act
-        ob_new.select = True
-
-        if obj_act.mode == 'OBJECT':
-            # Get existing mesh datablock.
-            old_mesh = ob_new.data
-
-            # Set object data to nothing
-            ob_new.data = None
-
-            # Clear users of existing mesh datablock.
-            old_mesh.user_clear()
-
-            # Remove old mesh datablock if no users are left.
-            if (old_mesh.users == 0):
-                bpy.data.meshes.remove(old_mesh)
-
-            # Assign new mesh datablock.
-            ob_new.data = mesh
-
-    else:
-        # Create new object
-        ob_new = bpy.data.objects.new(name, mesh)
-
-        # Link new object to the given scene and select it.
-        scene.objects.link(ob_new)
-        ob_new.select = True
-
-        # Place the object at the 3D cursor location.
-        # apply viewRotaion
-        ob_new.matrix_world = align_matrix
-
-    if obj_act and obj_act.mode == 'EDIT':
-        if not edit:
-            # We are in EditMode, switch to ObjectMode.
-            bpy.ops.object.mode_set(mode='OBJECT')
-
-            # Select the active object as well.
-            obj_act.select = True
-
-            # Apply location of new object.
-            scene.update()
-
-            # Join new object into the active.
-            bpy.ops.object.join()
-
-            # Switching back to EditMode.
-            bpy.ops.object.mode_set(mode='EDIT')
-
-            ob_new = obj_act
-
-    else:
-        # We are in ObjectMode.
-        # Make the new object the active one.
-        scene.objects.active = ob_new
-
-    return ob_new
+    import add_object_utils
+    add_object_utils.object_data_add(context, mesh, operator=None)
 
 
 # A very simple "bridge" tool.
@@ -306,12 +238,6 @@ class AddZFunctionSurface(bpy.types.Operator):
     bl_label = "Add Z Function Surface"
     bl_options = {'REGISTER', 'UNDO'}
 
-    # edit - Whether to add or update.
-    edit = BoolProperty(name="",
-        description="",
-        default=False,
-        options={'HIDDEN'})
-
     equation = StringProperty(name="Z Equation",
         description="Equation for z=f(x,y)",
         default="1 - ( x**2 + y**2 )")
@@ -342,7 +268,6 @@ class AddZFunctionSurface(bpy.types.Operator):
     align_matrix = Matrix()
 
     def execute(self, context):
-        edit = self.edit
         equation = self.equation
         div_x = self.div_x
         div_y = self.div_y
@@ -400,7 +325,7 @@ class AddZFunctionSurface(bpy.types.Operator):
             edgeloop_prev = edgeloop_cur
 
         obj = create_mesh_object(context, verts, [], faces,
-            "Z Function", edit, self.align_matrix)
+            "Z Function", self.align_matrix)
 
         return {'FINISHED'}
 
@@ -518,12 +443,6 @@ class AddXYZFunctionSurface(bpy.types.Operator):
     bl_label = "Add X,Y,Z Function Surface"
     bl_options = {'REGISTER', 'UNDO'}
 
-    # edit - Whether to add or update.
-    edit = BoolProperty(name="",
-        description="",
-        default=False,
-        options={'HIDDEN'})
-
     x_eq = StringProperty(name="X Equation",
         description="Equation for x=f(u,v)",
         default="1.2**v*(sin(u)**2 *sin(v))")
@@ -601,7 +520,7 @@ class AddXYZFunctionSurface(bpy.types.Operator):
             return {'CANCELLED'}
 
         obj = create_mesh_object(context, verts, [], faces,
-            "XYZ Function", self.edit, self.align_matrix)
+            "XYZ Function", self.align_matrix)
 
         return {'FINISHED'}
 
