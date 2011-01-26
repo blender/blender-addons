@@ -161,8 +161,9 @@ class SCENE_PT_Main(ObjectButtonsPanel,bpy.types.Panel):
                 
         row = layout.row()
         row.label(text="Texture output folder:")
-        row = layout.row()
-        row.prop(coa,"texturefolder",text="")
+        if(context.selected_objects):
+            row = layout.row()
+            row.prop(coa,"texturefolder",text="")
         row = layout.row()
         if(coat['status'] == 0):
             row.label(text="Exchange Folder: not connected")
