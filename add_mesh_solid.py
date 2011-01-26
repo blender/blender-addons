@@ -20,7 +20,7 @@
 bl_info = {
     "name": "Regular Solids",
     "author": "DreamPainter",
-    "version": (1,),
+    "version": (1, 0, 1),
     "blender": (2, 5, 3),
     "api": 32411,
     "location": "View3D > Add > Mesh > Regular Solids",
@@ -58,15 +58,9 @@ def apply_object_align(context, ob):
 # verts/edges/faces ... List of vertices/edges/faces for the
 #                       new mesh (as used in from_pydata).
 # name ... Name of the new mesh (& object).
-# edit ... Replace existing mesh data.
-# Note: Using "edit" will destroy/delete existing mesh data.
-def create_mesh_object(context, verts, edges, faces, name, edit):
+def create_mesh_object(context, verts, edges, faces, name):
     scene = context.scene
     obj_act = scene.objects.active
-
-    # Can't edit anything, unless we have an active obj.
-    if edit and not obj_act:
-        return None
 
     # Create new mesh
     mesh = bpy.data.meshes.new(name)
@@ -80,61 +74,35 @@ def create_mesh_object(context, verts, edges, faces, name, edit):
     # Deselect all objects.
     bpy.ops.object.select_all(action='DESELECT')
 
-    if edit:
-        # Replace geometry of existing object
+    # Always create new object
+    ob_new = bpy.data.objects.new(name, mesh)
 
-        # Use the active obj and select it.
-        ob_new = obj_act
-        ob_new.select = True
+    # Link new object to the given scene and select it.
+    scene.objects.link(ob_new)
+    ob_new.select = True
 
-        if obj_act.mode == 'OBJECT':
-            # Get existing mesh datablock.
-            old_mesh = ob_new.data
+    # Place the object at the 3D cursor location.
+    ob_new.location = scene.cursor_location
 
-            # Set object data to nothing
-            ob_new.data = None
-
-            # Clear users of existing mesh datablock.
-            old_mesh.user_clear()
-
-            # Remove old mesh datablock if no users are left.
-            if (old_mesh.users == 0):
-                bpy.data.meshes.remove(old_mesh)
-
-            # Assign new mesh datablock.
-            ob_new.data = mesh
-
-    else:
-        # Create new object
-        ob_new = bpy.data.objects.new(name, mesh)
-
-        # Link new object to the given scene and select it.
-        scene.objects.link(ob_new)
-        ob_new.select = True
-
-        # Place the object at the 3D cursor location.
-        ob_new.location = scene.cursor_location
-
-        apply_object_align(context, ob_new)
+    apply_object_align(context, ob_new)
 
     if obj_act and obj_act.mode == 'EDIT':
-        if not edit:
-            # We are in EditMode, switch to ObjectMode.
-            bpy.ops.object.mode_set(mode='OBJECT')
+        # We are in EditMode, switch to ObjectMode.
+        bpy.ops.object.mode_set(mode='OBJECT')
 
-            # Select the active object as well.
-            obj_act.select = True
+        # Select the active object as well.
+        obj_act.select = True
 
-            # Apply location of new object.
-            scene.update()
+        # Apply location of new object.
+        scene.update()
 
-            # Join new object into the active.
-            bpy.ops.object.join()
+        # Join new object into the active.
+        bpy.ops.object.join()
 
-            # Switching back to EditMode.
-            bpy.ops.object.mode_set(mode='EDIT')
+        # Switching back to EditMode.
+        bpy.ops.object.mode_set(mode='EDIT')
 
-            ob_new = obj_act
+        ob_new = obj_act
 
     else:
         # We are in ObjectMode.
@@ -735,11 +703,6 @@ class Solids(bpy.types.Operator):
          "ds12":["12",1.1235,0.68,1,"L"],
          "c":["6",0,0,0,"0"],
          "sb":["20",2/3,0,0,"0"]}
-    
-    edit = BoolProperty(name="",
-                        description="",
-                        default=False,
-                        options={'HIDDEN'})
 
     def execute(self,context):
         # turn off undo for better performance (3 - 5x faster), also makes sure
@@ -774,7 +737,7 @@ class Solids(bpy.types.Operator):
         verts = [i*rad for i in verts]
 
         # generate object
-        obj = create_mesh_object(context,verts,[],faces,"Solid",self.edit)
+        obj = create_mesh_object(context,verts,[],faces,"Solid")
 
         # vertices will be on top of each other in some cases,
         #    so remove doubles then

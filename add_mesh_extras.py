@@ -19,8 +19,8 @@
 bl_info = {
     "name": "Extras",
     "author": "Pontiac, Fourmadmen, meta-androcto",
-    "version": (0,4),
-    "blender": (2, 5, 5),
+    "version": (0, 5),
+    "blender": (2, 5, 6),
     "api": 33832,
     "location": "View3D > Add > Mesh > Extras",
     "description": "Adds Star, Wedge, & Sqorus objects.",
@@ -53,15 +53,9 @@ def align_matrix(context):
 # verts/edges/faces ... List of vertices/edges/faces for the
 #                       new mesh (as used in from_pydata).
 # name ... Name of the new mesh (& object).
-# edit ... Replace existing mesh data.
-# Note: Using "edit" will destroy/delete existing mesh data.
-def create_mesh_object(context, verts, edges, faces, name, edit, align_matrix):
+def create_mesh_object(context, verts, edges, faces, name, align_matrix):
     scene = context.scene
     obj_act = scene.objects.active
-
-    # Can't edit anything, unless we have an active obj.
-    if edit and not obj_act:
-        return None
 
     # Create new mesh
     mesh = bpy.data.meshes.new(name)
@@ -75,60 +69,34 @@ def create_mesh_object(context, verts, edges, faces, name, edit, align_matrix):
     # Deselect all objects.
     bpy.ops.object.select_all(action='DESELECT')
 
-    if edit:
-        # Replace geometry of existing object
+    # Always create new object
+    ob_new = bpy.data.objects.new(name, mesh)
 
-        # Use the active obj and select it.
-        ob_new = obj_act
-        ob_new.select = True
+    # Link new object to the given scene and select it.
+    scene.objects.link(ob_new)
+    ob_new.select = True
 
-        if obj_act.mode == 'OBJECT':
-            # Get existing mesh datablock.
-            old_mesh = ob_new.data
-
-            # Set object data to nothing
-            ob_new.data = None
-
-            # Clear users of existing mesh datablock.
-            old_mesh.user_clear()
-
-            # Remove old mesh datablock if no users are left.
-            if (old_mesh.users == 0):
-                bpy.data.meshes.remove(old_mesh)
-
-            # Assign new mesh datablock.
-            ob_new.data = mesh
-
-    else:
-        # Create new object
-        ob_new = bpy.data.objects.new(name, mesh)
-
-        # Link new object to the given scene and select it.
-        scene.objects.link(ob_new)
-        ob_new.select = True
-
-        # Place the object at the 3D cursor location.
-        # apply viewRotaion
-        ob_new.matrix_world = align_matrix
+    # Place the object at the 3D cursor location.
+    # apply viewRotaion
+    ob_new.matrix_world = align_matrix
 
     if obj_act and obj_act.mode == 'EDIT':
-        if not edit:
-            # We are in EditMode, switch to ObjectMode.
-            bpy.ops.object.mode_set(mode='OBJECT')
+        # We are in EditMode, switch to ObjectMode.
+        bpy.ops.object.mode_set(mode='OBJECT')
 
-            # Select the active object as well.
-            obj_act.select = True
+        # Select the active object as well.
+        obj_act.select = True
 
-            # Apply location of new object.
-            scene.update()
+        # Apply location of new object.
+        scene.update()
 
-            # Join new object into the active.
-            bpy.ops.object.join()
+        # Join new object into the active.
+        bpy.ops.object.join()
 
-            # Switching back to EditMode.
-            bpy.ops.object.mode_set(mode='EDIT')
+        # Switching back to EditMode.
+        bpy.ops.object.mode_set(mode='EDIT')
 
-            ob_new = obj_act
+        ob_new = obj_act
 
     else:
         # We are in ObjectMode.
@@ -460,11 +428,6 @@ class AddSqorus(bpy.types.Operator):
     bl_label = "Add Sqorus"
     bl_options = {'REGISTER', 'UNDO'}
 
-    # edit - Whether to add or update.
-    edit = BoolProperty(name="",
-        description="",
-        default=False,
-        options={'HIDDEN'})
     hole_size = FloatProperty(name="Hole Size",
         description="Size of the Hole",
         min=0.01,
@@ -485,7 +448,7 @@ class AddSqorus(bpy.types.Operator):
 
         # Create mesh object (and meshdata)
         obj = create_mesh_object(context, verts, [], faces, "Sqorus",
-            self.edit, self.align_matrix)
+            self.align_matrix)
 
         return {'FINISHED'}
 
@@ -500,11 +463,6 @@ class AddWedge(bpy.types.Operator):
     bl_label = "Add Wedge"
     bl_options = {'REGISTER', 'UNDO'}
 
-    # edit - Whether to add or update.
-    edit = BoolProperty(name="",
-        description="",
-        default=False,
-        options={'HIDDEN'})
     size_x = FloatProperty(name="Size X",
         description="Size along the X axis",
         min=0.01,
@@ -530,7 +488,7 @@ class AddWedge(bpy.types.Operator):
             self.size_z)
 
         obj = create_mesh_object(context, verts, [], faces, "Wedge",
-            self.edit, self.align_matrix)
+            self.align_matrix)
 
         return {'FINISHED'}
 
@@ -546,11 +504,6 @@ class AddStar(bpy.types.Operator):
     bl_label = "Add Star"
     bl_options = {'REGISTER', 'UNDO'}
 
-    # edit - Whether to add or update.
-    edit = BoolProperty(name="",
-        description="",
-        default=False,
-        options={'HIDDEN'})
     points = IntProperty(name="Points",
         description="Number of points for the star",
         min=2,
@@ -582,7 +535,7 @@ class AddStar(bpy.types.Operator):
             self.height)
 
         obj = create_mesh_object(context, verts, [], faces, "Star",
-            self.edit, self.align_matrix)
+            self.align_matrix)
 
         return {'FINISHED'}
 
@@ -608,10 +561,6 @@ class AddTrapezohedron(bpy.types.Operator):
     height = FloatProperty(name = "Tip height",
                 description = "Height of the tip",
                 default = 1, min = 0.01, max = 100.0)
-    edit = BoolProperty(name="",
-                        description="",
-                        default=False,
-                        options={'HIDDEN'})
     align_matrix = Matrix()
     def execute(self,context):
         # generate mesh
@@ -620,7 +569,7 @@ class AddTrapezohedron(bpy.types.Operator):
                                     self.height)
         
         obj = create_mesh_object(context, verts, [], faces, "Trapazohedron",
-            self.edit, self.align_matrix)
+            self.align_matrix)
 
         return {'FINISHED'}
 
