@@ -207,8 +207,6 @@ class SCENE_PT_Settings(ObjectButtonsPanel,bpy.types.Panel):
         else:
             row.active = False
         row.operator("import_applink.pilgway_3d_deltex",text="Delete Textures")
-        #row = layout.row()
-        #row.label(text="Author: haikalle@gmail.com")
         
        
         
