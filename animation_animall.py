@@ -136,8 +136,9 @@ class ANIM_OT_insert_keyframe_animall(bpy.types.Operator):
             Data = Obj.data
             
             if context.window_manager.key_shape:
-                for Point in Obj.active_shape_key.data:
-                    Point.keyframe_insert('co')
+                if Obj.active_shape_key:
+                    for Point in Obj.active_shape_key.data:
+                        Point.keyframe_insert('co')
             
             if context.window_manager.key_vgroups:
                 for Vert in Data.vertices:
@@ -164,8 +165,9 @@ class ANIM_OT_insert_keyframe_animall(bpy.types.Operator):
         
         if Obj.type == 'LATTICE':
             if context.window_manager.key_shape:
-                for Point in Obj.active_shape_key.data:
-                    Point.keyframe_insert('co')
+                if Obj.active_shape_key:
+                    for Point in Obj.active_shape_key.data:
+                        Point.keyframe_insert('co')
 
 
         return {'FINISHED'}
@@ -199,8 +201,9 @@ class ANIM_OT_delete_keyframe_animall(bpy.types.Operator):
             Data = Obj.data
             
             if context.window_manager.key_shape:
-                for Point in Obj.active_shape_key.data:
-                    Point.keyframe_delete('co')
+                if Obj.active_shape_key:
+                    for Point in Obj.active_shape_key.data:
+                        Point.keyframe_delete('co')
             
             if context.window_manager.key_vgroups:
                 for Vert in Data.vertices:
@@ -228,8 +231,9 @@ class ANIM_OT_delete_keyframe_animall(bpy.types.Operator):
 
         if Obj.type == 'LATTICE':
             if context.window_manager.key_shape:
-                for Point in Obj.active_shape_key.data:
-                    Point.keyframe_delete('co')
+                if Obj.active_shape_key:
+                    for Point in Obj.active_shape_key.data:
+                        Point.keyframe_delete('co')
 
         return {'FINISHED'}
 
