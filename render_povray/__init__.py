@@ -95,9 +95,14 @@ def register():
     Scene.pov_media_color = FloatVectorProperty(
             name="Media Color",
             description="The atmospheric media color.",
-            #min=(0.0, 0.0, 0.0), soft_max=(1.0, 1.0, 1.0),#change this to what's needed for colors
-            subtype='COLOR')
-            #default=(0.01, 0.01, 0.01)#change this to what's needed for colors
+            subtype='COLOR',
+            precision = 4,
+            step = 0.01,
+            min=0,
+            soft_max = 1,
+            default=(0.001, 0.001, 0.001),
+            options={'ANIMATABLE'})
+            
     
     Scene.pov_baking_enable = BoolProperty(
             name="Enable Baking",
@@ -279,9 +284,13 @@ def register():
     Mat.pov_interior_fade_color = FloatVectorProperty(
             name="Fade Color",
             description="Color of filtered attenuation for transparent materials",
-            #min=(0.0, 0.0, 0.0), soft_max=(1.0, 1.0, 1.0),#change this to what's needed for colors
-            subtype='COLOR')
-            #default=(0.0, 0.0, 0.0)
+            subtype='COLOR',
+            precision = 4,
+            step = 0.01,
+            min=0,
+            soft_max = 1,
+            default=(0, 0, 0),
+            options={'ANIMATABLE'})
 
     Mat.pov_caustics_enable = BoolProperty(
             name="Caustics",
