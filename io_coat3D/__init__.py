@@ -83,6 +83,12 @@ def register():
         default= ""
     )
 
+    coat3D.path3b = StringProperty(
+        name="3B Path",
+        subtype="FILE_PATH",
+        default= ""
+    )
+
 
     class coat3D(bpy.types.IDPropertyGroup):
         pass
