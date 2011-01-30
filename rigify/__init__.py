@@ -21,7 +21,8 @@ bl_info = {
     "author": "Nathan Vegdahl",
     "version": (0, 5),
     "blender": (2, 5, 5),
-    "description": "?",
+    "location": "View3D > Add > Armature",
+    "description": "Adds various Rig Templates",
     "api": 33110,
     "location": "Armature properties",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"\

@@ -22,7 +22,7 @@ bl_info = {
     "version": (2,0),
     "blender": (2, 5, 3),
     "api": 31965,
-    "location": "Fracture tools (Search > Fracture Object & Add -> Fracture Helper Objects",
+    "location": "Search > Fracture Object & Add -> Fracture Helper Objects",
     "description": "Fractured Object, Bomb, Projectile, Recorder",
     "warning": "",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"\

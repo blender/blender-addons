@@ -24,7 +24,7 @@ bl_info = {
     "version": (0, 0, 7),
     "blender": (2, 5, 6),
     "api": 34318,
-    "location": "Info Header (engine dropdown)",
+    "location": "Render > Engine > POV-Ray 3.7",
     "description": "Basic POV-Ray 3.7 integration for blender",
     "warning": "both POV-Ray 3.7 and this script are beta",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"\

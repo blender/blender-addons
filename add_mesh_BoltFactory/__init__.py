@@ -22,7 +22,8 @@ bl_info = {
     "version": (3,9),
     "blender": (2, 5, 3),
     "api": 32411,
-    "location": "add Mesh",
+    "location": "View3D > Add > Mesh",
+    "description": "Adds a Bolt or Nut",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"\
         "Scripts/Add_Mesh/BoltFactory",
     "tracker_url": "https://projects.blender.org/tracker/index.php?"\

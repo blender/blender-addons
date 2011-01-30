@@ -22,8 +22,8 @@ bl_info = {
     "version": (1,),
     "blender": (2, 5, 3),
     "api": 32411,
-    "location": "Toolshelf > search > simplify curves",
-    "description": "This script simplifies 3D curves and fcurves",
+    "location": "Search > Simplify Curves",
+    "description": "Simplifies 3D curves and fcurves",
     "warning": "",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"\
         "Scripts/Curve/Curve_Simplify",

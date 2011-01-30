@@ -22,7 +22,7 @@ bl_info = {
     'version': (0, 4),
     'blender': (2, 5, 5),
     'api': 34513,
-    'location': 'Select a Mesh: Toolbar > AnimAll panel',
+    'location': 'Select a Mesh: Tool Shelf > AnimAll panel',
     'description': 'Allows animation of mesh and lattice data (Shape Keys, VCols, VGroups, UVs)',
     'warning': '',
     'wiki_url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/Scripts/Animation/AnimAll',

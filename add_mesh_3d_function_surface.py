@@ -22,8 +22,7 @@ bl_info = {
     "version": (0, 3, 7),
     "blender": (2, 5, 6),
     "api": 34093,
-    "location": "View3D > Add > Mesh >"\
-        " Z Function Surface & XYZ Function Surface",
+    "location": "View3D > Add > Mesh",
     "description": "Create Objects using Math Formulas",
     "warning": "",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"\
