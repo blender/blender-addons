@@ -1716,7 +1716,9 @@ class VIEW3D_PT_unrealtools_objectmode(bpy.types.Panel):
         layout = self.layout
         rd = context.scene
         layout.prop(rd, "unrealexport_settings",expand=True)        
-        layout.operator("object.UnrealExport")#button
+        #layout.operator("object.UnrealExport")#button#blender 2.55 version
+        layout.operator(OBJECT_OT_UnrealExport.bl_idname)#button blender #2.56 version
+        #print("Button Name:",OBJECT_OT_UnrealExport.bl_idname) #2.56 version
         #FPS #it use the real data from your scene
         layout.prop(rd.render, "fps")
         
