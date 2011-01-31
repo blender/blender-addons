@@ -535,10 +535,11 @@ def write_pov(filename, scene=None, info_callback=None):
 
             tabWrite("rotate  <%.6f, %.6f, %.6f>\n" % tuple([degrees(e) for e in matrix.rotation_part().to_euler()]))
             tabWrite("translate <%.6f, %.6f, %.6f>\n" % (matrix[3][0], matrix[3][1], matrix[3][2]))
-            if focal_point != 0:
-                tabWrite("aperture 0.25\n")  # fixed blur amount for now to do, add slider a button?
-                tabWrite("blur_samples 96 128\n")
-                tabWrite("variance 1/10000\n")
+            if camera.data.pov_dof_enable and focal_point != 0:
+                tabWrite("aperture %.3g\n"% camera.data.pov_dof_aperture) 
+                tabWrite("blur_samples %d %d\n"% (camera.data.pov_dof_samples_min, camera.data.pov_dof_samples_max))
+                tabWrite("variance 1/%d\n"% camera.data.pov_dof_variance)
+                tabWrite("confidence %.3g\n"% camera.data.pov_dof_confidence)
                 tabWrite("focal_point <0, 0, %f>\n" % focal_point)
         tabWrite("}\n")
 

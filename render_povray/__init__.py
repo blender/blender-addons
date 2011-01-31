@@ -174,7 +174,7 @@ def register():
             min=1, max=256, default=5)
 
     Scene.pov_photon_adc_bailout = FloatProperty(
-            name="ADC Bailout", description="The adc_bailout for radiosity rays. Use adc_bailout = 0.01 / brightest_ambient_object for good results",
+            name="ADC Bailout", description="The adc_bailout for photons. Use adc_bailout = 0.01 / brightest_ambient_object for good results",
             min=0.0, max=1000.0, soft_min=0.0, soft_max=1.0, default=0.1, precision=3)
 
     Scene.pov_photon_gather_min = IntProperty(
@@ -363,6 +363,44 @@ def register():
             default=True)   
 
     ###########################################################################
+    
+    Cam = bpy.types.Camera
+
+    #DOF Toggle
+    Cam.pov_dof_enable = BoolProperty(
+            name="Depth Of Field",
+            description="Enable POV-Ray Depth Of Field ",
+            default=True)
+
+    #Aperture (Intensity of the Blur)
+    Cam.pov_dof_aperture = FloatProperty(
+            name="Aperture",
+            description="Similar to a real camera's aperture effect over focal blur (though not in physical units and independant of focal length).Increase to get more blur",
+            min=0.01, max=1.00, default=0.25)
+
+    #Aperture adaptive sampling
+    Cam.pov_dof_samples_min = IntProperty(
+            name="Samples Min",
+            description="Minimum number of rays to use for each pixel",
+            min=1, max=128, default=96)
+
+    Cam.pov_dof_samples_max = IntProperty(
+            name="Samples Max",
+            description="Maximum number of rays to use for each pixel",
+            min=1, max=128, default=128)
+
+    Cam.pov_dof_variance = IntProperty(
+            name="Variance",
+            description="Minimum threshold (fractional value) for adaptive DOF sampling (up increases quality and render time). The value for the variance should be in the range of the smallest displayable color difference",
+            min=1, max=100000, soft_max=10000, default=256)
+    
+    Cam.pov_dof_confidence = FloatProperty(
+            name="Confidence",
+            description="Probability to reach the real color value. Larger confidence values will lead to more samples, slower traces and better images.",
+            min=0.01, max=0.99, default=0.90)
+
+    ###########################################################################
+
 
 
 def unregister():
@@ -371,6 +409,7 @@ def unregister():
     Mat = bpy.types.Material
     Tex = bpy.types.Texture 
     Obj = bpy.types.Object
+    Cam = bpy.types.Camera 
     del Scene.pov_tempfiles_enable  # CR
     del Scene.pov_scene_name  # CR
     del Scene.pov_deletefiles_enable  # CR
@@ -433,6 +472,12 @@ def unregister():
     del Tex.pov_tex_gamma_value  # MR
     del Obj.pov_importance_value  # MR
     del Obj.pov_collect_photons # MR
-
+    del Cam.pov_dof_enable # MR
+    del Cam.pov_dof_aperture # MR
+    del Cam.pov_dof_samples_min # MR
+    del Cam.pov_dof_samples_max # MR
+    del Cam.pov_dof_variance # MR
+    del Cam.pov_dof_confidence # MR
+    
 if __name__ == "__main__":
     register()
