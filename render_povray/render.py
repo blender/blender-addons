@@ -593,10 +593,8 @@ def write_pov(filename, scene=None, info_callback=None):
                     tabWrite("adaptive 1\n")
                     tabWrite("jitter\n")
 
-            if lamp.type == 'HEMI':  # HEMI never has any shadow attribute
+            if not scene.render.use_shadows or lamp.type == 'HEMI' or (lamp.type != 'HEMI' and lamp.shadow_method == 'NOSHADOW'): # HEMI never has any shadow_method attribute
                 tabWrite("shadowless\n")
-            elif lamp.shadow_method == 'NOSHADOW':
-                    tabWrite("shadowless\n")
 
             if lamp.type not in ('SUN', 'AREA', 'HEMI'):  # Sun shouldn't be attenuated. Hemi and area lights have no falloff attribute so they are put to type 2 attenuation a little higher above.
                 tabWrite("fade_distance %.6f\n" % (lamp.distance / 5.0))
@@ -707,7 +705,7 @@ def write_pov(filename, scene=None, info_callback=None):
 
                 else:
                     tabWrite("pigment {rgb<1 1 1>} \n")
-                    tabWrite("finish {%s}\n" % (safety(DEF_MAT_NAME, Level=1)))		# Write the finish last.
+                    tabWrite("finish {%s}\n" % (safety(DEF_MAT_NAME, Level=2)))		# Write the finish last.
 
                 writeObjectMaterial(material, ob)
 
