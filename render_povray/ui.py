@@ -134,6 +134,7 @@ class ObjectButtonsPanel():
         rd = context.scene.render
         return obj and (rd.use_game_engine == False) and (rd.engine in cls.COMPAT_ENGINES)
 
+
 class CameraDataButtonsPanel():
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
@@ -145,7 +146,6 @@ class CameraDataButtonsPanel():
         cam = context.camera
         rd = context.scene.render
         return cam and (rd.use_game_engine == False) and (rd.engine in cls.COMPAT_ENGINES)
-
 
 
 class RENDER_PT_povray_export_settings(RenderButtonsPanel, bpy.types.Panel):
@@ -405,6 +405,7 @@ class MATERIAL_PT_povray_metallic(MaterialButtonsPanel, bpy.types.Panel):
         mat = context.material
         layout.active = mat.pov_mirror_metallic
 
+
 class MATERIAL_PT_povray_fade_color(MaterialButtonsPanel, bpy.types.Panel):
     bl_label = "Interior Fade Color"
     COMPAT_ENGINES = {'POVRAY_RENDER'}
@@ -419,6 +420,7 @@ class MATERIAL_PT_povray_fade_color(MaterialButtonsPanel, bpy.types.Panel):
 
         mat = context.material
         layout.active = mat.pov_interior_fade_color
+
 
 class MATERIAL_PT_povray_conserve_energy(MaterialButtonsPanel, bpy.types.Panel):
     bl_label = "conserve energy"
@@ -488,7 +490,7 @@ class MATERIAL_PT_povray_caustics(MaterialButtonsPanel, bpy.types.Panel):
                 col.prop(mat, "pov_photons_dispersion", slider=True)
             col.prop(mat, "pov_photons_reflection")
             
-            if mat.pov_refraction_type=="0" and not mat.pov_photons_reflection:
+            if mat.pov_refraction_type == "0" and not mat.pov_photons_reflection:
                 split = layout.split()
                 col = split.column()
                 row = col.row()
@@ -497,7 +499,6 @@ class MATERIAL_PT_povray_caustics(MaterialButtonsPanel, bpy.types.Panel):
                 row = col.row()
                 row.alignment = 'CENTER'
                 row.label(text="but you didn't chose any !")
-
 
 
 class TEXTURE_PT_povray_tex_gamma(TextureButtonsPanel, bpy.types.Panel):
@@ -540,6 +541,7 @@ class OBJECT_PT_povray_obj_importance(ObjectButtonsPanel, bpy.types.Panel):
         col.label(text="Photons")
         col.prop(obj, "pov_collect_photons", text="Receive Photon Caustics")
 
+
 class Camera_PT_povray_cam_dof(CameraDataButtonsPanel, bpy.types.Panel):
     bl_label = "POV-Ray Depth Of Field"
     COMPAT_ENGINES = {'POVRAY_RENDER'}
@@ -570,5 +572,3 @@ class Camera_PT_povray_cam_dof(CameraDataButtonsPanel, bpy.types.Panel):
 
         col.prop(cam, "pov_dof_samples_max")
         col.prop(cam, "pov_dof_confidence")
-        
-

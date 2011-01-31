@@ -536,10 +536,10 @@ def write_pov(filename, scene=None, info_callback=None):
             tabWrite("rotate  <%.6f, %.6f, %.6f>\n" % tuple([degrees(e) for e in matrix.rotation_part().to_euler()]))
             tabWrite("translate <%.6f, %.6f, %.6f>\n" % (matrix[3][0], matrix[3][1], matrix[3][2]))
             if camera.data.pov_dof_enable and focal_point != 0:
-                tabWrite("aperture %.3g\n"% camera.data.pov_dof_aperture) 
-                tabWrite("blur_samples %d %d\n"% (camera.data.pov_dof_samples_min, camera.data.pov_dof_samples_max))
-                tabWrite("variance 1/%d\n"% camera.data.pov_dof_variance)
-                tabWrite("confidence %.3g\n"% camera.data.pov_dof_confidence)
+                tabWrite("aperture %.3g\n" % camera.data.pov_dof_aperture) 
+                tabWrite("blur_samples %d %d\n" % (camera.data.pov_dof_samples_min, camera.data.pov_dof_samples_max))
+                tabWrite("variance 1/%d\n" % camera.data.pov_dof_variance)
+                tabWrite("confidence %.3g\n" % camera.data.pov_dof_confidence)
                 tabWrite("focal_point <0, 0, %f>\n" % focal_point)
         tabWrite("}\n")
 
@@ -693,7 +693,7 @@ def write_pov(filename, scene=None, info_callback=None):
 
                 if material:
                     diffuse_color = material.diffuse_color
-                    trans= 1.0 - material.alpha
+                    trans = 1.0 - material.alpha
                     if material.use_transparency and material.transparency_method == 'RAYTRACE':
                         povFilter = material.raytrace_transparency.filter * (1.0 - material.alpha)
                         trans = (1.0 - material.alpha) - povFilter
@@ -1706,6 +1706,8 @@ class PovrayRender(bpy.types.RenderEngine):
         povSceneName = ""
         povPath = ""
         renderImagePath = ""
+
+        scene.frame_set(scene.frame_current)  # has to be called to update the frame on exporting animations
 
         if not scene.pov_tempfiles_enable:
 

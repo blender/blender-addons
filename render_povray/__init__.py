@@ -96,10 +96,10 @@ def register():
             name="Media Color",
             description="The atmospheric media color.",
             subtype='COLOR',
-            precision = 4,
-            step = 0.01,
+            precision=4,
+            step=0.01,
             min=0,
-            soft_max = 1,
+            soft_max=1,
             default=(0.001, 0.001, 0.001),
             options={'ANIMATABLE'})
             
@@ -285,10 +285,10 @@ def register():
             name="Fade Color",
             description="Color of filtered attenuation for transparent materials",
             subtype='COLOR',
-            precision = 4,
-            step = 0.01,
-            min=0,
-            soft_max = 1,
+            precision=4,
+            step=0.01,
+            min=0.0,
+            soft_max=1.0,
             default=(0, 0, 0),
             options={'ANIMATABLE'})
 
@@ -400,7 +400,6 @@ def register():
             min=0.01, max=0.99, default=0.90)
 
     ###########################################################################
-
 
 
 def unregister():
