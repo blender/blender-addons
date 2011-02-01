@@ -28,7 +28,7 @@ bl_info = {
     "version": (1, 6, 1),
     "blender": (2, 5, 6),
     "api": 34036,
-    "location": "View3D > Spacebar",
+    "location": "View3D > Spacebar Key",
     "description": "Context sensitive spacebar menu",
     "warning": "",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"\

@@ -24,7 +24,7 @@ bl_info = {
     'version': (0, 42),
     'blender': (2, 5, 6),
     'api': 34324,
-    'location': 'View3D > Ctrl/C',
+    'location': 'View3D > Ctrl-C',
     'description': 'Copy Attributes Menu from Blender 2.4',
     'wiki_url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/'\
         'Scripts/3D_interaction/Copy_Attributes_Menu',

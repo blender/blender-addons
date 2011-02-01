@@ -25,8 +25,8 @@ bl_info = {
     'version': (1, 5, 0),
     'blender': (2, 5, 7),
     'api': 34404,
-    'location': 'Text window > Properties panel (ctrl+F) or '\
-        'Console > Console menu',
+    'location': 'Text Editor > Properties or '\
+        'Console > Console Menu',
     'warning': '',
     'description': 'Click an icon to display its name and copy it '\
         'to the clipboard',
