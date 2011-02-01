@@ -22,7 +22,7 @@ bl_info = {
     "version": (0,1),
     "blender": (2, 5, 3),
     "api": 31965,
-    "location": "View3D > Add > Mesh > Chain",
+    "location": "View3D > Add > Mesh",
     "description": "Adds Chain with curve guide for easy creation",
     "warning": "",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"\

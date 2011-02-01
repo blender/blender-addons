@@ -22,7 +22,7 @@ bl_info = {
     "version": (0, 7, 12),
     "blender": (2, 5, 5),
     "api": 33931,
-    "location": "View3D > Properties > Measure",
+    "location": "View3D > Properties > Measure Panel",
     "description": "Measure distances between objects",
     "warning": "",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/" \

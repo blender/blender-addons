@@ -22,7 +22,7 @@ bl_info = {
     "version": (0,8),
     "blender": (2, 5, 3),
     "api": 31847,
-    "location": "View3D > EditMode > ToolShelf",
+    "location": "View3D > EditMode > Tool Shelf > Surface Sketching Panel",
     "description": "Draw meshes and re-topologies with Grease Pencil",
     "warning": "Beta",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"\

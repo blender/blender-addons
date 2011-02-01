@@ -27,7 +27,7 @@ bl_info = {
     "version": (1, 2),
     "blender": (2, 5, 4),
     "api": 32411,
-    "location": "View3D > Tool Shelf",
+    "location": "View3D > Tool Shelf > 3D Nav",
     "description": "Navigate the Camera & 3D View from the Toolshelf",
     "warning": "",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"\
@@ -43,7 +43,7 @@ import bpy
 class VIEW3D_PT_3dnavigationPanel(bpy.types.Panel):
     bl_space_type = "VIEW_3D"
     bl_region_type = "TOOLS"
-    bl_label = "3D Views "
+    bl_label = "3D Nav"
 
     def draw(self, context):
         layout = self.layout

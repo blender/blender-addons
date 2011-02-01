@@ -26,7 +26,7 @@ bl_info = {
     "version": (0,3),
     "blender": (2, 5, 3),
     "api": 32411,
-    "location": "Properties space > Scene tab > Blend Info panel",
+    "location": "Properties > Scene > Blend Info Panel",
     "description": "Show information about the .blend",
     "warning": "",
     "wiki_url": 'http://wiki.blender.org/index.php/Extensions:2.5/Py/' \

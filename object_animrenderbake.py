@@ -21,7 +21,7 @@ bl_info = {
     "author": "Janne Karhu (jahka)",
     "version": (1, 0),
     "blender": (2, 5, 5),
-    "location": "Render Properties > Bake",
+    "location": "Properties > Render > Bake Panel",
     "description": "Renderbakes a series of frames",
     "category": "Object",
     'wiki_url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/' \

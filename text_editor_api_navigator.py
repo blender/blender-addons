@@ -25,7 +25,7 @@ bl_info = {
     "version": (1, 0),
     "blender": (2, 5, 5),
     "api": 32760,
-    "location": "Text Editor -> Properties (CTRL+F) -> API Navigator Panel",
+    "location": "Text Editor > Properties > API Navigator Panel",
     "description": "Allows to explore the python api via the user interface",
     "warning": "",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"

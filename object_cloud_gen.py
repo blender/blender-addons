@@ -22,7 +22,7 @@ bl_info = {
     "version": (1,0),
     "blender": (2, 5, 5),
     "api": 31965,
-    "location": "Tool Shelf ",
+    "location": "View3D > Tool Shelf > Cloud Generator Panel",
     "description": "Creates Volumetric Clouds",
     "warning": "",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"\
