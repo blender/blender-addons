@@ -249,7 +249,7 @@ def obj_image_load(imagepath, DIR, IMAGE_SEARCH):
     if image:
         return image
 
-    print("failed to load '%s' doesn't exist", imagepath)
+    print("failed to load %r doesn't exist" % imagepath)
     return None
 
 # def obj_image_load(imagepath, DIR, IMAGE_SEARCH):
@@ -303,8 +303,8 @@ def create_materials(filepath, material_libs, unique_materials, unique_material_
                 mtex.use_map_color_diffuse = True
                 mtex.use_map_alpha = True
 
-                texture.mipmap = True
-                texture.interpolation = True
+                texture.use_mipmap = True
+                texture.use_interpolation = True
                 texture.use_alpha = True
                 blender_material.use_transparency = True
                 blender_material.alpha = 0.0
@@ -351,6 +351,9 @@ def create_materials(filepath, material_libs, unique_materials, unique_material_
             mtex.texture = texture
             mtex.texture_coords = 'UV'
             mtex.use_map_reflect = True
+            
+        else:
+            raise Exception("invalid type '%s'" % type)
 
     # Add an MTL with the same name as the obj if no MTLs are spesified.
     temp_mtl = os.path.splitext((os.path.basename(filepath)))[0] + '.mtl'
@@ -414,7 +417,7 @@ def create_materials(filepath, material_libs, unique_materials, unique_material_
                         img_filepath = line_value(line.split())
                         if img_filepath:
                             load_material_image(context_material, context_material_name, img_filepath, 'Kd')
-                    elif line_lower.startswith('map_bump'):
+                    elif line_lower.startswith('map_bump') or line_lower.startswith('bump'): # 'bump' is incorrect but some files use it.
                         img_filepath = line_value(line.split())
                         if img_filepath:
                             load_material_image(context_material, context_material_name, img_filepath, 'Bump')
