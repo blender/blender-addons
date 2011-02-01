@@ -236,12 +236,12 @@ def line_value(line_split):
         return line_split[1]
 
     elif length > 2:
-        return ' '.join(line_split[1:])
+        return b' '.join(line_split[1:])
 
 
 def obj_image_load(imagepath, DIR, IMAGE_SEARCH):
-    if '_' in imagepath:
-        image = load_image(imagepath.replace('_', ' '), DIR)
+    if b'_' in imagepath:
+        image = load_image(imagepath.replace(b'_', b' '), DIR)
         if image:
             return image
 
@@ -351,12 +351,12 @@ def create_materials(filepath, material_libs, unique_materials, unique_material_
             mtex.texture = texture
             mtex.texture_coords = 'UV'
             mtex.use_map_reflect = True
-            
+
         else:
-            raise Exception("invalid type '%s'" % type)
+            raise Exception("invalid type %r" % type)
 
     # Add an MTL with the same name as the obj if no MTLs are spesified.
-    temp_mtl = os.path.splitext((os.path.basename(filepath)))[0] + '.mtl'
+    temp_mtl = os.path.splitext((os.path.basename(filepath)))[0] + b'.mtl'
 
     if os.path.exists(os.path.join(DIR, temp_mtl)) and temp_mtl not in material_libs:
         material_libs.append(temp_mtl)
@@ -365,22 +365,23 @@ def create_materials(filepath, material_libs, unique_materials, unique_material_
     #Create new materials
     for name in unique_materials:  # .keys()
         if name != None:
-            unique_materials[name] = bpy.data.materials.new(name)
+            unique_materials[name] = bpy.data.materials.new(name.decode('utf-8', "surrogateescape"))
             unique_material_images[name] = None, False  # assign None to all material images to start with, add to later.
 
     unique_materials[None] = None
     unique_material_images[None] = None, False
 
     for libname in material_libs:
+        # print(libname)
         mtlpath = os.path.join(DIR, libname)
         if not os.path.exists(mtlpath):
-            print ("\tError Missing MTL: '%s'" % mtlpath)
+            print ("\tError Missing MTL: %r" % mtlpath)
         else:
-            #print '\t\tloading mtl: "%s"' % mtlpath
+            #print('\t\tloading mtl: %e' % mtlpath)
             context_material = None
-            mtl = open(mtlpath, 'rU')
+            mtl = open(mtlpath, 'rb')
             for line in mtl:  # .readlines():
-                if line.startswith('newmtl'):
+                if line.startswith(b'newmtl'):
                     context_material_name = line_value(line.split())
                     if context_material_name in unique_materials:
                         context_material = unique_materials[context_material_name]
@@ -391,42 +392,42 @@ def create_materials(filepath, material_libs, unique_materials, unique_material_
                     # we need to make a material to assign properties to it.
                     line_split = line.split()
                     line_lower = line.lower().lstrip()
-                    if line_lower.startswith('ka'):
+                    if line_lower.startswith(b'ka'):
                         context_material.mirror_color = float(line_split[1]), float(line_split[2]), float(line_split[3])
-                    elif line_lower.startswith('kd'):
+                    elif line_lower.startswith(b'kd'):
                         context_material.diffuse_color = float(line_split[1]), float(line_split[2]), float(line_split[3])
-                    elif line_lower.startswith('ks'):
+                    elif line_lower.startswith(b'ks'):
                         context_material.specular_color = float(line_split[1]), float(line_split[2]), float(line_split[3])
-                    elif line_lower.startswith('ns'):
+                    elif line_lower.startswith(b'ns'):
                         context_material.specular_hardness = int((float(line_split[1]) * 0.51))
-                    elif line_lower.startswith('ni'):  # Refraction index
+                    elif line_lower.startswith(b'ni'):  # Refraction index
                         context_material.raytrace_transparency.ior = max(1, min(float(line_split[1]), 3))  # between 1 and 3
-                    elif line_lower.startswith('d') or line_lower.startswith('tr'):
+                    elif line_lower.startswith(b'd') or line_lower.startswith(b'tr'):
                         context_material.alpha = float(line_split[1])
                         context_material.use_transparency = True
                         context_material.transparency_method = 'Z_TRANSPARENCY'
-                    elif line_lower.startswith('map_ka'):
+                    elif line_lower.startswith(b'map_ka'):
                         img_filepath = line_value(line.split())
                         if img_filepath:
                             load_material_image(context_material, context_material_name, img_filepath, 'Ka')
-                    elif line_lower.startswith('map_ks'):
+                    elif line_lower.startswith(b'map_ks'):
                         img_filepath = line_value(line.split())
                         if img_filepath:
                             load_material_image(context_material, context_material_name, img_filepath, 'Ks')
-                    elif line_lower.startswith('map_kd'):
+                    elif line_lower.startswith(b'map_kd'):
                         img_filepath = line_value(line.split())
                         if img_filepath:
                             load_material_image(context_material, context_material_name, img_filepath, 'Kd')
-                    elif line_lower.startswith('map_bump') or line_lower.startswith('bump'): # 'bump' is incorrect but some files use it.
+                    elif line_lower.startswith(b'map_bump') or line_lower.startswith(b'bump'):  # 'bump' is incorrect but some files use it.
                         img_filepath = line_value(line.split())
                         if img_filepath:
                             load_material_image(context_material, context_material_name, img_filepath, 'Bump')
-                    elif line_lower.startswith('map_d') or line_lower.startswith('map_tr'):  # Alpha map - Dissolve
+                    elif line_lower.startswith(b'map_d') or line_lower.startswith(b'map_tr'):  # Alpha map - Dissolve
                         img_filepath = line_value(line.split())
                         if img_filepath:
                             load_material_image(context_material, context_material_name, img_filepath, 'D')
 
-                    elif line_lower.startswith('refl'):  # reflectionmap
+                    elif line_lower.startswith(b'refl'):  # reflectionmap
                         img_filepath = line_value(line.split())
                         if img_filepath:
                             load_material_image(context_material, context_material_name, img_filepath, 'refl')
@@ -608,7 +609,7 @@ def create_mesh(new_objects, has_ngons, CREATE_FGONS, CREATE_EDGES, verts_loc, v
     for name, index in list(material_mapping.items()):
         materials[index] = unique_materials[name]
 
-    me = bpy.data.meshes.new(dataname)
+    me = bpy.data.meshes.new(dataname.decode('utf-8', "surrogateescape"))
 
     # make sure the list isnt too big
     for material in materials:
@@ -757,18 +758,18 @@ def create_nurbs(context_nurbs, vert_loc, new_objects):
     '''
     Add nurbs object to blender, only support one type at the moment
     '''
-    deg = context_nurbs.get('deg', (3,))
-    curv_range = context_nurbs.get('curv_range')
-    curv_idx = context_nurbs.get('curv_idx', [])
-    parm_u = context_nurbs.get('parm_u', [])
-    parm_v = context_nurbs.get('parm_v', [])
-    name = context_nurbs.get('name', 'ObjNurb')
-    cstype = context_nurbs.get('cstype')
+    deg = context_nurbs.get(b'deg', (3,))
+    curv_range = context_nurbs.get(b'curv_range')
+    curv_idx = context_nurbs.get(b'curv_idx', [])
+    parm_u = context_nurbs.get(b'parm_u', [])
+    parm_v = context_nurbs.get(b'parm_v', [])
+    name = context_nurbs.get(b'name', b'ObjNurb')
+    cstype = context_nurbs.get(b'cstype')
 
     if cstype is None:
         print('\tWarning, cstype not found')
         return
-    if cstype != 'bspline':
+    if cstype != b'bspline':
         print('\tWarning, cstype is not supported (only bspline)')
         return
     if not curv_idx:
@@ -778,7 +779,7 @@ def create_nurbs(context_nurbs, vert_loc, new_objects):
         print('\tWarning, surfaces not supported')
         return
 
-    cu = bpy.data.curves.new(name, 'CURVE')
+    cu = bpy.data.curves.new(name.decode('utf-8', "surrogateescape"), 'CURVE')
     cu.dimensions = '3D'
 
     nu = cu.splines.new('NURBS')
@@ -821,13 +822,13 @@ def create_nurbs(context_nurbs, vert_loc, new_objects):
         nu.use_cyclic_u = True
     '''
 
-    ob = bpy.data.objects.new("Nurb", cu)
+    ob = bpy.data.objects.new(name.decode('utf-8', "surrogateescape"), cu)
 
     new_objects.append(ob)
 
 
 def strip_slash(line_split):
-    if line_split[-1][-1] == "\\":
+    if line_split[-1][-1] == 92:  # '\' char
         if len(line_split[-1]) == 1:
             line_split.pop()  # remove the \ item
         else:
@@ -841,13 +842,13 @@ def get_float_func(filepath):
     find the float function for this obj file
     - whether to replace commas or not
     '''
-    file = open(filepath, 'rU')
+    file = open(filepath, 'rb')
     for line in file:  # .readlines():
         line = line.lstrip()
-        if line.startswith('v'):  # vn vt v
-            if ',' in line:
-                return lambda f: float(f.replace(',', '.'))
-            elif '.' in line:
+        if line.startswith(b'v'):  # vn vt v
+            if b',' in line:
+                return lambda f: float(f.replace(b',', b'.'))
+            elif b'.' in line:
                 return float
 
     # incase all vert values were ints
@@ -872,6 +873,8 @@ def load(operator, context, filepath,
     '''
     print('\nimporting obj %r' % filepath)
 
+    filepath = filepath.encode()
+
     if SPLIT_OBJECTS or SPLIT_GROUPS:
         POLYGROUPS = False
 
@@ -895,7 +898,7 @@ def load(operator, context, filepath,
     # Nurbs
     context_nurbs = {}
     nurbs = []
-    context_parm = ''  # used by nurbs too but could be used elsewhere
+    context_parm = b''  # used by nurbs too but could be used elsewhere
 
     has_ngons = False
     # has_smoothgroups= False - is explicit with len(unique_smooth_groups) being > 0
@@ -910,31 +913,31 @@ def load(operator, context, filepath,
     # it means they are multiline-
     # since we use xreadline we cant skip to the next line
     # so we need to know whether
-    context_multi_line = ""
+    context_multi_line = b''
 
     print("\tparsing obj file...")
     time_sub = time.time()
 #     time_sub= sys.time()
 
-    file = open(filepath, 'rU')
+    file = open(filepath, 'rb')
     for line in file:  # .readlines():
         line = line.lstrip()  # rare cases there is white space at the start of the line
 
-        if line.startswith("v "):
+        if line.startswith(b"v "):
             line_split = line.split()
             # rotate X90: (x,-z,y)
             verts_loc.append((float_func(line_split[1]), -float_func(line_split[3]), float_func(line_split[2])))
 
-        elif line.startswith("vn "):
+        elif line.startswith(b"vn "):
             pass
 
-        elif line.startswith("vt "):
+        elif line.startswith(b"vt "):
             line_split = line.split()
             verts_tex.append((float_func(line_split[1]), float_func(line_split[2])))
 
         # Handel faces lines (as faces) and the second+ lines of fa multiline face here
         # use 'f' not 'f ' because some objs (very rare have 'fo ' for faces)
-        elif line.startswith('f') or context_multi_line == 'f':
+        elif line.startswith(b'f') or context_multi_line == b'f':
 
             if context_multi_line:
                 # use face_vert_loc_indices and face_vert_tex_indices previously defined and used the obj_face
@@ -955,17 +958,16 @@ def load(operator, context, filepath,
                 ))
 
             if strip_slash(line_split):
-                context_multi_line = 'f'
+                context_multi_line = b'f'
             else:
-                context_multi_line = ''
+                context_multi_line = b''
 
             for v in line_split:
-                obj_vert = v.split('/')
-
+                obj_vert = v.split(b'/')
                 vert_loc_index = int(obj_vert[0]) - 1
                 # Add the vertex to the current group
                 # *warning*, this wont work for files that have groups defined around verts
-                if    POLYGROUPS and context_vgroup:
+                if POLYGROUPS and context_vgroup:
                     vertex_groups[context_vgroup].append(vert_loc_index)
 
                 # Make relative negative vert indices absolute
@@ -991,7 +993,7 @@ def load(operator, context, filepath,
             if len(face_vert_loc_indices) > 4:
                 has_ngons = True
 
-        elif CREATE_EDGES and (line.startswith('l ') or context_multi_line == 'l'):
+        elif CREATE_EDGES and (line.startswith(b'l ') or context_multi_line == b'l'):
             # very similar to the face load function above with some parts removed
 
             if context_multi_line:
@@ -1013,11 +1015,11 @@ def load(operator, context, filepath,
                 ))
 
             if strip_slash(line_split):
-                context_multi_line = 'l'
+                context_multi_line = b'l'
             else:
-                context_multi_line = ''
+                context_multi_line = b''
 
-            isline = line.startswith('l')
+            isline = line.startswith(b'l')
 
             for v in line_split:
                 vert_loc_index = int(v) - 1
@@ -1028,53 +1030,53 @@ def load(operator, context, filepath,
 
                 face_vert_loc_indices.append(vert_loc_index)
 
-        elif line.startswith('s'):
+        elif line.startswith(b's'):
             if CREATE_SMOOTH_GROUPS:
                 context_smooth_group = line_value(line.split())
-                if context_smooth_group == 'off':
+                if context_smooth_group == b'off':
                     context_smooth_group = None
                 elif context_smooth_group:  # is not None
                     unique_smooth_groups[context_smooth_group] = None
 
-        elif line.startswith('o'):
+        elif line.startswith(b'o'):
             if SPLIT_OBJECTS:
                 context_object = line_value(line.split())
                 # unique_obects[context_object]= None
 
-        elif line.startswith('g'):
+        elif line.startswith(b'g'):
             if SPLIT_GROUPS:
                 context_object = line_value(line.split())
                 # print 'context_object', context_object
                 # unique_obects[context_object]= None
             elif POLYGROUPS:
                 context_vgroup = line_value(line.split())
-                if context_vgroup and context_vgroup != '(null)':
+                if context_vgroup and context_vgroup != b'(null)':
                     vertex_groups.setdefault(context_vgroup, [])
                 else:
                     context_vgroup = None  # dont assign a vgroup
 
-        elif line.startswith('usemtl'):
+        elif line.startswith(b'usemtl'):
             context_material = line_value(line.split())
             unique_materials[context_material] = None
-        elif line.startswith('mtllib'):  # usemap or usemat
+        elif line.startswith(b'mtllib'):  # usemap or usemat
             material_libs = list(set(material_libs) | set(line.split()[1:]))  # can have multiple mtllib filenames per line, mtllib can appear more than once, so make sure only occurance of material exists
 
             # Nurbs support
-        elif line.startswith('cstype '):
-            context_nurbs['cstype'] = line_value(line.split())  # 'rat bspline' / 'bspline'
-        elif line.startswith('curv ') or context_multi_line == 'curv':
+        elif line.startswith(b'cstype '):
+            context_nurbs[b'cstype'] = line_value(line.split())  # 'rat bspline' / 'bspline'
+        elif line.startswith(b'curv ') or context_multi_line == b'curv':
             line_split = line.split()
 
-            curv_idx = context_nurbs['curv_idx'] = context_nurbs.get('curv_idx', [])  # incase were multiline
+            curv_idx = context_nurbs[b'curv_idx'] = context_nurbs.get(b'curv_idx', [])  # incase were multiline
 
             if not context_multi_line:
-                context_nurbs['curv_range'] = float_func(line_split[1]), float_func(line_split[2])
+                context_nurbs[b'curv_range'] = float_func(line_split[1]), float_func(line_split[2])
                 line_split[0:3] = []  # remove first 3 items
 
             if strip_slash(line_split):
-                context_multi_line = 'curv'
+                context_multi_line = b'curv'
             else:
-                context_multi_line = ''
+                context_multi_line = b''
 
             for i in line_split:
                 vert_loc_index = int(i) - 1
@@ -1084,38 +1086,38 @@ def load(operator, context, filepath,
 
                 curv_idx.append(vert_loc_index)
 
-        elif line.startswith('parm') or context_multi_line == 'parm':
+        elif line.startswith(b'parm') or context_multi_line == b'parm':
             line_split = line.split()
 
             if context_multi_line:
-                context_multi_line = ''
+                context_multi_line = b''
             else:
                 context_parm = line_split[1]
                 line_split[0:2] = []  # remove first 2
 
             if strip_slash(line_split):
-                context_multi_line = 'parm'
+                context_multi_line = b'parm'
             else:
-                context_multi_line = ''
+                context_multi_line = b''
 
-            if context_parm.lower() == 'u':
-                context_nurbs.setdefault('parm_u', []).extend([float_func(f) for f in line_split])
-            elif context_parm.lower() == 'v':  # surfaces not suported yet
-                context_nurbs.setdefault('parm_v', []).extend([float_func(f) for f in line_split])
+            if context_parm.lower() == b'u':
+                context_nurbs.setdefault(b'parm_u', []).extend([float_func(f) for f in line_split])
+            elif context_parm.lower() == b'v':  # surfaces not suported yet
+                context_nurbs.setdefault(b'parm_v', []).extend([float_func(f) for f in line_split])
             # else: # may want to support other parm's ?
 
-        elif line.startswith('deg '):
-            context_nurbs['deg'] = [int(i) for i in line.split()[1:]]
-        elif line.startswith('end'):
+        elif line.startswith(b'deg '):
+            context_nurbs[b'deg'] = [int(i) for i in line.split()[1:]]
+        elif line.startswith(b'end'):
             # Add the nurbs curve
             if context_object:
-                context_nurbs['name'] = context_object
+                context_nurbs[b'name'] = context_object
             nurbs.append(context_nurbs)
             context_nurbs = {}
-            context_parm = ''
+            context_parm = b''
 
         ''' # How to use usemap? depricated?
-        elif line.startswith('usema'): # usemap or usemat
+        elif line.startswith(b'usema'): # usemap or usemat
             context_image= line_value(line.split())
         '''
 
