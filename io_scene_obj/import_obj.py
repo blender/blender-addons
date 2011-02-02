@@ -365,7 +365,7 @@ def create_materials(filepath, material_libs, unique_materials, unique_material_
     #Create new materials
     for name in unique_materials:  # .keys()
         if name != None:
-            unique_materials[name] = bpy.data.materials.new(name.decode('utf-8', "surrogateescape"))
+            unique_materials[name] = bpy.data.materials.new(name.decode('utf-8', "replace"))
             unique_material_images[name] = None, False  # assign None to all material images to start with, add to later.
 
     unique_materials[None] = None
@@ -375,13 +375,16 @@ def create_materials(filepath, material_libs, unique_materials, unique_material_
         # print(libname)
         mtlpath = os.path.join(DIR, libname)
         if not os.path.exists(mtlpath):
-            print ("\tError Missing MTL: %r" % mtlpath)
+            print ("\tMaterial not found MTL: %r" % mtlpath)
         else:
             #print('\t\tloading mtl: %e' % mtlpath)
             context_material = None
             mtl = open(mtlpath, 'rb')
             for line in mtl:  # .readlines():
-                if line.startswith(b'newmtl'):
+                line = line.strip()
+                if not line or line.startswith(b'#'):
+                    pass
+                elif line.startswith(b'newmtl'):
                     context_material_name = line_value(line.split())
                     if context_material_name in unique_materials:
                         context_material = unique_materials[context_material_name]
@@ -406,6 +409,103 @@ def create_materials(filepath, material_libs, unique_materials, unique_material_
                         context_material.alpha = float(line_split[1])
                         context_material.use_transparency = True
                         context_material.transparency_method = 'Z_TRANSPARENCY'
+                    elif line_lower.startswith(b'tf'):
+                        # rgb, filter color, blender has no support for this.
+                        pass
+                    elif line_lower.startswith(b'illum'):
+                        illum = int(line_split[1])
+
+                        do_ambient = True
+                        do_highlight = False
+                        do_reflection = False
+                        do_transparency = False
+                        do_glass = False
+                        do_fresnel = False
+                        do_raytrace = False
+
+                        # inline comments are from the spec, v4.2
+                        if illum == 0:
+                            # Color on and Ambient off
+                            do_ambient = False
+                        elif illum == 1:
+                            # Color on and Ambient on
+                            pass
+                        elif illum == 2:
+                            # Highlight on
+                            do_highlight = True
+                        elif illum == 3:
+                            # Reflection on and Ray trace on
+                            do_reflection = True
+                            do_raytrace = True
+                        elif illum == 4:
+                            # Transparency: Glass on
+                            # Reflection: Ray trace on
+                            do_transparency = True
+                            do_reflection = True
+                            do_glass = True
+                            do_raytrace = True
+                        elif illum == 5:
+                            # Reflection: Fresnel on and Ray trace on
+                            do_reflection = True
+                            do_fresnel = True
+                            do_raytrace = True
+                        elif illum == 6:
+                            # Transparency: Refraction on
+                            # Reflection: Fresnel off and Ray trace on
+                            do_transparency = True
+                            do_reflection = True
+                            do_raytrace = True
+                        elif illum == 7:
+                            # Transparency: Refraction on
+                            # Reflection: Fresnel on and Ray trace on
+                            do_transparency = True
+                            do_reflection = True
+                            do_fresnel = True
+                            do_raytrace = True
+                        elif illum == 8:
+                            # Reflection on and Ray trace off
+                            do_reflection = True
+                        elif illum == 9:
+                            # Transparency: Glass on
+                            # Reflection: Ray trace off
+                            do_transparency = True
+                            do_reflection = True
+                            do_glass = True
+                        elif illum == 10:
+                            # Casts shadows onto invisible surfaces
+
+                            # blender cant do this
+                            pass
+
+                        if do_ambient:
+                            context_material.ambient = 1.0
+                        else:
+                            context_material.ambient = 0.0
+
+                        if do_highlight:
+                            # FIXME, how else to use this?
+                            context_material.specular_intensity = 1.0
+
+                        if do_reflection:
+                            context_material.raytrace_mirror.use = True
+                            context_material.raytrace_mirror.reflect_factor = 1.0
+
+                        if do_transparency:
+                            context_material.use_transparency = True
+                            context_material.transparency_method = 'RAYTRACE' if do_raytrace else 'Z_TRANSPARENCY'
+                            context_material.alpha = 0.0
+
+                        if do_glass:
+                            context_material.raytrace_transparency.ior = 1.5
+
+                        if do_fresnel:
+                            context_material.raytrace_mirror.raytrace_mirror.fresnel = 1.0  # could be any value for 'ON'
+
+                        if do_raytrace:
+                            context_material.use_raytrace = True
+                        else:
+                            context_material.use_raytrace = False
+
                     elif line_lower.startswith(b'map_ka'):
                         img_filepath = line_value(line.split())
                         if img_filepath:
@@ -431,6 +531,8 @@ def create_materials(filepath, material_libs, unique_materials, unique_material_
                         img_filepath = line_value(line.split())
                         if img_filepath:
                             load_material_image(context_material, context_material_name, img_filepath, 'refl')
+                    else:
+                        print("\t%r:%r (ignored)" % (filepath, line))
             mtl.close()
 
 
@@ -609,7 +711,7 @@ def create_mesh(new_objects, has_ngons, CREATE_FGONS, CREATE_EDGES, verts_loc, v
     for name, index in list(material_mapping.items()):
         materials[index] = unique_materials[name]
 
-    me = bpy.data.meshes.new(dataname.decode('utf-8', "surrogateescape"))
+    me = bpy.data.meshes.new(dataname.decode('utf-8', "replace"))
 
     # make sure the list isnt too big
     for material in materials:
@@ -779,7 +881,7 @@ def create_nurbs(context_nurbs, vert_loc, new_objects):
         print('\tWarning, surfaces not supported')
         return
 
-    cu = bpy.data.curves.new(name.decode('utf-8', "surrogateescape"), 'CURVE')
+    cu = bpy.data.curves.new(name.decode('utf-8', "replace"), 'CURVE')
     cu.dimensions = '3D'
 
     nu = cu.splines.new('NURBS')
@@ -822,7 +924,7 @@ def create_nurbs(context_nurbs, vert_loc, new_objects):
         nu.use_cyclic_u = True
     '''
 
-    ob = bpy.data.objects.new(name.decode('utf-8', "surrogateescape"), cu)
+    ob = bpy.data.objects.new(name.decode('utf-8', "replace"), cu)
 
     new_objects.append(ob)
 
