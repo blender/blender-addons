@@ -86,9 +86,13 @@ class plugin(object):
 	
 	@classmethod
 	def uninstall(r_class):
+		"""TODO: make this work again"""
+		return
+		
 		"""Unregister property groups in reverse order"""
 		reverse_property_groups = [p for p in r_class.property_groups]
 		reverse_property_groups.reverse()
 		for property_group_parent, property_group in reverse_property_groups:
-			prototype = getattr(bpy.types, property_group_parent)
-			prototype.RemoveProperty(property_group.__name__)
+			if hasattr(bpy.types, property_group_parent):
+				prototype = getattr(bpy.types, property_group_parent)
+				prototype.RemoveProperty(property_group.__name__)
