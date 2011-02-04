@@ -614,15 +614,15 @@ class VIEW3D_MT_master_material(bpy.types.Menu):
         layout.menu("VIEW3D_MT_assign_material", icon='ZOOMIN')
         layout.menu("VIEW3D_MT_select_material", icon='HAND')
         layout.separator()
-        layout.operator("clean_material_slots", 
+        layout.operator("view3d.clean_material_slots", 
             text = 'Clean Material Slots', icon='CANCEL')
-        layout.operator("material_to_texface",
+        layout.operator("view3d.material_to_texface",
             text = 'Material to Texface',icon='FACESEL_HLT')
-        layout.operator("texface_to_material",
+        layout.operator("view3d.texface_to_material",
             text = 'Texface to Material',icon='FACESEL_HLT')
 
         layout.separator()
-        layout.operator("replace_material", 
+        layout.operator("view3d.replace_material", 
             text = 'Replace Material', icon='ARROW_LEFTRIGHT')
        
 
@@ -638,11 +638,11 @@ class VIEW3D_MT_assign_material(bpy.types.Menu):
         layout.label
         for i in range (len(bpy.data.materials)):
     
-            layout.operator("assign_material",
+            layout.operator("view3d.assign_material",
                 text=bpy.data.materials[i].name, 
                 icon='MATERIAL_DATA').matname = bpy.data.materials[i].name
 
-        layout.operator("assign_material",text="Add New", 
+        layout.operator("view3d.assign_material",text="Add New", 
                 icon='ZOOMIN')
 
 class VIEW3D_MT_select_material(bpy.types.Menu):
@@ -658,7 +658,7 @@ class VIEW3D_MT_select_material(bpy.types.Menu):
             #show all materials in entire blend file
             for i in range (len(bpy.data.materials)):
         
-                layout.operator("select_material_by_name",
+                layout.operator("view3d.select_material_by_name",
                     text=bpy.data.materials[i].name, 
                     icon='MATERIAL_DATA').matname = bpy.data.materials[i].name
 
@@ -667,7 +667,7 @@ class VIEW3D_MT_select_material(bpy.types.Menu):
             #show only the materials on this object
             mats = ob.material_slots.keys()
             for m in mats:
-                layout.operator("select_material_by_name",
+                layout.operator("view3d.select_material_by_name",
                     text=m, 
                     icon='MATERIAL_DATA').matname = m
 

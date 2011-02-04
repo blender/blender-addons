@@ -591,18 +591,19 @@ class x3d_class:
 
             self.write_indented("<ImageTexture DEF=\"%s\" " % self.cleanStr(name), 1)
             filepath = image.filepath
+            relpath = os.path.dirname(self.filepath)  # could cache
             filepath_full = bpy.path.abspath(filepath)
             # collect image paths, can load multiple
-            # [relative, absolute, name-only]
+            # [relative, name-only, absolute]
             images = []
 
-            if bpy.path.is_subdir(filepath_full, self.filepath):
-                images.append(os.path.relpath(filepath_full, self.filepath))
+            if bpy.path.is_subdir(filepath_full, relpath):
+                images.append(os.path.relpath(filepath_full, relpath))
 
-            images.append(filepath_full)
             images.append(os.path.basename(filepath_full))
+            images.append(filepath_full)
 
-            self.file.write("url='%s' />" % " ".join(["\"%s\"" % f for f in images]))
+            self.file.write("url='%s' />" % " ".join(["\"%s\"" % f.replace("\\", "/") for f in images]))
             self.write_indented("\n", -1)
 
     def writeBackground(self, world, alltextures):
