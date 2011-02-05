@@ -822,7 +822,7 @@ def load_3ds(filepath, context, IMPORT_CONSTRAIN_BOUNDS=10.0, IMAGE_SEARCH=True,
         for ob in importedObjects:
             if ob.type == 'MESH':
                 me = ob.data
-                me.transform(ob.matrix_local.copy().invert())
+                me.transform(ob.matrix_local.inverted())
 
     # Done DUMMYVERT
     """

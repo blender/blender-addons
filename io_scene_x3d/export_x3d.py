@@ -47,7 +47,7 @@ def round_color(col, cp):
 
 
 def matrix_direction(mtx):
-    return (mathutils.Vector((0.0, 0.0, -1.0)) * mtx.rotation_part()).normalize()[:]
+    return (mathutils.Vector((0.0, 0.0, -1.0)) * mtx.to_3x3()).normalize()[:]
 
 
 ##########################################################
@@ -204,7 +204,7 @@ class x3d_class:
 
         dx, dy, dz = matrix_direction(mtx)
 
-        location = mtx.translation_part()[:]
+        location = mtx.to_translation()[:]
 
         radius = lamp.distance * math.cos(beamWidth)
         # radius = lamp.dist*math.cos(beamWidth)
@@ -247,7 +247,7 @@ class x3d_class:
             amb_intensity = 0.0
 
         intensity = min(lamp.energy / 1.75, 1.0)
-        location = mtx.translation_part()[:]
+        location = mtx.to_translation()[:]
 
         self.file.write("<PointLight DEF=\"%s\" " % safeName)
         self.file.write("ambientIntensity=\"%.4f\" " % amb_intensity)

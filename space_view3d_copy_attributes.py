@@ -121,13 +121,13 @@ def getmat(bone, active, context, ignoreparent):
 def rotcopy(item, mat):
     '''copy rotation to item from matrix mat depending on item.rotation_mode'''
     if item.rotation_mode == 'QUATERNION':
-        item.rotation_quaternion = mat.rotation_part().to_quat()
+        item.rotation_quaternion = mat.to_3x3().to_quaternion()
     elif item.rotation_mode == 'AXIS_ANGLE':
-        quat = mat.rotation_part().to_quat()
+        quat = mat.to_3x3().to_quaternion()
         item.rotation_axis_angle = Vector([quat.axis[0],
            quat.axis[1], quat.axis[2], quat.angle])
     else:
-        item.rotation_euler = mat.rotation_part().to_euler(item.rotation_mode)
+        item.rotation_euler = mat.to_3x3().to_euler(item.rotation_mode)
 
 
 def pLoopExec(self, context, funk):
@@ -146,7 +146,7 @@ def pLocLocExec(bone, active, context):
 
 
 def pLocRotExec(bone, active, context):
-    rotcopy(bone, active.matrix_basis.rotation_part())
+    rotcopy(bone, active.matrix_basis.to_3x3())
 
 
 def pLocScaExec(bone, active, context):
@@ -154,7 +154,7 @@ def pLocScaExec(bone, active, context):
 
 
 def pVisLocExec(bone, active, context):
-    bone.location = getmat(bone, active, context, False).translation_part()
+    bone.location = getmat(bone, active, context, False).to_translation()
 
 
 def pVisRotExec(bone, active, context):
@@ -165,7 +165,7 @@ def pVisRotExec(bone, active, context):
 def pVisScaExec(bone, active, context):
     bone.scale = getmat(bone, active, context,
        not context.active_object.data.bones[bone.name].use_inherit_scale)\
-          .scale_part()
+          .to_scale()
 
 
 def pDrwExec(bone, active, context):
@@ -289,7 +289,7 @@ def obLoc(ob, active, context):
 
 
 def obRot(ob, active, context):
-    rotcopy(ob, active.matrix_world.rotation_part())
+    rotcopy(ob, active.matrix_world.to_3x3())
 
 
 def obSca(ob, active, context):

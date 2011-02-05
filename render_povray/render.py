@@ -516,7 +516,7 @@ def write_pov(filename, scene=None, info_callback=None):
         # compute resolution
         Qsize = float(render.resolution_x) / float(render.resolution_y)
         tabWrite("#declare camLocation  = <%.6f, %.6f, %.6f>;\n" % (matrix[3][0], matrix[3][1], matrix[3][2]))
-        tabWrite("#declare camLookAt = <%.6f, %.6f, %.6f>;\n" % tuple([degrees(e) for e in matrix.rotation_part().to_euler()]))
+        tabWrite("#declare camLookAt = <%.6f, %.6f, %.6f>;\n" % tuple([degrees(e) for e in matrix.to_3x3().to_euler()]))
 
         tabWrite("camera {\n")
         if scene.pov_baking_enable and active_object and active_object.type == 'MESH':
@@ -533,7 +533,7 @@ def write_pov(filename, scene=None, info_callback=None):
             tabWrite("up <0, 1, 0>\n")
             tabWrite("angle  %f\n" % (360.0 * atan(16.0 / camera.data.lens) / pi))
 
-            tabWrite("rotate  <%.6f, %.6f, %.6f>\n" % tuple([degrees(e) for e in matrix.rotation_part().to_euler()]))
+            tabWrite("rotate  <%.6f, %.6f, %.6f>\n" % tuple([degrees(e) for e in matrix.to_3x3().to_euler()]))
             tabWrite("translate <%.6f, %.6f, %.6f>\n" % (matrix[3][0], matrix[3][1], matrix[3][2]))
             if camera.data.pov_dof_enable and focal_point != 0:
                 tabWrite("aperture %.3g\n" % camera.data.pov_dof_aperture) 

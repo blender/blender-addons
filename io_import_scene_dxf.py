@@ -1414,15 +1414,15 @@ def transform(normal, rotation, obj):  #----------------------------------------
     """
     ma = Matrix(((1,0,0,0),(0,1,0,0),(0,0,1,0),(0,0,0,1)))
     o = Vector(obj.location)
-    ma_new = getOCS(normal)
-    if ma_new:
-        ma = ma_new.resize4x4()
-        o = o * ma #.copy().invert()
+    ma = getOCS(normal)
+    if ma:
+        ma.resize_4x4()
+        o = o * ma #.inverted()
 
     if rotation != 0:
         g = radians(-rotation)
         rmat = Matrix(((cos(g), -sin(g), 0), (sin(g), cos(g), 0), (0, 0, 1)))
-        ma = ma * rmat.resize4x4()
+        ma = ma * rmat.to_4x4()
 
     obj.matrix_world = ma #must be matrix4x4
     obj.location = o

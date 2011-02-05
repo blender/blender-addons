@@ -193,7 +193,7 @@ def draw_callback_view(self, context):
         glBegin(GL_POINTS)
         glColor3f(0.5, 0.5, 1)
         for key, vec in data_vector.items():
-            glVertex3f(*vec.copy().resize3D())
+            glVertex3f(*vec.to_3d())
         glEnd();
         glPointSize(1.0)
 
@@ -219,13 +219,13 @@ def draw_callback_view(self, context):
     if data_quat:
         loc = context.scene.cursor_location.copy()
         for quat in data_quat.values():
-            mat = quat.to_matrix().resize4x4()
+            mat = quat.to_matrix().to_4x4()
             mat[3][0:3] = loc
             draw_matrix(mat)
 
     if data_euler:
         loc = context.scene.cursor_location.copy()
         for eul in data_euler.values():
-            mat = eul.to_matrix().resize4x4()
+            mat = eul.to_matrix().to_4x4()
             mat[3][0:3] = loc
             draw_matrix(mat)

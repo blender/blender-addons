@@ -151,9 +151,9 @@ def write_armature(context, filepath, frame_start, frame_end, global_scale=1.0):
             self.rest_local_mat = self.rest_bone.matrix
 
             # inverted mats
-            self.pose_imat = self.pose_mat.copy().invert()
-            self.rest_arm_imat = self.rest_arm_mat.copy().invert()
-            self.rest_local_imat = self.rest_local_mat.copy().invert()
+            self.pose_imat = self.pose_mat.inverted()
+            self.rest_arm_imat = self.rest_arm_mat.inverted()
+            self.rest_local_imat = self.rest_local_mat.inverted()
 
             self.parent = None
             self.prev_euler = Euler((0.0, 0.0, 0.0))
@@ -161,7 +161,7 @@ def write_armature(context, filepath, frame_start, frame_end, global_scale=1.0):
 
         def update_posedata(self):
             self.pose_mat = self.pose_bone.matrix
-            self.pose_imat = self.pose_mat.copy().invert()
+            self.pose_imat = self.pose_mat.inverted()
 
         def __repr__(self):
             if self.parent:
@@ -202,14 +202,14 @@ def write_armature(context, filepath, frame_start, frame_end, global_scale=1.0):
             if  dbone.parent:
                 mat_final = dbone.parent.rest_arm_mat * dbone.parent.pose_imat * dbone.pose_mat * dbone.rest_arm_imat
                 mat_final = itrans * mat_final * trans
-                loc = mat_final.translation_part() + (dbone.rest_bone.head_local - dbone.parent.rest_bone.head_local)
+                loc = mat_final.to_translation() + (dbone.rest_bone.head_local - dbone.parent.rest_bone.head_local)
             else:
                 mat_final = dbone.pose_mat * dbone.rest_arm_imat
                 mat_final = itrans * mat_final * trans
-                loc = mat_final.translation_part() + dbone.rest_bone.head
+                loc = mat_final.to_translation() + dbone.rest_bone.head
 
             # keep eulers compatible, no jumping on interpolation.
-            rot = mat_final.rotation_part().invert().to_euler('XYZ', dbone.prev_euler)
+            rot = mat_final.to_3x3().inverted().to_euler('XYZ', dbone.prev_euler)
 
             if not dbone.connected:
                 file.write("%.6f %.6f %.6f " % (loc * global_scale)[:])

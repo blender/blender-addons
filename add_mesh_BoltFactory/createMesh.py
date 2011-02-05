@@ -2064,7 +2064,7 @@ def align_matrix(context):
     obj_align = context.user_preferences.edit.object_align
     if (context.space_data.type == 'VIEW_3D'
         and obj_align == 'VIEW'):
-        rot = context.space_data.region_3d.view_matrix.rotation_part().invert().resize4x4()
+        rot = context.space_data.region_3d.view_matrix.to_3x3().inverted().to_4x4()
     else:
         rot = Matrix()
     align_matrix = loc * rot

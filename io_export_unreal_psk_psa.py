@@ -969,9 +969,9 @@ def parse_bone(blender_bone, psk_file, psa_file, parent_id, is_root_bone, parent
     
     if child_parent != None:
         quat_root = blender_bone.matrix
-        quat = make_fquat(quat_root.to_quat())
+        quat = make_fquat(quat_root.to_quaternion())
         
-        quat_parent = child_parent.matrix.to_quat().inverse()
+        quat_parent = child_parent.matrix.to_quaternion().inverse()
         parent_head = child_parent.head * quat_parent
         parent_tail = child_parent.tail * quat_parent
         
@@ -980,10 +980,10 @@ def parse_bone(blender_bone, psk_file, psa_file, parent_id, is_root_bone, parent
         # ROOT BONE
         #This for root 
         set_position = blender_bone.head * parent_matrix #ARMATURE OBJECT Locction
-        rot_mat = blender_bone.matrix * parent_matrix.rotation_part() #ARMATURE OBJECT Rotation
+        rot_mat = blender_bone.matrix * parent_matrix.to_3x3() #ARMATURE OBJECT Rotation
         #print(dir(rot_mat))
         
-        quat = make_fquat_default(rot_mat.to_quat())
+        quat = make_fquat_default(rot_mat.to_quaternion())
         
     #print ("[[======= FINAL POSITION:", set_position)
     final_parent_id = parent_id
@@ -1266,8 +1266,8 @@ def parse_animation(blender_scene, blender_armatures, psa_file):
                                 parentposemat = mathutils.Matrix(parent_pose.matrix)
                                 #blender 2.4X it been flip around with new 2.50 (mat1 * mat2) should now be (mat2 * mat1)
                                 posebonemat = parentposemat.invert() * posebonemat
-                            head = posebonemat.translation_part()
-                            quat = posebonemat.to_quat().normalize()
+                            head = posebonemat.to_translation()
+                            quat = posebonemat.to_quaternion().normalize()
                             vkey = VQuatAnimKey()
                             vkey.Position.X = head.x
                             vkey.Position.Y = head.y
@@ -1411,8 +1411,8 @@ def parse_animation(blender_scene, blender_armatures, psa_file):
                             parentposemat = mathutils.Matrix(parent_pose.matrix)
                             #blender 2.4X it been flip around with new 2.50 (mat1 * mat2) should now be (mat2 * mat1)
                             posebonemat = parentposemat.invert() * posebonemat
-                        head = posebonemat.translation_part()
-                        quat = posebonemat.to_quat().normalize()
+                        head = posebonemat.to_translation()
+                        quat = posebonemat.to_quaternion().normalize()
                         vkey = VQuatAnimKey()
                         vkey.Position.X = head.x
                         vkey.Position.Y = head.y

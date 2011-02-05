@@ -389,10 +389,10 @@ def pskimport(infile):
                 #print( "LINKING:" , bone.parent ,"j")
                 parentbone = ob_new.data.edit_bones[bone.parent]
                 newbone.parent = parentbone
-                rotmatrix = bone.bindmat.to_matrix().resize4x4().rotation_part()
+                rotmatrix = bone.bindmat.to_matrix().to_4x4().to_3x3()  # XXX, redundant matrix conversion?
                 
-                #parent_head = parentbone.head * parentbone.matrix.to_quat().inverse()
-                #parent_tail = parentbone.tail * parentbone.matrix.to_quat().inverse()
+                #parent_head = parentbone.head * parentbone.matrix.to_quaternion().inverse()
+                #parent_tail = parentbone.tail * parentbone.matrix.to_quaternion().inverse()
                 #location=Vector(pos_x,pos_y,pos_z)
                 #set_position = (parent_tail - parent_head) + location
                 #print("tmp head:",set_position)
@@ -409,7 +409,7 @@ def pskimport(infile):
                 newbone.tail.y = parentbone.head.y + (pos_y + bonesize * rotmatrix[1][1])
                 newbone.tail.z = parentbone.head.z + (pos_z + bonesize * rotmatrix[1][2])
             else:
-                rotmatrix = bone.bindmat.to_matrix().resize4x4().rotation_part()
+                rotmatrix = bone.bindmat.to_matrix().resize_4x4().to_3x3()  # XXX, redundant matrix conversion?
                 newbone.head.x = bone.bindpos[0]
                 newbone.head.y = bone.bindpos[1]
                 newbone.head.z = bone.bindpos[2]

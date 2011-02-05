@@ -237,12 +237,12 @@ def obj_to_bone(obj, rig, bone_name):
 
     mat = rig.matrix_world * bone.matrix_local
 
-    obj.location = mat.translation_part()
+    obj.location = mat.to_translation()
 
     obj.rotation_mode = 'XYZ'
     obj.rotation_euler = mat.to_euler()
 
-    scl = mat.scale_part()
+    scl = mat.to_scale()
     scl_avg = (scl[0] + scl[1] + scl[2]) / 3
     obj.scale = (bone.length * scl_avg), (bone.length * scl_avg), (bone.length * scl_avg)
 

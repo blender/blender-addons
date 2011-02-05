@@ -254,7 +254,7 @@ def main(context, obj, options):
                                 for splineVert in spline.bezier_points.values()]
 
             else: # verts from all other types of curves
-                splineVerts = [splineVert.co.copy().resize3D()
+                splineVerts = [splineVert.co.to_3d()
                                 for splineVert in spline.points.values()]
 
             # simplify spline according to mode
@@ -304,7 +304,7 @@ def getFcurveData(obj):
     fcurves = []
     for fc in obj.animation_data.action.fcurves:
         if fc.select:
-            fcVerts = [vcVert.co.copy().resize3D()
+            fcVerts = [vcVert.co.to_3d()
                         for vcVert in fc.keyframe_points.values()]
             fcurves.append(fcVerts)
     return fcurves

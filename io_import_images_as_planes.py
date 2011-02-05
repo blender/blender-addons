@@ -185,7 +185,7 @@ def align_planes(self, planes):
         offset += (plane.dimensions.x / 2) + gap
         if i == 0: continue
         move_local = mathutils.Vector((offset, 0, 0))
-        move_world = plane.location + move_local * plane.matrix_world.copy().invert()
+        move_world = plane.location + move_local * plane.matrix_world.inverted()
         plane.location += move_world
         offset += (plane.dimensions.x / 2)
         

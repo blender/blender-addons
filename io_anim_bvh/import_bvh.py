@@ -446,13 +446,13 @@ def bvh_node_dict2armature(context, bvh_name, bvh_nodes, rotate_mode='XYZ', fram
         bone_name = bvh_node.temp  # may not be the same name as the bvh_node, could have been shortened.
         pose_bone = pose_bones[bone_name]
         rest_bone = arm_data.bones[bone_name]
-        bone_rest_matrix = rest_bone.matrix_local.rotation_part()
+        bone_rest_matrix = rest_bone.matrix_local.to_3x3()
 
         bone_rest_matrix_inv = Matrix(bone_rest_matrix)
         bone_rest_matrix_inv.invert()
 
-        bone_rest_matrix_inv.resize4x4()
-        bone_rest_matrix.resize4x4()
+        bone_rest_matrix_inv.resize_4x4()
+        bone_rest_matrix.resize_4x4()
         bvh_node.temp = (pose_bone, bone, bone_rest_matrix, bone_rest_matrix_inv)
 
     # Make a dict for fast access without rebuilding a list all the time.
@@ -479,18 +479,18 @@ def bvh_node_dict2armature(context, bvh_name, bvh_nodes, rotate_mode='XYZ', fram
             if bvh_node.has_rot:
                 # apply rotation order and convert to XYZ
                 # note that the rot_order_str is reversed.
-                bone_rotation_matrix = Euler((rx, ry, rz), bvh_node.rot_order_str[::-1]).to_matrix().resize4x4()
+                bone_rotation_matrix = Euler((rx, ry, rz), bvh_node.rot_order_str[::-1]).to_matrix().to_4x4()
                 bone_rotation_matrix = bone_rest_matrix_inv * bone_rotation_matrix * bone_rest_matrix
 
                 if rotate_mode == 'QUATERNION':
-                    pose_bone.rotation_quaternion = bone_rotation_matrix.to_quat()
+                    pose_bone.rotation_quaternion = bone_rotation_matrix.to_quaternion()
                 else:
                     euler = bone_rotation_matrix.to_euler(bvh_node.rot_order_str, prev_euler[i])
                     pose_bone.rotation_euler = euler
                     prev_euler[i] = euler
 
             if bvh_node.has_loc:
-                pose_bone.location = (bone_rest_matrix_inv * Matrix.Translation(Vector((lx, ly, lz)) - bvh_node.rest_head_local)).translation_part()
+                pose_bone.location = (bone_rest_matrix_inv * Matrix.Translation(Vector((lx, ly, lz)) - bvh_node.rest_head_local)).to_translation()
 
             if bvh_node.has_loc:
                 pose_bone.keyframe_insert("location")

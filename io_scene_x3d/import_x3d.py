@@ -1465,8 +1465,8 @@ def translateTransform(node, ancestry):
     tx = node.getFieldAsFloatTuple('translation', None, ancestry)  # (0.0, 0.0, 0.0)
 
     if cent:
-        cent_mat = Matrix.Translation(Vector(cent)).resize4x4()
-        cent_imat = cent_mat.copy().invert()
+        cent_mat = Matrix.Translation(cent)
+        cent_imat = cent_mat.inverted()
     else:
         cent_mat = cent_imat = None
 
@@ -1482,12 +1482,12 @@ def translateTransform(node, ancestry):
 
     if scaori:
         scaori_mat = translateRotation(scaori)
-        scaori_imat = scaori_mat.copy().invert()
+        scaori_imat = scaori_mat.inverted()
     else:
         scaori_mat = scaori_imat = None
 
     if tx:
-        tx_mat = Matrix.Translation(Vector(tx)).resize4x4()
+        tx_mat = Matrix.Translation(tx)
     else:
         tx_mat = None
 
@@ -1509,8 +1509,8 @@ def translateTexTransform(node, ancestry):
 
     if cent:
         # cent is at a corner by default
-        cent_mat = Matrix.Translation(Vector(cent).resize3D()).resize4x4()
-        cent_imat = cent_mat.copy().invert()
+        cent_mat = Matrix.Translation(Vector(cent).resize_3d())
+        cent_imat = cent_mat.inverted()
     else:
         cent_mat = cent_imat = None
 
@@ -1525,7 +1525,7 @@ def translateTexTransform(node, ancestry):
         sca_mat = None
 
     if tx:
-        tx_mat = Matrix.Translation(Vector(tx).resize3D()).resize4x4()
+        tx_mat = Matrix.Translation(Vector(tx).resize_3d())
     else:
         tx_mat = None
 
@@ -2042,7 +2042,7 @@ def importMesh_Box(geom, ancestry):
 
     # Scale the box to the size set
     scale_mat = Matrix(((size[0], 0, 0), (0, size[1], 0), (0, 0, size[2]))) * 0.5
-    bpymesh.transform(scale_mat.resize4x4())
+    bpymesh.transform(scale_mat.to_4x4())
 
     return bpymesh
 
@@ -2266,7 +2266,7 @@ def importLamp_DirectionalLight(node, ancestry):
     bpylamp.color = color
 
     # lamps have their direction as -z, yup
-    mtx = Vector(direction).to_track_quat('-Z', 'Y').to_matrix().resize4x4()
+    mtx = Vector(direction).to_track_quat('-Z', 'Y').to_matrix().to_4x4()
 
     return bpylamp, mtx
 
@@ -2305,7 +2305,7 @@ def importLamp_SpotLight(node, ancestry):
     # Convert
 
     # lamps have their direction as -z, y==up
-    mtx = Matrix.Translation(Vector(location)) * Vector(direction).to_track_quat('-Z', 'Y').to_matrix().resize4x4()
+    mtx = Matrix.Translation(location) * Vector(direction).to_track_quat('-Z', 'Y').to_matrix().to_4x4()
 
     return bpylamp, mtx
 

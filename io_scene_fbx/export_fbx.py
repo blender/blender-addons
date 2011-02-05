@@ -413,7 +413,7 @@ def save(operator, context, filepath="",
 # 			self.restMatrix =		blenBone.matrix['ARMATURESPACE']
 
             # not used yet
-            # self.restMatrixInv =	self.restMatrix.copy().invert()
+            # self.restMatrixInv =	self.restMatrix.inverted()
             # self.restMatrixLocal =	None # set later, need parent matrix
 
             self.parent = None
@@ -429,7 +429,7 @@ def save(operator, context, filepath="",
         '''
         def calcRestMatrixLocal(self):
             if self.parent:
-                self.restMatrixLocal = self.restMatrix * self.parent.restMatrix.copy().invert()
+                self.restMatrixLocal = self.restMatrix * self.parent.restMatrix.inverted()
             else:
                 self.restMatrixLocal = self.restMatrix.copy()
         '''
@@ -513,20 +513,20 @@ def save(operator, context, filepath="",
 
         def parRelMatrix(self):
             if self.fbxParent:
-                return self.fbxParent.matrixWorld.copy().invert() * self.matrixWorld
+                return self.fbxParent.matrixWorld.inverted() * self.matrixWorld
             else:
                 return self.matrixWorld
 
         def setPoseFrame(self, f, fake=False):
             if fake:
                 # annoying, have to clear GLOBAL_MATRIX
-                self.__anim_poselist[f] = self.matrixWorld * GLOBAL_MATRIX.copy().invert()
+                self.__anim_poselist[f] = self.matrixWorld * GLOBAL_MATRIX.inverted()
             else:
                 self.__anim_poselist[f] = self.blenObject.matrix_world.copy()
 
         def getAnimParRelMatrix(self, frame):
             if self.fbxParent:
-                #return (self.__anim_poselist[frame] * self.fbxParent.__anim_poselist[frame].copy().invert() ) * GLOBAL_MATRIX
+                #return (self.__anim_poselist[frame] * self.fbxParent.__anim_poselist[frame].inverted() ) * GLOBAL_MATRIX
                 return (GLOBAL_MATRIX * self.fbxParent.__anim_poselist[frame]).invert() * (GLOBAL_MATRIX * self.__anim_poselist[frame])
             else:
                 return GLOBAL_MATRIX * self.__anim_poselist[frame]
@@ -534,9 +534,9 @@ def save(operator, context, filepath="",
         def getAnimParRelMatrixRot(self, frame):
             obj_type = self.blenObject.type
             if self.fbxParent:
-                matrix_rot = ((GLOBAL_MATRIX * self.fbxParent.__anim_poselist[frame]).invert() * (GLOBAL_MATRIX * self.__anim_poselist[frame])).rotation_part()
+                matrix_rot = ((GLOBAL_MATRIX * self.fbxParent.__anim_poselist[frame]).invert() * (GLOBAL_MATRIX * self.__anim_poselist[frame])).to_3x3()
             else:
-                matrix_rot = (GLOBAL_MATRIX * self.__anim_poselist[frame]).rotation_part()
+                matrix_rot = (GLOBAL_MATRIX * self.__anim_poselist[frame]).to_3x3()
 
             # Lamps need to be rotated
             if obj_type == 'LAMP':
@@ -609,7 +609,7 @@ def save(operator, context, filepath="",
                 #par_matrix = mtx4_z90 * (parent.matrix['ARMATURESPACE'] * matrix_mod)
                 par_matrix = parent.matrix_local * mtx4_z90  # dont apply armature matrix anymore
 # 				par_matrix = mtx4_z90 * parent.matrix['ARMATURESPACE'] # dont apply armature matrix anymore
-                matrix = par_matrix.copy().invert() * matrix
+                matrix = par_matrix.inverted() * matrix
 
             loc, rot, scale = matrix.decompose()
             matrix_rot = rot.to_matrix()
@@ -1091,7 +1091,7 @@ def save(operator, context, filepath="",
             do_light = not (light.use_only_shadow or (not light.use_diffuse and not light.use_specular))
             do_shadow = (light.shadow_method in ('RAY_SHADOW', 'BUFFER_SHADOW'))
 
-        scale = abs(GLOBAL_MATRIX.scale_part()[0])  # scale is always uniform in this case
+        scale = abs(GLOBAL_MATRIX.to_scale()[0])  # scale is always uniform in this case
 
         file.write('\n\t\t\tProperty: "LightType", "enum", "",%i' % light_type)
         file.write('\n\t\t\tProperty: "CastLightOnObject", "bool", "",1')
@@ -1434,10 +1434,10 @@ def save(operator, context, filepath="",
 
         if my_mesh.fbxParent:
             # TODO FIXME, this case is broken in some cases. skinned meshes just shouldnt have parents where possible!
-            m = (my_mesh.matrixWorld.copy().invert() * my_bone.fbxArm.matrixWorld.copy() * my_bone.restMatrix) * mtx4_z90
+            m = (my_mesh.matrixWorld.inverted() * my_bone.fbxArm.matrixWorld.copy() * my_bone.restMatrix) * mtx4_z90
         else:
             # Yes! this is it...  - but dosnt work when the mesh is a.
-            m = (my_mesh.matrixWorld.copy().invert() * my_bone.fbxArm.matrixWorld.copy() * my_bone.restMatrix) * mtx4_z90
+            m = (my_mesh.matrixWorld.inverted() * my_bone.fbxArm.matrixWorld.copy() * my_bone.restMatrix) * mtx4_z90
 
         #m = mtx4_z90 * my_bone.restMatrix
         matstr = mat4x4str(m)
@@ -2728,9 +2728,9 @@ Takes:  {''')
                         for TX_LAYER, TX_CHAN in enumerate('TRS'):  # transform, rotate, scale
 
                             if TX_CHAN == 'T':
-                                context_bone_anim_vecs = [mtx[0].translation_part() for mtx in context_bone_anim_mats]
+                                context_bone_anim_vecs = [mtx[0].to_translation() for mtx in context_bone_anim_mats]
                             elif	TX_CHAN == 'S':
-                                context_bone_anim_vecs = [mtx[0].scale_part() for mtx in context_bone_anim_mats]
+                                context_bone_anim_vecs = [mtx[0].to_scale() for mtx in context_bone_anim_mats]
                             elif	TX_CHAN == 'R':
                                 # Was....
                                 # elif 	TX_CHAN=='R':	context_bone_anim_vecs = [mtx[1].to_euler()			for mtx in context_bone_anim_mats]
