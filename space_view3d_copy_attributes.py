@@ -107,8 +107,13 @@ def getmat(bone, active, context, ignoreparent):
            context.active_object.pose.bones[data_bone.parent.name].matrix)
         parentbonemat = Matrix(data_bone.parent.matrix_local)
     else:
-        parentposemat = bonemat_local.copy().identity()
-        parentbonemat = bonemat_local.copy().identity()
+        parentposemat = bonemat_local.copy()
+        parentbonemat = bonemat_local.copy()
+
+        # FIXME! why copy from the parent if setting identity ?, Campbell
+        parentposemat.identity()
+        parentbonemat.identity()
+
     if parentbonemat == parentposemat or ignoreparent:
         newmat = bonemat_local.invert() * otherloc
     else:
