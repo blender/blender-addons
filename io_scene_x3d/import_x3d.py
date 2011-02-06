@@ -1509,7 +1509,7 @@ def translateTexTransform(node, ancestry):
 
     if cent:
         # cent is at a corner by default
-        cent_mat = Matrix.Translation(Vector(cent).resize_3d())
+        cent_mat = Matrix.Translation(Vector(cent).to_3d())
         cent_imat = cent_mat.inverted()
     else:
         cent_mat = cent_imat = None
@@ -1525,7 +1525,7 @@ def translateTexTransform(node, ancestry):
         sca_mat = None
 
     if tx:
-        tx_mat = Matrix.Translation(Vector(tx).resize_3d())
+        tx_mat = Matrix.Translation(Vector(tx).to_3d())
     else:
         tx_mat = None
 
