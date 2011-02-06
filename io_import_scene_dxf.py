@@ -18,18 +18,20 @@
 
 bl_info = {
     'name': 'Import Autocad DXF (.dxf)',
-    'author': 'Thomas Larsson',
-    'version': (0, 1, 4),
+    'author': 'Thomas Larsson, Remigiusz Fiedler',
+    'version': (0, 1, 5),
     'blender': (2, 5, 6),
-    'api': 34300,
+    'api': 34600,
     'location': 'File > Import',
     'description': 'Import files in the Autocad DXF format (.dxf)',
-    'warning': 'supporting only a sub-set of DXF specification',
+    'warning': 'only a part of DXF specification is supported, WIP',
     'wiki_url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/'\
         'Scripts/Import-Export/DXF_Importer',
     'tracker_url': 'https://projects.blender.org/tracker/index.php?'\
         'func=detail&aid=23480',
-    'category': 'Import-Export'}
+    'support': 'OFFICIAL',
+    'category': 'Import-Export',
+    }
 
 """
 Release note by migius (DXF support maintainer) 2011.01.02:
@@ -50,13 +52,18 @@ Probably no more improvements will be done to this script.
 The full-feature importer script from 2.49 will be back in 2.6 release.
 
 Installation:
-Place this file to Blender addons directory (on Windows it is %Blender_directory%\2.53\scripts\addons\)
+Place this file to Blender addons directory
+  (on Windows it is %Blender_directory%\2.53\scripts\addons\)
 You must activate the script in the "Add-Ons" tab (user preferences).
 Access it from File > Import menu.
 
 History:
-ver 0.1.4 - 2011.01.13 by Filiciss Muhgue
-- modified for latest API in rev.34300
+ver 0.1.5 - 2011.02.05 by migius for r.34661
+- changed support level to OFFICIAL
+- fixed missing last point at building Mesh-ARCs (by pildanovak)
+- fixed for changes in API and mathutils by campbell
+ver 0.1.4 - 2011.01.13 by migius
+- modified for latest API in rev.34300 (by Filiciss Muhgue)
 ver 0.1.3 - 2011.01.02 by migius
 - added draw curves as sequence for "Draw_as_Curve"
 - added toggle "Draw as one" as user preset in UI
@@ -277,7 +284,7 @@ class CArc(CEntity):
         v0 = vn
         points = []
         edges, faces = [], []
-        for n in range(theCircleRes):
+        for n in range(theCircleRes + 1):
             s = math.sin(n*w + phi0)
             c = math.cos(n*w + phi0)
             v = center + Vector((r*c, r*s, 0.0))
@@ -1402,9 +1409,9 @@ def getOCS(az):  #--------------------------------------------------------------
         ax = WORLDY.cross(az)
     else:
         ax = WORLDZ.cross(az)
-    ax = ax.normalize()
+    ax.normalize()
     ay = az.cross(ax)
-    ay = ay.normalize()
+    ay.normalize()
     return Matrix((ax, ay, az))
 
 
@@ -1414,10 +1421,11 @@ def transform(normal, rotation, obj):  #----------------------------------------
     """
     ma = Matrix(((1,0,0,0),(0,1,0,0),(0,0,1,0),(0,0,0,1)))
     o = Vector(obj.location)
-    ma = getOCS(normal)
-    if ma:
+    ma_new = getOCS(normal)
+    if ma_new:
+        ma = ma_new
         ma.resize_4x4()
-        o = o * ma #.inverted()
+        o = o * ma
 
     if rotation != 0:
         g = radians(-rotation)
@@ -2278,10 +2286,10 @@ def drawGeometry(verts, edges=[], faces=[]):
     if verts:
         if edges and (toggle & T_Curves):
             print ('draw Curve')
-            cu = bpy.data.curves.new('DXFLines', 'CURVE')
+            cu = bpy.data.curves.new('DXFlines', 'CURVE')
             cu.dimensions = '3D'
             buildSplines(cu, verts, edges)
-            ob = addObject('DXFLines', cu)
+            ob = addObject('DXFlines', cu)
         else:
             #for v in verts: print(v)
             #print ('draw Mesh with %s vertices' %(len(verts)))
@@ -2313,8 +2321,8 @@ def buildSplines(cu, verts, edges):
             v1_old = v1
         point_list.append(newPoints)
         for points in point_list:
-            #spline = cu.splines.new('BEZIER')
             spline = cu.splines.new('POLY')
+            #spline = cu.splines.new('BEZIER')
             #spline.use_endpoint_u = True
             #spline.order_u = 2
             #spline.resolution_u = 1
@@ -2325,8 +2333,8 @@ def buildSplines(cu, verts, edges):
             for i,p in enumerate(points):
                 spline.points[i].co = (p[0],p[1],p[2],0)
                 
-        print ('spline.type=', spline.type)
-        print ('cu spline number=', len(cu.splines))
+        #print ('spline.type=', spline.type)
+        #print ('spline number=', len(cu.splines))
     
     
 def addObject(name, data):
