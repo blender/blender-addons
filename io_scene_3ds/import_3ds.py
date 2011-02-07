@@ -335,7 +335,7 @@ def process_next_chunk(file, previous_chunk, importedObjects, IMAGE_SEARCH):
             ob.matrix_local = contextMatrix_rot
 
         importedObjects.append(ob)
-        bmesh.update()
+        bmesh.update_tag()
 
     #a spare chunk
     new_chunk = chunk()

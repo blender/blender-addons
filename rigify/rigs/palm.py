@@ -153,7 +153,7 @@ class Rig:
                 verts = temp
             edges = [(1, 2), (0, 3), (4, 7), (5, 6), (8, 0), (9, 3), (10, 1), (11, 2), (12, 6), (13, 7), (4, 14), (15, 5), (10, 8), (11, 9), (15, 14), (12, 13)]
             mesh.from_pydata(verts, edges, [])
-            mesh.update()
+            mesh.update_tag()
 
             mod = w.modifiers.new("subsurf", 'SUBSURF')
             mod.levels = 2

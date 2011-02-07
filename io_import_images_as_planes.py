@@ -138,7 +138,7 @@ def create_image_plane(self, context, material):
 
     mesh_data = bpy.data.meshes.new(img.name)
     mesh_data.from_pydata(verts, [], faces)
-    mesh_data.update()
+    mesh_data.update_tag()
     add_object_data(context, mesh_data, operator=self)
     plane = context.scene.objects.active
     plane.data.uv_textures.new()

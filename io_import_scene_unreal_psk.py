@@ -459,7 +459,7 @@ def pskimport(infile):
     #RWghts fields = PntIdx|BoneIdx|Weight
     RWghts.sort()
     printlog( "len(RWghts)=" + str(len(RWghts)) + "\n")
-    #Tmsh.update()
+    #Tmsh.update_tag()
     
     #set the Vertex Colors of the faces
     #face.v[n] = RWghts[0]
@@ -495,7 +495,7 @@ def pskimport(infile):
     
     me_ob.faces.foreach_set("vertices_raw", faces)
     me_ob.faces.foreach_set("use_smooth", [False] * len(me_ob.faces))
-    me_ob.update()
+    me_ob.update_tag()
     
     #===================================================================================================
     #UV Setup

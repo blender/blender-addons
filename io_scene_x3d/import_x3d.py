@@ -1700,7 +1700,7 @@ def importMesh_IndexedFaceSet(geom, bpyima, ancestry):
         #   bpymesh.faces.extend(faces, smooth=True)
 
     # bpymesh.calcNormals()
-    bpymesh.update()
+    bpymesh.update_tag()
 
     if len(bpymesh.faces) != len(faces):
         print('\tWarning: adding faces did not work! file is invalid, not adding UVs or vcolors')
@@ -1917,7 +1917,7 @@ def importMesh_PointSet(geom, ancestry):
     bpymesh.vertices.foreach_set("co", [a for v in points for a in v])
 
     # bpymesh.calcNormals()  # will just be dummy normals
-    bpymesh.update()
+    bpymesh.update_tag()
     return bpymesh
 
 GLOBALS['CIRCLE_DETAIL'] = 12

@@ -34,7 +34,7 @@ def create_and_link_mesh(name, faces, points):
     bpy.context.scene.objects.link(ob)
 
     # update mesh to allow proper display
-    mesh.update()
+    mesh.update_tag()
 
 
 def faces_from_mesh(ob, apply_modifier=False, triangulate=True):

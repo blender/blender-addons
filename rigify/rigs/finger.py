@@ -261,7 +261,7 @@ class Rig:
                 verts = temp
             edges = [(0, 1), (1, 2), (2, 3), (3, 4), (4, 5), (5, 1)]
             mesh.from_pydata(verts, edges, [])
-            mesh.update()
+            mesh.update_tag()
 
         for bone in bones:
             create_limb_widget(self.obj, bone)

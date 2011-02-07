@@ -220,7 +220,7 @@ def mat_to_texface():
                     else:
                         uvtex[f.index].use_image = False
 
-        me.update()
+        me.update_tag()
         
     
     if editmode:

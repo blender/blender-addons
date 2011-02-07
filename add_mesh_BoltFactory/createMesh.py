@@ -2092,7 +2092,7 @@ def create_mesh_object(context, verts, edges, faces, name, edit, align_matrix):
     mesh.from_pydata(verts, edges, faces)
 
     # Update mesh geometry after adding stuff.
-    mesh.update()
+    mesh.update_tag()
 
     # Deselect all objects.
     bpy.ops.object.select_all(action='DESELECT')

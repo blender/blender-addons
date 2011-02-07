@@ -275,7 +275,7 @@ def create_line_widget(rig, bone_name):
     if obj != None:
         mesh = obj.data
         mesh.from_pydata([(0, 0, 0), (0, 1, 0)], [(0, 1)], [])
-        mesh.update()
+        mesh.update_tag()
 
 
 def create_circle_widget(rig, bone_name, radius=1.0, head_tail=0.0):
@@ -290,7 +290,7 @@ def create_circle_widget(rig, bone_name, radius=1.0, head_tail=0.0):
         edges = [(0, 1), (1, 2), (2, 3), (3, 4), (4, 5), (5, 6), (6, 7), (7, 8), (8, 9), (9, 10), (10, 11), (11, 12), (12, 13), (13, 14), (14, 15), (15, 16), (16, 17), (17, 18), (18, 19), (19, 20), (20, 21), (21, 22), (22, 23), (23, 24), (24, 25), (25, 26), (26, 27), (27, 28), (28, 29), (29, 30), (30, 31), (0, 31)]
         mesh = obj.data
         mesh.from_pydata(verts, edges, [])
-        mesh.update()
+        mesh.update_tag()
         return obj
     else:
         return None
@@ -305,7 +305,7 @@ def create_sphere_widget(rig, bone_name):
         edges = [(0, 1), (1, 2), (2, 3), (3, 4), (4, 5), (5, 6), (6, 7), (7, 8), (8, 9), (9, 10), (10, 11), (11, 12), (12, 13), (13, 14), (14, 15), (0, 15), (16, 31), (16, 17), (17, 18), (18, 19), (19, 20), (20, 21), (21, 22), (22, 23), (23, 24), (24, 25), (25, 26), (26, 27), (27, 28), (28, 29), (29, 30), (30, 31), (32, 33), (33, 34), (34, 35), (35, 36), (36, 37), (37, 38), (38, 39), (39, 40), (40, 41), (41, 42), (42, 43), (43, 44), (44, 45), (45, 46), (46, 47), (32, 47)]
         mesh = obj.data
         mesh.from_pydata(verts, edges, [])
-        mesh.update()
+        mesh.update_tag()
 
 
 def create_limb_widget(rig, bone_name):
@@ -318,7 +318,7 @@ def create_limb_widget(rig, bone_name):
         edges = [(0, 1), (2, 3), (4, 3), (5, 4), (5, 6), (6, 7), (8, 7), (8, 9), (10, 9), (10, 11), (11, 12), (13, 12), (14, 13), (14, 15), (16, 15), (16, 17), (17, 18), (19, 18), (19, 20), (21, 20), (21, 22), (22, 23), (24, 23), (25, 24), (25, 26), (27, 26), (27, 28), (29, 28), (29, 30), (30, 31), (32, 31), (32, 33), (2, 33)]
         mesh = obj.data
         mesh.from_pydata(verts, edges, [])
-        mesh.update()
+        mesh.update_tag()
 
 
 def create_bone_widget(rig, bone_name):
@@ -330,7 +330,7 @@ def create_bone_widget(rig, bone_name):
         edges = [(1, 2), (0, 1), (0, 3), (2, 3), (4, 5), (5, 6), (6, 7), (4, 7), (1, 5), (0, 4), (2, 6), (3, 7)]
         mesh = obj.data
         mesh.from_pydata(verts, edges, [])
-        mesh.update()
+        mesh.update_tag()
 
 
 def create_root_widget(rig, bone_name):
@@ -342,7 +342,7 @@ def create_root_widget(rig, bone_name):
         edges = [(0, 4), (1, 5), (2, 6), (3, 7), (4, 8), (5, 9), (6, 10), (7, 11), (8, 12), (9, 13), (10, 14), (11, 15), (16, 20), (17, 21), (18, 22), (19, 23), (20, 24), (21, 25), (22, 26), (23, 27), (0, 24), (1, 25), (2, 26), (3, 27), (16, 28), (17, 29), (18, 30), (19, 31), (12, 32), (13, 33), (14, 34), (15, 35), (28, 36), (29, 37), (30, 38), (31, 39), (32, 40), (33, 41), (34, 42), (35, 43), (36, 44), (37, 45), (38, 44), (39, 45), (40, 46), (41, 46), (42, 47), (43, 47)]
         mesh = obj.data
         mesh.from_pydata(verts, edges, [])
-        mesh.update()
+        mesh.update_tag()
 
 
 #=============================================

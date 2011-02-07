@@ -84,7 +84,7 @@ def create_mesh_object(context, verts, edges, faces, name):
     mesh.from_pydata(verts, edges, faces)
 
     # Update mesh geometry after adding stuff.
-    mesh.update()
+    mesh.update_tag()
 
     import add_object_utils
     return add_object_utils.object_data_add(context, mesh, operator=None)
