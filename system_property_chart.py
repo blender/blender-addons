@@ -1,22 +1,22 @@
+# ##### BEGIN GPL LICENSE BLOCK #####
 #
-# ***** BEGIN GPL LICENSE BLOCK *****
+#  This program is free software; you can redistribute it and/or
+#  modify it under the terms of the GNU General Public License
+#  as published by the Free Software Foundation; either version 2
+#  of the License, or (at your option) any later version.
 #
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
 #
-# This program is free software; you can redistribute it and/or
-# modify it under the terms of the GNU General Public License
-# as published by the Free Software Foundation; either version 2
-# of the License, or (at your option) any later version.
+#  You should have received a copy of the GNU General Public License
+#  along with this program; if not, write to the Free Software Foundation,
+#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software Foundation,
-# Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-#
-# ***** END GPL LICENCE BLOCK *****
+# ##### END GPL LICENSE BLOCK #####
+
+# <pep8 compliant>
 
 bl_info = {
     "name": "Object Property Chart",
@@ -37,19 +37,20 @@ bl_info = {
 
 import bpy
 
+
 def _property_chart_data_get(self, context):
     # eg. context.active_object
     obj = eval("context.%s" % self.context_data_path_active)
 
     if obj is None:
         return None, None
-    
+
     # eg. context.selected_objects[:]
     selected_objects = eval("context.%s" % self.context_data_path_selected)[:]
 
     if not selected_objects:
         return None, None
-    
+
     return obj, selected_objects
 
 
@@ -58,7 +59,7 @@ def _property_chart_draw(self, context):
     This function can run for different types.
     '''
     obj, selected_objects = _property_chart_data_get(self, context)
-    
+
     if not obj:
         return
 
@@ -67,16 +68,16 @@ def _property_chart_draw(self, context):
         active_index = selected_objects.index(obj)
     except ValueError:
         active_index = -1
-    
-    if active_index > 0: # not the first alredy
+
+    if active_index > 0:  # not the first alredy
         selected_objects[0], selected_objects[active_index] = selected_objects[active_index], selected_objects[0]
-    
+
     id_storage = context.scene
-    
-    strings = id_storage.get(self._PROP_STORAGE_ID)
-    
-    if strings is None:
-        strings = id_storage[self._PROP_STORAGE_ID] = "data data.name"
+
+    strings = getattr(id_storage, self._PROP_STORAGE_ID)
+
+    # Collected all props, now display them all
+    layout = self.layout
 
     if strings:
 
@@ -87,9 +88,9 @@ def _property_chart_draw(self, context):
             for i, attr in enumerate(attrs):
                 val_old = val_new
                 val_new = getattr(val_old, attr, Ellipsis)
-                
+
                 if val_new == Ellipsis:
-                    return None, None                        
+                    return None, None
             return val_old, attrs[-1]
 
         strings = strings.split()
@@ -101,15 +102,11 @@ def _property_chart_draw(self, context):
             prop_found = False
             for attr_string in strings:
                 prop_pairs.append(obj_prop_get(obj, attr_string))
-                if prop_found == False and prop_pairs[-1] != (None, None): 
+                if prop_found == False and prop_pairs[-1] != (None, None):
                     prop_found = True
 
             if prop_found:
                 prop_all.append((obj, prop_pairs))
-
-
-        # Collected all props, now display them all
-        layout = self.layout
 
         row = layout.row(align=True)
 
@@ -132,25 +129,26 @@ def _property_chart_draw(self, context):
             for obj, prop_pairs in prop_all:
                 data, attr = prop_pairs[i]
                 if data:
-                    col.prop(data, attr, text="")# , emboss=obj==active_object
+                    col.prop(data, attr, text="")  # , emboss=obj==active_object
                 else:
                     col.label(text="<missing>")
 
     # edit the display props
     col = layout.column()
     col.label(text="Object Properties")
-    col.prop(id_storage, '["%s"]' % self._PROP_STORAGE_ID, text="")
+    col.prop(id_storage, self._PROP_STORAGE_ID, text="")
 
 
 class View3DEditProps(bpy.types.Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
-    
+
     bl_label = "Property Chart"
     bl_context = "objectmode"
-    
+
     _PROP_STORAGE_ID = "view3d_edit_props"
-    
+    _PROP_STORAGE_DEFAULT = "data data.name"
+
     # _property_chart_draw needs these
     context_data_path_active = "active_object"
     context_data_path_selected = "selected_objects"
@@ -161,11 +159,12 @@ class View3DEditProps(bpy.types.Panel):
 class SequencerEditProps(bpy.types.Panel):
     bl_space_type = 'SEQUENCE_EDITOR'
     bl_region_type = 'UI'
-    
+
     bl_label = "Property Chart"
-    
+
     _PROP_STORAGE_ID = "sequencer_edit_props"
-    
+    _PROP_STORAGE_DEFAULT = "blend_type blend_alpha"
+
     # _property_chart_draw needs these
     context_data_path_active = "scene.sequence_editor.active_strip"
     context_data_path_selected = "selected_sequences"
@@ -181,7 +180,7 @@ class SequencerEditProps(bpy.types.Panel):
 
 def _property_chart_copy(self, context):
     obj, selected_objects = _property_chart_data_get(self, context)
-    
+
     if not obj:
         return
 
@@ -220,11 +219,24 @@ class CopyPropertyChart(bpy.types.Operator):
 
 
 def register():
-    pass
+    Scene = bpy.types.Scene
+
+    for cls in View3DEditProps, SequencerEditProps:
+        setattr(Scene,
+                cls._PROP_STORAGE_ID,
+                StringProperty(
+                    name="Scene Name",
+                    description="Name of POV-Ray scene to create. Empty name will use the name of the blend file.",
+                    default=cls._PROP_STORAGE_DEFAULT, maxlen=1024),
+                )
 
 
 def unregister():
-    pass
+    for cls in View3DEditProps, SequencerEditProps:
+        delattr(Scene,
+                cls._PROP_STORAGE_ID,
+                )
+
 
 if __name__ == "__main__":
     register()
