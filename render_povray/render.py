@@ -1012,7 +1012,7 @@ def write_pov(filename, scene=None, info_callback=None):
                         tabWrite("pigment_pattern {\n")
                         # POV-Ray "scale" is not a number of repetitions factor, but its inverse, a standard scale factor.
                         # Offset seems needed relatively to scale so probably center of the scale is not the same in blender and POV
-                        mappingSpec = "translate <%.4g,%.4g,%.4g> scale <%.4g,%.4g,%.4g>\n" % (-t_spec.offset.x, t_spec.offset.y, t_spec.offset.z, 1.0 / t_spec.scale.x, 1.0 / t_spec.scale.y, 1.0 / t_spec.scale.z)
+                        mappingSpec = "translate <%.4g,%.4g,%.4g> scale <%.4g,%.4g,%.4g>\n" % (-t_spec.offset.x, -t_spec.offset.y, t_spec.offset.z, 1.0 / t_spec.scale.x, 1.0 / t_spec.scale.y, 1.0 / t_spec.scale.z)
                         tabWrite("uv_mapping image_map{%s \"%s\" %s}\n" % (imageFormat(texturesSpec), texturesSpec, imgMap(t_spec)))
                         tabWrite("%s\n" % mappingSpec)
                         tabWrite("}\n")
@@ -1024,7 +1024,7 @@ def write_pov(filename, scene=None, info_callback=None):
                             tabWrite("\n")
                             # POV-Ray "scale" is not a number of repetitions factor, but its inverse, a standard scale factor.
                             # Offset seems needed relatively to scale so probably center of the scale is not the same in blender and POV
-                            mappingAlpha = " translate <%.4g,%.4g,%.4g> scale <%.4g,%.4g,%.4g>\n" % (-t_alpha.offset.x, t_alpha.offset.y, t_alpha.offset.z, 1.0 / t_alpha.scale.x, 1.0 / t_alpha.scale.y, 1.0 / t_alpha.scale.z)
+                            mappingAlpha = " translate <%.4g,%.4g,%.4g> scale <%.4g,%.4g,%.4g>\n" % (-t_alpha.offset.x, -t_alpha.offset.y, t_alpha.offset.z, 1.0 / t_alpha.scale.x, 1.0 / t_alpha.scale.y, 1.0 / t_alpha.scale.z)
                             tabWrite("pigment {pigment_pattern {uv_mapping image_map{%s \"%s\" %s}%s" % (imageFormat(texturesAlpha), texturesAlpha, imgMap(t_alpha), mappingAlpha))
                             tabWrite("}\n")
                             tabWrite("pigment_map {\n")
@@ -1046,11 +1046,11 @@ def write_pov(filename, scene=None, info_callback=None):
                     else:
                         # POV-Ray "scale" is not a number of repetitions factor, but its inverse, a standard scale factor.
                         # Offset seems needed relatively to scale so probably center of the scale is not the same in blender and POV
-                        mappingDif = ("translate <%.4g,%.4g,%.4g> scale <%.4g,%.4g,%.4g>" % (-t_dif.offset.x, t_dif.offset.y, t_dif.offset.z, 1.0 / t_dif.scale.x, 1.0 / t_dif.scale.y, 1.0 / t_dif.scale.z))
+                        mappingDif = ("translate <%.4g,%.4g,%.4g> scale <%.4g,%.4g,%.4g>" % (-t_dif.offset.x, -t_dif.offset.y, t_dif.offset.z, 1.0 / t_dif.scale.x, 1.0 / t_dif.scale.y, 1.0 / t_dif.scale.z))
                         if texturesAlpha != "":
                             # POV-Ray "scale" is not a number of repetitions factor, but its inverse, a standard scale factor.
                             # Offset seems needed relatively to scale so probably center of the scale is not the same in blender and POV
-                            mappingAlpha = " translate <%.4g,%.4g,%.4g> scale <%.4g,%.4g,%.4g>" % (t_alpha.offset.x, t_alpha.offset.y, t_alpha.offset.z, 1.0 / t_alpha.scale.x, 1.0 / t_alpha.scale.y, 1.0 / t_alpha.scale.z)
+                            mappingAlpha = " translate <%.4g,%.4g,%.4g> scale <%.4g,%.4g,%.4g>" % (t_alpha.offset.x, -t_alpha.offset.y, t_alpha.offset.z, 1.0 / t_alpha.scale.x, 1.0 / t_alpha.scale.y, 1.0 / t_alpha.scale.z)
                             tabWrite("pigment {\n")
                             tabWrite("pigment_pattern {\n")
                             tabWrite("uv_mapping image_map{%s \"%s\" %s}%s}\n" % (imageFormat(texturesAlpha), texturesAlpha, imgMap(t_alpha), mappingAlpha))
@@ -1077,7 +1077,7 @@ def write_pov(filename, scene=None, info_callback=None):
                         ## scale 1 rotate y*0
                         # POV-Ray "scale" is not a number of repetitions factor, but its inverse, a standard scale factor.
                         # Offset seems needed relatively to scale so probably center of the scale is not the same in blender and POV
-                        mappingNor = " translate <%.4g,%.4g,%.4g> scale <%.4g,%.4g,%.4g>" % (-t_nor.offset.x, t_nor.offset.y, t_nor.offset.z, 1.0 / t_nor.scale.x, 1.0 / t_nor.scale.y, 1.0 / t_nor.scale.z)
+                        mappingNor = " translate <%.4g,%.4g,%.4g> scale <%.4g,%.4g,%.4g>" % (-t_nor.offset.x, -t_nor.offset.y, t_nor.offset.z, 1.0 / t_nor.scale.x, 1.0 / t_nor.scale.y, 1.0 / t_nor.scale.z)
                         #imageMapNor = ("{bump_map {%s \"%s\" %s mapping}" % (imageFormat(texturesNorm),texturesNorm,imgMap(t_nor)))
                         #We were not using the above maybe we should?
                         tabWrite("normal {uv_mapping bump_map {%s \"%s\" %s  bump_size %.4g }%s}\n" % (imageFormat(texturesNorm), texturesNorm, imgMap(t_nor), t_nor.normal_factor * 10, mappingNor))
@@ -1090,7 +1090,7 @@ def write_pov(filename, scene=None, info_callback=None):
                     if texturesAlpha != "":
                         # POV-Ray "scale" is not a number of repetitions factor, but its inverse, a standard scale factor.
                         # Offset seems needed relatively to scale so probably center of the scale is not the same in blender and POV
-                        mappingAlpha = " translate <%.4g,%.4g,%.4g> scale <%.4g,%.4g,%.4g>\n" % (-t_alpha.offset.x, t_alpha.offset.y, t_alpha.offset.z, 1.0 / t_alpha.scale.x, 1.0 / t_alpha.scale.y, 1.0 / t_alpha.scale.z)  # strange that the translation factor for scale is not the same as for translate. ToDo: verify both matches with blender internal.
+                        mappingAlpha = " translate <%.4g,%.4g,%.4g> scale <%.4g,%.4g,%.4g>\n" % (-t_alpha.offset.x, -t_alpha.offset.y, t_alpha.offset.z, 1.0 / t_alpha.scale.x, 1.0 / t_alpha.scale.y, 1.0 / t_alpha.scale.z)  # strange that the translation factor for scale is not the same as for translate. ToDo: verify both matches with blender internal.
                         tabWrite("pigment {pigment_pattern {uv_mapping image_map{%s \"%s\" %s}%s}\n" % (imageFormat(texturesAlpha), texturesAlpha, imgMap(t_alpha), mappingAlpha))
                         tabWrite("pigment_map {\n")
                         tabWrite("[0 color rgbft<0,0,0,1,1>]\n")
@@ -1110,9 +1110,9 @@ def write_pov(filename, scene=None, info_callback=None):
                 else:
                     # POV-Ray "scale" is not a number of repetitions factor, but its inverse, a standard scale factor.
                     # Offset seems needed relatively to scale so probably center of the scale is not the same in blender and POV
-                    mappingDif = ("translate <%.4g,%.4g,%.4g> scale <%.4g,%.4g,%.4g>" % (-t_dif.offset.x, t_dif.offset.y, t_dif.offset.z, 1.0 / t_dif.scale.x, 1.0 / t_dif.scale.y, 1.0 / t_dif.scale.z))  # strange that the translation factor for scale is not the same as for translate. ToDo: verify both matches with blender internal.
+                    mappingDif = ("translate <%.4g,%.4g,%.4g> scale <%.4g,%.4g,%.4g>" % (-t_dif.offset.x, -t_dif.offset.y, t_dif.offset.z, 1.0 / t_dif.scale.x, 1.0 / t_dif.scale.y, 1.0 / t_dif.scale.z))  # strange that the translation factor for scale is not the same as for translate. ToDo: verify both matches with blender internal.
                     if texturesAlpha != "":
-                        mappingAlpha = "translate <%.4g,%.4g,%.4g> scale <%.4g,%.4g,%.4g>" % (-t_alpha.offset.x, t_alpha.offset.y, t_alpha.offset.z, 1.0 / t_alpha.scale.x, 1.0 / t_alpha.scale.y, 1.0 / t_alpha.scale.z)  # strange that the translation factor for scale is not the same as for translate. ToDo: verify both matches with blender internal.
+                        mappingAlpha = "translate <%.4g,%.4g,%.4g> scale <%.4g,%.4g,%.4g>" % (-t_alpha.offset.x, -t_alpha.offset.y, t_alpha.offset.z, 1.0 / t_alpha.scale.x, 1.0 / t_alpha.scale.y, 1.0 / t_alpha.scale.z)  # strange that the translation factor for scale is not the same as for translate. ToDo: verify both matches with blender internal.
                         tabWrite("pigment {pigment_pattern {uv_mapping image_map{%s \"%s\" %s}%s}\n" % (imageFormat(texturesAlpha), texturesAlpha, imgMap(t_alpha), mappingAlpha))
                         tabWrite("pigment_map {\n")
                         tabWrite("[0 color rgbft<0,0,0,1,1>]\n")
@@ -1142,7 +1142,7 @@ def write_pov(filename, scene=None, info_callback=None):
                     ## scale 1 rotate y*0
                     # POV-Ray "scale" is not a number of repetitions factor, but its inverse, a standard scale factor.
                     # Offset seems needed relatively to scale so probably center of the scale is not the same in blender and POV
-                    mappingNor = (" translate <%.4g,%.4g,%.4g> scale <%.4g,%.4g,%.4g>" % (-t_nor.offset.x, t_nor.offset.y, t_nor.offset.z, 1.0 / t_nor.scale.x, 1.0 / t_nor.scale.y, 1.0 / t_nor.scale.z))
+                    mappingNor = (" translate <%.4g,%.4g,%.4g> scale <%.4g,%.4g,%.4g>" % (-t_nor.offset.x, -t_nor.offset.y, t_nor.offset.z, 1.0 / t_nor.scale.x, 1.0 / t_nor.scale.y, 1.0 / t_nor.scale.z))
                     #imageMapNor = ("{bump_map {%s \"%s\" %s mapping}" % (imageFormat(texturesNorm),texturesNorm,imgMap(t_nor)))
                     #We were not using the above maybe we should?
                     tabWrite("normal {uv_mapping bump_map {%s \"%s\" %s  bump_size %.4g }%s}\n" % (imageFormat(texturesNorm), texturesNorm, imgMap(t_nor), t_nor.normal_factor * 10.0, mappingNor))
