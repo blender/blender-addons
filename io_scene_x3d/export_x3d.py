@@ -631,10 +631,10 @@ class x3d_class:
             self.file.write("%s %s %s\" skyAngle=\"1.57, 1.57\" " % mix_triple)
         # Blend+Real Gradient Inverse
         elif blending == (True, False, True):
-            self.file.write("groundColor=\"%s %s %s, " % sky_triple)
-            self.file.write("%s %s %s\" groundAngle=\"1.57, 1.57\" " % mix_triple)
-            self.file.write("skyColor=\"%s %s %s, " % grd_triple)
-            self.file.write("%s %s %s\" skyAngle=\"1.57, 1.57\" " % mix_triple)
+            self.file.write("groundColor=\"%s %s %s, %s %s %s\" " % (sky_triple + grd_triple))
+            self.file.write("groundAngle=\"1.57\" ")
+            self.file.write("skyColor=\"%s %s %s, %s %s %s, %s %s %s\" " % (sky_triple + grd_triple + sky_triple))
+            self.file.write("skyAngle=\"1.57, 3.14159\" ")
         # Paper - just Zen Color
         elif blending == (False, False, True):
             self.file.write("groundColor=\"%s %s %s\" " % sky_triple)
