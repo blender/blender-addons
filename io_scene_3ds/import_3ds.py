@@ -124,7 +124,7 @@ ED_KEY_OBJECT_NODE         =   0xB002
 EK_OB_NODE_HEADER         =   0xB010
 EK_OB_INSTANCE_NAME       =   0xB011
 # EK_OB_PRESCALE            =   0xB012
-# EK_OB_PIVOT               =   0xB013
+EK_OB_PIVOT               =   0xB013
 # EK_OB_BOUNDBOX            =   0xB014
 # EK_OB_MORPH_SMOOTH        =   0xB015
 EK_OB_POSITION_TRACK      =   0xB020
@@ -143,8 +143,9 @@ ROOT_OBJECT         =   0xFFFF
 
 global scn
 scn = None
-global object_dictionary # dictionary for object hierarchy
-object_dictionary = {} 
+
+object_dictionary = {}
+object_matrix = {}
 
 
 #the chunk class
@@ -265,6 +266,7 @@ def process_next_chunk(file, previous_chunk, importedObjects, IMAGE_SEARCH):
     # only init once
     object_list = [] # for hierarchy
     object_parent = [] # index of parent in hierarchy, 0xFFFF = no parent
+    pivot_list = [] # pivots with hierarchy handling
     
     def putContextMesh(myContextMesh_vertls, myContextMesh_facels, myContextMeshMaterials):
         bmesh = bpy.data.meshes.new(contextObName)
@@ -333,6 +335,7 @@ def process_next_chunk(file, previous_chunk, importedObjects, IMAGE_SEARCH):
         
         if contextMatrix_rot:
             ob.matrix_local = contextMatrix_rot
+            object_matrix[ob] = contextMatrix_rot.copy()
 
         importedObjects.append(ob)
         bmesh.update_tag()
@@ -648,12 +651,20 @@ def process_next_chunk(file, previous_chunk, importedObjects, IMAGE_SEARCH):
 
             object_list.append(child)
             object_parent.append(hierarchy)
+            pivot_list.append(mathutils.Vector((0.0, 0.0, 0.0)))
 
         elif new_chunk.ID == EK_OB_INSTANCE_NAME:
             object_name, read_str_len = read_string(file)
             child.name = object_name
             object_dictionary[object_name] = child
             new_chunk.bytes_read += read_str_len
+            # print("new instance object:", object_name)
+
+        elif new_chunk.ID == EK_OB_PIVOT: # translation
+                temp_data = file.read(STRUCT_SIZE_3FLOAT)
+                pivot = struct.unpack('<3f', temp_data)
+                new_chunk.bytes_read += STRUCT_SIZE_3FLOAT
+                pivot_list[len(pivot_list)-1] = mathutils.Vector(pivot)
 
         elif new_chunk.ID == EK_OB_POSITION_TRACK: # translation
             new_chunk.bytes_read += STRUCT_SIZE_UNSIGNED_SHORT * 5
@@ -740,6 +751,14 @@ def process_next_chunk(file, previous_chunk, importedObjects, IMAGE_SEARCH):
             ob.parent = None
         else:
             ob.parent = object_list[parent]
+            # pivot_list[ind] += pivot_list[parent]  # XXX, not sure this is correct, should parent space matrix be applied before combining?
+    # fix pivots
+    for ind, ob in enumerate(object_list):
+        if ob.type == 'MESH': 
+            pivot = pivot_list[ind]
+            pivot_matrix = object_matrix.get(ob, mathutils.Matrix())  # unlikely to fail
+            pivot_matrix = mathutils.Matrix.Translation(-pivot * pivot_matrix.to_3x3())
+            ob.data.transform(pivot_matrix)
 
 
 def load_3ds(filepath, context, IMPORT_CONSTRAIN_BOUNDS=10.0, IMAGE_SEARCH=True, APPLY_MATRIX=True):
@@ -800,6 +819,7 @@ def load_3ds(filepath, context, IMPORT_CONSTRAIN_BOUNDS=10.0, IMAGE_SEARCH=True,
 
     # fixme, make unglobal, clear incase
     object_dictionary.clear()
+    object_matrix.clear()
 
     scn = context.scene
 # 	scn = bpy.data.scenes.active
@@ -812,6 +832,7 @@ def load_3ds(filepath, context, IMPORT_CONSTRAIN_BOUNDS=10.0, IMAGE_SEARCH=True,
 
     # fixme, make unglobal
     object_dictionary.clear()
+    object_matrix.clear()
 
     # Link the objects into this scene.
     # Layers = scn.Layers
