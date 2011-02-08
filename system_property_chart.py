@@ -232,6 +232,8 @@ def register():
 
 
 def unregister():
+    Scene = bpy.types.Scene
+
     for cls in View3DEditProps, SequencerEditProps:
         delattr(Scene,
                 cls._PROP_STORAGE_ID,
