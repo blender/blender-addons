@@ -1050,7 +1050,7 @@ def write_pov(filename, scene=None, info_callback=None):
                         if texturesAlpha != "":
                             # POV-Ray "scale" is not a number of repetitions factor, but its inverse, a standard scale factor.
                             # Offset seems needed relatively to scale so probably center of the scale is not the same in blender and POV
-                            mappingAlpha = " translate <%.4g,%.4g,%.4g> scale <%.4g,%.4g,%.4g>" % (t_alpha.offset.x, -t_alpha.offset.y, t_alpha.offset.z, 1.0 / t_alpha.scale.x, 1.0 / t_alpha.scale.y, 1.0 / t_alpha.scale.z)
+                            mappingAlpha = " translate <%.4g,%.4g,%.4g> scale <%.4g,%.4g,%.4g>" % (-t_alpha.offset.x, -t_alpha.offset.y, t_alpha.offset.z, 1.0 / t_alpha.scale.x, 1.0 / t_alpha.scale.y, 1.0 / t_alpha.scale.z)
                             tabWrite("pigment {\n")
                             tabWrite("pigment_pattern {\n")
                             tabWrite("uv_mapping image_map{%s \"%s\" %s}%s}\n" % (imageFormat(texturesAlpha), texturesAlpha, imgMap(t_alpha), mappingAlpha))
