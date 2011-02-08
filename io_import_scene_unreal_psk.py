@@ -146,11 +146,13 @@ def fixRoll(b):
         #align Z-axis
         b.roll -= math.degrees(math.atan2(v[0]*v[2]*(1 - v[1]),v[0]*v[0] + v[1]*v[2]*v[2])) 
         
-def pskimport(infile):
+def pskimport(infile,importmesh,importbone,bDebugLogPSK):
     global DEBUGLOG
+    DEBUGLOG = bDebugLogPSK
     print ("--------------------------------------------------")
     print ("---------SCRIPT EXECUTING PYTHON IMPORTER---------")
     print ("--------------------------------------------------")
+    print (" DEBUG Log:",bDebugLogPSK)
     print ("Importing file: ", infile)
     
     md5_bones=[]
@@ -163,7 +165,7 @@ def pskimport(infile):
     def printlog(strdata):
         if (DEBUGLOG):
             logf.write(strdata)
-            
+    
     objName = infile.split('\\')[-1].split('.')[0]
     
     me_ob = bpy.data.meshes.new(objName)
@@ -351,73 +353,104 @@ def pskimport(infile):
     objectname = "armaturedata"
     bfound = False
     arm = None
-    for obj in bpy.data.objects:
-        if (obj.name == meshname):
-            bfound = True
-            arm = obj
-            break
+    if importbone:
+        for obj in bpy.data.objects:
+            if (obj.name == meshname):
+                bfound = True
+                arm = obj
+                break
+				
+        if bfound == False:
+            '''
+            armdata = bpy.data.armatures.new(objectname)
+            ob_new = bpy.data.objects.new(meshname, armdata)
+            #ob_new = bpy.data.objects.new(meshname, 'ARMATURE')
+            #ob_new.data = armdata
+            bpy.context.scene.objects.link(ob_new)
+            #bpy.ops.object.mode_set(mode='OBJECT')
+            for i in bpy.context.scene.objects: i.select = False #deselect all objects
+            ob_new.select = True
+            #set current armature to edit the bone
+            bpy.context.scene.objects.active = ob_new
+            #set mode to able to edit the bone
+            bpy.ops.object.mode_set(mode='EDIT')
+			
+            #newbone = ob_new.data.edit_bones.new('test')
+            #newbone.tail.y = 1
+            print("creating bone(s)")
+            for bone in md5_bones:
+                #print(dir(bone))
+                bpy.ops.object.mode_set(mode='EDIT')
+                newbone = ob_new.data.edit_bones.new(bone.name)
+            '''		
+		
             
-    if bfound == False:
-        armdata = bpy.data.armatures.new(objectname)
-        ob_new = bpy.data.objects.new(meshname, armdata)
-        #ob_new = bpy.data.objects.new(meshname, 'ARMATURE')
-        #ob_new.data = armdata
-        bpy.context.scene.objects.link(ob_new)
-        #bpy.ops.object.mode_set(mode='OBJECT')
-        for i in bpy.context.scene.objects: i.select = False #deselect all objects
-        ob_new.select = True
-        #set current armature to edit the bone
-        bpy.context.scene.objects.active = ob_new
-        #set mode to able to edit the bone
-        bpy.ops.object.mode_set(mode='EDIT')
-        #newbone = ob_new.data.edit_bones.new('test')
-        #newbone.tail.y = 1
-        print("creating bone(s)")
-        for bone in md5_bones:
-            #print(dir(bone))
-            newbone = ob_new.data.edit_bones.new(bone.name)
-            #parent the bone
-            parentbone = None
-            print("bone name:",bone.name)
-            #note bone location is set in the real space or global not local
-            if bone.name != bone.parent:
+            armdata = bpy.data.armatures.new(objectname)
+            ob_new = bpy.data.objects.new(meshname, armdata)
+            #ob_new = bpy.data.objects.new(meshname, 'ARMATURE')
+            #ob_new.data = armdata
+            bpy.context.scene.objects.link(ob_new)
+            #bpy.ops.object.mode_set(mode='OBJECT')
+            for i in bpy.context.scene.objects: i.select = False #deselect all objects
+            ob_new.select = True
+            #set current armature to edit the bone
+            bpy.context.scene.objects.active = ob_new
+            #set mode to able to edit the bone
+            bpy.ops.object.mode_set(mode='EDIT')
+			
+            #newbone = ob_new.data.edit_bones.new('test')
+            #newbone.tail.y = 1
+            print("creating bone(s)")
+            for bone in md5_bones:
+                #print(dir(bone))
+                bpy.ops.object.mode_set(mode='EDIT')
+                newbone = ob_new.data.edit_bones.new(bone.name)
+                #parent the bone
+                parentbone = None
+                print("bone name:",bone.name)
+                #note bone location is set in the real space or global not local
+                if bone.name != bone.parent:
+				
+                    pos_x = bone.bindpos[0]
+                    pos_y = bone.bindpos[1]
+                    pos_z = bone.bindpos[2]
+				
+                    #print( "LINKING:" , bone.parent ,"j")
+                    parentbone = ob_new.data.edit_bones[bone.parent]
+                    newbone.parent = parentbone
+                    rotmatrix = bone.bindmat.to_matrix().to_4x4().to_3x3()  # XXX, redundant matrix conversion?
+					
+                    #parent_head = parentbone.head * parentbone.matrix.to_quaternion().inverse()
+                    #parent_tail = parentbone.tail * parentbone.matrix.to_quaternion().inverse()
+                    #location=Vector(pos_x,pos_y,pos_z)
+                    #set_position = (parent_tail - parent_head) + location
+                    #print("tmp head:",set_position)
+					
+                    #pos_x = set_position.x
+                    #pos_y = set_position.y
+                    #pos_z = set_position.z
+					
+                    newbone.head.x = parentbone.head.x + pos_x
+                    newbone.head.y = parentbone.head.y + pos_y
+                    newbone.head.z = parentbone.head.z + pos_z
+                    #print("head:",newbone.head)
+                    newbone.tail.x = parentbone.head.x + (pos_x + bonesize * rotmatrix[1][0])
+                    newbone.tail.y = parentbone.head.y + (pos_y + bonesize * rotmatrix[1][1])
+                    newbone.tail.z = parentbone.head.z + (pos_z + bonesize * rotmatrix[1][2])
+                else:
+                    print("rotmatrix:",dir(bone.bindmat.to_matrix().resize_4x4()))
+                    #rotmatrix = bone.bindmat.to_matrix().resize_4x4().to_3x3()  # XXX, redundant matrix conversion?
+                    rotmatrix = bone.bindmat.to_matrix().to_3x3()  # XXX, redundant matrix conversion?
+					
+                    
+                    newbone.head.x = bone.bindpos[0]
+                    newbone.head.y = bone.bindpos[1]
+                    newbone.head.z = bone.bindpos[2]
+                    newbone.tail.x = bone.bindpos[0] + bonesize * rotmatrix[1][0]
+                    newbone.tail.y = bone.bindpos[1] + bonesize * rotmatrix[1][1]
+                    newbone.tail.z = bone.bindpos[2] + bonesize * rotmatrix[1][2]
+					#print("no parent")
             
-                pos_x = bone.bindpos[0]
-                pos_y = bone.bindpos[1]
-                pos_z = bone.bindpos[2]
-            
-                #print( "LINKING:" , bone.parent ,"j")
-                parentbone = ob_new.data.edit_bones[bone.parent]
-                newbone.parent = parentbone
-                rotmatrix = bone.bindmat.to_matrix().to_4x4().to_3x3()  # XXX, redundant matrix conversion?
-                
-                #parent_head = parentbone.head * parentbone.matrix.to_quaternion().inverse()
-                #parent_tail = parentbone.tail * parentbone.matrix.to_quaternion().inverse()
-                #location=Vector(pos_x,pos_y,pos_z)
-                #set_position = (parent_tail - parent_head) + location
-                #print("tmp head:",set_position)
-                
-                #pos_x = set_position.x
-                #pos_y = set_position.y
-                #pos_z = set_position.z
-                
-                newbone.head.x = parentbone.head.x + pos_x
-                newbone.head.y = parentbone.head.y + pos_y
-                newbone.head.z = parentbone.head.z + pos_z
-                print("head:",newbone.head)
-                newbone.tail.x = parentbone.head.x + (pos_x + bonesize * rotmatrix[1][0])
-                newbone.tail.y = parentbone.head.y + (pos_y + bonesize * rotmatrix[1][1])
-                newbone.tail.z = parentbone.head.z + (pos_z + bonesize * rotmatrix[1][2])
-            else:
-                rotmatrix = bone.bindmat.to_matrix().resize_4x4().to_3x3()  # XXX, redundant matrix conversion?
-                newbone.head.x = bone.bindpos[0]
-                newbone.head.y = bone.bindpos[1]
-                newbone.head.z = bone.bindpos[2]
-                newbone.tail.x = bone.bindpos[0] + bonesize * rotmatrix[1][0]
-                newbone.tail.y = bone.bindpos[1] + bonesize * rotmatrix[1][1]
-                newbone.tail.z = bone.bindpos[2] + bonesize * rotmatrix[1][2]
-                #print("no parent")
-    
     bpy.context.scene.update()
     
     #==================================================================================================
@@ -556,13 +589,13 @@ def pskimport(infile):
     print ("PSK2Blender completed")
 #End of def pskimport#########################
 
-def getInputFilename(filename):
+def getInputFilename(filename,importmesh,importbone,bDebugLogPSK):
     checktype = filename.split('\\')[-1].split('.')[1]
     print ("------------",filename)
     if checktype.upper() != 'PSK':
         print ("  Selected file = ",filename)
         raise (IOError, "The selected input file is not a *.psk file")
-    pskimport(filename)
+    pskimport(filename,importmesh,importbone,bDebugLogPSK)
 
 from bpy.props import *
 
@@ -574,9 +607,12 @@ class IMPORT_OT_psk(bpy.types.Operator):
     # List of operator properties, the attributes will be assigned
     # to the class instance from the operator settings before calling.
     filepath = StringProperty(name="File Path", description="Filepath used for importing the OBJ file", maxlen= 1024, default= "")
+    importmesh = BoolProperty(name="Mesh", description="Import mesh only. (not yet build.)", default=True)
+    importbone = BoolProperty(name="Bones", description="Import bones only. Current not working yet.", default=True)
+    bDebugLogPSK = BoolProperty(name="Debug Log.txt", description="Log the output of raw format. It will save in current file dir. Note this just for testing.", default=False)
 
     def execute(self, context):
-        getInputFilename(self.filepath)
+        getInputFilename(self.filepath,self.importmesh,self.importbone,self.bDebugLogPSK)
         return {'FINISHED'}
 
     def invoke(self, context, event):
@@ -586,7 +622,6 @@ class IMPORT_OT_psk(bpy.types.Operator):
 
 def menu_func(self, context):
     self.layout.operator(IMPORT_OT_psk.bl_idname, text="Skeleton Mesh (.psk)")
-
 
 def register():
     bpy.types.INFO_MT_file_import.append(menu_func)
