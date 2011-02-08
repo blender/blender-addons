@@ -396,8 +396,8 @@ def pskimport(infile,importmesh,importbone,bDebugLogPSK):
                     newbone.parent = parentbone
                     rotmatrix = bone.bindmat.to_matrix().to_4x4().to_3x3()  # XXX, redundant matrix conversion?
 					
-                    #parent_head = parentbone.head * parentbone.matrix.to_quaternion().inverse()
-                    #parent_tail = parentbone.tail * parentbone.matrix.to_quaternion().inverse()
+                    #parent_head = parentbone.head * parentbone.matrix.to_quaternion().inverted()
+                    #parent_tail = parentbone.tail * parentbone.matrix.to_quaternion().inverted()
                     #location=Vector(pos_x,pos_y,pos_z)
                     #set_position = (parent_tail - parent_head) + location
                     #print("tmp head:",set_position)
@@ -467,7 +467,7 @@ def pskimport(infile,importmesh,importbone,bDebugLogPSK):
     #RWghts fields = PntIdx|BoneIdx|Weight
     RWghts.sort()
     printlog( "len(RWghts)=" + str(len(RWghts)) + "\n")
-    #Tmsh.update_tag()
+    #Tmsh.update()
     
     #set the Vertex Colors of the faces
     #face.v[n] = RWghts[0]
@@ -503,7 +503,7 @@ def pskimport(infile,importmesh,importbone,bDebugLogPSK):
     
     me_ob.faces.foreach_set("vertices_raw", faces)
     me_ob.faces.foreach_set("use_smooth", [False] * len(me_ob.faces))
-    me_ob.update_tag()
+    me_ob.update()
     
     #===================================================================================================
     #UV Setup

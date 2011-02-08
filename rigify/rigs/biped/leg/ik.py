@@ -500,7 +500,7 @@ class Rig:
             edges = [(1, 2), (0, 3), (0, 4), (3, 5), (4, 6), (1, 6), (5, 7), (2, 7)]
             mesh = ob.data
             mesh.from_pydata(verts, edges, [])
-            mesh.update_tag()
+            mesh.update()
 
             mod = ob.modifiers.new("subsurf", 'SUBSURF')
             mod.levels = 2
@@ -511,7 +511,7 @@ class Rig:
             edges = [(1, 2), (0, 3), (0, 4), (3, 5), (1, 6), (4, 6), (2, 7), (5, 7)]
             mesh = ob.data
             mesh.from_pydata(verts, edges, [])
-            mesh.update_tag()
+            mesh.update()
 
             mod = ob.modifiers.new("subsurf", 'SUBSURF')
             mod.levels = 2

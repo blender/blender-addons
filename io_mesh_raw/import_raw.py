@@ -106,7 +106,7 @@ def addMeshObj(mesh, objName):
     for o in scn.objects:
         o.select = False
 
-    mesh.update_tag()
+    mesh.update()
     nobj = bpy.data.objects.new(objName, mesh)
     scn.objects.link(nobj)
     nobj.select = True

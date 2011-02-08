@@ -648,7 +648,7 @@ class hirise_dtm_helper(object):
       me.faces.foreach_set("vertices_raw", faces)
 
       self.dbg('running update...')
-      me.update_tag()
+      me.update()
 
       bin_desc = self.bin_mode()
       if bin_desc == 'NONE':

@@ -1217,7 +1217,7 @@ def parseMesh (args, tokens):
         me.from_pydata(verts, [], faces)
     else:
         me.from_pydata(verts, edges, [])
-    me.update_tag()
+    me.update()
     linkObject(ob, me)
         
     mats = []

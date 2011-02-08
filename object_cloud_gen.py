@@ -163,7 +163,7 @@ def makeObjectIntoBoundBox(scene, object, sizeDifference, takeFromObject):
     mesh.from_pydata(addVerts, [], addFaces)
 
     # Update the mesh
-    mesh.update_tag()
+    mesh.update()
 
 def applyScaleRotLoc(scene, obj):
     # Deselect All
@@ -261,7 +261,7 @@ def convertParticlesToMesh(scene, particlesobj, destobj, replacemesh):
     meshPnts.from_pydata(listMeshPnts, [], [])
 
     # Update the mesh.
-    meshPnts.update_tag()
+    meshPnts.update()
 
 def combineObjects(scene, combined, listobjs):
     # scene is the current scene

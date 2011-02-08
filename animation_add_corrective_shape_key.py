@@ -121,7 +121,7 @@ def applyX(ob, mesh, x ):
         v = mesh[i]
         v.co = x[i]
     
-    ob.data.update_tag()
+    ob.data.update()
     
     return x
 
@@ -141,7 +141,7 @@ def func_add_corrective_pose_shape( source, target):
     except:
         basis = ob_1.shape_key_add()
         basis.name = "Basis"
-        ob_1.data.update_tag()
+        ob_1.data.update()
         
     
     key_index = ob_1.active_shape_key_index
@@ -212,7 +212,7 @@ def func_add_corrective_pose_shape( source, target):
     # set the new shape key value to 1.0, so we see the result instantly
     ob_1.active_shape_key.value = 1.0
     
-    #mesh_1.update_tag()
+    #mesh_1.update()
     ob_1.show_only_shape_key = False
     
 
@@ -387,7 +387,7 @@ def func_add_corrective_pose_shape_fast(source, target):
     except:
         basis = target.shape_key_add()
         basis.name = "Basis"
-        target.data.update_tag()
+        target.data.update()
     
     key_index = target.active_shape_key_index
 
@@ -440,7 +440,7 @@ def func_add_corrective_pose_shape_fast(source, target):
         pass
     
     target.show_only_shape_key = False
-    target.data.update_tag()
+    target.data.update()
     
 
 

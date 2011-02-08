@@ -701,7 +701,7 @@ class GPENCIL_OT_surfsk_surface_add(bpy.types.Operator):
         
         me_surf.from_pydata(all_surface_verts_co, [], all_surface_faces)
         
-        me_surf.update_tag()
+        me_surf.update()
         
         ob_surface = bpy.data.objects.new(surf_me_name, me_surf)
         bpy.context.scene.objects.link(ob_surface)
