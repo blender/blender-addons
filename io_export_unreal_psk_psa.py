@@ -938,7 +938,7 @@ def make_fquat(bquat):
     
 def make_fquat_default(bquat):
     quat = FQuat()
-    
+    #print(dir(bquat))
     quat.X = bquat.x
     quat.Y = bquat.y
     quat.Z = bquat.z
@@ -970,8 +970,8 @@ def parse_bone(blender_bone, psk_file, psa_file, parent_id, is_root_bone, parent
     if child_parent != None:
         quat_root = blender_bone.matrix
         quat = make_fquat(quat_root.to_quaternion())
-        
-        quat_parent = child_parent.matrix.to_quaternion().inverse()
+        #print("DIR:",dir(child_parent.matrix.to_quaternion()))
+        quat_parent = child_parent.matrix.to_quaternion().inverted()
         parent_head = child_parent.head * quat_parent
         parent_tail = child_parent.tail * quat_parent
         
@@ -1410,14 +1410,18 @@ def parse_animation(blender_scene, blender_armatures, psa_file):
                         if parent_pose != None:
                             parentposemat = mathutils.Matrix(parent_pose.matrix)
                             #blender 2.4X it been flip around with new 2.50 (mat1 * mat2) should now be (mat2 * mat1)
-                            posebonemat = parentposemat.invert() * posebonemat
+                            posebonemat = parentposemat.inverted() * posebonemat
+                            #print("parentposemat ::::",parentposemat)
+                        #print("parentposemat ::::",dir(posebonemat.to_quaternion()))
                         head = posebonemat.to_translation()
-                        quat = posebonemat.to_quaternion().normalize()
+                        quat = posebonemat.to_quaternion().normalized()
+                        #print("position :",posebonemat.to_translation(),"quat",posebonemat.to_quaternion().normalized())
+                        #print("posebonemat",posebonemat)
                         vkey = VQuatAnimKey()
                         vkey.Position.X = head.x
                         vkey.Position.Y = head.y
                         vkey.Position.Z = head.z
-                        
+                        #print("quat:",quat)
                         if parent_pose != None:
                             quat = make_fquat(quat)
                         else:
