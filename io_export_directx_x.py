@@ -18,9 +18,9 @@
 bl_info = {
     "name": "Export DirectX Model Format (.x)",
     "author": "Chris Foster (Kira Vakaan)",
-    "version": (2, 0),
-    "blender": (2, 5, 5),
-    "api": 33427,
+    "version": (2, 1),
+    "blender": (2, 5, 6),
+    "api": 34736,
     "location": "File > Export",
     "description": "Export to the DirectX Model Format (.x)",
     "warning": "",
@@ -197,6 +197,13 @@ def GetMaterialTexture(Material):
 
 def WriteHeader(Config):
     Config.File.write("xof 0303txt 0032\n\n")
+    
+    if Config.IncludeFrameRate:
+        Config.File.write("template AnimTicksPerSecond {\n\
+  <9E415A43-7BA6-4a73-8743-B73D47E88476>\n\
+  DWORD AnimTicksPerSecond;\n\
+}\n\n")
+
     if Config.ExportArmatures:
         Config.File.write("template XSkinMeshHeader {\n\
   <3cf169ce-ff7c-44ab-93c0-f78f62d172e2>\n\
@@ -733,7 +740,7 @@ def WriteKeyedAnimationSet(Config):
                         Rotation[1] = ((RotationFCurves[1][Keyframe] if Keyframe in RotationFCurves[1] else Object.rotation_euler[1]) if RotationFCurves[1] else Object.rotation_euler[1])
                         Rotation[2] = ((RotationFCurves[2][Keyframe] if Keyframe in RotationFCurves[2] else Object.rotation_euler[2]) if RotationFCurves[2] else Object.rotation_euler[2])
                         Rotation = Rotation.to_quaternion()
-                        Config.File.write("{}{}{:9f},{:9f},{:9f},{:9f};;".format("  " * Config.Whitespace, (str(Keyframe - bpy.context.scene.frame_start) + ";4;").ljust(8), - Rotation[0], Rotation[1], Rotation[2], Rotation[3]))
+                        Config.File.write("{}{}{:9f},{:9f},{:9f},{:9f};;".format("  " * Config.Whitespace, (str(Keyframe - bpy.context.scene.frame_start) + ";4;").ljust(8), -Rotation[0], Rotation[1], Rotation[2], Rotation[3]))
                         if Keyframe == AllKeyframes[-1]:
                             Config.File.write(";\n")
                         else:
