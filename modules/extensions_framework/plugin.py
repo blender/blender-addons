@@ -82,7 +82,7 @@ class plugin(object):
 			if call_init:
 				init_properties(property_group, property_group.properties)
 		
-		log('Extension "%s" initialised' % r_class.bl_label)
+		log('Extension "%s" initialised' % r_class.__name__)
 	
 	@classmethod
 	def uninstall(r_class):

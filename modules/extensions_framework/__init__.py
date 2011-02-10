@@ -115,6 +115,30 @@ def init_properties(obj, props, cache=True):
 			# Silently skip invalid entries in props
 			continue
 
+def ef_initialise_properties(cls):
+	"""This is mostly copied from plugin.plugin.install
+	This is a class decorator that should be used on
+	sub-classes of declarative_property_group in order
+	to ensure that they are initialised when the addon
+	is loaded.
+	
+	"""
+	
+	for property_group_parent in cls.ef_attach_to:
+		if property_group_parent is not None:
+			prototype = getattr(bpy.types, property_group_parent)
+			if not hasattr(prototype, cls.__name__):
+				init_properties(prototype, [{
+					'type': 'pointer',
+					'attr': cls.__name__,
+					'ptype': cls,
+					'name': cls.__name__,
+					'description': cls.__name__
+				}])
+	
+	init_properties(cls, cls.properties)
+	
+	return cls
 
 class declarative_property_group(bpy.types.IDPropertyGroup):
 	"""A declarative_property_group describes a set of logically
@@ -134,6 +158,15 @@ class declarative_property_group(bpy.types.IDPropertyGroup):
 	See extensions_framework.ui.property_group_renderer.
 	
 	"""
+	
+	"""This property tells extensions_framework which bpy.type(s)
+	to attach this IDPropertyGroup to. If left as an empty list,
+	it will not be attached to any type, but its properties will
+	still be initialised. The type(s) given in the list should be
+	a string, such as 'Scene'.
+	
+	"""
+	ef_attach_to = []
 	
 	"""This list controls the order of property layout when rendered
 	by a property_group_renderer. This can be a nested list, where each
