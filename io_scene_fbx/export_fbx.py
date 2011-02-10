@@ -469,8 +469,8 @@ def save(operator, context, filepath="",
                 #return mtx4_z90 * (self.getPoseMatrix(frame) * arm_mat) # dont apply arm matrix anymore
                 return self.getPoseMatrix(frame) * mtx4_z90
             else:
-                #return (mtx4_z90 * ((self.getPoseMatrix(frame) * arm_mat)))  *  (mtx4_z90 * (self.parent.getPoseMatrix(frame) * arm_mat)).invert()
-                return (self.parent.getPoseMatrix(frame) * mtx4_z90).invert() * ((self.getPoseMatrix(frame)) * mtx4_z90)
+                #return (mtx4_z90 * ((self.getPoseMatrix(frame) * arm_mat)))  *  (mtx4_z90 * (self.parent.getPoseMatrix(frame) * arm_mat)).inverted()
+                return (self.parent.getPoseMatrix(frame) * mtx4_z90).inverted() * ((self.getPoseMatrix(frame)) * mtx4_z90)
 
         # we need thes because cameras and lights modified rotations
         def getAnimParRelMatrixRot(self, frame):
@@ -527,14 +527,14 @@ def save(operator, context, filepath="",
         def getAnimParRelMatrix(self, frame):
             if self.fbxParent:
                 #return (self.__anim_poselist[frame] * self.fbxParent.__anim_poselist[frame].inverted() ) * GLOBAL_MATRIX
-                return (GLOBAL_MATRIX * self.fbxParent.__anim_poselist[frame]).invert() * (GLOBAL_MATRIX * self.__anim_poselist[frame])
+                return (GLOBAL_MATRIX * self.fbxParent.__anim_poselist[frame]).inverted() * (GLOBAL_MATRIX * self.__anim_poselist[frame])
             else:
                 return GLOBAL_MATRIX * self.__anim_poselist[frame]
 
         def getAnimParRelMatrixRot(self, frame):
             obj_type = self.blenObject.type
             if self.fbxParent:
-                matrix_rot = ((GLOBAL_MATRIX * self.fbxParent.__anim_poselist[frame]).invert() * (GLOBAL_MATRIX * self.__anim_poselist[frame])).to_3x3()
+                matrix_rot = ((GLOBAL_MATRIX * self.fbxParent.__anim_poselist[frame]).inverted() * (GLOBAL_MATRIX * self.__anim_poselist[frame])).to_3x3()
             else:
                 matrix_rot = (GLOBAL_MATRIX * self.__anim_poselist[frame]).to_3x3()
 
@@ -1441,7 +1441,7 @@ def save(operator, context, filepath="",
 
         #m = mtx4_z90 * my_bone.restMatrix
         matstr = mat4x4str(m)
-        matstr_i = mat4x4str(m.invert())
+        matstr_i = mat4x4str(m.inverted())
 
         file.write('\n\t\tTransform: %s' % matstr_i)  # THIS IS __NOT__ THE GLOBAL MATRIX AS DOCUMENTED :/
         file.write('\n\t\tTransformLink: %s' % matstr)

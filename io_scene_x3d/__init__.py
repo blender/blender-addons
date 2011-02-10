@@ -22,7 +22,7 @@ bl_info = {
     "name": "Web3D X3D/VRML format",
     "author": "Campbell Barton, Bart",
     "blender": (2, 5, 6),
-    "api": 34386,
+    "api": 34647,
     "location": "File > Import-Export",
     "description": "Import-Export X3D, Import VRML",
     "warning": "",

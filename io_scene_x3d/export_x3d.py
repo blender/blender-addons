@@ -47,7 +47,7 @@ def round_color(col, cp):
 
 
 def matrix_direction(mtx):
-    return (mathutils.Vector((0.0, 0.0, -1.0)) * mtx.to_3x3()).normalize()[:]
+    return (mathutils.Vector((0.0, 0.0, -1.0)) * mtx.to_3x3()).normalized()[:]
 
 
 ##########################################################
