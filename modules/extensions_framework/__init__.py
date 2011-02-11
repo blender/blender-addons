@@ -116,26 +116,28 @@ def init_properties(obj, props, cache=True):
 			continue
 
 def ef_initialise_properties(cls):
-	"""This is a class decorator that should be used on
+	"""This is a function that should be called on
 	sub-classes of declarative_property_group in order
 	to ensure that they are initialised when the addon
 	is loaded.
 	
 	"""
 	
-	for property_group_parent in cls.ef_attach_to:
-		if property_group_parent is not None:
-			prototype = getattr(bpy.types, property_group_parent)
-			if not hasattr(prototype, cls.__name__):
-				init_properties(prototype, [{
-					'type': 'pointer',
-					'attr': cls.__name__,
-					'ptype': cls,
-					'name': cls.__name__,
-					'description': cls.__name__
-				}])
-	
-	init_properties(cls, cls.properties)
+	if not cls.ef_initialised:
+		for property_group_parent in cls.ef_attach_to:
+			if property_group_parent is not None:
+				prototype = getattr(bpy.types, property_group_parent)
+				if not hasattr(prototype, cls.__name__):
+					init_properties(prototype, [{
+						'type': 'pointer',
+						'attr': cls.__name__,
+						'ptype': cls,
+						'name': cls.__name__,
+						'description': cls.__name__
+					}])
+		
+		init_properties(cls, cls.properties)
+		cls.ef_initialised = True
 	
 	return cls
 
@@ -148,6 +150,30 @@ def ef_register_initialise_properties(cls):
 	
 	bpy.utils.register_class(cls)
 	ef_initialise_properties(cls)
+	return cls
+
+def ef_remove_properties(cls):
+	"""This is a function that should be called on
+	sub-classes of declarative_property_group in order
+	to ensure that they are un-initialised when the addon
+	is unloaded.
+	
+	"""
+	
+	if cls.ef_initialised:
+		for prop in cls.properties:
+			if hasattr(cls, prop['attr']):
+				delattr(cls, prop['attr'])
+		added_property_cache[cls] = []
+		
+		for property_group_parent in cls.ef_attach_to:
+			if property_group_parent is not None:
+				prototype = getattr(bpy.types, property_group_parent)
+				if hasattr(prototype, cls.__name__):
+					delattr(prototype, cls.__name__)
+		
+		cls.ef_initialised = False
+	
 	return cls
 
 class declarative_property_group(bpy.types.IDPropertyGroup):
@@ -168,6 +194,8 @@ class declarative_property_group(bpy.types.IDPropertyGroup):
 	See extensions_framework.ui.property_group_renderer.
 	
 	"""
+	
+	ef_initialised = False
 	
 	"""This property tells extensions_framework which bpy.type(s)
 	to attach this IDPropertyGroup to. If left as an empty list,
