@@ -120,6 +120,10 @@ def ef_initialise_properties(cls):
 	sub-classes of declarative_property_group in order
 	to ensure that they are initialised when the addon
 	is loaded.
+	the init_properties is called without caching here,
+	as it is assumed that any addon calling this function
+	will also call ef_remove_properties when it is
+	unregistered.
 	
 	"""
 	
@@ -134,9 +138,9 @@ def ef_initialise_properties(cls):
 						'ptype': cls,
 						'name': cls.__name__,
 						'description': cls.__name__
-					}])
+					}], cache=False)
 		
-		init_properties(cls, cls.properties)
+		init_properties(cls, cls.properties, cache=False)
 		cls.ef_initialised = True
 	
 	return cls
@@ -161,10 +165,10 @@ def ef_remove_properties(cls):
 	"""
 	
 	if cls.ef_initialised:
+		prototype = getattr(bpy.types, cls.__name__)
 		for prop in cls.properties:
-			if hasattr(cls, prop['attr']):
-				delattr(cls, prop['attr'])
-		added_property_cache[cls] = []
+			if hasattr(prototype, prop['attr']):
+				delattr(prototype, prop['attr'])
 		
 		for property_group_parent in cls.ef_attach_to:
 			if property_group_parent is not None:
