@@ -40,25 +40,24 @@ bl_info = {
 import bpy
 
 
-def create_icon_list():
-    props = bpy.context.scene.icon_props
-    keys = bpy.types.UILayout.bl_rna.functions['prop'].parameters['icon'].\
+def create_icon_list_all():
+    icons = bpy.types.UILayout.bl_rna.functions['prop'].parameters['icon'].\
         items.keys()
-    if props.search == '':
-        list = keys
+
+    icons.remove("BLENDER")
+
+    return icons
+
+def create_icon_list():
+    icons = create_icon_list_all()
+    search = bpy.context.scene.icon_props.search.lower()
+
+    if search == "":
+        pass
     else:
-        list = [key for key in keys if props.search.lower() in key.lower()]
-    if "BLENDER" in list:
-        list.remove("BLENDER")
-    return list
+        icons = [key for key in icons if search in key.lower()]
 
-
-class IconProps(bpy.types.IDPropertyGroup):
-    """
-    Fake module like class
-    bpy.context.scene.icon_props
-    """
-    pass
+    return icons
 
 
 class WM_OT_icon_info(bpy.types.Operator):
@@ -211,29 +210,34 @@ def menu_func(self, context):
 
 
 def register():
+    icons_total = len(create_icon_list_all())
+    icons_per_row = 10
+
+    class IconProps(bpy.types.IDPropertyGroup):
+        """
+        Fake module like class
+        bpy.context.scene.icon_props
+        """
+        console = bpy.props.BoolProperty(name='Show System Icons',
+            description='Display the Icons in the console header', default=False)
+        expand = bpy.props.BoolProperty(default=False,
+            description="Expand, to display all icons at once")
+        search = bpy.props.StringProperty(default="",
+            description = "Search for icons by name")
+        search_old = bpy.props.StringProperty(default="",
+            description = "Used to keep track of changes in IconProps.search")
+        scroll = bpy.props.IntProperty(default=1, min=1,
+            max=max(1, icons_total - icons_per_row + 1),
+            description="Drag to scroll icons")
+
     bpy.utils.register_module(__name__)
 
     bpy.types.Scene.icon_props = bpy.props.PointerProperty(type = IconProps)
-    IconProps.console = bpy.props.BoolProperty(name='Show System Icons',
-        description='Display the Icons in the console header', default=False)
-    IconProps.expand = bpy.props.BoolProperty(default=False,
-        description="Expand, to display all icons at once")
-    IconProps.search = bpy.props.StringProperty(default="",
-        description = "Search for icons by name")
-    IconProps.search_old = bpy.props.StringProperty(default="",
-        description = "Used to keep track of changes in IconProps.search")
-    
-    icons_total = len(create_icon_list())
-    icons_per_row = 10
-    IconProps.scroll = bpy.props.IntProperty(default=1, min=1,
-        max=max(1, icons_total - icons_per_row + 1),
-        description="Drag to scroll icons")
     
     bpy.types.CONSOLE_MT_console.append(menu_func)
 
 
 def unregister():
-    bpy.utils.unregister_module(__name__)
 
     if bpy.context.scene.get('icon_props') != None:
         del bpy.context.scene['icon_props']
@@ -247,6 +251,7 @@ def unregister():
         bpy.types.unregister(OBJECT_PT_icons)
         bpy.types.unregister(CONSOLE_HT_icons)
 
+    bpy.utils.unregister_module(__name__)
 
 if __name__ == "__main__":
     register()
