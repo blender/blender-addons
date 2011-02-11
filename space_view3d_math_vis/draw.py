@@ -24,6 +24,7 @@ from mathutils import Vector, Matrix
 
 callbacks = {}
 
+
 def callbacks_clear():
     for region, handle_pixel, handle_view in callbacks.values():
         region.callback_remove(handle_pixel)
@@ -33,7 +34,7 @@ def callbacks_clear():
 
 def draw_callback_px(self, context):
     from bgl import glColor3f
-    font_id = 0 # XXX, need to find out how best to get this.
+    font_id = 0  # XXX, need to find out how best to get this.
     blf.size(font_id, 12, 72)
 
     data_matrix, data_quat, data_euler, data_vector, data_vector_array = utils.console_math_data()
@@ -50,7 +51,7 @@ def draw_callback_px(self, context):
 
     region = context.region
     region3d = context.space_data.region_3d
-    
+
     region_mid_width = region.width / 2.0
     region_mid_height = region.height / 2.0
 
@@ -58,7 +59,7 @@ def draw_callback_px(self, context):
     perspective_matrix = region3d.perspective_matrix.copy()
 
     def draw_text(text, vec):
-        vec_4d = Vector((vec.x, vec.y, vec.z, 1.0))
+        vec_4d = vec.to_4d()
         vec_4d *= perspective_matrix
         if vec_4d.w > 0.0:
             x = region_mid_width + region_mid_width * (vec_4d.x / vec_4d.w)
@@ -81,7 +82,7 @@ def draw_callback_px(self, context):
     if data_matrix:
         for key, mat in data_matrix.items():
             draw_text(key, mat[3])
-    
+
     if data_quat:
         loc = context.scene.cursor_location.copy()
         for key, mat in data_quat.items():
@@ -98,7 +99,6 @@ def draw_callback_view(self, context):
 
     data_matrix, data_quat, data_euler, data_vector, data_vector_array = utils.console_math_data()
 
-
     # draw_matrix vars
     zero = Vector((0.0, 0.0, 0.0))
     x_p = Vector((1.0, 0.0, 0.0))
@@ -106,14 +106,14 @@ def draw_callback_view(self, context):
     y_p = Vector((0.0, 1.0, 0.0))
     y_n = Vector((0.0, -1.0, 0.0))
     z_p = Vector((0.0, 0.0, 1.0))
-    z_n = Vector((0.0, 0.0, -1.0))        
+    z_n = Vector((0.0, 0.0, -1.0))
     bb = [Vector() for i in range(8)]
 
     def draw_matrix(mat):
         zero_tx = zero * mat
-        
+
         glLineWidth(2.0)
-        
+
         # x
         glColor3f(1.0, 0.2, 0.2)
         glBegin(GL_LINES)
@@ -139,7 +139,7 @@ def draw_callback_view(self, context):
         glVertex3f(*(zero_tx))
         glVertex3f(*(y_n * mat))
         glEnd()
-        
+
         # z
         glColor3f(0.2, 0.2, 1.0)
         glBegin(GL_LINES)
@@ -152,7 +152,7 @@ def draw_callback_view(self, context):
         glVertex3f(*(zero_tx))
         glVertex3f(*(z_n * mat))
         glEnd()
-        
+
         # bounding box
         i = 0
         glColor3f(1.0, 1.0, 1.0)
@@ -177,26 +177,27 @@ def draw_callback_view(self, context):
         glBegin(GL_LINES)
         glVertex3f(*bb[1])
         glVertex3f(*bb[5])
-        
+
         glVertex3f(*bb[2])
         glVertex3f(*bb[6])
-        
+
         glVertex3f(*bb[3])
         glVertex3f(*bb[7])
         glEnd()
         glDisable(GL_LINE_STIPPLE)
 
-
+    ########
     # points
     if data_vector:
-        glPointSize(3.0);
+        glPointSize(3.0)
         glBegin(GL_POINTS)
         glColor3f(0.5, 0.5, 1)
         for key, vec in data_vector.items():
             glVertex3f(*vec.to_3d())
-        glEnd();
+        glEnd()
         glPointSize(1.0)
 
+    #######
     # lines
     if data_vector_array:
         glColor3f(0.5, 0.5, 1)
@@ -206,7 +207,7 @@ def draw_callback_view(self, context):
             glBegin(GL_LINE_STRIP)
             for vec in line:
                 glVertex3f(*vec)
-            glEnd();
+            glEnd()
             glPointSize(1.0)
 
         glLineWidth(1.0)
