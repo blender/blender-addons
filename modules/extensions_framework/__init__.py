@@ -116,15 +116,12 @@ def init_properties(obj, props, cache=True):
 			continue
 
 def ef_initialise_properties(cls):
-	"""This is mostly copied from plugin.plugin.install
-	This is a class decorator that should be used on
+	"""This is a class decorator that should be used on
 	sub-classes of declarative_property_group in order
 	to ensure that they are initialised when the addon
 	is loaded.
 	
 	"""
-	
-	bpy.utils.register_class(cls)
 	
 	for property_group_parent in cls.ef_attach_to:
 		if property_group_parent is not None:
@@ -140,6 +137,17 @@ def ef_initialise_properties(cls):
 	
 	init_properties(cls, cls.properties)
 	
+	return cls
+
+def ef_register_initialise_properties(cls):
+	"""As ef_initialise_properties, but also registers the
+	class with RNA. Note that this isn't a great idea
+	because it's non-trivial to unregister the class, unless
+	you keep track of it yourself.
+	"""
+	
+	bpy.utils.register_class(cls)
+	ef_initialise_properties(cls)
 	return cls
 
 class declarative_property_group(bpy.types.IDPropertyGroup):
