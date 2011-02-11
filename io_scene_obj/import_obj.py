@@ -842,8 +842,8 @@ def create_mesh(new_objects, has_ngons, CREATE_FGONS, CREATE_EDGES, verts_loc, v
 #                 me_edges[ed].flag |= SHARP
 #         del SHARP
 
+    me.validate()
     me.update(calc_edges=CREATE_EDGES)
-#     me.calcNormals()
 
     ob = bpy.data.objects.new("Mesh", me)
     new_objects.append(ob)

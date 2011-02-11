@@ -307,6 +307,7 @@ def load_ply(filepath):
                     for j, col in enumerate(f_col):
                         col.r, col.g, col.b = ply_col[j]
 
+    mesh.validate()
     mesh.update()
 
     scn = bpy.context.scene

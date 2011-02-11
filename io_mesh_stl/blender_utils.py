@@ -34,6 +34,7 @@ def create_and_link_mesh(name, faces, points):
     bpy.context.scene.objects.link(ob)
 
     # update mesh to allow proper display
+    mesh.validate()
     mesh.update()
 
 

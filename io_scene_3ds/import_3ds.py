@@ -324,6 +324,9 @@ def process_next_chunk(file, previous_chunk, importedObjects, IMAGE_SEARCH):
                     uf.uv3 = contextMeshUV[v3 * 2:(v3 * 2) + 2]
                     # always a tri
 
+        bmesh.validate()
+        bmesh.update()
+
         ob = bpy.data.objects.new(contextObName, bmesh)
         object_dictionary[contextObName] = ob
         SCN.objects.link(ob)
@@ -338,7 +341,6 @@ def process_next_chunk(file, previous_chunk, importedObjects, IMAGE_SEARCH):
             object_matrix[ob] = contextMatrix_rot.copy()
 
         importedObjects.append(ob)
-        bmesh.update()
 
     #a spare chunk
     new_chunk = chunk()

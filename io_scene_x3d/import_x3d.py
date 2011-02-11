@@ -1699,7 +1699,7 @@ def importMesh_IndexedFaceSet(geom, bpyima, ancestry):
         #for f in faces:
         #   bpymesh.faces.extend(faces, smooth=True)
 
-    # bpymesh.calcNormals()
+    bpymesh.validate()
     bpymesh.update()
 
     if len(bpymesh.faces) != len(faces):
@@ -1916,7 +1916,7 @@ def importMesh_PointSet(geom, ancestry):
     bpymesh.vertices.add(len(points))
     bpymesh.vertices.foreach_set("co", [a for v in points for a in v])
 
-    # bpymesh.calcNormals()  # will just be dummy normals
+    # No need to validate
     bpymesh.update()
     return bpymesh
 
