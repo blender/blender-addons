@@ -46,246 +46,190 @@ from bpy.props import *
 
     
 def register():
-    bpy.utils.register_module(__name__)
-
-
     bpy.coat3D = dict()
     bpy.coat3D['active_coat'] = ''
     bpy.coat3D['status'] = 0
     bpy.coat3D['kuva'] = 1
     
-    class coat3D(bpy.types.IDPropertyGroup):
-        pass
-        
+    class ObjectCoat3D(bpy.types.IDPropertyGroup):
+        objpath = StringProperty(name="Object_Path")
+        coatpath = StringProperty(name="Coat_Path")
+        objectdir = StringProperty(name="ObjectPath", subtype="FILE_PATH")
+        texturefolder = StringProperty(name="Texture folder:", subtype="DIR_PATH")
+        path3b = StringProperty(name="3B Path", subtype="FILE_PATH")
+
+
+    class SceneCoat3D(bpy.types.IDPropertyGroup):
+        exchangedir = StringProperty(
+            name="FilePath",
+            subtype="DIR_PATH",
+        )
+        wasactive = StringProperty(
+            name="Pass active object",
+        )
+        import_box = BoolProperty(
+            name="Import window",
+            description="Allows to skip import dialog.",
+            default= True
+        )
+        export_box = BoolProperty(
+            name="Export window",
+            description="Allows to skip export dialog.",
+            default= True
+        )
+        export_color = BoolProperty(
+            name="Export color",
+            description="Export color texture.",
+            default= True
+        )
+        export_spec = BoolProperty(
+            name="Export specular",
+            description="Export specular texture.",
+            default= True
+        )
+        export_normal = BoolProperty(
+            name="Export Normal",
+            description="Export normal texture.",
+            default= True
+        )
+        export_disp = BoolProperty(
+            name="Export Displacement",
+            description="Export displacement texture.",
+            default= True
+        )
+        export_position = BoolProperty(
+            name="Export Source Position",
+            description="Export source position.",
+            default= True
+        )
+        export_zero_layer = BoolProperty(
+            name="Export from Layer 0",
+            description="Export mesh from Layer 0",
+            default= True
+        )
+        export_coarse = BoolProperty(
+            name="Export Coarse",
+            description="Export Coarse.",
+            default= True
+        )
+        export_on = BoolProperty(
+            name="Export_On",
+            description="Add Modifiers and export.",
+            default= False
+        )
+        smooth_on = BoolProperty(
+            name="Auto Smooth",
+            description="Add Modifiers and export.",
+            default= True
+        )
+        exportfile = BoolProperty(
+            name="No Import File",
+            description="Add Modifiers and export.",
+            default= False
+        )
+        importmod = BoolProperty(
+            name="Remove Modifiers",
+            description="Import and add modifiers.",
+            default= True
+        )
+        exportmod = BoolProperty(
+            name="Modifiers",
+            description="Export modifiers.",
+            default= False
+        )
+        export_pos = BoolProperty(
+            name="Remember Position",
+            description="Remember position.",
+            default= True
+        )
+        importtextures = BoolProperty(
+            name="Bring Textures",
+            description="Import Textures.",
+            default= True
+        )
+        exportover = BoolProperty(
+            name="Export Obj",
+            description="Import Textures.",
+            default= False
+        )
+        importmesh = BoolProperty(
+            name="Mesh",
+            description="Import Mesh.",
+            default= True
+        )
+
+        # copy location
+        cursor = FloatVectorProperty(
+            name="Cursor",
+            description="Location.",
+            subtype="XYZ",
+            default=(0.0, 0.0, 0.0)
+        )
+        loca = FloatVectorProperty(
+            name="location",
+            description="Location.",
+            subtype="XYZ",
+            default=(0.0, 0.0, 0.0)
+        )
+        rota = FloatVectorProperty(
+            name="location",
+            description="Location.",
+            subtype="EULER",
+            default=(0.0, 0.0, 0.0)
+        )
+        scal = FloatVectorProperty(
+            name="location",
+            description="Location.",
+            subtype="XYZ",
+            default=(0.0, 0.0, 0.0)
+        )
+        dime = FloatVectorProperty(
+            name="dimension",
+            description="Dimension.",
+            subtype="XYZ",
+            default=(0.0, 0.0, 0.0)
+        )
+
+        type = EnumProperty( name= "Export Type",
+            description= "Diffrent Export Types.",
+            items=(("ppp",   "Per-Pixel Painting", ""),
+                   ("mv",   "Microvertex Painting", ""),
+                   ("ptex",   "Ptex Painting", ""),
+                   ("uv",   "UV-Mapping", ""),
+                   ("ref",  "Reference Mesh", ""),
+                   ("retopo",  "Retopo mesh as new layer", ""),
+                   ("vox",  "Mesh As Voxel Object", ""),
+                   ("alpha",  "Mesh As New Pen Alpha", ""),
+                   ("prim",  "Mesh As Voxel Primitive", ""),
+                   ("curv", "Mesh As a Curve Profile", ""),
+                   ("autopo",  "Mesh For Auto-retopology", ""),
+                   ),
+            default= "ppp"
+        )
+
+    bpy.utils.register_module(__name__)
+
     bpy.types.Object.coat3D= PointerProperty(
         name= "Applink Variables",
-        type=  coat3D,
+        type=  ObjectCoat3D,
         description= "Applink variables"
     )
-
-    coat3D.objpath = StringProperty(
-        name="Object_Path",
-        default= ""
-    )
-
-    coat3D.coatpath = StringProperty(
-        name="Coat_Path",
-        default= ""
-    )
-
-    coat3D.objectdir = StringProperty(
-        name="ObjectPath",
-        subtype="FILE_PATH",
-        default= ""
-    )
-
-    coat3D.texturefolder = StringProperty(
-        name="Texture folder:",
-        subtype="DIR_PATH",
-        default= ""
-    )
-
-    coat3D.path3b = StringProperty(
-        name="3B Path",
-        subtype="FILE_PATH",
-        default= ""
-    )
-
-
-    class coat3D(bpy.types.IDPropertyGroup):
-        pass
 
     bpy.types.Scene.coat3D= PointerProperty(
         name= "Applink Variables",
-        type=  coat3D,
+        type=  SceneCoat3D,
         description= "Applink variables"
-    )
-
-    coat3D.exchangedir = StringProperty(
-        name="FilePath",
-        subtype="DIR_PATH",
-        default= ""
-    )
-
-    coat3D.wasactive = StringProperty(
-        name="Pass active object",
-        default= ""
-    )
-
-    coat3D.import_box = BoolProperty(
-        name="Import window",
-        description="Allows to skip import dialog.",
-        default= True
-    )
-
-    coat3D.export_box = BoolProperty(
-        name="Export window",
-        description="Allows to skip export dialog.",
-        default= True
-    )
-
-    coat3D.export_color = BoolProperty(
-        name="Export color",
-        description="Export color texture.",
-        default= True
-    )
-
-    coat3D.export_spec = BoolProperty(
-        name="Export specular",
-        description="Export specular texture.",
-        default= True
-    )
-
-    coat3D.export_normal = BoolProperty(
-        name="Export Normal",
-        description="Export normal texture.",
-        default= True
-    )
-
-    coat3D.export_disp = BoolProperty(
-        name="Export Displacement",
-        description="Export displacement texture.",
-        default= True
-    )
-
-    coat3D.export_position = BoolProperty(
-        name="Export Source Position",
-        description="Export source position.",
-        default= True
-    )
-
-    coat3D.export_zero_layer = BoolProperty(
-        name="Export from Layer 0",
-        description="Export mesh from Layer 0",
-        default= True
-    )
-
-    coat3D.export_coarse = BoolProperty(
-        name="Export Coarse",
-        description="Export Coarse.",
-        default= True
-    )
-    
-
-    coat3D.export_on = BoolProperty(
-        name="Export_On",
-        description="Add Modifiers and export.",
-        default= False
-    )
-
-    coat3D.smooth_on = BoolProperty(
-        name="Auto Smooth",
-        description="Add Modifiers and export.",
-        default= True
-    )
-
-    coat3D.exportfile = BoolProperty(
-        name="No Import File",
-        description="Add Modifiers and export.",
-        default= False
-    )
-
-    coat3D.importmod = BoolProperty(
-        name="Remove Modifiers",
-        description="Import and add modifiers.",
-        default= True
-    )
-
-    coat3D.exportmod = BoolProperty(
-        name="Modifiers",
-        description="Export modifiers.",
-        default= False
-    )
-
-    coat3D.export_pos = BoolProperty(
-        name="Remember Position",
-        description="Remember position.",
-        default= True
-    )
-
-    coat3D.importtextures = BoolProperty(
-        name="Bring Textures",
-        description="Import Textures.",
-        default= True
-    )
-
-    coat3D.exportover = BoolProperty(
-        name="Export Obj",
-        description="Import Textures.",
-        default= False
-    )
-
-    coat3D.importmesh = BoolProperty(
-        name="Mesh",
-        description="Import Mesh.",
-        default= True
-    )
-
-    #copy location
-
-    coat3D.cursor = FloatVectorProperty(
-        name="Cursor",
-        description="Location.",
-        subtype="XYZ",
-        default=(0.0, 0.0, 0.0)
-    )
-
-    coat3D.loca = FloatVectorProperty(
-        name="location",
-        description="Location.",
-        subtype="XYZ",
-        default=(0.0, 0.0, 0.0)
-    )
-
-    coat3D.rota = FloatVectorProperty(
-        name="location",
-        description="Location.",
-        subtype="EULER",
-        default=(0.0, 0.0, 0.0)
-    )
-
-    coat3D.scal = FloatVectorProperty(
-        name="location",
-        description="Location.",
-        subtype="XYZ",
-        default=(0.0, 0.0, 0.0)
-    )
-
-    coat3D.dime = FloatVectorProperty(
-        name="dimension",
-        description="Dimension.",
-        subtype="XYZ",
-        default=(0.0, 0.0, 0.0)
-    )
-
-    coat3D.type = EnumProperty( name= "Export Type",
-    description= "Diffrent Export Types.",
-    items=(
-        ("ppp",   "Per-Pixel Painting", ""),
-        ("mv",   "Microvertex Painting", ""),
-        ("ptex",   "Ptex Painting", ""),
-        ("uv",   "UV-Mapping", ""),
-        ("ref",  "Reference Mesh", ""),
-        ("retopo",  "Retopo mesh as new layer", ""),
-        ("vox",  "Mesh As Voxel Object", ""),
-        ("alpha",  "Mesh As New Pen Alpha", ""),
-        ("prim",  "Mesh As Voxel Primitive", ""),
-        ("curv", "Mesh As a Curve Profile", ""),
-        ("autopo",  "Mesh For Auto-retopology", ""),
-    ),
-    default= "ppp"
     )
 
 
 def unregister():
-    bpy.utils.unregister_module(__name__)
-
     import bpy
 
     del bpy.types.Object.coat3D
     del bpy.types.Scene.coat3D
     del bpy.coat3D
     
+    bpy.utils.unregister_module(__name__)
 
 
 if __name__ == "__main__":
