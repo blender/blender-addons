@@ -248,8 +248,8 @@ def unregister():
         pass
     if __name__ == "__main__":
         # unregistering is only done automatically when run as add-on
-        bpy.types.unregister(OBJECT_PT_icons)
-        bpy.types.unregister(CONSOLE_HT_icons)
+        bpy.utils.unregister_class(OBJECT_PT_icons)
+        bpy.utils.unregister_class(CONSOLE_HT_icons)
 
     bpy.utils.unregister_module(__name__)
 

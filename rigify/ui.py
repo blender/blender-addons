@@ -242,7 +242,7 @@ def register():
 
 
 def unregister():
-    bpy.types.unregister(DATA_PT_rigify_buttons)
-    bpy.types.unregister(BONE_PT_rigify_buttons)
-    bpy.types.unregister(Generate)
-    bpy.types.unregister(Sample)
+    bpy.utils.unregister_class(DATA_PT_rigify_buttons)
+    bpy.utils.unregister_class(BONE_PT_rigify_buttons)
+    bpy.utils.unregister_class(Generate)
+    bpy.utils.unregister_class(Sample)

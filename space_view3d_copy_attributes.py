@@ -765,7 +765,7 @@ def unregister():
             item.idname = 'pose.copy'
             break
     for menu in _layer_menus:
-        bpy.types.unregister(menu)
+        bpy.utils.unregister_class(menu)
     bpy.types.DATA_PT_texface.remove(_add_tface_buttons)
     km = bpy.context.window_manager.keyconfigs.active.keymaps['Mesh']
     for kmi in km.items:
