@@ -158,6 +158,8 @@ def draw_animrenderbake(self, context):
     sub.prop(rd, "bake_bias")
 
 def register():
+    bpy.utils.register_module(__name__)
+
     bpy.types.Scene.animrenderbake_start = IntProperty(
         name="Start",
         description="Start frame of the animated bake",
@@ -174,6 +176,8 @@ def register():
     panel.draw = draw_animrenderbake
 
 def unregister():
+    bpy.utils.unregister_module(__name__)
+
     # restore original panel draw function
     bpy.types.RENDER_PT_bake.draw = bpy.types.RENDER_PT_bake.old_draw
     del bpy.types.RENDER_PT_bake.old_draw

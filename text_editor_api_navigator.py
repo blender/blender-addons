@@ -700,6 +700,8 @@ def unregister_keymaps():
 
 
 def register():
+    bpy.utils.register_module(__name__)
+
     class ApiNavProps(bpy.types.IDPropertyGroup):
         """
         Fake module like class.
@@ -716,6 +718,8 @@ def register():
 
 
 def unregister():
+    bpy.utils.unregister_module(__name__)
+
     unregister_keymaps()
     delProperties()
     

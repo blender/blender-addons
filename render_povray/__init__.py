@@ -46,6 +46,8 @@ else:
 
 
 def register():
+    bpy.utils.register_module(__name__)
+
     Scene = bpy.types.Scene
 
     # File Options
@@ -403,6 +405,8 @@ def register():
 
 
 def unregister():
+    bpy.utils.unregister_module(__name__)
+
     import bpy
     Scene = bpy.types.Scene
     Mat = bpy.types.Material

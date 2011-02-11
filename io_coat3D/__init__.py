@@ -46,6 +46,8 @@ from bpy.props import *
 
     
 def register():
+    bpy.utils.register_module(__name__)
+
 
     bpy.coat3D = dict()
     bpy.coat3D['active_coat'] = ''
@@ -276,6 +278,8 @@ def register():
 
 
 def unregister():
+    bpy.utils.unregister_module(__name__)
+
     import bpy
 
     del bpy.types.Object.coat3D

@@ -127,6 +127,8 @@ for rig in rig_list:
 ##### REGISTER #####
 
 def register():
+    bpy.utils.register_module(__name__)
+
     bpy.types.PoseBone.rigify_type = bpy.props.StringProperty(name="Rigify Type", description="Rig type for this bone.")
     bpy.types.PoseBone.rigify_parameters = bpy.props.CollectionProperty(type=RigifyParameters)
 
@@ -139,6 +141,8 @@ def register():
 
 
 def unregister():
+    bpy.utils.unregister_module(__name__)
+
     del bpy.types.PoseBone.rigify_type
     del bpy.types.PoseBone.rigify_parameters
 

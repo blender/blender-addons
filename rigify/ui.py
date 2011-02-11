@@ -233,6 +233,8 @@ class Sample(bpy.types.Operator):
 #import space_info  # ensure the menu is loaded first
 
 def register():
+    bpy.utils.register_module(__name__)
+
     #bpy.types.register(DATA_PT_rigify_buttons)
     #bpy.types.register(BONE_PT_rigify_buttons)
     #bpy.types.register(Generate)
@@ -243,6 +245,8 @@ def register():
 
 
 def unregister():
+    bpy.utils.unregister_module(__name__)
+
     #bpy.types.unregister(DATA_PT_rigify_buttons)
     #bpy.types.unregister(BONE_PT_rigify_buttons)
     #bpy.types.unregister(Generate)

@@ -340,8 +340,12 @@ def import_images_button(self, context):
     self.layout.operator(IMPORT_OT_image_to_plane.bl_idname, text="Images as Planes", icon='PLUGIN')
 
 def register():
+    bpy.utils.register_module(__name__)
+
     bpy.types.INFO_MT_file_import.append(import_images_button)
 def unregister():
+    bpy.utils.unregister_module(__name__)
+
     bpy.types.INFO_MT_file_import.remove(import_images_button)
 if __name__ == '__main__':
     register()

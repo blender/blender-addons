@@ -219,6 +219,8 @@ class CopyPropertyChart(bpy.types.Operator):
 
 
 def register():
+    bpy.utils.register_module(__name__)
+
     Scene = bpy.types.Scene
 
     for cls in View3DEditProps, SequencerEditProps:
@@ -232,6 +234,8 @@ def register():
 
 
 def unregister():
+    bpy.utils.unregister_module(__name__)
+
     Scene = bpy.types.Scene
 
     for cls in View3DEditProps, SequencerEditProps:

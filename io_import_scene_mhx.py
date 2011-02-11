@@ -2452,9 +2452,13 @@ def menu_func(self, context):
     self.layout.operator(IMPORT_OT_makehuman_mhx.bl_idname, text="MakeHuman (.mhx)...")
 
 def register():
+    bpy.utils.register_module(__name__)
+
     bpy.types.INFO_MT_file_import.append(menu_func)
 
 def unregister():
+    bpy.utils.unregister_module(__name__)
+
     bpy.types.INFO_MT_file_import.remove(menu_func)
 
 if __name__ == "__main__":

@@ -1134,9 +1134,13 @@ def Curveaceous_galore_button(self, context):
 
 
 def register():
+    bpy.utils.register_module(__name__)
+
     bpy.types.INFO_MT_curve_add.append(Curveaceous_galore_button)
 
 def unregister():
+    bpy.utils.unregister_module(__name__)
+
     bpy.types.INFO_MT_curve_add.remove(Curveaceous_galore_button)
 
 if __name__ == "__main__":

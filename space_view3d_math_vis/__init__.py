@@ -92,10 +92,14 @@ def console_hook():
 
 
 def register():
+    bpy.utils.register_module(__name__)
+
     import console_python
     console_python.execute.hooks.append((console_hook, ()))
 
 def unregister():
+    bpy.utils.unregister_module(__name__)
+
     import console_python
     console_python.execute.hooks.remove((console_hook, ()))
 

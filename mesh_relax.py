@@ -117,10 +117,14 @@ def menu_func(self, context):
 
 
 def register():
+    bpy.utils.register_module(__name__)
+
     bpy.types.VIEW3D_MT_edit_mesh_specials.append(menu_func)
     bpy.types.VIEW3D_MT_edit_mesh_vertices.append(menu_func)
 
 def unregister():
+    bpy.utils.unregister_module(__name__)
+
     bpy.types.VIEW3D_MT_edit_mesh_specials.remove(menu_func)
     bpy.types.VIEW3D_MT_edit_mesh_vertices.remove(menu_func)
 

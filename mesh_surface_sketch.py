@@ -787,6 +787,8 @@ class GPENCIL_OT_surfsk_strokes_to_curves(bpy.types.Operator):
 
 
 def register():
+    bpy.utils.register_module(__name__)
+
     bpy.types.Scene.SURFSK_edges_U = bpy.props.IntProperty(name="Cross", description="Number of edge rings crossing the strokes (perpendicular to strokes direction)", default=10, min=0, max=100000)
     bpy.types.Scene.SURFSK_edges_V = bpy.props.IntProperty(name="Follow", description="Number of edge rings following the strokes (parallel to strokes direction)", default=10, min=0, max=100000)
     bpy.types.Scene.SURFSK_precision = bpy.props.IntProperty(name="Precision", description="Precision level of the surface calculation", default=4, min=0, max=100000)
@@ -801,6 +803,8 @@ def register():
 
 
 def unregister():
+    bpy.utils.unregister_module(__name__)
+
     del bpy.types.Scene.SURFSK_edges_U
     del bpy.types.Scene.SURFSK_edges_V
     del bpy.types.Scene.SURFSK_precision

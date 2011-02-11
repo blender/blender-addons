@@ -234,9 +234,13 @@ def torus_knot_plus_button(self, context):
 
 
 def register():
+    bpy.utils.register_module(__name__)
+
     bpy.types.INFO_MT_curve_add.append(torus_knot_plus_button)
 
 def unregister():
+    bpy.utils.unregister_module(__name__)
+
     bpy.types.INFO_MT_curve_add.remove(torus_knot_plus_button)
 
 if __name__ == "__main__":

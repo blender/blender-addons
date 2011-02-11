@@ -87,10 +87,14 @@ class VIEW3D_PT_3dnavigationPanel(bpy.types.Panel):
         row.operator("view3d.snap_cursor_to_selected", text="Cursor to Selected")
 
 # register the class
-def register(): 
+def register():
+    bpy.utils.register_module(__name__)
+ 
     pass 
 
-def unregister(): 
+def unregister():
+    bpy.utils.unregister_module(__name__)
+ 
     pass 
 
 if __name__ == "__main__": 

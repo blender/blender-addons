@@ -119,9 +119,13 @@ def menu_import(self, context):
     self.layout.operator(ImportHiRISEIMGDTM.bl_idname, text="HiRISE DTM from PDS IMG (*.IMG)")
 
 def register():
+    bpy.utils.register_module(__name__)
+
     bpy.types.INFO_MT_file_import.append(menu_import)
 
 def unregister():
+    bpy.utils.unregister_module(__name__)
+
     bpy.types.INFO_MT_file_import.remove(menu_import)
 
 if __name__ == "__main__":

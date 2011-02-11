@@ -729,6 +729,8 @@ def _add_tface_buttons(self, context):
 
 
 def register():
+    bpy.utils.register_module(__name__)
+
     ''' mostly to get the keymap working '''
     kc = bpy.context.window_manager.keyconfigs['Blender']
     km = kc.keymaps.get("Object Mode")
@@ -758,6 +760,8 @@ def register():
 
 
 def unregister():
+    bpy.utils.unregister_module(__name__)
+
     ''' mostly to remove the keymap '''
     kms = bpy.context.window_manager.keyconfigs['Blender'].keymaps['Pose']
     for item in kms.items:

@@ -211,6 +211,8 @@ def menu_func(self, context):
 
 
 def register():
+    bpy.utils.register_module(__name__)
+
     bpy.types.Scene.icon_props = bpy.props.PointerProperty(type = IconProps)
     IconProps.console = bpy.props.BoolProperty(name='Show System Icons',
         description='Display the Icons in the console header', default=False)
@@ -231,6 +233,8 @@ def register():
 
 
 def unregister():
+    bpy.utils.unregister_module(__name__)
+
     if bpy.context.scene.get('icon_props') != None:
         del bpy.context.scene['icon_props']
     try:

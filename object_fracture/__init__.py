@@ -66,11 +66,15 @@ def menu_func(self, context):
 
 
 def register():
+    bpy.utils.register_module(__name__)
+
     # Add the "add fracture objects" menu to the "Add" menu
     space_info.INFO_MT_add.append(menu_func)
 
 
 def unregister():
+    bpy.utils.unregister_module(__name__)
+
     # Remove "add fracture objects" menu from the "Add" menu.
     space_info.INFO_MT_add.remove(menu_func)
 

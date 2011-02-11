@@ -514,12 +514,16 @@ def menu_func_xyz(self, context):
 
 
 def register():
+    bpy.utils.register_module(__name__)
+
     # Add menus to the "Add Mesh" menu
     space_info.INFO_MT_mesh_add.append(menu_func_z)
     space_info.INFO_MT_mesh_add.append(menu_func_xyz)
 
 
 def unregister():
+    bpy.utils.unregister_module(__name__)
+
     # Remove menus from the "Add Mesh" menu.
     space_info.INFO_MT_mesh_add.remove(menu_func_z)
     space_info.INFO_MT_mesh_add.remove(menu_func_xyz)

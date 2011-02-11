@@ -721,6 +721,8 @@ class GenerateCloud(bpy.types.Operator):
 
 
 def register():
+    bpy.utils.register_module(__name__)
+
     bpy.types.Scene.cloudparticles = BoolProperty(
         name="Particles",
         description="Generate Cloud as Particle System",
@@ -743,6 +745,8 @@ def register():
 
 
 def unregister():
+    bpy.utils.unregister_module(__name__)
+
     del bpy.types.Scene.cloudparticles
     del bpy.types.Scene.cloud_type
 

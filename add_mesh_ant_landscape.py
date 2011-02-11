@@ -806,9 +806,13 @@ def menu_func_landscape(self, context):
     self.layout.operator(landscape_add.bl_idname, text="Landscape", icon="PLUGIN")
 
 def register():
+    bpy.utils.register_module(__name__)
+
     space_info.INFO_MT_mesh_add.append(menu_func_landscape)
 
 def unregister():
+    bpy.utils.unregister_module(__name__)
+
     space_info.INFO_MT_mesh_add.remove(menu_func_landscape)
 
 if __name__ == "__main__":

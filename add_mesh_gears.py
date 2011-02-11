@@ -820,11 +820,15 @@ def menu_func(self, context):
 
 
 def register():
+    bpy.utils.register_module(__name__)
+
     # Add "Gears" entry to the "Add Mesh" menu.
     bpy.types.INFO_MT_mesh_add.append(menu_func)
 
 
 def unregister():
+    bpy.utils.unregister_module(__name__)
+
     # Remove "Gears" entry from the "Add Mesh" menu.
     bpy.types.INFO_MT_mesh_add.remove(menu_func)
 

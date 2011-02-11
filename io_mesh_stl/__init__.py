@@ -135,11 +135,15 @@ def menu_export(self, context):
 
 
 def register():
+    bpy.utils.register_module(__name__)
+
     bpy.types.INFO_MT_file_import.append(menu_import)
     bpy.types.INFO_MT_file_export.append(menu_export)
 
 
 def unregister():
+    bpy.utils.unregister_module(__name__)
+
     bpy.types.INFO_MT_file_import.remove(menu_import)
     bpy.types.INFO_MT_file_export.remove(menu_export)
 
