@@ -32,11 +32,6 @@ bl_info = {
         'func=detail&aid=22588',
     'category': '3D View'}
 
-__bpydoc__ = """
-Copy Menu
-
-
-"""
 import bpy
 import mathutils
 from mathutils import *
@@ -749,7 +744,7 @@ def register():
         kmi = km.items.new('wm.call_menu', 'C', 'PRESS', ctrl=True)
     kmi.properties.name = 'VIEW3D_MT_posecopypopup'
     for menu in _layer_menus:
-        bpy.types.register(menu)
+        bpy.utils.register_class(menu)
     bpy.types.DATA_PT_texface.append(_add_tface_buttons)
     km = kc.keymaps.get("Mesh")
     if km is None:

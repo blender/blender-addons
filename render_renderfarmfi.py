@@ -68,44 +68,8 @@ bpy.ore_sessions = []
 bpy.queue_selected = -1
 
 def renderEngine(render_engine):
-    bpy.types.register(render_engine)
+    bpy.utils.register_class(render_engine)
     return render_engine
-
-
-class ORESession(bpy.types.IDPropertyGroup):
-    pass
-
-class ORESettings(bpy.types.IDPropertyGroup):
-    pass
-
-# entry point for settings collection
-bpy.types.Scene.ore_render = PointerProperty(type=ORESettings, name='ORE Render', description='ORE Render Settings')
-
-# fill the new struct
-ORESettings.username = StringProperty(name='E-mail', description='E-mail for Renderfarm.fi', maxlen=256, default='')
-ORESettings.password = StringProperty(name='Password', description='Renderfarm.fi password', maxlen=256, default='')
-ORESettings.hash = StringProperty(name='Hash', description='hash calculated out of credentials', maxlen=33, default='')
-
-ORESettings.shortdesc = StringProperty(name='Short description', description='A short description of the scene (100 characters)', maxlen=101, default='')
-ORESettings.longdesc = StringProperty(name='Long description', description='A more elaborate description of the scene (2k)', maxlen=2048, default='')
-ORESettings.title = StringProperty(name='Title', description='Title for this session (128 characters)', maxlen=128, default='')
-ORESettings.url = StringProperty(name='Project URL', description='Project URL. Leave empty if not applicable', maxlen=256, default='')
-
-ORESettings.parts = IntProperty(name='Parts/Frame', description='', min=1, max=1000, soft_min=1, soft_max=64, default=1)
-ORESettings.resox = IntProperty(name='Resolution X', description='X of render', min=1, max=10000, soft_min=1, soft_max=10000, default=1920)
-ORESettings.resoy = IntProperty(name='Resolution Y', description='Y of render', min=1, max=10000, soft_min=1, soft_max=10000, default=1080)
-ORESettings.memusage = IntProperty(name='Memory Usage', description='Estimated maximum memory usage during rendering in MB', min=1, max=6*1024, soft_min=1, soft_max=3*1024, default=256)
-ORESettings.start = IntProperty(name='Start Frame', description='Start Frame', default=1)
-ORESettings.end = IntProperty(name='End Frame', description='End Frame', default=250)
-ORESettings.fps = IntProperty(name='FPS', description='FPS', min=1, max=256, default=25)
-
-ORESettings.prepared = BoolProperty(name='Prepared', description='Set to True if preparation has been run', default=False)
-ORESettings.debug = BoolProperty(name='Debug', description='Verbose output in console', default=False)
-ORESettings.selected_session = IntProperty(name='Selected Session', description='The selected session', default=0)
-ORESettings.hasUnsupportedSimulation = BoolProperty(name='HasSimulation', description='Set to True if therea re unsupported simulations', default=False)
-
-# session struct
-ORESession.name = StringProperty(name='Name', description='Name of the session', maxlen=128, default='[session]')
 
 licenses =  (
         ('1', 'CC by-nc-nd', 'Creative Commons: Attribution Non-Commercial No Derivatives'),
@@ -116,10 +80,38 @@ licenses =  (
         ('6', 'CC by', 'Creative Commons: Attribution'),
         ('7', 'Copyright', 'Copyright, no license specified'),
         )
-ORESettings.inlicense = EnumProperty(items=licenses, name='source license', description='license speficied for the source files', default='1')
-ORESettings.outlicense = EnumProperty(items=licenses, name='output license', description='license speficied for the output files', default='1')
 
-ORESettings.sessions = CollectionProperty(type=ORESession, name='Sessions', description='Sessions on Renderfarm.fi')
+class ORESession(bpy.types.IDPropertyGroup):
+    name = StringProperty(name='Name', description='Name of the session', maxlen=128, default='[session]')
+
+class ORESettings(bpy.types.IDPropertyGroup):
+    username = StringProperty(name='E-mail', description='E-mail for Renderfarm.fi', maxlen=256, default='')
+    password = StringProperty(name='Password', description='Renderfarm.fi password', maxlen=256, default='')
+    hash = StringProperty(name='Hash', description='hash calculated out of credentials', maxlen=33, default='')
+
+    shortdesc = StringProperty(name='Short description', description='A short description of the scene (100 characters)', maxlen=101, default='')
+    longdesc = StringProperty(name='Long description', description='A more elaborate description of the scene (2k)', maxlen=2048, default='')
+    title = StringProperty(name='Title', description='Title for this session (128 characters)', maxlen=128, default='')
+    url = StringProperty(name='Project URL', description='Project URL. Leave empty if not applicable', maxlen=256, default='')
+
+    parts = IntProperty(name='Parts/Frame', description='', min=1, max=1000, soft_min=1, soft_max=64, default=1)
+    resox = IntProperty(name='Resolution X', description='X of render', min=1, max=10000, soft_min=1, soft_max=10000, default=1920)
+    resoy = IntProperty(name='Resolution Y', description='Y of render', min=1, max=10000, soft_min=1, soft_max=10000, default=1080)
+    memusage = IntProperty(name='Memory Usage', description='Estimated maximum memory usage during rendering in MB', min=1, max=6*1024, soft_min=1, soft_max=3*1024, default=256)
+    start = IntProperty(name='Start Frame', description='Start Frame', default=1)
+    end = IntProperty(name='End Frame', description='End Frame', default=250)
+    fps = IntProperty(name='FPS', description='FPS', min=1, max=256, default=25)
+
+    prepared = BoolProperty(name='Prepared', description='Set to True if preparation has been run', default=False)
+    debug = BoolProperty(name='Debug', description='Verbose output in console', default=False)
+    selected_session = IntProperty(name='Selected Session', description='The selected session', default=0)
+    hasUnsupportedSimulation = BoolProperty(name='HasSimulation', description='Set to True if therea re unsupported simulations', default=False)
+
+    inlicense = EnumProperty(items=licenses, name='source license', description='license speficied for the source files', default='1')
+    outlicense = EnumProperty(items=licenses, name='output license', description='license speficied for the output files', default='1')
+    sessions = CollectionProperty(type=ORESession, name='Sessions', description='Sessions on Renderfarm.fi')
+
+# session struct
 
 # all panels, except render panel
 # Example of wrapping every class 'as is'
@@ -958,6 +950,8 @@ def menu_export(self, context):
 
 def register():
     bpy.utils.register_module(__name__)
+
+    bpy.types.Scene.ore_render = PointerProperty(type=ORESettings, name='ORE Render', description='ORE Render Settings')
 
     bpy.types.INFO_MT_render.append(menu_export)
 
