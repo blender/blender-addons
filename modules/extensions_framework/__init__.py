@@ -29,7 +29,7 @@ import time
 import bpy
 
 from extensions_framework.ui import EF_OT_msg
-bpy.types.register(EF_OT_msg)
+bpy.utils.register_class(EF_OT_msg)
 del EF_OT_msg
 
 def log(str, popup=False, module_name='EF'):
@@ -123,6 +123,8 @@ def ef_initialise_properties(cls):
 	is loaded.
 	
 	"""
+	
+	bpy.utils.register_class(cls)
 	
 	for property_group_parent in cls.ef_attach_to:
 		if property_group_parent is not None:

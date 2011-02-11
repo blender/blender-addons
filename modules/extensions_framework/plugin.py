@@ -40,22 +40,6 @@ class plugin(object):
 	
 	"""
 	
-	"""The property_groups defines a list of declarative_property_group
-	types to create in specified types during the initialisation of the
-	plugin.
-	Item format:
-	('bpy.type prototype to attach to', <declarative_property_group>)
-	
-	Example item:
-	('Scene', myaddon_property_group)
-	In this example, a new property group will be attached to
-	bpy.types.Scene and all of the properties described in that group
-	will be added to it.
-	See extensions_framework.declarative_property_group.
-	
-	"""
-	property_groups = []
-	
 	@classmethod
 	def install(r_class):
 		"""Initialise this plugin. So far, all this does is to create
@@ -64,6 +48,7 @@ class plugin(object):
 		
 		"""
 		for property_group_parent, property_group in r_class.property_groups:
+			bpy.utils.register_class(property_group)
 			call_init = False
 			if property_group_parent is not None:
 				prototype = getattr(bpy.types, property_group_parent)
