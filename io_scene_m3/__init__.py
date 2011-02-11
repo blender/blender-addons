@@ -35,22 +35,18 @@ bl_info = {
     "category": "Import-Export",
     "description": "This script imports m3 format files to Blender."}
 
+if "bpy" in locals():
+    import imp
+    imp.reload(import_m3)
+    #imp.reload(export_m3)
+else:
+    pass
+    #from . import import_m3
+    #from . import export_m3
+
 import bpy
 
-try:
-    init_data
-
-    reload(import_m3)
-    #reload(export_m3)
-except:
-    from io_mesh_m3 import import_m3
-    #from io_mesh_m3 import export_m3
-
-init_data = True
-
-
 def menu_import(self, context):
-    from io_mesh_m3 import import_m3
     self.layout.operator(import_m3.M3Importer.bl_idname, \
         text="Blizzard M3 (.m3)").filepath = "*.m3"
 
@@ -63,6 +59,7 @@ def menu_import(self, context):
 #        text="Raw Faces (.raw)").filepath = default_path
 
 def register():
+    from . import import_m3
     bpy.utils.register_module(__name__)
 
     bpy.types.INFO_MT_file_import.append(menu_import)

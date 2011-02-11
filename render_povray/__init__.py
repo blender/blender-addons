@@ -405,9 +405,10 @@ def register():
 
 
 def unregister():
+    import bpy
+
     bpy.utils.unregister_module(__name__)
 
-    import bpy
     Scene = bpy.types.Scene
     Mat = bpy.types.Material
     Tex = bpy.types.Texture 
