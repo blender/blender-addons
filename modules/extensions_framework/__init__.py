@@ -273,10 +273,26 @@ class declarative_property_group(bpy.types.IDPropertyGroup):
 
 class Addon(object):
 	"""A list of classes registered by this addon"""
-	addon_classes = None
+	static_addon_count = 0
 	
-	def __init__(self):
+	addon_serial = 0
+	addon_classes = None
+	bl_info = None
+	
+	def __init__(self, bl_info=None):
 		self.addon_classes = []
+		self.bl_info = bl_info
+		self.addon_serial = Addon.static_addon_count
+		
+		Addon.static_addon_count += 1
+	
+	def bl_infos(self):
+		if self.bl_info:
+			BL_VERSION = '.'.join(['%s'%v for v in self.bl_info['version']]).lower()
+			BL_IDNAME = self.bl_info['name'].lower() + '-' + BL_VERSION
+			return BL_VERSION, BL_IDNAME
+		else:
+			return '0', 'Addon-%03d'%self.addon_serial
 	
 	def addon_register_class(self, cls):
 		"""This method is designed to be used as a decorator on RNA-registerable
