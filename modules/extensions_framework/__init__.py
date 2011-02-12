@@ -279,20 +279,24 @@ class Addon(object):
 	addon_classes = None
 	bl_info = None
 	
+	BL_VERSION = None
+	BL_IDNAME = None
+	
 	def __init__(self, bl_info=None):
 		self.addon_classes = []
 		self.bl_info = bl_info
-		self.addon_serial = Addon.static_addon_count
 		
+		# Keep a count in case we have to give this addon an anonymous name
+		self.addon_serial = Addon.static_addon_count
 		Addon.static_addon_count += 1
-	
-	def bl_infos(self):
+		
 		if self.bl_info:
-			BL_VERSION = '.'.join(['%s'%v for v in self.bl_info['version']]).lower()
-			BL_IDNAME = self.bl_info['name'].lower() + '-' + BL_VERSION
-			return BL_VERSION, BL_IDNAME
+			self.BL_VERSION = '.'.join(['%s'%v for v in self.bl_info['version']]).lower()
+			self.BL_IDNAME = self.bl_info['name'].lower() + '-' + self.BL_VERSION
 		else:
-			return '0', 'Addon-%03d'%self.addon_serial
+			# construct anonymous name
+			self.BL_VERSION = '0'
+			self.BL_IDNAME = 'Addon-%03d'%self.addon_serial
 	
 	def addon_register_class(self, cls):
 		"""This method is designed to be used as a decorator on RNA-registerable
@@ -331,4 +335,4 @@ class Addon(object):
 		
 		"""
 		
-		return self.addon_register_class, self.register, self.unregister
+		return self.register, self.unregister
