@@ -115,71 +115,6 @@ def init_properties(obj, props, cache=True):
 			# Silently skip invalid entries in props
 			continue
 
-def ef_initialise_properties(cls):
-	"""This is a function that should be called on
-	sub-classes of declarative_property_group in order
-	to ensure that they are initialised when the addon
-	is loaded.
-	the init_properties is called without caching here,
-	as it is assumed that any addon calling this function
-	will also call ef_remove_properties when it is
-	unregistered.
-	
-	"""
-	
-	if not cls.ef_initialised:
-		for property_group_parent in cls.ef_attach_to:
-			if property_group_parent is not None:
-				prototype = getattr(bpy.types, property_group_parent)
-				if not hasattr(prototype, cls.__name__):
-					init_properties(prototype, [{
-						'type': 'pointer',
-						'attr': cls.__name__,
-						'ptype': cls,
-						'name': cls.__name__,
-						'description': cls.__name__
-					}], cache=False)
-		
-		init_properties(cls, cls.properties, cache=False)
-		cls.ef_initialised = True
-	
-	return cls
-
-def ef_register_initialise_properties(cls):
-	"""As ef_initialise_properties, but also registers the
-	class with RNA. Note that this isn't a great idea
-	because it's non-trivial to unregister the class, unless
-	you keep track of it yourself.
-	"""
-	
-	bpy.utils.register_class(cls)
-	ef_initialise_properties(cls)
-	return cls
-
-def ef_remove_properties(cls):
-	"""This is a function that should be called on
-	sub-classes of declarative_property_group in order
-	to ensure that they are un-initialised when the addon
-	is unloaded.
-	
-	"""
-	
-	if cls.ef_initialised:
-		prototype = getattr(bpy.types, cls.__name__)
-		for prop in cls.properties:
-			if hasattr(prototype, prop['attr']):
-				delattr(prototype, prop['attr'])
-		
-		for property_group_parent in cls.ef_attach_to:
-			if property_group_parent is not None:
-				prototype = getattr(bpy.types, property_group_parent)
-				if hasattr(prototype, cls.__name__):
-					delattr(prototype, cls.__name__)
-		
-		cls.ef_initialised = False
-	
-	return cls
-
 class declarative_property_group(bpy.types.IDPropertyGroup):
 	"""A declarative_property_group describes a set of logically
 	related properties, using a declarative style to list each
@@ -209,6 +144,75 @@ class declarative_property_group(bpy.types.IDPropertyGroup):
 	
 	"""
 	ef_attach_to = []
+	
+	@classmethod
+	def initialise_properties(cls):
+		"""This is a function that should be called on
+		sub-classes of declarative_property_group in order
+		to ensure that they are initialised when the addon
+		is loaded.
+		the init_properties is called without caching here,
+		as it is assumed that any addon calling this function
+		will also call ef_remove_properties when it is
+		unregistered.
+		
+		"""
+		
+		if not cls.ef_initialised:
+			for property_group_parent in cls.ef_attach_to:
+				if property_group_parent is not None:
+					prototype = getattr(bpy.types, property_group_parent)
+					if not hasattr(prototype, cls.__name__):
+						init_properties(prototype, [{
+							'type': 'pointer',
+							'attr': cls.__name__,
+							'ptype': cls,
+							'name': cls.__name__,
+							'description': cls.__name__
+						}], cache=False)
+			
+			init_properties(cls, cls.properties, cache=False)
+			cls.ef_initialised = True
+		
+		return cls
+	
+	@classmethod
+	def register_initialise_properties(cls):
+		"""As ef_initialise_properties, but also registers the
+		class with RNA. Note that this isn't a great idea
+		because it's non-trivial to unregister the class, unless
+		you keep track of it yourself.
+		"""
+		
+		bpy.utils.register_class(cls)
+		cls.initialise_properties()
+		return cls
+	
+	@classmethod
+	def remove_properties(cls):
+		"""This is a function that should be called on
+		sub-classes of declarative_property_group in order
+		to ensure that they are un-initialised when the addon
+		is unloaded.
+		
+		"""
+		
+		if cls.ef_initialised:
+			prototype = getattr(bpy.types, cls.__name__)
+			for prop in cls.properties:
+				if hasattr(prototype, prop['attr']):
+					delattr(prototype, prop['attr'])
+			
+			for property_group_parent in cls.ef_attach_to:
+				if property_group_parent is not None:
+					prototype = getattr(bpy.types, property_group_parent)
+					if hasattr(prototype, cls.__name__):
+						delattr(prototype, cls.__name__)
+			
+			cls.ef_initialised = False
+		
+		return cls
+	
 	
 	"""This list controls the order of property layout when rendered
 	by a property_group_renderer. This can be a nested list, where each
@@ -266,3 +270,46 @@ class declarative_property_group(bpy.types.IDPropertyGroup):
 			if 'save_in_preset' in prop.keys() and prop['save_in_preset']:
 				out.append(prop)
 		return out
+
+class Addon(object):
+	"""A list of classes registered by this addon"""
+	addon_classes = []
+	
+	def addon_register_class(self, cls):
+		"""This method is designed to be used as a decorator on RNA-registerable
+		classes defined by the addon. By using this decorator, this class will
+		keep track of classes registered by this addon so that they can be
+		unregistered later in the correct order.
+		
+		"""
+		self.addon_classes.append(cls)
+		return cls
+	
+	def register(self):
+		"""This is the register function that should be exposed in the addon's
+		__init__.
+		
+		"""
+		for cls in self.addon_classes:
+			bpy.utils.register_class(cls)
+			if hasattr(cls, 'ef_attach_to'): cls.initialise_properties()
+	
+	def unregister(self):
+		"""This is the unregister function that should be exposed in the addon's
+		__init__.
+		
+		"""
+		for cls in self.addon_classes[::-1]:	# unregister in reverse order
+			if hasattr(cls, 'ef_attach_to'): cls.remove_properties()
+			bpy.utils.unregister_class(cls)
+	
+	def init_functions(self):
+		"""Returns references to the three functions that this addon needs
+		for successful class registration management. In the addon's __init__
+		you would use like this:
+		
+		addon_register_class, register, unregister = Addon().init_functions()
+		
+		"""
+		
+		return self.addon_register_class, self.register, self.unregister
