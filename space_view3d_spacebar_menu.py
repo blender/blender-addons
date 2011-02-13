@@ -130,6 +130,9 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
             layout.operator("view3d.properties", icon='MENU_PANEL')
             layout.separator()
 
+            #TODO: Add if statement to test whether editmode switch needs to
+            #be added to the menu, since certain object can't enter edit mode
+            #In which case we don't need the toggle
             # Toggle Editmode
             layout.operator("object.editmode_toggle", text="Enter Edit Mode",
                 icon='EDITMODE_HLT')
@@ -363,6 +366,7 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
 
             #Search Menu
             layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
+            layout.separator()
 
             # Transform block
             layout.menu("VIEW3D_MT_TransformMenu", icon='MANIPUL')
@@ -400,9 +404,9 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
             layout.operator("object.editmode_toggle", text="Enter Object Mode",
                 icon='OBJECT_DATA')
 
-            # Delete block
-            layout.operator("object.delete", text="Delete Object",
-                icon='CANCEL')				
+            # Delete block - Can't delete any lattice stuff so not needed
+            #layout.operator("object.delete", text="Delete Object",
+            #    icon='CANCEL')				
 
         if  context.mode == 'PARTICLE':
             # Particle menu
