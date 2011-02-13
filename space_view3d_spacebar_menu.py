@@ -25,9 +25,9 @@
 bl_info = {
     "name": "Dynamic Spacebar Menu",
     "author": "JayDez, sim88, meta-androcto, sam",
-    "version": (1, 7),
+    "version": (1, 7, 1),
     "blender": (2, 5, 6),
-    "api": 34810,
+    "api": 34816,
     "location": "View3D > Spacebar Key",
     "description": "Context Sensitive Spacebar Menu",
     "warning": "",
@@ -49,6 +49,7 @@ Usage:
 * Object sensitive based on object selected in edit mode.
 
 Version history:
+v1.7.1 - (JayDez) - Fixing up lattice menu and a wrong operator in curve menu
 v1.7 - (JayDez) - Fixing up animation menu and Metaball Add Menu
 v1.6.1 - (JayDez) - Added Add Menu to Curve and Surface (respectively)
 v1.6 - (JayDez) - Fixed a couple wrong names. (Thanks Bao2 and Dennis)
@@ -239,6 +240,9 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
             layout.separator()
 
             # Select Curve Block
+            #Could use: VIEW3D_MT_select_edit_curve
+            #Which is the default, instead of a hand written one, left it alone
+            #for now though.
             layout.menu("VIEW3D_MT_SelectCurveMenu",
                 icon='RESTRICT_SELECT_OFF')
 
@@ -986,7 +990,7 @@ class VIEW3D_MT_SelectCurveMenu(bpy.types.Menu):
         layout.operator("curve.select_all", text="Select/Deselect All")
         layout.operator("curve.select_inverse")
         layout.operator("curve.select_random")
-        layout.operator("curve.select_every_nth")
+        layout.operator("curve.select_nth")
         layout.separator()
 
         layout.operator("curve.de_select_first")
