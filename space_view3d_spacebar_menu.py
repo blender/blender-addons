@@ -625,18 +625,25 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
             layout.operator_menu_enum("armature.flags_set", "mode",
                 text="Bone Settings")
 
-            # Edit Armature Select
-            layout.menu("VIEW3D_MT_SelectArmatureMenu",
-                icon='RESTRICT_SELECT_OFF')
-            layout.separator()
-
             # Edit Armature Specials
             layout.menu("VIEW3D_MT_armature_specials", icon='MODIFIER')
             layout.separator()
 
+            # Edit Armature Select
+            layout.menu("VIEW3D_MT_SelectArmatureMenu",
+                icon='RESTRICT_SELECT_OFF')
+
+            # Toolshelf block
+            layout.operator("view3d.toolshelf", icon='MENU_PANEL')
+            layout.separator()
+
+            # Properties block
+            layout.operator("view3d.properties", icon='MENU_PANEL')
+            layout.separator()
+
             # Toggle Posemode
             layout.operator("object.posemode_toggle", text="Enter Pose Mode",
-                icon='EDITMODE_HLT')
+                icon='POSE_HLT')
 
             # Toggle Posemode
             layout.operator("object.editmode_toggle", text="Enter Object Mode",
@@ -663,10 +670,6 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
 
 			# Cursor Menu
             layout.menu("VIEW3D_MT_CursorMenu", icon='CURSOR')
-            layout.separator()
-
-			# Select Pose Block
-            layout.menu("VIEW3D_MT_SelectPoseMenu", icon='RESTRICT_SELECT_OFF')
             layout.separator()
 
 			# Pose Copy Block
@@ -711,10 +714,25 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
             layout.menu("VIEW3D_MT_pose_showhide")
             layout.operator_menu_enum("pose.flags_set", 'mode',
                 text="Bone Settings")
+            layout.separator()
+
+			# Select Pose Block
+            layout.menu("VIEW3D_MT_SelectPoseMenu", icon='RESTRICT_SELECT_OFF')
+
+            # Toolshelf block
+            layout.operator("view3d.toolshelf", icon='MENU_PANEL')
+            layout.separator()
+
+            # Properties block
+            layout.operator("view3d.properties", icon='MENU_PANEL')
+            layout.separator()
 
             # Toggle Editmode
             layout.operator("object.editmode_toggle", text="Enter Edit Mode",
                 icon='EDITMODE_HLT')
+
+            layout.operator("object.mode_set", text="Enter Object Mode",
+                icon='OBJECT_DATA').mode='OBJECT'
 
 
 class VIEW3D_MT_AddMenu(bpy.types.Menu):
