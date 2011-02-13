@@ -25,11 +25,11 @@
 bl_info = {
     "name": "Dynamic Spacebar Menu",
     "author": "JayDez, sim88, meta-androcto, sam",
-    "version": (1, 6, 1),
+    "version": (1, 7),
     "blender": (2, 5, 6),
-    "api": 34036,
+    "api": 34810,
     "location": "View3D > Spacebar Key",
-    "description": "Context sensitive spacebar menu",
+    "description": "Context Sensitive Spacebar Menu",
     "warning": "",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"\
         "Scripts/3D_interaction/Dynamic_Spacebar_Menu",
@@ -43,12 +43,13 @@ This adds a the Dynamic Spacebar Menu in the View3D.
 
 Usage:
 *  This script gives a basic menu with common simple tools for easy access.
-* Very similar to the Spacebar menu in 2.49
-* Context sensitive for Object. Edit, Sculpt, Pose, Weight/Texture/Vertex
-     Paint.
+*  Very similar to the Spacebar menu in 2.49
+*  Context sensitive for Object, Edit, Sculpt, Pose, Weight/Texture/Vertex
+       Paint modes.
 * Object sensitive based on object selected in edit mode.
 
 Version history:
+v1.7 - (JayDez) - Fixing up animation menu and Metaball Add Menu
 v1.6.1 - (JayDez) - Added Add Menu to Curve and Surface (respectively)
 v1.6 - (JayDez) - Fixed a couple wrong names. (Thanks Bao2 and Dennis)
 v1.5.1 - (JayDez) - Changing formatting to be more uniform.
@@ -315,11 +316,11 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
             layout.separator()
 
             # Add block
-            #No INFO_MT_metaball_add find out why.. and how to use,
-            #for some reason also there is no add menu when editing mballs...
             #layout.menu("INFO_MT_metaball_add", text="Add Metaball",
             #    icon='OUTLINER_OB_META')
-            #layout.separator()
+            layout.operator_menu_enum("object.metaball_add", "type",
+                text="Add Metaball", icon='OUTLINER_OB_META')
+            layout.separator()
 
             # Transform block
             layout.menu("VIEW3D_MT_TransformMenu", icon='MANIPUL')
