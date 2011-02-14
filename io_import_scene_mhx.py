@@ -1,30 +1,49 @@
-""" 
-**Project Name:**      MakeHuman
+# ##### BEGIN GPL LICENSE BLOCK #####
+#
+#  This program is free software; you can redistribute it and/or
+#  modify it under the terms of the GNU General Public License
+#  as published by the Free Software Foundation; either version 2
+#  of the License, or (at your option) any later version.
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with this program; if not, write to the Free Software Foundation,
+#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+#
+# ##### END GPL LICENSE BLOCK #####
 
-**Product Home Page:** http://www.makehuman.org/
+# <pep8 compliant>
 
-**Code Home Page:**    http://code.google.com/p/makehuman/
+# Project Name:        MakeHuman
+# Product Home Page:   http://www.makehuman.org/
+# Code Home Page:      http://code.google.com/p/makehuman/
+# Authors:             Thomas Larsson
+# Script copyright (C) MakeHuman Team 2001-2011
+# Coding Standards:    See http://sites.google.com/site/makehumandocs/developers-guide
 
-**Authors:**           Thomas Larsson
-
-**Copyright(c):**      MakeHuman Team 2001-2010
-
-**Licensing:**         GPL3 (see also http://sites.google.com/site/makehumandocs/licensing)
-
-**Coding Standards:**  See http://sites.google.com/site/makehumandocs/developers-guide
-
+"""
 Abstract
 MHX (MakeHuman eXchange format) importer for Blender 2.5x.
-Version 1.0.4
+Version 1.2.7
 
+This script should be distributed with Blender.
+If not, place it in the .blender/scripts/addons dir
+Activate the script in the "Add-Ons" tab (user preferences).
+Access from the File > Import menu.
+
+Alternatively, run the script in the script editor (Alt-P), and access from the File > Import menu
 """
 
 bl_info = {
     'name': 'Import: MakeHuman (.mhx)',
     'author': 'Thomas Larsson',
-    'version': (1, 0, 4),
-    'blender': (2, 5, 6),
-    'api': 34326,
+    'version': (1, 2, 7),
+    'blender': (2, 5, 7),
+    'api': 34786,
     'location': "File > Import",
     'description': 'Import files in the MakeHuman eXchange format (.mhx)',
     'warning': '',
@@ -34,15 +53,9 @@ bl_info = {
         'func=detail&aid=21872',
     'category': 'Import-Export'}
 
-"""
-Place this file in the .blender/scripts/addons dir
-You have to activated the script in the "Add-Ons" tab (user preferences).
-Access from the File > Import menu.
-"""
-
 MAJOR_VERSION = 1
-MINOR_VERSION = 0
-SUB_VERSION = 4
+MINOR_VERSION = 2
+SUB_VERSION = 7
 BLENDER_VERSION = (2, 56, 0)
 
 #
@@ -101,11 +114,20 @@ T_Proxy = 0x400
 T_Cage = 0x800
 
 T_Rigify = 0x1000
-T_Preset = 0x2000
+T_Opcns = 0x2000
 T_Symm = 0x4000
-T_MHX = 0x8000
 
 toggle = T_EnforceVersion + T_Replace + T_Mesh + T_Armature + T_Face + T_Shape + T_Proxy + T_Clothes
+
+#
+#    Blender versions
+#
+
+BLENDER_GRAPHICALL = 0
+BLENDER_256a = 1
+
+BlenderVersions = ['Graphicall', 'Blender256a']
+theBlenderVersion = BLENDER_GRAPHICALL
 
 #
 #    setFlagsAndFloats(rigFlags):
@@ -240,16 +262,15 @@ def checkBlenderVersion():
     return
 
 #
-#    readMhxFile(filePath, scale):
+#    readMhxFile(filePath):
 #
 
-def readMhxFile(filePath, scale):
+def readMhxFile(filePath):
     global todo, nErrors, theScale, defaultScale, One, toggle
 
-    checkBlenderVersion()    
+    #checkBlenderVersion()    
     
-    theScale = scale
-    defaultScale = scale
+    defaultScale = theScale
     One = 1.0/theScale
 
     fileName = os.path.expanduser(filePath)
@@ -343,10 +364,6 @@ def readMhxFile(filePath, scale):
             nErrors += 1
             #raise NameError(msg)
 
-    print("Postprocess")
-    postProcess()
-    print("HideLayers")
-    hideLayers()
     time2 = time.clock()
     print("toggle = %x" % toggle)
     msg = "File %s loaded in %g s" % (fileName, time2-time1)
@@ -374,7 +391,7 @@ def getObject(name, var, glbals, lcals):
 
 def checkMhxVersion(major, minor):
     global warnedVersion
-    if  major != MAJOR_VERSION or minor != MINOR_VERSION:
+    if  major != MAJOR_VERSION or (major == MAJOR_VERSION and minor > MINOR_VERSION):
         if warnedVersion:
             return
         else:
@@ -403,7 +420,7 @@ def parse(tokens):
     global MHX249, ifResult, theScale, defaultScale, One
     
     for (key, val, sub) in tokens:    
-        # print("Parse %s" % key)
+        print("Parse %s" % key)
         data = None
         if key == 'MHX':
             checkMhxVersion(int(val[0]), int(val[1]))
@@ -457,8 +474,15 @@ def parse(tokens):
             data = parseWorld(val, sub)
         elif key == "Scene":
             data = parseScene(val, sub)
+        elif key == "DefineProperty":
+            parseDefineProperty(val, sub)
         elif key == "Process":
             parseProcess(val, sub)
+        elif key == "PostProcess":
+            postProcess(val)
+            hideLayers(val)
+        elif key == "CorrectRig":
+            correctRig(val)
         elif key == 'AnimationData':
             try:
                 ob = loadedData['Object'][val[0]]
@@ -484,7 +508,7 @@ def parse(tokens):
                 raise NameError("ShapeKeys object %s does not exist" % val[0])
             if ob:
                 bpy.context.scene.objects.active = ob
-                parseShapeKeys(ob, ob.data, val, sub)
+                parseShapeKeys(ob, ob.data, val, sub)        
         else:
             data = parseDefaultType(key, val, sub)                
 
@@ -502,9 +526,9 @@ def parseDefaultType(typ, args, tokens):
     name = args[0]
     data = None
     expr = "bpy.data.%s.new('%s')" % (Plural[typ], name)
-    print(expr)
+    # print(expr)
     data = eval(expr)
-    print("  ok", data)
+    # print("  ok", data)
 
     bpyType = typ.capitalize()
     print(bpyType, name, data)
@@ -668,22 +692,24 @@ def parseKeyFramePoint(pt, args, tokens):
 def parseAnimationData(rna, args, tokens):
     if not eval(args[1]):
         return
+    print("Parse Animation data")
     if rna.animation_data == None:    
         rna.animation_data_create()
     adata = rna.animation_data
     for (key, val, sub) in tokens:
         if key == 'FCurve':
-            fcu = parseAnimDataFCurve(adata, rna, val, sub)
+            fcu = parseAnimDataFCurve(adata, rna, val, sub)            
         else:
             defaultKey(key, val, sub, 'adata', [], globals(), locals())
+    print(adata)
     return adata
 
 def parseAnimDataFCurve(adata, rna, args, tokens):
+    global theBlenderVersion
     if invalid(args[2]):
         return
     dataPath = args[0]
     index = int(args[1])
-    # print("parseAnimDataFCurve", adata, dataPath, index)
     n = 1
     for (key, val, sub) in tokens:
         if key == 'Driver':
@@ -693,7 +719,10 @@ def parseAnimDataFCurve(adata, rna, args, tokens):
         elif key == 'FModifier':
             parseFModifier(fcu, val, sub)
         elif key == 'kp':
-            pt = fcu.keyframe_points.insert(n, 0)
+            if theBlenderVersion >= BLENDER_256a:
+                pt = fcu.keyframe_points.add(n, 0)
+            else:
+                pt = fcu.keyframe_points.insert(n, 0)
             pt.interpolation = 'LINEAR'
             pt = parseKeyFramePoint(pt, val, sub)
             n += 1
@@ -712,7 +741,7 @@ def parseDriver(adata, dataPath, index, rna, args, tokens):
         expr = "rna." + words[0] + ']'
         pwords = words[1].split('"')
         prop = pwords[1]
-        # print("prop", expr, prop)
+        #print("prop", expr, prop)
         bone = eval(expr)
         return None
     else:
@@ -726,7 +755,9 @@ def parseDriver(adata, dataPath, index, rna, args, tokens):
     #print("expr", rna, expr)
     fcu = eval(expr)
     drv = fcu.driver
+    #print("   Driver type", drv, args[0])
     drv.type = args[0]
+    #print("   ->", drv.type)
     for (key, val, sub) in tokens:
         if key == 'DriverVariable':
             var = parseDriverVariable(drv, rna, val, sub)
@@ -737,9 +768,10 @@ def parseDriver(adata, dataPath, index, rna, args, tokens):
 def parseDriverVariable(drv, rna, args, tokens):
     var = drv.variables.new()
     var.name = args[0]
+    #print("   Var type", var, args[1])
     var.type = args[1]
+    #print("   ->", var.type)
     nTarget = 0
-    # print("var", var, var.name, var.type)
     for (key, val, sub) in tokens:
         if key == 'Target':
             parseDriverTarget(var, nTarget, rna, val, sub)
@@ -764,7 +796,10 @@ def parseFModifier(fcu, args, tokens):
 """
 def parseDriverTarget(var, nTarget, rna, args, tokens):
     targ = var.targets[nTarget]
-    targ.id = loadedData['Object'][args[0]]
+    ob = loadedData['Object'][args[0]]
+    #print("    targ id", targ, ob)
+    targ.id = ob
+    #print("    ->", targ.id)
     for (key, val, sub) in tokens:
         defaultKey(key, val, sub, 'targ', [], globals(), locals())
     return targ
@@ -1047,7 +1082,7 @@ def parseObject(args, tokens):
         if key == 'Modifier':
             parseModifier(ob, val, sub)
         elif key == 'Constraint':
-            parseConstraint(ob.constraints, val, sub)
+            parseConstraint(ob.constraints, None, val, sub)
         elif key == 'AnimationData':
             parseAnimationData(ob, val, sub)
         elif key == 'ParticleSystem':
@@ -1108,6 +1143,7 @@ def setObjectAndData(args, typ):
 #    parseModifier(ob, args, tokens):
 #
 
+
 def parseModifier(ob, args, tokens):
     name = args[0]
     typ = args[1]
@@ -1115,8 +1151,35 @@ def parseModifier(ob, args, tokens):
         return None
     mod = ob.modifiers.new(name, typ)
     for (key, val, sub) in tokens:
-        defaultKey(key, val, sub, 'mod', [], globals(), locals())
+        if key == 'HookAssignNth':
+            if val[0] == 'CURVE':
+                hookAssignNth(mod, int(val[1]), True, ob.data.splines[0].points)
+            elif val[0] == 'LATTICE':
+                hookAssignNth(mod, int(val[1]), False, ob.data.points)
+            elif val[0] == 'MESH':
+                hookAssignNth(mod, int(val[1]), True, ob.data.vertices)
+            else:
+                raise NameError("Unknown hook %s" % val)
+        else:            
+            defaultKey(key, val, sub, 'mod', [], globals(), locals())
     return mod
+
+def hookAssignNth(mod, n, select, points):
+    if select:
+        for pt in points:
+            pt.select = False
+        points[n].select = True
+        sel = []
+        for pt in points:
+            sel.append(pt.select)
+        #print(mod, sel, n, points)
+
+    bpy.ops.object.mode_set(mode='EDIT')
+    bpy.ops.object.hook_reset(modifier=mod.name)
+    bpy.ops.object.hook_select(modifier=mod.name)
+    bpy.ops.object.hook_assign(modifier=mod.name)
+    bpy.ops.object.mode_set(mode='OBJECT')
+    return
 
 #
 #    parseParticleSystem(ob, args, tokens):
@@ -1245,9 +1308,7 @@ def parseMesh (args, tokens):
     for (key, val, sub) in tokens:
         if key == 'Faces':
             parseFaces2(sub, me)
-
-    for n,mat in enumerate(list(me.materials)):
-        print(n, mat)
+    print(me)
     return me
 
 #
@@ -1371,7 +1432,7 @@ def parseVertColorData(args, tokens, data):
 #
 
 def parseVertexGroup(ob, me, args, tokens):
-    global toggle
+    global toggle, theBlenderVersion
     if verbosity > 2:
         print( "Parsing vertgroup %s" % args )
     grpName = args[0]
@@ -1385,9 +1446,14 @@ def parseVertexGroup(ob, me, args, tokens):
     if (toggle & T_Armature) or (grpName in ['Eye_L', 'Eye_R', 'Gums', 'Head', 'Jaw', 'Left', 'Middle', 'Right', 'Scalp']):
         group = ob.vertex_groups.new(grpName)
         loadedData['VertexGroup'][grpName] = group
-        for (key, val, sub) in tokens:
-            if key == 'wv':
-                group.add( [int(val[0])], float(val[1]), 'REPLACE' )
+        if theBlenderVersion >= BLENDER_256a:
+            for (key, val, sub) in tokens:
+                if key == 'wv':
+                    ob.vertex_groups.assign([int(val[0])], group, float(val[1]), 'REPLACE')
+        else:
+            for (key, val, sub) in tokens:
+                if key == 'wv':
+                    group.add( [int(val[0])], float(val[1]), 'REPLACE' )
     return
 
 
@@ -1412,6 +1478,7 @@ def parseShapeKeys(ob, me, args, tokens):
             if me.shape_keys:
                 parseAnimationData(me.shape_keys, val, sub)
     ob.active_shape_key_index = 0
+    print("Shapekeys parsed")
     return
 
 
@@ -1610,12 +1677,11 @@ def parsePose (args, tokens):
 
 def parseBoneGroup(pose, nGrps, args, tokens):
     global todo
-    print( "Parsing bonegroup %s" % args )
+    if verbosity > 2:
+        print( "Parsing bonegroup %s" % args )
     name = args[0]
     bpy.ops.pose.group_add()
-    print(dir(pose.bone_groups))
     bg = pose.bone_groups.active
-    print("Created", bg)
     loadedData['BoneGroup'][name] = bg
     for (key, val, sub) in tokens:
         defaultKey(key, val,  sub, "bg", [], globals(), locals())
@@ -1628,23 +1694,17 @@ def parsePoseBone(pbones, ob, args, tokens):
     name = args[0]
     pb = pbones[name]
     amt = ob.data
-
-    # Make posebone active - don't know how to do this in pose mode
-    bpy.ops.object.mode_set(mode='OBJECT')
-    amt.bones.active = amt.bones[name]
-    bpy.ops.object.mode_set(mode='POSE')
+    amt.bones.active = pb.bone 
 
     for (key, val, sub) in tokens:
         if key == 'Constraint':
-            cns = parseConstraint(pb.constraints, val, sub)
+            amt.bones.active = pb.bone 
+            cns = parseConstraint(pb.constraints, pb, val, sub)
         elif key == 'bpyops':
-            bpy.ops.object.mode_set(mode='OBJECT')
-            amt.bones.active = amt.bones[name]
-            ob.constraints.active = cns            
+            amt.bones.active = pb.bone 
             expr = "bpy.ops.%s" % val[0]
-            # print(expr)
+            print(expr)
             exec(expr)
-            bpy.ops.object.mode_set(mode='POSE')
         elif key == 'ik_dof':
             parseArray(pb, ["ik_dof_x", "ik_dof_y", "ik_dof_z"], val)
         elif key == 'ik_limit':
@@ -1675,18 +1735,30 @@ def parseArray(data, exts, args):
     return
         
 #
-#    parseConstraint(constraints, args, tokens)
+#    parseConstraint(constraints, pb, args, tokens)
 #
 
-def parseConstraint(constraints, args, tokens):
+def parseConstraint(constraints, pb, args, tokens):
     if invalid(args[2]):
         return None
-    cns = constraints.new(args[1])
-    #bpy.ops.pose.constraint_add(type=args[1])
-    #cns = pb.constraints[-1]
+    if (toggle&T_Opcns and pb):
+        print("Active")
+        aob = bpy.context.object
+        print("ob", aob)
+        aamt = aob.data
+        print("amt", aamt)
+        apose = aob.pose
+        print("pose", apose)
+        abone = aamt.bones.active
+        print("bone", abone)
+        print('Num cns before', len(list(constraints)))
+        bpy.ops.pose.constraint_add(type=args[1])
+        cns = constraints.active
+        print('and after', pb, cns, len(list(constraints)))
+    else:
+        cns = constraints.new(args[1])
 
     cns.name = args[0]
-    #print("cns", cns.name)
     for (key,val,sub) in tokens:
         if key == 'invert':
             parseArray(cns, ["invert_x", "invert_y", "invert_z"], val)
@@ -1784,6 +1856,7 @@ def parseBezier(bez, args, tokens):
 def parsePoint(pt, args, tokens):
     pt.co = eval(args[0])
     pt.co = theScale*pt.co
+    print(" pt", pt.co)
     return
 
 #
@@ -1808,18 +1881,10 @@ def parseLatticePoints(args, tokens, points):
     n = 0
     for (key, val, sub) in tokens:
         if key == 'pt':
-            v = points[n].co
-            (x,y,z) = eval(val[0])
-            v.x = theScale*x
-            v.y = theScale*y
-            v.z = theScale*z
-
-            v = points[n].deformed_co
-            (x,y,z) = eval(val[1])
-            v.x = theScale*x
-            v.y = theScale*y
-            v.z = theScale*z
-
+            v = points[n].co_deform
+            v.x = theScale*float(val[0])
+            v.y = theScale*float(val[1])
+            v.z = theScale*float(val[2])
             n += 1
     return
 
@@ -1945,14 +2010,64 @@ def parseRenderSettings(render, args, tokens):
     return
 
 #
-#    postProcess()
+#    parseDefineProperty(args, tokens):
 #
 
-def postProcess():
-    if not toggle & T_MHX:
-        return
+def parseDefineProperty(args, tokens):
+    expr = "bpy.types.Object.%s = %sProperty" % (args[0], args[1])
+    c = '('
+    for option in args[2:]:
+        expr += "%s %s" % (c, option)
+        c = ','
+    expr += ')'
+    #print(expr)
+    exec(expr)
+    #print("Done")
+    return
+
+#
+#    correctRig(args):
+#
+
+def correctRig(args):
+    human = args[0]
+    print("CorrectRig %s" % human)    
     try:
-        ob = loadedData['Object']['HumanMesh']
+        ob = loadedData['Object'][human]
+    except:
+        return
+    bpy.context.scene.objects.active = ob
+    bpy.ops.object.mode_set(mode='POSE')
+    amt = ob.data
+    cnslist = []
+    for pb in ob.pose.bones:
+        for cns in pb.constraints:
+            if cns.type == 'CHILD_OF':
+                cnslist.append((pb, cns, cns.influence))
+                cns.influence = 0
+
+    for (pb, cns, inf) in cnslist:
+        amt.bones.active = pb.bone
+        cns.influence = 1
+        #print("Childof %s %s %s %.2f" % (amt.name, pb.name, cns.name, inf))
+        bpy.ops.constraint.childof_clear_inverse(constraint=cns.name, owner='BONE')
+        bpy.ops.constraint.childof_set_inverse(constraint=cns.name, owner='BONE')
+        cns.influence = 0
+
+    for (pb, cns, inf) in cnslist:
+        cns.influence = inf
+    return
+        
+
+#
+#    postProcess(args)
+#
+
+def postProcess(args):
+    human = args[0]
+    print("Postprocess %s" % human)    
+    try:
+        ob = loadedData['Object'][human]
     except:
         ob = None
     if toggle & T_Diamond == 0 and ob:
@@ -1967,7 +2082,7 @@ def postProcess():
 
             rig = bpy.context.scene.objects.active
             print("Rigged", rig, bpy.context.object)
-            ob = loadedData['Object']['HumanMesh']
+            ob = loadedData['Object'][human]
             mod = ob.modifiers[0]
             print(ob, mod, mod.object)
             mod.object = rig
@@ -2142,9 +2257,15 @@ def defaultKey(ext, args, tokens, var, exclude, glbals, lcals):
             expr = "%s['%s'] = %s" % (var, args[0], args[1])
         except:
             expr = None
-        # print("Property", expr)
+        #print("Property", expr)
         if expr:
             exec(expr, glbals, lcals)
+        return
+
+    if ext == 'bpyops':
+        expr = "bpy.ops.%s" % args[0]
+        print(expr)
+        exec(expr)
         return
         
     nvar = "%s.%s" % (var, ext)
@@ -2357,7 +2478,6 @@ def invalid(condition):
     
 #
 #    clearScene(context):
-#    hideLayers():
 #
     
 def clearScene():
@@ -2370,21 +2490,112 @@ def clearScene():
         return scn
 
     for ob in scn.objects:
-        if ob.type == "MESH" or ob.type == "ARMATURE" or ob.type == 'EMPTY':
+        if ob.type in ["MESH", "ARMATURE", 'EMPTY', 'CURVE', 'LATTICE']:
             scn.objects.active = ob
-            bpy.ops.object.mode_set(mode='OBJECT')
+            try:
+                bpy.ops.object.mode_set(mode='OBJECT')
+            except:
+                pass
             scn.objects.unlink(ob)
             del ob
     #print(scn.objects)
     return scn
 
-def hideLayers():
+#
+#    hideLayers(args):
+#    args = sceneLayers sceneHideLayers boneLayers boneHideLayers or nothing
+#
+
+def hideLayers(args):
+    if len(args) > 1:
+        sceneLayers = int(args[2], 16)
+        sceneHideLayers = int(args[3], 16)
+        boneLayers = int(args[4], 16)
+        boneHideLayers = int(args[5], 16)
+    else:
+        sceneLayers = 0x00ff
+        sceneHideLayers = 0
+        boneLayers = 0
+        boneHideLayers = 0
+
     scn = bpy.context.scene
-    for n in range(len(scn.layers)):
-        if n < 8:
-            scn.layers[n] = True
-        else:
-            scn.layers[n] = False
+    mask = 1
+    hidelayers = []
+    for n in range(20):
+        scn.layers[n] = True if sceneLayers & mask else False
+        if sceneHideLayers & mask:
+            hidelayers.append(n)
+        mask = mask << 1
+
+    for ob in scn.objects:
+        for n in hidelayers:
+            if ob.layers[n]:
+                ob.hide = True
+
+    if boneLayers:    
+        human = args[1]
+        try:
+            ob = loadedData['Object'][human]
+        except:
+            return
+
+        mask = 1
+        hidelayers = []
+        for n in range(32):
+            ob.data.layers[n] = True if boneLayers & mask else False
+            if boneHideLayers & mask:
+                hidelayers.append(n)
+            mask = mask << 1
+
+        for b in ob.data.bones:
+            for n in hidelayers:
+                if b.layers[n]:
+                    b.hide = True
+
+    return
+    
+
+#
+#    readDefaults():
+#    writeDefaults():
+#
+
+ConfigFile = '~/mhx_import.cfg'
+
+
+def readDefaults():
+    global toggle, theScale, theBlenderVersion, BlenderVersions
+    path = os.path.realpath(os.path.expanduser(ConfigFile))
+    try:
+        fp = open(path, 'rU')
+        print('Storing defaults')
+    except:
+        print('Cannot open "%s" for reading' % path)
+        return
+    bver = ''
+    for line in fp: 
+        words = line.split()
+        if len(words) >= 3:
+            try:
+                toggle = int(words[0],16)
+                theScale = float(words[1])
+                theBlenderVersion = BlenderVersions.index(words[2])
+            except:
+                print('Configuration file "%s" is corrupt' % path)                
+    fp.close()
+    return
+
+def writeDefaults():
+    global toggle, theScale, theBlenderVersion, BlenderVersions
+    path = os.path.realpath(os.path.expanduser(ConfigFile))
+    try:
+        fp = open(path, 'w')
+        print('Storing defaults')
+    except:
+        print('Cannot open "%s" for writing' % path)
+        return
+    fp.write("%x %f %s" % (toggle, theScale, BlenderVersions[theBlenderVersion]))
+    fp.close()
     return
 
 #
@@ -2393,8 +2604,27 @@ def hideLayers():
 
 DEBUG= False
 from bpy.props import *
+from io_utils import ImportHelper
 
-class IMPORT_OT_makehuman_mhx(bpy.types.Operator):
+
+MhxBoolProps = [
+    ("enforce", "Enforce version", "Only accept MHX files of correct version", T_EnforceVersion),
+    ("mesh", "Mesh", "Use main mesh", T_Mesh),
+    ("proxy", "Proxies", "Use proxies", T_Proxy),
+    ("armature", "Armature", "Use armature", T_Armature),
+    ("replace", "Replace scene", "Replace scene", T_Replace),
+    ("cage", "Cage", "Load mesh deform cage", T_Cage),
+    ("clothes", "Clothes", "Include clothes", T_Clothes),
+    ("stretch", "Stretchy limbs", "Stretchy limbs", T_Stretch),
+    ("face", "Face shapes", "Include facial shapekeys", T_Face),
+    ("shape", "Body shapes", "Include body shapekeys", T_Shape),
+    ("symm", "Symmetric shapes", "Keep shapekeys symmetric", T_Symm),
+    ("diamond", "Diamonds", "Keep joint diamonds", T_Diamond),
+    ("bend", "Bend joints", "Bend joints for better IK", T_Bend),
+    #("opcns", "Operator constraints", "Only for Aligorith", T_Opcns),
+]
+
+class ImportMhx(bpy.types.Operator, ImportHelper):
     '''Import from MHX file format (.mhx)'''
     bl_idname = "import_scene.makehuman_mhx"
     bl_description = 'Import from MHX file format (.mhx)'
@@ -2402,63 +2632,54 @@ class IMPORT_OT_makehuman_mhx(bpy.types.Operator):
     bl_space_type = "PROPERTIES"
     bl_region_type = "WINDOW"
 
+    scale = FloatProperty(name="Scale", description="Default meter, decimeter = 1.0", default = theScale)
+    enums = []
+    for enum in BlenderVersions:
+        enums.append((enum,enum,enum))
+    bver = EnumProperty(name="Blender version", items=enums, default = BlenderVersions[0])
+
+    filename_ext = ".mhx"
+    filter_glob = StringProperty(default="*.mhx", options={'HIDDEN'})
     filepath = StringProperty(name="File Path", description="File path used for importing the MHX file", maxlen= 1024, default= "")
 
-    scale = FloatProperty(name="Scale", description="Default meter, decimeter = 1.0", default = theScale)
-
-
-
-    enforce = BoolProperty(name="Enforce version", description="Only accept MHX files of correct version", default=toggle&T_EnforceVersion)
-    mesh = BoolProperty(name="Mesh", description="Use main mesh", default=toggle&T_Mesh)
-    proxy = BoolProperty(name="Proxies", description="Use proxies", default=toggle&T_Proxy)
-    armature = BoolProperty(name="Armature", description="Use armature", default=toggle&T_Armature)
-    replace = BoolProperty(name="Replace scene", description="Replace scene", default=toggle&T_Replace)
-    cage = BoolProperty(name="Cage", description="Load mesh deform cage", default=toggle&T_Cage)
-    clothes = BoolProperty(name="Clothes", description="Include clothes", default=toggle&T_Clothes)
-    stretch = BoolProperty(name="Stretchy limbs", description="Stretchy limbs", default=toggle&T_Stretch)
-    face = BoolProperty(name="Face shapes", description="Include facial shapekeys", default=toggle&T_Face)
-    shape = BoolProperty(name="Body shapes", description="Include body shapekeys", default=toggle&T_Shape)
-    symm = BoolProperty(name="Symmetric shapes", description="Keep shapekeys symmetric", default=toggle&T_Symm)
-    diamond = BoolProperty(name="Diamonds", description="Keep joint diamonds", default=toggle&T_Diamond)
-    bend = BoolProperty(name="Bend joints", description="Bend joints for better IK", default=toggle&T_Bend)
+    for (prop, name, desc, flag) in MhxBoolProps:
+        expr = '%s = BoolProperty(name="%s", description="%s", default=toggle&%s)' % (prop, name, desc, flag)
+        exec(expr)
         
     def execute(self, context):
-        global toggle
-        O_EnforceVersion = T_EnforceVersion if self.properties.enforce else 0
-        O_Mesh = T_Mesh if self.properties.mesh else 0
-        O_Proxy = T_Proxy if self.properties.proxy else 0
-        O_Armature = T_Armature if self.properties.armature else 0
-        O_Replace = T_Replace if self.properties.replace else 0
-        O_Cage = T_Cage if self.properties.cage else 0
-        O_Clothes = T_Clothes if self.properties.clothes else 0
-        O_Stretch = T_Stretch if self.properties.stretch else 0
-        O_Face = T_Face if self.properties.face else 0
-        O_Shape = T_Shape if self.properties.shape else 0
-        O_Symm = T_Symm if self.properties.symm else 0
-        O_Diamond = T_Diamond if self.properties.diamond else 0
-        O_Bend = T_Bend if self.properties.bend else 0
-        toggle = ( O_EnforceVersion | O_Mesh | O_Proxy | O_Armature | O_Replace | O_Stretch | O_Cage | 
-                O_Face | O_Shape | O_Symm | O_Diamond | O_Bend | O_Clothes | T_MHX )
+        global toggle, theScale, MhxBoolProps, theBlenderVersion, BlenderVersions
+        toggle = 0
+        for (prop, name, desc, flag) in MhxBoolProps:
+            expr = '(%s if self.properties.%s else 0)' % (flag, prop)
+            toggle |=  eval(expr)
+        print("execute flags %x" % toggle)
+        theScale = self.properties.scale
+        theBlenderVersion = BlenderVersions.index(self.properties.bver)
 
-        print("Load", self.properties.filepath)
-        readMhxFile(self.properties.filepath, self.properties.scale)
+        readMhxFile(self.properties.filepath)
+        writeDefaults()
         return {'FINISHED'}
 
     def invoke(self, context, event):
+        global toggle, theScale, MhxBoolProps, theBlenderVersion, BlenderVersions
+        readDefaults()
+        self.properties.scale = theScale
+        self.properties.bver = BlenderVersions[theBlenderVersion]
+        for (prop, name, desc, flag) in MhxBoolProps:
+            expr = 'self.properties.%s = toggle&%s' % (prop, flag)
+            exec(expr)
         context.window_manager.fileselect_add(self)
         return {'RUNNING_MODAL'}
 
 def menu_func(self, context):
-    self.layout.operator(IMPORT_OT_makehuman_mhx.bl_idname, text="MakeHuman (.mhx)...")
+    self.layout.operator(ImportMhx.bl_idname, text="MakeHuman (.mhx)...")
 
 def register():
     bpy.utils.register_module(__name__)
-
     bpy.types.INFO_MT_file_import.append(menu_func)
 
 def unregister():
     bpy.utils.unregister_module(__name__)
-
     bpy.types.INFO_MT_file_import.remove(menu_func)
 
 if __name__ == "__main__":
