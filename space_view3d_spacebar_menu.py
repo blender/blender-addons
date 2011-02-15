@@ -49,6 +49,7 @@ Usage:
 * Object sensitive based on object selected in edit mode.
 
 Version history:
+v1.7.3 - (JayDez) - Wrong operator names for deleting in editmode
 v1.7.2 - (JayDez) - Adding proportional editing menu to where it was missing
 v1.7.1 - (JayDez) - Fixing up lattice menu and a wrong operator in curve menu
 v1.7 - (JayDez) - Fixing up animation menu and Metaball Add Menu
@@ -192,6 +193,7 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
             # Select block
             layout.menu("VIEW3D_MT_SelectEditMenu",
                 icon='RESTRICT_SELECT_OFF')
+            layout.separator()
 
             # Toolshelf block
             layout.operator("view3d.toolshelf", icon='MENU_PANEL')
@@ -267,7 +269,7 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
                 icon='OBJECT_DATA')
 
             # Delete block
-            layout.operator("object.delete", text="Delete Object",
+            layout.operator("curve.delete", text="Delete Object",
                 icon='CANCEL')
 
         if ob.mode == 'EDIT_SURFACE':
@@ -320,7 +322,7 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
                 icon='OBJECT_DATA')
 
             # Delete block
-            layout.operator("object.delete", text="Delete Object",
+            layout.operator("curve.delete", text="Delete Object",
                 icon='CANCEL')
 
         if ob.mode == 'EDIT_METABALL':
@@ -370,7 +372,7 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
                 icon='OBJECT_DATA') 
 
             # Delete block
-            layout.operator("object.delete", text="Delete Object",
+            layout.operator("mball.delete_metaelems", text="Delete Object",
                 icon='CANCEL')
 
         elif ob.mode == 'EDIT_LATTICE':
@@ -674,7 +676,7 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
                 icon='OBJECT_DATA')
 
             # Delete block
-            layout.operator("object.delete", text="Delete Object",
+            layout.operator("armature.delete", text="Delete Object",
                 icon='CANCEL')
 
 
