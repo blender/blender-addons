@@ -25,9 +25,9 @@
 bl_info = {
     "name": "Dynamic Spacebar Menu",
     "author": "JayDez, sim88, meta-androcto, sam",
-    "version": (1, 7, 1),
+    "version": (1, 7, 2),
     "blender": (2, 5, 6),
-    "api": 34816,
+    "api": 34860,
     "location": "View3D > Spacebar Key",
     "description": "Context Sensitive Spacebar Menu",
     "warning": "",
@@ -49,6 +49,7 @@ Usage:
 * Object sensitive based on object selected in edit mode.
 
 Version history:
+v1.7.2 - (JayDez) - Adding proportional editing menu to where it was missing
 v1.7.1 - (JayDez) - Fixing up lattice menu and a wrong operator in curve menu
 v1.7 - (JayDez) - Fixing up animation menu and Metaball Add Menu
 v1.6.1 - (JayDez) - Added Add Menu to Curve and Surface (respectively)
@@ -163,6 +164,13 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
 
             # Cursor block
             layout.menu("VIEW3D_MT_EditCursorMenu", icon='CURSOR')
+            layout.separator()
+
+            # Proportional block
+            layout.prop_menu_enum(settings, "proportional_edit",
+                icon="PROP_CON")
+            layout.prop_menu_enum(settings, "proportional_edit_falloff",
+                icon="SMOOTHCURVE")
             layout.separator()
 
             # Edit block
@@ -610,6 +618,13 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
 
             # Cursor block
             layout.menu("VIEW3D_MT_CursorMenu", icon='CURSOR')
+            layout.separator()
+
+            # Proportional block
+            layout.prop_menu_enum(settings, "proportional_edit",
+                icon="PROP_CON")
+            layout.prop_menu_enum(settings, "proportional_edit_falloff",
+                icon="SMOOTHCURVE")
             layout.separator()
 
             # Edit Armature roll
