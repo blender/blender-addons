@@ -19,7 +19,7 @@ bl_info = {
     "name": "Export Skeleletal Mesh/Animation Data",
     "author": "Darknet/Optimus_P-Fat/Active_Trash/Sinsoft",
     "version": (2, 0),
-    "blender": (2, 5, 3),
+    "blender": (2, 5, 6),
     "api": 31847,
     "location": "File > Export > Skeletal Mesh/Animation Data (.psk/.psa)",
     "description": "Export Unreal Engine (.psk)",
@@ -879,7 +879,10 @@ def parse_meshes(blender_meshes, psk_file):
         print (" -- Dumping Mesh Points -- LEN:",len(points.dict))
         for point in points.items():
             psk_file.AddPoint(point)
+        if len(points.dict) > 32767:
+           raise RuntimeError("Vertex point reach max limited 32767 in pack data. Your",len(points.dict))
         print (" -- Dumping Mesh Wedge -- LEN:",len(wedges.dict))
+        		
         for wedge in wedges.items():
             psk_file.AddWedge(wedge)
             
@@ -1062,6 +1065,19 @@ def parse_armature(blender_armature, psk_file, psa_file):
         bones = [x for x in current_armature.bones if not x.parent is None]
         #will ingore this part of the ocde
         """
+        if len(current_armature.bones) == 0:
+            raise RuntimeError("Warning add two bones else it will crash the unreal editor.")
+        if len(current_armature.bones) == 1:
+            raise RuntimeError("Warning add one more bone else it will crash the unreal editor.")
+		
+        mainbonecount = 0;
+        for current_bone in current_armature.bones: #list the bone. #note this will list all the bones.
+            if(current_bone.parent is None):
+                mainbonecount += 1
+        print("Main Bone",mainbonecount)
+        if mainbonecount > 1:
+           #print("Warning there no main bone.")
+           raise RuntimeError("There too many Main bones. Number main bones:",mainbonecount)
         for current_bone in current_armature.bones: #list the bone. #note this will list all the bones.
             if(current_bone.parent is None):
                 parse_bone(current_bone, psk_file, psa_file, 0, 0, current_obj.matrix_local, None)
@@ -1524,14 +1540,50 @@ def fs_callback(filename, context):
         print(" - Too Armature Meshes!")
         print(" - Select One Armature Object Only!")
         barmature = False
+    bMeshScale = True
+    bMeshCenter = True
+    if blender_meshes[0] !=None:
+        if blender_meshes[0].scale.x == 1 and blender_meshes[0].scale.y == 1 and blender_meshes[0].scale.z == 1:
+            #print("Okay")
+            bMeshScale = True
+        else:
+            print("Error, Mesh Object not scale right should be (1,1,1).")
+            bMeshScale = False
+        if blender_meshes[0].location.x == 0 and blender_meshes[0].location.y == 0 and blender_meshes[0].location.z == 0:
+            #print("Okay")
+            bMeshCenter = True
+        else:
+            print("Error, Mesh Object not center.")
+            bMeshCenter = False
+    bArmatureScale = True
+    bArmatureCenter = True
+    if blender_armature[0] !=None:
+        if blender_armature[0].scale.x == 1 and blender_armature[0].scale.y == 1 and blender_armature[0].scale.z == 1:
+            #print("Okay")
+            bArmatureScale = True
+        else:
+            print("Error, Armature Object not scale right should be (1,1,1).")            
+            bArmatureScale = False
+        if blender_armature[0].location.x == 0 and blender_armature[0].location.y == 0 and blender_armature[0].location.z == 0:
+            #print("Okay")
+            bArmatureCenter = True
+        else:
+            print("Error, Armature Object not center.")
+            bArmatureCenter = False
+			
+		
+			
+    #print("location:",blender_armature[0].location.x)
     
-    if     (bmesh == False) or (barmature == False):
+    if (bmesh == False) or (barmature == False) or (bArmatureCenter == False) or (bArmatureScale == False)or (bMeshScale == False) or (bMeshCenter == False):
         exportmessage = "Export Fail! Check Log."
         print("=================================")
         print("= Export Fail!                  =")
         print("=================================")
     else:
         exportmessage = "Export Finish!"
+        #print("blender_armature:",dir(blender_armature[0]))
+        #print(blender_armature[0].scale)
         #need to build a temp bone index for mesh group vertex
         BoneIndexArmature(blender_armature)
 
@@ -1649,6 +1701,11 @@ bpy.types.Scene.unrealtriangulatebool = BoolProperty(
 bpy.types.Scene.unrealactionexportall = BoolProperty(
     name="All Actions",
     description="This let you export all the actions from current armature that matches bone name in action groups names.",
+    default=False)
+
+bpy.types.Scene.unrealdisplayactionsets = BoolProperty(
+    name="Show Action Set(s)",
+    description="Display Action Sets Information.",
     default=False)    
     
 bpy.types.Scene.unrealexportpsk = BoolProperty(
@@ -1727,6 +1784,44 @@ class VIEW3D_PT_unrealtools_objectmode(bpy.types.Panel):
         layout.prop(rd.render, "fps")
         
         layout.prop(rd, "unrealactionexportall")
+        layout.prop(rd, "unrealdisplayactionsets")
+        #print("unrealdisplayactionsets:",rd.unrealdisplayactionsets)
+        if rd.unrealdisplayactionsets:
+            layout.label(text="Total Action Set(s):" + str(len(bpy.data.actions)))
+		    #armature data
+            amatureobject = None
+            bonenames = [] #bone name of the armature bones list 
+            #layout.label(text="object(s):" + str(len(bpy.data.objects)))
+            
+            for obj in bpy.data.objects:
+                if obj.type == 'ARMATURE' and obj.select == True:
+                    #print(dir(obj))
+                    amatureobject = obj
+                    break
+                elif obj.type == 'ARMATURE':
+                    amatureobject = obj
+        
+            if amatureobject != None:
+                layout.label(text="Armature: " + amatureobject.name)
+                #print("Armature:",amatureobject.name)
+                boxactionset = layout.box()
+                for bone in amatureobject.pose.bones:
+                    bonenames.append(bone.name)
+                actionsetmatchcount = 0	
+                for ActionNLA in bpy.data.actions:
+                    nobone = 0
+                    for group in ActionNLA.groups:	
+                        for abone in bonenames:
+                            #print("name:>>",abone)
+                            if abone == group.name:
+                                nobone += 1
+                                break
+                    if (len(ActionNLA.groups) == len(bonenames)) and (nobone == len(ActionNLA.groups)):
+                        actionsetmatchcount += 1
+                        #print("Action Set match: Pass")
+                        boxactionset.label(text="Action Name: " + ActionNLA.name)
+                layout.label(text="Match Found: " + str(actionsetmatchcount))
+		
         #row = layout.row()
         #row.label(text="Action Set(s)(not build)")
         #for action in  bpy.data.actions:

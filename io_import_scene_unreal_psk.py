@@ -361,6 +361,30 @@ def pskimport(infile,importmesh,importbone,bDebugLogPSK):
                 break
 				
         if bfound == False:
+            '''
+            armdata = bpy.data.armatures.new(objectname)
+            ob_new = bpy.data.objects.new(meshname, armdata)
+            #ob_new = bpy.data.objects.new(meshname, 'ARMATURE')
+            #ob_new.data = armdata
+            bpy.context.scene.objects.link(ob_new)
+            #bpy.ops.object.mode_set(mode='OBJECT')
+            for i in bpy.context.scene.objects: i.select = False #deselect all objects
+            ob_new.select = True
+            #set current armature to edit the bone
+            bpy.context.scene.objects.active = ob_new
+            #set mode to able to edit the bone
+            bpy.ops.object.mode_set(mode='EDIT')
+			
+            #newbone = ob_new.data.edit_bones.new('test')
+            #newbone.tail.y = 1
+            print("creating bone(s)")
+            for bone in md5_bones:
+                #print(dir(bone))
+                bpy.ops.object.mode_set(mode='EDIT')
+                newbone = ob_new.data.edit_bones.new(bone.name)
+            '''		
+		
+            
             armdata = bpy.data.armatures.new(objectname)
             ob_new = bpy.data.objects.new(meshname, armdata)
             #ob_new = bpy.data.objects.new(meshname, 'ARMATURE')
@@ -396,8 +420,8 @@ def pskimport(infile,importmesh,importbone,bDebugLogPSK):
                     newbone.parent = parentbone
                     rotmatrix = bone.bindmat.to_matrix().to_4x4().to_3x3()  # XXX, redundant matrix conversion?
 					
-                    #parent_head = parentbone.head * parentbone.matrix.to_quaternion().inverted()
-                    #parent_tail = parentbone.tail * parentbone.matrix.to_quaternion().inverted()
+                    #parent_head = parentbone.head * parentbone.matrix.to_quaternion().inverse()
+                    #parent_tail = parentbone.tail * parentbone.matrix.to_quaternion().inverse()
                     #location=Vector(pos_x,pos_y,pos_z)
                     #set_position = (parent_tail - parent_head) + location
                     #print("tmp head:",set_position)
@@ -414,9 +438,10 @@ def pskimport(infile,importmesh,importbone,bDebugLogPSK):
                     newbone.tail.y = parentbone.head.y + (pos_y + bonesize * rotmatrix[1][1])
                     newbone.tail.z = parentbone.head.z + (pos_z + bonesize * rotmatrix[1][2])
                 else:
-                    #print("rotmatrix:",dir(bone.bindmat.to_matrix().resize_4x4()))
+                    print("rotmatrix:",dir(bone.bindmat.to_matrix().resize_4x4()))
                     #rotmatrix = bone.bindmat.to_matrix().resize_4x4().to_3x3()  # XXX, redundant matrix conversion?
-                    rotmatrix = bone.bindmat.to_matrix().to_3x3()
+                    rotmatrix = bone.bindmat.to_matrix().to_3x3()  # XXX, redundant matrix conversion?
+					
                     
                     newbone.head.x = bone.bindpos[0]
                     newbone.head.y = bone.bindpos[1]
@@ -467,7 +492,7 @@ def pskimport(infile,importmesh,importbone,bDebugLogPSK):
     #RWghts fields = PntIdx|BoneIdx|Weight
     RWghts.sort()
     printlog( "len(RWghts)=" + str(len(RWghts)) + "\n")
-    #Tmsh.update()
+    #Tmsh.update_tag()
     
     #set the Vertex Colors of the faces
     #face.v[n] = RWghts[0]
@@ -503,7 +528,7 @@ def pskimport(infile,importmesh,importbone,bDebugLogPSK):
     
     me_ob.faces.foreach_set("vertices_raw", faces)
     me_ob.faces.foreach_set("use_smooth", [False] * len(me_ob.faces))
-    me_ob.update()
+    me_ob.update_tag()
     
     #===================================================================================================
     #UV Setup
@@ -552,16 +577,13 @@ def pskimport(infile,importmesh,importbone,bDebugLogPSK):
     #===================================================================================================
     #
     #===================================================================================================
-    #print("me_ob",dir(me_ob))
-    #this update the render in the 3d scene.
-    me_ob.update();
     obmesh = bpy.data.objects.new(objName,me_ob)
     #check if there is a material to set to
     if len(materials) > 0:
         obmesh.active_material = materials[0] #material setup tmp
     
     bpy.context.scene.objects.link(obmesh)
-    #print("obmesh",dir(obmesh))
+    
     bpy.context.scene.update()
     
     print ("PSK2Blender completed")
@@ -602,13 +624,9 @@ def menu_func(self, context):
     self.layout.operator(IMPORT_OT_psk.bl_idname, text="Skeleton Mesh (.psk)")
 
 def register():
-    bpy.utils.register_module(__name__)
-
     bpy.types.INFO_MT_file_import.append(menu_func)
     
 def unregister():
-    bpy.utils.unregister_module(__name__)
-
     bpy.types.INFO_MT_file_import.remove(menu_func)
 
 if __name__ == "__main__":
