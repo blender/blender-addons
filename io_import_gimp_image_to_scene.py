@@ -108,7 +108,6 @@ def main(File, Path, LayerViewers, MixerViewers, LayerOffset,\
                         now we can be sure! (damn GIMP)'''
                         if HasAlpha:
                             if not os.path.isfile(PathSaveRaw+imageFileAlpha): HasAlpha = False
-                            print ("This image has alpha: ", HasAlpha)
                         
                         # Get Widht and Height from images
                         data = open(PathSaveRaw+imageFile, "rb").read()
