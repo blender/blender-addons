@@ -88,6 +88,9 @@ def main(File, Path, LayerViewers, MixerViewers, LayerOffset,\
                         ResX, ResY = map (int, Segment[4:].split(','))
             if Line.startswith("b'L") or Line.startswith("b'l"):
                 
+                '''The "nice" method to check if layer has alpha channel
+                sadly GIMP sometimes decides not to export an alpha channel
+                if it's pure white so we are not completly sure here yet'''
                 if Line.startswith("b'L"): HasAlpha = True
                 else: HasAlpha = False
                 
@@ -100,6 +103,12 @@ def main(File, Path, LayerViewers, MixerViewers, LayerOffset,\
                     if Segment.startswith("b'"):
                         imageFile = 'l' + Segment[3:] + '.jpg'
                         imageFileAlpha ='la'+Segment[3:]+'.jpg'
+                        
+                        '''Phisically double checking if alpha image exists
+                        now we can be sure! (damn GIMP)'''
+                        if HasAlpha:
+                            if not os.path.isfile(PathSaveRaw+imageFileAlpha): HasAlpha = False
+                            print ("This image has alpha: ", HasAlpha)
                         
                         # Get Widht and Height from images
                         data = open(PathSaveRaw+imageFile, "rb").read()
