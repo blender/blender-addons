@@ -53,7 +53,7 @@ def _get_item_from_context(context, path):
 			context = getattr(context, p)
 	return context
 
-class property_group_renderer(object):
+class property_group_renderer(bpy.types.Panel):
 	"""Mix-in class for sub-classes of bpy.types.Panel. This class
 	will provide the draw() method which implements drawing one or
 	more property groups derived from
