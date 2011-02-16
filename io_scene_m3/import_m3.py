@@ -17,7 +17,7 @@
 # ##### END GPL LICENSE BLOCK #####
 
 __author__ = "Cory Perry (muraj)"
-__version__ = "0.0.2"
+__version__ = "0.2.1"
 __bpydoc__ = """\
 This script imports m3 format files to Blender.
 
@@ -47,29 +47,17 @@ Usage:<br>
 open.
 
 Notes:<br>
+    Known issue with Thor.m3, seems to add a lot of unecessary verts.
     Generates the standard verts and faces lists.
 """
 
 import bpy
 import mathutils
-import time
-import datetime
 import struct
 import os.path
 from bpy.props import *
-##################
-#LOG = open('C:\m3_log.txt','w')
-LOG = None
+from io_utils import load_image
 
-
-def debug(*args):    # TODO: make a little more robust, right now just a hack
-    if LOG == None:
-        print(*args)
-    else:
-        for i in args:
-            LOG.write(str(i) + ' ')
-        LOG.write('\n')
-        LOG.flush()
 ##################
 ## Struct setup ##
 ##################
@@ -271,20 +259,20 @@ def read(file, context, op):
     global verFlag
     h = hdr(file)
     if h.magic[::-1] == b'MD34':
-        debug('m3_import: !WARNING! MD34 files not full tested...')
+        print('m3_import: !WARNING! MD34 files not full tested...')
         verFlag = True
     elif h.magic[::-1] == b'MD33':
         verFlag = False
     else:
         raise Exception('m3_import: !ERROR! Not a valid or supported m3 file')
     file.seek(h.ofsTag)    # Jump to the Tag table
-    debug('m3_import: !INFO! Reading TagTable...')
+    print('m3_import: !INFO! Reading TagTable...')
     tagTable = [Tag(file) for _ in range(h.nTag)]
     file.seek(tagTable[h.MODLref.refid].ofs)
     m = MODL(file, tagTable[h.MODLref.refid].version)
     if not m.flags & 0x20000:
         raise Exception('m3_import: !ERROR! Model doesn\'t have any vertices')
-    debug('m3_import: !INFO! Reading Vertices...')
+    print('m3_import: !INFO! Reading Vertices...')
     vert_flags = m.flags & 0x1E0000        # Mask out the vertex version
     file.seek(tagTable[m.views.refid].ofs)
     d = div(file)
@@ -292,7 +280,7 @@ def read(file, context, op):
     verts = [vertex(file, vert_flags) \
        for _ in range(tagTable[m.vert.refid].nTag // vertex.size(vert_flags))]
     file.seek(tagTable[d.faces.refid].ofs)
-    debug('m3_import: !INFO! Reading Faces...')
+    print('m3_import: !INFO! Reading Faces...')
     rawfaceTable = struct.unpack('H' * (tagTable[d.faces.refid].nTag), \
                     file.read(tagTable[d.faces.refid].nTag * 2))
     faceTable = []
@@ -300,7 +288,9 @@ def read(file, context, op):
         faceTable.append(rawfaceTable[i - 1])
         if i % 3 == 0:    # Add a zero for the fourth index to the face.
             faceTable.append(0)
-    debug('m3_import: !INFO! Adding Geometry...')
+    print("m3_import: !INFO! Read %d vertices and %d faces" \
+            % (len(verts), len(faceTable)))
+    print('m3_import: !INFO! Adding Geometry...')
     mesh = bpy.data.meshes.new(os.path.basename(op.properties.filepath))
     mobj = bpy.data.objects.new(os.path.basename(op.properties.filepath), mesh)
     context.scene.objects.link(mobj)
@@ -314,36 +304,36 @@ def read(file, context, op):
     mesh.vertices.foreach_set('normal', n)
     mesh.faces.foreach_set('vertices_raw', faceTable)
     uvtex = mesh.uv_textures.new()
-    debug(len(verts), len(faceTable))
     for i, face in enumerate(mesh.faces):
         uf = uvtex.data[i]
         uf.uv1 = verts[faceTable[i * 4 + 0]].uv
         uf.uv2 = verts[faceTable[i * 4 + 1]].uv
         uf.uv3 = verts[faceTable[i * 4 + 2]].uv
         uf.uv4 = (0, 0)
-    debug('m3_import: !INFO! Importing materials...')
+    print('m3_import: !INFO! Importing materials...')
     material = bpy.data.materials.new('Mat00')
     mesh.materials.append(material)
     file.seek(tagTable[m.materials.refid].ofs)
     mm = mat(file)
-    tex_map = [('use_map_diffuse', 0), ('use_map_specular', 2),\
+    tex_map = [('use_map_color_diffuse', 0), ('use_map_specular', 2),\
                 ('use_map_normal', 9)]
     for map, i in tex_map:
         file.seek(tagTable[mm.layers[i].refid].ofs)
         nref = layr(file).name
         file.seek(tagTable[nref.refid].ofs)
         name = bytes.decode(file.read(nref.entries - 1))
-        path = os.path.join(os.path.dirname(op.properties.filepath),\
-                os.path.basename(str(name)))
-        tex = bpy.data.textures.new(name=os.path.basename(path), type='IMAGE')
-        if os.path.exists(path):
-            tex.image = bpy.data.images.load(path)
-            debug("m3_import: !INFO! Loaded %s" % (path))
+        name = os.path.basename(str(name))
+        tex = bpy.data.textures.new(name=name, type='IMAGE')
+        tex.image = load_image(name, os.path.dirname(op.filepath))
+        if tex.image != None:
+            print("m3_import: !INFO! Loaded %s" % (name))
         else:
-            debug("m3_import: !WARNING! Cannot find texture \"%s\"" % (path))
+            print("m3_import: !WARNING! Cannot find texture \"%s\"" % (name))
         mtex = material.texture_slots.add()
         mtex.texture = tex
         mtex.texture_coords = 'UV'
+        if i == 9:
+            mtex.normal_factor = 0.1    # Just a guess, seems to look nice
         mtex.use_map_color_diffuse = (i == 0)
         setattr(mtex, map, True)
 

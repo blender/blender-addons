@@ -16,61 +16,82 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-MAJOR_VERSION = 0
-MINOR_VERSION = 2
-BLENDER_VERSION = (2, 54, 0)
-__version__ = "%d.%d.0" % (MAJOR_VERSION, MINOR_VERSION)
-bl_info = {
-    'name': 'Import: M3 (.m3)',
-    'author': 'Cory Perry',
-    'version': (0, 2, 0),
-    'blender': (2, 5, 4),
-    "api": 31878,
-    "location": "File > Import",
-    "warning": "",
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/Scripts/"\
-        "Import-Export/M3_Import",
-    "tracker_url": "http://projects.blender.org/tracker/index.php?"\
-        "func=detail&aid=24017",
-    "category": "Import-Export",
-    "description": "This script imports m3 format files to Blender."}
+# <pep8 compliant>
 
+bl_info = {
+    'name': 'Blizzard M3 format',
+    'author': 'Cory Perry',
+    'version': (0, 2, 1),
+    'blender': (2, 5, 6),
+    'api': 34893,
+    'location': 'File > Import-Export',
+    'description': 'This script imports the Blizzard M3 format (.m3)',
+    'warning': '',
+    'wiki_url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/Scripts/'\
+        'Import-Export/M3_Import',
+    'tracker_url': 'http://projects.blender.org/tracker/index.php?'\
+        'func=detail&aid=24017',
+    'category': 'Import-Export'}
+
+
+# To support reload properly, try to access a package var, if it's there,
+# reload everything
 if "bpy" in locals():
     import imp
-    imp.reload(import_m3)
-    #imp.reload(export_m3)
-else:
-    pass
-    #from . import import_m3
-    #from . import export_m3
+    if 'import_m3' in locals():
+        imp.reload(import_m3)
+#   if 'export_m3' in locals():
+#       imp.reload(export_m3)
 
+import time
+import datetime
 import bpy
-
-def menu_import(self, context):
-    self.layout.operator(import_m3.M3Importer.bl_idname, \
-        text="Blizzard M3 (.m3)").filepath = "*.m3"
+from bpy.props import *
+from io_utils import ImportHelper, ExportHelper
 
 
-#def menu_export(self, context):
-#    from io_mesh_raw import export_raw
-#    import os
-#    default_path = os.path.splitext(bpy.data.filepath)[0] + ".raw"
-#    self.layout.operator(export_raw.RawExporter.bl_idname, \
-#        text="Raw Faces (.raw)").filepath = default_path
+class ImportM3(bpy.types.Operator, ImportHelper):
+    '''Import from M3 file format (.m3)'''
+    bl_idname = 'import_scene.blizzard_m3'
+    bl_label = 'Import M3'
+
+    filename_ext = '.m3'
+    filter_glob = StringProperty(default='*.m3', options={'HIDDEN'})
+
+    use_image_search = BoolProperty(name='Image Search',
+                        description='Search subdirectories for any associated'\
+                                    'images', default=True)
+
+    def execute(self, context):
+        from . import import_m3
+        print('Importing file', self.filepath)
+        t = time.mktime(datetime.datetime.now().timetuple())
+        with open(self.filepath, 'rb') as file:
+            import_m3.read(file, context, self)
+        t = time.mktime(datetime.datetime.now().timetuple()) - t
+        print('Finished importing in', t, 'seconds')
+        return {'FINISHED'}
+
+
+def menu_func_import(self, context):
+    self.layout.operator(ImportM3.bl_idname, text='Blizzard M3 (.m3)')
+
+
+#def menu_func_export(self, context):
+#   self.layout.operator(ExportM3.bl_idname, text='Blizzard M3 (.m3)')
+
 
 def register():
-    from . import import_m3
     bpy.utils.register_module(__name__)
-
-    bpy.types.INFO_MT_file_import.append(menu_import)
-#    bpy.types.INFO_MT_file_export.append(menu_export)
+    bpy.types.INFO_MT_file_import.append(menu_func_import)
+#   bpy.types.INFO_MT_file_export.append(menu_func_export)
 
 
 def unregister():
     bpy.utils.unregister_module(__name__)
+    bpy.types.INFO_MT_file_import.remove(menu_func_import)
+#   bpy.types.INFO_MT_file_export.remove(menu_func_export)
 
-    bpy.types.INFO_MT_file_import.remove(menu_import)
-#    bpy.types.INFO_MT_file_export.remove(menu_export)
 
 if __name__ == "__main__":
     register()
