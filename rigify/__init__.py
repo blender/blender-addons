@@ -108,11 +108,11 @@ for c in collection_list:
     col_enum_list += [(c, c, "")]
 
 
-class RigifyName(bpy.types.IDPropertyGroup):
+class RigifyName(bpy.types.PropertyGroup):
     name = bpy.props.StringProperty()
 
 
-class RigifyParameters(bpy.types.IDPropertyGroup):
+class RigifyParameters(bpy.types.PropertyGroup):
     name = bpy.props.StringProperty()
 
 

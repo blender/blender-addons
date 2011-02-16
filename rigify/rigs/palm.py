@@ -161,7 +161,7 @@ class Rig:
     @classmethod
     def add_parameters(self, group):
         """ Add the parameters of this rig type to the
-            RigifyParameters IDPropertyGroup
+            RigifyParameters PropertyGroup
 
         """
         items = [('X', 'X', ''), ('Z', 'Z', '')]

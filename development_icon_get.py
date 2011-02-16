@@ -203,7 +203,7 @@ def register():
     icons_total = len(create_icon_list_all())
     icons_per_row = 10
 
-    class IconProps(bpy.types.IDPropertyGroup):
+    class IconProps(bpy.types.PropertyGroup):
         """
         Fake module like class
         bpy.context.scene.icon_props

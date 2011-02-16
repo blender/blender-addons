@@ -81,10 +81,10 @@ licenses =  (
         ('7', 'Copyright', 'Copyright, no license specified'),
         )
 
-class ORESession(bpy.types.IDPropertyGroup):
+class ORESession(bpy.types.PropertyGroup):
     name = StringProperty(name='Name', description='Name of the session', maxlen=128, default='[session]')
 
-class ORESettings(bpy.types.IDPropertyGroup):
+class ORESettings(bpy.types.PropertyGroup):
     username = StringProperty(name='E-mail', description='E-mail for Renderfarm.fi', maxlen=256, default='')
     password = StringProperty(name='Password', description='Renderfarm.fi password', maxlen=256, default='')
     hash = StringProperty(name='Hash', description='hash calculated out of credentials', maxlen=33, default='')

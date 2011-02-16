@@ -115,7 +115,7 @@ def init_properties(obj, props, cache=True):
 			# Silently skip invalid entries in props
 			continue
 
-class declarative_property_group(bpy.types.IDPropertyGroup):
+class declarative_property_group(bpy.types.PropertyGroup):
 	"""A declarative_property_group describes a set of logically
 	related properties, using a declarative style to list each
 	property type, name, values, and other relevant information.
@@ -137,7 +137,7 @@ class declarative_property_group(bpy.types.IDPropertyGroup):
 	ef_initialised = False
 	
 	"""This property tells extensions_framework which bpy.type(s)
-	to attach this IDPropertyGroup to. If left as an empty list,
+	to attach this PropertyGroup to. If left as an empty list,
 	it will not be attached to any type, but its properties will
 	still be initialised. The type(s) given in the list should be
 	a string, such as 'Scene'.

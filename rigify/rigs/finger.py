@@ -277,7 +277,7 @@ class Rig:
     @classmethod
     def add_parameters(self, group):
         """ Add the parameters of this rig type to the
-            RigifyParameters IDPropertyGroup
+            RigifyParameters PropertyGroup
         """
         items = [('X', 'X', ''), ('Y', 'Y', ''), ('Z', 'Z', ''), ('-X', '-X', ''), ('-Y', '-Y', ''), ('-Z', '-Z', '')]
         group.primary_rotation_axis = bpy.props.EnumProperty(items=items, name="Primary Rotation Axis", default='X')

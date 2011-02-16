@@ -51,7 +51,7 @@ def register():
     bpy.coat3D['status'] = 0
     bpy.coat3D['kuva'] = 1
     
-    class ObjectCoat3D(bpy.types.IDPropertyGroup):
+    class ObjectCoat3D(bpy.types.PropertyGroup):
         objpath = StringProperty(name="Object_Path")
         coatpath = StringProperty(name="Coat_Path")
         objectdir = StringProperty(name="ObjectPath", subtype="FILE_PATH")
@@ -59,7 +59,7 @@ def register():
         path3b = StringProperty(name="3B Path", subtype="FILE_PATH")
 
 
-    class SceneCoat3D(bpy.types.IDPropertyGroup):
+    class SceneCoat3D(bpy.types.PropertyGroup):
         exchangedir = StringProperty(
             name="FilePath",
             subtype="DIR_PATH",

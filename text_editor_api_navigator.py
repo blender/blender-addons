@@ -675,7 +675,7 @@ def unregister_keymaps():
 def register():
     from bpy.props import StringProperty, IntProperty, PointerProperty
     
-    class ApiNavProps(bpy.types.IDPropertyGroup):
+    class ApiNavProps(bpy.types.PropertyGroup):
         """
         Fake module like class.
     
