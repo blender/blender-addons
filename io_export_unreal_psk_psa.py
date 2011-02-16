@@ -17,7 +17,7 @@
 
 bl_info = {
     "name": "Export Skeleletal Mesh/Animation Data",
-    "author": "Darknet/Optimus_P-Fat/Active_Trash/Sinsoft",
+    "author": "Darknet/Optimus_P-Fat/Active_Trash/Sinsoft/VendorX",
     "version": (2, 0),
     "blender": (2, 5, 6),
     "api": 31847,
@@ -706,6 +706,8 @@ def parse_meshes(blender_meshes, psk_file):
         for current_face in current_mesh.faces:
             #print ' -- Dumping UVs -- '
             #print current_face.uv_textures
+            # modified by VendorX
+            object_material_index = current_face.material_index
             
             if len(current_face.vertices) != 3:
                 raise RuntimeError("Non-triangular face (%i)" % len(current_face.vertices))
