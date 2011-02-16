@@ -448,7 +448,7 @@ def save(operator, context, filepath="",
 
         def getPoseBone(self):
             return self.__pose_bone
-        
+
         # get pose from frame.
         def getPoseMatrix(self, f):  # ----------------------------------------------
             return self.__anim_poselist[f]

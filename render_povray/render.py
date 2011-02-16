@@ -44,7 +44,7 @@ def splitExt(path):
     else:
         return path[dotidx:].upper().replace(".", "")
 
-    
+
 def imageFormat(imgF):
     ext = ""
     ext_orig = splitExt(imgF)
@@ -314,7 +314,7 @@ def write_pov(filename, scene=None, info_callback=None):
             tabWrite("}\n")
             if not ob.pov_collect_photons:
                 tabWrite("photons{collect off}\n")
-                    
+
             if pov_photons_refraction or pov_photons_reflection:
                 tabWrite("photons{\n")
                 tabWrite("target\n")
@@ -536,7 +536,7 @@ def write_pov(filename, scene=None, info_callback=None):
             tabWrite("rotate  <%.6f, %.6f, %.6f>\n" % tuple([degrees(e) for e in matrix.to_3x3().to_euler()]))
             tabWrite("translate <%.6f, %.6f, %.6f>\n" % (matrix[3][0], matrix[3][1], matrix[3][2]))
             if camera.data.pov_dof_enable and focal_point != 0:
-                tabWrite("aperture %.3g\n" % camera.data.pov_dof_aperture) 
+                tabWrite("aperture %.3g\n" % camera.data.pov_dof_aperture)
                 tabWrite("blur_samples %d %d\n" % (camera.data.pov_dof_samples_min, camera.data.pov_dof_samples_max))
                 tabWrite("variance 1/%d\n" % camera.data.pov_dof_variance)
                 tabWrite("confidence %.3g\n" % camera.data.pov_dof_confidence)
@@ -593,7 +593,7 @@ def write_pov(filename, scene=None, info_callback=None):
                     tabWrite("adaptive 1\n")
                     tabWrite("jitter\n")
 
-            if not scene.render.use_shadows or lamp.type == 'HEMI' or (lamp.type != 'HEMI' and lamp.shadow_method == 'NOSHADOW'): # HEMI never has any shadow_method attribute
+            if not scene.render.use_shadows or lamp.type == 'HEMI' or (lamp.type != 'HEMI' and lamp.shadow_method == 'NOSHADOW'):  # HEMI never has any shadow_method attribute
                 tabWrite("shadowless\n")
 
             if lamp.type not in ('SUN', 'AREA', 'HEMI'):  # Sun shouldn't be attenuated. Hemi and area lights have no falloff attribute so they are put to type 2 attenuation a little higher above.

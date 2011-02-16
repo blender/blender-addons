@@ -71,7 +71,7 @@ class ImportSTL(bpy.types.Operator, ImportHelper):
     bl_label = "Import STL"
 
     filename_ext = ".stl"
-    
+
     filter_glob = StringProperty(default="*.stl", options={'HIDDEN'})
 
     files = CollectionProperty(name="File Path",

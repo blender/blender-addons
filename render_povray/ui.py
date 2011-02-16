@@ -189,7 +189,7 @@ class RENDER_PT_povray_export_settings(RenderButtonsPanel, bpy.types.Panel):
             col = split.column()
             col.prop(scene, "pov_indentation_character", text="Indent")
             col = split.column()
-            if scene.pov_indentation_character == "2": 
+            if scene.pov_indentation_character == "2":
                 col.prop(scene, "pov_indentation_spaces", text="Spaces")
             split = layout.split()
             col = split.column()
@@ -212,7 +212,7 @@ class RENDER_PT_povray_render_settings(RenderButtonsPanel, bpy.types.Panel):
 
         split = layout.split()
         col = split.column()
-        
+
         col.label(text="Global Settings")
         col.prop(scene, "pov_max_trace_level", text="Ray Depth")
 
@@ -227,7 +227,7 @@ class RENDER_PT_povray_render_settings(RenderButtonsPanel, bpy.types.Panel):
         col = split.column()
 
         col.prop(scene, "pov_photon_adc_bailout", text="Photon ADC")
-        col.prop(scene, "pov_photon_gather_max")      
+        col.prop(scene, "pov_photon_gather_max")
 
 
 class RENDER_PT_povray_antialias(RenderButtonsPanel, bpy.types.Panel):
@@ -483,13 +483,13 @@ class MATERIAL_PT_povray_caustics(MaterialButtonsPanel, bpy.types.Panel):
 
             col = split.column()
             col.prop(mat, "pov_refraction_type")
-            
+
             if mat.pov_refraction_type == "1":
                 col.prop(mat, "pov_fake_caustics_power", slider=True)
             elif mat.pov_refraction_type == "2":
                 col.prop(mat, "pov_photons_dispersion", slider=True)
             col.prop(mat, "pov_photons_reflection")
-            
+
             if mat.pov_refraction_type == "0" and not mat.pov_photons_reflection:
                 split = layout.split()
                 col = split.column()
@@ -550,24 +550,24 @@ class Camera_PT_povray_cam_dof(CameraDataButtonsPanel, bpy.types.Panel):
         cam = context.camera
 
         self.layout.prop(cam, "pov_dof_enable", text="")
-        
+
     def draw(self, context):
         layout = self.layout
 
         cam = context.camera
 
         layout.active = cam.pov_dof_enable
-        
+
         split = layout.split()
         row = split.row()
         row.prop(cam, "pov_dof_aperture")
-        
+
         split = layout.split()
         col = split.column()
 
         col.prop(cam, "pov_dof_samples_min")
         col.prop(cam, "pov_dof_variance")
-        
+
         col = split.column()
 
         col.prop(cam, "pov_dof_samples_max")
