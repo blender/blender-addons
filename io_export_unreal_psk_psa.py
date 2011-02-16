@@ -688,7 +688,7 @@ def parse_meshes(blender_meshes, psk_file):
     print ("----- parsing meshes -----")
     print("Number of Object Meshes:",len(blender_meshes))
     for current_obj in blender_meshes: #number of mesh that should be one mesh here
-        bpy.ops.object.mode_set(mode='EDIT')
+        #bpy.ops.object.mode_set(mode='EDIT')
         current_obj = triangulateNMesh(current_obj)
         #print(dir(current_obj))
         print("Mesh Name:",current_obj.name)
@@ -1525,6 +1525,8 @@ def fs_callback(filename, context):
     if len(blender_meshes) == 1:
         print(" - One Mesh Scene")
     elif (len(blender_meshes) > 1) and (len(selectmesh) == 1):
+        blender_meshes = []
+        blender_meshes.append(selectmesh[0])
         print(" - One Mesh [Select]")
     else:
         print(" - Too Many Meshes!")
@@ -1553,7 +1555,7 @@ def fs_callback(filename, context):
             #print("Okay")
             bMeshCenter = True
         else:
-            print("Error, Mesh Object not center.")
+            print("Error, Mesh Object not center.",blender_meshes[0].location)
             bMeshCenter = False
     bArmatureScale = True
     bArmatureCenter = True
@@ -1568,7 +1570,7 @@ def fs_callback(filename, context):
             #print("Okay")
             bArmatureCenter = True
         else:
-            print("Error, Armature Object not center.")
+            print("Error, Armature Object not center.",blender_armature[0].location)
             bArmatureCenter = False
 			
 		
