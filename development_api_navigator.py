@@ -1,4 +1,4 @@
-# text_editor_api_navigator.py
+# development_api_navigator.py
 #
 # ***** BEGIN GPL LICENSE BLOCK *****
 #
@@ -22,9 +22,9 @@
 bl_info = {
     "name": "API Navigator",
     "author": "Dany Lebel (Axon_D)",
-    "version": (1, 0),
-    "blender": (2, 5, 5),
-    "api": 32760,
+    "version": (1, 0, 1),
+    "blender": (2, 5, 6),
+    "api": 34936,
     "location": "Text Editor > Properties > API Navigator Panel",
     "description": "Allows to explore the python api via the user interface",
     "warning": "",
@@ -32,7 +32,7 @@ bl_info = {
         "Scripts/Text_Editor/API_Navigator",
     "tracker_url": "http://projects.blender.org/tracker/index.php?"\
         "func=detail&aid=24982",
-    "category": "Text Editor"}
+    "category": "Development"}
 
 """
     You can browse through the tree structure of the api. Each child object appears in a list
