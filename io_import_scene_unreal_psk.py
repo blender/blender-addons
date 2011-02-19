@@ -438,7 +438,7 @@ def pskimport(infile,importmesh,importbone,bDebugLogPSK):
                     newbone.tail.y = parentbone.head.y + (pos_y + bonesize * rotmatrix[1][1])
                     newbone.tail.z = parentbone.head.z + (pos_z + bonesize * rotmatrix[1][2])
                 else:
-                    print("rotmatrix:",dir(bone.bindmat.to_matrix().resize_4x4()))
+                    #print("rotmatrix:",dir(bone.bindmat.to_matrix().resize_4x4()))
                     #rotmatrix = bone.bindmat.to_matrix().resize_4x4().to_3x3()  # XXX, redundant matrix conversion?
                     rotmatrix = bone.bindmat.to_matrix().to_3x3()  # XXX, redundant matrix conversion?
 					
@@ -603,7 +603,9 @@ class IMPORT_OT_psk(bpy.types.Operator):
     '''Load a skeleton mesh psk File'''
     bl_idname = "import_scene.psk"
     bl_label = "Import PSK"
-
+    bl_space_type = "PROPERTIES"
+    bl_region_type = "WINDOW"
+	
     # List of operator properties, the attributes will be assigned
     # to the class instance from the operator settings before calling.
     filepath = StringProperty(name="File Path", description="Filepath used for importing the OBJ file", maxlen= 1024, default= "")
@@ -624,9 +626,11 @@ def menu_func(self, context):
     self.layout.operator(IMPORT_OT_psk.bl_idname, text="Skeleton Mesh (.psk)")
 
 def register():
+    bpy.utils.register_module(__name__)
     bpy.types.INFO_MT_file_import.append(menu_func)
     
 def unregister():
+    bpy.utils.unregister_module(__name__)
     bpy.types.INFO_MT_file_import.remove(menu_func)
 
 if __name__ == "__main__":
