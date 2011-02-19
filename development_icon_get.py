@@ -79,7 +79,7 @@ class OBJECT_PT_icons(bpy.types.Panel):
     bl_region_type = "UI"
     bl_label = "All icons"
 
-    def __init__(self, x):
+    def __init__(self):
         self.amount = 10
         self.icon_list = create_icon_list()
 
@@ -155,7 +155,7 @@ class CONSOLE_HT_icons(bpy.types.Header):
     bl_space_type = 'CONSOLE'
     _search_old = ""
 
-    def __init__(self, x):
+    def __init__(self):
         self.amount = 10
         self.icon_list = create_icon_list()
 
