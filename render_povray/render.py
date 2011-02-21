@@ -23,7 +23,6 @@ import subprocess
 import os
 import sys
 import time
-import math
 from math import atan, pi, degrees, sqrt
 
 import platform as pltfrm
@@ -1573,7 +1572,6 @@ class PovrayRender(bpy.types.RenderEngine):
 
     def _export(self, scene, povPath, renderImagePath):
         import tempfile
-        import os
 
         if scene.pov_tempfiles_enable:
             self._temp_file_in = tempfile.NamedTemporaryFile(suffix=".pov", delete=False).name

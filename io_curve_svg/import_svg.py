@@ -111,7 +111,6 @@ def SVGRectFromNode(node, context):
 
         if node.getAttribute('height'):
             h = SVGParseCoord(node.getAttribute('height'), h)
-    
 
     return (w, h)
 

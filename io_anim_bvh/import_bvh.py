@@ -263,6 +263,7 @@ def read_bvh(context, file_path, rotate_mode='XYZ', global_scale=1.0):
 
         # Make sure tail isnt the same location as the head.
         if (bvh_node.rest_tail_local - bvh_node.rest_head_local).length <= 0.001 * global_scale:
+            print("\tzero length node found:", bvh_node.name)
             bvh_node.rest_tail_local.y = bvh_node.rest_tail_local.y + global_scale / 10
             bvh_node.rest_tail_world.y = bvh_node.rest_tail_world.y + global_scale / 10
 
@@ -383,10 +384,11 @@ def bvh_node_dict2armature(context, bvh_name, bvh_nodes, rotate_mode='XYZ', fram
 
         # ZERO AREA BONES.
         if (bone.head - bone.tail).length < 0.001:
+            print("\tzero length bone found:", bone.name)
             if bvh_node.parent:
                 ofs = bvh_node.parent.rest_head_local - bvh_node.parent.rest_tail_local
                 if ofs.length:  # is our parent zero length also?? unlikely
-                    bone.tail = bone.tail + ofs
+                    bone.tail = bone.tail - ofs
                 else:
                     bone.tail.y = bone.tail.y + average_bone_length
             else:
