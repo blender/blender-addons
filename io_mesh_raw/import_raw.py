@@ -79,8 +79,10 @@ def readMesh(filename, objName):
     verts = []
     coords = {}
     index_tot = 0
+    faces_indices = []
     
     for f in faces:
+        fi = []
         for i, v in enumerate(f):
             index = coords.get(v)
 
@@ -89,13 +91,12 @@ def readMesh(filename, objName):
                 index_tot += 1
                 verts.append(v)
 
-            fi[i] = index
+            fi.append(index)
+
+        faces_indices.append(fi)
 
     mesh = bpy.data.meshes.new(objName)
-    mesh.vertices.add(len(verts))
-    mesh.faces.add(len(faces))
-    mesh.vertices.foreach_set("co", unpack_list(verts))
-    mesh.faces.foreach_set("vertices_raw", unpack_face_list(faces))
+    mesh.from_pydata(verts, [], faces_indices)
 
     return mesh
 
@@ -129,7 +130,7 @@ class RawImporter(bpy.types.Operator):
     def execute(self, context):
 
         #convert the filename to an object name
-        objName = bpy.path.display_name(self.filename.split("\\")[-1].split("/")[-1])
+        objName = bpy.path.display_name(self.filepath.split("\\")[-1].split("/")[-1])
 
         mesh = readMesh(self.filepath, objName)
         addMeshObj(mesh, objName)

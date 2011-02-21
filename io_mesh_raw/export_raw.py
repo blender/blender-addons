@@ -49,8 +49,8 @@ def faceToTriangles(face):
 
 def faceValues(face, mesh, matrix):
     fv = []
-    for verti in face.vertices_raw:
-        fv.append(matrix * mesh.vertices[verti].co)
+    for verti in face.vertices:
+        fv.append(mesh.vertices[verti].co * matrix)
     return fv
 
 
