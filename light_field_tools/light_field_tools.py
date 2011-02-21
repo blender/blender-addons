@@ -273,6 +273,7 @@ class OBJECT_OT_create_lightfield_rig(bpy.types.Operator):
 
         obj = self.baseObject = context.active_object
         if not obj or obj.type != 'MESH':
+            self.report({'ERROR'}, "No selected mesh object!")
             return 'CANCELLED'
 
         self.verts = self.arrangeVerts()
@@ -345,10 +346,12 @@ class OBJECT_OT_create_lightfield_basemesh(bpy.types.Operator):
         obj = context.active_object
         # check if active object is a mesh object
         if not obj or obj.type != 'MESH':
+            self.report({'ERROR'}, "No selected mesh object!")
             return 'CANCELLED'
 
-        # check if it has at least one face
-        if len(obj.data.faces) < 1:
+        # check if it has one single face
+        if len(obj.data.faces) != 1:
+            self.report({'ERROR'}, "The selected mesh object has to have exactly one quad!")
             return 'CANCELLED'
 
         rl = scene.lightfield.row_length
