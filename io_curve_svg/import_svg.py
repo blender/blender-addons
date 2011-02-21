@@ -193,7 +193,7 @@ def SVGGetMaterial(color, context):
         return None
 
     mat = bpy.data.materials.new(name='SVGMat')
-    mat.diffuse_color = diff
+    mat.diffuse_color = ([x / 255.0 for x in diff])
 
     materials[color] = mat
 
@@ -291,6 +291,48 @@ SVGTransforms = {'translate': SVGTransformTranslate,
                  'skewY': SVGTransformSkewY,
                  'matrix': SVGTransformMatrix,
                  'rotate': SVGTransformRotate}
+
+
+def SVGParseStyles(node, context):
+    """
+    Parse node to get different styles for displaying geometries
+    (materilas, filling flags, etc..)
+    """
+
+    styles = {'useFill': None,
+              'fill': None}
+
+    style = node.getAttribute('style')
+    if style:
+        elems = style.split(';')
+        print(elems)
+        for elem in elems:
+            s = elem.split(':')
+
+            name = s[0].strip().lower()
+            val = s[1].strip()
+
+            if name == 'fill':
+                val = val.lower()
+                if val == 'none':
+                    styles['useFill'] = False
+                else:
+                    styles['useFill'] = True
+                    styles['fill'] = SVGGetMaterial(val, context)
+
+        return styles
+
+    if styles['useFill'] is None:
+        fill = self._node.getAttribute('fill')
+        if fill:
+            fill = fill.lower()
+            if fill == 'none':
+                styles['useFill'] = False
+            else:
+                styles['useFill'] = True
+                styles['fill'] = SVGGetMaterial(fill, context)
+
+    return styles
 
 #### SVG path helpers ####
 
@@ -921,8 +963,7 @@ class SVGGeometryPATH(SVGGeometry):
     """
 
     __slots__ = ('_splines',  # List of splines after parsing
-                 '_useFill',  # Should path be filled?
-                 '_fill')  # Material used for filling
+                 '_styles')  # Styles, used for displaying
 
     def __init__(self, node, context):
         """
@@ -932,8 +973,7 @@ class SVGGeometryPATH(SVGGeometry):
         super().__init__(node, context)
 
         self._splines = []
-        self._fill = None
-        self._useFill = False
+        self._styles = None
 
     def parse(self):
         """
@@ -946,13 +986,7 @@ class SVGGeometryPATH(SVGGeometry):
         pathParser.parse()
 
         self._splines = pathParser.getSplines()
-        self._fill = None
-        self._useFill = False
-
-        fill = self._node.getAttribute('fill')
-        if fill:
-            self._useFill = True
-            self._fill = SVGGetMaterial(fill, self._context)
+        self._styles = SVGParseStyles(self._node, self._context)
 
     def _doCreateGeom(self):
         """
@@ -962,9 +996,9 @@ class SVGGeometryPATH(SVGGeometry):
         ob = SVGCreateCurve()
         cu = ob.data
 
-        if self._useFill:
+        if self._styles['useFill']:
             cu.dimensions = '2D'
-            cu.materials.append(self._fill)
+            cu.materials.append(self._styles['fill'])
         else:
             cu.dimensions = '3D'
 
