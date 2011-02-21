@@ -146,7 +146,7 @@ def fixRoll(b):
         #align Z-axis
         b.roll -= math.degrees(math.atan2(v[0]*v[2]*(1 - v[1]),v[0]*v[0] + v[1]*v[2]*v[2])) 
         
-def pskimport(infile,importmesh,importbone,bDebugLogPSK):
+def pskimport(infile,importmesh,importbone,bDebugLogPSK,importmultiuvtextures):
     global DEBUGLOG
     DEBUGLOG = bDebugLogPSK
     print ("--------------------------------------------------")
@@ -243,7 +243,8 @@ def pskimport(infile,importmesh,importbone,bDebugLogPSK):
         u2 = UVCoords[indata[2]][1]
         v2 = UVCoords[indata[2]][2]
         uv.append([u2,v2])
-        faceuv.append(uv)
+        faceuv.append([uv,indata[3],indata[4],indata[5]])
+        #print("material:",indata[3])
         #print("UV: ",u0,v0)
         #update the uv var of the last item in the Tmsh.faces list
         # which is the face just added above
@@ -270,9 +271,12 @@ def pskimport(infile,importmesh,importbone,bDebugLogPSK):
     printlog("Nbr of MATT0000 records: " +  str(recCount) + "\n" )
     printlog(" - Not importing any material data now. PSKs are texture wrapped! \n")
     counter = 0
+    materialcount = 0
     while counter < recCount:
         counter = counter + 1
         indata = unpack('64s6i',pskfile.read(88))
+        materialcount += 1
+        print("Material",counter)		
     ##
     
     #================================================================================================== 
@@ -530,31 +534,134 @@ def pskimport(infile,importmesh,importbone,bDebugLogPSK):
     me_ob.faces.foreach_set("use_smooth", [False] * len(me_ob.faces))
     me_ob.update_tag()
     
+    """
+	Material setup coding.
+	First the mesh has to be create first to get the uv texture setup working.
+	-Create material(s) list in the psk pack data from the list.(to do list)
+	-Append the material to the from create the mesh object.
+	-Create Texture(s)
+	-fae loop for uv assign and assign material index
+	
+    """
+    bpy.ops.object.mode_set(mode='OBJECT')
+    #===================================================================================================
+    #Material Setup
+    #===================================================================================================
+    print ("-------------------------")
+    print ("----Creating--Materials--")
+    print ("-------------------------")
+    materialname = "pskmat"
+    materials = []
+	
+    for matcount in range(materialcount):
+        
+        #if texturedata != None:
+        matdata = bpy.data.materials.new(materialname + str(matcount))
+        #mtex = matdata.texture_slots.new()
+        #mtex.texture = texture[matcount].data
+        #print(type(texture[matcount].data))
+        #print(dir(mtex))
+        #print(dir(matdata))
+        #for texno in range(len( bpy.data.textures)):
+            #print((bpy.data.textures[texno].name))		
+            #print(dir(bpy.data.textures[texno]))
+        #matdata.active_texture = bpy.data.textures[matcount-1]
+        #matdata.texture_coords = 'UV'
+        #matdata.active_texture = texturedata
+        materials.append(matdata)
+	
+    for material in materials:
+        #add material to the mesh list of materials
+        me_ob.materials.append(material)
     #===================================================================================================
     #UV Setup
     #===================================================================================================
+    print ("-------------------------")
+    print ("-- Creating UV Texture --")
+    print ("-------------------------") 
     texture = []
     texturename = "text1"
-    #print(dir(bpy.data))
-    if (len(faceuv) > 0):
-        uvtex = me_ob.uv_textures.new() #add one uv texture
-        for i, face in enumerate(me_ob.faces):
-            blender_tface= uvtex.data[i] #face
-            blender_tface.uv1 = faceuv[i][0] #uv = (0,0)
-            blender_tface.uv2 = faceuv[i][1] #uv = (0,0)
-            blender_tface.uv3 = faceuv[i][2] #uv = (0,0)
-        texture.append(uvtex)
-        
+    countm = 0
+    #for countm in range(materialcount):
+        #psktexname="psk" + str(countm)
+        #me_ob.uv_textures.new(name=psktexname)
+    if importmultiuvtextures == True:
+        me_ob.uv_textures.new(name="pskuvtexture")
+        #print(dir(bpy.data))
+        if (len(faceuv) > 0):
+            for countm in range(len(me_ob.uv_textures)):
+                me_ob.update()
+                uvtex = me_ob.uv_textures[countm] #add one uv texture
+                me_ob.update()
+                #print("UV TEXTURE NAME:",uvtex.name)
+                for i, face in enumerate(me_ob.faces):
+                    blender_tface = uvtex.data[i] #face
+                    mfaceuv = faceuv[i]
+                    #print("---------------------------------------")
+                    #print(faceuv[i][1])
+                    #print(dir(face))
+                    face.material_index = faceuv[i][1]
+                    blender_tface.uv1 = mfaceuv[0][0] #uv = (0,0)
+                    blender_tface.uv2 = mfaceuv[0][1] #uv = (0,0)
+                    blender_tface.uv3 = mfaceuv[0][2] #uv = (0,0)
+                texture.append(uvtex)
+    else:
+        for countm in range(materialcount):
+            psktexname="psk" + str(countm)
+            me_ob.uv_textures.new(name=psktexname)
+		    #psktexname="psk" + str(countm)
+        #me_ob.uv_textures.new(name=psktexname)
+        for countm in range(len(me_ob.uv_textures)):
+                me_ob.update()
+                #print(dir(me_ob.uv_textures))
+                #psktexname="psk" + str(countm)
+                uvtex = me_ob.uv_textures[countm] #add one uv texture
+                me_ob.update()
+                #print("UV TEXTURE NAME:",uvtex.name)
+                if (len(faceuv) > 0):
+                    counttex = 0
+                    countm = 0
+                    for countm in range(len(me_ob.uv_textures)):
+                        me_ob.update()
+                        #print(dir(me_ob.uv_textures))
+                        psktexname="psk" + str(countm)
+                        uvtex = me_ob.uv_textures[countm] #add one uv texture
+                        me_ob.update()
+                        #print("UV TEXTURE NAME:",uvtex.name)
+                        for i, face in enumerate(me_ob.faces):
+                            blender_tface = uvtex.data[i] #face
+                            mfaceuv = faceuv[i]
+                            #print("---------------------------------------")
+                            #print(faceuv[i][1])
+                            #print(dir(face))
+                            face.material_index = faceuv[i][1]
+                            if countm == faceuv[i][1]:
+                                face.material_index = faceuv[i][1]
+                                blender_tface.uv1 = mfaceuv[0][0] #uv = (0,0)
+                                blender_tface.uv2 = mfaceuv[0][1] #uv = (0,0)
+                                blender_tface.uv3 = mfaceuv[0][2] #uv = (0,0)
+                            else:
+                                #set uv to zero (0,0)
+                                #print("--------------------")
+                                #print(blender_tface.uv1)
+                                #print(blender_tface.uv2)
+                                #print(blender_tface.uv2)
+                                blender_tface.uv1 = [0,0]
+                                #print(blender_tface.uv1)
+                                blender_tface.uv2 = [0,0]
+                                blender_tface.uv3 = [0,0]
+                    
+                texture.append(uvtex)		
+    print("UV TEXTURE LEN:",len(texture))
         #for tex in me_ob.uv_textures:
             #print("mesh tex:",dir(tex))
             #print((tex.name))
     
-    #===================================================================================================
-    #Material Setup
-    #===================================================================================================
-    materialname = "mat"
-    materials = []
+    #for face in me_ob.faces:
+        #print(dir(face))
     
+		
+    '''
     matdata = bpy.data.materials.new(materialname)
     #color is 0 - 1 not in 0 - 255
     #matdata.mirror_color=(float(0.04),float(0.08),float(0.44))
@@ -574,6 +681,7 @@ def pskimport(infile,importmesh,importbone,bDebugLogPSK):
     for material in materials:
         #add material to the mesh list of materials
         me_ob.materials.append(material)
+    '''
     #===================================================================================================
     #
     #===================================================================================================
@@ -589,13 +697,13 @@ def pskimport(infile,importmesh,importbone,bDebugLogPSK):
     print ("PSK2Blender completed")
 #End of def pskimport#########################
 
-def getInputFilename(filename,importmesh,importbone,bDebugLogPSK):
+def getInputFilename(filename,importmesh,importbone,bDebugLogPSK,importmultiuvtextures):
     checktype = filename.split('\\')[-1].split('.')[1]
     print ("------------",filename)
     if checktype.upper() != 'PSK':
         print ("  Selected file = ",filename)
         raise (IOError, "The selected input file is not a *.psk file")
-    pskimport(filename,importmesh,importbone,bDebugLogPSK)
+    pskimport(filename,importmesh,importbone,bDebugLogPSK,importmultiuvtextures)
 
 from bpy.props import *
 
@@ -611,10 +719,11 @@ class IMPORT_OT_psk(bpy.types.Operator):
     filepath = StringProperty(name="File Path", description="Filepath used for importing the OBJ file", maxlen= 1024, default= "")
     importmesh = BoolProperty(name="Mesh", description="Import mesh only. (not yet build.)", default=True)
     importbone = BoolProperty(name="Bones", description="Import bones only. Current not working yet.", default=True)
+    importmultiuvtextures = BoolProperty(name="Single UV Texture(s)", description="Single or Multi uv textures.", default=True)
     bDebugLogPSK = BoolProperty(name="Debug Log.txt", description="Log the output of raw format. It will save in current file dir. Note this just for testing.", default=False)
 
     def execute(self, context):
-        getInputFilename(self.filepath,self.importmesh,self.importbone,self.bDebugLogPSK)
+        getInputFilename(self.filepath,self.importmesh,self.importbone,self.bDebugLogPSK,self.importmultiuvtextures)
         return {'FINISHED'}
 
     def invoke(self, context, event):
