@@ -1,8 +1,4 @@
-#3d_cursor_menu.py (c) 2010 Jonathan Smith (JayDez)
-#Original Script by: Mariano Hidalgo (uselessdreamer)
-#contributed to by: Crouch, sim88, sam, meta-androcto
-#
-#Tested with r28146
+#3d_cursor_menu.py (c) 2011 Jonathan Smith (JayDez)
 #
 # ##### BEGIN GPL LICENSE BLOCK #####
 #
@@ -154,7 +150,7 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
 
             # Add block
             layout.menu("INFO_MT_mesh_add", text="Add Mesh",
-                icon='EDITMODE_HLT')
+                icon='OUTLINER_OB_MESH')
             layout.separator()
 
             # Transform block
@@ -175,7 +171,7 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
             layout.separator()
 
             # Edit block
-            layout.menu("VIEW3D_MT_edit_TK", icon='OUTLINER_OB_MESH')
+            layout.menu("VIEW3D_MT_edit_TK", icon='EDITMODE_HLT')
             layout.separator()
 
             # Multi Select
@@ -183,7 +179,7 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
             layout.separator()
 
             # Extrude block
-            layout.menu("VIEW3D_MT_edit_mesh_extrude", icon='EDITMODE_HLT')
+            layout.menu("VIEW3D_MT_edit_mesh_extrude", icon='EDIT_VEC')
             layout.separator()
 
             # Tools block
