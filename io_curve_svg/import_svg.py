@@ -790,7 +790,8 @@ class SVGGeometry:
 
     __slots__ = ('_node',  # XML node for geometry
                  '_context',  # Global SVG context (holds matrices stack, i.e.)
-                 '_creating')  # Flag if geometry is already creating for this node
+                 '_creating')  # Flag if geometry is already creating
+                               # for this node
                                # need to detect cycles for USE node
 
     def __init__(self, node, context):
