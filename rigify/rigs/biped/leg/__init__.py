@@ -78,7 +78,6 @@ class Rig:
         group.separate_ik_layers = bpy.props.BoolProperty(name="Separate IK Control Layers:", default=False, description="Enable putting the ik controls on a separate layer from the fk controls.")
         group.ik_layers = bpy.props.BoolVectorProperty(size=32, description="Layers for the ik controls to be on.")
 
-        print("Adding thigh twist.")
         group.use_thigh_twist = bpy.props.BoolProperty(name="Thigh Twist", default=True, description="Generate the dual-bone twist setup for the thigh.")
         group.use_shin_twist = bpy.props.BoolProperty(name="Shin Twist", default=True, description="Generate the dual-bone twist setup for the shin.")
 
