@@ -28,7 +28,8 @@ bl_info = {
     "warning": "",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"\
         "Scripts/Import-Export/SVG",
-    "tracker_url": "",
+    "tracker_url": "http://projects.blender.org/tracker/index.php?"\
+        "func=detail&aid=26166&",
     "support": 'OFFICIAL',
     "category": "Import-Export"}
 
