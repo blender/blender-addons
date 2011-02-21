@@ -2,7 +2,7 @@ INTRODUCTION
 ------------
 Rigify is an auto-rigging system based on a "building blocks" paradigm.  The
 user can create a rig by putting together any combination of rig types, in any
-confguration that they want.
+configuration that they want.
 
 A rig type is something like "biped arm" or "spine" or "finger".
 

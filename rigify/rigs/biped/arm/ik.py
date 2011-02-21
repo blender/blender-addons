@@ -158,9 +158,9 @@ class Rig:
         vispole_e.tail = vispole_e.head + Vector((0, 0, v1.length / 32))
 
         # Determine the pole offset value
-        plane = (farm_e.tail - uarm_e.head).normalize()
-        vec1 = uarm_e.x_axis.normalize()
-        vec2 = (pole_e.head - uarm_e.head).normalize()
+        plane = (farm_e.tail - uarm_e.head).normalized()
+        vec1 = uarm_e.x_axis.normalized()
+        vec2 = (pole_e.head - uarm_e.head).normalized()
         pole_offset = angle_on_plane(plane, vec1, vec2)
 
         # Object mode, get pose bones

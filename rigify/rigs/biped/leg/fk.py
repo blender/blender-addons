@@ -141,7 +141,7 @@ class Rig:
 
         # Positioning
         vec = Vector(eb[self.org_bones[3]].vector)
-        vec = vec.normalize()
+        vec.normalize()
         foot_e.tail = foot_e.head + (vec * foot_e.length)
         foot_e.roll = eb[self.org_bones[3]].roll
 

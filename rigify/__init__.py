@@ -116,13 +116,6 @@ class RigifyParameters(bpy.types.PropertyGroup):
     name = bpy.props.StringProperty()
 
 
-for rig in rig_list:
-    r = utils.get_rig_type(rig).Rig
-    try:
-        r.add_parameters(RigifyParameters)
-    except AttributeError:
-        pass
-
 
 ##### REGISTER #####
 
@@ -141,6 +134,13 @@ def register():
     IDStore.rigify_types = bpy.props.CollectionProperty(type=RigifyName)
     IDStore.rigify_active_type = bpy.props.IntProperty(name="Rigify Active Type", description="The selected rig type.")
 
+    # Add rig parameters
+    for rig in rig_list:
+        r = utils.get_rig_type(rig).Rig
+        try:
+            r.add_parameters(RigifyParameters)
+        except AttributeError:
+            pass
 
 def unregister():
     del bpy.types.PoseBone.rigify_type

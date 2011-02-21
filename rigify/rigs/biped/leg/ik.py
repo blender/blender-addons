@@ -221,7 +221,7 @@ class Rig:
 
         # Positioning
         vec = Vector(toe_e.vector)
-        vec = vec.normalize()
+        vec.normalize()
         foot_e.tail = foot_e.head + (vec * foot_e.length)
         foot_e.roll = toe_e.roll
 
@@ -281,9 +281,9 @@ class Rig:
         foot_ik_target_e.tail = Vector(org_foot_e.tail)
 
         # Determine the pole offset value
-        plane = (shin_e.tail - thigh_e.head).normalize()
-        vec1 = thigh_e.x_axis.normalize()
-        vec2 = (pole_e.head - thigh_e.head).normalize()
+        plane = (shin_e.tail - thigh_e.head).normalized()
+        vec1 = thigh_e.x_axis.normalized()
+        vec2 = (pole_e.head - thigh_e.head).normalized()
         pole_offset = angle_on_plane(plane, vec1, vec2)
 
         # Object mode, get pose bones
