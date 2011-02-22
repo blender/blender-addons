@@ -323,7 +323,7 @@ def SVGParseStyles(node, context):
         return styles
 
     if styles['useFill'] is None:
-        fill = self._node.getAttribute('fill')
+        fill = node.getAttribute('fill')
         if fill:
             fill = fill.lower()
             if fill == 'none':
@@ -354,7 +354,7 @@ class SVGPathData:
         """
 
         # Convert to easy-to-parse format
-        d = d.replace(',', ' ')
+        d = d.replace(',', ' ').replace('-', ' -')
         d = re.sub('([A-z])', ' \\1 ', d)
 
         self._data = d.split()
