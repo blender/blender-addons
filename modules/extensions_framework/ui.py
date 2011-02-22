@@ -156,7 +156,7 @@ class property_group_renderer(bpy.types.Panel):
 						if 'type' in current_property_keys:
 							
 							if current_property['type'] in ['int', 'float',
-								'float_vector', 'enum', 'string']:
+								'float_vector', 'string']:
 								layout.prop(
 									property_group,
 									control_list_item,
@@ -183,6 +183,41 @@ class property_group_renderer(bpy.types.Panel):
 										if 'emboss' in current_property_keys \
 										else True,
 								)
+							if current_property['type'] in ['enum']:
+								if 'use_menu' in current_property_keys and \
+									current_property['use_menu']:
+									layout.prop_menu_enum(
+										property_group,
+										control_list_item,
+										text = current_property['name']
+									)
+								else:
+									layout.prop(
+										property_group,
+										control_list_item,
+										text = current_property['name'],
+										expand = current_property['expand'] \
+											if 'expand' in current_property_keys \
+											else False,
+										slider = current_property['slider'] \
+											if 'slider' in current_property_keys \
+											else False,
+										toggle = current_property['toggle'] \
+											if 'toggle' in current_property_keys \
+											else False,
+										icon_only = current_property['icon_only'] \
+											if 'icon_only' in current_property_keys \
+											else False,
+										event = current_property['event'] \
+											if 'event' in current_property_keys \
+											else False,
+										full_event = current_property['full_event'] \
+											if 'full_event' in current_property_keys \
+											else False,
+										emboss = current_property['emboss'] \
+											if 'emboss' in current_property_keys \
+											else True,
+									)
 							if current_property['type'] in ['bool']:
 								layout.prop(
 									property_group,
