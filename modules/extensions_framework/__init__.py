@@ -270,6 +270,14 @@ class declarative_property_group(bpy.types.PropertyGroup):
 			if 'save_in_preset' in prop.keys() and prop['save_in_preset']:
 				out.append(prop)
 		return out
+	
+	def reset(self):
+		"""Reset all properties in this group to the default value,
+		if specified"""
+		for prop in self.properties:
+			pk = prop.keys()
+			if 'attr' in pk and 'default' in pk and hasattr(self, prop['attr']):
+				setattr(self, prop['attr'], prop['default'])
 
 class Addon(object):
 	"""A list of classes registered by this addon"""
