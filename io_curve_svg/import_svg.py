@@ -33,12 +33,15 @@ from . import svg_colors
 SVGUnits = {'': 1.0,
             'px': 1.0,
             'in': 90,
-            'mm': 90 * 0.254,
-            'cm': 90 * 2.54,
+            'mm': 90 / 25.4,
+            'cm': 90 / 2.54,
             'pt': 1.25,
             'pc': 15.0,
             'em': 1.0,
             'ex': 1.0}
+
+SVGEmptyStyles = {'useFill': None,
+                  'fill': None}
 
 
 def SVGCreateCurve():
@@ -207,6 +210,7 @@ def SVGTransformTranslate(params):
 
     tx = float(params[0])
     ty = float(params[1])
+
     return Matrix.Translation(Vector((tx, ty, 0.0)))
 
 
@@ -234,6 +238,7 @@ def SVGTransformScale(params):
     """
 
     sx = sy = float(params[0])
+
     if len(params) > 1:
         sy = float(params[1])
 
@@ -276,6 +281,7 @@ def SVGTransformRotate(params):
 
     ang = float(params[0]) * pi / 180.0
     cx = cy = 0.0
+
     if len(params) >= 3:
         cx = float(params[1])
         cy = float(params[2])
@@ -299,8 +305,7 @@ def SVGParseStyles(node, context):
     (materilas, filling flags, etc..)
     """
 
-    styles = {'useFill': None,
-              'fill': None}
+    styles = SVGEmptyStyles.copy()
 
     style = node.getAttribute('style')
     if style:
@@ -971,10 +976,12 @@ class SVGGeometryPATH(SVGGeometry):
         Initialize SVG path
         """
 
+        global SVGEmptyStyles
+
         super().__init__(node, context)
 
         self._splines = []
-        self._styles = None
+        self._styles = SVGEmptyStyles
 
     def parse(self):
         """
@@ -1006,7 +1013,7 @@ class SVGGeometryPATH(SVGGeometry):
         for spline in self._splines:
             act_spline = None
             for point in spline['points']:
-                loc = self._transformCoord((point['x'], point['y']))
+                co = self._transformCoord((point['x'], point['y']))
 
                 if act_spline is None:
                     cu.splines.new('BEZIER')
@@ -1017,10 +1024,7 @@ class SVGGeometryPATH(SVGGeometry):
                     act_spline.bezier_points.add()
 
                 bezt = act_spline.bezier_points[-1]
-                bezt.select_control_point = True
-                bezt.select_left_handle = True
-                bezt.select_right_handle = True
-                bezt.co = loc
+                bezt.co = co
 
                 bezt.handle_left_type = point['handle_left_type']
                 if point['handle_left'] is not None:
@@ -1099,6 +1103,462 @@ class SVGGeometryUSE(SVGGeometry):
             self._popMatrix()
 
 
+class SVGGeometryRECT(SVGGeometry):
+    """
+    SVG rectangle
+    """
+
+    __slots__ = ('_rect',  # coordinate and domensions of rectangle
+                 '_radius',  # Rounded corner radiuses
+                 '_styles')  # Styles, used for displaying
+
+    def __init__(self, node, context):
+        """
+        Initialize new rectangle
+        """
+
+        global SVGEmptyStyles
+
+        super().__init__(node, context)
+
+        self._rect = ('0', '0', '0', '0')
+        self._radius = ('0', '0')
+        self._styles = SVGEmptyStyles
+
+    def parse(self):
+        """
+        Parse SVG rectangle node
+        """
+
+        self._styles = SVGParseStyles(self._node, self._context)
+
+        rect = []
+        for attr in ['x', 'y', 'width', 'height']:
+            val = self._node.getAttribute(attr)
+            rect.append(val or '0')
+
+        self._rect = (rect)
+
+        rx = self._node.getAttribute('rx')
+        ry = self._node.getAttribute('ry')
+
+        self._radius = (rx, ry)
+
+    def _appendCorner(self, spline, coord, firstTime, rounded):
+        """
+        Append new corner to rectangle
+        """
+
+        handle = None
+        if len(coord) == 3:
+            handle = self._transformCoord(coord[2])
+            coord = (coord[0], coord[1])
+
+        co = self._transformCoord(coord)
+
+        if not firstTime:
+            spline.bezier_points.add()
+
+        bezt = spline.bezier_points[-1]
+        bezt.co = co
+
+        if rounded:
+            if handle:
+                bezt.handle_left_type = 'VECTOR'
+                bezt.handle_right_type = 'FREE'
+
+                bezt.handle_right = handle
+            else:
+                bezt.handle_left_type = 'FREE'
+                bezt.handle_right_type = 'VECTOR'
+                bezt.handle_left = co
+
+        else:
+            bezt.handle_left_type = 'VECTOR'
+            bezt.handle_right_type = 'VECTOR'
+
+    def _doCreateGeom(self):
+        """
+        Create real geometries
+        """
+
+        # Run-time parsing -- percents would be correct only if
+        # parsing them now
+        crect = self._context['rect']
+        rect = []
+
+        for i in range(4):
+            rect.append(SVGParseCoord(self._rect[i], crect[i % 2]))
+
+        r = self._radius
+        rx = ry = 0.0
+
+        if r[0] and r[1]:
+            rx = min(SVGParseCoord(r[0], rect[0]), rect[2] / 2)
+            ry = min(SVGParseCoord(r[1], rect[1]), rect[3] / 2)
+        elif r[0]:
+            rx = min(SVGParseCoord(r[0], rect[0]), rect[2] / 2)
+            ry = min(rx, rect[3] / 2)
+            rx = ry = min(rx, ry)
+        elif r[1]:
+            ry = min(SVGParseCoord(r[1], rect[1]), rect[3] / 2)
+            rx = min(ry, rect[2] / 2)
+            rx = ry = min(rx, ry)
+
+        radius = (rx, ry)
+
+        # Geometry creation
+        ob = SVGCreateCurve()
+        cu = ob.data
+
+        if self._styles['useFill']:
+            cu.dimensions = '2D'
+            cu.materials.append(self._styles['fill'])
+        else:
+            cu.dimensions = '3D'
+
+        cu.splines.new('BEZIER')
+
+        spline = cu.splines[-1]
+        spline.use_cyclic_u = True
+
+        x, y = rect[0], rect[1]
+        w, h = rect[2], rect[3]
+        rx, ry = radius[0], radius[1]
+        rounded = False
+
+        if rx or ry:
+            #
+            #      0 _______ 1
+            #     /           \
+            #    /             \
+            #   7               2
+            #   |               |
+            #   |               |
+            #   6               3
+            #    \             /
+            #     \           /
+            #      5 _______ 4
+            #
+
+            # Optional third component -- right handle coord
+            coords = [(x + rx, y),
+                      (x + w - rx, y, (x + w, y)),
+                      (x + w, y + ry),
+                      (x + w, y + h - ry, (x + w, y + h)),
+                      (x + w - rx, y + h),
+                      (x + rx, y + h, (x, y + h)),
+                      (x, y + h - ry),
+                      (x, y + ry, (x, y))]
+
+            rounded = True
+        else:
+            coords = [(x, y), (x + w, y), (x + w, y + h), (x, y + h)]
+
+        firstTime = True
+        for coord in coords:
+            self._appendCorner(spline, coord, firstTime, rounded)
+            firstTime = False
+
+        SVGFinishCurve()
+
+
+class SVGGeometryELLIPSE(SVGGeometry):
+    """
+    SVG ellipse
+    """
+
+    __slots__ = ('_cx',  # X-coordinate of center
+                 '_cy',  # Y-coordinate of center
+                 '_rx',  # X-axis radius of circle
+                 '_ry',  # Y-axis radius of circle
+                 '_styles')  # Styles, used for displaying
+
+    def __init__(self, node, context):
+        """
+        Initialize new ellipse
+        """
+
+        global SVGEmptyStyles
+
+        super().__init__(node, context)
+
+        self._cx = '0.0'
+        self._cy = '0.0'
+        self._rx = '0.0'
+        self._ry = '0.0'
+        self._styles = SVGEmptyStyles
+
+    def parse(self):
+        """
+        Parse SVG ellipse node
+        """
+
+        self._styles = SVGParseStyles(self._node, self._context)
+
+        self._cx = self._node.getAttribute('cx') or '0'
+        self._cy = self._node.getAttribute('cy') or '0'
+        self._rx = self._node.getAttribute('rx') or '0'
+        self._ry = self._node.getAttribute('ry') or '0'
+
+    def _doCreateGeom(self):
+        """
+        Create real geometries
+        """
+
+        # Run-time parsing -- percents would be correct only if
+        # parsing them now
+        crect = self._context['rect']
+
+        cx = SVGParseCoord(self._cx, crect[0])
+        cy = SVGParseCoord(self._cy, crect[1])
+        rx = SVGParseCoord(self._rx, crect[0])
+        ry = SVGParseCoord(self._ry, crect[1])
+
+        if not rx or not ry:
+            # Automaic handles will work incorrect in this case
+            return
+
+        # Create circle
+        ob = SVGCreateCurve()
+        cu = ob.data
+
+        if self._styles['useFill']:
+            cu.dimensions = '2D'
+            cu.materials.append(self._styles['fill'])
+        else:
+            cu.dimensions = '3D'
+
+        coords = [((cx - rx, cy),
+                   (cx - rx, cy + ry * 0.552),
+                   (cx - rx, cy - ry * 0.552)),
+
+                  ((cx, cy - ry),
+                   (cx - rx * 0.552, cy - ry),
+                   (cx + rx * 0.552, cy - ry)),
+
+                  ((cx + rx, cy),
+                   (cx + rx, cy - ry * 0.552),
+                   (cx + rx, cy + ry * 0.552)),
+
+                  ((cx, cy + ry),
+                   (cx + rx * 0.552, cy + ry),
+                   (cx - rx * 0.552, cy + ry))]
+
+        spline = None
+        for coord in coords:
+            co = self._transformCoord(coord[0])
+            handle_left = self._transformCoord(coord[1])
+            handle_right = self._transformCoord(coord[2])
+
+            if spline is None:
+                cu.splines.new('BEZIER')
+                spline = cu.splines[-1]
+                spline.use_cyclic_u = True
+            else:
+                spline.bezier_points.add()
+
+            bezt = spline.bezier_points[-1]
+            bezt.co = co
+            bezt.handle_left_type = 'FREE'
+            bezt.handle_right_type = 'FREE'
+            bezt.handle_left = handle_left
+            bezt.handle_right = handle_right
+
+        SVGFinishCurve()
+
+
+class SVGGeometryCIRCLE(SVGGeometryELLIPSE):
+    """
+    SVG circle
+    """
+
+    def parse(self):
+        """
+        Parse SVG circle node
+        """
+
+        self._styles = SVGParseStyles(self._node, self._context)
+
+        self._cx = self._node.getAttribute('cx') or '0'
+        self._cy = self._node.getAttribute('cy') or '0'
+
+        r = self._node.getAttribute('r') or '0'
+        self._rx = self._ry = r
+
+
+class SVGGeometryLINE(SVGGeometry):
+    """
+    SVG line
+    """
+
+    __slots__ = ('_x1',  # X-coordinate of beginning
+                 '_y1',  # Y-coordinate of beginning
+                 '_x2',  # X-coordinate of ending
+                 '_y2')  # Y-coordinate of ending
+
+    def __init__(self, node, context):
+        """
+        Initialize new line
+        """
+
+        global SVGEmptyStyles
+
+        super().__init__(node, context)
+
+        self._x1 = '0.0'
+        self._y1 = '0.0'
+        self._x2 = '0.0'
+        self._y2 = '0.0'
+
+    def parse(self):
+        """
+        Parse SVG line node
+        """
+
+        self._x1 = self._node.getAttribute('x1') or '0'
+        self._y1 = self._node.getAttribute('y1') or '0'
+        self._x2 = self._node.getAttribute('x2') or '0'
+        self._y2 = self._node.getAttribute('y2') or '0'
+
+    def _doCreateGeom(self):
+        """
+        Create real geometries
+        """
+
+        # Run-time parsing -- percents would be correct only if
+        # parsing them now
+        crect = self._context['rect']
+
+        x1 = SVGParseCoord(self._x1, crect[0])
+        y1 = SVGParseCoord(self._y1, crect[1])
+        x2 = SVGParseCoord(self._x2, crect[0])
+        y2 = SVGParseCoord(self._y2, crect[1])
+
+        # Create cline
+        ob = SVGCreateCurve()
+        cu = ob.data
+
+        coords = [(x1, y1), (x2, y2)]
+        spline = None
+
+        for coord in coords:
+            co = self._transformCoord(coord)
+
+            if spline is None:
+                cu.splines.new('BEZIER')
+                spline = cu.splines[-1]
+                spline.use_cyclic_u = True
+            else:
+                spline.bezier_points.add()
+
+            bezt = spline.bezier_points[-1]
+            bezt.co = co
+            bezt.handle_left_type = 'VECTOR'
+            bezt.handle_right_type = 'VECTOR'
+
+        SVGFinishCurve()
+
+
+class SVGGeometryPOLY(SVGGeometry):
+    """
+    Abstract class for handling poly-geometries
+    (polylines and polygons)
+    """
+
+    __slots__ = ('_points',  # Array of points for poly geometry
+                 '_styles',  # Styles, used for displaying
+                 '_closed')  # Should generated curve be closed?
+
+    def __init__(self, node, context):
+        """
+        Initialize new poly geometry
+        """
+
+        super().__init__(node, context)
+
+        self._points = []
+        self._styles = SVGEmptyStyles
+        self._closed = False
+
+    def parse(self):
+        """
+        Parse poly node
+        """
+
+        self._styles = SVGParseStyles(self._node, self._context)
+
+        points = self._node.getAttribute('points')
+        points = points.replace(',', ' ').replace('-', ' -')
+        points = points.split()
+
+        prev = None
+        self._points = []
+
+        for p in points:
+            if prev is None:
+                prev = p
+            else:
+                self._points.append((float(prev), float(p)))
+                prev = None
+
+    def _doCreateGeom(self):
+        """
+        Create real geometries
+        """
+
+        ob = SVGCreateCurve()
+        cu = ob.data
+
+        if self._closed and self._styles['useFill']:
+            cu.dimensions = '2D'
+            cu.materials.append(self._styles['fill'])
+        else:
+            cu.dimensions = '3D'
+
+        spline = None
+
+        for point in self._points:
+            co = self._transformCoord(point)
+
+            if spline is None:
+                cu.splines.new('BEZIER')
+                spline = cu.splines[-1]
+                spline.use_cyclic_u = self._closed
+            else:
+                spline.bezier_points.add()
+
+            bezt = spline.bezier_points[-1]
+            bezt.co = co
+            bezt.handle_left_type = 'VECTOR'
+            bezt.handle_right_type = 'VECTOR'
+
+        SVGFinishCurve()
+
+
+class SVGGeometryPOLYLINE(SVGGeometryPOLY):
+    """
+    SVG polyline geometry
+    """
+
+    pass
+
+
+class SVGGeometryPOLYGON(SVGGeometryPOLY):
+    """
+    SVG polygon geometry
+    """
+
+    def __init__(self, node, context):
+        """
+        Initialize new polygon geometry
+        """
+
+        super().__init__(node, context)
+
+        self._closed = True
+
+
 class SVGGeometrySVG(SVGGeometryContainer):
     """
     Main geometry holder
@@ -1154,6 +1614,12 @@ svgGeometryClasses = {
     'defs': SVGGeometryDEFS,
     'symbol': SVGGeometrySYMBOL,
     'use': SVGGeometryUSE,
+    'rect': SVGGeometryRECT,
+    'ellipse': SVGGeometryELLIPSE,
+    'circle': SVGGeometryCIRCLE,
+    'line': SVGGeometryLINE,
+    'polyline': SVGGeometryPOLYLINE,
+    'polygon': SVGGeometryPOLYGON,
     'g': SVGGeometryG}
 
 
