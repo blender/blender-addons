@@ -22,9 +22,9 @@
 bl_info = {
     "name": "API Navigator",
     "author": "Dany Lebel (Axon_D)",
-    "version": (1, 0, 1),
-    "blender": (2, 5, 6),
-    "api": 34936,
+    "version": (1, 0, 2),
+    "blender": (2, 5, 7),
+    "api": 34995,
     "location": "Text Editor > Properties > API Navigator Panel",
     "description": "Allows to explore the python api via the user interface",
     "warning": "",
@@ -151,9 +151,10 @@ def get_tree_level():
         for i in dir(current_module):
             try :
                 t = str(type(eval(root_m_path + '.' + i)))
-            except AttributeError :
+            except (AttributeError, SyntaxError):
                 bug += [i]
                 continue
+
             
             if t == "<class 'module'>":
                 mod += [i]
