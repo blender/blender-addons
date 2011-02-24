@@ -44,6 +44,70 @@ SVGEmptyStyles = {'useFill': None,
                   'fill': None}
 
 
+def SVGParseFloat(s, i=0):
+    """
+    Parse first float value from string
+
+    Returns value as string
+    """
+
+    start = i
+    n = len(s)
+    token = ''
+
+    # Ski[ leading whitespace characters
+    while i < n and (s[i].isspace() or s[i] == ','):
+        i += 1
+
+    if i == n:
+        return None
+
+    # Read sign
+    if s[i] == '-':
+        token += '-'
+        i += 1
+    elif s[i] == '+':
+        i += 1
+
+    # Read integer part
+    if s[i].isdigit():
+        while i < n and s[i].isdigit():
+            token += s[i]
+            i += 1
+
+    # Fractional part
+    if i < n and s[i] == '.':
+        token += '.'
+        i += 1
+
+        if s[i].isdigit():
+            while i < n and s[i].isdigit():
+                token += s[i]
+                i += 1
+        else:
+            raise Exception('Invalid float value near ' + s[start:start + 10])
+
+    # Degree
+    if  i < n and (s[i] == 'e' or s[i] == 'E'):
+        token += s[i]
+        i += 1
+        if s[i] == '+' or s[i] == '-':
+            token += s[i]
+            i += 1
+
+            if s[i].isdigit():
+                while i < n and s[i].isdigit():
+                    token += s[i]
+                    i += 1
+            else:
+                raise Exception('Invalid float value near ' +
+                    s[start:start + 10])
+        else:
+            raise Exception('Invalid float value near ' + s[start:start + 10])
+
+    return token
+
+
 def SVGCreateCurve():
     """
     Create new curve object to hold splines in
@@ -82,15 +146,13 @@ def SVGParseCoord(coord, size):
     Needed to handle coordinates set in cm, mm, iches..
     """
 
-    r = re.compile('([0-9\\-\\+\\.])([A-z%]*)')
-    val = float(r.sub('\\1', coord))
-    unit = r.sub('\\2', coord).lower()
+    token = SVGParseFloat(coord)
+    val = float(token)
+    unit = coord[len(token):]
 
     if unit == '%':
         return float(size) / 100.0 * val
     else:
-        global SVGUnits
-
         return val * SVGUnits[unit]
 
     return val
@@ -143,9 +205,17 @@ def SVGMatrixFromNode(node, context):
         vw = SVGParseCoord(viewBox[2], w)
         vh = SVGParseCoord(viewBox[3], h)
 
+        sx = w / vw
+        sy = h / vh
+        scale = min(sx, sy)
+
+        tx = (w - vw * scale) / 2
+        ty = (h - vh * scale) / 2
+        m = m * m.Translation(Vector((tx, ty, 0.0)))
+
         m = m * m.Translation(Vector((-vx, -vy, 0.0)))
-        m = m * m.Scale(w / vw, 4, Vector((1.0, 0.0, 0.0)))
-        m = m * m.Scale(h / vh, 4, Vector((0.0, 1.0, 0.0)))
+        m = m * m.Scale(scale, 4, Vector((1.0, 0.0, 0.0)))
+        m = m * m.Scale(scale, 4, Vector((0.0, 1.0, 0.0)))
 
     return m
 
@@ -310,7 +380,6 @@ def SVGParseStyles(node, context):
     style = node.getAttribute('style')
     if style:
         elems = style.split(';')
-        print(elems)
         for elem in elems:
             s = elem.split(':')
 
@@ -358,13 +427,30 @@ class SVGPathData:
         d - the definition of the outline of a shape
         """
 
-        # Convert to easy-to-parse format
-        d = d.replace(',', ' ').replace('-', ' -')
-        d = re.sub('([A-z])', ' \\1 ', d)
+        spaces = ' ,\t'
+        commands = ['m', 'l', 'h', 'v', 'c', 's', 'q', '', 't', 'a', 'z']
+        tokens = []
 
-        self._data = d.split()
+        i = 0
+        n = len(d)
+        while i < n:
+            c = d[i]
+
+            if c in spaces:
+                pass
+            elif c.lower() in commands:
+                tokens.append(c)
+            elif c in ['-', '.'] or c.isdigit():
+                token = SVGParseFloat(d, i)
+                tokens.append(token)
+
+                i += len(token) - 1
+
+            i += 1
+
+        self._data = tokens
         self._index = 0
-        self._len = len(self._data)
+        self._len = len(tokens)
 
     def eof(self):
         """
@@ -976,8 +1062,6 @@ class SVGGeometryPATH(SVGGeometry):
         Initialize SVG path
         """
 
-        global SVGEmptyStyles
-
         super().__init__(node, context)
 
         self._splines = []
@@ -1116,8 +1200,6 @@ class SVGGeometryRECT(SVGGeometry):
         """
         Initialize new rectangle
         """
-
-        global SVGEmptyStyles
 
         super().__init__(node, context)
 
@@ -1279,8 +1361,6 @@ class SVGGeometryELLIPSE(SVGGeometry):
         Initialize new ellipse
         """
 
-        global SVGEmptyStyles
-
         super().__init__(node, context)
 
         self._cx = '0.0'
@@ -1401,8 +1481,6 @@ class SVGGeometryLINE(SVGGeometry):
         """
         Initialize new line
         """
-
-        global SVGEmptyStyles
 
         super().__init__(node, context)
 
