@@ -94,3 +94,13 @@ class RigLayers(bpy.types.Panel):
 
     return code
 
+
+UI_REGISTER = """
+
+def register():
+    bpy.utils.register_class(RigUI)
+    bpy.utils.register_class(RigLayers)
+
+register()
+"""
+

@@ -26,7 +26,7 @@ from rigify.utils import ORG_PREFIX, MCH_PREFIX, DEF_PREFIX, WGT_PREFIX, ROOT_NA
 from rigify.utils import RIG_DIR
 from rigify.utils import create_root_widget
 from rigify.utils import random_string
-from rigify.rig_ui_template import UI_SLIDERS, layers_ui
+from rigify.rig_ui_template import UI_SLIDERS, layers_ui, UI_REGISTER
 from rigify import rigs
 
 RIG_MODULE = "rigs"
@@ -292,6 +292,7 @@ def generate_rig(context, metarig):
     for s in ui_scripts:
         script.write("\n        " + s.replace("\n", "\n        ") + "\n")
     script.write(layers_ui(vis_layers))
+    script.write(UI_REGISTER)
     script.use_module = True
 
     t.tick("The rest: ")
