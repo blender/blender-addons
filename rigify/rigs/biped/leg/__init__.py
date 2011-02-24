@@ -177,6 +177,13 @@ class Rig:
         bone.use_connect = True
         bone.parent = arm.edit_bones[bones['shin']]
         bones['heel'] = bone.name
+        bone = arm.edit_bones.new('heel.02')
+        bone.head[:] = -0.0500, -0.0200, 0.0000
+        bone.tail[:] = 0.0500, -0.0200, 0.0000
+        bone.roll = 0.0000
+        bone.use_connect = False
+        bone.parent = arm.edit_bones[bones['heel']]
+        bones['heel.02'] = bone.name
         bone = arm.edit_bones.new('toe')
         bone.head[:] = 0.0000, -0.1200, 0.0300
         bone.tail[:] = 0.0000, -0.2000, 0.0300

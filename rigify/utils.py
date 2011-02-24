@@ -385,6 +385,15 @@ def connected_children_names(obj, bone_name):
     return names
 
 
+def has_connected_children(bone):
+    """ Returns true/false whether a bone has connected children or not.
+    """
+    t = False
+    for b in bone.children:
+        t = t or b.use_connect
+    return t
+
+
 def get_layers(layers):
     """ Does it's best to exctract a set of layers from any data thrown at it.
     """

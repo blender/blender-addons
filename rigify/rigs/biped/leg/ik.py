@@ -21,7 +21,7 @@ from mathutils import Vector
 from math import pi, acos
 from rigify.utils import MetarigError
 from rigify.utils import copy_bone, flip_bone, put_bone
-from rigify.utils import connected_children_names
+from rigify.utils import connected_children_names, has_connected_children
 from rigify.utils import strip_org, make_mechanism_name, insert_before_lr
 from rigify.utils import get_layers
 from rigify.utils import create_widget, create_line_widget, create_sphere_widget, create_circle_widget
@@ -102,14 +102,19 @@ class Rig:
         # Get the foot and heel
         foot = None
         heel = None
+        rocker = None
         for b in self.obj.data.bones[leg_bones[1]].children:
             if b.use_connect == True:
-                if len(b.children) == 0:
-                    heel = b.name
-                else:
+                if len(b.children) >= 1 and has_connected_children(b):
                     foot = b.name
+                else:
+                    heel = b.name
+                    if len(b.children) > 0:
+                        rocker = b.children[0].name
+                    
 
         if foot == None or heel == None:
+            print("blah")
             raise MetarigError("RIGIFY ERROR: Bone '%s': incorrect bone configuration for rig type." % (strip_org(bone)))
 
         # Get the toe
@@ -122,7 +127,7 @@ class Rig:
         if toe == None:
             raise MetarigError("RIGIFY ERROR: Bone '%s': incorrect bone configuration for rig type." % (strip_org(bone)))
 
-        self.org_bones = leg_bones + [foot, toe, heel]
+        self.org_bones = leg_bones + [foot, toe, heel, rocker]
 
         # Get rig parameters
         if params.separate_ik_layers:
@@ -140,6 +145,10 @@ class Rig:
         """
         bpy.ops.object.mode_set(mode='EDIT')
 
+        make_rocker = False
+        if self.org_bones[5] is not None:
+            make_rocker = True
+
         # Create the bones
         thigh = copy_bone(self.obj, self.org_bones[0], make_mechanism_name(strip_org(insert_before_lr(self.org_bones[0], "_ik"))))
         shin = copy_bone(self.obj, self.org_bones[1], make_mechanism_name(strip_org(insert_before_lr(self.org_bones[1], "_ik"))))
@@ -154,8 +163,12 @@ class Rig:
         toe_parent_socket2 = copy_bone(self.obj, self.org_bones[2], make_mechanism_name(strip_org(self.org_bones[3] + ".socket2")))
 
         foot_roll = copy_bone(self.obj, self.org_bones[4], strip_org(insert_before_lr(self.org_bones[2], "_roll")))
-        roll1 = copy_bone(self.obj, self.org_bones[4], make_mechanism_name(strip_org(self.org_bones[2] + ".roll")))
-        roll2 = copy_bone(self.obj, self.org_bones[4], make_mechanism_name(strip_org(self.org_bones[2] + ".roll")))
+        roll1 = copy_bone(self.obj, self.org_bones[4], make_mechanism_name(strip_org(self.org_bones[2] + ".roll.01")))
+        roll2 = copy_bone(self.obj, self.org_bones[4], make_mechanism_name(strip_org(self.org_bones[2] + ".roll.02")))
+
+        if make_rocker:
+            rocker1 = copy_bone(self.obj, self.org_bones[5], make_mechanism_name(strip_org(self.org_bones[2] + ".rocker.01")))
+            rocker2 = copy_bone(self.obj, self.org_bones[5], make_mechanism_name(strip_org(self.org_bones[2] + ".rocker.02")))
 
         visfoot = copy_bone(self.obj, self.org_bones[2], "VIS-" + strip_org(insert_before_lr(self.org_bones[2], "_ik")))
         vispole = copy_bone(self.obj, self.org_bones[1], "VIS-" + strip_org(insert_before_lr(self.org_bones[0], "_pole")))
@@ -176,6 +189,9 @@ class Rig:
         foot_roll_e = eb[foot_roll]
         roll1_e = eb[roll1]
         roll2_e = eb[roll2]
+        if make_rocker:
+            rocker1_e = eb[rocker1]
+            rocker2_e = eb[rocker2]
         visfoot_e = eb[visfoot]
         vispole_e = eb[vispole]
 
@@ -212,6 +228,14 @@ class Rig:
 
         vispole_e.use_connect = False
         vispole_e.parent = None
+
+        if make_rocker:
+            rocker1_e.use_connect = False
+            rocker2_e.use_connect = False
+
+            roll1_e.parent = rocker2_e
+            rocker2_e.parent = rocker1_e
+            rocker1_e.parent = foot_e
 
         # Misc
         foot_e.use_local_location = False
@@ -270,6 +294,14 @@ class Rig:
         visfoot_e.tail = visfoot_e.head + Vector((0, 0, v1.length / 32))
         vispole_e.tail = vispole_e.head + Vector((0, 0, v1.length / 32))
 
+        if make_rocker:
+            d = toe_e.y_axis.dot(rocker1_e.x_axis)
+            if d >= 0.0:
+                flip_bone(self.obj, rocker2)
+            else:
+                flip_bone(self.obj, rocker1)
+            
+
         # Weird alignment issues.  Fix.
         toe_parent_e.head = Vector(org_foot_e.head)
         toe_parent_e.tail = Vector(org_foot_e.tail)
@@ -297,6 +329,9 @@ class Rig:
         foot_roll_p = pb[foot_roll]
         roll1_p = pb[roll1]
         roll2_p = pb[roll2]
+        if make_rocker:
+            rocker1_p = pb[rocker1]
+            rocker2_p = pb[rocker2]
         toe_p = pb[toe]
         toe_parent_p = pb[toe_parent]
         toe_parent_socket1_p = pb[toe_parent_socket1]
@@ -314,11 +349,21 @@ class Rig:
             shin_p.lock_ik_x = True
             shin_p.lock_ik_y = True
 
-        # Foot roll control only rotates on x-axis.
+        # Foot roll control only rotates on x-axis, or x and y if rocker.
         foot_roll_p.rotation_mode = 'XYZ'
-        foot_roll_p.lock_rotation = False, True, True
+        if make_rocker:
+            foot_roll_p.lock_rotation = False, False, True
+        else:
+            foot_roll_p.lock_rotation = False, True, True
         foot_roll_p.lock_location = True, True, True
         foot_roll_p.lock_scale = True, True, True
+
+        # roll and rocker bones set to euler rotation
+        roll1_p.rotation_mode = 'XYZ'
+        roll2_p.rotation_mode = 'XYZ'
+        if make_rocker:
+            rocker1_p.rotation_mode = 'XYZ'
+            rocker2_p.rotation_mode = 'XYZ'
 
         # Pole target only translates
         pole_p.lock_location = False, False, False
@@ -372,34 +417,47 @@ class Rig:
         mod.coefficients[0] = 1.0
         mod.coefficients[1] = -1.0
 
-        # Foot roll constraints
-        con = roll1_p.constraints.new('COPY_ROTATION')
-        con.name = "roll"
-        con.target = self.obj
-        con.subtarget = foot_roll
-        con.target_space = 'LOCAL'
-        con.owner_space = 'LOCAL'
+        # Foot roll drivers
+        fcurve = roll1_p.driver_add("rotation_euler", 0)
+        driver = fcurve.driver
+        var = driver.variables.new()
+        driver.type = 'SCRIPTED'
+        driver.expression = "min(0,var)"
+        var.name = "var"
+        var.targets[0].id_type = 'OBJECT'
+        var.targets[0].id = self.obj
+        var.targets[0].data_path = foot_roll_p.path_from_id() + '.rotation_euler[0]'
 
-        con = roll1_p.constraints.new('LIMIT_ROTATION')
-        con.name = "limit_roll"
-        con.use_limit_x = True
-        con.min_x = -180
-        con.max_x = 0
-        con.owner_space = 'LOCAL'
+        fcurve = roll2_p.driver_add("rotation_euler", 0)
+        driver = fcurve.driver
+        var = driver.variables.new()
+        driver.type = 'SCRIPTED'
+        driver.expression = "max(0,var)"
+        var.name = "var"
+        var.targets[0].id_type = 'OBJECT'
+        var.targets[0].id = self.obj
+        var.targets[0].data_path = foot_roll_p.path_from_id() + '.rotation_euler[0]'
 
-        con = roll2_p.constraints.new('COPY_ROTATION')
-        con.name = "roll"
-        con.target = self.obj
-        con.subtarget = foot_roll
-        con.target_space = 'LOCAL'
-        con.owner_space = 'LOCAL'
+        if make_rocker:
+            fcurve = rocker1_p.driver_add("rotation_euler", 0)
+            driver = fcurve.driver
+            var = driver.variables.new()
+            driver.type = 'SCRIPTED'
+            driver.expression = "max(0,-var)"
+            var.name = "var"
+            var.targets[0].id_type = 'OBJECT'
+            var.targets[0].id = self.obj
+            var.targets[0].data_path = foot_roll_p.path_from_id() + '.rotation_euler[1]'
 
-        con = roll2_p.constraints.new('LIMIT_ROTATION')
-        con.name = "limit_roll"
-        con.use_limit_x = True
-        con.min_x = 0
-        con.max_x = 180
-        con.owner_space = 'LOCAL'
+            fcurve = rocker2_p.driver_add("rotation_euler", 0)
+            driver = fcurve.driver
+            var = driver.variables.new()
+            driver.type = 'SCRIPTED'
+            driver.expression = "max(0,var)"
+            var.name = "var"
+            var.targets[0].id_type = 'OBJECT'
+            var.targets[0].id = self.obj
+            var.targets[0].data_path = foot_roll_p.path_from_id() + '.rotation_euler[1]'
 
         # Constrain org bones to controls
         con = pb[self.org_bones[0]].constraints.new('COPY_TRANSFORMS')

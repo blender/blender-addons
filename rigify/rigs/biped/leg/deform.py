@@ -21,7 +21,7 @@ from math import acos, degrees
 from mathutils import Vector, Matrix
 from rigify.utils import MetarigError
 from rigify.utils import copy_bone, flip_bone, put_bone
-from rigify.utils import connected_children_names
+from rigify.utils import connected_children_names, has_connected_children
 from rigify.utils import strip_org, make_mechanism_name, make_deformer_name
 
 
@@ -94,10 +94,10 @@ class Rig:
         heel = None
         for b in self.obj.data.bones[leg_bones[1]].children:
             if b.use_connect == True:
-                if len(b.children) == 0:
-                    heel = b.name
-                else:
+                if len(b.children) >= 1 and has_connected_children(b):
                     foot = b.name
+                else:
+                    heel = b.name
 
         if foot == None or heel == None:
             raise MetarigError("RIGIFY ERROR: Bone '%s': incorrect bone configuration for rig type." % (strip_org(bone)))
