@@ -383,6 +383,9 @@ def SVGParseStyles(node, context):
         for elem in elems:
             s = elem.split(':')
 
+            if len(s) != 2:
+                continue
+
             name = s[0].strip().lower()
             val = s[1].strip()
 
@@ -1703,6 +1706,10 @@ svgGeometryClasses = {
 
 def parseAbstractNode(node, context):
     name = node.tagName.lower()
+
+    if name.startswith('svg:'):
+        name = name[4:]
+
     geomClass = svgGeometryClasses.get(name)
 
     if geomClass is not None:
