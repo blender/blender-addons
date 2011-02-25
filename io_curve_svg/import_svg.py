@@ -185,6 +185,12 @@ def SVGMatrixFromNode(node, context):
     Get transformation matrix from given node
     """
 
+    tagName = node.tagName.lower()
+    tags = ['svg:svg', 'svg:use', 'svg:symbol']
+
+    if tagName not in tags and 'svg:' + tagName not in tags:
+        return Matrix()
+
     rect = context['rect']
 
     m = Matrix()
@@ -248,6 +254,7 @@ def SVGGetMaterial(color, context):
     """
 
     materials = context['materials']
+    rgb_re = re.compile('^\s*rgb\s*\(\s*(\d+)\s*,\s*(\d+)\s*,(\d+)\s*\)\s*$')
 
     if color in materials:
         return materials[color]
@@ -262,6 +269,9 @@ def SVGGetMaterial(color, context):
         diff = (int(color[0:2], 16), int(color[2:4], 16), int(color[4:6], 16))
     elif color in svg_colors.SVGColors:
         diff = svg_colors.SVGColors[color]
+    elif rgb_re.match(color):
+        c = rgb_re.findall(color) [0]
+        diff = (float(c[0]), float(c[1]), float(c[2]))
     else:
         return None
 
@@ -296,8 +306,8 @@ def SVGTransformMatrix(params):
     e = float(params[4])
     f = float(params[5])
 
-    return Matrix(((a, c, 0.0, 0.0),
-                   (b, d, 0.0, 0.0),
+    return Matrix(((a, b, 0.0, 0.0),
+                   (c, d, 0.0, 0.0),
                    (0, 0, 1.0, 0.0),
                    (e, f, 0.0, 1.0)))
 
@@ -970,13 +980,10 @@ class SVGGeometry:
 
         pass
 
-    def _getTranformMatrix(self):
+    def getTransformMatrix(self):
         """
         Get matrix created from "transform" attribute
         """
-
-        if not hasattr(self._node, 'getAttribute'):
-            return None
 
         transform = self._node.getAttribute('transform')
 
@@ -995,7 +1002,7 @@ class SVGGeometry:
 
         self._creating = True
 
-        matrix = self._getTranformMatrix()
+        matrix = self.getTransformMatrix()
         if matrix is not None:
             self._pushMatrix(matrix)
 
@@ -1091,6 +1098,9 @@ class SVGGeometryPATH(SVGGeometry):
         ob = SVGCreateCurve()
         cu = ob.data
 
+        if self._node.getAttribute('id'):
+            cu.name = self._node.getAttribute('id')
+
         if self._styles['useFill']:
             cu.dimensions = '2D'
             cu.materials.append(self._styles['fill'])
@@ -1175,8 +1185,25 @@ class SVGGeometryUSE(SVGGeometry):
         geom = self._context['defines'].get(ref)
 
         if geom is not None:
+            rect = SVGRectFromNode(self._node, self._context)
+            self._pushRect(rect)
+
             self._pushMatrix(self.getNodeMatrix())
-            self._pushMatrix(geom.getNodeMatrix())
+
+            geomMatrix = None
+            nodeMatrix = None
+
+            if not isinstance(geom, SVGGeometryUSE):
+                geomMatrix = geom.getTransformMatrix()
+
+            if isinstance(geom, SVGGeometrySYMBOL):
+                nodeMatrix = geom.getNodeMatrix()
+
+            if nodeMatrix:
+                self._pushMatrix(nodeMatrix)
+
+            if geomMatrix:
+                self._pushMatrix(geomMatrix)
 
             if isinstance(geom, SVGGeometryContainer):
                 geometries = geom.getGeometries()
@@ -1186,8 +1213,15 @@ class SVGGeometryUSE(SVGGeometry):
             for g in geometries:
                 g.createGeom()
 
+            if geomMatrix:
+                self._popMatrix()
+
+            if nodeMatrix:
+                self._popMatrix()
+
             self._popMatrix()
-            self._popMatrix()
+
+            self._popRect()
 
 
 class SVGGeometryRECT(SVGGeometry):
@@ -1665,6 +1699,16 @@ class SVGLoader(SVGGeometryContainer):
     """
     SVG file loader
     """
+
+    def getTransformMatrix(self):
+        """
+        Get matrix created from "transform" attribute
+        """
+
+        # SVG document doesn't support transform specification
+        # it can't even hold attributes
+
+        return None
 
     def __init__(self, filepath):
         """
