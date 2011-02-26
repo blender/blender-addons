@@ -396,8 +396,9 @@ class x3d_class:
                             is_smooth = True
                             break
 
+                    self.write_indented("<Appearance>\n", 1)
+
                     if image:
-                        self.write_indented("<Appearance>\n", 1)
                         self.writeImageTexture(image)
 
                         if mesh_materials_use_face_texture[material_index]:
@@ -427,12 +428,10 @@ class x3d_class:
                             fw("rotation=\"%.6f\" " % rot)
                             fw("/>\n")
 
-                        self.write_indented("</Appearance>\n", -1)
-
-                    elif material:
-                        self.write_indented("<Appearance>\n", 1)
+                    if material:
                         self.writeMaterial(material, self.cleanStr(material.name, ""), world)
-                        self.write_indented("</Appearance>\n", -1)
+
+                    self.write_indented("</Appearance>\n", -1)
 
                     #-- IndexedFaceSet or IndexedLineSet
 
