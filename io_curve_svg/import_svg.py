@@ -407,6 +407,10 @@ def SVGParseStyles(node, context):
                     styles['useFill'] = True
                     styles['fill'] = SVGGetMaterial(val, context)
 
+        if styles['useFill'] is None:
+            styles['useFill'] = True
+            styles['fill'] = SVGGetMaterial('#000', context)
+
         return styles
 
     if styles['useFill'] is None:
@@ -418,6 +422,10 @@ def SVGParseStyles(node, context):
             else:
                 styles['useFill'] = True
                 styles['fill'] = SVGGetMaterial(fill, context)
+
+    if styles['useFill'] is None:
+        styles['useFill'] = True
+        styles['fill'] = SVGGetMaterial('#000', context)
 
     return styles
 
@@ -475,6 +483,16 @@ class SVGPathData:
     def cur(self):
         """
         Return current token
+        """
+
+        if self.eof():
+            return None
+
+        return self._data[self._index]
+
+    def lookupNext(self):
+        """
+        get next token without moving pointer
         """
 
         if self.eof():
@@ -583,6 +601,27 @@ class SVGPathParser:
                             'closed': False}
 
             self._splines.append(self._spline)
+
+        if len(self._spline['points']) > 0:
+            # Not sure bout specifications, but Illustrator could create
+            # last point at the same position, as start point (which was
+            # reached by MoveTo command) to set needed handle coords.
+            # It's also could use last point at last position to make path
+            # filled.
+
+            first = self._spline['points'][0]
+            if abs(first['x'] - x) < 1e-6 and abs(first['y'] - y) < 1e-6:
+                if handle_left is not None:
+                    first['handle_left'] = handle_left
+                    first['handle_left_type'] = 'FREE'
+
+                if handle_left_type != 'VECTOR':
+                    first['handle_left_type'] = handle_left_type
+
+                if self._data.eof() or self._data.lookupNext().lower() == 'm':
+                    self._spline['closed'] = True
+
+                return
 
         point = {'x': x,
                  'y': y,
