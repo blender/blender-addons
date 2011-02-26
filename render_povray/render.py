@@ -1836,7 +1836,7 @@ class PovrayRender(bpy.types.RenderEngine):
                 try:
                     lay.load_from_file(self._temp_file_out)
                     #lay.load_from_file(self._temp_file_out, xmin, ymin)  # XXX, test for border render.
-                except SystemError:
+                except RuntimeError:
                     pass
                 self.end_result(result)
 
