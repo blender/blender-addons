@@ -38,7 +38,7 @@ if "bpy" in locals():
 
 
 import bpy
-from bpy.props import *
+from bpy.props import StringProperty, FloatProperty, IntProperty, BoolProperty, EnumProperty
 from io_utils import ImportHelper, ExportHelper
 
 

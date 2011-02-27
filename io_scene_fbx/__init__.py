@@ -40,7 +40,7 @@ if "bpy" in locals():
 
 
 import bpy
-from bpy.props import *
+from bpy.props import StringProperty, BoolProperty, FloatProperty
 from io_utils import ExportHelper
 
 

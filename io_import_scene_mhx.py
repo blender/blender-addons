@@ -66,7 +66,7 @@ import bpy
 import os
 import time
 import mathutils
-from mathutils import *
+from mathutils import Matrix
 #import geometry
 #import string
 
@@ -2144,7 +2144,7 @@ def parseProcess(args, tokens):
         elif key == 'Bend':
             axis = val[1]
             angle = float(val[2])
-            mat = mathutils.Matrix.Rotation(angle, 4, axis)
+            mat = Matrix.Rotation(angle, 4, axis)
             try:
                 pb = pbones[val[0]]
                 prod = pb.matrix_local * mat
@@ -2602,8 +2602,8 @@ def writeDefaults():
 #    User interface
 #
 
-DEBUG= False
-from bpy.props import *
+DEBUG = False
+from bpy.props import StringProperty, FloatProperty, EnumProperty
 from io_utils import ImportHelper
 
 

@@ -34,7 +34,7 @@ bl_info = {
 
 import bpy
 import mathutils
-from mathutils import *
+from mathutils import Matrix, Vector
 
 
 def build_exec(loopfunc, func):

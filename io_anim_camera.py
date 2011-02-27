@@ -114,7 +114,7 @@ def writeCameras(context, filepath, frame_start, frame_end, only_selected=False)
         fw("\n")
 
 
-from bpy.props import *
+from bpy.props import StringProperty, IntProperty, BoolProperty
 from io_utils import ExportHelper
 
 

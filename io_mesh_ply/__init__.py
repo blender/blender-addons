@@ -41,7 +41,7 @@ if "bpy" in locals():
 
 import os
 import bpy
-from bpy.props import *
+from bpy.props import CollectionProperty, StringProperty, BoolProperty
 from io_utils import ImportHelper, ExportHelper
 
 

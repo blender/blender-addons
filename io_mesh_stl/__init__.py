@@ -51,17 +51,15 @@ Import:
 
 if "bpy" in locals():
     import imp
-    imp.reload(stl_utils)
-    imp.reload(blender_utils)
-else:
-    from . import stl_utils
-    from . import blender_utils
+    if "stl_utils" in locals():
+        imp.reload(stl_utils)
+    if "blender_utils" in locals():
+        imp.reload(blender_utils)
 
-import itertools
 import os
 
 import bpy
-from bpy.props import *
+from bpy.props import StringProperty, BoolProperty, CollectionProperty
 from io_utils import ExportHelper, ImportHelper
 
 
@@ -82,6 +80,9 @@ class ImportSTL(bpy.types.Operator, ImportHelper):
     directory = StringProperty()
 
     def execute(self, context):
+        from . import stl_utils
+        from . import blender_utils
+
         paths = [os.path.join(self.directory, name.name) for name in self.files]
 
         if not paths:
@@ -114,6 +115,10 @@ class ExportSTL(bpy.types.Operator, ExportHelper):
                                    default=True)
 
     def execute(self, context):
+        from . import stl_utils
+        from . import blender_utils
+        import itertools
+
         faces = itertools.chain.from_iterable(
             blender_utils.faces_from_mesh(ob, self.apply_modifiers)
             for ob in context.selected_objects)

@@ -1209,7 +1209,7 @@ def build_objects(object_layers, object_surfs, object_tags, object_name, add_sub
     print("Done Importing LWO File")
 
 
-from bpy.props import *
+from bpy.props import StringProperty, BoolProperty
 
 
 class IMPORT_OT_lwo(bpy.types.Operator):

@@ -40,7 +40,7 @@ if "bpy" in locals():
 
 else:
     import bpy
-    from bpy.props import *
+    from bpy.props import StringProperty, BoolProperty, IntProperty, FloatProperty, FloatVectorProperty, EnumProperty
     from render_povray import ui
     from render_povray import render
 

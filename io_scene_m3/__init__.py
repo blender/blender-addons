@@ -46,7 +46,7 @@ if "bpy" in locals():
 import time
 import datetime
 import bpy
-from bpy.props import *
+from bpy.props import StringProperty, BoolProperty
 from io_utils import ImportHelper, ExportHelper
 
 
