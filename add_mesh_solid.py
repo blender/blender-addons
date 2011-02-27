@@ -508,7 +508,7 @@ def createSolid(plato,vtrunc,etrunc,dual,snub):
                 direction = 0 # no diagonal, face is planar (somewhat)
         
             if etrunc: # for every vertex
-                for i in v: # add the face, consisting of the vert,edge,next
+                for i in v0: # add the face, consisting of the vert,edge,next
                             # edge and face between those edges
                     for j in range(len(i[1])):
                         f = [i[0],eStart+i[5][j-1],fStart+i[3][j],eStart+i[5][j]]
@@ -564,7 +564,7 @@ class Solids(bpy.types.Operator):
                          default = 1.0)
     vTrunc = FloatProperty(name = "Vertex Truncation",
                            description = "Ammount of vertex truncation",
-                           min = 0.0,
+                           min = 0.001,
                            soft_min = 0.0,
                            max = 2.0,
                            soft_max = 2.0,
@@ -691,7 +691,7 @@ class Solids(bpy.types.Operator):
         # vertices will be on top of each other in some cases,
         #    so remove doubles then
         if ((self.vTrunc == 1) and (self.eTrunc == 0)) or (self.eTrunc == 1):
-            current_mode = obj.mode
+            current_mode = context.active_object.mode
             if current_mode == 'OBJECT':
                 bpy.ops.object.mode_set(mode='EDIT')
             bpy.ops.mesh.select_all(action='SELECT')
@@ -699,13 +699,13 @@ class Solids(bpy.types.Operator):
             bpy.ops.object.mode_set(mode=current_mode)
 
         # snub duals suck, so make all normals point outwards
-        if self.dual and (self.snub != "0"):
-            current_mode = obj.mode
-            if current_mode == 'OBJECT':
-                bpy.ops.object.mode_set(mode='EDIT')
-            bpy.ops.mesh.select_all(action='SELECT')
-            bpy.ops.mesh.normals_make_consistent()
-            bpy.ops.object.mode_set(mode=current_mode)
+        #if self.dual and (self.snub != "0"):
+        current_mode = context.active_object.mode
+        if current_mode == 'OBJECT':
+            bpy.ops.object.mode_set(mode='EDIT')
+        bpy.ops.mesh.select_all(action='SELECT')
+        bpy.ops.mesh.normals_make_consistent()
+        bpy.ops.object.mode_set(mode=current_mode)
 
         # turn undo back on
         bpy.context.user_preferences.edit.use_global_undo = True 
