@@ -276,7 +276,9 @@ def createSolid(plato,vtrunc,etrunc,dual,snub):
             if dual:
                 vInput,fInput = source(plato)
                 vInput = [i*supposed_size for i in vInput]
-                return vInput,fInput,sourceName
+                return vInput,fInput#,sourceName
+                #JayDez - I don't know what sourceName is, but commenting that
+                #part out fixes vert truncation problems.
             vInput = [-i*supposed_size for i in vInput]
             return vInput,fInput
 
@@ -508,7 +510,7 @@ def createSolid(plato,vtrunc,etrunc,dual,snub):
                 direction = 0 # no diagonal, face is planar (somewhat)
         
             if etrunc: # for every vertex
-                for i in v0: # add the face, consisting of the vert,edge,next
+                for i in v: # add the face, consisting of the vert,edge,next
                             # edge and face between those edges
                     for j in range(len(i[1])):
                         f = [i[0],eStart+i[5][j-1],fStart+i[3][j],eStart+i[5][j]]
