@@ -270,7 +270,7 @@ def SVGGetMaterial(color, context):
     elif color in svg_colors.SVGColors:
         diff = svg_colors.SVGColors[color]
     elif rgb_re.match(color):
-        c = rgb_re.findall(color) [0]
+        c = rgb_re.findall(color)[0]
         diff = (float(c[0]), float(c[1]), float(c[2]))
     else:
         return None
@@ -775,7 +775,7 @@ class SVGPathParser:
             self._handle = (x1, y1)
             cur = self._data.cur()
 
-    def _calcArc(self, rx, ry,  ang, fa, fs, x, y):
+    def _calcArc(self, rx, ry, ang, fa, fs, x, y):
         """
         Calc arc paths
 
@@ -890,7 +890,7 @@ class SVGPathParser:
             fs = float(self._data.next())
             x, y = self._getCoordPair(code.islower(), self._point)
 
-            self._calcArc(rx, ry,  ang, fa, fs, x, y)
+            self._calcArc(rx, ry, ang, fa, fs, x, y)
 
             self._point = (x, y)
             self._handle = None
