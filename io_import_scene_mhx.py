@@ -2603,7 +2603,7 @@ def writeDefaults():
 #
 
 DEBUG = False
-from bpy.props import StringProperty, FloatProperty, EnumProperty
+from bpy.props import StringProperty, FloatProperty, EnumProperty, BoolProperty
 from io_utils import ImportHelper
 
 
