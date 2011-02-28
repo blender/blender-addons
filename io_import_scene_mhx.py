@@ -2650,23 +2650,23 @@ class ImportMhx(bpy.types.Operator, ImportHelper):
         global toggle, theScale, MhxBoolProps, theBlenderVersion, BlenderVersions
         toggle = 0
         for (prop, name, desc, flag) in MhxBoolProps:
-            expr = '(%s if self.properties.%s else 0)' % (flag, prop)
+            expr = '(%s if self.%s else 0)' % (flag, prop)
             toggle |=  eval(expr)
         print("execute flags %x" % toggle)
-        theScale = self.properties.scale
-        theBlenderVersion = BlenderVersions.index(self.properties.bver)
+        theScale = self.scale
+        theBlenderVersion = BlenderVersions.index(self.bver)
 
-        readMhxFile(self.properties.filepath)
+        readMhxFile(self.filepath)
         writeDefaults()
         return {'FINISHED'}
 
     def invoke(self, context, event):
         global toggle, theScale, MhxBoolProps, theBlenderVersion, BlenderVersions
         readDefaults()
-        self.properties.scale = theScale
-        self.properties.bver = BlenderVersions[theBlenderVersion]
+        self.scale = theScale
+        self.bver = BlenderVersions[theBlenderVersion]
         for (prop, name, desc, flag) in MhxBoolProps:
-            expr = 'self.properties.%s = toggle&%s' % (prop, flag)
+            expr = 'self.%s = toggle&%s' % (prop, flag)
             exec(expr)
         context.window_manager.fileselect_add(self)
         return {'RUNNING_MODAL'}
