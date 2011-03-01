@@ -643,6 +643,9 @@ class MESH_OT_CopyFaceSettings(bpy.types.Operator):
     bl_idname = 'mesh.copy_face_settings'
     bl_label = "Copy Face Settings"
     bl_options = {'REGISTER', 'UNDO'}
+    
+    mode = bpy.props.StringProperty(name="mode")
+    layer = bpy.props.StringProperty(name="layer")
 
     @classmethod
     def poll(cls, context):
