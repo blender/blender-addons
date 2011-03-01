@@ -19,13 +19,14 @@
 # <pep8 compliant>
 
 import bpy
+from bpy.props import EnumProperty
 
 # Use some of the existing buttons.
 import properties_render
 properties_render.RENDER_PT_render.COMPAT_ENGINES.add('POVRAY_RENDER')
 properties_render.RENDER_PT_dimensions.COMPAT_ENGINES.add('POVRAY_RENDER')
 # properties_render.RENDER_PT_antialiasing.COMPAT_ENGINES.add('POVRAY_RENDER')
-properties_render.RENDER_PT_shading.COMPAT_ENGINES.add('POVRAY_RENDER')  # We don't use it right now. Should be implemented later.
+properties_render.RENDER_PT_shading.COMPAT_ENGINES.add('POVRAY_RENDER')
 properties_render.RENDER_PT_output.COMPAT_ENGINES.add('POVRAY_RENDER')
 del properties_render
 
@@ -146,6 +147,19 @@ class CameraDataButtonsPanel():
         cam = context.camera
         rd = context.scene.render
         return cam and (rd.use_game_engine == False) and (rd.engine in cls.COMPAT_ENGINES)
+
+
+class TextButtonsPanel():
+    bl_space_type = 'TEXT_EDITOR'
+    bl_region_type = 'UI'
+    bl_label = "P.O.V-Ray"
+    # COMPAT_ENGINES must be defined in each subclass, external engines can add themselves here
+
+    @classmethod
+    def poll(cls, context):
+        text = context.space_data
+        rd = context.scene.render
+        return text and (rd.use_game_engine == False) and (rd.engine in cls.COMPAT_ENGINES)
 
 
 class RENDER_PT_povray_export_settings(RenderButtonsPanel, bpy.types.Panel):
@@ -419,7 +433,7 @@ class MATERIAL_PT_povray_fade_color(MaterialButtonsPanel, bpy.types.Panel):
         layout = self.layout
 
         mat = context.material
-        layout.active = mat.pov_interior_fade_color
+        #layout.active = mat.pov_interior_fade_color
 
 
 class MATERIAL_PT_povray_conserve_energy(MaterialButtonsPanel, bpy.types.Panel):
@@ -501,6 +515,22 @@ class MATERIAL_PT_povray_caustics(MaterialButtonsPanel, bpy.types.Panel):
                 row.label(text="but you didn't chose any !")
 
 
+class MATERIAL_PT_povray_replacement_text(MaterialButtonsPanel, bpy.types.Panel):
+    bl_label = "Custom POV Code"
+    COMPAT_ENGINES = {'POVRAY_RENDER'} 
+
+    def draw(self, context):
+        layout = self.layout
+
+        mat = context.material
+        #layout.active = mat.pov_replacement_text
+        split = layout.split()
+
+        col = split.column()
+        col.label(text="Replace properties with:")
+        col.prop(mat, "pov_replacement_text", text="")
+
+
 class TEXTURE_PT_povray_tex_gamma(TextureButtonsPanel, bpy.types.Panel):
     bl_label = "Image Gamma"
     COMPAT_ENGINES = {'POVRAY_RENDER'}
@@ -522,6 +552,22 @@ class TEXTURE_PT_povray_tex_gamma(TextureButtonsPanel, bpy.types.Panel):
         col.prop(tex, "pov_tex_gamma_value", text="Gamma Value")
 
 
+class TEXTURE_PT_povray_replacement_text(TextureButtonsPanel, bpy.types.Panel):
+    bl_label = "Custom POV Code"
+    COMPAT_ENGINES = {'POVRAY_RENDER'} 
+
+    def draw(self, context):
+        layout = self.layout
+
+        tex = context.texture
+        #layout.active = tex.pov_replacement_text
+        split = layout.split()
+
+        col = split.column()
+        col.label(text="Replace properties with:")
+        col.prop(tex, "pov_replacement_text", text="")
+
+
 class OBJECT_PT_povray_obj_importance(ObjectButtonsPanel, bpy.types.Panel):
     bl_label = "POV-Ray"
     COMPAT_ENGINES = {'POVRAY_RENDER'}
@@ -541,8 +587,23 @@ class OBJECT_PT_povray_obj_importance(ObjectButtonsPanel, bpy.types.Panel):
         col.label(text="Photons")
         col.prop(obj, "pov_collect_photons", text="Receive Photon Caustics")
 
+class OBJECT_PT_povray_replacement_text(ObjectButtonsPanel, bpy.types.Panel):
+    bl_label = "Custom POV Code"
+    COMPAT_ENGINES = {'POVRAY_RENDER'} 
 
-class Camera_PT_povray_cam_dof(CameraDataButtonsPanel, bpy.types.Panel):
+    def draw(self, context):
+        layout = self.layout
+
+        obj = context.object
+        #layout.active = obj.pov_replacement_text
+        split = layout.split()
+
+        col = split.column()
+        col.label(text="Replace properties with:")
+        col.prop(obj, "pov_replacement_text", text="")
+
+
+class CAMERA_PT_povray_cam_dof(CameraDataButtonsPanel, bpy.types.Panel):
     bl_label = "POV-Ray Depth Of Field"
     COMPAT_ENGINES = {'POVRAY_RENDER'}
 
@@ -572,3 +633,39 @@ class Camera_PT_povray_cam_dof(CameraDataButtonsPanel, bpy.types.Panel):
 
         col.prop(cam, "pov_dof_samples_max")
         col.prop(cam, "pov_dof_confidence")
+
+
+class CAMERA_PT_povray_replacement_text(CameraDataButtonsPanel, bpy.types.Panel):
+    bl_label = "Custom POV Code"
+    COMPAT_ENGINES = {'POVRAY_RENDER'} 
+
+    def draw(self, context):
+        layout = self.layout
+
+        cam = context.camera
+        #layout.active = cam.pov_replacement_text
+        split = layout.split()
+
+        col = split.column()
+        col.label(text="Replace properties with:")
+        col.prop(cam, "pov_replacement_text", text="")
+
+
+class TEXT_PT_povray_custom_code(TextButtonsPanel, bpy.types.Panel):
+    bl_label = "P.O.V-Ray"
+    COMPAT_ENGINES = {'POVRAY_RENDER'} 
+
+    def draw(self, context):
+        layout = self.layout
+
+        textspace = context.space_data
+        #layout.active = text.pov_replacement_text
+        split = layout.split()
+        col = split.column()
+        text = textspace.text
+        if text:
+            col.prop(text, "pov_custom_code", text="Add as POV code")
+
+
+
+

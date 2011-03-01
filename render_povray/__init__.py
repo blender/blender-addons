@@ -41,14 +41,21 @@ if "bpy" in locals():
 else:
     import bpy
     from bpy.props import StringProperty, BoolProperty, IntProperty, FloatProperty, FloatVectorProperty, EnumProperty
-    from render_povray import ui
     from render_povray import render
+    from render_povray import ui
+
 
 
 def register():
     bpy.utils.register_module(__name__)
 
     Scene = bpy.types.Scene
+    Mat = bpy.types.Material
+    Tex = bpy.types.Texture
+    Obj = bpy.types.Object
+    Cam = bpy.types.Camera
+    Text = bpy.types.Text
+    ###########################SCENE##################################
 
     # File Options
     Scene.pov_tempfiles_enable = BoolProperty(
@@ -243,8 +250,8 @@ def register():
             name="Pretrace End", description="Fraction of the screen width which sets the size of the blocks in the mosaic preview last pass",
             min=0.001, max=1.00, soft_min=0.01, soft_max=1.00, default=0.04, precision=3)
 
-    ###########################################################################
-    Mat = bpy.types.Material
+    #############################MATERIAL######################################
+
 
     Mat.pov_irid_enable = BoolProperty(
             name="Enable Iridescence",
@@ -329,11 +336,30 @@ def register():
                    ],
             name="Refractive",
             description="use fake caustics (fast) or true photons for refractive Caustics",
-            default="1")  # ui.py has to be loaded before render.py with this.
+            default="1")
+    ##################################CustomPOV Code############################
+    Mat.pov_replacement_text = StringProperty(
+            name = "Declared name:",
+            description="Type the declared name in custom POV code or an external .inc it points at. texture {} expected",
+            default="")
 
-    ###########################################################################
+    #Only DUMMIES below for now: 
+    Tex.pov_replacement_text = StringProperty(
+            name = "Declared name:",
+            description="Type the declared name in custom POV code or an external .inc it points at. pigment {} expected",
+            default="")
 
-    Tex = bpy.types.Texture
+    Obj.pov_replacement_text = StringProperty(
+            name = "Declared name:",
+            description="Type the declared name in custom POV code or an external .inc it points at. Any POV shape expected e.g: isosurface {}",
+            default="")
+
+    Cam.pov_replacement_text = StringProperty(
+            name = "Texts in blend file",
+            description="Type the declared name in custom POV code or an external .inc it points at. camera {} expected",
+            default="")
+    ##############################TEXTURE######################################
+
 
     #Custom texture gamma
     Tex.pov_tex_gamma_enable = BoolProperty(
@@ -346,9 +372,8 @@ def register():
             description="value for which the file was issued e.g. a Raw photo is gamma 1.0",
             min=0.45, max=5.00, soft_min=1.00, soft_max=2.50, default=1.00)
 
-    ###########################################################################
+    #################################OBJECT####################################
 
-    Obj = bpy.types.Object
 
     #Importance sampling
     Obj.pov_importance_value = FloatProperty(
@@ -362,9 +387,7 @@ def register():
             description="Enable object to collect photons from other objects caustics. Turn off for objects that don't really need to receive caustics (e.g. objects that generate caustics often don't need to show any on themselves) ",
             default=True)
 
-    ###########################################################################
-
-    Cam = bpy.types.Camera
+    ##################################CAMERA###################################
 
     #DOF Toggle
     Cam.pov_dof_enable = BoolProperty(
@@ -399,7 +422,13 @@ def register():
             description="Probability to reach the real color value. Larger confidence values will lead to more samples, slower traces and better images.",
             min=0.01, max=0.99, default=0.90)
 
-    ###########################################################################
+    ###################################TEXT####################################
+
+
+    Text.pov_custom_code = BoolProperty(
+            name="Custom Code",
+            description="Add this text at the top of the exported POV-Ray file",
+            default=False)
 
 
 def unregister():
@@ -412,6 +441,7 @@ def unregister():
     Tex = bpy.types.Texture
     Obj = bpy.types.Object
     Cam = bpy.types.Camera
+    Text = bpy.types.Text
     del Scene.pov_tempfiles_enable  # CR
     del Scene.pov_scene_name  # CR
     del Scene.pov_deletefiles_enable  # CR
@@ -470,16 +500,21 @@ def unregister():
     del Mat.pov_photons_dispersion  # MR
     del Mat.pov_photons_reflection  # MR
     del Mat.pov_refraction_type  # MR
+    del Mat.pov_replacement_text  # MR
     del Tex.pov_tex_gamma_enable  # MR
     del Tex.pov_tex_gamma_value  # MR
+    del Tex.pov_replacement_text  # MR
     del Obj.pov_importance_value  # MR
     del Obj.pov_collect_photons  # MR
+    del Obj.pov_replacement_text  # MR
     del Cam.pov_dof_enable  # MR
     del Cam.pov_dof_aperture  # MR
     del Cam.pov_dof_samples_min  # MR
     del Cam.pov_dof_samples_max  # MR
     del Cam.pov_dof_variance  # MR
     del Cam.pov_dof_confidence  # MR
-
+    del Cam.pov_replacement_text  # MR
+    del Text.pov_custom_code  #MR
+    
 if __name__ == "__main__":
     register()
