@@ -240,10 +240,22 @@ class property_group_renderer(bpy.types.Panel):
 										else True,
 								)
 							elif current_property['type'] in ['operator']:
-								layout.operator(current_property['operator'],
-									text = current_property['text'],
-									icon = current_property['icon']
-								)
+								args = {}
+								for optional_arg in ('text', 'icon'):
+									if optional_arg in current_property_keys:
+										args.update({
+											optional_arg: current_property[optional_arg],
+										})
+								layout.operator( current_property['operator'], **args )
+							
+							elif current_property['type'] in ['menu']:
+								args = {}
+								for optional_arg in ('text', 'icon'):
+									if optional_arg in current_property_keys:
+										args.update({
+											optional_arg: current_property[optional_arg],
+										})
+								layout.menu(current_property['menu'], **args)
 							
 							elif current_property['type'] in ['text']:
 								layout.label(
