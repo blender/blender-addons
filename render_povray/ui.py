@@ -205,11 +205,9 @@ class RENDER_PT_povray_export_settings(RenderButtonsPanel, bpy.types.Panel):
             col = split.column()
             if scene.pov_indentation_character == "2":
                 col.prop(scene, "pov_indentation_spaces", text="Spaces")
-            split = layout.split()
-            col = split.column()
-            col.prop(scene, "pov_comments_enable", text="Comments")
-            col = split.column()
-            col.prop(scene, "pov_list_lf_enable", text="Line breaks in lists")
+            row = layout.row()
+            row.prop(scene, "pov_comments_enable", text="Comments")
+            row.prop(scene, "pov_list_lf_enable", text="Line breaks in lists")
 
 
 class RENDER_PT_povray_render_settings(RenderButtonsPanel, bpy.types.Panel):
@@ -261,11 +259,9 @@ class RENDER_PT_povray_antialias(RenderButtonsPanel, bpy.types.Panel):
 
         layout.active = scene.pov_antialias_enable
 
-        split = layout.split()
-        col = split.column()
-        col.prop(scene, "pov_antialias_method", text="")
-        col = split.column()
-        col.prop(scene, "pov_jitter_enable", text="Jitter")
+        row = layout.row()
+        row.prop(scene, "pov_antialias_method", text="")
+        row.prop(scene, "pov_jitter_enable", text="Jitter")
 
         split = layout.split()
         col = split.column()
@@ -277,11 +273,9 @@ class RENDER_PT_povray_antialias(RenderButtonsPanel, bpy.types.Panel):
         else:
             sub.enabled = False
 
-        split = layout.split()
-        col = split.column()
-        col.prop(scene, "pov_antialias_threshold", text="AA Threshold")
-        col = split.column()
-        col.prop(scene, "pov_antialias_gamma", text="AA Gamma")
+        row = layout.row()
+        row.prop(scene, "pov_antialias_threshold", text="AA Threshold")
+        row.prop(scene, "pov_antialias_gamma", text="AA Gamma")
 
 
 class RENDER_PT_povray_radiosity(RenderButtonsPanel, bpy.types.Panel):
@@ -306,8 +300,8 @@ class RENDER_PT_povray_radiosity(RenderButtonsPanel, bpy.types.Panel):
         col = split.column()
         col.prop(scene, "pov_radio_count", text="Rays")
         col.prop(scene, "pov_radio_recursion_limit", text="Recursions")
-        col = split.column()
-        col.prop(scene, "pov_radio_error_bound", text="Error Bound")
+
+        split.prop(scene, "pov_radio_error_bound", text="Error Bound")
 
         layout.prop(scene, "pov_radio_display_advanced")
 
@@ -333,8 +327,7 @@ class RENDER_PT_povray_radiosity(RenderButtonsPanel, bpy.types.Panel):
             col.prop(scene, "pov_radio_media")
             col.prop(scene, "pov_radio_normal")
 
-            col = split.column()
-            col.prop(scene, "pov_radio_always_sample")
+            split.prop(scene, "pov_radio_always_sample")
 
 
 class RENDER_PT_povray_media(RenderButtonsPanel, bpy.types.Panel):
@@ -353,12 +346,10 @@ class RENDER_PT_povray_media(RenderButtonsPanel, bpy.types.Panel):
         rd = scene.render
 
         layout.active = scene.pov_media_enable
-        split = layout.split()
 
-        col = split.column()
-        col.prop(scene, "pov_media_samples", text="Samples")
-        col = split.column()
-        col.prop(scene, "pov_media_color", text="")
+        row = layout.row()
+        row.prop(scene, "pov_media_samples", text="Samples")
+        row.prop(scene, "pov_media_color", text="")
 
 ##class RENDER_PT_povray_baking(RenderButtonsPanel, bpy.types.Panel):
 ##    bl_label = "Baking"
