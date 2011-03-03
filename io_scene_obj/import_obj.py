@@ -1270,23 +1270,25 @@ def load(operator, context, filepath,
     axis_min = [1000000000] * 3
     axis_max = [-1000000000] * 3
 
-#     if CLAMP_SIZE:
-#         # Get all object bounds
-#         for ob in new_objects:
-#             for v in ob.getBoundBox():
-#                 for axis, value in enumerate(v):
-#                     if axis_min[axis] > value:    axis_min[axis]= value
-#                     if axis_max[axis] < value:    axis_max[axis]= value
+    if CLAMP_SIZE:
+        # Get all object bounds
+        for ob in new_objects:
+            for v in ob.bound_box:
+                for axis, value in enumerate(v):
+                    if axis_min[axis] > value:
+                        axis_min[axis] = value
+                    if axis_max[axis] < value:
+                        axis_max[axis] = value
 
-#         # Scale objects
-#         max_axis= max(axis_max[0]-axis_min[0], axis_max[1]-axis_min[1], axis_max[2]-axis_min[2])
-#         scale= 1.0
+        # Scale objects
+        max_axis = max(axis_max[0] - axis_min[0], axis_max[1] - axis_min[1], axis_max[2] - axis_min[2])
+        scale = 1.0
 
-#         while CLAMP_SIZE < max_axis * scale:
-#             scale= scale/10.0
+        while CLAMP_SIZE < max_axis * scale:
+            scale = scale / 10.0
 
-#         for ob in new_objects:
-#             ob.setSize(scale, scale, scale)
+        for obj in new_objects:
+            obj.scale = scale, scale, scale
 
     # Better rotate the vert locations
     #if not ROTATE_X90:
