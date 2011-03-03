@@ -514,10 +514,8 @@ class MATERIAL_PT_povray_replacement_text(MaterialButtonsPanel, bpy.types.Panel)
         layout = self.layout
 
         mat = context.material
-        #layout.active = mat.pov_replacement_text
-        split = layout.split()
 
-        col = split.column()
+        col = layout.column()
         col.label(text="Replace properties with:")
         col.prop(mat, "pov_replacement_text", text="")
 
@@ -537,10 +535,7 @@ class TEXTURE_PT_povray_tex_gamma(TextureButtonsPanel, bpy.types.Panel):
         tex = context.texture
 
         layout.active = tex.pov_tex_gamma_enable
-        split = layout.split()
-
-        col = split.column()
-        col.prop(tex, "pov_tex_gamma_value", text="Gamma Value")
+        layout.prop(tex, "pov_tex_gamma_value", text="Gamma Value")
 
 
 class TEXTURE_PT_povray_replacement_text(TextureButtonsPanel, bpy.types.Panel):
@@ -551,10 +546,8 @@ class TEXTURE_PT_povray_replacement_text(TextureButtonsPanel, bpy.types.Panel):
         layout = self.layout
 
         tex = context.texture
-        #layout.active = tex.pov_replacement_text
-        split = layout.split()
 
-        col = split.column()
+        col = layout.column()
         col.label(text="Replace properties with:")
         col.prop(tex, "pov_replacement_text", text="")
 
@@ -569,13 +562,11 @@ class OBJECT_PT_povray_obj_importance(ObjectButtonsPanel, bpy.types.Panel):
         obj = context.object
 
         layout.active = obj.pov_importance_value
-        split = layout.split()
 
-        col = split.column()
-        col.label(text="Radiosity")
+        col = layout.column()
+        col.label(text="Radiosity:")
         col.prop(obj, "pov_importance_value", text="Importance")
-        row = col.row()
-        col.label(text="Photons")
+        col.label(text="Photons:")
         col.prop(obj, "pov_collect_photons", text="Receive Photon Caustics")
 
 class OBJECT_PT_povray_replacement_text(ObjectButtonsPanel, bpy.types.Panel):
@@ -586,10 +577,8 @@ class OBJECT_PT_povray_replacement_text(ObjectButtonsPanel, bpy.types.Panel):
         layout = self.layout
 
         obj = context.object
-        #layout.active = obj.pov_replacement_text
-        split = layout.split()
 
-        col = split.column()
+        col = layout.column()
         col.label(text="Replace properties with:")
         col.prop(obj, "pov_replacement_text", text="")
 
@@ -610,18 +599,15 @@ class CAMERA_PT_povray_cam_dof(CameraDataButtonsPanel, bpy.types.Panel):
 
         layout.active = cam.pov_dof_enable
 
-        split = layout.split()
-        row = split.row()
-        row.prop(cam, "pov_dof_aperture")
+        layout.prop(cam, "pov_dof_aperture")
 
         split = layout.split()
+        
         col = split.column()
-
         col.prop(cam, "pov_dof_samples_min")
         col.prop(cam, "pov_dof_variance")
 
         col = split.column()
-
         col.prop(cam, "pov_dof_samples_max")
         col.prop(cam, "pov_dof_confidence")
 
@@ -634,10 +620,8 @@ class CAMERA_PT_povray_replacement_text(CameraDataButtonsPanel, bpy.types.Panel)
         layout = self.layout
 
         cam = context.camera
-        #layout.active = cam.pov_replacement_text
-        split = layout.split()
 
-        col = split.column()
+        col = layout.column()
         col.label(text="Replace properties with:")
         col.prop(cam, "pov_replacement_text", text="")
 
@@ -649,13 +633,9 @@ class TEXT_PT_povray_custom_code(TextButtonsPanel, bpy.types.Panel):
     def draw(self, context):
         layout = self.layout
 
-        textspace = context.space_data
-        #layout.active = text.pov_replacement_text
-        split = layout.split()
-        col = split.column()
-        text = textspace.text
+        text = context.space_data.text
         if text:
-            col.prop(text, "pov_custom_code", text="Add as POV code")
+            layout.prop(text, "pov_custom_code", text="Add as POV code")
 
 
 
