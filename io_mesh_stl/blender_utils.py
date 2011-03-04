@@ -56,7 +56,7 @@ def faces_from_mesh(ob, apply_modifier=False, triangulate=True):
     try:
         mesh = ob.create_mesh(bpy.context.scene,
                                 apply_modifier, "PREVIEW")
-    except SystemError:
+    except RuntimeError:
         return ()
 
     if triangulate:
