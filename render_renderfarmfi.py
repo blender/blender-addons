@@ -19,9 +19,9 @@
 bl_info = {
     "name": "Renderfarm.fi",
     "author": "Nathan Letwory <nathan@letworyinteractive.com>, Jesse Kaukonen <jesse.kaukonen@gmail.com>",
-    "version": (5,),
-    "blender": (2, 5, 5),
-    "api": 33713,
+    "version": (6,),
+    "blender": (2, 5, 6),
+    "api": 35342,
     "location": "Render > Engine > Renderfarm.fi",
     "description": "Send .blend as session to http://www.renderfarm.fi to render",
     "warning": "",
@@ -32,7 +32,7 @@ bl_info = {
     "category": "Render"}
 
 """
-Copyright 2009-2010 Laurea University of Applied Sciences
+Copyright 2009-2011 Laurea University of Applied Sciences
 Authors: Nathan Letwory, Jesse Kaukonen
 """
 
@@ -152,6 +152,7 @@ class RenderButtonsPanel():
 class SUMMARY_PT_RenderfarmFi(RenderButtonsPanel, bpy.types.Panel):
     # Prints a summary to the panel before uploading. If scene settings differ from ore settings, then display a warning icon
     bl_label = 'Summary'
+    bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = set(['RENDERFARMFI_RENDER'])
     
     @classmethod
@@ -236,6 +237,12 @@ class SUMMARY_PT_RenderfarmFi(RenderButtonsPanel, bpy.types.Panel):
         else:
             layout.label(text='Save buffers: ' + str(rd.use_save_buffers), icon='FILE_TICK')
         
+        if rd.use_border:
+            layout.label(text='Border render: ' + str(rd.use_border), icon='ERROR')
+            layout.label(text='Border render must be disabled')
+        else:
+            layout.label(text='Border render: ' + str(rd.use_border), icon='FILE_TICK')
+        
         if rd.threads_mode != 'FIXED' or rd.threads > 1:
             layout.label(text='Threads: ' + rd.threads_mode + ' ' + str(rd.threads), icon='ERROR')
             layout.label(text='Threads must be set to Fixed, 1')
@@ -249,9 +256,6 @@ class SUMMARY_PT_RenderfarmFi(RenderButtonsPanel, bpy.types.Panel):
             problems = True
         else:
             layout.label(text='No unsupported simulations found', icon='FILE_TICK')
-        
-        if problems == False and ore.prepared == False:
-            bpy.ops.ore.prepare()
         
         if ore.prepared == False:
             layout.label(text='The script reports "not ready".', icon='ERROR')
@@ -290,7 +294,6 @@ class LOGIN_PT_RenderfarmFi(RenderButtonsPanel, bpy.types.Panel):
         layout = self.layout
         # XXX layout.operator('ore.check_update')
         ore = context.scene.ore_render
-        updateSessionList(ore)
         checkStatus(ore)
 
         if ore.hash=='':
@@ -377,6 +380,7 @@ class RENDER_PT_RenderfarmFi(RenderButtonsPanel, bpy.types.Panel):
             layout.separator()
             row = layout.row()
             row.operator('ore.upload')
+            layout.label(text='Blender may seem frozen during the upload!')
             row.operator('ore.reset', icon='FILE_REFRESH')
         else:
             layout.prop(ore, 'title', icon=bpy.statusMessage['title'])
@@ -456,7 +460,6 @@ def md5_for_file(filepath):
 def upload_file(key, userid, sessionid, server, path):
     assert isabs(path)
     assert isfile(path)
-
     data = {
         'userId': str(userid),
         'sessionKey': key,
@@ -478,7 +481,6 @@ def run_upload(key, userid, sessionid, path):
     r = upload_file(key, userid, sessionid, r'http://xmlrpc.renderfarm.fi/file', path)
     o = xmlrpc.client.loads(r)
     #print('Done!')
-    
     return o[0][0]
 
 def ore_upload(op, context):
@@ -492,7 +494,6 @@ def ore_upload(op, context):
         res = authproxy.auth.getSessionKey(ore.username, ore.hash)
         key = res['key']
         userid = res['userId']
-        
         proxy = xmlrpc.client.ServerProxy(r'http://xmlrpc.renderfarm.fi/session')
         proxy._ServerProxy__transport.user_agent = 'Renderfarm.fi Uploader/%s' % (bpy.CURRENT_VERSION)
         res = proxy.session.createSession(userid, key)
@@ -500,7 +501,6 @@ def ore_upload(op, context):
         key = res['key']
         res = run_upload(key, userid, sessionid, bpy.data.filepath)
         fileid = int(res['fileId'])
-        
         res = proxy.session.setTitle(userid, res['key'], sessionid, ore.title)
         res = proxy.session.setLongDescription(userid, res['key'], sessionid, ore.longdesc)
         res = proxy.session.setShortDescription(userid, res['key'], sessionid, ore.shortdesc)
@@ -626,7 +626,7 @@ class ORE_CancelSession(bpy.types.Operator):
 
 class ORE_GetCompletedSessions(bpy.types.Operator):
     bl_idname = 'ore.completed_sessions'
-    bl_label = 'Complete'
+    bl_label = 'Completed sessions'
 
     def execute(self, context):
         sce = context.scene
@@ -644,7 +644,7 @@ class ORE_GetCompletedSessions(bpy.types.Operator):
 
 class ORE_GetCancelledSessions(bpy.types.Operator):
     bl_idname = 'ore.cancelled_sessions'
-    bl_label = 'Cancelled'
+    bl_label = 'Cancelled sessions'
 
     def execute(self, context):
         sce = context.scene
@@ -662,7 +662,7 @@ class ORE_GetCancelledSessions(bpy.types.Operator):
 
 class ORE_GetActiveSessions(bpy.types.Operator):
     bl_idname = 'ore.active_sessions'
-    bl_label = 'Rendering'
+    bl_label = 'Rendering sessions'
 
     def execute(self, context):
         sce = context.scene
@@ -680,7 +680,7 @@ class ORE_GetActiveSessions(bpy.types.Operator):
 
 class ORE_GetPendingSessions(bpy.types.Operator):
     bl_idname = 'ore.accept_sessions' # using ORE lingo in API. acceptQueue is session waiting for admin approval
-    bl_label = 'Pending'
+    bl_label = 'Pending sessions'
 
     def execute(self, context):
         sce = context.scene
@@ -829,18 +829,15 @@ class ORE_PrepareOp(bpy.types.Operator):
         if (rd.resolution_percentage != 100):
             print("Resolution percentage is not 100. Changing to 100%")
             self.report({'WARNING'}, "Resolution percentage is not 100. Changing to 100%")
-            errors = True
         rd.resolution_percentage = 100
         if rd.file_format != 'PNG':
             print("Renderfarm.fi always uses PNG for output. Changing to PNG.")
             self.report({'WARNING'}, "Renderfarm.fi always uses PNG for output. Changing to PNG.")
-            errors = True
         rd.file_format = 'PNG'
         if (rd.use_sss == True or hasSSSMaterial()) and ore.parts > 1:
             print("Subsurface Scattering is not supported when rendering with parts > 1. Disabling")
             self.report({'WARNING'}, "Subsurface Scattering is not supported when rendering with parts > 1. Disabling")
             rd.use_sss = False # disabling because ore.parts > 1. It's ok to use SSS with 1part/frame
-            errors = True
         if hasUnsupportedSimulation() == True:
             print("An unsupported simulation was detected. Please check your settings and remove them")
             self.report({'WARNING'}, "An unsupported simulation was detected. Please check your settings and remove them")
@@ -848,22 +845,34 @@ class ORE_PrepareOp(bpy.types.Operator):
             errors = True
         else:
             ore.hasUnsupportedSimulation = False
+        if (rd.use_full_sample == True and rd.use_save_buffers == True):
+            print("Save Buffers is not supported. As you also have Full Sample on, I'm turning both of the settings off")
+            self.report({'WARNING'}, "Save Buffers is not supported. As you also have Full Sample on, I'm turning both of the settings off")
+        if (rd.use_full_sample == False and rd.use_save_buffers == True):
+            print("Save buffers needs to be turned off. Changing to off")
+            self.report({'WARNING'}, "Save buffers needs to be turned off. Changing to off")
+        rd.use_full_sample = False
         rd.use_save_buffers = False
         rd.use_free_image_textures = True
+        if (rd.use_border == True):
+            print("Border render is not supported. Turning it off")
+            self.report({'WARNING'}, "Border render is not supported. Turning it off")
+        rd.use_border = False
         if rd.use_compositing:
             if hasCompositingErrors(sce.use_nodes, sce.node_tree, ore.parts):
                 print("Found disallowed nodes or problematic setup")
                 rd.use_compositing = False
                 self.report({'WARNING'}, "Found disallowed nodes or problematic setup")
-                errors = True
         print("Done checking the scene. Now do a test render")
         self.report({'INFO'}, "Done checking the scene. Now do a test render")
         print("=============================================")
         
         # if errors found, don't allow to upload, instead have user
         # go through this until everything is ok
+        # Errors is only True if there is a setting that could not be changed to the correct setting
+        # In short, unsupported simulations
         if errors:
-            self.report({'WARNING'}, "Settings were changed or other issues found. Check console and do a test render to make sure everything works.")
+            self.report({'WARNING'}, "Some issues found. Check console and do a test render to make sure everything works.")
             ore.prepared = False
         else:
             ore.prepared = True
