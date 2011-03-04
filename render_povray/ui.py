@@ -508,7 +508,7 @@ class MATERIAL_PT_povray_caustics(MaterialButtonsPanel, bpy.types.Panel):
 
 class MATERIAL_PT_povray_replacement_text(MaterialButtonsPanel, bpy.types.Panel):
     bl_label = "Custom POV Code"
-    COMPAT_ENGINES = {'POVRAY_RENDER'} 
+    COMPAT_ENGINES = {'POVRAY_RENDER'}
 
     def draw(self, context):
         layout = self.layout
@@ -540,7 +540,7 @@ class TEXTURE_PT_povray_tex_gamma(TextureButtonsPanel, bpy.types.Panel):
 
 class TEXTURE_PT_povray_replacement_text(TextureButtonsPanel, bpy.types.Panel):
     bl_label = "Custom POV Code"
-    COMPAT_ENGINES = {'POVRAY_RENDER'} 
+    COMPAT_ENGINES = {'POVRAY_RENDER'}
 
     def draw(self, context):
         layout = self.layout
@@ -569,9 +569,10 @@ class OBJECT_PT_povray_obj_importance(ObjectButtonsPanel, bpy.types.Panel):
         col.label(text="Photons:")
         col.prop(obj, "pov_collect_photons", text="Receive Photon Caustics")
 
+
 class OBJECT_PT_povray_replacement_text(ObjectButtonsPanel, bpy.types.Panel):
     bl_label = "Custom POV Code"
-    COMPAT_ENGINES = {'POVRAY_RENDER'} 
+    COMPAT_ENGINES = {'POVRAY_RENDER'}
 
     def draw(self, context):
         layout = self.layout
@@ -602,7 +603,7 @@ class CAMERA_PT_povray_cam_dof(CameraDataButtonsPanel, bpy.types.Panel):
         layout.prop(cam, "pov_dof_aperture")
 
         split = layout.split()
-        
+
         col = split.column()
         col.prop(cam, "pov_dof_samples_min")
         col.prop(cam, "pov_dof_variance")
@@ -614,7 +615,7 @@ class CAMERA_PT_povray_cam_dof(CameraDataButtonsPanel, bpy.types.Panel):
 
 class CAMERA_PT_povray_replacement_text(CameraDataButtonsPanel, bpy.types.Panel):
     bl_label = "Custom POV Code"
-    COMPAT_ENGINES = {'POVRAY_RENDER'} 
+    COMPAT_ENGINES = {'POVRAY_RENDER'}
 
     def draw(self, context):
         layout = self.layout
@@ -628,7 +629,7 @@ class CAMERA_PT_povray_replacement_text(CameraDataButtonsPanel, bpy.types.Panel)
 
 class TEXT_PT_povray_custom_code(TextButtonsPanel, bpy.types.Panel):
     bl_label = "P.O.V-Ray"
-    COMPAT_ENGINES = {'POVRAY_RENDER'} 
+    COMPAT_ENGINES = {'POVRAY_RENDER'}
 
     def draw(self, context):
         layout = self.layout
@@ -636,7 +637,3 @@ class TEXT_PT_povray_custom_code(TextButtonsPanel, bpy.types.Panel):
         text = context.space_data.text
         if text:
             layout.prop(text, "pov_custom_code", text="Add as POV code")
-
-
-
-

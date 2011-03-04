@@ -198,6 +198,7 @@ def safety(name, Level):
 
 tabLevel = 0
 
+
 def write_pov(filename, scene=None, info_callback=None):
     import mathutils
     #file = filename
@@ -957,7 +958,7 @@ def write_pov(filename, scene=None, info_callback=None):
                                 t_alpha = t
 
                 ##############################################################################################################
-                    
+
                 if material.pov_replacement_text != "":
                     file.write("\n")
                     file.write(" texture{%s}\n" % material.pov_replacement_text)
@@ -1465,12 +1466,13 @@ def write_pov(filename, scene=None, info_callback=None):
         tabWrite("}\n")
 
     def exportCustomCode():
-        
-        for Text in bpy.data.texts:
-            if Text.pov_custom_code:
-                file.write("\n" + Text.as_string())
-                file.write("\n")
 
+        for txt in bpy.data.texts:
+            if txt.pov_custom_code:
+                # Why are the newlines needed?
+                file.write("\n")
+                file.write(txt.as_string())
+                file.write("\n")
 
     sel = scene.objects
     comments = scene.pov_comments_enable
@@ -1481,7 +1483,7 @@ def write_pov(filename, scene=None, info_callback=None):
     if not scene.pov_tempfiles_enable and comments:
         file.write("\n//--CUSTOM CODE--\n\n")
     exportCustomCode()
-        
+
     if not scene.pov_tempfiles_enable and comments:
         file.write("\n//--Global settings and background--\n\n")
 

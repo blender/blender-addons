@@ -45,7 +45,6 @@ else:
     from render_povray import ui
 
 
-
 def register():
     bpy.utils.register_module(__name__)
 
@@ -252,7 +251,6 @@ def register():
 
     #############################MATERIAL######################################
 
-
     Mat.pov_irid_enable = BoolProperty(
             name="Enable Iridescence",
             description="Newton's thin film interference (like an oil slick on a puddle of water or the rainbow hues of a soap bubble.)",
@@ -339,27 +337,26 @@ def register():
             default="1")
     ##################################CustomPOV Code############################
     Mat.pov_replacement_text = StringProperty(
-            name = "Declared name:",
+            name="Declared name:",
             description="Type the declared name in custom POV code or an external .inc it points at. texture {} expected",
             default="")
 
-    #Only DUMMIES below for now: 
+    #Only DUMMIES below for now:
     Tex.pov_replacement_text = StringProperty(
-            name = "Declared name:",
+            name="Declared name:",
             description="Type the declared name in custom POV code or an external .inc it points at. pigment {} expected",
             default="")
 
     Obj.pov_replacement_text = StringProperty(
-            name = "Declared name:",
+            name="Declared name:",
             description="Type the declared name in custom POV code or an external .inc it points at. Any POV shape expected e.g: isosurface {}",
             default="")
 
     Cam.pov_replacement_text = StringProperty(
-            name = "Texts in blend file",
+            name="Texts in blend file",
             description="Type the declared name in custom POV code or an external .inc it points at. camera {} expected",
             default="")
     ##############################TEXTURE######################################
-
 
     #Custom texture gamma
     Tex.pov_tex_gamma_enable = BoolProperty(
@@ -373,7 +370,6 @@ def register():
             min=0.45, max=5.00, soft_min=1.00, soft_max=2.50, default=1.00)
 
     #################################OBJECT####################################
-
 
     #Importance sampling
     Obj.pov_importance_value = FloatProperty(
@@ -423,7 +419,6 @@ def register():
             min=0.01, max=0.99, default=0.90)
 
     ###################################TEXT####################################
-
 
     Text.pov_custom_code = BoolProperty(
             name="Custom Code",
@@ -514,7 +509,7 @@ def unregister():
     del Cam.pov_dof_variance  # MR
     del Cam.pov_dof_confidence  # MR
     del Cam.pov_replacement_text  # MR
-    del Text.pov_custom_code  #MR
-    
+    del Text.pov_custom_code  # MR
+
 if __name__ == "__main__":
     register()
