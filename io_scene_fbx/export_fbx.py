@@ -248,9 +248,9 @@ header_comment = \
 
 
 # This func can be called with just the filepath
-def save(operator, context, filepath="",
+def save_single(operator, scene, filepath="",
         GLOBAL_MATRIX=None,
-        use_selection=True,
+        context_objects=None,
         EXP_MESH=True,
         EXP_MESH_APPLY_MOD=True,
         EXP_ARMATURE=True,
@@ -262,15 +262,8 @@ def save(operator, context, filepath="",
         ANIM_OPTIMIZE=True,
         ANIM_OPTIMIZE_PRECISSION=6,
         ANIM_ACTION_ALL=False,
-        BATCH_ENABLE=False,
-        BATCH_GROUP=True,
-        BATCH_FILE_PREFIX='',
-        BATCH_OWN_DIR=False,
         use_metadata=True,
     ):
-
-    #XXX, missing arg
-    batch_objects = None
 
     # testing
     mtx_x90 = Matrix.Rotation(math.pi / 2.0, 3, 'X')  # used
@@ -278,106 +271,6 @@ def save(operator, context, filepath="",
 
     if GLOBAL_MATRIX is None:
         GLOBAL_MATRIX = Matrix()
-
-    if bpy.ops.object.mode_set.poll():
-        bpy.ops.object.mode_set(mode='OBJECT')
-
-    # ----------------- Batch support!
-    if BATCH_ENABLE:
-        fbxpath = filepath
-
-        # get the path component of filepath
-        tmp_exists = bpy.utils.exists(fbxpath)
-
-        if tmp_exists != 2:  # a file, we want a path
-            fbxpath = os.path.dirname(fbxpath)
-# 			while fbxpath and fbxpath[-1] not in ('/', '\\'):
-# 				fbxpath = fbxpath[:-1]
-            if not fbxpath:
-                # XXX
-                print('Error%t|Directory does not exist!')
-# 				Draw.PupMenu('Error%t|Directory does not exist!')
-                return
-
-            tmp_exists = bpy.utils.exists(fbxpath)
-
-        if tmp_exists != 2:
-            # XXX
-            print('Error%t|Directory does not exist!')
-# 			Draw.PupMenu('Error%t|Directory does not exist!')
-            return
-
-        if not fbxpath.endswith(os.sep):
-            fbxpath += os.sep
-        del tmp_exists
-
-        if BATCH_GROUP:
-            data_seq = bpy.data.groups
-        else:
-            data_seq = bpy.data.scenes
-
-        # call this function within a loop with BATCH_ENABLE == False
-        orig_sce = context.scene
-
-        new_fbxpath = fbxpath  # own dir option modifies, we need to keep an original
-        for data in data_seq:  # scene or group
-            newname = BATCH_FILE_PREFIX + bpy.path.clean_name(data.name)
-
-            if BATCH_OWN_DIR:
-                new_fbxpath = fbxpath + newname + os.sep
-                # path may already exist
-                # TODO - might exist but be a file. unlikely but should probably account for it.
-
-                if bpy.utils.exists(new_fbxpath) == 0:
-# 				if Blender.sys.exists(new_fbxpath) == 0:
-                    os.mkdir(new_fbxpath)
-
-            filepath = new_fbxpath + newname + '.fbx'
-
-            print('\nBatch exporting %s as...\n\t%r' % (data, filepath))
-
-            # XXX don't know what to do with this, probably do the same? (Arystan)
-            if BATCH_GROUP:  # group
-                # group, so objects update properly, add a dummy scene.
-                scene = bpy.data.scenes.new()
-                scene.Layers = (1 << 20) - 1
-                bpy.data.scenes.active = scene
-                for ob_base in data.objects:
-                    scene.objects.link(ob_base)
-
-                scene.update(1)
-
-                # TODO - BUMMER! Armatures not in the group wont animate the mesh
-
-            else:  # scene
-                data_seq.active = data
-
-            # Call self with modified args
-            # Dont pass batch options since we already usedt them
-            write(filepath, data.objects,
-                context,
-                False,
-                EXP_MESH,
-                EXP_MESH_APPLY_MOD,
-                EXP_ARMATURE,
-                EXP_LAMP,
-                EXP_CAMERA,
-                EXP_EMPTY,
-                EXP_IMAGE_COPY,
-                GLOBAL_MATRIX,
-                ANIM_ENABLE,
-                ANIM_OPTIMIZE,
-                ANIM_OPTIMIZE_PRECISSION,
-                ANIM_ACTION_ALL
-            )
-
-            if BATCH_GROUP:
-                # remove temp group scene
-                bpy.data.scenes.unlink(scene)
-
-        bpy.data.scenes.active = orig_sce
-
-        return  # so the script wont run after we have batch exported.
 
     # end batch support
 
@@ -554,9 +447,12 @@ def save(operator, context, filepath="",
     try:
         file = open(filepath, "w", encoding="utf8", newline="\n")
     except:
-        return False
+        import traceback
+        traceback.print_exc()
+        operator.report({'ERROR'}, "Could'nt open file %r" % filepath)
+        return {'CANCELLED'}
 
-    scene = context.scene
+    # scene = context.scene  # now passed as an arg instead of context
     world = scene.world
 
     # ---------------------------- Write the header first
@@ -1933,14 +1829,7 @@ def save(operator, context, filepath="",
 
     tmp_ob_type = ob_type = None  # incase no objects are exported, so as not to raise an error
 
-    # if use_selection is false, use sceens objects
-    if not batch_objects:
-        if use_selection:
-            tmp_objects = context.selected_objects
-        else:
-            tmp_objects = scene.objects
-    else:
-        tmp_objects = batch_objects
+## XXX 
 
     if EXP_ARMATURE:
         # This is needed so applying modifiers dosnt apply the armature deformation, its also needed
@@ -1959,7 +1848,7 @@ def save(operator, context, filepath="",
             # This causes the makeDisplayList command to effect the mesh
             scene.frame_set(scene.frame_current)
 
-    for ob_base in tmp_objects:
+    for ob_base in context_objects:
 
         # ignore dupli children
         if ob_base.parent and ob_base.parent.dupli_type != 'NONE':
@@ -2108,7 +1997,7 @@ def save(operator, context, filepath="",
             # This causes the makeDisplayList command to effect the mesh
             scene.frame_set(scene.frame_current)
 
-    del tmp_ob_type, tmp_objects
+    del tmp_ob_type, context_objects
 
     # now we have collected all armatures, add bones
     for i, ob in enumerate(ob_arms):
@@ -2929,6 +2818,98 @@ Takes:  {''')
 
     print('export finished in %.4f sec.' % (time.clock() - start_time))
     return {'FINISHED'}
+
+
+def save(operator, context, 
+          filepath="",
+          use_selection=True,
+          batch_mode='OFF',
+          BATCH_OWN_DIR=False,
+          **kwargs
+          ):
+
+    if bpy.ops.object.mode_set.poll():
+        bpy.ops.object.mode_set(mode='OBJECT')
+
+    if batch_mode == 'OFF':
+        kwargs_mod = kwargs.copy()
+        if use_selection:
+            kwargs_mod["context_objects"] = context.selected_objects
+        else:
+            kwargs_mod["context_objects"] = scene.objects
+        
+        return save_single(operator, context.scene, filepath, **kwargs_mod)
+    else:
+        fbxpath = filepath
+
+        prefix = os.path.basename(fbxpath)
+        if prefix:
+            fbxpath = os.path.dirname(fbxpath)
+
+        if not fbxpath.endswith(os.sep):
+            fbxpath += os.sep
+
+        if batch_mode == 'GROUP':
+            data_seq = bpy.data.groups
+        else:
+            data_seq = bpy.data.scenes
+
+        # call this function within a loop with BATCH_ENABLE == False
+        # no scene switching done at the moment.
+        # orig_sce = context.scene
+
+        new_fbxpath = fbxpath  # own dir option modifies, we need to keep an original
+        for data in data_seq:  # scene or group
+            newname = prefix + bpy.path.clean_name(data.name)
+
+            if BATCH_OWN_DIR:
+                new_fbxpath = fbxpath + newname + os.sep
+                # path may already exist
+                # TODO - might exist but be a file. unlikely but should probably account for it.
+
+                if not os.path.exists(new_fbxpath):
+                    os.makedirs(new_fbxpath)
+
+            filepath = new_fbxpath + newname + '.fbx'
+
+            print('\nBatch exporting %s as...\n\t%r' % (data, filepath))
+
+            # XXX don't know what to do with this, probably do the same? (Arystan)
+            if batch_mode == 'GROUP':  # group
+                # group, so objects update properly, add a dummy scene.
+                scene = bpy.data.scenes.new(name="FBX_Temp")
+                scene.layers = [True] * 20
+                # bpy.data.scenes.active = scene # XXX, cant switch 
+                for ob_base in data.objects:
+                    scene.objects.link(ob_base)
+
+                scene.update()
+            else:
+                scene = data
+
+                # TODO - BUMMER! Armatures not in the group wont animate the mesh
+
+            # else:  # scene
+            #     data_seq.active = data
+
+            # Call self with modified args
+            # Dont pass batch options since we already usedt them
+            kwargs_batch = kwargs.copy()
+
+            kwargs_batch["context_objects"] = data.objects
+
+            save_single(operator, scene, filepath, **kwargs_batch)
+
+            if batch_mode == 'GROUP':
+                # remove temp group scene
+                bpy.data.scenes.remove(scene)
+
+        # no active scene changing!
+        # bpy.data.scenes.active = orig_sce
+
+        return {'FINISHED'}  # so the script wont run after we have batch exported.
+
+
 
 
 # NOTES (all line numbers correspond to original export_fbx.py (under release/scripts)
