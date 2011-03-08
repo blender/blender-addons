@@ -40,7 +40,7 @@ if "bpy" in locals():
 
 
 import bpy
-from bpy.props import StringProperty, BoolProperty, FloatProperty
+from bpy.props import StringProperty, BoolProperty, FloatProperty, EnumProperty
 from io_utils import ExportHelper
 
 
@@ -76,12 +76,20 @@ class ExportFBX(bpy.types.Operator, ExportHelper):
     ANIM_OPTIMIZE_PRECISSION = FloatProperty(name="Precision", description="Tolerence for comparing double keyframes (higher for greater accuracy)", min=1, max=16, soft_min=1, soft_max=16, default=6.0)
 # 	ANIM_ACTION_ALL = BoolProperty(name="Current Action", description="Use actions currently applied to the armatures (use scene start/end frame)", default=True)
     ANIM_ACTION_ALL = BoolProperty(name="All Actions", description="Use all actions for armatures, if false, use current action", default=False)
-    # batch
-    BATCH_ENABLE = BoolProperty(name="Enable Batch", description="Automate exporting multiple scenes or groups to files", default=False)
-    BATCH_GROUP = BoolProperty(name="Group > File", description="Export each group as an FBX file, if false, export each scene as an FBX file", default=False)
+
+    batch_mode = EnumProperty(items=(
+            ('OFF', "Off", "Active scene to file"),
+            ('SCENE', "Scene", "Each scene as a file"),
+            ('GROUP', "Group", "Each group as a file"),
+            ),
+                name="Batch Mode")
+
     BATCH_OWN_DIR = BoolProperty(name="Own Dir", description="Create a dir for each exported file", default=True)
-    BATCH_FILE_PREFIX = StringProperty(name="Prefix", description="Prefix each file with this name", maxlen=1024, default="")
     use_metadata = BoolProperty(name="Use Metadata", default=True, options={'HIDDEN'})
+
+    @property
+    def check_extension(self):
+        return self.batch_mode == 'OFF'
 
     def execute(self, context):
         import math
