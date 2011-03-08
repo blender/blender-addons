@@ -27,9 +27,16 @@ imp.reload(deform)
 
 script = """
 fk_arm = ["%s", "%s", "%s"]
-ik_arm = ["%s", "%s"]
+ik_arm = ["%s", "%s", "%s", "%s"]
 if is_selected(fk_arm+ik_arm):
-    layout.prop(pose_bones[ik_arm[0]], '["ikfk_switch"]', text="FK / IK (" + ik_arm[0] + ")", slider=True)
+    layout.prop(pose_bones[ik_arm[2]], '["ikfk_switch"]', text="FK / IK (" + ik_arm[2] + ")", slider=True)
+    p = layout.operator("pose.rigify_arm_fk2ik", text="Snap FK->IK (" + fk_arm[0] + ")")
+    p.uarm_fk = fk_arm[0]
+    p.farm_fk = fk_arm[1]
+    p.hand_fk = fk_arm[2]
+    p.uarm_ik = ik_arm[0]
+    p.farm_ik = ik_arm[1]
+    p.hand_ik = ik_arm[2]
 if is_selected(fk_arm):
     layout.prop(pose_bones[fk_arm[0]], '["isolate"]', text="Isolate Rotation (" + fk_arm[0] + ")", slider=True)
 """
@@ -64,7 +71,7 @@ class Rig:
         self.deform_rig.generate()
         fk_controls = self.fk_rig.generate()
         ik_controls = self.ik_rig.generate()
-        return [script % (fk_controls[0], fk_controls[1], fk_controls[2], ik_controls[0], ik_controls[1])]
+        return [script % (fk_controls[0], fk_controls[1], fk_controls[2], ik_controls[0], ik_controls[1], ik_controls[2], ik_controls[3])]
 
     @classmethod
     def add_parameters(self, group):

@@ -303,5 +303,5 @@ class Rig:
             mod = ob.modifiers.new("subsurf", 'SUBSURF')
             mod.levels = 2
 
-        return [hand, pole]
+        return [uarm, farm, hand, pole]
 
