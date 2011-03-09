@@ -30,15 +30,29 @@ fk_arm = ["%s", "%s", "%s"]
 ik_arm = ["%s", "%s", "%s", "%s"]
 if is_selected(fk_arm+ik_arm):
     layout.prop(pose_bones[ik_arm[2]], '["ikfk_switch"]', text="FK / IK (" + ik_arm[2] + ")", slider=True)
-    p = layout.operator("pose.rigify_arm_fk2ik", text="Snap FK->IK (" + fk_arm[0] + ")")
+if is_selected(fk_arm):
+    try:
+        pose_bones[fk_arm[0]]["isolate"]
+        layout.prop(pose_bones[fk_arm[0]], '["isolate"]', text="Isolate Rotation (" + fk_arm[0] + ")", slider=True)
+    except KeyError:
+        pass
+if is_selected(fk_arm+ik_arm):
+    p = layout.operator("pose.rigify_arm_fk2ik_" + rig_id, text="Snap FK->IK (" + fk_arm[0] + ")")
     p.uarm_fk = fk_arm[0]
     p.farm_fk = fk_arm[1]
     p.hand_fk = fk_arm[2]
     p.uarm_ik = ik_arm[0]
     p.farm_ik = ik_arm[1]
     p.hand_ik = ik_arm[2]
-if is_selected(fk_arm):
-    layout.prop(pose_bones[fk_arm[0]], '["isolate"]', text="Isolate Rotation (" + fk_arm[0] + ")", slider=True)
+    p = layout.operator("pose.rigify_arm_ik2fk_" + rig_id, text="Snap IK->FK (" + fk_arm[0] + ")")
+    p.uarm_fk = fk_arm[0]
+    p.farm_fk = fk_arm[1]
+    p.hand_fk = fk_arm[2]
+    p.uarm_ik = ik_arm[0]
+    p.farm_ik = ik_arm[1]
+    p.hand_ik = ik_arm[2]
+    p.pole = ik_arm[3]
+
 """
 
 

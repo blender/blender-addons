@@ -193,15 +193,20 @@ class Generate(bpy.types.Operator):
 
     bl_idname = "pose.rigify_generate"
     bl_label = "Rigify Generate Rig"
+    bl_options = {'UNDO'}
 
     def execute(self, context):
         import imp
         imp.reload(generate)
 
+        use_global_undo = context.user_preferences.edit.use_global_undo
+        context.user_preferences.edit.use_global_undo = False
         try:
             generate.generate_rig(context, context.object)
         except rigify.utils.MetarigError as rig_exception:
             rigify_report_exception(self, rig_exception)
+        finally:
+            context.user_preferences.edit.use_global_undo = use_global_undo
 
         return {'FINISHED'}
 

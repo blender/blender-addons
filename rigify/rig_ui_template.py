@@ -18,17 +18,18 @@
 
 UI_SLIDERS = '''
 import bpy
+from mathutils import Matrix, Vector
+from math import acos
 
 rig_id = "%s"
 
 
-def get_pose_matrix_in_other_space(pose_bone, pbs):
-    """ Returns the transform matrix of pose_bone relative to pbs's transform space.
+def get_pose_matrix_in_other_space(mat, pbs):
+    """ Returns the transform matrix relative to pbs's transform space.
         In other words, you could take the matrix returned from this, slap
-        it into pbs, and it would have the same world transform as pb.
+        it into pbs, and it would have the same world transform as mat.
         This is with constraints applied.
     """
-    mat = pose_bone.matrix.copy()
     rest_inv = pbs.bone.matrix_local.inverted()
     
     if pbs.parent:
@@ -46,7 +47,7 @@ def get_local_matrix_with_constraints(pose_bone):
     """ Returns the local matrix of the given pose bone, with constraints
         applied.
     """
-    return get_pose_matrix_in_other_space(pose_bone, pose_bone)
+    return get_pose_matrix_in_other_space(pose_bone.matrix, pose_bone)
 
 
 def set_pose_rotation(pb, mat):
@@ -77,7 +78,19 @@ def set_pose_translation(pb, mat):
     """ Sets the pose bone's translation to the same translation as the given matrix.
         Matrix should be given in local space.
     """
-    pb.location = mat.to_translation()
+    if pb.bone.use_local_location == True:
+        pb.location = mat.to_translation()
+    else:
+        loc = mat.to_translation()
+        
+        rest = pb.bone.matrix_local.copy()
+        if pb.bone.parent:
+            par_rest = pb.bone.parent.matrix_local.copy()
+        else:
+            par_rest = Matrix()
+        
+        q = (par_rest.inverted() * rest).to_quaternion()
+        pb.location = loc * q
 
 
 def fk2ik(obj, fk, ik):
@@ -93,25 +106,25 @@ def fk2ik(obj, fk, ik):
     farmi = pb[ik[1]]
     handi = pb[ik[2]]
     
-    uarmmat = get_pose_matrix_in_other_space(uarmi, uarm)
+    uarmmat = get_pose_matrix_in_other_space(uarmi.matrix, uarm)
     set_pose_rotation(uarm, uarmmat)
     set_pose_scale(uarm, uarmmat)
     bpy.ops.object.mode_set(mode='OBJECT')
     bpy.ops.object.mode_set(mode='POSE')
     
-    farmmat = get_pose_matrix_in_other_space(farmi, farm)
+    farmmat = get_pose_matrix_in_other_space(farmi.matrix, farm)
     set_pose_rotation(farm, farmmat)
     set_pose_scale(farm, farmmat)
     bpy.ops.object.mode_set(mode='OBJECT')
     bpy.ops.object.mode_set(mode='POSE')
     
-    handmat = get_pose_matrix_in_other_space(handi, hand)
+    handmat = get_pose_matrix_in_other_space(handi.matrix, hand)
     set_pose_rotation(hand, handmat)
     set_pose_scale(hand, handmat)
     bpy.ops.object.mode_set(mode='OBJECT')
     bpy.ops.object.mode_set(mode='POSE')
     
-
+    
 def ik2fk(obj, fk, ik):
     """ Matches the ik bones in an arm rig to the fk bones.
     """
@@ -126,19 +139,73 @@ def ik2fk(obj, fk, ik):
     handi = pb[ik[2]]
     pole = pb[ik[3]]
     
-    handmat = get_pose_matrix_in_other_space(hand, handi)
+    # Hand position
+    handmat = get_pose_matrix_in_other_space(hand.matrix, handi)
     set_pose_translation(handi, handmat)
     set_pose_rotation(handi, handmat)
     set_pose_scale(handi, handmat)
     bpy.ops.object.mode_set(mode='OBJECT')
     bpy.ops.object.mode_set(mode='POSE')
+    
+    # Pole target position
+    a = uarm.matrix.to_translation()
+    b = farm.matrix.to_translation() + farm.vector
+    
+    # Vector from the head of the upper arm to the
+    # tip of the forearm
+    armv = b - a
+    
+    # Create a vector that is not aligned with armv.
+    # It doesn't matter what vector.  Just any vector
+    # that's guaranteed to not be pointing in the same
+    # direction.
+    if abs(armv[0]) < abs(armv[1]) and abs(armv[0]) < abs(armv[2]):
+        v = Vector((1,0,0))
+    elif abs(armv[1]) < abs(armv[2]):
+        v = Vector((0,1,0))
+    else:
+        v = Vector((0,0,1))
+    
+    # cross v with armv to get a vector perpendicular to armv
+    pv = v.cross(armv).normalized() * (uarm.length + farm.length)
+    
+    def set_pole(pvi):
+        # Translate pvi into armature space
+        ploc = a + (armv/2) + pvi
+        
+        # Set pole target to location
+        mat = get_pose_matrix_in_other_space(Matrix().Translation(ploc), pole)
+        set_pose_translation(pole, mat)
+        
+        bpy.ops.object.mode_set(mode='OBJECT')
+        bpy.ops.object.mode_set(mode='POSE')
+    
+    set_pole(pv)
+    
+    # Get the rotation difference between the ik and fk upper arms
+    q1 = uarm.matrix.to_quaternion()
+    q2 = uarmi.matrix.to_quaternion()
+    angle = acos(min(1,max(-1,q1.dot(q2)))) * 2
+    
+    # Compensate for the rotation difference
+    if angle > 0.00001:
+        pv *= Matrix.Rotation(angle, 4, armv).to_quaternion()
+        set_pole(pv)
+    
+        q1 = uarm.matrix.to_quaternion()
+        q2 = uarmi.matrix.to_quaternion()
+        angle2 = acos(min(1,max(-1,q1.dot(q2)))) * 2
+        if angle2 > 0.00001:
+            pv *= Matrix.Rotation((angle*(-2)), 4, armv).to_quaternion()
+            set_pole(pv)
 
 
 class Rigify_Arm_FK2IK(bpy.types.Operator):
     """ Snaps an FK arm to an IK arm.
     """
-    bl_idname = "pose.rigify_arm_fk2ik"
+    bl_idname = "pose.rigify_arm_fk2ik_" + rig_id
     bl_label = "Rigify Snap FK arm to IK"
+    bl_options = {'UNDO'}
     
     uarm_fk = bpy.props.StringProperty(name="Upper Arm FK Name")
     farm_fk = bpy.props.StringProperty(name="Forerm FK Name")
@@ -153,15 +220,21 @@ class Rigify_Arm_FK2IK(bpy.types.Operator):
         return (context.active_object != None and context.mode == 'POSE')
 
     def execute(self, context):
-        fk2ik(context.active_object, fk=[self.uarm_fk, self.farm_fk, self.hand_fk], ik=[self.uarm_ik, self.farm_ik, self.hand_ik])
+        use_global_undo = context.user_preferences.edit.use_global_undo
+        context.user_preferences.edit.use_global_undo = False
+        try:
+            fk2ik(context.active_object, fk=[self.uarm_fk, self.farm_fk, self.hand_fk], ik=[self.uarm_ik, self.farm_ik, self.hand_ik])
+        finally:
+            context.user_preferences.edit.use_global_undo = use_global_undo
         return {'FINISHED'}
 
 
 class Rigify_Arm_IK2FK(bpy.types.Operator):
     """ Snaps an IK arm to an FK arm.
     """
-    bl_idname = "pose.rigify_arm_ik2fk"
+    bl_idname = "pose.rigify_arm_ik2fk_" + rig_id
     bl_label = "Snap IK arm to FK"
+    bl_options = {'UNDO'}
     
     uarm_fk = bpy.props.StringProperty(name="Upper Arm FK Name")
     farm_fk = bpy.props.StringProperty(name="Forerm FK Name")
@@ -177,7 +250,12 @@ class Rigify_Arm_IK2FK(bpy.types.Operator):
         return (context.active_object != None and context.mode == 'POSE')
 
     def execute(self, context):
-        ik2fk(context.active_object, fk=[self.uarm_fk, self.farm_fk, self.hand_fk], ik=[self.uarm_ik, self.farm_ik, self.hand_ik, self.pole])
+        use_global_undo = context.user_preferences.edit.use_global_undo
+        context.user_preferences.edit.use_global_undo = False
+        try:
+            ik2fk(context.active_object, fk=[self.uarm_fk, self.farm_fk, self.hand_fk], ik=[self.uarm_ik, self.farm_ik, self.hand_ik, self.pole])
+        finally:
+            context.user_preferences.edit.use_global_undo = use_global_undo
         return {'FINISHED'}
 
 

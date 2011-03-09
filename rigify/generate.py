@@ -55,8 +55,6 @@ def generate_rig(context, metarig):
     rig_id = random_string(12)  # Random so that different rigs don't collide id's
 
     # Initial configuration
-    use_global_undo = context.user_preferences.edit.use_global_undo
-    context.user_preferences.edit.use_global_undo = False
     mode_orig = context.mode
     rest_backup = metarig.data.pose_position
     metarig.data.pose_position = 'REST'
@@ -214,7 +212,6 @@ def generate_rig(context, metarig):
     except Exception as e:
         # Cleanup if something goes wrong
         print("Rigify: failed to generate rig.")
-        context.user_preferences.edit.use_global_undo = use_global_undo
         metarig.data.pose_position = rest_backup
         obj.data.pose_position = 'POSE'
         bpy.ops.object.mode_set(mode='OBJECT')
@@ -301,7 +298,6 @@ def generate_rig(context, metarig):
     bpy.ops.object.mode_set(mode='OBJECT')
     metarig.data.pose_position = rest_backup
     obj.data.pose_position = 'POSE'
-    context.user_preferences.edit.use_global_undo = use_global_undo
 
 
 def get_bone_rigs(obj, bone_name, halt_on_missing=False):
