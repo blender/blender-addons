@@ -116,7 +116,6 @@ class RigifyParameters(bpy.types.PropertyGroup):
     name = bpy.props.StringProperty()
 
 
-
 ##### REGISTER #####
 
 def register():
@@ -141,6 +140,7 @@ def register():
             r.add_parameters(RigifyParameters)
         except AttributeError:
             pass
+
 
 def unregister():
     del bpy.types.PoseBone.rigify_type

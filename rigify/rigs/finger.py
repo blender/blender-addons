@@ -42,7 +42,6 @@ class Rig:
         if len(self.org_bones) <= 1:
             raise MetarigError("RIGIFY ERROR: Bone '%s': input to rig type must be a chain of 2 or more bones." % (strip_org(bone)))
 
-
         # Get user-specified layers, if they exist
         if params.separate_extra_layers:
             self.ex_layers = list(params.extra_layers)

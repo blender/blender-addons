@@ -242,5 +242,5 @@ class Rig:
             mod = ob.modifiers.new("subsurf", 'SUBSURF')
             mod.levels = 2
 
-        return [thigh, shin, foot]
+        return [thigh, shin, foot, foot_mch]
 

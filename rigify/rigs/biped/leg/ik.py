@@ -111,7 +111,6 @@ class Rig:
                     heel = b.name
                     if len(b.children) > 0:
                         rocker = b.children[0].name
-                    
 
         if foot == None or heel == None:
             print("blah")
@@ -300,7 +299,6 @@ class Rig:
                 flip_bone(self.obj, rocker2)
             else:
                 flip_bone(self.obj, rocker1)
-            
 
         # Weird alignment issues.  Fix.
         toe_parent_e.head = Vector(org_foot_e.head)
@@ -574,5 +572,5 @@ class Rig:
             mod = ob.modifiers.new("subsurf", 'SUBSURF')
             mod.levels = 2
 
-        return [foot, pole, foot_roll]
+        return [thigh, shin, foot, pole, foot_roll, foot_ik_target]
 

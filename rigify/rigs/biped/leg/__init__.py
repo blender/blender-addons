@@ -26,12 +26,35 @@ imp.reload(ik)
 imp.reload(deform)
 
 script = """
-fk_leg = ["%s", "%s", "%s"]
-ik_leg = ["%s", "%s", "%s"]
+fk_leg = ["%s", "%s", "%s", "%s"]
+ik_leg = ["%s", "%s", "%s", "%s", "%s", "%s"]
 if is_selected(fk_leg+ik_leg):
-    layout.prop(pose_bones[ik_leg[0]], '["ikfk_switch"]', text="FK / IK (" + ik_leg[0] + ")", slider=True)
+    layout.prop(pose_bones[ik_leg[2]], '["ikfk_switch"]', text="FK / IK (" + ik_leg[2] + ")", slider=True)
 if is_selected(fk_leg):
-    layout.prop(pose_bones[fk_leg[0]], '["isolate"]', text="Isolate Rotation (" + fk_leg[0] + ")", slider=True)
+    try:
+        pose_bones[fk_leg[0]]["isolate"]
+        layout.prop(pose_bones[fk_leg[0]], '["isolate"]', text="Isolate Rotation (" + fk_leg[0] + ")", slider=True)
+    except KeyError:
+        pass
+if is_selected(fk_leg+ik_leg):
+    p = layout.operator("pose.rigify_leg_fk2ik_" + rig_id, text="Snap FK->IK (" + fk_leg[0] + ")")
+    p.thigh_fk = fk_leg[0]
+    p.shin_fk  = fk_leg[1]
+    p.foot_fk  = fk_leg[2]
+    p.mfoot_fk = fk_leg[3]
+    p.thigh_ik = ik_leg[0]
+    p.shin_ik  = ik_leg[1]
+    p.mfoot_ik = ik_leg[5]
+    p = layout.operator("pose.rigify_leg_ik2fk_" + rig_id, text="Snap IK->FK (" + fk_leg[0] + ")")
+    p.thigh_fk  = fk_leg[0]
+    p.shin_fk   = fk_leg[1]
+    p.mfoot_fk  = fk_leg[3]
+    p.thigh_ik  = ik_leg[0]
+    p.shin_ik   = ik_leg[1]
+    p.foot_ik   = ik_leg[2]
+    p.pole      = ik_leg[3]
+    p.footroll  = ik_leg[4]
+    p.mfoot_ik  = ik_leg[5]
 """
 
 
@@ -64,7 +87,7 @@ class Rig:
         self.deform_rig.generate()
         fk_controls = self.fk_rig.generate()
         ik_controls = self.ik_rig.generate()
-        return [script % (fk_controls[0], fk_controls[1], fk_controls[2], ik_controls[0], ik_controls[1], ik_controls[2])]
+        return [script % (fk_controls[0], fk_controls[1], fk_controls[2], fk_controls[3], ik_controls[0], ik_controls[1], ik_controls[2], ik_controls[3], ik_controls[4], ik_controls[5])]
 
     @classmethod
     def add_parameters(self, group):

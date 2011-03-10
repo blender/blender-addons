@@ -216,11 +216,15 @@ class Sample(bpy.types.Operator):
 
     bl_idname = "armature.metarig_sample_add"
     bl_label = "Add a sample metarig for a rig type"
+    bl_options = {'UNDO'}
 
     metarig_type = StringProperty(name="Type", description="Name of the rig type to generate a sample of", maxlen=128, default="")
 
+
     def execute(self, context):
         if context.mode == 'EDIT_ARMATURE' and self.metarig_type != "":
+            use_global_undo = context.user_preferences.edit.use_global_undo
+            context.user_preferences.edit.use_global_undo = False
             try:
                 rig = get_rig_type(self.metarig_type).Rig
                 create_sample = rig.create_sample
@@ -228,7 +232,9 @@ class Sample(bpy.types.Operator):
                 print("Rigify: rig type has no sample.")
             else:
                 create_sample(context.active_object)
-            bpy.ops.object.mode_set(mode='EDIT')
+            finally:
+                context.user_preferences.edit.use_global_undo = use_global_undo
+                bpy.ops.object.mode_set(mode='EDIT')
 
         return {'FINISHED'}
 
