@@ -28,7 +28,7 @@
 """
 Abstract
 MHX (MakeHuman eXchange format) importer for Blender 2.5x.
-Version 1.2.7
+Version 1.3.0
 
 This script should be distributed with Blender.
 If not, place it in the .blender/scripts/addons dir
@@ -41,7 +41,7 @@ Alternatively, run the script in the script editor (Alt-P), and access from the 
 bl_info = {
     'name': 'Import: MakeHuman (.mhx)',
     'author': 'Thomas Larsson',
-    'version': (1, 2, 7),
+    'version': (1, 3, 0),
     'blender': (2, 5, 7),
     'api': 34786,
     'location': "File > Import",
@@ -54,8 +54,8 @@ bl_info = {
     'category': 'Import-Export'}
 
 MAJOR_VERSION = 1
-MINOR_VERSION = 2
-SUB_VERSION = 7
+MINOR_VERSION = 3
+SUB_VERSION = 0
 BLENDER_VERSION = (2, 56, 0)
 
 #
@@ -1557,6 +1557,15 @@ def parseArmature (args, tokens):
                 bone = amt.edit_bones.new(bname)
                 parseBone(bone, amt, sub, heads, tails)
                 loadedData['Bone'][bname] = bone
+        elif key == 'RecalcRoll':
+            for bone in amt.edit_bones:
+                bone.select = False
+            blist = eval(val[0])
+            print(blist)
+            for name in blist:
+                bone = amt.edit_bones[name]
+                bone.select = True
+            bpy.ops.armature.calculate_roll(type='Z')
         else:
             defaultKey(key, val,  sub, "amt", ['MetaRig'], globals(), locals())
     bpy.ops.object.mode_set(mode='OBJECT')
