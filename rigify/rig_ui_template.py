@@ -439,12 +439,6 @@ class Rigify_Leg_IK2FK(bpy.types.Operator):
         return {'FINISHED'}
 
 
-bpy.utils.register_class(Rigify_Arm_FK2IK)
-bpy.utils.register_class(Rigify_Arm_IK2FK)
-bpy.utils.register_class(Rigify_Leg_FK2IK)
-bpy.utils.register_class(Rigify_Leg_IK2FK)
-
-
 ###################
 ## Rig UI Panels ##
 ###################
@@ -525,8 +519,20 @@ class RigLayers(bpy.types.Panel):
 UI_REGISTER = '''
 
 def register():
+    bpy.utils.register_class(Rigify_Arm_FK2IK)
+    bpy.utils.register_class(Rigify_Arm_IK2FK)
+    bpy.utils.register_class(Rigify_Leg_FK2IK)
+    bpy.utils.register_class(Rigify_Leg_IK2FK)
     bpy.utils.register_class(RigUI)
     bpy.utils.register_class(RigLayers)
+
+def unregister():
+    bpy.utils.unregister_class(Rigify_Arm_FK2IK)
+    bpy.utils.unregister_class(Rigify_Arm_IK2FK)
+    bpy.utils.unregister_class(Rigify_Leg_FK2IK)
+    bpy.utils.unregister_class(Rigify_Leg_IK2FK)
+    bpy.utils.unregister_class(RigUI)
+    bpy.utils.unregister_class(RigLayers)
 
 register()
 '''
