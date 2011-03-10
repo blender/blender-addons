@@ -52,7 +52,10 @@ def generate_rig(context, metarig):
 
     """
     t = Timer()
-    rig_id = random_string(12)  # Random so that different rigs don't collide id's
+
+    # Random string with time appended so that
+    # different rigs don't collide id's
+    rig_id = random_string(8) + str(hex(int(time.time())))[2:][-8:].rjust(8, '0')
 
     # Initial configuration
     mode_orig = context.mode

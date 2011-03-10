@@ -220,7 +220,6 @@ class Sample(bpy.types.Operator):
 
     metarig_type = StringProperty(name="Type", description="Name of the rig type to generate a sample of", maxlen=128, default="")
 
-
     def execute(self, context):
         if context.mode == 'EDIT_ARMATURE' and self.metarig_type != "":
             use_global_undo = context.user_preferences.edit.use_global_undo

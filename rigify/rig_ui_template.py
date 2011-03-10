@@ -24,17 +24,21 @@ from math import acos
 rig_id = "%s"
 
 
-def get_pose_matrix_in_other_space(mat, pbs):
-    """ Returns the transform matrix relative to pbs's transform space.
-        In other words, you could take the matrix returned from this, slap
-        it into pbs, and it would have the same world transform as mat.
-        This is with constraints applied.
-    """
-    rest_inv = pbs.bone.matrix_local.inverted()
+#########################################
+## "Visual Transform" helper functions ##
+#########################################
 
-    if pbs.parent:
-        par_inv = pbs.parent.matrix.inverted()
-        par_rest = pbs.parent.bone.matrix_local.copy()
+def get_pose_matrix_in_other_space(mat, pose_bone):
+    """ Returns the transform matrix relative to pose_bone's current
+        transform space.  In other words, presuming that mat is in
+        armature space, slapping the returned matrix onto pose_bone
+        should give it the armature-space transforms of mat.
+    """
+    rest_inv = pose_bone.bone.matrix_local.inverted()
+
+    if pose_bone.parent:
+        par_inv = pose_bone.parent.matrix.inverted()
+        par_rest = pose_bone.parent.bone.matrix_local.copy()
 
         smat = rest_inv * (par_rest * (par_inv * mat))
     else:
@@ -43,135 +47,130 @@ def get_pose_matrix_in_other_space(mat, pbs):
     return smat
 
 
-def get_local_matrix_with_constraints(pose_bone):
-    """ Returns the local matrix of the given pose bone, with constraints
-        applied.
+def get_local_pose_matrix(pose_bone):
+    """ Returns the local transform matrix of the given pose bone.
     """
     return get_pose_matrix_in_other_space(pose_bone.matrix, pose_bone)
 
 
-def set_pose_rotation(pb, mat):
-    """ Sets the pose bone's rotation to the same rotation as the given matrix.
-        Matrix should be given in local space.
-    """
-    q = mat.to_quaternion()
-
-    if pb.rotation_mode == 'QUATERNION':
-        pb.rotation_quaternion = q
-    elif pb.rotation_mode == 'AXIS_ANGLE':
-        pb.rotation_axis_angle[0] = q.angle
-        pb.rotation_axis_angle[1] = q.axis[0]
-        pb.rotation_axis_angle[2] = q.axis[1]
-        pb.rotation_axis_angle[3] = q.axis[2]
-    else:
-        pb.rotation_euler = q.to_euler(pb.rotation_mode)
-
-
-def set_pose_scale(pb, mat):
-    """ Sets the pose bone's scale to the same scale as the given matrix.
-        Matrix should be given in local space.
-    """
-    pb.scale = mat.to_scale()
-
-
-def set_pose_translation(pb, mat):
+def set_pose_translation(pose_bone, mat):
     """ Sets the pose bone's translation to the same translation as the given matrix.
-        Matrix should be given in local space.
+        Matrix should be given in bone's local space.
     """
-    if pb.bone.use_local_location == True:
-        pb.location = mat.to_translation()
+    if pose_bone.bone.use_local_location == True:
+        pose_bone.location = mat.to_translation()
     else:
         loc = mat.to_translation()
 
-        rest = pb.bone.matrix_local.copy()
-        if pb.bone.parent:
-            par_rest = pb.bone.parent.matrix_local.copy()
+        rest = pose_bone.bone.matrix_local.copy()
+        if pose_bone.bone.parent:
+            par_rest = pose_bone.bone.parent.matrix_local.copy()
         else:
             par_rest = Matrix()
 
         q = (par_rest.inverted() * rest).to_quaternion()
-        pb.location = loc * q
+        pose_bone.location = loc * q
 
 
-def fk2ik_arm(obj, fk, ik):
-    """ Matches the fk bones in an arm rig to the ik bones.
+def set_pose_rotation(pose_bone, mat):
+    """ Sets the pose bone's rotation to the same rotation as the given matrix.
+        Matrix should be given in bone's local space.
     """
-    pb = obj.pose.bones
+    q = mat.to_quaternion()
 
-    uarm = pb[fk[0]]
-    farm = pb[fk[1]]
-    hand = pb[fk[2]]
-
-    uarmi = pb[ik[0]]
-    farmi = pb[ik[1]]
-    handi = pb[ik[2]]
-
-    uarmmat = get_pose_matrix_in_other_space(uarmi.matrix, uarm)
-    set_pose_rotation(uarm, uarmmat)
-    set_pose_scale(uarm, uarmmat)
-    bpy.ops.object.mode_set(mode='OBJECT')
-    bpy.ops.object.mode_set(mode='POSE')
-
-    farmmat = get_pose_matrix_in_other_space(farmi.matrix, farm)
-    set_pose_rotation(farm, farmmat)
-    set_pose_scale(farm, farmmat)
-    bpy.ops.object.mode_set(mode='OBJECT')
-    bpy.ops.object.mode_set(mode='POSE')
-
-    handmat = get_pose_matrix_in_other_space(handi.matrix, hand)
-    set_pose_rotation(hand, handmat)
-    set_pose_scale(hand, handmat)
-    bpy.ops.object.mode_set(mode='OBJECT')
-    bpy.ops.object.mode_set(mode='POSE')
+    if pose_bone.rotation_mode == 'QUATERNION':
+        pose_bone.rotation_quaternion = q
+    elif pose_bone.rotation_mode == 'AXIS_ANGLE':
+        pose_bone.rotation_axis_angle[0] = q.angle
+        pose_bone.rotation_axis_angle[1] = q.axis[0]
+        pose_bone.rotation_axis_angle[2] = q.axis[1]
+        pose_bone.rotation_axis_angle[3] = q.axis[2]
+    else:
+        pose_bone.rotation_euler = q.to_euler(pose_bone.rotation_mode)
 
 
-def ik2fk_arm(obj, fk, ik):
-    """ Matches the ik bones in an arm rig to the fk bones.
+def set_pose_scale(pose_bone, mat):
+    """ Sets the pose bone's scale to the same scale as the given matrix.
+        Matrix should be given in bone's local space.
     """
-    pb = obj.pose.bones
+    pose_bone.scale = mat.to_scale()
 
-    uarm = pb[fk[0]]
-    farm = pb[fk[1]]
-    hand = pb[fk[2]]
 
-    uarmi = pb[ik[0]]
-    farmi = pb[ik[1]]
-    handi = pb[ik[2]]
-    pole = pb[ik[3]]
-
-    # Hand position
-    handmat = get_pose_matrix_in_other_space(hand.matrix, handi)
-    set_pose_translation(handi, handmat)
-    set_pose_rotation(handi, handmat)
-    set_pose_scale(handi, handmat)
+def match_pose_translation(pose_bone, target_bone):
+    """ Matches pose_bone's visual translation to target_bone's visual
+        translation.
+        This function assumes you are in pose mode on the relevant armature.
+    """
+    mat = get_pose_matrix_in_other_space(target_bone.matrix, pose_bone)
+    set_pose_translation(pose_bone, mat)
     bpy.ops.object.mode_set(mode='OBJECT')
     bpy.ops.object.mode_set(mode='POSE')
 
-    # Pole target position
-    a = uarm.matrix.to_translation()
-    b = farm.matrix.to_translation() + farm.vector
 
-    # Vector from the head of the upper arm to the
-    # tip of the forearm
-    armv = b - a
+def match_pose_rotation(pose_bone, target_bone):
+    """ Matches pose_bone's visual rotation to target_bone's visual
+        rotation.
+        This function assumes you are in pose mode on the relevant armature.
+    """
+    mat = get_pose_matrix_in_other_space(target_bone.matrix, pose_bone)
+    set_pose_rotation(pose_bone, mat)
+    bpy.ops.object.mode_set(mode='OBJECT')
+    bpy.ops.object.mode_set(mode='POSE')
 
-    # Create a vector that is not aligned with armv.
+
+def match_pose_scale(pose_bone, target_bone):
+    """ Matches pose_bone's visual scale to target_bone's visual
+        scale.
+        This function assumes you are in pose mode on the relevant armature.
+    """
+    mat = get_pose_matrix_in_other_space(target_bone.matrix, pose_bone)
+    set_pose_scale(pose_bone, mat)
+    bpy.ops.object.mode_set(mode='OBJECT')
+    bpy.ops.object.mode_set(mode='POSE')
+
+
+##############################
+## IK/FK snapping functions ##
+##############################
+
+def match_pole_target(ik_first, ik_last, pole, match_bone, length):
+    """ Places an IK chain's pole target to match ik_first's
+        transforms to match_bone.  All bones should be given as pose bones.
+        You need to be in pose mode on the relevant armature object.
+        ik_first: first bone in the IK chain
+        ik_last:  last bone in the IK chain
+        pole:  pole target bone for the IK chain
+        match_bone:  bone to match ik_first to (probably first bone in a matching FK chain)
+        length:  distance pole target should be placed from the chain center
+    """
+    a = ik_first.matrix.to_translation()
+    b = ik_last.matrix.to_translation() + ik_last.vector
+
+    # Vector from the head of ik_first to the
+    # tip of ik_last
+    ikv = b - a
+
+    # Create a vector that is not aligned with ikv.
     # It doesn't matter what vector.  Just any vector
     # that's guaranteed to not be pointing in the same
-    # direction.
-    if abs(armv[0]) < abs(armv[1]) and abs(armv[0]) < abs(armv[2]):
+    # direction.  In this case, we create a unit vector
+    # on the axis of the smallest component of ikv.
+    if abs(ikv[0]) < abs(ikv[1]) and abs(ikv[0]) < abs(ikv[2]):
         v = Vector((1,0,0))
-    elif abs(armv[1]) < abs(armv[2]):
+    elif abs(ikv[1]) < abs(ikv[2]):
         v = Vector((0,1,0))
     else:
         v = Vector((0,0,1))
 
-    # cross v with armv to get a vector perpendicular to armv
-    pv = v.cross(armv).normalized() * (uarm.length + farm.length)
+    # Get a vector perpendicular to ikv
+    pv = v.cross(ikv).normalized() * length
 
     def set_pole(pvi):
+        """ Set pole target's position based on a vector
+            from the arm center line.
+        """
         # Translate pvi into armature space
-        ploc = a + (armv/2) + pvi
+        ploc = a + (ikv/2) + pvi
 
         # Set pole target to location
         mat = get_pose_matrix_in_other_space(Matrix().Translation(ploc), pole)
@@ -182,50 +181,99 @@ def ik2fk_arm(obj, fk, ik):
 
     set_pole(pv)
 
-    # Get the rotation difference between the ik and fk upper arms
-    q1 = uarm.matrix.to_quaternion()
-    q2 = uarmi.matrix.to_quaternion()
+    # Get the rotation difference between ik_first and match_bone
+    q1 = ik_first.matrix.to_quaternion()
+    q2 = match_bone.matrix.to_quaternion()
     angle = acos(min(1,max(-1,q1.dot(q2)))) * 2
 
     # Compensate for the rotation difference
-    if angle > 0.00001:
-        pv *= Matrix.Rotation(angle, 4, armv).to_quaternion()
+    if angle > 0.0001:
+        pv *= Matrix.Rotation(angle, 4, ikv).to_quaternion()
         set_pole(pv)
 
-        q1 = uarm.matrix.to_quaternion()
-        q2 = uarmi.matrix.to_quaternion()
+        # Get rotation difference again, to see if we
+        # compensated in the right direction
+        q1 = ik_first.matrix.to_quaternion()
+        q2 = match_bone.matrix.to_quaternion()
         angle2 = acos(min(1,max(-1,q1.dot(q2)))) * 2
-        if angle2 > 0.00001:
-            pv *= Matrix.Rotation((angle*(-2)), 4, armv).to_quaternion()
+        if angle2 > 0.0001:
+            # Compensate in the other direction
+            pv *= Matrix.Rotation((angle*(-2)), 4, ikv).to_quaternion()
             set_pole(pv)
+
+
+def fk2ik_arm(obj, fk, ik):
+    """ Matches the fk bones in an arm rig to the ik bones.
+        obj: armature object
+        fk:  list of fk bone names
+        ik:  list of ik bone names
+    """
+    uarm  = obj.pose.bones[fk[0]]
+    farm  = obj.pose.bones[fk[1]]
+    hand  = obj.pose.bones[fk[2]]
+    uarmi = obj.pose.bones[ik[0]]
+    farmi = obj.pose.bones[ik[1]]
+    handi = obj.pose.bones[ik[2]]
+
+    # Upper arm position
+    match_pose_rotation(uarm, uarmi)
+    match_pose_scale(uarm, uarmi)
+
+    # Forearm position
+    match_pose_rotation(farm, farmi)
+    match_pose_scale(farm, farmi)
+
+    # Hand position
+    match_pose_rotation(hand, handi)
+    match_pose_scale(hand, handi)
+
+
+def ik2fk_arm(obj, fk, ik):
+    """ Matches the ik bones in an arm rig to the fk bones.
+        obj: armature object
+        fk:  list of fk bone names
+        ik:  list of ik bone names
+    """
+    uarm  = obj.pose.bones[fk[0]]
+    farm  = obj.pose.bones[fk[1]]
+    hand  = obj.pose.bones[fk[2]]
+    uarmi = obj.pose.bones[ik[0]]
+    farmi = obj.pose.bones[ik[1]]
+    handi = obj.pose.bones[ik[2]]
+    pole  = obj.pose.bones[ik[3]]
+
+    # Hand position
+    match_pose_translation(handi, hand)
+    match_pose_rotation(handi, hand)
+    match_pose_scale(handi, hand)
+
+    # Pole target position
+    match_pole_target(uarmi, farmi, pole, uarm, (uarmi.length + farmi.length))
 
 
 def fk2ik_leg(obj, fk, ik):
     """ Matches the fk bones in a leg rig to the ik bones.
+        obj: armature object
+        fk:  list of fk bone names
+        ik:  list of ik bone names
     """
-    pb = obj.pose.bones
+    thigh  = obj.pose.bones[fk[0]]
+    shin   = obj.pose.bones[fk[1]]
+    foot   = obj.pose.bones[fk[2]]
+    mfoot  = obj.pose.bones[fk[3]]
+    thighi = obj.pose.bones[ik[0]]
+    shini  = obj.pose.bones[ik[1]]
+    mfooti = obj.pose.bones[ik[2]]
 
-    thigh = pb[fk[0]]
-    shin  = pb[fk[1]]
-    foot  = pb[fk[2]]
-    mfoot = pb[fk[3]]
+    # Thigh position
+    match_pose_rotation(thigh, thighi)
+    match_pose_scale(thigh, thighi)
 
-    thighi = pb[ik[0]]
-    shini  = pb[ik[1]]
-    mfooti = pb[ik[2]]
+    # Shin position
+    match_pose_rotation(shin, shini)
+    match_pose_scale(shin, shini)
 
-    thighmat = get_pose_matrix_in_other_space(thighi.matrix, thigh)
-    set_pose_rotation(thigh, thighmat)
-    set_pose_scale(thigh, thighmat)
-    bpy.ops.object.mode_set(mode='OBJECT')
-    bpy.ops.object.mode_set(mode='POSE')
-
-    shinmat = get_pose_matrix_in_other_space(shini.matrix, shin)
-    set_pose_rotation(shin, shinmat)
-    set_pose_scale(shin, shinmat)
-    bpy.ops.object.mode_set(mode='OBJECT')
-    bpy.ops.object.mode_set(mode='POSE')
-
+    # Foot position
     mat = mfoot.bone.matrix_local.inverted() * foot.bone.matrix_local
     footmat = get_pose_matrix_in_other_space(mfooti.matrix, foot) * mat
     set_pose_rotation(foot, footmat)
@@ -236,19 +284,19 @@ def fk2ik_leg(obj, fk, ik):
 
 def ik2fk_leg(obj, fk, ik):
     """ Matches the ik bones in a leg rig to the fk bones.
+        obj: armature object
+        fk:  list of fk bone names
+        ik:  list of ik bone names
     """
-    pb = obj.pose.bones
-
-    thigh = pb[fk[0]]
-    shin  = pb[fk[1]]
-    mfoot = pb[fk[2]]
-
-    thighi   = pb[ik[0]]
-    shini    = pb[ik[1]]
-    footi    = pb[ik[2]]
-    footroll = pb[ik[3]]
-    pole     = pb[ik[4]]
-    mfooti   = pb[ik[5]]
+    thigh    = obj.pose.bones[fk[0]]
+    shin     = obj.pose.bones[fk[1]]
+    mfoot    = obj.pose.bones[fk[2]]
+    thighi   = obj.pose.bones[ik[0]]
+    shini    = obj.pose.bones[ik[1]]
+    footi    = obj.pose.bones[ik[2]]
+    footroll = obj.pose.bones[ik[3]]
+    pole     = obj.pose.bones[ik[4]]
+    mfooti   = obj.pose.bones[ik[5]]
 
     # Clear footroll
     set_pose_rotation(footroll, Matrix())
@@ -263,57 +311,12 @@ def ik2fk_leg(obj, fk, ik):
     bpy.ops.object.mode_set(mode='POSE')
 
     # Pole target position
-    a = thigh.matrix.to_translation()
-    b = shin.matrix.to_translation() + shin.vector
+    match_pole_target(thighi, shini, pole, thigh, (thighi.length + shini.length))
 
-    # Vector from the head of the thigh to the
-    # tip of the shin
-    legv = b - a
 
-    # Create a vector that is not aligned with legv.
-    # It doesn't matter what vector.  Just any vector
-    # that's guaranteed to not be pointing in the same
-    # direction.
-    if abs(legv[0]) < abs(legv[1]) and abs(legv[0]) < abs(legv[2]):
-        v = Vector((1,0,0))
-    elif abs(legv[1]) < abs(legv[2]):
-        v = Vector((0,1,0))
-    else:
-        v = Vector((0,0,1))
-
-    # Get a vector perpendicular to legv
-    pv = v.cross(legv).normalized() * (thigh.length + shin.length)
-
-    def set_pole(pvi):
-        # Translate pvi into armature space
-        ploc = a + (legv/2) + pvi
-
-        # Set pole target to location
-        mat = get_pose_matrix_in_other_space(Matrix().Translation(ploc), pole)
-        set_pose_translation(pole, mat)
-
-        bpy.ops.object.mode_set(mode='OBJECT')
-        bpy.ops.object.mode_set(mode='POSE')
-
-    set_pole(pv)
-
-    # Get the rotation difference between the ik and fk thighs
-    q1 = thigh.matrix.to_quaternion()
-    q2 = thighi.matrix.to_quaternion()
-    angle = acos(min(1,max(-1,q1.dot(q2)))) * 2
-
-    # Compensate for the rotation difference
-    if angle > 0.00001:
-        pv *= Matrix.Rotation(angle, 4, legv).to_quaternion()
-        set_pole(pv)
-
-        q1 = thigh.matrix.to_quaternion()
-        q2 = thighi.matrix.to_quaternion()
-        angle2 = acos(min(1,max(-1,q1.dot(q2)))) * 2
-        if angle2 > 0.00001:
-            pv *= Matrix.Rotation((angle*(-2)), 4, legv).to_quaternion()
-            set_pole(pv)
-
+##############################
+## IK/FK snapping operators ##
+##############################
 
 class Rigify_Arm_FK2IK(bpy.types.Operator):
     """ Snaps an FK arm to an IK arm.
@@ -358,7 +361,7 @@ class Rigify_Arm_IK2FK(bpy.types.Operator):
     uarm_ik = bpy.props.StringProperty(name="Upper Arm IK Name")
     farm_ik = bpy.props.StringProperty(name="Forearm IK Name")
     hand_ik = bpy.props.StringProperty(name="Hand IK Name")
-    pole = bpy.props.StringProperty(name="Pole IK Name")
+    pole    = bpy.props.StringProperty(name="Pole IK Name")
 
     @classmethod
     def poll(cls, context):
@@ -385,7 +388,6 @@ class Rigify_Leg_FK2IK(bpy.types.Operator):
     shin_fk  = bpy.props.StringProperty(name="Shin FK Name")
     foot_fk  = bpy.props.StringProperty(name="Foot FK Name")
     mfoot_fk = bpy.props.StringProperty(name="MFoot FK Name")
-
 
     thigh_ik = bpy.props.StringProperty(name="Thigh IK Name")
     shin_ik  = bpy.props.StringProperty(name="Shin IK Name")
@@ -442,6 +444,10 @@ bpy.utils.register_class(Rigify_Arm_IK2FK)
 bpy.utils.register_class(Rigify_Leg_FK2IK)
 bpy.utils.register_class(Rigify_Leg_IK2FK)
 
+
+###################
+## Rig UI Panels ##
+###################
 
 class RigUI(bpy.types.Panel):
     bl_space_type = 'VIEW_3D'
