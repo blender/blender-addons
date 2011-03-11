@@ -28,7 +28,7 @@
 """
 Abstract
 MHX (MakeHuman eXchange format) importer for Blender 2.5x.
-Version 1.3.0
+Version 1.3.1
 
 This script should be distributed with Blender.
 If not, place it in the .blender/scripts/addons dir
@@ -41,7 +41,7 @@ Alternatively, run the script in the script editor (Alt-P), and access from the 
 bl_info = {
     'name': 'Import: MakeHuman (.mhx)',
     'author': 'Thomas Larsson',
-    'version': (1, 3, 0),
+    'version': (1, 3, 1),
     'blender': (2, 5, 7),
     'api': 34786,
     'location': "File > Import",
@@ -55,7 +55,7 @@ bl_info = {
 
 MAJOR_VERSION = 1
 MINOR_VERSION = 3
-SUB_VERSION = 0
+SUB_VERSION = 1
 BLENDER_VERSION = (2, 56, 0)
 
 #
@@ -1561,7 +1561,6 @@ def parseArmature (args, tokens):
             for bone in amt.edit_bones:
                 bone.select = False
             blist = eval(val[0])
-            print(blist)
             for name in blist:
                 bone = amt.edit_bones[name]
                 bone.select = True
@@ -2156,13 +2155,14 @@ def parseProcess(args, tokens):
             mat = Matrix.Rotation(angle, 4, axis)
             try:
                 pb = pbones[val[0]]
-                prod = pb.matrix_local * mat
+            except:
+                pb = None
+                print("No bone "+val[0])
+            if pb:
+                prod = pb.matrix_basis * mat
                 for i in range(4):
                     for j in range(4):
-                        pb.matrix_local[i][j] = prod[i][j]
-            except:
-                print("No bone "+val[0])
-                pass
+                        pb.matrix_basis[i][j] = prod[i][j]
         elif key == 'Snap':
             try:
                 eb = ebones[val[0]]
