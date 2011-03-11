@@ -25,13 +25,6 @@ import sys
 import time
 from math import atan, pi, degrees, sqrt
 
-import platform as pltfrm
-if pltfrm.architecture()[0] == "64bit":
-    bitness = 64
-else:
-    bitness = 32
-
-
 ##############################SF###########################
 ##############find image texture
 
@@ -1635,8 +1628,14 @@ class PovrayRender(bpy.types.RenderEngine):
             for newArg in scene.pov_command_line_switches.split(" "):
                 extra_args.append(newArg)
 
-        if sys.platform == "win32":
+        if sys.platform[:3] == "win":
             import winreg
+            import platform as pltfrm
+            if pltfrm.architecture()[0] == "64bit":
+                bitness = 64
+            else:
+                bitness = 32
+
             regKey = winreg.OpenKey(winreg.HKEY_CURRENT_USER, "Software\\POV-Ray\\v3.7\\Windows")
 
             #64 bits blender

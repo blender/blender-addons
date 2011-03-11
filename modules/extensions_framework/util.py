@@ -54,7 +54,7 @@ def path_relative_to_export(p):
 	p = filesystem_path(p)
 	ep = os.path.dirname(export_path)
 	
-	if os.sys.platform == 'win32':
+	if os.sys.platform[:3] == "win":
 		# Prevent an error whereby python thinks C: and c: are different drives
 		if p[1] == ':': p = p[0].lower() + p[1:]
 		if ep[1] == ':': ep = ep[0].lower() + ep[1:]
