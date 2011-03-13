@@ -29,13 +29,13 @@ def create(obj):
     bone = arm.edit_bones.new('hips')
     bone.head[:] = 0.0000, 0.0552, 1.0099
     bone.tail[:] = 0.0000, 0.0172, 1.1837
-    bone.roll = -3.1416
+    bone.roll = 0.0000
     bone.use_connect = False
     bones['hips'] = bone.name
     bone = arm.edit_bones.new('spine')
     bone.head[:] = 0.0000, 0.0172, 1.1837
     bone.tail[:] = 0.0000, 0.0004, 1.3418
-    bone.roll = -3.1416
+    bone.roll = 0.0000
     bone.use_connect = True
     bone.parent = arm.edit_bones[bones['hips']]
     bones['spine'] = bone.name
@@ -56,7 +56,7 @@ def create(obj):
     bone = arm.edit_bones.new('ribs')
     bone.head[:] = 0.0000, 0.0004, 1.3418
     bone.tail[:] = 0.0000, 0.0114, 1.6582
-    bone.roll = -3.1416
+    bone.roll = 0.0000
     bone.use_connect = True
     bone.parent = arm.edit_bones[bones['spine']]
     bones['ribs'] = bone.name
@@ -77,7 +77,7 @@ def create(obj):
     bone = arm.edit_bones.new('neck')
     bone.head[:] = 0.0000, 0.0114, 1.6582
     bone.tail[:] = 0.0000, -0.0247, 1.7813
-    bone.roll = 3.1416
+    bone.roll = 0.0000
     bone.use_connect = False
     bone.parent = arm.edit_bones[bones['ribs']]
     bones['neck'] = bone.name
@@ -140,7 +140,7 @@ def create(obj):
     bone = arm.edit_bones.new('head')
     bone.head[:] = 0.0000, -0.0247, 1.7813
     bone.tail[:] = 0.0000, -0.0247, 1.9347
-    bone.roll = 3.1416
+    bone.roll = 0.0000
     bone.use_connect = True
     bone.parent = arm.edit_bones[bones['neck']]
     bones['head'] = bone.name
