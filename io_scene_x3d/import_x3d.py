@@ -2370,7 +2370,7 @@ def action_fcurve_ensure(action, data_path, array_index):
         if fcu.data_path == data_path and fcu.array_index == array_index:
             return fcu
 
-    return action.fcurves.new(data_path=data_path, array_index=array_index)
+    return action.fcurves.new(data_path=data_path, index=array_index)
 
 
 def translatePositionInterpolator(node, action, ancestry):
