@@ -725,7 +725,7 @@ class x3d_class:
                 elif objType in ('MESH', 'CURVE', 'SURF', 'FONT'):
                     if use_apply_modifiers or objType != 'MESH':
                         try:
-                            me = ob.create_mesh(scene, use_apply_modifiers, 'PREVIEW')
+                            me = ob.to_mesh(scene, use_apply_modifiers, 'PREVIEW')
                         except:
                             me = None
                     else:

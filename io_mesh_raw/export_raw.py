@@ -68,7 +68,7 @@ def export_raw(filepath, applyMods, triangulate):
             matrix = obj.matrix_world
 
             if (applyMods):
-                me = obj.create_mesh(bpy.context.scene, True, "PREVIEW")
+                me = obj.to_mesh(bpy.context.scene, True, "PREVIEW")
             else:
                 me = obj.data
 

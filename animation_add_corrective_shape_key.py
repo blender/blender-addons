@@ -101,7 +101,7 @@ def extractX_2(ob, mesh):
 def extractMappedX(ob, mesh):
     totvert = len(mesh)
     
-    mesh = ob.create_mesh( bpy.context.scene, True, 'PREVIEW' )
+    mesh = ob.to_mesh( bpy.context.scene, True, 'PREVIEW' )
 
     x = []
 
@@ -246,7 +246,7 @@ class add_corrective_pose_shape(bpy.types.Operator):
         return {'FINISHED'}
 
 def func_object_duplicate_flatten_modifiers(ob, scene):
-    mesh = ob.create_mesh( bpy.context.scene, True, 'PREVIEW' )
+    mesh = ob.to_mesh( bpy.context.scene, True, 'PREVIEW' )
     name = ob.name + "_clean"
     new_object = bpy.data.objects.new( name, mesh)
     new_object.data = mesh

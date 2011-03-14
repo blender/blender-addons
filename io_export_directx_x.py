@@ -274,11 +274,11 @@ def WriteObjects(Config, ObjectList):
                     Object2 = Object.copy()
                     for Modifier in [Modifier for Modifier in Object2.modifiers if Modifier.type == "ARMATURE"]:
                         Object2.modifiers.remove(Modifier)
-                    Mesh = Object2.create_mesh(bpy.context.scene, True, "PREVIEW")
+                    Mesh = Object2.to_mesh(bpy.context.scene, True, "PREVIEW")
                 else:
-                    Mesh = Object.create_mesh(bpy.context.scene, True, "PREVIEW")
+                    Mesh = Object.to_mesh(bpy.context.scene, True, "PREVIEW")
             else:
-                Mesh = Object.create_mesh(bpy.context.scene, False, "PREVIEW")
+                Mesh = Object.to_mesh(bpy.context.scene, False, "PREVIEW")
             if Config.Verbose:
                 print("    Done")
                 print("    Writing Mesh...")

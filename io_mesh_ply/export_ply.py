@@ -51,7 +51,7 @@ def save(operator, context, filepath="", use_modifiers=True, use_normals=True, u
         bpy.ops.object.mode_set(mode='OBJECT')
 
     if use_modifiers:
-        mesh = obj.create_mesh(scene, True, 'PREVIEW')
+        mesh = obj.to_mesh(scene, True, 'PREVIEW')
     else:
         mesh = obj.data
 

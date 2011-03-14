@@ -54,8 +54,7 @@ def faces_from_mesh(ob, apply_modifier=False, triangulate=True):
 
     # get the modifiers
     try:
-        mesh = ob.create_mesh(bpy.context.scene,
-                                apply_modifier, "PREVIEW")
+        mesh = ob.to_mesh(bpy.context.scene, apply_modifier, "PREVIEW")
     except RuntimeError:
         return ()
 

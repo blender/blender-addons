@@ -358,7 +358,7 @@ def write_file(filepath, objects, scene,
         if ob_main.dupli_type != 'NONE':
             # XXX
             print('creating dupli_list on', ob_main.name)
-            ob_main.create_dupli_list(scene)
+            ob_main.dupli_list_create(scene)
 
             obs = [(dob.object, dob.matrix) for dob in ob_main.dupli_list]
 
@@ -380,7 +380,7 @@ def write_file(filepath, objects, scene,
             if ob.type != 'MESH':
                 continue
 
-            me = ob.create_mesh(scene, EXPORT_APPLY_MODIFIERS, 'PREVIEW')
+            me = ob.to_mesh(scene, EXPORT_APPLY_MODIFIERS, 'PREVIEW')
 
             if EXPORT_ROTX90:
                 me.transform(mat_xrot90 * ob_mat)
@@ -674,7 +674,7 @@ def write_file(filepath, objects, scene,
             bpy.data.meshes.remove(me)
 
         if ob_main.dupli_type != 'NONE':
-            ob_main.free_dupli_list()
+            ob_main.dupli_list_clear()
 
     file.close()
 

@@ -210,7 +210,7 @@ def boolop(ob, cutter, op):
     a.modifiers['Boolean'].object = cutter
     a.modifiers['Boolean'].operation = op
 
-    nmesh = a.create_mesh(sce, apply_modifiers=True, settings='PREVIEW')
+    nmesh = a.to_mesh(sce, apply_modifiers=True, settings='PREVIEW')
 
     if len(nmesh.vertices) > 0:
         a.modifiers.remove(a.modifiers['Boolean'])

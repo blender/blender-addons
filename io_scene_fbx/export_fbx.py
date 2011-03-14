@@ -1856,7 +1856,7 @@ def save_single(operator, scene, filepath="",
 
         obs = [(ob_base, ob_base.matrix_world)]
         if ob_base.dupli_type != 'NONE':
-            ob_base.create_dupli_list(scene)
+            ob_base.dupli_list_create(scene)
             obs = [(dob.object, dob.matrix) for dob in ob_base.dupli_list]
 
         for ob, mtx in obs:
@@ -1881,7 +1881,7 @@ def save_single(operator, scene, filepath="",
                 origData = True
                 if tmp_ob_type != 'MESH':
                     try:
-                        me = ob.create_mesh(scene, True, 'PREVIEW')
+                        me = ob.to_mesh(scene, True, 'PREVIEW')
                     except:
                         me = None
 
@@ -1892,7 +1892,7 @@ def save_single(operator, scene, filepath="",
                 else:
                     # Mesh Type!
                     if EXP_MESH_APPLY_MOD:
-                        me = ob.create_mesh(scene, True, 'PREVIEW')
+                        me = ob.to_mesh(scene, True, 'PREVIEW')
 
                         # print ob, me, me.getVertGroupNames()
                         meshes_to_clear.append(me)
@@ -1983,7 +1983,7 @@ def save_single(operator, scene, filepath="",
 
         # not forgetting to free dupli_list
         if ob_base.dupli_list:
-            ob_base.free_dupli_list()
+            ob_base.dupli_list_clear()
 
     if EXP_ARMATURE:
         # now we have the meshes, restore the rest arm position

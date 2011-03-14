@@ -926,7 +926,7 @@ def save(operator, context, filepath="",
                 continue
 
             try:
-                data = ob_derived.create_mesh(scene, True, 'PREVIEW')
+                data = ob_derived.to_mesh(scene, True, 'PREVIEW')
             except:
                 data = None
 

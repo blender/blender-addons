@@ -734,7 +734,7 @@ def write_pov(filename, scene=None, info_callback=None):
                 continue
 
             try:
-                me = ob.create_mesh(scene, True, 'RENDER')
+                me = ob.to_mesh(scene, True, 'RENDER')
             except:
                 # happens when curves cant be made into meshes because of no-data
                 continue

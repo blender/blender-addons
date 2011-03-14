@@ -104,7 +104,7 @@ class OBJECT_OT_create_lightfield_rig(bpy.types.Operator):
         """Sorts the vertices as described in the usage part of the doc."""
         # get mesh with applied modifer stack
         scene = bpy.context.scene
-        mesh = self.baseObject.create_mesh(scene, True, "PREVIEW")
+        mesh = self.baseObject.to_mesh(scene, True, "PREVIEW")
         verts = []
         row_length = scene.lightfield.row_length
 
