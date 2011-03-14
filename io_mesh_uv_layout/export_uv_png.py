@@ -20,6 +20,7 @@
 
 import bpy
 
+
 def write(fw, mesh_source, image_width, image_height, opacity, face_iter_func):
     filepath = fw.__self__.name
     fw.__self__.close()

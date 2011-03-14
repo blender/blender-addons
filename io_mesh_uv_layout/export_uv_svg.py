@@ -20,6 +20,7 @@
 
 import bpy
 
+
 def write(fw, mesh, image_width, image_height, opacity, face_iter_func):
     # for making an XML compatible string
     from xml.sax.saxutils import escape

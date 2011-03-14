@@ -1829,7 +1829,7 @@ def save_single(operator, scene, filepath="",
 
     tmp_ob_type = ob_type = None  # incase no objects are exported, so as not to raise an error
 
-## XXX 
+## XXX
 
     if EXP_ARMATURE:
         # This is needed so applying modifiers dosnt apply the armature deformation, its also needed
@@ -2820,7 +2820,7 @@ Takes:  {''')
     return {'FINISHED'}
 
 
-def save(operator, context, 
+def save(operator, context,
           filepath="",
           use_selection=True,
           batch_mode='OFF',
@@ -2837,7 +2837,7 @@ def save(operator, context,
             kwargs_mod["context_objects"] = context.selected_objects
         else:
             kwargs_mod["context_objects"] = scene.objects
-        
+
         return save_single(operator, context.scene, filepath, **kwargs_mod)
     else:
         fbxpath = filepath
@@ -2879,7 +2879,7 @@ def save(operator, context,
                 # group, so objects update properly, add a dummy scene.
                 scene = bpy.data.scenes.new(name="FBX_Temp")
                 scene.layers = [True] * 20
-                # bpy.data.scenes.active = scene # XXX, cant switch 
+                # bpy.data.scenes.active = scene # XXX, cant switch
                 for ob_base in data.objects:
                     scene.objects.link(ob_base)
 

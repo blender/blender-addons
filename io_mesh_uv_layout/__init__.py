@@ -155,7 +155,6 @@ class ExportUVLayout(bpy.types.Operator):
             from . import export_uv_svg
             func = export_uv_svg.write
 
-
         func(fw, mesh, self.size[0], self.size[1], self.opacity, lambda: self._face_uv_iter(context))
 
         if is_editmode:
