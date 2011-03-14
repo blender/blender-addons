@@ -84,6 +84,7 @@ import datetime
 import bpy
 import mathutils
 import operator
+import sys
 
 from struct import pack, calcsize
 
@@ -227,12 +228,12 @@ class AnimInfoBinary:
         self.NumRawFrames = 0
         
     def dump(self):
-        data = pack('64s64siiiifffiii', self.Name, self.Group, self.TotalBones, self.RootInclude, self.KeyCompressionStyle, self.KeyQuotum, self.KeyPrediction, self.TrackTime, self.AnimRate, self.StartBone, self.FirstRawFrame, self.NumRawFrames)
+        data = pack('64s64siiiifffiii', str.encode(self.Name), str.encode(self.Group), self.TotalBones, self.RootInclude, self.KeyCompressionStyle, self.KeyQuotum, self.KeyPrediction, self.TrackTime, self.AnimRate, self.StartBone, self.FirstRawFrame, self.NumRawFrames)
         return data
 
 class VChunkHeader:
     def __init__(self, name, type_size):
-        self.ChunkID = name # length=20
+        self.ChunkID = str.encode(name) # length=20
         self.TypeFlag = 1999801 # special value
         self.DataSize = type_size
         self.DataCount = 0
@@ -252,7 +253,7 @@ class VMaterial:
         self.LodStyle = 0
         
     def dump(self):
-        data = pack('64siLiLii', self.MaterialName, self.TextureIndex, self.PolyFlags, self.AuxMaterial, self.AuxFlags, self.LodBias, self.LodStyle)
+        data = pack('64siLiLii', str.encode(self.MaterialName), self.TextureIndex, self.PolyFlags, self.AuxMaterial, self.AuxFlags, self.LodBias, self.LodStyle)
         return data
 
 class VBone:
@@ -264,7 +265,7 @@ class VBone:
         self.BonePos = VJointPos()
         
     def dump(self):
-        data = pack('64sLii', self.Name, self.Flags, self.NumChildren, self.ParentIndex) + self.BonePos.dump()
+        data = pack('64sLii', str.encode(self.Name), self.Flags, self.NumChildren, self.ParentIndex) + self.BonePos.dump()
         return data
 
 #same as above - whatever - this is how Epic does it...        
@@ -279,7 +280,7 @@ class FNamedBoneBinary:
         self.IsRealBone = 0  # this is set to 1 when the bone is actually a bone in the mesh and not a dummy
         
     def dump(self):
-        data = pack('64sLii', self.Name, self.Flags, self.NumChildren, self.ParentIndex) + self.BonePos.dump()
+        data = pack('64sLii', str.encode(self.Name), self.Flags, self.NumChildren, self.ParentIndex) + self.BonePos.dump()
         return data
     
 class VRawBoneInfluence:
