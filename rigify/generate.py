@@ -295,6 +295,9 @@ def generate_rig(context, metarig):
     script.write(UI_REGISTER)
     script.use_module = True
 
+    # Run UI script
+    exec(script.as_string(), {})
+
     t.tick("The rest: ")
     #----------------------------------
     # Deconfigure
