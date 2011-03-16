@@ -1558,6 +1558,7 @@ def parseArmature (args, tokens):
                 parseBone(bone, amt, sub, heads, tails)
                 loadedData['Bone'][bname] = bone
         elif key == 'RecalcRoll':
+            rolls = {}
             for bone in amt.edit_bones:
                 bone.select = False
             blist = eval(val[0])
@@ -1565,6 +1566,12 @@ def parseArmature (args, tokens):
                 bone = amt.edit_bones[name]
                 bone.select = True
             bpy.ops.armature.calculate_roll(type='Z')
+            for bone in amt.edit_bones:
+                rolls[bone.name] = bone.roll
+            bpy.ops.object.mode_set(mode='OBJECT')
+            for bone in amt.bones:
+                bone['Roll'] = rolls[bone.name]
+            bpy.ops.object.mode_set(mode='EDIT')
         else:
             defaultKey(key, val,  sub, "amt", ['MetaRig'], globals(), locals())
     bpy.ops.object.mode_set(mode='OBJECT')
@@ -1641,7 +1648,6 @@ def parseBone(bone, amt, tokens, heads, tails):
             '''
         else:
             defaultKey(key, val,  sub, "bone", [], globals(), locals())
-
     return bone
 
 #
