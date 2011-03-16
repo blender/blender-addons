@@ -88,7 +88,7 @@ class x3d_class:
 
         self.bNav = 0
         self.nodeID = 0
-        self.namesReserved = ("Anchor", "Appearance", "Arc2D", "ArcClose2D", "AudioClip", "Background", "Billboard",
+        self.namesReserved = {"Anchor", "Appearance", "Arc2D", "ArcClose2D", "AudioClip", "Background", "Billboard",
                              "BooleanFilter", "BooleanSequencer", "BooleanToggle", "BooleanTrigger", "Box", "Circle2D",
                              "Collision", "Color", "ColorInterpolator", "ColorRGBA", "component", "Cone", "connect",
                              "Contour2D", "ContourPolyline2D", "Coordinate", "CoordinateDouble", "CoordinateInterpolator",
@@ -113,7 +113,7 @@ class x3d_class:
                              "StringSensor", "Switch", "Text", "TextureBackground", "TextureCoordinate", "TextureCoordinateGenerator",
                              "TextureTransform", "TimeSensor", "TimeTrigger", "TouchSensor", "Transform", "TransmitterPdu",
                              "TriangleFanSet", "TriangleSet", "TriangleSet2D", "TriangleStripSet", "Viewpoint", "VisibilitySensor",
-                             "WorldInfo", "X3D", "XvlShell", "VertexShader", "FragmentShader", "MultiShaderAppearance", "ShaderAppearance")
+                             "WorldInfo", "X3D", "XvlShell", "VertexShader", "FragmentShader", "MultiShaderAppearance", "ShaderAppearance"}
 
         self.namesFog = ("", "LINEAR", "EXPONENTIAL", "")
 
@@ -723,7 +723,7 @@ class x3d_class:
                 if objType == 'CAMERA':
                     self.writeViewpoint(ob, ob_mat, scene)
                 elif objType in ('MESH', 'CURVE', 'SURF', 'FONT'):
-                    if use_apply_modifiers or objType != 'MESH':
+                    if (objType != 'MESH') or (use_apply_modifiers and ob.is_modified(scene, 'PREVIEW')):
                         try:
                             me = ob.to_mesh(scene, use_apply_modifiers, 'PREVIEW')
                         except:
