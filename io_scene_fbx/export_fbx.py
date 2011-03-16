@@ -2836,7 +2836,7 @@ def save(operator, context,
         if use_selection:
             kwargs_mod["context_objects"] = context.selected_objects
         else:
-            kwargs_mod["context_objects"] = scene.objects
+            kwargs_mod["context_objects"] = context.scene.objects
 
         return save_single(operator, context.scene, filepath, **kwargs_mod)
     else:
