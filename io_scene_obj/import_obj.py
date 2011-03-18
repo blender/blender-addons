@@ -501,10 +501,15 @@ def create_materials(filepath, material_libs, unique_materials, unique_material_
                         if do_fresnel:
                             context_material.raytrace_mirror.raytrace_mirror.fresnel = 1.0  # could be any value for 'ON'
 
+                        """
                         if do_raytrace:
                             context_material.use_raytrace = True
                         else:
                             context_material.use_raytrace = False
+                        """
+                        # XXX, this is not following the OBJ spec, but this was
+                        # written when raytracing wasnt default, annoying to disable for blender users.
+                        context_material.use_raytrace = True
 
                     elif line_lower.startswith(b'map_ka'):
                         img_filepath = line_value(line.split())
