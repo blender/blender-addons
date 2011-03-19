@@ -20,8 +20,8 @@ bl_info = {
     "name": "Import Images as Planes",
     "author": "Florian Meyer (tstscr)",
     "version": (1, 0),
-    "blender": (2, 5, 5),
-    "api": 33754,
+    "blender": (2, 5, 7),
+    "api": 35622,
     "location": "File > Import > Images as Planes",
     "description": "Imports images and creates planes with the appropriate aspect ratio. "\
         "The images are mapped to the planes.",

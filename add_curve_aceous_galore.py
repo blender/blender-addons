@@ -20,8 +20,8 @@ bl_info = {
     'name': 'Curveaceous Galore!',
     'author': 'Jimmy Hazevoet, testscreenings',
     'version': (0,2),
-    'blender': (2, 5, 3),
-    'api': 32411,
+    "blender": (2, 5, 7),
+    "api": 35622,
     'location': 'View3D > Add > Curve',
     'description': 'Adds many different types of Curves',
     'warning': '', # used for warning icon and text in addons panel

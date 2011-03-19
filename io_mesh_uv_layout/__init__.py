@@ -21,9 +21,9 @@
 bl_info = {
     "name": "UV Layout",
     "author": "Campbell Barton, Matt Ebb",
-    "version": (1, ),
-    "blender": (2, 5, 3),
-    "api": 31667,
+    "version": (1, 0),
+    "blender": (2, 5, 7),
+    "api": 35622,
     "location": "Image-Window > UVs > Export UV Layout",
     "description": "Export the UV layout as a 2D graphic",
     "warning": "",

@@ -20,7 +20,8 @@ bl_info = {
     'name': 'Corrective shape keys',
     'author': 'Ivo Grigull (loolarge), Tal Trachtman',
     'version': (1, 0),
-    'blender': (2, 5, 5),
+    "blender": (2, 5, 7),
+    "api": 35622,
     'location': 'Object Data > Shape Keys (Search: corrective) ',
     'description': 'Creates a corrective shape key for the current pose',
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"\

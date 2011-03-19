@@ -19,11 +19,10 @@
 bl_info = {
     "name": "Rigify",
     "author": "Nathan Vegdahl",
-    "version": (0, 5),
-    "blender": (2, 5, 6),
+    "blender": (2, 5, 7),
+    "api": 35622,
     "location": "View3D > Add > Armature",
     "description": "Adds various Rig Templates",
-    "api": 35119,
     "location": "Armature properties",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"\
         "Scripts/Rigging/Rigify",
