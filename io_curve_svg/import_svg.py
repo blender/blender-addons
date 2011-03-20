@@ -1022,7 +1022,7 @@ class SVGGeometry:
 
         pass
 
-    def _doCreateGeom(self):
+    def _doCreateGeom(self, instancing):
         """
         Internal handler to create real geometries
         """
@@ -1041,7 +1041,7 @@ class SVGGeometry:
 
         return None
 
-    def createGeom(self):
+    def createGeom(self, instancing):
         """
         Create real geometries
         """
@@ -1055,7 +1055,7 @@ class SVGGeometry:
         if matrix is not None:
             self._pushMatrix(matrix)
 
-        self._doCreateGeom()
+        self._doCreateGeom(instancing)
 
         if matrix is not None:
             self._popMatrix()
@@ -1092,13 +1092,13 @@ class SVGGeometryContainer(SVGGeometry):
             if ob is not None:
                 self._geometries.append(ob)
 
-    def _doCreateGeom(self):
+    def _doCreateGeom(self, instancing):
         """
         Create real geometries
         """
 
         for geom in self._geometries:
-            geom.createGeom()
+            geom.createGeom(instancing)
 
     def getGeometries(self):
         """
@@ -1139,7 +1139,7 @@ class SVGGeometryPATH(SVGGeometry):
         self._splines = pathParser.getSplines()
         self._styles = SVGParseStyles(self._node, self._context)
 
-    def _doCreateGeom(self):
+    def _doCreateGeom(self, instancing):
         """
         Create real geometries
         """
@@ -1190,7 +1190,7 @@ class SVGGeometryDEFS(SVGGeometryContainer):
     Container for referenced elements
     """
 
-    def _doCreateGeom(self):
+    def createGeom(self, instancing):
         """
         Create real geometries
         """
@@ -1203,12 +1203,26 @@ class SVGGeometrySYMBOL(SVGGeometryContainer):
     Referenced element
     """
 
-    def _doCreateGeom(self):
+    def _doCreateGeom(self, instancing):
         """
         Create real geometries
         """
 
-        pass
+        self._pushMatrix(self.getNodeMatrix())
+
+        super()._doCreateGeom(False)
+
+        self._popMatrix()
+
+    def createGeom(self, instancing):
+        """
+        Create real geometries
+        """
+
+        if not instancing:
+            return
+
+        super().createGeom(instancing)
 
 
 class SVGGeometryG(SVGGeometryContainer):
@@ -1224,7 +1238,7 @@ class SVGGeometryUSE(SVGGeometry):
     User of referenced elements
     """
 
-    def _doCreateGeom(self):
+    def _doCreateGeom(self, instancing):
         """
         Create real geometries
         """
@@ -1239,34 +1253,7 @@ class SVGGeometryUSE(SVGGeometry):
 
             self._pushMatrix(self.getNodeMatrix())
 
-            geomMatrix = None
-            nodeMatrix = None
-
-            if not isinstance(geom, SVGGeometryUSE):
-                geomMatrix = geom.getTransformMatrix()
-
-            if isinstance(geom, SVGGeometrySYMBOL):
-                nodeMatrix = geom.getNodeMatrix()
-
-            if nodeMatrix:
-                self._pushMatrix(nodeMatrix)
-
-            if geomMatrix:
-                self._pushMatrix(geomMatrix)
-
-            if isinstance(geom, SVGGeometryContainer):
-                geometries = geom.getGeometries()
-            else:
-                geometries = [geom]
-
-            for g in geometries:
-                g.createGeom()
-
-            if geomMatrix:
-                self._popMatrix()
-
-            if nodeMatrix:
-                self._popMatrix()
+            geom.createGeom(True)
 
             self._popMatrix()
 
@@ -1345,7 +1332,7 @@ class SVGGeometryRECT(SVGGeometry):
             bezt.handle_left_type = 'VECTOR'
             bezt.handle_right_type = 'VECTOR'
 
-    def _doCreateGeom(self):
+    def _doCreateGeom(self, instancing):
         """
         Create real geometries
         """
@@ -1467,7 +1454,7 @@ class SVGGeometryELLIPSE(SVGGeometry):
         self._rx = self._node.getAttribute('rx') or '0'
         self._ry = self._node.getAttribute('ry') or '0'
 
-    def _doCreateGeom(self):
+    def _doCreateGeom(self, instancing):
         """
         Create real geometries
         """
@@ -1585,7 +1572,7 @@ class SVGGeometryLINE(SVGGeometry):
         self._x2 = self._node.getAttribute('x2') or '0'
         self._y2 = self._node.getAttribute('y2') or '0'
 
-    def _doCreateGeom(self):
+    def _doCreateGeom(self, instancing):
         """
         Create real geometries
         """
@@ -1666,7 +1653,7 @@ class SVGGeometryPOLY(SVGGeometry):
                 self._points.append((float(prev), float(p)))
                 prev = None
 
-    def _doCreateGeom(self):
+    def _doCreateGeom(self, instancing):
         """
         Create real geometries
         """
@@ -1728,7 +1715,7 @@ class SVGGeometrySVG(SVGGeometryContainer):
     Main geometry holder
     """
 
-    def _doCreateGeom(self):
+    def _doCreateGeom(self, instancing):
         """
         Create real geometries
         """
@@ -1738,7 +1725,7 @@ class SVGGeometrySVG(SVGGeometryContainer):
         self._pushMatrix(self.getNodeMatrix())
         self._pushRect(rect)
 
-        super()._doCreateGeom()
+        super()._doCreateGeom(False)
 
         self._popRect()
         self._popMatrix()
@@ -1824,7 +1811,7 @@ def load_svg(filepath):
 
     loader = SVGLoader(filepath)
     loader.parse()
-    loader.createGeom()
+    loader.createGeom(False)
 
 
 def load(operator, context, filepath=""):
