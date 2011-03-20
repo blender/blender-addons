@@ -174,7 +174,7 @@ def SVGRectFromNode(node, context):
     h = context['rect'][1]
 
     if node.getAttribute('viewBox'):
-        viewBox = node.getAttribute('viewBox').split()
+        viewBox = node.getAttribute('viewBox').replace(',', ' ').split()
         w = SVGParseCoord(viewBox[2], w)
         h = SVGParseCoord(viewBox[3], h)
     else:
@@ -212,7 +212,7 @@ def SVGMatrixFromNode(node, context):
         m = m * m.Scale(h / rect[1], 4, Vector((0.0, 1.0, 0.0)))
 
     if node.getAttribute('viewBox'):
-        viewBox = node.getAttribute('viewBox').split()
+        viewBox = node.getAttribute('viewBox').replace(',', ' ').split()
         vx = SVGParseCoord(viewBox[0], w)
         vy = SVGParseCoord(viewBox[1], h)
         vw = SVGParseCoord(viewBox[2], w)
@@ -324,10 +324,8 @@ def SVGTransformScale(params):
     scale SVG transform command
     """
 
-    sx = sy = float(params[0])
-
-    if len(params) > 1:
-        sy = float(params[1])
+    sx = float(params[0])
+    sy = float(params[1]) if len(params) > 1 else sx
 
     m = Matrix()
 
