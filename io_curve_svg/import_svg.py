@@ -55,12 +55,12 @@ def SVGParseFloat(s, i=0):
     n = len(s)
     token = ''
 
-    # Ski[ leading whitespace characters
+    # Skip leading whitespace characters
     while i < n and (s[i].isspace() or s[i] == ','):
         i += 1
 
     if i == n:
-        return None
+        return None, i
 
     # Read sign
     if s[i] == '-':
@@ -105,7 +105,7 @@ def SVGParseFloat(s, i=0):
         else:
             raise Exception('Invalid float value near ' + s[start:start + 10])
 
-    return token
+    return token, i
 
 
 def SVGCreateCurve():
@@ -146,9 +146,9 @@ def SVGParseCoord(coord, size):
     Needed to handle coordinates set in cm, mm, iches..
     """
 
-    token = SVGParseFloat(coord)
+    token, last_char = SVGParseFloat(coord)
     val = float(token)
-    unit = coord[len(token):]
+    unit = coord[last_char:].strip()  # strip() incase there is a space
 
     if unit == '%':
         return float(size) / 100.0 * val
@@ -462,10 +462,13 @@ class SVGPathData:
             elif c.lower() in commands:
                 tokens.append(c)
             elif c in ['-', '.'] or c.isdigit():
-                token = SVGParseFloat(d, i)
+                token, last_char = SVGParseFloat(d, i)
                 tokens.append(token)
 
-                i += len(token) - 1
+                # in most cases len(token) and (last_char - i) are the same
+                # but with whitespace or ',' prefix they are not.
+
+                i += (last_char - i) - 1
 
             i += 1
 
