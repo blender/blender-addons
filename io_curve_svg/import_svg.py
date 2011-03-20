@@ -86,6 +86,11 @@ def SVGParseFloat(s, i=0):
             while i < n and s[i].isdigit():
                 token += s[i]
                 i += 1
+        elif s[i].isspace() or s[i] == ',':
+            # Inkscape sometimes uses qeird float format with missed
+            # fractional part after dot. Suppose zero fractional part
+            # for this case
+            pass
         else:
             raise Exception('Invalid float value near ' + s[start:start + 10])
 
