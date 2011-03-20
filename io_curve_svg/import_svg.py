@@ -29,16 +29,18 @@ from . import svg_colors
 
 #### Common utilities ####
 
-# TODO: 'em' and 'ex' aren't actually supported
-SVGUnits = {'': 1.0,
-            'px': 1.0,
-            'in': 90,
-            'mm': 90 / 25.4,
-            'cm': 90 / 2.54,
-            'pt': 1.25,
-            'pc': 15.0,
-            'em': 1.0,
-            'ex': 1.0}
+# TODO: "em" and "ex" aren't actually supported
+SVGUnits = {"": 1.0,
+            "px": 1.0,
+            "in": 90,
+            "mm": 90 / 25.4,
+            "cm": 90 / 2.54,
+            "pt": 1.25,
+            "pc": 15.0,
+            "em": 1.0,
+            "ex": 1.0,
+            "INVALID": 1.0,  # some DocBook files contain this
+            }
 
 SVGEmptyStyles = {'useFill': None,
                   'fill': None}
@@ -289,7 +291,7 @@ def SVGTransformTranslate(params):
     """
 
     tx = float(params[0])
-    ty = float(params[1])
+    ty = float(params[1]) if len(params) > 1 else 0.0
 
     return Matrix.Translation(Vector((tx, ty, 0.0)))
 
