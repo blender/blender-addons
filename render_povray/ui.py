@@ -22,7 +22,7 @@ import bpy
 from bpy.props import EnumProperty
 
 # Use some of the existing buttons.
-import properties_render
+from bl_ui import properties_render
 properties_render.RENDER_PT_render.COMPAT_ENGINES.add('POVRAY_RENDER')
 properties_render.RENDER_PT_dimensions.COMPAT_ENGINES.add('POVRAY_RENDER')
 # properties_render.RENDER_PT_antialiasing.COMPAT_ENGINES.add('POVRAY_RENDER')
@@ -31,7 +31,7 @@ properties_render.RENDER_PT_output.COMPAT_ENGINES.add('POVRAY_RENDER')
 del properties_render
 
 # Use only a subset of the world panels
-import properties_world
+from bl_ui import properties_world
 properties_world.WORLD_PT_preview.COMPAT_ENGINES.add('POVRAY_RENDER')
 properties_world.WORLD_PT_context_world.COMPAT_ENGINES.add('POVRAY_RENDER')
 properties_world.WORLD_PT_world.COMPAT_ENGINES.add('POVRAY_RENDER')
@@ -39,7 +39,7 @@ properties_world.WORLD_PT_mist.COMPAT_ENGINES.add('POVRAY_RENDER')
 del properties_world
 
 # Example of wrapping every class 'as is'
-import properties_material
+from bl_ui import properties_material
 for member in dir(properties_material):
     subclass = getattr(properties_material, member)
     try:
@@ -48,7 +48,7 @@ for member in dir(properties_material):
         pass
 del properties_material
 
-import properties_data_mesh
+from bl_ui import properties_data_mesh
 for member in dir(properties_data_mesh):
     subclass = getattr(properties_data_mesh, member)
     try:
@@ -57,7 +57,7 @@ for member in dir(properties_data_mesh):
         pass
 del properties_data_mesh
 
-import properties_texture
+from bl_ui import properties_texture
 for member in dir(properties_texture):
     subclass = getattr(properties_texture, member)
     try:
@@ -66,7 +66,7 @@ for member in dir(properties_texture):
         pass
 del properties_texture
 
-import properties_data_camera
+from bl_ui import properties_data_camera
 for member in dir(properties_data_camera):
     subclass = getattr(properties_data_camera, member)
     try:
@@ -75,7 +75,7 @@ for member in dir(properties_data_camera):
         pass
 del properties_data_camera
 
-import properties_data_lamp
+from bl_ui import properties_data_lamp
 for member in dir(properties_data_lamp):
     subclass = getattr(properties_data_lamp, member)
     try:

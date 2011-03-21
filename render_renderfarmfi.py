@@ -115,28 +115,28 @@ class ORESettings(bpy.types.PropertyGroup):
 
 # all panels, except render panel
 # Example of wrapping every class 'as is'
-import properties_scene
+from bl_ui import properties_scene
 for member in dir(properties_scene):
     subclass = getattr(properties_scene, member)
     try:        subclass.COMPAT_ENGINES.add('RENDERFARMFI_RENDER')
     except:    pass
 del properties_scene
 
-import properties_world
+from bl_ui import properties_world
 for member in dir(properties_world):
     subclass = getattr(properties_world, member)
     try:        subclass.COMPAT_ENGINES.add('RENDERFARMFI_RENDER')
     except:    pass
 del properties_world
 
-import properties_material
+from bl_ui import properties_material
 for member in dir(properties_material):
     subclass = getattr(properties_material, member)
     try:        subclass.COMPAT_ENGINES.add('RENDERFARMFI_RENDER')
     except:    pass
 del properties_material
 
-import properties_object
+from bl_ui import properties_object
 for member in dir(properties_object):
     subclass = getattr(properties_object, member)
     try:        subclass.COMPAT_ENGINES.add('RENDERFARMFI_RENDER')
