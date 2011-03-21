@@ -240,7 +240,7 @@ class Sample(bpy.types.Operator):
 
 #menu_func = (lambda self, context: self.layout.menu("INFO_MT_armature_metarig_add", icon='OUTLINER_OB_ARMATURE'))
 
-#import space_info  # ensure the menu is loaded first
+#from bl_ui import space_info  # ensure the menu is loaded first
 
 def register():
     bpy.utils.register_class(DATA_PT_rigify_buttons)
