@@ -539,8 +539,6 @@ class NetRenderSettings(bpy.types.PropertyGroup):
         NetRenderSettings.slaves = CollectionProperty(type=NetRenderSlave, name="Slaves", description="")
         NetRenderSettings.slaves_blacklist = CollectionProperty(type=NetRenderSlave, name="Slaves Blacklist", description="")
         NetRenderSettings.jobs = CollectionProperty(type=NetRenderJob, name="Job List", description="")
-        
-        bpy.types.Scene.network_render = PointerProperty(type=NetRenderSettings, name="Network Render", description="Network Render Settings")
 
     @classmethod
     def unregister(cls):
