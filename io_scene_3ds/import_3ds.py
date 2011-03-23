@@ -110,13 +110,13 @@ OBJECT_UV       =   0x4140      # The UV texture coordinates
 OBJECT_TRANS_MATRIX  =   0x4160 # The Object Matrix
 
 #>------ sub defines of EDITKEYFRAME
-# ED_KEY_AMBIENT_NODE        =   0xB001
+ED_KEY_AMBIENT_NODE        =   0xB001
 ED_KEY_OBJECT_NODE         =   0xB002
-# ED_KEY_CAMERA_NODE         =   0xB003
-# ED_KEY_TARGET_NODE         =   0xB004
-# ED_KEY_LIGHT_NODE          =   0xB005
-# ED_KEY_L_TARGET_NODE       =   0xB006  
-# ED_KEY_SPOTLIGHT_NODE      =   0xB007
+ED_KEY_CAMERA_NODE         =   0xB003
+ED_KEY_TARGET_NODE         =   0xB004
+ED_KEY_LIGHT_NODE          =   0xB005
+ED_KEY_L_TARGET_NODE       =   0xB006  
+ED_KEY_SPOTLIGHT_NODE      =   0xB007
 #>------ sub defines of ED_KEY_OBJECT_NODE
 # EK_OB_KEYFRAME_SEG        =   0xB008
 # EK_OB_KEYFRAME_CURTIME    =   0xB009
@@ -633,7 +633,14 @@ def process_next_chunk(file, previous_chunk, importedObjects, IMAGE_SEARCH):
         elif new_chunk.ID == EDITKEYFRAME:
             pass
 
-        elif new_chunk.ID == ED_KEY_OBJECT_NODE: #another object is being processed
+        # including these here means their EK_OB_NODE_HEADER are scanned
+        elif new_chunk.ID in {ED_KEY_AMBIENT_NODE,
+                               ED_KEY_OBJECT_NODE,
+                               ED_KEY_CAMERA_NODE,
+                               ED_KEY_TARGET_NODE,
+                               ED_KEY_LIGHT_NODE,
+                               ED_KEY_L_TARGET_NODE,
+                               ED_KEY_SPOTLIGHT_NODE}:  # another object is being processed
             child = None
 
         elif new_chunk.ID == EK_OB_NODE_HEADER:
@@ -657,7 +664,8 @@ def process_next_chunk(file, previous_chunk, importedObjects, IMAGE_SEARCH):
 
         elif new_chunk.ID == EK_OB_INSTANCE_NAME:
             object_name, read_str_len = read_string(file)
-            child.name = object_name
+            # child.name = object_name
+            child.name += "." + object_name
             object_dictionary[object_name] = child
             new_chunk.bytes_read += read_str_len
             # print("new instance object:", object_name)
