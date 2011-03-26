@@ -798,8 +798,8 @@ def register():
     km = kc.keymaps.get("3D View")
     if km is None:
         km = kc.keymaps.new(name="3D View")
-    keymap_item_add_surf = km.items.new(GPENCIL_OT_surfsk_surface_add.bl_idname,"E","PRESS", key_modifier="D")
-    keymap_item_stroke_to_curve = km.items.new(GPENCIL_OT_surfsk_strokes_to_curves.bl_idname,"C","PRESS", key_modifier="D")
+    keymap_item_add_surf = km.keymap_items.new(GPENCIL_OT_surfsk_surface_add.bl_idname,"E","PRESS", key_modifier="D")
+    keymap_item_stroke_to_curve = km.keymap_items.new(GPENCIL_OT_surfsk_strokes_to_curves.bl_idname,"C","PRESS", key_modifier="D")
 
 
 def unregister():

@@ -1542,7 +1542,7 @@ def register():
     bpy.utils.register_module(__name__)
 
     km = bpy.context.window_manager.keyconfigs.default.keymaps['3D View']
-    kmi = km.items.new('wm.call_menu', 'SPACE', 'PRESS')
+    kmi = km.keymap_items.new('wm.call_menu', 'SPACE', 'PRESS')
     kmi.properties.name = "VIEW3D_MT_Space_Dynamic_Menu"
 
 

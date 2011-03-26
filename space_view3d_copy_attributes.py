@@ -734,17 +734,17 @@ def register():
     km = kc.keymaps.get("Object Mode")
     if km is None:
         km = kc.keymaps.new(name="Object Mode")
-    kmi = km.items.new('wm.call_menu', 'C', 'PRESS', ctrl=True)
+    kmi = km.keymap_items.new('wm.call_menu', 'C', 'PRESS', ctrl=True)
     kmi.properties.name = 'VIEW3D_MT_copypopup'
     km = kc.keymaps.get("Pose")
     if km is None:
         km = kc.keymaps.new(name="Pose")
 
-    kmi = km.items.get("pose.copy")
+    kmi = km.keymap_items.get("pose.copy")
     if kmi is not None:
         kmi.idname = 'wm.call_menu'
     else:
-        kmi = km.items.new('wm.call_menu', 'C', 'PRESS', ctrl=True)
+        kmi = km.keymap_items.new('wm.call_menu', 'C', 'PRESS', ctrl=True)
     kmi.properties.name = 'VIEW3D_MT_posecopypopup'
     for menu in _layer_menus:
         bpy.utils.register_class(menu)
@@ -752,7 +752,7 @@ def register():
     km = kc.keymaps.get("Mesh")
     if km is None:
         km = kc.keymaps.new(name="Mesh")
-    kmi = km.items.new('wm.call_menu', 'C', 'PRESS')
+    kmi = km.keymap_items.new('wm.call_menu', 'C', 'PRESS')
     kmi.ctrl = True
     kmi.properties.name = 'MESH_MT_CopyFaceSettings'
 
@@ -771,10 +771,10 @@ def unregister():
         bpy.utils.unregister_class(menu)
     bpy.types.DATA_PT_texface.remove(_add_tface_buttons)
     km = bpy.context.window_manager.keyconfigs.active.keymaps['Mesh']
-    for kmi in km.items:
+    for kmi in km.keymap_items:
         if kmi.idname == 'wm.call_menu':
             if kmi.properties.name == 'MESH_MT_CopyFaceSettings':
-                km.items.remove(kmi)
+                km.keymap_items.remove(kmi)
 
 if __name__ == "__main__":
     register()
