@@ -1550,7 +1550,7 @@ def unregister():
     bpy.utils.unregister_module(__name__)
 
     km = bpy.context.window_manager.keyconfigs.default.keymaps['3D View']
-    for kmi in km.items:
+    for kmi in km.keymap_items:
         if kmi.idname == 'wm.call_menu':
             if kmi.properties.name == "VIEW3D_MT_Space_Dynamic_Menu":
                 km.items.remove(kmi)

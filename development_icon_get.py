@@ -42,7 +42,7 @@ import bpy
 
 def create_icon_list_all():
     icons = bpy.types.UILayout.bl_rna.functions['prop'].parameters['icon'].\
-        items.keys()
+        enum_items.keys()
 
     icons.remove("NONE")
 

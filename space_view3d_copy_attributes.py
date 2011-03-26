@@ -762,7 +762,7 @@ def unregister():
 
     ''' mostly to remove the keymap '''
     kms = bpy.context.window_manager.keyconfigs['Blender'].keymaps['Pose']
-    for item in kms.items:
+    for item in kms.keymap_items:
         if item.name == 'Call Menu' and item.idname == 'wm.call_menu' and \
            item.properties.name == 'VIEW3D_MT_posecopypopup':
             item.idname = 'pose.copy'

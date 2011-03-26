@@ -669,7 +669,7 @@ def register_keymaps():
 
 def unregister_keymaps():
     km = bpy.data.window_managers["WinMan"].keyconfigs.default.keymaps["Text"]
-    kmi = km.items["api_navigator.toggle_doc"]
+    kmi = km.keymap_items["api_navigator.toggle_doc"]
     km.items.remove(kmi)
 
 
