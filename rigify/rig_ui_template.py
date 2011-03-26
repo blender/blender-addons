@@ -39,7 +39,7 @@ def get_pose_matrix_in_other_space(mat, pose_bone):
     rest_inv = rest.inverted()
     if pose_bone.parent:
         par_mat = pose_bone.parent.matrix.copy()
-        par_inv = pose_bone.parent.matrix.inverted()
+        par_inv = par_mat.inverted()
         par_rest = pose_bone.parent.bone.matrix_local.copy()
     else:
         par_mat = Matrix()
@@ -56,9 +56,9 @@ def get_pose_matrix_in_other_space(mat, pose_bone):
         loc *= rest.inverted().to_quaternion()
         if pose_bone.bone.use_inherit_scale:
             t = par_mat.to_scale()
-            par_scale = Matrix().Scale(t[0], 4, Vector((1,0,0)))
-            par_scale *= Matrix().Scale(t[1], 4, Vector((0,1,0)))
-            par_scale *= Matrix().Scale(t[2], 4, Vector((0,0,1)))
+            par_scale = Matrix.Scale(t[0], 4, Vector((1,0,0)))
+            par_scale *= Matrix.Scale(t[1], 4, Vector((0,1,0)))
+            par_scale *= Matrix.Scale(t[2], 4, Vector((0,0,1)))
         else:
             par_scale = Matrix()
 
@@ -71,9 +71,9 @@ def get_pose_matrix_in_other_space(mat, pose_bone):
         rot = smat.to_quaternion()
         scl = mat.to_scale()
 
-        smat = Matrix().Scale(scl[0], 4, Vector((1,0,0)))
-        smat *= Matrix().Scale(scl[1], 4, Vector((0,1,0)))
-        smat *= Matrix().Scale(scl[2], 4, Vector((0,0,1)))
+        smat = Matrix.Scale(scl[0], 4, Vector((1,0,0)))
+        smat *= Matrix.Scale(scl[1], 4, Vector((0,1,0)))
+        smat *= Matrix.Scale(scl[2], 4, Vector((0,0,1)))
         smat *= Matrix.Rotation(rot.angle, 4, rot.axis)
         smat[3][0] = loc[0]
         smat[3][1] = loc[1]
@@ -215,7 +215,7 @@ def match_pole_target(ik_first, ik_last, pole, match_bone, length):
         ploc = a + (ikv/2) + pvi
 
         # Set pole target to location
-        mat = get_pose_matrix_in_other_space(Matrix().Translation(ploc), pole)
+        mat = get_pose_matrix_in_other_space(Matrix.Translation(ploc), pole)
         set_pose_translation(pole, mat)
 
         bpy.ops.object.mode_set(mode='OBJECT')
