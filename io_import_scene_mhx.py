@@ -16,8 +16,6 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-# <pep8 compliant>
-
 # Project Name:        MakeHuman
 # Product Home Page:   http://www.makehuman.org/
 # Code Home Page:      http://code.google.com/p/makehuman/
