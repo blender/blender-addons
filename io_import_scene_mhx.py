@@ -26,7 +26,7 @@
 """
 Abstract
 MHX (MakeHuman eXchange format) importer for Blender 2.5x.
-Version 1.3.1
+Version 1.4.0
 
 This script should be distributed with Blender.
 If not, place it in the .blender/scripts/addons dir
@@ -39,22 +39,21 @@ Alternatively, run the script in the script editor (Alt-P), and access from the 
 bl_info = {
     'name': 'Import: MakeHuman (.mhx)',
     'author': 'Thomas Larsson',
-    'version': (1, 3, 1),
+    'version': (1, 4, 0),
     "blender": (2, 5, 7),
-    "api": 35622,
+    "api": 35774,
     'location': "File > Import",
     'description': 'Import files in the MakeHuman eXchange format (.mhx)',
     'warning': '',
-    'wiki_url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/'\
-        'Scripts/Import-Export/Make_Human',
+    'wiki_url': 'http://sites.google.com/site/makehumandocs/blender-export-and-mhx',
     'tracker_url': 'https://projects.blender.org/tracker/index.php?'\
         'func=detail&aid=21872',
     'category': 'Import-Export'}
 
 MAJOR_VERSION = 1
-MINOR_VERSION = 3
-SUB_VERSION = 1
-BLENDER_VERSION = (2, 56, 0)
+MINOR_VERSION = 4
+SUB_VERSION = 0
+BLENDER_VERSION = (2, 57, 0)
 
 #
 #
@@ -389,7 +388,8 @@ def getObject(name, var, glbals, lcals):
 
 def checkMhxVersion(major, minor):
     global warnedVersion
-    if  major != MAJOR_VERSION or (major == MAJOR_VERSION and minor > MINOR_VERSION):
+    print((major,minor), (MAJOR_VERSION, MINOR_VERSION), warnedVersion)
+    if  major != MAJOR_VERSION or minor != MINOR_VERSION:
         if warnedVersion:
             return
         else:
