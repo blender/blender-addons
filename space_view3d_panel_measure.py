@@ -19,12 +19,12 @@
 bl_info = {
     "name": "Measure Panel",
     "author": "Buerbaum Martin (Pontiac)",
-    "version": (0, 7, 12),
+    "version": (0, 7, 13),
     "blender": (2, 5, 7),
-    "api": 35622,
+    "api": 35864,
     "location": "View3D > Properties > Measure Panel",
     "description": "Measure distances between objects",
-    "warning": "Script returns errors",
+    "warning": "",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/" \
         "Scripts/3D_interaction/Panel_Measure",
     "tracker_url": "https://projects.blender.org/tracker/index.php?" \
@@ -58,7 +58,11 @@ It's very helpful to use one or two "Empty" objects with
 "Snap during transform" enabled for fast measurement.
 
 Version history:
-v0.7.12 -  Moved setting of properties to callback function
+v0.7.13 - Moved property definitions to registration function.
+    Changed automatic callback adding to manual,
+    the current API doesn't seem to allow this top be automatically yet.
+    Various API fixes.
+v0.7.12 - Moved setting of properties to callback function
     (it is bad practise to set it in the draw code).
     Fixed distance calculation of parented objects.
     API change: add_modal_handler -> modal_handler_add
@@ -259,7 +263,7 @@ def getMeasurePoints(context):
 
                 # Convert to local or global space.
                 if measureLocal(sce):
-                    p1 = vert_loc 
+                    p1 = vert_loc
                     p2 = cur_loc
                     return (p1, p2, COLOR_LOCAL)
 
@@ -725,6 +729,20 @@ class VIEW3D_OT_display_measurements(bpy.types.Operator):
             return {'CANCELLED'}
 
 
+class VIEW3D_OT_activate_measure_panel(bpy.types.Operator):
+    bl_label = "Activate"
+    bl_idname = "view3d.activate_measure_panel"
+    bl_description = "Activate the callback needed to draw the lines."
+    bl_options = {'REGISTER'}
+
+    def invoke(self, context, event):
+
+        # Execute operator (this adds the callback)
+        # if it wasn't done yet.
+        bpy.ops.view3d.display_measurements()
+        return {'FINISHED'}
+
+
 class VIEW3D_OT_reenter_editmode(bpy.types.Operator):
     bl_label = "Re-enter EditMode"
     bl_idname = "view3d.reenter_editmode"
@@ -772,23 +790,15 @@ class VIEW3D_PT_measure(bpy.types.Panel):
         # @todo Better solution?
         context.area.tag_redraw()
 
-        # Execute operator (this adds the callback)
-        # if it wasn't done yet.
-        bpy.ops.view3d.display_measurements()
+        mgr_ops = context.window_manager.operators.values()
+        if (not "VIEW3D_OT_display_measurements"
+            in [op.bl_idname for op in mgr_ops]):
+            layout.operator("view3d.activate_measure_panel",
+                        text="Activate")
+        else:
+            layout.prop(sce, "measure_panel_draw")
 
-        # Define property for the draw setting.
-        bpy.types.Scene.measure_panel_draw = bpy.props.BoolProperty(
-            description="Draw distances in 3D View",
-            default=1)
-
-        # Define property for the calc-area setting.
-        # @todo prevent double calculations for each refresh automatically?
-        bpy.types.Scene.measure_panel_calc_area = bpy.props.BoolProperty(
-            description="Calculate mesh surface area (heavy CPU" \
-                " usage on bigger meshes)",
-            default=0)
-
-        layout.prop(sce, "measure_panel_draw")
+        context.area.tag_redraw()
 
     def draw(self, context):
         layout = self.layout
@@ -796,31 +806,6 @@ class VIEW3D_PT_measure(bpy.types.Panel):
 
         # Get a single selected object (or nothing).
         obj = getSingleObject(context)
-
-        # Define a temporary attribute for the distance value
-        bpy.types.Scene.measure_panel_dist = bpy.props.FloatProperty(
-            name="Distance",
-            precision=PRECISION,
-            unit="LENGTH")
-        bpy.types.Scene.measure_panel_area1 = bpy.props.FloatProperty(
-            precision=PRECISION,
-            unit="AREA")
-        bpy.types.Scene.measure_panel_area2 = bpy.props.FloatProperty(
-            precision=PRECISION,
-            unit="AREA")
-
-        TRANSFORM = [
-            ("measure_global", "Global",
-                "Calculate values in global space."),
-            ("measure_local", "Local",
-                "Calculate values inside the local object space.")]
-
-        # Define dropdown for the global/local setting
-        bpy.types.Scene.measure_panel_transform = bpy.props.EnumProperty(
-            name="Space",
-            description="Choose in which space you want to measure.",
-            items=TRANSFORM,
-            default='measure_global')
 
         if (context.mode == 'EDIT_MESH'):
             obj = context.active_object
@@ -1101,6 +1086,43 @@ class VIEW3D_PT_measure(bpy.types.Panel):
 
 def register():
     bpy.utils.register_module(__name__)
+
+    # Define a temporary attribute for the distance value
+    bpy.types.Scene.measure_panel_dist = bpy.props.FloatProperty(
+        name="Distance",
+        precision=PRECISION,
+        unit="LENGTH")
+    bpy.types.Scene.measure_panel_area1 = bpy.props.FloatProperty(
+        precision=PRECISION,
+        unit="AREA")
+    bpy.types.Scene.measure_panel_area2 = bpy.props.FloatProperty(
+        precision=PRECISION,
+        unit="AREA")
+
+    TRANSFORM = [
+        ("measure_global", "Global",
+            "Calculate values in global space."),
+        ("measure_local", "Local",
+            "Calculate values inside the local object space.")]
+
+    # Define dropdown for the global/local setting
+    bpy.types.Scene.measure_panel_transform = bpy.props.EnumProperty(
+        name="Space",
+        description="Choose in which space you want to measure.",
+        items=TRANSFORM,
+        default='measure_global')
+
+    # Define property for the draw setting.
+    bpy.types.Scene.measure_panel_draw = bpy.props.BoolProperty(
+        description="Draw distances in 3D View",
+        default=1)
+
+    # Define property for the calc-area setting.
+    # @todo prevent double calculations for each refresh automatically?
+    bpy.types.Scene.measure_panel_calc_area = bpy.props.BoolProperty(
+        description="Calculate mesh surface area (heavy CPU" \
+            " usage on bigger meshes)",
+        default=0)
 
     pass
 
