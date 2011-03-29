@@ -879,7 +879,7 @@ def parse_meshes(blender_meshes, psk_file):
                     raise RuntimeError("normal vector coplanar with face! points:", current_mesh.vertices[dindex0].co, current_mesh.vertices[dindex1].co, current_mesh.vertices[dindex2].co)
                 #print(dir(current_face))
                 current_face.select = True
-                #print((current_face.use_smooth))
+                #print("smooth:",(current_face.use_smooth))
                 #not sure if this right
                 #tri.SmoothingGroups
                 if current_face.use_smooth == True:
@@ -1921,7 +1921,8 @@ class VIEW3D_PT_unrealtools_objectmode(bpy.types.Panel):
                         #print("Action Set match: Pass")
                         boxactionset.label(text="Action Name: " + ActionNLA.name)
                 layout.label(text="Match Found: " + str(actionsetmatchcount))
-		
+        
+        layout.operator(OBJECT_OT_UTSelectedFaceSmooth.bl_idname)
         #row = layout.row()
         #row.label(text="Action Set(s)(not build)")
         #for action in  bpy.data.actions:
@@ -1967,7 +1968,37 @@ class OBJECT_OT_UnrealExport(bpy.types.Operator):
         
         #self.report({'WARNING', 'INFO'}, exportmessage)
         self.report({'INFO'}, exportmessage)
-        return{'FINISHED'}    
+        return{'FINISHED'}   
+
+class OBJECT_OT_UTSelectedFaceSmooth(bpy.types.Operator):
+    bl_idname = "object.utselectfacesmooth"  # XXX, name???
+    bl_label = "Select Smooth faces"
+    __doc__ = "It will only select smooth faces that is select mesh."
+    
+    def invoke(self, context, event):
+        #print("Init Export Script:")
+        
+        for obj in bpy.data.objects:
+            #print(dir(obj))
+            if obj.type == 'MESH' and obj.select == True:
+                bpy.ops.object.mode_set(mode='OBJECT')#it need to go into object mode to able to select the faces
+                #print("Mesh found!",obj.name)
+                #print(len(obj.data.faces))
+                for face in obj.data.faces:
+                    #print(dir(face))
+                    if face.use_smooth == True:
+                        face.select = True
+                        #print("selected:",face.select)
+                    else:
+                        face.select = False
+                    #print("selected:",face.select)
+                    #print(("smooth:",face.use_smooth))
+                #bpy.context.scene.update()
+                bpy.ops.object.mode_set(mode='EDIT')
+                break
+        #objects = bpy.data.objects
+        
+        return{'FINISHED'}
 
 def menu_func(self, context):
     #bpy.context.scene.unrealexportpsk = True
@@ -1977,12 +2008,10 @@ def menu_func(self, context):
 
 def register():
     bpy.utils.register_module(__name__)
-
     bpy.types.INFO_MT_file_export.append(menu_func)
 
 def unregister():
     bpy.utils.unregister_module(__name__)
-
     bpy.types.INFO_MT_file_export.remove(menu_func)
 
 if __name__ == "__main__":
