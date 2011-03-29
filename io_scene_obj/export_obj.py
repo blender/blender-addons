@@ -111,16 +111,30 @@ def write_mtl(scene, filepath, copy_images, mtl_dict):
 #           file.write('map_Kd %s\n' % img.filepath.split('\\')[-1].split('/')[-1]) # Diffuse mapping image
 
         elif mat:  # No face image. if we havea material search for MTex image.
-            for mtex in mat.texture_slots:
+            image_map = {}
+            # backwards so topmost are highest priority
+            for mtex in reversed(mat.texture_slots):
                 if mtex and mtex.texture.type == 'IMAGE':
-                    try:
-                        filepath = copy_image(mtex.texture.image)
-#                       filepath = mtex.texture.image.filepath.split('\\')[-1].split('/')[-1]
-                        file.write('map_Kd %s\n' % repr(filepath)[1:-1])  # Diffuse mapping image
-                        break
-                    except:
-                        # Texture has no image though its an image type, best ignore.
-                        pass
+                    image = mtex.texture.image
+                    if image:
+                        if mtex.use_map_ambient:
+                            image_map["map_Ka"] = image
+                        if mtex.use_map_color_diffuse:
+                            image_map["map_Kd"] = image
+                        if mtex.use_map_specular:
+                            image_map["map_Ks"] = image
+                        if mtex.use_map_alpha:
+                            image_map["map_d"] = image
+                        if mtex.use_map_translucency:
+                            image_map["map_Tr"] = image
+                        if mtex.use_map_normal:
+                            image_map["map_Bump"] = image
+                        if mtex.use_map_hardness:
+                            image_map["map_Ns"] = image
+
+            for key, image in image_map.items():
+                filepath = copy_image(image)
+                file.write('%s %s\n' % (key, repr(filepath)[1:-1]))
 
         file.write('\n\n')
 
