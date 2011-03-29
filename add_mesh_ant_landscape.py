@@ -21,7 +21,7 @@ bl_info = {
     "author": "Jimmy Hazevoet",
     "version": (0,1,1),
     "blender": (2, 5, 7),
-    "api": 35622,
+    "api": 35853,
     "location": "View3D > Add > Mesh",
     "description": "Adds a Landscape Primitive",
     "warning": "", # used for warning icon and text in addons panel

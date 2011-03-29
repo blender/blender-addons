@@ -22,7 +22,7 @@ bl_info = {
     "author": "DreamPainter",
     "version": (1, 0, 1),
     "blender": (2, 5, 7),
-    "api": 35622,
+    "api": 35853,
     "location": "View3D > Add > Mesh > Regular Solids",
     "description": "Add a Regular Solid mesh.",
     "warning": "",

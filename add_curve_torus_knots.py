@@ -22,7 +22,7 @@ bl_info = {
     "author": "testscreenings",
     "version": (0,1),
     "blender": (2, 5, 7),
-    "api": 35622,
+    "api": 35853,
     "location": "View3D > Add > Curve",
     "description": "Adds many types of (torus) knots",
     "warning": "",

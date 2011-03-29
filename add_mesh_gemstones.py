@@ -21,7 +21,7 @@ bl_info = {
     "author": "Pontiac, Fourmadmen, Dreampainter",
     "version": (0, 4),
     "blender": (2, 5, 7),
-    "api": 35622,
+    "api": 35853,
     "location": "View3D > Add > Mesh > Gemstones",
     "description": "Adds various gemstone (Diamond & Gem) meshes.",
     "warning": "",

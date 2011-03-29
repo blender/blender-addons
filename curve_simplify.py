@@ -21,7 +21,7 @@ bl_info = {
     "author": "testscreenings",
     "version": (1,),
     "blender": (2, 5, 7),
-    "api": 35622,
+    "api": 35853,
     "location": "Search > Simplify Curves",
     "description": "Simplifies 3D curves and fcurves",
     "warning": "",

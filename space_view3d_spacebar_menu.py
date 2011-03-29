@@ -23,7 +23,7 @@ bl_info = {
     "author": "JayDez, sim88, meta-androcto, sam",
     "version": (1, 7, 2),
     "blender": (2, 5, 7),
-    "api": 35622,
+    "api": 35853,
     "location": "View3D > Spacebar Key",
     "description": "Context Sensitive Spacebar Menu",
     "warning": "",

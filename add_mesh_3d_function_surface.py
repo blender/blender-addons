@@ -21,7 +21,7 @@ bl_info = {
     "author": "Buerbaum Martin (Pontiac)",
     "version": (0, 3, 7),
     "blender": (2, 5, 7),
-    "api": 35622,
+    "api": 35853,
     "location": "View3D > Add > Mesh",
     "description": "Create Objects using Math Formulas",
     "warning": "",

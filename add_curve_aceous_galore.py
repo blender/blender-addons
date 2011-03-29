@@ -21,7 +21,7 @@ bl_info = {
     'author': 'Jimmy Hazevoet, testscreenings',
     'version': (0,2),
     "blender": (2, 5, 7),
-    "api": 35622,
+    "api": 35853,
     'location': 'View3D > Add > Curve',
     'description': 'Adds many different types of Curves',
     'warning': '', # used for warning icon and text in addons panel
