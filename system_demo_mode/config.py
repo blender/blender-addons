@@ -47,6 +47,7 @@ def as_string(dirpath, random_order, **kwargs):
     cfg_str += ["\n"]
     cfg_str += ["# edit the search path so other systems may find the files below\n"]
     cfg_str += ["# based on name only if the absolute paths cant be found\n"]
+    cfg_str += ["# Use '//' for current blend file path.\n"]
     cfg_str += ["\n"]
     cfg_str += ["search_path = %r\n" % dirpath]
     cfg_str += ["\n"]

@@ -91,7 +91,7 @@ def demo_mode_auto_select():
             play_area += size
         elif area.type in {'IMAGE_EDITOR', 'SEQUENCE_EDITOR', 'NODE_EDITOR'}:
             render_area += size
-        
+
         if area.type == 'IMAGE_EDITOR':
             totimg += 1
 
@@ -110,12 +110,10 @@ def demo_mode_auto_select():
     return mode
 
 
-def demo_mode_next_file():
-    global_state["demo_index"] += 1
-
-    if global_state["demo_index"] >= len(global_config_files):
-        global_state["demo_index"] = 0
-
+def demo_mode_next_file(step=1):
+    print(global_state["demo_index"])
+    global_state["demo_index"] = (global_state["demo_index"] + step) % len(global_config_files)
+    print(global_state["demo_index"], "....")
     print("func:demo_mode_next_file", global_state["demo_index"])
     filepath = global_config_files[global_state["demo_index"]]["file"]
     bpy.ops.wm.open_mainfile(filepath=filepath)
@@ -163,7 +161,7 @@ def demo_mode_init():
 
     elif global_config["mode"] == 'RENDER':
         print("  render")
-        
+
         # setup tempfile
         global_state["render_out"] = tempfile.mkstemp()[1]
         if os.path.exists(global_state["render_out"]):
@@ -227,7 +225,7 @@ def demo_mode_update():
                 bpy.context.window.screen = screen_new
 
                 global_state["last_switch"] = time_current
-                
+
                 # if we also switch scenes then reset last frame
                 # otherwise it could mess up cycle calc.
                 if screen.scene != screen_new.scene:
@@ -289,7 +287,6 @@ class DemoMode(bpy.types.Operator):
     bl_label = "Demo"
 
     enabled = False
-
     first_run = True
 
     def cleanup(self, disable=False):
@@ -301,7 +298,7 @@ class DemoMode(bpy.types.Operator):
             DemoKeepAlive.remove()
 
     def modal(self, context, event):
-        print("DemoMode.modal", global_state["anim_cycles"])
+        # print("DemoMode.modal", global_state["anim_cycles"])
         if not self.__class__.enabled:
             self.cleanup(disable=True)
             return {'CANCELLED'}
@@ -335,12 +332,12 @@ class DemoMode(bpy.types.Operator):
         # toggle
         if self.__class__.enabled and self.__class__.first_run == False:
             # this actually cancells the previous running instance
-            self.__class__.enabled = False
+            # should never happen now, DemoModeControl is for this. 
             return {'CANCELLED'}
         else:
             self.__class__.enabled = True
             context.window_manager.modal_handler_add(self)
-            
+
             return {'RUNNING_MODAL'}
 
     def cancel(self, context):
@@ -349,21 +346,60 @@ class DemoMode(bpy.types.Operator):
         self.cleanup()
         return None
 
+    # call from DemoModeControl
+    @classmethod
+    def disable(cls):
+        if cls.enabled and cls.first_run == False:
+            # this actually cancells the previous running instance
+            # should never happen now, DemoModeControl is for this. 
+            cls.enabled = False
+
+
+class DemoModeControl(bpy.types.Operator):
+    bl_idname = "wm.demo_mode_control"
+    bl_label = "Control"
+    
+    mode = bpy.props.EnumProperty(items=(
+            ('PREV', "Prev", ""),
+            ('PAUSE', "Pause", ""),
+            ('NEXT', "Next", ""),
+            ),
+                name="Mode")
+
+    def execute(self, context):
+        mode = self.mode
+        if mode == 'PREV':
+            demo_mode_next_file(-1)
+        elif mode == 'NEXT':
+            demo_mode_next_file(1)
+        else: # pause
+            DemoMode.disable()
+        return {'FINISHED'}
+        
 
 def menu_func(self, context):
     # print("func:menu_func - DemoMode.enabled:", DemoMode.enabled, "bpy.app.driver_namespace:", DemoKeepAlive.secret_attr not in bpy.app.driver_namespace, 'global_state["timer"]:', global_state["timer"])
     layout = self.layout
     layout.operator_context = 'EXEC_DEFAULT'
-    layout.operator("wm.demo_mode", icon='PLAY' if not DemoMode.enabled else 'PAUSE')
-
+    box = layout.row()  # BOX messes layout
+    row = box.row(align=True)
+    row.label("Demo Mode:")
+    if not DemoMode.enabled:
+        row.operator("wm.demo_mode", icon='PLAY', text="")
+    else:
+        row.operator("wm.demo_mode_control", icon='REW', text="").mode = 'PREV'
+        row.operator("wm.demo_mode_control", icon='PAUSE', text="").mode = 'PAUSE'
+        row.operator("wm.demo_mode_control", icon='FF', text="").mode = 'NEXT'
 
 def register():
     bpy.utils.register_class(DemoMode)
+    bpy.utils.register_class(DemoModeControl)
     bpy.types.INFO_HT_header.append(menu_func)
 
 
 def unregister():
     bpy.utils.unregister_class(DemoMode)
+    bpy.utils.unregister_class(DemoModeControl)
     bpy.types.INFO_HT_header.remove(menu_func)
 
 
@@ -398,19 +434,53 @@ def load_config(cfg_name=DEMO_CFG):
 
     exec(demo_data, namespace, namespace)
 
-    for filecfg in namespace["config"]:
+    demo_config = namespace["config"]
+    demo_search_path = namespace.get("search_path")
 
-        # defaults
-        #filecfg["display_render"] = filecfg.get("display_render", 0)
-        #filecfg["animate"] = filecfg.get("animate", 0)
-        #filecfg["screen_switch"] = filecfg.get("screen_switch", 0)
+    if demo_search_path is None:
+        print("reading: %r, no search_path found, missing files wont be searched." % demo_path)
+    if demo_search_path.startswith("//"):
+        demo_search_path = os.path.relpath(demo_search_path)
+    if not os.path.exists(demo_search_path):
+        print("reading: %r, search_path %r does not exist." % (demo_path, demo_search_path))
+        demo_search_path = None
 
-        if not os.path.exists(filecfg["file"]):
+    blend_lookup = {}
+    # initialize once, case insensitive dict
+    def lookup_file(filepath):
+        filename = os.path.basename(filepath).lower()
+        
+        if not blend_lookup:
+            # ensure only ever run once.
+            blend_lookup[None] = None
+
+            def blend_dict_items(path):
+                for dirpath, dirnames, filenames in os.walk(path):
+                    # skip '.svn'
+                    if dirpath.startswith("."):
+                        continue
+                    for filename in filenames:
+                        if filename.lower().endswith(".blend"):
+                            filepath = os.path.join(dirpath, filename)
+                            yield (filename.lower(), filepath)
+            
+            blend_lookup.update(dict(blend_dict_items(demo_search_path)))
+            
+        # fallback to orginal file
+        return blend_lookup.get(filename, filepath)
+    # done with search lookup
+
+    for filecfg in demo_config:
+        filepath_test = filecfg["file"]
+        if not os.path.exists(filepath_test):
             filepath_test = os.path.join(basedir, filecfg["file"])
-            if not os.path.exists(filepath_test):
-                print("Cant find %r or %r, skipping!")
-                continue
-            filecfg["file"] = os.path.normpath(filepath_test)
+        if not os.path.exists(filepath_test):
+            filepath_test = lookup_file(filepath_test)  # attempt to get from searchpath
+        if not os.path.exists(filepath_test):    
+            print("Cant find %r or %r, skipping!")
+            continue
+
+        filecfg["file"] = os.path.normpath(filepath_test)
 
         # sanitize
         filecfg["file"] = os.path.abspath(filecfg["file"])
