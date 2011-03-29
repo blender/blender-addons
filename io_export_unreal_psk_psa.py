@@ -1029,7 +1029,7 @@ def parse_bone(blender_bone, psk_file, psa_file, parent_id, is_root_bone, parent
     final_parent_id = parent_id
     
     #RG/RE -
-    #if we are not seperated by a small distance, create a dummy bone for the displacement
+    #if we are not separated by a small distance, create a dummy bone for the displacement
     #this is only needed for root bones, since UT assumes a connected skeleton, and from here
     #down the chain we just use "tail" as an endpoint
     #if(head.length > 0.001 and is_root_bone == 1):

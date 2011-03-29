@@ -144,7 +144,7 @@ def vrmlFormat(data):
     data = data.replace('}', '\n}\n')
     data = data.replace('[', '\n[\n')
     data = data.replace(']', '\n]\n')
-    data = data.replace(',', ' , ')  # make sure comma's seperate
+    data = data.replace(',', ' , ')  # make sure comma's separate
 
     if EXTRACT_STRINGS:
         # add strings back in
