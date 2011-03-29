@@ -112,7 +112,7 @@ class Rig:
                     if len(b.children) > 0:
                         rocker = b.children[0].name
 
-        if foot == None or heel == None:
+        if foot is None or heel is None:
             print("blah")
             raise MetarigError("RIGIFY ERROR: Bone '%s': incorrect bone configuration for rig type." % (strip_org(bone)))
 
@@ -123,7 +123,7 @@ class Rig:
                 toe = b.name
 
         # Get toe
-        if toe == None:
+        if toe is None:
             raise MetarigError("RIGIFY ERROR: Bone '%s': incorrect bone configuration for rig type." % (strip_org(bone)))
 
         self.org_bones = leg_bones + [foot, toe, heel, rocker]

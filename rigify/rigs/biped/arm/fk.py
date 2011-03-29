@@ -49,7 +49,7 @@ class Rig:
             raise MetarigError("RIGIFY ERROR: Bone '%s': input to rig type must be a chain of 3 bones." % (strip_org(bone)))
 
         # Get (optional) parent
-        if self.obj.data.bones[bone].parent == None:
+        if self.obj.data.bones[bone].parent is None:
             self.org_parent = None
         else:
             self.org_parent = self.obj.data.bones[bone].parent.name

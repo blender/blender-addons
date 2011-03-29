@@ -231,7 +231,7 @@ def generate_rig(context, metarig):
     # Parent any free-floating bones to the root.
     bpy.ops.object.mode_set(mode='EDIT')
     for bone in bones:
-        if obj.data.edit_bones[bone].parent == None:
+        if obj.data.edit_bones[bone].parent is None:
             obj.data.edit_bones[bone].use_connect = False
             obj.data.edit_bones[bone].parent = obj.data.edit_bones[root_bone]
     bpy.ops.object.mode_set(mode='OBJECT')
@@ -351,4 +351,3 @@ def param_name(param_name, rig_type):
     """ Get the actual parameter name, sans-rig-type.
     """
     return param_name[len(rig_type) + 1:]
-

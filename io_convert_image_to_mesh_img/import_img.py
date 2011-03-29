@@ -102,7 +102,7 @@ class hirise_dtm_helper(object):
 
       # When are we done with this level?
       endStr = "END"
-      if not currentObjectName == None:
+      if not currentObjectName is None:
         endStr = "END_OBJECT = %s" % currentObjectName
       line = ""
 
@@ -408,9 +408,9 @@ class hirise_dtm_helper(object):
       # dimensions shrink as we remove pixels
       processed_dims = img_props.processed_dims()
 
-      if XSize == None:
+      if XSize is None:
         XSize = processed_dims[0]
-      if YSize == None:
+      if YSize is None:
         YSize = processed_dims[1]
 
       if XSize + XOffset > processed_dims[0]:

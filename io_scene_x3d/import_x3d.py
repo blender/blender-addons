@@ -416,7 +416,7 @@ class vrmlNode(object):
         self.PROTO_NAMESPACE = {}
 
     def isRoot(self):
-        if self.filename == None:
+        if self.filename is None:
             return False
         else:
             return True
@@ -518,7 +518,7 @@ class vrmlNode(object):
                 # where the parent of this object is not the real parent
                 # - In this case we have added the proto as a child to a node instancing it.
                 # This is a bit arbitary, but its how Proto's are done with this importer.
-                if child.getProtoName() == None and child.getExternprotoName() == None:
+                if child.getProtoName() is None and child.getExternprotoName() is None:
                     child.getSerialized(results, ancestry)
                 else:
 
@@ -624,7 +624,7 @@ class vrmlNode(object):
         self_real = self.getRealNode()  # incase we're an instance
 
         f = self_real.getFieldName(field, ancestry)
-        if f == None:
+        if f is None:
             return default
         if ',' in f:
             f = f[:f.index(',')]  # strip after the comma
@@ -643,7 +643,7 @@ class vrmlNode(object):
         self_real = self.getRealNode()  # incase we're an instance
 
         f = self_real.getFieldName(field, ancestry)
-        if f == None:
+        if f is None:
             return default
         if ',' in f:
             f = f[:f.index(',')]  # strip after the comma
@@ -662,7 +662,7 @@ class vrmlNode(object):
         self_real = self.getRealNode()  # incase we're an instance
 
         f = self_real.getFieldName(field, ancestry)
-        if f == None:
+        if f is None:
             return default
         # if ',' in f: f = f[:f.index(',')] # strip after the comma
 
@@ -689,7 +689,7 @@ class vrmlNode(object):
         self_real = self.getRealNode()  # incase we're an instance
 
         f = self_real.getFieldName(field, ancestry)
-        if f == None:
+        if f is None:
             return default
         if ',' in f:
             f = f[:f.index(',')]  # strip after the comma
@@ -710,7 +710,7 @@ class vrmlNode(object):
         self_real = self.getRealNode()  # incase we're an instance
 
         f = self_real.getFieldName(field, ancestry)
-        if f == None:
+        if f is None:
             return default
         if len(f) < 1:
             print('\t"%s" wrong length for string conversion for field "%s"' % (f, field))
@@ -763,7 +763,7 @@ class vrmlNode(object):
             if not data_split:
                 return []
             array_data = ' '.join(data_split)
-            if array_data == None:
+            if array_data is None:
                 return []
 
             array_data = array_data.replace(',', ' ')
@@ -1150,7 +1150,7 @@ class vrmlNode(object):
                     except:
                         pass
 
-                if values == None:  # dont parse
+                if values is None:  # dont parse
                     values = l_split
 
                 # This should not extend over multiple lines however it is possible
@@ -1250,7 +1250,7 @@ def gzipOpen(path):
     else:
         print('\tNote, gzip module could not be imported, compressed files will fail to load')
 
-    if data == None:
+    if data is None:
         try:
             data = open(path, 'rU').read()
         except:
@@ -1266,7 +1266,7 @@ def vrml_parse(path):
     '''
     data = gzipOpen(path)
 
-    if data == None:
+    if data is None:
         return None, 'Failed to open file: ' + path
 
     # Stripped above
@@ -1393,7 +1393,7 @@ def x3d_parse(path):
     # Could add a try/except here, but a console error is more useful.
     data = gzipOpen(path)
 
-    if data == None:
+    if data is None:
         return None, 'Failed to open file: ' + path
 
     doc = xml.dom.minidom.parseString(data)
@@ -2111,13 +2111,13 @@ def importShape(node, ancestry):
             if ima:
                 ima_url = ima.getFieldAsString('url', None, ancestry)
 
-                if ima_url == None:
+                if ima_url is None:
                     try:
                         ima_url = ima.getFieldAsStringArray('url', ancestry)[0]  # in some cases we get a list of images.
                     except:
                         ima_url = None
 
-                if ima_url == None:
+                if ima_url is None:
                     print("\twarning, image with no URL, this is odd")
                 else:
                     bpyima = image_utils.image_load(ima_url, dirName(node.getFilename()), place_holder=False, recursive=False, convert_callback=imageConvertCompat)
@@ -2604,7 +2604,7 @@ def load_web3d(path, PREF_FLAT=False, PREF_CIRCLE_DIV=16, HELPER_FUNC=None):
 
                 # Assign anim curves
                 node = defDict[key]
-                if node.blendObject == None:  # Add an object if we need one for animation
+                if node.blendObject is None:  # Add an object if we need one for animation
                     node.blendObject = bpy.data.objects.new('AnimOb', None)  # , name)
                     bpy.context.scene.objects.link(node.blendObject)
 

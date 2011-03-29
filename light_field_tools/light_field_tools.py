@@ -337,7 +337,7 @@ class OBJECT_OT_create_lightfield_basemesh(bpy.types.Operator):
         scene.objects.link(nobj)
         nobj.select = True 
                 
-        if scene.objects.active == None or scene.objects.active.mode == 'OBJECT':
+        if scene.objects.active is None or scene.objects.active.mode == 'OBJECT':
             scene.objects.active = nobj
 
 

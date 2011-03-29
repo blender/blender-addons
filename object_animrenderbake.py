@@ -85,7 +85,7 @@ class OBJECT_OT_animrenderbake(bpy.types.Operator):
                         img = uvdata.image
                         break
 
-        if img == None:
+        if img is None:
             self.report({'ERROR'}, "No valid image found to bake to")
             return {'CANCELLED'}
 

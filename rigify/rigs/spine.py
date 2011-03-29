@@ -215,7 +215,7 @@ class Rig:
             # Parenting
             bone_e.use_connect = False
             helper_e.use_connect = False
-            if prev_bone == None:
+            if prev_bone is None:
                 helper_e.parent = eb[hip_control]
             bone_e.parent = helper_e
 
@@ -314,7 +314,7 @@ class Rig:
             flip_bone(self.obj, bone)
             bone_e.tail = Vector(eb[b[0]].head)
             #bone_e.head = Vector(eb[b[0]].tail)
-            if prev_bone == None:
+            if prev_bone is None:
                 pass  # Position base bone wherever you want, for now do nothing (i.e. position at hips)
             else:
                 put_bone(self.obj, bone, eb[prev_bone].tail)
@@ -331,7 +331,7 @@ class Rig:
             con = bone_p.constraints.new('COPY_LOCATION')
             con.name = "copy_location"
             con.target = self.obj
-            if prev_bone == None:
+            if prev_bone is None:
                 con.subtarget = hip_control  # Position base bone wherever you want, for now hips
             else:
                 con.subtarget = prev_bone

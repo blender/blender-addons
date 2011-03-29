@@ -531,7 +531,7 @@ def parseDefaultType(typ, args, tokens):
     bpyType = typ.capitalize()
     print(bpyType, name, data)
     loadedData[bpyType][name] = data
-    if data == None:
+    if data is None:
         return None
 
     for (key, val, sub) in tokens:
@@ -572,7 +572,7 @@ def parseAction(args, tokens):
         
     act = ob.animation_data.action
     loadedData['Action'][name] = act
-    if act == None:
+    if act is None:
         print("Ignoring action %s" % name)
         return act
     act.name = name
@@ -691,7 +691,7 @@ def parseAnimationData(rna, args, tokens):
     if not eval(args[1]):
         return
     print("Parse Animation data")
-    if rna.animation_data == None:    
+    if rna.animation_data is None:    
         rna.animation_data_create()
     adata = rna.animation_data
     for (key, val, sub) in tokens:
@@ -813,7 +813,7 @@ def parseMaterial(args, tokens):
     global todo
     name = args[0]
     mat = bpy.data.materials.new(name)
-    if mat == None:
+    if mat is None:
         return None
     loadedData['Material'][name] = mat
     for (key, val, sub) in tokens:
@@ -1030,7 +1030,7 @@ def parseImage(args, tokens):
             for n in range(1,len(val)):
                 filename += " " + val[n]
             img = loadImage(filename)
-            if img == None:
+            if img is None:
                 return None
             img.name = imgName
         else:
@@ -1070,7 +1070,7 @@ def parseObject(args, tokens):
     except:
         ob = None
 
-    if ob == None:
+    if ob is None:
         print("Create", name, data, datName)
         ob = createObject(typ, name, data, datName)
         print("created", ob)
@@ -1113,7 +1113,7 @@ def createObject(typ, name, data, datName):
     
 def linkObject(ob, data):
     #print("Data", data, ob.data)
-    if data and ob.data == None:
+    if data and ob.data is None:
         ob.data = data
         print("Data linked", ob, ob.data)
     scn = bpy.context.scene
@@ -2174,7 +2174,7 @@ def parseProcess(args, tokens):
                 eb = None
             tb = ebones[val[1]]
             typ = val[2]
-            if eb == None:
+            if eb is None:
                 pass
             elif typ == 'Inv':
                 eb.head = tb.tail
@@ -2309,7 +2309,7 @@ def defaultKey(ext, args, tokens, var, exclude, glbals, lcals):
             data = None            
         # print("Old structrna", nvar, data)
 
-        if data == None:
+        if data is None:
             try:
                 creator = args[3]
             except:

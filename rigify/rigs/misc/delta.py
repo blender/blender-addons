@@ -39,7 +39,7 @@ class Rig:
         """
         bb = obj.data.bones
 
-        if bb[bone].children == None:
+        if bb[bone].children is None:
             raise MetarigError("RIGIFY ERROR: bone '%s': rig type requires one child." % org_name(bone.name))
         if bb[bone].use_connect == True:
             raise MetarigError("RIGIFY ERROR: bone '%s': rig type cannot be connected to parent." % org_name(bone.name))

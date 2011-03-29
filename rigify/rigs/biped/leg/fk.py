@@ -59,7 +59,7 @@ class Rig:
                 else:
                     heel = b.name
 
-        if foot == None or heel == None:
+        if foot is None or heel is None:
             raise MetarigError("RIGIFY ERROR: Bone '%s': incorrect bone configuration for rig type." % (strip_org(bone)))
 
         # Get the toe
@@ -69,13 +69,13 @@ class Rig:
                 toe = b.name
 
         # Get the toe
-        if toe == None:
+        if toe is None:
             raise MetarigError("RIGIFY ERROR: Bone '%s': incorrect bone configuration for rig type." % (strip_org(bone)))
 
         self.org_bones = leg_bones + [foot, toe, heel]
 
         # Get (optional) parent
-        if self.obj.data.bones[bone].parent == None:
+        if self.obj.data.bones[bone].parent is None:
             self.org_parent = None
         else:
             self.org_parent = self.obj.data.bones[bone].parent.name

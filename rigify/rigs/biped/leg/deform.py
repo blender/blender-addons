@@ -99,7 +99,7 @@ class Rig:
                 else:
                     heel = b.name
 
-        if foot == None or heel == None:
+        if foot is None or heel is None:
             raise MetarigError("RIGIFY ERROR: Bone '%s': incorrect bone configuration for rig type." % (strip_org(bone)))
 
         # Get the toe
@@ -108,7 +108,7 @@ class Rig:
             if b.use_connect == True:
                 toe = b.name
 
-        if toe == None:
+        if toe is None:
             raise MetarigError("RIGIFY ERROR: Bone '%s': incorrect bone configuration for rig type." % (strip_org(bone)))
 
         self.org_bones = leg_bones + [foot, toe, heel]
@@ -261,4 +261,3 @@ class Rig:
             con.name = "track_to"
             con.target = self.obj
             con.subtarget = stip
-
