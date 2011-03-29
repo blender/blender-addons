@@ -1,5 +1,6 @@
 import os
 
+
 def blend_list(path):
     for dirpath, dirnames, filenames in os.walk(path):
 
@@ -36,8 +37,10 @@ def generate(dirpath, random_order, **kwargs):
 
 
 def as_string(dirpath, random_order, **kwargs):
+    """ Config loader is in demo_mode.py
+    """
     cfg, dirpath = generate(dirpath, random_order, **kwargs)
-    
+
     # hint for reader, can be used if files are not found.
     cfg_str = []
     cfg_str += ["# generated file\n"]
@@ -48,9 +51,8 @@ def as_string(dirpath, random_order, **kwargs):
     cfg_str += ["search_path = %r\n" % dirpath]
     cfg_str += ["\n"]
 
-
     # All these work but use nicest formatting!
-    if 0: # works but not nice to edit.
+    if 0:  # works but not nice to edit.
         cfg_str += ["config = %r" % cfg]
     elif 0:
         import pprint
@@ -59,6 +61,7 @@ def as_string(dirpath, random_order, **kwargs):
         cfg_str += [("config = %r" % cfg).replace("{", "\n    {")]
     else:
         import pprint
+
         def dict_as_kw(d):
             return "dict(%s)" % ", ".join(("%s=%s" % (k, pprint.pformat(v))) for k, v in sorted(d.items()))
         ident = "    "
@@ -66,6 +69,5 @@ def as_string(dirpath, random_order, **kwargs):
         for cfg_item in cfg:
             cfg_str += ["%s%s,\n" % (ident, dict_as_kw(cfg_item))]
         cfg_str += ["%s]\n\n" % ident]
-            
-            
+
     return "".join(cfg_str), dirpath
