@@ -96,7 +96,8 @@ def demo_mode_auto_select():
             totimg += 1
 
     # since our test files have this as defacto standard
-    if totimg >= 2:
+    scene = bpy.context.scene
+    if totimg >= 2 and (scene.camera or scene.render.use_sequencer):
         mode = 'RENDER'
     else:
         if play_area >= render_area:
@@ -174,11 +175,17 @@ def demo_mode_init():
         scene.render.file_format = 'AVI_JPEG' if global_config["anim_render"] else 'PNG'
         scene.render.use_file_extension = False
         scene.render.use_placeholder = False
+        try:
+            if global_config["anim_render"]:
+                bpy.ops.render.render('INVOKE_DEFAULT', animation=True)
+            else:
+                bpy.ops.render.render('INVOKE_DEFAULT', write_still=True)
+        except RuntimeError:  # no camera for eg:
+            import traceback
+            traceback.print_exc()
 
-        if global_config["anim_render"]:
-            bpy.ops.render.render('INVOKE_DEFAULT', animation=True)
-        else:
-            bpy.ops.render.render('INVOKE_DEFAULT', write_still=True)
+            open(global_state["render_out"], 'w').close()  # touch so we move on.
+
     else:
         raise Exception("Unsupported mode %r" % global_config["mode"])
 
@@ -332,7 +339,7 @@ class DemoMode(bpy.types.Operator):
         # toggle
         if self.__class__.enabled and self.__class__.first_run == False:
             # this actually cancells the previous running instance
-            # should never happen now, DemoModeControl is for this. 
+            # should never happen now, DemoModeControl is for this.
             return {'CANCELLED'}
         else:
             self.__class__.enabled = True
@@ -351,14 +358,14 @@ class DemoMode(bpy.types.Operator):
     def disable(cls):
         if cls.enabled and cls.first_run == False:
             # this actually cancells the previous running instance
-            # should never happen now, DemoModeControl is for this. 
+            # should never happen now, DemoModeControl is for this.
             cls.enabled = False
 
 
 class DemoModeControl(bpy.types.Operator):
     bl_idname = "wm.demo_mode_control"
     bl_label = "Control"
-    
+
     mode = bpy.props.EnumProperty(items=(
             ('PREV', "Prev", ""),
             ('PAUSE', "Pause", ""),
@@ -372,10 +379,10 @@ class DemoModeControl(bpy.types.Operator):
             demo_mode_next_file(-1)
         elif mode == 'NEXT':
             demo_mode_next_file(1)
-        else: # pause
+        else:  # pause
             DemoMode.disable()
         return {'FINISHED'}
-        
+
 
 def menu_func(self, context):
     # print("func:menu_func - DemoMode.enabled:", DemoMode.enabled, "bpy.app.driver_namespace:", DemoKeepAlive.secret_attr not in bpy.app.driver_namespace, 'global_state["timer"]:', global_state["timer"])
@@ -390,6 +397,7 @@ def menu_func(self, context):
         row.operator("wm.demo_mode_control", icon='REW', text="").mode = 'PREV'
         row.operator("wm.demo_mode_control", icon='PAUSE', text="").mode = 'PAUSE'
         row.operator("wm.demo_mode_control", icon='FF', text="").mode = 'NEXT'
+
 
 def register():
     bpy.utils.register_class(DemoMode)
@@ -447,9 +455,10 @@ def load_config(cfg_name=DEMO_CFG):
 
     blend_lookup = {}
     # initialize once, case insensitive dict
+
     def lookup_file(filepath):
         filename = os.path.basename(filepath).lower()
-        
+
         if not blend_lookup:
             # ensure only ever run once.
             blend_lookup[None] = None
@@ -463,9 +472,9 @@ def load_config(cfg_name=DEMO_CFG):
                         if filename.lower().endswith(".blend"):
                             filepath = os.path.join(dirpath, filename)
                             yield (filename.lower(), filepath)
-            
+
             blend_lookup.update(dict(blend_dict_items(demo_search_path)))
-            
+
         # fallback to orginal file
         return blend_lookup.get(filename, filepath)
     # done with search lookup
@@ -476,7 +485,7 @@ def load_config(cfg_name=DEMO_CFG):
             filepath_test = os.path.join(basedir, filecfg["file"])
         if not os.path.exists(filepath_test):
             filepath_test = lookup_file(filepath_test)  # attempt to get from searchpath
-        if not os.path.exists(filepath_test):    
+        if not os.path.exists(filepath_test):
             print("Cant find %r or %r, skipping!")
             continue
 
