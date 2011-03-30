@@ -27,7 +27,7 @@ bl_info = {
     "description": "TODO",
     "warning": "",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"\
-        "Scripts/TODO/DemoMode",
+        "Scripts/System/Demo_Mode#Running_Demo_Mode",
     "tracker_url": "",
     "support": 'OFFICIAL',
     "category": "Import-Export"}
@@ -87,9 +87,10 @@ class DemoModeSetup(bpy.types.Operator):
         from . import config
         cfg_str, dirpath = config.as_string(self.filepath, self.random_order, **keywords)
         text = bpy.data.texts.get("demo.py")
-        if text is None:
-            text = bpy.data.texts.new("demo.py")
+        if text:
+            text.name += ".back"
 
+        text = bpy.data.texts.new("demo.py")
         text.from_string(cfg_str)
 
         if self.run:
