@@ -125,7 +125,7 @@ class VIEW3D_PT_rotobezier(bpy.types.Panel):
 class CURVE_OT_insert_keyframe_rotobezier(bpy.types.Operator):
     bl_label = 'Insert'
     bl_idname = 'curve.insert_keyframe_rotobezier'
-    bl_description = 'Insert a RotoBezier Keyframe'
+    bl_description = 'Insert/Replace all Keyframes in current frame'
     bl_options = {'REGISTER', 'UNDO'}
     
     # on mouse up:
@@ -178,7 +178,7 @@ class CURVE_OT_insert_keyframe_rotobezier(bpy.types.Operator):
 class CURVE_OT_delete_keyframe_rotobezier(bpy.types.Operator):
     bl_label = 'Delete'
     bl_idname = 'curve.delete_keyframe_rotobezier'
-    bl_description = 'Delete a RotoBezier Keyframe'
+    bl_description = 'Delete all keyframes in current frame'
     bl_options = {'REGISTER', 'UNDO'}
     
     # on mouse up:
