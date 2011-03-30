@@ -30,7 +30,7 @@ bl_info = {
         "Scripts/System/Demo_Mode#Running_Demo_Mode",
     "tracker_url": "",
     "support": 'OFFICIAL',
-    "category": "Import-Export"}
+    "category": "System"}
 
 # To support reload properly, try to access a package var, if it's there, reload everything
 if "bpy" in locals():
