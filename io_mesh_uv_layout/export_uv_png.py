@@ -34,7 +34,6 @@ def write(fw, mesh_source, image_width, image_height, opacity, face_iter_func):
         mesh.materials.append(mat_solid)
 
     tot_verts = 0
-    face_lens = []
     for f in mesh_source.faces:
         tot_verts += len(f.vertices)
 

@@ -35,7 +35,6 @@ config = [
 '''
 
 import bpy
-import sys
 import time
 import tempfile
 import os
@@ -298,15 +297,15 @@ class DemoMode(bpy.types.Operator):
 
     def cleanup(self, disable=False):
         demo_mode_timer_remove()
-        self.__class__.first_run = True
+        __class__.first_run = True
 
         if disable:
-            self.__class__.enabled = False
+            __class__.enabled = False
             DemoKeepAlive.remove()
 
     def modal(self, context, event):
         # print("DemoMode.modal", global_state["anim_cycles"])
-        if not self.__class__.enabled:
+        if not __class__.enabled:
             self.cleanup(disable=True)
             return {'CANCELLED'}
 
@@ -317,8 +316,8 @@ class DemoMode(bpy.types.Operator):
             return {'CANCELLED'}
 
         # print(event.type)
-        if self.__class__.first_run:
-            self.__class__.first_run = False
+        if __class__.first_run:
+            __class__.first_run = False
 
             demo_mode_init()
         else:
@@ -337,12 +336,12 @@ class DemoMode(bpy.types.Operator):
             return {'CANCELLED'}
 
         # toggle
-        if self.__class__.enabled and self.__class__.first_run == False:
+        if __class__.enabled and __class__.first_run == False:
             # this actually cancells the previous running instance
             # should never happen now, DemoModeControl is for this.
             return {'CANCELLED'}
         else:
-            self.__class__.enabled = True
+            __class__.enabled = True
             context.window_manager.modal_handler_add(self)
 
             return {'RUNNING_MODAL'}
@@ -351,7 +350,7 @@ class DemoMode(bpy.types.Operator):
         print("func:DemoMode.cancel")
         # disable here means no running on file-load.
         self.cleanup()
-        return None
+        return {'CANCELLED'}
 
     # call from DemoModeControl
     @classmethod

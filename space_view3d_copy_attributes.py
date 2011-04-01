@@ -33,7 +33,6 @@ bl_info = {
     'category': '3D View'}
 
 import bpy
-import mathutils
 from mathutils import Matrix, Vector
 
 

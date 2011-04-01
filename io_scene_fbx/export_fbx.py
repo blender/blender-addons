@@ -32,7 +32,7 @@ import math  # math.pi
 import shutil  # for file copying
 
 import bpy
-from mathutils import Vector, Euler, Matrix
+from mathutils import Vector, Matrix
 
 
 # XXX not used anymore, images are copied one at a time

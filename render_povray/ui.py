@@ -19,7 +19,6 @@
 # <pep8 compliant>
 
 import bpy
-from bpy.props import EnumProperty
 
 # Use some of the existing buttons.
 from bl_ui import properties_render
