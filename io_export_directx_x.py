@@ -20,7 +20,7 @@ bl_info = {
     "author": "Chris Foster (Kira Vakaan)",
     "version": (2, 1),
     "blender": (2, 5, 7),
-    "api": 35622,
+    "api": 35927,
     "location": "File > Export",
     "description": "Export to the DirectX Model Format (.x)",
     "warning": "",
