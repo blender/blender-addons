@@ -76,7 +76,7 @@ class GPENCIL_OT_SURFSK_add_surface(bpy.types.Operator):
     bl_options = {'REGISTER', 'UNDO'}
     
     
-    #### Get an ordered list of a chain of vertices.
+    ##### Get an ordered list of a chain of vertices.
     def get_ordered_verts(self, ob, all_selected_edges_idx, all_selected_verts_idx, first_vert_idx, middle_vertex_idx):
         # Order selected vertexes.
         verts_ordered = []
