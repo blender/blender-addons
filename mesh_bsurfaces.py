@@ -16,19 +16,19 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-bl_info = {
-    "name": "Surface Sketch",
+bl_addon_info = {
+    "name": "Bsurfaces GPL Edition",
     "author": "Eclectiel",
-    "version": (0,8),
+    "version": (0,9),
     "blender": (2, 5, 7),
-    "api": 35622,
-    "location": "View3D > EditMode > Tool Shelf > Surface Sketching Panel",
+    "api": 35733,
+    "location": "View3D > EditMode > ToolShelf",
     "description": "Draw meshes and re-topologies with Grease Pencil",
     "warning": "Beta",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"\
         "Scripts/Mesh/Surface_Sketch",
     "tracker_url": "https://projects.blender.org/tracker/index.php?"\
-        "func=detail&aid=22062",
+        "func=detail&aid=26642&group_id=153&atid=469",
     "category": "Mesh"}
 
 
@@ -58,21 +58,22 @@ class VIEW3D_PT_tools_SURF_SKETCH(bpy.types.Panel):
         col = layout.column(align=True)
         row = layout.row()
         row.separator()
-        col.operator(GPENCIL_OT_surfsk_surface_add.bl_idname, text="Add Surface")
+        col.operator("gpencil.surfsk_add_surface", text="Add Surface")
         col.prop(scn, "SURFSK_edges_U")
         col.prop(scn, "SURFSK_edges_V")
         row.separator()
         col.prop(scn, "SURFSK_keep_strokes")
         col.separator()
         row.separator()
-        col.operator(GPENCIL_OT_surfsk_strokes_to_curves.bl_idname, text="Strokes to curves")
+        col.operator("gpencil.surfsk_strokes_to_curves", text="Strokes to curves")
         
 
 
-class GPENCIL_OT_surfsk_surface_add(bpy.types.Operator):
-    bl_idname = "gpencil.surfsk_surface_add"
-    bl_label = "Surface generation from grease pencil strokes"
-    bl_description = "Surface generation from grease pencil strokes"
+class GPENCIL_OT_SURFSK_add_surface(bpy.types.Operator):
+    bl_idname = "gpencil.surfsk_add_surface"
+    bl_label = "Surface Sketching"
+    bl_description = "Generates a surface from grease pencil strokes or from curves."
+    bl_options = {'REGISTER', 'UNDO'}
     
     
     #### Get an ordered list of a chain of vertices.
@@ -111,23 +112,26 @@ class GPENCIL_OT_surfsk_surface_add(bpy.types.Operator):
     
     
     #### Calculates length of a chain of points.
-    def get_chain_length(self, verts_ordered):
+    def get_chain_length(self, object, verts_ordered):
+        matrix = object.matrix_world
+        
         edges_lengths = []
         edges_lengths_sum = 0
         for i in range(0, len(verts_ordered)):
             if i == 0:
-                prev_v = verts_ordered[i]
+                prev_v_co = verts_ordered[i].co * matrix
             else:
-                v = verts_ordered[i]
+                v_co = verts_ordered[i].co * matrix
                 
-                v_difs = [prev_v.co[0] - v.co[0], prev_v.co[1] - v.co[1], prev_v.co[2] - v.co[2]]
+                v_difs = [prev_v_co[0] - v_co[0], prev_v_co[1] - v_co[1], prev_v_co[2] - v_co[2]]
                 edge_length = abs(sqrt(v_difs[0] * v_difs[0] + v_difs[1] * v_difs[1] + v_difs[2] * v_difs[2]))
                 
                 edges_lengths.append(edge_length)
                 edges_lengths_sum += edge_length
                 
-                prev_v = v
-        
+                prev_v_co = v_co
+                
+                
         return edges_lengths, edges_lengths_sum
     
     
@@ -262,47 +266,59 @@ class GPENCIL_OT_surfsk_surface_add(bpy.types.Operator):
                     ob_gp_strokes = ob
             using_external_curves = True
             
-            bpy.ops.object.editmode_toggle()
+            bpy.ops.object.editmode_toggle('INVOKE_REGION_WIN')
         else:
+            #### Vheck if there is a grease pencil layer. If not, quit.
+            try:
+                for i in range(len(self.main_object.grease_pencil.layers)):
+                    if self.main_object.grease_pencil.layers[i].active:
+                        gp_active_layer_idx = i
+                        
+                x = self.main_object.grease_pencil.layers[gp_active_layer_idx].active_frame.strokes
+            except:
+                return{'CANCELLED'}
+                
             #### Convert grease pencil strokes to curve.
-            bpy.ops.gpencil.convert(type='CURVE')
+            bpy.ops.gpencil.convert('INVOKE_REGION_WIN', type='CURVE')
             ob_gp_strokes = bpy.context.object
             using_external_curves = False
             
-            bpy.ops.object.editmode_toggle()
+            bpy.ops.object.editmode_toggle('INVOKE_REGION_WIN')
         
         ob_gp_strokes.name = "SURFSK_temp_strokes"
         
-        bpy.ops.object.select_name(name = ob_gp_strokes.name)
+        bpy.ops.object.select_all('INVOKE_REGION_WIN', action='DESELECT')
+        bpy.ops.object.select_name('INVOKE_REGION_WIN', name = ob_gp_strokes.name)
         bpy.context.scene.objects.active = bpy.context.scene.objects[ob_gp_strokes.name]
         
         
         #### If "Keep strokes" is active make a duplicate of the original strokes, which will be intact
         if bpy.context.scene.SURFSK_keep_strokes:
-            bpy.ops.object.duplicate_move()
+            bpy.ops.object.duplicate('INVOKE_REGION_WIN')
             bpy.context.object.name = "SURFSK_used_strokes"
-            bpy.ops.object.editmode_toggle()
-            bpy.ops.curve.smooth()
-            bpy.ops.curve.smooth()
-            bpy.ops.curve.smooth()
-            bpy.ops.curve.smooth()
-            bpy.ops.curve.smooth()
-            bpy.ops.curve.smooth()
-            bpy.ops.object.editmode_toggle()
+            bpy.ops.object.editmode_toggle('INVOKE_REGION_WIN')
+            bpy.ops.curve.smooth('INVOKE_REGION_WIN')
+            bpy.ops.curve.smooth('INVOKE_REGION_WIN')
+            bpy.ops.curve.smooth('INVOKE_REGION_WIN')
+            bpy.ops.curve.smooth('INVOKE_REGION_WIN')
+            bpy.ops.curve.smooth('INVOKE_REGION_WIN')
+            bpy.ops.curve.smooth('INVOKE_REGION_WIN')
+            bpy.ops.object.editmode_toggle('INVOKE_REGION_WIN')
             
-            bpy.ops.object.select_name(name = ob_gp_strokes.name)
+            bpy.ops.object.select_all('INVOKE_REGION_WIN', action='DESELECT')
+            bpy.ops.object.select_name('INVOKE_REGION_WIN', name = ob_gp_strokes.name)
             bpy.context.scene.objects.active = bpy.context.scene.objects[ob_gp_strokes.name]
         
         
         #### Enter editmode for the new curve (converted from grease pencil strokes).
-        bpy.ops.object.editmode_toggle()
-        bpy.ops.curve.smooth()
-        bpy.ops.curve.smooth()
-        bpy.ops.curve.smooth()
-        bpy.ops.curve.smooth()
-        bpy.ops.curve.smooth()
-        bpy.ops.curve.smooth()
-        bpy.ops.object.editmode_toggle()
+        bpy.ops.object.editmode_toggle('INVOKE_REGION_WIN')
+        bpy.ops.curve.smooth('INVOKE_REGION_WIN')
+        bpy.ops.curve.smooth('INVOKE_REGION_WIN')
+        bpy.ops.curve.smooth('INVOKE_REGION_WIN')
+        bpy.ops.curve.smooth('INVOKE_REGION_WIN')
+        bpy.ops.curve.smooth('INVOKE_REGION_WIN')
+        bpy.ops.curve.smooth('INVOKE_REGION_WIN')
+        bpy.ops.object.editmode_toggle('INVOKE_REGION_WIN')
         
         
         selection_U_exists = False
@@ -319,11 +335,11 @@ class GPENCIL_OT_surfsk_surface_add(bpy.types.Operator):
             points_B = []
             points_first_stroke_tips = []
             
-            points_A.append(self.main_object.data.vertices[verts_tips_parsed_idx[0]].co)
-            points_A.append(self.main_object.data.vertices[middle_vertex_idx].co)
+            points_A.append(self.main_object.data.vertices[verts_tips_parsed_idx[0]].co * self.main_object.matrix_world)
+            points_A.append(self.main_object.data.vertices[middle_vertex_idx].co * self.main_object.matrix_world)
             
-            points_B.append(self.main_object.data.vertices[verts_tips_parsed_idx[1]].co)
-            points_B.append(self.main_object.data.vertices[middle_vertex_idx].co)
+            points_B.append(self.main_object.data.vertices[verts_tips_parsed_idx[1]].co * self.main_object.matrix_world)
+            points_B.append(self.main_object.data.vertices[middle_vertex_idx].co * self.main_object.matrix_world)
             
             points_first_stroke_tips.append(ob_gp_strokes.data.splines[0].bezier_points[0].co)
             points_first_stroke_tips.append(ob_gp_strokes.data.splines[0].bezier_points[len(ob_gp_strokes.data.splines[0].bezier_points) - 1].co)
@@ -348,7 +364,7 @@ class GPENCIL_OT_surfsk_surface_add(bpy.types.Operator):
             prev_dist = 999999999999
             for i in range(0, len(verts_tips_same_chain_idx)):
                 for v_idx in range(0, len(verts_tips_same_chain_idx[i])):
-                    dist = self.pts_distance(first_sketched_point_first_stroke_co, self.main_object.data.vertices[verts_tips_same_chain_idx[i][v_idx]].co)
+                    dist = self.pts_distance(first_sketched_point_first_stroke_co, self.main_object.data.vertices[verts_tips_same_chain_idx[i][v_idx]].co * self.main_object.matrix_world)
                     if dist < prev_dist:
                         prev_dist = dist
                         
@@ -364,7 +380,7 @@ class GPENCIL_OT_surfsk_surface_add(bpy.types.Operator):
             prev_dist = 999999999999
             for i in range(0, len(verts_tips_same_chain_idx)):
                 for v_idx in range(0, len(verts_tips_same_chain_idx[i])):
-                    dist = self.pts_distance(last_sketched_point_first_stroke_co, self.main_object.data.vertices[verts_tips_same_chain_idx[i][v_idx]].co)
+                    dist = self.pts_distance(last_sketched_point_first_stroke_co, self.main_object.data.vertices[verts_tips_same_chain_idx[i][v_idx]].co  * self.main_object.matrix_world)
                     if dist < prev_dist:
                         prev_dist = dist
                         
@@ -376,7 +392,7 @@ class GPENCIL_OT_surfsk_surface_add(bpy.types.Operator):
             prev_dist = 999999999999
             for i in range(0, len(verts_tips_same_chain_idx)):
                 for v_idx in range(0, len(verts_tips_same_chain_idx[i])):
-                    dist = self.pts_distance(first_sketched_point_last_stroke_co, self.main_object.data.vertices[verts_tips_same_chain_idx[i][v_idx]].co)
+                    dist = self.pts_distance(first_sketched_point_last_stroke_co, self.main_object.data.vertices[verts_tips_same_chain_idx[i][v_idx]].co * self.main_object.matrix_world)
                     if dist < prev_dist:
                         prev_dist = dist
                         
@@ -390,7 +406,7 @@ class GPENCIL_OT_surfsk_surface_add(bpy.types.Operator):
             # Determine if the single selection will be treated as U or as V.
             edges_sum = 0
             for i in all_selected_edges_idx:
-                edges_sum += self.pts_distance(self.main_object.data.vertices[self.main_object.data.edges[i].vertices[0]].co, self.main_object.data.vertices[self.main_object.data.edges[i].vertices[1]].co)
+                edges_sum += self.pts_distance(self.main_object.data.vertices[self.main_object.data.edges[i].vertices[0]].co  * self.main_object.matrix_world, self.main_object.data.vertices[self.main_object.data.edges[i].vertices[1]].co * self.main_object.matrix_world)
             
             average_edge_length = edges_sum / len(all_selected_edges_idx)
             
@@ -415,8 +431,8 @@ class GPENCIL_OT_surfsk_surface_add(bpy.types.Operator):
                 selection_U_exists = True
                 selection_V_exists = False
                 
-                points_tips.append(self.main_object.data.vertices[verts_tips_same_chain_idx[nearest_tip_first_st_first_pt_idx][0]].co)
-                points_tips.append(self.main_object.data.vertices[verts_tips_same_chain_idx[nearest_tip_first_st_first_pt_idx][1]].co)
+                points_tips.append(self.main_object.data.vertices[verts_tips_same_chain_idx[nearest_tip_first_st_first_pt_idx][0]].co * self.main_object.matrix_world)
+                points_tips.append(self.main_object.data.vertices[verts_tips_same_chain_idx[nearest_tip_first_st_first_pt_idx][1]].co * self.main_object.matrix_world)
                 
                 points_first_stroke_tips.append(ob_gp_strokes.data.splines[0].bezier_points[0].co)
                 points_first_stroke_tips.append(ob_gp_strokes.data.splines[0].bezier_points[len(ob_gp_strokes.data.splines[0].bezier_points) - 1].co)
@@ -466,19 +482,19 @@ class GPENCIL_OT_surfsk_surface_add(bpy.types.Operator):
         edges_lengths_sum_U = 0
         
         if selection_U_exists:
-            edges_lengths_U, edges_lengths_sum_U = self.get_chain_length(verts_ordered_U)
+            edges_lengths_U, edges_lengths_sum_U = self.get_chain_length(self.main_object, verts_ordered_U)
         
         # Sum selected edges V lengths.
         edges_lengths_V = []
         edges_lengths_sum_V = 0
         
         if selection_V_exists:
-            edges_lengths_V, edges_lengths_sum_V = self.get_chain_length(verts_ordered_V)
+            edges_lengths_V, edges_lengths_sum_V = self.get_chain_length(self.main_object, verts_ordered_V)
         
-        bpy.ops.object.editmode_toggle()
+        bpy.ops.object.editmode_toggle('INVOKE_REGION_WIN')
         for i in range(0, int(bpy.context.scene.SURFSK_precision)):
-          bpy.ops.curve.subdivide()
-        bpy.ops.object.editmode_toggle()
+          bpy.ops.curve.subdivide('INVOKE_REGION_WIN')
+        bpy.ops.object.editmode_toggle('INVOKE_REGION_WIN')
 
         # Proportions U.
         edges_proportions_U = []
@@ -550,7 +566,7 @@ class GPENCIL_OT_surfsk_surface_add(bpy.types.Operator):
         if selection_type == "TWO_NOT_CONNECTED":
             if selection_U2_exists:
                 for i in range(0, len(sketched_splines_parsed[len(sketched_splines_parsed) - 1])):
-                    sketched_splines_parsed[len(sketched_splines_parsed) - 1][i] = verts_ordered_U2[i].co
+                    sketched_splines_parsed[len(sketched_splines_parsed) - 1][i] = verts_ordered_U2[i].co * self.main_object.matrix_world
                 
         
         #### Create temporary curves along the "control-points" found on the sketched curves and the mesh selection.
@@ -567,7 +583,7 @@ class GPENCIL_OT_surfsk_surface_add(bpy.types.Operator):
             if selection_U_exists:
                 ob_ctrl_pts.data.vertices.add(1)
                 last_v = ob_ctrl_pts.data.vertices[len(ob_ctrl_pts.data.vertices) - 1]
-                last_v.co = verts_ordered_U[i].co
+                last_v.co = verts_ordered_U[i].co * self.main_object.matrix_world
                 
                 vert_num_in_spline += 1
                 
@@ -584,20 +600,21 @@ class GPENCIL_OT_surfsk_surface_add(bpy.types.Operator):
                 last_v = v
                 
                 vert_num_in_spline += 1
-
-        bpy.ops.object.select_name(name = ob_ctrl_pts.name)
+        
+        bpy.ops.object.select_all('INVOKE_REGION_WIN', action='DESELECT')
+        bpy.ops.object.select_name('INVOKE_REGION_WIN', name = ob_ctrl_pts.name)
         bpy.context.scene.objects.active = bpy.data.objects[ob_ctrl_pts.name]
         
         
         # Create curves from control points.
-        bpy.ops.object.convert(target='CURVE', keep_original=False)
+        bpy.ops.object.convert('INVOKE_REGION_WIN', target='CURVE', keep_original=False)
         ob_curves_surf = bpy.context.scene.objects.active
-        bpy.ops.object.editmode_toggle()
-        bpy.ops.curve.spline_type_set(type='BEZIER')
-        bpy.ops.curve.handle_type_set(type='AUTOMATIC')
+        bpy.ops.object.editmode_toggle('INVOKE_REGION_WIN')
+        bpy.ops.curve.spline_type_set('INVOKE_REGION_WIN', type='BEZIER')
+        bpy.ops.curve.handle_type_set('INVOKE_REGION_WIN', type='AUTOMATIC')
         for i in range(0, int(bpy.context.scene.SURFSK_precision)):
-          bpy.ops.curve.subdivide()
-        bpy.ops.object.editmode_toggle()
+          bpy.ops.curve.subdivide('INVOKE_REGION_WIN')
+        bpy.ops.object.editmode_toggle('INVOKE_REGION_WIN')
         
         
         # Calculate the length of each final surface spline.
@@ -619,10 +636,10 @@ class GPENCIL_OT_surfsk_surface_add(bpy.types.Operator):
                     
                     prev_p = p
         
-        bpy.ops.object.editmode_toggle()
+        bpy.ops.object.editmode_toggle('INVOKE_REGION_WIN')
         for i in range(0, int(bpy.context.scene.SURFSK_precision)):
-          bpy.ops.curve.subdivide()
-        bpy.ops.object.editmode_toggle()
+          bpy.ops.curve.subdivide('INVOKE_REGION_WIN')
+        bpy.ops.object.editmode_toggle('INVOKE_REGION_WIN')
 
         for sp_idx in range(0, len(surface_splines)):
             # Calculate vertex positions with apropriate edge proportions, and ordered, for each spline.
@@ -659,20 +676,22 @@ class GPENCIL_OT_surfsk_surface_add(bpy.types.Operator):
         # Set the first and last verts of each spline to the locations of the respective verts in the selections.
         if selection_V_exists:
             for i in range(0, len(surface_splines_parsed[0])):
-                surface_splines_parsed[len(surface_splines_parsed) - 1][i] = verts_ordered_V[i].co
+                surface_splines_parsed[len(surface_splines_parsed) - 1][i] = verts_ordered_V[i].co * self.main_object.matrix_world
         
         if selection_type == "TWO_NOT_CONNECTED":
             if selection_V2_exists:
                 for i in range(0, len(surface_splines_parsed[0])):
-                    surface_splines_parsed[0][i] = verts_ordered_V2[i].co
+                    surface_splines_parsed[0][i] = verts_ordered_V2[i].co * self.main_object.matrix_world
         
         
         #### Delete object with control points and object from grease pencil convertion.
-        bpy.ops.object.select_name(name = ob_ctrl_pts.name)
+        bpy.ops.object.select_all('INVOKE_REGION_WIN', action='DESELECT')
+        bpy.ops.object.select_name('INVOKE_REGION_WIN', name = ob_ctrl_pts.name)
         bpy.context.scene.objects.active = bpy.data.objects[ob_ctrl_pts.name]
         bpy.ops.object.delete()
         
-        bpy.ops.object.select_name(name = ob_gp_strokes.name)
+        bpy.ops.object.select_all('INVOKE_REGION_WIN', action='DESELECT')
+        bpy.ops.object.select_name('INVOKE_REGION_WIN', name = ob_gp_strokes.name)
         bpy.context.scene.objects.active = bpy.data.objects[ob_gp_strokes.name]
         bpy.ops.object.delete()
             
@@ -711,20 +730,30 @@ class GPENCIL_OT_surfsk_surface_add(bpy.types.Operator):
         ob_surface.select = True
         self.main_object.select = True
         bpy.context.scene.objects.active = bpy.data.objects[self.main_object.name]
-        bpy.ops.object.join()
-        bpy.ops.object.editmode_toggle()
-        bpy.ops.mesh.select_all(action='SELECT')
-        bpy.ops.mesh.remove_doubles(limit=0.0001)
-        bpy.ops.mesh.normals_make_consistent(inside=False)
-        bpy.ops.mesh.select_all(action='DESELECT')
+        bpy.ops.object.join('INVOKE_REGION_WIN')
+        bpy.ops.object.editmode_toggle('INVOKE_REGION_WIN')
+        bpy.ops.mesh.remove_doubles('INVOKE_REGION_WIN', limit=0.0001)
+        bpy.ops.mesh.normals_make_consistent('INVOKE_REGION_WIN', inside=False)
+        bpy.ops.mesh.select_all('INVOKE_REGION_WIN', action='DESELECT')
+        
+        
+        bpy.ops.object.editmode_toggle('INVOKE_REGION_WIN')
+        
         
         #### Delete grease pencil strokes
-        bpy.ops.gpencil.active_frame_delete()
+        try:
+            bpy.ops.gpencil.active_frame_delete('INVOKE_REGION_WIN')
+        except:
+            pass
         
+        bpy.ops.object.editmode_toggle('INVOKE_REGION_WIN')
+        
+        
+        return {"FINISHED"}
         
     def invoke (self, context, event):
-        bpy.ops.object.editmode_toggle()
-        bpy.ops.object.editmode_toggle()
+        bpy.ops.object.editmode_toggle('INVOKE_REGION_WIN')
+        bpy.ops.object.editmode_toggle('INVOKE_REGION_WIN')
         self.main_object = bpy.context.scene.objects.active
         
         self.execute(context)
@@ -734,45 +763,49 @@ class GPENCIL_OT_surfsk_surface_add(bpy.types.Operator):
 
 
 
-class GPENCIL_OT_surfsk_strokes_to_curves(bpy.types.Operator):
+class GPENCIL_OT_SURFSK_strokes_to_curves(bpy.types.Operator):
     bl_idname = "gpencil.surfsk_strokes_to_curves"
     bl_label = "Convert grease pencil strokes into curves and enter edit mode"
     bl_description = "Convert grease pencil strokes into curves and enter edit mode"
-
+    
+    
     def execute(self, context):
         #### Convert grease pencil strokes to curve.
-        bpy.ops.gpencil.convert(type='CURVE')
+        bpy.ops.gpencil.convert('INVOKE_REGION_WIN', type='CURVE')
         ob_gp_strokes = bpy.context.object
         ob_gp_strokes.name = "SURFSK_strokes"
         
         #### Delete grease pencil strokes.
-        bpy.ops.object.select_name(name = self.main_object.name)
+        bpy.ops.object.editmode_toggle('INVOKE_REGION_WIN')
+        bpy.ops.object.select_all('INVOKE_REGION_WIN', action='DESELECT')
+        bpy.ops.object.select_name('INVOKE_REGION_WIN', name = self.main_object.name)
         bpy.context.scene.objects.active = bpy.data.objects[self.main_object.name]
-        bpy.ops.gpencil.active_frame_delete()
+        bpy.ops.gpencil.active_frame_delete('INVOKE_REGION_WIN')
         
         
-        bpy.ops.object.select_name(name = ob_gp_strokes.name)
+        bpy.ops.object.select_all('INVOKE_REGION_WIN', action='DESELECT')
+        bpy.ops.object.select_name('INVOKE_REGION_WIN', name = ob_gp_strokes.name)
         bpy.context.scene.objects.active = bpy.data.objects[ob_gp_strokes.name]
         
         
-        bpy.ops.object.editmode_toggle()
-        bpy.ops.object.editmode_toggle()
-        bpy.ops.curve.smooth()
-        bpy.ops.curve.smooth()
-        bpy.ops.curve.smooth()
-        bpy.ops.curve.smooth()
-        bpy.ops.curve.smooth()
-        bpy.ops.curve.smooth()
-        bpy.ops.curve.smooth()
-        bpy.ops.curve.smooth()
-        bpy.ops.curve.smooth()
-        bpy.ops.curve.smooth()
-        bpy.ops.curve.smooth()
-        bpy.ops.curve.smooth()
+        #bpy.ops.object.editmode_toggle('INVOKE_REGION_WIN')
+        bpy.ops.object.editmode_toggle('INVOKE_REGION_WIN')
+        bpy.ops.curve.smooth('INVOKE_REGION_WIN')
+        bpy.ops.curve.smooth('INVOKE_REGION_WIN')
+        bpy.ops.curve.smooth('INVOKE_REGION_WIN')
+        bpy.ops.curve.smooth('INVOKE_REGION_WIN')
+        bpy.ops.curve.smooth('INVOKE_REGION_WIN')
+        bpy.ops.curve.smooth('INVOKE_REGION_WIN')
+        bpy.ops.curve.smooth('INVOKE_REGION_WIN')
+        bpy.ops.curve.smooth('INVOKE_REGION_WIN')
+        bpy.ops.curve.smooth('INVOKE_REGION_WIN')
+        bpy.ops.curve.smooth('INVOKE_REGION_WIN')
+        bpy.ops.curve.smooth('INVOKE_REGION_WIN')
+        bpy.ops.curve.smooth('INVOKE_REGION_WIN')
         
         curve_crv = ob_gp_strokes.data
-        bpy.ops.curve.spline_type_set(type="BEZIER")
-        bpy.ops.curve.handle_type_set(type="AUTOMATIC")
+        bpy.ops.curve.spline_type_set('INVOKE_REGION_WIN', type="BEZIER")
+        bpy.ops.curve.handle_type_set('INVOKE_REGION_WIN', type="AUTOMATIC")
         bpy.data.curves[curve_crv.name].show_handles = False
         bpy.data.curves[curve_crv.name].show_normal_face = False
        
@@ -787,41 +820,39 @@ class GPENCIL_OT_surfsk_strokes_to_curves(bpy.types.Operator):
 
 
 def register():
-    bpy.utils.register_module(__name__)
-
+    bpy.utils.register_class(GPENCIL_OT_SURFSK_add_surface)
+    bpy.utils.register_class(VIEW3D_PT_tools_SURF_SKETCH)
+    bpy.utils.register_class(GPENCIL_OT_SURFSK_strokes_to_curves)
+    
     bpy.types.Scene.SURFSK_edges_U = bpy.props.IntProperty(name="Cross", description="Number of edge rings crossing the strokes (perpendicular to strokes direction)", default=10, min=0, max=100000)
     bpy.types.Scene.SURFSK_edges_V = bpy.props.IntProperty(name="Follow", description="Number of edge rings following the strokes (parallel to strokes direction)", default=10, min=0, max=100000)
     bpy.types.Scene.SURFSK_precision = bpy.props.IntProperty(name="Precision", description="Precision level of the surface calculation", default=4, min=0, max=100000)
     bpy.types.Scene.SURFSK_keep_strokes = bpy.props.BoolProperty(name="Keep strokes", description="Keeps the sketched strokes after adding the surface", default=False)
 
-    kc = bpy.data.window_managers[0].keyconfigs.default
-    km = kc.keymaps.get("3D View")
-    if km is None:
-        km = kc.keymaps.new(name="3D View")
-    keymap_item_add_surf = km.keymap_items.new(GPENCIL_OT_surfsk_surface_add.bl_idname,"E","PRESS", key_modifier="D")
-    keymap_item_stroke_to_curve = km.keymap_items.new(GPENCIL_OT_surfsk_strokes_to_curves.bl_idname,"C","PRESS", key_modifier="D")
-
+    keymap_item_add_surf = bpy.data.window_managers[0].keyconfigs.active.keymaps["3D View"].items.new("gpencil.surfsk_add_surface","E","PRESS", key_modifier="D")
+    keymap_item_stroke_to_curve = bpy.data.window_managers[0].keyconfigs.active.keymaps["3D View"].items.new("gpencil.surfsk_strokes_to_curves","C","PRESS", key_modifier="D")
+    
 
 def unregister():
-    bpy.utils.unregister_module(__name__)
-
+    bpy.utils.unregister_class(GPENCIL_OT_SURFSK_add_surface)
+    bpy.utils.unregister_class(VIEW3D_PT_tools_SURF_SKETCH)
+    bpy.utils.unregister_class(GPENCIL_OT_SURFSK_strokes_to_curves)
+    
     del bpy.types.Scene.SURFSK_edges_U
     del bpy.types.Scene.SURFSK_edges_V
     del bpy.types.Scene.SURFSK_precision
     del bpy.types.Scene.SURFSK_keep_strokes
-
-    kc = bpy.data.window_managers[0].keyconfigs.default
-    km = kc.keymaps["3D View"]
+    
+    km = bpy.data.window_managers[0].keyconfigs.active.keymaps["3D View"]
     for kmi in km.items:
         if kmi.idname == 'wm.call_menu':
-            if kmi.properties.name == GPENCIL_OT_surfsk_surface_add.bl_idname:
+            if kmi.properties.name == "GPENCIL_OT_SURFSK_add_surface":
                 km.items.remove(kmi)
-            elif kmi.properties.name == GPENCIL_OT_surfsk_strokes_to_curves.bl_idname:
+            elif kmi.properties.name == "GPENCIL_OT_SURFSK_strokes_to_curves":
                 km.items.remove(kmi)   
             else:
                 continue
 
-
+    
 if __name__ == "__main__":
     register()
-
