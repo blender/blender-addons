@@ -694,7 +694,7 @@ def register():
     if km is None:
         km = kc.keymaps.new(name="3D View")
 
-    kmi = km.items.new('wm.call_menu', 'Q', 'PRESS')
+    kmi = km.keymap_items.new('wm.call_menu', 'Q', 'PRESS')
     kmi.properties.name = "VIEW3D_MT_master_material"
 
 def unregister():
