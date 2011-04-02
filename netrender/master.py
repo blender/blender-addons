@@ -741,9 +741,6 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
         elif self.path == "/render":
             self.server.stats("", "Receiving render result")
 
-            # need some message content here or the slave doesn't like it
-            self.wfile.write(bytes("foo", encoding='utf8'))
-
             slave_id = self.headers['slave-id']
 
             slave = self.server.getSeenSlave(slave_id)
@@ -784,6 +781,8 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
                         job.testFinished()
 
                         self.send_head()
+                        # need some message content here or the slave doesn't like it
+                        self.wfile.write(bytes("foo", encoding='utf8'))
                     else: # frame not found
                         self.send_head(http.client.NO_CONTENT)
                 else: # job not found
@@ -793,9 +792,6 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
         # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
         elif self.path == "/thumb":
             self.server.stats("", "Receiving thumbnail result")
-
-            # need some message content here or the slave doesn't like it
-            self.wfile.write(bytes("foo", encoding='utf8'))
 
             slave_id = self.headers['slave-id']
 
@@ -821,6 +817,9 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
 
                             del buf
 
+                        self.send_head()
+                        # need some message content here or the slave doesn't like it
+                        self.wfile.write(bytes("foo", encoding='utf8'))
                     else: # frame not found
                         self.send_head(http.client.NO_CONTENT)
                 else: # job not found
