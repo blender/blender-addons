@@ -270,11 +270,7 @@ class GPENCIL_OT_SURFSK_add_surface(bpy.types.Operator):
         else:
             #### Vheck if there is a grease pencil layer. If not, quit.
             try:
-                for i in range(len(self.main_object.grease_pencil.layers)):
-                    if self.main_object.grease_pencil.layers[i].active:
-                        gp_active_layer_idx = i
-                        
-                x = self.main_object.grease_pencil.layers[gp_active_layer_idx].active_frame.strokes
+                x = self.main_object.grease_pencil.layers.active.active_frame.strokes
             except:
                 return{'CANCELLED'}
                 
