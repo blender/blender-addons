@@ -25,9 +25,9 @@
 bl_info = {
     "name": "Material Utils",
     "author": "michaelw",
-    "version": (1,3),
-    "blender": (2, 5, 3),
-    "api": 32411,
+    "version": (1, 3),
+    "blender": (2, 5, 6),
+    "api": 35324,
     "location": "View3D > Q key",
     "description": "Menu of material tools (assign, select by etc)  in the 3D View",
     "warning": "",
@@ -111,6 +111,10 @@ def select_material_by_name(find_mat):
     editmode = False
 
     scn = bpy.context.scene
+    
+    #set selection mode to faces
+    scn.tool_settings.mesh_select_mode =[False,False,True]
+    
     actob = bpy.context.active_object
     if actob.mode == 'EDIT':
         editmode =True
@@ -120,7 +124,8 @@ def select_material_by_name(find_mat):
     if not editmode:
         objs = bpy.data.objects 
         for ob in objs:
-            if ob.type == 'MESH':
+            typ = ['MESH','CURVE', 'SURFACE', 'FONT', 'META']
+            if ob.type in typ:
                 ms = ob.material_slots.values()
                 for m in ms:
                     if m.material.name == find_mat:
@@ -156,7 +161,7 @@ def select_material_by_name(find_mat):
                 f.select = True
             else:
                 f.select = False
-        me.update   
+        me.update()   
     if editmode:
         bpy.ops.object.mode_set(mode = 'EDIT')
 
@@ -173,54 +178,55 @@ def mat_to_texface():
         bpy.ops.object.mode_set()
     
     for ob in bpy.context.selected_editable_objects:
-        #get the materials from slots
-        ms = ob.material_slots.values()
+        if ob.type == 'MESH':
+            #get the materials from slots
+            ms = ob.material_slots.values()
+            
+            #build a list of images, one per material
+            images=[]
+            #get the textures from the mats
+            for m in ms:
+                gotimage = False
+                textures = m.material.texture_slots.values()
+                if len(textures) >= 1:
+                    for t in textures:
+                        if t != None:
+                            tex = t.texture
+                            if tex.type == 'IMAGE':
+                                img = tex.image
+                                images.append(img)
+                                gotimage =True
+                                break
         
-        #build a list of images, one per material
-        images=[]
-        #get the textures from the mats
-        for m in ms:
-            gotimage = False
-            textures = m.material.texture_slots.values()
-            if len(textures) >= 1:
-                for t in textures:
-                    if t != None:
-                        tex = t.texture
-                        if tex.type == 'IMAGE':
-                            img = tex.image
-                            images.append(img)
-                            gotimage =True
-                            break
-    
-            if not gotimage:
-                print('noimage on', m.name)
-                images.append(None)
-    
-        #now we have the images
-        #applythem to the uvlayer
-    
+                if not gotimage:
+                    print('noimage on', m.name)
+                    images.append(None)
         
-        me = ob.data
-        #got uvs?
-        if not me.uv_textures:
-            scn = bpy.context.scene
-            scn.objects.active = ob
-            bpy.ops.mesh.uv_texture_add()
-            scn.objects.active = actob
+            #now we have the images
+            #applythem to the uvlayer
         
-        #get active uvlayer
-        for t in  me.uv_textures:
-            if t.active:
-                uvtex = t.data.values()
-                for f in me.faces:
-                    #check that material had an image!
-                    if images[f.material_index] != None:
-                        uvtex[f.index].image = images[f.material_index]
-                        uvtex[f.index].use_image = True
-                    else:
-                        uvtex[f.index].use_image = False
-
-        me.update()
+            
+            me = ob.data
+            #got uvs?
+            if not me.uv_textures:
+                scn = bpy.context.scene
+                scn.objects.active = ob
+                bpy.ops.mesh.uv_texture_add()
+                scn.objects.active = actob
+            
+            #get active uvlayer
+            for t in  me.uv_textures:
+                if t.active:
+                    uvtex = t.data.values()
+                    for f in me.faces:
+                        #check that material had an image!
+                        if images[f.material_index] != None:
+                            uvtex[f.index].image = images[f.material_index]
+                            uvtex[f.index].use_image = True
+                        else:
+                            uvtex[f.index].use_image = False
+    
+            me.update()
         
     
     if editmode:
@@ -246,8 +252,7 @@ def assignmatslots(ob, matlist):
     i = 0
     for m in matlist:
         mat = bpy.data.materials[m]
-        bpy.ops.object.material_slot_add()
-        ob.material_slots.values()[i].material = mat
+        ob.data.materials.append(mat)
         i += 1
 
     #restore active object:
@@ -266,51 +271,51 @@ def cleanmatslots():
     objs = bpy.context.selected_editable_objects
     
     for ob in objs:
-        print(ob.name)    
-        mats = ob.material_slots.keys()
-    
-        #check the faces on the mesh to build a list of used materials
-        usedMatIndex =[]        #we'll store used materials indices here
-        faceMats =[]    
-        me = ob.data
-        for f in me.faces:
-            #get the material index for this face...
-            faceindex = f.material_index
-                    
-            #indices will be lost: Store face mat use by name
-            currentfacemat = mats[faceindex]
-            faceMats.append(currentfacemat)
-                    
-                    
-            #check if index is already listed as used or not
-            found = 0
-            for m in usedMatIndex:
-                if m == faceindex:
-                    found = 1
-                    #break
-                        
-            if found == 0:
-            #add this index to the list     
-                usedMatIndex.append(faceindex)
-    
-        #re-assign the used mats to the mesh and leave out the unused
-        ml = []
-        mnames = []
-        for u in usedMatIndex:
-            ml.append( mats[u] )
-            #we'll need a list of names to get the face indices...
-            mnames.append(mats[u])
-                    
-        assignmatslots(ob, ml)
+        if ob.type == 'MESH':
+            mats = ob.material_slots.keys()
         
-                
-        #restore face indices:
-        i = 0
-        for f in me.faces:
-            matindex = mnames.index(faceMats[i])
-            f.material_index = matindex
-            i += 1
-        print('Done')
+            #check the faces on the mesh to build a list of used materials
+            usedMatIndex =[]        #we'll store used materials indices here
+            faceMats =[]    
+            me = ob.data
+            for f in me.faces:
+                #get the material index for this face...
+                faceindex = f.material_index
+                        
+                #indices will be lost: Store face mat use by name
+                currentfacemat = mats[faceindex]
+                faceMats.append(currentfacemat)
+                        
+                        
+                #check if index is already listed as used or not
+                found = 0
+                for m in usedMatIndex:
+                    if m == faceindex:
+                        found = 1
+                        #break
+                            
+                if found == 0:
+                #add this index to the list     
+                    usedMatIndex.append(faceindex)
+        
+            #re-assign the used mats to the mesh and leave out the unused
+            ml = []
+            mnames = []
+            for u in usedMatIndex:
+                ml.append( mats[u] )
+                #we'll need a list of names to get the face indices...
+                mnames.append(mats[u])
+                        
+            assignmatslots(ob, ml)
+            
+                    
+            #restore face indices:
+            i = 0
+            for f in me.faces:
+                matindex = mnames.index(faceMats[i])
+                f.material_index = matindex
+                i += 1
+
     if editmode:
         bpy.ops.object.mode_set(mode = 'EDIT')
 
@@ -334,7 +339,7 @@ def assign_mat(matname="Default"):
         target = bpy.data.materials.new(matname)
     
     
-    #if objectmodeset all faces
+    #if objectmode then set all faces
     editmode = False
     allfaces = True
     if actob.mode == 'EDIT':
@@ -350,8 +355,23 @@ def assign_mat(matname="Default"):
         scn.objects.active = ob
         
     
-        #check if the material is on the object already
-        if ob.type =='MESH':
+        other = ['CURVE', 'SURFACE', 'FONT', 'META']
+        if ob.type in other:
+            found=False
+            i = 0
+            mats = bpy.data.materials
+            for m in mats:
+                if m.name == matname:
+                    found =True
+                    index = i
+                    break
+                i += 1
+                if not found:
+                    index = i-1
+            targetlist =[index]
+            assignmatslots(ob, targetlist)
+            
+        elif ob.type =='MESH':
             #check material slots for matname material
             found=False
             i = 0
@@ -368,26 +388,20 @@ def assign_mat(matname="Default"):
             if not found:
                 index=i
                 #the material is not attached to the object 
-                #so attach it!
-    
-                #add a material slot
-                bpy.ops.object.material_slot_add()
-    
-                #make  slot active
-                ob.active_material_index = i
-    
-                #and assign material to slot
-                ob.material_slots.values()[i].material = target
+                ob.data.materials.append(target)    
+                
             #now assign the material:
-            me =ob.data
-            if allfaces:
-                for f in me.faces:
-                    f.material_index = index
-            elif allfaces == False:
-                for f in me.faces:
-                    if f.select:
+                me =ob.data
+                if allfaces:
+                    for f in me.faces:
                         f.material_index = index
-            me.update
+                elif allfaces == False:
+                    for f in me.faces:
+                        if f.select:
+                            f.material_index = index
+                me.update()
+            
+
 
     #restore the active object
     bpy.context.scene.objects.active = actob
@@ -655,12 +669,12 @@ class VIEW3D_MT_select_material(bpy.types.Menu):
         ob = context.object
         layout.label
         if ob.mode == 'OBJECT':
-            #show all materials in entire blend file
+            #show all used materials in entire blend file
             for i in range (len(bpy.data.materials)):
-        
-                layout.operator("view3d.select_material_by_name",
-                    text=bpy.data.materials[i].name, 
-                    icon='MATERIAL_DATA').matname = bpy.data.materials[i].name
+                if bpy.data.materials[i].users > 0:
+                    layout.operator("view3d.select_material_by_name",
+                        text=bpy.data.materials[i].name, 
+                        icon='MATERIAL_DATA').matname = bpy.data.materials[i].name
 
 
         elif ob.mode == 'EDIT':
@@ -674,15 +688,20 @@ class VIEW3D_MT_select_material(bpy.types.Menu):
 
 def register():
     bpy.utils.register_module(__name__)
+    
+    kc = bpy.data.window_managers[0].keyconfigs.default
+    km = kc.keymaps.get("3D View")
+    if km is None:
+        km = kc.keymaps.new(name="3D View")
 
-    km = bpy.context.window_manager.keyconfigs.default.keymaps['3D View']
-    kmi = km.keymap_items.new('wm.call_menu', 'Q', 'PRESS')
+    kmi = km.items.new('wm.call_menu', 'Q', 'PRESS')
     kmi.properties.name = "VIEW3D_MT_master_material"
 
 def unregister():
     bpy.utils.unregister_module(__name__)
 
-    km = bpy.context.window_manager.keyconfigs.default.keymaps['3D View']
+    kc = bpy.data.window_managers[0].keyconfigs.default
+    km = kc.keymaps["3D View"]
     for kmi in km.items:
         if kmi.idname == 'wm.call_menu':
             if kmi.properties.name ==  "VIEW3D_MT_master_material":
