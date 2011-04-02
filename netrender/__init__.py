@@ -71,11 +71,7 @@ def register():
     import bpy
     bpy.utils.register_module(__name__)
 
-    from bpy.props import PointerProperty
-
     scene = bpy.context.scene
-    bpy.types.Scene.network_render = PointerProperty(type=ui.NetRenderSettings, name="Network Render", description="Network Render Settings")
-
     if scene:
         ui.init_data(scene.network_render)
     
