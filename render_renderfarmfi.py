@@ -952,22 +952,24 @@ class RenderfarmFi(bpy.types.RenderEngine):
     def render(self, scene):
         print('Do test renders with Blender Render')
 
-def menu_export(self, context):
-    import os
-    default_path = os.path.splitext(bpy.data.filepath)[0] + ".py"
-    self.layout.operator(RenderfarmFi.bl_idname, text=RenderfarmFi.bl_label)
+
+#~ def menu_export(self, context):
+    #~ import os
+    #~ default_path = os.path.splitext(bpy.data.filepath)[0] + ".py"
+    #~ self.layout.operator(RenderfarmFi.bl_idname, text=RenderfarmFi.bl_label)
+
 
 def register():
     bpy.utils.register_module(__name__)
 
     bpy.types.Scene.ore_render = PointerProperty(type=ORESettings, name='ORE Render', description='ORE Render Settings')
 
-    bpy.types.INFO_MT_render.append(menu_export)
+    #~ bpy.types.INFO_MT_render.append(menu_export)
 
 def unregister():
     bpy.utils.unregister_module(__name__)
 
-    bpy.types.INFO_MT_render.remove(menu_export)
+    #~ bpy.types.INFO_MT_render.remove(menu_export)
 
 if __name__ == "__main__":
     register()
