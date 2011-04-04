@@ -1814,6 +1814,15 @@ def load_svg(filepath):
 
 def load(operator, context, filepath=""):
 
-    load_svg(filepath)
+    # error in code should raise exceptions but loading
+    # non SVG files can give useful messages.
+    try:
+        load_svg(filepath)
+    except (xml.parsers.expat.ExpatError, UnicodeEncodeError) as e:
+        import traceback
+        traceback.print_exc()
+
+        operator.report({'WARNING'}, "Unable to parse XML, %s:%s for file %r" % (type(e).__name__, e, filepath))
+        return {'CANCELLED'}
 
     return {'FINISHED'}
