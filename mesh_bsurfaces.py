@@ -43,7 +43,7 @@ class VIEW3D_PT_tools_SURF_SKETCH(bpy.types.Panel):
     bl_region_type = 'TOOLS'
 
     bl_context = "mesh_edit"
-    bl_label = "Surface Sketching"
+    bl_label = "Bsurfaces"
     
     @classmethod
     def poll(cls, context):
@@ -71,7 +71,7 @@ class VIEW3D_PT_tools_SURF_SKETCH(bpy.types.Panel):
 
 class GPENCIL_OT_SURFSK_add_surface(bpy.types.Operator):
     bl_idname = "gpencil.surfsk_add_surface"
-    bl_label = "Surface Sketching"
+    bl_label = "Bsurfaces add surface"
     bl_description = "Generates a surface from grease pencil strokes or from curves."
     bl_options = {'REGISTER', 'UNDO'}
     
@@ -761,7 +761,7 @@ class GPENCIL_OT_SURFSK_add_surface(bpy.types.Operator):
 
 class GPENCIL_OT_SURFSK_strokes_to_curves(bpy.types.Operator):
     bl_idname = "gpencil.surfsk_strokes_to_curves"
-    bl_label = "Convert grease pencil strokes into curves and enter edit mode"
+    bl_label = "Bsurfaces strokes to curves"
     bl_description = "Convert grease pencil strokes into curves and enter edit mode"
     
     
