@@ -2004,93 +2004,58 @@ class OBJECT_OT_UTSelectedFaceSmooth(bpy.types.Operator):
 class OBJECT_OT_UTRebuildArmature(bpy.types.Operator):
     bl_idname = "object.utrebuildarmature"  # XXX, name???
     bl_label = "Rebuild Armature"
-    __doc__ = "Roll bone rotation not working yet. It rebuild the select armature object scrape to raw setup build."
+    __doc__ = "If mesh is deform when importing to unreal engine try this. It rebuild the bones one at the time by select one armature object scrape to raw setup build."
     
     def invoke(self, context, event):
-        #print("Init Export Script:")
-        
+        currentbone = [] #select armature for roll copy
         for obj in bpy.data.objects:
-            #print(dir(obj))
             if obj.type == 'ARMATURE' and obj.select == True:
                 print("Armature Name:",obj.name)
-                #print(dir(obj.data))
-                objectname = "armaturedata"
-                meshname ="ArmatureObject"
+                objectname = "ArmatureDataPSK"
+                meshname ="ArmatureObjectPSK"
                 armdata = bpy.data.armatures.new(objectname)
                 ob_new = bpy.data.objects.new(meshname, armdata)
                 bpy.context.scene.objects.link(ob_new)
+                bpy.ops.object.mode_set(mode='OBJECT')
                 for i in bpy.context.scene.objects: i.select = False #deselect all objects
                 ob_new.select = True
-                bpy.context.scene.objects.active = ob_new
-                bpy.ops.object.mode_set(mode='OBJECT')
-                #bpy.ops.object.mode_set(mode='EDIT')
-                print("number of bones:",len(obj.data.edit_bones))
-                #for ib in range(len( obj.data.bones)):
-                    #print("bone name:",obj.data.edit_bones[ib].name)
-                    #print("bone name:",dir(bone))
-                    #editbone = obj.data.edit_bones[ib]
-                    #print("bone dir",dir(editbone))
-				
-				
-                #bpy.ops.object.mode_set(mode='EDIT')
-                print("=====================")
-                #for bone in obj.data.edit_bones:
-                    #print("bone name:",bone.name)
-                    #print("edit bone name:",dir(bone))
-                print("=====================")
-                print("data object:",dir(obj.data))
+                bpy.context.scene.objects.active = obj
+                
                 bpy.ops.object.mode_set(mode='EDIT')
+                #print("number of bones:",len(obj.data.edit_bones))
+                for bone in obj.data.edit_bones:
+                    #print(dir(bone))
+                    #print("roll",(bone.roll))
+                    if bone.parent != None:
+                        #print([bone.name,bone.roll,bone.roll,None])
+                        currentbone.append([bone.name,bone.roll])
+                    else:
+                        currentbone.append([bone.name,bone.roll])
+                bpy.ops.object.mode_set(mode='OBJECT')
+                for i in bpy.context.scene.objects: i.select = False #deselect all objects
+                bpy.context.scene.objects.active = ob_new
+                bpy.ops.object.mode_set(mode='EDIT')
+                
                 for bone in obj.data.bones:
-                    print("bone name:",bone.name)
+                    #print("bone name:",bone.name)
                     bpy.ops.object.mode_set(mode='EDIT')
                     newbone = ob_new.data.edit_bones.new(bone.name)
-                    #print("parent:",bone.parent.name)
-                    newbone.head = bone.head
-                    newbone.tail = bone.tail
-                    #newbone.roll = bone.roll
-                    print(dir(bone))
-                    #print((bone.bbone_z))
-                    #newbone.matrix = bone.matrix
-                    newbone.roll = bone.bbone_z
-                    if bone.parent != None:
-                        print("Found!",bone.parent.name)
-                        parentbone = ob_new.data.edit_bones[bone.parent.name]
-                        newbone.parent = parentbone						
-                    else:
-                        print("Not found!")
                     newbone.head = bone.head_local
                     newbone.tail = bone.tail_local
-                    #newbone.matrix = bone.matrix_local
-                    
-                    #print(dir(newbone))
-                    
-                    #if  bone.name != bone.parent:
-                        #print("parent:",bone.parent.name)
-                        #parentbone = ob_new.data.edit_bones[bone.parent]
-                        #newbone.parent = parentbone
-						
-                '''
-                bpy.ops.object.mode_set(mode='OBJECT')#it need to go into object mode to able to select the faces
-                #print("Mesh found!",obj.name)
-                #print(len(obj.data.faces))
-                for face in obj.data.faces:
-                    #print(dir(face))
-                    if face.use_smooth == True:
-                        face.select = True
-                        #print("selected:",face.select)
-                    else:
-                        face.select = False
-                    #print("selected:",face.select)
-                    #print(("smooth:",face.use_smooth))
-                #bpy.context.scene.update()
-                bpy.ops.object.mode_set(mode='EDIT')
-                '''
-                #bpy.context.scene.objects.link(ob_new)
+                    for bonelist in currentbone:
+                        if bone.name == bonelist[0]:
+                            #print("found",bonelist[1])
+                            newbone.roll = bonelist[1]
+                            break
+                    if bone.parent != None:
+                        parentbone = ob_new.data.edit_bones[bone.parent.name]
+                        newbone.parent = parentbone
+                print("Rebuild Armture Finish:",ob_new.name)
                 bpy.context.scene.update()
                 break
-        #objects = bpy.data.objects
-        
+        self.report({'INFO'}, "Rebuild Armature Finish!")
         return{'FINISHED'}
+		
 def menu_func(self, context):
     #bpy.context.scene.unrealexportpsk = True
     #bpy.context.scene.unrealexportpsa = True
