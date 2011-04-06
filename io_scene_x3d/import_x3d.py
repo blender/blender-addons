@@ -1252,7 +1252,9 @@ def gzipOpen(path):
 
     if data is None:
         try:
-            data = open(path, 'rU').read()
+            filehandle = open(path, 'rU')
+            data = filehandle.read()
+            filehandle.close()
         except:
             pass
 

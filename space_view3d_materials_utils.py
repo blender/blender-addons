@@ -702,10 +702,10 @@ def unregister():
 
     kc = bpy.data.window_managers[0].keyconfigs.default
     km = kc.keymaps["3D View"]
-    for kmi in km.items:
+    for kmi in km.keymap_items:
         if kmi.idname == 'wm.call_menu':
             if kmi.properties.name ==  "VIEW3D_MT_master_material":
-                km.items.remove(kmi)
+                km.keymap_items.remove(kmi)
                 break
 
 if __name__ == "__main__":
