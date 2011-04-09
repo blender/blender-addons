@@ -391,16 +391,16 @@ def assign_mat(matname="Default"):
                 ob.data.materials.append(target)    
                 
             #now assign the material:
-                me =ob.data
-                if allfaces:
-                    for f in me.faces:
+            me =ob.data
+            if allfaces:
+                for f in me.faces:
+                    f.material_index = index
+            elif allfaces == False:
+                for f in me.faces:
+                    if f.select:
                         f.material_index = index
-                elif allfaces == False:
-                    for f in me.faces:
-                        if f.select:
-                            f.material_index = index
-                me.update()
-            
+            me.update()
+        
 
 
     #restore the active object
@@ -710,3 +710,4 @@ def unregister():
 
 if __name__ == "__main__":
     register()
+    
