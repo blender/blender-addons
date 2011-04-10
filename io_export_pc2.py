@@ -17,13 +17,13 @@
 # ##### END GPL LICENSE BLOCK #####
 
 bl_info = {
-    "name": "Export Pointcache (.pc2)",
+    "name": "Export Pointcache Format(.pc2)",
     "author": "Florian Meyer (tstscr)",
     "version": (1, 0),
     "blender": (2, 5, 7),
-    "api": 35622,
-    "location": "File > Export",
-    "description": "Export Mesh Pointcache to .pc2",
+    "api": 36079,
+    "location": "File > Export > Pointcache (.pc2)",
+    "description": "Export mesh Pointcache data (.pc2)",
     "warning": "",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"\
         "Scripts/Import-Export/PC2_Pointcache_export",

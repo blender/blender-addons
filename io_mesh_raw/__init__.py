@@ -17,13 +17,13 @@
 # ##### END GPL LICENSE BLOCK #####
 
 bl_info = {
-    "name": "Raw mesh",
+    "name": "Raw mesh format (.raw)",
     "author": "Anthony D,Agostino (Scorpius), Aurel Wildfellner",
     "version": (0, 2),
     "blender": (2, 5, 7),
-    "api": 35622,
-    "location": "File > Import-Export > Raw faces ",
-    "description": "Import Raw Faces (.raw format)",
+    "api": 36079,
+    "location": "File > Import-Export > Raw Faces (.raw) ",
+    "description": "Import-Export Raw Faces",
     "warning": "",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"\
         "Scripts/Import-Export/Raw_Mesh_IO",

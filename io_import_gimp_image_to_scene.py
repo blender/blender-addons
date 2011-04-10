@@ -17,13 +17,13 @@
 # ##### END GPL LICENSE BLOCK #####
 
 bl_info = {
-    "name": "Import GIMP Image to Scene (.xcf, .xjt)",
+    "name": "Import GIMP Image to Scene (.xcf/.xjt)",
     "author": "Daniel Salazar (ZanQdo)",
     "version": (2, 0, 0),
     "blender": (2, 5, 7),
-    "api": 35622,
-    "location": "File > Import > GIMP Image to Scene(.xcf, .xjt)",
-    "description": "Imports GIMP multilayer image files into 3D Layers",
+    "api": 36079,
+    "location": "File > Import > GIMP Image to Scene(.xcf/.xjt)",
+    "description": "Imports GIMP multilayer image files as a series of multiple planes",
     "warning": "XCF import requires xcftools installed",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"\
         "Scripts/Import-Export/GIMPImageToScene",

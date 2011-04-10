@@ -16,13 +16,13 @@
 #  ***** GPL LICENSE BLOCK *****
 
 bl_info = {
-    "name": "Export Skeleletal Mesh/Animation Data",
+    "name": "Export Unreal Engine Format(.psk/.psa)",
     "author": "Darknet/Optimus_P-Fat/Active_Trash/Sinsoft/VendorX",
     "version": (2, 2),
     "blender": (2, 5, 7),
-    "api": 35622,
+    "api": 36079,
     "location": "File > Export > Skeletal Mesh/Animation Data (.psk/.psa)",
-    "description": "Export Unreal Engine (.psk)",
+    "description": "Export Skeleletal Mesh/Animation Data",
     "warning": "",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"\
         "Scripts/Import-Export/Unreal_psk_psa",

@@ -19,13 +19,13 @@
 # <pep8 compliant>
 
 bl_info = {
-    'name': 'Blizzard M3 format',
+    'name': 'Import Blizzard M3 format (.m3)',
     'author': 'Cory Perry',
     'version': (0, 2, 1),
     "blender": (2, 5, 7),
-    "api": 35622,
-    'location': 'File > Import-Export',
-    'description': 'This script imports the Blizzard M3 format (.m3)',
+    "api": 36079,
+    'location': 'File > Import > Blizzard M3 (.m3)',
+    'description': 'Imports the Blizzard M3 format (.m3)',
     'warning': '',
     'wiki_url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/Scripts/'\
         'Import-Export/M3_Import',

@@ -17,13 +17,13 @@
 # ##### END GPL LICENSE BLOCK #####
 
 bl_info = {
-    "name": "Import Unreal Skeleton Mesh(.psk)",
+    "name": "Import Unreal Skeleton Mesh (.psk)",
     "author": "Darknet",
     "version": (2, 0),
     "blender": (2, 5, 3),
-    "api": 31847,
-    "location": "File > Import ",
-    "description": "Import Unreal Engine (.psk)",
+    "api": 36079,
+    "location": "File > Import > Skeleton Mesh (.psk)",
+    "description": "Import Skeleleton Mesh",
     "warning": "",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"
         "Scripts/Import-Export/Unreal_psk_psa",

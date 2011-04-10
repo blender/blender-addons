@@ -23,9 +23,9 @@ bl_info = {
     "author": "Campbell Barton",
     "version": (0, 1),
     "blender": (2, 5, 7),
-    "api": 35622,
-    "location": "File > Export > Camera Animation",
-    "description": "Export Cameras & Markers",
+    "api": 36079,
+    "location": "File > Export > Cameras & Markers (.py)",
+    "description": "Export Cameras & Markers (.py)",
     "warning": "",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"\
         "Scripts/Import-Export/Camera_Animation",

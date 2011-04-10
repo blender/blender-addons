@@ -22,9 +22,9 @@ bl_info = {
     "name": "Scalable Vector Graphics (SVG) 1.1 format",
     "author": "Sergey Sharybin",
     "blender": (2, 5, 7),
-    "api": 35622,
-    "location": "File > Import-Export",
-    "description": "Import SVG",
+    "api": 36079,
+    "location": "File > Import > Scalable Vector Graphics (.svg)",
+    "description": "Import SVG as curves",
     "warning": "",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"\
         "Scripts/Import-Export/SVG",

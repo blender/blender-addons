@@ -42,7 +42,7 @@ bl_info = {
     'version': (1, 4, 0),
     "blender": (2, 5, 7),
     "api": 35774,
-    'location': "File > Import",
+    'location': "File > Import > MakeHuman (.mhx)",
     'description': 'Import files in the MakeHuman eXchange format (.mhx)',
     'warning': '',
     'wiki_url': 'http://sites.google.com/site/makehumandocs/blender-export-and-mhx',
