@@ -43,21 +43,21 @@ import bpy
 def create_icon_list_all():
     icons = bpy.types.UILayout.bl_rna.functions['prop'].parameters['icon'].\
         enum_items.keys()
-    
+
     icons.remove("NONE")
-    
+
     return icons
 
 
 def create_icon_list():
     icons = create_icon_list_all()
     search = bpy.context.scene.icon_props.search.lower()
-    
+
     if search == "":
         pass
     else:
         icons = [key for key in icons if search in key.lower()]
-    
+
     return icons
 
 
@@ -67,7 +67,7 @@ class WM_OT_icon_info(bpy.types.Operator):
     bl_description = "Click to copy this icon name to the clipboard"
     icon = bpy.props.StringProperty()
     icon_scroll = bpy.props.IntProperty()
-    
+
     def invoke(self, context, event):
         bpy.data.window_managers['WinMan'].clipboard = self.icon
         self.report({'INFO'}, "Icon ID: %s" % self.icon)
@@ -78,11 +78,11 @@ class OBJECT_PT_icons(bpy.types.Panel):
     bl_space_type = "TEXT_EDITOR"
     bl_region_type = "UI"
     bl_label = "All icons"
-    
+
     def __init__(self):
         self.amount = 10
         self.icon_list = create_icon_list()
-    
+
     def draw(self, context):
         props = context.scene.icon_props
         # polling for updates
@@ -92,7 +92,7 @@ class OBJECT_PT_icons(bpy.types.Panel):
 #            IconProps.scroll = bpy.props.IntProperty(default=1, min=1,
 #                max=max(1, len(self.icon_list) - self.amount + 1),
 #                description="Drag to scroll icons")
-        
+
         box = self.layout.box()
         # scroll view
         if not props.expand:
@@ -107,7 +107,7 @@ class OBJECT_PT_icons(bpy.types.Panel):
             row = toprow.row()
             row.active = props.bl_rna.scroll[1]['max'] > 1
             row.prop(props, "scroll")
-            
+
             # icons
             row = box.row(align=True)
             if len(self.icon_list) == 0:
@@ -121,7 +121,7 @@ class OBJECT_PT_icons(bpy.types.Panel):
                     for i in range(self.amount - len(self.icon_list) \
                     % self.amount):
                         row.label("")
-        
+
         # expanded view
         else:
             # expand button
@@ -135,7 +135,7 @@ class OBJECT_PT_icons(bpy.types.Panel):
             row = toprow.row()
             row.active = False
             row.prop(props, "scroll")
-            
+
             # icons
             col = box.column(align=True)
             if len(self.icon_list) == 0:
@@ -154,11 +154,11 @@ class OBJECT_PT_icons(bpy.types.Panel):
 class CONSOLE_HT_icons(bpy.types.Header):
     bl_space_type = 'CONSOLE'
     _search_old = ""
-    
+
     def __init__(self):
         self.amount = 10
         self.icon_list = create_icon_list()
-    
+
     def draw(self, context):
         props = context.scene.icon_props
         # polling for updates
@@ -169,7 +169,7 @@ class CONSOLE_HT_icons(bpy.types.Header):
 #            IconProps.scroll = bpy.props.IntProperty(default=1, min=1,
 #                max=max(1, len(self.icon_list) - self.amount + 1),
 #                description="Drag to scroll icons")
-        
+
         # scroll view
         if props.console:
             layout = self.layout
@@ -181,7 +181,7 @@ class CONSOLE_HT_icons(bpy.types.Header):
             row = layout.row()
             row.active = props.bl_rna.scroll[1]['max'] > 1
             row.prop(props, "scroll")
-            
+
             # icons
             row = layout.row(align=True)
             if len(self.icon_list) == 0:
@@ -199,10 +199,10 @@ def menu_func(self, context):
 
 def register():
     global IconProps
-    
+
     icons_total = len(create_icon_list_all())
     icons_per_row = 10
-    
+
     class IconProps(bpy.types.PropertyGroup):
         """
         Fake module like class
@@ -217,7 +217,7 @@ def register():
         scroll = bpy.props.IntProperty(default=1, min=1,
             max=max(1, icons_total - icons_per_row + 1),
             description="Drag to scroll icons")
-    
+
     bpy.utils.register_module(__name__)
     bpy.types.Scene.icon_props = bpy.props.PointerProperty(type=IconProps)
     bpy.types.CONSOLE_MT_console.append(menu_func)
@@ -235,7 +235,7 @@ def unregister():
         # unregistering is only done automatically when run as add-on
         bpy.utils.unregister_class(OBJECT_PT_icons)
         bpy.utils.unregister_class(CONSOLE_HT_icons)
-    
+
     bpy.utils.unregister_module(__name__)
 
 

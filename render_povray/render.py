@@ -1647,13 +1647,13 @@ class PovrayRender(bpy.types.RenderEngine):
                     self._process = subprocess.Popen([pov_binary, self._temp_file_ini] + extra_args)
                     # This would work too but means we have to wait until its done:
                     # os.system("%s %s" % (pov_binary, self._temp_file_ini))
-                    
+
                 except OSError:
                     # someone might run povray 32 bits on a 64 bits blender machine
                     try:
                         pov_binary = winreg.QueryValueEx(regKey, "Home")[0] + "\\bin\\pvengine"
                         self._process = subprocess.Popen([pov_binary, self._temp_file_ini] + extra_args)
-                        
+
                     except OSError:
                         # TODO, report api
                         print("POV-Ray 3.7: could not execute '%s', possibly POV-Ray isn't installed" % pov_binary)
@@ -1661,29 +1661,29 @@ class PovrayRender(bpy.types.RenderEngine):
                         traceback.print_exc()
                         print ("***-DONE-***")
                         return False
-                    
+
                     else:
                         print("POV-Ray 3.7 64 bits could not execute, running 32 bits instead")
                         print("Command line arguments passed: " + str(extra_args))
                         return True
-                    
+
                 else:
                     print("POV-Ray 3.7 64 bits found")
                     print("Command line arguments passed: " + str(extra_args))
                     return True
-                
+
             #32 bits blender
             else:
                 try:
                     pov_binary = winreg.QueryValueEx(regKey, "Home")[0] + "\\bin\\pvengine"
                     self._process = subprocess.Popen([pov_binary, self._temp_file_ini] + extra_args)
-                    
+
                 # someone might also run povray 64 bits with a 32 bits build of blender.
                 except OSError:
                     try:
                         pov_binary = winreg.QueryValueEx(regKey, "Home")[0] + "\\bin\\pvengine64"
                         self._process = subprocess.Popen([pov_binary, self._temp_file_ini] + extra_args)
-                        
+
                     except OSError:
                         # TODO, report api
                         print("POV-Ray 3.7: could not execute '%s', possibly POV-Ray isn't installed" % pov_binary)
@@ -1691,17 +1691,16 @@ class PovrayRender(bpy.types.RenderEngine):
                         traceback.print_exc()
                         print ("***-DONE-***")
                         return False
-                    
+
                     else:
                         print("Running POV-Ray 3.7 64 bits build with 32 bits Blender, \nYou might want to run Blender 64 bits as well.")
                         print("Command line arguments passed: " + str(extra_args))
                         return True
-                    
+
                 else:
                     print("POV-Ray 3.7 32 bits found")
                     print("Command line arguments passed: " + str(extra_args))
                     return True
-                
 
         else:
             # DH - added -d option to prevent render window popup which leads to segfault on linux
