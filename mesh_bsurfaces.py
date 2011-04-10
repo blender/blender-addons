@@ -275,11 +275,14 @@ class GPENCIL_OT_SURFSK_add_surface(bpy.types.Operator):
                 return{'CANCELLED'}
                 
             #### Convert grease pencil strokes to curve.
+            bpy.ops.object.editmode_toggle('INVOKE_REGION_WIN')
             bpy.ops.gpencil.convert('INVOKE_REGION_WIN', type='CURVE')
             ob_gp_strokes = bpy.context.object
+            
+            
             using_external_curves = False
             
-            bpy.ops.object.editmode_toggle('INVOKE_REGION_WIN')
+            
         
         ob_gp_strokes.name = "SURFSK_temp_strokes"
         
@@ -767,12 +770,12 @@ class GPENCIL_OT_SURFSK_strokes_to_curves(bpy.types.Operator):
     
     def execute(self, context):
         #### Convert grease pencil strokes to curve.
+        bpy.ops.object.editmode_toggle('INVOKE_REGION_WIN')
         bpy.ops.gpencil.convert('INVOKE_REGION_WIN', type='CURVE')
         ob_gp_strokes = bpy.context.object
         ob_gp_strokes.name = "SURFSK_strokes"
         
         #### Delete grease pencil strokes.
-        bpy.ops.object.editmode_toggle('INVOKE_REGION_WIN')
         bpy.ops.object.select_all('INVOKE_REGION_WIN', action='DESELECT')
         bpy.ops.object.select_name('INVOKE_REGION_WIN', name = self.main_object.name)
         bpy.context.scene.objects.active = bpy.data.objects[self.main_object.name]
