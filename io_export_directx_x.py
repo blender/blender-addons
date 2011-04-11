@@ -16,7 +16,7 @@
 #  ***** GPL LICENSE BLOCK *****
 
 bl_info = {
-    "name": "Export DirectX Model Format (.x)",
+    "name": "DirectX Model Format (.x)",
     "author": "Chris Foster (Kira Vakaan)",
     "version": (2, 1),
     "blender": (2, 5, 7),
@@ -108,7 +108,7 @@ def ExportDirectX(Config):
         Config.ExportList = [Object for Object in ExportList
                              if Object.parent not in ExportList]
     if Config.Verbose:
-        print("Done")
+        print("  List: {}\nDone".format(Config.ExportList))
 
     if Config.Verbose:
         print("Setting up...")
@@ -257,12 +257,13 @@ def WriteObjects(Config, ObjectList):
             if Config.Verbose:
                 print("    Done")
 
-        ChildList = GetObjectChildren(Object)
-        if Config.Verbose:
-            print("    Writing Children...")
-        WriteObjects(Config, ChildList)
-        if Config.Verbose:
-            print("    Done Writing Children")
+        if Config.ExportMode == 1:
+            ChildList = GetObjectChildren(Object)
+            if Config.Verbose:
+                print("    Writing Children...")
+            WriteObjects(Config, ChildList)
+            if Config.Verbose:
+                print("    Done Writing Children")
 
         if Object.type == "MESH":
             if Config.Verbose:
