@@ -49,42 +49,12 @@ def get_pose_matrix_in_other_space(mat, pose_bone):
     # Get matrix in bone's current transform space
     smat = rest_inv * (par_rest * (par_inv * mat))
 
-    # Compensate for non-inherited rotation/scale
-    if not pose_bone.bone.use_inherit_rotation:
-        loc = mat.to_translation()
-        loc -= (par_mat*(par_rest.inverted() * rest)).to_translation()
-        loc *= rest.inverted().to_quaternion()
-        if pose_bone.bone.use_inherit_scale:
-            t = par_mat.to_scale()
-            par_scale = Matrix.Scale(t[0], 4, Vector((1,0,0)))
-            par_scale *= Matrix.Scale(t[1], 4, Vector((0,1,0)))
-            par_scale *= Matrix.Scale(t[2], 4, Vector((0,0,1)))
-        else:
-            par_scale = Matrix()
-
-        smat = rest_inv * mat * par_scale.inverted()
-        smat[3][0] = loc[0]
-        smat[3][1] = loc[1]
-        smat[3][2] = loc[2]
-    elif not pose_bone.bone.use_inherit_scale:
-        loc = smat.to_translation()
-        rot = smat.to_quaternion()
-        scl = mat.to_scale()
-
-        smat = Matrix.Scale(scl[0], 4, Vector((1,0,0)))
-        smat *= Matrix.Scale(scl[1], 4, Vector((0,1,0)))
-        smat *= Matrix.Scale(scl[2], 4, Vector((0,0,1)))
-        smat *= Matrix.Rotation(rot.angle, 4, rot.axis)
-        smat[3][0] = loc[0]
-        smat[3][1] = loc[1]
-        smat[3][2] = loc[2]
-
     # Compensate for non-local location
-    if not pose_bone.bone.use_local_location:
-        loc = smat.to_translation() * (par_rest.inverted() * rest).to_quaternion()
-        smat[3][0] = loc[0]
-        smat[3][1] = loc[1]
-        smat[3][2] = loc[2]
+    #if not pose_bone.bone.use_local_location:
+    #    loc = smat.to_translation() * (par_rest.inverted() * rest).to_quaternion()
+    #    smat[3][0] = loc[0]
+    #    smat[3][1] = loc[1]
+    #    smat[3][2] = loc[2]
 
     return smat
 

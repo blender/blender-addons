@@ -25,7 +25,7 @@ from rigify.utils import MetarigError, new_bone, get_rig_type
 from rigify.utils import ORG_PREFIX, MCH_PREFIX, DEF_PREFIX, WGT_PREFIX, ROOT_NAME, make_original_name
 from rigify.utils import RIG_DIR
 from rigify.utils import create_root_widget
-from rigify.utils import random_string
+from rigify.utils import random_id
 from rigify.rig_ui_template import UI_SLIDERS, layers_ui, UI_REGISTER
 from rigify import rigs
 
@@ -55,7 +55,7 @@ def generate_rig(context, metarig):
 
     # Random string with time appended so that
     # different rigs don't collide id's
-    rig_id = random_string(8) + str(hex(int(time.time())))[2:][-8:].rjust(8, '0')
+    rig_id = random_id(16)
 
     # Initial configuration
     mode_orig = context.mode
