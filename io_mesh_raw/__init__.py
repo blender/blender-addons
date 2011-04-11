@@ -21,7 +21,7 @@ bl_info = {
     "author": "Anthony D,Agostino (Scorpius), Aurel Wildfellner",
     "version": (0, 2),
     "blender": (2, 5, 7),
-    "api": 36079,
+    "api": 36103,
     "location": "File > Import-Export > Raw Faces (.raw) ",
     "description": "Import-Export Raw Faces",
     "warning": "",
