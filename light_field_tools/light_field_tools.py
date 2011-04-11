@@ -102,9 +102,9 @@ class OBJECT_OT_create_lightfield_rig(bpy.types.Operator):
 
     def arrangeVerts(self):
         """Sorts the vertices as described in the usage part of the doc."""
-        # get mesh with applied modifer stack
+        #FIXME get mesh with applied modifer stack
         scene = bpy.context.scene
-        mesh = self.baseObject.to_mesh(scene, True, "PREVIEW")
+        mesh = self.baseObject.data
         verts = []
         row_length = scene.lightfield.row_length
 
@@ -213,13 +213,11 @@ class OBJECT_OT_create_lightfield_rig(bpy.types.Operator):
 
     def createTexture(self, index):
         name = "light_field_spot_tex_" + str(index)
-        tex = bpy.data.textures.new(name)
-        # change type
-        tex.type = 'IMAGE'
-        tex = tex.recast_type()
+        tex = bpy.data.textures.new(name, type='IMAGE')
 
         # load and set the image
-        img = bpy.data.images.new("lfe_str_" + str(index))
+        #FIXME width, height. not necessary to set in the past.
+        img = bpy.data.images.new("lfe_str_" + str(index), width=5, height=5)
         img.filepath = self.imagePaths[index]
         img.source = 'FILE'
         tex.image = img
@@ -252,7 +250,7 @@ class OBJECT_OT_create_lightfield_rig(bpy.types.Operator):
         if textured:
             spot.data.active_texture = self.createTexture(index)
             # texture mapping
-            spot.data.texture_slots[0].texture_coordinates = 'VIEW'
+            spot.data.texture_slots[0].texture_coords = 'VIEW'
 
         # handler parent
         if scene.lightfield.create_handler:
@@ -337,7 +335,7 @@ class OBJECT_OT_create_lightfield_basemesh(bpy.types.Operator):
         scene.objects.link(nobj)
         nobj.select = True 
                 
-        if scene.objects.active is None or scene.objects.active.mode == 'OBJECT':
+        if scene.objects.active == None or scene.objects.active.mode == 'OBJECT':
             scene.objects.active = nobj
 
 
@@ -417,12 +415,12 @@ class VIEW3D_OT_lightfield_tools(bpy.types.Panel):
         col.prop(scene.lightfield, "animate_camera")
         col.prop(scene.lightfield, "do_projection")
 
-        if (scene.lightfield.do_projection):
-            sub = layout.row()
-            subcol = sub.column(align=True)
-            subcol.prop(scene.lightfield, "texture_path")
-            subcol.prop(scene.lightfield, "light_intensity")
-            subcol.prop(scene.lightfield, "light_spot_blend")
+        sub = layout.row()
+        sub.enabled = scene.lightfield.do_projection
+        subcol = sub.column(align=True)
+        subcol.prop(scene.lightfield, "texture_path")
+        subcol.prop(scene.lightfield, "light_intensity")
+        subcol.prop(scene.lightfield, "light_spot_blend")
 
         # create a basemesh
         sub = layout.row()
