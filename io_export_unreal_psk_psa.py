@@ -1924,6 +1924,7 @@ class VIEW3D_PT_unrealtools_objectmode(bpy.types.Panel):
         
         layout.operator(OBJECT_OT_UTSelectedFaceSmooth.bl_idname)
         layout.operator(OBJECT_OT_UTRebuildArmature.bl_idname)
+        layout.operator(OBJECT_OT_UTRebuildMesh.bl_idname)
         #row = layout.row()
         #row.label(text="Action Set(s)(not build)")
         #for action in  bpy.data.actions:
@@ -1977,28 +1978,38 @@ class OBJECT_OT_UTSelectedFaceSmooth(bpy.types.Operator):
     __doc__ = "It will only select smooth faces that is select mesh."
     
     def invoke(self, context, event):
-        #print("Init Export Script:")
-        
+        #print("Init Export Script:")        
         for obj in bpy.data.objects:
             #print(dir(obj))
+            #print(dir(obj))
             if obj.type == 'MESH' and obj.select == True:
+                smoothcount = 0
+                flatcount = 0
                 bpy.ops.object.mode_set(mode='OBJECT')#it need to go into object mode to able to select the faces
+                for i in bpy.context.scene.objects: i.select = False #deselect all objects
+                obj.select = True
+                bpy.context.scene.objects.active = obj
                 #print("Mesh found!",obj.name)
+                #bpy.ops.object.mode_set(mode='EDIT')
                 #print(len(obj.data.faces))
                 for face in obj.data.faces:
                     #print(dir(face))
                     if face.use_smooth == True:
                         face.select = True
+                        smoothcount += 1
                         #print("selected:",face.select)
                     else:
+                        flatcount += 1
                         face.select = False
                     #print("selected:",face.select)
                     #print(("smooth:",face.use_smooth))
-                #bpy.context.scene.update()
+                bpy.context.scene.update()
                 bpy.ops.object.mode_set(mode='EDIT')
+                print("Select Smooth Count:",smoothcount," Flat Count:",flatcount)
+				
                 break
         #objects = bpy.data.objects
-        
+        print("Selected faces exectue!")        
         return{'FINISHED'}
 		
 class OBJECT_OT_UTRebuildArmature(bpy.types.Operator):
@@ -2007,9 +2018,10 @@ class OBJECT_OT_UTRebuildArmature(bpy.types.Operator):
     __doc__ = "If mesh is deform when importing to unreal engine try this. It rebuild the bones one at the time by select one armature object scrape to raw setup build."
     
     def invoke(self, context, event):
-        currentbone = [] #select armature for roll copy
+        
         for obj in bpy.data.objects:
             if obj.type == 'ARMATURE' and obj.select == True:
+                currentbone = [] #select armature for roll copy
                 print("Armature Name:",obj.name)
                 objectname = "ArmatureDataPSK"
                 meshname ="ArmatureObjectPSK"
@@ -2022,12 +2034,8 @@ class OBJECT_OT_UTRebuildArmature(bpy.types.Operator):
                 bpy.context.scene.objects.active = obj
                 
                 bpy.ops.object.mode_set(mode='EDIT')
-                #print("number of bones:",len(obj.data.edit_bones))
                 for bone in obj.data.edit_bones:
-                    #print(dir(bone))
-                    #print("roll",(bone.roll))
                     if bone.parent != None:
-                        #print([bone.name,bone.roll,bone.roll,None])
                         currentbone.append([bone.name,bone.roll])
                     else:
                         currentbone.append([bone.name,bone.roll])
@@ -2037,23 +2045,93 @@ class OBJECT_OT_UTRebuildArmature(bpy.types.Operator):
                 bpy.ops.object.mode_set(mode='EDIT')
                 
                 for bone in obj.data.bones:
-                    #print("bone name:",bone.name)
                     bpy.ops.object.mode_set(mode='EDIT')
                     newbone = ob_new.data.edit_bones.new(bone.name)
                     newbone.head = bone.head_local
                     newbone.tail = bone.tail_local
                     for bonelist in currentbone:
                         if bone.name == bonelist[0]:
-                            #print("found",bonelist[1])
                             newbone.roll = bonelist[1]
                             break
                     if bone.parent != None:
                         parentbone = ob_new.data.edit_bones[bone.parent.name]
                         newbone.parent = parentbone
+                print("Bone Count:",len(obj.data.bones))
+                print("Hold Bone Count",len(currentbone))
+                print("New Bone Count",len(ob_new.data.edit_bones))
                 print("Rebuild Armture Finish:",ob_new.name)
                 bpy.context.scene.update()
                 break
         self.report({'INFO'}, "Rebuild Armature Finish!")
+        return{'FINISHED'}
+		
+# rounded the vert locations to save a bit of blurb.. change the round value or remove for accuracy i suppose
+def rounded_tuple(tup):
+    return tuple(round(value,4) for value in tup)
+	
+def unpack_list(list_of_tuples):
+    l = []
+    for t in list_of_tuples:
+        l.extend(t)
+    return l
+	
+class OBJECT_OT_UTRebuildMesh(bpy.types.Operator):
+    bl_idname = "object.utrebuildmesh"  # XXX, name???
+    bl_label = "Rebuild Mesh"
+    __doc__ = "Work In Progress. Support only Quad faces. It rebuild the mesh from scrape from the selected mesh."
+    
+    def invoke(self, context, event):
+        #print("Init Export Script:")
+        for obj in bpy.data.objects:
+            if obj.type == 'MESH' and obj.select == True:
+                for i in bpy.context.scene.objects: i.select = False #deselect all objects
+                obj.select = True
+                bpy.context.scene.objects.active = obj
+                bpy.ops.object.mode_set(mode='OBJECT')
+				
+                #bpy.ops.object.mode_set(mode='EDIT')
+                mesh = obj.data
+                faces = []
+                verts = []
+                smoothings = []
+                facecount  = 0
+                for face in mesh.faces:
+                    facecount += 1
+                    x = [f for f in face.vertices]
+                    faces.extend(x)
+                    #print(dir(face))
+                    smoothings.append(face.use_smooth)
+                    
+                #print("faces",len(faces),"face count:",facecount,"Covert:",len(faces)//4)
+                    #print(x)
+                
+                for vertex in mesh.vertices:
+                    #verts.extend([(vertex.co[0],vertex.co[1],vertex.co[2])])
+                    verts.append(vertex.co.to_tuple())
+                #print("Face/Vertex Array")
+                me_ob = bpy.data.meshes.new("ReBuildMesh")
+                me_ob.vertices.add(len(verts))
+                #print("Vertex Count:",len(verts))
+                #for face in faces:
+                    #print("------")
+                    #print(face)
+                me_ob.faces.add(len(faces)//4)
+                #print(facecount)
+                #me_ob.faces.add(facecount - 3)
+                #print("Face Count:",len(faces)//4)
+                me_ob.vertices.foreach_set("co", unpack_list(verts))
+                #me_ob.vertices.foreach_set("co", verts)
+                me_ob.faces.foreach_set("vertices_raw", faces)
+                me_ob.faces.foreach_set("use_smooth", smoothings)
+                me_ob.update_tag()
+                me_ob.update()
+                obmesh = bpy.data.objects.new("ReBuildMesh",me_ob)
+                bpy.context.scene.objects.link(obmesh)
+                print("Object Name:",obmesh.name)
+                bpy.context.scene.update()
+                break
+        print("Finish Mesh Build...")
+        self.report({'INFO'}, "Rebuild Mesh Finish!")
         return{'FINISHED'}
 		
 def menu_func(self, context):
