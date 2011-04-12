@@ -44,7 +44,7 @@ def main(File, Path, LayerViewers, MixerViewers, LayerOffset,\
     #Folder = '['+File.rstrip(Ext)+']'+'_images/'
     Folder = 'images_'+'['+File.rstrip(Ext)+']/'
     
-    if bpy.data.is_dirty:
+    if not bpy.data.is_saved:
         PathSaveRaw = Path+Folder
         PathSave = PathSaveRaw.replace(' ', '\ ')
         try: os.mkdir(PathSaveRaw)
