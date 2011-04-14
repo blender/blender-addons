@@ -43,6 +43,7 @@ if "bpy" in locals():
 
 import bpy
 from bpy.props import BoolProperty, FloatProperty, StringProperty
+import io_utils
 from io_utils import ExportHelper, ImportHelper
 
 
@@ -102,7 +103,7 @@ class ExportOBJ(bpy.types.Operator, ExportHelper):
     use_hq_normals = BoolProperty(name="High Quality Normals", description="", default=True)
     use_uvs = BoolProperty(name="UVs", description="", default=True)
     use_materials = BoolProperty(name="Materials", description="", default=True)
-    copy_images = BoolProperty(name="Copy Images", description="", default=False)
+    # copy_images = BoolProperty(name="Copy Images", description="", default=False)
     use_triangles = BoolProperty(name="Triangulate", description="", default=False)
     use_vertex_groups = BoolProperty(name="Polygroups", description="", default=False)
     use_nurbs = BoolProperty(name="Nurbs", description="", default=False)
@@ -112,6 +113,8 @@ class ExportOBJ(bpy.types.Operator, ExportHelper):
     group_by_object = BoolProperty(name="Objects as OBJ Groups ", description="", default=False)
     group_by_material = BoolProperty(name="Material Groups", description="", default=False)
     keep_vertex_order = BoolProperty(name="Keep Vertex Order", description="", default=False)
+
+    path_mode = io_utils.path_reference_mode
 
     def execute(self, context):
         from . import export_obj

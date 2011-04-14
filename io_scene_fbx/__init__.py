@@ -41,6 +41,7 @@ if "bpy" in locals():
 
 import bpy
 from bpy.props import StringProperty, BoolProperty, FloatProperty, EnumProperty
+import io_utils
 from io_utils import ExportHelper
 
 
@@ -69,7 +70,6 @@ class ExportFBX(bpy.types.Operator, ExportHelper):
     EXP_MESH = BoolProperty(name="Meshes", description="Export mesh objects", default=True)
     EXP_MESH_APPLY_MOD = BoolProperty(name="Modifiers", description="Apply modifiers to mesh objects", default=True)
 #    EXP_MESH_HQ_NORMALS = BoolProperty(name="HQ Normals", description="Generate high quality normals", default=True)
-    EXP_IMAGE_COPY = BoolProperty(name="Copy Image Files", description="Copy image files to the destination path", default=False)
     # armature animation
     ANIM_ENABLE = BoolProperty(name="Enable Animation", description="Export keyframe animation", default=True)
     ANIM_OPTIMIZE = BoolProperty(name="Optimize Keyframes", description="Remove double keyframes", default=True)
@@ -86,6 +86,8 @@ class ExportFBX(bpy.types.Operator, ExportHelper):
 
     BATCH_OWN_DIR = BoolProperty(name="Own Dir", description="Create a dir for each exported file", default=True)
     use_metadata = BoolProperty(name="Use Metadata", default=True, options={'HIDDEN'})
+
+    path_mode = io_utils.path_reference_mode
 
     @property
     def check_extension(self):

@@ -893,6 +893,7 @@ def save(operator, context, filepath="",
 
     import bpy
     import time
+    import io_utils
     from io_utils import create_derived_objects, free_derived_objects
 
     '''Save the Blender scene to a 3ds file.'''
@@ -900,8 +901,6 @@ def save(operator, context, filepath="",
     # Time the export
     time1 = time.clock()
 #	Blender.Window.WaitCursor(1)
-
-    sce = context.scene
 
     if bpy.ops.object.mode_set.poll():
         bpy.ops.object.mode_set(mode='OBJECT')
@@ -921,15 +920,11 @@ def save(operator, context, filepath="",
     kfdata = make_kfdata()
     '''
 
-    # Get all the supported objects selected in this scene:
-    # ob_sel= list(sce.objects.context)
-    # mesh_objects = [ (ob, me) for ob in ob_sel   for me in (BPyMesh.getMeshFromObject(ob, None, True, False, sce),) if me ]
-    # empty_objects = [ ob for ob in ob_sel if ob.type == 'Empty' ]
-
     # Make a list of all materials used in the selected meshes (use a dictionary,
     # each material is added once):
     materialDict = {}
     mesh_objects = []
+
     scene = context.scene
 
     if use_selection:

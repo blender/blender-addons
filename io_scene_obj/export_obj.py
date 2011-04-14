@@ -24,6 +24,7 @@ import shutil
 
 import bpy
 import mathutils
+import io_utils
 
 
 def name_compat(name):
@@ -33,7 +34,7 @@ def name_compat(name):
         return name.replace(' ', '_')
 
 
-def write_mtl(scene, filepath, copy_images, mtl_dict):
+def write_mtl(scene, filepath, path_mode, copy_set, mtl_dict):
 
     world = scene.world
     if world:
@@ -41,6 +42,7 @@ def write_mtl(scene, filepath, copy_images, mtl_dict):
     else:
         worldAmb = 0.0, 0.0, 0.0
 
+    source_dir = bpy.data.filepath
     dest_dir = os.path.dirname(filepath)
 
     def copy_image(image):
@@ -106,9 +108,8 @@ def write_mtl(scene, filepath, copy_images, mtl_dict):
         # Write images!
         if img:  # We have an image on the face!
             # write relative image path
-            rel = copy_image(img)
+            rel = io_utils.path_reference(img.filepath, source_dir, dest_dir, path_mode, "", copy_set)
             file.write('map_Kd %s\n' % rel)  # Diffuse mapping image
-#           file.write('map_Kd %s\n' % img.filepath.split('\\')[-1].split('/')[-1]) # Diffuse mapping image
 
         elif mat:  # No face image. if we havea material search for MTex image.
             image_map = {}
@@ -133,64 +134,12 @@ def write_mtl(scene, filepath, copy_images, mtl_dict):
                             image_map["map_Ns"] = image
 
             for key, image in image_map.items():
-                filepath = copy_image(image)
+                filepath = io_utils.path_reference(image.filepath, source_dir, dest_dir, path_mode, "", copy_set)
                 file.write('%s %s\n' % (key, repr(filepath)[1:-1]))
 
         file.write('\n\n')
 
     file.close()
-
-
-# XXX not used
-def copy_file(source, dest):
-    file = open(source, 'rb')
-    data = file.read()
-    file.close()
-
-    file = open(dest, 'wb')
-    file.write(data)
-    file.close()
-
-
-# XXX not used
-def copy_images(dest_dir):
-    if dest_dir[-1] != os.sep:
-        dest_dir += os.sep
-
-    # Get unique image names
-    uniqueImages = {}
-    for matname, mat, image in mtl_dict.values():  # Only use image name
-        # Get Texface images
-        if image:
-            uniqueImages[image] = image  # Should use sets here. wait until Python 2.4 is default.
-
-        # Get MTex images
-        if mat:
-            for mtex in mat.texture_slots:
-                if mtex and mtex.texture.type == 'IMAGE':
-                    image_tex = mtex.texture.image
-                    if image_tex:
-                        try:
-                            uniqueImages[image_tex] = image_tex
-                        except:
-                            pass
-
-    # Now copy images
-    copyCount = 0
-
-#   for bImage in uniqueImages.values():
-#       image_path = bpy.path.abspath(bImage.filepath)
-#       if bpy.sys.exists(image_path):
-#           # Make a name for the target path.
-#           dest_image_path = dest_dir + image_path.split('\\')[-1].split('/')[-1]
-#           if not bpy.utils.exists(dest_image_path): # Image isnt already there
-#               print('\tCopying "%s" > "%s"' % (image_path, dest_image_path))
-#               copy_file(image_path, dest_image_path)
-#               copyCount+=1
-
-#   paths= bpy.util.copy_images(uniqueImages.values(), dest_dir)
-
-    print('\tCopied %d images' % copyCount)
 
 
 def test_nurbs_compat(ob):
@@ -272,21 +221,22 @@ def write_nurb(file, ob, ob_mat):
 
 
 def write_file(filepath, objects, scene,
-          EXPORT_TRI=False,
-          EXPORT_EDGES=False,
-          EXPORT_NORMALS=False,
-          EXPORT_NORMALS_HQ=False,
-          EXPORT_UV=True,
-          EXPORT_MTL=True,
-          EXPORT_COPY_IMAGES=False,
-          EXPORT_APPLY_MODIFIERS=True,
-          EXPORT_ROTX90=True,
-          EXPORT_BLEN_OBS=True,
-          EXPORT_GROUP_BY_OB=False,
-          EXPORT_GROUP_BY_MAT=False,
-          EXPORT_KEEP_VERT_ORDER=False,
-          EXPORT_POLYGROUPS=False,
-          EXPORT_CURVE_AS_NURBS=True):
+               EXPORT_TRI=False,
+               EXPORT_EDGES=False,
+               EXPORT_NORMALS=False,
+               EXPORT_NORMALS_HQ=False,
+               EXPORT_UV=True,
+               EXPORT_MTL=True,
+               EXPORT_APPLY_MODIFIERS=True,
+               EXPORT_ROTX90=True,
+               EXPORT_BLEN_OBS=True,
+               EXPORT_GROUP_BY_OB=False,
+               EXPORT_GROUP_BY_MAT=False,
+               EXPORT_KEEP_VERT_ORDER=False,
+               EXPORT_POLYGROUPS=False,
+               EXPORT_CURVE_AS_NURBS=True,
+               EXPORT_PATH_MODE='AUTO',
+               ):
     '''
     Basic write function. The context and options must be already set
     This can be accessed externaly
@@ -358,6 +308,8 @@ def write_file(filepath, objects, scene,
     # A Dict of Materials
     # (material.name, image.name):matname_imagename # matname_imagename has gaps removed.
     mtl_dict = {}
+    
+    copy_set = set()
 
     # Get all meshes
     for ob_main in objects:
@@ -694,17 +646,10 @@ def write_file(filepath, objects, scene,
 
     # Now we have all our materials, save them
     if EXPORT_MTL:
-        write_mtl(scene, mtlfilepath, EXPORT_COPY_IMAGES, mtl_dict)
-#   if EXPORT_COPY_IMAGES:
-#       dest_dir = os.path.basename(filepath)
-# #         dest_dir = filepath
-# #         # Remove chars until we are just the path.
-# #         while dest_dir and dest_dir[-1] not in '\\/':
-# #             dest_dir = dest_dir[:-1]
-#       if dest_dir:
-#           copy_images(dest_dir, mtl_dict)
-#       else:
-#           print('\tError: "%s" could not be used as a base for an image path.' % filepath)
+        write_mtl(scene, mtlfilepath, EXPORT_PATH_MODE, copy_set, mtl_dict)
+
+    # copy all collected files.
+    io_utils.path_reference_copy(copy_set)
 
     print("OBJ Export time: %.2f" % (time.clock() - time1))
 
@@ -716,7 +661,6 @@ def _write(context, filepath,
               EXPORT_NORMALS_HQ,  # not yet
               EXPORT_UV,  # ok
               EXPORT_MTL,
-              EXPORT_COPY_IMAGES,
               EXPORT_APPLY_MODIFIERS,  # ok
               EXPORT_ROTX90,  # wrong
               EXPORT_BLEN_OBS,
@@ -727,7 +671,9 @@ def _write(context, filepath,
               EXPORT_CURVE_AS_NURBS,
               EXPORT_SEL_ONLY,  # ok
               EXPORT_ALL_SCENES,  # XXX not working atm
-              EXPORT_ANIMATION):  # Not used
+              EXPORT_ANIMATION,
+              EXPORT_PATH_MODE,
+              ):  # Not used
 
     base_name, ext = os.path.splitext(filepath)
     context_name = [base_name, '', '', ext]  # Base name, scene name, frame number, extension
@@ -778,21 +724,22 @@ def _write(context, filepath,
             # erm... bit of a problem here, this can overwrite files when exporting frames. not too bad.
             # EXPORT THE FILE.
             write_file(full_path, objects, scene,
-                  EXPORT_TRI,
-                  EXPORT_EDGES,
-                  EXPORT_NORMALS,
-                  EXPORT_NORMALS_HQ,
-                  EXPORT_UV,
-                  EXPORT_MTL,
-                  EXPORT_COPY_IMAGES,
-                  EXPORT_APPLY_MODIFIERS,
-                  EXPORT_ROTX90,
-                  EXPORT_BLEN_OBS,
-                  EXPORT_GROUP_BY_OB,
-                  EXPORT_GROUP_BY_MAT,
-                  EXPORT_KEEP_VERT_ORDER,
-                  EXPORT_POLYGROUPS,
-                  EXPORT_CURVE_AS_NURBS)
+                       EXPORT_TRI,
+                       EXPORT_EDGES,
+                       EXPORT_NORMALS,
+                       EXPORT_NORMALS_HQ,
+                       EXPORT_UV,
+                       EXPORT_MTL,
+                       EXPORT_APPLY_MODIFIERS,
+                       EXPORT_ROTX90,
+                       EXPORT_BLEN_OBS,
+                       EXPORT_GROUP_BY_OB,
+                       EXPORT_GROUP_BY_MAT,
+                       EXPORT_KEEP_VERT_ORDER,
+                       EXPORT_POLYGROUPS,
+                       EXPORT_CURVE_AS_NURBS,
+                       EXPORT_PATH_MODE,
+                       )
 
         scene.frame_set(orig_frame, 0.0)
 
@@ -815,7 +762,6 @@ def save(operator, context, filepath="",
          use_hq_normals=False,
          use_uvs=True,
          use_materials=True,
-         copy_images=False,
          use_apply_modifiers=True,
          use_rotate_x90=True,
          use_blen_objects=True,
@@ -827,6 +773,7 @@ def save(operator, context, filepath="",
          use_selection=True,
          use_all_scenes=False,
          use_animation=False,
+         path_mode='AUTO'
          ):
 
     _write(context, filepath,
@@ -836,7 +783,6 @@ def save(operator, context, filepath="",
            EXPORT_NORMALS_HQ=use_hq_normals,
            EXPORT_UV=use_uvs,
            EXPORT_MTL=use_materials,
-           EXPORT_COPY_IMAGES=copy_images,
            EXPORT_APPLY_MODIFIERS=use_apply_modifiers,
            EXPORT_ROTX90=use_rotate_x90,
            EXPORT_BLEN_OBS=use_blen_objects,
@@ -848,6 +794,7 @@ def save(operator, context, filepath="",
            EXPORT_SEL_ONLY=use_selection,
            EXPORT_ALL_SCENES=use_all_scenes,
            EXPORT_ANIMATION=use_animation,
+           EXPORT_PATH_MODE=path_mode,
            )
 
     return {'FINISHED'}
