@@ -21,7 +21,7 @@ bl_info = {
     'author': 'Ivo Grigull (loolarge), Tal Trachtman',
     'version': (1, 0),
     "blender": (2, 5, 7),
-    "api": 35622,
+    "api": 36157,
     'location': 'Object Data > Shape Keys (Search: corrective) ',
     'description': 'Creates a corrective shape key for the current pose',
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"\
@@ -138,7 +138,7 @@ def func_add_corrective_pose_shape( source, target):
     
     # If target object doesn't have Basis shape key, create it.
     try:
-        num_keys = len( mesh_1.shape_keys.keys )
+        num_keys = len( mesh_1.shape_keys.key_blocks )
     except:
         basis = ob_1.shape_key_add()
         basis.name = "Basis"
@@ -152,7 +152,7 @@ def func_add_corrective_pose_shape( source, target):
         new_shapekey.name = "Shape_" + ob_2.name
         new_shapekey_name = new_shapekey.name
         
-        key_index = len(mesh_1.shape_keys.keys)-1
+        key_index = len(mesh_1.shape_keys.key_blocks)-1
         ob_1.active_shape_key_index = key_index
         
     # else, the active shape will be used (updated)
@@ -162,7 +162,7 @@ def func_add_corrective_pose_shape( source, target):
     vgroup = ob_1.active_shape_key.vertex_group
     ob_1.active_shape_key.vertex_group = ""
         
-    mesh_1_key_verts = mesh_1.shape_keys.keys[ key_index ].data
+    mesh_1_key_verts = mesh_1.shape_keys.key_blocks[ key_index ].data
     
     
     x = extractX(ob_1, mesh_1_key_verts)
@@ -384,7 +384,7 @@ def func_add_corrective_pose_shape_fast(source, target):
     
     # If target object doesn't have Basis shape key, create it.
     try:
-        num_keys = len( target.data.shape_keys.keys )
+        num_keys = len( target.data.shape_keys.key_blocks )
     except:
         basis = target.shape_key_add()
         basis.name = "Basis"
@@ -399,14 +399,14 @@ def func_add_corrective_pose_shape_fast(source, target):
         new_shapekey.name = "Shape_" + source.name
         new_shapekey_name = new_shapekey.name
         
-        key_index = len(target.data.shape_keys.keys)-1
+        key_index = len(target.data.shape_keys.key_blocks)-1
         target.active_shape_key_index = key_index
         
     # else, the active shape will be used (updated)
         
     target.show_only_shape_key = True
     
-    shape_key_verts = target.data.shape_keys.keys[ key_index ].data
+    shape_key_verts = target.data.shape_keys.key_blocks[ key_index ].data
 
     try:
         vgroup = target.active_shape_key.vertex_group
@@ -432,7 +432,7 @@ def func_add_corrective_pose_shape_fast(source, target):
             break
     
     # set the new shape key value to 1.0, so we see the result instantly
-    target.data.shape_keys.keys[ target.active_shape_key_index].value = 1.0
+    target.data.shape_keys.key_blocks[ target.active_shape_key_index].value = 1.0
 
     try:
         target.active_shape_key.vertex_group = vgroup
@@ -499,4 +499,6 @@ def register():
 def unregister():
     bpy.utils.unregister_module(__name__)
 
-    pass
+
+if __name__ == "__main__":
+    register()
