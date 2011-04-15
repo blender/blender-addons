@@ -1922,9 +1922,15 @@ class VIEW3D_PT_unrealtools_objectmode(bpy.types.Panel):
                         boxactionset.label(text="Action Name: " + ActionNLA.name)
                 layout.label(text="Match Found: " + str(actionsetmatchcount))
         
-        layout.operator(OBJECT_OT_UTSelectedFaceSmooth.bl_idname)
+        layout.operator(OBJECT_OT_UTSelectedFaceSmooth.bl_idname)        
         layout.operator(OBJECT_OT_UTRebuildArmature.bl_idname)
         layout.operator(OBJECT_OT_UTRebuildMesh.bl_idname)
+        
+        
+        
+        
+        
+        
         #row = layout.row()
         #row.label(text="Action Set(s)(not build)")
         #for action in  bpy.data.actions:
@@ -2078,62 +2084,97 @@ def unpack_list(list_of_tuples):
 class OBJECT_OT_UTRebuildMesh(bpy.types.Operator):
     bl_idname = "object.utrebuildmesh"  # XXX, name???
     bl_label = "Rebuild Mesh"
-    __doc__ = "Work In Progress. Support only Quad faces. It rebuild the mesh from scrape from the selected mesh."
+    __doc__ = "Work In Progress. It rebuild the mesh from scrape from the selected mesh."
     
     def invoke(self, context, event):
-        #print("Init Export Script:")
+        print("Init Scripting...")
         for obj in bpy.data.objects:
             if obj.type == 'MESH' and obj.select == True:
                 for i in bpy.context.scene.objects: i.select = False #deselect all objects
                 obj.select = True
                 bpy.context.scene.objects.active = obj
                 bpy.ops.object.mode_set(mode='OBJECT')
-				
-                #bpy.ops.object.mode_set(mode='EDIT')
+                me_ob = bpy.data.meshes.new(("Re_"+obj.name))
                 mesh = obj.data
                 faces = []
                 verts = []
                 smoothings = []
-                facecount  = 0
+                uvfaces = []
+                uv_layer = mesh.uv_textures.active
                 for face in mesh.faces:
-                    facecount += 1
+                    v = []
+                    smoothings.append(face.use_smooth)
+                    if uv_layer != None:#check if there texture data exist
+                        faceUV = uv_layer.data[face.index]
+                        #print(len(faceUV.uv))
+                        uvs = []
+                        for uv in faceUV.uv:
+                            #vert = mesh.vertices[videx]
+                            #print("UV:",uv[0],":",uv[1])
+                            uvs.append((uv[0],uv[1]))
+                        #print(uvs)
+                        uvfaces.append(uvs)
+                    for videx in face.vertices:
+                        vert = mesh.vertices[videx]
+                        v.append(videx)
+                    faces.append(v)
+                    
+                    #print(dir(face))
+                for vertex in mesh.vertices:
+                    verts.append(vertex.co.to_tuple())					
+                '''
+				#Fail for this method
+				#can't covert the tri face plogyon
+                for face in mesh.faces:
                     x = [f for f in face.vertices]
                     faces.extend(x)
-                    #print(dir(face))
                     smoothings.append(face.use_smooth)
-                    
-                #print("faces",len(faces),"face count:",facecount,"Covert:",len(faces)//4)
-                    #print(x)
-                
                 for vertex in mesh.vertices:
-                    #verts.extend([(vertex.co[0],vertex.co[1],vertex.co[2])])
                     verts.append(vertex.co.to_tuple())
-                #print("Face/Vertex Array")
-                me_ob = bpy.data.meshes.new("ReBuildMesh")
                 me_ob.vertices.add(len(verts))
-                #print("Vertex Count:",len(verts))
-                #for face in faces:
-                    #print("------")
-                    #print(face)
                 me_ob.faces.add(len(faces)//4)
-                #print(facecount)
-                #me_ob.faces.add(facecount - 3)
-                #print("Face Count:",len(faces)//4)
                 me_ob.vertices.foreach_set("co", unpack_list(verts))
-                #me_ob.vertices.foreach_set("co", verts)
                 me_ob.faces.foreach_set("vertices_raw", faces)
                 me_ob.faces.foreach_set("use_smooth", smoothings)
-                me_ob.update_tag()
+                '''
+                #test dummy mesh
+                #verts = [(-1,1,0),(1,1,0),(1,-1,0),(-1,-1,0),(0,1,1),(0,-1,1)]
+                #faces = [(0,1,2,3),(1,2,5,4),(0,3,5,4),(0,1,4),(2,3,5)]
+                #for f in faces:
+                    #print("face",f)
+                #for v in verts:
+                    #print("vertex",v)
+                #me_ob = bpy.data.objects.new("ReBuildMesh",me_ob)
+                me_ob.from_pydata(verts, [], faces)
+                me_ob.faces.foreach_set("use_smooth", smoothings)#smooth array from face
                 me_ob.update()
-                obmesh = bpy.data.objects.new("ReBuildMesh",me_ob)
+                #check if there is uv faces
+                if len(uvfaces) > 0:
+                    uvtex = me_ob.uv_textures.new(name="retex")
+                    for i, face in enumerate(me_ob.faces):
+                        blender_tface = uvtex.data[i] #face
+                        mfaceuv = uvfaces[i]
+                        if len(mfaceuv) == 3:
+                            blender_tface.uv1 = mfaceuv[0];
+                            blender_tface.uv2 = mfaceuv[1];
+                            blender_tface.uv3 = mfaceuv[2];
+                        if len(mfaceuv) == 4:
+                            blender_tface.uv1 = mfaceuv[0];
+                            blender_tface.uv2 = mfaceuv[1];
+                            blender_tface.uv3 = mfaceuv[2];
+                            blender_tface.uv4 = mfaceuv[3];
+                
+                obmesh = bpy.data.objects.new(("Re_"+obj.name),me_ob)                
                 bpy.context.scene.objects.link(obmesh)
                 print("Object Name:",obmesh.name)
                 bpy.context.scene.update()
+                #bpy.ops.wm.console_toggle()
                 break
+
         print("Finish Mesh Build...")
         self.report({'INFO'}, "Rebuild Mesh Finish!")
         return{'FINISHED'}
-		
+
 def menu_func(self, context):
     #bpy.context.scene.unrealexportpsk = True
     #bpy.context.scene.unrealexportpsa = True
