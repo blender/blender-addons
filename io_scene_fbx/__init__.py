@@ -59,16 +59,41 @@ class ExportFBX(bpy.types.Operator, ExportHelper):
 
     use_selection = BoolProperty(name="Selected Objects", description="Export selected objects on visible layers", default=True)
 # 	EXP_OBS_SCENE = BoolProperty(name="Scene Objects", description="Export all objects in this scene", default=True)
-    TX_SCALE = FloatProperty(name="Scale", description="Scale all data, (Note! some imports dont support scaled armatures)", min=0.01, max=1000.0, soft_min=0.01, soft_max=1000.0, default=1.0)
-    TX_XROT90 = BoolProperty(name="Rot X90", description="Rotate all objects 90 degrees about the X axis", default=True)
-    TX_YROT90 = BoolProperty(name="Rot Y90", description="Rotate all objects 90 degrees about the Y axis", default=False)
-    TX_ZROT90 = BoolProperty(name="Rot Z90", description="Rotate all objects 90 degrees about the Z axis", default=False)
-    EXP_EMPTY = BoolProperty(name="Empties", description="Export empty objects", default=True)
-    EXP_CAMERA = BoolProperty(name="Cameras", description="Export camera objects", default=True)
-    EXP_LAMP = BoolProperty(name="Lamps", description="Export lamp objects", default=True)
-    EXP_ARMATURE = BoolProperty(name="Armatures", description="Export armature objects", default=True)
-    EXP_MESH = BoolProperty(name="Meshes", description="Export mesh objects", default=True)
-    EXP_MESH_APPLY_MOD = BoolProperty(name="Modifiers", description="Apply modifiers to mesh objects", default=True)
+    global_scale = FloatProperty(name="Scale", description="Scale all data, (Note! some imports dont support scaled armatures)", min=0.01, max=1000.0, soft_min=0.01, soft_max=1000.0, default=1.0)
+
+    global_rotate = EnumProperty(
+            name="Rotate",
+            options={'ENUM_FLAG'},
+            items=(('X_90', "X 90", ""),
+                   ('Y_90', "Y 90", ""),
+                   ('Z_90', "Z 90", ""),
+                   ),
+            default={'X_90'},
+            description="Global rotation to apply to the exported scene",
+            )
+
+    object_types = EnumProperty(
+            name="Object Types",
+            options={'ENUM_FLAG'},
+            items=(('EMPTY', "Empty", ""),
+                   ('CAMERA', "Camera", ""),
+                   ('ARMATURE', "Armature", ""),
+                   ('MESH', "Mesh", ""),
+                   ),
+            default={'EMPTY', 'CAMERA', 'ARMATURE', 'MESH'},
+            )
+
+    mesh_apply_modifiers = BoolProperty(name="Modifiers", description="Apply modifiers to mesh objects", default=True)
+
+    mesh_smooth_type = EnumProperty(
+            name="Smoothing",
+            items=(('OFF', "Off", "Don't write smoothing"),
+                   ('FACE', "Face", "Write face smoothing"),
+                   ('EDGE', "Edge", "Write edge smoothing"),
+                   ),
+            default='FACE',
+            )
+
 #    EXP_MESH_HQ_NORMALS = BoolProperty(name="HQ Normals", description="Generate high quality normals", default=True)
     # armature animation
     ANIM_ENABLE = BoolProperty(name="Enable Animation", description="Export keyframe animation", default=True)
@@ -77,12 +102,13 @@ class ExportFBX(bpy.types.Operator, ExportHelper):
 # 	ANIM_ACTION_ALL = BoolProperty(name="Current Action", description="Use actions currently applied to the armatures (use scene start/end frame)", default=True)
     ANIM_ACTION_ALL = BoolProperty(name="All Actions", description="Use all actions for armatures, if false, use current action", default=False)
 
-    batch_mode = EnumProperty(items=(
-            ('OFF', "Off", "Active scene to file"),
-            ('SCENE', "Scene", "Each scene as a file"),
-            ('GROUP', "Group", "Each group as a file"),
-            ),
-                name="Batch Mode")
+    batch_mode = EnumProperty(
+            name="Batch Mode",
+            items=(('OFF', "Off", "Active scene to file"),
+                   ('SCENE', "Scene", "Each scene as a file"),
+                   ('GROUP', "Group", "Each group as a file"),
+                   ),
+            )
 
     BATCH_OWN_DIR = BoolProperty(name="Own Dir", description="Create a dir for each exported file", default=True)
     use_metadata = BoolProperty(name="Use Metadata", default=True, options={'HIDDEN'})
@@ -104,15 +130,15 @@ class ExportFBX(bpy.types.Operator, ExportHelper):
         mtx4_z90n = Matrix.Rotation(-math.pi / 2.0, 4, 'Z')
 
         GLOBAL_MATRIX = Matrix()
-        GLOBAL_MATRIX[0][0] = GLOBAL_MATRIX[1][1] = GLOBAL_MATRIX[2][2] = self.TX_SCALE
-        if self.TX_XROT90:
+        GLOBAL_MATRIX[0][0] = GLOBAL_MATRIX[1][1] = GLOBAL_MATRIX[2][2] = self.global_scale
+        if 'X_90' in self.global_rotate:
             GLOBAL_MATRIX = mtx4_x90n * GLOBAL_MATRIX
-        if self.TX_YROT90:
+        if 'Y_90' in self.global_rotate:
             GLOBAL_MATRIX = mtx4_y90n * GLOBAL_MATRIX
-        if self.TX_ZROT90:
+        if 'Z_90' in self.global_rotate:
             GLOBAL_MATRIX = mtx4_z90n * GLOBAL_MATRIX
 
-        keywords = self.as_keywords(ignore=("TX_XROT90", "TX_YROT90", "TX_ZROT90", "TX_SCALE", "check_existing", "filter_glob"))
+        keywords = self.as_keywords(ignore=("global_rotate", "global_scale", "check_existing", "filter_glob"))
         keywords["GLOBAL_MATRIX"] = GLOBAL_MATRIX
 
         from . import export_fbx

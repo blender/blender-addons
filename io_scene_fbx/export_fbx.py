@@ -204,12 +204,9 @@ header_comment = \
 def save_single(operator, scene, filepath="",
         GLOBAL_MATRIX=None,
         context_objects=None,
-        EXP_MESH=True,
-        EXP_MESH_APPLY_MOD=True,
-        EXP_ARMATURE=True,
-        EXP_LAMP=True,
-        EXP_CAMERA=True,
-        EXP_EMPTY=True,
+        object_types={'EMPTY', 'CAMERA', 'ARMATURE', 'MESH'},
+        mesh_apply_modifiers=True,
+        mesh_smooth_type='FACE',
         ANIM_ENABLE=True,
         ANIM_OPTIMIZE=True,
         ANIM_OPTIMIZE_PRECISSION=6,
@@ -228,7 +225,7 @@ def save_single(operator, scene, filepath="",
 
     # Use this for working out paths relative to the export location
     base_src = os.path.dirname(bpy.data.filepath)
-    base_dst = os.path.dirname(filepath) 
+    base_dst = os.path.dirname(filepath)
 
     # collect images to copy
     copy_set = set()
@@ -1395,7 +1392,8 @@ def save_single(operator, scene, filepath="",
         file.write('\n\t\t}')
 
         # Write Face Smoothing
-        file.write('''
+        if mesh_smooth_type == 'FACE':
+            file.write('''
         LayerElementSmoothing: 0 {
             Version: 102
             Name: ""
@@ -1403,22 +1401,23 @@ def save_single(operator, scene, filepath="",
             ReferenceInformationType: "Direct"
             Smoothing: ''')
 
-        i = -1
-        for f in me_faces:
-            if i == -1:
-                file.write('%i' % f.use_smooth)
-                i = 0
-            else:
-                if i == 54:
-                    file.write('\n\t\t\t ')
+            i = -1
+            for f in me_faces:
+                if i == -1:
+                    file.write('%i' % f.use_smooth)
                     i = 0
-                file.write(',%i' % f.use_smooth)
-            i += 1
+                else:
+                    if i == 54:
+                        file.write('\n\t\t\t ')
+                        i = 0
+                    file.write(',%i' % f.use_smooth)
+                i += 1
 
-        file.write('\n\t\t}')
+            file.write('\n\t\t}')
 
-        # Write Edge Smoothing
-        file.write('''
+        elif mesh_smooth_type == 'EDGE':
+            # Write Edge Smoothing
+            file.write('''
         LayerElementSmoothing: 0 {
             Version: 101
             Name: ""
@@ -1426,19 +1425,23 @@ def save_single(operator, scene, filepath="",
             ReferenceInformationType: "Direct"
             Smoothing: ''')
 
-        i = -1
-        for ed in me_edges:
-            if i == -1:
-                file.write('%i' % (ed.use_edge_sharp))
-                i = 0
-            else:
-                if i == 54:
-                    file.write('\n\t\t\t ')
+            i = -1
+            for ed in me_edges:
+                if i == -1:
+                    file.write('%i' % (ed.use_edge_sharp))
                     i = 0
-                file.write(',%i' % (ed.use_edge_sharp))
-            i += 1
+                else:
+                    if i == 54:
+                        file.write('\n\t\t\t ')
+                        i = 0
+                    file.write(',%i' % (ed.use_edge_sharp))
+                i += 1
 
-        file.write('\n\t\t}')
+            file.write('\n\t\t}')
+        elif mesh_smooth_type == 'OFF':
+            pass
+        else:
+            raise Exception("invalid mesh_smooth_type: %r" % mesh_smooth_type)
 
         # Write VertexColor Layers
         # note, no programs seem to use this info :/
@@ -1664,6 +1667,14 @@ def save_single(operator, scene, filepath="",
                 TypedIndex: 0
             }''')
 
+        # Smoothing info
+        if mesh_smooth_type != 'OFF':
+            file.write('''
+            LayerElement:  {
+                Type: "LayerElementSmoothing"
+                TypedIndex: 0
+            }''')
+
         # Always write this
         if do_textures:
             file.write('''
@@ -1767,7 +1778,7 @@ def save_single(operator, scene, filepath="",
 
 ## XXX
 
-    if EXP_ARMATURE:
+    if 'ARMATURE' in object_types:
         # This is needed so applying modifiers dosnt apply the armature deformation, its also needed
         # ...so mesh objects return their rest worldspace matrix when bone-parents are exported as weighted meshes.
         # set every armature to its rest, backup the original values so we done mess up the scene
@@ -1799,21 +1810,21 @@ def save_single(operator, scene, filepath="",
 # 		for ob, mtx in BPyObject.getDerivedObjects(ob_base):
             tmp_ob_type = ob.type
             if tmp_ob_type == 'CAMERA':
-                if EXP_CAMERA:
+                if 'CAMERA' in object_types:
                     ob_cameras.append(my_object_generic(ob, mtx))
             elif tmp_ob_type == 'LAMP':
-                if EXP_LAMP:
+                if 'LAMP' in object_types:
                     ob_lights.append(my_object_generic(ob, mtx))
             elif tmp_ob_type == 'ARMATURE':
-                if EXP_ARMATURE:
+                if 'ARMATURE' in object_types:
                     # TODO - armatures dont work in dupligroups!
                     if ob not in ob_arms:
                         ob_arms.append(ob)
                     # ob_arms.append(ob) # replace later. was "ob_arms.append(sane_obname(ob), ob)"
             elif tmp_ob_type == 'EMPTY':
-                if EXP_EMPTY:
+                if 'EMPTY' in object_types:
                     ob_null.append(my_object_generic(ob, mtx))
-            elif EXP_MESH:
+            elif 'MESH' in object_types:
                 origData = True
                 if tmp_ob_type != 'MESH':
                     try:
@@ -1827,7 +1838,7 @@ def save_single(operator, scene, filepath="",
                         origData = False
                 else:
                     # Mesh Type!
-                    if EXP_MESH_APPLY_MOD:
+                    if mesh_apply_modifiers:
                         me = ob.to_mesh(scene, True, 'PREVIEW')
 
                         # print ob, me, me.getVertGroupNames()
@@ -1849,7 +1860,7 @@ def save_single(operator, scene, filepath="",
 # 						del tmp_colbits
 
                 if me:
-# 					# This WILL modify meshes in blender if EXP_MESH_APPLY_MOD is disabled.
+# 					# This WILL modify meshes in blender if mesh_apply_modifiers is disabled.
 # 					# so strictly this is bad. but only in rare cases would it have negative results
 # 					# say with dupliverts the objects would rotate a bit differently
 # 					if EXP_MESH_HQ_NORMALS:
@@ -1877,7 +1888,7 @@ def save_single(operator, scene, filepath="",
                         else:
                             materials[None, None] = None
 
-                    if EXP_ARMATURE:
+                    if 'ARMATURE' in object_types:
                         armob = ob.find_armature()
                         blenParentBoneName = None
 
@@ -1921,7 +1932,7 @@ def save_single(operator, scene, filepath="",
         if ob_base.dupli_list:
             ob_base.dupli_list_clear()
 
-    if EXP_ARMATURE:
+    if 'ARMATURE' in object_types:
         # now we have the meshes, restore the rest arm position
         for i, arm in enumerate(bpy.data.armatures):
             arm.pose_position = ob_arms_orig_rest[i]
