@@ -69,9 +69,6 @@ def create_cutter(context, crack_type, scale, roughness):
                 False, False, False, False,
                 False, False, False, False,
                 False, False, False, False,
-                False, False, False, False,
-                False, False, False, False,
-                False, False, False, False,
                 False, False, False, False))
 
         bpy.ops.object.editmode_toggle()
@@ -161,7 +158,7 @@ def getIslands(shard):
             bpy.ops.object.select_all(action='DESELECT')
             bpy.context.scene.objects.active = shard
             shard.select = True
-            bpy.ops.object.duplicate(linked=False, mode=1)
+            bpy.ops.object.duplicate(linked=False, mode='DUMMY')
             a = bpy.context.scene.objects.active
             sm = a.data
             print (a.name)
@@ -231,8 +228,11 @@ def boolop(ob, cutter, op):
             fault = 1
             #print ('boolop: sizeerror')
 
-        elif min(nmesh.edge_face_count) < 2:    # Manifold check
-            fault = 1
+         # This checks whether returned shards are non-manifold.
+         # Problem is, if org mesh is non-manifold, it will always fail (e.g. with Suzanne).
+         # And disabling it does not seem to cause any problem…
+#        elif min(nmesh.edge_face_count) < 2:    # Manifold check
+#            fault = 1
 
         if not fault:
             new_shards = getIslands(new_shard)
@@ -407,25 +407,31 @@ class FractureGroup(bpy.types.Operator):
     bl_options = {'REGISTER', 'UNDO'}
 
     exe = BoolProperty(name="Execute",
-        description="If it shall actually run, for optimal performance...",
-        default=False)
+                       description="If it shall actually run, for optimal performance...",
+                       default=False)
 
-    e = []
-    for i, g in enumerate(bpy.data.groups):
-        e.append((g.name, g.name, ''))
+    group = StringProperty(name="Group",
+                           description="Specify the group used for fracturing")
 
-    group = EnumProperty(name='Group (hit F8 to refresh list)',
-        items=e,
-        description='Specify the group used for fracturing')
+#    e = []
+#    for i, g in enumerate(bpy.data.groups):
+#        e.append((g.name, g.name, ''))
+#    group = EnumProperty(name='Group (hit F8 to refresh list)',
+#                         items=e,
+#                         description='Specify the group used for fracturing')
 
     def execute(self, context):
         #getIslands(context.object)
 
-        if self.exe:
+        if self.exe and self.group:
             fracture_group(context, self.group)
 
         return {'FINISHED'}
 
+    def draw(self, context):
+        layout = self.layout
+        layout.prop(self, "exe")
+        layout.prop_search(self, "group", bpy.data, "groups")
 
 #####################################################################
 # Import Functions
