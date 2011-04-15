@@ -214,7 +214,7 @@ def boolop(ob, cutter, op):
 
     if len(nmesh.vertices) > 0:
         a.modifiers.remove(a.modifiers['Boolean'])
-        bpy.ops.object.duplicate(linked=False, mode=1)
+        bpy.ops.object.duplicate(linked=False, mode='DUMMY')
 
         new_shard = sce.objects.active
         new_shard.data = nmesh
