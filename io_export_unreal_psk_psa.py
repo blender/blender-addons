@@ -1823,7 +1823,7 @@ class ExportUDKAnimData(bpy.types.Operator):
     '''Export Skeleton Mesh / Animation Data file(s)'''
     bl_idname = "export_anim.udk" # this is important since its how bpy.ops.export.udk_anim_data is constructed
     bl_label = "Export PSK/PSA"
-    __doc__ = "One mesh and one armature else select one mesh or armature to be exported."
+    __doc__ = """One mesh and one armature else select one mesh or armature to be exported."""
 
     # List of operator properties, the attributes will be assigned
     # to the class instance from the operator settings before calling.
@@ -1954,7 +1954,7 @@ class OBJECT_OT_UnrealExport(bpy.types.Operator):
     global exportmessage
     bl_idname = "export_mesh.udk"  # XXX, name???
     bl_label = "Unreal Export"
-    __doc__ = "Select export setting for .psk/.psa or both."
+    __doc__ = """Select export setting for .psk/.psa or both."""
     
     def invoke(self, context, event):
         print("Init Export Script:")
@@ -1972,8 +1972,7 @@ class OBJECT_OT_UnrealExport(bpy.types.Operator):
             print("Exporting ALL...")
 
         default_path = os.path.splitext(bpy.data.filepath)[0] + ".psk"
-        fs_callback(default_path, bpy.context)
-        
+        fs_callback(default_path, bpy.context)        
         #self.report({'WARNING', 'INFO'}, exportmessage)
         self.report({'INFO'}, exportmessage)
         return{'FINISHED'}   
@@ -1981,29 +1980,24 @@ class OBJECT_OT_UnrealExport(bpy.types.Operator):
 class OBJECT_OT_UTSelectedFaceSmooth(bpy.types.Operator):
     bl_idname = "object.utselectfacesmooth"  # XXX, name???
     bl_label = "Select Smooth faces"
-    __doc__ = "It will only select smooth faces that is select mesh."
+    __doc__ = """It will only select smooth faces that is select mesh."""
     
     def invoke(self, context, event):
-        #print("Init Export Script:")        
+        print("----------------------------------------")
+        print("Init Select Face(s):")
+        bselected = False
         for obj in bpy.data.objects:
-            #print(dir(obj))
-            #print(dir(obj))
             if obj.type == 'MESH' and obj.select == True:
                 smoothcount = 0
                 flatcount = 0
                 bpy.ops.object.mode_set(mode='OBJECT')#it need to go into object mode to able to select the faces
                 for i in bpy.context.scene.objects: i.select = False #deselect all objects
-                obj.select = True
-                bpy.context.scene.objects.active = obj
-                #print("Mesh found!",obj.name)
-                #bpy.ops.object.mode_set(mode='EDIT')
-                #print(len(obj.data.faces))
+                obj.select = True #set current object select
+                bpy.context.scene.objects.active = obj #set active object
                 for face in obj.data.faces:
-                    #print(dir(face))
                     if face.use_smooth == True:
                         face.select = True
                         smoothcount += 1
-                        #print("selected:",face.select)
                     else:
                         flatcount += 1
                         face.select = False
@@ -2011,20 +2005,27 @@ class OBJECT_OT_UTSelectedFaceSmooth(bpy.types.Operator):
                     #print(("smooth:",face.use_smooth))
                 bpy.context.scene.update()
                 bpy.ops.object.mode_set(mode='EDIT')
-                print("Select Smooth Count:",smoothcount," Flat Count:",flatcount)
-				
+                print("Select Smooth Count(s):",smoothcount," Flat Count(s):",flatcount)
+                bselected = True
                 break
-        #objects = bpy.data.objects
-        print("Selected faces exectue!")        
+        if bselected:
+            print("Selected Face(s) Exectue!")
+            self.report({'INFO'}, "Selected Face(s) Exectue!")
+        else:
+            print("Didn't select Mesh Object!")
+            self.report({'INFO'}, "Didn't Select Mesh Object!")
+        print("----------------------------------------")        
         return{'FINISHED'}
 		
 class OBJECT_OT_UTRebuildArmature(bpy.types.Operator):
     bl_idname = "object.utrebuildarmature"  # XXX, name???
     bl_label = "Rebuild Armature"
-    __doc__ = "If mesh is deform when importing to unreal engine try this. It rebuild the bones one at the time by select one armature object scrape to raw setup build."
+    __doc__ = """If mesh is deform when importing to unreal engine try this. It rebuild the bones one at the time by select one armature object scrape to raw setup build."""
     
     def invoke(self, context, event):
-        
+        print("----------------------------------------")
+        print("Init Rebuild Armature...")
+        bselected = False
         for obj in bpy.data.objects:
             if obj.type == 'ARMATURE' and obj.select == True:
                 currentbone = [] #select armature for roll copy
@@ -2067,8 +2068,14 @@ class OBJECT_OT_UTRebuildArmature(bpy.types.Operator):
                 print("New Bone Count",len(ob_new.data.edit_bones))
                 print("Rebuild Armture Finish:",ob_new.name)
                 bpy.context.scene.update()
+                bselected = True
                 break
-        self.report({'INFO'}, "Rebuild Armature Finish!")
+        if bselected:
+            self.report({'INFO'}, "Rebuild Armature Finish!")
+        else:
+            self.report({'INFO'}, "Didn't Select Armature Object!")
+        print("End of Rebuild Armature.")
+        print("----------------------------------------")
         return{'FINISHED'}
 		
 # rounded the vert locations to save a bit of blurb.. change the round value or remove for accuracy i suppose
@@ -2084,10 +2091,12 @@ def unpack_list(list_of_tuples):
 class OBJECT_OT_UTRebuildMesh(bpy.types.Operator):
     bl_idname = "object.utrebuildmesh"  # XXX, name???
     bl_label = "Rebuild Mesh"
-    __doc__ = "Work In Progress. It rebuild the mesh from scrape from the selected mesh."
+    __doc__ = """It rebuild the mesh from scrape from the selected mesh object."""
     
     def invoke(self, context, event):
-        print("Init Scripting...")
+        print("----------------------------------------")
+        print("Init Mesh Bebuild...")
+        bselected = False
         for obj in bpy.data.objects:
             if obj.type == 'MESH' and obj.select == True:
                 for i in bpy.context.scene.objects: i.select = False #deselect all objects
@@ -2100,10 +2109,12 @@ class OBJECT_OT_UTRebuildMesh(bpy.types.Operator):
                 verts = []
                 smoothings = []
                 uvfaces = []
+                #print(dir(mesh))
+                print("creating array build mesh...")
                 uv_layer = mesh.uv_textures.active
                 for face in mesh.faces:
                     v = []
-                    smoothings.append(face.use_smooth)
+                    smoothings.append(face.use_smooth)#smooth or flat in boolean
                     if uv_layer != None:#check if there texture data exist
                         faceUV = uv_layer.data[face.index]
                         #print(len(faceUV.uv))
@@ -2117,11 +2128,23 @@ class OBJECT_OT_UTRebuildMesh(bpy.types.Operator):
                     for videx in face.vertices:
                         vert = mesh.vertices[videx]
                         v.append(videx)
-                    faces.append(v)
-                    
-                    #print(dir(face))
+                    faces.append(v)                    
+                #vertex positions
                 for vertex in mesh.vertices:
-                    verts.append(vertex.co.to_tuple())					
+                    verts.append(vertex.co.to_tuple())				
+                #vertices weight groups into array
+                vertGroups = {} #array in strings
+                for vgroup in obj.vertex_groups:
+                    #print(dir(vgroup))
+                    #print("name:",(vgroup.name),"index:",vgroup.index)
+                    #vertex in index and weight
+                    vlist = []
+                    for v in mesh.vertices:
+                        for vg in v.groups:
+                            if vg.group == vgroup.index:
+                                vlist.append((v.index,vg.weight))
+                                #print((v.index,vg.weight))
+                    vertGroups[vgroup.name] = vlist					
                 '''
 				#Fail for this method
 				#can't covert the tri face plogyon
@@ -2145,6 +2168,7 @@ class OBJECT_OT_UTRebuildMesh(bpy.types.Operator):
                 #for v in verts:
                     #print("vertex",v)
                 #me_ob = bpy.data.objects.new("ReBuildMesh",me_ob)
+                print("creating mesh object...")
                 me_ob.from_pydata(verts, [], faces)
                 me_ob.faces.foreach_set("use_smooth", smoothings)#smooth array from face
                 me_ob.update()
@@ -2164,15 +2188,45 @@ class OBJECT_OT_UTRebuildMesh(bpy.types.Operator):
                             blender_tface.uv3 = mfaceuv[2];
                             blender_tface.uv4 = mfaceuv[3];
                 
-                obmesh = bpy.data.objects.new(("Re_"+obj.name),me_ob)                
+                obmesh = bpy.data.objects.new(("Re_"+obj.name),me_ob)
+                bpy.context.scene.update()
+                #Build tmp materials
+                materialname = "ReMaterial"
+                for matcount in mesh.materials:
+                    matdata = bpy.data.materials.new(materialname)
+                    me_ob.materials.append(matdata)
+                #assign face to material id
+                for face in mesh.faces:
+                    #print(dir(face))
+                    me_ob.faces[face.index].material_index = face.material_index
+                #vertices weight groups
+                for vgroup in vertGroups:
+                    #print("vgroup",vgroup)#name of group
+                    #print(dir(vgroup))
+                    #print(vertGroups[vgroup])
+                    group = obmesh.vertex_groups.new(vgroup)
+                    #print("group index",group.index)
+                    for v in vertGroups[vgroup]:
+                        group.add([v[0]], v[1], 'ADD')# group.add(array[vertex id],weight,add)
+                        #print("[vertex id, weight]",v) #array (0,0)
+                        #print("[vertex id, weight]",v[0],":",v[1]) #array (0,0)
                 bpy.context.scene.objects.link(obmesh)
+                print("Mesh Material Count:",len(me_ob.materials))
+                for mat in me_ob.materials:
+                    print("-Material:",mat.name)
                 print("Object Name:",obmesh.name)
                 bpy.context.scene.update()
                 #bpy.ops.wm.console_toggle()
+                bselected = True
                 break
-
-        print("Finish Mesh Build...")
-        self.report({'INFO'}, "Rebuild Mesh Finish!")
+        if bselected:
+            self.report({'INFO'}, "Rebuild Mesh Finish!")
+            print("Finish Mesh Build...")
+        else:
+            self.report({'INFO'}, "Didn't Select Mesh Object!")
+            print("Didn't Select Mesh Object!")
+        print("----------------------------------------")
+        
         return{'FINISHED'}
 
 def menu_func(self, context):
