@@ -420,7 +420,7 @@ class VIEW3D_OT_lightfield_tools(bpy.types.Panel):
         subcol = sub.column(align=True)
         subcol.prop(scene.lightfield, "texture_path")
         subcol.prop(scene.lightfield, "light_intensity")
-        subcol.prop(scene.lightfield, "light_spot_blend")
+        subcol.prop(scene.lightfield, "spot_blend")
 
         # create a basemesh
         sub = layout.row()
