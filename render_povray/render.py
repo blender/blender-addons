@@ -160,7 +160,7 @@ def splitHyphen(name):
     if hyphidx == -1:
         return name
     else:
-        return name[hyphidx:].replace("-", "")
+        return name[:].replace("-", "")
 
 
 def safety(name, Level):
@@ -237,6 +237,7 @@ def write_pov(filename, scene=None, info_callback=None):
     def uniqueName(name, nameSeq):
 
         if name not in nameSeq:
+            name = splitHyphen(name)
             return name
 
         name_orig = name
