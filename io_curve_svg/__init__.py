@@ -20,7 +20,7 @@
 
 bl_info = {
     "name": "Scalable Vector Graphics (SVG) 1.1 format",
-    "author": "Sergey Sharybin",
+    "author": "JM Soler, Sergey Sharybin",
     "blender": (2, 5, 7),
     "api": 36079,
     "location": "File > Import > Scalable Vector Graphics (.svg)",
