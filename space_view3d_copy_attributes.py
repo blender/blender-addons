@@ -21,9 +21,9 @@
 bl_info = {
     'name': 'Copy Attributes Menu',
     'author': 'Bassam Kurdali, Fabian Fricke, wiseman303',
-    'version': (0, 4, 2),
+    'version': (0, 4, 3),
     "blender": (2, 5, 7),
-    "api": 35622,
+    "api": 36200,
     'location': 'View3D > Ctrl-C',
     'description': 'Copy Attributes Menu from Blender 2.4',
     'wiki_url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/'\
@@ -109,11 +109,11 @@ def getmat(bone, active, context, ignoreparent):
         parentbonemat.identity()
 
     if parentbonemat == parentposemat or ignoreparent:
-        newmat = bonemat_local.invert() * otherloc
+        newmat = bonemat_local.inverted() * otherloc
     else:
-        bonemat = parentbonemat.invert() * bonemat_local
+        bonemat = parentbonemat.inverted() * bonemat_local
 
-        newmat = bonemat.invert() * parentposemat.invert() * otherloc
+        newmat = bonemat.inverted() * parentposemat.inverted() * otherloc
     return newmat
 
 
