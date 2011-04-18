@@ -248,7 +248,7 @@ def process_next_chunk(file, previous_chunk, importedObjects, IMAGE_SEARCH):
     #contextMatrix_tx = None # Blender.mathutils.Matrix(); contextMatrix.identity()
     contextMesh_vertls = None  # flat array: (verts * 3)
     contextMesh_facels = None
-    contextMeshMaterials = {}  # matname:[face_idxs]
+    contextMeshMaterials = []  # (matname, [face_idxs])
     contextMeshUV = None  # flat array (verts * 2)
 
     TEXTURE_DICT = {}
@@ -294,12 +294,18 @@ def process_next_chunk(file, previous_chunk, importedObjects, IMAGE_SEARCH):
             else:
                 uv_faces = None
 
-            for mat_idx, (matName, faces) in enumerate(myContextMeshMaterials.items()):
+            for mat_idx, (matName, faces) in enumerate(myContextMeshMaterials):
                 if matName is None:
                     bmat = None
                 else:
-                    bmat = MATDICT[matName][1]
-                    img = TEXTURE_DICT.get(bmat.name)
+                    bmat = MATDICT.get(matName)
+                    # in rare cases no materials defined.
+                    if bmat:
+                        img = TEXTURE_DICT.get(bmat.name)
+                    else:
+                        print("    warning: material %r not defined!" % matName)
+                        bmat = MATDICT[matName] = bpy.data.materials.new(matName)
+                        img = None
 
                 bmesh.materials.append(bmat)  # can be None
 
@@ -423,7 +429,7 @@ def process_next_chunk(file, previous_chunk, importedObjects, IMAGE_SEARCH):
                 contextMesh_facels = []
 
                 ## preparando para receber o proximo objeto
-                contextMeshMaterials = {}  # matname:[face_idxs]
+                contextMeshMaterials = []  # matname:[face_idxs]
                 contextMeshUV = None
                 #contextMesh.vertexUV = 1 # Make sticky coords.
                 # Reset matrix
@@ -452,7 +458,7 @@ def process_next_chunk(file, previous_chunk, importedObjects, IMAGE_SEARCH):
             new_chunk.bytes_read += read_str_len
 
             contextMaterial.name = material_name.rstrip()  # remove trailing  whitespace
-            MATDICT[material_name] = (contextMaterial.name, contextMaterial)
+            MATDICT[material_name] = contextMaterial
 
         elif (new_chunk.ID == MAT_AMBIENT):
             #print 'elif (new_chunk.ID == MAT_AMBIENT):'
@@ -597,7 +603,9 @@ def process_next_chunk(file, previous_chunk, importedObjects, IMAGE_SEARCH):
             temp_data = file.read(STRUCT_SIZE_UNSIGNED_SHORT * num_faces_using_mat)
             new_chunk.bytes_read += STRUCT_SIZE_UNSIGNED_SHORT * num_faces_using_mat
 
-            contextMeshMaterials[material_name] = struct.unpack("<%dH" % (num_faces_using_mat), temp_data)
+            temp_data = struct.unpack("<%dH" % (num_faces_using_mat), temp_data)
+
+            contextMeshMaterials.append((material_name, temp_data))
 
             #look up the material in all the materials
 
