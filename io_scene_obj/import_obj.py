@@ -1244,7 +1244,8 @@ def load(operator, context, filepath,
         verts_loc[:] = [(v[0], v[2], -v[1]) for v in verts_loc]
 
     # deselect all
-    bpy.ops.object.select_all(action='DESELECT')
+    if bpy.ops.object.select_all.poll():
+        bpy.ops.object.select_all(action='DESELECT')
 
     scene = context.scene
 #     scn.objects.selected = []
