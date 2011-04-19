@@ -19,9 +19,9 @@
 bl_info = {
     "name": "Renderfarm.fi",
     "author": "Nathan Letwory <nathan@letworyinteractive.com>, Jesse Kaukonen <jesse.kaukonen@gmail.com>",
-    "version": (6,),
+    "version": (7,),
     "blender": (2, 5, 7),
-    "api": 35622,
+    "api": 36212,
     "location": "Render > Engine > Renderfarm.fi",
     "description": "Send .blend as session to http://www.renderfarm.fi to render",
     "warning": "",
@@ -352,6 +352,31 @@ class SESSIONS_PT_RenderfarmFi(RenderButtonsPanel, bpy.types.Panel):
         if bpy.queue_selected == 3:
             layout.operator('ore.cancel_session')
 
+class CONDITIONS_PT_RenderfarmFi(RenderButtonsPanel, bpy.types.Panel):
+    bl_label = "IMPORTANT: Rendering on Renderfarm.fi"
+    COMPAT_ENGINES = set(['RENDERFARMFI_RENDER'])
+    
+    @classmethod
+    def poll(cls, context):
+        rd = context.scene.render
+        return (rd.use_game_engine==False) and (rd.engine in cls.COMPAT_ENGINES)
+    
+    def draw(self, context):
+        layout = self.layout
+        
+        layout.label(text='- The render must take more than 50 seconds / frame')
+        layout.label(text='- The animation must be at least 20 frames long')
+        layout.label(text='- No still renders')
+        layout.label(text='- All external data must be included:')
+        layout.label(text='  * Linked files: L in object mode')
+        layout.label(text='  * Textures: File menu -> External Data')
+        layout.label(text='- No Python scripts')
+        layout.label(text='- Memory usage max 3GB')
+        layout.label(text='- If your render takes more than an hour / frame:')
+        layout.label(text='   * No filter type composite nodes (blur, glare etc.)')
+        layout.label(text='   * No SSS')
+        layout.label(text='   * No Motion Blur')
+
 class RENDER_PT_RenderfarmFi(RenderButtonsPanel, bpy.types.Panel):
     bl_label = "Scene Settings"
     COMPAT_ENGINES = set(['RENDERFARMFI_RENDER'])
@@ -368,7 +393,6 @@ class RENDER_PT_RenderfarmFi(RenderButtonsPanel, bpy.types.Panel):
         
         if ore.prepared and ore.hash!='':
             layout.prop(ore, 'memusage')
-            
             layout.separator()
             row = layout.row()
             
@@ -785,7 +809,7 @@ class ORE_PrepareOp(bpy.types.Operator):
             return hasSimulation(bpy.types.SoftBodyModifier)
 
         def hasUnsupportedSimulation():
-            return hasSoftbodySimulation() or hasCollisionSimulation() or hasClothSimulation() or hasSmokeSimulation or hasFluidSimulation() or hasParticleSystem()
+            return hasSoftbodySimulation() or hasCollisionSimulation() or hasClothSimulation() or hasSmokeSimulation() or hasFluidSimulation() or hasParticleSystem()
 
         def isFilterNode(node):
             t = type(node)
