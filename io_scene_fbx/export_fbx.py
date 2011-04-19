@@ -204,7 +204,7 @@ header_comment = \
 def save_single(operator, scene, filepath="",
         GLOBAL_MATRIX=None,
         context_objects=None,
-        object_types={'EMPTY', 'CAMERA', 'ARMATURE', 'MESH'},
+        object_types={'EMPTY', 'CAMERA', 'LAMP', 'ARMATURE', 'MESH'},
         mesh_apply_modifiers=True,
         mesh_smooth_type='FACE',
         ANIM_ENABLE=True,
@@ -1798,13 +1798,13 @@ def save_single(operator, scene, filepath="",
     for ob_base in context_objects:
 
         # ignore dupli children
-        if ob_base.parent and ob_base.parent.dupli_type != 'NONE':
+        if ob_base.parent and ob_base.parent.dupli_type in {'VERTS', 'FACES'}:
             continue
 
-        obs = [(ob_base, ob_base.matrix_world)]
+        obs = [(ob_base, ob_base.matrix_world.copy())]
         if ob_base.dupli_type != 'NONE':
             ob_base.dupli_list_create(scene)
-            obs = [(dob.object, dob.matrix) for dob in ob_base.dupli_list]
+            obs = [(dob.object, dob.matrix.copy()) for dob in ob_base.dupli_list]
 
         for ob, mtx in obs:
 # 		for ob, mtx in BPyObject.getDerivedObjects(ob_base):

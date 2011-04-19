@@ -77,10 +77,11 @@ class ExportFBX(bpy.types.Operator, ExportHelper):
             options={'ENUM_FLAG'},
             items=(('EMPTY', "Empty", ""),
                    ('CAMERA', "Camera", ""),
+                   ('LAMP', "Lamp", ""),
                    ('ARMATURE', "Armature", ""),
                    ('MESH', "Mesh", ""),
                    ),
-            default={'EMPTY', 'CAMERA', 'ARMATURE', 'MESH'},
+            default={'EMPTY', 'CAMERA', 'LAMP', 'ARMATURE', 'MESH'},
             )
 
     mesh_apply_modifiers = BoolProperty(name="Modifiers", description="Apply modifiers to mesh objects", default=True)
