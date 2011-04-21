@@ -1,4 +1,4 @@
-#====================== BEGIN GPL LICENSE BLOCK ======================
+# ##### BEGIN GPL LICENSE BLOCK #####
 #
 #  This program is free software; you can redistribute it and/or
 #  modify it under the terms of the GNU General Public License
@@ -14,7 +14,9 @@
 #  along with this program; if not, write to the Free Software Foundation,
 #  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
-#======================= END GPL LICENSE BLOCK ========================
+# ##### END GPL LICENSE BLOCK #####
+
+# <pep8 compliant>
 
 bl_info = {
     "name": "Math Vis (Console)",
@@ -50,7 +52,7 @@ class VIEW3D_PT_math_vis(bpy.types.Panel):
         layout = self.layout
         view = context.space_data
 
-        col = layout.column(align=True) 
+        col = layout.column(align=True)
 
         callbacks = draw.callbacks
         ok = False
@@ -60,7 +62,6 @@ class VIEW3D_PT_math_vis(bpy.types.Panel):
                 break
 
         col.operator("view3d.math_vis_toggle", emboss=False, icon='CHECKBOX_HLT' if ok else 'CHECKBOX_DEHLT')
-
 
 
 class SetupMathView(bpy.types.Operator):
@@ -96,6 +97,7 @@ def register():
 
     import console_python
     console_python.execute.hooks.append((console_hook, ()))
+
 
 def unregister():
     bpy.utils.unregister_module(__name__)

@@ -2207,7 +2207,7 @@ Objects:  {''')
                 if me in iter(my_bone.blenMeshes.values()):
                     write_sub_deformer_skin(my_mesh, my_bone, weights)
 
-    # Write pose's really weired, only needed when an armature and mesh are used together
+    # Write pose's really weird, only needed when an armature and mesh are used together
     # each by themselves dont need pose data. for now only pose meshes and bones
 
     file.write('''

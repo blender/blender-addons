@@ -24,7 +24,7 @@ bl_info = {
     "blender": (2, 5, 7),
     "api": 35622,
     "location": "Demo Menu",
-    "description": "TODO",
+    "description": "Demo mode lets you select multiple blend files and loop over them.",
     "warning": "",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"\
         "Scripts/System/Demo_Mode#Running_Demo_Mode",
