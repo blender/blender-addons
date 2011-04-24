@@ -15,7 +15,7 @@
 #  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # ##### END GPL LICENSE BLOCK #####
-
+"""
 bl_info = {
     "name": "Gemstones",
     "author": "Pontiac, Fourmadmen, Dreampainter",
@@ -30,7 +30,7 @@ bl_info = {
     "tracker_url": "https://projects.blender.org/tracker/index.php?"\
         "func=detail&aid=21432",
     "category": "Add Mesh"}
-
+"""
 import bpy
 from mathutils import *
 from math import *
@@ -331,42 +331,3 @@ class AddGem(bpy.types.Operator):
 
         return {'FINISHED'}
 
-
-class INFO_MT_mesh_gemstones_add(bpy.types.Menu):
-    # Define the "Gemstones" menu
-    bl_idname = "INFO_MT_mesh_gemstones_add"
-    bl_label = "Gemstones"
-
-    def draw(self, context):
-        layout = self.layout
-        layout.operator_context = 'INVOKE_REGION_WIN'
-        layout.operator("mesh.primitive_diamond_add",
-            text="Diamond")
-        layout.operator("mesh.primitive_gem_add",
-            text="Gem")
-
-
-# Register all operators and panels
-
-
-# Define "Gemstones" menu
-def menu_func(self, context):
-    self.layout.menu("INFO_MT_mesh_gemstones_add", icon="PLUGIN")
-
-
-def register():
-    bpy.utils.register_module(__name__)
-
-    # Add "Gemstones" menu to the "Add Mesh" menu
-    bpy.types.INFO_MT_mesh_add.append(menu_func)
-
-
-def unregister():
-    bpy.utils.unregister_module(__name__)
-
-    # Remove "Gemstones" menu from the "Add Mesh" menu.
-    bpy.types.INFO_MT_mesh_add.remove(menu_func)
-
-
-if __name__ == "__main__":
-    register()

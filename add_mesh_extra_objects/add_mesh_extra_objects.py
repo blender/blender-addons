@@ -16,21 +16,6 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-bl_info = {
-    "name": "Extras",
-    "author": "Pontiac, Fourmadmen, meta-androcto",
-    "version": (0, 5),
-    "blender": (2, 5, 7),
-    "api": 35853,
-    "location": "View3D > Add > Mesh > Extras",
-    "description": "Adds Star, Wedge, & Sqorus objects.",
-    "warning": "",
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"\
-        "Scripts/Add_Mesh/Add_Extra",
-    "tracker_url": "http://projects.blender.org/tracker/index.php?"\
-        "func=detail&aid=22457",
-    "category": "Add Mesh"}
-
 import bpy
 from mathutils import *
 from math import *
@@ -504,40 +489,4 @@ class AddTrapezohedron(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class INFO_MT_mesh_extras_add(bpy.types.Menu):
-    # Define the "Extras" menu
-    bl_idname = "INFO_MT_mesh_extras_add"
-    bl_label = "Extras"
 
-    def draw(self, context):
-        layout = self.layout
-        layout.operator_context = 'INVOKE_REGION_WIN'
-        layout.operator("mesh.primitive_sqorus_add", text="Sqorus")
-        layout.operator("mesh.primitive_wedge_add", text="Wedge")
-        layout.operator("mesh.primitive_star_add", text="Star")
-        layout.operator("mesh.primitive_trapezohedron_add",
-            text="Trapezohedron")
-
-
-# Register all operators and panels
-
-# Define "Extras" menu
-def menu_func(self, context):
-    self.layout.menu("INFO_MT_mesh_extras_add", icon="PLUGIN")
-
-
-def register():
-    bpy.utils.register_module(__name__)
-
-    # Add "Extras" menu to the "Add Mesh" menu
-    bpy.types.INFO_MT_mesh_add.append(menu_func)
-
-
-def unregister():
-    bpy.utils.unregister_module(__name__)
-
-    # Remove "Extras" menu from the "Add Mesh" menu.
-    bpy.types.INFO_MT_mesh_add.remove(menu_func)
-
-if __name__ == "__main__":
-    register()

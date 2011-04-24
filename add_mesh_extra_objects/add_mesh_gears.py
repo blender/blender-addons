@@ -18,7 +18,7 @@
 # Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # ***** END GPL LICENCE BLOCK *****
-
+"""
 bl_info = {
     "name": "Gears",
     "author": "Michel J. Anders (varkenvarken)",
@@ -33,6 +33,7 @@ bl_info = {
     "tracker_url": "https://projects.blender.org/tracker/index.php?"\
         "func=detail&aid=21732",
     "category": "Add Mesh"}
+"""
 
 """
 What was needed to port it from 2.49 -> 2.50 alpha 0?
@@ -799,38 +800,3 @@ class AddWormGear(bpy.types.Operator):
 
         return {'FINISHED'}
 
-
-class INFO_MT_mesh_gears_add(bpy.types.Menu):
-    # Define the "Gears" menu
-    bl_idname = "INFO_MT_mesh_gears_add"
-    bl_label = "Gears"
-
-    def draw(self, context):
-        layout = self.layout
-        layout.operator_context = 'INVOKE_REGION_WIN'
-        layout.operator("mesh.primitive_gear",
-            text="Gear")
-        layout.operator("mesh.primitive_worm_gear",
-            text="Worm")
-
-
-# Define "Gears" menu
-def menu_func(self, context):
-    self.layout.menu("INFO_MT_mesh_gears_add", icon="PLUGIN")
-
-
-def register():
-    bpy.utils.register_module(__name__)
-
-    # Add "Gears" entry to the "Add Mesh" menu.
-    bpy.types.INFO_MT_mesh_add.append(menu_func)
-
-
-def unregister():
-    bpy.utils.unregister_module(__name__)
-
-    # Remove "Gears" entry from the "Add Mesh" menu.
-    bpy.types.INFO_MT_mesh_add.remove(menu_func)
-
-if __name__ == "__main__":
-    register()

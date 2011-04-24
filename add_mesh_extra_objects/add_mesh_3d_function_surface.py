@@ -15,7 +15,7 @@
 #  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # ##### END GPL LICENSE BLOCK #####
-
+"""
 bl_info = {
     "name": "3D Function Surfaces",
     "author": "Buerbaum Martin (Pontiac)",
@@ -30,7 +30,7 @@ bl_info = {
     "tracker_url": "https://projects.blender.org/tracker/index.php?"\
         "func=detail&aid=21444",
     "category": "Add Mesh"}
-
+"""
 """
 Z Function Surface
 
@@ -496,38 +496,3 @@ class AddXYZFunctionSurface(bpy.types.Operator):
         return {'FINISHED'}
 
 
-################################
-
-
-# Define "3D Function Surface" menu
-def menu_func_z(self, context):
-    self.layout.operator(AddZFunctionSurface.bl_idname,
-        text="Z Function Surface",
-        icon="PLUGIN")
-
-
-def menu_func_xyz(self, context):
-    self.layout.operator(AddXYZFunctionSurface.bl_idname,
-        text="X,Y,Z Function Surface",
-        icon="PLUGIN")
-
-
-def register():
-    bpy.utils.register_module(__name__)
-
-    # Add menus to the "Add Mesh" menu
-    INFO_MT_mesh_add = bpy.types.INFO_MT_mesh_add
-    INFO_MT_mesh_add.append(menu_func_z)
-    INFO_MT_mesh_add.append(menu_func_xyz)
-
-
-def unregister():
-    bpy.utils.unregister_module(__name__)
-
-    # Remove menus from the "Add Mesh" menu.
-    INFO_MT_mesh_add = bpy.types.INFO_MT_mesh_add
-    INFO_MT_mesh_add.remove(menu_func_z)
-    INFO_MT_mesh_add.remove(menu_func_xyz)
-
-if __name__ == "__main__":
-    register()
