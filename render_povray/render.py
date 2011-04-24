@@ -1707,10 +1707,37 @@ class PovrayRender(bpy.types.RenderEngine):
             # DH - added -d option to prevent render window popup which leads to segfault on linux
             extra_args.append("-d")
 
-            # TODO, when POV-Ray isn't found this can probably still give a cryptic error on linux,
-            # would be nice to be able to detect if it exists
+            isExists = False
+            sysPathList = os.getenv("PATH").split(':')
+            sysPathList.append("")
 
-            print("Command line arguments passed: " + str(extra_args))
+            for dirName in sysPathList:
+                if (os.path.exists(os.path.join(dirName, pov_binary))):
+                    isExists = True
+                    break
+
+            if not isExists:
+                print("POV-Ray 3.7: could not found execute '%s' - not if PATH" % pov_binary)
+                import traceback
+                traceback.print_exc()
+                print ("***-DONE-***")
+                return False
+
+            try:
+                self._process = subprocess.Popen([pov_binary, self._temp_file_ini] + extra_args)
+
+            except OSError:
+                # TODO, report api
+                print("POV-Ray 3.7: could not execute '%s'" % pov_binary)
+                import traceback
+                traceback.print_exc()
+                print ("***-DONE-***")
+                return False
+
+            else:
+                print("POV-Ray 3.7 found")
+                print("Command line arguments passed: " + str(extra_args))
+                return True
 
     def _cleanup(self):
         for f in (self._temp_file_in, self._temp_file_ini, self._temp_file_out):
