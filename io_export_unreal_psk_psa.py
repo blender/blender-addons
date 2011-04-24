@@ -18,7 +18,7 @@
 bl_info = {
     "name": "Export Unreal Engine Format(.psk/.psa)",
     "author": "Darknet/Optimus_P-Fat/Active_Trash/Sinsoft/VendorX",
-    "version": (2, 2),
+    "version": (2, 3),
     "blender": (2, 5, 7),
     "api": 36079,
     "location": "File > Export > Skeletal Mesh/Animation Data (.psk/.psa)",
@@ -1129,20 +1129,17 @@ def parse_animation(blender_scene, blender_armatures, psa_file):
     cur_frame_index = 0
     if (bpy.context.scene.UEActionSetSettings == '1') or (bpy.context.scene.UEActionSetSettings == '2'):
         print("Action Set(s) Settings Idx:",bpy.context.scene.UEActionSetSettings)
-        print("[==== Action list Start====]")
+        print("[==== Action list ====]")
         
         print("Number of Action set(s):",len(bpy.data.actions))
         
         for action in bpy.data.actions:#current number action sets
-            print("========>>>>>")
-            print("Action Name:",action.name)
+            print("+Action Name:",action.name)
             #print("Groups:")
             #for bone in action.groups:
                 #print("> Name: ",bone.name)
                 #print(dir(bone))
-            
-        print("[==== Action list End ====]")
-        
+				
         amatureobject = None #this is the armature set to none
         bonenames = [] #bone name of the armature bones list
         
@@ -1152,11 +1149,10 @@ def parse_animation(blender_scene, blender_armatures, psa_file):
         collection = amatureobject.myCollectionUEA #collection of the object
         print("\n[==== Armature Object ====]")
         if amatureobject != None:
-            print("Name:",amatureobject.name)
-            print("Number of bones:", len(amatureobject.pose.bones))
+            print("+Name:",amatureobject.name)
+            print("+Number of bones:", len(amatureobject.pose.bones),"\n")
             for bone in amatureobject.pose.bones:
                 bonenames.append(bone.name)
-        print("[=========================]")
         
         for ActionNLA in bpy.data.actions:
             FoundAction = True
@@ -1173,7 +1169,7 @@ def parse_animation(blender_scene, blender_armatures, psa_file):
                     print("Skipping Action Set!",ActionNLA.name)
                     print("========================================")
                     #break
-            print("\n==== Action Set ====")
+            
             nobone = 0
             baction = True
             #print("\nChecking actions matching groups with bone names...")
@@ -1208,9 +1204,9 @@ def parse_animation(blender_scene, blender_armatures, psa_file):
                     print("Armature has no animation, skipping...")
                     print("======================================")
                     break
-                print("Last Action Name:",arm.animation_data.action.name)
+                #print("Last Action Name:",arm.animation_data.action.name)
                 arm.animation_data.action = ActionNLA
-                print("Set Action Name:",arm.animation_data.action.name)
+                #print("Set Action Name:",arm.animation_data.action.name)
                 bpy.context.scene.update()
                 act = arm.animation_data.action
                 action_name = act.name
@@ -1223,7 +1219,8 @@ def parse_animation(blender_scene, blender_armatures, psa_file):
                     
                 #this deal with action export control
                 if bHaveAction == True:
-                    print("------------------------------------")
+                    #print("------------------------------------")
+                    print("[==== Action Set ====]")
                     print("Action Name:",action_name)
                     #look for min and max frame that current set keys
                     framemin, framemax = act.frame_range
@@ -1294,41 +1291,22 @@ def parse_animation(blender_scene, blender_armatures, psa_file):
                             head = pose_bone.head
                             
                             posebonemat = mathutils.Matrix(pose_bone.matrix)
+                            #print(dir(posebonemat))
+
                             #print("quat",posebonemat)
                             #
                             # Error looop action get None in matrix
                             # looping on each armature give invert and normalize for None
                             #
                             parent_pose = pose_bone.parent
+                            
                             if parent_pose != None:
                                 parentposemat = mathutils.Matrix(parent_pose.matrix)
-                                #blender 2.4X it been flip around with new 2.50 (mat1 * mat2) should now be (mat2 * mat1)
-                                #print("posebonemat",posebonemat)
-                                #print("parentposemat",parentposemat.inverted())
-                                #print("parentposemat",dir(parentposemat))
-                                '''
-                                parentposematinvert = parentposemat.invert()
-                                if parentposematinvert == None:
-                                    posebonemat = parentposemat.inverted() * posebonemat
-                                else:
-                                    posebonemat = parentposemat.invert() * posebonemat
-                                '''
-                                posebonemat = parentposemat.invert() * posebonemat
+                                posebonemat = parentposemat.inverted() * posebonemat
                                     
                             head = posebonemat.to_translation()
-                            quat = posebonemat.to_quaternion().normalize()
-                            #print("to_quaternion:",posebonemat.to_quaternion())
-                            quat2 = mathutils.Quaternion(posebonemat.to_quaternion())
-                            #print("to_quaternion2:",dir(quat2))
-                            #if quat == None:
-                                #quat = posebonemat.to_quaternion().normalized()
-                            
-                            
-                            #print("quat",(posebonemat.to_quaternion().normalized()))
-                            #print("quat",dir(posebonemat.to_quaternion().normalized()))
-                            #print("pose_bone name:",pose_bone.name)
-                            #print("head",head)
-                            #print("quat",quat)
+                            quat = posebonemat.to_quaternion().normalized()
+
                             vkey = VQuatAnimKey()
                             vkey.Position.X = head.x
                             vkey.Position.Y = head.y
@@ -1362,6 +1340,12 @@ def parse_animation(blender_scene, blender_armatures, psa_file):
                 anim.TrackTime = float(frame_count) / anim.AnimRate
                 print("Time Track Frame:",anim.TrackTime)
                 psa_file.AddAnimation(anim)
+                print("------------------------------------\n")
+            else:
+                print("[==== Action Set ====]")
+                print("Action Name:",ActionNLA.name)
+                print("Action set Skip!")
+                print("------------------------------------\n")
         print("==== Finish Action Build(s) ====")
     else:
         print("[==== Action Set Single Export====]")
@@ -1470,12 +1454,8 @@ def parse_animation(blender_scene, blender_armatures, psa_file):
                             parentposemat = mathutils.Matrix(parent_pose.matrix)
                             #blender 2.4X it been flip around with new 2.50 (mat1 * mat2) should now be (mat2 * mat1)
                             posebonemat = parentposemat.inverted() * posebonemat
-                            #print("parentposemat ::::",parentposemat)
-                        #print("parentposemat ::::",dir(posebonemat.to_quaternion()))
                         head = posebonemat.to_translation()
                         quat = posebonemat.to_quaternion().normalized()
-                        #print("position :",posebonemat.to_translation(),"quat",posebonemat.to_quaternion().normalized())
-                        #print("posebonemat",posebonemat)
                         vkey = VQuatAnimKey()
                         vkey.Position.X = head.x
                         vkey.Position.Y = head.y
@@ -1919,9 +1899,9 @@ class ExportUDKAnimData(bpy.types.Operator):
             bpy.context.scene.unrealexportpsa = False
             
         if (self.actionexportall):
-            bpy.context.scene.unrealactionexportall = True
+            bpy.context.scene.UEActionSetSettings = '1'#export one action set
         else:
-            bpy.context.scene.unrealactionexportall = False
+            bpy.context.scene.UEActionSetSettings = '0'#export all action sets
         
         write_data(self.filepath, context)
         
@@ -2013,7 +1993,6 @@ class OBJECT_OT_ToggleConsle(bpy.types.Operator):
     __doc__ = "Show or Hide Console."
     
     def invoke(self, context, event):
-        print("Init Export Script:")
         bpy.ops.wm.console_toggle()
         return{'FINISHED'} 
 
@@ -2060,7 +2039,7 @@ class OBJECT_OT_UTSelectedFaceSmooth(bpy.types.Operator):
 class OBJECT_OT_UTRebuildArmature(bpy.types.Operator):
     bl_idname = "object.utrebuildarmature"  # XXX, name???
     bl_label = "Rebuild Armature"
-    __doc__ = """If mesh is deform when importing to unreal engine try this. It rebuild the bones one at the time by select one armature object scrape to raw setup build."""
+    __doc__ = """If mesh is deform when importing to unreal engine try this. It rebuild the bones one at the time by select one armature object scrape to raw setup build. Note the scale will be 1:1 for object mode. To keep from deforming."""
     
     def invoke(self, context, event):
         print("----------------------------------------")
@@ -2131,7 +2110,7 @@ def unpack_list(list_of_tuples):
 class OBJECT_OT_UTRebuildMesh(bpy.types.Operator):
     bl_idname = "object.utrebuildmesh"  # XXX, name???
     bl_label = "Rebuild Mesh"
-    __doc__ = """It rebuild the mesh from scrape from the selected mesh object."""
+    __doc__ = """It rebuild the mesh from scrape from the selected mesh object. Note the scale will be 1:1 for object mode. To keep from deforming."""
     
     def invoke(self, context, event):
         print("----------------------------------------")
