@@ -1756,13 +1756,6 @@ def write_data(path, context):
 
 from bpy.props import *
 
-exporttypedata = []
-
-# [index,text field,0] #or something like that
-exporttypedata.append(("0","PSK","Export PSK"))
-exporttypedata.append(("1","PSA","Export PSA"))
-exporttypedata.append(("2","ALL","Export ALL"))
-
 bpy.types.Scene.unrealfpsrate = IntProperty(
     name="fps rate",
     description="Set the frame per second (fps) for unreal.",
@@ -1771,7 +1764,7 @@ bpy.types.Scene.unrealfpsrate = IntProperty(
 bpy.types.Scene.unrealexport_settings = EnumProperty(
     name="Export:",
     description="Select a export settings (psk/psa/all)...",
-    items = exporttypedata, default = '0')
+    items = [("0","PSK","Export PSK"),("1","PSA","Export PSA"),("2","ALL","Export ALL")], default = '0')
 	
 bpy.types.Scene.UEActionSetSettings = EnumProperty(
     name="Action Set(s) Export Type",
@@ -1878,6 +1871,7 @@ class ExportUDKAnimData(bpy.types.Operator):
     # to the class instance from the operator settings before calling.
 
     filepath = StringProperty(name="File Path", description="Filepath used for exporting the PSA file", maxlen= 1024, default= "", subtype='FILE_PATH')
+    filter_glob = StringProperty(default="*.psk;*.psa", options={'HIDDEN'})
     pskexportbool = BoolProperty(name="Export PSK", description="Export Skeletal Mesh", default= True)
     psaexportbool = BoolProperty(name="Export PSA", description="Export Action Set (Animation Data)", default= True)
     actionexportall = BoolProperty(name="All Actions", description="This will export all the actions that matches the current armature.", default=False)

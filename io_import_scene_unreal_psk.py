@@ -188,6 +188,7 @@ def pskimport(infile,importmesh,importbone,bDebugLogPSK,importmultiuvtextures):
         indata = unpack('3f',pskfile.read(12))
         #print(indata[0],indata[1],indata[2])
         verts.extend([(indata[0],indata[1],indata[2])])
+        printlog(str(indata[0]) + "|" +str(indata[1]) + "|" +str(indata[2]) + "\n")
         #Tmsh.vertices.append(NMesh.Vert(indata[0],indata[1],indata[2]))
         
     #================================================================================================== 
@@ -200,10 +201,12 @@ def pskimport(infile,importmesh,importbone,bDebugLogPSK,importmultiuvtextures):
     counter = 0
     UVCoords = []
     #UVCoords record format = [index to PNTS, U coord, v coord]
+    printlog("[index to PNTS, U coord, v coord]\n");
     while counter < recCount:
         counter = counter + 1
         indata = unpack('hhffhh',pskfile.read(16))
         UVCoords.append([indata[0],indata[2],indata[3]])
+        printlog(str(indata[0]) + "|" +str(indata[2]) + "|" +str(indata[3])+"\n")
         #print([indata[0],indata[2],indata[3]])
         #print([indata[1],indata[2],indata[3]])
         
@@ -220,10 +223,12 @@ def pskimport(infile,importmesh,importbone,bDebugLogPSK,importmultiuvtextures):
     counter = 0
     faces = []
     faceuv = []
+    #the psk values are: nWdgIdx1|WdgIdx2|WdgIdx3|MatIdx|AuxMatIdx|SmthGrp
+    printlog("nWdgIdx1|WdgIdx2|WdgIdx3|MatIdx|AuxMatIdx|SmthGrp \n")
     while counter < recCount:
         counter = counter + 1
-        indata = unpack('hhhbbi',pskfile.read(12))
-        #the psk values are: nWdgIdx1|WdgIdx2|WdgIdx3|MatIdx|AuxMatIdx|SmthGrp
+        indata = unpack('hhhbbi',pskfile.read(12))        
+        printlog(str(indata[0]) + "|" +str(indata[1]) + "|" +str(indata[2])+ "|" +str(indata[3])+ "|" +str(indata[4])+ "|" +str(indata[5]) + "\n")
         #indata[0] = index of UVCoords
         #UVCoords[indata[0]]=[index to PNTS, U coord, v coord]
         #UVCoords[indata[0]][0] = index to PNTS
@@ -244,6 +249,7 @@ def pskimport(infile,importmesh,importbone,bDebugLogPSK,importmultiuvtextures):
         v2 = UVCoords[indata[2]][2]
         uv.append([u2,v2])
         faceuv.append([uv,indata[3],indata[4],indata[5]])
+        
         #print("material:",indata[3])
         #print("UV: ",u0,v0)
         #update the uv var of the last item in the Tmsh.faces list
@@ -286,6 +292,8 @@ def pskimport(infile,importmesh,importbone,bDebugLogPSK,importmultiuvtextures):
     indata = unpack('20s3i',pskfile.read(32))
     recCount = indata[3]
     printlog( "Nbr of REFSKEL0 records: " + str(recCount) + "\n")
+    #REFSKEL0 fields - Name|Flgs|NumChld|PrntIdx|Qw|Qx|Qy|Qz|LocX|LocY|LocZ|Lngth|XSize|YSize|ZSize
+    
     Bns = []
     bone = []
     nobone = 0
@@ -294,9 +302,11 @@ def pskimport(infile,importmesh,importbone,bDebugLogPSK,importmultiuvtextures):
     #==================================================================================================
     counter = 0
     print ("---PRASE--BONES---")
+    printlog("Name|Flgs|NumChld|PrntIdx|Qw|Qx|Qy|Qz|LocX|LocY|LocZ|Lngth|XSize|YSize|ZSize\n")
     while counter < recCount:
         indata = unpack('64s3i11f',pskfile.read(120))
         #print( "DATA",str(indata))
+        
         bone.append(indata)
         
         createbone = md5_bone()
@@ -308,6 +318,7 @@ def pskimport(infile,importmesh,importbone,bDebugLogPSK,importmultiuvtextures):
         temp_name = temp_name.rstrip(" ")
         temp_name = temp_name.strip()
         temp_name = temp_name.strip( bytes.decode(b'\x00'))
+        printlog(temp_name + "|" +str(indata[1]) + "|" +str(indata[2])+ "|" +str(indata[3])+ "|" +str(indata[4])+ "|" +str(indata[5]) +str(indata[6]) + "|" +str(indata[7]) + "|" +str(indata[8])+ "|" +str(indata[9])+ "|" +str(indata[10])+ "|" +str(indata[11]) +str(indata[12]) + "|" +str(indata[13]) + "|" +str(indata[14])+ "\n")
         print ("temp_name:", temp_name, "||")
         createbone.name = temp_name
         createbone.bone_index = counter
@@ -445,8 +456,6 @@ def pskimport(infile,importmesh,importbone,bDebugLogPSK,importmultiuvtextures):
                     #print("rotmatrix:",dir(bone.bindmat.to_matrix().resize_4x4()))
                     #rotmatrix = bone.bindmat.to_matrix().resize_4x4().to_3x3()  # XXX, redundant matrix conversion?
                     rotmatrix = bone.bindmat.to_matrix().to_3x3()  # XXX, redundant matrix conversion?
-					
-                    
                     newbone.head.x = bone.bindpos[0]
                     newbone.head.y = bone.bindpos[1]
                     newbone.head.z = bone.bindpos[2]
@@ -493,9 +502,14 @@ def pskimport(infile,importmesh,importbone,bDebugLogPSK,importmultiuvtextures):
         counter = counter + 1
         indata = unpack('fii',pskfile.read(12))
         RWghts.append([indata[1],indata[2],indata[0]])
+        #print("weight:",[indata[1],indata[2],indata[0]])
     #RWghts fields = PntIdx|BoneIdx|Weight
     RWghts.sort()
-    printlog( "len(RWghts)=" + str(len(RWghts)) + "\n")
+    printlog( "Vertex point and groups count =" + str(len(RWghts)) + "\n")
+    printlog("PntIdx|BoneIdx|Weight")
+    for vg in RWghts:
+        printlog( str(vg[0]) + "|" + str(vg[1]) + "|" + str(vg[2]) + "\n")
+        
     #Tmsh.update_tag()
     
     #set the Vertex Colors of the faces
@@ -554,7 +568,6 @@ def pskimport(infile,importmesh,importbone,bDebugLogPSK,importmultiuvtextures):
     materials = []
 	
     for matcount in range(materialcount):
-        
         #if texturedata != None:
         matdata = bpy.data.materials.new(materialname + str(matcount))
         #mtex = matdata.texture_slots.new()
@@ -686,24 +699,44 @@ def pskimport(infile,importmesh,importbone,bDebugLogPSK,importmultiuvtextures):
     #
     #===================================================================================================
     obmesh = bpy.data.objects.new(objName,me_ob)
+    #===================================================================================================
+    #Mesh Vertex Group bone weight
+    #===================================================================================================
+    print("---- building bone weight mesh ----")
+    #print(dir(ob_new.data.bones))
+    #create bone vertex group #deal with bone id for index number
+    for bone in ob_new.data.bones:
+        #print("names:",bone.name,":",dir(bone))
+        #print("names:",bone.name)
+        group = obmesh.vertex_groups.new(bone.name)
+    for vgroup in obmesh.vertex_groups:
+        #print(vgroup.name,":",vgroup.index)
+        for vgp in RWghts:
+            #bone index
+            if vgp[1] == vgroup.index:
+                #print(vgp)
+                #[vertex id],weight
+                vgroup.add([vgp[0]], vgp[2], 'ADD')
+				
     #check if there is a material to set to
     if len(materials) > 0:
         obmesh.active_material = materials[0] #material setup tmp
-    
-    bpy.context.scene.objects.link(obmesh)
-    
+    print("---- adding mesh to the scene ----")    
+    bpy.context.scene.objects.link(obmesh)    
     bpy.context.scene.update()
     
     print ("PSK2Blender completed")
 #End of def pskimport#########################
 
-def getInputFilename(filename,importmesh,importbone,bDebugLogPSK,importmultiuvtextures):
+def getInputFilename(self,filename,importmesh,importbone,bDebugLogPSK,importmultiuvtextures):
     checktype = filename.split('\\')[-1].split('.')[1]
     print ("------------",filename)
-    if checktype.upper() != 'PSK':
+    if checktype.lower() != 'psk':
         print ("  Selected file = ",filename)
         raise (IOError, "The selected input file is not a *.psk file")
-    pskimport(filename,importmesh,importbone,bDebugLogPSK,importmultiuvtextures)
+        #self.report({'INFO'}, ("Selected file:"+ filename))
+    else:
+        pskimport(filename,importmesh,importbone,bDebugLogPSK,importmultiuvtextures)
 
 from bpy.props import *
 
@@ -716,14 +749,15 @@ class IMPORT_OT_psk(bpy.types.Operator):
 	
     # List of operator properties, the attributes will be assigned
     # to the class instance from the operator settings before calling.
-    filepath = StringProperty(name="File Path", description="Filepath used for importing the OBJ file", maxlen= 1024, default= "")
+    filepath = StringProperty(name="File Path", description="Filepath used for importing the psk file", maxlen= 1024, subtype='FILE_PATH')
+    filter_glob = StringProperty(default="*.psk", options={'HIDDEN'})
     importmesh = BoolProperty(name="Mesh", description="Import mesh only. (not yet build.)", default=True)
     importbone = BoolProperty(name="Bones", description="Import bones only. Current not working yet.", default=True)
     importmultiuvtextures = BoolProperty(name="Single UV Texture(s)", description="Single or Multi uv textures.", default=True)
     bDebugLogPSK = BoolProperty(name="Debug Log.txt", description="Log the output of raw format. It will save in current file dir. Note this just for testing.", default=False)
 
     def execute(self, context):
-        getInputFilename(self.filepath,self.importmesh,self.importbone,self.bDebugLogPSK,self.importmultiuvtextures)
+        getInputFilename(self,self.filepath,self.importmesh,self.importbone,self.bDebugLogPSK,self.importmultiuvtextures)
         return {'FINISHED'}
 
     def invoke(self, context, event):
