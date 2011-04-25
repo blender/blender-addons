@@ -239,7 +239,7 @@ def line_value(line_split):
         return b' '.join(line_split[1:])
 
 
-def obj_image_load(imagepath, DIR, IMAGE_SEARCH):
+def obj_image_load(imagepath, DIR, use_image_search):
     if b'_' in imagepath:
         image = load_image(imagepath.replace(b'_', b' '), DIR)
         if image:
@@ -252,25 +252,25 @@ def obj_image_load(imagepath, DIR, IMAGE_SEARCH):
     print("failed to load %r doesn't exist" % imagepath)
     return None
 
-# def obj_image_load(imagepath, DIR, IMAGE_SEARCH):
+# def obj_image_load(imagepath, DIR, use_image_search):
 #     '''
 #     Mainly uses comprehensiveImageLoad
 #     but tries to replace '_' with ' ' for Max's exporter replaces spaces with underscores.
 #     '''
 
 #     if '_' in imagepath:
-#         image= BPyImage.comprehensiveImageLoad(imagepath, DIR, PLACE_HOLDER= False, RECURSIVE= IMAGE_SEARCH)
+#         image= BPyImage.comprehensiveImageLoad(imagepath, DIR, PLACE_HOLDER= False, RECURSIVE= use_image_search)
 #         if image: return image
 #         # Did the exporter rename the image?
-#         image= BPyImage.comprehensiveImageLoad(imagepath.replace('_', ' '), DIR, PLACE_HOLDER= False, RECURSIVE= IMAGE_SEARCH)
+#         image= BPyImage.comprehensiveImageLoad(imagepath.replace('_', ' '), DIR, PLACE_HOLDER= False, RECURSIVE= use_image_search)
 #         if image: return image
 
 #     # Return an image, placeholder if it dosnt exist
-#     image= BPyImage.comprehensiveImageLoad(imagepath, DIR, PLACE_HOLDER= True, RECURSIVE= IMAGE_SEARCH)
+#     image= BPyImage.comprehensiveImageLoad(imagepath, DIR, PLACE_HOLDER= True, RECURSIVE= use_image_search)
 #     return image
 
 
-def create_materials(filepath, material_libs, unique_materials, unique_material_images, IMAGE_SEARCH):
+def create_materials(filepath, material_libs, unique_materials, unique_material_images, use_image_search):
     '''
     Create all the used materials in this obj,
     assign colors and images to the materials from all referenced material libs
@@ -285,7 +285,7 @@ def create_materials(filepath, material_libs, unique_materials, unique_material_
         texture = bpy.data.textures.new(name=type, type='IMAGE')
 
         # Absolute path - c:\.. etc would work here
-        image = obj_image_load(imagepath, DIR, IMAGE_SEARCH)
+        image = obj_image_load(imagepath, DIR, use_image_search)
         has_data = False
 
         if image:
@@ -604,13 +604,13 @@ def split_mesh(verts_loc, faces, unique_materials, filepath, SPLIT_OB_OR_GROUP):
     return [(value[0], value[1], value[2], key_to_name(key)) for key, value in list(face_split_dict.items())]
 
 
-def create_mesh(new_objects, has_ngons, CREATE_FGONS, CREATE_EDGES, verts_loc, verts_tex, faces, unique_materials, unique_material_images, unique_smooth_groups, vertex_groups, dataname):
+def create_mesh(new_objects, has_ngons, use_ngons, use_edges, verts_loc, verts_tex, faces, unique_materials, unique_material_images, unique_smooth_groups, vertex_groups, dataname):
     '''
     Takes all the data gathered and generates a mesh, adding the new object to new_objects
     deals with fgons, sharp edges and assigning materials
     '''
     if not has_ngons:
-        CREATE_FGONS = False
+        use_ngons = False
 
     if unique_smooth_groups:
         sharp_edges = {}
@@ -619,7 +619,7 @@ def create_mesh(new_objects, has_ngons, CREATE_FGONS, CREATE_EDGES, verts_loc, v
 
     # Split fgons into tri's
     fgon_edges = {}  # Used for storing fgon keys
-    if CREATE_EDGES:
+    if use_edges:
         edges = []
 
     context_object = None
@@ -639,7 +639,7 @@ def create_mesh(new_objects, has_ngons, CREATE_FGONS, CREATE_EDGES, verts_loc, v
             faces.pop(f_idx)  # cant add single vert faces
 
         elif not face_vert_tex_indices or len_face_vert_loc_indices == 2:  # faces that have no texture coords are lines
-            if CREATE_EDGES:
+            if use_edges:
                 # generators are better in python 2.4+ but can't be used in 2.3
                 # edges.extend( (face_vert_loc_indices[i], face_vert_loc_indices[i+1]) for i in xrange(len_face_vert_loc_indices-1) )
                 edges.extend([(face_vert_loc_indices[i], face_vert_loc_indices[i + 1]) for i in range(len_face_vert_loc_indices - 1)])
@@ -680,7 +680,7 @@ def create_mesh(new_objects, has_ngons, CREATE_FGONS, CREATE_EDGES, verts_loc, v
                 )
 
                 # edges to make fgons
-                if CREATE_FGONS:
+                if use_ngons:
                     edge_users = {}
                     for ngon in ngon_face_indices:
                         for i in (0, 1, 2):
@@ -744,7 +744,7 @@ def create_mesh(new_objects, has_ngons, CREATE_FGONS, CREATE_EDGES, verts_loc, v
         if len(face[0]) < 2:
             pass  # raise "bad face"
         elif len(face[0]) == 2:
-            if CREATE_EDGES:
+            if use_edges:
                 edges.append(face[0])
         else:
 
@@ -801,10 +801,10 @@ def create_mesh(new_objects, has_ngons, CREATE_FGONS, CREATE_EDGES, verts_loc, v
     del me_faces
 #     del ALPHA
 
-    if CREATE_EDGES and not edges:
-        CREATE_EDGES = False
+    if use_edges and not edges:
+        use_edges = False
 
-    if CREATE_EDGES:
+    if use_edges:
         me.edges.add(len(edges))
 
         # edges should be a list of (a, b) tuples
@@ -820,13 +820,13 @@ def create_mesh(new_objects, has_ngons, CREATE_FGONS, CREATE_EDGES, verts_loc, v
         return (e1[0] == e2[0] and e1[1] == e2[1]) or (e1[0] == e2[1] and e1[1] == e2[0])
 
     # XXX slow
-#     if CREATE_FGONS and fgon_edges:
+#     if use_ngons and fgon_edges:
 #         for fgon_edge in fgon_edges.keys():
 #             for ed in me.edges:
 #                 if edges_match(fgon_edge, ed.vertices):
 #                     ed.is_fgon = True
 
-#     if CREATE_FGONS and fgon_edges:
+#     if use_ngons and fgon_edges:
 #         FGON= Mesh.EdgeFlags.FGON
 #         for ed in me.findEdges( fgon_edges.keys() ):
 #             if ed is not None:
@@ -848,7 +848,7 @@ def create_mesh(new_objects, has_ngons, CREATE_FGONS, CREATE_EDGES, verts_loc, v
 #         del SHARP
 
     me.validate()
-    me.update(calc_edges=CREATE_EDGES)
+    me.update(calc_edges=use_edges)
 
     ob = bpy.data.objects.new("Mesh", me)
     new_objects.append(ob)
@@ -963,15 +963,15 @@ def get_float_func(filepath):
 
 
 def load(operator, context, filepath,
-         CLAMP_SIZE=0.0,
-         CREATE_FGONS=True,
-         CREATE_SMOOTH_GROUPS=True,
-         CREATE_EDGES=True,
-         SPLIT_OBJECTS=True,
-         SPLIT_GROUPS=True,
-         ROTATE_X90=True,
-         IMAGE_SEARCH=True,
-         POLYGROUPS=False):
+         global_clamp_size=0.0,
+         use_ngons=True,
+         use_smooth_groups=True,
+         use_edges=True,
+         use_split_objects=True,
+         use_split_groups=True,
+         use_rotate_x90=True,
+         use_image_search=True,
+         use_groups_as_vgroups=False):
     '''
     Called by the user interface or another script.
     load_obj(path) - should give acceptable results.
@@ -982,8 +982,8 @@ def load(operator, context, filepath,
 
     filepath = filepath.encode()
 
-    if SPLIT_OBJECTS or SPLIT_GROUPS:
-        POLYGROUPS = False
+    if use_split_objects or use_split_groups:
+        use_groups_as_vgroups = False
 
     time_main = time.time()
 
@@ -991,7 +991,7 @@ def load(operator, context, filepath,
     verts_tex = []
     faces = []  # tuples of the faces
     material_libs = []  # filanems to material libs this uses
-    vertex_groups = {}  # when POLYGROUPS is true
+    vertex_groups = {}  # when use_groups_as_vgroups is true
 
     # Get the string to float conversion func for this file- is 'float' for almost all files.
     float_func = get_float_func(filepath)
@@ -1074,7 +1074,7 @@ def load(operator, context, filepath,
                 vert_loc_index = int(obj_vert[0]) - 1
                 # Add the vertex to the current group
                 # *warning*, this wont work for files that have groups defined around verts
-                if POLYGROUPS and context_vgroup:
+                if use_groups_as_vgroups and context_vgroup:
                     vertex_groups[context_vgroup].append(vert_loc_index)
 
                 # Make relative negative vert indices absolute
@@ -1100,7 +1100,7 @@ def load(operator, context, filepath,
             if len(face_vert_loc_indices) > 4:
                 has_ngons = True
 
-        elif CREATE_EDGES and (line.startswith(b'l ') or context_multi_line == b'l'):
+        elif use_edges and (line.startswith(b'l ') or context_multi_line == b'l'):
             # very similar to the face load function above with some parts removed
 
             if context_multi_line:
@@ -1138,7 +1138,7 @@ def load(operator, context, filepath,
                 face_vert_loc_indices.append(vert_loc_index)
 
         elif line.startswith(b's'):
-            if CREATE_SMOOTH_GROUPS:
+            if use_smooth_groups:
                 context_smooth_group = line_value(line.split())
                 if context_smooth_group == b'off':
                     context_smooth_group = None
@@ -1146,16 +1146,16 @@ def load(operator, context, filepath,
                     unique_smooth_groups[context_smooth_group] = None
 
         elif line.startswith(b'o'):
-            if SPLIT_OBJECTS:
+            if use_split_objects:
                 context_object = line_value(line.split())
                 # unique_obects[context_object]= None
 
         elif line.startswith(b'g'):
-            if SPLIT_GROUPS:
+            if use_split_groups:
                 context_object = line_value(line.split())
                 # print 'context_object', context_object
                 # unique_obects[context_object]= None
-            elif POLYGROUPS:
+            elif use_groups_as_vgroups:
                 context_vgroup = line_value(line.split())
                 if context_vgroup and context_vgroup != b'(null)':
                     vertex_groups.setdefault(context_vgroup, [])
@@ -1234,13 +1234,13 @@ def load(operator, context, filepath,
     time_sub = time_new
 
     print('\tloading materials and images...')
-    create_materials(filepath, material_libs, unique_materials, unique_material_images, IMAGE_SEARCH)
+    create_materials(filepath, material_libs, unique_materials, unique_material_images, use_image_search)
 
     time_new = time.time()
     print("%.4f sec" % (time_new - time_sub))
     time_sub = time_new
 
-    if not ROTATE_X90:
+    if not use_rotate_x90:
         verts_loc[:] = [(v[0], v[2], -v[1]) for v in verts_loc]
 
     # deselect all
@@ -1253,14 +1253,14 @@ def load(operator, context, filepath,
 
     print('\tbuilding geometry...\n\tverts:%i faces:%i materials: %i smoothgroups:%i ...' % (len(verts_loc), len(faces), len(unique_materials), len(unique_smooth_groups)))
     # Split the mesh by objects/materials, may
-    if SPLIT_OBJECTS or SPLIT_GROUPS:
+    if use_split_objects or use_split_groups:
         SPLIT_OB_OR_GROUP = True
     else:
         SPLIT_OB_OR_GROUP = False
 
     for verts_loc_split, faces_split, unique_materials_split, dataname in split_mesh(verts_loc, faces, unique_materials, filepath, SPLIT_OB_OR_GROUP):
         # Create meshes from the data, warning 'vertex_groups' wont support splitting
-        create_mesh(new_objects, has_ngons, CREATE_FGONS, CREATE_EDGES, verts_loc_split, verts_tex, faces_split, unique_materials_split, unique_material_images, unique_smooth_groups, vertex_groups, dataname)
+        create_mesh(new_objects, has_ngons, use_ngons, use_edges, verts_loc_split, verts_tex, faces_split, unique_materials_split, unique_material_images, unique_smooth_groups, vertex_groups, dataname)
 
     # nurbs support
     for context_nurbs in nurbs:
@@ -1276,7 +1276,7 @@ def load(operator, context, filepath,
     axis_min = [1000000000] * 3
     axis_max = [-1000000000] * 3
 
-    if CLAMP_SIZE:
+    if global_clamp_size:
         # Get all object bounds
         for ob in new_objects:
             for v in ob.bound_box:
@@ -1290,14 +1290,14 @@ def load(operator, context, filepath,
         max_axis = max(axis_max[0] - axis_min[0], axis_max[1] - axis_min[1], axis_max[2] - axis_min[2])
         scale = 1.0
 
-        while CLAMP_SIZE < max_axis * scale:
+        while global_clamp_size < max_axis * scale:
             scale = scale / 10.0
 
         for obj in new_objects:
             obj.scale = scale, scale, scale
 
     # Better rotate the vert locations
-    #if not ROTATE_X90:
+    #if not use_rotate_x90:
     #    for ob in new_objects:
     #        ob.RotX = -1.570796326794896558
 

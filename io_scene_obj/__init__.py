@@ -56,18 +56,18 @@ class ImportOBJ(bpy.types.Operator, ImportHelper):
     filename_ext = ".obj"
     filter_glob = StringProperty(default="*.obj;*.mtl", options={'HIDDEN'})
 
-    CREATE_SMOOTH_GROUPS = BoolProperty(name="Smooth Groups", description="Surround smooth groups by sharp edges", default=True)
-    CREATE_FGONS = BoolProperty(name="NGons as FGons", description="Import faces with more then 4 verts as fgons", default=True)
-    CREATE_EDGES = BoolProperty(name="Lines as Edges", description="Import lines and faces with 2 verts as edge", default=True)
-    SPLIT_OBJECTS = BoolProperty(name="Object", description="Import OBJ Objects into Blender Objects", default=True)
-    SPLIT_GROUPS = BoolProperty(name="Group", description="Import OBJ Groups into Blender Objects", default=True)
+    use_smooth_groups = BoolProperty(name="Smooth Groups", description="Surround smooth groups by sharp edges", default=True)
+    use_ngons = BoolProperty(name="NGons as FGons", description="Import faces with more then 4 verts as fgons", default=True)
+    use_edges = BoolProperty(name="Lines as Edges", description="Import lines and faces with 2 verts as edge", default=True)
+    use_split_objects = BoolProperty(name="Object", description="Import OBJ Objects into Blender Objects", default=True)
+    use_split_groups = BoolProperty(name="Group", description="Import OBJ Groups into Blender Objects", default=True)
     # old comment: only used for user feedback
     # disabled this option because in old code a handler for it disabled SPLIT* params, it's not passed to load_obj
     # KEEP_VERT_ORDER = BoolProperty(name="Keep Vert Order", description="Keep vert and face order, disables split options, enable for morph targets", default= True)
-    ROTATE_X90 = BoolProperty(name="-X90", description="Rotate X 90.", default=True)
-    CLAMP_SIZE = FloatProperty(name="Clamp Scale", description="Clamp the size to this maximum (Zero to Disable)", min=0.0, max=1000.0, soft_min=0.0, soft_max=1000.0, default=0.0)
-    POLYGROUPS = BoolProperty(name="Poly Groups", description="Import OBJ groups as vertex groups.", default=False)
-    IMAGE_SEARCH = BoolProperty(name="Image Search", description="Search subdirs for any assosiated images (Warning, may be slow)", default=True)
+    use_rotate_x90 = BoolProperty(name="-X90", description="Rotate X 90.", default=True)
+    global_clamp_size = FloatProperty(name="Clamp Scale", description="Clamp the size to this maximum (Zero to Disable)", min=0.0, max=1000.0, soft_min=0.0, soft_max=1000.0, default=0.0)
+    use_groups_as_vgroups = BoolProperty(name="Poly Groups", description="Import OBJ groups as vertex groups.", default=False)
+    use_image_search = BoolProperty(name="Image Search", description="Search subdirs for any assosiated images (Warning, may be slow)", default=True)
 
     def execute(self, context):
         # print("Selected: " + context.active_object.name)
