@@ -499,7 +499,7 @@ def create_materials(filepath, material_libs, unique_materials, unique_material_
                             context_material.raytrace_transparency.ior = 1.5
 
                         if do_fresnel:
-                            context_material.raytrace_mirror.raytrace_mirror.fresnel = 1.0  # could be any value for 'ON'
+                            context_material.raytrace_mirror.fresnel = 1.0  # could be any value for 'ON'
 
                         """
                         if do_raytrace:

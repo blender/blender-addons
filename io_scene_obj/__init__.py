@@ -98,12 +98,12 @@ class ImportOBJ(bpy.types.Operator, ImportHelper):
         row.prop(self, "use_ngons")
         row.prop(self, "use_edges")
 
-        layout.prop(self, "use_smooth_groups") 
+        layout.prop(self, "use_smooth_groups")
 
         box = layout.box()
         row = box.row()
         row.prop(self, "split_mode", expand=True)
-    
+
         row = box.row()
         if self.split_mode == 'ON':
             row.label(text="Split by:")
