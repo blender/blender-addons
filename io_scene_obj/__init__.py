@@ -66,7 +66,7 @@ class ImportOBJ(bpy.types.Operator, ImportHelper):
     # KEEP_VERT_ORDER = BoolProperty(name="Keep Vert Order", description="Keep vert and face order, disables split options, enable for morph targets", default= True)
     ROTATE_X90 = BoolProperty(name="-X90", description="Rotate X 90.", default=True)
     CLAMP_SIZE = FloatProperty(name="Clamp Scale", description="Clamp the size to this maximum (Zero to Disable)", min=0.0, max=1000.0, soft_min=0.0, soft_max=1000.0, default=0.0)
-    POLYGROUPS = BoolProperty(name="Poly Groups", description="Import OBJ groups as vertex groups.", default=True)
+    POLYGROUPS = BoolProperty(name="Poly Groups", description="Import OBJ groups as vertex groups.", default=False)
     IMAGE_SEARCH = BoolProperty(name="Image Search", description="Search subdirs for any assosiated images (Warning, may be slow)", default=True)
 
     def execute(self, context):

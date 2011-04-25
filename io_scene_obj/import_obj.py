@@ -857,7 +857,7 @@ def create_mesh(new_objects, has_ngons, CREATE_FGONS, CREATE_EDGES, verts_loc, v
     # content of the vertex_groups. If the user selects to NOT have vertex groups saved then
     # the following test will never run
     for group_name, group_indices in vertex_groups.items():
-        group = ob.vertex_groups.new(group_name)
+        group = ob.vertex_groups.new(group_name.decode('utf-8', "replace"))
         group.add(group_indices, 1.0, 'REPLACE')
 
 
@@ -1209,7 +1209,7 @@ def load(operator, context, filepath,
 
             if context_parm.lower() == b'u':
                 context_nurbs.setdefault(b'parm_u', []).extend([float_func(f) for f in line_split])
-            elif context_parm.lower() == b'v':  # surfaces not suported yet
+            elif context_parm.lower() == b'v':  # surfaces not supported yet
                 context_nurbs.setdefault(b'parm_v', []).extend([float_func(f) for f in line_split])
             # else: # may want to support other parm's ?
 
