@@ -42,7 +42,7 @@ if "bpy" in locals():
 
 
 import bpy
-from bpy.props import BoolProperty, FloatProperty, StringProperty
+from bpy.props import BoolProperty, FloatProperty, StringProperty, EnumProperty
 import io_utils
 from io_utils import ExportHelper, ImportHelper
 
@@ -56,23 +56,67 @@ class ImportOBJ(bpy.types.Operator, ImportHelper):
     filename_ext = ".obj"
     filter_glob = StringProperty(default="*.obj;*.mtl", options={'HIDDEN'})
 
+    use_ngons = BoolProperty(name="NGons", description="Import faces with more then 4 verts as fgons", default=True)
+    use_edges = BoolProperty(name="Lines", description="Import lines and faces with 2 verts as edge", default=True)
     use_smooth_groups = BoolProperty(name="Smooth Groups", description="Surround smooth groups by sharp edges", default=True)
-    use_ngons = BoolProperty(name="NGons as FGons", description="Import faces with more then 4 verts as fgons", default=True)
-    use_edges = BoolProperty(name="Lines as Edges", description="Import lines and faces with 2 verts as edge", default=True)
+
     use_split_objects = BoolProperty(name="Object", description="Import OBJ Objects into Blender Objects", default=True)
     use_split_groups = BoolProperty(name="Group", description="Import OBJ Groups into Blender Objects", default=True)
-    # old comment: only used for user feedback
-    # disabled this option because in old code a handler for it disabled SPLIT* params, it's not passed to load_obj
-    # KEEP_VERT_ORDER = BoolProperty(name="Keep Vert Order", description="Keep vert and face order, disables split options, enable for morph targets", default= True)
+
+    use_groups_as_vgroups = BoolProperty(name="Poly Groups", description="Import OBJ groups as vertex groups.", default=False)
+
     use_rotate_x90 = BoolProperty(name="-X90", description="Rotate X 90.", default=True)
     global_clamp_size = FloatProperty(name="Clamp Scale", description="Clamp the size to this maximum (Zero to Disable)", min=0.0, max=1000.0, soft_min=0.0, soft_max=1000.0, default=0.0)
-    use_groups_as_vgroups = BoolProperty(name="Poly Groups", description="Import OBJ groups as vertex groups.", default=False)
     use_image_search = BoolProperty(name="Image Search", description="Search subdirs for any assosiated images (Warning, may be slow)", default=True)
+
+    split_mode = EnumProperty(
+            name="Smoothing",
+            items=(('ON', "Split", "Split imported meshes"),
+                   ('OFF', "Keep Vert Order", "Maintain vertex order"),
+                   ),
+            )
+
+    # fake prop, only disables split.
+    # keep_vertex_order = BoolProperty(name="Keep Vert Order", description="Keep vert and face order, disables split options, enable for morph targets", default= True)
 
     def execute(self, context):
         # print("Selected: " + context.active_object.name)
         from . import import_obj
-        return import_obj.load(self, context, **self.as_keywords(ignore=("filter_glob",)))
+
+        if self.split_mode == 'OFF':
+            self.use_split_objects = False
+            self.use_split_groups = False
+        else:
+            self.use_groups_as_vgroups = False
+
+        return import_obj.load(self, context, **self.as_keywords(ignore=("filter_glob", "split_mode")))
+
+    def draw(self, context):
+        layout = self.layout
+
+        row = layout.row(align=True)
+        row.prop(self, "use_ngons")
+        row.prop(self, "use_edges")
+
+        layout.prop(self, "use_smooth_groups") 
+
+        box = layout.box()
+        row = box.row()
+        row.prop(self, "split_mode", expand=True)
+    
+        row = box.row()
+        if self.split_mode == 'ON':
+            row.label(text="Split by:")
+            row.prop(self, "use_split_objects")
+            row.prop(self, "use_split_groups")
+        else:
+            row.prop(self, "use_groups_as_vgroups")
+
+        row = layout.split(percentage=0.67)
+        row.prop(self, "global_clamp_size")
+        row.prop(self, "use_rotate_x90")
+
+        layout.prop(self, "use_image_search")
 
 
 class ExportOBJ(bpy.types.Operator, ExportHelper):
