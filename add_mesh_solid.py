@@ -8,7 +8,7 @@
 #
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	See the
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
@@ -20,10 +20,10 @@
 bl_info = {
     "name": "Regular Solids",
     "author": "DreamPainter",
-    "version": (1, 0, 1),
+    "version": (2, 0),
     "blender": (2, 5, 7),
-    "api": 35853,
-    "location": "View3D > Add > Mesh > Regular Solids",
+    "api": 36336,
+    "location": "View3D > Add > Mesh > Solids",
     "description": "Add a Regular Solid mesh.",
     "warning": "",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"\
@@ -32,102 +32,13 @@ bl_info = {
         "func=detail&aid=22405",
     "category": "Add Mesh"}
 
-
 import bpy
 from bpy.props import FloatProperty,EnumProperty,BoolProperty
 from math import sqrt
 from mathutils import Vector,Matrix
-#from rawMeshUtils import *
 from functools import reduce
+from add_object_utils import object_data_add
 
-# Create a new mesh (object) from verts/edges/faces.
-# verts/edges/faces ... List of vertices/edges/faces for the
-#                       new mesh (as used in from_pydata).
-# name ... Name of the new mesh (& object).
-def create_mesh_object(context, verts, edges, faces, name):
-    scene = context.scene
-    obj_act = scene.objects.active
-
-    # Create new mesh
-    mesh = bpy.data.meshes.new(name)
-
-    # Make a mesh from a list of verts/edges/faces.
-    mesh.from_pydata(verts, edges, faces)
-
-    # Update mesh geometry after adding stuff.
-    mesh.update()
-
-    import add_object_utils
-    return add_object_utils.object_data_add(context, mesh, operator=None)
-
-
-# A very simple "bridge" tool.
-# Connects two equally long vertex rows with faces.
-# Returns a list of the new faces (list of  lists)
-#
-# vertIdx1 ... First vertex list (list of vertex indices).
-# vertIdx2 ... Second vertex list (list of vertex indices).
-# closed ... Creates a loop (first & last are closed).
-# flipped ... Invert the normal of the face(s).
-#
-# Note: You can set vertIdx1 to a single vertex index to create
-#       a fan/star of faces.
-# Note: If both vertex idx list are the same length they have
-#       to have at least 2 vertices.
-def createFaces(vertIdx1, vertIdx2, closed=False, flipped=False):
-    faces = []
-
-    if not vertIdx1 or not vertIdx2:
-        return None
-
-    if len(vertIdx1) < 2 and len(vertIdx2) < 2:
-        return None
-
-    fan = False
-    if (len(vertIdx1) != len(vertIdx2)):
-        if (len(vertIdx1) == 1 and len(vertIdx2) > 1):
-            fan = True
-        else:
-            return None
-
-    total = len(vertIdx2)
-
-    if closed:
-        # Bridge the start with the end.
-        if flipped:
-            face = [
-                vertIdx1[0],
-                vertIdx2[0],
-                vertIdx2[total - 1]]
-            if not fan:
-                face.append(vertIdx1[total - 1])
-            faces.append(face)
-
-        else:
-            face = [vertIdx2[0], vertIdx1[0]]
-            if not fan:
-                face.append(vertIdx1[total - 1])
-            face.append(vertIdx2[total - 1])
-            faces.append(face)
-
-    # Bridge the rest of the faces.
-    for num in range(total - 1):
-        if flipped:
-            if fan:
-                face = [vertIdx2[num], vertIdx1[0], vertIdx2[num + 1]]
-            else:
-                face = [vertIdx2[num], vertIdx1[num],
-                    vertIdx1[num + 1], vertIdx2[num + 1]]
-            faces.append(face)
-        else:
-            if fan:
-                face = [vertIdx1[0], vertIdx2[num], vertIdx2[num + 1]]
-            else:
-                face = [vertIdx1[num], vertIdx2[num],
-                    vertIdx2[num + 1], vertIdx1[num + 1]]
-            faces.append(face)
-
-    return faces
 # this function creates a chain of quads and, when necessary, a remaining tri
 # for each polygon created in this script. be aware though, that this function
 # assumes each polygon is convex.
@@ -143,28 +54,26 @@ def createPolys(poly):
         poly = [poly] # if only one, make it a list of one face
     faces = []
     for i in poly:
-        l = len(i)
+        L = len(i)
         # let all faces of 3 or 4 verts be
-        if l < 5:
+        if L < 5:
             faces.append(i)
         # split all polygons in half and bridge the two halves
         else:
-            half = int(l/2)
-            f = createFaces(i[:half],[i[-1-j] for j in range(half)])        
+            f = [[i[x],i[x+1],i[L-2-x],i[L-1-x]] for x in range(L//2-1)]
             faces.extend(f)
-            # if the polygon has an odd number of verts, add the last tri
-            if l%2 == 1:
-                faces.append([i[half-1],i[half],i[half+1]])
+            if L&1 == 1: 
+                faces.append([i[L//2-1+x] for x in [0,1,2]])
     return faces
-
+    
 # function to make the reduce function work as a workaround to sum a list of vectors 
-def Asum(list):
+def vSum(list):
     return reduce(lambda a,b: a+b, list)
-
+    
 # creates the 5 platonic solids as a base for the rest
 #  plato: should be one of {"4","6","8","12","20"}. decides what solid the
 #         outcome will be.
-#  returns a list of vertices and faces and the appropriate name
+#  returns a list of vertices and faces
 def source(plato):
     verts = []
     faces = []
@@ -225,16 +134,11 @@ def source(plato):
                  [0,10,8],[1,8,10],[2,9,11],[3,11,9],[4,2,0],[5,0,2],[6,1,3],[7,3,1],
                  [8,6,4],[9,4,6],[10,5,7],[11,7,5]]
 
-    # handles faulty values of plato
-    else:
-        print("Choose keyword 'plato' from {'4','6','8','12','20'}")
-        return None
-
     # convert the tuples to Vectors
     verts = [Vector(i) for i in v]
 
     return verts,faces
-
+    
 # processes the raw data from source
 def createSolid(plato,vtrunc,etrunc,dual,snub):
     verts = []
@@ -250,304 +154,194 @@ def createSolid(plato,vtrunc,etrunc,dual,snub):
     # constants saving space and readability
     vtrunc *= 0.5
     etrunc *= 0.5
-    supposed_size = 0
-    noSnub = (snub == "0") or (etrunc == 0.5) or (etrunc == 0)
-    lSnub = (snub == "L") and (0 < etrunc < 0.5)
-    rSnub = (snub == "R") and (0 < etrunc < 0.5)
+    supposedSize = 0
+    noSnub = (snub == "None") or (etrunc == 0.5) or (etrunc == 0)
+    lSnub = (snub == "Left") and (0 < etrunc < 0.5)
+    rSnub = (snub == "Right") and (0 < etrunc < 0.5)
 
     # no truncation
     if vtrunc == 0:
         if dual: # dual is as simple as another, but mirrored platonic solid
-            vInput,fInput = source(dualSource[plato])
-            supposed_size = Asum(vInput[i] for i in fInput[0]).length / len(fInput[0])
-            vInput = [-i*supposed_size for i in vInput]            # mirror it
-            return vInput,fInput
+            vInput, fInput = source(dualSource[plato])
+            supposedSize = vSum(vInput[i] for i in fInput[0]).length/len(fInput[0])
+            vInput = [-i*supposedSize for i in vInput]            # mirror it
+            return vInput, fInput
         return source(plato)
-    # simple truncation of the source
-    elif 0.5 >= vtrunc > 0:
-        vInput,fInput = source(plato)
-    # truncation is now equal to simple truncation of the dual of the source
-    elif vtrunc > 0.5: 
-        vInput,fInput = source(dualSource[plato])
-        supposed_size = Asum(vInput[i] for i in fInput[0]).length / len(fInput[0])
-        # account for the source being a dual
-        vtrunc = 1-vtrunc
-        if vtrunc == 0: # no truncation
+    elif 0 < vtrunc <= 0.5: # simple truncation of the source
+        vInput, fInput = source(plato)
+    else:
+        # truncation is now equal to simple truncation of the dual of the source
+        vInput, fInput = source(dualSource[plato])
+        supposedSize = vSum(vInput[i] for i in fInput[0]).length / len(fInput[0])
+        vtrunc = 1-vtrunc # account for the source being a dual
+        if vtrunc == 0: # no truncation needed
             if dual:
-                vInput,fInput = source(plato)
-                vInput = [i*supposed_size for i in vInput]
-                return vInput,fInput#,sourceName
-                #JayDez - I don't know what sourceName is, but commenting that
-                #part out fixes vert truncation problems.
-            vInput = [-i*supposed_size for i in vInput]
-            return vInput,fInput
-
-    # generate a database for creating the faces. this exists out of a list for
-    # every vertex in the source
-    # 0 : vertex id
-    # 1 : vertices connected to this vertex, listed ccw(Counter Clock Wise)
-    # 2 : vertices generated to form the faces of this vertex
-    # 3 : faces connected to this vertex, listed ccw
-    # 4 : dictionairy containing the verts used by the connected faces
-    # 5 : list of edges that use this vertex, listed ccw
-    # 6 : dictionairy containing the verts used by the connected edges
-    v = [[i,[],[],[],{},[],{}] for i in range(len(vInput))]
-
-    # this piece of code, generates the database and the lists in ccw order
+                vInput, fInput = source(plato)
+                vInput = [i*supposedSize for i in vInput]
+                return vInput, fInput
+            vInput = [-i*supposedSize for i in vInput]
+            return vInput, fInput
+    
+    # generate connection database
+    vDict = [{} for i in vInput]
+    # for every face, store what vertex comes after and before the current vertex    
     for x in range(len(fInput)):
         i = fInput[x]
-        # in every faces, check which vertices connect the each vert and sort
-        #  in ccw order
-        for j in range(-1,len(i)-1):
-            # only generate an edge dict, if edge truncation is needed
-            if etrunc:
-                # list edges as [min,max], to evade confusion
-                first = min([i[j-1],i[j]])
-                last = max([i[j-1],i[j]])
-                # if an edge is not allready in, add it and give the index
-                try:
-                    y = edges.index([first,last])
-                except:
-                    edges.append([first,last])
-                    y = len(edges)-1
-                # add a dict item
-                v[i[j]][6][str(y)] = [0,0]
-            # the vertex before and after the current vertex, check whether they
-            #  are allready in the database
-            after = i[j+1] not in v[i[j]][1]
-            before = i[j-1] not in v[i[j]][1]
-            # sort them and add faces and, when necessary, edges in the database
-            if after:
-                if before:
-                    v[i[j]][1].append(i[j+1])
-                    v[i[j]][1].append(i[j-1])
-                    v[i[j]][3].append(x)
-                    if etrunc: v[i[j]][5].append(y)
+        for j in range(len(i)):
+            vDict[i[j-1]][i[j]] = [i[j-2],x]
+            if len(vDict[i[j-1]]) == 1: vDict[i[j-1]][-1] = i[j] 
+    
+    # the actual connection database: exists out of:
+    # [vtrunc pos, etrunc pos, connected vert IDs, connected face IDs]
+    vData = [[[],[],[],[]] for i in vInput]
+    fvOutput = [] # faces created from truncated vertices
+    feOutput = [] # faces created from truncated edges
+    vOutput = [] # newly created vertices
+    for x in range(len(vInput)):
+        i = vDict[x] # lookup the current vertex
+        current = i[-1]
+        while True: # follow the chain to get a ccw order of connected verts and faces
+            vData[x][2].append(i[current][0])
+            vData[x][3].append(i[current][1])
+            # create truncated vertices
+            vData[x][0].append((1-vtrunc)*vInput[x] + vtrunc*vInput[vData[x][2][-1]])
+            current = i[current][0]
+            if current == i[-1]: break # if we're back at the first: stop the loop
+        fvOutput.append([]) # new face from truncated vert
+        fOffset = x*(len(i)-1) # where to start off counting faceVerts
+        # only create one vert where one is needed (v1 todo: done) 
+        if etrunc == 0.5: 
+            for j in range(len(i)-1):
+                vOutput.append((vData[x][0][j]+vData[x][0][j-1])*etrunc) # create vert
+                fvOutput[x].append(fOffset+j) # add to face
+            fvOutput[x] = fvOutput[x][1:]+[fvOutput[x][0]] # rotate face for ease later on
+            # create faces from truncated edges.
+            for j in range(len(i)-1):
+                if x > vData[x][2][j]: #only create when other vertex has been added
+                    index = vData[vData[x][2][j]][2].index(x)
+                    feOutput.append([fvOutput[x][j],fvOutput[x][j-1],
+                                     fvOutput[vData[x][2][j]][index],
+                                     fvOutput[vData[x][2][j]][index-1]])
+        # edge truncation between none and full
+        elif etrunc > 0:
+            for j in range(len(i)-1):
+                # create snubs from selecting verts from rectified meshes
+                if rSnub:
+                    vOutput.append(etrunc*vData[x][0][j]+(1-etrunc)*vData[x][0][j-1])
+                    fvOutput[x].append(fOffset+j)
+                elif lSnub:
+                    vOutput.append((1-etrunc)*vData[x][0][j]+etrunc*vData[x][0][j-1])
+                    fvOutput[x].append(fOffset+j)
+                else: #noSnub, select both verts from rectified mesh
+                    vOutput.append(etrunc*vData[x][0][j]+(1-etrunc)*vData[x][0][j-1])
+                    vOutput.append((1-etrunc)*vData[x][0][j]+etrunc*vData[x][0][j-1])
+                    fvOutput[x].append(2*fOffset+2*j)
+                    fvOutput[x].append(2*fOffset+2*j+1)
+            # rotate face for ease later on
+            if noSnub: fvOutput[x] = fvOutput[x][2:]+fvOutput[x][:2]
+            else: fvOutput[x] = fvOutput[x][1:]+[fvOutput[x][0]]
+            # create single face for each edge
+            if noSnub:
+                for j in range(len(i)-1):
+                    if x > vData[x][2][j]:
+                        index = vData[vData[x][2][j]][2].index(x)
+                        feOutput.append([fvOutput[x][j*2],fvOutput[x][2*j-1],
+                                         fvOutput[vData[x][2][j]][2*index],
+                                         fvOutput[vData[x][2][j]][2*index-1]])
+            # create 2 tri's for each edge for the snubs
+            elif rSnub:
+                for j in range(len(i)-1):
+                    if x > vData[x][2][j]:
+                        index = vData[vData[x][2][j]][2].index(x)
+                        feOutput.append([fvOutput[x][j],fvOutput[x][j-1],
+                                         fvOutput[vData[x][2][j]][index]])
+                        feOutput.append([fvOutput[x][j],fvOutput[vData[x][2][j]][index],
+                                         fvOutput[vData[x][2][j]][index-1]])
+            elif lSnub:
+                for j in range(len(i)-1):
+                    if x > vData[x][2][j]:
+                        index = vData[vData[x][2][j]][2].index(x)
+                        feOutput.append([fvOutput[x][j],fvOutput[x][j-1],
+                                         fvOutput[vData[x][2][j]][index-1]])
+                        feOutput.append([fvOutput[x][j-1],fvOutput[vData[x][2][j]][index],
+                                         fvOutput[vData[x][2][j]][index-1]])
+        # special rules fro birectified mesh (v1 todo: done)
+        elif vtrunc == 0.5:
+            for j in range(len(i)-1):
+                if x < vData[x][2][j]: # use current vert, since other one has not passed yet
+                    vOutput.append(vData[x][0][j])
+                    fvOutput[x].append(len(vOutput)-1)
                 else:
-                    z = v[i[j]][1].index(i[j-1])
-                    v[i[j]][1].insert(z,i[j+1])
-                    v[i[j]][3].insert(z,x)
-                    if etrunc: v[i[j]][5].insert(z,y)
-            else:
-                z = v[i[j]][1].index(i[j+1])
-                v[i[j]][3].insert(z,x)
-                if etrunc: v[i[j]][5].insert(z,y)
-                if before:
-                    v[i[j]][1].insert(z+1,i[j-1])
-            # add the current face to the current vertex in the dict
-            v[i[j]][4][str(x)] = [0,0] 
-
-    # generate vert-only truncated vertices by linear interpolation         
-    for i in v:
-        for j in range(len(i[1])):
-            verts.append(vInput[i[0]]*(1-vtrunc)+vInput[i[1][j]]*vtrunc)
-            l = len(verts)-1
-            # face resulting from truncating this vertex
-            i[2].append(l)
-            # this vertex is used by both faces using this edge
-            i[4][str(i[3][j])][1] = l
-            i[4][str(i[3][j-1])][0] = l
-
-    # only truncate edges when needed
-    vert_faces = []
-    if etrunc:
-        # generate a new list of vertices, by linear interpolating each vert-face
-        nVerts = []
-        for i in v:
-            f = []
-            # weird range so we dont run out of array bounds
-            for j in range(-1,len(i[2])-1):
-                # making use of the fact that the snub operation takes only
-                #  one of the two vertices per edge. so rSnub only takes the
-                #  first, lSnub only takes the second, and noSnub takes both
-                if rSnub or noSnub: 
-                    # interpolate
-                    nVerts.append((1-etrunc)*verts[i[2][j]] + etrunc*verts[i[2][j-1]])
-                    # add last vertex to the vert-face, face-face and edge-face
-                    l = len(nVerts)-1
-                    f.append(l)
-                    i[4][str(i[3][j-1])][0] = l
-                    i[6][str(i[5][j-1])][1] = l
-                if lSnub or noSnub:
-                    # interpolate
-                    nVerts.append((1-etrunc)*verts[i[2][j]] + etrunc*verts[i[2][j+1]])
-                    # add last vertex to the vert-face, face-face and edge-face
-                    l = len(nVerts)-1
-                    f.append(l)
-                    i[4][str(i[3][j])][1] = l
-                    i[6][str(i[5][j-1])][0] = l
-            # add vert-face
-            vert_faces.append(f)
-
-        # snub operator creates 2 tri's instead of a planar quad, needing the
-        #  next piece of code. making use of the dictionairy to create them.
-        if lSnub or rSnub:
-            edge_faces = []
-            for x in range(len(edges)):
-                one = v[edges[x][0]]    # the first vertex of this edge
-                two = v[edges[x][1]]    # the second
-                # using max() since the dict consists of one filled spot and one
-                #  empty('cause only one vert is created)
-                f = [max(two[6][str(x)]),max(one[6][str(x)])]
-                index = one[5].index(x)
-                # create this tri from the middle line and the the previous edge
-                #  on this vertex
-                if lSnub:
-                    f.append(max(one[6][str(one[5][index-1])]))
-                else: # or in this case, the next
-                    if index+1 >= len(one[5]): index = -1
-                    f.append(max(one[6][str(one[5][index+1])]))
-                edge_faces.append(f)
-
-                # do the same for the other end of the edge
-                f = [max(one[6][str(x)]),max(two[6][str(x)])]
-                index = two[5].index(x)
-                if lSnub:
-                    f.append(max(two[6][str(two[5][index-1])]))
-                else:
-                    if index+1 >= len(one[5]): index = -1
-                    f.append(max(two[6][str(two[5][index+1])]))
-                edge_faces.append(f)
-        else:
-            # generate edge-faces from the dictionairy, simple quads for noSnub
-            edge_faces = []
-            for i in range(len(edges)):
-                f = []
-                for j in edges[i]:
-                    f.extend(v[j][6][str(i)])
-                edge_faces.append(f)
-        verts = nVerts
-    else:
-        # generate vert-faces for non-edge-truncation
-        vert_faces = [i[2] for i in v]
+                    # search for other edge to avoid duplicity
+                    connectee = vData[x][2][j]
+                    fvOutput[x].append(fvOutput[connectee][vData[connectee][2].index(x)])
+        else: # vert truncation only
+            vOutput.extend(vData[x][0]) # use generated verts from way above
+            for j in range(len(i)-1):   # create face from them
+                fvOutput[x].append(fOffset+j)
 
     # calculate supposed vertex length to ensure continuity
-    if supposed_size:
-        supposed_size *= len(vert_faces[0])/Asum(verts[i] for i in vert_faces[0]).length
-        verts = [-i*supposed_size for i in verts]
-        
-    # generate face-faces by looking up the old verts and replacing them with
-    #  the vertices in the dictionairy
-    face_faces = []
-    for x in range(len(fInput)):
-        f = []
-        for j in fInput[x]:
-            # again using the fact, that only one of the two verts is used
-            #  for snub operation
-            if rSnub and etrunc:
-                f.append(v[j][4][str(x)][0])
-            elif lSnub and etrunc:
-                f.append(v[j][4][str(x)][1])
-            else:
-                # for cool graphics, comment the first line and uncomment the second line
-                # then work the vTrunc property, leave the other properties at 0 
-                # (can also change 0 to 1 in second line to change from ccw to cw)
-                f.extend(v[j][4][str(x)])                  # first
-                #f.append(v[j][4][str(x)][0])               # second
-        face_faces.append(f)
+    if supposedSize and not dual:                    # this to make the vtrunc > 1 work
+        supposedSize *= len(fvOutput[0])/vSum(vOutput[i] for i in fvOutput[0]).length
+        vOutput = [-i*supposedSize for i in vOutput]
     
-    if dual:
-        # create verts by taking the average of all vertices that make up each
-        #  face. do it in this order to ease the following face creation
-        nVerts = []
-        for i in vert_faces:
-            nVerts.append(Asum(verts[j] for j in i)/len(i))
-        if etrunc:
-            eStart = len(nVerts)
-            for i in edge_faces:
-                nVerts.append(Asum(verts[j] for j in i)/len(i))
-        fStart = len(nVerts)
-        for i in face_faces:
-            nVerts.append(Asum(verts[j] for j in i)/len(i))
-        # the special face generation for snub duals, it sucks, even i dont get it
-        if lSnub or rSnub:
-            for x in range(len(fInput)):
-                i = fInput[x]
-                for j in range(-1,len(i)-1):
-                
-                    if i[j] > i[j+1]: 
-                        eNext = edges.index([i[j+1],i[j]])
-                        [a,b] = [1,0]
-                    else: 
-                        eNext = edges.index([i[j],i[j+1]])
-                        [a,b] = [0,1]
-                    if i[j] > i[j-1]: 
-                        ePrev = edges.index([i[j-1],i[j]])
-                        [c,d] = [0,1]
-                    else: 
-                        ePrev = edges.index([i[j],i[j-1]])
-                        [c,d] = [1,0]
-                    if lSnub:
-                        f = [eStart+2*eNext+b,eStart+2*eNext+a,i[j]]
-                        f.append(eStart+2*ePrev+d)
-                        f.append(fStart + x)
-                    else:
-                        f = [eStart+2*ePrev+c,eStart+2*ePrev+d,i[j]]
-                        f.append(eStart+2*eNext+a)
-                        f.append(fStart + x)
-                    if supposed_size: faces.append(f)
-                    else: faces.append(f[2:]+f[:2])
-        else:
-            # for noSnub situations, the face generation is somewhat easier.
-            # first calculate what order faces must be added to ensure convex solids
-            # this by calculating the angle between the middle of the four vertices
-            #  and the first face. if the face is above the middle, use that diagonal
-            #  otherwise use the other diagonal
-            if etrunc:
-                f = [v[0][0],eStart+v[0][5][-1],fStart+v[0][3][0],eStart+v[0][5][0]]
-            else:
-                f = [v[0][0],fStart+v[0][3][0],v[0][1][0],fStart+v[0][3][-1]]
-            p = [nVerts[i] for i in f]
-            mid = 0.25*Asum(p)
-            norm = (p[1]-p[0]).cross(p[2]-p[0])
-            dot = norm.dot(mid-p[0])/(norm.length*(mid-p[0]).length)
-            tollerance = 0.001 # ~ cos(0.06 degrees)
-            if ((dot > tollerance) and (not supposed_size)) or ((dot < -tollerance) and (supposed_size)):
-                direction = 1 # first diagonal
-            elif ((dot < -tollerance) and (not supposed_size)) or ((dot > tollerance) and (supposed_size)):
-                direction = -1 # second diagonal
-            else: 
-                direction = 0 # no diagonal, face is planar (somewhat)
+    # create new faces by replacing old vert IDs by newly generated verts
+    ffOutput = [[] for i in fInput]
+    for x in range(len(fInput)):
+        # only one generated vert per vertex, so choose accordingly
+        if etrunc == 0.5 or (etrunc == 0 and vtrunc == 0.5) or lSnub or rSnub:
+            ffOutput[x] = [fvOutput[i][vData[i][3].index(x)-1] for i in fInput[x]]
+        # two generated verts per vertex
+        elif etrunc > 0:
+            for i in fInput[x]:
+                ffOutput[x].append(fvOutput[i][2*vData[i][3].index(x)-1])
+                ffOutput[x].append(fvOutput[i][2*vData[i][3].index(x)-2])
+        else: # cutting off corners also makes 2 verts
+            for i in fInput[x]:
+                ffOutput[x].append(fvOutput[i][vData[i][3].index(x)])
+                ffOutput[x].append(fvOutput[i][vData[i][3].index(x)-1])
+    
+    if not dual:
+        return vOutput,fvOutput + feOutput + ffOutput
+    else: 
+        # do the same procedure as above, only now on the generated mesh
+        # generate connection database
+        vDict = [{} for i in vOutput]
+        dvOutput = [0 for i in fvOutput + feOutput + ffOutput]
+        dfOutput = []
         
-            if etrunc: # for every vertex
-                for i in v: # add the face, consisting of the vert,edge,next
-                            # edge and face between those edges
-                    for j in range(len(i[1])):
-                        f = [i[0],eStart+i[5][j-1],fStart+i[3][j],eStart+i[5][j]]
-                        if direction == 1: # first diagonal
-                            faces.extend([[f[0],f[1],f[3]],[f[1],f[2],f[3]]])
-                        elif direction == -1: # first diagonal
-                            faces.extend([[f[0],f[1],f[2]],[f[0],f[2],f[3]]])
-                        else:
-                            faces.append(f) # no diagonal
-            else:
-                for i in v: # for every vertex
-                    for j in range(len(i[1])):
-                        if i[0] < i[1][j]: # face consists of vert, vert on other
-                                           # end of edge and both faces using that
-                                           # edge, so exclude verts allready used
-                            f = [i[0],fStart+i[3][j], i[1][j],fStart+i[3][j-1]]
-                            if direction == -1: # secong diagonal
-                                faces.extend([[f[0],f[1],f[3]],[f[1],f[2],f[3]]])
-                            elif direction == 1: # first diagonal
-                                faces.extend([[f[0],f[1],f[2]],[f[0],f[2],f[3]]])
-                            else:
-                                faces.append(f) # no diagonal
-        verts = nVerts  # use new vertices
-    else:
-        # concatenate all faces, since they dont have to be used sepperately anymore
-        faces = face_faces
-        if etrunc: faces += edge_faces
-        faces += vert_faces
+        for x in range(len(dvOutput)): # for every face
+            i = (fvOutput + feOutput + ffOutput)[x] # choose face to work with
+            # find vertex from face
+            normal = (vOutput[i[0]]-vOutput[i[1]]).cross(vOutput[i[2]]-vOutput[i[1]]).normalized()
+            dvOutput[x] = normal/(normal.dot(vOutput[i[0]]))
+            for j in range(len(i)): # create vert chain
+                vDict[i[j-1]][i[j]] = [i[j-2],x]
+                if len(vDict[i[j-1]]) == 1: vDict[i[j-1]][-1] = i[j]
+        
+        # calculate supposed size for continuity
+        supposedSize = vSum([vInput[i] for i in fInput[0]]).length/len(fInput[0])
+        supposedSize /= dvOutput[-1].length
+        dvOutput = [i*supposedSize for i in dvOutput]
+        
+        # use chains to create faces
+        for x in range(len(vOutput)):
+            i = vDict[x]
+            current = i[-1]
+            face = []
+            while True:
+                face.append(i[current][1])
+                current = i[current][0]
+                if current == i[-1]: break
+            dfOutput.append(face)
+        
+        return dvOutput,dfOutput
 
-    return verts,faces
-            
-        
 class Solids(bpy.types.Operator):
     """Add one of the (regular) solids (mesh)"""
     bl_idname = "mesh.primitive_solid_add"
     bl_label = "(Regular) solids"
-    bl_description = "Add one of the platoic or archimedean solids"
+    bl_description = "Add one of the Platonic, Archimedean or Catalan solids"
     bl_options = {'REGISTER', 'UNDO'}
 
     source = EnumProperty(items = (("4","Tetrahedron",""),
@@ -566,7 +360,7 @@ class Solids(bpy.types.Operator):
                          default = 1.0)
     vTrunc = FloatProperty(name = "Vertex Truncation",
                            description = "Ammount of vertex truncation",
-                           min = 0.001,
+                           min = 0.0,
                            soft_min = 0.0,
                            max = 2.0,
                            soft_max = 2.0,
@@ -582,9 +376,9 @@ class Solids(bpy.types.Operator):
                            default = 0.0,
                            precision = 3,
                            step = 0.2)
-    snub = EnumProperty(items = (("0","No Snub",""),
-                                 ("L","Left Snub",""),
-                                 ("R","Right Snub","")),
+    snub = EnumProperty(items = (("None","No Snub",""),
+                                 ("Left","Left Snub",""),
+                                 ("Right","Right Snub","")),
                         name = "Snub",
                         description = "Create the snub version")
     dual = BoolProperty(name="Dual",
@@ -610,7 +404,7 @@ class Solids(bpy.types.Operator):
                                    ("dt4","Triakis Tetrahedron",""),
                                    ("dr4","Rhombic Dodecahedron",""),
                                    ("dt6","Triakis Octahedron",""),
-                                   ("dt8","Triakis Hexahedron",""),
+                                   ("dt8","Tetrakis Hexahedron",""),
                                    ("db6","Deltoidal Icositetrahedron",""),
                                    ("dc6","Disdyakis Dodecahedron",""),
                                    ("ds6","Pentagonal Icositetrahedron",""),
@@ -619,95 +413,103 @@ class Solids(bpy.types.Operator):
                                    ("dt20","Pentakis Dodecahedron",""),
                                    ("db12","Deltoidal Hexecontahedron",""),
                                    ("dc12","Disdyakis Triacontahedron",""),
-                                   ("ds12","Pentagonal Hexecontahedron",""),
-                                   ("c","Cube",""),
-                                   ("sb","Soccer ball","")),
+                                   ("ds12","Pentagonal Hexecontahedron","")),
                             name = "Presets",
                             description = "Parameters for some hard names")
     
     # actual preset values
-    p = {"t4":["4",2/3,0,0,"0"],
-         "r4":["4",1,1,0,"0"],
-         "t6":["6",2/3,0,0,"0"],
-         "t8":["8",2/3,0,0,"0"],
-         "b6":["6",1.0938,1,0,"0"],
-         "c6":["6",1.0572,0.585786,0,"0"],
-         "s6":["6",1.0875,0.704,0,"L"],
-         "r12":["12",1,0,0,"0"],
-         "t12":["12",2/3,0,0,"0"],
-         "t20":["20",2/3,0,0,"0"],
-         "b12":["12",1.1338,1,0,"0"],
-         "c12":["20",0.921,0.553,0,"0"],
-         "s12":["12",1.1235,0.68,0,"L"],
-         "dt4":["4",2/3,0,1,"0"],
-         "dr4":["4",1,2/3,1,"0"],
-         "dt6":["6",4/3,0,1,"0"],
-         "dt8":["8",1,0,1,"0"],
-         "db6":["6",1.0938,0.756,1,"0"],
-         "dc6":["6",1,1,1,"0"],
-         "ds6":["6",1.0875,0.704,1,"L"],
-         "dr12":["12",1.54,0,1,"0"],
-         "dt12":["12",5/3,0,1,"0"],
-         "dt20":["20",2/3,0,1,"0"],
-         "db12":["12",1,0.912,1,"0"],
-         "dc12":["20",0.921,1,1,"0"],
-         "ds12":["12",1.1235,0.68,1,"L"],
-         "c":["6",0,0,0,"0"],
-         "sb":["20",2/3,0,0,"0"]}
+    p = {"t4":["4",2/3,0,0,"None"],
+         "r4":["4",1,1,0,"None"],
+         "t6":["6",2/3,0,0,"None"],
+         "t8":["8",2/3,0,0,"None"],
+         "b6":["6",1.0938,1,0,"None"],
+         "c6":["6",1.0572,0.585786,0,"None"],
+         "s6":["6",1.0875,0.704,0,"Left"],
+         "r12":["12",1,0,0,"None"],
+         "t12":["12",2/3,0,0,"None"],
+         "t20":["20",2/3,0,0,"None"],
+         "b12":["12",1.1338,1,0,"None"],
+         "c12":["20",0.921,0.553,0,"None"],
+         "s12":["12",1.1235,0.68,0,"Left"],
+         "dt4":["4",2/3,0,1,"None"],
+         "dr4":["4",1,1,1,"None"],
+         "dt6":["6",2/3,0,1,"None"],
+         "dt8":["8",2/3,0,1,"None"],
+         "db6":["6",1.0938,1,1,"None"],
+         "dc6":["6",1.0572,0.585786,1,"None"],
+         "ds6":["6",1.0875,0.704,1,"Left"],
+         "dr12":["12",1,0,1,"None"],
+         "dt12":["12",2/3,0,1,"None"],
+         "dt20":["20",2/3,0,1,"None"],
+         "db12":["12",1.1338,1,1,"None"],
+         "dc12":["20",0.921,0.553,1,"None"],
+         "ds12":["12",1.1235,0.68,1,"Left"]}
+    
+    #previous preset, for User-friendly reasons
+    previousSetting = ""
 
     def execute(self,context):
-        # turn off undo for better performance (3 - 5x faster), also makes sure
+        # turn off undo for better performance (3-5x faster), also makes sure
         #  that mesh ops are undoable and entire script acts as one operator
         bpy.context.user_preferences.edit.use_global_undo = False
 
-
-        #if preset, set preset
+        # piece of code to make presets remain until parameters are changed
         if self.preset != "0":
-            using = self.p[self.preset]
-            self.source = using[0]
-            self.vTrunc = using[1]
-            self.eTrunc = using[2]
-            self.dual = using[3]
-            self.snub = using[4]
-            self.preset = "0"
+            #if preset, set preset
+            if self.previousSetting != self.preset:
+                using = self.p[self.preset]
+                self.source = using[0]
+                self.vTrunc = using[1]
+                self.eTrunc = using[2]
+                self.dual = using[3]
+                self.snub = using[4]
+            else: 
+                using = self.p[self.preset]
+                result0 = self.source == using[0]
+                result1 = abs(self.vTrunc - using[1]) < 0.004
+                result2 = abs(self.eTrunc - using[2]) < 0.0015
+                result4 = using[4] == self.snub or ((using[4] == "Left") and 
+                                                self.snub in ["Left","Right"])
+                if (result0 and result1 and result2 and result4): 
+                    if self.p[self.previousSetting][3] != self.dual:
+                        if self.preset[0] == "d": 
+                            self.preset = self.preset[1:]
+                        else:
+                            self.preset = "d" + self.preset
+                else:   
+                    self.preset = "0"
 
+        self.previousSetting = self.preset
+        
         # generate mesh    
-        verts,faces = createSolid(self.source,
-                                  self.vTrunc,
-                                  self.eTrunc,
-                                  self.dual,
-                                  self.snub)
+        verts,faces  = createSolid(self.source,
+                                   self.vTrunc,
+                                   self.eTrunc,
+                                   self.dual,
+                                   self.snub)
 
         # turn n-gons in quads and tri's
         faces = createPolys(faces)
         
         # resize to normal size, or if keepSize, make sure all verts are of length 'size'
         if self.keepSize:
-            rad = self.size/verts[0].length
+            if dual: rad = self.size/verts[-1].length
+            else: rad = self.size/verts[0].length
         else: rad = self.size
         verts = [i*rad for i in verts]
 
         # generate object
-        obj = create_mesh_object(context,verts,[],faces,"Solid")
+        # Create new mesh
+        mesh = bpy.data.meshes.new("Solid")
 
-        # vertices will be on top of each other in some cases,
-        #    so remove doubles then
-        if ((self.vTrunc == 1) and (self.eTrunc == 0)) or (self.eTrunc == 1):
-            current_mode = context.active_object.mode
-            if current_mode == 'OBJECT':
-                bpy.ops.object.mode_set(mode='EDIT')
-            bpy.ops.mesh.select_all(action='SELECT')
-            bpy.ops.mesh.remove_doubles()
-            bpy.ops.object.mode_set(mode=current_mode)
+        # Make a mesh from a list of verts/edges/faces.
+        mesh.from_pydata(verts, [], faces)
 
-        # snub duals suck, so make all normals point outwards
-        #if self.dual and (self.snub != "0"):
-        current_mode = context.active_object.mode
-        if current_mode == 'OBJECT':
-            bpy.ops.object.mode_set(mode='EDIT')
-        bpy.ops.mesh.select_all(action='SELECT')
-        bpy.ops.mesh.normals_make_consistent()
-        bpy.ops.object.mode_set(mode=current_mode)
+        # Update mesh geometry after adding stuff.
+        mesh.update()
+        
+        object_data_add(context, mesh, operator=None)
+        # object generation done
 
         # turn undo back on
         bpy.context.user_preferences.edit.use_global_undo = True 
@@ -726,7 +528,6 @@ class Solids_add_menu(bpy.types.Menu):
         layout.menu(PlatonicMenu.bl_idname, text = "Platonic")
         layout.menu(ArchiMenu.bl_idname, text = "Archimeadean")
         layout.menu(CatalanMenu.bl_idname, text = "Catalan")
-        layout.menu(OtherMenu.bl_idname, text = "Others")
 
 class PlatonicMenu(bpy.types.Menu):
     """Define Platonic menu"""
@@ -782,22 +583,10 @@ class CatalanMenu(bpy.types.Menu):
         layout.operator(Solids.bl_idname, text = "Rhombic Triacontahedron").preset = "dr12"
         layout.operator(Solids.bl_idname, text = "Triakis Icosahedron").preset = "dt12"
         layout.operator(Solids.bl_idname, text = "Pentakis Dodecahedron").preset = "dt20"
-        layout.operator(Solids.bl_idname, text = "Deltoidal Hexecontahedron").preset = "dt20"
-        layout.operator(Solids.bl_idname, text = "Disdyakis Triacontahedron").preset = "db12"
+        layout.operator(Solids.bl_idname, text = "Deltoidal Hexecontahedron").preset = "db12"
+        layout.operator(Solids.bl_idname, text = "Disdyakis Triacontahedron").preset = "dc12"
         layout.operator(Solids.bl_idname, text = "Pentagonal Hexecontahedron").preset = "ds12"
-
-class OtherMenu(bpy.types.Menu):
-    """Defines Others preset menu"""
-    bl_idname = "Others_calls"
-    bl_label = "Others"
-    
-    def draw(self, context):
-        layout = self.layout
-        layout.operator_context = 'INVOKE_REGION_WIN'
-        layout.operator(Solids.bl_idname, text = "Cube").preset = "c"
-        layout.operator(Solids.bl_idname, text = "Soccer ball").preset = "sb"
-
-
+        
 def menu_func(self, context):
     self.layout.menu(Solids_add_menu.bl_idname, icon="PLUGIN")
 
