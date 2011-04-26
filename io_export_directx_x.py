@@ -20,7 +20,7 @@ bl_info = {
     "author": "Chris Foster (Kira Vakaan)",
     "version": (2, 1),
     "blender": (2, 5, 7),
-    "api": 36079,
+    "api": 36302,
     "location": "File > Export > DirectX (.x)",
     "description": "Export DirectX Model Format (.x)",
     "warning": "",
@@ -490,20 +490,20 @@ def WriteMaterial(Config, Material=None):
         Config.File.write("{}Material {} {{\n".format("  " * Config.Whitespace, LegalName(Material.name)))
         Config.Whitespace += 1
 
-        Diffuse = list(Material.diffuse_color)
+        Diffuse = list(Vector(Material.diffuse_color) * Material.diffuse_intensity)
         Diffuse.append(Material.alpha)
-        Specularity = Material.specular_intensity
-        Specular = list(Material.specular_color)
+        Specularity = 1000 * (Material.specular_hardness - 1.0) / (511.0 - 1.0) # Map Blender's range of 1 - 511 to 1 - 1000
+        Specular = list(Vector(Material.specular_color) * Material.specular_intensity)
 
         Config.File.write("{}{:9f};{:9f};{:9f};{:9f};;\n".format("  " * Config.Whitespace, Diffuse[0], Diffuse[1], Diffuse[2], Diffuse[3]))
-        Config.File.write("{}{:9f};\n".format("  " * Config.Whitespace, 2 * (1.0 - Specularity)))
+        Config.File.write("{} {:9f};\n".format("  " * Config.Whitespace, Specularity))
         Config.File.write("{}{:9f};{:9f};{:9f};;\n".format("  " * Config.Whitespace, Specular[0], Specular[1], Specular[2]))
     else:
         Config.File.write("{}Material Default_Material {{\n".format("  " * Config.Whitespace))
         Config.Whitespace += 1
-        Config.File.write("{} 1.000000; 1.000000; 1.000000; 1.000000;;\n".format("  " * Config.Whitespace))
-        Config.File.write("{} 1.500000;\n".format("  " * Config.Whitespace))
-        Config.File.write("{} 1.000000; 1.000000; 1.000000;;\n".format("  " * Config.Whitespace))
+        Config.File.write("{} 0.800000; 0.800000; 0.800000; 0.800000;;\n".format("  " * Config.Whitespace))
+        Config.File.write("{} 96.078431;\n".format("  " * Config.Whitespace)) # 1000 * (50 - 1) / (511 - 1)
+        Config.File.write("{} 0.500000; 0.500000; 0.500000;;\n".format("  " * Config.Whitespace))
     Config.File.write("{} 0.000000; 0.000000; 0.000000;;\n".format("  " * Config.Whitespace))
     if Config.ExportTextures:
         Texture = GetMaterialTexture(Material)
