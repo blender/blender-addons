@@ -492,7 +492,7 @@ def WriteMaterial(Config, Material=None):
 
         Diffuse = list(Vector(Material.diffuse_color) * Material.diffuse_intensity)
         Diffuse.append(Material.alpha)
-        Specularity = 1000 * (Material.specular_hardness - 1.0) / (511.0 - 1.0) # Map Blender's range of 1 - 511 to 1 - 1000
+        Specularity = 1000 * (Material.specular_hardness - 1.0) / (511.0 - 1.0) # Map Blender's range of 1 - 511 to 0 - 1000
         Specular = list(Vector(Material.specular_color) * Material.specular_intensity)
 
         Config.File.write("{}{:9f};{:9f};{:9f};{:9f};;\n".format("  " * Config.Whitespace, Diffuse[0], Diffuse[1], Diffuse[2], Diffuse[3]))
