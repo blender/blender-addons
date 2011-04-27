@@ -55,10 +55,13 @@ import re
 from string import *
 from struct import *
 from math import *
-
-#from bpy.props import *
-
+from bpy.props import *
 import mathutils
+
+bpy.types.Scene.unrealbonesize = FloatProperty(
+    name="Bone Length",
+    description="Bone Length from head to tail distance.",
+    default=1,min=0.001,max=1000)
 
 #output log in to txt file
 DEBUGLOG = False
@@ -333,11 +336,11 @@ def pskimport(infile,importmesh,importbone,bDebugLogPSK,importmultiuvtextures):
         #w,x,y,z
         if (counter == 0):#main parent
             print("no parent bone")
-            createbone.bindmat = mathutils.Quaternion((indata[7],indata[4],indata[5],indata[6]))
+            createbone.bindmat = mathutils.Quaternion((indata[7],indata[4],indata[5],indata[6]))#default
             #createbone.bindmat = mathutils.Quaternion((indata[7],-indata[4],-indata[5],-indata[6]))
         else:#parent
             print("parent bone")
-            createbone.bindmat = mathutils.Quaternion((indata[7],-indata[4],-indata[5],-indata[6]))
+            createbone.bindmat = mathutils.Quaternion((indata[7],-indata[4],-indata[5],-indata[6]))#default
             #createbone.bindmat = mathutils.Quaternion((indata[7],indata[4],indata[5],indata[6]))
             
         md5_bones.append(createbone)
@@ -421,20 +424,23 @@ def pskimport(infile,importmesh,importbone,bDebugLogPSK,importmultiuvtextures):
                 bpy.ops.object.mode_set(mode='EDIT')
                 newbone = ob_new.data.edit_bones.new(bone.name)
                 #parent the bone
+                print("DRI:",dir(newbone))
                 parentbone = None
                 print("bone name:",bone.name)
                 #note bone location is set in the real space or global not local
+                bonesize = bpy.types.Scene.unrealbonesize
                 if bone.name != bone.parent:
 				
                     pos_x = bone.bindpos[0]
                     pos_y = bone.bindpos[1]
                     pos_z = bone.bindpos[2]
-				
+                    
                     #print( "LINKING:" , bone.parent ,"j")
                     parentbone = ob_new.data.edit_bones[bone.parent]
                     newbone.parent = parentbone
+                    
                     rotmatrix = bone.bindmat.to_matrix().to_4x4().to_3x3()  # XXX, redundant matrix conversion?
-					
+                    newbone.transform(bone.bindmat.to_matrix().to_4x4(),True,True)
                     #parent_head = parentbone.head * parentbone.matrix.to_quaternion().inverse()
                     #parent_tail = parentbone.tail * parentbone.matrix.to_quaternion().inverse()
                     #location=Vector(pos_x,pos_y,pos_z)
@@ -444,7 +450,8 @@ def pskimport(infile,importmesh,importbone,bDebugLogPSK,importmultiuvtextures):
                     #pos_x = set_position.x
                     #pos_y = set_position.y
                     #pos_z = set_position.z
-					
+                    
+                 
                     newbone.head.x = parentbone.head.x + pos_x
                     newbone.head.y = parentbone.head.y + pos_y
                     newbone.head.z = parentbone.head.z + pos_z
@@ -452,16 +459,19 @@ def pskimport(infile,importmesh,importbone,bDebugLogPSK,importmultiuvtextures):
                     newbone.tail.x = parentbone.head.x + (pos_x + bonesize * rotmatrix[1][0])
                     newbone.tail.y = parentbone.head.y + (pos_y + bonesize * rotmatrix[1][1])
                     newbone.tail.z = parentbone.head.z + (pos_z + bonesize * rotmatrix[1][2])
+                    #newbone.roll = fixRoll(newbone)
                 else:
                     #print("rotmatrix:",dir(bone.bindmat.to_matrix().resize_4x4()))
                     #rotmatrix = bone.bindmat.to_matrix().resize_4x4().to_3x3()  # XXX, redundant matrix conversion?
                     rotmatrix = bone.bindmat.to_matrix().to_3x3()  # XXX, redundant matrix conversion?
+                    #newbone.transform(bone.bindmat.to_matrix(),True,True)
                     newbone.head.x = bone.bindpos[0]
                     newbone.head.y = bone.bindpos[1]
                     newbone.head.z = bone.bindpos[2]
                     newbone.tail.x = bone.bindpos[0] + bonesize * rotmatrix[1][0]
                     newbone.tail.y = bone.bindpos[1] + bonesize * rotmatrix[1][1]
                     newbone.tail.z = bone.bindpos[2] + bonesize * rotmatrix[1][2]
+                    #newbone.roll = fixRoll(newbone)
 					#print("no parent")
             
     bpy.context.scene.update()
@@ -738,8 +748,6 @@ def getInputFilename(self,filename,importmesh,importbone,bDebugLogPSK,importmult
     else:
         pskimport(filename,importmesh,importbone,bDebugLogPSK,importmultiuvtextures)
 
-from bpy.props import *
-
 class IMPORT_OT_psk(bpy.types.Operator):
     '''Load a skeleton mesh psk File'''
     bl_idname = "import_scene.psk"
@@ -755,8 +763,10 @@ class IMPORT_OT_psk(bpy.types.Operator):
     importbone = BoolProperty(name="Bones", description="Import bones only. Current not working yet.", default=True)
     importmultiuvtextures = BoolProperty(name="Single UV Texture(s)", description="Single or Multi uv textures.", default=True)
     bDebugLogPSK = BoolProperty(name="Debug Log.txt", description="Log the output of raw format. It will save in current file dir. Note this just for testing.", default=False)
+    unrealbonesize = FloatProperty( name="Bone Length", description="Bone Length from head to tail distance.", default=1,min=0.001,max=1000)
 
     def execute(self, context):
+        bpy.types.Scene.unrealbonesize = self.unrealbonesize
         getInputFilename(self,self.filepath,self.importmesh,self.importbone,self.bDebugLogPSK,self.importmultiuvtextures)
         return {'FINISHED'}
 
