@@ -291,7 +291,7 @@ def write_pov(filename, scene=None, info_callback=None):
                 if pov_fake_caustics:
                     tabWrite("caustics %.3g\n" % material.pov_fake_caustics_power)
                 if pov_photons_refraction:
-                    tabWrite("dispersion %.3g\n" % material.pov_photons_dispersion)  # Default of 1 means no dispersion
+                    tabWrite("dispersion %.6f\n" % material.pov_photons_dispersion)  # Default of 1 means no dispersion
             #TODO
             # Other interior args
             if material.use_transparency and material.transparency_method == 'RAYTRACE':

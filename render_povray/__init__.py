@@ -320,7 +320,7 @@ def register():
     Mat.pov_photons_dispersion = FloatProperty(
             name="chromatic dispersion",
             description="Light passing through will be separated according to wavelength. This ratio of refractive indices for violet to red controls how much the colors are spread out 1 = no dispersion, good values are 1.01 to 1.1",
-            min=1.00, max=10.0, soft_min=1.00, soft_max=1.10, default=1.00)
+            min=1.0000, max=10.000, soft_min=1.0000, soft_max=1.1000, precision=4, default=1.0000)
 
     Mat.pov_photons_reflection = BoolProperty(
             name="Reflective Photon Caustics",
