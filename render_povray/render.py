@@ -1364,6 +1364,7 @@ def write_pov(filename, scene=None, info_callback=None):
                     tabWrite("image_map{%s \"%s\" %s}\n" % (imageFormat(texturesBlend), texturesBlend, imgMapBG(t_blend)))
                     tabWrite("}\n")
                     tabWrite("%s\n" % (mappingBlend))
+                    tabWrite("pigment {rgb 0 transmit %s}\n" % (t.texture.intensity))
                     tabWrite("}\n")
                     #tabWrite("scale 2\n")
                     #tabWrite("translate -1\n")
