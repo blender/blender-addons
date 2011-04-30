@@ -24,6 +24,7 @@ import os
 import sys
 import time
 from math import atan, pi, degrees, sqrt
+import re
 
 ##############################SF###########################
 ##############find image texture
@@ -1364,6 +1365,7 @@ def write_pov(filename, scene=None, info_callback=None):
                     tabWrite("image_map{%s \"%s\" %s}\n" % (imageFormat(texturesBlend), texturesBlend, imgMapBG(t_blend)))
                     tabWrite("}\n")
                     tabWrite("%s\n" % (mappingBlend))
+                    # The following layered pigment opacifies to black over the texture  for transmit below 1 or otherwise adds to itself  
                     tabWrite("pigment {rgb 0 transmit %s}\n" % (t.texture.intensity))
                     tabWrite("}\n")
                     #tabWrite("scale 2\n")
@@ -1529,8 +1531,8 @@ def write_pov(filename, scene=None, info_callback=None):
     #print("pov file closed %s" % file.closed)
 
 
-def write_pov_ini(filename_ini, filename_pov, filename_image):
-    scene = bpy.data.scenes[0]
+def write_pov_ini(scene, filename_ini, filename_pov, filename_image):
+    #scene = bpy.data.scenes[0]
     render = scene.render
 
     x = int(render.resolution_x * render.resolution_percentage * 0.01)
@@ -1549,8 +1551,8 @@ def write_pov_ini(filename_ini, filename_pov, filename_image):
         file.write("Start_Column=%4g\n" % render.border_min_x)
         file.write("End_Column=%4g\n" % (render.border_max_x))
 
-        file.write("Start_Row=%4g\n" % (render.border_min_y))
-        file.write("End_Row=%4g\n" % (render.border_max_y))
+        file.write("Start_Row=%4g\n" % (1.0-render.border_max_y))
+        file.write("End_Row=%4g\n" % (1.0-render.border_min_y))
 
     file.write("Bounding_Method=2\n")  # The new automatic BSP is faster in most scenes
 
@@ -1618,7 +1620,7 @@ class PovrayRender(bpy.types.RenderEngine):
         except OSError:
             pass
 
-        write_pov_ini(self._temp_file_ini, self._temp_file_in, self._temp_file_out)
+        write_pov_ini(scene, self._temp_file_ini, self._temp_file_in, self._temp_file_out)
 
         print ("***-STARTING-***")
 
@@ -1630,7 +1632,11 @@ class PovrayRender(bpy.types.RenderEngine):
             for newArg in scene.pov_command_line_switches.split(" "):
                 extra_args.append(newArg)
 
+        self._is_windows = False
         if sys.platform[:3] == "win":
+            self._is_windows = True
+            #extra_args.append("/EXIT")
+
             import winreg
             import platform as pltfrm
             if pltfrm.architecture()[0] == "64bit":
@@ -1646,7 +1652,8 @@ class PovrayRender(bpy.types.RenderEngine):
             if bitness == 64:
                 try:
                     pov_binary = winreg.QueryValueEx(regKey, "Home")[0] + "\\bin\\pvengine64"
-                    self._process = subprocess.Popen([pov_binary, self._temp_file_ini] + extra_args)
+                    self._process = subprocess.Popen([pov_binary, self._temp_file_ini] + extra_args,
+                                                     stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
                     # This would work too but means we have to wait until its done:
                     # os.system("%s %s" % (pov_binary, self._temp_file_ini))
 
@@ -1654,7 +1661,8 @@ class PovrayRender(bpy.types.RenderEngine):
                     # someone might run povray 32 bits on a 64 bits blender machine
                     try:
                         pov_binary = winreg.QueryValueEx(regKey, "Home")[0] + "\\bin\\pvengine"
-                        self._process = subprocess.Popen([pov_binary, self._temp_file_ini] + extra_args)
+                        self._process = subprocess.Popen([pov_binary, self._temp_file_ini] + extra_args,
+                                                         stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 
                     except OSError:
                         # TODO, report api
@@ -1678,13 +1686,15 @@ class PovrayRender(bpy.types.RenderEngine):
             else:
                 try:
                     pov_binary = winreg.QueryValueEx(regKey, "Home")[0] + "\\bin\\pvengine"
-                    self._process = subprocess.Popen([pov_binary, self._temp_file_ini] + extra_args)
+                    self._process = subprocess.Popen([pov_binary, self._temp_file_ini] + extra_args,
+                                                     stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 
                 # someone might also run povray 64 bits with a 32 bits build of blender.
                 except OSError:
                     try:
                         pov_binary = winreg.QueryValueEx(regKey, "Home")[0] + "\\bin\\pvengine64"
-                        self._process = subprocess.Popen([pov_binary, self._temp_file_ini] + extra_args)
+                        self._process = subprocess.Popen([pov_binary, self._temp_file_ini] + extra_args,
+                                                         stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 
                     except OSError:
                         # TODO, report api
@@ -1725,7 +1735,8 @@ class PovrayRender(bpy.types.RenderEngine):
                 return False
 
             try:
-                self._process = subprocess.Popen([pov_binary, self._temp_file_ini] + extra_args)
+                self._process = subprocess.Popen([pov_binary, self._temp_file_ini] + extra_args,
+                                                 stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 
             except OSError:
                 # TODO, report api
@@ -1740,16 +1751,18 @@ class PovrayRender(bpy.types.RenderEngine):
                 print("Command line arguments passed: " + str(extra_args))
                 return True
 
+        # Now that we have a valid process
+
     def _cleanup(self):
         for f in (self._temp_file_in, self._temp_file_ini, self._temp_file_out):
-            try:
-                os.unlink(f)
-            except OSError:  # was that the proper error type?
-                #print("POV-Ray 3.7: could not remove/unlink TEMP file %s" % f.name)
-                pass
-            #print("")
-
-        self.update_stats("", "")
+            for i in range(5):
+                try:
+                    os.unlink(f)
+                    break
+                except OSError:
+                    # Wait a bit before retrying file might be still in use by Blender,
+                    # and Windows does not know how to delete a file in use!
+                    time.sleep(self.DELAY)
 
     def render(self, scene):
         import tempfile
@@ -1864,84 +1877,147 @@ class PovrayRender(bpy.types.RenderEngine):
         x = int(r.resolution_x * r.resolution_percentage * 0.01)
         y = int(r.resolution_y * r.resolution_percentage * 0.01)
 
-        # Wait for the file to be created
-        while not os.path.exists(self._temp_file_out):
-            # print("***POV WAITING FOR FILE***")
+        # This makes some tests on the render, returning True if all goes good, and False if
+        # it was finished one way or the other.
+        # It also pauses the script (time.sleep())
+        def _test_wait():
+            time.sleep(self.DELAY)
+
+            # User interrupts the rendering
             if self.test_break():
                 try:
                     self._process.terminate()
                     print("***POV INTERRUPTED***")
                 except OSError:
                     pass
-                break
+                return False
 
             poll_result = self._process.poll()
+            # POV process is finisehd, one way or the other
             if poll_result is not None:
-                print("***POV PROCESS FAILED : %s ***" % poll_result)
-                self.update_stats("", "POV-Ray 3.7: Failed")
-                break
+                if poll_result < 0:
+                    print("***POV PROCESS FAILED : %s ***" % poll_result)
+                    self.update_stats("", "POV-Ray 3.7: Failed")
+                return False
 
-            time.sleep(self.DELAY)
+            return True
+
+
+        # Wait for the file to be created
+        # XXX This is no more valid, as 3.7 always creates output file once render is finished!
+        parsing = re.compile(br"= \[Parsing\.\.\.\] =")
+        rendering = re.compile(br"= \[Rendering\.\.\.\] =")
+        percent = re.compile(r"\(([0-9]{1,3})%\)")
+        # print("***POV WAITING FOR FILE***")
+
+        data = b""
+        last_line = ""
+        while _test_wait():
+            # POV in Windows does not output its stdout/stderr, it displays them in its GUI
+            if self._is_windows:
+                self.update_stats("", "POV-Ray 3.7: Rendering File")
+            else:
+                t_data = self._process.stdout.read1(10000)
+                if not t_data: continue
+
+                data += t_data
+                # XXX This is working for UNIX, not sure whether it might need adjustments for other OSs
+                t_data = str(t_data).replace('\\r\\n', '\\n').replace('\\r', '\r') # First replace is for windows
+                lines = t_data.split('\\n')
+                last_line += lines[0]
+                lines[0] = last_line
+                print('\n'.join(lines), end="")
+                last_line = lines[-1]
+
+                if rendering.search(data):
+                    _pov_rendering = True
+                    match = percent.findall(str(data))
+                    if match:
+                        self.update_stats("", "POV-Ray 3.7: Rendering File (%s%%)" % match[-1])
+                    else:
+                        self.update_stats("", "POV-Ray 3.7: Rendering File")
+
+                elif parsing.search(data):
+                    self.update_stats("", "POV-Ray 3.7: Parsing File")
 
         if os.path.exists(self._temp_file_out):
             # print("***POV FILE OK***")
-            self.update_stats("", "POV-Ray 3.7: Rendering")
+            #self.update_stats("", "POV-Ray 3.7: Rendering")
 
-            prev_size = -1
+            # prev_size = -1
 
-            def update_image():
-                xmin = int(r.border_min_x * x)
-                ymin = int(r.border_min_y * y)
-                xmax = int(r.border_max_x * x)
-                ymax = int(r.border_max_y * y)
+            xmin = int(r.border_min_x * x)
+            ymin = int(r.border_min_y * y)
+            xmax = int(r.border_max_x * x)
+            ymax = int(r.border_max_y * y)
 
-                # print("***POV UPDATING IMAGE***")
-                result = self.begin_result(0, 0, x, y)
-                #result = self.begin_result(xmin, ymin, xmax - xmin, ymax - ymin)  # XXX, test for border render.
-                lay = result.layers[0]
-                # possible the image wont load early on.
-                try:
-                    lay.load_from_file(self._temp_file_out)
-                    #lay.load_from_file(self._temp_file_out, xmin, ymin)  # XXX, test for border render.
-                except RuntimeError:
-                    pass
-                self.end_result(result)
+            # print("***POV UPDATING IMAGE***")
+            result = self.begin_result(0, 0, x, y)
+            #result = self.begin_result(xmin, ymin, xmax - xmin, ymax - ymin)  # XXX, test for border render.
+            #result = self.begin_result(0, 0, xmax - xmin, ymax - ymin)  # XXX, test for border render.
+            lay = result.layers[0]
 
-            # Update while POV-Ray renders
-            while True:
-                # print("***POV RENDER LOOP***")
+            # This assumes the file has been fully written We wait a bit, just in case!
+            time.sleep(self.DELAY)
+            try:
+                lay.load_from_file(self._temp_file_out)
+                #lay.load_from_file(self._temp_file_out, xmin, ymin)  # XXX, test for border render.
+                #lay.load_from_file(self._temp_file_out, xmin, ymin)  # XXX, test for border render.
+            except RuntimeError:
+                print("***POV ERROR WHILE READING OUTPUT FILE***")
 
-                # test if POV-Ray exists
-                if self._process.poll() is not None:
-                    print("***POV PROCESS FINISHED***")
-                    update_image()
-                    break
+            # Not needed right now, might only be useful if we find a way to use temp raw output of
+            # pov 3.7 (in which case it might go under _test_wait()).
+#            def update_image():
+#                # possible the image wont load early on.
+#                try:
+#                    lay.load_from_file(self._temp_file_out)
+#                    #lay.load_from_file(self._temp_file_out, xmin, ymin)  # XXX, test for border render.
+#                    #lay.load_from_file(self._temp_file_out, xmin, ymin)  # XXX, test for border render.
+#                except RuntimeError:
+#                    pass
 
-                # user exit
-                if self.test_break():
-                    try:
-                        self._process.terminate()
-                        print("***POV PROCESS INTERRUPTED***")
-                    except OSError:
-                        pass
+#            # Update while POV-Ray renders
+#            while True:
+#                # print("***POV RENDER LOOP***")
 
-                    break
+#                # test if POV-Ray exists
+#                if self._process.poll() is not None:
+#                    print("***POV PROCESS FINISHED***")
+#                    update_image()
+#                    break
 
-                # Would be nice to redirect the output
-                # stdout_value, stderr_value = self._process.communicate() # locks
+#                # user exit
+#                if self.test_break():
+#                    try:
+#                        self._process.terminate()
+#                        print("***POV PROCESS INTERRUPTED***")
+#                    except OSError:
+#                        pass
 
-                # check if the file updated
-                new_size = os.path.getsize(self._temp_file_out)
+#                    break
 
-                if new_size != prev_size:
-                    update_image()
-                    prev_size = new_size
+#                # Would be nice to redirect the output
+#                # stdout_value, stderr_value = self._process.communicate() # locks
 
-                time.sleep(self.DELAY)
+#                # check if the file updated
+#                new_size = os.path.getsize(self._temp_file_out)
+
+#                if new_size != prev_size:
+#                    update_image()
+#                    prev_size = new_size
+
+#                time.sleep(self.DELAY)
+
+            self.end_result(result)
+
         else:
             print("***POV FILE NOT FOUND***")
 
         print("***POV FINISHED***")
-        #time.sleep(self.DELAY)
+
+        self.update_stats("", "")
+
         if scene.pov_tempfiles_enable or scene.pov_deletefiles_enable:
             self._cleanup()
+
