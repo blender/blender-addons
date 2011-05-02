@@ -65,7 +65,7 @@ class VIEW3D_PT_math_vis(bpy.types.Panel):
 
 
 class SetupMathView(bpy.types.Operator):
-    '''Draw a line with the mouse'''
+    '''Visualize mathutils type python variables from the interactive console, see addon docs'''
     bl_idname = "view3d.math_vis_toggle"
     bl_label = "Use Math Vis"
 
