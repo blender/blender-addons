@@ -66,8 +66,15 @@ class DirectXExporterSettings:
 
 
 def LegalName(Name):
-    NewName = Name.replace(".", "_")
-    NewName = NewName.replace(" ", "_")
+    
+    def ReplaceSet(String, OldSet, NewChar):
+        for OldChar in OldSet:
+            String = String.replace(OldChar, NewChar)
+        return String
+    
+    import string
+    
+    NewName = ReplaceSet(Name, string.punctuation, "_")
     if NewName[0].isdigit() or NewName in ["ARRAY",
                                            "DWORD",
                                            "UCHAR",
@@ -1199,10 +1206,8 @@ class DirectXExporter(bpy.types.Operator):
     Verbose = BoolProperty(name="Verbose", description="Run the exporter in debug mode.  Check the console for output.", default=False)
 
     def execute(self, context):
-        #Append .x if needed
-        FilePath = self.filepath
-        if not FilePath.lower().endswith(".x"):
-            FilePath += ".x"
+        #Append .x
+        FilePath = os.path.splitext(self.filepath)[0] + ".x"
 
         Config = DirectXExporterSettings(context,
                                          FilePath,
