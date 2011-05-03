@@ -173,9 +173,7 @@ def applyScaleRotLoc(scene, obj):
     obj.select = True
     scene.objects.active = obj
 
-    bpy.ops.object.rotation_apply()
-    bpy.ops.object.location_apply()
-    bpy.ops.object.scale_apply()
+    bpy.ops.object.transform_apply(location=True, rotation=True, scale=True)
    
 def totallyDeleteObject(scene, obj):
     scene.objects.unlink(obj)
@@ -516,7 +514,7 @@ class GenerateCloud(bpy.types.Operator):
             #Don't subdivide object or smooth if smoothing box not checked.
             if scene.cloudsmoothing:            
                 bpy.ops.mesh.subdivide(number_cuts=2, fractal=0, smoothness=1)
- #               bpy.ops.object.location_apply()
+ #               bpy.ops.object.transform_apply(location=True)
                 bpy.ops.mesh.vertices_smooth(repeat=20)
             bpy.ops.mesh.tris_convert_to_quads()
             bpy.ops.mesh.faces_shade_smooth()
