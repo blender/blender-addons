@@ -18,9 +18,9 @@
 bl_info = {
     "name": "DirectX Model Format (.x)",
     "author": "Chris Foster (Kira Vakaan)",
-    "version": (2, 1),
+    "version": (2, 1, 1),
     "blender": (2, 5, 7),
-    "api": 36302,
+    "api": 36339,
     "location": "File > Export > DirectX (.x)",
     "description": "Export DirectX Model Format (.x)",
     "warning": "",
@@ -97,7 +97,7 @@ def ExportDirectX(Config):
         print("Done")
 
     if Config.Verbose:
-        print("Generating Object list for export...")
+        print("Generating Object list for export... (Root parents only)")
     if Config.ExportMode == 1:
         Config.ExportList = [Object for Object in Config.context.scene.objects
                              if Object.type in ("ARMATURE", "EMPTY", "MESH")
@@ -146,6 +146,9 @@ def ExportDirectX(Config):
     
     Config.Whitespace -= 1
     Config.File.write("{}}} //End of Root Frame\n".format("  " * Config.Whitespace))
+    
+    if Config.Verbose:
+        print("Objects Exported: {}".format(Config.ExportList))
 
     if Config.ExportAnimation:
         if Config.IncludeFrameRate:
@@ -256,14 +259,16 @@ def WriteObjects(Config, ObjectList):
             WriteArmatureBones(Config, Object, ParentList)
             if Config.Verbose:
                 print("    Done")
-
-        if Config.ExportMode == 1:
-            ChildList = GetObjectChildren(Object)
-            if Config.Verbose:
-                print("    Writing Children...")
-            WriteObjects(Config, ChildList)
-            if Config.Verbose:
-                print("    Done Writing Children")
+        
+        ChildList = GetObjectChildren(Object)
+        if Config.ExportMode == 2: #Selected Objects Only
+            ChildList = [Child for Child in ChildList
+                         if Child in Config.context.selected_objects]
+        if Config.Verbose:
+            print("    Writing Children...")
+        WriteObjects(Config, ChildList)
+        if Config.Verbose:
+            print("    Done Writing Children")
 
         if Object.type == "MESH":
             if Config.Verbose:
