@@ -45,7 +45,7 @@ from io_utils import ImportHelper, ExportHelper
 
 
 class ImportX3D(bpy.types.Operator, ImportHelper):
-    '''Load a BVH motion capture file'''
+    '''Import and X3D or VRML file'''
     bl_idname = "import_scene.x3d"
     bl_label = "Import X3D/VRML"
 
