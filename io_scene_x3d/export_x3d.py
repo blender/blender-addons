@@ -278,7 +278,8 @@ class x3d_class:
 
     def writeIndexedFaceSet(self, ob, mesh, mtx, world, EXPORT_TRI=False):
         fw = self.file.write
-        mesh_name_x3d = self.cleanStr(ob.name)
+        shape_name_x3d = self.cleanStr(ob.name)
+        mesh_name_x3d = self.cleanStr(mesh.name)
 
         if not mesh.faces:
             return
@@ -314,7 +315,7 @@ class x3d_class:
 
         loc, quat, sca = mtx.decompose()
 
-        self.write_indented("<Transform DEF=\"%s\" " % mesh_name_x3d, 1)
+        self.write_indented("<Transform DEF=\"%s\" " % shape_name_x3d, 1)
         fw("translation=\"%.6f %.6f %.6f\" " % loc[:])
         fw("scale=\"%.6f %.6f %.6f\" " % sca[:])
         fw("rotation=\"%.6f %.6f %.6f %.6f\" " % (quat.axis[:] + (quat.angle, )))
