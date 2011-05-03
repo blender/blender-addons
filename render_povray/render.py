@@ -1365,7 +1365,7 @@ def write_pov(filename, scene=None, info_callback=None):
                     tabWrite("image_map{%s \"%s\" %s}\n" % (imageFormat(texturesBlend), texturesBlend, imgMapBG(t_blend)))
                     tabWrite("}\n")
                     tabWrite("%s\n" % (mappingBlend))
-                    # The following layered pigment opacifies to black over the texture  for transmit below 1 or otherwise adds to itself  
+                    # The following layered pigment opacifies to black over the texture  for transmit below 1 or otherwise adds to itself
                     tabWrite("pigment {rgb 0 transmit %s}\n" % (t.texture.intensity))
                     tabWrite("}\n")
                     #tabWrite("scale 2\n")
@@ -1551,8 +1551,8 @@ def write_pov_ini(scene, filename_ini, filename_pov, filename_image):
         file.write("Start_Column=%4g\n" % render.border_min_x)
         file.write("End_Column=%4g\n" % (render.border_max_x))
 
-        file.write("Start_Row=%4g\n" % (1.0-render.border_max_y))
-        file.write("End_Row=%4g\n" % (1.0-render.border_min_y))
+        file.write("Start_Row=%4g\n" % (1.0 - render.border_max_y))
+        file.write("End_Row=%4g\n" % (1.0 - render.border_min_y))
 
     file.write("Bounding_Method=2\n")  # The new automatic BSP is faster in most scenes
 
@@ -1902,7 +1902,6 @@ class PovrayRender(bpy.types.RenderEngine):
 
             return True
 
-
         # Wait for the file to be created
         # XXX This is no more valid, as 3.7 always creates output file once render is finished!
         parsing = re.compile(br"= \[Parsing\.\.\.\] =")
@@ -1918,11 +1917,12 @@ class PovrayRender(bpy.types.RenderEngine):
                 self.update_stats("", "POV-Ray 3.7: Rendering File")
             else:
                 t_data = self._process.stdout.read1(10000)
-                if not t_data: continue
+                if not t_data:
+                    continue
 
                 data += t_data
                 # XXX This is working for UNIX, not sure whether it might need adjustments for other OSs
-                t_data = str(t_data).replace('\\r\\n', '\\n').replace('\\r', '\r') # First replace is for windows
+                t_data = str(t_data).replace('\\r\\n', '\\n').replace('\\r', '\r')  # First replace is for windows
                 lines = t_data.split('\\n')
                 last_line += lines[0]
                 lines[0] = last_line
@@ -2020,4 +2020,3 @@ class PovrayRender(bpy.types.RenderEngine):
 
         if scene.pov_tempfiles_enable or scene.pov_deletefiles_enable:
             self._cleanup()
-

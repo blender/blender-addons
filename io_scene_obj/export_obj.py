@@ -308,7 +308,7 @@ def write_file(filepath, objects, scene,
     # A Dict of Materials
     # (material.name, image.name):matname_imagename # matname_imagename has gaps removed.
     mtl_dict = {}
-    
+
     copy_set = set()
 
     # Get all meshes
