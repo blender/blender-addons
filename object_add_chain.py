@@ -37,12 +37,8 @@ def Add_Chain():
   
 
     ##Adds Empty to scene
-    bpy.ops.object.add(
-        type='EMPTY', view_align=False, enter_editmode=False, location=(0, 0, 0), 
-        rotation=(0, 0, 0),
-        layers=(True, False, False, False, False, False, False, False, False,
-                False, False, False, False, False, False, False, False, False, 
-                False, False))
+    bpy.ops.object.add(type='EMPTY', view_align=False, enter_editmode=False, location=(0, 0, 0), 
+rotation=(0, 0, 0),)
 
     ##Changes name of Empty to rot_link adds variable emp
     emp = bpy.context.object
@@ -52,12 +48,7 @@ def Add_Chain():
     emp.rotation_euler = [1.570796, 0, 0]
 
     ##Adds Curve Path to scene
-    bpy.ops.curve.primitive_nurbs_path_add(
-        view_align=False, enter_editmode=False, location=(0, 0, 0), 
-        rotation=(0, 0, 0), 
-        layers=(True, False, False, False, False, False, False, False, False, 
-        False, False, False, False, False, False, False, False, False, False, 
-        False))
+    bpy.ops.curve.primitive_nurbs_path_add( view_align=False, enter_editmode=False, location=(0, 0, 0), rotation=(0, 0, 0),)
 
     ##Change Curve name to deform adds variable curv
     curv = bpy.context.object
@@ -70,6 +61,10 @@ def Add_Chain():
 
     ##Positions Torus primitive to center of scene
     bpy.context.active_object.location = [0, 0, 0]
+    
+    ##Reseting Torus rotation in case of 'Align to view' option enabled
+    bpy.context.active_object.rotation_euler = [0, 0, 0]
+    
 
     ##Changes Torus name to chain adds variable tor
     tor = bpy.context.object
