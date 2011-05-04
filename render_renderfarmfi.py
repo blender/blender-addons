@@ -19,9 +19,9 @@
 bl_info = {
     "name": "Renderfarm.fi",
     "author": "Nathan Letwory <nathan@letworyinteractive.com>, Jesse Kaukonen <jesse.kaukonen@gmail.com>",
-    "version": (7,),
+    "version": (8,),
     "blender": (2, 5, 7),
-    "api": 36212,
+    "api": 36487,
     "location": "Render > Engine > Renderfarm.fi",
     "description": "Send .blend as session to http://www.renderfarm.fi to render",
     "warning": "",
@@ -809,7 +809,7 @@ class ORE_PrepareOp(bpy.types.Operator):
             return hasSimulation(bpy.types.SoftBodyModifier)
 
         def hasUnsupportedSimulation():
-            return hasSoftbodySimulation() or hasCollisionSimulation() or hasClothSimulation() or hasSmokeSimulation() or hasFluidSimulation() or hasParticleSystem()
+            return hasSoftbodySimulation() or hasCollisionSimulation() or hasClothSimulation() or hasSmokeSimulation() or hasFluidSimulation()
 
         def isFilterNode(node):
             t = type(node)
