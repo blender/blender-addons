@@ -30,12 +30,15 @@ def create_and_link_mesh(name, faces, points):
     mesh = bpy.data.meshes.new(name)
     mesh.from_pydata(points, [], faces)
 
-    ob = bpy.data.objects.new(name, mesh)
-    bpy.context.scene.objects.link(ob)
-
     # update mesh to allow proper display
     mesh.validate()
     mesh.update()
+
+    scene = bpy.context.scene
+
+    obj = bpy.data.objects.new(name, mesh)
+    scene.objects.link(obj)
+    obj.select = True
 
 
 def faces_from_mesh(ob, apply_modifier=False, triangulate=True):

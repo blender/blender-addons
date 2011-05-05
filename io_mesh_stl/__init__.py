@@ -77,7 +77,7 @@ class ImportSTL(bpy.types.Operator, ImportHelper):
                                       "the STL file",
                           type=bpy.types.OperatorFileListElement)
 
-    directory = StringProperty()
+    directory = StringProperty(subtype='DIR_PATH')
 
     def execute(self, context):
         from . import stl_utils
@@ -88,8 +88,14 @@ class ImportSTL(bpy.types.Operator, ImportHelper):
         if not paths:
             paths.append(self.filepath)
 
+        if bpy.ops.object.mode_set.poll():
+            bpy.ops.object.mode_set(mode='OBJECT')
+
+        if bpy.ops.object.select_all.poll():
+            bpy.ops.object.select_all(action='DESELECT')
+
         for path in paths:
-            objName = bpy.path.display_name(path.split("\\")[-1].split("/")[-1])
+            objName = bpy.path.display_name(os.path.basename(path))
             tris, pts = stl_utils.read_stl(path)
 
             blender_utils.create_and_link_mesh(objName, tris, pts)
