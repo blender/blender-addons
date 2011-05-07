@@ -53,7 +53,6 @@ sane_name_mapping_group = {}
 
 # Make sure reserved names are not used
 sane_name_mapping_ob['Scene'] = 'Scene_'
-sane_name_mapping_ob['blend_root'] = 'blend_root_'
 
 
 def increment_string(t):
@@ -68,7 +67,7 @@ def increment_string(t):
         return name + '_0'
 
 
-# todo - Disallow the name 'Scene' and 'blend_root' - it will bugger things up.
+# todo - Disallow the name 'Scene' - it will bugger things up.
 def sane_name(data, dct):
     #if not data: return None
 
@@ -982,7 +981,7 @@ def save_single(operator, scene, filepath="",
         file.write('\n\t}')
 
     # matrixOnly is not used at the moment
-    def write_null(my_null=None, fbxName=None, matrixOnly=None):
+    def write_null(my_null=None, fbxName=None):
         # ob can be null
         if not fbxName:
             fbxName = my_null.fbxName
@@ -990,15 +989,10 @@ def save_single(operator, scene, filepath="",
         file.write('\n\tModel: "Model::%s", "Null" {' % fbxName)
         file.write('\n\t\tVersion: 232')
 
-        # only use this for the root matrix at the moment
-        if matrixOnly:
-            poseMatrix = write_object_props(None, None, matrixOnly)[3]
-
-        else:  # all other Null's
-            if my_null:
-                poseMatrix = write_object_props(my_null.blenObject, None, my_null.parRelMatrix())[3]
-            else:
-                poseMatrix = write_object_props()[3]
+        if my_null:
+            poseMatrix = write_object_props(my_null.blenObject, None, my_null.parRelMatrix())[3]
+        else:
+            poseMatrix = write_object_props()[3]
 
         pose_items.append((fbxName, poseMatrix))
 
@@ -2058,7 +2052,7 @@ def save_single(operator, scene, filepath="",
 Definitions:  {
     Version: 100
     Count: %i''' % (\
-        1 + 1 + camera_count + \
+        1 + camera_count + \
         len(ob_meshes) + \
         len(ob_lights) + \
         len(ob_cameras) + \
@@ -2067,7 +2061,7 @@ Definitions:  {
         len(ob_bones) + \
         bone_deformer_count + \
         len(materials) + \
-        (len(textures) * 2)))  # add 1 for the root model 1 for global settings
+        (len(textures) * 2)))  # add 1 for global settings
 
     del bone_deformer_count
 
@@ -2075,13 +2069,13 @@ Definitions:  {
     ObjectType: "Model" {
         Count: %i
     }''' % (\
-        1 + camera_count + \
+        camera_count + \
         len(ob_meshes) + \
         len(ob_lights) + \
         len(ob_cameras) + \
         len(ob_arms) + \
         len(ob_null) + \
-        len(ob_bones)))  # add 1 for the root model
+        len(ob_bones)))
 
     file.write('''
     ObjectType: "Geometry" {
@@ -2149,9 +2143,6 @@ Objects:  {''')
 
     # To comply with other FBX FILES
     write_camera_switch()
-
-    # Write the null object
-    write_null(None, 'blend_root')  # , GLOBAL_MATRIX)
 
     for my_null in ob_null:
         write_null(my_null)
@@ -2252,8 +2243,6 @@ Objects:  {''')
 
 Relations:  {''')
 
-    file.write('\n\tModel: "Model::blend_root", "Null" {\n\t}')
-
     for my_null in ob_null:
         file.write('\n\tModel: "Model::%s", "Null" {\n\t}' % my_null.fbxName)
 
@@ -2328,17 +2317,15 @@ Connections:  {''')
 
     # NOTE - The FBX SDK dosnt care about the order but some importers DO!
     # for instance, defining the material->mesh connection
-    # before the mesh->blend_root crashes cinema4d
-
-    # write the fake root node
-    file.write('\n\tConnect: "OO", "Model::blend_root", "Model::Scene"')
+    # before the mesh->parent crashes cinema4d
 
     for ob_generic in ob_all_typegroups:  # all blender 'Object's we support
         for my_ob in ob_generic:
-            if my_ob.fbxParent:
+            # for deformed meshes, don't have any parents or they can get twice transformed.
+            if my_ob.fbxParent and (not my_ob.fbxArm):
                 file.write('\n\tConnect: "OO", "Model::%s", "Model::%s"' % (my_ob.fbxName, my_ob.fbxParent.fbxName))
             else:
-                file.write('\n\tConnect: "OO", "Model::%s", "Model::blend_root"' % my_ob.fbxName)
+                file.write('\n\tConnect: "OO", "Model::%s", "Model::Scene"' % my_ob.fbxName)
 
     if materials:
         for my_mesh in ob_meshes:
@@ -2392,7 +2379,7 @@ Connections:  {''')
                     file.write('\n\tConnect: "OO", "Model::%s", "GroupSelection::%s"' % (ob_base.fbxName, fbxGroupName))
 
     for my_arm in ob_arms:
-        file.write('\n\tConnect: "OO", "Model::%s", "Model::blend_root"' % my_arm.fbxName)
+        file.write('\n\tConnect: "OO", "Model::%s", "Model::Scene"' % my_arm.fbxName)
 
     file.write('\n}')
 
