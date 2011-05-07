@@ -64,7 +64,7 @@ def imageFormat(imgF):
 
     print(imgF)
     if not ext:
-        print(" WARNING: texture image format not supported ")  # % (imgF , "")) #(ext_orig)))
+        print(" WARNING: texture image format not supported ")
 
     return ext
 
@@ -77,17 +77,22 @@ def imgMap(ts):
         image_map = "map_type 1 "  # map_type 7 in megapov
     elif ts.mapping == 'TUBE':
         image_map = "map_type 2 "
+
+    ## map_type 3 and 4 in development (?)
+    ## for POV-Ray, currently they just seem to default back to Flat (type 0)
     #elif ts.mapping=="?":
-    #    image_map = " map_type 3 "  # map_type 3 and 4 in development (?) for POV-Ray, currently they just seem to default back to Flat (type 0)
+    #    image_map = " map_type 3 "
     #elif ts.mapping=="?":
-    #    image_map = " map_type 4 "  # map_type 3 and 4 in development (?) for POV-Ray, currently they just seem to default back to Flat (type 0)
+    #    image_map = " map_type 4 "
     if ts.texture.use_interpolation:
         image_map += " interpolate 2 "
     if ts.texture.extension == 'CLIP':
         image_map += " once "
     #image_map += "}"
     #if ts.mapping=='CUBE':
-    #    image_map+= "warp { cubic } rotate <-90,0,180>"  # no direct cube type mapping. Though this should work in POV 3.7 it doesn't give that good results(best suited to environment maps?)
+    #    image_map+= "warp { cubic } rotate <-90,0,180>"
+    # no direct cube type mapping. Though this should work in POV 3.7
+    # it doesn't give that good results(best suited to environment maps?)
     #if image_map == "":
     #    print(" No texture image  found ")
     return image_map
@@ -95,8 +100,9 @@ def imgMap(ts):
 
 def imgMapBG(wts):
     image_mapBG = ""
+    # texture_coords refers to the mapping of world textures:
     if wts.texture_coords == 'VIEW':
-        image_mapBG = " map_type 0 "  # texture_coords refers to the mapping of world textures
+        image_mapBG = " map_type 0 "
     elif wts.texture_coords == 'ANGMAP':
         image_mapBG = " map_type 1 "
     elif wts.texture_coords == 'TUBE':
@@ -108,7 +114,9 @@ def imgMapBG(wts):
         image_mapBG += " once "
     #image_mapBG += "}"
     #if wts.mapping == 'CUBE':
-    #   image_mapBG += "warp { cubic } rotate <-90,0,180>"  # no direct cube type mapping. Though this should work in POV 3.7 it doesn't give that good results(best suited to environment maps?)
+    #   image_mapBG += "warp { cubic } rotate <-90,0,180>"
+    # no direct cube type mapping. Though this should work in POV 3.7
+    # it doesn't give that good results(best suited to environment maps?)
     #if image_mapBG == "":
     #    print(" No background texture image  found ")
     return image_mapBG
@@ -168,7 +176,8 @@ def safety(name, Level):
     # safety string name material
     #
     # Level=1 is for texture with No specular nor Mirror reflection
-    # Level=2 is for texture with translation of spec and mir levels for when no map influences them
+    # Level=2 is for texture with translation of spec and mir levels
+    # for when no map influences them
     # Level=3 is for texture with Maximum Spec and Mirror
 
     try:
@@ -539,6 +548,10 @@ def write_pov(filename, scene=None, info_callback=None):
         tabWrite("}\n")
 
     def exportLamps(lamps):
+        # Incremented after each lamp export to declare its target
+        # currently used for Fresnel diffuse shader as their slope vector:
+        global lampCount
+        lampCount = 0
         # Get all lamps
         for ob in lamps:
             lamp = ob.data
@@ -605,40 +618,12 @@ def write_pov(filename, scene=None, info_callback=None):
             writeMatrix(matrix)
 
             tabWrite("}\n")
-##################################################################################################################################
-#Wip to be Used for fresnel, but not tested yet.
-##################################################################################################################################
-##    lampLocation=[0,0,0]
-##    lampRotation=[0,0,0]
-##    lampDistance=0.00
-##    averageLampLocation=[0,0,0]
-##    averageLampRotation=[0,0,0]
-##    averageLampDistance=0.00
-##    lamps=[]
-##    for l in scene.objects:
-##        if l.type == 'LAMP':#get all lamps
-##            lamps += [l]
-##    for ob in lamps:
-##        lamp = ob.data
-##        lampLocation[0]+=ob.location[0]
-##        lampLocation[1]+=ob.location[1]
-##        lampLocation[2]+=ob.location[2]
-##        lampRotation[0]+=ob.rotation_euler[0]
-##        lampRotation[1]+=ob.rotation_euler[1]
-##        lampRotation[2]+=ob.rotation_euler[2]
-##        lampDistance+=ob.data.distance
-##        averageLampRotation[0]=lampRotation[0] / len(lamps)#create an average direction for all lamps.
-##        averageLampRotation[1]=lampRotation[1] / len(lamps)#create an average direction for all lamps.
-##        averageLampRotation[2]=lampRotation[2] / len(lamps)#create an average direction for all lamps.
-##
-##        averageLampLocation[0]=lampLocation[0] / len(lamps)#create an average position for all lamps.
-##        averageLampLocation[1]=lampLocation[1] / len(lamps)#create an average position for all lamps.
-##        averageLampLocation[2]=lampLocation[2] / len(lamps)#create an average position for all lamps.
-##
-##        averageLampDistance=lampDistance / len(lamps)#create an average distance for all lamps.
-##    file.write("\n#declare lampTarget= vrotate(<%.4g,%.4g,%.4g>,<%.4g,%.4g,%.4g>);" % (-(averageLampLocation[0]-averageLampDistance), -(averageLampLocation[1]-averageLampDistance), -(averageLampLocation[2]-averageLampDistance), averageLampRotation[0], averageLampRotation[1], averageLampRotation[2]))
-##    #v(A,B) rotates vector A about origin by vector B.
-##
+
+            lampCount += 1
+
+            # v(A,B) rotates vector A about origin by vector B.
+            file.write("#declare lampTarget%s= vrotate(<%.4g,%.4g,%.4g>,<%.4g,%.4g,%.4g>);\n" % (lampCount, -(ob.location.x), -(ob.location.y), -(ob.location.z), ob.rotation_euler.x, ob.rotation_euler.y, ob.rotation_euler.z))
+
 ####################################################################################################################################
 
     def exportMeta(metas):
@@ -968,44 +953,25 @@ def write_pov(filename, scene=None, info_callback=None):
                         tabWrite("aoi\n")
                         tabWrite("texture_map {\n")
                         tabWrite("[%.3g finish {diffuse %.3g}]\n" % (material.darkness / 2.0, 2.0 - material.darkness))
-                        tabWrite("[%.3g" % (1.0 - (material.darkness / 2.0)))
-    ######TO OPTIMIZE? or present a more elegant way? At least make it work!##################################################################
-                    #If Fresnel gets removed from 2.5, why bother?
+                        tabWrite("[%.3g\n" % (1.0 - (material.darkness / 2.0)))
+
                     if material.diffuse_shader == 'FRESNEL':
+                        # For FRESNEL diffuse in POV, we'll layer slope patterned textures
+                        # with lamp vector as the slope vector and nest one slope per lamp
+                        # into each texture map's entry.
 
-    ######END of part TO OPTIMIZE? or present a more elegant way?##################################################################
+                        c = 1
+                        while (c <= lampCount):
+                            tabWrite("slope { lampTarget%s }\n" % (c))
+                            tabWrite("texture_map {\n")
+                            # Diffuse Fresnel value and factor go up to five,
+                            # other kind of values needed: used the number 5 below to remap
+                            tabWrite("[%.3g finish {diffuse %.3g}]\n" % ((5.0 - material.diffuse_fresnel) / 5, (material.diffuse_intensity * ((5.0 - material.diffuse_fresnel_factor) / 5))))
+                            tabWrite("[%.3g\n" % ((material.diffuse_fresnel_factor / 5) * (material.diffuse_fresnel / 5.0)))
+                            c += 1
 
-    ##                        #lampLocation=lamp.position
-    ##                        lampRotation=
-    ##                        a=lamp.Rotation[0]
-    ##                        b=lamp.Rotation[1]
-    ##                        c=lamp.Rotation[2]
-    ##                        lampLookAt=tuple (x,y,z)
-    ##                        lampLookAt[3]= 0.0 #Put 'target' of the lamp on the floor plane to elimianate one unknown value
-    ##                                   degrees(atan((lampLocation - lampLookAt).y/(lampLocation - lampLookAt).z))=lamp.rotation[0]
-    ##                                   degrees(atan((lampLocation - lampLookAt).z/(lampLocation - lampLookAt).x))=lamp.rotation[1]
-    ##                                   degrees(atan((lampLocation - lampLookAt).x/(lampLocation - lampLookAt).y))=lamp.rotation[2]
-    ##                        degrees(atan((lampLocation - lampLookAt).y/(lampLocation.z))=lamp.rotation[0]
-    ##                        degrees(atan((lampLocation.z/(lampLocation - lampLookAt).x))=lamp.rotation[1]
-    ##                        degrees(atan((lampLocation - lampLookAt).x/(lampLocation - lampLookAt).y))=lamp.rotation[2]
-
-                                    #color = tuple([c * lamp.energy for c in lamp.color]) # Colour is modified by energy
-
-                        tabWrite("\n")
-                        tabWrite("slope { lampTarget }\n")
-                        tabWrite("texture_map {\n")
-                        tabWrite("[%.3g finish {diffuse %.3g}]\n" % (material.diffuse_fresnel / 2, 2.0 - material.diffuse_fresnel_factor))
-                        tabWrite("[%.3g\n" % (1 - (material.diffuse_fresnel / 2.0)))
-
-                    #if material.diffuse_shader == 'FRESNEL': pigment pattern aoi pigment and texture map above, the rest below as one of its entry
-                    ##########################################################################################################################
-
-                    #special_texture_found = False
-                    #for t in material.texture_slots:
-                    #    if t and t.texture.type == 'IMAGE' and t.use and t.texture.image and (t.use_map_specular or t.use_map_raymir or t.use_map_normal or t.use_map_alpha):
-                    #        special_texture_found = True
-                    #        continue # Some texture found
-                    #if special_texture_found:
+                    # if shader is a 'FRESNEL' or 'MINNAERT': slope pigment pattern or aoi
+                    # and texture map above, the rest below as one of its entry
 
                     if texturesSpec != "" or texturesAlpha != "":
                         if texturesSpec != "":
@@ -1153,9 +1119,15 @@ def write_pov(filename, scene=None, info_callback=None):
                     tabWrite("}\n")
 
                 #End of slope/ior texture_map
-                if material.diffuse_shader in ('MINNAERT', 'FRESNEL') and material.pov_replacement_text == "":
+                if material.diffuse_shader == 'MINNAERT' and material.pov_replacement_text == "":
                     tabWrite("]\n")
                     tabWrite("}\n")
+                if material.diffuse_shader == 'FRESNEL' and material.pov_replacement_text == "":
+                    c = 1
+                    while (c <= lampCount):
+                        tabWrite("]\n")
+                        tabWrite("}\n")
+                        c += 1
 
                 if material.pov_replacement_text == "":
                     tabWrite("}\n")  # THEN IT CAN CLOSE IT   --MR
