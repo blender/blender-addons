@@ -57,6 +57,11 @@ class INFO_MT_mesh_extras_add(bpy.types.Menu):
     def draw(self, context):
         layout = self.layout
         layout.operator_context = 'INVOKE_REGION_WIN'
+        layout.menu("INFO_MT_mesh_gemstones_add", text="Gemstones")
+        layout.menu("INFO_MT_mesh_gears_add", text="Gears")
+        layout.menu("INFO_MT_mesh_math_add", text="Math Function")
+        layout.operator("mesh.primitive_twisted_torus_add",
+            text="Twisted Torus")
         layout.operator("mesh.primitive_sqorus_add",
             text="Sqorus")
         layout.operator("mesh.primitive_wedge_add")
@@ -64,16 +69,42 @@ class INFO_MT_mesh_extras_add(bpy.types.Menu):
             text="Star")
         layout.operator("mesh.primitive_trapezohedron_add",
             text="Trapezohedron")
-        layout.operator("mesh.primitive_twisted_torus_add",
-            text="Twisted Torus")
+
+class INFO_MT_mesh_gemstones_add(bpy.types.Menu):
+    # Define the "Gemstones" menu
+    bl_idname = "INFO_MT_mesh_gemstones_add"
+    bl_label = "Gemstones"
+
+    def draw(self, context):
+        layout = self.layout
+        layout.operator_context = 'INVOKE_REGION_WIN'
         layout.operator("mesh.primitive_diamond_add",
             text="Diamond")
         layout.operator("mesh.primitive_gem_add",
             text="Gem")
+
+			
+class INFO_MT_mesh_gears_add(bpy.types.Menu):
+    # Define the "Gears" menu
+    bl_idname = "INFO_MT_mesh_gears_add"
+    bl_label = "Gears"
+
+    def draw(self, context):
+        layout = self.layout
+        layout.operator_context = 'INVOKE_REGION_WIN'
         layout.operator("mesh.primitive_gear",
             text="Gear")
         layout.operator("mesh.primitive_worm_gear",
             text="Worm")
+
+class INFO_MT_mesh_math_add(bpy.types.Menu):
+    # Define the "Math Function" menu
+    bl_idname = "INFO_MT_mesh_math_add"
+    bl_label = "Math Functions"
+
+    def draw(self, context):
+        layout = self.layout
+        layout.operator_context = 'INVOKE_REGION_WIN'
         layout.operator("mesh.primitive_z_function_surface",
             text="Z Math Surface")
         layout.operator("mesh.primitive_xyz_function_surface",
