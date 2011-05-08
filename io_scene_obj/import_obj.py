@@ -320,24 +320,32 @@ def create_materials(filepath, material_libs, unique_materials, unique_material_
 
         elif type == 'Ka':
             mtex = blender_material.texture_slots.add()
+            mtex.use_map_color_diffuse = False
+
             mtex.texture = texture
             mtex.texture_coords = 'UV'
             mtex.use_map_ambient = True
 
         elif type == 'Ks':
             mtex = blender_material.texture_slots.add()
+            mtex.use_map_color_diffuse = False
+
             mtex.texture = texture
             mtex.texture_coords = 'UV'
             mtex.use_map_specular = True
 
         elif type == 'Bump':
             mtex = blender_material.texture_slots.add()
+            mtex.use_map_color_diffuse = False
+
             mtex.texture = texture
             mtex.texture_coords = 'UV'
             mtex.use_map_normal = True
 
         elif type == 'D':
             mtex = blender_material.texture_slots.add()
+            mtex.use_map_color_diffuse = False
+
             mtex.texture = texture
             mtex.texture_coords = 'UV'
             mtex.use_map_alpha = True
@@ -348,6 +356,8 @@ def create_materials(filepath, material_libs, unique_materials, unique_material_
 
         elif type == 'refl':
             mtex = blender_material.texture_slots.add()
+            mtex.use_map_color_diffuse = False
+
             mtex.texture = texture
             mtex.texture_coords = 'UV'
             mtex.use_map_reflect = True
