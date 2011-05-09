@@ -171,42 +171,42 @@ class RENDER_PT_povray_export_settings(RenderButtonsPanel, bpy.types.Panel):
         scene = context.scene
         rd = scene.render
 
-        layout.active = scene.pov_max_trace_level
+        layout.active = scene.pov.max_trace_level
         split = layout.split()
 
         col = split.column()
         col.label(text="Command line switches:")
-        col.prop(scene, "pov_command_line_switches", text="")
+        col.prop(scene.pov, "command_line_switches", text="")
         split = layout.split()
         col = split.column()
-        col.prop(scene, "pov_tempfiles_enable", text="OS Tempfiles")
-        if not scene.pov_tempfiles_enable:
+        col.prop(scene.pov, "tempfiles_enable", text="OS Tempfiles")
+        if not scene.pov.tempfiles_enable:
             col = split.column()
-            col.prop(scene, "pov_deletefiles_enable", text="Delete files")
+            col.prop(scene.pov, "deletefiles_enable", text="Delete files")
         else:
             col = split.column()
 
         split = layout.split()
-        if not scene.pov_tempfiles_enable:
+        if not scene.pov.tempfiles_enable:
             col = split.column()
-            col.prop(scene, "pov_scene_name", text="Name")
+            col.prop(scene.pov, "scene_name", text="Name")
             split = layout.split()
             col = split.column()
-            col.prop(scene, "pov_scene_path", text="Path to files")
-            #col.prop(scene, "pov_scene_path", text="Path to POV-file")
+            col.prop(scene.pov, "scene_path", text="Path to files")
+            #col.prop(scene.pov, "scene_path", text="Path to POV-file")
             split = layout.split()
             #col = split.column()  # Bug in POV-Ray RC3
-            #col.prop(scene, "pov_renderimage_path", text="Path to image")
+            #col.prop(scene.pov, "renderimage_path", text="Path to image")
             #split = layout.split()
 
             col = split.column()
-            col.prop(scene, "pov_indentation_character", text="Indent")
+            col.prop(scene.pov, "indentation_character", text="Indent")
             col = split.column()
-            if scene.pov_indentation_character == "2":
-                col.prop(scene, "pov_indentation_spaces", text="Spaces")
+            if scene.pov.indentation_character == "2":
+                col.prop(scene.pov, "indentation_spaces", text="Spaces")
             row = layout.row()
-            row.prop(scene, "pov_comments_enable", text="Comments")
-            row.prop(scene, "pov_list_lf_enable", text="Line breaks in lists")
+            row.prop(scene.pov, "comments_enable", text="Comments")
+            row.prop(scene.pov, "list_lf_enable", text="Line breaks in lists")
 
 
 class RENDER_PT_povray_render_settings(RenderButtonsPanel, bpy.types.Panel):
@@ -219,26 +219,26 @@ class RENDER_PT_povray_render_settings(RenderButtonsPanel, bpy.types.Panel):
         scene = context.scene
         rd = scene.render
 
-        layout.active = scene.pov_max_trace_level
+        layout.active = scene.pov.max_trace_level
 
         split = layout.split()
         col = split.column()
 
         col.label(text="Global Settings")
-        col.prop(scene, "pov_max_trace_level", text="Ray Depth")
+        col.prop(scene.pov, "max_trace_level", text="Ray Depth")
 
         col.label(text="Global Photons")
-        col.prop(scene, "pov_photon_max_trace_level", text="Photon Depth")
+        col.prop(scene.pov, "photon_max_trace_level", text="Photon Depth")
 
         split = layout.split()
         col = split.column()
-        col.prop(scene, "pov_photon_spacing", text="Spacing")
-        col.prop(scene, "pov_photon_gather_min")
+        col.prop(scene.pov, "photon_spacing", text="Spacing")
+        col.prop(scene.pov, "photon_gather_min")
 
         col = split.column()
 
-        col.prop(scene, "pov_photon_adc_bailout", text="Photon ADC")
-        col.prop(scene, "pov_photon_gather_max")
+        col.prop(scene.pov, "photon_adc_bailout", text="Photon ADC")
+        col.prop(scene.pov, "photon_gather_max")
 
 
 class RENDER_PT_povray_antialias(RenderButtonsPanel, bpy.types.Panel):
@@ -248,7 +248,7 @@ class RENDER_PT_povray_antialias(RenderButtonsPanel, bpy.types.Panel):
     def draw_header(self, context):
         scene = context.scene
 
-        self.layout.prop(scene, "pov_antialias_enable", text="")
+        self.layout.prop(scene.pov, "antialias_enable", text="")
 
     def draw(self, context):
         layout = self.layout
@@ -256,25 +256,25 @@ class RENDER_PT_povray_antialias(RenderButtonsPanel, bpy.types.Panel):
         scene = context.scene
         rd = scene.render
 
-        layout.active = scene.pov_antialias_enable
+        layout.active = scene.pov.antialias_enable
 
         row = layout.row()
-        row.prop(scene, "pov_antialias_method", text="")
-        row.prop(scene, "pov_jitter_enable", text="Jitter")
+        row.prop(scene.pov, "antialias_method", text="")
+        row.prop(scene.pov, "jitter_enable", text="Jitter")
 
         split = layout.split()
         col = split.column()
-        col.prop(scene, "pov_antialias_depth", text="AA Depth")
+        col.prop(scene.pov, "antialias_depth", text="AA Depth")
         sub = split.column()
-        sub.prop(scene, "pov_jitter_amount", text="Jitter Amount")
-        if scene.pov_jitter_enable:
+        sub.prop(scene.pov, "jitter_amount", text="Jitter Amount")
+        if scene.pov.jitter_enable:
             sub.enabled = True
         else:
             sub.enabled = False
 
         row = layout.row()
-        row.prop(scene, "pov_antialias_threshold", text="AA Threshold")
-        row.prop(scene, "pov_antialias_gamma", text="AA Gamma")
+        row.prop(scene.pov, "antialias_threshold", text="AA Threshold")
+        row.prop(scene.pov, "antialias_gamma", text="AA Gamma")
 
 
 class RENDER_PT_povray_radiosity(RenderButtonsPanel, bpy.types.Panel):
@@ -284,7 +284,7 @@ class RENDER_PT_povray_radiosity(RenderButtonsPanel, bpy.types.Panel):
     def draw_header(self, context):
         scene = context.scene
 
-        self.layout.prop(scene, "pov_radio_enable", text="")
+        self.layout.prop(scene.pov, "radio_enable", text="")
 
     def draw(self, context):
         layout = self.layout
@@ -292,41 +292,41 @@ class RENDER_PT_povray_radiosity(RenderButtonsPanel, bpy.types.Panel):
         scene = context.scene
         rd = scene.render
 
-        layout.active = scene.pov_radio_enable
+        layout.active = scene.pov.radio_enable
 
         split = layout.split()
 
         col = split.column()
-        col.prop(scene, "pov_radio_count", text="Rays")
-        col.prop(scene, "pov_radio_recursion_limit", text="Recursions")
+        col.prop(scene.pov, "radio_count", text="Rays")
+        col.prop(scene.pov, "radio_recursion_limit", text="Recursions")
 
-        split.prop(scene, "pov_radio_error_bound", text="Error Bound")
+        split.prop(scene.pov, "radio_error_bound", text="Error Bound")
 
-        layout.prop(scene, "pov_radio_display_advanced")
+        layout.prop(scene.pov, "radio_display_advanced")
 
-        if scene.pov_radio_display_advanced:
+        if scene.pov.radio_display_advanced:
             split = layout.split()
 
             col = split.column()
-            col.prop(scene, "pov_radio_adc_bailout", slider=True)
-            col.prop(scene, "pov_radio_gray_threshold", slider=True)
-            col.prop(scene, "pov_radio_low_error_factor", slider=True)
-            col.prop(scene, "pov_radio_pretrace_start", slider=True)
+            col.prop(scene.pov, "radio_adc_bailout", slider=True)
+            col.prop(scene.pov, "radio_gray_threshold", slider=True)
+            col.prop(scene.pov, "radio_low_error_factor", slider=True)
+            col.prop(scene.pov, "radio_pretrace_start", slider=True)
 
             col = split.column()
-            col.prop(scene, "pov_radio_brightness")
-            col.prop(scene, "pov_radio_minimum_reuse", text="Min Reuse")
-            col.prop(scene, "pov_radio_nearest_count")
-            col.prop(scene, "pov_radio_pretrace_end", slider=True)
+            col.prop(scene.pov, "radio_brightness")
+            col.prop(scene.pov, "radio_minimum_reuse", text="Min Reuse")
+            col.prop(scene.pov, "radio_nearest_count")
+            col.prop(scene.pov, "radio_pretrace_end", slider=True)
 
             split = layout.split()
 
             col = split.column()
             col.label(text="Estimation Influence:")
-            col.prop(scene, "pov_radio_media")
-            col.prop(scene, "pov_radio_normal")
+            col.prop(scene.pov, "radio_media")
+            col.prop(scene.pov, "radio_normal")
 
-            split.prop(scene, "pov_radio_always_sample")
+            split.prop(scene.pov, "radio_always_sample")
 
 
 class RENDER_PT_povray_media(RenderButtonsPanel, bpy.types.Panel):
@@ -336,7 +336,7 @@ class RENDER_PT_povray_media(RenderButtonsPanel, bpy.types.Panel):
     def draw_header(self, context):
         scene = context.scene
 
-        self.layout.prop(scene, "pov_media_enable", text="")
+        self.layout.prop(scene.pov, "media_enable", text="")
 
     def draw(self, context):
         layout = self.layout
@@ -344,11 +344,11 @@ class RENDER_PT_povray_media(RenderButtonsPanel, bpy.types.Panel):
         scene = context.scene
         rd = scene.render
 
-        layout.active = scene.pov_media_enable
+        layout.active = scene.pov.media_enable
 
         row = layout.row()
-        row.prop(scene, "pov_media_samples", text="Samples")
-        row.prop(scene, "pov_media_color", text="")
+        row.prop(scene.pov, "media_samples", text="Samples")
+        row.prop(scene.pov, "media_color", text="")
 
 ##class RENDER_PT_povray_baking(RenderButtonsPanel, bpy.types.Panel):
 ##    bl_label = "Baking"
@@ -357,7 +357,7 @@ class RENDER_PT_povray_media(RenderButtonsPanel, bpy.types.Panel):
 ##    def draw_header(self, context):
 ##        scene = context.scene
 ##
-##        self.layout.prop(scene, "pov_baking_enable", text="")
+##        self.layout.prop(scene.pov, "baking_enable", text="")
 ##
 ##    def draw(self, context):
 ##        layout = self.layout
@@ -365,7 +365,7 @@ class RENDER_PT_povray_media(RenderButtonsPanel, bpy.types.Panel):
 ##        scene = context.scene
 ##        rd = scene.render
 ##
-##        layout.active = scene.pov_baking_enable
+##        layout.active = scene.pov.baking_enable
 
 
 class MATERIAL_PT_povray_mirrorIOR(MaterialButtonsPanel, bpy.types.Panel):
@@ -375,15 +375,15 @@ class MATERIAL_PT_povray_mirrorIOR(MaterialButtonsPanel, bpy.types.Panel):
     def draw_header(self, context):
         scene = context.material
 
-        self.layout.prop(scene, "pov_mirror_use_IOR", text="")
+        self.layout.prop(scene.pov, "mirror_use_IOR", text="")
 
     def draw(self, context):
         layout = self.layout
 
         mat = context.material
-        layout.active = mat.pov_mirror_use_IOR
+        layout.active = mat.pov.mirror_use_IOR
 
-        if mat.pov_mirror_use_IOR:
+        if mat.pov.mirror_use_IOR:
             split = layout.split()
             col = split.column()
             row = col.row()
@@ -401,13 +401,13 @@ class MATERIAL_PT_povray_metallic(MaterialButtonsPanel, bpy.types.Panel):
     def draw_header(self, context):
         scene = context.material
 
-        self.layout.prop(scene, "pov_mirror_metallic", text="")
+        self.layout.prop(scene.pov, "mirror_metallic", text="")
 
     def draw(self, context):
         layout = self.layout
 
         mat = context.material
-        layout.active = mat.pov_mirror_metallic
+        layout.active = mat.pov.mirror_metallic
 
 
 class MATERIAL_PT_povray_fade_color(MaterialButtonsPanel, bpy.types.Panel):
@@ -417,13 +417,13 @@ class MATERIAL_PT_povray_fade_color(MaterialButtonsPanel, bpy.types.Panel):
     def draw_header(self, context):
         mat = context.material
 
-        self.layout.prop(mat, "pov_interior_fade_color", text="")
+        self.layout.prop(mat.pov, "interior_fade_color", text="")
 
     def draw(self, context):
         layout = self.layout
 
         mat = context.material
-        #layout.active = mat.pov_interior_fade_color
+        #layout.active = mat.pov.interior_fade_color
 
 
 class MATERIAL_PT_povray_conserve_energy(MaterialButtonsPanel, bpy.types.Panel):
@@ -433,13 +433,13 @@ class MATERIAL_PT_povray_conserve_energy(MaterialButtonsPanel, bpy.types.Panel):
     def draw_header(self, context):
         mat = context.material
 
-        self.layout.prop(mat, "pov_conserve_energy", text="")
+        self.layout.prop(mat.pov, "conserve_energy", text="")
 
     def draw(self, context):
         layout = self.layout
 
         mat = context.material
-        layout.active = mat.pov_conserve_energy
+        layout.active = mat.pov.conserve_energy
 
 
 class MATERIAL_PT_povray_iridescence(MaterialButtonsPanel, bpy.types.Panel):
@@ -449,21 +449,21 @@ class MATERIAL_PT_povray_iridescence(MaterialButtonsPanel, bpy.types.Panel):
     def draw_header(self, context):
         mat = context.material
 
-        self.layout.prop(mat, "pov_irid_enable", text="")
+        self.layout.prop(mat.pov, "irid_enable", text="")
 
     def draw(self, context):
         layout = self.layout
 
         mat = context.material
-        layout.active = mat.pov_irid_enable
+        layout.active = mat.pov.irid_enable
 
-        if mat.pov_irid_enable:
+        if mat.pov.irid_enable:
             split = layout.split()
 
             col = split.column()
-            col.prop(mat, "pov_irid_amount", slider=True)
-            col.prop(mat, "pov_irid_thickness", slider=True)
-            col.prop(mat, "pov_irid_turbulence", slider=True)
+            col.prop(mat.pov, "irid_amount", slider=True)
+            col.prop(mat.pov, "irid_thickness", slider=True)
+            col.prop(mat.pov, "irid_turbulence", slider=True)
 
 
 class MATERIAL_PT_povray_caustics(MaterialButtonsPanel, bpy.types.Panel):
@@ -473,28 +473,28 @@ class MATERIAL_PT_povray_caustics(MaterialButtonsPanel, bpy.types.Panel):
     def draw_header(self, context):
         mat = context.material
 
-        self.layout.prop(mat, "pov_caustics_enable", text="")
+        self.layout.prop(mat.pov, "caustics_enable", text="")
 
     def draw(self, context):
 
         layout = self.layout
 
         mat = context.material
-        layout.active = mat.pov_caustics_enable
+        layout.active = mat.pov.caustics_enable
 
-        if mat.pov_caustics_enable:
+        if mat.pov.caustics_enable:
             split = layout.split()
 
             col = split.column()
-            col.prop(mat, "pov_refraction_type")
+            col.prop(mat.pov, "refraction_type")
 
-            if mat.pov_refraction_type == "1":
-                col.prop(mat, "pov_fake_caustics_power", slider=True)
-            elif mat.pov_refraction_type == "2":
-                col.prop(mat, "pov_photons_dispersion", slider=True)
-            col.prop(mat, "pov_photons_reflection")
+            if mat.pov.refraction_type == "1":
+                col.prop(mat.pov, "fake_caustics_power", slider=True)
+            elif mat.pov.refraction_type == "2":
+                col.prop(mat.pov, "photons_dispersion", slider=True)
+            col.prop(mat.pov, "photons_reflection")
 
-            if mat.pov_refraction_type == "0" and not mat.pov_photons_reflection:
+            if mat.pov.refraction_type == "0" and not mat.pov.photons_reflection:
                 split = layout.split()
                 col = split.column()
                 row = col.row()
@@ -516,7 +516,7 @@ class MATERIAL_PT_povray_replacement_text(MaterialButtonsPanel, bpy.types.Panel)
 
         col = layout.column()
         col.label(text="Replace properties with:")
-        col.prop(mat, "pov_replacement_text", text="")
+        col.prop(mat.pov, "replacement_text", text="")
 
 
 class TEXTURE_PT_povray_tex_gamma(TextureButtonsPanel, bpy.types.Panel):
@@ -526,15 +526,15 @@ class TEXTURE_PT_povray_tex_gamma(TextureButtonsPanel, bpy.types.Panel):
     def draw_header(self, context):
         tex = context.texture
 
-        self.layout.prop(tex, "pov_tex_gamma_enable", text="")
+        self.layout.prop(tex.pov, "tex_gamma_enable", text="")
 
     def draw(self, context):
         layout = self.layout
 
         tex = context.texture
 
-        layout.active = tex.pov_tex_gamma_enable
-        layout.prop(tex, "pov_tex_gamma_value", text="Gamma Value")
+        layout.active = tex.pov.tex_gamma_enable
+        layout.prop(tex.pov, "tex_gamma_value", text="Gamma Value")
 
 
 class TEXTURE_PT_povray_replacement_text(TextureButtonsPanel, bpy.types.Panel):
@@ -548,7 +548,7 @@ class TEXTURE_PT_povray_replacement_text(TextureButtonsPanel, bpy.types.Panel):
 
         col = layout.column()
         col.label(text="Replace properties with:")
-        col.prop(tex, "pov_replacement_text", text="")
+        col.prop(tex.pov, "replacement_text", text="")
 
 
 class OBJECT_PT_povray_obj_importance(ObjectButtonsPanel, bpy.types.Panel):
@@ -560,13 +560,13 @@ class OBJECT_PT_povray_obj_importance(ObjectButtonsPanel, bpy.types.Panel):
 
         obj = context.object
 
-        layout.active = obj.pov_importance_value
+        layout.active = obj.pov.importance_value
 
         col = layout.column()
         col.label(text="Radiosity:")
-        col.prop(obj, "pov_importance_value", text="Importance")
+        col.prop(obj.pov, "importance_value", text="Importance")
         col.label(text="Photons:")
-        col.prop(obj, "pov_collect_photons", text="Receive Photon Caustics")
+        col.prop(obj.pov, "collect_photons", text="Receive Photon Caustics")
 
 
 class OBJECT_PT_povray_replacement_text(ObjectButtonsPanel, bpy.types.Panel):
@@ -580,7 +580,7 @@ class OBJECT_PT_povray_replacement_text(ObjectButtonsPanel, bpy.types.Panel):
 
         col = layout.column()
         col.label(text="Replace properties with:")
-        col.prop(obj, "pov_replacement_text", text="")
+        col.prop(obj.pov, "replacement_text", text="")
 
 
 class CAMERA_PT_povray_cam_dof(CameraDataButtonsPanel, bpy.types.Panel):
@@ -590,26 +590,26 @@ class CAMERA_PT_povray_cam_dof(CameraDataButtonsPanel, bpy.types.Panel):
     def draw_header(self, context):
         cam = context.camera
 
-        self.layout.prop(cam, "pov_dof_enable", text="")
+        self.layout.prop(cam.pov, "dof_enable", text="")
 
     def draw(self, context):
         layout = self.layout
 
         cam = context.camera
 
-        layout.active = cam.pov_dof_enable
+        layout.active = cam.pov.dof_enable
 
-        layout.prop(cam, "pov_dof_aperture")
+        layout.prop(cam.pov, "dof_aperture")
 
         split = layout.split()
 
         col = split.column()
-        col.prop(cam, "pov_dof_samples_min")
-        col.prop(cam, "pov_dof_variance")
+        col.prop(cam.pov, "dof_samples_min")
+        col.prop(cam.pov, "dof_variance")
 
         col = split.column()
-        col.prop(cam, "pov_dof_samples_max")
-        col.prop(cam, "pov_dof_confidence")
+        col.prop(cam.pov, "dof_samples_max")
+        col.prop(cam.pov, "dof_confidence")
 
 
 class CAMERA_PT_povray_replacement_text(CameraDataButtonsPanel, bpy.types.Panel):
@@ -623,7 +623,7 @@ class CAMERA_PT_povray_replacement_text(CameraDataButtonsPanel, bpy.types.Panel)
 
         col = layout.column()
         col.label(text="Replace properties with:")
-        col.prop(cam, "pov_replacement_text", text="")
+        col.prop(cam.pov, "replacement_text", text="")
 
 
 class TEXT_PT_povray_custom_code(TextButtonsPanel, bpy.types.Panel):
@@ -635,4 +635,4 @@ class TEXT_PT_povray_custom_code(TextButtonsPanel, bpy.types.Panel):
 
         text = context.space_data.text
         if text:
-            layout.prop(text, "pov_custom_code", text="Add as POV code")
+            layout.prop(text.pov, "custom_code", text="Add as POV code")
