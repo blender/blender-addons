@@ -70,7 +70,7 @@ def write_mtl(scene, filepath, path_mode, copy_set, mtl_dict):
 
     # Write material/image combinations we have used.
     # Using mtl_dict.values() directly gives un-predictable order.
-    for mtl_mat_name, mat, img in mtl_dict_values:
+    for mtl_mat_name, mat, face_img in mtl_dict_values:
 
         # Get the Blender data for the material and the image.
         # Having an image named None will make a bug, dont do it :)
@@ -106,22 +106,23 @@ def write_mtl(scene, filepath, path_mode, copy_set, mtl_dict):
             file.write('illum 2\n')  # light normaly
 
         # Write images!
-        if img:  # We have an image on the face!
+        if face_img:  # We have an image on the face!
             # write relative image path
-            rel = io_utils.path_reference(img.filepath, source_dir, dest_dir, path_mode, "", copy_set)
+            rel = io_utils.path_reference(face_img.filepath, source_dir, dest_dir, path_mode, "", copy_set)
             file.write('map_Kd %s\n' % rel)  # Diffuse mapping image
 
-        elif mat:  # No face image. if we havea material search for MTex image.
+        if mat:  # No face image. if we havea material search for MTex image.
             image_map = {}
             # backwards so topmost are highest priority
             for mtex in reversed(mat.texture_slots):
                 if mtex and mtex.texture.type == 'IMAGE':
                     image = mtex.texture.image
                     if image:
+                        # texface overrides others
+                        if mtex.use_map_color_diffuse and face_img is None:
+                            image_map["map_Kd"] = image
                         if mtex.use_map_ambient:
                             image_map["map_Ka"] = image
-                        if mtex.use_map_color_diffuse:
-                            image_map["map_Kd"] = image
                         if mtex.use_map_specular:
                             image_map["map_Ks"] = image
                         if mtex.use_map_alpha:
