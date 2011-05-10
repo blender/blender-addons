@@ -990,7 +990,7 @@ def load(operator, context, filepath,
     '''
     print('\nimporting obj %r' % filepath)
 
-    filepath = filepath.encode()
+    filepath = os.fsencode(filepath)
 
     if use_split_objects or use_split_groups:
         use_groups_as_vgroups = False
