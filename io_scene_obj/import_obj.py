@@ -374,7 +374,7 @@ def create_materials(filepath, material_libs, unique_materials, unique_material_
 
     #Create new materials
     for name in unique_materials:  # .keys()
-        if name != None:
+        if name is not None:
             unique_materials[name] = bpy.data.materials.new(name.decode('utf-8', "replace"))
             unique_material_images[name] = None, False  # assign None to all material images to start with, add to later.
 
@@ -396,10 +396,7 @@ def create_materials(filepath, material_libs, unique_materials, unique_material_
                     pass
                 elif line.startswith(b'newmtl'):
                     context_material_name = line_value(line.split())
-                    if context_material_name in unique_materials:
-                        context_material = unique_materials[context_material_name]
-                    else:
-                        context_material = None
+                    context_material = unique_materials.get(context_material_name)
 
                 elif context_material:
                     # we need to make a material to assign properties to it.
