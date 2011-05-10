@@ -314,6 +314,7 @@ def write_pov(filename, scene=None, info_callback=None):
                 if pov_photons_refraction:
                     # Default of 1 means no dispersion
                     tabWrite("dispersion %.6f\n" % material.pov.photons_dispersion)
+                    tabWrite("dispersion_samples %.d\n" % material.pov.photons_dispersion_samples)
             #TODO
             # Other interior args
             if material.use_transparency and material.transparency_method == 'RAYTRACE':
@@ -330,17 +331,17 @@ def write_pov(filename, scene=None, info_callback=None):
 
             # (variable) dispersion_samples (constant count for now)
             tabWrite("}\n")
+            
+            tabWrite("photons{")
             if not ob.pov.collect_photons:
-                tabWrite("photons{collect off}\n")
+                tabWrite("collect off\n")
+                tabWrite("target %.3g\n" % ob.pov.spacing_multiplier)
+            if pov_photons_refraction:
+                tabWrite("refraction on\n")
+            if pov_photons_reflection:
+                tabWrite("reflection on\n")
+            tabWrite("}\n")
 
-            if pov_photons_refraction or pov_photons_reflection:
-                tabWrite("photons{\n")
-                tabWrite("target\n")
-                if pov_photons_refraction:
-                    tabWrite("refraction on\n")
-                if pov_photons_reflection:
-                    tabWrite("reflection on\n")
-                tabWrite("}\n")
 
     materialNames = {}
     DEF_MAT_NAME = "Default"

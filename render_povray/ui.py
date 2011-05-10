@@ -492,6 +492,7 @@ class MATERIAL_PT_povray_caustics(MaterialButtonsPanel, bpy.types.Panel):
                 col.prop(mat.pov, "fake_caustics_power", slider=True)
             elif mat.pov.refraction_type == "2":
                 col.prop(mat.pov, "photons_dispersion", slider=True)
+                col.prop(mat.pov, "photons_dispersion_samples", slider=True)
             col.prop(mat.pov, "photons_reflection")
 
             if mat.pov.refraction_type == "0" and not mat.pov.photons_reflection:
@@ -560,13 +561,13 @@ class OBJECT_PT_povray_obj_importance(ObjectButtonsPanel, bpy.types.Panel):
 
         obj = context.object
 
-        layout.active = obj.pov.importance_value
-
         col = layout.column()
         col.label(text="Radiosity:")
         col.prop(obj.pov, "importance_value", text="Importance")
         col.label(text="Photons:")
         col.prop(obj.pov, "collect_photons", text="Receive Photon Caustics")
+        if obj.pov.collect_photons:
+            col.prop(obj.pov, "spacing_multiplier", text="Photons Spacing Multiplier")
 
 
 class OBJECT_PT_povray_replacement_text(ObjectButtonsPanel, bpy.types.Panel):
