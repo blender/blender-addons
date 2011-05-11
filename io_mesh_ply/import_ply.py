@@ -156,7 +156,7 @@ def read(filepath):
         return None
 
     while 1:
-        tokens = re.split(r'[ \n]+'.encode("ASCII"), file.readline())
+        tokens = re.split(br'[ \r\n]+', file.readline())
 
         if len(tokens) == 0:
             continue
