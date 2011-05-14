@@ -551,7 +551,7 @@ def create(obj):
     pbone.rotation_mode = 'QUATERNION'
     pbone.bone.layers = [False, False, True, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False]
     pbone = obj.pose.bones[bones['shoulder.L']]
-    pbone.rigify_type = 'copy'
+    pbone.rigify_type = 'basic.copy'
     pbone.lock_location = (True, True, True)
     pbone.lock_rotation = (False, True, False)
     pbone.lock_rotation_w = False
@@ -559,7 +559,7 @@ def create(obj):
     pbone.rotation_mode = 'YXZ'
     pbone.bone.layers = [True, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False]
     pbone = obj.pose.bones[bones['shoulder.R']]
-    pbone.rigify_type = 'copy'
+    pbone.rigify_type = 'basic.copy'
     pbone.lock_location = (True, True, True)
     pbone.lock_rotation = (False, True, False)
     pbone.lock_rotation_w = False

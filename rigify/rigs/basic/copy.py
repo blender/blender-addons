@@ -65,7 +65,7 @@ class Rig:
 
         # Constrain the original bone.
         con = pb[self.org_bone].constraints.new('COPY_TRANSFORMS')
-        con.name = "copy_loc"
+        con.name = "copy_transforms"
         con.target = self.obj
         con.subtarget = bone
 
@@ -92,7 +92,7 @@ class Rig:
 
         bpy.ops.object.mode_set(mode='OBJECT')
         pbone = obj.pose.bones[bones['Bone']]
-        pbone.rigify_type = 'copy'
+        pbone.rigify_type = 'simple.bone'
         pbone.lock_location = (False, False, False)
         pbone.lock_rotation = (False, False, False)
         pbone.lock_rotation_w = False
