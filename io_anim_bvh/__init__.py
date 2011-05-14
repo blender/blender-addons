@@ -37,7 +37,8 @@ if "bpy" in locals():
     import imp
     if "import_bvh" in locals():
         imp.reload(import_bvh)
-
+    if "export_bvh" in locals():
+        imp.reload(export_bvh)
 
 import bpy
 from bpy.props import StringProperty, FloatProperty, IntProperty, BoolProperty, EnumProperty
@@ -94,6 +95,19 @@ class ExportBVH(bpy.types.Operator, ExportHelper):
     global_scale = FloatProperty(name="Scale", description="Scale the BVH by this value", min=0.0001, max=1000000.0, soft_min=0.001, soft_max=100.0, default=1.0)
     frame_start = IntProperty(name="Start Frame", description="Starting frame to export", default=0)
     frame_end = IntProperty(name="End Frame", description="End frame to export", default=0)
+
+    rotate_mode = EnumProperty(items=(
+            ('NATIVE', "Euler (Native)", "Use the rotation order defined in the BVH file"),
+            ('XYZ', "Euler (XYZ)", "Convert rotations to euler XYZ"),
+            ('XZY', "Euler (XZY)", "Convert rotations to euler XZY"),
+            ('YXZ', "Euler (YXZ)", "Convert rotations to euler YXZ"),
+            ('YZX', "Euler (YZX)", "Convert rotations to euler YZX"),
+            ('ZXY', "Euler (ZXY)", "Convert rotations to euler ZXY"),
+            ('ZYX', "Euler (ZYX)", "Convert rotations to euler ZYX"),
+            ),
+                name="Rotation",
+                description="Rotation conversion.",
+                default='NATIVE')
 
     @classmethod
     def poll(cls, context):

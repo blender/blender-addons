@@ -23,8 +23,12 @@
 
 import bpy
 
+def write_armature(context, filepath, frame_start, frame_end, global_scale=1.0, rotate_mode="NATIVE"):
 
-def write_armature(context, filepath, frame_start, frame_end, global_scale=1.0):
+    def ensure_rot_order(rot_order_str):
+        if set(rot_order_str) != {'X', 'Y', 'Z'}:
+            rot_order_str = "XYZ"
+        return rot_order_str
 
     from mathutils import Matrix, Vector, Euler
     from math import degrees
@@ -62,8 +66,14 @@ def write_armature(context, filepath, frame_start, frame_end, global_scale=1.0):
         indent_str = "\t" * indent
 
         bone = arm.bones[bone_name]
+        pose_bone = obj.pose.bones[bone_name]
         loc = bone.head_local
         node_locations[bone_name] = loc
+
+        if rotate_mode == "NATIVE":
+            rot_order_str = ensure_rot_order(pose_bone.rotation_mode)
+        else:
+            rot_order_str = rotate_mode
 
         # make relative if we can
         if bone.parent:
@@ -77,9 +87,9 @@ def write_armature(context, filepath, frame_start, frame_end, global_scale=1.0):
         file.write("%s{\n" % indent_str)
         file.write("%s\tOFFSET %.6f %.6f %.6f\n" % (indent_str, loc.x * global_scale, loc.y * global_scale, loc.z * global_scale))
         if bone.use_connect and bone.parent:
-            file.write("%s\tCHANNELS 3 Xrotation Yrotation Zrotation\n" % indent_str)
+            file.write("%s\tCHANNELS 3 %srotation %srotation %srotation\n" % (indent_str, rot_order_str[0], rot_order_str[1], rot_order_str[2]))
         else:
-            file.write("%s\tCHANNELS 6 Xposition Yposition Zposition Xrotation Yrotation Zrotation\n" % indent_str)
+            file.write("%s\tCHANNELS 6 Xposition Yposition Zposition %srotation %srotation %srotation\n" % (indent_str, rot_order_str[0], rot_order_str[1], rot_order_str[2]))
 
         if my_children:
             # store the location for the children
@@ -137,12 +147,29 @@ def write_armature(context, filepath, frame_start, frame_end, global_scale=1.0):
         "rest_local_imat",  # rest_local_mat inverted
         "prev_euler",  # last used euler to preserve euler compability in between keyframes
         "connected",  # is the bone connected to the parent bone?
+        "rot_order",
+        "rot_order_str",
         )
+
+        _eul_order_lookup = {
+            'XYZ': (0, 1, 2),
+            'XZY': (0, 2, 1),
+            'YXZ': (1, 0, 2),
+            'YZX': (1, 2, 0),
+            'ZXY': (2, 0, 1),
+            'ZYX': (2, 1, 0)}
 
         def __init__(self, bone_name):
             self.name = bone_name
             self.rest_bone = arm.bones[bone_name]
             self.pose_bone = obj.pose.bones[bone_name]
+
+            if rotate_mode == "NATIVE":
+                self.rot_order_str = ensure_rot_order(self.pose_bone.rotation_mode)
+            else:
+                self.rot_order_str = rotate_mode
+
+            self.rot_order = __class__._eul_order_lookup[self.rot_order_str]
 
             self.pose_mat = self.pose_bone.matrix
 
@@ -156,7 +183,7 @@ def write_armature(context, filepath, frame_start, frame_end, global_scale=1.0):
             self.rest_local_imat = self.rest_local_mat.inverted()
 
             self.parent = None
-            self.prev_euler = Euler((0.0, 0.0, 0.0))
+            self.prev_euler = Euler((0.0, 0.0, 0.0), self.rot_order_str)
             self.connected = (self.rest_bone.use_connect and self.rest_bone.parent)
 
         def update_posedata(self):
@@ -209,12 +236,12 @@ def write_armature(context, filepath, frame_start, frame_end, global_scale=1.0):
                 loc = mat_final.to_translation() + dbone.rest_bone.head
 
             # keep eulers compatible, no jumping on interpolation.
-            rot = mat_final.to_3x3().inverted().to_euler('XYZ', dbone.prev_euler)
+            rot = mat_final.to_3x3().inverted().to_euler(dbone.rot_order_str, dbone.prev_euler)
 
             if not dbone.connected:
                 file.write("%.6f %.6f %.6f " % (loc * global_scale)[:])
 
-            file.write("%.6f %.6f %.6f " % (-degrees(rot[0]), -degrees(rot[1]), -degrees(rot[2])))
+            file.write("%.6f %.6f %.6f " % (-degrees(rot[dbone.rot_order[0]]), -degrees(rot[dbone.rot_order[1]]), -degrees(rot[dbone.rot_order[2]])))
 
             dbone.prev_euler = rot
 
@@ -229,12 +256,14 @@ def save(operator, context, filepath="",
           frame_start=-1,
           frame_end=-1,
           global_scale=1.0,
+          rotate_mode="NATIVE",
           ):
 
     write_armature(context, filepath,
            frame_start=frame_start,
            frame_end=frame_end,
            global_scale=global_scale,
+           rotate_mode=rotate_mode,
            )
 
     return {'FINISHED'}

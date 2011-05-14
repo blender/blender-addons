@@ -45,7 +45,7 @@ class bvh_node_class(object):
     'has_rot',  # Conveinience function, bool, same as (channels[3]!=-1 or channels[4]!=-1 channels[5]!=-1)
     'temp')  # use this for whatever you want
 
-    _eul_order_lookup = {\
+    _eul_order_lookup = {
         (0, 1, 2): 'XYZ',
         (0, 2, 1): 'XZY',
         (1, 0, 2): 'YXZ',
