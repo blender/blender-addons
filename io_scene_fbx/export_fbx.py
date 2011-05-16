@@ -214,7 +214,7 @@ def save_single(operator, scene, filepath="",
         path_mode='AUTO',
     ):
 
-    import io_utils
+    import bpy_extras.io_utils
 
     mtx_x90 = Matrix.Rotation(math.pi / 2.0, 3, 'X')
     mtx4_z90 = Matrix.Rotation(math.pi / 2.0, 4, 'Z')
@@ -1097,7 +1097,7 @@ def save_single(operator, scene, filepath="",
             Property: "Width", "int", "",0
             Property: "Height", "int", "",0''')
         if tex:
-            fname_rel = io_utils.path_reference(tex.filepath, base_src, base_dst, path_mode, "", copy_set)
+            fname_rel = bpy_extras.io_utils.path_reference(tex.filepath, base_src, base_dst, path_mode, "", copy_set)
             fname_strip = os.path.basename(fname_rel)
         else:
             fname_strip = fname_rel = ""
@@ -1156,7 +1156,7 @@ def save_single(operator, scene, filepath="",
         file.write('\n\t\tMedia: "Video::%s"' % texname)
 
         if tex:
-            fname_rel = io_utils.path_reference(tex.filepath, base_src, base_dst, path_mode, "", copy_set)
+            fname_rel = bpy_extras.io_utils.path_reference(tex.filepath, base_src, base_dst, path_mode, "", copy_set)
             fname_strip = os.path.basename(fname_rel)
         else:
             fname_strip = fname_rel = ""
@@ -2747,7 +2747,7 @@ Takes:  {''')
     file.close()
 
     # copy all collected files.
-    io_utils.path_reference_copy(copy_set)
+    bpy_extras.io_utils.path_reference_copy(copy_set)
 
     print('export finished in %.4f sec.' % (time.clock() - start_time))
     return {'FINISHED'}

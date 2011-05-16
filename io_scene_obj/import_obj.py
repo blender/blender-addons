@@ -36,7 +36,7 @@ import time
 import bpy
 import mathutils
 from mathutils.geometry import tesselate_polygon
-from io_utils import load_image, unpack_list, unpack_face_list
+from bpy_extras.io_utils import load_image, unpack_list, unpack_face_list
 
 
 def BPyMesh_ngon(from_data, indices, PREF_FIX_LOOPS=True):

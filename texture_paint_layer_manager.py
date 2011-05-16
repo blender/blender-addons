@@ -15,7 +15,7 @@ bl_info = {
 import bpy
 from bpy.props import*
 import os
-from io_utils import ImportHelper
+from bpy_extras.io_utils import ImportHelper
 
 
 #-------------------------------------------

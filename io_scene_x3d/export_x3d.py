@@ -39,7 +39,7 @@ import os
 import bpy
 import mathutils
 
-from io_utils import create_derived_objects, free_derived_objects
+from bpy_extras.io_utils import create_derived_objects, free_derived_objects
 
 
 def round_color(col, cp):

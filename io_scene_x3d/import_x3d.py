@@ -1432,7 +1432,7 @@ for i, f in enumerate(files):
 # NO BLENDER CODE ABOVE THIS LINE.
 # -----------------------------------------------------------------------------------
 import bpy
-import image_utils
+from bpy_extras import image_utils
 # import BPyImage
 # import BPySys
 # reload(BPySys)

@@ -37,7 +37,7 @@ from bpy.props import FloatProperty,EnumProperty,BoolProperty
 from math import sqrt
 from mathutils import Vector,Matrix
 from functools import reduce
-from add_object_utils import object_data_add
+from bpy_extras.object_utils import object_data_add
 
 # this function creates a chain of quads and, when necessary, a remaining tri
 # for each polygon created in this script. be aware though, that this function

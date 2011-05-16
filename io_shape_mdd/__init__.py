@@ -43,7 +43,7 @@ if "bpy" in locals():
 
 import bpy
 from bpy.props import StringProperty, IntProperty
-from io_utils import ExportHelper, ImportHelper
+from bpy_extras.io_utils import ExportHelper, ImportHelper
 
 
 class ImportMDD(bpy.types.Operator, ImportHelper):

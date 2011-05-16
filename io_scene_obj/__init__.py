@@ -43,8 +43,7 @@ if "bpy" in locals():
 
 import bpy
 from bpy.props import BoolProperty, FloatProperty, StringProperty, EnumProperty
-import io_utils
-from io_utils import ExportHelper, ImportHelper
+from bpy_extras.io_utils import ExportHelper, ImportHelper, path_reference_mode
 
 
 class ImportOBJ(bpy.types.Operator, ImportHelper):
@@ -158,7 +157,7 @@ class ExportOBJ(bpy.types.Operator, ExportHelper):
     group_by_material = BoolProperty(name="Material Groups", description="", default=False)
     keep_vertex_order = BoolProperty(name="Keep Vertex Order", description="", default=False)
 
-    path_mode = io_utils.path_reference_mode
+    path_mode = path_reference_mode
 
     def execute(self, context):
         from . import export_obj

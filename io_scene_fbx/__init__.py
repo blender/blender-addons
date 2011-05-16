@@ -41,8 +41,7 @@ if "bpy" in locals():
 
 import bpy
 from bpy.props import StringProperty, BoolProperty, FloatProperty, EnumProperty
-import io_utils
-from io_utils import ExportHelper
+from bpy_extras.io_utils import ExportHelper, path_reference_mode, axis_conversion
 
 
 class ExportFBX(bpy.types.Operator, ExportHelper):
@@ -61,15 +60,28 @@ class ExportFBX(bpy.types.Operator, ExportHelper):
 # 	EXP_OBS_SCENE = BoolProperty(name="Scene Objects", description="Export all objects in this scene", default=True)
     global_scale = FloatProperty(name="Scale", description="Scale all data, (Note! some imports dont support scaled armatures)", min=0.01, max=1000.0, soft_min=0.01, soft_max=1000.0, default=1.0)
 
-    global_rotate = EnumProperty(
-            name="Rotate",
-            options={'ENUM_FLAG'},
-            items=(('X_90', "X 90", ""),
-                   ('Y_90', "Y 90", ""),
-                   ('Z_90', "Z 90", ""),
+    global_axis_forward = EnumProperty(
+            name="Forward",
+            items=(('X', "X Forward", ""),
+                   ('Y', "Y Forward", ""),
+                   ('Z', "Z Forward", ""),
+                   ('-X', "-X Forward", ""),
+                   ('-Y', "-Y Forward", ""),
+                   ('-Z', "-Z Forward", ""),
                    ),
-            default={'X_90'},
-            description="Global rotation to apply to the exported scene",
+            default='Y',
+            )
+
+    global_axis_up = EnumProperty(
+            name="Up",
+            items=(('X', "X Up", ""),
+                   ('Y', "Y Up", ""),
+                   ('Z', "Z Up", ""),
+                   ('-X', "-X Up", ""),
+                   ('-Y', "-Y Up", ""),
+                   ('-Z', "-Z Up", ""),
+                   ),
+            default='Z',
             )
 
     object_types = EnumProperty(
@@ -84,7 +96,7 @@ class ExportFBX(bpy.types.Operator, ExportHelper):
             default={'EMPTY', 'CAMERA', 'LAMP', 'ARMATURE', 'MESH'},
             )
 
-    mesh_apply_modifiers = BoolProperty(name="Modifiers", description="Apply modifiers to mesh objects", default=True)
+    mesh_apply_modifiers = BoolProperty(name="Apply Modifiers", description="Apply modifiers to mesh objects", default=True)
 
     mesh_smooth_type = EnumProperty(
             name="Smoothing",
@@ -114,7 +126,7 @@ class ExportFBX(bpy.types.Operator, ExportHelper):
     BATCH_OWN_DIR = BoolProperty(name="Own Dir", description="Create a dir for each exported file", default=True)
     use_metadata = BoolProperty(name="Use Metadata", default=True, options={'HIDDEN'})
 
-    path_mode = io_utils.path_reference_mode
+    path_mode = path_reference_mode
 
     @property
     def check_extension(self):
@@ -126,22 +138,13 @@ class ExportFBX(bpy.types.Operator, ExportHelper):
         if not self.filepath:
             raise Exception("filepath not set")
 
-        mtx4_x90n = Matrix.Rotation(-math.pi / 2.0, 4, 'X')
-        mtx4_y90n = Matrix.Rotation(-math.pi / 2.0, 4, 'Y')
-        mtx4_z90n = Matrix.Rotation(-math.pi / 2.0, 4, 'Z')
-
         GLOBAL_MATRIX = Matrix()
         GLOBAL_MATRIX[0][0] = GLOBAL_MATRIX[1][1] = GLOBAL_MATRIX[2][2] = self.global_scale
-        if 'X_90' in self.global_rotate:
-            GLOBAL_MATRIX = mtx4_x90n * GLOBAL_MATRIX
-        if 'Y_90' in self.global_rotate:
-            GLOBAL_MATRIX = mtx4_y90n * GLOBAL_MATRIX
-        if 'Z_90' in self.global_rotate:
-            GLOBAL_MATRIX = mtx4_z90n * GLOBAL_MATRIX
+        GLOBAL_MATRIX = GLOBAL_MATRIX * axis_conversion(to_forward=self.global_axis_forward, to_up=self.global_axis_up).to_4x4()
 
-        keywords = self.as_keywords(ignore=("global_rotate", "global_scale", "check_existing", "filter_glob"))
+        keywords = self.as_keywords(ignore=("global_axis_forward", "global_axis_up", "global_scale", "check_existing", "filter_glob"))
         keywords["GLOBAL_MATRIX"] = GLOBAL_MATRIX
-
+        print(GLOBAL_MATRIX)
         from . import export_fbx
         return export_fbx.save(self, context, **keywords)
 

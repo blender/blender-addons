@@ -50,7 +50,7 @@ else:
 
 import bpy
 from bpy.props import *
-from io_utils import ImportHelper
+from bpy_extras.io_utils import ImportHelper
 
 
 class ImportHiRISEIMGDTM(bpy.types.Operator, ImportHelper):

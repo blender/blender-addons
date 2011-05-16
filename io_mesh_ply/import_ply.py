@@ -207,7 +207,7 @@ import bpy
 
 def load_ply(filepath):
     import time
-    from io_utils import load_image, unpack_list, unpack_face_list
+    from bpy_extras.io_utils import load_image, unpack_list, unpack_face_list
 
     t = time.time()
     obj_spec, obj = read(filepath)

@@ -25,7 +25,7 @@ import os
 import time
 import struct
 
-from io_utils import load_image
+from bpy_extras.io_utils import load_image
 
 import bpy
 import mathutils

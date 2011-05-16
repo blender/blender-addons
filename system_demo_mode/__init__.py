@@ -41,7 +41,7 @@ if "bpy" in locals():
 
 import bpy
 from bpy.props import StringProperty, BoolProperty, IntProperty, FloatProperty, EnumProperty
-from io_utils import ImportHelper
+from bpy_extras.io_utils import ImportHelper
 
 
 class DemoModeSetup(bpy.types.Operator):

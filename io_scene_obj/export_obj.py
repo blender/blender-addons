@@ -24,7 +24,7 @@ import shutil
 
 import bpy
 import mathutils
-import io_utils
+import bpy_extras.io_utils
 
 
 def name_compat(name):
@@ -108,7 +108,7 @@ def write_mtl(scene, filepath, path_mode, copy_set, mtl_dict):
         # Write images!
         if face_img:  # We have an image on the face!
             # write relative image path
-            rel = io_utils.path_reference(face_img.filepath, source_dir, dest_dir, path_mode, "", copy_set)
+            rel = bpy_extras.io_utils.path_reference(face_img.filepath, source_dir, dest_dir, path_mode, "", copy_set)
             file.write('map_Kd %s\n' % rel)  # Diffuse mapping image
 
         if mat:  # No face image. if we havea material search for MTex image.
@@ -135,7 +135,7 @@ def write_mtl(scene, filepath, path_mode, copy_set, mtl_dict):
                             image_map["map_Ns"] = image
 
             for key, image in image_map.items():
-                filepath = io_utils.path_reference(image.filepath, source_dir, dest_dir, path_mode, "", copy_set)
+                filepath = bpy_extras.io_utils.path_reference(image.filepath, source_dir, dest_dir, path_mode, "", copy_set)
                 file.write('%s %s\n' % (key, repr(filepath)[1:-1]))
 
         file.write('\n\n')
@@ -650,7 +650,7 @@ def write_file(filepath, objects, scene,
         write_mtl(scene, mtlfilepath, EXPORT_PATH_MODE, copy_set, mtl_dict)
 
     # copy all collected files.
-    io_utils.path_reference_copy(copy_set)
+    bpy_extras.io_utils.path_reference_copy(copy_set)
 
     print("OBJ Export time: %.2f" % (time.clock() - time1))
 

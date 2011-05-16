@@ -2617,7 +2617,7 @@ def writeDefaults():
 
 DEBUG = False
 from bpy.props import StringProperty, FloatProperty, EnumProperty, BoolProperty
-from io_utils import ImportHelper
+from bpy_extras.io_utils import ImportHelper
 
 
 MhxBoolProps = [

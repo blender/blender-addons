@@ -44,7 +44,7 @@ from bpy.props import *
 import mathutils, math, struct
 from os import remove
 import time
-from io_utils import ExportHelper
+from bpy_extras.io_utils import ExportHelper
 
 def getSampling(start, end, sampling):
     samples = [start - sampling

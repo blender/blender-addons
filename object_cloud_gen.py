@@ -655,7 +655,7 @@ class GenerateCloud(bpy.types.Operator):
                 cldPntsModifiers[0].name = "CloudPnts"
                 cldPntsModifiers[0].texture = cloudtex
                 cldPntsModifiers[0].texture_coords = 'OBJECT'
-                cldPntsModifiers[0].texture_coordinate_object = cloud
+                cldPntsModifiers[0].texture_coords_object = cloud
                 cldPntsModifiers[0].strength = -1.4
 
                 # Apply modifier

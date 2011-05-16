@@ -87,8 +87,8 @@ def create_mesh_object(context, verts, edges, faces, name):
     # Update mesh geometry after adding stuff.
     mesh.update()
 
-    import add_object_utils
-    return add_object_utils.object_data_add(context, mesh, operator=None)
+    from bpy_extras import object_utils
+    return object_utils.object_data_add(context, mesh, operator=None)
 
 
 # A very simple "bridge" tool.

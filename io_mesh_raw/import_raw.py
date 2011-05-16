@@ -43,7 +43,7 @@ tolerance.
 import bpy
 
 # move those to a utility modul
-from io_utils import unpack_face_list, unpack_list # TODO, make generic
+from bpy_extras.io_utils import unpack_face_list, unpack_list # TODO, make generic
 
 
 def readMesh(filename, objName):

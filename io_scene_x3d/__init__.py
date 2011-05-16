@@ -41,7 +41,7 @@ if "bpy" in locals():
 
 import bpy
 from bpy.props import StringProperty, BoolProperty
-from io_utils import ImportHelper, ExportHelper
+from bpy_extras.io_utils import ImportHelper, ExportHelper
 
 
 class ImportX3D(bpy.types.Operator, ImportHelper):

@@ -60,7 +60,7 @@ import os
 
 import bpy
 from bpy.props import StringProperty, BoolProperty, CollectionProperty
-from io_utils import ExportHelper, ImportHelper
+from bpy_extras.io_utils import ExportHelper, ImportHelper
 
 
 class ImportSTL(bpy.types.Operator, ImportHelper):
