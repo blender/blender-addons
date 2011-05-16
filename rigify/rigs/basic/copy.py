@@ -36,6 +36,8 @@ class Rig:
         self.org_bone = bone
         self.org_name = strip_org(bone)
         self.params = params
+        self.make_control = params.make_control
+        self.make_deform = params.make_deform
 
     def generate(self):
         """ Generate the rig.
@@ -46,31 +48,57 @@ class Rig:
         bpy.ops.object.mode_set(mode='EDIT')
 
         # Make a control bone (copy of original).
-        bone = copy_bone(self.obj, self.org_bone, self.org_name)
+        if self.make_control:
+            bone = copy_bone(self.obj, self.org_bone, self.org_name)
 
         # Make a deformation bone (copy of original, child of original).
-        def_bone = copy_bone(self.obj, self.org_bone, make_deformer_name(self.org_name))
+        if self.make_deform:
+            def_bone = copy_bone(self.obj, self.org_bone, make_deformer_name(self.org_name))
 
         # Get edit bones
         eb = self.obj.data.edit_bones
-        bone_e = eb[bone]
-        def_bone_e = eb[def_bone]
+        if self.make_control:
+            bone_e = eb[bone]
+        if self.make_deform:
+            def_bone_e = eb[def_bone]
 
         # Parent
-        def_bone_e.use_connect = False
-        def_bone_e.parent = eb[self.org_bone]
+        if self.make_deform:
+            def_bone_e.use_connect = False
+            def_bone_e.parent = eb[self.org_bone]
 
         bpy.ops.object.mode_set(mode='OBJECT')
         pb = self.obj.pose.bones
 
-        # Constrain the original bone.
-        con = pb[self.org_bone].constraints.new('COPY_TRANSFORMS')
-        con.name = "copy_transforms"
-        con.target = self.obj
-        con.subtarget = bone
+        if self.make_control:
+            # Constrain the original bone.
+            con = pb[self.org_bone].constraints.new('COPY_TRANSFORMS')
+            con.name = "copy_transforms"
+            con.target = self.obj
+            con.subtarget = bone
 
-        # Create control widget
-        create_bone_widget(self.obj, bone)
+            # Create control widget
+            create_bone_widget(self.obj, bone)
+
+    @classmethod
+    def add_parameters(self, group):
+        """ Add the parameters of this rig type to the
+            RigifyParameters PropertyGroup
+        """
+        group.make_control = bpy.props.BoolProperty(name="Control", default=True, description="Create a control bone for the copy.")
+        group.make_deform = bpy.props.BoolProperty(name="Deform", default=True, description="Create a deform bone for the copy.")
+
+
+    @classmethod
+    def parameters_ui(self, layout, obj, bone):
+        """ Create the ui for the rig parameters.
+        """
+        params = obj.pose.bones[bone].rigify_parameters[0]
+
+        r = layout.row()
+        r.prop(params, "make_control")
+        r = layout.row()
+        r.prop(params, "make_deform")
 
     @classmethod
     def create_sample(self, obj):

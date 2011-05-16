@@ -36,6 +36,8 @@ class Rig:
         self.obj = obj
         self.org_bones = [bone_name] + connected_children_names(obj, bone_name)
         self.params = params
+        self.make_controls = params.make_controls
+        self.make_deforms = params.make_deforms
 
         if len(self.org_bones) <= 1:
             raise MetarigError("RIGIFY ERROR: Bone '%s': input to rig type must be a chain of 2 or more bones." % (strip_org(bone)))
@@ -55,51 +57,87 @@ class Rig:
         for i in range(len(self.org_bones)):
             name = self.org_bones[i]
 
-            # Create bones
-            def_bone = copy_bone(self.obj, name)
-            ctrl_bone = copy_bone(self.obj, name)
-
-            # Get edit bones
-            eb = self.obj.data.edit_bones
-            def_bone_e = eb[def_bone]
-            ctrl_bone_e = eb[ctrl_bone]
-
-            # Set their names
-            def_bone_e.name = make_deformer_name(strip_org(name))
-            ctrl_bone_e.name = strip_org(name)
-
-            # Add them to their respective lists
-            def_chain += [def_bone_e.name]
-            ctrl_chain += [ctrl_bone_e.name]
-
-            # Parenting
-            if i == 0:
-                # First bone
-                def_bone_e.parent = eb[self.org_bones[i]].parent
-                ctrl_bone_e.parent = eb[self.org_bones[i]].parent
+            # Control bone
+            if self.make_controls:
+                # Copy
+                ctrl_bone = copy_bone(self.obj, name)
+                eb = self.obj.data.edit_bones
+                ctrl_bone_e = eb[ctrl_bone]
+                # Name
+                ctrl_bone_e.name = strip_org(name)
+                # Parenting
+                if i == 0:
+                    # First bone
+                    ctrl_bone_e.parent = eb[self.org_bones[0]].parent
+                else:
+                    # The rest
+                    ctrl_bone_e.parent = eb[ctrl_chain[-1]]
+                # Add to list
+                ctrl_chain += [ctrl_bone_e.name]
             else:
-                # The rest
-                def_bone_e.parent = eb[def_chain[i-1]]
-                ctrl_bone_e.parent = eb[ctrl_chain[i-1]]
+                ctrl_chain += [None]
+
+            # Deformation bone
+            if self.make_deforms:
+                # Copy
+                def_bone = copy_bone(self.obj, name)
+                eb = self.obj.data.edit_bones
+                def_bone_e = eb[def_bone]
+                # Name
+                def_bone_e.name = make_deformer_name(strip_org(name))
+                # Parenting
+                if i == 0:
+                    # First bone
+                    def_bone_e.parent = eb[self.org_bones[0]].parent
+                else:
+                    # The rest
+                    def_bone_e.parent = eb[def_chain[-1]]
+                # Add to list
+                def_chain += [def_bone_e.name]
+            else:
+                def_chain += [None]
 
         bpy.ops.object.mode_set(mode='OBJECT')
         pb = self.obj.pose.bones
 
-        # Constraint org and def to the control bones
+        # Constraints for org and def
         for org, ctrl, defrm in zip(self.org_bones, ctrl_chain, def_chain):
-            con = pb[org].constraints.new('COPY_TRANSFORMS')
-            con.name = "copy_transforms"
-            con.target = self.obj
-            con.subtarget = ctrl
+            if self.make_controls:
+                con = pb[org].constraints.new('COPY_TRANSFORMS')
+                con.name = "copy_transforms"
+                con.target = self.obj
+                con.subtarget = ctrl
 
-            con = pb[defrm].constraints.new('COPY_TRANSFORMS')
-            con.name = "copy_transforms"
-            con.target = self.obj
-            con.subtarget = ctrl
+            if self.make_deforms:
+                con = pb[defrm].constraints.new('COPY_TRANSFORMS')
+                con.name = "copy_transforms"
+                con.target = self.obj
+                con.subtarget = org
 
         # Create control widgets
-        for bone in ctrl_chain:
-            create_bone_widget(self.obj, bone)
+        if self.make_controls:
+            for bone in ctrl_chain:
+                create_bone_widget(self.obj, bone)
+
+    @classmethod
+    def add_parameters(self, group):
+        """ Add the parameters of this rig type to the
+            RigifyParameters PropertyGroup
+        """
+        group.make_controls = bpy.props.BoolProperty(name="Controls", default=True, description="Create control bones for the copy.")
+        group.make_deforms = bpy.props.BoolProperty(name="Deform", default=True, description="Create deform bones for the copy.")
+
+
+    @classmethod
+    def parameters_ui(self, layout, obj, bone):
+        """ Create the ui for the rig parameters.
+        """
+        params = obj.pose.bones[bone].rigify_parameters[0]
+
+        r = layout.row()
+        r.prop(params, "make_controls")
+        r = layout.row()
+        r.prop(params, "make_deforms")
 
     @classmethod
     def create_sample(self, obj):
