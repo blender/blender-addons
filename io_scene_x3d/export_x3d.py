@@ -640,18 +640,11 @@ class x3d_class:
             self.file.write("skyColor=\"%.3f %.3f %.3f\" " % sky_triple)
 
         for tex in bpy.data.textures:
-            if tex.type != 'IMAGE' or tex.image is None:
-                continue
+            if tex.type == 'IMAGE' and tex.image:
+                namemat = tex.name
+                pic = tex.image
+                basename = os.path.basename(bpy.path.abspath(pic.filepath))
 
-            namemat = tex.name
-            # namemat = alltextures[i].name
-
-            pic = tex.image
-
-            # using .expandpath just in case, os.path may not expect //
-            basename = os.path.basename(bpy.path.abspath(pic.filepath))
-
-            if pic:
                 if namemat == "back":
                     self.file.write("\n\tbackUrl=\"%s\" " % basename)
                 elif namemat == "bottom":
@@ -664,6 +657,7 @@ class x3d_class:
                     self.write_indented("rightUrl=\"%s\" " % basename)
                 elif namemat == "top":
                     self.write_indented("topUrl=\"%s\" " % basename)
+
         self.write_indented("/>\n\n")
 
 ##########################################################
