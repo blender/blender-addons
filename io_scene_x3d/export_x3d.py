@@ -42,8 +42,8 @@ import mathutils
 from bpy_extras.io_utils import create_derived_objects, free_derived_objects
 
 
-def round_color(col, cp):
-    return tuple([round(max(min(c, 1.0), 0.0), cp) for c in col])
+def clamp_color(col):
+    return tuple([max(min(c, 1.0), 0.0) for c in col])
 
 
 def matrix_direction(mtx):
@@ -63,11 +63,6 @@ class x3d_class:
         self.billnode = 0
         self.halonode = 0
         self.collnode = 0
-        self.verbose = 2	 # level of verbosity in console 0-none, 1-some, 2-most
-        self.cp = 3		  # decimals for material color values	 0.000 - 1.000
-        self.vp = 3		  # decimals for vertex coordinate values  0.000 - n.000
-        self.tp = 3		  # decimals for texture coordinate values 0.000 - 1.000
-        self.it = 3
 
         self.global_matrix = mathutils.Matrix.Rotation(-(math.pi / 2.0), 4, 'X')
 
@@ -129,9 +124,7 @@ class x3d_class:
         self.file.write("<X3D version=\"3.0\" profile=\"Immersive\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema-instance\" xsd:noNamespaceSchemaLocation=\"http://www.web3d.org/specifications/x3d-3.0.xsd\">\n")
         self.file.write("<head>\n")
         self.file.write("\t<meta name=\"filename\" content=\"%s\" />\n" % bfile)
-        # self.file.write("\t<meta name=\"filename\" content=\"%s\" />\n" % sys.basename(bfile))
         self.file.write("\t<meta name=\"generator\" content=\"Blender %s\" />\n" % bpy.app.version_string)
-        # self.file.write("\t<meta name=\"generator\" content=\"Blender %s\" />\n" % Blender.Get('version'))
         self.file.write("\t<meta name=\"translator\" content=\"X3D exporter v1.55 (2006/01/17)\" />\n")
         self.file.write("</head>\n")
         self.file.write("<Scene>\n")
@@ -161,8 +154,8 @@ class x3d_class:
 
     def writeViewpoint(self, ob, mat, scene):
         loc, quat, scale = mat.decompose()
-        self.file.write("<Viewpoint DEF=\"%s\" " % (self.cleanStr(ob.name)))
-        self.file.write("description=\"%s\" " % (ob.name))
+        self.file.write("<Viewpoint DEF=\"%s\" " % self.cleanStr(ob.name))
+        self.file.write("description=\"%s\" " % ob.name)
         self.file.write("centerOfRotation=\"0 0 0\" ")
         self.file.write("position=\"%3.2f %3.2f %3.2f\" " % loc[:])
         self.file.write("orientation=\"%3.2f %3.2f %3.2f %3.2f\" " % (quat.axis[:] + (quat.angle, )))
@@ -180,8 +173,8 @@ class x3d_class:
             mtype = 1 if mtype == 'LINEAR' else 2
         # if (mtype == 1 or mtype == 2):
             self.file.write("<Fog fogType=\"%s\" " % self.namesFog[mtype])
-            self.file.write("color=\"%s %s %s\" " % round_color(world.horizon_color, self.cp))
-            self.file.write("visibilityRange=\"%s\" />\n\n" % round(mparam.depth, self.cp))
+            self.file.write("color=\"%.3f %.3f %.3f\" " % clamp_color(world.horizon_color))
+            self.file.write("visibilityRange=\"%.3f\" />\n\n" % mparam.depth)
         else:
             return
 
@@ -213,7 +206,7 @@ class x3d_class:
         self.file.write("radius=\"%.4f\" " % radius)
         self.file.write("ambientIntensity=\"%.4f\" " % amb_intensity)
         self.file.write("intensity=\"%.4f\" " % intensity)
-        self.file.write("color=\"%.4f %.4f %.4f\" " % round_color(lamp.color, 4))
+        self.file.write("color=\"%.4f %.4f %.4f\" " % clamp_color(lamp.color))
         self.file.write("beamWidth=\"%.4f\" " % beamWidth)
         self.file.write("cutOffAngle=\"%.4f\" " % cutOffAngle)
         self.file.write("direction=\"%.4f %.4f %.4f\" " % (dx, dy, dz))
@@ -233,7 +226,7 @@ class x3d_class:
         dx, dy, dz = matrix_direction(mtx)
         self.file.write("<DirectionalLight DEF=\"%s\" " % safeName)
         self.file.write("ambientIntensity=\"%.4f\" " % amb_intensity)
-        self.file.write("color=\"%.4f %.4f %.4f\" " % round_color(lamp.color, 4))
+        self.file.write("color=\"%.4f %.4f %.4f\" " % clamp_color(lamp.color))
         self.file.write("intensity=\"%.4f\" " % intensity)
         self.file.write("direction=\"%.4f %.4f %.4f\" />\n\n" % (dx, dy, dz))
 
@@ -242,7 +235,7 @@ class x3d_class:
         if world:
             ambi = world.ambient_color
             # ambi = world.amb
-            amb_intensity = ((float(ambi[0] + ambi[1] + ambi[2])) / 3) / 2.5
+            amb_intensity = ((float(ambi[0] + ambi[1] + ambi[2])) / 3.0) / 2.5
         else:
             ambi = 0.0
             amb_intensity = 0.0
@@ -252,7 +245,7 @@ class x3d_class:
 
         self.file.write("<PointLight DEF=\"%s\" " % safeName)
         self.file.write("ambientIntensity=\"%.4f\" " % amb_intensity)
-        self.file.write("color=\"%.4f %.4f %.4f\" " % round_color(lamp.color, 4))
+        self.file.write("color=\"%.4f %.4f %.4f\" " % clamp_color(lamp.color))
 
         self.file.write("intensity=\"%.4f\" " % intensity)
         self.file.write("radius=\"%.4f\" " % lamp.distance)
@@ -285,34 +278,29 @@ class x3d_class:
         if not mesh.faces:
             return
 
-        mode = []
-        # mode = 0
-        if mesh.uv_textures.active:
-        # if mesh.faceUV:
-            for face in mesh.uv_textures.active.data:
-            # for face in mesh.faces:
-                if face.use_halo and 'HALO' not in mode:
-                    mode += ['HALO']
-                if face.use_billboard and 'BILLBOARD' not in mode:
-                    mode += ['BILLBOARD']
-                if face.use_object_color and 'OBJECT_COLOR' not in mode:
-                    mode += ['OBJECT_COLOR']
-                if face.use_collision and 'COLLISION' not in mode:
-                    mode += ['COLLISION']
-                # mode |= face.mode
+        texface_use_halo = texface_use_billboard = texface_use_collision = 0
 
-        if 'HALO' in mode and self.halonode == 0:
-        # if mode & Mesh.FaceModes.HALO and self.halonode == 0:
+        if mesh.uv_textures.active:  # if mesh.faceUV:
+            for face in mesh.uv_textures.active.data:  # for face in mesh.faces:
+                texface_use_halo |= face.use_halo
+                texface_use_billboard |= face.use_billboard
+                texface_use_collision |= face.use_collision
+                # texface_use_object_color |= face.use_object_color
+
+        if texface_use_halo and self.halonode == 0:
             self.write_indented("<Billboard axisOfRotation=\"0 0 0\">\n", 1)
             self.halonode = 1
-        elif 'BILLBOARD' in mode and self.billnode == 0:
-        # elif mode & Mesh.FaceModes.BILLBOARD and self.billnode == 0:
+        elif texface_use_billboard and self.billnode == 0:
             self.write_indented("<Billboard axisOfRotation=\"0 1 0\">\n", 1)
             self.billnode = 1
-        elif 'COLLISION' not in mode and self.collnode == 0:
-        # elif not mode & Mesh.FaceModes.DYNAMIC and self.collnode == 0:
+        elif texface_use_collision and self.collnode == 0:
             self.write_indented("<Collision enabled=\"false\">\n", 1)
             self.collnode = 1
+
+        del texface_use_halo
+        del texface_use_billboard
+        del texface_use_collision
+        # del texface_use_object_color
 
         loc, quat, sca = mtx.decompose()
 
@@ -574,12 +562,12 @@ class x3d_class:
                 specColor = emitColor = diffuseColor
 
             self.write_indented("<Material DEF=\"MA_%s\" " % matName, 1)
-            self.file.write("diffuseColor=\"%s %s %s\" " % round_color(diffuseColor, self.cp))
-            self.file.write("specularColor=\"%s %s %s\" " % round_color(specColor, self.cp))
-            self.file.write("emissiveColor=\"%s %s %s\" \n" % round_color(emitColor, self.cp))
-            self.write_indented("ambientIntensity=\"%s\" " % (round(ambient, self.cp)))
-            self.file.write("shininess=\"%s\" " % (round(shininess, self.cp)))
-            self.file.write("transparency=\"%s\" />" % (round(transp, self.cp)))
+            self.file.write("diffuseColor=\"%.3f %.3f %.3f\" " % clamp_color(diffuseColor))
+            self.file.write("specularColor=\"%.3f %.3f %.3f\" " % clamp_color(specColor))
+            self.file.write("emissiveColor=\"%.3f %.3f %.3f\" \n" % clamp_color(emitColor))
+            self.write_indented("ambientIntensity=\"%.3f\" " % ambient)
+            self.file.write("shininess=\"%.3f\" " % shininess)
+            self.file.write("transparency=\"%s\" />" % transp)
             self.write_indented("\n", -1)
 
     def writeImageTexture(self, image):
@@ -607,7 +595,7 @@ class x3d_class:
             self.file.write("url='%s' />" % " ".join(["\"%s\"" % f.replace("\\", "/") for f in images]))
             self.write_indented("\n", -1)
 
-    def writeBackground(self, world, alltextures):
+    def writeBackground(self, world):
         if world:
             worldname = world.name
         else:
@@ -615,47 +603,43 @@ class x3d_class:
 
         blending = world.use_sky_blend, world.use_sky_paper, world.use_sky_real
 
-        grd_triple = round_color(world.horizon_color, self.cp)
-        sky_triple = round_color(world.zenith_color, self.cp)
-        mix_triple = round_color(((grd_triple[i] + sky_triple[i]) / 2.0 for i in range(3)), self.cp)
+        grd_triple = clamp_color(world.horizon_color)
+        sky_triple = clamp_color(world.zenith_color)
+        mix_triple = clamp_color((grd_triple[i] + sky_triple[i]) / 2.0 for i in range(3))
 
         self.file.write("<Background DEF=\"%s\" " % self.secureName(worldname))
         # No Skytype - just Hor color
         if blending == (False, False, False):
-            self.file.write("groundColor=\"%s %s %s\" " % grd_triple)
-            self.file.write("skyColor=\"%s %s %s\" " % grd_triple)
+            self.file.write("groundColor=\"%.3f %.3f %.3f\" " % grd_triple)
+            self.file.write("skyColor=\"%.3f %.3f %.3f\" " % grd_triple)
         # Blend Gradient
         elif blending == (True, False, False):
-            self.file.write("groundColor=\"%s %s %s, " % grd_triple)
-            self.file.write("%s %s %s\" groundAngle=\"1.57, 1.57\" " % mix_triple)
-            self.file.write("skyColor=\"%s %s %s, " % sky_triple)
-            self.file.write("%s %s %s\" skyAngle=\"1.57, 1.57\" " % mix_triple)
+            self.file.write("groundColor=\"%.3f %.3f %.3f, " % grd_triple)
+            self.file.write("%.3f %.3f %.3f\" groundAngle=\"1.57, 1.57\" " % mix_triple)
+            self.file.write("skyColor=\"%.3f %.3f %.3f, " % sky_triple)
+            self.file.write("%.3f %.3f %.3f\" skyAngle=\"1.57, 1.57\" " % mix_triple)
         # Blend+Real Gradient Inverse
         elif blending == (True, False, True):
-            self.file.write("groundColor=\"%s %s %s, %s %s %s\" " % (sky_triple + grd_triple))
+            self.file.write("groundColor=\"%.3f %.3f %.3f, %.3f %.3f %.3f\" " % (sky_triple + grd_triple))
             self.file.write("groundAngle=\"1.57\" ")
-            self.file.write("skyColor=\"%s %s %s, %s %s %s, %s %s %s\" " % (sky_triple + grd_triple + sky_triple))
+            self.file.write("skyColor=\"%.3f %.3f %.3f, %.3f %.3f %.3f, %.3f %.3f %.3f\" " % (sky_triple + grd_triple + sky_triple))
             self.file.write("skyAngle=\"1.57, 3.14159\" ")
         # Paper - just Zen Color
         elif blending == (False, False, True):
-            self.file.write("groundColor=\"%s %s %s\" " % sky_triple)
-            self.file.write("skyColor=\"%s %s %s\" " % sky_triple)
+            self.file.write("groundColor=\"%.3f %.3f %.3f\" " % sky_triple)
+            self.file.write("skyColor=\"%.3f %.3f %.3f\" " % sky_triple)
         # Blend+Real+Paper - komplex gradient
         elif blending == (True, True, True):
-            self.write_indented("groundColor=\"%s %s %s, " % sky_triple)
-            self.write_indented("%s %s %s\" groundAngle=\"1.57, 1.57\" " % grd_triple)
-            self.write_indented("skyColor=\"%s %s %s, " % sky_triple)
-            self.write_indented("%s %s %s\" skyAngle=\"1.57, 1.57\" " % grd_triple)
+            self.write_indented("groundColor=\"%.3f %.3f %.3f, " % sky_triple)
+            self.write_indented("%.3f %.3f %.3f\" groundAngle=\"1.57, 1.57\" " % grd_triple)
+            self.write_indented("skyColor=\"%.3f %.3f %.3f, " % sky_triple)
+            self.write_indented("%.3f %.3f %.3f\" skyAngle=\"1.57, 1.57\" " % grd_triple)
         # Any Other two colors
         else:
-            self.file.write("groundColor=\"%s %s %s\" " % grd_triple)
-            self.file.write("skyColor=\"%s %s %s\" " % sky_triple)
+            self.file.write("groundColor=\"%.3f %.3f %.3f\" " % grd_triple)
+            self.file.write("skyColor=\"%.3f %.3f %.3f\" " % sky_triple)
 
-        alltexture = len(alltextures)
-
-        for i in range(alltexture):
-            tex = alltextures[i]
-
+        for tex in bpy.data.textures:
             if tex.type != 'IMAGE' or tex.image is None:
                 continue
 
@@ -667,30 +651,32 @@ class x3d_class:
             # using .expandpath just in case, os.path may not expect //
             basename = os.path.basename(bpy.path.abspath(pic.filepath))
 
-            pic = alltextures[i].image
-            if (namemat == "back") and (pic != None):
-                self.file.write("\n\tbackUrl=\"%s\" " % basename)
-            elif (namemat == "bottom") and (pic != None):
-                self.write_indented("bottomUrl=\"%s\" " % basename)
-            elif (namemat == "front") and (pic != None):
-                self.write_indented("frontUrl=\"%s\" " % basename)
-            elif (namemat == "left") and (pic != None):
-                self.write_indented("leftUrl=\"%s\" " % basename)
-            elif (namemat == "right") and (pic != None):
-                self.write_indented("rightUrl=\"%s\" " % basename)
-            elif (namemat == "top") and (pic != None):
-                self.write_indented("topUrl=\"%s\" " % basename)
+            if pic:
+                if namemat == "back":
+                    self.file.write("\n\tbackUrl=\"%s\" " % basename)
+                elif namemat == "bottom":
+                    self.write_indented("bottomUrl=\"%s\" " % basename)
+                elif namemat == "front":
+                    self.write_indented("frontUrl=\"%s\" " % basename)
+                elif namemat == "left":
+                    self.write_indented("leftUrl=\"%s\" " % basename)
+                elif namemat == "right":
+                    self.write_indented("rightUrl=\"%s\" " % basename)
+                elif namemat == "top":
+                    self.write_indented("topUrl=\"%s\" " % basename)
         self.write_indented("/>\n\n")
 
 ##########################################################
 # export routine
 ##########################################################
 
-    def export(self, scene, world, alltextures,
-                use_apply_modifiers=False,
-                use_selection=True,
-                EXPORT_TRI=False,
-                ):
+    def export(self, scene,
+               use_apply_modifiers=False,
+               use_selection=True,
+               EXPORT_TRI=False,
+               ):
+
+        world = scene.world
 
         # tag un-exported IDs
         bpy.data.meshes.tag(False)
@@ -701,7 +687,7 @@ class x3d_class:
         self.writeHeader()
         # self.writeScript()
         self.writeNavigationInfo(scene)
-        self.writeBackground(world, alltextures)
+        self.writeBackground(world)
         self.writeFog(world)
         self.proto = 0
 
@@ -787,10 +773,10 @@ class x3d_class:
             newName = '%s%s' % (prefix, newName)
 
         if newName[0].isdigit():
-            newName = "%s%s" % ('_', newName)
+            newName = "%s%s" % ("_", newName)
 
         for bad in [' ', '"', '#', "'", ', ', '.', '[', '\\', ']', '{', '}']:
-            newName = newName.replace(bad, '_')
+            newName = newName.replace(bad, "_")
         return newName
 
     def faceToString(self, face):
@@ -821,10 +807,6 @@ class x3d_class:
         print("Debug: mesh.faces=%d" % len(mesh.faces))
         print("Debug: mesh.materials=%d" % len(mesh.materials))
 
-        # s="%s %s %s" % (
-        # 	round(c.r/255.0,self.cp),
-        # 	round(c.g/255.0,self.cp),
-        # 	round(c.b/255.0,self.cp))
         return s
 
     # For writing well formed VRML code
@@ -862,14 +844,8 @@ def save(operator, context, filepath="",
     if bpy.ops.object.mode_set.poll():
         bpy.ops.object.mode_set(mode='OBJECT')
 
-    # XXX these are global textures while .Get() returned only scene's?
-    alltextures = bpy.data.textures
-    # alltextures = Blender.Texture.Get()
-
     wrlexport = x3d_class(filepath)
     wrlexport.export(scene,
-                     world,
-                     alltextures,
                      use_apply_modifiers=use_apply_modifiers,
                      use_selection=use_selection,
                      EXPORT_TRI=use_triangulate,
