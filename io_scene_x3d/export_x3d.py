@@ -175,12 +175,13 @@ class x3d_class:
             mparam = world.mist_settings
         else:
             return
-        if (mtype == 'LINEAR' or mtype == 'INVERSE_QUADRATIC'):
+
+        if mparam.use_mist:
             mtype = 1 if mtype == 'LINEAR' else 2
         # if (mtype == 1 or mtype == 2):
             self.file.write("<Fog fogType=\"%s\" " % self.namesFog[mtype])
             self.file.write("color=\"%s %s %s\" " % round_color(world.horizon_color, self.cp))
-            self.file.write("visibilityRange=\"%s\" />\n\n" % round(mparam[2], self.cp))
+            self.file.write("visibilityRange=\"%s\" />\n\n" % round(mparam.depth, self.cp))
         else:
             return
 
