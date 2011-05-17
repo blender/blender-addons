@@ -68,6 +68,7 @@ x3d_names_reserved = {"Anchor", "Appearance", "Arc2D", "ArcClose2D", "AudioClip"
                       "TriangleFanSet", "TriangleSet", "TriangleSet2D", "TriangleStripSet", "Viewpoint", "VisibilitySensor",
                       "WorldInfo", "X3D", "XvlShell", "VertexShader", "FragmentShader", "MultiShaderAppearance", "ShaderAppearance"}
 
+
 def clamp_color(col):
     return tuple([max(min(c, 1.0), 0.0) for c in col])
 
@@ -91,40 +92,27 @@ def clean_str(name, prefix='rsvd_'):
         newName = newName.replace(bad, "_")
     return newName
 
+namesFog = ("", "LINEAR", "EXPONENTIAL", "")
+
 ##########################################################
 # Functions for writing output file
 ##########################################################
 
 
-class x3d_class:
+def export(file,
+           global_matrix,
+           scene,
+           use_apply_modifiers=False,
+           use_selection=True,
+           EXPORT_TRI=False,):
 
-    namesFog = ("", "LINEAR", "EXPONENTIAL", "")
-
-    def __init__(self, filepath):
-        #--- public you can change these ---
-        self.global_matrix = mathutils.Matrix.Rotation(-(math.pi / 2.0), 4, 'X')
-
-        #--- class private don't touch ---
-        self.filepath = filepath
-        self.file = None
-        if filepath.lower().endswith('.x3dz'):
-            try:
-                import gzip
-                self.file = gzip.open(filepath, "w")
-            except:
-                print("failed to import compression modules, exporting uncompressed")
-                self.filepath = filepath[:-1]  # remove trailing z
-
-        if self.file is None:
-            self.file = open(self.filepath, "w", encoding="utf8", newline="\n")
-        self.nodeID = 0
+    fw = file.write
 
 ##########################################################
 # Writing nodes routines
 ##########################################################
 
-    @staticmethod
-    def writeHeader(fw, ident):
+    def writeHeader(ident):
         filepath = fw.__self__.name
         #bfile = sys.expandpath( Blender.Get('filepath') ).replace('<', '&lt').replace('>', '&gt')
         bfile = repr(os.path.basename(filepath).replace('<', '&lt').replace('>', '&gt'))[1:-1]  # use outfile name
@@ -143,16 +131,14 @@ class x3d_class:
         ident += "\t"
         return ident
 
-    @staticmethod
-    def writeFooter(fw, ident):
+    def writeFooter(ident):
         ident = ident[:-1]
         fw("%s</Scene>\n" % ident)
         ident = ident[:-1]
         fw("%s</X3D>" % ident)
         return ident
 
-    @staticmethod
-    def writeViewpoint(fw, ident, ob, mat, scene):
+    def writeViewpoint(ident, ob, mat, scene):
         loc, quat, scale = mat.decompose()
         fw("%s<Viewpoint DEF=\"%s\" " % (ident, clean_str(ob.name)))
         fw("description=\"%s\" " % ob.name)
@@ -162,8 +148,7 @@ class x3d_class:
         fw("fieldOfView=\"%.3g\" " % ob.data.angle)
         fw(" />\n")
 
-    @staticmethod
-    def writeFog(fw, ident, world):
+    def writeFog(ident, world):
         if world:
             mtype = world.mist_settings.falloff
             mparam = world.mist_settings
@@ -178,12 +163,10 @@ class x3d_class:
         else:
             return
 
-    @staticmethod
-    def writeNavigationInfo(fw, ident, scene):
+    def writeNavigationInfo(ident, scene):
         fw('%s<NavigationInfo headlight="false" visibilityLimit="0.0" type=\'"EXAMINE","ANY"\' avatarSize="0.25, 1.75, 0.75" />\n' % ident)
 
-    @staticmethod
-    def writeSpotLight(fw, ident, ob, mtx, lamp, world):
+    def writeSpotLight(ident, ob, mtx, lamp, world):
         safeName = clean_str(ob.name)
         if world:
             ambi = world.ambient_color
@@ -214,8 +197,7 @@ class x3d_class:
         fw("direction=\"%.4g %.4g %.4g\" " % (dx, dy, dz))
         fw("location=\"%.4g %.4g %.4g\" />\n" % location)
 
-    @staticmethod
-    def writeDirectionalLight(fw, ident, ob, mtx, lamp, world):
+    def writeDirectionalLight(ident, ob, mtx, lamp, world):
         safeName = clean_str(ob.name)
         if world:
             ambi = world.ambient_color
@@ -233,8 +215,7 @@ class x3d_class:
         fw("intensity=\"%.4g\" " % intensity)
         fw("direction=\"%.4g %.4g %.4g\" />\n" % (dx, dy, dz))
 
-    @staticmethod
-    def writePointLight(fw, ident, ob, mtx, lamp, world):
+    def writePointLight(ident, ob, mtx, lamp, world):
 
         safeName = clean_str(ob.name)
         if world:
@@ -256,26 +237,27 @@ class x3d_class:
         fw("radius=\"%.4g\" " % lamp.distance)
         fw("location=\"%.4g %.4g %.4g\" />\n" % location)
 
-    def secureName(self, name):
-        name = name + str(self.nodeID)
-        self.nodeID = self.nodeID + 1
+    def secureName(name):
+        name = name + str(secureName.nodeID)
+        secureName.nodeID += 1
         if len(name) <= 3:
-            newname = "_" + str(self.nodeID)
+            newname = "_" + str(secureName.nodeID)
             return "%s" % (newname)
         else:
             for bad in ('"', '#', "'", ', ', '.', '[', '\\', ']', '{', '}'):
                 name = name.replace(bad, "_")
             if name in x3d_names_reserved:
-                newname = name[0:3] + "_" + str(self.nodeID)
+                newname = name[0:3] + "_" + str(secureName.nodeID)
                 return "%s" % (newname)
             elif name[0].isdigit():
-                newname = "_" + name + str(self.nodeID)
+                newname = "_" + name + str(secureName.nodeID)
                 return "%s" % (newname)
             else:
                 newname = name
                 return "%s" % (newname)
+    secureName.nodeID = 0
 
-    def writeIndexedFaceSet(self, fw, ident, ob, mesh, mtx, world, EXPORT_TRI=False):
+    def writeIndexedFaceSet(ident, ob, mesh, mtx, world, EXPORT_TRI=False):
 
         shape_name_x3d = clean_str(ob.name)
         mesh_name_x3d = clean_str(mesh.name)
@@ -408,7 +390,7 @@ class x3d_class:
                     ident += "\t"
 
                     if image:
-                        self.writeImageTexture(fw, ident, image)
+                        writeImageTexture(ident, image)
 
                         if mesh_materials_use_face_texture[material_index]:
                             if image.use_tiles:
@@ -438,7 +420,7 @@ class x3d_class:
                             fw("/>\n")
 
                     if material:
-                        self.writeMaterial(fw, ident, material, clean_str(material.name, ""), world)
+                        writeMaterial(ident, material, clean_str(material.name, ""), world)
 
                     ident = ident[:-1]
                     fw("%s</Appearance>\n" % ident)
@@ -476,7 +458,7 @@ class x3d_class:
 
                     if True:
                         # "coordIndex"
-                        fw('coordIndex="')
+                        fw("coordIndex=\"")
                         if EXPORT_TRI:
                             for i in face_group:
                                 fv = mesh_faces[i].vertices[:]
@@ -513,7 +495,6 @@ class x3d_class:
 
                     if is_uv:
                         fw("%s<TextureCoordinate point=\"" % ident)
-                        fw = fw
                         mesh_faces_uv = mesh.uv_textures.active.data
                         for i in face_group:
                             for uv in mesh_faces_uv[i].uv:
@@ -554,9 +535,7 @@ class x3d_class:
             ident = ident[:-1]
             fw("%s</Collision>\n" % ident)
 
-
-    @staticmethod
-    def writeMaterial(fw, ident, mat, matName, world):
+    def writeMaterial(ident, mat, matName, world):
         # look up material name, use it if available
         if mat.tag:
             fw("%s<Material USE=\"MA_%s\" />\n" % (ident, matName))
@@ -589,8 +568,7 @@ class x3d_class:
             fw("shininess=\"%.3g\" " % shininess)
             fw("transparency=\"%s\" />\n" % transp)
 
-    @staticmethod
-    def writeImageTexture(fw, ident, image):
+    def writeImageTexture(ident, image):
         name = image.name
 
         if image.tag:
@@ -614,8 +592,7 @@ class x3d_class:
 
             fw("url='%s' />\n" % " ".join(["\"%s\"" % f.replace("\\", "/") for f in images]))
 
-    def writeBackground(self, ident, world):
-        fw = self.file.write
+    def writeBackground(ident, world):
 
         if world:
             worldname = world.name
@@ -628,7 +605,7 @@ class x3d_class:
         sky_triple = clamp_color(world.zenith_color)
         mix_triple = clamp_color((grd_triple[i] + sky_triple[i]) / 2.0 for i in range(3))
 
-        fw("%s<Background DEF=\"%s\" " % (ident, self.secureName(worldname)))
+        fw("%s<Background DEF=\"%s\" " % (ident, secureName(worldname)))
         # No Skytype - just Hor color
         if blending == (False, False, False):
             fw("groundColor=\"%.3g %.3g %.3g\" " % grd_triple)
@@ -684,15 +661,7 @@ class x3d_class:
 ##########################################################
 # export routine
 ##########################################################
-
-    def export(self, scene,
-               use_apply_modifiers=False,
-               use_selection=True,
-               EXPORT_TRI=False,
-               ):
-
-        fw = self.file.write
-
+    def export_main():
         world = scene.world
 
         # tag un-exported IDs
@@ -700,14 +669,13 @@ class x3d_class:
         bpy.data.materials.tag(False)
         bpy.data.images.tag(False)
 
-        print("Info: starting X3D export to %r..." % self.filepath)
+        print("Info: starting X3D export to %r..." % file.name)
         ident = ""
-        ident = self.writeHeader(fw, ident)
+        ident = writeHeader(ident)
 
-        # self.writeScript()
-        self.writeNavigationInfo(fw, ident, scene)
-        self.writeBackground(ident, world)
-        self.writeFog(fw, ident, world)
+        writeNavigationInfo(ident, scene)
+        writeBackground(ident, world)
+        writeFog(ident, world)
 
         ident = "\t\t"
 
@@ -726,10 +694,10 @@ class x3d_class:
             for ob, ob_mat in derived:
                 objType = ob.type
                 objName = ob.name
-                ob_mat = self.global_matrix * ob_mat
+                ob_mat = global_matrix * ob_mat
 
                 if objType == 'CAMERA':
-                    self.writeViewpoint(fw, ident, ob, ob_mat, scene)
+                    writeViewpoint(ident, ob, ob_mat, scene)
                 elif objType in ('MESH', 'CURVE', 'SURF', 'FONT'):
                     if (objType != 'MESH') or (use_apply_modifiers and ob.is_modified(scene, 'PREVIEW')):
                         try:
@@ -740,7 +708,7 @@ class x3d_class:
                         me = ob.data
 
                     if me is not None:
-                        self.writeIndexedFaceSet(fw, ident, ob, me, ob_mat, world, EXPORT_TRI=EXPORT_TRI)
+                        writeIndexedFaceSet(ident, ob, me, ob_mat, world, EXPORT_TRI=EXPORT_TRI)
 
                         # free mesh created with create_mesh()
                         if me != ob.data:
@@ -750,13 +718,13 @@ class x3d_class:
                     data = ob.data
                     datatype = data.type
                     if datatype == 'POINT':
-                        self.writePointLight(fw, ident, ob, ob_mat, data, world)
+                        writePointLight(ident, ob, ob_mat, data, world)
                     elif datatype == 'SPOT':
-                        self.writeSpotLight(fw, ident, ob, ob_mat, data, world)
+                        writeSpotLight(ident, ob, ob_mat, data, world)
                     elif datatype == 'SUN':
-                        self.writeDirectionalLight(fw, ident, ob, ob_mat, data, world)
+                        writeDirectionalLight(ident, ob, ob_mat, data, world)
                     else:
-                        self.writeDirectionalLight(fw, ident, ob, ob_mat, data, world)
+                        writeDirectionalLight(ident, ob, ob_mat, data, world)
                 else:
                     #print "Info: Ignoring [%s], object type [%s] not handle yet" % (object.name,object.getType)
                     pass
@@ -764,47 +732,11 @@ class x3d_class:
             if free:
                 free_derived_objects(ob_main)
 
-        ident = self.writeFooter(fw, ident)
+        ident = writeFooter(ident)
 
-        self.cleanup()
-
-##########################################################
-# Utility methods
-##########################################################
-
-    def cleanup(self):
-        self.file.close()
-        print("Info: finished X3D export to %r" % self.filepath)
-
-    def faceToString(self, face):
-
-        print("Debug: face.flag=0x%x (bitflags)" % face.flag)
-        if face.sel:
-            print("Debug: face.sel=true")
-
-        print("Debug: face.mode=0x%x (bitflags)" % face.mode)
-        if face.mode & Mesh.FaceModes.TWOSIDE:
-            print("Debug: face.mode twosided")
-
-        print("Debug: face.transp=0x%x (enum)" % face.blend_type)
-        if face.blend_type == Mesh.FaceTranspModes.SOLID:
-            print("Debug: face.transp.SOLID")
-
-        if face.image:
-            print("Debug: face.image=%s" % face.image.name)
-        print("Debug: face.materialIndex=%d" % face.materialIndex)
-
-    def meshToString(self, mesh):
-        # print("Debug: mesh.hasVertexUV=%d" % mesh.vertexColors)
-        print("Debug: mesh.faceUV=%d" % (len(mesh.uv_textures) > 0))
-        # print("Debug: mesh.faceUV=%d" % mesh.faceUV)
-        print("Debug: mesh.hasVertexColours=%d" % (len(mesh.vertex_colors) > 0))
-        # print("Debug: mesh.hasVertexColours=%d" % mesh.hasVertexColours())
-        print("Debug: mesh.vertices=%d" % len(mesh.vertices))
-        print("Debug: mesh.faces=%d" % len(mesh.faces))
-        print("Debug: mesh.materials=%d" % len(mesh.materials))
-
-        return s
+    export_main()
+    file.close()
+    print("Info: finished X3D export to %r" % file.name)
 
 
 ##########################################################
@@ -825,17 +757,29 @@ def save(operator, context, filepath="",
         if not filepath.lower().endswith('.x3d'):
             filepath = '.'.join(filepath.split('.')[:-1]) + '.x3d'
 
-    scene = context.scene
-    world = scene.world
-
     if bpy.ops.object.mode_set.poll():
         bpy.ops.object.mode_set(mode='OBJECT')
 
-    wrlexport = x3d_class(filepath)
-    wrlexport.export(scene,
-                     use_apply_modifiers=use_apply_modifiers,
-                     use_selection=use_selection,
-                     EXPORT_TRI=use_triangulate,
-                     )
+    file = None
+    if filepath.lower().endswith('.x3dz'):
+        try:
+            import gzip
+            file = gzip.open(filepath, "w")
+        except:
+            print("failed to import compression modules, exporting uncompressed")
+            filepath = filepath[:-1]  # remove trailing z
+
+    if file is None:
+        file = open(filepath, "w")
+
+    global_matrix = mathutils.Matrix.Rotation(-(math.pi / 2.0), 4, 'X')
+
+    export(file,
+           global_matrix,
+           context.scene,
+           use_apply_modifiers=use_apply_modifiers,
+           use_selection=use_selection,
+           EXPORT_TRI=use_triangulate,
+           )
 
     return {'FINISHED'}
