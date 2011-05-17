@@ -41,6 +41,32 @@ import mathutils
 
 from bpy_extras.io_utils import create_derived_objects, free_derived_objects
 
+x3d_names_reserved = {"Anchor", "Appearance", "Arc2D", "ArcClose2D", "AudioClip", "Background", "Billboard",
+                      "BooleanFilter", "BooleanSequencer", "BooleanToggle", "BooleanTrigger", "Box", "Circle2D",
+                      "Collision", "Color", "ColorInterpolator", "ColorRGBA", "component", "Cone", "connect",
+                      "Contour2D", "ContourPolyline2D", "Coordinate", "CoordinateDouble", "CoordinateInterpolator",
+                      "CoordinateInterpolator2D", "Cylinder", "CylinderSensor", "DirectionalLight", "Disk2D",
+                      "ElevationGrid", "EspduTransform", "EXPORT", "ExternProtoDeclare", "Extrusion", "field",
+                      "fieldValue", "FillProperties", "Fog", "FontStyle", "GeoCoordinate", "GeoElevationGrid",
+                      "GeoLocationLocation", "GeoLOD", "GeoMetadata", "GeoOrigin", "GeoPositionInterpolator",
+                      "GeoTouchSensor", "GeoViewpoint", "Group", "HAnimDisplacer", "HAnimHumanoid", "HAnimJoint",
+                      "HAnimSegment", "HAnimSite", "head", "ImageTexture", "IMPORT", "IndexedFaceSet",
+                      "IndexedLineSet", "IndexedTriangleFanSet", "IndexedTriangleSet", "IndexedTriangleStripSet",
+                      "Inline", "IntegerSequencer", "IntegerTrigger", "IS", "KeySensor", "LineProperties", "LineSet",
+                      "LoadSensor", "LOD", "Material", "meta", "MetadataDouble", "MetadataFloat", "MetadataInteger",
+                      "MetadataSet", "MetadataString", "MovieTexture", "MultiTexture", "MultiTextureCoordinate",
+                      "MultiTextureTransform", "NavigationInfo", "Normal", "NormalInterpolator", "NurbsCurve",
+                      "NurbsCurve2D", "NurbsOrientationInterpolator", "NurbsPatchSurface",
+                      "NurbsPositionInterpolator", "NurbsSet", "NurbsSurfaceInterpolator", "NurbsSweptSurface",
+                      "NurbsSwungSurface", "NurbsTextureCoordinate", "NurbsTrimmedSurface", "OrientationInterpolator",
+                      "PixelTexture", "PlaneSensor", "PointLight", "PointSet", "Polyline2D", "Polypoint2D",
+                      "PositionInterpolator", "PositionInterpolator2D", "ProtoBody", "ProtoDeclare", "ProtoInstance",
+                      "ProtoInterface", "ProximitySensor", "ReceiverPdu", "Rectangle2D", "ROUTE", "ScalarInterpolator",
+                      "Scene", "Script", "Shape", "SignalPdu", "Sound", "Sphere", "SphereSensor", "SpotLight", "StaticGroup",
+                      "StringSensor", "Switch", "Text", "TextureBackground", "TextureCoordinate", "TextureCoordinateGenerator",
+                      "TextureTransform", "TimeSensor", "TimeTrigger", "TouchSensor", "Transform", "TransmitterPdu",
+                      "TriangleFanSet", "TriangleSet", "TriangleSet2D", "TriangleStripSet", "Viewpoint", "VisibilitySensor",
+                      "WorldInfo", "X3D", "XvlShell", "VertexShader", "FragmentShader", "MultiShaderAppearance", "ShaderAppearance"}
 
 def clamp_color(col):
     return tuple([max(min(c, 1.0), 0.0) for c in col])
@@ -50,6 +76,21 @@ def matrix_direction(mtx):
     return (mathutils.Vector((0.0, 0.0, -1.0)) * mtx.to_3x3()).normalized()[:]
 
 
+def clean_str(name, prefix='rsvd_'):
+    """cleanStr(name,prefix) - try to create a valid VRML DEF name from object name"""
+
+    newName = name
+
+    if newName in x3d_names_reserved:
+        newName = '%s%s' % (prefix, newName)
+
+    if newName[0].isdigit():
+        newName = "%s%s" % ("_", newName)
+
+    for bad in [' ', '"', '#', "'", ', ', '.', '[', '\\', ']', '{', '}']:
+        newName = newName.replace(bad, "_")
+    return newName
+
 ##########################################################
 # Functions for writing output file
 ##########################################################
@@ -57,17 +98,13 @@ def matrix_direction(mtx):
 
 class x3d_class:
 
+    namesFog = ("", "LINEAR", "EXPONENTIAL", "")
+
     def __init__(self, filepath):
         #--- public you can change these ---
-        self.proto = 1
-        self.billnode = 0
-        self.halonode = 0
-        self.collnode = 0
-
         self.global_matrix = mathutils.Matrix.Rotation(-(math.pi / 2.0), 4, 'X')
 
         #--- class private don't touch ---
-        self.indentLevel = 0  # keeps track of current indenting
         self.filepath = filepath
         self.file = None
         if filepath.lower().endswith('.x3dz'):
@@ -80,89 +117,53 @@ class x3d_class:
 
         if self.file is None:
             self.file = open(self.filepath, "w", encoding="utf8", newline="\n")
-
-        self.bNav = 0
         self.nodeID = 0
-        self.namesReserved = {"Anchor", "Appearance", "Arc2D", "ArcClose2D", "AudioClip", "Background", "Billboard",
-                             "BooleanFilter", "BooleanSequencer", "BooleanToggle", "BooleanTrigger", "Box", "Circle2D",
-                             "Collision", "Color", "ColorInterpolator", "ColorRGBA", "component", "Cone", "connect",
-                             "Contour2D", "ContourPolyline2D", "Coordinate", "CoordinateDouble", "CoordinateInterpolator",
-                             "CoordinateInterpolator2D", "Cylinder", "CylinderSensor", "DirectionalLight", "Disk2D",
-                             "ElevationGrid", "EspduTransform", "EXPORT", "ExternProtoDeclare", "Extrusion", "field",
-                             "fieldValue", "FillProperties", "Fog", "FontStyle", "GeoCoordinate", "GeoElevationGrid",
-                             "GeoLocationLocation", "GeoLOD", "GeoMetadata", "GeoOrigin", "GeoPositionInterpolator",
-                             "GeoTouchSensor", "GeoViewpoint", "Group", "HAnimDisplacer", "HAnimHumanoid", "HAnimJoint",
-                             "HAnimSegment", "HAnimSite", "head", "ImageTexture", "IMPORT", "IndexedFaceSet",
-                             "IndexedLineSet", "IndexedTriangleFanSet", "IndexedTriangleSet", "IndexedTriangleStripSet",
-                             "Inline", "IntegerSequencer", "IntegerTrigger", "IS", "KeySensor", "LineProperties", "LineSet",
-                             "LoadSensor", "LOD", "Material", "meta", "MetadataDouble", "MetadataFloat", "MetadataInteger",
-                             "MetadataSet", "MetadataString", "MovieTexture", "MultiTexture", "MultiTextureCoordinate",
-                             "MultiTextureTransform", "NavigationInfo", "Normal", "NormalInterpolator", "NurbsCurve",
-                             "NurbsCurve2D", "NurbsOrientationInterpolator", "NurbsPatchSurface",
-                             "NurbsPositionInterpolator", "NurbsSet", "NurbsSurfaceInterpolator", "NurbsSweptSurface",
-                             "NurbsSwungSurface", "NurbsTextureCoordinate", "NurbsTrimmedSurface", "OrientationInterpolator",
-                             "PixelTexture", "PlaneSensor", "PointLight", "PointSet", "Polyline2D", "Polypoint2D",
-                             "PositionInterpolator", "PositionInterpolator2D", "ProtoBody", "ProtoDeclare", "ProtoInstance",
-                             "ProtoInterface", "ProximitySensor", "ReceiverPdu", "Rectangle2D", "ROUTE", "ScalarInterpolator",
-                             "Scene", "Script", "Shape", "SignalPdu", "Sound", "Sphere", "SphereSensor", "SpotLight", "StaticGroup",
-                             "StringSensor", "Switch", "Text", "TextureBackground", "TextureCoordinate", "TextureCoordinateGenerator",
-                             "TextureTransform", "TimeSensor", "TimeTrigger", "TouchSensor", "Transform", "TransmitterPdu",
-                             "TriangleFanSet", "TriangleSet", "TriangleSet2D", "TriangleStripSet", "Viewpoint", "VisibilitySensor",
-                             "WorldInfo", "X3D", "XvlShell", "VertexShader", "FragmentShader", "MultiShaderAppearance", "ShaderAppearance"}
-
-        self.namesFog = ("", "LINEAR", "EXPONENTIAL", "")
 
 ##########################################################
 # Writing nodes routines
 ##########################################################
 
-    def writeHeader(self):
+    @staticmethod
+    def writeHeader(fw, ident):
+        filepath = fw.__self__.name
         #bfile = sys.expandpath( Blender.Get('filepath') ).replace('<', '&lt').replace('>', '&gt')
-        bfile = repr(os.path.basename(self.filepath).replace('<', '&lt').replace('>', '&gt'))[1:-1]  # use outfile name
-        self.file.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n")
-        self.file.write("<!DOCTYPE X3D PUBLIC \"ISO//Web3D//DTD X3D 3.0//EN\" \"http://www.web3d.org/specifications/x3d-3.0.dtd\">\n")
-        self.file.write("<X3D version=\"3.0\" profile=\"Immersive\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema-instance\" xsd:noNamespaceSchemaLocation=\"http://www.web3d.org/specifications/x3d-3.0.xsd\">\n")
-        self.file.write("<head>\n")
-        self.file.write("\t<meta name=\"filename\" content=\"%s\" />\n" % bfile)
-        self.file.write("\t<meta name=\"generator\" content=\"Blender %s\" />\n" % bpy.app.version_string)
-        self.file.write("\t<meta name=\"translator\" content=\"X3D exporter v1.55 (2006/01/17)\" />\n")
-        self.file.write("</head>\n")
-        self.file.write("<Scene>\n")
+        bfile = repr(os.path.basename(filepath).replace('<', '&lt').replace('>', '&gt'))[1:-1]  # use outfile name
+        fw("%s<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" % ident)
+        fw("%s<!DOCTYPE X3D PUBLIC \"ISO//Web3D//DTD X3D 3.0//EN\" \"http://www.web3d.org/specifications/x3d-3.0.dtd\">\n" % ident)
+        fw("%s<X3D version=\"3.0\" profile=\"Immersive\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema-instance\" xsd:noNamespaceSchemaLocation=\"http://www.web3d.org/specifications/x3d-3.0.xsd\">\n" % ident)
+        ident += "\t"
+        fw("%s<head>\n" % ident)
+        ident += "\t"
+        fw("%s<meta name=\"filename\" content=\"%s\" />\n" % (ident, bfile))
+        fw("%s<meta name=\"generator\" content=\"Blender %s\" />\n" % (ident, bpy.app.version_string))
+        fw("%s<meta name=\"translator\" content=\"X3D exporter v1.55 (2006/01/17)\" />\n" % ident)
+        ident = ident[:-1]
+        fw("%s</head>\n" % ident)
+        fw("%s<Scene>\n" % ident)
+        ident += "\t"
+        return ident
 
-    # This functionality is poorly defined, disabling for now - campbell
-    '''
-    def writeScript(self):
-        textEditor = Blender.Text.Get()
-        alltext = len(textEditor)
-        for i in xrange(alltext):
-            nametext = textEditor[i].name
-            nlines = textEditor[i].getNLines()
-            if (self.proto == 1):
-                if (nametext == "proto" or nametext == "proto.js" or nametext == "proto.txt") and (nlines != None):
-                    nalllines = len(textEditor[i].asLines())
-                    alllines = textEditor[i].asLines()
-                    for j in xrange(nalllines):
-                        self.write_indented(alllines[j] + "\n")
-            elif (self.proto == 0):
-                if (nametext == "route" or nametext == "route.js" or nametext == "route.txt") and (nlines != None):
-                    nalllines = len(textEditor[i].asLines())
-                    alllines = textEditor[i].asLines()
-                    for j in xrange(nalllines):
-                        self.write_indented(alllines[j] + "\n")
-        self.write_indented("\n")
-    '''
+    @staticmethod
+    def writeFooter(fw, ident):
+        ident = ident[:-1]
+        fw("%s</Scene>\n" % ident)
+        ident = ident[:-1]
+        fw("%s</X3D>" % ident)
+        return ident
 
-    def writeViewpoint(self, ob, mat, scene):
+    @staticmethod
+    def writeViewpoint(fw, ident, ob, mat, scene):
         loc, quat, scale = mat.decompose()
-        self.file.write("<Viewpoint DEF=\"%s\" " % self.cleanStr(ob.name))
-        self.file.write("description=\"%s\" " % ob.name)
-        self.file.write("centerOfRotation=\"0 0 0\" ")
-        self.file.write("position=\"%3.2f %3.2f %3.2f\" " % loc[:])
-        self.file.write("orientation=\"%3.2f %3.2f %3.2f %3.2f\" " % (quat.axis[:] + (quat.angle, )))
-        self.file.write("fieldOfView=\"%.3f\" " % ob.data.angle)
-        self.file.write(" />\n\n")
+        fw("%s<Viewpoint DEF=\"%s\" " % (ident, clean_str(ob.name)))
+        fw("description=\"%s\" " % ob.name)
+        fw("centerOfRotation=\"0 0 0\" ")
+        fw("position=\"%3.2f %3.2f %3.2f\" " % loc[:])
+        fw("orientation=\"%3.2f %3.2f %3.2f %3.2f\" " % (quat.axis[:] + (quat.angle, )))
+        fw("fieldOfView=\"%.3g\" " % ob.data.angle)
+        fw(" />\n")
 
-    def writeFog(self, world):
+    @staticmethod
+    def writeFog(fw, ident, world):
         if world:
             mtype = world.mist_settings.falloff
             mparam = world.mist_settings
@@ -171,18 +172,19 @@ class x3d_class:
 
         if mparam.use_mist:
             mtype = 1 if mtype == 'LINEAR' else 2
-        # if (mtype == 1 or mtype == 2):
-            self.file.write("<Fog fogType=\"%s\" " % self.namesFog[mtype])
-            self.file.write("color=\"%.3f %.3f %.3f\" " % clamp_color(world.horizon_color))
-            self.file.write("visibilityRange=\"%.3f\" />\n\n" % mparam.depth)
+            fw("%s<Fog fogType=\"%s\" " % (ident, __class__.namesFog[mtype]))
+            fw("color=\"%.3g %.3g %.3g\" " % clamp_color(world.horizon_color))
+            fw("visibilityRange=\"%.3g\" />\n" % mparam.depth)
         else:
             return
 
-    def writeNavigationInfo(self, scene):
-        self.file.write('<NavigationInfo headlight="false" visibilityLimit="0.0" type=\'"EXAMINE","ANY"\' avatarSize="0.25, 1.75, 0.75" />\n')
+    @staticmethod
+    def writeNavigationInfo(fw, ident, scene):
+        fw('%s<NavigationInfo headlight="false" visibilityLimit="0.0" type=\'"EXAMINE","ANY"\' avatarSize="0.25, 1.75, 0.75" />\n' % ident)
 
-    def writeSpotLight(self, ob, mtx, lamp, world):
-        safeName = self.cleanStr(ob.name)
+    @staticmethod
+    def writeSpotLight(fw, ident, ob, mtx, lamp, world):
+        safeName = clean_str(ob.name)
         if world:
             ambi = world.ambient_color
             amb_intensity = ((ambi[0] + ambi[1] + ambi[2]) / 3.0) / 2.5
@@ -202,18 +204,19 @@ class x3d_class:
 
         radius = lamp.distance * math.cos(beamWidth)
         # radius = lamp.dist*math.cos(beamWidth)
-        self.file.write("<SpotLight DEF=\"%s\" " % safeName)
-        self.file.write("radius=\"%.4f\" " % radius)
-        self.file.write("ambientIntensity=\"%.4f\" " % amb_intensity)
-        self.file.write("intensity=\"%.4f\" " % intensity)
-        self.file.write("color=\"%.4f %.4f %.4f\" " % clamp_color(lamp.color))
-        self.file.write("beamWidth=\"%.4f\" " % beamWidth)
-        self.file.write("cutOffAngle=\"%.4f\" " % cutOffAngle)
-        self.file.write("direction=\"%.4f %.4f %.4f\" " % (dx, dy, dz))
-        self.file.write("location=\"%.4f %.4f %.4f\" />\n\n" % location)
+        fw("%s<SpotLight DEF=\"%s\" " % (ident, safeName))
+        fw("radius=\"%.4g\" " % radius)
+        fw("ambientIntensity=\"%.4g\" " % amb_intensity)
+        fw("intensity=\"%.4g\" " % intensity)
+        fw("color=\"%.4g %.4g %.4g\" " % clamp_color(lamp.color))
+        fw("beamWidth=\"%.4g\" " % beamWidth)
+        fw("cutOffAngle=\"%.4g\" " % cutOffAngle)
+        fw("direction=\"%.4g %.4g %.4g\" " % (dx, dy, dz))
+        fw("location=\"%.4g %.4g %.4g\" />\n" % location)
 
-    def writeDirectionalLight(self, ob, mtx, lamp, world):
-        safeName = self.cleanStr(ob.name)
+    @staticmethod
+    def writeDirectionalLight(fw, ident, ob, mtx, lamp, world):
+        safeName = clean_str(ob.name)
         if world:
             ambi = world.ambient_color
             # ambi = world.amb
@@ -224,14 +227,16 @@ class x3d_class:
 
         intensity = min(lamp.energy / 1.75, 1.0)
         dx, dy, dz = matrix_direction(mtx)
-        self.file.write("<DirectionalLight DEF=\"%s\" " % safeName)
-        self.file.write("ambientIntensity=\"%.4f\" " % amb_intensity)
-        self.file.write("color=\"%.4f %.4f %.4f\" " % clamp_color(lamp.color))
-        self.file.write("intensity=\"%.4f\" " % intensity)
-        self.file.write("direction=\"%.4f %.4f %.4f\" />\n\n" % (dx, dy, dz))
+        fw("%s<DirectionalLight DEF=\"%s\" " % (ident, safeName))
+        fw("ambientIntensity=\"%.4g\" " % amb_intensity)
+        fw("color=\"%.4g %.4g %.4g\" " % clamp_color(lamp.color))
+        fw("intensity=\"%.4g\" " % intensity)
+        fw("direction=\"%.4g %.4g %.4g\" />\n" % (dx, dy, dz))
 
-    def writePointLight(self, ob, mtx, lamp, world):
-        safeName = self.cleanStr(ob.name)
+    @staticmethod
+    def writePointLight(fw, ident, ob, mtx, lamp, world):
+
+        safeName = clean_str(ob.name)
         if world:
             ambi = world.ambient_color
             # ambi = world.amb
@@ -243,13 +248,13 @@ class x3d_class:
         intensity = min(lamp.energy / 1.75, 1.0)
         location = mtx.to_translation()[:]
 
-        self.file.write("<PointLight DEF=\"%s\" " % safeName)
-        self.file.write("ambientIntensity=\"%.4f\" " % amb_intensity)
-        self.file.write("color=\"%.4f %.4f %.4f\" " % clamp_color(lamp.color))
+        fw("%s<PointLight DEF=\"%s\" " % (ident, safeName))
+        fw("ambientIntensity=\"%.4g\" " % amb_intensity)
+        fw("color=\"%.4g %.4g %.4g\" " % clamp_color(lamp.color))
 
-        self.file.write("intensity=\"%.4f\" " % intensity)
-        self.file.write("radius=\"%.4f\" " % lamp.distance)
-        self.file.write("location=\"%.4f %.4f %.4f\" />\n\n" % location)
+        fw("intensity=\"%.4g\" " % intensity)
+        fw("radius=\"%.4g\" " % lamp.distance)
+        fw("location=\"%.4g %.4g %.4g\" />\n" % location)
 
     def secureName(self, name):
         name = name + str(self.nodeID)
@@ -260,7 +265,7 @@ class x3d_class:
         else:
             for bad in ('"', '#', "'", ', ', '.', '[', '\\', ']', '{', '}'):
                 name = name.replace(bad, "_")
-            if name in self.namesReserved:
+            if name in x3d_names_reserved:
                 newname = name[0:3] + "_" + str(self.nodeID)
                 return "%s" % (newname)
             elif name[0].isdigit():
@@ -270,15 +275,21 @@ class x3d_class:
                 newname = name
                 return "%s" % (newname)
 
-    def writeIndexedFaceSet(self, ob, mesh, mtx, world, EXPORT_TRI=False):
-        fw = self.file.write
-        shape_name_x3d = self.cleanStr(ob.name)
-        mesh_name_x3d = self.cleanStr(mesh.name)
+    def writeIndexedFaceSet(self, fw, ident, ob, mesh, mtx, world, EXPORT_TRI=False):
+
+        shape_name_x3d = clean_str(ob.name)
+        mesh_name_x3d = clean_str(mesh.name)
 
         if not mesh.faces:
             return
 
-        texface_use_halo = texface_use_billboard = texface_use_collision = 0
+        texface_use_halo = 0
+        texface_use_billboard = 0
+        texface_use_collision = 0
+
+        use_halonode = False
+        use_billnode = False
+        use_collnode = False
 
         if mesh.uv_textures.active:  # if mesh.faceUV:
             for face in mesh.uv_textures.active.data:  # for face in mesh.faces:
@@ -287,15 +298,18 @@ class x3d_class:
                 texface_use_collision |= face.use_collision
                 # texface_use_object_color |= face.use_object_color
 
-        if texface_use_halo and self.halonode == 0:
-            self.write_indented("<Billboard axisOfRotation=\"0 0 0\">\n", 1)
-            self.halonode = 1
-        elif texface_use_billboard and self.billnode == 0:
-            self.write_indented("<Billboard axisOfRotation=\"0 1 0\">\n", 1)
-            self.billnode = 1
-        elif texface_use_collision and self.collnode == 0:
-            self.write_indented("<Collision enabled=\"false\">\n", 1)
-            self.collnode = 1
+        if texface_use_halo:
+            fw("%s<Billboard axisOfRotation=\"0 0 0\">\n" % ident)
+            use_halonode = True
+            ident += "\t"
+        elif texface_use_billboard:
+            fw("%s<Billboard axisOfRotation=\"0 1 0\">\n" % ident)
+            use_billnode = True
+            ident += "\t"
+        elif texface_use_collision:
+            fw("%s<Collision enabled=\"false\">\n" % ident)
+            use_collnode = True
+            ident += "\t"
 
         del texface_use_halo
         del texface_use_billboard
@@ -304,18 +318,20 @@ class x3d_class:
 
         loc, quat, sca = mtx.decompose()
 
-        self.write_indented("<Transform DEF=\"%s\" " % shape_name_x3d, 1)
-        fw("translation=\"%.6f %.6f %.6f\" " % loc[:])
-        fw("scale=\"%.6f %.6f %.6f\" " % sca[:])
-        fw("rotation=\"%.6f %.6f %.6f %.6f\" " % (quat.axis[:] + (quat.angle, )))
+        fw("%s<Transform DEF=\"%s\" " % (ident, shape_name_x3d))
+        fw("translation=\"%.6g %.6g %.6g\" " % loc[:])
+        fw("scale=\"%.6g %.6g %.6g\" " % sca[:])
+        fw("rotation=\"%.6g %.6g %.6g %.6g\" " % (quat.axis[:] + (quat.angle, )))
         fw(">\n")
+        ident += "\t"
 
         if mesh.tag:
-            self.write_indented("<Group USE=\"G_%s\" />\n" % mesh_name_x3d, 1)
+            fw("%s<Group USE=\"G_%s\" />\n" % (ident, mesh_name_x3d))
         else:
             mesh.tag = True
 
-            self.write_indented("<Group DEF=\"G_%s\">\n" % mesh_name_x3d, 1)
+            fw("%s<Group DEF=\"G_%s\">\n" % (ident, mesh_name_x3d))
+            ident += "\t"
 
             is_uv = bool(mesh.uv_textures.active)
             # is_col, defined for each material
@@ -376,7 +392,9 @@ class x3d_class:
                 if face_group:
                     material = mesh_materials[material_index]
 
-                    self.write_indented("<Shape>\n", 1)
+                    fw("%s<Shape>\n" % ident)
+                    ident += "\t"
+
                     is_smooth = False
                     is_col = (mesh.vertex_colors.active and (material is None or material.use_vertex_color_paint))
 
@@ -386,14 +404,15 @@ class x3d_class:
                             is_smooth = True
                             break
 
-                    self.write_indented("<Appearance>\n", 1)
+                    fw("%s<Appearance>\n" % ident)
+                    ident += "\t"
 
                     if image:
-                        self.writeImageTexture(image)
+                        self.writeImageTexture(fw, ident, image)
 
                         if mesh_materials_use_face_texture[material_index]:
                             if image.use_tiles:
-                                self.write_indented("<TextureTransform scale=\"%s %s\" />\n" % (image.tiles_x, image.tiles_y))
+                                fw("%s<TextureTransform scale=\"%s %s\" />\n" % (ident, image.tiles_x, image.tiles_y))
                         else:
                             # transform by mtex
                             loc = mesh_material_mtex[material_index].offset[:2]
@@ -411,21 +430,23 @@ class x3d_class:
                             else:
                                 rot = 0.0
 
-                            self.write_indented("<TextureTransform ", 0)
-                            # fw("center=\"%.6f %.6f\" " % (0.0, 0.0))
-                            fw("translation=\"%.6f %.6f\" " % loc)
-                            fw("scale=\"%.6f %.6f\" " % (sca_x, sca_y))
-                            fw("rotation=\"%.6f\" " % rot)
+                            fw("%s<TextureTransform " % ident)
+                            # fw("center=\"%.6g %.6g\" " % (0.0, 0.0))
+                            fw("translation=\"%.6g %.6g\" " % loc)
+                            fw("scale=\"%.6g %.6g\" " % (sca_x, sca_y))
+                            fw("rotation=\"%.6g\" " % rot)
                             fw("/>\n")
 
                     if material:
-                        self.writeMaterial(material, self.cleanStr(material.name, ""), world)
+                        self.writeMaterial(fw, ident, material, clean_str(material.name, ""), world)
 
-                    self.write_indented("</Appearance>\n", -1)
+                    ident = ident[:-1]
+                    fw("%s</Appearance>\n" % ident)
 
                     #-- IndexedFaceSet or IndexedLineSet
 
-                    self.write_indented("<IndexedFaceSet ", 1)
+                    fw("%s<IndexedFaceSet " % ident)
+                    ident += "\t"
 
                     # --- Write IndexedFaceSet Attributes
                     if mesh.show_double_sided:
@@ -434,11 +455,11 @@ class x3d_class:
                         fw("solid=\"false\" ")
 
                     if is_smooth:
-                        fw("creaseAngle=\"%.4f\" " % mesh.auto_smooth_angle)
+                        fw("creaseAngle=\"%.4g\" " % mesh.auto_smooth_angle)
 
                     if is_uv:
                         # "texCoordIndex"
-                        fw("\n\t\t\ttexCoordIndex=\"")
+                        fw("%stexCoordIndex=\"" % ident)
                         j = 0
                         for i in face_group:
                             if len(mesh_faces[i].vertices) == 4:
@@ -481,65 +502,64 @@ class x3d_class:
                     # --- Write IndexedFaceSet Elements
                     if True:
                         if is_coords_written:
-                            self.write_indented("<Coordinate USE=\"%s%s\" />\n" % ("coord_", mesh_name_x3d))
+                            fw("%s<Coordinate USE=\"%s%s\" />\n" % (ident, "coord_", mesh_name_x3d))
                         else:
-                            self.write_indented("<Coordinate DEF=\"%s%s\" \n" % ("coord_", mesh_name_x3d), 1)
-                            fw("\t\t\t\tpoint=\"")
+                            fw("%s<Coordinate DEF=\"%s%s\" " % (ident, "coord_", mesh_name_x3d))
+                            fw("point=\"")
                             for v in mesh.vertices:
-                                fw("%.6f %.6f %.6f, " % v.co[:])
-                            fw("\" />")
-                            self.write_indented("\n", -1)
+                                fw("%.6g %.6g %.6g, " % v.co[:])
+                            fw("\" />\n")
                             is_coords_written = True
 
                     if is_uv:
-                        self.write_indented("<TextureCoordinate point=\"", 1)
+                        fw("%s<TextureCoordinate point=\"" % ident)
                         fw = fw
                         mesh_faces_uv = mesh.uv_textures.active.data
                         for i in face_group:
                             for uv in mesh_faces_uv[i].uv:
-                                fw("%.4f %.4f, " % uv[:])
+                                fw("%.4g %.4g, " % uv[:])
                         del mesh_faces_uv
-                        fw("\" />")
-                        self.write_indented("\n", -1)
+                        fw("\" />\n")
 
                     if is_col:
-                        self.write_indented("<Color color=\"", 1)
+                        fw("%s<Color color=\"" % ident)
                         # XXX, 1 color per face, only
                         mesh_faces_col = mesh.vertex_colors.active.data
                         for i in face_group:
-                            fw("%.3f %.3f %.3f, " % mesh_faces_col[i].color1[:])
+                            fw("%.3g %.3g %.3g, " % mesh_faces_col[i].color1[:])
                         del mesh_faces_col
-                        fw("\" />")
-                        self.write_indented("\n", -1)
+                        fw("\" />\n")
 
                     #--- output vertexColors
 
                     #--- output closing braces
-                    self.write_indented("</IndexedFaceSet>\n", -1)
-                    self.write_indented("</Shape>\n", -1)
+                    ident = ident[:-1]
+                    fw("%s</IndexedFaceSet>\n" % ident)
+                    ident = ident[:-1]
+                    fw("%s</Shape>\n" % ident)
 
-            self.write_indented("</Group>\n", -1)
+            ident = ident[:-1]
+            fw("%s</Group>\n" % ident)
 
-        self.write_indented("</Transform>\n", -1)
+        ident = ident[:-1]
+        fw("%s</Transform>\n" % ident)
 
-        if self.halonode == 1:
-            self.write_indented("</Billboard>\n", -1)
-            self.halonode = 0
+        if use_halonode:
+            ident = ident[:-1]
+            fw("%s</Billboard>\n" % ident)
+        elif use_billnode:
+            ident = ident[:-1]
+            fw("%s</Billboard>\n" % ident)
+        elif use_collnode:
+            ident = ident[:-1]
+            fw("%s</Collision>\n" % ident)
 
-        if self.billnode == 1:
-            self.write_indented("</Billboard>\n", -1)
-            self.billnode = 0
 
-        if self.collnode == 1:
-            self.write_indented("</Collision>\n", -1)
-            self.collnode = 0
-
-        fw("\n")
-
-    def writeMaterial(self, mat, matName, world):
+    @staticmethod
+    def writeMaterial(fw, ident, mat, matName, world):
         # look up material name, use it if available
         if mat.tag:
-            self.write_indented("<Material USE=\"MA_%s\" />\n" % matName)
+            fw("%s<Material USE=\"MA_%s\" />\n" % (ident, matName))
         else:
             mat.tag = True
 
@@ -561,26 +581,26 @@ class x3d_class:
                 shininess = 0.0
                 specColor = emitColor = diffuseColor
 
-            self.write_indented("<Material DEF=\"MA_%s\" " % matName, 1)
-            self.file.write("diffuseColor=\"%.3f %.3f %.3f\" " % clamp_color(diffuseColor))
-            self.file.write("specularColor=\"%.3f %.3f %.3f\" " % clamp_color(specColor))
-            self.file.write("emissiveColor=\"%.3f %.3f %.3f\" \n" % clamp_color(emitColor))
-            self.write_indented("ambientIntensity=\"%.3f\" " % ambient)
-            self.file.write("shininess=\"%.3f\" " % shininess)
-            self.file.write("transparency=\"%s\" />" % transp)
-            self.write_indented("\n", -1)
+            fw("%s<Material DEF=\"MA_%s\" " % (ident, matName))
+            fw("diffuseColor=\"%.3g %.3g %.3g\" " % clamp_color(diffuseColor))
+            fw("specularColor=\"%.3g %.3g %.3g\" " % clamp_color(specColor))
+            fw("emissiveColor=\"%.3g %.3g %.3g\" " % clamp_color(emitColor))
+            fw("ambientIntensity=\"%.3g\" " % ambient)
+            fw("shininess=\"%.3g\" " % shininess)
+            fw("transparency=\"%s\" />\n" % transp)
 
-    def writeImageTexture(self, image):
+    @staticmethod
+    def writeImageTexture(fw, ident, image):
         name = image.name
 
         if image.tag:
-            self.write_indented("<ImageTexture USE=\"%s\" />\n" % self.cleanStr(name))
+            fw("%s<ImageTexture USE=\"%s\" />\n" % (ident, clean_str(name)))
         else:
             image.tag = True
 
-            self.write_indented("<ImageTexture DEF=\"%s\" " % self.cleanStr(name), 1)
+            fw("%s<ImageTexture DEF=\"%s\" " % (ident, clean_str(name)))
             filepath = image.filepath
-            relpath = os.path.dirname(self.filepath)  # could cache
+            relpath = os.path.dirname(fw.__self__.name)  # could cache
             filepath_full = bpy.path.abspath(filepath)
             # collect image paths, can load multiple
             # [relative, name-only, absolute]
@@ -592,10 +612,11 @@ class x3d_class:
             images.append(os.path.basename(filepath_full))
             images.append(filepath_full)
 
-            self.file.write("url='%s' />" % " ".join(["\"%s\"" % f.replace("\\", "/") for f in images]))
-            self.write_indented("\n", -1)
+            fw("url='%s' />\n" % " ".join(["\"%s\"" % f.replace("\\", "/") for f in images]))
 
-    def writeBackground(self, world):
+    def writeBackground(self, ident, world):
+        fw = self.file.write
+
         if world:
             worldname = world.name
         else:
@@ -607,37 +628,37 @@ class x3d_class:
         sky_triple = clamp_color(world.zenith_color)
         mix_triple = clamp_color((grd_triple[i] + sky_triple[i]) / 2.0 for i in range(3))
 
-        self.file.write("<Background DEF=\"%s\" " % self.secureName(worldname))
+        fw("%s<Background DEF=\"%s\" " % (ident, self.secureName(worldname)))
         # No Skytype - just Hor color
         if blending == (False, False, False):
-            self.file.write("groundColor=\"%.3f %.3f %.3f\" " % grd_triple)
-            self.file.write("skyColor=\"%.3f %.3f %.3f\" " % grd_triple)
+            fw("groundColor=\"%.3g %.3g %.3g\" " % grd_triple)
+            fw("skyColor=\"%.3g %.3g %.3g\" " % grd_triple)
         # Blend Gradient
         elif blending == (True, False, False):
-            self.file.write("groundColor=\"%.3f %.3f %.3f, " % grd_triple)
-            self.file.write("%.3f %.3f %.3f\" groundAngle=\"1.57, 1.57\" " % mix_triple)
-            self.file.write("skyColor=\"%.3f %.3f %.3f, " % sky_triple)
-            self.file.write("%.3f %.3f %.3f\" skyAngle=\"1.57, 1.57\" " % mix_triple)
+            fw("groundColor=\"%.3g %.3g %.3g, " % grd_triple)
+            fw("%.3g %.3g %.3g\" groundAngle=\"1.57, 1.57\" " % mix_triple)
+            fw("skyColor=\"%.3g %.3g %.3g, " % sky_triple)
+            fw("%.3g %.3g %.3g\" skyAngle=\"1.57, 1.57\" " % mix_triple)
         # Blend+Real Gradient Inverse
         elif blending == (True, False, True):
-            self.file.write("groundColor=\"%.3f %.3f %.3f, %.3f %.3f %.3f\" " % (sky_triple + grd_triple))
-            self.file.write("groundAngle=\"1.57\" ")
-            self.file.write("skyColor=\"%.3f %.3f %.3f, %.3f %.3f %.3f, %.3f %.3f %.3f\" " % (sky_triple + grd_triple + sky_triple))
-            self.file.write("skyAngle=\"1.57, 3.14159\" ")
+            fw("groundColor=\"%.3g %.3g %.3g, %.3g %.3g %.3g\" " % (sky_triple + grd_triple))
+            fw("groundAngle=\"1.57\" ")
+            fw("skyColor=\"%.3g %.3g %.3g, %.3g %.3g %.3g, %.3g %.3g %.3g\" " % (sky_triple + grd_triple + sky_triple))
+            fw("skyAngle=\"1.57, 3.14159\" ")
         # Paper - just Zen Color
         elif blending == (False, False, True):
-            self.file.write("groundColor=\"%.3f %.3f %.3f\" " % sky_triple)
-            self.file.write("skyColor=\"%.3f %.3f %.3f\" " % sky_triple)
+            fw("groundColor=\"%.3g %.3g %.3g\" " % sky_triple)
+            fw("skyColor=\"%.3g %.3g %.3g\" " % sky_triple)
         # Blend+Real+Paper - komplex gradient
         elif blending == (True, True, True):
-            self.write_indented("groundColor=\"%.3f %.3f %.3f, " % sky_triple)
-            self.write_indented("%.3f %.3f %.3f\" groundAngle=\"1.57, 1.57\" " % grd_triple)
-            self.write_indented("skyColor=\"%.3f %.3f %.3f, " % sky_triple)
-            self.write_indented("%.3f %.3f %.3f\" skyAngle=\"1.57, 1.57\" " % grd_triple)
+            fw("groundColor=\"%.3g %.3g %.3g, " % sky_triple)
+            fw("%.3g %.3g %.3g\" groundAngle=\"1.57, 1.57\" " % grd_triple)
+            fw("skyColor=\"%.3g %.3g %.3g, " % sky_triple)
+            fw("%.3g %.3g %.3g\" skyAngle=\"1.57, 1.57\" " % grd_triple)
         # Any Other two colors
         else:
-            self.file.write("groundColor=\"%.3f %.3f %.3f\" " % grd_triple)
-            self.file.write("skyColor=\"%.3f %.3f %.3f\" " % sky_triple)
+            fw("groundColor=\"%.3g %.3g %.3g\" " % grd_triple)
+            fw("skyColor=\"%.3g %.3g %.3g\" " % sky_triple)
 
         for tex in bpy.data.textures:
             if tex.type == 'IMAGE' and tex.image:
@@ -646,19 +667,19 @@ class x3d_class:
                 basename = os.path.basename(bpy.path.abspath(pic.filepath))
 
                 if namemat == "back":
-                    self.file.write("\n\tbackUrl=\"%s\" " % basename)
+                    fw("\n\tbackUrl=\"%s\" " % basename)
                 elif namemat == "bottom":
-                    self.write_indented("bottomUrl=\"%s\" " % basename)
+                    fw("bottomUrl=\"%s\" " % basename)
                 elif namemat == "front":
-                    self.write_indented("frontUrl=\"%s\" " % basename)
+                    fw("frontUrl=\"%s\" " % basename)
                 elif namemat == "left":
-                    self.write_indented("leftUrl=\"%s\" " % basename)
+                    fw("leftUrl=\"%s\" " % basename)
                 elif namemat == "right":
-                    self.write_indented("rightUrl=\"%s\" " % basename)
+                    fw("rightUrl=\"%s\" " % basename)
                 elif namemat == "top":
-                    self.write_indented("topUrl=\"%s\" " % basename)
+                    fw("topUrl=\"%s\" " % basename)
 
-        self.write_indented("/>\n\n")
+        fw("/>\n")
 
 ##########################################################
 # export routine
@@ -670,6 +691,8 @@ class x3d_class:
                EXPORT_TRI=False,
                ):
 
+        fw = self.file.write
+
         world = scene.world
 
         # tag un-exported IDs
@@ -678,12 +701,15 @@ class x3d_class:
         bpy.data.images.tag(False)
 
         print("Info: starting X3D export to %r..." % self.filepath)
-        self.writeHeader()
+        ident = ""
+        ident = self.writeHeader(fw, ident)
+
         # self.writeScript()
-        self.writeNavigationInfo(scene)
-        self.writeBackground(world)
-        self.writeFog(world)
-        self.proto = 0
+        self.writeNavigationInfo(fw, ident, scene)
+        self.writeBackground(ident, world)
+        self.writeFog(fw, ident, world)
+
+        ident = "\t\t"
 
         if use_selection:
             objects = (o for o in scene.objects if o.is_visible(scene) and o.select)
@@ -703,7 +729,7 @@ class x3d_class:
                 ob_mat = self.global_matrix * ob_mat
 
                 if objType == 'CAMERA':
-                    self.writeViewpoint(ob, ob_mat, scene)
+                    self.writeViewpoint(fw, ident, ob, ob_mat, scene)
                 elif objType in ('MESH', 'CURVE', 'SURF', 'FONT'):
                     if (objType != 'MESH') or (use_apply_modifiers and ob.is_modified(scene, 'PREVIEW')):
                         try:
@@ -714,7 +740,7 @@ class x3d_class:
                         me = ob.data
 
                     if me is not None:
-                        self.writeIndexedFaceSet(ob, me, ob_mat, world, EXPORT_TRI=EXPORT_TRI)
+                        self.writeIndexedFaceSet(fw, ident, ob, me, ob_mat, world, EXPORT_TRI=EXPORT_TRI)
 
                         # free mesh created with create_mesh()
                         if me != ob.data:
@@ -724,13 +750,13 @@ class x3d_class:
                     data = ob.data
                     datatype = data.type
                     if datatype == 'POINT':
-                        self.writePointLight(ob, ob_mat, data, world)
+                        self.writePointLight(fw, ident, ob, ob_mat, data, world)
                     elif datatype == 'SPOT':
-                        self.writeSpotLight(ob, ob_mat, data, world)
+                        self.writeSpotLight(fw, ident, ob, ob_mat, data, world)
                     elif datatype == 'SUN':
-                        self.writeDirectionalLight(ob, ob_mat, data, world)
+                        self.writeDirectionalLight(fw, ident, ob, ob_mat, data, world)
                     else:
-                        self.writeDirectionalLight(ob, ob_mat, data, world)
+                        self.writeDirectionalLight(fw, ident, ob, ob_mat, data, world)
                 else:
                     #print "Info: Ignoring [%s], object type [%s] not handle yet" % (object.name,object.getType)
                     pass
@@ -738,11 +764,7 @@ class x3d_class:
             if free:
                 free_derived_objects(ob_main)
 
-        self.file.write("\n</Scene>\n</X3D>")
-
-        # if use_apply_modifiers:
-        # 	if containerMesh:
-        # 		containerMesh.vertices = None
+        ident = self.writeFooter(fw, ident)
 
         self.cleanup()
 
@@ -752,26 +774,7 @@ class x3d_class:
 
     def cleanup(self):
         self.file.close()
-        self.indentLevel = 0
         print("Info: finished X3D export to %r" % self.filepath)
-
-    def cleanStr(self, name, prefix='rsvd_'):
-        """cleanStr(name,prefix) - try to create a valid VRML DEF name from object name"""
-
-        newName = name
-        if len(newName) == 0:
-            self.nNodeID += 1
-            return "%s%d" % (prefix, self.nNodeID)
-
-        if newName in self.namesReserved:
-            newName = '%s%s' % (prefix, newName)
-
-        if newName[0].isdigit():
-            newName = "%s%s" % ("_", newName)
-
-        for bad in [' ', '"', '#', "'", ', ', '.', '[', '\\', ']', '{', '}']:
-            newName = newName.replace(bad, "_")
-        return newName
 
     def faceToString(self, face):
 
@@ -803,16 +806,6 @@ class x3d_class:
 
         return s
 
-    # For writing well formed VRML code
-    #------------------------------------------------------------------------
-    def write_indented(self, s, inc=0):
-        if inc < 1:
-            self.indentLevel = self.indentLevel + inc
-
-        self.file.write((self.indentLevel * "\t") + s)
-
-        if inc > 0:
-            self.indentLevel = self.indentLevel + inc
 
 ##########################################################
 # Callbacks, needed before Main
