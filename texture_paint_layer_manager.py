@@ -9,7 +9,7 @@ bl_info = {
     "warning": "",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/Scripts/3D_interaction/Texture_paint_layers",
     "tracker_url": "http://projects.blender.org/tracker/index.php?func=detail&aid=26789",
-    "category": "Texture"}
+    "category": "Other"}
         
         
 import bpy
