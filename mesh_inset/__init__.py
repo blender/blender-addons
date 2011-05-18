@@ -21,7 +21,7 @@
 bl_info = {
     "name": "Inset Polygon",
     "author": "Howard Trickey",
-    "version": (0, 2),
+    "version": (0, 3),
     "blender": (2, 5, 7),
     "api": 36147,
     "location": "View3D > Tools",
