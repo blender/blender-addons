@@ -250,9 +250,9 @@ def main(File, Path, LayerViewers, MixerViewers, LayerOffset,\
     
     for Area in Areas:
         if Area.type == 'VIEW_3D':
-            Area.active_space.viewport_shade = 'TEXTURED'
-            Area.active_space.show_textured_solid = True
-            Area.active_space.show_floor = False
+            Area.spaces.active.viewport_shade = 'TEXTURED'
+            Area.spaces.active.show_textured_solid = True
+            Area.spaces.active.show_floor = False
     
     #-------------------------------------------------
     # 3D LAYERS
