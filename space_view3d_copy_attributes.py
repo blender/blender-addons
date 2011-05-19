@@ -21,9 +21,9 @@
 bl_info = {
     'name': 'Copy Attributes Menu',
     'author': 'Bassam Kurdali, Fabian Fricke, wiseman303',
-    'version': (0, 4, 3),
+    'version': (0, 4, 4),
     "blender": (2, 5, 7),
-    "api": 36200,
+    "api": 36695,
     'location': 'View3D > Ctrl-C',
     'description': 'Copy Attributes Menu from Blender 2.4',
     'wiki_url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/'\
@@ -279,6 +279,14 @@ def obLoopExec(self, context, funk):
     if msg:
         self.report({msg[0]}, msg[1])
 
+
+def world_to_basis(active, ob, context):
+    '''put world coords of active as basis coords of ob'''
+    local = ob.parent.matrix_world.inverted() * active.matrix_world
+    P = ob.matrix_basis * ob.matrix_local.inverted()
+    mat = P * local
+    return(mat)
+
 #The following functions are used o copy attributes from
 #active to selected object
 
@@ -288,13 +296,35 @@ def obLoc(ob, active, context):
 
 
 def obRot(ob, active, context):
-    rotcopy(ob, active.matrix_world.to_3x3())
+    rotcopy(ob, active.matrix_local.to_3x3())
 
 
 def obSca(ob, active, context):
     ob.scale = active.scale
 
+def obVisLoc(ob, active, context):
+    if ob.parent:
+        mat = world_to_basis(active, ob, context)
+        ob.location = mat.to_translation()
+    else:
+        ob.location = active.matrix_world.to_translation()
 
+
+def obVisRot(ob, active, context):
+    if ob.parent:
+        mat = world_to_basis(active, ob, context)
+        rotcopy(ob, mat.to_3x3())
+    else:
+        rotcopy(ob, active.matrix_world.to_3x3())
+
+
+def obVisSca(ob, active, context):
+    if ob.parent:
+        mat = world_to_basis(active, ob, context)
+        ob.scale = mat.to_scale()
+    else:
+        ob.scale = active.matrix_world.to_scale()
+    
 def obDrw(ob, active, context):
     ob.draw_type = active.draw_type
     ob.show_axis = active.show_axis
@@ -427,6 +457,12 @@ object_copies = (('obj_loc', "Location",
                 "Copy Rotation from Active to Selected", obRot),
                 ('obj_sca', "Scale",
                 "Copy Scale from Active to Selected", obSca),
+                ('obj_vis_loc', "Visual Location",
+                "Copy Visual Location from Active to Selected", obVisLoc),
+                ('obj_vis_rot', "Visual Rotation",
+                "Copy Visual Rotation from Active to Selected", obVisRot),
+                ('obj_vis_sca', "Visual Scale",
+                "Copy Visual Scale from Active to Selected", obVisSca),
                 ('obj_drw', "Draw Options",
                 "Copy Draw Options from Active to Selected", obDrw),
                 ('obj_ofs', "Time Offset",
