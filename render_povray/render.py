@@ -1608,16 +1608,16 @@ def write_pov(filename, scene=None, info_callback=None):
                 # In POV-Ray, the scale factor for all subsurface shaders needs to be the same
                 once = 0
 
-        if world:
-            tabWrite("ambient_light rgb<%.3g, %.3g, %.3g>\n" % world.ambient_color[:])
+            if world:
+                tabWrite("ambient_light rgb<%.3g, %.3g, %.3g>\n" % world.ambient_color[:])
 
-        if material.pov.photons_refraction or material.pov.photons_reflection:
-            tabWrite("photons {\n")
-            tabWrite("spacing %.6f\n" % scene.pov.photon_spacing)
-            tabWrite("max_trace_level %d\n" % scene.pov.photon_max_trace_level)
-            tabWrite("adc_bailout %.3g\n" % scene.pov.photon_adc_bailout)
-            tabWrite("gather %d, %d\n" % (scene.pov.photon_gather_min, scene.pov.photon_gather_max))
-            tabWrite("}\n")
+            if material.pov.photons_refraction or material.pov.photons_reflection:
+                tabWrite("photons {\n")
+                tabWrite("spacing %.6f\n" % scene.pov.photon_spacing)
+                tabWrite("max_trace_level %d\n" % scene.pov.photon_max_trace_level)
+                tabWrite("adc_bailout %.3g\n" % scene.pov.photon_adc_bailout)
+                tabWrite("gather %d, %d\n" % (scene.pov.photon_gather_min, scene.pov.photon_gather_max))
+                tabWrite("}\n")
 
         tabWrite("}\n")
 
