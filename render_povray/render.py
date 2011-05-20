@@ -29,41 +29,24 @@ import re
 ##############################SF###########################
 ##############find image texture
 
-# XXX There’s a python func for that, IMO… --mont29
-def splitExt(path):
-    dotidx = path.rfind(".")
-    if dotidx == -1:
-        return path, ""
-    else:
-        return path[dotidx:].upper().replace(".", "")
-
 
 # XXX A simple dict would be much simpler for this… --mont29
 def imageFormat(imgF):
-    ext = ""
-    ext_orig = splitExt(imgF)
-    if ext_orig == 'JPG' or ext_orig == 'JPEG':
-        ext = "jpeg"
-    elif ext_orig == 'GIF':
-        ext = "gif"
-    elif ext_orig == 'TGA':
-        ext = "tga"
-    elif ext_orig == 'IFF':
-        ext = "iff"
-    elif ext_orig == 'PPM':
-        ext = "ppm"
-    elif ext_orig == 'PNG':
-        ext = "png"
-    elif ext_orig == 'SYS':
-        ext = "sys"
-    elif ext_orig in ('TIFF', 'TIF'):
-        ext = "tiff"
-    elif ext_orig == 'EXR':
-        ext = "exr"  # POV3.7 Only!
-    elif ext_orig == 'HDR':
-        ext = "hdr"  # POV3.7 Only! --MR
+    ext = {
+        'JPG': "jpeg",
+        'JPEG': "jpeg",
+        'GIF': "gif",
+        'TGA': "tga",
+        'IFF': "iff",
+        'PPM': "ppm",
+        'PNG': "png",
+        'SYS': "sys",
+        'TIFF': "tiff",
+        'TIF': "tiff",
+        'EXR': "exr",  # POV3.7 Only!
+        'HDR': "hdr",  # POV3.7 Only! --MR
+    }.get(os.path.splitext(imgF)[-1].upper(), "")
 
-    print(imgF)
     if not ext:
         print(" WARNING: texture image format not supported ")
 
@@ -123,23 +106,6 @@ def imgMapBG(wts):
     return image_mapBG
 
 
-# XXX There’s a python func for this… --mont29
-def splitFile(path):
-    idx = path.rfind("/")
-    if idx == -1:
-        idx = path.rfind("\\")
-    return path[idx:].replace("/", "").replace("\\", "")
-
-
-# XXX There’s a python func for this… --mont29
-def splitPath(path):
-    idx = path.rfind("/")
-    if idx == -1:
-        return path, ""
-    else:
-        return path[:idx]
-
-
 def findInSubDir(filename, subdirectory=""):
     pahFile = ""
     if subdirectory:
@@ -160,7 +126,7 @@ def path_image(image):
     fn = bpy.path.abspath(image)
     fn_strip = os.path.basename(fn)
     if not os.path.isfile(fn):
-        fn = findInSubDir(splitFile(fn), splitPath(bpy.data.filepath))
+        fn = findInSubDir(os.path.basename(fn), os.path.dirname(bpy.data.filepath))
     fn = os.path.realpath(fn)
     return fn
 
@@ -331,7 +297,7 @@ def write_pov(filename, scene=None, info_callback=None):
 
             # (variable) dispersion_samples (constant count for now)
             tabWrite("}\n")
-            
+
             tabWrite("photons{")
             if not ob.pov.collect_photons:
                 tabWrite("collect off\n")
@@ -341,7 +307,6 @@ def write_pov(filename, scene=None, info_callback=None):
             if pov_photons_reflection:
                 tabWrite("reflection on\n")
             tabWrite("}\n")
-
 
     materialNames = {}
     DEF_MAT_NAME = "Default"
@@ -1048,7 +1013,7 @@ def write_pov(filename, scene=None, info_callback=None):
                             # other kind of values needed: used the number 5 below to remap
                             tabWrite("[%.3g finish {diffuse %.3g}]\n" % \
                                      ((5.0 - material.diffuse_fresnel) / 5,
-                                      (material.diffuse_intensity * 
+                                      (material.diffuse_intensity *
                                        ((5.0 - material.diffuse_fresnel_factor) / 5))))
                             tabWrite("[%.3g\n" % ((material.diffuse_fresnel_factor / 5) *
                                                   (material.diffuse_fresnel / 5.0)))
