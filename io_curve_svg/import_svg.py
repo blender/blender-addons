@@ -912,6 +912,9 @@ class SVGPathParser:
         if self._spline:
             self._spline['closed'] = True
 
+            cv = self._spline['points'][0]
+            self._point = (cv['x'], cv['y'])
+
     def parse(self):
         """
         Execute parser
