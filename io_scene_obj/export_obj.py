@@ -236,13 +236,13 @@ def write_file(filepath, objects, scene,
                EXPORT_UV=True,
                EXPORT_MTL=True,
                EXPORT_APPLY_MODIFIERS=True,
-               EXPORT_ROTX90=True,
                EXPORT_BLEN_OBS=True,
                EXPORT_GROUP_BY_OB=False,
                EXPORT_GROUP_BY_MAT=False,
                EXPORT_KEEP_VERT_ORDER=False,
                EXPORT_POLYGROUPS=False,
                EXPORT_CURVE_AS_NURBS=True,
+               EXPORT_GLOBAL_MATRIX=None,
                EXPORT_PATH_MODE='AUTO',
                ):
     '''
@@ -251,6 +251,9 @@ def write_file(filepath, objects, scene,
     eg.
     write( 'c:\\test\\foobar.obj', Blender.Object.GetSelected() ) # Using default options.
     '''
+
+    if EXPORT_GLOBAL_MATRIX is None:
+        EXPORT_GLOBAL_MATRIX = mathutils.Matrix()
 
     # XXX
     import math
@@ -303,9 +306,6 @@ def write_file(filepath, objects, scene,
         mtlfilepath = os.path.splitext(filepath)[0] + ".mtl"
         file.write('mtllib %s\n' % repr(os.path.basename(mtlfilepath))[1:-1])  # filepath can contain non utf8 chars, use repr
 
-    if EXPORT_ROTX90:
-        mat_xrot90 = mathutils.Matrix.Rotation(-math.pi / 2.0, 4, 'X')
-
     # Initialize totals, these are updated each object
     totverts = totuvco = totno = 1
 
@@ -345,8 +345,7 @@ def write_file(filepath, objects, scene,
 
             # Nurbs curve support
             if EXPORT_CURVE_AS_NURBS and test_nurbs_compat(ob):
-                if EXPORT_ROTX90:
-                    ob_mat = ob_mat * mat_xrot90
+                ob_mat = ob_mat * EXPORT_GLOBAL_MATRIX
                 totverts += write_nurb(file, ob, ob_mat)
                 continue
             # END NURBS
@@ -355,11 +354,7 @@ def write_file(filepath, objects, scene,
                 continue
 
             me = ob.to_mesh(scene, EXPORT_APPLY_MODIFIERS, 'PREVIEW')
-
-            if EXPORT_ROTX90:
-                me.transform(mat_xrot90 * ob_mat)
-            else:
-                me.transform(ob_mat)
+            me.transform(ob_mat * EXPORT_GLOBAL_MATRIX)
 
 #           # Will work for non meshes now! :)
 #           me= BPyMesh.getMeshFromObject(ob, containerMesh, EXPORT_APPLY_MODIFIERS, EXPORT_POLYGROUPS, scn)
@@ -670,7 +665,6 @@ def _write(context, filepath,
               EXPORT_UV,  # ok
               EXPORT_MTL,
               EXPORT_APPLY_MODIFIERS,  # ok
-              EXPORT_ROTX90,  # wrong
               EXPORT_BLEN_OBS,
               EXPORT_GROUP_BY_OB,
               EXPORT_GROUP_BY_MAT,
@@ -680,6 +674,7 @@ def _write(context, filepath,
               EXPORT_SEL_ONLY,  # ok
               EXPORT_ALL_SCENES,  # XXX not working atm
               EXPORT_ANIMATION,
+              EXPORT_GLOBAL_MATRIX,
               EXPORT_PATH_MODE,
               ):  # Not used
 
@@ -739,13 +734,13 @@ def _write(context, filepath,
                        EXPORT_UV,
                        EXPORT_MTL,
                        EXPORT_APPLY_MODIFIERS,
-                       EXPORT_ROTX90,
                        EXPORT_BLEN_OBS,
                        EXPORT_GROUP_BY_OB,
                        EXPORT_GROUP_BY_MAT,
                        EXPORT_KEEP_VERT_ORDER,
                        EXPORT_POLYGROUPS,
                        EXPORT_CURVE_AS_NURBS,
+                       EXPORT_GLOBAL_MATRIX,
                        EXPORT_PATH_MODE,
                        )
 
@@ -771,7 +766,6 @@ def save(operator, context, filepath="",
          use_uvs=True,
          use_materials=True,
          use_apply_modifiers=True,
-         use_rotate_x90=True,
          use_blen_objects=True,
          group_by_object=False,
          group_by_material=False,
@@ -781,6 +775,7 @@ def save(operator, context, filepath="",
          use_selection=True,
          use_all_scenes=False,
          use_animation=False,
+         global_matrix=None,
          path_mode='AUTO'
          ):
 
@@ -792,7 +787,6 @@ def save(operator, context, filepath="",
            EXPORT_UV=use_uvs,
            EXPORT_MTL=use_materials,
            EXPORT_APPLY_MODIFIERS=use_apply_modifiers,
-           EXPORT_ROTX90=use_rotate_x90,
            EXPORT_BLEN_OBS=use_blen_objects,
            EXPORT_GROUP_BY_OB=group_by_object,
            EXPORT_GROUP_BY_MAT=group_by_material,
@@ -802,6 +796,7 @@ def save(operator, context, filepath="",
            EXPORT_SEL_ONLY=use_selection,
            EXPORT_ALL_SCENES=use_all_scenes,
            EXPORT_ANIMATION=use_animation,
+           EXPORT_GLOBAL_MATRIX=global_matrix,
            EXPORT_PATH_MODE=path_mode,
            )
 

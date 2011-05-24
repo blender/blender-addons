@@ -43,7 +43,7 @@ if "bpy" in locals():
 
 import bpy
 from bpy.props import BoolProperty, FloatProperty, StringProperty, EnumProperty
-from bpy_extras.io_utils import ExportHelper, ImportHelper, path_reference_mode
+from bpy_extras.io_utils import ExportHelper, ImportHelper, path_reference_mode, axis_conversion
 
 
 class ImportOBJ(bpy.types.Operator, ImportHelper):
@@ -64,8 +64,6 @@ class ImportOBJ(bpy.types.Operator, ImportHelper):
 
     use_groups_as_vgroups = BoolProperty(name="Poly Groups", description="Import OBJ groups as vertex groups.", default=False)
 
-    use_rotate_x90 = BoolProperty(name="-X90", description="Rotate X 90.", default=True)
-    global_clamp_size = FloatProperty(name="Clamp Scale", description="Clamp the size to this maximum (Zero to Disable)", min=0.0, max=1000.0, soft_min=0.0, soft_max=1000.0, default=0.0)
     use_image_search = BoolProperty(name="Image Search", description="Search subdirs for any assosiated images (Warning, may be slow)", default=True)
 
     split_mode = EnumProperty(
@@ -75,12 +73,38 @@ class ImportOBJ(bpy.types.Operator, ImportHelper):
                    ),
             )
 
+    global_clamp_size = FloatProperty(name="Clamp Scale", description="Clamp the size to this maximum (Zero to Disable)", min=0.0, max=1000.0, soft_min=0.0, soft_max=1000.0, default=0.0)
+    global_axis_forward = EnumProperty(
+            name="Forward",
+            items=(('X', "X Forward", ""),
+                   ('Y', "Y Forward", ""),
+                   ('Z', "Z Forward", ""),
+                   ('-X', "-X Forward", ""),
+                   ('-Y', "-Y Forward", ""),
+                   ('-Z', "-Z Forward", ""),
+                   ),
+            default='-Z',
+            )
+
+    global_axis_up = EnumProperty(
+            name="Up",
+            items=(('X', "X Up", ""),
+                   ('Y', "Y Up", ""),
+                   ('Z', "Z Up", ""),
+                   ('-X', "-X Up", ""),
+                   ('-Y', "-Y Up", ""),
+                   ('-Z', "-Z Up", ""),
+                   ),
+            default='Y',
+            )
+
     # fake prop, only disables split.
     # keep_vertex_order = BoolProperty(name="Keep Vert Order", description="Keep vert and face order, disables split options, enable for morph targets", default= True)
 
     def execute(self, context):
         # print("Selected: " + context.active_object.name)
         from . import import_obj
+        from mathutils import Matrix
 
         if self.split_mode == 'OFF':
             self.use_split_objects = False
@@ -88,7 +112,12 @@ class ImportOBJ(bpy.types.Operator, ImportHelper):
         else:
             self.use_groups_as_vgroups = False
 
-        return import_obj.load(self, context, **self.as_keywords(ignore=("filter_glob", "split_mode")))
+        keywords = self.as_keywords(ignore=("global_axis_forward", "global_axis_up", "filter_glob", "split_mode"))
+
+        global_matrix = axis_conversion(from_forward=self.global_axis_forward, from_up=self.global_axis_up).to_4x4()
+        keywords["global_matrix"] = global_matrix
+
+        return import_obj.load(self, context, **keywords)
 
     def draw(self, context):
         layout = self.layout
@@ -113,7 +142,8 @@ class ImportOBJ(bpy.types.Operator, ImportHelper):
 
         row = layout.split(percentage=0.67)
         row.prop(self, "global_clamp_size")
-        row.prop(self, "use_rotate_x90")
+        layout.prop(self, "global_axis_forward")
+        layout.prop(self, "global_axis_up")
 
         layout.prop(self, "use_image_search")
 
@@ -138,7 +168,6 @@ class ExportOBJ(bpy.types.Operator, ExportHelper):
 
     # object group
     use_apply_modifiers = BoolProperty(name="Apply Modifiers", description="Apply modifiers (preview resolution)", default=True)
-    use_rotate_x90 = BoolProperty(name="Rotate X90", description="", default=True)
 
     # extra data group
     use_edges = BoolProperty(name="Edges", description="", default=True)
@@ -157,11 +186,45 @@ class ExportOBJ(bpy.types.Operator, ExportHelper):
     group_by_material = BoolProperty(name="Material Groups", description="", default=False)
     keep_vertex_order = BoolProperty(name="Keep Vertex Order", description="", default=False)
 
+    global_scale = FloatProperty(name="Scale", description="Scale all data, (Note! some imports dont support scaled armatures)", min=0.01, max=1000.0, soft_min=0.01, soft_max=1000.0, default=1.0)
+
+    global_axis_forward = EnumProperty(
+            name="Forward",
+            items=(('X', "X Forward", ""),
+                   ('Y', "Y Forward", ""),
+                   ('Z', "Z Forward", ""),
+                   ('-X', "-X Forward", ""),
+                   ('-Y', "-Y Forward", ""),
+                   ('-Z', "-Z Forward", ""),
+                   ),
+            default='-Z',
+            )
+
+    global_axis_up = EnumProperty(
+            name="Up",
+            items=(('X', "X Up", ""),
+                   ('Y', "Y Up", ""),
+                   ('Z', "Z Up", ""),
+                   ('-X', "-X Up", ""),
+                   ('-Y', "-Y Up", ""),
+                   ('-Z', "-Z Up", ""),
+                   ),
+            default='Y',
+            )
+
     path_mode = path_reference_mode
 
     def execute(self, context):
         from . import export_obj
-        return export_obj.save(self, context, **self.as_keywords(ignore=("check_existing", "filter_glob")))
+
+        from mathutils import Matrix
+        keywords = self.as_keywords(ignore=("global_axis_forward", "global_axis_up", "global_scale", "check_existing", "filter_glob"))
+
+        global_matrix = Matrix()
+        global_matrix[0][0] = global_matrix[1][1] = global_matrix[2][2] = self.global_scale
+        global_matrix = global_matrix * axis_conversion(to_forward=self.global_axis_forward, to_up=self.global_axis_up).to_4x4()
+        keywords["global_matrix"] = global_matrix
+        return export_obj.save(self, context, **keywords)
 
 
 def menu_func_import(self, context):

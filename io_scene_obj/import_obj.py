@@ -961,10 +961,13 @@ def get_float_func(filepath):
         line = line.lstrip()
         if line.startswith(b'v'):  # vn vt v
             if b',' in line:
+                file.close()
                 return lambda f: float(f.replace(b',', b'.'))
             elif b'.' in line:
+                file.close()
                 return float
 
+    file.close()
     # incase all vert values were ints
     return float
 
@@ -976,9 +979,10 @@ def load(operator, context, filepath,
          use_edges=True,
          use_split_objects=True,
          use_split_groups=True,
-         use_rotate_x90=True,
          use_image_search=True,
-         use_groups_as_vgroups=False):
+         use_groups_as_vgroups=False,
+         global_matrix=None,
+         ):
     '''
     Called by the user interface or another script.
     load_obj(path) - should give acceptable results.
@@ -988,6 +992,9 @@ def load(operator, context, filepath,
     print('\nimporting obj %r' % filepath)
 
     filepath = os.fsencode(filepath)
+
+    if global_matrix is None:
+        global_matrix = mathutils.Matrix()
 
     if use_split_objects or use_split_groups:
         use_groups_as_vgroups = False
@@ -1039,8 +1046,7 @@ def load(operator, context, filepath,
 
         if line.startswith(b"v "):
             line_split = line.split()
-            # rotate X90: (x,-z,y)
-            verts_loc.append((float_func(line_split[1]), -float_func(line_split[3]), float_func(line_split[2])))
+            verts_loc.append((float_func(line_split[1]), float_func(line_split[2]), float_func(line_split[3])))
 
         elif line.startswith(b"vn "):
             pass
@@ -1247,9 +1253,6 @@ def load(operator, context, filepath,
     print("%.4f sec" % (time_new - time_sub))
     time_sub = time_new
 
-    if not use_rotate_x90:
-        verts_loc[:] = [(v[0], v[2], -v[1]) for v in verts_loc]
-
     # deselect all
     if bpy.ops.object.select_all.poll():
         bpy.ops.object.select_all(action='DESELECT')
@@ -1278,6 +1281,9 @@ def load(operator, context, filepath,
         base = scene.objects.link(obj)
         base.select = True
 
+        # we could apply this anywhere before scaling.
+        obj.matrix_world = global_matrix
+
     scene.update()
 
     axis_min = [1000000000] * 3
@@ -1303,10 +1309,6 @@ def load(operator, context, filepath,
         for obj in new_objects:
             obj.scale = scale, scale, scale
 
-    # Better rotate the vert locations
-    #if not use_rotate_x90:
-    #    for ob in new_objects:
-    #        ob.RotX = -1.570796326794896558
 
     time_new = time.time()
 

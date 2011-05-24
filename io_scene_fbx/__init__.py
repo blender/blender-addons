@@ -144,7 +144,7 @@ class ExportFBX(bpy.types.Operator, ExportHelper):
 
         keywords = self.as_keywords(ignore=("global_axis_forward", "global_axis_up", "global_scale", "check_existing", "filter_glob"))
         keywords["GLOBAL_MATRIX"] = GLOBAL_MATRIX
-        print(GLOBAL_MATRIX)
+
         from . import export_fbx
         return export_fbx.save(self, context, **keywords)
 

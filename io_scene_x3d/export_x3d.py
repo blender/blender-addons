@@ -745,10 +745,12 @@ def export(file,
 
 
 def save(operator, context, filepath="",
-          use_selection=True,
-          use_apply_modifiers=False,
-          use_triangulate=False,
-          use_compress=False):
+         use_selection=True,
+         use_apply_modifiers=False,
+         use_triangulate=False,
+         use_compress=False,
+         global_matrix=None,
+         ):
 
     if use_compress:
         if not filepath.lower().endswith('.x3dz'):
@@ -772,7 +774,8 @@ def save(operator, context, filepath="",
     if file is None:
         file = open(filepath, "w")
 
-    global_matrix = mathutils.Matrix.Rotation(-(math.pi / 2.0), 4, 'X')
+    if global_matrix is None:
+        global_matrix = mathutils.Matrix()
 
     export(file,
            global_matrix,
