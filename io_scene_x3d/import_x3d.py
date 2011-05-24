@@ -21,19 +21,10 @@
 DEBUG = False
 
 # This should work without a blender at all
-from os.path import exists
-
-
-def baseName(path):
-    return path.split('/')[-1].split('\\')[-1]
-
-
-def dirName(path):
-    return path[:-len(baseName(path))]
+import os
 
 
 def imageConvertCompat(path):
-
     try:
         import os
     except:
@@ -51,7 +42,7 @@ def imageConvertCompat(path):
         # print('\n'+path+'\n'+path_to+'\n')
         os.system('convert "%s" "%s"' % (path, path_to))  # for now just hope we have image magick
 
-        if exists(path_to):
+        if os.path.exists(path_to):
             return path_to
 
     return path
@@ -957,14 +948,14 @@ class vrmlNode(object):
                 urls.append(url)
                 urls.append(bpy.path.resolve_ncase(urls[-1]))
 
-                urls.append(dirName(self.getFilename()) + url)
+                urls.append(os.path.join(os.path.dirname(self.getFilename()), url))
                 urls.append(bpy.path.resolve_ncase(urls[-1]))
 
-                urls.append(dirName(self.getFilename()) + baseName(url))
+                urls.append(os.path.join(os.path.dirname(self.getFilename()), os.path.basename(url)))  
                 urls.append(bpy.path.resolve_ncase(urls[-1]))
 
                 try:
-                    url = [url for url in urls if exists(url)][0]
+                    url = [url for url in urls if os.path.exists(url)][0]
                     url_found = True
                 except:
                     url_found = False
@@ -2122,7 +2113,7 @@ def importShape(node, ancestry):
                 if ima_url is None:
                     print("\twarning, image with no URL, this is odd")
                 else:
-                    bpyima = image_utils.image_load(ima_url, dirName(node.getFilename()), place_holder=False, recursive=False, convert_callback=imageConvertCompat)
+                    bpyima = image_utils.image_load(ima_url, os.path.dirname(node.getFilename()), place_holder=False, recursive=False, convert_callback=imageConvertCompat)
                     if bpyima:
                         texture = bpy.data.textures.new("XXX", 'IMAGE')
                         texture.image = bpyima
