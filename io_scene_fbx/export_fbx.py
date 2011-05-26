@@ -201,7 +201,7 @@ header_comment = \
 
 # This func can be called with just the filepath
 def save_single(operator, scene, filepath="",
-        GLOBAL_MATRIX=None,
+        global_matrix=None,
         context_objects=None,
         object_types={'EMPTY', 'CAMERA', 'LAMP', 'ARMATURE', 'MESH'},
         mesh_apply_modifiers=True,
@@ -219,8 +219,8 @@ def save_single(operator, scene, filepath="",
     mtx_x90 = Matrix.Rotation(math.pi / 2.0, 3, 'X')
     mtx4_z90 = Matrix.Rotation(math.pi / 2.0, 4, 'Z')
 
-    if GLOBAL_MATRIX is None:
-        GLOBAL_MATRIX = Matrix()
+    if global_matrix is None:
+        global_matrix = Matrix()
 
     # Use this for working out paths relative to the export location
     base_src = os.path.dirname(bpy.data.filepath)
@@ -348,9 +348,9 @@ def save_single(operator, scene, filepath="",
             self.fbxGroupNames = []
             self.fbxParent = None  # set later on IF the parent is in the selection.
             if matrixWorld:
-                self.matrixWorld = GLOBAL_MATRIX * matrixWorld
+                self.matrixWorld = global_matrix * matrixWorld
             else:
-                self.matrixWorld = GLOBAL_MATRIX * ob.matrix_world
+                self.matrixWorld = global_matrix * ob.matrix_world
 
             self.__anim_poselist = {}  # we should only access this
 
@@ -362,24 +362,24 @@ def save_single(operator, scene, filepath="",
 
         def setPoseFrame(self, f, fake=False):
             if fake:
-                # annoying, have to clear GLOBAL_MATRIX
-                self.__anim_poselist[f] = self.matrixWorld * GLOBAL_MATRIX.inverted()
+                # annoying, have to clear global_matrix
+                self.__anim_poselist[f] = global_matrix * self.matrixWorld
             else:
                 self.__anim_poselist[f] = self.blenObject.matrix_world.copy()
 
         def getAnimParRelMatrix(self, frame):
             if self.fbxParent:
-                #return (self.__anim_poselist[frame] * self.fbxParent.__anim_poselist[frame].inverted() ) * GLOBAL_MATRIX
-                return (GLOBAL_MATRIX * self.fbxParent.__anim_poselist[frame]).inverted() * (GLOBAL_MATRIX * self.__anim_poselist[frame])
+                #return (self.__anim_poselist[frame] * self.fbxParent.__anim_poselist[frame].inverted() ) * global_matrix
+                return (global_matrix * self.fbxParent.__anim_poselist[frame]).inverted() * (global_matrix * self.__anim_poselist[frame])
             else:
-                return GLOBAL_MATRIX * self.__anim_poselist[frame]
+                return global_matrix * self.__anim_poselist[frame]
 
         def getAnimParRelMatrixRot(self, frame):
             obj_type = self.blenObject.type
             if self.fbxParent:
-                matrix_rot = ((GLOBAL_MATRIX * self.fbxParent.__anim_poselist[frame]).inverted() * (GLOBAL_MATRIX * self.__anim_poselist[frame])).to_3x3()
+                matrix_rot = ((global_matrix * self.fbxParent.__anim_poselist[frame]).inverted() * (global_matrix * self.__anim_poselist[frame])).to_3x3()
             else:
-                matrix_rot = (GLOBAL_MATRIX * self.__anim_poselist[frame]).to_3x3()
+                matrix_rot = (global_matrix * self.__anim_poselist[frame]).to_3x3()
 
             # Lamps need to be rotated
             if obj_type == 'LAMP':
@@ -465,7 +465,7 @@ def save_single(operator, scene, filepath="",
             scale = tuple(scale)
         else:
             # This is bad because we need the parent relative matrix from the fbx parent (if we have one), dont use anymore
-            #if ob and not matrix: matrix = ob.matrix_world * GLOBAL_MATRIX
+            #if ob and not matrix: matrix = ob.matrix_world * global_matrix
             if ob and not matrix:
                 raise Exception("error: this should never happen!")
 
@@ -937,7 +937,7 @@ def save_single(operator, scene, filepath="",
             do_light = not (light.use_only_shadow or (not light.use_diffuse and not light.use_specular))
             do_shadow = (light.shadow_method in ('RAY_SHADOW', 'BUFFER_SHADOW'))
 
-        scale = abs(GLOBAL_MATRIX.to_scale()[0])  # scale is always uniform in this case
+        scale = abs(global_matrix.to_scale()[0])  # scale is always uniform in this case
 
         file.write('\n\t\t\tProperty: "LightType", "enum", "",%i' % light_type)
         file.write('\n\t\t\tProperty: "CastLightOnObject", "bool", "",1')

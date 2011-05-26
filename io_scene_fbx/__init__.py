@@ -138,12 +138,12 @@ class ExportFBX(bpy.types.Operator, ExportHelper):
         if not self.filepath:
             raise Exception("filepath not set")
 
-        GLOBAL_MATRIX = Matrix()
-        GLOBAL_MATRIX[0][0] = GLOBAL_MATRIX[1][1] = GLOBAL_MATRIX[2][2] = self.global_scale
-        GLOBAL_MATRIX = GLOBAL_MATRIX * axis_conversion(to_forward=self.global_axis_forward, to_up=self.global_axis_up).to_4x4()
+        global_matrix = Matrix()
+        global_matrix[0][0] = global_matrix[1][1] = global_matrix[2][2] = self.global_scale
+        global_matrix = global_matrix * axis_conversion(to_forward=self.global_axis_forward, to_up=self.global_axis_up).to_4x4()
 
         keywords = self.as_keywords(ignore=("global_axis_forward", "global_axis_up", "global_scale", "check_existing", "filter_glob"))
-        keywords["GLOBAL_MATRIX"] = GLOBAL_MATRIX
+        keywords["global_matrix"] = global_matrix
 
         from . import export_fbx
         return export_fbx.save(self, context, **keywords)

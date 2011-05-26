@@ -339,17 +339,11 @@ def process_next_chunk(file, previous_chunk, importedObjects, IMAGE_SEARCH):
         ob = bpy.data.objects.new(contextObName, bmesh)
         object_dictionary[contextObName] = ob
         SCN.objects.link(ob)
-
-        '''
-        if contextMatrix_tx:
-            ob.setMatrix(contextMatrix_tx)
-        '''
+        importedObjects.append(ob)
 
         if contextMatrix_rot:
             ob.matrix_local = contextMatrix_rot
             object_matrix[ob] = contextMatrix_rot.copy()
-
-        importedObjects.append(ob)
 
     #a spare chunk
     new_chunk = chunk()
@@ -667,6 +661,7 @@ def process_next_chunk(file, previous_chunk, importedObjects, IMAGE_SEARCH):
             if child is None:
                 child = bpy.data.objects.new(object_name, None)  # create an empty object
                 SCN.objects.link(child)
+                importedObjects.append(child)
 
             object_list.append(child)
             object_parent.append(hierarchy)
@@ -779,7 +774,12 @@ def process_next_chunk(file, previous_chunk, importedObjects, IMAGE_SEARCH):
             ob.data.transform(pivot_matrix)
 
 
-def load_3ds(filepath, context, IMPORT_CONSTRAIN_BOUNDS=10.0, IMAGE_SEARCH=True, APPLY_MATRIX=True):
+def load_3ds(filepath,
+             context,
+             IMPORT_CONSTRAIN_BOUNDS=10.0,
+             IMAGE_SEARCH=True,
+             APPLY_MATRIX=True,
+             global_matrix=None):
     global SCN
 
     # XXX
@@ -837,6 +837,13 @@ def load_3ds(filepath, context, IMPORT_CONSTRAIN_BOUNDS=10.0, IMAGE_SEARCH=True,
             if ob.type == 'MESH':
                 me = ob.data
                 me.transform(ob.matrix_local.inverted())
+
+    # print(importedObjects)
+    if global_matrix:
+        for ob in importedObjects:
+            if ob.parent is None:
+                ob.matrix_world = ob.matrix_world * global_matrix
+
 
     # Done DUMMYVERT
     """
@@ -903,6 +910,21 @@ def load_3ds(filepath, context, IMPORT_CONSTRAIN_BOUNDS=10.0, IMAGE_SEARCH=True,
     file.close()
 
 
-def load(operator, context, filepath="", constrain_size=0.0, use_image_search=True, use_apply_transform=True):
-    load_3ds(filepath, context, IMPORT_CONSTRAIN_BOUNDS=constrain_size, IMAGE_SEARCH=use_image_search, APPLY_MATRIX=use_apply_transform)
+def load(operator,
+         context,
+         filepath="",
+         constrain_size=0.0,
+         use_image_search=True,
+         use_apply_transform=True,
+         global_matrix=None,
+         ):
+
+    load_3ds(filepath,
+             context,
+             IMPORT_CONSTRAIN_BOUNDS=constrain_size,
+             IMAGE_SEARCH=use_image_search,
+             APPLY_MATRIX=use_apply_transform,
+             global_matrix=global_matrix,
+             )
+
     return {'FINISHED'}

@@ -485,11 +485,8 @@ def make_material_chunk(material, image):
 
     else:
         material_chunk.add_subchunk(make_material_subchunk(MATAMBIENT, [a * material.ambient for a in material.diffuse_color]))
-# 		material_chunk.add_subchunk(make_material_subchunk(MATAMBIENT, [a*material.amb for a in material.rgbCol] ))
         material_chunk.add_subchunk(make_material_subchunk(MATDIFFUSE, material.diffuse_color))
-# 		material_chunk.add_subchunk(make_material_subchunk(MATDIFFUSE, material.rgbCol))
         material_chunk.add_subchunk(make_material_subchunk(MATSPECULAR, material.specular_color))
-# 		material_chunk.add_subchunk(make_material_subchunk(MATSPECULAR, material.specCol))
 
         images = get_material_images(material)  # can be None
         if image:
@@ -522,22 +519,15 @@ def extract_triangles(mesh):
     If the mesh contains quads, they will be split into triangles.'''
     tri_list = []
     do_uv = len(mesh.uv_textures)
-# 	do_uv = mesh.faceUV
-
-# 	if not do_uv:
-# 		face_uv = None
 
     img = None
     for i, face in enumerate(mesh.faces):
         f_v = face.vertices
-# 		f_v = face.v
 
         uf = mesh.uv_textures.active.data[i] if do_uv else None
 
         if do_uv:
             f_uv = uf.uv
-            # f_uv =  (uf.uv1, uf.uv2, uf.uv3, uf.uv4) if face.vertices[3] else (uf.uv1, uf.uv2, uf.uv3)
-# 			f_uv = face.uv
             img = uf.image if uf else None
             if img is not None:
                 img = img.name
@@ -545,16 +535,13 @@ def extract_triangles(mesh):
         # if f_v[3] == 0:
         if len(f_v) == 3:
             new_tri = tri_wrapper((f_v[0], f_v[1], f_v[2]), face.material_index, img)
-# 			new_tri = tri_wrapper((f_v[0].index, f_v[1].index, f_v[2].index), face.mat, img)
             if (do_uv):
                 new_tri.faceuvs = uv_key(f_uv[0]), uv_key(f_uv[1]), uv_key(f_uv[2])
             tri_list.append(new_tri)
 
         else:  # it's a quad
             new_tri = tri_wrapper((f_v[0], f_v[1], f_v[2]), face.material_index, img)
-# 			new_tri = tri_wrapper((f_v[0].index, f_v[1].index, f_v[2].index), face.mat, img)
             new_tri_2 = tri_wrapper((f_v[0], f_v[2], f_v[3]), face.material_index, img)
-# 			new_tri_2 = tri_wrapper((f_v[0].index, f_v[2].index, f_v[3].index), face.mat, img)
 
             if (do_uv):
                 new_tri.faceuvs = uv_key(f_uv[0]), uv_key(f_uv[1]), uv_key(f_uv[2])
@@ -887,11 +874,15 @@ def make_kf_obj_node(obj, name_to_id):
 """
 
 
-def save(operator, context, filepath="",
-          use_selection=True,
-          ):
+def save(operator,
+         context, filepath="",
+         use_selection=True,
+         global_matrix=None,
+         ):
 
     import bpy
+    import mathutils
+
     import time
     from bpy_extras.io_utils import create_derived_objects, free_derived_objects
 
@@ -900,6 +891,9 @@ def save(operator, context, filepath="",
     # Time the export
     time1 = time.clock()
 #	Blender.Window.WaitCursor(1)
+
+    if global_matrix is None:
+        global_matrix = mathutils.Matrix()
 
     if bpy.ops.object.mode_set.poll():
         bpy.ops.object.mode_set(mode='OBJECT')
@@ -939,8 +933,6 @@ def save(operator, context, filepath="",
             continue
 
         for ob_derived, mat in derived:
-# 		for ob_derived, mat in getDerivedObjects(ob, False):
-
             if ob.type not in ('MESH', 'CURVE', 'SURFACE', 'FONT', 'META'):
                 continue
 
@@ -950,7 +942,7 @@ def save(operator, context, filepath="",
                 data = None
 
             if data:
-                data.transform(mat)
+                data.transform(global_matrix * mat)
 # 				data.transform(mat, recalc_normals=False)
                 mesh_objects.append((ob_derived, data))
                 mat_ls = data.materials
@@ -965,7 +957,6 @@ def save(operator, context, filepath="",
                     for f, uf in zip(data.faces, data.uv_textures.active.data):
                         if mat_ls:
                             mat_index = f.material_index
-# 							mat_index = f.mat
                             if mat_index >= mat_ls_len:
                                 mat_index = f.mat = 0
                             mat = mat_ls[mat_index]

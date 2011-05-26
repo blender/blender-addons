@@ -42,8 +42,8 @@ if "bpy" in locals():
 
 
 import bpy
-from bpy.props import StringProperty, FloatProperty, BoolProperty
-from bpy_extras.io_utils import ImportHelper, ExportHelper
+from bpy.props import StringProperty, FloatProperty, BoolProperty, EnumProperty
+from bpy_extras.io_utils import ImportHelper, ExportHelper, axis_conversion
 
 
 class Import3DS(bpy.types.Operator, ImportHelper):
@@ -58,9 +58,39 @@ class Import3DS(bpy.types.Operator, ImportHelper):
     use_image_search = BoolProperty(name="Image Search", description="Search subdirectories for any assosiated images (Warning, may be slow)", default=True)
     use_apply_transform = BoolProperty(name="Apply Transform", description="Workaround for object transformations importing incorrectly", default=True)
 
+    global_axis_forward = EnumProperty(
+            name="Forward",
+            items=(('X', "X Forward", ""),
+                   ('Y', "Y Forward", ""),
+                   ('Z', "Z Forward", ""),
+                   ('-X', "-X Forward", ""),
+                   ('-Y', "-Y Forward", ""),
+                   ('-Z', "-Z Forward", ""),
+                   ),
+            default='Y',
+            )
+
+    global_axis_up = EnumProperty(
+            name="Up",
+            items=(('X', "X Up", ""),
+                   ('Y', "Y Up", ""),
+                   ('Z', "Z Up", ""),
+                   ('-X', "-X Up", ""),
+                   ('-Y', "-Y Up", ""),
+                   ('-Z', "-Z Up", ""),
+                   ),
+            default='Z',
+            )
+
     def execute(self, context):
         from . import import_3ds
-        return import_3ds.load(self, context, **self.as_keywords(ignore=("filter_glob",)))
+
+        keywords = self.as_keywords(ignore=("global_axis_forward", "global_axis_up", "filter_glob"))
+
+        global_matrix = axis_conversion(from_forward=self.global_axis_forward, from_up=self.global_axis_up).to_4x4()
+        keywords["global_matrix"] = global_matrix
+
+        return import_3ds.load(self, context, **keywords)
 
 
 class Export3DS(bpy.types.Operator, ExportHelper):
@@ -73,9 +103,38 @@ class Export3DS(bpy.types.Operator, ExportHelper):
 
     use_selection = BoolProperty(name="Selection Only", description="Export selected objects only", default=False)
 
+    global_axis_forward = EnumProperty(
+            name="Forward",
+            items=(('X', "X Forward", ""),
+                   ('Y', "Y Forward", ""),
+                   ('Z', "Z Forward", ""),
+                   ('-X', "-X Forward", ""),
+                   ('-Y', "-Y Forward", ""),
+                   ('-Z', "-Z Forward", ""),
+                   ),
+            default='Y',
+            )
+
+    global_axis_up = EnumProperty(
+            name="Up",
+            items=(('X', "X Up", ""),
+                   ('Y', "Y Up", ""),
+                   ('Z', "Z Up", ""),
+                   ('-X', "-X Up", ""),
+                   ('-Y', "-Y Up", ""),
+                   ('-Z', "-Z Up", ""),
+                   ),
+            default='Z',
+            )
+
     def execute(self, context):
         from . import export_3ds
-        return export_3ds.save(self, context, **self.as_keywords(ignore=("check_existing", "filter_glob")))
+
+        keywords = self.as_keywords(ignore=("global_axis_forward", "global_axis_up", "filter_glob", "check_existing"))
+        global_matrix = axis_conversion(to_forward=self.global_axis_forward, to_up=self.global_axis_up).to_4x4()
+        keywords["global_matrix"] = global_matrix
+
+        return export_3ds.save(self, context, **keywords)
 
 
 # Add to a menu
