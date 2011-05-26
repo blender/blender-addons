@@ -788,6 +788,9 @@ def load_3ds(filepath,
 
     print("importing 3DS: %r..." % (filepath), end="")
 
+    if bpy.ops.object.select_all.poll():
+        bpy.ops.object.select_all(action='DESELECT')
+
     time1 = time.clock()
 # 	time1 = Blender.sys.time()
 
@@ -844,6 +847,8 @@ def load_3ds(filepath,
             if ob.parent is None:
                 ob.matrix_world = ob.matrix_world * global_matrix
 
+    for ob in importedObjects:
+        ob.select = True
 
     # Done DUMMYVERT
     """
