@@ -26,7 +26,7 @@
 #
 import bpy
 
-from extensions_framework.validate import Visibility
+from extensions_framework.validate import Logician
 
 class EF_OT_msg(bpy.types.Operator):
 	"""An operator to show simple messages in the UI"""
@@ -92,7 +92,7 @@ class property_group_renderer(bpy.types.Panel):
 	
 	def check_visibility(self, lookup_property, property_group):
 		"""Determine if the lookup_property should be drawn in the Panel"""
-		vt = Visibility(property_group)
+		vt = Logician(property_group)
 		if lookup_property in property_group.visibility.keys():
 			if hasattr(property_group, lookup_property):
 				member = getattr(property_group, lookup_property)
@@ -103,7 +103,18 @@ class property_group_renderer(bpy.types.Panel):
 		else:
 			return True
 	
-	# tab_level = 0
+	def check_enabled(self, lookup_property, property_group):
+		"""Determine if the lookup_property should be enabled in the Panel"""
+		et = Logician(property_group)
+		if lookup_property in property_group.enabled.keys():
+			if hasattr(property_group, lookup_property):
+				member = getattr(property_group, lookup_property)
+			else:
+				member = None
+			return et.test_logic(member,
+				property_group.enabled[lookup_property])
+		else:
+			return True
 	
 	def is_real_property(self, lookup_property, property_group):
 		for prop in property_group.properties:
@@ -114,28 +125,21 @@ class property_group_renderer(bpy.types.Panel):
 	
 	def draw_column(self, control_list_item, layout, context,
 					supercontext=None, property_group=None):
-		# self.tab_level += 1
 		"""Draw a column's worth of UI controls in this Panel"""
 		if type(control_list_item) is list:
 			draw_row = False
 			
 			found_percent = None
-			# print('\t'*self.tab_level, '--', property_group, '--')
 			for sp in control_list_item:
-				# print('\t'*self.tab_level, sp)
 				if type(sp) is float:
 					found_percent = sp
 				elif type(sp) is list:
 					for ssp in [s for s in sp if self.is_real_property(s, property_group)]:
 						draw_row = draw_row or self.check_visibility(ssp,
 							property_group)
-						# print('\t'*self.tab_level, 'List: ', draw_row)
 				else:
 					draw_row = draw_row or self.check_visibility(sp,
 						property_group)
-					# print('\t'*self.tab_level, 'Single: ', draw_row)
-			# print('\t'*self.tab_level, '-->', draw_row)
-			# print('\t'*self.tab_level, '--', property_group, '--')
 			
 			next_items = [s for s in control_list_item if type(s) in [str, list]]
 			if draw_row and len(next_items) > 0:
@@ -153,8 +157,13 @@ class property_group_renderer(bpy.types.Panel):
 				for current_property in property_group.properties:
 					if current_property['attr'] == control_list_item:
 						current_property_keys = current_property.keys() 
+						
+						if not self.check_enabled(control_list_item, property_group):
+							last_layout = layout
+							layout = layout.row()
+							layout.enabled = False
+						
 						if 'type' in current_property_keys:
-							
 							if current_property['type'] in ['int', 'float',
 								'float_vector', 'string']:
 								layout.prop(
@@ -295,9 +304,11 @@ class property_group_renderer(bpy.types.Panel):
 						else:
 							layout.prop(property_group, control_list_item)
 						
+						if not self.check_enabled(control_list_item, property_group):
+							layout = last_layout
+						
 						# Fire a draw callback if specified
 						if 'draw' in current_property_keys:
 							current_property['draw'](supercontext, context)
 						
 						break
-		# self.tab_level -= 1

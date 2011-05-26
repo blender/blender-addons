@@ -221,12 +221,19 @@ class declarative_property_group(bpy.types.PropertyGroup):
 	"""
 	controls = []
 	
-	"""The visibility dict controls the display of properties based on
+	"""The visibility dict controls the visibility of properties based on
 	the value of other properties. See extensions_framework.validate
 	for test syntax.
 	
 	"""
 	visibility = {}
+	
+	"""The enabled dict controls the enabled state of properties based on
+	the value of other properties. See extensions_framework.validate
+	for test syntax.
+	
+	"""
+	enabled = {}
 	
 	"""The properties list describes each property to be created. Each
 	item should be a dict of args to pass to a
