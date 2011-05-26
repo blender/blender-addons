@@ -74,7 +74,7 @@ class ImportOBJ(bpy.types.Operator, ImportHelper):
             )
 
     global_clamp_size = FloatProperty(name="Clamp Scale", description="Clamp the size to this maximum (Zero to Disable)", min=0.0, max=1000.0, soft_min=0.0, soft_max=1000.0, default=0.0)
-    global_axis_forward = EnumProperty(
+    axis_forward = EnumProperty(
             name="Forward",
             items=(('X', "X Forward", ""),
                    ('Y', "Y Forward", ""),
@@ -86,7 +86,7 @@ class ImportOBJ(bpy.types.Operator, ImportHelper):
             default='-Z',
             )
 
-    global_axis_up = EnumProperty(
+    axis_up = EnumProperty(
             name="Up",
             items=(('X', "X Up", ""),
                    ('Y', "Y Up", ""),
@@ -112,9 +112,9 @@ class ImportOBJ(bpy.types.Operator, ImportHelper):
         else:
             self.use_groups_as_vgroups = False
 
-        keywords = self.as_keywords(ignore=("global_axis_forward", "global_axis_up", "filter_glob", "split_mode"))
+        keywords = self.as_keywords(ignore=("axis_forward", "axis_up", "filter_glob", "split_mode"))
 
-        global_matrix = axis_conversion(from_forward=self.global_axis_forward, from_up=self.global_axis_up).to_4x4()
+        global_matrix = axis_conversion(from_forward=self.axis_forward, from_up=self.axis_up).to_4x4()
         keywords["global_matrix"] = global_matrix
 
         return import_obj.load(self, context, **keywords)
@@ -142,8 +142,8 @@ class ImportOBJ(bpy.types.Operator, ImportHelper):
 
         row = layout.split(percentage=0.67)
         row.prop(self, "global_clamp_size")
-        layout.prop(self, "global_axis_forward")
-        layout.prop(self, "global_axis_up")
+        layout.prop(self, "axis_forward")
+        layout.prop(self, "axis_up")
 
         layout.prop(self, "use_image_search")
 
@@ -188,7 +188,7 @@ class ExportOBJ(bpy.types.Operator, ExportHelper):
 
     global_scale = FloatProperty(name="Scale", description="Scale all data, (Note! some imports dont support scaled armatures)", min=0.01, max=1000.0, soft_min=0.01, soft_max=1000.0, default=1.0)
 
-    global_axis_forward = EnumProperty(
+    axis_forward = EnumProperty(
             name="Forward",
             items=(('X', "X Forward", ""),
                    ('Y', "Y Forward", ""),
@@ -200,7 +200,7 @@ class ExportOBJ(bpy.types.Operator, ExportHelper):
             default='-Z',
             )
 
-    global_axis_up = EnumProperty(
+    axis_up = EnumProperty(
             name="Up",
             items=(('X', "X Up", ""),
                    ('Y', "Y Up", ""),
@@ -218,11 +218,11 @@ class ExportOBJ(bpy.types.Operator, ExportHelper):
         from . import export_obj
 
         from mathutils import Matrix
-        keywords = self.as_keywords(ignore=("global_axis_forward", "global_axis_up", "global_scale", "check_existing", "filter_glob"))
+        keywords = self.as_keywords(ignore=("axis_forward", "axis_up", "global_scale", "check_existing", "filter_glob"))
 
         global_matrix = Matrix()
         global_matrix[0][0] = global_matrix[1][1] = global_matrix[2][2] = self.global_scale
-        global_matrix = global_matrix * axis_conversion(to_forward=self.global_axis_forward, to_up=self.global_axis_up).to_4x4()
+        global_matrix = global_matrix * axis_conversion(to_forward=self.axis_forward, to_up=self.axis_up).to_4x4()
         keywords["global_matrix"] = global_matrix
         return export_obj.save(self, context, **keywords)
 

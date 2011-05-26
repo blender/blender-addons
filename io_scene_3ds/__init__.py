@@ -58,7 +58,7 @@ class Import3DS(bpy.types.Operator, ImportHelper):
     use_image_search = BoolProperty(name="Image Search", description="Search subdirectories for any assosiated images (Warning, may be slow)", default=True)
     use_apply_transform = BoolProperty(name="Apply Transform", description="Workaround for object transformations importing incorrectly", default=True)
 
-    global_axis_forward = EnumProperty(
+    axis_forward = EnumProperty(
             name="Forward",
             items=(('X', "X Forward", ""),
                    ('Y', "Y Forward", ""),
@@ -70,7 +70,7 @@ class Import3DS(bpy.types.Operator, ImportHelper):
             default='Y',
             )
 
-    global_axis_up = EnumProperty(
+    axis_up = EnumProperty(
             name="Up",
             items=(('X', "X Up", ""),
                    ('Y', "Y Up", ""),
@@ -85,9 +85,9 @@ class Import3DS(bpy.types.Operator, ImportHelper):
     def execute(self, context):
         from . import import_3ds
 
-        keywords = self.as_keywords(ignore=("global_axis_forward", "global_axis_up", "filter_glob"))
+        keywords = self.as_keywords(ignore=("axis_forward", "axis_up", "filter_glob"))
 
-        global_matrix = axis_conversion(from_forward=self.global_axis_forward, from_up=self.global_axis_up).to_4x4()
+        global_matrix = axis_conversion(from_forward=self.axis_forward, from_up=self.axis_up).to_4x4()
         keywords["global_matrix"] = global_matrix
 
         return import_3ds.load(self, context, **keywords)
@@ -103,7 +103,7 @@ class Export3DS(bpy.types.Operator, ExportHelper):
 
     use_selection = BoolProperty(name="Selection Only", description="Export selected objects only", default=False)
 
-    global_axis_forward = EnumProperty(
+    axis_forward = EnumProperty(
             name="Forward",
             items=(('X', "X Forward", ""),
                    ('Y', "Y Forward", ""),
@@ -115,7 +115,7 @@ class Export3DS(bpy.types.Operator, ExportHelper):
             default='Y',
             )
 
-    global_axis_up = EnumProperty(
+    axis_up = EnumProperty(
             name="Up",
             items=(('X', "X Up", ""),
                    ('Y', "Y Up", ""),
@@ -130,8 +130,8 @@ class Export3DS(bpy.types.Operator, ExportHelper):
     def execute(self, context):
         from . import export_3ds
 
-        keywords = self.as_keywords(ignore=("global_axis_forward", "global_axis_up", "filter_glob", "check_existing"))
-        global_matrix = axis_conversion(to_forward=self.global_axis_forward, to_up=self.global_axis_up).to_4x4()
+        keywords = self.as_keywords(ignore=("axis_forward", "axis_up", "filter_glob", "check_existing"))
+        global_matrix = axis_conversion(to_forward=self.axis_forward, to_up=self.axis_up).to_4x4()
         keywords["global_matrix"] = global_matrix
 
         return export_3ds.save(self, context, **keywords)

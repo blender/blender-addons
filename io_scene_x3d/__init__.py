@@ -52,7 +52,7 @@ class ImportX3D(bpy.types.Operator, ImportHelper):
     filename_ext = ".x3d"
     filter_glob = StringProperty(default="*.x3d;*.wrl", options={'HIDDEN'})
 
-    global_axis_forward = EnumProperty(
+    axis_forward = EnumProperty(
             name="Forward",
             items=(('X', "X Forward", ""),
                    ('Y', "Y Forward", ""),
@@ -64,7 +64,7 @@ class ImportX3D(bpy.types.Operator, ImportHelper):
             default='Z',
             )
 
-    global_axis_up = EnumProperty(
+    axis_up = EnumProperty(
             name="Up",
             items=(('X', "X Up", ""),
                    ('Y', "Y Up", ""),
@@ -79,8 +79,8 @@ class ImportX3D(bpy.types.Operator, ImportHelper):
     def execute(self, context):
         from . import import_x3d
 
-        keywords = self.as_keywords(ignore=("global_axis_forward", "global_axis_up", "filter_glob"))
-        global_matrix = axis_conversion(from_forward=self.global_axis_forward, from_up=self.global_axis_up).to_4x4()
+        keywords = self.as_keywords(ignore=("axis_forward", "axis_up", "filter_glob"))
+        global_matrix = axis_conversion(from_forward=self.axis_forward, from_up=self.axis_up).to_4x4()
         keywords["global_matrix"] = global_matrix
 
         return import_x3d.load(self, context, **keywords)
@@ -99,7 +99,7 @@ class ExportX3D(bpy.types.Operator, ExportHelper):
     use_triangulate = BoolProperty(name="Triangulate", description="Triangulate quads.", default=False)
     use_compress = BoolProperty(name="Compress", description="GZip the resulting file, requires a full python install", default=False)
 
-    global_axis_forward = EnumProperty(
+    axis_forward = EnumProperty(
             name="Forward",
             items=(('X', "X Forward", ""),
                    ('Y', "Y Forward", ""),
@@ -111,7 +111,7 @@ class ExportX3D(bpy.types.Operator, ExportHelper):
             default='Z',
             )
 
-    global_axis_up = EnumProperty(
+    axis_up = EnumProperty(
             name="Up",
             items=(('X', "X Up", ""),
                    ('Y', "Y Up", ""),
@@ -127,8 +127,8 @@ class ExportX3D(bpy.types.Operator, ExportHelper):
         from . import export_x3d
         from mathutils import Matrix
 
-        keywords = self.as_keywords(ignore=("global_axis_forward", "global_axis_up", "check_existing", "filter_glob"))
-        global_matrix = axis_conversion(to_forward=self.global_axis_forward, to_up=self.global_axis_up).to_4x4()
+        keywords = self.as_keywords(ignore=("axis_forward", "axis_up", "check_existing", "filter_glob"))
+        global_matrix = axis_conversion(to_forward=self.axis_forward, to_up=self.axis_up).to_4x4()
         keywords["global_matrix"] = global_matrix
 
         return export_x3d.save(self, context, **keywords)
