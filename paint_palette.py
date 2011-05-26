@@ -23,15 +23,15 @@
 bl_info = {
     "name": "Paint Palettes",
     "author": "Dany Lebel (Axon D)",
-    "version": (0,8,1),
+    "version": (0,8,2),
     "blender": (2, 5, 7),
-    "api": 36722,
+    "api": 36826,
     "location": "Image Editor and 3D View > Any Paint mode > Color Palette or Weight Palette panel",
     "description": "Palettes for color and weight paint modes",
     "warning": "beta",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/Scripts/Paint/Palettes",
     "tracker_url": "http://projects.blender.org/tracker/index.php?func=detail&aid=25908",
-    "category": "Other"}
+    "category": "Paint"}
 
 """
 This addon brings palettes to the paint modes.
@@ -692,6 +692,7 @@ def register():
     
     
 def unregister():
+    bpy.utils.unregister_module(__name__)
     pass
 
 
