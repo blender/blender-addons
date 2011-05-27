@@ -1,55 +1,47 @@
-#!BPY
-
-"""
-Name: 'Quake 3 (.map)'
-Blender: 249
-Group: 'Export'
-Tooltip: 'Export to Quake map format'
-"""
-
-__author__ = 'Campbell Barton'
-__version__ = '0.1a'
-__email__ = "ideasman42@gmail.com"
-__bpydoc__ = """\
-This script Exports a Quake 3 map format.
-
- Supports meshes, lights and nurbs patch surfaces
-"""
-
-# ***** BEGIN GPL LICENSE BLOCK *****
+# ##### BEGIN GPL LICENSE BLOCK #####
 #
-# Script copyright (C): Campbell Barton
+#  This program is free software; you can redistribute it and/or
+#  modify it under the terms of the GNU General Public License
+#  as published by the Free Software Foundation; either version 2
+#  of the License, or (at your option) any later version.
 #
-# This program is free software; you can redistribute it and/or
-# modify it under the terms of the GNU General Public License
-# as published by the Free Software Foundation; either version 2
-# of the License, or (at your option) any later version.
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
+#  You should have received a copy of the GNU General Public License
+#  along with this program; if not, write to the Free Software Foundation,
+#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software Foundation,
-# Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-#
-# ***** END GPL LICENCE BLOCK *****
-# --------------------------------------------------------------------------
+# ##### END GPL LICENSE BLOCK #####
 
-from Blender import *
-import BPyMesh
+# <pep8 compliant>
 
-PREF_SCALE = Draw.Create(100)
-PREF_FACE_THICK = Draw.Create(0.1)
-PREF_GRID_SNAP = Draw.Create(0)
+import bpy
+
+# TODO, make options
+PREF_SCALE = 100
+PREF_FACE_THICK = 0.1
+PREF_GRID_SNAP = False
 # Quake 1/2?
 # PREF_DEF_TEX_OPTS = Draw.Create(' 0 0 0 1 1\n') # not user settable yet
 # Quake 3+?
-PREF_DEF_TEX_OPTS = Draw.Create(' 0 0 0 1 1 0 0 0\n')  # not user settable yet
+PREF_DEF_TEX_OPTS = ' 0 0 0 1 1 0 0 0\n'  # not user settable yet
 
-PREF_NULL_TEX = Draw.Create('NULL')  # not user settable yet
-PREF_INVIS_TEX = Draw.Create('common/caulk')
+PREF_NULL_TEX = 'NULL'  # not user settable yet
+PREF_INVIS_TEX = 'common/caulk'
+
+
+def face_uv_get(face):
+    """ Workaround 2.5x change.
+    """
+    me = face.id_data
+    uv_faces = me.uv_textures.active
+    if uv_faces:
+        return uv_faces.data[face.index]
+    else:
+        return None
 
 
 def write_cube2brush(file, faces):
@@ -58,11 +50,12 @@ def write_cube2brush(file, faces):
     these faces can be from 1 mesh, 1 cube within a mesh of larger cubes
     Faces could even come from different meshes or be contrived.
     '''
+    import os
     # comment only
-    # file.write('// brush "%s", "%s"\n' % (ob.name, ob.getData(name_only=1)))
+    # file.write('// brush "%s", "%s"\n' % (ob.name, ob.data.name))
     file.write('// brush from cube\n{\n')
 
-    if PREF_GRID_SNAP.val:
+    if PREF_GRID_SNAP:
         format_vec = '( %d %d %d ) '
     else:
         format_vec = '( %.8f %.8f %.8f ) '
@@ -70,34 +63,29 @@ def write_cube2brush(file, faces):
     for f in faces:
         # from 4 verts this gets them in reversed order and only 3 of them
         # 0,1,2,3 -> 2,1,0
-        for v in f.v[2::-1]:
-            file.write(format_vec % v.co[:])
+        me = f.id_data  #XXX25
+        for v in f.vertices[:][2::-1]:
+            file.write(format_vec % me.vertices[v].co[:])
 
-        try:
-            mode = f.mode
-        except:
-            mode = 0
+        uf = face_uv_get(f)
 
-        if mode & Mesh.FaceModes.INVISIBLE:
-            file.write(PREF_INVIS_TEX.val)
+        if uf and uf.hide:
+            file.write(PREF_INVIS_TEX)
         else:
-            try:
-                image = f.image
-            except:
-                image = None
+            image = uf.image if uf else None
 
             if image:
-                file.write(sys.splitext(sys.basename(image.filename))[0])
+                file.write(os.path.splitext(os.path.basename(image.filename))[0])
             else:
-                file.write(PREF_NULL_TEX.val)
+                file.write(PREF_NULL_TEX)
 
         # Texture stuff ignored for now
-        file.write(PREF_DEF_TEX_OPTS.val)
+        file.write(PREF_DEF_TEX_OPTS)
     file.write('}\n')
 
 
 def round_vec(v):
-    if PREF_GRID_SNAP.val:
+    if PREF_GRID_SNAP:
         return v.to_tuple(0)
     else:
         return v[:]
@@ -109,34 +97,34 @@ def write_face2brush(file, face):
     each face is a cube/brush
     '''
 
-    if PREF_GRID_SNAP.val:
+    if PREF_GRID_SNAP:
         format_vec = '( %d %d %d ) '
     else:
         format_vec = '( %.8f %.8f %.8f ) '
 
-    image_text = PREF_NULL_TEX.val
+    image_text = PREF_NULL_TEX
 
-    try:
-        mode = face.mode
-    except:
-        mode = 0
+    uf = face_uv_get(face)
 
-    if mode & Mesh.FaceModes.INVISIBLE:
-        image_text = PREF_INVIS_TEX.val
+    if uf and uf.hide:
+        image_text = PREF_INVIS_TEX
     else:
-        try:
-            image = face.image
-        except:
-            image = None
+        image = uf.image if uf else None
+
         if image:
-            image_text = sys.splitext(sys.basename(image.filename))[0]
+            image_text = os.path.splitext(os.path.basename(image.filename))[0]
+
+    # reuse face vertices
+    _v = face.id_data.vertices  #XXX25
+    f_vertices = [_v[vi] for vi in face.vertices]
+    del _v  #XXX25
 
     # original verts as tuples for writing
-    orig_vco = [v.co[:] for v in face]
+    orig_vco = [v.co[:] for v in f_vertices]
 
     # new verts that give the face a thickness
-    dist = PREF_SCALE.val * PREF_FACE_THICK.val
-    new_vco = [round_vec(v.co - (v.no * dist)) for v in face]
+    dist = PREF_SCALE * PREF_FACE_THICK
+    new_vco = [round_vec(v.co - (v.normal * dist)) for v in f_vertices]
     #new_vco = [round_vec(v.co - (face.no * dist)) for v in face]
 
     file.write('// brush from face\n{\n')
@@ -145,17 +133,17 @@ def write_face2brush(file, face):
         file.write(format_vec % co)
     file.write(image_text)
     # Texture stuff ignored for now
-    file.write(PREF_DEF_TEX_OPTS.val)
+    file.write(PREF_DEF_TEX_OPTS)
 
     for co in new_vco[:3]:
         file.write(format_vec % co)
-    if mode & Mesh.FaceModes.TWOSIDE:
+    if uf and uf.use_twoside:
         file.write(image_text)
     else:
-        file.write(PREF_INVIS_TEX.val)
+        file.write(PREF_INVIS_TEX)
 
     # Texture stuff ignored for now
-    file.write(PREF_DEF_TEX_OPTS.val)
+    file.write(PREF_DEF_TEX_OPTS)
 
     # sides.
     if len(orig_vco) == 3:  # Tri, it seemms tri brushes are supported.
@@ -166,8 +154,8 @@ def write_face2brush(file, face):
     for i1, i2 in index_pairs:
         for co in orig_vco[i1], orig_vco[i2], new_vco[i2]:
             file.write(format_vec % co)
-        file.write(PREF_INVIS_TEX.val)
-        file.write(PREF_DEF_TEX_OPTS.val)
+        file.write(PREF_INVIS_TEX)
+        file.write(PREF_DEF_TEX_OPTS)
 
     file.write('}\n')
 
@@ -184,21 +172,23 @@ def is_cube_facegroup(faces):
     # Check for quads and that there are 6 unique verts
     verts = {}
     for f in faces:
-        if len(f) != 4:
+        f_v = f.vertices[:]
+        if len(f_v) != 4:
             return False
 
-        for v in f:
-            verts[v.index] = 0
+        for v in f_v:
+            verts[v] = 0
 
     if len(verts) != 8:
         return False
 
     # Now check that each vert has 3 face users
     for f in faces:
-        for v in f:
-            verts[v.index] += 1
+        f_v = f.vertices[:]
+        for v in f_v:
+            verts[v] += 1
 
-    for v in verts.itervalues():
+    for v in verts.values():
         if v != 3:  # vert has 3 users?
             return False
 
@@ -235,7 +225,7 @@ def is_tricyl_facegroup(faces):
         for v in f:
             verts[v.index] += 1
 
-    for v in verts.itervalues():
+    for v in verts.values():
         if v != 3:  # vert has 3 users?
             return False
 
@@ -264,20 +254,20 @@ def write_node_map(file, ob):
     file.write('{\n')
     for name_value in props:
         file.write('"%s" "%s"\n' % name_value)
-    if PREF_GRID_SNAP.val:
+    if PREF_GRID_SNAP:
         file.write('"origin" "%d %d %d"\n' %
-                   tuple([round(axis * PREF_SCALE.val)
-                          for axis in ob.getLocation('worldspace')]))
+                   tuple([round(axis * PREF_SCALE)
+                          for axis in ob.matrix_world.to_translation()]))
     else:
         file.write('"origin" "%.6f %.6f %.6f"\n' %
-                   tuple([axis * PREF_SCALE.val
-                          for axis in ob.getLocation('worldspace')]))
+                   tuple([axis * PREF_SCALE
+                          for axis in ob.matrix_world.to_translation()]))
 
     file.write('}\n')
     return True
 
 
-def export_map(filepath):
+def export_map(context, filepath):
     """
     pup_block = [\
     ('Scale:', PREF_SCALE, 1, 1000, 'Scale the blender scene by this value.'),\
@@ -292,33 +282,36 @@ def export_map(filepath):
     if not Draw.PupBlock('map export', pup_block):
         return
     """
+    import time
+    from mathutils import Vector, Matrix
+    from bpy_extras import mesh_utils
 
-    Window.WaitCursor(1)
-    time = sys.time()
+    t = time.time()
     print("Map Exporter 0.0")
     file = open(filepath, 'w')
+
+    scene = context.scene
+    objects = context.selected_objects
 
     obs_mesh = []
     obs_lamp = []
     obs_surf = []
     obs_empty = []
 
-    SCALE_MAT = Mathutils.Matrix()
-    SCALE_MAT[0][0] = SCALE_MAT[1][1] = SCALE_MAT[2][2] = PREF_SCALE.val
-
-    dummy_mesh = Mesh.New()
+    SCALE_MAT = Matrix()
+    SCALE_MAT[0][0] = SCALE_MAT[1][1] = SCALE_MAT[2][2] = PREF_SCALE
 
     TOTBRUSH = TOTLAMP = TOTNODE = 0
 
-    for ob in Object.GetSelected():
+    for ob in objects:
         type = ob.type
-        if type == 'Mesh':
+        if type == 'MESH':
             obs_mesh.append(ob)
-        elif type == 'Surf':
+        elif type == 'SURFACE':
             obs_surf.append(ob)
-        elif type == 'Lamp':
+        elif type == 'LAMP':
             obs_lamp.append(ob)
-        elif type == 'Empty':
+        elif type == 'EMPTY':
             obs_empty.append(ob)
 
     if obs_mesh or obs_surf:
@@ -329,23 +322,23 @@ def export_map(filepath):
 
     print("\twriting cubes from meshes")
     for ob in obs_mesh:
-        dummy_mesh.getFromObject(ob.name)
+        dummy_mesh = ob.to_mesh(scene, True, 'PREVIEW')
 
         #print len(mesh_split2connected(dummy_mesh))
 
         # Is the object 1 cube? - object-is-a-brush
         # 1 to tx the normals also
-        dummy_mesh.transform(ob.matrixWorld * SCALE_MAT)
+        dummy_mesh.transform(ob.matrix_world * SCALE_MAT)
 
-        if PREF_GRID_SNAP.val:
+        if PREF_GRID_SNAP:
             for v in dummy_mesh.verts:
                 v.co[:] = v.co.to_tuple(0)
 
         # High quality normals
-        BPyMesh.meshCalcNormals(dummy_mesh)
+        #XXX25: BPyMesh.meshCalcNormals(dummy_mesh)
 
         # Split mesh into connected regions
-        for face_group in BPyMesh.mesh2linkedFaces(dummy_mesh):
+        for face_group in mesh_utils.mesh_linked_faces(dummy_mesh):
             if is_cube_facegroup(face_group):
                 write_cube2brush(file, face_group)
                 TOTBRUSH += 1
@@ -358,17 +351,16 @@ def export_map(filepath):
                     TOTBRUSH += 1
 
             #print 'warning, not exporting "%s" it is not a cube' % ob.name
-
-    dummy_mesh.verts = None
+        bpy.data.meshes.remove(dummy_mesh)
 
     valid_dims = 3, 5, 7, 9, 11, 13, 15
     for ob in obs_surf:
         '''
         Surf, patches
         '''
-        surf_name = ob.getData(name_only=1)
-        data = Curve.Get(surf_name)
-        mat = ob.matrixWorld * SCALE_MAT
+        data = ob.data
+        surf_name = data.name
+        mat = ob.matrix_world * SCALE_MAT
 
         # This is what a valid patch looks like
 
@@ -387,9 +379,9 @@ NULL
 }
 }
         """
-        for i, nurb in enumerate(data):
-            u = nurb.pointsU
-            v = nurb.pointsV
+        for i, nurb in enumerate(data.splines):
+            u = nurb.point_count_u
+            v = nurb.point_count_v
             if u in valid_dims and v in valid_dims:
 
                 file.write('// brush %d surf_name\n' % i)
@@ -401,7 +393,7 @@ NULL
                 file.write('(\n')
 
                 u_iter = 0
-                for p in nurb:
+                for p in nurb.points:
 
                     if u_iter == 0:
                         file.write('(')
@@ -409,12 +401,12 @@ NULL
                     u_iter += 1
 
                     # add nmapping 0 0 ?
-                    if PREF_GRID_SNAP.val:
+                    if PREF_GRID_SNAP:
                         file.write(" ( %d %d %d 0 0 )" %
-                                   round_vec(Mathutils.Vector(p[0:3]) * mat))
+                                   round_vec(p.co.xyz * mat))
                     else:
                         file.write(' ( %.6f %.6f %.6f 0 0 )' %
-                                   (Mathutils.Vector(p[0:3]) * mat)[:])
+                                   (p.co.xyz * mat)[:])
 
                     # Move to next line
                     if u_iter == u:
@@ -440,17 +432,17 @@ NULL
         lamp = ob.data
         file.write('{\n')
         file.write('"classname" "light"\n')
-        file.write('"light" "%.6f"\n' % (lamp.dist * PREF_SCALE.val))
-        if PREF_GRID_SNAP.val:
+        file.write('"light" "%.6f"\n' % (lamp.distance * PREF_SCALE))
+        if PREF_GRID_SNAP:
             file.write('"origin" "%d %d %d"\n' %
-                       tuple([round(axis * PREF_SCALE.val)
-                              for axis in ob.getLocation('worldspace')]))
+                       tuple([round(axis * PREF_SCALE)
+                              for axis in ob.matrix_world.to_translation()]))
         else:
             file.write('"origin" "%.6f %.6f %.6f"\n' %
-                       tuple([axis * PREF_SCALE.val
-                              for axis in ob.getLocation('worldspace')]))
+                       tuple([axis * PREF_SCALE
+                              for axis in ob.matrix_world.to_translation()]))
 
-        file.write('"_color" "%.6f %.6f %.6f"\n' % tuple(lamp.col))
+        file.write('"_color" "%.6f %.6f %.6f"\n' % tuple(lamp.color))
         file.write('"style" "0"\n')
         file.write('}\n')
         TOTLAMP += 1
@@ -463,17 +455,17 @@ NULL
         else:
             print("\t\tignoring %s" % ob.name)
 
-    Window.WaitCursor(0)
+    file.close()
 
-    print("Exported Map in %.4fsec" % (sys.time() - time))
+    print("Exported Map in %.4fsec" % (time.time() - t))
     print("Brushes: %d  Nodes: %d  Lamps %d\n" % (TOTBRUSH, TOTNODE, TOTLAMP))
 
 
-def main():
-    Window.FileSelector(export_map, 'EXPORT MAP', '*.map')
+def save(operator,
+         context,
+         filepath=None,
+         ):
 
-
-if __name__ == '__main__':
-    main()
-
-# export_map('/foo.map')
+    export_map(context, filepath)
+    
+    return {'FINISHED'}
