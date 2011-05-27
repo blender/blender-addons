@@ -362,8 +362,7 @@ def save_single(operator, scene, filepath="",
 
         def setPoseFrame(self, f, fake=False):
             if fake:
-                # annoying, have to clear global_matrix
-                self.__anim_poselist[f] = global_matrix * self.matrixWorld
+                self.__anim_poselist[f] = self.matrixWorld * global_matrix.inverted()
             else:
                 self.__anim_poselist[f] = self.blenObject.matrix_world.copy()
 
