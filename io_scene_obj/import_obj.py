@@ -432,7 +432,7 @@ def create_mesh(new_objects, has_ngons, use_ngons, use_edges, verts_loc, verts_t
     Takes all the data gathered and generates a mesh, adding the new object to new_objects
     deals with fgons, sharp edges and assigning materials
     '''
-    from mesh_utils import ngon_tesselate
+    from bpy_extras.mesh_utils import ngon_tesselate
 
     if not has_ngons:
         use_ngons = False
