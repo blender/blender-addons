@@ -69,7 +69,7 @@ class ExportFBX(bpy.types.Operator, ExportHelper):
                    ('-Y', "-Y Forward", ""),
                    ('-Z', "-Z Forward", ""),
                    ),
-            default='Y',
+            default='-Z',
             )
 
     axis_up = EnumProperty(
@@ -81,7 +81,7 @@ class ExportFBX(bpy.types.Operator, ExportHelper):
                    ('-Y', "-Y Up", ""),
                    ('-Z', "-Z Up", ""),
                    ),
-            default='Z',
+            default='Y',
             )
 
     object_types = EnumProperty(
