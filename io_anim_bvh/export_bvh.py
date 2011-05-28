@@ -23,7 +23,14 @@
 
 import bpy
 
-def write_armature(context, filepath, frame_start, frame_end, global_scale=1.0, rotate_mode="NATIVE"):
+
+def write_armature(context,
+                   filepath,
+                   frame_start,
+                   frame_end,
+                   global_scale=1.0,
+                   rotate_mode='NATIVE',
+                   ):
 
     def ensure_rot_order(rot_order_str):
         if set(rot_order_str) != {'X', 'Y', 'Z'}:

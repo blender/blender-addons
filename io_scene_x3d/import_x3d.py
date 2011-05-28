@@ -948,7 +948,7 @@ class vrmlNode(object):
                 urls.append(os.path.join(os.path.dirname(self.getFilename()), url))
                 urls.append(bpy.path.resolve_ncase(urls[-1]))
 
-                urls.append(os.path.join(os.path.dirname(self.getFilename()), os.path.basename(url)))  
+                urls.append(os.path.join(os.path.dirname(self.getFilename()), os.path.basename(url)))
                 urls.append(bpy.path.resolve_ncase(urls[-1]))
 
                 try:

@@ -56,7 +56,7 @@ import mathutils
 import struct
 import os.path
 from bpy.props import *
-from bpy_extras.io_utils import load_image
+from bpy_extras.image_utils import load_image
 
 ##################
 ## Struct setup ##

@@ -35,8 +35,8 @@ import os
 import time
 import bpy
 import mathutils
-from mathutils.geometry import tesselate_polygon
-from bpy_extras.io_utils import load_image, unpack_list, unpack_face_list
+from bpy_extras.io_utils import unpack_list, unpack_face_list
+from bpy_extras.image_utils import load_image
 
 
 def line_value(line_split):

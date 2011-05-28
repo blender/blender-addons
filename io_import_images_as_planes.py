@@ -35,7 +35,8 @@ bl_info = {
 import bpy, os, mathutils
 from bpy.props import *
 from add_utils import *
-from bpy_extras.io_utils import ImportHelper, load_image
+from bpy_extras.io_utils import ImportHelper
+from bpy_extras.image_utils import load_image
 
 ## GLOBAL VARS ##
 EXT_LIST = {

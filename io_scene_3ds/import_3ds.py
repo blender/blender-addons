@@ -25,8 +25,6 @@ import os
 import time
 import struct
 
-from bpy_extras.io_utils import load_image
-
 import bpy
 import mathutils
 
@@ -240,6 +238,8 @@ def add_texture_to_material(image, texture, material, mapto):
 
 
 def process_next_chunk(file, previous_chunk, importedObjects, IMAGE_SEARCH):
+    from bpy_extras.image_utils import load_image
+
     #print previous_chunk.bytes_read, 'BYTES READ'
     contextObName = None
     contextLamp = [None, None]  # object, Data
