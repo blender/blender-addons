@@ -239,7 +239,7 @@ def write_node_map(file, ob):
     as a MAP node as long as it has the property name - classname
     returns True/False based on weather a node was written
     '''
-    props = [(p.name, p.data) for p in ob.game_properties]
+    props = [(p.name, p.value) for p in ob.game.properties]
 
     IS_MAP_NODE = False
     for name, value in props:
