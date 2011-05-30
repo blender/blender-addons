@@ -441,9 +441,9 @@ def export(file,
 
                     if is_uv:
                         if EXPORT_TRI:
-                            fw("%stexIndex=\"" % ident)
+                            fw("texIndex=\"")
                         else:
-                            fw("%stexCoordIndex=\"" % ident)
+                            fw("texCoordIndex=\"")
 
                         j = 0
                         if EXPORT_TRI:
