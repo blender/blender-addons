@@ -424,8 +424,10 @@ def export(file,
                     fw("%s</Appearance>\n" % ident)
 
                     #-- IndexedFaceSet or IndexedLineSet
-
-                    fw("%s<IndexedFaceSet " % ident)
+                    if EXPORT_TRI:
+                        fw("%s<IndexedTriangleSet " % ident)
+                    else:
+                        fw("%s<IndexedFaceSet " % ident)
                     ident += "\t"
 
                     # --- Write IndexedFaceSet Attributes
@@ -438,16 +440,29 @@ def export(file,
                         fw("creaseAngle=\"%.4g\" " % mesh.auto_smooth_angle)
 
                     if is_uv:
-                        # "texCoordIndex"
-                        fw("%stexCoordIndex=\"" % ident)
+                        if EXPORT_TRI:
+                            fw("%stexIndex=\"" % ident)
+                        else:
+                            fw("%stexCoordIndex=\"" % ident)
+
                         j = 0
-                        for i in face_group:
-                            if len(mesh_faces[i].vertices) == 4:
-                                fw("%d %d %d %d -1, " % (j, j + 1, j + 2, j + 3))
-                                j += 4
-                            else:
-                                fw("%d %d %d -1, " % (j, j + 1, j + 2))
-                                j += 3
+                        if EXPORT_TRI:
+                            for i in face_group:
+                                if len(mesh_faces[i].vertices) == 4:
+                                    fw("%d %d %d " % (j, j + 1, j + 2))
+                                    fw("%d %d %d " % (j, j + 2, j + 3))
+                                    j += 4
+                                else:
+                                    fw("%d %d %d " % (j, j + 1, j + 2))
+                                    j += 3
+                        else:
+                            for i in face_group:
+                                if len(mesh_faces[i].vertices) == 4:
+                                    fw("%d %d %d %d -1, " % (j, j + 1, j + 2, j + 3))
+                                    j += 4
+                                else:
+                                    fw("%d %d %d -1, " % (j, j + 1, j + 2))
+                                    j += 3
                         fw("\" ")
                         # --- end texCoordIndex
 
@@ -456,15 +471,19 @@ def export(file,
 
                     if True:
                         # "coordIndex"
-                        fw("coordIndex=\"")
+                        if EXPORT_TRI:
+                            fw("index=\"")
+                        else:
+                            fw("coordIndex=\"")
+
                         if EXPORT_TRI:
                             for i in face_group:
                                 fv = mesh_faces[i].vertices[:]
                                 if len(fv) == 3:
-                                    fw("%i %i %i -1, " % fv)
+                                    fw("%i %i %i " % fv)
                                 else:
-                                    fw("%i %i %i -1, " % (fv[0], fv[1], fv[2]))
-                                    fw("%i %i %i -1, " % (fv[0], fv[2], fv[3]))
+                                    fw("%i %i %i " % (fv[0], fv[1], fv[2]))
+                                    fw("%i %i %i " % (fv[0], fv[2], fv[3]))
                         else:
                             for i in face_group:
                                 fv = mesh_faces[i].vertices[:]
@@ -504,8 +523,14 @@ def export(file,
                         fw("%s<Color color=\"" % ident)
                         # XXX, 1 color per face, only
                         mesh_faces_col = mesh.vertex_colors.active.data
-                        for i in face_group:
-                            fw("%.3g %.3g %.3g, " % mesh_faces_col[i].color1[:])
+                        if EXPORT_TRI:
+                            for i in face_group:
+                                fw("%.3g %.3g %.3g, " % mesh_faces_col[i].color1[:])
+                                if len(mesh_faces[i].vertices) == 4:
+                                    fw("%.3g %.3g %.3g, " % mesh_faces_col[i].color1[:])
+                        else:
+                            for i in face_group:
+                                fw("%.3g %.3g %.3g, " % mesh_faces_col[i].color1[:])
                         del mesh_faces_col
                         fw("\" />\n")
 
@@ -513,7 +538,12 @@ def export(file,
 
                     #--- output closing braces
                     ident = ident[:-1]
-                    fw("%s</IndexedFaceSet>\n" % ident)
+
+                    if EXPORT_TRI:
+                        fw("%s</IndexedTriangleSet>\n" % ident)
+                    else:
+                        fw("%s</IndexedFaceSet>\n" % ident)
+
                     ident = ident[:-1]
                     fw("%s</Shape>\n" % ident)
 
