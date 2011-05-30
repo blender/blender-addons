@@ -92,7 +92,6 @@ def clean_str(name, prefix='rsvd_'):
         newName = newName.replace(bad, "_")
     return newName
 
-namesFog = ("", "LINEAR", "EXPONENTIAL", "")
 
 ##########################################################
 # Functions for writing output file
@@ -156,8 +155,7 @@ def export(file,
             return
 
         if mparam.use_mist:
-            mtype = 1 if mtype == 'LINEAR' else 2
-            fw("%s<Fog fogType=\"%s\" " % (ident, __class__.namesFog[mtype]))
+            fw("%s<Fog fogType=\"%s\" " % (ident, "LINEAR" if (mtype == 'LINEAR') else "EXPONENTIAL"))
             fw("color=\"%.3g %.3g %.3g\" " % clamp_color(world.horizon_color))
             fw("visibilityRange=\"%.3g\" />\n" % mparam.depth)
         else:
