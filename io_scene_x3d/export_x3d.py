@@ -341,8 +341,10 @@ def export(file,
 
             mesh_materials_use_face_texture = [getattr(material, "use_face_texture", True) for material in mesh_materials]
 
+            # fast access!
             mesh_faces = mesh.faces[:]
             mesh_faces_materials = [f.material_index for f in mesh_faces]
+            mesh_faces_vertices = [f.vertices[:] for f in mesh_faces]
 
             if is_uv and True in mesh_materials_use_face_texture:
                 mesh_faces_image = [(fuv.image if (mesh_materials_use_face_texture[mesh_faces_materials[i]] and fuv.use_image) else mesh_material_images[mesh_faces_materials[i]]) for i, fuv in enumerate(mesh.uv_textures.active.data)]
@@ -423,125 +425,192 @@ def export(file,
                     ident = ident[:-1]
                     fw("%s</Appearance>\n" % ident)
 
+                    mesh_faces_col = mesh.vertex_colors.active.data if is_col else None
+                    mesh_faces_uv = mesh.uv_textures.active.data if is_uv else None
+
                     #-- IndexedFaceSet or IndexedLineSet
                     if EXPORT_TRI:
                         fw("%s<IndexedTriangleSet " % ident)
+                        ident += "\t"
+
+                        # --- Write IndexedTriangleSet Attributes (same as IndexedFaceSet)
+                        fw("solid=\"%s\" " % ("true" if mesh.show_double_sided else "false"))
+                        if is_smooth:
+                            fw("creaseAngle=\"%.4g\" " % mesh.auto_smooth_angle)
+
+                        slot_uv = None
+                        slot_col = None
+
+                        if is_uv and is_col:
+                            slot_uv = 0
+                            slot_col = 1
+
+                            def vertex_key(fidx, f_cnr_idx):
+                                return (
+                                    mesh_faces_uv[fidx].uv[f_cnr_idx][:],
+                                    getattr(mesh_faces_col[fidx], "color%d" % (f_cnr_idx + 1))[:],
+                                )
+                        elif is_uv:
+                            slot_uv = 0
+
+                            def vertex_key(fidx, f_cnr_idx):
+                                return (
+                                    mesh_faces_uv[fidx].uv[f_cnr_idx].to_tuple(4),
+                                )
+                        elif is_col:
+                            slot_col = 0
+
+                            def vertex_key(fidx, f_cnr_idx):
+                                return (
+                                    getattr(mesh_faces_col[fidx], "color%d" % (f_cnr_idx))[:],
+                                )
+                        else:
+                            # ack, not especially efficient in this case
+                            def vertex_key(fidx, f_cnr_idx):
+                                return None
+
+                        # build a mesh mapping dict
+                        vertex_hash = [{} for i in range(len(mesh.vertices))]
+                        # worst case every face is a quad
+                        face_tri_list = [[None, None, None] for i in range(len(mesh.faces) * 2)]
+                        vert_tri_list = []
+                        totvert = 0
+                        totface = 0
+                        temp_face = [None] * 4
+                        for i in face_group:
+                            fv = mesh_faces_vertices[i]
+                            for j, v_idx in enumerate(fv):
+                                key = vertex_key(i, j)
+                                vh = vertex_hash[v_idx]
+                                x3d_v = vh.get(key)
+                                if x3d_v is None:
+                                    x3d_v = key, v_idx, totvert
+                                    vh[key] = x3d_v
+                                    # key / original_vertex / new_vertex
+                                    vert_tri_list.append(x3d_v)
+                                    totvert += 1
+                                temp_face[j] = x3d_v
+
+                            if len(fv) == 4:
+                                f_iter = ((0, 1, 2), (0, 2, 3))
+                            else:
+                                f_iter = ((0, 1, 2), )
+
+                            for f_it in f_iter:
+                                # loop over a quad as 2 tris
+                                f_tri = face_tri_list[totface]
+                                for ji, j in enumerate(f_it):
+                                    f_tri[ji] = temp_face[j]
+                                # quads run this twice
+                                totface += 1
+
+                        # clear unused faces
+                        face_tri_list[totface:] = []
+
+                        fw("index=\"")
+                        for x3d_f in face_tri_list:
+                            fw("%i %i %i " % (x3d_f[0][2], x3d_f[1][2], x3d_f[2][2]))
+                        fw("\" ")
+
+                        # close IndexedTriangleSet
+                        fw(">\n")
+
+                        fw("%s<Coordinate " % ident)
+                        fw("point=\"")
+                        mesh_vertices = mesh.vertices
+                        for x3d_v in vert_tri_list:
+                            fw("%.6g %.6g %.6g, " % mesh_vertices[x3d_v[1]].co[:])
+                        fw("\" />\n")
+
+                        if is_uv:
+                            fw("%s<TextureCoordinate point=\"" % ident)
+                            for x3d_v in vert_tri_list:
+                                fw("%.4g %.4g, " % x3d_v[0][slot_uv])
+                            fw("\" />\n")
+
+                        if is_col:
+                            fw("%s<Color color=\"" % ident)
+                            for x3d_v in vert_tri_list:
+                                fw("%.3g %.3g %.3g, " % x3d_v[0][slot_col])
+                            fw("\" />\n")
+
+                        fw("%s</IndexedTriangleSet>\n" % ident)
+
                     else:
                         fw("%s<IndexedFaceSet " % ident)
-                    ident += "\t"
+                        ident += "\t"
 
-                    # --- Write IndexedFaceSet Attributes
-                    if mesh.show_double_sided:
-                        fw("solid=\"true\" ")
-                    else:
-                        fw("solid=\"false\" ")
+                        # --- Write IndexedFaceSet Attributes (same as IndexedTriangleSet)
+                        fw("solid=\"%s\" " % ("true" if mesh.show_double_sided else "false"))
+                        if is_smooth:
+                            fw("creaseAngle=\"%.4g\" " % mesh.auto_smooth_angle)
 
-                    if is_smooth:
-                        fw("creaseAngle=\"%.4g\" " % mesh.auto_smooth_angle)
+                        # IndexedTriangleSet assumes true
+                        if is_col:
+                            fw("colorPerVertex=\"false\" ")
 
-                    if is_uv:
-                        if EXPORT_TRI:
-                            fw("texIndex=\"")
-                        else:
+                        # for IndexedTriangleSet we use a uv per vertex so this isnt needed.
+                        if is_uv:
                             fw("texCoordIndex=\"")
 
-                        j = 0
-                        if EXPORT_TRI:
+                            j = 0
                             for i in face_group:
-                                if len(mesh_faces[i].vertices) == 4:
-                                    fw("%d %d %d " % (j, j + 1, j + 2))
-                                    fw("%d %d %d " % (j, j + 2, j + 3))
-                                    j += 4
-                                else:
-                                    fw("%d %d %d " % (j, j + 1, j + 2))
-                                    j += 3
-                        else:
-                            for i in face_group:
-                                if len(mesh_faces[i].vertices) == 4:
+                                if len(mesh_faces_vertices[i]) == 4:
                                     fw("%d %d %d %d -1, " % (j, j + 1, j + 2, j + 3))
                                     j += 4
                                 else:
                                     fw("%d %d %d -1, " % (j, j + 1, j + 2))
                                     j += 3
-                        fw("\" ")
-                        # --- end texCoordIndex
+                            fw("\" ")
+                            # --- end texCoordIndex
 
-                    if is_col:
-                        fw("colorPerVertex=\"false\" ")
-
-                    if True:
-                        # "coordIndex"
-                        if EXPORT_TRI:
-                            fw("index=\"")
-                        else:
+                        if True:
                             fw("coordIndex=\"")
-
-                        if EXPORT_TRI:
                             for i in face_group:
-                                fv = mesh_faces[i].vertices[:]
-                                if len(fv) == 3:
-                                    fw("%i %i %i " % fv)
-                                else:
-                                    fw("%i %i %i " % (fv[0], fv[1], fv[2]))
-                                    fw("%i %i %i " % (fv[0], fv[2], fv[3]))
-                        else:
-                            for i in face_group:
-                                fv = mesh_faces[i].vertices[:]
+                                fv = mesh_faces_vertices[i]
                                 if len(fv) == 3:
                                     fw("%i %i %i -1, " % fv)
                                 else:
                                     fw("%i %i %i %i -1, " % fv)
 
-                        fw("\" ")
-                        # --- end coordIndex
+                            fw("\" ")
+                            # --- end coordIndex
 
-                    # close IndexedFaceSet
-                    fw(">\n")
+                        # close IndexedFaceSet
+                        fw(">\n")
 
-                    # --- Write IndexedFaceSet Elements
-                    if True:
-                        if is_coords_written:
-                            fw("%s<Coordinate USE=\"%s%s\" />\n" % (ident, "coord_", mesh_name_x3d))
-                        else:
-                            fw("%s<Coordinate DEF=\"%s%s\" " % (ident, "coord_", mesh_name_x3d))
-                            fw("point=\"")
-                            for v in mesh.vertices:
-                                fw("%.6g %.6g %.6g, " % v.co[:])
+                        # --- Write IndexedFaceSet Elements
+                        if True:
+                            if is_coords_written:
+                                fw("%s<Coordinate USE=\"%s%s\" />\n" % (ident, "coord_", mesh_name_x3d))
+                            else:
+                                fw("%s<Coordinate DEF=\"%s%s\" " % (ident, "coord_", mesh_name_x3d))
+                                fw("point=\"")
+                                for v in mesh.vertices:
+                                    fw("%.6g %.6g %.6g, " % v.co[:])
+                                fw("\" />\n")
+                                is_coords_written = True
+
+                        if is_uv:
+                            fw("%s<TextureCoordinate point=\"" % ident)
+                            for i in face_group:
+                                for uv in mesh_faces_uv[i].uv:
+                                    fw("%.4g %.4g, " % uv[:])
+                            del mesh_faces_uv
                             fw("\" />\n")
-                            is_coords_written = True
 
-                    if is_uv:
-                        fw("%s<TextureCoordinate point=\"" % ident)
-                        mesh_faces_uv = mesh.uv_textures.active.data
-                        for i in face_group:
-                            for uv in mesh_faces_uv[i].uv:
-                                fw("%.4g %.4g, " % uv[:])
-                        del mesh_faces_uv
-                        fw("\" />\n")
-
-                    if is_col:
-                        fw("%s<Color color=\"" % ident)
-                        # XXX, 1 color per face, only
-                        mesh_faces_col = mesh.vertex_colors.active.data
-                        if EXPORT_TRI:
+                        if is_col:
+                            fw("%s<Color color=\"" % ident)
+                            # XXX, 1 color per face, only
                             for i in face_group:
                                 fw("%.3g %.3g %.3g, " % mesh_faces_col[i].color1[:])
-                                if len(mesh_faces[i].vertices) == 4:
-                                    fw("%.3g %.3g %.3g, " % mesh_faces_col[i].color1[:])
-                        else:
-                            for i in face_group:
-                                fw("%.3g %.3g %.3g, " % mesh_faces_col[i].color1[:])
-                        del mesh_faces_col
-                        fw("\" />\n")
+                            fw("\" />\n")
 
-                    #--- output vertexColors
+                        #--- output vertexColors
 
-                    #--- output closing braces
-                    ident = ident[:-1]
+                        #--- output closing braces
+                        ident = ident[:-1]
 
-                    if EXPORT_TRI:
-                        fw("%s</IndexedTriangleSet>\n" % ident)
-                    else:
                         fw("%s</IndexedFaceSet>\n" % ident)
 
                     ident = ident[:-1]
