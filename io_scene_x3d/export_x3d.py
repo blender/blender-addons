@@ -103,7 +103,9 @@ def export(file,
            scene,
            use_apply_modifiers=False,
            use_selection=True,
-           EXPORT_TRI=False,):
+           use_triangulate=False,
+           use_normals=False,
+           ):
 
     fw = file.write
 
@@ -255,7 +257,7 @@ def export(file,
                 return "%s" % (newname)
     secureName.nodeID = 0
 
-    def writeIndexedFaceSet(ident, ob, mesh, mtx, world, EXPORT_TRI=False):
+    def writeIndexedFaceSet(ident, ob, mesh, mtx, world):
 
         shape_name_x3d = clean_str(ob.name)
         mesh_name_x3d = clean_str(mesh.name)
@@ -342,6 +344,7 @@ def export(file,
             mesh_materials_use_face_texture = [getattr(material, "use_face_texture", True) for material in mesh_materials]
 
             # fast access!
+            mesh_vertices = mesh.vertices[:]
             mesh_faces = mesh.faces[:]
             mesh_faces_materials = [f.material_index for f in mesh_faces]
             mesh_faces_vertices = [f.vertices[:] for f in mesh_faces]
@@ -429,7 +432,7 @@ def export(file,
                     mesh_faces_uv = mesh.uv_textures.active.data if is_uv else None
 
                     #-- IndexedFaceSet or IndexedLineSet
-                    if EXPORT_TRI:
+                    if use_triangulate:
                         fw("%s<IndexedTriangleSet " % ident)
                         ident += "\t"
 
@@ -437,6 +440,10 @@ def export(file,
                         fw("solid=\"%s\" " % ("true" if mesh.show_double_sided else "false"))
                         if is_smooth:
                             fw("creaseAngle=\"%.4g\" " % mesh.auto_smooth_angle)
+
+                        if use_normals:
+                            # currently not optional, could be made so:
+                            fw("normalPerVertex=\"true\" ")
 
                         slot_uv = None
                         slot_col = None
@@ -517,21 +524,27 @@ def export(file,
 
                         fw("%s<Coordinate " % ident)
                         fw("point=\"")
-                        mesh_vertices = mesh.vertices
                         for x3d_v in vert_tri_list:
-                            fw("%.6g %.6g %.6g, " % mesh_vertices[x3d_v[1]].co[:])
+                            fw("%.6g %.6g %.6g " % mesh_vertices[x3d_v[1]].co[:])
                         fw("\" />\n")
+
+                        if use_normals:
+                            fw("%s<Normal " % ident)
+                            fw("vector=\"")
+                            for x3d_v in vert_tri_list:
+                                fw("%.6g %.6g %.6g " % mesh_vertices[x3d_v[1]].normal[:])
+                            fw("\" />\n")
 
                         if is_uv:
                             fw("%s<TextureCoordinate point=\"" % ident)
                             for x3d_v in vert_tri_list:
-                                fw("%.4g %.4g, " % x3d_v[0][slot_uv])
+                                fw("%.4g %.4g " % x3d_v[0][slot_uv])
                             fw("\" />\n")
 
                         if is_col:
                             fw("%s<Color color=\"" % ident)
                             for x3d_v in vert_tri_list:
-                                fw("%.3g %.3g %.3g, " % x3d_v[0][slot_col])
+                                fw("%.3g %.3g %.3g " % x3d_v[0][slot_col])
                             fw("\" />\n")
 
                         fw("%s</IndexedTriangleSet>\n" % ident)
@@ -545,6 +558,10 @@ def export(file,
                         if is_smooth:
                             fw("creaseAngle=\"%.4g\" " % mesh.auto_smooth_angle)
 
+                        if use_normals:
+                            # currently not optional, could be made so:
+                            fw("normalPerVertex=\"true\" ")
+
                         # IndexedTriangleSet assumes true
                         if is_col:
                             fw("colorPerVertex=\"false\" ")
@@ -556,10 +573,10 @@ def export(file,
                             j = 0
                             for i in face_group:
                                 if len(mesh_faces_vertices[i]) == 4:
-                                    fw("%d %d %d %d -1, " % (j, j + 1, j + 2, j + 3))
+                                    fw("%d %d %d %d -1 " % (j, j + 1, j + 2, j + 3))
                                     j += 4
                                 else:
-                                    fw("%d %d %d -1, " % (j, j + 1, j + 2))
+                                    fw("%d %d %d -1 " % (j, j + 1, j + 2))
                                     j += 3
                             fw("\" ")
                             # --- end texCoordIndex
@@ -569,9 +586,9 @@ def export(file,
                             for i in face_group:
                                 fv = mesh_faces_vertices[i]
                                 if len(fv) == 3:
-                                    fw("%i %i %i -1, " % fv)
+                                    fw("%i %i %i -1 " % fv)
                                 else:
-                                    fw("%i %i %i %i -1, " % fv)
+                                    fw("%i %i %i %i -1 " % fv)
 
                             fw("\" ")
                             # --- end coordIndex
@@ -583,19 +600,28 @@ def export(file,
                         if True:
                             if is_coords_written:
                                 fw("%s<Coordinate USE=\"%s%s\" />\n" % (ident, "coord_", mesh_name_x3d))
+                                if use_normals:
+                                    fw("%s<Normal USE=\"%s%s\" />\n" % (ident, "normals_", mesh_name_x3d))
                             else:
                                 fw("%s<Coordinate DEF=\"%s%s\" " % (ident, "coord_", mesh_name_x3d))
                                 fw("point=\"")
                                 for v in mesh.vertices:
-                                    fw("%.6g %.6g %.6g, " % v.co[:])
+                                    fw("%.6g %.6g %.6g " % v.co[:])
                                 fw("\" />\n")
                                 is_coords_written = True
+
+                                if use_normals:
+                                    fw("%s<Normal DEF=\"%s%s\" " % (ident, "normals_", mesh_name_x3d))
+                                    fw("vector=\"")
+                                    for v in mesh.vertices:
+                                        fw("%.6g %.6g %.6g " % v.normal[:])
+                                    fw("\" />\n")
 
                         if is_uv:
                             fw("%s<TextureCoordinate point=\"" % ident)
                             for i in face_group:
                                 for uv in mesh_faces_uv[i].uv:
-                                    fw("%.4g %.4g, " % uv[:])
+                                    fw("%.4g %.4g " % uv[:])
                             del mesh_faces_uv
                             fw("\" />\n")
 
@@ -603,7 +629,7 @@ def export(file,
                             fw("%s<Color color=\"" % ident)
                             # XXX, 1 color per face, only
                             for i in face_group:
-                                fw("%.3g %.3g %.3g, " % mesh_faces_col[i].color1[:])
+                                fw("%.3g %.3g %.3g " % mesh_faces_col[i].color1[:])
                             fw("\" />\n")
 
                         #--- output vertexColors
@@ -805,7 +831,7 @@ def export(file,
                         me = ob.data
 
                     if me is not None:
-                        writeIndexedFaceSet(ident, ob, me, ob_mat, world, EXPORT_TRI=EXPORT_TRI)
+                        writeIndexedFaceSet(ident, ob, me, ob_mat, world)
 
                         # free mesh created with create_mesh()
                         if me != ob.data:
@@ -845,6 +871,7 @@ def save(operator, context, filepath="",
          use_selection=True,
          use_apply_modifiers=False,
          use_triangulate=False,
+         use_normals=False,
          use_compress=False,
          global_matrix=None,
          ):
@@ -879,7 +906,8 @@ def save(operator, context, filepath="",
            context.scene,
            use_apply_modifiers=use_apply_modifiers,
            use_selection=use_selection,
-           EXPORT_TRI=use_triangulate,
+           use_triangulate=use_triangulate,
+           use_normals=use_normals,
            )
 
     return {'FINISHED'}
