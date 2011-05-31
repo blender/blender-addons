@@ -73,7 +73,7 @@ def clamp_color(col):
     return tuple([max(min(c, 1.0), 0.0) for c in col])
 
 
-def matrix_direction(mtx):
+def matrix_direction_neg_z(mtx):
     return (mathutils.Vector((0.0, 0.0, -1.0)) * mtx.to_3x3()).normalized()[:]
 
 
@@ -181,7 +181,7 @@ def export(file,
         # beamWidth=((lamp.spotSize*math.pi)/180.0)*.37
         cutOffAngle = beamWidth * 1.3
 
-        dx, dy, dz = matrix_direction(mtx)
+        orientation = matrix_direction_neg_z(mtx)
 
         location = mtx.to_translation()[:]
 
@@ -194,7 +194,7 @@ def export(file,
         fw("color=\"%.4g %.4g %.4g\" " % clamp_color(lamp.color))
         fw("beamWidth=\"%.4g\" " % beamWidth)
         fw("cutOffAngle=\"%.4g\" " % cutOffAngle)
-        fw("direction=\"%.4g %.4g %.4g\" " % (dx, dy, dz))
+        fw("direction=\"%.4g %.4g %.4g\" " % orientation)
         fw("location=\"%.4g %.4g %.4g\" />\n" % location)
 
     def writeDirectionalLight(ident, ob, mtx, lamp, world):
@@ -208,12 +208,14 @@ def export(file,
             amb_intensity = 0.0
 
         intensity = min(lamp.energy / 1.75, 1.0)
-        dx, dy, dz = matrix_direction(mtx)
+
+        orientation = matrix_direction_neg_z(mtx)
+
         fw("%s<DirectionalLight DEF=\"%s\" " % (ident, safeName))
         fw("ambientIntensity=\"%.4g\" " % amb_intensity)
         fw("color=\"%.4g %.4g %.4g\" " % clamp_color(lamp.color))
         fw("intensity=\"%.4g\" " % intensity)
-        fw("direction=\"%.4g %.4g %.4g\" />\n" % (dx, dy, dz))
+        fw("direction=\"%.4g %.4g %.4g\" />\n" % orientation)
 
     def writePointLight(ident, ob, mtx, lamp, world):
 
