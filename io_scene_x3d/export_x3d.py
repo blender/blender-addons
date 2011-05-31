@@ -464,7 +464,7 @@ def export(file,
 
                             def vertex_key(fidx, f_cnr_idx):
                                 return (
-                                    mesh_faces_uv[fidx].uv[f_cnr_idx].to_tuple(4),
+                                    mesh_faces_uv[fidx].uv[f_cnr_idx][:],
                                 )
                         elif is_col:
                             slot_col = 0

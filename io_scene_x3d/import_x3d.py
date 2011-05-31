@@ -2314,7 +2314,7 @@ def importLamp(node, spec, ancestry, global_matrix):
     bpyob = node.blendObject = bpy.data.objects.new("TODO", bpylamp)
     bpy.context.scene.objects.link(bpyob)
 
-    bpyob.matrix_world = getFinalMatrix(node, mtx, ancestry. global_matrix)
+    bpyob.matrix_world = getFinalMatrix(node, mtx, ancestry, global_matrix)
 
 
 def importViewpoint(node, ancestry, global_matrix):
