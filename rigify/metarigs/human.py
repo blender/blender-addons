@@ -558,6 +558,7 @@ def create(obj):
     pbone.lock_scale = (False, False, False)
     pbone.rotation_mode = 'YXZ'
     pbone.bone.layers = [True, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False]
+    pbone.rigify_parameters.add()
     pbone = obj.pose.bones[bones['shoulder.R']]
     pbone.rigify_type = 'basic.copy'
     pbone.lock_location = (True, True, True)
@@ -566,6 +567,7 @@ def create(obj):
     pbone.lock_scale = (False, False, False)
     pbone.rotation_mode = 'YXZ'
     pbone.bone.layers = [True, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False]
+    pbone.rigify_parameters.add()
     pbone = obj.pose.bones[bones['foot.L']]
     pbone.rigify_type = ''
     pbone.lock_location = (False, False, False)
