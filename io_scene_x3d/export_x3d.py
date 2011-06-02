@@ -105,9 +105,19 @@ def export(file,
            use_selection=True,
            use_triangulate=False,
            use_normals=False,
+           use_h3d=False,
            ):
 
+    # globals
     fw = file.write
+    dirname = os.path.dirname(file.name)
+    gpu_shader_cache = {}
+
+    if use_h3d:
+        import gpu
+        gpu_shader_dummy_mat = bpy.data.materials.new("X3D_DYMMY_MAT")
+        gpu_shader_cache[None] = gpu.export_shader(scene, gpu_shader_dummy_mat)
+
 
 ##########################################################
 # Writing nodes routines
@@ -118,8 +128,12 @@ def export(file,
         #bfile = sys.expandpath( Blender.Get('filepath') ).replace('<', '&lt').replace('>', '&gt')
         bfile = repr(os.path.basename(filepath).replace('<', '&lt').replace('>', '&gt'))[1:-1]  # use outfile name
         fw("%s<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" % ident)
-        fw("%s<!DOCTYPE X3D PUBLIC \"ISO//Web3D//DTD X3D 3.0//EN\" \"http://www.web3d.org/specifications/x3d-3.0.dtd\">\n" % ident)
-        fw("%s<X3D version=\"3.0\" profile=\"Immersive\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema-instance\" xsd:noNamespaceSchemaLocation=\"http://www.web3d.org/specifications/x3d-3.0.xsd\">\n" % ident)
+        if use_h3d:
+            fw("%s<X3D profile=\"H3DAPI\" version=\"1.4\">\n" % ident)
+        else:
+            fw("%s<!DOCTYPE X3D PUBLIC \"ISO//Web3D//DTD X3D 3.0//EN\" \"http://www.web3d.org/specifications/x3d-3.0.dtd\">\n" % ident)
+            fw("%s<X3D version=\"3.0\" profile=\"Immersive\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema-instance\" xsd:noNamespaceSchemaLocation=\"http://www.web3d.org/specifications/x3d-3.0.xsd\">\n" % ident)
+
         ident += "\t"
         fw("%s<head>\n" % ident)
         ident += "\t"
@@ -391,10 +405,26 @@ def export(file,
                             is_smooth = True
                             break
 
+                    if use_h3d:
+                        gpu_shader = gpu_shader_cache.get(material)  # material can be 'None', uses dummy cache
+                        if gpu_shader is None:
+                            gpu_shader = gpu_shader_cache[material] = gpu.export_shader(scene, material)
+                            
+                            if 1:  # XXX DEBUG
+                                gpu_shader_tmp = gpu.export_shader(scene, material)
+                                import pprint
+                                print("\nWRITING MATERIAL:", material.name)
+                                del gpu_shader_tmp['fragment']
+                                del gpu_shader_tmp['vertex']
+                                pprint.pprint(gpu_shader_tmp, width=120)
+                                #pprint.pprint(val['vertex'])
+                                del gpu_shader_tmp
+                            
+
                     fw("%s<Appearance>\n" % ident)
                     ident += "\t"
 
-                    if image:
+                    if image and not use_h3d:
                         writeImageTexture(ident, image)
 
                         if mesh_materials_use_face_texture[material_index]:
@@ -424,7 +454,12 @@ def export(file,
                             fw("rotation=\"%.6g\" " % rot)
                             fw("/>\n")
 
-                    if material:
+                    if use_h3d:
+                        mat_tmp = material if material else gpu_shader_dummy_mat
+                        writeMaterialH3D(ident, mat_tmp, clean_str(mat_tmp.name, ""), world,
+                                         ob, gpu_shader)
+                        del mat_tmp
+                    else:
                         writeMaterial(ident, material, clean_str(material.name, ""), world)
 
                     ident = ident[:-1]
@@ -471,7 +506,7 @@ def export(file,
 
                             def vertex_key(fidx, f_cnr_idx):
                                 return (
-                                    getattr(mesh_faces_col[fidx], "color%d" % (f_cnr_idx))[:],
+                                    getattr(mesh_faces_col[fidx], "color%d" % (f_cnr_idx + 1))[:],
                                 )
                         else:
                             # ack, not especially efficient in this case
@@ -548,6 +583,30 @@ def export(file,
                             for x3d_v in vert_tri_list:
                                 fw("%.3g %.3g %.3g " % x3d_v[0][slot_col])
                             fw("\" />\n")
+
+
+                        if use_h3d:
+                            # write attributes
+                            for gpu_attr in gpu_shader['attributes']:
+                                
+                                # UVs
+                                if gpu_attr['type'] == gpu.CD_MTFACE:
+                                    if gpu_attr['datatype'] == gpu.GPU_DATA_2F:
+                                        fw("%s<FloatVertexAttribute " % ident)
+                                        fw('name="%s" ' % gpu_attr['varname'])
+                                        fw('numComponents="2" ')
+                                        fw('value="')
+                                        for x3d_v in vert_tri_list:
+                                            fw("%.4g %.4g " % x3d_v[0][slot_uv])
+                                        fw('" />\n')
+                                    else:
+                                        assert(0)
+
+                                elif gpu_attr['type'] == gpu.CD_MCOL:
+                                    if gpu_attr['datatype'] == gpu.GPU_DATA_4UB:
+                                        pass  # XXX, H3D can't do
+                                    else:
+                                        assert(0)
 
                         fw("%s</IndexedTriangleSet>\n" % ident)
 
@@ -660,10 +719,10 @@ def export(file,
             ident = ident[:-1]
             fw("%s</Collision>\n" % ident)
 
-    def writeMaterial(ident, mat, matName, world):
+    def writeMaterial(ident, mat, material_id, world):
         # look up material name, use it if available
         if mat.tag:
-            fw("%s<Material USE=\"MA_%s\" />\n" % (ident, matName))
+            fw("%s<Material USE=\"MA_%s\" />\n" % (ident, material_id))
         else:
             mat.tag = True
 
@@ -685,13 +744,176 @@ def export(file,
                 shininess = 0.0
                 specColor = emitColor = diffuseColor
 
-            fw("%s<Material DEF=\"MA_%s\" " % (ident, matName))
+            fw("%s<Material DEF=\"MA_%s\" " % (ident, material_id))
             fw("diffuseColor=\"%.3g %.3g %.3g\" " % clamp_color(diffuseColor))
             fw("specularColor=\"%.3g %.3g %.3g\" " % clamp_color(specColor))
             fw("emissiveColor=\"%.3g %.3g %.3g\" " % clamp_color(emitColor))
             fw("ambientIntensity=\"%.3g\" " % ambient)
             fw("shininess=\"%.3g\" " % shininess)
-            fw("transparency=\"%s\" />\n" % transp)
+            fw("transparency=\"%s\" " % transp)
+            fw("/>\n")
+
+    def writeMaterialH3D(ident, mat, material_id, world,
+                         ob, gpu_shader):
+
+        fw("%s<Material />\n" % ident)
+        if mat.tag:
+            fw("%s<ComposedShader USE=\"MA_%s\" />\n" % (ident, material_id))
+        else:
+            mat.tag = True
+
+            #~ CD_MCOL 6
+            #~ CD_MTFACE 5
+            #~ CD_ORCO 14
+            #~ CD_TANGENT 18
+            #~ GPU_DATA_16F 7
+            #~ GPU_DATA_1F 2
+            #~ GPU_DATA_1I 1
+            #~ GPU_DATA_2F 3
+            #~ GPU_DATA_3F 4
+            #~ GPU_DATA_4F 5
+            #~ GPU_DATA_4UB 8
+            #~ GPU_DATA_9F 6
+            #~ GPU_DYNAMIC_LAMP_DYNCO 7
+            #~ GPU_DYNAMIC_LAMP_DYNCOL 11
+            #~ GPU_DYNAMIC_LAMP_DYNENERGY 10
+            #~ GPU_DYNAMIC_LAMP_DYNIMAT 8
+            #~ GPU_DYNAMIC_LAMP_DYNPERSMAT 9
+            #~ GPU_DYNAMIC_LAMP_DYNVEC 6
+            #~ GPU_DYNAMIC_OBJECT_COLOR 5
+            #~ GPU_DYNAMIC_OBJECT_IMAT 4
+            #~ GPU_DYNAMIC_OBJECT_MAT 2
+            #~ GPU_DYNAMIC_OBJECT_VIEWIMAT 3
+            #~ GPU_DYNAMIC_OBJECT_VIEWMAT 1
+            #~ GPU_DYNAMIC_SAMPLER_2DBUFFER 12
+            #~ GPU_DYNAMIC_SAMPLER_2DIMAGE 13
+            #~ GPU_DYNAMIC_SAMPLER_2DSHADOW 14
+
+
+            '''
+            inline const char* typeToString( X3DType t ) {
+              switch( t ) {
+              case     SFFLOAT: return "SFFloat";
+              case     MFFLOAT: return "MFFloat";
+              case    SFDOUBLE: return "SFDouble";
+              case    MFDOUBLE: return "MFDouble";
+              case      SFTIME: return "SFTime";
+              case      MFTIME: return "MFTime";
+              case     SFINT32: return "SFInt32";
+              case     MFINT32: return "MFInt32";
+              case     SFVEC2F: return "SFVec2f";
+              case     MFVEC2F: return "MFVec2f";
+              case     SFVEC2D: return "SFVec2d";
+              case     MFVEC2D: return "MFVec2d";
+              case     SFVEC3F: return "SFVec3f";
+              case     MFVEC3F: return "MFVec3f";
+              case     SFVEC3D: return "SFVec3d";
+              case     MFVEC3D: return "MFVec3d";
+              case     SFVEC4F: return "SFVec4f";
+              case     MFVEC4F: return "MFVec4f";
+              case     SFVEC4D: return "SFVec4d";
+              case     MFVEC4D: return "MFVec4d";
+              case      SFBOOL: return "SFBool";
+              case      MFBOOL: return "MFBool";
+              case    SFSTRING: return "SFString";
+              case    MFSTRING: return "MFString";
+              case      SFNODE: return "SFNode";
+              case      MFNODE: return "MFNode";
+              case     SFCOLOR: return "SFColor";
+              case     MFCOLOR: return "MFColor";
+              case SFCOLORRGBA: return "SFColorRGBA";
+              case MFCOLORRGBA: return "MFColorRGBA";
+              case  SFROTATION: return "SFRotation";
+              case  MFROTATION: return "MFRotation";
+              case  SFQUATERNION: return "SFQuaternion";
+              case  MFQUATERNION: return "MFQuaternion";
+              case  SFMATRIX3F: return "SFMatrix3f";
+              case  MFMATRIX3F: return "MFMatrix3f";
+              case  SFMATRIX4F: return "SFMatrix4f";
+              case  MFMATRIX4F: return "MFMatrix4f";
+              case  SFMATRIX3D: return "SFMatrix3d";
+              case  MFMATRIX3D: return "MFMatrix3d";
+              case  SFMATRIX4D: return "SFMatrix4d";
+              case  MFMATRIX4D: return "MFMatrix4d";
+              case UNKNOWN_X3D_TYPE: 
+              default:return "UNKNOWN_X3D_TYPE";
+            '''
+            import gpu
+
+            fw("%s<ComposedShader DEF=\"MA_%s\" language=\"GLSL\" >\n" % (ident, material_id))
+            ident += "\t"
+
+            shader_url_frag = 'shaders/glsl_%s.frag' % material_id
+            shader_url_vert = 'shaders/glsl_%s.vert' % material_id
+
+            # write files
+            shader_dir = os.path.join(dirname, "shaders")
+            if not os.path.isdir(shader_dir):
+                os.mkdir(shader_dir)
+
+            for uniform in gpu_shader['uniforms']:
+                if uniform['type'] == gpu.GPU_DYNAMIC_SAMPLER_2DIMAGE:
+                    fw('%s<field name="%s" type="SFNode" accessType="inputOutput">\n' % (ident, uniform['varname']))
+                    writeImageTexture(ident + '\t', bpy.data.images[uniform['image']])
+                    fw("%s</field>\n" % ident)
+
+                elif uniform['type'] == gpu.GPU_DYNAMIC_LAMP_DYNCO:
+                    if uniform['datatype'] == gpu.GPU_DATA_3F:  # should always be true!
+                        value = "%.6g %.6g %.6g" % (global_matrix * bpy.data.objects[uniform['lamp']].matrix_world).to_translation()[:]
+                        fw('%s<field name="%s" type="SFVec3f" accessType="inputOutput" value="%s" />\n' % (ident, uniform['varname'], value))
+                    else:
+                        assert(0)
+
+                elif uniform['type'] == gpu.GPU_DYNAMIC_LAMP_DYNCOL:
+                    # odd  we have both 3, 4 types.
+                    lamp = bpy.data.objects[uniform['lamp']].data
+                    value = "%.6g %.6g %.6g" % (mathutils.Vector(lamp.color) * lamp.energy)[:]
+                    if uniform['datatype'] == gpu.GPU_DATA_3F:
+                        fw('%s<field name="%s" type="SFVec3f" accessType="inputOutput" value="%s" />\n' % (ident, uniform['varname'], value))
+                    elif uniform['datatype'] == gpu.GPU_DATA_4F:
+                        fw('%s<field name="%s" type="SFVec4f" accessType="inputOutput" value="%s 1.0" />\n' % (ident, uniform['varname'], value))
+                    else:
+                        assert(0)
+                        
+                elif uniform['type'] == gpu.GPU_DYNAMIC_LAMP_DYNVEC:
+                    if uniform['datatype'] == gpu.GPU_DATA_3F:
+                        value = "%.6g %.6g %.6g" % (mathutils.Vector((0.0, 0.0, 1.0)) * (global_matrix * bpy.data.objects[uniform['lamp']].matrix_world).to_quaternion()).normalized()[:]
+                        fw('%s<field name="%s" type="SFVec3f" accessType="inputOutput" value="%s" />\n' % (ident, uniform['varname'], value))
+                    else:
+                        assert(0)
+
+                elif uniform['type'] == gpu.GPU_DYNAMIC_OBJECT_VIEWIMAT:
+                    if uniform['datatype'] == gpu.GPU_DATA_16F:
+                        # must be updated dynamically
+                        # TODO, write out 'viewpointMatrices.py'
+                        value = ' '.join(['%.6f' % f for v in mathutils.Matrix() for f in v])
+                        fw('%s<field name="%s" type="SFMatrix4f" accessType="inputOutput" value="%s" />\n' % (ident, uniform['varname'], value))
+                    else:
+                        assert(0)
+
+                elif uniform['type'] == gpu.GPU_DYNAMIC_OBJECT_IMAT:
+                    if uniform['datatype'] == gpu.GPU_DATA_16F:
+                        value = ' '.join(['%.6f' % f for v in (global_matrix * ob.matrix_world).inverted() for f in v])
+                        fw('%s<field name="%s" type="SFMatrix4f" accessType="inputOutput" value="%s" />\n' % (ident, uniform['varname'], value))
+                    else:
+                        assert(0)
+
+                elif uniform['type'] == gpu.GPU_DYNAMIC_SAMPLER_2DSHADOW:
+                    pass  # XXX, shadow buffers not supported.
+
+            file_frag = open(os.path.join(dirname, shader_url_frag), "w")
+            file_frag.write(gpu_shader['fragment'])
+            file_frag.close()
+
+            file_vert = open(os.path.join(dirname, shader_url_vert), "w")
+            file_vert.write(gpu_shader['vertex'])
+            file_vert.close()
+
+            fw('%s<ShaderPart type="FRAGMENT" url="%s" />\n' % (ident, shader_url_frag))
+            fw('%s<ShaderPart type="VERTEX" url="%s" />\n' % (ident, shader_url_vert))
+            ident = ident[:-1]
+
+            fw("%s</ComposedShader>\n" % ident)
 
     def writeImageTexture(ident, image):
         name = image.name
@@ -875,6 +1097,7 @@ def save(operator, context, filepath="",
          use_triangulate=False,
          use_normals=False,
          use_compress=False,
+         use_h3d=False,
          global_matrix=None,
          ):
 
@@ -910,6 +1133,7 @@ def save(operator, context, filepath="",
            use_selection=use_selection,
            use_triangulate=use_triangulate,
            use_normals=use_normals,
+           use_h3d=use_h3d,
            )
 
     return {'FINISHED'}

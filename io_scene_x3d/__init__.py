@@ -99,6 +99,7 @@ class ExportX3D(bpy.types.Operator, ExportHelper):
     use_triangulate = BoolProperty(name="Triangulate", description="Write quads into 'IndexedTriangleSet'", default=True)
     use_normals = BoolProperty(name="Normals", description="Write normals with geometry", default=False)
     use_compress = BoolProperty(name="Compress", description="GZip the resulting file, requires a full python install", default=False)
+    use_h3d = BoolProperty(name="H3D Extensions", description="Export shaders for H3D", default=False)
 
     axis_forward = EnumProperty(
             name="Forward",
