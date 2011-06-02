@@ -127,7 +127,6 @@ def export(file,
 
     def writeHeader(ident):
         filepath = fw.__self__.name
-        #bfile = sys.expandpath( Blender.Get('filepath') ).replace('<', '&lt').replace('>', '&gt')
         bfile = repr(os.path.basename(filepath).replace('<', '&lt').replace('>', '&gt'))[1:-1]  # use outfile name
         fw('%s<?xml version="1.0" encoding="UTF-8"?>\n' % ident)
         if use_h3d:
@@ -766,7 +765,7 @@ def export(file,
 
             emit = mat.emit
             ambient = mat.ambient / 3.0
-            diffuseColor = tuple(mat.diffuse_color)
+            diffuseColor = mat.diffuse_color[:]
             if world:
                 ambiColor = tuple(((c * mat.ambient) * 2.0) for c in world.ambient_color)
             else:
@@ -907,14 +906,14 @@ def export(file,
                 elif uniform['type'] == gpu.GPU_DYNAMIC_LAMP_DYNCOL:
                     # odd  we have both 3, 4 types.
                     lamp = bpy.data.objects[uniform['lamp']].data
-                    value = '%.6g %.6g %.6g' % (mathutils.Vector(lamp.color) * lamp.energy)[:]
+                    value = '%.6g %.6g %.6g' % (lamp.color * lamp.energy)[:]
                     if uniform['datatype'] == gpu.GPU_DATA_3F:
                         fw('%s<field name="%s" type="SFVec3f" accessType="inputOutput" value="%s" />\n' % (ident, uniform['varname'], value))
                     elif uniform['datatype'] == gpu.GPU_DATA_4F:
                         fw('%s<field name="%s" type="SFVec4f" accessType="inputOutput" value="%s 1.0" />\n' % (ident, uniform['varname'], value))
                     else:
                         assert(0)
-                        
+
                 elif uniform['type'] == gpu.GPU_DYNAMIC_LAMP_DYNVEC:
                     if uniform['datatype'] == gpu.GPU_DATA_3F:
                         value = '%.6g %.6g %.6g' % (mathutils.Vector((0.0, 0.0, 1.0)) * (global_matrix * bpy.data.objects[uniform['lamp']].matrix_world).to_quaternion()).normalized()[:]
@@ -1164,18 +1163,13 @@ def save(operator, context, filepath="",
          global_matrix=None,
          ):
 
-    if use_compress:
-        if not filepath.lower().endswith('.x3dz'):
-            filepath = '.'.join(filepath.split('.')[:-1]) + '.x3dz'
-    else:
-        if not filepath.lower().endswith('.x3d'):
-            filepath = '.'.join(filepath.split('.')[:-1]) + '.x3d'
+    py.path.ensure_ext(filepath, '.x3dz' if use_compress else '.x3d')
 
     if bpy.ops.object.mode_set.poll():
         bpy.ops.object.mode_set(mode='OBJECT')
 
     file = None
-    if filepath.lower().endswith('.x3dz'):
+    if use_compress:
         try:
             import gzip
             file = gzip.open(filepath, 'w')
