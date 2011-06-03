@@ -73,25 +73,12 @@ def clamp_color(col):
     return tuple([max(min(c, 1.0), 0.0) for c in col])
 
 
-def matrix_direction_neg_z(mtx):
-    return (mathutils.Vector((0.0, 0.0, -1.0)) * mtx.to_3x3()).normalized()[:]
+def matrix_direction_neg_z(matrix):
+    return (mathutils.Vector((0.0, 0.0, -1.0)) * matrix.to_3x3()).normalized()[:]
 
 
-def clean_str(name, prefix='rsvd_'):
-    """cleanStr(name,prefix) - try to create a valid VRML DEF name from object name"""
-
-    newName = name
-
-    if newName in x3d_names_reserved:
-        newName = '%s%s' % (prefix, newName)
-
-    if newName[0].isdigit():
-        newName = '%s%s' % ('_', newName)
-
-    for bad in [' ', '"', '#', "'", ', ', '.', '[', '\\', ']', '{', '}']:
-        newName = newName.replace(bad, '_')
-    return newName
-
+def prefix_quoted_str(value, prefix):
+    return value[0] + prefix + value[1:]
 
 ##########################################################
 # Functions for writing output file
@@ -109,8 +96,18 @@ def export(file,
            ):
 
     # -------------------------------------------------------------------------
-    # global setup
+    # Global Setup
     # -------------------------------------------------------------------------
+    from bpy_extras.io_utils import unique_name
+    from xml.sax.saxutils import quoteattr
+
+    uuid_cache_object = {}    # object
+    uuid_cache_view = {}      # object, different namespace
+    uuid_cache_mesh = {}      # mesh
+    uuid_cache_material = {}  # material
+    uuid_cache_image = {}     # image
+    uuid_cache_world = {}     # world
+
     fw = file.write
     dirname = os.path.dirname(file.name)
     gpu_shader_cache = {}
@@ -120,13 +117,14 @@ def export(file,
         gpu_shader_dummy_mat = bpy.data.materials.new('X3D_DYMMY_MAT')
         gpu_shader_cache[None] = gpu.export_shader(scene, gpu_shader_dummy_mat)
 
-##########################################################
-# Writing nodes routines
-##########################################################
+    # -------------------------------------------------------------------------
+    # File Writing Functions
+    # -------------------------------------------------------------------------
 
     def writeHeader(ident):
-        filepath = fw.__self__.name
-        bfile = repr(os.path.basename(filepath).replace('<', '&lt').replace('>', '&gt'))[1:-1]  # use outfile name
+        filepath_quoted = quoteattr(os.path.basename(file.name))
+        blender_ver_quoted = quoteattr('Blender %s' % bpy.app.version_string)
+
         fw('%s<?xml version="1.0" encoding="UTF-8"?>\n' % ident)
         if use_h3d:
             fw('%s<X3D profile="H3DAPI" version="1.4">\n' % ident)
@@ -137,8 +135,8 @@ def export(file,
         ident += '\t'
         fw('%s<head>\n' % ident)
         ident += '\t'
-        fw('%s<meta name="filename" content="%s" />\n' % (ident, bfile))
-        fw('%s<meta name="generator" content="Blender %s" />\n' % (ident, bpy.app.version_string))
+        fw('%s<meta name="filename" content=%s />\n' % (ident, filepath_quoted))
+        fw('%s<meta name="generator" content=%s />\n' % (ident, blender_ver_quoted))
         # this info was never updated, so blender version should be enough
         # fw('%s<meta name="translator" content="X3D exporter v1.55 (2006/01/17)" />\n' % ident)
         ident = ident[:-1]
@@ -154,13 +152,14 @@ def export(file,
         fw('%s</X3D>' % ident)
         return ident
 
-    def writeViewpoint(ident, obj, mat, scene):
-        loc, quat, scale = mat.decompose()
+    def writeViewpoint(ident, obj, matrix, scene):
+        view_id = unique_name(obj, 'CA_' + obj.name, uuid_cache_view, clean_func=quoteattr)
+
+        loc, quat, scale = matrix.decompose()
 
         ident_step = ident + (' ' * (-len(ident) + \
         fw('%s<Viewpoint ' % ident)))
-        fw('DEF="%s"\n' % clean_str(obj.name))
-        fw(ident_step + 'description="%s"\n' % obj.name)
+        fw('DEF=%s\n' % view_id)
         fw(ident_step + 'centerOfRotation="0 0 0"\n')
         fw(ident_step + 'position="%3.2f %3.2f %3.2f"\n' % loc[:])
         fw(ident_step + 'orientation="%3.2f %3.2f %3.2f %3.2f"\n' % (quat.axis[:] + (quat.angle, )))
@@ -193,8 +192,10 @@ def export(file,
         fw(ident_step + 'avatarSize="0.25, 1.75, 0.75"\n')
         fw(ident_step + '/>\n')
 
-    def writeSpotLight(ident, obj, mtx, lamp, world):
-        safeName = clean_str(obj.name)
+    def writeSpotLight(ident, obj, matrix, lamp, world):
+        # note, lamp_id is not re-used
+        lamp_id = unique_name(obj, 'LA_' + obj.name, uuid_cache_object, clean_func=quoteattr)
+
         if world:
             ambi = world.ambient_color
             amb_intensity = ((ambi[0] + ambi[1] + ambi[2]) / 3.0) / 2.5
@@ -208,15 +209,15 @@ def export(file,
         # beamWidth=((lamp.spotSize*math.pi)/180.0)*.37
         cutOffAngle = beamWidth * 1.3
 
-        orientation = matrix_direction_neg_z(mtx)
+        orientation = matrix_direction_neg_z(matrix)
 
-        location = mtx.to_translation()[:]
+        location = matrix.to_translation()[:]
 
         radius = lamp.distance * math.cos(beamWidth)
         # radius = lamp.dist*math.cos(beamWidth)
         ident_step = ident + (' ' * (-len(ident) + \
         fw('%s<SpotLight ' % ident)))
-        fw('DEF="%s"\n' % safeName)
+        fw('DEF=%s\n' % lamp_id)
         fw(ident_step + 'radius="%.4g"\n' % radius)
         fw(ident_step + 'ambientIntensity="%.4g"\n' % amb_intensity)
         fw(ident_step + 'intensity="%.4g"\n' % intensity)
@@ -227,8 +228,10 @@ def export(file,
         fw(ident_step + 'location="%.4g %.4g %.4g"\n' % location)
         fw(ident_step + '/>\n')
 
-    def writeDirectionalLight(ident, obj, mtx, lamp, world):
-        safeName = clean_str(obj.name)
+    def writeDirectionalLight(ident, obj, matrix, lamp, world):
+        # note, lamp_id is not re-used
+        lamp_id = unique_name(obj, 'LA_' + obj.name, uuid_cache_object, clean_func=quoteattr)
+
         if world:
             ambi = world.ambient_color
             # ambi = world.amb
@@ -239,20 +242,21 @@ def export(file,
 
         intensity = min(lamp.energy / 1.75, 1.0)
 
-        orientation = matrix_direction_neg_z(mtx)
+        orientation = matrix_direction_neg_z(matrix)
 
         ident_step = ident + (' ' * (-len(ident) + \
         fw('%s<DirectionalLight ' % ident)))
-        fw('DEF="%s"\n' % safeName)
+        fw('DEF=%s\n' % lamp_id)
         fw(ident_step + 'ambientIntensity="%.4g"\n' % amb_intensity)
         fw(ident_step + 'color="%.4g %.4g %.4g"\n' % clamp_color(lamp.color))
         fw(ident_step + 'intensity="%.4g"\n' % intensity)
         fw(ident_step + 'direction="%.4g %.4g %.4g"\n' % orientation)
         fw(ident_step + '/>\n')
 
-    def writePointLight(ident, obj, mtx, lamp, world):
+    def writePointLight(ident, obj, matrix, lamp, world):
+        # note, lamp_id is not re-used
+        lamp_id = unique_name(obj, 'LA_' + obj.name, uuid_cache_object, clean_func=quoteattr)
 
-        safeName = clean_str(obj.name)
         if world:
             ambi = world.ambient_color
             # ambi = world.amb
@@ -262,11 +266,11 @@ def export(file,
             amb_intensity = 0.0
 
         intensity = min(lamp.energy / 1.75, 1.0)
-        location = mtx.to_translation()[:]
+        location = matrix.to_translation()[:]
 
         ident_step = ident + (' ' * (-len(ident) + \
         fw('%s<PointLight ' % ident)))
-        fw('DEF="%s"\n' % safeName)
+        fw('DEF=%s\n' % lamp_id)
         fw(ident_step + 'ambientIntensity="%.4g"\n' % amb_intensity)
         fw(ident_step + 'color="%.4g %.4g %.4g"\n' % clamp_color(lamp.color))
 
@@ -275,30 +279,12 @@ def export(file,
         fw(ident_step + 'location="%.4g %.4g %.4g"\n' % location)
         fw(ident_step + '/>\n')
 
-    def secureName(name):
-        name = name + str(secureName.nodeID)
-        secureName.nodeID += 1
-        if len(name) <= 3:
-            newname = '_' + str(secureName.nodeID)
-            return "%s" % (newname)
-        else:
-            for bad in ('"', '#', "'", ', ', '.', '[', '\\', ']', '{', '}'):
-                name = name.replace(bad, '_')
-            if name in x3d_names_reserved:
-                newname = name[0:3] + '_' + str(secureName.nodeID)
-                return "%s" % (newname)
-            elif name[0].isdigit():
-                newname = '_' + name + str(secureName.nodeID)
-                return "%s" % (newname)
-            else:
-                newname = name
-                return "%s" % (newname)
-    secureName.nodeID = 0
-
-    def writeIndexedFaceSet(ident, obj, mesh, mtx, world):
-
-        shape_name_x3d = clean_str(obj.name)
-        mesh_name_x3d = clean_str(mesh.name)
+    def writeIndexedFaceSet(ident, obj, mesh, matrix, world):
+        obj_id = unique_name(obj, 'OB_' + obj.name, uuid_cache_object, clean_func=quoteattr)
+        mesh_id = unique_name(mesh, 'ME_' + mesh.name, uuid_cache_mesh, clean_func=quoteattr)
+        mesh_id_group = prefix_quoted_str(mesh_id, 'group_')
+        mesh_id_coords = prefix_quoted_str(mesh_id, 'coords_')
+        mesh_id_normals = prefix_quoted_str(mesh_id, 'normals_')
 
         if not mesh.faces:
             return
@@ -336,11 +322,11 @@ def export(file,
         del texface_use_collision
         # del texface_use_object_color
 
-        loc, quat, sca = mtx.decompose()
+        loc, quat, sca = matrix.decompose()
 
         ident_step = ident + (' ' * (-len(ident) + \
         fw('%s<Transform ' % ident)))
-        fw('DEF="%s"\n' % shape_name_x3d)
+        fw('DEF=%s\n' % obj_id)
         fw(ident_step + 'translation="%.6g %.6g %.6g"\n' % loc[:])
         fw(ident_step + 'scale="%.6g %.6g %.6g"\n' % sca[:])
         fw(ident_step + 'rotation="%.6g %.6g %.6g %.6g"\n' % (quat.axis[:] + (quat.angle, )))
@@ -348,11 +334,11 @@ def export(file,
         ident += '\t'
 
         if mesh.tag:
-            fw('%s<Group USE="G_%s" />\n' % (ident, mesh_name_x3d))
+            fw('%s<Group USE=%s />\n' % (ident, mesh_id_group))
         else:
             mesh.tag = True
 
-            fw('%s<Group DEF="G_%s">\n' % (ident, mesh_name_x3d))
+            fw('%s<Group DEF=%s>\n' % (ident, mesh_id_group))
             ident += '\t'
 
             is_uv = bool(mesh.uv_textures.active)
@@ -480,11 +466,11 @@ def export(file,
 
                     if use_h3d:
                         mat_tmp = material if material else gpu_shader_dummy_mat
-                        writeMaterialH3D(ident, mat_tmp, clean_str(mat_tmp.name, ''), world,
+                        writeMaterialH3D(ident, mat_tmp, world,
                                          obj, gpu_shader)
                         del mat_tmp
                     else:
-                        writeMaterial(ident, material, clean_str(material.name, ''), world)
+                        writeMaterial(ident, material, world)
 
                     ident = ident[:-1]
                     fw('%s</Appearance>\n' % ident)
@@ -687,13 +673,13 @@ def export(file,
                         # --- Write IndexedFaceSet Elements
                         if True:
                             if is_coords_written:
-                                fw('%s<Coordinate USE="%s%s" />\n' % (ident, 'coord_', mesh_name_x3d))
+                                fw('%s<Coordinate USE=%s />\n' % (ident, mesh_id_coords))
                                 if use_normals:
-                                    fw('%s<Normal USE="%s%s" />\n' % (ident, 'normals_', mesh_name_x3d))
+                                    fw('%s<Normal USE=%s />\n' % (ident, mesh_id_normals))
                             else:
                                 ident_step = ident + (' ' * (-len(ident) + \
                                 fw('%s<Coordinate ' % ident)))
-                                fw('DEF="%s%s"\n' % ('coord_', mesh_name_x3d))
+                                fw('DEF=%s\n' % mesh_id_coords)
                                 fw(ident_step + 'point="')
                                 for v in mesh.vertices:
                                     fw('%.6g %.6g %.6g ' % v.co[:])
@@ -705,7 +691,7 @@ def export(file,
                                 if use_normals:
                                     ident_step = ident + (' ' * (-len(ident) + \
                                     fw('%s<Normal ' % ident)))
-                                    fw('DEF="%s%s"\n' % ('normals_', mesh_name_x3d))
+                                    fw('DEF=%s\n' % mesh_id_normals)
                                     fw(ident_step + 'vector="')
                                     for v in mesh.vertices:
                                         fw('%.6g %.6g %.6g ' % v.normal[:])
@@ -753,34 +739,36 @@ def export(file,
             ident = ident[:-1]
             fw('%s</Collision>\n' % ident)
 
-    def writeMaterial(ident, mat, material_id, world):
-        # look up material name, use it if available
-        if mat.tag:
-            fw('%s<Material USE="MA_%s" />\n' % (ident, material_id))
-        else:
-            mat.tag = True
+    def writeMaterial(ident, material, world):
+        material_id = unique_name(material, 'MA_' + material.name, uuid_cache_material, clean_func=quoteattr)
 
-            emit = mat.emit
-            ambient = mat.ambient / 3.0
-            diffuseColor = mat.diffuse_color[:]
+        # look up material name, use it if available
+        if material.tag:
+            fw('%s<Material USE=%s />\n' % (ident, material_id))
+        else:
+            material.tag = True
+
+            emit = material.emit
+            ambient = material.ambient / 3.0
+            diffuseColor = material.diffuse_color[:]
             if world:
-                ambiColor = tuple(((c * mat.ambient) * 2.0) for c in world.ambient_color)
+                ambiColor = ((material.ambient * 2.0) * world.ambient_color)[:]
             else:
                 ambiColor = 0.0, 0.0, 0.0
 
             emitColor = tuple(((c * emit) + ambiColor[i]) / 2.0 for i, c in enumerate(diffuseColor))
-            shininess = mat.specular_hardness / 512.0
-            specColor = tuple((c + 0.001) / (1.25 / (mat.specular_intensity + 0.001)) for c in mat.specular_color)
-            transp = 1.0 - mat.alpha
+            shininess = material.specular_hardness / 512.0
+            specColor = tuple((c + 0.001) / (1.25 / (material.specular_intensity + 0.001)) for c in material.specular_color)
+            transp = 1.0 - material.alpha
 
-            if mat.use_shadeless:
+            if material.use_shadeless:
                 ambient = 1.0
                 shininess = 0.0
                 specColor = emitColor = diffuseColor
 
             ident_step = ident + (' ' * (-len(ident) + \
             fw('%s<Material ' % ident)))
-            fw('DEF="MA_%s"\n' % material_id)
+            fw('DEF=%s\n' % material_id)
             fw(ident_step + 'diffuseColor="%.3g %.3g %.3g"\n' % clamp_color(diffuseColor))
             fw(ident_step + 'specularColor="%.3g %.3g %.3g"\n' % clamp_color(specColor))
             fw(ident_step + 'emissiveColor="%.3g %.3g %.3g"\n' % clamp_color(emitColor))
@@ -789,14 +777,15 @@ def export(file,
             fw(ident_step + 'transparency="%s"\n' % transp)
             fw(ident_step + '/>\n')
 
-    def writeMaterialH3D(ident, mat, material_id, world,
+    def writeMaterialH3D(ident, material, world,
                          obj, gpu_shader):
+        material_id = unique_name(material, 'MA_' + material.name, uuid_cache_material, clean_func=quoteattr)
 
         fw('%s<Material />\n' % ident)
-        if mat.tag:
-            fw('%s<ComposedShader USE="MA_%s" />\n' % (ident, material_id))
+        if material.tag:
+            fw('%s<ComposedShader USE=%s />\n' % (ident, material_id))
         else:
-            mat.tag = True
+            material.tag = True
 
             #~ CD_MCOL 6
             #~ CD_MTFACE 5
@@ -875,7 +864,7 @@ def export(file,
             '''
             import gpu
 
-            fw('%s<ComposedShader DEF="MA_%s" language="GLSL" >\n' % (ident, material_id))
+            fw('%s<ComposedShader DEF=%s language="GLSL" >\n' % (ident, material_id))
             ident += '\t'
 
             shader_url_frag = 'shaders/glsl_%s.frag' % material_id
@@ -943,7 +932,7 @@ def export(file,
                             # value = ' '.join(['%.6g' % (f / 256) for f in uniform['texpixels']])
 
                             fw('%s<field name="%s" type="SFInt32" accessType="inputOutput" value="%s" />\n' % (ident, uniform['varname'], value))
-                            print("ass", len(uniform['texpixels']))
+                            print('test', len(uniform['texpixels']))
                     else:
                         assert(0)
 
@@ -962,16 +951,16 @@ def export(file,
             fw('%s</ComposedShader>\n' % ident)
 
     def writeImageTexture(ident, image):
-        name = image.name
+        image_id = unique_name(image, 'IM_' + image.name, uuid_cache_image, clean_func=quoteattr)
 
         if image.tag:
-            fw('%s<ImageTexture USE="%s" />\n' % (ident, clean_str(name)))
+            fw('%s<ImageTexture USE=%s />\n' % (ident, image_id))
         else:
             image.tag = True
 
             ident_step = ident + (' ' * (-len(ident) + \
             fw('%s<ImageTexture ' % ident)))
-            fw('DEF="%s"\n' % clean_str(name))
+            fw('DEF=%s\n' % image_id)
 
             filepath = image.filepath
             filepath_full = bpy.path.abspath(filepath)
@@ -990,10 +979,11 @@ def export(file,
 
     def writeBackground(ident, world):
 
-        if world:
-            worldname = world.name
-        else:
+        if world is None:
             return
+
+        # note, not re-used
+        world_id = unique_name(world, 'WO_' + world.name, uuid_cache_world, clean_func=quoteattr)
 
         blending = world.use_sky_blend, world.use_sky_paper, world.use_sky_real
 
@@ -1003,7 +993,7 @@ def export(file,
 
         ident_step = ident + (' ' * (-len(ident) + \
         fw('%s<Background ' % ident)))
-        fw('DEF="%s"\n' % secureName(worldname))
+        fw('DEF=%s\n' % world_id)
         # No Skytype - just Hor color
         if blending == (False, False, False):
             fw(ident_step + 'groundColor="%.3g %.3g %.3g"\n' % grd_triple)
@@ -1158,7 +1148,7 @@ def save(operator, context, filepath="",
          global_matrix=None,
          ):
 
-    py.path.ensure_ext(filepath, '.x3dz' if use_compress else '.x3d')
+    bpy.path.ensure_ext(filepath, '.x3dz' if use_compress else '.x3d')
 
     if bpy.ops.object.mode_set.poll():
         bpy.ops.object.mode_set(mode='OBJECT')
