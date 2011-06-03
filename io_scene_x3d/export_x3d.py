@@ -973,8 +973,11 @@ def export(file,
 
             images.append(os.path.basename(filepath_full))
             images.append(filepath_full)
+            
+            images = [f.replace('\\', '/') for f in images]
+            images = [f for i, f in enumerate(images) if f not in images[:i]]
 
-            fw(ident_step + "url='%s' " % ' '.join(['"%s"' % f.replace('\\', '/') for f in images]))
+            fw(ident_step + "url='%s' " % ' '.join(['"%s"' % f for f in images]))
             fw(ident_step + '/>\n')
 
     def writeBackground(ident, world):
@@ -1122,11 +1125,12 @@ def export(file,
         ident = writeFooter(ident)
 
     export_main()
-    file.close()
 
     # -------------------------------------------------------------------------
     # global cleanup
     # -------------------------------------------------------------------------
+    file.close()
+
     if use_h3d:
         bpy.data.materials.remove(gpu_shader_dummy_mat)
 
