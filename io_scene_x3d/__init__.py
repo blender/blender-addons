@@ -41,7 +41,7 @@ if "bpy" in locals():
 
 import bpy
 from bpy.props import StringProperty, BoolProperty, EnumProperty
-from bpy_extras.io_utils import ImportHelper, ExportHelper, axis_conversion
+from bpy_extras.io_utils import ImportHelper, ExportHelper, axis_conversion, path_reference_mode
 
 
 class ImportX3D(bpy.types.Operator, ImportHelper):
@@ -99,6 +99,7 @@ class ExportX3D(bpy.types.Operator, ExportHelper):
     use_triangulate = BoolProperty(name="Triangulate", description="Write quads into 'IndexedTriangleSet'", default=True)
     use_normals = BoolProperty(name="Normals", description="Write normals with geometry", default=False)
     use_compress = BoolProperty(name="Compress", description="GZip the resulting file, requires a full python install", default=False)
+    use_hierarchy = BoolProperty(name="Hierarchy", description="Export parent child relationships", default=True)
     use_h3d = BoolProperty(name="H3D Extensions", description="Export shaders for H3D", default=False)
 
     axis_forward = EnumProperty(
@@ -124,6 +125,8 @@ class ExportX3D(bpy.types.Operator, ExportHelper):
                    ),
             default='-Y',
             )
+
+    # path_mode = path_reference_mode
 
     def execute(self, context):
         from . import export_x3d

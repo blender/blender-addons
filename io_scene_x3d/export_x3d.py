@@ -80,10 +80,30 @@ def matrix_direction_neg_z(matrix):
 def prefix_quoted_str(value, prefix):
     return value[0] + prefix + value[1:]
 
+
+def build_hierarchy(objects):
+    """ returns parent child relationships, skipping 
+    """
+    objects_set = set(objects)
+    par_lookup = {}
+
+    def test_parent(parent):
+        while (parent is not None) and (parent not in objects_set):
+            parent = parent.parent
+        return parent
+
+    for obj in objects_set:
+        par_lookup.setdefault(test_parent(obj.parent), []).append((obj, []))
+
+    for parent, children in par_lookup.items():
+        for obj, subchildren in children:
+            subchildren[:] = par_lookup.get(obj, [])
+
+    return par_lookup[None]
+
 ##########################################################
 # Functions for writing output file
 ##########################################################
-
 
 def export(file,
            global_matrix,
@@ -92,6 +112,7 @@ def export(file,
            use_selection=True,
            use_triangulate=False,
            use_normals=False,
+           use_hierarchy=True,
            use_h3d=False,
            ):
 
@@ -102,6 +123,7 @@ def export(file,
     from xml.sax.saxutils import quoteattr
 
     uuid_cache_object = {}    # object
+    uuid_cache_lamp = {}      # 'LA_' + object.name 
     uuid_cache_view = {}      # object, different namespace
     uuid_cache_mesh = {}      # mesh
     uuid_cache_material = {}  # material
@@ -192,9 +214,32 @@ def export(file,
         fw(ident_step + 'avatarSize="0.25, 1.75, 0.75"\n')
         fw(ident_step + '/>\n')
 
+    def writeTransform_begin(ident, matrix, def_id):
+        ident_step = ident + (' ' * (-len(ident) + \
+        fw('%s<Transform ' % ident)))
+        if def_id is not None:
+            fw('DEF=%s\n' % def_id)
+        else:
+            fw('\n')
+
+        loc, quat, sca = matrix.decompose()
+
+        fw(ident_step + 'translation="%.6g %.6g %.6g"\n' % loc[:])
+        # fw(ident_step + 'center="%.6g %.6g %.6g"\n' % (0, 0, 0))
+        fw(ident_step + 'scale="%.6g %.6g %.6g"\n' % sca[:])
+        fw(ident_step + 'rotation="%.6g %.6g %.6g %.6g"\n' % (quat.axis[:] + (quat.angle, )))
+        fw(ident_step + '>\n')
+        ident += '\t'
+        return ident
+        
+    def writeTransform_end(ident):
+        ident = ident[:-1]
+        fw('%s</Transform>\n' % ident)
+        return ident
+
     def writeSpotLight(ident, obj, matrix, lamp, world):
         # note, lamp_id is not re-used
-        lamp_id = unique_name(obj, 'LA_' + obj.name, uuid_cache_object, clean_func=quoteattr)
+        lamp_id = unique_name(obj, 'LA_' + obj.name, uuid_cache_lamp, clean_func=quoteattr)
 
         if world:
             ambi = world.ambient_color
@@ -230,7 +275,7 @@ def export(file,
 
     def writeDirectionalLight(ident, obj, matrix, lamp, world):
         # note, lamp_id is not re-used
-        lamp_id = unique_name(obj, 'LA_' + obj.name, uuid_cache_object, clean_func=quoteattr)
+        lamp_id = unique_name(obj, 'LA_' + obj.name, uuid_cache_lamp, clean_func=quoteattr)
 
         if world:
             ambi = world.ambient_color
@@ -255,7 +300,7 @@ def export(file,
 
     def writePointLight(ident, obj, matrix, lamp, world):
         # note, lamp_id is not re-used
-        lamp_id = unique_name(obj, 'LA_' + obj.name, uuid_cache_object, clean_func=quoteattr)
+        lamp_id = unique_name(obj, 'LA_' + obj.name, uuid_cache_lamp, clean_func=quoteattr)
 
         if world:
             ambi = world.ambient_color
@@ -322,16 +367,7 @@ def export(file,
         del texface_use_collision
         # del texface_use_object_color
 
-        loc, quat, sca = matrix.decompose()
-
-        ident_step = ident + (' ' * (-len(ident) + \
-        fw('%s<Transform ' % ident)))
-        fw('DEF=%s\n' % obj_id)
-        fw(ident_step + 'translation="%.6g %.6g %.6g"\n' % loc[:])
-        fw(ident_step + 'scale="%.6g %.6g %.6g"\n' % sca[:])
-        fw(ident_step + 'rotation="%.6g %.6g %.6g %.6g"\n' % (quat.axis[:] + (quat.angle, )))
-        fw(ident_step + '>\n')
-        ident += '\t'
+        ident = writeTransform_begin(ident, matrix, None)
 
         if mesh.tag:
             fw('%s<Group USE=%s />\n' % (ident, mesh_id_group))
@@ -470,7 +506,8 @@ def export(file,
                                          obj, gpu_shader)
                         del mat_tmp
                     else:
-                        writeMaterial(ident, material, world)
+                        if material:
+                            writeMaterial(ident, material, world)
 
                     ident = ident[:-1]
                     fw('%s</Appearance>\n' % ident)
@@ -726,8 +763,7 @@ def export(file,
             ident = ident[:-1]
             fw('%s</Group>\n' % ident)
 
-        ident = ident[:-1]
-        fw('%s</Transform>\n' % ident)
+        ident = writeTransform_end(ident)
 
         if use_halonode:
             ident = ident[:-1]
@@ -1049,9 +1085,83 @@ def export(file,
 
         fw(ident_step + '/>\n')
 
-##########################################################
-# export routine
-##########################################################
+    # -------------------------------------------------------------------------
+    # Export Object Hierarchy (recursively called)
+    # -------------------------------------------------------------------------
+    def export_object(ident, obj_main_parent, obj_main, obj_children):
+        world = scene.world
+        free, derived = create_derived_objects(scene, obj_main)
+
+        if derived is None:
+            return
+
+        if use_hierarchy:
+            obj_main_matrix_world = obj_main.matrix_world
+            if obj_main_parent:
+                obj_main_matrix = obj_main_parent.matrix_world.inverted() * obj_main_matrix_world
+            else:
+                obj_main_matrix = obj_main_matrix_world
+            obj_main_matrix_world_invert = obj_main_matrix_world.inverted()
+
+            obj_main_id = unique_name(obj_main, obj_main.name, uuid_cache_object, clean_func=quoteattr)
+                
+            ident = writeTransform_begin(ident, obj_main_matrix if obj_main_parent else global_matrix * obj_main_matrix, obj_main_id)
+
+        for obj, obj_matrix in derived:
+            obj_type = obj.type
+            
+            if use_hierarchy:
+                # make transform node relative
+                obj_matrix = obj_main_matrix_world_invert * obj_matrix
+
+            if obj_type == 'CAMERA':
+                writeViewpoint(ident, obj, obj_matrix, scene)
+            elif obj_type in ('MESH', 'CURVE', 'SURF', 'FONT'):
+                if (obj_type != 'MESH') or (use_apply_modifiers and obj.is_modified(scene, 'PREVIEW')):
+                    try:
+                        me = obj.to_mesh(scene, use_apply_modifiers, 'PREVIEW')
+                    except:
+                        me = None
+                else:
+                    me = obj.data
+
+                if me is not None:
+                    writeIndexedFaceSet(ident, obj, me, obj_matrix, world)
+
+                    # free mesh created with create_mesh()
+                    if me != obj.data:
+                        bpy.data.meshes.remove(me)
+
+            elif obj_type == 'LAMP':
+                data = obj.data
+                datatype = data.type
+                if datatype == 'POINT':
+                    writePointLight(ident, obj, obj_matrix, data, world)
+                elif datatype == 'SPOT':
+                    writeSpotLight(ident, obj, obj_matrix, data, world)
+                elif datatype == 'SUN':
+                    writeDirectionalLight(ident, obj, obj_matrix, data, world)
+                else:
+                    writeDirectionalLight(ident, obj, obj_matrix, data, world)
+            else:
+                #print "Info: Ignoring [%s], object type [%s] not handle yet" % (object.name,object.getType)
+                pass
+
+        if free:
+            free_derived_objects(obj_main)
+
+        # ---------------------------------------------------------------------
+        # write out children recursively
+        # ---------------------------------------------------------------------
+        for obj_child, obj_child_children in obj_children:
+            export_object(ident, obj_main, obj_child, obj_child_children)
+
+        if use_hierarchy:
+            ident = writeTransform_end(ident)
+
+    # -------------------------------------------------------------------------
+    # Main Export Function
+    # -------------------------------------------------------------------------
     def export_main():
         world = scene.world
 
@@ -1075,52 +1185,13 @@ def export(file,
         else:
             objects = (obj for obj in scene.objects if obj.is_visible(scene))
 
-        for obj_main in objects:
+        if use_hierarchy:
+            objects_hierarchy = build_hierarchy(objects)
+        else:
+            objects_hierarchy = ((obj, []) for obj in objects)
 
-            free, derived = create_derived_objects(scene, obj_main)
-
-            if derived is None:
-                continue
-
-            for obj, obj_matrix in derived:
-                obj_type = obj.type
-                obj_matrix = global_matrix * obj_matrix
-
-                if obj_type == 'CAMERA':
-                    writeViewpoint(ident, obj, obj_matrix, scene)
-                elif obj_type in ('MESH', 'CURVE', 'SURF', 'FONT'):
-                    if (obj_type != 'MESH') or (use_apply_modifiers and obj.is_modified(scene, 'PREVIEW')):
-                        try:
-                            me = obj.to_mesh(scene, use_apply_modifiers, 'PREVIEW')
-                        except:
-                            me = None
-                    else:
-                        me = obj.data
-
-                    if me is not None:
-                        writeIndexedFaceSet(ident, obj, me, obj_matrix, world)
-
-                        # free mesh created with create_mesh()
-                        if me != obj.data:
-                            bpy.data.meshes.remove(me)
-
-                elif obj_type == 'LAMP':
-                    data = obj.data
-                    datatype = data.type
-                    if datatype == 'POINT':
-                        writePointLight(ident, obj, obj_matrix, data, world)
-                    elif datatype == 'SPOT':
-                        writeSpotLight(ident, obj, obj_matrix, data, world)
-                    elif datatype == 'SUN':
-                        writeDirectionalLight(ident, obj, obj_matrix, data, world)
-                    else:
-                        writeDirectionalLight(ident, obj, obj_matrix, data, world)
-                else:
-                    #print "Info: Ignoring [%s], object type [%s] not handle yet" % (object.name,object.getType)
-                    pass
-
-            if free:
-                free_derived_objects(obj_main)
+        for obj_main, obj_main_children in objects_hierarchy:
+            export_object(ident, None, obj_main, obj_main_children)
 
         ident = writeFooter(ident)
 
@@ -1148,6 +1219,7 @@ def save(operator, context, filepath="",
          use_triangulate=False,
          use_normals=False,
          use_compress=False,
+         use_hierarchy=True,
          use_h3d=False,
          global_matrix=None,
          ):
@@ -1179,6 +1251,7 @@ def save(operator, context, filepath="",
            use_selection=use_selection,
            use_triangulate=use_triangulate,
            use_normals=use_normals,
+           use_hierarchy=use_hierarchy,
            use_h3d=use_h3d,
            )
 
