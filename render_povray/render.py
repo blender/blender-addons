@@ -30,7 +30,6 @@ import re
 ##############find image texture
 
 
-# XXX A simple dict would be much simpler for this… --mont29
 def imageFormat(imgF):
     ext = {
         'JPG': "jpeg",
@@ -232,6 +231,13 @@ def write_pov(filename, scene=None, info_callback=None):
                  "%.6f>\n" % (matrix[0][0], matrix[0][1], matrix[0][2], matrix[1][0], matrix[1][1],
                               matrix[1][2], matrix[2][0], matrix[2][1], matrix[2][2], matrix[3][0],
                               matrix[3][1], matrix[3][2]))
+
+    def MatrixAsPovString(matrix):
+        sMatrix=("matrix <%.6f, %.6f, %.6f,  %.6f, %.6f, %.6f,  %.6f, %.6f, %.6f,  %.6f, %.6f, " \
+                 "%.6f>\n" % (matrix[0][0], matrix[0][1], matrix[0][2], matrix[1][0], matrix[1][1],
+                              matrix[1][2], matrix[2][0], matrix[2][1], matrix[2][2], matrix[3][0],
+                              matrix[3][1], matrix[3][2]))
+        return sMatrix
 
     def writeObjectMaterial(material, ob):
 
@@ -740,24 +746,92 @@ def write_pov(filename, scene=None, info_callback=None):
                 if not scene.pov.tempfiles_enable and scene.pov.comments_enable and len(metas) >= 1:
                     file.write("\n")
 
-    objectNames = {}
+#    objectNames = {}
     DEF_OBJ_NAME = "Default"
 
-    def exportMeshs(scene, sel):
+    def exportMeshes(scene, sel):
+#        obmatslist = []
+#        def hasUniqueMaterial():
+#            # Grab materials attached to object instances ...
+#            if hasattr(ob, 'material_slots'):
+#                for ms in ob.material_slots:
+#                    if ms.material != None and ms.link == 'OBJECT':
+#                        if ms.material in obmatslist:
+#                            return False
+#                        else:
+#                            obmatslist.append(ms.material)
+#                            return True
+#        def hasObjectMaterial(ob):
+#            # Grab materials attached to object instances ...
+#            if hasattr(ob, 'material_slots'):
+#                for ms in ob.material_slots:
+#                    if ms.material != None and ms.link == 'OBJECT':
+#                        # If there is at least one material slot linked to the object
+#                        # and not the data (mesh), always create a new, “private” data instance.
+#                        return True
+#            return False
+        # For objects using local material(s) only!
+        # This is a mapping between a tuple (dataname, materialnames, …), and the POV dataname.
+        # As only objects using:
+        #     * The same data.
+        #     * EXACTLY the same materials, in EXACTLY the same sockets.
+        # … can share a same instance in POV export.
+        obmats2data = {}
+        def checkObjectMaterials(ob, name, dataname):
+            if hasattr(ob, 'material_slots'):
+                has_local_mats = False
+                key = [dataname]
+                for ms in ob.material_slots:
+                    if ms.material != None:
+                        key.append(ms.material.name)
+                        if ms.link == 'OBJECT' and not has_local_mats:
+                            has_local_mats = True
+                    else:
+                        # Even if the slot is empty, it is important to grab it…
+                        key.append("")
+                if has_local_mats:
+                    # If this object uses local material(s), lets find if another object
+                    # using the same data and exactly the same list of materials
+                    # (in the same slots) has already been processed…
+                    # Note that here also, we use object name as new, unique dataname for Pov.
+                    key = tuple(key)  # Lists are not hashable…
+                    if key not in obmats2data:
+                        obmats2data[key] = name
+                    return obmats2data[key]
+            return None
+
+        data_ref = {}
+        def store(scene, ob, name, dataname, matrix):
+            # The Object needs to be written at least once but if its data is
+            # already in data_ref this has already been done.
+            # This func returns the “povray” name of the data, or None
+            # if no writing is needed.
+            if ob.is_modified(scene, 'RENDER'):
+                # Data modified.
+                # Create unique entry in data_ref by using object name
+                # (always unique in Blender) as data name.
+                data_ref[name] = [(name, MatrixAsPovString(matrix))]
+                return name
+            # Here, we replace dataname by the value returned by checkObjectMaterials, only if
+            # it is not evaluated to False (i.e. only if the object uses some local material(s)).
+            dataname = checkObjectMaterials(ob, name, dataname) or dataname
+            if dataname in data_ref:
+                # Data already known, just add the object instance.
+                data_ref[dataname].append((name, MatrixAsPovString(matrix)))
+                # No need to write data
+                return None
+            else:
+                # Data not yet processed, create a new entry in data_ref.
+                data_ref[dataname] = [(name, MatrixAsPovString(matrix))]
+                return dataname
+
 
         ob_num = 0
-
         for ob in sel:
             ob_num += 1
-#############################################
-            #Generating a name for object just like materials to be able to use it
-            # (baking for now or anything else).
-            if sel:
-                name_orig = ob.name
-            else:
-                name_orig = DEF_OBJ_NAME
-            name = objectNames[name_orig] = uniqueName(bpy.path.clean_name(name_orig), objectNames)
-#############################################
+
+            # XXX I moved all those checks here, as there is no need to compute names
+            #     for object we won’t export here!
             if ob.type in ('LAMP', 'CAMERA', 'EMPTY', 'META', 'ARMATURE', 'LATTICE'):
                 continue
 
@@ -774,6 +848,25 @@ def write_pov(filename, scene=None, info_callback=None):
             if not me or not me_faces:
                 continue
 
+#############################################
+            # Generating a name for object just like materials to be able to use it
+            # (baking for now or anything else).
+            # XXX I don’t understand that – if we are here, sel if a non-empty iterable,
+            #     so this condition is always True, IMO -- mont29
+            if sel:
+                name_orig = "OB" + ob.name
+                dataname_orig = "DATA" + ob.data.name
+            else:
+                name_orig = DEF_OBJ_NAME
+                dataname_orig = DEF_OBJ_NAME
+            name = splitHyphen(bpy.path.clean_name(name_orig))
+            dataname = splitHyphen(bpy.path.clean_name(dataname_orig))
+##            for slot in ob.material_slots:
+##                if slot.material != None and slot.link == 'OBJECT':
+##                    obmaterial = slot.material
+
+#############################################
+
             if info_callback:
                 info_callback("Object %2.d of %2.d (%s)" % (ob_num, len(sel), ob.name))
 
@@ -782,6 +875,13 @@ def write_pov(filename, scene=None, info_callback=None):
             # me = ob.data
 
             matrix = global_matrix * ob.matrix_world
+            povdataname = store(scene, ob, name, dataname, matrix)
+            if povdataname is None:
+                print("This is an instance")
+                continue
+
+            print("Writing Down First Occurence")
+
             try:
                 uv_layer = me.uv_textures.active.data
             except AttributeError:
@@ -801,7 +901,7 @@ def write_pov(filename, scene=None, info_callback=None):
 
             # Use named declaration to allow reference e.g. for baking. MR
             file.write("\n")
-            tabWrite("#declare %s =\n" % name)
+            tabWrite("#declare %s =\n" % povdataname)
             tabWrite("mesh2 {\n")
             tabWrite("vertex_vectors {\n")
             tabWrite("%d" % len(me.vertices))  # vert count
@@ -1427,7 +1527,6 @@ def write_pov(filename, scene=None, info_callback=None):
                 except IndexError:
                     print(me)
 
-            writeMatrix(matrix)
 
             #Importance for radiosity sampling added here:
             tabWrite("radiosity { \n")
@@ -1435,9 +1534,16 @@ def write_pov(filename, scene=None, info_callback=None):
             tabWrite("}\n")
 
             tabWrite("}\n")  # End of mesh block
-            tabWrite("%s\n" % name)  # Use named declaration to allow reference e.g. for baking. MR
 
             bpy.data.meshes.remove(me)
+
+        for data_name, inst in data_ref.items():
+            for ob_name, matrix_str in inst:
+                tabWrite("//----Blender Object Name:%s----\n" % ob_name)
+                tabWrite("object { \n")
+                tabWrite("%s\n" % data_name)
+                tabWrite("%s\n" % matrix_str)
+                tabWrite("}\n")
 
     def exportWorld(world):
         render = scene.render
@@ -1477,6 +1583,7 @@ def write_pov(filename, scene=None, info_callback=None):
                         texturesBlend = image_filename
                         #colvalue = t.default_value
                         t_blend = t
+
                     # Commented below was an idea to make the Background image oriented as camera
                     # taken here:
 #http://news.povray.org/povray.newusers/thread/%3Cweb.4a5cddf4e9c9822ba2f93e20@news.povray.org%3E/
@@ -1598,7 +1705,9 @@ def write_pov(filename, scene=None, info_callback=None):
             tabWrite("pretrace_end %.3g\n" % scene.pov.radio_pretrace_end)
             tabWrite("recursion_limit %d\n" % scene.pov.radio_recursion_limit)
             tabWrite("}\n")
-        once = 1
+        onceSss = 1
+        onceAmbient = 1
+        oncePhotons = 1
         for material in bpy.data.materials:
             if material.subsurface_scattering.use and once:
                 # In pov, the scale has reversed influence compared to blender. these number
@@ -1606,18 +1715,20 @@ def write_pov(filename, scene=None, info_callback=None):
                 tabWrite("mm_per_unit %.6f\n" % \
                          (material.subsurface_scattering.scale * (-100.0) + 15.0))
                 # In POV-Ray, the scale factor for all subsurface shaders needs to be the same
-                once = 0
+                onceSss = 0
 
-            if world:
+            if world and onceAmbient:
                 tabWrite("ambient_light rgb<%.3g, %.3g, %.3g>\n" % world.ambient_color[:])
+                onceAmbient = 0
 
-            if material.pov.photons_refraction or material.pov.photons_reflection:
+            if (material.pov.photons_refraction or material.pov.photons_reflection)and oncePhotons:
                 tabWrite("photons {\n")
                 tabWrite("spacing %.6f\n" % scene.pov.photon_spacing)
                 tabWrite("max_trace_level %d\n" % scene.pov.photon_max_trace_level)
                 tabWrite("adc_bailout %.3g\n" % scene.pov.photon_adc_bailout)
                 tabWrite("gather %d, %d\n" % (scene.pov.photon_gather_min, scene.pov.photon_gather_max))
                 tabWrite("}\n")
+                oncePhotons = 0
 
         tabWrite("}\n")
 
@@ -1679,7 +1790,7 @@ def write_pov(filename, scene=None, info_callback=None):
     if not scene.pov.tempfiles_enable and comments:
         file.write("//--Mesh objects--\n")
 
-    exportMeshs(scene, sel)
+    exportMeshes(scene, sel)
     #What follow used to happen here:
     #exportCamera()
     #exportWorld(scene.world)
@@ -2100,7 +2211,7 @@ class PovrayRender(bpy.types.RenderEngine):
             if self._is_windows:
                 self.update_stats("", "POV-Ray 3.7: Rendering File")
             else:
-                t_data = self._process.stdout.read1(10000)
+                t_data = self._process.stdout.read(10000)
                 if not t_data:
                     continue
 
