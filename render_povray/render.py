@@ -1,4 +1,4 @@
-# ##### BEGIN GPL LICENSE BLOCK #####
+﻿# ##### BEGIN GPL LICENSE BLOCK #####
 #
 #  This program is free software; you can redistribute it and/or
 #  modify it under the terms of the GNU General Public License
@@ -165,6 +165,12 @@ def safety(name, Level):
 
 ##############end safety string name material
 ##############################EndSF###########################
+
+def is_renderable(scene, ob):
+    return (ob.is_visible(scene) and not ob.hide_render)
+
+def renderable_objects(scene):
+    return [ob for ob in scene.objects if is_renderable(scene, ob)]
 
 
 tabLevel = 0
@@ -1709,7 +1715,7 @@ def write_pov(filename, scene=None, info_callback=None):
         onceAmbient = 1
         oncePhotons = 1
         for material in bpy.data.materials:
-            if material.subsurface_scattering.use and once:
+            if material.subsurface_scattering.use and onceSss:
                 # In pov, the scale has reversed influence compared to blender. these number
                 # should correct that
                 tabWrite("mm_per_unit %.6f\n" % \
@@ -1741,7 +1747,7 @@ def write_pov(filename, scene=None, info_callback=None):
                 file.write(txt.as_string())
                 file.write("\n")
 
-    sel = scene.objects
+    sel = renderable_objects(scene)
     comments = scene.pov.comments_enable
     if not scene.pov.tempfiles_enable and comments:
         file.write("//----------------------------------------------\n" \
