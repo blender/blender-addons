@@ -223,7 +223,7 @@ def gettex(mat_list, objekti, scene,export):
             else:
                 bpy.data.textures[name_tex].use_normal_map = True
                 objekti.active_material.texture_slots[index].normal_map_space = 'TANGENT'
-                objekti.active_material.texture_slots[index].normal_factor = -1
+                objekti.active_material.texture_slots[index].normal_factor = 1
 
             
 
@@ -236,7 +236,7 @@ def gettex(mat_list, objekti, scene,export):
                 objekti.active_material.texture_slots[index].uv_layer = objekti.data.uv_textures.active.name
             objekti.active_material.texture_slots[index].use_map_color_diffuse = False
             objekti.active_material.texture_slots[index].use_map_normal = True
-            objekti.active_material.texture_slots[index].normal_factor = -1
+            objekti.active_material.texture_slots[index].normal_factor = 1
 
 
     if(bring_spec == 1 and texcoat['specular']):
