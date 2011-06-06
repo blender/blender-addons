@@ -345,7 +345,7 @@ def write_file(filepath, objects, scene,
 
             # Nurbs curve support
             if EXPORT_CURVE_AS_NURBS and test_nurbs_compat(ob):
-                ob_mat = ob_mat * EXPORT_GLOBAL_MATRIX
+                ob_mat = EXPORT_GLOBAL_MATRIX * ob_mat
                 totverts += write_nurb(file, ob, ob_mat)
                 continue
             # END NURBS
@@ -354,7 +354,7 @@ def write_file(filepath, objects, scene,
                 continue
 
             me = ob.to_mesh(scene, EXPORT_APPLY_MODIFIERS, 'PREVIEW')
-            me.transform(ob_mat * EXPORT_GLOBAL_MATRIX)
+            me.transform(EXPORT_GLOBAL_MATRIX * ob_mat)
 
 #           # Will work for non meshes now! :)
 #           me= BPyMesh.getMeshFromObject(ob, containerMesh, EXPORT_APPLY_MODIFIERS, EXPORT_POLYGROUPS, scn)
