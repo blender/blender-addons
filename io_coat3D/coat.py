@@ -290,7 +290,7 @@ class SCENE_OT_import(bpy.types.Operator):
         test = bpy.context.selected_objects
         act_first = bpy.context.scene.objects.active
         for act_name in test:
-            if act_name.type == 'MESH':
+            if act_name.type == 'MESH' and os.path.isfile(act_name.coat3D.objectdir):
                 activeobj = act_name.name
                 mat_list = []
                 scene.objects[activeobj].select = True
@@ -342,8 +342,6 @@ class SCENE_OT_import(bpy.types.Operator):
                     bpy.data.materials.remove(proxy_mat)
                     bpy.ops.object.select_all(action='TOGGLE')
                     
-                  
-                    
                     scene.objects.active = obj_proxy
 
                     obj_data = objekti.data.id_data
@@ -357,9 +355,6 @@ class SCENE_OT_import(bpy.types.Operator):
                     objekti.select = True
                     bpy.context.scene.objects.active = objekti
 
-                        
-                        
-            
                     if(coat3D.smooth_on):
                         bpy.ops.object.shade_smooth()
                     else:
