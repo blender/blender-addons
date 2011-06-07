@@ -347,6 +347,7 @@ def save_single(operator, scene, filepath="",
             self.blenObject = ob
             self.fbxGroupNames = []
             self.fbxParent = None  # set later on IF the parent is in the selection.
+            self.fbxArm = None
             if matrixWorld:
                 self.matrixWorld = global_matrix * matrixWorld
             else:
