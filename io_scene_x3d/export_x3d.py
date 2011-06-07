@@ -92,7 +92,7 @@ def build_hierarchy(objects):
             parent = parent.parent
         return parent
 
-    for obj in objects_set:
+    for obj in objects:
         par_lookup.setdefault(test_parent(obj.parent), []).append((obj, []))
 
     for parent, children in par_lookup.items():
@@ -1181,9 +1181,9 @@ def export(file,
         ident = '\t\t'
 
         if use_selection:
-            objects = (obj for obj in scene.objects if obj.is_visible(scene) and o.select)
+            objects = [obj for obj in scene.objects if obj.is_visible(scene) and o.select]
         else:
-            objects = (obj for obj in scene.objects if obj.is_visible(scene))
+            objects = [obj for obj in scene.objects if obj.is_visible(scene)]
 
         if use_hierarchy:
             objects_hierarchy = build_hierarchy(objects)
