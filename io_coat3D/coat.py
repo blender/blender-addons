@@ -287,114 +287,121 @@ class SCENE_OT_import(bpy.types.Operator):
         scene = context.scene
         coat3D = bpy.context.scene.coat3D
         coat = bpy.coat3D
-        activeobj = bpy.context.active_object.name
-        mat_list = []
-        scene.objects[activeobj].select = True
-        objekti = scene.objects[activeobj]
-        coat3D.loca = objekti.location
-        coat3D.rota = objekti.rotation_euler
-        coa = bpy.context.scene.objects.active.coat3D
+        test = bpy.context.selected_objects
+        act_first = bpy.context.scene.objects.active
+        for act_name in test:
+            activeobj = act_name.name
+            mat_list = []
+            scene.objects[activeobj].select = True
+            objekti = scene.objects[activeobj]
+            coat3D.loca = objekti.location
+            coat3D.rota = objekti.rotation_euler
+            coa = bpy.context.scene.objects.active.coat3D
 
-        exportfile = coat3D.exchangedir
-        path3b_n = coat3D.exchangedir
-        path3b_n += ('last_saved_3b_file.txt')
-        exportfile += ('%sexport.txt'%(os.sep))
-        if(os.path.isfile(exportfile)):
-            export_file = open(exportfile)
-            for line in export_file:
-                if line.rfind('.3b'):
-                    objekti.coat3D.coatpath = line
-                    coat['active_coat'] = line
-            export_file.close()
-            os.remove(exportfile)
-            
-            
-           
-
-        if(objekti.material_slots):
-            for obj_mat in objekti.material_slots:
-                mat_list.append(obj_mat.material)
-            act_mat_index = objekti.active_material_index
-
-
-        if(coat3D.importmesh and os.path.isfile(coa.objectdir)):
-            mtl = coa.objectdir
-            mtl = mtl.replace('.obj','.mtl')
-            if(os.path.isfile(mtl)):
-                os.remove(mtl)
-
-            
-            bpy.ops.import_scene.obj(filepath=coa.objectdir,axis_forward='Y',axis_up='Z')
-            obj_proxy = scene.objects[0]
-            bpy.ops.object.select_all(action='TOGGLE')
-            obj_proxy.select = True
-            if(coa.export_on):
-                bpy.ops.object.origin_set(type='ORIGIN_GEOMETRY', center='MEDIAN')
-                
-            bpy.ops.object.transform_apply(rotation=True)
-            proxy_mat = obj_proxy.material_slots[0].material
-            obj_proxy.data.materials.pop(0)
-            proxy_mat.user_clear()
-            bpy.data.materials.remove(proxy_mat)
-            bpy.ops.object.select_all(action='TOGGLE')
-            
-          
-            
-            scene.objects.active = obj_proxy
-
-            obj_data = objekti.data.id_data
-            objekti.data = obj_proxy.data.id_data
-            if(bpy.data.meshes[obj_data.name].users == 0):
-                bpy.data.meshes.remove(obj_data)
-                objekti.data.id_data.name = obj_data.name
-
-            obj_proxy.select = True
-            bpy.ops.object.delete()
-            objekti.select = True
-            bpy.context.scene.objects.active = objekti
-
+            exportfile = coat3D.exchangedir
+            path3b_n = coat3D.exchangedir
+            path3b_n += ('last_saved_3b_file.txt')
+            exportfile += ('%sexport.txt'%(os.sep))
+            if(os.path.isfile(exportfile)):
+                export_file = open(exportfile)
+                for line in export_file:
+                    if line.rfind('.3b'):
+                        objekti.coat3D.coatpath = line
+                        coat['active_coat'] = line
+                export_file.close()
+                os.remove(exportfile)
                 
                 
-    
-            if(coat3D.smooth_on):
-                bpy.ops.object.shade_smooth()
-            else:
-                bpy.ops.object.shade_flat()
+               
 
-        if(os.path.isfile(path3b_n)):
-            path3b_fil = open(path3b_n)
-            for lin in path3b_fil:
-                objekti.coat3D.path3b = lin
-            path3b_fil.close()
-            os.remove(path3b_n)
+            if(objekti.material_slots):
+                for obj_mat in objekti.material_slots:
+                    mat_list.append(obj_mat.material)
+                act_mat_index = objekti.active_material_index
+
+
+            if(coat3D.importmesh and os.path.isfile(coa.objectdir)):
+                mtl = coa.objectdir
+                mtl = mtl.replace('.obj','.mtl')
+                if(os.path.isfile(mtl)):
+                    os.remove(mtl)
+
                 
-        if(coat3D.importmesh and not(os.path.isfile(coa.objectdir))):
-            coat3D.importmesh = False
-
-        if(mat_list and coat3D.importmesh):
-            for mat_one in mat_list:
-                objekti.data.materials.append(mat_one)
-            objekti.active_material_index = act_mat_index
-            
-        if(mat_list):
-            for obj_mate in objekti.material_slots:
-                for tex_slot in obj_mate.material.texture_slots:
-                    if(hasattr(tex_slot,'texture')):
-                        if(tex_slot.texture.type == 'IMAGE'):
-                                                        tex_slot.texture.image.reload()
-                                                        
-
-        if(coat3D.importmod):
-            mod_list = []
-            for mod_index in objekti.modifiers:
-                objekti.modifiers.remove(mod_index)
+                bpy.ops.import_scene.obj(filepath=act_name.coat3D.objectdir,axis_forward='Y',axis_up='Z')
+                obj_proxy = scene.objects[0]
+                bpy.ops.object.select_all(action='TOGGLE')
+                obj_proxy.select = True
+                if(coa.export_on):
+                    bpy.ops.object.origin_set(type='ORIGIN_GEOMETRY', center='MEDIAN')
+                    
+                bpy.ops.object.transform_apply(rotation=True)
+                proxy_mat = obj_proxy.material_slots[0].material
+                obj_proxy.data.materials.pop(0)
+                proxy_mat.user_clear()
+                bpy.data.materials.remove(proxy_mat)
+                bpy.ops.object.select_all(action='TOGGLE')
                 
+              
+                
+                scene.objects.active = obj_proxy
+
+                obj_data = objekti.data.id_data
+                objekti.data = obj_proxy.data.id_data
+                if(bpy.data.meshes[obj_data.name].users == 0):
+                    bpy.data.meshes.remove(obj_data)
+                    objekti.data.id_data.name = obj_data.name
+
+                obj_proxy.select = True
+                bpy.ops.object.delete()
+                objekti.select = True
+                bpy.context.scene.objects.active = objekti
+
+                    
+                    
         
+                if(coat3D.smooth_on):
+                    bpy.ops.object.shade_smooth()
+                else:
+                    bpy.ops.object.shade_flat()
+
+            if(os.path.isfile(path3b_n)):
+                path3b_fil = open(path3b_n)
+                for lin in path3b_fil:
+                    objekti.coat3D.path3b = lin
+                path3b_fil.close()
+                os.remove(path3b_n)
+                    
+            if(coat3D.importmesh and not(os.path.isfile(coa.objectdir))):
+                coat3D.importmesh = False
+
+            if(mat_list and coat3D.importmesh):
+                for mat_one in mat_list:
+                    objekti.data.materials.append(mat_one)
+                objekti.active_material_index = act_mat_index
                 
-        if(coat3D.importtextures):
-                        export = ''
-                        tex.gettex(mat_list,objekti,scene,export)
+            if(mat_list):
+                for obj_mate in objekti.material_slots:
+                    for tex_slot in obj_mate.material.texture_slots:
+                        if(hasattr(tex_slot,'texture')):
+                            if(tex_slot.texture.type == 'IMAGE'):
+                                                            tex_slot.texture.image.reload()
+                                                            
+
+            if(coat3D.importmod):
+                mod_list = []
+                for mod_index in objekti.modifiers:
+                    objekti.modifiers.remove(mod_index)
+                    
+            
+                    
+            if(coat3D.importtextures):
+                            export = ''
+                            tex.gettex(mat_list,objekti,scene,export)
         
+        for act_name in test:
+            act_name.select = True
+        bpy.context.scene.objects.active = act_first
+
         return('FINISHED')
 
 class SCENE_OT_import3b(bpy.types.Operator):
