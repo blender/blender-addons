@@ -218,62 +218,67 @@ class SCENE_OT_export(bpy.types.Operator):
         obj = scene.objects[activeobj]
         coa = bpy.context.scene.objects.active.coat3D
 
-        importfile = coat3D.exchangedir
-        texturefile = coat3D.exchangedir
-        importfile += ('%simport.txt'%(os.sep))
-        texturefile += ('%stextures.txt'%(os.sep))
-        if(os.path.isfile(texturefile)):
-                os.remove(texturefile)
-        
-        checkname = coa.objectdir
-        
-        if(coa.objectdir[-4:] != '.obj'):
-            checkname += ('%s.obj'%(activeobj))
+        if(coa.objectdir == '' and (coat3D.defaultfolder)):
+            print('kalle osaa koodata')
+            coa.objectdir = coat3D.defaultfolder
+        else:
 
-        if(not(os.path.isfile(checkname)) or coat3D.exportover):
-            if(coat3D.export_pos):
-                bpy.ops.object.transform_apply(location=True,rotation=True,scale=True)
-
-                bpy.ops.export_scene.obj(filepath=checkname,use_selection=True,
-                use_apply_modifiers=coat3D.exportmod,use_blen_objects=False, group_by_material= True,
-                use_materials = False,keep_vertex_order = True,axis_forward='Y',axis_up='Z')
-                bpy.ops.object.origin_set(type='ORIGIN_GEOMETRY', center='MEDIAN')
-
-                coa.export_on = True
-            else:
-                bpy.ops.object.origin_set(type='ORIGIN_GEOMETRY', center='MEDIAN')
-                coat3D.loca = obj.location
-                coat3D.rota = obj.rotation_euler
-                coat3D.scal = obj.scale
-                obj.location = (0,0,0)
-                obj.rotation_euler = (0,0,0)
-                obj.scale = (1,1,1)
-
-                bpy.ops.export_scene.obj(filepath=checkname,use_selection=True,
-                use_apply_modifiers=coat3D.exportmod,use_blen_objects=False, group_by_material= True,
-                use_materials = False,keep_vertex_order = True,axis_forward='Y',axis_up='Z')
-
-                obj.location = coat3D.loca
-                obj.rotation_euler = coat3D.rota
-                obj.scale = coat3D.scal
-                coa.export_on = False
-                    
-
-
-        if(coat3D.exportfile == False):
-            file = open(importfile, "w")
-            file.write("%s"%(checkname))
-            file.write("\n%s"%(checkname))
-            file.write("\n[%s]"%(coat3D.type))
-            if(coa.texturefolder):
-                file.write("\n[TexOutput:%s"%(coa.texturefolder))
+            importfile = coat3D.exchangedir
+            texturefile = coat3D.exchangedir
+            importfile += ('%simport.txt'%(os.sep))
+            texturefile += ('%stextures.txt'%(os.sep))
+            if(os.path.isfile(texturefile)):
+                    os.remove(texturefile)
             
+            checkname = coa.objectdir
             
-        
+            if(coa.objectdir[-4:] != '.obj'):
+                checkname += ('%s.obj'%(activeobj))
 
+            if(not(os.path.isfile(checkname)) or coat3D.exportover):
+                if(coat3D.export_pos):
+                    bpy.ops.object.transform_apply(location=True,rotation=True,scale=True)
+
+                    bpy.ops.export_scene.obj(filepath=checkname,use_selection=True,
+                    use_apply_modifiers=coat3D.exportmod,use_blen_objects=False, group_by_material= True,
+                    use_materials = False,keep_vertex_order = True,axis_forward='Y',axis_up='Z')
+                    bpy.ops.object.origin_set(type='ORIGIN_GEOMETRY', center='MEDIAN')
+
+                    coa.export_on = True
+                else:
+                    bpy.ops.object.origin_set(type='ORIGIN_GEOMETRY', center='MEDIAN')
+                    coat3D.loca = obj.location
+                    coat3D.rota = obj.rotation_euler
+                    coat3D.scal = obj.scale
+                    obj.location = (0,0,0)
+                    obj.rotation_euler = (0,0,0)
+                    obj.scale = (1,1,1)
+
+                    bpy.ops.export_scene.obj(filepath=checkname,use_selection=True,
+                    use_apply_modifiers=coat3D.exportmod,use_blen_objects=False, group_by_material= True,
+                    use_materials = False,keep_vertex_order = True,axis_forward='Y',axis_up='Z')
+
+                    obj.location = coat3D.loca
+                    obj.rotation_euler = coat3D.rota
+                    obj.scale = coat3D.scal
+                    coa.export_on = False
+                        
+
+
+            if(coat3D.exportfile == False):
+                file = open(importfile, "w")
+                file.write("%s"%(checkname))
+                file.write("\n%s"%(checkname))
+                file.write("\n[%s]"%(coat3D.type))
+                if(coa.texturefolder):
+                    file.write("\n[TexOutput:%s"%(coa.texturefolder))
+                
+                
             
-            file.close()
-        coa.objectdir = checkname
+
+                
+                file.close()
+            coa.objectdir = checkname
 
         return('FINISHED')
 
@@ -380,7 +385,8 @@ class SCENE_OT_import(bpy.types.Operator):
                         for tex_slot in obj_mate.material.texture_slots:
                             if(hasattr(tex_slot,'texture')):
                                 if(tex_slot.texture.type == 'IMAGE'):
-                                                                tex_slot.texture.image.reload()
+                                    if tex_slot.texture.image is not None:
+                                        tex_slot.texture.image.reload()
                                                                 
 
                 if(coat3D.importmod):
