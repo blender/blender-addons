@@ -1,3 +1,4 @@
+
 # ***** BEGIN GPL LICENSE BLOCK *****
 #
 #
@@ -238,7 +239,7 @@ class SCENE_OT_export(bpy.types.Operator):
 
                     bpy.ops.export_scene.obj(filepath=checkname,use_selection=True,
                     use_apply_modifiers=coat3D.exportmod,use_blen_objects=False, group_by_material= True,
-                    use_materials = False,keep_vertex_order = True,axis_forward='Y',axis_up='Z')
+                    use_materials = False,keep_vertex_order = True,axis_forward='X',axis_up='Y')
                     bpy.ops.object.origin_set(type='ORIGIN_GEOMETRY', center='MEDIAN')
 
                     coa.export_on = True
@@ -253,7 +254,7 @@ class SCENE_OT_export(bpy.types.Operator):
 
                     bpy.ops.export_scene.obj(filepath=checkname,use_selection=True,
                     use_apply_modifiers=coat3D.exportmod,use_blen_objects=False, group_by_material= True,
-                    use_materials = False,keep_vertex_order = True,axis_forward='Y',axis_up='Z')
+                    use_materials = False,keep_vertex_order = True,axis_forward='X',axis_up='Y')
 
                     obj.location = coat3D.loca
                     obj.rotation_euler = coat3D.rota
@@ -330,7 +331,7 @@ class SCENE_OT_import(bpy.types.Operator):
                         os.remove(mtl)
 
                     
-                    bpy.ops.import_scene.obj(filepath=act_name.coat3D.objectdir,axis_forward='Y',axis_up='Z')
+                    bpy.ops.import_scene.obj(filepath=act_name.coat3D.objectdir,axis_forward='X',axis_up='Y')
                     obj_proxy = scene.objects[0]
                     bpy.ops.object.select_all(action='TOGGLE')
                     obj_proxy.select = True
@@ -457,7 +458,7 @@ class SCENE_OT_import3b(bpy.types.Operator):
             new_obj = palikka
             import_no = 0
         else:
-            bpy.ops.import_scene.obj(filepath=obj_path,axis_forward='Y',axis_up='Z')
+            bpy.ops.import_scene.obj(filepath=obj_path,axis_forward='X',axis_up='Y')
             new_obj = scene.objects[0]
             scene.objects[0].coat3D.objectdir = export
             if(path_on):
