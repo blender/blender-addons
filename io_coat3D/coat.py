@@ -25,6 +25,7 @@ import os
 import linecache
 import math
 
+
 bpy.coat3D = dict()
 bpy.coat3D['active_coat'] = ''
 bpy.coat3D['status'] = 0
@@ -217,7 +218,6 @@ class SCENE_OT_export(bpy.types.Operator):
         coa = bpy.context.scene.objects.active.coat3D
 
         if(coa.objectdir == '' and (coat3D.defaultfolder)):
-            print('kalle osaa koodata')
             coa.objectdir = coat3D.defaultfolder
         else:
 
@@ -534,15 +534,53 @@ class SCENE_OT_deltex(bpy.types.Operator):
     
         return('FINISHED')
 
+
+from bpy import *
+from mathutils import Vector, Matrix
+
+
+# 3D-Coat Dynamic Menu
+class VIEW3D_MT_Coat_Dynamic_Menu(bpy.types.Menu):
+    bl_label = "3D-Coat Applink Menu"
+
+    def draw(self, context):
+        layout = self.layout
+        settings = context.tool_settings
+        layout.operator_context = 'INVOKE_REGION_WIN'
+
+        ob = context
+        if ob.mode == 'OBJECT':
+
+           
+            layout.operator("import_applink.pilgway_3d_coat", text="Import")
+            layout.separator()
+
+            layout.operator("export_applink.pilgway_3d_coat", text="Export")
+            layout.separator()
+
+            layout.operator("import_applink.pilgway_3d_deltex",text="Delete Textures")
+            layout.separator()
+
+
+
 def register():
     bpy.utils.register_module(__name__)
 
-    pass
+    km = bpy.context.window_manager.keyconfigs.default.keymaps['3D View']
+    kmi = km.keymap_items.new('wm.call_menu2', 'Q', 'PRESS')
+    kmi.properties.name = "VIEW3D_MT_Coat_Dynamic_Menu"
+
 
 def unregister():
     bpy.utils.unregister_module(__name__)
 
-    pass
+    km = bpy.context.window_manager.keyconfigs.default.keymaps['3D View']
+    for kmi in km.keymap_items:
+        if kmi.idname == '':
+            if kmi.properties.name == "VIEW3D_MT_Coat_Dynamic_Menu":
+                km.keymap_items.remove(kmi)
+                break
+
 
 if __name__ == "__main__":
     register()
