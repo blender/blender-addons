@@ -1,6 +1,3 @@
-# scene_blend_info.py Copyright (C) 2010, Mariano Hidalgo
-#
-# Show Information About the Blend.
 # ***** BEGIN GPL LICENSE BLOCK *****
 #
 #
