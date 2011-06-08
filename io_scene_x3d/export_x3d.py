@@ -935,6 +935,10 @@ def export(file,
                     else:
                         assert(0)
 
+                elif uniform['type'] == gpu.GPU_DYNAMIC_LAMP_DYNENERGY:
+                    # not used ?
+                    assert(0)
+
                 elif uniform['type'] == gpu.GPU_DYNAMIC_LAMP_DYNVEC:
                     if uniform['datatype'] == gpu.GPU_DATA_3F:
                         value = '%.6g %.6g %.6g' % (mathutils.Vector((0.0, 0.0, 1.0)) * (global_matrix * bpy.data.objects[uniform['lamp']].matrix_world).to_quaternion()).normalized()[:]
@@ -968,20 +972,18 @@ def export(file,
                             value = []
                             for i in range(0, len(tex) - 1, 4):
                                 col = tex[i:i + 4]
-                                value += ['0x%.8x' % (col[0] + (col[1] << 8) + (col[2] << 16) + (col[3] << 24))]
-                            print(len(value))
-                            
-                            
+                                value.append('0x%.2x%.2x%.2x%.2x' % (col[0], col[1], col[2], col[3]))
+
                             fw('%s<field name="%s" type="SFNode" accessType="inputOutput">\n' % (ident, uniform['varname']))
 
                             ident += '\t'
                             
                             ident_step = ident + (' ' * (-len(ident) + \
                             fw('%s<PixelTexture \n' % ident)))
-                            fw(ident_step + 'repeatS="true"\n')
-                            fw(ident_step + 'repeatT="true"\n')
+                            fw(ident_step + 'repeatS="false"\n')
+                            fw(ident_step + 'repeatT="false"\n')
 
-                            fw(ident_step + 'image="1 256 4 %s"\n' % " ".join(value))
+                            fw(ident_step + 'image="%s 1 4 %s"\n' % (len(value), " ".join(value)))
 
                             fw(ident_step + '/>\n')
                             
