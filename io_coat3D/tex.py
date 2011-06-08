@@ -68,7 +68,7 @@ def gettex(mat_list, objekti, scene,export):
                         if tex_slot.texture.image is not None:
                             tex_slot.texture.image.reload()
     else:
-        coa = bpy.context.scene.objects.active.coat3D
+        coa = objekti.coat3D
         nimi = objname(coa.objectdir)
         if(coa.texturefolder):
             osoite = os.path.dirname(coa.texturefolder) + os.sep

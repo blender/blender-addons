@@ -294,13 +294,14 @@ class SCENE_OT_import(bpy.types.Operator):
         act_first = bpy.context.scene.objects.active
         for act_name in test:
             if act_name.type == 'MESH' and os.path.isfile(act_name.coat3D.objectdir):
+                print('eihan tanne voi tulla')
                 activeobj = act_name.name
                 mat_list = []
                 scene.objects[activeobj].select = True
                 objekti = scene.objects[activeobj]
                 coat3D.loca = objekti.location
                 coat3D.rota = objekti.rotation_euler
-                coa = bpy.context.scene.objects.active.coat3D
+                coa = act_name.coat3D
 
                 exportfile = coat3D.exchangedir
                 path3b_n = coat3D.exchangedir
@@ -550,18 +551,52 @@ class VIEW3D_MT_Coat_Dynamic_Menu(bpy.types.Menu):
 
         ob = context
         if ob.mode == 'OBJECT':
-
-           
+          
             layout.operator("import_applink.pilgway_3d_coat", text="Import")
             layout.separator()
 
             layout.operator("export_applink.pilgway_3d_coat", text="Export")
             layout.separator()
 
+            layout.menu("VIEW3D_MT_ImportMenu")
+            layout.separator()
+
+            layout.menu("VIEW3D_MT_ExportMenu")
+            layout.separator()
+
             layout.operator("import_applink.pilgway_3d_deltex",text="Delete Textures")
             layout.separator()
 
+           
+            layout.separator()
 
+        
+class VIEW3D_MT_ImportMenu(bpy.types.Menu):
+    bl_label = "Import Settings"
+
+    def draw(self, context):
+        layout = self.layout
+        coat3D = bpy.context.scene.coat3D
+        settings = context.tool_settings
+        layout.operator_context = 'INVOKE_REGION_WIN'
+        layout.prop(coat3D,"importmesh")
+        layout.prop(coat3D,"importmod")
+        layout.prop(coat3D,"smooth_on")
+        layout.prop(coat3D,"importtextures")
+        
+class VIEW3D_MT_ExportMenu(bpy.types.Menu):
+    bl_label = "Export Settings"
+
+    def draw(self, context):
+        layout = self.layout
+        coat3D = bpy.context.scene.coat3D
+        settings = context.tool_settings
+        layout.operator_context = 'INVOKE_REGION_WIN'
+        layout.prop(coat3D,"exportover")
+        if(coat3D.exportover):
+           layout.prop(coat3D,"exportmod")
+        layout.prop(coat3D,"exportfile")
+        layout.prop(coat3D,"export_pos")
 
 def register():
     bpy.utils.register_module(__name__)
