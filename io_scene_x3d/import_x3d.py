@@ -2177,8 +2177,8 @@ def importShape(node, ancestry, global_matrix):
                 is_solid = geom.getFieldAsBool('solid', True, ancestry)
                 creaseAngle = geom.getFieldAsFloat('creaseAngle', None, ancestry)
 
-                if creaseAngle != None:
-                    bpydata.auto_smooth_angle = 1 + int(min(79, creaseAngle * RAD_TO_DEG))
+                if creaseAngle is not None:
+                    bpydata.auto_smooth_angle = creaseAngle
                     bpydata.use_auto_smooth = True
 
                 # Only ever 1 material per shape
