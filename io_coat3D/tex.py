@@ -164,7 +164,7 @@ def gettex(mat_list, objekti, scene,export):
             bpy.ops.image.new(name=name_tex)
             bpy.data.images[name_tex].filepath = texcoat['color'][0]
             bpy.data.images[name_tex].source = 'FILE'
-            print('name_tex: %s'%name_tex)
+            
             
 
             bpy.data.textures.new(name_tex,type='IMAGE')
@@ -179,10 +179,8 @@ def gettex(mat_list, objekti, scene,export):
             
 
         elif(useold != ''):
-            print('useold:%s'%useold)
-            
+                        
             objekti.active_material.texture_slots[index].texture = useold
-            print(objekti.active_material)
             objekti.active_material.texture_slots[index].texture.image.filepath = texcoat['color'][0]
             if(objekti.data.uv_textures.active):
                 objekti.active_material.texture_slots[index].texture_coords = 'UV'

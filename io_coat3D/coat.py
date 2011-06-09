@@ -50,6 +50,7 @@ class SCENE_PT_Main(ObjectButtonsPanel,bpy.types.Panel):
         import_no = 0
         coat = bpy.coat3D
         coat3D = bpy.context.scene.coat3D
+        Blender_export = ""
         if(bpy.context.scene.objects.active):
             coa = bpy.context.scene.objects.active.coat3D
         
@@ -282,7 +283,6 @@ class SCENE_OT_import(bpy.types.Operator):
         act_first = bpy.context.scene.objects.active
         for act_name in test:
             if act_name.type == 'MESH' and os.path.isfile(act_name.coat3D.objectdir):
-                print('eihan tanne voi tulla')
                 activeobj = act_name.name
                 mat_list = []
                 scene.objects[activeobj].select = True
@@ -430,7 +430,6 @@ class SCENE_OT_import3b(bpy.types.Operator):
             path3b_file.close()
             os.remove(path3b_now)
         else:
-            print("ei toimi")
             path_on = 0
 
         for palikka in bpy.context.scene.objects:
@@ -562,7 +561,7 @@ class VIEW3D_MT_Coat_Dynamic_Menu(bpy.types.Menu):
             layout.menu("VIEW3D_MT_ExportMenu")
             layout.separator()
 
-            layout.operator("import_applink.pilgway_3d_deltex",text="Delete Textures")
+            layout.menu("VIEW3D_MT_ExtraMenu")
             layout.separator()
 
             if(len(bpy.context.selected_objects) == 1):
@@ -601,6 +600,18 @@ class VIEW3D_MT_ExportMenu(bpy.types.Menu):
            layout.prop(coat3D,"exportmod")
         layout.prop(coat3D,"exportfile")
         layout.prop(coat3D,"export_pos")
+
+class VIEW3D_MT_ExtraMenu(bpy.types.Menu):
+    bl_label = "Extra"
+
+    def draw(self, context):
+        layout = self.layout
+        coat3D = bpy.context.scene.coat3D
+        settings = context.tool_settings
+        layout.operator_context = 'INVOKE_REGION_WIN'
+
+        layout.operator("import_applink.pilgway_3d_deltex",text="Delete all Textures")
+        layout.separator()
 
 def register():
     bpy.utils.register_module(__name__)
