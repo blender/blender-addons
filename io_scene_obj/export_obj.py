@@ -350,10 +350,14 @@ def write_file(filepath, objects, scene,
                 continue
             # END NURBS
 
-            if ob.type != 'MESH':
+            try:
+                me = ob.to_mesh(scene, EXPORT_APPLY_MODIFIERS, 'PREVIEW')
+            except RuntimeError:
+                me = None
+
+            if me is None:
                 continue
 
-            me = ob.to_mesh(scene, EXPORT_APPLY_MODIFIERS, 'PREVIEW')
             me.transform(EXPORT_GLOBAL_MATRIX * ob_mat)
 
 #           # Will work for non meshes now! :)
