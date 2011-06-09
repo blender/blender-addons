@@ -153,7 +153,6 @@ class SCENE_PT_Settings(ObjectButtonsPanel,bpy.types.Panel):
         scene = context.scene
         coat3D = bpy.context.scene.coat3D
         
-
         row = layout.row()
         if(bpy.context.selected_objects):
             if(context.selected_objects[0].type == 'MESH'):
@@ -196,11 +195,6 @@ class SCENE_PT_Settings(ObjectButtonsPanel,bpy.types.Panel):
         #row = layout.row()
         #colL = row.column()
         #colR = row.column()
-
-        
-       
-        
-
 
 class SCENE_OT_export(bpy.types.Operator):
     bl_idname = "export_applink.pilgway_3d_coat"
@@ -261,8 +255,6 @@ class SCENE_OT_export(bpy.types.Operator):
                     obj.scale = coat3D.scal
                     coa.export_on = False
                         
-
-
             if(coat3D.exportfile == False):
                 file = open(importfile, "w")
                 file.write("%s"%(checkname))
@@ -270,11 +262,7 @@ class SCENE_OT_export(bpy.types.Operator):
                 file.write("\n[%s]"%(coat3D.type))
                 if(coa.texturefolder):
                     file.write("\n[TexOutput:%s"%(coa.texturefolder))
-                
-                
-            
-
-                
+                 
                 file.close()
             coa.objectdir = checkname
 
@@ -316,9 +304,6 @@ class SCENE_OT_import(bpy.types.Operator):
                     export_file.close()
                     os.remove(exportfile)
                     
-                    
-                   
-
                 if(objekti.material_slots):
                     for obj_mat in objekti.material_slots:
                         mat_list.append(obj_mat.material)
@@ -548,9 +533,22 @@ class VIEW3D_MT_Coat_Dynamic_Menu(bpy.types.Menu):
         layout = self.layout
         settings = context.tool_settings
         layout.operator_context = 'INVOKE_REGION_WIN'
+        coat3D = bpy.context.scene.coat3D
+        Blender_folder = ("%s%sBlender"%(coat3D.exchangedir,os.sep))
+        Blender_export = Blender_folder
+        Blender_export += ('%sexport.txt'%(os.sep))
 
         ob = context
         if ob.mode == 'OBJECT':
+            if(bpy.context.selected_objects):
+                for ind_obj in bpy.context.selected_objects:
+                    if(ind_obj.type == 'MESH'):
+                        layout.active = True
+                        break
+                    layout.active = False
+            else:
+                layout.active = False
+                
           
             layout.operator("import_applink.pilgway_3d_coat", text="Import")
             layout.separator()
@@ -567,9 +565,15 @@ class VIEW3D_MT_Coat_Dynamic_Menu(bpy.types.Menu):
             layout.operator("import_applink.pilgway_3d_deltex",text="Delete Textures")
             layout.separator()
 
-           
-            layout.separator()
+            if(len(bpy.context.selected_objects) == 1):
+                if(os.path.isfile(bpy.context.selected_objects[0].coat3D.path3b)):
+                    layout.operator("import_applink.pilgway_3d_coat_3b", text="Load 3b")
+                    layout.separator()
 
+            if(os.path.isfile(Blender_export)):
+
+                layout.operator("import3b_applink.pilgway_3d_coat", text="Bring from 3D-Coat")
+                layout.separator()
         
 class VIEW3D_MT_ImportMenu(bpy.types.Menu):
     bl_label = "Import Settings"
