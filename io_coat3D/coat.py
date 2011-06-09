@@ -545,34 +545,48 @@ class VIEW3D_MT_Coat_Dynamic_Menu(bpy.types.Menu):
                         layout.active = True
                         break
                     layout.active = False
-            else:
-                layout.active = False
-                
-          
-            layout.operator("import_applink.pilgway_3d_coat", text="Import")
-            layout.separator()
 
-            layout.operator("export_applink.pilgway_3d_coat", text="Export")
-            layout.separator()
+                if(layout.active == True):
 
-            layout.menu("VIEW3D_MT_ImportMenu")
-            layout.separator()
-
-            layout.menu("VIEW3D_MT_ExportMenu")
-            layout.separator()
-
-            layout.menu("VIEW3D_MT_ExtraMenu")
-            layout.separator()
-
-            if(len(bpy.context.selected_objects) == 1):
-                if(os.path.isfile(bpy.context.selected_objects[0].coat3D.path3b)):
-                    layout.operator("import_applink.pilgway_3d_coat_3b", text="Load 3b")
+                    layout.operator("import_applink.pilgway_3d_coat", text="Import")
                     layout.separator()
 
-            if(os.path.isfile(Blender_export)):
+                    layout.operator("export_applink.pilgway_3d_coat", text="Export")
+                    layout.separator()
 
-                layout.operator("import3b_applink.pilgway_3d_coat", text="Bring from 3D-Coat")
-                layout.separator()
+                    layout.menu("VIEW3D_MT_ImportMenu")
+                    layout.separator()
+
+                    layout.menu("VIEW3D_MT_ExportMenu")
+                    layout.separator()
+
+                    layout.menu("VIEW3D_MT_ExtraMenu")
+                    layout.separator()
+
+                    if(len(bpy.context.selected_objects) == 1):
+                        if(os.path.isfile(bpy.context.selected_objects[0].coat3D.path3b)):
+                            layout.operator("import_applink.pilgway_3d_coat_3b", text="Load 3b")
+                            layout.separator()
+
+                    if(os.path.isfile(Blender_export)):
+
+                        layout.operator("import3b_applink.pilgway_3d_coat", text="Bring from 3D-Coat")
+                        layout.separator()
+                else:
+                    if(os.path.isfile(Blender_export)):
+                        layout.active = True
+
+                        layout.operator("import3b_applink.pilgway_3d_coat", text="Bring from 3D-Coat")
+                        layout.separator()
+            else:
+                 if(os.path.isfile(Blender_export)):
+                    
+
+                    layout.operator("import3b_applink.pilgway_3d_coat", text="Bring from 3D-Coat")
+                    layout.separator()
+                
+          
+            
         
 class VIEW3D_MT_ImportMenu(bpy.types.Menu):
     bl_label = "Import Settings"
