@@ -101,9 +101,39 @@ def build_hierarchy(objects):
 
     return par_lookup[None]
 
-##########################################################
+# -----------------------------------------------------------------------------
+# H3D Functions
+# -----------------------------------------------------------------------------
+def h3d_shader_glsl_frag_patch(filepath):
+    h3d_file = open(filepath, 'r')
+    lines = []
+    for l in h3d_file:
+        l = l.replace("uniform mat4 unfinvviewmat;", "")
+        l = l.replace("unfinvviewmat", "gl_ModelViewMatrixInverse")
+        
+        '''
+        l = l.replace("varying vec3 varposition;", "")
+        l = l.replace("varposition", "gl_Vertex")  # not needed int H3D
+        '''
+
+        #l = l.replace("varying vec3 varnormal;", "")
+        #l = l.replace("varnormal", "gl_Normal")  # view normal
+        #l = l.replace("varnormal", "normalize(-(gl_ModelViewMatrix * gl_Vertex).xyz)")  # view normal
+        # l = l.replace("varnormal", "gl_NormalMatrix * gl_Normal")  # view normal
+        lines.append(l)
+    
+    
+    h3d_file.close()
+
+    h3d_file = open(filepath, 'w')
+    h3d_file.writelines(lines)
+    h3d_file.close()
+    
+
+
+# -----------------------------------------------------------------------------
 # Functions for writing output file
-##########################################################
+# -----------------------------------------------------------------------------
 
 def export(file,
            global_matrix,
@@ -114,11 +144,13 @@ def export(file,
            use_normals=False,
            use_hierarchy=True,
            use_h3d=False,
+           path_mode='AUTO',
            ):
 
     # -------------------------------------------------------------------------
     # Global Setup
     # -------------------------------------------------------------------------
+    import bpy_extras
     from bpy_extras.io_utils import unique_name
     from xml.sax.saxutils import quoteattr
 
@@ -130,8 +162,13 @@ def export(file,
     uuid_cache_image = {}     # image
     uuid_cache_world = {}     # world
 
+    # store files to copy
+    copy_set = set()
+
     fw = file.write
-    dirname = os.path.dirname(file.name)
+    base_src = os.path.dirname(bpy.data.filepath)
+    base_dst = os.path.dirname(file.name)
+    filename_strip = os.path.splitext(os.path.basename(file.name))[0]
     gpu_shader_cache = {}
 
     if use_h3d:
@@ -759,6 +796,12 @@ def export(file,
 
                     ident = ident[:-1]
                     fw('%s</Shape>\n' % ident)
+                    
+                    # XXX
+                    
+            #fw('%s<PythonScript DEF="PS" url="object.py" >\n' % ident)
+            #fw('%s    <ShaderProgram USE="MA_Material.005" containerField="references"/>\n' % ident)
+            #fw('%s</PythonScript>\n' % ident)
 
             ident = ident[:-1]
             fw('%s</Group>\n' % ident)
@@ -822,6 +865,9 @@ def export(file,
             fw('%s<ComposedShader USE=%s />\n' % (ident, material_id))
         else:
             material.tag = True
+            
+            # GPU_material_bind_uniforms
+            # GPU_begin_object_materials
 
             #~ CD_MCOL 6
             #~ CD_MTFACE 5
@@ -903,11 +949,11 @@ def export(file,
             fw('%s<ComposedShader DEF=%s language="GLSL" >\n' % (ident, material_id))
             ident += '\t'
 
-            shader_url_frag = 'shaders/glsl_%s.frag' % material_id[1:-1]
-            shader_url_vert = 'shaders/glsl_%s.vert' % material_id[1:-1]
+            shader_url_frag = 'shaders/%s_%s.frag' % (filename_strip, material_id[1:-1])
+            shader_url_vert = 'shaders/%s_%s.vert' % (filename_strip, material_id[1:-1])
 
             # write files
-            shader_dir = os.path.join(dirname, 'shaders')
+            shader_dir = os.path.join(base_dst, 'shaders')
             if not os.path.isdir(shader_dir):
                 os.mkdir(shader_dir)
 
@@ -1003,12 +1049,16 @@ def export(file,
                             
                     else:
                         assert(0)
+                else:
+                    print("SKIPPING", uniform['type'])
 
-            file_frag = open(os.path.join(dirname, shader_url_frag), 'w')
+            file_frag = open(os.path.join(base_dst, shader_url_frag), 'w')
             file_frag.write(gpu_shader['fragment'])
             file_frag.close()
+            # patch it
+            h3d_shader_glsl_frag_patch(os.path.join(base_dst, shader_url_frag))
 
-            file_vert = open(os.path.join(dirname, shader_url_vert), 'w')
+            file_vert = open(os.path.join(base_dst, shader_url_vert), 'w')
             file_vert.write(gpu_shader['vertex'])
             file_vert.close()
 
@@ -1030,18 +1080,19 @@ def export(file,
             fw('%s<ImageTexture ' % ident)))
             fw('DEF=%s\n' % image_id)
 
-            filepath = image.filepath
-            filepath_full = bpy.path.abspath(filepath)
             # collect image paths, can load multiple
             # [relative, name-only, absolute]
-            images = []
+            filepath = image.filepath
+            filepath_full = bpy.path.abspath(filepath)
+            filepath_ref = bpy_extras.io_utils.path_reference(filepath_full, base_src, base_dst, path_mode, "textures", copy_set)
+            filepath_base = os.path.basename(filepath_ref)
 
-            if bpy.path.is_subdir(filepath_full, dirname):
-                images.append(os.path.relpath(filepath_full, dirname))
+            images = [
+                filepath_base,
+                filepath_ref,
+                filepath_full,
+            ]
 
-            images.append(os.path.basename(filepath_full))
-            images.append(filepath_full)
-            
             images = [f.replace('\\', '/') for f in images]
             images = [f for i, f in enumerate(images) if f not in images[:i]]
 
@@ -1237,6 +1288,10 @@ def export(file,
     if use_h3d:
         bpy.data.materials.remove(gpu_shader_dummy_mat)
 
+    # copy all collected files.
+    print(copy_set)
+    bpy_extras.io_utils.path_reference_copy(copy_set)
+
     print('Info: finished X3D export to %r' % file.name)
 
 
@@ -1254,6 +1309,7 @@ def save(operator, context, filepath="",
          use_hierarchy=True,
          use_h3d=False,
          global_matrix=None,
+         path_mode='AUTO',
          ):
 
     bpy.path.ensure_ext(filepath, '.x3dz' if use_compress else '.x3d')
@@ -1285,6 +1341,7 @@ def save(operator, context, filepath="",
            use_normals=use_normals,
            use_hierarchy=use_hierarchy,
            use_h3d=use_h3d,
+           path_mode=path_mode,
            )
 
     return {'FINISHED'}

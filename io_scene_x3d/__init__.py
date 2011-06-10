@@ -126,7 +126,7 @@ class ExportX3D(bpy.types.Operator, ExportHelper):
             default='-Y',
             )
 
-    # path_mode = path_reference_mode
+    path_mode = path_reference_mode
 
     def execute(self, context):
         from . import export_x3d
