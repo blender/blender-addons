@@ -470,6 +470,8 @@ def create(obj):
     bpy.ops.object.mode_set(mode='OBJECT')
     pbone = obj.pose.bones[bones['hips']]
     pbone.rigify_type = 'spine'
+    pbone.rigify_parameters.add()
+    pbone.rigify_parameters[0].chain_bone_controls = "1, 2, 3"
     pbone.lock_location = (False, False, False)
     pbone.lock_rotation = (False, False, False)
     pbone.lock_rotation_w = False

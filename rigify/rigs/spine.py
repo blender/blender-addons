@@ -16,23 +16,31 @@
 #
 #======================= END GPL LICENSE BLOCK ========================
 
+""" TODO:
+    - Add parameters for bone transform alphas.
+"""
+
+from math import floor
+
 import bpy
 from mathutils import Vector
 from rigify.utils import MetarigError
-from rigify.utils import copy_bone, flip_bone, put_bone
+from rigify.utils import copy_bone, new_bone, flip_bone, put_bone
 from rigify.utils import connected_children_names
 from rigify.utils import strip_org, make_mechanism_name, make_deformer_name
-from rigify.utils import obj_to_bone, create_circle_widget
+from rigify.utils import obj_to_bone, create_circle_widget, create_compass_widget
 from rna_prop_ui import rna_idprop_ui_prop_get
 
 
 script = """
-hips = "%s"
-ribs = "%s"
-if is_selected([hips, ribs]):
-    layout.prop(pose_bones[ribs], '["pivot_slide"]', text="Pivot Slide (" + ribs + ")", slider=True)
-if is_selected(ribs):
-    layout.prop(pose_bones[ribs], '["isolate"]', text="Isolate Rotation (" + ribs + ")", slider=True)
+main = "%s"
+spine = [%s]
+if is_selected([main]+ spine):
+    layout.prop(pose_bones[main], '["pivot_slide"]', text="Pivot Slide (" + main + ")", slider=True)
+
+for name in spine[1:-1]:
+    if is_selected(name):
+        layout.prop(pose_bones[name], '["auto_rotate"]', text="Auto Rotate (" + name + ")", slider=True)
 """
 
 
@@ -48,6 +56,23 @@ class Rig:
         self.obj = obj
         self.org_bones = [bone_name] + connected_children_names(obj, bone_name)
         self.params = params
+
+        # Collect control bone indices
+        self.control_indices = [0, len(self.org_bones) - 1]
+        temp = self.params.chain_bone_controls.split(",")
+        for i in temp:
+            try:
+                j = int(i) - 1
+            except ValueError:
+                pass
+            else:
+                if (j > 0) and (j < len(self.org_bones)) and (j not in self.control_indices):
+                    self.control_indices += [j]
+        self.control_indices.sort()
+
+        self.pivot_rest = self.params.rest_pivot_slide
+        self.pivot_rest = max(self.pivot_rest, 1.0/len(self.org_bones))
+        self.pivot_rest = min(self.pivot_rest, 1.0-(1.0/len(self.org_bones)))
 
         if len(self.org_bones) <= 1:
             raise MetarigError("RIGIFY ERROR: Bone '%s': input to rig type must be a chain of 2 or more bones." % (strip_org(bone)))
@@ -83,214 +108,199 @@ class Rig:
         """ Generate the control rig.
 
         """
-        #---------------------------------
-        # Create the hip and rib controls
         bpy.ops.object.mode_set(mode='EDIT')
+        eb = self.obj.data.edit_bones
+        #-------------------------
+        # Get rest slide position
+        a = self.pivot_rest * len(self.org_bones)
+        i = floor(a)
+        a -= i
+        if i == len(self.org_bones):
+            i -= 1
+            a = 1.0
 
-        # Copy org bones
-        hip_control = copy_bone(self.obj, self.org_bones[0], strip_org(self.org_bones[0]))
-        rib_control = copy_bone(self.obj, self.org_bones[-1], strip_org(self.org_bones[-1]))
-        rib_mch = copy_bone(self.obj, self.org_bones[-1], make_mechanism_name(strip_org(self.org_bones[-1] + ".follow")))
-        hinge = copy_bone(self.obj, self.org_bones[0], make_mechanism_name(strip_org(self.org_bones[-1]) + ".hinge"))
+        pivot_rest_pos = eb[self.org_bones[i]].head.copy()
+        pivot_rest_pos += eb[self.org_bones[i]].vector * a
+
+        #----------------------
+        # Create controls
+
+        # Create control bones
+        controls = []
+        for i in self.control_indices:
+            name = copy_bone(self.obj, self.org_bones[i], strip_org(self.org_bones[i]))
+            controls += [name]
+
+        # Create control parents
+        control_parents = []
+        for i in self.control_indices[1:-1]:
+            name = new_bone(self.obj, make_mechanism_name("par_" + strip_org(self.org_bones[i])))
+            control_parents += [name]
+
+        # Create sub-control bones
+        subcontrols = []
+        for i in self.control_indices:
+            name = new_bone(self.obj, make_mechanism_name("sub_" + strip_org(self.org_bones[i])))
+            subcontrols += [name]
+
+        # Create main control bone
+        main_control = new_bone(self.obj, self.params.spine_main_control_name)
+
+        # Create main control WGT bones
+        main_wgt1 = new_bone(self.obj, make_mechanism_name(self.params.spine_main_control_name + ".01"))
+        main_wgt2 = new_bone(self.obj, make_mechanism_name(self.params.spine_main_control_name + ".02"))
 
         eb = self.obj.data.edit_bones
 
-        hip_control_e = eb[hip_control]
-        rib_control_e = eb[rib_control]
-        rib_mch_e = eb[rib_mch]
-        hinge_e = eb[hinge]
+        # Parent the main control
+        eb[main_control].use_connect = False
+        eb[main_control].parent = eb[self.org_bones[0]].parent
 
-        # Parenting
-        hip_control_e.use_connect = False
-        rib_control_e.use_connect = False
-        rib_mch_e.use_connect = False
-        hinge_e.use_connect = False
+        # Parent the main WGTs
+        eb[main_wgt1].use_connect = False
+        eb[main_wgt1].parent = eb[main_control]
+        eb[main_wgt2].use_connect = False
+        eb[main_wgt2].parent = eb[main_wgt1]
 
-        hinge_e.parent = None
-        rib_control_e.parent = hinge_e
-        rib_mch_e.parent = rib_control_e
+        # Parent the controls and sub-controls
+        for name, subname in zip(controls, subcontrols):
+            eb[name].use_connect = False
+            eb[name].parent = eb[main_control]
+            eb[subname].use_connect = False
+            eb[subname].parent = eb[name]
 
-        # Position
-        flip_bone(self.obj, hip_control)
-        flip_bone(self.obj, hinge)
+        # Parent the control parents
+        for name, par_name in zip(controls[1:-1], control_parents):
+            eb[par_name].use_connect = False
+            eb[par_name].parent = eb[main_control]
+            eb[name].parent = eb[par_name]
 
-        hinge_e.length /= 2
-        rib_mch_e.length /= 2
+        # Position the main bone
+        put_bone(self.obj, main_control, pivot_rest_pos)
+        eb[main_control].length = sum([eb[b].length for b in self.org_bones]) / 2
 
-        put_bone(self.obj, rib_control, hip_control_e.head)
-        put_bone(self.obj, rib_mch, hip_control_e.head)
+        # Position the main WGTs
+        eb[main_wgt1].tail = (0.0, 0.0, sum([eb[b].length for b in self.org_bones]) / 4)
+        eb[main_wgt2].length = sum([eb[b].length for b in self.org_bones]) / 4
+        put_bone(self.obj, main_wgt1, pivot_rest_pos)
+        put_bone(self.obj, main_wgt2, pivot_rest_pos)
 
-        bpy.ops.object.mode_set(mode='POSE')
-        bpy.ops.object.mode_set(mode='EDIT')
-        eb = self.obj.data.edit_bones
+        # Position the controls and sub-controls
+        pos = eb[controls[0]].head.copy()
+        for name, subname in zip(controls, subcontrols):
+            put_bone(self.obj, name, pivot_rest_pos)
+            put_bone(self.obj, subname, pivot_rest_pos)
+            eb[subname].length = eb[name].length / 3
 
-        # Switch to object mode
+        # Position the control parents
+        for name, par_name in zip(controls[1:-1], control_parents):
+            put_bone(self.obj, par_name, pivot_rest_pos)
+            eb[par_name].length = eb[name].length / 2
+
+        #-----------------------------------------
+        # Control bone constraints and properties
         bpy.ops.object.mode_set(mode='OBJECT')
         pb = self.obj.pose.bones
-        hip_control_p = pb[hip_control]
-        rib_control_p = pb[rib_control]
-        hinge_p = pb[hinge]
 
-        # No translation on rib control
-        rib_control_p.lock_location = [True, True, True]
+        # Lock control locations
+        for name in controls:
+            bone = pb[name]
+            bone.lock_location = True, True, True
 
-        # Hip does not use local location
-        hip_control_p.bone.use_local_location = False
+        # Main control doesn't use local location
+        pb[main_control].bone.use_local_location = False
 
-        # Custom hinge property
-        prop = rna_idprop_ui_prop_get(rib_control_p, "isolate", create=True)
-        rib_control_p["isolate"] = 1.0
-        prop["soft_min"] = prop["min"] = 0.0
-        prop["soft_max"] = prop["max"] = 1.0
+        
 
-        # Constraints
-        con = hinge_p.constraints.new('COPY_LOCATION')
-        con.name = "copy_location"
-        con.target = self.obj
-        con.subtarget = hip_control
+        # Intermediate controls follow hips and spine
+        for name, par_name, i in zip(controls[1:-1], control_parents, self.control_indices[1:-1]):
+            bone = pb[par_name]
 
-        con1 = hinge_p.constraints.new('COPY_ROTATION')
-        con1.name = "isolate_off.01"
-        con1.target = self.obj
-        con1.subtarget = hip_control
+            # Custom bend_alpha property
+            prop = rna_idprop_ui_prop_get(pb[name], "bend_alpha", create=True)
+            pb[name]["bend_alpha"] = i / (len(self.org_bones) - 1)  # set bend alpha
+            prop["min"] = 0.0
+            prop["max"] = 1.0
+            prop["soft_min"] = 0.0
+            prop["soft_max"] = 1.0
 
-        con2 = rib_control_p.constraints.new('COPY_SCALE')
-        con2.name = "isolate_off.02"
-        con2.target = self.obj
-        con2.subtarget = hip_control
-        con2.use_offset = True
-        con2.target_space = 'LOCAL'
-        con2.owner_space = 'LOCAL'
+            # Custom auto_rotate
+            prop = rna_idprop_ui_prop_get(pb[name], "auto_rotate", create=True)
+            pb[name]["auto_rotate"] = 1.0
+            prop["min"] = 0.0
+            prop["max"] = 1.0
+            prop["soft_min"] = 0.0
+            prop["soft_max"] = 1.0
 
-        # Drivers for "isolate_off"
-        fcurve = con1.driver_add("influence")
-        driver = fcurve.driver
-        var = driver.variables.new()
-        driver.type = 'AVERAGE'
-        var.name = "var"
-        var.targets[0].id_type = 'OBJECT'
-        var.targets[0].id = self.obj
-        var.targets[0].data_path = rib_control_p.path_from_id() + '["isolate"]'
-        mod = fcurve.modifiers[0]
-        mod.poly_order = 1
-        mod.coefficients[0] = 1.0
-        mod.coefficients[1] = -1.0
+            # Constraints
+            con1 = bone.constraints.new('COPY_TRANSFORMS')
+            con1.name = "copy_transforms"
+            con1.target = self.obj
+            con1.subtarget = subcontrols[0]
 
-        fcurve = con2.driver_add("influence")
-        driver = fcurve.driver
-        var = driver.variables.new()
-        driver.type = 'AVERAGE'
-        var.name = "var"
-        var.targets[0].id_type = 'OBJECT'
-        var.targets[0].id = self.obj
-        var.targets[0].data_path = rib_control_p.path_from_id() + '["isolate"]'
-        mod = fcurve.modifiers[0]
-        mod.poly_order = 1
-        mod.coefficients[0] = 1.0
-        mod.coefficients[1] = -1.0
+            con2 = bone.constraints.new('COPY_TRANSFORMS')
+            con2.name = "copy_transforms"
+            con2.target = self.obj
+            con2.subtarget = subcontrols[-1]
 
-        # Appearence
-        hip_control_p.custom_shape_transform = pb[self.org_bones[0]]
-        rib_control_p.custom_shape_transform = pb[self.org_bones[-1]]
+            # Drivers
+            fcurve = con1.driver_add("influence")
+            driver = fcurve.driver
+            driver.type = 'AVERAGE'
+            var = driver.variables.new()
+            var.name = "auto"
+            var.targets[0].id_type = 'OBJECT'
+            var.targets[0].id = self.obj
+            var.targets[0].data_path = pb[name].path_from_id() + '["auto_rotate"]'
+
+            fcurve = con2.driver_add("influence")
+            driver = fcurve.driver
+            driver.type = 'SCRIPTED'
+            driver.expression = "alpha * auto"
+            var = driver.variables.new()
+            var.name = "alpha"
+            var.targets[0].id_type = 'OBJECT'
+            var.targets[0].id = self.obj
+            var.targets[0].data_path = pb[name].path_from_id() + '["bend_alpha"]'
+            var = driver.variables.new()
+            var.name = "auto"
+            var.targets[0].id_type = 'OBJECT'
+            var.targets[0].id = self.obj
+            var.targets[0].data_path = pb[name].path_from_id() + '["auto_rotate"]'
 
         #-------------------------
         # Create flex spine chain
-
-        # Create bones/parenting/positiong
         bpy.ops.object.mode_set(mode='EDIT')
         flex_bones = []
-        flex_helpers = []
+        flex_subs = []
         prev_bone = None
         for b in self.org_bones:
             # Create bones
             bone = copy_bone(self.obj, b, make_mechanism_name(strip_org(b) + ".flex"))
-            helper = copy_bone(self.obj, rib_mch, make_mechanism_name(strip_org(b) + ".flex_h"))
+            sub = new_bone(self.obj, make_mechanism_name(strip_org(b) + ".flex_s"))
             flex_bones += [bone]
-            flex_helpers += [helper]
+            flex_subs += [sub]
 
             eb = self.obj.data.edit_bones
             bone_e = eb[bone]
-            helper_e = eb[helper]
+            sub_e = eb[sub]
 
             # Parenting
             bone_e.use_connect = False
-            helper_e.use_connect = False
+            sub_e.use_connect = False
             if prev_bone is None:
-                helper_e.parent = eb[hip_control]
-            bone_e.parent = helper_e
+                sub_e.parent = eb[controls[0]]
+            else:
+                sub_e.parent = eb[prev_bone]
+            bone_e.parent = sub_e
 
             # Position
-            put_bone(self.obj, helper, bone_e.head)
-            helper_e.length /= 4
+            put_bone(self.obj, sub, bone_e.head)
+            sub_e.length /= 4
+            if prev_bone is not None:
+                sub_e.use_connect = True
 
             prev_bone = bone
-
-        # Constraints
-        bpy.ops.object.mode_set(mode='OBJECT')
-        pb = self.obj.pose.bones
-        rib_control_p = pb[rib_control]
-        rib_mch_p = pb[rib_mch]
-
-        inc = 1.0 / (len(flex_helpers) - 1)
-        inf = 1.0 / (len(flex_helpers) - 1)
-        for b in zip(flex_helpers[1:], flex_bones[:-1], self.org_bones[1:]):
-            bone_p = pb[b[0]]
-
-            # Scale constraints
-            con = bone_p.constraints.new('COPY_SCALE')
-            con.name = "copy_scale1"
-            con.target = self.obj
-            con.subtarget = flex_helpers[0]
-            con.influence = 1.0
-
-            con = bone_p.constraints.new('COPY_SCALE')
-            con.name = "copy_scale2"
-            con.target = self.obj
-            con.subtarget = rib_mch
-            con.influence = inf
-
-            # Bend constraints
-            con = bone_p.constraints.new('COPY_ROTATION')
-            con.name = "bend1"
-            con.target = self.obj
-            con.subtarget = flex_helpers[0]
-            con.influence = 1.0
-
-            con = bone_p.constraints.new('COPY_ROTATION')
-            con.name = "bend2"
-            con.target = self.obj
-            con.subtarget = rib_mch
-            con.influence = inf
-
-            # If not the rib control
-            if b[0] != flex_helpers[-1]:
-                # Custom bend property
-                prop_name = "bend_" + strip_org(b[2])
-                prop = rna_idprop_ui_prop_get(rib_control_p, prop_name, create=True)
-                rib_control_p[prop_name] = inf
-                prop["min"] = 0.0
-                prop["max"] = 1.0
-                prop["soft_min"] = 0.0
-                prop["soft_max"] = 1.0
-
-                # Bend driver
-                fcurve = con.driver_add("influence")
-                driver = fcurve.driver
-                var = driver.variables.new()
-                driver.type = 'AVERAGE'
-                var.name = prop_name
-                var.targets[0].id_type = 'OBJECT'
-                var.targets[0].id = self.obj
-                var.targets[0].data_path = rib_control_p.path_from_id() + '["' + prop_name + '"]'
-
-            # Location constraint
-            con = bone_p.constraints.new('COPY_LOCATION')
-            con.name = "copy_location"
-            con.target = self.obj
-            con.subtarget = b[1]
-            con.head_tail = 1.0
-
-            inf += inc
 
         #----------------------------
         # Create reverse spine chain
@@ -315,7 +325,7 @@ class Rig:
             bone_e.tail = Vector(eb[b[0]].head)
             #bone_e.head = Vector(eb[b[0]].tail)
             if prev_bone is None:
-                pass  # Position base bone wherever you want, for now do nothing (i.e. position at hips)
+                put_bone(self.obj, bone, pivot_rest_pos)
             else:
                 put_bone(self.obj, bone, eb[prev_bone].tail)
 
@@ -332,38 +342,45 @@ class Rig:
             con.name = "copy_location"
             con.target = self.obj
             if prev_bone is None:
-                con.subtarget = hip_control  # Position base bone wherever you want, for now hips
+                con.subtarget = main_control
             else:
                 con.subtarget = prev_bone
                 con.head_tail = 1.0
             prev_bone = bone
 
-        #---------------------------------------------
-        # Constrain org bones to flex bone's rotation
+        #----------------------------------------
+        # Constrain original bones to flex spine
+        bpy.ops.object.mode_set(mode='OBJECT')
         pb = self.obj.pose.bones
-        for b in zip(self.org_bones, flex_bones):
-            con = pb[b[0]].constraints.new('COPY_TRANSFORMS')
-            con.name = "copy_rotation"
+
+        for obone, fbone in zip(self.org_bones, flex_bones):
+            con = pb[obone].constraints.new('COPY_TRANSFORMS')
+            con.name = "copy_transforms"
             con.target = self.obj
-            con.subtarget = b[1]
+            con.subtarget = fbone
 
         #---------------------------
         # Create pivot slide system
         pb = self.obj.pose.bones
         bone_p = pb[self.org_bones[0]]
-        rib_control_p = pb[rib_control]
+        main_control_p = pb[main_control]
 
         # Custom pivot_slide property
-        prop = rna_idprop_ui_prop_get(rib_control_p, "pivot_slide", create=True)
-        rib_control_p["pivot_slide"] = 1.0 / len(self.org_bones)
+        prop = rna_idprop_ui_prop_get(main_control_p, "pivot_slide", create=True)
+        main_control_p["pivot_slide"] = self.pivot_rest
         prop["min"] = 0.0
         prop["max"] = 1.0
         prop["soft_min"] = 1.0 / len(self.org_bones)
         prop["soft_max"] = 1.0 - (1.0 / len(self.org_bones))
 
-        # Anchor constraint
+        # Anchor constraints
         con = bone_p.constraints.new('COPY_LOCATION')
         con.name = "copy_location"
+        con.target = self.obj
+        con.subtarget = rev_bones[0]
+
+        con = pb[main_wgt1].constraints.new('COPY_ROTATION')
+        con.name = "copy_rotation"
         con.target = self.obj
         con.subtarget = rev_bones[0]
 
@@ -385,25 +402,113 @@ class Rig:
             var.name = "slide"
             var.targets[0].id_type = 'OBJECT'
             var.targets[0].id = self.obj
-            var.targets[0].data_path = rib_control_p.path_from_id() + '["pivot_slide"]'
+            var.targets[0].data_path = main_control_p.path_from_id() + '["pivot_slide"]'
             mod = fcurve.modifiers[0]
             mod.poly_order = 1
             mod.coefficients[0] = 1 - i
             mod.coefficients[1] = tot
 
+            # Main WGT
+            con = pb[main_wgt1].constraints.new('COPY_ROTATION')
+            con.name = "slide." + str(i)
+            con.target = self.obj
+            con.subtarget = rb
+
+            # Driver
+            fcurve = con.driver_add("influence")
+            driver = fcurve.driver
+            var = driver.variables.new()
+            driver.type = 'AVERAGE'
+            var.name = "slide"
+            var.targets[0].id_type = 'OBJECT'
+            var.targets[0].id = self.obj
+            var.targets[0].data_path = main_control_p.path_from_id() + '["pivot_slide"]'
+            mod = fcurve.modifiers[0]
+            mod.poly_order = 1
+            mod.coefficients[0] = 1.5 - i
+            mod.coefficients[1] = tot
+
             i += 1
 
+        #----------------------------------
+        # Constrain flex spine to controls
+        bpy.ops.object.mode_set(mode='OBJECT')
+        pb = self.obj.pose.bones
+
+        # Constrain the bones that correspond exactly to the controls
+        for i, name in zip(self.control_indices, subcontrols):
+            con = pb[flex_subs[i]].constraints.new('COPY_TRANSFORMS')
+            con.name = "copy_transforms"
+            con.target = self.obj
+            con.subtarget = name
+
+        # Constrain the bones in-between the controls
+        for i, j, name1, name2 in zip(self.control_indices, self.control_indices[1:], subcontrols, subcontrols[1:]):
+            if (i + 1) < j:
+                for n in range(i + 1, j):
+                    bone = pb[flex_subs[n]]
+                    # Custom bend_alpha property
+                    prop = rna_idprop_ui_prop_get(bone, "bend_alpha", create=True)
+                    bone["bend_alpha"] = (n - i) / (j - i)  # set bend alpha
+                    prop["min"] = 0.0
+                    prop["max"] = 1.0
+                    prop["soft_min"] = 0.0
+                    prop["soft_max"] = 1.0
+
+                    con = bone.constraints.new('COPY_TRANSFORMS')
+                    con.name = "copy_transforms"
+                    con.target = self.obj
+                    con.subtarget = name1
+
+                    con = bone.constraints.new('COPY_TRANSFORMS')
+                    con.name = "copy_transforms"
+                    con.target = self.obj
+                    con.subtarget = name2
+
+                    # Driver
+                    fcurve = con.driver_add("influence")
+                    driver = fcurve.driver
+                    var = driver.variables.new()
+                    driver.type = 'AVERAGE'
+                    var.name = "alpha"
+                    var.targets[0].id_type = 'OBJECT'
+                    var.targets[0].id = self.obj
+                    var.targets[0].data_path = bone.path_from_id() + '["bend_alpha"]'
+
+        #-------------
+        # Final stuff
+        bpy.ops.object.mode_set(mode='OBJECT')
+        pb = self.obj.pose.bones
+
+        # Control appearance
+        # Main
+        pb[main_control].custom_shape_transform = pb[main_wgt2]
+        w = create_compass_widget(self.obj, main_control)
+        if w != None:
+            obj_to_bone(w, self.obj, main_wgt2)
+
+        # Spines
+        for name, i in zip(controls[1:-1], self.control_indices[1:-1]):
+            pb[name].custom_shape_transform = pb[self.org_bones[i]]
+            # Create control widgets
+            w = create_circle_widget(self.obj, name, radius=1.0, head_tail=0.5, with_line=True)
+            if w != None:
+                obj_to_bone(w, self.obj, self.org_bones[i])
+        # Hips
+        pb[controls[0]].custom_shape_transform = pb[self.org_bones[0]]
         # Create control widgets
-        w1 = create_circle_widget(self.obj, hip_control, radius=1.0, head_tail=1.0)
-        w2 = create_circle_widget(self.obj, rib_control, radius=1.0, head_tail=0.0)
+        w = create_circle_widget(self.obj, controls[0], radius=1.0, head_tail=0.5, with_line=True)
+        if w != None:
+            obj_to_bone(w, self.obj, self.org_bones[0])
 
-        if w1 != None:
-            obj_to_bone(w1, self.obj, self.org_bones[0])
-        if w2 != None:
-            obj_to_bone(w2, self.obj, self.org_bones[-1])
+        # Ribs
+        pb[controls[-1]].custom_shape_transform = pb[self.org_bones[-1]]
+        # Create control widgets
+        w = create_circle_widget(self.obj, controls[-1], radius=1.0, head_tail=0.5, with_line=True)
+        if w != None:
+            obj_to_bone(w, self.obj, self.org_bones[-1])
 
-        # Return control names
-        return hip_control, rib_control
+        return [main_control] + controls
 
     def generate(self):
         """ Generate the rig.
@@ -412,9 +517,35 @@ class Rig:
 
         """
         self.gen_deform()
-        hips, ribs = self.gen_control()
+        controls = self.gen_control()
 
-        return [script % (hips, ribs)]
+        controls_string = ", ".join(["'" + x + "'" for x in controls[1:]])
+        return [script % (controls[0], controls_string)]
+
+    @classmethod
+    def add_parameters(self, group):
+        """ Add the parameters of this rig type to the
+            RigifyParameters PropertyGroup
+        """
+        group.spine_main_control_name = bpy.props.StringProperty(name="Main control name", default="torso", description="Name that the main control bone should be given.")
+        group.rest_pivot_slide = bpy.props.FloatProperty(name="Rest Pivot Slide", default=0.0, min=0.0, max=1.0, soft_min=0.0, soft_max=1.0, description="The pivot slide value in the rest pose.")
+        group.chain_bone_controls = bpy.props.StringProperty(name="Control bone list", default="", description="Define which bones have controls.")
+
+
+    @classmethod
+    def parameters_ui(self, layout, obj, bone):
+        """ Create the ui for the rig parameters.
+        """
+        params = obj.pose.bones[bone].rigify_parameters[0]
+
+        r = layout.row()
+        r.prop(params, "spine_main_control_name")
+
+        r = layout.row()
+        r.prop(params, "rest_pivot_slide", slider=True)
+
+        r = layout.row()
+        r.prop(params, "chain_bone_controls")
 
     @classmethod
     def create_sample(self, obj):
@@ -469,6 +600,8 @@ class Rig:
         pbone.rotation_mode = 'QUATERNION'
         pbone = obj.pose.bones[bones['hips']]
         pbone['rigify_type'] = 'spine'
+        pbone.rigify_parameters.add()
+        pbone.rigify_parameters[0].chain_bone_controls = "1, 2, 3"
 
         bpy.ops.object.mode_set(mode='EDIT')
         for bone in arm.edit_bones:
@@ -481,4 +614,3 @@ class Rig:
             bone.select_head = True
             bone.select_tail = True
             arm.edit_bones.active = bone
-
