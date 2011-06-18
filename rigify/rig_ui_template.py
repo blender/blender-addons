@@ -493,8 +493,8 @@ class RigUI(bpy.types.Panel):
 '''
 
 
-def layers_ui(layers):
-    """ Turn a list of booleans into a layer UI.
+def layers_ui(layers, names):
+    """ Turn a list of booleans + a list of names into a layer UI.
     """
 
     code = '''
@@ -522,7 +522,7 @@ class RigLayers(bpy.types.Panel):
             if i == 28:
                 code += "        row.prop(context.active_object.data, 'layers', index=%s, toggle=True, text='Root')\n" % (str(i))
             else:
-                code += "        row.prop(context.active_object.data, 'layers', index=%s, toggle=True, text='%s')\n" % (str(i), str(i + 1))
+                code += "        row.prop(context.active_object.data, 'layers', index=%s, toggle=True, text='%s')\n" % (str(i), names[i])
         i += 1
 
     return code

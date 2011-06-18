@@ -120,6 +120,8 @@ class Rig:
         uarm_p = pb[uarm]
         farm_p = pb[farm]
         hand_p = pb[hand]
+        if self.org_parent != None:
+            hinge_p = pb[hinge]
 
         if self.org_parent != None:
             socket1_p = pb[socket1]
@@ -133,6 +135,13 @@ class Rig:
             farm_p.lock_rotation = (True, False, True)
         else:
             farm_p.lock_rotation = (True, True, False)
+
+        # Hinge transforms are locked, for auto-ik
+        if self.org_parent != None:
+            hinge_p.lock_location = True, True, True
+            hinge_p.lock_rotation = True, True, True
+            hinge_p.lock_rotation_w = True
+            hinge_p.lock_scale = True, True, True
 
         # Set up custom properties
         if self.org_parent != None:

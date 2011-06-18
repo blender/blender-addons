@@ -24,6 +24,20 @@ def create(obj):
     bpy.ops.object.mode_set(mode='EDIT')
     arm = obj.data
 
+    props = arm.rigify_props.add()
+    props.layer_name_01 = "Torso"
+    props.layer_name_03 = "Head"
+    props.layer_name_05 = "Fingers"
+    props.layer_name_06 = "Fingers (tweak)"
+    props.layer_name_07 = "Arm.L (FK)"
+    props.layer_name_08 = "Arm.L (IK)"
+    props.layer_name_09 = "Arm.R (FK)"
+    props.layer_name_10 = "Arm.R (IK)"
+    props.layer_name_11 = "Leg.L (FK)"
+    props.layer_name_12 = "Leg.L (IK)"
+    props.layer_name_13 = "Leg.R (FK)"
+    props.layer_name_14 = "Leg.R (IK)"
+
     bones = {}
 
     bone = arm.edit_bones.new('hips')

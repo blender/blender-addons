@@ -282,6 +282,13 @@ def generate_rig(context, metarig):
         vis_layers[i] = vis_layers[i] and not (ORG_LAYER[i] or MCH_LAYER[i] or DEF_LAYER[i])
     obj.data.layers = vis_layers
 
+    # Create list of layer names
+    if len(metarig.data.rigify_props) < 1:
+        metarig.data.rigify_props.add()
+    layer_names = []
+    for i in range(28):
+        layer_names += [getattr(metarig.data.rigify_props[0], "layer_name_%s" % str(i+1).rjust(2, "0"))]
+
     # Generate the UI script
     if "rig_ui.py" in bpy.data.texts:
         script = bpy.data.texts["rig_ui.py"]
@@ -291,7 +298,7 @@ def generate_rig(context, metarig):
     script.write(UI_SLIDERS % rig_id)
     for s in ui_scripts:
         script.write("\n        " + s.replace("\n", "\n        ") + "\n")
-    script.write(layers_ui(vis_layers))
+    script.write(layers_ui(vis_layers, layer_names))
     script.write(UI_REGISTER)
     script.use_module = True
 

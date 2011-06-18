@@ -158,12 +158,14 @@ class Rig:
         thigh_p = pb[thigh]
         shin_p = pb[shin]
         foot_p = pb[foot]
+        if self.org_parent != None:
+            hinge_p = pb[hinge]
 
         if self.org_parent != None:
             socket1_p = pb[socket1]
             socket2_p = pb[socket2]
 
-        # Set the elbow to only bend on the x-axis.
+        # Set the knee to only bend on the x-axis.
         shin_p.rotation_mode = 'XYZ'
         if 'X' in self.primary_rotation_axis:
             shin_p.lock_rotation = (False, True, True)
@@ -171,6 +173,13 @@ class Rig:
             shin_p.lock_rotation = (True, False, True)
         else:
             shin_p.lock_rotation = (True, True, False)
+
+        # Hinge transforms are locked, for auto-ik
+        if self.org_parent != None:
+            hinge_p.lock_location = True, True, True
+            hinge_p.lock_rotation = True, True, True
+            hinge_p.lock_rotation_w = True
+            hinge_p.lock_scale = True, True, True
 
         # Set up custom properties
         if self.org_parent != None:

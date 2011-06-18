@@ -508,6 +508,9 @@ class Rig:
         if w != None:
             obj_to_bone(w, self.obj, self.org_bones[-1])
 
+        # Layers
+        pb[main_control].bone.layers = pb[self.org_bones[0]].bone.layers
+
         return [main_control] + controls
 
     def generate(self):
