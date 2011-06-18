@@ -134,6 +134,8 @@ class Rig:
         else:
             self.layers = None
 
+        self.bend_hint = params.bend_hint
+
         self.primary_rotation_axis = params.primary_rotation_axis
 
     def generate(self):
@@ -375,6 +377,36 @@ class Rig:
             foot_p["ikfk_switch"] = 0.0
             prop["soft_min"] = prop["min"] = 0.0
             prop["soft_max"] = prop["max"] = 1.0
+
+        # Bend direction hint
+        if self.bend_hint:
+            con = shin_p.constraints.new('LIMIT_ROTATION')
+            con.name = "bend_hint"
+            con.owner_space = 'LOCAL'
+            if self.primary_rotation_axis == 'X':
+                con.use_limit_x = True
+                con.min_x = pi / 10
+                con.max_x = pi / 10
+            elif self.primary_rotation_axis == '-X':
+                con.use_limit_x = True
+                con.min_x = -pi / 10
+                con.max_x = -pi / 10
+            elif self.primary_rotation_axis == 'Y':
+                con.use_limit_y = True
+                con.min_y = pi / 10
+                con.max_y = pi / 10
+            elif self.primary_rotation_axis == '-Y':
+                con.use_limit_y = True
+                con.min_y = -pi / 10
+                con.max_y = -pi / 10
+            elif self.primary_rotation_axis == 'Z':
+                con.use_limit_z = True
+                con.min_z = pi / 10
+                con.max_z = pi / 10
+            elif self.primary_rotation_axis == '-Z':
+                con.use_limit_z = True
+                con.min_z = -pi / 10
+                con.max_z = -pi / 10
 
         # IK Constraint
         con = shin_p.constraints.new('IK')

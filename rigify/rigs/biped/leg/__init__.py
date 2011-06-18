@@ -98,6 +98,8 @@ class Rig:
         items = [('X', 'X', ''), ('Y', 'Y', ''), ('Z', 'Z', ''), ('-X', '-X', ''), ('-Y', '-Y', ''), ('-Z', '-Z', '')]
         group.primary_rotation_axis = bpy.props.EnumProperty(items=items, name="Primary Rotation Axis", default='X')
 
+        group.bend_hint = bpy.props.BoolProperty(name="Bend Hint", default=True, description="Give IK chain a hint about which way to bend.  Useful for perfectly straight chains.")
+
         group.separate_ik_layers = bpy.props.BoolProperty(name="Separate IK Control Layers:", default=False, description="Enable putting the ik controls on a separate layer from the fk controls.")
         group.ik_layers = bpy.props.BoolVectorProperty(size=32, description="Layers for the ik controls to be on.")
 
@@ -160,6 +162,9 @@ class Rig:
         r = layout.row()
         r.label(text="Knee rotation axis:")
         r.prop(params, "primary_rotation_axis", text="")
+
+        r = layout.row()
+        r.prop(params, "bend_hint")
 
         col = layout.column()
         col.prop(params, "use_thigh_twist")

@@ -11,14 +11,14 @@ armature that contains data about how to construct the rig.  In particular, it
 contains bones in the basic configuration of the rig, with some bones tagged
 to indicate the rig type.
 
-For example, a metaig might contain a chain of three bones, the root-most of
+For example, a metarig might contain a chain of three bones, the root-most of
 which is tagged as being a biped arm.  When given as input to Rigify, Rigify
 will then generate a fully-featured biped arm rig in the same position and
 proportions as the 3-bone chain.
 
 One could also have another chain of bones, the root-most of which is tagged as
 being a spine.  And the root-most bone of the arm chain could be the child of
-any of those spine bones.  Then the rig that Rigify would generate would be a
+any of those spine bones.  Then the rig that Rigify generates would be a
 spine rig with an arm rig attached to it.
 
 
@@ -45,7 +45,7 @@ information about it.
 It traverses the bones in a root-most to leaf-most order, and whenever it
 stumbles upon a bone that has a rig type tagged on it, it creates a rig-type
 python object (rig types will be explained further down) for that rig type,
-and executes the resulting object's information gathering code.
+and executes the resulting python object's information gathering code.
 
 At the end of the information gathering stage, Rigify has a collection of
 python objects, each of which know all the information they need to generate
@@ -77,33 +77,33 @@ __init__() is the "information gathering" code for the rig type.  When Rigify
 loops through the bones and finds a tagged bone, it will create a python
 object from the Rig class, executing this method.
 In addition to the default "self" parameter, __init__() needs to take the
-armature object, the name of the bone that was tagged, and the bone's rig type
-parameters object.
+armature object, the name of the bone that was tagged, and a parameters object.
 
 A proper rig-type __init__() will look like this:
 
-    def __init__(self, obj, bone, params):
+    def __init__(self, obj, bone_name, params):
         # code goes here
 
 At the bare minimum, you are going to want to store the object and bone name
 in the rig type object for later reference in the generate method.  So:
 
-    def __init__(self, obj, bone, params):
+    def __init__(self, obj, bone_name, params):
         self.obj = obj
-        self.org_bone = bone
+        self.org_bone = bone_name
 
 Most rig types involve more than just that one bone, though, so you will also
 want to store the names of any other relevant bones.  For example, maybe the
-parent of the tagged bone:
+parent of the tagged bone is important to the rig type:
 
-    def __init__(self, obj, bone, params):
+    def __init__(self, obj, bone_name, params):
         self.obj = obj
-        self.org_bone = bone
-        self.org_parent = obj.data.bones[bone].parent.name
+        self.org_bone = bone_name
+        self.org_parent = obj.data.bones[bone_name].parent.name
 
-It is important that store the _names_ of the bones, and not direct references.
-Due to how the armature system in Blender works, when flipping in and out of
-edit mode, pose-bone and edit-bone references get lost. (Arg...)
+It is important that you store the _names_ of the bones, and not direct
+references.  Due to the inner workings of Blender's armature system, direct
+edit-bone and pose-bone references are lost when flipping in and out of
+armature edit mode. (Arg...)
 
 Remember that it is critical that the information-gathering method does _not_
 modify the armature in any way.  This way all of the rig type's info-gathering
@@ -118,13 +118,13 @@ actually generate the rig.  It takes the form:
     def generate(self):
         # code goes here
 
-It doesn't take any parameters beyond "self".  So you really need to store any
+It doesn't take any parameters beyond "self".  So you have to store any
 information you need with the __init__() method.
 
-Generate pretty much has free reign to do whatever it wants, with the exception
+generate() pretty much has free reign to do whatever it wants, with the exception
 of two simple rules:
 1. Other than the "ORG-" bones, do not touch anything that is not created by
-this method (this prevents rig types from messing each other up).
+the rig type (this prevents rig types from messing each other up).
 2. Even with "ORG-" bones, the only thing you are allowed to do is add children
 and add constraints.  Do not rename them, do not remove children or
 constraints, and especially do not change their parents.  (Adding constraints
