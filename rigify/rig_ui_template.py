@@ -493,7 +493,7 @@ class RigUI(bpy.types.Panel):
 '''
 
 
-def layers_ui(layers, names):
+def layers_ui(layers, layout):
     """ Turn a list of booleans + a list of names into a layer UI.
     """
 
@@ -515,15 +515,34 @@ class RigLayers(bpy.types.Panel):
         layout = self.layout
         col = layout.column()
 '''
-    i = 0
-    for layer in layers:
-        if layer:
-            code += "\n        row = col.row()\n"
-            if i == 28:
-                code += "        row.prop(context.active_object.data, 'layers', index=%s, toggle=True, text='Root')\n" % (str(i))
-            else:
-                code += "        row.prop(context.active_object.data, 'layers', index=%s, toggle=True, text='%s')\n" % (str(i), names[i])
-        i += 1
+    rows = {}
+    for i in range(28):
+        if layers[i]:
+            if layout[i][1] not in rows:
+                rows[layout[i][1]] = []
+            rows[layout[i][1]] += [(layout[i][0], i)]
+
+    keys = list(rows.keys())
+    keys.sort()
+
+    for key in keys:
+        code += "\n        row = col.row()\n"
+        i = 0
+        for l in rows[key]:
+            if i > 3:
+                code += "\n        row = col.row()\n"
+                i = 0
+            code += "        row.prop(context.active_object.data, 'layers', index=%s, toggle=True, text='%s')\n" % (str(l[1]), l[0])
+            i += 1
+
+    # Root layer
+    code += "\n        row = col.row()"
+    code += "\n        row.separator()"
+    code += "\n        row = col.row()"
+    code += "\n        row.separator()\n"
+    code += "\n        row = col.row()\n"
+    code += "        row.prop(context.active_object.data, 'layers', index=28, toggle=True, text='Root')\n"
+
 
     return code
 

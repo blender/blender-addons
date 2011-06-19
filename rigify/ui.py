@@ -92,10 +92,6 @@ class DATA_PT_rigify_layer_names(bpy.types.Panel):
     def poll(cls, context):
         if not context.armature:
             return False
-        #obj = context.object
-        #if obj:
-        #    return (obj.mode in ('POSE', 'OBJECT', 'EDIT'))
-        #return False
         return True
 
     def draw(self, context):
@@ -103,9 +99,11 @@ class DATA_PT_rigify_layer_names(bpy.types.Panel):
         layout = self.layout
         obj = context.object
 
-        if len(obj.data.rigify_props) < 1:
-            obj.data.rigify_props.add()
+        # Ensure that the layers exist
+        for i in range(1 + len(obj.data.rigify_layers), 29):
+            layer = obj.data.rigify_layers.add()
 
+        # UI
         for i in range(28):
             if (i % 16) == 0:
                 col = layout.column()
@@ -117,8 +115,10 @@ class DATA_PT_rigify_layer_names(bpy.types.Panel):
                 col = layout.column(align=True)
             row = col.row()
             row.prop(obj.data, "layers", index=i, text="", toggle=True)
-            row.prop(obj.data.rigify_props[0], "layer_name_%s" % str(i+1).rjust(2, "0"), text="Layer %d" % (i + 1))
-
+            split = row.split(percentage=0.8)
+            split.prop(obj.data.rigify_layers[i], "name", text="Layer %d" % (i + 1))
+            split.prop(obj.data.rigify_layers[i], "row", text="")
+            #split.prop(obj.data.rigify_layers[i], "column", text="")
 
 
 class BONE_PT_rigify_buttons(bpy.types.Panel):

@@ -115,35 +115,9 @@ class RigifyParameters(bpy.types.PropertyGroup):
     name = bpy.props.StringProperty()
 
 
-class RigifyArmatureProps(bpy.types.PropertyGroup):
-    layer_name_01 = bpy.props.StringProperty(name="Layer 1 Name", default="1")
-    layer_name_02 = bpy.props.StringProperty(name="Layer 2 Name", default="2")
-    layer_name_03 = bpy.props.StringProperty(name="Layer 3 Name", default="3")
-    layer_name_04 = bpy.props.StringProperty(name="Layer 4 Name", default="4")
-    layer_name_05 = bpy.props.StringProperty(name="Layer 5 Name", default="5")
-    layer_name_06 = bpy.props.StringProperty(name="Layer 6 Name", default="6")
-    layer_name_07 = bpy.props.StringProperty(name="Layer 7 Name", default="7")
-    layer_name_08 = bpy.props.StringProperty(name="Layer 8 Name", default="8")
-    layer_name_09 = bpy.props.StringProperty(name="Layer 9 Name", default="9")
-    layer_name_10 = bpy.props.StringProperty(name="Layer 10 Name", default="10")
-    layer_name_11 = bpy.props.StringProperty(name="Layer 11 Name", default="11")
-    layer_name_12 = bpy.props.StringProperty(name="Layer 12 Name", default="12")
-    layer_name_13 = bpy.props.StringProperty(name="Layer 13 Name", default="13")
-    layer_name_14 = bpy.props.StringProperty(name="Layer 14 Name", default="14")
-    layer_name_15 = bpy.props.StringProperty(name="Layer 15 Name", default="15")
-    layer_name_16 = bpy.props.StringProperty(name="Layer 16 Name", default="16")
-    layer_name_17 = bpy.props.StringProperty(name="Layer 17 Name", default="17")
-    layer_name_18 = bpy.props.StringProperty(name="Layer 18 Name", default="18")
-    layer_name_19 = bpy.props.StringProperty(name="Layer 19 Name", default="19")
-    layer_name_20 = bpy.props.StringProperty(name="Layer 20 Name", default="20")
-    layer_name_21 = bpy.props.StringProperty(name="Layer 21 Name", default="21")
-    layer_name_22 = bpy.props.StringProperty(name="Layer 22 Name", default="22")
-    layer_name_23 = bpy.props.StringProperty(name="Layer 23 Name", default="23")
-    layer_name_24 = bpy.props.StringProperty(name="Layer 24 Name", default="24")
-    layer_name_25 = bpy.props.StringProperty(name="Layer 25 Name", default="25")
-    layer_name_26 = bpy.props.StringProperty(name="Layer 26 Name", default="26")
-    layer_name_27 = bpy.props.StringProperty(name="Layer 27 Name", default="27")
-    layer_name_28 = bpy.props.StringProperty(name="Layer 28 Name", default="28")
+class RigifyArmatureLayer(bpy.types.PropertyGroup):
+    name = bpy.props.StringProperty(name="Layer Name", default=" ")
+    row = bpy.props.IntProperty(name="Layer Row", default=1, min=1, max=32)
 
 
 ##### REGISTER #####
@@ -154,12 +128,12 @@ def register():
 
     bpy.utils.register_class(RigifyName)
     bpy.utils.register_class(RigifyParameters)
-    bpy.utils.register_class(RigifyArmatureProps)
+    bpy.utils.register_class(RigifyArmatureLayer)
 
     bpy.types.PoseBone.rigify_type = bpy.props.StringProperty(name="Rigify Type", description="Rig type for this bone.")
     bpy.types.PoseBone.rigify_parameters = bpy.props.CollectionProperty(type=RigifyParameters)
 
-    bpy.types.Armature.rigify_props = bpy.props.CollectionProperty(type=RigifyArmatureProps)
+    bpy.types.Armature.rigify_layers = bpy.props.CollectionProperty(type=RigifyArmatureLayer)
 
     IDStore = bpy.types.WindowManager
     IDStore.rigify_collection = bpy.props.EnumProperty(items=col_enum_list, default="All", name="Rigify Active Collection", description="The selected rig collection")
@@ -187,7 +161,7 @@ def unregister():
 
     bpy.utils.unregister_class(RigifyName)
     bpy.utils.unregister_class(RigifyParameters)
-    bpy.utils.unregister_class(RigifyArmatureProps)
+    bpy.utils.unregister_class(RigifyArmatureLayer)
 
     metarig_menu.unregister()
     ui.unregister()
