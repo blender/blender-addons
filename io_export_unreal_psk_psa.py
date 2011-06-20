@@ -1528,7 +1528,7 @@ def fs_callback(filename, context):
     start_time = time.clock()
     
     print ("========EXPORTING TO UNREAL SKELETAL MESH FORMATS========\r\n")
-    print("Blender Version:", bpy.app.version_string)
+    print("Blender Version:", bpy.app.version[1],"-")
     
     psk = PSKFile()
     psa = PSAFile()
@@ -1952,6 +1952,8 @@ class VIEW3D_PT_unrealtools_objectmode(bpy.types.Panel):
         layout.operator(OBJECT_OT_UTRebuildArmature.bl_idname)
         layout.operator(OBJECT_OT_UTRebuildMesh.bl_idname)
         layout.operator(OBJECT_OT_ToggleConsle.bl_idname)
+        layout.operator(OBJECT_OT_DeleteActionSet.bl_idname)
+        layout.operator(OBJECT_OT_MeshClearWeights.bl_idname)
         
 class OBJECT_OT_UnrealExport(bpy.types.Operator):
     global exportmessage
@@ -2028,6 +2030,30 @@ class OBJECT_OT_UTSelectedFaceSmooth(bpy.types.Operator):
             print("Didn't select Mesh Object!")
             self.report({'INFO'}, "Didn't Select Mesh Object!")
         print("----------------------------------------")        
+        return{'FINISHED'}
+		
+class OBJECT_OT_DeleteActionSet(bpy.types.Operator):
+    bl_idname = "object.deleteactionset"  # XXX, name???
+    bl_label = "Delete Action Set"
+    __doc__ = """It will remove the first top of the index of the action list. It used for unable to delete action set."""
+    
+    def invoke(self, context, event):
+        if len(bpy.data.actions) > 0:
+            bpy.data.actions[0].user_clear() 
+            bpy.data.actions.remove( bpy.data.actions[0])
+            return{'FINISHED'}
+			
+class OBJECT_OT_MeshClearWeights(bpy.types.Operator):
+    bl_idname = "object.meshclearweights"  # XXX, name???
+    bl_label = "Mesh Clear Weights"
+    __doc__ = """Clear selected mesh vertex group weights for the bones. Be sure you unparent the armature."""
+    
+    def invoke(self, context, event):
+        for obj in bpy.data.objects:
+            if obj.type == 'MESH' and obj.select == True:
+                for vg in obj.vertex_groups:
+                    obj.vertex_groups.remove(vg)
+                break			
         return{'FINISHED'}
 		
 class OBJECT_OT_UTRebuildArmature(bpy.types.Operator):
