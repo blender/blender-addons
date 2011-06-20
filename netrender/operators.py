@@ -311,6 +311,9 @@ class RENDER_OT_netclientslaves(bpy.types.Operator):
 
             slaves = (netrender.model.RenderSlave.materialize(s) for s in json.loads(str(content, encoding='utf8')))
 
+            while(len(netsettings.slaves_blacklist) > 0):
+                netsettings.slaves_blacklist.remove(0)
+
             while(len(netsettings.slaves) > 0):
                 netsettings.slaves.remove(0)
 
@@ -321,7 +324,9 @@ class RENDER_OT_netclientslaves(bpy.types.Operator):
                     slave = netrender.blacklist[i]
                     if slave.id == s.id:
                         netrender.blacklist[i] = s
-                        netsettings.slaves_blacklist[i].name = s.name
+                        netsettings.slaves_blacklist.add()
+                        slave = netsettings.slaves_blacklist[-1]
+                        slave.name = s.name
                         break
                 else:
                     netrender.slaves.append(s)
@@ -498,6 +503,7 @@ class netclientscan(bpy.types.Operator):
             netsettings = scene.network_render
             netsettings.server_address = address
             netsettings.server_port = port
+            netrender.valid_address = True
 
         return {'FINISHED'}
 
