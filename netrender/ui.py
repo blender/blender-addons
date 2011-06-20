@@ -37,6 +37,7 @@ DONE = 2
 ERROR = 3
 
 LAST_ADDRESS_TEST = 0
+ADDRESS_TEST_TIMEOUT = 30
 
 def base_poll(cls, context):
     rd = context.scene.render
@@ -67,11 +68,11 @@ def init_data(netsettings):
         while(len(netsettings.jobs) > 0):
             netsettings.jobs.remove(0)
 
-def verify_address(netsettings):
+def verify_address(netsettings, force=False):
     global LAST_ADDRESS_TEST
     init_file()
 
-    if LAST_ADDRESS_TEST + 30 < time.time():
+    if force or LAST_ADDRESS_TEST + ADDRESS_TEST_TIMEOUT < time.time():
         LAST_ADDRESS_TEST = time.time()
 
         try:
@@ -384,11 +385,16 @@ class NetRenderSettings(bpy.types.PropertyGroup):
     def register(NetRenderSettings):
         from bpy.props import PointerProperty, StringProperty, BoolProperty, EnumProperty, IntProperty, CollectionProperty
 
+        def address_update_callback(self, context):
+            netsettings = context.scene.network_render
+            verify_address(netsettings, True)
+
         NetRenderSettings.server_address = StringProperty(
                         name="Server address",
                         description="IP or name of the master render server",
                         maxlen = 128,
-                        default = "[default]")
+                        default = "[default]",
+                        update = address_update_callback)
         
         NetRenderSettings.server_port = IntProperty(
                         name="Server port",
