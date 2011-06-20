@@ -73,7 +73,7 @@ class ImportX3D(bpy.types.Operator, ImportHelper):
                    ('-Y', "-Y Up", ""),
                    ('-Z', "-Z Up", ""),
                    ),
-            default='-Y',
+            default='Y',
             )
 
     def execute(self, context):
@@ -123,7 +123,7 @@ class ExportX3D(bpy.types.Operator, ExportHelper):
                    ('-Y', "-Y Up", ""),
                    ('-Z', "-Z Up", ""),
                    ),
-            default='-Y',
+            default='Y',
             )
 
     path_mode = path_reference_mode

@@ -1551,7 +1551,7 @@ def getFinalMatrix(node, mtx, ancestry, global_matrix):
         mtx = mat * mtx
 
     # worldspace matrix
-    mtx = mtx * global_matrix
+    mtx = global_matrix * mtx
 
     return mtx
 
@@ -1883,8 +1883,7 @@ def importMesh_IndexedLineSet(geom, ancestry):
             continue
         co = points[line[0]]
         nu = bpycurve.splines.new('POLY')
-        nu.points.add(len(line))
-
+        nu.points.add(len(line) - 1)  # the new nu has 1 point to begin with
         for il, pt in zip(line, nu.points):
             pt.co[0:3] = points[il]
 
@@ -2334,7 +2333,7 @@ def importViewpoint(node, ancestry, global_matrix):
 
     mtx = Matrix.Translation(Vector(position)) * translateRotation(orientation)
 
-    bpyob = node.blendObject = bpy.data.objects.new("TODO", bpycam)
+    bpyob = node.blendObject = bpy.data.objects.new(name, bpycam)
     bpy.context.scene.objects.link(bpyob)
     bpyob.matrix_world = getFinalMatrix(node, mtx, ancestry, global_matrix)
 
