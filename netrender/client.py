@@ -180,7 +180,7 @@ def clientSendJobBlender(conn, scene, anim = False):
     filename = bpy.data.filepath
     
     if not os.path.exists(filename):
-        raise RuntimeError("Current filepath not defined")
+        raise RuntimeError("Current file path not defined\nSave your file before sending a job")
     
     job.addFile(filename)
 
