@@ -125,6 +125,16 @@ def render_slave(engine, netsettings, threads):
     bisleep = BreakableIncrementedSleep(INCREMENT_TIMEOUT, 1, MAX_TIMEOUT, engine.test_break)
 
     engine.update_stats("", "Network render node initiation")
+    
+    slave_path = bpy.path.abspath(netsettings.path)
+
+    if not os.path.exists(slave_path):
+        print("Slave working path ( %s ) doesn't exist" % netsettings.path)
+        return
+
+    if not os.access(slave_path, os.W_OK):
+        print("Slave working path ( %s ) is not writable" % netsettings.path)
+        return
 
     conn = clientConnection(netsettings.server_address, netsettings.server_port)
     
@@ -150,7 +160,7 @@ def render_slave(engine, netsettings, threads):
 
         slave_id = response.getheader("slave-id")
 
-        NODE_PREFIX = os.path.join(bpy.path.abspath(netsettings.path), "slave_" + slave_id)
+        NODE_PREFIX = os.path.join(slave_path, "slave_" + slave_id)
         if not os.path.exists(NODE_PREFIX):
             os.mkdir(NODE_PREFIX)
 
