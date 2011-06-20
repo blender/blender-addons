@@ -80,7 +80,7 @@ class SCENE_PT_Main(ObjectButtonsPanel,bpy.types.Panel):
         row = layout.row()
         row.prop(coat3D,"type",text = "")
         row = layout.row()
-        if(context.selected_objects):
+        if(context.selected_objects and bpy.context.mode == 'OBJECT'):
             if(context.selected_objects[0].type == 'MESH'):
                 row.active = True
             else:
