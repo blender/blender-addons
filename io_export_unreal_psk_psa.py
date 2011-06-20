@@ -2035,13 +2035,17 @@ class OBJECT_OT_UTSelectedFaceSmooth(bpy.types.Operator):
 class OBJECT_OT_DeleteActionSet(bpy.types.Operator):
     bl_idname = "object.deleteactionset"  # XXX, name???
     bl_label = "Delete Action Set"
-    __doc__ = """It will remove the first top of the index of the action list. It used for unable to delete action set."""
+    __doc__ = """It will remove the first top of the index of the action list. Reload file to remove it. It used for unable to delete action set. """
     
     def invoke(self, context, event):
         if len(bpy.data.actions) > 0:
-            bpy.data.actions[0].user_clear() 
-            bpy.data.actions.remove( bpy.data.actions[0])
-            return{'FINISHED'}
+            for action in bpy.data.actions:
+                print("Action:",action.name)
+                action.user_clear()
+                break
+            #bpy.data.actions.remove(act)
+        print("finish")
+        return{'FINISHED'}
 			
 class OBJECT_OT_MeshClearWeights(bpy.types.Operator):
     bl_idname = "object.meshclearweights"  # XXX, name???
