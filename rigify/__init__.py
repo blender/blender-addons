@@ -152,7 +152,6 @@ def register():
 def unregister():
     del bpy.types.PoseBone.rigify_type
     del bpy.types.PoseBone.rigify_parameters
-    del bpy.types.Armature.rigify_props
 
     IDStore = bpy.types.WindowManager
     del IDStore.rigify_collection
