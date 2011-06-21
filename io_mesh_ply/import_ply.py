@@ -199,6 +199,8 @@ def read(filepath):
 
     obj = obj_spec.load(format_specs[format], file)
 
+    file.close()
+
     return obj_spec, obj
 
 
@@ -217,19 +219,24 @@ def load_ply(filepath):
         return
 
     uvindices = colindices = None
+    colmultiply = None
+
     # noindices = None # Ignore normals
 
     for el in obj_spec.specs:
         if el.name == b'vertex':
-            vindices = vindices_x, vindices_y, vindices_z = (el.index(b'x'), el.index(b'y'), el.index(b'z'))
+            vindices = vindices_x, vindices_y, vindices_z = el.index(b'x'), el.index(b'y'), el.index(b'z')
             # noindices = (el.index('nx'), el.index('ny'), el.index('nz'))
             # if -1 in noindices: noindices = None
             uvindices = (el.index(b's'), el.index(b't'))
             if -1 in uvindices:
                 uvindices = None
-            colindices = (el.index(b'red'), el.index(b'green'), el.index(b'blue'))
+            colindices = el.index(b'red'), el.index(b'green'), el.index(b'blue')
             if -1 in colindices:
                 colindices = None
+            else: # if not a float assume uchar
+                colmultiply = [1.0 if el.properties[i].numeric_type in ('f', 'd') else (1.0 / 256.0) for i in colindices]
+
         elif el.name == b'face':
             findex = el.index(b'vertex_indices')
 
@@ -242,7 +249,10 @@ def load_ply(filepath):
         if uvindices:
             mesh_uvs.append([(vertices[index][uvindices[0]], 1.0 - vertices[index][uvindices[1]]) for index in indices])
         if colindices:
-            mesh_colors.append([(vertices[index][colindices[0]] / 255.0, vertices[index][colindices[1]] / 255.0, vertices[index][colindices[2]] / 255.0) for index in indices])
+            mesh_colors.append([(vertices[index][colindices[0]] * colmultiply[0],
+                                 vertices[index][colindices[1]] * colmultiply[1],
+                                 vertices[index][colindices[2]] * colmultiply[2],
+                                 ) for index in indices])
 
     if uvindices or colindices:
         # If we have Cols or UVs then we need to check the face order.
