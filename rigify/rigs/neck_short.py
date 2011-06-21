@@ -19,7 +19,7 @@
 import bpy
 from mathutils import Vector
 from rigify.utils import MetarigError
-from rigify.utils import copy_bone, flip_bone, put_bone
+from rigify.utils import copy_bone, new_bone, flip_bone, put_bone
 from rigify.utils import connected_children_names
 from rigify.utils import strip_org, make_mechanism_name, make_deformer_name
 from rigify.utils import obj_to_bone, create_circle_widget
@@ -41,8 +41,8 @@ if is_selected(head_neck):
 
 
 class Rig:
-    """ A "spine" rig.  It turns a chain of bones into a rig with two controls:
-        One for the hips, and one for the rib cage.
+    """ A "neck" rig.  It turns a chain of bones into a rig with two controls:
+        One for the head, and one for the neck.
 
     """
     def __init__(self, obj, bone_name, params):
@@ -98,9 +98,10 @@ class Rig:
         # Create bones
         neck_ctrl = copy_bone(self.obj, self.org_bones[0], strip_org(self.org_bones[0]))
         neck_follow = copy_bone(self.obj, self.org_bones[-1], make_mechanism_name(strip_org(self.org_bones[0] + ".follow")))
+        neck_child = new_bone(self.obj, make_mechanism_name(strip_org(self.org_bones[0] + ".child")))
 
         head_ctrl = copy_bone(self.obj, self.org_bones[-1], strip_org(self.org_bones[-1]))
-        head_mch = copy_bone(self.obj, self.org_bones[0], make_mechanism_name(strip_org(self.org_bones[-1])))
+        head_mch = new_bone(self.obj, make_mechanism_name(strip_org(self.org_bones[-1])))
         if self.isolate:
             head_socket1 = copy_bone(self.obj, self.org_bones[-1], make_mechanism_name(strip_org(self.org_bones[-1] + ".socket1")))
             head_socket2 = copy_bone(self.obj, self.org_bones[-1], make_mechanism_name(strip_org(self.org_bones[-1] + ".socket2")))
@@ -110,13 +111,14 @@ class Rig:
         helpers = []
         for name in self.org_bones:
             neck += [copy_bone(self.obj, name, make_mechanism_name(strip_org(name)))]
-            helpers += [copy_bone(self.obj, neck_ctrl, make_mechanism_name(strip_org(name + ".02")))]
+            helpers += [copy_bone(self.obj, neck_child, make_mechanism_name(strip_org(name + ".02")))]
 
         # Fetch edit bones
         eb = self.obj.data.edit_bones
 
         neck_ctrl_e = eb[neck_ctrl]
         neck_follow_e = eb[neck_follow]
+        neck_child_e = eb[neck_child]
         head_ctrl_e = eb[head_ctrl]
         head_mch_e = eb[head_mch]
         if self.isolate:
@@ -146,13 +148,17 @@ class Rig:
 
         neck_follow_e.use_connect = False
         neck_follow_e.parent = neck_ctrl_e.parent
+        neck_child_e.use_connect = False
+        neck_child_e.parent = neck_ctrl_e
         neck_ctrl_e.parent = neck_follow_e
 
         # Position
         put_bone(self.obj, neck_follow, neck_ctrl_e.head)
+        put_bone(self.obj, neck_child, neck_ctrl_e.head)
         put_bone(self.obj, head_ctrl, neck_ctrl_e.head)
         put_bone(self.obj, head_mch, neck_ctrl_e.head)
-        head_mch_e.length /= 2
+        head_mch_e.length = head_ctrl_e.length / 2
+        neck_child_e.length = neck_ctrl_e.length / 2
 
         if self.isolate:
             put_bone(self.obj, head_socket1, neck_ctrl_e.head)
@@ -163,13 +169,14 @@ class Rig:
 
         for (name1, name2) in zip(neck, helpers):
             put_bone(self.obj, name2, eb[name1].head)
-            eb[name2].length /= 3
+            eb[name2].length = eb[name1].length / 2
 
         # Switch to object mode
         bpy.ops.object.mode_set(mode='OBJECT')
         pb = self.obj.pose.bones
         neck_ctrl_p = pb[neck_ctrl]
         neck_follow_p = pb[neck_follow]
+        neck_child_p = pb[neck_child]
         head_ctrl_p = pb[head_ctrl]
         if self.isolate:
             head_socket1_p = pb[head_socket1]
@@ -256,7 +263,7 @@ class Rig:
             n_con = pb[name2].constraints.new('COPY_TRANSFORMS')
             n_con.name = "neck"
             n_con.target = self.obj
-            n_con.subtarget = neck_ctrl
+            n_con.subtarget = neck_child
 
             h_con = pb[name2].constraints.new('COPY_TRANSFORMS')
             h_con.name = "head"

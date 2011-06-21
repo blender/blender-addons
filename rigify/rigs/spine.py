@@ -210,8 +210,6 @@ class Rig:
         # Main control doesn't use local location
         pb[main_control].bone.use_local_location = False
 
-        
-
         # Intermediate controls follow hips and spine
         for name, par_name, i in zip(controls[1:-1], control_parents, self.control_indices[1:-1]):
             bone = pb[par_name]
@@ -296,7 +294,7 @@ class Rig:
 
             # Position
             put_bone(self.obj, sub, bone_e.head)
-            sub_e.length /= 4
+            sub_e.length = bone_e.length / 4
             if prev_bone is not None:
                 sub_e.use_connect = True
 
