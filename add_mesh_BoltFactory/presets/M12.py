@@ -1,5 +1,5 @@
-#props.bf_Pitch = 1.75 #Coarse
-props.bf_Pitch = 1.50  #Fine
+#props.bf_Pitch = 1.75 # Coarse
+props.bf_Pitch = 1.50  # Fine
 props.bf_Crest_Percent = 10
 props.bf_Root_Percent = 10
 props.bf_Major_Dia = 12.0
@@ -13,7 +13,7 @@ props.bf_Allen_Bit_Flat_Distance = 10.0
 props.bf_Allen_Bit_Depth = 6.0
 props.bf_Pan_Head_Dia = 24.0
 props.bf_Dome_Head_Dia = 24.0
-props.bf_Philips_Bit_Dia = props.bf_Pan_Head_Dia*(1.82/5.6)
+props.bf_Philips_Bit_Dia = props.bf_Pan_Head_Dia * (1.82 / 5.6)
 #props.bf_Phillips_Bit_Depth = Get_Phillips_Bit_Height(props.bf_Philips_Bit_Dia)
 props.bf_Hex_Nut_Height = 10.0
 props.bf_Hex_Nut_Flat_Distance = 19.0

@@ -302,6 +302,7 @@ def obRot(ob, active, context):
 def obSca(ob, active, context):
     ob.scale = active.scale
 
+
 def obVisLoc(ob, active, context):
     if ob.parent:
         mat = world_to_basis(active, ob, context)
@@ -324,7 +325,8 @@ def obVisSca(ob, active, context):
         ob.scale = mat.to_scale()
     else:
         ob.scale = active.matrix_world.to_scale()
-    
+
+
 def obDrw(ob, active, context):
     ob.draw_type = active.draw_type
     ob.show_axis = active.show_axis

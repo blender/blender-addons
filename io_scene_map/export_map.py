@@ -63,7 +63,7 @@ def write_cube2brush(file, faces):
     for f in faces:
         # from 4 verts this gets them in reversed order and only 3 of them
         # 0,1,2,3 -> 2,1,0
-        me = f.id_data  #XXX25
+        me = f.id_data  # XXX25
         for v in f.vertices[:][2::-1]:
             file.write(format_vec % me.vertices[v].co[:])
 
@@ -115,9 +115,9 @@ def write_face2brush(file, face):
             image_text = os.path.splitext(os.path.basename(image.filename))[0]
 
     # reuse face vertices
-    _v = face.id_data.vertices  #XXX25
+    _v = face.id_data.vertices  # XXX25
     f_vertices = [_v[vi] for vi in face.vertices]
-    del _v  #XXX25
+    del _v  # XXX25
 
     # original verts as tuples for writing
     orig_vco = [v.co[:] for v in f_vertices]
@@ -467,5 +467,5 @@ def save(operator,
          ):
 
     export_map(context, filepath)
-    
+
     return {'FINISHED'}

@@ -82,7 +82,7 @@ def prefix_quoted_str(value, prefix):
 
 
 def build_hierarchy(objects):
-    """ returns parent child relationships, skipping 
+    """ returns parent child relationships, skipping
     """
     objects_set = set(objects)
     par_lookup = {}
@@ -101,6 +101,7 @@ def build_hierarchy(objects):
 
     return par_lookup[None]
 
+
 # -----------------------------------------------------------------------------
 # H3D Functions
 # -----------------------------------------------------------------------------
@@ -110,7 +111,7 @@ def h3d_shader_glsl_frag_patch(filepath):
     for l in h3d_file:
         l = l.replace("uniform mat4 unfinvviewmat;", "")
         l = l.replace("unfinvviewmat", "gl_ModelViewMatrixInverse")
-        
+
         '''
         l = l.replace("varying vec3 varposition;", "")
         l = l.replace("varposition", "gl_Vertex")  # not needed int H3D
@@ -121,14 +122,12 @@ def h3d_shader_glsl_frag_patch(filepath):
         #l = l.replace("varnormal", "normalize(-(gl_ModelViewMatrix * gl_Vertex).xyz)")  # view normal
         # l = l.replace("varnormal", "gl_NormalMatrix * gl_Normal")  # view normal
         lines.append(l)
-    
-    
+
     h3d_file.close()
 
     h3d_file = open(filepath, 'w')
     h3d_file.writelines(lines)
     h3d_file.close()
-    
 
 
 # -----------------------------------------------------------------------------
@@ -155,7 +154,7 @@ def export(file,
     from xml.sax.saxutils import quoteattr
 
     uuid_cache_object = {}    # object
-    uuid_cache_lamp = {}      # 'LA_' + object.name 
+    uuid_cache_lamp = {}      # 'LA_' + object.name
     uuid_cache_view = {}      # object, different namespace
     uuid_cache_mesh = {}      # mesh
     uuid_cache_material = {}  # material
@@ -268,7 +267,7 @@ def export(file,
         fw(ident_step + '>\n')
         ident += '\t'
         return ident
-        
+
     def writeTransform_end(ident):
         ident = ident[:-1]
         fw('%s</Transform>\n' % ident)
@@ -796,9 +795,9 @@ def export(file,
 
                     ident = ident[:-1]
                     fw('%s</Shape>\n' % ident)
-                    
+
                     # XXX
-                    
+
             #fw('%s<PythonScript DEF="PS" url="object.py" >\n' % ident)
             #fw('%s    <ShaderProgram USE="MA_Material.005" containerField="references"/>\n' % ident)
             #fw('%s</PythonScript>\n' % ident)
@@ -865,7 +864,7 @@ def export(file,
             fw('%s<ComposedShader USE=%s />\n' % (ident, material_id))
         else:
             material.tag = True
-            
+
             # GPU_material_bind_uniforms
             # GPU_begin_object_materials
 
@@ -1023,7 +1022,7 @@ def export(file,
                             fw('%s<field name="%s" type="SFNode" accessType="inputOutput">\n' % (ident, uniform['varname']))
 
                             ident += '\t'
-                            
+
                             ident_step = ident + (' ' * (-len(ident) + \
                             fw('%s<PixelTexture \n' % ident)))
                             fw(ident_step + 'repeatS="false"\n')
@@ -1032,21 +1031,17 @@ def export(file,
                             fw(ident_step + 'image="%s 1 4 %s"\n' % (len(value), " ".join(value)))
 
                             fw(ident_step + '/>\n')
-                            
+
                             ident = ident[:-1]
 
                             fw('%s</field>\n' % ident)
-                            
+
                             #for i in range(0, 10, 4)
                             #value = ' '.join(['%d' % f for f in uniform['texpixels']])
                             # value = ' '.join(['%.6g' % (f / 256) for f in uniform['texpixels']])
-                            
 
                             #fw('%s<field name="%s" type="SFInt32" accessType="inputOutput" value="%s" />\n' % (ident, uniform['varname'], value))
                             #print('test', len(uniform['texpixels']))
-                            
-                            
-                            
                     else:
                         assert(0)
                 else:
@@ -1187,12 +1182,12 @@ def export(file,
             obj_main_matrix_world_invert = obj_main_matrix_world.inverted()
 
             obj_main_id = unique_name(obj_main, obj_main.name, uuid_cache_object, clean_func=quoteattr)
-                
+
             ident = writeTransform_begin(ident, obj_main_matrix if obj_main_parent else global_matrix * obj_main_matrix, obj_main_id)
 
         for obj, obj_matrix in derived:
             obj_type = obj.type
-            
+
             if use_hierarchy:
                 # make transform node relative
                 obj_matrix = obj_main_matrix_world_invert * obj_matrix

@@ -1,4 +1,4 @@
-﻿# ##### BEGIN GPL LICENSE BLOCK #####
+# ##### BEGIN GPL LICENSE BLOCK #####
 #
 #  This program is free software; you can redistribute it and/or
 #  modify it under the terms of the GNU General Public License
@@ -169,6 +169,7 @@ def safety(name, Level):
 def is_renderable(scene, ob):
     return (ob.is_visible(scene) and not ob.hide_render)
 
+
 def renderable_objects(scene):
     return [ob for ob in scene.objects if is_renderable(scene, ob)]
 
@@ -239,10 +240,10 @@ def write_pov(filename, scene=None, info_callback=None):
                               matrix[3][1], matrix[3][2]))
 
     def MatrixAsPovString(matrix):
-        sMatrix=("matrix <%.6f, %.6f, %.6f,  %.6f, %.6f, %.6f,  %.6f, %.6f, %.6f,  %.6f, %.6f, " \
-                 "%.6f>\n" % (matrix[0][0], matrix[0][1], matrix[0][2], matrix[1][0], matrix[1][1],
-                              matrix[1][2], matrix[2][0], matrix[2][1], matrix[2][2], matrix[3][0],
-                              matrix[3][1], matrix[3][2]))
+        sMatrix = ("matrix <%.6f, %.6f, %.6f,  %.6f, %.6f, %.6f,  %.6f, %.6f, %.6f,  %.6f, %.6f, " \
+                   "%.6f>\n" % (matrix[0][0], matrix[0][1], matrix[0][2], matrix[1][0], matrix[1][1],
+                                matrix[1][2], matrix[2][0], matrix[2][1], matrix[2][2], matrix[3][0],
+                                matrix[3][1], matrix[3][2]))
         return sMatrix
 
     def writeObjectMaterial(material, ob):
@@ -783,6 +784,7 @@ def write_pov(filename, scene=None, info_callback=None):
         #     * EXACTLY the same materials, in EXACTLY the same sockets.
         # … can share a same instance in POV export.
         obmats2data = {}
+
         def checkObjectMaterials(ob, name, dataname):
             if hasattr(ob, 'material_slots'):
                 has_local_mats = False
@@ -807,6 +809,7 @@ def write_pov(filename, scene=None, info_callback=None):
             return None
 
         data_ref = {}
+
         def store(scene, ob, name, dataname, matrix):
             # The Object needs to be written at least once but if its data is
             # already in data_ref this has already been done.
@@ -830,7 +833,6 @@ def write_pov(filename, scene=None, info_callback=None):
                 # Data not yet processed, create a new entry in data_ref.
                 data_ref[dataname] = [(name, MatrixAsPovString(matrix))]
                 return dataname
-
 
         ob_num = 0
         for ob in sel:
@@ -1532,7 +1534,6 @@ def write_pov(filename, scene=None, info_callback=None):
                     writeObjectMaterial(material, ob)
                 except IndexError:
                     print(me)
-
 
             #Importance for radiosity sampling added here:
             tabWrite("radiosity { \n")

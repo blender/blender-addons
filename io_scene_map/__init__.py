@@ -67,12 +67,11 @@ class ExportMAP(bpy.types.Operator, ExportHelper):
         keywords = self.as_keywords(ignore=("axis_forward", "axis_up", "global_scale", "check_existing", "filter_glob"))
         keywords["global_matrix"] = global_matrix
         '''
-        
+
         keywords = self.as_keywords(ignore=("check_existing", "filter_glob"))
 
         from . import export_map
         return export_map.save(self, context, **keywords)
-        
 
 
 def menu_func(self, context):

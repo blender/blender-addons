@@ -234,7 +234,7 @@ def load_ply(filepath):
             colindices = el.index(b'red'), el.index(b'green'), el.index(b'blue')
             if -1 in colindices:
                 colindices = None
-            else: # if not a float assume uchar
+            else:  # if not a float assume uchar
                 colmultiply = [1.0 if el.properties[i].numeric_type in ('f', 'd') else (1.0 / 256.0) for i in colindices]
 
         elif el.name == b'face':
