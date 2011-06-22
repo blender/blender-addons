@@ -2094,8 +2094,9 @@ def create_mesh_object(context, verts, edges, faces, name, edit, align_matrix):
     # Update mesh geometry after adding stuff.
     mesh.update()
 
-    # Deselect all objects.
-    bpy.ops.object.select_all(action='DESELECT')
+    # Deselect all objects when in object mode
+    if bpy.ops.object.select_all.poll():
+        bpy.ops.object.select_all(action='DESELECT')
 
     if edit:
         # Replace geometry of existing object
