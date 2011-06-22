@@ -185,6 +185,17 @@ def copy_bone(obj, bone_name, assign_name=''):
         pose_bone_2.lock_rotation_w = pose_bone_1.lock_rotation_w
         pose_bone_2.lock_rotations_4d = pose_bone_1.lock_rotations_4d
 
+        # Copy custom properties
+        for key in pose_bone_1.keys():
+            if key != "_RNA_UI" \
+            and key != "rigify_parameters" \
+            and key != "rigify_type":
+                prop1 = rna_idprop_ui_prop_get(pose_bone_1, key, create=False)
+                prop2 = rna_idprop_ui_prop_get(pose_bone_2, key, create=True)
+                pose_bone_2[key] = pose_bone_1[key]
+                for key in prop1.keys():
+                    prop2[key] = prop1[key]
+
         bpy.ops.object.mode_set(mode='EDIT')
 
         return bone_name_2

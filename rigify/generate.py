@@ -130,6 +130,15 @@ def generate_rig(context, metarig):
     obj.select = True
     scene.objects.active = obj
 
+    # Copy over bone properties
+    for bone in metarig.data.bones:
+        bone_gen = obj.data.bones[bone.name]
+
+        # B-bone stuff
+        bone_gen.bbone_segments = bone.bbone_segments
+        bone_gen.bbone_in = bone.bbone_in
+        bone_gen.bbone_out = bone.bbone_out
+
     # Copy over the pose_bone properties
     for bone in metarig.pose.bones:
         bone_gen = obj.pose.bones[bone.name]
@@ -146,14 +155,28 @@ def generate_rig(context, metarig):
         for prop in bone.keys():
             bone_gen[prop] = bone[prop]
 
-    # Copy over bone properties
-    for bone in metarig.data.bones:
-        bone_gen = obj.data.bones[bone.name]
+        # Constraints
+        for con1 in bone.constraints:
+            con2 = bone_gen.constraints.new(type=con1.type)
 
-        # B-bone stuff
-        bone_gen.bbone_segments = bone.bbone_segments
-        bone_gen.bbone_in = bone.bbone_in
-        bone_gen.bbone_out = bone.bbone_out
+            # Copy attributes
+            keys = dir(con1)
+            for key in keys:
+                if not key.startswith("_") \
+                and not key.startswith("error_") \
+                and key != "is_valid" \
+                and key != "rna_type" \
+                and key != "type" \
+                and key != "bl_rna":
+                    try:
+                        setattr(con2, key, getattr(con1, key))
+                    except AttributeError:
+                        print("Could not write to constraint attribute '%s'" % key)
+
+            # Set metarig target to rig target
+            if "target" in keys:
+                if getattr(con2, "target") == metarig:
+                    setattr(con2, "target", obj)
 
     t.tick("Duplicate rig: ")
     #----------------------------------
