@@ -380,12 +380,13 @@ def copy_attributes(a, b):
     for key in keys:
         if not key.startswith("_") \
         and not key.startswith("error_") \
+        and key != "group" \
         and key != "is_valid" \
         and key != "rna_type" \
         and key != "bl_rna":
             try:
                 setattr(b, key, getattr(a, key))
-            except AttributeError:
+            except AttributeError as e:
                 pass
 
 
