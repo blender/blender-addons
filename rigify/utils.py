@@ -375,6 +375,19 @@ def create_root_widget(rig, bone_name):
 # Misc
 #=============================================
 
+def copy_attributes(a, b):
+    keys = dir(a)
+    for key in keys:
+        if not key.startswith("_") \
+        and not key.startswith("error_") \
+        and key != "is_valid" \
+        and key != "rna_type" \
+        and key != "bl_rna":
+            try:
+                setattr(b, key, getattr(a, key))
+            except AttributeError:
+                pass
+
 
 def get_rig_type(rig_type):
     """ Fetches a rig module by name, and returns it.
