@@ -19,6 +19,7 @@
 # <pep8 compliant>
 
 import bpy
+import os
 
 # TODO, make options
 PREF_SCALE = 100
@@ -75,7 +76,7 @@ def write_cube2brush(file, faces):
             image = uf.image if uf else None
 
             if image:
-                file.write(os.path.splitext(os.path.basename(image.filename))[0])
+                file.write(os.path.splitext(os.path.basename(image.filepath))[0])
             else:
                 file.write(PREF_NULL_TEX)
 
@@ -112,7 +113,7 @@ def write_face2brush(file, face):
         image = uf.image if uf else None
 
         if image:
-            image_text = os.path.splitext(os.path.basename(image.filename))[0]
+            image_text = os.path.splitext(os.path.basename(image.filepath))[0]
 
     # reuse face vertices
     _v = face.id_data.vertices  # XXX25
