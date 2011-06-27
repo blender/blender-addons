@@ -201,9 +201,8 @@ class SaveAsRuntime(bpy.types.Operator):
 
 
 def menu_func(self, context):
-
     ext = '.app' if sys.platform == 'darwin' else os.path.splitext(bpy.app.binary_path)[-1]
-    default_blend_path = bpy.data.filepath.replace(".blend", ext)
+    default_blend_path = bpy.path.ensure_ext(bpy.data.filepath, ext)
     self.layout.operator(SaveAsRuntime.bl_idname, text=SaveAsRuntime.bl_label).filepath = default_blend_path
 
 
