@@ -487,6 +487,10 @@ def export(file,
                             is_smooth = True
                             break
 
+                    # UV's and VCols split verts off which effects smoothing
+                    # force writing normals in this case.
+                    is_force_normals = use_triangulate and is_smooth and (is_uv or is_col)
+
                     if use_h3d:
                         gpu_shader = gpu_shader_cache.get(material)  # material can be 'None', uses dummy cache
                         if gpu_shader is None:
@@ -558,10 +562,10 @@ def export(file,
 
                         # --- Write IndexedTriangleSet Attributes (same as IndexedFaceSet)
                         fw('solid="%s"\n' % ('true' if mesh.show_double_sided else 'false'))
-                        if is_smooth:
-                            fw(ident_step + 'creaseAngle="%.4g"\n' % mesh.auto_smooth_angle)
+                        
+                        # creaseAngle unsupported for IndexedTriangleSet's
 
-                        if use_normals:
+                        if use_normals or is_force_normals:
                             # currently not optional, could be made so:
                             fw(ident_step + 'normalPerVertex="true"\n')
 
@@ -649,7 +653,7 @@ def export(file,
                             fw('%.6g %.6g %.6g ' % mesh_vertices[x3d_v[1]].co[:])
                         fw('" />\n')
 
-                        if use_normals:
+                        if use_normals or is_force_normals:
                             fw('%s<Normal ' % ident)
                             fw('vector="')
                             for x3d_v in vert_tri_list:
