@@ -135,13 +135,16 @@ def WriteRuntime(player_path, output_path, copy_python, overwrite_lib, copy_dlls
         src = os.path.join(blender_dir, py_folder)
         dst = os.path.join(runtime_dir, py_folder)
         
-        if os.path.exists(dst):
-            if overwrite_lib:
-                shutil.rmtree(dst)
+        if os.path.exists(src):
+            if os.path.exists(dst):
+                if overwrite_lib:
+                    shutil.rmtree(dst)
+                    shutil.copytree(src, dst, ignore=lambda dir, contents: [i for i in contents if i == '__pycache__'])
+            else:
                 shutil.copytree(src, dst, ignore=lambda dir, contents: [i for i in contents if i == '__pycache__'])
         else:
-            shutil.copytree(src, dst, ignore=lambda dir, contents: [i for i in contents if i == '__pycache__'])
-        
+            print("Python not found in %r, skipping pythn copy." % src)
+
         print("done")
 
     # And DLLs
@@ -193,17 +196,19 @@ class SaveAsRuntime(bpy.types.Operator):
                     self.copy_dlls)
         print("Finished in %.4fs" % (time.clock()-start_time))
         return {'FINISHED'}
-                    
+
     def invoke(self, context, event):
+        if not self.filepath:
+            ext = '.app' if sys.platform == 'darwin' else os.path.splitext(bpy.app.binary_path)[-1]
+            self.filepath = bpy.path.ensure_ext(bpy.data.filepath, ext)
+
         wm = context.window_manager
         wm.fileselect_add(self)
         return {'RUNNING_MODAL'}
 
 
 def menu_func(self, context):
-    ext = '.app' if sys.platform == 'darwin' else os.path.splitext(bpy.app.binary_path)[-1]
-    default_blend_path = bpy.path.ensure_ext(bpy.data.filepath, ext)
-    self.layout.operator(SaveAsRuntime.bl_idname, text=SaveAsRuntime.bl_label).filepath = default_blend_path
+    self.layout.operator(SaveAsRuntime.bl_idname)
 
 
 def register():
