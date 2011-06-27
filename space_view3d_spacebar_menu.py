@@ -365,7 +365,7 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
 
             # Toggle Objectmode
             layout.operator("object.editmode_toggle", text="Enter Object Mode",
-                icon='OBJECT_DATA') 
+                icon='OBJECT_DATA')
 
             # Delete block
             layout.operator("mball.delete_metaelems", text="Delete Object",
@@ -416,7 +416,7 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
 
             # Delete block - Can't delete any lattice stuff so not needed
             #layout.operator("object.delete", text="Delete Object",
-            #    icon='CANCEL')				
+            #    icon='CANCEL')
 
         if  context.mode == 'PARTICLE':
             # Particle menu
@@ -632,19 +632,20 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
 
             # Edit Armature Toolkit
             layout.menu("VIEW3D_MT_EditArmatureTK",
-			    icon='ARMATURE_DATA')
+                icon='ARMATURE_DATA')
             layout.separator()
 
             # Edit Armature Name
             layout.menu("VIEW3D_MT_ArmatureName",
-			    icon='NEW')
+                icon='NEW')
             layout.separator()
- 
+
             # Parent block
             layout.menu("VIEW3D_MT_ParentMenu", icon='ROTACTIVE')
 
             layout.separator()
-            layout.operator_menu_enum("armature.flags_set", "mode",
+
+            layout.menu("VIEW3D_MT_bone_options_toggle",
                 text="Bone Settings")
 
             # Edit Armature Specials
@@ -687,17 +688,17 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
             # Transform Menu
             layout.menu("VIEW3D_MT_TransformMenu", icon='MANIPUL')
 
-			# Clear Transform
+            # Clear Transform
             layout.menu("VIEW3D_MT_pose_transform")
 
-			# Cursor Menu
+            # Cursor Menu
             layout.menu("VIEW3D_MT_CursorMenu", icon='CURSOR')
             layout.separator()
 
-			# Pose Copy Block
+            # Pose Copy Block
             layout.menu("VIEW3D_MT_PoseCopy", icon='FILE')
             layout.separator()
-			
+
 
             if arm.draw_type in ('BBONE', 'ENVELOPE'):
                 layout.operator("transform.transform",
@@ -734,11 +735,11 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
             layout.separator()
 
             layout.menu("VIEW3D_MT_pose_showhide")
-            layout.operator_menu_enum("pose.flags_set", 'mode',
+            layout.menu("VIEW3D_MT_bone_options_toggle",
                 text="Bone Settings")
             layout.separator()
 
-			# Select Pose Block
+            # Select Pose Block
             layout.menu("VIEW3D_MT_SelectPoseMenu", icon='RESTRICT_SELECT_OFF')
 
             # Toolshelf block
@@ -1087,7 +1088,7 @@ class VIEW3D_MT_PoseCopy(bpy.types.Menu):
 
     def draw(self, context):
         layout = self.layout
-		 
+
         layout.operator("pose.copy")
         layout.operator("pose.paste")
         layout.operator("pose.paste",
@@ -1099,7 +1100,7 @@ class VIEW3D_MT_PoseNames(bpy.types.Menu):
 
     def draw(self, context):
         layout = self.layout
-		 
+
         layout.operator_context = 'EXEC_AREA'
         layout.operator("pose.autoside_names",
             text="AutoName Left/Right").axis = 'XAXIS'
@@ -1437,49 +1438,15 @@ def abs(val):
         return val
     return -val
 
-def LineLineIntersect(p1, p2, p3, p4):
-    # based on Paul Bourke's Shortest Line Between 2 lines
-
-    min = 0.0000001
-    
-    v1 = Vector((p1.x - p3.x, p1.y - p3.y, p1.z - p3.z))
-    v2 = Vector((p4.x - p3.x, p4.y - p3.y, p4.z - p3.z))
-    
-    if abs(v2.x) < min and abs(v2.y) < min and abs(v2.z)  < min:
-        return None
-        
-    v3 = Vector((p2.x - p1.x, p2.y - p1.y, p2.z - p1.z))
-    
-    if abs(v3.x) < min and abs(v3.y) < min and abs(v3.z) < min:
-        return None
-
-    d1 = v1.dot(v2)
-    d2 = v2.dot(v3)
-    d3 = v1.dot(v3)
-    d4 = v2.dot(v2)
-    d5 = v3.dot(v3)
-
-    d = d5 * d4 - d2 * d2
-    
-    if abs(d) < min:
-        return None
-        
-    n = d1 * d2 - d3 * d4
-
-    mua = n / d
-    mub = (d1 + d2 * (mua)) / d4
-
-    return [Vector((p1.x + mua * v3.x, p1.y + mua * v3.y, p1.z + mua * v3.z)), 
-        Vector((p3.x + mub * v2.x, p3.y + mub * v2.y, p3.z + mub * v2.z))]
-
 def edgeIntersect(context, operator):
-    
+    from mathutils.geometry import intersect_line_line
+
     obj = context.active_object
-    
+
     if (obj.type != "MESH"):
         operator.report({'ERROR'}, "Object must be a mesh")
         return None
-    
+
     edges = []
     mesh = obj.data
     verts = mesh.vertices
@@ -1487,36 +1454,37 @@ def edgeIntersect(context, operator):
     is_editmode = (obj.mode == 'EDIT')
     if is_editmode:
         bpy.ops.object.mode_set(mode='OBJECT')
-    
+
     for e in mesh.edges:
         if e.select:
             edges.append(e)
 
+            if len(edges) > 2:
+                break
+
     if is_editmode:
         bpy.ops.object.mode_set(mode='EDIT')
-            
+
     if len(edges) != 2:
         operator.report({'ERROR'},
             "Operator requires exactly 2 edges to be selected.")
         return
-        
-    line = LineLineIntersect(verts[edges[0].vertices[0]].co,
-        verts[edges[0].vertices[1]].co, verts[edges[1].vertices[0]].co,
-        verts[edges[1].vertices[1]].co)
 
-    if (line is None):
+    line = intersect_line_line(verts[edges[0].vertices[0]].co,
+                               verts[edges[0].vertices[1]].co,
+                               verts[edges[1].vertices[0]].co,
+                               verts[edges[1].vertices[1]].co)
+
+    if line is None:
         operator.report({'ERROR'}, "Selected edges do not intersect.")
         return
 
-    point = ((line[0] + line[1]) / 2)
+    point = line[0].lerp(line[1], 0.5)
+    context.scene.cursor_location = point * obj.matrix_world
 
-    context.scene.cursor_location = point
-            
-    return point
-    
 class VIEW3D_OT_CursorToEdgeIntersection(bpy.types.Operator):
     "Finds the mid-point of the shortest distance between two edges"
-    
+
     bl_idname = "view3d.snap_cursor_to_edge_intersection"
     bl_label = "Cursor to Edge Intersection"
 
