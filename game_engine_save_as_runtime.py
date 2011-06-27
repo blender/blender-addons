@@ -52,7 +52,7 @@ def WriteAppleRuntime(player_path, output_path, copy_python, overwrite_lib):
     
     if copy_python:
         print("Copying Python files...", end=" ")
-        src = os.path.join(blender_dir, bpy.app.version_string.split()[0], "python", "lib")
+        src = os.path.join(blender_dir, "%d.%d" % bpy.app.version[:2], "python", "lib")
         dst = os.path.join(output_path, "..")
         
         if os.path.exists(dst):
