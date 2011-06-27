@@ -19,9 +19,9 @@
 bl_info = {
     'name': 'Save As Runtime',
     'author': 'Mitchell Stokes (Moguri)',
-    'version': (0, 3, 0),
-    "blender": (2, 5, 7),
-    "api": 35622,
+    'version': (0, 3, 1),
+    "blender": (2, 5, 8),
+    "api": 37846,
     'location': 'File > Export',
     'description': 'Bundle a .blend file with the Blenderplayer',
     'warning': '',
@@ -131,15 +131,16 @@ def WriteRuntime(player_path, output_path, copy_python, overwrite_lib, copy_dlls
     
     if copy_python:
         print("Copying Python files...", end=" ")
-        src = os.path.join(blender_dir, bpy.app.version_string.split()[0], "python", "lib")
-        dst = os.path.join(runtime_dir, "lib")
+        py_folder = os.path.join(bpy.app.version_string.split()[0], "python", "lib")
+        src = os.path.join(blender_dir, py_folder)
+        dst = os.path.join(runtime_dir, py_folder)
         
         if os.path.exists(dst):
             if overwrite_lib:
                 shutil.rmtree(dst)
-                shutil.copytree(src, dst, ignore=lambda dir, contents: [i for i in contents if i.endswith('.pyc')])
+                shutil.copytree(src, dst, ignore=lambda dir, contents: [i for i in contents if i == '__pycache__'])
         else:
-            shutil.copytree(src, dst, ignore=lambda dir, contents: [i for i in contents if i.endswith('.pyc')])
+            shutil.copytree(src, dst, ignore=lambda dir, contents: [i for i in contents if i == '__pycache__'])
         
         print("done")
 
