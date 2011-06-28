@@ -1122,6 +1122,7 @@ def parse_animation(blender_scene, blender_armatures, psa_file):
     anim_rate = render_data.fps
     
     print("==== Blender Settings ====")
+
     print ('Scene: %s Start Frame: %i, End Frame: %i' % (blender_scene.name, blender_scene.frame_start, blender_scene.frame_end))
     print ('Frames Per Sec: %i' % anim_rate)
     print ("Default FPS: 24" )
@@ -1135,6 +1136,7 @@ def parse_animation(blender_scene, blender_armatures, psa_file):
         
         for action in bpy.data.actions:#current number action sets
             print("+Action Name:",action.name)
+            print("Group Count:",len(action.groups))
             #print("Groups:")
             #for bone in action.groups:
                 #print("> Name: ",bone.name)
@@ -1167,25 +1169,46 @@ def parse_animation(blender_scene, blender_armatures, psa_file):
                 if FoundAction == False:
                     print("========================================")
                     print("Skipping Action Set!",ActionNLA.name)
+                    print("Action Group Count:", len(ActionNLA.groups))
+                    print("Bone Group Count:", len(amatureobject.pose.bones))
                     print("========================================")
                     #break
             
             nobone = 0
+            nomatchbone = 0
+			
             baction = True
             #print("\nChecking actions matching groups with bone names...")
             #Check if the bone names matches the action groups names
-            for group in ActionNLA.groups:
-                for abone in bonenames:
+            print("=================================")
+            print("=================================")
+            for abone in bonenames:         
+                #print("bone name:",abone)
+                bfound = False
+                for group in ActionNLA.groups:
                     #print("name:>>",abone)
                     if abone == group.name:
                         nobone += 1
+                        bfound = True
                         break
+                if bfound == False:
+                    #print("Not Found!:",abone)
+                    nomatchbone += 1
+                #else:
+                    #print("Found!:",abone)
+            
+            print("Armature Bones Count:",nobone , " Action Groups Counts:",len(ActionNLA.groups)," Left Out Count:",nomatchbone)
+            #if the bones are less some missing bones that were added to the action group names than export this
+            if (nobone <= len(ActionNLA.groups)) and (bpy.context.scene.unrealignoreactionmatchcount == True) :
+                #print("Action Set match: Pass")
+                print("Ingore Action groups Count from Armature bones.")
+                baction = True
             #if action groups matches the bones length and names matching the gourps do something
-            if (len(ActionNLA.groups) == len(bonenames)) and (nobone == len(ActionNLA.groups)):
+            elif ((len(ActionNLA.groups) == len(bonenames)) and (nobone == len(ActionNLA.groups))):
                 #print("Action Set match: Pass")
                 baction = True
             else:
-                #print("Action Set match: Fail")
+                print("Action Set match: Fail")
                 #print("Action Name:",ActionNLA.name)
                 baction = False
             
@@ -1222,6 +1245,7 @@ def parse_animation(blender_scene, blender_armatures, psa_file):
                     #print("------------------------------------")
                     print("[==== Action Set ====]")
                     print("Action Name:",action_name)
+
                     #look for min and max frame that current set keys
                     framemin, framemax = act.frame_range
                     #print("max frame:",framemax)
@@ -1344,6 +1368,8 @@ def parse_animation(blender_scene, blender_armatures, psa_file):
             else:
                 print("[==== Action Set ====]")
                 print("Action Name:",ActionNLA.name)
+                print("Action Group Count:", len(ActionNLA.groups))
+                print("Bone Group Count:", len(amatureobject.pose.bones))
                 print("Action set Skip!")
                 print("------------------------------------\n")
         print("==== Finish Action Build(s) ====")
@@ -1775,6 +1801,11 @@ bpy.types.Scene.unrealtriangulatebool = BoolProperty(
     name="Triangulate Mesh",
     description="Convert Quad to Tri Mesh Boolean...",
     default=False)
+
+bpy.types.Scene.unrealignoreactionmatchcount = BoolProperty(
+    name="Acion Group Ignore Count",
+    description="It will ingore Action group count as long is matches the Armature bone count to match and over ride the armature animation data.",
+    default=False)
     
 bpy.types.Scene.unrealdisplayactionsets = BoolProperty(
     name="Show Action Set(s)",
@@ -1874,7 +1905,9 @@ class ExportUDKAnimData(bpy.types.Operator):
     filter_glob = StringProperty(default="*.psk;*.psa", options={'HIDDEN'})
     pskexportbool = BoolProperty(name="Export PSK", description="Export Skeletal Mesh", default= True)
     psaexportbool = BoolProperty(name="Export PSA", description="Export Action Set (Animation Data)", default= True)
+    
     actionexportall = BoolProperty(name="All Actions", description="This will export all the actions that matches the current armature.", default=False)
+    ignoreactioncountexportbool = BoolProperty(name="Ignore Action Group Count", description="It will ignore action group count but as long it matches the armature bone count to over ride the animation data.", default= False)
 
     @classmethod
     def poll(cls, context):
@@ -1897,6 +1930,11 @@ class ExportUDKAnimData(bpy.types.Operator):
         else:
             bpy.context.scene.UEActionSetSettings = '0'#export all action sets
         
+        if(self.ignoreactioncountexportbool):
+            bpy.context.scene.unrealignoreactionmatchcount = True
+        else:
+            bpy.context.scene.unrealignoreactionmatchcount = False
+			
         write_data(self.filepath, context)
         
         self.report({'WARNING', 'INFO'}, exportmessage)
@@ -1919,12 +1957,15 @@ class VIEW3D_PT_unrealtools_objectmode(bpy.types.Panel):
     def draw(self, context):
         layout = self.layout
         rd = context.scene
-        layout.prop(rd, "unrealexport_settings",expand=True)        
-        layout.operator(OBJECT_OT_UnrealExport.bl_idname)
+        layout.prop(rd, "unrealexport_settings",expand=True)
+        layout.prop(rd, "UEActionSetSettings")
+        layout.prop(rd, "unrealignoreactionmatchcount")
+        
         #FPS #it use the real data from your scene
         layout.prop(rd.render, "fps")
+        layout.operator(OBJECT_OT_UnrealExport.bl_idname)
         
-        layout.prop(rd, "UEActionSetSettings")
+        
         layout.prop(rd, "unrealdisplayactionsets")
         
         ArmatureSelect = None
