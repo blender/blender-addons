@@ -246,6 +246,13 @@ class declarative_property_group(bpy.types.PropertyGroup):
 	"""
 	enabled = {}
 	
+	"""The alert dict controls the alert state of properties based on
+	the value of other properties. See extensions_framework.validate
+	for test syntax.
+	
+	"""
+	alert = {}
+	
 	"""The properties list describes each property to be created. Each
 	item should be a dict of args to pass to a
 	bpy.props.<?>Property function, with the exception of 'type'

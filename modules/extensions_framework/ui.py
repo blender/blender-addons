@@ -116,6 +116,19 @@ class property_group_renderer(bpy.types.Panel):
 		else:
 			return True
 	
+	def check_alert(self, lookup_property, property_group):
+		"""Determine if the lookup_property should be in an alert state in the Panel"""
+		et = Logician(property_group)
+		if lookup_property in property_group.alert.keys():
+			if hasattr(property_group, lookup_property):
+				member = getattr(property_group, lookup_property)
+			else:
+				member = None
+			return et.test_logic(member,
+				property_group.alert[lookup_property])
+		else:
+			return False
+	
 	def is_real_property(self, lookup_property, property_group):
 		for prop in property_group.properties:
 			if prop['attr'] == lookup_property:
@@ -158,10 +171,20 @@ class property_group_renderer(bpy.types.Panel):
 					if current_property['attr'] == control_list_item:
 						current_property_keys = current_property.keys() 
 						
+						sub_layout_created = False
 						if not self.check_enabled(control_list_item, property_group):
 							last_layout = layout
+							sub_layout_created = True
+							
 							layout = layout.row()
 							layout.enabled = False
+						
+						if self.check_alert(control_list_item, property_group):
+							if not sub_layout_created:
+								last_layout = layout
+								sub_layout_created = True
+							layout = layout.row()
+							layout.alert = True
 						
 						if 'type' in current_property_keys:
 							if current_property['type'] in ['int', 'float',
@@ -304,7 +327,7 @@ class property_group_renderer(bpy.types.Panel):
 						else:
 							layout.prop(property_group, control_list_item)
 						
-						if not self.check_enabled(control_list_item, property_group):
+						if sub_layout_created:
 							layout = last_layout
 						
 						# Fire a draw callback if specified
