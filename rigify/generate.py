@@ -168,45 +168,46 @@ def generate_rig(context, metarig):
                     con2.target = obj
 
     # Copy drivers
-    for d1 in metarig.animation_data.drivers:
-        d2 = obj.driver_add(d1.data_path)
-        copy_attributes(d1, d2)
-        copy_attributes(d1.driver, d2.driver)
+    if metarig.animation_data:
+        for d1 in metarig.animation_data.drivers:
+            d2 = obj.driver_add(d1.data_path)
+            copy_attributes(d1, d2)
+            copy_attributes(d1.driver, d2.driver)
 
-        # Remove default modifiers, variables, etc.
-        for m in d2.modifiers:
-            d2.modifiers.remove(m)
-        for v in d2.driver.variables:
-            d2.driver.variables.remove(v)
+            # Remove default modifiers, variables, etc.
+            for m in d2.modifiers:
+                d2.modifiers.remove(m)
+            for v in d2.driver.variables:
+                d2.driver.variables.remove(v)
 
-        # Copy modifiers
-        for m1 in d1.modifiers:
-            m2 = d2.modifiers.new(type=m1.type)
-            copy_attributes(m1, m2)
+            # Copy modifiers
+            for m1 in d1.modifiers:
+                m2 = d2.modifiers.new(type=m1.type)
+                copy_attributes(m1, m2)
 
-        # Copy variables
-        for v1 in d1.driver.variables:
-            v2 = d2.driver.variables.new()
-            copy_attributes(v1, v2)
-            for i in range(len(v1.targets)):
-                copy_attributes(v1.targets[i], v2.targets[i])
-                # Switch metarig targets to rig targets
-                if v2.targets[i].id == metarig:
-                    v2.targets[i].id = obj
+            # Copy variables
+            for v1 in d1.driver.variables:
+                v2 = d2.driver.variables.new()
+                copy_attributes(v1, v2)
+                for i in range(len(v1.targets)):
+                    copy_attributes(v1.targets[i], v2.targets[i])
+                    # Switch metarig targets to rig targets
+                    if v2.targets[i].id == metarig:
+                        v2.targets[i].id = obj
 
-                # Mark targets that may need to be altered after rig generation
-                tar = v2.targets[i]
-                # If a custom property
-                if v2.type == 'SINGLE_PROP' \
-                and re.match('^pose.bones\["[^"\]]*"\]\["[^"\]]*"\]$', tar.data_path):
-                    tar.data_path = "RIGIFY-" + tar.data_path
+                    # Mark targets that may need to be altered after rig generation
+                    tar = v2.targets[i]
+                    # If a custom property
+                    if v2.type == 'SINGLE_PROP' \
+                    and re.match('^pose.bones\["[^"\]]*"\]\["[^"\]]*"\]$', tar.data_path):
+                        tar.data_path = "RIGIFY-" + tar.data_path
 
-        # Copy key frames
-        for i in range(len(d1.keyframe_points)):
-            d2.keyframe_points.add()
-            k1 = d1.keyframe_points[i]
-            k2 = d2.keyframe_points[i]
-            copy_attributes(k1, k2)
+            # Copy key frames
+            for i in range(len(d1.keyframe_points)):
+                d2.keyframe_points.add()
+                k1 = d1.keyframe_points[i]
+                k2 = d2.keyframe_points[i]
+                copy_attributes(k1, k2)
 
     t.tick("Duplicate rig: ")
     #----------------------------------
