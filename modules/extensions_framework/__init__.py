@@ -68,43 +68,54 @@ def init_properties(obj, props, cache=True):
 			
 			if prop['type'] == 'bool':
 				t = bpy.props.BoolProperty
-				a = {k: v for k,v in prop.items() if k in ['name',
-					'description','default']}
+				a = {k: v for k,v in prop.items() if k in ["name",
+					"description","default","options","subtype","update"]}
+			elif prop['type'] == 'bool_vector':
+				t = bpy.props.BoolVectorProperty
+				a = {k: v for k,v in prop.items() if k in ["name",
+					"description","default","options","subtype","size",
+					"update"]}
 			elif prop['type'] == 'collection':
 				t = bpy.props.CollectionProperty
-				a = {k: v for k,v in prop.items() if k in ["ptype", "name",
-					"description"]}
+				a = {k: v for k,v in prop.items() if k in ["ptype","name",
+					"description","default","options"]}
 				a['type'] = a['ptype']
 				del a['ptype']
 			elif prop['type'] == 'enum':
 				t = bpy.props.EnumProperty
-				a = {k: v for k,v in prop.items() if k in ["items", "name",
-					"description", "default"]}
+				a = {k: v for k,v in prop.items() if k in ["items","name",
+					"description","default","options","update"]}
 			elif prop['type'] == 'float':
 				t = bpy.props.FloatProperty
 				a = {k: v for k,v in prop.items() if k in ["name",
-					"description", "min", "max", "soft_min", "soft_max",
-					"default", "precision"]}
+					"description","default","min","max","soft_min","soft_max",
+					"step","precision","options","subtype","unit","update"]}
 			elif prop['type'] == 'float_vector':
 				t = bpy.props.FloatVectorProperty
 				a = {k: v for k,v in prop.items() if k in ["name",
-					"description", "min", "max", "soft_min", "soft_max",
-					"default", "precision", "size", "subtype"]}
+					"description","default","min","max","soft_min","soft_max",
+					"step","precision","options","subtype","size","update"]}
 			elif prop['type'] == 'int':
 				t = bpy.props.IntProperty
 				a = {k: v for k,v in prop.items() if k in ["name",
-					"description", "min", "max", "soft_min", "soft_max",
-					"default"]}
+					"description","default","min","max","soft_min","soft_max",
+					"step","options","subtype","update"]}
+			elif prop['type'] == 'int_vector':
+				t = bpy.props.IntVectorProperty
+				a = {k: v for k,v in prop.items() if k in ["name",
+					"description","default","min","max","soft_min","soft_max",
+					"options","subtype","size","update"]}
 			elif prop['type'] == 'pointer':
 				t = bpy.props.PointerProperty
 				a = {k: v for k,v in prop.items() if k in ["ptype", "name",
-					"description"]}
+					"description","options","update"]}
 				a['type'] = a['ptype']
 				del a['ptype']
 			elif prop['type'] == 'string':
 				t = bpy.props.StringProperty
 				a = {k: v for k,v in prop.items() if k in ["name",
-					"description", "maxlen", "default", "subtype"]}
+					"description","default","maxlen","options","subtype",
+					"update"]}
 			else:
 				continue
 			
