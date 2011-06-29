@@ -67,9 +67,9 @@ class ImportOBJ(bpy.types.Operator, ImportHelper):
     use_image_search = BoolProperty(name="Image Search", description="Search subdirs for any assosiated images (Warning, may be slow)", default=True)
 
     split_mode = EnumProperty(
-            name="Smoothing",
-            items=(('ON', "Split", "Split imported meshes"),
-                   ('OFF', "Keep Vert Order", "Maintain vertex order"),
+            name="Split",
+            items=(('ON', "Split", "Split geometry, omits unused verts"),
+                   ('OFF', "Keep Vert Order", "Maintain vertex order from file"),
                    ),
             )
 
