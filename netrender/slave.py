@@ -86,6 +86,7 @@ def testFile(conn, job_id, slave_id, rfile, JOB_PREFIX, main_path = None):
         
         if not found:
             print("Found file %s at %s but signature mismatch!" % (rfile.filepath, job_full_path))
+            os.remove(job_full_path)
             job_full_path = prefixPath(JOB_PREFIX, rfile.filepath, main_path, force = True)
 
     if not found:
@@ -258,8 +259,7 @@ def render_slave(engine, netsettings, threads):
                         if stdout:
                             # (only need to update on one frame, they are linked
                             conn.request("PUT", logURL(job.id, first_frame), stdout, headers=headers)
-                            response = conn.getresponse()
-                            response.read()
+                            responseStatus(conn)
                             
                             # Also output on console
                             if netsettings.use_slave_output_log:

@@ -92,9 +92,11 @@ class BreakableIncrementedSleep:
         self.increase()
 
 def responseStatus(conn):
-    response = conn.getresponse()
-    response.read()
-    return response.status
+    with conn.getresponse() as response:
+        length = int(response.getheader("content-length", "0"))
+        if length > 0:
+            response.read()
+        return response.status
 
 def reporting(report, message, errorType = None):
     if errorType:
