@@ -16,13 +16,13 @@
 #  ***** GPL LICENSE BLOCK *****
 
 bl_info = {
-    "name": "DirectX Model Format (.x)",
+    "name": "Export DirectX Model Format (.x)",
     "author": "Chris Foster (Kira Vakaan)",
-    "version": (2, 1, 1),
-    "blender": (2, 5, 7),
-    "api": 36339,
-    "location": "File > Export > DirectX (.x)",
-    "description": "Export DirectX Model Format (.x)",
+    "version": (2, 1),
+    "blender": (2, 5, 8),
+    "api": 37702,
+    "location": "File > Export",
+    "description": "Export to the DirectX Model Format (.x)",
     "warning": "",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"\
         "Scripts/Import-Export/DirectX_Exporter",
@@ -66,15 +66,8 @@ class DirectXExporterSettings:
 
 
 def LegalName(Name):
-    
-    def ReplaceSet(String, OldSet, NewChar):
-        for OldChar in OldSet:
-            String = String.replace(OldChar, NewChar)
-        return String
-    
-    import string
-    
-    NewName = ReplaceSet(Name, string.punctuation, "_")
+    NewName = Name.replace(".", "_")
+    NewName = NewName.replace(" ", "_")
     if NewName[0].isdigit() or NewName in ["ARRAY",
                                            "DWORD",
                                            "UCHAR",
@@ -104,7 +97,7 @@ def ExportDirectX(Config):
         print("Done")
 
     if Config.Verbose:
-        print("Generating Object list for export... (Root parents only)")
+        print("Generating Object list for export...")
     if Config.ExportMode == 1:
         Config.ExportList = [Object for Object in Config.context.scene.objects
                              if Object.type in ("ARMATURE", "EMPTY", "MESH")
@@ -115,7 +108,7 @@ def ExportDirectX(Config):
         Config.ExportList = [Object for Object in ExportList
                              if Object.parent not in ExportList]
     if Config.Verbose:
-        print("  List: {}\nDone".format(Config.ExportList))
+        print("Done")
 
     if Config.Verbose:
         print("Setting up...")
@@ -153,9 +146,6 @@ def ExportDirectX(Config):
     
     Config.Whitespace -= 1
     Config.File.write("{}}} //End of Root Frame\n".format("  " * Config.Whitespace))
-    
-    if Config.Verbose:
-        print("Objects Exported: {}".format(Config.ExportList))
 
     if Config.ExportAnimation:
         if Config.IncludeFrameRate:
@@ -266,11 +256,8 @@ def WriteObjects(Config, ObjectList):
             WriteArmatureBones(Config, Object, ParentList)
             if Config.Verbose:
                 print("    Done")
-        
+
         ChildList = GetObjectChildren(Object)
-        if Config.ExportMode == 2: #Selected Objects Only
-            ChildList = [Child for Child in ChildList
-                         if Child in Config.context.selected_objects]
         if Config.Verbose:
             print("    Writing Children...")
         WriteObjects(Config, ChildList)
@@ -287,11 +274,11 @@ def WriteObjects(Config, ObjectList):
                     Object2 = Object.copy()
                     for Modifier in [Modifier for Modifier in Object2.modifiers if Modifier.type == "ARMATURE"]:
                         Object2.modifiers.remove(Modifier)
-                    Mesh = Object2.to_mesh(bpy.context.scene, True, "PREVIEW")
+                    Mesh = Object2.create_mesh(bpy.context.scene, True, "PREVIEW")
                 else:
-                    Mesh = Object.to_mesh(bpy.context.scene, True, "PREVIEW")
+                    Mesh = Object.create_mesh(bpy.context.scene, True, "PREVIEW")
             else:
-                Mesh = Object.to_mesh(bpy.context.scene, False, "PREVIEW")
+                Mesh = Object.create_mesh(bpy.context.scene, False, "PREVIEW")
             if Config.Verbose:
                 print("    Done")
                 print("    Writing Mesh...")
@@ -502,20 +489,20 @@ def WriteMaterial(Config, Material=None):
         Config.File.write("{}Material {} {{\n".format("  " * Config.Whitespace, LegalName(Material.name)))
         Config.Whitespace += 1
 
-        Diffuse = list(Vector(Material.diffuse_color) * Material.diffuse_intensity)
+        Diffuse = list(Material.diffuse_color)
         Diffuse.append(Material.alpha)
-        Specularity = 1000 * (Material.specular_hardness - 1.0) / (511.0 - 1.0) # Map Blender's range of 1 - 511 to 0 - 1000
-        Specular = list(Vector(Material.specular_color) * Material.specular_intensity)
+        Specularity = Material.specular_intensity
+        Specular = list(Material.specular_color)
 
         Config.File.write("{}{:9f};{:9f};{:9f};{:9f};;\n".format("  " * Config.Whitespace, Diffuse[0], Diffuse[1], Diffuse[2], Diffuse[3]))
-        Config.File.write("{} {:9f};\n".format("  " * Config.Whitespace, Specularity))
+        Config.File.write("{}{:9f};\n".format("  " * Config.Whitespace, 2 * (1.0 - Specularity)))
         Config.File.write("{}{:9f};{:9f};{:9f};;\n".format("  " * Config.Whitespace, Specular[0], Specular[1], Specular[2]))
     else:
         Config.File.write("{}Material Default_Material {{\n".format("  " * Config.Whitespace))
         Config.Whitespace += 1
-        Config.File.write("{} 0.800000; 0.800000; 0.800000; 0.800000;;\n".format("  " * Config.Whitespace))
-        Config.File.write("{} 96.078431;\n".format("  " * Config.Whitespace)) # 1000 * (50 - 1) / (511 - 1)
-        Config.File.write("{} 0.500000; 0.500000; 0.500000;;\n".format("  " * Config.Whitespace))
+        Config.File.write("{} 1.000000; 1.000000; 1.000000; 1.000000;;\n".format("  " * Config.Whitespace))
+        Config.File.write("{} 1.500000;\n".format("  " * Config.Whitespace))
+        Config.File.write("{} 1.000000; 1.000000; 1.000000;;\n".format("  " * Config.Whitespace))
     Config.File.write("{} 0.000000; 0.000000; 0.000000;;\n".format("  " * Config.Whitespace))
     if Config.ExportTextures:
         Texture = GetMaterialTexture(Material)
@@ -1206,8 +1193,10 @@ class DirectXExporter(bpy.types.Operator):
     Verbose = BoolProperty(name="Verbose", description="Run the exporter in debug mode.  Check the console for output.", default=False)
 
     def execute(self, context):
-        #Append .x
-        FilePath = os.path.splitext(self.filepath)[0] + ".x"
+        #Append .x if needed
+        FilePath = self.filepath
+        if not FilePath.lower().endswith(".x"):
+            FilePath += ".x"
 
         Config = DirectXExporterSettings(context,
                                          FilePath,
@@ -1236,14 +1225,10 @@ def menu_func(self, context):
 
 
 def register():
-    bpy.utils.register_module(__name__)
-
     bpy.types.INFO_MT_file_export.append(menu_func)
 
 
 def unregister():
-    bpy.utils.unregister_module(__name__)
-
     bpy.types.INFO_MT_file_export.remove(menu_func)
 
 
