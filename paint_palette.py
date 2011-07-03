@@ -28,7 +28,7 @@ bl_info = {
     "api": 36826,
     "location": "Image Editor and 3D View > Any Paint mode > Color Palette or Weight Palette panel",
     "description": "Palettes for color and weight paint modes",
-    "warning": "beta",
+    "warning": "",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/Scripts/Paint/Palettes",
     "tracker_url": "http://projects.blender.org/tracker/index.php?func=detail&aid=25908",
     "category": "Paint"}
