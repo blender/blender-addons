@@ -16,6 +16,9 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
+# <pep8 compliant>
+
+
 bl_info = {
     "name": "Raw mesh format (.raw)",
     "author": "Anthony D,Agostino (Scorpius), Aurel Wildfellner",
@@ -33,23 +36,69 @@ bl_info = {
 
 if "bpy" in locals():
     import imp
-    imp.reload(import_raw)
-    imp.reload(export_raw)
+    if "import_raw" in locals():
+        imp.reload(import_raw)
+    if "export_raw" in locals():
+        imp.reload(export_raw)
 else:
-    from . import import_raw
-    from . import export_raw
+    import bpy
+
+from bpy.props import StringProperty, BoolProperty
 
 
-import bpy
+class RawImporter(bpy.types.Operator):
+    '''Load Raw triangle mesh data'''
+    bl_idname = "import_mesh.raw"
+    bl_label = "Import RAW"
+
+    filepath = StringProperty(name="File Path", description="Filepath used for importing the RAW file", maxlen=1024, default="", subtype='FILE_PATH')
+    filter_glob = StringProperty(default="*.raw", options={'HIDDEN'})
+
+    def execute(self, context):
+        from . import import_raw
+        import_raw.read(self.filepath)
+        return {'FINISHED'}
+
+    def invoke(self, context, event):
+        wm = context.window_manager
+        wm.fileselect_add(self)
+        return {'RUNNING_MODAL'}
+
+
+class RawExporter(bpy.types.Operator):
+    '''Save Raw triangle mesh data'''
+    bl_idname = "export_mesh.raw"
+    bl_label = "Export RAW"
+
+    filepath = StringProperty(name="File Path", description="Filepath used for exporting the RAW file", maxlen=1024, default= "", subtype='FILE_PATH')
+    check_existing = BoolProperty(name="Check Existing", description="Check and warn on overwriting existing files", default=True, options={'HIDDEN'})
+
+    apply_modifiers = BoolProperty(name="Apply Modifiers", description="Use transformed mesh data from each object", default=True)
+    triangulate = BoolProperty(name="Triangulate", description="Triangulate quads.", default=True)
+
+    def execute(self, context):
+        from . import export_raw
+        export_raw.write(self.filepath,
+                         self.apply_modifiers,
+                         self.triangulate,
+                         )
+
+        return {'FINISHED'}
+
+    def invoke(self, context, event):
+        if not self.filepath:
+            self.filepath = bpy.path.ensure_ext(bpy.data.filepath, ".raw")
+        wm = context.window_manager
+        wm.fileselect_add(self)
+        return {'RUNNING_MODAL'}
+
 
 def menu_import(self, context):
-    self.layout.operator(import_raw.RawImporter.bl_idname, text="Raw Faces (.raw)").filepath = "*.raw"
+    self.layout.operator(RawImporter.bl_idname, text="Raw Faces (.raw)")
 
 
 def menu_export(self, context):
-    import os
-    default_path = os.path.splitext(bpy.data.filepath)[0] + ".raw"
-    self.layout.operator(export_raw.RawExporter.bl_idname, text="Raw Faces (.raw)").filepath = default_path
+    self.layout.operator(RawExporter.bl_idname, text="Raw Faces (.raw)")
 
 
 def register():

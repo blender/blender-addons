@@ -16,6 +16,8 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
+# <pep8 compliant>
+
 __author__ = ["Aurel Wildfellner"]
 __version__ = '0.2'
 __bpydoc__ = """\
@@ -38,9 +40,9 @@ import bpy
 
 def faceToTriangles(face):
     triangles = []
-    if (len(face) == 4): #quad
-        triangles.append( [ face[0], face[1], face[2] ] )
-        triangles.append( [ face[2], face[3], face[0] ] )
+    if (len(face) == 4):
+        triangles.append([face[0], face[1], face[2]])
+        triangles.append([face[2], face[3], face[0]])
     else:
         triangles.append(face)
 
@@ -50,28 +52,35 @@ def faceToTriangles(face):
 def faceValues(face, mesh, matrix):
     fv = []
     for verti in face.vertices:
-        fv.append(mesh.vertices[verti].co * matrix)
+        fv.append((mesh.vertices[verti].co * matrix)[:])
     return fv
 
 
 def faceToLine(face):
-    line = ""
-    for v in face:
-        line += str(v[0]) + " " + str(v[1]) + " " + str(v[2]) + " "
-    return line[:-1] + "\n"
+    return " ".join([("%.6f %.6f %.6f" % v) for v in face] + ["\n"])
 
 
-def export_raw(filepath, applyMods, triangulate):
+def write(filepath,
+          applyMods=True,
+          triangulate=True,
+          ):
+
+    scene = bpy.context.scene
+
     faces = []
     for obj in bpy.context.selected_objects:
-        if obj.type == 'MESH':
-            matrix = obj.matrix_world
+        if applyMods or obj.type != 'MESH':
+            try:
+                me = obj.to_mesh(scene, True, "PREVIEW")
+            except:
+                me = None
+            is_tmp_mesh = True
+        else:
+            me = obj.data
+            is_tmp_mesh = False
 
-            if (applyMods):
-                me = obj.to_mesh(bpy.context.scene, True, "PREVIEW")
-            else:
-                me = obj.data
-
+        if me is not None:
+            matrix = obj.matrix_world.copy()
             for face in me.faces:
                 fv = faceValues(face, me, matrix)
                 if triangulate:
@@ -79,34 +88,11 @@ def export_raw(filepath, applyMods, triangulate):
                 else:
                     faces.append(fv)
 
+            if is_tmp_mesh:
+                bpy.data.meshes.remove(me)
+
     # write the faces to a file
     file = open(filepath, "w")
     for face in faces:
         file.write(faceToLine(face))
     file.close()
-
-
-from bpy.props import *
-
-
-class RawExporter(bpy.types.Operator):
-    '''Save Raw triangle mesh data'''
-    bl_idname = "export_mesh.raw"
-    bl_label = "Export RAW"
-
-    filepath = StringProperty(name="File Path", description="Filepath used for exporting the RAW file", maxlen= 1024, default= "", subtype='FILE_PATH')
-    check_existing = BoolProperty(name="Check Existing", description="Check and warn on overwriting existing files", default=True, options={'HIDDEN'})
-
-    apply_modifiers = BoolProperty(name="Apply Modifiers", description="Use transformed mesh data from each object", default=True)
-    triangulate = BoolProperty(name="Triangulate", description="Triangulate quads.", default=True)
-
-    def execute(self, context):
-        export_raw(self.filepath, self.apply_modifiers, self.triangulate)
-        return {'FINISHED'}
-
-    def invoke(self, context, event):
-        wm = context.window_manager
-        wm.fileselect_add(self)
-        return {'RUNNING_MODAL'}
-
-# package manages registering

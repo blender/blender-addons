@@ -16,6 +16,8 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
+# <pep8 compliant>
+
 __author__ = ["Anthony D'Agostino (Scorpius)", "Aurel Wildfellner"]
 __version__ = '0.2'
 __bpydoc__ = """\
@@ -39,11 +41,10 @@ tolerance.
 """
 
 
-
 import bpy
 
 # move those to a utility modul
-from bpy_extras.io_utils import unpack_face_list, unpack_list # TODO, make generic
+from bpy_extras.io_utils import unpack_face_list, unpack_list
 
 
 def readMesh(filename, objName):
@@ -51,18 +52,14 @@ def readMesh(filename, objName):
 
     def line_to_face(line):
         # Each triplet is an xyz float
-        line_split = []
+        line_split = line.split()
         try:
-            line_split = list(map(float, line.split()))
+            line_split_float = map(float, line_split)
         except:
             return None
 
-        if len(line_split) == 9: # Tri
-            f1, f2, f3, f4, f5, f6, f7, f8, f9 = line_split
-            return [(f1, f2, f3), (f4, f5, f6), (f7, f8, f9)]
-        elif len(line_split) == 12: # Quad
-            f1, f2, f3, f4, f5, f6, f7, f8, f9, A, B, C = line_split
-            return [(f1, f2, f3), (f4, f5, f6), (f7, f8, f9), (A, B, C)]
+        if len(line_split) in {9, 12}:
+            return zip(*[iter(line_split_float)] * 3)  # group in 3's
         else:
             return None
 
@@ -80,7 +77,7 @@ def readMesh(filename, objName):
     coords = {}
     index_tot = 0
     faces_indices = []
-    
+
     for f in faces:
         fi = []
         for i, v in enumerate(f):
@@ -118,28 +115,8 @@ def addMeshObj(mesh, objName):
         scn.objects.active = nobj
 
 
-from bpy.props import *
-
-class RawImporter(bpy.types.Operator):
-    '''Load Raw triangle mesh data'''
-    bl_idname = "import_mesh.raw"
-    bl_label = "Import RAW"
-
-    filepath = StringProperty(name="File Path", description="Filepath used for importing the RAW file", maxlen=1024, default="", subtype='FILE_PATH')
-
-    def execute(self, context):
-
-        #convert the filename to an object name
-        objName = bpy.path.display_name(self.filepath.split("\\")[-1].split("/")[-1])
-
-        mesh = readMesh(self.filepath, objName)
-        addMeshObj(mesh, objName)
-
-        return {'FINISHED'}
-
-    def invoke(self, context, event):
-        wm = context.window_manager
-        wm.fileselect_add(self)
-        return {'RUNNING_MODAL'}
-
-# package manages registering
+def read(filepath):
+    #convert the filename to an object name
+    objName = bpy.path.display_name_from_filepath(filepath)
+    mesh = readMesh(filepath, objName)
+    addMeshObj(mesh, objName)
