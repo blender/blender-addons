@@ -26,7 +26,7 @@
 """
 Abstract
 MHX (MakeHuman eXchange format) importer for Blender 2.5x.
-Version 1.5.0
+Version 1.5.1
 
 This script should be distributed with Blender.
 If not, place it in the .blender/scripts/addons dir
@@ -39,7 +39,7 @@ Alternatively, run the script in the script editor (Alt-P), and access from the 
 bl_info = {
     'name': 'Import: MakeHuman (.mhx)',
     'author': 'Thomas Larsson',
-    'version': (1, 5, 0),
+    'version': (1, 5, 1),
     "blender": (2, 5, 8),
     "api": 37702,
     'location': "File > Import > MakeHuman (.mhx)",
@@ -52,7 +52,7 @@ bl_info = {
 
 MAJOR_VERSION = 1
 MINOR_VERSION = 5
-SUB_VERSION = 0
+SUB_VERSION = 1
 BLENDER_VERSION = (2, 58, 0)
 
 #
@@ -88,6 +88,8 @@ false = False
 Epsilon = 1e-6
 nErrors = 0
 theTempDatum = None
+theMessage = ""
+theMhxFile = ""
 
 todo = []
 
@@ -253,10 +255,12 @@ def checkBlenderVersion():
     if b <= B: return
     if c <= C: return
     msg = (
-"This version of the MHX importer only works with Blender (%d, %d, %d) or later. " % (a, b, c) +
-"Download a more recent Blender from www.blender.org or www.graphicall.org.\n"
+"This version of the MHX importer only works with \n" +
+"Blender (%d, %d, %d) or later.\n" % (a, b, c) +
+"Download a more recent Blender from \n" +
+"www.blender.org or www.graphicall.org.\n"
     )
-    raise NameError(msg)
+    MyError(msg)
     return
 
 #
@@ -347,7 +351,7 @@ def readMhxFile(filePath):
     file.close()
 
     if level != 0:
-        raise NameError("Tokenizer out of kilter %d" % level)    
+        MyError("Tokenizer out of kilter %d" % level)    
     clearScene()
     print( "Parsing" )
     parse(tokens)
@@ -357,10 +361,10 @@ def readMhxFile(filePath):
             print("Doing %s" % expr)
             exec(expr, glbals, lcals)
         except:
-            msg = "Failed: "+expr
+            msg = "Failed: \n"+expr
             print( msg )
             nErrors += 1
-            #raise NameError(msg)
+            #MyError(msg)
 
     time2 = time.clock()
     print("toggle = %x" % toggle)
@@ -396,14 +400,19 @@ def checkMhxVersion(major, minor):
         else:
             msg = (
 "Wrong MHX version\n" +
-"Expected MHX %d.%d but the loaded file has version MHX %d.%d\n" % (MAJOR_VERSION, MINOR_VERSION, major, minor) +
-"You can disable this error message by deselecting the Enforce version option when importing. " +
-"Alternatively, you can try to download the most recent nightly build from www.makehuman.org. " +
-"The current version of the import script is located in the importers/mhx/blender25x folder and is called import_scene_mhx.py. " +
-"The version distributed with Blender builds from www.graphicall.org may be out of date.\n"
+"Expected MHX %d.%d but the loaded file \n" % (MAJOR_VERSION, MINOR_VERSION) +
+"has version MHX %d.%d\n" % (major, minor) +
+"You can disable this error message by deselecting the \n" +
+"Enforce version option when importing. \n" +
+"Alternatively, you can try to download the most recent \n" +
+"nightly build from www.makehuman.org. \n" +
+"The current version of the import script is located in the \n" +
+"importers/mhx/blender25x folder and is called import_scene_mhx.py. \n" +
+"The version distributed with Blender builds from \n" +
+"www.graphicall.org may be out of date.\n"
 )
         if toggle & T_EnforceVersion:
-            raise NameError(msg)
+            MyError(msg)
         else:
             print(msg)
             warnedVersion = True
@@ -436,7 +445,7 @@ def parse(tokens):
             print(msg)
         elif key == 'error':
             msg = concatList(val)
-            raise NameError(msg)    
+            MyError(msg)    
         elif key == 'NoScale':
             if eval(val[0]):
                 theScale = 1.0
@@ -510,7 +519,7 @@ def parse(tokens):
             try:
                 ob = loadedData['Object'][val[0]]
             except:
-                raise NameError("ShapeKeys object %s does not exist" % val[0])
+                MyError("ShapeKeys object %s does not exist" % val[0])
             if ob:
                 bpy.context.scene.objects.active = ob
                 parseShapeKeys(ob, ob.data, val, sub)        
@@ -676,7 +685,7 @@ def parseActionFCurve(act, ob, args, tokens):
             except:
                 pass
                 #print(tokens)
-                #raise NameError("kp", fcu, n, len(fcu.keyframe_points), val)
+                #MyError("kp", fcu, n, len(fcu.keyframe_points), val)
         else:
             defaultKey(key, val, sub, 'fcu', [], globals(), locals())
     return fcu
@@ -1067,7 +1076,7 @@ def parseObject(args, tokens):
         try:
             data = loadedData[typ.capitalize()][datName]    
         except:
-            raise NameError("Failed to find data: %s %s %s" % (name, typ, datName))
+            MyError("Failed to find data: %s %s %s" % (name, typ, datName))
             return
 
     try:
@@ -1164,7 +1173,7 @@ def parseModifier(ob, args, tokens):
             elif val[0] == 'MESH':
                 hookAssignNth(mod, int(val[1]), True, ob.data.vertices)
             else:
-                raise NameError("Unknown hook %s" % val)
+                MyError("Unknown hook %s" % val)
         else:            
             defaultKey(key, val, sub, 'mod', [], globals(), locals())
     return mod
@@ -1501,7 +1510,7 @@ def parseShapeKey(ob, me, args, tokens):
         addShapeKey(ob, name+'_L', 'Left', tokens)
         addShapeKey(ob, name+'_R', 'Right', tokens)
     else:
-        raise NameError("ShapeKey L/R %s" % lr)
+        MyError("ShapeKey L/R %s" % lr)
     return
 
 def addShapeKey(ob, name, vgroup, tokens):
@@ -2127,7 +2136,7 @@ def parseProcess(args, tokens):
                 eb.tail = tb.tail
                 eb.roll = tb.roll
             else:
-                raise NameError("Snap type %s" % typ)
+                MyError("Snap type %s" % typ)
         elif key == 'PoseMode':
             bpy.context.scene.objects.active = rig
             bpy.ops.object.mode_set(mode='POSE')
@@ -2227,7 +2236,7 @@ def defaultKey(ext, args, tokens, var, exclude, glbals, lcals):
     #print("D", nvar)
 
     if len(args) == 0:
-        raise NameError("Key length 0: %s" % ext)
+        MyError("Key length 0: %s" % ext)
         
     rnaType = args[0]
     if rnaType == 'Add':
@@ -2273,7 +2282,7 @@ def defaultKey(ext, args, tokens, var, exclude, glbals, lcals):
         return
 
     elif rnaType == 'PropertyRNA':
-        raise NameError("PropertyRNA!")
+        MyError("PropertyRNA!")
         #print("PropertyRNA ", ext, var)
         for (key, val, sub) in tokens:
             defaultKey(ext, val, sub, nvar, [], glbals, lcals)
@@ -2330,7 +2339,7 @@ def pushOnTodoList(var, expr, glbals, lcals):
     global todo
     print("Tdo", var)
     print(dir(eval(var, glbals, lcals)))
-    raise NameError("Todo", expr)
+    MyError("Todo", expr)
     todo.append((expr, glbals, lcals))
     return
 
@@ -2409,7 +2418,7 @@ def Bool(string):
     elif string == 'False':
         return False
     else:
-        raise NameError("Bool %s?" % string)
+        MyError("Bool %s?" % string)
         
 #
 #    invalid(condition):
@@ -2590,7 +2599,7 @@ def rigifyMhx(context, mhx):
         rolls[eb.name] = eb.roll
         if eb.parent:            
             par = eb.parent.name
-            print(eb.name, par)
+            # print(eb.name, par)
             try:
                 parents[eb.name] = newParents[par]
             except:
@@ -2607,7 +2616,7 @@ def rigifyMhx(context, mhx):
             if (mod.type == 'ARMATURE' and mod.object == mhx):
                 meshes.append((ob, mod))
     if meshes == []:
-        raise NameError("Did not find matching mesh")
+        MyError("Did not find matching mesh")
         
     # Rename Head vertex group    
     for (mesh, mod) in meshes:
@@ -2625,7 +2634,10 @@ def rigifyMhx(context, mhx):
     except:
         success = False
     if not success:
-        raise NameError("Unable to create advanced human. Make sure that the Rigify add-on is enabled. It is found under Rigging.")
+        MyError(
+"Unable to create advanced human. \n" +
+"Make sure that the Rigify add-on is enabled. \n" +
+"It is found under Rigging.")
         return
 
     rigify = context.object
@@ -2862,12 +2874,66 @@ class RigifyMhxPanel(bpy.types.Panel):
 
 ###################################################################################
 #
-#    User interface
+#    Error popup
 #
 ###################################################################################
 
 DEBUG = False
 from bpy.props import StringProperty, FloatProperty, EnumProperty, BoolProperty
+
+class ErrorOperator(bpy.types.Operator):
+    bl_idname = "mhx.error"
+    bl_label = "Error when loading MHX file"
+
+    def execute(self, context):
+        return {'RUNNING_MODAL'}
+
+    def invoke(self, context, event):
+        global theErrorLines
+        maxlen = 0
+        for line in theErrorLines:
+            if len(line) > maxlen:
+                maxlen = len(line)
+        width = 20+5*maxlen
+        height = 20+5*len(theErrorLines)
+        #self.report({'INFO'}, theMessage)
+        wm = context.window_manager
+        return wm.invoke_props_dialog(self, width=width, height=height)
+
+    def draw(self, context):
+        global theErrorLines
+        for line in theErrorLines:        
+            self.layout.label(line)
+
+def MyError(message):
+    global theMessage, theErrorLines, theErrorStatus
+    theMessage = message
+    theErrorLines = message.split('\n')
+    theErrorStatus = True
+    bpy.ops.mhx.error('INVOKE_DEFAULT')
+    raise NameError(theMessage)
+
+class SuccessOperator(bpy.types.Operator):
+    bl_idname = "mhx.success"
+    bl_label = "MHX file successfully loaded:"
+    message = StringProperty()
+
+    def execute(self, context):
+        return {'RUNNING_MODAL'}
+
+    def invoke(self, context, event):
+        wm = context.window_manager
+        return wm.invoke_props_dialog(self)
+
+    def draw(self, context):
+        self.layout.label(self.message)
+
+###################################################################################
+#
+#    User interface
+#
+###################################################################################
+
 from bpy_extras.io_utils import ImportHelper
 
 
@@ -2920,7 +2986,12 @@ class ImportMhx(bpy.types.Operator, ImportHelper):
         theScale = self.scale
         theBlenderVersion = BlenderVersions.index(self.bver)
 
-        readMhxFile(self.filepath)
+        try:
+            readMhxFile(self.filepath)
+            bpy.ops.mhx.success('INVOKE_DEFAULT', message = self.filepath)
+        except NameError:
+            print("Error when loading MHX file:\n" + theMessage)
+
         writeDefaults()
         return {'FINISHED'}
 
