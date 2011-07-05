@@ -397,6 +397,57 @@ def points_to_bezier(points_orig,
             self.calc_all()
             # raise Exception("END")
 
+        def intersect_line(self, l1, l2, reverse=False):
+
+            from mathutils.geometry import (intersect_point_line,
+                                            )
+
+            if reverse:
+                p_first = self.points[-1]
+                point_iter = reversed(self.points[:-1])
+            else:
+                p_first = self.points[0]
+                point_iter = self.points[1:]
+
+            side = (line_point_side_v2(l1, l2, p_first.co) < 0.0)
+            ok = False
+            for p_apex in point_iter:
+                if (line_point_side_v2(l1,
+                                       l2,
+                                       p_apex.co,
+                                       ) < 0.0) != side:
+
+                    if reverse:
+                        p_apex_other = p_apex.next
+                    else:
+                        p_apex_other = p_apex.prev
+
+                    # find the exact point on the line between the apex and
+                    # the middle
+                    p_test_1 = intersect_point_line(p_apex.co,
+                                                    l1,
+                                                    l2)[0].xy
+                    p_test_2 = intersect_point_line(p_apex_other.co,
+                                                    l1,
+                                                    l2)[0].xy
+
+                    w1 = (p_test_1 - p_apex.co).length
+                    w2 = (p_test_2 - p_apex_other.co).length
+                    fac = w1 / (w1 + w2)
+                    
+                    p_apex_co = p_apex.co.lerp(p_apex_other.co, fac)
+                    p_apex_no = p_apex.no.lerp(p_apex_other.no, fac)
+                    p_apex_no.normalize()
+
+                    # visualize_line(p_mid.to_3d(), corner.to_3d())
+                    # visualize_line(p_apex.co.to_3d(), p_apex_co.to_3d())
+
+                    ok = True
+                    break
+
+            return p_apex_co, p_apex_no
+            
+
         def bezier_solve(self):
             """ Calculate bezier handles,
                 assume the splines have been broken up.
@@ -411,6 +462,7 @@ def points_to_bezier(points_orig,
             # get a line
             p1 = self.points[0]
             p2 = self.points[-1]
+
 
             # since we have even spacing we can just pick the middle point
             # p_mid = self.points[len(self.points) // 2]
@@ -444,38 +496,8 @@ def points_to_bezier(points_orig,
             p_best = None
             side = (line_point_side_v2(p_mid, corner, p1.co) < 0.0)
             ok = False
-            for p_apex in self.points:
-                if (line_point_side_v2(p_mid,
-                                       corner,
-                                       p_apex.co,
-                                       ) < 0.0) != side:
-
-                    # find the exact point on the line between the apex and
-                    # the middle
-                    p_test_1 = intersect_point_line(p_apex.co,
-                                                    p_mid,
-                                                    corner)[0].xy
-                    p_test_2 = intersect_point_line(p_apex.prev.co,
-                                                    p_mid,
-                                                    corner)[0].xy
-                    
-                    w1 = (p_test_1 - p_apex.co).length
-                    w2 = (p_test_2 - p_apex.prev.co).length
-                    fac = w1 / (w1 + w2)
-                    
-                    p_apex_co = p_apex.co.lerp(p_apex.prev.co, fac)
-                    p_apex_no = p_apex.no.lerp(p_apex.prev.no, fac)
-                    p_apex_no.normalize()
-                    
-                    # visualize_line(p_mid.to_3d(), corner.to_3d())
-                    # visualize_line(p_apex.co.to_3d(), p_apex_co.to_3d())
-
-                    ok = True
-                    break
-
-            del p_apex, w1, w2, fac, p_test_1, p_test_2
-
-            assert(ok == True)
+            
+            p_apex_co, p_apex_no = self.intersect_line(p_mid, corner)
 
             v1 = (p2.co - p1.co).normalized()
             v2 = p_apex_no.copy()
