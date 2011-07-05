@@ -66,14 +66,7 @@ def WriteAppleRuntime(player_path, output_path, copy_python, overwrite_lib):
     
     bpy.ops.wm.save_as_mainfile(filepath=output_path+"/Contents/Resources/game.blend", copy=True)
     
-    # Copy bundled Python
-    blender_dir = os.path.dirname(bpy.app.binary_path)
-    
-    if copy_python:
-        print("Copying Python files...", end=" ")
-        dst = os.path.join(output_path, "..")
-        CopyPythonLibs(dst, overwrite_lib)
-        print("done")
+    # Python doesn't need to be copied for OS X since it's already inside blenderplayer.app
 
 
 def WriteRuntime(player_path, output_path, copy_python, overwrite_lib, copy_dlls):
