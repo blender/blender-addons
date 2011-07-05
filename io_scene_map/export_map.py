@@ -212,19 +212,19 @@ def is_tricyl_facegroup(faces):
     verts = {}
     tottri = 0
     for f in faces:
-        if len(f) == 3:
+        if len(f.vertices) == 3:
             tottri += 1
 
-        for v in f:
-            verts[v.index] = 0
+        for vi in f.vertices:
+            verts[vi] = 0
 
     if len(verts) != 6 or tottri != 2:
         return False
 
     # Now check that each vert has 3 face users
     for f in faces:
-        for v in f:
-            verts[v.index] += 1
+        for vi in f.vertices:
+            verts[vi] += 1
 
     for v in verts.values():
         if v != 3:  # vert has 3 users?
