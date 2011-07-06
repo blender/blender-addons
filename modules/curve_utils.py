@@ -403,10 +403,10 @@ def points_to_bezier(points_orig,
                                             )
 
             if reverse:
-                p_first = self.points[-1]
+                p_first = self.points[-2]
                 point_iter = reversed(self.points[:-1])
             else:
-                p_first = self.points[0]
+                p_first = self.points[1]
                 point_iter = self.points[1:]
 
             side = (line_point_side_v2(l1, l2, p_first.co) < 0.0)
@@ -433,7 +433,13 @@ def points_to_bezier(points_orig,
 
                     w1 = (p_test_1 - p_apex.co).length
                     w2 = (p_test_2 - p_apex_other.co).length
+                    
+                    #assert(w1 + w2 != 0)
+                    #try:
                     fac = w1 / (w1 + w2)
+                    #except ZeroDivisionError:
+                    #    fac = 0.5
+                    assert(fac >= 0.0 and fac <= 1.0)
                     
                     p_apex_co = p_apex.co.lerp(p_apex_other.co, fac)
                     p_apex_no = p_apex.no.lerp(p_apex_other.no, fac)
@@ -442,11 +448,10 @@ def points_to_bezier(points_orig,
                     # visualize_line(p_mid.to_3d(), corner.to_3d())
                     # visualize_line(p_apex.co.to_3d(), p_apex_co.to_3d())
 
-                    ok = True
-                    break
-
-            return p_apex_co, p_apex_no
+                    return p_apex_co, p_apex_no, p_apex
             
+            # intersection not found
+            return None, None, None
 
         def bezier_solve(self):
             """ Calculate bezier handles,
@@ -464,97 +469,115 @@ def points_to_bezier(points_orig,
             p2 = self.points[-1]
 
 
-            # since we have even spacing we can just pick the middle point
-            # p_mid = self.points[len(self.points) // 2]
 
-            # vec, fac = mathutils.geometry.intersect_point_line(m_mid, p1, p2)
+            # ------
+            # take 2
+            p_vec = (p2.co - p1.co).normalized()
             
-
-            # TODO, ensure < 180d curves
+            # vector between line and point directions
+            l1_no = (p1.no + p_vec).normalized()
+            l2_no = ((-p2.no) - p_vec).normalized()
             
-            p1_a, p1_b = p1.co, p1.co + p1.no
-            p2_a, p2_b = p2.co, p2.co - p2.no
-
-            isect = intersect_line_line(p1_a.to_3d(),
-                                        p1_b.to_3d(),
-                                        p2_a.to_3d(),
-                                        p2_b.to_3d(),
+            l1_co = p1.co + l1_no
+            l2_co = p2.co + l2_no
+            
+            # visualize_line(p1.co, l1_co)
+            # visualize_line(p2.co, l2_co)
+            
+            line_ix_p1_co, line_ix_p1_no, line_ix_p1 = \
+                    self.intersect_line(p1.co,
+                                        l1_co,
                                         )
+            line_ix_p2_co, line_ix_p2_no, line_ix_p2 = \
+                    self.intersect_line(p2.co,
+                                        l2_co,
+                                        reverse=True,
+                                        )
+            if line_ix_p1_co is None:
+                line_ix_p1_co, line_ix_p1_no, line_ix_p1 = \
+                        p1.next.co, p1.next.no, p1.next
+            if line_ix_p2_co is None:
+                line_ix_p2_co, line_ix_p2_no, line_ix_p2 = \
+                        p2.prev.co, p2.prev.no, p2.prev
 
 
-            if isect is None:
-                # if isect is None, the line is paralelle
-                # just add simple handles
-                self.bezier_h1 = p1.co.lerp(p2.co, 1.0 / 3.0)
-                self.bezier_h2 = p2.co.lerp(p1.co, 1.0 / 3.0)
-                return
+            # vis_circle_object(line_ix_p1_co)
+            # vis_circle_object(line_ix_p2_co)
 
-            corner = isect[0].xy
+            l1_max = 0.0
+            p1_apex_co = None
+            p = self.points[1]
+            while p and (not p.is_joint) and p != line_ix_p1:
+                ix = intersect_point_line(p.co, p1.co, l1_co)[0].xy
+                length = (ix - p.co).length
+                if length > l1_max:
+                    l1_max = length
+                    p1_apex_co = p.co
+                p = p.next
 
-            p_mid = p1.co.lerp(p2.co, 0.5)
-            dist_best = 10000000.0
-            p_best = None
-            side = (line_point_side_v2(p_mid, corner, p1.co) < 0.0)
-            ok = False
+            l2_max = 0.0
+            p2_apex_co = None
+            p = self.points[-2]
+            while p and (not p.is_joint) and p != line_ix_p2:
+                ix = intersect_point_line(p.co, p2.co, l2_co)[0].xy
+                length = (ix - p.co).length
+                if length > l2_max:
+                    l2_max = length
+                    p2_apex_co = p.co
+                p = p.prev
+
             
-            p_apex_co, p_apex_no = self.intersect_line(p_mid, corner)
+            if p1_apex_co is None:
+                p1_apex_co = p1.next.co
+            if p2_apex_co is None:
+                p2_apex_co = p2.prev.co
 
-            v1 = (p2.co - p1.co).normalized()
-            v2 = p_apex_no.copy()
+
+            l1_tan = (p1.no - p1.no.project(l1_no)).normalized()
+            l2_tan = -(p2.no - p2.no.project(l2_no)).normalized()
             
-            # find the point on the line which aligns with the apex point.
-            # first place handles, must be distance to apex * 1.333...
-            if 1:
-                p_mid_apex_align = intersect_point_line(p_apex_co,
-                                                        p1.co,
-                                                        p2.co)[0]
-            else:
-                p_mid_apex_align = p_mid
+            # values are good!
+            #~ visualize_line(p1.co, p1.co + l1_tan)
+            #~ visualize_line(p2.co, p2.co + l2_tan)
 
-            # visualize_line(p_mid_apex_align.to_3d(), p_apex_co.to_3d())
+            #~ visualize_line(p1.co, p1.co + l1_no)
+            #~ visualize_line(p2.co, p2.co + l2_no)
 
-            # The point is always 75% of the handle distance
-            # here we extend the distance from the line to the curve apex
-            # by 33.33..% to compensate for this.
-            h_sca = 1 # (p_apex_co - p_mid_apex_align.xy).length / 0.75
-
-
+            # calculate bias based on the position of the other point allong
+            # the tangent.
+            
+            # first need to reflect the second normal for angle comparison
+            # first fist need the reflection normal
+            no_ref = p_vec.to_3d().cross(p2.no.to_3d()).cross(p_vec.to_3d()).normalized()
+            l2_no_ref = p2.no.reflect(no_ref).normalized()
+            del no_ref
+            
+            
             from math import pi
+            # This could be tweaked but seems to work well
+            fac_fac = (p1.co - p2.co).length * (0.5 / 0.75) * p1.no.angle(l2_no_ref) / pi
 
-            # -1.0 - 1.0
-            bias = v1.angle(v2) / (pi / 2)
-            print(bias)
-            if abs(bias) < 0.001:
-                h_sca_1 = h_sca
-                h_sca_2 = h_sca
-            elif line_point_side_v2(Vector((0.0, 0.0)), v2, v1) < 0:
-                h_sca_1 = h_sca / (1.0 + bias)
-                h_sca_2 = h_sca * (1.0 + bias)
-            else:
-                h_sca_1 = h_sca * (1.0 + bias)
-                h_sca_2 = h_sca / (1.0 + bias)
+            fac_1 = intersect_point_line(p2_apex_co, p1.co, p1.co + l1_tan)[1] * fac_fac
+            fac_2 = intersect_point_line(p1_apex_co, p2.co, p2.co + l2_tan)[1] * fac_fac
 
+            # TODO, scale the factors some useful way
 
-            # find the factor 
-            fac = intersect_point_line(p_apex_co, p_mid, corner)[1]
-            # assert(fac >= 0.0)
+            h1_fac = ((p1.co - p1_apex_co).length / 0.75) - fac_1
+            h2_fac = ((p2.co - p2_apex_co).length / 0.75) - fac_2
 
-            h_sca_1 = 1
-            h_sca_2 = 1
-
-            h1 = p1.co.lerp(corner, (fac / 0.75) * h_sca_1)
-            h2 = p2.co.lerp(corner, (fac / 0.75) * h_sca_2)
-
-
-            # rare cases this can mess up, because of almost straight lines
-    
-
-            # good for debugging single splines
-            # vis_curve_spline(p1.co, h1, p2.co, h2)
-            
+            h1 = p1.co + (p1.no * h1_fac)
+            h2 = p2.co - (p2.no * h2_fac)
             
             self.handle_left = h1
             self.handle_right = h2
+            
+            '''
+            visualize_line(p1.co, p1_apex_co)
+            visualize_line(p1_apex_co, p2_apex_co)
+            visualize_line(p2.co, p2_apex_co) 
+            visualize_line(p1.co, p2.co)
+            '''
+            
 
         def bezier_error(self):
             from mathutils.geometry import interpolate_bezier
@@ -818,7 +841,7 @@ def points_to_bezier(points_orig,
 
     #curve.split_func_map_point(lambda p: (p.angle_filter() >= 0) != \
     #                              (p.prev.angle_filter() >= 0))
-    curve.split_func_map_point(swap_side)
+    # curve.split_func_map_point(swap_side)
 
 
     # now split based on total spline angle.
@@ -833,10 +856,18 @@ def points_to_bezier(points_orig,
                             )
 
 
+    # debug only!
+    # to test how good the bezier spline fitting is without corrections
+    
+    '''
+    for s in curve.splines:
+        s.bezier_solve()
+    '''
+    # or recursively subdivide...
     curve.split_func_spline(lambda s:
                                 len(s.points) // 2
                                 if ((s.bezier_solve(), s.bezier_error())[1] >
-                                     bezier_tolerance) and (len(s.points) > 2)
+                                     bezier_tolerance) and (len(s.points))
                                 else -1,
                             recursive=True,
                             )
@@ -853,7 +884,7 @@ def points_to_bezier(points_orig,
 
 if __name__ == "__main__":
     print("A")
-    bpy.ops.wm.open_mainfile(filepath="/root/curve_test.blend")
+    bpy.ops.wm.open_mainfile(filepath="/root/curve_test1.blend")
     
     ob = bpy.data.objects["Curve"]
     points = [p.co.xy for s in ob.data.splines for p in s.points]
