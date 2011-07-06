@@ -474,19 +474,16 @@ def points_to_bezier(points_orig,
 
             from math import pi
             # This could be tweaked but seems to work well
-            fac_fac = (p1.co - p2.co).length * p1.no.angle(l2_no_ref) / (pi * 1.0)
+            fac_fac = (p1.no.angle(l2_no_ref) / pi)
 
-            fac_1 = intersect_point_line(p2_apex_co,
-                                         p1.co,
-                                         p1.co + l1_tan,
-                                         )[1] * fac_fac
-            fac_2 = intersect_point_line(p1_apex_co,
-                                         p2.co,
-                                         p2.co + l2_tan,
-                                         )[1] * fac_fac
+            fac_1 = p1.no.angle(line_ix_p1_co - p1.co) / pi
+            fac_2 = (-p2.no).angle(line_ix_p2_co - p2.co) / pi
 
-            h1_fac = ((p1.co - p1_apex_co).length / 0.75) - fac_1
-            h2_fac = ((p2.co - p2_apex_co).length / 0.75) - fac_2
+            # fac_1 = fac_2 = 0.0
+            print(fac_1, fac_2)
+            # why * 3 ? - it just gives best results
+            h1_fac = ((p1.co - p1_apex_co).length / 0.75) * (1.0 + fac_1 * fac_fac * 3.0)
+            h2_fac = ((p2.co - p2_apex_co).length / 0.75) * (1.0 + fac_2 * fac_fac * 3.0)
 
             h1 = p1.co + (p1.no * h1_fac)
             h2 = p2.co - (p2.no * h2_fac)
@@ -765,11 +762,12 @@ def points_to_bezier(points_orig,
                             recursive=True,
                             )
 
-    '''
+    
+    error = 0.0
     for s in curve.splines:
-        s.bezier_solve()
-        print(s.bezier_error())
-    '''
+        error += s.bezier_error()
+    print("%d :: %.6f" % (len(curve.splines), error))
+
     # VISUALIZE
     # curve.to_blend_data()
     curve.to_blend_curve()
