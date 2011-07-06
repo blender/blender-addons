@@ -361,13 +361,72 @@ def points_to_bezier(points_orig,
 
             self.calc_all()
 
-        def bezier_solve(self):
+        def bezier_solve_(self):
             """ Calculate bezier handles,
                 assume the splines have been broken up.
 
-
+                http://polymathprogrammer.com/
             """
 
+            p1 = self.points[0]
+            p2 = self.points[-1]
+
+            line_ix_p1 = self.points[len(self.points) // 3]
+            line_ix_p2 = self.points[int((len(self.points) / 3) * 2)]
+
+            u = 1 / 3
+            v = 2 / 3
+
+            p0x, p0y, p0z = p1.co
+            p1x, p1y, p1z = line_ix_p1.co
+            p2x, p2y, p2z = line_ix_p2.co
+            p3x, p3y, p3z = p2.co
+            
+            ui = 1.0 - u
+            vi = 1.0 - v
+            u_p3 = u * u * u
+            v_p3 = v * v * v
+            ui_p3 = ui * ui * ui
+            vi_p3 = vi * vi * vi
+
+
+            # --- snip
+
+            q1 = Vector()
+            q2 = Vector()
+
+            pos = Vector(), Vector(), Vector(), Vector()
+
+            a = 3.0 * ui * ui * u
+            b = 3.0 * ui * u * u
+            c = 3.0 * vi * vi * v
+            d = 3.0 * vi * v * v
+            det = a * d - b * c
+
+            if det == 0.0:
+                assert(0)
+                return 0
+
+            q1.x = p1x - (ui_p3 * p0x + u_p3 * p3x)
+            q1.y = p1y - (ui_p3 * p0y + u_p3 * p3y)
+            q1.z = p1z - (ui_p3 * p0z + u_p3 * p3z)
+
+            q2.x = p2x - (vi_p3 * p0x + v_p3 * p3x)
+            q2.y = p2y - (vi_p3 * p0y + v_p3 * p3y)
+            q2.z = p2z - (vi_p3 * p0z + v_p3 * p3z)
+
+            pos[1].x = (d * q1.x - b * q2.x) / det
+            pos[1].y = (d * q1.y - b * q2.y) / det
+            pos[1].z = (d * q1.z - b * q2.z) / det
+
+            pos[2].x = ((-c) * q1.x + a * q2.x) / det
+            pos[2].y = ((-c) * q1.y + a * q2.y) / det
+            pos[2].z = ((-c) * q1.z + a * q2.z) / det
+
+            self.handle_left = pos[1]
+            self.handle_right = pos[2]
+
+        def bezier_solve(self):
             from mathutils.geometry import (intersect_point_line,
                                             intersect_line_line,
                                             )
@@ -391,57 +450,18 @@ def points_to_bezier(points_orig,
             # visualize_line(p2.co, l2_co)
 
             # picking 1/2 and 2/3'rds works best
-            line_ix_p1 = self.points[len(self.points) // 3]
+            line_ix_p1 = self.points[int(len(self.points) * (1.0 / 3.0))]
             line_ix_p1_co, line_ix_p1_no = line_ix_p1.co, line_ix_p1.no
-            line_ix_p2 = self.points[int((len(self.points) / 3) * 2)]
+            line_ix_p2 = self.points[int(len(self.points) * (2.0 / 3.0))]
             line_ix_p2_co, line_ix_p2_no = line_ix_p2.co, line_ix_p2.no
 
-            if line_ix_p1_co is None:
-                line_ix_p1_co, line_ix_p1_no, line_ix_p1 = \
-                        p1.next.co, p1.next.no, p1.next
-            if line_ix_p2_co is None:
-                line_ix_p2_co, line_ix_p2_no, line_ix_p2 = \
-                        p2.prev.co, p2.prev.no, p2.prev
-
-            # vis_circle_object(line_ix_p1_co)
-            # vis_circle_object(line_ix_p2_co)
-
-            l1_max = 0.0
-            p1_apex_co = None
-            p = self.points[1]
-            while p and (not p.is_joint) and p != line_ix_p1:
-                ix = intersect_point_line(p.co, p1.co, l1_co)[0]
-                length = (ix - p.co).length
-                if length > l1_max:
-                    l1_max = length
-                    p1_apex_co = p.co
-                p = p.next
-
-            l2_max = 0.0
-            p2_apex_co = None
-            p = self.points[-2]
-            while p and (not p.is_joint) and p != line_ix_p2:
-                ix = intersect_point_line(p.co, p2.co, l2_co)[0]
-                length = (ix - p.co).length
-                if length > l2_max:
-                    l2_max = length
-                    p2_apex_co = p.co
-                p = p.prev
-
-            if p1_apex_co is None:
-                p1_apex_co = p1.next.co
-            if p2_apex_co is None:
-                p2_apex_co = p2.prev.co
+            # used to seek for the upper most point but this gives mostly
+            # as good results
+            p1_apex_co = self.points[int(len(self.points) * (1.0 / 3.0) * 0.75)].co
+            p2_apex_co = self.points[int(len(self.points) * (1.0 - (1.0 / 3.0) * 0.75))].co
 
             l1_tan = (p1.no - p1.no.project(l1_no)).normalized()
             l2_tan = -(p2.no - p2.no.project(l2_no)).normalized()
-
-            # values are good!
-            #~ visualize_line(p1.co, p1.co + l1_tan)
-            #~ visualize_line(p2.co, p2.co + l2_tan)
-
-            #~ visualize_line(p1.co, p1.co + l1_no)
-            #~ visualize_line(p2.co, p2.co + l2_no)
 
             # calculate bias based on the position of the other point allong
             # the tangent.
@@ -454,7 +474,7 @@ def points_to_bezier(points_orig,
 
             from math import pi
             # This could be tweaked but seems to work well
-            fac_fac = (p1.co - p2.co).length * p1.no.angle(l2_no_ref) / pi
+            fac_fac = (p1.co - p2.co).length * p1.no.angle(l2_no_ref) / (pi * 1.0)
 
             fac_1 = intersect_point_line(p2_apex_co,
                                          p1.co,
@@ -474,14 +494,14 @@ def points_to_bezier(points_orig,
             self.handle_left = h1
             self.handle_right = h2
 
-            '''
+            """
             visualize_line(p1.co, p1_apex_co)
             visualize_line(p1_apex_co, p2_apex_co)
             visualize_line(p2.co, p2_apex_co)
             visualize_line(p1.co, p2.co)
-            '''
+            """
 
-        def bezier_error(self, error_max=-1.0, test_count=8):
+        def bezier_error(self, error_max=-1.0, test_count=16):
             from mathutils.geometry import interpolate_bezier
 
             test_points = interpolate_bezier(self.points[0].co,
