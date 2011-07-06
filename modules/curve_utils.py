@@ -360,71 +360,6 @@ def points_to_bezier(points_orig,
             self.points[0].is_joint, self.points[-1].is_joint = joint
 
             self.calc_all()
-            # raise Exception("END")
-
-        def intersect_line(self, l1, l2, reverse=False):
-            """ Spectial kind of intersection, works in 3d on the plane
-                defimed by the points normal and the line.
-            """
-
-            from mathutils.geometry import (intersect_point_line,
-                                            )
-
-            if reverse:
-                p_first = self.points[-1]
-                no = -self.points[-1].no
-                point_iter = reversed(self.points[:-1])
-            else:
-                p_first = self.points[0]
-                no = self.points[0].no
-                point_iter = self.points[1:]
-
-            # calculate the line right angles to the line
-            bi_no = (no - no.project(l2 - l1)).normalized()
-
-            bi_l1 = p_first.co
-            bi_l2 = p_first.co + bi_no
-
-            for p_apex in point_iter:
-                ix, fac = intersect_point_line(p_apex.co, bi_l1, bi_l2)
-
-                if fac < 0.0001:
-
-                    if reverse:
-                        p_apex_other = p_apex.next
-                    else:
-                        p_apex_other = p_apex.prev
-
-                    # find the exact point on the line between the apex and
-                    # the middle
-                    p_test_1 = intersect_point_line(p_apex.co,
-                                                    l1,
-                                                    l2)[0]
-                    p_test_2 = intersect_point_line(p_apex_other.co,
-                                                    l1,
-                                                    l2)[0]
-
-                    w1 = (p_test_1 - p_apex.co).length
-                    w2 = (p_test_2 - p_apex_other.co).length
-
-                    #assert(w1 + w2 != 0)
-                    try:
-                        fac = w1 / (w1 + w2)
-                    except ZeroDivisionError:
-                        fac = 0.5
-                    assert(fac >= 0.0 and fac <= 1.0)
-
-                    p_apex_co = p_apex.co.lerp(p_apex_other.co, fac)
-                    p_apex_no = p_apex.no.lerp(p_apex_other.no, fac)
-                    p_apex_no.normalize()
-
-                    # visualize_line(p_mid.to_3d(), corner.to_3d())
-                    # visualize_line(p_apex.co.to_3d(), p_apex_co.to_3d())
-
-                    return p_apex_co, p_apex_no, p_apex
-
-            # intersection not found
-            return None, None, None
 
         def bezier_solve(self):
             """ Calculate bezier handles,
@@ -455,15 +390,12 @@ def points_to_bezier(points_orig,
             # visualize_line(p1.co, l1_co)
             # visualize_line(p2.co, l2_co)
 
-            line_ix_p1_co, line_ix_p1_no, line_ix_p1 = \
-                    self.intersect_line(p1.co,
-                                        l1_co,
-                                        )
-            line_ix_p2_co, line_ix_p2_no, line_ix_p2 = \
-                    self.intersect_line(p2.co,
-                                        l2_co,
-                                        reverse=True,
-                                        )
+            # picking 1/2 and 2/3'rds works best
+            line_ix_p1 = self.points[len(self.points) // 3]
+            line_ix_p1_co, line_ix_p1_no = line_ix_p1.co, line_ix_p1.no
+            line_ix_p2 = self.points[int((len(self.points) / 3) * 2)]
+            line_ix_p2_co, line_ix_p2_no = line_ix_p2.co, line_ix_p2.no
+
             if line_ix_p1_co is None:
                 line_ix_p1_co, line_ix_p1_no, line_ix_p1 = \
                         p1.next.co, p1.next.no, p1.next
