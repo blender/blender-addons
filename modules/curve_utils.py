@@ -25,11 +25,6 @@ def line_point_side_v2(l1, l2, pt):
             ((l2[0] - pt[0]) * (l1[1] - pt[1])))
 
 
-def shell_angle_to_dist(angle):
-    from math import cos
-    return 1.0 if (angle < 0.0001) else abs(1.0 / cos(angle))
-
-
 def vis_curve_object():
     scene = bpy.data.scenes[0] # weak!
     cu = bpy.data.curves.new(name="Line", type='CURVE')
@@ -74,7 +69,6 @@ def visualize_line(p1, p2, p3=None, rad=None):
     if p3:
         spline = ob.data.splines.new(type='POLY')
         spline.points[0].co.xyz = p3.to_3d()
-        print(rad)
         if rad is not None:
             vis_circle_object(p3, rad)
 
@@ -137,7 +131,7 @@ def solve_curvature_2d(p1, p2, n1, n2, fac, fallback):
 def points_to_bezier(points_orig,
                      double_limit=0.0001,
                      kink_tolerance=0.25,
-                     bezier_tolerance=0.1,  # error distance, scale dependant
+                     bezier_tolerance=0.02,  # error distance, scale dependant
                      subdiv=8,
                      angle_span=0.95,  # 1.0 tries to evaluate splines of 180d
                      ):
@@ -165,14 +159,6 @@ def points_to_bezier(points_orig,
                 va = self.co - self.prev.co
                 vb = self.next.co - self.co
                 self.angle = va.angle(vb, 0.0)
-                
-                # XXX 2D
-                if line_point_side_v2(self.prev.co,
-                                      self.co,
-                                      self.next.co,
-                                      ) < 0.0:
-
-                    self.angle = -self.angle
 
         def angle_diff(self):
             """ use for detecting joints, detect difference in angle from
@@ -186,21 +172,7 @@ def points_to_bezier(points_orig,
                     return abs(self.angle - self.prev.angle) / math.pi
                 else:
                     return 0.0
-        
-        def angle_filter(self):
-            tot = 1
-            a = self.angle
-            if self.prev:
-                tot += 1
-                a += self.prev.angle
 
-            if self.next:
-                tot += 1
-                a += self.next.angle
-            
-            a = a / tot
-            return 0.0 if abs(a) < 0.01 else a
-        
         def calc_normal(self):
             v1 = v2 = None
             if self.prev and not self.prev.is_joint:
@@ -284,8 +256,8 @@ def points_to_bezier(points_orig,
             self.calc_angle()
             self.calc_normal()
 
-        def total_angle(self):
-            return abs(sum((p.angle for p in self.points)))
+        #~ def total_angle(self):
+            #~ return abs(sum((p.angle for p in self.points)))
 
         def redistribute(self, segment_length, smooth=False):
             if len(self.points) == 1:
@@ -560,8 +532,6 @@ def points_to_bezier(points_orig,
             fac_1 = intersect_point_line(p2_apex_co, p1.co, p1.co + l1_tan)[1] * fac_fac
             fac_2 = intersect_point_line(p1_apex_co, p2.co, p2.co + l2_tan)[1] * fac_fac
 
-            # TODO, scale the factors some useful way
-
             h1_fac = ((p1.co - p1_apex_co).length / 0.75) - fac_1
             h2_fac = ((p2.co - p2_apex_co).length / 0.75) - fac_2
 
@@ -579,14 +549,14 @@ def points_to_bezier(points_orig,
             '''
             
 
-        def bezier_error(self):
+        def bezier_error(self, error_max=-1.0, test_count=8):
             from mathutils.geometry import interpolate_bezier
 
             test_points = interpolate_bezier(self.points[0].co.to_3d(),
                                              self.handle_left,
                                              self.handle_right,
                                              self.points[-1].co.to_3d(),
-                                             8,
+                                             test_count,
                                              )
 
             from mathutils.geometry import intersect_point_line
@@ -616,9 +586,15 @@ def points_to_bezier(points_orig,
                             length_best = length
                             co_best = p_ix
                 
-                error += length_best
+                error += length_best / test_count
+                
+                if error_max != -1.0 and error > error_max:
+                    return True
 
-            return error
+            if error_max != -1.0:
+                return False
+            else:
+                return error
 
     class Curve(object):
         __slots__ = ("splines",
@@ -704,10 +680,8 @@ def points_to_bezier(points_orig,
             s_prev = None
             iii = 0
             for s in self.splines:
-                print(iii)
                 assert(s.prev == s_prev)
                 if s_prev:
-                    print()
                     assert(s_prev.next == s)
                 s_prev = s
                 iii += 1
@@ -795,10 +769,6 @@ def points_to_bezier(points_orig,
             base.select = True
 
             return cu
-            
-            
-
-
 
     points = list(points_orig)
     
@@ -823,38 +793,12 @@ def points_to_bezier(points_orig,
     # return
     # curve.validate()
 
+    # higher quality but not really needed
+    '''
     curve.redistribute(segment_length / 4.0, smooth=True)
     curve.redistribute(segment_length, smooth=False)
-
-    def swap_side(p):
-        angle = p.angle_filter()
-        if p.prev.prev is None:
-            swap_side.last = angle
-        else:
-            if (swap_side.last > 0.0) != (angle > 0.0):
-                if abs(p.angle) > 0.025:
-                    swap_side.last = p.angle
-                    return True
-
-        return False
-
-
-    #curve.split_func_map_point(lambda p: (p.angle_filter() >= 0) != \
-    #                              (p.prev.angle_filter() >= 0))
-    # curve.split_func_map_point(swap_side)
-
-
-    # now split based on total spline angle.
-    import math
-    angle_span_rad = angle_span * math.pi
-    curve.split_func_spline(lambda s:
-                                len(s.points) // 2
-                                if (s.total_angle() > angle_span_rad and
-                                    len(s.points) > 2)
-                                else -1,
-                            recursive=True,
-                            )
-
+    '''
+    curve.redistribute(segment_length, smooth=True)
 
     # debug only!
     # to test how good the bezier spline fitting is without corrections
@@ -866,8 +810,9 @@ def points_to_bezier(points_orig,
     # or recursively subdivide...
     curve.split_func_spline(lambda s:
                                 len(s.points) // 2
-                                if ((s.bezier_solve(), s.bezier_error())[1] >
-                                     bezier_tolerance) and (len(s.points))
+                                if ((s.bezier_solve(),
+                                     s.bezier_error(bezier_tolerance))[1]
+                                    and (len(s.points)))
                                 else -1,
                             recursive=True,
                             )
@@ -883,7 +828,6 @@ def points_to_bezier(points_orig,
 
 
 if __name__ == "__main__":
-    print("A")
     bpy.ops.wm.open_mainfile(filepath="/root/curve_test1.blend")
     
     ob = bpy.data.objects["Curve"]
