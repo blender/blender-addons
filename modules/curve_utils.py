@@ -88,7 +88,7 @@ def treat_points(points,
     return tot_len
 
 
-def solve_curvature_2d(p1, p2, n1, n2, fac, fallback):
+def solve_curvature(p1, p2, n1, n2, fac, fallback):
     """ Add a nice circular curvature on 
     """
     from mathutils import Vector
@@ -100,24 +100,23 @@ def solve_curvature_2d(p1, p2, n1, n2, fac, fallback):
     p1_a = p1 + n1
     p2_a = p2 - n2
 
-    isect = intersect_line_line(p1.to_3d(),
-                                p1_a.to_3d(),
-                                p2.to_3d(),
-                                p2_a.to_3d(),
+    isect = intersect_line_line(p1,
+                                p1_a,
+                                p2,
+                                p2_a,
                                 )
 
     if isect:
-        corner = isect[0]
+        corner = isect[0].lerp(isect[1], 0.5)
     else:
         corner = None
 
     if corner:
-        corner = corner.xy
         p1_first_order = p1.lerp(corner, fac)
         p2_first_order = corner.lerp(p2, fac)
         co = p1_first_order.lerp(p2_first_order, fac)
         
-        return co.xy
+        return co
     else:
         # cant interpolate. just return interpolated value
         return fallback.copy() # p1.lerp(p2, fac)
@@ -183,7 +182,7 @@ def points_to_bezier(points_orig,
                 self.no = v2
             else:
                 print("Warning, assigning dummy normal")
-                self.no = Vector(0, 1)
+                self.no = Vector((0.0, 1, 0.0))
 
 
     class Spline(object):
@@ -258,7 +257,7 @@ def points_to_bezier(points_orig,
             if len(self.points) == 1:
                 return
 
-            from mathutils.geometry import intersect_line_sphere_2d
+            from mathutils.geometry import intersect_line_sphere
 
             p_line = p = self.points[0]
             points = [(p.co.copy(), p.co.copy())]
@@ -284,13 +283,13 @@ def points_to_bezier(points_orig,
 
                         assert(fac >= 0.0 and fac <= 1.0)
 
-                        co_smooth = solve_curvature_2d(p.prev.co,
-                                                       p.co,
-                                                       p.prev.no,
-                                                       p.no,
-                                                       fac,
-                                                       co,
-                                                       )
+                        co_smooth = solve_curvature(p.prev.co,
+                                                    p.co,
+                                                    p.prev.no,
+                                                    p.no,
+                                                    fac,
+                                                    co,
+                                                    )
 
                 points.append((co, co_smooth))
 
@@ -327,11 +326,11 @@ def points_to_bezier(points_orig,
                         raise Exception("eek3")
 
                     # print(p_start, p.co, points[-1][0], segment_length)
-                    i1, i2 = intersect_line_sphere_2d(p_start,
-                                                      p.co,
-                                                      points[-1][0],
-                                                      segment_length,
-                                                      )
+                    i1, i2 = intersect_line_sphere(p_start,
+                                                   p.co,
+                                                   points[-1][0],
+                                                   segment_length,
+                                                   )
                     # print()
                     # print(i1, i2)
                     # assert(i1 is not None)
@@ -401,10 +400,10 @@ def points_to_bezier(points_orig,
                     # the middle
                     p_test_1 = intersect_point_line(p_apex.co,
                                                     l1,
-                                                    l2)[0].xy
+                                                    l2)[0]
                     p_test_2 = intersect_point_line(p_apex_other.co,
                                                     l1,
-                                                    l2)[0].xy
+                                                    l2)[0]
 
                     w1 = (p_test_1 - p_apex.co).length
                     w2 = (p_test_2 - p_apex_other.co).length
@@ -442,8 +441,6 @@ def points_to_bezier(points_orig,
             # get a line
             p1 = self.points[0]
             p2 = self.points[-1]
-
-
 
             # ------
             # take 2
@@ -483,7 +480,7 @@ def points_to_bezier(points_orig,
             p1_apex_co = None
             p = self.points[1]
             while p and (not p.is_joint) and p != line_ix_p1:
-                ix = intersect_point_line(p.co, p1.co, l1_co)[0].xy
+                ix = intersect_point_line(p.co, p1.co, l1_co)[0]
                 length = (ix - p.co).length
                 if length > l1_max:
                     l1_max = length
@@ -494,7 +491,7 @@ def points_to_bezier(points_orig,
             p2_apex_co = None
             p = self.points[-2]
             while p and (not p.is_joint) and p != line_ix_p2:
-                ix = intersect_point_line(p.co, p2.co, l2_co)[0].xy
+                ix = intersect_point_line(p.co, p2.co, l2_co)[0]
                 length = (ix - p.co).length
                 if length > l2_max:
                     l2_max = length
@@ -523,11 +520,11 @@ def points_to_bezier(points_orig,
             
             # first need to reflect the second normal for angle comparison
             # first fist need the reflection normal
-            no_ref = p_vec.to_3d().cross(p2.no.to_3d()).cross(p_vec.to_3d()).normalized()
+            no_ref = p_vec.cross(p2.no).cross(p_vec).normalized()
             l2_no_ref = p2.no.reflect(no_ref).normalized()
             del no_ref
-            
-            
+
+
             from math import pi
             # This could be tweaked but seems to work well
             fac_fac = (p1.co - p2.co).length * (0.5 / 0.75) * p1.no.angle(l2_no_ref) / pi
@@ -540,25 +537,25 @@ def points_to_bezier(points_orig,
 
             h1 = p1.co + (p1.no * h1_fac)
             h2 = p2.co - (p2.no * h2_fac)
-            
+
             self.handle_left = h1
             self.handle_right = h2
-            
+
             '''
             visualize_line(p1.co, p1_apex_co)
             visualize_line(p1_apex_co, p2_apex_co)
             visualize_line(p2.co, p2_apex_co) 
             visualize_line(p1.co, p2.co)
             '''
-            
+
 
         def bezier_error(self, error_max=-1.0, test_count=8):
             from mathutils.geometry import interpolate_bezier
 
-            test_points = interpolate_bezier(self.points[0].co.to_3d(),
+            test_points = interpolate_bezier(self.points[0].co,
                                              self.handle_left,
                                              self.handle_right,
-                                             self.points[-1].co.to_3d(),
+                                             self.points[-1].co,
                                              test_count,
                                              )
 
@@ -569,7 +566,7 @@ def points_to_bezier(points_orig,
             # this is a rough method measuring the error but should be good enough
             # TODO. dont test against every single point.
             for co in test_points:
-                co = co.xy
+                co = co
                 # initial values
                 co_best = self.points[0].co
 
@@ -582,7 +579,7 @@ def points_to_bezier(points_orig,
                         co_best = p.co
                     
                     p_ix, fac = intersect_point_line(co, p.co, p.prev.co)
-                    p_ix = p_ix.xy
+                    p_ix = p_ix
                     if fac >= 0.0 and fac <= 1.0:
                         length = (co - p_ix).length
                         if length < length_best:
@@ -704,10 +701,9 @@ def points_to_bezier(points_orig,
                 spline = cu.splines.new(type='POLY')
                 spline.points.add(len(s.points) - 1)
                 for p, v in zip(s.points, spline.points):
-                    v.co.xy = p.co
-                    
-            
-            
+                    v.co.xyz = p.co
+
+
             ob = bpy.data.objects.new(name="Test", object_data=cu)
             ob.layers = [True] * 20
             base = scene.objects.link(ob)
@@ -715,7 +711,7 @@ def points_to_bezier(points_orig,
             base.select = True
             # base.layers = [True] * 20
             print(ob, "Done")
-        
+
         def to_blend_curve(self, cu=None, cu_matrix=None):
             """ return new bezier spline datablock or add to an existing
             """
@@ -739,17 +735,17 @@ def points_to_bezier(points_orig,
                 elif s:
                     pt = s.points[0]
                     hr = s.handle_left
-                    hl = (pt.co.xy + (pt.co.xy - hr.xy))
+                    hl = (pt.co + (pt.co - hr))
                 elif s_prev:
                     pt = s_prev.points[-1]
                     hl = s_prev.handle_right
-                    hr = (pt.co.xy + (pt.co.xy - hl.xy))
+                    hr = (pt.co + (pt.co - hl))
                 else:
                     assert(0)
 
-                bp.co.xy = pt.co
-                bp.handle_left.xy = hl
-                bp.handle_right.xy = hr
+                bp.co.xyz = pt.co
+                bp.handle_left.xyz = hl
+                bp.handle_right.xyz = hr
 
                 handle_type = 'FREE'
 
@@ -831,10 +827,10 @@ def points_to_bezier(points_orig,
 
 
 if __name__ == "__main__":
-    bpy.ops.wm.open_mainfile(filepath="/root/curve_test1.blend")
+    bpy.ops.wm.open_mainfile(filepath="/root/curve_test2.blend")
     
     ob = bpy.data.objects["Curve"]
-    points = [p.co.xy for s in ob.data.splines for p in s.points]
+    points = [p.co.xyz for s in ob.data.splines for p in s.points]
 
     print("points_to_bezier 1")
     points_to_bezier(points)
