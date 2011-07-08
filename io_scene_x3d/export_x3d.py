@@ -211,7 +211,7 @@ def export(file,
         return ident
 
     def writeViewpoint(ident, obj, matrix, scene):
-        view_id = unique_name(obj, 'CA_' + obj.name, uuid_cache_view, clean_func=quoteattr)
+        view_id = quoteattr(unique_name(obj, 'CA_' + obj.name, uuid_cache_view))
 
         loc, quat, scale = matrix.decompose()
 
@@ -275,7 +275,7 @@ def export(file,
 
     def writeSpotLight(ident, obj, matrix, lamp, world):
         # note, lamp_id is not re-used
-        lamp_id = unique_name(obj, 'LA_' + obj.name, uuid_cache_lamp, clean_func=quoteattr)
+        lamp_id = quoteattr(unique_name(obj, 'LA_' + obj.name, uuid_cache_lamp))
 
         if world:
             ambi = world.ambient_color
@@ -311,7 +311,7 @@ def export(file,
 
     def writeDirectionalLight(ident, obj, matrix, lamp, world):
         # note, lamp_id is not re-used
-        lamp_id = unique_name(obj, 'LA_' + obj.name, uuid_cache_lamp, clean_func=quoteattr)
+        lamp_id = quoteattr(unique_name(obj, 'LA_' + obj.name, uuid_cache_lamp))
 
         if world:
             ambi = world.ambient_color
@@ -336,7 +336,7 @@ def export(file,
 
     def writePointLight(ident, obj, matrix, lamp, world):
         # note, lamp_id is not re-used
-        lamp_id = unique_name(obj, 'LA_' + obj.name, uuid_cache_lamp, clean_func=quoteattr)
+        lamp_id = quoteattr(unique_name(obj, 'LA_' + obj.name, uuid_cache_lamp))
 
         if world:
             ambi = world.ambient_color
@@ -361,8 +361,8 @@ def export(file,
         fw(ident_step + '/>\n')
 
     def writeIndexedFaceSet(ident, obj, mesh, matrix, world):
-        obj_id = unique_name(obj, 'OB_' + obj.name, uuid_cache_object, clean_func=quoteattr)
-        mesh_id = unique_name(mesh, 'ME_' + mesh.name, uuid_cache_mesh, clean_func=quoteattr)
+        obj_id = quoteattr(unique_name(obj, 'OB_' + obj.name, uuid_cache_object))
+        mesh_id = quoteattr(unique_name(mesh, 'ME_' + mesh.name, uuid_cache_mesh))
         mesh_id_group = prefix_quoted_str(mesh_id, 'group_')
         mesh_id_coords = prefix_quoted_str(mesh_id, 'coords_')
         mesh_id_normals = prefix_quoted_str(mesh_id, 'normals_')
@@ -562,7 +562,7 @@ def export(file,
 
                         # --- Write IndexedTriangleSet Attributes (same as IndexedFaceSet)
                         fw('solid="%s"\n' % ('true' if mesh.show_double_sided else 'false'))
-                        
+
                         # creaseAngle unsupported for IndexedTriangleSet's
 
                         if use_normals or is_force_normals:
@@ -822,7 +822,7 @@ def export(file,
             fw('%s</Collision>\n' % ident)
 
     def writeMaterial(ident, material, world):
-        material_id = unique_name(material, 'MA_' + material.name, uuid_cache_material, clean_func=quoteattr)
+        material_id = quoteattr(unique_name(material, 'MA_' + material.name, uuid_cache_material))
 
         # look up material name, use it if available
         if material.tag:
@@ -861,7 +861,7 @@ def export(file,
 
     def writeMaterialH3D(ident, material, world,
                          obj, gpu_shader):
-        material_id = unique_name(material, 'MA_' + material.name, uuid_cache_material, clean_func=quoteattr)
+        material_id = quoteattr(unique_name(material, 'MA_' + material.name, uuid_cache_material))
 
         fw('%s<Material />\n' % ident)
         if material.tag:
@@ -968,7 +968,7 @@ def export(file,
 
                 elif uniform['type'] == gpu.GPU_DYNAMIC_LAMP_DYNCO:
                     if uniform['datatype'] == gpu.GPU_DATA_3F:  # should always be true!
-                        value = '%.6g %.6g %.6g' % (global_matrix * bpy.data.objects[uniform['lamp']].matrix_world).to_translation()[:]
+                        value = '%.6g   %.6g   %.6g' % (global_matrix * bpy.data.objects[uniform['lamp']].matrix_world).to_translation()[:]
                         fw('%s<field name="%s" type="SFVec3f" accessType="inputOutput" value="%s" />\n' % (ident, uniform['varname'], value))
                     else:
                         assert(0)
@@ -1068,7 +1068,7 @@ def export(file,
             fw('%s</ComposedShader>\n' % ident)
 
     def writeImageTexture(ident, image):
-        image_id = unique_name(image, 'IM_' + image.name, uuid_cache_image, clean_func=quoteattr)
+        image_id = quoteattr(unique_name(image, 'IM_' + image.name, uuid_cache_image))
 
         if image.tag:
             fw('%s<ImageTexture USE=%s />\n' % (ident, image_id))
@@ -1104,7 +1104,7 @@ def export(file,
             return
 
         # note, not re-used
-        world_id = unique_name(world, 'WO_' + world.name, uuid_cache_world, clean_func=quoteattr)
+        world_id = quoteattr(unique_name(world, 'WO_' + world.name, uuid_cache_world))
 
         blending = world.use_sky_blend, world.use_sky_paper, world.use_sky_real
 
@@ -1185,7 +1185,7 @@ def export(file,
                 obj_main_matrix = obj_main_matrix_world
             obj_main_matrix_world_invert = obj_main_matrix_world.inverted()
 
-            obj_main_id = unique_name(obj_main, obj_main.name, uuid_cache_object, clean_func=quoteattr)
+            obj_main_id = quoteattr(unique_name(obj_main, obj_main.name, uuid_cache_object))
 
             ident = writeTransform_begin(ident, obj_main_matrix if obj_main_parent else global_matrix * obj_main_matrix, obj_main_id)
 
