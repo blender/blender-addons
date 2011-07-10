@@ -63,7 +63,7 @@ def randnum(low=0.0, high=1.0, seed=0):
                 (type=float)
     """
 
-    s = Noise.seed_set(seed)
+    Noise.seed_set(seed)
     rnum = Noise.random()
     rnum = rnum*(high-low)
     rnum = rnum+low
@@ -97,7 +97,6 @@ def vTurbNoise(x,y,z, iScale=0.25, Size=1.0, Depth=6, Hard=0, Basis=0, Seed=0):
             the generated turbulence vector.
                 (type=3-float list)
     """
-    sn = 0.001
     rand = randnum(-100,100,Seed)
     if Basis == 9: Basis = 14
     vTurb = Noise.turbulence_vector((x/Size+rand, y/Size+rand, z/Size+rand), Depth, Hard, Basis)

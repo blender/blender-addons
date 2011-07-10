@@ -149,11 +149,11 @@ def select_material_by_name(find_mat):
         #same material can be on multiple slots
         slot_indeces =[]
         i = 0
-        found = False
+        # found = False  # UNUSED
         for m in ms:
             if m.material.name == find_mat:
                 slot_indeces.append(i)
-                found = True
+                # found = True  # UNUSED
             i += 1
         me = ob.data
         for f in me.faces:
@@ -647,9 +647,6 @@ class VIEW3D_MT_assign_material(bpy.types.Menu):
     def draw(self, context):
         layout = self.layout
         layout.operator_context = 'INVOKE_REGION_WIN'
-
-        ob = context
-        layout.label
         for i in range (len(bpy.data.materials)):
     
             layout.operator("view3d.assign_material",

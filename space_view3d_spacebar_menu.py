@@ -68,8 +68,6 @@ v0.1 through 0.9 - various tests/contributions by various people and scripts
 
 import bpy
 from bpy import *
-from mathutils import Vector, Matrix
-import math
 
 # Dynamic Menu
 class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
@@ -1156,7 +1154,7 @@ class VIEW3D_MT_edit_TK(bpy.types.Menu):
 
     def draw(self, context):
         layout = self.layout
-        row = layout.row()
+        layout.row()  # XXX, is this needed?
 
         layout.operator_context = 'INVOKE_REGION_WIN'
 

@@ -21,11 +21,7 @@
     ui_utils.py
 
     Some UI utility functions
-    
-    
-
 '''
-
 
 
 class GUI:

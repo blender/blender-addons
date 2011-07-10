@@ -21,14 +21,10 @@
     geometry_utils.py
 
     3d geometry calculations
-    
-    
-
 '''
 
 
-from mathutils import Vector, Matrix
-from mathutils import geometry
+from mathutils import geometry, Vector
 
 
 # 3D Geometry
@@ -210,6 +206,3 @@ class G3:
         #else:
             #pc.normalize()
         #return c + (pc * G3.distanceP2P(c, fv[0]))
-
-
-

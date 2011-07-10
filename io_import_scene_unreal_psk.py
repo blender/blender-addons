@@ -47,16 +47,11 @@ Imports a *psk file to a new mesh
 
 import bpy
 import mathutils
-import os
-import sys
-import string
 import math
-import re
 from string import *
 from struct import *
 from math import *
 from bpy.props import *
-import mathutils
 
 bpy.types.Scene.unrealbonesize = FloatProperty(
     name="Bone Length",
@@ -299,7 +294,6 @@ def pskimport(infile,importmesh,importbone,bDebugLogPSK,importmultiuvtextures):
     
     Bns = []
     bone = []
-    nobone = 0
     #================================================================================================== 
     # Bone Data 
     #==================================================================================================
@@ -369,16 +363,12 @@ def pskimport(infile,importmesh,importbone,bDebugLogPSK,importmultiuvtextures):
     #bpy.ops.object.mode_set(mode='OBJECT')
     meshname ="ArmObject"
     objectname = "armaturedata"
-    bfound = False
-    arm = None
+    # arm = None  # UNUSED
     if importbone:
-        for obj in bpy.data.objects:
-            if (obj.name == meshname):
-                bfound = True
-                arm = obj
-                break
-				
-        if bfound == False:
+        obj = bpy.data.objects.get(meshname)
+        # arm = obj  # UNUSED
+
+        if obj:
             '''
             armdata = bpy.data.armatures.new(objectname)
             ob_new = bpy.data.objects.new(meshname, armdata)
@@ -603,7 +593,7 @@ def pskimport(infile,importmesh,importbone,bDebugLogPSK,importmultiuvtextures):
     print ("-- Creating UV Texture --")
     print ("-------------------------") 
     texture = []
-    texturename = "text1"
+    # texturename = "text1"  # UNUSED
     countm = 0
     #for countm in range(materialcount):
         #psktexname="psk" + str(countm)
@@ -642,7 +632,7 @@ def pskimport(infile,importmesh,importbone,bDebugLogPSK,importmultiuvtextures):
                 me_ob.update()
                 #print("UV TEXTURE NAME:",uvtex.name)
                 if (len(faceuv) > 0):
-                    counttex = 0
+                    # counttex = 0  # UNUSED
                     countm = 0
                     for countm in range(len(me_ob.uv_textures)):
                         me_ob.update()

@@ -686,7 +686,7 @@ def register():
     
 
     for i in range(0, 256):
-        colors = bpy.context.window_manager.palette_props.colors.add()
+        bpy.context.window_manager.palette_props.colors.add()
     
     pass
     

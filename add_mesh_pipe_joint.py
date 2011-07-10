@@ -129,7 +129,6 @@ mesh.transform(rotation_matrix)
 """
 
 import bpy
-import mathutils
 from math import *
 from bpy.props import *
 
@@ -826,7 +825,7 @@ class AddCrossJoint(bpy.types.Operator):
 
             verts.append([locX * radius, locY * radius, locZ * radius])
 
-        loopTemp2 = loopJoint2[:]
+        # loopTemp2 = loopJoint2[:]  # UNUSED
 
         # Create 2. deformed joint circle
         loopTempA = []

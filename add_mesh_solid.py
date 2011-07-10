@@ -35,7 +35,7 @@ bl_info = {
 import bpy
 from bpy.props import FloatProperty,EnumProperty,BoolProperty
 from math import sqrt
-from mathutils import Vector,Matrix
+from mathutils import Vector
 from functools import reduce
 from bpy_extras.object_utils import object_data_add
 
@@ -141,9 +141,6 @@ def source(plato):
     
 # processes the raw data from source
 def createSolid(plato,vtrunc,etrunc,dual,snub):
-    verts = []
-    faces = []
-    edges = []
     # the duals from each platonic solid
     dualSource = {"4":"4",
                   "6":"8",
@@ -493,8 +490,7 @@ class Solids(bpy.types.Operator):
         
         # resize to normal size, or if keepSize, make sure all verts are of length 'size'
         if self.keepSize:
-            if dual: rad = self.size/verts[-1].length
-            else: rad = self.size/verts[0].length
+            rad = self.size/verts[-1 if self.dual else 0].length
         else: rad = self.size
         verts = [i*rad for i in verts]
 

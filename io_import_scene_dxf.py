@@ -89,7 +89,6 @@ import codecs
 import math
 from math import sin, cos, radians
 import bpy
-import mathutils
 from mathutils import Vector, Matrix
 
 #
@@ -271,7 +270,7 @@ class CArc(CEntity):
         start, end = self.start_angle, self.end_angle
         if end > 360: end = end % 360.0
         if end < start: end +=360.0
-        angle = end - start
+        # angle = end - start  # UNUSED
 
         deg2rad = math.pi/180.0
         start *= deg2rad
@@ -964,8 +963,9 @@ class CPoint(CEntity):
     def draw(self):
         #todo
         # draw as empty-object
-        loc = self.point
+        # loc = self.point  # UNUSED
         #bpy.ops.object.new('DXFpoint')
+        pass
 
 #
 #    class CPolyLine(CEntity):
@@ -2393,7 +2393,7 @@ def readAndBuildDxfFile(filepath):
             if 0: # how to switch to the new scene?? (migius)
                 new_scn = bpy.data.scenes.new(shortName[-20:])
                 #new_scn.layers = (1<<20) -1
-                new_scn_name = new_scn.name
+                #new_scn_name = new_scn.name  # UNUSED
                 bpy.data.screens.scene = new_scn
                 #print("newScene: %s" % (new_scn))
         sections = readDxfFile(fileName)

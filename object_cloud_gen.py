@@ -51,7 +51,6 @@ Rev 1.0 Added ability to convert object with particle system to cloud and auto r
 """
 
 import bpy
-import mathutils
 from math import *
 from bpy.props import *
 
@@ -579,7 +578,7 @@ class GenerateCloud(bpy.types.Operator):
             mVolume.cache_resolution = 45
 
             # Add a texture
-            vMaterialTextureSlots = cloudMaterial.texture_slots
+            # vMaterialTextureSlots = cloudMaterial.texture_slots  # UNUSED
             cloudtex = blend_data.textures.new("CloudTex", type='CLOUDS')
             cloudtex.noise_type = 'HARD_NOISE'
             cloudtex.noise_scale = 2

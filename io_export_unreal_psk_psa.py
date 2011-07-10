@@ -80,15 +80,12 @@ Credit to:
 
 import os
 import time
-import datetime
 import bpy
 import mathutils
 import random
 import operator
-import sys
 
-
-from struct import pack, calcsize
+from struct import pack
 
 # REFERENCE MATERIAL JUST IN CASE:
 # 
@@ -500,11 +497,7 @@ class PSAFile:
         # this will take the format of key=Bone Name, value = (BoneIndex, Bone Object)
         # THIS IS NOT DUMPED
         self.BoneLookup = {} 
-        
-    def dump(self):
-        data = self.Generalheader.dump() + self.Bones.dump() + self.Animations.dump() + self.RawKeys.dump()
-        return data
-    
+
     def AddBone(self, b):
         #LOUD
         #print "AddBone: " + b.Name
@@ -720,7 +713,7 @@ def parse_meshes(blender_meshes, psk_file):
                 vect_list = []
                 
                 #get or create the current material
-                m = psk_file.GetMatByIndex(object_material_index)
+                psk_file.GetMatByIndex(object_material_index)
 
                 face_index = current_face.index
                 has_UV = False
@@ -1261,7 +1254,7 @@ def parse_animation(blender_scene, blender_armatures, psa_file):
                     anim.AnimRate = anim_rate
                     anim.FirstRawFrame = cur_frame_index
                     #===================================================
-                    count_previous_keys = len(psa_file.RawKeys.Data)
+                    # count_previous_keys = len(psa_file.RawKeys.Data)  # UNUSED
                     print("Frame Key Set Count:",frame_count, "Total Frame:",frame_count)
                     #print("init action bones...")
                     unique_bone_indexes = {}
@@ -1306,7 +1299,7 @@ def parse_animation(blender_scene, blender_armatures, psa_file):
                             #print("[=====POSE NAME:",pose_bone.name)
                             
                             #print("LENG >>.",len(bones_lookup))
-                            blender_bone = bones_lookup[pose_bone.name]
+                            # blender_bone = bones_lookup[pose_bone.name]  # UNUSED
                             
                             #just need the total unique bones used, later for this AnimInfoBinary
                             unique_bone_indexes[bone_index] = bone_index
@@ -1421,7 +1414,7 @@ def parse_animation(blender_scene, blender_armatures, psa_file):
                 anim.AnimRate = anim_rate
                 anim.FirstRawFrame = cur_frame_index
                 #===================================================
-                count_previous_keys = len(psa_file.RawKeys.Data)
+                # count_previous_keys = len(psa_file.RawKeys.Data)  # UNUSED
                 print("Frame Key Set Count:",frame_count, "Total Frame:",frame_count)
                 #print("init action bones...")
                 unique_bone_indexes = {}
@@ -1466,7 +1459,7 @@ def parse_animation(blender_scene, blender_armatures, psa_file):
                         #print("[=====POSE NAME:",pose_bone.name)
                         
                         #print("LENG >>.",len(bones_lookup))
-                        blender_bone = bones_lookup[pose_bone.name]
+                        # blender_bone = bones_lookup[pose_bone.name]  # UNUSED
                         
                         #just need the total unique bones used, later for this AnimInfoBinary
                         unique_bone_indexes[bone_index] = bone_index
@@ -1853,13 +1846,13 @@ class OBJECT_OT_add_remove_Collection_Items_UE(bpy.types.Operator):
             added.name = "Action"+ str(random.randrange(0, 101, 2))
         if self.set == "refresh":
             print("refresh")
-            ArmatureSelect = None
+            # ArmatureSelect = None  # UNUSED
             ActionNames = []
             BoneNames = []
             for obj in bpy.data.objects:
                 if obj.type == 'ARMATURE' and obj.select == True:
                     print("Armature Name:",obj.name)
-                    ArmatureSelect = obj
+                    # ArmatureSelect = obj  # UNUSED
                     for bone in obj.pose.bones:
                         BoneNames.append(bone.name)
                     break
@@ -2197,7 +2190,6 @@ class OBJECT_OT_UTRebuildMesh(bpy.types.Operator):
                 print("creating array build mesh...")
                 uv_layer = mesh.uv_textures.active
                 for face in mesh.faces:
-                    v = []
                     smoothings.append(face.use_smooth)#smooth or flat in boolean
                     if uv_layer != None:#check if there texture data exist
                         faceUV = uv_layer.data[face.index]
@@ -2209,10 +2201,7 @@ class OBJECT_OT_UTRebuildMesh(bpy.types.Operator):
                             uvs.append((uv[0],uv[1]))
                         #print(uvs)
                         uvfaces.append(uvs)
-                    for videx in face.vertices:
-                        vert = mesh.vertices[videx]
-                        v.append(videx)
-                    faces.append(v)                    
+                    faces.append(face.vertices[:])           
                 #vertex positions
                 for vertex in mesh.vertices:
                     verts.append(vertex.co.to_tuple())				

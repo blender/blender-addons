@@ -62,7 +62,6 @@ BLENDER_VERSION = (2, 58, 0)
 import bpy
 import os
 import time
-import mathutils
 from mathutils import Matrix
 #import geometry
 #import string
@@ -283,7 +282,7 @@ def readMhxFile(filePath):
     print( "Opening MHX file "+ fileName )
     time1 = time.clock()
 
-    ignore = False
+    # ignore = False  # UNUSED
     stack = []
     tokens = []
     key = "toplevel"
@@ -334,7 +333,7 @@ def readMhxFile(filePath):
             except:
                 print( "Tokenizer error at or before line %d" % lineNo )
                 print( line )
-                dummy = stack.pop()
+                stack.pop()
         elif lineSplit[-1] == ';':
             if lineSplit[0] == '\\':
                 key = lineSplit[1]

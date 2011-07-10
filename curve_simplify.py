@@ -194,11 +194,10 @@ def simplify_RDP(splineVerts, options):
 ##########################
 # set bezierhandles to auto
 def setBezierHandles(newCurve):
-        scene = bpy.context.scene
-        bpy.ops.object.mode_set(mode='EDIT', toggle=True)
-        bpy.ops.curve.select_all(action='SELECT')
-        bpy.ops.curve.handle_type_set(type='AUTOMATIC')
-        bpy.ops.object.mode_set(mode='OBJECT', toggle=True)
+    bpy.ops.object.mode_set(mode='EDIT', toggle=True)
+    bpy.ops.curve.select_all(action='SELECT')
+    bpy.ops.curve.handle_type_set(type='AUTOMATIC')
+    bpy.ops.object.mode_set(mode='OBJECT', toggle=True)
 
 # get array of new coords for new spline from vertindices
 def vertsToPoints(newVerts, splineVerts, splineType):
@@ -321,8 +320,6 @@ def selectedfcurves(obj):
 def fcurves_simplify(context, obj, options, fcurves):
     # main vars
     mode = options[0]
-    scene = context.scene
-    fcurves_obj = obj.animation_data.action.fcurves
 
     #get indices of selected fcurves
     fcurve_sel = selectedfcurves(obj)

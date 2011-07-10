@@ -56,7 +56,7 @@ class AlignUi(bpy.types.Panel):
             row = layout.row()
             row.label(obj.name, icon='EDITMODE_HLT')
         
-        box = layout.separator()
+        layout.separator()
         
         col = layout.column()
         col.label(text="Align Loc + Rot:", icon='MANIPUL')

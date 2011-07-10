@@ -62,8 +62,6 @@ bl_info= {
 
 
 import os
-import io
-import time
 import struct
 import chunk
 

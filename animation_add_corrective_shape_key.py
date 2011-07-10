@@ -137,20 +137,16 @@ def func_add_corrective_pose_shape( source, target):
     reset_transform(target)
     
     # If target object doesn't have Basis shape key, create it.
-    try:
-        num_keys = len( mesh_1.shape_keys.key_blocks )
-    except:
+    if not mesh_1.shape_keys:
         basis = ob_1.shape_key_add()
         basis.name = "Basis"
         ob_1.data.update()
-        
-    
+
     key_index = ob_1.active_shape_key_index
     # Insert new shape key
     if key_index == 0:
         new_shapekey = ob_1.shape_key_add()
         new_shapekey.name = "Shape_" + ob_2.name
-        new_shapekey_name = new_shapekey.name
         
         key_index = len(mesh_1.shape_keys.key_blocks)-1
         ob_1.active_shape_key_index = key_index
@@ -383,9 +379,7 @@ def func_add_corrective_pose_shape_fast(source, target):
     reset_transform(target)
     
     # If target object doesn't have Basis shape key, create it.
-    try:
-        num_keys = len( target.data.shape_keys.key_blocks )
-    except:
+    if not target.data.shape_keys:
         basis = target.shape_key_add()
         basis.name = "Basis"
         target.data.update()
@@ -397,7 +391,6 @@ def func_add_corrective_pose_shape_fast(source, target):
         # Insert new shape key
         new_shapekey = target.shape_key_add()
         new_shapekey.name = "Shape_" + source.name
-        new_shapekey_name = new_shapekey.name
         
         key_index = len(target.data.shape_keys.key_blocks)-1
         target.active_shape_key_index = key_index
@@ -486,8 +479,7 @@ def vgroups_draw(self, context):
     layout.row().operator("object.add_corrective_pose_shape", text='Add as corrective pose-shape (slow, all modifiers)', icon='COPY_ID') # icon is not ideal
 
 def modifiers_draw(self, context):
-    layout = self.layout
-
+    pass
 
 
 def register():

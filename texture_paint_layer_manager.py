@@ -151,7 +151,6 @@ class OBJECT_PT_Texture_paint_layers(bpy.types.Panel):
 
         ob = bpy.context.image_paint_object
         if ob:
-            me = ob.data
             mat = ob.active_material
             if not mat:
                 row = layout.row() 
@@ -268,7 +267,6 @@ class OBJECT_PT_Texture_paint_add(bpy.types.Panel):
 
         ob = bpy.context.image_paint_object
         if ob:
-            me = ob.data
             mat = ob.active_material
             
             if mat:
