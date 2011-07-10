@@ -1,6 +1,24 @@
+# ***** BEGIN GPL LICENSE BLOCK *****
+#
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 2
+# of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.    See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software Foundation,
+# Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+#
+# ***** END GPL LICENCE BLOCK *****
+
 import bpy
 import os
-import filecmp
 
 def objname(path):
 
@@ -40,15 +58,15 @@ def gettex(mat_list, objekti, scene,export):
     else:
         vray = False
     
-    take_color = 0;
-    take_spec = 0;
-    take_normal = 0;
-    take_disp = 0;
+    take_color = 0
+    take_spec = 0
+    take_normal = 0
+    take_disp = 0
     
-    bring_color = 1;
-    bring_spec = 1;
-    bring_normal = 1;
-    bring_disp = 1;
+    bring_color = 1
+    bring_spec = 1
+    bring_normal = 1
+    bring_disp = 1
 
     texcoat = {}
     texcoat['color'] = []
@@ -257,22 +275,15 @@ def gettex(mat_list, objekti, scene,export):
 
     if(bring_spec == 1 and texcoat['specular']):
         name_tex ='Specular_'
-        num = []
 
         index = find_index(objekti)
         
-
-        tex = bpy.ops.Texture
         objekti.active_material.texture_slots.create(index)
-        total_mat = len(objekti.active_material.texture_slots.items())
         useold = ''
         
         for seekco in bpy.data.textures:
             if((seekco.name[:9] == 'Specular_') and (seekco.users_material == ())):
                 useold = seekco
-
-        
-
 
         if(useold == ''):
 
@@ -321,24 +332,18 @@ def gettex(mat_list, objekti, scene,export):
 
     if(bring_disp == 1 and texcoat['disp']):
         name_tex ='Displacement_'
-        num = []
 
         index = find_index(objekti)
         
 
-        tex = bpy.ops.Texture
         objekti.active_material.texture_slots.create(index)
-        total_mat = len(objekti.active_material.texture_slots.items())
         useold = ''
         
         for seekco in bpy.data.textures:
             if((seekco.name[:13] == 'Displacement_') and (seekco.users_material == ())):
                 useold = seekco
 
-        
-
-
-        if(useold == ''):
+        if useold == "":
 
             indexx = 0
             tuli = False

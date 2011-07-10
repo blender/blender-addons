@@ -17,9 +17,9 @@
 # ##### END GPL LICENSE BLOCK #####
 
 import bpy
-import sys, os, re
-import http, http.client, http.server, urllib
-import subprocess, shutil, time, hashlib
+import os, re
+import http, http.client, http.server
+import time
 import json
 
 import netrender
@@ -96,8 +96,8 @@ def fillCommonJobSettings(job, job_name, netsettings):
     job.name = job_name
     job.category = netsettings.job_category
 
-    for slave in netrender.blacklist:
-        job.blacklist.append(slave.id)
+    for bad_slave in netrender.blacklist:
+        job.blacklist.append(bad_slave.id)
 
     job.chunks = netsettings.chunks
     job.priority = netsettings.priority

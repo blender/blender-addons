@@ -17,10 +17,10 @@
 #======================= END GPL LICENSE BLOCK ========================
 
 import bpy
-from math import sin, cos, pi
+from math import cos, pi
 from rigify.utils import MetarigError
 from rigify.utils import copy_bone
-from rigify.utils import strip_org, deformer, mch
+from rigify.utils import strip_org, deformer
 from rigify.utils import create_widget
 import re
 

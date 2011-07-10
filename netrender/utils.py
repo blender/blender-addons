@@ -17,9 +17,8 @@
 # ##### END GPL LICENSE BLOCK #####
 
 import sys, os
-import re
-import http, http.client, http.server, urllib, socket
-import subprocess, shutil, time, hashlib, zlib
+import http, http.client, http.server, socket
+import subprocess, time, hashlib
 
 import netrender, netrender.model
 

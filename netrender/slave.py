@@ -17,7 +17,7 @@
 # ##### END GPL LICENSE BLOCK #####
 
 import sys, os, platform, shutil
-import http, http.client, http.server, urllib
+import http, http.client, http.server
 import subprocess, time
 import json
 
@@ -121,7 +121,7 @@ def breakable_timeout(timeout):
             break
 
 def render_slave(engine, netsettings, threads):
-    timeout = 1
+    # timeout = 1  # UNUSED
     
     bisleep = BreakableIncrementedSleep(INCREMENT_TIMEOUT, 1, MAX_TIMEOUT, engine.test_break)
 
@@ -140,7 +140,7 @@ def render_slave(engine, netsettings, threads):
     conn = clientConnection(netsettings.server_address, netsettings.server_port)
     
     if not conn:
-        timeout = 1
+        # timeout = 1  # UNUSED
         print("Connection failed, will try connecting again at most %i times" % MAX_CONNECT_TRY)
         bisleep.reset()
         

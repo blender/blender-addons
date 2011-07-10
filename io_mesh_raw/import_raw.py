@@ -43,10 +43,6 @@ tolerance.
 
 import bpy
 
-# move those to a utility modul
-from bpy_extras.io_utils import unpack_face_list, unpack_list
-
-
 def readMesh(filename, objName):
     file = open(filename, "rb")
 

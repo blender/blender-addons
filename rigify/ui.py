@@ -21,7 +21,6 @@ from bpy.props import *
 import rigify
 from rigify.utils import get_rig_type
 from rigify import generate
-from rna_prop_ui import rna_idprop_ui_prop_get
 
 
 class DATA_PT_rigify_buttons(bpy.types.Panel):
@@ -58,7 +57,7 @@ class DATA_PT_rigify_buttons(bpy.types.Panel):
                 id_store.rigify_types.remove(0)
 
             for r in rigify.rig_list:
-                collection = r.split('.')[0]
+                # collection = r.split('.')[0]  # UNUSED
                 if collection_name == "All":
                     a = id_store.rigify_types.add()
                     a.name = r
@@ -95,13 +94,12 @@ class DATA_PT_rigify_layer_names(bpy.types.Panel):
         return True
 
     def draw(self, context):
-        C = context
         layout = self.layout
         obj = context.object
 
         # Ensure that the layers exist
         for i in range(1 + len(obj.data.rigify_layers), 29):
-            layer = obj.data.rigify_layers.add()
+            obj.data.rigify_layers.add()
 
         # UI
         for i in range(28):
@@ -151,7 +149,7 @@ class BONE_PT_rigify_buttons(bpy.types.Panel):
             id_store.rigify_types.remove(0)
 
         for r in rigify.rig_list:
-            collection = r.split('.')[0]
+            # collection = r.split('.')[0]  # UNUSED
             if collection_name == "All":
                 a = id_store.rigify_types.add()
                 a.name = r

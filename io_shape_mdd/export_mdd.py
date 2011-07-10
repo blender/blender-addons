@@ -49,9 +49,6 @@ def check_vertcount(mesh, vertcount):
     '''
     if len(mesh.vertices) != vertcount:
         raise Exception('Error, number of verts has changed during animation, cannot export')
-        f.close()
-        zero_file(filepath)
-        return
 
 
 def save(operator, context, filepath="", frame_start=1, frame_end=300, fps=25):

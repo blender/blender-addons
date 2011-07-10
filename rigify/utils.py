@@ -21,7 +21,6 @@ import imp
 import random
 import time
 from mathutils import Vector
-from math import ceil, floor
 from rna_prop_ui import rna_idprop_ui_prop_get
 
 RIG_DIR = "rigs"  # Name of the directory where rig types are kept
@@ -386,7 +385,7 @@ def copy_attributes(a, b):
         and key != "bl_rna":
             try:
                 setattr(b, key, getattr(a, key))
-            except AttributeError as e:
+            except AttributeError:
                 pass
 
 

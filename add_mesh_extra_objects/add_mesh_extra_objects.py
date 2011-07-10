@@ -26,8 +26,6 @@ from bpy.props import *
 #                       new mesh (as used in from_pydata).
 # name ... Name of the new mesh (& object).
 def create_mesh_object(context, verts, edges, faces, name):
-    scene = context.scene
-    obj_act = scene.objects.active
 
     # Create new mesh
     mesh = bpy.data.meshes.new(name)

@@ -30,7 +30,7 @@ class GUI:
     def drawIconButton(cls, enabled, layout, iconName, operator, frame=True):
         col = layout.column()
         col.enabled = enabled
-        bt = col.operator(operator,
+        col.operator(operator,
             text='',
             icon=iconName,
             emboss=frame)
@@ -39,7 +39,7 @@ class GUI:
     def drawTextButton(cls, enabled, layout, text, operator, frame=True):
         col = layout.column()
         col.enabled = enabled
-        bt = col.operator(operator,
+        col.operator(operator,
             text=text,
             emboss=frame)
 

@@ -23,7 +23,6 @@ from rigify.utils import MetarigError
 from rigify.utils import copy_bone
 from rigify.utils import connected_children_names
 from rigify.utils import strip_org, make_mechanism_name, insert_before_lr
-from rigify.utils import get_layers
 from rigify.utils import create_widget, create_line_widget, create_sphere_widget
 from rna_prop_ui import rna_idprop_ui_prop_get
 
@@ -169,7 +168,7 @@ class Rig:
         bpy.ops.object.mode_set(mode='OBJECT')
         pb = self.obj.pose.bones
 
-        uarm_p = pb[uarm]
+        # uarm_p = pb[uarm]  # UNUSED
         farm_p = pb[farm]
         hand_p = pb[hand]
         pole_p = pb[pole]

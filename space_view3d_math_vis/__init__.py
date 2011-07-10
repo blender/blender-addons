@@ -50,7 +50,6 @@ class VIEW3D_PT_math_vis(bpy.types.Panel):
 
     def draw(self, context):
         layout = self.layout
-        view = context.space_data
 
         col = layout.column(align=True)
 

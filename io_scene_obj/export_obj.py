@@ -20,7 +20,6 @@
 
 import os
 import time
-import shutil
 
 import bpy
 import mathutils
@@ -239,9 +238,6 @@ def write_file(filepath, objects, scene,
     if EXPORT_GLOBAL_MATRIX is None:
         EXPORT_GLOBAL_MATRIX = mathutils.Matrix()
 
-    # XXX
-    import math
-
     def veckey3d(v):
         return round(v.x, 6), round(v.y, 6), round(v.z, 6)
 
@@ -273,7 +269,6 @@ def write_file(filepath, objects, scene,
             return '(null)'
 
     print('OBJ Export path: %r' % filepath)
-    temp_mesh_name = '~tmp-mesh'
 
     time1 = time.clock()
 #   time1 = sys.time()

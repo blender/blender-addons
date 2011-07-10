@@ -17,12 +17,11 @@
 #======================= END GPL LICENSE BLOCK ========================
 
 import bpy
-import math
 from mathutils import Vector
 from rigify.utils import MetarigError
-from rigify.utils import copy_bone, flip_bone, put_bone
+from rigify.utils import copy_bone
 from rigify.utils import connected_children_names, has_connected_children
-from rigify.utils import strip_org, make_mechanism_name, make_deformer_name
+from rigify.utils import strip_org, make_mechanism_name
 from rigify.utils import get_layers
 from rigify.utils import create_widget, create_limb_widget
 from rna_prop_ui import rna_idprop_ui_prop_get
@@ -162,7 +161,7 @@ class Rig:
             hinge_p = pb[hinge]
 
         if self.org_parent != None:
-            socket1_p = pb[socket1]
+            # socket1_p = pb[socket1]  # UNUSED
             socket2_p = pb[socket2]
 
         # Set the knee to only bend on the x-axis.

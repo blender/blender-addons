@@ -17,15 +17,14 @@
 # ##### END GPL LICENSE BLOCK #####
 
 import bpy
-import sys, os
-import http, http.client, http.server, urllib
-import subprocess, shutil, time, hashlib
+import os
+import time
 
 import netrender
-import netrender.slave as slave
-import netrender.master as master
 
 from netrender.utils import *
+
+from bpy.props import PointerProperty, StringProperty, BoolProperty, EnumProperty, IntProperty, CollectionProperty
 
 VERSION = b"0.3"
 
@@ -361,7 +360,6 @@ class RENDER_PT_network_output(NeedValidAddress, NetRenderButtonsPanel, bpy.type
 class NetRenderSlave(bpy.types.PropertyGroup):
     @classmethod
     def register(NetRenderSlave):
-        from bpy.props import PointerProperty, StringProperty, BoolProperty, EnumProperty, IntProperty, CollectionProperty
 
         NetRenderSlave.name = StringProperty(
                         name="Name of the slave",
@@ -372,7 +370,6 @@ class NetRenderSlave(bpy.types.PropertyGroup):
 class NetRenderJob(bpy.types.PropertyGroup):
     @classmethod
     def register(NetRenderJob):
-        from bpy.props import PointerProperty, StringProperty, BoolProperty, EnumProperty, IntProperty, CollectionProperty
 
         NetRenderJob.name = StringProperty(
                         name="Name of the job",
@@ -383,7 +380,6 @@ class NetRenderJob(bpy.types.PropertyGroup):
 class NetRenderSettings(bpy.types.PropertyGroup):
     @classmethod
     def register(NetRenderSettings):
-        from bpy.props import PointerProperty, StringProperty, BoolProperty, EnumProperty, IntProperty, CollectionProperty
 
         def address_update_callback(self, context):
             netsettings = context.scene.network_render

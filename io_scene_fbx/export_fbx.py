@@ -29,7 +29,6 @@ http://wiki.blender.org/index.php/Scripts/Manual/Export/autodesk_fbx
 import os
 import time
 import math  # math.pi
-import shutil  # for file copying
 
 import bpy
 from mathutils import Vector, Matrix
@@ -937,7 +936,7 @@ def save_single(operator, scene, filepath="",
             do_light = not (light.use_only_shadow or (not light.use_diffuse and not light.use_specular))
             do_shadow = (light.shadow_method in ('RAY_SHADOW', 'BUFFER_SHADOW'))
 
-        scale = abs(global_matrix.to_scale()[0])  # scale is always uniform in this case
+        # scale = abs(global_matrix.to_scale()[0])  # scale is always uniform in this case  #  UNUSED
 
         file.write('\n\t\t\tProperty: "LightType", "enum", "",%i' % light_type)
         file.write('\n\t\t\tProperty: "CastLightOnObject", "bool", "",1')
@@ -1492,7 +1491,6 @@ def save_single(operator, scene, filepath="",
         uvlayers = []
         if do_uvs:
             uvlayers = me.uv_textures
-            uvlayer_orig = me.uv_textures.active
             for uvindex, uvlayer in enumerate(me.uv_textures):
                 file.write('\n\t\tLayerElementUV: %i {' % uvindex)
                 file.write('\n\t\t\tVersion: 101')
@@ -1610,8 +1608,6 @@ def save_single(operator, scene, filepath="",
 
                 for j, mat_tex_pair in enumerate(my_mesh.blenMaterials):
                     material_mapping_local[mat_tex_pair] = j
-
-                len_material_mapping_local = len(material_mapping_local)
 
                 mats = my_mesh.blenMaterialList
 
@@ -1768,7 +1764,7 @@ def save_single(operator, scene, filepath="",
     materials = {}  # (mat, image) keys, should be a set()
     textures = {}  # should be a set()
 
-    tmp_ob_type = ob_type = None  # incase no objects are exported, so as not to raise an error
+    tmp_ob_type = None  # incase no objects are exported, so as not to raise an error
 
 ## XXX
 
@@ -2396,7 +2392,7 @@ Connections:  {''')
     start = scene.frame_start
     end = scene.frame_end
     if end < start:
-        start, end = end, st
+        start, end = end, start
 
     # comment the following line, otherwise we dont get the pose
     # if start==end: ANIM_ENABLE = False
@@ -2693,10 +2689,10 @@ Takes:  {''')
         mist_intense = m.intensity
         mist_start = m.start
         mist_end = m.depth
-        mist_height = m.height
+        # mist_height = m.height  # UNUSED
         world_hor = world.horizon_color
     else:
-        has_mist = mist_intense = mist_start = mist_end = mist_height = 0
+        has_mist = mist_intense = mist_start = mist_end = 0
         world_hor = 0, 0, 0
 
     file.write('\n;Version 5 settings')

@@ -22,7 +22,6 @@ import subprocess
 import bpy
 
 from netrender.utils import *
-import netrender.model
 
 BLENDER_PATH = sys.argv[0]
 

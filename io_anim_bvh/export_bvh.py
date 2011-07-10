@@ -37,7 +37,7 @@ def write_armature(context,
             rot_order_str = "XYZ"
         return rot_order_str
 
-    from mathutils import Matrix, Vector, Euler
+    from mathutils import Matrix, Euler
     from math import degrees
 
     file = open(filepath, "w", encoding="utf8", newline="\n")
@@ -180,7 +180,7 @@ def write_armature(context,
 
             self.pose_mat = self.pose_bone.matrix
 
-            mat = self.rest_bone.matrix
+            # mat = self.rest_bone.matrix  # UNUSED
             self.rest_arm_mat = self.rest_bone.matrix_local
             self.rest_local_mat = self.rest_bone.matrix
 
@@ -274,8 +274,3 @@ def save(operator, context, filepath="",
            )
 
     return {'FINISHED'}
-
-
-if __name__ == "__main__":
-    scene = bpy.context.scene
-    _read(bpy.data.filepath.rstrip(".blend") + ".bvh", bpy.context.object, scene.frame_start, scene.frame_end, 1.0)

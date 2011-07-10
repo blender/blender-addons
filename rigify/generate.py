@@ -60,7 +60,7 @@ def generate_rig(context, metarig):
     rig_id = random_id(16)
 
     # Initial configuration
-    mode_orig = context.mode
+    # mode_orig = context.mode  # UNUSED
     rest_backup = metarig.data.pose_position
     metarig.data.pose_position = 'REST'
 
@@ -350,7 +350,7 @@ def generate_rig(context, metarig):
 
     # Ensure the collection of layer names exists
     for i in range(1 + len(metarig.data.rigify_layers), 29):
-        layer = metarig.data.rigify_layers.add()
+        metarig.data.rigify_layers.add()
 
     # Create list of layer name/row pairs
     layer_layout = []
@@ -401,7 +401,7 @@ def get_bone_rigs(obj, bone_name, halt_on_missing=False):
         try:
             rig = get_rig_type(rig_type).Rig(obj, bone_name, params)
         except ImportError:
-            message = "Rig Type Missing: python module for type '%s' not found (bone: %s)" % (t, bone_name)
+            message = "Rig Type Missing: python module for type '%s' not found (bone: %s)" % (rig_type, bone_name)
             if halt_on_missing:
                 raise MetarigError(message)
             else:

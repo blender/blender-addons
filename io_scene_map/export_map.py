@@ -51,7 +51,6 @@ def write_cube2brush(file, faces):
     these faces can be from 1 mesh, 1 cube within a mesh of larger cubes
     Faces could even come from different meshes or be contrived.
     '''
-    import os
     # comment only
     # file.write('// brush "%s", "%s"\n' % (ob.name, ob.data.name))
     file.write('// brush from cube\n{\n')
@@ -284,7 +283,7 @@ def export_map(context, filepath):
         return
     """
     import time
-    from mathutils import Vector, Matrix
+    from mathutils import Matrix
     from bpy_extras import mesh_utils
 
     t = time.time()

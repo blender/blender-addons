@@ -59,7 +59,7 @@ class Rig:
 
         org_delta = self.org_bones["delta"]
         org_delta_e = eb[self.org_bones["delta"]]
-        org_child = self.org_bones["child"]
+        # org_child = self.org_bones["child"]  # UNUSED
         org_child_e = eb[self.org_bones["child"]]
 
         # Calculate the matrix for achieving the delta

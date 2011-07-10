@@ -47,7 +47,7 @@ import time
 import datetime
 import bpy
 from bpy.props import StringProperty, BoolProperty
-from bpy_extras.io_utils import ImportHelper, ExportHelper
+from bpy_extras.io_utils import ImportHelper
 
 
 class ImportM3(bpy.types.Operator, ImportHelper):

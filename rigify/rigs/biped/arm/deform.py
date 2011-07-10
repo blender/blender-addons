@@ -17,10 +17,10 @@
 #======================= END GPL LICENSE BLOCK ========================
 
 import bpy
-from math import acos, degrees
+from math import acos
 from mathutils import Vector, Matrix
 from rigify.utils import MetarigError
-from rigify.utils import copy_bone, flip_bone, put_bone
+from rigify.utils import copy_bone, put_bone
 from rigify.utils import connected_children_names
 from rigify.utils import strip_org, make_mechanism_name, make_deformer_name
 
@@ -197,7 +197,7 @@ class Rig:
             uarm1_p = pb[uarm1]
         if self.use_forearm_twist:
             farm2_p = pb[farm2]
-        hand_p = pb[hand]
+        # hand_p = pb[hand]  # UNUSED
 
         # Upper arm constraints
         if self.use_upper_arm_twist:

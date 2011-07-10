@@ -17,9 +17,7 @@
 # ##### END GPL LICENSE BLOCK #####
 
 import bpy
-import mathutils
 from rigify.metarigs import human
-from math import cos, sin, pi
 
 
 class AddHuman(bpy.types.Operator):

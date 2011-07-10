@@ -66,7 +66,6 @@ add_mesh_torus() (distributed with Blender).
 """
 
 import bpy
-import mathutils
 from math import *
 from bpy.props import *
 
@@ -75,9 +74,6 @@ from bpy.props import *
 #                       new mesh (as used in from_pydata).
 # name ... Name of the new mesh (& object).
 def create_mesh_object(context, verts, edges, faces, name):
-    scene = context.scene
-    obj_act = scene.objects.active
-
     # Create new mesh
     mesh = bpy.data.meshes.new(name)
 
@@ -250,7 +246,7 @@ def add_tooth(a, t, d, radius, Ad, De, base, p_angle, rack=0, crown=0.0):
 def add_spoke(a, t, d, radius, De, base, s, w, l, gap=0, width=19):
     Rd = radius - De
     Rb = Rd - base
-    Rl = Rb
+    # Rl = Rb  # UNUSED
 
     verts = []
     edgefaces = []

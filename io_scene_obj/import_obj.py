@@ -957,7 +957,7 @@ def load(operator, context, filepath,
             else:
                 context_multi_line = b''
 
-            isline = line.startswith(b'l')
+            # isline = line.startswith(b'l')  # UNUSED
 
             for v in line_split:
                 vert_loc_index = int(v) - 1
@@ -1143,6 +1143,3 @@ def load(operator, context, filepath,
 # replaced BPyImage.comprehensiveImageLoad with a simplified version that only checks additional directory specified, but doesn't search dirs recursively (obj_image_load)
 # bitmask won't work? - 132
 # uses bpy.sys.time()
-
-if __name__ == "__main__":
-    register()

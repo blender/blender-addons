@@ -16,10 +16,6 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-import sys, os
-import http, http.client, http.server, urllib
-import subprocess, shutil, time, hashlib
-
 import netrender.versioning as versioning
 from netrender.utils import *
 

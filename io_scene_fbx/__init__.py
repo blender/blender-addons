@@ -133,7 +133,6 @@ class ExportFBX(bpy.types.Operator, ExportHelper):
         return self.batch_mode == 'OFF'
 
     def execute(self, context):
-        import math
         from mathutils import Matrix
         if not self.filepath:
             raise Exception("filepath not set")

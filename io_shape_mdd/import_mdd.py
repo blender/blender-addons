@@ -52,9 +52,7 @@ def load(operator, context, filepath, frame_start=0, frame_step=1):
     print('\tpoints:%d frames:%d' % (points, frames))
 
     # If target object doesn't have Basis shape key, create it.
-    try:
-        num_keys = len(obj.data.shape_keys.keys)
-    except:
+    if not obj.data.shape_keys:
         basis = obj.shape_key_add()
         basis.name = "Basis"
         obj.data.update()
@@ -66,7 +64,6 @@ def load(operator, context, filepath, frame_start=0, frame_step=1):
         # Insert new shape key
         new_shapekey = obj.shape_key_add()
         new_shapekey.name = ("frame_%.4d" % fr)
-        new_shapekey_name = new_shapekey.name
 
         obj.active_shape_key_index = len(obj.data.shape_keys.keys) - 1
         index = len(obj.data.shape_keys.keys) - 1

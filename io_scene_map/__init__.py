@@ -40,8 +40,8 @@ if "bpy" in locals():
 
 
 import bpy
-from bpy.props import StringProperty, BoolProperty, FloatProperty, EnumProperty
-from bpy_extras.io_utils import ExportHelper, axis_conversion
+from bpy.props import StringProperty
+from bpy_extras.io_utils import ExportHelper
 
 
 class ExportMAP(bpy.types.Operator, ExportHelper):
@@ -54,8 +54,8 @@ class ExportMAP(bpy.types.Operator, ExportHelper):
     filter_glob = StringProperty(default="*.map", options={'HIDDEN'})
 
     def execute(self, context):
-        import math
-        from mathutils import Matrix
+        # import math
+        # from mathutils import Matrix
         if not self.filepath:
             raise Exception("filepath not set")
 

@@ -17,7 +17,6 @@
 # ##### END GPL LICENSE BLOCK #####
 
 import os
-import re
 import shutil
 from netrender.utils import *
 import netrender.model

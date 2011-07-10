@@ -1263,7 +1263,7 @@ def export(file,
         ident = '\t\t'
 
         if use_selection:
-            objects = [obj for obj in scene.objects if obj.is_visible(scene) and o.select]
+            objects = [obj for obj in scene.objects if obj.is_visible(scene) and obj.select]
         else:
             objects = [obj for obj in scene.objects if obj.is_visible(scene)]
 

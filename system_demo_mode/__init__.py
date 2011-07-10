@@ -41,7 +41,6 @@ if "bpy" in locals():
 
 import bpy
 from bpy.props import StringProperty, BoolProperty, IntProperty, FloatProperty, EnumProperty
-from bpy_extras.io_utils import ImportHelper
 
 
 class DemoModeSetup(bpy.types.Operator):
@@ -83,8 +82,6 @@ class DemoModeSetup(bpy.types.Operator):
         from . import config
 
         keywords = self.as_keywords(ignore=("filepath", "random_order", "run"))
-
-        from . import config
         cfg_str, dirpath = config.as_string(self.filepath, self.random_order, **keywords)
         text = bpy.data.texts.get("demo.py")
         if text:

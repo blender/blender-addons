@@ -235,9 +235,6 @@ class _3ds_point_uv(object):
     def __init__(self, point):
         self.uv = point
 
-    def __cmp__(self, other):
-        return cmp(self.uv, other.uv)
-
     def get_size(self):
         return 2 * SZ_FLOAT
 
@@ -359,9 +356,6 @@ class _3ds_chunk(object):
         self.size = _3ds_int(0)
         self.variables = []
         self.subchunks = []
-
-    def set_ID(id):
-        self.ID = _3ds_short(id)
 
     def add_variable(self, name, var):
         '''Add a named variable.

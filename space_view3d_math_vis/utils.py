@@ -16,8 +16,6 @@
 #
 #======================= END GPL LICENSE BLOCK ========================
 
-import sys
-
 def console_namespace():
     import console_python
     get_consoles = console_python.get_console

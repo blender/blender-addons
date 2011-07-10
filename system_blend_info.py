@@ -66,10 +66,8 @@ class OBJECT_PT_blendinfo(bpy.types.Panel):
     bl_context = "scene"
 
     def draw(self, context):
-        amount = 2
         ob_cols = []
         db_cols = []
-        etc_cols = []
 
         objects = bpy.data.objects
 
@@ -129,7 +127,7 @@ class OBJECT_PT_blendinfo(bpy.types.Panel):
         row.label(text=quantity_string(num, "Empty", "Empties"),
             icon='EMPTY_DATA')
 
-        l_row_sep = layout.separator()
+        layout.separator()
         
         # DATABLOCKS
 

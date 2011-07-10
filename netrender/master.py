@@ -17,8 +17,8 @@
 # ##### END GPL LICENSE BLOCK #####
 
 import sys, os
-import http, http.client, http.server, urllib, socket, socketserver, threading
-import subprocess, shutil, time, hashlib
+import http, http.client, http.server, socket, socketserver
+import shutil, time, hashlib
 import pickle
 import select # for select.error
 import json
@@ -648,7 +648,7 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
         # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
         elif self.path == "/slave":
             length = int(self.headers['content-length'])
-            job_frame_string = self.headers['job-frame']
+            # job_frame_string = self.headers['job-frame']  # UNUSED
 
             self.server.stats("", "New slave connected")
 

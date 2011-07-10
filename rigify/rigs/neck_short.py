@@ -17,9 +17,8 @@
 #======================= END GPL LICENSE BLOCK ========================
 
 import bpy
-from mathutils import Vector
 from rigify.utils import MetarigError
-from rigify.utils import copy_bone, new_bone, flip_bone, put_bone
+from rigify.utils import copy_bone, new_bone, put_bone
 from rigify.utils import connected_children_names
 from rigify.utils import strip_org, make_mechanism_name, make_deformer_name
 from rigify.utils import obj_to_bone, create_circle_widget
@@ -54,7 +53,7 @@ class Rig:
         self.params = params
 
         if len(self.org_bones) <= 1:
-            raise MetarigError("RIGIFY ERROR: Bone '%s': input to rig type must be a chain of 2 or more bones." % (strip_org(bone)))
+            raise MetarigError("RIGIFY ERROR: Bone '%s': input to rig type must be a chain of 2 or more bones." % (strip_org(bone_name)))
 
         self.isolate = False
         if self.obj.data.bones[bone_name].parent:
@@ -176,10 +175,10 @@ class Rig:
         pb = self.obj.pose.bones
         neck_ctrl_p = pb[neck_ctrl]
         neck_follow_p = pb[neck_follow]
-        neck_child_p = pb[neck_child]
+        # neck_child_p = pb[neck_child]  # UNUSED
         head_ctrl_p = pb[head_ctrl]
         if self.isolate:
-            head_socket1_p = pb[head_socket1]
+            # head_socket1_p = pb[head_socket1]  # UNUSED
             head_socket2_p = pb[head_socket2]
 
         # Custom bone appearance

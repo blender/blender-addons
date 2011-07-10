@@ -123,7 +123,6 @@ def findInSubDir(filename, subdirectory=""):
 def path_image(image):
     import os
     fn = bpy.path.abspath(image)
-    fn_strip = os.path.basename(fn)
     if not os.path.isfile(fn):
         fn = findInSubDir(os.path.basename(fn), os.path.dirname(bpy.data.filepath))
     fn = os.path.realpath(fn)
@@ -1066,23 +1065,23 @@ def write_pov(filename, scene=None, info_callback=None):
                         if image_filename:
                             if t.use_map_color_diffuse:
                                 texturesDif = image_filename
-                                colvalue = t.default_value
+                                # colvalue = t.default_value  # UNUSED
                                 t_dif = t
                                 if t_dif.texture.pov.tex_gamma_enable:
                                     imgGamma = (" gamma %.3g " % t_dif.texture.pov.tex_gamma_value)
                             if t.use_map_specular or t.use_map_raymir:
                                 texturesSpec = image_filename
-                                colvalue = t.default_value
+                                # colvalue = t.default_value  # UNUSED
                                 t_spec = t
                             if t.use_map_normal:
                                 texturesNorm = image_filename
-                                colvalue = t.normal_factor * 10.0
+                                # colvalue = t.normal_factor * 10.0  # UNUSED
                                 #textNormName=t.texture.image.name + ".normal"
                                 #was the above used? --MR
                                 t_nor = t
                             if t.use_map_alpha:
                                 texturesAlpha = image_filename
-                                colvalue = t.alpha_factor * 10.0
+                                # colvalue = t.alpha_factor * 10.0  # UNUSED
                                 #textDispName=t.texture.image.name + ".displ"
                                 #was the above used? --MR
                                 t_alpha = t

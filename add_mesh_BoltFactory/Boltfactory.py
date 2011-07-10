@@ -227,7 +227,7 @@ class add_mesh_bolt(bpy.types.Operator):
         if self.bf_Model_Type == 'bf_Model_Bolt':
             col.prop(self, 'bf_Bit_Type')
             if self.bf_Bit_Type == 'bf_Bit_None':
-                DoNothing = 1;
+                pass
             elif self.bf_Bit_Type == 'bf_Bit_Allen':
                  col.prop(self, 'bf_Allen_Bit_Depth')
                  col.prop(self, 'bf_Allen_Bit_Flat_Distance')

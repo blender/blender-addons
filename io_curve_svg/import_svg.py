@@ -887,7 +887,7 @@ class SVGPathParser:
         Elliptical arc CurveTo path command
         """
 
-        c = code.lower()
+        # c = code.lower()  # UNUSED
         cur = self._data.cur()
 
         while cur is not None and not cur.isalpha():
@@ -1244,7 +1244,7 @@ class SVGGeometryUSE(SVGGeometry):
         Create real geometries
         """
 
-        geometries = []
+        # geometries = []  # UNUSED
         ref = self._node.getAttribute('xlink:href')
         geom = self._context['defines'].get(ref)
 

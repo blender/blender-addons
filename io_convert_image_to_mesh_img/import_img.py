@@ -23,7 +23,7 @@ This script can import a HiRISE DTM .IMG file.
 import bpy
 from bpy.props import *
 
-from struct import pack, unpack, unpack_from
+from struct import pack, unpack
 import os
 import queue, threading
 
@@ -169,8 +169,6 @@ class hirise_dtm_helper(object):
       ''' uses the parsed PDS Label to get the VALID_MINIMUM and VALID_MAXIMUM parameters
           from the first object named "IMAGE" -- is hackish
       '''
-      lines = None
-      line_samples = None
       for obj in label:
         if obj[0] == "IMAGE":
           return self.getValidMinMax(obj[1])
@@ -179,15 +177,12 @@ class hirise_dtm_helper(object):
         if obj[0] == "VALID_MAXIMUM":
           vmax = float(obj[1])
 
-      return ( vmin, vmax )
+      return vmin, vmax
 
     def getMissingConstant(self, label):
       ''' uses the parsed PDS Label to get the MISSING_CONSTANT parameter
           from the first object named "IMAGE" -- is hackish
       '''
-
-      lines = None
-      line_samples = None
       for obj in label:
         if obj[0] == "IMAGE":
           return self.getMissingConstant(obj[1])
@@ -257,7 +252,7 @@ class hirise_dtm_helper(object):
             del tmp_list[0:2]
           yield ret_list
           ret_list = []
-        last_line = line
+        # last_line = line  # UNUSED
         line_count += 1
 
     @threaded_generator
@@ -538,7 +533,6 @@ class hirise_dtm_helper(object):
       scale_y = self.scale() * img_props.pixel_scale()[1]
 
       line_count = 0
-      current_line = []
       # seed the last line (or previous line) with a line
       last_line = next(image_iter)
       point_offset = 0

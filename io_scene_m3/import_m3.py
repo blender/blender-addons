@@ -52,7 +52,6 @@ Notes:<br>
 """
 
 import bpy
-import mathutils
 import struct
 import os.path
 from bpy.props import *

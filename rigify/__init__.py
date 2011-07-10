@@ -41,7 +41,6 @@ else:
     from . import generate, ui, utils, metarig_menu
 
 import bpy
-import bpy_types
 import os
 
 

@@ -20,7 +20,6 @@ import bpy
 from bpy.props import *
 import os
 import random
-import mathutils
 from mathutils import *
 
 
@@ -116,7 +115,6 @@ def getsizefrommesh(ob):
 
 def getIslands(shard):
     sm = shard.data
-    islands = []
     vgroups = []
     fgroups = []
 

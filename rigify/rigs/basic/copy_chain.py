@@ -40,7 +40,7 @@ class Rig:
         self.make_deforms = params.make_deforms
 
         if len(self.org_bones) <= 1:
-            raise MetarigError("RIGIFY ERROR: Bone '%s': input to rig type must be a chain of 2 or more bones." % (strip_org(bone)))
+            raise MetarigError("RIGIFY ERROR: Bone '%s': input to rig type must be a chain of 2 or more bones." % (strip_org(bone_name)))
 
     def generate(self):
         """ Generate the rig.

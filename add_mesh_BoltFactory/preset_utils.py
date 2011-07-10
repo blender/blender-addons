@@ -16,9 +16,7 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-
-import bpy
-import os, sys
+import os
 
 
 def getPresets():

@@ -17,8 +17,8 @@
 # ##### END GPL LICENSE BLOCK #####
 
 import bpy
-import sys, os
-import http, http.client, http.server, urllib, socket
+import os
+import http, http.client, http.server
 import webbrowser
 import json
 
@@ -39,13 +39,13 @@ class RENDER_OT_netslave_bake(bpy.types.Operator):
 
     def execute(self, context):
         scene = context.scene
-        netsettings = scene.network_render
+        # netsettings = scene.network_render  # UNUSED
 
         filename = bpy.data.filepath
         path, name = os.path.split(filename)
         root, ext = os.path.splitext(name)
-        default_path = path + os.sep + "blendcache_" + root + os.sep # need an API call for that
-        relative_path = os.sep + os.sep + "blendcache_" + root + os.sep
+        # default_path = path + os.sep + "blendcache_" + root + os.sep # need an API call for that, UNUSED
+        relative_path = "//blendcache_" + root + os.sep
 
         # Force all point cache next to the blend file
         for object in bpy.data.objects:
@@ -410,7 +410,6 @@ class netclientdownload(bpy.types.Operator):
 
     def execute(self, context):
         netsettings = context.scene.network_render
-        rd = context.scene.render
 
         conn = clientConnection(netsettings.server_address, netsettings.server_port, self.report)
 

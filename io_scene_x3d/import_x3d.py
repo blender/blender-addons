@@ -601,7 +601,6 @@ class vrmlNode(object):
 
         # See if this is a proto name
         if AS_CHILD:
-            child_array = None
             for child in self_real.children:
                 if child.id and len(child.id) == 1 and child.id[0] == field:
                     return child
@@ -1881,7 +1880,7 @@ def importMesh_IndexedLineSet(geom, ancestry):
     for line in lines:
         if not line:
             continue
-        co = points[line[0]]
+        # co = points[line[0]]  # UNUSED
         nu = bpycurve.splines.new('POLY')
         nu.points.add(len(line) - 1)  # the new nu has 1 point to begin with
         for il, pt in zip(line, nu.points):

@@ -20,11 +20,9 @@
 
 # Script copyright (C) Campbell Barton
 
-import math
 from math import radians
 
 import bpy
-import mathutils
 from mathutils import Vector, Euler, Matrix
 
 

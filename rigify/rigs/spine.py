@@ -75,7 +75,7 @@ class Rig:
         self.pivot_rest = min(self.pivot_rest, 1.0-(1.0/len(self.org_bones)))
 
         if len(self.org_bones) <= 1:
-            raise MetarigError("RIGIFY ERROR: Bone '%s': input to rig type must be a chain of 2 or more bones." % (strip_org(bone)))
+            raise MetarigError("RIGIFY ERROR: Bone '%s': input to rig type must be a chain of 2 or more bones." % (strip_org(bone_name)))
 
     def gen_deform(self):
         """ Generate the deformation rig.

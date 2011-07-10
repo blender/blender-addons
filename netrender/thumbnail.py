@@ -23,7 +23,7 @@ import bpy
 
 def generate(filename, external=True):
     if external:
-        process = subprocess.Popen([sys.argv[0], "-b", "-noaudio", "-P", __file__, "--", filename], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        process = subprocess.Popen([sys.argv[0],"-b", "-noaudio", "-P", __file__, "--", filename], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         while process.poll() is None:
             process.stdout.read(1024) # empty buffer to be sure
         process.stdout.read()
@@ -72,7 +72,6 @@ def _internal(filename):
     return None
 
 if __name__ == "__main__":
-    import bpy
     try:
         start = sys.argv.index("--") + 1
     except ValueError:

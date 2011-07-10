@@ -17,10 +17,10 @@
 #======================= END GPL LICENSE BLOCK ========================
 
 import bpy
-from math import acos, degrees
+from math import acos
 from mathutils import Vector, Matrix
 from rigify.utils import MetarigError
-from rigify.utils import copy_bone, flip_bone, put_bone
+from rigify.utils import copy_bone, put_bone
 from rigify.utils import connected_children_names, has_connected_children
 from rigify.utils import strip_org, make_mechanism_name, make_deformer_name
 
@@ -231,7 +231,7 @@ class Rig:
             thigh1_p = pb[thigh1]
         if self.use_shin_twist:
             shin2_p = pb[shin2]
-        foot_p = pb[foot]
+        # foot_p = pb[foot]  # UNUSED
 
         # Thigh constraints
         if self.use_thigh_twist:

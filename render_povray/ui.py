@@ -169,7 +169,6 @@ class RENDER_PT_povray_export_settings(RenderButtonsPanel, bpy.types.Panel):
         layout = self.layout
 
         scene = context.scene
-        rd = scene.render
 
         layout.active = scene.pov.max_trace_level
         split = layout.split()
@@ -217,7 +216,6 @@ class RENDER_PT_povray_render_settings(RenderButtonsPanel, bpy.types.Panel):
         layout = self.layout
 
         scene = context.scene
-        rd = scene.render
 
         layout.active = scene.pov.max_trace_level
 
@@ -254,7 +252,6 @@ class RENDER_PT_povray_antialias(RenderButtonsPanel, bpy.types.Panel):
         layout = self.layout
 
         scene = context.scene
-        rd = scene.render
 
         layout.active = scene.pov.antialias_enable
 
@@ -290,7 +287,6 @@ class RENDER_PT_povray_radiosity(RenderButtonsPanel, bpy.types.Panel):
         layout = self.layout
 
         scene = context.scene
-        rd = scene.render
 
         layout.active = scene.pov.radio_enable
 
@@ -342,7 +338,6 @@ class RENDER_PT_povray_media(RenderButtonsPanel, bpy.types.Panel):
         layout = self.layout
 
         scene = context.scene
-        rd = scene.render
 
         layout.active = scene.pov.media_enable
 
@@ -420,10 +415,10 @@ class MATERIAL_PT_povray_fade_color(MaterialButtonsPanel, bpy.types.Panel):
         self.layout.prop(mat.pov, "interior_fade_color", text="")
 
     def draw(self, context):
-        layout = self.layout
-
-        mat = context.material
-        #layout.active = mat.pov.interior_fade_color
+        # layout = self.layout
+        # mat = context.material
+        # layout.active = mat.pov.interior_fade_color
+        pass
 
 
 class MATERIAL_PT_povray_conserve_energy(MaterialButtonsPanel, bpy.types.Panel):

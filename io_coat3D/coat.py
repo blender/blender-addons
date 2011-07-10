@@ -1,4 +1,3 @@
-
 # ***** BEGIN GPL LICENSE BLOCK *****
 #
 #
@@ -22,8 +21,6 @@ import bpy
 from bpy.props import *
 from io_coat3D import tex
 import os
-import linecache
-import math
 
 
 bpy.coat3D = dict()
@@ -151,7 +148,6 @@ class SCENE_PT_Settings(ObjectButtonsPanel,bpy.types.Panel):
 
     def draw(self, context):
         layout = self.layout
-        scene = context.scene
         coat3D = bpy.context.scene.coat3D
         
         row = layout.row()
@@ -374,8 +370,7 @@ class SCENE_OT_import(bpy.types.Operator):
                                                                 
 
                 if(coat3D.importmod):
-                    mod_list = []
-                    for mod_index in objekti.modifiers:
+                    for mod_index in objekti.modifiers[:]:
                         objekti.modifiers.remove(mod_index)
                         
                 

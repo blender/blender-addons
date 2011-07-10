@@ -403,7 +403,7 @@ class VIEW3D_OT_lightfield_tools(bpy.types.Panel):
         scene = context.scene
 
         layout = self.layout
-        row = layout.row()
+        layout.row()  # XXX, is this needed?
         col = layout.column()
 
         col.prop(scene.lightfield, "row_length")

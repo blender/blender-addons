@@ -17,7 +17,6 @@
 #======================= END GPL LICENSE BLOCK ========================
 
 import bpy
-from rigify.utils import MetarigError
 from rigify.utils import copy_bone
 from rigify.utils import strip_org, make_deformer_name
 from rigify.utils import create_bone_widget
@@ -57,8 +56,9 @@ class Rig:
 
         # Get edit bones
         eb = self.obj.data.edit_bones
-        if self.make_control:
-            bone_e = eb[bone]
+        # UNUSED
+        # if self.make_control:
+        #     bone_e = eb[bone]
         if self.make_deform:
             def_bone_e = eb[def_bone]
 

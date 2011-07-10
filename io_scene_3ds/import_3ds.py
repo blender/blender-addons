@@ -198,7 +198,6 @@ def read_string(file):
 
 def process_next_object_chunk(file, previous_chunk):
     new_chunk = chunk()
-    temp_chunk = chunk()
 
     while (previous_chunk.bytes_read < previous_chunk.length):
         #read the next chunk
@@ -208,7 +207,7 @@ def process_next_object_chunk(file, previous_chunk):
 def skip_to_end(file, skip_chunk):
     buffer_size = skip_chunk.length - skip_chunk.bytes_read
     binary_format = "%ic" % buffer_size
-    temp_data = file.read(struct.calcsize(binary_format))
+    file.read(struct.calcsize(binary_format))
     skip_chunk.bytes_read += buffer_size
 
 
@@ -256,14 +255,12 @@ def process_next_chunk(file, previous_chunk, importedObjects, IMAGE_SEARCH):
 # 	TEXMODE = Mesh.FaceModes['TEX']
 
     # Localspace variable names, faster.
-    STRUCT_SIZE_1CHAR = struct.calcsize('c')
     STRUCT_SIZE_2FLOAT = struct.calcsize('2f')
     STRUCT_SIZE_3FLOAT = struct.calcsize('3f')
     STRUCT_SIZE_4FLOAT = struct.calcsize('4f')
     STRUCT_SIZE_UNSIGNED_SHORT = struct.calcsize('H')
     STRUCT_SIZE_4UNSIGNED_SHORT = struct.calcsize('4H')
     STRUCT_SIZE_4x3MAT = struct.calcsize('ffffffffffff')
-    _STRUCT_SIZE_4x3MAT = struct.calcsize('fffffffffffff')
     # STRUCT_SIZE_4x3MAT = calcsize('ffffffffffff')
     # print STRUCT_SIZE_4x3MAT, ' STRUCT_SIZE_4x3MAT'
     # only init once

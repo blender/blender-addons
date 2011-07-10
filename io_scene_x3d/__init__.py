@@ -130,7 +130,6 @@ class ExportX3D(bpy.types.Operator, ExportHelper):
 
     def execute(self, context):
         from . import export_x3d
-        from mathutils import Matrix
 
         keywords = self.as_keywords(ignore=("axis_forward", "axis_up", "check_existing", "filter_glob"))
         global_matrix = axis_conversion(to_forward=self.axis_forward, to_up=self.axis_up).to_4x4()

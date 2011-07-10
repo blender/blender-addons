@@ -19,7 +19,6 @@
 import bpy
 import imp
 from . import fk, ik, deform
-from rigify.utils import MetarigError, get_layers
 
 imp.reload(fk)
 imp.reload(ik)

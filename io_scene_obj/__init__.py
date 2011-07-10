@@ -104,7 +104,6 @@ class ImportOBJ(bpy.types.Operator, ImportHelper):
     def execute(self, context):
         # print("Selected: " + context.active_object.name)
         from . import import_obj
-        from mathutils import Matrix
 
         if self.split_mode == 'OFF':
             self.use_split_objects = False
