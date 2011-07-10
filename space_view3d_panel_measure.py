@@ -196,6 +196,7 @@ from bpy.props import *
 from mathutils import Vector, Matrix
 import bgl
 import blf
+from bpy_extras.view3d_utils import location_3d_to_region_2d
 
 
 # Precicion for display of float values.
@@ -431,34 +432,6 @@ def measureLocal(sce):
     return (sce.measure_panel_transform == "measure_local")
 
 
-# Converts 3D coordinates in a 3DRegion
-# into 2D screen coordinates for that region.
-def region3d_get_2d_coordinates(context, loc_3d):
-    # Get screen information
-    mid_x = context.region.width / 2.0
-    mid_y = context.region.height / 2.0
-    width = context.region.width
-    height = context.region.height
-
-    # Get matrices
-    view_mat = context.region_data.perspective_matrix
-    total_mat = view_mat
-
-    # Order is important
-    vec = Vector((loc_3d[0], loc_3d[1], loc_3d[2], 1.0)) * total_mat
-
-    # dehomogenise
-    vec = Vector((
-        vec[0] / vec[3],
-        vec[1] / vec[3],
-        vec[2] / vec[3]))
-
-    x = int(mid_x + vec[0] * width / 2.0)
-    y = int(mid_y + vec[1] * height / 2.0)
-
-    return Vector((x, y, 0))
-
-
 def draw_measurements_callback(self, context):
     sce = context.scene
 
@@ -573,7 +546,10 @@ def draw_measurements_callback(self, context):
         # Draw (2D) text
         # We do this after drawing the lines so
         # we can draw it OVER the line.
-        coord_2d = region3d_get_2d_coordinates(context, p2 + (p1 - p2) * 0.5)
+        coord_2d = location_3d_to_region_2d(context.region,
+                                            context.space_data.region_3d,
+                                            p1.lerp(p2, 0.5),
+                                            )
         OFFSET_LINE = 10   # Offset the text a bit to the right.
         OFFSET_Y = 15      # Offset of the lines.
         OFFSET_VALUE = 30  # Offset of value(s) from the text.
