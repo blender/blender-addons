@@ -26,10 +26,10 @@ import bpy
 from mathutils import Vector, Euler, Matrix
 
 
-class bvh_node_class(object):
+class BVH_Node(object):
     __slots__ = (
     'name',  # bvh joint name
-    'parent',  # bvh_node_class type or None for no parent
+    'parent',  # BVH_Node type or None for no parent
     'children',  # a list of children of this type.
     'rest_head_world',  # worldspace rest location for the head of this node
     'rest_head_local',  # localspace rest location for the head of this node
@@ -60,7 +60,7 @@ class bvh_node_class(object):
         self.parent = parent
         self.channels = channels
         self.rot_order = tuple(rot_order)
-        self.rot_order_str = __class__._eul_order_lookup[self.rot_order]
+        self.rot_order_str = BVH_Node._eul_order_lookup[self.rot_order]
 
         # convenience functions
         self.has_loc = channels[0] != -1 or channels[1] != -1 or channels[2] != -1
@@ -167,7 +167,7 @@ def read_bvh(context, file_path, rotate_mode='XYZ', global_scale=1.0):
             else:
                 rest_head_world = my_parent.rest_head_world + rest_head_local
 
-            bvh_node = bvh_nodes[name] = bvh_node_class(name, rest_head_world, rest_head_local, my_parent, my_channel, my_rot_order)
+            bvh_node = bvh_nodes[name] = BVH_Node(name, rest_head_world, rest_head_local, my_parent, my_channel, my_rot_order)
 
             # If we have another child then we can call ourselves a parent, else
             bvh_nodes_serial.append(bvh_node)

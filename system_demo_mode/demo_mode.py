@@ -297,15 +297,15 @@ class DemoMode(bpy.types.Operator):
 
     def cleanup(self, disable=False):
         demo_mode_timer_remove()
-        __class__.first_run = True
+        DemoMode.first_run = True
 
         if disable:
-            __class__.enabled = False
+            DemoMode.enabled = False
             DemoKeepAlive.remove()
 
     def modal(self, context, event):
         # print("DemoMode.modal", global_state["anim_cycles"])
-        if not __class__.enabled:
+        if not DemoMode.enabled:
             self.cleanup(disable=True)
             return {'CANCELLED'}
 
@@ -316,8 +316,8 @@ class DemoMode(bpy.types.Operator):
             return {'CANCELLED'}
 
         # print(event.type)
-        if __class__.first_run:
-            __class__.first_run = False
+        if DemoMode.first_run:
+            DemoMode.first_run = False
 
             demo_mode_init()
         else:
@@ -336,12 +336,12 @@ class DemoMode(bpy.types.Operator):
             return {'CANCELLED'}
 
         # toggle
-        if __class__.enabled and __class__.first_run == False:
+        if DemoMode.enabled and DemoMode.first_run == False:
             # this actually cancells the previous running instance
             # should never happen now, DemoModeControl is for this.
             return {'CANCELLED'}
         else:
-            __class__.enabled = True
+            DemoMode.enabled = True
             context.window_manager.modal_handler_add(self)
 
             return {'RUNNING_MODAL'}

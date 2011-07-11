@@ -162,8 +162,8 @@ class CONSOLE_HT_icons(bpy.types.Header):
     def draw(self, context):
         props = context.scene.icon_props
         # polling for updates
-        if props.search != __class__._search_old:
-            __class__._search_old = props.search
+        if props.search != self.__class__._search_old:
+            self.__class__._search_old = props.search
             self.icon_list = create_icon_list()
             # adjusting max value of scroller
 #            IconProps.scroll = bpy.props.IntProperty(default=1, min=1,

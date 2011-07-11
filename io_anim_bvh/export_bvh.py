@@ -140,7 +140,7 @@ def write_armature(context,
     # redefine bones as sorted by serialized_names
     # so we can write motion
 
-    class decorated_bone(object):
+    class DecoratedBone(object):
         __slots__ = (\
         "name",  # bone name, used as key in many places
         "parent",  # decorated bone parent, set in a later loop
@@ -176,7 +176,7 @@ def write_armature(context,
             else:
                 self.rot_order_str = rotate_mode
 
-            self.rot_order = __class__._eul_order_lookup[self.rot_order_str]
+            self.rot_order = DecoratedBone._eul_order_lookup[self.rot_order_str]
 
             self.pose_mat = self.pose_bone.matrix
 
@@ -203,7 +203,7 @@ def write_armature(context,
             else:
                 return "[\"%s\" root bone]\n" % (self.name)
 
-    bones_decorated = [decorated_bone(bone_name) for bone_name in serialized_names]
+    bones_decorated = [DecoratedBone(bone_name) for bone_name in serialized_names]
 
     # Assign parents
     bones_decorated_dict = {}

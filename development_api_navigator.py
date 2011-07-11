@@ -259,7 +259,7 @@ class ApiNavigator():
         else :
             too_long = False
         
-        __class__.generate_api_doc()
+        ApiNavigator.generate_api_doc()
         return {'FINISHED'}
 
     @staticmethod
