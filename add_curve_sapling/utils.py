@@ -145,7 +145,7 @@ def downAngle(downAng,downAngV,lPar=None,offset=None,lBase=None):
 
 # Returns the rotation matrix equivalent to i rotations by 2*pi/(n+1)
 def splitRotMat(n,i):
-    return (Matrix()).Rotation(2*i*pi/(n+1),3,'Z')
+    return Matrix.Rotation(2*i*pi/(n+1),3,'Z')
 
 # Returns the split angle
 def angleSplit(splitAng,splitAngV,quat):
@@ -233,14 +233,14 @@ def growSpline(stem,numSplit,splitAng,splitAngV,splineList,attractUp,hType,splin
             
             # Here we make the new "sprouting" stems diverge from the current direction
             angle = stem.splitAngle(splitAng,splitAngV)
-            divRotMat = (Matrix()).Rotation(angle + stem.curv + uniform(-stem.curvV,stem.curvV),3,'X')#CurveUP should go after curve is applied
+            divRotMat = Matrix.Rotation(angle + stem.curv + uniform(-stem.curvV,stem.curvV),3,'X')#CurveUP should go after curve is applied
             dirVec = zAxis.copy()
             dirVec.rotate(divRotMat)
             dirVec.rotate(splitRotMat(numSplit,i+1))
             dirVec.rotate(dir)
             
             # if attractUp != 0.0: # Shouldn't have a special case as this will mess with random number generation
-            divRotMat = (Matrix()).Rotation(angle + stem.curv + uniform(-stem.curvV,stem.curvV),3,'X')
+            divRotMat = Matrix.Rotation(angle + stem.curv + uniform(-stem.curvV,stem.curvV),3,'X')
             dirVec = zAxis.copy()
             dirVec.rotate(divRotMat)
             dirVec.rotate(splitRotMat(numSplit,i+1))
@@ -255,13 +255,13 @@ def growSpline(stem,numSplit,splitAng,splitAngV,splineList,attractUp,hType,splin
 #            dirVec.rotate(dir)
 
             # Spread the stem out in a random fashion
-            spreadMat = (Matrix()).Rotation(spreadAng(degrees(dirVec.z)),3,'Z')
+            spreadMat = Matrix.Rotation(spreadAng(degrees(dirVec.z)),3,'Z')
             dirVec.rotate(spreadMat)
             # Introduce upward curvature
             upRotAxis = xAxis.copy()
             upRotAxis.rotate(dirVec.to_track_quat('Z','Y'))
             curveUpAng = curveUp(attractUp,dirVec.to_track_quat('Z','Y'),stem.segMax)
-            upRotMat = (Matrix()).Rotation(-curveUpAng,3,upRotAxis)
+            upRotMat = Matrix.Rotation(-curveUpAng,3,upRotAxis)
             dirVec.rotate(upRotMat)
             # Make the growth vec the length of a stem segment
             dirVec.normalize()
@@ -277,24 +277,24 @@ def growSpline(stem,numSplit,splitAng,splitAngV,splineList,attractUp,hType,splin
                 splineToBone.append('bone'+(str(stem.splN)).rjust(3,'0')+'.'+(str(len(stem.spline.bezier_points)-2)).rjust(3,'0'))
         # The original spline also needs to keep growing so adjust its direction too
         angle = stem.splitAngle(splitAng,splitAngV)
-        divRotMat = (Matrix()).Rotation(angle + stem.curv + uniform(-stem.curvV,stem.curvV),3,'X')
+        divRotMat = Matrix.Rotation(angle + stem.curv + uniform(-stem.curvV,stem.curvV),3,'X')
         dirVec = zAxis.copy()
         dirVec.rotate(divRotMat)
         dirVec.rotate(dir)
-        spreadMat = (Matrix()).Rotation(spreadAng(degrees(dirVec.z)),3,'Z')
+        spreadMat = Matrix.Rotation(spreadAng(degrees(dirVec.z)),3,'Z')
         dirVec.rotate(spreadMat)
     else:
         # If there are no splits then generate the growth direction without accounting for spreading of stems
         dirVec = zAxis.copy()
         #curveUpAng = curveUp(attractUp,dir,stem.segMax)
-        divRotMat = (Matrix()).Rotation(stem.curv + uniform(-stem.curvV,stem.curvV),3,'X')
+        divRotMat = Matrix.Rotation(stem.curv + uniform(-stem.curvV,stem.curvV),3,'X')
         dirVec.rotate(divRotMat)
         #dirVec = Vector((0,-sin(stem.curv - curveUpAng),cos(stem.curv - curveUpAng)))
         dirVec.rotate(dir)
     upRotAxis = xAxis.copy()
     upRotAxis.rotate(dirVec.to_track_quat('Z','Y'))
     curveUpAng = curveUp(attractUp,dirVec.to_track_quat('Z','Y'),stem.segMax)
-    upRotMat = (Matrix()).Rotation(-curveUpAng,3,upRotAxis)
+    upRotMat = Matrix.Rotation(-curveUpAng,3,upRotAxis)
     dirVec.rotate(upRotMat)
     dirVec.normalize()
     dirVec *= stem.segL
@@ -324,12 +324,12 @@ def genLeafMesh(leafScale,leafScaleX,loc,quat,index,downAngle,downAngleV,rotate,
 
     # If the special -ve flag is used we need a different rotation of the leaf geometry
     if leaves < 0:
-        rotMat = (Matrix()).Rotation(oldRot,3,'Y')
+        rotMat = Matrix.Rotation(oldRot,3,'Y')
         oldRot += rotate/(abs(leaves)-1)
     else:
         oldRot += rotate+uniform(-rotateV,rotateV)
-        downRotMat = (Matrix()).Rotation(downAngle+uniform(-downAngleV,downAngleV),3,'X')
-        rotMat = (Matrix()).Rotation(oldRot,3,'Z')
+        downRotMat = Matrix.Rotation(downAngle+uniform(-downAngleV,downAngleV),3,'X')
+        rotMat = Matrix.Rotation(oldRot,3,'Z')
 
     normal = yAxis.copy()
     #dirVec = zAxis.copy()
@@ -348,17 +348,17 @@ def genLeafMesh(leafScale,leafScaleX,loc,quat,index,downAngle,downAngleV,rotate,
 
         thetaPos = atan2(loc.y,loc.x)
         thetaBend = thetaPos - atan2(normal.y,normal.x)
-        rotateZ = (Matrix()).Rotation(bend*thetaBend,3,'Z')
+        rotateZ = Matrix.Rotation(bend*thetaBend,3,'Z')
         normal.rotate(rotateZ)
         orientationVec.rotate(rotateZ)
 
         phiBend = atan2((normal.xy).length,normal.z)
         orientation = atan2(orientationVec.y,orientationVec.x)
-        rotateZOrien = (Matrix()).Rotation(orientation,3,'X')
+        rotateZOrien = Matrix.Rotation(orientation,3,'X')
 
-        rotateX = (Matrix()).Rotation(bend*phiBend,3,'Z')
+        rotateX = Matrix.Rotation(bend*phiBend,3,'Z')
 
-        rotateZOrien2 = (Matrix()).Rotation(-orientation,3,'X')
+        rotateZOrien2 = Matrix.Rotation(-orientation,3,'X')
 
     # For each of the verts we now rotate and scale them, then append them to the list to be added to the mesh
     for v in verts:
@@ -562,7 +562,7 @@ def addTree(props):
                     # Otherwise just find a random value
                     else:
                         downV = uniform(-downAngleV[n],downAngleV[n])
-                    downRotMat = (Matrix()).Rotation(downAngle[n]+downV,3,'X')
+                    downRotMat = Matrix.Rotation(downAngle[n]+downV,3,'X')
                     tempPos.rotate(downRotMat)
                     # If the -ve flag for rotate is used we need to find which side of the stem the last child point was and then grow in the opposite direction.
                     if rotate[n] < 0.0:
@@ -571,7 +571,7 @@ def addTree(props):
                     else:
                         oldRotate += rotate[n]+uniform(-rotateV[n],rotateV[n])
                     # Rotate the direction of growth and set the new point coordinates
-                    rotMat = (Matrix()).Rotation(oldRotate,3,'Z')
+                    rotMat = Matrix.Rotation(oldRotate,3,'Z')
                     tempPos.rotate(rotMat)
                     tempPos.rotate(p.quat)
                     newPoint.handle_right = p.co + tempPos
@@ -759,8 +759,8 @@ def addTree(props):
 #                    # Here we make the new "sprouting" stems diverge from the current direction
 #                    dirVec = zAxis.copy()
 #                    oldRot += rotate[n]+uniform(-rotateV[n],rotateV[n])
-#                    downRotMat = (Matrix()).Rotation(downAngle[n]+uniform(-downAngleV[n],downAngleV[n]),3,'X')
-#                    rotMat = (Matrix()).Rotation(oldRot,3,'Z')
+#                    downRotMat = Matrix.Rotation(downAngle[n]+uniform(-downAngleV[n],downAngleV[n]),3,'X')
+#                    rotMat = Matrix.Rotation(oldRot,3,'Z')
 #                    dirVec.rotate(downRotMat)
 #                    dirVec.rotate(rotMat)
 #                    dirVec.rotate(cp.quat)
