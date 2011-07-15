@@ -20,7 +20,7 @@ bl_info = {
     "name": "Animated Render Baker",
     "author": "Janne Karhu (jahka)",
     "version": (1, 0),
-    "blender": (2, 5, 7),
+    "blender": (2, 5, 8),
     "api": 35622,
     "location": "Properties > Render > Bake Panel",
     "description": "Renderbakes a series of frames",
@@ -116,7 +116,7 @@ class OBJECT_OT_animrenderbake(bpy.types.Operator):
 
         return{'FINISHED'}
 
-# modifier copy of original bake panel draw function
+# modified copy of original bake panel draw function
 def draw_animrenderbake(self, context):
     layout = self.layout
 
@@ -134,29 +134,41 @@ def draw_animrenderbake(self, context):
 
     layout.prop(rd, "bake_type")
 
-    if rd.bake_type == 'NORMALS':
-        layout.prop(rd, "bake_normal_space")
-    elif rd.bake_type in ('DISPLACEMENT', 'AO'):
-        layout.prop(rd, "use_bake_normalize")
+    multires_bake = False
+    if rd.bake_type in ['NORMALS', 'DISPLACEMENT']:
+        layout.prop(rd, 'use_bake_multires')
+        multires_bake = rd.use_bake_multires
 
-    # col.prop(rd, "bake_aa_mode")
-    # col.prop(rd, "use_bake_antialiasing")
+    if not multires_bake:
+        if rd.bake_type == 'NORMALS':
+            layout.prop(rd, "bake_normal_space")
+        elif rd.bake_type in {'DISPLACEMENT', 'AO'}:
+            layout.prop(rd, "use_bake_normalize")
 
-    layout.separator()
+        # col.prop(rd, "bake_aa_mode")
+        # col.prop(rd, "use_bake_antialiasing")
 
-    split = layout.split()
+        layout.separator()
 
-    col = split.column()
-    col.prop(rd, "use_bake_clear")
-    col.prop(rd, "bake_margin")
-    col.prop(rd, "bake_quad_split", text="Split")
+        split = layout.split()
 
-    col = split.column()
-    col.prop(rd, "use_bake_selected_to_active")
-    sub = col.column()
-    sub.active = rd.use_bake_selected_to_active
-    sub.prop(rd, "bake_distance")
-    sub.prop(rd, "bake_bias")
+        col = split.column()
+        col.prop(rd, "use_bake_clear")
+        col.prop(rd, "bake_margin")
+        col.prop(rd, "bake_quad_split", text="Split")
+
+        col = split.column()
+        col.prop(rd, "use_bake_selected_to_active")
+        sub = col.column()
+        sub.active = rd.use_bake_selected_to_active
+        sub.prop(rd, "bake_distance")
+        sub.prop(rd, "bake_bias")
+    else:
+        if rd.bake_type == 'DISPLACEMENT':
+            layout.prop(rd, "use_bake_lores_mesh")
+
+        layout.prop(rd, "use_bake_clear")
+        layout.prop(rd, "bake_margin")
 
 def register():
     bpy.utils.register_module(__name__)
