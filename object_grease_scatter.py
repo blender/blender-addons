@@ -21,7 +21,7 @@
 # Script copyright (C) Campbell Barton
 
 bl_info = {
-    "name": "Export Camera Animation",
+    "name": "Grease Scatter Objects",
     "author": "Campbell Barton",
     "version": (0, 1),
     "blender": (2, 5, 8),
@@ -36,7 +36,7 @@ bl_info = {
     "support": 'OFFICIAL',
     "category": "Object"}
 
-from mathutils import Vector, RotationMatrix, Quaternion
+from mathutils import Vector, Matrix, Quaternion
 from math import radians
 from random import uniform, shuffle
 import bpy
@@ -54,12 +54,12 @@ def _main(self, DENSITY=1.0, SCALE=0.6, RAND_LOC=0.8, RAND_ALIGN=0.75):
     WALL_LIMIT = radians(45.0)
 
     mats = [
-    RotationMatrix(radians(-45), 3, 'X'),
-    RotationMatrix(radians( 45), 3, 'X'),
-    RotationMatrix(radians(-45), 3, 'Y'),
-    RotationMatrix(radians( 45), 3, 'Y'),
-    RotationMatrix(radians(-45), 3, 'Z'),
-    RotationMatrix(radians( 45), 3, 'Z')]
+    Matrix.Rotation(radians(-45), 3, 'X'),
+    Matrix.Rotation(radians( 45), 3, 'X'),
+    Matrix.Rotation(radians(-45), 3, 'Y'),
+    Matrix.Rotation(radians( 45), 3, 'Y'),
+    Matrix.Rotation(radians(-45), 3, 'Z'),
+    Matrix.Rotation(radians( 45), 3, 'Z')]
 
 
     Z_UP = Vector((0,0,1.0))
@@ -142,12 +142,8 @@ def _main(self, DENSITY=1.0, SCALE=0.6, RAND_LOC=0.8, RAND_ALIGN=0.75):
         return [fix_point(point.co) for point in stroke.points]
 
     def get_splines(gp):
-        l = None
-        for l in gp.layers:
-            if l.active: # XXX - should be layers.active
-                break
-        if l:
-            frame = l.active_frame
+        if gp.layers.active:
+            frame = gp.layers.active.active_frame
             return [get_points(stroke) for stroke in frame.strokes]
         else:
             return []
@@ -185,11 +181,11 @@ def _main(self, DENSITY=1.0, SCALE=0.6, RAND_LOC=0.8, RAND_ALIGN=0.75):
                 pofs = p + n * 0.01
                 
                 n_seek = n * SEEK
-                m_alt_1 = RotationMatrix(radians(22.5), 3, n)
-                m_alt_2 = RotationMatrix(radians(-22.5), 3, n)
+                m_alt_1 = Matrix.Rotation(radians(22.5), 3, n)
+                m_alt_2 = Matrix.Rotation(radians(-22.5), 3, n)
                 for _m in mats:
                     for m in (_m, m_alt_1 * _m, m_alt_2 * _m):
-                        hit, nor, ind = ray(pofs, pofs + (m * n_seek))
+                        hit, nor, ind = ray(pofs, pofs + (n_seek * m))
                         if ind != -1:
                             dist = (pofs - hit).length
                             if dist < best_dist:
@@ -329,7 +325,7 @@ def _main(self, DENSITY=1.0, SCALE=0.6, RAND_LOC=0.8, RAND_ALIGN=0.75):
                 
                 # make 2 angles and blend
                 angle = radians(uniform(-180, 180.0)) 
-                angle_aligned = -(ori.angle(quat * Vector((0,1,0)), radians(180.0)))
+                angle_aligned = -(ori.angle(Vector((0,1,0)) * quat, radians(180.0)))
                 
                 quat = Quaternion(no, (angle * (1.0-RAND_ALIGN)) + (angle_aligned * RAND_ALIGN)).cross(quat)
 
@@ -390,7 +386,7 @@ class Scatter(bpy.types.Operator):
         return {'FINISHED'}
 
     def invoke(self, context, event):
-        wm = context.manager
+        wm = context.window_manager
         wm.invoke_popup(self, width=180)
         return {'RUNNING_MODAL'}
 
@@ -407,7 +403,6 @@ class Scatter(bpy.types.Operator):
 
         layout.operator_context = 'EXEC_DEFAULT'
         props = layout.operator(self.bl_idname)
-        return {'RUNNING_MODAL'}
 
 
 # Add to the menu
@@ -415,11 +410,11 @@ menu_func = (lambda self, context: self.layout.operator(Scatter.bl_idname,
                                         text="Scatter", icon='AUTO'))
 
 def register():
-    bpy.types.register(Scatter)
+    bpy.utils.register_class(Scatter)
     bpy.types.VIEW3D_PT_tools_objectmode.append(menu_func)
 
 def unregister():
-    bpy.types.unregister(Scatter)
+    bpy.utils.unregister_class(Scatter)
     bpy.types.VIEW3D_PT_tools_objectmode.remove(menu_func)
 
 #if __name__ == "__main__":
