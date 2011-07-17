@@ -26,7 +26,7 @@
 """
 Abstract
 MHX (MakeHuman eXchange format) importer for Blender 2.5x.
-Version 1.5.1
+Version 1.5.2
 
 This script should be distributed with Blender.
 If not, place it in the .blender/scripts/addons dir
@@ -39,7 +39,7 @@ Alternatively, run the script in the script editor (Alt-P), and access from the 
 bl_info = {
     'name': 'Import: MakeHuman (.mhx)',
     'author': 'Thomas Larsson',
-    'version': (1, 5, 1),
+    'version': (1, 5, 2),
     "blender": (2, 5, 8),
     "api": 37702,
     'location': "File > Import > MakeHuman (.mhx)",
@@ -52,7 +52,7 @@ bl_info = {
 
 MAJOR_VERSION = 1
 MINOR_VERSION = 5
-SUB_VERSION = 1
+SUB_VERSION = 2
 BLENDER_VERSION = (2, 58, 0)
 
 #
@@ -491,11 +491,8 @@ def parse(tokens):
         elif key == "CorrectRig":
             correctRig(val)
         elif key == "Rigify":
-            rig = loadedData['Object'][val[0]]
-            rig['MhxRigify'] = True
-            bpy.context.scene.objects.active = rig
             if toggle & T_Rigify:
-                rigifyMhx(bpy.context, rig)
+                rigifyMhx(bpy.context, val[0])
         elif key == 'AnimationData':
             try:
                 ob = loadedData['Object'][val[0]]
@@ -1905,13 +1902,21 @@ def parseGroup (args, tokens):
 
 def parseGroupObjects(args, tokens, grp):
     global todo
+    rig = None
     for (key, val, sub) in tokens:
         if key == 'ob':
             try:
                 ob = loadedData['Object'][val[0]]
                 grp.objects.link(ob)
             except:
-                pass
+                ob = None
+            if ob:
+                print(ob, ob.type, rig, ob.parent)
+                if ob.type == 'ARMATURE':
+                    rig = ob
+                elif ob.type == 'EMPTY' and rig and not ob.parent:
+                    ob.parent = rig
+                    print("SSS")
     return
 
 #
@@ -2450,14 +2455,18 @@ def clearScene():
         return scn
 
     for ob in scn.objects:
-        if ob.type in ["MESH", "ARMATURE", 'EMPTY', 'CURVE', 'LATTICE']:
+        if ob.type in ['MESH', 'ARMATURE', 'EMPTY', 'CURVE', 'LATTICE']:
             scn.objects.active = ob
+            ob.name = "#" + ob.name
             try:
                 bpy.ops.object.mode_set(mode='OBJECT')
             except:
                 pass
             scn.objects.unlink(ob)
             del ob
+
+    for grp in bpy.data.groups:
+        grp.name = "#" + grp.name
     #print(scn.objects)
     return scn
 
@@ -2562,20 +2571,25 @@ def writeDefaults():
 #
 #   Postprocessing of rigify rig
 #
-#   rigifyMhx(context, mhx):
+#   rigifyMhx(context, name):
 #
 ###################################################################################
 
-def rigifyMhx(context, mhx):
+def rigifyMhx(context, name):
     print("Modifying MHX rig to Rigify")
-    # Delete widgets
     scn = context.scene 
+    mhx = loadedData['Object'][name]
+    mhx['MhxRigify'] = True
+    bpy.context.scene.objects.active = mhx
+
+    # Delete old widgets
+    """
     for ob in scn.objects:
         if ob.type == 'MESH' and ob.name[0:3] == "WGT":
             scn.objects.unlink(ob)
+    """
 
     # Save mhx bone locations    
-    name = mhx.name
     heads = {}
     tails = {}
     rolls = {}
@@ -2625,7 +2639,7 @@ def rigifyMhx(context, mhx):
         except:
             pass
 
-    # Change rigify bone locations    
+    # Change meta bone locations    
     scn.objects.active = None 
     try:
         bpy.ops.object.armature_human_advanced_add()
@@ -2639,9 +2653,9 @@ def rigifyMhx(context, mhx):
 "It is found under Rigging.")
         return
 
-    rigify = context.object
+    meta = context.object
     bpy.ops.object.mode_set(mode='EDIT')
-    for eb in rigify.data.edit_bones:
+    for eb in meta.data.edit_bones:
         eb.head = heads[eb.name]
         eb.tail = tails[eb.name]
         eb.roll = rolls[eb.name]
@@ -2662,7 +2676,7 @@ def rigifyMhx(context, mhx):
 
     for (upbone, first, last, middles) in fingerPlanes:
         extras[upbone] = False
-        #lineateChain(upbone, first, last, middles, 0.01, rigify, heads, tails)
+        #lineateChain(upbone, first, last, middles, 0.01, meta, heads, tails)
 
     ikPlanes = [
         ('UP-leg.L', 'thigh.L', 'shin.L'),
@@ -2673,47 +2687,54 @@ def rigifyMhx(context, mhx):
 
     for (upbone, first, last) in ikPlanes:
         extras[upbone] = False
-        lineateChain(upbone, first, last, [], 0.1, rigify, heads, tails)
+        lineateChain(upbone, first, last, [], 0.1, meta, heads, tails)
 
     bpy.ops.object.mode_set(mode='OBJECT')
 
-    # Generate meta rig    
+    # Generate rigify rig    
     bpy.ops.pose.rigify_generate()
-    scn.objects.unlink(rigify)
-    meta = context.object
-    meta.name = name+"Meta"
-    meta.show_x_ray = True
+    scn.objects.unlink(meta)
+    rigify = context.object
+    rigify.name = name+"Rig"
+    rigify.show_x_ray = True
     for (mesh, mod) in meshes:
-        mod.object = meta
+        mod.object = rigify
+
+    grp = loadedData['Group'][name]
+    grp.objects.link(rigify)
 
     # Parent widgets under empty
     empty = bpy.data.objects.new("Widgets", None)
     scn.objects.link(empty)
     empty.layers = 20*[False]
     empty.layers[19] = True
+    empty.parent = rigify
     for ob in scn.objects:
         if ob.type == 'MESH' and ob.name[0:4] == "WGT-" and not ob.parent:
             ob.parent = empty
+            grp.objects.link(ob)
+        elif ob.parent == mhx:
+            ob.parent = rigify
 
-    # Copy extra bones to meta rig
+    # Copy extra bones to rigify rig
     bpy.ops.object.mode_set(mode='EDIT')
     for name in heads.keys():
         if extras[name]:
-            eb = meta.data.edit_bones.new(name)
+            eb = rigify.data.edit_bones.new(name)
             eb.head = heads[name]
             eb.tail = tails[name]
             eb.roll = rolls[name]            
     for name in heads.keys():
         if extras[name] and parents[name]:
-            eb = meta.data.edit_bones[name]
-            eb.parent = meta.data.edit_bones[parents[name]]
+            eb = rigify.data.edit_bones[name]
+            eb.parent = rigify.data.edit_bones[parents[name]]
 
     # Copy constraints etc.
     bpy.ops.object.mode_set(mode='POSE')
     for name in heads.keys():
         if extras[name]:
             pb1 = mhx.pose.bones[name]
-            pb2 = meta.pose.bones[name]
+            pb2 = rigify.pose.bones[name]
             pb2.custom_shape = pb1.custom_shape
             pb2.lock_location = pb1.lock_location
             pb2.lock_rotation = pb1.lock_rotation
@@ -2732,34 +2753,35 @@ def rigifyMhx(context, mhx):
                 layers[2] = True
             b2.layers = layers
             for cns1 in pb1.constraints:
-                cns2 = copyConstraint(cns1, pb1, pb2, mhx, meta)    
+                cns2 = copyConstraint(cns1, pb1, pb2, mhx, rigify)    
                 if cns2.type == 'CHILD_OF':
-                    meta.data.bones.active = pb2.bone
+                    rigify.data.bones.active = pb2.bone
                     bpy.ops.constraint.childof_set_inverse(constraint=cns2.name, owner='BONE')    
     
     # Create animation data
     if mhx.animation_data:
         for fcu in mhx.animation_data.drivers:
-            meta.animation_data.drivers.from_existing(src_driver=fcu)
+            rigify.animation_data.drivers.from_existing(src_driver=fcu)
 
-    fixDrivers(meta.animation_data, mhx, meta)
+    fixDrivers(rigify.animation_data, mhx, rigify)
     for (mesh, mod) in meshes:
+        mesh.parent = rigify
         skeys = mesh.data.shape_keys
         if skeys:
-            fixDrivers(skeys.animation_data, mhx, meta)
+            fixDrivers(skeys.animation_data, mhx, rigify)
 
     scn.objects.unlink(mhx)
     print("Rigify rig complete")    
     return
 
 #
-#   lineateChain(upbone, first, last, middles, minDist, rigify, heads, tails):
+#   lineateChain(upbone, first, last, middles, minDist, rig, heads, tails):
 #   lineate(pt, start, minDist, normal, offVector):
 #
 
-def lineateChain(upbone, first, last, middles, minDist, rigify, heads, tails):
-    fb = rigify.data.edit_bones[first]
-    lb = rigify.data.edit_bones[last]
+def lineateChain(upbone, first, last, middles, minDist, rig, heads, tails):
+    fb = rig.data.edit_bones[first]
+    lb = rig.data.edit_bones[last]
     uhead = heads[upbone]
     utail = tails[upbone]
     tang = lb.tail - fb.head
@@ -2772,7 +2794,7 @@ def lineateChain(upbone, first, last, middles, minDist, rigify, heads, tails):
     fb.tail = lineate(fb.tail, fb.head, minDist, normal, offVector)
     lb.head = lineate(lb.head, fb.head, minDist, normal, offVector)
     for bone in middles:
-        mb = rigify.data.edit_bones[bone]
+        mb = rig.data.edit_bones[bone]
         mb.head = lineate(mb.head, fb.head, minDist, normal, offVector)
         mb.tail = lineate(mb.tail, fb.head, minDist, normal, offVector)
     return
@@ -2786,24 +2808,24 @@ def lineate(pt, start, minDist, normal, offVector):
     return start + diff
 
 #
-#   fixDrivers(adata, mhx, meta):
+#   fixDrivers(adata, mhx, rigify):
 #
 
-def fixDrivers(adata, mhx, meta):
+def fixDrivers(adata, mhx, rigify):
     if not adata:
         return
     for fcu in adata.drivers:
         for var in fcu.driver.variables:
             for targ in var.targets:
                 if targ.id == mhx:
-                    targ.id = meta
+                    targ.id = rigify
     return
 
 #
-#   copyConstraint(cns1, pb1, pb2, mhx, meta):
+#   copyConstraint(cns1, pb1, pb2, mhx, rigify):
 #
 
-def copyConstraint(cns1, pb1, pb2, mhx, meta):
+def copyConstraint(cns1, pb1, pb2, mhx, rigify):
     substitute = {
         'Head' : 'DEF-head',
         'MasterFloor' : 'root',
@@ -2819,7 +2841,7 @@ def copyConstraint(cns1, pb1, pb2, mhx, meta):
     for prop in dir(cns1):
         if prop == 'target':
             if cns1.target == mhx:
-                cns2.target = meta
+                cns2.target = rigify
             else:
                 cns2.target = cns1.target
         elif prop == 'subtarget':
@@ -2845,7 +2867,7 @@ class OBJECT_OT_RigifyMhxButton(bpy.types.Operator):
     bl_label = "Rigify MHX rig"
 
     def execute(self, context):
-        rigifyMhx(context, context.object)
+        rigifyMhx(context, context.object.name)
         return{'FINISHED'}    
     
 #
