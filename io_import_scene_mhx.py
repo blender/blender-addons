@@ -26,7 +26,7 @@
 """
 Abstract
 MHX (MakeHuman eXchange format) importer for Blender 2.5x.
-Version 1.5.2
+Version 1.6.0
 
 This script should be distributed with Blender.
 If not, place it in the .blender/scripts/addons dir
@@ -39,7 +39,7 @@ Alternatively, run the script in the script editor (Alt-P), and access from the 
 bl_info = {
     'name': 'Import: MakeHuman (.mhx)',
     'author': 'Thomas Larsson',
-    'version': (1, 5, 2),
+    'version': (1, 6, 0),
     "blender": (2, 5, 8),
     "api": 37702,
     'location': "File > Import > MakeHuman (.mhx)",
@@ -51,8 +51,8 @@ bl_info = {
     'category': 'Import-Export'}
 
 MAJOR_VERSION = 1
-MINOR_VERSION = 5
-SUB_VERSION = 2
+MINOR_VERSION = 6
+SUB_VERSION = 0
 BLENDER_VERSION = (2, 58, 0)
 
 #
@@ -1361,6 +1361,15 @@ def parseFaces2(tokens, me):
             f.material_index = int(val[0])
             f.use_smooth = int(val[1])
             n += 1
+        elif key == 'ftn':
+            mn = int(val[1])
+            us = int(val[2])
+            npts = int(val[0])
+            for i in range(npts):
+                f = me.faces[n]
+                f.material_index = mn
+                f.use_smooth = us
+                n += 1
         elif key == 'mn':
             fn = int(val[0])
             mn = int(val[1])
@@ -2696,6 +2705,9 @@ def rigifyMhx(context, name):
     scn.objects.unlink(meta)
     rigify = context.object
     rigify.name = name+"Rig"
+    layers = 20*[False]
+    layers[1] = True        
+    rigify.layers = layers
     rigify.show_x_ray = True
     for (mesh, mod) in meshes:
         mod.object = rigify
