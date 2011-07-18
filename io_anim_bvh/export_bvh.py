@@ -141,21 +141,21 @@ def write_armature(context,
     # so we can write motion
 
     class DecoratedBone(object):
-        __slots__ = (\
-        "name",  # bone name, used as key in many places
-        "parent",  # decorated bone parent, set in a later loop
-        "rest_bone",  # blender armature bone
-        "pose_bone",  # blender pose bone
-        "pose_mat",  # blender pose matrix
-        "rest_arm_mat",  # blender rest matrix (armature space)
-        "rest_local_mat",  # blender rest batrix (local space)
-        "pose_imat",  # pose_mat inverted
-        "rest_arm_imat",  # rest_arm_mat inverted
-        "rest_local_imat",  # rest_local_mat inverted
-        "prev_euler",  # last used euler to preserve euler compability in between keyframes
-        "connected",  # is the bone connected to the parent bone?
-        "rot_order",
-        "rot_order_str",
+        __slots__ = (
+            "name",  # bone name, used as key in many places
+            "parent",  # decorated bone parent, set in a later loop
+            "rest_bone",  # blender armature bone
+            "pose_bone",  # blender pose bone
+            "pose_mat",  # blender pose matrix
+            "rest_arm_mat",  # blender rest matrix (armature space)
+            "rest_local_mat",  # blender rest batrix (local space)
+            "pose_imat",  # pose_mat inverted
+            "rest_arm_imat",  # rest_arm_mat inverted
+            "rest_local_imat",  # rest_local_mat inverted
+            "prev_euler",  # last used euler to preserve euler compability in between keyframes
+            "connected",  # is the bone connected to the parent bone?
+            "rot_order",
+            "rot_order_str",
         )
 
         _eul_order_lookup = {

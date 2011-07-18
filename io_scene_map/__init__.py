@@ -53,6 +53,11 @@ class ExportMAP(bpy.types.Operator, ExportHelper):
     filename_ext = ".map"
     filter_glob = StringProperty(default="*.map", options={'HIDDEN'})
 
+    '''
+    def check(self, context):
+        return axis_conversion_ensure(self, "axis_forward", "axis_up")
+    '''
+
     def execute(self, context):
         # import math
         # from mathutils import Matrix

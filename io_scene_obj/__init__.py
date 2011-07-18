@@ -43,7 +43,13 @@ if "bpy" in locals():
 
 import bpy
 from bpy.props import BoolProperty, FloatProperty, StringProperty, EnumProperty
-from bpy_extras.io_utils import ExportHelper, ImportHelper, path_reference_mode, axis_conversion
+
+from bpy_extras.io_utils import (ExportHelper,
+                                 ImportHelper,
+                                 path_reference_mode,
+                                 axis_conversion,
+                                 axis_conversion_ensure,
+                                 )
 
 
 class ImportOBJ(bpy.types.Operator, ImportHelper):
@@ -100,6 +106,9 @@ class ImportOBJ(bpy.types.Operator, ImportHelper):
 
     # fake prop, only disables split.
     # keep_vertex_order = BoolProperty(name="Keep Vert Order", description="Keep vert and face order, disables split options, enable for morph targets", default= True)
+
+    def check(self, context):
+        return axis_conversion_ensure(self, "axis_forward", "axis_up")
 
     def execute(self, context):
         # print("Selected: " + context.active_object.name)
@@ -212,6 +221,9 @@ class ExportOBJ(bpy.types.Operator, ExportHelper):
             )
 
     path_mode = path_reference_mode
+
+    def check(self, context):
+        return axis_conversion_ensure(self, "axis_forward", "axis_up")
 
     def execute(self, context):
         from . import export_obj

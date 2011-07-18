@@ -41,7 +41,12 @@ if "bpy" in locals():
 
 import bpy
 from bpy.props import StringProperty, BoolProperty, FloatProperty, EnumProperty
-from bpy_extras.io_utils import ExportHelper, path_reference_mode, axis_conversion
+
+from bpy_extras.io_utils import (ExportHelper, 
+                                 path_reference_mode,
+                                 axis_conversion,
+                                 axis_conversion_ensure,
+                                 )
 
 
 class ExportFBX(bpy.types.Operator, ExportHelper):
@@ -131,6 +136,9 @@ class ExportFBX(bpy.types.Operator, ExportHelper):
     @property
     def check_extension(self):
         return self.batch_mode == 'OFF'
+
+    def check(self, context):
+        return axis_conversion_ensure(self, "axis_forward", "axis_up")
 
     def execute(self, context):
         from mathutils import Matrix

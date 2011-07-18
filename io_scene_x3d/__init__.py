@@ -41,7 +41,12 @@ if "bpy" in locals():
 
 import bpy
 from bpy.props import StringProperty, BoolProperty, EnumProperty
-from bpy_extras.io_utils import ImportHelper, ExportHelper, axis_conversion, path_reference_mode
+from bpy_extras.io_utils import (ImportHelper,
+                                 ExportHelper,
+                                 axis_conversion,
+                                 axis_conversion_ensure,
+                                 path_reference_mode,
+                                 )
 
 
 class ImportX3D(bpy.types.Operator, ImportHelper):
@@ -75,6 +80,9 @@ class ImportX3D(bpy.types.Operator, ImportHelper):
                    ),
             default='Y',
             )
+
+    def check(self, context):
+        return axis_conversion_ensure(self, "axis_forward", "axis_up")
 
     def execute(self, context):
         from . import import_x3d
@@ -127,6 +135,9 @@ class ExportX3D(bpy.types.Operator, ExportHelper):
             )
 
     path_mode = path_reference_mode
+
+    def check(self, context):
+        return axis_conversion_ensure(self, "axis_forward", "axis_up")
 
     def execute(self, context):
         from . import export_x3d

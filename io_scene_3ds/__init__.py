@@ -43,7 +43,12 @@ if "bpy" in locals():
 
 import bpy
 from bpy.props import StringProperty, FloatProperty, BoolProperty, EnumProperty
-from bpy_extras.io_utils import ImportHelper, ExportHelper, axis_conversion
+
+from bpy_extras.io_utils import (ImportHelper,
+                                 ExportHelper,
+                                 axis_conversion,
+                                 axis_conversion_ensure,
+                                 )
 
 
 class Import3DS(bpy.types.Operator, ImportHelper):
@@ -81,6 +86,9 @@ class Import3DS(bpy.types.Operator, ImportHelper):
                    ),
             default='Z',
             )
+
+    def check(self, context):
+        return axis_conversion_ensure(self, "axis_forward", "axis_up")
 
     def execute(self, context):
         from . import import_3ds
@@ -126,6 +134,9 @@ class Export3DS(bpy.types.Operator, ExportHelper):
                    ),
             default='Z',
             )
+
+    def check(self, context):
+        return axis_conversion_ensure(self, "axis_forward", "axis_up")
 
     def execute(self, context):
         from . import export_3ds
