@@ -313,10 +313,15 @@ def growSpline(stem,numSplit,splitAng,splitAngV,splineList,attractUp,hType,splin
     stem.updateEnd()
     #return splineList
 
-def genLeafMesh(leafScale,leafScaleX,loc,quat,index,downAngle,downAngleV,rotate,rotateV,oldRot,bend,leaves):
-    verts = [Vector((0,0,0)),Vector((0.5,0,1/3)),Vector((0.5,0,2/3)),Vector((0,0,1)),Vector((-0.5,0,2/3)),Vector((-0.5,0,1/3))]
-    edges = [[0,1],[1,2],[2,3],[3,4],[4,5],[5,0],[0,3]]
-    faces = [[0,1,2,3],[0,3,4,5]]
+def genLeafMesh(leafScale,leafScaleX,loc,quat,index,downAngle,downAngleV,rotate,rotateV,oldRot,bend,leaves, leafShape):
+    if leafShape == 'hex':
+        verts = [Vector((0,0,0)),Vector((0.5,0,1/3)),Vector((0.5,0,2/3)),Vector((0,0,1)),Vector((-0.5,0,2/3)),Vector((-0.5,0,1/3))]
+        edges = [[0,1],[1,2],[2,3],[3,4],[4,5],[5,0],[0,3]]
+        faces = [[0,1,2,3],[0,3,4,5]]
+    elif leafShape == 'rect':
+        verts = [Vector((1,0,0)),Vector((1,0,1)),Vector((-1,0,1)),Vector((-1,0,0))]
+        edges = [[0,1],[1,2],[2,3],[3,0]]
+        faces = [[0,1,2,3],]
     #faces = [[0,1,5],[1,2,4,5],[2,3,4]]
 
     vertsList = []
@@ -429,6 +434,7 @@ def addTree(props):
         pruneRatio = props.pruneRatio#
         leafScale = props.leafScale#
         leafScaleX = props.leafScaleX#
+        leafShape = props.leafShape
         bend = props.bend#
         leafDist = int(props.leafDist)#
         bevelRes = props.bevelRes#
@@ -732,12 +738,12 @@ def addTree(props):
                     if leaves < 0:
                         oldRot = -rotate[n]/2
                         for g in range(abs(leaves)):
-                            (vertTemp,faceTemp,oldRot) = genLeafMesh(leafScale,leafScaleX,cp.co,cp.quat,len(leafVerts),downAngle[n],downAngleV[n],rotate[n],rotateV[n],oldRot,bend,leaves)
+                            (vertTemp,faceTemp,oldRot) = genLeafMesh(leafScale,leafScaleX,cp.co,cp.quat,len(leafVerts),downAngle[n],downAngleV[n],rotate[n],rotateV[n],oldRot,bend,leaves, leafShape)
                             leafVerts.extend(vertTemp)
                             leafFaces.extend(faceTemp)
                     # Otherwise just add the leaves like splines.
                     else:
-                        (vertTemp,faceTemp,oldRot) = genLeafMesh(leafScale,leafScaleX,cp.co,cp.quat,len(leafVerts),downAngle[n],downAngleV[n],rotate[n],rotateV[n],oldRot,bend,leaves)
+                        (vertTemp,faceTemp,oldRot) = genLeafMesh(leafScale,leafScaleX,cp.co,cp.quat,len(leafVerts),downAngle[n],downAngleV[n],rotate[n],rotateV[n],oldRot,bend,leaves, leafShape)
                         leafVerts.extend(vertTemp)
                         leafFaces.extend(faceTemp)
                 # Create the leaf mesh and object, add geometry using from_pydata, edges are currently added by validating the mesh which isn't great
@@ -747,6 +753,11 @@ def addTree(props):
                 leafObj.parent = treeOb
                 leafMesh.from_pydata(leafVerts,(),leafFaces)
                 leafMesh.validate()
+                
+                if leafShape == 'rect':
+                    uv = leafMesh.uv_textures.new("leafUV")
+                    for tf in uv.data:
+                        tf.uv1, tf.uv2, tf.uv3, tf.uv4 = Vector((1, 0)), Vector((1, 1)), Vector((1 - leafScaleX, 1)), Vector((1 - leafScaleX, 0))
 
 # This can be used if we need particle leaves
 #            if (storeN == levels-1) and leaves:

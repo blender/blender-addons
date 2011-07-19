@@ -19,9 +19,9 @@
 bl_info = {
     "name": "Sapling",
     "author": "Andrew Hale (TrumanBlending)",
-    "version": (0, 2, 3),
+    "version": (0, 2, 4),
     "blender": (2, 5, 8),
-    "api": 38289,
+    "api": 38479,
     "location": "View3D > Add > Curve",
     "description": ("Adds a parametric tree. The method is presented by "
     "Jason Weber & Joseph Penn in their paper 'Creation and Rendering of "
@@ -29,8 +29,8 @@ bl_info = {
     "warning": "",  # used for warning icon and text in addons panel
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"\
         "Scripts/Curve/Sapling_Tree",
-    "tracker_url": "http://projects.blender.org/tracker/index.php?"\
-        "func=detail&aid=27226&group_id=153&atid=468",
+    "tracker_url": "http://projects.blender.org/tracker/"\
+        "?func=detail&atid=469&aid=27226&group_id=153",
     "category": "Add Curve"}
 
 if "bpy" in locals():
@@ -327,6 +327,10 @@ class AddTree(bpy.types.Operator):
         '(LeafScaleX)'),
         min=0.0,
         default=1.0)
+    leafShape = leafDist = EnumProperty(name='Leaf Shape',
+        description='The shape of the leaves, rectangular are UV mapped',
+        items=(('hex', 'Hexagonal', '0'), ('rect', 'Rectangular', '1')),
+        default='hex')
     bend = FloatProperty(name='Leaf Bend',
         description='The proportion of bending applied to the leaf (Bend)',
         min=0.0,
@@ -522,6 +526,8 @@ class AddTree(bpy.types.Operator):
             box.label('Leaves')
             row = box.row()
             row.prop(self, 'showLeaves')
+            row = box.row()
+            row.prop(self, 'leafShape')
             row = box.row()
             row.prop(self, 'leaves')
             row = box.row()
