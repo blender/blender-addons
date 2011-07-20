@@ -132,19 +132,6 @@ def mat4x4str(mat):
     return '%.15f,%.15f,%.15f,%.15f,%.15f,%.15f,%.15f,%.15f,%.15f,%.15f,%.15f,%.15f,%.15f,%.15f,%.15f,%.15f' % tuple([f for v in mat for f in v])
 
 
-# XXX not used
-# duplicated in OBJ exporter
-def getVertsFromGroup(me, group_index):
-    ret = []
-
-    for i, v in enumerate(me.vertices):
-        for g in v.groups:
-            if g.group == group_index:
-                ret.append((i, g.weight))
-
-        return ret
-
-
 # ob must be OB_MESH
 def BPyMesh_meshWeight2List(ob, me):
     ''' Takes a mesh and return its group names and a list of lists, one list per vertex.
@@ -164,16 +151,16 @@ def BPyMesh_meshWeight2List(ob, me):
 
     for i, v in enumerate(me.vertices):
         for g in v.groups:
-            vWeightList[i][g.group] = g.weight
+            # possible weights are out of range
+            index = g.group
+            if index < len_groupNames:
+                vWeightList[i][index] = g.weight
 
     return groupNames, vWeightList
 
 
 def meshNormalizedWeights(ob, me):
-    try:  # account for old bad BPyMesh
-        groupNames, vWeightList = BPyMesh_meshWeight2List(ob, me)
-    except:
-        return [], []
+    groupNames, vWeightList = BPyMesh_meshWeight2List(ob, me)
 
     if not groupNames:
         return [], []
@@ -1220,8 +1207,7 @@ def save_single(operator, scene, filepath="",
         else:
             # Normal weight painted mesh
             if my_bone.blenName in weights[0]:
-                # Before we used normalized wright list
-                #vgroup_data = me.getVertsFromGroup(bone.name, 1)
+                # Before we used normalized weight list
                 group_index = weights[0].index(my_bone.blenName)
                 vgroup_data = [(j, weight[group_index]) for j, weight in enumerate(weights[1]) if weight[group_index]]
             else:
