@@ -40,9 +40,6 @@ from mathutils import Vector, Matrix
 def tuple_rad_to_deg(eul):
     return eul[0] * 57.295779513, eul[1] * 57.295779513, eul[2] * 57.295779513
 
-# def strip_path(p):
-# 	return p.split('\\')[-1].split('/')[-1]
-
 # Used to add the scene name into the filepath without using odd chars
 sane_name_mapping_ob = {}
 sane_name_mapping_ob_unique = set()
@@ -245,7 +242,6 @@ def save_single(operator, scene, filepath="",
             self.blenMeshes = {}					# fbxMeshObName : mesh
             self.fbxArm = fbxArm
             self.restMatrix = blenBone.matrix_local
-# 			self.restMatrix =		blenBone.matrix['ARMATURESPACE']
 
             # not used yet
             # self.restMatrixInv =	self.restMatrix.inverted()
@@ -406,22 +402,22 @@ def save_single(operator, scene, filepath="",
     #
     file.write(\
 '''FBXHeaderExtension:  {
-    FBXHeaderVersion: 1003
-    FBXVersion: 6100
-    CreationTimeStamp:  {
-        Version: 1000
-        Year: %.4i
-        Month: %.2i
-        Day: %.2i
-        Hour: %.2i
-        Minute: %.2i
-        Second: %.2i
-        Millisecond: 0
-    }
-    Creator: "FBX SDK/FBX Plugins build 20070228"
-    OtherFlags:  {
-        FlagPLE: 0
-    }
+	FBXHeaderVersion: 1003
+	FBXVersion: 6100
+	CreationTimeStamp:  {
+		Version: 1000
+		Year: %.4i
+		Month: %.2i
+		Day: %.2i
+		Hour: %.2i
+		Minute: %.2i
+		Second: %.2i
+		Millisecond: 0
+	}
+	Creator: "FBX SDK/FBX Plugins build 20070228"
+	OtherFlags:  {
+		FlagPLE: 0
+	}
 }''' % (curtime))
 
     file.write('\nCreationTime: "%.4i-%.2i-%.2i %.2i:%.2i:%.2i:000"' % curtime)
@@ -435,18 +431,15 @@ def save_single(operator, scene, filepath="",
         Matrix mod is so armature objects can modify their bone matricies
         '''
         if isinstance(ob, bpy.types.Bone):
-# 		if isinstance(ob, Blender.Types.BoneType):
 
             # we know we have a matrix
             # matrix = mtx4_z90 * (ob.matrix['ARMATURESPACE'] * matrix_mod)
             matrix = ob.matrix_local * mtx4_z90  # dont apply armature matrix anymore
-# 			matrix = mtx4_z90 * ob.matrix['ARMATURESPACE'] # dont apply armature matrix anymore
 
             parent = ob.parent
             if parent:
                 #par_matrix = mtx4_z90 * (parent.matrix['ARMATURESPACE'] * matrix_mod)
                 par_matrix = parent.matrix_local * mtx4_z90  # dont apply armature matrix anymore
-# 				par_matrix = mtx4_z90 * parent.matrix['ARMATURESPACE'] # dont apply armature matrix anymore
                 matrix = par_matrix.inverted() * matrix
 
             loc, rot, scale = matrix.decompose()
@@ -463,7 +456,7 @@ def save_single(operator, scene, filepath="",
 
             matrix_rot = matrix
             #if matrix:
-            #	matrix = matrix_scale * matrix
+            #    matrix = matrix_scale * matrix
 
             if matrix:
                 loc, rot, scale = matrix.decompose()
@@ -498,7 +491,6 @@ def save_single(operator, scene, filepath="",
 
         file.write('\n\t\t\tProperty: "Lcl Translation", "Lcl Translation", "A+",%.15f,%.15f,%.15f' % loc)
         file.write('\n\t\t\tProperty: "Lcl Rotation", "Lcl Rotation", "A+",%.15f,%.15f,%.15f' % tuple_rad_to_deg(rot))
-# 		file.write('\n\t\t\tProperty: "Lcl Rotation", "Lcl Rotation", "A+",%.15f,%.15f,%.15f' % rot)
         file.write('\n\t\t\tProperty: "Lcl Scaling", "Lcl Scaling", "A+",%.15f,%.15f,%.15f' % scale)
         return loc, rot, scale, matrix, matrix_rot
 
@@ -546,9 +538,9 @@ def save_single(operator, scene, filepath="",
         # if the type is 0 its an empty otherwise its a mesh
         # only difference at the moment is one has a color
         file.write('''
-        Properties60:  {
-            Property: "QuaternionInterpolate", "bool", "",0
-            Property: "Visibility", "Visibility", "A+",1''')
+		Properties60:  {
+			Property: "QuaternionInterpolate", "bool", "",0
+			Property: "Visibility", "Visibility", "A+",1''')
 
         loc, rot, scale, matrix, matrix_rot = write_object_tx(ob, loc, matrix, matrix_mod)
 
@@ -654,7 +646,6 @@ def save_single(operator, scene, filepath="",
 
         file.write('\n\t\t\tProperty: "LimbLength", "double", "",%.6f' %
                    (my_bone.blenBone.head_local - my_bone.blenBone.tail_local).length)
-# 			(my_bone.blenBone.head['ARMATURESPACE'] - my_bone.blenBone.tail['ARMATURESPACE']).length)
 
         #file.write('\n\t\t\tProperty: "LimbLength", "double", "",1')
         file.write('\n\t\t\tProperty: "Color", "ColorRGB", "",0.8,0.8,0.8')
@@ -669,25 +660,25 @@ def save_single(operator, scene, filepath="",
 
     def write_camera_switch():
         file.write('''
-    Model: "Model::Camera Switcher", "CameraSwitcher" {
-        Version: 232''')
+	Model: "Model::Camera Switcher", "CameraSwitcher" {
+		Version: 232''')
 
         write_object_props()
         file.write('''
-            Property: "Color", "Color", "A",0.8,0.8,0.8
-            Property: "Camera Index", "Integer", "A+",100
-        }
-        MultiLayer: 0
-        MultiTake: 1
-        Hidden: "True"
-        Shading: W
-        Culling: "CullingOff"
-        Version: 101
-        Name: "Model::Camera Switcher"
-        CameraId: 0
-        CameraName: 100
-        CameraIndexName:
-    }''')
+			Property: "Color", "Color", "A",0.8,0.8,0.8
+			Property: "Camera Index", "Integer", "A+",100
+		}
+		MultiLayer: 0
+		MultiTake: 1
+		Hidden: "True"
+		Shading: W
+		Culling: "CullingOff"
+		Version: 101
+		Name: "Model::Camera Switcher"
+		CameraId: 0
+		CameraName: 100
+		CameraIndexName:
+	}''')
 
     def write_camera_dummy(name, loc, near, far, proj_type, up):
         file.write('\n\tModel: "Model::%s", "Camera" {' % name)
@@ -989,13 +980,13 @@ def save_single(operator, scene, filepath="",
         pose_items.append((fbxName, poseMatrix))
 
         file.write('''
-        }
-        MultiLayer: 0
-        MultiTake: 1
-        Shading: Y
-        Culling: "CullingOff"
-        TypeFlags: "Null"
-    }''')
+		}
+		MultiLayer: 0
+		MultiTake: 1
+		Shading: Y
+		Culling: "CullingOff"
+		TypeFlags: "Null"
+	}''')
 
     # Material Settings
     if world:
@@ -1082,12 +1073,12 @@ def save_single(operator, scene, filepath="",
         file.write('\n\tVideo: "Video::%s", "Clip" {' % texname)
 
         file.write('''
-        Type: "Clip"
-        Properties60:  {
-            Property: "FrameRate", "double", "",0
-            Property: "LastFrame", "int", "",0
-            Property: "Width", "int", "",0
-            Property: "Height", "int", "",0''')
+		Type: "Clip"
+		Properties60:  {
+			Property: "FrameRate", "double", "",0
+			Property: "LastFrame", "int", "",0
+			Property: "Width", "int", "",0
+			Property: "Height", "int", "",0''')
         if tex:
             fname_rel = bpy_extras.io_utils.path_reference(tex.filepath, base_src, base_dst, path_mode, "", copy_set)
             fname_strip = bpy.path.basename(fname_rel)
@@ -1097,16 +1088,16 @@ def save_single(operator, scene, filepath="",
         file.write('\n\t\t\tProperty: "Path", "charptr", "", "%s"' % fname_strip)
 
         file.write('''
-            Property: "StartFrame", "int", "",0
-            Property: "StopFrame", "int", "",0
-            Property: "PlaySpeed", "double", "",1
-            Property: "Offset", "KTime", "",0
-            Property: "InterlaceMode", "enum", "",0
-            Property: "FreeRunning", "bool", "",0
-            Property: "Loop", "bool", "",0
-            Property: "AccessMode", "enum", "",0
-        }
-        UseMipMap: 0''')
+			Property: "StartFrame", "int", "",0
+			Property: "StopFrame", "int", "",0
+			Property: "PlaySpeed", "double", "",1
+			Property: "Offset", "KTime", "",0
+			Property: "InterlaceMode", "enum", "",0
+			Property: "FreeRunning", "bool", "",0
+			Property: "Loop", "bool", "",0
+			Property: "AccessMode", "enum", "",0
+		}
+		UseMipMap: 0''')
 
         file.write('\n\t\tFilename: "%s"' % fname_strip)
         file.write('\n\t\tRelativeFilename: "%s"' % fname_rel)  # make relative
@@ -1121,29 +1112,29 @@ def save_single(operator, scene, filepath="",
         file.write('\n\t\tTextureName: "Texture::%s"' % texname)
 
         file.write('''
-        Properties60:  {
-            Property: "Translation", "Vector", "A+",0,0,0
-            Property: "Rotation", "Vector", "A+",0,0,0
-            Property: "Scaling", "Vector", "A+",1,1,1''')
+		Properties60:  {
+			Property: "Translation", "Vector", "A+",0,0,0
+			Property: "Rotation", "Vector", "A+",0,0,0
+			Property: "Scaling", "Vector", "A+",1,1,1''')
         file.write('\n\t\t\tProperty: "Texture alpha", "Number", "A+",%i' % num)
 
         # WrapModeU/V 0==rep, 1==clamp, TODO add support
         file.write('''
-            Property: "TextureTypeUse", "enum", "",0
-            Property: "CurrentTextureBlendMode", "enum", "",1
-            Property: "UseMaterial", "bool", "",0
-            Property: "UseMipMap", "bool", "",0
-            Property: "CurrentMappingType", "enum", "",0
-            Property: "UVSwap", "bool", "",0''')
+			Property: "TextureTypeUse", "enum", "",0
+			Property: "CurrentTextureBlendMode", "enum", "",1
+			Property: "UseMaterial", "bool", "",0
+			Property: "UseMipMap", "bool", "",0
+			Property: "CurrentMappingType", "enum", "",0
+			Property: "UVSwap", "bool", "",0''')
 
         file.write('\n\t\t\tProperty: "WrapModeU", "enum", "",%i' % tex.use_clamp_x)
         file.write('\n\t\t\tProperty: "WrapModeV", "enum", "",%i' % tex.use_clamp_y)
 
         file.write('''
-            Property: "TextureRotationPivot", "Vector3D", "",0,0,0
-            Property: "TextureScalingPivot", "Vector3D", "",0,0,0
-            Property: "VideoProperty", "object", ""
-        }''')
+			Property: "TextureRotationPivot", "Vector3D", "",0,0,0
+			Property: "TextureScalingPivot", "Vector3D", "",0,0,0
+			Property: "VideoProperty", "object", ""
+		}''')
 
         file.write('\n\t\tMedia: "Video::%s"' % texname)
 
@@ -1157,11 +1148,11 @@ def save_single(operator, scene, filepath="",
         file.write('\n\t\tRelativeFilename: "%s"' % fname_rel)  # need some make relative command
 
         file.write('''
-        ModelUVTranslation: 0,0
-        ModelUVScaling: 1,1
-        Texture_Alpha_Source: "None"
-        Cropping: 0,0,0,0
-    }''')
+		ModelUVTranslation: 0,0
+		ModelUVScaling: 1,1
+		Texture_Alpha_Source: "None"
+		Cropping: 0,0,0,0
+	}''')
 
     def write_deformer_skin(obname):
         '''
@@ -1169,13 +1160,13 @@ def save_single(operator, scene, filepath="",
         '''
         file.write('\n\tDeformer: "Deformer::Skin %s", "Skin" {' % obname)
         file.write('''
-        Version: 100
-        MultiLayer: 0
-        Type: "Skin"
-        Properties60:  {
-        }
-        Link_DeformAcuracy: 50
-    }''')
+		Version: 100
+		MultiLayer: 0
+		Type: "Skin"
+		Properties60:  {
+		}
+		Link_DeformAcuracy: 50
+	}''')
 
     # in the example was 'Bip01 L Thigh_2'
     def write_sub_deformer_skin(my_mesh, my_bone, weights):
@@ -1190,14 +1181,14 @@ def save_single(operator, scene, filepath="",
         file.write('\n\tDeformer: "SubDeformer::Cluster %s %s", "Cluster" {' % (my_mesh.fbxName, my_bone.fbxName))
 
         file.write('''
-        Version: 100
-        MultiLayer: 0
-        Type: "Cluster"
-        Properties60:  {
-            Property: "SrcModel", "object", ""
-            Property: "SrcModelReference", "object", ""
-        }
-        UserData: "", ""''')
+		Version: 100
+		MultiLayer: 0
+		Type: "Cluster"
+		Properties60:  {
+			Property: "SrcModel", "object", ""
+			Property: "SrcModelReference", "object", ""
+		}
+		UserData: "", ""''')
 
         # Support for bone parents
         if my_mesh.fbxBoneParent:
@@ -1356,12 +1347,12 @@ def save_single(operator, scene, filepath="",
         file.write('\n\t\tGeometryVersion: 124')
 
         file.write('''
-        LayerElementNormal: 0 {
-            Version: 101
-            Name: ""
-            MappingInformationType: "ByVertice"
-            ReferenceInformationType: "Direct"
-            Normals: ''')
+		LayerElementNormal: 0 {
+			Version: 101
+			Name: ""
+			MappingInformationType: "ByVertice"
+			ReferenceInformationType: "Direct"
+			Normals: ''')
 
         i = -1
         for v in me_vertices:
@@ -1379,12 +1370,12 @@ def save_single(operator, scene, filepath="",
         # Write Face Smoothing
         if mesh_smooth_type == 'FACE':
             file.write('''
-        LayerElementSmoothing: 0 {
-            Version: 102
-            Name: ""
-            MappingInformationType: "ByPolygon"
-            ReferenceInformationType: "Direct"
-            Smoothing: ''')
+		LayerElementSmoothing: 0 {
+			Version: 102
+			Name: ""
+			MappingInformationType: "ByPolygon"
+			ReferenceInformationType: "Direct"
+			Smoothing: ''')
 
             i = -1
             for f in me_faces:
@@ -1403,12 +1394,12 @@ def save_single(operator, scene, filepath="",
         elif mesh_smooth_type == 'EDGE':
             # Write Edge Smoothing
             file.write('''
-        LayerElementSmoothing: 0 {
-            Version: 101
-            Name: ""
-            MappingInformationType: "ByEdge"
-            ReferenceInformationType: "Direct"
-            Smoothing: ''')
+		LayerElementSmoothing: 0 {
+			Version: 101
+			Name: ""
+			MappingInformationType: "ByEdge"
+			ReferenceInformationType: "Direct"
+			Smoothing: ''')
 
             i = -1
             for ed in me_edges:
@@ -1439,9 +1430,9 @@ def save_single(operator, scene, filepath="",
                 file.write('\n\t\t\tName: "%s"' % collayer.name)
 
                 file.write('''
-            MappingInformationType: "ByPolygonVertex"
-            ReferenceInformationType: "IndexToDirect"
-            Colors: ''')
+			MappingInformationType: "ByPolygonVertex"
+			ReferenceInformationType: "IndexToDirect"
+			Colors: ''')
 
                 i = -1
                 ii = 0  # Count how many Colors we write
@@ -1489,9 +1480,9 @@ def save_single(operator, scene, filepath="",
                 file.write('\n\t\t\tName: "%s"' % uvlayer.name)
 
                 file.write('''
-            MappingInformationType: "ByPolygonVertex"
-            ReferenceInformationType: "IndexToDirect"
-            UV: ''')
+			MappingInformationType: "ByPolygonVertex"
+			ReferenceInformationType: "IndexToDirect"
+			UV: ''')
 
                 i = -1
                 ii = 0  # Count how many UVs we write
@@ -1568,14 +1559,14 @@ def save_single(operator, scene, filepath="",
 
                 else:
                     file.write('''
-        LayerElementTexture: 0 {
-            Version: 101
-            Name: ""
-            MappingInformationType: "NoMappingInformation"
-            ReferenceInformationType: "IndexToDirect"
-            BlendMode: "Translucent"
-            TextureAlpha: 1
-            TextureId: ''')
+		LayerElementTexture: 0 {
+			Version: 101
+			Name: ""
+			MappingInformationType: "NoMappingInformation"
+			ReferenceInformationType: "IndexToDirect"
+			BlendMode: "Translucent"
+			TextureAlpha: 1
+			TextureId: ''')
                 file.write('\n\t\t}')
 
         # Done with UV/textures.
@@ -1610,7 +1601,6 @@ def save_single(operator, scene, filepath="",
 
                 i = -1
                 for f, uf in zip(me_faces, uv_faces):
-# 				for f in me_faces:
                     try:
                         mat = mats[f.material_index]
                     except:
@@ -1635,49 +1625,49 @@ def save_single(operator, scene, filepath="",
             file.write('\n\t\t}')
 
         file.write('''
-        Layer: 0 {
-            Version: 100
-            LayerElement:  {
-                Type: "LayerElementNormal"
-                TypedIndex: 0
-            }''')
+		Layer: 0 {
+			Version: 100
+			LayerElement:  {
+				Type: "LayerElementNormal"
+				TypedIndex: 0
+			}''')
 
         if do_materials:
             file.write('''
-            LayerElement:  {
-                Type: "LayerElementMaterial"
-                TypedIndex: 0
-            }''')
+			LayerElement:  {
+				Type: "LayerElementMaterial"
+				TypedIndex: 0
+			}''')
 
         # Smoothing info
         if mesh_smooth_type != 'OFF':
             file.write('''
-            LayerElement:  {
-                Type: "LayerElementSmoothing"
-                TypedIndex: 0
-            }''')
+			LayerElement:  {
+				Type: "LayerElementSmoothing"
+				TypedIndex: 0
+			}''')
 
         # Always write this
         if do_textures:
             file.write('''
-            LayerElement:  {
-                Type: "LayerElementTexture"
-                TypedIndex: 0
-            }''')
+			LayerElement:  {
+				Type: "LayerElementTexture"
+				TypedIndex: 0
+			}''')
 
         if me.vertex_colors:
             file.write('''
-            LayerElement:  {
-                Type: "LayerElementColor"
-                TypedIndex: 0
-            }''')
+			LayerElement:  {
+				Type: "LayerElementColor"
+				TypedIndex: 0
+			}''')
 
         if do_uvs:  # same as me.faceUV
             file.write('''
-            LayerElement:  {
-                Type: "LayerElementUV"
-                TypedIndex: 0
-            }''')
+			LayerElement:  {
+				Type: "LayerElementUV"
+				TypedIndex: 0
+			}''')
 
         file.write('\n\t\t}')
 
@@ -1688,8 +1678,8 @@ def save_single(operator, scene, filepath="",
                 file.write('\n\t\t\tVersion: 100')
 
                 file.write('''
-            LayerElement:  {
-                Type: "LayerElementUV"''')
+			LayerElement:  {
+				Type: "LayerElementUV"''')
 
                 file.write('\n\t\t\t\tTypedIndex: %i' % i)
                 file.write('\n\t\t\t}')
@@ -1697,8 +1687,8 @@ def save_single(operator, scene, filepath="",
                 if do_textures:
 
                     file.write('''
-            LayerElement:  {
-                Type: "LayerElementTexture"''')
+			LayerElement:  {
+				Type: "LayerElementTexture"''')
 
                     file.write('\n\t\t\t\tTypedIndex: %i' % i)
                     file.write('\n\t\t\t}')
@@ -1716,8 +1706,8 @@ def save_single(operator, scene, filepath="",
                 file.write('\n\t\t\tVersion: 100')
 
                 file.write('''
-            LayerElement:  {
-                Type: "LayerElementColor"''')
+			LayerElement:  {
+				Type: "LayerElementColor"''')
 
                 file.write('\n\t\t\t\tTypedIndex: %i' % i)
                 file.write('\n\t\t\t}')
@@ -1728,14 +1718,14 @@ def save_single(operator, scene, filepath="",
         file.write('\n\tGroupSelection: "GroupSelection::%s", "Default" {' % name)
 
         file.write('''
-        Properties60:  {
-            Property: "MultiLayer", "bool", "",0
-            Property: "Pickable", "bool", "",1
-            Property: "Transformable", "bool", "",1
-            Property: "Show", "bool", "",1
-        }
-        MultiLayer: 0
-    }''')
+		Properties60:  {
+			Property: "MultiLayer", "bool", "",0
+			Property: "Pickable", "bool", "",1
+			Property: "Transformable", "bool", "",1
+			Property: "Show", "bool", "",1
+		}
+		MultiLayer: 0
+	}''')
 
     # add meshes here to clear because they are not used anywhere.
     meshes_to_clear = []
@@ -1789,7 +1779,6 @@ def save_single(operator, scene, filepath="",
             obs = [(dob.object, dob.matrix.copy()) for dob in ob_base.dupli_list]
 
         for ob, mtx in obs:
-# 		for ob, mtx in BPyObject.getDerivedObjects(ob_base):
             tmp_ob_type = ob.type
             if tmp_ob_type == 'CAMERA':
                 if 'CAMERA' in object_types:
@@ -1939,7 +1928,6 @@ def save_single(operator, scene, filepath="",
             my_arm.blenAction = ob.animation_data.action
         else:
             my_arm.blenAction = None
-# 		my_arm.blenAction =		ob.action
         my_arm.blenActionList = []
 
         # fbxName, blenderObject, my_bones, blenderActions
@@ -2038,53 +2026,53 @@ def save_single(operator, scene, filepath="",
 ;------------------------------------------------------------------
 
 Definitions:  {
-    Version: 100
-    Count: %i''' % (\
-        1 + camera_count + \
-        len(ob_meshes) + \
-        len(ob_lights) + \
-        len(ob_cameras) + \
-        len(ob_arms) + \
-        len(ob_null) + \
-        len(ob_bones) + \
-        bone_deformer_count + \
-        len(materials) + \
+	Version: 100
+	Count: %i''' % (
+        1 + camera_count +
+        len(ob_meshes) +
+        len(ob_lights) +
+        len(ob_cameras) +
+        len(ob_arms) +
+        len(ob_null) +
+        len(ob_bones) +
+        bone_deformer_count +
+        len(materials) +
         (len(textures) * 2)))  # add 1 for global settings
 
     del bone_deformer_count
 
     file.write('''
-    ObjectType: "Model" {
-        Count: %i
-    }''' % (\
-        camera_count + \
-        len(ob_meshes) + \
-        len(ob_lights) + \
-        len(ob_cameras) + \
-        len(ob_arms) + \
-        len(ob_null) + \
+	ObjectType: "Model" {
+		Count: %i
+    }''' % (
+        camera_count +
+        len(ob_meshes) +
+        len(ob_lights) +
+        len(ob_cameras) +
+        len(ob_arms) +
+        len(ob_null) +
         len(ob_bones)))
 
     file.write('''
-    ObjectType: "Geometry" {
-        Count: %i
-    }''' % len(ob_meshes))
+	ObjectType: "Geometry" {
+		Count: %i
+	}''' % len(ob_meshes))
 
     if materials:
         file.write('''
-    ObjectType: "Material" {
-        Count: %i
-    }''' % len(materials))
+	ObjectType: "Material" {
+		Count: %i
+	}''' % len(materials))
 
     if textures:
         file.write('''
-    ObjectType: "Texture" {
-        Count: %i
-    }''' % len(textures))  # add 1 for an empty tex
+	ObjectType: "Texture" {
+		Count: %i
+	}''' % len(textures))  # add 1 for an empty tex
         file.write('''
-    ObjectType: "Video" {
-        Count: %i
-    }''' % len(textures))  # add 1 for an empty tex
+	ObjectType: "Video" {
+		Count: %i
+	}''' % len(textures))  # add 1 for an empty tex
 
     tmp = 0
     # Add deformer nodes
@@ -2098,28 +2086,28 @@ Definitions:  {
 
     if tmp:
         file.write('''
-    ObjectType: "Deformer" {
-        Count: %i
-    }''' % tmp)
+	ObjectType: "Deformer" {
+		Count: %i
+	}''' % tmp)
     del tmp
 
     # we could avoid writing this possibly but for now just write it
 
     file.write('''
-    ObjectType: "Pose" {
-        Count: 1
-    }''')
+	ObjectType: "Pose" {
+		Count: 1
+	}''')
 
     if groups:
         file.write('''
-    ObjectType: "GroupSelection" {
-        Count: %i
-    }''' % len(groups))
+	ObjectType: "GroupSelection" {
+		Count: %i
+	}''' % len(groups))
 
     file.write('''
-    ObjectType: "GlobalSettings" {
-        Count: 1
-    }
+	ObjectType: "GlobalSettings" {
+		Count: 1
+	}
 }''')
 
     file.write('''
@@ -2190,12 +2178,12 @@ Objects:  {''')
     # each by themselves dont need pose data. for now only pose meshes and bones
 
     file.write('''
-    Pose: "Pose::BIND_POSES", "BindPose" {
-        Type: "BindPose"
-        Version: 100
-        Properties60:  {
-        }
-        NbPoseNodes: ''')
+	Pose: "Pose::BIND_POSES", "BindPose" {
+		Type: "BindPose"
+		Version: 100
+		Properties60:  {
+		}
+		NbPoseNodes: ''')
     file.write(str(len(pose_items)))
 
     for fbxName, matrix in pose_items:
@@ -2209,18 +2197,18 @@ Objects:  {''')
     # Finish Writing Objects
     # Write global settings
     file.write('''
-    GlobalSettings:  {
-        Version: 1000
-        Properties60:  {
-            Property: "UpAxis", "int", "",1
-            Property: "UpAxisSign", "int", "",1
-            Property: "FrontAxis", "int", "",2
-            Property: "FrontAxisSign", "int", "",1
-            Property: "CoordAxis", "int", "",0
-            Property: "CoordAxisSign", "int", "",1
-            Property: "UnitScaleFactor", "double", "",1
-        }
-    }
+	GlobalSettings:  {
+		Version: 1000
+		Properties60:  {
+			Property: "UpAxis", "int", "",1
+			Property: "UpAxisSign", "int", "",1
+			Property: "FrontAxis", "int", "",2
+			Property: "FrontAxisSign", "int", "",1
+			Property: "CoordAxis", "int", "",0
+			Property: "CoordAxisSign", "int", "",1
+			Property: "UnitScaleFactor", "double", "",1
+		}
+	}
 ''')
     file.write('}')
 
@@ -2252,22 +2240,22 @@ Relations:  {''')
         file.write('\n\tModel: "Model::%s", "Light" {\n\t}' % my_light.fbxName)
 
     file.write('''
-    Model: "Model::Producer Perspective", "Camera" {
-    }
-    Model: "Model::Producer Top", "Camera" {
-    }
-    Model: "Model::Producer Bottom", "Camera" {
-    }
-    Model: "Model::Producer Front", "Camera" {
-    }
-    Model: "Model::Producer Back", "Camera" {
-    }
-    Model: "Model::Producer Right", "Camera" {
-    }
-    Model: "Model::Producer Left", "Camera" {
-    }
-    Model: "Model::Camera Switcher", "CameraSwitcher" {
-    }''')
+	Model: "Model::Producer Perspective", "Camera" {
+	}
+	Model: "Model::Producer Top", "Camera" {
+	}
+	Model: "Model::Producer Bottom", "Camera" {
+	}
+	Model: "Model::Producer Front", "Camera" {
+	}
+	Model: "Model::Producer Back", "Camera" {
+	}
+	Model: "Model::Producer Right", "Camera" {
+	}
+	Model: "Model::Producer Left", "Camera" {
+	}
+	Model: "Model::Camera Switcher", "CameraSwitcher" {
+	}''')
 
     for matname, (mat, tex) in materials:
         file.write('\n\tMaterial: "Material::%s", "" {\n\t}' % matname)
@@ -2408,7 +2396,6 @@ Connections:  {''')
         tagged_actions = []
 
         if ANIM_ACTION_ALL:
-# 			bpy.data.actions.tag = False
             tmp_actions = bpy.data.actions[:]
 
             # find which actions are compatible with the armatures
@@ -2425,12 +2412,10 @@ Connections:  {''')
                 for action in tmp_actions:
 
                     action_chan_names = arm_bone_names.intersection(set([g.name for g in action.groups]))
-# 					action_chan_names = arm_bone_names.intersection( set(action.getChannelNames()) )
 
                     if action_chan_names:  # at least one channel matches.
                         my_arm.blenActionList.append(action)
                         tagged_actions.append(action.name)
-# 						action.tag = True
                         tmp_act_count += 1
 
                         # incase there is no actions applied to armatures
@@ -2460,7 +2445,6 @@ Takes:  {''')
             # we have tagged all actious that are used be selected armatures
             if blenAction:
                 if blenAction.name in tagged_actions:
-# 				if blenAction.tag:
                     print('\taction: "%s" exporting...' % blenAction.name)
                 else:
                     print('\taction: "%s" has no armature using it, skipping' % blenAction.name)
@@ -2495,8 +2479,8 @@ Takes:  {''')
 
             file.write('''
 
-        ;Models animation
-        ;----------------------------------------------------''')
+		;Models animation
+		;----------------------------------------------------''')
 
             # set pose data for all bones
             # do this here incase the action changes
