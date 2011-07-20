@@ -45,6 +45,7 @@ def tuple_rad_to_deg(eul):
 
 # Used to add the scene name into the filepath without using odd chars
 sane_name_mapping_ob = {}
+sane_name_mapping_ob_unique = set()
 sane_name_mapping_mat = {}
 sane_name_mapping_tex = {}
 sane_name_mapping_take = {}
@@ -67,7 +68,7 @@ def increment_string(t):
 
 
 # todo - Disallow the name 'Scene' - it will bugger things up.
-def sane_name(data, dct):
+def sane_name(data, dct, unique_set=None):
     #if not data: return None
 
     if type(data) == tuple:  # materials are paired up with images
@@ -97,7 +98,9 @@ def sane_name(data, dct):
 
         name = bpy.path.clean_name(name)  # use our own
 
-    while name in iter(dct.values()):
+    name_unique = dct.values() if unique_set is None else unique_set
+
+    while name in name_unique:
         name = increment_string(name)
 
     if use_other:  # even if other is None - orig_name_other will be a string or None
@@ -105,11 +108,14 @@ def sane_name(data, dct):
     else:
         dct[orig_name] = name
 
+    if unique_set is not None:
+        unique_set.add(name)
+
     return name
 
 
 def sane_obname(data):
-    return sane_name(data, sane_name_mapping_ob)
+    return sane_name(data, sane_name_mapping_ob, sane_name_mapping_ob_unique)
 
 
 def sane_matname(data):
@@ -2713,11 +2719,15 @@ Takes:  {''')
     file.write('\n')
 
     # XXX, shouldnt be global!
-    sane_name_mapping_ob.clear()
-    sane_name_mapping_mat.clear()
-    sane_name_mapping_tex.clear()
-    sane_name_mapping_take.clear()
-    sane_name_mapping_group.clear()
+    for mapping in (sane_name_mapping_ob,
+                    sane_name_mapping_ob_unique,
+                    sane_name_mapping_mat,
+                    sane_name_mapping_tex,
+                    sane_name_mapping_take,
+                    sane_name_mapping_group,
+                    ):
+        mapping.clear()
+    del mapping
 
     ob_arms[:] = []
     ob_bones[:] = []
