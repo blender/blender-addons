@@ -1084,7 +1084,7 @@ def export(file,
             filepath = image.filepath
             filepath_full = bpy.path.abspath(filepath)
             filepath_ref = bpy_extras.io_utils.path_reference(filepath_full, base_src, base_dst, path_mode, "textures", copy_set)
-            filepath_base = os.path.basename(filepath_ref)
+            filepath_base = os.path.basename(filepath_full)
 
             images = [
                 filepath_base,
@@ -1150,7 +1150,7 @@ def export(file,
             if tex.type == 'IMAGE' and tex.image:
                 namemat = tex.name
                 pic = tex.image
-                basename = os.path.basename(bpy.path.abspath(pic.filepath))
+                basename = bpy.path.basename(pic.filepath)
 
                 if namemat == 'back':
                     fw(ident_step + 'backUrl="%s"\n' % basename)

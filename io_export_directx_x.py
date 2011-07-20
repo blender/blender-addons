@@ -199,7 +199,7 @@ def GetMaterialTexture(Material):
         #Create a list of Textures that have type "IMAGE"
         ImageTextures = [Material.texture_slots[TextureSlot].texture for TextureSlot in Material.texture_slots.keys() if Material.texture_slots[TextureSlot].texture.type == "IMAGE"]
         #Refine a new list with only image textures that have a file source
-        ImageFiles = [os.path.basename(Texture.image.filepath[2:]) for Texture in ImageTextures if Texture.image.source == "FILE"]
+        ImageFiles = [bpy.path.basename(Texture.image.filepath) for Texture in ImageTextures if getattr(Texture.image, "source", "") == "FILE"]
         if ImageFiles:
             return ImageFiles[0]
     return None

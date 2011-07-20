@@ -1090,7 +1090,7 @@ def save_single(operator, scene, filepath="",
             Property: "Height", "int", "",0''')
         if tex:
             fname_rel = bpy_extras.io_utils.path_reference(tex.filepath, base_src, base_dst, path_mode, "", copy_set)
-            fname_strip = os.path.basename(fname_rel)
+            fname_strip = bpy.path.basename(fname_rel)
         else:
             fname_strip = fname_rel = ""
 
@@ -1149,7 +1149,7 @@ def save_single(operator, scene, filepath="",
 
         if tex:
             fname_rel = bpy_extras.io_utils.path_reference(tex.filepath, base_src, base_dst, path_mode, "", copy_set)
-            fname_strip = os.path.basename(fname_rel)
+            fname_strip = bpy.path.basename(bpy.path.abspath(fname_rel))
         else:
             fname_strip = fname_rel = ""
 
