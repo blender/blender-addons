@@ -50,6 +50,7 @@ sane_name_mapping_group = {}
 
 # Make sure reserved names are not used
 sane_name_mapping_ob['Scene'] = 'Scene_'
+sane_name_mapping_ob_unique.add('Scene_')
 
 
 def increment_string(t):
@@ -553,11 +554,13 @@ def save_single(operator, scene, filepath="",
         # eEULER_ZXY
         # eEULER_ZYX
 
-        file.write('\n\t\t\tProperty: "RotationOffset", "Vector3D", "",0,0,0')
-        file.write('\n\t\t\tProperty: "RotationPivot", "Vector3D", "",0,0,0')
-        file.write('\n\t\t\tProperty: "ScalingOffset", "Vector3D", "",0,0,0')
-        file.write('\n\t\t\tProperty: "ScalingPivot", "Vector3D", "",0,0,0')
-        file.write('\n\t\t\tProperty: "TranslationActive", "bool", "",0')
+        file.write('\n\t\t\tProperty: "RotationOffset", "Vector3D", "",0,0,0'
+                   '\n\t\t\tProperty: "RotationPivot", "Vector3D", "",0,0,0'
+                   '\n\t\t\tProperty: "ScalingOffset", "Vector3D", "",0,0,0'
+                   '\n\t\t\tProperty: "ScalingPivot", "Vector3D", "",0,0,0'
+                   '\n\t\t\tProperty: "TranslationActive", "bool", "",0'
+                   )
+
         file.write('\n\t\t\tProperty: "TranslationMin", "Vector3D", "",%.15g,%.15g,%.15g' % constraints["loc_min"])
         file.write('\n\t\t\tProperty: "TranslationMax", "Vector3D", "",%.15g,%.15g,%.15g' % constraints["loc_max"])
         file.write('\n\t\t\tProperty: "TranslationMinX", "bool", "",%d' % constraints["loc_limit"][0])
@@ -566,12 +569,15 @@ def save_single(operator, scene, filepath="",
         file.write('\n\t\t\tProperty: "TranslationMaxX", "bool", "",%d' % constraints["loc_limit"][3])
         file.write('\n\t\t\tProperty: "TranslationMaxY", "bool", "",%d' % constraints["loc_limit"][4])
         file.write('\n\t\t\tProperty: "TranslationMaxZ", "bool", "",%d' % constraints["loc_limit"][5])
-        file.write('\n\t\t\tProperty: "RotationOrder", "enum", "",0')
-        file.write('\n\t\t\tProperty: "RotationSpaceForLimitOnly", "bool", "",0')
-        file.write('\n\t\t\tProperty: "AxisLen", "double", "",10')
-        file.write('\n\t\t\tProperty: "PreRotation", "Vector3D", "",0,0,0')
-        file.write('\n\t\t\tProperty: "PostRotation", "Vector3D", "",0,0,0')
-        file.write('\n\t\t\tProperty: "RotationActive", "bool", "",0')
+
+        file.write('\n\t\t\tProperty: "RotationOrder", "enum", "",0'
+                   '\n\t\t\tProperty: "RotationSpaceForLimitOnly", "bool", "",0'
+                   '\n\t\t\tProperty: "AxisLen", "double", "",10'
+                   '\n\t\t\tProperty: "PreRotation", "Vector3D", "",0,0,0'
+                   '\n\t\t\tProperty: "PostRotation", "Vector3D", "",0,0,0'
+                   '\n\t\t\tProperty: "RotationActive", "bool", "",0'
+                   )
+
         file.write('\n\t\t\tProperty: "RotationMin", "Vector3D", "",%.15g,%.15g,%.15g' % constraints["rot_min"])
         file.write('\n\t\t\tProperty: "RotationMax", "Vector3D", "",%.15g,%.15g,%.15g' % constraints["rot_max"])
         file.write('\n\t\t\tProperty: "RotationMinX", "bool", "",%d' % constraints["rot_limit"][0])
@@ -580,26 +586,29 @@ def save_single(operator, scene, filepath="",
         file.write('\n\t\t\tProperty: "RotationMaxX", "bool", "",%d' % constraints["rot_limit"][0])
         file.write('\n\t\t\tProperty: "RotationMaxY", "bool", "",%d' % constraints["rot_limit"][1])
         file.write('\n\t\t\tProperty: "RotationMaxZ", "bool", "",%d' % constraints["rot_limit"][2])
-        file.write('\n\t\t\tProperty: "RotationStiffnessX", "double", "",0')
-        file.write('\n\t\t\tProperty: "RotationStiffnessY", "double", "",0')
-        file.write('\n\t\t\tProperty: "RotationStiffnessZ", "double", "",0')
-        file.write('\n\t\t\tProperty: "MinDampRangeX", "double", "",0')
-        file.write('\n\t\t\tProperty: "MinDampRangeY", "double", "",0')
-        file.write('\n\t\t\tProperty: "MinDampRangeZ", "double", "",0')
-        file.write('\n\t\t\tProperty: "MaxDampRangeX", "double", "",0')
-        file.write('\n\t\t\tProperty: "MaxDampRangeY", "double", "",0')
-        file.write('\n\t\t\tProperty: "MaxDampRangeZ", "double", "",0')
-        file.write('\n\t\t\tProperty: "MinDampStrengthX", "double", "",0')
-        file.write('\n\t\t\tProperty: "MinDampStrengthY", "double", "",0')
-        file.write('\n\t\t\tProperty: "MinDampStrengthZ", "double", "",0')
-        file.write('\n\t\t\tProperty: "MaxDampStrengthX", "double", "",0')
-        file.write('\n\t\t\tProperty: "MaxDampStrengthY", "double", "",0')
-        file.write('\n\t\t\tProperty: "MaxDampStrengthZ", "double", "",0')
-        file.write('\n\t\t\tProperty: "PreferedAngleX", "double", "",0')
-        file.write('\n\t\t\tProperty: "PreferedAngleY", "double", "",0')
-        file.write('\n\t\t\tProperty: "PreferedAngleZ", "double", "",0')
-        file.write('\n\t\t\tProperty: "InheritType", "enum", "",0')
-        file.write('\n\t\t\tProperty: "ScalingActive", "bool", "",0')
+
+        file.write('\n\t\t\tProperty: "RotationStiffnessX", "double", "",0'
+                   '\n\t\t\tProperty: "RotationStiffnessY", "double", "",0'
+                   '\n\t\t\tProperty: "RotationStiffnessZ", "double", "",0'
+                   '\n\t\t\tProperty: "MinDampRangeX", "double", "",0'
+                   '\n\t\t\tProperty: "MinDampRangeY", "double", "",0'
+                   '\n\t\t\tProperty: "MinDampRangeZ", "double", "",0'
+                   '\n\t\t\tProperty: "MaxDampRangeX", "double", "",0'
+                   '\n\t\t\tProperty: "MaxDampRangeY", "double", "",0'
+                   '\n\t\t\tProperty: "MaxDampRangeZ", "double", "",0'
+                   '\n\t\t\tProperty: "MinDampStrengthX", "double", "",0'
+                   '\n\t\t\tProperty: "MinDampStrengthY", "double", "",0'
+                   '\n\t\t\tProperty: "MinDampStrengthZ", "double", "",0'
+                   '\n\t\t\tProperty: "MaxDampStrengthX", "double", "",0'
+                   '\n\t\t\tProperty: "MaxDampStrengthY", "double", "",0'
+                   '\n\t\t\tProperty: "MaxDampStrengthZ", "double", "",0'
+                   '\n\t\t\tProperty: "PreferedAngleX", "double", "",0'
+                   '\n\t\t\tProperty: "PreferedAngleY", "double", "",0'
+                   '\n\t\t\tProperty: "PreferedAngleZ", "double", "",0'
+                   '\n\t\t\tProperty: "InheritType", "enum", "",0'
+                   '\n\t\t\tProperty: "ScalingActive", "bool", "",0'
+                   )
+
         file.write('\n\t\t\tProperty: "ScalingMin", "Vector3D", "",%.15g,%.15g,%.15g' % constraints["sca_min"])
         file.write('\n\t\t\tProperty: "ScalingMax", "Vector3D", "",%.15g,%.15g,%.15g' % constraints["sca_max"])
         file.write('\n\t\t\tProperty: "ScalingMinX", "bool", "",%d' % constraints["sca_limit"][0])
@@ -608,19 +617,23 @@ def save_single(operator, scene, filepath="",
         file.write('\n\t\t\tProperty: "ScalingMaxX", "bool", "",%d' % constraints["sca_limit"][3])
         file.write('\n\t\t\tProperty: "ScalingMaxY", "bool", "",%d' % constraints["sca_limit"][4])
         file.write('\n\t\t\tProperty: "ScalingMaxZ", "bool", "",%d' % constraints["sca_limit"][5])
-        file.write('\n\t\t\tProperty: "GeometricTranslation", "Vector3D", "",0,0,0')
-        file.write('\n\t\t\tProperty: "GeometricRotation", "Vector3D", "",0,0,0')
-        file.write('\n\t\t\tProperty: "GeometricScaling", "Vector3D", "",1,1,1')
-        file.write('\n\t\t\tProperty: "LookAtProperty", "object", ""')
-        file.write('\n\t\t\tProperty: "UpVectorProperty", "object", ""')
-        file.write('\n\t\t\tProperty: "Show", "bool", "",1')
-        file.write('\n\t\t\tProperty: "NegativePercentShapeSupport", "bool", "",1')
-        file.write('\n\t\t\tProperty: "DefaultAttributeIndex", "int", "",0')
+
+        file.write('\n\t\t\tProperty: "GeometricTranslation", "Vector3D", "",0,0,0'
+                   '\n\t\t\tProperty: "GeometricRotation", "Vector3D", "",0,0,0'
+                   '\n\t\t\tProperty: "GeometricScaling", "Vector3D", "",1,1,1'
+                   '\n\t\t\tProperty: "LookAtProperty", "object", ""'
+                   '\n\t\t\tProperty: "UpVectorProperty", "object", ""'
+                   '\n\t\t\tProperty: "Show", "bool", "",1'
+                   '\n\t\t\tProperty: "NegativePercentShapeSupport", "bool", "",1'
+                   '\n\t\t\tProperty: "DefaultAttributeIndex", "int", "",0'
+                   )
+
         if ob and not isinstance(ob, bpy.types.Bone):
             # Only mesh objects have color
-            file.write('\n\t\t\tProperty: "Color", "Color", "A",0.8,0.8,0.8')
-            file.write('\n\t\t\tProperty: "Size", "double", "",100')
-            file.write('\n\t\t\tProperty: "Look", "enum", "",1')
+            file.write('\n\t\t\tProperty: "Color", "Color", "A",0.8,0.8,0.8'
+                       '\n\t\t\tProperty: "Size", "double", "",100'
+                       '\n\t\t\tProperty: "Look", "enum", "",1'
+                       )
 
         return loc, rot, scale, matrix, matrix_rot
 
@@ -648,15 +661,16 @@ def save_single(operator, scene, filepath="",
                    (my_bone.blenBone.head_local - my_bone.blenBone.tail_local).length)
 
         #file.write('\n\t\t\tProperty: "LimbLength", "double", "",1')
-        file.write('\n\t\t\tProperty: "Color", "ColorRGB", "",0.8,0.8,0.8')
-        file.write('\n\t\t\tProperty: "Color", "Color", "A",0.8,0.8,0.8')
-        file.write('\n\t\t}')
-        file.write('\n\t\tMultiLayer: 0')
-        file.write('\n\t\tMultiTake: 1')
-        file.write('\n\t\tShading: Y')
-        file.write('\n\t\tCulling: "CullingOff"')
-        file.write('\n\t\tTypeFlags: "Skeleton"')
-        file.write('\n\t}')
+        file.write('\n\t\t\tProperty: "Color", "ColorRGB", "",0.8,0.8,0.8'
+                   '\n\t\t\tProperty: "Color", "Color", "A",0.8,0.8,0.8'
+                   '\n\t\t}'
+                   '\n\t\tMultiLayer: 0'
+                   '\n\t\tMultiTake: 1'
+                   '\n\t\tShading: Y'
+                   '\n\t\tCulling: "CullingOff"'
+                   '\n\t\tTypeFlags: "Skeleton"'
+                   '\n\t}'
+                   )
 
     def write_camera_switch():
         file.write('''
@@ -685,89 +699,98 @@ def save_single(operator, scene, filepath="",
         file.write('\n\t\tVersion: 232')
         write_object_props(None, loc)
 
-        file.write('\n\t\t\tProperty: "Color", "Color", "A",0.8,0.8,0.8')
-        file.write('\n\t\t\tProperty: "Roll", "Roll", "A+",0')
-        file.write('\n\t\t\tProperty: "FieldOfView", "FieldOfView", "A+",40')
-        file.write('\n\t\t\tProperty: "FieldOfViewX", "FieldOfView", "A+",1')
-        file.write('\n\t\t\tProperty: "FieldOfViewY", "FieldOfView", "A+",1')
-        file.write('\n\t\t\tProperty: "OpticalCenterX", "Real", "A+",0')
-        file.write('\n\t\t\tProperty: "OpticalCenterY", "Real", "A+",0')
-        file.write('\n\t\t\tProperty: "BackgroundColor", "Color", "A+",0.63,0.63,0.63')
-        file.write('\n\t\t\tProperty: "TurnTable", "Real", "A+",0')
-        file.write('\n\t\t\tProperty: "DisplayTurnTableIcon", "bool", "",1')
-        file.write('\n\t\t\tProperty: "Motion Blur Intensity", "Real", "A+",1')
-        file.write('\n\t\t\tProperty: "UseMotionBlur", "bool", "",0')
-        file.write('\n\t\t\tProperty: "UseRealTimeMotionBlur", "bool", "",1')
-        file.write('\n\t\t\tProperty: "ResolutionMode", "enum", "",0')
-        file.write('\n\t\t\tProperty: "ApertureMode", "enum", "",2')
-        file.write('\n\t\t\tProperty: "GateFit", "enum", "",0')
-        file.write('\n\t\t\tProperty: "FocalLength", "Real", "A+",21.3544940948486')
-        file.write('\n\t\t\tProperty: "CameraFormat", "enum", "",0')
-        file.write('\n\t\t\tProperty: "AspectW", "double", "",320')
-        file.write('\n\t\t\tProperty: "AspectH", "double", "",200')
-        file.write('\n\t\t\tProperty: "PixelAspectRatio", "double", "",1')
-        file.write('\n\t\t\tProperty: "UseFrameColor", "bool", "",0')
-        file.write('\n\t\t\tProperty: "FrameColor", "ColorRGB", "",0.3,0.3,0.3')
-        file.write('\n\t\t\tProperty: "ShowName", "bool", "",1')
-        file.write('\n\t\t\tProperty: "ShowGrid", "bool", "",1')
-        file.write('\n\t\t\tProperty: "ShowOpticalCenter", "bool", "",0')
-        file.write('\n\t\t\tProperty: "ShowAzimut", "bool", "",1')
-        file.write('\n\t\t\tProperty: "ShowTimeCode", "bool", "",0')
+        file.write('\n\t\t\tProperty: "Color", "Color", "A",0.8,0.8,0.8'
+                   '\n\t\t\tProperty: "Roll", "Roll", "A+",0'
+                   '\n\t\t\tProperty: "FieldOfView", "FieldOfView", "A+",40'
+                   '\n\t\t\tProperty: "FieldOfViewX", "FieldOfView", "A+",1'
+                   '\n\t\t\tProperty: "FieldOfViewY", "FieldOfView", "A+",1'
+                   '\n\t\t\tProperty: "OpticalCenterX", "Real", "A+",0'
+                   '\n\t\t\tProperty: "OpticalCenterY", "Real", "A+",0'
+                   '\n\t\t\tProperty: "BackgroundColor", "Color", "A+",0.63,0.63,0.63'
+                   '\n\t\t\tProperty: "TurnTable", "Real", "A+",0'
+                   '\n\t\t\tProperty: "DisplayTurnTableIcon", "bool", "",1'
+                   '\n\t\t\tProperty: "Motion Blur Intensity", "Real", "A+",1'
+                   '\n\t\t\tProperty: "UseMotionBlur", "bool", "",0'
+                   '\n\t\t\tProperty: "UseRealTimeMotionBlur", "bool", "",1'
+                   '\n\t\t\tProperty: "ResolutionMode", "enum", "",0'
+                   '\n\t\t\tProperty: "ApertureMode", "enum", "",2'
+                   '\n\t\t\tProperty: "GateFit", "enum", "",0'
+                   '\n\t\t\tProperty: "FocalLength", "Real", "A+",21.3544940948486'
+                   '\n\t\t\tProperty: "CameraFormat", "enum", "",0'
+                   '\n\t\t\tProperty: "AspectW", "double", "",320'
+                   '\n\t\t\tProperty: "AspectH", "double", "",200'
+                   '\n\t\t\tProperty: "PixelAspectRatio", "double", "",1'
+                   '\n\t\t\tProperty: "UseFrameColor", "bool", "",0'
+                   '\n\t\t\tProperty: "FrameColor", "ColorRGB", "",0.3,0.3,0.3'
+                   '\n\t\t\tProperty: "ShowName", "bool", "",1'
+                   '\n\t\t\tProperty: "ShowGrid", "bool", "",1'
+                   '\n\t\t\tProperty: "ShowOpticalCenter", "bool", "",0'
+                   '\n\t\t\tProperty: "ShowAzimut", "bool", "",1'
+                   '\n\t\t\tProperty: "ShowTimeCode", "bool", "",0'
+                   )
+
         file.write('\n\t\t\tProperty: "NearPlane", "double", "",%.6f' % near)
         file.write('\n\t\t\tProperty: "FarPlane", "double", "",%.6f' % far)
-        file.write('\n\t\t\tProperty: "FilmWidth", "double", "",0.816')
-        file.write('\n\t\t\tProperty: "FilmHeight", "double", "",0.612')
-        file.write('\n\t\t\tProperty: "FilmAspectRatio", "double", "",1.33333333333333')
-        file.write('\n\t\t\tProperty: "FilmSqueezeRatio", "double", "",1')
-        file.write('\n\t\t\tProperty: "FilmFormatIndex", "enum", "",4')
-        file.write('\n\t\t\tProperty: "ViewFrustum", "bool", "",1')
-        file.write('\n\t\t\tProperty: "ViewFrustumNearFarPlane", "bool", "",0')
-        file.write('\n\t\t\tProperty: "ViewFrustumBackPlaneMode", "enum", "",2')
-        file.write('\n\t\t\tProperty: "BackPlaneDistance", "double", "",100')
-        file.write('\n\t\t\tProperty: "BackPlaneDistanceMode", "enum", "",0')
-        file.write('\n\t\t\tProperty: "ViewCameraToLookAt", "bool", "",1')
-        file.write('\n\t\t\tProperty: "LockMode", "bool", "",0')
-        file.write('\n\t\t\tProperty: "LockInterestNavigation", "bool", "",0')
-        file.write('\n\t\t\tProperty: "FitImage", "bool", "",0')
-        file.write('\n\t\t\tProperty: "Crop", "bool", "",0')
-        file.write('\n\t\t\tProperty: "Center", "bool", "",1')
-        file.write('\n\t\t\tProperty: "KeepRatio", "bool", "",1')
-        file.write('\n\t\t\tProperty: "BackgroundMode", "enum", "",0')
-        file.write('\n\t\t\tProperty: "BackgroundAlphaTreshold", "double", "",0.5')
-        file.write('\n\t\t\tProperty: "ForegroundTransparent", "bool", "",1')
-        file.write('\n\t\t\tProperty: "DisplaySafeArea", "bool", "",0')
-        file.write('\n\t\t\tProperty: "SafeAreaDisplayStyle", "enum", "",1')
-        file.write('\n\t\t\tProperty: "SafeAreaAspectRatio", "double", "",1.33333333333333')
-        file.write('\n\t\t\tProperty: "Use2DMagnifierZoom", "bool", "",0')
-        file.write('\n\t\t\tProperty: "2D Magnifier Zoom", "Real", "A+",100')
-        file.write('\n\t\t\tProperty: "2D Magnifier X", "Real", "A+",50')
-        file.write('\n\t\t\tProperty: "2D Magnifier Y", "Real", "A+",50')
+
+        file.write('\n\t\t\tProperty: "FilmWidth", "double", "",0.816'
+                   '\n\t\t\tProperty: "FilmHeight", "double", "",0.612'
+                   '\n\t\t\tProperty: "FilmAspectRatio", "double", "",1.33333333333333'
+                   '\n\t\t\tProperty: "FilmSqueezeRatio", "double", "",1'
+                   '\n\t\t\tProperty: "FilmFormatIndex", "enum", "",4'
+                   '\n\t\t\tProperty: "ViewFrustum", "bool", "",1'
+                   '\n\t\t\tProperty: "ViewFrustumNearFarPlane", "bool", "",0'
+                   '\n\t\t\tProperty: "ViewFrustumBackPlaneMode", "enum", "",2'
+                   '\n\t\t\tProperty: "BackPlaneDistance", "double", "",100'
+                   '\n\t\t\tProperty: "BackPlaneDistanceMode", "enum", "",0'
+                   '\n\t\t\tProperty: "ViewCameraToLookAt", "bool", "",1'
+                   '\n\t\t\tProperty: "LockMode", "bool", "",0'
+                   '\n\t\t\tProperty: "LockInterestNavigation", "bool", "",0'
+                   '\n\t\t\tProperty: "FitImage", "bool", "",0'
+                   '\n\t\t\tProperty: "Crop", "bool", "",0'
+                   '\n\t\t\tProperty: "Center", "bool", "",1'
+                   '\n\t\t\tProperty: "KeepRatio", "bool", "",1'
+                   '\n\t\t\tProperty: "BackgroundMode", "enum", "",0'
+                   '\n\t\t\tProperty: "BackgroundAlphaTreshold", "double", "",0.5'
+                   '\n\t\t\tProperty: "ForegroundTransparent", "bool", "",1'
+                   '\n\t\t\tProperty: "DisplaySafeArea", "bool", "",0'
+                   '\n\t\t\tProperty: "SafeAreaDisplayStyle", "enum", "",1'
+                   '\n\t\t\tProperty: "SafeAreaAspectRatio", "double", "",1.33333333333333'
+                   '\n\t\t\tProperty: "Use2DMagnifierZoom", "bool", "",0'
+                   '\n\t\t\tProperty: "2D Magnifier Zoom", "Real", "A+",100'
+                   '\n\t\t\tProperty: "2D Magnifier X", "Real", "A+",50'
+                   '\n\t\t\tProperty: "2D Magnifier Y", "Real", "A+",50'
+                   )
+
         file.write('\n\t\t\tProperty: "CameraProjectionType", "enum", "",%i' % proj_type)
-        file.write('\n\t\t\tProperty: "UseRealTimeDOFAndAA", "bool", "",0')
-        file.write('\n\t\t\tProperty: "UseDepthOfField", "bool", "",0')
-        file.write('\n\t\t\tProperty: "FocusSource", "enum", "",0')
-        file.write('\n\t\t\tProperty: "FocusAngle", "double", "",3.5')
-        file.write('\n\t\t\tProperty: "FocusDistance", "double", "",200')
-        file.write('\n\t\t\tProperty: "UseAntialiasing", "bool", "",0')
-        file.write('\n\t\t\tProperty: "AntialiasingIntensity", "double", "",0.77777')
-        file.write('\n\t\t\tProperty: "UseAccumulationBuffer", "bool", "",0')
-        file.write('\n\t\t\tProperty: "FrameSamplingCount", "int", "",7')
-        file.write('\n\t\t}')
-        file.write('\n\t\tMultiLayer: 0')
-        file.write('\n\t\tMultiTake: 0')
-        file.write('\n\t\tHidden: "True"')
-        file.write('\n\t\tShading: Y')
-        file.write('\n\t\tCulling: "CullingOff"')
-        file.write('\n\t\tTypeFlags: "Camera"')
-        file.write('\n\t\tGeometryVersion: 124')
+
+        file.write('\n\t\t\tProperty: "UseRealTimeDOFAndAA", "bool", "",0'
+                   '\n\t\t\tProperty: "UseDepthOfField", "bool", "",0'
+                   '\n\t\t\tProperty: "FocusSource", "enum", "",0'
+                   '\n\t\t\tProperty: "FocusAngle", "double", "",3.5'
+                   '\n\t\t\tProperty: "FocusDistance", "double", "",200'
+                   '\n\t\t\tProperty: "UseAntialiasing", "bool", "",0'
+                   '\n\t\t\tProperty: "AntialiasingIntensity", "double", "",0.77777'
+                   '\n\t\t\tProperty: "UseAccumulationBuffer", "bool", "",0'
+                   '\n\t\t\tProperty: "FrameSamplingCount", "int", "",7'
+                   '\n\t\t}'
+                   '\n\t\tMultiLayer: 0'
+                   '\n\t\tMultiTake: 0'
+                   '\n\t\tHidden: "True"'
+                   '\n\t\tShading: Y'
+                   '\n\t\tCulling: "CullingOff"'
+                   '\n\t\tTypeFlags: "Camera"'
+                   '\n\t\tGeometryVersion: 124'
+                   )
+
         file.write('\n\t\tPosition: %.6f,%.6f,%.6f' % loc)
         file.write('\n\t\tUp: %i,%i,%i' % up)
-        file.write('\n\t\tLookAt: 0,0,0')
-        file.write('\n\t\tShowInfoOnMoving: 1')
-        file.write('\n\t\tShowAudio: 0')
-        file.write('\n\t\tAudioColor: 0,1,0')
-        file.write('\n\t\tCameraOrthoZoom: 1')
-        file.write('\n\t}')
+
+        file.write('\n\t\tLookAt: 0,0,0'
+                   '\n\t\tShowInfoOnMoving: 1'
+                   '\n\t\tShowAudio: 0'
+                   '\n\t\tAudioColor: 0,1,0'
+                   '\n\t\tCameraOrthoZoom: 1'
+                   '\n\t}')
 
     def write_camera_default():
         # This sucks but to match FBX converter its easier to
@@ -797,21 +820,27 @@ def save_single(operator, scene, filepath="",
 
         file.write('\n\t\t\tProperty: "Roll", "Roll", "A+",0')
         file.write('\n\t\t\tProperty: "FieldOfView", "FieldOfView", "A+",%.6f' % math.degrees(data.angle))
-        file.write('\n\t\t\tProperty: "FieldOfViewX", "FieldOfView", "A+",1')
-        file.write('\n\t\t\tProperty: "FieldOfViewY", "FieldOfView", "A+",1')
+
+        file.write('\n\t\t\tProperty: "FieldOfViewX", "FieldOfView", "A+",1'
+                   '\n\t\t\tProperty: "FieldOfViewY", "FieldOfView", "A+",1'
+                   )
+
         # file.write('\n\t\t\tProperty: "FocalLength", "Real", "A+",14.0323972702026')
         file.write('\n\t\t\tProperty: "OpticalCenterX", "Real", "A+",%.6f' % data.shift_x)  # not sure if this is in the correct units?
         file.write('\n\t\t\tProperty: "OpticalCenterY", "Real", "A+",%.6f' % data.shift_y)  # ditto
-        file.write('\n\t\t\tProperty: "BackgroundColor", "Color", "A+",0,0,0')
-        file.write('\n\t\t\tProperty: "TurnTable", "Real", "A+",0')
-        file.write('\n\t\t\tProperty: "DisplayTurnTableIcon", "bool", "",1')
-        file.write('\n\t\t\tProperty: "Motion Blur Intensity", "Real", "A+",1')
-        file.write('\n\t\t\tProperty: "UseMotionBlur", "bool", "",0')
-        file.write('\n\t\t\tProperty: "UseRealTimeMotionBlur", "bool", "",1')
-        file.write('\n\t\t\tProperty: "ResolutionMode", "enum", "",0')
-        file.write('\n\t\t\tProperty: "ApertureMode", "enum", "",2')
-        file.write('\n\t\t\tProperty: "GateFit", "enum", "",2')
-        file.write('\n\t\t\tProperty: "CameraFormat", "enum", "",0')
+
+        file.write('\n\t\t\tProperty: "BackgroundColor", "Color", "A+",0,0,0'
+                   '\n\t\t\tProperty: "TurnTable", "Real", "A+",0'
+                   '\n\t\t\tProperty: "DisplayTurnTableIcon", "bool", "",1'
+                   '\n\t\t\tProperty: "Motion Blur Intensity", "Real", "A+",1'
+                   '\n\t\t\tProperty: "UseMotionBlur", "bool", "",0'
+                   '\n\t\t\tProperty: "UseRealTimeMotionBlur", "bool", "",1'
+                   '\n\t\t\tProperty: "ResolutionMode", "enum", "",0'
+                   '\n\t\t\tProperty: "ApertureMode", "enum", "",2'
+                   '\n\t\t\tProperty: "GateFit", "enum", "",2'
+                   '\n\t\t\tProperty: "CameraFormat", "enum", "",0'
+                   )
+
         file.write('\n\t\t\tProperty: "AspectW", "double", "",%i' % width)
         file.write('\n\t\t\tProperty: "AspectH", "double", "",%i' % height)
 
@@ -824,62 +853,74 @@ def save_single(operator, scene, filepath="",
 
         Definition at line 234 of file kfbxcamera.h. '''
 
-        file.write('\n\t\t\tProperty: "PixelAspectRatio", "double", "",2')
+        file.write('\n\t\t\tProperty: "PixelAspectRatio", "double", "",2'
+                   '\n\t\t\tProperty: "UseFrameColor", "bool", "",0'
+                   '\n\t\t\tProperty: "FrameColor", "ColorRGB", "",0.3,0.3,0.3'
+                   '\n\t\t\tProperty: "ShowName", "bool", "",1'
+                   '\n\t\t\tProperty: "ShowGrid", "bool", "",1'
+                   '\n\t\t\tProperty: "ShowOpticalCenter", "bool", "",0'
+                   '\n\t\t\tProperty: "ShowAzimut", "bool", "",1'
+                   '\n\t\t\tProperty: "ShowTimeCode", "bool", "",0'
+                   )
 
-        file.write('\n\t\t\tProperty: "UseFrameColor", "bool", "",0')
-        file.write('\n\t\t\tProperty: "FrameColor", "ColorRGB", "",0.3,0.3,0.3')
-        file.write('\n\t\t\tProperty: "ShowName", "bool", "",1')
-        file.write('\n\t\t\tProperty: "ShowGrid", "bool", "",1')
-        file.write('\n\t\t\tProperty: "ShowOpticalCenter", "bool", "",0')
-        file.write('\n\t\t\tProperty: "ShowAzimut", "bool", "",1')
-        file.write('\n\t\t\tProperty: "ShowTimeCode", "bool", "",0')
         file.write('\n\t\t\tProperty: "NearPlane", "double", "",%.6f' % data.clip_start)
         file.write('\n\t\t\tProperty: "FarPlane", "double", "",%.6f' % data.clip_end)
-        file.write('\n\t\t\tProperty: "FilmWidth", "double", "",1.0')
-        file.write('\n\t\t\tProperty: "FilmHeight", "double", "",1.0')
+
+        file.write('\n\t\t\tProperty: "FilmWidth", "double", "",1.0'
+                   '\n\t\t\tProperty: "FilmHeight", "double", "",1.0'
+                   )
+
         file.write('\n\t\t\tProperty: "FilmAspectRatio", "double", "",%.6f' % aspect)
-        file.write('\n\t\t\tProperty: "FilmSqueezeRatio", "double", "",1')
-        file.write('\n\t\t\tProperty: "FilmFormatIndex", "enum", "",0')
-        file.write('\n\t\t\tProperty: "ViewFrustum", "bool", "",1')
-        file.write('\n\t\t\tProperty: "ViewFrustumNearFarPlane", "bool", "",0')
-        file.write('\n\t\t\tProperty: "ViewFrustumBackPlaneMode", "enum", "",2')
-        file.write('\n\t\t\tProperty: "BackPlaneDistance", "double", "",100')
-        file.write('\n\t\t\tProperty: "BackPlaneDistanceMode", "enum", "",0')
-        file.write('\n\t\t\tProperty: "ViewCameraToLookAt", "bool", "",1')
-        file.write('\n\t\t\tProperty: "LockMode", "bool", "",0')
-        file.write('\n\t\t\tProperty: "LockInterestNavigation", "bool", "",0')
-        file.write('\n\t\t\tProperty: "FitImage", "bool", "",0')
-        file.write('\n\t\t\tProperty: "Crop", "bool", "",0')
-        file.write('\n\t\t\tProperty: "Center", "bool", "",1')
-        file.write('\n\t\t\tProperty: "KeepRatio", "bool", "",1')
-        file.write('\n\t\t\tProperty: "BackgroundMode", "enum", "",0')
-        file.write('\n\t\t\tProperty: "BackgroundAlphaTreshold", "double", "",0.5')
-        file.write('\n\t\t\tProperty: "ForegroundTransparent", "bool", "",1')
-        file.write('\n\t\t\tProperty: "DisplaySafeArea", "bool", "",0')
-        file.write('\n\t\t\tProperty: "SafeAreaDisplayStyle", "enum", "",1')
+
+        file.write('\n\t\t\tProperty: "FilmSqueezeRatio", "double", "",1'
+                   '\n\t\t\tProperty: "FilmFormatIndex", "enum", "",0'
+                   '\n\t\t\tProperty: "ViewFrustum", "bool", "",1'
+                   '\n\t\t\tProperty: "ViewFrustumNearFarPlane", "bool", "",0'
+                   '\n\t\t\tProperty: "ViewFrustumBackPlaneMode", "enum", "",2'
+                   '\n\t\t\tProperty: "BackPlaneDistance", "double", "",100'
+                   '\n\t\t\tProperty: "BackPlaneDistanceMode", "enum", "",0'
+                   '\n\t\t\tProperty: "ViewCameraToLookAt", "bool", "",1'
+                   '\n\t\t\tProperty: "LockMode", "bool", "",0'
+                   '\n\t\t\tProperty: "LockInterestNavigation", "bool", "",0'
+                   '\n\t\t\tProperty: "FitImage", "bool", "",0'
+                   '\n\t\t\tProperty: "Crop", "bool", "",0'
+                   '\n\t\t\tProperty: "Center", "bool", "",1'
+                   '\n\t\t\tProperty: "KeepRatio", "bool", "",1'
+                   '\n\t\t\tProperty: "BackgroundMode", "enum", "",0'
+                   '\n\t\t\tProperty: "BackgroundAlphaTreshold", "double", "",0.5'
+                   '\n\t\t\tProperty: "ForegroundTransparent", "bool", "",1'
+                   '\n\t\t\tProperty: "DisplaySafeArea", "bool", "",0'
+                   '\n\t\t\tProperty: "SafeAreaDisplayStyle", "enum", "",1'
+                   )
+
         file.write('\n\t\t\tProperty: "SafeAreaAspectRatio", "double", "",%.6f' % aspect)
-        file.write('\n\t\t\tProperty: "Use2DMagnifierZoom", "bool", "",0')
-        file.write('\n\t\t\tProperty: "2D Magnifier Zoom", "Real", "A+",100')
-        file.write('\n\t\t\tProperty: "2D Magnifier X", "Real", "A+",50')
-        file.write('\n\t\t\tProperty: "2D Magnifier Y", "Real", "A+",50')
-        file.write('\n\t\t\tProperty: "CameraProjectionType", "enum", "",0')
-        file.write('\n\t\t\tProperty: "UseRealTimeDOFAndAA", "bool", "",0')
-        file.write('\n\t\t\tProperty: "UseDepthOfField", "bool", "",0')
-        file.write('\n\t\t\tProperty: "FocusSource", "enum", "",0')
-        file.write('\n\t\t\tProperty: "FocusAngle", "double", "",3.5')
-        file.write('\n\t\t\tProperty: "FocusDistance", "double", "",200')
-        file.write('\n\t\t\tProperty: "UseAntialiasing", "bool", "",0')
-        file.write('\n\t\t\tProperty: "AntialiasingIntensity", "double", "",0.77777')
-        file.write('\n\t\t\tProperty: "UseAccumulationBuffer", "bool", "",0')
-        file.write('\n\t\t\tProperty: "FrameSamplingCount", "int", "",7')
+
+        file.write('\n\t\t\tProperty: "Use2DMagnifierZoom", "bool", "",0'
+                   '\n\t\t\tProperty: "2D Magnifier Zoom", "Real", "A+",100'
+                   '\n\t\t\tProperty: "2D Magnifier X", "Real", "A+",50'
+                   '\n\t\t\tProperty: "2D Magnifier Y", "Real", "A+",50'
+                   '\n\t\t\tProperty: "CameraProjectionType", "enum", "",0'
+                   '\n\t\t\tProperty: "UseRealTimeDOFAndAA", "bool", "",0'
+                   '\n\t\t\tProperty: "UseDepthOfField", "bool", "",0'
+                   '\n\t\t\tProperty: "FocusSource", "enum", "",0'
+                   '\n\t\t\tProperty: "FocusAngle", "double", "",3.5'
+                   '\n\t\t\tProperty: "FocusDistance", "double", "",200'
+                   '\n\t\t\tProperty: "UseAntialiasing", "bool", "",0'
+                   '\n\t\t\tProperty: "AntialiasingIntensity", "double", "",0.77777'
+                   '\n\t\t\tProperty: "UseAccumulationBuffer", "bool", "",0'
+                   '\n\t\t\tProperty: "FrameSamplingCount", "int", "",7'
+                   )
 
         file.write('\n\t\t}')
-        file.write('\n\t\tMultiLayer: 0')
-        file.write('\n\t\tMultiTake: 0')
-        file.write('\n\t\tShading: Y')
-        file.write('\n\t\tCulling: "CullingOff"')
-        file.write('\n\t\tTypeFlags: "Camera"')
-        file.write('\n\t\tGeometryVersion: 124')
+
+        file.write('\n\t\tMultiLayer: 0'
+                   '\n\t\tMultiTake: 0'
+                   '\n\t\tShading: Y'
+                   '\n\t\tCulling: "CullingOff"'
+                   '\n\t\tTypeFlags: "Camera"'
+                   '\n\t\tGeometryVersion: 124'
+                   )
+
         file.write('\n\t\tPosition: %.6f,%.6f,%.6f' % loc)
         file.write('\n\t\tUp: %.6f,%.6f,%.6f' % tuple(Vector((0.0, 1.0, 0.0)) * matrix_rot))
         file.write('\n\t\tLookAt: %.6f,%.6f,%.6f' % tuple(Vector((0.0, 0.0, -1.0)) * matrix_rot))
@@ -946,22 +987,27 @@ def save_single(operator, scene, filepath="",
         file.write('\n\t\t\tProperty: "GoboProperty", "object", ""')
         file.write('\n\t\t\tProperty: "DecayType", "enum", "",0')
         file.write('\n\t\t\tProperty: "DecayStart", "double", "",%.2f' % light.distance)
-        file.write('\n\t\t\tProperty: "EnableNearAttenuation", "bool", "",0')
-        file.write('\n\t\t\tProperty: "NearAttenuationStart", "double", "",0')
-        file.write('\n\t\t\tProperty: "NearAttenuationEnd", "double", "",0')
-        file.write('\n\t\t\tProperty: "EnableFarAttenuation", "bool", "",0')
-        file.write('\n\t\t\tProperty: "FarAttenuationStart", "double", "",0')
-        file.write('\n\t\t\tProperty: "FarAttenuationEnd", "double", "",0')
+
+        file.write('\n\t\t\tProperty: "EnableNearAttenuation", "bool", "",0'
+                   '\n\t\t\tProperty: "NearAttenuationStart", "double", "",0'
+                   '\n\t\t\tProperty: "NearAttenuationEnd", "double", "",0'
+                   '\n\t\t\tProperty: "EnableFarAttenuation", "bool", "",0'
+                   '\n\t\t\tProperty: "FarAttenuationStart", "double", "",0'
+                   '\n\t\t\tProperty: "FarAttenuationEnd", "double", "",0'
+                   )
+
         file.write('\n\t\t\tProperty: "CastShadows", "bool", "",%i' % do_shadow)
         file.write('\n\t\t\tProperty: "ShadowColor", "ColorRGBA", "",0,0,0,1')
         file.write('\n\t\t}')
-        file.write('\n\t\tMultiLayer: 0')
-        file.write('\n\t\tMultiTake: 0')
-        file.write('\n\t\tShading: Y')
-        file.write('\n\t\tCulling: "CullingOff"')
-        file.write('\n\t\tTypeFlags: "Light"')
-        file.write('\n\t\tGeometryVersion: 124')
-        file.write('\n\t}')
+
+        file.write('\n\t\tMultiLayer: 0'
+                   '\n\t\tMultiTake: 0'
+                   '\n\t\tShading: Y'
+                   '\n\t\tCulling: "CullingOff"'
+                   '\n\t\tTypeFlags: "Light"'
+                   '\n\t\tGeometryVersion: 124'
+                   '\n\t}'
+                   )
 
     # matrixOnly is not used at the moment
     def write_null(my_null=None, fbxName=None):
@@ -2044,7 +2090,7 @@ Definitions:  {
     file.write('''
 	ObjectType: "Model" {
 		Count: %i
-    }''' % (
+	}''' % (
         camera_count +
         len(ob_meshes) +
         len(ob_lights) +
