@@ -372,7 +372,7 @@ def export(file,
 
         texface_use_halo = 0
         texface_use_billboard = 0
-        texface_use_collision = 0
+        # texface_use_collision = 0
 
         use_halonode = False
         use_billnode = False
@@ -382,8 +382,13 @@ def export(file,
             for face in mesh.uv_textures.active.data:  # for face in mesh.faces:
                 texface_use_halo |= face.use_halo
                 texface_use_billboard |= face.use_billboard
-                texface_use_collision |= face.use_collision
+                # texface_use_collision |= face.use_collision
                 # texface_use_object_color |= face.use_object_color
+
+        # use modifier instead
+        texface_use_collision = bool([mod for mod in obj.modifiers
+                                      if mod.type == 'COLLISION'
+                                      if mod.show_viewport])
 
         if texface_use_halo:
             fw('%s<Billboard axisOfRotation="0 0 0">\n' % ident)
@@ -394,7 +399,7 @@ def export(file,
             use_billnode = True
             ident += '\t'
         elif texface_use_collision:
-            fw('%s<Collision enabled="false">\n' % ident)
+            fw('%s<Collision enabled="true">\n' % ident)
             use_collnode = True
             ident += '\t'
 
