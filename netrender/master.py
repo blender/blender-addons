@@ -61,7 +61,11 @@ class MRenderSlave(netrender.model.RenderSlave):
         self.last_seen = time.time()
 
     def finishedFrame(self, frame_number):
-        self.job_frames.remove(frame_number)
+        try:
+            self.job_frames.remove(frame_number)
+        except ValueError as e:
+            print("Internal error: Frame %i not in job frames list" % frame_number)
+            print(self.job_frames)
         if not self.job_frames:
             self.job = None
 
@@ -849,7 +853,6 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
 
 class RenderMasterServer(socketserver.ThreadingMixIn, http.server.HTTPServer):
     def __init__(self, address, handler_class, path, subdir=True):
-        super().__init__(address, handler_class)
         self.jobs = []
         self.jobs_map = {}
         self.slaves = []
@@ -861,6 +864,9 @@ class RenderMasterServer(socketserver.ThreadingMixIn, http.server.HTTPServer):
         else:
             self.path = path
 
+        if not os.path.exists(self.path):
+            os.mkdir(self.path)
+
         self.slave_timeout = 5 # 5 mins: need a parameter for that
 
         self.balancer = netrender.balancing.Balancer()
@@ -871,8 +877,7 @@ class RenderMasterServer(socketserver.ThreadingMixIn, http.server.HTTPServer):
         self.balancer.addPriority(netrender.balancing.NewJobPriority())
         self.balancer.addPriority(netrender.balancing.MinimumTimeBetweenDispatchPriority(limit = 2))
 
-        if not os.path.exists(self.path):
-            os.mkdir(self.path)
+        super().__init__(address, handler_class)
 
     def restore(self, jobs, slaves, balancer = None):
         self.jobs = jobs
