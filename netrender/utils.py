@@ -16,7 +16,7 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-import sys, os
+import sys, os, re
 import http, http.client, http.server, socket
 import subprocess, time, hashlib
 

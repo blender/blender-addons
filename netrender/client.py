@@ -267,14 +267,18 @@ class NetworkRenderEngine(bpy.types.RenderEngine):
     bl_label = "Network Render"
     bl_use_postprocess = False
     def render(self, scene):
-        if scene.network_render.mode == "RENDER_CLIENT":
-            self.render_client(scene)
-        elif scene.network_render.mode == "RENDER_SLAVE":
-            self.render_slave(scene)
-        elif scene.network_render.mode == "RENDER_MASTER":
-            self.render_master(scene)
-        else:
-            print("UNKNOWN OPERATION MODE")
+        try:
+            if scene.network_render.mode == "RENDER_CLIENT":
+                self.render_client(scene)
+            elif scene.network_render.mode == "RENDER_SLAVE":
+                self.render_slave(scene)
+            elif scene.network_render.mode == "RENDER_MASTER":
+                self.render_master(scene)
+            else:
+                print("UNKNOWN OPERATION MODE")
+        except Exception as e:
+            self.report('ERROR', str(e))
+            raise e
 
     def render_master(self, scene):
         netsettings = scene.network_render
