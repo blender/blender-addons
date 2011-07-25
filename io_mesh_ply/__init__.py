@@ -16,7 +16,7 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-# <pep8 compliant>
+# <pep8-80 compliant>
 
 bl_info = {
     "name": "Stanford PLY format",
@@ -32,7 +32,8 @@ bl_info = {
     "support": 'OFFICIAL',
     "category": "Import-Export"}
 
-# To support reload properly, try to access a package var, if it's there, reload everything
+# To support reload properly, try to access a package var,
+# if it's there, reload everything
 if "bpy" in locals():
     import imp
     if "export_ply" in locals():
@@ -63,7 +64,8 @@ class ImportPLY(bpy.types.Operator, ImportHelper):
     filter_glob = StringProperty(default="*.ply", options={'HIDDEN'})
 
     def execute(self, context):
-        paths = [os.path.join(self.directory, name.name) for name in self.files]
+        paths = [os.path.join(self.directory, name.name)
+                 for name in self.files]
         if not paths:
             paths.append(self.filepath)
 
@@ -76,17 +78,33 @@ class ImportPLY(bpy.types.Operator, ImportHelper):
 
 
 class ExportPLY(bpy.types.Operator, ExportHelper):
-    '''Export a single object as a stanford PLY with normals, colours and texture coordinates.'''
+    '''Export a single object as a stanford PLY with normals, ''' \
+    '''colours and texture coordinates.'''
     bl_idname = "export_mesh.ply"
     bl_label = "Export PLY"
 
     filename_ext = ".ply"
     filter_glob = StringProperty(default="*.ply", options={'HIDDEN'})
 
-    use_modifiers = BoolProperty(name="Apply Modifiers", description="Apply Modifiers to the exported mesh", default=True)
-    use_normals = BoolProperty(name="Normals", description="Export Normals for smooth and hard shaded faces", default=True)
-    use_uv_coords = BoolProperty(name="UVs", description="Exort the active UV layer", default=True)
-    use_colors = BoolProperty(name="Vertex Colors", description="Exort the active vertex color layer", default=True)
+    use_modifiers = BoolProperty(
+            name="Apply Modifiers",
+            description="Apply Modifiers to the exported mesh",
+            default=True,
+            )
+    use_normals = BoolProperty(
+            name="Normals",
+            description="Export Normals for smooth and hard shaded faces",
+            default=True,
+            )
+    use_uv_coords = BoolProperty(
+            name="UVs",
+            description="Export the active UV layer",
+            default=True,
+            )
+    use_colors = BoolProperty(
+            name="Vertex Colors",
+            description="Exort the active vertex color layer",
+            default=True)
 
     @classmethod
     def poll(cls, context):
@@ -96,7 +114,8 @@ class ExportPLY(bpy.types.Operator, ExportHelper):
         filepath = self.filepath
         filepath = bpy.path.ensure_ext(filepath, self.filename_ext)
         from . import export_ply
-        return export_ply.save(self, context, **self.as_keywords(ignore=("check_existing", "filter_glob")))
+        keywords = **self.as_keywords(ignore=("check_existing", "filter_glob"))
+        return export_ply.save(self, context, keywords)
 
     def draw(self, context):
         layout = self.layout

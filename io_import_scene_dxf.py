@@ -311,7 +311,7 @@ class CArc(CEntity):
             ma = getOCS(self.normal)
             if ma:
                 #ma.invert()
-                points = [v * ma for v in points]
+                points = [ma * v for v in points]
         #print ('arc vn=', vn)
         #print ('faces=', len(faces))
         return ((points, edges, faces, vn))
@@ -520,7 +520,7 @@ class CCircle(CEntity):
             ma = getOCS(self.normal)
             if ma:
                 #ma.invert()
-                points = [v * ma for v in points]
+                points = [ma * v for v in points]
         #print ('cir vn=', vn)
         #print ('faces=',len(faces))
         return( (points, edges, faces, vn) )
@@ -626,7 +626,7 @@ class CEllipse(CEntity):
             ma = getOCS(self.normal)
             if ma:
                 #ma.invert()
-                points = [v * ma for v in points]
+                points = [ma * v for v in points]
         return ((points, edges, faces, vn))
 
 #
@@ -810,7 +810,7 @@ class CLWPolyLine(CEntity):
             ma = getOCS(self.normal)
             if ma:
                 #ma.invert()
-                verts = [v * ma for v in verts]
+                verts = [ma * v for v in verts]
         return (verts, edges, [], vn-1)
         
 #
@@ -1018,7 +1018,7 @@ class CPolyLine(CEntity):
         if self.normal!=Vector((0,0,1)):
             ma = getOCS(self.normal)
             if ma:
-                verts = [v * ma for v in verts]
+                verts = [ma * v for v in verts]
         return((verts, lines, [], vn-1))
 
 #
@@ -1182,7 +1182,7 @@ class CSolid(CEntity):
         if self.normal!=Vector((0,0,1)):
             ma = getOCS(self.normal)
             if ma:
-                points = [v * ma for v in points]
+                points = [ma * v for v in points]
         return((points, edges, faces, vn))
         
 #
@@ -1315,7 +1315,7 @@ class CTrace(CEntity):
         if self.normal!=Vector((0,0,1)):
             ma = getOCS(self.normal)
             if ma:
-                points = [v * ma for v in points]
+                points = [ma * v for v in points]
         return ((points, edges, faces, vn))
 
 #
@@ -1425,7 +1425,7 @@ def transform(normal, rotation, obj):  #----------------------------------------
     if ma_new:
         ma = ma_new
         ma.resize_4x4()
-        o = o * ma
+        o = ma * o
 
     if rotation != 0:
         g = radians(-rotation)
@@ -2425,24 +2425,76 @@ class IMPORT_OT_autocad_dxf(bpy.types.Operator):
     bl_space_type = "PROPERTIES"
     bl_region_type = "WINDOW"
 
-    filepath = StringProperty(name="File Path", description="Filepath used for importing the DXF file", maxlen= 1024, default= "", subtype='FILE_PATH')
-
-    new_scene = BoolProperty(name="Replace scene", description="Replace scene", default=toggle&T_NewScene)
-    #new_scene = BoolProperty(name="New scene", description="Create new scene", default=toggle&T_NewScene)
-    curves = BoolProperty(name="Draw curves", description="Draw entities as curves", default=toggle&T_Curves)
-    thic_on = BoolProperty(name="Thic ON", description="Support THICKNESS", default=toggle&T_ThicON)
-
-    merge = BoolProperty(name="Remove doubles", description="Merge coincident vertices", default=toggle&T_Merge)
-    mergeLimit = FloatProperty(name="Limit", description="Merge limit", default = theMergeLimit*1e4,min=1.0, soft_min=1.0, max=100.0, soft_max=100.0)
-
-    draw_one = BoolProperty(name="Merge all", description="Draw all into one mesh-object", default=toggle&T_DrawOne)
-    circleResolution = IntProperty(name="Circle resolution", description="Circle/Arc are aproximated will this factor", default = theCircleRes,
-                min=4, soft_min=4, max=360, soft_max=360)
+    filepath = StringProperty(
+            name="File Path",
+            description="Filepath used for importing the DXF file",
+            maxlen=1024,
+            subtype='FILE_PATH',
+            )
+    new_scene = BoolProperty(
+            name="Replace scene",
+            description="Replace scene",
+            default=toggle & T_NewScene,
+            )
+    #~ new_scene = BoolProperty(
+            #~ name="New scene",
+            #~ description="Create new scene",
+            #~ default=toggle & T_NewScene,
+            #~ )
+    curves = BoolProperty(
+            name="Draw curves",
+            description="Draw entities as curves",
+            default=toggle & T_Curves,
+            )
+    thic_on = BoolProperty(
+            name="Thic ON",
+            description="Support THICKNESS",
+            default=toggle & T_ThicON,
+            )
+    merge = BoolProperty(
+            name="Remove doubles",
+            description="Merge coincident vertices",
+            default=toggle & T_Merge,
+            )
+    mergeLimit = FloatProperty(
+            name="Limit",
+            description="Merge limit",
+            default=theMergeLimit * 1e4,
+            min=1.0,
+            soft_min=1.0,
+            max=100.0,
+            soft_max=100.0,
+            )
+    draw_one = BoolProperty(
+            name="Merge all",
+            description="Draw all into one mesh-object",
+            default=toggle & T_DrawOne,
+            )
+    circleResolution = IntProperty(
+            name="Circle resolution",
+            description="Circle/Arc are aproximated will this factor",
+            default=theCircleRes,
+            min=4,
+            soft_min=4,
+            max=360,
+            soft_max=360,
+            )
     codecs = tripleList(['iso-8859-15', 'utf-8', 'ascii'])
-    codec = EnumProperty(name="Codec", description="Codec",  items=codecs, default = 'ascii')
-
-    debug = BoolProperty(name="Debug", description="Unknown DXF-codes generate errors", default=toggle&T_Debug)
-    verbose = BoolProperty(name="Verbose", description="Print debug info", default=toggle&T_Verbose)
+    codec = EnumProperty(name="Codec",
+            description="Codec",
+            items=codecs,
+            default='ascii',
+            )
+    debug = BoolProperty(
+            name="Debug",
+            description="Unknown DXF-codes generate errors",
+            default=toggle & T_Debug,
+            )
+    verbose = BoolProperty(
+            name="Verbose",
+            description="Print debug info",
+            default=toggle & T_Verbose,
+            )
 
     ##### DRAW #####
     def draw(self, context):
