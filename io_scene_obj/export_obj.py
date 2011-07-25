@@ -172,8 +172,7 @@ def write_nurb(file, ob, ob_mat):
         do_endpoints = (do_closed == 0) and nu.use_endpoint_u
 
         for pt in nu.points:
-            pt = pt.co.to_3d() * ob_mat
-            file.write('v %.6f %.6f %.6f\n' % (pt[0], pt[1], pt[2]))
+            file.write('v %.6f %.6f %.6f\n' % (ob_mat * pt.co.to_3d())[:])
             pt_num += 1
         tot_verts += pt_num
 

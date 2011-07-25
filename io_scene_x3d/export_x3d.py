@@ -74,7 +74,7 @@ def clamp_color(col):
 
 
 def matrix_direction_neg_z(matrix):
-    return (mathutils.Vector((0.0, 0.0, -1.0)) * matrix.to_3x3()).normalized()[:]
+    return (matrix.to_3x3() * mathutils.Vector((0.0, 0.0, -1.0))).normalized()[:]
 
 
 def prefix_quoted_str(value, prefix):
