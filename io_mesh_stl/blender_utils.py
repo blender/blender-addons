@@ -59,7 +59,9 @@ def faces_from_mesh(ob, apply_modifier=False, triangulate=True):
     try:
         mesh = ob.to_mesh(bpy.context.scene, apply_modifier, "PREVIEW")
     except RuntimeError:
-        return ()
+        raise StopIteration
+
+    mesh.transform(ob.matrix_world)
 
     if triangulate:
         # From a list of faces, return the face triangulated if needed.
@@ -76,5 +78,9 @@ def faces_from_mesh(ob, apply_modifier=False, triangulate=True):
             for face in mesh.faces:
                 yield face.vertices[:]
 
-    return ([(mesh.vertices[index].co * ob.matrix_world)[:]
-             for index in indexes] for indexes in iter_face_index())
+    vertices = mesh.vertices
+
+    for indexes in iter_face_index():
+        yield [vertices[index].co.copy() for index in indexes]
+
+    bpy.data.meshes.remove(mesh)
