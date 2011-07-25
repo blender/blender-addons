@@ -447,20 +447,17 @@ class add_corrective_pose_shape_fast(bpy.types.Operator):
         return context.active_object != None
 
     def execute(self, context):
-    
-        if len(context.selected_objects) > 2:
-            print("Select source and target objects please")
-            return {'FINISHED'}
-
         selection = context.selected_objects
+        if len(selection) != 2:
+            self.report({'ERROR'}, "Select source and target objects")
+            return {'CANCELLED'}
+
         target = context.active_object
         if context.active_object == selection[0]:
             source = selection[1]
         else:
             source = selection[0]
 
-        print(source)
-        print(target)
         func_add_corrective_pose_shape_fast( source, target)
 
         return {'FINISHED'}
