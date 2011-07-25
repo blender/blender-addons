@@ -1007,7 +1007,7 @@ class SVGGeometry:
 
         v = Vector((point[0], point[1], 0.0))
 
-        return v * self._context['matrix']
+        return self._context['matrix'] * v
 
     def getNodeMatrix(self):
         """
