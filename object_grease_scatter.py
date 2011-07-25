@@ -182,7 +182,7 @@ def _main(self, DENSITY=1.0, SCALE=0.6, RAND_LOC=0.8, RAND_ALIGN=0.75):
                 m_alt_2 = Matrix.Rotation(radians(-22.5), 3, n)
                 for _m in mats:
                     for m in (_m, m_alt_1 * _m, m_alt_2 * _m):
-                        hit, nor, ind = ray(pofs, pofs + (n_seek * m))
+                        hit, nor, ind = ray(pofs, pofs + (m * n_seek))
                         if ind != -1:
                             dist = (pofs - hit).length
                             if dist < best_dist:
@@ -320,13 +320,13 @@ def _main(self, DENSITY=1.0, SCALE=0.6, RAND_LOC=0.8, RAND_ALIGN=0.75):
 
                 # make 2 angles and blend
                 angle = radians(uniform(-180, 180.0))
-                angle_aligned = -(ori.angle(Vector((0.0, 1.0, 0.0)) * quat, radians(180.0)))
+                angle_aligned = -(ori.angle(quat * Vector((0.0, 1.0, 0.0)), radians(180.0)))
 
                 quat = Quaternion(no, (angle * (1.0 - RAND_ALIGN)) + (angle_aligned * RAND_ALIGN)).cross(quat)
 
                 f = uniform(0.1, 1.2) * SCALE
 
-                coords.append([co + ((tri[0] * f) * quat), co + ((tri[1] * f) * quat), co + ((tri[2] * f) * quat)])
+                coords.append([co + (quat * (tri[0] * f)), co + (quat * (tri[1] * f)), co + (quat * (tri[2] * f))])
                 # face_ind.append([i*3, i*3+1, i*3+2])
 
             apply_faces(coords)

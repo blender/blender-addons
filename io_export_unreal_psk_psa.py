@@ -775,7 +775,7 @@ def parse_meshes(blender_meshes, psk_file):
                     
                     # Transform position for export
                     #vpos = vert.co * object_material_index
-                    vpos = vert.co * current_obj.matrix_local
+                    vpos = current_obj.matrix_local * vert.co
                     # Create the point
                     p = VPoint()
                     p.Point.X = vpos.x
@@ -891,7 +891,7 @@ def parse_meshes(blender_meshes, psk_file):
                     vert_weight = vgroup.weight
                     if(obvgroup.index == vgroup.group):
                         p = VPoint()
-                        vpos = current_vert.co * current_obj.matrix_local
+                        vpos = current_obj.matrix_local * current_vert.co
                         p.Point.X = vpos.x
                         p.Point.Y = vpos.y 
                         p.Point.Z = vpos.z
@@ -968,14 +968,14 @@ def parse_bone(blender_bone, psk_file, psa_file, parent_id, is_root_bone, parent
         quat = make_fquat(quat_root.to_quaternion())
         #print("DIR:",dir(child_parent.matrix.to_quaternion()))
         quat_parent = child_parent.matrix.to_quaternion().inverted()
-        parent_head = child_parent.head * quat_parent
-        parent_tail = child_parent.tail * quat_parent
+        parent_head = quat_parent * child_parent.head
+        parent_tail = quat_parent * child_parent.tail
         
         set_position = (parent_tail - parent_head) + blender_bone.head
     else:
         # ROOT BONE
         #This for root 
-        set_position = blender_bone.head * parent_matrix #ARMATURE OBJECT Locction
+        set_position = parent_matrix * blender_bone.head #ARMATURE OBJECT Locction
         rot_mat = blender_bone.matrix * parent_matrix.to_3x3() #ARMATURE OBJECT Rotation
         #print(dir(rot_mat))
         
@@ -1894,13 +1894,36 @@ class ExportUDKAnimData(bpy.types.Operator):
     # List of operator properties, the attributes will be assigned
     # to the class instance from the operator settings before calling.
 
-    filepath = StringProperty(name="File Path", description="Filepath used for exporting the PSA file", maxlen= 1024, default= "", subtype='FILE_PATH')
-    filter_glob = StringProperty(default="*.psk;*.psa", options={'HIDDEN'})
-    pskexportbool = BoolProperty(name="Export PSK", description="Export Skeletal Mesh", default= True)
-    psaexportbool = BoolProperty(name="Export PSA", description="Export Action Set (Animation Data)", default= True)
-    
-    actionexportall = BoolProperty(name="All Actions", description="This will export all the actions that matches the current armature.", default=False)
-    ignoreactioncountexportbool = BoolProperty(name="Ignore Action Group Count", description="It will ignore action group count but as long it matches the armature bone count to over ride the animation data.", default= False)
+    filepath = StringProperty(
+            name="File Path",
+            description="Filepath used for exporting the PSA file",
+            maxlen= 1024,
+            subtype='FILE_PATH',
+            )
+    filter_glob = StringProperty(
+            default="*.psk;*.psa",
+            options={'HIDDEN'},
+            )
+    pskexportbool = BoolProperty(
+            name="Export PSK",
+            description="Export Skeletal Mesh",
+            default= True,
+            )
+    psaexportbool = BoolProperty(
+            name="Export PSA",
+            description="Export Action Set (Animation Data)",
+            default= True,
+            )
+    actionexportall = BoolProperty(
+            name="All Actions",
+            description="This will export all the actions that matches the current armature.",
+            default=False,
+            )
+    ignoreactioncountexportbool = BoolProperty(
+            name="Ignore Action Group Count",
+            description="It will ignore action group count but as long it matches the armature bone count to over ride the animation data.",
+            default= False,
+            )
 
     @classmethod
     def poll(cls, context):
@@ -1927,7 +1950,7 @@ class ExportUDKAnimData(bpy.types.Operator):
             bpy.context.scene.unrealignoreactionmatchcount = True
         else:
             bpy.context.scene.unrealignoreactionmatchcount = False
-			
+
         write_data(self.filepath, context)
         
         self.report({'WARNING', 'INFO'}, exportmessage)

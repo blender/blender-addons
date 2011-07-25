@@ -52,7 +52,7 @@ def faceToTriangles(face):
 def faceValues(face, mesh, matrix):
     fv = []
     for verti in face.vertices:
-        fv.append((mesh.vertices[verti].co * matrix)[:])
+        fv.append((matrix * mesh.vertices[verti].co)[:])
     return fv
 
 

@@ -402,10 +402,10 @@ NULL
                     # add nmapping 0 0 ?
                     if PREF_GRID_SNAP:
                         file.write(" ( %d %d %d 0 0 )" %
-                                   round_vec(p.co.xyz * mat))
+                                   round_vec(mat * p.co.xyz))
                     else:
                         file.write(' ( %.6f %.6f %.6f 0 0 )' %
-                                   (p.co.xyz * mat)[:])
+                                   (mat * p.co.xyz)[:])
 
                     # Move to next line
                     if u_iter == u:

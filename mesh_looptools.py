@@ -206,7 +206,7 @@ def calculate_linear_splines(mesh_mod, tknots, knots):
 # calculate a best-fit plane to the given vertices
 def calculate_plane(mesh_mod, loop, method="best_fit", object=False):
     # getting the vertex locations
-    locs = [mathutils.Vector(mesh_mod.vertices[v].co[:]) for v in loop[0]]
+    locs = [mesh_mod.vertices[v].co.copy() for v in loop[0]]
     
     # calculating the center of masss
     com = mathutils.Vector()
@@ -217,8 +217,10 @@ def calculate_plane(mesh_mod, loop, method="best_fit", object=False):
     
     if method == 'best_fit':
         # creating the covariance matrix
-        mat = mathutils.Matrix([[0.0, 0.0, 0.0], [0.0, 0.0, 0.0],
-            [0.0, 0.0, 0.0]])
+        mat = mathutils.Matrix(((0.0, 0.0, 0.0),
+                                (0.0, 0.0, 0.0),
+                                (0.0, 0.0, 0.0),
+                                ))
         for loc in locs:
             mat[0][0] += (loc[0]-x)**2
             mat[0][1] += (loc[0]-x)*(loc[1]-y)
@@ -236,20 +238,20 @@ def calculate_plane(mesh_mod, loop, method="best_fit", object=False):
             mat.invert()
         except:
             if sum(mat[0]) == 0.0:
-                normal = mathutils.Vector([1.0, 0.0, 0.0])
+                normal = mathutils.Vector((1.0, 0.0, 0.0))
             elif sum(mat[1]) == 0.0:
-                normal = mathutils.Vector([0.0, 1.0, 0.0])
+                normal = mathutils.Vector((0.0, 1.0, 0.0))
             elif sum(mat[2]) == 0.0:
-                normal = mathutils.Vector([0.0, 0.0, 1.0])
+                normal = mathutils.Vector((0.0, 0.0, 1.0))
         if not normal:
             itermax = 500
             iter = 0
-            vec = mathutils.Vector([1.0, 1.0, 1.0])
-            vec2 = (vec*mat)/(vec*mat).length
+            vec = mathutils.Vector((1.0, 1.0, 1.0))
+            vec2 = (mat * vec)/(mat * vec).length
             while vec != vec2 and iter<itermax:
                 iter += 1
                 vec = vec2
-                vec2 = (vec*mat)/(vec*mat).length
+                vec2 = (mat * vec)/(mat * vec).length
             normal = vec2
     
     elif method == 'normal':
@@ -265,9 +267,10 @@ def calculate_plane(mesh_mod, loop, method="best_fit", object=False):
         # calculate view normal
         rotation = bpy.context.space_data.region_3d.view_matrix.to_3x3().\
             inverted()
-        normal = mathutils.Vector([0.0, 0.0, 1.0]) * rotation
+        normal = rotation * mathutils.Vector((0.0, 0.0, 1.0))
         if object:
-            normal *= object.matrix_world.inverted().to_euler().to_matrix()
+            normal = object.matrix_world.inverted().to_euler().to_matrix() * \
+                     normal
     
     return(com, normal)
 
@@ -787,7 +790,7 @@ interpolation, cubic_strength, min_width, max_vert_index):
             y = ay+by*m+cy*m**2+dy*m**3
             az,bz,cz,dz,tz = splines[line][2]
             z = az+bz*m+cz*m**2+dz*m**3
-            return mathutils.Vector([x,y,z])
+            return mathutils.Vector((x, y, z))
         
     # no interpolation needed
     if segments == 1:
@@ -810,9 +813,9 @@ interpolation, cubic_strength, min_width, max_vert_index):
             splines = False
         
         # create starting situation
-        virtual_width = [(mathutils.Vector(mesh.vertices[lines[i][0]].co) - \
-            mathutils.Vector(mesh.vertices[lines[i+1][0]].co)).length for i \
-            in range(len(lines)-1)]
+        virtual_width = [(mesh.vertices[lines[i][0]].co -
+                          mesh.vertices[lines[i+1][0]].co).length for i
+                          in range(len(lines)-1)]
         new_verts = [get_location(0, seg, splines) for seg in range(1,
             segments)]
         first_line_indices = [i for i in range(max_vert_index+1,
@@ -880,7 +883,7 @@ def bridge_calculate_lines(mesh, loops, mode, twist, reverse):
     # calculate loop centers
     centers = []
     for loop in [loop1, loop2]:
-        center = mathutils.Vector([0,0,0])
+        center = mathutils.Vector()
         for vertex in loop:
             center += mesh.vertices[vertex].co
         center /= len(loop)
@@ -889,7 +892,7 @@ def bridge_calculate_lines(mesh, loops, mode, twist, reverse):
         for vertex in loop:
             if mesh.vertices[vertex].co == centers[i]:
                 # prevent zero-length vectors in angle comparisons
-                centers[i] += mathutils.Vector([0.01, 0, 0])
+                centers[i] += mathutils.Vector((0.01, 0, 0))
                 break
     center1, center2 = centers
     
@@ -898,8 +901,9 @@ def bridge_calculate_lines(mesh, loops, mode, twist, reverse):
     normal_plurity = False
     for i, loop in enumerate([loop1, loop2]):
         # covariance matrix
-        mat = mathutils.Matrix(((0.0, 0.0, 0.0), (0.0, 0.0, 0.0),
-            (0.0, 0.0, 0.0)))
+        mat = mathutils.Matrix(((0.0, 0.0, 0.0),
+                                (0.0, 0.0, 0.0),
+                                (0.0, 0.0, 0.0)))
         x, y, z = centers[i]
         for loc in [mesh.vertices[vertex].co for vertex in loop]:
             mat[0][0] += (loc[0]-x)**2
@@ -919,20 +923,20 @@ def bridge_calculate_lines(mesh, loops, mode, twist, reverse):
             mat.invert()
         except:
             if sum(mat[0]) == 0:
-                normal = mathutils.Vector([1.0, 0.0, 0.0])
+                normal = mathutils.Vector((1.0, 0.0, 0.0))
             elif sum(mat[1]) == 0:
-                normal = mathutils.Vector([0.0, 1.0, 0.0])
+                normal = mathutils.Vector((0.0, 1.0, 0.0))
             elif sum(mat[2]) == 0:
-                normal = mathutils.Vector([0.0, 0.0, 1.0])
+                normal = mathutils.Vector((0.0, 0.0, 1.0))
         if not normal:
             itermax = 500
             iter = 0
-            vec = mathutils.Vector([1.0, 1.0, 1.0])
-            vec2 = (vec*mat)/(vec*mat).length
+            vec = mathutils.Vector((1.0, 1.0, 1.0))
+            vec2 = (mat * vec)/(mat * vec).length
             while vec != vec2 and iter<itermax:
                 iter+=1
                 vec = vec2
-                vec2 = (vec*mat)/(vec*mat).length
+                vec2 = (mat * vec)/(mat * vec).length
             normal = vec2
         normals.append(normal)
     # have plane normals face in the same direction (maximum angle: 90 degrees)
@@ -946,7 +950,7 @@ def bridge_calculate_lines(mesh, loops, mode, twist, reverse):
     # rotation matrix, representing the difference between the plane normals
     axis = normals[0].cross(normals[1])
     axis = mathutils.Vector([loc if abs(loc) > 1e-8 else 0 for loc in axis])
-    if axis.angle(mathutils.Vector([0, 0, 1]), 0) > 1.5707964:
+    if axis.angle(mathutils.Vector((0, 0, 1)), 0) > 1.5707964:
         axis.negate()
     angle = normals[0].dot(normals[1])
     rotation_matrix = mathutils.Matrix.Rotation(angle, 4, axis)
@@ -960,9 +964,9 @@ def bridge_calculate_lines(mesh, loops, mode, twist, reverse):
         
         # match start vertex of loop1 with loop2
         target_vector = mesh.vertices[loop2[0]].co - center2
-        dif_angles = [[((mesh.vertices[vertex].co - center1) * \
-            rotation_matrix).angle(target_vector, 0), False, i] for \
-            i, vertex in enumerate(loop1)]
+        dif_angles = [[(rotation_matrix * (mesh.vertices[vertex].co - center1)
+                       ).angle(target_vector, 0), False, i] for
+                       i, vertex in enumerate(loop1)]
         dif_angles.sort()
         if len(loop1) != len(loop2):
             angle_limit = dif_angles[0][0] * 1.2 # 20% margin
@@ -1036,8 +1040,8 @@ def bridge_calculate_lines(mesh, loops, mode, twist, reverse):
                 if len(loop1) - shifting < len(loop2):
                     shifting = False
                     break
-                to_last, to_first = [((mesh.vertices[loop1[-1]].co - \
-                    center1) * rotation_matrix).angle((mesh.\
+                to_last, to_first = [(rotation_matrix *
+                    (mesh.vertices[loop1[-1]].co - center1)).angle((mesh.\
                     vertices[loop2[i]].co - center2), 0) for i in [-1, 0]]
                 if to_first < to_last:
                     loop1 = [loop1[-1]] + loop1[:-1]
@@ -1067,9 +1071,10 @@ def bridge_calculate_lines(mesh, loops, mode, twist, reverse):
                     tri, quad = 0, 1
                 elif prev_vert2 == len(loop2) - 1 and loop2_circular:
                     # at end of loop2, but circular, so check with first vert
-                    tri, quad = [(mathutils.Vector(mesh.vertices[loop1[i+1]].\
-                        co) - mathutils.Vector(mesh.vertices[loop2[j]].co)).\
-                        length for j in [prev_vert2, 0]]
+                    tri, quad = [(mesh.vertices[loop1[i+1]].co -
+                                  mesh.vertices[loop2[j]].co).length
+                                 for j in [prev_vert2, 0]]
+
                     circle_full = 2
                 elif len(loop1) - 1 - i == len(loop2) - 1 - prev_vert2 and \
                 not circle_full:
@@ -1077,9 +1082,9 @@ def bridge_calculate_lines(mesh, loops, mode, twist, reverse):
                     tri, quad = 1, 0
                 else:
                     # calculate if tri or quad gives shortest edge
-                    tri, quad = [(mathutils.Vector(mesh.vertices[loop1[i+1]].\
-                        co) - mathutils.Vector(mesh.vertices[loop2[j]].co)).\
-                        length for j in range(prev_vert2, prev_vert2+2)]
+                    tri, quad = [(mesh.vertices[loop1[i+1]].co -
+                                  mesh.vertices[loop2[j]].co).length
+                                 for j in range(prev_vert2, prev_vert2+2)]
                 
                 # triangle
                 if tri < quad:
@@ -1138,7 +1143,7 @@ edgekey_to_edge):
         for key, vectors in dic.items():
             #if type(vectors) == type([]) and len(vectors) > 1:
             if len(vectors) > 1:
-                average = mathutils.Vector([0, 0, 0])
+                average = mathutils.Vector()
                 for vector in vectors:
                     average += vector
                 average /= len(vectors)
@@ -1176,8 +1181,8 @@ edgekey_to_edge):
             
             # average face coordinates, if connected to more than 1 valid face
             if len(faces) > 1:
-                face_normal = mathutils.Vector([0, 0, 0])
-                face_center = mathutils.Vector([0, 0, 0])
+                face_normal = mathutils.Vector()
+                face_center = mathutils.Vector()
                 for face in faces:
                     face_normal += face.normal
                     face_center += face.center
@@ -1248,19 +1253,19 @@ edgekey_to_edge):
         for vertex, values in edge_vectors.items():
             # vertex normal doesn't matter, just assign a random vector to it
             if not connection_vectors[vertex]:
-                vertex_normals[vertex] = [mathutils.Vector([1, 0, 0])]
+                vertex_normals[vertex] = [mathutils.Vector((1, 0, 0))]
                 continue
             
             # calculate to what location the vertex is connected, 
             # used to determine what way to flip the normal
-            connected_center = mathutils.Vector([0, 0, 0])
+            connected_center = mathutils.Vector()
             for v in connections[vertex]:
                 connected_center += mesh.vertices[v].co
             if len(connections[vertex]) > 1:
                 connected_center /= len(connections[vertex])
             if len(connections[vertex]) == 0:
                 # shouldn't be possible, but better safe than sorry
-                vertex_normals[vertex] = [mathutils.Vector([1, 0, 0])]
+                vertex_normals[vertex] = [mathutils.Vector((1, 0, 0))]
                 continue
             
             # can't do proper calculations, because of zero-length vector
@@ -1402,8 +1407,8 @@ def bridge_match_loops(mesh, loops):
     normals = []
     centers = []
     for vertices, circular in loops:
-        normal = mathutils.Vector([0, 0, 0])
-        center = mathutils.Vector([0, 0, 0])
+        normal = mathutils.Vector()
+        center = mathutils.Vector()
         for vertex in vertices:
             normal += mesh.vertices[vertex].normal
             center += mesh.vertices[vertex].co
@@ -1563,7 +1568,7 @@ def bridge_sort_loops(mesh, loops, loft_loop):
     # simplify loops to single points, and prepare for pathfinding
     x, y, z = [[sum([mesh.vertices[i].co[j] for i in loop[0]]) / \
         len(loop[0]) for loop in loops] for j in range(3)]
-    nodes = [mathutils.Vector([x[i], y[i], z[i]]) for i in range(len(loops))]
+    nodes = [mathutils.Vector((x[i], y[i], z[i])) for i in range(len(loops))]
     
     active_node = 0
     open = [i for i in range(1, len(loops))]
@@ -1599,15 +1604,14 @@ def bridge_sort_loops(mesh, loops, loft_loop):
 def circle_3d_to_2d(mesh_mod, loop, com, normal):
     # project vertices onto the plane
     verts = [mesh_mod.vertices[v] for v in loop[0]]
-    verts_projected = [[mathutils.Vector(v.co[:]) - \
-        (mathutils.Vector(v.co[:])-com).dot(normal)*normal, v.index] \
-        for v in verts]
-    
+    verts_projected = [[v.co - (v.co - com).dot(normal) * normal, v.index]
+                       for v in verts]
+
     # calculate two vectors (p and q) along the plane
-    m = mathutils.Vector([normal[0]+1.0, normal[1], normal[2]])
+    m = mathutils.Vector((normal[0] + 1.0, normal[1], normal[2]))
     p = m - (m.dot(normal) * normal)
     if p.dot(p) == 0.0:
-        m = mathutils.Vector([normal[0], normal[1]+1.0, normal[2]])
+        m = mathutils.Vector((normal[0], normal[1] + 1.0, normal[2]))
         p = m - (m.dot(normal) * normal)
     q = p.cross(normal)
     
@@ -1637,9 +1641,11 @@ def circle_calculate_best_fit(locs_2d):
             d = (v[0]**2-2.0*x0*v[0]+v[1]**2-2.0*y0*v[1]+x0**2+y0**2)**0.5
             jmat.append([(x0-v[0])/d, (y0-v[1])/d, -1.0])
             k.append(-(((v[0]-x0)**2+(v[1]-y0)**2)**0.5-r))
-        jmat2 = mathutils.Matrix([[0.0, 0.0, 0.0], [0.0, 0.0, 0.0], \
-            [0.0, 0.0, 0.0]])
-        k2 = mathutils.Vector([0.0, 0.0, 0.0])
+        jmat2 = mathutils.Matrix(((0.0, 0.0, 0.0),
+                                  (0.0, 0.0, 0.0),
+                                  (0.0, 0.0, 0.0),
+                                  ))
+        k2 = mathutils.Vector((0.0, 0.0, 0.0))
         for i in range(len(jmat)):
             k2 += mathutils.Vector(jmat[i])*k[i]
             jmat2[0][0] += jmat[i][0]**2
@@ -1655,7 +1661,7 @@ def circle_calculate_best_fit(locs_2d):
             jmat2.invert()
         except:
             pass
-        dx0, dy0, dr = k2 * jmat2
+        dx0, dy0, dr = jmat2 * k2
         x0 += dx0
         y0 += dy0
         r += dr

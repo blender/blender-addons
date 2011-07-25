@@ -1478,7 +1478,7 @@ def edgeIntersect(context, operator):
         return
 
     point = line[0].lerp(line[1], 0.5)
-    context.scene.cursor_location = point * obj.matrix_world
+    context.scene.cursor_location = obj.matrix_world * point
 
 class VIEW3D_OT_CursorToEdgeIntersection(bpy.types.Operator):
     "Finds the mid-point of the shortest distance between two edges"

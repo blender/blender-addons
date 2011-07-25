@@ -110,7 +110,7 @@ def draw_callback_view(self, context):
     bb = [Vector() for i in range(8)]
 
     def draw_matrix(mat):
-        zero_tx = zero * mat
+        zero_tx = mat * zero
 
         glLineWidth(2.0)
 
@@ -118,39 +118,39 @@ def draw_callback_view(self, context):
         glColor3f(1.0, 0.2, 0.2)
         glBegin(GL_LINES)
         glVertex3f(*(zero_tx))
-        glVertex3f(*(x_p * mat))
+        glVertex3f(*(mat * x_p))
         glEnd()
 
         glColor3f(0.6, 0.0, 0.0)
         glBegin(GL_LINES)
         glVertex3f(*(zero_tx))
-        glVertex3f(*(x_n * mat))
+        glVertex3f(*(mat * x_n))
         glEnd()
 
         # y
         glColor3f(0.2, 1.0, 0.2)
         glBegin(GL_LINES)
         glVertex3f(*(zero_tx))
-        glVertex3f(*(y_p * mat))
+        glVertex3f(*(mat * y_p))
         glEnd()
 
         glColor3f(0.0, 0.6, 0.0)
         glBegin(GL_LINES)
         glVertex3f(*(zero_tx))
-        glVertex3f(*(y_n * mat))
+        glVertex3f(*(mat * y_n))
         glEnd()
 
         # z
         glColor3f(0.2, 0.2, 1.0)
         glBegin(GL_LINES)
         glVertex3f(*(zero_tx))
-        glVertex3f(*(z_p * mat))
+        glVertex3f(*(mat * z_p))
         glEnd()
 
         glColor3f(0.0, 0.0, 0.6)
         glBegin(GL_LINES)
         glVertex3f(*(zero_tx))
-        glVertex3f(*(z_n * mat))
+        glVertex3f(*(mat * z_n))
         glEnd()
 
         # bounding box

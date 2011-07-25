@@ -49,7 +49,7 @@ from bpy_extras.io_utils import ExportHelper
 def getSampling(start, end, sampling):
     samples = [start - sampling
                + x * sampling
-               for x in range(start, int((end-start)*1/sampling)+1)]
+               for x in range(start, int((end-start) * 1.0 / sampling) + 1)]
     return samples
 
 def do_export(context, props, filepath):
@@ -113,40 +113,46 @@ class Export_pc2(bpy.types.Operator, ExportHelper):
     filename_ext = ".pc2"
     
     rot_x90 = BoolProperty(name="Convert to Y-up",
-                            description="Rotate 90 degrees around X to convert to y-up",
-                            default=True)
+            description="Rotate 90 degrees around X to convert to y-up",
+            default=True,
+            )
     world_space = BoolProperty(name="Export into Worldspace",
-                            description="Transform the Vertexcoordinates into Worldspace",
-                            default=False)
+            description="Transform the Vertexcoordinates into Worldspace",
+            default=False,
+            )
     apply_modifiers = BoolProperty(name="Apply Modifiers",
-                            description="Applies the Modifiers",
-                            default=True)
+            description="Applies the Modifiers",
+            default=True,
+            )
     range_start = IntProperty(name='Start Frame',
-                            description='First frame to use for Export',
-                            default=1)
+            description='First frame to use for Export',
+            default=1,
+            )
     range_end = IntProperty(name='End Frame',
-                            description='Last frame to use for Export',
-                            default=250)    
+            description='Last frame to use for Export',
+            default=250,
+            )
     sampling = EnumProperty(name='Sampling',
-                            description='Sampling --> frames per sample (0.1 yields 10 samples per frame)',
-                            items=[
-                            ('0.01', '0.01', ''),
-                            ('0.05', '0.05', ''),
-                            ('0.1', '0.1', ''),
-                            ('0.2', '0.2', ''),
-                            ('0.25', '0.25', ''),
-                            ('0.5', '0.5', ''),
-                            ('1', '1', ''),
-                            ('2', '2', ''),
-                            ('3', '3', ''),
-                            ('4', '4', ''),
-                            ('5', '5', ''),
-                            ('10', '10', '')],
-                            default='1')
+            description='Sampling --> frames per sample (0.1 yields 10 samples per frame)',
+            items=(('0.01', '0.01', ''),
+                   ('0.05', '0.05', ''),
+                   ('0.1', '0.1', ''),
+                   ('0.2', '0.2', ''),
+                   ('0.25', '0.25', ''),
+                   ('0.5', '0.5', ''),
+                   ('1', '1', ''),
+                   ('2', '2', ''),
+                   ('3', '3', ''),
+                   ('4', '4', ''),
+                   ('5', '5', ''),
+                   ('10', '10', ''),
+                   ),
+            default='1',
+            )
     
     @classmethod
     def poll(cls, context):
-        return context.active_object.type in ['MESH', 'CURVE', 'SURFACE', 'FONT']
+        return context.active_object.type in {'MESH', 'CURVE', 'SURFACE', 'FONT'}
 
     def execute(self, context):
         start_time = time.time()
@@ -176,7 +182,7 @@ class Export_pc2(bpy.types.Operator, ExportHelper):
             return {'RUNNING_MODAL'}
         elif False:
             # Redo popup
-            return wm.invoke_props_popup(self, event) #
+            return wm.invoke_props_popup(self, event)
         elif False:
             return self.execute(context)
 

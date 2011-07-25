@@ -430,9 +430,9 @@ def write_pov(filename, scene=None, info_callback=None):
                         #Could use brilliance 2(or varying around 2 depending on ior or factor) too.
 
                     elif material.specular_shader == 'TOON':
-                        tabWrite("phong %.3g\n" % (material.specular_intensity * 2))
+                        tabWrite("phong %.3g\n" % (material.specular_intensity * 2.0))
                         # use extreme phong_size
-                        tabWrite("phong_size %.3g\n" % (0.1 + material.specular_toon_smooth / 2))
+                        tabWrite("phong_size %.3g\n" % (0.1 + material.specular_toon_smooth / 2.0))
 
                     elif material.specular_shader == 'WARDISO':
                         # find best suited default constant for brilliance Use both phong and

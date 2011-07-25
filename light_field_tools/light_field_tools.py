@@ -107,10 +107,11 @@ class OBJECT_OT_create_lightfield_rig(bpy.types.Operator):
         mesh = self.baseObject.data
         verts = []
         row_length = scene.lightfield.row_length
-
+        matrix = self.baseObject.matrix_local.copy()
         for vert in mesh.vertices:
             # world/parent origin
-            co = vert.co * self.baseObject.matrix_local
+            # ???, normal and co are in different spaces, sure you want this?
+            co = matrix * vert.co
             normal = vert.normal
             verts.append([co, normal])
 
@@ -311,15 +312,15 @@ class OBJECT_OT_create_lightfield_basemesh(bpy.types.Operator):
     def getWidth(self, obj):
         mat = obj.matrix_local
         mesh = obj.data
-        v0 = mesh.vertices[mesh.edges[0].vertices[0]].co * mat
-        v1 = mesh.vertices[mesh.edges[0].vertices[1]].co * mat
+        v0 = mat * mesh.vertices[mesh.edges[0].vertices[0]].co
+        v1 = mat * mesh.vertices[mesh.edges[0].vertices[1]].co
         return (v0-v1).length
 
 
     def getCamVec(self, obj, angle):
         width = self.getWidth(obj)
         itmat = obj.matrix_local.inverted().transposed()
-        normal = (obj.data.faces[0].normal * itmat).normalized()
+        normal = (itmat * obj.data.faces[0].normal.normalized()
         vl = (width/2) * (1/math.tan(math.radians(angle/2)))
         return normal*vl
 

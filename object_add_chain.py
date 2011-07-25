@@ -37,8 +37,12 @@ def Add_Chain():
   
 
     ##Adds Empty to scene
-    bpy.ops.object.add(type='EMPTY', view_align=False, enter_editmode=False, location=(0, 0, 0), 
-rotation=(0, 0, 0),)
+    bpy.ops.object.add(type='EMPTY',
+                       view_align=False,
+                       enter_editmode=False,
+                       location=(0, 0, 0), 
+                       rotation=(0, 0, 0),
+                       )
 
     ##Changes name of Empty to rot_link adds variable emp
     emp = bpy.context.object
@@ -48,22 +52,31 @@ rotation=(0, 0, 0),)
     emp.rotation_euler = [1.570796, 0, 0]
 
     ##Adds Curve Path to scene
-    bpy.ops.curve.primitive_nurbs_path_add( view_align=False, enter_editmode=False, location=(0, 0, 0), rotation=(0, 0, 0),)
+    bpy.ops.curve.primitive_nurbs_path_add(view_align=False,
+                                           enter_editmode=False,
+                                           location=(0, 0, 0),
+                                           rotation=(0, 0, 0),
+                                           )
 
     ##Change Curve name to deform adds variable curv
     curv = bpy.context.object
     curv.name = "deform"
 
     ##Inserts Torus primitive
-    bpy.ops.mesh.primitive_torus_add(
-        major_radius=1, minor_radius=0.25, major_segments=12, minor_segments=4, 
-        use_abso=False, abso_major_rad=1, abso_minor_rad=0.5)
+    bpy.ops.mesh.primitive_torus_add(major_radius=1,
+                                     minor_radius=0.25,
+                                     major_segments=12,
+                                     minor_segments=4,
+                                     use_abso=False,
+                                     abso_major_rad=1,
+                                     abso_minor_rad=0.5,
+                                     )
 
     ##Positions Torus primitive to center of scene
-    bpy.context.active_object.location = [0, 0, 0]
+    bpy.context.active_object.location = 0.0, 0.0, 0.0
     
     ##Reseting Torus rotation in case of 'Align to view' option enabled
-    bpy.context.active_object.rotation_euler = [0, 0, 0]
+    bpy.context.active_object.rotation_euler = 0.0, 0.0, 0.0
     
 
     ##Changes Torus name to chain adds variable tor
@@ -86,13 +99,22 @@ rotation=(0, 0, 0),)
     ##Toggle into editmode
     bpy.ops.object.editmode_toggle()
 
+    ## TODO, may be better to move objects directly.
     ##Translate curve object
-    bpy.ops.transform.translate(
-        value=(2, 0, 0), constraint_axis=(True, False, False), 
-        constraint_orientation='GLOBAL', mirror=False, proportional='DISABLED', 
-        proportional_edit_falloff='SMOOTH', proportional_size=1, snap=False, 
-        snap_target='CLOSEST', snap_point=(0, 0, 0), snap_align=False,
-        snap_normal=(0, 0, 0), release_confirm=False)
+    bpy.ops.transform.translate(value=(2, 0, 0),
+                                constraint_axis=(True, False, False),
+                                constraint_orientation='GLOBAL',
+                                mirror=False,
+                                proportional='DISABLED',
+                                proportional_edit_falloff='SMOOTH',
+                                proportional_size=1,
+                                snap=False,
+                                snap_target='CLOSEST',
+                                snap_point=(0, 0, 0),
+                                snap_align=False,
+                                snap_normal=(0, 0, 0),
+                                release_confirm=False,
+                                )
 
     ##Toggle into objectmode
     bpy.ops.object.editmode_toggle()
@@ -104,11 +126,11 @@ rotation=(0, 0, 0),)
     array = tor.modifiers['Array']
 
     ##Change Array Modifier Parameters
-    array.fit_type = ('FIT_CURVE')
+    array.fit_type = 'FIT_CURVE'
     array.curve = curv
     array.offset_object = emp
     array.use_object_offset = True
-    array.relative_offset_displace = [ 0.549, 0, 0 ]
+    array.relative_offset_displace = 0.549, 0.0, 0.0
 
     ##Add curve modifier
     bpy.ops.object.modifier_add(type='CURVE')

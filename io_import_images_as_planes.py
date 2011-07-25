@@ -232,18 +232,25 @@ class IMPORT_OT_image_to_plane(bpy.types.Operator, ImportHelper, AddObjectHelper
     bl_options = {'REGISTER', 'UNDO'}
 
     ## OPTIONS ##
-    all_in_directory = BoolProperty(name="All in directory",
-                                description="Import all image files (of the selected type)" \
-                                            " in this directory.",
-                                default=False)
-    align = BoolProperty(name='Align Planes',
-                                description='Create Planes in a row',
-                                default=True)
-    align_offset = FloatProperty(name='Offset',
-                                description='Space between Planes',
-                                min=0, soft_min=0,
-                                default=0.1)
-    extEnum = [
+    all_in_directory = BoolProperty(
+            name="All in directory",
+            description=("Import all image files (of the selected type) "
+                         "in this directory."),
+            default=False,
+            )
+    align = BoolProperty(
+            name='Align Planes',
+            description='Create Planes in a row',
+            default=True,
+            )
+    align_offset = FloatProperty(
+            name='Offset',
+            description='Space between Planes',
+            min=0,
+            soft_min=0,
+            default=0.1,
+            )
+    extEnum = (
         ('*', 'All image formats',
             'Import all know image (or movie) formats.'),
         ('jpeg', 'JPEG (.jpg, .jpeg, .jpe)',
@@ -260,35 +267,44 @@ class IMPORT_OT_image_to_plane(bpy.types.Operator, ImportHelper, AddObjectHelper
         ('bmp', 'BMP (.bmp, .dib)', 'Windows Bitmap'),
         ('cin', 'CIN (.cin)', ''),
         ('dpx', 'DPX (.dpx)', 'DPX (Digital Picture Exchange)'),
-        ('psd', 'PSD (.psd)', 'Photoshop Document')]
-    extension = EnumProperty(name="Extension",
-                                description="Only import files of this type.",
-                                items=extEnum)
+        ('psd', 'PSD (.psd)', 'Photoshop Document'),
+        )
+    extension = EnumProperty(
+            name="Extension",
+            description="Only import files of this type.",
+            items=extEnum)
     use_dimension = BoolProperty(name="Use image dimensions",
-                                description="Use the images pixels to derive the size of the plane.",
-                                default=False)
+            description="Use the images pixels to derive the size of the plane.",
+            default=False)
     factor = IntProperty(name="Pixels/BU",
-                                description="Number of pixels per Blenderunit.",
-                                min=1,
-                                default=500)
+            description="Number of pixels per Blenderunit.",
+            min=1,
+            default=500,
+            )
 
     ## MATERIAL OPTIONS ##
-    use_shadeless = BoolProperty(name="Shadeless",
-                                description="Set material to shadeless",
-                                default=False)
-    use_transparency = BoolProperty(name="Use alpha",
-                                description="Use alphachannel for transparency.",
-                                default=False)
-    tEnum = [
+    use_shadeless = BoolProperty(
+            name="Shadeless",
+            description="Set material to shadeless",
+            default=False,
+            )
+    use_transparency = BoolProperty(
+            name="Use alpha",
+            description="Use alphachannel for transparency.",
+            default=False,
+            )
+    tEnum = (
             ('Z_TRANSPARENCY',
             'Z Transparency',
             'Use alpha buffer for transparent faces'),
             ('RAYTRACE',
             'Raytrace',
-            'Use raytracing for transparent refraction rendering.')]
-    transparency_method = EnumProperty(name="Transp. Method",
-                                description="Transparency Method",
-                                items=tEnum)
+            'Use raytracing for transparent refraction rendering.'))
+    transparency_method = EnumProperty(
+            name="Transp. Method",
+            description="Transparency Method",
+            items=tEnum,
+            )
 
     ## IMAGE OPTIONS ##
     use_premultiply = BoolProperty(name="Premultiply",
