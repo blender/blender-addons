@@ -568,10 +568,14 @@ def WriteMeshSkinWeights(Config, Object, Mesh):
         UsedBones = set()
         #Maps bones to a list of vertices they affect
         VertexGroups = {}
-        
+        ObjectVertexGroups = {i: Group.name for (i, Group) in enumerate(Object.vertex_groups)}
         for Vertex in Mesh.vertices:
             #BoneInfluences contains the bones of the armature that affect the current vertex
-            BoneInfluences = [PoseBones[Object.vertex_groups[Group.group].name] for Group in Vertex.groups if Object.vertex_groups[Group.group].name in PoseBones]
+            BoneInfluences = [PoseBone for Group in Vertex.groups
+                              for PoseBone in (PoseBones.get(ObjectVertexGroups.get(Group.group, "")), )
+                              if PoseBone is not None
+                              ]
+
             if len(BoneInfluences) > MaxInfluences:
                 MaxInfluences = len(BoneInfluences)
             for Bone in BoneInfluences:
@@ -611,10 +615,12 @@ def WriteMeshSkinWeights(Config, Object, Mesh):
                     if Vertex in VertexIndexes:
                         Config.File.write("{}{}".format("  " * Config.Whitespace, Index))
 
-                        GroupIndexes = {Object.vertex_groups[Group.group].name: Index for Index, Group in enumerate(Mesh.vertices[Vertex].groups) if Object.vertex_groups[Group.group].name in PoseBones}
+                        GroupIndexes = {ObjectVertexGroups.get(Group.group): Index
+                                        for Index, Group in enumerate(Mesh.vertices[Vertex].groups)
+                                        if ObjectVertexGroups.get(Group.group, "") in PoseBones}
 
                         WeightTotal = 0.0
-                        for Weight in [Group.weight for Group in Mesh.vertices[Vertex].groups if Object.vertex_groups[Group.group].name in PoseBones]:
+                        for Weight in (Group.weight for Group in Mesh.vertices[Vertex].groups if ObjectVertexGroups.get(Group.group, "") in PoseBones):
                             WeightTotal += Weight
 
                         if WeightTotal:
