@@ -114,8 +114,8 @@ class ExportPLY(bpy.types.Operator, ExportHelper):
         filepath = self.filepath
         filepath = bpy.path.ensure_ext(filepath, self.filename_ext)
         from . import export_ply
-        keywords = **self.as_keywords(ignore=("check_existing", "filter_glob"))
-        return export_ply.save(self, context, keywords)
+        keywords = self.as_keywords(ignore=("check_existing", "filter_glob"))
+        return export_ply.save(self, context, **keywords)
 
     def draw(self, context):
         layout = self.layout

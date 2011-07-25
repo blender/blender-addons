@@ -320,7 +320,7 @@ class OBJECT_OT_create_lightfield_basemesh(bpy.types.Operator):
     def getCamVec(self, obj, angle):
         width = self.getWidth(obj)
         itmat = obj.matrix_local.inverted().transposed()
-        normal = (itmat * obj.data.faces[0].normal.normalized()
+        normal = itmat * obj.data.faces[0].normal.normalized()
         vl = (width/2) * (1/math.tan(math.radians(angle/2)))
         return normal*vl
 
