@@ -18,12 +18,11 @@
 
 import bpy
 
+# ???, why do this
 try: 
-    import mathutils
-    MATHUTILS = mathutils
+    import mathutils as MATHUTILS
 except:
-    import Mathutils
-    MATHUTILS = Mathutils
+    import Mathutils as MATHUTILS
 
 
 
@@ -175,23 +174,14 @@ def Get_Phillips_Bit_Height(Bit_Dia):
 ##########################################################################################
 
 # Returns a list of verts rotated by the given matrix. Used by SpinDup
-def Rot_Mesh(verts,matrix):
-        ret = []
-        #print ("rot mat",matrix)
-        for v in verts:
-            vec = MATHUTILS.Vector(v) * matrix
-            ret.append([vec.x,vec.y,vec.z])
-        return ret
+def Rot_Mesh(verts, matrix):
+    Vector = MATHUTILS.Vector
+    return [(matrix * Vector(v))[:] for v in verts]
+
 
 # Returns a list of faces that has there index incremented by offset 
-def Copy_Faces(faces,offset):        
-    ret = []
-    for f in faces:
-        fsub = []
-        for i in range(len(f)):
-            fsub.append(f[i]+ offset)
-        ret.append(fsub)
-    return ret
+def Copy_Faces(faces,offset):
+    return [[(i + offset) for i in f] for f in faces]
 
 
 # Much like Blenders built in SpinDup.
