@@ -1045,7 +1045,7 @@ def export(file,
                 elif uniform['type'] == gpu.GPU_DYNAMIC_LAMP_DYNVEC:
                     if uniform['datatype'] == gpu.GPU_DATA_3F:
                         lamp_obj = bpy.data.objects[uniform['lamp']]
-                        value = '%.6g %.6g %.6g' % (mathutils.Vector((0.0, 0.0, 1.0)) * (global_matrix * lamp_obj.matrix_world).to_quaternion()).normalized()[:]
+                        value = '%.6g %.6g %.6g' % ((global_matrix * lamp_obj.matrix_world).to_quaternion() * mathutils.Vector((0.0, 0.0, 1.0))).normalized()[:]
                         fw('%s<field name="%s" type="SFVec3f" accessType="inputOutput" value="%s" />\n' % (ident, uniform['varname'], value))
                     else:
                         assert(0)
