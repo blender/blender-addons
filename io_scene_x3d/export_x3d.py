@@ -514,7 +514,10 @@ def export(file,
 
                     # UV's and VCols split verts off which effects smoothing
                     # force writing normals in this case.
-                    is_force_normals = use_triangulate and is_smooth and (is_uv or is_col)
+                    # Also, creaseAngle is not supported for IndexedTriangleSet,
+                    # so write normals when is_smooth (otherwise
+                    # IndexedTriangleSet can have only all smooth/all flat shading).
+                    is_force_normals = use_triangulate and (is_smooth or is_uv or is_col)
 
                     if use_h3d:
                         gpu_shader = gpu_shader_cache.get(material)  # material can be 'None', uses dummy cache
@@ -559,6 +562,7 @@ def export(file,
 
                             ident_step = ident + (' ' * (-len(ident) + \
                             fw('%s<TextureTransform ' % ident)))
+                            fw('\n')
                             # fw('center="%.6g %.6g" ' % (0.0, 0.0))
                             fw(ident_step + 'translation="%.6g %.6g"\n' % loc)
                             fw(ident_step + 'scale="%.6g %.6g"\n' % (sca_x, sca_y))
@@ -588,11 +592,11 @@ def export(file,
                         # --- Write IndexedTriangleSet Attributes (same as IndexedFaceSet)
                         fw('solid="%s"\n' % ('true' if mesh.show_double_sided else 'false'))
 
-                        # creaseAngle unsupported for IndexedTriangleSet's
-
                         if use_normals or is_force_normals:
-                            # currently not optional, could be made so:
                             fw(ident_step + 'normalPerVertex="true"\n')
+                        else:
+                            # Tell X3D browser to generate flat (per-face) normals
+                            fw(ident_step + 'normalPerVertex="false"\n')
 
                         slot_uv = None
                         slot_col = None
@@ -1142,8 +1146,8 @@ def export(file,
             filepath_base = os.path.basename(filepath_full)
 
             images = [
-                filepath_base,
                 filepath_ref,
+                filepath_base,
                 filepath_full,
             ]
 
