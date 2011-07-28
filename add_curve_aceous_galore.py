@@ -996,7 +996,7 @@ class Curveaceous_galore(bpy.types.Operator):
         # general options        
         col = layout.column()
         col.prop(self, 'GalloreType')
-        col.label(text=self.GalloreType + " Options")
+        col.label(text=self.GalloreType + " Options:")
 
         # options per GalloreType
         box = layout.box()
@@ -1004,47 +1004,47 @@ class Curveaceous_galore(bpy.types.Operator):
             box.prop(self, 'ProfileCurveType')
             box.prop(self, 'ProfileCurvevar1')
             box.prop(self, 'ProfileCurvevar2')
-        if self.GalloreType == 'Miscellaneous':
+        elif self.GalloreType == 'Miscellaneous':
             box.prop(self, 'MiscCurveType')
             box.prop(self, 'MiscCurvevar1', text='Width')
             box.prop(self, 'MiscCurvevar2', text='Height')
             if self.MiscCurveType == 5:
                 box.prop(self, 'MiscCurvevar3', text='Rounded')
-        if self.GalloreType == 'Flower':
+        elif self.GalloreType == 'Flower':
             box.prop(self, 'petals')
             box.prop(self, 'petalWidth')
             box.prop(self, 'innerRadius')
             box.prop(self, 'outerRadius')
-        if self.GalloreType == 'Star':
+        elif self.GalloreType == 'Star':
             box.prop(self, 'starPoints')
             box.prop(self, 'starTwist')
             box.prop(self, 'innerRadius')
             box.prop(self, 'outerRadius')
-        if self.GalloreType == 'Arc':
+        elif self.GalloreType == 'Arc':
             box.prop(self, 'arcSides')
             box.prop(self, 'arcType') # has only one Type?
             box.prop(self, 'startAngle')
             box.prop(self, 'endAngle')
             box.prop(self, 'innerRadius') # doesn't seem to do anything
             box.prop(self, 'outerRadius')
-        if self.GalloreType == 'Cogwheel':
+        elif self.GalloreType == 'Cogwheel':
             box.prop(self, 'teeth')
             box.prop(self, 'bevel')
             box.prop(self, 'innerRadius')
             box.prop(self, 'middleRadius')
             box.prop(self, 'outerRadius')
-        if self.GalloreType == 'Nsided':
+        elif self.GalloreType == 'Nsided':
             box.prop(self, 'Nsides')
             box.prop(self, 'outerRadius', text='Radius')
 
-        if self.GalloreType == 'Splat':
+        elif self.GalloreType == 'Splat':
             box.prop(self, 'splatSides')
             box.prop(self, 'outerRadius')
             box.prop(self, 'splatScale')
             box.prop(self, 'seed')
             box.prop(self, 'basis')
 
-        if self.GalloreType == 'Helix':
+        elif self.GalloreType == 'Helix':
             box.prop(self, 'helixPoints')
             box.prop(self, 'helixHeight')
             box.prop(self, 'helixWidth')
@@ -1052,7 +1052,7 @@ class Curveaceous_galore(bpy.types.Operator):
             box.prop(self, 'helixEnd')
             box.prop(self, 'helix_a')
             box.prop(self, 'helix_b')
-        if self.GalloreType == 'Cycloid':
+        elif self.GalloreType == 'Cycloid':
             box.prop(self, 'cycloPoints')
             #box.prop(self, 'cycloType') # needs the other types first
             box.prop(self, 'cycloStart')
@@ -1062,11 +1062,9 @@ class Curveaceous_galore(bpy.types.Operator):
             box.prop(self, 'cyclo_d')
 
         col = layout.column()
-        col.label(text="Output Curve Type")
-        row = layout.row()
-        row.prop(self, 'outputType', expand=True)
-        col = layout.column()
-        col.label(text="Curve Options")
+        col.label(text="Output Curve Type:")
+        col.row().prop(self, 'outputType', expand=True)
+        col.label(text="Curve Options:")
 
         # output options
         box = layout.box()
@@ -1076,11 +1074,11 @@ class Curveaceous_galore(bpy.types.Operator):
             #box.prop(self, 'endp_u')
             box.prop(self, 'order_u')
 
-        if self.outputType == 'POLY':
+        elif self.outputType == 'POLY':
             box.row().prop(self, 'shape', expand=True)
             #box.prop(self, 'use_cyclic_u')
 
-        if self.outputType == 'BEZIER':
+        elif self.outputType == 'BEZIER':
             box.row().prop(self, 'shape', expand=True)
             box.row().prop(self, 'handleType', expand=True)
             #box.prop(self, 'use_cyclic_u')
