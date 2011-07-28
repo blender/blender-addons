@@ -40,8 +40,12 @@ import shutil
 def CopyPythonLibs(dst, overwrite_lib):
     import sysconfig
     src = sysconfig.get_paths()['platstdlib']
-    # X.XX/python/lib --> X.XX/python/lib/pythonX.X
-    dst = os.path.join(dst, os.path.basename(src))
+    # Unix 'platstdlib' excludes 'lib', eg:
+    #  '/usr/lib/python3.3' vs 'C:\blender\bin\2.58\python\Lib'
+    # in both cases we have to end up with './2.58/python/lib'
+    if sys.platform[:3] != "win":
+        dst = os.path.join(dst, os.path.basename(src))
+
     if os.path.exists(src):
         write = False
         if os.path.exists(dst):
