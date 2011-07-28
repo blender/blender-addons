@@ -240,7 +240,7 @@ def export(file,
         fw('DEF=%s\n' % view_id)
         fw(ident_step + 'centerOfRotation="0 0 0"\n')
         fw(ident_step + 'position="%3.2f %3.2f %3.2f"\n' % loc[:])
-        fw(ident_step + 'orientation="%3.2f %3.2f %3.2f %3.2f"\n' % (quat.axis[:] + (quat.angle, )))
+        fw(ident_step + 'orientation="%3.2f %3.2f %3.2f %3.2f"\n' % (quat.axis.normalized()[:] + (quat.angle, )))
         fw(ident_step + 'fieldOfView="%.3g"\n' % obj.data.angle)
         fw(ident_step + '/>\n')
 
@@ -283,7 +283,7 @@ def export(file,
         fw(ident_step + 'translation="%.6g %.6g %.6g"\n' % loc[:])
         # fw(ident_step + 'center="%.6g %.6g %.6g"\n' % (0, 0, 0))
         fw(ident_step + 'scale="%.6g %.6g %.6g"\n' % sca[:])
-        fw(ident_step + 'rotation="%.6g %.6g %.6g %.6g"\n' % (quat.axis[:] + (quat.angle, )))
+        fw(ident_step + 'rotation="%.6g %.6g %.6g %.6g"\n' % (quat.axis.normalized()[:] + (quat.angle, )))
         fw(ident_step + '>\n')
         ident += '\t'
         return ident
