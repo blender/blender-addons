@@ -1229,9 +1229,6 @@ def export(file,
         world = scene.world
         free, derived = create_derived_objects(scene, obj_main)
 
-        if derived is None:
-            return
-
         if use_hierarchy:
             obj_main_matrix_world = obj_main.matrix_world
             if obj_main_parent:
@@ -1244,7 +1241,7 @@ def export(file,
 
             ident = writeTransform_begin(ident, obj_main_matrix if obj_main_parent else global_matrix * obj_main_matrix, suffix_quoted_str(obj_main_id, "_TRANSFORM"))
 
-        for obj, obj_matrix in derived:
+        for obj, obj_matrix in (() if derived is None else derived):
             obj_type = obj.type
 
             if use_hierarchy:
