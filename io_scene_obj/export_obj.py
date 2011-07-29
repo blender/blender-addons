@@ -301,7 +301,7 @@ def write_file(filepath, objects, scene,
     for ob_main in objects:
 
         # ignore dupli children
-        if ob_main.parent and ob_main.parent.dupli_type != 'NONE':
+        if ob_main.parent and ob_main.parent.dupli_type in {'VERTS', 'FACES'}:
             # XXX
             print(ob_main.name, 'is a dupli child - ignoring')
             continue
@@ -380,23 +380,8 @@ def write_file(filepath, objects, scene,
 #                   # better to recalculate them
 #                   me.calcNormals()
 
-            materials = me.materials
-
-            materialNames = []
-            materialItems = [m for m in materials]
-            if materials:
-                for mat in materials:
-                    if mat:
-                        materialNames.append(mat.name)
-                    else:
-                        materialNames.append(None)
-                # Cant use LC because some materials are None.
-                # materialNames = map(lambda mat: mat.name, materials) # Bug Blender, dosent account for null materials, still broken.
-
-            # Possible there null materials, will mess up indices
-            # but at least it will export, wait until Blender gets fixed.
-            materialNames.extend((16 - len(materialNames)) * [None])
-            materialItems.extend((16 - len(materialItems)) * [None])
+            materials = me.materials[:]
+            material_names = [m.name if m else None for m in materials]
 
             # Sort by Material, then images
             # so we dont over context switch in the obj file.
@@ -498,7 +483,7 @@ def write_file(filepath, objects, scene,
 
             for f, f_index in face_index_pairs:
                 f_smooth = f.use_smooth
-                f_mat = min(f.material_index, len(materialNames) - 1)
+                f_mat = min(f.material_index, len(materials) - 1)
 
                 if faceuv:
                     tface = uv_layer[f_index]
@@ -506,9 +491,9 @@ def write_file(filepath, objects, scene,
 
                 # MAKE KEY
                 if faceuv and f_image:  # Object is always true.
-                    key = materialNames[f_mat], f_image.name
+                    key = material_names[f_mat], f_image.name
                 else:
-                    key = materialNames[f_mat], None  # No image, use None instead.
+                    key = material_names[f_mat], None  # No image, use None instead.
 
                 # Write the vertex group
                 if EXPORT_POLYGROUPS:
@@ -541,9 +526,9 @@ def write_file(filepath, objects, scene,
 
                             # If none image dont bother adding it to the name
                             if key[1] is None:
-                                mat_data = mtl_dict[key] = ("%s" % name_compat(key[0])), materialItems[f_mat], f_image
+                                mat_data = mtl_dict[key] = ("%s" % name_compat(key[0])), materials[f_mat], f_image
                             else:
-                                mat_data = mtl_dict[key] = ("%s_%s" % (name_compat(key[0]), name_compat(key[1]))), materialItems[f_mat], f_image
+                                mat_data = mtl_dict[key] = ("%s_%s" % (name_compat(key[0]), name_compat(key[1]))), materials[f_mat], f_image
 
                         if EXPORT_GROUP_BY_MAT:
                             file.write("g %s_%s_%s\n" % (name_compat(ob.name), name_compat(ob.data.name), mat_data[0]))  # can be mat_image or (null)
@@ -574,23 +559,26 @@ def write_file(filepath, objects, scene,
                         if EXPORT_NORMALS:
                             if f_smooth:  # Smoothed, use vertex normals
                                 for vi, v in f_v:
-                                    file.write(" %d/%d/%d" % \
-                                                    (v.index + totverts,
-                                                     totuvco + uv_face_mapping[f_index][vi],
-                                                     globalNormals[veckey3d(v.normal)]))  # vert, uv, normal
+                                    file.write(" %d/%d/%d" %
+                                               (v.index + totverts,
+                                                totuvco + uv_face_mapping[f_index][vi],
+                                                globalNormals[veckey3d(v.normal)],
+                                                ))  # vert, uv, normal
 
                             else:  # No smoothing, face normals
                                 no = globalNormals[veckey3d(f.normal)]
                                 for vi, v in f_v:
-                                    file.write(" %d/%d/%d" % \
-                                                    (v.index + totverts,
-                                                     totuvco + uv_face_mapping[f_index][vi],
-                                                     no))  # vert, uv, normal
+                                    file.write(" %d/%d/%d" %
+                                               (v.index + totverts,
+                                                totuvco + uv_face_mapping[f_index][vi],
+                                                no,
+                                                ))  # vert, uv, normal
                         else:  # No Normals
                             for vi, v in f_v:
-                                file.write(" %d/%d" % (\
-                                  v.index + totverts,\
-                                  totuvco + uv_face_mapping[f_index][vi]))  # vert, uv
+                                file.write(" %d/%d" % (
+                                           v.index + totverts,
+                                           totuvco + uv_face_mapping[f_index][vi],
+                                           ))  # vert, uv
 
                         face_vert_index += len(f_v)
 
@@ -598,8 +586,10 @@ def write_file(filepath, objects, scene,
                         if EXPORT_NORMALS:
                             if f_smooth:  # Smoothed, use vertex normals
                                 for vi, v in f_v:
-                                    file.write(" %d//%d" %
-                                                (v.index + totverts, globalNormals[veckey3d(v.normal)]))
+                                    file.write(" %d//%d" % (
+                                               v.index + totverts,
+                                               globalNormals[veckey3d(v.normal)],
+                                               ))
                             else:  # No smoothing, face normals
                                 no = globalNormals[veckey3d(f.normal)]
                                 for vi, v in f_v:
