@@ -218,7 +218,7 @@ def export(file,
         return ident
 
     def writeFooter(ident):
-        
+
         if use_h3d:
             # global
             for route in h3d_material_route:
@@ -1012,7 +1012,7 @@ def export(file,
 
                         value = '%.6g %.6g %.6g' % (global_matrix * lamp_obj.matrix_world).to_translation()[:]
                         fw('%s<field name="%s" type="SFVec3f" accessType="inputOutput" value="%s" />\n' % (ident, uniform['varname'], value))
-                        
+
                         # ------------------------------------------------------
                         # shader-patch
                         fw('%s<field name="%s_transform" type="SFMatrix4f" accessType="inputOutput" />\n' % (ident, uniform['varname']))
@@ -1022,7 +1022,7 @@ def export(file,
                         h3d_material_route.append(
                                 '<ROUTE fromNode=%s fromField="accForwardMatrix" toNode=%s toField="%s_transform" />' %
                                 (suffix_quoted_str(lamp_obj_id, "_TRANSFORM"), material_id, uniform['varname']))
-                                
+
                         h3d_material_route.append(
                                 '<ROUTE fromNode=%s fromField="location" toNode=%s toField="%s" />' %
                                 (suffix_quoted_str(lamp_obj_id, "_TRANSFORM"), material_id, uniform['varname']))

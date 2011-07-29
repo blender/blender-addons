@@ -42,7 +42,7 @@ if "bpy" in locals():
 import bpy
 from bpy.props import StringProperty, BoolProperty, FloatProperty, EnumProperty
 
-from bpy_extras.io_utils import (ExportHelper, 
+from bpy_extras.io_utils import (ExportHelper,
                                  path_reference_mode,
                                  axis_conversion,
                                  axis_conversion_ensure,

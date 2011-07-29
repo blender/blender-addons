@@ -43,6 +43,7 @@ tolerance.
 
 import bpy
 
+
 def readMesh(filename, objName):
     file = open(filename, "rb")
 
@@ -58,7 +59,6 @@ def readMesh(filename, objName):
             return zip(*[iter(line_split_float)] * 3)  # group in 3's
         else:
             return None
-
 
     faces = []
     for line in file.readlines():

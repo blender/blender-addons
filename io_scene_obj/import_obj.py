@@ -427,7 +427,19 @@ def split_mesh(verts_loc, faces, unique_materials, filepath, SPLIT_OB_OR_GROUP):
     return [(value[0], value[1], value[2], key_to_name(key)) for key, value in list(face_split_dict.items())]
 
 
-def create_mesh(new_objects, has_ngons, use_ngons, use_edges, verts_loc, verts_tex, faces, unique_materials, unique_material_images, unique_smooth_groups, vertex_groups, dataname):
+def create_mesh(new_objects, 
+                has_ngons,
+                use_ngons,
+                use_edges,
+                verts_loc,
+                verts_tex,
+                faces,
+                unique_materials,
+                unique_material_images,
+                unique_smooth_groups,
+                vertex_groups,
+                dataname,
+                ):
     '''
     Takes all the data gathered and generates a mesh, adding the new object to new_objects
     deals with fgons, sharp edges and assigning materials
@@ -452,11 +464,12 @@ def create_mesh(new_objects, has_ngons, use_ngons, use_edges, verts_loc, verts_t
     # reverse loop through face indices
     for f_idx in range(len(faces) - 1, -1, -1):
 
-        face_vert_loc_indices,\
-        face_vert_tex_indices,\
-        context_material,\
-        context_smooth_group,\
-        context_object = faces[f_idx]
+        (face_vert_loc_indices,
+         face_vert_tex_indices,
+         context_material,
+         context_smooth_group,
+         context_object,
+         ) = faces[f_idx]
 
         len_face_vert_loc_indices = len(face_vert_loc_indices)
 
@@ -494,15 +507,20 @@ def create_mesh(new_objects, has_ngons, use_ngons, use_edges, verts_loc, verts_t
             if has_ngons and len_face_vert_loc_indices > 4:
 
                 ngon_face_indices = ngon_tesselate(verts_loc, face_vert_loc_indices)
-                faces.extend(
-                    [(
-                    [face_vert_loc_indices[ngon[0]], face_vert_loc_indices[ngon[1]], face_vert_loc_indices[ngon[2]]],
-                    [face_vert_tex_indices[ngon[0]], face_vert_tex_indices[ngon[1]], face_vert_tex_indices[ngon[2]]],
-                    context_material,
-                    context_smooth_group,
-                    context_object)
-                    for ngon in ngon_face_indices]
-                )
+                faces.extend([([face_vert_loc_indices[ngon[0]],
+                                face_vert_loc_indices[ngon[1]],
+                                face_vert_loc_indices[ngon[2]],
+                                ],
+                               [face_vert_tex_indices[ngon[0]],
+                                face_vert_tex_indices[ngon[1]],
+                                face_vert_tex_indices[ngon[2]],
+                                ],
+                               context_material,
+                               context_smooth_group,
+                               context_object,
+                              )
+                             for ngon in ngon_face_indices]
+                            )
 
                 # edges to make fgons
                 if use_ngons:
@@ -575,11 +593,12 @@ def create_mesh(new_objects, has_ngons, use_ngons, use_edges, verts_loc, verts_t
 
                 blender_face = me.faces[i]
 
-                face_vert_loc_indices,\
-                face_vert_tex_indices,\
-                context_material,\
-                context_smooth_group,\
-                context_object = face
+                (face_vert_loc_indices,
+                 face_vert_tex_indices,
+                 context_material,
+                 context_smooth_group,
+                 context_object,
+                 ) = face
 
                 if context_smooth_group:
                     blender_face.use_smooth = True
@@ -887,13 +906,12 @@ def load(operator, context, filepath,
                 face_vert_tex_indices = []
 
                 # Instance a face
-                faces.append((\
-                face_vert_loc_indices,\
-                face_vert_tex_indices,\
-                context_material,\
-                context_smooth_group,\
-                context_object\
-                ))
+                faces.append((face_vert_loc_indices,
+                              face_vert_tex_indices,
+                              context_material,
+                              context_smooth_group,
+                              context_object,
+                              ))
 
             if strip_slash(line_split):
                 context_multi_line = b'f'
@@ -944,13 +962,12 @@ def load(operator, context, filepath,
                 face_vert_tex_indices = []
 
                 # Instance a face
-                faces.append((\
-                face_vert_loc_indices,\
-                face_vert_tex_indices,\
-                context_material,\
-                context_smooth_group,\
-                context_object\
-                ))
+                faces.append((face_vert_loc_indices,
+                              face_vert_tex_indices,
+                              context_material,
+                              context_smooth_group,
+                              context_object,
+                              ))
 
             if strip_slash(line_split):
                 context_multi_line = b'l'
@@ -1088,7 +1105,19 @@ def load(operator, context, filepath,
 
     for verts_loc_split, faces_split, unique_materials_split, dataname in split_mesh(verts_loc, faces, unique_materials, filepath, SPLIT_OB_OR_GROUP):
         # Create meshes from the data, warning 'vertex_groups' wont support splitting
-        create_mesh(new_objects, has_ngons, use_ngons, use_edges, verts_loc_split, verts_tex, faces_split, unique_materials_split, unique_material_images, unique_smooth_groups, vertex_groups, dataname)
+        create_mesh(new_objects,
+                    has_ngons,
+                    use_ngons,
+                    use_edges,
+                    verts_loc_split,
+                    verts_tex,
+                    faces_split,
+                    unique_materials_split,
+                    unique_material_images,
+                    unique_smooth_groups,
+                    vertex_groups,
+                    dataname,
+                    )
 
     # nurbs support
     for context_nurbs in nurbs:
