@@ -48,18 +48,23 @@ def createIvyGeometry(IVY, growLeaves):
     '''Create the curve geometry for IVY'''
     # Compute the local size and the gauss weight filter
     #local_ivyBranchSize = IVY.ivyBranchSize  # * radius * IVY.ivySize
-    gaussWeight = [1.0, 2.0, 4.0, 7.0, 9.0, 10.0, 9.0, 7.0, 4.0, 2.0, 1.0]
+    gaussWeight = (1.0, 2.0, 4.0, 7.0, 9.0, 10.0, 9.0, 7.0, 4.0, 2.0, 1.0)
 
     # Create a new curve and intialise it
     curve = bpy.data.curves.new("IVY", type='CURVE')
     curve.dimensions = '3D'
     curve.bevel_depth = 1
     curve.use_fill_front = curve.use_fill_back = False
+    curve.resolution_u = 4
 
     if growLeaves:
         # Create the ivy leaves
         # Order location of the vertices
-        signList = [(-1, 1), (1, 1), (1, -1), (-1, -1)]
+        signList = ((-1.0, +1.0),
+                    (+1.0, +1.0),
+                    (+1.0, -1.0),
+                    (-1.0, -1.0),
+                    )
 
         # Get the local size
         #local_ivyLeafSize = IVY.ivyLeafSize  # * radius * IVY.ivySize
@@ -77,8 +82,8 @@ def createIvyGeometry(IVY, growLeaves):
         numNodes = len(root.ivyNodes)
         if numNodes > 1:
             # Calculate the local radius
-            local_ivyBranchRadius = 1 / (root.parents + 1) + 1
-            prevIvyLength = 1 / root.ivyNodes[-1].length
+            local_ivyBranchRadius = 1.0 / (root.parents + 1) + 1.0
+            prevIvyLength = 1.0 / root.ivyNodes[-1].length
             splineVerts = [ax for n in root.ivyNodes for ax in n.pos.to_4d()]
 
             radiusConstant = local_ivyBranchRadius * IVY.ivyBranchSize
@@ -118,7 +123,7 @@ def createIvyGeometry(IVY, growLeaves):
 
                     # Calculate the needed angles
                     phi = atan2(node.smoothAdhesionVector.y,
-                                          node.smoothAdhesionVector.x) - pi / 2
+                                node.smoothAdhesionVector.x) - pi / 2.0
 
                     theta = (0.5 *
                         node.smoothAdhesionVector.angle(Vector((0, 0, -1)), 0))
@@ -142,11 +147,13 @@ def createIvyGeometry(IVY, growLeaves):
 
                             # Generate the random vector
                             randomVector = Vector((rand_val() - 0.5,
-                                           rand_val() - 0.5, rand_val() - 0.5))
+                                                   rand_val() - 0.5,
+                                                   rand_val() - 0.5,
+                                                   ))
 
                             # Find the leaf center
-                            center = node.pos.lerp(nodeNext.pos, j / 10) +\
-                                               IVY.ivyLeafSize * randomVector
+                            center = (node.pos.lerp(nodeNext.pos, j / 10.0) +
+                                               IVY.ivyLeafSize * randomVector)
 
                             # For each of the verts, rotate/scale and append
                             basisVecX = Vector((1, 0, 0))
@@ -185,17 +192,20 @@ def createIvyGeometry(IVY, growLeaves):
         tex = me.uv_textures.new("Leaves")
 
         # Set the uv texture coords
+        # TODO, this is non-functional, default uvs are ok?
+        '''
         for d in tex.data:
             uv1, uv2, uv3, uv4 = signList
+        '''
 
         ob.parent = newCurve
 
-
+'''
 def computeBoundingSphere(ob):
     # Get the mesh data
     me = ob.data
     # Intialise the center
-    center = Vector((0, 0, 0))
+    center = Vector((0.0, 0.0, 0.0))
     # Add all vertex coords
     for v in me.vertices:
         center += v.co
@@ -205,6 +215,7 @@ def computeBoundingSphere(ob):
     length_iter = ((center - v.co).length for v in me.vertices)
     radius = max(length_iter)
     return radius
+'''
 
 
 class IvyNode:
@@ -392,7 +403,7 @@ def adhesion(loc, ob, max_l):
 
     # Compute the adhesion vector by finding the nearest point
     nearest_result = ob.closest_point_on_mesh(tran_loc, max_l)
-    adhesion_vector = Vector((0, 0, 0))
+    adhesion_vector = Vector((0.0, 0.0, 0.0))
     if nearest_result[2] != -1:
         # Compute the distance to the nearest point
         adhesion_vector = ob.matrix_world * nearest_result[0] - loc
@@ -474,8 +485,8 @@ class IvyGen(bpy.types.Operator):
                     min=0.0,
                     soft_max=1.0)
     ivySize = FloatProperty(name="Ivy Size",
-                    description="The length of an ivy segment in Blender"\
-                                " Units.",
+                    description=("The length of an ivy segment in Blender"
+                                 " Units."),
                     default=0.02,
                     min=0.0,
                     soft_max=1.0,
@@ -493,14 +504,14 @@ class IvyGen(bpy.types.Operator):
                     soft_max=0.1,
                     precision=4)
     maxFloatLength = FloatProperty(name="Max Float Length",
-                    description="The maximum distance that a branch"\
-                                "can live while floating.",
+                    description=("The maximum distance that a branch "
+                                 "can live while floating."),
                     default=0.5,
                     min=0.0,
                     soft_max=1.0)
     maxAdhesionDistance = FloatProperty(name="Max Adhesion Length",
-                    description="The maximum distance that a branch"\
-                                "will feel the effects of adhesion.",
+                    description=("The maximum distance that a branch "
+                                 "will feel the effects of adhesion."),
                     default=1.0,
                     min=0.0,
                     soft_max=2.0,
@@ -511,8 +522,8 @@ class IvyGen(bpy.types.Operator):
                     min=0.0,
                     soft_max=10)
     maxTime = FloatProperty(name="Maximum Time",
-                    description="The maximum time to run the generation for"\
-                                "in seconds generation (0.0 = Disabled)",
+                    description=("The maximum time to run the generation for "
+                                 "in seconds generation (0.0 = Disabled)"),
                     default=0.0,
                     min=0.0,
                     soft_max=10)
@@ -525,77 +536,77 @@ class IvyGen(bpy.types.Operator):
     def poll(self, context):
         # Check if there's an object and whether it's a mesh
         ob = context.active_object
-        if (ob is not None) and\
-           (ob.type == 'MESH') and\
-           (context.mode == 'OBJECT'):
-            return True
-        return False
+        return ((ob is not None) and
+                (ob.type == 'MESH') and
+                (context.mode == 'OBJECT'))
 
     def execute(self, context):
-        if self.updateIvy:
-            bpy.ops.object.mode_set(mode='EDIT', toggle=False)
-            bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
+        if not self.updateIvy:
+            return {'PASS_THROUGH'}
 
-            # Get the selected object
-            ob = context.active_object
+        bpy.ops.object.mode_set(mode='EDIT', toggle=False)
+        bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
 
-            # Compute bounding sphere radius
-            #radius = computeBoundingSphere(ob)  # Not needed anymore
+        # Get the selected object
+        ob = context.active_object
 
-            # Get the seeding point
-            seedPoint = context.scene.cursor_location
+        # Compute bounding sphere radius
+        #radius = computeBoundingSphere(ob)  # Not needed anymore
 
-            # Fix the random seed
-            rand_seed(int(self.randomSeed))
+        # Get the seeding point
+        seedPoint = context.scene.cursor_location
 
-            # Make the new ivy
-            IVY = Ivy(**self.as_keywords(ignore=('randomSeed', 'growLeaves',
-                                      'maxIvyLength', 'maxTime', 'updateIvy')))
+        # Fix the random seed
+        rand_seed(int(self.randomSeed))
 
-            # Generate first root and node
-            IVY.seed(seedPoint)
+        # Make the new ivy
+        IVY = Ivy(**self.as_keywords(ignore=('randomSeed', 'growLeaves',
+                                  'maxIvyLength', 'maxTime', 'updateIvy')))
 
-            checkAlive = True
-            checkTime = False
-            maxLength = self.maxIvyLength  # * radius
+        # Generate first root and node
+        IVY.seed(seedPoint)
 
-            # If we need to check time set the flag
-            if self.maxTime != 0.0:
-                checkTime = True
+        checkAlive = True
+        checkTime = False
+        maxLength = self.maxIvyLength  # * radius
 
-            t = time.time()
-            startPercent = 0.0
-            checkAliveIter = [True, ]
+        # If we need to check time set the flag
+        if self.maxTime != 0.0:
+            checkTime = True
 
-            # Grow until 200 roots is reached or backup counter exceeds limit
-            while any(checkAliveIter) and\
-                  (IVY.maxLength < maxLength) and\
-                  (not checkTime or (time.time() - t < self.maxTime)):
-                # Grow the ivy for this iteration
-                IVY.grow(ob)
+        t = time.time()
+        startPercent = 0.0
+        checkAliveIter = [True, ]
 
-                # Print the proportion of ivy growth to console
-                if (IVY.maxLength / maxLength * 100) > 10 * startPercent // 10:
-                    print('%0.2f%% of Ivy nodes have grown' %\
-                                             (IVY.maxLength / maxLength * 100))
-                    startPercent += 10
-                    if IVY.maxLength / maxLength > 1:
-                        print("Halting Growth")
+        # Grow until 200 roots is reached or backup counter exceeds limit
+        while (any(checkAliveIter) and
+               (IVY.maxLength < maxLength) and
+               (not checkTime or (time.time() - t < self.maxTime))):
+            # Grow the ivy for this iteration
+            IVY.grow(ob)
 
-                # Make an iterator to check if all are alive
-                checkAliveIter = (r.alive for r in IVY.ivyRoots)
+            # Print the proportion of ivy growth to console
+            if (IVY.maxLength / maxLength * 100) > 10 * startPercent // 10:
+                print('%0.2f%% of Ivy nodes have grown' %
+                                         (IVY.maxLength / maxLength * 100))
+                startPercent += 10
+                if IVY.maxLength / maxLength > 1:
+                    print("Halting Growth")
 
-            # Create the curve and leaf geometry
-            createIvyGeometry(IVY, self.growLeaves)
-            print("Geometry Generation Complete")
+            # Make an iterator to check if all are alive
+            checkAliveIter = (r.alive for r in IVY.ivyRoots)
 
-            print("Ivy generated in %0.2f s" % (time.time() - t))
+        # Create the curve and leaf geometry
+        createIvyGeometry(IVY, self.growLeaves)
+        print("Geometry Generation Complete")
 
-            self.updateIvy = False
+        print("Ivy generated in %0.2f s" % (time.time() - t))
 
-            return {'FINISHED'}
+        self.updateIvy = False
 
-        return {'PASS_THROUGH'}
+        return {'FINISHED'}
+
+        
 
     def draw(self, context):
         layout = self.layout
