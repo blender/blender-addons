@@ -589,7 +589,7 @@ def addTree(props):
                         childStems = branches[2]*(0.2 + 0.8*(branchL/p.lengthPar)/lMax)
                     elif storeN <= levels - 2:
                         branchL = (length[n] + uniform(-lengthV[n],lengthV[n]))*(p.lengthPar - 0.6*p.offset)
-                        childStems = branches[n+1]*(1.0 - 0.5*p.offset/p.lengthPar)
+                        childStems = branches[min(3,n+1)]*(1.0 - 0.5*p.offset/p.lengthPar)
                     # If this is the last level before leaves then we need to generate the child points differently
                     else:
                         branchL = (length[n] + uniform(-lengthV[n],lengthV[n]))*(p.lengthPar - 0.6*p.offset)
