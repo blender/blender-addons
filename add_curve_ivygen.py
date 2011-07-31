@@ -516,11 +516,10 @@ class IvyGen(bpy.types.Operator):
                     min=0.0,
                     soft_max=2.0,
                     precision=2)
-    randomSeed = FloatProperty(name="Random Seed",
+    randomSeed = IntProperty(name="Random Seed",
                     description="The seed governing random generation.",
                     default=0,
-                    min=0.0,
-                    soft_max=10)
+                    min=0)
     maxTime = FloatProperty(name="Maximum Time",
                     description=("The maximum time to run the generation for "
                                  "in seconds generation (0.0 = Disabled)"),
@@ -557,7 +556,7 @@ class IvyGen(bpy.types.Operator):
         seedPoint = context.scene.cursor_location
 
         # Fix the random seed
-        rand_seed(int(self.randomSeed))
+        rand_seed(self.randomSeed)
 
         # Make the new ivy
         IVY = Ivy(**self.as_keywords(ignore=('randomSeed', 'growLeaves',
