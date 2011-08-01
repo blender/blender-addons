@@ -202,12 +202,20 @@ def save_single(operator, scene, filepath="",
         ANIM_ACTION_ALL=False,
         use_metadata=True,
         path_mode='AUTO',
+        use_edges=True,
+        use_rotate_workaround=False,
     ):
 
     import bpy_extras.io_utils
 
+    # Only used for camera and lamp rotations
     mtx_x90 = Matrix.Rotation(math.pi / 2.0, 3, 'X')
+    # Used for mesh and armature rotations
     mtx4_z90 = Matrix.Rotation(math.pi / 2.0, 4, 'Z')
+    # Rotation does not work for XNA animations.  I do not know why but they end up a mess! (JCB)
+    if use_rotate_workaround:
+        # Set rotation to Matrix Identity for XNA (JCB)
+        mtx4_z90.identity()
 
     if global_matrix is None:
         global_matrix = Matrix()
@@ -449,6 +457,11 @@ def save_single(operator, scene, filepath="",
             loc = tuple(loc)
             rot = tuple(rot.to_euler())  # quat -> euler
             scale = tuple(scale)
+                
+            # Essential for XNA to use the original matrix not rotated nor scaled (JCB)
+            if use_rotate_workaround:
+                matrix = ob.matrix_local
+            
         else:
             # This is bad because we need the parent relative matrix from the fbx parent (if we have one), dont use anymore
             #if ob and not matrix: matrix = ob.matrix_world * global_matrix
@@ -1010,12 +1023,12 @@ def save_single(operator, scene, filepath="",
                    )
 
     # matrixOnly is not used at the moment
-    def write_null(my_null=None, fbxName=None):
+    def write_null(my_null=None, fbxName=None, fbxType="Null", fbxTypeFlags="Null"):
         # ob can be null
         if not fbxName:
             fbxName = my_null.fbxName
 
-        file.write('\n\tModel: "Model::%s", "Null" {' % fbxName)
+        file.write('\n\tModel: "Model::%s", "%s" {' % (fbxName, fbxType))
         file.write('\n\t\tVersion: 232')
 
         if my_null:
@@ -1024,15 +1037,16 @@ def save_single(operator, scene, filepath="",
             poseMatrix = write_object_props()[3]
 
         pose_items.append((fbxName, poseMatrix))
+        
+        file.write('\n\t\t}'
+                   '\n\t\tMultiLayer: 0'
+                   '\n\t\tMultiTake: 1'
+                   '\n\t\tShading: Y'
+                   '\n\t\tCulling: "CullingOff"'
+                   )
 
-        file.write('''
-		}
-		MultiLayer: 0
-		MultiTake: 1
-		Shading: Y
-		Culling: "CullingOff"
-		TypeFlags: "Null"
-	}''')
+        file.write('\n\t\tTypeFlags: "%s"' % fbxTypeFlags)
+        file.write('\n\t}')
 
     # Material Settings
     if world:
@@ -1312,7 +1326,7 @@ def save_single(operator, scene, filepath="",
 
         # convert into lists once.
         me_vertices = me.vertices[:]
-        me_edges = me.edges[:]
+        me_edges = me.edges[:] if use_edges else ()
         me_faces = me.faces[:]
 
         poseMatrix = write_object_props(my_mesh.blenObject, None, my_mesh.parRelMatrix())[3]
@@ -2059,13 +2073,31 @@ def save_single(operator, scene, filepath="",
 
     del tmp_obmapping
     # Finished finding groups we use
+    
+    # == WRITE OBJECTS TO THE FILE ==
+    # == From now on we are building the FBX file from the information collected above (JCB)
 
     materials = [(sane_matname(mat_tex_pair), mat_tex_pair) for mat_tex_pair in materials.keys()]
     textures = [(sane_texname(tex), tex) for tex in textures.keys()  if tex]
     materials.sort(key=lambda m: m[0])  # sort by name
     textures.sort(key=lambda m: m[0])
 
-    camera_count = 8
+    camera_count = 8 if 'CAMERA' in object_types else 0
+
+    # sanity checks
+    try:
+        assert(not (ob_meshes and ('MESH' not in object_types)))
+        assert(not (materials and ('MESH' not in object_types)))
+        assert(not (textures and ('MESH' not in object_types)))
+        assert(not (textures and ('MESH' not in object_types)))
+
+        assert(not (ob_lights and ('LAMP' not in object_types)))
+
+        assert(not (ob_cameras and ('CAMERA' not in object_types)))
+    except AssertionError:
+        import traceback
+        traceback.print_exc()
+
     file.write('''
 
 ; Object definitions
@@ -2137,8 +2169,7 @@ Definitions:  {
 	}''' % tmp)
     del tmp
 
-    # we could avoid writing this possibly but for now just write it
-
+    # Bind pose is essential for XNA if the 'MESH' is included (JCB)
     file.write('''
 	ObjectType: "Pose" {
 		Count: 1
@@ -2163,14 +2194,17 @@ Definitions:  {
 
 Objects:  {''')
 
-    # To comply with other FBX FILES
-    write_camera_switch()
+    if 'CAMERA' in object_types:
+        # To comply with other FBX FILES
+        write_camera_switch()
 
     for my_null in ob_null:
         write_null(my_null)
 
+    # XNA requires the armature to be a Limb (JCB)
+    # Note, 2.58 and previous wrote these as normal empties and it worked mostly (except for XNA)
     for my_arm in ob_arms:
-        write_null(my_arm)
+        write_null(my_arm, fbxType="Limb", fbxTypeFlags="Skeleton")
 
     for my_cam in ob_cameras:
         write_camera(my_cam)
@@ -2185,7 +2219,8 @@ Objects:  {''')
     for my_bone in ob_bones:
         write_bone(my_bone)
 
-    write_camera_default()
+    if 'CAMERA' in object_types:
+        write_camera_default()
 
     for matname, (mat, tex) in materials:
         write_material(matname, mat)  # We only need to have a material per image pair, but no need to write any image info into the material (dumb fbx standard)
@@ -2220,9 +2255,10 @@ Objects:  {''')
                 if me in iter(my_bone.blenMeshes.values()):
                     write_sub_deformer_skin(my_mesh, my_bone, weights)
 
-    # Write pose's really weird, only needed when an armature and mesh are used together
-    # each by themselves dont need pose data. for now only pose meshes and bones
+    # Write pose is really weird, only needed when an armature and mesh are used together
+    # each by themselves do not need pose data. For now only pose meshes and bones
 
+    # Bind pose is essential for XNA if the 'MESH' is included (JCB)
     file.write('''
 	Pose: "Pose::BIND_POSES", "BindPose" {
 		Type: "BindPose"
@@ -2265,11 +2301,15 @@ Objects:  {''')
 
 Relations:  {''')
 
+    # Nulls are likely to cause problems for XNA
+
     for my_null in ob_null:
         file.write('\n\tModel: "Model::%s", "Null" {\n\t}' % my_null.fbxName)
 
+    # Armature must be a Limb for XNA
+    # Note, 2.58 and previous wrote these as normal empties and it worked mostly (except for XNA)
     for my_arm in ob_arms:
-        file.write('\n\tModel: "Model::%s", "Null" {\n\t}' % my_arm.fbxName)
+        file.write('\n\tModel: "Model::%s", "Limb" {\n\t}' % my_arm.fbxName)
 
     for my_mesh in ob_meshes:
         file.write('\n\tModel: "Model::%s", "Mesh" {\n\t}' % my_mesh.fbxName)
@@ -2337,7 +2377,7 @@ Relations:  {''')
 
 Connections:  {''')
 
-    # NOTE - The FBX SDK dosnt care about the order but some importers DO!
+    # NOTE - The FBX SDK does not care about the order but some importers DO!
     # for instance, defining the material->mesh connection
     # before the mesh->parent crashes cinema4d
 
@@ -2369,20 +2409,19 @@ Connections:  {''')
         for texname, tex in textures:
             file.write('\n\tConnect: "OO", "Video::%s", "Texture::%s"' % (texname, texname))
 
-    for my_mesh in ob_meshes:
-        if my_mesh.fbxArm:
-            file.write('\n\tConnect: "OO", "Deformer::Skin %s", "Model::%s"' % (my_mesh.fbxName, my_mesh.fbxName))
+    if 'MESH' in object_types:
+        for my_mesh in ob_meshes:
+            if my_mesh.fbxArm:
+                file.write('\n\tConnect: "OO", "Deformer::Skin %s", "Model::%s"' % (my_mesh.fbxName, my_mesh.fbxName))
 
-    #for bonename, bone, obname, me, armob in ob_bones:
-    for my_bone in ob_bones:
-        for fbxMeshObName in my_bone.blenMeshes:  # .keys()
-            file.write('\n\tConnect: "OO", "SubDeformer::Cluster %s %s", "Deformer::Skin %s"' % (fbxMeshObName, my_bone.fbxName, fbxMeshObName))
+        for my_bone in ob_bones:
+            for fbxMeshObName in my_bone.blenMeshes:  # .keys()
+                file.write('\n\tConnect: "OO", "SubDeformer::Cluster %s %s", "Deformer::Skin %s"' % (fbxMeshObName, my_bone.fbxName, fbxMeshObName))
 
-    # limbs -> deformers
-    # for bonename, bone, obname, me, armob in ob_bones:
-    for my_bone in ob_bones:
-        for fbxMeshObName in my_bone.blenMeshes:  # .keys()
-            file.write('\n\tConnect: "OO", "Model::%s", "SubDeformer::Cluster %s %s"' % (my_bone.fbxName, fbxMeshObName, my_bone.fbxName))
+        # limbs -> deformers
+        for my_bone in ob_bones:
+            for fbxMeshObName in my_bone.blenMeshes:  # .keys()
+                file.write('\n\tConnect: "OO", "Model::%s", "SubDeformer::Cluster %s %s"' % (my_bone.fbxName, fbxMeshObName, my_bone.fbxName))
 
     #for bonename, bone, obname, me, armob in ob_bones:
     for my_bone in ob_bones:
@@ -2400,8 +2439,10 @@ Connections:  {''')
                 for fbxGroupName in ob_base.fbxGroupNames:
                     file.write('\n\tConnect: "OO", "Model::%s", "GroupSelection::%s"' % (ob_base.fbxName, fbxGroupName))
 
-    for my_arm in ob_arms:
-        file.write('\n\tConnect: "OO", "Model::%s", "Model::Scene"' % my_arm.fbxName)
+
+    # I think the following always duplicates the armature connection because it is also in ob_all_typegroups above! (JCB)
+    # for my_arm in ob_arms:
+    #     file.write('\n\tConnect: "OO", "Model::%s", "Model::Scene"' % my_arm.fbxName)
 
     file.write('\n}')
 
@@ -2864,24 +2905,29 @@ def save(operator, context,
 
         return {'FINISHED'}  # so the script wont run after we have batch exported.
 
+# APPLICATION REQUIREMENTS
+# Please update the lists for UDK, Unity, XNA etc. on the following web page:
+#   http://wiki.blender.org/index.php/Dev:2.5/Py/Scripts/Import-Export/UnifiedFBX
 
+# XNA FBX Requirements (JCB 29 July 2011)
+# - Armature must be parented to the scene
+# - Armature must be a 'Limb' never a 'null'.  This is in several places.
+# - First bone must be parented to the armature.
+# - Rotation must be completely disabled including
+#       always returning the original matrix in In object_tx().
+#       It is the animation that gets distorted during rotation!
+# - Lone edges cause intermittent errors in the XNA content pipeline!
+#       I have added a warning message and excluded them.
+# - Bind pose must be included with the 'MESH'
+# Typical settings for XNA export
+#   No Cameras, No Lamps, No Edges, No face smoothing, No Default_Take, Armature as bone, Disable rotation
 
-
+# NOTE TO Campbell - 
+#   Can any or all of the following notes be removed because some have been here for a long time? (JCB 27 July 2011)
 # NOTES (all line numbers correspond to original export_fbx.py (under release/scripts)
-# - Draw.PupMenu alternative in 2.5?, temporarily replaced PupMenu with print
 # - get rid of bpy.path.clean_name somehow
-# + fixed: isinstance(inst, bpy.types.*) doesn't work on RNA objects: line 565
 # + get rid of BPyObject_getObjectArmature, move it in RNA?
-# - BATCH_ENABLE and BATCH_GROUP options: line 327
 # - implement all BPyMesh_* used here with RNA
 # - getDerivedObjects is not fully replicated with .dupli* funcs
-# - talk to Campbell, this code won't work? lines 1867-1875
 # - don't know what those colbits are, do we need them? they're said to be deprecated in DNA_object_types.h: 1886-1893
 # - no hq normals: 1900-1901
-
-# TODO
-
-# - bpy.data.remove_scene: line 366
-# - bpy.sys.time move to bpy.sys.util?
-# - new scene creation, activation: lines 327-342, 368
-# - uses bpy.path.abspath, *.relpath - replace at least relpath
