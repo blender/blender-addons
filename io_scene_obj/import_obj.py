@@ -427,7 +427,7 @@ def split_mesh(verts_loc, faces, unique_materials, filepath, SPLIT_OB_OR_GROUP):
     return [(value[0], value[1], value[2], key_to_name(key)) for key, value in list(face_split_dict.items())]
 
 
-def create_mesh(new_objects, 
+def create_mesh(new_objects,
                 has_ngons,
                 use_ngons,
                 use_edges,

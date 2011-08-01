@@ -194,15 +194,15 @@ def save_single(operator, scene, filepath="",
         global_matrix=None,
         context_objects=None,
         object_types={'EMPTY', 'CAMERA', 'LAMP', 'ARMATURE', 'MESH'},
-        mesh_apply_modifiers=True,
+        use_mesh_modifiers=True,
         mesh_smooth_type='FACE',
-        ANIM_ENABLE=True,
-        ANIM_OPTIMIZE=True,
-        ANIM_OPTIMIZE_PRECISSION=6,
-        ANIM_ACTION_ALL=False,
+        use_anim=True,
+        use_anim_optimize=True,
+        anim_optimize_precission=6,
+        use_anim_action_all=False,
         use_metadata=True,
         path_mode='AUTO',
-        use_edges=True,
+        use_mesh_edges=True,
         use_rotate_workaround=False,
     ):
 
@@ -1326,7 +1326,7 @@ def save_single(operator, scene, filepath="",
 
         # convert into lists once.
         me_vertices = me.vertices[:]
-        me_edges = me.edges[:] if use_edges else ()
+        me_edges = me.edges[:] if use_mesh_edges else ()
         me_faces = me.faces[:]
 
         poseMatrix = write_object_props(my_mesh.blenObject, None, my_mesh.parRelMatrix())[3]
@@ -1869,7 +1869,7 @@ def save_single(operator, scene, filepath="",
                         origData = False
                 else:
                     # Mesh Type!
-                    if mesh_apply_modifiers:
+                    if use_mesh_modifiers:
                         me = ob.to_mesh(scene, True, 'PREVIEW')
 
                         # print ob, me, me.getVertGroupNames()
@@ -1891,7 +1891,7 @@ def save_single(operator, scene, filepath="",
 # 						del tmp_colbits
 
                 if me:
-# 					# This WILL modify meshes in blender if mesh_apply_modifiers is disabled.
+# 					# This WILL modify meshes in blender if use_mesh_modifiers is disabled.
 # 					# so strictly this is bad. but only in rare cases would it have negative results
 # 					# say with dupliverts the objects would rotate a bit differently
 # 					if EXP_MESH_HQ_NORMALS:
@@ -2462,17 +2462,17 @@ Connections:  {''')
         start, end = end, start
 
     # comment the following line, otherwise we dont get the pose
-    # if start==end: ANIM_ENABLE = False
+    # if start==end: use_anim = False
 
     # animations for these object types
     ob_anim_lists = ob_bones, ob_meshes, ob_null, ob_cameras, ob_lights, ob_arms
 
-    if ANIM_ENABLE and [tmp for tmp in ob_anim_lists if tmp]:
+    if use_anim and [tmp for tmp in ob_anim_lists if tmp]:
 
         frame_orig = scene.frame_current
 
-        if ANIM_OPTIMIZE:
-            ANIM_OPTIMIZE_PRECISSION_FLOAT = 0.1 ** ANIM_OPTIMIZE_PRECISSION
+        if use_anim_optimize:
+            ANIM_OPTIMIZE_PRECISSION_FLOAT = 0.1 ** anim_optimize_precission
 
         # default action, when no actions are avaioable
         tmp_actions = []
@@ -2482,7 +2482,7 @@ Connections:  {''')
         # instead of tagging
         tagged_actions = []
 
-        if ANIM_ACTION_ALL:
+        if use_anim_action_all:
             tmp_actions = bpy.data.actions[:]
 
             # find which actions are compatible with the armatures
@@ -2635,7 +2635,7 @@ Takes:  {''')
                                 file.write('\n\t\t\t\t\t\tDefault: %.15f' % context_bone_anim_vecs[0][i])
                                 file.write('\n\t\t\t\t\t\tKeyVer: 4005')
 
-                                if not ANIM_OPTIMIZE:
+                                if not use_anim_optimize:
                                     # Just write all frames, simple but in-eficient
                                     file.write('\n\t\t\t\t\t\tKeyCount: %i' % (1 + act_end - act_start))
                                     file.write('\n\t\t\t\t\t\tKey: ')
@@ -2820,7 +2820,7 @@ def save(operator, context,
           filepath="",
           use_selection=True,
           batch_mode='OFF',
-          BATCH_OWN_DIR=False,
+          use_batch_own_dir=False,
           **kwargs
           ):
 
@@ -2858,7 +2858,7 @@ def save(operator, context,
         for data in data_seq:  # scene or group
             newname = prefix + bpy.path.clean_name(data.name)
 
-            if BATCH_OWN_DIR:
+            if use_batch_own_dir:
                 new_fbxpath = fbxpath + newname + os.sep
                 # path may already exist
                 # TODO - might exist but be a file. unlikely but should probably account for it.
