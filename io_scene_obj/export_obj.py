@@ -383,6 +383,11 @@ def write_file(filepath, objects, scene,
             materials = me.materials[:]
             material_names = [m.name if m else None for m in materials]
 
+            # avoid bad index errors
+            if not materials:
+                materials = [None]
+                material_names = [""]
+
             # Sort by Material, then images
             # so we dont over context switch in the obj file.
             if EXPORT_KEEP_VERT_ORDER:
