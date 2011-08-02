@@ -16,19 +16,19 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-# <pep8 compliant>
+# <pep8-80 compliant>
 
 bl_info = {
     "name": "UV Layout",
     "author": "Campbell Barton, Matt Ebb",
     "version": (1, 0),
-    "blender": (2, 5, 7),
+    "blender": (2, 5, 8),
     "api": 35622,
     "location": "Image-Window > UVs > Export UV Layout",
     "description": "Export the UV layout as a 2D graphic",
     "warning": "",
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"\
-        "Scripts/Import-Export/UV_Layout",
+    "wiki_url": ("http://wiki.blender.org/index.php/Extensions:2.5/Py/"
+                 "Scripts/Import-Export/UV_Layout"),
     "tracker_url": "https://projects.blender.org/tracker/index.php?"
         "func=detail&aid=22837",
     "support": 'OFFICIAL',
@@ -47,7 +47,12 @@ if "bpy" in locals():
 
 import bpy
 
-from bpy.props import StringProperty, BoolProperty, EnumProperty, IntVectorProperty, FloatProperty
+from bpy.props import (StringProperty,
+                       BoolProperty,
+                       EnumProperty,
+                       IntVectorProperty,
+                       FloatProperty,
+                       )
 
 
 class ExportUVLayout(bpy.types.Operator):
@@ -57,18 +62,47 @@ class ExportUVLayout(bpy.types.Operator):
     bl_label = "Export UV Layout"
     bl_options = {'REGISTER', 'UNDO'}
 
-    filepath = StringProperty(name="File Path", description="File path used for exporting the SVG file", maxlen=1024, default="", subtype='FILE_PATH')
-    check_existing = BoolProperty(name="Check Existing", description="Check and warn on overwriting existing files", default=True, options={'HIDDEN'})
-    export_all = BoolProperty(name="All UV's", description="Export all UVs in this mesh (not just the visible ones)", default=False)
-    mode = EnumProperty(items=(
-                        ('SVG', "Scalable Vector Graphic (.svg)", "Export the UV layout to a vector SVG file"),
-                        ('EPS', "Encapsulate PostScript (.eps)", "Export the UV layout to a vector EPS file"),
-                        ('PNG', "PNG Image (.png)", "Export the UV layout a bitmap image")),
-                name="Format",
-                description="File format to export the UV layout to",
-                default='PNG')
-    size = IntVectorProperty(size=2, default=(1024, 1024), min=8, max=32768, description="Dimensions of the exported file")
-    opacity = FloatProperty(name="Fill Opacity", min=0.0, max=1.0, default=0.25)
+    filepath = StringProperty(
+            name="File Path",
+            description="File path used for exporting the SVG file",
+            maxlen=1024,
+            default="",
+            subtype='FILE_PATH',
+            )
+    check_existing = BoolProperty(
+            name="Check Existing",
+            description="Check and warn on overwriting existing files",
+            default=True,
+            options={'HIDDEN'},
+            )
+    export_all = BoolProperty(
+            name="All UV's",
+            description="Export all UVs in this mesh (not just visible ones)",
+            default=False,
+            )
+    mode = EnumProperty(
+            items=(('SVG', "Scalable Vector Graphic (.svg)",
+                    "Export the UV layout to a vector SVG file"),
+                   ('EPS', "Encapsulate PostScript (.eps)",
+                    "Export the UV layout to a vector EPS file"),
+                   ('PNG', "PNG Image (.png)",
+                    "Export the UV layout a bitmap image"),
+                   ),
+            name="Format",
+            description="File format to export the UV layout to",
+            default='PNG',
+            )
+    size = IntVectorProperty(
+            size=2,
+            default=(1024, 1024),
+            min=8, max=32768,
+            description="Dimensions of the exported file",
+            )
+    opacity = FloatProperty(
+            name="Fill Opacity",
+            min=0.0, max=1.0,
+            default=0.25,
+            )
 
     @classmethod
     def poll(cls, context):
@@ -117,7 +151,8 @@ class ExportUVLayout(bpy.types.Operator):
             for i in range(uv_layer_len):
                 uv_elem = uv_layer[i]
                 # context checks
-                if faces[i].select and (local_image is Ellipsis or local_image == uv_elem.image):
+                if faces[i].select and (local_image is Ellipsis or
+                                        local_image == uv_elem.image):
                     #~ uv = uv_elem.uv
                     #~ if False not in uv_elem.select_uv[:len(uv)]:
                     #~     yield (i, uv)
@@ -155,7 +190,8 @@ class ExportUVLayout(bpy.types.Operator):
             from . import export_uv_svg
             func = export_uv_svg.write
 
-        func(fw, mesh, self.size[0], self.size[1], self.opacity, lambda: self._face_uv_iter(context))
+        func(fw, mesh, self.size[0], self.size[1], self.opacity,
+             lambda: self._face_uv_iter(context))
 
         if is_editmode:
             bpy.ops.object.mode_set(mode='EDIT', toggle=False)

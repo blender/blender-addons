@@ -16,7 +16,7 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-# <pep8 compliant>
+# <pep8-80 compliant>
 
 bl_info = {
     "name": "STL format",
@@ -27,8 +27,8 @@ bl_info = {
     "location": "File > Import-Export > Stl",
     "description": "Import-Export STL files",
     "warning": "",
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"\
-        "Scripts/Import-Export/STL",
+    "wiki_url": ("http://wiki.blender.org/index.php/Extensions:2.5/Py/"
+                 "Scripts/Import-Export/STL"),
     "tracker_url": "https://projects.blender.org/tracker/index.php?"
         "func=detail&aid=22837",
     "support": 'OFFICIAL',
@@ -83,7 +83,8 @@ class ImportSTL(bpy.types.Operator, ImportHelper):
         from . import stl_utils
         from . import blender_utils
 
-        paths = [os.path.join(self.directory, name.name) for name in self.files]
+        paths = [os.path.join(self.directory, name.name)
+                 for name in self.files]
 
         if not paths:
             paths.append(self.filepath)
