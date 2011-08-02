@@ -141,6 +141,13 @@ class ExportFBX(bpy.types.Operator, ExportHelper):
                          "currently selected action"),
             default=True,
             )
+    use_default_take = BoolProperty(
+            name="Include Default Take",
+            description=("Export currently assigned object and armature "
+                         "animations into a default take from the scene "
+                         "start/end frames"),
+            default=False
+            )
     use_anim_optimize = BoolProperty(
             name="Optimize Keyframes",
             description="Remove double keyframes",
@@ -203,6 +210,9 @@ class ExportFBX(bpy.types.Operator, ExportHelper):
         if self.use_mesh_edges:
             changed = True
             self.use_mesh_edges = False
+        if self.use_default_take:
+            changed = True
+            self.use_default_take = False
         if self.object_types & {'CAMERA', 'LAMP', 'EMPTY'}:
             changed = True
             self.object_types -= {'CAMERA', 'LAMP', 'EMPTY'}
