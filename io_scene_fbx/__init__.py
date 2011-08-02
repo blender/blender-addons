@@ -126,7 +126,8 @@ class ExportFBX(bpy.types.Operator, ExportHelper):
 
     use_mesh_edges = BoolProperty(
             name="Include Edges",
-            description="Edges may not be necessary causes errors with XNA",
+            description=("Edges may not be necessary, can cause import "
+                         "pipeline errors with XNA"),
             default=False,
             )
     use_anim = BoolProperty(
@@ -153,14 +154,15 @@ class ExportFBX(bpy.types.Operator, ExportHelper):
             soft_min=1, soft_max=16,
             default=6.0,
             )
+    path_mode = path_reference_mode
+    use_rotate_workaround = BoolProperty(
+            name="Rotate Animation Fix",
+            description="Disable global rotation, for XNA compatibility",
+            default=False,
+            )
     xna_validate = BoolProperty(
             name="XNA Strict Options",
             description="Make sure options are compatible with Microsoft XNA",
-            default=False,
-            )
-    use_rotate_workaround = BoolProperty(
-            name="XNA Rotate Fix",
-            description="Disable global rotation, for XNA compatibility",
             default=False,
             )
     batch_mode = EnumProperty(
@@ -181,8 +183,6 @@ class ExportFBX(bpy.types.Operator, ExportHelper):
             options={'HIDDEN'},
             )
 
-    path_mode = path_reference_mode
-
     # Validate that the options are compatible with XNA (JCB)
     def _validate_xna_options(self):
         if not self.xna_validate:
@@ -191,17 +191,24 @@ class ExportFBX(bpy.types.Operator, ExportHelper):
         if not self.use_rotate_workaround:
             changed = True
             self.use_rotate_workaround = True
-        if self.global_scale != 1.0 or self.mesh_smooth_type != 'OFF':
+        if self.global_scale != 1.0:
             changed = True
             self.global_scale = 1.0
-            self.mesh_smooth_type = 'OFF'
-        if self.ANIM_OPTIMIZE or self.use_mesh_edges:
+        if self.mesh_smooth_type != 'OFF':
             changed = True
-            self.ANIM_OPTIMIZE = False
+            self.mesh_smooth_type = 'OFF'
+        if self.use_anim_optimize:
+            changed = True
+            self.use_anim_optimize = False
+        if self.use_mesh_edges:
+            changed = True
             self.use_mesh_edges = False
         if self.object_types & {'CAMERA', 'LAMP', 'EMPTY'}:
             changed = True
             self.object_types -= {'CAMERA', 'LAMP', 'EMPTY'}
+        if self.path_mode != 'STRIP':
+            changed = True
+            self.path_mode = 'STRIP'
         return changed
 
     @property
