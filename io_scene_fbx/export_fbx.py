@@ -198,7 +198,7 @@ def save_single(operator, scene, filepath="",
         mesh_smooth_type='FACE',
         use_anim=True,
         use_anim_optimize=True,
-        anim_optimize_precission=6,
+        anim_optimize_precision=6,
         use_anim_action_all=False,
         use_metadata=True,
         path_mode='AUTO',
@@ -2479,7 +2479,7 @@ Connections:  {''')
         frame_orig = scene.frame_current
 
         if use_anim_optimize:
-            ANIM_OPTIMIZE_PRECISSION_FLOAT = 0.1 ** anim_optimize_precission
+            ANIM_OPTIMIZE_PRECISSION_FLOAT = 0.1 ** anim_optimize_precision
 
         # default action, when no actions are avaioable
         tmp_actions = []

@@ -152,7 +152,7 @@ class ExportFBX(bpy.types.Operator, ExportHelper):
             description="Remove double keyframes",
             default=True,
             )
-    anim_optimize_precission = FloatProperty(
+    anim_optimize_precision = FloatProperty(
             name="Precision",
             description=("Tolerence for comparing double keyframes "
                         "(higher for greater accuracy)"),
