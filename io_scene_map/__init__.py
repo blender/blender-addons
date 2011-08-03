@@ -83,11 +83,6 @@ class ExportMAP(bpy.types.Operator, ExportHelper):
             default='0 0 0 1 1 0 0 0',
             )
 
-    '''
-    def check(self, context):
-        return axis_conversion_ensure(self, "axis_forward", "axis_up")
-    '''
-
     def execute(self, context):
         # import math
         # from mathutils import Matrix

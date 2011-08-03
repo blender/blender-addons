@@ -51,7 +51,6 @@ from bpy_extras.io_utils import (ExportHelper,
                                  ImportHelper,
                                  path_reference_mode,
                                  axis_conversion,
-                                 axis_conversion_ensure,
                                  )
 
 
@@ -145,9 +144,6 @@ class ImportOBJ(bpy.types.Operator, ImportHelper):
             default='Y',
             )
 
-    def check(self, context):
-        return axis_conversion_ensure(self, "axis_forward", "axis_up")
-
     def execute(self, context):
         # print("Selected: " + context.active_object.name)
         from . import import_obj
@@ -212,9 +208,6 @@ class ExportOBJ(bpy.types.Operator, ExportHelper):
             default="*.obj;*.mtl",
             options={'HIDDEN'},
             )
-
-    # List of operator properties, the attributes will be assigned
-    # to the class instance from the operator settings before calling.
 
     # context group
     use_selection = BoolProperty(
@@ -339,8 +332,7 @@ class ExportOBJ(bpy.types.Operator, ExportHelper):
 
     path_mode = path_reference_mode
 
-    def check(self, context):
-        return axis_conversion_ensure(self, "axis_forward", "axis_up")
+    check_extension = True
 
     def execute(self, context):
         from . import export_obj

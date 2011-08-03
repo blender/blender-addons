@@ -27,8 +27,8 @@ bl_info = {
     "description": ("Export FBX meshes, UV's, vertex colors, materials, "
                     "textures, cameras, lamps and actions"),
     "warning": "",
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"\
-        "Scripts/Import-Export/Autodesk_FBX",
+    "wiki_url": ("http://wiki.blender.org/index.php/Extensions:2.5/Py/"
+                 "Scripts/Import-Export/Autodesk_FBX"),
     "tracker_url": "",
     "support": 'OFFICIAL',
     "category": "Import-Export"}
@@ -46,7 +46,6 @@ from bpy.props import StringProperty, BoolProperty, FloatProperty, EnumProperty
 from bpy_extras.io_utils import (ExportHelper,
                                  path_reference_mode,
                                  axis_conversion,
-                                 axis_conversion_ensure,
                                  )
 
 
@@ -226,14 +225,9 @@ class ExportFBX(bpy.types.Operator, ExportHelper):
         return self.batch_mode == 'OFF'
 
     def check(self, context):
+        is_def_change = super().check(context)
         is_xna_change = self._validate_xna_options()
-        is_axis_change = axis_conversion_ensure(self,
-                                                "axis_forward",
-                                                "axis_up")
-        if is_xna_change or is_axis_change:
-            return True
-        else:
-            return False
+        return (is_xna_change or is_def_change)
 
     def execute(self, context):
         from mathutils import Matrix

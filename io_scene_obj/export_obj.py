@@ -34,12 +34,13 @@ def name_compat(name):
 
 
 def write_mtl(scene, filepath, path_mode, copy_set, mtl_dict):
+    from mathutils import Color
 
     world = scene.world
     if world:
-        worldAmb = world.ambient_color[:]
+        world_amb = world.ambient_color
     else:
-        worldAmb = 0.0, 0.0, 0.0
+        world_amb = Color((0.0, 0.0, 0.0))
 
     source_dir = bpy.data.filepath
     dest_dir = os.path.dirname(filepath)
@@ -69,9 +70,9 @@ def write_mtl(scene, filepath, path_mode, copy_set, mtl_dict):
             file.write('Ns %.6f\n' % tspec)
             del tspec
 
-            file.write('Ka %.6f %.6f %.6f\n' % tuple(c * mat.ambient for c in worldAmb))  # Ambient, uses mirror colour,
-            file.write('Kd %.6f %.6f %.6f\n' % tuple(c * mat.diffuse_intensity for c in mat.diffuse_color))  # Diffuse
-            file.write('Ks %.6f %.6f %.6f\n' % tuple(c * mat.specular_intensity for c in mat.specular_color))  # Specular
+            file.write('Ka %.6f %.6f %.6f\n' % (mat.ambient * world_amb)[:])  # Ambient, uses mirror colour,
+            file.write('Kd %.6f %.6f %.6f\n' % (mat.diffuse_intensity * mat.diffuse_color)[:])  # Diffuse
+            file.write('Ks %.6f %.6f %.6f\n' % (mat.specular_intensity * mat.specular_color)[:])  # Specular
             if hasattr(mat, "ior"):
                 file.write('Ni %.6f\n' % mat.ior)  # Refraction index
             else:
@@ -89,7 +90,7 @@ def write_mtl(scene, filepath, path_mode, copy_set, mtl_dict):
         else:
             #write a dummy material here?
             file.write('Ns 0\n')
-            file.write('Ka %.6f %.6f %.6f\n' % tuple(c for c in worldAmb))  # Ambient, uses mirror colour,
+            file.write('Ka %.6f %.6f %.6f\n' % world_amb[:])  # Ambient, uses mirror colour,
             file.write('Kd 0.8 0.8 0.8\n')
             file.write('Ks 0.8 0.8 0.8\n')
             file.write('d 1\n')  # No alpha
@@ -413,7 +414,7 @@ def write_file(filepath, objects, scene,
 #               except: faces.sort(lambda a,b: cmp(a.use_smooth, b.use_smooth))
 
             # Set the default mat to no material and no image.
-            contextMat = 0, 0  # Can never be this, so we will label a new material teh first chance we get.
+            contextMat = 0, 0  # Can never be this, so we will label a new material the first chance we get.
             contextSmooth = None  # Will either be true or false,  set bad to force initialization switch.
 
             if EXPORT_BLEN_OBS or EXPORT_GROUP_BY_OB:
