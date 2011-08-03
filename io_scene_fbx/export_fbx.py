@@ -400,17 +400,20 @@ def save_single(operator, scene, filepath="",
         operator.report({'ERROR'}, "Could'nt open file %r" % filepath)
         return {'CANCELLED'}
 
+    # convenience
+    fw = file.write
+
     # scene = context.scene  # now passed as an arg instead of context
     world = scene.world
 
     # ---------------------------- Write the header first
-    file.write(header_comment)
+    fw(header_comment)
     if use_metadata:
         curtime = time.localtime()[0:6]
     else:
         curtime = (0, 0, 0, 0, 0, 0)
     #
-    file.write(\
+    fw(
 '''FBXHeaderExtension:  {
 	FBXHeaderVersion: 1003
 	FBXVersion: 6100
@@ -430,8 +433,8 @@ def save_single(operator, scene, filepath="",
 	}
 }''' % (curtime))
 
-    file.write('\nCreationTime: "%.4i-%.2i-%.2i %.2i:%.2i:%.2i:000"' % curtime)
-    file.write('\nCreator: "Blender version %s"' % bpy.app.version_string)
+    fw('\nCreationTime: "%.4i-%.2i-%.2i %.2i:%.2i:%.2i:000"' % curtime)
+    fw('\nCreator: "Blender version %s"' % bpy.app.version_string)
 
     pose_items = []  # list of (fbxName, matrix) to write pose data for, easier to collect allong the way
 
@@ -504,9 +507,9 @@ def save_single(operator, scene, filepath="",
         '''
         loc, rot, scale, matrix, matrix_rot = object_tx(ob, loc, matrix, matrix_mod)
 
-        file.write('\n\t\t\tProperty: "Lcl Translation", "Lcl Translation", "A+",%.15f,%.15f,%.15f' % loc)
-        file.write('\n\t\t\tProperty: "Lcl Rotation", "Lcl Rotation", "A+",%.15f,%.15f,%.15f' % tuple_rad_to_deg(rot))
-        file.write('\n\t\t\tProperty: "Lcl Scaling", "Lcl Scaling", "A+",%.15f,%.15f,%.15f' % scale)
+        fw('\n\t\t\tProperty: "Lcl Translation", "Lcl Translation", "A+",%.15f,%.15f,%.15f' % loc)
+        fw('\n\t\t\tProperty: "Lcl Rotation", "Lcl Rotation", "A+",%.15f,%.15f,%.15f' % tuple_rad_to_deg(rot))
+        fw('\n\t\t\tProperty: "Lcl Scaling", "Lcl Scaling", "A+",%.15f,%.15f,%.15f' % scale)
         return loc, rot, scale, matrix, matrix_rot
 
     def get_constraints(ob=None):
@@ -552,7 +555,7 @@ def save_single(operator, scene, filepath="",
 
         # if the type is 0 its an empty otherwise its a mesh
         # only difference at the moment is one has a color
-        file.write('''
+        fw('''
 		Properties60:  {
 			Property: "QuaternionInterpolate", "bool", "",0
 			Property: "Visibility", "Visibility", "A+",1''')
@@ -568,131 +571,131 @@ def save_single(operator, scene, filepath="",
         # eEULER_ZXY
         # eEULER_ZYX
 
-        file.write('\n\t\t\tProperty: "RotationOffset", "Vector3D", "",0,0,0'
-                   '\n\t\t\tProperty: "RotationPivot", "Vector3D", "",0,0,0'
-                   '\n\t\t\tProperty: "ScalingOffset", "Vector3D", "",0,0,0'
-                   '\n\t\t\tProperty: "ScalingPivot", "Vector3D", "",0,0,0'
-                   '\n\t\t\tProperty: "TranslationActive", "bool", "",0'
-                   )
+        fw('\n\t\t\tProperty: "RotationOffset", "Vector3D", "",0,0,0'
+           '\n\t\t\tProperty: "RotationPivot", "Vector3D", "",0,0,0'
+           '\n\t\t\tProperty: "ScalingOffset", "Vector3D", "",0,0,0'
+           '\n\t\t\tProperty: "ScalingPivot", "Vector3D", "",0,0,0'
+           '\n\t\t\tProperty: "TranslationActive", "bool", "",0'
+           )
 
-        file.write('\n\t\t\tProperty: "TranslationMin", "Vector3D", "",%.15g,%.15g,%.15g' % constraints["loc_min"])
-        file.write('\n\t\t\tProperty: "TranslationMax", "Vector3D", "",%.15g,%.15g,%.15g' % constraints["loc_max"])
-        file.write('\n\t\t\tProperty: "TranslationMinX", "bool", "",%d' % constraints["loc_limit"][0])
-        file.write('\n\t\t\tProperty: "TranslationMinY", "bool", "",%d' % constraints["loc_limit"][1])
-        file.write('\n\t\t\tProperty: "TranslationMinZ", "bool", "",%d' % constraints["loc_limit"][2])
-        file.write('\n\t\t\tProperty: "TranslationMaxX", "bool", "",%d' % constraints["loc_limit"][3])
-        file.write('\n\t\t\tProperty: "TranslationMaxY", "bool", "",%d' % constraints["loc_limit"][4])
-        file.write('\n\t\t\tProperty: "TranslationMaxZ", "bool", "",%d' % constraints["loc_limit"][5])
+        fw('\n\t\t\tProperty: "TranslationMin", "Vector3D", "",%.15g,%.15g,%.15g' % constraints["loc_min"])
+        fw('\n\t\t\tProperty: "TranslationMax", "Vector3D", "",%.15g,%.15g,%.15g' % constraints["loc_max"])
+        fw('\n\t\t\tProperty: "TranslationMinX", "bool", "",%d' % constraints["loc_limit"][0])
+        fw('\n\t\t\tProperty: "TranslationMinY", "bool", "",%d' % constraints["loc_limit"][1])
+        fw('\n\t\t\tProperty: "TranslationMinZ", "bool", "",%d' % constraints["loc_limit"][2])
+        fw('\n\t\t\tProperty: "TranslationMaxX", "bool", "",%d' % constraints["loc_limit"][3])
+        fw('\n\t\t\tProperty: "TranslationMaxY", "bool", "",%d' % constraints["loc_limit"][4])
+        fw('\n\t\t\tProperty: "TranslationMaxZ", "bool", "",%d' % constraints["loc_limit"][5])
 
-        file.write('\n\t\t\tProperty: "RotationOrder", "enum", "",0'
-                   '\n\t\t\tProperty: "RotationSpaceForLimitOnly", "bool", "",0'
-                   '\n\t\t\tProperty: "AxisLen", "double", "",10'
-                   '\n\t\t\tProperty: "PreRotation", "Vector3D", "",0,0,0'
-                   '\n\t\t\tProperty: "PostRotation", "Vector3D", "",0,0,0'
-                   '\n\t\t\tProperty: "RotationActive", "bool", "",0'
-                   )
+        fw('\n\t\t\tProperty: "RotationOrder", "enum", "",0'
+           '\n\t\t\tProperty: "RotationSpaceForLimitOnly", "bool", "",0'
+           '\n\t\t\tProperty: "AxisLen", "double", "",10'
+           '\n\t\t\tProperty: "PreRotation", "Vector3D", "",0,0,0'
+           '\n\t\t\tProperty: "PostRotation", "Vector3D", "",0,0,0'
+           '\n\t\t\tProperty: "RotationActive", "bool", "",0'
+           )
 
-        file.write('\n\t\t\tProperty: "RotationMin", "Vector3D", "",%.15g,%.15g,%.15g' % constraints["rot_min"])
-        file.write('\n\t\t\tProperty: "RotationMax", "Vector3D", "",%.15g,%.15g,%.15g' % constraints["rot_max"])
-        file.write('\n\t\t\tProperty: "RotationMinX", "bool", "",%d' % constraints["rot_limit"][0])
-        file.write('\n\t\t\tProperty: "RotationMinY", "bool", "",%d' % constraints["rot_limit"][1])
-        file.write('\n\t\t\tProperty: "RotationMinZ", "bool", "",%d' % constraints["rot_limit"][2])
-        file.write('\n\t\t\tProperty: "RotationMaxX", "bool", "",%d' % constraints["rot_limit"][0])
-        file.write('\n\t\t\tProperty: "RotationMaxY", "bool", "",%d' % constraints["rot_limit"][1])
-        file.write('\n\t\t\tProperty: "RotationMaxZ", "bool", "",%d' % constraints["rot_limit"][2])
+        fw('\n\t\t\tProperty: "RotationMin", "Vector3D", "",%.15g,%.15g,%.15g' % constraints["rot_min"])
+        fw('\n\t\t\tProperty: "RotationMax", "Vector3D", "",%.15g,%.15g,%.15g' % constraints["rot_max"])
+        fw('\n\t\t\tProperty: "RotationMinX", "bool", "",%d' % constraints["rot_limit"][0])
+        fw('\n\t\t\tProperty: "RotationMinY", "bool", "",%d' % constraints["rot_limit"][1])
+        fw('\n\t\t\tProperty: "RotationMinZ", "bool", "",%d' % constraints["rot_limit"][2])
+        fw('\n\t\t\tProperty: "RotationMaxX", "bool", "",%d' % constraints["rot_limit"][0])
+        fw('\n\t\t\tProperty: "RotationMaxY", "bool", "",%d' % constraints["rot_limit"][1])
+        fw('\n\t\t\tProperty: "RotationMaxZ", "bool", "",%d' % constraints["rot_limit"][2])
 
-        file.write('\n\t\t\tProperty: "RotationStiffnessX", "double", "",0'
-                   '\n\t\t\tProperty: "RotationStiffnessY", "double", "",0'
-                   '\n\t\t\tProperty: "RotationStiffnessZ", "double", "",0'
-                   '\n\t\t\tProperty: "MinDampRangeX", "double", "",0'
-                   '\n\t\t\tProperty: "MinDampRangeY", "double", "",0'
-                   '\n\t\t\tProperty: "MinDampRangeZ", "double", "",0'
-                   '\n\t\t\tProperty: "MaxDampRangeX", "double", "",0'
-                   '\n\t\t\tProperty: "MaxDampRangeY", "double", "",0'
-                   '\n\t\t\tProperty: "MaxDampRangeZ", "double", "",0'
-                   '\n\t\t\tProperty: "MinDampStrengthX", "double", "",0'
-                   '\n\t\t\tProperty: "MinDampStrengthY", "double", "",0'
-                   '\n\t\t\tProperty: "MinDampStrengthZ", "double", "",0'
-                   '\n\t\t\tProperty: "MaxDampStrengthX", "double", "",0'
-                   '\n\t\t\tProperty: "MaxDampStrengthY", "double", "",0'
-                   '\n\t\t\tProperty: "MaxDampStrengthZ", "double", "",0'
-                   '\n\t\t\tProperty: "PreferedAngleX", "double", "",0'
-                   '\n\t\t\tProperty: "PreferedAngleY", "double", "",0'
-                   '\n\t\t\tProperty: "PreferedAngleZ", "double", "",0'
-                   '\n\t\t\tProperty: "InheritType", "enum", "",0'
-                   '\n\t\t\tProperty: "ScalingActive", "bool", "",0'
-                   )
+        fw('\n\t\t\tProperty: "RotationStiffnessX", "double", "",0'
+           '\n\t\t\tProperty: "RotationStiffnessY", "double", "",0'
+           '\n\t\t\tProperty: "RotationStiffnessZ", "double", "",0'
+           '\n\t\t\tProperty: "MinDampRangeX", "double", "",0'
+           '\n\t\t\tProperty: "MinDampRangeY", "double", "",0'
+           '\n\t\t\tProperty: "MinDampRangeZ", "double", "",0'
+           '\n\t\t\tProperty: "MaxDampRangeX", "double", "",0'
+           '\n\t\t\tProperty: "MaxDampRangeY", "double", "",0'
+           '\n\t\t\tProperty: "MaxDampRangeZ", "double", "",0'
+           '\n\t\t\tProperty: "MinDampStrengthX", "double", "",0'
+           '\n\t\t\tProperty: "MinDampStrengthY", "double", "",0'
+           '\n\t\t\tProperty: "MinDampStrengthZ", "double", "",0'
+           '\n\t\t\tProperty: "MaxDampStrengthX", "double", "",0'
+           '\n\t\t\tProperty: "MaxDampStrengthY", "double", "",0'
+           '\n\t\t\tProperty: "MaxDampStrengthZ", "double", "",0'
+           '\n\t\t\tProperty: "PreferedAngleX", "double", "",0'
+           '\n\t\t\tProperty: "PreferedAngleY", "double", "",0'
+           '\n\t\t\tProperty: "PreferedAngleZ", "double", "",0'
+           '\n\t\t\tProperty: "InheritType", "enum", "",0'
+           '\n\t\t\tProperty: "ScalingActive", "bool", "",0'
+           )
 
-        file.write('\n\t\t\tProperty: "ScalingMin", "Vector3D", "",%.15g,%.15g,%.15g' % constraints["sca_min"])
-        file.write('\n\t\t\tProperty: "ScalingMax", "Vector3D", "",%.15g,%.15g,%.15g' % constraints["sca_max"])
-        file.write('\n\t\t\tProperty: "ScalingMinX", "bool", "",%d' % constraints["sca_limit"][0])
-        file.write('\n\t\t\tProperty: "ScalingMinY", "bool", "",%d' % constraints["sca_limit"][1])
-        file.write('\n\t\t\tProperty: "ScalingMinZ", "bool", "",%d' % constraints["sca_limit"][2])
-        file.write('\n\t\t\tProperty: "ScalingMaxX", "bool", "",%d' % constraints["sca_limit"][3])
-        file.write('\n\t\t\tProperty: "ScalingMaxY", "bool", "",%d' % constraints["sca_limit"][4])
-        file.write('\n\t\t\tProperty: "ScalingMaxZ", "bool", "",%d' % constraints["sca_limit"][5])
+        fw('\n\t\t\tProperty: "ScalingMin", "Vector3D", "",%.15g,%.15g,%.15g' % constraints["sca_min"])
+        fw('\n\t\t\tProperty: "ScalingMax", "Vector3D", "",%.15g,%.15g,%.15g' % constraints["sca_max"])
+        fw('\n\t\t\tProperty: "ScalingMinX", "bool", "",%d' % constraints["sca_limit"][0])
+        fw('\n\t\t\tProperty: "ScalingMinY", "bool", "",%d' % constraints["sca_limit"][1])
+        fw('\n\t\t\tProperty: "ScalingMinZ", "bool", "",%d' % constraints["sca_limit"][2])
+        fw('\n\t\t\tProperty: "ScalingMaxX", "bool", "",%d' % constraints["sca_limit"][3])
+        fw('\n\t\t\tProperty: "ScalingMaxY", "bool", "",%d' % constraints["sca_limit"][4])
+        fw('\n\t\t\tProperty: "ScalingMaxZ", "bool", "",%d' % constraints["sca_limit"][5])
 
-        file.write('\n\t\t\tProperty: "GeometricTranslation", "Vector3D", "",0,0,0'
-                   '\n\t\t\tProperty: "GeometricRotation", "Vector3D", "",0,0,0'
-                   '\n\t\t\tProperty: "GeometricScaling", "Vector3D", "",1,1,1'
-                   '\n\t\t\tProperty: "LookAtProperty", "object", ""'
-                   '\n\t\t\tProperty: "UpVectorProperty", "object", ""'
-                   '\n\t\t\tProperty: "Show", "bool", "",1'
-                   '\n\t\t\tProperty: "NegativePercentShapeSupport", "bool", "",1'
-                   '\n\t\t\tProperty: "DefaultAttributeIndex", "int", "",0'
-                   )
+        fw('\n\t\t\tProperty: "GeometricTranslation", "Vector3D", "",0,0,0'
+           '\n\t\t\tProperty: "GeometricRotation", "Vector3D", "",0,0,0'
+           '\n\t\t\tProperty: "GeometricScaling", "Vector3D", "",1,1,1'
+           '\n\t\t\tProperty: "LookAtProperty", "object", ""'
+           '\n\t\t\tProperty: "UpVectorProperty", "object", ""'
+           '\n\t\t\tProperty: "Show", "bool", "",1'
+           '\n\t\t\tProperty: "NegativePercentShapeSupport", "bool", "",1'
+           '\n\t\t\tProperty: "DefaultAttributeIndex", "int", "",0'
+           )
 
         if ob and not isinstance(ob, bpy.types.Bone):
             # Only mesh objects have color
-            file.write('\n\t\t\tProperty: "Color", "Color", "A",0.8,0.8,0.8'
-                       '\n\t\t\tProperty: "Size", "double", "",100'
-                       '\n\t\t\tProperty: "Look", "enum", "",1'
-                       )
+            fw('\n\t\t\tProperty: "Color", "Color", "A",0.8,0.8,0.8'
+               '\n\t\t\tProperty: "Size", "double", "",100'
+               '\n\t\t\tProperty: "Look", "enum", "",1'
+               )
 
         return loc, rot, scale, matrix, matrix_rot
 
     # -------------------------------------------- Armatures
     #def write_bone(bone, name, matrix_mod):
     def write_bone(my_bone):
-        file.write('\n\tModel: "Model::%s", "Limb" {' % my_bone.fbxName)
-        file.write('\n\t\tVersion: 232')
+        fw('\n\tModel: "Model::%s", "Limb" {' % my_bone.fbxName)
+        fw('\n\t\tVersion: 232')
 
         #poseMatrix = write_object_props(my_bone.blenBone, None, None, my_bone.fbxArm.parRelMatrix())[3]
         poseMatrix = write_object_props(my_bone.blenBone, pose_bone=my_bone.getPoseBone())[3]  # dont apply bone matricies anymore
         pose_items.append((my_bone.fbxName, poseMatrix))
 
-        # file.write('\n\t\t\tProperty: "Size", "double", "",%.6f' % ((my_bone.blenData.head['ARMATURESPACE'] - my_bone.blenData.tail['ARMATURESPACE']) * my_bone.fbxArm.parRelMatrix()).length)
-        file.write('\n\t\t\tProperty: "Size", "double", "",1')
+        # fw('\n\t\t\tProperty: "Size", "double", "",%.6f' % ((my_bone.blenData.head['ARMATURESPACE'] - my_bone.blenData.tail['ARMATURESPACE']) * my_bone.fbxArm.parRelMatrix()).length)
+        fw('\n\t\t\tProperty: "Size", "double", "",1')
 
         #((my_bone.blenData.head['ARMATURESPACE'] * my_bone.fbxArm.matrixWorld) - (my_bone.blenData.tail['ARMATURESPACE'] * my_bone.fbxArm.parRelMatrix())).length)
 
         """
-        file.write('\n\t\t\tProperty: "LimbLength", "double", "",%.6f' %\
+        fw('\n\t\t\tProperty: "LimbLength", "double", "",%.6f' %\
             ((my_bone.blenBone.head['ARMATURESPACE'] - my_bone.blenBone.tail['ARMATURESPACE']) * my_bone.fbxArm.parRelMatrix()).length)
         """
 
-        file.write('\n\t\t\tProperty: "LimbLength", "double", "",%.6f' %
-                   (my_bone.blenBone.head_local - my_bone.blenBone.tail_local).length)
+        fw('\n\t\t\tProperty: "LimbLength", "double", "",%.6f' %
+           (my_bone.blenBone.head_local - my_bone.blenBone.tail_local).length)
 
-        #file.write('\n\t\t\tProperty: "LimbLength", "double", "",1')
-        file.write('\n\t\t\tProperty: "Color", "ColorRGB", "",0.8,0.8,0.8'
-                   '\n\t\t\tProperty: "Color", "Color", "A",0.8,0.8,0.8'
-                   '\n\t\t}'
-                   '\n\t\tMultiLayer: 0'
-                   '\n\t\tMultiTake: 1'
-                   '\n\t\tShading: Y'
-                   '\n\t\tCulling: "CullingOff"'
-                   '\n\t\tTypeFlags: "Skeleton"'
-                   '\n\t}'
-                   )
+        #fw('\n\t\t\tProperty: "LimbLength", "double", "",1')
+        fw('\n\t\t\tProperty: "Color", "ColorRGB", "",0.8,0.8,0.8'
+           '\n\t\t\tProperty: "Color", "Color", "A",0.8,0.8,0.8'
+           '\n\t\t}'
+           '\n\t\tMultiLayer: 0'
+           '\n\t\tMultiTake: 1'
+           '\n\t\tShading: Y'
+           '\n\t\tCulling: "CullingOff"'
+           '\n\t\tTypeFlags: "Skeleton"'
+           '\n\t}'
+           )
 
     def write_camera_switch():
-        file.write('''
+        fw('''
 	Model: "Model::Camera Switcher", "CameraSwitcher" {
 		Version: 232''')
 
         write_object_props()
-        file.write('''
+        fw('''
 			Property: "Color", "Color", "A",0.8,0.8,0.8
 			Property: "Camera Index", "Integer", "A+",100
 		}
@@ -709,102 +712,103 @@ def save_single(operator, scene, filepath="",
 	}''')
 
     def write_camera_dummy(name, loc, near, far, proj_type, up):
-        file.write('\n\tModel: "Model::%s", "Camera" {' % name)
-        file.write('\n\t\tVersion: 232')
+        fw('\n\tModel: "Model::%s", "Camera" {' % name)
+        fw('\n\t\tVersion: 232')
         write_object_props(None, loc)
 
-        file.write('\n\t\t\tProperty: "Color", "Color", "A",0.8,0.8,0.8'
-                   '\n\t\t\tProperty: "Roll", "Roll", "A+",0'
-                   '\n\t\t\tProperty: "FieldOfView", "FieldOfView", "A+",40'
-                   '\n\t\t\tProperty: "FieldOfViewX", "FieldOfView", "A+",1'
-                   '\n\t\t\tProperty: "FieldOfViewY", "FieldOfView", "A+",1'
-                   '\n\t\t\tProperty: "OpticalCenterX", "Real", "A+",0'
-                   '\n\t\t\tProperty: "OpticalCenterY", "Real", "A+",0'
-                   '\n\t\t\tProperty: "BackgroundColor", "Color", "A+",0.63,0.63,0.63'
-                   '\n\t\t\tProperty: "TurnTable", "Real", "A+",0'
-                   '\n\t\t\tProperty: "DisplayTurnTableIcon", "bool", "",1'
-                   '\n\t\t\tProperty: "Motion Blur Intensity", "Real", "A+",1'
-                   '\n\t\t\tProperty: "UseMotionBlur", "bool", "",0'
-                   '\n\t\t\tProperty: "UseRealTimeMotionBlur", "bool", "",1'
-                   '\n\t\t\tProperty: "ResolutionMode", "enum", "",0'
-                   '\n\t\t\tProperty: "ApertureMode", "enum", "",2'
-                   '\n\t\t\tProperty: "GateFit", "enum", "",0'
-                   '\n\t\t\tProperty: "FocalLength", "Real", "A+",21.3544940948486'
-                   '\n\t\t\tProperty: "CameraFormat", "enum", "",0'
-                   '\n\t\t\tProperty: "AspectW", "double", "",320'
-                   '\n\t\t\tProperty: "AspectH", "double", "",200'
-                   '\n\t\t\tProperty: "PixelAspectRatio", "double", "",1'
-                   '\n\t\t\tProperty: "UseFrameColor", "bool", "",0'
-                   '\n\t\t\tProperty: "FrameColor", "ColorRGB", "",0.3,0.3,0.3'
-                   '\n\t\t\tProperty: "ShowName", "bool", "",1'
-                   '\n\t\t\tProperty: "ShowGrid", "bool", "",1'
-                   '\n\t\t\tProperty: "ShowOpticalCenter", "bool", "",0'
-                   '\n\t\t\tProperty: "ShowAzimut", "bool", "",1'
-                   '\n\t\t\tProperty: "ShowTimeCode", "bool", "",0'
-                   )
+        fw('\n\t\t\tProperty: "Color", "Color", "A",0.8,0.8,0.8'
+           '\n\t\t\tProperty: "Roll", "Roll", "A+",0'
+           '\n\t\t\tProperty: "FieldOfView", "FieldOfView", "A+",40'
+           '\n\t\t\tProperty: "FieldOfViewX", "FieldOfView", "A+",1'
+           '\n\t\t\tProperty: "FieldOfViewY", "FieldOfView", "A+",1'
+           '\n\t\t\tProperty: "OpticalCenterX", "Real", "A+",0'
+           '\n\t\t\tProperty: "OpticalCenterY", "Real", "A+",0'
+           '\n\t\t\tProperty: "BackgroundColor", "Color", "A+",0.63,0.63,0.63'
+           '\n\t\t\tProperty: "TurnTable", "Real", "A+",0'
+           '\n\t\t\tProperty: "DisplayTurnTableIcon", "bool", "",1'
+           '\n\t\t\tProperty: "Motion Blur Intensity", "Real", "A+",1'
+           '\n\t\t\tProperty: "UseMotionBlur", "bool", "",0'
+           '\n\t\t\tProperty: "UseRealTimeMotionBlur", "bool", "",1'
+           '\n\t\t\tProperty: "ResolutionMode", "enum", "",0'
+           '\n\t\t\tProperty: "ApertureMode", "enum", "",2'
+           '\n\t\t\tProperty: "GateFit", "enum", "",0'
+           '\n\t\t\tProperty: "FocalLength", "Real", "A+",21.3544940948486'
+           '\n\t\t\tProperty: "CameraFormat", "enum", "",0'
+           '\n\t\t\tProperty: "AspectW", "double", "",320'
+           '\n\t\t\tProperty: "AspectH", "double", "",200'
+           '\n\t\t\tProperty: "PixelAspectRatio", "double", "",1'
+           '\n\t\t\tProperty: "UseFrameColor", "bool", "",0'
+           '\n\t\t\tProperty: "FrameColor", "ColorRGB", "",0.3,0.3,0.3'
+           '\n\t\t\tProperty: "ShowName", "bool", "",1'
+           '\n\t\t\tProperty: "ShowGrid", "bool", "",1'
+           '\n\t\t\tProperty: "ShowOpticalCenter", "bool", "",0'
+           '\n\t\t\tProperty: "ShowAzimut", "bool", "",1'
+           '\n\t\t\tProperty: "ShowTimeCode", "bool", "",0'
+           )
 
-        file.write('\n\t\t\tProperty: "NearPlane", "double", "",%.6f' % near)
-        file.write('\n\t\t\tProperty: "FarPlane", "double", "",%.6f' % far)
+        fw('\n\t\t\tProperty: "NearPlane", "double", "",%.6f' % near)
+        fw('\n\t\t\tProperty: "FarPlane", "double", "",%.6f' % far)
 
-        file.write('\n\t\t\tProperty: "FilmWidth", "double", "",0.816'
-                   '\n\t\t\tProperty: "FilmHeight", "double", "",0.612'
-                   '\n\t\t\tProperty: "FilmAspectRatio", "double", "",1.33333333333333'
-                   '\n\t\t\tProperty: "FilmSqueezeRatio", "double", "",1'
-                   '\n\t\t\tProperty: "FilmFormatIndex", "enum", "",4'
-                   '\n\t\t\tProperty: "ViewFrustum", "bool", "",1'
-                   '\n\t\t\tProperty: "ViewFrustumNearFarPlane", "bool", "",0'
-                   '\n\t\t\tProperty: "ViewFrustumBackPlaneMode", "enum", "",2'
-                   '\n\t\t\tProperty: "BackPlaneDistance", "double", "",100'
-                   '\n\t\t\tProperty: "BackPlaneDistanceMode", "enum", "",0'
-                   '\n\t\t\tProperty: "ViewCameraToLookAt", "bool", "",1'
-                   '\n\t\t\tProperty: "LockMode", "bool", "",0'
-                   '\n\t\t\tProperty: "LockInterestNavigation", "bool", "",0'
-                   '\n\t\t\tProperty: "FitImage", "bool", "",0'
-                   '\n\t\t\tProperty: "Crop", "bool", "",0'
-                   '\n\t\t\tProperty: "Center", "bool", "",1'
-                   '\n\t\t\tProperty: "KeepRatio", "bool", "",1'
-                   '\n\t\t\tProperty: "BackgroundMode", "enum", "",0'
-                   '\n\t\t\tProperty: "BackgroundAlphaTreshold", "double", "",0.5'
-                   '\n\t\t\tProperty: "ForegroundTransparent", "bool", "",1'
-                   '\n\t\t\tProperty: "DisplaySafeArea", "bool", "",0'
-                   '\n\t\t\tProperty: "SafeAreaDisplayStyle", "enum", "",1'
-                   '\n\t\t\tProperty: "SafeAreaAspectRatio", "double", "",1.33333333333333'
-                   '\n\t\t\tProperty: "Use2DMagnifierZoom", "bool", "",0'
-                   '\n\t\t\tProperty: "2D Magnifier Zoom", "Real", "A+",100'
-                   '\n\t\t\tProperty: "2D Magnifier X", "Real", "A+",50'
-                   '\n\t\t\tProperty: "2D Magnifier Y", "Real", "A+",50'
-                   )
+        fw('\n\t\t\tProperty: "FilmWidth", "double", "",0.816'
+           '\n\t\t\tProperty: "FilmHeight", "double", "",0.612'
+           '\n\t\t\tProperty: "FilmAspectRatio", "double", "",1.33333333333333'
+           '\n\t\t\tProperty: "FilmSqueezeRatio", "double", "",1'
+           '\n\t\t\tProperty: "FilmFormatIndex", "enum", "",4'
+           '\n\t\t\tProperty: "ViewFrustum", "bool", "",1'
+           '\n\t\t\tProperty: "ViewFrustumNearFarPlane", "bool", "",0'
+           '\n\t\t\tProperty: "ViewFrustumBackPlaneMode", "enum", "",2'
+           '\n\t\t\tProperty: "BackPlaneDistance", "double", "",100'
+           '\n\t\t\tProperty: "BackPlaneDistanceMode", "enum", "",0'
+           '\n\t\t\tProperty: "ViewCameraToLookAt", "bool", "",1'
+           '\n\t\t\tProperty: "LockMode", "bool", "",0'
+           '\n\t\t\tProperty: "LockInterestNavigation", "bool", "",0'
+           '\n\t\t\tProperty: "FitImage", "bool", "",0'
+           '\n\t\t\tProperty: "Crop", "bool", "",0'
+           '\n\t\t\tProperty: "Center", "bool", "",1'
+           '\n\t\t\tProperty: "KeepRatio", "bool", "",1'
+           '\n\t\t\tProperty: "BackgroundMode", "enum", "",0'
+           '\n\t\t\tProperty: "BackgroundAlphaTreshold", "double", "",0.5'
+           '\n\t\t\tProperty: "ForegroundTransparent", "bool", "",1'
+           '\n\t\t\tProperty: "DisplaySafeArea", "bool", "",0'
+           '\n\t\t\tProperty: "SafeAreaDisplayStyle", "enum", "",1'
+           '\n\t\t\tProperty: "SafeAreaAspectRatio", "double", "",1.33333333333333'
+           '\n\t\t\tProperty: "Use2DMagnifierZoom", "bool", "",0'
+           '\n\t\t\tProperty: "2D Magnifier Zoom", "Real", "A+",100'
+           '\n\t\t\tProperty: "2D Magnifier X", "Real", "A+",50'
+           '\n\t\t\tProperty: "2D Magnifier Y", "Real", "A+",50'
+           )
 
-        file.write('\n\t\t\tProperty: "CameraProjectionType", "enum", "",%i' % proj_type)
+        fw('\n\t\t\tProperty: "CameraProjectionType", "enum", "",%i' % proj_type)
 
-        file.write('\n\t\t\tProperty: "UseRealTimeDOFAndAA", "bool", "",0'
-                   '\n\t\t\tProperty: "UseDepthOfField", "bool", "",0'
-                   '\n\t\t\tProperty: "FocusSource", "enum", "",0'
-                   '\n\t\t\tProperty: "FocusAngle", "double", "",3.5'
-                   '\n\t\t\tProperty: "FocusDistance", "double", "",200'
-                   '\n\t\t\tProperty: "UseAntialiasing", "bool", "",0'
-                   '\n\t\t\tProperty: "AntialiasingIntensity", "double", "",0.77777'
-                   '\n\t\t\tProperty: "UseAccumulationBuffer", "bool", "",0'
-                   '\n\t\t\tProperty: "FrameSamplingCount", "int", "",7'
-                   '\n\t\t}'
-                   '\n\t\tMultiLayer: 0'
-                   '\n\t\tMultiTake: 0'
-                   '\n\t\tHidden: "True"'
-                   '\n\t\tShading: Y'
-                   '\n\t\tCulling: "CullingOff"'
-                   '\n\t\tTypeFlags: "Camera"'
-                   '\n\t\tGeometryVersion: 124'
-                   )
+        fw('\n\t\t\tProperty: "UseRealTimeDOFAndAA", "bool", "",0'
+           '\n\t\t\tProperty: "UseDepthOfField", "bool", "",0'
+           '\n\t\t\tProperty: "FocusSource", "enum", "",0'
+           '\n\t\t\tProperty: "FocusAngle", "double", "",3.5'
+           '\n\t\t\tProperty: "FocusDistance", "double", "",200'
+           '\n\t\t\tProperty: "UseAntialiasing", "bool", "",0'
+           '\n\t\t\tProperty: "AntialiasingIntensity", "double", "",0.77777'
+           '\n\t\t\tProperty: "UseAccumulationBuffer", "bool", "",0'
+           '\n\t\t\tProperty: "FrameSamplingCount", "int", "",7'
+           '\n\t\t}'
+           '\n\t\tMultiLayer: 0'
+           '\n\t\tMultiTake: 0'
+           '\n\t\tHidden: "True"'
+           '\n\t\tShading: Y'
+           '\n\t\tCulling: "CullingOff"'
+           '\n\t\tTypeFlags: "Camera"'
+           '\n\t\tGeometryVersion: 124'
+           )
 
-        file.write('\n\t\tPosition: %.6f,%.6f,%.6f' % loc)
-        file.write('\n\t\tUp: %i,%i,%i' % up)
+        fw('\n\t\tPosition: %.6f,%.6f,%.6f' % loc)
+        fw('\n\t\tUp: %i,%i,%i' % up)
 
-        file.write('\n\t\tLookAt: 0,0,0'
-                   '\n\t\tShowInfoOnMoving: 1'
-                   '\n\t\tShowAudio: 0'
-                   '\n\t\tAudioColor: 0,1,0'
-                   '\n\t\tCameraOrthoZoom: 1'
-                   '\n\t}')
+        fw('\n\t\tLookAt: 0,0,0'
+           '\n\t\tShowInfoOnMoving: 1'
+           '\n\t\tShowAudio: 0'
+           '\n\t\tAudioColor: 0,1,0'
+           '\n\t\tCameraOrthoZoom: 1'
+           '\n\t}'
+           )
 
     def write_camera_default():
         # This sucks but to match FBX converter its easier to
@@ -828,35 +832,35 @@ def save_single(operator, scene, filepath="",
 
         data = my_cam.blenObject.data
 
-        file.write('\n\tModel: "Model::%s", "Camera" {' % my_cam.fbxName)
-        file.write('\n\t\tVersion: 232')
+        fw('\n\tModel: "Model::%s", "Camera" {' % my_cam.fbxName)
+        fw('\n\t\tVersion: 232')
         loc, rot, scale, matrix, matrix_rot = write_object_props(my_cam.blenObject, None, my_cam.parRelMatrix())
 
-        file.write('\n\t\t\tProperty: "Roll", "Roll", "A+",0')
-        file.write('\n\t\t\tProperty: "FieldOfView", "FieldOfView", "A+",%.6f' % math.degrees(data.angle))
+        fw('\n\t\t\tProperty: "Roll", "Roll", "A+",0')
+        fw('\n\t\t\tProperty: "FieldOfView", "FieldOfView", "A+",%.6f' % math.degrees(data.angle))
 
-        file.write('\n\t\t\tProperty: "FieldOfViewX", "FieldOfView", "A+",1'
-                   '\n\t\t\tProperty: "FieldOfViewY", "FieldOfView", "A+",1'
-                   )
+        fw('\n\t\t\tProperty: "FieldOfViewX", "FieldOfView", "A+",1'
+           '\n\t\t\tProperty: "FieldOfViewY", "FieldOfView", "A+",1'
+           )
 
-        # file.write('\n\t\t\tProperty: "FocalLength", "Real", "A+",14.0323972702026')
-        file.write('\n\t\t\tProperty: "OpticalCenterX", "Real", "A+",%.6f' % data.shift_x)  # not sure if this is in the correct units?
-        file.write('\n\t\t\tProperty: "OpticalCenterY", "Real", "A+",%.6f' % data.shift_y)  # ditto
+        # fw('\n\t\t\tProperty: "FocalLength", "Real", "A+",14.0323972702026')
+        fw('\n\t\t\tProperty: "OpticalCenterX", "Real", "A+",%.6f' % data.shift_x)  # not sure if this is in the correct units?
+        fw('\n\t\t\tProperty: "OpticalCenterY", "Real", "A+",%.6f' % data.shift_y)  # ditto
 
-        file.write('\n\t\t\tProperty: "BackgroundColor", "Color", "A+",0,0,0'
-                   '\n\t\t\tProperty: "TurnTable", "Real", "A+",0'
-                   '\n\t\t\tProperty: "DisplayTurnTableIcon", "bool", "",1'
-                   '\n\t\t\tProperty: "Motion Blur Intensity", "Real", "A+",1'
-                   '\n\t\t\tProperty: "UseMotionBlur", "bool", "",0'
-                   '\n\t\t\tProperty: "UseRealTimeMotionBlur", "bool", "",1'
-                   '\n\t\t\tProperty: "ResolutionMode", "enum", "",0'
-                   '\n\t\t\tProperty: "ApertureMode", "enum", "",2'
-                   '\n\t\t\tProperty: "GateFit", "enum", "",2'
-                   '\n\t\t\tProperty: "CameraFormat", "enum", "",0'
-                   )
+        fw('\n\t\t\tProperty: "BackgroundColor", "Color", "A+",0,0,0'
+           '\n\t\t\tProperty: "TurnTable", "Real", "A+",0'
+           '\n\t\t\tProperty: "DisplayTurnTableIcon", "bool", "",1'
+           '\n\t\t\tProperty: "Motion Blur Intensity", "Real", "A+",1'
+           '\n\t\t\tProperty: "UseMotionBlur", "bool", "",0'
+           '\n\t\t\tProperty: "UseRealTimeMotionBlur", "bool", "",1'
+           '\n\t\t\tProperty: "ResolutionMode", "enum", "",0'
+           '\n\t\t\tProperty: "ApertureMode", "enum", "",2'
+           '\n\t\t\tProperty: "GateFit", "enum", "",2'
+           '\n\t\t\tProperty: "CameraFormat", "enum", "",0'
+           )
 
-        file.write('\n\t\t\tProperty: "AspectW", "double", "",%i' % width)
-        file.write('\n\t\t\tProperty: "AspectH", "double", "",%i' % height)
+        fw('\n\t\t\tProperty: "AspectW", "double", "",%i' % width)
+        fw('\n\t\t\tProperty: "AspectH", "double", "",%i' % height)
 
         '''Camera aspect ratio modes.
             0 If the ratio mode is eWINDOW_SIZE, both width and height values aren't relevant.
@@ -867,91 +871,91 @@ def save_single(operator, scene, filepath="",
 
         Definition at line 234 of file kfbxcamera.h. '''
 
-        file.write('\n\t\t\tProperty: "PixelAspectRatio", "double", "",2'
-                   '\n\t\t\tProperty: "UseFrameColor", "bool", "",0'
-                   '\n\t\t\tProperty: "FrameColor", "ColorRGB", "",0.3,0.3,0.3'
-                   '\n\t\t\tProperty: "ShowName", "bool", "",1'
-                   '\n\t\t\tProperty: "ShowGrid", "bool", "",1'
-                   '\n\t\t\tProperty: "ShowOpticalCenter", "bool", "",0'
-                   '\n\t\t\tProperty: "ShowAzimut", "bool", "",1'
-                   '\n\t\t\tProperty: "ShowTimeCode", "bool", "",0'
-                   )
+        fw('\n\t\t\tProperty: "PixelAspectRatio", "double", "",2'
+           '\n\t\t\tProperty: "UseFrameColor", "bool", "",0'
+           '\n\t\t\tProperty: "FrameColor", "ColorRGB", "",0.3,0.3,0.3'
+           '\n\t\t\tProperty: "ShowName", "bool", "",1'
+           '\n\t\t\tProperty: "ShowGrid", "bool", "",1'
+           '\n\t\t\tProperty: "ShowOpticalCenter", "bool", "",0'
+           '\n\t\t\tProperty: "ShowAzimut", "bool", "",1'
+           '\n\t\t\tProperty: "ShowTimeCode", "bool", "",0'
+           )
 
-        file.write('\n\t\t\tProperty: "NearPlane", "double", "",%.6f' % data.clip_start)
-        file.write('\n\t\t\tProperty: "FarPlane", "double", "",%.6f' % data.clip_end)
+        fw('\n\t\t\tProperty: "NearPlane", "double", "",%.6f' % data.clip_start)
+        fw('\n\t\t\tProperty: "FarPlane", "double", "",%.6f' % data.clip_end)
 
-        file.write('\n\t\t\tProperty: "FilmWidth", "double", "",1.0'
-                   '\n\t\t\tProperty: "FilmHeight", "double", "",1.0'
-                   )
+        fw('\n\t\t\tProperty: "FilmWidth", "double", "",1.0'
+           '\n\t\t\tProperty: "FilmHeight", "double", "",1.0'
+           )
 
-        file.write('\n\t\t\tProperty: "FilmAspectRatio", "double", "",%.6f' % aspect)
+        fw('\n\t\t\tProperty: "FilmAspectRatio", "double", "",%.6f' % aspect)
 
-        file.write('\n\t\t\tProperty: "FilmSqueezeRatio", "double", "",1'
-                   '\n\t\t\tProperty: "FilmFormatIndex", "enum", "",0'
-                   '\n\t\t\tProperty: "ViewFrustum", "bool", "",1'
-                   '\n\t\t\tProperty: "ViewFrustumNearFarPlane", "bool", "",0'
-                   '\n\t\t\tProperty: "ViewFrustumBackPlaneMode", "enum", "",2'
-                   '\n\t\t\tProperty: "BackPlaneDistance", "double", "",100'
-                   '\n\t\t\tProperty: "BackPlaneDistanceMode", "enum", "",0'
-                   '\n\t\t\tProperty: "ViewCameraToLookAt", "bool", "",1'
-                   '\n\t\t\tProperty: "LockMode", "bool", "",0'
-                   '\n\t\t\tProperty: "LockInterestNavigation", "bool", "",0'
-                   '\n\t\t\tProperty: "FitImage", "bool", "",0'
-                   '\n\t\t\tProperty: "Crop", "bool", "",0'
-                   '\n\t\t\tProperty: "Center", "bool", "",1'
-                   '\n\t\t\tProperty: "KeepRatio", "bool", "",1'
-                   '\n\t\t\tProperty: "BackgroundMode", "enum", "",0'
-                   '\n\t\t\tProperty: "BackgroundAlphaTreshold", "double", "",0.5'
-                   '\n\t\t\tProperty: "ForegroundTransparent", "bool", "",1'
-                   '\n\t\t\tProperty: "DisplaySafeArea", "bool", "",0'
-                   '\n\t\t\tProperty: "SafeAreaDisplayStyle", "enum", "",1'
-                   )
+        fw('\n\t\t\tProperty: "FilmSqueezeRatio", "double", "",1'
+           '\n\t\t\tProperty: "FilmFormatIndex", "enum", "",0'
+           '\n\t\t\tProperty: "ViewFrustum", "bool", "",1'
+           '\n\t\t\tProperty: "ViewFrustumNearFarPlane", "bool", "",0'
+           '\n\t\t\tProperty: "ViewFrustumBackPlaneMode", "enum", "",2'
+           '\n\t\t\tProperty: "BackPlaneDistance", "double", "",100'
+           '\n\t\t\tProperty: "BackPlaneDistanceMode", "enum", "",0'
+           '\n\t\t\tProperty: "ViewCameraToLookAt", "bool", "",1'
+           '\n\t\t\tProperty: "LockMode", "bool", "",0'
+           '\n\t\t\tProperty: "LockInterestNavigation", "bool", "",0'
+           '\n\t\t\tProperty: "FitImage", "bool", "",0'
+           '\n\t\t\tProperty: "Crop", "bool", "",0'
+           '\n\t\t\tProperty: "Center", "bool", "",1'
+           '\n\t\t\tProperty: "KeepRatio", "bool", "",1'
+           '\n\t\t\tProperty: "BackgroundMode", "enum", "",0'
+           '\n\t\t\tProperty: "BackgroundAlphaTreshold", "double", "",0.5'
+           '\n\t\t\tProperty: "ForegroundTransparent", "bool", "",1'
+           '\n\t\t\tProperty: "DisplaySafeArea", "bool", "",0'
+           '\n\t\t\tProperty: "SafeAreaDisplayStyle", "enum", "",1'
+           )
 
-        file.write('\n\t\t\tProperty: "SafeAreaAspectRatio", "double", "",%.6f' % aspect)
+        fw('\n\t\t\tProperty: "SafeAreaAspectRatio", "double", "",%.6f' % aspect)
 
-        file.write('\n\t\t\tProperty: "Use2DMagnifierZoom", "bool", "",0'
-                   '\n\t\t\tProperty: "2D Magnifier Zoom", "Real", "A+",100'
-                   '\n\t\t\tProperty: "2D Magnifier X", "Real", "A+",50'
-                   '\n\t\t\tProperty: "2D Magnifier Y", "Real", "A+",50'
-                   '\n\t\t\tProperty: "CameraProjectionType", "enum", "",0'
-                   '\n\t\t\tProperty: "UseRealTimeDOFAndAA", "bool", "",0'
-                   '\n\t\t\tProperty: "UseDepthOfField", "bool", "",0'
-                   '\n\t\t\tProperty: "FocusSource", "enum", "",0'
-                   '\n\t\t\tProperty: "FocusAngle", "double", "",3.5'
-                   '\n\t\t\tProperty: "FocusDistance", "double", "",200'
-                   '\n\t\t\tProperty: "UseAntialiasing", "bool", "",0'
-                   '\n\t\t\tProperty: "AntialiasingIntensity", "double", "",0.77777'
-                   '\n\t\t\tProperty: "UseAccumulationBuffer", "bool", "",0'
-                   '\n\t\t\tProperty: "FrameSamplingCount", "int", "",7'
-                   )
+        fw('\n\t\t\tProperty: "Use2DMagnifierZoom", "bool", "",0'
+           '\n\t\t\tProperty: "2D Magnifier Zoom", "Real", "A+",100'
+           '\n\t\t\tProperty: "2D Magnifier X", "Real", "A+",50'
+           '\n\t\t\tProperty: "2D Magnifier Y", "Real", "A+",50'
+           '\n\t\t\tProperty: "CameraProjectionType", "enum", "",0'
+           '\n\t\t\tProperty: "UseRealTimeDOFAndAA", "bool", "",0'
+           '\n\t\t\tProperty: "UseDepthOfField", "bool", "",0'
+           '\n\t\t\tProperty: "FocusSource", "enum", "",0'
+           '\n\t\t\tProperty: "FocusAngle", "double", "",3.5'
+           '\n\t\t\tProperty: "FocusDistance", "double", "",200'
+           '\n\t\t\tProperty: "UseAntialiasing", "bool", "",0'
+           '\n\t\t\tProperty: "AntialiasingIntensity", "double", "",0.77777'
+           '\n\t\t\tProperty: "UseAccumulationBuffer", "bool", "",0'
+           '\n\t\t\tProperty: "FrameSamplingCount", "int", "",7'
+           )
 
-        file.write('\n\t\t}')
+        fw('\n\t\t}')
 
-        file.write('\n\t\tMultiLayer: 0'
-                   '\n\t\tMultiTake: 0'
-                   '\n\t\tShading: Y'
-                   '\n\t\tCulling: "CullingOff"'
-                   '\n\t\tTypeFlags: "Camera"'
-                   '\n\t\tGeometryVersion: 124'
-                   )
+        fw('\n\t\tMultiLayer: 0'
+           '\n\t\tMultiTake: 0'
+           '\n\t\tShading: Y'
+           '\n\t\tCulling: "CullingOff"'
+           '\n\t\tTypeFlags: "Camera"'
+           '\n\t\tGeometryVersion: 124'
+           )
 
-        file.write('\n\t\tPosition: %.6f,%.6f,%.6f' % loc)
-        file.write('\n\t\tUp: %.6f,%.6f,%.6f' % (matrix_rot * Vector((0.0, 1.0, 0.0)))[:])
-        file.write('\n\t\tLookAt: %.6f,%.6f,%.6f' % (matrix_rot * Vector((0.0, 0.0, -1.0)))[:])
+        fw('\n\t\tPosition: %.6f,%.6f,%.6f' % loc)
+        fw('\n\t\tUp: %.6f,%.6f,%.6f' % (matrix_rot * Vector((0.0, 1.0, 0.0)))[:])
+        fw('\n\t\tLookAt: %.6f,%.6f,%.6f' % (matrix_rot * Vector((0.0, 0.0, -1.0)))[:])
 
-        #file.write('\n\t\tUp: 0,0,0' )
-        #file.write('\n\t\tLookAt: 0,0,0' )
+        #fw('\n\t\tUp: 0,0,0' )
+        #fw('\n\t\tLookAt: 0,0,0' )
 
-        file.write('\n\t\tShowInfoOnMoving: 1')
-        file.write('\n\t\tShowAudio: 0')
-        file.write('\n\t\tAudioColor: 0,1,0')
-        file.write('\n\t\tCameraOrthoZoom: 1')
-        file.write('\n\t}')
+        fw('\n\t\tShowInfoOnMoving: 1')
+        fw('\n\t\tShowAudio: 0')
+        fw('\n\t\tAudioColor: 0,1,0')
+        fw('\n\t\tCameraOrthoZoom: 1')
+        fw('\n\t}')
 
     def write_light(my_light):
         light = my_light.blenObject.data
-        file.write('\n\tModel: "Model::%s", "Light" {' % my_light.fbxName)
-        file.write('\n\t\tVersion: 232')
+        fw('\n\tModel: "Model::%s", "Light" {' % my_light.fbxName)
+        fw('\n\t\tVersion: 232')
 
         write_object_props(my_light.blenObject, None, my_light.parRelMatrix())
 
@@ -977,51 +981,51 @@ def save_single(operator, scene, filepath="",
 
         # scale = abs(global_matrix.to_scale()[0])  # scale is always uniform in this case  #  UNUSED
 
-        file.write('\n\t\t\tProperty: "LightType", "enum", "",%i' % light_type)
-        file.write('\n\t\t\tProperty: "CastLightOnObject", "bool", "",1')
-        file.write('\n\t\t\tProperty: "DrawVolumetricLight", "bool", "",1')
-        file.write('\n\t\t\tProperty: "DrawGroundProjection", "bool", "",1')
-        file.write('\n\t\t\tProperty: "DrawFrontFacingVolumetricLight", "bool", "",0')
-        file.write('\n\t\t\tProperty: "GoboProperty", "object", ""')
-        file.write('\n\t\t\tProperty: "Color", "Color", "A+",1,1,1')
-        file.write('\n\t\t\tProperty: "Intensity", "Intensity", "A+",%.2f' % (min(light.energy * 100.0, 200.0)))  # clamp below 200
+        fw('\n\t\t\tProperty: "LightType", "enum", "",%i' % light_type)
+        fw('\n\t\t\tProperty: "CastLightOnObject", "bool", "",1')
+        fw('\n\t\t\tProperty: "DrawVolumetricLight", "bool", "",1')
+        fw('\n\t\t\tProperty: "DrawGroundProjection", "bool", "",1')
+        fw('\n\t\t\tProperty: "DrawFrontFacingVolumetricLight", "bool", "",0')
+        fw('\n\t\t\tProperty: "GoboProperty", "object", ""')
+        fw('\n\t\t\tProperty: "Color", "Color", "A+",1,1,1')
+        fw('\n\t\t\tProperty: "Intensity", "Intensity", "A+",%.2f' % (min(light.energy * 100.0, 200.0)))  # clamp below 200
         if light.type == 'SPOT':
-            file.write('\n\t\t\tProperty: "Cone angle", "Cone angle", "A+",%.2f' % math.degrees(light.spot_size))
-        file.write('\n\t\t\tProperty: "Fog", "Fog", "A+",50')
-        file.write('\n\t\t\tProperty: "Color", "Color", "A",%.2f,%.2f,%.2f' % tuple(light.color))
+            fw('\n\t\t\tProperty: "Cone angle", "Cone angle", "A+",%.2f' % math.degrees(light.spot_size))
+        fw('\n\t\t\tProperty: "Fog", "Fog", "A+",50')
+        fw('\n\t\t\tProperty: "Color", "Color", "A",%.2f,%.2f,%.2f' % tuple(light.color))
 
-        file.write('\n\t\t\tProperty: "Intensity", "Intensity", "A+",%.2f' % (min(light.energy * 100.0, 200.0)))  # clamp below 200
+        fw('\n\t\t\tProperty: "Intensity", "Intensity", "A+",%.2f' % (min(light.energy * 100.0, 200.0)))  # clamp below 200
 
-        file.write('\n\t\t\tProperty: "Fog", "Fog", "A+",50')
-        file.write('\n\t\t\tProperty: "LightType", "enum", "",%i' % light_type)
-        file.write('\n\t\t\tProperty: "CastLightOnObject", "bool", "",%i' % do_light)
-        file.write('\n\t\t\tProperty: "DrawGroundProjection", "bool", "",1')
-        file.write('\n\t\t\tProperty: "DrawFrontFacingVolumetricLight", "bool", "",0')
-        file.write('\n\t\t\tProperty: "DrawVolumetricLight", "bool", "",1')
-        file.write('\n\t\t\tProperty: "GoboProperty", "object", ""')
-        file.write('\n\t\t\tProperty: "DecayType", "enum", "",0')
-        file.write('\n\t\t\tProperty: "DecayStart", "double", "",%.2f' % light.distance)
+        fw('\n\t\t\tProperty: "Fog", "Fog", "A+",50')
+        fw('\n\t\t\tProperty: "LightType", "enum", "",%i' % light_type)
+        fw('\n\t\t\tProperty: "CastLightOnObject", "bool", "",%i' % do_light)
+        fw('\n\t\t\tProperty: "DrawGroundProjection", "bool", "",1')
+        fw('\n\t\t\tProperty: "DrawFrontFacingVolumetricLight", "bool", "",0')
+        fw('\n\t\t\tProperty: "DrawVolumetricLight", "bool", "",1')
+        fw('\n\t\t\tProperty: "GoboProperty", "object", ""')
+        fw('\n\t\t\tProperty: "DecayType", "enum", "",0')
+        fw('\n\t\t\tProperty: "DecayStart", "double", "",%.2f' % light.distance)
 
-        file.write('\n\t\t\tProperty: "EnableNearAttenuation", "bool", "",0'
-                   '\n\t\t\tProperty: "NearAttenuationStart", "double", "",0'
-                   '\n\t\t\tProperty: "NearAttenuationEnd", "double", "",0'
-                   '\n\t\t\tProperty: "EnableFarAttenuation", "bool", "",0'
-                   '\n\t\t\tProperty: "FarAttenuationStart", "double", "",0'
-                   '\n\t\t\tProperty: "FarAttenuationEnd", "double", "",0'
-                   )
+        fw('\n\t\t\tProperty: "EnableNearAttenuation", "bool", "",0'
+           '\n\t\t\tProperty: "NearAttenuationStart", "double", "",0'
+           '\n\t\t\tProperty: "NearAttenuationEnd", "double", "",0'
+           '\n\t\t\tProperty: "EnableFarAttenuation", "bool", "",0'
+           '\n\t\t\tProperty: "FarAttenuationStart", "double", "",0'
+           '\n\t\t\tProperty: "FarAttenuationEnd", "double", "",0'
+           )
 
-        file.write('\n\t\t\tProperty: "CastShadows", "bool", "",%i' % do_shadow)
-        file.write('\n\t\t\tProperty: "ShadowColor", "ColorRGBA", "",0,0,0,1')
-        file.write('\n\t\t}')
+        fw('\n\t\t\tProperty: "CastShadows", "bool", "",%i' % do_shadow)
+        fw('\n\t\t\tProperty: "ShadowColor", "ColorRGBA", "",0,0,0,1')
+        fw('\n\t\t}')
 
-        file.write('\n\t\tMultiLayer: 0'
-                   '\n\t\tMultiTake: 0'
-                   '\n\t\tShading: Y'
-                   '\n\t\tCulling: "CullingOff"'
-                   '\n\t\tTypeFlags: "Light"'
-                   '\n\t\tGeometryVersion: 124'
-                   '\n\t}'
-                   )
+        fw('\n\t\tMultiLayer: 0'
+           '\n\t\tMultiTake: 0'
+           '\n\t\tShading: Y'
+           '\n\t\tCulling: "CullingOff"'
+           '\n\t\tTypeFlags: "Light"'
+           '\n\t\tGeometryVersion: 124'
+           '\n\t}'
+           )
 
     # matrixOnly is not used at the moment
     def write_null(my_null=None, fbxName=None, fbxType="Null", fbxTypeFlags="Null"):
@@ -1029,8 +1033,8 @@ def save_single(operator, scene, filepath="",
         if not fbxName:
             fbxName = my_null.fbxName
 
-        file.write('\n\tModel: "Model::%s", "%s" {' % (fbxName, fbxType))
-        file.write('\n\t\tVersion: 232')
+        fw('\n\tModel: "Model::%s", "%s" {' % (fbxName, fbxType))
+        fw('\n\t\tVersion: 232')
 
         if my_null:
             poseMatrix = write_object_props(my_null.blenObject, None, my_null.parRelMatrix())[3]
@@ -1039,15 +1043,15 @@ def save_single(operator, scene, filepath="",
 
         pose_items.append((fbxName, poseMatrix))
         
-        file.write('\n\t\t}'
-                   '\n\t\tMultiLayer: 0'
-                   '\n\t\tMultiTake: 1'
-                   '\n\t\tShading: Y'
-                   '\n\t\tCulling: "CullingOff"'
-                   )
+        fw('\n\t\t}'
+           '\n\t\tMultiLayer: 0'
+           '\n\t\tMultiTake: 1'
+           '\n\t\tShading: Y'
+           '\n\t\tCulling: "CullingOff"'
+           )
 
-        file.write('\n\t\tTypeFlags: "%s"' % fbxTypeFlags)
-        file.write('\n\t}')
+        fw('\n\t\tTypeFlags: "%s"' % fbxTypeFlags)
+        fw('\n\t}')
 
     # Material Settings
     if world:
@@ -1056,7 +1060,7 @@ def save_single(operator, scene, filepath="",
         world_amb = 0.0, 0.0, 0.0  # default value
 
     def write_material(matname, mat):
-        file.write('\n\tMaterial: "Material::%s", "" {' % matname)
+        fw('\n\tMaterial: "Material::%s", "" {' % matname)
 
         # Todo, add more material Properties.
         if mat:
@@ -1092,48 +1096,48 @@ def save_single(operator, scene, filepath="",
             mat_shadeless = False
             mat_shader = 'Phong'
 
-        file.write('\n\t\tVersion: 102')
-        file.write('\n\t\tShadingModel: "%s"' % mat_shader.lower())
-        file.write('\n\t\tMultiLayer: 0')
+        fw('\n\t\tVersion: 102')
+        fw('\n\t\tShadingModel: "%s"' % mat_shader.lower())
+        fw('\n\t\tMultiLayer: 0')
 
-        file.write('\n\t\tProperties60:  {')
-        file.write('\n\t\t\tProperty: "ShadingModel", "KString", "", "%s"' % mat_shader)
-        file.write('\n\t\t\tProperty: "MultiLayer", "bool", "",0')
-        file.write('\n\t\t\tProperty: "EmissiveColor", "ColorRGB", "",%.4f,%.4f,%.4f' % mat_cold)  # emit and diffuse color are he same in blender
-        file.write('\n\t\t\tProperty: "EmissiveFactor", "double", "",%.4f' % mat_emit)
+        fw('\n\t\tProperties60:  {')
+        fw('\n\t\t\tProperty: "ShadingModel", "KString", "", "%s"' % mat_shader)
+        fw('\n\t\t\tProperty: "MultiLayer", "bool", "",0')
+        fw('\n\t\t\tProperty: "EmissiveColor", "ColorRGB", "",%.4f,%.4f,%.4f' % mat_cold)  # emit and diffuse color are he same in blender
+        fw('\n\t\t\tProperty: "EmissiveFactor", "double", "",%.4f' % mat_emit)
 
-        file.write('\n\t\t\tProperty: "AmbientColor", "ColorRGB", "",%.4f,%.4f,%.4f' % mat_colamb)
-        file.write('\n\t\t\tProperty: "AmbientFactor", "double", "",%.4f' % mat_amb)
-        file.write('\n\t\t\tProperty: "DiffuseColor", "ColorRGB", "",%.4f,%.4f,%.4f' % mat_cold)
-        file.write('\n\t\t\tProperty: "DiffuseFactor", "double", "",%.4f' % mat_dif)
-        file.write('\n\t\t\tProperty: "Bump", "Vector3D", "",0,0,0')
-        file.write('\n\t\t\tProperty: "TransparentColor", "ColorRGB", "",1,1,1')
-        file.write('\n\t\t\tProperty: "TransparencyFactor", "double", "",%.4f' % (1.0 - mat_alpha))
+        fw('\n\t\t\tProperty: "AmbientColor", "ColorRGB", "",%.4f,%.4f,%.4f' % mat_colamb)
+        fw('\n\t\t\tProperty: "AmbientFactor", "double", "",%.4f' % mat_amb)
+        fw('\n\t\t\tProperty: "DiffuseColor", "ColorRGB", "",%.4f,%.4f,%.4f' % mat_cold)
+        fw('\n\t\t\tProperty: "DiffuseFactor", "double", "",%.4f' % mat_dif)
+        fw('\n\t\t\tProperty: "Bump", "Vector3D", "",0,0,0')
+        fw('\n\t\t\tProperty: "TransparentColor", "ColorRGB", "",1,1,1')
+        fw('\n\t\t\tProperty: "TransparencyFactor", "double", "",%.4f' % (1.0 - mat_alpha))
         if not mat_shadeless:
-            file.write('\n\t\t\tProperty: "SpecularColor", "ColorRGB", "",%.4f,%.4f,%.4f' % mat_cols)
-            file.write('\n\t\t\tProperty: "SpecularFactor", "double", "",%.4f' % mat_spec)
-            file.write('\n\t\t\tProperty: "ShininessExponent", "double", "",80.0')
-            file.write('\n\t\t\tProperty: "ReflectionColor", "ColorRGB", "",0,0,0')
-            file.write('\n\t\t\tProperty: "ReflectionFactor", "double", "",1')
-        file.write('\n\t\t\tProperty: "Emissive", "ColorRGB", "",0,0,0')
-        file.write('\n\t\t\tProperty: "Ambient", "ColorRGB", "",%.1f,%.1f,%.1f' % mat_colamb)
-        file.write('\n\t\t\tProperty: "Diffuse", "ColorRGB", "",%.1f,%.1f,%.1f' % mat_cold)
+            fw('\n\t\t\tProperty: "SpecularColor", "ColorRGB", "",%.4f,%.4f,%.4f' % mat_cols)
+            fw('\n\t\t\tProperty: "SpecularFactor", "double", "",%.4f' % mat_spec)
+            fw('\n\t\t\tProperty: "ShininessExponent", "double", "",80.0')
+            fw('\n\t\t\tProperty: "ReflectionColor", "ColorRGB", "",0,0,0')
+            fw('\n\t\t\tProperty: "ReflectionFactor", "double", "",1')
+        fw('\n\t\t\tProperty: "Emissive", "ColorRGB", "",0,0,0')
+        fw('\n\t\t\tProperty: "Ambient", "ColorRGB", "",%.1f,%.1f,%.1f' % mat_colamb)
+        fw('\n\t\t\tProperty: "Diffuse", "ColorRGB", "",%.1f,%.1f,%.1f' % mat_cold)
         if not mat_shadeless:
-            file.write('\n\t\t\tProperty: "Specular", "ColorRGB", "",%.1f,%.1f,%.1f' % mat_cols)
-            file.write('\n\t\t\tProperty: "Shininess", "double", "",%.1f' % mat_hard)
-        file.write('\n\t\t\tProperty: "Opacity", "double", "",%.1f' % mat_alpha)
+            fw('\n\t\t\tProperty: "Specular", "ColorRGB", "",%.1f,%.1f,%.1f' % mat_cols)
+            fw('\n\t\t\tProperty: "Shininess", "double", "",%.1f' % mat_hard)
+        fw('\n\t\t\tProperty: "Opacity", "double", "",%.1f' % mat_alpha)
         if not mat_shadeless:
-            file.write('\n\t\t\tProperty: "Reflectivity", "double", "",0')
+            fw('\n\t\t\tProperty: "Reflectivity", "double", "",0')
 
-        file.write('\n\t\t}')
-        file.write('\n\t}')
+        fw('\n\t\t}')
+        fw('\n\t}')
 
     # tex is an Image (Arystan)
     def write_video(texname, tex):
         # Same as texture really!
-        file.write('\n\tVideo: "Video::%s", "Clip" {' % texname)
+        fw('\n\tVideo: "Video::%s", "Clip" {' % texname)
 
-        file.write('''
+        fw('''
 		Type: "Clip"
 		Properties60:  {
 			Property: "FrameRate", "double", "",0
@@ -1146,9 +1150,9 @@ def save_single(operator, scene, filepath="",
         else:
             fname_strip = fname_rel = ""
 
-        file.write('\n\t\t\tProperty: "Path", "charptr", "", "%s"' % fname_strip)
+        fw('\n\t\t\tProperty: "Path", "charptr", "", "%s"' % fname_strip)
 
-        file.write('''
+        fw('''
 			Property: "StartFrame", "int", "",0
 			Property: "StopFrame", "int", "",0
 			Property: "PlaySpeed", "double", "",1
@@ -1160,27 +1164,27 @@ def save_single(operator, scene, filepath="",
 		}
 		UseMipMap: 0''')
 
-        file.write('\n\t\tFilename: "%s"' % fname_strip)
-        file.write('\n\t\tRelativeFilename: "%s"' % fname_rel)  # make relative
-        file.write('\n\t}')
+        fw('\n\t\tFilename: "%s"' % fname_strip)
+        fw('\n\t\tRelativeFilename: "%s"' % fname_rel)  # make relative
+        fw('\n\t}')
 
     def write_texture(texname, tex, num):
         # if tex is None then this is a dummy tex
-        file.write('\n\tTexture: "Texture::%s", "TextureVideoClip" {' % texname)
-        file.write('\n\t\tType: "TextureVideoClip"')
-        file.write('\n\t\tVersion: 202')
+        fw('\n\tTexture: "Texture::%s", "TextureVideoClip" {' % texname)
+        fw('\n\t\tType: "TextureVideoClip"')
+        fw('\n\t\tVersion: 202')
         # TODO, rare case _empty_ exists as a name.
-        file.write('\n\t\tTextureName: "Texture::%s"' % texname)
+        fw('\n\t\tTextureName: "Texture::%s"' % texname)
 
-        file.write('''
+        fw('''
 		Properties60:  {
 			Property: "Translation", "Vector", "A+",0,0,0
 			Property: "Rotation", "Vector", "A+",0,0,0
 			Property: "Scaling", "Vector", "A+",1,1,1''')
-        file.write('\n\t\t\tProperty: "Texture alpha", "Number", "A+",%i' % num)
+        fw('\n\t\t\tProperty: "Texture alpha", "Number", "A+",%i' % num)
 
         # WrapModeU/V 0==rep, 1==clamp, TODO add support
-        file.write('''
+        fw('''
 			Property: "TextureTypeUse", "enum", "",0
 			Property: "CurrentTextureBlendMode", "enum", "",1
 			Property: "UseMaterial", "bool", "",0
@@ -1188,16 +1192,16 @@ def save_single(operator, scene, filepath="",
 			Property: "CurrentMappingType", "enum", "",0
 			Property: "UVSwap", "bool", "",0''')
 
-        file.write('\n\t\t\tProperty: "WrapModeU", "enum", "",%i' % tex.use_clamp_x)
-        file.write('\n\t\t\tProperty: "WrapModeV", "enum", "",%i' % tex.use_clamp_y)
+        fw('\n\t\t\tProperty: "WrapModeU", "enum", "",%i' % tex.use_clamp_x)
+        fw('\n\t\t\tProperty: "WrapModeV", "enum", "",%i' % tex.use_clamp_y)
 
-        file.write('''
+        fw('''
 			Property: "TextureRotationPivot", "Vector3D", "",0,0,0
 			Property: "TextureScalingPivot", "Vector3D", "",0,0,0
 			Property: "VideoProperty", "object", ""
 		}''')
 
-        file.write('\n\t\tMedia: "Video::%s"' % texname)
+        fw('\n\t\tMedia: "Video::%s"' % texname)
 
         if tex:
             fname_rel = bpy_extras.io_utils.path_reference(tex.filepath, base_src, base_dst, path_mode, "", copy_set)
@@ -1205,10 +1209,10 @@ def save_single(operator, scene, filepath="",
         else:
             fname_strip = fname_rel = ""
 
-        file.write('\n\t\tFileName: "%s"' % fname_strip)
-        file.write('\n\t\tRelativeFilename: "%s"' % fname_rel)  # need some make relative command
+        fw('\n\t\tFileName: "%s"' % fname_strip)
+        fw('\n\t\tRelativeFilename: "%s"' % fname_rel)  # need some make relative command
 
-        file.write('''
+        fw('''
 		ModelUVTranslation: 0,0
 		ModelUVScaling: 1,1
 		Texture_Alpha_Source: "None"
@@ -1219,8 +1223,8 @@ def save_single(operator, scene, filepath="",
         '''
         Each mesh has its own deformer
         '''
-        file.write('\n\tDeformer: "Deformer::Skin %s", "Skin" {' % obname)
-        file.write('''
+        fw('\n\tDeformer: "Deformer::Skin %s", "Skin" {' % obname)
+        fw('''
 		Version: 100
 		MultiLayer: 0
 		Type: "Skin"
@@ -1239,9 +1243,9 @@ def save_single(operator, scene, filepath="",
         Its possible that there is no matching vgroup in this mesh, in that case no verts are in the subdeformer,
         a but silly but dosnt really matter
         '''
-        file.write('\n\tDeformer: "SubDeformer::Cluster %s %s", "Cluster" {' % (my_mesh.fbxName, my_bone.fbxName))
+        fw('\n\tDeformer: "SubDeformer::Cluster %s %s", "Cluster" {' % (my_mesh.fbxName, my_bone.fbxName))
 
-        file.write('''
+        fw('''
 		Version: 100
 		MultiLayer: 0
 		Type: "Cluster"
@@ -1271,31 +1275,31 @@ def save_single(operator, scene, filepath="",
             else:
                 vgroup_data = []
 
-        file.write('\n\t\tIndexes: ')
+        fw('\n\t\tIndexes: ')
 
         i = -1
         for vg in vgroup_data:
             if i == -1:
-                file.write('%i' % vg[0])
+                fw('%i' % vg[0])
                 i = 0
             else:
                 if i == 23:
-                    file.write('\n\t\t')
+                    fw('\n\t\t')
                     i = 0
-                file.write(',%i' % vg[0])
+                fw(',%i' % vg[0])
             i += 1
 
-        file.write('\n\t\tWeights: ')
+        fw('\n\t\tWeights: ')
         i = -1
         for vg in vgroup_data:
             if i == -1:
-                file.write('%.8f' % vg[1])
+                fw('%.8f' % vg[1])
                 i = 0
             else:
                 if i == 38:
-                    file.write('\n\t\t')
+                    fw('\n\t\t')
                     i = 0
-                file.write(',%.8f' % vg[1])
+                fw(',%.8f' % vg[1])
             i += 1
 
         if my_mesh.fbxParent:
@@ -1309,9 +1313,9 @@ def save_single(operator, scene, filepath="",
         matstr = mat4x4str(m)
         matstr_i = mat4x4str(m.inverted())
 
-        file.write('\n\t\tTransform: %s' % matstr_i)  # THIS IS __NOT__ THE GLOBAL MATRIX AS DOCUMENTED :/
-        file.write('\n\t\tTransformLink: %s' % matstr)
-        file.write('\n\t}')
+        fw('\n\t\tTransform: %s' % matstr_i)  # THIS IS __NOT__ THE GLOBAL MATRIX AS DOCUMENTED :/
+        fw('\n\t\tTransformLink: %s' % matstr)
+        fw('\n\t}')
 
     def write_mesh(my_mesh):
 
@@ -1322,8 +1326,8 @@ def save_single(operator, scene, filepath="",
         do_textures = bool(my_mesh.blenTextures)
         do_uvs = bool(me.uv_textures)
 
-        file.write('\n\tModel: "Model::%s", "Mesh" {' % my_mesh.fbxName)
-        file.write('\n\t\tVersion: 232')  # newline is added in write_object_props
+        fw('\n\tModel: "Model::%s", "Mesh" {' % my_mesh.fbxName)
+        fw('\n\t\tVersion: 232')  # newline is added in write_object_props
 
         # convert into lists once.
         me_vertices = me.vertices[:]
@@ -1333,28 +1337,30 @@ def save_single(operator, scene, filepath="",
         poseMatrix = write_object_props(my_mesh.blenObject, None, my_mesh.parRelMatrix())[3]
         pose_items.append((my_mesh.fbxName, poseMatrix))
 
-        file.write('\n\t\t}')
-        file.write('\n\t\tMultiLayer: 0')
-        file.write('\n\t\tMultiTake: 1')
-        file.write('\n\t\tShading: Y')
-        file.write('\n\t\tCulling: "CullingOff"')
+        fw('\n\t\t}')
+
+        fw('\n\t\tMultiLayer: 0'
+           '\n\t\tMultiTake: 1'
+           '\n\t\tShading: Y'
+           '\n\t\tCulling: "CullingOff"'
+           )
 
         # Write the Real Mesh data here
-        file.write('\n\t\tVertices: ')
+        fw('\n\t\tVertices: ')
         i = -1
 
         for v in me_vertices:
             if i == -1:
-                file.write('%.6f,%.6f,%.6f' % v.co[:])
+                fw('%.6f,%.6f,%.6f' % v.co[:])
                 i = 0
             else:
                 if i == 7:
-                    file.write('\n\t\t')
+                    fw('\n\t\t')
                     i = 0
-                file.write(',%.6f,%.6f,%.6f' % v.co[:])
+                fw(',%.6f,%.6f,%.6f' % v.co[:])
             i += 1
 
-        file.write('\n\t\tPolygonVertexIndex: ')
+        fw('\n\t\tPolygonVertexIndex: ')
         i = -1
         for f in me_faces:
             fi = f.vertices[:]
@@ -1362,18 +1368,18 @@ def save_single(operator, scene, filepath="",
             # last index XORd w. -1 indicates end of face
             if i == -1:
                 if len(fi) == 3:
-                    file.write('%i,%i,%i' % (fi[0], fi[1], fi[2] ^ -1))
+                    fw('%i,%i,%i' % (fi[0], fi[1], fi[2] ^ -1))
                 else:
-                    file.write('%i,%i,%i,%i' % (fi[0], fi[1], fi[2], fi[3] ^ -1))
+                    fw('%i,%i,%i,%i' % (fi[0], fi[1], fi[2], fi[3] ^ -1))
                 i = 0
             else:
                 if i == 13:
-                    file.write('\n\t\t')
+                    fw('\n\t\t')
                     i = 0
                 if len(fi) == 3:
-                    file.write(',%i,%i,%i' % (fi[0], fi[1], fi[2] ^ -1))
+                    fw(',%i,%i,%i' % (fi[0], fi[1], fi[2] ^ -1))
                 else:
-                    file.write(',%i,%i,%i,%i' % (fi[0], fi[1], fi[2], fi[3] ^ -1))
+                    fw(',%i,%i,%i,%i' % (fi[0], fi[1], fi[2], fi[3] ^ -1))
             i += 1
 
         # write loose edges as faces.
@@ -1383,31 +1389,31 @@ def save_single(operator, scene, filepath="",
                 ed_val = ed_val[0], ed_val[-1] ^ -1
 
                 if i == -1:
-                    file.write('%i,%i' % ed_val)
+                    fw('%i,%i' % ed_val)
                     i = 0
                 else:
                     if i == 13:
-                        file.write('\n\t\t')
+                        fw('\n\t\t')
                         i = 0
-                    file.write(',%i,%i' % ed_val)
+                    fw(',%i,%i' % ed_val)
             i += 1
 
-        file.write('\n\t\tEdges: ')
+        fw('\n\t\tEdges: ')
         i = -1
         for ed in me_edges:
                 if i == -1:
-                    file.write('%i,%i' % (ed.vertices[0], ed.vertices[1]))
+                    fw('%i,%i' % (ed.vertices[0], ed.vertices[1]))
                     i = 0
                 else:
                     if i == 13:
-                        file.write('\n\t\t')
+                        fw('\n\t\t')
                         i = 0
-                    file.write(',%i,%i' % (ed.vertices[0], ed.vertices[1]))
+                    fw(',%i,%i' % (ed.vertices[0], ed.vertices[1]))
                 i += 1
 
-        file.write('\n\t\tGeometryVersion: 124')
+        fw('\n\t\tGeometryVersion: 124')
 
-        file.write('''
+        fw('''
 		LayerElementNormal: 0 {
 			Version: 101
 			Name: ""
@@ -1418,19 +1424,19 @@ def save_single(operator, scene, filepath="",
         i = -1
         for v in me_vertices:
             if i == -1:
-                file.write('%.15f,%.15f,%.15f' % v.normal[:])
+                fw('%.15f,%.15f,%.15f' % v.normal[:])
                 i = 0
             else:
                 if i == 2:
-                    file.write('\n\t\t\t ')
+                    fw('\n\t\t\t ')
                     i = 0
-                file.write(',%.15f,%.15f,%.15f' % v.normal[:])
+                fw(',%.15f,%.15f,%.15f' % v.normal[:])
             i += 1
-        file.write('\n\t\t}')
+        fw('\n\t\t}')
 
         # Write Face Smoothing
         if mesh_smooth_type == 'FACE':
-            file.write('''
+            fw('''
 		LayerElementSmoothing: 0 {
 			Version: 102
 			Name: ""
@@ -1441,20 +1447,20 @@ def save_single(operator, scene, filepath="",
             i = -1
             for f in me_faces:
                 if i == -1:
-                    file.write('%i' % f.use_smooth)
+                    fw('%i' % f.use_smooth)
                     i = 0
                 else:
                     if i == 54:
-                        file.write('\n\t\t\t ')
+                        fw('\n\t\t\t ')
                         i = 0
-                    file.write(',%i' % f.use_smooth)
+                    fw(',%i' % f.use_smooth)
                 i += 1
 
-            file.write('\n\t\t}')
+            fw('\n\t\t}')
 
         elif mesh_smooth_type == 'EDGE':
             # Write Edge Smoothing
-            file.write('''
+            fw('''
 		LayerElementSmoothing: 0 {
 			Version: 101
 			Name: ""
@@ -1465,16 +1471,16 @@ def save_single(operator, scene, filepath="",
             i = -1
             for ed in me_edges:
                 if i == -1:
-                    file.write('%i' % (ed.use_edge_sharp))
+                    fw('%i' % (ed.use_edge_sharp))
                     i = 0
                 else:
                     if i == 54:
-                        file.write('\n\t\t\t ')
+                        fw('\n\t\t\t ')
                         i = 0
-                    file.write(',%i' % (ed.use_edge_sharp))
+                    fw(',%i' % ed.use_edge_sharp)
                 i += 1
 
-            file.write('\n\t\t}')
+            fw('\n\t\t}')
         elif mesh_smooth_type == 'OFF':
             pass
         else:
@@ -1486,11 +1492,11 @@ def save_single(operator, scene, filepath="",
         if len(me.vertex_colors):
             collayers = me.vertex_colors
             for colindex, collayer in enumerate(collayers):
-                file.write('\n\t\tLayerElementColor: %i {' % colindex)
-                file.write('\n\t\t\tVersion: 101')
-                file.write('\n\t\t\tName: "%s"' % collayer.name)
+                fw('\n\t\tLayerElementColor: %i {' % colindex)
+                fw('\n\t\t\tVersion: 101')
+                fw('\n\t\t\tName: "%s"' % collayer.name)
 
-                file.write('''
+                fw('''
 			MappingInformationType: "ByPolygonVertex"
 			ReferenceInformationType: "IndexToDirect"
 			Colors: ''')
@@ -1506,41 +1512,41 @@ def save_single(operator, scene, filepath="",
 
                     for col in colors:
                         if i == -1:
-                            file.write('%.4f,%.4f,%.4f,1' % col)
+                            fw('%.4f,%.4f,%.4f,1' % col)
                             i = 0
                         else:
                             if i == 7:
-                                file.write('\n\t\t\t\t')
+                                fw('\n\t\t\t\t')
                                 i = 0
-                            file.write(',%.4f,%.4f,%.4f,1' % col)
+                            fw(',%.4f,%.4f,%.4f,1' % col)
                         i += 1
                         ii += 1  # One more Color
 
-                file.write('\n\t\t\tColorIndex: ')
+                fw('\n\t\t\tColorIndex: ')
                 i = -1
                 for j in range(ii):
                     if i == -1:
-                        file.write('%i' % j)
+                        fw('%i' % j)
                         i = 0
                     else:
                         if i == 55:
-                            file.write('\n\t\t\t\t')
+                            fw('\n\t\t\t\t')
                             i = 0
-                        file.write(',%i' % j)
+                        fw(',%i' % j)
                     i += 1
 
-                file.write('\n\t\t}')
+                fw('\n\t\t}')
 
         # Write UV and texture layers.
         uvlayers = []
         if do_uvs:
             uvlayers = me.uv_textures
             for uvindex, uvlayer in enumerate(me.uv_textures):
-                file.write('\n\t\tLayerElementUV: %i {' % uvindex)
-                file.write('\n\t\t\tVersion: 101')
-                file.write('\n\t\t\tName: "%s"' % uvlayer.name)
+                fw('\n\t\tLayerElementUV: %i {' % uvindex)
+                fw('\n\t\t\tVersion: 101')
+                fw('\n\t\t\tName: "%s"' % uvlayer.name)
 
-                file.write('''
+                fw('''
 			MappingInformationType: "ByPolygonVertex"
 			ReferenceInformationType: "IndexToDirect"
 			UV: ''')
@@ -1552,48 +1558,48 @@ def save_single(operator, scene, filepath="",
                     # workaround, since uf.uv iteration is wrong atm
                     for uv in uf.uv:
                         if i == -1:
-                            file.write('%.6f,%.6f' % uv[:])
+                            fw('%.6f,%.6f' % uv[:])
                             i = 0
                         else:
                             if i == 7:
-                                file.write('\n\t\t\t ')
+                                fw('\n\t\t\t ')
                                 i = 0
-                            file.write(',%.6f,%.6f' % uv[:])
+                            fw(',%.6f,%.6f' % uv[:])
                         i += 1
                         ii += 1  # One more UV
 
-                file.write('\n\t\t\tUVIndex: ')
+                fw('\n\t\t\tUVIndex: ')
                 i = -1
                 for j in range(ii):
                     if i == -1:
-                        file.write('%i' % j)
+                        fw('%i' % j)
                         i = 0
                     else:
                         if i == 55:
-                            file.write('\n\t\t\t\t')
+                            fw('\n\t\t\t\t')
                             i = 0
-                        file.write(',%i' % j)
+                        fw(',%i' % j)
                     i += 1
 
-                file.write('\n\t\t}')
+                fw('\n\t\t}')
 
                 if do_textures:
-                    file.write('\n\t\tLayerElementTexture: %i {' % uvindex)
-                    file.write('\n\t\t\tVersion: 101')
-                    file.write('\n\t\t\tName: "%s"' % uvlayer.name)
+                    fw('\n\t\tLayerElementTexture: %i {' % uvindex)
+                    fw('\n\t\t\tVersion: 101')
+                    fw('\n\t\t\tName: "%s"' % uvlayer.name)
 
                     if len(my_mesh.blenTextures) == 1:
-                        file.write('\n\t\t\tMappingInformationType: "AllSame"')
+                        fw('\n\t\t\tMappingInformationType: "AllSame"')
                     else:
-                        file.write('\n\t\t\tMappingInformationType: "ByPolygon"')
+                        fw('\n\t\t\tMappingInformationType: "ByPolygon"')
 
-                    file.write('\n\t\t\tReferenceInformationType: "IndexToDirect"')
-                    file.write('\n\t\t\tBlendMode: "Translucent"')
-                    file.write('\n\t\t\tTextureAlpha: 1')
-                    file.write('\n\t\t\tTextureId: ')
+                    fw('\n\t\t\tReferenceInformationType: "IndexToDirect"')
+                    fw('\n\t\t\tBlendMode: "Translucent"')
+                    fw('\n\t\t\tTextureAlpha: 1')
+                    fw('\n\t\t\tTextureId: ')
 
                     if len(my_mesh.blenTextures) == 1:
-                        file.write('0')
+                        fw('0')
                     else:
                         texture_mapping_local = {None: -1}
 
@@ -1609,17 +1615,17 @@ def save_single(operator, scene, filepath="",
 
                             if i == -1:
                                 i = 0
-                                file.write('%s' % texture_mapping_local[img_key])
+                                fw('%s' % texture_mapping_local[img_key])
                             else:
                                 if i == 55:
-                                    file.write('\n			 ')
+                                    fw('\n			 ')
                                     i = 0
 
-                                file.write(',%s' % texture_mapping_local[img_key])
+                                fw(',%s' % texture_mapping_local[img_key])
                             i += 1
 
                 else:
-                    file.write('''
+                    fw('''
 		LayerElementTexture: 0 {
 			Version: 101
 			Name: ""
@@ -1628,24 +1634,24 @@ def save_single(operator, scene, filepath="",
 			BlendMode: "Translucent"
 			TextureAlpha: 1
 			TextureId: ''')
-                file.write('\n\t\t}')
+                fw('\n\t\t}')
 
         # Done with UV/textures.
         if do_materials:
-            file.write('\n\t\tLayerElementMaterial: 0 {')
-            file.write('\n\t\t\tVersion: 101')
-            file.write('\n\t\t\tName: ""')
+            fw('\n\t\tLayerElementMaterial: 0 {')
+            fw('\n\t\t\tVersion: 101')
+            fw('\n\t\t\tName: ""')
 
             if len(my_mesh.blenMaterials) == 1:
-                file.write('\n\t\t\tMappingInformationType: "AllSame"')
+                fw('\n\t\t\tMappingInformationType: "AllSame"')
             else:
-                file.write('\n\t\t\tMappingInformationType: "ByPolygon"')
+                fw('\n\t\t\tMappingInformationType: "ByPolygon"')
 
-            file.write('\n\t\t\tReferenceInformationType: "IndexToDirect"')
-            file.write('\n\t\t\tMaterials: ')
+            fw('\n\t\t\tReferenceInformationType: "IndexToDirect"')
+            fw('\n\t\t\tMaterials: ')
 
             if len(my_mesh.blenMaterials) == 1:
-                file.write('0')
+                fw('0')
             else:
                 # Build a material mapping for this
                 material_mapping_local = {}  # local-mat & tex : global index.
@@ -1674,18 +1680,18 @@ def save_single(operator, scene, filepath="",
 
                     if i == -1:
                         i = 0
-                        file.write('%s' % (material_mapping_local[mat, tex]))  # None for mat or tex is ok
+                        fw('%s' % material_mapping_local[mat, tex])  # None for mat or tex is ok
                     else:
                         if i == 55:
-                            file.write('\n\t\t\t\t')
+                            fw('\n\t\t\t\t')
                             i = 0
 
-                        file.write(',%s' % (material_mapping_local[mat, tex]))
+                        fw(',%s' % material_mapping_local[mat, tex])
                     i += 1
 
-            file.write('\n\t\t}')
+            fw('\n\t\t}')
 
-        file.write('''
+        fw('''
 		Layer: 0 {
 			Version: 100
 			LayerElement:  {
@@ -1694,7 +1700,7 @@ def save_single(operator, scene, filepath="",
 			}''')
 
         if do_materials:
-            file.write('''
+            fw('''
 			LayerElement:  {
 				Type: "LayerElementMaterial"
 				TypedIndex: 0
@@ -1702,7 +1708,7 @@ def save_single(operator, scene, filepath="",
 
         # Smoothing info
         if mesh_smooth_type != 'OFF':
-            file.write('''
+            fw('''
 			LayerElement:  {
 				Type: "LayerElementSmoothing"
 				TypedIndex: 0
@@ -1710,51 +1716,51 @@ def save_single(operator, scene, filepath="",
 
         # Always write this
         if do_textures:
-            file.write('''
+            fw('''
 			LayerElement:  {
 				Type: "LayerElementTexture"
 				TypedIndex: 0
 			}''')
 
         if me.vertex_colors:
-            file.write('''
+            fw('''
 			LayerElement:  {
 				Type: "LayerElementColor"
 				TypedIndex: 0
 			}''')
 
         if do_uvs:  # same as me.faceUV
-            file.write('''
+            fw('''
 			LayerElement:  {
 				Type: "LayerElementUV"
 				TypedIndex: 0
 			}''')
 
-        file.write('\n\t\t}')
+        fw('\n\t\t}')
 
         if len(uvlayers) > 1:
             for i in range(1, len(uvlayers)):
 
-                file.write('\n\t\tLayer: %i {' % i)
-                file.write('\n\t\t\tVersion: 100')
+                fw('\n\t\tLayer: %i {' % i)
+                fw('\n\t\t\tVersion: 100')
 
-                file.write('''
+                fw('''
 			LayerElement:  {
 				Type: "LayerElementUV"''')
 
-                file.write('\n\t\t\t\tTypedIndex: %i' % i)
-                file.write('\n\t\t\t}')
+                fw('\n\t\t\t\tTypedIndex: %i' % i)
+                fw('\n\t\t\t}')
 
                 if do_textures:
 
-                    file.write('''
+                    fw('''
 			LayerElement:  {
 				Type: "LayerElementTexture"''')
 
-                    file.write('\n\t\t\t\tTypedIndex: %i' % i)
-                    file.write('\n\t\t\t}')
+                    fw('\n\t\t\t\tTypedIndex: %i' % i)
+                    fw('\n\t\t\t}')
 
-                file.write('\n\t\t}')
+                fw('\n\t\t}')
 
         if len(collayers) > 1:
             # Take into account any UV layers
@@ -1763,22 +1769,22 @@ def save_single(operator, scene, filepath="",
                 layer_offset = len(uvlayers) - 1
 
             for i in range(layer_offset, len(collayers) + layer_offset):
-                file.write('\n\t\tLayer: %i {' % i)
-                file.write('\n\t\t\tVersion: 100')
+                fw('\n\t\tLayer: %i {' % i)
+                fw('\n\t\t\tVersion: 100')
 
-                file.write('''
+                fw('''
 			LayerElement:  {
 				Type: "LayerElementColor"''')
 
-                file.write('\n\t\t\t\tTypedIndex: %i' % i)
-                file.write('\n\t\t\t}')
-                file.write('\n\t\t}')
-        file.write('\n\t}')
+                fw('\n\t\t\t\tTypedIndex: %i' % i)
+                fw('\n\t\t\t}')
+                fw('\n\t\t}')
+        fw('\n\t}')
 
     def write_group(name):
-        file.write('\n\tGroupSelection: "GroupSelection::%s", "Default" {' % name)
+        fw('\n\tGroupSelection: "GroupSelection::%s", "Default" {' % name)
 
-        file.write('''
+        fw('''
 		Properties60:  {
 			Property: "MultiLayer", "bool", "",0
 			Property: "Pickable", "bool", "",1
@@ -2099,7 +2105,7 @@ def save_single(operator, scene, filepath="",
         import traceback
         traceback.print_exc()
 
-    file.write('''
+    fw('''
 
 ; Object definitions
 ;------------------------------------------------------------------
@@ -2120,7 +2126,7 @@ Definitions:  {
 
     del bone_deformer_count
 
-    file.write('''
+    fw('''
 	ObjectType: "Model" {
 		Count: %i
 	}''' % (
@@ -2132,23 +2138,23 @@ Definitions:  {
         len(ob_null) +
         len(ob_bones)))
 
-    file.write('''
+    fw('''
 	ObjectType: "Geometry" {
 		Count: %i
 	}''' % len(ob_meshes))
 
     if materials:
-        file.write('''
+        fw('''
 	ObjectType: "Material" {
 		Count: %i
 	}''' % len(materials))
 
     if textures:
-        file.write('''
+        fw('''
 	ObjectType: "Texture" {
 		Count: %i
 	}''' % len(textures))  # add 1 for an empty tex
-        file.write('''
+        fw('''
 	ObjectType: "Video" {
 		Count: %i
 	}''' % len(textures))  # add 1 for an empty tex
@@ -2164,31 +2170,31 @@ Definitions:  {
         tmp += len(my_bone.blenMeshes)
 
     if tmp:
-        file.write('''
+        fw('''
 	ObjectType: "Deformer" {
 		Count: %i
 	}''' % tmp)
     del tmp
 
     # Bind pose is essential for XNA if the 'MESH' is included (JCB)
-    file.write('''
+    fw('''
 	ObjectType: "Pose" {
 		Count: 1
 	}''')
 
     if groups:
-        file.write('''
+        fw('''
 	ObjectType: "GroupSelection" {
 		Count: %i
 	}''' % len(groups))
 
-    file.write('''
+    fw('''
 	ObjectType: "GlobalSettings" {
 		Count: 1
 	}
 }''')
 
-    file.write('''
+    fw('''
 
 ; Object properties
 ;------------------------------------------------------------------
@@ -2260,26 +2266,26 @@ Objects:  {''')
     # each by themselves do not need pose data. For now only pose meshes and bones
 
     # Bind pose is essential for XNA if the 'MESH' is included (JCB)
-    file.write('''
+    fw('''
 	Pose: "Pose::BIND_POSES", "BindPose" {
 		Type: "BindPose"
 		Version: 100
 		Properties60:  {
 		}
 		NbPoseNodes: ''')
-    file.write(str(len(pose_items)))
+    fw(str(len(pose_items)))
 
     for fbxName, matrix in pose_items:
-        file.write('\n\t\tPoseNode:  {')
-        file.write('\n\t\t\tNode: "Model::%s"' % fbxName)
-        file.write('\n\t\t\tMatrix: %s' % mat4x4str(matrix if matrix else Matrix()))
-        file.write('\n\t\t}')
+        fw('\n\t\tPoseNode:  {')
+        fw('\n\t\t\tNode: "Model::%s"' % fbxName)
+        fw('\n\t\t\tMatrix: %s' % mat4x4str(matrix if matrix else Matrix()))
+        fw('\n\t\t}')
 
-    file.write('\n\t}')
+    fw('\n\t}')
 
     # Finish Writing Objects
     # Write global settings
-    file.write('''
+    fw('''
 	GlobalSettings:  {
 		Version: 1000
 		Properties60:  {
@@ -2293,9 +2299,9 @@ Objects:  {''')
 		}
 	}
 ''')
-    file.write('}')
+    fw('}')
 
-    file.write('''
+    fw('''
 
 ; Object relations
 ;------------------------------------------------------------------
@@ -2305,28 +2311,28 @@ Relations:  {''')
     # Nulls are likely to cause problems for XNA
 
     for my_null in ob_null:
-        file.write('\n\tModel: "Model::%s", "Null" {\n\t}' % my_null.fbxName)
+        fw('\n\tModel: "Model::%s", "Null" {\n\t}' % my_null.fbxName)
 
     # Armature must be a Limb for XNA
     # Note, 2.58 and previous wrote these as normal empties and it worked mostly (except for XNA)
     for my_arm in ob_arms:
-        file.write('\n\tModel: "Model::%s", "Limb" {\n\t}' % my_arm.fbxName)
+        fw('\n\tModel: "Model::%s", "Limb" {\n\t}' % my_arm.fbxName)
 
     for my_mesh in ob_meshes:
-        file.write('\n\tModel: "Model::%s", "Mesh" {\n\t}' % my_mesh.fbxName)
+        fw('\n\tModel: "Model::%s", "Mesh" {\n\t}' % my_mesh.fbxName)
 
     # TODO - limbs can have the same name for multiple armatures, should prefix.
     #for bonename, bone, obname, me, armob in ob_bones:
     for my_bone in ob_bones:
-        file.write('\n\tModel: "Model::%s", "Limb" {\n\t}' % my_bone.fbxName)
+        fw('\n\tModel: "Model::%s", "Limb" {\n\t}' % my_bone.fbxName)
 
     for my_cam in ob_cameras:
-        file.write('\n\tModel: "Model::%s", "Camera" {\n\t}' % my_cam.fbxName)
+        fw('\n\tModel: "Model::%s", "Camera" {\n\t}' % my_cam.fbxName)
 
     for my_light in ob_lights:
-        file.write('\n\tModel: "Model::%s", "Light" {\n\t}' % my_light.fbxName)
+        fw('\n\tModel: "Model::%s", "Light" {\n\t}' % my_light.fbxName)
 
-    file.write('''
+    fw('''
 	Model: "Model::Producer Perspective", "Camera" {
 	}
 	Model: "Model::Producer Top", "Camera" {
@@ -2345,33 +2351,33 @@ Relations:  {''')
 	}''')
 
     for matname, (mat, tex) in materials:
-        file.write('\n\tMaterial: "Material::%s", "" {\n\t}' % matname)
+        fw('\n\tMaterial: "Material::%s", "" {\n\t}' % matname)
 
     if textures:
         for texname, tex in textures:
-            file.write('\n\tTexture: "Texture::%s", "TextureVideoClip" {\n\t}' % texname)
+            fw('\n\tTexture: "Texture::%s", "TextureVideoClip" {\n\t}' % texname)
         for texname, tex in textures:
-            file.write('\n\tVideo: "Video::%s", "Clip" {\n\t}' % texname)
+            fw('\n\tVideo: "Video::%s", "Clip" {\n\t}' % texname)
 
     # deformers - modifiers
     for my_mesh in ob_meshes:
         if my_mesh.fbxArm:
-            file.write('\n\tDeformer: "Deformer::Skin %s", "Skin" {\n\t}' % my_mesh.fbxName)
+            fw('\n\tDeformer: "Deformer::Skin %s", "Skin" {\n\t}' % my_mesh.fbxName)
 
     #for bonename, bone, obname, me, armob in ob_bones:
     for my_bone in ob_bones:
         for fbxMeshObName in my_bone.blenMeshes:  # .keys() - fbxMeshObName
             # is this bone effecting a mesh?
-            file.write('\n\tDeformer: "SubDeformer::Cluster %s %s", "Cluster" {\n\t}' % (fbxMeshObName, my_bone.fbxName))
+            fw('\n\tDeformer: "SubDeformer::Cluster %s %s", "Cluster" {\n\t}' % (fbxMeshObName, my_bone.fbxName))
 
     # This should be at the end
-    # file.write('\n\tPose: "Pose::BIND_POSES", "BindPose" {\n\t}')
+    # fw('\n\tPose: "Pose::BIND_POSES", "BindPose" {\n\t}')
 
     for groupname, group in groups:
-        file.write('\n\tGroupSelection: "GroupSelection::%s", "Default" {\n\t}' % groupname)
+        fw('\n\tGroupSelection: "GroupSelection::%s", "Default" {\n\t}' % groupname)
 
-    file.write('\n}')
-    file.write('''
+    fw('\n}')
+    fw('''
 
 ; Object connections
 ;------------------------------------------------------------------
@@ -2386,9 +2392,9 @@ Connections:  {''')
         for my_ob in ob_generic:
             # for deformed meshes, don't have any parents or they can get twice transformed.
             if my_ob.fbxParent and (not my_ob.fbxArm):
-                file.write('\n\tConnect: "OO", "Model::%s", "Model::%s"' % (my_ob.fbxName, my_ob.fbxParent.fbxName))
+                fw('\n\tConnect: "OO", "Model::%s", "Model::%s"' % (my_ob.fbxName, my_ob.fbxParent.fbxName))
             else:
-                file.write('\n\tConnect: "OO", "Model::%s", "Model::Scene"' % my_ob.fbxName)
+                fw('\n\tConnect: "OO", "Model::%s", "Model::Scene"' % my_ob.fbxName)
 
     if materials:
         for my_mesh in ob_meshes:
@@ -2397,55 +2403,55 @@ Connections:  {''')
                 mat_name = mat.name if mat else None
                 tex_name = tex.name if tex else None
 
-                file.write('\n\tConnect: "OO", "Material::%s", "Model::%s"' % (sane_name_mapping_mat[mat_name, tex_name], my_mesh.fbxName))
+                fw('\n\tConnect: "OO", "Material::%s", "Model::%s"' % (sane_name_mapping_mat[mat_name, tex_name], my_mesh.fbxName))
 
     if textures:
         for my_mesh in ob_meshes:
             if my_mesh.blenTextures:
-                # file.write('\n\tConnect: "OO", "Texture::_empty_", "Model::%s"' % my_mesh.fbxName)
+                # fw('\n\tConnect: "OO", "Texture::_empty_", "Model::%s"' % my_mesh.fbxName)
                 for tex in my_mesh.blenTextures:
                     if tex:
-                        file.write('\n\tConnect: "OO", "Texture::%s", "Model::%s"' % (sane_name_mapping_tex[tex.name], my_mesh.fbxName))
+                        fw('\n\tConnect: "OO", "Texture::%s", "Model::%s"' % (sane_name_mapping_tex[tex.name], my_mesh.fbxName))
 
         for texname, tex in textures:
-            file.write('\n\tConnect: "OO", "Video::%s", "Texture::%s"' % (texname, texname))
+            fw('\n\tConnect: "OO", "Video::%s", "Texture::%s"' % (texname, texname))
 
     if 'MESH' in object_types:
         for my_mesh in ob_meshes:
             if my_mesh.fbxArm:
-                file.write('\n\tConnect: "OO", "Deformer::Skin %s", "Model::%s"' % (my_mesh.fbxName, my_mesh.fbxName))
+                fw('\n\tConnect: "OO", "Deformer::Skin %s", "Model::%s"' % (my_mesh.fbxName, my_mesh.fbxName))
 
         for my_bone in ob_bones:
             for fbxMeshObName in my_bone.blenMeshes:  # .keys()
-                file.write('\n\tConnect: "OO", "SubDeformer::Cluster %s %s", "Deformer::Skin %s"' % (fbxMeshObName, my_bone.fbxName, fbxMeshObName))
+                fw('\n\tConnect: "OO", "SubDeformer::Cluster %s %s", "Deformer::Skin %s"' % (fbxMeshObName, my_bone.fbxName, fbxMeshObName))
 
         # limbs -> deformers
         for my_bone in ob_bones:
             for fbxMeshObName in my_bone.blenMeshes:  # .keys()
-                file.write('\n\tConnect: "OO", "Model::%s", "SubDeformer::Cluster %s %s"' % (my_bone.fbxName, fbxMeshObName, my_bone.fbxName))
+                fw('\n\tConnect: "OO", "Model::%s", "SubDeformer::Cluster %s %s"' % (my_bone.fbxName, fbxMeshObName, my_bone.fbxName))
 
     #for bonename, bone, obname, me, armob in ob_bones:
     for my_bone in ob_bones:
         # Always parent to armature now
         if my_bone.parent:
-            file.write('\n\tConnect: "OO", "Model::%s", "Model::%s"' % (my_bone.fbxName, my_bone.parent.fbxName))
+            fw('\n\tConnect: "OO", "Model::%s", "Model::%s"' % (my_bone.fbxName, my_bone.parent.fbxName))
         else:
             # the armature object is written as an empty and all root level bones connect to it
-            file.write('\n\tConnect: "OO", "Model::%s", "Model::%s"' % (my_bone.fbxName, my_bone.fbxArm.fbxName))
+            fw('\n\tConnect: "OO", "Model::%s", "Model::%s"' % (my_bone.fbxName, my_bone.fbxArm.fbxName))
 
     # groups
     if groups:
         for ob_generic in ob_all_typegroups:
             for ob_base in ob_generic:
                 for fbxGroupName in ob_base.fbxGroupNames:
-                    file.write('\n\tConnect: "OO", "Model::%s", "GroupSelection::%s"' % (ob_base.fbxName, fbxGroupName))
+                    fw('\n\tConnect: "OO", "Model::%s", "GroupSelection::%s"' % (ob_base.fbxName, fbxGroupName))
 
 
     # I think the following always duplicates the armature connection because it is also in ob_all_typegroups above! (JCB)
     # for my_arm in ob_arms:
-    #     file.write('\n\tConnect: "OO", "Model::%s", "Model::Scene"' % my_arm.fbxName)
+    #     fw('\n\tConnect: "OO", "Model::%s", "Model::Scene"' % my_arm.fbxName)
 
-    file.write('\n}')
+    fw('\n}')
 
     # Needed for scene footer as well as animation
     render = scene.render
@@ -2527,16 +2533,16 @@ Connections:  {''')
         if use_default_take:
             tmp_actions.insert(0, None)  # None is the default action
 
-        file.write('''
+        fw('''
 ;Takes and animation section
 ;----------------------------------------------------
 
 Takes:  {''')
 
         if blenActionDefault and not use_default_take:
-            file.write('\n\tCurrent: "%s"' % sane_takename(blenActionDefault))
+            fw('\n\tCurrent: "%s"' % sane_takename(blenActionDefault))
         else:
-            file.write('\n\tCurrent: "Default Take"')
+            fw('\n\tCurrent: "Default Take"')
 
         for blenAction in tmp_actions:
             # we have tagged all actious that are used be selected armatures
@@ -2569,12 +2575,12 @@ Takes:  {''')
                         my_arm.blenObject.animation_data.action = blenAction
 
             # Use the action name as the take name and the take filename (JCB)
-            file.write('\n\tTake: "%s" {' % take_name)
-            file.write('\n\t\tFileName: "%s.tak"' % take_name.replace(" ", "_"))
-            file.write('\n\t\tLocalTime: %i,%i' % (fbx_time(act_start - 1), fbx_time(act_end - 1)))  # ??? - not sure why this is needed
-            file.write('\n\t\tReferenceTime: %i,%i' % (fbx_time(act_start - 1), fbx_time(act_end - 1)))  # ??? - not sure why this is needed
+            fw('\n\tTake: "%s" {' % take_name)
+            fw('\n\t\tFileName: "%s.tak"' % take_name.replace(" ", "_"))
+            fw('\n\t\tLocalTime: %i,%i' % (fbx_time(act_start - 1), fbx_time(act_end - 1)))  # ??? - not sure why this is needed
+            fw('\n\t\tReferenceTime: %i,%i' % (fbx_time(act_start - 1), fbx_time(act_end - 1)))  # ??? - not sure why this is needed
 
-            file.write('''
+            fw('''
 
 		;Models animation
 		;----------------------------------------------------''')
@@ -2609,9 +2615,9 @@ Takes:  {''')
                         pass
                     else:
 
-                        file.write('\n\t\tModel: "Model::%s" {' % my_ob.fbxName)  # ??? - not sure why this is needed
-                        file.write('\n\t\t\tVersion: 1.1')
-                        file.write('\n\t\t\tChannel: "Transform" {')
+                        fw('\n\t\tModel: "Model::%s" {' % my_ob.fbxName)  # ??? - not sure why this is needed
+                        fw('\n\t\t\tVersion: 1.1')
+                        fw('\n\t\t\tChannel: "Transform" {')
 
                         context_bone_anim_mats = [(my_ob.getAnimParRelMatrix(frame), my_ob.getAnimParRelMatrixRot(frame)) for frame in range(act_start, act_end + 1)]
 
@@ -2637,26 +2643,26 @@ Takes:  {''')
                                         prev_eul = mtx[1].to_euler()
                                     context_bone_anim_vecs.append(tuple_rad_to_deg(prev_eul))
 
-                            file.write('\n\t\t\t\tChannel: "%s" {' % TX_CHAN)  # translation
+                            fw('\n\t\t\t\tChannel: "%s" {' % TX_CHAN)  # translation
 
                             for i in range(3):
                                 # Loop on each axis of the bone
-                                file.write('\n\t\t\t\t\tChannel: "%s" {' % ('XYZ'[i]))  # translation
-                                file.write('\n\t\t\t\t\t\tDefault: %.15f' % context_bone_anim_vecs[0][i])
-                                file.write('\n\t\t\t\t\t\tKeyVer: 4005')
+                                fw('\n\t\t\t\t\tChannel: "%s" {' % ('XYZ'[i]))  # translation
+                                fw('\n\t\t\t\t\t\tDefault: %.15f' % context_bone_anim_vecs[0][i])
+                                fw('\n\t\t\t\t\t\tKeyVer: 4005')
 
                                 if not use_anim_optimize:
                                     # Just write all frames, simple but in-eficient
-                                    file.write('\n\t\t\t\t\t\tKeyCount: %i' % (1 + act_end - act_start))
-                                    file.write('\n\t\t\t\t\t\tKey: ')
+                                    fw('\n\t\t\t\t\t\tKeyCount: %i' % (1 + act_end - act_start))
+                                    fw('\n\t\t\t\t\t\tKey: ')
                                     frame = act_start
                                     while frame <= act_end:
                                         if frame != act_start:
-                                            file.write(',')
+                                            fw(',')
 
                                         # Curve types are 'C,n' for constant, 'L' for linear
                                         # C,n is for bezier? - linear is best for now so we can do simple keyframe removal
-                                        file.write('\n\t\t\t\t\t\t\t%i,%.15f,L' % (fbx_time(frame - 1), context_bone_anim_vecs[frame - act_start][i]))
+                                        fw('\n\t\t\t\t\t\t\t%i,%.15f,L' % (fbx_time(frame - 1), context_bone_anim_vecs[frame - act_start][i]))
                                         frame += 1
                                 else:
                                     # remove unneeded keys, j is the frame, needed when some frames are removed.
@@ -2697,37 +2703,37 @@ Takes:  {''')
                                         # pass
 
                                         # better write one, otherwise we loose poses with no animation
-                                        file.write('\n\t\t\t\t\t\tKeyCount: 1')
-                                        file.write('\n\t\t\t\t\t\tKey: ')
-                                        file.write('\n\t\t\t\t\t\t\t%i,%.15f,L' % (fbx_time(start), context_bone_anim_keys[0][0]))
+                                        fw('\n\t\t\t\t\t\tKeyCount: 1')
+                                        fw('\n\t\t\t\t\t\tKey: ')
+                                        fw('\n\t\t\t\t\t\t\t%i,%.15f,L' % (fbx_time(start), context_bone_anim_keys[0][0]))
                                     else:
                                         # We only need to write these if there is at least one
-                                        file.write('\n\t\t\t\t\t\tKeyCount: %i' % len(context_bone_anim_keys))
-                                        file.write('\n\t\t\t\t\t\tKey: ')
+                                        fw('\n\t\t\t\t\t\tKeyCount: %i' % len(context_bone_anim_keys))
+                                        fw('\n\t\t\t\t\t\tKey: ')
                                         for val, frame in context_bone_anim_keys:
                                             if frame != context_bone_anim_keys[0][1]:  # not the first
-                                                file.write(',')
+                                                fw(',')
                                             # frame is already one less then blenders frame
-                                            file.write('\n\t\t\t\t\t\t\t%i,%.15f,L' % (fbx_time(frame), val))
+                                            fw('\n\t\t\t\t\t\t\t%i,%.15f,L' % (fbx_time(frame), val))
 
                                 if i == 0:
-                                    file.write('\n\t\t\t\t\t\tColor: 1,0,0')
+                                    fw('\n\t\t\t\t\t\tColor: 1,0,0')
                                 elif i == 1:
-                                    file.write('\n\t\t\t\t\t\tColor: 0,1,0')
+                                    fw('\n\t\t\t\t\t\tColor: 0,1,0')
                                 elif i == 2:
-                                    file.write('\n\t\t\t\t\t\tColor: 0,0,1')
+                                    fw('\n\t\t\t\t\t\tColor: 0,0,1')
 
-                                file.write('\n\t\t\t\t\t}')
-                            file.write('\n\t\t\t\t\tLayerType: %i' % (TX_LAYER + 1))
-                            file.write('\n\t\t\t\t}')
+                                fw('\n\t\t\t\t\t}')
+                            fw('\n\t\t\t\t\tLayerType: %i' % (TX_LAYER + 1))
+                            fw('\n\t\t\t\t}')
 
                         # ---------------
 
-                        file.write('\n\t\t\t}')
-                        file.write('\n\t\t}')
+                        fw('\n\t\t\t}')
+                        fw('\n\t\t}')
 
             # end the take
-            file.write('\n\t}')
+            fw('\n\t}')
 
             # end action loop. set original actions
             # do this after every loop incase actions effect eachother.
@@ -2735,18 +2741,18 @@ Takes:  {''')
                 if my_arm.blenObject.animation_data:
                     my_arm.blenObject.animation_data.action = my_arm.blenAction
 
-        file.write('\n}')
+        fw('\n}')
 
         scene.frame_set(frame_orig)
 
     else:
         # no animation
-        file.write('\n;Takes and animation section')
-        file.write('\n;----------------------------------------------------')
-        file.write('\n')
-        file.write('\nTakes:  {')
-        file.write('\n\tCurrent: ""')
-        file.write('\n}')
+        fw('\n;Takes and animation section')
+        fw('\n;----------------------------------------------------')
+        fw('\n')
+        fw('\nTakes:  {')
+        fw('\n\tCurrent: ""')
+        fw('\n}')
 
     # write meshes animation
     #for obname, ob, mtx, me, mats, arm, armname in ob_meshes:
@@ -2768,36 +2774,36 @@ Takes:  {''')
         has_mist = mist_intense = mist_start = mist_end = 0
         world_hor = 0, 0, 0
 
-    file.write('\n;Version 5 settings')
-    file.write('\n;------------------------------------------------------------------')
-    file.write('\n')
-    file.write('\nVersion5:  {')
-    file.write('\n\tAmbientRenderSettings:  {')
-    file.write('\n\t\tVersion: 101')
-    file.write('\n\t\tAmbientLightColor: %.1f,%.1f,%.1f,0' % tuple(world_amb))
-    file.write('\n\t}')
-    file.write('\n\tFogOptions:  {')
-    file.write('\n\t\tFlogEnable: %i' % has_mist)
-    file.write('\n\t\tFogMode: 0')
-    file.write('\n\t\tFogDensity: %.3f' % mist_intense)
-    file.write('\n\t\tFogStart: %.3f' % mist_start)
-    file.write('\n\t\tFogEnd: %.3f' % mist_end)
-    file.write('\n\t\tFogColor: %.1f,%.1f,%.1f,1' % tuple(world_hor))
-    file.write('\n\t}')
-    file.write('\n\tSettings:  {')
-    file.write('\n\t\tFrameRate: "%i"' % int(fps))
-    file.write('\n\t\tTimeFormat: 1')
-    file.write('\n\t\tSnapOnFrames: 0')
-    file.write('\n\t\tReferenceTimeIndex: -1')
-    file.write('\n\t\tTimeLineStartTime: %i' % fbx_time(start - 1))
-    file.write('\n\t\tTimeLineStopTime: %i' % fbx_time(end - 1))
-    file.write('\n\t}')
-    file.write('\n\tRendererSetting:  {')
-    file.write('\n\t\tDefaultCamera: "Producer Perspective"')
-    file.write('\n\t\tDefaultViewingMode: 0')
-    file.write('\n\t}')
-    file.write('\n}')
-    file.write('\n')
+    fw('\n;Version 5 settings')
+    fw('\n;------------------------------------------------------------------')
+    fw('\n')
+    fw('\nVersion5:  {')
+    fw('\n\tAmbientRenderSettings:  {')
+    fw('\n\t\tVersion: 101')
+    fw('\n\t\tAmbientLightColor: %.1f,%.1f,%.1f,0' % tuple(world_amb))
+    fw('\n\t}')
+    fw('\n\tFogOptions:  {')
+    fw('\n\t\tFlogEnable: %i' % has_mist)
+    fw('\n\t\tFogMode: 0')
+    fw('\n\t\tFogDensity: %.3f' % mist_intense)
+    fw('\n\t\tFogStart: %.3f' % mist_start)
+    fw('\n\t\tFogEnd: %.3f' % mist_end)
+    fw('\n\t\tFogColor: %.1f,%.1f,%.1f,1' % tuple(world_hor))
+    fw('\n\t}')
+    fw('\n\tSettings:  {')
+    fw('\n\t\tFrameRate: "%i"' % int(fps))
+    fw('\n\t\tTimeFormat: 1')
+    fw('\n\t\tSnapOnFrames: 0')
+    fw('\n\t\tReferenceTimeIndex: -1')
+    fw('\n\t\tTimeLineStartTime: %i' % fbx_time(start - 1))
+    fw('\n\t\tTimeLineStopTime: %i' % fbx_time(end - 1))
+    fw('\n\t}')
+    fw('\n\tRendererSetting:  {')
+    fw('\n\t\tDefaultCamera: "Producer Perspective"')
+    fw('\n\t\tDefaultViewingMode: 0')
+    fw('\n\t}')
+    fw('\n}')
+    fw('\n')
 
     # XXX, shouldnt be global!
     for mapping in (sane_name_mapping_ob,
