@@ -107,7 +107,7 @@ def build_hierarchy(objects):
         for obj, subchildren in children:
             subchildren[:] = par_lookup.get(obj, [])
 
-    return par_lookup[None]
+    return par_lookup.get(None, [])
 
 
 # -----------------------------------------------------------------------------
