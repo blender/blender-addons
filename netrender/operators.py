@@ -229,7 +229,7 @@ class RENDER_OT_netclientstatus(bpy.types.Operator):
         return self.execute(context)
 
 class RENDER_OT_netclientblacklistslave(bpy.types.Operator):
-    '''Operator documentation text, will be used for the operator tooltip and python docs.'''
+    '''Exclude from rendering, by adding slave to the blacklist.'''
     bl_idname = "render.netclientblacklistslave"
     bl_label = "Client Blacklist Slave"
 
@@ -259,7 +259,7 @@ class RENDER_OT_netclientblacklistslave(bpy.types.Operator):
         return self.execute(context)
 
 class RENDER_OT_netclientwhitelistslave(bpy.types.Operator):
-    '''Operator documentation text, will be used for the operator tooltip and python docs.'''
+    '''Remove slave from the blacklist.'''
     bl_idname = "render.netclientwhitelistslave"
     bl_label = "Client Whitelist Slave"
 
