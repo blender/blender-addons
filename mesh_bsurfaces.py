@@ -828,8 +828,10 @@ def register():
     bpy.types.Scene.SURFSK_precision = bpy.props.IntProperty(name="Precision", description="Precision level of the surface calculation", default=4, min=0, max=100000)
     bpy.types.Scene.SURFSK_keep_strokes = bpy.props.BoolProperty(name="Keep strokes", description="Keeps the sketched strokes after adding the surface", default=False)
 
-    keymap_item_add_surf = bpy.data.window_managers[0].keyconfigs.active.keymaps["3D View"].keymap_items.new("gpencil.surfsk_add_surface","E","PRESS", key_modifier="D")
-    keymap_item_stroke_to_curve = bpy.data.window_managers[0].keyconfigs.active.keymaps["3D View"].keymap_items.new("gpencil.surfsk_strokes_to_curves","C","PRESS", key_modifier="D")
+    kc = bpy.context.window_manager.keyconfigs.addon
+    km = kc.keymaps.new(name="3D View", space_type="VIEW_3D")
+    keymap_item_add_surf = km.keymap_items.new("gpencil.surfsk_add_surface","E","PRESS", key_modifier="D")
+    keymap_item_stroke_to_curve = km.keymap_items.new("gpencil.surfsk_strokes_to_curves","C","PRESS", key_modifier="D")
     
 
 def unregister():
@@ -842,7 +844,8 @@ def unregister():
     del bpy.types.Scene.SURFSK_precision
     del bpy.types.Scene.SURFSK_keep_strokes
     
-    km = bpy.data.window_managers[0].keyconfigs.active.keymaps["3D View"]
+    kc = bpy.context.window_manager.keyconfigs.addon
+    km = kc.keymaps["3D View"]
     for kmi in km.keymap_items:
         if kmi.idname == 'wm.call_menu':
             if kmi.properties.name == "GPENCIL_OT_SURFSK_add_surface":

@@ -658,15 +658,14 @@ class OBJECT_PT_api_navigator(ApiNavigator, bpy.types.Panel):
 
 
 def register_keymaps():
-    kc = bpy.context.window_manager.keyconfigs['Blender']
-    km = kc.keymaps.get("Text")
-    if km is None:
-         km = kc.keymaps.new(name="Text")
+    kc = bpy.context.window_manager.keyconfigs.addon
+    km = kc.keymaps.new(name="Text", space_type="TEXT")
     km.keymap_items.new('api_navigator.toggle_doc', 'ESC', 'PRESS')
 
 
 def unregister_keymaps():
-    km = bpy.data.window_managers["WinMan"].keyconfigs.default.keymaps["Text"]
+    kc = bpy.context.window_manager.keyconfigs.addon
+    km = kc.keymaps["Text"]
     kmi = km.keymap_items["api_navigator.toggle_doc"]
     km.keymap_items.remove(kmi)
 

@@ -767,16 +767,12 @@ def register():
     bpy.utils.register_module(__name__)
 
     ''' mostly to get the keymap working '''
-    kc = bpy.context.window_manager.keyconfigs['Blender']
-    km = kc.keymaps.get("Object Mode")
-    if km is None:
-        km = kc.keymaps.new(name="Object Mode")
+    kc = bpy.context.window_manager.keyconfigs.addon
+    km = kc.keymaps.new(name="Object Mode")
     kmi = km.keymap_items.new('wm.call_menu', 'C', 'PRESS', ctrl=True)
     kmi.properties.name = 'VIEW3D_MT_copypopup'
-    km = kc.keymaps.get("Pose")
-    if km is None:
-        km = kc.keymaps.new(name="Pose")
 
+    km = kc.keymaps.new(name="Pose")
     kmi = km.keymap_items.get("pose.copy")
     if kmi is not None:
         kmi.idname = 'wm.call_menu'
@@ -786,9 +782,8 @@ def register():
     for menu in _layer_menus:
         bpy.utils.register_class(menu)
     bpy.types.DATA_PT_texface.append(_add_tface_buttons)
-    km = kc.keymaps.get("Mesh")
-    if km is None:
-        km = kc.keymaps.new(name="Mesh")
+
+    km = kc.keymaps.new(name="Mesh")
     kmi = km.keymap_items.new('wm.call_menu', 'C', 'PRESS')
     kmi.ctrl = True
     kmi.properties.name = 'MESH_MT_CopyFaceSettings'
@@ -798,7 +793,7 @@ def unregister():
     bpy.utils.unregister_module(__name__)
 
     ''' mostly to remove the keymap '''
-    kms = bpy.context.window_manager.keyconfigs['Blender'].keymaps['Pose']
+    kms = bpy.context.window_manager.keyconfigs.addon.keymaps['Pose']
     for item in kms.keymap_items:
         if item.name == 'Call Menu' and item.idname == 'wm.call_menu' and \
            item.properties.name == 'VIEW3D_MT_posecopypopup':
@@ -807,10 +802,16 @@ def unregister():
     for menu in _layer_menus:
         bpy.utils.unregister_class(menu)
     bpy.types.DATA_PT_texface.remove(_add_tface_buttons)
-    km = bpy.context.window_manager.keyconfigs.active.keymaps['Mesh']
+    km = bpy.context.window_manager.keyconfigs.addon.keymaps['Mesh']
     for kmi in km.keymap_items:
         if kmi.idname == 'wm.call_menu':
             if kmi.properties.name == 'MESH_MT_CopyFaceSettings':
+                km.keymap_items.remove(kmi)
+
+    km = bpy.context.window_manager.keyconfigs.addon.keymaps['Object Mode']
+    for kmi in km.keymap_items:
+        if kmi.idname == 'wm.call_menu':
+            if kmi.properties.name == 'VIEW3D_MT_copypopup':
                 km.keymap_items.remove(kmi)
 
 if __name__ == "__main__":
