@@ -659,7 +659,7 @@ class OBJECT_PT_api_navigator(ApiNavigator, bpy.types.Panel):
 
 def register_keymaps():
     kc = bpy.context.window_manager.keyconfigs.addon
-    km = kc.keymaps.new(name="Text", space_type="TEXT")
+    km = kc.keymaps.new(name="Text", space_type='TEXT_EDITOR')
     km.keymap_items.new('api_navigator.toggle_doc', 'ESC', 'PRESS')
 
 
