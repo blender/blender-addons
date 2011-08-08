@@ -605,7 +605,6 @@ class IvyGen(bpy.types.Operator):
 
         return {'FINISHED'}
 
-        
 
     def draw(self, context):
         layout = self.layout

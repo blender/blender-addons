@@ -16,7 +16,7 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-# <pep8 compliant>
+# <pep8-80 compliant>
 
 bl_info = {
     "name": "Web3D X3D/VRML format",
@@ -26,17 +26,22 @@ bl_info = {
     "location": "File > Import-Export",
     "description": "Import-Export X3D, Import VRML",
     "warning": "",
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"\
-        "Scripts/Import-Export/Web3D",
+    "wiki_url": ("http://wiki.blender.org/index.php/Extensions:2.5/Py/"
+                 "Scripts/Import-Export/Web3D"),
     "tracker_url": "",
     "support": 'OFFICIAL',
     "category": "Import-Export"}
 
-# To support reload properly, try to access a package var, if it's there, reload everything
 if "bpy" in locals():
     import imp
     if "export_x3d" in locals():
         imp.reload(export_x3d)
+
+# Benoit's patch!
+try:
+    import gpu
+except:
+    gpu = None
 
 
 import bpy
@@ -83,8 +88,13 @@ class ImportX3D(bpy.types.Operator, ImportHelper):
     def execute(self, context):
         from . import import_x3d
 
-        keywords = self.as_keywords(ignore=("axis_forward", "axis_up", "filter_glob"))
-        global_matrix = axis_conversion(from_forward=self.axis_forward, from_up=self.axis_up).to_4x4()
+        keywords = self.as_keywords(ignore=("axis_forward",
+                                            "axis_up",
+                                            "filter_glob",
+                                            ))
+        global_matrix = axis_conversion(from_forward=self.axis_forward,
+                                        from_up=self.axis_up,
+                                        ).to_4x4()
         keywords["global_matrix"] = global_matrix
 
         return import_x3d.load(self, context, **keywords)
@@ -98,14 +108,42 @@ class ExportX3D(bpy.types.Operator, ExportHelper):
     filename_ext = ".x3d"
     filter_glob = StringProperty(default="*.x3d", options={'HIDDEN'})
 
-    use_selection = BoolProperty(name="Selection Only", description="Export selected objects only", default=False)
-    use_apply_modifiers = BoolProperty(name="Apply Modifiers", description="Use transformed mesh data from each object", default=True)
-    use_triangulate = BoolProperty(name="Triangulate", description="Write quads into 'IndexedTriangleSet'", default=True)
-    use_normals = BoolProperty(name="Normals", description="Write normals with geometry", default=False)
-    use_compress = BoolProperty(name="Compress", description="GZip the resulting file, requires a full python install", default=False)
-    use_hierarchy = BoolProperty(name="Hierarchy", description="Export parent child relationships", default=True)
-    use_h3d = BoolProperty(name="H3D Extensions", description="Export shaders for H3D", default=False)
-
+    use_selection = BoolProperty(
+            name="Selection Only",
+            description="Export selected objects only",
+            default=False,
+            )
+    use_apply_modifiers = BoolProperty(
+            name="Apply Modifiers",
+            description="Use transformed mesh data from each object",
+            default=True,
+            )
+    use_triangulate = BoolProperty(
+            name="Triangulate",
+            description="Write quads into 'IndexedTriangleSet'",
+            default=False,
+            )
+    use_normals = BoolProperty(
+            name="Normals",
+            description="Write normals with geometry",
+            default=False,
+            )
+    use_compress = BoolProperty(
+            name="Compress",
+            description="Compress the exported file",
+            default=False,
+            )
+    use_hierarchy = BoolProperty(
+            name="Hierarchy",
+            description="Export parent child relationships",
+            default=True,
+            )
+    if gpu is not None:
+        use_h3d = BoolProperty(
+                name="H3D Extensions",
+                description="Export shaders for H3D",
+                default=False,
+                )
     axis_forward = EnumProperty(
             name="Forward",
             items=(('X', "X Forward", ""),
@@ -135,19 +173,27 @@ class ExportX3D(bpy.types.Operator, ExportHelper):
     def execute(self, context):
         from . import export_x3d
 
-        keywords = self.as_keywords(ignore=("axis_forward", "axis_up", "check_existing", "filter_glob"))
-        global_matrix = axis_conversion(to_forward=self.axis_forward, to_up=self.axis_up).to_4x4()
+        keywords = self.as_keywords(ignore=("axis_forward",
+                                            "axis_up",
+                                            "check_existing",
+                                            "filter_glob",
+                                            ))
+        global_matrix = axis_conversion(to_forward=self.axis_forward,
+                                        to_up=self.axis_up,
+                                        ).to_4x4()
         keywords["global_matrix"] = global_matrix
 
         return export_x3d.save(self, context, **keywords)
 
 
 def menu_func_import(self, context):
-    self.layout.operator(ImportX3D.bl_idname, text="X3D Extensible 3D (.x3d/.wrl)")
+    self.layout.operator(ImportX3D.bl_idname,
+                         text="X3D Extensible 3D (.x3d/.wrl)")
 
 
 def menu_func_export(self, context):
-    self.layout.operator(ExportX3D.bl_idname, text="X3D Extensible 3D (.x3d)")
+    self.layout.operator(ExportX3D.bl_idname,
+                         text="X3D Extensible 3D (.x3d)")
 
 
 def register():
