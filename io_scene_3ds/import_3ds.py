@@ -214,7 +214,7 @@ def skip_to_end(file, skip_chunk):
 def add_texture_to_material(image, texture, material, mapto):
     #print('assigning %s to %s' % (texture, material))
 
-    if mapto not in ("COLOR", "SPECULARITY", "ALPHA", "NORMAL"):
+    if mapto not in {'COLOR', 'SPECULARITY', 'ALPHA', 'NORMAL'}:
         print('/tError:  Cannot map to "%s"\n\tassuming diffuse color. modify material "%s" later.' % (mapto, material.name))
         mapto = "COLOR"
 

@@ -743,7 +743,7 @@ class MESH_OT_CopyFaceSettings(bpy.types.Operator):
                     to_face.use_twoside = from_face.use_twoside
                 elif mode == 'TRANSP':
                     to_face.blend_type = from_face.blend_type
-                elif mode in ('UV', 'IMAGE'):
+                elif mode in {'UV', 'IMAGE'}:
                     attr = mode.lower()
                     setattr(to_face, attr, getattr(from_face, attr))
         return _end({'FINISHED'})

@@ -972,7 +972,7 @@ def save_single(operator, scene, filepath="",
         if light_type > 2:
             light_type = 1  # hemi and area lights become directional
 
-        if light.type in ('HEMI', ):
+        if light.type == 'HEMI':
             do_light = not (light.use_diffuse or light.use_specular)
             do_shadow = False
         else:

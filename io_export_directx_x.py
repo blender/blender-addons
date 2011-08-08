@@ -107,11 +107,11 @@ def ExportDirectX(Config):
         print("Generating Object list for export... (Root parents only)")
     if Config.ExportMode == 1:
         Config.ExportList = [Object for Object in Config.context.scene.objects
-                             if Object.type in ("ARMATURE", "EMPTY", "MESH")
+                             if Object.type in {'ARMATURE', 'EMPTY', 'MESH'}
                              and Object.parent is None]
     else:
         ExportList = [Object for Object in Config.context.selected_objects
-                      if Object.type in ("ARMATURE", "EMPTY", "MESH")]
+                      if Object.type in {'ARMATURE', 'EMPTY', 'MESH'}]
         Config.ExportList = [Object for Object in ExportList
                              if Object.parent not in ExportList]
     if Config.Verbose:
@@ -184,7 +184,7 @@ def ExportDirectX(Config):
 
 def GetObjectChildren(Parent):
     return [Object for Object in Parent.children
-            if Object.type in ("ARMATURE", "EMPTY", "MESH")]
+            if Object.type in {'ARMATURE', 'EMPTY', 'MESH'}]
 
 #Returns the vertex count of Mesh, counting each vertex for every face.
 def GetMeshVertexCount(Mesh):

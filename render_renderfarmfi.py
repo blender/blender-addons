@@ -565,7 +565,7 @@ def checkStatus(ore):
     if ore.hash=='' and (ore.username=='' or ore.password==''):
         bpy.errors.append('missing_creds')
     
-    if '' in (ore.title, ore.longdesc, ore.shortdesc):
+    if '' in {ore.title, ore.longdesc, ore.shortdesc}:
         bpy.errors.append('missing_desc')
     
     setStatus('username', ore.hash=='' and ore.username=='')
@@ -604,7 +604,7 @@ def xmlSessionsToOreSessions(sessions, queue):
         s = completed[sid]['title']
         # t = completed[sid]['timestamps']  # UNUSED
         sinfo = OreSession(sid, s) 
-        if queue in ('completed', 'active'):
+        if queue in {'completed', 'active'}:
             sinfo.frames = completed[sid]['framesRendered']
         sinfo.startframe = completed[sid]['startFrame']
         sinfo.endframe = completed[sid]['endFrame']

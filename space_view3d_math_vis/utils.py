@@ -52,7 +52,7 @@ def console_math_data():
             data_quat[key] = var
         elif var_type is Euler:
             data_euler[key] = var
-        elif var_type in (list, tuple):
+        elif var_type in {list, tuple}:
             if var:
                 ok = True
                 for item in var:

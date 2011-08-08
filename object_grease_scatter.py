@@ -26,13 +26,14 @@ bl_info = {
     "version": (0, 1),
     "blender": (2, 5, 8),
     "api": 36079,
-    "location": "File > Export > Cameras & Markers (.py)",
-    "description": "Export Cameras & Markers (.py)",
+    "location": "3D View, Toolbar",
+    "description": ("Scatter a group of objects onto the active mesh using "
+                    "the grease pencil lines"),
     "warning": "",
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"\
-        "Scripts/Object/Grease_Scatter",
-    "tracker_url": "https://projects.blender.org/tracker/index.php?"\
-        "func=detail&aid=TODO",
+    "wiki_url": ("http://wiki.blender.org/index.php/Extensions:2.5/Py/"
+                 "Scripts/Object/Grease_Scatter"),
+    "tracker_url": ("https://projects.blender.org/tracker/index.php?"
+                    "func=detail&aid=TODO"),
     "support": 'OFFICIAL',
     "category": "Object"}
 
@@ -115,20 +116,19 @@ def _main(self, DENSITY=1.0, SCALE=0.6, RAND_LOC=0.8, RAND_ALIGN=0.75):
         scene.objects.link(obj_new)
 
     ray = o.ray_cast
+    closest_point = o.closest_point_on_mesh
     #ray = C.scene.ray_cast
 
     DEBUG = False
 
     def fix_point(p):
-        for d in dirs:
-            # print(p)
-            hit, no, ind = ray(p, p + d)
-            if ind != -1:
-                if DEBUG:
-                    return [p, no, None]
-                else:
-                    # print("good", hit, no)
-                    return [hit, no, None]
+        hit, no, ind = closest_point(p)
+        if ind != -1:
+            if DEBUG:
+                return [p, no, None]
+            else:
+                # print("good", hit, no)
+                return [hit, no, None]
 
         # worry!
         print("bad!", p, BAD_NORMAL)
@@ -373,11 +373,11 @@ class Scatter(bpy.types.Operator):
                     pass
 
         _main(self,
-            DENSITY=self.properties.density,
-            SCALE=self.properties.scale,
-            RAND_LOC=self.properties.rand_loc,
-            RAND_ALIGN=self.properties.rand_align
-        )
+              DENSITY=self.properties.density,
+              SCALE=self.properties.scale,
+              RAND_LOC=self.properties.rand_loc,
+              RAND_ALIGN=self.properties.rand_align,
+              )
         return {'FINISHED'}
 
     def invoke(self, context, event):

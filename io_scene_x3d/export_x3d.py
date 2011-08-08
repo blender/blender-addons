@@ -1254,7 +1254,7 @@ def export(file,
 
             if obj_type == 'CAMERA':
                 writeViewpoint(ident, obj, obj_matrix, scene)
-            elif obj_type in ('MESH', 'CURVE', 'SURF', 'FONT'):
+            elif obj_type in {'MESH', 'CURVE', 'SURF', 'FONT'}:
                 if (obj_type != 'MESH') or (use_apply_modifiers and obj.is_modified(scene, 'PREVIEW')):
                     try:
                         me = obj.to_mesh(scene, use_apply_modifiers, 'PREVIEW')

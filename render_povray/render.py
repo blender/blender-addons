@@ -645,7 +645,7 @@ def write_pov(filename, scene=None, info_callback=None):
 
             # Sun shouldn't be attenuated. Hemi and area lights have no falloff attribute so they
             # are put to type 2 attenuation a little higher above.
-            if lamp.type not in ('SUN', 'AREA', 'HEMI'):
+            if lamp.type not in {'SUN', 'AREA', 'HEMI'}:
                 tabWrite("fade_distance %.6f\n" % (lamp.distance / 5.0))
                 if lamp.falloff_type == 'INVERSE_SQUARE':
                     tabWrite("fade_power %d\n" % 2)  # Use blenders lamp quad equivalent
@@ -682,7 +682,7 @@ def write_pov(filename, scene=None, info_callback=None):
             meta = ob.data
 
             # important because no elements will break parsing.
-            elements = [elem for elem in meta.elements if elem.type in ('BALL', 'ELLIPSOID')]
+            elements = [elem for elem in meta.elements if elem.type in {'BALL', 'ELLIPSOID'}]
 
             if elements:
                 tabWrite("blob {\n")
@@ -839,7 +839,7 @@ def write_pov(filename, scene=None, info_callback=None):
 
             # XXX I moved all those checks here, as there is no need to compute names
             #     for object we won’t export here!
-            if ob.type in ('LAMP', 'CAMERA', 'EMPTY', 'META', 'ARMATURE', 'LATTICE'):
+            if ob.type in {'LAMP', 'CAMERA', 'EMPTY', 'META', 'ARMATURE', 'LATTICE'}:
                 continue
 
             try:

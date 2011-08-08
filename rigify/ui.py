@@ -46,7 +46,7 @@ class DATA_PT_rigify_buttons(bpy.types.Panel):
         obj = context.object
         id_store = C.window_manager
 
-        if obj.mode in ('POSE', 'OBJECT'):
+        if obj.mode in {'POSE', 'OBJECT'}:
             row = layout.row()
             row.operator("pose.rigify_generate", text="Generate")
         elif obj.mode == 'EDIT':

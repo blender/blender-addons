@@ -2247,7 +2247,7 @@ def buildGeometry(entities):
     f_faces = []
     f_vn = 0
     for ent in entities:
-        if ent.drawtype in ('Mesh','Curve'):
+        if ent.drawtype in {'Mesh', 'Curve'}:
             (verts, edges, faces, vn) = ent.build()
             if not toggle & T_DrawOne:
                 drawGeometry(verts, edges, faces)
