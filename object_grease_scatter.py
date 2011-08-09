@@ -112,10 +112,15 @@ def _main(self,
     ray = obj.ray_cast
     closest_point_on_mesh = obj.closest_point_on_mesh
 
+    obj_mat = obj.matrix_world.copy()
+    obj_mat_inv = obj_mat.inverted()
+    # obj_quat = obj_mat.to_quaternion()
+    # obj_quat_inv = obj_mat_inv.to_quaternion()
+
     DEBUG = False
 
     def fix_point(p):
-        hit, no, ind = closest_point_on_mesh(p)
+        hit, no, ind = closest_point_on_mesh(obj_mat_inv * p)
         if ind != -1:
             if DEBUG:
                 return [p, no, None]
@@ -294,8 +299,8 @@ def _main(self,
                     inst_ob.location = 0.0, 0.0, 0.0
                     inst_ob.parent = obj_new
 
-                    # important to set last
-                    obj_new.matrix_world = obj.matrix_world
+                    # align the object with worldspace
+                    obj_new.matrix_world = obj_mat
 
                     # BGE settings for testiing
                     '''
