@@ -322,7 +322,7 @@ class SCENE_OT_import(bpy.types.Operator):
                         
                     bpy.ops.object.transform_apply(rotation=True)
                     proxy_mat = obj_proxy.material_slots[0].material
-                    obj_proxy.data.materials.pop(0)
+                    obj_proxy.data.materials.pop(0,1)
                     proxy_mat.user_clear()
                     bpy.data.materials.remove(proxy_mat)
                     bpy.ops.object.select_all(action='TOGGLE')
