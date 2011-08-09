@@ -57,6 +57,7 @@ class ImportX3D(bpy.types.Operator, ImportHelper):
     '''Import and X3D or VRML file'''
     bl_idname = "import_scene.x3d"
     bl_label = "Import X3D/VRML"
+    bl_options = {'PRESET'}
 
     filename_ext = ".x3d"
     filter_glob = StringProperty(default="*.x3d;*.wrl", options={'HIDDEN'})
@@ -104,6 +105,7 @@ class ExportX3D(bpy.types.Operator, ExportHelper):
     '''Export selection to Extensible 3D file (.x3d)'''
     bl_idname = "export_scene.x3d"
     bl_label = 'Export X3D'
+    bl_options = {'PRESET'}
 
     filename_ext = ".x3d"
     filter_glob = StringProperty(default="*.x3d", options={'HIDDEN'})
