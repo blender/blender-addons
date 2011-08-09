@@ -16,7 +16,7 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-# <pep8 compliant>
+# <pep8-80 compliant>
 
 # Script copyright (C) Campbell Barton
 
@@ -42,41 +42,35 @@ from random import uniform, shuffle
 import bpy
 
 
-def _main(self, DENSITY=1.0, SCALE=0.6, RAND_LOC=0.8, RAND_ALIGN=0.75):
-    from math import radians
+def _main(self,
+          obj,
+          group,
+          DENSITY=1.0,
+          SCALE=0.6,
+          RAND_LOC=0.8,
+          RAND_ALIGN=0.75,
+          ):
 
-    C = bpy.context
-    o = C.object
-    # print(o.ray_cast(Vector(), Vector(0,0,0.2)))
+    from math import radians, pi
 
-    OFS = 0.2
+    # OFS = 0.2
     SEEK = 2.0  # distance for ray to seek
     BAD_NORMAL = Vector((0.0, 0.0, -1.0))
     WALL_LIMIT = radians(45.0)
 
-    mats = [Matrix.Rotation(radians(-45), 3, 'X'),
+    mats = (Matrix.Rotation(radians(-45), 3, 'X'),
             Matrix.Rotation(radians(+45), 3, 'X'),
             Matrix.Rotation(radians(-45), 3, 'Y'),
             Matrix.Rotation(radians(+45), 3, 'Y'),
             Matrix.Rotation(radians(-45), 3, 'Z'),
             Matrix.Rotation(radians(+45), 3, 'Z'),
-            ]
+            )
 
     Z_UP = Vector((0.0, 0.0, 1.0))
-    dirs = [Vector((0.0, 0.0, OFS)),
-            Vector((0.0, 0.0, -OFS)),
-            ]
-    '''
-    Vector(0,OFS,0),
-    Vector(0,-OFS,0),
-    Vector(OFS,0,0),
-    Vector(-OFS,0,0)
-    '''
-
-    group = bpy.data.groups.get(o.name)
+    Y_UP = Vector((0.0, 1.0, 0.0))
 
     if not group:
-        self.report({'WARNING'}, "Group '%s' not found, must match object name" % o.name)
+        self.report({'WARNING'}, "Group '%s' not found" % obj.name)
         return
 
     def faces_from_hits(hit_list):
@@ -115,14 +109,13 @@ def _main(self, DENSITY=1.0, SCALE=0.6, RAND_LOC=0.8, RAND_ALIGN=0.75):
         obj_new = bpy.data.objects.new("Torus", mesh)
         scene.objects.link(obj_new)
 
-    ray = o.ray_cast
-    closest_point = o.closest_point_on_mesh
-    #ray = C.scene.ray_cast
+    ray = obj.ray_cast
+    closest_point_on_mesh = obj.closest_point_on_mesh
 
     DEBUG = False
 
     def fix_point(p):
-        hit, no, ind = closest_point(p)
+        hit, no, ind = closest_point_on_mesh(p)
         if ind != -1:
             if DEBUG:
                 return [p, no, None]
@@ -196,7 +189,8 @@ def _main(self, DENSITY=1.0, SCALE=0.6, RAND_LOC=0.8, RAND_ALIGN=0.75):
                     pt[2] = best_nor
 
                     #scene.cursor_location[:] = best_hitnyway
-                    # bpy.ops.wm.redraw_timer(type='DRAW_WIN_SWAP', iterations=1)
+                    # bpy.ops.wm.redraw_timer(type='DRAW_WIN_SWAP',
+                    #                         iterations=1)
                     # debug_edge(p, best_hit)
                     # p[:] = best_hit
 
@@ -206,11 +200,13 @@ def _main(self, DENSITY=1.0, SCALE=0.6, RAND_LOC=0.8, RAND_ALIGN=0.75):
         nors = []
         oris = []
         for s in splines:
-            for p, n, n_other in s:  # point, normal, n_other the closest hit normal
+            # point, normal, n_other the closest hit normal
+            for p, n, n_other in s:
                 if n is BAD_NORMAL:
                     continue
                 if n_other:
-                    # cast vectors twice as long as the distance needed just incase.
+                    # cast vectors twice as long as the distance
+                    # needed just incase.
                     n_down = (n * -SEEK)
                     l = n_down.length
                     n_other.length = l
@@ -249,14 +245,14 @@ def _main(self, DENSITY=1.0, SCALE=0.6, RAND_LOC=0.8, RAND_ALIGN=0.75):
                                 #oris.append(n_other)
 
         if 0:
-            mesh = bpy.data.meshes.new("Retopo")
+            mesh = bpy.data.meshes.new("ScatterDupliFace")
             mesh.from_pydata(hits, [], [])
 
             scene = bpy.context.scene
             mesh.update()
-            obj_new = bpy.data.objects.new("Torus", mesh)
+            obj_new = bpy.data.objects.new("ScatterPar", mesh)
             scene.objects.link(obj_new)
-            obj_new.layers[:] = o.layers
+            obj_new.layers[:] = obj.layers
 
             # Now setup dupli-faces
             obj_new.dupli_type = 'VERTS'
@@ -274,27 +270,32 @@ def _main(self, DENSITY=1.0, SCALE=0.6, RAND_LOC=0.8, RAND_ALIGN=0.75):
                 tot_div = int(len(triples) / tot)
 
                 for inst_ob in obs:
-                    triple_subset = triples[0:tot_div]
+                    triple_sub = triples[0:tot_div]
                     triples[0:tot_div] = []
 
-                    vv = [tuple(v) for f in triple_subset for v in f]
+                    vv = [tuple(v) for f in triple_sub for v in f]
 
-                    mesh = bpy.data.meshes.new("Retopo")
-                    mesh.from_pydata(vv, [], [(i * 3, i * 3 + 1, i * 3 + 2) for i in range(len(triple_subset))])
+                    mesh = bpy.data.meshes.new("ScatterDupliFace")
+                    mesh.from_pydata(vv, [], [(i * 3, i * 3 + 1, i * 3 + 2)
+                                              for i in range(len(triple_sub))])
 
                     scene = bpy.context.scene
                     mesh.update()
-                    obj_new = bpy.data.objects.new("Torus", mesh)
+                    obj_new = bpy.data.objects.new("ScatterPar", mesh)
+
                     scene.objects.link(obj_new)
-                    obj_new.layers[:] = o.layers
+                    obj_new.layers[:] = obj.layers
 
                     # Now setup dupli-faces
                     obj_new.dupli_type = 'FACES'
                     obj_new.use_dupli_faces_scale = True
                     obj_new.dupli_faces_scale = 100.0
 
-                    inst_ob.location = obj_new.location
+                    inst_ob.location = 0.0, 0.0, 0.0
                     inst_ob.parent = obj_new
+
+                    # important to set last
+                    obj_new.matrix_world = obj.matrix_world
 
                     # BGE settings for testiing
                     '''
@@ -319,100 +320,107 @@ def _main(self, DENSITY=1.0, SCALE=0.6, RAND_LOC=0.8, RAND_ALIGN=0.75):
                 quat = no.to_track_quat('X', 'Z')
 
                 # make 2 angles and blend
-                angle = radians(uniform(-180, 180.0))
-                angle_aligned = -(ori.angle(quat * Vector((0.0, 1.0, 0.0)), radians(180.0)))
+                angle = uniform(-pi, pi)
+                angle_aligned = -(ori.angle(quat * Y_UP, pi))
 
-                quat = Quaternion(no, (angle * (1.0 - RAND_ALIGN)) + (angle_aligned * RAND_ALIGN)).cross(quat)
+                quat = Quaternion(no,
+                                  (angle * (1.0 - RAND_ALIGN)) +
+                                  (angle_aligned * RAND_ALIGN)
+                                  ).cross(quat)
 
                 f = uniform(0.1, 1.2) * SCALE
 
-                coords.append([co + (quat * (tri[0] * f)), co + (quat * (tri[1] * f)), co + (quat * (tri[2] * f))])
-                # face_ind.append([i*3, i*3+1, i*3+2])
+                coords.append([co + (quat * (tri[0] * f)),
+                               co + (quat * (tri[1] * f)),
+                               co + (quat * (tri[2] * f)),
+                               ])
 
             apply_faces(coords)
 
     main()
 
 
-from bpy.props import FloatProperty
+from bpy.props import FloatProperty,  StringProperty
 
 
 class Scatter(bpy.types.Operator):
     ''''''
     bl_idname = "object.scatter"
-    bl_label = "Scatter"
-    bl_options = {'REGISTER'}
+    bl_label = "Grease Pencil Scatter"
 
-    density = FloatProperty(name="Density",
+    density = FloatProperty(
+            name="Density",
             description="Multiplier for the density of items",
-            default=1.0, min=0.01, max=10.0)
-
-    scale = FloatProperty(name="Scale",
+            default=1.0, min=0.01, max=10.0,
+            )
+    scale = FloatProperty(
+            name="Scale",
             description="Size multiplier for duplifaces",
-            default=1.0, min=0.01, max=10.0)
-
-    rand_align = FloatProperty(name="Random Align",
+            default=1.0, min=0.01, max=10.0,
+            )
+    rand_align = FloatProperty(
+            name="Random Align",
             description="Randomize alignmet with the walls",
-            default=0.75, min=0.0, max=1.0)
-
-    rand_loc = FloatProperty(name="Random Loc",
+            default=0.75, min=0.0, max=1.0,
+            )
+    rand_loc = FloatProperty(
+            name="Random Loc",
             description="Randomize Placement",
-            default=0.75, min=0.0, max=1.0)
-
-    _parent = None
+            default=0.75, min=0.0, max=1.0,
+            )
+    # XXX, should not be a string - TODO, add a way for scritps to select ID's
+    group = StringProperty(
+            name="Group", 
+            description=("Group name to use for object placement, "
+                         "defaults to object name when that matches a group"))
 
     def execute(self, context):
-        #self.properties.density = self.__class__._parent.properties.density # XXX bad way to copy args.
-        #self.properties.scale = self.__class__._parent.properties.scale # XXX bad way to copy args.
+        obj = bpy.context.object
+        group = bpy.data.groups.get(self.group)
 
-        for attr in self.__class__.__dict__["order"]:
-            if not attr.startswith("_"):
-                try:
-                    setattr(self.properties, attr, getattr(self.__class__._parent.properties, attr))
-                except:
-                    pass
+        if not group:
+            self.report({'ERROR'}, "Group %r not found", self.group)
+            return {'CANCELLED'}
 
         _main(self,
-              DENSITY=self.properties.density,
-              SCALE=self.properties.scale,
-              RAND_LOC=self.properties.rand_loc,
-              RAND_ALIGN=self.properties.rand_align,
+              obj,
+              group,
+              DENSITY=self.density,
+              SCALE=self.scale,
+              RAND_LOC=self.rand_loc,
+              RAND_ALIGN=self.rand_align,
               )
         return {'FINISHED'}
 
+    def check(self, context):
+        if self.group not in bpy.data.groups:
+            self.group = ""
+            return True
+        return False
+
     def invoke(self, context, event):
+
+        # useful to initialize, take a guess
+        if not self.group and context.object.name in bpy.data.groups:
+            self.group = context.object.name
+
         wm = context.window_manager
-        wm.invoke_popup(self, width=180)
+        wm.invoke_props_dialog(self, width=180)
         return {'RUNNING_MODAL'}
 
-    def draw(self, context):
-        self.__class__._parent = self
-        layout = self.layout
 
-        for attr in self.__class__.__dict__["order"]:
-            if not attr.startswith("_"):
-                try:
-                    layout.prop(self.properties, attr)
-                except:
-                    pass
-
-        layout.operator_context = 'EXEC_DEFAULT'
-        layout.operator(self.bl_idname)
-
-
-# Add to the menu
-menu_func = (lambda self, context: self.layout.operator(Scatter.bl_idname,
-                                        text="Scatter", icon='AUTO'))
+def menu_func(self, context):
+    self.layout.operator(Scatter.bl_idname, icon='AUTO')
 
 
 def register():
     bpy.utils.register_class(Scatter)
-    bpy.types.VIEW3D_PT_tools_objectmode.append(menu_func)
+    bpy.types.INFO_MT_mesh_add.append(menu_func)
 
 
 def unregister():
     bpy.utils.unregister_class(Scatter)
-    bpy.types.VIEW3D_PT_tools_objectmode.remove(menu_func)
+    bpy.types.INFO_MT_mesh_add.remove(menu_func)
 
 #if __name__ == "__main__":
 #    _main()
