@@ -266,10 +266,14 @@ def growSpline(stem,numSplit,splitAng,splitAngV,splineList,attractUp,hType,splin
             # Make the growth vec the length of a stem segment
             dirVec.normalize()
             dirVec *= stem.segL
+
+            # Get the end point position
+            end_co = stem.p.co.copy()
+
             # Add the new point and adjust its coords, handles and radius
             newSpline.bezier_points.add()
             newPoint = newSpline.bezier_points[-1]
-            (newPoint.co,newPoint.handle_left_type,newPoint.handle_right_type) = (stem.p.co + dirVec,hType,hType)
+            (newPoint.co,newPoint.handle_left_type,newPoint.handle_right_type) = (end_co + dirVec,hType,hType)
             newPoint.radius = stem.radS*(1 - (stem.seg + 1)/stem.segMax) + stem.radE*((stem.seg + 1)/stem.segMax)
             # If this isn't the last point on a stem, then we need to add it to the list of stems to continue growing
             if stem.seg != stem.segMax:
@@ -298,9 +302,13 @@ def growSpline(stem,numSplit,splitAng,splitAngV,splineList,attractUp,hType,splin
     dirVec.rotate(upRotMat)
     dirVec.normalize()
     dirVec *= stem.segL
+
+    # Get the end point position
+    end_co = stem.p.co.copy()
+
     stem.spline.bezier_points.add()
     newPoint = stem.spline.bezier_points[-1]
-    (newPoint.co,newPoint.handle_left_type,newPoint.handle_right_type) = (stem.p.co + dirVec,hType,hType)
+    (newPoint.co,newPoint.handle_left_type,newPoint.handle_right_type) = (end_co + dirVec,hType,hType)
     newPoint.radius = stem.radS*(1 - (stem.seg + 1)/stem.segMax) + stem.radE*((stem.seg + 1)/stem.segMax)
     # There are some cases where a point cannot have handles as VECTOR straight away, set these now.
     if numSplit != 0:
