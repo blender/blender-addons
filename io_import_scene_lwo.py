@@ -35,7 +35,7 @@ bl_info= {
 # Copyright (c) Ken Nign 2010
 # ken@virginpi.com
 #
-# Version 1.2 - Sep 7, 2010
+# Version 1.3 - Aug 11, 2011
 #
 # Loads a LightWave .lwo object file, including the vertex maps such as
 # UV, Morph, Color and Weight maps.
@@ -55,6 +55,8 @@ bl_info= {
 # thus only the first 8 of each can be imported.
 #
 # History:
+#
+# 1.3 Fixed CC Edge Weight loading.
 #
 # 1.2 Added Absolute Morph and CC Edge Weight support.
 #     Made edge creation safer.
@@ -609,37 +611,33 @@ def read_weight_vmad(ew_bytes, object_layers):
         return  # We just want the Catmull-Clark edge weights
 
     offset+= name_len
-    prev_pol= -1
-    prev_pnt= -1
-    prev_weight= 0.0
-    first_pnt= -1
-    poly_pnts= 0
+    # Some info: LW stores a face's points in a clock-wize order (with the
+    # normal pointing at you). This gives edges a 'direction' which is used
+    # when it comes to storing CC edge weight values. The weight is given
+    # to the point preceeding the edge that the weight belongs to.
     while offset < chunk_len:
-        pnt_id, pnt_id_len= read_vx(ew_bytes[offset:offset+4])
+        pnt_id, pnt_id_len = read_vx(ew_bytes[offset:offset+4])
         offset+= pnt_id_len
         pol_id, pol_id_len= read_vx(ew_bytes[offset:offset+4])
         offset+= pol_id_len
-
         weight,= struct.unpack(">f", ew_bytes[offset:offset+4])
         offset+= 4
-        if prev_pol == pol_id:
-            # Points on the same poly should define an edge.
-            object_layers[-1].edge_weights["{0} {1}".format(prev_pnt, pnt_id)]= weight
-            poly_pnts += 1
+        
+        face_pnts= object_layers[-1].pols[pol_id]
+        try:
+            # Find the point's location in the polygon's point list
+            first_idx= face_pnts.index(pnt_id)
+        except:
+            continue
+        
+        # Then get the next point in the list, or wrap around to the first
+        if first_idx == len(face_pnts) - 1:
+            second_pnt= face_pnts[0]
         else:
-            if poly_pnts > 2:
-                # Make an edge from the first and last points.
-                object_layers[-1].edge_weights["{0} {1}".format(first_pnt, prev_pnt)]= prev_weight
-            first_pnt= pnt_id
-            prev_pol= pol_id
-            poly_pnts= 1
-
-        prev_pnt= pnt_id
-        prev_weight= weight
-
-    if poly_pnts > 2:
-        object_layers[-1].edge_weights["{0} {1}".format(first_pnt, prev_pnt)]= prev_weight
-
+            second_pnt= face_pnts[first_idx + 1]
+        
+        object_layers[-1].edge_weights["{0} {1}".format(second_pnt, pnt_id)]= weight
+        
 
 def read_pols(pol_bytes, object_layers):
     '''Read the layer's polygons, each one is just a list of point indexes.'''
