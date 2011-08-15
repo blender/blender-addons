@@ -89,6 +89,63 @@ def suffix_quoted_str(value, suffix):
     return value[:-1] + suffix + value[-1:]
 
 
+def clean_def(str):
+    # see report [#28256]
+    if not str:
+        str = "None"
+    # no digit start
+    if str[0] in "1234567890+-":
+        str = "_" + str
+    return str.translate({# control characters 0x0-0x1f
+                          # 0x00: "_",
+                          0x01: "_",
+                          0x02: "_",
+                          0x03: "_",
+                          0x04: "_",
+                          0x05: "_",
+                          0x06: "_",
+                          0x07: "_",
+                          0x08: "_",
+                          0x09: "_",
+                          0x0a: "_",
+                          0x0b: "_",
+                          0x0c: "_",
+                          0x0d: "_",
+                          0x0e: "_",
+                          0x0f: "_",
+                          0x10: "_",
+                          0x11: "_",
+                          0x12: "_",
+                          0x13: "_",
+                          0x14: "_",
+                          0x15: "_",
+                          0x16: "_",
+                          0x17: "_",
+                          0x18: "_",
+                          0x19: "_",
+                          0x1a: "_",
+                          0x1b: "_",
+                          0x1c: "_",
+                          0x1d: "_",
+                          0x1e: "_",
+                          0x1f: "_",
+
+                          0x7f: "_", # 127
+
+                          0x20: "_", # space
+                          0x22: "_", # "
+                          0x27: "_", # '
+                          0x23: "_", # #
+                          0x2c: "_", # ,
+                          0x2e: "_", # .
+                          0x5b: "_", # [
+                          0x5d: "_", # ]
+                          0x5c: "_", # \
+                          0x7b: "_", # {
+                          0x7d: "_", # }
+                          })
+
+
 def build_hierarchy(objects):
     """ returns parent child relationships, skipping
     """
@@ -231,7 +288,7 @@ def export(file,
         return ident
 
     def writeViewpoint(ident, obj, matrix, scene):
-        view_id = quoteattr(unique_name(obj, 'CA_' + obj.name, uuid_cache_view))
+        view_id = quoteattr(unique_name(obj, 'CA_' + obj.name, uuid_cache_view, clean_func=clean_def, sep="_"))
 
         loc, quat, scale = matrix.decompose()
 
@@ -295,7 +352,7 @@ def export(file,
 
     def writeSpotLight(ident, obj, matrix, lamp, world):
         # note, lamp_id is not re-used
-        lamp_id = quoteattr(unique_name(obj, 'LA_' + obj.name, uuid_cache_lamp))
+        lamp_id = quoteattr(unique_name(obj, 'LA_' + obj.name, uuid_cache_lamp, clean_func=clean_def, sep="_"))
 
         if world:
             ambi = world.ambient_color
@@ -331,7 +388,7 @@ def export(file,
 
     def writeDirectionalLight(ident, obj, matrix, lamp, world):
         # note, lamp_id is not re-used
-        lamp_id = quoteattr(unique_name(obj, 'LA_' + obj.name, uuid_cache_lamp))
+        lamp_id = quoteattr(unique_name(obj, 'LA_' + obj.name, uuid_cache_lamp, clean_func=clean_def, sep="_"))
 
         if world:
             ambi = world.ambient_color
@@ -356,7 +413,7 @@ def export(file,
 
     def writePointLight(ident, obj, matrix, lamp, world):
         # note, lamp_id is not re-used
-        lamp_id = quoteattr(unique_name(obj, 'LA_' + obj.name, uuid_cache_lamp))
+        lamp_id = quoteattr(unique_name(obj, 'LA_' + obj.name, uuid_cache_lamp, clean_func=clean_def, sep="_"))
 
         if world:
             ambi = world.ambient_color
@@ -381,8 +438,8 @@ def export(file,
         fw(ident_step + '/>\n')
 
     def writeIndexedFaceSet(ident, obj, mesh, matrix, world):
-        obj_id = quoteattr(unique_name(obj, 'OB_' + obj.name, uuid_cache_object))
-        mesh_id = quoteattr(unique_name(mesh, 'ME_' + mesh.name, uuid_cache_mesh))
+        obj_id = quoteattr(unique_name(obj, 'OB_' + obj.name, uuid_cache_object, clean_func=clean_def, sep="_"))
+        mesh_id = quoteattr(unique_name(mesh, 'ME_' + mesh.name, uuid_cache_mesh, clean_func=clean_def, sep="_"))
         mesh_id_group = prefix_quoted_str(mesh_id, 'group_')
         mesh_id_coords = prefix_quoted_str(mesh_id, 'coords_')
         mesh_id_normals = prefix_quoted_str(mesh_id, 'normals_')
@@ -851,7 +908,7 @@ def export(file,
             fw('%s</Collision>\n' % ident)
 
     def writeMaterial(ident, material, world):
-        material_id = quoteattr(unique_name(material, 'MA_' + material.name, uuid_cache_material))
+        material_id = quoteattr(unique_name(material, 'MA_' + material.name, uuid_cache_material, clean_func=clean_def, sep="_"))
 
         # look up material name, use it if available
         if material.tag:
@@ -890,7 +947,7 @@ def export(file,
 
     def writeMaterialH3D(ident, material, world,
                          obj, gpu_shader):
-        material_id = quoteattr(unique_name(material, 'MA_' + material.name, uuid_cache_material))
+        material_id = quoteattr(unique_name(material, 'MA_' + material.name, uuid_cache_material, clean_func=clean_def, sep="_"))
 
         fw('%s<Material />\n' % ident)
         if material.tag:
@@ -1008,7 +1065,7 @@ def export(file,
                 elif uniform['type'] == gpu.GPU_DYNAMIC_LAMP_DYNCO:
                     if uniform['datatype'] == gpu.GPU_DATA_3F:  # should always be true!
                         lamp_obj = bpy.data.objects[uniform['lamp']]
-                        lamp_obj_id = quoteattr(unique_name(lamp_obj, 'LA_' + lamp_obj.name, uuid_cache_lamp))
+                        lamp_obj_id = quoteattr(unique_name(lamp_obj, 'LA_' + lamp_obj.name, uuid_cache_lamp, clean_func=clean_def, sep="_"))
 
                         value = '%.6g %.6g %.6g' % (global_matrix * lamp_obj.matrix_world).to_translation()[:]
                         fw('%s<field name="%s" type="SFVec3f" accessType="inputOutput" value="%s" />\n' % (ident, uniform['varname'], value))
@@ -1127,7 +1184,7 @@ def export(file,
             fw('%s</ComposedShader>\n' % ident)
 
     def writeImageTexture(ident, image):
-        image_id = quoteattr(unique_name(image, 'IM_' + image.name, uuid_cache_image))
+        image_id = quoteattr(unique_name(image, 'IM_' + image.name, uuid_cache_image, clean_func=clean_def, sep="_"))
 
         if image.tag:
             fw('%s<ImageTexture USE=%s />\n' % (ident, image_id))
@@ -1163,7 +1220,7 @@ def export(file,
             return
 
         # note, not re-used
-        world_id = quoteattr(unique_name(world, 'WO_' + world.name, uuid_cache_world))
+        world_id = quoteattr(unique_name(world, 'WO_' + world.name, uuid_cache_world, clean_func=clean_def, sep="_"))
 
         blending = world.use_sky_blend, world.use_sky_paper, world.use_sky_real
 
@@ -1241,7 +1298,7 @@ def export(file,
                 obj_main_matrix = obj_main_matrix_world
             obj_main_matrix_world_invert = obj_main_matrix_world.inverted()
 
-            obj_main_id = quoteattr(unique_name(obj_main, obj_main.name, uuid_cache_object))
+            obj_main_id = quoteattr(unique_name(obj_main, obj_main.name, uuid_cache_object, clean_func=clean_def, sep="_"))
 
             ident = writeTransform_begin(ident, obj_main_matrix if obj_main_parent else global_matrix * obj_main_matrix, suffix_quoted_str(obj_main_id, "_TRANSFORM"))
 
