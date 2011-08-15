@@ -30,6 +30,7 @@ def write_armature(context,
                    frame_end,
                    global_scale=1.0,
                    rotate_mode='NATIVE',
+                   root_transform_only=False,
                    ):
 
     def ensure_rot_order(rot_order_str):
@@ -93,7 +94,7 @@ def write_armature(context,
 
         file.write("%s{\n" % indent_str)
         file.write("%s\tOFFSET %.6f %.6f %.6f\n" % (indent_str, loc.x * global_scale, loc.y * global_scale, loc.z * global_scale))
-        if bone.use_connect and bone.parent:
+        if (bone.use_connect or root_transform_only) and bone.parent:
             file.write("%s\tCHANNELS 3 %srotation %srotation %srotation\n" % (indent_str, rot_order_str[0], rot_order_str[1], rot_order_str[2]))
         else:
             file.write("%s\tCHANNELS 6 Xposition Yposition Zposition %srotation %srotation %srotation\n" % (indent_str, rot_order_str[0], rot_order_str[1], rot_order_str[2]))
@@ -153,7 +154,7 @@ def write_armature(context,
             "rest_arm_imat",  # rest_arm_mat inverted
             "rest_local_imat",  # rest_local_mat inverted
             "prev_euler",  # last used euler to preserve euler compability in between keyframes
-            "connected",  # is the bone connected to the parent bone?
+            "skip_position",  # is the bone disconnected to the parent bone?
             "rot_order",
             "rot_order_str",
         )
@@ -164,7 +165,8 @@ def write_armature(context,
             'YXZ': (1, 0, 2),
             'YZX': (1, 2, 0),
             'ZXY': (2, 0, 1),
-            'ZYX': (2, 1, 0)}
+            'ZYX': (2, 1, 0),
+            }
 
         def __init__(self, bone_name):
             self.name = bone_name
@@ -191,7 +193,7 @@ def write_armature(context,
 
             self.parent = None
             self.prev_euler = Euler((0.0, 0.0, 0.0), self.rot_order_str)
-            self.connected = (self.rest_bone.use_connect and self.rest_bone.parent)
+            self.skip_position = ((self.rest_bone.use_connect or root_transform_only) and self.rest_bone.parent)
 
         def update_posedata(self):
             self.pose_mat = self.pose_bone.matrix
@@ -218,6 +220,7 @@ def write_armature(context,
     # finish assigning parents
 
     scene = bpy.context.scene
+    frame_current = scene.frame_current
 
     file.write("MOTION\n")
     file.write("Frames: %d\n" % (frame_end - frame_start + 1))
@@ -245,7 +248,7 @@ def write_armature(context,
             # keep eulers compatible, no jumping on interpolation.
             rot = mat_final.to_3x3().inverted().to_euler(dbone.rot_order_str, dbone.prev_euler)
 
-            if not dbone.connected:
+            if not dbone.skip_position:
                 file.write("%.6f %.6f %.6f " % (loc * global_scale)[:])
 
             file.write("%.6f %.6f %.6f " % (-degrees(rot[dbone.rot_order[0]]), -degrees(rot[dbone.rot_order[1]]), -degrees(rot[dbone.rot_order[2]])))
@@ -256,6 +259,8 @@ def write_armature(context,
 
     file.close()
 
+    scene.frame_set(frame_current)
+
     print("BVH Exported: %s frames:%d\n" % (filepath, frame_end - frame_start + 1))
 
 
@@ -264,6 +269,7 @@ def save(operator, context, filepath="",
           frame_end=-1,
           global_scale=1.0,
           rotate_mode="NATIVE",
+          root_transform_only=False,
           ):
 
     write_armature(context, filepath,
@@ -271,6 +277,7 @@ def save(operator, context, filepath="",
            frame_end=frame_end,
            global_scale=global_scale,
            rotate_mode=rotate_mode,
+           root_transform_only=root_transform_only,
            )
 
     return {'FINISHED'}
