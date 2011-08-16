@@ -185,6 +185,16 @@ def h3d_shader_glsl_frag_patch(filepath, global_vars):
             w = l.split(', ')
             w[1] = '(view_matrix * %s_transform * vec4(%s.x, %s.y, %s.z, 1.0)).xyz' % (w[1], w[1], w[1], w[1])
             l = ", ".join(w)
+        elif l.lstrip().startswith("lamp_visibility_sun_hemi("):
+            w = l.split(', ')
+            w[0] = w[0][len("lamp_visibility_sun_hemi(") + 1:]
+            w[0] = '(mat3(normalize(view_matrix[0].xyz), normalize(view_matrix[1].xyz), normalize(view_matrix[2].xyz)) * -%s)' % w[0]
+            l = "\tlamp_visibility_sun_hemi(" + ", ".join(w)
+        elif l.lstrip().startswith("lamp_visibility_spot_circle("):
+            w = l.split(', ')
+            w[0] = w[0][len("lamp_visibility_spot_circle(") + 1:]
+            w[0] = '(mat3(normalize(view_matrix[0].xyz), normalize(view_matrix[1].xyz), normalize(view_matrix[2].xyz)) * -%s)' % w[0]
+            l = "\tlamp_visibility_spot_circle(" + ", ".join(w)
 
         lines.append(l)
 
