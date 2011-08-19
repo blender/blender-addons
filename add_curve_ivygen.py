@@ -21,9 +21,9 @@
 bl_info = {
     "name": "IvyGen",
     "author": "testscreenings, PKHG, TrumanBlending",
-    "version": (0, 1, 0),
-    "blender": (2, 5, 8),
-    "api": 38479,
+    "version": (0, 1, 1),
+    "blender": (2, 5, 9),
+    "api": 39307,
     "location": "View3D > Add > Curve",
     "description": "Adds generated ivy to a mesh object starting at the 3D"\
                    " cursor.",
@@ -628,9 +628,11 @@ class IvyGen(bpy.types.Operator):
         properties.leafProbability = self.leafProbability
         properties.ivyBranchSize = self.ivyBranchSize
         properties.ivyLeafSize = self.ivyLeafSize
+        properties.updateIvy = True
 
         row = layout.row()
-        row.operator('curve.ivy_gen', text="Add New Default Ivy")
+        prop_def = row.operator('curve.ivy_gen', text="Add New Default Ivy")
+        prop_def.updateIvy = True
 
         row = layout.row()
         row.prop(self, 'growLeaves')
