@@ -96,8 +96,8 @@ def clean_def(str):
     # no digit start
     if str[0] in "1234567890+-":
         str = "_" + str
-    return str.translate({# control characters 0x0-0x1f
-                          # 0x00: "_",
+    return str.translate({  # control characters 0x0-0x1f
+                            # 0x00: "_",
                           0x01: "_",
                           0x02: "_",
                           0x03: "_",
@@ -130,19 +130,19 @@ def clean_def(str):
                           0x1e: "_",
                           0x1f: "_",
 
-                          0x7f: "_", # 127
+                          0x7f: "_",  # 127
 
-                          0x20: "_", # space
-                          0x22: "_", # "
-                          0x27: "_", # '
-                          0x23: "_", # #
-                          0x2c: "_", # ,
-                          0x2e: "_", # .
-                          0x5b: "_", # [
-                          0x5d: "_", # ]
-                          0x5c: "_", # \
-                          0x7b: "_", # {
-                          0x7d: "_", # }
+                          0x20: "_",  # space
+                          0x22: "_",  # "
+                          0x27: "_",  # '
+                          0x23: "_",  # #
+                          0x2c: "_",  # ,
+                          0x2e: "_",  # .
+                          0x5b: "_",  # [
+                          0x5d: "_",  # ]
+                          0x5c: "_",  # \
+                          0x7b: "_",  # {
+                          0x7d: "_",  # }
                           })
 
 

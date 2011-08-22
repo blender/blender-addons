@@ -375,7 +375,7 @@ class Scatter(bpy.types.Operator):
             )
     # XXX, should not be a string - TODO, add a way for scritps to select ID's
     group = StringProperty(
-            name="Group", 
+            name="Group",
             description=("Group name to use for object placement, "
                          "defaults to object name when that matches a group"))
 

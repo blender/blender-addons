@@ -1658,7 +1658,7 @@ def fs_callback(filename, context):
         bmesh = False
     bArmatureScale = True
     bArmatureCenter = True
-    if blender_armature[0] !=None:
+    if blender_armature[0] is not None:
         if blender_armature[0].scale.x == 1 and blender_armature[0].scale.y == 1 and blender_armature[0].scale.z == 1:
             #print("Okay")
             bArmatureScale = True
