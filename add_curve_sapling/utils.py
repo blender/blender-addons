@@ -914,8 +914,11 @@ def addTree(props):
             # If there are leaves we need to assign vertices to their vertex groups
             if leaves:
                 offsetVal = 0
+                leafVertSize = 6
+                if leafShape == 'rect':
+                   leafVertSize = 4
                 for i,cp in enumerate(childP):
-                    for v in leafMesh.vertices[6*i:(6*i+6)]:
+                    for v in leafMesh.vertices[leafVertSize*i:(leafVertSize*i+leafVertSize)]:
                         leafObj.vertex_groups[cp.parBone].add([v.index],1.0,'ADD')
 
             # Now we need the rotation mode to be 'XYZ' to ensure correct rotation
