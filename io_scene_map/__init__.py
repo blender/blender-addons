@@ -24,11 +24,11 @@ bl_info = {
     "blender": (2, 5, 7),
     "api": 35622,
     "location": "File > Export",
-    "description": ("Export MAP brushes, nurbs surfaces, "
-                    "lamps and empties as map nodes"),
+    "description": "Export MAP brushes, nurbs surfaces, "
+                   "lamps and empties as map nodes",
     "warning": "",
-    "wiki_url": ("http://wiki.blender.org/index.php/Extensions:2.5/Py/"
-                 "Scripts/Import-Export/Quake_MAP"),
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"
+                "Scripts/Import-Export/Quake_MAP",
     "tracker_url": "",
     "support": 'OFFICIAL',
     "category": "Import-Export"}

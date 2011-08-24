@@ -27,10 +27,10 @@ bl_info = {
     "location": "File > Import-Export > Stl",
     "description": "Import-Export STL files",
     "warning": "",
-    "wiki_url": ("http://wiki.blender.org/index.php/Extensions:2.5/Py/"
-                 "Scripts/Import-Export/STL"),
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"
+                "Scripts/Import-Export/STL",
     "tracker_url": "https://projects.blender.org/tracker/index.php?"
-        "func=detail&aid=22837",
+                   "func=detail&aid=22837",
     "support": 'OFFICIAL',
     "category": "Import-Export"}
 
@@ -70,15 +70,17 @@ class ImportSTL(bpy.types.Operator, ImportHelper):
 
     filename_ext = ".stl"
 
-    filter_glob = StringProperty(default="*.stl", options={'HIDDEN'})
-
-    files = CollectionProperty(name="File Path",
-                          description="File path used for importing "
-                                      "the STL file",
-                          type=bpy.types.OperatorFileListElement)
-
-    directory = StringProperty(subtype='DIR_PATH')
-
+    filter_glob = StringProperty(
+            default="*.stl",
+            options={'HIDDEN'},
+            )
+    files = CollectionProperty(
+            name="File Path",
+            type=bpy.types.OperatorFileListElement,
+            )
+    directory = StringProperty(
+            subtype='DIR_PATH',
+            )
     def execute(self, context):
         from . import stl_utils
         from . import blender_utils
@@ -98,7 +100,6 @@ class ImportSTL(bpy.types.Operator, ImportHelper):
         for path in paths:
             objName = bpy.path.display_name(os.path.basename(path))
             tris, pts = stl_utils.read_stl(path)
-
             blender_utils.create_and_link_mesh(objName, tris, pts)
 
         return {'FINISHED'}
