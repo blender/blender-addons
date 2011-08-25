@@ -464,7 +464,7 @@ class OBJECT_PT_api_navigator(ApiNavigator, bpy.types.Panel):
     bl_space_type = "TEXT_EDITOR"
     bl_region_type = "UI"
     bl_label = "API Navigator"
-    bl_options = "DEFAULT_CLOSED"
+    bl_options = {'DEFAULT_CLOSED'}
     
     
     columns = 3
