@@ -41,7 +41,15 @@ if "bpy" in locals():
         imp.reload(mocap_tools)
 else:
     import bpy
-    from bpy.props import *
+    from bpy.props import (BoolProperty,
+                           CollectionProperty,
+                           EnumProperty,
+                           FloatProperty,
+                           FloatVectorProperty,
+                           IntProperty,
+                           PointerProperty,
+                           StringProperty,
+                           )
     from bpy import *
     from . import mocap_constraints
     from . import retarget
@@ -54,99 +62,99 @@ else:
 
 
 class MocapConstraint(bpy.types.PropertyGroup):
-    name = bpy.props.StringProperty(name="Name",
+    name = StringProperty(name="Name",
         default="Mocap Fix",
         description="Name of Mocap Fix",
         update=setConstraint)
-    constrained_bone = bpy.props.StringProperty(name="Bone",
+    constrained_bone = StringProperty(name="Bone",
         default="",
         description="Constrained Bone",
         update=updateConstraintBoneType)
-    constrained_boneB = bpy.props.StringProperty(name="Bone (2)",
+    constrained_boneB = StringProperty(name="Bone (2)",
         default="",
         description="Other Constrained Bone (optional, depends on type)",
         update=setConstraint)
-    s_frame = bpy.props.IntProperty(name="S",
+    s_frame = IntProperty(name="S",
         default=0,
         description="Start frame of Fix",
         update=setConstraint)
-    e_frame = bpy.props.IntProperty(name="E",
+    e_frame = IntProperty(name="E",
         default=100,
         description="End frame of Fix",
         update=setConstraint)
-    smooth_in = bpy.props.IntProperty(name="In",
+    smooth_in = IntProperty(name="In",
         default=10,
         description="Amount of frames to smooth in",
         update=setConstraint,
         min=0)
-    smooth_out = bpy.props.IntProperty(name="Out",
+    smooth_out = IntProperty(name="Out",
         default=10,
         description="Amount of frames to smooth out",
         update=setConstraint,
         min=0)
-    targetMesh = bpy.props.StringProperty(name="Mesh",
+    targetMesh = StringProperty(name="Mesh",
         default="",
         description="Target of Fix - Mesh (optional, depends on type)",
         update=setConstraint)
-    active = bpy.props.BoolProperty(name="Active",
+    active = BoolProperty(name="Active",
         default=True,
         description="Fix is active",
         update=setConstraint)
-    show_expanded = bpy.props.BoolProperty(name="Show Expanded",
+    show_expanded = BoolProperty(name="Show Expanded",
         default=True,
         description="Fix is fully shown")
-    targetPoint = bpy.props.FloatVectorProperty(name="Point", size=3,
+    targetPoint = FloatVectorProperty(name="Point", size=3,
         subtype="XYZ", default=(0.0, 0.0, 0.0),
         description="Target of Fix - Point",
         update=setConstraint)
-    targetDist = bpy.props.FloatProperty(name="Offset",
+    targetDist = FloatProperty(name="Offset",
         default=0.0,
         description="Distance and Floor Fixes - Desired offset",
         update=setConstraint)
-    targetSpace = bpy.props.EnumProperty(
+    targetSpace = EnumProperty(
         items=[("WORLD", "World Space", "Evaluate target in global space"),
             ("LOCAL", "Object space", "Evaluate target in object space"),
             ("constrained_boneB", "Other Bone Space", "Evaluate target in specified other bone space")],
         name="Space",
         description="In which space should Point type target be evaluated",
         update=setConstraint)
-    type = bpy.props.EnumProperty(name="Type of constraint",
+    type = EnumProperty(name="Type of constraint",
         items=[("point", "Maintain Position", "Bone is at a specific point"),
             ("freeze", "Maintain Position at frame", "Bone does not move from location specified in target frame"),
             ("floor", "Stay above", "Bone does not cross specified mesh object eg floor"),
             ("distance", "Maintain distance", "Target bones maintained specified distance")],
         description="Type of Fix",
         update=updateConstraintBoneType)
-    real_constraint = bpy.props.StringProperty()
-    real_constraint_bone = bpy.props.StringProperty()
+    real_constraint = StringProperty()
+    real_constraint_bone = StringProperty()
 
 
 # Animation Stitch Settings, used for animation stitching of 2 retargeted animations.
 class AnimationStitchSettings(bpy.types.PropertyGroup):
-    first_action = bpy.props.StringProperty(name="Action 1",
+    first_action = StringProperty(name="Action 1",
             description="First action in stitch")
-    second_action = bpy.props.StringProperty(name="Action 2",
+    second_action = StringProperty(name="Action 2",
             description="Second action in stitch")
-    blend_frame = bpy.props.IntProperty(name="Stitch frame",
+    blend_frame = IntProperty(name="Stitch frame",
             description="Frame to locate stitch on")
-    blend_amount = bpy.props.IntProperty(name="Blend amount",
+    blend_amount = IntProperty(name="Blend amount",
             description="Size of blending transitiion, on both sides of the stitch",
             default=10)
-    second_offset = bpy.props.IntProperty(name="Second offset",
+    second_offset = IntProperty(name="Second offset",
             description="Frame offset for 2nd animation, where it should start",
             default=10)
-    stick_bone = bpy.props.StringProperty(name="Stick Bone",
+    stick_bone = StringProperty(name="Stick Bone",
             description="Bone to freeze during transition",
             default="")
 
 
 # MocapNLA Tracks. Stores which tracks/actions are associated with each retargeted animation.
 class MocapNLATracks(bpy.types.PropertyGroup):
-    name = bpy.props.StringProperty()
-    base_track = bpy.props.StringProperty()
-    auto_fix_track = bpy.props.StringProperty()
-    manual_fix_track = bpy.props.StringProperty()
-    stride_action = bpy.props.StringProperty()
+    name = StringProperty()
+    base_track = StringProperty()
+    auto_fix_track = StringProperty()
+    manual_fix_track = StringProperty()
+    stride_action = StringProperty()
 
 
 #Update function for Advanced Retarget boolean variable.
@@ -212,7 +220,7 @@ def toggleIKBone(self, context):
 #MocapMap class for storing mapping on enduser performer,
 # where a bone may be linked to more than one on the performer
 class MocapMapping(bpy.types.PropertyGroup):
-    name = bpy.props.StringProperty()
+    name = StringProperty()
 
 
 def updateIKRetarget():
@@ -497,7 +505,7 @@ class OBJECT_OT_SelectMapBoneButton(bpy.types.Operator):
     '''Select a bone for faster mapping'''
     bl_idname = "mocap.selectmap"
     bl_label = "Select a bone for faster mapping"
-    perf_bone = bpy.props.StringProperty()
+    perf_bone = StringProperty()
 
     def execute(self, context):
         enduser_obj = bpy.context.active_object
@@ -657,7 +665,7 @@ class MOCAP_OT_AddMocapFix(bpy.types.Operator):
     '''Add a post-retarget fix - useful for fixing certain artifacts following the retarget'''
     bl_idname = "mocap.addmocapfix"
     bl_label = "Add Mocap Fix to target armature"
-    type = bpy.props.EnumProperty(name="Type of Fix",
+    type = EnumProperty(name="Type of Fix",
     items=[("point", "Maintain Position", "Bone is at a specific point"),
         ("freeze", "Maintain Position at frame", "Bone does not move from location specified in target frame"),
         ("floor", "Stay above", "Bone does not cross specified mesh object eg floor"),
@@ -682,7 +690,7 @@ class OBJECT_OT_RemoveMocapConstraint(bpy.types.Operator):
     '''Remove this post-retarget fix'''
     bl_idname = "mocap.removeconstraint"
     bl_label = "Removes fixes from target armature"
-    constraint = bpy.props.IntProperty()
+    constraint = IntProperty()
 
     def execute(self, context):
         enduser_obj = bpy.context.active_object
@@ -838,37 +846,37 @@ class OBJECT_OT_GuessAnimationStitchingButton(bpy.types.Operator):
 
 def register():
     bpy.utils.register_class(MocapConstraint)
-    bpy.types.Armature.mocap_constraints = bpy.props.CollectionProperty(type=MocapConstraint)
+    bpy.types.Armature.mocap_constraints = CollectionProperty(type=MocapConstraint)
     bpy.utils.register_class(MocapMapping)
     #string property for storing performer->enduser mapping
-    bpy.types.Bone.map = bpy.props.StringProperty()
+    bpy.types.Bone.map = StringProperty()
     #Collection Property for storing enduser->performer mapping
-    bpy.types.Bone.reverseMap = bpy.props.CollectionProperty(type=MocapMapping)
+    bpy.types.Bone.reverseMap = CollectionProperty(type=MocapMapping)
     #Boolean property for storing foot bone toggle
-    bpy.types.Bone.foot = bpy.props.BoolProperty(name="Foot",
+    bpy.types.Bone.foot = BoolProperty(name="Foot",
         description="Marks this bone as a 'foot', which determines retargeted animation's translation",
         default=False)
     #Boolean property for storing if this bone is twisted along the y axis,
     # which can happen due to various sources of performers
-    bpy.types.Bone.twistFix = bpy.props.BoolProperty(name="Twist Fix",
+    bpy.types.Bone.twistFix = BoolProperty(name="Twist Fix",
         description="Fix Twist on this bone",
         default=False)
     #Boolean property for toggling ik retargeting for this bone
-    bpy.types.PoseBone.IKRetarget = bpy.props.BoolProperty(name="IK",
+    bpy.types.PoseBone.IKRetarget = BoolProperty(name="IK",
         description="Toggles IK Retargeting method for given bone",
         update=toggleIKBone, default=False)
     bpy.utils.register_class(AnimationStitchSettings)
     bpy.utils.register_class(MocapNLATracks)
     #Animation Stitch Settings Property
-    bpy.types.Armature.stitch_settings = bpy.props.PointerProperty(type=AnimationStitchSettings)
+    bpy.types.Armature.stitch_settings = PointerProperty(type=AnimationStitchSettings)
     #Current/Active retargeted animation on the armature
-    bpy.types.Armature.active_mocap = bpy.props.StringProperty(update=retarget.NLASystemInitialize)
+    bpy.types.Armature.active_mocap = StringProperty(update=retarget.NLASystemInitialize)
     #Collection of retargeted animations and their NLA Tracks on the armature
-    bpy.types.Armature.mocapNLATracks = bpy.props.CollectionProperty(type=MocapNLATracks)
+    bpy.types.Armature.mocapNLATracks = CollectionProperty(type=MocapNLATracks)
     #Advanced retargeting boolean property
-    bpy.types.Armature.advancedRetarget = bpy.props.BoolProperty(default=False, update=advancedRetargetToggle)
+    bpy.types.Armature.advancedRetarget = BoolProperty(default=False, update=advancedRetargetToggle)
     #frame step - frequency of frames to retarget. Skipping is useful for previewing, faster work etc.
-    bpy.types.Armature.frameStep = smooth_out = bpy.props.IntProperty(name="Frame Skip",
+    bpy.types.Armature.frameStep = smooth_out = IntProperty(name="Frame Skip",
             default=1,
             description="Amount of frames to skip - for previewing retargets quickly. 1 is fully sampled",
             min=1)
