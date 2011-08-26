@@ -27,7 +27,7 @@ bl_info = {
     "description": "Various tools for working with motion capture animation",
     "warning": "",
     "wiki_url": "http://wiki.blender.org/index.php/User:Benjycook/GSOC/Manual",
-    "tracker_url": "",
+    "tracker_url": "http://projects.blender.org/tracker/index.php?func=detail&aid=28321",
     "support": 'OFFICIAL',
     "category": "Animation"}
 
