@@ -26,7 +26,7 @@ bl_info = {
     "location": "Object UI -> Mocap tools",
     "description": "Various tools for working with motion capture animation",
     "warning": "",
-    "wiki_url": ("http://wiki.blender.org/index.php/User:Benjycook/GSOC/Manual"),
+    "wiki_url": "http://wiki.blender.org/index.php/User:Benjycook/GSOC/Manual",
     "tracker_url": "",
     "support": 'OFFICIAL',
     "category": "Animation"}
@@ -121,7 +121,6 @@ class MocapConstraint(bpy.types.PropertyGroup):
     real_constraint_bone = bpy.props.StringProperty()
 
 
-
 # Animation Stitch Settings, used for animation stitching of 2 retargeted animations.
 class AnimationStitchSettings(bpy.types.PropertyGroup):
     first_action = bpy.props.StringProperty(name="Action 1",
@@ -141,7 +140,6 @@ class AnimationStitchSettings(bpy.types.PropertyGroup):
             default="")
 
 
-
 # MocapNLA Tracks. Stores which tracks/actions are associated with each retargeted animation.
 class MocapNLATracks(bpy.types.PropertyGroup):
     name = bpy.props.StringProperty()
@@ -149,8 +147,6 @@ class MocapNLATracks(bpy.types.PropertyGroup):
     auto_fix_track = bpy.props.StringProperty()
     manual_fix_track = bpy.props.StringProperty()
     stride_action = bpy.props.StringProperty()
-
-
 
 
 #Update function for Advanced Retarget boolean variable.
@@ -166,7 +162,6 @@ def advancedRetargetToggle(self, context):
         retarget.preAdvancedRetargeting(performer_obj, enduser_obj)
     else:
         retarget.cleanTempConstraints(enduser_obj)
-
 
 
 def toggleIKBone(self, context):
@@ -220,7 +215,6 @@ class MocapMapping(bpy.types.PropertyGroup):
     name = bpy.props.StringProperty()
 
 
-
 def updateIKRetarget():
     # ensures that Blender constraints and IK properties are in sync
     # currently runs when module is loaded, should run when scene is loaded
@@ -237,6 +231,7 @@ def updateIKRetarget():
 
 updateIKRetarget()
 
+
 def hasIKConstraint(pose_bone):
     #utility function / predicate, returns True if given bone has IK constraint
     ik = [constraint for constraint in pose_bone.constraints if constraint.type == "IK"]
@@ -244,6 +239,7 @@ def hasIKConstraint(pose_bone):
         return ik[0]
     else:
         return False
+
 
 class MocapPanel(bpy.types.Panel):
     # Motion capture retargeting panel
@@ -281,7 +277,7 @@ class MocapPanel(bpy.types.Panel):
                     perf_pose_bones = enduser_obj.pose.bones
                     MappingRow = self.layout.row(align=True)
                     footCol = MappingRow.column(align=True)
-                    nameCol =MappingRow.column(align=True)
+                    nameCol = MappingRow.column(align=True)
                     nameCol.scale_x = 2
                     mapCol = MappingRow.column(align=True)
                     mapCol.scale_x = 2
@@ -877,8 +873,8 @@ def register():
             description="Amount of frames to skip - for previewing retargets quickly. 1 is fully sampled",
             min=1)
     bpy.utils.register_module(__name__)
-    
-    
+
+
 def unregister():
     bpy.utils.unregister_module(__name__)
 

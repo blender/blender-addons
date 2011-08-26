@@ -282,7 +282,7 @@ def setConstraint(m_constraint, context):
         real_constraint.target = obj
         real_constraint.subtarget = getConsObj(bones[m_constraint.constrained_boneB]).name
         real_constraint.limit_mode = "LIMITDIST_ONSURFACE"
-        if m_constraint.targetDist<0.01:
+        if m_constraint.targetDist < 0.01:
             m_constraint.targetDist = 0.01
         real_constraint.distance = m_constraint.targetDist
 

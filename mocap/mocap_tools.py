@@ -116,8 +116,8 @@ class dataPoint:
 def crossCorrelationMatch(curvesA, curvesB, margin):
     dataA = []
     dataB = []
-    start = int(max(curvesA[0].range()[0],curvesB[0].range()[0]))
-    end = int(min(curvesA[0].range()[1],curvesB[0].range()[1]))
+    start = int(max(curvesA[0].range()[0], curvesB[0].range()[0]))
+    end = int(min(curvesA[0].range()[1], curvesB[0].range()[1]))
 
     #transfer all fcurves data on each frame to a single NdVector.
     for i in range(1, end):
@@ -131,6 +131,7 @@ def crossCorrelationMatch(curvesA, curvesB, margin):
             if fcurve.data_path in [otherFcurve.data_path for otherFcurve in curvesA]:
                 vec.append(fcurve.evaluate(i))
         dataB.append(NdVector(vec))
+
     #Comparator for Cross Correlation. "Classic" implementation uses dot product, as do we.
     def comp(a, b):
         return a * b
@@ -877,7 +878,7 @@ def anim_stitch(context, enduser_obj):
             scene.frame_set(stitch_settings.blend_frame - 1)
             desired_pos = (enduser_obj.matrix_world * selected_bone.matrix.to_translation())
             scene.frame_set(stitch_settings.blend_frame)
-            actual_pos = (enduser_obj.matrix_world * selected_bone.matrix.to_translation() )
+            actual_pos = (enduser_obj.matrix_world * selected_bone.matrix.to_translation())
             print(desired_pos, actual_pos)
             offset = Vector(actual_pos) - Vector(desired_pos)
 
@@ -887,7 +888,7 @@ def anim_stitch(context, enduser_obj):
                     pt.co.y -= offset[i]
                     pt.handle_left.y -= offset[i]
                     pt.handle_right.y -= offset[i]
-            
+
             #actionBStrip.blend_in = stitch_settings.blend_amount
 
 
