@@ -74,7 +74,7 @@ def LegalName(Name):
     
     import string
     
-    NewName = ReplaceSet(Name, string.punctuation, "_")
+    NewName = ReplaceSet(Name, string.punctuation + " ", "_")
     if NewName[0].isdigit() or NewName in ["ARRAY",
                                            "DWORD",
                                            "UCHAR",
