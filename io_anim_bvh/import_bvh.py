@@ -43,13 +43,13 @@ class BVH_Node(object):
     'has_rot',  # Conveinience function, bool, same as (channels[3]!=-1 or channels[4]!=-1 channels[5]!=-1)
     'temp')  # use this for whatever you want
 
-    _eul_order_lookup = {
-        (0, 1, 2): 'XYZ',
-        (0, 2, 1): 'XZY',
-        (1, 0, 2): 'YXZ',
-        (1, 2, 0): 'YZX',
-        (2, 0, 1): 'ZXY',
-        (2, 1, 0): 'ZYX'}
+    _eul_order_lookup = {(0, 1, 2): 'XYZ',
+                         (0, 2, 1): 'XZY',
+                         (1, 0, 2): 'YXZ',
+                         (1, 2, 0): 'YZX',
+                         (2, 0, 1): 'ZXY',
+                         (2, 1, 0): 'ZYX',
+                         }
 
     def __init__(self, name, rest_head_world, rest_head_local, parent, channels, rot_order):
         self.name = name
@@ -331,7 +331,14 @@ def bvh_node_dict2objects(context, bvh_name, bvh_nodes, rotate_mode='NATIVE', fr
     return objects
 
 
-def bvh_node_dict2armature(context, bvh_name, bvh_nodes, rotate_mode='XYZ', frame_start=1, IMPORT_LOOP=False):
+def bvh_node_dict2armature(context,
+                           bvh_name,
+                           bvh_nodes,
+                           rotate_mode='XYZ',
+                           frame_start=1,
+                           IMPORT_LOOP=False,
+                           global_matrix=None,
+                           ):
 
     if frame_start < 1:
         frame_start = 1
@@ -507,10 +514,24 @@ def bvh_node_dict2armature(context, bvh_name, bvh_nodes, rotate_mode='XYZ', fram
         for bez in cu.keyframe_points:
             bez.interpolation = 'LINEAR'
 
+    # finally apply matrix
+    arm_ob.matrix_world = global_matrix
+    bpy.ops.object.transform_apply(rotation=True)
+
     return arm_ob
 
 
-def load(operator, context, filepath="", target='ARMATURE', rotate_mode='NATIVE', global_scale=1.0, use_cyclic=False, frame_start=1):
+def load(operator,
+         context,
+         filepath="",
+         target='ARMATURE',
+         rotate_mode='NATIVE',
+         global_scale=1.0,
+         use_cyclic=False,
+         frame_start=1,
+         global_matrix=None,
+         ):
+
     import time
     t1 = time.time()
     print('\tparsing bvh %r...' % filepath, end="")
@@ -530,15 +551,19 @@ def load(operator, context, filepath="", target='ARMATURE', rotate_mode='NATIVE'
 
     if target == 'ARMATURE':
         bvh_node_dict2armature(context, bvh_name, bvh_nodes,
-                rotate_mode=rotate_mode,
-                frame_start=frame_start,
-                IMPORT_LOOP=use_cyclic)
+                               rotate_mode=rotate_mode,
+                               frame_start=frame_start,
+                               IMPORT_LOOP=use_cyclic,
+                               global_matrix=global_matrix,
+                               )
 
     elif target == 'OBJECT':
         bvh_node_dict2objects(context, bvh_name, bvh_nodes,
-                rotate_mode=rotate_mode,
-                frame_start=frame_start,
-                IMPORT_LOOP=use_cyclic)
+                              rotate_mode=rotate_mode,
+                              frame_start=frame_start,
+                              IMPORT_LOOP=use_cyclic,
+                              # global_matrix=global_matrix,  # TODO
+                              )
 
     else:
         raise Exception("invalid type")

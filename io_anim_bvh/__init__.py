@@ -46,7 +46,10 @@ from bpy.props import (StringProperty,
                        BoolProperty,
                        EnumProperty,
                        )
-from bpy_extras.io_utils import ImportHelper, ExportHelper
+from bpy_extras.io_utils import (ImportHelper,
+                                 ExportHelper,
+                                 axis_conversion,
+                                 )
 
 
 class ImportBVH(bpy.types.Operator, ImportHelper):
@@ -100,8 +103,41 @@ class ImportBVH(bpy.types.Operator, ImportHelper):
             default='NATIVE',
             )
 
+    axis_forward = EnumProperty(
+            name="Forward",
+            items=(('X', "X Forward", ""),
+                   ('Y', "Y Forward", ""),
+                   ('Z', "Z Forward", ""),
+                   ('-X', "-X Forward", ""),
+                   ('-Y', "-Y Forward", ""),
+                   ('-Z', "-Z Forward", ""),
+                   ),
+            default='-Z',
+            )
+
+    axis_up = EnumProperty(
+            name="Up",
+            items=(('X', "X Up", ""),
+                   ('Y', "Y Up", ""),
+                   ('Z', "Z Up", ""),
+                   ('-X', "-X Up", ""),
+                   ('-Y', "-Y Up", ""),
+                   ('-Z', "-Z Up", ""),
+                   ),
+            default='Y',
+            )
+
     def execute(self, context):
-        keywords = self.as_keywords(ignore=("filter_glob",))
+        keywords = self.as_keywords(ignore=("axis_forward",
+                                            "axis_up",
+                                            "filter_glob",
+                                            ))
+
+        global_matrix = axis_conversion(from_forward=self.axis_forward,
+                                        from_up=self.axis_up,
+                                        ).to_4x4()
+
+        keywords["global_matrix"] = global_matrix
 
         from . import import_bvh
         return import_bvh.load(self, context, **keywords)
