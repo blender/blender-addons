@@ -37,14 +37,16 @@ class NdVector:
         return len(self.vec)
 
     def __mul__(self, otherMember):
-        if (isinstance(otherMember, int) or
-            isinstance(otherMember, float)):
-            return NdVector([otherMember * x for x in self.vec])
-        else:
+        # assume anything with list access is a vector
+        if isinstance(otherMember, NdVector):
             a = self.vec
             b = otherMember.vec
             n = len(self)
             return sum([a[i] * b[i] for i in range(n)])
+        else:
+            # int/float
+            return NdVector([otherMember * x for x in self.vec])
+
 
     def __sub__(self, otherVec):
         a = self.vec
@@ -61,10 +63,12 @@ class NdVector:
     def __div__(self, scalar):
         return NdVector([x / scalar for x in self.vec])
 
-    def vecLength(self):
+    @property
+    def length(self):
         return sqrt(self * self)
 
-    def vecLengthSq(self):
+    @property
+    def lengthSq(self):
         return (self * self)
 
     def normalize(self):
@@ -77,19 +81,16 @@ class NdVector:
     def __getitem__(self, i):
         return self.vec[i]
 
+    @property
     def x(self):
         return self.vec[0]
 
+    @property
     def y(self):
         return self.vec[1]
 
     def resize_2d(self):
         return Vector((self.x, self.y))
-
-    length = property(vecLength)
-    lengthSq = property(vecLengthSq)
-    x = property(x)
-    y = property(y)
 
 
 #Sampled Data Point class for Simplify Curves
@@ -266,12 +267,13 @@ def simplifyCurves(curveGroup, error, reparaError, maxIterations, group_mode):
     # get binomial coefficient lookup table, this function/table is only called with args
     # (3,0),(3,1),(3,2),(3,3),(2,0),(2,1),(2,2)!
     binomDict = {(3, 0): 1,
-    (3, 1): 3,
-    (3, 2): 3,
-    (3, 3): 1,
-    (2, 0): 1,
-    (2, 1): 2,
-    (2, 2): 1}
+                 (3, 1): 3,
+                 (3, 2): 3,
+                 (3, 3): 1,
+                 (2, 0): 1,
+                 (2, 1): 2,
+                 (2, 2): 1,
+                 }
 
     #value at pt t of a single bernstein Polynomial
     def bernsteinPoly(n, i, t):
