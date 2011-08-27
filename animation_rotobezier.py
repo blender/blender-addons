@@ -88,8 +88,9 @@ class VIEW3D_PT_rotobezier(bpy.types.Panel):
     def draw(self, context):
         layout = self.layout
         
-        col = layout.column(align=True)
+        ob = context.active_object
         
+        col = layout.column(align=True)
         col.label(text="Keyframing:")
         row = col.row()
         row.prop(context.window_manager, "key_points")
@@ -99,17 +100,15 @@ class VIEW3D_PT_rotobezier(bpy.types.Panel):
         row = col.row()
         row.operator('curve.insert_keyframe_rotobezier', icon='KEY_HLT')
         row.operator('curve.delete_keyframe_rotobezier', icon='KEY_DEHLT')
-        row = layout.row()
-        row.operator('curve.clear_animation_rotobezier', icon='X')
+
+        layout.operator('curve.clear_animation_rotobezier', icon='X')
         
         col = layout.column()
-        
         col.label(text="Display:")
-        row = col.row()
-        row.operator('curve.toggle_draw_rotobezier', icon='MESH_CIRCLE')
+        col.operator('curve.toggle_draw_rotobezier', icon='MESH_CIRCLE')
         
         if context.mode == 'EDIT_CURVE':
-            row.operator('curve.toggle_handles_rotobezier', icon='CURVE_BEZCIRCLE')
+            col.operator('curve.toggle_handles_rotobezier', icon='CURVE_BEZCIRCLE')
         
         col = layout.column(align=True)
         
@@ -117,9 +116,8 @@ class VIEW3D_PT_rotobezier(bpy.types.Panel):
         row = col.row()
         row.operator('curve.make_white_matte_rotobezier')
         row.operator('curve.make_black_matte_rotobezier')
-        row = layout.row()
-        ob = context.active_object
-        row.prop(ob, "pass_index")
+        
+        layout.prop(ob, "pass_index")
 
 
 class CURVE_OT_insert_keyframe_rotobezier(bpy.types.Operator):

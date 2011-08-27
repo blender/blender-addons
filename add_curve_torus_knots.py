@@ -174,8 +174,7 @@ class torus_knot_plus(bpy.types.Operator, AddObjectHelper):
         layout = self.layout
 
         # general options        
-        col = layout.column()
-        col.label(text="Torus Knot Parameters")
+        layout.label(text="Torus Knot Parameters:")
 
         # Parameters 
         box = layout.box()
@@ -192,7 +191,7 @@ class torus_knot_plus(bpy.types.Operator, AddObjectHelper):
 
         # surface Options
         col = layout.column()
-        col.label(text="Geometry Options")
+        col.label(text="Geometry Options:")
         box = layout.box()
         box.prop(self, 'geo_surf')
         if self.geo_surf:
@@ -200,6 +199,7 @@ class torus_knot_plus(bpy.types.Operator, AddObjectHelper):
             box.prop(self, 'geo_bRes')
             box.prop(self, 'geo_extrude')
             box.prop(self, 'geo_res')
+
         col = layout.column()
         col.prop(self, 'location')
         col.prop(self, 'rotation')

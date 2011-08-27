@@ -664,47 +664,47 @@ class landscape_add(bpy.types.Operator):
             box.prop(self, 'NoiseDepth')
             box.prop(self, 'mDimension')
             box.prop(self, 'mLacunarity')
-        if self.NoiseType == '1':
+        elif self.NoiseType == '1':
             box.prop(self, 'NoiseDepth')
             box.prop(self, 'mDimension')
             box.prop(self, 'mLacunarity')
             box.prop(self, 'mOffset')
             box.prop(self, 'mGain')
-        if self.NoiseType == '2':
+        elif self.NoiseType == '2':
             box.prop(self, 'NoiseDepth')
             box.prop(self, 'mDimension')
             box.prop(self, 'mLacunarity')
             box.prop(self, 'mOffset')
             box.prop(self, 'mGain')
-        if self.NoiseType == '3':
+        elif self.NoiseType == '3':
             box.prop(self, 'NoiseDepth')
             box.prop(self, 'mDimension')
             box.prop(self, 'mLacunarity')
             box.prop(self, 'mOffset')
-        if self.NoiseType == '4':
+        elif self.NoiseType == '4':
             box.prop(self, 'NoiseDepth')
             box.prop(self, 'mDimension')
             box.prop(self, 'mLacunarity')
-        if self.NoiseType == '5':
+        elif self.NoiseType == '5':
             box.prop(self, 'NoiseDepth')
             box.prop(self, 'HardNoise')
-        if self.NoiseType == '6':
+        elif self.NoiseType == '6':
             box.prop(self, 'VLBasisType')
             box.prop(self, 'Distortion')
-        if self.NoiseType == '7':
+        elif self.NoiseType == '7':
             box.prop(self, 'MarbleShape')
             box.prop(self, 'MarbleBias')
             box.prop(self, 'MarbleSharp')
             box.prop(self, 'Distortion')
             box.prop(self, 'NoiseDepth')
             box.prop(self, 'HardNoise')
-        if self.NoiseType == '8':
+        elif self.NoiseType == '8':
             box.prop(self, 'NoiseDepth')
             box.prop(self, 'mDimension')
             box.prop(self, 'mLacunarity')
             box.prop(self, 'mOffset')
             box.prop(self, 'Distortion')
-        if self.NoiseType == '9':
+        elif self.NoiseType == '9':
             box.prop(self, 'NoiseDepth')
             box.prop(self, 'mDimension')
             box.prop(self, 'mLacunarity')

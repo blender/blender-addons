@@ -659,15 +659,19 @@ class AddGear(bpy.types.Operator):
 
     def draw(self, context):
         layout = self.layout
+        
         box = layout.box()
         box.prop(self, 'number_of_teeth')
+        
         box = layout.box()
         box.prop(self, 'radius')
         box.prop(self, 'width')
         box.prop(self, 'base')
+        
         box = layout.box()
         box.prop(self, 'dedendum')
         box.prop(self, 'addendum')
+        
         box = layout.box()
         box.prop(self, 'angle')
         box.prop(self, 'skew')
@@ -676,7 +680,6 @@ class AddGear(bpy.types.Operator):
 
 
     def execute(self, context):
-
         verts, faces, verts_tip, verts_valley = add_gear(
             self.number_of_teeth,
             self.radius,

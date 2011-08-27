@@ -403,35 +403,29 @@ class AddTree(bpy.types.Operator):
         # Branch specs
         #layout.label('Tree Definition')
 
-        row = layout.row(align=True)
-        row.prop(self, 'chooseSet')
+        layout.prop(self, 'chooseSet')
 
         if self.chooseSet == '0':
             box = layout.box()
-            box.label('Geometry')
-            row = box.row()
-            row.prop(self, 'bevel')
+            box.label("Geometry:")
+            box.prop(self, 'bevel')
+            
             row = box.row()
             row.prop(self, 'bevelRes')
             row.prop(self, 'resU')
+            
+            box.prop(self, 'handleType')
+            box.prop(self, 'shape')
+            box.prop(self, 'seed')
+            box.prop(self, 'ratio')
+            
             row = box.row()
-            row.prop(self, 'handleType')
+            row.prop(self, 'scale')
+            row.prop(self, 'scaleV')
+            
             row = box.row()
-            row.prop(self, 'shape')
-            row = box.row()
-            row.prop(self, 'seed')
-            row = box.row()
-            row.prop(self, 'ratio')
-            row = box.row()
-            col = row.column()
-            col.prop(self, 'scale')
-            col = row.column()
-            col.prop(self, 'scaleV')
-            row = box.row()
-            col = row.column()
-            col.prop(self, 'scale0')
-            col = row.column()
-            col.prop(self, 'scaleV0')
+            row.prop(self, 'scale0')
+            row.prop(self, 'scaleV0')
 
             # Here we create a dict of all the properties.
             # Unfortunately as_keyword doesn't work with vector properties,
@@ -457,110 +451,88 @@ class AddTree(bpy.types.Operator):
             row.menu('sapling.presetmenu', text='Load Preset')
             row.prop(self, 'limitImport')
 
-        if self.chooseSet == '1':
+        elif self.chooseSet == '1':
             box = layout.box()
-            box.label('Branch Splitting')
-            row = box.row()
-            row.prop(self, 'levels')
-            row = box.row()
-            row.prop(self, 'baseSplits')
-            row = box.row()
-            row.prop(self, 'baseSize')
-            row = box.row()
-            col = row.column()
+            box.label("Branch Splitting:")
+            box.prop(self, 'levels')
+            box.prop(self, 'baseSplits')
+            box.prop(self, 'baseSize')
+            
+            split = box.split()
+            
+            col = split.column()
             col.prop(self, 'branches')
-            col = row.column()
-            col.prop(self, 'segSplits')
-            row = box.row()
-            col = row.column()
             col.prop(self, 'splitAngle')
-            col = row.column()
-            col.prop(self, 'splitAngleV')
-            row = box.row()
-            col = row.column()
             col.prop(self, 'downAngle')
-            col = row.column()
-            col.prop(self, 'downAngleV')
-            row = box.row()
-            col = row.column()
             col.prop(self, 'rotate')
-            col = row.column()
+            
+            col = split.column()
+            col.prop(self, 'segSplits')
+            col.prop(self, 'splitAngleV')
+            col.prop(self, 'downAngleV')
             col.prop(self, 'rotateV')
-            row = box.row()
-            col = row.column()
-            col.prop(self, 'ratioPower')
 
-        if self.chooseSet == '2':
+            box.prop(self, 'ratioPower')
+
+        elif self.chooseSet == '2':
             box = layout.box()
-            box.label('Branch Growth')
-            row = box.row()
-            row.prop(self, 'startCurv')
-            row = box.row()
-            row.prop(self, 'attractUp')
-            row = box.row()
-            col = row.column()
+            box.label("Branch Growth:")
+            box.prop(self, 'startCurv')
+            box.prop(self, 'attractUp')
+            
+            split = box.split()
+            
+            col = split.column()
             col.prop(self, 'length')
-            col = row.column()
-            col.prop(self, 'lengthV')
-            row = box.row()
-            col = row.column()
             col.prop(self, 'curve')
-            col = row.column()
-            col.prop(self, 'curveV')
-            row = box.row()
-            col = row.column()
             col.prop(self, 'curveBack')
-            col = row.column()
+            
+            col = split.column()
+            col.prop(self, 'lengthV')
+            col.prop(self, 'curveV')
             col.prop(self, 'taper')
-            row = box.row()
-            col = row.column()
-            col.prop(self, 'curveRes')
+            
+            box.column().prop(self, 'curveRes')
 
-        if self.chooseSet == '3':
+        elif self.chooseSet == '3':
             box = layout.box()
-            box.label('Pruning')
-            row = box.row()
-            row.prop(self, 'prune')
-            row = box.row()
-            row.prop(self, 'pruneRatio')
-            row = box.row()
-            row.prop(self, 'pruneWidth')
-            row = box.row()
-            row.prop(self, 'pruneWidthPeak')
+            box.label("Pruning:")
+            box.prop(self, 'prune')
+            box.prop(self, 'pruneRatio')
+            box.prop(self, 'pruneWidth')
+            box.prop(self, 'pruneWidthPeak')
+            
             row = box.row()
             row.prop(self, 'prunePowerHigh')
             row.prop(self, 'prunePowerLow')
 
-        if self.chooseSet == '4':
+        elif self.chooseSet == '4':
             box = layout.box()
-            box.label('Leaves')
+            box.label("Leaves:")
+            box.prop(self, 'showLeaves')
+            box.prop(self, 'leafShape')
+            box.prop(self, 'leaves')
+            box.prop(self, 'leafDist')
+            
             row = box.row()
-            row.prop(self, 'showLeaves')
-            row = box.row()
-            row.prop(self, 'leafShape')
-            row = box.row()
-            row.prop(self, 'leaves')
-            row = box.row()
-            row.prop(self, 'leafDist')
-            row = box.row()
-            col = row.column()
-            col.prop(self, 'leafScale')
-            col = row.column()
-            col.prop(self, 'leafScaleX')
-            row = box.row()
-            row.prop(self, 'bend')
+            row.prop(self, 'leafScale')
+            row.prop(self, 'leafScaleX')
+            
+            box.prop(self, 'bend')
 
-        if self.chooseSet == '5':
+        elif self.chooseSet == '5':
             box = layout.box()
-            box.label('Armature and Animation')
+            box.label("Armature and Animation:")
+            
             row = box.row()
             row.prop(self, 'useArm')
             row.prop(self, 'armAnim')
+            
             row = box.row()
             row.prop(self, 'windSpeed')
             row.prop(self, 'windGust')
-            row = box.row()
-            row.prop(self, 'frameRate')
+            
+            box.prop(self, 'frameRate')
 
     def execute(self, context):
         # Ensure the use of the global variables
