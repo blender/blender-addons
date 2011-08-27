@@ -401,12 +401,11 @@ class VIEW3D_OT_lightfield_tools(bpy.types.Panel):
     bl_label = "Light Field Tools"
 
     def draw(self, context):
+        layout = self.layout
+        
         scene = context.scene
 
-        layout = self.layout
-        layout.row()  # XXX, is this needed?
         col = layout.column()
-
         col.prop(scene.lightfield, "row_length")
         col.prop(scene.lightfield, "angle")
 
@@ -416,18 +415,16 @@ class VIEW3D_OT_lightfield_tools(bpy.types.Panel):
         col.prop(scene.lightfield, "animate_camera")
         col.prop(scene.lightfield, "do_projection")
 
-        sub = layout.row()
-        sub.enabled = scene.lightfield.do_projection
-        subcol = sub.column(align=True)
-        subcol.prop(scene.lightfield, "texture_path")
-        subcol.prop(scene.lightfield, "light_intensity")
-        subcol.prop(scene.lightfield, "spot_blend")
+        col = layout.column(align=True)
+        col.enabled = scene.lightfield.do_projection
+        col.prop(scene.lightfield, "texture_path")
+        col.prop(scene.lightfield, "light_intensity")
+        col.prop(scene.lightfield, "spot_blend")
 
         # create a basemesh
-        sub = layout.row()
-        subcol = sub.column(align=True)
-        subcol.operator("object.create_lightfield_basemesh", "Create Base Grid")
-        subcol.prop(scene.lightfield, "spacing")
+        col = layout.column(align=True)
+        col.operator("object.create_lightfield_basemesh", "Create Base Grid")
+        col.prop(scene.lightfield, "spacing")
 
         layout.operator("object.create_lightfield_rig", "Create Rig")
 

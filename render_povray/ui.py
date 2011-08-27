@@ -177,32 +177,22 @@ class RENDER_PT_povray_export_settings(RenderButtonsPanel, bpy.types.Panel):
         col.label(text="Command line switches:")
         col.prop(scene.pov, "command_line_switches", text="")
         split = layout.split()
-        col = split.column()
-        col.prop(scene.pov, "tempfiles_enable", text="OS Tempfiles")
+        split.prop(scene.pov, "tempfiles_enable", text="OS Tempfiles")
         if not scene.pov.tempfiles_enable:
-            col = split.column()
-            col.prop(scene.pov, "deletefiles_enable", text="Delete files")
-        else:
-            col = split.column()
+            split.prop(scene.pov, "deletefiles_enable", text="Delete files")
 
-        split = layout.split()
         if not scene.pov.tempfiles_enable:
-            col = split.column()
+            col = layout.column()
             col.prop(scene.pov, "scene_name", text="Name")
-            split = layout.split()
-            col = split.column()
             col.prop(scene.pov, "scene_path", text="Path to files")
             #col.prop(scene.pov, "scene_path", text="Path to POV-file")
-            split = layout.split()
-            #col = split.column()  # Bug in POV-Ray RC3
             #col.prop(scene.pov, "renderimage_path", text="Path to image")
-            #split = layout.split()
 
-            col = split.column()
-            col.prop(scene.pov, "indentation_character", text="Indent")
-            col = split.column()
+            split = layout.split()
+            split.prop(scene.pov, "indentation_character", text="Indent")
             if scene.pov.indentation_character == "2":
-                col.prop(scene.pov, "indentation_spaces", text="Spaces")
+                split.prop(scene.pov, "indentation_spaces", text="Spaces")
+            
             row = layout.row()
             row.prop(scene.pov, "comments_enable", text="Comments")
             row.prop(scene.pov, "list_lf_enable", text="Line breaks in lists")
@@ -219,22 +209,21 @@ class RENDER_PT_povray_render_settings(RenderButtonsPanel, bpy.types.Panel):
 
         layout.active = scene.pov.max_trace_level
 
-        split = layout.split()
-        col = split.column()
+        col = layout.column()
 
-        col.label(text="Global Settings")
+        col.label(text="Global Settings:")
         col.prop(scene.pov, "max_trace_level", text="Ray Depth")
 
-        col.label(text="Global Photons")
+        col.label(text="Global Photons:")
         col.prop(scene.pov, "photon_max_trace_level", text="Photon Depth")
 
         split = layout.split()
+
         col = split.column()
         col.prop(scene.pov, "photon_spacing", text="Spacing")
         col.prop(scene.pov, "photon_gather_min")
 
         col = split.column()
-
         col.prop(scene.pov, "photon_adc_bailout", text="Photon ADC")
         col.prop(scene.pov, "photon_gather_max")
 
@@ -379,14 +368,10 @@ class MATERIAL_PT_povray_mirrorIOR(MaterialButtonsPanel, bpy.types.Panel):
         layout.active = mat.pov.mirror_use_IOR
 
         if mat.pov.mirror_use_IOR:
-            split = layout.split()
-            col = split.column()
-            row = col.row()
-            row.alignment = 'CENTER'
-            row.label(text="The current Raytrace ")
-            row = col.row()
-            row.alignment = 'CENTER'
-            row.label(text="Transparency IOR is: " + str(mat.raytrace_transparency.ior))
+            col = layout.column()
+            col.alignment = 'CENTER'
+            col.label(text="The current Raytrace ")
+            col.label(text="Transparency IOR is: " + str(mat.raytrace_transparency.ior))
 
 
 class MATERIAL_PT_povray_metallic(MaterialButtonsPanel, bpy.types.Panel):
@@ -453,9 +438,7 @@ class MATERIAL_PT_povray_iridescence(MaterialButtonsPanel, bpy.types.Panel):
         layout.active = mat.pov.irid_enable
 
         if mat.pov.irid_enable:
-            split = layout.split()
-
-            col = split.column()
+            col = layout.column()
             col.prop(mat.pov, "irid_amount", slider=True)
             col.prop(mat.pov, "irid_thickness", slider=True)
             col.prop(mat.pov, "irid_turbulence", slider=True)
@@ -478,9 +461,7 @@ class MATERIAL_PT_povray_caustics(MaterialButtonsPanel, bpy.types.Panel):
         layout.active = mat.pov.caustics_enable
 
         if mat.pov.caustics_enable:
-            split = layout.split()
-
-            col = split.column()
+            col = layout.column()
             col.prop(mat.pov, "refraction_type")
 
             if mat.pov.refraction_type == "1":
@@ -491,14 +472,10 @@ class MATERIAL_PT_povray_caustics(MaterialButtonsPanel, bpy.types.Panel):
             col.prop(mat.pov, "photons_reflection")
 
             if mat.pov.refraction_type == "0" and not mat.pov.photons_reflection:
-                split = layout.split()
-                col = split.column()
-                row = col.row()
-                row.alignment = 'CENTER'
-                row.label(text="Caustics override is on, ")
-                row = col.row()
-                row.alignment = 'CENTER'
-                row.label(text="but you didn't chose any !")
+                col = layout.column()
+                col.alignment = 'CENTER'
+                col.label(text="Caustics override is on, ")
+                col.label(text="but you didn't chose any !")
 
 
 class MATERIAL_PT_povray_replacement_text(MaterialButtonsPanel, bpy.types.Panel):

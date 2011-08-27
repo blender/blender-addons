@@ -109,8 +109,7 @@ class DemoModeSetup(bpy.types.Operator):
         box.label("Search *.blend recursively")
         box.label("Writes: demo.py config text.")
 
-        col = layout.column()
-        col.prop(self, "run")
+        layout.prop(self, "run")
 
         col.label("Generate Settings:")
         row = col.row()
@@ -120,19 +119,19 @@ class DemoModeSetup(bpy.types.Operator):
         mode = self.mode
 
         col.separator()
-        colsub = col.column()
-        colsub.active = (mode in ('AUTO', 'PLAY'))
-        colsub.label("Animate Settings:")
-        colsub.prop(self, "anim_cycles")
-        colsub.prop(self, "anim_time_min")
-        colsub.prop(self, "anim_time_max")
-        colsub.prop(self, "anim_screen_switch")
+        sub = col.column()
+        sub.active = (mode in ('AUTO', 'PLAY'))
+        sub.label("Animate Settings:")
+        sub.prop(self, "anim_cycles")
+        sub.prop(self, "anim_time_min")
+        sub.prop(self, "anim_time_max")
+        sub.prop(self, "anim_screen_switch")
 
         col.separator()
-        colsub = col.column()
-        colsub.active = (mode in ('AUTO', 'RENDER'))
-        colsub.label("Render Settings:")
-        colsub.prop(self, "display_render")
+        sub = col.column()
+        sub.active = (mode in ('AUTO', 'RENDER'))
+        sub.label("Render Settings:")
+        sub.prop(self, "display_render")
 
 
 class DemoModeRun(bpy.types.Operator):

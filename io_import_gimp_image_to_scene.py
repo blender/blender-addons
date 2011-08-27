@@ -606,6 +606,7 @@ class GIMPImageToScene(bpy.types.Operator):
     
     def draw(self, context):
         layout = self.layout
+        
         box = layout.box()
         box.label('3D Layers:', icon='SORTSIZE')
         box.prop(self, 'SetCamera', icon='OUTLINER_DATA_CAMERA')
@@ -616,6 +617,7 @@ class GIMPImageToScene(bpy.types.Operator):
         box.prop(self, 'ShadelessMats', icon='SOLID')
         box.prop(self, 'LayerOffset')
         box.prop(self, 'LayerScale')
+        
         box = layout.box()
         box.label('Compositing:', icon='RENDERLAYERS')
         box.prop(self, 'SetupCompo', icon='NODETREE')

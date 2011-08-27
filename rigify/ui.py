@@ -47,8 +47,7 @@ class DATA_PT_rigify_buttons(bpy.types.Panel):
         id_store = C.window_manager
 
         if obj.mode in {'POSE', 'OBJECT'}:
-            row = layout.row()
-            row.operator("pose.rigify_generate", text="Generate")
+            layout.operator("pose.rigify_generate", text="Generate")
         elif obj.mode == 'EDIT':
             # Build types list
             collection_name = str(id_store.rigify_collection).replace(" ", "")
@@ -75,8 +74,8 @@ class DATA_PT_rigify_buttons(bpy.types.Panel):
             # Rig type list
             row = layout.row()
             row.template_list(id_store, "rigify_types", id_store, 'rigify_active_type')
-            row = layout.row()
-            op = row.operator("armature.metarig_sample_add", text="Add sample")
+
+            op = layout.operator("armature.metarig_sample_add", text="Add sample")
             op.metarig_type = id_store.rigify_types[id_store.rigify_active_type].name
 
 

@@ -90,7 +90,7 @@ class Inset(bpy.types.Operator):
     def draw(self, context):
         layout = self.layout
         box = layout.box()
-        box.label("Inset Options")
+        box.label("Inset Options:")
         box.prop(self, "scale")
         box.prop(self, "inset_amount")
         box.prop(self, "inset_height")

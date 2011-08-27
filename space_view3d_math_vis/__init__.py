@@ -49,10 +49,6 @@ class VIEW3D_PT_math_vis(bpy.types.Panel):
     bl_label = "Math View"
 
     def draw(self, context):
-        layout = self.layout
-
-        col = layout.column(align=True)
-
         callbacks = draw.callbacks
         ok = False
         for region in context.area.regions:
@@ -60,7 +56,7 @@ class VIEW3D_PT_math_vis(bpy.types.Panel):
                 ok = True
                 break
 
-        col.operator("view3d.math_vis_toggle", emboss=False, icon='CHECKBOX_HLT' if ok else 'CHECKBOX_DEHLT')
+        self.layout.operator("view3d.math_vis_toggle", emboss=False, icon='CHECKBOX_HLT' if ok else 'CHECKBOX_DEHLT')
 
 
 class SetupMathView(bpy.types.Operator):

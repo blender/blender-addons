@@ -2907,8 +2907,7 @@ class RigifyMhxPanel(bpy.types.Panel):
         return False
 
     def draw(self, context):
-        layout = self.layout
-        layout.operator("mhxrig.rigify_mhx")
+        self.layout.operator("mhxrig.rigify_mhx")
         return
 
 ###################################################################################

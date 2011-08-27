@@ -627,9 +627,10 @@ class OBJECT_PT_api_navigator(ApiNavigator, bpy.types.Panel):
 
         ###### layout ######
         layout = self.layout
-        col = layout.column()
-        layout.label(text='Tree Structure')
+
+        layout.label(text="Tree Structure:")
         col = layout.column(align=True)
+        
         col.prop(bpy.context.window_manager.api_nav_props, 'path', text='')
         row = col.row()
         row.operator("api_navigator.parent", text="Parent", icon="BACK")

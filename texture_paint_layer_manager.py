@@ -124,10 +124,9 @@ class OBJECT_PT_LoadBrushes(bpy.types.Panel):
     
     def draw(self, context):
         layout = self.layout
-        row = layout.row()
-        row.operator('texture.load_brushes')
-        row = layout.row()
-        row.operator('texture.load_single_brush')
+
+        layout.operator('texture.load_brushes')
+        layout.operator('texture.load_single_brush')
 
 
 #======================================================================
@@ -269,11 +268,8 @@ class OBJECT_PT_Texture_paint_add(bpy.types.Panel):
         if ob:
             mat = ob.active_material
             
-            if mat:
-                
-                #row = layout.row()   
+            if mat:  
                 col = layout.column(align =True)
-        
         
                 col.operator('object.add_paint_layer',
                     text = "Add Color").ttype = 'COLOR' 
@@ -309,8 +305,7 @@ class OBJECT_PT_Texture_paint_add(bpy.types.Panel):
                     text = "Add Ambient").ttype = 'AMBIENT' 
                                         
             else:
-                row = layout.row() 
-                row.label(' Add a Material first!', icon = 'ERROR')
+                layout.label(' Add a Material first!', icon = 'ERROR')
         
         
 
@@ -629,9 +624,7 @@ class OBJECT_PT_SavePainted(bpy.types.Panel):
         return (context.image_paint_object)
     
     def draw(self, context):
-        layout = self.layout
-        row = layout.row()
-        row.operator('paint.save_all_generated')        
+        self.layout.operator('paint.save_all_generated')        
         
 def register():
     bpy.utils.register_module(__name__)

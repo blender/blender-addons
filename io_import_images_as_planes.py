@@ -314,18 +314,21 @@ class IMPORT_OT_image_to_plane(bpy.types.Operator, ImportHelper, AddObjectHelper
     ## DRAW ##
     def draw(self, context):
         layout = self.layout
+        
         box = layout.box()
         box.label('Import Options:', icon='FILTER')
         box.prop(self, 'all_in_directory')
         box.prop(self, 'extension', icon='FILE_IMAGE')
         box.prop(self, 'align')
         box.prop(self, 'align_offset')
+        
         box = layout.box()
         box.label('Material mappings:', icon='MATERIAL')
         box.prop(self, 'use_shadeless')
         box.prop(self, 'use_transparency')
         box.prop(self, 'use_premultiply')
         box.prop(self, 'transparency_method', expand=True)
+        
         box = layout.box()
         box.label('Plane dimensions:', icon='ARROW_LEFTRIGHT')
         box.prop(self, 'use_dimension')

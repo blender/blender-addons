@@ -53,21 +53,15 @@ class VIEW3D_PT_tools_SURF_SKETCH(bpy.types.Panel):
         layout = self.layout
         
         scn = context.scene
-        ob = context.object
         
         col = layout.column(align=True)
-        row = layout.row()
-        row.separator()
         col.operator("gpencil.surfsk_add_surface", text="Add Surface")
         col.prop(scn, "SURFSK_edges_U")
         col.prop(scn, "SURFSK_edges_V")
-        row.separator()
-        col.prop(scn, "SURFSK_keep_strokes")
-        col.separator()
-        row.separator()
-        col.operator("gpencil.surfsk_strokes_to_curves", text="Strokes to curves")
         
-
+        layout.prop(scn, "SURFSK_keep_strokes")
+        layout.operator("gpencil.surfsk_strokes_to_curves", text="Strokes to curves")
+        
 
 class GPENCIL_OT_SURFSK_add_surface(bpy.types.Operator):
     bl_idname = "gpencil.surfsk_add_surface"

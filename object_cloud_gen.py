@@ -321,26 +321,21 @@ class VIEW3D_PT_tools_cloud(bpy.types.Panel):
         WhatToDo = getActionToDo(active_obj)
 
         if WhatToDo == 'DEGENERATE':
-
             col.operator("cloud.generate_cloud", text="DeGenerate")
 
         elif WhatToDo == 'CLOUD_CONVERT_TO_MESH':
-
             col.operator("cloud.generate_cloud", text="Convert to Mesh")
 
         elif WhatToDo == 'NO_SELECTION_DO_NOTHING':
-
             col.label(text="Select one or more")
             col.label(text="objects to generate")
             col.label(text="a cloud.")
 
         elif WhatToDo == 'CLOUD_DO_NOTHING':
-
             col.label(text="Must select")
             col.label(text="bound box")
            
         elif WhatToDo == 'GENERATE':
-
             col.operator("cloud.generate_cloud", text="Generate Cloud")
 
             col.prop(context.scene, "cloud_type")

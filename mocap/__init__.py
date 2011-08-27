@@ -257,24 +257,28 @@ class MocapPanel(bpy.types.Panel):
     bl_context = "object"
 
     def draw(self, context):
-        self.layout.label("Preprocessing")
-        row = self.layout.row(align=True)
-        row.alignment = 'EXPAND'
+        layout = self.layout()
+        
+        layout.label("Preprocessing:")
+        
+        row = layout.row(align=True)
         row.operator("mocap.denoise", text='Clean noise')
         row.operator("mocap.rotate_fix", text='Fix BVH Axis Orientation')
         row.operator("mocap.scale_fix", text='Auto scale Performer')
-        row2 = self.layout.row(align=True)
-        row2.operator("mocap.looper", text='Loop animation')
-        row2.operator("mocap.limitdof", text='Constrain Rig')
-        row2.operator("mocap.removelimitdof", text='Unconstrain Rig')
-        self.layout.label("Retargeting")
+        
+        row = layout.row(align=True)
+        row.operator("mocap.looper", text='Loop animation')
+        row.operator("mocap.limitdof", text='Constrain Rig')
+        row.operator("mocap.removelimitdof", text='Unconstrain Rig')
+        
+        layout.label("Retargeting:")
         enduser_obj = bpy.context.active_object
         performer_obj = [obj for obj in bpy.context.selected_objects if obj != enduser_obj]
         if enduser_obj is None or len(performer_obj) != 1:
-            self.layout.label("Select performer rig and target rig (as active)")
+            layout.label("Select performer rig and target rig (as active)")
         else:
-            self.layout.operator("mocap.guessmapping", text="Guess Hiearchy Mapping")
-            labelRow = self.layout.row(align=True)
+            layout.operator("mocap.guessmapping", text="Guess Hiearchy Mapping")
+            labelRow = layout.row(align=True)
             labelRow.label("Performer Rig")
             labelRow.label("End user Rig")
             performer_obj = performer_obj[0]
@@ -283,7 +287,7 @@ class MocapPanel(bpy.types.Panel):
                     perf = performer_obj.data
                     enduser_arm = enduser_obj.data
                     perf_pose_bones = enduser_obj.pose.bones
-                    MappingRow = self.layout.row(align=True)
+                    MappingRow = layout.row(align=True)
                     footCol = MappingRow.column(align=True)
                     nameCol = MappingRow.column(align=True)
                     nameCol.scale_x = 2
@@ -316,7 +320,7 @@ class MocapPanel(bpy.types.Panel):
                             twistCol.label(" ")
                             IKCol.label(" ")
                             IKLabel.label(" ")
-                    mapRow = self.layout.row()
+                    mapRow = layout.row()
                     mapRow.operator("mocap.savemapping", text='Save mapping')
                     mapRow.operator("mocap.loadmapping", text='Load mapping')
                     extraSettings = self.layout.box()
@@ -324,7 +328,7 @@ class MocapPanel(bpy.types.Panel):
                         extraSettings.prop(data=performer_obj.animation_data.action, property='name', text='Action Name')
                     extraSettings.prop(enduser_arm, "frameStep")
                     extraSettings.prop(enduser_arm, "advancedRetarget", text='Advanced Retarget')
-                    self.layout.operator("mocap.retarget", text='RETARGET!')
+                    layout.operator("mocap.retarget", text='RETARGET!')
 
 
 class MocapConstraintsPanel(bpy.types.Panel):
