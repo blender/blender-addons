@@ -237,9 +237,8 @@ def updateIKRetarget():
                 else:
                     pose_bone.IKRetarget = False
 
+
 updateIKRetarget()
-
-
 def hasIKConstraint(pose_bone):
     #utility function / predicate, returns True if given bone has IK constraint
     ik = [constraint for constraint in pose_bone.constraints if constraint.type == "IK"]
@@ -257,20 +256,20 @@ class MocapPanel(bpy.types.Panel):
     bl_context = "object"
 
     def draw(self, context):
-        layout = self.layout()
-        
+        layout = self.layout
+
         layout.label("Preprocessing:")
-        
+
         row = layout.row(align=True)
         row.operator("mocap.denoise", text='Clean noise')
         row.operator("mocap.rotate_fix", text='Fix BVH Axis Orientation')
         row.operator("mocap.scale_fix", text='Auto scale Performer')
-        
+
         row = layout.row(align=True)
         row.operator("mocap.looper", text='Loop animation')
         row.operator("mocap.limitdof", text='Constrain Rig')
         row.operator("mocap.removelimitdof", text='Unconstrain Rig')
-        
+
         layout.label("Retargeting:")
         enduser_obj = bpy.context.active_object
         performer_obj = [obj for obj in bpy.context.selected_objects if obj != enduser_obj]
