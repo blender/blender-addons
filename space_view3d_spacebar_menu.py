@@ -88,7 +88,6 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
 
             # Add Menu block
             layout.menu("VIEW3D_MT_AddMenu", icon='OBJECT_DATAMODE')
-            layout.separator()
 
             # Transform block
             layout.menu("VIEW3D_MT_TransformMenu", icon='MANIPUL')
@@ -98,34 +97,28 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
 
             # Cursor Block
             layout.menu("VIEW3D_MT_CursorMenu", icon='CURSOR')
-            layout.separator()
 
             # Parent block
             layout.menu("VIEW3D_MT_ParentMenu", icon='ROTACTIVE')
 
             # Group block
             layout.menu("VIEW3D_MT_GroupMenu", icon='GROUP')
-            layout.separator()
 
             # Modifier block
             layout.operator_menu_enum("object.modifier_add", "type",
                 icon='MODIFIER')
-            layout.separator()
 
             # Align block
             layout.menu("VIEW3D_MT_AlignMenu", icon='ALIGN')
-            layout.separator()
 
             # Select block
             layout.menu("VIEW3D_MT_SelectMenu", icon='RESTRICT_SELECT_OFF')
 
             # Toolshelf block
             layout.operator("view3d.toolshelf", icon='MENU_PANEL')
-            layout.separator()
 
             # Properties block
             layout.operator("view3d.properties", icon='MENU_PANEL')
-            layout.separator()
 
             #TODO: Add if statement to test whether editmode switch needs to
             #be added to the menu, since certain object can't enter edit mode
@@ -149,7 +142,6 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
             # Add block
             layout.menu("INFO_MT_mesh_add", text="Add Mesh",
                 icon='OUTLINER_OB_MESH')
-            layout.separator()
 
             # Transform block
             layout.menu("VIEW3D_MT_TransformMenu", icon='MANIPUL')
@@ -159,43 +151,37 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
 
             # Cursor block
             layout.menu("VIEW3D_MT_EditCursorMenu", icon='CURSOR')
-            layout.separator()
 
             # Proportional block
             layout.prop_menu_enum(settings, "proportional_edit",
                 icon="PROP_CON")
             layout.prop_menu_enum(settings, "proportional_edit_falloff",
                 icon="SMOOTHCURVE")
-            layout.separator()
 
             # Edit block
             layout.menu("VIEW3D_MT_edit_TK", icon='EDITMODE_HLT')
-            layout.separator()
 
             # Multi Select
             layout.menu("VIEW3D_MT_edit_multi", icon='VERTEXSEL')
-            layout.separator()
 
             # Extrude block
             layout.menu("VIEW3D_MT_edit_mesh_extrude", icon='EDIT_VEC')
-            layout.separator()
 
             # Tools block
             layout.menu("VIEW3D_MT_edit_mesh_specials", icon='MODIFIER')
+
+			# UV Map block
             layout.menu("VIEW3D_MT_uv_map", icon='MOD_UVPROJECT')
 
             # Select block
             layout.menu("VIEW3D_MT_SelectEditMenu",
                 icon='RESTRICT_SELECT_OFF')
-            layout.separator()
 
             # Toolshelf block
             layout.operator("view3d.toolshelf", icon='MENU_PANEL')
-            layout.separator()
 
             # Properties block
             layout.operator("view3d.properties", icon='MENU_PANEL')
-            layout.separator()
 
             # Toggle Object Mode
             layout.operator("object.editmode_toggle",
@@ -214,7 +200,6 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
             # Add block
             layout.menu("INFO_MT_curve_add", text="Add Curve",
                 icon='OUTLINER_OB_CURVE')
-            layout.separator()
 
             # Transform block
             layout.menu("VIEW3D_MT_TransformMenu", icon='MANIPUL')
@@ -224,24 +209,20 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
 
             # Cursor block
             layout.menu("VIEW3D_MT_CursorMenu", icon='CURSOR')
-            layout.separator()
 
             # Proportional block
             layout.prop_menu_enum(settings, "proportional_edit",
                 icon="PROP_CON")
             layout.prop_menu_enum(settings, "proportional_edit_falloff",
                 icon="SMOOTHCURVE")
-            layout.separator()
 
             # Edit Control Points
             layout.menu("VIEW3D_MT_EditCurveCtrlpoints",
                 icon='CURVE_BEZCURVE')
-            layout.separator()
 
             # Edit Curve Specials
             layout.menu("VIEW3D_MT_EditCurveSpecials",
                 icon='MODIFIER')
-            layout.separator()
 
             # Select Curve Block
             #Could use: VIEW3D_MT_select_edit_curve
@@ -252,11 +233,9 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
 
             # Toolshelf block
             layout.operator("view3d.toolshelf", icon='MENU_PANEL')
-            layout.separator()
 
             # Properties block
             layout.operator("view3d.properties", icon='MENU_PANEL')
-            layout.separator()
 
             # Toggle Objectmode
             layout.operator("object.editmode_toggle", text="Enter Object Mode",
@@ -276,7 +255,6 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
             # Add block
             layout.menu("INFO_MT_surface_add", text="Add Surface",
                 icon='OUTLINER_OB_SURFACE')
-            layout.separator()
 
             # Transform block
             layout.menu("VIEW3D_MT_TransformMenu", icon='MANIPUL')
@@ -286,30 +264,26 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
 
             # Cursor block
             layout.menu("VIEW3D_MT_CursorMenu", icon='CURSOR')
-            layout.separator()
 
             # Proportional block
             layout.prop_menu_enum(settings, "proportional_edit",
                 icon="PROP_CON")
             layout.prop_menu_enum(settings, "proportional_edit_falloff",
                 icon="SMOOTHCURVE")
-            layout.separator()
 
             # Edit Curve Specials
             layout.menu("VIEW3D_MT_EditCurveSpecials",
                 icon='MODIFIER')
-            layout.separator()
 
             # Select Surface
             layout.menu("VIEW3D_MT_SelectSurface", icon='RESTRICT_SELECT_OFF')
 
             # Toolshelf block
             layout.operator("view3d.toolshelf", icon='MENU_PANEL')
-            layout.separator()
+
 
             # Properties block
             layout.operator("view3d.properties", icon='MENU_PANEL')
-            layout.separator()
 
             # Toggle Objectmode
             layout.operator("object.editmode_toggle", text="Enter Object Mode",
@@ -331,7 +305,6 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
             #    icon='OUTLINER_OB_META')
             layout.operator_menu_enum("object.metaball_add", "type",
                 text="Add Metaball", icon='OUTLINER_OB_META')
-            layout.separator()
 
             # Transform block
             layout.menu("VIEW3D_MT_TransformMenu", icon='MANIPUL')
@@ -341,25 +314,21 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
 
             # Cursor block
             layout.menu("VIEW3D_MT_CursorMenu", icon='CURSOR')
-            layout.separator()
 
             # Proportional block
             layout.prop_menu_enum(settings, "proportional_edit",
                 icon="PROP_CON")
             layout.prop_menu_enum(settings, "proportional_edit_falloff",
                 icon="SMOOTHCURVE")
-            layout.separator()
 
             #Select Metaball
             layout.menu("VIEW3D_MT_SelectMetaball", icon='RESTRICT_SELECT_OFF')
 
             # Toolshelf block
             layout.operator("view3d.toolshelf", icon='MENU_PANEL')
-            layout.separator()
 
             # Properties block
             layout.operator("view3d.properties", icon='MENU_PANEL')
-            layout.separator()
 
             # Toggle Objectmode
             layout.operator("object.editmode_toggle", text="Enter Object Mode",
@@ -384,17 +353,13 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
 
             # Cursor block
             layout.menu("VIEW3D_MT_CursorMenu", icon='CURSOR')
-            layout.separator()
 
             # Proportional block
             layout.prop_menu_enum(settings, "proportional_edit",
                 icon= "PROP_CON")
             layout.prop_menu_enum(settings, "proportional_edit_falloff",
                 icon= "SMOOTHCURVE")
-            layout.separator()
-
             layout.operator("lattice.make_regular")
-            layout.separator()
 
             #Select Lattice
             layout.menu("VIEW3D_MT_select_edit_lattice",
@@ -402,11 +367,9 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
 
             # Toolshelf block
             layout.operator("view3d.toolshelf", icon='MENU_PANEL')
-            layout.separator()
 
             # Properties block
             layout.operator("view3d.properties", icon='MENU_PANEL')
-            layout.separator()
 
             # Toggle Objectmode
             layout.operator("object.editmode_toggle", text="Enter Object Mode",
@@ -431,18 +394,15 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
 
             # Cursor block
             layout.menu("VIEW3D_MT_CursorMenu", icon='CURSOR')
-            layout.separator()
 
             # Proportional block
             layout.prop_menu_enum(settings, "proportional_edit",
                 icon= "PROP_CON")
             layout.prop_menu_enum(settings, "proportional_edit_falloff",
                 icon= "SMOOTHCURVE")
-            layout.separator()
 
             # Particle block
             layout.menu("VIEW3D_MT_particle", icon='PARTICLEMODE')
-            layout.separator()
 
             #Select Particle
             layout.menu("VIEW3D_MT_select_particle",
@@ -453,11 +413,9 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
 
             # Toolshelf block
             layout.operator("view3d.toolshelf", icon='MENU_PANEL')
-            layout.separator()
 
             # Properties block
             layout.operator("view3d.properties", icon='MENU_PANEL')
-            layout.separator()
 
             # Toggle Objectmode
             layout.operator("object.mode_set", text="Enter Object Mode",
@@ -480,22 +438,18 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
 
             # Cursor block
             layout.menu("VIEW3D_MT_CursorMenu", icon='CURSOR')
-            layout.separator()
 
             # Weight Paint block
             layout.menu("VIEW3D_MT_paint_weight", icon='WPAINT_HLT')
-            layout.separator()
 
             # History/Cursor Block
             layout.menu("VIEW3D_MT_undoS", icon='ARROW_LEFTRIGHT')
 
             # Toolshelf block
             layout.operator("view3d.toolshelf", icon='MENU_PANEL')
-            layout.separator()
 
             # Properties block
             layout.operator("view3d.properties", icon='MENU_PANEL')
-            layout.separator()
 
             # Toggle Objectmode
             layout.operator("object.mode_set", text="Enter Object Mode",
@@ -513,22 +467,18 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
 
             # Cursor block
             layout.menu("VIEW3D_MT_CursorMenu", icon='CURSOR')
-            layout.separator()
 
             # Vertex Paint block
             layout.operator("paint.vertex_color_set", icon='VPAINT_HLT')
-            layout.separator()
 
             # History/Cursor Block
             layout.menu("VIEW3D_MT_undoS", icon='ARROW_LEFTRIGHT')
 
             # Toolshelf block
             layout.operator("view3d.toolshelf", icon='MENU_PANEL')
-            layout.separator()
 
             # Properties block
             layout.operator("view3d.properties", icon='MENU_PANEL')
-            layout.separator()
 
             # Toggle Objectmode
             layout.operator("object.mode_set", text="Enter Object Mode",
@@ -546,18 +496,15 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
 
             # Cursor block
             layout.menu("VIEW3D_MT_CursorMenu", icon='CURSOR')
-            layout.separator()
 
             # History/Cursor Block
             layout.menu("VIEW3D_MT_undoS", icon='ARROW_LEFTRIGHT')
 
             # Toolshelf block
             layout.operator("view3d.toolshelf", icon='MENU_PANEL')
-            layout.separator()
 
             # Properties block
             layout.operator("view3d.properties", icon='MENU_PANEL')
-            layout.separator()
 
             # Toggle Objectmode
             layout.operator("object.mode_set", text="Enter Object Mode",
@@ -578,22 +525,18 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
 
             # Cursor block
             layout.menu("VIEW3D_MT_CursorMenu", icon='CURSOR')
-            layout.separator()
 
             # Sculpt block
             layout.menu("VIEW3D_MT_sculpt", icon='SCULPTMODE_HLT')
-            layout.separator()
 
             # History/Cursor Block
             layout.menu("VIEW3D_MT_undoS", icon='ARROW_LEFTRIGHT')
 
             # Toolshelf block
             layout.operator("view3d.toolshelf", icon='MENU_PANEL')
-            layout.separator()
 
             # Properties block
             layout.operator("view3d.properties", icon='MENU_PANEL')
-            layout.separator()
 
             # Toggle Objectmode
             layout.operator("object.mode_set", text="Enter Object Mode",
@@ -614,7 +557,6 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
 
             # Cursor block
             layout.menu("VIEW3D_MT_CursorMenu", icon='CURSOR')
-            layout.separator()
 
             # Proportional block
             layout.prop_menu_enum(settings, "proportional_edit",
@@ -626,29 +568,24 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
             # Edit Armature roll
             layout.menu("VIEW3D_MT_edit_armature_roll",
                 icon='BONE_DATA')
-            layout.separator()
 
             # Edit Armature Toolkit
             layout.menu("VIEW3D_MT_EditArmatureTK",
                 icon='ARMATURE_DATA')
-            layout.separator()
 
             # Edit Armature Name
             layout.menu("VIEW3D_MT_ArmatureName",
                 icon='NEW')
-            layout.separator()
 
             # Parent block
             layout.menu("VIEW3D_MT_ParentMenu", icon='ROTACTIVE')
 
-            layout.separator()
-
+            # bone options block
             layout.menu("VIEW3D_MT_bone_options_toggle",
                 text="Bone Settings")
 
             # Edit Armature Specials
             layout.menu("VIEW3D_MT_armature_specials", icon='MODIFIER')
-            layout.separator()
 
             # Edit Armature Select
             layout.menu("VIEW3D_MT_SelectArmatureMenu",
@@ -656,11 +593,9 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
 
             # Toolshelf block
             layout.operator("view3d.toolshelf", icon='MENU_PANEL')
-            layout.separator()
 
             # Properties block
             layout.operator("view3d.properties", icon='MENU_PANEL')
-            layout.separator()
 
             # Toggle Posemode
             layout.operator("object.posemode_toggle", text="Enter Pose Mode",
@@ -673,7 +608,6 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
             # Delete block
             layout.operator("armature.delete", text="Delete Object",
                 icon='CANCEL')
-
 
         if context.mode == 'POSE':
             # Pose mode menu
@@ -691,62 +625,42 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
 
             # Cursor Menu
             layout.menu("VIEW3D_MT_CursorMenu", icon='CURSOR')
-            layout.separator()
 
             # Pose Copy Block
             layout.menu("VIEW3D_MT_PoseCopy", icon='FILE')
-            layout.separator()
-
 
             if arm.draw_type in {'BBONE', 'ENVELOPE'}:
                 layout.operator("transform.transform",
                     text="Scale Envelope Distance").mode = 'BONE_SIZE'
 
             layout.menu("VIEW3D_MT_pose_apply")
-            layout.separator()
-
             layout.operator("pose.relax")
-            layout.separator()
-
             layout.menu("VIEW3D_MT_KeyframeMenu")
-            layout.separator()
-
             layout.menu("VIEW3D_MT_pose_pose")
             layout.menu("VIEW3D_MT_pose_motion")
             layout.menu("VIEW3D_MT_pose_group")
-            layout.separator()
-
             layout.menu("VIEW3D_MT_pose_ik")
             layout.menu("VIEW3D_MT_PoseNames")
-            layout.separator()
-
             layout.menu("VIEW3D_MT_pose_constraints")
-            layout.separator()
-
             layout.operator("pose.quaternions_flip")
-            layout.separator()
 
             layout.operator_context = 'INVOKE_AREA'
             layout.operator("pose.armature_layers",
                 text="Change Armature Layers...")
             layout.operator("pose.bone_layers", text="Change Bone Layers...")
-            layout.separator()
 
             layout.menu("VIEW3D_MT_pose_showhide")
             layout.menu("VIEW3D_MT_bone_options_toggle",
                 text="Bone Settings")
-            layout.separator()
 
             # Select Pose Block
             layout.menu("VIEW3D_MT_SelectPoseMenu", icon='RESTRICT_SELECT_OFF')
 
             # Toolshelf block
             layout.operator("view3d.toolshelf", icon='MENU_PANEL')
-            layout.separator()
 
             # Properties block
             layout.operator("view3d.properties", icon='MENU_PANEL')
-            layout.separator()
 
             # Toggle Editmode
             layout.operator("object.editmode_toggle", text="Enter Edit Mode",
@@ -754,7 +668,6 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
 
             layout.operator("object.mode_set", text="Enter Object Mode",
                 icon='OBJECT_DATA').mode='OBJECT'
-
 
 class VIEW3D_MT_AddMenu(bpy.types.Menu):
     bl_label = "Add Object Menu"
