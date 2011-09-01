@@ -135,7 +135,7 @@ def register():
         importmod = BoolProperty(
             name="Remove Modifiers",
             description="Import and add modifiers.",
-            default= True
+            default= False
         )
         exportmod = BoolProperty(
             name="Modifiers",
