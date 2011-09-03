@@ -197,6 +197,7 @@ class SCENE_OT_export(bpy.types.Operator):
     bl_idname = "export_applink.pilgway_3d_coat"
     bl_label = "Export your custom property"
     bl_description = "Export your custom property"
+    bl_options = {'UNDO'}
 
     
     def invoke(self, context, event):
@@ -270,6 +271,7 @@ class SCENE_OT_import(bpy.types.Operator):
     bl_idname = "import_applink.pilgway_3d_coat"
     bl_label = "import your custom property"
     bl_description = "import your custom property"
+    bl_options = {'UNDO'}
     
     def invoke(self, context, event):
         scene = context.scene
@@ -389,6 +391,7 @@ class SCENE_OT_import3b(bpy.types.Operator):
     bl_idname = "import3b_applink.pilgway_3d_coat"
     bl_label = "Brings mesh from 3D-Coat"
     bl_description = "Bring 3D-Coat Mesh"
+    bl_options = {'UNDO'}
 
     
     def invoke(self, context, event):
