@@ -199,10 +199,12 @@ def gettex(mat_list, objekti, scene,export):
         elif(useold != ''):
                         
             objekti.active_material.texture_slots[index].texture = useold
+            objekti.active_material.texture_slots[index].texture.image = bpy.data.images[useold.name]
             objekti.active_material.texture_slots[index].texture.image.filepath = texcoat['color'][0]
             if(objekti.data.uv_textures.active):
                 objekti.active_material.texture_slots[index].texture_coords = 'UV'
                 objekti.active_material.texture_slots[index].uv_layer = objekti.data.uv_textures.active.name
+
     
     if(bring_normal == 1 and texcoat['nmap']):
         name_tex ='Normal_'
@@ -264,6 +266,7 @@ def gettex(mat_list, objekti, scene,export):
         elif(useold != ''):
             
             objekti.active_material.texture_slots[index].texture = useold
+            objekti.active_material.texture_slots[index].texture.image = bpy.data.images[useold.name]
             objekti.active_material.texture_slots[index].texture.image.filepath = texcoat['nmap'][0]
             if(objekti.data.uv_textures.active):
                 objekti.active_material.texture_slots[index].texture_coords = 'UV'
@@ -323,6 +326,7 @@ def gettex(mat_list, objekti, scene,export):
         elif(useold != ''):
             
             objekti.active_material.texture_slots[index].texture = useold
+            objekti.active_material.texture_slots[index].texture.image = bpy.data.images[useold.name]
             objekti.active_material.texture_slots[index].texture.image.filepath = texcoat['specular'][0]
             if(objekti.data.uv_textures.active):
                 objekti.active_material.texture_slots[index].texture_coords = 'UV'
@@ -381,6 +385,7 @@ def gettex(mat_list, objekti, scene,export):
         elif(useold != ''):
             
             objekti.active_material.texture_slots[index].texture = useold
+            objekti.active_material.texture_slots[index].texture.image = bpy.data.images[useold.name]
             objekti.active_material.texture_slots[index].texture.image.filepath = texcoat['disp'][0]
             if(objekti.data.uv_textures.active):
                 objekti.active_material.texture_slots[index].texture_coords = 'UV'
