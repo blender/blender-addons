@@ -67,6 +67,7 @@ class ImportSTL(bpy.types.Operator, ImportHelper):
     '''Load STL triangle mesh data'''
     bl_idname = "import_mesh.stl"
     bl_label = "Import STL"
+    bl_options = {'UNDO'}
 
     filename_ext = ".stl"
 

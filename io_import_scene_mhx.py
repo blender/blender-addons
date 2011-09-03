@@ -3000,6 +3000,7 @@ class ImportMhx(bpy.types.Operator, ImportHelper):
     bl_label = "Import MHX"
     bl_space_type = "PROPERTIES"
     bl_region_type = "WINDOW"
+    bl_options = {'UNDO'}
 
     scale = FloatProperty(name="Scale", description="Default meter, decimeter = 1.0", default = theScale)
     enums = []
