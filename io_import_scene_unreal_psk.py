@@ -744,6 +744,7 @@ class IMPORT_OT_psk(bpy.types.Operator):
     bl_label = "Import PSK"
     bl_space_type = "PROPERTIES"
     bl_region_type = "WINDOW"
+    bl_options = {'UNDO'}
 
     # List of operator properties, the attributes will be assigned
     # to the class instance from the operator settings before calling.

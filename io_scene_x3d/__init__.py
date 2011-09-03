@@ -57,7 +57,7 @@ class ImportX3D(bpy.types.Operator, ImportHelper):
     '''Import and X3D or VRML file'''
     bl_idname = "import_scene.x3d"
     bl_label = "Import X3D/VRML"
-    bl_options = {'PRESET'}
+    bl_options = {'PRESET', 'UNDO'}
 
     filename_ext = ".x3d"
     filter_glob = StringProperty(default="*.x3d;*.wrl", options={'HIDDEN'})

@@ -58,7 +58,7 @@ class ImportOBJ(bpy.types.Operator, ImportHelper):
     '''Load a Wavefront OBJ File'''
     bl_idname = "import_scene.obj"
     bl_label = "Import OBJ"
-    bl_options = {'PRESET'}
+    bl_options = {'PRESET', 'UNDO'}
 
     filename_ext = ".obj"
     filter_glob = StringProperty(

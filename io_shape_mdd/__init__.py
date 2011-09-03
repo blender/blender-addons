@@ -49,6 +49,7 @@ class ImportMDD(bpy.types.Operator, ImportHelper):
     '''Import MDD vertex keyframe file to shape keys'''
     bl_idname = "import_shape.mdd"
     bl_label = "Import MDD"
+    bl_options = {'UNDO'}
 
     filename_ext = ".mdd"
 

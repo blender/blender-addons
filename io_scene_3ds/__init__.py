@@ -54,6 +54,7 @@ class Import3DS(bpy.types.Operator, ImportHelper):
     '''Import from 3DS file format (.3ds)'''
     bl_idname = "import_scene.autodesk_3ds"
     bl_label = 'Import 3DS'
+    bl_options = {'UNDO'}
 
     filename_ext = ".3ds"
     filter_glob = StringProperty(default="*.3ds", options={'HIDDEN'})

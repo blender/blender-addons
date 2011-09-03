@@ -50,6 +50,7 @@ class ImportSVG(bpy.types.Operator, ImportHelper):
     '''Load a SVG file'''
     bl_idname = "import_curve.svg"
     bl_label = "Import SVG"
+    bl_options = {'UNDO'}
 
     filename_ext = ".svg"
     filter_glob = StringProperty(default="*.svg", options={'HIDDEN'})

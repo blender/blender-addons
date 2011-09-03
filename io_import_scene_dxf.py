@@ -2424,6 +2424,7 @@ class IMPORT_OT_autocad_dxf(bpy.types.Operator):
     bl_label = "Import DXF" +' v.'+ __version__
     bl_space_type = "PROPERTIES"
     bl_region_type = "WINDOW"
+    bl_options = {'UNDO'}
 
     filepath = StringProperty(
             name="File Path",

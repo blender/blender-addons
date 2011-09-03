@@ -54,6 +54,7 @@ class ImportM3(bpy.types.Operator, ImportHelper):
     '''Import from M3 file format (.m3)'''
     bl_idname = 'import_scene.blizzard_m3'
     bl_label = 'Import M3'
+    bl_options = {'UNDO'}
 
     filename_ext = '.m3'
     filter_glob = StringProperty(default='*.m3', options={'HIDDEN'})

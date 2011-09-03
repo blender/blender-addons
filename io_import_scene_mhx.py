@@ -2883,6 +2883,7 @@ def copyConstraint(cns1, pb1, pb2, mhx, rigify):
 class OBJECT_OT_RigifyMhxButton(bpy.types.Operator):
     bl_idname = "mhxrig.rigify_mhx"
     bl_label = "Rigify MHX rig"
+    bl_options = {'UNDO'}
 
     def execute(self, context):
         rigifyMhx(context, context.object.name)

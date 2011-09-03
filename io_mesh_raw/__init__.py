@@ -50,6 +50,7 @@ class RawImporter(bpy.types.Operator):
     '''Load Raw triangle mesh data'''
     bl_idname = "import_mesh.raw"
     bl_label = "Import RAW"
+    bl_options = {'UNDO'}
 
     filepath = StringProperty(name="File Path", description="Filepath used for importing the RAW file", maxlen=1024, default="", subtype='FILE_PATH')
     filter_glob = StringProperty(default="*.raw", options={'HIDDEN'})
