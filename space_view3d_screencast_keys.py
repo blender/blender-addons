@@ -337,6 +337,13 @@ class ScreencastKeysStatus(bpy.types.Operator):
 
         return {'PASS_THROUGH'}
 
+    def cancel(self, context):
+        if context.window_manager.display_keys:
+            context.region.callback_remove(self._handle)
+            context.window_manager.display_keys = False
+
+        return {'CANCELLED'}
+
     def invoke(self, context, event):
         if context.area.type == 'VIEW_3D':
             if context.window_manager.display_keys == False:
