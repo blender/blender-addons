@@ -192,6 +192,7 @@ class RENDER_PT_povray_export_settings(RenderButtonsPanel, bpy.types.Panel):
             split.prop(scene.pov, "indentation_character", text="Indent")
             if scene.pov.indentation_character == "2":
                 split.prop(scene.pov, "indentation_spaces", text="Spaces")
+
             
             row = layout.row()
             row.prop(scene.pov, "comments_enable", text="Comments")

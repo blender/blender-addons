@@ -28,8 +28,8 @@ def update2_0_0_9():
     # Temporally register old props, so we can access their values.
     register()
 
-    # Mapping old names → old default values
-    # XXX We could also store the new name, but as it is just the same without leading pov_ …
+    # Mapping old names -> old default values
+    # XXX We could also store the new name, but as it is just the same without leading pov_ ...
     # Get default values of pov scene props.
     old_sce_props = {}
     for k in ["pov_tempfiles_enable", "pov_deletefiles_enable", "pov_scene_name", "pov_scene_path",
@@ -81,7 +81,7 @@ def update2_0_0_9():
     ################################################################################################
     # Now, update !
     # For each old pov property of each scene, if its value is not equal to the default one,
-    # copy it to relevant new prop…
+    # copy it to relevant new prop...
     for sce in bpy.data.scenes:
         for k, d in old_sce_props.items():
             val = getattr(sce, k, d)

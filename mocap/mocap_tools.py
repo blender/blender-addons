@@ -47,7 +47,6 @@ class NdVector:
             # int/float
             return NdVector([otherMember * x for x in self.vec])
 
-
     def __sub__(self, otherVec):
         a = self.vec
         b = otherVec.vec

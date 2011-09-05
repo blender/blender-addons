@@ -239,6 +239,8 @@ def updateIKRetarget():
 
 
 updateIKRetarget()
+
+
 def hasIKConstraint(pose_bone):
     #utility function / predicate, returns True if given bone has IK constraint
     ik = [constraint for constraint in pose_bone.constraints if constraint.type == "IK"]

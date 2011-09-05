@@ -777,11 +777,11 @@ def write_pov(filename, scene=None, info_callback=None):
 #                        return True
 #            return False
         # For objects using local material(s) only!
-        # This is a mapping between a tuple (dataname, materialnames, …), and the POV dataname.
+        # This is a mapping between a tuple (dataname, materialnames, ...), and the POV dataname.
         # As only objects using:
         #     * The same data.
         #     * EXACTLY the same materials, in EXACTLY the same sockets.
-        # … can share a same instance in POV export.
+        # ... can share a same instance in POV export.
         obmats2data = {}
 
         def checkObjectMaterials(ob, name, dataname):
@@ -794,14 +794,14 @@ def write_pov(filename, scene=None, info_callback=None):
                         if ms.link == 'OBJECT' and not has_local_mats:
                             has_local_mats = True
                     else:
-                        # Even if the slot is empty, it is important to grab it…
+                        # Even if the slot is empty, it is important to grab it...
                         key.append("")
                 if has_local_mats:
                     # If this object uses local material(s), lets find if another object
                     # using the same data and exactly the same list of materials
-                    # (in the same slots) has already been processed…
+                    # (in the same slots) has already been processed...
                     # Note that here also, we use object name as new, unique dataname for Pov.
-                    key = tuple(key)  # Lists are not hashable…
+                    key = tuple(key)  # Lists are not hashable...
                     if key not in obmats2data:
                         obmats2data[key] = name
                     return obmats2data[key]

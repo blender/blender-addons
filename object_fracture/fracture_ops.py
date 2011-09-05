@@ -224,7 +224,7 @@ def boolop(ob, cutter, op):
 
          # This checks whether returned shards are non-manifold.
          # Problem is, if org mesh is non-manifold, it will always fail (e.g. with Suzanne).
-         # And disabling it does not seem to cause any problem…
+         # And disabling it does not seem to cause any problem...
 #        elif min(mesh_utils.edge_face_count(nmesh)) < 2:    # Manifold check
 #            fault = 1
 
