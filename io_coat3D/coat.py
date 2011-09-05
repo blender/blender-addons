@@ -442,6 +442,7 @@ class SCENE_OT_import3b(bpy.types.Operator):
             import_no = 0
         else:
             bpy.ops.import_scene.obj(filepath=obj_path,axis_forward='X',axis_up='Y')
+            bpy.ops.object.transform_apply(rotation=True)
             new_obj = scene.objects[0]
             scene.objects[0].coat3D.objectdir = export
             if(path_on):
