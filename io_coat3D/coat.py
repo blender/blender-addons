@@ -27,7 +27,6 @@ bpy.coat3D = dict()
 bpy.coat3D['active_coat'] = ''
 bpy.coat3D['status'] = 0
 
-
 class ObjectButtonsPanel():
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
@@ -106,8 +105,8 @@ class SCENE_PT_Main(ObjectButtonsPanel,bpy.types.Panel):
             colR.label(text="Import Settings:")
             colR.prop(coat3D,"importmesh")
             colR.prop(coat3D,"importmod")
-            colR.prop(coat3D,"smooth_on")
             colR.prop(coat3D,"importtextures")
+            colR.prop(coat3D,"multires")
             row = layout.row()
         
         if(bpy.context.selected_objects):
@@ -199,7 +198,6 @@ class SCENE_OT_export(bpy.types.Operator):
     bl_description = "Export your custom property"
     bl_options = {'UNDO'}
 
-    
     def invoke(self, context, event):
         checkname = ''
         coat3D = bpy.context.scene.coat3D
@@ -266,7 +264,6 @@ class SCENE_OT_export(bpy.types.Operator):
 
         return {'FINISHED'}
 
-
 class SCENE_OT_import(bpy.types.Operator):
     bl_idname = "import_applink.pilgway_3d_coat"
     bl_label = "import your custom property"
@@ -281,6 +278,7 @@ class SCENE_OT_import(bpy.types.Operator):
         act_first = bpy.context.scene.objects.active
         for act_name in test:
             if act_name.type == 'MESH' and os.path.isfile(act_name.coat3D.objectdir):
+                multires_on = False
                 activeobj = act_name.name
                 mat_list = []
                 scene.objects[activeobj].select = True
@@ -289,6 +287,18 @@ class SCENE_OT_import(bpy.types.Operator):
                 coat3D.rota = objekti.rotation_euler
                 coa = act_name.coat3D
 
+                if(coat3D.multires):
+                    for modifiers in objekti.modifiers:
+                        if modifiers.type == 'MULTIRES' and (modifiers.total_levels > 0):
+                            bpy.ops.object.multires_external_pack()
+                            multires = coat3D.exchangedir
+                            multires += ('%stemp.btx'%(os.sep))
+                            bpy.ops.object.multires_external_save(filepath=multires)
+                            #bpy.ops.object.multires_external_pack()
+                            multires_on = True
+                            multires_name = modifiers.name
+                            break
+                        
                 exportfile = coat3D.exchangedir
                 path3b_n = coat3D.exchangedir
                 path3b_n += ('last_saved_3b_file.txt')
@@ -303,11 +313,19 @@ class SCENE_OT_import(bpy.types.Operator):
                     os.remove(exportfile)
                     
                 if(objekti.material_slots):
+                    act_mat_index = objekti.active_material_index
+                    if(not(hasattr(objekti.active_material,'texture_slots'))):
+                        materials_old = bpy.data.materials.keys()
+                        bpy.ops.material.new()
+                        materials_new = bpy.data.materials.keys()
+                        new_ma = list(set(materials_new).difference(set(materials_old)))
+                        new_mat = new_ma[0]
+                        ki = bpy.data.materials[new_mat]
+                        objekti.material_slots[act_mat_index].material = ki
                     for obj_mat in objekti.material_slots:
                         mat_list.append(obj_mat.material)
-                    act_mat_index = objekti.active_material_index
 
-
+                 
                 if(coat3D.importmesh and os.path.isfile(coa.objectdir)):
                     mtl = coa.objectdir
                     mtl = mtl.replace('.obj','.mtl')
@@ -342,11 +360,6 @@ class SCENE_OT_import(bpy.types.Operator):
                     objekti.select = True
                     bpy.context.scene.objects.active = objekti
 
-                    if(coat3D.smooth_on):
-                        bpy.ops.object.shade_smooth()
-                    else:
-                        bpy.ops.object.shade_flat()
-
                 if(os.path.isfile(path3b_n)):
                     path3b_fil = open(path3b_n)
                     for lin in path3b_fil:
@@ -364,23 +377,36 @@ class SCENE_OT_import(bpy.types.Operator):
                     
                 if(mat_list):
                     for obj_mate in objekti.material_slots:
-                        for tex_slot in obj_mate.material.texture_slots:
-                            if(hasattr(tex_slot,'texture')):
-                                if(tex_slot.texture.type == 'IMAGE'):
-                                    if tex_slot.texture.image is not None:
-                                        tex_slot.texture.image.reload()
+                        if(hasattr(obj_mate.material,'texture_slots')):
+                            for tex_slot in obj_mate.material.texture_slots:
+                                if(hasattr(tex_slot,'texture')):
+                                    if(tex_slot.texture.type == 'IMAGE'):
+                                        if tex_slot.texture.image is not None:
+                                            tex_slot.texture.image.reload()
                                                                 
-
                 if(coat3D.importmod):
                     for mod_index in objekti.modifiers[:]:
                         objekti.modifiers.remove(mod_index)
                         
-                
-                        
                 if(coat3D.importtextures):
                                 export = ''
                                 tex.gettex(mat_list,objekti,scene,export)
-        
+
+                if(multires_on):
+                    temp_file = coat3D.exchangedir
+                    temp_file += ('%stemp2.btx'%(os.sep))
+                    if(objekti.modifiers[multires_name].levels == 0):
+                        objekti.modifiers[multires_name].levels = 1
+                        bpy.ops.object.multires_external_save(filepath=temp_file)
+                        objekti.modifiers[multires_name].filepath = multires
+                        objekti.modifiers[multires_name].levels = 0
+
+                    else:
+                        bpy.ops.object.multires_external_save(filepath=temp_file)
+                        objekti.modifiers[multires_name].filepath = multires
+                    #bpy.ops.object.multires_external_pack()
+                bpy.ops.object.shade_smooth()
+                
         for act_name in test:
             act_name.select = True
         bpy.context.scene.objects.active = act_first
@@ -393,7 +419,6 @@ class SCENE_OT_import3b(bpy.types.Operator):
     bl_description = "Bring 3D-Coat Mesh"
     bl_options = {'UNDO'}
 
-    
     def invoke(self, context, event):
 
         coat3D = bpy.context.scene.coat3D
@@ -452,15 +477,11 @@ class SCENE_OT_import3b(bpy.types.Operator):
         
         bpy.context.scene.objects.active = new_obj
 
-        if(coat3D.smooth_on):
-            bpy.ops.object.shade_smooth()
-        else:
-            bpy.ops.object.shade_flat()
-
+        bpy.ops.object.shade_smooth()
+       
         Blender_tex = ("%s%stextures.txt"%(coat3D.exchangedir,os.sep))
         mat_list.append(new_obj.material_slots[0].material)
         tex.gettex(mat_list, new_obj, scene,export)
-
 
         return {'FINISHED'}
 
@@ -487,7 +508,6 @@ class SCENE_OT_load3b(bpy.types.Operator):
             file.write("\n[3B]")
             file.close()
 
-
         return {'FINISHED'}
 
 class SCENE_OT_deltex(bpy.types.Operator):
@@ -495,7 +515,6 @@ class SCENE_OT_deltex(bpy.types.Operator):
     bl_label = "Picks Object's name into path"
     bl_description = "Loads 3b linked into object"
 
-    
     def invoke(self, context, event):
         if(bpy.context.selected_objects):
             if(context.selected_objects[0].type == 'MESH'):
@@ -518,10 +537,8 @@ class SCENE_OT_deltex(bpy.types.Operator):
     
         return {'FINISHED'}
 
-
 from bpy import *
 from mathutils import Vector, Matrix
-
 
 # 3D-Coat Dynamic Menu
 class VIEW3D_MT_Coat_Dynamic_Menu(bpy.types.Menu):
@@ -584,9 +601,6 @@ class VIEW3D_MT_Coat_Dynamic_Menu(bpy.types.Menu):
                     layout.operator("import3b_applink.pilgway_3d_coat", text="Bring from 3D-Coat")
                     layout.separator()
                 
-          
-            
-        
 class VIEW3D_MT_ImportMenu(bpy.types.Menu):
     bl_label = "Import Settings"
 
@@ -633,7 +647,6 @@ def register():
     km = wm.keyconfigs.addon.keymaps.new(name='3D View', space_type='VIEW_3D')
     kmi = km.keymap_items.new('wm.call_menu2', 'Q', 'PRESS')
     kmi.properties.name = "VIEW3D_MT_Coat_Dynamic_Menu"
-
 
 def unregister():
     bpy.utils.unregister_module(__name__)

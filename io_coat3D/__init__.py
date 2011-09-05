@@ -121,12 +121,6 @@ def register():
             description="Export Coarse.",
             default= True
         )
-   
-        smooth_on = BoolProperty(
-            name="Auto Smooth",
-            description="Add Modifiers and export.",
-            default= True
-        )
         exportfile = BoolProperty(
             name="No Import File",
             description="Add Modifiers and export.",
@@ -145,6 +139,11 @@ def register():
         export_pos = BoolProperty(
             name="Remember Position",
             description="Remember position.",
+            default= True
+        )
+        multires = BoolProperty(
+            name="Multires. Levels",
+            description="Saves Multiresolution data.",
             default= True
         )
         importtextures = BoolProperty(
