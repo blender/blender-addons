@@ -141,15 +141,15 @@ def register():
             description="Remember position.",
             default= True
         )
-        multires = BoolProperty(
-            name="Multires. Levels",
-            description="Saves Multiresolution data.",
-            default= True
-        )
         importtextures = BoolProperty(
             name="Bring Textures",
             description="Import Textures.",
             default= True
+        )
+        importlevel = BoolProperty(
+            name="Multires. Level.",
+            description="Bring Specific Multires Level.",
+            default= False
         )
         exportover = BoolProperty(
             name="Export Obj",

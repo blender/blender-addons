@@ -106,7 +106,9 @@ class SCENE_PT_Main(ObjectButtonsPanel,bpy.types.Panel):
             colR.prop(coat3D,"importmesh")
             colR.prop(coat3D,"importmod")
             colR.prop(coat3D,"importtextures")
-            colR.prop(coat3D,"multires")
+            
+            # This is Disabled, because of the blender bug. 
+            #colR.prop(coat3D,"importlevel")
             row = layout.row()
         
         if(bpy.context.selected_objects):
@@ -287,17 +289,19 @@ class SCENE_OT_import(bpy.types.Operator):
                 coat3D.rota = objekti.rotation_euler
                 coa = act_name.coat3D
 
-                if(coat3D.multires):
-                    for modifiers in objekti.modifiers:
-                        if modifiers.type == 'MULTIRES' and (modifiers.total_levels > 0):
+                
+                #See if there is multres modifier. 
+                for modifiers in objekti.modifiers:
+                    if modifiers.type == 'MULTIRES' and (modifiers.total_levels > 0):
+                        if(not(coat3D.importlevel)):
                             bpy.ops.object.multires_external_pack()
                             multires = coat3D.exchangedir
                             multires += ('%stemp.btx'%(os.sep))
                             bpy.ops.object.multires_external_save(filepath=multires)
                             #bpy.ops.object.multires_external_pack()
-                            multires_on = True
-                            multires_name = modifiers.name
-                            break
+                        multires_on = True
+                        multires_name = modifiers.name
+                        break
                         
                 exportfile = coat3D.exchangedir
                 path3b_n = coat3D.exchangedir
@@ -346,14 +350,23 @@ class SCENE_OT_import(bpy.types.Operator):
                     proxy_mat.user_clear()
                     bpy.data.materials.remove(proxy_mat)
                     bpy.ops.object.select_all(action='TOGGLE')
-                    
-                    scene.objects.active = obj_proxy
 
-                    obj_data = objekti.data.id_data
-                    objekti.data = obj_proxy.data.id_data
-                    if(bpy.data.meshes[obj_data.name].users == 0):
-                        bpy.data.meshes.remove(obj_data)
-                        objekti.data.id_data.name = obj_data.name
+                    if(coat3D.importlevel):
+                        obj_proxy.select = True
+                        obj_proxy.modifiers.new(name='temp',type='MULTIRES')
+                        objekti.select = True
+                        bpy.ops.object.multires_reshape(modifier=multires_name)
+                        bpy.ops.object.select_all(action='TOGGLE')
+                        multires_on = False
+                    else:
+                    
+                        scene.objects.active = obj_proxy
+                    
+                        obj_data = objekti.data.id_data
+                        objekti.data = obj_proxy.data.id_data
+                        if(bpy.data.meshes[obj_data.name].users == 0):
+                            bpy.data.meshes.remove(obj_data)
+                            objekti.data.id_data.name = obj_data.name
 
                     obj_proxy.select = True
                     bpy.ops.object.delete()
@@ -406,6 +419,7 @@ class SCENE_OT_import(bpy.types.Operator):
                         objekti.modifiers[multires_name].filepath = multires
                     #bpy.ops.object.multires_external_pack()
                 bpy.ops.object.shade_smooth()
+                
                 
         for act_name in test:
             act_name.select = True
