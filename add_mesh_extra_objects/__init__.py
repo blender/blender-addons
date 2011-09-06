@@ -21,7 +21,7 @@ bl_info = {
     "author": "Pontiac, Fourmadmen, varkenvarken, tuga3d, meta-androcto",
     "version": (0, 1),
     "blender": (2, 5, 9),
-    "api": 39685,
+    "api": 39933,
     "location": "View3D > Add > Mesh > Extra Objects",
     "description": "Adds More Object Types.",
     "warning": "",
@@ -60,15 +60,10 @@ class INFO_MT_mesh_extras_add(bpy.types.Menu):
         layout.menu("INFO_MT_mesh_gemstones_add", text="Gemstones")
         layout.menu("INFO_MT_mesh_gears_add", text="Gears")
         layout.menu("INFO_MT_mesh_math_add", text="Math Function")
+        layout.menu("INFO_MT_mesh_basic_add", text="Basic Objects")
         layout.operator("mesh.primitive_twisted_torus_add",
             text="Twisted Torus")
-        layout.operator("mesh.primitive_sqorus_add",
-            text="Sqorus")
-        layout.operator("mesh.primitive_wedge_add")
-        layout.operator("mesh.primitive_star_add",
-            text="Star")
-        layout.operator("mesh.primitive_trapezohedron_add",
-            text="Trapezohedron")
+
 
 class INFO_MT_mesh_gemstones_add(bpy.types.Menu):
     # Define the "Gemstones" menu
@@ -109,6 +104,22 @@ class INFO_MT_mesh_math_add(bpy.types.Menu):
             text="Z Math Surface")
         layout.operator("mesh.primitive_xyz_function_surface",
             text="XYZ Math Surface")
+
+class INFO_MT_mesh_basic_add(bpy.types.Menu):
+    # Define the "Simple Objects" menu
+    bl_idname = "INFO_MT_mesh_basic_add"
+    bl_label = "Simple Objects"
+
+    def draw(self, context):
+        layout = self.layout
+        layout.operator_context = 'INVOKE_REGION_WIN'
+        layout.operator("mesh.primitive_sqorus_add",
+            text="Sqorus")
+        layout.operator("mesh.primitive_wedge_add")
+        layout.operator("mesh.primitive_star_add",
+            text="Star")
+        layout.operator("mesh.primitive_trapezohedron_add",
+            text="Trapezohedron")
 
 # Register all operators and panels
 
