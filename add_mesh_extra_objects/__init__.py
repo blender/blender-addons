@@ -15,11 +15,12 @@
 #  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # ##### END GPL LICENSE BLOCK #####
+# Contributed to by Pontiac, Fourmadmen, varkenvarken, tuga3d, meta-androcto, metalliandy #
 
 bl_info = {
     "name": "Extra Objects",
-    "author": "Pontiac, Fourmadmen, varkenvarken, tuga3d, meta-androcto",
-    "version": (0, 1),
+    "author": "Multiple Authors",
+    "version": (0, 2),
     "blender": (2, 5, 9),
     "api": 39933,
     "location": "View3D > Add > Mesh > Extra Objects",
@@ -39,12 +40,14 @@ if "bpy" in locals():
     imp.reload(add_mesh_gemstones)
     imp.reload(add_mesh_gears)
     imp.reload(add_mesh_3d_function_surface)
+    imp.reload(add_mesh_polysphere)
 else:
     from . import add_mesh_extra_objects
     from . import add_mesh_twisted_torus
     from . import add_mesh_gemstones
     from . import add_mesh_gears
     from . import add_mesh_3d_function_surface
+    from . import add_mesh_polysphere
 
 import bpy
 
@@ -63,6 +66,8 @@ class INFO_MT_mesh_extras_add(bpy.types.Menu):
         layout.menu("INFO_MT_mesh_basic_add", text="Basic Objects")
         layout.operator("mesh.primitive_twisted_torus_add",
             text="Twisted Torus")
+        layout.operator("mesh.primitive_polysphere_add",
+            text="Polysphere")
 
 
 class INFO_MT_mesh_gemstones_add(bpy.types.Menu):
