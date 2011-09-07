@@ -230,3 +230,41 @@ def format_elapsed_time(t):
 	hrs = td.days*24	+ td.seconds/3600.0
 	
 	return '%i:%02i:%02i' % (hrs, min%60, td.seconds%60)
+
+def getSequenceTexturePath(it, f):
+	import bpy.path
+	import os.path
+	import string
+	fd = it.image_user.frame_duration
+	fs = it.image_user.frame_start
+	fo = it.image_user.frame_offset
+	cyclic = it.image_user.use_cyclic
+	ext = os.path.splitext(it.image.filepath)[-1]
+	fb = bpy.path.display_name_from_filepath(it.image.filepath)
+	dn = os.path.dirname(it.image.filepath)
+	rf = fb[::-1]
+	nl = 0
+	for i in range (len(fb)):
+		if rf[i] in string.digits:
+			nl += 1
+		else:
+			break
+	head = fb[:len(fb)-nl]
+	fnum = f
+	if fs != 1:
+		if f != fs:
+			fnum -= (fs-1)
+		elif f == fs:
+			fnum = 1
+	if fnum <= 0:
+		if cyclic:
+			fnum = fd - abs(fnum) % fd
+		else:
+			fnum = 1
+	elif fnum > fd:
+		if cyclic:
+			fnum = fnum % fd
+		else:
+			fnum = fd
+	fnum += fo
+	return dn + "/" + head + str(fnum).rjust(nl, "0") + ext
