@@ -21,7 +21,7 @@
 bl_info = {
     "name": "Autodesk FBX format",
     "author": "Campbell Barton",
-    "blender": (2, 5, 8),
+    "blender": (2, 5, 9),
     "api": 38691,
     "location": "File > Import-Export",
     "description": "Export FBX meshes, UV's, vertex colors, materials, "
@@ -145,7 +145,7 @@ class ExportFBX(bpy.types.Operator, ExportHelper):
             description=("Export currently assigned object and armature "
                          "animations into a default take from the scene "
                          "start/end frames"),
-            default=False
+            default=True
             )
     use_anim_optimize = BoolProperty(
             name="Optimize Keyframes",
