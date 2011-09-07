@@ -16,13 +16,26 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
+# #####
+#
+# Modification history:
+# - Version 1,4
+# - 07-sep-2011 (Gaia Clary):
+# - settings now stored in blend file  
+# - grouping mouse&text 
+# - mouse_size and font_size separated 
+# - boundingBox for improved readability.
+# - missing mouse "release" clicks added 
+#
+# ####
+
 # <pep8 compliant>
 
 
 bl_info = {
     'name': 'Screencast Keys',
     'author': 'Paulo Gomes, Bart Crouch, John E. Herrenyo',
-    'version': (1, 3),
+    'version': (1, 4),
     'blender': (2, 5, 9),
     'api': 39933,
     'location': 'View3D > Properties panel > Screencast Keys',
@@ -374,7 +387,8 @@ class ScreencastKeysStatus(bpy.types.Operator):
     bl_idname = "view3d.screencast_keys"
     bl_label = "Screencast Key Status Tool"
     bl_description = "Display keys pressed in the 3D-view"
-    
+    last_activity = 'NONE'
+
     def modal(self, context, event):
         if context.area:
             context.area.tag_redraw()
@@ -388,9 +402,14 @@ class ScreencastKeysStatus(bpy.types.Operator):
         if sc.screencast_keys_mouse != 'text':
             ignore_keys.extend(mouse_keys)
 
-        if event.value == 'PRESS':
+           
+        #if (event.value != "NOTHING" and event.value != "PRESS"):
+        #    print (event.value, event.type, "Previous activity was: ", self.last_activity)
+
+        if event.value == 'PRESS' or (event.value == 'RELEASE' and self.last_activity == 'KEYBOARD' and  event.type in mouse_keys ) :
             # add key-press to display-list
             sc_keys = []
+
             
             if event.ctrl:
                 sc_keys.append("Ctrl ")
@@ -400,7 +419,9 @@ class ScreencastKeysStatus(bpy.types.Operator):
                 sc_keys.append("Shift ")
             
             sc_amount = ""
+
             if self.key:
+                #print("Is a key")
                 if event.type not in ignore_keys and event.type in self.key[0]:
                     mods = "+ ".join(sc_keys)
                     old_mods = "+ ".join(self.key[0].split("+ ")[:-1])
@@ -414,14 +435,22 @@ class ScreencastKeysStatus(bpy.types.Operator):
                         del self.time[0]
          
             if event.type not in ignore_keys:
+                #print("Recorded as key")
                 sc_keys.append(event.type)
                 self.key.insert(0, "+ ".join(sc_keys) + sc_amount)
                 self.time.insert(0, time.time())
              
             elif event.type in mouse_keys and sc.screencast_keys_mouse == 'icon':
+                #print("Recorded as mouse press")
                 self.mouse.insert(0, event.type)
                 self.mouse_time.insert(0, time.time()) 
 
+            if event.type in mouse_keys:
+                self.last_activity = 'MOUSE'
+            else:
+                self.last_activity = 'KEYBOARD'
+            #print("Last activity set to:", self.last_activity)
+            
         if not context.window_manager.screencast_keys_keys:
             # stop script
             context.region.callback_remove(self._handle)
