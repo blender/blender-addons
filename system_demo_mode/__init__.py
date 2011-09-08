@@ -111,15 +111,15 @@ class DemoModeSetup(bpy.types.Operator):
 
         layout.prop(self, "run")
 
-        col.label("Generate Settings:")
-        row = col.row()
+        layout.label("Generate Settings:")
+        row = layout.row()
         row.prop(self, "mode", expand=True)
-        col.prop(self, "random_order")
+        layout.prop(self, "random_order")
 
         mode = self.mode
 
-        col.separator()
-        sub = col.column()
+        layout.separator()
+        sub = layout.column()
         sub.active = (mode in ('AUTO', 'PLAY'))
         sub.label("Animate Settings:")
         sub.prop(self, "anim_cycles")
@@ -127,8 +127,8 @@ class DemoModeSetup(bpy.types.Operator):
         sub.prop(self, "anim_time_max")
         sub.prop(self, "anim_screen_switch")
 
-        col.separator()
-        sub = col.column()
+        layout.separator()
+        sub = layout.column()
         sub.active = (mode in ('AUTO', 'RENDER'))
         sub.label("Render Settings:")
         sub.prop(self, "display_render")
