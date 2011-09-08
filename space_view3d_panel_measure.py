@@ -24,7 +24,7 @@ bl_info = {
     "api": 35864,
     "location": "View3D > Properties > Measure Panel",
     "description": "Measure distances between objects",
-    "warning": "",
+    "warning": "Script needs repairs",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/" \
         "Scripts/3D_interaction/Panel_Measure",
     "tracker_url": "https://projects.blender.org/tracker/index.php?" \
