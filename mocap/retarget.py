@@ -19,7 +19,7 @@
 # <pep8 compliant>
 
 import bpy
-from mathutils import *
+from mathutils import Vector, Matrix
 from math import radians, acos, pi
 from bl_operators import nla
 

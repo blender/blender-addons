@@ -607,7 +607,7 @@ class IvyGen(bpy.types.Operator):
 
     def draw(self, context):
         layout = self.layout
-        
+
         layout.prop(self, 'updateIvy', icon='CURVE_DATA')
 
         properties = layout.operator('curve.ivy_gen', text="Add New Ivy")
@@ -636,21 +636,21 @@ class IvyGen(bpy.types.Operator):
         box.label("Generation Settings:")
         box.prop(self, 'randomSeed')
         box.prop(self, 'maxTime')
-        
+
         box = layout.box()
         box.label("Size Settings:")
         box.prop(self, 'maxIvyLength')
         box.prop(self, 'ivySize')
         box.prop(self, 'maxFloatLength')
         box.prop(self, 'maxAdhesionDistance')
-        
+
         box = layout.box()
         box.label("Weight Settings:")
         box.prop(self, 'primaryWeight')
         box.prop(self, 'randomWeight')
         box.prop(self, 'gravityWeight')
         box.prop(self, 'adhesionWeight')
-        
+
         box = layout.box()
         box.label("Branch Settings:")
         box.prop(self, 'branchingProbability')

@@ -44,7 +44,10 @@ else:
 import math
 import bpy
 import mathutils
-from bpy.props import *
+from bpy.props import (BoolProperty,
+                       EnumProperty,
+                       FloatProperty,
+                       )
 
 
 class Inset(bpy.types.Operator):

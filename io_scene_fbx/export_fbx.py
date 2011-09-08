@@ -461,11 +461,11 @@ def save_single(operator, scene, filepath="",
             loc = tuple(loc)
             rot = tuple(rot.to_euler())  # quat -> euler
             scale = tuple(scale)
-                
+
             # Essential for XNA to use the original matrix not rotated nor scaled (JCB)
             if use_rotate_workaround:
                 matrix = ob.matrix_local
-            
+
         else:
             # This is bad because we need the parent relative matrix from the fbx parent (if we have one), dont use anymore
             #if ob and not matrix: matrix = ob.matrix_world * global_matrix
@@ -1042,7 +1042,7 @@ def save_single(operator, scene, filepath="",
             poseMatrix = write_object_props()[3]
 
         pose_items.append((fbxName, poseMatrix))
-        
+
         fw('\n\t\t}'
            '\n\t\tMultiLayer: 0'
            '\n\t\tMultiTake: 1'
@@ -2080,7 +2080,7 @@ def save_single(operator, scene, filepath="",
 
     del tmp_obmapping
     # Finished finding groups we use
-    
+
     # == WRITE OBJECTS TO THE FILE ==
     # == From now on we are building the FBX file from the information collected above (JCB)
 
@@ -2445,7 +2445,6 @@ Connections:  {''')
             for ob_base in ob_generic:
                 for fbxGroupName in ob_base.fbxGroupNames:
                     fw('\n\tConnect: "OO", "Model::%s", "GroupSelection::%s"' % (ob_base.fbxName, fbxGroupName))
-
 
     # I think the following always duplicates the armature connection because it is also in ob_all_typegroups above! (JCB)
     # for my_arm in ob_arms:

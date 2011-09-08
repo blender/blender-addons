@@ -82,6 +82,7 @@ class ImportSTL(bpy.types.Operator, ImportHelper):
     directory = StringProperty(
             subtype='DIR_PATH',
             )
+
     def execute(self, context):
         from . import stl_utils
         from . import blender_utils
