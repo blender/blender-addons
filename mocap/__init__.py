@@ -182,7 +182,7 @@ def toggleIKBone(self, context):
                 chainLen += 1
                 if hasIKConstraint(parent_bone):
                     break
-                deformer_children = [child for child in parent_bone.children if child.bone.use_deform]
+                #~ deformer_children = [child for child in parent_bone.children if child.bone.use_deform]
                 #~ if len(deformer_children) > 1:
                     #~ break
             ik.chain_count = chainLen
@@ -577,10 +577,6 @@ class OBJECT_OT_DenoiseButton(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
-        return context.active_object
-
-    @classmethod
-    def poll(cls, context):
         return context.active_object.animation_data
 
 
@@ -879,7 +875,7 @@ def register():
     #Advanced retargeting boolean property
     bpy.types.Armature.advancedRetarget = BoolProperty(default=False, update=advancedRetargetToggle)
     #frame step - frequency of frames to retarget. Skipping is useful for previewing, faster work etc.
-    bpy.types.Armature.frameStep = smooth_out = IntProperty(name="Frame Skip",
+    bpy.types.Armature.frameStep = IntProperty(name="Frame Skip",
             default=1,
             description="Amount of frames to skip - for previewing retargets quickly. 1 is fully sampled",
             min=1)

@@ -1223,19 +1223,13 @@ class vrmlNode(object):
 
 
 def gzipOpen(path):
-    try:
-        import gzip
-    except:
-        gzip = None
+    import gzip
 
     data = None
-    if gzip:
-        try:
-            data = gzip.open(path, 'r').read()
-        except:
-            pass
-    else:
-        print('\tNote, gzip module could not be imported, compressed files will fail to load')
+    try:
+        data = gzip.open(path, 'r').read()
+    except:
+        pass
 
     if data is None:
         try:

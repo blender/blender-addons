@@ -20,7 +20,7 @@
 
 import bpy
 from mathutils import Vector, Matrix
-from math import radians, acos, pi
+from math import radians
 from bl_operators import nla
 
 

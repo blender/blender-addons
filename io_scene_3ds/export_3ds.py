@@ -447,7 +447,6 @@ def make_material_texture_chunk(id, images):
     mat_sub = _3ds_chunk(id)
 
     def add_image(img):
-        import os
         import bpy
         filename = bpy.path.basename(image.filepath)
         mat_sub_file = _3ds_chunk(MATMAPFILE)

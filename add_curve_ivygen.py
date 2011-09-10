@@ -189,7 +189,7 @@ def createIvyGeometry(IVY, growLeaves):
         ob = bpy.data.objects.new('IvyLeaf', me)
         bpy.context.scene.objects.link(ob)
 
-        tex = me.uv_textures.new("Leaves")
+        me.uv_textures.new("Leaves")
 
         # Set the uv texture coords
         # TODO, this is non-functional, default uvs are ok?
@@ -565,7 +565,6 @@ class IvyGen(bpy.types.Operator):
         # Generate first root and node
         IVY.seed(seedPoint)
 
-        checkAlive = True
         checkTime = False
         maxLength = self.maxIvyLength  # * radius
 
