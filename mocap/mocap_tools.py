@@ -18,7 +18,7 @@
 
 # <pep8 compliant>
 
-from math import hypot, sqrt, isfinite, radians, pi
+from math import sqrt, radians
 import bpy
 import time
 from mathutils import Vector, Matrix

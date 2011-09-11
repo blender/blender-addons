@@ -392,7 +392,6 @@ class ScreencastKeysStatus(bpy.types.Operator):
     def modal(self, context, event):
         if context.area:
             context.area.tag_redraw()
-        wm = context.window_manager
         sc = context.scene
         # keys that shouldn't show up in the 3d-view
         mouse_keys = ['MOUSEMOVE','MIDDLEMOUSE','LEFTMOUSE',

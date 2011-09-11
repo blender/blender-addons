@@ -37,13 +37,6 @@ if "bpy" in locals():
     if "export_x3d" in locals():
         imp.reload(export_x3d)
 
-# Benoit's patch!
-try:
-    import gpu
-except:
-    gpu = None
-
-
 import bpy
 from bpy.props import StringProperty, BoolProperty, EnumProperty
 from bpy_extras.io_utils import (ImportHelper,
@@ -140,12 +133,11 @@ class ExportX3D(bpy.types.Operator, ExportHelper):
             description="Export parent child relationships",
             default=True,
             )
-    if gpu is not None:
-        use_h3d = BoolProperty(
-                name="H3D Extensions",
-                description="Export shaders for H3D",
-                default=False,
-                )
+    use_h3d = BoolProperty(
+            name="H3D Extensions",
+            description="Export shaders for H3D",
+            default=False,
+            )
     axis_forward = EnumProperty(
             name="Forward",
             items=(('X', "X Forward", ""),

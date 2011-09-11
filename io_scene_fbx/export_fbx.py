@@ -2950,7 +2950,7 @@ def save(operator, context,
 # Typical settings for XNA export
 #   No Cameras, No Lamps, No Edges, No face smoothing, No Default_Take, Armature as bone, Disable rotation
 
-# NOTE TO Campbell - 
+# NOTE TO Campbell -
 #   Can any or all of the following notes be removed because some have been here for a long time? (JCB 27 July 2011)
 # NOTES (all line numbers correspond to original export_fbx.py (under release/scripts)
 # - get rid of bpy.path.clean_name somehow
