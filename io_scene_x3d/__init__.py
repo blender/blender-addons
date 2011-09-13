@@ -34,6 +34,8 @@ bl_info = {
 
 if "bpy" in locals():
     import imp
+    if "import_x3d" in locals():
+        imp.reload(import_x3d)
     if "export_x3d" in locals():
         imp.reload(export_x3d)
 
