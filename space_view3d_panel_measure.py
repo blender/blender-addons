@@ -18,7 +18,7 @@
 
 bl_info = {
     "name": "Measure Panel",
-    "author": "Buerbaum Martin (Pontiac)",
+    "author": "Buerbaum Martin (Pontiac), TNae (Normal patch)",
     "version": (0, 7, 13),
     "blender": (2, 5, 7),
     "api": 35864,
@@ -58,6 +58,12 @@ It's very helpful to use one or two "Empty" objects with
 "Snap during transform" enabled for fast measurement.
 
 Version history:
+v0.7.15 - Measurement of face normals by TNae + extended to cover all cases.
+    Grouped measured values inside boxes.
+v0.7.14
+    Fixed matrix calculation order.
+    Replaced region3d_get_2d_coordinates with location_3d_to_region_2d"
+    from bpy_extras.view3d_utils.
 v0.7.13 - Moved property definitions to registration function.
     Changed automatic callback adding to manual,
     the current API doesn't seem to allow this top be automatically yet.
@@ -392,7 +398,7 @@ def faceAreaGlobal(face, obj):
 
         area = n.length / 2.0
 
-    return area
+    return area, n
 
 
 # Calculate the surface area of a mesh object.
@@ -405,6 +411,7 @@ def faceAreaGlobal(face, obj):
 def objectSurfaceArea(obj, selectedOnly, globalSpace):
     if (obj and obj.type == 'MESH' and obj.data):
         areaTotal = 0
+        normTotal = Vector((0.0, 0.0, 0.0))
 
         mesh = obj.data
 
@@ -412,14 +419,17 @@ def objectSurfaceArea(obj, selectedOnly, globalSpace):
         for face in mesh.faces:
             if not selectedOnly or face.select:
                 if globalSpace:
-                    areaTotal += faceAreaGlobal(face, obj)
+                    a, n = faceAreaGlobal(face, obj)
+                    areaTotal += a
+                    normTotal += n
                 else:
                     areaTotal += face.area
+                    normTotal += face.normal
 
-        return areaTotal
+        return areaTotal, normTotal
 
     # We can not calculate an area for this object.
-    return -1
+    return -1, Vector((0.0, 0.0, 0.0))
 
 
 # User friendly access to the "space" setting.
@@ -622,10 +632,11 @@ def draw_measurements_callback(self, context):
                         if f.select == 1]
 
                     if len(faces_selected) > 0:
-                        area = objectSurfaceArea(obj, True,
+                        area, normal = objectSurfaceArea(obj, True,
                             measureGlobal(sce))
                         if (area >= 0):
                             sce.measure_panel_area1 = area
+                            sce.measure_panel_normal1 = normal
 
         elif (context.mode == 'OBJECT'):
             # We are working in object mode.
@@ -655,18 +666,24 @@ def draw_measurements_callback(self, context):
                 obj1, obj2 = context.selected_objects
 
                 # Calculate surface area of the objects.
-                area1 = objectSurfaceArea(obj1, False, measureGlobal(sce))
-                area2 = objectSurfaceArea(obj2, False, measureGlobal(sce))
+                area1, normal1 = objectSurfaceArea(obj1, False,
+                    measureGlobal(sce))
+                area2, normal2 = objectSurfaceArea(obj2, False,
+                    measureGlobal(sce))
                 sce.measure_panel_area1 = area1
                 sce.measure_panel_area2 = area2
+                sce.measure_panel_normal1 = normal1
+                sce.measure_panel_normal2 = normal2
 
             elif (obj):
                 # One object selected.
 
                 # Calculate surface area of the object.
-                area = objectSurfaceArea(obj, False, measureGlobal(sce))
+                area, normal = objectSurfaceArea(obj, False,
+                    measureGlobal(sce))
                 if (area >= 0):
                     sce.measure_panel_area1 = area
+                    sce.measure_panel_normal1 = normal
 
 
 class VIEW3D_OT_display_measurements(bpy.types.Operator):
@@ -815,10 +832,11 @@ class VIEW3D_PT_measure(bpy.types.Panel):
                     # local  ... the object center to the 3D cursor.
                     # global ... the origin to the 3D cursor.
 
-                    row = layout.row()
+                    box = layout.box()
+                    row = box.row()
                     row.prop(sce, "measure_panel_dist")
 
-                    row = layout.row()
+                    row = box.row()
                     row.label(text="", icon='CURSOR')
                     row.label(text="", icon='ARROW_LEFTRIGHT')
                     if measureLocal(sce):
@@ -846,10 +864,11 @@ class VIEW3D_PT_measure(bpy.types.Panel):
                     # We measure the distance from the
                     # selected vertex object to the 3D cursor.
 
-                    row = layout.row()
+                    box = layout.box()
+                    row = box.row()
                     row.prop(sce, "measure_panel_dist")
 
-                    row = layout.row()
+                    row = box.row()
                     row.label(text="", icon='CURSOR')
                     row.label(text="", icon='ARROW_LEFTRIGHT')
                     row.label(text="", icon='VERTEXSEL')
@@ -868,10 +887,11 @@ class VIEW3D_PT_measure(bpy.types.Panel):
                     # We measure the distance between the
                     # two selected vertices.
 
-                    row = layout.row()
+                    box = layout.box()
+                    row = box.row()
                     row.prop(sce, "measure_panel_dist")
 
-                    row = layout.row()
+                    row = box.row()
                     row.label(text="", icon='VERTEXSEL')
                     row.label(text="", icon='ARROW_LEFTRIGHT')
                     row.label(text="", icon='VERTEXSEL')
@@ -898,11 +918,20 @@ class VIEW3D_PT_measure(bpy.types.Panel):
 
                         if len(faces_selected) > 0:
                             if (sce.measure_panel_area1 >= 0):
-                                row = layout.row()
+                                box = layout.box()
+                                row = box.row()
                                 row.label(
                                     text=str(len(faces_selected)),
                                     icon='FACESEL')
+
+                                row = box.row()
+                                row.label(text="Area")
                                 row.prop(sce, "measure_panel_area1")
+
+                                row = box.row()
+                                row.label(text="Normal")
+                                row = box.row()
+                                row.prop(sce, "measure_panel_normal1")
 
                                 row = layout.row()
                                 row.operator("view3d.reenter_editmode",
@@ -975,10 +1004,11 @@ class VIEW3D_PT_measure(bpy.types.Panel):
 
                 obj1, obj2 = context.selected_objects
 
-                row = layout.row()
+                box = layout.box()
+                row = box.row()
                 row.prop(sce, "measure_panel_dist")
 
-                row = layout.row()
+                row = box.row()
                 row.label(text="", icon='OBJECT_DATA')
                 row.prop(obj1, "name", text="")
 
@@ -996,14 +1026,32 @@ class VIEW3D_PT_measure(bpy.types.Panel):
                     if (sce.measure_panel_area1 >= 0
                     or sce.measure_panel_area2 >= 0):
                         if (sce.measure_panel_area1 >= 0):
-                            row = layout.row()
+                            box = layout.box()
+                            row = box.row()
                             row.label(text=obj1.name, icon='OBJECT_DATA')
+
+                            row = box.row()
+                            row.label(text="Area")
                             row.prop(sce, "measure_panel_area1")
 
+                            row = box.row()
+                            row.label(text="Normal")
+                            row = box.row()
+                            row.prop(sce, "measure_panel_normal1")
+
                         if (sce.measure_panel_area2 >= 0):
-                            row = layout.row()
+                            box = layout.box()
+                            row = box.row()
                             row.label(text=obj2.name, icon='OBJECT_DATA')
+
+                            row = box.row()
+                            row.label(text="Area")
                             row.prop(sce, "measure_panel_area2")
+
+                            row = box.row()
+                            row.label(text="Normal")
+                            row = box.row()
+                            row.prop(sce, "measure_panel_normal2")
 
                         row = layout.row()
                         row.prop(sce,
@@ -1014,10 +1062,11 @@ class VIEW3D_PT_measure(bpy.types.Panel):
                 # One object selected.
                 # We measure the distance from the object to the 3D cursor.
 
-                row = layout.row()
+                box = layout.box()
+                row = box.row()
                 row.prop(sce, "measure_panel_dist")
 
-                row = layout.row()
+                row = box.row()
                 row.label(text="", icon='CURSOR')
 
                 row.label(text="", icon='ARROW_LEFTRIGHT')
@@ -1033,9 +1082,18 @@ class VIEW3D_PT_measure(bpy.types.Panel):
                     # Display surface area of the object.
 
                     if (sce.measure_panel_area1 >= 0):
-                        row = layout.row()
+                        box = layout.box()
+                        row = box.row()
                         row.label(text=obj.name, icon='OBJECT_DATA')
+
+                        row = box.row()
+                        row.label(text="Area")
                         row.prop(sce, "measure_panel_area1")
+
+                        row = box.row()
+                        row.label(text="Normal")
+                        row = box.row()
+                        row.prop(sce, "measure_panel_normal1")
 
                         row = layout.row()
                         row.prop(sce,
@@ -1046,10 +1104,11 @@ class VIEW3D_PT_measure(bpy.types.Panel):
                 # Nothing selected.
                 # We measure the distance from the origin to the 3D cursor.
 
-                row = layout.row()
+                box = layout.box()
+                row = box.row()
                 row.prop(sce, "measure_panel_dist")
 
-                row = layout.row()
+                row = box.row()
                 row.label(text="", icon='CURSOR')
                 row.label(text="", icon='ARROW_LEFTRIGHT')
                 row.label(text="Origin [0,0,0]")
@@ -1074,6 +1133,12 @@ def register():
     bpy.types.Scene.measure_panel_area2 = bpy.props.FloatProperty(
         precision=PRECISION,
         unit="AREA")
+    bpy.types.Scene.measure_panel_normal1 = bpy.props.FloatVectorProperty(
+        precision=PRECISION,
+        subtype="XYZ")
+    bpy.types.Scene.measure_panel_normal2 = bpy.props.FloatVectorProperty(
+        precision=PRECISION,
+        subtype="XYZ")
 
     TRANSFORM = [
         ("measure_global", "Global",
