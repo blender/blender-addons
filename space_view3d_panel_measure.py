@@ -19,7 +19,7 @@
 bl_info = {
     "name": "Measure Panel",
     "author": "Buerbaum Martin (Pontiac), TNae (Normal patch)",
-    "version": (0, 7, 13),
+    "version": (0, 7, 15),
     "blender": (2, 5, 7),
     "api": 35864,
     "location": "View3D > Properties > Measure Panel",
