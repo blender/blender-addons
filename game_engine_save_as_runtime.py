@@ -35,6 +35,7 @@ import bpy
 import os
 import sys
 import shutil
+import tempfile
 
 
 def CopyPythonLibs(dst, overwrite_lib, report=print):
@@ -104,7 +105,8 @@ def WriteRuntime(player_path, output_path, copy_python, overwrite_lib, copy_dlls
     file.close()
     
     # Create a tmp blend file (Blenderplayer doesn't like compressed blends)
-    blend_path = bpy.path.clean_name(output_path)
+    tempdir = tempfile.mkdtemp()
+    blend_path = os.path.join(tempdir, bpy.path.clean_name(output_path))
     bpy.ops.wm.save_as_mainfile(filepath=blend_path,
                                 relative_remap=False,
                                 compress=False,
@@ -119,6 +121,7 @@ def WriteRuntime(player_path, output_path, copy_python, overwrite_lib, copy_dlls
 
     # Get rid of the tmp blend, we're done with it
     os.remove(blend_path)
+    os.rmdir(tempdir)
     
     # Create a new file for the bundled runtime
     output = open(output_path, 'wb')
