@@ -454,7 +454,7 @@ class RenderPovSettingsCamera(bpy.types.PropertyGroup):
     #DOF Toggle
     dof_enable = BoolProperty(
             name="Depth Of Field", description="EnablePOV-Ray Depth Of Field ",
-            default=True)
+            default=False)
 
     #Aperture (Intensity of the Blur)
     dof_aperture = FloatProperty(
