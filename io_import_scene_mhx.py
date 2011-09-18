@@ -26,7 +26,7 @@
 """
 Abstract
 MHX (MakeHuman eXchange format) importer for Blender 2.5x.
-Version 1.7.0
+Version 1.7.1
 
 This script should be distributed with Blender.
 If not, place it in the .blender/scripts/addons dir
@@ -39,7 +39,7 @@ Alternatively, run the script in the script editor (Alt-P), and access from the 
 bl_info = {
     'name': 'Import: MakeHuman (.mhx)',
     'author': 'Thomas Larsson',
-    'version': (1, 7, 0),
+    'version': (1, 7, 1),
     "blender": (2, 5, 8),
     "api": 37702,
     'location': "File > Import > MakeHuman (.mhx)",
@@ -52,7 +52,7 @@ bl_info = {
 
 MAJOR_VERSION = 1
 MINOR_VERSION = 7
-SUB_VERSION = 0
+SUB_VERSION = 1
 BLENDER_VERSION = (2, 58, 0)
 
 #
@@ -806,9 +806,11 @@ def parseFModifier(fcu, args, tokens):
 """
 def parseDriverTarget(var, nTarget, rna, args, tokens):
     targ = var.targets[nTarget]
-    ob = loadedData['Object'][args[0]]
-    #print("    targ id", targ, ob)
-    targ.id = ob
+    name = args[0]
+    #targ.id_type = args[1]
+    dtype = args[1].capitalize()
+    dtype = 'Object'
+    targ.id = loadedData[dtype][name]
     #print("    ->", targ.id)
     for (key, val, sub) in tokens:
         defaultKey(key, val, sub, 'targ', [], globals(), locals())
