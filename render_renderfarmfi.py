@@ -852,37 +852,50 @@ class ORE_PrepareOp(bpy.types.Operator):
         rd.resolution_percentage = 100
         if rd.file_format != 'PNG':
             print("Renderfarm.fi always uses PNG for output. Changing to PNG.")
-            self.report({'WARNING'}, "Renderfarm.fi always uses PNG for output. Changing to PNG.")
+            self.report({'WARNING'}, "Renderfarm.fi always uses PNG for " \
+                                     "output, changing to PNG")
         rd.file_format = 'PNG'
         if (rd.use_sss == True or hasSSSMaterial()) and ore.parts > 1:
-            print("Subsurface Scattering is not supported when rendering with parts > 1. Disabling")
-            self.report({'WARNING'}, "Subsurface Scattering is not supported when rendering with parts > 1. Disabling")
+            print("Subsurface Scattering is not supported when rendering " \
+                  "with parts > 1. Disabling")
+            self.report({'WARNING'}, "Subsurface Scattering is not " \
+                                     "supported when rendering with " \
+                                     "parts > 1, disabling")
             rd.use_sss = False # disabling because ore.parts > 1. It's ok to use SSS with 1part/frame
         if hasUnsupportedSimulation() == True:
-            print("An unsupported simulation was detected. Please check your settings and remove them")
-            self.report({'WARNING'}, "An unsupported simulation was detected. Please check your settings and remove them")
+            print("An unsupported simulation was detected. Please " \
+                  "check your settings and remove them")
+            self.report({'WARNING'}, "An unsupported simulation was " \
+                                     "detected. Please check your settings " \
+                                     "and remove them")
             ore.hasUnsupportedSimulation = True
             errors = True
         else:
             ore.hasUnsupportedSimulation = False
         if (rd.use_full_sample == True and rd.use_save_buffers == True):
-            print("Save Buffers is not supported. As you also have Full Sample on, I'm turning both of the settings off")
-            self.report({'WARNING'}, "Save Buffers is not supported. As you also have Full Sample on, I'm turning both of the settings off")
+            print("Save Buffers is not supported. As you also have Full " \
+                  "Sample on, I'm turning both of the settings off")
+            self.report({'WARNING'}, "Save Buffers is not supported; as you " \
+                                     "also have Full Sample on, I'm turning " \
+                                     "both of the settings off")
         if (rd.use_full_sample == False and rd.use_save_buffers == True):
             print("Save buffers needs to be turned off. Changing to off")
-            self.report({'WARNING'}, "Save buffers needs to be turned off. Changing to off")
+            self.report({'WARNING'}, "Save buffers needs to be turned off, " \
+                                     "changing to off")
         rd.use_full_sample = False
         rd.use_save_buffers = False
         rd.use_free_image_textures = True
         if (rd.use_border == True):
             print("Border render is not supported. Turning it off")
-            self.report({'WARNING'}, "Border render is not supported. Turning it off")
+            self.report({'WARNING'}, "Border render is not supported, " \
+                                     "turning it off")
         rd.use_border = False
         if rd.use_compositing:
             if hasCompositingErrors(sce.use_nodes, sce.node_tree, ore.parts):
                 print("Found disallowed nodes or problematic setup")
                 rd.use_compositing = False
-                self.report({'WARNING'}, "Found disallowed nodes or problematic setup")
+                self.report({'WARNING'}, "Found disallowed nodes or " \
+                                         "problematic setup")
         print("Done checking the scene. Now do a test render")
         self.report({'INFO'}, "Done checking the scene. Now do a test render")
         print("=============================================")
@@ -892,7 +905,9 @@ class ORE_PrepareOp(bpy.types.Operator):
         # Errors is only True if there is a setting that could not be changed to the correct setting
         # In short, unsupported simulations
         if errors:
-            self.report({'WARNING'}, "Some issues found. Check console and do a test render to make sure everything works.")
+            self.report({'WARNING'}, "Some issues found, check console and " \
+                                     "do a test render to make sure " \
+                                     "everything works")
             ore.prepared = False
         else:
             ore.prepared = True
@@ -982,7 +997,10 @@ class RenderfarmFi(bpy.types.RenderEngine):
 def register():
     bpy.utils.register_module(__name__)
 
-    bpy.types.Scene.ore_render = PointerProperty(type=ORESettings, name='ORE Render', description='ORE Render Settings')
+    bpy.types.Scene.ore_render = PointerProperty(
+            type=ORESettings,
+            name='ORE Render',
+            description='ORE Render Settings')
 
     #~ bpy.types.INFO_MT_render.append(menu_export)
 

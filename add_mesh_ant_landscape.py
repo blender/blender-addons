@@ -534,31 +534,31 @@ class landscape_add(bpy.types.Operator):
                 min=1,
                 max=16,
                 default=6,
-                description="Noise Depth - number of frequencies in the fBm.")
+                description="Noise Depth - number of frequencies in the fBm")
 
     mDimension = FloatProperty(name="Dimension",
                 min=0.01,
                 max=2.0,
                 default=1.0,
-                description="H - fractal dimension of the roughest areas.")
+                description="H - fractal dimension of the roughest areas")
 
     mLacunarity = FloatProperty(name="Lacunarity",
                 min=0.01,
                 max=6.0,
                 default=2.0,
-                description="Lacunarity - gap between successive frequencies.")
+                description="Lacunarity - gap between successive frequencies")
 
     mOffset = FloatProperty(name="Offset",
                 min=0.01,
                 max=6.0,
                 default=1.0,
-                description="Offset - raises the terrain from sea level.")
+                description="Offset - raises the terrain from sea level")
 
     mGain = FloatProperty(name="Gain",
                 min=0.01,
                 max=6.0,
                 default=1.0,
-                description="Gain - scale factor.")
+                description="Gain - scale factor")
 
     BiasTypes = [
                 ("0","Sin","Sin"),

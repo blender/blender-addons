@@ -55,7 +55,7 @@ from bpy.props import *
 
 bpy.types.Scene.unrealbonesize = FloatProperty(
     name="Bone Length",
-    description="Bone Length from head to tail distance.",
+    description="Bone Length from head to tail distance",
     default=1,min=0.001,max=1000)
 
 #output log in to txt file
@@ -765,22 +765,23 @@ class IMPORT_OT_psk(bpy.types.Operator):
             )
     importbone = BoolProperty(
             name="Bones",
-            description="Import bones only. Current not working yet.",
+            description="Import bones only. Current not working yet",
             default=True,
             )
     importmultiuvtextures = BoolProperty(
             name="Single UV Texture(s)",
-            description="Single or Multi uv textures.",
+            description="Single or Multi uv textures",
             default=True,
             )
     bDebugLogPSK = BoolProperty(
             name="Debug Log.txt",
-            description="Log the output of raw format. It will save in current file dir. Note this just for testing.",
+            description="Log the output of raw format. It will save in " \
+                        "current file dir. Note this just for testing",
             default=False,
             )
     unrealbonesize = FloatProperty(
             name="Bone Length",
-            description="Bone Length from head to tail distance.",
+            description="Bone Length from head to tail distance",
             default=1,
             min=0.001,
             max=1000,

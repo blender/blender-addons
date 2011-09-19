@@ -368,8 +368,8 @@ class AddSqorus(bpy.types.Operator):
         max=1.99,
         default=2.0 / 3.0)
     subdivide = BoolProperty(name="Subdivide Outside",
-        description="Enable to subdivide the faces on the outside." \
-            " This results in equally spaced vertices.",
+        description="Enable to subdivide the faces on the outside " \
+                    "(this results in equally spaced vertices)",
         default=True)
 
     def execute(self, context):

@@ -228,7 +228,8 @@ def register():
                 cls._PROP_STORAGE_ID,
                 StringProperty(
                     name="Scene Name",
-                    description="Name of POV-Ray scene to create. Empty name will use the name of the blend file.",
+                    description="Name of POV-Ray scene to create. Empty " \
+                                "name will use the name of the blend file",
                     default=cls._PROP_STORAGE_DEFAULT, maxlen=1024),
                 )
 

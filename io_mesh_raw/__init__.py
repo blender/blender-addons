@@ -90,7 +90,7 @@ class RawExporter(bpy.types.Operator):
             )
     triangulate = BoolProperty(
             name="Triangulate",
-            description="Triangulate quads.",
+            description="Triangulate quads",
             default=True,
             )
 

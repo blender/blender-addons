@@ -1201,21 +1201,58 @@ class DirectXExporter(bpy.types.Operator):
     filepath = StringProperty(subtype='FILE_PATH')
 
     #Coordinate System
-    CoordinateSystem = EnumProperty(name="System", description="Select a coordinate system to export to", items=CoordinateSystems, default="1")
+    CoordinateSystem = EnumProperty(
+        name="System",
+        description="Select a coordinate system to export to",
+        items=CoordinateSystems,
+        default="1")
 
     #General Options
-    RotateX = BoolProperty(name="Rotate X 90 Degrees", description="Rotate the entire scene 90 degrees around the X axis so Y is up.", default=True)
-    FlipNormals = BoolProperty(name="Flip Normals", description="", default=False)
-    ApplyModifiers = BoolProperty(name="Apply Modifiers", description="Apply object modifiers before export.", default=False)
-    IncludeFrameRate = BoolProperty(name="Include Frame Rate", description="Include the AnimTicksPerSecond template which is used by some engines to control animation speed.", default=False)
-    ExportTextures = BoolProperty(name="Export Textures", description="Reference external image files to be used by the model.", default=True)
-    ExportArmatures = BoolProperty(name="Export Armatures", description="Export the bones of any armatures to deform meshes.", default=False)
-    ExportAnimation = EnumProperty(name="Animations", description="Select the type of animations to export.  Only object and armature bone animations can be exported.  Full Animation exports every frame.", items=AnimationModes, default="0")
+    RotateX = BoolProperty(
+        name="Rotate X 90 Degrees",
+        description="Rotate the entire scene 90 degrees around the X axis so Y is up",
+        default=True)
+    FlipNormals = BoolProperty(
+        name="Flip Normals",
+        description="",
+        default=False)
+    ApplyModifiers = BoolProperty(
+        name="Apply Modifiers",
+        description="Apply object modifiers before export",
+        default=False)
+    IncludeFrameRate = BoolProperty(
+        name="Include Frame Rate",
+        description="Include the AnimTicksPerSecond template which is used by " \
+                    "some engines to control animation speed",
+        default=False)
+    ExportTextures = BoolProperty(
+        name="Export Textures",
+        description="Reference external image files to be used by the model",
+        default=True)
+    ExportArmatures = BoolProperty(
+        name="Export Armatures",
+        description="Export the bones of any armatures to deform meshes",
+        default=False)
+    ExportAnimation = EnumProperty(
+        name="Animations",
+        description="Select the type of animations to export. Only object " \
+                    "and armature bone animations can be exported. Full " \
+                    "Animation exports every frame",
+        items=AnimationModes,
+        default="0")
 
     #Export Mode
-    ExportMode = EnumProperty(name="Export", description="Select which objects to export.  Only Mesh, Empty, and Armature objects will be exported.", items=ExportModes, default="1")
+    ExportMode = EnumProperty(
+        name="Export",
+        description="Select which objects to export. Only Mesh, Empty, " \
+                    "and Armature objects will be exported",
+        items=ExportModes,
+        default="1")
 
-    Verbose = BoolProperty(name="Verbose", description="Run the exporter in debug mode.  Check the console for output.", default=False)
+    Verbose = BoolProperty(
+        name="Verbose",
+        description="Run the exporter in debug mode. Check the console for output",
+        default=False)
 
     def execute(self, context):
         #Append .x

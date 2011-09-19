@@ -66,7 +66,7 @@ class Rig:
         siblings = bone_siblings(obj, bone)
 
         if len(siblings) == 0:
-            raise MetarigError("RIGIFY ERROR: Bone '%s': must have a parent and at least one sibling." % (strip_org(bone)))
+            raise MetarigError("RIGIFY ERROR: Bone '%s': must have a parent and at least one sibling" % (strip_org(bone)))
 
         # Sort list by name and distance
         siblings.sort()

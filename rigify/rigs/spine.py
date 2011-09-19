@@ -75,7 +75,7 @@ class Rig:
         self.pivot_rest = min(self.pivot_rest, 1.0-(1.0/len(self.org_bones)))
 
         if len(self.org_bones) <= 1:
-            raise MetarigError("RIGIFY ERROR: Bone '%s': input to rig type must be a chain of 2 or more bones." % (strip_org(bone_name)))
+            raise MetarigError("RIGIFY ERROR: Bone '%s': input to rig type must be a chain of 2 or more bones" % (strip_org(bone_name)))
 
     def gen_deform(self):
         """ Generate the deformation rig.
@@ -528,9 +528,9 @@ class Rig:
         """ Add the parameters of this rig type to the
             RigifyParameters PropertyGroup
         """
-        group.spine_main_control_name = bpy.props.StringProperty(name="Main control name", default="torso", description="Name that the main control bone should be given.")
-        group.rest_pivot_slide = bpy.props.FloatProperty(name="Rest Pivot Slide", default=0.0, min=0.0, max=1.0, soft_min=0.0, soft_max=1.0, description="The pivot slide value in the rest pose.")
-        group.chain_bone_controls = bpy.props.StringProperty(name="Control bone list", default="", description="Define which bones have controls.")
+        group.spine_main_control_name = bpy.props.StringProperty(name="Main control name", default="torso", description="Name that the main control bone should be given")
+        group.rest_pivot_slide = bpy.props.FloatProperty(name="Rest Pivot Slide", default=0.0, min=0.0, max=1.0, soft_min=0.0, soft_max=1.0, description="The pivot slide value in the rest pose")
+        group.chain_bone_controls = bpy.props.StringProperty(name="Control bone list", default="", description="Define which bones have controls")
 
 
     @classmethod

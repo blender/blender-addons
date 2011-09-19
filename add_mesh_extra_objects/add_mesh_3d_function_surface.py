@@ -239,24 +239,24 @@ class AddZFunctionSurface(bpy.types.Operator):
         default="1 - ( x**2 + y**2 )")
 
     div_x = IntProperty(name="X Subdivisions",
-        description="Number of vertices in x direction.",
+        description="Number of vertices in x direction",
         default=16,
         min=3,
         max=256)
     div_y = IntProperty(name="Y Subdivisions",
-        description="Number of vertices in y direction.",
+        description="Number of vertices in y direction",
         default=16,
         min=3,
         max=256)
 
     size_x = FloatProperty(name="X Size",
-        description="Size of the x axis.",
+        description="Size of the x axis",
         default=2.0,
         min=0.01,
         max=100.0,
         unit="LENGTH")
     size_y = FloatProperty(name="Y Size",
-        description="Size of the y axis.",
+        description="Size of the y axis",
         default=2.0,
         min=0.01,
         max=100.0,
@@ -504,13 +504,13 @@ class AddXYZFunctionSurface(bpy.types.Operator):
         default="sin(v)*(1+cos(u))*sin(v/8)")
 
     range_u_min = FloatProperty(name="U min",
-        description="Minimum U value. Lower boundary of U range.",
+        description="Minimum U value. Lower boundary of U range",
         min=-100.00,
         max=0.00,
         default=0.00)
 
     range_u_max = FloatProperty(name="U max",
-        description="Maximum U value. Upper boundary of U range.",
+        description="Maximum U value. Upper boundary of U range",
         min=0.00,
         max=100.00,
         default=2 * pi)
@@ -526,13 +526,13 @@ class AddXYZFunctionSurface(bpy.types.Operator):
         default=True)
 
     range_v_min = FloatProperty(name="V min",
-        description="Minimum V value. Lower boundary of V range.",
+        description="Minimum V value. Lower boundary of V range",
         min=-100.00,
         max=0.00,
         default=0.00)
 
     range_v_max = FloatProperty(name="V max",
-        description="Maximum V value. Upper boundary of V range.",
+        description="Maximum V value. Upper boundary of V range",
         min=0.00,
         max=100.00,
         default=4 * pi)

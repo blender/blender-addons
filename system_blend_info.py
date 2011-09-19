@@ -77,9 +77,9 @@ class OBJECT_PT_blendinfo(bpy.types.Panel):
 
         l_row = layout.row()
         num = len(bpy.data.objects)
-        l_row.label(text=quantity_string(num, "Object", "Objects")
-            + " in the scene:",
-            icon='OBJECT_DATA')
+        l_row.label(text=quantity_string(num, "Object", "Objects") \
+                         " in the scene:",
+                    icon='OBJECT_DATA')
 
         l_row = layout.row()
         ob_cols.append(l_row.column())
@@ -89,43 +89,43 @@ class OBJECT_PT_blendinfo(bpy.types.Panel):
         meshes = [o for o in objects.values() if o.type == 'MESH']
         num = len(meshes)
         row.label(text=quantity_string(num, "Mesh", "Meshes"),
-            icon='MESH_DATA')
+                  icon='MESH_DATA')
 
         row = ob_cols[1].row()
         curves = [o for o in objects.values() if o.type == 'CURVE']
         num = len(curves)
         row.label(text=quantity_string(num, "Curve", "Curves"),
-            icon='CURVE_DATA')
+                  icon='CURVE_DATA')
 
         row = ob_cols[0].row()
         cameras = [o for o in objects.values() if o.type == 'CAMERA']
         num = len(cameras)
         row.label(text=quantity_string(num, "Camera", "Cameras"),
-            icon='CAMERA_DATA')
+                  icon='CAMERA_DATA')
 
         row = ob_cols[1].row()
         lamps = [o for o in objects.values() if o.type == 'LAMP']
         num = len(lamps)
         row.label(text=quantity_string(num, "Lamp", "Lamps"),
-            icon='LAMP_DATA')
+                  icon='LAMP_DATA')
 
         row = ob_cols[0].row()
         armatures = [o for o in objects.values() if o.type == 'ARMATURE']
         num = len(armatures)
         row.label(text=quantity_string(num, "Armature", "Armatures"),
-            icon='ARMATURE_DATA')
+                  icon='ARMATURE_DATA')
 
         row = ob_cols[1].row()
         lattices = [o for o in objects.values() if o.type == 'LATTICE']
         num = len(lattices)
         row.label(text=quantity_string(num, "Lattice", "Lattices"),
-            icon='LATTICE_DATA')
+                  icon='LATTICE_DATA')
 
         row = ob_cols[0].row()
         empties = [o for o in objects.values() if o.type == 'EMPTY']
         num = len(empties)
         row.label(text=quantity_string(num, "Empty", "Empties"),
-            icon='EMPTY_DATA')
+                  icon='EMPTY_DATA')
 
         layout.separator()
         
@@ -142,57 +142,57 @@ class OBJECT_PT_blendinfo(bpy.types.Panel):
         row = db_cols[0].row()
         num = len(bpy.data.meshes)
         row.label(text=quantity_string(num, "Mesh", "Meshes"),
-            icon='MESH_DATA')
+                  icon='MESH_DATA')
 
         row = db_cols[1].row()
         num = len(bpy.data.curves)
         row.label(text=quantity_string(num, "Curve", "Curves"),
-            icon='CURVE_DATA')
+                  icon='CURVE_DATA')
 
         row = db_cols[0].row()
         num = len(bpy.data.cameras)
         row.label(text=quantity_string(num, "Camera", "Cameras"),
-            icon='CAMERA_DATA')
+                  icon='CAMERA_DATA')
 
         row = db_cols[1].row()
         num = len(bpy.data.lamps)
         row.label(text=quantity_string(num, "Lamp", "Lamps"),
-            icon='LAMP_DATA')
+                  icon='LAMP_DATA')
 
         row = db_cols[0].row()
         num = len(bpy.data.armatures)
         row.label(text=quantity_string(num, "Armature", "Armatures"),
-            icon='ARMATURE_DATA')
+                  icon='ARMATURE_DATA')
 
         row = db_cols[1].row()
         num = len(bpy.data.lattices)
         row.label(text=quantity_string(num, "Lattice", "Lattices"),
-            icon='LATTICE_DATA')
+                  icon='LATTICE_DATA')
 
         row = db_cols[0].row()
         num = len(bpy.data.materials)
         row.label(text=quantity_string(num, "Material", "Materials"),
-            icon='MATERIAL_DATA')
+                  icon='MATERIAL_DATA')
 
         row = db_cols[1].row()
         num = len(bpy.data.worlds)
         row.label(text=quantity_string(num, "World", "Worlds"),
-            icon='WORLD_DATA')
+                  icon='WORLD_DATA')
 
         row = db_cols[0].row()
         num = len(bpy.data.textures)
         row.label(text=quantity_string(num, "Texture", "Textures"),
-            icon='TEXTURE_DATA')
+                  icon='TEXTURE_DATA')
 
         row = db_cols[1].row()
         num = len(bpy.data.images)
         row.label(text=quantity_string(num, "Image", "Images"),
-            icon='IMAGE_DATA')
+                  icon='IMAGE_DATA')
 
         row = db_cols[0].row()
         num = len(bpy.data.texts)
         row.label(text=quantity_string(num, "Text", "Texts"),
-            icon='TEXT')
+                  icon='TEXT')
 
 
 def register():

@@ -61,7 +61,7 @@ def CopyPythonLibs(dst, overwrite_lib, report=print):
         if write:
             shutil.copytree(src, dst, ignore=lambda dir, contents: [i for i in contents if i == '__pycache__'])
     else:
-        report({'WARNING'}, "Python not found in %r, skipping pythn copy." % src)
+        report({'WARNING'}, "Python not found in %r, skipping pythn copy" % src)
 
 
 def WriteAppleRuntime(player_path, output_path, copy_python, overwrite_lib):
@@ -86,7 +86,7 @@ def WriteRuntime(player_path, output_path, copy_python, overwrite_lib, copy_dlls
 
     # Check the paths
     if not os.path.isfile(player_path) and not(os.path.exists(player_path) and player_path.endswith('.app')):
-        report({'ERROR'}, "The player could not be found! Runtime not saved.")
+        report({'ERROR'}, "The player could not be found! Runtime not saved")
         return
     
     # Check if we're bundling a .app

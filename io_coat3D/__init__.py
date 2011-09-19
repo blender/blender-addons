@@ -57,7 +57,7 @@ def register():
         objectdir = StringProperty(name="ObjectPath", subtype="FILE_PATH")
         texturefolder = StringProperty(name="Texture folder:", subtype="DIR_PATH")
         path3b = StringProperty(name="3B Path", subtype="FILE_PATH")
-        export_on = BoolProperty(name="Export_On", description="Add Modifiers and export.",default= False)
+        export_on = BoolProperty(name="Export_On", description="Add Modifiers and export",default= False)
 
 
     class SceneCoat3D(bpy.types.PropertyGroup):
@@ -78,37 +78,37 @@ def register():
         )
         import_box = BoolProperty(
             name="Import window",
-            description="Allows to skip import dialog.",
+            description="Allows to skip import dialog",
             default= True
         )
         export_box = BoolProperty(
             name="Export window",
-            description="Allows to skip export dialog.",
+            description="Allows to skip export dialog",
             default= True
         )
         export_color = BoolProperty(
             name="Export color",
-            description="Export color texture.",
+            description="Export color texture",
             default= True
         )
         export_spec = BoolProperty(
             name="Export specular",
-            description="Export specular texture.",
+            description="Export specular texture",
             default= True
         )
         export_normal = BoolProperty(
             name="Export Normal",
-            description="Export normal texture.",
+            description="Export normal texture",
             default= True
         )
         export_disp = BoolProperty(
             name="Export Displacement",
-            description="Export displacement texture.",
+            description="Export displacement texture",
             default= True
         )
         export_position = BoolProperty(
             name="Export Source Position",
-            description="Export source position.",
+            description="Export source position",
             default= True
         )
         export_zero_layer = BoolProperty(
@@ -118,84 +118,84 @@ def register():
         )
         export_coarse = BoolProperty(
             name="Export Coarse",
-            description="Export Coarse.",
+            description="Export Coarse",
             default= True
         )
         exportfile = BoolProperty(
             name="No Import File",
-            description="Add Modifiers and export.",
+            description="Add Modifiers and export",
             default= False
         )
         importmod = BoolProperty(
             name="Remove Modifiers",
-            description="Import and add modifiers.",
+            description="Import and add modifiers",
             default= False
         )
         exportmod = BoolProperty(
             name="Modifiers",
-            description="Export modifiers.",
+            description="Export modifiers",
             default= False
         )
         export_pos = BoolProperty(
             name="Remember Position",
-            description="Remember position.",
+            description="Remember position",
             default= True
         )
         importtextures = BoolProperty(
             name="Bring Textures",
-            description="Import Textures.",
+            description="Import Textures",
             default= True
         )
         importlevel = BoolProperty(
-            name="Multires. Level.",
-            description="Bring Specific Multires Level.",
+            name="Multires. Level",
+            description="Bring Specific Multires Level",
             default= False
         )
         exportover = BoolProperty(
             name="Export Obj",
-            description="Import Textures.",
+            description="Import Textures",
             default= False
         )
         importmesh = BoolProperty(
             name="Mesh",
-            description="Import Mesh.",
+            description="Import Mesh",
             default= True
         )
 
         # copy location
         cursor = FloatVectorProperty(
             name="Cursor",
-            description="Location.",
+            description="Location",
             subtype="XYZ",
             default=(0.0, 0.0, 0.0)
         )
         loca = FloatVectorProperty(
             name="location",
-            description="Location.",
+            description="Location",
             subtype="XYZ",
             default=(0.0, 0.0, 0.0)
         )
         rota = FloatVectorProperty(
             name="location",
-            description="Location.",
+            description="Location",
             subtype="EULER",
             default=(0.0, 0.0, 0.0)
         )
         scal = FloatVectorProperty(
             name="location",
-            description="Location.",
+            description="Location",
             subtype="XYZ",
             default=(0.0, 0.0, 0.0)
         )
         dime = FloatVectorProperty(
             name="dimension",
-            description="Dimension.",
+            description="Dimension",
             subtype="XYZ",
             default=(0.0, 0.0, 0.0)
         )
 
         type = EnumProperty( name= "Export Type",
-            description= "Diffrent Export Types.",
+            description= "Different Export Types",
             items=(("ppp",   "Per-Pixel Painting", ""),
                    ("mv",   "Microvertex Painting", ""),
                    ("ptex",   "Ptex Painting", ""),

@@ -87,7 +87,7 @@ class Rig:
         self.org_bones = [bone] + connected_children_names(self.obj, bone)[:2]
 
         if len(self.org_bones) != 3:
-            raise MetarigError("RIGIFY ERROR: Bone '%s': input to rig type must be a chain of 3 bones." % (strip_org(bone)))
+            raise MetarigError("RIGIFY ERROR: Bone '%s': input to rig type must be a chain of 3 bones" % (strip_org(bone)))
 
         # Get rig parameters
         self.use_upper_arm_twist = params.use_upper_arm_twist

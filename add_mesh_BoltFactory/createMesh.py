@@ -53,7 +53,7 @@ def unpack_face_list(list_of_tuples):
         face = [i for i in t]
 
         if len(face) != 3 and len(face) != 4:
-            raise RuntimeError("{0} vertices in face.".format(len(face)))
+            raise RuntimeError("{0} vertices in face".format(len(face)))
         
         # rotate indices if the 4th is 0
         if len(face) == 4 and face[3] == 0:

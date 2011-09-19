@@ -329,7 +329,7 @@ class VIEW3D_PT_tools_cloud(bpy.types.Panel):
         elif WhatToDo == 'NO_SELECTION_DO_NOTHING':
             col.label(text="Select one or more")
             col.label(text="objects to generate")
-            col.label(text="a cloud.")
+            col.label(text="a cloud")
 
         elif WhatToDo == 'CLOUD_DO_NOTHING':
             col.label(text="Must select")
@@ -344,9 +344,9 @@ class VIEW3D_PT_tools_cloud(bpy.types.Panel):
         else:
             col.label(text="Select one or more")
             col.label(text="objects to generate")
-            col.label(text="a cloud.")
+            col.label(text="a cloud")
 
-                                
+
 class GenerateCloud(bpy.types.Operator):
     bl_idname = "cloud.generate_cloud"
     bl_label = "Generate Cloud"

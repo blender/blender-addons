@@ -55,16 +55,16 @@ class RenderPovSettingsScene(bpy.types.PropertyGroup):
     # File Options
     tempfiles_enable = BoolProperty(
             name="Enable Tempfiles",
-            description="Enable the OS-Tempfiles. Otherwise set the path where to save the files.",
+            description="Enable the OS-Tempfiles. Otherwise set the path where to save the files",
             default=True)
     deletefiles_enable = BoolProperty(
             name="Delete files",
-            description="Delete files after rendering. Doesn't work with the image.",
+            description="Delete files after rendering. Doesn't work with the image",
             default=True)
     scene_name = StringProperty(
             name="Scene Name",
             description="Name of POV-Ray scene to create. Empty name will use the name of " \
-                        "the blend file.",
+                        "the blend file",
             default="", maxlen=1024)
     scene_path = StringProperty(
             name="Export scene path",
@@ -73,12 +73,12 @@ class RenderPovSettingsScene(bpy.types.PropertyGroup):
             default="", maxlen=1024, subtype="DIR_PATH")
     renderimage_path = StringProperty(
             name="Rendered image path",
-            description="Full path to directory where the rendered image is saved.",
+            description="Full path to directory where the rendered image is saved",
             default="", maxlen=1024, subtype="DIR_PATH")
     list_lf_enable = BoolProperty(
             name="LF in lists",
             description="Enable line breaks in lists (vectors and indices). Disabled: " \
-                        "lists are exported in one line.",
+                        "lists are exported in one line",
             default=True)
 
     # Not a real pov option, just to know if we should write
@@ -101,7 +101,7 @@ class RenderPovSettingsScene(bpy.types.PropertyGroup):
             min=1, max=100, default=35)
 
     media_color = FloatVectorProperty(
-            name="Media Color", description="The atmospheric media color.",
+            name="Media Color", description="The atmospheric media color",
             precision=4, step=0.01, min=0, soft_max=1,
             default=(0.001, 0.001, 0.001), options={'ANIMATABLE'}, subtype='COLOR')
 
@@ -130,7 +130,7 @@ class RenderPovSettingsScene(bpy.types.PropertyGroup):
     command_line_switches = StringProperty(
             name="Command Line Switches",
             description="Command line switches consist of a + (plus) or - (minus) sign, followed " \
-                        "by one or more alphabetic characters and possibly a numeric value.",
+                        "by one or more alphabetic characters and possibly a numeric value",
             default="", maxlen=500)
 
     antialias_enable = BoolProperty(
@@ -140,7 +140,7 @@ class RenderPovSettingsScene(bpy.types.PropertyGroup):
     antialias_method = EnumProperty(
             name="Method",
             description="AA-sampling method. Type 1 is an adaptive, non-recursive, super-sampling "\
-                        "method. Type 2 is an adaptive and recursive super-sampling method.",
+                        "method. Type 2 is an adaptive and recursive super-sampling method",
             items=(("0", "non-recursive AA", "Type 1 Sampling in POV-Ray"),
                    ("1", "recursive AA", "Type 2 Sampling in POV-Ray")),
             default="1")
@@ -156,17 +156,17 @@ class RenderPovSettingsScene(bpy.types.PropertyGroup):
     jitter_enable = BoolProperty(
             name="Jitter",
             description="Enable Jittering. Adds noise into the sampling process (it should be " \
-                        "avoided to use jitter in animation).",
+                        "avoided to use jitter in animation)",
             default=True)
 
     jitter_amount = FloatProperty(
-            name="Jitter Amount", description="Amount of jittering.",
+            name="Jitter Amount", description="Amount of jittering",
             min=0.0, max=1.0, soft_min=0.01, soft_max=1.0, default=1.0)
 
     antialias_gamma = FloatProperty(
             name="Antialias Gamma",
             description="POV-Ray compares gamma-adjusted values for super sampling. Antialias " \
-                        "Gamma sets the Gamma before comparison.",
+                        "Gamma sets the Gamma before comparison",
             min=0.0, max=5.0, soft_min=0.01, soft_max=2.5, default=2.5)
 
     max_trace_level = IntProperty(
@@ -313,17 +313,17 @@ class RenderPovSettingsMaterial(bpy.types.PropertyGroup):
             description="Contribution of the iridescence effect to the overall surface color. " \
                         "As a rule of thumb keep to around 0.25 (25% contribution) or less, " \
                         "but experiment. If the surface is coming out too white, try lowering " \
-                        "the diffuse and possibly the ambient values of the surface.",
+                        "the diffuse and possibly the ambient values of the surface",
             min=0.0, max=1.0, soft_min=0.01, soft_max=1.0, default=0.25)
 
     irid_thickness = FloatProperty(
             name="thickness",
             description="A very thin film will have a high frequency of color changes while a " \
-                        "thick film will have large areas of color.",
+                        "thick film will have large areas of color",
             min=0.0, max=1000.0, soft_min=0.1, soft_max=10.0, default=1)
 
     irid_turbulence = FloatProperty(
-            name="turbulence", description="This parameter varies the thickness.",
+            name="turbulence", description="This parameter varies the thickness",
             min=0.0, max=10.0, soft_min=0.000, soft_max=1.0, default=0)
 
     interior_fade_color = FloatVectorProperty(
@@ -427,7 +427,7 @@ class RenderPovSettingsObject(bpy.types.PropertyGroup):
             name="Receive Photon Caustics",
             description="Enable object to collect photons from other objects caustics. Turn " \
                         "off for objects that don't really need to receive caustics (e.g. objects" \
-                        " that generate caustics often don't need to show any on themselves).",
+                        " that generate caustics often don't need to show any on themselves)",
             default=True)
 
     #Photons spacing_multiplier
@@ -483,7 +483,7 @@ class RenderPovSettingsCamera(bpy.types.PropertyGroup):
     dof_confidence = FloatProperty(
             name="Confidence",
             description="Probability to reach the real color value. Larger confidence values " \
-                        "will lead to more samples, slower traces and better images.",
+                        "will lead to more samples, slower traces and better images",
             min=0.01, max=0.99, default=0.90)
 
     ##################################CustomPOV Code############################

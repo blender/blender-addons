@@ -2682,10 +2682,9 @@ def rigifyMhx(context, name):
     except:
         success = False
     if not success:
-        MyError(
-"Unable to create advanced human. \n" +
-"Make sure that the Rigify add-on is enabled. \n" +
-"It is found under Rigging.")
+        MyError("Unable to create advanced human. \n" \
+                "Make sure that the Rigify add-on is enabled. \n" \
+                "It is found under Rigging.")
         return
 
     meta = context.object

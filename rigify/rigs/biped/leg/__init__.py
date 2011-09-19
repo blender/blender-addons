@@ -97,13 +97,13 @@ class Rig:
         items = [('X', 'X', ''), ('Y', 'Y', ''), ('Z', 'Z', ''), ('-X', '-X', ''), ('-Y', '-Y', ''), ('-Z', '-Z', '')]
         group.primary_rotation_axis = bpy.props.EnumProperty(items=items, name="Primary Rotation Axis", default='X')
 
-        group.bend_hint = bpy.props.BoolProperty(name="Bend Hint", default=True, description="Give IK chain a hint about which way to bend.  Useful for perfectly straight chains.")
+        group.bend_hint = bpy.props.BoolProperty(name="Bend Hint", default=True, description="Give IK chain a hint about which way to bend (useful for perfectly straight chains)")
 
-        group.separate_ik_layers = bpy.props.BoolProperty(name="Separate IK Control Layers:", default=False, description="Enable putting the ik controls on a separate layer from the fk controls.")
-        group.ik_layers = bpy.props.BoolVectorProperty(size=32, description="Layers for the ik controls to be on.")
+        group.separate_ik_layers = bpy.props.BoolProperty(name="Separate IK Control Layers:", default=False, description="Enable putting the ik controls on a separate layer from the fk controls")
+        group.ik_layers = bpy.props.BoolVectorProperty(size=32, description="Layers for the ik controls to be on")
 
-        group.use_thigh_twist = bpy.props.BoolProperty(name="Thigh Twist", default=True, description="Generate the dual-bone twist setup for the thigh.")
-        group.use_shin_twist = bpy.props.BoolProperty(name="Shin Twist", default=True, description="Generate the dual-bone twist setup for the shin.")
+        group.use_thigh_twist = bpy.props.BoolProperty(name="Thigh Twist", default=True, description="Generate the dual-bone twist setup for the thigh")
+        group.use_shin_twist = bpy.props.BoolProperty(name="Shin Twist", default=True, description="Generate the dual-bone twist setup for the shin")
 
     @classmethod
     def parameters_ui(self, layout, obj, bone):

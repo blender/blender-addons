@@ -107,7 +107,7 @@ class torus_knot_plus(bpy.types.Operator, AddObjectHelper):
     #### general options
     options_plus = BoolProperty(name="plus options",
                 default=False,
-                description="Show more options (the plus part).")
+                description="Show more options (the plus part)")
 
     #### GEO Options
     geo_surf = BoolProperty(name="Surface",

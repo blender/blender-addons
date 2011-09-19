@@ -95,14 +95,14 @@ class ImportOBJ(bpy.types.Operator, ImportHelper):
 
     use_groups_as_vgroups = BoolProperty(
             name="Poly Groups",
-            description="Import OBJ groups as vertex groups.",
+            description="Import OBJ groups as vertex groups",
             default=False,
             )
 
     use_image_search = BoolProperty(
             name="Image Search",
-            description=("Search subdirs for any assosiated images "
-                         "(Warning, may be slow)"),
+            description="Search subdirs for any assosiated images " \
+                        "(Warning, may be slow)",
             default=True,
             )
 

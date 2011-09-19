@@ -40,7 +40,7 @@ class Rig:
         self.make_deforms = params.make_deforms
 
         if len(self.org_bones) <= 1:
-            raise MetarigError("RIGIFY ERROR: Bone '%s': input to rig type must be a chain of 2 or more bones." % (strip_org(bone_name)))
+            raise MetarigError("RIGIFY ERROR: Bone '%s': input to rig type must be a chain of 2 or more bones" % (strip_org(bone_name)))
 
     def generate(self):
         """ Generate the rig.
@@ -124,8 +124,8 @@ class Rig:
         """ Add the parameters of this rig type to the
             RigifyParameters PropertyGroup
         """
-        group.make_controls = bpy.props.BoolProperty(name="Controls", default=True, description="Create control bones for the copy.")
-        group.make_deforms = bpy.props.BoolProperty(name="Deform", default=True, description="Create deform bones for the copy.")
+        group.make_controls = bpy.props.BoolProperty(name="Controls", default=True, description="Create control bones for the copy")
+        group.make_deforms = bpy.props.BoolProperty(name="Deform", default=True, description="Create deform bones for the copy")
 
 
     @classmethod

@@ -227,31 +227,31 @@ class AddElbowJoint(bpy.types.Operator):
     bl_options = {'REGISTER', 'UNDO'}
 
     radius = FloatProperty(name="Radius",
-        description="The radius of the pipe.",
+        description="The radius of the pipe",
         default=1.0,
         min=0.01,
         max=100.0,
         unit="LENGTH")
     div = IntProperty(name="Divisions",
-        description="Number of vertices (divisions).",
+        description="Number of vertices (divisions)",
         default=32, min=3, max=256)
 
     angle = FloatProperty(name="Angle",
-        description="The angle of the branching pipe (i.e. the 'arm')." \
-            " Measured from the center line of the main pipe.",
+        description="The angle of the branching pipe (i.e. the 'arm' - " \
+                    "Measured from the center line of the main pipe",
         default=radians(45.0),
         min=radians(-179.9),
         max=radians(179.9),
         unit="ROTATION")
 
     startLength = FloatProperty(name="Length Start",
-        description="Length of the beginning of the pipe.",
+        description="Length of the beginning of the pipe",
         default=3.0,
         min=0.01,
         max=100.0,
         unit="LENGTH")
     endLength = FloatProperty(name="End Length",
-        description="Length of the end of the pipe.",
+        description="Length of the end of the pipe",
         default=3.0,
         min=0.01,
         max=100.0,
@@ -328,20 +328,20 @@ class AddTeeJoint(bpy.types.Operator):
     bl_options = {'REGISTER', 'UNDO'}
 
     radius = FloatProperty(name="Radius",
-        description="The radius of the pipe.",
+        description="The radius of the pipe",
         default=1.0,
         min=0.01,
         max=100.0,
         unit="LENGTH")
     div = IntProperty(name="Divisions",
-        description="Number of vertices (divisions).",
+        description="Number of vertices (divisions)",
         default=32,
         min=4,
         max=256)
 
     angle = FloatProperty(name="Angle",
-        description="The angle of the branching pipe (i.e. the 'arm')." \
-            " Measured from the center line of the main pipe.",
+        description="The angle of the branching pipe (i.e. the 'arm' - " \
+                    "Measured from the center line of the main pipe",
         default=radians(90.0),
         min=radians(0.1),
         max=radians(179.9),
@@ -349,20 +349,20 @@ class AddTeeJoint(bpy.types.Operator):
 
     startLength = FloatProperty(name="Length Start",
         description="Length of the beginning of the" \
-            " main pipe (the straight one).",
+                    " main pipe (the straight one)",
         default=3.0,
         min=0.01,
         max=100.0,
         unit="LENGTH")
     endLength = FloatProperty(name="End Length",
         description="Length of the end of the" \
-            " main pipe (the straight one).",
+                    " main pipe (the straight one)",
         default=3.0,
         min=0.01,
         max=100.0,
         unit="LENGTH")
     branchLength = FloatProperty(name="Arm Length",
-        description="Length of the arm pipe (the bent one).",
+        description="Length of the arm pipe (the bent one)",
         default=3.0,
         min=0.01,
         max=100.0,
@@ -505,27 +505,27 @@ class AddWyeJoint(bpy.types.Operator):
     bl_options = {'REGISTER', 'UNDO'}
 
     radius = FloatProperty(name="Radius",
-        description="The radius of the pipe.",
+        description="The radius of the pipe",
         default=1.0,
         min=0.01,
         max=100.0,
         unit="LENGTH")
     div = IntProperty(name="Divisions",
-        description="Number of vertices (divisions).",
+        description="Number of vertices (divisions)",
         default=32,
         min=4,
         max=256)
 
     angle1 = FloatProperty(name="Angle 1",
-        description="The angle of the 1. branching pipe." \
-            " Measured from the center line of the main pipe.",
+        description="The angle of the 1. branching pipe " \
+                    "(measured from the center line of the main pipe)",
         default=radians(45.0),
         min=radians(-179.9),
         max=radians(179.9),
         unit="ROTATION")
     angle2 = FloatProperty(name="Angle 2",
-        description="The angle of the 2. branching pipe." \
-            " Measured from the center line of the main pipe.",
+        description="The angle of the 2. branching pipe " \
+                    "(measured from the center line of the main pipe) ",
         default=radians(45.0),
         min=radians(-179.9),
         max=radians(179.9),
@@ -533,19 +533,19 @@ class AddWyeJoint(bpy.types.Operator):
 
     startLength = FloatProperty(name="Length Start",
         description="Length of the beginning of the" \
-            " main pipe (the straight one).",
+                    " main pipe (the straight one)",
         default=3.0,
         min=0.01,
         max=100.0,
         unit="LENGTH")
     branch1Length = FloatProperty(name="Length Arm 1",
-        description="Length of the 1. arm.",
+        description="Length of the 1. arm",
         default=3.0,
         min=0.01,
         max=100.0,
         unit="LENGTH")
     branch2Length = FloatProperty(name="Length Arm 2",
-        description="Length of the 2. arm.",
+        description="Length of the 2. arm",
         default=3.0,
         min=0.01,
         max=100.0,
@@ -700,31 +700,31 @@ class AddCrossJoint(bpy.types.Operator):
     bl_options = {'REGISTER', 'UNDO'}
 
     radius = FloatProperty(name="Radius",
-        description="The radius of the pipe.",
+        description="The radius of the pipe",
         default=1.0,
         min=0.01,
         max=100.0,
         unit="LENGTH")
     div = IntProperty(name="Divisions",
-        description="Number of vertices (divisions).",
+        description="Number of vertices (divisions)",
         default=32,
         min=4,
         max=256)
 
     angle1 = FloatProperty(name="Angle 1",
-        description="The angle of the 1. arm (from the main axis).",
+        description="The angle of the 1. arm (from the main axis)",
         default=radians(90.0),
         min=radians(-179.9),
         max=radians(179.9),
         unit="ROTATION")
     angle2 = FloatProperty(name="Angle 2",
-        description="The angle of the 2. arm (from the main axis).",
+        description="The angle of the 2. arm (from the main axis)",
         default=radians(90.0),
         min=radians(-179.9),
         max=radians(179.9),
         unit="ROTATION")
     angle3 = FloatProperty(name="Angle 3 (center)",
-        description="The angle of the center arm (from the main axis).",
+        description="The angle of the center arm (from the main axis)",
         default=radians(0.0),
         min=radians(-179.9),
         max=radians(179.9),
@@ -732,25 +732,25 @@ class AddCrossJoint(bpy.types.Operator):
 
     startLength = FloatProperty(name="Length Start",
         description="Length of the beginning of the " \
-                "main pipe (the straight one).",
+                    "main pipe (the straight one)",
         default=3.0,
         min=0.01,
         max=100.0,
         unit="LENGTH")
     branch1Length = FloatProperty(name="Length Arm 1",
-        description="Length of the 1. arm.",
+        description="Length of the 1. arm",
         default=3.0,
         min=0.01,
         max=100.0,
         unit="LENGTH")
     branch2Length = FloatProperty(name="Length Arm 2",
-        description="Length of the 2. arm.",
+        description="Length of the 2. arm",
         default=3.0,
         min=0.01,
         max=100.0,
         unit="LENGTH")
     branch3Length = FloatProperty(name="Length Arm 3 (center)",
-        description="Length of the center arm.",
+        description="Length of the center arm",
         default=3.0,
         min=0.01,
         max=100.0,
@@ -955,13 +955,13 @@ class AddNJoint(bpy.types.Operator):
     bl_options = {'REGISTER', 'UNDO'}
 
     radius = FloatProperty(name="Radius",
-        description="The radius of the pipe.",
+        description="The radius of the pipe",
         default=1.0,
         min=0.01,
         max=100.0,
         unit="LENGTH")
     div = IntProperty(name="Divisions",
-        description="Number of vertices (divisions).",
+        description="Number of vertices (divisions)",
         default=32,
         min=4,
         max=256)

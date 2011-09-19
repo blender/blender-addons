@@ -53,7 +53,7 @@ class Rig:
         self.params = params
 
         if len(self.org_bones) <= 1:
-            raise MetarigError("RIGIFY ERROR: Bone '%s': input to rig type must be a chain of 2 or more bones." % (strip_org(bone_name)))
+            raise MetarigError("RIGIFY ERROR: Bone '%s': input to rig type must be a chain of 2 or more bones" % (strip_org(bone_name)))
 
         self.isolate = False
         if self.obj.data.bones[bone_name].parent:

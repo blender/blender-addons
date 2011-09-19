@@ -85,8 +85,8 @@ class Rig:
         """ Add the parameters of this rig type to the
             RigifyParameters PropertyGroup
         """
-        group.make_control = bpy.props.BoolProperty(name="Control", default=True, description="Create a control bone for the copy.")
-        group.make_deform = bpy.props.BoolProperty(name="Deform", default=True, description="Create a deform bone for the copy.")
+        group.make_control = bpy.props.BoolProperty(name="Control", default=True, description="Create a control bone for the copy")
+        group.make_deform = bpy.props.BoolProperty(name="Deform", default=True, description="Create a deform bone for the copy")
 
 
     @classmethod

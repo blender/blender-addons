@@ -545,7 +545,6 @@ def init_properties():
             default = False)
 
     print ("Screencast Keys: initialized from AddOn default settings.")
-        
 
     # Runstate initially always set to False
     # note: it is not stored in the Scene, but in window manager:

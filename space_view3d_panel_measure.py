@@ -847,7 +847,7 @@ class VIEW3D_OT_display_measurements(bpy.types.Operator):
     '''Display the measurements made in the 'Measure' panel'''
     bl_idname = "view3d.display_measurements"
     bl_label = "Display the measurements made in the" \
-        " 'Measure' panel in the 3D View."
+               " 'Measure' panel in the 3D View"
     bl_options = {'REGISTER'}
 
     def modal(self, context, event):
@@ -882,7 +882,7 @@ class VIEW3D_OT_display_measurements(bpy.types.Operator):
 class VIEW3D_OT_activate_measure_panel(bpy.types.Operator):
     bl_label = "Activate"
     bl_idname = "view3d.activate_measure_panel"
-    bl_description = "Activate the callback needed to draw the lines."
+    bl_description = "Activate the callback needed to draw the lines"
     bl_options = {'REGISTER'}
 
     def invoke(self, context, event):
@@ -896,8 +896,8 @@ class VIEW3D_OT_activate_measure_panel(bpy.types.Operator):
 class VIEW3D_OT_reenter_editmode(bpy.types.Operator):
     bl_label = "Re-enter EditMode"
     bl_idname = "view3d.reenter_editmode"
-    bl_description = "Update mesh data of an active mesh object." \
-        " This is done by exiting and re-entering mesh edit mode."
+    bl_description = "Update mesh data of an active mesh object " \
+                     "(this is done by exiting and re-entering mesh edit mode)"
     bl_options = {'REGISTER'}
 
     def invoke(self, context, event):
@@ -1011,7 +1011,7 @@ class VIEW3D_PT_measure(bpy.types.Panel):
 #                            " not be updated in mesh edit mode" \
 #                            " automatically. Press this button" \
 #                            " to do this manually, after you changed" \
-#                            " the selection.")
+#                            " the selection")
 
                 elif len(verts_selected) == 1:
                     # One vertex selected.
@@ -1083,7 +1083,7 @@ class VIEW3D_PT_measure(bpy.types.Panel):
 
                         else:
                             row = layout.row()
-                            row.label(text="Selection not supported.",
+                            row.label(text="Selection not supported",
                                 icon='INFO')
 
                             row = layout.row()
@@ -1293,14 +1293,14 @@ class VIEW3D_PT_measure(bpy.types.Panel):
 
             else:
                 row = layout.row()
-                row.label(text="Selection not supported.",
-                    icon='INFO')
+                row.label(text="Selection not supported",
+                          icon='INFO')
 
             if drawTansformButtons:
                 row = layout.row()
                 row.prop(sce,
-                    "measure_panel_transform",
-                    expand=True)
+                         "measure_panel_transform",
+                         expand=True)
 
 
 def register():
@@ -1332,14 +1332,14 @@ def register():
 
     TRANSFORM = [
         ("measure_global", "Global",
-            "Calculate values in global space."),
+         "Calculate values in global space"),
         ("measure_local", "Local",
-            "Calculate values inside the local object space.")]
+         "Calculate values inside the local object space")]
 
     # Define dropdown for the global/local setting
     bpy.types.Scene.measure_panel_transform = bpy.props.EnumProperty(
         name="Space",
-        description="Choose in which space you want to measure.",
+        description="Choose in which space you want to measure",
         items=TRANSFORM,
         default='measure_global')
 

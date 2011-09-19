@@ -1216,7 +1216,7 @@ class IMPORT_OT_lwo(bpy.types.Operator):
     '''Import LWO Operator.'''
     bl_idname= "import_scene.lwo"
     bl_label= "Import LWO"
-    bl_description= "Import a LightWave Object file."
+    bl_description= "Import a LightWave Object file"
     bl_options= {'REGISTER', 'UNDO'}
 
     filepath= StringProperty(name="File Path", description="Filepath used for importing the LWO file", maxlen=1024, default="")

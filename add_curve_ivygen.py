@@ -26,7 +26,7 @@ bl_info = {
     "api": 39307,
     "location": "View3D > Add > Curve",
     "description": "Adds generated ivy to a mesh object starting at the 3D"\
-                   " cursor.",
+                   " cursor",
     "warning": "",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"\
                 "Scripts/Curve/Ivy_Gen",
@@ -448,45 +448,45 @@ class IvyGen(bpy.types.Operator):
     bl_options = {'REGISTER', 'UNDO'}
 
     maxIvyLength = FloatProperty(name="Max Ivy Length",
-                    description="Maximum ivy length in Blender Units.",
+                    description="Maximum ivy length in Blender Units",
                     default=1.0,
                     min=0.0,
                     soft_max=3.0,
                     subtype='DISTANCE',
                     unit='LENGTH')
     primaryWeight = FloatProperty(name="Primary Weight",
-                    description="Weighting given to the current direction.",
+                    description="Weighting given to the current direction",
                     default=0.5,
                     min=0.0,
                     soft_max=1.0)
     randomWeight = FloatProperty(name="Random Weight",
-                    description="Weighting given to the random direction.",
+                    description="Weighting given to the random direction",
                     default=0.2,
                     min=0.0,
                     soft_max=1.0)
     gravityWeight = FloatProperty(name="Gravity Weight",
-                    description="Weighting given to the gravity direction.",
+                    description="Weighting given to the gravity direction",
                     default=1.0,
                     min=0.0,
                     soft_max=1.0)
     adhesionWeight = FloatProperty(name="Adhesion Weight",
-                    description="Weighting given to the adhesion direction.",
+                    description="Weighting given to the adhesion direction",
                     default=0.1,
                     min=0.0,
                     soft_max=1.0)
     branchingProbability = FloatProperty(name="Branching Probability",
-                    description="Probability of a new branch forming.",
+                    description="Probability of a new branch forming",
                     default=0.05,
                     min=0.0,
                     soft_max=1.0)
     leafProbability = FloatProperty(name="Leaf Probability",
-                    description="Probability of a leaf forming.",
+                    description="Probability of a leaf forming",
                     default=0.35,
                     min=0.0,
                     soft_max=1.0)
     ivySize = FloatProperty(name="Ivy Size",
                     description=("The length of an ivy segment in Blender"
-                                 " Units."),
+                                 " Units"),
                     default=0.02,
                     min=0.0,
                     soft_max=1.0,
@@ -505,19 +505,19 @@ class IvyGen(bpy.types.Operator):
                     precision=4)
     maxFloatLength = FloatProperty(name="Max Float Length",
                     description=("The maximum distance that a branch "
-                                 "can live while floating."),
+                                 "can live while floating"),
                     default=0.5,
                     min=0.0,
                     soft_max=1.0)
     maxAdhesionDistance = FloatProperty(name="Max Adhesion Length",
                     description=("The maximum distance that a branch "
-                                 "will feel the effects of adhesion."),
+                                 "will feel the effects of adhesion"),
                     default=1.0,
                     min=0.0,
                     soft_max=2.0,
                     precision=2)
     randomSeed = IntProperty(name="Random Seed",
-                    description="The seed governing random generation.",
+                    description="The seed governing random generation",
                     default=0,
                     min=0)
     maxTime = FloatProperty(name="Maximum Time",
@@ -527,7 +527,7 @@ class IvyGen(bpy.types.Operator):
                     min=0.0,
                     soft_max=10)
     growLeaves = BoolProperty(name="Grow Leaves",
-                    description="Grow leaves or not.",
+                    description="Grow leaves or not",
                     default=True)
     updateIvy = BoolProperty(name="Update Ivy", default=False)
 

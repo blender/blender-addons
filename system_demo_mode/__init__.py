@@ -107,7 +107,7 @@ class DemoModeSetup(bpy.types.Operator):
 
         box = layout.box()
         box.label("Search *.blend recursively")
-        box.label("Writes: demo.py config text.")
+        box.label("Writes: demo.py config text")
 
         layout.prop(self, "run")
 

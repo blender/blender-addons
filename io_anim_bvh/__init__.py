@@ -66,7 +66,7 @@ class ImportBVH(bpy.types.Operator, ImportHelper):
             ('OBJECT', "Object", ""),
             ),
                 name="Target",
-                description="Import target type.",
+                description="Import target type",
                 default='ARMATURE')
 
     global_scale = FloatProperty(
@@ -88,7 +88,7 @@ class ImportBVH(bpy.types.Operator, ImportHelper):
             )
     rotate_mode = EnumProperty(
             name="Rotation",
-            description="Rotation conversion.",
+            description="Rotation conversion",
             items=(('QUATERNION', "Quaternion",
                     "Convert rotations to quaternions"),
                    ('NATIVE', "Euler (Native)", ("Use the rotation order "
@@ -173,7 +173,7 @@ class ExportBVH(bpy.types.Operator, ExportHelper):
             )
     rotate_mode = EnumProperty(
             name="Rotation",
-            description="Rotation conversion.",
+            description="Rotation conversion",
             items=(('NATIVE', "Euler (Native)",
                     "Use the rotation order defined in the BVH file"),
                    ('XYZ', "Euler (XYZ)", "Convert rotations to euler XYZ"),

@@ -2648,7 +2648,8 @@ class Bridge(bpy.types.Operator):
         default = True)
     reverse = bpy.props.BoolProperty(name = "Reverse",
         description = "Manually override the direction in which the loops "\
-            "are bridged. Only use if the tool gives the wrong result.",
+                      "are bridged. Only use if the tool gives the wrong " \
+                      "result",
         default = False)
     segments = bpy.props.IntProperty(name = "Segments",
         description = "Number of segments used to bridge the gap "\
@@ -3524,8 +3525,9 @@ class LoopToolsProps(bpy.types.PropertyGroup):
         max = 100,
         subtype = 'PERCENTAGE')
     bridge_mode = bpy.props.EnumProperty(name = "Mode",
-        items = (('basic', "Basic", "Fast algorithm"), ('shortest',
-            "Shortest edge", "Slower algorithm with better vertex matching")),
+        items = (('basic', "Basic", "Fast algorithm"),
+                 ('shortest', "Shortest edge", "Slower algorithm with " \
+                                               "better vertex matching")),
         description = "Algorithm used for bridging",
         default = 'shortest')
     bridge_remove_faces = bpy.props.BoolProperty(name = "Remove faces",
@@ -3533,7 +3535,8 @@ class LoopToolsProps(bpy.types.PropertyGroup):
         default = True)
     bridge_reverse = bpy.props.BoolProperty(name = "Reverse",
         description = "Manually override the direction in which the loops "\
-            "are bridged. Only use if the tool gives the wrong result.",
+                      "are bridged. Only use if the tool gives the wrong " \
+                      "result",
         default = False)
     bridge_segments = bpy.props.IntProperty(name = "Segments",
         description = "Number of segments used to bridge the gap "\

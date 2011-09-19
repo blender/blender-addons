@@ -129,7 +129,7 @@ def register():
     bpy.utils.register_class(RigifyParameters)
     bpy.utils.register_class(RigifyArmatureLayer)
 
-    bpy.types.PoseBone.rigify_type = bpy.props.StringProperty(name="Rigify Type", description="Rig type for this bone.")
+    bpy.types.PoseBone.rigify_type = bpy.props.StringProperty(name="Rigify Type", description="Rig type for this bone")
     bpy.types.PoseBone.rigify_parameters = bpy.props.CollectionProperty(type=RigifyParameters)
 
     bpy.types.Armature.rigify_layers = bpy.props.CollectionProperty(type=RigifyArmatureLayer)
@@ -137,7 +137,7 @@ def register():
     IDStore = bpy.types.WindowManager
     IDStore.rigify_collection = bpy.props.EnumProperty(items=col_enum_list, default="All", name="Rigify Active Collection", description="The selected rig collection")
     IDStore.rigify_types = bpy.props.CollectionProperty(type=RigifyName)
-    IDStore.rigify_active_type = bpy.props.IntProperty(name="Rigify Active Type", description="The selected rig type.")
+    IDStore.rigify_active_type = bpy.props.IntProperty(name="Rigify Active Type", description="The selected rig type")
 
     # Add rig parameters
     for rig in rig_list:

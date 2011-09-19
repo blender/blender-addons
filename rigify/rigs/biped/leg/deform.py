@@ -87,7 +87,7 @@ class Rig:
         leg_bones = [bone] + connected_children_names(self.obj, bone)[:2]
 
         if len(leg_bones) != 2:
-            raise MetarigError("RIGIFY ERROR: Bone '%s': incorrect bone configuration for rig type." % (strip_org(bone)))
+            raise MetarigError("RIGIFY ERROR: Bone '%s': incorrect bone configuration for rig type" % (strip_org(bone)))
 
         # Get the foot and heel
         foot = None
@@ -100,7 +100,7 @@ class Rig:
                     heel = b.name
 
         if foot is None or heel is None:
-            raise MetarigError("RIGIFY ERROR: Bone '%s': incorrect bone configuration for rig type." % (strip_org(bone)))
+            raise MetarigError("RIGIFY ERROR: Bone '%s': incorrect bone configuration for rig type" % (strip_org(bone)))
 
         # Get the toe
         toe = None
@@ -109,7 +109,7 @@ class Rig:
                 toe = b.name
 
         if toe is None:
-            raise MetarigError("RIGIFY ERROR: Bone '%s': incorrect bone configuration for rig type." % (strip_org(bone)))
+            raise MetarigError("RIGIFY ERROR: Bone '%s': incorrect bone configuration for rig type" % (strip_org(bone)))
 
         self.org_bones = leg_bones + [foot, toe, heel]
 

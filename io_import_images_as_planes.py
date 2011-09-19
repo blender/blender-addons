@@ -228,14 +228,14 @@ class IMPORT_OT_image_to_plane(bpy.types.Operator, ImportHelper, AddObjectHelper
     bl_idname = "import.image_to_plane"
     bl_label = "Import Images as Planes"
     bl_description = "Create mesh plane(s) from image files" \
-        " with the appropiate aspect ratio."
+                     " with the appropiate aspect ratio"
     bl_options = {'REGISTER', 'UNDO'}
 
     ## OPTIONS ##
     all_in_directory = BoolProperty(
             name="All in directory",
             description=("Import all image files (of the selected type) "
-                         "in this directory."),
+                         "in this directory"),
             default=False,
             )
     align = BoolProperty(
@@ -271,13 +271,13 @@ class IMPORT_OT_image_to_plane(bpy.types.Operator, ImportHelper, AddObjectHelper
         )
     extension = EnumProperty(
             name="Extension",
-            description="Only import files of this type.",
+            description="Only import files of this type",
             items=extEnum)
     use_dimension = BoolProperty(name="Use image dimensions",
-            description="Use the images pixels to derive the size of the plane.",
+            description="Use the images pixels to derive the size of the plane",
             default=False)
     factor = IntProperty(name="Pixels/BU",
-            description="Number of pixels per Blenderunit.",
+            description="Number of pixels per Blenderunit",
             min=1,
             default=500,
             )
@@ -290,7 +290,7 @@ class IMPORT_OT_image_to_plane(bpy.types.Operator, ImportHelper, AddObjectHelper
             )
     use_transparency = BoolProperty(
             name="Use alpha",
-            description="Use alphachannel for transparency.",
+            description="Use alphachannel for transparency",
             default=False,
             )
     tEnum = (

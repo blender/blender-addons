@@ -79,7 +79,7 @@ class ImportHiRISEIMGDTM(bpy.types.Operator, ImportHelper):
                                    ('BIN12-FAST', "12x12 Fast", "use one sample per 12x12 region"),
                                   ),
                             name="Binning",
-                            description="Import Binning.",
+                            description="Import Binning",
                             default='BIN12-FAST'
                             )
 

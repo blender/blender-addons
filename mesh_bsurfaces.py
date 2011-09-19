@@ -66,7 +66,7 @@ class VIEW3D_PT_tools_SURF_SKETCH(bpy.types.Panel):
 class GPENCIL_OT_SURFSK_add_surface(bpy.types.Operator):
     bl_idname = "gpencil.surfsk_add_surface"
     bl_label = "Bsurfaces add surface"
-    bl_description = "Generates a surface from grease pencil strokes or from curves."
+    bl_description = "Generates a surface from grease pencil strokes or from curves"
     bl_options = {'REGISTER', 'UNDO'}
     
     

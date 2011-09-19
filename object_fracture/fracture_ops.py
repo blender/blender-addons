@@ -360,11 +360,11 @@ class FractureSimple(bpy.types.Operator):
 
     hierarchy = BoolProperty(name="Generate hierarchy",
         description="Hierarchy is usefull for simulation of objects" \
-            " breaking in motion.",
+                    " breaking in motion",
         default=False)
 
     nshards = IntProperty(name="Number of shards",
-        description="Number of shards the object should be split into.",
+        description="Number of shards the object should be split into",
         min=2,
         default=5)
 

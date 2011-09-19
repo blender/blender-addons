@@ -1663,7 +1663,7 @@ def fs_callback(filename, context):
             #print("Okay")
             bArmatureScale = True
         else:
-            print("Error, Armature Object not scale right should be (1,1,1).")            
+            print("Error, Armature Object not scale right should be (1,1,1).")
             bArmatureScale = False
         if blender_armature[0].location.x == 0 and blender_armature[0].location.y == 0 and blender_armature[0].location.z == 0:
             #print("Okay")
@@ -1777,19 +1777,25 @@ from bpy.props import *
 
 bpy.types.Scene.unrealfpsrate = IntProperty(
     name="fps rate",
-    description="Set the frame per second (fps) for unreal.",
+    description="Set the frame per second (fps) for unreal",
     default=24,min=1,max=100)
     
 bpy.types.Scene.unrealexport_settings = EnumProperty(
     name="Export:",
     description="Select a export settings (psk/psa/all)...",
-    items = [("0","PSK","Export PSK"),("1","PSA","Export PSA"),("2","ALL","Export ALL")], default = '0')
-	
+    items = [("0","PSK","Export PSK"),
+             ("1","PSA","Export PSA"),
+             ("2","ALL","Export ALL")],
+    default = '0')
+
 bpy.types.Scene.UEActionSetSettings = EnumProperty(
     name="Action Set(s) Export Type",
-    description="For Exporting Single, All, and Select Action Set(s).",
-    items = [("0","Single","Single Action Set Export"),("1","All","All Action Sets Export"),("2","Select","Select Action Set(s) Export")], default = '0')        
-	
+    description="For Exporting Single, All, and Select Action Set(s)",
+    items = [("0","Single","Single Action Set Export"),
+             ("1","All","All Action Sets Export"),
+             ("2","Select","Select Action Set(s) Export")],
+    default = '0')        
+
 bpy.types.Scene.unrealtriangulatebool = BoolProperty(
     name="Triangulate Mesh",
     description="Convert Quad to Tri Mesh Boolean...",
@@ -1797,12 +1803,14 @@ bpy.types.Scene.unrealtriangulatebool = BoolProperty(
 
 bpy.types.Scene.unrealignoreactionmatchcount = BoolProperty(
     name="Acion Group Ignore Count",
-    description="It will ingore Action group count as long is matches the Armature bone count to match and over ride the armature animation data.",
+    description="It will ingore Action group count as long is matches the " \
+                "Armature bone count to match and over ride the armature " \
+                "animation data",
     default=False)
     
 bpy.types.Scene.unrealdisplayactionsets = BoolProperty(
     name="Show Action Set(s)",
-    description="Display Action Sets Information.",
+    description="Display Action Sets Information",
     default=False)    
     
 bpy.types.Scene.unrealexportpsk = BoolProperty(
@@ -1818,10 +1826,13 @@ bpy.types.Scene.unrealexportpsa = BoolProperty(
 class UEAPropertyGroup(bpy.types.PropertyGroup):
     ## create Properties for the collection entries:
     mystring = bpy.props.StringProperty()
-    mybool = bpy.props.BoolProperty(name="Export",description="Check if you want to export the action set.",default = False)
-	
-bpy.utils.register_class(UEAPropertyGroup) 
- 
+    mybool = bpy.props.BoolProperty(
+        name="Export",
+        description="Check if you want to export the action set",
+        default = False)
+
+bpy.utils.register_class(UEAPropertyGroup)
+
 ## create CollectionProperty and link it to the property class
 bpy.types.Object.myCollectionUEA = bpy.props.CollectionProperty(type = UEAPropertyGroup)
 bpy.types.Object.myCollectionUEA_index = bpy.props.IntProperty(min = -1, default = -1)
@@ -1916,12 +1927,15 @@ class ExportUDKAnimData(bpy.types.Operator):
             )
     actionexportall = BoolProperty(
             name="All Actions",
-            description="This will export all the actions that matches the current armature.",
+            description="This will export all the actions that matches the " \
+                        "current armature",
             default=False,
             )
     ignoreactioncountexportbool = BoolProperty(
             name="Ignore Action Group Count",
-            description="It will ignore action group count but as long it matches the armature bone count to over ride the animation data.",
+            description="It will ignore action group count but as long it " \
+                        "matches the armature bone count to over ride the " \
+                        "animation data",
             default= False,
             )
 
