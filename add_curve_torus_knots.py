@@ -89,8 +89,7 @@ def create_torus_knot(self, context):
     if self.geo_surf:
         curve_data.bevel_depth = self.geo_bDepth
         curve_data.bevel_resolution = self.geo_bRes
-        curve_data.use_fill_front = False
-        curve_data.use_fill_back = False
+        curve_data.fill_mode = 'FULL'
         curve_data.extrude = self.geo_extrude
         #curve_data.offset = self.geo_width # removed, somehow screws things up all of a sudden
         curve_data.resolution_u = self.geo_res

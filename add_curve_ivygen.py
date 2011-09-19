@@ -54,7 +54,7 @@ def createIvyGeometry(IVY, growLeaves):
     curve = bpy.data.curves.new("IVY", type='CURVE')
     curve.dimensions = '3D'
     curve.bevel_depth = 1
-    curve.use_fill_front = curve.use_fill_back = False
+    curve.fill_mode = 'FULL'
     curve.resolution_u = 4
 
     if growLeaves:

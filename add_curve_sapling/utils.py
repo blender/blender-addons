@@ -484,8 +484,7 @@ def addTree(props):
         bpy.context.scene.objects.link(treeOb)
 
         cu.dimensions = '3D'
-        cu.use_fill_back = False
-        cu.use_fill_front = False
+        cu.fill_mode = 'FULL'
         cu.bevel_depth = bevelDepth
         cu.bevel_resolution = bevelRes
 

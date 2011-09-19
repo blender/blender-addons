@@ -283,8 +283,7 @@ def MakeMatte (Type):
     Curve = Obj.data
     
     Curve.dimensions = '2D'
-    Curve.use_fill_front = False
-    Curve.use_fill_back = False
+    Curve.fill_mode = 'NONE'
 
 
 class CURVE_OT_make_white_matte_rotobezier(bpy.types.Operator):
