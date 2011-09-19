@@ -59,8 +59,7 @@ def draw_callback_px(self, context):
     perspective_matrix = region3d.perspective_matrix.copy()
 
     def draw_text(text, vec):
-        vec_4d = vec.to_4d()
-        vec_4d *= perspective_matrix
+        vec_4d = perspective_matrix * vec.to_4d()
         if vec_4d.w > 0.0:
             x = region_mid_width + region_mid_width * (vec_4d.x / vec_4d.w)
             y = region_mid_height + region_mid_height * (vec_4d.y / vec_4d.w)
@@ -160,7 +159,7 @@ def draw_callback_view(self, context):
             for y in (-1.0, 1.0):
                 for z in (-1.0, 1.0):
                     bb[i][:] = x, y, z
-                    bb[i] *= mat
+                    bb[i] = mat * bb[i]
                     i += 1
 
         # strip
