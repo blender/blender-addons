@@ -629,8 +629,8 @@ def write_pov(filename, scene=None, info_callback=None):
                     size_y = lamp.size_y
                     samples_y = lamp.shadow_ray_samples_y
 
-                tabWrite("area_light <%.6f,0,0>,<0,0,%.6f> %d, %d\n" % \
-                         (size_x, size_y, samples_x, samples_y))
+                tabWrite("area_light <%.6f,0,0>,<0,%.6f,0> %d, %d\n" % \
+                         (size_x, -size_y, samples_x, samples_y))
                 if lamp.shadow_ray_sample_method == 'CONSTANT_JITTERED':
                     if lamp.jitter:
                         tabWrite("jitter\n")
@@ -651,7 +651,7 @@ def write_pov(filename, scene=None, info_callback=None):
                     tabWrite("fade_power %d\n" % 2)  # Use blenders lamp quad equivalent
                 elif lamp.falloff_type == 'INVERSE_LINEAR':
                     tabWrite("fade_power %d\n" % 1)  # Use blenders lamp linear
-                # upposing using no fade power keyword would default to constant, no attenuation.
+                # supposing using no fade power keyword would default to constant, no attenuation.
                 elif lamp.falloff_type == 'CONSTANT':
                     pass
                 # Using Custom curve for fade power 3 for now.
