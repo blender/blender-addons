@@ -81,7 +81,7 @@ def set_pose_translation(pose_bone, mat):
             par_rest = Matrix()
 
         q = (par_rest.inverted() * rest).to_quaternion()
-        pose_bone.location = loc * q
+        pose_bone.location = q * loc
 
 
 def set_pose_rotation(pose_bone, mat):
@@ -200,7 +200,7 @@ def match_pole_target(ik_first, ik_last, pole, match_bone, length):
 
     # Compensate for the rotation difference
     if angle > 0.0001:
-        pv *= Matrix.Rotation(angle, 4, ikv).to_quaternion()
+        pv = Matrix.Rotation(angle, 4, ikv).to_quaternion() * pv
         set_pole(pv)
 
         # Get rotation difference again, to see if we
@@ -210,7 +210,7 @@ def match_pole_target(ik_first, ik_last, pole, match_bone, length):
         angle2 = acos(min(1,max(-1,q1.dot(q2)))) * 2
         if angle2 > 0.0001:
             # Compensate in the other direction
-            pv *= Matrix.Rotation((angle*(-2)), 4, ikv).to_quaternion()
+            pv = Matrix.Rotation((angle*(-2)), 4, ikv).to_quaternion() * pv
             set_pole(pv)
 
 
