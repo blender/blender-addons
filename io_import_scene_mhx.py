@@ -2378,7 +2378,7 @@ def pushOnTodoList(var, expr, glbals, lcals):
     global todo
     print("Tdo", var)
     print(dir(eval(var, glbals, lcals)))
-    MyError("Todo", expr)
+    MyError("Todo %s" % expr)
     todo.append((expr, glbals, lcals))
     return
 
