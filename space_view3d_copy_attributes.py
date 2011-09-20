@@ -781,7 +781,7 @@ def register():
     kmi.properties.name = 'VIEW3D_MT_posecopypopup'
     for menu in _layer_menus:
         bpy.utils.register_class(menu)
-    bpy.types.DATA_PT_texface.append(_add_tface_buttons)
+#    bpy.types.DATA_PT_texface.append(_add_tface_buttons)
 
     km = kc.keymaps.new(name="Mesh")
     kmi = km.keymap_items.new('wm.call_menu', 'C', 'PRESS')
