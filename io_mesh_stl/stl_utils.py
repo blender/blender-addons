@@ -49,9 +49,9 @@ def mmap_file(filename):
     with open(filename, 'rb') as file:
         # check http://bugs.python.org/issue8046 to have mmap context
         # manager fixed in python
-        map = mmap.mmap(file.fileno(), 0, access=mmap.ACCESS_READ)
-        yield map
-        map.close()
+        mem_map = mmap.mmap(file.fileno(), 0, access=mmap.ACCESS_READ)
+        yield mem_map
+        mem_map.close()
 
 
 class ListDict(dict):
