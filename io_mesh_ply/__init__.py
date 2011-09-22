@@ -80,7 +80,7 @@ class ImportPLY(bpy.types.Operator, ImportHelper):
 
 class ExportPLY(bpy.types.Operator, ExportHelper):
     '''Export a single object as a stanford PLY with normals, ''' \
-    '''colours and texture coordinates.'''
+    '''colours and texture coordinates'''
     bl_idname = "export_mesh.ply"
     bl_label = "Export PLY"
 

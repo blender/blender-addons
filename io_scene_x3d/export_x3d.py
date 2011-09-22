@@ -89,14 +89,14 @@ def suffix_quoted_str(value, suffix):
     return value[:-1] + suffix + value[-1:]
 
 
-def clean_def(str):
+def clean_def(txt):
     # see report [#28256]
-    if not str:
-        str = "None"
+    if not txt:
+        txt = "None"
     # no digit start
-    if str[0] in "1234567890+-":
-        str = "_" + str
-    return str.translate({  # control characters 0x0-0x1f
+    if txt[0] in "1234567890+-":
+        txt = "_" + txt
+    return txt.translate({  # control characters 0x0-0x1f
                             # 0x00: "_",
                           0x01: "_",
                           0x02: "_",
@@ -1439,16 +1439,9 @@ def save(operator, context, filepath="",
     if bpy.ops.object.mode_set.poll():
         bpy.ops.object.mode_set(mode='OBJECT')
 
-    file = None
     if use_compress:
-        try:
-            import gzip
-            file = gzip.open(filepath, 'w')
-        except:
-            print('failed to import compression modules, exporting uncompressed')
-            filepath = filepath[:-1]  # remove trailing z
-
-    if file is None:
+        file = gzip.open(filepath, 'w')
+    else:
         file = open(filepath, 'w')
 
     if global_matrix is None:
