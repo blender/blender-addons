@@ -609,10 +609,6 @@ class MESH_MT_CopyFaceSettings(bpy.types.Menu):
                         text="Copy Material")['mode'] = 'MAT'
         if mesh.uv_textures.active:
             layout.operator(MESH_OT_CopyFaceSettings.bl_idname,
-                            text="Copy Mode")['mode'] = 'MODE'
-            layout.operator(MESH_OT_CopyFaceSettings.bl_idname,
-                            text="Copy Transp")['mode'] = 'TRANSP'
-            layout.operator(MESH_OT_CopyFaceSettings.bl_idname,
                             text="Copy Image")['mode'] = 'IMAGE'
             layout.operator(MESH_OT_CopyFaceSettings.bl_idname,
                             text="Copy UV Coords")['mode'] = 'UV'
@@ -622,8 +618,6 @@ class MESH_MT_CopyFaceSettings(bpy.types.Menu):
         if uv or vc:
             layout.separator()
             if uv:
-                layout.menu("MESH_MT_CopyModeFromLayer")
-                layout.menu("MESH_MT_CopyTranspFromLayer")
                 layout.menu("MESH_MT_CopyImagesFromLayer")
                 layout.menu("MESH_MT_CopyUVCoordsFromLayer")
             if vc:
@@ -661,8 +655,6 @@ def _build_draw(mode):
 
 _layer_menu_data = (("UV Coords", _build_draw("UV"), _poll_layer_uvs),
                     ("Images", _build_draw("IMAGE"), _poll_layer_uvs),
-                    ("Mode", _build_draw("MODE"), _poll_layer_uvs),
-                    ("Transp", _build_draw("TRANSP"), _poll_layer_uvs),
                     ("Vertex Colors", _build_draw("VCOL"), _poll_layer_vcols))
 _layer_menus = []
 for name, draw_func, poll_func in _layer_menu_data:
@@ -728,21 +720,6 @@ class MESH_OT_CopyFaceSettings(bpy.types.Operator):
                     to_face.color2 = from_face.color2
                     to_face.color3 = from_face.color3
                     to_face.color4 = from_face.color4
-                elif mode == 'MODE':
-                    to_face.use_alpha_sort = from_face.use_alpha_sort
-                    to_face.use_billboard = from_face.use_billboard
-                    to_face.use_collision = from_face.use_collision
-                    to_face.use_halo = from_face.use_halo
-                    to_face.hide = from_face.hide
-                    to_face.use_light = from_face.use_light
-                    to_face.use_object_color = from_face.use_object_color
-                    to_face.use_shadow_cast = from_face.use_shadow_cast
-                    to_face.use_blend_shared = from_face.use_blend_shared
-                    to_face.use_image = from_face.use_image
-                    to_face.use_bitmap_text = from_face.use_bitmap_text
-                    to_face.use_twoside = from_face.use_twoside
-                elif mode == 'TRANSP':
-                    to_face.blend_type = from_face.blend_type
                 elif mode in {'UV', 'IMAGE'}:
                     attr = mode.lower()
                     setattr(to_face, attr, getattr(from_face, attr))
@@ -753,14 +730,6 @@ def _end(retval):
     # Clean up by returning to edit mode like it was before.
     bpy.ops.object.editmode_toggle()
     return(retval)
-
-
-def _add_tface_buttons(self, context):
-    row = self.layout.row()
-    row.operator(MESH_OT_CopyFaceSettings.bl_idname,
-                 text="Copy Mode")['mode'] = 'MODE'
-    row.operator(MESH_OT_CopyFaceSettings.bl_idname,
-                 text="Copy Transp")['mode'] = 'TRANSP'
 
 
 def register():
@@ -781,7 +750,6 @@ def register():
     kmi.properties.name = 'VIEW3D_MT_posecopypopup'
     for menu in _layer_menus:
         bpy.utils.register_class(menu)
-#    bpy.types.DATA_PT_texface.append(_add_tface_buttons)
 
     km = kc.keymaps.new(name="Mesh")
     kmi = km.keymap_items.new('wm.call_menu', 'C', 'PRESS')
@@ -801,7 +769,6 @@ def unregister():
             break
     for menu in _layer_menus:
         bpy.utils.unregister_class(menu)
-    bpy.types.DATA_PT_texface.remove(_add_tface_buttons)
     km = bpy.context.window_manager.keyconfigs.addon.keymaps['Mesh']
     for kmi in km.keymap_items:
         if kmi.idname == 'wm.call_menu':
