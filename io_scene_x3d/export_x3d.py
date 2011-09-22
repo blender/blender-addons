@@ -1058,41 +1058,45 @@ def export(file,
 
             # ------------------------------------------------------
             # shader-patch
-            fw('%s<field name="%s" type="SFMatrix4f" accessType="inputOutput" />\n' % (ident, H3D_VIEW_MATRIX))
+            field_descr = " <!--- H3D View Matrix Patch -->"
+            fw('%s<field name="%s" type="SFMatrix4f" accessType="inputOutput" />%s\n' % (ident, H3D_VIEW_MATRIX, field_descr))
             frag_vars = ["uniform mat4 %s;" % H3D_VIEW_MATRIX]
 
             h3d_material_route.append(
-                    '<ROUTE fromNode="%s" fromField="glModelViewMatrix" toNode=%s toField="%s" />' %
-                    (H3D_TOP_LEVEL, material_id, H3D_VIEW_MATRIX))
+                    '<ROUTE fromNode="%s" fromField="glModelViewMatrix" toNode=%s toField="%s" />%s' %
+                    (H3D_TOP_LEVEL, material_id, H3D_VIEW_MATRIX, field_descr))
             # ------------------------------------------------------
 
             for uniform in gpu_shader['uniforms']:
                 if uniform['type'] == gpu.GPU_DYNAMIC_SAMPLER_2DIMAGE:
-                    fw('%s<field name="%s" type="SFNode" accessType="inputOutput">\n' % (ident, uniform['varname']))
-                    writeImageTexture(ident + '\t', bpy.data.images[uniform['image']])
+                    field_descr = " <!--- Dynamic Sampler 2d Image -->"
+                    fw('%s<field name="%s" type="SFNode" accessType="inputOutput">%s\n' % (ident, uniform['varname'], field_descr))
+                    writeImageTexture(ident + '\t', uniform['image'])
                     fw('%s</field>\n' % ident)
 
                 elif uniform['type'] == gpu.GPU_DYNAMIC_LAMP_DYNCO:
                     if uniform['datatype'] == gpu.GPU_DATA_3F:  # should always be true!
-                        lamp_obj = bpy.data.objects[uniform['lamp']]
+                        lamp_obj = uniform['lamp']
                         lamp_obj_id = quoteattr(unique_name(lamp_obj, 'LA_' + lamp_obj.name, uuid_cache_lamp, clean_func=clean_def, sep="_"))
 
                         value = '%.6g %.6g %.6g' % (global_matrix * lamp_obj.matrix_world).to_translation()[:]
-                        fw('%s<field name="%s" type="SFVec3f" accessType="inputOutput" value="%s" />\n' % (ident, uniform['varname'], value))
+                        field_descr = " <!--- Lamp DynCo '%s' -->" % lamp_obj.name
+                        fw('%s<field name="%s" type="SFVec3f" accessType="inputOutput" value="%s" />%s\n' % (ident, uniform['varname'], value, field_descr))
 
                         # ------------------------------------------------------
                         # shader-patch
-                        fw('%s<field name="%s_transform" type="SFMatrix4f" accessType="inputOutput" />\n' % (ident, uniform['varname']))
+                        field_descr = " <!--- Lamp DynCo '%s' (shader patch) -->" % lamp_obj.name
+                        fw('%s<field name="%s_transform" type="SFMatrix4f" accessType="inputOutput" />%s\n' % (ident, uniform['varname'], field_descr))
 
                         # transform
                         frag_vars.append("uniform mat4 %s_transform;" % uniform['varname'])
                         h3d_material_route.append(
-                                '<ROUTE fromNode=%s fromField="accForwardMatrix" toNode=%s toField="%s_transform" />' %
-                                (suffix_quoted_str(lamp_obj_id, "_TRANSFORM"), material_id, uniform['varname']))
+                                '<ROUTE fromNode=%s fromField="accForwardMatrix" toNode=%s toField="%s_transform" />%s' %
+                                (suffix_quoted_str(lamp_obj_id, "_TRANSFORM"), material_id, uniform['varname'], field_descr))
 
                         h3d_material_route.append(
-                                '<ROUTE fromNode=%s fromField="location" toNode=%s toField="%s" />' %
-                                (suffix_quoted_str(lamp_obj_id, "_TRANSFORM"), material_id, uniform['varname']))
+                                '<ROUTE fromNode=%s fromField="location" toNode=%s toField="%s" /> %s' %
+                                (suffix_quoted_str(lamp_obj_id, "_TRANSFORM"), material_id, uniform['varname'], field_descr))
                         # ------------------------------------------------------
 
                     else:
@@ -1100,12 +1104,14 @@ def export(file,
 
                 elif uniform['type'] == gpu.GPU_DYNAMIC_LAMP_DYNCOL:
                     # odd  we have both 3, 4 types.
-                    lamp = bpy.data.objects[uniform['lamp']].data
+                    lamp_obj = uniform['lamp']
+                    lamp = lamp_obj.data
                     value = '%.6g %.6g %.6g' % (lamp.color * lamp.energy)[:]
+                    field_descr = " <!--- Lamp DynColor '%s' -->" % lamp_obj.name
                     if uniform['datatype'] == gpu.GPU_DATA_3F:
-                        fw('%s<field name="%s" type="SFVec3f" accessType="inputOutput" value="%s" />\n' % (ident, uniform['varname'], value))
+                        fw('%s<field name="%s" type="SFVec3f" accessType="inputOutput" value="%s" />%s\n' % (ident, uniform['varname'], value, field_descr))
                     elif uniform['datatype'] == gpu.GPU_DATA_4F:
-                        fw('%s<field name="%s" type="SFVec4f" accessType="inputOutput" value="%s 1.0" />\n' % (ident, uniform['varname'], value))
+                        fw('%s<field name="%s" type="SFVec4f" accessType="inputOutput" value="%s 1.0" />%s\n' % (ident, uniform['varname'], value, field_descr))
                     else:
                         assert(0)
 
@@ -1115,9 +1121,10 @@ def export(file,
 
                 elif uniform['type'] == gpu.GPU_DYNAMIC_LAMP_DYNVEC:
                     if uniform['datatype'] == gpu.GPU_DATA_3F:
-                        lamp_obj = bpy.data.objects[uniform['lamp']]
+                        lamp_obj = uniform['lamp']
                         value = '%.6g %.6g %.6g' % ((global_matrix * lamp_obj.matrix_world).to_quaternion() * mathutils.Vector((0.0, 0.0, 1.0))).normalized()[:]
-                        fw('%s<field name="%s" type="SFVec3f" accessType="inputOutput" value="%s" />\n' % (ident, uniform['varname'], value))
+                        field_descr = " <!--- Lamp DynDirection '%s' -->" % lamp_obj.name
+                        fw('%s<field name="%s" type="SFVec3f" accessType="inputOutput" value="%s" />%s\n' % (ident, uniform['varname'], value, field_descr))
                     else:
                         assert(0)
 
@@ -1126,14 +1133,16 @@ def export(file,
                         # must be updated dynamically
                         # TODO, write out 'viewpointMatrices.py'
                         value = ' '.join(['%.6f' % f for v in mathutils.Matrix() for f in v])
-                        fw('%s<field name="%s" type="SFMatrix4f" accessType="inputOutput" value="%s" />\n' % (ident, uniform['varname'], value))
+                        field_descr = " <!--- Object View Matrix '%s' -->" % obj.name
+                        fw('%s<field name="%s" type="SFMatrix4f" accessType="inputOutput" value="%s" />%s\n' % (ident, uniform['varname'], value, field_descr))
                     else:
                         assert(0)
 
                 elif uniform['type'] == gpu.GPU_DYNAMIC_OBJECT_IMAT:
                     if uniform['datatype'] == gpu.GPU_DATA_16F:
                         value = ' '.join(['%.6f' % f for v in (global_matrix * obj.matrix_world).inverted() for f in v])
-                        fw('%s<field name="%s" type="SFMatrix4f" accessType="inputOutput" value="%s" />\n' % (ident, uniform['varname'], value))
+                        field_descr = " <!--- Object Invertex Matrix '%s' -->" % obj.name
+                        fw('%s<field name="%s" type="SFMatrix4f" accessType="inputOutput" value="%s" />%s\n' % (ident, uniform['varname'], value, field_descr))
                     else:
                         assert(0)
 
@@ -1149,7 +1158,8 @@ def export(file,
                                 col = tex[i:i + 4]
                                 value.append('0x%.2x%.2x%.2x%.2x' % (col[0], col[1], col[2], col[3]))
 
-                            fw('%s<field name="%s" type="SFNode" accessType="inputOutput">\n' % (ident, uniform['varname']))
+                            field_descr = " <!--- Material Buffer -->"
+                            fw('%s<field name="%s" type="SFNode" accessType="inputOutput">%s\n' % (ident, uniform['varname'], field_descr))
 
                             ident += '\t'
 
@@ -1170,7 +1180,7 @@ def export(file,
                             #value = ' '.join(['%d' % f for f in uniform['texpixels']])
                             # value = ' '.join(['%.6g' % (f / 256) for f in uniform['texpixels']])
 
-                            #fw('%s<field name="%s" type="SFInt32" accessType="inputOutput" value="%s" />\n' % (ident, uniform['varname'], value))
+                            #fw('%s<field name="%s" type="SFInt32" accessType="inputOutput" value="%s" />%s\n' % (ident, uniform['varname'], value, field_descr))
                             #print('test', len(uniform['texpixels']))
                     else:
                         assert(0)
