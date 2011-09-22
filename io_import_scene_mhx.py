@@ -3457,9 +3457,9 @@ class MhxExpressionsPanel(bpy.types.Panel):
         layout.operator("mhx.pose_key_expressions")
         layout.separator()
         for (prop, name) in props:
-            row = layout.split(0.75)
+            row = layout.split(0.85)
             row.prop(rig, '["%s"]' % prop, text=name)
-            row.operator("mhx.pose_pin_expression").expression = prop
+            row.operator("mhx.pose_pin_expression", text="", icon='UNPINNED').expression = prop
         return
 
 ###################################################################################    
@@ -3556,8 +3556,8 @@ class MhxLayersPanel(bpy.types.Panel):
 
     def draw(self, context):
         layout = self.layout
-        layout.operator("mhx.pose_set_all_layers", text='Enable all layers').value = True
-        layout.operator("mhx.pose_set_all_layers", text='Disable all layers').value = False
+        layout.operator("mhx.pose_enable_all_layers")
+        layout.operator("mhx.pose_disable_all_layers")
         amt = context.object.data
         for (left,right) in MhxLayers:
             row = layout.row()
@@ -3569,17 +3569,34 @@ class MhxLayersPanel(bpy.types.Panel):
                     row.prop(amt, "layers", index=n, toggle=True, text=name)
         return
 
-class VIEW3D_OT_MhxSetAllLayersButton(bpy.types.Operator):
-    bl_idname = "mhx.pose_set_all_layers"
-    bl_label = "Set inverse"
-    value = BoolProperty()
+class VIEW3D_OT_MhxEnableAllLayersButton(bpy.types.Operator):
+    bl_idname = "mhx.pose_enable_all_layers"
+    bl_label = "Enable all layers"
 
     def execute(self, context):
         rig = getMhxRig(context.object)
         for (left,right) in MhxLayers:
             if type(left) != str:
                 for (n, name, prop) in [left,right]:
-                    rig.data.layers[n] = self.value
+                    rig.data.layers[n] = True
+        return{'FINISHED'}    
+
+class VIEW3D_OT_MhxDisableAllLayersButton(bpy.types.Operator):
+    bl_idname = "mhx.pose_disable_all_layers"
+    bl_label = "Disable all layers"
+
+    def execute(self, context):
+        rig = getMhxRig(context.object)
+        layers = 32*[False]
+        pb = context.active_pose_bone
+        if pb:
+            for n in range(32):
+                if pb.bone.layers[n]:
+                    layers[n] = True
+                    break
+        else:
+            layers[0] = True
+        rig.data.layers = layers            
         return{'FINISHED'}    
                 
 ###################################################################################    
