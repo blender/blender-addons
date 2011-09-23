@@ -219,7 +219,7 @@ def import_images(self, context):
     for plane in planes:
         plane.select = True
         
-    self.report(type='INFO',
+    self.report(type={'INFO'},
                 message='Added %i Image Plane(s)' %len(planes))
 
 ##### OPERATOR #####
