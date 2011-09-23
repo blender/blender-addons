@@ -277,7 +277,7 @@ class NetworkRenderEngine(bpy.types.RenderEngine):
             else:
                 print("UNKNOWN OPERATION MODE")
         except Exception as e:
-            self.report('ERROR', str(e))
+            self.report({'ERROR'}, str(e))
             raise e
 
     def render_master(self, scene):

@@ -147,9 +147,9 @@ class RENDER_OT_netclientsend(bpy.types.Operator):
                 # Sending file
                 scene.network_render.job_id = client.clientSendJob(conn, scene, True)
                 conn.close()
-                self.report('INFO', "Job sent to master")
+                self.report({'INFO'}, "Job sent to master")
         except Exception as err:
-            self.report('ERROR', str(err))
+            self.report({'ERROR'}, str(err))
 
 
         return {'FINISHED'}
@@ -177,9 +177,9 @@ class RENDER_OT_netclientsendframe(bpy.types.Operator):
                 # Sending file
                 scene.network_render.job_id = client.clientSendJob(conn, scene, False)
                 conn.close()
-                self.report('INFO', "Job sent to master")
+                self.report({'INFO'}, "Job sent to master")
         except Exception as err:
-            self.report('ERROR', str(err))
+            self.report({'ERROR'}, str(err))
 
 
         return {'FINISHED'}
@@ -421,7 +421,7 @@ class netclientdownload(bpy.types.Operator):
             response = conn.getresponse()
             
             if response.status != http.client.OK:
-                self.report('ERROR', "Job ID %i not defined on master" % job_id)
+                self.report({'ERROR'}, "Job ID %i not defined on master" % job_id)
                 return {'ERROR'}
             
             content = response.read()
@@ -472,13 +472,13 @@ class netclientdownload(bpy.types.Operator):
             getResults(netsettings.server_address, netsettings.server_port, job_id, job.resolution[0], job.resolution[1], job.resolution[2], frame_ranges)
             
             if nb_error and nb_missing:
-                self.report('ERROR', "Results downloaded but skipped %i frames with errors and %i unfinished frames" % (nb_error, nb_missing))
+                self.report({'ERROR'}, "Results downloaded but skipped %i frames with errors and %i unfinished frames" % (nb_error, nb_missing))
             elif nb_error:
-                self.report('ERROR', "Results downloaded but skipped %i frames with errors" % nb_error)
+                self.report({'ERROR'}, "Results downloaded but skipped %i frames with errors" % nb_error)
             elif nb_missing:
-                self.report('WARNING', "Results downloaded but skipped %i unfinished frames" % nb_missing)
+                self.report({'WARNING'}, "Results downloaded but skipped %i unfinished frames" % nb_missing)
             else:
-                self.report('INFO', "All results downloaded")
+                self.report({'INFO'}, "All results downloaded")
 
         return {'FINISHED'}
 

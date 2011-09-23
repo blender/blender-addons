@@ -156,7 +156,7 @@ def clientConnection(address, port, report = None, scan = True, timeout = 5):
                 reporting(report, "Incorrect master version", ValueError)
     except BaseException as err:
         if report:
-            report('ERROR', str(err))
+            report({'ERROR'}, str(err))
             return None
         else:
             print(err)
