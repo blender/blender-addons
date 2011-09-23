@@ -53,11 +53,19 @@ else:
     from . import mocap_constraints
     from . import retarget
     from . import mocap_tools
+    
 
 # MocapConstraint class
 # Defines MocapConstraint datatype, used to add and configute mocap constraints
 # Attached to Armature data
 
+def hasIKConstraint(pose_bone):
+    #utility function / predicate, returns True if given bone has IK constraint
+    ik = [constraint for constraint in pose_bone.constraints if constraint.type == "IK"]
+    if ik:
+        return ik[0]
+    else:
+        return False
 
 class MocapConstraint(bpy.types.PropertyGroup):
     name = StringProperty(name="Name",

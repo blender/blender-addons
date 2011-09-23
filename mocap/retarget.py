@@ -21,7 +21,7 @@
 import bpy
 from mathutils import Vector, Matrix
 from math import radians
-from bl_operators import nla
+from bpy_extras.anim_utils import bake_action
 
 
 def hasIKConstraint(pose_bone):
@@ -292,15 +292,15 @@ def copyTranslation(performer_obj, enduser_obj, perfFeet, root, s_frame, e_frame
     if linearAvg:
         #determine the average change in scale needed
         avg = sum(linearAvg) / len(linearAvg)
-        scene.frame_set(s_frame)
-        initialPos = (tailLoc(perf_bones[perfRoot]) / avg)
-        for t in range(s_frame, e_frame):
-            scene.frame_set(t)
-            #calculate the new position, by dividing by the found ratio between performer and enduser
-            newTranslation = (tailLoc(perf_bones[perfRoot]) / avg)
-            stride_bone.location = enduser_obj_mat * (newTranslation - initialPos)
-            stride_bone.keyframe_insert("location")
     else:
+        avg = 1
+    scene.frame_set(s_frame)
+    initialPos = (tailLoc(perf_bones[perfRoot]) / avg)
+    for t in range(s_frame, e_frame):
+        scene.frame_set(t)
+        #calculate the new position, by dividing by the found ratio between performer and enduser
+        newTranslation = (tailLoc(perf_bones[perfRoot]) / avg)
+        stride_bone.location = enduser_obj_mat * (newTranslation - initialPos)
         stride_bone.keyframe_insert("location")
     stride_bone.animation_data.action.name = ("Stride Bone " + action_name)
 
@@ -520,8 +520,9 @@ def totalRetarget(performer_obj, enduser_obj, scene, s_frame, e_frame):
     else:
         prepareForBake(enduser_obj)
         print("Retargeting pose (Advanced Retarget)")
-        nla.bake(s_frame, e_frame, action=enduser_obj.animation_data.action, only_selected=True, do_pose=True, do_object=False, step=step)
-    name = performer_obj.animation_data.action.name
+        bake_action(s_frame, e_frame, action=enduser_obj.animation_data.action, only_selected=True, do_pose=True, do_object=False, step=step)
+    name = performer_obj.animation_data.action.name[:10]
+    #We trim the name down to 10 chars because of Action Name length maximum
     enduser_obj.animation_data.action.name = "Base " + name
     print("Second pass: retargeting root translation and clean up")
     stride_bone = copyTranslation(performer_obj, enduser_obj, feetBones, root, s_frame, e_frame, scene, enduser_obj_mat)
