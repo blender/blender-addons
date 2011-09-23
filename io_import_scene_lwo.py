@@ -1082,7 +1082,7 @@ def build_objects(object_layers, object_surfs, object_tags, object_name, add_sub
                 skey= ob.shape_key_add(morph_key)
                 dlist= layer_data.morphs[morph_key]
                 for pdp in dlist:
-                    me.shape_keys.keys[skey.name].data[pdp[0]].co= [pdp[1], pdp[2], pdp[3]]
+                    me.shape_keys.key_blocks[skey.name].data[pdp[0]].co= [pdp[1], pdp[2], pdp[3]]
 
         # Create the Vertex Color maps.
         if len(layer_data.colmaps) > 0:
