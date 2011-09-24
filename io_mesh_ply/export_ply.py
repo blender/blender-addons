@@ -16,7 +16,7 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-# <pep8 compliant>
+# <pep8-80 compliant>
 
 # Copyright (C) 2004, 2005: Bruce Merry, bmerry@cs.uct.ac.za
 # Contributors: Bruce Merry, Campbell Barton
@@ -31,7 +31,14 @@ import bpy
 import os
 
 
-def save(operator, context, filepath="", use_modifiers=True, use_normals=True, use_uv_coords=True, use_colors=True):
+def save(operator,
+         context,
+         filepath="",
+         use_modifiers=True,
+         use_normals=True,
+         use_uv_coords=True,
+         use_colors=True,
+         ):
 
     def rvec3d(v):
         return round(v[0], 6), round(v[1], 6), round(v[2], 6)
@@ -46,6 +53,7 @@ def save(operator, context, filepath="", use_modifiers=True, use_normals=True, u
         raise Exception("Error, Select 1 active object")
 
     file = open(filepath, "w", encoding="utf8", newline="\n")
+    fw = file.write
 
     if scene.objects.active:
         bpy.ops.object.mode_set(mode='OBJECT')
@@ -60,33 +68,33 @@ def save(operator, context, filepath="", use_modifiers=True, use_normals=True, u
 
     # mesh.transform(obj.matrix_world) # XXX
 
-    faceUV = (len(mesh.uv_textures) > 0)
-    vertexUV = (len(mesh.sticky) > 0)
-    vertexColors = len(mesh.vertex_colors) > 0
+    has_uv = (len(mesh.uv_textures) > 0)
+    has_uv_vertex = (len(mesh.sticky) > 0)
+    has_vcol = len(mesh.vertex_colors) > 0
 
-    if (not faceUV) and (not vertexUV):
+    if (not has_uv) and (not has_uv_vertex):
         use_uv_coords = False
-    if not vertexColors:
+    if not has_vcol:
         use_colors = False
 
     if not use_uv_coords:
-        faceUV = vertexUV = False
+        has_uv = has_uv_vertex = False
     if not use_colors:
-        vertexColors = False
+        has_vcol = False
 
-    if faceUV:
+    if has_uv:
         active_uv_layer = mesh.uv_textures.active
         if not active_uv_layer:
             use_uv_coords = False
-            faceUV = None
+            has_uv = False
         else:
             active_uv_layer = active_uv_layer.data
 
-    if vertexColors:
+    if has_vcol:
         active_col_layer = mesh.vertex_colors.active
         if not active_col_layer:
             use_colors = False
-            vertexColors = None
+            has_vcol = False
         else:
             active_col_layer = active_col_layer.data
 
@@ -106,10 +114,10 @@ def save(operator, context, filepath="", use_modifiers=True, use_normals=True, u
             normal = tuple(f.normal)
             normal_key = rvec3d(normal)
 
-        if faceUV:
+        if has_uv:
             uv = active_uv_layer[i]
             uv = uv.uv1, uv.uv2, uv.uv3, uv.uv4  # XXX - crufty :/
-        if vertexColors:
+        if has_vcol:
             col = active_col_layer[i]
             col = col.color1[:], col.color2[:], col.color3[:], col.color4[:]
 
@@ -123,17 +131,19 @@ def save(operator, context, filepath="", use_modifiers=True, use_normals=True, u
                 normal = tuple(v.normal)
                 normal_key = rvec3d(normal)
 
-            if faceUV:
+            if has_uv:
                 uvcoord = uv[j][0], 1.0 - uv[j][1]
                 uvcoord_key = rvec2d(uvcoord)
-            elif vertexUV:
+            elif has_uv_vertex:
                 uvcoord = v.uvco[0], 1.0 - v.uvco[1]
                 uvcoord_key = rvec2d(uvcoord)
 
-            if vertexColors:
+            if has_vcol:
                 color = col[j]
-                color = int(color[0] * 255.0), int(color[1] * 255.0), int(color[2] * 255.0)
-
+                color = (int(color[0] * 255.0),
+                         int(color[1] * 255.0),
+                         int(color[2] * 255.0),
+                         )
             key = normal_key, uvcoord_key, color
 
             vdict_local = vdict[vidx]
@@ -146,47 +156,49 @@ def save(operator, context, filepath="", use_modifiers=True, use_normals=True, u
 
             pf.append(pf_vidx)
 
-    file.write('ply\n')
-    file.write('format ascii 1.0\n')
-    file.write('comment Created by Blender %s - www.blender.org, source file: %r\n' % (bpy.app.version_string, os.path.basename(bpy.data.filepath)))
+    fw("ply\n")
+    fw("format ascii 1.0\n")
+    fw("comment Created by Blender %s - "
+       "www.blender.org, source file: %r\n" %
+       (bpy.app.version_string, os.path.basename(bpy.data.filepath)))
 
-    file.write('element vertex %d\n' % len(ply_verts))
+    fw("element vertex %d\n" % len(ply_verts))
 
-    file.write('property float x\n')
-    file.write('property float y\n')
-    file.write('property float z\n')
+    fw("property float x\n"
+       "property float y\n"
+       "property float z\n")
 
     if use_normals:
-        file.write('property float nx\n')
-        file.write('property float ny\n')
-        file.write('property float nz\n')
+        fw("property float nx\n"
+           "property float ny\n"
+           "property float nz\n")
     if use_uv_coords:
-        file.write('property float s\n')
-        file.write('property float t\n')
+        fw("property float s\n"
+           "property float t\n")
     if use_colors:
-        file.write('property uchar red\n')
-        file.write('property uchar green\n')
-        file.write('property uchar blue\n')
+        fw("property uchar red\n"
+           "property uchar green\n"
+           "property uchar blue\n")
 
-    file.write('element face %d\n' % len(mesh.faces))
-    file.write('property list uchar uint vertex_indices\n')
-    file.write('end_header\n')
+    fw("element face %d\n" % len(mesh.faces))
+    fw("property list uchar uint vertex_indices\n")
+    fw("end_header\n")
 
     for i, v in enumerate(ply_verts):
-        file.write('%.6f %.6f %.6f ' % mesh_verts[v[0]].co[:])  # co
+        fw("%.6f %.6f %.6f" % mesh_verts[v[0]].co[:])  # co
         if use_normals:
-            file.write('%.6f %.6f %.6f ' % v[1])  # no
+            fw(" %.6f %.6f %.6f" % v[1])  # no
         if use_uv_coords:
-            file.write('%.6f %.6f ' % v[2])  # uv
+            fw(" %.6f %.6f" % v[2])  # uv
         if use_colors:
-            file.write('%u %u %u' % v[3])  # col
-        file.write('\n')
+            fw(" %u %u %u" % v[3])  # col
+        fw("\n")
 
     for pf in ply_faces:
         if len(pf) == 3:
-            file.write('3 %d %d %d\n' % tuple(pf))
+            fw("3 %d %d %d\n" % tuple(pf))
         else:
-            file.write('4 %d %d %d %d\n' % tuple(pf))
+            fw("4 %d %d %d %d\n" % tuple(pf))
 
     file.close()
     print("writing %r done" % filepath)
@@ -197,7 +209,7 @@ def save(operator, context, filepath="", use_modifiers=True, use_normals=True, u
     # XXX
     """
     if is_editmode:
-        Blender.Window.EditMode(1, '', 0)
+        Blender.Window.EditMode(1, "", 0)
     """
 
     return {'FINISHED'}
