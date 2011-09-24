@@ -70,6 +70,7 @@ x3d_names_reserved = {'Anchor', 'Appearance', 'Arc2D', 'ArcClose2D', 'AudioClip'
 
 # h3d defines
 H3D_TOP_LEVEL = 'TOP_LEVEL_TI'
+H3D_CAMERA_FOLLOW = 'CAMERA_FOLLOW_TRANSFORM'
 H3D_VIEW_MATRIX = 'view_matrix'
 
 
@@ -167,12 +168,16 @@ def build_hierarchy(objects):
     return par_lookup.get(None, [])
 
 
+
 # -----------------------------------------------------------------------------
 # H3D Functions
 # -----------------------------------------------------------------------------
-def h3d_shader_glsl_frag_patch(filepath, global_vars):
+def h3d_shader_glsl_frag_patch(filepath, scene, global_vars, frag_uniform_var_map):
     h3d_file = open(filepath, 'r')
     lines = []
+    
+    last_transform = None
+    
     for l in h3d_file:
         if l.startswith("void main(void)"):
             lines.append("\n")
@@ -183,17 +188,31 @@ def h3d_shader_glsl_frag_patch(filepath, global_vars):
             lines.append("\n")
         elif l.lstrip().startswith("lamp_visibility_other("):
             w = l.split(', ')
+            last_transform = w[1] + "_transform"  # XXX - HACK!!!
             w[1] = '(view_matrix * %s_transform * vec4(%s.x, %s.y, %s.z, 1.0)).xyz' % (w[1], w[1], w[1], w[1])
             l = ", ".join(w)
         elif l.lstrip().startswith("lamp_visibility_sun_hemi("):
             w = l.split(', ')
             w[0] = w[0][len("lamp_visibility_sun_hemi(") + 1:]
-            w[0] = '(mat3(normalize(view_matrix[0].xyz), normalize(view_matrix[1].xyz), normalize(view_matrix[2].xyz)) * -%s)' % w[0]
+            
+            if not h3d_is_object_view(scene, frag_uniform_var_map[w[0]]):
+                w[0] = '(mat3(normalize(view_matrix[0].xyz), normalize(view_matrix[1].xyz), normalize(view_matrix[2].xyz)) * -%s)' % w[0]
+            else:
+                w[0] = ('(mat3(normalize((view_matrix*%s)[0].xyz), normalize((view_matrix*%s)[1].xyz), normalize((view_matrix*%s)[2].xyz)) * -%s)' %
+                        (last_transform, last_transform, last_transform, w[0]))
+
+
             l = "\tlamp_visibility_sun_hemi(" + ", ".join(w)
         elif l.lstrip().startswith("lamp_visibility_spot_circle("):
             w = l.split(', ')
             w[0] = w[0][len("lamp_visibility_spot_circle(") + 1:]
-            w[0] = '(mat3(normalize(view_matrix[0].xyz), normalize(view_matrix[1].xyz), normalize(view_matrix[2].xyz)) * -%s)' % w[0]
+            
+            if not h3d_is_object_view(scene, frag_uniform_var_map[w[0]]):
+                w[0] = '(mat3(normalize(view_matrix[0].xyz), normalize(view_matrix[1].xyz), normalize(view_matrix[2].xyz)) * -%s)' % w[0]
+            else:
+                w[0] = ('(mat3(normalize((view_matrix*%s)[0].xyz), normalize((view_matrix*%s)[1].xyz), normalize((view_matrix*%s)[2].xyz)) * %s)' %
+                    (last_transform, last_transform, last_transform, w[0]))
+
             l = "\tlamp_visibility_spot_circle(" + ", ".join(w)
 
         lines.append(l)
@@ -203,6 +222,16 @@ def h3d_shader_glsl_frag_patch(filepath, global_vars):
     h3d_file = open(filepath, 'w')
     h3d_file.writelines(lines)
     h3d_file.close()
+
+
+def h3d_is_object_view(scene, obj):
+    camera = scene.camera
+    parent = obj.parent
+    while parent:
+        if parent == camera:
+            return True
+        parent = parent.parent
+    return False
 
 
 # -----------------------------------------------------------------------------
@@ -1061,6 +1090,11 @@ def export(file,
             field_descr = " <!--- H3D View Matrix Patch -->"
             fw('%s<field name="%s" type="SFMatrix4f" accessType="inputOutput" />%s\n' % (ident, H3D_VIEW_MATRIX, field_descr))
             frag_vars = ["uniform mat4 %s;" % H3D_VIEW_MATRIX]
+            
+            # annoying!, we need to track if some of the directional lamp
+            # vars are children of the camera or not, since this adjusts how
+            # they are patched.
+            frag_uniform_var_map = {}
 
             h3d_material_route.append(
                     '<ROUTE fromNode="%s" fromField="glModelViewMatrix" toNode=%s toField="%s" />%s' %
@@ -1075,9 +1109,12 @@ def export(file,
                     fw('%s</field>\n' % ident)
 
                 elif uniform['type'] == gpu.GPU_DYNAMIC_LAMP_DYNCO:
+                    lamp_obj = uniform['lamp']
+                    frag_uniform_var_map[uniform['varname']] = lamp_obj
+
                     if uniform['datatype'] == gpu.GPU_DATA_3F:  # should always be true!
-                        lamp_obj = uniform['lamp']
                         lamp_obj_id = quoteattr(unique_name(lamp_obj, 'LA_' + lamp_obj.name, uuid_cache_lamp, clean_func=clean_def, sep="_"))
+                        lamp_obj_transform_id = quoteattr(unique_name(lamp_obj, lamp_obj.name, uuid_cache_object, clean_func=clean_def, sep="_"))
 
                         value = '%.6g %.6g %.6g' % (global_matrix * lamp_obj.matrix_world).to_translation()[:]
                         field_descr = " <!--- Lamp DynCo '%s' -->" % lamp_obj.name
@@ -1091,12 +1128,12 @@ def export(file,
                         # transform
                         frag_vars.append("uniform mat4 %s_transform;" % uniform['varname'])
                         h3d_material_route.append(
-                                '<ROUTE fromNode=%s fromField="accForwardMatrix" toNode=%s toField="%s_transform" />%s' %
-                                (suffix_quoted_str(lamp_obj_id, "_TRANSFORM"), material_id, uniform['varname'], field_descr))
+                                '<ROUTE fromNode=%s fromField="accumulatedForward" toNode=%s toField="%s_transform" />%s' %
+                                (suffix_quoted_str(lamp_obj_transform_id, "_TRANSFORM"), material_id, uniform['varname'], field_descr))
 
                         h3d_material_route.append(
                                 '<ROUTE fromNode=%s fromField="location" toNode=%s toField="%s" /> %s' %
-                                (suffix_quoted_str(lamp_obj_id, "_TRANSFORM"), material_id, uniform['varname'], field_descr))
+                                (lamp_obj_id, material_id, uniform['varname'], field_descr))
                         # ------------------------------------------------------
 
                     else:
@@ -1105,6 +1142,8 @@ def export(file,
                 elif uniform['type'] == gpu.GPU_DYNAMIC_LAMP_DYNCOL:
                     # odd  we have both 3, 4 types.
                     lamp_obj = uniform['lamp']
+                    frag_uniform_var_map[uniform['varname']] = lamp_obj
+
                     lamp = lamp_obj.data
                     value = '%.6g %.6g %.6g' % (lamp.color * lamp.energy)[:]
                     field_descr = " <!--- Lamp DynColor '%s' -->" % lamp_obj.name
@@ -1120,15 +1159,27 @@ def export(file,
                     assert(0)
 
                 elif uniform['type'] == gpu.GPU_DYNAMIC_LAMP_DYNVEC:
+                    lamp_obj = uniform['lamp']
+                    frag_uniform_var_map[uniform['varname']] = lamp_obj
+
                     if uniform['datatype'] == gpu.GPU_DATA_3F:
                         lamp_obj = uniform['lamp']
                         value = '%.6g %.6g %.6g' % ((global_matrix * lamp_obj.matrix_world).to_quaternion() * mathutils.Vector((0.0, 0.0, 1.0))).normalized()[:]
                         field_descr = " <!--- Lamp DynDirection '%s' -->" % lamp_obj.name
                         fw('%s<field name="%s" type="SFVec3f" accessType="inputOutput" value="%s" />%s\n' % (ident, uniform['varname'], value, field_descr))
+
+                        # route so we can have the lamp update the view
+                        if h3d_is_object_view(scene, lamp_obj):
+                            lamp_id = quoteattr(unique_name(lamp_obj, 'LA_' + lamp_obj.name, uuid_cache_lamp, clean_func=clean_def, sep="_"))
+                            h3d_material_route.append(
+                                '<ROUTE fromNode=%s fromField="direction" toNode=%s toField="%s" />%s' %
+                                        (lamp_id, material_id, uniform['varname'], field_descr))
+                        
                     else:
                         assert(0)
 
                 elif uniform['type'] == gpu.GPU_DYNAMIC_OBJECT_VIEWIMAT:
+                    frag_uniform_var_map[uniform['varname']] = None
                     if uniform['datatype'] == gpu.GPU_DATA_16F:
                         # must be updated dynamically
                         # TODO, write out 'viewpointMatrices.py'
@@ -1139,6 +1190,7 @@ def export(file,
                         assert(0)
 
                 elif uniform['type'] == gpu.GPU_DYNAMIC_OBJECT_IMAT:
+                    frag_uniform_var_map[uniform['varname']] = None
                     if uniform['datatype'] == gpu.GPU_DATA_16F:
                         value = ' '.join(['%.6f' % f for v in (global_matrix * obj.matrix_world).inverted() for f in v])
                         field_descr = " <!--- Object Invertex Matrix '%s' -->" % obj.name
@@ -1150,6 +1202,8 @@ def export(file,
                     pass  # XXX, shadow buffers not supported.
 
                 elif uniform['type'] == gpu.GPU_DYNAMIC_SAMPLER_2DBUFFER:
+                    frag_uniform_var_map[uniform['varname']] = None
+
                     if uniform['datatype'] == gpu.GPU_DATA_1I:
                         if 1:
                             tex = uniform['texpixels']
@@ -1191,7 +1245,11 @@ def export(file,
             file_frag.write(gpu_shader['fragment'])
             file_frag.close()
             # patch it
-            h3d_shader_glsl_frag_patch(os.path.join(base_dst, shader_url_frag), frag_vars)
+            h3d_shader_glsl_frag_patch(os.path.join(base_dst, shader_url_frag),
+                                       scene,
+                                       frag_vars,
+                                       frag_uniform_var_map,
+                                       )
 
             file_vert = open(os.path.join(base_dst, shader_url_vert), 'w')
             file_vert.write(gpu_shader['vertex'])
@@ -1329,8 +1387,23 @@ def export(file,
                 # make transform node relative
                 obj_matrix = obj_main_matrix_world_invert * obj_matrix
 
+            
+            # H3D - use for writing a dummy transform parent
+            is_dummy_tx = False
+
             if obj_type == 'CAMERA':
                 writeViewpoint(ident, obj, obj_matrix, scene)
+                
+                if use_h3d and scene.camera == obj:
+                    view_id = uuid_cache_view[obj]
+                    fw('%s<Transform DEF="%s">\n' % (ident, H3D_CAMERA_FOLLOW))
+                    h3d_material_route.extend([
+                        '<ROUTE fromNode="%s" fromField="totalPosition" toNode="%s" toField="translation" />' % (view_id, H3D_CAMERA_FOLLOW),
+                        '<ROUTE fromNode="%s" fromField="totalOrientation" toNode="%s" toField="rotation" />' % (view_id, H3D_CAMERA_FOLLOW),
+                        ])
+                    is_dummy_tx = True
+                    ident += '\t'
+                
             elif obj_type in {'MESH', 'CURVE', 'SURF', 'FONT'}:
                 if (obj_type != 'MESH') or (use_apply_modifiers and obj.is_modified(scene, 'PREVIEW')):
                     try:
@@ -1370,6 +1443,11 @@ def export(file,
         # ---------------------------------------------------------------------
         for obj_child, obj_child_children in obj_children:
             export_object(ident, obj_main, obj_child, obj_child_children)
+
+        if is_dummy_tx:
+            ident = ident[:-1]
+            fw('%s</Transform>\n' % ident)
+            is_dummy_tx = False
 
         if use_hierarchy:
             ident = writeTransform_end(ident)
