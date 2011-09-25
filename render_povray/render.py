@@ -616,7 +616,8 @@ def write_pov(filename, scene=None, info_callback=None):
                 tabWrite("point_at  <0, 0, -1>\n")  # *must* be after 'parallel'
 
             elif lamp.type == 'AREA':
-                tabWrite("fade_distance %.6f\n" % (lamp.distance / 5.0))
+                tabWrite("area_illumination\n")
+                tabWrite("fade_distance %.6f\n" % (lamp.distance / 2.0))
                 # Area lights have no falloff type, so always use blenders lamp quad equivalent
                 # for those?
                 tabWrite("fade_power %d\n" % 2)
@@ -630,9 +631,9 @@ def write_pov(filename, scene=None, info_callback=None):
                     samples_y = lamp.shadow_ray_samples_y
 
                 tabWrite("area_light <%.6f,0,0>,<0,%.6f,0> %d, %d\n" % \
-                         (size_x, -size_y, samples_x, samples_y))
+                         (size_x, size_y, samples_x, samples_y))
                 if lamp.shadow_ray_sample_method == 'CONSTANT_JITTERED':
-                    if lamp.jitter:
+                    if lamp.use_jitter:
                         tabWrite("jitter\n")
                 else:
                     tabWrite("adaptive 1\n")
@@ -646,7 +647,7 @@ def write_pov(filename, scene=None, info_callback=None):
             # Sun shouldn't be attenuated. Hemi and area lights have no falloff attribute so they
             # are put to type 2 attenuation a little higher above.
             if lamp.type not in {'SUN', 'AREA', 'HEMI'}:
-                tabWrite("fade_distance %.6f\n" % (lamp.distance / 5.0))
+                tabWrite("fade_distance %.6f\n" % (lamp.distance / 2.0))
                 if lamp.falloff_type == 'INVERSE_SQUARE':
                     tabWrite("fade_power %d\n" % 2)  # Use blenders lamp quad equivalent
                 elif lamp.falloff_type == 'INVERSE_LINEAR':
