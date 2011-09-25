@@ -755,12 +755,16 @@ def process_next_chunk(file, previous_chunk, importedObjects, IMAGE_SEARCH):
         putContextMesh(contextMesh_vertls, contextMesh_facels, contextMeshMaterials)
 
     # Assign parents to objects
+    # check _if_ we need to assign first because doing so recalcs the depsgraph
     for ind, ob in enumerate(object_list):
         parent = object_parent[ind]
         if parent == ROOT_OBJECT:
-            ob.parent = None
+            if ob.parent is not None:
+                ob.parent = None
         else:
-            ob.parent = object_list[parent]
+            if ob.parent != object_list[parent]:
+                ob.parent = object_list[parent]
+
             # pivot_list[ind] += pivot_list[parent]  # XXX, not sure this is correct, should parent space matrix be applied before combining?
     # fix pivots
     for ind, ob in enumerate(object_list):
