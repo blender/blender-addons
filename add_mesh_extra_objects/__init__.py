@@ -41,6 +41,7 @@ if "bpy" in locals():
     imp.reload(add_mesh_gears)
     imp.reload(add_mesh_3d_function_surface)
     imp.reload(add_mesh_polysphere)
+    imp.reload(add_mesh_supertoroid)
 else:
     from . import add_mesh_extra_objects
     from . import add_mesh_twisted_torus
@@ -48,6 +49,7 @@ else:
     from . import add_mesh_gears
     from . import add_mesh_3d_function_surface
     from . import add_mesh_polysphere
+    from . import add_mesh_supertoroid
 
 import bpy
 
@@ -68,6 +70,8 @@ class INFO_MT_mesh_extras_add(bpy.types.Menu):
             text="Twisted Torus")
         layout.operator("mesh.primitive_polysphere_add",
             text="Polysphere")
+        layout.operator("mesh.primitive_supertoroid_add",
+            text="Supertoroid")
 
 
 class INFO_MT_mesh_gemstones_add(bpy.types.Menu):
