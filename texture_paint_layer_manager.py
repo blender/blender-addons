@@ -351,14 +351,12 @@ def main(context,tn):
             if f.material_index == m_id:
                 uvtex[f.index].select_uv
                 uvtex[f.index].image = img
-                uvtex[f.index].use_image = True
             
 
     else:
         for f in me.faces:  
             if f.material_index == m_id:
-                uvtex[f.index].image = img
-                #uvtex[f.index].use_image = False
+                uvtex[f.index].image = None
     me.update()
 
 

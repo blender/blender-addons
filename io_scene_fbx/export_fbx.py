@@ -20,11 +20,6 @@
 
 # Script copyright (C) Campbell Barton
 
-"""
-This script is an exporter to the FBX file format.
-
-http://wiki.blender.org/index.php/Scripts/Manual/Export/autodesk_fbx
-"""
 
 import os
 import time
