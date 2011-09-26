@@ -53,7 +53,7 @@ else:
     from . import mocap_constraints
     from . import retarget
     from . import mocap_tools
-    
+
 
 # MocapConstraint class
 # Defines MocapConstraint datatype, used to add and configute mocap constraints
@@ -66,6 +66,7 @@ def hasIKConstraint(pose_bone):
         return ik[0]
     else:
         return False
+
 
 class MocapConstraint(bpy.types.PropertyGroup):
     name = StringProperty(name="Name",

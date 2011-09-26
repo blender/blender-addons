@@ -16,22 +16,6 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-# #####
-#
-# Modification history:
-# - Version 1,4
-# - 07-sep-2011 (Gaia Clary):
-# - settings now stored in blend file  
-# - grouping mouse&text 
-# - mouse_size and font_size separated 
-# - boundingBox for improved readability.
-# - missing mouse "release" clicks added 
-#
-# ####
-
-# <pep8 compliant>
-
-
 bl_info = {
     'name': 'Screencast Keys',
     'author': 'Paulo Gomes, Bart Crouch, John E. Herrenyo',
@@ -47,6 +31,20 @@ bl_info = {
     'tracker_url': 'http://projects.blender.org/tracker/index.php?'\
         'func=detail&aid=21612',
     'category': '3D View'}
+
+
+# #####
+#
+# Modification history:
+# - Version 1,4
+# - 07-sep-2011 (Gaia Clary):
+# - settings now stored in blend file  
+# - grouping mouse&text 
+# - mouse_size and font_size separated 
+# - boundingBox for improved readability.
+# - missing mouse "release" clicks added 
+#
+# ####
 
 
 import bgl

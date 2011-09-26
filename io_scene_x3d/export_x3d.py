@@ -201,12 +201,11 @@ def h3d_shader_glsl_frag_patch(filepath, scene, global_vars, frag_uniform_var_ma
                 w[0] = ('(mat3(normalize((view_matrix*%s)[0].xyz), normalize((view_matrix*%s)[1].xyz), normalize((view_matrix*%s)[2].xyz)) * -%s)' %
                         (last_transform, last_transform, last_transform, w[0]))
 
-
             l = "\tlamp_visibility_sun_hemi(" + ", ".join(w)
         elif l.lstrip().startswith("lamp_visibility_spot_circle("):
             w = l.split(', ')
             w[0] = w[0][len("lamp_visibility_spot_circle(") + 1:]
-            
+
             if not h3d_is_object_view(scene, frag_uniform_var_map[w[0]]):
                 w[0] = '(mat3(normalize(view_matrix[0].xyz), normalize(view_matrix[1].xyz), normalize(view_matrix[2].xyz)) * -%s)' % w[0]
             else:
@@ -486,43 +485,13 @@ def export(file,
         if not mesh.faces:
             return
 
-        texface_use_halo = 0
-        texface_use_billboard = 0
-        # texface_use_collision = 0
+        use_collnode = bool([mod for mod in obj.modifiers
+                             if mod.type == 'COLLISION'
+                             if mod.show_viewport])
 
-        use_halonode = False
-        use_billnode = False
-        use_collnode = False
-
-        if mesh.uv_textures.active:  # if mesh.faceUV:
-            for face in mesh.uv_textures.active.data:  # for face in mesh.faces:
-                texface_use_halo |= face.use_halo
-                texface_use_billboard |= face.use_billboard
-                # texface_use_collision |= face.use_collision
-                # texface_use_object_color |= face.use_object_color
-
-        # use modifier instead
-        texface_use_collision = bool([mod for mod in obj.modifiers
-                                      if mod.type == 'COLLISION'
-                                      if mod.show_viewport])
-
-        if texface_use_halo:
-            fw('%s<Billboard axisOfRotation="0 0 0">\n' % ident)
-            use_halonode = True
-            ident += '\t'
-        elif texface_use_billboard:
-            fw('%s<Billboard axisOfRotation="0 1 0">\n' % ident)
-            use_billnode = True
-            ident += '\t'
-        elif texface_use_collision:
+        if use_collnode:
             fw('%s<Collision enabled="true">\n' % ident)
-            use_collnode = True
             ident += '\t'
-
-        del texface_use_halo
-        del texface_use_billboard
-        del texface_use_collision
-        # del texface_use_object_color
 
         ident = writeTransform_begin(ident, matrix, suffix_quoted_str(obj_id, "_TRANSFORM"))
 
@@ -569,7 +538,7 @@ def export(file,
             mesh_faces_vertices = [f.vertices[:] for f in mesh_faces]
 
             if is_uv and True in mesh_materials_use_face_texture:
-                mesh_faces_image = [(fuv.image if (mesh_materials_use_face_texture[mesh_faces_materials[i]] and fuv.use_image) else mesh_material_images[mesh_faces_materials[i]]) for i, fuv in enumerate(mesh.uv_textures.active.data)]
+                mesh_faces_image = [(fuv.image if (mesh_materials_use_face_texture[mesh_faces_materials[i]]) else mesh_material_images[mesh_faces_materials[i]]) for i, fuv in enumerate(mesh.uv_textures.active.data)]
                 mesh_faces_image_unique = set(mesh_faces_image)
             elif len(set(mesh_material_images) | {None}) > 1:  # make sure there is at least one image
                 mesh_faces_image = [mesh_material_images[material_index] for material_index in mesh_faces_materials]
@@ -936,13 +905,7 @@ def export(file,
 
         ident = writeTransform_end(ident)
 
-        if use_halonode:
-            ident = ident[:-1]
-            fw('%s</Billboard>\n' % ident)
-        elif use_billnode:
-            ident = ident[:-1]
-            fw('%s</Billboard>\n' % ident)
-        elif use_collnode:
+        if use_collnode:
             ident = ident[:-1]
             fw('%s</Collision>\n' % ident)
 
@@ -1090,7 +1053,7 @@ def export(file,
             field_descr = " <!--- H3D View Matrix Patch -->"
             fw('%s<field name="%s" type="SFMatrix4f" accessType="inputOutput" />%s\n' % (ident, H3D_VIEW_MATRIX, field_descr))
             frag_vars = ["uniform mat4 %s;" % H3D_VIEW_MATRIX]
-            
+
             # annoying!, we need to track if some of the directional lamp
             # vars are children of the camera or not, since this adjusts how
             # they are patched.
@@ -1174,7 +1137,7 @@ def export(file,
                             h3d_material_route.append(
                                 '<ROUTE fromNode=%s fromField="direction" toNode=%s toField="%s" />%s' %
                                         (lamp_id, material_id, uniform['varname'], field_descr))
-                        
+
                     else:
                         assert(0)
 
@@ -1387,13 +1350,12 @@ def export(file,
                 # make transform node relative
                 obj_matrix = obj_main_matrix_world_invert * obj_matrix
 
-            
             # H3D - use for writing a dummy transform parent
             is_dummy_tx = False
 
             if obj_type == 'CAMERA':
                 writeViewpoint(ident, obj, obj_matrix, scene)
-                
+
                 if use_h3d and scene.camera == obj:
                     view_id = uuid_cache_view[obj]
                     fw('%s<Transform DEF="%s">\n' % (ident, H3D_CAMERA_FOLLOW))
@@ -1403,7 +1365,7 @@ def export(file,
                         ])
                     is_dummy_tx = True
                     ident += '\t'
-                
+
             elif obj_type in {'MESH', 'CURVE', 'SURF', 'FONT'}:
                 if (obj_type != 'MESH') or (use_apply_modifiers and obj.is_modified(scene, 'PREVIEW')):
                     try:
