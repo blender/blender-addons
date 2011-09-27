@@ -98,7 +98,6 @@ todo = []
 T_EnforceVersion = 0x01
 T_Clothes = 0x02
 T_Stretch = 0x04
-T_Limit = 0x08
 
 T_Diamond = 0x10
 T_Replace = 0x20
@@ -115,7 +114,7 @@ T_Opcns = 0x2000
 T_Symm = 0x4000
 
 toggle = (T_EnforceVersion + T_Replace + T_Mesh + T_Armature + 
-        T_Face + T_Shape + T_Proxy + T_Clothes + T_Rigify + T_Limit)
+        T_Face + T_Shape + T_Proxy + T_Clothes + T_Rigify)
 
 #
 #    Blender versions
@@ -2034,9 +2033,6 @@ def correctRig(args):
             if cns.type == 'CHILD_OF':
                 cnslist.append((pb, cns, cns.influence))
                 cns.influence = 0
-            elif ((toggle & T_Limit == 0) and 
-                  (cns.type in ['LIMIT_DISTANCE', 'LIMIT_ROTATION'])):                
-                cns.influence = 0
 
     for (pb, cns, inf) in cnslist:
         amt.bones.active = pb.bone
@@ -2871,7 +2867,6 @@ MhxBoolProps = [
     ("symm", "Symmetric shapes", "Keep shapekeys symmetric", T_Symm),
     ("diamond", "Diamonds", "Keep joint diamonds", T_Diamond),
     ("rigify", "Rigify", "Create rigify control rig", T_Rigify),
-    ("limit", "Limit constraints", "Keep limit constraints", T_Limit),
 ]
 
 class ImportMhx(bpy.types.Operator, ImportHelper):
