@@ -26,7 +26,7 @@
 """
 Abstract
 MHX (MakeHuman eXchange format) importer for Blender 2.5x.
-Version 1.8.0
+Version 1.8.1
 
 This script should be distributed with Blender.
 If not, place it in the .blender/scripts/addons dir
@@ -39,7 +39,7 @@ Alternatively, run the script in the script editor (Alt-P), and access from the 
 bl_info = {
     'name': 'Import: MakeHuman (.mhx)',
     'author': 'Thomas Larsson',
-    'version': (1, 8, 0),
+    'version': (1, 8, 1),
     "blender": (2, 5, 9),
     "api": 40335,
     'location': "File > Import > MakeHuman (.mhx)",
@@ -52,7 +52,7 @@ bl_info = {
 
 MAJOR_VERSION = 1
 MINOR_VERSION = 8
-SUB_VERSION = 0
+SUB_VERSION = 1
 BLENDER_VERSION = (2, 59, 2)
 
 #
@@ -3487,18 +3487,20 @@ class MhxDriversPanel(bpy.types.Panel):
         plist = list(context.object.keys())
         plist.sort()
         for prop in plist:
-            if prop[-2:] == '_L':
-                lProps.append((prop, prop[:-2]))
-            elif prop[-2:] == '_R':
-                rProps.append((prop, prop[:-2]))
-            elif prop[:3] == 'Mhx' or prop[0] == '_' or prop[0] == '*':
-                pass
+            if prop[0] == '&':
+                prop1 = prop[1:]
             else:
-                props.append(prop)
+                continue
+            if prop[-2:] == '_L':
+                lProps.append((prop, prop1[:-2]))
+            elif prop[-2:] == '_R':
+                rProps.append((prop, prop1[:-2]))
+            else:
+                props.append((prop, prop1))
         ob = context.object
         layout = self.layout
-        for prop in props:
-            layout.prop(ob, '["%s"]' % prop, text=prop)
+        for (prop, pname) in props:
+            layout.prop(ob, '["%s"]' % prop, text=pname)
         layout.label("Left")
         for (prop, pname) in lProps:
             layout.prop(ob, '["%s"]' % prop, text=pname)
