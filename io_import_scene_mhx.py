@@ -26,7 +26,7 @@
 """
 Abstract
 MHX (MakeHuman eXchange format) importer for Blender 2.5x.
-Version 1.8.1
+Version 1.8.2
 
 This script should be distributed with Blender.
 If not, place it in the .blender/scripts/addons dir
@@ -39,7 +39,7 @@ Alternatively, run the script in the script editor (Alt-P), and access from the 
 bl_info = {
     'name': 'Import: MakeHuman (.mhx)',
     'author': 'Thomas Larsson',
-    'version': (1, 8, 1),
+    'version': (1, 8, 2),
     "blender": (2, 5, 9),
     "api": 40335,
     'location': "File > Import > MakeHuman (.mhx)",
@@ -52,7 +52,7 @@ bl_info = {
 
 MAJOR_VERSION = 1
 MINOR_VERSION = 8
-SUB_VERSION = 1
+SUB_VERSION = 2
 BLENDER_VERSION = (2, 59, 2)
 
 #
@@ -3204,6 +3204,7 @@ def setViseme(context, vis, setKey, frame):
         else:
             setBoneLocation(context, pbones[b+'_L'], scale, loc, False, setKey, frame)
             setBoneLocation(context, pbones[b+'_R'], scale, loc, True, setKey, frame)
+    updatePose(rig)
     return
 
 def setBoneLocation(context, pb, scale, loc, mirror, setKey, frame):
@@ -3251,7 +3252,8 @@ def readMoho(context, filepath, offs):
             vis = mohoVisemes[words[1]]
             setViseme(context, vis, True, int(words[0])+offs)
     fp.close()
-    setInterpolation(context.object)
+    setInterpolation(rig)
+    updatePose(rig)
     print("Moho file %s loaded" % filepath)
     return
 
@@ -3268,7 +3270,8 @@ def readMagpie(context, filepath, offs):
             vis = magpieVisemes[words[3]]
             setViseme(context, vis, True, int(words[0])+offs)
     fp.close()
-    setInterpolation(context.object)
+    setInterpolation(rig)
+    updatePose(rig)
     print("Magpie file %s loaded" % filepath)
     return
 
@@ -3343,7 +3346,28 @@ class MhxLipsyncPanel(bpy.types.Panel):
         row = layout.row()
         row.operator("mhx.pose_load_moho")
         row.operator("mhx.pose_load_magpie")
+        layout.operator("mhx.update")
         return
+        
+#
+#   updatePose(rig):
+#   class VIEW3D_OT_MhxUpdateButton(bpy.types.Operator):
+#
+
+def updatePose(rig):
+    pb = rig.pose.bones["PFaceDisp"]
+    pb.location = pb.location
+    return
+
+class VIEW3D_OT_MhxUpdateButton(bpy.types.Operator):
+    bl_idname = "mhx.update"
+    bl_label = "Update"
+
+    def execute(self, context):
+        rig = getMhxRig(context.object)
+        updatePose(rig)
+        return{'FINISHED'}    
+        
 
 ###################################################################################    
 #
@@ -3363,7 +3387,7 @@ class VIEW3D_OT_MhxResetExpressionsButton(bpy.types.Operator):
         props = getShapeProps(rig)
         for (prop, name) in props:
             rig[prop] = 0.0
-        rig.update_tag()
+        updatePose(rig)
         return{'FINISHED'}    
 
 #
@@ -3380,7 +3404,7 @@ class VIEW3D_OT_MhxKeyExpressionsButton(bpy.types.Operator):
         frame = context.scene.frame_current
         for (prop, name) in props:
             rig.keyframe_insert('["%s"]' % prop, frame=frame)
-        rig.update_tag()
+        updatePose(rig)
         return{'FINISHED'}    
 #
 #    class VIEW3D_OT_MhxPinExpressionButton(bpy.types.Operator):
@@ -3410,7 +3434,7 @@ class VIEW3D_OT_MhxPinExpressionButton(bpy.types.Operator):
                     rig[prop] = 1.0
                 else:
                     rig[prop] = 0.0
-        rig.update_tag()
+        updatePose(rig)
         return{'FINISHED'}    
 
 #
@@ -3450,6 +3474,7 @@ class MhxExpressionsPanel(bpy.types.Panel):
         layout.label(text="Expressions")
         layout.operator("mhx.pose_reset_expressions")
         layout.operator("mhx.pose_key_expressions")
+        #layout.operator("mhx.update")
         layout.separator()
         for (prop, name) in props:
             row = layout.split(0.85)
