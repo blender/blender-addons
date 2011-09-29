@@ -215,7 +215,6 @@ def write_file(filepath, objects, scene,
                EXPORT_TRI=False,
                EXPORT_EDGES=False,
                EXPORT_NORMALS=False,
-               EXPORT_NORMALS_HQ=False,
                EXPORT_UV=True,
                EXPORT_MTL=True,
                EXPORT_APPLY_MODIFIERS=True,
@@ -255,16 +254,12 @@ def write_file(filepath, objects, scene,
         """
         weightDict = {}
         for vert_index in face.vertices:
-#       for vert in face:
             vWeights = vWeightMap[vert_index]
-#           vWeights = vWeightMap[vert]
             for vGroupName, weight in vWeights:
-                weightDict[vGroupName] = weightDict.get(vGroupName, 0) + weight
+                weightDict[vGroupName] = weightDict.get(vGroupName, 0.0) + weight
 
         if weightDict:
-            alist = [(weight, vGroupName) for vGroupName, weight in weightDict.items()]  # sort least to greatest amount of weight
-            alist.sort()
-            return(alist[-1][1])  # highest value last
+            return max((weight, vGroupName) for vGroupName, weight in weightDict.items())[1]
         else:
             return '(null)'
 
@@ -369,17 +364,8 @@ def write_file(filepath, objects, scene,
 
                 continue  # dont bother with this mesh.
 
-            # XXX
-            # High Quality Normals
             if EXPORT_NORMALS and face_index_pairs:
                 me.calc_normals()
-#               if EXPORT_NORMALS_HQ:
-#                   BPyMesh.meshCalcNormals(me)
-#               else:
-#                   # transforming normals is incorrect
-#                   # when the matrix is scaled,
-#                   # better to recalculate them
-#                   me.calcNormals()
 
             materials = me.materials[:]
             material_names = [m.name if m else None for m in materials]
@@ -478,14 +464,13 @@ def write_file(filepath, objects, scene,
             # XXX
             if EXPORT_POLYGROUPS:
                 # Retrieve the list of vertex groups
-                vertGroupNames = [g.name for g in ob.vertex_groups]
+                vertGroupNames = ob.vertex_groups.keys()
 
                 currentVGroup = ''
                 # Create a dictionary keyed by face id and listing, for each vertex, the vertex groups it belongs to
                 vgroupsMap = [[] for _i in range(len(me_verts))]
-                for v_idx, v in enumerate(me.vertices):
-                    for g in v.groups:
-                        vgroupsMap[v_idx].append((vertGroupNames[g.group], g.weight))
+                for v_idx, v_ls in enumerate(vgroupsMap):
+                    v_ls[:] = [(vertGroupNames[g.group], g.weight) for g in me_verts[v_idx].groups]
 
             for f, f_index in face_index_pairs:
                 f_smooth = f.use_smooth
@@ -506,7 +491,7 @@ def write_file(filepath, objects, scene,
                     if ob.vertex_groups:
                         # find what vertext group the face belongs to
                         theVGroup = findVertexGroupName(f, vgroupsMap)
-                        if  theVGroup != currentVGroup:
+                        if theVGroup != currentVGroup:
                             currentVGroup = theVGroup
                             file.write('g %s\n' % theVGroup)
 
@@ -639,7 +624,6 @@ def _write(context, filepath,
               EXPORT_TRI,  # ok
               EXPORT_EDGES,
               EXPORT_NORMALS,  # not yet
-              EXPORT_NORMALS_HQ,  # not yet
               EXPORT_UV,  # ok
               EXPORT_MTL,
               EXPORT_APPLY_MODIFIERS,  # ok
@@ -691,7 +675,6 @@ def _write(context, filepath,
                    EXPORT_TRI,
                    EXPORT_EDGES,
                    EXPORT_NORMALS,
-                   EXPORT_NORMALS_HQ,
                    EXPORT_UV,
                    EXPORT_MTL,
                    EXPORT_APPLY_MODIFIERS,
@@ -723,7 +706,6 @@ def save(operator, context, filepath="",
          use_triangles=False,
          use_edges=True,
          use_normals=False,
-         use_hq_normals=False,
          use_uvs=True,
          use_materials=True,
          use_apply_modifiers=True,
@@ -743,7 +725,6 @@ def save(operator, context, filepath="",
            EXPORT_TRI=use_triangles,
            EXPORT_EDGES=use_edges,
            EXPORT_NORMALS=use_normals,
-           EXPORT_NORMALS_HQ=use_hq_normals,
            EXPORT_UV=use_uvs,
            EXPORT_MTL=use_materials,
            EXPORT_APPLY_MODIFIERS=use_apply_modifiers,

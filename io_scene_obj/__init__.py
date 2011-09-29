@@ -217,7 +217,7 @@ class ExportOBJ(bpy.types.Operator, ExportHelper):
             )
     use_animation = BoolProperty(
             name="Animation",
-            description="",
+            description="Write out an OBJ for each frame",
             default=False,
             )
 
@@ -230,33 +230,28 @@ class ExportOBJ(bpy.types.Operator, ExportHelper):
 
     # extra data group
     use_edges = BoolProperty(
-            name="Edges",
+            name="Include Edges",
             description="",
             default=True,
             )
     use_normals = BoolProperty(
-            name="Normals",
+            name="Include Normals",
             description="",
             default=False,
             )
-    use_hq_normals = BoolProperty(
-            name="High Quality Normals",
-            description="",
-            default=True,
-            )
     use_uvs = BoolProperty(
-            name="UVs",
-            description="",
+            name="Include UVs",
+            description="Write out the active UV coordinates",
             default=True,
             )
     use_materials = BoolProperty(
-            name="Materials",
-            description="",
+            name="Write Materials",
+            description="Write out the MTL file",
             default=True,
             )
     use_triangles = BoolProperty(
-            name="Triangulate",
-            description="",
+            name="Triangulate Faces",
+            description="Convert all faces to triangles",
             default=False,
             )
     use_vertex_groups = BoolProperty(
@@ -266,7 +261,8 @@ class ExportOBJ(bpy.types.Operator, ExportHelper):
             )
     use_nurbs = BoolProperty(
             name="Nurbs",
-            description="",
+            description="Write nurbs curves as OBJ nurbs rather then "
+                        "converting to geometry",
             default=False,
             )
 
