@@ -15,14 +15,14 @@
 #  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # ##### END GPL LICENSE BLOCK #####
-# Contributed to by Pontiac, Fourmadmen, varkenvarken, tuga3d, meta-androcto, metalliandy #
+# Contributed to by Pontiac, Fourmadmen, varkenvarken, tuga3d, meta-androcto, metalliandy, dreampainter & cotejrp1#
 
 bl_info = {
     "name": "Extra Objects",
     "author": "Multiple Authors",
-    "version": (0, 2),
+    "version": (0, 3),
     "blender": (2, 5, 9),
-    "api": 39933,
+    "api": 40638,
     "location": "View3D > Add > Mesh > Extra Objects",
     "description": "Adds More Object Types.",
     "warning": "",
@@ -42,6 +42,7 @@ if "bpy" in locals():
     imp.reload(add_mesh_3d_function_surface)
     imp.reload(add_mesh_polysphere)
     imp.reload(add_mesh_supertoroid)
+    imp.reload(add_mesh_pyramid)
 else:
     from . import add_mesh_extra_objects
     from . import add_mesh_twisted_torus
@@ -50,7 +51,7 @@ else:
     from . import add_mesh_3d_function_surface
     from . import add_mesh_polysphere
     from . import add_mesh_supertoroid
-
+    from . import add_mesh_pyramid
 import bpy
 
 
@@ -72,7 +73,8 @@ class INFO_MT_mesh_extras_add(bpy.types.Menu):
             text="Polysphere")
         layout.operator("mesh.primitive_supertoroid_add",
             text="Supertoroid")
-
+        layout.operator("mesh.primative_step_pyramid_add",
+            text="Pyramid")
 
 class INFO_MT_mesh_gemstones_add(bpy.types.Menu):
     # Define the "Gemstones" menu
