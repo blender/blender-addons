@@ -650,7 +650,6 @@ def _write(context, filepath,
               EXPORT_POLYGROUPS,
               EXPORT_CURVE_AS_NURBS,
               EXPORT_SEL_ONLY,  # ok
-              EXPORT_ALL_SCENES,  # XXX not working atm
               EXPORT_ANIMATION,
               EXPORT_GLOBAL_MATRIX,
               EXPORT_PATH_MODE,
@@ -659,70 +658,54 @@ def _write(context, filepath,
     base_name, ext = os.path.splitext(filepath)
     context_name = [base_name, '', '', ext]  # Base name, scene name, frame number, extension
 
-    orig_scene = context.scene
+    scene = context.scene
 
     # Exit edit mode before exporting, so current object states are exported properly.
     if bpy.ops.object.mode_set.poll():
         bpy.ops.object.mode_set(mode='OBJECT')
 
-#   if EXPORT_ALL_SCENES:
-#       export_scenes = bpy.data.scenes
-#   else:
-#       export_scenes = [orig_scene]
+    orig_frame = scene.frame_current
 
-    # XXX only exporting one scene atm since changing
-    # current scene is not possible.
-    # Brecht says that ideally in 2.5 we won't need such a function,
-    # allowing multiple scenes open at once.
-    export_scenes = [orig_scene]
+    # Export an animation?
+    if EXPORT_ANIMATION:
+        scene_frames = range(scene.frame_start, scene.frame_end + 1)  # Up to and including the end frame.
+    else:
+        scene_frames = [orig_frame]  # Dont export an animation.
 
-    # Export all scenes.
-    for scene in export_scenes:
-        orig_frame = scene.frame_current
+    # Loop through all frames in the scene and export.
+    for frame in scene_frames:
+        if EXPORT_ANIMATION:  # Add frame to the filepath.
+            context_name[2] = '_%.6d' % frame
 
-        if EXPORT_ALL_SCENES:  # Add scene name into the context_name
-            context_name[1] = '_%s' % bpy.path.clean_name(scene.name)  # WARNING, its possible that this could cause a collision. we could fix if were feeling parranoied.
-
-        # Export an animation?
-        if EXPORT_ANIMATION:
-            scene_frames = range(scene.frame_start, scene.frame_end + 1)  # Up to and including the end frame.
+        scene.frame_set(frame, 0.0)
+        if EXPORT_SEL_ONLY:
+            objects = context.selected_objects
         else:
-            scene_frames = [orig_frame]  # Dont export an animation.
+            objects = scene.objects
 
-        # Loop through all frames in the scene and export.
-        for frame in scene_frames:
-            if EXPORT_ANIMATION:  # Add frame to the filepath.
-                context_name[2] = '_%.6d' % frame
+        full_path = ''.join(context_name)
 
-            scene.frame_set(frame, 0.0)
-            if EXPORT_SEL_ONLY:
-                objects = context.selected_objects
-            else:
-                objects = scene.objects
+        # erm... bit of a problem here, this can overwrite files when exporting frames. not too bad.
+        # EXPORT THE FILE.
+        write_file(full_path, objects, scene,
+                   EXPORT_TRI,
+                   EXPORT_EDGES,
+                   EXPORT_NORMALS,
+                   EXPORT_NORMALS_HQ,
+                   EXPORT_UV,
+                   EXPORT_MTL,
+                   EXPORT_APPLY_MODIFIERS,
+                   EXPORT_BLEN_OBS,
+                   EXPORT_GROUP_BY_OB,
+                   EXPORT_GROUP_BY_MAT,
+                   EXPORT_KEEP_VERT_ORDER,
+                   EXPORT_POLYGROUPS,
+                   EXPORT_CURVE_AS_NURBS,
+                   EXPORT_GLOBAL_MATRIX,
+                   EXPORT_PATH_MODE,
+                   )
 
-            full_path = ''.join(context_name)
-
-            # erm... bit of a problem here, this can overwrite files when exporting frames. not too bad.
-            # EXPORT THE FILE.
-            write_file(full_path, objects, scene,
-                       EXPORT_TRI,
-                       EXPORT_EDGES,
-                       EXPORT_NORMALS,
-                       EXPORT_NORMALS_HQ,
-                       EXPORT_UV,
-                       EXPORT_MTL,
-                       EXPORT_APPLY_MODIFIERS,
-                       EXPORT_BLEN_OBS,
-                       EXPORT_GROUP_BY_OB,
-                       EXPORT_GROUP_BY_MAT,
-                       EXPORT_KEEP_VERT_ORDER,
-                       EXPORT_POLYGROUPS,
-                       EXPORT_CURVE_AS_NURBS,
-                       EXPORT_GLOBAL_MATRIX,
-                       EXPORT_PATH_MODE,
-                       )
-
-        scene.frame_set(orig_frame, 0.0)
+    scene.frame_set(orig_frame, 0.0)
 
     # Restore old active scene.
 #   orig_scene.makeCurrent()
@@ -751,7 +734,6 @@ def save(operator, context, filepath="",
          use_vertex_groups=False,
          use_nurbs=True,
          use_selection=True,
-         use_all_scenes=False,
          use_animation=False,
          global_matrix=None,
          path_mode='AUTO'
@@ -772,7 +754,6 @@ def save(operator, context, filepath="",
            EXPORT_POLYGROUPS=use_vertex_groups,
            EXPORT_CURVE_AS_NURBS=use_nurbs,
            EXPORT_SEL_ONLY=use_selection,
-           EXPORT_ALL_SCENES=use_all_scenes,
            EXPORT_ANIMATION=use_animation,
            EXPORT_GLOBAL_MATRIX=global_matrix,
            EXPORT_PATH_MODE=path_mode,

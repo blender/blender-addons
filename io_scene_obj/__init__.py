@@ -215,11 +215,6 @@ class ExportOBJ(bpy.types.Operator, ExportHelper):
             description="Export selected objects only",
             default=False,
             )
-    use_all_scenes = BoolProperty(
-            name="All Scenes",
-            description="",
-            default=False,
-            )
     use_animation = BoolProperty(
             name="Animation",
             description="",
