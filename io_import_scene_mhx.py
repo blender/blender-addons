@@ -26,7 +26,7 @@
 """
 Abstract
 MHX (MakeHuman eXchange format) importer for Blender 2.5x.
-Version 1.8.2
+Version 1.8.3
 
 This script should be distributed with Blender.
 If not, place it in the .blender/scripts/addons dir
@@ -39,7 +39,7 @@ Alternatively, run the script in the script editor (Alt-P), and access from the 
 bl_info = {
     'name': 'Import: MakeHuman (.mhx)',
     'author': 'Thomas Larsson',
-    'version': (1, 8, 2),
+    'version': (1, 8, 3),
     "blender": (2, 5, 9),
     "api": 40335,
     'location': "File > Import > MakeHuman (.mhx)",
@@ -52,7 +52,7 @@ bl_info = {
 
 MAJOR_VERSION = 1
 MINOR_VERSION = 8
-SUB_VERSION = 2
+SUB_VERSION = 3
 BLENDER_VERSION = (2, 59, 2)
 
 #
@@ -3527,6 +3527,33 @@ class MhxDriversPanel(bpy.types.Panel):
         layout.label("Right")
         for (prop, pname) in rProps:
             layout.prop(ob, '["%s"]' % prop, text=pname)
+        return
+
+###################################################################################    
+#
+#    Visibility panel
+#
+###################################################################################          
+#
+#    class MhxVisibilityPanel(bpy.types.Panel):
+#
+
+class MhxVisibilityPanel(bpy.types.Panel):
+    bl_label = "MHX Visibility"
+    bl_space_type = "VIEW_3D"
+    bl_region_type = "UI"
+    
+    @classmethod
+    def poll(cls, context):
+        return pollMhxRig(context.object)
+
+    def draw(self, context):
+        ob = context.object
+        props = list(ob.keys())
+        props.sort()
+        for prop in props:
+            if prop[0:4] == "Hide": 
+                self.layout.prop(ob, '["%s"]' % prop)
         return
 
 ###################################################################################    
