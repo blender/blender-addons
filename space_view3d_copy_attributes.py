@@ -668,7 +668,7 @@ for name, draw_func, poll_func in _layer_menu_data:
 
 
 class MESH_OT_CopyFaceSettings(bpy.types.Operator):
-    """Copy settings from active face to all selected faces."""
+    """Copy settings from active face to all selected faces"""
     bl_idname = 'mesh.copy_face_settings'
     bl_label = "Copy Face Settings"
     bl_options = {'REGISTER', 'UNDO'}
