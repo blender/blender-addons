@@ -24,7 +24,7 @@ bl_info = {
     "blender": (2, 5, 9),
     "api": 40638,
     "location": "View3D > Add > Mesh > Extra Objects",
-    "description": "Adds More Object Types.",
+    "description": "Add gears, gems, math function surfaces, and other objects",
     "warning": "",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"\
         "Scripts/Add_Mesh/Add_Extra",

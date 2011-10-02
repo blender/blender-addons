@@ -23,7 +23,7 @@ bl_info = {
     "blender": (2, 5, 9),
     "api": 39685,
     "location": "View3D > Add > Mesh",
-    "description": "Adds a Landscape Primitive",
+    "description": "Add a landscape primitive",
     "warning": "", # used for warning icon and text in addons panel
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"\
         "Scripts/Add_Mesh/ANT_Landscape",

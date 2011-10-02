@@ -24,7 +24,7 @@ bl_info = {
     "blender": (2, 5, 9),
     "api": 39685,
     "location": "View3D > Add > Mesh > Solids",
-    "description": "Add a Regular Solid mesh.",
+    "description": "Add a regular solid",
     "warning": "",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"\
         "Scripts/Add_Mesh/Add_Solid",
