@@ -15,7 +15,8 @@
 #  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # ##### END GPL LICENSE BLOCK #####
-# Contributed to by Pontiac, Fourmadmen, varkenvarken, tuga3d, meta-androcto, metalliandy, dreampainter & cotejrp1#
+# Contributed to by
+# Pontiac, Fourmadmen, varkenvarken, tuga3d, meta-androcto, metalliandy, dreampainter & cotejrp1#
 
 bl_info = {
     "name": "Extra Objects",
@@ -24,7 +25,7 @@ bl_info = {
     "blender": (2, 5, 9),
     "api": 40638,
     "location": "View3D > Add > Mesh > Extra Objects",
-    "description": "Add gears, gems, math function surfaces, and other objects",
+    "description": "Add extra object types",
     "warning": "",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"\
         "Scripts/Add_Mesh/Add_Extra",
