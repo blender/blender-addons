@@ -273,6 +273,9 @@ class _3ds_face(object):
     def get_size(self):
         return 4 * SZ_SHORT
 
+    # no need to validate every face vert. the oversized array will
+    # catch this problem
+
     def write(self, file):
         # The last zero is only used by 3d studio
         file.write(struct.pack("<4H", self.vindex[0], self.vindex[1], self.vindex[2], 0))
@@ -300,9 +303,11 @@ class _3ds_array(object):
     def get_size(self):
         return self.size
 
+    def validate(self):
+        return len(self.values) <= 65535
+
     def write(self, file):
         _3ds_ushort(len(self.values)).write(file)
-        #_3ds_uint(len(self.values)).write(file)
         for value in self.values:
             value.write(file)
 
@@ -333,13 +338,10 @@ class _3ds_named_variable(object):
 
     def dump(self, indent):
         if self.value is not None:
-            spaces = ""
-            for i in range(indent):
-                spaces += "  "
-            if (self.name != ""):
-                print(spaces, self.name, " = ", self.value)
-            else:
-                print(spaces, "[unnamed]", " = ", self.value)
+            print(indent * " ",
+                  self.name if self.name else "[unnamed]",
+                  " = ",
+                  self.value)
 
 
 #the chunk class
@@ -378,6 +380,19 @@ class _3ds_chunk(object):
         self.size.value = tmpsize
         return self.size.value
 
+    def validate(self):
+        for var in self.variables:
+            func = getattr(var.value, "validate", None)
+            if (func is not None) and not func():
+                return False
+
+        for chunk in self.subchunks:
+            func = getattr(chunk, "validate", None)
+            if (func is not None) and not func():
+                return False
+
+        return True
+
     def write(self, file):
         '''Write the chunk to a file.
 
@@ -395,10 +410,9 @@ class _3ds_chunk(object):
 
         Dump is used for debugging purposes, to dump the contents of a chunk to the standard output.
         Uses the dump function of the named variables and the subchunks to do the actual work.'''
-        spaces = ""
-        for i in range(indent):
-            spaces += "  "
-        print(spaces, "ID=", hex(self.ID.value), "size=", self.get_size())
+        print(indent * " ",
+              "ID=%r" % hex(self.ID.value),
+              "size=%r" % self.get_size())
         for variable in self.variables:
             variable.dump(indent + 1)
         for subchunk in self.subchunks:
@@ -472,14 +486,14 @@ def make_material_chunk(material, image):
     material_chunk.add_subchunk(name)
 
     if not material:
-        material_chunk.add_subchunk(make_material_subchunk(MATAMBIENT, (0, 0, 0)))
-        material_chunk.add_subchunk(make_material_subchunk(MATDIFFUSE, (.8, .8, .8)))
-        material_chunk.add_subchunk(make_material_subchunk(MATSPECULAR, (1, 1, 1)))
+        material_chunk.add_subchunk(make_material_subchunk(MATAMBIENT, (0.0, 0.0, 0.0)))
+        material_chunk.add_subchunk(make_material_subchunk(MATDIFFUSE, (0.8, 0.8, 0.8)))
+        material_chunk.add_subchunk(make_material_subchunk(MATSPECULAR, (1.0, 1.0, 1.0))
 
     else:
-        material_chunk.add_subchunk(make_material_subchunk(MATAMBIENT, [a * material.ambient for a in material.diffuse_color]))
-        material_chunk.add_subchunk(make_material_subchunk(MATDIFFUSE, material.diffuse_color))
-        material_chunk.add_subchunk(make_material_subchunk(MATSPECULAR, material.specular_color))
+        material_chunk.add_subchunk(make_material_subchunk(MATAMBIENT, (material.ambient * material.diffuse_color)[:]))
+        material_chunk.add_subchunk(make_material_subchunk(MATDIFFUSE, material.diffuse_color[:]))
+        material_chunk.add_subchunk(make_material_subchunk(MATSPECULAR, material.specular_color[:]))
 
         images = get_material_images(material)  # can be None
         if image:
@@ -949,8 +963,7 @@ def save(operator,
                 mat_ls_len = len(mat_ls)
 
                 # get material/image tuples.
-                if len(data.uv_textures):
-# 				if data.faceUV:
+                if data.uv_textures:
                     if not mat_ls:
                         mat = mat_name = None
 
@@ -976,9 +989,7 @@ def save(operator,
                     # Why 0 Why!
                     for f in data.faces:
                         if f.material_index >= mat_ls_len:
-# 						if f.mat >= mat_ls_len:
                             f.material_index = 0
-                            # f.mat = 0
 
         if free:
             free_derived_objects(ob)
@@ -1007,7 +1018,14 @@ def save(operator,
 
         # make a mesh chunk out of the mesh:
         object_chunk.add_subchunk(make_mesh_chunk(blender_mesh, matrix, materialDict))
-        object_info.add_subchunk(object_chunk)
+
+        # ensure the mesh has no over sized arrays
+        # skip ones that do!, otherwise we cant write since the array size wont
+        # fit into USHORT.
+        if object_chunk.validate():
+            object_info.add_subchunk(object_chunk)
+        else:
+            operator.report({'WARNING'}, "Object %r can't be written into a 3DS file")
 
         ''' # COMMENTED OUT FOR 2.42 RELEASE!! CRASHES 3DS MAX
         # make a kf object node for the object:
