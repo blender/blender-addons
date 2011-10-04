@@ -387,7 +387,7 @@ def bvh_node_dict2armature(context,
         bone.head = bvh_node.rest_head_world
         bone.tail = bvh_node.rest_tail_world
 
-        # ZERO AREA BONES.
+        # Zero Length Bones! (an exceptional case)
         if (bone.head - bone.tail).length < 0.001:
             print("\tzero length bone found:", bone.name)
             if bvh_node.parent:

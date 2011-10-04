@@ -254,15 +254,15 @@ class ExportOBJ(bpy.types.Operator, ExportHelper):
             description="Convert all faces to triangles",
             default=False,
             )
+    use_nurbs = BoolProperty(
+            name="Write Nurbs",
+            description="Write nurbs curves as OBJ nurbs rather then "
+                        "converting to geometry",
+            default=False,
+            )
     use_vertex_groups = BoolProperty(
             name="Polygroups",
             description="",
-            default=False,
-            )
-    use_nurbs = BoolProperty(
-            name="Nurbs",
-            description="Write nurbs curves as OBJ nurbs rather then "
-                        "converting to geometry",
             default=False,
             )
 

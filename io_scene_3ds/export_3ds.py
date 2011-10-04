@@ -488,7 +488,7 @@ def make_material_chunk(material, image):
     if not material:
         material_chunk.add_subchunk(make_material_subchunk(MATAMBIENT, (0.0, 0.0, 0.0)))
         material_chunk.add_subchunk(make_material_subchunk(MATDIFFUSE, (0.8, 0.8, 0.8)))
-        material_chunk.add_subchunk(make_material_subchunk(MATSPECULAR, (1.0, 1.0, 1.0))
+        material_chunk.add_subchunk(make_material_subchunk(MATSPECULAR, (1.0, 1.0, 1.0)))
 
     else:
         material_chunk.add_subchunk(make_material_subchunk(MATAMBIENT, (material.ambient * material.diffuse_color)[:]))

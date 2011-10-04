@@ -168,16 +168,15 @@ def build_hierarchy(objects):
     return par_lookup.get(None, [])
 
 
-
 # -----------------------------------------------------------------------------
 # H3D Functions
 # -----------------------------------------------------------------------------
 def h3d_shader_glsl_frag_patch(filepath, scene, global_vars, frag_uniform_var_map):
     h3d_file = open(filepath, 'r')
     lines = []
-    
+
     last_transform = None
-    
+
     for l in h3d_file:
         if l.startswith("void main(void)"):
             lines.append("\n")
@@ -194,7 +193,7 @@ def h3d_shader_glsl_frag_patch(filepath, scene, global_vars, frag_uniform_var_ma
         elif l.lstrip().startswith("lamp_visibility_sun_hemi("):
             w = l.split(', ')
             w[0] = w[0][len("lamp_visibility_sun_hemi(") + 1:]
-            
+
             if not h3d_is_object_view(scene, frag_uniform_var_map[w[0]]):
                 w[0] = '(mat3(normalize(view_matrix[0].xyz), normalize(view_matrix[1].xyz), normalize(view_matrix[2].xyz)) * -%s)' % w[0]
             else:
@@ -1490,6 +1489,7 @@ def save(operator, context, filepath="",
         bpy.ops.object.mode_set(mode='OBJECT')
 
     if use_compress:
+        import gzip
         file = gzip.open(filepath, 'w')
     else:
         file = open(filepath, 'w')

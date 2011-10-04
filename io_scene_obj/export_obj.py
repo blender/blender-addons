@@ -147,7 +147,7 @@ def test_nurbs_compat(ob):
     return False
 
 
-def write_nurb(file, ob, ob_mat):
+def write_nurb(fw, ob, ob_mat):
     tot_verts = 0
     cu = ob.data
 
@@ -321,7 +321,7 @@ def write_file(filepath, objects, scene,
             # Nurbs curve support
             if EXPORT_CURVE_AS_NURBS and test_nurbs_compat(ob):
                 ob_mat = EXPORT_GLOBAL_MATRIX * ob_mat
-                totverts += write_nurb(file, ob, ob_mat)
+                totverts += write_nurb(fw, ob, ob_mat)
                 continue
             # END NURBS
 
