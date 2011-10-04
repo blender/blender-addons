@@ -21,7 +21,7 @@
 '''
 bl_info = {
     'name': 'Mesh Pyramid',
-    'author': 'Phil Cote, cotejrp1, (http://www.blenderpythontutorials.com)',
+    'author': 'Phil Cote, cotejrp1, (http://www.blenderaddons.com)',
     'version': (0,1),
     "blender": (2, 5, 7),
     "api": 35853,
