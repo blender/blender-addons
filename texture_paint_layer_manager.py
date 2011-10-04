@@ -535,7 +535,7 @@ class add_paint_layer(bpy.types.Operator):
     def execute(self, context):
         ttype = self.ttype
         add_paint(context,typ= ttype)
-        return 'FINISHED'
+        return {'FINISHED'}
         
 
 
@@ -583,14 +583,14 @@ def save_active_paint():
     for m in ob.material_slots:
         for ts in m.material.texture_slots:
             save_painted(ts)
-    return('FINISHED')                          
+    return {'FINISHED'}                          
 
 def save_all_paint():
     #for all materials
     for m in bpy.data.materials:
         for ts in m.texture_slots:
             save_painted(ts)      
-    return('FINISHED')   
+    return {'FINISHED'}   
             
             
 class save_all_generated(bpy.types.Operator):
