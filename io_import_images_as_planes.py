@@ -145,9 +145,9 @@ def create_image_plane(self, context, material):
     plane.data.uv_textures.new()
     plane.data.materials.append(material)
     plane.data.uv_textures[0].data[0].image = img
-    plane.data.uv_textures[0].data[0].use_image = True
-    plane.data.uv_textures[0].data[0].blend_type = 'ALPHA'
-    plane.data.uv_textures[0].data[0].use_twoside = True
+
+    material.game_settings.use_backface_culling = False
+    material.game_settings.alpha_blend = 'ALPHA'
     return plane
 
 def generate_paths(self):
