@@ -26,7 +26,7 @@
 """
 Abstract
 MHX (MakeHuman eXchange format) importer for Blender 2.5x.
-Version 1.8.3
+Version 1.9.0
 
 This script should be distributed with Blender.
 If not, place it in the .blender/scripts/addons dir
@@ -39,7 +39,7 @@ Alternatively, run the script in the script editor (Alt-P), and access from the 
 bl_info = {
     'name': 'Import: MakeHuman (.mhx)',
     'author': 'Thomas Larsson',
-    'version': (1, 8, 3),
+    'version': (1, 9, 0),
     "blender": (2, 5, 9),
     "api": 40335,
     'location': "File > Import > MakeHuman (.mhx)",
@@ -51,8 +51,8 @@ bl_info = {
     'category': 'Import-Export'}
 
 MAJOR_VERSION = 1
-MINOR_VERSION = 8
-SUB_VERSION = 3
+MINOR_VERSION = 9
+SUB_VERSION = 0
 BLENDER_VERSION = (2, 59, 2)
 
 #
@@ -844,6 +844,8 @@ def parseMaterial(args, tokens):
         elif key == 'NodeTree':
             mat.use_nodes = True
             parseNodeTree(mat.node_tree, val, sub)
+        elif key == 'AnimationData':
+            parseAnimationData(mat, val, sub)
         else:
             exclude = ['specular_intensity', 'tangent_shading']
             defaultKey(key, val, sub, 'mat', [], globals(), locals())
