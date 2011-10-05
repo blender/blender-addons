@@ -1320,6 +1320,7 @@ def save_single(operator, scene, filepath="",
         do_materials = bool(my_mesh.blenMaterials)
         do_textures = bool(my_mesh.blenTextures)
         do_uvs = bool(me.uv_textures)
+        do_shapekeys = bool(my_mesh.blenObject.data.shape_keys and len(my_mesh.blenObject.data.vertices) == len(me.vertices))
 
         fw('\n\tModel: "Model::%s", "Mesh" {' % my_mesh.fbxName)
         fw('\n\t\tVersion: 232')  # newline is added in write_object_props
@@ -1331,6 +1332,10 @@ def save_single(operator, scene, filepath="",
 
         poseMatrix = write_object_props(my_mesh.blenObject, None, my_mesh.parRelMatrix())[3]
         pose_items.append((my_mesh.fbxName, poseMatrix))
+
+        if do_shapekeys:
+            for kb in my_mesh.blenObject.data.shape_keys.key_blocks[1:]:
+                fw('\n\t\t\tProperty: "%s", "Number", "AN",0' % kb.name)
 
         fw('\n\t\t}')
 
@@ -1774,6 +1779,67 @@ def save_single(operator, scene, filepath="",
                 fw('\n\t\t\t\tTypedIndex: %i' % i)
                 fw('\n\t\t\t}')
                 fw('\n\t\t}')
+        
+        if do_shapekeys:
+            key_blocks = my_mesh.blenObject.data.shape_keys.key_blocks[:]
+            for kb in key_blocks[1:]:
+
+                fw('\n\t\tShape: "%s" {' % kb.name)
+                fw('\n\t\t\tIndexes: ')
+
+                basis_verts = key_blocks[0].data
+                range_verts = []
+                delta_verts = []
+                i = -1
+                for j, kv in enumerate(kb.data):
+                    delta = kv.co - basis_verts[j].co
+                    if delta.length > 0.000001:
+                        if i == -1:
+                            fw('%d' % j)
+                        else:
+                            if i == 7:
+                                fw('\n\t\t\t')
+                                i = 0
+                            fw(',%d' % j)
+                        delta_verts.append(delta[:])
+                        i += 1
+
+                fw('\n\t\t\tVertices: ')
+                i = -1
+                for dv in delta_verts:
+                    if i == -1:
+                        fw("%g,%g,%g" % dv)
+                    else:
+                        if i == 4:
+                            fw('\n\t\t\t')
+                            i = 0
+                        fw(",%g,%g,%g" % dv)
+                    i += 1
+
+                # all zero, why? - campbell
+                fw('\n\t\t\tNormals: ')
+                for j in range(len(delta_verts)):
+                    if i == -1:
+                        fw("0,0,0")
+                    else:
+                        if i == 4:
+                            fw('\n\t\t\t')
+                            i = 0
+                        fw(",0,0,0")
+                    i += 1
+                fw('\n\t\t}')
+
+        for v in me_vertices:
+            if i == -1:
+                fw('%.6f,%.6f,%.6f' % v.co[:])
+                i = 0
+            else:
+                if i == 7:
+                    fw('\n\t\t')
+                    i = 0
+                fw(',%.6f,%.6f,%.6f' % v.co[:])
+            i += 1
+        
         fw('\n\t}')
 
     def write_group(name):
