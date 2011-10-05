@@ -1808,12 +1808,12 @@ def save_single(operator, scene, filepath="",
                 i = -1
                 for dv in delta_verts:
                     if i == -1:
-                        fw("%g,%g,%g" % dv)
+                        fw("%.6f,%.6f,%.6f" % dv)
                     else:
                         if i == 4:
                             fw('\n\t\t\t')
                             i = 0
-                        fw(",%g,%g,%g" % dv)
+                        fw(",%.6f,%.6f,%.6f" % dv)
                     i += 1
 
                 # all zero, why? - campbell
