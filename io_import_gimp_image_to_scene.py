@@ -354,7 +354,6 @@ def main(File, Path, LayerViewers, MixerViewers, LayerOffset,\
             
             UVFace = Active.data.uv_textures[0].data[0]
             UVFace.image = Img
-            UVFace.use_image = True
             
             Tex.image = Img
             
@@ -377,7 +376,6 @@ def main(File, Path, LayerViewers, MixerViewers, LayerOffset,\
             
             UVFace = Active.data.uv_textures[0].data[0]
             UVFace.image = Img
-            UVFace.use_image = True
             
             Tex.image = Img
             

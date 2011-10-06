@@ -619,9 +619,8 @@ def create_mesh(new_objects,
                         image, has_data = unique_material_images[context_material]
                         if image:  # Can be none if the material dosnt have an image.
                             blender_tface.image = image
-                            blender_tface.use_image = True
                             if has_data and image.depth == 32:
-                                blender_tface.blend_type = 'ALPHA'
+                                blender_tface.alpha_blend = 'ALPHA'
 
                     # BUG - Evil eekadoodle problem where faces that have vert index 0 location at 3 or 4 are shuffled.
                     if len(face_vert_loc_indices) == 4:
