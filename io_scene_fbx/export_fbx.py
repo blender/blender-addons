@@ -1320,7 +1320,9 @@ def save_single(operator, scene, filepath="",
         do_materials = bool(my_mesh.blenMaterials)
         do_textures = bool(my_mesh.blenTextures)
         do_uvs = bool(me.uv_textures)
-        do_shapekeys = bool(my_mesh.blenObject.data.shape_keys and len(my_mesh.blenObject.data.vertices) == len(me.vertices))
+        do_shapekeys = (my_mesh.blenObject.type == 'MESH' and
+                        my_mesh.blenObject.data.shape_keys and
+                        len(my_mesh.blenObject.data.vertices) == len(me.vertices))
 
         fw('\n\tModel: "Model::%s", "Mesh" {' % my_mesh.fbxName)
         fw('\n\t\tVersion: 232')  # newline is added in write_object_props
