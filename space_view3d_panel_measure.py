@@ -26,9 +26,9 @@ bl_info = {
     "name": "Measure Panel",
     "author": "Buerbaum Martin (Pontiac), TNae (Normal patch)," \
         " Benjamin Lauritzen (Loonsbury; Volume code)",
-    "version": (0, 8, 0),
+    "version": (0, 8, 1),
     "blender": (2, 5, 7),
-    "api": 40343,
+    "api": 40847,
     "location": "View3D > Properties > Measure Panel",
     "description": "Measure distances between objects",
     "warning": "Script needs repairs",
@@ -49,6 +49,8 @@ This script displays in OBJECT MODE:
 * The distance between 2 object centers
   (if exactly TWO objects are selected).
 * The surface area of any selected mesh object.
+* The average normal of the mesh surface of any selected mesh object.
+* The volume of any selected mesh object.
 
 Display in EDIT MODE (Local and Global space supported):
 * The distance of the 3D cursor to the origin
@@ -63,142 +65,6 @@ This functionality can be accessed via the
 
 It's very helpful to use one or two "Empty" objects with
 "Snap during transform" enabled for fast measurement.
-
-Version history:
-v0.8.0 - Volume calculation
-v0.7.15 - Measurement of face normals by TNae + extended to cover all cases.
-    Grouped measured values inside boxes.
-v0.7.14
-    Fixed matrix calculation order.
-    Replaced region3d_get_2d_coordinates with location_3d_to_region_2d"
-    from bpy_extras.view3d_utils.
-v0.7.13 - Moved property definitions to registration function.
-    Changed automatic callback adding to manual,
-    the current API doesn't seem to allow this top be automatically yet.
-    Various API fixes.
-v0.7.12 - Moved setting of properties to callback function
-    (it is bad practise to set it in the draw code).
-    Fixed distance calculation of parented objects.
-    API change: add_modal_handler -> modal_handler_add
-    Regression: Had to disable area display for selection with
-    more than 2 meshes.
-    Fixed Local/Global vert-loc calculations in EditMode.
-v0.7.11 - Applied patch by Filiciss Muhgue that fixes the text in quad view.
-v0.7.10 - Applied patch by Filiciss Muhgue that (mostly) fixes the quad view.
-    Patch link: https://projects.blender.org/tracker/?func=
-    detail&atid=127&aid=24932&group_id=9
-    Thanks for that!
-    Removed (now) unneeded "attr" setting for properties.
-v0.7.9 - Updated scene properties for changes in property API.
-    See http://lists.blender.org/pipermail/bf-committers/
-        2010-September/028654.html
-    Synced API changes in/from local copy.
-v0.7.8 - Various Py API changes by Campbell ...
-    bl_default_closed -> bl_options = {'DEFAULT_CLOSED'}
-    x.verts -> x.vertices
-    @classmethod    def poll(cls, context)
-    No "location" in bl_info->name
-    bl_info->api
-v0.7.7 - One more change to the callback registration code.
-    Now it should finally work as intended.
-v0.7.6 - API changes (r885, r886) - register & unregister function
-v0.7.5.3 - Small fix for bug in v0.7.5.1
-    (location was off when object was moved)
-v0.7.5.2 - Changed callback registration back to original code &
-    fixed bug in there (use bl_idname instead of bl_label)
-v0.7.5.1 - Global mode is now taking rotation into account properly.
-v0.7.5 - Fixed lagging and drawing issues.
-v0.7.4 - Fixed the modal_handler_add and callback_add code.
-    Thanks to jesterKing for pointing that out :-)
-v0.7.3.1 - Fixed bug that made all lines in Blender stippled :-)
-v0.7.3 - Added display of delta x/y/z value in 3d view.
-    * Inspired by warpi's patch here:
-    http://blenderartists.org/forum/showpost.php?p=1671033&postcount=47
-    * Also added display of dx,dy,dz lines
-    * Changed the "dist" colors to something not already used
-    by x/y/z axes.
-v0.7.2 - Merged changes from trunk (scripts_addons r847):
-    * obj.matrix -> obj.matrix_world
-    * vert.selected -> vert.select
-    * face.selected -> face.select
-    * bl_info: warning, wiki_url, tracker_url
-    * removed __bpydoc__
-    * Use fontid=0 for blf functions. 0 is the default font.
-v0.7.1 - Merged changes by Campbell:
-    * Fix for API change: Collections like context.selected_objects
-    no longer return None for empty lists.
-    * Update for mathutils, also stripped some redundant
-    conversions (Mostly "Vector()" stuff)
-v0.7 - Initial support for drawing lines.
-    (Thanks to Algorith for applying my perspective_matrix patch.)
-    The distance value (in BUs) is also drawn in the 3D view now.
-    Also fixed some wrong calculations of global/local distances.
-    Now it's really "what you see is what is calculated".
-    Use bl_info for Add-On information.
-    Use "3D View" in category & name
-    Renamed reenter_editmode to view3d.reenter_editmode.
-    Renamed panel_measure.py into space_view3d_panel_measure.py
-    Active object is only used for edit-mode now. Measurement
-    with exactly one sel. (but not necessarily active) object
-    now gets the obj via the sel-object array.
-    API change Mathutils -> mathutils (r557)
-    Deselecting 1 of 2 objects now works correctly (active object is ignored).
-    Force a redraw of the area so disabling the "measure_panel_draw"
-    checkbox will clear the line/text.
-    Only calculate area (CPU heavy) if a "area" checkbox is enabled.
-v0.6.4 - Fixed unneeded meshdata duplication (sometimes crashes Blender).
-    The script now correctly calculated the surface area (faceAreaGlobal)
-    of scaled meshes.
-    http://projects.blender.org/tracker/
-    ?func=detail&atid=453&aid=21913&group_id=153
-v0.6.3 - Added register & unregister functions.
-v0.6.2 - Fixed precision of second area property.
-    Reduced display precision to 5 (instead of 6).
-    Added (commented out code) for shortcut [F5] for
-    updating EditMode selection & calculation.
-    Changed the script so it can be managed from the "Add-Ons" tab
-    in the user preferences.
-    Corrected FSF address.
-v0.6.1 - Updated reenter_editmode operator description.
-    Fixed search for selected mesh objects.
-    Added "BU^2" after values that are not yet translated via "unit".
-v0.6
-    *) Fix:  Removed EditMode/ObjectMode toggle stuff. This causes all the
-       crashes and is generally not stable.
-       Instead I've added a manual "refresh" button.
-       I registered a new operator OBJECT_OT_reenter_editmode for this.
-    *) Use "unit" settings (i.e. none/metric/imperial)
-    *) Fix: Only display surface area (>=3 objects) if return value is >=0.
-    *) Minor: Renamed objectFaceArea to objectSurfaceArea
-    *) Updated Vector() and tuple() usage.
-    *) Fixed some comments.
-v0.5 - Global surface area (object mode) is now calculated as well.
-    Support area calculation for face selection.
-    Also made measurement panel closed by default. (Area calculation
-    may use up a lot of CPU/RAM in extreme cases)
-v0.4.1 - Various cleanups.
-    Using the shorter "scene" instead of "context.scene"
-    New functions measureGlobal() and measureLocal() for
-    user-friendly access to the "space" setting.
-v0.4 - Calculate & display the surface area of mesh
-    objects (local space only right now).
-    Expanded global/local switch.
-    Made "local" option for 3Dcursor-only in edit mode actually work.
-    Fixed local/global calculation for 3Dcursor<->vertex in edit mode.
-v0.3.2 - Fixed calculation & display of local/global coordinates.
-    The user can now select via dropdown which space is wanted/needed
-    Basically this is a bugfix and new feature at the same time :-)
-v0.3.1 - Fixed bug where "measure_panel_dist" wasn't defined
-    before it was used.
-    Also added the distance calculation "origin -> 3D cursor" for edit mode.
-v0.3 - Support for mesh edit mode (1 or 2 selected vertices)
-v0.2.1 - Small fix (selecting nothing didn't calculate the distance
-    of the cursor from the origin anymore)
-v0.2 - Distance value is now displayed via a FloatProperty widget (and
-    therefore saved to file too right now [according to ideasman42].
-    The value is save inside the scene right now.)
-    Thanks goes to ideasman42 (Campbell Barton) for helping me out on this.
-v0.1 - Initial revision. Seems to work fine for most purposes.
 
 More links:
 http://gitorious.org/blender-scripts/blender-measure-panel-script
@@ -809,9 +675,8 @@ def draw_measurements_callback(self, context):
                 area, normal = objectSurfaceArea(obj, False,
                     measureGlobal(sce))
 
-                if (area >= 0):
-                    sce.measure_panel_area1 = area
-                    sce.measure_panel_normal1 = normal
+                sce.measure_panel_area1 = area
+                sce.measure_panel_normal1 = normal
 
     if (sce.measure_panel_calc_volume):
         obj = getSingleObject(context)
@@ -847,7 +712,7 @@ class VIEW3D_OT_display_measurements(bpy.types.Operator):
     '''Display the measurements made in the 'Measure' panel'''
     bl_idname = "view3d.display_measurements"
     bl_label = "Display the measurements made in the" \
-               " 'Measure' panel in the 3D View"
+        " 'Measure' panel in the 3D View"
     bl_options = {'REGISTER'}
 
     def modal(self, context, event):
@@ -897,7 +762,7 @@ class VIEW3D_OT_reenter_editmode(bpy.types.Operator):
     bl_label = "Re-enter EditMode"
     bl_idname = "view3d.reenter_editmode"
     bl_description = "Update mesh data of an active mesh object " \
-                     "(this is done by exiting and re-entering mesh edit mode)"
+        "(this is done by exiting and re-entering mesh edit mode)"
     bl_options = {'REGISTER'}
 
     def invoke(self, context, event):
@@ -945,14 +810,13 @@ class VIEW3D_PT_measure(bpy.types.Panel):
             in [op.bl_idname for op in mgr_ops]):
             layout.operator("view3d.activate_measure_panel",
                         text="Activate")
-        else:
-            layout.prop(sce, "measure_panel_draw")
 
         context.area.tag_redraw()
 
     def draw(self, context):
         layout = self.layout
         sce = context.scene
+        layout.label(text="Distance")
 
         # Get a single selected object (or nothing).
         obj = getSingleObject(context)
@@ -1013,6 +877,8 @@ class VIEW3D_PT_measure(bpy.types.Panel):
 #                            " to do this manually, after you changed" \
 #                            " the selection")
 
+                    layout.prop(sce, "measure_panel_draw")
+
                 elif len(verts_selected) == 1:
                     # One vertex selected.
                     # We measure the distance from the
@@ -1031,6 +897,8 @@ class VIEW3D_PT_measure(bpy.types.Panel):
                     row.operator("view3d.reenter_editmode",
                         text="Update selection & distance")
 
+                    layout.prop(sce, "measure_panel_draw")
+
                 elif len(verts_selected) == 2:
                     # Two vertices selected.
                     # We measure the distance between the
@@ -1048,6 +916,8 @@ class VIEW3D_PT_measure(bpy.types.Panel):
                     row = layout.row()
                     row.operator("view3d.reenter_editmode",
                         text="Update selection & distance")
+
+                    layout.prop(sce, "measure_panel_draw")
 
                 else:
                     row = layout.row()
@@ -1151,6 +1021,8 @@ class VIEW3D_PT_measure(bpy.types.Panel):
                 row.label(text="", icon='OBJECT_DATA')
                 row.prop(obj2, "name", text="")
 
+                layout.prop(sce, "measure_panel_draw")
+
                 row = layout.row()
                 row.prop(sce, "measure_panel_calc_area",
                     text="Surface area")
@@ -1189,7 +1061,7 @@ class VIEW3D_PT_measure(bpy.types.Panel):
 
                 row = layout.row()
                 row.prop(sce, "measure_panel_calc_volume",
-                    text="Volume:")
+                    text="Volume")
 
                 if (sce.measure_panel_calc_volume):
                     # Display volume of the objects.
@@ -1236,6 +1108,8 @@ class VIEW3D_PT_measure(bpy.types.Panel):
 
                 row.label(text="", icon='OBJECT_DATA')
                 row.prop(obj, "name", text="")
+
+                layout.prop(sce, "measure_panel_draw")
 
                 row = layout.row()
                 row.prop(sce, "measure_panel_calc_area",
@@ -1291,16 +1165,18 @@ class VIEW3D_PT_measure(bpy.types.Panel):
                 row.label(text="", icon='ARROW_LEFTRIGHT')
                 row.label(text="Origin [0,0,0]")
 
+                layout.prop(sce, "measure_panel_draw")
+
             else:
                 row = layout.row()
                 row.label(text="Selection not supported",
-                          icon='INFO')
+                    icon='INFO')
 
             if drawTansformButtons:
                 row = layout.row()
                 row.prop(sce,
-                         "measure_panel_transform",
-                         expand=True)
+                    "measure_panel_transform",
+                    expand=True)
 
 
 def register():
@@ -1345,6 +1221,7 @@ def register():
 
     # Define property for the draw setting.
     bpy.types.Scene.measure_panel_draw = bpy.props.BoolProperty(
+        name="Draw distance",
         description="Draw distances in 3D View",
         default=1)
 
