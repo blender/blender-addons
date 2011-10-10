@@ -33,39 +33,6 @@ bl_info = {
         "func=detail&aid=22060",
     "category": "3D View"}
 
-"""
-Dynamic Menu
-This adds a the Dynamic Spacebar Menu in the View3D.
-
-Usage:
-*  This script gives a basic menu with common simple tools for easy access.
-*  Very similar to the Spacebar menu in 2.49
-*  Context sensitive for Object, Edit, Sculpt, Pose, Weight/Texture/Vertex
-       Paint modes.
-* Object sensitive based on object selected in edit mode.
-
-Version history:
-v1.7.3 - (JayDez) - Wrong operator names for deleting in editmode
-v1.7.2 - (JayDez) - Adding proportional editing menu to where it was missing
-v1.7.1 - (JayDez) - Fixing up lattice menu and a wrong operator in curve menu
-v1.7 - (JayDez) - Fixing up animation menu and Metaball Add Menu
-v1.6.1 - (JayDez) - Added Add Menu to Curve and Surface (respectively)
-v1.6 - (JayDez) - Fixed a couple wrong names. (Thanks Bao2 and Dennis)
-v1.5.1 - (JayDez) - Changing formatting to be more uniform.
-v1.5 - (meta-androcto) - adding context sensitive menus.
-v1.3 - (JayDez) - Changed toggle editmode to an if statement, so that
-    if you are in editmode it will show change to object mode but
-    otherwise it shows change to edit mode. Also added separate icons
-    for change to edit mode and to object mode.
-v1.2 - (JayDez) - Editing docs, changing 3D cursor to dynamic menu,
-    reorganizing menu.
-v1.1 - (meta-androcto) - added editmode menu
-v1.0 - (meta-androcto) - initial final revision (commited to contrib)
-v0.1 through 0.9 - various tests/contributions by various people and scripts
-    Devs: JayDez, Crouch, sim88, meta-androcto, Sam
-    Scripts: 3D Cursor Menu, Original Dynamic Menu
-"""
-
 import bpy
 from bpy import *
 

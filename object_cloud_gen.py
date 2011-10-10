@@ -31,25 +31,6 @@ bl_info = {
         "func=detail&aid=22015",
     "category": "Object"}
 
-"""
-Place this file in the .blender/scripts/addons dir
-You have to activated the script in the "Add-Ons" tab (user preferences).
-The functionality can then be accessed via the Tool shelf when objects
-are selected
-
-Rev 0 initial release
-Rev 0.1 added scene to create_mesh per python api change.
-Rev 0.2 Added Point Density turbulence and fixed degenerate
-Rev 0.3 Fixed bug in degenerate
-Rev 0.4 updated for api change/changed to new apply modifier technique
-Rev 0.5 made particle count equation with radius so radius increases with cloud volume
-Rev 0.6 added poll function to operator, fixing crash with no selected objects
-Rev 0.7 added particles option and Type of Cloud wanted selector
-Rev 0.8 fixed particles by commenting out add cloud texture force field
-Rev 0.9 Added smoothing and explosion material
-Rev 1.0 Added ability to convert object with particle system to cloud and auto resizing of bound box
-"""
-
 import bpy
 from math import *
 from bpy.props import *
