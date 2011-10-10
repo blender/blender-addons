@@ -18,7 +18,7 @@
 # Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # ***** END GPL LICENCE BLOCK *****
-"""
+'''
 bl_info = {
     "name": "Gears",
     "author": "Michel J. Anders (varkenvarken)",
@@ -33,37 +33,7 @@ bl_info = {
     "tracker_url": "https://projects.blender.org/tracker/index.php?"\
         "func=detail&aid=21732",
     "category": "Add Mesh"}
-"""
-
-"""
-What was needed to port it from 2.49 -> 2.50 alpha 0?
-
-The basic functions that calculate the geometry (verts and faces) are mostly
-unchanged (add_tooth, add_spoke, add_gear)
-
-Also, the vertex group API is changed a little bit but the concepts
-are the same:
-=========
-vertexgroup = ob.vertex_groups.new('NAME_OF_VERTEXGROUP')
-vertexgroup.add(vertexgroup_vertex_indices, weight, 'ADD')
-=========
-
-Now for some reason the name does not 'stick' and we have to set it this way:
-vertexgroup.name = 'NAME_OF_VERTEXGROUP'
-
-Conversion to 2.50 also meant we could simply do away with our crude user
-interface.
-Just definining the appropriate properties in the AddGear() operator will
-display the properties in the Blender GUI with the added benefit of making
-it interactive: changing a property will redo the AddGear() operator providing
-the user with instant feedback.
-
-Finally we had to convert/throw away some print statements to print functions
-as Blender nows uses Python 3.x
-
-The code to actually implement the AddGear() function is mostly copied from
-add_mesh_torus() (distributed with Blender).
-"""
+'''
 
 import bpy
 from math import *
@@ -798,4 +768,3 @@ class AddWormGear(bpy.types.Operator):
         valleyGroup.add(verts_valley, 1.0, 'ADD')
 
         return {'FINISHED'}
-

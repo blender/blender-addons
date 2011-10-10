@@ -15,7 +15,7 @@
 #  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # ##### END GPL LICENSE BLOCK #####
-"""
+'''
 bl_info = {
     "name": "Gemstones",
     "author": "Pontiac, Fourmadmen, Dreampainter",
@@ -30,7 +30,7 @@ bl_info = {
     "tracker_url": "https://projects.blender.org/tracker/index.php?"\
         "func=detail&aid=21432",
     "category": "Add Mesh"}
-"""
+'''
 import bpy
 from mathutils import *
 from math import *
@@ -328,4 +328,3 @@ class AddGem(bpy.types.Operator):
         obj = create_mesh_object(context, verts, [], faces, "Gem")
 
         return {'FINISHED'}
-

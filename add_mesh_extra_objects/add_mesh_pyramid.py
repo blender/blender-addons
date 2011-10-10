@@ -29,14 +29,12 @@ bl_info = {
     'description': 'Create an egyption-style step pyramid',
     'warning': '', # used for warning icon and text in addons panel
     'category': 'Add Mesh'}
-
-
 '''
+
 import bpy
 from bpy.props import FloatVectorProperty, IntProperty, FloatProperty
 from add_utils import AddObjectHelper, add_object_data
 from mathutils import Vector
-
 
 def makePyramid( initialSize, stepHeight, stepWidth, numberSteps ):
     
@@ -107,7 +105,6 @@ def add_pyramid_object( self, context ):
     res = add_object_data( context, mesh_data, operator=self )
     
     
-    
 class OBJECT_OT_add_pyramid(bpy.types.Operator, AddObjectHelper):
     """Add a Mesh Object"""
     bl_idname = "mesh.primative_step_pyramid_add"
@@ -124,20 +121,3 @@ class OBJECT_OT_add_pyramid(bpy.types.Operator, AddObjectHelper):
     def execute(self, context):
         add_pyramid_object(self, context)
         return {'FINISHED'}
-
-'''
-def menu_func(self, context):
-    self.layout.operator(OBJECT_OT_add_pyramid.bl_idname, text="Pyramid", icon="MESH_CUBE")
-
-def register():
-    bpy.utils.register_class(OBJECT_OT_add_pyramid)
-    bpy.types.INFO_MT_mesh_add.append(menu_func)
-
-
-def unregister():
-    bpy.utils.unregister_class(OBJECT_OT_add_pyramid)
-    bpy.types.INFO_MT_mesh_add.remove(menu_func)
-
-if __name__ == "__main__":
-    register()        
-'''

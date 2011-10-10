@@ -15,7 +15,7 @@
 #  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # ##### END GPL LICENSE BLOCK #####
-"""
+'''
 bl_info = {
     "name": "3D Function Surfaces",
     "author": "Buerbaum Martin (Pontiac), Elod Csirmaz",
@@ -30,91 +30,8 @@ bl_info = {
     "tracker_url": "https://projects.blender.org/tracker/index.php?"\
         "func=detail&aid=21444",
     "category": "Add Mesh"}
-"""
-"""
-Z Function Surface
+'''
 
-This script lets the user create a surface where the z coordinate
-is a function of the x and y coordinates.
-
-    z = F1(x,y)
-
-X,Y,Z Function Surface
-
-This script lets the user create a surface where the x, y and z
-coordinates are defiend by a function.
-
-    x = F1(u,v)
-    y = F2(u,v)
-    z = F3(u,v)
-
-Usage:
-You have to activated the script in the "Add-Ons" tab (user preferences).
-The functionality can then be accessed via the
-"Add Mesh" -> "Z Function Surface"
-and
-"Add Mesh" -> "X,Y,Z Function Surface"
-menu.
-
-Version history:
-v0.3.8 - Patch by Elod Csirmaz
-    Modified the "Add X,Y,Z Function Surface" part:
-    Changed how wrapping is done to avoid
-    generating unnecessary vertices and make the result more intuitive.
-    Added helper functions the results of which can be used in
-    x(u,v), y(u,v), z(u,v).
-    The script can now close the ends of an U-wrapped surface.
-    It's now possible to create multiple objects with one set of formulae.
-v0.3.7
-    Removed the various "edit" properties - not used anymore.
-    Use generic tracker URL (Blender-Extensions r1369)
-    bl_addon_info now called bl_info
-    Removed align_matrix
-    create_mesh_object now doesn't handle editmode. (See create_mesh_object)
-    This script is now used by the "Extra Objects" script
-v0.3.6 - Various updates to match current Blender API.
-    Removed recall functionality.
-    Better code for align_matrix
-    Hopefully fixed bug where uMax was never reached. May cause other stuff.
-v0.3.5 - createFaces can now "Flip" faces and create fan/star like faces.
-v0.3.4 - Updated store_recall_properties, apply_object_align
-    and create_mesh_object.
-    Changed how recall data is stored.
-v0.3.3 - API change Mathutils -> mathutils (r557)
-v0.3.2 - Various fixes&streamlining by ideasman42/Campbell Barton.
-    r544 Compile expressions for faster execution
-    r544 Use operator reports for errors too
-    r544 Avoid type checks by converting to a float, errors
-    converting to a float are reported too.
-    Fixed an error Campbell overlooked (appending tuples to an
-    array, not single values) Thamnks for the report wild_doogy.
-    Added 'description' field, updated 'wiki_url'.
-    Made the script PEP8 compatible again.
-v0.3.1 - Use hidden "edit" property for "recall" operator.
-    Bugfix: Z Function was mixing up div_x and div_y
-v0.3 - X,Y,Z Function Surface (by Ed Mackey & tuga3d).
-    Renamed old function to "Z Function Surface".
-    Align the geometry to the view if the user preference says so.
-    Store recall properties in newly created object.
-v0.2.3 - Use bl_info for Add-On information.
-v0.2.2 - Fixed Add-On registration text.
-v0.2.1 - Fixed some new API stuff.
-    Mainly we now have the register/unregister functions.
-    Also the new() function for objects now accepts a mesh object.
-    Changed the script so it can be managed from the "Add-Ons" tab
-    in the user preferences.
-    Added dummy "PLUGIN" icon.
-    Corrected FSF address.
-    Clean up of tooltips.
-v0.2 - Added security check for eval() function
-    Check return value of eval() for complex numbers.
-v0.1.1 - Use 'CANCELLED' return value when failing.
-    Updated web links.
-v0.1 - Initial revision.
-More Links:
-http://gitorious.org/blender-scripts/blender-3d-function-surface
-http://blenderartists.org/forum/showthread.php?t=179043
-"""
 import bpy
 from mathutils import *
 from math import *

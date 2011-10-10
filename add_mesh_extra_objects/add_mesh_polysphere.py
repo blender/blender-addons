@@ -30,32 +30,6 @@ bl_info = {
     "tracker_url": "",
     "category": "Add Mesh"}
 '''    
-"""
-About this script:-
-This script enables the creation of a "PolySphere": an all quad sphere for use in sculpting and is intended to be used in place of a standard UVSphere, where the poles on would cause pinching and other unwanted artefacts.
-Apart from being all quads, the advantages are that the topology is distributed evenly across the surface and that they also use only around 80% of the geometry of a comparable resolution UV sphere.
-
-Usage:-
-Activate the script via the "Add-Ons" tab under the user preferences.
-The PolySphere can then be accessed via Add Mesh> PolySphere.
-
-
-Related Links:-
-http://blenderartists.org/forum/showthread.php?t=205444
-http://www.metalliandy.com
-
-Thanks to:-
-Dealga McArdle (zeffii) - http://www.digitalaphasia.com
-
-Version history:-
-v0.1.5 - Ammended script for compatibility with recent API changes.
-v0.1.4 - Ammended script and changed bl_info for compatibility with recent API changes.
-v0.1.3 - Ammended script for compatibility with recent API changes.
-v0.1.2 - Ammended script meta information for compatibility with recent API changes.
-v0.1.1 - Cleaned code up a little and incresed the scale of the final PolySphere to 2 units.
-v0.1 - Initial revision.
-
-"""
 
 import bpy
 
@@ -113,21 +87,3 @@ class AddPolySphere(bpy.types.Operator):
     def execute(self, context):
         Add_PolySphere()
         return {'FINISHED'}
-'''
-# Register the operator
-def menu_func(self, context):
-    self.layout.operator(AddPolySphere.bl_idname, text="PolySphere", icon='PLUGIN')
-
-
-def register():
-    bpy.utils.register_module(__name__)
-    bpy.types.INFO_MT_mesh_add.append(menu_func)
-
-
-def unregister():
-    bpy.utils.unregister_module(__name__)
-    bpy.types.INFO_MT_mesh_add.remove(menu_func)
-
-if __name__ == "__main__":
-    register()
-'''

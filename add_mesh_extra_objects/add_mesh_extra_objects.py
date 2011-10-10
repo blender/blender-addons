@@ -485,6 +485,3 @@ class AddTrapezohedron(bpy.types.Operator):
         obj = create_mesh_object(context, verts, [], faces, "Trapazohedron")
 
         return {'FINISHED'}
-
-
-
