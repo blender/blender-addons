@@ -2067,7 +2067,7 @@ class PovrayRender(bpy.types.RenderEngine):
             # check paths
             povPath = bpy.path.abspath(scene.pov.scene_path).replace('\\', '/')
             if povPath == "":
-                if bpy.path.abspath("//") != "":
+                if bpy.data.is_saved:
                     povPath = bpy.path.abspath("//")
                 else:
                     povPath = tempfile.gettempdir()
@@ -2094,7 +2094,7 @@ class PovrayRender(bpy.types.RenderEngine):
             # Bug in POV-Ray RC3
             renderImagePath = bpy.path.abspath(scene.pov.renderimage_path).replace('\\','/')
             if renderImagePath == "":
-                if bpy.path.abspath("//") != "":
+                if bpy.data.is_saved:
                     renderImagePath = bpy.path.abspath("//")
                 else:
                     renderImagePath = tempfile.gettempdir()

@@ -94,7 +94,7 @@ class OBJECT_OT_animrenderbake(bpy.types.Operator):
             return {'CANCELLED'}
 
         # make sure we have an absolute path so that copying works for sure
-        absp = bpy.path.abspath(img.filepath)
+        absp = bpy.path.abspath(img.filepath, library=img.library)
 
         print("Animated baking for frames " + str(start) + " - " + str(end))
 

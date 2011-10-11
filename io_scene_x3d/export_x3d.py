@@ -1238,8 +1238,8 @@ def export(file,
             # collect image paths, can load multiple
             # [relative, name-only, absolute]
             filepath = image.filepath
-            filepath_full = bpy.path.abspath(filepath)
-            filepath_ref = bpy_extras.io_utils.path_reference(filepath_full, base_src, base_dst, path_mode, "textures", copy_set)
+            filepath_full = bpy.path.abspath(filepath, library=image.library)
+            filepath_ref = bpy_extras.io_utils.path_reference(filepath_full, base_src, base_dst, path_mode, "textures", copy_set, image.library)
             filepath_base = os.path.basename(filepath_full)
 
             images = [
