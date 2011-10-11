@@ -105,38 +105,15 @@ def imgMapBG(wts):
     return image_mapBG
 
 
-def findInSubDir(filename, subdirectory=""):
-    pahFile = ""
-    if subdirectory:
-        path = subdirectory
-    else:
-        path = os.getcwd()
-    try:
-        for root, dirs, names in os.walk(path):
-            if filename in names:
-                pahFile = os.path.join(root, filename)
-        return pahFile
-    except OSError:
-        return ""
-
-
 def path_image(image):
-    import os
-    fn = bpy.path.abspath(image)
-    if not os.path.isfile(fn):
-        fn = findInSubDir(os.path.basename(fn), os.path.dirname(bpy.data.filepath))
-    fn = os.path.realpath(fn)
-    return fn
+    return bpy.path.abspath(image.filepath, library=image.library)
 
-##############end find image texture
+# end find image texture
+# -----------------------------------------------------------------------------
 
 
-def splitHyphen(name):
-    hyphidx = name.find("-")
-    if hyphidx == -1:
-        return name
-    else:
-        return name[:].replace("-", "")
+def string_strip_hyphen(name):
+    return name.replace("-", "")
 
 
 def safety(name, Level):
@@ -153,7 +130,7 @@ def safety(name, Level):
     except:
         prefix = ""
     prefix = "shader_"
-    name = splitHyphen(name)
+    name = string_strip_hyphen(name)
     if Level == 2:
         return prefix + name
     elif Level == 1:
@@ -221,7 +198,7 @@ def write_pov(filename, scene=None, info_callback=None):
     def uniqueName(name, nameSeq):
 
         if name not in nameSeq:
-            name = splitHyphen(name)
+            name = string_strip_hyphen(name)
             return name
 
         name_orig = name
@@ -229,7 +206,7 @@ def write_pov(filename, scene=None, info_callback=None):
         while name in nameSeq:
             name = "%s_%.3d" % (name_orig, i)
             i += 1
-        name = splitHyphen(name)
+        name = string_strip_hyphen(name)
         return name
 
     def writeMatrix(matrix):
@@ -867,8 +844,8 @@ def write_pov(filename, scene=None, info_callback=None):
             else:
                 name_orig = DEF_OBJ_NAME
                 dataname_orig = DEF_OBJ_NAME
-            name = splitHyphen(bpy.path.clean_name(name_orig))
-            dataname = splitHyphen(bpy.path.clean_name(dataname_orig))
+            name = string_strip_hyphen(bpy.path.clean_name(name_orig))
+            dataname = string_strip_hyphen(bpy.path.clean_name(dataname_orig))
 ##            for slot in ob.material_slots:
 ##                if slot.material != None and slot.link == 'OBJECT':
 ##                    obmaterial = slot.material
@@ -1061,7 +1038,7 @@ def write_pov(filename, scene=None, info_callback=None):
                 texturesAlpha = ""
                 for t in material.texture_slots:
                     if t and t.texture.type == 'IMAGE' and t.use and t.texture.image:
-                        image_filename = path_image(t.texture.image.filepath)
+                        image_filename = path_image(t.texture.image)
                         imgGamma = ""
                         if image_filename:
                             if t.use_map_color_diffuse:
@@ -1583,7 +1560,7 @@ def write_pov(filename, scene=None, info_callback=None):
                 # XXX No enable checkbox for world textures yet (report it?)
                 #if t and t.texture.type == 'IMAGE' and t.use:
                 if t and t.texture.type == 'IMAGE':
-                    image_filename = path_image(t.texture.image.filepath)
+                    image_filename = path_image(t.texture.image)
                     if t.texture.image.filepath != image_filename:
                         t.texture.image.filepath = image_filename
                     if image_filename != "" and t.use_map_blend:
