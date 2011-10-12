@@ -20,11 +20,11 @@ bl_info = {
     'name': 'Import Autocad DXF Format (.dxf)',
     'author': 'Thomas Larsson, Remigiusz Fiedler',
     'version': (0, 1, 5),
-    "blender": (2, 5, 7),
-    "api": 36079,
+    "blender": (2, 6, 0),
+    "api": 40791,
     'location': 'File > Import > Autocad (.dxf)',
     'description': 'Import files in the Autocad DXF format (.dxf)',
-    'warning': 'only a part of DXF specification is supported: Work in Progress',
+    'warning': 'Only subset of DXF specification is supported, work in progress.',
     'wiki_url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/'\
         'Scripts/Import-Export/DXF_Importer',
     'tracker_url': 'https://projects.blender.org/tracker/index.php?'\
