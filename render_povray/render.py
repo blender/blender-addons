@@ -975,8 +975,12 @@ def write_pov(filename, scene=None, info_callback=None):
             if me.vertex_colors:
 
                 for fi, f in enumerate(me_faces):
+                    # annoying, index may be invalid
                     material_index = f.material_index
-                    material = me_materials[material_index]
+                    try:
+                        material = me_materials[material_index]
+                    except:
+                        material = None
 
                     if material and material.use_vertex_color_paint:
 
