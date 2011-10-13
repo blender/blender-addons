@@ -31,6 +31,7 @@ def find_index(objekti):
 def gettex(mat_list, objekti, scene,export):
 
     coat3D = bpy.context.scene.coat3D
+    coa = objekti.coat3D
     
     if(bpy.context.scene.render.engine == 'VRAY_RENDER' or bpy.context.scene.render.engine == 'VRAY_RENDER_PREVIEW'):
         vray = True
@@ -57,7 +58,7 @@ def gettex(mat_list, objekti, scene,export):
     if(export):
         objekti.coat3D.objpath = export
         nimi = os.path.split(export)[1]
-        osoite = os.path.dirname(export) + os.sep
+        osoite = os.path.dirname(export) + os.sep #pitaa ehka muuttaa
         for mate in objekti.material_slots:
             for tex_slot in mate.material.texture_slots:
                 if(hasattr(tex_slot,'texture')):
@@ -65,19 +66,20 @@ def gettex(mat_list, objekti, scene,export):
                         if tex_slot.texture.image is not None:
                             tex_slot.texture.image.reload()
     else:
-        coa = objekti.coat3D
-        nimi = os.path.split(coa.objectdir)[1]
-        if(coa.texturefolder):
-            osoite = os.path.dirname(coa.texturefolder) + os.sep
+        if(os.sys.platform == 'win32'):
+                osoite = os.path.expanduser("~") + os.sep + 'Documents' + os.sep + '3DC2Blender' + os.sep + 'Textures' + os.sep
         else:
-            osoite = os.path.dirname(coa.objectdir) + os.sep
-    just_nimi = os.path.splitext(nimi)[0] + '_'
+                osoite = os.path.expanduser("~") + os.sep + '3DC2Blender' + os.sep + 'Textures' + os.sep
+    ki = os.path.split(coa.applink_name)[1]
+    ko = os.path.splitext(ki)[0]
+    just_nimi = ko + '_'
     just_nimi_len = len(just_nimi)
+    print('terve:' + coa.applink_name)
         
     if(len(objekti.material_slots) != 0):
         for obj_tex in objekti.active_material.texture_slots:
             if(hasattr(obj_tex,'texture')):
-                if(obj_tex.texture):
+                if(obj_tex.texture.type == 'IMAGE'):
                     if(obj_tex.use_map_color_diffuse):
                         bring_color = 0;
                     if(obj_tex.use_map_specular):
