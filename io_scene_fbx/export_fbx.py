@@ -131,6 +131,26 @@ def mat4x4str(mat):
     return '%.15f,%.15f,%.15f,%.15f,%.15f,%.15f,%.15f,%.15f,%.15f,%.15f,%.15f,%.15f,%.15f,%.15f,%.15f,%.15f' % tuple([f for v in mat for f in v])
 
 
+def action_bone_names(obj, action):
+    from bpy.types import PoseBone
+
+    names = set()
+    path_resolve = obj.path_resolve
+
+    for fcu in action.fcurves:
+        try:
+            prop = path_resolve(fcu.data_path, False)
+        except:
+            prop = None
+
+        if prop is not None:
+            data = prop.data
+            if isinstance(data, PoseBone):
+                names.add(data.name)
+
+    return names
+
+
 # ob must be OB_MESH
 def BPyMesh_meshWeight2List(ob, me):
     ''' Takes a mesh and return its group names and a list of lists, one list per vertex.
@@ -1781,7 +1801,7 @@ def save_single(operator, scene, filepath="",
                 fw('\n\t\t\t\tTypedIndex: %i' % i)
                 fw('\n\t\t\t}')
                 fw('\n\t\t}')
-        
+
         if do_shapekeys:
             key_blocks = my_mesh.blenObject.data.shape_keys.key_blocks[:]
             for kb in key_blocks[1:]:
@@ -2576,9 +2596,7 @@ Connections:  {''')
 
                 for action in tmp_actions:
 
-                    action_chan_names = arm_bone_names.intersection(set([g.name for g in action.groups]))
-
-                    if action_chan_names:  # at least one channel matches.
+                    if arm_bone_names.intersection(action_bone_names(my_arm.blenObject, action)):  # at least one channel matches.
                         my_arm.blenActionList.append(action)
                         tagged_actions.append(action.name)
                         tmp_act_count += 1
