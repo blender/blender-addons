@@ -520,7 +520,7 @@ def totalRetarget(performer_obj, enduser_obj, scene, s_frame, e_frame):
     else:
         prepareForBake(enduser_obj)
         print("Retargeting pose (Advanced Retarget)")
-        bake_action(s_frame, e_frame, action=enduser_obj.animation_data.action, only_selected=True, do_pose=True, do_object=False, step=step)
+        bake_action(s_frame, e_frame, action=enduser_obj.animation_data.action, only_selected=True, do_pose=True, do_object=False, frame_step=step)
     name = performer_obj.animation_data.action.name[:10]
     #We trim the name down to 10 chars because of Action Name length maximum
     enduser_obj.animation_data.action.name = "Base " + name
