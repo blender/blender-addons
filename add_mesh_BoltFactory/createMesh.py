@@ -17,14 +17,7 @@
 # ##### END GPL LICENSE BLOCK #####
 
 import bpy
-
-# ???, why do this
-try: 
-    import mathutils as MATHUTILS
-except:
-    import Mathutils as MATHUTILS
-
-
+import mathutils
 
 from math import *
 from itertools import * 
@@ -138,11 +131,11 @@ def Simple_RotationMatrix(angle, matSize, axisFlag):
     q = radians(angle)  #make the rotation go clockwise
     
     if axisFlag == 'x':
-        matrix = MATHUTILS.Matrix(((1,0,0,0),(0,cos(q),sin(q),0),(0,-sin(q),cos(q),0),(0,0,0,1)))
+        matrix = mathutils.Matrix(((1,0,0,0),(0,cos(q),sin(q),0),(0,-sin(q),cos(q),0),(0,0,0,1)))
     elif  axisFlag == 'y':
-        matrix = MATHUTILS.Matrix(((cos(q),0,-sin(q),0),(0,1,0,0),(sin(q),0,cos(q),0),(0,0,0,1)))
+        matrix = mathutils.Matrix(((cos(q),0,-sin(q),0),(0,1,0,0),(sin(q),0,cos(q),0),(0,0,0,1)))
     elif axisFlag == 'z':
-        matrix = MATHUTILS.Matrix(((cos(q),sin(q),0,0),(-sin(q),cos(q),0,0),(0,0,1,0),(0,0,0,1)))
+        matrix = mathutils.Matrix(((cos(q),sin(q),0,0),(-sin(q),cos(q),0,0),(0,0,1,0),(0,0,0,1)))
     else:
         print   ("Simple_RotationMatrix can only do x y z axis")
     return matrix
@@ -175,7 +168,7 @@ def Get_Phillips_Bit_Height(Bit_Dia):
 
 # Returns a list of verts rotated by the given matrix. Used by SpinDup
 def Rot_Mesh(verts, matrix):
-    Vector = MATHUTILS.Vector
+    Vector = mathutils.Vector
     return [(matrix * Vector(v))[:] for v in verts]
 
 
@@ -771,48 +764,48 @@ def Create_Hex_Head(FLAT,HOLE_DIA,SHANK_DIA,HEIGHT):
     
     x = sin(radians(0))*TopBevelRadius
     y = cos(radians(0))*TopBevelRadius
-    vec1 = MATHUTILS.Vector([x,y,0.0])
+    vec1 = mathutils.Vector([x,y,0.0])
     verts.append([x,y,0.0])
     
     
     x = sin(radians(60/6))*TopBevelRadius
     y = cos(radians(60/6))*TopBevelRadius
-    vec2 = MATHUTILS.Vector([x,y,0.0])
+    vec2 = mathutils.Vector([x,y,0.0])
     verts.append([x,y,0.0])
     
     
     x = sin(radians(60/3))*TopBevelRadius
     y = cos(radians(60/3))*TopBevelRadius
-    vec3 = MATHUTILS.Vector([x,y,0.0])
+    vec3 = mathutils.Vector([x,y,0.0])
     verts.append([x,y,0.0])
     
     
     x = sin(radians(60/2))*TopBevelRadius
     y = cos(radians(60/2))*TopBevelRadius
-    vec4 = MATHUTILS.Vector([x,y,0.0])
+    vec4 = mathutils.Vector([x,y,0.0])
     verts.append([x,y,0.0])
     Row += 1
     
     #Flats
     
     x = tan(radians(0))*Half_Flat
-    dvec = vec1 - MATHUTILS.Vector([x,Half_Flat,0.0])
+    dvec = vec1 - mathutils.Vector([x,Half_Flat,0.0])
     verts.append([x,Half_Flat,-dvec.length])
     
     
     x = tan(radians(60/6))*Half_Flat
-    dvec = vec2 - MATHUTILS.Vector([x,Half_Flat,0.0])
+    dvec = vec2 - mathutils.Vector([x,Half_Flat,0.0])
     verts.append([x,Half_Flat,-dvec.length])
     
 
     x = tan(radians(60/3))*Half_Flat
-    dvec = vec3 - MATHUTILS.Vector([x,Half_Flat,0.0])
+    dvec = vec3 - mathutils.Vector([x,Half_Flat,0.0])
     Lowest_Point = -dvec.length
     verts.append([x,Half_Flat,-dvec.length])
     
 
     x = tan(radians(60/2))*Half_Flat
-    dvec = vec4 - MATHUTILS.Vector([x,Half_Flat,0.0])
+    dvec = vec4 - mathutils.Vector([x,Half_Flat,0.0])
     Lowest_Point = -dvec.length
     verts.append([x,Half_Flat,-dvec.length])
     Row += 1
@@ -851,88 +844,88 @@ def Create_Hex_Head(FLAT,HOLE_DIA,SHANK_DIA,HEIGHT):
        
     x = sin(radians(0))*Half_Flat
     y = cos(radians(0))*Half_Flat
-    vec1 = MATHUTILS.Vector([x,y,0.0])
+    vec1 = mathutils.Vector([x,y,0.0])
     verts.append([x,y,-Flat_Height])
     
     x = sin(radians(60/6))*Half_Flat
     y = cos(radians(60/6))*Half_Flat
-    vec2 = MATHUTILS.Vector([x,y,0.0])
+    vec2 = mathutils.Vector([x,y,0.0])
     verts.append([x,y,-Flat_Height])
     
     x = sin(radians(60/3))*Half_Flat
     y = cos(radians(60/3))*Half_Flat
-    vec3 = MATHUTILS.Vector([x,y,0.0])
+    vec3 = mathutils.Vector([x,y,0.0])
     verts.append([x,y,-Flat_Height])
     
     x = sin(radians(60/2))*Half_Flat
     y = cos(radians(60/2))*Half_Flat
-    vec3 = MATHUTILS.Vector([x,y,0.0])
+    vec3 = mathutils.Vector([x,y,0.0])
     verts.append([x,y,-Flat_Height])
     Row += 1
     
     #under cut down bit
     x = sin(radians(0))*Half_Flat
     y = cos(radians(0))*Half_Flat
-    vec1 = MATHUTILS.Vector([x,y,0.0])
+    vec1 = mathutils.Vector([x,y,0.0])
     verts.append([x,y,-Flat_Height-Undercut_Height])
     
     x = sin(radians(60/6))*Half_Flat
     y = cos(radians(60/6))*Half_Flat
-    vec2 = MATHUTILS.Vector([x,y,0.0])
+    vec2 = mathutils.Vector([x,y,0.0])
     verts.append([x,y,-Flat_Height-Undercut_Height])
     
     x = sin(radians(60/3))*Half_Flat
     y = cos(radians(60/3))*Half_Flat
-    vec3 = MATHUTILS.Vector([x,y,0.0])
+    vec3 = mathutils.Vector([x,y,0.0])
     verts.append([x,y,-Flat_Height-Undercut_Height])
     
     x = sin(radians(60/2))*Half_Flat
     y = cos(radians(60/2))*Half_Flat
-    vec3 = MATHUTILS.Vector([x,y,0.0])
+    vec3 = mathutils.Vector([x,y,0.0])
     verts.append([x,y,-Flat_Height-Undercut_Height])
     Row += 1
     
     #under cut to Shank BEVEAL
     x = sin(radians(0))*(SHANK_RADIUS+Shank_Bevel)
     y = cos(radians(0))*(SHANK_RADIUS+Shank_Bevel)
-    vec1 = MATHUTILS.Vector([x,y,0.0])
+    vec1 = mathutils.Vector([x,y,0.0])
     verts.append([x,y,-Flat_Height-Undercut_Height])
     
     x = sin(radians(60/6))*(SHANK_RADIUS+Shank_Bevel)
     y = cos(radians(60/6))*(SHANK_RADIUS+Shank_Bevel)
-    vec2 = MATHUTILS.Vector([x,y,0.0])
+    vec2 = mathutils.Vector([x,y,0.0])
     verts.append([x,y,-Flat_Height-Undercut_Height])
     
     x = sin(radians(60/3))*(SHANK_RADIUS+Shank_Bevel)
     y = cos(radians(60/3))*(SHANK_RADIUS+Shank_Bevel)
-    vec3 = MATHUTILS.Vector([x,y,0.0])
+    vec3 = mathutils.Vector([x,y,0.0])
     verts.append([x,y,-Flat_Height-Undercut_Height])
     
     x = sin(radians(60/2))*(SHANK_RADIUS+Shank_Bevel)
     y = cos(radians(60/2))*(SHANK_RADIUS+Shank_Bevel)
-    vec3 = MATHUTILS.Vector([x,y,0.0])
+    vec3 = mathutils.Vector([x,y,0.0])
     verts.append([x,y,-Flat_Height-Undercut_Height])
     Row += 1
     
     #under cut to Shank BEVEAL
     x = sin(radians(0))*SHANK_RADIUS
     y = cos(radians(0))*SHANK_RADIUS
-    vec1 = MATHUTILS.Vector([x,y,0.0])
+    vec1 = mathutils.Vector([x,y,0.0])
     verts.append([x,y,-Flat_Height-Undercut_Height-Shank_Bevel])
     
     x = sin(radians(60/6))*SHANK_RADIUS
     y = cos(radians(60/6))*SHANK_RADIUS
-    vec2 = MATHUTILS.Vector([x,y,0.0])
+    vec2 = mathutils.Vector([x,y,0.0])
     verts.append([x,y,-Flat_Height-Undercut_Height-Shank_Bevel])
     
     x = sin(radians(60/3))*SHANK_RADIUS
     y = cos(radians(60/3))*SHANK_RADIUS
-    vec3 = MATHUTILS.Vector([x,y,0.0])
+    vec3 = mathutils.Vector([x,y,0.0])
     verts.append([x,y,-Flat_Height-Undercut_Height-Shank_Bevel])
     
     x = sin(radians(60/2))*SHANK_RADIUS
     y = cos(radians(60/2))*SHANK_RADIUS
-    vec3 = MATHUTILS.Vector([x,y,0.0])
+    vec3 = mathutils.Vector([x,y,0.0])
     verts.append([x,y,-Flat_Height-Undercut_Height-Shank_Bevel])
     Row += 1
     
@@ -1473,50 +1466,50 @@ def add_Hex_Nut(FLAT,HOLE_DIA,HEIGHT):
     
     x = sin(radians(0))*TopBevelRadius
     y = cos(radians(0))*TopBevelRadius
-    vec1 = MATHUTILS.Vector([x,y,0.0])
+    vec1 = mathutils.Vector([x,y,0.0])
     verts.append([x,y,0.0])
     
     
     x = sin(radians(60/6))*TopBevelRadius
     y = cos(radians(60/6))*TopBevelRadius
-    vec2 = MATHUTILS.Vector([x,y,0.0])
+    vec2 = mathutils.Vector([x,y,0.0])
     verts.append([x,y,0.0])
     
     
     x = sin(radians(60/3))*TopBevelRadius
     y = cos(radians(60/3))*TopBevelRadius
-    vec3 = MATHUTILS.Vector([x,y,0.0])
+    vec3 = mathutils.Vector([x,y,0.0])
     verts.append([x,y,0.0])
     
     
     x = sin(radians(60/2))*TopBevelRadius
     y = cos(radians(60/2))*TopBevelRadius
-    vec4 = MATHUTILS.Vector([x,y,0.0])
+    vec4 = mathutils.Vector([x,y,0.0])
     verts.append([x,y,0.0])
     Row += 1
     
     #Flats
     
     x = tan(radians(0))*Half_Flat
-    dvec = vec1 - MATHUTILS.Vector([x,Half_Flat,0.0])
+    dvec = vec1 - mathutils.Vector([x,Half_Flat,0.0])
     verts.append([x,Half_Flat,-dvec.length])
     Lowest_Z_Vert = min(Lowest_Z_Vert,-dvec.length)
     
     
     x = tan(radians(60/6))*Half_Flat
-    dvec = vec2 - MATHUTILS.Vector([x,Half_Flat,0.0])
+    dvec = vec2 - mathutils.Vector([x,Half_Flat,0.0])
     verts.append([x,Half_Flat,-dvec.length])
     Lowest_Z_Vert = min(Lowest_Z_Vert,-dvec.length)
     
 
     x = tan(radians(60/3))*Half_Flat
-    dvec = vec3 - MATHUTILS.Vector([x,Half_Flat,0.0])
+    dvec = vec3 - mathutils.Vector([x,Half_Flat,0.0])
     Lowest_Point = -dvec.length
     verts.append([x,Half_Flat,-dvec.length])
     Lowest_Z_Vert = min(Lowest_Z_Vert,-dvec.length)
 
     x = tan(radians(60/2))*Half_Flat
-    dvec = vec4 - MATHUTILS.Vector([x,Half_Flat,0.0])
+    dvec = vec4 - mathutils.Vector([x,Half_Flat,0.0])
     Lowest_Point = -dvec.length
     verts.append([x,Half_Flat,-dvec.length])
     Lowest_Z_Vert = min(Lowest_Z_Vert,-dvec.length)
