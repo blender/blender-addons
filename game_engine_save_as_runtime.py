@@ -221,14 +221,14 @@ class SaveAsRuntime(bpy.types.Operator):
     def execute(self, context):
         import time
         start_time = time.clock()
-        print("Saving runtime to", self.properties.filepath)
-        WriteRuntime(self.properties.player_path,
-                    self.properties.filepath,
-                    self.properties.copy_python,
-                    self.properties.overwrite_lib,
-                    self.copy_dlls,
-                    self.report,
-                    )
+        print("Saving runtime to %r" % self.filepath)
+        WriteRuntime(self.player_path,
+                     self.filepath,
+                     self.copy_python,
+                     self.overwrite_lib,
+                     self.copy_dlls,
+                     self.report,
+                     )
         print("Finished in %.4fs" % (time.clock()-start_time))
         return {'FINISHED'}
 
