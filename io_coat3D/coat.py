@@ -201,14 +201,16 @@ class SCENE_OT_export(bpy.types.Operator):
                     looking = False
                     coa.applink_name = checkname
 
-        bpy.ops.object.origin_set(type='ORIGIN_GEOMETRY', center='MEDIAN')
+
+        coat3D.cursor_loc = obj.location
+        coat3D.cursor_orginal = bpy.context.scene.cursor_location
+
+        
 
         coa.loc = obj.location
         coa.rot = obj.rotation_euler
         coa.sca = obj.scale
         coa.dime = obj.dimensions
-
-        
 
         obj.location = (0,0,0)
         obj.rotation_euler = (0,0,0)
@@ -217,11 +219,21 @@ class SCENE_OT_export(bpy.types.Operator):
         bpy.ops.export_scene.obj(filepath=coa.applink_name,use_selection=True,
         use_apply_modifiers=False,use_blen_objects=True, group_by_material= True,
         use_materials = False,keep_vertex_order = True,axis_forward='X',axis_up='Y')
-        
 
         obj.location = coa.loc
         obj.rotation_euler = coa.rot
         obj.scale = coa.sca
+
+        bpy.context.scene.cursor_location = coat3D.cursor_loc
+
+        
+        
+
+        bpy.context.scene.cursor_location = coat3D.cursor_orginal
+
+      
+
+        
         
         file = open(importfile, "w")
         file.write("%s"%(checkname))
@@ -246,6 +258,7 @@ class SCENE_OT_import(bpy.types.Operator):
         coat = bpy.coat3D
         test = bpy.context.selected_objects
         act_first = bpy.context.scene.objects.active
+        bpy.context.scene.game_settings.material_mode = 'GLSL'
 
         for act_name in test:
             coa = act_name.coat3D
@@ -320,8 +333,7 @@ class SCENE_OT_import(bpy.types.Operator):
                     mtl = mtl.replace('.obj','.mtl')
                     if(os.path.isfile(mtl)):
                         os.remove(mtl)
-
-                    
+                   
                     bpy.ops.import_scene.obj(filepath=path_object,axis_forward='X',axis_up='Y')
                     obj_proxy = scene.objects[0]
                     bpy.ops.object.select_all(action='TOGGLE')
@@ -357,6 +369,7 @@ class SCENE_OT_import(bpy.types.Operator):
                     bpy.ops.object.delete()
                     objekti.select = True
                     objekti.scale = coat3D.dime
+                    
                     bpy.context.scene.objects.active = objekti
 
                 if(os.path.isfile(path3b_n)):

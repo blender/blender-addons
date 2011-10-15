@@ -71,6 +71,8 @@ def register():
             name="FilePath",
             subtype="DIR_PATH",
         )
+        cursor_loc = FloatVectorProperty(name="Cursor_loc",description="location")
+        
         exchangedir = StringProperty(
             name="FilePath",
             subtype="DIR_PATH"
