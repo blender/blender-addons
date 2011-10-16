@@ -97,55 +97,29 @@ class SCENE_PT_Main(ObjectButtonsPanel,bpy.types.Panel):
         if(bpy.context.scene.objects.active):
             coa = bpy.context.scene.objects.active.coat3D
         
-        if(os.path.isdir(coat3D.exchangedir)):
-            foldder = coat3D.exchangedir
-            if(foldder.rfind('Exchange') >= 0):
-                coat['status'] = 1
-            else:
-                coat['status'] = 0
-        else:
-            coat['status'] = 0
+      
+        Blender_folder = ("%s%sBlender"%(coat3D.exchangedir,os.sep))
+        Blender_export = Blender_folder
+        path3b_now = coat3D.exchangedir
+        path3b_now += ('last_saved_3b_file.txt')
+        Blender_export += ('%sexport.txt'%(os.sep))
 
-        if(coat['status'] == 1):
-            Blender_folder = ("%s%sBlender"%(coat3D.exchangedir,os.sep))
-            Blender_export = Blender_folder
-            path3b_now = coat3D.exchangedir
-            path3b_now += ('last_saved_3b_file.txt')
-            Blender_export += ('%sexport.txt'%(os.sep))
-
-            if(not(os.path.isdir(Blender_folder))):
-                os.makedirs(Blender_folder)
-                Blender_folder = os.path.join(Blender_folder,"run.txt")
-                file = open(Blender_folder, "w")
-                file.close()
+        if(not(os.path.isdir(Blender_folder))):
+            os.makedirs(Blender_folder)
+            Blender_folder = os.path.join(Blender_folder,"run.txt")
+            file = open(Blender_folder, "w")
+            file.close()
         
         #Here you add your GUI 
         row = layout.row()
         row.prop(coat3D,"type",text = "")
         row = layout.row()
-        if(context.selected_objects):
-            for selected in context.selected_objects:
-                if(selected.type == 'MESH'):
-                    row.active = True
-                    break
-                else:
-                    row.active = False
-        else:
-            row.active = False
-
-      
-
-        
         colL = row.column()
         colR = row.column()
     
         colR.operator("export_applink.pilgway_3d_coat", text="Transfer")
            
         colL.operator("import_applink.pilgway_3d_coat", text="Update")
-
-        if(os.path.isfile(Blender_export)):
-            row = layout.row()
-            row.operator("import3b_applink.pilgway_3d_coat", text="Bring from 3D-Coat")
 
         if(coat3D.exchange_found == False):
             row = layout.row()
@@ -175,11 +149,21 @@ class SCENE_OT_export(bpy.types.Operator):
         activeobj = bpy.context.active_object.name
         obj = scene.objects[activeobj]
         coa = bpy.context.scene.objects.active.coat3D
+        export_ok = False
 
         coat3D.exchangedir,folder_objects,folder_textures = set_folders()
 
         if(coat3D.exchange_found == False):
             return {'FINISHED'}
+
+        if(bpy.context.selected_objects == []):
+            return {'FINISHED'}
+        else:
+            for objec in bpy.context.selected_objects:
+                if objec.type == 'MESH':
+                    export_ok = True
+            if(export_ok == False):
+                return {'FINISHED'}
 
         importfile = coat3D.exchangedir
         texturefile = coat3D.exchangedir
@@ -259,6 +243,29 @@ class SCENE_OT_import(bpy.types.Operator):
         test = bpy.context.selected_objects
         act_first = bpy.context.scene.objects.active
         bpy.context.scene.game_settings.material_mode = 'GLSL'
+
+        coat3D.exchangedir,folder_objects,folder_textures = set_folders()
+
+        Blender_folder = ("%s%sBlender"%(coat3D.exchangedir,os.sep))
+        Blender_export = Blender_folder
+        path3b_now = coat3D.exchangedir
+        path3b_now += ('last_saved_3b_file.txt')
+        Blender_export += ('%sexport.txt'%(os.sep))
+        new_applink_name = 'False'
+        new_object = False
+        print(Blender_export)
+        if(os.path.isfile(Blender_export)):
+            obj_pathh = open(Blender_export)
+            new_object = True
+            for line in obj_pathh:
+                new_applink_name = line
+                break
+            obj_pathh.close()
+
+            for scene_objects in bpy.context.scene.objects:
+                if(scene_objects.type == 'MESH'):
+                    if(scene_objects.coat3D.applink_name == new_applink_name):
+                        new_object = False
 
         for act_name in test:
             coa = act_name.coat3D
@@ -421,132 +428,46 @@ class SCENE_OT_import(bpy.types.Operator):
             act_name.select = True
         bpy.context.scene.objects.active = act_first
 
-        return {'FINISHED'}
-
-class SCENE_OT_import3b(bpy.types.Operator):
-    bl_idname = "import3b_applink.pilgway_3d_coat"
-    bl_label = "Brings mesh from 3D-Coat"
-    bl_description = "Bring 3D-Coat Mesh"
-    bl_options = {'UNDO'}
-
-    def invoke(self, context, event):
-
-        coat3D = bpy.context.scene.coat3D
-        scene = context.scene
-        
-        Blender_folder = ("%s%sBlender"%(coat3D.exchangedir,os.sep))
-        Blender_export = Blender_folder
-        path3b_now = coat3D.exchangedir
-        path3b_now += ('last_saved_3b_file.txt')
-        Blender_export += ('%sexport.txt'%(os.sep))
-
-        import_no = 0
-        mat_list = []
-        obj_path =''
-
-        obj_pathh = open(Blender_export)
-        for line in obj_pathh:
-            obj_path = line
-            break
-        obj_pathh.close()
-        export = obj_path
-        mod_time = os.path.getmtime(obj_path)
-        mtl_list = obj_path.replace('.obj','.mtl')
-        if(os.path.isfile(mtl_list)):
-            os.remove(mtl_list)
+        if(new_object == True):
+            coat3D = bpy.context.scene.coat3D
+            scene = context.scene
             
-        if(os.path.isfile(path3b_now)):
-            path3b_file = open(path3b_now)
-            for lin in path3b_file:
-                path_export = lin
-                path_on = 1
-            path3b_file.close()
-            os.remove(path3b_now)
-        else:
-            path_on = 0
+            Blender_folder = ("%s%sBlender"%(coat3D.exchangedir,os.sep))
+            Blender_export = Blender_folder
+            path3b_now = coat3D.exchangedir
+            path3b_now += ('last_saved_3b_file.txt')
+            Blender_export += ('%sexport.txt'%(os.sep))
 
-        for palikka in bpy.context.scene.objects:
-            if(palikka.type == 'MESH'):
-                if(palikka.coat3D.objectdir == export): #objectdir muutettava
-                    import_no = 1
-                    target = palikka
-                    break
+       
+            mat_list = []
+            obj_path =''
 
-        if(import_no):
-            new_obj = palikka
-            import_no = 0
-        else:
-            bpy.ops.import_scene.obj(filepath=obj_path,axis_forward='X',axis_up='Y')
+         
+            export = new_applink_name
+            mod_time = os.path.getmtime(new_applink_name)
+            mtl_list = new_applink_name.replace('.obj','.mtl')
+            if(os.path.isfile(mtl_list)):
+                os.remove(mtl_list)
+                
+            bpy.ops.import_scene.obj(filepath=new_applink_name,axis_forward='X',axis_up='Y')
             bpy.ops.object.transform_apply(rotation=True)
             new_obj = scene.objects[0]
             new_obj.coat3D.applink_name = obj_path
-            scene.objects[0].coat3D.objectdir = export #objectdir muutettava
-            if(path_on):
-                scene.objects[0].coat3D.path3b = path_export
+            scene.objects[0].coat3D.applink_name = export #objectdir muutettava
+                
+            os.remove(Blender_export)
             
-        os.remove(Blender_export)
-        
-        bpy.context.scene.objects.active = new_obj
+            bpy.context.scene.objects.active = new_obj
 
-        bpy.ops.object.shade_smooth()
-       
-        Blender_tex = ("%s%stextures.txt"%(coat3D.exchangedir,os.sep))
-        mat_list.append(new_obj.material_slots[0].material)
-        tex.gettex(mat_list, new_obj, scene,export)
+            bpy.ops.object.shade_smooth()
+           
+            Blender_tex = ("%s%stextures.txt"%(coat3D.exchangedir,os.sep))
+            mat_list.append(new_obj.material_slots[0].material)
+            tex.gettex(mat_list, new_obj, scene,export)
 
         return {'FINISHED'}
 
-class SCENE_OT_load3b(bpy.types.Operator):
-    bl_idname = "import_applink.pilgway_3d_coat_3b"
-    bl_label = "Loads 3b linked into object"
-    bl_description = "Loads 3b linked into object"
 
-    
-    def invoke(self, context, event):
-        checkname = ''
-        coa = bpy.context.scene.objects.active.coat3D
-        if(coa.path3b):
-            coat3D = bpy.context.scene.coat3D
-            scene = context.scene
-            importfile = coat3D.exchangedir
-            importfile += ('%simport.txt'%(os.sep))
-            
-            coat_path = bpy.context.active_object.coat3D.path3b
-            
-            file = open(importfile, "w")
-            file.write("%s"%(coat_path))
-            file.write("\n%s"%(coat_path))
-            file.write("\n[3B]")
-            file.close()
-
-        return {'FINISHED'}
-
-class SCENE_OT_deltex(bpy.types.Operator):
-    bl_idname = "import_applink.pilgway_3d_deltex"  # XXX, name?
-    bl_label = "Picks Object's name into path"
-    bl_description = "Loads 3b linked into object"
-
-    def invoke(self, context, event):
-        if(bpy.context.selected_objects):
-            if(context.selected_objects[0].type == 'MESH'):
-                coat3D = bpy.context.scene.coat3D
-                coa = bpy.context.scene.objects.active.coat3D
-                scene = context.scene
-                nimi = tex.objname(coa.objectdir)  #objectdir muutettava
-                if(coa.texturefolder):
-                    osoite = os.path.dirname(coa.texturefolder) + os.sep
-                else:
-                    osoite = os.path.dirname(coa.objectdir) + os.sep #objectdir muutettava
-                just_nimi = tex.justname(nimi)
-                just_nimi += '_'
-
-                files = os.listdir(osoite)
-                for i in files:
-                    if(i.rfind(just_nimi) >= 0):
-                        del_osoite = osoite + i
-                        os.remove(del_osoite)
-    
-        return {'FINISHED'}
 
 from bpy import *
 from mathutils import Vector, Matrix
