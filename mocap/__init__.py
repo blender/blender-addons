@@ -50,9 +50,10 @@ else:
                            PointerProperty,
                            StringProperty,
                            )
-    from . import mocap_constraints
-    from . import retarget
-    from . import mocap_tools
+    from . import (mocap_constraints,
+                   retarget,
+                   mocap_tools,
+                   )
 
 
 # MocapConstraint class
@@ -229,7 +230,8 @@ def toggleIKBone(self, context):
 class MocapMapping(bpy.types.PropertyGroup):
     name = StringProperty()
 
-
+# Disabling for now [#28933] - campbell
+'''
 def updateIKRetarget():
     # ensures that Blender constraints and IK properties are in sync
     # currently runs when module is loaded, should run when scene is loaded
@@ -244,9 +246,8 @@ def updateIKRetarget():
                 else:
                     pose_bone.IKRetarget = False
 
-
 updateIKRetarget()
-
+'''
 
 def hasIKConstraint(pose_bone):
     #utility function / predicate, returns True if given bone has IK constraint
