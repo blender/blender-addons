@@ -20,8 +20,8 @@ bl_info = {
     "name": "Import Unreal Skeleton Mesh (.psk)",
     "author": "Darknet",
     "version": (2, 0),
-    "blender": (2, 5, 3),
-    "api": 36079,
+    "blender": (2, 5, 9),
+    "api": 41077,
     "location": "File > Import > Skeleton Mesh (.psk)",
     "description": "Import Skeleleton Mesh",
     "warning": "",
@@ -368,7 +368,7 @@ def pskimport(infile,importmesh,importbone,bDebugLogPSK,importmultiuvtextures):
         obj = bpy.data.objects.get(meshname)
         # arm = obj  # UNUSED
 
-        if obj:
+        if not obj:
             '''
             armdata = bpy.data.armatures.new(objectname)
             ob_new = bpy.data.objects.new(meshname, armdata)
