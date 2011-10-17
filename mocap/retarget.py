@@ -263,7 +263,6 @@ def copyTranslation(performer_obj, enduser_obj, perfFeet, root, s_frame, e_frame
     # now find the plant frames, where perfFeet don't move much
 
     linearAvg = []
-
     for key in perfFeet:
         for i in range(len(locDict[key]) - 1):
             v = locDeriv(key, i)
@@ -381,12 +380,14 @@ def restoreObjMat(performer_obj, enduser_obj, perf_obj_mat, enduser_obj_mat, str
 
 #create (or return if exists) the related IK empty to the bone
 def originalLocationTarget(end_bone, enduser_obj):
-    if not end_bone.name + "IK" in enduser_obj.data.bones:
+    ik_bone = hasIKConstraint(end_bone).subtarget
+    if not ik_bone:
+        print("Adding IK bones for: " + end_bone.name)
         newBone = enduser_obj.data.edit_bones.new(end_bone.name + "IK")
         newBone.head = end_bone.tail
         newBone.tail = end_bone.tail + Vector((0, 0.1, 0))
     else:
-        newBone = enduser_obj.pose.bones[end_bone.name + "IK"]
+        newBone = enduser_obj.pose.bones[ik_bone]
     return newBone
 
 
@@ -500,6 +501,7 @@ def totalRetarget(performer_obj, enduser_obj, scene, s_frame, e_frame):
     end_arm = enduser_obj.data
     advanced = end_arm.advancedRetarget
     step = end_arm.frameStep
+    enduser_obj.animation_data_create()
 
     try:
         enduser_obj.animation_data.action = bpy.data.actions.new("temp")
