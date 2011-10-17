@@ -125,7 +125,7 @@ class ExportUVLayout(bpy.types.Operator):
             image = space_data.image
             if image:
                 width, height = tuple(context.space_data.image.size)
-                # incase no data is found.
+                # in case no data is found.
                 if width and height:
                     image_width, image_height = width, height
 

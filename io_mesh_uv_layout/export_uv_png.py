@@ -39,7 +39,7 @@ def write(fw, mesh_source, image_width, image_height, opacity, face_iter_func):
 
     faces_source = mesh_source.faces
 
-    # get unique UV's incase there are many overlapping which slow down filling.
+    # get unique UV's in case there are many overlapping which slow down filling.
     face_hash_3 = set()
     face_hash_4 = set()
     for i, uv in face_iter_func():

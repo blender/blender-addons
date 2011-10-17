@@ -211,7 +211,7 @@ def _main(self,
                     continue
                 if n_other:
                     # cast vectors twice as long as the distance
-                    # needed just incase.
+                    # needed just in case.
                     n_down = (n * -SEEK)
                     l = n_down.length
                     n_other.length = l

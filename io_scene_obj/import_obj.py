@@ -804,7 +804,7 @@ def get_float_func(filepath):
                 return float
 
     file.close()
-    # incase all vert values were ints
+    # in case all vert values were ints
     return float
 
 
@@ -1021,7 +1021,7 @@ def load(operator, context, filepath,
         elif line.startswith(b'curv ') or context_multi_line == b'curv':
             line_split = line.split()
 
-            curv_idx = context_nurbs[b'curv_idx'] = context_nurbs.get(b'curv_idx', [])  # incase were multiline
+            curv_idx = context_nurbs[b'curv_idx'] = context_nurbs.get(b'curv_idx', [])  # in case were multiline
 
             if not context_multi_line:
                 context_nurbs[b'curv_range'] = float_func(line_split[1]), float_func(line_split[2])

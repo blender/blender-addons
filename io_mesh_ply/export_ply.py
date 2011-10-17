@@ -98,7 +98,7 @@ def save(operator,
         else:
             active_col_layer = active_col_layer.data
 
-    # incase
+    # in case
     color = uvcoord = uvcoord_key = normal = normal_key = None
 
     mesh_verts = mesh.vertices  # save a lookup

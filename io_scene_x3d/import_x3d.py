@@ -532,7 +532,7 @@ class vrmlNode(object):
         return results
 
     def getFieldName(self, field, ancestry, AS_CHILD=False):
-        self_real = self.getRealNode()  # incase we're an instance
+        self_real = self.getRealNode()  # in case we're an instance
 
         for f in self_real.fields:
             # print(f)
@@ -608,7 +608,7 @@ class vrmlNode(object):
         return None
 
     def getFieldAsInt(self, field, default, ancestry):
-        self_real = self.getRealNode()  # incase we're an instance
+        self_real = self.getRealNode()  # in case we're an instance
 
         f = self_real.getFieldName(field, ancestry)
         if f is None:
@@ -627,7 +627,7 @@ class vrmlNode(object):
             return default
 
     def getFieldAsFloat(self, field, default, ancestry):
-        self_real = self.getRealNode()  # incase we're an instance
+        self_real = self.getRealNode()  # in case we're an instance
 
         f = self_real.getFieldName(field, ancestry)
         if f is None:
@@ -646,7 +646,7 @@ class vrmlNode(object):
             return default
 
     def getFieldAsFloatTuple(self, field, default, ancestry):
-        self_real = self.getRealNode()  # incase we're an instance
+        self_real = self.getRealNode()  # in case we're an instance
 
         f = self_real.getFieldName(field, ancestry)
         if f is None:
@@ -673,7 +673,7 @@ class vrmlNode(object):
             return default
 
     def getFieldAsBool(self, field, default, ancestry):
-        self_real = self.getRealNode()  # incase we're an instance
+        self_real = self.getRealNode()  # in case we're an instance
 
         f = self_real.getFieldName(field, ancestry)
         if f is None:
@@ -694,7 +694,7 @@ class vrmlNode(object):
             return default
 
     def getFieldAsString(self, field, default, ancestry):
-        self_real = self.getRealNode()  # incase we're an instance
+        self_real = self.getRealNode()  # in case we're an instance
 
         f = self_real.getFieldName(field, ancestry)
         if f is None:
@@ -736,7 +736,7 @@ class vrmlNode(object):
 
             return array_data
 
-        self_real = self.getRealNode()  # incase we're an instance
+        self_real = self.getRealNode()  # in case we're an instance
 
         child_array = self_real.getFieldName(field, ancestry, True)
 
@@ -781,7 +781,7 @@ class vrmlNode(object):
 
         # make a flat array
         if flat:
-            flat_array = array_data  # we are alredy flat.
+            flat_array = array_data  # we are already flat.
         else:
             flat_array = []
 
@@ -816,7 +816,7 @@ class vrmlNode(object):
         '''
         Get a list of strings
         '''
-        self_real = self.getRealNode()  # incase we're an instance
+        self_real = self.getRealNode()  # in case we're an instance
 
         child_array = None
         for child in self_real.children:
@@ -1277,7 +1277,7 @@ def vrml_parse(path):
     lines.append('}')
 
     root = vrmlNode(None, NODE_NORMAL, -1)
-    root.setRoot(path)  # we need to set the root so we have a namespace and know the path incase of inlineing
+    root.setRoot(path)  # we need to set the root so we have a namespace and know the path in case of inlineing
 
     # Parse recursively
     root.parse(0)
@@ -1345,12 +1345,12 @@ class x3dNode(vrmlNode):
     def getFieldName(self, field, ancestry, AS_CHILD=False):
         # ancestry and AS_CHILD are ignored, only used for VRML now
 
-        self_real = self.getRealNode()  # incase we're an instance
+        self_real = self.getRealNode()  # in case we're an instance
         field_xml = self.x3dNode.getAttributeNode(field)
         if field_xml:
             value = field_xml.value
 
-            # We may want to edit. for x3d spesific stuff
+            # We may want to edit. for x3d specific stuff
             # Sucks a bit to return the field name in the list but vrml excepts this :/
             return value.split()
         else:

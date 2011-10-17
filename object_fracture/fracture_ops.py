@@ -359,7 +359,7 @@ class FractureSimple(bpy.types.Operator):
         default=False)
 
     hierarchy = BoolProperty(name="Generate hierarchy",
-        description="Hierarchy is usefull for simulation of objects" \
+        description="Hierarchy is useful for simulation of objects" \
                     " breaking in motion",
         default=False)
 

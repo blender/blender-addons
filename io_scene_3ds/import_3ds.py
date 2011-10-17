@@ -813,7 +813,7 @@ def load_3ds(filepath,
 
     ##IMAGE_SEARCH
 
-    # fixme, make unglobal, clear incase
+    # fixme, make unglobal, clear in case
     object_dictionary.clear()
     object_matrix.clear()
 

@@ -155,7 +155,7 @@ def SVGParseCoord(coord, size):
 
     token, last_char = SVGParseFloat(coord)
     val = float(token)
-    unit = coord[last_char:].strip()  # strip() incase there is a space
+    unit = coord[last_char:].strip()  # strip() in case there is a space
 
     if unit == '%':
         return float(size) / 100.0 * val

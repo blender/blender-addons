@@ -69,7 +69,7 @@ def _property_chart_draw(self, context):
     except ValueError:
         active_index = -1
 
-    if active_index > 0:  # not the first alredy
+    if active_index > 0:  # not the first already
         selected_objects[0], selected_objects[active_index] = selected_objects[active_index], selected_objects[0]
 
     id_storage = context.scene
@@ -192,7 +192,7 @@ def _property_chart_copy(self, context):
             try:
                 exec("obj_iter.%s = obj.%s" % (data_path, data_path))
             except:
-                # just incase we need to know what went wrong!
+                # just in case we need to know what went wrong!
                 import traceback
                 traceback.print_exc()
 

@@ -1027,7 +1027,7 @@ def build_objects(object_layers, object_surfs, object_tags, object_name, add_sub
         # faster, would be faster again to use an array
         me.vertices.foreach_set("co", [axis for co in layer_data.pnts for axis in co])
 
-        ngons= {}   # To keep the FaceIdx consistant, handle NGons later.
+        ngons= {}   # To keep the FaceIdx consistent, handle NGons later.
         edges= []   # Holds the FaceIdx of the 2-point polys.
         for fi, fpol in enumerate(layer_data.pols):
             fpol.reverse()   # Reversing gives correct normal directions

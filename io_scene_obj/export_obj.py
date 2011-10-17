@@ -406,7 +406,7 @@ def write_file(filepath, objects, scene,
 
             # UV
             if faceuv:
-                # incase removing some of these dont get defined.
+                # in case removing some of these dont get defined.
                 uv = uvkey = uv_dict = f_index = uv_index = None
 
                 uv_face_mapping = [[0, 0, 0, 0] for i in range(len(face_index_pairs))]  # a bit of a waste for tri's :/
