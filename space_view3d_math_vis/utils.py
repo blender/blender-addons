@@ -42,7 +42,10 @@ def console_math_data():
 
         if var_type is Matrix:
             if var.col_size != 4 or var.row_size != 4:
-               var = var.to_4x4() 
+                if var.row_size == var.col_size:
+                    var = var.to_4x4() 
+                else:  # todo, support 4x3 matrix
+                    continue
             data_matrix[key] = var
         elif var_type is Vector:
             if len(var) < 3:
