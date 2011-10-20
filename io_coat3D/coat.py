@@ -223,16 +223,7 @@ class SCENE_OT_export(bpy.types.Operator):
         obj.scale = coa.sca
 
         bpy.context.scene.cursor_location = coat3D.cursor_loc
-
-        
-        
-
         bpy.context.scene.cursor_location = coat3D.cursor_orginal
-
-      
-
-        print('kalle',importfile)
-        print('samuli',coat3D.exchangedir)
         
         file = open(importfile, "w")
         file.write("%s"%(checkname))
@@ -269,7 +260,6 @@ class SCENE_OT_import(bpy.types.Operator):
         Blender_export += ('%sexport.txt'%(os.sep))
         new_applink_name = 'False'
         new_object = False
-        print(Blender_export)
         if(os.path.isfile(Blender_export)):
             obj_pathh = open(Blender_export)
             new_object = True
@@ -286,7 +276,6 @@ class SCENE_OT_import(bpy.types.Operator):
         for act_name in test:
             coa = act_name.coat3D
             path_object = coa.applink_name
-            print(path_object)
             if act_name.type == 'MESH' and os.path.isfile(path_object):
                 multires_on = False
                 activeobj = act_name.name
@@ -445,7 +434,6 @@ class SCENE_OT_import(bpy.types.Operator):
         bpy.context.scene.objects.active = act_first
 
         if(new_object == True):
-            print('uusi objekti')
             coat3D = bpy.context.scene.coat3D
             scene = context.scene
             
