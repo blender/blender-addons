@@ -26,29 +26,17 @@ import os
 bpy.coat3D = dict()
 bpy.coat3D['active_coat'] = ''
 bpy.coat3D['status'] = 0
-
-def set_folders():
+def set_exchange_folder():
     platform = os.sys.platform
     coat3D = bpy.context.scene.coat3D
+    Blender_export = ""
     if(platform == 'win32'):
-        folder_objects = os.path.expanduser("~") + os.sep + 'Documents' + os.sep + '3DC2Blender' + os.sep + 'Objects'
-        folder_textures = os.path.expanduser("~") + os.sep + 'Documents' + os.sep + '3DC2Blender' + os.sep + 'Textures' + os.sep
-        if(not(os.path.isdir(folder_objects))):
-            os.makedirs(folder_objects)
-        if(not(os.path.isdir(folder_textures))):
-            os.makedirs(folder_textures)
         exchange = os.path.expanduser("~") + os.sep + 'Documents' + os.sep + '3D-CoatV3' + os.sep +'Exchange'
-       
     else:
-        folder_objects = os.path.expanduser("~") + os.sep + '3DC2Blender' + os.sep + 'Objects'
-        folder_textures = os.path.expanduser("~") + os.sep + '3DC2Blender' + os.sep + 'Textures' + os.sep
-        if(not(os.path.isdir(folder_objects))):
-            os.makedirs(folder_objects)
-        if(not(os.path.isdir(folder_textures))):
-            os.makedirs(folder_textures)
-        exchange = os.path.expanduser("~") + os.sep + '3D-CoatV3' + os.sep +'Exchange'
+        exchange = os.path.expanduser("~") + os.sep + '3D-CoatV3' + os.sep + 'Exchange'
+
     if(os.path.isdir(exchange)):
-        coat3D.exchange_found = True
+        bpy.coat3D['status'] = 1
     else:
         if(platform == 'win32'):
             exchange_path = os.path.expanduser("~") + os.sep + 'Documents' + os.sep + '3DC2Blender' + os.sep + 'Exchange_folder.txt'
@@ -65,14 +53,45 @@ def set_folders():
 
             if(os.path.isdir(ex_path) and ex_path.rfind('Exchange') >= 0):
                 exchange = ex_path
-                coat3D.exchange_found = True
+                bpy.coat3D['status'] = 1
             else:
-                coat3D.exchange_found = False
+                bpy.coat3D['status'] = 0
         else:
-            coat3D.exchange_found = False
+            bpy.coat3D['status'] = 0
+    if(bpy.coat3D['status'] == 1):
+        Blender_folder = ("%s%sBlender"%(exchange,os.sep))
+        Blender_export = Blender_folder
+        path3b_now = exchange
+        path3b_now += ('last_saved_3b_file.txt')
+        Blender_export += ('%sexport.txt'%(os.sep))
+
+        if(not(os.path.isdir(Blender_folder))):
+            os.makedirs(Blender_folder)
+            Blender_folder = os.path.join(Blender_folder,"run.txt")
+            file = open(Blender_folder, "w")
+            file.close()
+    return exchange
+        
+def set_working_folders():
+    platform = os.sys.platform
+    coat3D = bpy.context.scene.coat3D
+    if(platform == 'win32'):
+        folder_objects = os.path.expanduser("~") + os.sep + 'Documents' + os.sep + '3DC2Blender' + os.sep + 'Objects'
+        folder_textures = os.path.expanduser("~") + os.sep + 'Documents' + os.sep + '3DC2Blender' + os.sep + 'Textures' + os.sep
+        if(not(os.path.isdir(folder_objects))):
+            os.makedirs(folder_objects)
+        if(not(os.path.isdir(folder_textures))):
+            os.makedirs(folder_textures)       
+    else:
+        folder_objects = os.path.expanduser("~") + os.sep + '3DC2Blender' + os.sep + 'Objects'
+        folder_textures = os.path.expanduser("~") + os.sep + '3DC2Blender' + os.sep + 'Textures' + os.sep
+        if(not(os.path.isdir(folder_objects))):
+            os.makedirs(folder_objects)
+        if(not(os.path.isdir(folder_textures))):
+            os.makedirs(folder_textures)
             
                 
-    return exchange,folder_objects,folder_textures
+    return folder_objects,folder_textures
 
 class ObjectButtonsPanel():
     bl_space_type = 'PROPERTIES'
@@ -93,41 +112,35 @@ class SCENE_PT_Main(ObjectButtonsPanel,bpy.types.Panel):
         import_no = 0
         coat = bpy.coat3D
         coat3D = bpy.context.scene.coat3D
-        Blender_export = ""
         if(bpy.context.scene.objects.active):
             coa = bpy.context.scene.objects.active.coat3D
-        
-      
-        Blender_folder = ("%s%sBlender"%(coat3D.exchangedir,os.sep))
-        Blender_export = Blender_folder
-        path3b_now = coat3D.exchangedir
-        path3b_now += ('last_saved_3b_file.txt')
-        Blender_export += ('%sexport.txt'%(os.sep))
 
-        if(not(os.path.isdir(Blender_folder))):
-            os.makedirs(Blender_folder)
-            Blender_folder = os.path.join(Blender_folder,"run.txt")
-            file = open(Blender_folder, "w")
-            file.close()
-        
-        #Here you add your GUI 
-        row = layout.row()
-        row.prop(coat3D,"type",text = "")
-        row = layout.row()
-        colL = row.column()
-        colR = row.column()
-    
-        colR.operator("export_applink.pilgway_3d_coat", text="Transfer")
-           
-        colL.operator("import_applink.pilgway_3d_coat", text="Update")
-
-        if(coat3D.exchange_found == False):
+            
+        if(bpy.coat3D['status'] == 0 and not(os.path.isdir(coat3D.exchangedir))):
+            print('toivottavasti nyt toimii')
+            bpy.coat3D['active_coat'] = set_exchange_folder()
             row = layout.row()
             row.label(text="Applink didn't find your 3d-Coat/Excahnge folder.")
             row = layout.row()
-            row.label("Please select it and press Transfer button again")
+            row.label("Please select it before using Applink.")
             row = layout.row()
-            row.prop(coat3D,"exchangefolder",text="")
+            row.prop(coat3D,"exchangedir",text="")
+        
+        else:
+       
+        
+            #Here you add your GUI 
+            row = layout.row()
+            row.prop(coat3D,"type",text = "")
+            row = layout.row()
+            colL = row.column()
+            colR = row.column()
+        
+            colR.operator("export_applink.pilgway_3d_coat", text="Transfer")
+               
+            colL.operator("import_applink.pilgway_3d_coat", text="Update")
+
+           
 
                     
             
@@ -149,9 +162,10 @@ class SCENE_OT_export(bpy.types.Operator):
         activeobj = bpy.context.active_object.name
         obj = scene.objects[activeobj]
         coa = bpy.context.scene.objects.active.coat3D
+        coat3D.exchangedir = bpy.coat3D['active_coat']
         export_ok = False
 
-        coat3D.exchangedir,folder_objects,folder_textures = set_folders()
+        folder_objects,folder_textures = set_working_folders()
 
         if(coat3D.exchange_found == False):
             return {'FINISHED'}
@@ -217,7 +231,8 @@ class SCENE_OT_export(bpy.types.Operator):
 
       
 
-        
+        print('kalle',importfile)
+        print('samuli',coat3D.exchangedir)
         
         file = open(importfile, "w")
         file.write("%s"%(checkname))
@@ -243,8 +258,9 @@ class SCENE_OT_import(bpy.types.Operator):
         test = bpy.context.selected_objects
         act_first = bpy.context.scene.objects.active
         bpy.context.scene.game_settings.material_mode = 'GLSL'
+        coat3D.exchangedir = bpy.coat3D['active_coat']
 
-        coat3D.exchangedir,folder_objects,folder_textures = set_folders()
+        folder_objects,folder_textures = set_working_folders()
 
         Blender_folder = ("%s%sBlender"%(coat3D.exchangedir,os.sep))
         Blender_export = Blender_folder
@@ -429,6 +445,7 @@ class SCENE_OT_import(bpy.types.Operator):
         bpy.context.scene.objects.active = act_first
 
         if(new_object == True):
+            print('uusi objekti')
             coat3D = bpy.context.scene.coat3D
             scene = context.scene
             
