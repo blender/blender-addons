@@ -162,7 +162,7 @@ class SCENE_OT_export(bpy.types.Operator):
         activeobj = bpy.context.active_object.name
         obj = scene.objects[activeobj]
         coa = bpy.context.scene.objects.active.coat3D
-        coat3D.exchangedir = bpy.coat3D['active_coat']
+        coat3D.exchangedir = set_exchange_folder()
         export_ok = False
 
         folder_objects,folder_textures = set_working_folders()
@@ -258,7 +258,7 @@ class SCENE_OT_import(bpy.types.Operator):
         test = bpy.context.selected_objects
         act_first = bpy.context.scene.objects.active
         bpy.context.scene.game_settings.material_mode = 'GLSL'
-        coat3D.exchangedir = bpy.coat3D['active_coat']
+        coat3D.exchangedir = set_exchange_folder()
 
         folder_objects,folder_textures = set_working_folders()
 
