@@ -95,31 +95,31 @@ class PALETTE_MT_menu(bpy.types.Menu):
         import bpy.utils
 
         layout = self.layout
-
-        if not searchpaths:
+        if not searchpaths[0]:
             layout.label("* Missing Paths *")
 
         # collect paths
-        files = []
-        for directory in searchpaths:
-            files.extend([(f, os.path.join(directory, f)) for f in os.listdir(directory)])
+        else :
+            files = []
+            for directory in searchpaths:
+                files.extend([(f, os.path.join(directory, f)) for f in os.listdir(directory)])
 
-        files.sort()
+            files.sort()
 
-        for f, filepath in files:
+            for f, filepath in files:
 
-            if f.startswith("."):
-                continue
+                if f.startswith("."):
+                    continue
 
-            preset_name = bpy.path.display_name(f)
-            props = layout.operator(operator, text=preset_name)
+                preset_name = bpy.path.display_name(f)
+                props = layout.operator(operator, text=preset_name)
 
-            for attr, value in props_default.items():
-                setattr(props, attr, value)
+                for attr, value in props_default.items():
+                    setattr(props, attr, value)
 
-            props.filepath = filepath
-            if operator == "palette.load_gimp_palette":
-                props.menu_idname = self.bl_idname
+                props.filepath = filepath
+                if operator == "palette.load_gimp_palette":
+                    props.menu_idname = self.bl_idname
 
     def draw_preset(self, context):
         """Define these on the subclass
