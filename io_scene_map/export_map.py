@@ -16,7 +16,7 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-# <pep8 compliant>
+# <pep8-80 compliant>
 
 import bpy
 import os
@@ -44,6 +44,14 @@ def face_uv_get(face):
         return None
 
 
+def face_material_get(face):
+    me = face.id_data
+    try:
+        return me.materials[f.material_index]
+    except:
+        return None
+
+
 def write_cube2brush(file, faces):
     '''
     Takes 6 faces and writes a brush,
@@ -66,15 +74,18 @@ def write_cube2brush(file, faces):
         for v in f.vertices[:][2::-1]:
             file.write(format_vec % me.vertices[v].co[:])
 
-        uf = face_uv_get(f)
+        material = face_material_get(f)
 
-        if uf and uf.hide:
+        if material and material.game_settings.invisible:
             file.write(PREF_INVIS_TEX)
         else:
+            uf = face_uv_get(f)
+
             image = uf.image if uf else None
 
             if image:
-                file.write(os.path.splitext(bpy.path.basename(image.filepath))[0])
+                file.write(os.path.splitext(
+                        bpy.path.basename(image.filepath))[0])
             else:
                 file.write(PREF_NULL_TEX)
 
@@ -103,11 +114,13 @@ def write_face2brush(file, face):
 
     image_text = PREF_NULL_TEX
 
-    uf = face_uv_get(face)
+    material = face_material_get(f)
 
-    if uf and uf.hide:
+    if material and material.game_settings.invisible:
         image_text = PREF_INVIS_TEX
     else:
+        uf = face_uv_get(face)
+
         image = uf.image if uf else None
 
         if image:
@@ -269,13 +282,18 @@ def write_node_map(file, ob):
 def export_map(context, filepath):
     """
     pup_block = [\
-    ('Scale:', PREF_SCALE, 1, 1000, 'Scale the blender scene by this value.'),\
-    ('Face Width:', PREF_FACE_THICK, 0.01, 10, 'Thickness of faces exported as brushes.'),\
-    ('Grid Snap', PREF_GRID_SNAP, 'snaps floating point values to whole numbers.'),\
+    ('Scale:', PREF_SCALE, 1, 1000,
+            'Scale the blender scene by this value.'),\
+    ('Face Width:', PREF_FACE_THICK, 0.01, 10,
+            'Thickness of faces exported as brushes.'),\
+    ('Grid Snap', PREF_GRID_SNAP,
+            'snaps floating point values to whole numbers.'),\
     'Null Texture',\
-    ('', PREF_NULL_TEX, 1, 128, 'Export textureless faces with this texture'),\
+    ('', PREF_NULL_TEX, 1, 128,
+            'Export textureless faces with this texture'),\
     'Unseen Texture',\
-    ('', PREF_INVIS_TEX, 1, 128, 'Export invisible faces with this texture'),\
+    ('', PREF_INVIS_TEX, 1, 128,
+            'Export invisible faces with this texture'),\
     ]
 
     if not Draw.PupBlock('map export', pup_block):
