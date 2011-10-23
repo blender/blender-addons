@@ -232,7 +232,7 @@ def unregister():
     except:
         pass
     if __name__ == "__main__":
-        # unregistering is only done automatically when run as add-on
+        # unregistering is only done automatically when run as addon
         bpy.utils.unregister_class(OBJECT_PT_icons)
         bpy.utils.unregister_class(CONSOLE_HT_icons)
 

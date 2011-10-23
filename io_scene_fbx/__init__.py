@@ -72,8 +72,8 @@ class ExportFBX(bpy.types.Operator, ExportHelper):
             )
     global_scale = FloatProperty(
             name="Scale",
-            description=("Scale all data. "
-                         "Some importers do not support scaled armatures!"),
+            description=("Scale all data "
+                         "(Some importers do not support scaled armatures!)"),
             min=0.01, max=1000.0,
             soft_min=0.01, soft_max=1000.0,
             default=1.0,

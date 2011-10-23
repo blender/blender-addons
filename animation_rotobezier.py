@@ -78,7 +78,7 @@ class VIEW3D_PT_rotobezier(bpy.types.Panel):
     bl_region_type = 'TOOLS'
     bl_label = 'RotoBezier'
 
-    # show this add-on only in the Camera-Data-Panel
+    # show this addon only in the Camera-Data-Panel
     @classmethod
     def poll(self, context):
         if context.active_object:

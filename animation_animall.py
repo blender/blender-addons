@@ -79,7 +79,7 @@ class VIEW3D_PT_animall(bpy.types.Panel):
     bl_region_type = 'TOOLS'
     bl_label = 'AnimAll'
 
-    # show this add-on only in the Camera-Data-Panel
+    # show this addon only in the Camera-Data-Panel
     @classmethod
     def poll(self, context):
         if context.active_object:

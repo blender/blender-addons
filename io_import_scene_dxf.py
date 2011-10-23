@@ -54,7 +54,7 @@ The full-feature importer script from 2.49 will be back in 2.6 release.
 Installation:
 Place this file to Blender addons directory
   (on Windows it is %Blender_directory%\2.53\scripts\addons\)
-You must activate the script in the "Add-Ons" tab (user preferences).
+You must activate the script in the "Addons" tab (user preferences).
 Access it from File > Import menu.
 
 History:

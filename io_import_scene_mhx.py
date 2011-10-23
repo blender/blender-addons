@@ -30,7 +30,7 @@ Version 1.9.0
 
 This script should be distributed with Blender.
 If not, place it in the .blender/scripts/addons dir
-Activate the script in the "Add-Ons" tab (user preferences).
+Activate the script in the "Addons" tab (user preferences).
 Access from the File > Import menu.
 
 Alternatively, run the script in the script editor (Alt-P), and access from the File > Import menu
@@ -2543,7 +2543,7 @@ def rigifyMhx(context, name):
         success = False
     if not success:
         MyError("Unable to create advanced human. \n" \
-                "Make sure that the Rigify add-on is enabled. \n" \
+                "Make sure that the Rigify addon is enabled. \n" \
                 "It is found under Rigging.")
         return
 
