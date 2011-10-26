@@ -21,9 +21,9 @@
 bl_info = {
     "name": "Dynamic Spacebar Menu",
     "author": "JayDez, sim88, meta-androcto, sam",
-    "version": (1, 7, 2),
-    "blender": (2, 5, 9),
-    "api": 39685,
+    "version": (1, 7, 3),
+    "blender": (2, 6, 0),
+    "api": 41287,
     "location": "View3D > Spacebar Key",
     "description": "Context Sensitive Spacebar Menu",
     "warning": "",
@@ -663,7 +663,8 @@ class VIEW3D_MT_AddMenu(bpy.types.Menu):
         layout.operator("object.add", text="Add Empty",
                         icon='OUTLINER_OB_EMPTY')
         layout.separator()
-
+        layout.operator("object.speaker_add", text="Speaker", icon='OUTLINER_OB_SPEAKER')
+        layout.separator()
         layout.operator("object.camera_add", text="Camera",
                         icon='OUTLINER_OB_CAMERA')
         layout.operator_menu_enum("object.lamp_add", "type",
