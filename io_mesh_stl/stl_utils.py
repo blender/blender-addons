@@ -186,7 +186,7 @@ def _ascii_write(filename, faces):
         for face in faces:
             data.write('''facet normal 0 0 0\nouter loop\n''')
             for vert in face:
-                data.write('vertex %f %f %f\n' % vert)
+                data.write('vertex %f %f %f\n' % vert[:])
             data.write('endloop\nendfacet\n')
 
         data.write('endsolid Exported from blender\n')
