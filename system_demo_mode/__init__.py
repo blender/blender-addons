@@ -44,7 +44,7 @@ from bpy.props import StringProperty, BoolProperty, IntProperty, FloatProperty, 
 
 
 class DemoModeSetup(bpy.types.Operator):
-    '''Creates a demo script and optionally executes'''
+    '''Create a demo script and optionally execute it'''
     bl_idname = "wm.demo_mode_setup"
     bl_label = "Demo Mode (Setup)"
     bl_options = {'PRESET'}
