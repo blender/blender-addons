@@ -87,10 +87,10 @@ def get_selected(context, prefix):
 # convert names of objects to avoid errors in AE. Add user specified prefix
 def convert_name(is_comp, ob, prefix):
     if is_comp:
-        ob_name = ob + prefix
+        ob_name = prefix + ob
         ob_name = ob_name.replace('"', "_")
     else:
-        ob_name = ob.name + prefix
+        ob_name = prefix + ob.name
 
         if ob_name[0].isdigit():
             ob_name = "_" + ob_name
