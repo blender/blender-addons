@@ -21,7 +21,7 @@ bl_info = {
     'name': 'Export: Adobe After Effects (.jsx)',
     'description': 'Export selected cameras, objects & bundles to Adobe After Effects CS3 and above',
     'author': 'Bartek Skorupa',
-    'version': (0, 55),
+    'version': (0, 56),
     'blender': (2, 6, 0),
     'api': 41098,
     'location': 'File > Export > Adobe After Effects (.jsx)',
@@ -69,10 +69,10 @@ def get_selected(context, prefix):
     for ob in obs:
         if ob.type == 'CAMERA':
             cameras.append(ob)
-            cams_names.append(convert_name(ob, prefix))
+            cams_names.append(convert_name(False, ob, prefix))
         else:
             nulls.append(ob)
-            nulls_names.append(convert_name(ob, prefix))
+            nulls_names.append(convert_name(False, ob, prefix))
 
     selection = {
         'cameras': cameras,
@@ -85,12 +85,20 @@ def get_selected(context, prefix):
 
 
 # convert names of objects to avoid errors in AE. Add user specified prefix
-def convert_name(ob, prefix):
-    ob_name = ob.name
-    for c in (" ", ".", ",", "-", "=", "+", "*"):
-        ob_name = ob_name.replace(c, "_")
+def convert_name(is_comp, ob, prefix):
+    if is_comp:
+        ob_name = ob + prefix
+        ob_name = ob_name.replace('"', "_")
+    else:
+        ob_name = ob.name + prefix
 
-    return prefix + ob_name
+        if ob_name[0].isdigit():
+            ob_name = "_" + ob_name
+            
+        ob_name = bpy.path.clean_name(ob_name)
+        ob_name = ob_name.replace("-", "_")
+
+    return ob_name
 
 
 # get object's blender's location and rotation and return AE's Position and Rotation/Orientation
@@ -320,7 +328,7 @@ def write_jsx_file(file, data, selection, export_bundles, comp_name, prefix):
                             #convert the position into AE space
                             ae_pos_rot = convert_pos_rot_matrix(matrix, data['width'], data['height'], data['aspect'], x_rot_correction=False)
                             #get the name of the tracker
-                            name_ae = convert_name(track, prefix)
+                            name_ae = convert_name(False, track, prefix)
                             #write JS script for this Bundle
                             jsx_file.write('var %s = newComp.layers.addNull();\n' % name_ae)
                             jsx_file.write('%s.threeDLayer = true;\n' % name_ae)
@@ -343,6 +351,7 @@ def write_jsx_file(file, data, selection, export_bundles, comp_name, prefix):
 def main(file, context, export_bundles, comp_name, prefix):
     data = get_comp_data(context)
     selection = get_selected(context, prefix)
+    comp_name = convert_name(True, comp_name, "")
     write_jsx_file(file, data, selection, export_bundles, comp_name, prefix)
     print ("\nExport to After Effects Completed")
     return {'FINISHED'}
