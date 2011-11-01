@@ -104,7 +104,7 @@ def reporting(report, message, errorType = None):
         t = 'INFO'
 
     if report:
-        report(t, message)
+        report({t}, message)
         return None
     elif errorType:
         raise errorType(message)
