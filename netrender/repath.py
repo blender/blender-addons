@@ -113,7 +113,7 @@ def process(paths):
     for object in bpy.data.objects:
         for modifier in object.modifiers:
             if modifier.type == 'FLUID_SIMULATION' and modifier.settings.type == "DOMAIN":
-                processFluid(settings)
+                processFluid(modifier.settings)
             elif modifier.type == "CLOTH":
                 processPointCache(modifier.point_cache)
             elif modifier.type == "SOFT_BODY":
