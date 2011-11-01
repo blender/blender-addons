@@ -19,9 +19,9 @@
 bl_info = {
     'name': "LoopTools",
     'author': "Bart Crouch",
-    'version': (3, 2, 0),
-    'blender': (2, 5, 7),
-    'api': 35979,
+    'version': (3, 2, 1),
+    'blender': (2, 6, 0),
+    'api': 41270,
     'location': "View3D > Toolbar and View3D > Specials (W-key)",
     'warning': "",
     'description': "Mesh modelling toolkit. Several tools to aid modelling",
@@ -249,9 +249,13 @@ def calculate_plane(mesh_mod, loop, method="best_fit", object=False):
             vec = mathutils.Vector((1.0, 1.0, 1.0))
             vec2 = (mat * vec)/(mat * vec).length
             while vec != vec2 and iter<itermax:
-                iter += 1
+                iter+=1
                 vec = vec2
-                vec2 = (mat * vec)/(mat * vec).length
+                vec2 = mat * vec
+                if vec2.length != 0:
+                    vec2 /= vec2.length
+            if vec2.length == 0:
+                vec2 = mathutils.Vector((1.0, 1.0, 1.0))
             normal = vec2
     
     elif method == 'normal':
@@ -936,7 +940,11 @@ def bridge_calculate_lines(mesh, loops, mode, twist, reverse):
             while vec != vec2 and iter<itermax:
                 iter+=1
                 vec = vec2
-                vec2 = (mat * vec)/(mat * vec).length
+                vec2 = mat * vec
+                if vec2.length != 0:
+                    vec2 /= vec2.length
+            if vec2.length == 0:
+                vec2 = mathutils.Vector((1.0, 1.0, 1.0))
             normal = vec2
         normals.append(normal)
     # have plane normals face in the same direction (maximum angle: 90 degrees)
