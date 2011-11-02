@@ -299,16 +299,17 @@ def generate_rig(context, metarig):
             obj.data.bones[bone].use_deform = False
 
     # Alter marked driver targets
-    for d in obj.animation_data.drivers:
-        for v in d.driver.variables:
-            for tar in v.targets:
-                if tar.data_path.startswith("RIGIFY-"):
-                    temp, bone, prop = tuple([x.strip('"]') for x in tar.data_path.split('["')])
-                    if bone in obj.data.bones \
-                    and prop in obj.pose.bones[bone].keys():
-                        tar.data_path = tar.data_path[7:]
-                    else:
-                        tar.data_path = 'pose.bones["%s"]["%s"]' % (make_original_name(bone), prop)
+    if obj.animation_data:
+        for d in obj.animation_data.drivers:
+            for v in d.driver.variables:
+                for tar in v.targets:
+                    if tar.data_path.startswith("RIGIFY-"):
+                        temp, bone, prop = tuple([x.strip('"]') for x in tar.data_path.split('["')])
+                        if bone in obj.data.bones \
+                        and prop in obj.pose.bones[bone].keys():
+                            tar.data_path = tar.data_path[7:]
+                        else:
+                            tar.data_path = 'pose.bones["%s"]["%s"]' % (make_original_name(bone), prop)
 
     # Move all the original bones to their layer.
     for bone in original_bones:
