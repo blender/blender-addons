@@ -169,7 +169,10 @@ class MarkerSet:
          self.frameRate) = struct.unpack('fhhf', td)
         self.scale *= scale
         if self.scale < 0:
-            self.readMarker = self.readFloatMarker
+            if self.procType == 2:
+                self.readMarker = self.readFloatMarkerInvOrd
+            else:
+                self.readMarker = self.readFloatMarker
             self.scale *= -1
         else:
             self.readMarker = self.readShortMarker
@@ -200,6 +203,14 @@ class MarkerSet:
     def readFloatMarker(self, infile):
         m = Marker()
         x, y, z, m.confidence = struct.unpack('ffff', infile.read(16))
+        m.position = (x * self.scale, y * self.scale, z * self.scale)
+        return m
+
+    def readFloatMarkerInvOrd(self, infile):
+        m = Marker()
+        inv = lambda f: f[2:] + f[:2]
+        i = lambda: inv(infile.read(4))
+        x, y, z, m.confidence = struct.unpack('ffff', i() + i() + i() + i())
         m.position = (x * self.scale, y * self.scale, z * self.scale)
         return m
 

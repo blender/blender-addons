@@ -25,7 +25,7 @@
 bl_info = {
     'name': "C3D Graphics Lab Motion Capture file (.c3d)",
     'author': "Daniel Monteiro Basso <daniel@basso.inf.br>",
-    'version': (2011, 11, 2, 1),
+    'version': (2011, 11, 3, 1),
     'blender': (2, 6, 0),
     'api': 41226,
     'location': "File > Import",
