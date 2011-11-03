@@ -30,19 +30,24 @@ bl_info = {
     'api': 41226,
     'location': "File > Import",
     'description': "Imports C3D Graphics Lab Motion Capture files",
-    'wiki_url': "http://wiki.blender.org/index.php/Extensions:2.5/Py/"\
-        "Scripts/Import-Export/C3D_Importer",
-    'tracker_url': "http://projects.blender.org/tracker/?func=detail&atid=467"\
-        "&aid=29061&group_id=153",
+    'wiki_url': ("http://wiki.blender.org/index.php/Extensions:2.5/Py/"
+                 "Scripts/Import-Export/C3D_Importer"),
+    'tracker_url': ("http://projects.blender.org/tracker/?func=detail&atid=467"
+                    "&aid=29061&group_id=153"),
     'category': 'Import-Export'}
 
 
 import bpy
+from bpy.props import (StringProperty,
+                       BoolProperty,
+                       FloatProperty,
+                       IntProperty,
+                       )
+
 import math
 import time
-from bpy.props import StringProperty, BoolProperty, FloatProperty, IntProperty
-from mathutils import Vector as vec
-from . import c3d
+from mathutils import Vector
+from . import import_c3d
 
 
 class C3DAnimateCloud(bpy.types.Operator):
@@ -74,7 +79,7 @@ class C3DAnimateCloud(bpy.types.Operator):
                 name = self.unames[self.prefix + ml]
                 o = bpy.context.scene.objects[name]
                 m = self.markerset.getMarker(ml, self.curframe)
-                o.location = vec(m.position) * self.scale
+                o.location = Vector(m.position) * self.scale
                 if m.confidence >= self.confidence:
                     o.keyframe_insert('location', frame=fno)
             self.curframe += self.fskip
@@ -173,7 +178,7 @@ class C3DImporter(bpy.types.Operator):
     def execute(self, context):
         s = self.properties.size
         empty_size = (s, s, s)
-        ms = c3d.read(self.properties.filepath, onlyHeader=True)
+        ms = import_c3d.read(self.properties.filepath, onlyHeader=True)
         ms.readNextFrameData()
         #print(ms.fileName)
 
