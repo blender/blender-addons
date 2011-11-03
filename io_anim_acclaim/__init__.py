@@ -407,22 +407,29 @@ class AmcImporter(bpy.types.Operator):
     bl_idname = "import_anim.amc"
     bl_label = "Import AMC"
 
-    filepath = StringProperty(name="File Path", maxlen=1024, default="",
-                              description="Path to the AMC file")
-    frame_skip = IntProperty(name="Fps divisor", default=4,
-    # usually the sample rate is 120, so the default 4 gives you 30fps
-                          description="Frame supersampling factor", min=1)
-    use_frame_no = BoolProperty(name="Use frame numbers", default=False,
-              description="Offset start of animation according to the source")
+    filepath = StringProperty(
+            name="File Path", maxlen=1024,
+            description="Path to the AMC file",
+            )
+    frame_skip = IntProperty(
+            name="Fps divisor",
+            default=4,
+            # usually the sample rate is 120, so the default 4 gives you 30fps
+            description="Frame supersampling factor",
+            min=1,
+            )
+    use_frame_no = BoolProperty(
+            name="Use frame numbers",
+            default=False,
+            description="Offset start of animation according to the source",
+            )
+
     filter_glob = StringProperty(default="*.amc", options={'HIDDEN'})
 
     @classmethod
     def poll(cls, context):
         ob = context.active_object
-        try:
-            return (ob and ob.type == 'ARMATURE' and ob['source_file_path'])
-        except:
-            return False
+        return (ob and ob.type == 'ARMATURE' and 'source_file_path' in ob)
 
     def execute(self, context):
         ob = context.active_object
