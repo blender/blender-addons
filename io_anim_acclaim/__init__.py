@@ -30,9 +30,9 @@ bl_info = {
     'api': 41226,
     'location': "File > Import",
     'description': "Imports Acclaim Skeleton and Motion Capture Files",
-    'wiki_url': "http://wiki.blender.org/index.php/Extensions:2.5/Py/"\
+    'wiki_url': "http://wiki.blender.org/index.php/Extensions:2.5/Py/"
                 "Scripts/Import-Export/Acclaim_Importer",
-    'tracker_url': "http://projects.blender.org/tracker/index.php?"\
+    'tracker_url': "http://projects.blender.org/tracker/index.php?"
                    "func=detail&aid=27127&group_id=153&atid=467",
     'category': 'Import-Export'}
 
@@ -40,8 +40,12 @@ bl_info = {
 import re
 import bpy
 from mathutils import Vector, Matrix
-from math import radians as rad, degrees
-from bpy.props import StringProperty, BoolProperty, FloatProperty, IntProperty
+from math import radians, degrees
+from bpy.props import (StringProperty,
+                       BoolProperty,
+                       FloatProperty,
+                       IntProperty,
+                       )
 
 
 class DataStructure:
@@ -87,7 +91,8 @@ class DataStructure:
                 if k == 'axis':
                     rot = Matrix()
                     for ang, basis in zip(s[:3], s[3].upper()):
-                        rot = Matrix.Rotation(rad(float(ang)), 4, basis) * rot
+                        rot = Matrix.Rotation(radians(float(ang)),
+                                              4, basis) * rot
                     bd['axis'] = rot
                 elif k == 'direction':
                     bd[k] = Vector([float(n) for n in s])
@@ -137,10 +142,11 @@ class DataStructure:
                     vs = vs[3:]
                 rot = Matrix()
                 for dof, ang in zip(self.bones[b[0]]['dof'], vs):
-                    rot = Matrix.Rotation(rad(ang), 4, dof) * rot
+                    rot = Matrix.Rotation(radians(ang), 4, dof) * rot
                 self.pose_def[b[0]] = rot
             pose = self.calculate_pose(Matrix.Translation(loc))
             yield(frame / skip + 1, pose)
+        amc.close()
 
     def calculate_pose(self, parent, bone='root'):
         """
@@ -249,7 +255,7 @@ class StructureBuilder(DataStructure):
         constr.use_limit_y = True
         constr.use_limit_z = True
         if dof:
-            limits = (rad(float(v)) for v in bone_def['limits'])
+            limits = (radians(float(v)) for v in bone_def['limits'])
             if 'X' in dof:
                 constr.min_x = next(limits)
                 constr.max_x = next(limits)
@@ -261,7 +267,7 @@ class StructureBuilder(DataStructure):
                 constr.max_y = next(limits)
         bpy.ops.object.mode_set(mode='EDIT')
 
-    def load_motion_capture(self, filename, frame_skip=5, useFrameNo=False):
+    def load_motion_capture(self, filename, frame_skip=5, use_frame_no=False):
         """
             Create the keyframes for a motion capture file
         """
@@ -272,10 +278,12 @@ class StructureBuilder(DataStructure):
         bpy.ops.pose.loc_clear()
         self.rest = {}
         for b in self.object.pose.bones:
-            self.rest[b.name] = (b, b.matrix.to_3x3(),
-                b.matrix.to_3x3().inverted())
+            self.rest[b.name] = (b,
+                                 b.matrix.to_3x3(),
+                                 b.matrix.to_3x3().inverted(),
+                                 )
         self.fno = 0
-        self.useFrameNo = useFrameNo
+        self.use_frame_no = use_frame_no
         self.motion = iter(self.scan_motion_capture(filename, frame_skip))
 
     def apply_next_frame(self):
@@ -283,7 +291,7 @@ class StructureBuilder(DataStructure):
             frame, bones = next(self.motion)
         except StopIteration:
             return False
-        regframe = frame if self.useFrameNo else self.fno
+        regframe = frame if self.use_frame_no else self.fno
         self.fno += 1
         for name, w, l in bones:
             b, P, Pi = self.rest[name]
@@ -303,37 +311,56 @@ class AsfImporter(bpy.types.Operator):
     bl_idname = "import_anim.asf"
     bl_label = "Import ASF"
 
-    filepath = StringProperty(name="File Path", maxlen=1024, default="",
-                              description="Path to the ASF file")
-    armature_name = StringProperty(name="Armature Name", maxlen=32,
-                                   default="Skeleton",
-                                   description="Name of the new object")
-    use_limits = BoolProperty(name="Use Limits", default=False,
-                              description="Create bone constraints for limits")
-    scale = FloatProperty(name="Scale", default=1.,
-                          description="Scale the armature by this value",
-                          min=0.0001, max=1000000.0,
-                          soft_min=0.001, soft_max=100.0)
-    from_inches = BoolProperty(name="Convert from inches to metric",
-                              default=False, description="Scale by 2.54/100")
-    rotX = BoolProperty(name="Rotate X 90 degrees", default=False,
-                              description="Correct orientation")
-    rotZ = BoolProperty(name="Rotate Z 90 degrees", default=False,
-                              description="Correct orientation")
+    filepath = StringProperty(
+            name="File Path",
+            maxlen=1024, default="",
+            description="Path to the ASF file",
+            )
+    armature_name = StringProperty(
+            name="Armature Name", maxlen=32,
+            default="Skeleton",
+            description="Name of the new object",
+            )
+    use_limits = BoolProperty(
+            name="Use Limits", default=False,
+            description="Create bone constraints for limits",
+            )
+    scale = FloatProperty(
+            name="Scale",
+            default=1.0,
+            description="Scale the armature by this value",
+            min=0.0001, max=1000000.0,
+            soft_min=0.001, soft_max=100.0,
+            )
+    from_inches = BoolProperty(
+            name="Convert from inches to metric",
+            default=False, description="Scale by 2.54/100",
+            )
+    use_rot_x = BoolProperty(
+            name="Rotate X 90 degrees",
+            default=False,
+            description="Correct orientation",
+            )
+    use_rot_z = BoolProperty(
+            name="Rotate Z 90 degrees",
+            default=False,
+            description="Correct orientation",
+            )
+
     filter_glob = StringProperty(default="*.asf", options={'HIDDEN'})
 
     def execute(self, context):
-        uscale = (0.0254 if self.properties.from_inches else 1.)
-        sb = StructureBuilder(
-            self.properties.filepath,
-            self.properties.armature_name,
-            self.properties.scale * uscale)
+        uscale = (0.0254 if self.from_inches else 1.0)
+        sb = StructureBuilder(self.filepath,
+                              self.armature_name,
+                              self.scale * uscale,
+                              )
         sb.create_armature()
-        sb.build_structure(self.properties.use_limits)
-        if self.properties.rotX:
-            bpy.ops.transform.rotate(value=(rad(90.),), axis=(1, 0, 0))
-        if self.properties.rotZ:
-            bpy.ops.transform.rotate(value=(rad(90.),), axis=(0, 0, 1))
+        sb.build_structure(self.use_limits)
+        if self.use_rot_x:
+            bpy.ops.transform.rotate(value=(radians(90.0),), axis=(1, 0, 0))
+        if self.use_rot_z:
+            bpy.ops.transform.rotate(value=(radians(90.0),), axis=(0, 0, 1))
         return {'FINISHED'}
 
     def invoke(self, context, event):
@@ -385,7 +412,7 @@ class AmcImporter(bpy.types.Operator):
     frame_skip = IntProperty(name="Fps divisor", default=4,
     # usually the sample rate is 120, so the default 4 gives you 30fps
                           description="Frame supersampling factor", min=1)
-    useFrameNo = BoolProperty(name="Use frame numbers", default=False,
+    use_frame_no = BoolProperty(name="Use frame numbers", default=False,
               description="Offset start of animation according to the source")
     filter_glob = StringProperty(default="*.amc", options={'HIDDEN'})
 
@@ -404,9 +431,9 @@ class AmcImporter(bpy.types.Operator):
             ob.name,
             ob['source_scale'])
         sb.load_armature(ob)
-        sb.load_motion_capture(self.properties.filepath,
-                               self.properties.frame_skip,
-                               self.properties.useFrameNo)
+        sb.load_motion_capture(self.filepath,
+                               self.frame_skip,
+                               self.use_frame_no)
         AmcAnimator.sb = sb
         bpy.ops.import_anim.amc_animate()
         return {'FINISHED'}

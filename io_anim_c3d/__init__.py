@@ -30,10 +30,10 @@ bl_info = {
     'api': 41226,
     'location': "File > Import",
     'description': "Imports C3D Graphics Lab Motion Capture files",
-    'wiki_url': ("http://wiki.blender.org/index.php/Extensions:2.5/Py/"
-                 "Scripts/Import-Export/C3D_Importer"),
-    'tracker_url': ("http://projects.blender.org/tracker/?func=detail&atid=467"
-                    "&aid=29061&group_id=153"),
+    'wiki_url': "http://wiki.blender.org/index.php/Extensions:2.5/Py/"
+                "Scripts/Import-Export/C3D_Importer",
+    'tracker_url': "http://projects.blender.org/tracker/?func=detail&atid=467"
+                   "&aid=29061&group_id=153",
     'category': 'Import-Export'}
 
 
@@ -71,7 +71,7 @@ class C3DAnimateCloud(bpy.types.Operator):
             if self.curframe > self.markerset.endFrame:
                 return self.cancel(context)
             fno = self.curframe
-            if not self.useFrameNo:
+            if not self.use_frame_no:
                 fno = (self.curframe - self.markerset.startFrame) / self.fskip
             for i in range(self.fskip):
                 self.markerset.readNextFrameData()
@@ -104,38 +104,73 @@ class C3DImporter(bpy.types.Operator):
     bl_idname = "import_anim.c3d"
     bl_label = "Import C3D"
 
-    filepath = StringProperty(name="File Path", maxlen=1024, default="",
-                          description="Path to the C3D file")
-    from_inches = BoolProperty(name="Convert from inches to metric",
-                          default=False, description="Scale by 2.54/100")
-    scale = FloatProperty(name="Scale", default=1.,
-                          description="Scale the positions by this value",
-                          min=0.0001, max=1000000.0,
-                          soft_min=0.001, soft_max=100.0)
-    auto_scale = BoolProperty(name="Adjust scale automatically", default=False,
-                          description="Guess correct scale factor")
-    auto_magnitude = BoolProperty(name="Adjust scale magnitude", default=True,
-                          description="Automatically adjust scale magnitude")
-    size = FloatProperty(name="Empty Size", default=.03,
-                          description="The size of each empty",
-                          min=0.0001, max=1000000.0,
-                          soft_min=0.001, soft_max=100.0)
-    x_ray = BoolProperty(name="Use X-Ray", default=True,
-                          description="Show the empties over other objects")
-    frame_skip = IntProperty(name="Fps divisor", default=4,
-    # usually the sample rate is 120, so the default 4 gives you 30fps
-                          description="Frame supersampling factor", min=1)
-    useFrameNo = BoolProperty(name="Use frame numbers", default=False,
-              description="Offset start of animation according to the source")
-    show_names = BoolProperty(name="Show Names", default=False,
-                          description="Show the markers' name")
-    prefix = StringProperty(name="Name Prefix", maxlen=1024, default="",
-                          description="Prefix object names with this")
-    confidence = FloatProperty(name="Minimum Confidence Level", default=0,
-                          description="Only consider markers with at least "
-                                      "this confidence level",
-                          min=-1., max=1000000.0,
-                          soft_min=-1., soft_max=100.0)
+    filepath = StringProperty(
+            name="File Path",
+            maxlen=1024,
+            description="Path to the C3D file",
+            )
+    from_inches = BoolProperty(
+            name="Convert from inches to metric",
+            default=False,
+            description="Scale by 2.54/100",
+            )
+    scale = FloatProperty(
+            name="Scale",
+            default=1.0,
+            description="Scale the positions by this value",
+            min=0.0001, max=1000000.0,
+            soft_min=0.001, soft_max=100.0,
+            )
+    auto_scale = BoolProperty(
+            name="Adjust scale automatically",
+            default=False,
+            description="Guess correct scale factor",
+            )
+    auto_magnitude = BoolProperty(
+            name="Adjust scale magnitude",
+            default=True,
+            description="Automatically adjust scale magnitude",
+            )
+    size = FloatProperty(
+            name="Empty Size",
+            default=.03,
+            description="The size of each empty",
+            min=0.0001, max=1000000.0,
+            soft_min=0.001, soft_max=100.0,
+            )
+    x_ray = BoolProperty(
+            name="Use X-Ray",
+            default=True,
+            description="Show the empties over other objects",
+            )
+    frame_skip = IntProperty(
+            name="Fps divisor",
+            default=4,
+            # usually the sample rate is 120, so the default 4 gives you 30fps
+            description="Frame supersampling factor",
+            min=1,
+            )
+    use_frame_no = BoolProperty(
+            name="Use frame numbers",
+            default=False,
+            description="Offset start of animation according to the source",
+            )
+    show_names = BoolProperty(
+            name="Show Names", default=False,
+            description="Show the markers' name",
+            )
+    prefix = StringProperty(
+            name="Name Prefix", maxlen=32,
+            description="Prefix object names with this",
+            )
+    confidence = FloatProperty(
+            name="Minimum Confidence Level", default=0,
+            description="Only consider markers with at least "
+                        "this confidence level",
+            min=-1., max=1000000.0,
+            soft_min=-1., soft_max=100.0,
+            )
+
     filter_glob = StringProperty(default="*.c3d;*.csv", options={'HIDDEN'})
 
     def find_height(self, ms):
@@ -165,11 +200,11 @@ class C3DImporter(bpy.types.Operator):
 
     def adjust_scale(self, height, scale):
         factor = height * scale / 1.75  # normalize
-        if factor < .5:
-            scale /= 10
-            factor *= 10
+        if factor < 0.5:
+            scale /= 10.0
+            factor *= 10.0
         cmu_factors = [(1.0, 1.0), (1.1, 1.45), (1.6, 1.6), (2.54, 2.54)]
-        sqerr, fix = min(((cf[0] - factor) ** 2, 1 / cf[1])
+        sqerr, fix = min(((cf[0] - factor) ** 2.0, 1.0 / cf[1])
             for cf in cmu_factors)
         #print('height * scale: {:.2f}'.format(height * scale))
         #print(factor, fix)
@@ -213,7 +248,7 @@ class C3DImporter(bpy.types.Operator):
         C3DAnimateCloud.scale = scale
         C3DAnimateCloud.fskip = self.properties.frame_skip
         C3DAnimateCloud.prefix = self.properties.prefix
-        C3DAnimateCloud.useFrameNo = self.properties.useFrameNo
+        C3DAnimateCloud.use_frame_no = self.properties.use_frame_no
         C3DAnimateCloud.confidence = self.properties.confidence
         C3DAnimateCloud.curframe = ms.startFrame
         bpy.ops.import_anim.c3danim()
