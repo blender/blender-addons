@@ -59,7 +59,7 @@ class DataStructure:
 
     def __init__(self, file_path, scale=1.):
         self.scale = scale
-        source = open(file_path).read()
+        source = open(file_path, encoding="utf-8", errors="replace").read()
         sections = dict(DataStructure.doc.findall(source))
         if not sections:
             raise ValueError("Wrong file structure.")
@@ -120,7 +120,7 @@ class DataStructure:
         """
             Parse an Acclaim Motion Capture file and iterates over the data
         """
-        amc = open(filename)
+        amc = open(filename, encoding="utf-8", errors="replace")
         l = ' '
         while l and not l[0].isdigit():
             l = amc.readline().strip()
