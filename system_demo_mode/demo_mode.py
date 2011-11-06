@@ -450,7 +450,7 @@ def load_config(cfg_name=DEMO_CFG):
     if demo_search_path is None:
         print("reading: %r, no search_path found, missing files wont be searched." % demo_path)
     if demo_search_path.startswith("//"):
-        demo_search_path = os.path.relpath(demo_search_path)
+        demo_search_path = bpy.path.abspath(demo_search_path)
     if not os.path.exists(demo_search_path):
         print("reading: %r, search_path %r does not exist." % (demo_path, demo_search_path))
         demo_search_path = None
