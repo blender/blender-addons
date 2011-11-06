@@ -235,6 +235,9 @@ def save_single(operator, scene, filepath="",
 
     if global_matrix is None:
         global_matrix = Matrix()
+        global_scale = 1.0
+    else:
+        global_scale = global_matrix.median_scale
 
     # Use this for working out paths relative to the export location
     base_src = os.path.dirname(bpy.data.filepath)
@@ -896,12 +899,14 @@ def save_single(operator, scene, filepath="",
            '\n\t\t\tProperty: "ShowTimeCode", "bool", "",0'
            )
 
-        fw('\n\t\t\tProperty: "NearPlane", "double", "",%.6f' % data.clip_start)
-        fw('\n\t\t\tProperty: "FarPlane", "double", "",%.6f' % data.clip_end)
+        fw('\n\t\t\tProperty: "NearPlane", "double", "",%.6f' % (data.clip_start * global_scale))
+        fw('\n\t\t\tProperty: "FarPlane", "double", "",%.6f' % (data.clip_end * global_scale))
 
-        fw('\n\t\t\tProperty: "FilmWidth", "double", "",1.0'
-           '\n\t\t\tProperty: "FilmHeight", "double", "",1.0'
-           )
+        # film width & weight from mm to inches
+        # we could be clever and try use auto/width/hight but for now write
+        # as is.
+        fw('\n\t\t\tProperty: "FilmWidth", "double", "",%.6f' % (global_scale * (data.sensor_width * 0.0393700787)))
+        fw('\n\t\t\tProperty: "FilmHeight", "double", "",%.6f' % (global_scale * (data.sensor_height * 0.0393700787)))
 
         fw('\n\t\t\tProperty: "FilmAspectRatio", "double", "",%.6f' % aspect)
 
