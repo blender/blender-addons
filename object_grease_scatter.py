@@ -365,12 +365,12 @@ class Scatter(bpy.types.Operator):
             )
     rand_align = FloatProperty(
             name="Random Align",
-            description="Randomize alignmet with the walls",
+            description="Randomize alignment with the walls",
             default=0.75, min=0.0, max=1.0,
             )
     rand_loc = FloatProperty(
             name="Random Loc",
-            description="Randomize Placement",
+            description="Randomize placement",
             default=0.75, min=0.0, max=1.0,
             )
     # XXX, should not be a string - TODO, add a way for scritps to select ID's

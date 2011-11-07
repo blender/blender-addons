@@ -119,7 +119,7 @@ from bpy_extras.io_utils import ExportHelper
 
 
 class CameraExporter(bpy.types.Operator, ExportHelper):
-    '''Save a python script which re-creartes cameras and markers elsewhere'''
+    '''Save a python script which re-creates cameras and markers elsewhere'''
     bl_idname = "export_animation.cameras"
     bl_label = "Export Camera & Markers"
 
