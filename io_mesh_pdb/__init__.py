@@ -16,6 +16,8 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
+# <pep8-80 compliant>
+
 bl_info = {
     "name": "Import/Export: PDB format",
     "author": "Mariusz Maximus & Jong89",
@@ -48,11 +50,12 @@ from bpy.props import (StringProperty,
 
 from bpy_extras.io_utils import ImportHelper
 
+
 class ImportPDB(bpy.types.Operator, ImportHelper):
     """Import from PDB file format (.pdb)"""
     bl_idname = 'import_scene.pdb'
     bl_label = 'Import PDB'
-    bl_options= {'REGISTER', 'UNDO'}
+    bl_options = {'REGISTER', 'UNDO'}
 
     filename_ext = ".pdb"
     filter_glob = StringProperty(default="*.pdb", options={'HIDDEN'})
@@ -60,7 +63,7 @@ class ImportPDB(bpy.types.Operator, ImportHelper):
     filepath = StringProperty(
             name="File Path",
             description="Filepath used for importing the PDB file",
-            maxlen= 1024,
+            maxlen=1024,
             )
     multi_models = BoolProperty(
             name="Import all models",
@@ -70,14 +73,15 @@ class ImportPDB(bpy.types.Operator, ImportHelper):
     multimers = BoolProperty(
             name="Import Biomolecules",
             description="Import all file-listed biomolecules and multimers, "
-                        "disable to import default biomolecule with all chains",
+                        "disable to import default biomolecule with "
+                        "all chains",
             default=False,
             )
     retain_alts = BoolProperty(
             name="Retain Alternative Atoms",
             description="Select to retain alternative atoms. "
                         "Some PDB files label coordinates of entries "
-                        "in multiple models as alternates" ,
+                        "in multiple models as alternates",
             default=False,
             )
     atom_subdivisions = IntProperty(
@@ -89,25 +93,20 @@ class ImportPDB(bpy.types.Operator, ImportHelper):
     atom_size = FloatProperty(
             name="Atom Size",
             description="Multiplier for the van der Waals radius of the atoms",
-            min=0, max=5,
-            default=1,
+            min=0.0, max=5.0,
+            default=1.0,
             )
     scene_scale = FloatProperty(
             name="Scene Scale Factor",
             description="Number of Blender units equivalent to 1 angstrom",
-            min=0, max=10,
-            default=1,
+            min=0.0, max=10.0,
+            default=1.0,
             )
 
     def execute(self, context):
         from . import import_pdb
-        import_pdb.load_pdb(self.filepath, context,
-                            self.atom_size,
-                            self.scene_scale,
-                            self.atom_subdivisions,
-                            self.retain_alts,
-                            self.multi_models,
-                            self.multimers)
+        keywords = self.as_keywords(ignore=("filter_glob", ))
+        import_pdb.load_pdb(context, **keywords)
         return {'FINISHED'}
 
     def invoke(self, context, event):
@@ -115,12 +114,15 @@ class ImportPDB(bpy.types.Operator, ImportHelper):
         wm.fileselect_add(self)
         return {'RUNNING_MODAL'}
 
+
 def menu_func(self, context):
     self.layout.operator(ImportPDB.bl_idname, text='Protein Databank (.pdb)')
+
 
 def register():
     bpy.utils.register_module(__name__)
     bpy.types.INFO_MT_file_import.append(menu_func)
+
 
 def unregister():
     bpy.utils.unregister_module(__name__)
