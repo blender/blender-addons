@@ -226,8 +226,6 @@ def load_pdb(context,
     scene = context.scene
 
     file = open(filepath, 'r')
-    lines = file.readlines()
-    file.close()
 
     model_list = {}
     model_flag = False
@@ -239,7 +237,7 @@ def load_pdb(context,
     # -------------------------------------------------------------------------
     # Parse data
 
-    for line in lines:
+    for line in file:
         # print(line)
         if line[:6] == 'COMPND':
             if line[11:17] == 'CHAIN:':
@@ -366,15 +364,18 @@ def load_pdb(context,
                                                            tempfactor, element,
                                                            charge)
 
+    file.close()
+
     if (not multimers) or (not biomolecule_flag):
         # Create a default biomolecule w/ all chains and identity transform
         # Overwrites original biomolecule_list
         biomolecule_flag = True
-        biomolecule_list = {1: Biomolecule(1)}
-        biomolecule_list[1].chain_transforms[tuple(chain_list)] = []
-        biomolecule_list[1].chain_transforms[tuple(chain_list)].append([[1, 0, 0, 0],
-                                                                        [0, 1, 0, 0],
-                                                                        [0, 0, 1, 0]])
+        bm_serial = 1
+        biomolecule = Biomolecule(bm_serial)
+        biomolecule.chain_transforms[tuple(chain_list)] = [(((1.0, 0.0, 0.0, 0.0),
+                                                             (0.0, 1.0, 0.0, 0.0),
+                                                             (0.0, 0.0, 1.0, 0.0)))]
+        biomolecule_list = {bm_serial: biomolecule}
 
     # -------------------------------------------------------------------------
     # Create atom mesh template
