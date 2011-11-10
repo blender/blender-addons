@@ -19,9 +19,9 @@
 bl_info = {
     "name": "Renderfarm.fi",
     "author": "Nathan Letwory <nathan@letworyinteractive.com>, Jesse Kaukonen <jesse.kaukonen@gmail.com>",
-    "version": (9,),
-    "blender": (2, 5, 9),
-    "api": 40652,
+    "version": (10,),
+    "blender": (2, 6, 0),
+    "api": 41723,
     "location": "Render > Engine > Renderfarm.fi",
     "description": "Send .blend as session to http://www.renderfarm.fi to render",
     "warning": "",
@@ -792,8 +792,8 @@ def updateCompleteSessionList(ore):
     bpy.ore_complete_session_queue = []
     bpy.ore_complete_session_queue.extend(bpy.ore_pending_sessions)
     bpy.ore_complete_session_queue.extend(bpy.ore_active_sessions)
-    bpy.ore_complete_session_queue.extend(bpy.ore_completed_sessions)
-    bpy.ore_complete_session_queue.extend(bpy.ore_cancelled_sessions)
+    #bpy.ore_complete_session_queue.extend(bpy.ore_completed_sessions)
+    #bpy.ore_complete_session_queue.extend(bpy.ore_cancelled_sessions)
     
     bpy.ore_active_session_queue = bpy.ore_complete_session_queue
     updateSessionList(ore.all_sessions, ore)
@@ -815,7 +815,7 @@ class ORE_CancelSession(bpy.types.Operator):
         sce = context.scene
         ore = sce.ore_render
         userproxy = xmlrpc.client.ServerProxy(r'https://xmlrpc.renderfarm.fi/user')
-        if len(bpy.ore_sessions)>0:
+        if len(bpy.ore_complete_session_queue)>0:
             s = bpy.ore_complete_session_queue[ore.selected_session]
             try:
                 userproxy.user.cancelSession(ore.username, ore.hash, int(s.id))
@@ -957,8 +957,8 @@ class ORE_LoginOp(bpy.types.Operator):
         
         bpy.ore_complete_session_queue.extend(bpy.ore_pending_sessions)
         bpy.ore_complete_session_queue.extend(bpy.ore_active_sessions)
-        bpy.ore_complete_session_queue.extend(bpy.ore_completed_sessions)
-        bpy.ore_complete_session_queue.extend(bpy.ore_cancelled_sessions)
+        #bpy.ore_complete_session_queue.extend(bpy.ore_completed_sessions)
+        #bpy.ore_complete_session_queue.extend(bpy.ore_cancelled_sessions)
         
         bpy.ore_active_session_queue = bpy.ore_complete_session_queue
         updateSessionList(ore.all_sessions, ore)
