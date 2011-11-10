@@ -19,7 +19,7 @@
 bl_info = {
     "name": "Renderfarm.fi",
     "author": "Nathan Letwory <nathan@letworyinteractive.com>, Jesse Kaukonen <jesse.kaukonen@gmail.com>",
-    "version": (10,),
+    "version": (11,),
     "blender": (2, 6, 0),
     "api": 41723,
     "location": "Render > Engine > Renderfarm.fi",
@@ -316,10 +316,27 @@ class OpSwitchBlenderRender(bpy.types.Operator):
         bpy.context.scene.render.engine = 'BLENDER_RENDER'
         return {'FINISHED'}  
 
+# Copies start & end frame + others from render settings to ore settings
+class OpCopySettingsAsd(bpy.types.Operator):
+    bl_label = "Copy from Blender Render settings"
+    bl_idname = "ore.copy_settings"
+    
+    def execute(self, context):
+        sce = bpy.context.scene
+        rd = sce.render
+        ore = sce.ore_render
+        ore.resox = rd.resolution_x
+        ore.resoy = rd.resolution_y
+        ore.start = sce.frame_start
+        ore.end = sce.frame_end
+        ore.fps = rd.fps
+        return {'FINISHED'}
+
 # We re-write the default render panel
-class RENDER_PT_render(RenderButtonsPanel, bpy.types.Panel):
+'''class RENDER_PT_render(RenderButtonsPanel, bpy.types.Panel):
     bl_label = "Render"
     COMPAT_ENGINES = {'BLENDER_RENDER'}
+    
     def draw(self, context):
         layout = self.layout
         rd = context.scene.render
@@ -338,6 +355,31 @@ class RENDER_PT_render(RenderButtonsPanel, bpy.types.Panel):
                 if bpy.up_to_date == True:
                     layout.label(text='You have the latest version')
                 layout.operator('ore.check_update')
+'''
+
+class EngineSelectPanel(bpy.types.Panel):
+    bl_idname = "OBJECT_PT_engineSelectPanel"
+    bl_label = "Choose rendering mode"
+    bl_space_type = 'PROPERTIES'
+    bl_region_type = 'WINDOW'
+    bl_context = "render"
+    
+    def draw(self, context):
+        layout = self.layout
+        rd = context.scene.render
+        row = layout.row()
+        row.operator("ore.switch_to_renderfarm_render", text="Renderfarm.fi", icon='WORLD')
+        row.operator("ore.switch_to_blender_render", text="Blender Render", icon='BLENDER')
+        row = layout.row()
+        if (bpy.context.scene.render.engine == 'RENDERFARMFI_RENDER'):
+            if bpy.found_newer_version == True:
+                layout.operator('ore.open_download_location')
+            else:
+                if bpy.up_to_date == True:
+                    layout.label(text='You have the latest version')
+                layout.operator('ore.check_update')
+                
+bpy.utils.register_class(EngineSelectPanel)
 
 class RENDERFARM_MT_Session(bpy.types.Menu):
     bl_label = "Show Session"
@@ -465,7 +507,7 @@ class UPLOAD_PT_RenderfarmFi(RenderButtonsPanel, bpy.types.Panel):
                 layout.label(text="- The animation must be at least 20 frames long")
                 layout.label(text="- No still renders")
                 layout.label(text="- No Python scripts")
-                layout.label(text="- Memory usage max 3GB")
+                layout.label(text="- Memory usage max 4GB")
                 layout.label(text="- If your render takes more than an hour / frame:")
                 layout.label(text="   * No filter type composite nodes (blur, glare etc.)")
                 layout.label(text="   * No SSS")
@@ -474,6 +516,7 @@ class UPLOAD_PT_RenderfarmFi(RenderButtonsPanel, bpy.types.Panel):
                 layout.separator()
                 
                 layout.label(text="Please verify your settings", icon='MODIFIER')
+                layout.label(text="These are changed in Blender Render panel")
                 row = layout.row()
                 row.label(text="Resolution: " + str(ore.resox) + "x" + str(ore.resoy))
                 row = layout.row()
@@ -486,6 +529,7 @@ class UPLOAD_PT_RenderfarmFi(RenderButtonsPanel, bpy.types.Panel):
                 row = layout.row()
                 row.label(text="Frame rate: " + str(ore.fps))
                 row = layout.row()
+                #row.operator('ore.copy_settings', icon='MODIFIER')
                 layout.separator()
                 
                 layout.label(text="Optional advanced settings", icon='MODIFIER')
