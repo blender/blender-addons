@@ -21,9 +21,9 @@ bl_info = {
     'name': 'Export: Adobe After Effects (.jsx)',
     'description': 'Export selected cameras, objects & bundles to Adobe After Effects CS3 and above',
     'author': 'Bartek Skorupa',
-    'version': (0, 56),
+    'version': (0, 57),
     'blender': (2, 6, 0),
-    'api': 41098,
+    'api': 41760,
     'location': 'File > Export > Adobe After Effects (.jsx)',
     'category': 'Import-Export',
     "warning": "",
@@ -140,46 +140,59 @@ def convert_pos_rot(obj, width, height, aspect, x_rot_correction=False):
 #
 #
 # AE's lens is defined by "zoom" in pixels. Zoom determines focal angle or focal length.
-# AE's camera's focal length is calculated basing on zoom value.
 #
-# Known values:
-#     - sensor (blender's sensor is 32mm)
+# ZOOM VALUE CALCULATIONS:
+#
+# Given values:
+#     - sensor width (camera.data.sensor_width)
+#     - sensor height (camera.data.sensor_height)
+#     - sensor fit (camera.data.sensor_fit)
 #     - lens (blender's lens in mm)
 #     - width (witdh of the composition/scene in pixels)
+#     - height (height of the composition/scene in pixels)
+#     - PAR (pixel aspect ratio)
 #
-# zoom can be calculated from simple proportions.
+# Calculations are made using sensor's size and scene/comp dimention (width or height).
+# If camera.sensor_fit is set to 'AUTO' or 'HORIZONTAL' - sensor = camera.data.sensor_width, dimention = width.
+# If camera.sensor_fit is set to 'VERTICAL' - sensor = camera.data.sensor_height, dimention = height
+#
+# zoom can be calculated using simple proportions.
 #
 #                             |
 #                           / |
 #                         /   |
-#                       /     | w
+#                       /     | d
 #       s  |\         /       | i
-#       e  |  \     /         | d
-#       n  |    \ /           | t
-#       s  |    / \           | h
-#       o  |  /     \         |
-#       r  |/         \       |
-#                       \     |
-#          |     |        \   |
+#       e  |  \     /         | m
+#       n  |    \ /           | e
+#       s  |    / \           | n
+#       o  |  /     \         | t
+#       r  |/         \       | i
+#                       \     | o
+#          |     |        \   | n
 #          |     |          \ |
 #          |     |            |
 #           lens |    zoom
 #
-#    zoom/width = lens/sensor   =>
-#    zoom = lens/sensor*width = lens*width * (1/sensor)
-#    sensor - sensor_width will be taken into account if version of blender supports it. If not - standard blender's 32mm will be caclulated.
-#
+#    zoom / dimention = lens / sensor   =>
+#    zoom = lens * dimention / sensor
 #
 #    above is true if square pixels are used. If not - aspect compensation is needed, so final formula is:
-#    zoom = lens * width * (1/sensor) * aspect
+#    zoom = lens * dimention / sensor * aspect
 #
-def convert_lens(camera, width, aspect):
-    # wrap camera.data.sensor_width in 'try' to maintain compatibility with blender version not supporting camera.data.sensor_width
-    try:
-        sensor = camera.data.sensor_width  # if camera.data.sensor_width is supported - it will be taken into account
+def convert_lens(camera, width, height, aspect):
+    try:  # wrap in "try" to preserve compatibility with older versions not supporting camera sensor size.
+        if camera.data.sensor_fit == 'VERTICAL':
+            sensor = camera.data.sensor_height
+            dimention = height
+        else:
+            sensor = camera.data.sensor_width
+            dimention = width
     except:
-        sensor = 32  # if version of blender doesn't yet support sensor_width - default blender's 32mm will be taken.
-    zoom = camera.data.lens * width * (1.0 / sensor) * aspect
+        sensor = 32  # standard blender's sensor size
+        dimention = width
+    
+    zoom = camera.data.lens * dimention / sensor * aspect
 
     return zoom
 
@@ -233,7 +246,7 @@ def write_jsx_file(file, data, selection, export_bundles, comp_name, prefix):
             #convert cam position to AE space
             ae_pos_rot = convert_pos_rot(cam, data['width'], data['height'], data['aspect'], x_rot_correction=True)
             #convert Blender's cam zoom to AE's
-            zoom = convert_lens(cam, data['width'], data['aspect'])
+            zoom = convert_lens(cam, data['width'], data['height'], data['aspect'])
             #store all the value into dico
             js_data['cameras'][name_ae]['position'] += '[%f,%f,%f],' % (ae_pos_rot[0], ae_pos_rot[1], ae_pos_rot[2])
             js_data['cameras'][name_ae]['pointOfInterest'] += '[%f,%f,%f],' % (ae_pos_rot[0], ae_pos_rot[1], ae_pos_rot[2])
