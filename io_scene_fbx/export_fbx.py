@@ -1866,7 +1866,7 @@ def save_single(operator, scene, filepath="",
                     i = 0
                 fw(',%.6f,%.6f,%.6f' % v.co[:])
             i += 1
-        
+
         fw('\n\t}')
 
     def write_group(name):

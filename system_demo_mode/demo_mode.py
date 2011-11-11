@@ -166,7 +166,7 @@ def demo_mode_init():
         handle, global_state["render_out"] = tempfile.mkstemp()
         os.close(handle)
         del handle
-        
+
         if os.path.exists(global_state["render_out"]):
             print("  render!!!")
             os.remove(global_state["render_out"])

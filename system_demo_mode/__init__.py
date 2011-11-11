@@ -26,8 +26,8 @@ bl_info = {
     "location": "Demo Menu",
     "description": "Demo mode lets you select multiple blend files and loop over them.",
     "warning": "",
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"\
-        "Scripts/System/Demo_Mode#Running_Demo_Mode",
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"
+                "Scripts/System/Demo_Mode#Running_Demo_Mode",
     "tracker_url": "",
     "support": 'OFFICIAL',
     "category": "System"}
@@ -40,7 +40,11 @@ if "bpy" in locals():
 
 
 import bpy
-from bpy.props import StringProperty, BoolProperty, IntProperty, FloatProperty, EnumProperty
+from bpy.props import (StringProperty,
+                       BoolProperty,
+                       IntProperty,
+                       FloatProperty,
+                       EnumProperty)
 
 
 class DemoModeSetup(bpy.types.Operator):
@@ -53,30 +57,80 @@ class DemoModeSetup(bpy.types.Operator):
     # to the class instance from the operator settings before calling.
 
     # these are used to create the file list.
-    filepath = StringProperty(name="File Path", description="Filepath used for importing the file", maxlen=1024, default="", subtype='FILE_PATH')
-    random_order = BoolProperty(name="Random Order", description="Select files randomly", default=False)
-    mode = EnumProperty(items=(
-            ('AUTO', "Auto", ""),
-            ('PLAY', "Play", ""),
-            ('RENDER', "Render", ""),
-            ),
-                name="Method")
+    filepath = StringProperty(
+            name="File Path",
+            description="Filepath used for importing the file",
+            maxlen=1024,
+            subtype='FILE_PATH',
+            )
+    random_order = BoolProperty(
+            name="Random Order",
+            description="Select files randomly",
+            default=False,
+            )
+    mode = EnumProperty(
+            name="Method",
+            items=(('AUTO', "Auto", ""),
+                   ('PLAY', "Play", ""),
+                   ('RENDER', "Render", ""),
+                   ),
+            )
 
-    run = BoolProperty(name="Run Immediately!", description="Run demo immediately", default=True)
+    run = BoolProperty(
+            name="Run Immediately!",
+            description="Run demo immediately",
+            default=True,
+            )
 
     # these are mapped directly to the config!
     #
     # anim
     # ====
-    anim_cycles = IntProperty(name="Cycles", description="Number of times to play the animation", min=1, max=1000, default=2)
-    anim_time_min = FloatProperty(name="Time Min", description="Minimum number of seconds to show the animation for (for small loops)", min=0.0, max=1000.0, soft_min=1.0, soft_max=1000.0, default=4.0)
-    anim_time_max = FloatProperty(name="Time Max", description="Maximum number of seconds to show the animation for (in case the end frame is very high for no reason)", min=0.0, max=100000000.0, soft_min=1.0, soft_max=100000000.0, default=8.0)
-    anim_screen_switch = FloatProperty(name="Screen Switch", description="Time between switching screens (in seconds) or 0 to disable", min=0.0, max=100000000.0, soft_min=1.0, soft_max=60.0, default=0.0)
+    anim_cycles = IntProperty(
+            name="Cycles",
+            description="Number of times to play the animation",
+            min=1, max=1000,
+            default=2,
+            )
+    anim_time_min = FloatProperty(
+            name="Time Min",
+            description="Minimum number of seconds to show the animation for "
+                        "(for small loops)",
+            min=0.0, max=1000.0,
+            soft_min=1.0, soft_max=1000.0,
+            default=4.0,
+            )
+    anim_time_max = FloatProperty(
+            name="Time Max",
+            description="Maximum number of seconds to show the animation for "
+                        "(in case the end frame is very high for no reason)",
+            min=0.0, max=100000000.0,
+            soft_min=1.0, soft_max=100000000.0,
+            default=8.0,
+            )
+    anim_screen_switch = FloatProperty(
+            name="Screen Switch",
+            description="Time between switching screens (in seconds) "
+                        "or 0 to disable",
+            min=0.0, max=100000000.0,
+            soft_min=1.0, soft_max=60.0,
+            default=0.0,
+            )
     #
     # render
     # ======
-    display_render = FloatProperty(name="Render Delay", description="Time to display the rendered image before moving on (in seconds)", min=0.0, max=60.0, default=4.0)
-    anim_render = BoolProperty(name="Render Anim", description="Render entire animation (render mode only)", default=False)
+    display_render = FloatProperty(
+            name="Render Delay",
+            description="Time to display the rendered image before moving on "
+                        "(in seconds)",
+            min=0.0, max=60.0,
+            default=4.0,
+            )
+    anim_render = BoolProperty(
+            name="Render Anim",
+            description="Render entire animation (render mode only)",
+            default=False,
+            )
 
     def execute(self, context):
         from . import config
