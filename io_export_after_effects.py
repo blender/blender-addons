@@ -90,7 +90,7 @@ def convert_name(is_comp, ob, prefix):
         ob_name = prefix + ob
         ob_name = ob_name.replace('"', "_")
     else:
-        ob_name = prefix + ob.name
+        ob_name = prefix + "_" + ob.name
 
         if ob_name[0].isdigit():
             ob_name = "_" + ob_name
@@ -148,13 +148,13 @@ def convert_pos_rot(obj, width, height, aspect, x_rot_correction=False):
 #     - sensor height (camera.data.sensor_height)
 #     - sensor fit (camera.data.sensor_fit)
 #     - lens (blender's lens in mm)
-#     - width (witdh of the composition/scene in pixels)
+#     - width (width of the composition/scene in pixels)
 #     - height (height of the composition/scene in pixels)
 #     - PAR (pixel aspect ratio)
 #
-# Calculations are made using sensor's size and scene/comp dimention (width or height).
-# If camera.sensor_fit is set to 'AUTO' or 'HORIZONTAL' - sensor = camera.data.sensor_width, dimention = width.
-# If camera.sensor_fit is set to 'VERTICAL' - sensor = camera.data.sensor_height, dimention = height
+# Calculations are made using sensor's size and scene/comp dimension (width or height).
+# If camera.sensor_fit is set to 'AUTO' or 'HORIZONTAL' - sensor = camera.data.sensor_width, dimension = width.
+# If camera.sensor_fit is set to 'VERTICAL' - sensor = camera.data.sensor_height, dimension = height
 #
 # zoom can be calculated using simple proportions.
 #
@@ -166,7 +166,7 @@ def convert_pos_rot(obj, width, height, aspect, x_rot_correction=False):
 #       e  |  \     /         | m
 #       n  |    \ /           | e
 #       s  |    / \           | n
-#       o  |  /     \         | t
+#       o  |  /     \         | s
 #       r  |/         \       | i
 #                       \     | o
 #          |     |        \   | n
@@ -174,25 +174,25 @@ def convert_pos_rot(obj, width, height, aspect, x_rot_correction=False):
 #          |     |            |
 #           lens |    zoom
 #
-#    zoom / dimention = lens / sensor   =>
-#    zoom = lens * dimention / sensor
+#    zoom / dimension = lens / sensor   =>
+#    zoom = lens * dimension / sensor
 #
 #    above is true if square pixels are used. If not - aspect compensation is needed, so final formula is:
-#    zoom = lens * dimention / sensor * aspect
+#    zoom = lens * dimension / sensor * aspect
 #
 def convert_lens(camera, width, height, aspect):
-    try:  # wrap in "try" to preserve compatibility with older versions not supporting camera sensor size.
+    if hasattr(camera.data, "sensor_width"):  # Preserve compatibility with versions not supporting camera sensor.
         if camera.data.sensor_fit == 'VERTICAL':
             sensor = camera.data.sensor_height
-            dimention = height
+            dimension = height
         else:
             sensor = camera.data.sensor_width
-            dimention = width
-    except:
+            dimension = width
+    else:
         sensor = 32  # standard blender's sensor size
-        dimention = width
+        dimension = width
     
-    zoom = camera.data.lens * dimention / sensor * aspect
+    zoom = camera.data.lens * dimension / sensor * aspect
 
     return zoom
 
