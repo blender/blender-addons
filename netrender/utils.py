@@ -16,7 +16,7 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-import sys, os, re
+import sys, os, re, platform
 import http, http.client, http.server, socket
 import subprocess, time, hashlib
 
@@ -56,6 +56,30 @@ FRAME_STATUS_TEXT = {
         DONE: "Done",
         ERROR: "Error"
         }
+
+if platform.system() == "Darwin":
+    class ConnectionContext:
+        def __init__(self, timeout = None):
+            self.old_timeout = socket.getdefaulttimeout()
+            self.timeout = timeout
+            
+        def __enter__(self):
+            if self.old_timeout != self.timeout:
+                socket.setdefaulttimeout(self.timeout)
+        def __exit__(self, exc_type, exc_value, traceback):
+            if self.old_timeout != self.timeout:
+                socket.setdefaulttimeout(self.old_timeout)
+else:
+    # On sane OSes we can use the connection timeout value correctly
+    class ConnectionContext:
+        def __init__(self, timeout = None):
+            pass
+            
+        def __enter__(self):
+            pass
+
+        def __exit__(self, exc_type, exc_value, traceback):
+            pass
 
 class DirectoryContext:
     def __init__(self, path):
@@ -146,7 +170,11 @@ def clientConnection(address, port, report = None, scan = True, timeout = 5):
             return None
 
     try:
-        conn = http.client.HTTPConnection(address, port, timeout = timeout)
+        if platform.system() == "Darwin":
+            with ConnectionContext(timeout):
+                conn = http.client.HTTPConnection(address, port)
+        else:
+            conn = http.client.HTTPConnection(address, port, timeout = timeout)
 
         if conn:
             if clientVerifyVersion(conn):
@@ -163,7 +191,8 @@ def clientConnection(address, port, report = None, scan = True, timeout = 5):
             return None
 
 def clientVerifyVersion(conn):
-    conn.request("GET", "/version")
+    with ConnectionContext():
+        conn.request("GET", "/version")
     response = conn.getresponse()
 
     if response.status != http.client.OK:

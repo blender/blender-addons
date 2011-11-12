@@ -157,7 +157,8 @@ def clientSendJobVCS(conn, scene, anim = False):
     job.version_info.revision = netsettings.vcs_revision
 
     # try to send path first
-    conn.request("POST", "/job", json.dumps(job.serialize()))
+    with ConnectionContext():
+        conn.request("POST", "/job", json.dumps(job.serialize()))
     response = conn.getresponse()
     response.read()
 
@@ -240,7 +241,8 @@ def clientSendJobBlender(conn, scene, anim = False):
     fillCommonJobSettings(job, job_name, netsettings)
 
     # try to send path first
-    conn.request("POST", "/job", json.dumps(job.serialize()))
+    with ConnectionContext():
+        conn.request("POST", "/job", json.dumps(job.serialize()))
     response = conn.getresponse()
     response.read()
 
@@ -250,7 +252,8 @@ def clientSendJobBlender(conn, scene, anim = False):
     if response.status == http.client.ACCEPTED:
         for rfile in job.files:
             f = open(rfile.filepath, "rb")
-            conn.request("PUT", fileURL(job_id, rfile.index), f)
+            with ConnectionContext():
+                conn.request("PUT", fileURL(job_id, rfile.index), f)
             f.close()
             response = conn.getresponse()
             response.read()
@@ -260,7 +263,8 @@ def clientSendJobBlender(conn, scene, anim = False):
     return job_id
 
 def requestResult(conn, job_id, frame):
-    conn.request("GET", renderURL(job_id, frame))
+    with ConnectionContext():
+        conn.request("GET", renderURL(job_id, frame))
 
 class NetworkRenderEngine(bpy.types.RenderEngine):
     bl_idname = 'NET_RENDER'
@@ -333,7 +337,8 @@ class NetworkRenderEngine(bpy.types.RenderEngine):
 
             # cancel new jobs (animate on network) on break
             if self.test_break() and new_job:
-                conn.request("POST", cancelURL(job_id))
+                with ConnectionContext():
+                    conn.request("POST", cancelURL(job_id))
                 response = conn.getresponse()
                 response.read()
                 print( response.status, response.reason )

@@ -67,7 +67,8 @@ def slave_Info():
     return slave
 
 def testCancel(conn, job_id, frame_number):
-        conn.request("HEAD", "/status", headers={"job-id":job_id, "job-frame": str(frame_number)})
+        with ConnectionContext():
+            conn.request("HEAD", "/status", headers={"job-id":job_id, "job-frame": str(frame_number)})
 
         # canceled if job isn't found anymore
         if responseStatus(conn) == http.client.NO_CONTENT:
@@ -93,7 +94,8 @@ def testFile(conn, job_id, slave_id, rfile, JOB_PREFIX, main_path = None):
         # Force prefix path if not found
         job_full_path = prefixPath(JOB_PREFIX, rfile.filepath, main_path, force = True)
         temp_path = os.path.join(JOB_PREFIX, "slave.temp")
-        conn.request("GET", fileURL(job_id, rfile.index), headers={"slave-id":slave_id})
+        with ConnectionContext():
+            conn.request("GET", fileURL(job_id, rfile.index), headers={"slave-id":slave_id})
         response = conn.getresponse()
 
         if response.status != http.client.OK:
@@ -155,7 +157,8 @@ def render_slave(engine, netsettings, threads):
             print("Retry %i failed, waiting %is before retrying" % (i + 1, bisleep.current))
     
     if conn:
-        conn.request("POST", "/slave", json.dumps(slave_Info().serialize()))
+        with ConnectionContext():
+            conn.request("POST", "/slave", json.dumps(slave_Info().serialize()))
         response = conn.getresponse()
         response.read()
 
@@ -168,7 +171,8 @@ def render_slave(engine, netsettings, threads):
         engine.update_stats("", "Network render connected to master, waiting for jobs")
 
         while not engine.test_break():
-            conn.request("GET", "/job", headers={"slave-id":slave_id})
+            with ConnectionContext():
+                conn.request("GET", "/job", headers={"slave-id":slave_id})
             response = conn.getresponse()
 
             if response.status == http.client.OK:
@@ -218,7 +222,8 @@ def render_slave(engine, netsettings, threads):
 
                 # announce log to master
                 logfile = netrender.model.LogFile(job.id, slave_id, [frame.number for frame in job.frames])
-                conn.request("POST", "/log", bytes(json.dumps(logfile.serialize()), encoding='utf8'))
+                with ConnectionContext():
+                    conn.request("POST", "/log", bytes(json.dumps(logfile.serialize()), encoding='utf8'))
                 response = conn.getresponse()
                 response.read()
 
@@ -258,7 +263,8 @@ def render_slave(engine, netsettings, threads):
                         # update logs if needed
                         if stdout:
                             # (only need to update on one frame, they are linked
-                            conn.request("PUT", logURL(job.id, first_frame), stdout, headers=headers)
+                            with ConnectionContext():
+                                conn.request("PUT", logURL(job.id, first_frame), stdout, headers=headers)
                             responseStatus(conn)
                             
                             # Also output on console
@@ -293,7 +299,9 @@ def render_slave(engine, netsettings, threads):
                         print(str(stdout, encoding='utf8'), end="")
                     
                     # (only need to update on one frame, they are linked
-                    conn.request("PUT", logURL(job.id, first_frame), stdout, headers=headers)
+                    with ConnectionContext():
+                        conn.request("PUT", logURL(job.id, first_frame), stdout, headers=headers)
+                    
                     if responseStatus(conn) == http.client.NO_CONTENT:
                         continue
 
@@ -323,18 +331,21 @@ def render_slave(engine, netsettings, threads):
                                 
                                 if thumbname:
                                     f = open(thumbname, 'rb')
-                                    conn.request("PUT", "/thumb", f, headers=headers)
+                                    with ConnectionContext():
+                                        conn.request("PUT", "/thumb", f, headers=headers)
                                     f.close()
                                     responseStatus(conn)
 
                             f = open(filename, 'rb')
-                            conn.request("PUT", "/render", f, headers=headers)
+                            with ConnectionContext():
+                                conn.request("PUT", "/render", f, headers=headers)
                             f.close()
                             if responseStatus(conn) == http.client.NO_CONTENT:
                                 continue
 
                         elif job.type == netrender.model.JOB_PROCESS:
-                            conn.request("PUT", "/render", headers=headers)
+                            with ConnectionContext():
+                                conn.request("PUT", "/render", headers=headers)
                             if responseStatus(conn) == http.client.NO_CONTENT:
                                 continue
                 else:
@@ -342,7 +353,8 @@ def render_slave(engine, netsettings, threads):
                     for frame in job.frames:
                         headers["job-frame"] = str(frame.number)
                         # send error result back to server
-                        conn.request("PUT", "/render", headers=headers)
+                        with ConnectionContext():
+                            conn.request("PUT", "/render", headers=headers)
                         if responseStatus(conn) == http.client.NO_CONTENT:
                             continue
 

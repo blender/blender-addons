@@ -201,8 +201,8 @@ class RENDER_OT_netclientstatus(bpy.types.Operator):
         conn = clientConnection(netsettings.server_address, netsettings.server_port, self.report)
 
         if conn:
-            conn.request("GET", "/status")
-
+            with ConnectionContext():
+                conn.request("GET", "/status")
             response = conn.getresponse()
             content = response.read()
             print( response.status, response.reason )
@@ -229,7 +229,7 @@ class RENDER_OT_netclientstatus(bpy.types.Operator):
         return self.execute(context)
 
 class RENDER_OT_netclientblacklistslave(bpy.types.Operator):
-    '''Exclude from rendering, by adding slave to the blacklist.'''
+    '''Exclude from rendering, by adding slave to the blacklist'''
     bl_idname = "render.netclientblacklistslave"
     bl_label = "Client Blacklist Slave"
 
@@ -259,7 +259,7 @@ class RENDER_OT_netclientblacklistslave(bpy.types.Operator):
         return self.execute(context)
 
 class RENDER_OT_netclientwhitelistslave(bpy.types.Operator):
-    '''Remove slave from the blacklist.'''
+    '''Remove slave from the blacklist'''
     bl_idname = "render.netclientwhitelistslave"
     bl_label = "Client Whitelist Slave"
 
@@ -303,8 +303,8 @@ class RENDER_OT_netclientslaves(bpy.types.Operator):
         conn = clientConnection(netsettings.server_address, netsettings.server_port, self.report)
 
         if conn:
-            conn.request("GET", "/slaves")
-
+            with ConnectionContext():
+                conn.request("GET", "/slaves")
             response = conn.getresponse()
             content = response.read()
             print( response.status, response.reason )
@@ -341,7 +341,7 @@ class RENDER_OT_netclientslaves(bpy.types.Operator):
         return self.execute(context)
 
 class RENDER_OT_netclientcancel(bpy.types.Operator):
-    '''Cancel the selected network rendering job.'''
+    '''Cancel the selected network rendering job'''
     bl_idname = "render.netclientcancel"
     bl_label = "Client Cancel"
 
@@ -357,8 +357,8 @@ class RENDER_OT_netclientcancel(bpy.types.Operator):
         if conn:
             job = netrender.jobs[netsettings.active_job_index]
 
-            conn.request("POST", cancelURL(job.id), json.dumps({'clear':False}))
-
+            with ConnectionContext():
+                conn.request("POST", cancelURL(job.id), json.dumps({'clear':False}))
             response = conn.getresponse()
             response.read()
             print( response.status, response.reason )
@@ -371,7 +371,7 @@ class RENDER_OT_netclientcancel(bpy.types.Operator):
         return self.execute(context)
 
 class RENDER_OT_netclientcancelall(bpy.types.Operator):
-    '''Cancel all running network rendering jobs.'''
+    '''Cancel all running network rendering jobs'''
     bl_idname = "render.netclientcancelall"
     bl_label = "Client Cancel All"
 
@@ -384,8 +384,8 @@ class RENDER_OT_netclientcancelall(bpy.types.Operator):
         conn = clientConnection(netsettings.server_address, netsettings.server_port, self.report)
 
         if conn:
-            conn.request("POST", "/clear", json.dumps({'clear':False}))
-
+            with ConnectionContext():
+                conn.request("POST", "/clear", json.dumps({'clear':False}))
             response = conn.getresponse()
             response.read()
             print( response.status, response.reason )
@@ -416,10 +416,10 @@ class netclientdownload(bpy.types.Operator):
         if conn:
             job_id = netrender.jobs[netsettings.active_job_index].id
     
-            conn.request("GET", "/status", headers={"job-id":job_id})
-    
+            with ConnectionContext():
+                conn.request("GET", "/status", headers={"job-id":job_id})
             response = conn.getresponse()
-            
+        
             if response.status != http.client.OK:
                 self.report({'ERROR'}, "Job ID %i not defined on master" % job_id)
                 return {'ERROR'}
@@ -486,7 +486,7 @@ class netclientdownload(bpy.types.Operator):
         return self.execute(context)
 
 class netclientscan(bpy.types.Operator):
-    '''Listen on network for master server broadcasting its address and port.'''
+    '''Listen on network for master server broadcasting its address and port'''
     bl_idname = "render.netclientscan"
     bl_label = "Client Scan"
 
