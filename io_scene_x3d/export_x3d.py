@@ -1369,7 +1369,7 @@ def export(file,
                     is_dummy_tx = True
                     ident += '\t'
 
-            elif obj_type in {'MESH', 'CURVE', 'SURF', 'FONT'}:
+            elif obj_type in {'MESH', 'CURVE', 'SURFACE', 'FONT'}:
                 if (obj_type != 'MESH') or (use_apply_modifiers and obj.is_modified(scene, 'PREVIEW')):
                     try:
                         me = obj.to_mesh(scene, use_apply_modifiers, 'PREVIEW')
