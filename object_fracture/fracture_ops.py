@@ -31,13 +31,9 @@ def create_cutter(context, crack_type, scale, roughness):
             enter_editmode=False,
             location=(0, 0, 0),
             rotation=(0, 0, 0),
-            layers=(True, False, False, False,
-                False, False, False, False,
-                False, False, False, False,
-                False, False, False, False,
-                False, False, False, False))
+            layers=context.scene.layers)
 
-        for v in context.scene.objects.active.data.vertices:
+        for v in context.active_object.data.vertices:
             v.co[0] += 1.0
             v.co *= scale
 
@@ -62,18 +58,14 @@ def create_cutter(context, crack_type, scale, roughness):
             enter_editmode=False,
             location=(0, 0, 0),
             rotation=(0, 0, 0),
-            layers=(True, False, False, False,
-                False, False, False, False,
-                False, False, False, False,
-                False, False, False, False,
-                False, False, False, False))
+            layers=context.scene.layers)
 
         bpy.ops.object.editmode_toggle()
         bpy.ops.mesh.faces_shade_smooth()
         bpy.ops.uv.smart_project(angle_limit=66, island_margin=0)
 
         bpy.ops.object.editmode_toggle()
-        for v in context.scene.objects.active.data.vertices:
+        for v in context.active_object.data.vertices:
             v.co[0] += 1.0
             v.co *= scale
 
@@ -83,7 +75,8 @@ def create_cutter(context, crack_type, scale, roughness):
                 v.co[1] += roughness * scale * 0.1 * (random.random() - 0.5)
                 v.co[2] += roughness * scale * 0.1 * (random.random() - 0.5)
 
-    bpy.context.scene.objects.active.select = True
+    bpy.context.active_object.select = True
+#    bpy.context.scene.objects.active.select = True
 
     '''
     # Adding fracture material
