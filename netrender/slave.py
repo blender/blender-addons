@@ -76,7 +76,7 @@ def testCancel(conn, job_id, frame_number):
         else:
             return False
 
-def testFile(conn, job_id, slave_id, rfile, JOB_PREFIX, main_path = None):
+def testFile(conn, job_id, slave_id, rfile, JOB_PREFIX, main_path=None):
     job_full_path = prefixPath(JOB_PREFIX, rfile.filepath, main_path)
     
     found = os.path.exists(job_full_path)
@@ -88,11 +88,11 @@ def testFile(conn, job_id, slave_id, rfile, JOB_PREFIX, main_path = None):
         if not found:
             print("Found file %s at %s but signature mismatch!" % (rfile.filepath, job_full_path))
             os.remove(job_full_path)
-            job_full_path = prefixPath(JOB_PREFIX, rfile.filepath, main_path, force = True)
+            job_full_path = prefixPath(JOB_PREFIX, rfile.filepath, main_path, force=True)
 
     if not found:
         # Force prefix path if not found
-        job_full_path = prefixPath(JOB_PREFIX, rfile.filepath, main_path, force = True)
+        job_full_path = prefixPath(JOB_PREFIX, rfile.filepath, main_path, force=True)
         temp_path = os.path.join(JOB_PREFIX, "slave.temp")
         with ConnectionContext():
             conn.request("GET", fileURL(job_id, rfile.index), headers={"slave-id":slave_id})
@@ -123,8 +123,6 @@ def breakable_timeout(timeout):
             break
 
 def render_slave(engine, netsettings, threads):
-    # timeout = 1  # UNUSED
-    
     bisleep = BreakableIncrementedSleep(INCREMENT_TIMEOUT, 1, MAX_TIMEOUT, engine.test_break)
 
     engine.update_stats("", "Network render node initiation")
@@ -142,7 +140,6 @@ def render_slave(engine, netsettings, threads):
     conn = clientConnection(netsettings.server_address, netsettings.server_port)
     
     if not conn:
-        # timeout = 1  # UNUSED
         print("Connection failed, will try connecting again at most %i times" % MAX_CONNECT_TRY)
         bisleep.reset()
         
@@ -204,7 +201,7 @@ def render_slave(engine, netsettings, threads):
                         
                     netrender.repath.update(job)
 
-                    engine.update_stats("", "Render File "+ main_file+ " for job "+ job.id)
+                    engine.update_stats("", "Render File " + main_file + " for job " + job.id)
                 elif job.type == netrender.model.JOB_VCS:
                     if not job.version_info:
                         # Need to return an error to server, incorrect job type
@@ -218,7 +215,7 @@ def render_slave(engine, netsettings, threads):
                     # For VCS jobs, file path is relative to the working copy path
                     job_full_path = os.path.join(job.version_info.wpath, job_path)
                     
-                    engine.update_stats("", "Render File "+ main_file+ " for job "+ job.id)
+                    engine.update_stats("", "Render File " + main_file + " for job " + job.id)
 
                 # announce log to master
                 logfile = netrender.model.LogFile(job.id, slave_id, [frame.number for frame in job.frames])

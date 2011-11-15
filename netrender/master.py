@@ -814,7 +814,7 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
                         self.send_head(content = None)
                         
                         if job.hasRenderResult():
-                            os.path.join(os.path.join(job.save_path, "%06d.jpg" % job_frame))
+                            self.write_file(os.path.join(os.path.join(job.save_path, "%06d.jpg" % job_frame)))
 
                     else: # frame not found
                         self.send_head(http.client.NO_CONTENT)
