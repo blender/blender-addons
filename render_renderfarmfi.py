@@ -19,9 +19,9 @@
 bl_info = {
     "name": "Renderfarm.fi",
     "author": "Nathan Letwory <nathan@letworyinteractive.com>, Jesse Kaukonen <jesse.kaukonen@gmail.com>",
-    "version": (11,),
+    "version": (12,),
     "blender": (2, 6, 0),
-    "api": 41723,
+    "api": 41934,
     "location": "Render > Engine > Renderfarm.fi",
     "description": "Send .blend as session to http://www.renderfarm.fi to render",
     "warning": "",
@@ -317,7 +317,7 @@ class OpSwitchBlenderRender(bpy.types.Operator):
         return {'FINISHED'}  
 
 # Copies start & end frame + others from render settings to ore settings
-class OpCopySettingsAsd(bpy.types.Operator):
+class OpCopySettings(bpy.types.Operator):
     bl_label = "Copy from Blender Render settings"
     bl_idname = "ore.copy_settings"
     
@@ -332,7 +332,7 @@ class OpCopySettingsAsd(bpy.types.Operator):
         ore.fps = rd.fps
         return {'FINISHED'}
 
-# We re-write the default render panel
+# We re-write the default render panel (not enabled, breaks Cycles)
 '''class RENDER_PT_render(RenderButtonsPanel, bpy.types.Panel):
     bl_label = "Render"
     COMPAT_ENGINES = {'BLENDER_RENDER'}
@@ -516,7 +516,8 @@ class UPLOAD_PT_RenderfarmFi(RenderButtonsPanel, bpy.types.Panel):
                 layout.separator()
                 
                 layout.label(text="Please verify your settings", icon='MODIFIER')
-                layout.label(text="These are changed in Blender Render panel")
+                row = layout.row()
+                row.operator('ore.copy_settings')
                 row = layout.row()
                 row.label(text="Resolution: " + str(ore.resox) + "x" + str(ore.resoy))
                 row = layout.row()
@@ -529,7 +530,7 @@ class UPLOAD_PT_RenderfarmFi(RenderButtonsPanel, bpy.types.Panel):
                 row = layout.row()
                 row.label(text="Frame rate: " + str(ore.fps))
                 row = layout.row()
-                #row.operator('ore.copy_settings', icon='MODIFIER')
+                
                 layout.separator()
                 
                 layout.label(text="Optional advanced settings", icon='MODIFIER')
@@ -642,13 +643,10 @@ def upload_file(key, userid, sessionid, server, path):
         'sessionId': sessionid,
         'md5sum': md5_for_file(path)
     }
-    print("d")
     files = {
         'blenderfile': path
     }
-    print("e")
     r = send_post(server, data, files)
-    print("f")
     #print 'Uploaded %r' % (path)
     
     return r
