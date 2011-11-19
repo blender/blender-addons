@@ -254,18 +254,18 @@ def combineObjects(scene, combined, listobjs):
     scene.objects.active = combined
 
     # Add data
-    if (len(listobjs) > 0):
-            for i in listobjs:
-                # Add a modifier
-                bpy.ops.object.modifier_add(type='BOOLEAN')
+    if len(listobjs) > 0:
+        for i in listobjs:
+            # Add a modifier
+            bpy.ops.object.modifier_add(type='BOOLEAN')
 
-                union = combined.modifiers
-                union[0].name = "AddEmUp"
-                union[0].object = i
-                union[0].operation = 'UNION'
+            union = combined.modifiers
+            union[0].name = "AddEmUp"
+            union[0].object = i
+            union[0].operation = 'UNION'
 
-                # Apply modifier
-                bpy.ops.object.modifier_apply(apply_as='DATA', modifier=union[0].name)
+            # Apply modifier
+            bpy.ops.object.modifier_apply(apply_as='DATA', modifier=union[0].name)
 
 # Returns the action we want to take
 def getActionToDo(obj):
@@ -366,65 +366,65 @@ class GenerateCloud(bpy.types.Operator):
         WhatToDo = getActionToDo(active_object)
 
         if WhatToDo == 'DEGENERATE':
-           # Degenerate Cloud
-           mainObj = active_object
+            # Degenerate Cloud
+            mainObj = active_object
+ 
+            cloudMembers = active_object.children
+ 
+            createdObjects = []
+            definitionObjects  = []
+            for member in cloudMembers:
+                applyScaleRotLoc(scene, member)
+                if member["CloudMember"] == "CreatedObj":
+                    createdObjects.append(member)
+                else:
+                    definitionObjects.append(member)
+ 
+            for defObj in definitionObjects:
+                # Delete cloudmember data from objects
+                if "CloudMember" in defObj:
+                    del(defObj["CloudMember"])
+ 
+            for createdObj in createdObjects:
+                totallyDeleteObject(scene, createdObj)
+ 
+            # Delete the blend_data object
+            totallyDeleteObject(scene, mainObj)
+ 
+            # Select all of the left over boxes so people can immediately
+            # press generate again if they want.
+            for eachMember in definitionObjects:
+                eachMember.draw_type = 'SOLID'
+                eachMember.select = True
+                eachMember.hide_render = False
 
-           cloudMembers = active_object.children
-
-           createdObjects = []
-           definitionObjects  = []
-           for member in cloudMembers:
-               applyScaleRotLoc(scene, member)
-               if (member["CloudMember"] == "CreatedObj"):
-                  createdObjects.append(member)
-               else:
-                  definitionObjects.append(member)
-
-           for defObj in definitionObjects:
-               #Delete cloudmember data from objects
-               if "CloudMember" in defObj:
-                  del(defObj["CloudMember"])
-
-           for createdObj in createdObjects:
-               totallyDeleteObject(scene, createdObj)
-
-           # Delete the blend_data object
-           totallyDeleteObject(scene, mainObj)
-
-           # Select all of the left over boxes so people can immediately
-           # press generate again if they want.
-           for eachMember in definitionObjects:
-               eachMember.draw_type = 'SOLID'
-               eachMember.select = True
-               eachMember.hide_render = False
-               
         elif WhatToDo == 'CLOUD_CONVERT_TO_MESH':
-            
-           cloudParticles = active_object.particle_systems.active
-           
-           bounds = active_object.parent
-           
-           ###############Create CloudPnts for putting points in#########
-           # Create a new object cloudPnts
-           cloudPnts = addNewObject(scene, "CloudPoints", bounds)
-           cloudPnts["CloudMember"] = "CreatedObj"
-           cloudPnts.draw_type = 'WIRE'
-           cloudPnts.hide_render = True
 
-           makeParent(bounds, cloudPnts, scene) 
+            cloudParticles = active_object.particle_systems.active
             
-           convertParticlesToMesh(scene, cloudParticles, cloudPnts, True)
-          
-           removeParticleSystemFromObj(scene, active_object)
-           
-           pDensity = getpdensitytexture(bounds)
-           pDensity.point_density.point_source = 'OBJECT'
-           pDensity.point_density.object = cloudPnts
-           
-           #Let's resize the bound box to be more accurate.
-           how_much_bigger =  pDensity.point_density.radius 
-           makeObjectIntoBoundBox(scene, bounds, how_much_bigger, cloudPnts)
-           
+            bounds = active_object.parent
+            
+            ###############Create CloudPnts for putting points in#########
+            # Create a new object cloudPnts
+            cloudPnts = addNewObject(scene, "CloudPoints", bounds)
+            cloudPnts["CloudMember"] = "CreatedObj"
+            cloudPnts.draw_type = 'WIRE'
+            cloudPnts.hide_render = True
+ 
+            makeParent(bounds, cloudPnts, scene) 
+
+            convertParticlesToMesh(scene, cloudParticles, cloudPnts, True)
+
+            removeParticleSystemFromObj(scene, active_object)
+
+            pDensity = getpdensitytexture(bounds)
+            pDensity.point_density.point_source = 'OBJECT'
+            pDensity.point_density.object = cloudPnts
+
+            #Let's resize the bound box to be more accurate.
+            how_much_bigger =  pDensity.point_density.radius 
+            makeObjectIntoBoundBox(scene, bounds, how_much_bigger, cloudPnts)
+
         else:
             # Generate Cloud
 

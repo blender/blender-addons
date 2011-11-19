@@ -631,80 +631,80 @@ def rotate_fix_armature(arm_data):
 #Roughly scales the performer armature to match the enduser armature
 #IN: perfromer_obj, enduser_obj, Blender objects whose .data is an armature.
 def scale_fix_armature(performer_obj, enduser_obj):
-        perf_bones = performer_obj.data.bones
-        end_bones = enduser_obj.data.bones
+    perf_bones = performer_obj.data.bones
+    end_bones = enduser_obj.data.bones
 
-        def calculateBoundingRadius(bones):
-            center = Vector()
-            for bone in bones:
-                center += bone.head_local
-            center /= len(bones)
-            radius = 0
-            for bone in bones:
-                dist = (bone.head_local - center).length
-                if dist > radius:
-                    radius = dist
-            return radius
+    def calculateBoundingRadius(bones):
+        center = Vector()
+        for bone in bones:
+            center += bone.head_local
+        center /= len(bones)
+        radius = 0
+        for bone in bones:
+            dist = (bone.head_local - center).length
+            if dist > radius:
+                radius = dist
+        return radius
 
-        perf_rad = calculateBoundingRadius(performer_obj.data.bones)
-        end_rad = calculateBoundingRadius(enduser_obj.data.bones)
-        #end_avg = enduser_obj.dimensions
-        factor = end_rad / perf_rad * 1.2
-        performer_obj.scale *= factor
+    perf_rad = calculateBoundingRadius(performer_obj.data.bones)
+    end_rad = calculateBoundingRadius(enduser_obj.data.bones)
+    #end_avg = enduser_obj.dimensions
+    factor = end_rad / perf_rad * 1.2
+    performer_obj.scale *= factor
 
 
 #Guess Mapping
 #Given a performer and enduser armature, attempts to guess the hiearchy mapping
 def guessMapping(performer_obj, enduser_obj):
-        perf_bones = performer_obj.data.bones
-        end_bones = enduser_obj.data.bones
+    perf_bones = performer_obj.data.bones
+    end_bones = enduser_obj.data.bones
 
-        root = perf_bones[0]
+    root = perf_bones[0]
 
-        def findBoneSide(bone):
-            if "Left" in bone:
-                return "Left", bone.replace("Left", "").lower().replace(".", "")
-            if "Right" in bone:
-                return "Right", bone.replace("Right", "").lower().replace(".", "")
-            if "L" in bone:
-                return "Left", bone.replace("Left", "").lower().replace(".", "")
-            if "R" in bone:
-                return "Right", bone.replace("Right", "").lower().replace(".", "")
-            return "", bone
+    def findBoneSide(bone):
+        if "Left" in bone:
+            return "Left", bone.replace("Left", "").lower().replace(".", "")
+        if "Right" in bone:
+            return "Right", bone.replace("Right", "").lower().replace(".", "")
+        if "L" in bone:
+            return "Left", bone.replace("Left", "").lower().replace(".", "")
+        if "R" in bone:
+            return "Right", bone.replace("Right", "").lower().replace(".", "")
+        return "", bone
 
-        def nameMatch(bone_a, bone_b):
-            # nameMatch - recieves two strings, returns 2 if they are relatively the same, 1 if they are the same but R and L and 0 if no match at all
-            side_a, noside_a = findBoneSide(bone_a)
-            side_b, noside_b = findBoneSide(bone_b)
-            if side_a == side_b:
-                if noside_a in noside_b or noside_b in noside_a:
-                    return 2
-            else:
-                if noside_a in noside_b or noside_b in noside_a:
-                    return 1
-            return 0
+    def nameMatch(bone_a, bone_b):
+        # nameMatch - recieves two strings, returns 2 if they are relatively the same, 1 if they are the same but R and L and 0 if no match at all
+        side_a, noside_a = findBoneSide(bone_a)
+        side_b, noside_b = findBoneSide(bone_b)
+        if side_a == side_b:
+            if noside_a in noside_b or noside_b in noside_a:
+                return 2
+        else:
+            if noside_a in noside_b or noside_b in noside_a:
+                return 1
+        return 0
 
-        def guessSingleMapping(perf_bone):
-            possible_bones = [end_bones[0]]
+    def guessSingleMapping(perf_bone):
+        possible_bones = [end_bones[0]]
 
-            while possible_bones:
-                for end_bone in possible_bones:
-                    match = nameMatch(perf_bone.name, end_bone.name)
-                    if match == 2 and not perf_bone.map:
-                        perf_bone.map = end_bone.name
-                    #~ elif match == 1 and not perf_bone.map:
-                        #~ oppo = perf_bones[oppositeBone(perf_bone)].map
-                        # if oppo:
-                        #   perf_bone = oppo
-                newPossibleBones = []
-                for end_bone in possible_bones:
-                    newPossibleBones += list(end_bone.children)
-                possible_bones = newPossibleBones
+        while possible_bones:
+            for end_bone in possible_bones:
+                match = nameMatch(perf_bone.name, end_bone.name)
+                if match == 2 and not perf_bone.map:
+                    perf_bone.map = end_bone.name
+                #~ elif match == 1 and not perf_bone.map:
+                    #~ oppo = perf_bones[oppositeBone(perf_bone)].map
+                    # if oppo:
+                    #   perf_bone = oppo
+            newPossibleBones = []
+            for end_bone in possible_bones:
+                newPossibleBones += list(end_bone.children)
+            possible_bones = newPossibleBones
 
-            for child in perf_bone.children:
-                guessSingleMapping(child)
+        for child in perf_bone.children:
+            guessSingleMapping(child)
 
-        guessSingleMapping(root)
+    guessSingleMapping(root)
 
 
 # Creates limit rotation constraints on the enduser armature based on range of motion (max min of fcurves) of the performer.

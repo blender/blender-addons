@@ -1431,15 +1431,15 @@ def save_single(operator, scene, filepath="",
         fw('\n\t\tEdges: ')
         i = -1
         for ed in me_edges:
-                if i == -1:
-                    fw('%i,%i' % (ed.vertices[0], ed.vertices[1]))
+            if i == -1:
+                fw('%i,%i' % (ed.vertices[0], ed.vertices[1]))
+                i = 0
+            else:
+                if i == 13:
+                    fw('\n\t\t')
                     i = 0
-                else:
-                    if i == 13:
-                        fw('\n\t\t')
-                        i = 0
-                    fw(',%i,%i' % (ed.vertices[0], ed.vertices[1]))
-                i += 1
+                fw(',%i,%i' % (ed.vertices[0], ed.vertices[1]))
+            i += 1
 
         fw('\n\t\tGeometryVersion: 124')
 

@@ -1036,35 +1036,35 @@ def saveMaster(path, httpd):
         pickle.dump((httpd.path, httpd.jobs, httpd.slaves), f, pickle.HIGHEST_PROTOCOL)
 
 def runMaster(address, broadcast, clear, path, update_stats, test_break):
-        httpd = createMaster(address, clear, path)
-        httpd.timeout = 1
-        httpd.stats = update_stats
+    httpd = createMaster(address, clear, path)
+    httpd.timeout = 1
+    httpd.stats = update_stats
 
-        if broadcast:
-            s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-            s.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+    if broadcast:
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
 
-        start_time = time.time() - 2
+    start_time = time.time() - 2
 
-        while not test_break():
-            try:
-                httpd.handle_request()
-            except select.error:
-                pass
+    while not test_break():
+        try:
+            httpd.handle_request()
+        except select.error:
+            pass
 
-            if time.time() - start_time >= 2: # need constant here
-                httpd.timeoutSlaves()
+        if time.time() - start_time >= 2: # need constant here
+            httpd.timeoutSlaves()
 
-                httpd.updateUsage()
+            httpd.updateUsage()
 
-                if broadcast:
-                        print("broadcasting address")
-                        s.sendto(bytes("%i" % address[1], encoding='utf8'), 0, ('<broadcast>', 8000))
-                        start_time = time.time()
+            if broadcast:
+                print("broadcasting address")
+                s.sendto(bytes("%i" % address[1], encoding='utf8'), 0, ('<broadcast>', 8000))
+                start_time = time.time()
 
-        httpd.server_close()
-        if clear:
-            clearMaster(httpd.path)
-        else:
-            saveMaster(path, httpd)
+    httpd.server_close()
+    if clear:
+        clearMaster(httpd.path)
+    else:
+        saveMaster(path, httpd)
 

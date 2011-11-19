@@ -72,27 +72,27 @@ disadvantage of not being able to interactively change the properties.
 
 def RemoveDoubles(verts,faces,Decimal_Places = 4):
 
-        new_verts = []
-        new_faces = []
-        dict_verts = {}
-        Rounded_Verts = []
-        
-        for v in verts:
-            Rounded_Verts.append([round(v[0],Decimal_Places),round(v[1],Decimal_Places),round(v[2],Decimal_Places)])
- 
-        for face in faces:
-            new_face = []
-            for vert_index in face:
-                Real_co = tuple(verts[vert_index])
-                Rounded_co = tuple(Rounded_Verts[vert_index])
-                                
-                if Rounded_co not in dict_verts:
-                    dict_verts[Rounded_co] = len(dict_verts)
-                    new_verts.append(Real_co)
-                if dict_verts[Rounded_co] not in new_face: 
-                    new_face.append(dict_verts[Rounded_co])
-            if len(new_face) == 3 or len(new_face) == 4:
-                new_faces.append(new_face)
+    new_verts = []
+    new_faces = []
+    dict_verts = {}
+    Rounded_Verts = []
+    
+    for v in verts:
+        Rounded_Verts.append([round(v[0],Decimal_Places),round(v[1],Decimal_Places),round(v[2],Decimal_Places)])
+
+    for face in faces:
+        new_face = []
+        for vert_index in face:
+            Real_co = tuple(verts[vert_index])
+            Rounded_co = tuple(Rounded_Verts[vert_index])
+
+            if Rounded_co not in dict_verts:
+                dict_verts[Rounded_co] = len(dict_verts)
+                new_verts.append(Real_co)
+            if dict_verts[Rounded_co] not in new_face: 
+                new_face.append(dict_verts[Rounded_co])
+        if len(new_face) == 3 or len(new_face) == 4:
+            new_faces.append(new_face)
 
         return new_verts,new_faces 
 
@@ -183,7 +183,7 @@ def SpinDup(VERTS,FACES,DEGREE,DIVISIONS,AXIS):
     faces=[]
     
     if DIVISIONS == 0:
-       DIVISIONS = 1  
+        DIVISIONS = 1  
   
     step = DEGREE/DIVISIONS # set step so pieces * step = degrees in arc
     
@@ -1341,7 +1341,7 @@ def Create_Thread_End_Verts(INNER_DIA,OUTTER_DIA,PITCH,CREST_PERCENT,ROOT_PERCEN
             z = max(z,Max_Height)
             Tapper_Radius = OUTTER_RADIUS - (Tapper_Height_Start - z)
             if Tapper_Radius > INNER_RADIUS:
-               Tapper_Radius = INNER_RADIUS
+                Tapper_Radius = INNER_RADIUS
             
             x = sin(radians(i*Deg_Step))*(Tapper_Radius)
             y = cos(radians(i*Deg_Step))*(Tapper_Radius)
@@ -1355,7 +1355,7 @@ def Create_Thread_End_Verts(INNER_DIA,OUTTER_DIA,PITCH,CREST_PERCENT,ROOT_PERCEN
             z = max(z,Max_Height)
             Tapper_Radius = OUTTER_RADIUS - (Tapper_Height_Start - z)
             if Tapper_Radius > INNER_RADIUS:
-               Tapper_Radius = INNER_RADIUS
+                Tapper_Radius = INNER_RADIUS
             
             x = sin(radians(i*Deg_Step))*(Tapper_Radius)
             y = cos(radians(i*Deg_Step))*(Tapper_Radius)

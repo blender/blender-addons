@@ -21,12 +21,12 @@ import bpy
 import os
 
 def find_index(objekti):
-        luku = 0
-        for tex in objekti.active_material.texture_slots:
-                if(not(hasattr(tex,'texture'))):
-                        break
-                luku = luku +1
-        return luku
+    luku = 0
+    for tex in objekti.active_material.texture_slots:
+        if(not(hasattr(tex,'texture'))):
+            break
+        luku = luku +1
+    return luku
 
 def gettex(mat_list, objekti, scene,export):
 
@@ -67,9 +67,9 @@ def gettex(mat_list, objekti, scene,export):
                             tex_slot.texture.image.reload()
     else:
         if(os.sys.platform == 'win32'):
-                osoite = os.path.expanduser("~") + os.sep + 'Documents' + os.sep + '3DC2Blender' + os.sep + 'Textures' + os.sep
+            soite = os.path.expanduser("~") + os.sep + 'Documents' + os.sep + '3DC2Blender' + os.sep + 'Textures' + os.sep
         else:
-                osoite = os.path.expanduser("~") + os.sep + '3DC2Blender' + os.sep + 'Textures' + os.sep
+            osoite = os.path.expanduser("~") + os.sep + '3DC2Blender' + os.sep + 'Textures' + os.sep
     ki = os.path.split(coa.applink_name)[1]
     ko = os.path.splitext(ki)[0]
     just_nimi = ko + '_'

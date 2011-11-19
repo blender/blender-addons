@@ -625,46 +625,46 @@ def pskimport(infile,importmesh,importbone,bDebugLogPSK,importmultiuvtextures):
             #psktexname="psk" + str(countm)
         #me_ob.uv_textures.new(name=psktexname)
         for countm in range(len(me_ob.uv_textures)):
-                me_ob.update()
-                #print(dir(me_ob.uv_textures))
-                #psktexname="psk" + str(countm)
-                uvtex = me_ob.uv_textures[countm] #add one uv texture
-                me_ob.update()
-                #print("UV TEXTURE NAME:",uvtex.name)
-                if (len(faceuv) > 0):
-                    # counttex = 0  # UNUSED
-                    countm = 0
-                    for countm in range(len(me_ob.uv_textures)):
-                        me_ob.update()
-                        #print(dir(me_ob.uv_textures))
-                        psktexname="psk" + str(countm)
-                        uvtex = me_ob.uv_textures[countm] #add one uv texture
-                        me_ob.update()
-                        #print("UV TEXTURE NAME:",uvtex.name)
-                        for i, face in enumerate(me_ob.faces):
-                            blender_tface = uvtex.data[i] #face
-                            mfaceuv = faceuv[i]
-                            #print("---------------------------------------")
-                            #print(faceuv[i][1])
-                            #print(dir(face))
+            me_ob.update()
+            #print(dir(me_ob.uv_textures))
+            #psktexname="psk" + str(countm)
+            uvtex = me_ob.uv_textures[countm] #add one uv texture
+            me_ob.update()
+            #print("UV TEXTURE NAME:",uvtex.name)
+            if (len(faceuv) > 0):
+                # counttex = 0  # UNUSED
+                countm = 0
+                for countm in range(len(me_ob.uv_textures)):
+                    me_ob.update()
+                    #print(dir(me_ob.uv_textures))
+                    psktexname="psk" + str(countm)
+                    uvtex = me_ob.uv_textures[countm] #add one uv texture
+                    me_ob.update()
+                    #print("UV TEXTURE NAME:",uvtex.name)
+                    for i, face in enumerate(me_ob.faces):
+                        blender_tface = uvtex.data[i] #face
+                        mfaceuv = faceuv[i]
+                        #print("---------------------------------------")
+                        #print(faceuv[i][1])
+                        #print(dir(face))
+                        face.material_index = faceuv[i][1]
+                        if countm == faceuv[i][1]:
                             face.material_index = faceuv[i][1]
-                            if countm == faceuv[i][1]:
-                                face.material_index = faceuv[i][1]
-                                blender_tface.uv1 = mfaceuv[0][0] #uv = (0,0)
-                                blender_tface.uv2 = mfaceuv[0][1] #uv = (0,0)
-                                blender_tface.uv3 = mfaceuv[0][2] #uv = (0,0)
-                            else:
-                                #set uv to zero (0,0)
-                                #print("--------------------")
-                                #print(blender_tface.uv1)
-                                #print(blender_tface.uv2)
-                                #print(blender_tface.uv2)
-                                blender_tface.uv1 = [0,0]
-                                #print(blender_tface.uv1)
-                                blender_tface.uv2 = [0,0]
-                                blender_tface.uv3 = [0,0]
-                    
-                texture.append(uvtex)		
+                            blender_tface.uv1 = mfaceuv[0][0] #uv = (0,0)
+                            blender_tface.uv2 = mfaceuv[0][1] #uv = (0,0)
+                            blender_tface.uv3 = mfaceuv[0][2] #uv = (0,0)
+                        else:
+                            #set uv to zero (0,0)
+                            #print("--------------------")
+                            #print(blender_tface.uv1)
+                            #print(blender_tface.uv2)
+                            #print(blender_tface.uv2)
+                            blender_tface.uv1 = [0,0]
+                            #print(blender_tface.uv1)
+                            blender_tface.uv2 = [0,0]
+                            blender_tface.uv3 = [0,0]
+                
+            texture.append(uvtex)
     print("UV TEXTURE LEN:",len(texture))
         #for tex in me_ob.uv_textures:
             #print("mesh tex:",dir(tex))

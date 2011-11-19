@@ -165,7 +165,7 @@ def iterate(points, newVerts, error):
             if alti > alti_store:
                 alti_store = alti
                 if alti_store >= error:
-                   bigVert = i+1+newVerts[newIndex]
+                    bigVert = i+1+newVerts[newIndex]
         if bigVert:
             new.append(bigVert)
     if new == []:

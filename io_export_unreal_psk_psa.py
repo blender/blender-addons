@@ -887,7 +887,7 @@ def parse_meshes(blender_meshes, psk_file):
         for point in points.items():
             psk_file.AddPoint(point)
         if len(points.dict) > 32767:
-           raise RuntimeError("Vertex point reach max limited 32767 in pack data. Your",len(points.dict))
+            raise RuntimeError("Vertex point reach max limited 32767 in pack data. Your",len(points.dict))
         print (" -- Dumping Mesh Wedge -- LEN:",len(wedges.dict))
         
         for wedge in wedges.items():
@@ -1089,15 +1089,15 @@ def parse_armature(blender_armature, psk_file, psa_file):
             raise RuntimeError("Warning add two bones else it will crash the unreal editor.")
         if len(current_armature.bones) == 1:
             raise RuntimeError("Warning add one more bone else it will crash the unreal editor.")
-		
+
         mainbonecount = 0;
         for current_bone in current_armature.bones: #list the bone. #note this will list all the bones.
             if(current_bone.parent is None):
                 mainbonecount += 1
         print("Main Bone",mainbonecount)
         if mainbonecount > 1:
-           #print("Warning there no main bone.")
-           raise RuntimeError("There too many Main bones. Number main bones:",mainbonecount)
+            #print("Warning there no main bone.")
+            raise RuntimeError("There too many Main bones. Number main bones:",mainbonecount)
         for current_bone in current_armature.bones: #list the bone. #note this will list all the bones.
             if(current_bone.parent is None):
                 parse_bone(current_bone, psk_file, psa_file, 0, 0, current_obj.matrix_local, None)
@@ -1161,7 +1161,7 @@ def parse_animation(blender_scene, blender_armatures, psa_file):
             #for bone in action.groups:
                 #print("> Name: ",bone.name)
                 #print(dir(bone))
-				
+
         amatureobject = None #this is the armature set to none
         bonenames = [] #bone name of the armature bones list
         
@@ -2041,10 +2041,10 @@ class VIEW3D_PT_unrealtools_objectmode(bpy.types.Panel):
         
         ArmatureSelect = None
         for obj in bpy.data.objects:
-                if obj.type == 'ARMATURE' and obj.select == True:
-                    #print("Armature Name:",obj.name)
-                    ArmatureSelect = obj
-                    break
+            if obj.type == 'ARMATURE' and obj.select == True:
+                #print("Armature Name:",obj.name)
+                ArmatureSelect = obj
+                break
         #display armature actions list
         if ArmatureSelect != None and rd.unrealdisplayactionsets == True:
             layout.label(("Selected: "+ArmatureSelect.name))

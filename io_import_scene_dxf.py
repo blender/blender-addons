@@ -1224,22 +1224,22 @@ class CText(CEntity):
 
 
 def drawText(text, loc, size, spacing, angle, shear, normal=Vector((0,0,1))):
-        #print('angle_deg=',angle)
-        bpy.ops.object.text_add(
-            view_align=False, 
-            enter_editmode=False, 
-            location= loc, 
-            #rotation=(0, 0, angle), #need radians here
-            )
-        cu = bpy.context.object.data
-        cu.body = text
-        cu.size = size #up 2.56
-        cu.space_word = spacing #up 2.56
-        cu.shear = shear
-        if angle!=0.0 or normal!=Vector((0,0,1)):
-            obj = bpy.context.object
-            transform(normal, angle, obj)
-        return
+    #print('angle_deg=',angle)
+    bpy.ops.object.text_add(
+        view_align=False, 
+        enter_editmode=False, 
+        location= loc, 
+        #rotation=(0, 0, angle), #need radians here
+        )
+    cu = bpy.context.object.data
+    cu.body = text
+    cu.size = size #up 2.56
+    cu.space_word = spacing #up 2.56
+    cu.shear = shear
+    if angle!=0.0 or normal!=Vector((0,0,1)):
+        obj = bpy.context.object
+        transform(normal, angle, obj)
+    return
 
 #
 #    class CTolerance(CEntity):

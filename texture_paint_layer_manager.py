@@ -185,7 +185,7 @@ class OBJECT_PT_Texture_paint_layers(bpy.types.Panel):
                                 ic = 'RESTRICT_VIEW_ON'
                             row.prop(t,'use', text = "",icon = ic)
                     except:
-                         continue
+                        continue
     
             
     

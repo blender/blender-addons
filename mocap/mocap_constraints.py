@@ -363,11 +363,11 @@ def bakeAllConstraints(obj, s_frame, e_frame, bones):
             ik = retarget.hasIKConstraint(end_bone)
             cons_obj = getConsObj(end_bone)
             if ik:
-                    #If it's an auto generated IK:
-                    if ik.chain_count == 0:
-                        selectedBones += bones  # Chain len 0, bake everything
-                    else:
-                        selectedBones += [end_bone] + end_bone.parent_recursive[:ik.chain_count - 1]  # Bake the chain
+                #If it's an auto generated IK:
+                if ik.chain_count == 0:
+                    selectedBones += bones  # Chain len 0, bake everything
+                else:
+                    selectedBones += [end_bone] + end_bone.parent_recursive[:ik.chain_count - 1]  # Bake the chain
             else:
                 #It's either an FK bone which we should just bake
                 #OR a user created IK target bone

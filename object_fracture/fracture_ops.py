@@ -424,27 +424,27 @@ class FractureGroup(bpy.types.Operator):
 # Import Functions
 
 def import_object(obname):
-        opath = "//data.blend\\Object\\" + obname
-        s = os.sep
-        dpath = bpy.utils.script_paths()[0] + \
-            '%saddons%sobject_fracture%sdata.blend\\Object\\' % (s, s, s)
+    opath = "//data.blend\\Object\\" + obname
+    s = os.sep
+    dpath = bpy.utils.script_paths()[0] + \
+        '%saddons%sobject_fracture%sdata.blend\\Object\\' % (s, s, s)
 
-        # DEBUG
-        #print('import_object: ' + opath)
+    # DEBUG
+    #print('import_object: ' + opath)
 
-        bpy.ops.wm.link_append(
-                filepath=opath,
-                filename=obname,
-                directory=dpath,
-                filemode=1,
-                link=False,
-                autoselect=True,
-                active_layer=True,
-                instance_groups=True,
-                relative_path=True)
+    bpy.ops.wm.link_append(
+            filepath=opath,
+            filename=obname,
+            directory=dpath,
+            filemode=1,
+            link=False,
+            autoselect=True,
+            active_layer=True,
+            instance_groups=True,
+            relative_path=True)
 
-        for ob in bpy.context.selected_objects:
-            ob.location = bpy.context.scene.cursor_location
+    for ob in bpy.context.selected_objects:
+        ob.location = bpy.context.scene.cursor_location
 
 
 class ImportFractureRecorder(bpy.types.Operator):

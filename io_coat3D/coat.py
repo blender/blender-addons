@@ -532,8 +532,7 @@ class VIEW3D_MT_Coat_Dynamic_Menu(bpy.types.Menu):
                         layout.operator("import3b_applink.pilgway_3d_coat", text="Bring from 3D-Coat")
                         layout.separator()
             else:
-                 if(os.path.isfile(Blender_export)):
-                    
+                if(os.path.isfile(Blender_export)):
 
                     layout.operator("import3b_applink.pilgway_3d_coat", text="Bring from 3D-Coat")
                     layout.separator()
@@ -561,7 +560,7 @@ class VIEW3D_MT_ExportMenu(bpy.types.Menu):
         layout.operator_context = 'INVOKE_REGION_WIN'
         layout.prop(coat3D,"exportover")
         if(coat3D.exportover):
-           layout.prop(coat3D,"exportmod")
+            layout.prop(coat3D,"exportmod")
 
 class VIEW3D_MT_ExtraMenu(bpy.types.Menu):
     bl_label = "Extra"

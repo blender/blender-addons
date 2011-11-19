@@ -700,7 +700,7 @@ class MESH_OT_CopyFaceSettings(bpy.types.Operator):
                 layers = mesh.uv_textures
                 act_layer = mesh.uv_textures.active
             if not layers or (layername and not layername in layers):
-                    return _end({'CANCELLED'})
+                return _end({'CANCELLED'})
             from_data = layers[layername or act_layer.name].data
             to_data = act_layer.data
         from_face = from_data[mesh.faces.active]

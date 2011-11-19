@@ -76,11 +76,11 @@ def createIntermediate(performer_obj, enduser_obj, root, s_frame, e_frame, scene
 
     #Simple 1to1 retarget of a bone
     def singleBoneRetarget(inter_bone, perf_bone):
-            perf_world_rotation = perf_bone.matrix
-            inter_world_base_rotation = inter_bone.bone.matrix_local
-            inter_world_base_inv = inter_world_base_rotation.inverted()
-            bake_matrix = (inter_world_base_inv.to_3x3() * perf_world_rotation.to_3x3())
-            return bake_matrix.to_4x4()
+        perf_world_rotation = perf_bone.matrix
+        inter_world_base_rotation = inter_bone.bone.matrix_local
+        inter_world_base_inv = inter_world_base_rotation.inverted()
+        bake_matrix = (inter_world_base_inv.to_3x3() * perf_world_rotation.to_3x3())
+        return bake_matrix.to_4x4()
 
     #uses 1to1 and interpolation/averaging to match many to 1 retarget
     def manyPerfToSingleInterRetarget(inter_bone, performer_bones_s):

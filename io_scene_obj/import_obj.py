@@ -591,56 +591,56 @@ def create_mesh(new_objects,
                 edges.append(face[0])
         else:
 
-                blender_face = me.faces[i]
+            blender_face = me.faces[i]
 
-                (face_vert_loc_indices,
-                 face_vert_tex_indices,
-                 context_material,
-                 context_smooth_group,
-                 context_object,
-                 ) = face
+            (face_vert_loc_indices,
+             face_vert_tex_indices,
+             context_material,
+             context_smooth_group,
+             context_object,
+             ) = face
 
-                if context_smooth_group:
-                    blender_face.use_smooth = True
+            if context_smooth_group:
+                blender_face.use_smooth = True
+
+            if context_material:
+                if context_material_old is not context_material:
+                    mat = material_mapping[context_material]
+                    context_material_old = context_material
+
+                blender_face.material_index = mat
+#                blender_face.mat= mat
+
+            if verts_tex:
+
+                blender_tface = me.uv_textures[0].data[i]
 
                 if context_material:
-                    if context_material_old is not context_material:
-                        mat = material_mapping[context_material]
-                        context_material_old = context_material
+                    image, has_data = unique_material_images[context_material]
+                    if image:  # Can be none if the material dosnt have an image.
+                        blender_tface.image = image
+                        if has_data and image.depth == 32:
+                            blender_tface.alpha_blend = 'ALPHA'
 
-                    blender_face.material_index = mat
-#                     blender_face.mat= mat
+                # BUG - Evil eekadoodle problem where faces that have vert index 0 location at 3 or 4 are shuffled.
+                if len(face_vert_loc_indices) == 4:
+                    if face_vert_loc_indices[2] == 0 or face_vert_loc_indices[3] == 0:
+                        face_vert_tex_indices = face_vert_tex_indices[2], face_vert_tex_indices[3], face_vert_tex_indices[0], face_vert_tex_indices[1]
+                else:  # length of 3
+                    if face_vert_loc_indices[2] == 0:
+                        face_vert_tex_indices = face_vert_tex_indices[1], face_vert_tex_indices[2], face_vert_tex_indices[0]
+                # END EEEKADOODLE FIX
 
-                if verts_tex:
+                # assign material, uv's and image
+                blender_tface.uv1 = verts_tex[face_vert_tex_indices[0]]
+                blender_tface.uv2 = verts_tex[face_vert_tex_indices[1]]
+                blender_tface.uv3 = verts_tex[face_vert_tex_indices[2]]
 
-                    blender_tface = me.uv_textures[0].data[i]
+                if len(face_vert_loc_indices) == 4:
+                    blender_tface.uv4 = verts_tex[face_vert_tex_indices[3]]
 
-                    if context_material:
-                        image, has_data = unique_material_images[context_material]
-                        if image:  # Can be none if the material dosnt have an image.
-                            blender_tface.image = image
-                            if has_data and image.depth == 32:
-                                blender_tface.alpha_blend = 'ALPHA'
-
-                    # BUG - Evil eekadoodle problem where faces that have vert index 0 location at 3 or 4 are shuffled.
-                    if len(face_vert_loc_indices) == 4:
-                        if face_vert_loc_indices[2] == 0 or face_vert_loc_indices[3] == 0:
-                            face_vert_tex_indices = face_vert_tex_indices[2], face_vert_tex_indices[3], face_vert_tex_indices[0], face_vert_tex_indices[1]
-                    else:  # length of 3
-                        if face_vert_loc_indices[2] == 0:
-                            face_vert_tex_indices = face_vert_tex_indices[1], face_vert_tex_indices[2], face_vert_tex_indices[0]
-                    # END EEEKADOODLE FIX
-
-                    # assign material, uv's and image
-                    blender_tface.uv1 = verts_tex[face_vert_tex_indices[0]]
-                    blender_tface.uv2 = verts_tex[face_vert_tex_indices[1]]
-                    blender_tface.uv3 = verts_tex[face_vert_tex_indices[2]]
-
-                    if len(face_vert_loc_indices) == 4:
-                        blender_tface.uv4 = verts_tex[face_vert_tex_indices[3]]
-
-#                     for ii, uv in enumerate(blender_face.uv):
-#                         uv.x, uv.y=  verts_tex[face_vert_tex_indices[ii]]
+#                for ii, uv in enumerate(blender_face.uv):
+#                    uv.x, uv.y=  verts_tex[face_vert_tex_indices[ii]]
     del me_faces
 #     del ALPHA
 

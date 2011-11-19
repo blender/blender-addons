@@ -486,7 +486,7 @@ class GPENCIL_OT_SURFSK_add_surface(bpy.types.Operator):
         
         bpy.ops.object.editmode_toggle('INVOKE_REGION_WIN')
         for i in range(0, int(bpy.context.scene.SURFSK_precision)):
-          bpy.ops.curve.subdivide('INVOKE_REGION_WIN')
+            bpy.ops.curve.subdivide('INVOKE_REGION_WIN')
         bpy.ops.object.editmode_toggle('INVOKE_REGION_WIN')
 
         # Proportions U.
@@ -606,7 +606,7 @@ class GPENCIL_OT_SURFSK_add_surface(bpy.types.Operator):
         bpy.ops.curve.spline_type_set('INVOKE_REGION_WIN', type='BEZIER')
         bpy.ops.curve.handle_type_set('INVOKE_REGION_WIN', type='AUTOMATIC')
         for i in range(0, int(bpy.context.scene.SURFSK_precision)):
-          bpy.ops.curve.subdivide('INVOKE_REGION_WIN')
+            bpy.ops.curve.subdivide('INVOKE_REGION_WIN')
         bpy.ops.object.editmode_toggle('INVOKE_REGION_WIN')
         
         
@@ -631,7 +631,7 @@ class GPENCIL_OT_SURFSK_add_surface(bpy.types.Operator):
         
         bpy.ops.object.editmode_toggle('INVOKE_REGION_WIN')
         for i in range(0, int(bpy.context.scene.SURFSK_precision)):
-          bpy.ops.curve.subdivide('INVOKE_REGION_WIN')
+            bpy.ops.curve.subdivide('INVOKE_REGION_WIN')
         bpy.ops.object.editmode_toggle('INVOKE_REGION_WIN')
 
         for sp_idx in range(0, len(surface_splines)):
