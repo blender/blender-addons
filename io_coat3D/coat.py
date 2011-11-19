@@ -30,13 +30,24 @@ def set_exchange_folder():
     platform = os.sys.platform
     coat3D = bpy.context.scene.coat3D
     Blender_export = ""
+
     if(platform == 'win32'):
         exchange = os.path.expanduser("~") + os.sep + 'Documents' + os.sep + '3D-CoatV3' + os.sep +'Exchange'
     else:
         exchange = os.path.expanduser("~") + os.sep + '3D-CoatV3' + os.sep + 'Exchange'
+    if(not(os.path.isdir(exchange))):
+        exchange = coat3D.exchangedir 
 
     if(os.path.isdir(exchange)):
         bpy.coat3D['status'] = 1
+        if(platform == 'win32'):
+            exchange_path = os.path.expanduser("~") + os.sep + 'Documents' + os.sep + '3DC2Blender' + os.sep + 'Exchange_folder.txt'
+        else:
+            exchange_path = os.path.expanduser("~") + os.sep + '3DC2Blender' + os.sep + 'Exchange_folder.txt'
+        file = open(exchange_path, "w")
+        file.write("%s"%(coat3D.exchangedir))
+        file.close()
+        
     else:
         if(platform == 'win32'):
             exchange_path = os.path.expanduser("~") + os.sep + 'Documents' + os.sep + '3DC2Blender' + os.sep + 'Exchange_folder.txt'
@@ -117,7 +128,6 @@ class SCENE_PT_Main(ObjectButtonsPanel,bpy.types.Panel):
 
             
         if(bpy.coat3D['status'] == 0 and not(os.path.isdir(coat3D.exchangedir))):
-            print('toivottavasti nyt toimii')
             bpy.coat3D['active_coat'] = set_exchange_folder()
             row = layout.row()
             row.label(text="Applink didn't find your 3d-Coat/Excahnge folder.")
@@ -532,7 +542,8 @@ class VIEW3D_MT_Coat_Dynamic_Menu(bpy.types.Menu):
                         layout.operator("import3b_applink.pilgway_3d_coat", text="Bring from 3D-Coat")
                         layout.separator()
             else:
-                if(os.path.isfile(Blender_export)):
+                 if(os.path.isfile(Blender_export)):
+                    
 
                     layout.operator("import3b_applink.pilgway_3d_coat", text="Bring from 3D-Coat")
                     layout.separator()
@@ -560,7 +571,7 @@ class VIEW3D_MT_ExportMenu(bpy.types.Menu):
         layout.operator_context = 'INVOKE_REGION_WIN'
         layout.prop(coat3D,"exportover")
         if(coat3D.exportover):
-            layout.prop(coat3D,"exportmod")
+           layout.prop(coat3D,"exportmod")
 
 class VIEW3D_MT_ExtraMenu(bpy.types.Menu):
     bl_label = "Extra"
