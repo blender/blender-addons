@@ -174,7 +174,7 @@ def demo_mode_init():
         # setup scene.
         scene = bpy.context.scene
         scene.render.filepath = global_state["render_out"]
-        scene.render.file_format = 'AVI_JPEG' if global_config["anim_render"] else 'PNG'
+        scene.render.image_settings.file_format = 'AVI_JPEG' if global_config["anim_render"] else 'PNG'
         scene.render.use_file_extension = False
         scene.render.use_placeholder = False
         try:

@@ -45,8 +45,8 @@ def _internal(filename):
 
     if bpy:
         scene = bpy.data.scenes[0] # FIXME, this is dodgy!
-        scene.render.file_format = "JPEG"
-        scene.render.file_quality = 90
+        scene.render.image_settings.file_format = "JPEG"
+        scene.render.image_settings.quality = 90
         
         # remove existing image, if there's a leftover (otherwise open changes the name)
         if imagename in bpy.data.images:

@@ -129,7 +129,7 @@ def write(fw, mesh_source, image_width, image_height, opacity, face_iter_func):
     scene.frame_start = 1
     scene.frame_end = 1
 
-    scene.render.file_format = 'PNG'
+    scene.render.image_settings.file_format = 'PNG'
     scene.render.filepath = filepath
 
     data_context = {"blend_data": bpy.context.blend_data, "scene": scene}
