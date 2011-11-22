@@ -92,12 +92,12 @@ class MocapConstraint(bpy.types.PropertyGroup):
         update=mocap_constraints.setConstraint)
     smooth_in = IntProperty(name="In",
         default=10,
-        description="Amount of frames to smooth in",
+        description="Number of frames to smooth in",
         update=mocap_constraints.setConstraint,
         min=0)
     smooth_out = IntProperty(name="Out",
         default=10,
-        description="Amount of frames to smooth out",
+        description="Number of frames to smooth out",
         update=mocap_constraints.setConstraint,
         min=0)
     targetMesh = StringProperty(name="Mesh",
@@ -888,7 +888,7 @@ def register():
     #frame step - frequency of frames to retarget. Skipping is useful for previewing, faster work etc.
     bpy.types.Armature.frameStep = IntProperty(name="Frame Skip",
             default=1,
-            description="Amount of frames to skip - for previewing retargets quickly (1 is fully sampled)",
+            description="Number of frames to skip - for previewing retargets quickly (1 is fully sampled)",
             min=1)
     bpy.utils.register_module(__name__)
 
