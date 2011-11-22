@@ -21,9 +21,9 @@ bl_info = {
     'name': 'Export: Adobe After Effects (.jsx)',
     'description': 'Export selected cameras, objects & bundles to Adobe After Effects CS3 and above',
     'author': 'Bartek Skorupa',
-    'version': (0, 57),
+    'version': (0, 58),
     'blender': (2, 6, 0),
-    'api': 41760,
+    'api': 42052,
     'location': 'File > Export > Adobe After Effects (.jsx)',
     'category': 'Import-Export',
     "warning": "",
@@ -327,8 +327,8 @@ def write_jsx_file(file, data, selection, export_bundles, comp_name, prefix):
                 #does the camera have a Camera Solver constrain
                 if constrain.type == 'CAMERA_SOLVER':
                     #Which movie clip does it use ?
-                    if constrain.use_default_clip:
-                        mc = data['scn'].clip
+                    if constrain.use_active_clip:
+                        mc = data['scn'].active_clip
                     else:
                         mc = constrain.clip
 
