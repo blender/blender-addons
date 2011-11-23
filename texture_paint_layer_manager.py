@@ -558,7 +558,7 @@ def save_painted(ts):
                     elif i.file_format =='TARGA':   
                         name = name +'.tga' 
                         
-                    bpy.context.scene.render.color_mode = 'RGBA'                          
+                    bpy.context.scene.render.image_settings.color_mode = 'RGBA'                          
                     fp =bpy.path.abspath('//textures' + sep + name)
                     try:
                         i.save_render(fp)

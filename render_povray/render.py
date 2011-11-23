@@ -2052,11 +2052,11 @@ class PovrayRender(bpy.types.RenderEngine):
 ##WIP output format
 ##        if r.image_settings.file_format == 'OPENEXR':
 ##            fformat = 'EXR'
-##            render.color_mode = 'RGBA'
+##            render.image_settings.color_mode = 'RGBA'
 ##        else:
 ##            fformat = 'TGA'
 ##            r.image_settings.file_format = 'TARGA'
-##            r.color_mode = 'RGBA'
+##            r.image_settings.color_mode = 'RGBA'
 
         blendSceneName = bpy.data.filepath.split(os.path.sep)[-1].split(".")[0]
         povSceneName = ""
