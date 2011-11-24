@@ -124,12 +124,18 @@ def create_material_for_texture(self, texture):
 
 def create_image_plane(self, context, material):
     img = material.texture_slots[0].texture.image
-    x = img.size[0] / img.size[1]
-    y = 1
+    px, py = img.size
+
+    # can't load data
+    if px == 0 or py == 0:
+        px = py = 1
+
+    x = px / py
+    y = 1.0
 
     if self.use_dimension:
-        x = (img.size[0] * (1.0 / self.factor)) * 0.5
-        y = (img.size[1] * (1.0 / self.factor)) * 0.5
+        x = (px * (1.0 / self.factor)) * 0.5
+        y = (py * (1.0 / self.factor)) * 0.5
 
     verts = [(-x, -y, 0),
              (x, -y, 0),
