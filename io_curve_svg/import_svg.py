@@ -960,9 +960,9 @@ class SVGGeometry:
         if hasattr(node, 'getAttribute'):
             defs = context['defines']
 
-            id = node.getAttribute('id')
-            if id and defs.get('#' + id) is None:
-                defs['#' + id] = self
+            attr_id = node.getAttribute('id')
+            if attr_id and defs.get('#' + attr_id) is None:
+                defs['#' + attr_id] = self
 
             className = node.getAttribute('class')
             if className and defs.get(className) is None:

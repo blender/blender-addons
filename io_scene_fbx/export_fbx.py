@@ -879,7 +879,7 @@ def save_single(operator, scene, filepath="",
            '\n\t\t\tProperty: "UseMotionBlur", "bool", "",0'
            '\n\t\t\tProperty: "UseRealTimeMotionBlur", "bool", "",1'
            '\n\t\t\tProperty: "ResolutionMode", "enum", "",0'
-           '\n\t\t\tProperty: "ApertureMode", "enum", "",3' # horizontal - Houdini compatible
+           '\n\t\t\tProperty: "ApertureMode", "enum", "",3'  # horizontal - Houdini compatible
            '\n\t\t\tProperty: "GateFit", "enum", "",2'
            '\n\t\t\tProperty: "CameraFormat", "enum", "",0'
            )
@@ -908,7 +908,7 @@ def save_single(operator, scene, filepath="",
 
         fw('\n\t\t\tProperty: "NearPlane", "double", "",%.6f' % (data.clip_start * global_scale))
         fw('\n\t\t\tProperty: "FarPlane", "double", "",%.6f' % (data.clip_end * global_scale))
-                
+
         fw('\n\t\t\tProperty: "FilmWidth", "double", "",%.6f' % filmwidth)
         fw('\n\t\t\tProperty: "FilmHeight", "double", "",%.6f' % filmheight)
         fw('\n\t\t\tProperty: "FilmAspectRatio", "double", "",%.6f' % filmaspect)

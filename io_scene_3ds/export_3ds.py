@@ -352,8 +352,8 @@ class _3ds_chunk(object):
     '''
     __slots__ = "ID", "size", "variables", "subchunks"
 
-    def __init__(self, id=0):
-        self.ID = _3ds_ushort(id)
+    def __init__(self, chunk_id=0):
+        self.ID = _3ds_ushort(chunk_id)
         self.size = _3ds_uint(0)
         self.variables = []
         self.subchunks = []
@@ -439,11 +439,11 @@ def get_material_images(material):
 # 	return images
 
 
-def make_material_subchunk(id, color):
+def make_material_subchunk(chunk_id, color):
     '''Make a material subchunk.
 
     Used for color subchunks, such as diffuse color or ambient color subchunks.'''
-    mat_sub = _3ds_chunk(id)
+    mat_sub = _3ds_chunk(chunk_id)
     col1 = _3ds_chunk(RGB1)
     col1.add_variable("color1", _3ds_rgb_color(color))
     mat_sub.add_subchunk(col1)
@@ -454,10 +454,10 @@ def make_material_subchunk(id, color):
     return mat_sub
 
 
-def make_material_texture_chunk(id, images):
+def make_material_texture_chunk(chunk_id, images):
     """Make Material Map texture chunk
     """
-    mat_sub = _3ds_chunk(id)
+    mat_sub = _3ds_chunk(chunk_id)
 
     def add_image(image):
         import bpy

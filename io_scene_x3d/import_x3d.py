@@ -2463,11 +2463,11 @@ def importRoute(node, ancestry):
 
     routeIpoDict = node.getRouteIpoDict()
 
-    def getIpo(id):
+    def getIpo(act_id):
         try:
-            action = routeIpoDict[id]
+            action = routeIpoDict[act_id]
         except:
-            action = routeIpoDict[id] = bpy.data.actions.new('web3d_ipo')
+            action = routeIpoDict[act_id] = bpy.data.actions.new('web3d_ipo')
         return action
 
     # for getting definitions
