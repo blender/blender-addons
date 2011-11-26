@@ -19,9 +19,9 @@
 bl_info = {
     'name': "LoopTools",
     'author': "Bart Crouch",
-    'version': (3, 2, 1),
+    'version': (3, 2, 2),
     'blender': (2, 6, 0),
-    'api': 41270,
+    'api': 42162,
     'location': "View3D > Toolbar and View3D > Specials (W-key)",
     'warning': "",
     'description': "Mesh modelling toolkit. Several tools to aid modelling",
@@ -244,19 +244,12 @@ def calculate_plane(mesh_mod, loop, method="best_fit", object=False):
             elif sum(mat[2]) == 0.0:
                 normal = mathutils.Vector((0.0, 0.0, 1.0))
         if not normal:
-            itermax = 500
-            iter = 0
             vec = mathutils.Vector((1.0, 1.0, 1.0))
-            vec2 = (mat * vec)/(mat * vec).length
-            while vec != vec2 and iter<itermax:
-                iter+=1
-                vec = vec2
-                vec2 = mat * vec
-                if vec2.length != 0:
-                    vec2 /= vec2.length
-            if vec2.length == 0:
-                vec2 = mathutils.Vector((1.0, 1.0, 1.0))
-            normal = vec2
+            normal = (mat * vec)/(mat * vec).length
+            if normal.length == 0:
+                normal = vec
+            else:
+                normal.normalize()
     
     elif method == 'normal':
         # averaging the vertex normals
@@ -933,19 +926,12 @@ def bridge_calculate_lines(mesh, loops, mode, twist, reverse):
             elif sum(mat[2]) == 0:
                 normal = mathutils.Vector((0.0, 0.0, 1.0))
         if not normal:
-            itermax = 500
-            iter = 0
             vec = mathutils.Vector((1.0, 1.0, 1.0))
-            vec2 = (mat * vec)/(mat * vec).length
-            while vec != vec2 and iter<itermax:
-                iter+=1
-                vec = vec2
-                vec2 = mat * vec
-                if vec2.length != 0:
-                    vec2 /= vec2.length
-            if vec2.length == 0:
-                vec2 = mathutils.Vector((1.0, 1.0, 1.0))
-            normal = vec2
+            normal = (mat * vec)/(mat * vec).length
+            if normal.length == 0:
+                normal = vec
+            else:
+                normal.normalize()
         normals.append(normal)
     # have plane normals face in the same direction (maximum angle: 90 degrees)
     if ((center1 + normals[0]) - center2).length < \
