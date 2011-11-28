@@ -39,7 +39,7 @@ Alternatively, run the script in the script editor (Alt-P), and access from the 
 bl_info = {
     'name': 'Import: MakeHuman (.mhx)',
     'author': 'Thomas Larsson',
-    'version': (1, 9, 0),
+    'version': (1, 9, 1),
     "blender": (2, 5, 9),
     "api": 40335,
     'location': "File > Import > MakeHuman (.mhx)",
@@ -265,12 +265,13 @@ def checkBlenderVersion():
 #
 
 def readMhxFile(filePath):
-    global todo, nErrors, theScale, defaultScale, One, toggle
+    global todo, nErrors, theScale, defaultScale, One, toggle, warnedVersion
 
     #checkBlenderVersion()    
     
     defaultScale = theScale
     One = 1.0/theScale
+    warnedVersion = False
 
     fileName = os.path.expanduser(filePath)
     (shortName, ext) = os.path.splitext(fileName)
@@ -390,25 +391,29 @@ def getObject(name, var, glbals, lcals):
 
 def checkMhxVersion(major, minor):
     global warnedVersion
-    print((major,minor), (MAJOR_VERSION, MINOR_VERSION), warnedVersion)
+    print("MHX", (major,minor), (MAJOR_VERSION, MINOR_VERSION), warnedVersion)
     if  major != MAJOR_VERSION or minor != MINOR_VERSION:
         if warnedVersion:
             return
         else:
             msg = (
 "Wrong MHX version\n" +
-"Expected MHX %d.%d but the loaded file \n" % (MAJOR_VERSION, MINOR_VERSION) +
-"has version MHX %d.%d\n" % (major, minor) +
+"Expected MHX %d.%d but the loaded file " % (MAJOR_VERSION, MINOR_VERSION) +
+"has version MHX %d.%d\n" % (major, minor))
+            if minor < MINOR_VERSION:
+                msg += (
 "You can disable this error message by deselecting the \n" +
-"Enforce version option when importing. \n" +
-"Alternatively, you can try to download the most recent \n" +
-"Blender build from www.graphicall.org. \n" +
+"Enforce version option when importing. Better:\n" +
+"Export the MHX file again with an updated version of MakeHuman.\n" +
+"The most up-to-date version of MakeHuman is the nightly build.\n")
+            else:
+                msg += (
+"Download the most recent Blender build from www.graphicall.org. \n" +
 "The most up-to-date version of the import script is distributed\n" +
-"with Blender, but can also be downloaded from MakeHuman. \n" +
+"with Blender. It can also be downloaded from MakeHuman. \n" +
 "It is located in the importers/mhx/blender25x \n" +
-"folder and is called import_scene_mhx.py. \n"
-)
-        if toggle & T_EnforceVersion:
+"folder and is called import_scene_mhx.py. \n")
+        if (toggle & T_EnforceVersion or minor > MINOR_VERSION):
             MyError(msg)
         else:
             print(msg)
