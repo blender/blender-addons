@@ -2448,7 +2448,7 @@ class IMPORT_OT_autocad_dxf(bpy.types.Operator):
             default=toggle & T_Curves,
             )
     thic_on = BoolProperty(
-            name="Thic ON",
+            name="Thick ON",
             description="Support THICKNESS",
             default=toggle & T_ThicON,
             )
