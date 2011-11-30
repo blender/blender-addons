@@ -94,7 +94,7 @@ def RemoveDoubles(verts,faces,Decimal_Places = 4):
         if len(new_face) == 3 or len(new_face) == 4:
             new_faces.append(new_face)
 
-        return new_verts,new_faces 
+    return new_verts,new_faces 
 
 
 
