@@ -16,7 +16,7 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-# 
+#
 #
 #  Authors           : Clemens Barth (Blendphys@root-1.de), ...
 #
@@ -27,13 +27,12 @@
 #  First publication in Blender  : 2011-11-11
 #  Last modified                 : 2011-12-01
 #
-#  Acknowledgements: Thanks to ideasman, meta_androcto, truman, kilon, 
-#  dairin0d, PKHG, Valter, etc 
+#  Acknowledgements: Thanks to ideasman, meta_androcto, truman, kilon,
+#  dairin0d, PKHG, Valter, etc
 #
 
 import bpy
 import io
-import sys
 import math
 import os
 from math import pi, cos, sin
@@ -41,7 +40,7 @@ from mathutils import Vector, Matrix
 
 # These are variables, which contain the name of the PDB file and
 # the path of the PDB file.
-# They are used almost everywhere, which is the reason why they 
+# They are used almost everywhere, which is the reason why they
 # should stay global. First, they are empty and get 'filled' directly
 # after having chosen the PDB file (see 'class LoadPDB' further below).
 
@@ -55,14 +54,14 @@ ATOM_PDB_STRING = "Atomic Blender\n==================="
 #                                                  Atom, stick and element data
 
 
-# This is a list that contains some data of all possible elements. The structure 
+# This is a list that contains some data of all possible elements. The structure
 # is as follows:
 #
 # 1, "Hydrogen", "H", [0.0,0.0,1.0], 0.32, 0.32, 0.32 , -1 , 1.54   means
 #
 # No., name, short name, color, radius (used), radius (covalent), radius (atomic),
-# 
-# charge state 1, radius (ionic) 1, charge state 2, radius (ionic) 2, ... all 
+#
+# charge state 1, radius (ionic) 1, charge state 2, radius (ionic) 2, ... all
 # charge states for any atom are listed, if existing.
 # The list is fixed and cannot be changed ... (see below)
 
@@ -175,17 +174,17 @@ ATOM_PDB_ELEMENTS_DEFAULT = (
 (106,         "Stick",    "Stick", (  0.5,   0.5,   0.5), 1.00, 1.00, 1.00),
 )
 
-# This list here contains all data of the elements and will be used during 
-# runtime. It is a list of classes. 
+# This list here contains all data of the elements and will be used during
+# runtime. It is a list of classes.
 # During executing Atomic Blender, the list will be initialized with the fixed
 # data from above via the class structure below (CLASS_atom_pdb_Elements). We
 # have then one fixed list (above), which will never be changed, and a list of
-# classes with same data. The latter can be modified via loading a separate 
-# custom data file.  
+# classes with same data. The latter can be modified via loading a separate
+# custom data file.
 ATOM_PDB_ELEMENTS = []
 
 # This is the class, which stores the properties for one element.
-class CLASS_atom_pdb_Elements:
+class CLASS_atom_pdb_Elements:  # TODO, use __slots__
     def __init__(self, number, name,short_name, color, radii, radii_ionic):
         self.number = number
         self.name = name
@@ -193,9 +192,9 @@ class CLASS_atom_pdb_Elements:
         self.color = color
         self.radii = radii
         self.radii_ionic = radii_ionic
-                 
-# This is the class, which stores the properties of one atom.      
-class CLASS_atom_pdb_atom:
+
+# This is the class, which stores the properties of one atom.
+class CLASS_atom_pdb_atom:  # TODO, use __slots__
     def __init__(self, element, name, location, radius, color, material):
         self.element = element
         self.name = name
@@ -203,21 +202,21 @@ class CLASS_atom_pdb_atom:
         self.radius = radius
         self.color = color
         self.material = material
-        
-# This is the class, which stores the two atoms of one stick.      
-class CLASS_atom_pdb_stick:
+
+# This is the class, which stores the two atoms of one stick.
+class CLASS_atom_pdb_stick:  # TODO, use __slots__
     def __init__(self, atom1, atom2):
         self.atom1 = atom1
-        self.atom2 = atom2       
+        self.atom2 = atom2
 
 
 # -----------------------------------------------------------------------------
 #                                                          Some small routines
 
 
-# Routine which produces a cylinder. All is somewhat easy to undertsand. 
+# Routine which produces a cylinder. All is somewhat easy to undertsand.
 def DEF_atom_pdb_build_stick(radius, length, sectors):
-        
+
     vertices = []
     faces    = []
 
@@ -229,7 +228,7 @@ def DEF_atom_pdb_build_stick(radius, length, sectors):
     for i in range(sectors-1):
         x = radius * cos( dphi * i )
         y = radius * sin( dphi * i )
-        z =  length / 2.0  
+        z =  length / 2.0
         vertex = Vector((x,y,z))
         vertices_top.append(vertex)
         z = -length / 2.0
@@ -251,12 +250,12 @@ def DEF_atom_pdb_build_stick(radius, length, sectors):
         faces.append(face_top)
         faces.append(face_bottom)
 
-    # Side facets   
+    # Side facets
     for i in range(sectors-1):
         if i == sectors-2:
-            faces.append(  [i+1, 1, 1+sectors, i+1+sectors] ) 
+            faces.append(  [i+1, 1, 1+sectors, i+1+sectors] )
         else:
-            faces.append(  [i+1, i+2, i+2+sectors, i+1+sectors] ) 
+            faces.append(  [i+1, i+2, i+2+sectors, i+1+sectors] )
 
     # Build the mesh
     cylinder = bpy.data.meshes.new("Sticks_Cylinder")
@@ -264,11 +263,11 @@ def DEF_atom_pdb_build_stick(radius, length, sectors):
     cylinder.update()
     new_cylinder = bpy.data.objects.new("Sticks_Cylinder", cylinder)
     bpy.context.scene.objects.link(new_cylinder)
-    
+
     return new_cylinder
 
 
-# This function measures the distance between two objects (atoms), 
+# This function measures the distance between two objects (atoms),
 # which are active.
 def DEF_atom_pdb_distance():
 
@@ -279,147 +278,131 @@ def DEF_atom_pdb_distance():
         return "N.A."
 
     dv = object_2.location - object_1.location
-    return str(dv.length) 
+    return str(dv.length)
 
 
-# Routine to modify the radii via the type: 
+# Routine to modify the radii via the type:
 #                                          pre-defined, atomic or van der Waals
 # Explanations here are also valid for the next 3 DEFs.
 def DEF_atom_pdb_radius_type(rtype,how):
 
     if how == "ALL_IN_LAYER":
-        
+
         # Note all layers that are active.
         layers = []
         for i in range(20):
             if bpy.context.scene.layers[i] == True:
                 layers.append(i)
-                
-        # Put all objects, which are in the layers, into a list.        
-        change_objects = []        
-        for obj in bpy.context.scene.objects:
-            for layer in layers:
-                if obj.layers[layer] == True:
-                    change_objects.append(obj)     
-    
-        # Consider all objects, which are in the list 'change_objects'.
-        for obj in change_objects:
-            if len(obj.children) != 0:
-                if obj.children[0].type == "SURFACE" or obj.children[0].type  == "MESH":
-                    for element in ATOM_PDB_ELEMENTS:      
-                        if element.name in obj.name:
-                            obj.children[0].scale = (element.radii[int(rtype)],
-                                                     element.radii[int(rtype)],
-                                                     element.radii[int(rtype)])
-            else:
-                if obj.type == "SURFACE" or obj.type == "MESH":
-                    for element in ATOM_PDB_ELEMENTS:       
-                        if element.name in obj.name:
-                            obj.scale = (element.radii[int(rtype)],
-                                         element.radii[int(rtype)],
-                                         element.radii[int(rtype)])
 
-    if how == "ALL_ACTIVE":
-        for obj in bpy.context.selected_objects:
-            if len(obj.children) != 0:
-                if obj.children[0].type == "SURFACE" or obj.children[0].type  == "MESH":
-                    for element in ATOM_PDB_ELEMENTS:        
-                        if element.name in obj.name:
-                            obj.children[0].scale = (element.radii[int(rtype)],
-                                                     element.radii[int(rtype)],
-                                                     element.radii[int(rtype)])
-            else:
-                if obj.type == "SURFACE" or obj.type == "MESH":
-                    for element in ATOM_PDB_ELEMENTS:          
-                        if element.name in obj.name:
-                            obj.scale = (element.radii[int(rtype)],
-                                         element.radii[int(rtype)],
-                                         element.radii[int(rtype)])
-  
-
-# Routine to modify the radii in picometer of a specific type of atom
-def DEF_atom_pdb_radius_pm(atomname, radius_pm, how):
-                
-    if how == "ALL_IN_LAYER":
-    
-        layers = []
-        for i in range(20):
-            if bpy.context.scene.layers[i] == True:
-                layers.append(i)
-                
-        change_objects = []        
-        for obj in bpy.context.scene.objects:
-            for layer in layers:
-                if obj.layers[layer] == True:
-                    change_objects.append(obj)    
-    
-        for obj in change_objects:
-            if len(obj.children) != 0:
-                if obj.children[0].type == "SURFACE" or obj.children[0].type  == "MESH":
-                    if atomname in obj.name:
-                        obj.children[0].scale = (radius_pm/100,
-                                                 radius_pm/100,
-                                                 radius_pm/100)
-            else:
-                if obj.type == "SURFACE" or obj.type == "MESH":
-                    if atomname in obj.name:
-                        obj.scale = (radius_pm/100,
-                                     radius_pm/100,
-                                     radius_pm/100)
-
-    if how == "ALL_ACTIVE":
-        for obj in bpy.context.selected_objects:
-            if len(obj.children) != 0:
-                if obj.children[0].type == "SURFACE" or obj.children[0].type  == "MESH":
-                    if atomname in obj.name:
-                        obj.children[0].scale = (radius_pm/100,
-                                                 radius_pm/100,
-                                                 radius_pm/100)      
-            else:
-                if obj.type == "SURFACE" or obj.type == "MESH":
-                    if atomname in obj.name:
-                        obj.scale = (radius_pm/100,
-                                     radius_pm/100,
-                                     radius_pm/100)
-
-
-# Routine to scale the radii of all atoms
-def DEF_atom_pdb_radius_all(scale, how):
-               
-    if how == "ALL_IN_LAYER":
-    
-        layers = []
-        for i in range(20):
-            if bpy.context.scene.layers[i] == True:
-                layers.append(i)
-                
-        change_objects = []        
+        # Put all objects, which are in the layers, into a list.
+        change_objects = []
         for obj in bpy.context.scene.objects:
             for layer in layers:
                 if obj.layers[layer] == True:
                     change_objects.append(obj)
-                
-    
+
+        # Consider all objects, which are in the list 'change_objects'.
+        for obj in change_objects:
+            if len(obj.children) != 0:
+                if obj.children[0].type == "SURFACE" or obj.children[0].type  == "MESH":
+                    for element in ATOM_PDB_ELEMENTS:
+                        if element.name in obj.name:
+                            obj.children[0].scale = (element.radii[int(rtype)],) * 3
+            else:
+                if obj.type == "SURFACE" or obj.type == "MESH":
+                    for element in ATOM_PDB_ELEMENTS:
+                        if element.name in obj.name:
+                            obj.scale = (element.radii[int(rtype)],) * 3
+
+    if how == "ALL_ACTIVE":
+        for obj in bpy.context.selected_objects:
+            if len(obj.children) != 0:
+                if obj.children[0].type == "SURFACE" or obj.children[0].type  == "MESH":
+                    for element in ATOM_PDB_ELEMENTS:
+                        if element.name in obj.name:
+                            obj.children[0].scale = (element.radii[int(rtype)],) * 3
+            else:
+                if obj.type == "SURFACE" or obj.type == "MESH":
+                    for element in ATOM_PDB_ELEMENTS:
+                        if element.name in obj.name:
+                            obj.scale = (element.radii[int(rtype)],) * 3
+
+
+# Routine to modify the radii in picometer of a specific type of atom
+def DEF_atom_pdb_radius_pm(atomname, radius_pm, how):
+
+    if how == "ALL_IN_LAYER":
+
+        layers = []
+        for i in range(20):
+            if bpy.context.scene.layers[i] == True:
+                layers.append(i)
+
+        change_objects = []
+        for obj in bpy.context.scene.objects:
+            for layer in layers:
+                if obj.layers[layer] == True:
+                    change_objects.append(obj)
+
+        for obj in change_objects:
+            if len(obj.children) != 0:
+                if obj.children[0].type == "SURFACE" or obj.children[0].type  == "MESH":
+                    if atomname in obj.name:
+                        obj.children[0].scale = (radius_pm/100,) * 3
+            else:
+                if obj.type == "SURFACE" or obj.type == "MESH":
+                    if atomname in obj.name:
+                        obj.scale = (radius_pm/100,) * 3
+
+    if how == "ALL_ACTIVE":
+        for obj in bpy.context.selected_objects:
+            if len(obj.children) != 0:
+                if obj.children[0].type == "SURFACE" or obj.children[0].type  == "MESH":
+                    if atomname in obj.name:
+                        obj.children[0].scale = (radius_pm/100,) * 3
+            else:
+                if obj.type == "SURFACE" or obj.type == "MESH":
+                    if atomname in obj.name:
+                        obj.scale = (radius_pm/100,) * 3
+
+
+# Routine to scale the radii of all atoms
+def DEF_atom_pdb_radius_all(scale, how):
+
+    if how == "ALL_IN_LAYER":
+
+        layers = []
+        for i in range(20):
+            if bpy.context.scene.layers[i] == True:
+                layers.append(i)
+
+        change_objects = []
+        for obj in bpy.context.scene.objects:
+            for layer in layers:
+                if obj.layers[layer] == True:
+                    change_objects.append(obj)
+
+
         for obj in change_objects:
             if len(obj.children) != 0:
                 if obj.children[0].type == "SURFACE" or obj.children[0].type  == "MESH":
                     if "Stick" not in obj.name:
-                        obj.children[0].scale *= scale         
+                        obj.children[0].scale *= scale
             else:
                 if obj.type == "SURFACE" or obj.type == "MESH":
                     if "Stick" not in obj.name:
-                        obj.scale *= scale 
+                        obj.scale *= scale
 
     if how == "ALL_ACTIVE":
         for obj in bpy.context.selected_objects:
             if len(obj.children) != 0:
                 if obj.children[0].type == "SURFACE" or obj.children[0].type  == "MESH":
                     if "Stick" not in obj.name:
-                        obj.children[0].scale *= scale         
+                        obj.children[0].scale *= scale
             else:
                 if obj.type == "SURFACE" or obj.type == "MESH":
                     if "Stick" not in obj.name:
-                        obj.scale *= scale 
+                        obj.scale *= scale
 
 
 # This reads a custom data file.
@@ -432,11 +415,11 @@ def DEF_atom_pdb_custom_datafile(path_datafile):
 
     if os.path.isfile(path_datafile) == False:
         return False
-       
-    # The whole list gets deleted! We build it new.    
+
+    # The whole list gets deleted! We build it new.
     ATOM_PDB_ELEMENTS[:] = []
 
-    # Read the data file, which contains all data 
+    # Read the data file, which contains all data
     # (atom name, radii, colors, etc.)
     data_file_p = io.open(path_datafile, "r")
 
@@ -445,7 +428,7 @@ def DEF_atom_pdb_custom_datafile(path_datafile):
         if "Atom" in line:
 
             line = data_file_p.readline()
-        
+
             # Number
             line = data_file_p.readline()
             number = line[19:-1]
@@ -470,17 +453,17 @@ def DEF_atom_pdb_custom_datafile(path_datafile):
             # Van der Waals radius
             line = data_file_p.readline()
             radius_vdW = float(line[19:-1])
-            
+
             radii = [radius_used,radius_atomic,radius_vdW]
             radii_ionic = []
-            
+
             element = CLASS_atom_pdb_Elements(number,name,short_name,color,
-                                              radii, radii_ionic)  
-            
-            ATOM_PDB_ELEMENTS.append(element)  
+                                              radii, radii_ionic)
+
+            ATOM_PDB_ELEMENTS.append(element)
 
     data_file_p.close()
-   
+
     return True
 
 
@@ -492,18 +475,18 @@ def DEF_atom_pdb_main(use_mesh,Ball_azimuth,Ball_zenith,
                Ball_radius_factor,radiustype,Ball_distance_factor,
                use_stick,Stick_sectors,Stick_diameter,put_to_center,
                use_camera,use_lamp,path_datafile):
-    
+
     # The list of all atoms as read from the PDB file.
     all_atoms  = []
-    
+
     # The list of all sticks.
     all_sticks = []
-   
+
     # List of materials
     atom_material_list = []
 
     # A list of ALL objects which are loaded (needed for selecting the loaded
-    # structure. 
+    # structure.
     atom_object_list = []
 
 
@@ -513,15 +496,15 @@ def DEF_atom_pdb_main(use_mesh,Ball_azimuth,Ball_zenith,
     ATOM_PDB_ELEMENTS[:] = []
 
     for item in ATOM_PDB_ELEMENTS_DEFAULT:
-    
+
         # All three radii into a list
         radii = [item[4],item[5],item[6]]
         # The handling of the ionic radii will be done later. So far, it is an
         # empty list.
-        radii_ionic = []  
+        radii_ionic = []
 
         li = CLASS_atom_pdb_Elements(item[0],item[1],item[2],item[3],
-                                     radii,radii_ionic)                                 
+                                     radii,radii_ionic)
         ATOM_PDB_ELEMENTS.append(li)
 
 
@@ -542,31 +525,31 @@ def DEF_atom_pdb_main(use_mesh,Ball_azimuth,Ball_zenith,
             break
         if "HETATM" in split_list[0]:
             break
-            
+
     j = 0
     # This is in fact an endless 'while loop', ...
     while j > -1:
 
         # ... the loop is broken here (EOF) ...
         if line == "":
-            break  
+            break
 
         # If there is a "TER" we need to put empty entries into the lists
         # in order to not destroy the order of atom numbers and same numbers
-        # used for sticks. "TER? What is that?" TER indicates the end of a 
+        # used for sticks. "TER? What is that?" TER indicates the end of a
         # list of ATOM/HETATM records for a chain.
         if "TER" in line:
             short_name = "TER"
             name = "TER"
             radius = 0.0
             color = [0,0,0]
-            location = Vector((0,0,0))  
+            location = Vector((0,0,0))
             # Append the TER into the list. Material remains empty so far.
-            all_atoms.append(CLASS_atom_pdb_atom(short_name, 
-                                                 name, 
-                                                 location, 
-                                                 radius, 
-                                                 color,[])) 
+            all_atoms.append(CLASS_atom_pdb_atom(short_name,
+                                                 name,
+                                                 location,
+                                                 radius,
+                                                 color,[]))
         # If 'ATOM or 'HETATM' appears in the line then do ...
         elif "ATOM" in line or "HETATM" in line:
 
@@ -575,31 +558,31 @@ def DEF_atom_pdb_main(use_mesh,Ball_azimuth,Ball_zenith,
             short_name = line[13:14]
             if short_name.isupper() == True:
                 if line[14:15].islower() == True:
-                    short_name = short_name + line[14:15]  
-            else:            
+                    short_name = short_name + line[14:15]
+            else:
                 short_name = line[12:13]
                 if short_name.isupper() == True:
                     if line[13:14].islower() == True:
-                        short_name = short_name + line[13:14] 
+                        short_name = short_name + line[13:14]
             # ... to here.
-               
-            # Go through all elements and find the element of the current atom.   
+
+            # Go through all elements and find the element of the current atom.
             FLAG_FOUND = False
             for element in ATOM_PDB_ELEMENTS:
                 if str.upper(short_name) == str.upper(element.short_name):
                     # Give the atom its proper names, color and radius:
                     short_name = str.upper(element.short_name)
                     name = element.name
-                    # int(radiustype) => type of radius: 
+                    # int(radiustype) => type of radius:
                     # pre-defined (0), atomic (1) or van der Waals (2)
                     radius = float(element.radii[int(radiustype)])
                     color = element.color
                     FLAG_FOUND = True
                     break
 
-            # Is it a vacancy or an 'unknown atom' ?       
+            # Is it a vacancy or an 'unknown atom' ?
             if FLAG_FOUND == False:
-                # Give this atom also a name. If it is an 'X' then it is a 
+                # Give this atom also a name. If it is an 'X' then it is a
                 # vacancy. Otherwise ...
                 if "X" in short_name:
                     short_name = "VAC"
@@ -607,30 +590,30 @@ def DEF_atom_pdb_main(use_mesh,Ball_azimuth,Ball_zenith,
                     radius = float(ATOM_PDB_ELEMENTS[-3].radii[int(radiustype)])
                     color = ATOM_PDB_ELEMENTS[-3].color
                 # ... take what is written in the PDB file. These are somewhat
-                # unknown atoms. This should never happen, the element list is 
+                # unknown atoms. This should never happen, the element list is
                 # almost complete. However, we do this due to security reasons.
                 else:
                     short_name = str.upper(short_name)
                     name = str.upper(short_name)
                     radius = float(ATOM_PDB_ELEMENTS[-2].radii[int(radiustype)])
-                    color = ATOM_PDB_ELEMENTS[-2].color        
-        
+                    color = ATOM_PDB_ELEMENTS[-2].color
+
             # x,y and z are at fixed positions in the PDB file.
             x = float(line[30:38].rsplit()[0])
             y = float(line[38:46].rsplit()[0])
             z = float(line[46:55].rsplit()[0])
-           
-            location = Vector((x,y,z))   
-        
-            j += 1       
+
+            location = Vector((x,y,z))
+
+            j += 1
 
             # Append the atom to the list. Material remains empty so far.
-            all_atoms.append(CLASS_atom_pdb_atom(short_name, 
-                                             name, 
-                                             location, 
-                                             radius, 
-                                             color,[]))                  
-                       
+            all_atoms.append(CLASS_atom_pdb_atom(short_name,
+                                             name,
+                                             location,
+                                             radius,
+                                             color,[]))
+
         line = ATOM_PDB_FILEPATH_p.readline()
         line = line[:-1]
 
@@ -644,14 +627,14 @@ def DEF_atom_pdb_main(use_mesh,Ball_azimuth,Ball_zenith,
 
 
     # The list that contains info about all types of atoms is created
-    # here. It is used for building the material properties for 
-    # instance (see below).      
+    # here. It is used for building the material properties for
+    # instance (see below).
     atom_all_types_list = []
-    
+
     for atom in all_atoms:
         FLAG_FOUND = False
         for atom_type in atom_all_types_list:
-            # If the atom name is already in the list, FLAG on 'True'. 
+            # If the atom name is already in the list, FLAG on 'True'.
             if atom_type[0] == atom.name:
                 FLAG_FOUND = True
                 break
@@ -661,28 +644,28 @@ def DEF_atom_pdb_main(use_mesh,Ball_azimuth,Ball_zenith,
             # name (e.g. 'Sodium') and its color.
             atom_all_types_list.append([atom.name, atom.element, atom.color])
 
-    # The list of materials is built. 
-    # Note that all atoms of one type (e.g. all hydrogens) get only ONE 
-    # material! This is good because then, by activating one atom in the 
-    # Blender scene and changing the color of this atom, one changes the color 
+    # The list of materials is built.
+    # Note that all atoms of one type (e.g. all hydrogens) get only ONE
+    # material! This is good because then, by activating one atom in the
+    # Blender scene and changing the color of this atom, one changes the color
     # of ALL atoms of the same type at the same time.
-   
-    # Create first a new list of materials for each type of atom 
+
+    # Create first a new list of materials for each type of atom
     # (e.g. hydrogen)
-    for atom_type in atom_all_types_list:  
+    for atom_type in atom_all_types_list:
         material = bpy.data.materials.new(atom_type[1])
         material.name = atom_type[0]
         material.diffuse_color = atom_type[2]
         atom_material_list.append(material)
-   
-    # Now, we go through all atoms and give them a material. For all atoms ...   
+
+    # Now, we go through all atoms and give them a material. For all atoms ...
     for atom in all_atoms:
         # ... and all materials ...
         for material in atom_material_list:
-            # ... select the correct material for the current atom via 
+            # ... select the correct material for the current atom via
             # comparison of names ...
             if atom.name in material.name:
-                # ... and give the atom its material properties. 
+                # ... and give the atom its material properties.
                 # However, before we check, if it is a vacancy, because then it
                 # gets some additional preparation. The vacancy is represented
                 # by a transparent cube.
@@ -690,15 +673,15 @@ def DEF_atom_pdb_main(use_mesh,Ball_azimuth,Ball_zenith,
                     material.transparency_method = 'Z_TRANSPARENCY'
                     material.alpha = 1.3
                     material.raytrace_transparency.fresnel = 1.6
-                    material.raytrace_transparency.fresnel_factor = 1.6                   
-                    material.use_transparency = True      
+                    material.raytrace_transparency.fresnel_factor = 1.6
+                    material.use_transparency = True
                 # The atom gets its properties.
-                atom.material = material   
+                atom.material = material
 
 
     # ------------------------------------------------------------------------
     # READING DATA OF STICKS
-    
+
 
     # Open the PDB file again such that the file pointer is in the first
     # line ... . Stupid, I know ... ;-)
@@ -712,73 +695,73 @@ def DEF_atom_pdb_main(use_mesh,Ball_azimuth,Ball_zenith,
             split_list = line.split(' ')
             if "CONECT" in split_list[0]:
                 break
-  
+
     Number_of_sticks = 0
     sticks_double = 0
     j = 0
-    # This is in fact an endless while loop, ...    
+    # This is in fact an endless while loop, ...
     while j > -1:
- 
+
         # ... which is broken here (EOF) ...
         if line == "":
-            break  
+            break
         # ... or here, when no 'CONECT' appears anymore.
         if "CONECT" not in line:
             break
-               
-        # The strings of the atom numbers do have a clear position in the file 
-        # (From 7 to 12, from 13 to 18 and so on.) and one needs to consider 
-        # this. One could also use the split function but then one gets into 
-        # trouble if there are many atoms: For instance, it may happen that one 
+
+        # The strings of the atom numbers do have a clear position in the file
+        # (From 7 to 12, from 13 to 18 and so on.) and one needs to consider
+        # this. One could also use the split function but then one gets into
+        # trouble if there are many atoms: For instance, it may happen that one
         # has
         #                   CONECT 11111  22244444
         #
-        # In Fact it means that atom No. 11111 has a connection with atom 
-        # No. 222 but also with atom No. 44444. The split function would give 
-        # me only two numbers (11111 and 22244444), which is wrong. 
-  
+        # In Fact it means that atom No. 11111 has a connection with atom
+        # No. 222 but also with atom No. 44444. The split function would give
+        # me only two numbers (11111 and 22244444), which is wrong.
+
         # Cut spaces from the right and 'CONECT' at the beginning
-        line = line.rstrip()    
+        line = line.rstrip()
         line = line[6:]
         # Amount of loops
         length = len(line)
         loops  = int(length/5)
-       
+
         # List of atoms
         atom_list = []
         for i in range(loops):
             number = line[5*i:5*(i+1)].rsplit()
-            if number != []:    
+            if number != []:
                 if number[0].isdigit() == True:
                     atom_number = int(number[0])
                     atom_list.append(atom_number)
-   
+
         # The first atom is connected with all the others in the list.
         atom1 = atom_list[0]
-        
+
         # For all the other atoms in the list do:
         for each_atom in atom_list[1:]:
-      
+
             # The second, third, ... partner atom
             atom2 = each_atom
 
             # Note that in a PDB file, sticks of one atom pair can appear a
-            # couple of times. (Only god knows why ...) 
+            # couple of times. (Only god knows why ...)
             # So, does a stick between the considered atoms already exist?
             FLAG_BAR = False
             for k in range(Number_of_sticks):
-                if ((all_sticks[k].atom1 == atom1 and all_sticks[k].atom2 == atom2) or 
+                if ((all_sticks[k].atom1 == atom1 and all_sticks[k].atom2 == atom2) or
                     (all_sticks[k].atom2 == atom1 and all_sticks[k].atom1 == atom2)):
                     sticks_double += 1
                     # If yes, then FLAG on 'True'.
                     FLAG_BAR       = True
                     break
 
-            # If the stick is not yet registered (FLAG_BAR == False), then 
+            # If the stick is not yet registered (FLAG_BAR == False), then
             # register it!
             if FLAG_BAR == False:
                 all_sticks.append(CLASS_atom_pdb_stick(atom1,atom2))
-                Number_of_sticks += 1   
+                Number_of_sticks += 1
                 j += 1
 
         line = ATOM_PDB_FILEPATH_p.readline()
@@ -795,10 +778,10 @@ def DEF_atom_pdb_main(use_mesh,Ball_azimuth,Ball_zenith,
     # It may happen that the structure in a PDB file already has an offset
     # If chosen, the structure is first put into the center of the scene
     # (the offset is substracted).
-    
+
     if put_to_center == True:
 
-        sum_vec = Vector((0.0,0.0,0.0)) 
+        sum_vec = Vector((0.0,0.0,0.0))
 
         # Sum of all atom coordinates
         sum_vec = sum([atom.location for atom in all_atoms], sum_vec)
@@ -809,61 +792,61 @@ def DEF_atom_pdb_main(use_mesh,Ball_azimuth,Ball_zenith,
         # After, for each atom the center of gravity is substracted
         for atom in all_atoms:
             atom.location -= sum_vec
-    
+
 
     # ------------------------------------------------------------------------
-    # SCALING 
+    # SCALING
 
-    
+
     # Take all atoms and adjust their radii and scale the distances.
     for atom in all_atoms:
         atom.location *= Ball_distance_factor
-    
-      
+
+
     # ------------------------------------------------------------------------
     # DETERMINATION OF SOME GEOMETRIC PROPERTIES
-    
 
-    # In the following, some geometric properties of the whole object are 
-    # determined: center, size, etc. 
+
+    # In the following, some geometric properties of the whole object are
+    # determined: center, size, etc.
     sum_vec = Vector((0.0,0.0,0.0))
 
     # First the center is determined. All coordinates are summed up ...
     sum_vec = sum([atom.location for atom in all_atoms], sum_vec)
-    
+
     # ... and the average is taken. This gives the center of the object.
     object_center_vec = sum_vec / Number_of_total_atoms
 
-    # Now, we determine the size.The farest atom from the object center is 
+    # Now, we determine the size.The farest atom from the object center is
     # taken as a measure. The size is used to place well the camera and light
-    # into the scene.    
-    object_size_vec = [atom.location - object_center_vec for atom in all_atoms] 
+    # into the scene.
+    object_size_vec = [atom.location - object_center_vec for atom in all_atoms]
     object_size = 0.0
     object_size = max(object_size_vec).length
 
 
     # ------------------------------------------------------------------------
     # CAMERA AND LAMP
-  
+
     camera_factor = 15.0
 
     # If chosen a camera is put into the scene.
     if use_camera == True:
 
-        # Assume that the object is put into the global origin. Then, the 
-        # camera is moved in x and z direction, not in y. The object has its 
-        # size at distance math.sqrt(object_size) from the origin. So, move the 
-        # camera by this distance times a factor of camera_factor in x and z. 
-        # Then add x, y and z of the origin of the object.   
-        object_camera_vec = Vector((math.sqrt(object_size) * camera_factor, 
-                                    0.0, 
+        # Assume that the object is put into the global origin. Then, the
+        # camera is moved in x and z direction, not in y. The object has its
+        # size at distance math.sqrt(object_size) from the origin. So, move the
+        # camera by this distance times a factor of camera_factor in x and z.
+        # Then add x, y and z of the origin of the object.
+        object_camera_vec = Vector((math.sqrt(object_size) * camera_factor,
+                                    0.0,
                                     math.sqrt(object_size) * camera_factor))
         camera_xyz_vec = object_center_vec + object_camera_vec
 
         # Create the camera
         current_layers=bpy.context.scene.layers
-        bpy.ops.object.camera_add(view_align=False, enter_editmode=False, 
-                               location=camera_xyz_vec, 
+        bpy.ops.object.camera_add(view_align=False, enter_editmode=False,
+                               location=camera_xyz_vec,
                                rotation=(0.0, 0.0, 0.0), layers=current_layers)
         # Some properties of the camera are changed.
         camera = bpy.context.scene.objects.active
@@ -872,7 +855,7 @@ def DEF_atom_pdb_main(use_mesh,Ball_azimuth,Ball_zenith,
         camera.data.lens = 45
         camera.data.clip_end = 500.0
 
-        # Here the camera is rotated such it looks towards the center of 
+        # Here the camera is rotated such it looks towards the center of
         # the object. The [0.0, 0.0, 1.0] vector along the z axis
         z_axis_vec             = Vector((0.0, 0.0, 1.0))
         # The angle between the last two vectors
@@ -884,21 +867,21 @@ def DEF_atom_pdb_main(use_mesh,Ball_azimuth,Ball_zenith,
         euler                  = Matrix.Rotation(angle, 4, axis_vec).to_euler()
         camera.rotation_euler  = euler
 
-        # Rotate the camera around its axis by 90° such that we have a nice 
+        # Rotate the camera around its axis by 90° such that we have a nice
         # camera position and view onto the object.
-        bpy.ops.transform.rotate(value=(90.0*2*math.pi/360.0,), 
-                                 axis=object_camera_vec, 
-                                 constraint_axis=(False, False, False), 
-                                 constraint_orientation='GLOBAL', 
-                                 mirror=False, proportional='DISABLED', 
-                                 proportional_edit_falloff='SMOOTH', 
-                                 proportional_size=1, snap=False, 
-                                 snap_target='CLOSEST', snap_point=(0, 0, 0), 
-                                 snap_align=False, snap_normal=(0, 0, 0), 
+        bpy.ops.transform.rotate(value=(90.0*2*math.pi/360.0,),
+                                 axis=object_camera_vec,
+                                 constraint_axis=(False, False, False),
+                                 constraint_orientation='GLOBAL',
+                                 mirror=False, proportional='DISABLED',
+                                 proportional_edit_falloff='SMOOTH',
+                                 proportional_size=1, snap=False,
+                                 snap_target='CLOSEST', snap_point=(0, 0, 0),
+                                 snap_align=False, snap_normal=(0, 0, 0),
                                  release_confirm=False)
 
 
-        # This does not work, I don't know why. 
+        # This does not work, I don't know why.
         #
         #for area in bpy.context.screen.areas:
         #    if area.type == 'VIEW_3D':
@@ -908,39 +891,39 @@ def DEF_atom_pdb_main(use_mesh,Ball_azimuth,Ball_zenith,
     # Here a lamp is put into the scene, if chosen.
     if use_lamp == True:
 
-        # This is the distance from the object measured in terms of % 
+        # This is the distance from the object measured in terms of %
         # of the camera distance. It is set onto 50% (1/2) distance.
         lamp_dl = math.sqrt(object_size) * 15 * 0.5
         # This is a factor to which extend the lamp shall go to the right
         # (from the camera  point of view).
         lamp_dy_right = lamp_dl * (3.0/4.0)
-        
+
         # Create x, y and z for the lamp.
         object_lamp_vec = Vector((lamp_dl,lamp_dy_right,lamp_dl))
-        lamp_xyz_vec = object_center_vec + object_lamp_vec 
+        lamp_xyz_vec = object_center_vec + object_lamp_vec
 
         # Create the lamp
         current_layers=bpy.context.scene.layers
-        bpy.ops.object.lamp_add (type = 'POINT', view_align=False, 
-                                 location=lamp_xyz_vec, 
-                                 rotation=(0.0, 0.0, 0.0), 
+        bpy.ops.object.lamp_add (type = 'POINT', view_align=False,
+                                 location=lamp_xyz_vec,
+                                 rotation=(0.0, 0.0, 0.0),
                                  layers=current_layers)
         # Some properties of the lamp are changed.
         lamp = bpy.context.scene.objects.active
         lamp.data.name = "A_lamp"
         lamp.name = "A_lamp"
-        lamp.data.distance = 500.0 
-        lamp.data.energy = 3.0 
+        lamp.data.distance = 500.0
+        lamp.data.energy = 3.0
         lamp.data.shadow_method = 'RAY_SHADOW'
 
         bpy.context.scene.world.light_settings.use_ambient_occlusion = True
         bpy.context.scene.world.light_settings.ao_factor = 0.2
-        
-        
+
+
     # ------------------------------------------------------------------------
     # SOME OUTPUT ON THE CONSOLE
-   
-   
+
+
     print()
     print()
     print()
@@ -957,35 +940,35 @@ def DEF_atom_pdb_main(use_mesh,Ball_azimuth,Ball_zenith,
     # SORTING THE ATOMS
 
 
-    # Lists of atoms of one type are created. Example: 
-    # draw_all_atoms = [ data_hydrogen,data_carbon,data_nitrogen ] 
+    # Lists of atoms of one type are created. Example:
+    # draw_all_atoms = [ data_hydrogen,data_carbon,data_nitrogen ]
     # data_hydrogen = [["Hydrogen", Material_Hydrogen, Vector((x,y,z)), 109], ...]
-     
+
     draw_all_atoms = []
 
     # Go through the list which contains all types of atoms. It is the list,
-    # which has been created on the top during reading the PDB file. 
+    # which has been created on the top during reading the PDB file.
     # Example: atom_all_types_list = ["hydrogen", "carbon", ...]
     for atom_type in atom_all_types_list:
-    
+
         # Don't draw 'TER atoms'.
         if atom_type[0] == "TER":
             continue
-   
-        # This is the draw list, which contains all atoms of one type (e.g. 
+
+        # This is the draw list, which contains all atoms of one type (e.g.
         # all hydrogens) ...
-        draw_all_atoms_type = []  
-      
+        draw_all_atoms_type = []
+
         # Go through all atoms ...
         for atom in all_atoms:
             # ... select the atoms of the considered type via comparison ...
             if atom.name == atom_type[0]:
                 # ... and append them to the list 'draw_all_atoms_type'.
-                draw_all_atoms_type.append([atom.name, 
-                                           atom.material, 
+                draw_all_atoms_type.append([atom.name,
+                                           atom.material,
                                            atom.location,
                                            atom.radius])
-    
+
         # Now append the atom list to the list of all types of atoms
         draw_all_atoms.append(draw_all_atoms_type)
 
@@ -995,8 +978,7 @@ def DEF_atom_pdb_main(use_mesh,Ball_azimuth,Ball_zenith,
 
 
     # This is the number of all atoms which are put into the scene.
-    number_loaded_atoms = 0 
-    bpy.ops.object.select_all(action='DESELECT')    
+    bpy.ops.object.select_all(action='DESELECT')
 
     # For each list of atoms of ONE type (e.g. Hydrogen)
     for draw_all_atoms_type in draw_all_atoms:
@@ -1019,60 +1001,58 @@ def DEF_atom_pdb_main(use_mesh,Ball_azimuth,Ball_zenith,
 
         # Now, build a representative sphere (atom)
         current_layers=bpy.context.scene.layers
-        
+
         if atom[0] == "Vacancy":
             bpy.ops.mesh.primitive_cube_add(
-                            view_align=False, enter_editmode=False, 
-                            location=(0.0, 0.0, 0.0), 
-                            rotation=(0.0, 0.0, 0.0), 
+                            view_align=False, enter_editmode=False,
+                            location=(0.0, 0.0, 0.0),
+                            rotation=(0.0, 0.0, 0.0),
                             layers=current_layers)
         else:
             # NURBS balls
-            if use_mesh == False:        
+            if use_mesh == False:
                 bpy.ops.surface.primitive_nurbs_surface_sphere_add(
-                            view_align=False, enter_editmode=False, 
-                            location=(0,0,0), rotation=(0.0, 0.0, 0.0), 
+                            view_align=False, enter_editmode=False,
+                            location=(0,0,0), rotation=(0.0, 0.0, 0.0),
                             layers=current_layers)
             # UV balls
             else:
                 bpy.ops.mesh.primitive_uv_sphere_add(
-                            segments=Ball_azimuth, ring_count=Ball_zenith, 
-                            size=1, view_align=False, enter_editmode=False, 
-                            location=(0,0,0), rotation=(0, 0, 0), 
+                            segments=Ball_azimuth, ring_count=Ball_zenith,
+                            size=1, view_align=False, enter_editmode=False,
+                            location=(0,0,0), rotation=(0, 0, 0),
                             layers=current_layers)
-        
+
         ball = bpy.context.scene.objects.active
-        ball.scale  = (atom[3]*Ball_radius_factor,
-                       atom[3]*Ball_radius_factor,
-                       atom[3]*Ball_radius_factor)
-                       
+        ball.scale  = (atom[3]*Ball_radius_factor,) * 3
+
         if atom[0] == "Vacancy":
             ball.name = "Cube_"+atom[0]
         else:
             ball.name = "Ball (NURBS)_"+atom[0]
-        ball.active_material = atom[1] 
+        ball.active_material = atom[1]
         ball.parent = new_atom_mesh
         new_atom_mesh.dupli_type = 'VERTS'
         # The object is back translated to 'object_center_vec'.
         new_atom_mesh.location = object_center_vec
         atom_object_list.append(new_atom_mesh)
 
-    print()    
-           
-           
+    print()
+
+
     # ------------------------------------------------------------------------
     # DRAWING THE STICKS
 
 
     if use_stick == True and all_sticks != []:
- 
+
         # Create a new material with the corresponding color. The
         # color is taken from the all_atom list, it is the last entry
         # in the data file (index -1).
         bpy.ops.object.material_slot_add()
-        stick_material = bpy.data.materials.new(ATOM_PDB_ELEMENTS[-1].name)  
+        stick_material = bpy.data.materials.new(ATOM_PDB_ELEMENTS[-1].name)
         stick_material.diffuse_color = ATOM_PDB_ELEMENTS[-1].color
- 
+
         vertices = []
         faces    = []
         dl = 0.2
@@ -1080,26 +1060,26 @@ def DEF_atom_pdb_main(use_mesh,Ball_azimuth,Ball_zenith,
         i = 0
         # For all sticks, do ...
         for stick in all_sticks:
-        
+
             # What follows is school mathematics! :-)
             v1 = all_atoms[stick.atom2-1].location
             v2 = all_atoms[stick.atom1-1].location
-        
+
             dv = (v1 - v2)
-           
+
             n  = dv / dv.length
-            m  = v1 - dv / 2.0
-  
+            # m  = v1 - dv / 2.0  # UNUSED
+
             gamma = -n * v1
             b     = v1 + gamma * n
             n_b   = b / b.length
- 
+
             loops = int(dv.length / dl)
-       
+
             for j in range(loops):
-        
+
                 g = v1 - n * dl / 2.0 - n * dl * j
-        
+
                 p1 = g + n_b * Stick_diameter
                 p2 = g - n_b * Stick_diameter
                 p3 = g - n_b.cross(n) * Stick_diameter
@@ -1110,17 +1090,17 @@ def DEF_atom_pdb_main(use_mesh,Ball_azimuth,Ball_zenith,
                 vertices.append(p3)
                 vertices.append(p4)
                 faces.append((i*4+0,i*4+2,i*4+1,i*4+3))
-                i += 1        
-              
+                i += 1
+
         mesh = bpy.data.meshes.new("Sticks")
         mesh.from_pydata(vertices, [], faces)
         mesh.update()
         new_mesh = bpy.data.objects.new("Sticks", mesh)
-        bpy.context.scene.objects.link(new_mesh)  
-              
+        bpy.context.scene.objects.link(new_mesh)
+
         current_layers = bpy.context.scene.layers
         stick_cylinder = DEF_atom_pdb_build_stick(Stick_diameter, dl, Stick_sectors)
-        
+
 
         stick_cylinder.active_material = stick_material
         stick_cylinder.parent = new_mesh
@@ -1130,7 +1110,7 @@ def DEF_atom_pdb_main(use_mesh,Ball_azimuth,Ball_zenith,
 
     # ------------------------------------------------------------------------
     # SELECT ALL LOADED OBJECTS
-    bpy.ops.object.select_all(action='DESELECT')  
+    bpy.ops.object.select_all(action='DESELECT')
     obj = None
     for obj in atom_object_list:
         obj.select = True
@@ -1139,7 +1119,7 @@ def DEF_atom_pdb_main(use_mesh,Ball_azimuth,Ball_zenith,
     if obj:
         bpy.context.scene.objects.active = obj
 
-    print("\n\nAll atoms (%d) and sticks (%d) have been drawn - finished.\n\n" 
+    print("\n\nAll atoms (%d) and sticks (%d) have been drawn - finished.\n\n"
            % (Number_of_total_atoms,Number_of_sticks))
 
 
