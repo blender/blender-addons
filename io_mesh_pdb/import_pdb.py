@@ -184,8 +184,9 @@ ATOM_PDB_ELEMENTS_DEFAULT = (
 ATOM_PDB_ELEMENTS = []
 
 # This is the class, which stores the properties for one element.
-class CLASS_atom_pdb_Elements:  # TODO, use __slots__
-    def __init__(self, number, name,short_name, color, radii, radii_ionic):
+class CLASS_atom_pdb_Elements(object):
+    __slots__ = ('number', 'name', 'short_name', 'color', 'radii', 'radii_ionic')
+    def __init__(self, number, name, short_name, color, radii, radii_ionic):
         self.number = number
         self.name = name
         self.short_name = short_name
@@ -194,7 +195,8 @@ class CLASS_atom_pdb_Elements:  # TODO, use __slots__
         self.radii_ionic = radii_ionic
 
 # This is the class, which stores the properties of one atom.
-class CLASS_atom_pdb_atom:  # TODO, use __slots__
+class CLASS_atom_pdb_atom(object):  
+    __slots__ = ('element', 'name', 'location', 'radius', 'color', 'material')
     def __init__(self, element, name, location, radius, color, material):
         self.element = element
         self.name = name
@@ -204,7 +206,8 @@ class CLASS_atom_pdb_atom:  # TODO, use __slots__
         self.material = material
 
 # This is the class, which stores the two atoms of one stick.
-class CLASS_atom_pdb_stick:  # TODO, use __slots__
+class CLASS_atom_pdb_stick(object):
+    __slots__ = ('atom1', 'atom2')
     def __init__(self, atom1, atom2):
         self.atom1 = atom1
         self.atom2 = atom2
