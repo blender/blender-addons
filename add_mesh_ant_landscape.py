@@ -73,7 +73,7 @@ Strata type:     Strata types, Smooth, Sharp-sub, Sharp-add
 import bpy
 from bpy.props import *
 from mathutils import *
-from noise import *
+from mathutils.noise import *
 from math import *
 
 
@@ -318,7 +318,7 @@ def landscape_gen(x,y,z,falloffsize,options=[0,1.0,1, 0,0,1.0,0,6,1.0,2.0,1.0,2.
     elif ntype == 3: value = hetero_terrain(       ncoords, dimension, lacunarity, depth, offset, nbasis ) * 0.25
     elif ntype == 4: value = fractal(              ncoords, dimension, lacunarity, depth, nbasis )
     elif ntype == 5: value = turbulence_vector(    ncoords, depth, hardnoise, nbasis )[0]
-    elif ntype == 6: value = vl_vector(            ncoords, distortion, nbasis, vlbasis ) + 0.5
+    elif ntype == 6: value = variable_lacunarity(            ncoords, distortion, nbasis, vlbasis ) + 0.5
     elif ntype == 7: value = marble_noise( x*2.0/falloffsize,y*2.0/falloffsize,z*2/falloffsize, origin, nsize, marbleshape, marblebias, marblesharpnes, distortion, depth, hardnoise, nbasis )
     elif ntype == 8: value = shattered_hterrain( ncoords[0], ncoords[1], ncoords[2], dimension, lacunarity, depth, offset, distortion, nbasis )
     elif ntype == 9: value = strata_hterrain( ncoords[0], ncoords[1], ncoords[2], dimension, lacunarity, depth, offset, distortion, nbasis )

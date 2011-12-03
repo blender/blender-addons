@@ -38,7 +38,7 @@ import bpy
 from bpy.props import *
 from mathutils import *
 from math import *
-import noise as Noise
+import mathutils.noise as Noise
 ###------------------------------------------------------------
 #### Some functions to use with others:
 ###------------------------------------------------------------
