@@ -492,7 +492,8 @@ def write_file(filepath, objects, scene,
                         if EXPORT_GROUP_BY_MAT:
                             # can be mat_image or (null)
                             fw("g %s_%s\n" % (name_compat(ob.name), name_compat(ob.data.name)))  # can be mat_image or (null)
-                        fw("usemtl (null)\n")  # mat, image
+                        if EXPORT_MTL:
+                            fw("usemtl (null)\n")  # mat, image
 
                     else:
                         mat_data = mtl_dict.get(key)
@@ -511,8 +512,8 @@ def write_file(filepath, objects, scene,
 
                         if EXPORT_GROUP_BY_MAT:
                             fw("g %s_%s_%s\n" % (name_compat(ob.name), name_compat(ob.data.name), mat_data[0]))  # can be mat_image or (null)
-
-                        fw("usemtl %s\n" % mat_data[0])  # can be mat_image or (null)
+                        if EXPORT_MTL:
+                            fw("usemtl %s\n" % mat_data[0])  # can be mat_image or (null)
 
                 contextMat = key
                 if f_smooth != contextSmooth:
