@@ -481,14 +481,14 @@ def write_metarig(obj, layers=False, func_name="create_sample"):
 
     for bone_name in bones:
         bone = arm.edit_bones[bone_name]
-        code.append("    bone = arm.edit_bones.new('%s')" % bone.name)
+        code.append("    bone = arm.edit_bones.new(%r)" % bone.name)
         code.append("    bone.head[:] = %.4f, %.4f, %.4f" % bone.head.to_tuple(4))
         code.append("    bone.tail[:] = %.4f, %.4f, %.4f" % bone.tail.to_tuple(4))
         code.append("    bone.roll = %.4f" % bone.roll)
         code.append("    bone.use_connect = %s" % str(bone.use_connect))
         if bone.parent:
-            code.append("    bone.parent = arm.edit_bones[bones['%s']]" % bone.parent.name)
-        code.append("    bones['%s'] = bone.name" % bone.name)
+            code.append("    bone.parent = arm.edit_bones[bones[%r]]" % bone.parent.name)
+        code.append("    bones[%r] = bone.name" % bone.name)
 
     bpy.ops.object.mode_set(mode='OBJECT')
     code.append("")
@@ -499,13 +499,13 @@ def write_metarig(obj, layers=False, func_name="create_sample"):
         pbone = obj.pose.bones[bone_name]
         pbone_written = False
 
-        code.append("    pbone = obj.pose.bones[bones['%s']]" % bone_name)
-        code.append("    pbone.rigify_type = '%s'" % pbone.rigify_type)
+        code.append("    pbone = obj.pose.bones[bones[%r]]" % bone_name)
+        code.append("    pbone.rigify_type = %r" % pbone.rigify_type)
         code.append("    pbone.lock_location = %s" % str(tuple(pbone.lock_location)))
         code.append("    pbone.lock_rotation = %s" % str(tuple(pbone.lock_rotation)))
         code.append("    pbone.lock_rotation_w = %s" % str(pbone.lock_rotation_w))
         code.append("    pbone.lock_scale = %s" % str(tuple(pbone.lock_scale)))
-        code.append("    pbone.rotation_mode = '%s'" % str(pbone.rotation_mode))
+        code.append("    pbone.rotation_mode = %r" % pbone.rotation_mode)
         if layers:
             code.append("    pbone.bone.layers = %s" % str(list(pbone.bone.layers)))
         # Rig type parameters
