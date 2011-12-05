@@ -47,7 +47,7 @@ def face_uv_get(face):
 def face_material_get(face):
     me = face.id_data
     try:
-        return me.materials[f.material_index]
+        return me.materials[face.material_index]
     except:
         return None
 
@@ -114,7 +114,7 @@ def write_face2brush(file, face):
 
     image_text = PREF_NULL_TEX
 
-    material = face_material_get(f)
+    material = face_material_get(face)
 
     if material and material.game_settings.invisible:
         image_text = PREF_INVIS_TEX
