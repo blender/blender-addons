@@ -614,20 +614,16 @@ def process_next_chunk(file, previous_chunk, importedObjects, IMAGE_SEARCH):
             data = list(struct.unpack('<ffffffffffff', temp_data))
             new_chunk.bytes_read += STRUCT_SIZE_4x3MAT
 
-            contextMatrix_rot = mathutils.Matrix((data[:3] + [0], \
-                                                  data[3:6] + [0], \
-                                                  data[6:9] + [0], \
-                                                  data[9:] + [1], \
+            contextMatrix_rot = mathutils.Matrix((data[:3] + [0],
+                                                  data[3:6] + [0],
+                                                  data[6:9] + [0],
+                                                  data[9:] + [1],
                                                   ))
 
         elif  (new_chunk.ID == MAT_MAP_FILEPATH):
             texture_name, read_str_len = read_string(file)
-            try:
-                TEXTURE_DICT[contextMaterial.name]
-            except:
-                #img = TEXTURE_DICT[contextMaterial.name]= BPyImage.comprehensiveImageLoad(texture_name, FILEPATH)
-                img = TEXTURE_DICT[contextMaterial.name] = load_image(texture_name, dirname)
-# 				img = TEXTURE_DICT[contextMaterial.name]= BPyImage.comprehensiveImageLoad(texture_name, FILEPATH, PLACE_HOLDER=False, RECURSIVE=IMAGE_SEARCH)
+            if contextMaterial.name not in TEXTURE_DICT:
+                TEXTURE_DICT[contextMaterial.name] = load_image(texture_name, dirname, place_holder=False, recursive=IMAGE_SEARCH)
 
             new_chunk.bytes_read += read_str_len  # plus one for the null character that gets removed
         elif new_chunk.ID == EDITKEYFRAME:

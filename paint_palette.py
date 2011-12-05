@@ -57,7 +57,6 @@ def update_panels():
 
 def sample():
     pp = bpy.context.scene.palette_props
-    context = bpy.context
     current_color = pp.colors[pp.current_color_index]
     brush = current_brush()
     current_color.color = brush.color
