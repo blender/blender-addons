@@ -16,6 +16,8 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
+# <pep8-80 compliant>
+
 """ This script is an exporter to the nuke's .chan files.
 It takes the currently active object and writes it's transformation data
 into a text file with .chan extension."""
@@ -29,6 +31,7 @@ def save_chan(context, filepath, y_up, rot_ord):
     # get the active scene and object
     scene = context.scene
     obj = context.active_object
+    camera = obj.data if obj.type == 'CAMERA' else None
 
     # get the range of an animation
     f_start = scene.frame_start
@@ -72,28 +75,21 @@ def save_chan(context, filepath, y_up, rot_ord):
         fw("%f\t%f\t%f\t" % (degrees(r[0]), degrees(r[1]), degrees(r[2])))
 
         # if we have a camera, add the focal length
-        if obj.type == 'CAMERA':
-            sensor_x = 0
-            sensor_y = 0
-            if hasattr(obj.data, "sensor_width"):  # Preserve compatibility
-                if obj.data.sensor_fit == 'VERTICAL':
-                    sensor_x = obj.data.sensor_width
-                    sensor_y = obj.data.sensor_height
-                else:
-                    sensor_x = obj.data.sensor_width
-                    sensor_y = sensor_x * res_ratio
+        if camera:
+            if camera.sensor_fit == 'VERTICAL':
+                sensor_x = camera.sensor_width
+                sensor_y = camera.sensor_height
             else:
-                sensor_x = 32  # standard blender's sensor size
+                sensor_x = camera.sensor_width
                 sensor_y = sensor_x * res_ratio
-
-            cam_lens = obj.data.lens
+            cam_lens = camera.lens
 
             # calculate the vertical field of view
             # we know the vertical size of (virtual) sensor, the focal length
             # of the camera so all we need to do is to feed this data to
-            # atan2 function whitch returns the degree (in radians) of 
+            # atan2 function whitch returns the degree (in radians) of
             # an angle formed by a triangle with two legs of a given lengths
-            vfov = degrees(atan2(sensor_y / 2, cam_lens))*2
+            vfov = degrees(atan2(sensor_y / 2, cam_lens)) * 2.0
             fw("%f" % vfov)
 
         fw("\n")

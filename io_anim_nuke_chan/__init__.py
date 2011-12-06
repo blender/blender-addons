@@ -16,6 +16,8 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
+# <pep8-80 compliant>
+
 bl_info = {
     "name": "Nuke Animation Format (.chan)",
     "author": "Michael Krupa",
@@ -50,7 +52,7 @@ from bpy.props import (StringProperty,
                        EnumProperty)
 
 # property shared by both operators
-rot_ord = EnumProperty(
+rotation_order = EnumProperty(
         name="Rotation order",
         description="Choose the export rotation order",
         items=(('XYZ', "XYZ", "XYZ"),
@@ -73,7 +75,7 @@ class ImportChan(Operator, ImportHelper):
 
     filter_glob = StringProperty(default="*.chan", options={'HIDDEN'})
 
-    rot_ord = rot_ord
+    rotation_order = rotation_order
     z_up = BoolProperty(
             name="Make Z up",
             description="Switch the Y and Z axis",
@@ -88,7 +90,7 @@ class ImportChan(Operator, ImportHelper):
         return import_nuke_chan.read_chan(context,
                                           self.filepath,
                                           self.z_up,
-                                          self.rot_ord)
+                                          self.rotation_order)
 
 
 class ExportChan(Operator, ExportHelper):
@@ -103,7 +105,7 @@ class ExportChan(Operator, ExportHelper):
             name="Make Y up",
             description="Switch the Y and Z axis",
             default=True)
-    rot_ord = rot_ord
+    rotation_order = rotation_order
 
     @classmethod
     def poll(cls, context):
@@ -114,7 +116,7 @@ class ExportChan(Operator, ExportHelper):
         return export_nuke_chan.save_chan(context,
                                           self.filepath,
                                           self.y_up,
-                                          self.rot_ord)
+                                          self.rotation_order)
 
 
 def menu_func_import(self, context):

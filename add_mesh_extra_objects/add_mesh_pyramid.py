@@ -32,13 +32,9 @@ bl_info = {
 
 
 import bpy
-from bpy.props import (FloatVectorProperty,
-                       IntProperty,
-                       FloatProperty,
-                       BoolProperty)
+from bpy.props import IntProperty, FloatProperty
 
 from add_utils import AddObjectHelper, add_object_data
-from mathutils import Vector
 
 
 def makePyramid(initial_size, step_height, step_width, number_steps):

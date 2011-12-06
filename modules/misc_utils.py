@@ -22,16 +22,11 @@
     
     Miscellaneous helper methods.
 
-
-
 '''
-
-
 
 import bpy
 from cursor_utils import *
 from mathutils import Vector, Matrix
-
 
 
 class BlenderFake:
@@ -45,7 +40,6 @@ class BlenderFake:
     @classmethod
     def forceRedraw(cls):
         CursorAccess.setCursor(CursorAccess.getCursor())
-
 
 
 # Converts 3D coordinates in a 3DRegion
