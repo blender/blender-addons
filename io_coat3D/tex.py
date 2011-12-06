@@ -67,7 +67,7 @@ def gettex(mat_list, objekti, scene,export):
                             tex_slot.texture.image.reload()
     else:
         if(os.sys.platform == 'win32'):
-            soite = os.path.expanduser("~") + os.sep + 'Documents' + os.sep + '3DC2Blender' + os.sep + 'Textures' + os.sep
+            osoite = os.path.expanduser("~") + os.sep + 'Documents' + os.sep + '3DC2Blender' + os.sep + 'Textures' + os.sep
         else:
             osoite = os.path.expanduser("~") + os.sep + '3DC2Blender' + os.sep + 'Textures' + os.sep
     ki = os.path.split(coa.applink_name)[1]
