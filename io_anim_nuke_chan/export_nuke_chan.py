@@ -73,13 +73,21 @@ def save_chan(context, filepath, y_up, rot_ord):
 
         # if we have a camera, add the focal length
         if obj.type == 'CAMERA':
-            # I've found via the experiments that this is a blenders 
-            # default sensor size (in mm)
-            sensor_x = 32.0
-            # the vertical sensor size we get by multiplying the sensor_x by
-            # resolution ratio
-            sensor_y = sensor_x * res_ratio
+            sensor_x = 0
+            sensor_y = 0
+            if hasattr(obj.data, "sensor_width"):  # Preserve compatibility
+                if obj.data.sensor_fit == 'VERTICAL':
+                    sensor_x = obj.data.sensor_width
+                    sensor_y = obj.data.sensor_height
+                else:
+                    sensor_x = obj.data.sensor_width
+                    sensor_y = sensor_x * res_ratio
+            else:
+                sensor_x = 32  # standard blender's sensor size
+                sensor_y = sensor_x * res_ratio
+
             cam_lens = obj.data.lens
+
             # calculate the vertical field of view
             # we know the vertical size of (virtual) sensor, the focal length
             # of the camera so all we need to do is to feed this data to

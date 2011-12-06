@@ -106,9 +106,19 @@ def read_chan(context, filepath, z_up, rot_ord):
             # check if the object is camera and fov data is present
             if obj.type == 'CAMERA' and len(data) > 7:
                 v_fov = float(data[7])
-                sensor_v = 32.0
-                sensor_h = sensor_v * res_ratio
-                lenslen = ((sensor_h / 2.0) / tan(radians(v_fov / 2.0)))
+                sensor_x = 0
+                sensor_y = 0
+                if hasattr(obj.data, "sensor_width"):  # Preserve compatibility
+                    if obj.data.sensor_fit == 'VERTICAL':
+                        sensor_x = obj.data.sensor_width
+                        sensor_y = obj.data.sensor_height
+                    else:
+                        sensor_x = obj.data.sensor_width
+                        sensor_y = sensor_x * res_ratio
+                else:
+                    sensor_x = 32  # standard blender's sensor size
+                    sensor_y = sensor_x * res_ratio
+                lenslen = ((sensor_y / 2.0) / tan(radians(v_fov / 2.0)))
                 obj.data.lens = lenslen
                 obj.data.keyframe_insert("lens")
     filehandle.close()
