@@ -40,7 +40,7 @@ bl_info = {
 import re
 import bpy
 from mathutils import Vector, Matrix
-from math import radians, degrees
+from math import radians
 from bpy.props import (StringProperty,
                        BoolProperty,
                        FloatProperty,

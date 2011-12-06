@@ -496,7 +496,9 @@ def export(file,
             fw('%s<Collision enabled="true">\n' % ident)
             ident += '\t'
 
-        ident = writeTransform_begin(ident, matrix, suffix_quoted_str(obj_id, "_TRANSFORM"))
+        # use _ifs_TRANSFORM suffix so we dont collide with transform node when
+        # hierarchys are used.
+        ident = writeTransform_begin(ident, matrix, suffix_quoted_str(obj_id, "_ifs_TRANSFORM"))
 
         if mesh.tag:
             fw('%s<Group USE=%s />\n' % (ident, mesh_id_group))
