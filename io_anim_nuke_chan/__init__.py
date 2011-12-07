@@ -22,7 +22,7 @@ bl_info = {
     "name": "Nuke Animation Format (.chan)",
     "author": "Michael Krupa",
     "version": (1, 0),
-    "blender": (2, 6, 0),
+    "blender": (2, 6, 1),
     "api": 36079,
     "location": "File > Import/Export > Nuke (.chan)",
     "description": "Import/Export object's animation with nuke",
@@ -49,7 +49,8 @@ from bpy.types import Operator
 from bpy_extras.io_utils import ImportHelper, ExportHelper
 from bpy.props import (StringProperty,
                        BoolProperty,
-                       EnumProperty)
+                       EnumProperty,
+                       FloatProperty)
 
 # property shared by both operators
 rotation_order = EnumProperty(
@@ -81,6 +82,16 @@ class ImportChan(Operator, ImportHelper):
             description="Switch the Y and Z axis",
             default=True)
 
+    sensor_width = FloatProperty(
+            name="Camera sensor width",
+            description="Imported camera sensor width",
+            default=32.0)
+
+    sensor_height = FloatProperty(
+            name="Camera sensor height",
+            description="Imported camera sensor height",
+            default=18.0)
+
     @classmethod
     def poll(cls, context):
         return context.active_object is not None
@@ -90,7 +101,9 @@ class ImportChan(Operator, ImportHelper):
         return import_nuke_chan.read_chan(context,
                                           self.filepath,
                                           self.z_up,
-                                          self.rotation_order)
+                                          self.rotation_order,
+                                          self.sensor_width,
+                                          self.sensor_height)
 
 
 class ExportChan(Operator, ExportHelper):

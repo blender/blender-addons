@@ -24,17 +24,12 @@ from mathutils import Vector, Matrix, Euler
 from math import radians, tan
 
 
-def read_chan(context, filepath, z_up, rot_ord):
+def read_chan(context, filepath, z_up, rot_ord, sensor_width, sensor_height):
 
     # get the active object
     scene = context.scene
     obj = context.active_object
     camera = obj.data if obj.type == 'CAMERA' else None
-
-    # get the resolution (needed to calculate the camera lens)
-    res_x = scene.render.resolution_x
-    res_y = scene.render.resolution_y
-    res_ratio = res_y / res_x
 
     # prepare the correcting matrix
     rot_mat = Matrix.Rotation(radians(90.0), 4, 'X').to_4x4()
@@ -109,14 +104,10 @@ def read_chan(context, filepath, z_up, rot_ord):
             # check if the object is camera and fov data is present
             if camera and len(data) > 7:
                 v_fov = float(data[7])
-                if camera.sensor_fit == 'VERTICAL':
-                    sensor_x = camera.sensor_width
-                    sensor_y = camera.sensor_height
-                else:
-                    sensor_x = camera.sensor_width
-                    sensor_y = sensor_x * res_ratio
-
-                camera.lens = ((sensor_y / 2.0) / tan(radians(v_fov / 2.0)))
+                camera.sensor_fit = 'HORIZONTAL'
+                camera.sensor_width = sensor_width
+                camera.sensor_height = sensor_height
+                camera.lens = (sensor_height / 2.0) / tan(radians(v_fov / 2.0))
                 camera.keyframe_insert("lens")
     filehandle.close()
 

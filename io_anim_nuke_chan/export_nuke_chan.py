@@ -37,11 +37,6 @@ def save_chan(context, filepath, y_up, rot_ord):
     f_start = scene.frame_start
     f_end = scene.frame_end
 
-    # get the resolution (needed by nuke)
-    res_x = scene.render.resolution_x
-    res_y = scene.render.resolution_y
-    res_ratio = res_y / res_x
-
     # prepare the correcting matrix
     rot_mat = Matrix.Rotation(radians(-90.0), 4, 'X').to_4x4()
 
@@ -76,12 +71,8 @@ def save_chan(context, filepath, y_up, rot_ord):
 
         # if we have a camera, add the focal length
         if camera:
-            if camera.sensor_fit == 'VERTICAL':
-                sensor_x = camera.sensor_width
-                sensor_y = camera.sensor_height
-            else:
-                sensor_x = camera.sensor_width
-                sensor_y = sensor_x * res_ratio
+            sensor_x = camera.sensor_width
+            sensor_y = camera.sensor_height
             cam_lens = camera.lens
 
             # calculate the vertical field of view
