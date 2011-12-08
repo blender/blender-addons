@@ -23,7 +23,7 @@ It takes the currently active object and writes it's transformation data
 into a text file with .chan extension."""
 
 from mathutils import Matrix
-from math import radians, degrees, atan2
+from math import radians, degrees
 
 
 def save_chan(context, filepath, y_up, rot_ord):
@@ -73,14 +73,7 @@ def save_chan(context, filepath, y_up, rot_ord):
         if camera:
             sensor_x = camera.sensor_width
             sensor_y = camera.sensor_height
-            cam_lens = camera.lens
-
-            # calculate the vertical field of view
-            # we know the vertical size of (virtual) sensor, the focal length
-            # of the camera so all we need to do is to feed this data to
-            # atan2 function whitch returns the degree (in radians) of
-            # an angle formed by a triangle with two legs of a given lengths
-            vfov = degrees(atan2(sensor_y / 2, cam_lens)) * 2.0
+            vfov = degrees(camera.angle_y)
             fw("%f" % vfov)
 
         fw("\n")

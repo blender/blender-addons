@@ -21,7 +21,7 @@
 """ This script is an importer for the nuke's .chan files"""
 
 from mathutils import Vector, Matrix, Euler
-from math import radians, tan
+from math import radians
 
 
 def read_chan(context, filepath, z_up, rot_ord, sensor_width, sensor_height):
@@ -103,11 +103,10 @@ def read_chan(context, filepath, z_up, rot_ord, sensor_width, sensor_height):
 
             # check if the object is camera and fov data is present
             if camera and len(data) > 7:
-                v_fov = float(data[7])
                 camera.sensor_fit = 'HORIZONTAL'
                 camera.sensor_width = sensor_width
                 camera.sensor_height = sensor_height
-                camera.lens = (sensor_height / 2.0) / tan(radians(v_fov / 2.0))
+                camera.angle_y = radiansfloat(data[7])
                 camera.keyframe_insert("lens")
     filehandle.close()
 
