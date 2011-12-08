@@ -26,9 +26,9 @@ bl_info = {
     "name": "Measure Panel",
     "author": "Buerbaum Martin (Pontiac), TNae (Normal patch)," \
         " Benjamin Lauritzen (Loonsbury; Volume code)",
-    "version": (0, 8, 1),
-    "blender": (2, 5, 7),
-    "api": 40847,
+    "version": (0, 8, 2),
+    "blender": (2, 6, 0),
+    "api": 42508,
     "location": "View3D > Properties > Measure Panel",
     "description": "Measure distances between objects",
     "warning": "Script needs repairs",
@@ -204,6 +204,51 @@ def getMeasurePoints(context):
 
         else:
             return None
+
+
+# Return the length of an edge (in global space if "obj" is set).
+# Respects the scaling (via the "obj.matrix_world" parameter).
+def edgeLengthGlobal(edge, obj, globalSpace):
+    v1, v2 = edge.vertices
+
+    # Get vertex data
+    v1 = obj.data.vertices[v1]
+    v2 = obj.data.vertices[v2]
+
+    if globalSpace:
+        mat = obj.matrix_world
+        # Apply transform matrix to vertex coordinates.
+        v1 = mat * v1.co
+        v2 = mat * v2.co
+    else:
+        v1 = v1.co
+        v2 = v2.co
+
+    return (v1 - v2).length
+
+
+# Calculate the edge length of a mesh object.
+# *) Set selectedOnly=1 if you only want to count selected edges.
+# *) Set globalSpace=1 if you want to calculate
+#    the global edge length (object mode).
+# Note: Be sure you have updated the mesh data before
+#       running this with selectedOnly=1!
+# @todo Support other object types (surfaces, etc...)?
+def objectEdgeLength(obj, selectedOnly, globalSpace):
+    if (obj and obj.type == 'MESH' and obj.data):
+        edgeTotal = 0
+
+        mesh = obj.data
+
+        # Count the length of all edges.
+        for ed in mesh.edges:
+            if not selectedOnly or ed.select:
+                edgeTotal += edgeLengthGlobal(ed, obj, globalSpace)
+
+        return edgeTotal
+
+    # We can not calculate a length for this object.
+    return -1
 
 
 # Return the area of a face (in global space).
@@ -587,6 +632,29 @@ def draw_measurements_callback(self, context):
 
             loc_y -= OFFSET_Y
 
+    if (sce.measure_panel_calc_edge_length):
+        if (context.mode == 'EDIT_MESH'):
+            obj = context.active_object
+
+            length_total = objectEdgeLength(obj, True, measureGlobal(sce))
+
+            sce.measure_panel_edge_length = length_total
+
+        elif (context.mode == 'OBJECT'):
+            length_total = -1
+
+            for o in context.selected_objects:
+                if (o.type == 'MESH'):
+                    length = objectEdgeLength(o, False, measureGlobal(sce))
+
+                    if length >= 0:
+                        if length_total < 0:
+                            length_total = 0
+
+                        length_total += length
+
+            sce.measure_panel_edge_length = length_total
+
     # Handle mesh surface area calulations
     if (sce.measure_panel_calc_area):
         # Get a single selected object (or nothing).
@@ -816,7 +884,6 @@ class VIEW3D_PT_measure(bpy.types.Panel):
     def draw(self, context):
         layout = self.layout
         sce = context.scene
-        layout.label(text="Distance")
 
         # Get a single selected object (or nothing).
         obj = getSingleObject(context)
@@ -825,6 +892,16 @@ class VIEW3D_PT_measure(bpy.types.Panel):
 
         if (context.mode == 'EDIT_MESH'):
             obj = context.active_object
+
+            row = layout.row()
+            row.operator("view3d.reenter_editmode",
+                text="Update selection")
+#               @todo
+#                description="The calculated values can" \
+#                    " not be updated in mesh edit mode" \
+#                    " automatically. Press this button" \
+#                    " to do this manually, after you changed" \
+#                    " the selection")
 
             if (obj and obj.type == 'MESH' and obj.data):
                 # "Note: a Mesh will return the selection state of the mesh
@@ -854,6 +931,7 @@ class VIEW3D_PT_measure(bpy.types.Panel):
                     # We measure the distance from...
                     # local  ... the object center to the 3D cursor.
                     # global ... the origin to the 3D cursor.
+                    layout.label(text="Distance")
 
                     box = layout.box()
                     row = box.row()
@@ -867,22 +945,13 @@ class VIEW3D_PT_measure(bpy.types.Panel):
                     else:
                         row.label(text="Origin [0,0,0]")
 
-                    row = layout.row()
-                    row.operator("view3d.reenter_editmode",
-                        text="Update selection & distance")
-#                       @todo
-#                        description="The surface area value can" \
-#                            " not be updated in mesh edit mode" \
-#                            " automatically. Press this button" \
-#                            " to do this manually, after you changed" \
-#                            " the selection")
-
                     layout.prop(sce, "measure_panel_draw")
 
                 elif len(verts_selected) == 1:
                     # One vertex selected.
                     # We measure the distance from the
                     # selected vertex object to the 3D cursor.
+                    layout.label(text="Distance")
 
                     box = layout.box()
                     row = box.row()
@@ -893,16 +962,13 @@ class VIEW3D_PT_measure(bpy.types.Panel):
                     row.label(text="", icon='ARROW_LEFTRIGHT')
                     row.label(text="", icon='VERTEXSEL')
 
-                    row = layout.row()
-                    row.operator("view3d.reenter_editmode",
-                        text="Update selection & distance")
-
                     layout.prop(sce, "measure_panel_draw")
 
                 elif len(verts_selected) == 2:
                     # Two vertices selected.
                     # We measure the distance between the
                     # two selected vertices.
+                    layout.label(text="Distance")
 
                     box = layout.box()
                     row = box.row()
@@ -913,16 +979,30 @@ class VIEW3D_PT_measure(bpy.types.Panel):
                     row.label(text="", icon='ARROW_LEFTRIGHT')
                     row.label(text="", icon='VERTEXSEL')
 
-                    row = layout.row()
-                    row.operator("view3d.reenter_editmode",
-                        text="Update selection & distance")
-
                     layout.prop(sce, "measure_panel_draw")
 
-                else:
+                edges_selected = [ed for ed in mesh.edges if ed.select == 1]
+                if len(edges_selected) >= 1:
+                    row = layout.row()
+                    row.prop(sce, "measure_panel_calc_edge_length",
+                        text="Edge Length (selected edges)")
+
+                    if (sce.measure_panel_calc_edge_length):
+                        if (sce.measure_panel_edge_length >= 0):
+                            box = layout.box()
+                            row = box.row()
+                            row.label(
+                                text=str(len(edges_selected)),
+                                icon='EDGESEL')
+
+                            row = box.row()
+                            row.label(text="Length")
+                            row.prop(sce, "measure_panel_edge_length")
+
+                if len(verts_selected) > 2:
                     row = layout.row()
                     row.prop(sce, "measure_panel_calc_area",
-                        text="Surface area (selected faces):")
+                        text="Surface area (selected faces)")
 
                     if (sce.measure_panel_calc_area):
                         # Get selected faces
@@ -947,38 +1027,45 @@ class VIEW3D_PT_measure(bpy.types.Panel):
                                 row = box.row()
                                 row.prop(sce, "measure_panel_normal1")
 
-                                row = layout.row()
-                                row.operator("view3d.reenter_editmode",
-                                    text="Update selection & area")
-
                         else:
                             row = layout.row()
                             row.label(text="Selection not supported",
                                 icon='INFO')
 
-                            row = layout.row()
-                            row.operator("view3d.reenter_editmode",
-                                text="Update selection")
-
-                    else:
-                        row = layout.row()
-                        row.operator("view3d.reenter_editmode",
-                            text="Update selection")
+                if drawTansformButtons:
+                    row = layout.row()
+                    row.prop(sce,
+                        "measure_panel_transform",
+                        expand=True)
 
         elif (context.mode == 'OBJECT'):
             # We are working in object mode.
 
+            mesh_objects = [o for o in context.selected_objects
+                        if (o.type == 'MESH')]
+
             if len(context.selected_objects) > 2:
                 # We have more that 2 objects selected...
 
+                # EDGES
+                row = layout.row()
+                row.prop(sce, "measure_panel_calc_edge_length",
+                    text="Edge Length")
+
+                if (sce.measure_panel_calc_edge_length):
+                    if (len(mesh_objects) > 0):
+                        box = layout.box()
+
+                        row = box.row()
+                        row.label(text="Total edge length")
+                        row.prop(sce, "measure_panel_edge_length")
+
+                # AREA
                 row = layout.row()
                 row.prop(sce, "measure_panel_calc_area",
-                        text="Surface area (selected faces):")
+                        text="Surface area")
 
                 if (sce.measure_panel_calc_area):
-                    mesh_objects = [o for o in context.selected_objects
-                        if (o.type == 'MESH')]
-
                     if (len(mesh_objects) > 0):
                         # ... and at least one of them is a mesh.
 
@@ -1005,6 +1092,7 @@ class VIEW3D_PT_measure(bpy.types.Panel):
             elif len(context.selected_objects) == 2:
                 # 2 objects selected.
                 # We measure the distance between the 2 selected objects.
+                layout.label(text="Distance")
 
                 obj1, obj2 = context.selected_objects
 
@@ -1022,6 +1110,22 @@ class VIEW3D_PT_measure(bpy.types.Panel):
                 row.prop(obj2, "name", text="")
 
                 layout.prop(sce, "measure_panel_draw")
+
+                # EDGES
+                row = layout.row()
+                row.prop(sce, "measure_panel_calc_edge_length",
+                    text="Edge Length")
+
+                if (sce.measure_panel_calc_edge_length):
+                    if (sce.measure_panel_edge_length >= 0):
+                        if (len(mesh_objects) > 0):
+                            box = layout.box()
+
+                            row = box.row()
+                            row.label(text="Total edge length")
+                            row.prop(sce, "measure_panel_edge_length")
+
+                # AREA
 
                 row = layout.row()
                 row.prop(sce, "measure_panel_calc_area",
@@ -1059,6 +1163,7 @@ class VIEW3D_PT_measure(bpy.types.Panel):
                             row = box.row()
                             row.prop(sce, "measure_panel_normal2")
 
+                # VOL
                 row = layout.row()
                 row.prop(sce, "measure_panel_calc_volume",
                     text="Volume")
@@ -1096,6 +1201,7 @@ class VIEW3D_PT_measure(bpy.types.Panel):
             elif (obj):
                 # One object selected.
                 # We measure the distance from the object to the 3D cursor.
+                layout.label(text="Distance")
 
                 box = layout.box()
                 row = box.row()
@@ -1111,6 +1217,21 @@ class VIEW3D_PT_measure(bpy.types.Panel):
 
                 layout.prop(sce, "measure_panel_draw")
 
+                # EDGES
+                row = layout.row()
+                row.prop(sce, "measure_panel_calc_edge_length",
+                    text="Edge Length")
+
+                if (sce.measure_panel_calc_edge_length):
+                    if (sce.measure_panel_edge_length >= 0):
+                        if (len(mesh_objects) > 0):
+                            box = layout.box()
+
+                            row = box.row()
+                            row.label(text="Total edge length")
+                            row.prop(sce, "measure_panel_edge_length")
+
+                # AREA
                 row = layout.row()
                 row.prop(sce, "measure_panel_calc_area",
                     text="Surface area")
@@ -1132,9 +1253,10 @@ class VIEW3D_PT_measure(bpy.types.Panel):
                         row = box.row()
                         row.prop(sce, "measure_panel_normal1")
 
+                # VOL
                 row = layout.row()
                 row.prop(sce, "measure_panel_calc_volume",
-                    text="Volume:")
+                    text="Volume")
 
                 if (sce.measure_panel_calc_volume):
                     # Display volume of the objects.
@@ -1155,6 +1277,7 @@ class VIEW3D_PT_measure(bpy.types.Panel):
             elif not context.selected_objects:
                 # Nothing selected.
                 # We measure the distance from the origin to the 3D cursor.
+                layout.label(text="Distance")
 
                 box = layout.box()
                 row = box.row()
@@ -1185,6 +1308,9 @@ def register():
     # Define a temporary attribute for the distance value
     bpy.types.Scene.measure_panel_dist = bpy.props.FloatProperty(
         name="Distance",
+        precision=PRECISION,
+        unit="LENGTH")
+    bpy.types.Scene.measure_panel_edge_length = bpy.props.FloatProperty(
         precision=PRECISION,
         unit="LENGTH")
     bpy.types.Scene.measure_panel_area1 = bpy.props.FloatProperty(
@@ -1224,6 +1350,10 @@ def register():
         name="Draw distance",
         description="Draw distances in 3D View",
         default=1)
+
+    bpy.types.Scene.measure_panel_calc_edge_length = bpy.props.BoolProperty(
+        description="Calculate total length of (selected) edges",
+        default=0)
 
     # Define property for the calc-area setting.
     # @todo prevent double calculations for each refresh automatically?
