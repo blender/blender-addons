@@ -117,16 +117,6 @@ toggle = (T_EnforceVersion + T_Replace + T_Mesh + T_Armature +
         T_Face + T_Shape + T_Proxy + T_Clothes + T_Rigify)
 
 #
-#    Blender versions
-#
-
-BLENDER_GRAPHICALL = 0
-BLENDER_256a = 1
-
-BlenderVersions = ['Graphicall', 'Blender256a']
-theBlenderVersion = BLENDER_GRAPHICALL
-
-#
 #    setFlagsAndFloats(rigFlags):
 #
 #    Global floats
@@ -718,7 +708,6 @@ def parseAnimationData(rna, args, tokens):
     return adata
 
 def parseAnimDataFCurve(adata, rna, args, tokens):
-    global theBlenderVersion
     if invalid(args[2]):
         return
     dataPath = args[0]
@@ -732,10 +721,7 @@ def parseAnimDataFCurve(adata, rna, args, tokens):
         elif key == 'FModifier':
             parseFModifier(fcu, val, sub)
         elif key == 'kp':
-            if theBlenderVersion >= BLENDER_256a:
-                pt = fcu.keyframe_points.add(n, 0)
-            else:
-                pt = fcu.keyframe_points.insert(n, 0)
+            pt = fcu.keyframe_points.insert(n, 0)
             pt.interpolation = 'LINEAR'
             pt = parseKeyFramePoint(pt, val, sub)
             n += 1
@@ -1458,7 +1444,7 @@ def parseVertColorData(args, tokens, data):
 #
 
 def parseVertexGroup(ob, me, args, tokens):
-    global toggle, theBlenderVersion
+    global toggle
     if verbosity > 2:
         print( "Parsing vertgroup %s" % args )
     grpName = args[0]
@@ -1472,14 +1458,9 @@ def parseVertexGroup(ob, me, args, tokens):
     if (toggle & T_Armature) or (grpName in ['Eye_L', 'Eye_R', 'Gums', 'Head', 'Jaw', 'Left', 'Middle', 'Right', 'Scalp']):
         group = ob.vertex_groups.new(grpName)
         loadedData['VertexGroup'][grpName] = group
-        if theBlenderVersion >= BLENDER_256a:
-            for (key, val, sub) in tokens:
-                if key == 'wv':
-                    ob.vertex_groups.assign([int(val[0])], group, float(val[1]), 'REPLACE')
-        else:
-            for (key, val, sub) in tokens:
-                if key == 'wv':
-                    group.add( [int(val[0])], float(val[1]), 'REPLACE' )
+        for (key, val, sub) in tokens:
+            if key == 'wv':
+                group.add( [int(val[0])], float(val[1]), 'REPLACE' )
     return
 
 
@@ -2433,7 +2414,7 @@ ConfigFile = '~/mhx_import.cfg'
 
 
 def readDefaults():
-    global toggle, theScale, theBlenderVersion, BlenderVersions
+    global toggle, theScale
     path = os.path.realpath(os.path.expanduser(ConfigFile))
     try:
         fp = open(path, 'rU')
@@ -2448,14 +2429,13 @@ def readDefaults():
             try:
                 toggle = int(words[0],16)
                 theScale = float(words[1])
-                theBlenderVersion = BlenderVersions.index(words[2])
             except:
                 print('Configuration file "%s" is corrupt' % path)                
     fp.close()
     return
 
 def writeDefaults():
-    global toggle, theScale, theBlenderVersion, BlenderVersions
+    global toggle, theScale
     path = os.path.realpath(os.path.expanduser(ConfigFile))
     try:
         fp = open(path, 'w')
@@ -2463,7 +2443,7 @@ def writeDefaults():
     except:
         print('Cannot open "%s" for writing' % path)
         return
-    fp.write("%x %f %s" % (toggle, theScale, BlenderVersions[theBlenderVersion]))
+    fp.write("%x %f Graphicall" % (toggle, theScale))
     fp.close()
     return
 
@@ -2886,11 +2866,6 @@ class ImportMhx(bpy.types.Operator, ImportHelper):
     bl_options = {'UNDO'}
 
     scale = FloatProperty(name="Scale", description="Default meter, decimeter = 1.0", default = theScale)
-    enums = []
-    for enum in BlenderVersions:
-        enums.append((enum,enum,enum))
-    bver = EnumProperty(name="Blender version", items=enums, default = BlenderVersions[0])
-
     filename_ext = ".mhx"
     filter_glob = StringProperty(default="*.mhx", options={'HIDDEN'})
     filepath = StringProperty(name="File Path", description="File path used for importing the MHX file", maxlen= 1024, default= "")
@@ -2900,14 +2875,13 @@ class ImportMhx(bpy.types.Operator, ImportHelper):
         exec(expr)
         
     def execute(self, context):
-        global toggle, theScale, MhxBoolProps, theBlenderVersion, BlenderVersions
+        global toggle, theScale, MhxBoolProps
         toggle = 0
         for (prop, name, desc, flag) in MhxBoolProps:
             expr = '(%s if self.%s else 0)' % (flag, prop)
             toggle |=  eval(expr)
         print("execute flags %x" % toggle)
         theScale = self.scale
-        theBlenderVersion = BlenderVersions.index(self.bver)
 
         try:
             readMhxFile(self.filepath)
@@ -2919,10 +2893,9 @@ class ImportMhx(bpy.types.Operator, ImportHelper):
         return {'FINISHED'}
 
     def invoke(self, context, event):
-        global toggle, theScale, MhxBoolProps, theBlenderVersion, BlenderVersions
+        global toggle, theScale, MhxBoolProps
         readDefaults()
         self.scale = theScale
-        self.bver = BlenderVersions[theBlenderVersion]
         for (prop, name, desc, flag) in MhxBoolProps:
             expr = 'self.%s = toggle&%s' % (prop, flag)
             exec(expr)
