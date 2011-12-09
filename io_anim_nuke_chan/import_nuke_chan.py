@@ -59,9 +59,9 @@ def read_chan(context, filepath, z_up, rot_ord, sensor_width, sensor_height):
             translation_mat = Matrix.Translation(v_transl)
             translation_mat.to_4x4()
 
-            # read the rotations, and set the rotation order basing on the order
-            # set during the export (it's not being saved in the chan file
-            # you have to keep it noted somewhere
+            # read the rotations, and set the rotation order basing on the
+            # order set during the export (it's not being saved in the chan
+            # file you have to keep it noted somewhere
             # the actual objects rotation order doesn't matter since the
             # rotations are being extracted from the matrix afterwards
             e_rot = Euler((radians(float(data[4])),
@@ -99,7 +99,6 @@ def read_chan(context, filepath, z_up, rot_ord, sensor_width, sensor_height):
             else:
                 obj.rotation_euler = trns[1].to_euler(obj.rotation_mode)
                 obj.keyframe_insert("rotation_euler")
-
 
             # check if the object is camera and fov data is present
             if camera and len(data) > 7:

@@ -108,9 +108,7 @@ class ImportSTL(bpy.types.Operator, ImportHelper):
 
 
 class ExportSTL(bpy.types.Operator, ExportHelper):
-    '''
-    Save STL triangle mesh data from the active object
-    '''
+    '''Save STL triangle mesh data from the active object'''
     bl_idname = "export_mesh.stl"
     bl_label = "Export STL"
 
