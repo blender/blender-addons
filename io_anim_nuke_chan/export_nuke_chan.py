@@ -44,7 +44,7 @@ def save_chan(context, filepath, y_up, rot_ord):
     fw = filehandle.write
 
     # iterate the frames
-    for frame in range(f_start, f_end, 1):
+    for frame in range(f_start, f_end + 1, 1):
 
         # set the current frame
         scene.frame_set(frame)
@@ -69,10 +69,8 @@ def save_chan(context, filepath, y_up, rot_ord):
 
         fw("%f\t%f\t%f\t" % (degrees(r[0]), degrees(r[1]), degrees(r[2])))
 
-        # if we have a camera, add the focal length
+        # if the selected object is a camera export vertical fov also
         if camera:
-            sensor_x = camera.sensor_width
-            sensor_y = camera.sensor_height
             vfov = degrees(camera.angle_y)
             fw("%f" % vfov)
 

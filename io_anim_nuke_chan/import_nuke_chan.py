@@ -105,7 +105,7 @@ def read_chan(context, filepath, z_up, rot_ord, sensor_width, sensor_height):
                 camera.sensor_fit = 'HORIZONTAL'
                 camera.sensor_width = sensor_width
                 camera.sensor_height = sensor_height
-                camera.angle_y = radiansfloat(data[7])
+                camera.angle_y = radians(float(data[7]))
                 camera.keyframe_insert("lens")
     filehandle.close()
 
