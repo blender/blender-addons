@@ -197,7 +197,7 @@ class AddTree(bpy.types.Operator):
         default=3, update=update_tree)
     length = FloatVectorProperty(name='Length',
         description='The relative lengths of each branch level (nLength)',
-        min=0.0,
+        min=0.000001,
         default=[1, 0.3, 0.6, 0.45],
         size=4, update=update_tree)
     lengthV = FloatVectorProperty(name='Length Variation',
@@ -432,12 +432,12 @@ class AddTree(bpy.types.Operator):
             # so we need something custom. This is it
             data = []
             for a, b in (self.as_keywords(ignore=("chooseSet", "presetName", "limitImport", "do_update"))).items():
-                # If the property is a vector property then evaluate it and
-                # convert to a string
-                if (repr(b))[:3] == 'bpy':
-                    data.append((a, eval('(self.' + a + ')[:]')))
+                # If the property is a vector property then add the slice to the list
+                try:
+                    len(b)
+                    data.append((a, b[:]))
                 # Otherwise, it is fine so just add it
-                else:
+                except:
                     data.append((a, b))
             # Create the dict from the list
             data = dict(data)
