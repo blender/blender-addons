@@ -749,9 +749,6 @@ class IMPORT_OT_psk(bpy.types.Operator):
     # List of operator properties, the attributes will be assigned
     # to the class instance from the operator settings before calling.
     filepath = StringProperty(
-            name="File Path",
-            description="Filepath used for importing the psk file",
-            maxlen= 1024,
             subtype='FILE_PATH',
             )
     filter_glob = StringProperty(

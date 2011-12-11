@@ -52,7 +52,9 @@ class RawImporter(bpy.types.Operator):
     bl_label = "Import RAW"
     bl_options = {'UNDO'}
 
-    filepath = StringProperty(name="File Path", description="Filepath used for importing the RAW file", maxlen=1024, default="", subtype='FILE_PATH')
+    filepath = StringProperty(
+            subtype='FILE_PATH',
+            )
     filter_glob = StringProperty(default="*.raw", options={'HIDDEN'})
 
     def execute(self, context):
@@ -72,9 +74,6 @@ class RawExporter(bpy.types.Operator):
     bl_label = "Export RAW"
 
     filepath = StringProperty(
-            name="File Path",
-            description="Filepath used for exporting the RAW file",
-            maxlen=1024,
             subtype='FILE_PATH',
             )
     check_existing = BoolProperty(

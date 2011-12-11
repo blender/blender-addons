@@ -2427,9 +2427,6 @@ class IMPORT_OT_autocad_dxf(bpy.types.Operator):
     bl_options = {'UNDO'}
 
     filepath = StringProperty(
-            name="File Path",
-            description="Filepath used for importing the DXF file",
-            maxlen=1024,
             subtype='FILE_PATH',
             )
     new_scene = BoolProperty(

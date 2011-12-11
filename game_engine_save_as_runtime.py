@@ -194,8 +194,6 @@ class SaveAsRuntime(bpy.types.Operator):
             subtype='FILE_PATH',
             )
     filepath = StringProperty(
-            name="Output Path",
-            description="Where to save the runtime",
             subtype='FILE_PATH',
             )
     copy_python = BoolProperty(

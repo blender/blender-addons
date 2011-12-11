@@ -312,9 +312,7 @@ class AsfImporter(bpy.types.Operator):
     bl_label = "Import ASF"
 
     filepath = StringProperty(
-            name="File Path",
-            maxlen=1024, default="",
-            description="Path to the ASF file",
+            subtype='FILE_PATH',
             )
     armature_name = StringProperty(
             name="Armature Name", maxlen=32,
@@ -408,8 +406,7 @@ class AmcImporter(bpy.types.Operator):
     bl_label = "Import AMC"
 
     filepath = StringProperty(
-            name="File Path", maxlen=1024,
-            description="Path to the AMC file",
+            subtype='FILE_PATH',
             )
     frame_skip = IntProperty(
             name="Fps divisor",

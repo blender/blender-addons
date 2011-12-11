@@ -347,10 +347,8 @@ class M3Importer(bpy.types.Operator):
     # to the class instance from the operator settings before calling.
 
     filepath = StringProperty(
-                name="File Path",\
-                description="Filepath used for importing the M3 file",\
-                maxlen=1024,\
-                default="")
+                subtype='FILE_PATH',
+                )
 
     def execute(self, context):
         t = time.mktime(datetime.datetime.now().timetuple())

@@ -1938,9 +1938,6 @@ class ExportUDKAnimData(bpy.types.Operator):
     # to the class instance from the operator settings before calling.
 
     filepath = StringProperty(
-            name="File Path",
-            description="Filepath used for exporting the PSA file",
-            maxlen= 1024,
             subtype='FILE_PATH',
             )
     filter_glob = StringProperty(

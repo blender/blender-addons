@@ -2868,7 +2868,7 @@ class ImportMhx(bpy.types.Operator, ImportHelper):
     scale = FloatProperty(name="Scale", description="Default meter, decimeter = 1.0", default = theScale)
     filename_ext = ".mhx"
     filter_glob = StringProperty(default="*.mhx", options={'HIDDEN'})
-    filepath = StringProperty(name="File Path", description="File path used for importing the MHX file", maxlen= 1024, default= "")
+    filepath = StringProperty(subtype='FILE_PATH')
 
     for (prop, name, desc, flag) in MhxBoolProps:
         expr = '%s = BoolProperty(name="%s", description="%s", default=toggle&%s)' % (prop, name, desc, flag)
@@ -3262,7 +3262,7 @@ def readMagpie(context, filepath, offs):
 class VIEW3D_OT_MhxLoadMohoButton(bpy.types.Operator):
     bl_idname = "mhx.pose_load_moho"
     bl_label = "Moho (.dat)"
-    filepath = StringProperty(name="File Path", description="File path used for importing the file", maxlen= 1024, default= "")
+    filepath = StringProperty(subtype='FILE_PATH')
     startFrame = IntProperty(name="Start frame", description="First frame to import", default=1)
 
     def execute(self, context):
@@ -3281,7 +3281,7 @@ class VIEW3D_OT_MhxLoadMohoButton(bpy.types.Operator):
 class VIEW3D_OT_MhxLoadMagpieButton(bpy.types.Operator):
     bl_idname = "mhx.pose_load_magpie"
     bl_label = "Magpie (.mag)"
-    filepath = StringProperty(name="File Path", description="File path used for importing the file", maxlen= 1024, default= "")
+    filepath = StringProperty(subtype='FILE_PATH')
     startFrame = IntProperty(name="Start frame", description="First frame to import", default=1)
 
     def execute(self, context):

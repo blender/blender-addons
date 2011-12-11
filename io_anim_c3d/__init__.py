@@ -105,9 +105,7 @@ class C3DImporter(bpy.types.Operator):
     bl_label = "Import C3D"
 
     filepath = StringProperty(
-            name="File Path",
-            maxlen=1024,
-            description="Path to the C3D file",
+            subtype='FILE_PATH',
             )
     from_inches = BoolProperty(
             name="Convert from inches to metric",

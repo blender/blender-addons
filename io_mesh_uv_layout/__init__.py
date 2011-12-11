@@ -63,10 +63,6 @@ class ExportUVLayout(bpy.types.Operator):
     bl_options = {'REGISTER', 'UNDO'}
 
     filepath = StringProperty(
-            name="File Path",
-            description="File path used for exporting the SVG file",
-            maxlen=1024,
-            default="",
             subtype='FILE_PATH',
             )
     check_existing = BoolProperty(
