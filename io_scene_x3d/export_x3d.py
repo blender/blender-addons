@@ -266,6 +266,9 @@ def export(file,
     # store files to copy
     copy_set = set()
 
+    # store names of newly cerated meshes, so we dont overlap
+    mesh_name_set = set()
+
     fw = file.write
     base_src = os.path.dirname(bpy.data.filepath)
     base_dst = os.path.dirname(file.name)
@@ -1377,14 +1380,30 @@ def export(file,
                         me = obj.to_mesh(scene, use_apply_modifiers, 'PREVIEW')
                     except:
                         me = None
+                    do_remove = True
                 else:
                     me = obj.data
+                    do_remove = False
 
                 if me is not None:
+                    # ensure unique name, we could also do this by
+                    # postponing mesh removal, but clearing data - TODO
+                    if do_remove:
+                        me.name = obj.name.rstrip("1234567890").rstrip(".")
+                        me_name_new = me_name_org = me.name
+                        count = 0
+                        while me_name_new in mesh_name_set:
+                            me.name = "%.17s.%03d" % (me_name_org, count)
+                            me_name_new = me.name
+                            count += 1
+                        mesh_name_set.add(me_name_new)
+                        del me_name_new, me_name_org, count
+                    # done
+
                     writeIndexedFaceSet(ident, obj, me, obj_matrix, world)
 
                     # free mesh created with create_mesh()
-                    if me != obj.data:
+                    if do_remove:
                         bpy.data.meshes.remove(me)
 
             elif obj_type == 'LAMP':
@@ -1466,7 +1485,7 @@ def export(file,
         bpy.data.materials.remove(gpu_shader_dummy_mat)
 
     # copy all collected files.
-    print(copy_set)
+    # print(copy_set)
     bpy_extras.io_utils.path_reference_copy(copy_set)
 
     print('Info: finished X3D export to %r' % file.name)
