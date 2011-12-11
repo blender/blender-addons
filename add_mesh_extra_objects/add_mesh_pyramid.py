@@ -18,7 +18,7 @@
 # ***** END GPL LICENCE BLOCK *****
 
 # (c) 2011 Phil Cote (cotejrp1)
-
+'''
 bl_info = {
     'name': 'Mesh Pyramid',
     'author': 'Phil Cote, cotejrp1, (http://www.blenderaddons.com)',
@@ -29,7 +29,7 @@ bl_info = {
     'description': 'Create an egyption-style step pyramid',
     'warning': '',  # used for warning icon and text in addons panel
     'category': 'Add Mesh'}
-
+'''
 
 import bpy
 from bpy.props import IntProperty, FloatProperty
@@ -109,11 +109,10 @@ def add_pyramid_object(self, context):
     res = add_object_data(context, mesh_data, operator=self)
 
 
-class OBJECT_OT_add_pyramid(bpy.types.Operator, AddObjectHelper):
+class AddPyramid(bpy.types.Operator, AddObjectHelper):
     """Add a Mesh Object"""
-    bl_idname = "mesh.step_pyramid_add"
+    bl_idname = "mesh.primitive_steppyramid_add"
     bl_label = "Pyramid"
-    bl_description = "Create a Pyramid Mesh"
     bl_options = {'REGISTER', 'UNDO'}
 
     initial_size = FloatProperty(name="Initial Size", default=2.0,
@@ -136,7 +135,7 @@ class OBJECT_OT_add_pyramid(bpy.types.Operator, AddObjectHelper):
         add_pyramid_object(self, context)
         return {'FINISHED'}
 
-
+'''
 def menu_func(self, context):
     self.layout.operator(OBJECT_OT_add_pyramid.bl_idname,
                         text="Pyramid", icon="PLUGIN")
@@ -153,3 +152,4 @@ def unregister():
 
 if __name__ == "__main__":
     register()
+'''

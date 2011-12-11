@@ -22,8 +22,8 @@ bl_info = {
     "name": "Extra Objects",
     "author": "Multiple Authors",
     "version": (0, 3),
-    "blender": (2, 5, 9),
-    "api": 40638,
+    "blender": (2, 6, 1),
+    "api": 42524,
     "location": "View3D > Add > Mesh > Extra Objects",
     "description": "Add extra object types",
     "warning": "",
@@ -74,7 +74,7 @@ class INFO_MT_mesh_extras_add(bpy.types.Menu):
             text="Polysphere")
         layout.operator("mesh.primitive_supertoroid_add",
             text="Supertoroid")
-        layout.operator("mesh.primative_step_pyramid_add",
+        layout.operator("mesh.primitive_steppyramid_add",
             text="Pyramid")
 
 class INFO_MT_mesh_gemstones_add(bpy.types.Menu):
