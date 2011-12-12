@@ -172,7 +172,7 @@ def build_hierarchy(objects):
 # H3D Functions
 # -----------------------------------------------------------------------------
 def h3d_shader_glsl_frag_patch(filepath, scene, global_vars, frag_uniform_var_map):
-    h3d_file = open(filepath, 'r')
+    h3d_file = open(filepath, 'r', encoding='utf-8')
     lines = []
 
     last_transform = None
@@ -217,7 +217,7 @@ def h3d_shader_glsl_frag_patch(filepath, scene, global_vars, frag_uniform_var_ma
 
     h3d_file.close()
 
-    h3d_file = open(filepath, 'w')
+    h3d_file = open(filepath, 'w', encoding='utf-8')
     h3d_file.writelines(lines)
     h3d_file.close()
 
@@ -253,7 +253,7 @@ def export(file,
     # -------------------------------------------------------------------------
     import bpy_extras
     from bpy_extras.io_utils import unique_name
-    from xml.sax.saxutils import quoteattr
+    from xml.sax.saxutils import quoteattr, escape
 
     uuid_cache_object = {}    # object
     uuid_cache_lamp = {}      # 'LA_' + object.name
@@ -1212,7 +1212,7 @@ def export(file,
                 else:
                     print("SKIPPING", uniform['type'])
 
-            file_frag = open(os.path.join(base_dst, shader_url_frag), 'w')
+            file_frag = open(os.path.join(base_dst, shader_url_frag), 'w', encoding='utf-8')
             file_frag.write(gpu_shader['fragment'])
             file_frag.close()
             # patch it
@@ -1222,12 +1222,12 @@ def export(file,
                                        frag_uniform_var_map,
                                        )
 
-            file_vert = open(os.path.join(base_dst, shader_url_vert), 'w')
+            file_vert = open(os.path.join(base_dst, shader_url_vert), 'w', encoding='utf-8')
             file_vert.write(gpu_shader['vertex'])
             file_vert.close()
 
-            fw('%s<ShaderPart type="FRAGMENT" url="%s" />\n' % (ident, shader_url_frag))
-            fw('%s<ShaderPart type="VERTEX" url="%s" />\n' % (ident, shader_url_vert))
+            fw('%s<ShaderPart type="FRAGMENT" url=%s />\n' % (ident, quoteattr(shader_url_frag)))
+            fw('%s<ShaderPart type="VERTEX" url=%s />\n' % (ident, quoteattr(shader_url_vert)))
             ident = ident[:-1]
 
             fw('%s</ComposedShader>\n' % ident)
@@ -1260,7 +1260,7 @@ def export(file,
             images = [f.replace('\\', '/') for f in images]
             images = [f for i, f in enumerate(images) if f not in images[:i]]
 
-            fw(ident_step + "url='%s' " % ' '.join(['"%s"' % f for f in images]))
+            fw(ident_step + "url='%s' " % ' '.join(['"%s"' % escape(f) for f in images]))
             fw(ident_step + '/>\n')
 
     def writeBackground(ident, world):
@@ -1315,20 +1315,20 @@ def export(file,
             if tex.type == 'IMAGE' and tex.image:
                 namemat = tex.name
                 pic = tex.image
-                basename = bpy.path.basename(pic.filepath)
+                basename = quoteattr(bpy.path.basename(pic.filepath))
 
                 if namemat == 'back':
-                    fw(ident_step + 'backUrl="%s"\n' % basename)
+                    fw(ident_step + 'backUrl=%s\n' % basename)
                 elif namemat == 'bottom':
-                    fw(ident_step + 'bottomUrl="%s"\n' % basename)
+                    fw(ident_step + 'bottomUrl=%s\n' % basename)
                 elif namemat == 'front':
-                    fw(ident_step + 'frontUrl="%s"\n' % basename)
+                    fw(ident_step + 'frontUrl=%s\n' % basename)
                 elif namemat == 'left':
-                    fw(ident_step + 'leftUrl="%s"\n' % basename)
+                    fw(ident_step + 'leftUrl=%s\n' % basename)
                 elif namemat == 'right':
-                    fw(ident_step + 'rightUrl="%s"\n' % basename)
+                    fw(ident_step + 'rightUrl=%s\n' % basename)
                 elif namemat == 'top':
-                    fw(ident_step + 'topUrl="%s"\n' % basename)
+                    fw(ident_step + 'topUrl=%s\n' % basename)
 
         fw(ident_step + '/>\n')
 
@@ -1515,9 +1515,10 @@ def save(operator, context, filepath="",
 
     if use_compress:
         import gzip
+        # need to investigate encoding
         file = gzip.open(filepath, 'w')
     else:
-        file = open(filepath, 'w')
+        file = open(filepath, 'w', encoding='utf-8')
 
     if global_matrix is None:
         global_matrix = mathutils.Matrix()
