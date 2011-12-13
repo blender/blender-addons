@@ -2053,19 +2053,20 @@ def postProcess(args):
 #
 #    deleteDiamonds(ob)
 #    Delete joint diamonds in main mesh
+#    Invisio = material # 1
 #
 
 def deleteDiamonds(ob):
     bpy.context.scene.objects.active = ob
     if not bpy.context.object:
         return
-    print("Delete diamonds in %s" % bpy.context.object)
+    print("Delete helper geometry in %s" % bpy.context.object)
     bpy.ops.object.mode_set(mode='EDIT')
     bpy.ops.mesh.select_all(action='DESELECT')
     bpy.ops.object.mode_set(mode='OBJECT')
     me = ob.data
-    for f in me.faces:        
-        if len(f.vertices) < 4:
+    for f in me.faces:    
+        if f.material_index == 1:
             for vn in f.vertices:
                 me.vertices[vn].select = True
     bpy.ops.object.mode_set(mode='EDIT')
@@ -2852,7 +2853,7 @@ MhxBoolProps = [
     ("face", "Face shapes", "Include facial shapekeys", T_Face),
     ("shape", "Body shapes", "Include body shapekeys", T_Shape),
     ("symm", "Symmetric shapes", "Keep shapekeys symmetric", T_Symm),
-    ("diamond", "Diamonds", "Keep joint diamonds", T_Diamond),
+    ("diamond", "Helper geometry", "Keep helper geometry", T_Diamond),
     ("rigify", "Rigify", "Create rigify control rig", T_Rigify),
 ]
 
