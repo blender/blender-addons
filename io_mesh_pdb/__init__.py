@@ -464,7 +464,7 @@ class CLASS_atom_pdb_load_button(Operator):
 # This is the class for the file dialog.
 class ImportPDB(Operator, ImportHelper):
     bl_idname = "import_mesh.pdb"
-    bl_label  = "Import Protein Data Bank (*.pdb)"
+    bl_label  = "Import Protein Data Bank(*.pdb)"
 
     filename_ext = ".pdb"
     filter_glob  = StringProperty(default="*.pdb", options={'HIDDEN'},)

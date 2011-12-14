@@ -557,17 +557,39 @@ def DEF_atom_pdb_main(use_mesh,Ball_azimuth,Ball_zenith,
         elif "ATOM" in line or "HETATM" in line:
 
             # What follows is due to deviations which appear from PDB to
-            # PDB file. It is very special. PLEASE, DO NOT CHANGE! From here ...
-            short_name = line[13:14]
-            if short_name.isupper() == True:
+            # PDB file. It is very special!
+            # 
+            # PLEASE, DO NOT CHANGE! ............................... from here
+            if line[12:13] == " " or line[12:13].isdigit() == True:
+                short_name = line[13:14]
                 if line[14:15].islower() == True:
-                    short_name = short_name + line[14:15]
-            else:
+                    short_name = short_name + line[14:15]            
+            elif line[12:13].isupper() == True:
                 short_name = line[12:13]
-                if short_name.isupper() == True:
-                    if line[13:14].islower() == True:
-                        short_name = short_name + line[13:14]
-            # ... to here.
+                if line[13:14].isalpha() == True:
+                    short_name = short_name + line[13:14]
+            else:
+                print("Atomic Blender: Strange error in PDB file.\n" 
+                      "Look for element names at positions 13-16 and 78-79.\n")
+                return -1
+                
+            if len(line) >= 78:
+            
+                if line[76:77] == " ":
+                    short_name2 = line[76:77]
+                else:
+                    short_name2 = line[76:78]
+                
+                if short_name2.isalpha() == True:
+                    FOUND = False
+                    for element in ATOM_PDB_ELEMENTS:
+                        if str.upper(short_name2) == str.upper(element.short_name):
+                            FOUND = True
+                            break
+                    if FOUND == False:
+                        short_name = short_name2
+            # ....................................................... to here.
+            
 
             # Go through all elements and find the element of the current atom.
             FLAG_FOUND = False
