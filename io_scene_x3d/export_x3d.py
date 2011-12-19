@@ -1152,12 +1152,9 @@ def export(file,
                 elif uniform['type'] == gpu.GPU_DYNAMIC_OBJECT_VIEWIMAT:
                     frag_uniform_var_map[uniform['varname']] = None
                     if uniform['datatype'] == gpu.GPU_DATA_16F:
-                        # must be updated dynamically
-                        # TODO, write out 'viewpointMatrices.py'
-                        value = ' '.join(['%.6f' % f for v in mathutils.Matrix() for f in v])
                         field_descr = " <!--- Object View Matrix Inverse '%s' -->" % obj.name
-                        fw('%s<field name="%s" type="SFMatrix4f" accessType="inputOutput" value="%s" />%s\n' % (ident, uniform['varname'], value, field_descr))
-                        
+                        fw('%s<field name="%s" type="SFMatrix4f" accessType="inputOutput" />%s\n' % (ident, uniform['varname'], field_descr))
+
                         h3d_material_route.append(
                             '<ROUTE fromNode="%s" fromField="glModelViewMatrixInverse" toNode=%s toField="%s" />%s' %
                                     (H3D_TOP_LEVEL, material_id, uniform['varname'], field_descr))
