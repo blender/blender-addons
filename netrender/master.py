@@ -434,7 +434,6 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
                     self.send_head(headers={"job-id": job.id})
 
                     message = job.serialize(frames)
-
                     self.wfile.write(bytes(json.dumps(message), encoding='utf8'))
 
                     self.server.stats("", "Sending job to slave")
@@ -512,7 +511,6 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
             length = int(self.headers['content-length'])
 
             job_info = netrender.model.RenderJob.materialize(json.loads(str(self.rfile.read(length), encoding='utf8')))
-
             job_id = self.server.nextJobID()
 
             job = MRenderJob(job_id, job_info)

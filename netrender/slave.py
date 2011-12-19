@@ -238,7 +238,7 @@ def render_slave(engine, netsettings, threads):
                         frame_args += ["-f", str(frame.number)]
 
                     val = SetErrorMode()
-                    process = subprocess.Popen([BLENDER_PATH, "-b", "-noaudio", job_full_path, "-t", str(threads), "-o", os.path.join(JOB_PREFIX, "######"), "-E", "BLENDER_RENDER", "-F", "MULTILAYER"] + frame_args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+                    process = subprocess.Popen([BLENDER_PATH, "-b", "-noaudio", job_full_path, "-t", str(threads), "-o", os.path.join(JOB_PREFIX, "######"), "-E", job.render, "-F", "MULTILAYER"] + frame_args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
                     RestoreErrorMode(val)
                 elif job.type == netrender.model.JOB_PROCESS:
                     command = job.frames[0].command
@@ -272,6 +272,7 @@ def render_slave(engine, netsettings, threads):
 
                         run_t = current_t
                         if testCancel(conn, job.id, first_frame):
+                            engine.update_stats("", "Job canceled by Master")
                             cancelled = True
 
                 if job.type == netrender.model.JOB_BLENDER:

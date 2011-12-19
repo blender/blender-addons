@@ -101,7 +101,12 @@ def fillCommonJobSettings(job, job_name, netsettings):
 
     job.chunks = netsettings.chunks
     job.priority = netsettings.priority
-    
+
+    if netsettings.job_render_engine == "OTHER":
+        job.render = netsettings.job_render_engine_other
+    else:
+        job.render = netsettings.job_render_engine
+     
     if netsettings.job_type == "JOB_BLENDER":
         job.type = netrender.model.JOB_BLENDER
     elif netsettings.job_type == "JOB_PROCESS":
@@ -225,7 +230,7 @@ def clientSendJobBlender(conn, scene, anim = False):
                 addPointCache(job, object, modifier.point_cache, default_path)
             elif modifier.type == "SOFT_BODY":
                 addPointCache(job, object, modifier.point_cache, default_path)
-            elif modifier.type == "SMOKE" and modifier.smoke_type == "TYPE_DOMAIN":
+            elif modifier.type == "SMOKE" and modifier.smoke_type == "DOMAIN":
                 addPointCache(job, object, modifier.domain_settings.point_cache, default_path)
             elif modifier.type == "MULTIRES" and modifier.is_external:
                 file_path = bpy.path.abspath(modifier.filepath)

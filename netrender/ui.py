@@ -211,17 +211,13 @@ class RENDER_PT_network_job(NetRenderButtonsPanel, bpy.types.Panel):
                 row.operator("render.render", text="Get Image", icon='RENDER_STILL')
                 row.operator("render.render", text="Get Animation", icon='RENDER_ANIMATION').animation = True
 
-        split = layout.split(percentage=0.3)
-
-        col = split.column()
-        col.label(text="Type:")
-        col.label(text="Name:")
-        col.label(text="Category:")
-
-        col = split.column()
-        col.prop(netsettings, "job_type", text="")
-        col.prop(netsettings, "job_name", text="")
-        col.prop(netsettings, "job_category", text="")
+        layout.prop(netsettings, "job_type", text="Type")
+        layout.prop(netsettings, "job_name", text="Name")
+        layout.prop(netsettings, "job_category", text="Category")
+        layout.prop(netsettings, "job_render_engine", text="Engine")
+        
+        if netsettings.job_render_engine == "OTHER":
+            layout.prop(netsettings, "job_render_engine_other", text="Other Engine")
 
         row = layout.row()
         row.prop(netsettings, "priority")
@@ -460,6 +456,22 @@ class NetRenderSettings(bpy.types.PropertyGroup):
         NetRenderSettings.job_category = StringProperty(
                         name="Job category",
                         description="Category of the job",
+                        maxlen = 128,
+                        default = "")
+
+        NetRenderSettings.job_render_engine = EnumProperty(
+                                items = (
+                                                ("BLENDER_RENDER", "BLENDER", "Standard Blender Render"),
+                                                ("CYCLES", "CYCLES", "Cycle Render"),
+                                                ("OTHER", "OTHER", "Other non-default Render"),
+                                         ),
+                                name="render",
+                                description="Render engine used to render this job",
+                                default="BLENDER_RENDER")
+
+        NetRenderSettings.job_render_engine_other = StringProperty(
+                        name="Render engine",
+                        description="Render engine other than the builtin defaults (POVRAY_RENDER, ...)",
                         maxlen = 128,
                         default = "")
         

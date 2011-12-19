@@ -193,7 +193,7 @@ class RenderJob:
         self.chunks = 0
         self.priority = 0
         self.blacklist = []
-        
+        self.render = "BLENDER_RENDER"
         self.version_info = None
         
         self.resolution = None
@@ -212,6 +212,7 @@ class RenderJob:
             self.priority = job_info.priority
             self.blacklist = job_info.blacklist
             self.version_info = job_info.version_info
+            self.render = job_info.render
 
     def hasRenderResult(self):
         return self.type in (JOB_BLENDER, JOB_VCS)
@@ -292,7 +293,8 @@ class RenderJob:
                             "blacklist": self.blacklist,
                             "last_dispatched": self.last_dispatched,
                             "version_info": self.version_info.serialize() if self.version_info else None,
-                            "resolution": self.resolution
+                            "resolution": self.resolution,
+                            "render": self.render
                         }
 
     @staticmethod
@@ -314,6 +316,7 @@ class RenderJob:
         job.blacklist = data["blacklist"]
         job.last_dispatched = data["last_dispatched"]
         job.resolution = data["resolution"]
+        job.render=data["render"]
         
         version_info = data.get("version_info", None)
         if version_info:
