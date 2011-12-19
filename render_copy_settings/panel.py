@@ -34,32 +34,35 @@ class RENDER_PT_copy_settings(bpy.types.Panel):
         layout = self.layout
         cp_sett = context.scene.render_copy_settings
 
-        layout.operator("scene.render_copy_settings", text="Copy Render Settings")
+        layout.operator("scene.render_copy_settings",
+                        text="Copy Render Settings")
 
-        # This will update affected_settings/allowed_scenes (as this seems to be impossible
-        # to do it from here…).
+        # This will update affected_settings/allowed_scenes (as this seems
+        # to be impossible to do it from here…).
         if bpy.ops.scene.render_copy_settings_prepare.poll():
             bpy.ops.scene.render_copy_settings_prepare()
 
         split = layout.split(0.75)
-        split.template_list(cp_sett, "affected_settings", cp_sett, "aff_sett_idx",
+        split.template_list(cp_sett, "affected_settings", cp_sett,
+                            "aff_sett_idx",
                             prop_list="template_list_controls", rows=6)
 
         col = split.column()
-        all_set = {sett.strid for sett in cp_sett.affected_settings if sett.copy}
+        all_set = {sett.strid for sett in cp_sett.affected_settings \
+                                       if sett.copy}
         for p in presets.presets:
             label = ""
             if p.elements & all_set == p.elements:
                 label = "Clear {}".format(p.ui_name)
             else:
                 label = "Set {}".format(p.ui_name)
-            col.operator("scene.render_copy_settings_preset", text=label, ).presets = {p.rna_enum[0]}
+            col.operator("scene.render_copy_settings_preset",
+                         text=label).presets = {p.rna_enum[0]}
 
         layout.prop(cp_sett, "filter_scene")
         if len(cp_sett.allowed_scenes):
             layout.label("Affected Scenes:")
             # XXX Unfortunately, there can only be one template_list per panel…
-#            layout.template_list(cp_sett, "allowed_scenes", cp_sett, "allw_scenes_idx", rows=5)
             col = layout.column_flow(columns=0)
             for i, prop in enumerate(cp_sett.allowed_scenes):
                 col.prop(prop, "allowed", toggle=True, text=prop.name)

@@ -21,13 +21,14 @@
 import bpy
 from . import presets
 
-# These operators are only defined because it seems impossible to directly edit properties from
-# UI code…
+# These operators are only defined because it seems impossible to directly
+# edit properties from UI code…
 
 
 # A sorting func for collections (working in-place).
 # XXX Not optimized at all…
-# XXX If some items in the collection do not have the sortkey property, they are just ignored…
+# XXX If some items in the collection do not have the sortkey property,
+#     they are just ignored…
 def collection_property_sort(collection, sortkey, start_idx=0):
     while start_idx + 1 < len(collection):
         while not hasattr(collection[start_idx], sortkey):
@@ -49,8 +50,8 @@ def collection_property_sort(collection, sortkey, start_idx=0):
 
 class RenderCopySettingsPrepare(bpy.types.Operator):
     '''
-    Prepare internal data for render_copy_settings (gathering all existing render settings,
-    and scenes)
+    Prepare internal data for render_copy_settings (gathering all existing
+    render settings, and scenes)
     '''
     bl_idname = "scene.render_copy_settings_prepare"
     bl_label = "Render: Copy Settings Prepare"
@@ -63,7 +64,8 @@ class RenderCopySettingsPrepare(bpy.types.Operator):
     def execute(self, context):
         cp_sett = context.scene.render_copy_settings
 
-        # Get all available render settings, and update accordingly affected_settings…
+        # Get all available render settings, and update accordingly
+        # affected_settings…
         props = {}
         for prop in context.scene.render.bl_rna.properties:
             if prop.identifier in {'rna_type'}:
@@ -74,7 +76,7 @@ class RenderCopySettingsPrepare(bpy.types.Operator):
         corr = 0
         for i, sett in enumerate(cp_sett.affected_settings):
             if sett.strid not in props:
-                cp_sett.affected_settings.remove(i-corr)
+                cp_sett.affected_settings.remove(i - corr)
                 corr += 1
             else:
                 del props[sett.strid]
@@ -92,18 +94,19 @@ class RenderCopySettingsPrepare(bpy.types.Operator):
                 try:
                     regex = re.compile(cp_sett.filter_scene)
                 except Exception as e:
-                    self.report('ERROR_INVALID_INPUT', "The filter-scene regex " \
-                                "did not compile:\n    (%s)." % str(e))
+                    self.report('ERROR_INVALID_INPUT', "The filter-scene " \
+                                "regex did not compile:\n    (%s)." % str(e))
                     return {'CANCELLED'}
             except:
                 regex = None
-                self.report('WARNING', "Unable to import the re module. Regex " \
-                            "scene filtering will be disabled!")
+                self.report('WARNING', "Unable to import the re module. " \
+                            "Regex scene filtering will be disabled!")
         scenes = set()
         for scene in bpy.data.scenes:
             if scene == bpy.context.scene:  # Exclude current scene!
                 continue
-            if regex:  # If a valid filtering regex, only keep scenes matching it.
+            # If a valid filtering regex, only keep scenes matching it.
+            if regex:
                 if regex.match(scene.name):
                     scenes.add(scene.name)
             else:
@@ -163,7 +166,8 @@ class RenderCopySettingsPreset(bpy.types.Operator):
 
 def do_copy(context, affected_settings, allowed_scenes):
     # Stores render settings from current scene.
-    p = {sett: getattr(context.scene.render, sett) for sett in affected_settings}
+    p = {sett: getattr(context.scene.render, sett) \
+         for sett in affected_settings}
     # put it in all other (valid) scenes’ render settings!
     for scene in bpy.data.scenes:
         # If scene not in allowed scenes, skip.
@@ -188,9 +192,12 @@ class RenderCopySettings(bpy.types.Operator):
     def execute(self, context):
         regex = None
         cp_sett = context.scene.render_copy_settings
-        affected_settings = set([sett.strid for sett in cp_sett.affected_settings if sett.copy])
-        allowed_scenes = set([sce.name for sce in cp_sett.allowed_scenes if sce.allowed])
-        do_copy(context, affected_settings=affected_settings, allowed_scenes=allowed_scenes)
+        affected_settings = {sett.strid for sett in cp_sett.affected_settings \
+                                                 if sett.copy}
+        allowed_scenes = {sce.name for sce in cp_sett.allowed_scenes \
+                                           if sce.allowed}
+        do_copy(context, affected_settings=affected_settings,
+                allowed_scenes=allowed_scenes)
         return {'FINISHED'}
 
 

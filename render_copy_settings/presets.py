@@ -18,6 +18,7 @@
 
 # <pep8 compliant>
 
+
 class CopyPreset(object):
     def __init__(self, ui_name, rna_enum, elements):
         self.ui_name = ui_name
@@ -26,21 +27,25 @@ class CopyPreset(object):
 
 
 presets = (CopyPreset("Resolution",
-                      ("resolution", "Render Resolution", "Render resolution and aspect ratio settings"),
-                      {"resolution_x", "resolution_y", "pixel_aspect_x", "pixel_aspect_y"}),
+                      ("resolution", "Render Resolution",
+                       "Render resolution and aspect ratio settings"),
+                      {"resolution_x", "resolution_y",
+                       "pixel_aspect_x", "pixel_aspect_y"}),
            CopyPreset("Scale",
-                      ("scale", "Render Scale", "The “Render Scale” setting."),
+                      ("scale", "Render Scale", "The “Render Scale” setting"),
                       {"resolution_percentage"}),
            CopyPreset("OSA",
-                      ("osa", "Render OSA", "The OSA toggle and sample settings."),
+                      ("osa", "Render OSA",
+                       "The OSA toggle and sample settings"),
                       {"use_antialiasing", "antialiasing_samples"}),
            CopyPreset("Threads",
-                      ("threads", "Render Threads", "The thread mode and number settings."),
+                      ("threads", "Render Threads",
+                       "The thread mode and number settings"),
                       {"threads_mode", "threads"}),
            CopyPreset("Fields",
-                      ("fields", "Render Fields", "The Fields settings."),
+                      ("fields", "Render Fields", "The Fields settings"),
                       {"use_fields", "field_order", "use_fields_still"}),
            CopyPreset("Stamp",
-                      ("stamp", "Render Stamp", "The Stamp toggle."),
+                      ("stamp", "Render Stamp", "The Stamp toggle"),
                       {"use_stamp"})
           )
