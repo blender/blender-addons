@@ -1155,8 +1155,12 @@ def export(file,
                         # must be updated dynamically
                         # TODO, write out 'viewpointMatrices.py'
                         value = ' '.join(['%.6f' % f for v in mathutils.Matrix() for f in v])
-                        field_descr = " <!--- Object View Matrix '%s' -->" % obj.name
+                        field_descr = " <!--- Object View Matrix Inverse '%s' -->" % obj.name
                         fw('%s<field name="%s" type="SFMatrix4f" accessType="inputOutput" value="%s" />%s\n' % (ident, uniform['varname'], value, field_descr))
+                        
+                        h3d_material_route.append(
+                            '<ROUTE fromNode="%s" fromField="glModelViewMatrixInverse" toNode=%s toField="%s" />%s' %
+                                    (H3D_TOP_LEVEL, material_id, uniform['varname'], field_descr))
                     else:
                         assert(0)
 
