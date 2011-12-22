@@ -25,7 +25,7 @@
 #
 #  Start of project              : 2011-08-31 by Clemens Barth
 #  First publication in Blender  : 2011-11-11
-#  Last modified                 : 2011-12-01
+#  Last modified                 : 2011-12-22
 #
 #  Acknowledgements: Thanks to ideasman, meta_androcto, truman, kilon,
 #  dairin0d, PKHG, Valter, etc
@@ -1080,7 +1080,7 @@ def DEF_atom_pdb_main(use_mesh,Ball_azimuth,Ball_zenith,
 
         vertices = []
         faces    = []
-        dl = 0.2
+        dl = 0.1
 
         i = 0
         # For all sticks, do ...

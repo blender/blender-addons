@@ -87,75 +87,72 @@ class CLASS_atom_pdb_panel(Panel):
         scn    = bpy.context.scene
 
         row = layout.row()
+        row.label(text="Outputs and custom data file")
+
+        box = layout.box()
+        row = box.row()
         row.label(text="Custom data file")
-        row = layout.row()
+        row = box.row()
         col = row.column()
         col.prop(scn, "atom_pdb_datafile")
         col.operator("atom_pdb.datafile_apply")
-        row = layout.row()
+        row = box.row()
         col = row.column(align=True)
         col.prop(scn, "atom_pdb_PDB_file")
 
-        layout.separator()
-
         row = layout.row()
+        row.label(text="Reload structure")
+
+        box = layout.box()
+        row = box.row()
         col = row.column(align=True)
         col.prop(scn, "use_atom_pdb_mesh")
         col.prop(scn, "atom_pdb_mesh_azimuth")
         col.prop(scn, "atom_pdb_mesh_zenith")
-
-
         col = row.column(align=True)
         col.label(text="Scaling factors")
         col.prop(scn, "atom_pdb_scale_ballradius")
         col.prop(scn, "atom_pdb_scale_distances")
-        row = layout.row()
+        row = box.row()
         col = row.column()
         col.prop(scn, "use_atom_pdb_sticks")
         col = row.column(align=True)
         col.prop(scn, "atom_pdb_sticks_sectors")
         col.prop(scn, "atom_pdb_sticks_radius")
-
-        row = layout.row()
+        row = box.row()
         row.prop(scn, "use_atom_pdb_center")
-
-        row = layout.row()
+        row = box.row()
         col = row.column()
         col.prop(scn, "use_atom_pdb_cam")
         col.prop(scn, "use_atom_pdb_lamp")
         col = row.column()
         col.operator("atom_pdb.button_reload")
-
         # TODO, use lanel() instead
         col.prop(scn, "atom_pdb_number_atoms")
 
-        layout.separator()
-
         row = layout.row()
+        row.label(text="Modify atom radii")
+        box = layout.box()
+        row = box.row()
         row.operator("atom_pdb.button_distance")
         row.prop(scn, "atom_pdb_distance")
-        layout.separator()
-
-        row = layout.row()
+        row = box.row()
         row.label(text="All changes concern:")
-        row = layout.row()
+        row = box.row()
         row.prop(scn, "atom_pdb_radius_how")
-
-        row = layout.row()
+        row = box.row()
         row.label(text="1. Change type of radii")
-        row = layout.row()
+        row = box.row()
         row.prop(scn, "atom_pdb_radius_type")
-
-        row = layout.row()
+        row = box.row()
         row.label(text="2. Change atom radii in pm")
-        row = layout.row()
+        row = box.row()
         row.prop(scn, "atom_pdb_radius_pm_name")
-        row = layout.row()
+        row = box.row()
         row.prop(scn, "atom_pdb_radius_pm")
-
-        row = layout.row()
+        row = box.row()
         row.label(text="3. Change atom radii by scale")
-        row = layout.row()
+        row = box.row()
         col = row.column()
         col.prop(scn, "atom_pdb_radius_all")
         col = row.column(align=True)
@@ -164,8 +161,10 @@ class CLASS_atom_pdb_panel(Panel):
 
         if bpy.context.mode == 'EDIT_MESH':
 
-            layout.separator()
             row = layout.row()
+            row.label(text="Separate atom")
+            box = layout.box()
+            row = box.row()
             row.operator( "atom_pdb.separate_atom" )
 
 
