@@ -131,11 +131,11 @@ def Simple_RotationMatrix(angle, matSize, axisFlag):
     q = radians(angle)  #make the rotation go clockwise
     
     if axisFlag == 'x':
-        matrix = mathutils.Matrix(((1,0,0,0),(0,cos(q),sin(q),0),(0,-sin(q),cos(q),0),(0,0,0,1)))
+        matrix = mathutils.Matrix.Rotation(q, 4, 'X')
     elif  axisFlag == 'y':
-        matrix = mathutils.Matrix(((cos(q),0,-sin(q),0),(0,1,0,0),(sin(q),0,cos(q),0),(0,0,0,1)))
+        matrix = mathutils.Matrix.Rotation(q, 4, 'Y')
     elif axisFlag == 'z':
-        matrix = mathutils.Matrix(((cos(q),sin(q),0,0),(-sin(q),cos(q),0,0),(0,0,1,0),(0,0,0,1)))
+        matrix = mathutils.Matrix.Rotation(q, 4, 'Z')
     else:
         print   ("Simple_RotationMatrix can only do x y z axis")
     return matrix
@@ -1699,7 +1699,7 @@ def Create_Internal_Thread_Start_Verts(verts,INNER_RADIUS,OUTTER_RADIUS,PITCH,DI
     
 
     Rank = float(OUTTER_RADIUS - INNER_RADIUS)/float(DIV)
-    for j in range(1):
+    for j in range(1):  #FIXME - for j in range(1) what?!
         
         for i in range(DIV+1):
             z = Height_Offset - (Height_Step*i) 
