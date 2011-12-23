@@ -42,8 +42,14 @@ def set_exchange_folder():
         bpy.coat3D['status'] = 1
         if(platform == 'win32'):
             exchange_path = os.path.expanduser("~") + os.sep + 'Documents' + os.sep + '3DC2Blender' + os.sep + 'Exchange_folder.txt'
+            applink_folder = os.path.expanduser("~") + os.sep + 'Documents' + os.sep + '3DC2Blender'
+            if(not(os.path.isdir(applink_folder))):
+                os.makedirs(applink_folder)
         else:
             exchange_path = os.path.expanduser("~") + os.sep + '3DC2Blender' + os.sep + 'Exchange_folder.txt'
+            applink_folder = os.path.expanduser("~") + os.sep + 'Documents' + os.sep + '3DC2Blender'
+            if(not(os.path.isdir(applink_folder))):
+                os.makedirs(applink_folder)
         file = open(exchange_path, "w")
         file.write("%s"%(coat3D.exchangedir))
         file.close()
