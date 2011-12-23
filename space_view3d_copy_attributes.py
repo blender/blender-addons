@@ -21,9 +21,9 @@
 bl_info = {
     'name': 'Copy Attributes Menu',
     'author': 'Bassam Kurdali, Fabian Fricke, wiseman303',
-    'version': (0, 4, 4),
-    "blender": (2, 5, 7),
-    "api": 36695,
+    'version': (0, 4, 6),
+    "blender": (2, 6, 1),
+    "api": 42846,
     'location': 'View3D > Ctrl-C',
     'description': 'Copy Attributes Menu from Blender 2.4',
     'wiki_url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/'\
@@ -101,13 +101,7 @@ def getmat(bone, active, context, ignoreparent):
            context.active_object.pose.bones[data_bone.parent.name].matrix)
         parentbonemat = Matrix(data_bone.parent.matrix_local)
     else:
-        parentposemat = bonemat_local.copy()
-        parentbonemat = bonemat_local.copy()
-
-        # FIXME! why copy from the parent if setting identity ?, Campbell
-        parentposemat.identity()
-        parentbonemat.identity()
-
+        parentposemat = parentbonemat = Matrix()
     if parentbonemat == parentposemat or ignoreparent:
         newmat = bonemat_local.inverted() * otherloc
     else:
@@ -408,6 +402,12 @@ def obMod(ob, active, context):
     return('INFO', "modifiers copied")
 
 
+def obGrp(ob, active, context):
+    for grp in bpy.data.groups:
+        if active.name in grp.objects and ob.name not in grp.objects:
+            grp.objects.link(ob)
+    return('INFO', "groups copied")
+
 def obWei(ob, active, context):
     me_source = active.data
     me_target = ob.data
@@ -453,18 +453,18 @@ def obWei(ob, active, context):
                                    vgroupIndex_weight[i][1], "REPLACE")
     return('INFO', "weights copied")
 
-object_copies = (('obj_loc', "Location",
-                "Copy Location from Active to Selected", obLoc),
-                ('obj_rot', "Rotation",
-                "Copy Rotation from Active to Selected", obRot),
-                ('obj_sca', "Scale",
-                "Copy Scale from Active to Selected", obSca),
-                ('obj_vis_loc', "Visual Location",
-                "Copy Visual Location from Active to Selected", obVisLoc),
-                ('obj_vis_rot', "Visual Rotation",
-                "Copy Visual Rotation from Active to Selected", obVisRot),
-                ('obj_vis_sca', "Visual Scale",
-                "Copy Visual Scale from Active to Selected", obVisSca),
+object_copies = (#('obj_loc', "Location",
+                #"Copy Location from Active to Selected", obLoc),
+                #('obj_rot', "Rotation",
+                #"Copy Rotation from Active to Selected", obRot),
+                #('obj_sca', "Scale",
+                #"Copy Scale from Active to Selected", obSca),
+                ('obj_vis_loc', "Location",
+                "Copy Location from Active to Selected", obVisLoc),
+                ('obj_vis_rot', "Rotation",
+                "Copy Rotation from Active to Selected", obVisRot),
+                ('obj_vis_sca', "Scale",
+                "Copy Scale from Active to Selected", obVisSca),
                 ('obj_drw', "Draw Options",
                 "Copy Draw Options from Active to Selected", obDrw),
                 ('obj_ofs', "Time Offset",
@@ -500,8 +500,9 @@ object_copies = (('obj_loc', "Location",
                 ('obj_mod', "Modifiers",
                 "Copy Modifiers from Active to Selected", obMod),
                 ('obj_wei', "Vertex Weights",
-                "Copy vertex weights based on indices", obWei))
-
+                "Copy vertex weights based on indices", obWei),
+                ('obj_grp', "Group Links",
+                "Copy selected into active object's groups", obGrp))
 
 @classmethod
 def object_poll_func(cls, context):
