@@ -61,7 +61,7 @@ class RENDER_OT_netslave_bake(bpy.types.Operator):
                     modifier.point_cache.frame_step = 1
                     modifier.point_cache.use_disk_cache = True
                     modifier.point_cache.use_external = False
-                elif modifier.type == "SMOKE" and modifier.smoke_type == "TYPE_DOMAIN":
+                elif modifier.type == "SMOKE" and modifier.smoke_type == "DOMAIN":
                     modifier.domain_settings.point_cache.use_step = 1
                     modifier.domain_settings.point_cache.use_disk_cache = True
                     modifier.domain_settings.point_cache.use_external = False

@@ -127,7 +127,7 @@ def process(paths):
                 processPointCache(object, modifier.point_cache)
             elif modifier.type == "SOFT_BODY":
                 processPointCache(object, modifier.point_cache)
-            elif modifier.type == "SMOKE" and modifier.smoke_type == "TYPE_DOMAIN":
+            elif modifier.type == "SMOKE" and modifier.smoke_type == "DOMAIN":
                 processPointCache(modifier.domain_settings.point_cache_low)
                 if modifier.domain_settings.use_high_resolution:
                     processPointCache(modifier.domain_settings.point_cache_high)
