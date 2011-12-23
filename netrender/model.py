@@ -154,13 +154,14 @@ class VersioningInfo:
         
 
 class RenderFile:
-    def __init__(self, filepath = "", index = 0, start = -1, end = -1, signature=0):
+    def __init__(self, filepath = "", index = 0, start = -1, end = -1, signature = 0):
         self.filepath = filepath
         self.original_path = filepath
         self.signature = signature
         self.index = index
         self.start = start
         self.end = end
+        self.force = False
 
     def serialize(self):
         return 	{
@@ -169,7 +170,8 @@ class RenderFile:
                     "index": self.index,
                     "start": self.start,
                     "end": self.end,
-                    "signature": self.signature
+                    "signature": self.signature,
+                    "force": self.force
                 }
 
     @staticmethod
@@ -179,6 +181,7 @@ class RenderFile:
 
         rfile = RenderFile(data["filepath"], data["index"], data["start"], data["end"], data["signature"])
         rfile.original_path = data["original_path"]
+        rfile.force = data["force"]
 
         return rfile
 
@@ -221,11 +224,23 @@ class RenderJob:
         return self.type in (JOB_BLENDER, JOB_VCS)
 
     def addFile(self, file_path, start=-1, end=-1, signed=True):
-        if signed:
-            signature = hashFile(file_path)
-        else:
-            signature = None
-        self.files.append(RenderFile(file_path, len(self.files), start, end, signature))
+        def isFileInFrames():
+            if start == end == -1:
+                return True
+            
+            for rframe in self.frames:
+                if start <= rframe.number<= end:
+                    return True
+            
+            return False
+            
+            
+        if isFileInFrames(): 
+            if signed:
+                signature = hashFile(file_path)
+            else:
+                signature = None
+            self.files.append(RenderFile(file_path, len(self.files), start, end, signature))
 
     def addFrame(self, frame_number, command = ""):
         frame = RenderFrame(frame_number, command)

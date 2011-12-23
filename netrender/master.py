@@ -34,11 +34,21 @@ class MRenderFile(netrender.model.RenderFile):
         super().__init__(filepath, index, start, end, signature)
         self.found = False
 
-    def test(self):
+    def updateStatus(self):
         self.found = os.path.exists(self.filepath)
+        
         if self.found and self.signature != None:
             found_signature = hashFile(self.filepath)
             self.found = self.signature == found_signature
+            if not self.found:
+                print("Signature mismatch", self.signature, found_signature)
+            
+        return self.found
+
+    def test(self):
+        # don't check when forcing upload and only until found
+        if not self.force and not self.found:
+            self.updateStatus()
             
         return self.found
 
@@ -86,6 +96,10 @@ class MRenderJob(netrender.model.RenderJob):
         self.last_update = 0
         self.save_path = ""
         self.files = [MRenderFile(rfile.filepath, rfile.index, rfile.start, rfile.end, rfile.signature) for rfile in job_info.files]
+        
+    def setForceUpload(self, force):
+        for rfile in self.files:
+            rfile.force = force
 
     def initInfo(self):
         if not self.resolution:
@@ -514,6 +528,8 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
             job_id = self.server.nextJobID()
 
             job = MRenderJob(job_id, job_info)
+            
+            job.setForceUpload(self.server.force)
 
             for frame in job_info.frames:
                 frame = job.addFrame(frame.number, frame.command)
@@ -701,9 +717,8 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
             match = file_pattern.match(self.path)
 
             if match:
-                self.server.stats("", "Receiving job")
+                self.server.stats("", "Receiving job file")
 
-                length = int(self.headers['content-length'])
                 job_id = match.groups()[0]
                 file_index = int(match.groups()[1])
 
@@ -719,7 +734,7 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
                         main_path, main_name = os.path.split(main_file)
 
                         if file_index > 0:
-                            file_path = prefixPath(job.save_path, render_file.filepath, main_path)
+                            file_path = prefixPath(job.save_path, render_file.filepath, main_path, force = True)
                         else:
                             file_path = os.path.join(job.save_path, main_name)
 
@@ -728,12 +743,16 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
                         self.write_file(file_path)
                         
                         render_file.filepath = file_path # set the new path
-
-                        if job.testStart():
+                        found = render_file.updateStatus() # make sure we have the right file
+                        
+                        if not found: # checksum mismatch
+                            self.server.stats("", "File upload but checksum mismatch, this shouldn't happen")
+                            self.send_head(http.client.CONFLICT)
+                        elif job.testStart(): # started correctly
                             self.server.stats("", "File upload, starting job")
                             self.send_head(content = None)
                         else:
-                            self.server.stats("", "File upload, file missings")
+                            self.server.stats("", "File upload, dependency files still missing")
                             self.send_head(http.client.ACCEPTED)
                     else: # invalid file
                         print("file not found", job_id, file_index)
@@ -851,12 +870,13 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
                 self.send_head(http.client.NO_CONTENT)
 
 class RenderMasterServer(socketserver.ThreadingMixIn, http.server.HTTPServer):
-    def __init__(self, address, handler_class, path, subdir=True):
+    def __init__(self, address, handler_class, path, force=False, subdir=True):
         self.jobs = []
         self.jobs_map = {}
         self.slaves = []
         self.slaves_map = {}
         self.job_id = 0
+        self.force = force
 
         if subdir:
             self.path = os.path.join(path, "master_" + str(os.getpid()))
@@ -1012,7 +1032,7 @@ class RenderMasterServer(socketserver.ThreadingMixIn, http.server.HTTPServer):
 def clearMaster(path):
     shutil.rmtree(path)
 
-def createMaster(address, clear, path):
+def createMaster(address, clear, force, path):
     filepath = os.path.join(path, "blender_master.data")
 
     if not clear and os.path.exists(filepath):
@@ -1020,12 +1040,12 @@ def createMaster(address, clear, path):
         with open(filepath, 'rb') as f:
             path, jobs, slaves = pickle.load(f)
             
-            httpd = RenderMasterServer(address, RenderHandler, path, subdir=False)
+            httpd = RenderMasterServer(address, RenderHandler, path, force=force, subdir=False)
             httpd.restore(jobs, slaves)
             
             return httpd
 
-    return RenderMasterServer(address, RenderHandler, path)
+    return RenderMasterServer(address, RenderHandler, path, force=force)
 
 def saveMaster(path, httpd):
     filepath = os.path.join(path, "blender_master.data")
@@ -1033,8 +1053,8 @@ def saveMaster(path, httpd):
     with open(filepath, 'wb') as f:
         pickle.dump((httpd.path, httpd.jobs, httpd.slaves), f, pickle.HIGHEST_PROTOCOL)
 
-def runMaster(address, broadcast, clear, path, update_stats, test_break):
-    httpd = createMaster(address, clear, path)
+def runMaster(address, broadcast, clear, force, path, update_stats, test_break):
+    httpd = createMaster(address, clear, force, path)
     httpd.timeout = 1
     httpd.stats = update_stats
 

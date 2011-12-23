@@ -39,16 +39,14 @@ def addFluidFiles(job, path):
                 # fluid frames starts at 0, which explains the +1
                 # This is stupid
                 current_frame = int(match.groups()[1]) + 1
-                job.addFile(path + fluid_file, current_frame, current_frame)
+                job.addFile(os.path.join(path, fluid_file), current_frame, current_frame)
 
 def addPointCache(job, ob, point_cache, default_path):
     if not point_cache.use_disk_cache:
         return
 
 
-    name = point_cache.name
-    if name == "":
-        name = "".join(["%02X" % ord(c) for c in ob.name])
+    name = cacheName(ob, point_cache)
 
     cache_path = bpy.path.abspath(point_cache.filepath) if point_cache.use_external else default_path
 
@@ -70,7 +68,7 @@ def addPointCache(job, ob, point_cache, default_path):
 
         if len(cache_files) == 1:
             cache_frame, cache_file = cache_files[0]
-            job.addFile(cache_path + cache_file, cache_frame, cache_frame)
+            job.addFile(os.path.join(cache_path, cache_file), cache_frame, cache_frame)
         else:
             for i in range(len(cache_files)):
                 current_item = cache_files[i]
@@ -79,18 +77,18 @@ def addPointCache(job, ob, point_cache, default_path):
 
                 current_frame, current_file = current_item
 
-                if  not next_item and not previous_item:
-                    job.addFile(cache_path + current_file, current_frame, current_frame)
+                if not next_item and not previous_item:
+                    job.addFile(os.path.join(cache_path, current_file), current_frame, current_frame)
                 elif next_item and not previous_item:
                     next_frame = next_item[0]
-                    job.addFile(cache_path + current_file, current_frame, next_frame - 1)
+                    job.addFile(os.path.join(cache_path, current_file), current_frame, next_frame)
                 elif not next_item and previous_item:
                     previous_frame = previous_item[0]
-                    job.addFile(cache_path + current_file, previous_frame + 1, current_frame)
+                    job.addFile(os.path.join(cache_path, current_file), previous_frame, current_frame)
                 else:
                     next_frame = next_item[0]
                     previous_frame = previous_item[0]
-                    job.addFile(cache_path + current_file, previous_frame + 1, next_frame - 1)
+                    job.addFile(os.path.join(cache_path, current_file), previous_frame, next_frame)
 
 def fillCommonJobSettings(job, job_name, netsettings):
     job.name = job_name
@@ -219,8 +217,7 @@ def clientSendJobBlender(conn, scene, anim = False):
     ###########################
     # FLUID + POINT CACHE
     ###########################
-    root, ext = os.path.splitext(name)
-    default_path = path + os.sep + "blendcache_" + root + os.sep # need an API call for that
+    default_path = cachePath(filename)
 
     for object in bpy.data.objects:
         for modifier in object.modifiers:
@@ -294,7 +291,13 @@ class NetworkRenderEngine(bpy.types.RenderEngine):
 
         address = "" if netsettings.server_address == "[default]" else netsettings.server_address
 
-        master.runMaster((address, netsettings.server_port), netsettings.use_master_broadcast, netsettings.use_master_clear, bpy.path.abspath(netsettings.path), self.update_stats, self.test_break)
+        master.runMaster(address = (address, netsettings.server_port), 
+                         broadcast = netsettings.use_master_broadcast,
+                         clear = netsettings.use_master_clear,
+                         force = netsettings.use_master_force_upload,
+                         path = bpy.path.abspath(netsettings.path),
+                         update_stats = self.update_stats,
+                         test_break = self.test_break)
 
 
     def render_slave(self, scene):

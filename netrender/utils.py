@@ -230,7 +230,18 @@ def hashData(data):
     m = hashlib.md5()
     m.update(data)
     return m.hexdigest()
-    
+
+def cacheName(ob, point_cache):
+    name = point_cache.name
+    if name == "":
+        name = "".join(["%02X" % ord(c) for c in ob.name])
+        
+    return name
+
+def cachePath(file_path):
+    path, name = os.path.split(file_path)
+    root, ext = os.path.splitext(name)
+    return path + os.sep + "blendcache_" + root # need an API call for that
 
 def prefixPath(prefix_directory, file_path, prefix_path, force = False):
     if (os.path.isabs(file_path) or

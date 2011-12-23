@@ -77,7 +77,7 @@ def testCancel(conn, job_id, frame_number):
             return False
 
 def testFile(conn, job_id, slave_id, rfile, JOB_PREFIX, main_path=None):
-    job_full_path = prefixPath(JOB_PREFIX, rfile.filepath, main_path)
+    job_full_path = prefixPath(JOB_PREFIX, rfile.filepath, main_path, force=rfile.force)
     
     found = os.path.exists(job_full_path)
     
@@ -88,11 +88,11 @@ def testFile(conn, job_id, slave_id, rfile, JOB_PREFIX, main_path=None):
         if not found:
             print("Found file %s at %s but signature mismatch!" % (rfile.filepath, job_full_path))
             os.remove(job_full_path)
-            job_full_path = prefixPath(JOB_PREFIX, rfile.filepath, main_path, force=True)
 
     if not found:
         # Force prefix path if not found
         job_full_path = prefixPath(JOB_PREFIX, rfile.filepath, main_path, force=True)
+        print("Downloading", job_full_path)
         temp_path = os.path.join(JOB_PREFIX, "slave.temp")
         with ConnectionContext():
             conn.request("GET", fileURL(job_id, rfile.index), headers={"slave-id":slave_id})

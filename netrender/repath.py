@@ -57,15 +57,23 @@ def update(job):
     
     # Only update if needed
     if paths:        
-        process = subprocess.Popen([BLENDER_PATH, "-b", "-noaudio", job_full_path, "-P", __file__, "--", new_path] + paths, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        process = subprocess.Popen([BLENDER_PATH, "-b", "-noaudio", job_full_path, "-P", __file__, "--", new_path] + paths, stdout=sys.stdout, stderr=subprocess.STDOUT)
         process.wait()
         
         os.renames(job_full_path, job_full_path + ".bak")
         os.renames(new_path, job_full_path)
 
 def process(paths):
-    def processPointCache(point_cache):
-        point_cache.use_external = False
+    def processPointCache(ob, point_cache):
+        if not point_cache.use_disk_cache:
+            return
+
+        cache_name = cacheName(ob, point_cache)
+        new_path = path_map.get(cache_name, None)
+        if new_path:
+            point_cache.use_external = True
+            point_cache.filepath = new_path
+            point_cache.name = cache_name
 
     def processFluid(fluid):
         new_path = path_map.get(fluid.filepath, None)
@@ -76,15 +84,16 @@ def process(paths):
     for i in range(0, len(paths), 2):
         # special case for point cache
         if paths[i].endswith(".bphys"):
-            pass # Don't need them in the map, they all use the default external path
-            # NOTE: This is probably not correct all the time, need to be fixed.
+            path, filename = os.path.split(paths[i+1])
+            cache_name = filename.split("_")[0]
+            path_map[cache_name] = path
         # special case for fluids
         elif paths[i].endswith(".bobj.gz"):
             path_map[os.path.split(paths[i])[0]] = os.path.split(paths[i+1])[0]
         else:
             path_map[os.path.split(paths[i])[1]] = paths[i+1]
             
-    # TODO original paths aren't really the orignal path (they are the normalized path
+    # TODO original paths aren't really the original path, they are the normalized path
     # so we repath using the filenames only. 
     
     ###########################
@@ -113,11 +122,11 @@ def process(paths):
     for object in bpy.data.objects:
         for modifier in object.modifiers:
             if modifier.type == 'FLUID_SIMULATION' and modifier.settings.type == "DOMAIN":
-                processFluid(modifier.settings)
+                processFluid(object, modifier.settings)
             elif modifier.type == "CLOTH":
-                processPointCache(modifier.point_cache)
+                processPointCache(object, modifier.point_cache)
             elif modifier.type == "SOFT_BODY":
-                processPointCache(modifier.point_cache)
+                processPointCache(object, modifier.point_cache)
             elif modifier.type == "SMOKE" and modifier.smoke_type == "TYPE_DOMAIN":
                 processPointCache(modifier.domain_settings.point_cache_low)
                 if modifier.domain_settings.use_high_resolution:

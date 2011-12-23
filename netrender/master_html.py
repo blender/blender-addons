@@ -215,6 +215,8 @@ def get(handler):
         job_id = handler.path[9:]
 
         head("NetRender")
+        
+        output(link("Back to Main Page", "/html"))
 
         job = handler.server.getJobID(job_id)
 
@@ -310,6 +312,8 @@ def get(handler):
             endTable()
         else:
             output("no such job")
+
+        output(link("Back to Main Page", "/html"))
 
         output("</body></html>")
 

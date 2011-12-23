@@ -184,6 +184,7 @@ class RENDER_PT_network_master_settings(NetRenderButtonsPanel, bpy.types.Panel):
         netsettings = context.scene.network_render
 
         layout.prop(netsettings, "use_master_broadcast")
+        layout.prop(netsettings, "use_master_force_upload")
         layout.prop(netsettings, "use_master_clear")
 
 class RENDER_PT_network_job(NetRenderButtonsPanel, bpy.types.Panel):
@@ -417,7 +418,12 @@ class NetRenderSettings(bpy.types.PropertyGroup):
         
         NetRenderSettings.use_master_clear = BoolProperty(
                         name="Clear on exit",
-                        description="delete saved files on exit",
+                        description="Delete saved files on exit",
+                        default = False)
+
+        NetRenderSettings.use_master_force_upload = BoolProperty(
+                        name="Force Dependency Upload",
+                        description="Force client to upload dependency files to master",
                         default = False)
         
         default_path = os.environ.get("TEMP")
