@@ -128,7 +128,12 @@ def sane_groupname(data):
 
 
 def mat4x4str(mat):
-    return '%.15f,%.15f,%.15f,%.15f,%.15f,%.15f,%.15f,%.15f,%.15f,%.15f,%.15f,%.15f,%.15f,%.15f,%.15f,%.15f' % tuple([f for v in mat for f in v])
+    # blender matrix is row major, fbx is col major so transpose on write
+    return ("%.15f,%.15f,%.15f,%.15f,"
+            "%.15f,%.15f,%.15f,%.15f,"
+            "%.15f,%.15f,%.15f,%.15f,"
+            "%.15f,%.15f,%.15f,%.15f" %
+            tuple([f for v in mat.transposed() for f in v]))
 
 
 def action_bone_names(obj, action):
