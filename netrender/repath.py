@@ -64,22 +64,6 @@ def update(job):
         os.renames(new_path, job_full_path)
 
 def process(paths):
-    def processPointCache(ob, point_cache):
-        if not point_cache.use_disk_cache:
-            return
-
-        cache_name = cacheName(ob, point_cache)
-        new_path = path_map.get(cache_name, None)
-        if new_path:
-            point_cache.use_external = True
-            point_cache.filepath = new_path
-            point_cache.name = cache_name
-
-    def processFluid(fluid):
-        new_path = path_map.get(fluid.filepath, None)
-        if new_path:
-            fluid.path = new_path
-    
     path_map = {}
     for i in range(0, len(paths), 2):
         # special case for point cache
@@ -119,28 +103,29 @@ def process(paths):
     ###########################
     # FLUID + POINT CACHE
     ###########################
-    for object in bpy.data.objects:
-        for modifier in object.modifiers:
-            if modifier.type == 'FLUID_SIMULATION' and modifier.settings.type == "DOMAIN":
-                processFluid(object, modifier.settings)
-            elif modifier.type == "CLOTH":
-                processPointCache(object, modifier.point_cache)
-            elif modifier.type == "SOFT_BODY":
-                processPointCache(object, modifier.point_cache)
-            elif modifier.type == "SMOKE" and modifier.smoke_type == "DOMAIN":
-                processPointCache(modifier.domain_settings.point_cache_low)
-                if modifier.domain_settings.use_high_resolution:
-                    processPointCache(modifier.domain_settings.point_cache_high)
-            elif modifier.type == "MULTIRES" and modifier.is_external:
-                file_path = bpy.path.abspath(modifier.filepath)
-                new_path = path_map.get(file_path, None)
-                if new_path:
-                    modifier.filepath = new_path
+    def pointCacheFunc(object, point_cache):
+        if not point_cache.use_disk_cache:
+            return
 
-        # particles modifier are stupid and don't contain data
-        # we have to go through the object property
-        for psys in object.particle_systems:
-            processPointCache(psys.point_cache)
+        cache_name = cacheName(object, point_cache)
+        new_path = path_map.get(cache_name, None)
+        if new_path:
+            point_cache.use_external = True
+            point_cache.filepath = new_path
+            point_cache.name = cache_name
+        
+    def fluidFunc(object, modifier, cache_path):
+        fluid = modifier.settings
+        new_path = path_map.get(cache_path, None)
+        if new_path:
+            fluid.path = new_path
+        
+    def multiresFunc(object, modifier, cache_path):
+        new_path = path_map.get(cache_path, None)
+        if new_path:
+            modifier.filepath = new_path
+        
+    processObjectDependencies(pointCacheFunc, fluidFunc, multiresFunc)
                 
 
 if __name__ == "__main__":

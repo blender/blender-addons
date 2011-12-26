@@ -154,7 +154,8 @@ class MRenderJob(netrender.model.RenderJob):
         self.status = JOB_QUEUED
 
     def addLog(self, frames):
-        log_name = "_".join(("%06d" % f for f in frames)) + ".log"
+        frames = sorted(frames)
+        log_name = "%06d_%06d.log" % (frames[0], frames[-1])
         log_path = os.path.join(self.save_path, log_name)
 
         for number in frames:

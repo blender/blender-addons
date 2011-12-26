@@ -218,25 +218,17 @@ def clientSendJobBlender(conn, scene, anim = False):
     # FLUID + POINT CACHE
     ###########################
     default_path = cachePath(filename)
-
-    for object in bpy.data.objects:
-        for modifier in object.modifiers:
-            if modifier.type == 'FLUID_SIMULATION' and modifier.settings.type == "DOMAIN":
-                addFluidFiles(job, bpy.path.abspath(modifier.settings.filepath))
-            elif modifier.type == "CLOTH":
-                addPointCache(job, object, modifier.point_cache, default_path)
-            elif modifier.type == "SOFT_BODY":
-                addPointCache(job, object, modifier.point_cache, default_path)
-            elif modifier.type == "SMOKE" and modifier.smoke_type == "DOMAIN":
-                addPointCache(job, object, modifier.domain_settings.point_cache, default_path)
-            elif modifier.type == "MULTIRES" and modifier.is_external:
-                file_path = bpy.path.abspath(modifier.filepath)
-                job.addFile(file_path)
-
-        # particles modifier are stupid and don't contain data
-        # we have to go through the object property
-        for psys in object.particle_systems:
-            addPointCache(job, object, psys.point_cache, default_path)
+    
+    def pointCacheFunc(object, point_cache):
+        addPointCache(job, object, point_cache, default_path)
+        
+    def fluidFunc(object, modifier, cache_path):
+        addFluidFiles(job, cache_path)
+        
+    def multiresFunc(object, modifier, cache_path):
+        job.addFile(cache_path)
+        
+    processObjectDependencies(pointCacheFunc, fluidFunc, multiresFunc)
 
     #print(job.files)
 

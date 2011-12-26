@@ -243,6 +243,33 @@ def cachePath(file_path):
     root, ext = os.path.splitext(name)
     return path + os.sep + "blendcache_" + root # need an API call for that
 
+# Process dependencies of all objects with user defined functions
+#    pointCacheFunction(object, point_cache)
+#    fluidFunction(object, modifier, cache_path)
+#    multiresFunction(object, modifier, cache_path)
+def processObjectDependencies(pointCacheFunction, fluidFunction, multiresFunction):
+    for object in bpy.data.objects:
+        for modifier in object.modifiers:
+            if modifier.type == 'FLUID_SIMULATION' and modifier.settings.type == "DOMAIN":
+                fluidFunction(object, modifier, bpy.path.abspath(modifier.settings.filepath))
+            elif modifier.type == "CLOTH":
+                pointCacheFunction(object, modifier.point_cache)
+            elif modifier.type == "SOFT_BODY":
+                pointCacheFunction(object, modifier.point_cache)
+            elif modifier.type == "SMOKE" and modifier.smoke_type == "DOMAIN":
+                pointCacheFunction(object, modifier.domain_settings.point_cache)
+            elif modifier.type == "MULTIRES" and modifier.is_external:
+                multiresFunction(object, modifier, bpy.path.abspath(modifier.filepath))
+            elif modifier.type == "DYNAMIC_PAINT" and modifier.canvas_settings:
+                for surface in modifier.canvas_settings.canvas_surfaces:
+                    pointCacheFunction(object, surface.point_cache)
+    
+        # particles modifier are stupid and don't contain data
+        # we have to go through the object property
+        for psys in object.particle_systems:
+            pointCacheFunction(object, psys.point_cache)
+    
+
 def prefixPath(prefix_directory, file_path, prefix_path, force = False):
     if (os.path.isabs(file_path) or
         len(file_path) >= 3 and (file_path[1:3] == ":/" or file_path[1:3] == ":\\") or # Windows absolute path don't count as absolute on unix, have to handle them myself
