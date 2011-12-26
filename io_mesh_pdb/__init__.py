@@ -45,6 +45,8 @@ from bpy.props import (StringProperty,
 # TODO, allow reload
 from . import import_pdb
 
+ATOM_PDB_ERROR = ""
+
 # -----------------------------------------------------------------------------
 #                                                                           GUI
 
@@ -201,7 +203,7 @@ class CLASS_atom_pdb_IO(bpy.types.PropertyGroup):
         description = "Do you need a lamp?")
     scn.use_atom_pdb_mesh = BoolProperty(
         name = "Mesh balls", default=False,
-        description = "Do you want to use mesh balls instead of NURBS?")
+        description = "Use mesh balls instead of NURBS")
     scn.atom_pdb_mesh_azimuth = IntProperty(
         name = "Azimuth", default=32, min=0,
         description = "Number of sectors (azimuth)")
@@ -216,11 +218,10 @@ class CLASS_atom_pdb_IO(bpy.types.PropertyGroup):
         description = "Scale factor for all distances")
     scn.use_atom_pdb_center = BoolProperty(
         name = "Object to origin", default=True,
-        description = "Shall the object first put into the global origin "
-        "before applying the offsets on the left?")
+        description = "Put the object into the global origin")
     scn.use_atom_pdb_sticks = BoolProperty(
         name="Use sticks", default=False,
-        description="Do you want to display also the sticks?")
+        description="Do you want to display the sticks?")
     scn.atom_pdb_sticks_sectors = IntProperty(
         name = "Sector", default=20, min=0,
         description="Number of sectors of a stick")
@@ -228,8 +229,8 @@ class CLASS_atom_pdb_IO(bpy.types.PropertyGroup):
         name = "Radius", default=0.1, min=0.0,
         description ="Radius of a stick")
     scn.use_atom_pdb_sticks_color = BoolProperty(
-        name="Color of atoms", default=False,
-        description="Shall the sticks appear in the color of the atoms?")
+        name="Color", default=False,
+        description="The sticks appear in the color of the atoms")
     scn.atom_pdb_atomradius = EnumProperty(
         name="Type of radius",
         description="Choose type of atom radius",
@@ -281,7 +282,7 @@ class CLASS_atom_pdb_IO(bpy.types.PropertyGroup):
 class CLASS_atom_pdb_datafile_apply(Operator):
     bl_idname = "atom_pdb.datafile_apply"
     bl_label = "Apply"
-    bl_description = "Use color and radii values stored in a custom file"
+    bl_description = "Use color and radii values stored in the custom file"
 
     def execute(self, context):
         scn    = bpy.context.scene
@@ -386,7 +387,7 @@ class CLASS_atom_pdb_separate_atom(Operator):
 class CLASS_atom_pdb_distance_button(Operator):
     bl_idname = "atom_pdb.button_distance"
     bl_label = "Measure ..."
-    bl_description = "Measure the distance between two objects"
+    bl_description = "Measure the distance between two objects (only in Object Mode)"
 
     def execute(self, context):
         scn    = bpy.context.scene
@@ -443,11 +444,19 @@ class CLASS_atom_pdb_radius_sticks_button(Operator):
     bl_description = "Show only the sticks (atom radii = stick radii)"
 
     def execute(self, context):
+        global ATOM_PDB_ERROR
+        
         scn = bpy.context.scene
-        import_pdb.DEF_atom_pdb_radius_sticks(
+                
+        result = import_pdb.DEF_atom_pdb_radius_sticks(
                      scn.atom_pdb_sticks_radius,
                      scn.atom_pdb_radius_how,
                      )
+                     
+        if result == False:
+            ATOM_PDB_ERROR = "No sticks => no changes"
+            bpy.ops.atom_pdb.error_dialog('INVOKE_DEFAULT')
+                                          
         return {'FINISHED'}
 
 
@@ -560,6 +569,21 @@ class ImportPDB(Operator, ImportHelper):
         scn.atom_pdb_number_atoms = str(atom_number) + " atoms"
 
         return {'FINISHED'}
+
+
+class CLASS_atom_pdb_error_dialog(bpy.types.Operator):
+    bl_idname = "atom_pdb.error_dialog"
+    bl_label = "Attention !"
+    
+    def draw(self, context):
+        layout = self.layout
+        row = layout.row()
+        row.label(text="                          "+ATOM_PDB_ERROR) 
+    def execute(self, context):
+        print("Atomic Blender - Error: "+ATOM_PDB_ERROR+"\n")
+        return {'FINISHED'}
+    def invoke(self, context, event):
+        return context.window_manager.invoke_props_dialog(self)
 
 
 # The entry into the menu 'file -> import'

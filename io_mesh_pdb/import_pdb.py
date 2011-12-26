@@ -415,6 +415,45 @@ def DEF_atom_pdb_radius_all(scale, how):
 # for showing the sticks.
 def DEF_atom_pdb_radius_sticks(radius, how):
 
+    # Are there any sticks?
+    Found = False
+    if how == "ALL_IN_LAYER":
+
+        layers = []
+        for i in range(20):
+            if bpy.context.scene.layers[i] == True:
+                layers.append(i)
+
+        change_objects = []
+        for obj in bpy.context.scene.objects:
+            for layer in layers:
+                if obj.layers[layer] == True:
+                    change_objects.append(obj)
+
+        for obj in change_objects:
+            if len(obj.children) != 0:
+                if obj.children[0].type == "SURFACE" or obj.children[0].type  == "MESH":
+                    if "Stick" in obj.name:
+                        Found = True
+            else:
+                if obj.type == "SURFACE" or obj.type == "MESH":
+                    if "Stick" in obj.name:
+                        Found = True
+
+    if how == "ALL_ACTIVE":
+        for obj in bpy.context.selected_objects:
+            if len(obj.children) != 0:
+                if obj.children[0].type == "SURFACE" or obj.children[0].type  == "MESH":
+                    if "Stick" in obj.name:
+                        Found = True
+            else:
+                if obj.type == "SURFACE" or obj.type == "MESH":
+                    if "Stick" in obj.name:
+                        Found = True
+
+    if Found == False:
+        return False
+
     if how == "ALL_IN_LAYER":
 
         layers = []
@@ -450,6 +489,7 @@ def DEF_atom_pdb_radius_sticks(radius, how):
                     if "Stick" not in obj.name:
                         obj.scale = (radius,) * 3
 
+    return True
 
 
 # This reads a custom data file.
