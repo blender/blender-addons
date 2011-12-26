@@ -20,7 +20,7 @@ bl_info = {
     "name": "PDB Atomic Blender",
     "description": "Loading and manipulating atoms from PDB files",
     "author": "Clemens Barth",
-    "version": (1,0),
+    "version": (1,1),
     "blender": (2,6),
     "api": 31236,
     "location": "File -> Import -> PDB (.pdb), Panel: View 3D - Tools",
@@ -119,6 +119,7 @@ class CLASS_atom_pdb_panel(Panel):
         col = row.column(align=True)
         col.prop(scn, "atom_pdb_sticks_sectors")
         col.prop(scn, "atom_pdb_sticks_radius")
+        col.prop(scn, "use_atom_pdb_sticks_color")        
         row = box.row()
         row.prop(scn, "use_atom_pdb_center")
         row = box.row()
@@ -129,13 +130,13 @@ class CLASS_atom_pdb_panel(Panel):
         col.operator("atom_pdb.button_reload")
         # TODO, use lanel() instead
         col.prop(scn, "atom_pdb_number_atoms")
+        row = box.row()
+        row.operator("atom_pdb.button_distance")
+        row.prop(scn, "atom_pdb_distance")
 
         row = layout.row()
         row.label(text="Modify atom radii")
         box = layout.box()
-        row = box.row()
-        row.operator("atom_pdb.button_distance")
-        row.prop(scn, "atom_pdb_distance")
         row = box.row()
         row.label(text="All changes concern:")
         row = box.row()
@@ -158,6 +159,11 @@ class CLASS_atom_pdb_panel(Panel):
         col = row.column(align=True)
         col.operator( "atom_pdb.radius_all_bigger" )
         col.operator( "atom_pdb.radius_all_smaller" )
+        row = box.row()
+        row.label(text="4. Show sticks only")
+        row = box.row()
+        col = row.column()
+        col.operator( "atom_pdb.radius_sticks" )
 
         if bpy.context.mode == 'EDIT_MESH':
 
@@ -221,6 +227,9 @@ class CLASS_atom_pdb_IO(bpy.types.PropertyGroup):
     scn.atom_pdb_sticks_radius = FloatProperty(
         name = "Radius", default=0.1, min=0.0,
         description ="Radius of a stick")
+    scn.use_atom_pdb_sticks_color = BoolProperty(
+        name="Color of atoms", default=False,
+        description="Shall the sticks appear in the color of the atoms?")
     scn.atom_pdb_atomradius = EnumProperty(
         name="Type of radius",
         description="Choose type of atom radius",
@@ -301,7 +310,7 @@ class CLASS_atom_pdb_datafile_apply(Operator):
         return {'FINISHED'}
 
 
-# Button for measuring the distance of the active objects
+# Button for separating single objects from a atom mesh
 class CLASS_atom_pdb_separate_atom(Operator):
     bl_idname = "atom_pdb.separate_atom"
     bl_label = "Separate atom"
@@ -426,7 +435,23 @@ class CLASS_atom_pdb_radius_all_smaller_button(Operator):
         return {'FINISHED'}
 
 
-# The button for loading the atoms and creating the scene
+# Button for showing the sticks only - the radii of the atoms have the radius
+# of the sticks
+class CLASS_atom_pdb_radius_sticks_button(Operator):
+    bl_idname = "atom_pdb.radius_sticks"
+    bl_label = "Show sticks"
+    bl_description = "Show only the sticks (atom radii = stick radii)"
+
+    def execute(self, context):
+        scn = bpy.context.scene
+        import_pdb.DEF_atom_pdb_radius_sticks(
+                     scn.atom_pdb_sticks_radius,
+                     scn.atom_pdb_radius_how,
+                     )
+        return {'FINISHED'}
+
+
+# The button for reloading the atoms and creating the scene
 class CLASS_atom_pdb_load_button(Operator):
     bl_idname = "atom_pdb.button_reload"
     bl_label = "RELOAD"
@@ -442,6 +467,7 @@ class CLASS_atom_pdb_load_button(Operator):
         radiustype = scn.atom_pdb_atomradius
         center     = scn.use_atom_pdb_center
         sticks     = scn.use_atom_pdb_sticks
+        sticks_col = scn.use_atom_pdb_sticks_color
         ssector    = scn.atom_pdb_sticks_sectors
         sradius    = scn.atom_pdb_sticks_radius
         cam        = scn.use_atom_pdb_cam
@@ -452,7 +478,7 @@ class CLASS_atom_pdb_load_button(Operator):
         # Execute main routine an other time ... from the panel
         atom_number = import_pdb.DEF_atom_pdb_main(
                 mesh, azimuth, zenith, bradius,
-                radiustype, bdistance, sticks,
+                radiustype, bdistance, sticks, sticks_col,
                 ssector, sradius, center, cam, lamp, datafile,
                 )
         scn.atom_pdb_number_atoms = str(atom_number) + " atoms"
@@ -494,6 +520,7 @@ class ImportPDB(Operator, ImportHelper):
         col = row.column(align=True)
         col.prop(scn, "atom_pdb_sticks_sectors")
         col.prop(scn, "atom_pdb_sticks_radius")
+        col.prop(scn, "use_atom_pdb_sticks_color")        
 
         row = layout.row()
         row.prop(scn, "use_atom_pdb_center")
@@ -516,6 +543,7 @@ class ImportPDB(Operator, ImportHelper):
         radiustype = scn.atom_pdb_atomradius
         center     = scn.use_atom_pdb_center
         sticks     = scn.use_atom_pdb_sticks
+        sticks_col = scn.use_atom_pdb_sticks_color
         ssector    = scn.atom_pdb_sticks_sectors
         sradius    = scn.atom_pdb_sticks_radius
         cam        = scn.use_atom_pdb_cam
@@ -526,7 +554,7 @@ class ImportPDB(Operator, ImportHelper):
         # Execute main routine
         atom_number = import_pdb.DEF_atom_pdb_main(
                 mesh, azimuth, zenith, bradius,
-                radiustype, bdistance, sticks,
+                radiustype, bdistance, sticks, sticks_col,
                 ssector, sradius, center, cam, lamp, datafile)
 
         scn.atom_pdb_number_atoms = str(atom_number) + " atoms"

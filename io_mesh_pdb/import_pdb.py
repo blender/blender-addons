@@ -25,7 +25,7 @@
 #
 #  Start of project              : 2011-08-31 by Clemens Barth
 #  First publication in Blender  : 2011-11-11
-#  Last modified                 : 2011-12-22
+#  Last modified                 : 2011-12-26
 #
 #  Acknowledgements: Thanks to ideasman, meta_androcto, truman, kilon,
 #  dairin0d, PKHG, Valter, etc
@@ -284,8 +284,7 @@ def DEF_atom_pdb_distance():
     return str(dv.length)
 
 
-# Routine to modify the radii via the type:
-#                                          pre-defined, atomic or van der Waals
+# Routine to modify the radii via the type: predefined, atomic or van der Waals
 # Explanations here are also valid for the next 3 DEFs.
 def DEF_atom_pdb_radius_type(rtype,how):
 
@@ -351,22 +350,26 @@ def DEF_atom_pdb_radius_pm(atomname, radius_pm, how):
             if len(obj.children) != 0:
                 if obj.children[0].type == "SURFACE" or obj.children[0].type  == "MESH":
                     if atomname in obj.name:
-                        obj.children[0].scale = (radius_pm/100,) * 3
+                        if "Stick" not in obj.name:
+                            obj.children[0].scale = (radius_pm/100,) * 3
             else:
                 if obj.type == "SURFACE" or obj.type == "MESH":
                     if atomname in obj.name:
-                        obj.scale = (radius_pm/100,) * 3
+                        if "Stick" not in obj.name:
+                            obj.scale = (radius_pm/100,) * 3
 
     if how == "ALL_ACTIVE":
         for obj in bpy.context.selected_objects:
             if len(obj.children) != 0:
                 if obj.children[0].type == "SURFACE" or obj.children[0].type  == "MESH":
                     if atomname in obj.name:
-                        obj.children[0].scale = (radius_pm/100,) * 3
+                        if "Stick" not in obj.name:
+                            obj.children[0].scale = (radius_pm/100,) * 3
             else:
                 if obj.type == "SURFACE" or obj.type == "MESH":
                     if atomname in obj.name:
-                        obj.scale = (radius_pm/100,) * 3
+                        if "Stick" not in obj.name:
+                            obj.scale = (radius_pm/100,) * 3
 
 
 # Routine to scale the radii of all atoms
@@ -406,6 +409,47 @@ def DEF_atom_pdb_radius_all(scale, how):
                 if obj.type == "SURFACE" or obj.type == "MESH":
                     if "Stick" not in obj.name:
                         obj.scale *= scale
+
+
+# This routine downscales all atom radii onto the value of the stick radius
+# for showing the sticks.
+def DEF_atom_pdb_radius_sticks(radius, how):
+
+    if how == "ALL_IN_LAYER":
+
+        layers = []
+        for i in range(20):
+            if bpy.context.scene.layers[i] == True:
+                layers.append(i)
+
+        change_objects = []
+        for obj in bpy.context.scene.objects:
+            for layer in layers:
+                if obj.layers[layer] == True:
+                    change_objects.append(obj)
+
+
+        for obj in change_objects:
+            if len(obj.children) != 0:
+                if obj.children[0].type == "SURFACE" or obj.children[0].type  == "MESH":
+                    if "Stick" not in obj.name:
+                        obj.children[0].scale = (radius,) * 3
+            else:
+                if obj.type == "SURFACE" or obj.type == "MESH":
+                    if "Stick" not in obj.name:
+                        obj.scale = (radius,) * 3
+
+    if how == "ALL_ACTIVE":
+        for obj in bpy.context.selected_objects:
+            if len(obj.children) != 0:
+                if obj.children[0].type == "SURFACE" or obj.children[0].type  == "MESH":
+                    if "Stick" not in obj.name:
+                        obj.children[0].scale = (radius,) * 3
+            else:
+                if obj.type == "SURFACE" or obj.type == "MESH":
+                    if "Stick" not in obj.name:
+                        obj.scale = (radius,) * 3
+
 
 
 # This reads a custom data file.
@@ -476,7 +520,7 @@ def DEF_atom_pdb_custom_datafile(path_datafile):
 
 def DEF_atom_pdb_main(use_mesh,Ball_azimuth,Ball_zenith,
                Ball_radius_factor,radiustype,Ball_distance_factor,
-               use_stick,Stick_sectors,Stick_diameter,put_to_center,
+               use_sticks,use_sticks_color,Stick_sectors,Stick_diameter,put_to_center,
                use_camera,use_lamp,path_datafile):
 
     # The list of all atoms as read from the PDB file.
@@ -1068,69 +1112,97 @@ def DEF_atom_pdb_main(use_mesh,Ball_azimuth,Ball_zenith,
     # ------------------------------------------------------------------------
     # DRAWING THE STICKS
 
+    if use_sticks == True and all_sticks != []:
+            
+        dl = 0.05
+         
+        if use_sticks_color == False:   
+            bpy.ops.object.material_slot_add()
+            stick_material = bpy.data.materials.new(ATOM_PDB_ELEMENTS[-1].name)
+            stick_material.diffuse_color = ATOM_PDB_ELEMENTS[-1].color            
 
-    if use_stick == True and all_sticks != []:
+        # Sort the sticks and put them into a new list such that ...            
+        sticks_all_lists = []
+        if use_sticks_color == True:
+            for atom_type in atom_all_types_list:
+                if atom_type[0] == "TER":
+                    continue            
+                sticks_list = []
+                for stick in all_sticks:
+                    dv = all_atoms[stick.atom1-1].location - all_atoms[stick.atom2-1].location                
+                    n  = dv / dv.length
+                    if atom_type[0] == all_atoms[stick.atom1-1].name:
+                        location = all_atoms[stick.atom1-1].location
+                        name     = "_" + all_atoms[stick.atom1-1].name
+                        material = all_atoms[stick.atom1-1].material
+                        sticks_list.append([name, location, dv, material])
+                    if atom_type[0] == all_atoms[stick.atom2-1].name: 
+                        location = all_atoms[stick.atom1-1].location - n * dl * int(math.ceil(dv.length / (2.0 * dl)))
+                        name     = "_" + all_atoms[stick.atom2-1].name
+                        material = all_atoms[stick.atom2-1].material
+                        sticks_list.append([name, location, dv, material])
+                sticks_all_lists.append(sticks_list)
+        else:
+            sticks_list = []
+            for stick in all_sticks:
+                dv = all_atoms[stick.atom1-1].location - all_atoms[stick.atom2-1].location                
+                n  = dv / dv.length
+                location = all_atoms[stick.atom1-1].location
+                material = stick_material
+                sticks_list.append(["", location, dv, material])
+            sticks_all_lists.append(sticks_list)
 
-        # Create a new material with the corresponding color. The
-        # color is taken from the all_atom list, it is the last entry
-        # in the data file (index -1).
-        bpy.ops.object.material_slot_add()
-        stick_material = bpy.data.materials.new(ATOM_PDB_ELEMENTS[-1].name)
-        stick_material.diffuse_color = ATOM_PDB_ELEMENTS[-1].color
 
-        vertices = []
-        faces    = []
-        dl = 0.1
-
-        i = 0
-        # For all sticks, do ...
-        for stick in all_sticks:
-
+        # ... the sticks in the list can be drawn:
+        for stick_list in sticks_all_lists:
+            vertices = []
+            faces    = []
+            i = 0
+            
             # What follows is school mathematics! :-)
-            v1 = all_atoms[stick.atom2-1].location
-            v2 = all_atoms[stick.atom1-1].location
+            for stick in stick_list:
+            
+                dv = stick[2]
+                v1 = stick[1]
+                n  = dv / dv.length
+                gamma = -n * v1
+                b     = v1 + gamma * n
+                n_b   = b / b.length
+                
+                if use_sticks_color == True:
+                    loops = int(math.ceil(dv.length / (2.0 * dl)))
+                else:
+                    loops = int(math.ceil(dv.length / dl))
+                    
+                for j in range(loops):
 
-            dv = (v1 - v2)
+                    g  = v1 - n * dl / 2.0 - n * dl * j
+                    p1 = g + n_b * Stick_diameter
+                    p2 = g - n_b * Stick_diameter
+                    p3 = g - n_b.cross(n) * Stick_diameter
+                    p4 = g + n_b.cross(n) * Stick_diameter
 
-            n  = dv / dv.length
-            # m  = v1 - dv / 2.0  # UNUSED
+                    vertices.append(p1)
+                    vertices.append(p2)
+                    vertices.append(p3)
+                    vertices.append(p4)
+                    faces.append((i*4+0,i*4+2,i*4+1,i*4+3))
+                    i += 1
+            
+            mesh = bpy.data.meshes.new("Sticks"+stick[0])
+            mesh.from_pydata(vertices, [], faces)
+            mesh.update()
+            new_mesh = bpy.data.objects.new("Sticks"+stick[0], mesh)
+            bpy.context.scene.objects.link(new_mesh)
 
-            gamma = -n * v1
-            b     = v1 + gamma * n
-            n_b   = b / b.length
+            current_layers = bpy.context.scene.layers
+            stick_cylinder = DEF_atom_pdb_build_stick(Stick_diameter, dl, Stick_sectors)
+            stick_cylinder.active_material = stick[3]
+            stick_cylinder.parent = new_mesh
 
-            loops = int(dv.length / dl)
+            new_mesh.dupli_type = 'FACES'
+            atom_object_list.append(new_mesh)
 
-            for j in range(loops):
-
-                g = v1 - n * dl / 2.0 - n * dl * j
-
-                p1 = g + n_b * Stick_diameter
-                p2 = g - n_b * Stick_diameter
-                p3 = g - n_b.cross(n) * Stick_diameter
-                p4 = g + n_b.cross(n) * Stick_diameter
-
-                vertices.append(p1)
-                vertices.append(p2)
-                vertices.append(p3)
-                vertices.append(p4)
-                faces.append((i*4+0,i*4+2,i*4+1,i*4+3))
-                i += 1
-
-        mesh = bpy.data.meshes.new("Sticks")
-        mesh.from_pydata(vertices, [], faces)
-        mesh.update()
-        new_mesh = bpy.data.objects.new("Sticks", mesh)
-        bpy.context.scene.objects.link(new_mesh)
-
-        current_layers = bpy.context.scene.layers
-        stick_cylinder = DEF_atom_pdb_build_stick(Stick_diameter, dl, Stick_sectors)
-
-
-        stick_cylinder.active_material = stick_material
-        stick_cylinder.parent = new_mesh
-        new_mesh.dupli_type = 'FACES'
-        atom_object_list.append(new_mesh)
 
 
     # ------------------------------------------------------------------------
