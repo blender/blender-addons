@@ -27,10 +27,9 @@ bl_info = {
     "warning": "",
     "wiki_url": "http://development.root-1.de/Atomic_Blender.php",
     "tracker_url": "http://projects.blender.org/tracker/"
-                   "index.php?func=detail&aid=29226&group_id=153&atid=468",
+                   "index.php?func=detail&aid=29226",
     "category": "Import-Export"
 }
-
 
 import bpy
 from bpy.types import Operator, Panel
