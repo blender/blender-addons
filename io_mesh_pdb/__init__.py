@@ -25,7 +25,7 @@ bl_info = {
     "api": 31236,
     "location": "File -> Import -> PDB (.pdb), Panel: View 3D - Tools",
     "warning": "",
-    "wiki_url": "http://development.root-1.de/Atomic_Blender.php",
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts/Import-Export/PDB",
     "tracker_url": "http://projects.blender.org/tracker/"
                    "index.php?func=detail&aid=29226",
     "category": "Import-Export"
