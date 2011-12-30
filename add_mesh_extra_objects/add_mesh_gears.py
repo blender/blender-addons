@@ -574,7 +574,7 @@ class AddGear(bpy.types.Operator):
     '''Add a gear mesh.'''
     bl_idname = "mesh.primitive_gear"
     bl_label = "Add Gear"
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = {'REGISTER', 'UNDO', 'PRESET'}
 
     number_of_teeth = IntProperty(name="Number of Teeth",
         description="Number of teeth on the gear",
@@ -680,7 +680,7 @@ class AddWormGear(bpy.types.Operator):
     '''Add a worm gear mesh.'''
     bl_idname = "mesh.primitive_worm_gear"
     bl_label = "Add Worm Gear"
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = {'REGISTER', 'UNDO', 'PRESET'}
 
     number_of_teeth = IntProperty(name="Number of Teeth",
         description="Number of teeth on the gear",

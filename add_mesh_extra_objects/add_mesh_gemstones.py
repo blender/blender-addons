@@ -242,7 +242,7 @@ class AddDiamond(bpy.types.Operator):
     '''Add a diamond mesh.'''
     bl_idname = "mesh.primitive_diamond_add"
     bl_label = "Add Diamond"
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = {'REGISTER', 'UNDO', 'PRESET'}
 
     segments = IntProperty(name="Segments",
         description="Number of segments for the diamond",
@@ -287,7 +287,7 @@ class AddGem(bpy.types.Operator):
     bl_idname = "mesh.primitive_gem_add"
     bl_label = "Add Gem"
     bl_description = "Create an offset faceted gem"
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = {'REGISTER', 'UNDO', 'PRESET'}
 
     segments = IntProperty(name="Segments",
         description="Longitudial segmentation",

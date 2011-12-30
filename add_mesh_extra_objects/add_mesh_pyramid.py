@@ -113,7 +113,7 @@ class AddPyramid(bpy.types.Operator, AddObjectHelper):
     """Add a Mesh Object"""
     bl_idname = "mesh.primitive_steppyramid_add"
     bl_label = "Pyramid"
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = {'REGISTER', 'UNDO', 'PRESET'}
 
     initial_size = FloatProperty(name="Initial Size", default=2.0,
                                 min=0.0, max=20.0,

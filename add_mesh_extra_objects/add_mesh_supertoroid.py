@@ -152,7 +152,7 @@ class add_supertoroid(bpy.types.Operator):
     bl_idname = "mesh.primitive_supertoroid_add"
     bl_label = "Add SuperToroid"
     bl_description = "Create a SuperToroid"
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = {'REGISTER', 'UNDO', 'PRESET'}
 
     R = FloatProperty(name = "big radius",
                       description = "The radius inside the tube",

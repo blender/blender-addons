@@ -186,7 +186,7 @@ class AddTwistedTorus(bpy.types.Operator):
     '''Add a torus mesh'''
     bl_idname = "mesh.primitive_twisted_torus_add"
     bl_label = "Add Torus"
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = {'REGISTER', 'UNDO', 'PRESET'}
 
     major_radius = FloatProperty(name="Major Radius",
         description="Radius from the origin to the" \

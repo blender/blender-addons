@@ -360,7 +360,7 @@ class AddSqorus(bpy.types.Operator):
     '''Add a sqorus mesh.'''
     bl_idname = "mesh.primitive_sqorus_add"
     bl_label = "Add Sqorus"
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = {'REGISTER', 'UNDO', 'PRESET'}
 
     hole_size = FloatProperty(name="Hole Size",
         description="Size of the Hole",
@@ -389,7 +389,7 @@ class AddWedge(bpy.types.Operator):
     '''Add a wedge mesh.'''
     bl_idname = "mesh.primitive_wedge_add"
     bl_label = "Add Wedge"
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = {'REGISTER', 'UNDO', 'PRESET'}
 
     size_x = FloatProperty(name="Size X",
         description="Size along the X axis",
@@ -423,7 +423,7 @@ class AddStar(bpy.types.Operator):
     '''Add a star mesh.'''
     bl_idname = "mesh.primitive_star_add"
     bl_label = "Add Star"
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = {'REGISTER', 'UNDO', 'PRESET'}
 
     points = IntProperty(name="Points",
         description="Number of points for the star",
@@ -464,7 +464,7 @@ class AddTrapezohedron(bpy.types.Operator):
     bl_idname = "mesh.primitive_trapezohedron_add"
     bl_label = "Add trapezohedron"
     bl_description = "Create one of the regular solids"
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = {'REGISTER', 'UNDO', 'PRESET'}
 
     segments = IntProperty(name = "Segments",
                 description = "Number of repeated segments",
