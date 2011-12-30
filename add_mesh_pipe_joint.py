@@ -20,8 +20,8 @@ bl_info = {
     "name": "Pipe Joints",
     "author": "Buerbaum Martin (Pontiac)",
     "version": (0, 10, 7),
-    "blender": (2, 5, 9),
-    "api": 39685,
+    "blender": (2, 6, 1),
+    "api": 42973,
     "location": "View3D > Add > Mesh > Pipe Joints",
     "description": "Add different types of pipe joints",
     "warning": "",
@@ -127,7 +127,7 @@ class AddElbowJoint(bpy.types.Operator):
     '''Add an Elbow pipe mesh'''
     bl_idname = "mesh.primitive_elbow_joint_add"
     bl_label = "Add Pipe Elbow"
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = {'REGISTER', 'UNDO', 'PRESET'}
 
     radius = FloatProperty(name="Radius",
         description="The radius of the pipe",
@@ -228,7 +228,7 @@ class AddTeeJoint(bpy.types.Operator):
     '''Add a Tee-Joint mesh'''
     bl_idname = "mesh.primitive_tee_joint_add"
     bl_label = "Add Pipe Tee-Joint"
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = {'REGISTER', 'UNDO', 'PRESET'}
 
     radius = FloatProperty(name="Radius",
         description="The radius of the pipe",
@@ -405,7 +405,7 @@ class AddWyeJoint(bpy.types.Operator):
     '''Add a Wye-Joint mesh'''
     bl_idname = "mesh.primitive_wye_joint_add"
     bl_label = "Add Pipe Wye-Joint"
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = {'REGISTER', 'UNDO', 'PRESET'}
 
     radius = FloatProperty(name="Radius",
         description="The radius of the pipe",
@@ -600,7 +600,7 @@ class AddCrossJoint(bpy.types.Operator):
     # Create the vertices and polygons for a coss (+ or X) pipe joint.
     bl_idname = "mesh.primitive_cross_joint_add"
     bl_label = "Add Pipe Cross-Joint"
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = {'REGISTER', 'UNDO', 'PRESET'}
 
     radius = FloatProperty(name="Radius",
         description="The radius of the pipe",
@@ -855,7 +855,7 @@ class AddNJoint(bpy.types.Operator):
     # Create the vertices and polygons for a regular n-joint.
     bl_idname = "mesh.primitive_n_joint_add"
     bl_label = "Add Pipe N-Joint"
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = {'REGISTER', 'UNDO', 'PRESET'}
 
     radius = FloatProperty(name="Radius",
         description="The radius of the pipe",
