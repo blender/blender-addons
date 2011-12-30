@@ -45,7 +45,7 @@ class add_mesh_bolt(bpy.types.Operator):
     ''''''
     bl_idname = "mesh.bolt_add"
     bl_label = "Add Bolt"
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = {'REGISTER', 'UNDO', 'PRESET'}
     bl_description = "adds many types of Bolts"
     
     align_matrix = mathutils.Matrix()
