@@ -25,7 +25,7 @@
 #
 #  Start of project              : 2011-08-31 by Clemens Barth
 #  First publication in Blender  : 2011-11-11
-#  Last modified                 : 2011-12-26
+#  Last modified                 : 2011-12-30
 #
 #  Acknowledgements: Thanks to ideasman, meta_androcto, truman, kilon,
 #  dairin0d, PKHG, Valter, etc
@@ -35,8 +35,10 @@ import bpy
 import io
 import math
 import os
+import copy
 from math import pi, cos, sin
 from mathutils import Vector, Matrix
+from copy import copy
 
 # These are variables, which contain the name of the PDB file and
 # the path of the PDB file.
@@ -207,10 +209,12 @@ class CLASS_atom_pdb_atom(object):
 
 # This is the class, which stores the two atoms of one stick.
 class CLASS_atom_pdb_stick(object):
-    __slots__ = ('atom1', 'atom2')
-    def __init__(self, atom1, atom2):
+    __slots__ = ('atom1', 'atom2', 'number', 'dist')
+    def __init__(self, atom1, atom2, number, dist):
         self.atom1 = atom1
         self.atom2 = atom2
+        self.number = number
+        self.dist = dist
 
 
 # -----------------------------------------------------------------------------
@@ -492,7 +496,9 @@ def DEF_atom_pdb_radius_sticks(radius, how):
     return True
 
 
-# This reads a custom data file.
+# -----------------------------------------------------------------------------
+#                                                         The custom data file
+
 def DEF_atom_pdb_custom_datafile(path_datafile):
 
     if path_datafile == "":
@@ -560,7 +566,9 @@ def DEF_atom_pdb_custom_datafile(path_datafile):
 
 def DEF_atom_pdb_main(use_mesh,Ball_azimuth,Ball_zenith,
                Ball_radius_factor,radiustype,Ball_distance_factor,
-               use_sticks,use_sticks_color,Stick_sectors,Stick_diameter,put_to_center,
+               use_sticks,use_sticks_color,use_sticks_smooth,
+               use_sticks_bonds,Stick_dist,
+               Stick_sectors,Stick_diameter,put_to_center,
                use_camera,use_lamp,path_datafile):
 
     # The list of all atoms as read from the PDB file.
@@ -849,10 +857,34 @@ def DEF_atom_pdb_main(use_mesh,Ball_azimuth,Ball_zenith,
         atom1 = atom_list[0]
 
         # For all the other atoms in the list do:
-        for each_atom in atom_list[1:]:
-
-            # The second, third, ... partner atom
-            atom2 = each_atom
+        for atom2 in atom_list[1:]:
+                                         
+            if use_sticks_bonds == True:
+                number = atom_list[1:].count(atom2)
+                if number == 2 or number == 3:
+                    basis_list = list(set(atom_list[1:]))
+                 
+                    if len(basis_list) > 1:
+                        basis1 = (all_atoms[atom1-1].location 
+                                - all_atoms[basis_list[0]-1].location)
+                        basis2 = (all_atoms[atom1-1].location 
+                                - all_atoms[basis_list[1]-1].location)     
+                        plane_n = basis1.cross(basis2)
+                    
+                        dist_n = (all_atoms[atom1-1].location 
+                                - all_atoms[atom2-1].location)
+                        dist_n = dist_n.cross(plane_n)
+                        dist_n = dist_n / dist_n.length  
+                    else:
+                        dist_n = Vector((0,0,0))                               
+                elif number > 3:
+                    number = 1
+                    dist_n = None
+                else:
+                    dist_n = None
+            else:
+                number = 1
+                dist_n = None
 
             # Note that in a PDB file, sticks of one atom pair can appear a
             # couple of times. (Only god knows why ...)
@@ -869,7 +901,7 @@ def DEF_atom_pdb_main(use_mesh,Ball_azimuth,Ball_zenith,
             # If the stick is not yet registered (FLAG_BAR == False), then
             # register it!
             if FLAG_BAR == False:
-                all_sticks.append(CLASS_atom_pdb_stick(atom1,atom2))
+                all_sticks.append(CLASS_atom_pdb_stick(atom1,atom2,number,dist_n))
                 Number_of_sticks += 1
                 j += 1
 
@@ -1169,27 +1201,79 @@ def DEF_atom_pdb_main(use_mesh,Ball_azimuth,Ball_zenith,
                     continue            
                 sticks_list = []
                 for stick in all_sticks:
-                    dv = all_atoms[stick.atom1-1].location - all_atoms[stick.atom2-1].location                
-                    n  = dv / dv.length
-                    if atom_type[0] == all_atoms[stick.atom1-1].name:
-                        location = all_atoms[stick.atom1-1].location
-                        name     = "_" + all_atoms[stick.atom1-1].name
-                        material = all_atoms[stick.atom1-1].material
-                        sticks_list.append([name, location, dv, material])
-                    if atom_type[0] == all_atoms[stick.atom2-1].name: 
-                        location = all_atoms[stick.atom1-1].location - n * dl * int(math.ceil(dv.length / (2.0 * dl)))
-                        name     = "_" + all_atoms[stick.atom2-1].name
-                        material = all_atoms[stick.atom2-1].material
-                        sticks_list.append([name, location, dv, material])
+                                
+                    for repeat in range(stick.number):
+                                    
+                        atom1 = copy(all_atoms[stick.atom1-1].location)
+                        atom2 = copy(all_atoms[stick.atom2-1].location)               
+                   
+                        dist =  Stick_diameter * Stick_dist
+                   
+                        if stick.number == 2: 
+                            if repeat == 0:
+                                atom1 += (stick.dist * dist)
+                                atom2 += (stick.dist * dist)
+                            if repeat == 1:
+                                atom1 -= (stick.dist * dist) 
+                                atom2 -= (stick.dist * dist)                                
+
+                        if stick.number == 3: 
+                            if repeat == 0:
+                                atom1 += (stick.dist * dist)
+                                atom2 += (stick.dist * dist)
+                            if repeat == 2:
+                                atom1 -= (stick.dist * dist) 
+                                atom2 -= (stick.dist * dist)                         
+
+                        dv = atom1 - atom2                
+                        n  = dv / dv.length
+                        if atom_type[0] == all_atoms[stick.atom1-1].name:
+                            location = atom1
+                            name     = "_" + all_atoms[stick.atom1-1].name
+                            material = all_atoms[stick.atom1-1].material
+                            sticks_list.append([name, location, dv, material])
+                        if atom_type[0] == all_atoms[stick.atom2-1].name: 
+                            location = atom1 - n * dl * int(math.ceil(dv.length / (2.0 * dl)))
+                            name     = "_" + all_atoms[stick.atom2-1].name
+                            material = all_atoms[stick.atom2-1].material
+                            sticks_list.append([name, location, dv, material])
+                              
                 sticks_all_lists.append(sticks_list)
         else:
             sticks_list = []
             for stick in all_sticks:
-                dv = all_atoms[stick.atom1-1].location - all_atoms[stick.atom2-1].location                
-                n  = dv / dv.length
-                location = all_atoms[stick.atom1-1].location
-                material = stick_material
-                sticks_list.append(["", location, dv, material])
+                        
+                if stick.number > 3:
+                    stick.number = 1
+                 
+                for repeat in range(stick.number):              
+                                    
+                    atom1 = copy(all_atoms[stick.atom1-1].location)
+                    atom2 = copy(all_atoms[stick.atom2-1].location)
+                   
+                    dist =  Stick_diameter * Stick_dist
+                   
+                    if stick.number == 2: 
+                        if repeat == 0:
+                            atom1 += (stick.dist * dist)
+                            atom2 += (stick.dist * dist)
+                        if repeat == 1:
+                            atom1 -= (stick.dist * dist) 
+                            atom2 -= (stick.dist * dist)                                
+                    if stick.number == 3: 
+                        if repeat == 0:
+                            atom1 += (stick.dist * dist)
+                            atom2 += (stick.dist * dist)
+                        if repeat == 2:
+                            atom1 -= (stick.dist * dist) 
+                            atom2 -= (stick.dist * dist) 
+            
+                    dv = atom1 - atom2                
+                    n  = dv / dv.length
+                    location = atom1
+                    material = stick_material
+                    sticks_list.append(["", location, dv, material])
+
             sticks_all_lists.append(sticks_list)
 
 
@@ -1238,8 +1322,12 @@ def DEF_atom_pdb_main(use_mesh,Ball_azimuth,Ball_zenith,
             current_layers = bpy.context.scene.layers
             stick_cylinder = DEF_atom_pdb_build_stick(Stick_diameter, dl, Stick_sectors)
             stick_cylinder.active_material = stick[3]
-            stick_cylinder.parent = new_mesh
+            
+            if use_sticks_smooth == True: 
+                for face in stick_cylinder.data.faces:
+                    face.use_smooth = True
 
+            stick_cylinder.parent = new_mesh
             new_mesh.dupli_type = 'FACES'
             atom_object_list.append(new_mesh)
 
