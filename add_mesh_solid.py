@@ -339,7 +339,7 @@ class Solids(bpy.types.Operator):
     bl_idname = "mesh.primitive_solid_add"
     bl_label = "(Regular) solids"
     bl_description = "Add one of the Platonic, Archimedean or Catalan solids"
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = {'REGISTER', 'UNDO', 'PRESET'}
 
     source = EnumProperty(items = (("4","Tetrahedron",""),
                                    ("6","Hexahedron",""),
