@@ -19,9 +19,9 @@
 bl_info = {
     "name": "ANT Landscape",
     "author": "Jimmy Hazevoet",
-    "version": (0,1,1),
-    "blender": (2, 5, 9),
-    "api": 39685,
+    "version": (0,1,2),
+    "blender": (2, 6, 1),
+    "api": 42973,
     "location": "View3D > Add > Mesh",
     "description": "Add a landscape primitive",
     "warning": "", # used for warning icon and text in addons panel
@@ -434,7 +434,7 @@ class landscape_add(bpy.types.Operator):
     '''Add a landscape mesh'''
     bl_idname = "mesh.landscape_add"
     bl_label = "Landscape"
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = {'REGISTER', 'UNDO', 'PRESET'}
     bl_description = "Add landscape mesh"
 
     # properties
