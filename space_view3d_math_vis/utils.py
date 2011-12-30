@@ -41,8 +41,8 @@ def console_math_data():
         var_type = type(var)
 
         if var_type is Matrix:
-            if var.col_size != 4 or var.row_size != 4:
-                if var.row_size == var.col_size:
+            if len(var.col) != 4 or len(var.row) != 4:
+                if len(var.col) == len(var.row):
                     var = var.to_4x4() 
                 else:  # todo, support 4x3 matrix
                     continue
