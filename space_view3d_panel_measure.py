@@ -260,7 +260,8 @@ def objectEdgeLength(obj, selectedOnly, globalSpace):
 def faceAreaGlobal(face, obj):
     area = 0.0
 
-    mat = obj.matrix_world
+    mesh = obj.data
+    mat = obj.matrix_world.copy()
 
     if len(face.vertices) == 4:
         # Quad
@@ -269,10 +270,10 @@ def faceAreaGlobal(face, obj):
         v1, v2, v3, v4 = face.vertices
 
         # Get vertex data
-        v1 = obj.data.vertices[v1]
-        v2 = obj.data.vertices[v2]
-        v3 = obj.data.vertices[v3]
-        v4 = obj.data.vertices[v4]
+        v1 = mesh.vertices[v1]
+        v2 = mesh.vertices[v2]
+        v3 = mesh.vertices[v3]
+        v4 = mesh.vertices[v4]
 
         # Apply transform matrix to vertex coordinates.
         v1 = mat * v1.co
@@ -301,9 +302,9 @@ def faceAreaGlobal(face, obj):
         v1, v2, v3 = face.vertices
 
         # Get vertex data
-        v1 = obj.data.vertices[v1]
-        v2 = obj.data.vertices[v2]
-        v3 = obj.data.vertices[v3]
+        v1 = mesh.vertices[v1]
+        v2 = mesh.vertices[v2]
+        v3 = mesh.vertices[v3]
 
         # Apply transform matrix to vertex coordinates.
         v1 = mat * v1.co
@@ -371,10 +372,10 @@ def objectVolume(obj, globalSpace):
                 v1, v2, v3, v4 = face.vertices
             else:
                 v1, v2, v3 = face.vertices
-
-            v1 = obj.data.vertices[v1]
-            v2 = obj.data.vertices[v2]
-            v3 = obj.data.vertices[v3]
+obj.data
+            v1 = mesh.vertices[v1]
+            v2 = mesh.vertices[v2]
+            v3 = mesh.vertices[v3]
 
             # Scaled vert coordinates with object XYZ offsets for
             # selection extremes/sizing.
@@ -405,7 +406,7 @@ def objectVolume(obj, globalSpace):
             # Allowing for quads
             if len(face.vertices) == 4:
                 # Get vertex data
-                v4 = obj.data.vertices[v4]
+                v4 = mesh.vertices[v4]
 
                 if globalSpace:
                     x4 = v4.co[0] * obj.scale[0] + obj.location[0]
