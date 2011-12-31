@@ -409,10 +409,10 @@ def bvh_node_dict2armature(context,
             bvh_node.temp.parent = bvh_node.parent.temp
 
             # Set the connection state
-            if not bvh_node.has_loc and\
-            bvh_node.parent and\
-            bvh_node.parent.temp.name not in ZERO_AREA_BONES and\
-            bvh_node.parent.rest_tail_local == bvh_node.rest_head_local:
+            if((not bvh_node.has_loc) and
+               (bvh_node.parent.temp.name not in ZERO_AREA_BONES) and
+               (bvh_node.parent.rest_tail_local == bvh_node.rest_head_local)):
+
                 bvh_node.temp.use_connect = True
 
     # Replace the editbone with the editbone name,
