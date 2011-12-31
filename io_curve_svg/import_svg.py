@@ -206,10 +206,10 @@ def SVGMatrixFromNode(node, context):
     w = SVGParseCoord(node.getAttribute('width') or str(rect[0]), rect[0])
     h = SVGParseCoord(node.getAttribute('height') or str(rect[1]), rect[1])
 
-    m = m.Translation(Vector((x, y, 0.0)))
+    m = Matrix.Translation(Vector((x, y, 0.0)))
     if len(context['rects']) > 1:
-        m = m * m.Scale(w / rect[0], 4, Vector((1.0, 0.0, 0.0)))
-        m = m * m.Scale(h / rect[1], 4, Vector((0.0, 1.0, 0.0)))
+        m = m * Matrix.Scale(w / rect[0], 4, Vector((1.0, 0.0, 0.0)))
+        m = m * Matrix.Scale(h / rect[1], 4, Vector((0.0, 1.0, 0.0)))
 
     if node.getAttribute('viewBox'):
         viewBox = node.getAttribute('viewBox').replace(',', ' ').split()
@@ -224,11 +224,11 @@ def SVGMatrixFromNode(node, context):
 
         tx = (w - vw * scale) / 2
         ty = (h - vh * scale) / 2
-        m = m * m.Translation(Vector((tx, ty, 0.0)))
+        m = m * Matrix.Translation(Vector((tx, ty, 0.0)))
 
-        m = m * m.Translation(Vector((-vx, -vy, 0.0)))
-        m = m * m.Scale(scale, 4, Vector((1.0, 0.0, 0.0)))
-        m = m * m.Scale(scale, 4, Vector((0.0, 1.0, 0.0)))
+        m = m * Matrix.Translation(Vector((-vx, -vy, 0.0)))
+        m = m * Matrix.Scale(scale, 4, Vector((1.0, 0.0, 0.0)))
+        m = m * Matrix.Scale(scale, 4, Vector((0.0, 1.0, 0.0)))
 
     return m
 
@@ -313,10 +313,10 @@ def SVGTransformMatrix(params):
     e = float(params[4])
     f = float(params[5])
 
-    return Matrix(((a, b, 0.0, 0.0),
-                   (c, d, 0.0, 0.0),
-                   (0, 0, 1.0, 0.0),
-                   (e, f, 0.0, 1.0)))
+    return Matrix(((a, c, 0.0, e),
+                   (b, d, 0.0, f),
+                   (0, 0, 1.0, 0),
+                   (0, 0, 0.0, 1)))
 
 
 def SVGTransformScale(params):
@@ -329,8 +329,8 @@ def SVGTransformScale(params):
 
     m = Matrix()
 
-    m = m * m.Scale(sx, 4, Vector((1.0, 0.0, 0.0)))
-    m = m * m.Scale(sy, 4, Vector((0.0, 1.0, 0.0)))
+    m = m * Matrix.Scale(sx, 4, Vector((1.0, 0.0, 0.0)))
+    m = m * Matrix.Scale(sy, 4, Vector((0.0, 1.0, 0.0)))
 
     return m
 
@@ -442,9 +442,9 @@ class SVGPathData:
     SVG Path data token supplier
     """
 
-    __slots__ = ('_data',  # List of tokens
+    __slots__ = ('_data',   # List of tokens
                  '_index',  # Index of current token in tokens list
-                 '_len')  # Lenght og tokens list
+                 '_len')    # Lenght og tokens list
 
     def __init__(self, d):
         """
@@ -454,7 +454,7 @@ class SVGPathData:
         """
 
         spaces = ' ,\t'
-        commands = ['m', 'l', 'h', 'v', 'c', 's', 'q', '', 't', 'a', 'z']
+        commands = {'m', 'l', 'h', 'v', 'c', 's', 'q', '', 't', 'a', 'z'}
         tokens = []
 
         i = 0
@@ -1755,8 +1755,8 @@ class SVGLoader(SVGGeometryContainer):
         node = xml.dom.minidom.parse(filepath)
 
         m = Matrix()
-        m = m * m.Scale(1.0 / 90.0, 4, Vector((1.0, 0.0, 0.0)))
-        m = m * m.Scale(-1.0 / 90.0, 4, Vector((0.0, 1.0, 0.0)))
+        m = m * Matrix.Scale(1.0 / 90.0, 4, Vector((1.0, 0.0, 0.0)))
+        m = m * Matrix.Scale(-1.0 / 90.0, 4, Vector((0.0, 1.0, 0.0)))
 
         rect = (1, 1)
 
