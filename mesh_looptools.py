@@ -19,9 +19,9 @@
 bl_info = {
     'name': "LoopTools",
     'author': "Bart Crouch",
-    'version': (3, 2, 2),
-    'blender': (2, 6, 0),
-    'api': 42162,
+    'version': (3, 2, 3),
+    'blender': (2, 6, 1),
+    'api': 42905,
     'location': "View3D > Toolbar and View3D > Specials (W-key)",
     'warning': "",
     'description': "Mesh modelling toolkit. Several tools to aid modelling",
@@ -223,13 +223,13 @@ def calculate_plane(mesh_mod, loop, method="best_fit", object=False):
                                 ))
         for loc in locs:
             mat[0][0] += (loc[0]-x)**2
-            mat[0][1] += (loc[0]-x)*(loc[1]-y)
-            mat[0][2] += (loc[0]-x)*(loc[2]-z)
-            mat[1][0] += (loc[1]-y)*(loc[0]-x)
+            mat[1][0] += (loc[0]-x)*(loc[1]-y)
+            mat[2][0] += (loc[0]-x)*(loc[2]-z)
+            mat[0][1] += (loc[1]-y)*(loc[0]-x)
             mat[1][1] += (loc[1]-y)**2
-            mat[1][2] += (loc[1]-y)*(loc[2]-z)
-            mat[2][0] += (loc[2]-z)*(loc[0]-x)
-            mat[2][1] += (loc[2]-z)*(loc[1]-y)
+            mat[2][1] += (loc[1]-y)*(loc[2]-z)
+            mat[0][2] += (loc[2]-z)*(loc[0]-x)
+            mat[1][2] += (loc[2]-z)*(loc[1]-y)
             mat[2][2] += (loc[2]-z)**2
         
         # calculating the normal to the plane
@@ -244,12 +244,20 @@ def calculate_plane(mesh_mod, loop, method="best_fit", object=False):
             elif sum(mat[2]) == 0.0:
                 normal = mathutils.Vector((0.0, 0.0, 1.0))
         if not normal:
+            # warning! this is different from .normalize()
+            itermax = 500
+            iter = 0
             vec = mathutils.Vector((1.0, 1.0, 1.0))
-            normal = (mat * vec)/(mat * vec).length
-            if normal.length == 0:
-                normal = vec
-            else:
-                normal.normalize()
+            vec2 = (mat * vec)/(mat * vec).length
+            while vec != vec2 and iter<itermax:
+                iter+=1
+                vec = vec2
+                vec2 = mat * vec
+                if vec2.length != 0:
+                    vec2 /= vec2.length
+            if vec2.length == 0:
+                vec2 = mathutils.Vector((1.0, 1.0, 1.0))
+            normal = vec2
     
     elif method == 'normal':
         # averaging the vertex normals
@@ -904,13 +912,13 @@ def bridge_calculate_lines(mesh, loops, mode, twist, reverse):
         x, y, z = centers[i]
         for loc in [mesh.vertices[vertex].co for vertex in loop]:
             mat[0][0] += (loc[0]-x)**2
-            mat[0][1] += (loc[0]-x)*(loc[1]-y)
-            mat[0][2] += (loc[0]-x)*(loc[2]-z)
-            mat[1][0] += (loc[1]-y)*(loc[0]-x)
+            mat[1][0] += (loc[0]-x)*(loc[1]-y)
+            mat[2][0] += (loc[0]-x)*(loc[2]-z)
+            mat[0][1] += (loc[1]-y)*(loc[0]-x)
             mat[1][1] += (loc[1]-y)**2
-            mat[1][2] += (loc[1]-y)*(loc[2]-z)
-            mat[2][0] += (loc[2]-z)*(loc[0]-x)
-            mat[2][1] += (loc[2]-z)*(loc[1]-y)
+            mat[2][1] += (loc[1]-y)*(loc[2]-z)
+            mat[0][2] += (loc[2]-z)*(loc[0]-x)
+            mat[1][2] += (loc[2]-z)*(loc[1]-y)
             mat[2][2] += (loc[2]-z)**2
         # plane normal
         normal = False
@@ -926,12 +934,20 @@ def bridge_calculate_lines(mesh, loops, mode, twist, reverse):
             elif sum(mat[2]) == 0:
                 normal = mathutils.Vector((0.0, 0.0, 1.0))
         if not normal:
+            # warning! this is different from .normalize()
+            itermax = 500
+            iter = 0
             vec = mathutils.Vector((1.0, 1.0, 1.0))
-            normal = (mat * vec)/(mat * vec).length
-            if normal.length == 0:
-                normal = vec
-            else:
-                normal.normalize()
+            vec2 = (mat * vec)/(mat * vec).length
+            while vec != vec2 and iter<itermax:
+                iter+=1
+                vec = vec2
+                vec2 = mat * vec
+                if vec2.length != 0:
+                    vec2 /= vec2.length
+            if vec2.length == 0:
+                vec2 = mathutils.Vector((1.0, 1.0, 1.0))
+            normal = vec2
         normals.append(normal)
     # have plane normals face in the same direction (maximum angle: 90 degrees)
     if ((center1 + normals[0]) - center2).length < \
@@ -1643,14 +1659,14 @@ def circle_calculate_best_fit(locs_2d):
         for i in range(len(jmat)):
             k2 += mathutils.Vector(jmat[i])*k[i]
             jmat2[0][0] += jmat[i][0]**2
-            jmat2[0][1] += jmat[i][0]*jmat[i][1]
-            jmat2[0][2] += jmat[i][0]*jmat[i][2]
+            jmat2[1][0] += jmat[i][0]*jmat[i][1]
+            jmat2[2][0] += jmat[i][0]*jmat[i][2]
             jmat2[1][1] += jmat[i][1]**2
-            jmat2[1][2] += jmat[i][1]*jmat[i][2]
+            jmat2[2][1] += jmat[i][1]*jmat[i][2]
             jmat2[2][2] += jmat[i][2]**2
-        jmat2[1][0] = jmat2[0][1]
-        jmat2[2][0] = jmat2[0][2]
-        jmat2[2][1] = jmat2[1][2]
+        jmat2[0][1] = jmat2[1][0]
+        jmat2[0][2] = jmat2[2][0]
+        jmat2[1][2] = jmat2[2][1]
         try:
             jmat2.invert()
         except:
