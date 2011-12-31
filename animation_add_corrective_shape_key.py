@@ -24,10 +24,10 @@ bl_info = {
     "api": 36157,
     'location': 'Object Data > Shape Keys (Search: corrective) ',
     'description': 'Creates a corrective shape key for the current pose',
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"\
-        "Scripts/Animation/Corrective_Shape_Key",
-    "tracker_url": "https://projects.blender.org/tracker/index.php?"\
-        "func=detail&aid=22129",
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
+                "Scripts/Animation/Corrective_Shape_Key",
+    "tracker_url": "https://projects.blender.org/tracker/index.php?"
+                   "func=detail&aid=22129",
     'category': 'Animation'}
 
 """
@@ -51,33 +51,16 @@ Limitations:
 
 
 import bpy
-import mathutils
+from mathutils import Vector, Matrix
 
 
 iterations = 20
 threshold = 1e-16
 
 def reset_transform(ob):
-    m = mathutils.Matrix()
+    m = Matrix()
     ob.matrix_local = m 
 
-# flips rotation matrix
-def flip_matrix_direction(m):
-    mat = mathutils.Matrix()
-    
-    mat[0][0] = m[0][0]
-    mat[0][1] = m[1][0]
-    mat[0][2] = m[2][0]
-    
-    mat[1][0] = m[0][1]
-    mat[1][1] = m[1][1]
-    mat[1][2] = m[2][1]
-    
-    mat[2][0] = m[0][2]
-    mat[2][1] = m[1][2]
-    mat[2][2] = m[2][2]
-    
-    return mat 
 
 # this version is for shape_key data
 def extractX(ob, mesh):
@@ -85,7 +68,7 @@ def extractX(ob, mesh):
     
     for i in range(0, len(mesh)):
         v = mesh[i]
-        x += [mathutils.Vector(v.co)]
+        x += [v.co.copy()]
     
     return x
 
@@ -95,7 +78,7 @@ def extractX_2(ob, mesh):
     
     for i in range(0, len(mesh.vertices)):
         v = mesh.vertices[i]
-        x += [mathutils.Vector(v.co)]
+        x += [v.co.copy()]
     
     return x
 
@@ -110,7 +93,7 @@ def extractMappedX(ob, mesh):
     # to be at the end of the vertex array
     for i in range(len(mesh.vertices)-totvert, len(mesh.vertices)):
         v = mesh.vertices[i]
-        x += [mathutils.Vector(v.co)]
+        x += [v.co.copy()]
 
     mesh.user_clear()
     bpy.data.meshes.remove(mesh)    
@@ -177,12 +160,12 @@ def func_add_corrective_pose_shape( source, target):
             if epsilon < threshold:
                 epsilon = 0.0
             
-            dx[0] += [x[i] + 0.5 * epsilon * mathutils.Vector((1, 0, 0))]
-            dx[1] += [x[i] + 0.5 * epsilon * mathutils.Vector((-1, 0, 0))]
-            dx[2] += [x[i] + 0.5 * epsilon * mathutils.Vector((0, 1, 0))]
-            dx[3] += [x[i] + 0.5 * epsilon * mathutils.Vector((0, -1, 0))]
-            dx[4] += [x[i] + 0.5 * epsilon * mathutils.Vector((0, 0, 1))]
-            dx[5] += [x[i] + 0.5 * epsilon * mathutils.Vector((0, 0, -1))]
+            dx[0] += [x[i] + 0.5 * epsilon * Vector((1, 0, 0))]
+            dx[1] += [x[i] + 0.5 * epsilon * Vector((-1, 0, 0))]
+            dx[2] += [x[i] + 0.5 * epsilon * Vector((0, 1, 0))]
+            dx[3] += [x[i] + 0.5 * epsilon * Vector((0, -1, 0))]
+            dx[4] += [x[i] + 0.5 * epsilon * Vector((0, 0, 1))]
+            dx[5] += [x[i] + 0.5 * epsilon * Vector((0, 0, -1))]
     
         for j in range(0, 6):
             applyX(ob_1, mesh_1_key_verts, dx[j])
@@ -196,9 +179,7 @@ def func_add_corrective_pose_shape( source, target):
                 Gx = list((dx[0][i] - dx[1][i]) / epsilon)
                 Gy = list((dx[2][i] - dx[3][i]) / epsilon)
                 Gz = list((dx[4][i] - dx[5][i]) / epsilon)
-                G = mathutils.Matrix((Gx, Gy, Gz))
-                G = flip_matrix_direction(G)
-    
+                G = Matrix((Gx, Gy, Gz))
                 x[i] += G * (targetx[i] - mapx[i])
         
         applyX(ob_1, mesh_1_key_verts, x )
@@ -269,39 +250,12 @@ class object_duplicate_flatten_modifiers(bpy.types.Operator):
                 n.select = True
         return {'FINISHED'}
 
-
-
-
-def flip_matrix_direction_4x4(m):
-    mat = mathutils.Matrix()
-    
-    mat[0][0] = m[0][0]
-    mat[0][1] = m[1][0]
-    mat[0][2] = m[2][0]
-    mat[0][3] = m[3][0]
-    
-    mat[1][0] = m[0][1]
-    mat[1][1] = m[1][1]
-    mat[1][2] = m[2][1]
-    mat[1][3] = m[3][1]
-    
-    mat[2][0] = m[0][2]
-    mat[2][1] = m[1][2]
-    mat[2][2] = m[2][2]
-    mat[2][3] = m[3][2]
-    
-    mat[3][0] = m[0][3]
-    mat[3][1] = m[1][3]
-    mat[3][2] = m[2][3]
-    mat[3][3] = m[3][3]
-    return mat 
-
     
 def unposeMesh(meshObToUnpose, meshObToUnposeWeightSrc, armatureOb):
     psdMeshData = meshObToUnpose
 
     psdMesh = psdMeshData
-    I = mathutils.Matrix() #identity matrix
+    I = Matrix() #identity matrix
     
     meshData = meshObToUnposeWeightSrc.data
     mesh = meshData
@@ -345,9 +299,11 @@ def unposeMesh(meshObToUnpose, meshObToUnposeWeightSrc, armatureOb):
                 weightedAverageDictionary[pair[0]] = pair[1]/totalWeight
             else:
                 weightedAverageDictionary[pair[0]] = 0
-                
-        sigma = mathutils.Matrix(I-I) #Matrix filled with zeros
-        
+
+        # Matrix filled with zeros
+        sigma = Matrix()
+        sigma.zero()
+
         list = []
         for n in pbones:
             list.append(n)
@@ -358,7 +314,7 @@ def unposeMesh(meshObToUnpose, meshObToUnposeWeightSrc, armatureOb):
                 #~ print("found key %s", pbone.name)
                 vertexWeight = weightedAverageDictionary[pbone.name]
                 m = pbone.matrix_channel.copy()
-                #m = flip_matrix_direction_4x4(m)
+                #m.transpose()
                 sigma += (m - I) * vertexWeight
                 
             else:
