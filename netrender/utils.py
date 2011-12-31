@@ -57,7 +57,14 @@ FRAME_STATUS_TEXT = {
         ERROR: "Error"
         }
 
-if platform.system() == "Darwin":
+try:
+    system = platform.system()
+except UnicodeDecodeError:
+    import sys
+    system = sys.platform
+
+
+if system == "Darwin":
     class ConnectionContext:
         def __init__(self, timeout = None):
             self.old_timeout = socket.getdefaulttimeout()
@@ -73,6 +80,29 @@ else:
     # On sane OSes we can use the connection timeout value correctly
     class ConnectionContext:
         def __init__(self, timeout = None):
+            pass
+            
+        def __enter__(self):
+            pass
+
+        def __exit__(self, exc_type, exc_value, traceback):
+            pass
+
+if system in ('Windows', 'win32') and platform.version() >= '5': # Error mode is only available on Win2k or higher, that's version 5
+    import ctypes
+    class NoErrorDialogContext:
+        def __init__(self):
+            self.val = 0
+            
+        def __enter__(self):
+            self.val = ctypes.windll.kernel32.SetErrorMode(0x0002)
+            ctypes.windll.kernel32.SetErrorMode(self.val | 0x0002)
+
+        def __exit__(self, exc_type, exc_value, traceback):
+            ctypes.windll.kernel32.SetErrorMode(self.val)
+else:
+    class NoErrorDialogContext:
+        def __init__(self):
             pass
             
         def __enter__(self):
@@ -244,7 +274,7 @@ def cachePath(file_path):
     return path + os.sep + "blendcache_" + root # need an API call for that
 
 # Process dependencies of all objects with user defined functions
-#    pointCacheFunction(object, point_cache)
+#    pointCacheFunction(object, owner, point_cache) (owner is modifier or psys)
 #    fluidFunction(object, modifier, cache_path)
 #    multiresFunction(object, modifier, cache_path)
 def processObjectDependencies(pointCacheFunction, fluidFunction, multiresFunction):
@@ -253,21 +283,21 @@ def processObjectDependencies(pointCacheFunction, fluidFunction, multiresFunctio
             if modifier.type == 'FLUID_SIMULATION' and modifier.settings.type == "DOMAIN":
                 fluidFunction(object, modifier, bpy.path.abspath(modifier.settings.filepath))
             elif modifier.type == "CLOTH":
-                pointCacheFunction(object, modifier.point_cache)
+                pointCacheFunction(object, modifier, modifier.point_cache)
             elif modifier.type == "SOFT_BODY":
-                pointCacheFunction(object, modifier.point_cache)
+                pointCacheFunction(object, modifier, modifier.point_cache)
             elif modifier.type == "SMOKE" and modifier.smoke_type == "DOMAIN":
-                pointCacheFunction(object, modifier.domain_settings.point_cache)
+                pointCacheFunction(object, modifier, modifier.domain_settings.point_cache)
             elif modifier.type == "MULTIRES" and modifier.is_external:
                 multiresFunction(object, modifier, bpy.path.abspath(modifier.filepath))
             elif modifier.type == "DYNAMIC_PAINT" and modifier.canvas_settings:
                 for surface in modifier.canvas_settings.canvas_surfaces:
-                    pointCacheFunction(object, surface.point_cache)
+                    pointCacheFunction(object, modifier, surface.point_cache)
     
         # particles modifier are stupid and don't contain data
         # we have to go through the object property
         for psys in object.particle_systems:
-            pointCacheFunction(object, psys.point_cache)
+            pointCacheFunction(object, psys, psys.point_cache)
     
 
 def prefixPath(prefix_directory, file_path, prefix_path, force = False):

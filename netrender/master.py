@@ -54,12 +54,9 @@ class MRenderFile(netrender.model.RenderFile):
 
 
 class MRenderSlave(netrender.model.RenderSlave):
-    def __init__(self, name, address, stats):
-        super().__init__()
-        self.id = hashlib.md5(bytes(repr(name) + repr(address), encoding='utf8')).hexdigest()
-        self.name = name
-        self.address = address
-        self.stats = stats
+    def __init__(self, slave_info):
+        super().__init__(slave_info)
+        self.id = hashlib.md5(bytes(repr(slave_info.name) + repr(slave_info.address), encoding='utf8')).hexdigest()
         self.last_seen = time.time()
 
         self.job = None
@@ -171,6 +168,9 @@ class MRenderJob(netrender.model.RenderJob):
     def reset(self, all):
         for f in self.frames:
             f.reset(all)
+            
+        if all:
+            self.status = JOB_QUEUED
 
     def getFrames(self):
         frames = []
@@ -435,7 +435,7 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
             slave = self.server.getSeenSlave(slave_id)
 
             if slave: # only if slave id is valid
-                job, frames = self.server.newDispatch(slave_id)
+                job, frames = self.server.newDispatch(slave)
 
                 if job and frames:
                     for f in frames:
@@ -680,8 +680,10 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
             self.server.stats("", "New slave connected")
 
             slave_info = netrender.model.RenderSlave.materialize(json.loads(str(self.rfile.read(length), encoding='utf8')), cache = False)
+            
+            slave_info.address = self.client_address
 
-            slave_id = self.server.addSlave(slave_info.name, self.client_address, slave_info.stats)
+            slave_id = self.server.addSlave(slave_info)
 
             self.send_head(headers = {"slave-id": slave_id}, content = None)
         # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
@@ -919,8 +921,8 @@ class RenderMasterServer(socketserver.ThreadingMixIn, http.server.HTTPServer):
         self.job_id += 1
         return str(self.job_id)
 
-    def addSlave(self, name, address, stats):
-        slave = MRenderSlave(name, address, stats)
+    def addSlave(self, slave_info):
+        slave = MRenderSlave(slave_info)
         self.slaves.append(slave)
         self.slaves_map[slave.id] = slave
 
@@ -1022,10 +1024,15 @@ class RenderMasterServer(socketserver.ThreadingMixIn, http.server.HTTPServer):
         for job in self.jobs:
             yield job
 
-    def newDispatch(self, slave_id):
+    def newDispatch(self, slave):
         if self.jobs:
             for job in self.jobs:
-                if not self.balancer.applyExceptions(job) and slave_id not in job.blacklist:
+                if (
+                    not self.balancer.applyExceptions(job)      # No exceptions
+                    and slave.id not in job.blacklist           # slave is not blacklisted
+                    and (not slave.tags or job.tags.issubset(slave.tags))  # slave doesn't use tags or slave has all job tags
+                         ):
+                    
                     return job, job.getFrames()
 
         return None, None

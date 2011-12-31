@@ -159,6 +159,7 @@ class RENDER_PT_network_slave_settings(NetRenderButtonsPanel, bpy.types.Panel):
         rd = context.scene.render
         netsettings = context.scene.network_render
 
+        layout.prop(netsettings, "slave_tags", text="Tags")
         layout.prop(netsettings, "use_slave_clear")
         layout.prop(netsettings, "use_slave_thumb")
         layout.prop(netsettings, "use_slave_output_log")
@@ -206,6 +207,7 @@ class RENDER_PT_network_job(NetRenderButtonsPanel, bpy.types.Panel):
         if netsettings.server_address != "[default]":
             layout.operator("render.netclientanim", icon='RENDER_ANIMATION')
             layout.operator("render.netclientsend", icon='FILE_BLEND')
+            #layout.operator("render.netclientsendbake", icon='PHYSICS')
             layout.operator("render.netclientsendframe", icon='RENDER_STILL')
             if netsettings.job_id:
                 row = layout.row()
@@ -215,6 +217,7 @@ class RENDER_PT_network_job(NetRenderButtonsPanel, bpy.types.Panel):
         layout.prop(netsettings, "job_type", text="Type")
         layout.prop(netsettings, "job_name", text="Name")
         layout.prop(netsettings, "job_category", text="Category")
+        layout.prop(netsettings, "job_tags", text="Tags")
         layout.prop(netsettings, "job_render_engine", text="Engine")
         
         if netsettings.job_render_engine == "OTHER":
@@ -411,6 +414,12 @@ class NetRenderSettings(bpy.types.PropertyGroup):
                         description="Generate thumbnails on slaves instead of master",
                         default = False)
         
+        NetRenderSettings.slave_tags = StringProperty(
+                        name="Tags",
+                        description="Tags to associate with the slave (semi-colon separated)",
+                        maxlen = 256,
+                        default = "")
+
         NetRenderSettings.use_slave_output_log = BoolProperty(
                         name="Output render log on console",
                         description="Output render text log to console as well as sending it to the master",
@@ -463,6 +472,12 @@ class NetRenderSettings(bpy.types.PropertyGroup):
                         name="Job category",
                         description="Category of the job",
                         maxlen = 128,
+                        default = "")
+
+        NetRenderSettings.job_tags = StringProperty(
+                        name="Tags",
+                        description="Tags to associate with the job (semi-colon separated)",
+                        maxlen = 256,
                         default = "")
 
         NetRenderSettings.job_render_engine = EnumProperty(

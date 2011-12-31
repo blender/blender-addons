@@ -26,6 +26,7 @@ import bpy
 from netrender.utils import *
 import netrender.model
 import netrender.repath
+import netrender.baking
 import netrender.thumbnail as thumbnail
 
 BLENDER_PATH = sys.argv[0]
@@ -34,36 +35,17 @@ CANCEL_POLL_SPEED = 2
 MAX_TIMEOUT = 10
 INCREMENT_TIMEOUT = 1
 MAX_CONNECT_TRY = 10
-try:
-    system = platform.system()
-except UnicodeDecodeError:
-    import sys
-    system = sys.platform
-
-if system in ('Windows', 'win32') and platform.version() >= '5': # Error mode is only available on Win2k or higher, that's version 5
-    import ctypes
-    def SetErrorMode():
-        val = ctypes.windll.kernel32.SetErrorMode(0x0002)
-        ctypes.windll.kernel32.SetErrorMode(val | 0x0002)
-        return val
-
-    def RestoreErrorMode(val):
-        ctypes.windll.kernel32.SetErrorMode(val)
-else:
-    def SetErrorMode():
-        return 0
-
-    def RestoreErrorMode(val):
-        pass
 
 def clearSlave(path):
     shutil.rmtree(path)
 
-def slave_Info():
+def slave_Info(netsettings):
     sysname, nodename, release, version, machine, processor = platform.uname()
     slave = netrender.model.RenderSlave()
     slave.name = nodename
     slave.stats = sysname + " " + release + " " + machine + " " + processor
+    if netsettings.slave_tags:
+        slave.tags = set(netsettings.slave_tags.split(";"))
     return slave
 
 def testCancel(conn, job_id, frame_number):
@@ -155,7 +137,7 @@ def render_slave(engine, netsettings, threads):
     
     if conn:
         with ConnectionContext():
-            conn.request("POST", "/slave", json.dumps(slave_Info().serialize()))
+            conn.request("POST", "/slave", json.dumps(slave_Info(netsettings).serialize()))
         response = conn.getresponse()
         response.read()
 
@@ -237,14 +219,23 @@ def render_slave(engine, netsettings, threads):
                         print("frame", frame.number)
                         frame_args += ["-f", str(frame.number)]
 
-                    val = SetErrorMode()
-                    process = subprocess.Popen([BLENDER_PATH, "-b", "-noaudio", job_full_path, "-t", str(threads), "-o", os.path.join(JOB_PREFIX, "######"), "-E", job.render, "-F", "MULTILAYER"] + frame_args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-                    RestoreErrorMode(val)
+                    with NoErrorDialogContext():
+                        process = subprocess.Popen([BLENDER_PATH, "-b", "-noaudio", job_full_path, "-t", str(threads), "-o", os.path.join(JOB_PREFIX, "######"), "-E", job.render, "-F", "MULTILAYER"] + frame_args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+                        
+                elif job.subtype == netrender.model.JOB_SUB_BAKING:
+                    tasks = []
+                    for frame in job.frames:
+                        i = frame.command.index("|")
+                        ri = frame.command.rindex("|")
+                        tasks.append((frame.command[:i], frame.command[i+1:ri], frame.command[ri+1:]))
+                        
+                    with NoErrorDialogContext():
+                        process = netrender.baking.bake(job, tasks)
+                        
                 elif job.type == netrender.model.JOB_PROCESS:
                     command = job.frames[0].command
-                    val = SetErrorMode()
-                    process = subprocess.Popen(command.split(" "), stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-                    RestoreErrorMode(val)
+                    with NoErrorDialogContext():
+                        process = subprocess.Popen(command.split(" "), stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 
                 headers = {"slave-id":slave_id}
 
@@ -341,6 +332,14 @@ def render_slave(engine, netsettings, threads):
                             if responseStatus(conn) == http.client.NO_CONTENT:
                                 continue
 
+                        elif job.subtype == netrender.model.JOB_SUB_BAKING:
+                            # For now just announce results
+                            # TODO SEND ALL BAKING RESULTS
+                            with ConnectionContext():
+                                conn.request("PUT", "/render", headers=headers)
+                            if responseStatus(conn) == http.client.NO_CONTENT:
+                                continue
+                            
                         elif job.type == netrender.model.JOB_PROCESS:
                             with ConnectionContext():
                                 conn.request("PUT", "/render", headers=headers)

@@ -103,7 +103,7 @@ def process(paths):
     ###########################
     # FLUID + POINT CACHE
     ###########################
-    def pointCacheFunc(object, point_cache):
+    def pointCacheFunc(object, owner, point_cache):
         if not point_cache.use_disk_cache:
             return
 

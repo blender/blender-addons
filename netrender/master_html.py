@@ -115,6 +115,7 @@ def get(handler):
                         "id",
                         "name",
                         "category",
+                        "tags",
                         "type",
                         "chunks",
                         "priority",
@@ -140,7 +141,8 @@ def get(handler):
                         job.id,
                         link(job.name, "/html/job" + job.id),
                         job.category if job.category else "<i>None</i>",
-                        netrender.model.JOB_TYPES[job.type],
+                        ";".join(sorted(job.tags)) if job.tags else "<i>None</i>",
+                        "%s [%s]" % (netrender.model.JOB_TYPES[job.type], netrender.model.JOB_SUBTYPES[job.subtype]),
                         str(job.chunks) +
                         """<button title="increase chunks size" onclick="request('/edit_%s', &quot;{'chunks': %i}&quot;);">+</button>""" % (job.id, job.chunks + 1) +
                         """<button title="decrease chunks size" onclick="request('/edit_%s', &quot;{'chunks': %i}&quot;);" %s>-</button>""" % (job.id, job.chunks - 1, "disabled=True" if job.chunks == 1 else ""),
@@ -164,11 +166,10 @@ def get(handler):
         output("<h2>Slaves</h2>")
 
         startTable()
-        headerTable("name", "address", "last seen", "stats", "job")
+        headerTable("name", "address", "tags", "last seen", "stats", "job")
 
         for slave in handler.server.slaves:
-            rowTable(slave.name, slave.address[0], time.ctime(slave.last_seen), slave.stats, link(slave.job.name, "/html/job" + slave.job.id) if slave.job else "None")
-
+            rowTable(slave.name, slave.address[0], ";".join(sorted(slave.tags)) if slave.tags else "<i>All</i>", time.ctime(slave.last_seen), slave.stats, link(slave.job.name, "/html/job" + slave.job.id) if slave.job else "None")
         endTable()
 
         output("<h2>Configuration</h2>")
@@ -221,13 +222,15 @@ def get(handler):
         job = handler.server.getJobID(job_id)
 
         if job:
-            output("<h2>Render Information</h2>")
+            output("<h2>Job Information</h2>")
 
             job.initInfo()
 
             startTable()
 
             rowTable("resolution", "%ix%i at %i%%" % job.resolution)
+
+            rowTable("tags", ";".join(sorted(job.tags)) if job.tags else "<i>None</i>")
 
             endTable()
 
@@ -240,18 +243,17 @@ def get(handler):
     
                 tot_cache = 0
                 tot_fluid = 0
+                tot_other = 0
     
-                rowTable(job.files[0].filepath)
-                rowTable("Other Files", class_style = "toggle", extra = "onclick='toggleDisplay(&quot;.other&quot;, &quot;none&quot;, &quot;table-row&quot;)'")
+                rowTable(job.files[0].original_path)
     
                 for file in job.files:
                     if file.filepath.endswith(".bphys"):
                         tot_cache += 1
                     elif file.filepath.endswith(".bobj.gz") or file.filepath.endswith(".bvel.gz"):
                         tot_fluid += 1
-                    else:
-                        if file != job.files[0]:
-                            rowTable(file.filepath, class_style = "other")
+                    elif not file == job.files[0]:
+                        tot_other += 1
     
                 if tot_cache > 0:
                     rowTable("%i physic cache files" % tot_cache, class_style = "toggle", extra = "onclick='toggleDisplay(&quot;.cache&quot;, &quot;none&quot;, &quot;table-row&quot;)'")
@@ -265,6 +267,17 @@ def get(handler):
                         if file.filepath.endswith(".bobj.gz") or file.filepath.endswith(".bvel.gz"):
                             rowTable(os.path.split(file.filepath)[1], class_style = "fluid")
     
+                if tot_other > 0:
+                    rowTable("%i other files" % tot_other, class_style = "toggle", extra = "onclick='toggleDisplay(&quot;.other&quot;, &quot;none&quot;, &quot;table-row&quot;)'")
+                    for file in job.files:
+                        if (
+                            not file.filepath.endswith(".bphys")
+                            and not file.filepath.endswith(".bobj.gz") or file.filepath.endswith(".bvel.gz")
+                            and not file == job.files[0]
+                            ):
+
+                            rowTable(file.filepath, class_style = "other")
+
                 endTable()
             elif job.type == netrender.model.JOB_VCS:
                 output("<h2>Versioning</h2>")

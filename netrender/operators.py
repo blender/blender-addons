@@ -28,10 +28,10 @@ import netrender.client as client
 import netrender.model
 import netrender.versioning as versioning
 
-class RENDER_OT_netslave_bake(bpy.types.Operator):
-    '''NEED DESCRIPTION'''
-    bl_idname = "render.netslavebake"
-    bl_label = "Bake all in file"
+class RENDER_OT_netclientsendbake(bpy.types.Operator):
+    '''Send a baking job to the Network'''
+    bl_idname = "render.netclientsendbake"
+    bl_label = "Bake on network"
 
     @classmethod
     def poll(cls, context):
@@ -39,45 +39,19 @@ class RENDER_OT_netslave_bake(bpy.types.Operator):
 
     def execute(self, context):
         scene = context.scene
-        # netsettings = scene.network_render  # UNUSED
+        netsettings = scene.network_render
 
-        filename = bpy.data.filepath
-        path, name = os.path.split(filename)
-        root, ext = os.path.splitext(name)
-        # default_path = path + os.sep + "blendcache_" + root + os.sep # need an API call for that, UNUSED
-        relative_path = "//blendcache_" + root + os.sep
+        try:
+            conn = clientConnection(netsettings.server_address, netsettings.server_port, self.report)
 
-        # Force all point cache next to the blend file
-        for object in bpy.data.objects:
-            for modifier in object.modifiers:
-                if modifier.type == 'FLUID_SIMULATION' and modifier.settings.type == "DOMAIN":
-                    modifier.settings.path = relative_path
-                    bpy.ops.fluid.bake({"active_object": object, "scene": scene})
-                elif modifier.type == "CLOTH":
-                    modifier.point_cache.frame_step = 1
-                    modifier.point_cache.use_disk_cache = True
-                    modifier.point_cache.use_external = False
-                elif modifier.type == "SOFT_BODY":
-                    modifier.point_cache.frame_step = 1
-                    modifier.point_cache.use_disk_cache = True
-                    modifier.point_cache.use_external = False
-                elif modifier.type == "SMOKE" and modifier.smoke_type == "DOMAIN":
-                    modifier.domain_settings.point_cache.use_step = 1
-                    modifier.domain_settings.point_cache.use_disk_cache = True
-                    modifier.domain_settings.point_cache.use_external = False
-
-            # particles modifier are stupid and don't contain data
-            # we have to go through the object property
-            for psys in object.particle_systems:
-                psys.point_cache.use_step = 1
-                psys.point_cache.use_disk_cache = True
-                psys.point_cache.use_external = False
-                psys.point_cache.filepath = relative_path
-
-        bpy.ops.ptcache.bake_all()
-
-        #bpy.ops.wm.save_mainfile(filepath = path + os.sep + root + "_baked.blend")
-
+            if conn:
+                # Sending file
+                client.sendJobBaking(conn, scene)
+                conn.close()
+                self.report({'INFO'}, "Job sent to master")
+        except Exception as err:
+            self.report({'ERROR'}, str(err))
+            
         return {'FINISHED'}
 
     def invoke(self, context, event):
@@ -100,7 +74,7 @@ class RENDER_OT_netclientanim(bpy.types.Operator):
 
         if conn:
             # Sending file
-            scene.network_render.job_id = client.clientSendJob(conn, scene, True)
+            scene.network_render.job_id = client.sendJob(conn, scene, True)
             conn.close()
 
         bpy.ops.render.render('INVOKE_AREA', animation=True)
@@ -145,7 +119,7 @@ class RENDER_OT_netclientsend(bpy.types.Operator):
 
             if conn:
                 # Sending file
-                scene.network_render.job_id = client.clientSendJob(conn, scene, True)
+                scene.network_render.job_id = client.sendJob(conn, scene, True)
                 conn.close()
                 self.report({'INFO'}, "Job sent to master")
         except Exception as err:
@@ -175,7 +149,7 @@ class RENDER_OT_netclientsendframe(bpy.types.Operator):
 
             if conn:
                 # Sending file
-                scene.network_render.job_id = client.clientSendJob(conn, scene, False)
+                scene.network_render.job_id = client.sendJob(conn, scene, False)
                 conn.close()
                 self.report({'INFO'}, "Job sent to master")
         except Exception as err:

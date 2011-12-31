@@ -21,8 +21,8 @@
 bl_info = {
     "name": "Network Renderer",
     "author": "Martin Poirier",
-    "version": (1, 4),
-    "blender": (2, 5, 6),
+    "version": (1, 7),
+    "blender": (2, 6, 0),
     "api": 35011,
     "location": "Render > Engine > Network Render",
     "description": "Distributed rendering for Blender",
@@ -45,6 +45,7 @@ if "init_data" in locals():
     imp.reload(ui)
     imp.reload(repath)
     imp.reload(versioning)
+    imp.reload(baking)
 else:
     from netrender import model
     from netrender import operators
@@ -57,6 +58,7 @@ else:
     from netrender import ui
     from netrender import repath
     from netrender import versioning
+    from netrender import baking
 
 jobs = []
 slaves = []
