@@ -221,9 +221,9 @@ def isFilterNode(node):
     t = type(node)
     return t==bpy.types.CompositorNodeBlur or t==bpy.types.CompositorNodeDBlur
 
-def changeSettings():
+def changeSettings(context):
     
-    sce = bpy.context.scene
+    sce = context.scene
     rd = sce.render
     ore = sce.ore_render
     
@@ -249,12 +249,12 @@ def changeSettings():
     else:
         bpy.simulationWarning = False
 
-def prepareScene():
-    sce = bpy.context.scene
+def prepareScene(context):
+    sce = context.scene
     rd = sce.render
     ore = sce.ore_render
     
-    changeSettings()
+    changeSettings(context)
     
     print("Packing external textures...")
     # Pack all external textures
@@ -304,8 +304,8 @@ class OpSwitchRenderfarm(bpy.types.Operator):
     bl_idname = "ore.switch_to_renderfarm_render"
     
     def execute(self, context):
-        changeSettings()
-        bpy.context.scene.render.engine = 'RENDERFARMFI_RENDER'
+        changeSettings(context)
+        context.scene.render.engine = 'RENDERFARMFI_RENDER'
         return {'FINISHED'}
 
 class OpSwitchBlenderRender(bpy.types.Operator):
@@ -313,7 +313,7 @@ class OpSwitchBlenderRender(bpy.types.Operator):
     bl_idname = "ore.switch_to_blender_render"
     
     def execute(self, context):
-        bpy.context.scene.render.engine = 'BLENDER_RENDER'
+        context.scene.render.engine = 'BLENDER_RENDER'
         return {'FINISHED'}  
 
 # Copies start & end frame + others from render settings to ore settings
@@ -322,7 +322,7 @@ class OpCopySettings(bpy.types.Operator):
     bl_idname = "ore.copy_settings"
     
     def execute(self, context):
-        sce = bpy.context.scene
+        sce = context.scene
         rd = sce.render
         ore = sce.ore_render
         ore.resox = rd.resolution_x
@@ -339,12 +339,13 @@ class OpCopySettings(bpy.types.Operator):
     
     def draw(self, context):
         layout = self.layout
-        rd = context.scene.render
+        sce = context.scene
+        rd = sce.render
         row = layout.row()
         row.operator("ore.switch_to_renderfarm_render", text="Renderfarm.fi", icon='WORLD')
         row.operator("ore.switch_to_blender_render", text="Blender Render", icon='BLENDER')
         row = layout.row()
-        if (bpy.context.scene.render.engine == 'BLENDER_RENDER'):
+        if (sce.render.engine == 'BLENDER_RENDER'):
             row.operator("render.render", text="Image", icon='RENDER_STILL')
             row.operator("render.render", text="Animation", icon='RENDER_ANIMATION').animation = True
             layout.prop(rd, "display_mode", text="Display")
@@ -366,12 +367,13 @@ class EngineSelectPanel(bpy.types.Panel):
     
     def draw(self, context):
         layout = self.layout
-        rd = context.scene.render
+        sce = context.scene
+        rd = sce.render
         row = layout.row()
         row.operator("ore.switch_to_renderfarm_render", text="Renderfarm.fi", icon='WORLD')
         row.operator("ore.switch_to_blender_render", text="Blender Render", icon='BLENDER')
         row = layout.row()
-        if (bpy.context.scene.render.engine == 'RENDERFARMFI_RENDER'):
+        if (rd.engine == 'RENDERFARMFI_RENDER'):
             if bpy.found_newer_version == True:
                 layout.operator('ore.open_download_location')
             else:
@@ -388,7 +390,7 @@ class RENDERFARM_MT_Session(bpy.types.Menu):
         layout = self.layout
         ore = context.scene.ore_render
         
-        if (ore.loginInserted == True):
+        if ore.loginInserted == True:
             layout.operator('ore.completed_sessions')
             layout.operator('ore.accept_sessions')
             layout.operator('ore.active_sessions')
@@ -666,7 +668,7 @@ def ore_upload(op, context):
         op.report(set(['ERROR']), 'Your user or scene information is not complete')
         bpy.infoError = True
         bpy.errorStartTime = time.time()
-        bpy.context.scene.render.engine = 'RENDERFARMFI_RENDER'
+        sce.render.engine = 'RENDERFARMFI_RENDER'
         return {'CANCELLED'}
     try:
         authproxy = xmlrpc.client.ServerProxy(r'https://xmlrpc.renderfarm.fi/auth')
@@ -698,16 +700,16 @@ def ore_upload(op, context):
         res = proxy.session.submit(userid, res['key'], sessionid)
         op.report(set(['INFO']), 'Submission sent to Renderfarm.fi')
     except xmlrpc.client.Error as v:
-        bpy.context.scene.render.engine = 'RENDERFARMFI_RENDER'
+        sce.render.engine = 'RENDERFARMFI_RENDER'
         print('ERROR:', v)
         op.report(set(['ERROR']), 'An error occurred while sending submission to Renderfarm.fi')
     except Exception as e:
-        bpy.context.scene.render.engine = 'RENDERFARMFI_RENDER'
+        sce.render.engine = 'RENDERFARMFI_RENDER'
         print('Unhandled error:', e)
         op.report(set(['ERROR']), 'An error occurred while sending submission to Renderfarm.fi')
     
-    bpy.context.scene.render.engine = 'RENDERFARMFI_RENDER'
-    doRefresh()
+    sce.render.engine = 'RENDERFARMFI_RENDER'
+    doRefresh(context)
     return {'FINISHED'}
 
 def setStatus(property, status):
@@ -776,8 +778,8 @@ def xmlSessionsToOreSessions(sessions, queue):
         output.append(sinfo)
     return output
 
-def doRefresh():
-    sce = bpy.context.scene
+def doRefresh(context):
+    sce = context.scene
     ore = sce.ore_render
     try:
         userproxy = xmlrpc.client.ServerProxy(r'https://xmlrpc.renderfarm.fi/user')
@@ -804,7 +806,7 @@ class ORE_RefreshOp(bpy.types.Operator):
     bl_label = 'Refresh'
     
     def execute(self, context):
-        result = doRefresh()
+        result = doRefresh(context)
         if (result == 0):
             return {'FINISHED'}
         else:
@@ -861,7 +863,7 @@ class ORE_CancelSession(bpy.types.Operator):
             s = bpy.ore_complete_session_queue[ore.selected_session]
             try:
                 userproxy.user.cancelSession(ore.username, ore.hash, int(s.id))
-                doRefresh()
+                doRefresh(context)
                 self.report(set(['INFO']), 'Session ' + s.title + ' with id ' + s.id + ' cancelled')
             except:
                 self.report(set(['ERROR']), 'Could not cancel session ' + s.title + ' with id ' + s.id)
@@ -1050,7 +1052,7 @@ class ORE_UploaderOp(bpy.types.Operator):
     def execute(self, context):
         
         bpy.uploadInProgress = True
-        prepareScene()
+        prepareScene(context)
         
         returnValue = ore_upload(self, context)
         bpy.uploadInProgress = False
