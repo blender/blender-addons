@@ -16,7 +16,7 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-# <pep8 compliant>
+# <pep8-80 compliant>
 
 import bpy
 
@@ -27,7 +27,8 @@ def write(fw, mesh, image_width, image_height, opacity, face_iter_func):
     fw("%%Pages: 1\n")
     fw("%%Orientation: Portrait\n")
     fw("%%%%BoundingBox: 0 0 %d %d\n" % (image_width, image_height))
-    fw("%%%%HiResBoundingBox: 0.0 0.0 %.4f %.4f\n" % (image_width, image_height))
+    fw("%%%%HiResBoundingBox: 0.0 0.0 %.4f %.4f\n" %
+       (image_width, image_height))
     fw("%%EndComments\n")
     fw("%%Page: 1 1\n")
     fw("0 0 translate\n")
@@ -45,7 +46,8 @@ def write(fw, mesh, image_width, image_height, opacity, face_iter_func):
             fw("/DRAW_%d {" % i)
             fw("gsave\n")
             if mat:
-                color = tuple((1.0 - ((1.0 - c) * opacity)) for c in mat.diffuse_color)
+                color = tuple((1.0 - ((1.0 - c) * opacity))
+                              for c in mat.diffuse_color)
             else:
                 color = 1.0, 1.0, 1.0
             fw("%.3g %.3g %.3g setrgbcolor\n" % color)

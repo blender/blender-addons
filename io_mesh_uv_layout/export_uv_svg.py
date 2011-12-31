@@ -16,7 +16,7 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-# <pep8 compliant>
+# <pep8-80 compliant>
 
 import bpy
 
@@ -29,9 +29,11 @@ def write(fw, mesh, image_width, image_height, opacity, face_iter_func):
     fw('<?xml version="1.0" standalone="no"?>\n')
     fw('<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" \n')
     fw('  "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">\n')
-    fw('<svg width="%dpx" height="%dpx" viewBox="0px 0px %dpx %dpx"\n' % (image_width, image_height, image_width, image_height))
+    fw('<svg width="%dpx" height="%dpx" viewBox="0px 0px %dpx %dpx"\n' %
+       (image_width, image_height, image_width, image_height))
     fw('     xmlns="http://www.w3.org/2000/svg" version="1.1">\n')
-    desc = "%r, %s, (Blender %s)" % (basename(bpy.data.filepath), mesh.name, bpy.app.version_string)
+    desc = ("%r, %s, (Blender %s)" %
+            (basename(bpy.data.filepath), mesh.name, bpy.app.version_string))
     fw('<desc>%s</desc>\n' % escape(desc))
 
     # svg colors
@@ -39,7 +41,9 @@ def write(fw, mesh, image_width, image_height, opacity, face_iter_func):
     fill_default = 'fill="grey"'
     for mat in mesh.materials if mesh.materials else [None]:
         if mat:
-            fill_settings.append('fill="rgb(%d, %d, %d)"' % tuple(int(c * 255) for c in mat.diffuse_color))
+            fill_settings.append('fill="rgb(%d, %d, %d)"' %
+                                 tuple(int(c * 255)
+                                 for c in mat.diffuse_color))
         else:
             fill_settings.append(fill_default)
 

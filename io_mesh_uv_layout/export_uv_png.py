@@ -16,7 +16,7 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-# <pep8 compliant>
+# <pep8-80 compliant>
 
 import bpy
 
@@ -25,7 +25,9 @@ def write(fw, mesh_source, image_width, image_height, opacity, face_iter_func):
     filepath = fw.__self__.name
     fw.__self__.close()
 
-    material_solids = [bpy.data.materials.new("uv_temp_solid") for i in range(max(1, len(mesh_source.materials)))]
+    material_solids = [bpy.data.materials.new("uv_temp_solid")
+                       for i in range(max(1, len(mesh_source.materials)))]
+
     material_wire = bpy.data.materials.new("uv_temp_wire")
 
     scene = bpy.data.scenes.new("uv_temp")
@@ -39,15 +41,21 @@ def write(fw, mesh_source, image_width, image_height, opacity, face_iter_func):
 
     faces_source = mesh_source.faces
 
-    # get unique UV's in case there are many overlapping which slow down filling.
+    # get unique UV's in case there are many overlapping
+    # which slow down filling.
     face_hash_3 = set()
     face_hash_4 = set()
     for i, uv in face_iter_func():
         material_index = faces_source[i].material_index
         if len(uv) == 3:
-            face_hash_3.add((uv[0][0], uv[0][1], uv[1][0], uv[1][1], uv[2][0], uv[2][1], material_index))
+            face_hash_3.add((uv[0][0], uv[0][1],
+                             uv[1][0], uv[1][1],
+                             uv[2][0], uv[2][1], material_index))
         else:
-            face_hash_4.add((uv[0][0], uv[0][1], uv[1][0], uv[1][1], uv[2][0], uv[2][1], uv[3][0], uv[3][1], material_index))
+            face_hash_4.add((uv[0][0], uv[0][1],
+                             uv[1][0], uv[1][1],
+                             uv[2][0], uv[2][1],
+                             uv[3][0], uv[3][1], material_index))
 
     # now set the faces coords and locations
     # build mesh data
@@ -58,13 +66,20 @@ def write(fw, mesh_source, image_width, image_height, opacity, face_iter_func):
     current_vert = 0
 
     for face_data in face_hash_3:
-        mesh_new_vertices.extend([face_data[0], face_data[1], 0.0, face_data[2], face_data[3], 0.0, face_data[4], face_data[5], 0.0])
-        mesh_new_face_vertices.extend([current_vert, current_vert + 1, current_vert + 2, 0])
+        mesh_new_vertices.extend([face_data[0], face_data[1], 0.0,
+                                  face_data[2], face_data[3], 0.0,
+                                  face_data[4], face_data[5], 0.0])
+        mesh_new_face_vertices.extend([current_vert, current_vert + 1,
+                                       current_vert + 2, 0])
         mesh_new_materials.append(face_data[6])
         current_vert += 3
     for face_data in face_hash_4:
-        mesh_new_vertices.extend([face_data[0], face_data[1], 0.0, face_data[2], face_data[3], 0.0, face_data[4], face_data[5], 0.0, face_data[6], face_data[7], 0.0])
-        mesh_new_face_vertices.extend([current_vert, current_vert + 1, current_vert + 2, current_vert + 3])
+        mesh_new_vertices.extend([face_data[0], face_data[1], 0.0,
+                                  face_data[2], face_data[3], 0.0,
+                                  face_data[4], face_data[5], 0.0,
+                                  face_data[6], face_data[7], 0.0])
+        mesh_new_face_vertices.extend([current_vert, current_vert + 1,
+                                       current_vert + 2, current_vert + 3])
         mesh_new_materials.append(face_data[8])
         current_vert += 4
 
