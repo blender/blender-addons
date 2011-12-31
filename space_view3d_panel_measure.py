@@ -105,10 +105,10 @@ def getMeasurePoints(context):
     # Get a single selected object (or nothing).
     obj = getSingleObject(context)
 
-    if (context.mode == 'EDIT_MESH'):
+    if context.mode == 'EDIT_MESH':
         obj = context.active_object
 
-        if (obj and obj.type == 'MESH' and obj.data):
+        if obj and obj.type == 'MESH' and obj.data:
             # Get mesh data from Object.
             mesh = obj.data
 
@@ -175,7 +175,7 @@ def getMeasurePoints(context):
             else:
                 return None
 
-    elif (context.mode == 'OBJECT'):
+    elif context.mode == 'OBJECT':
         # We are working in object mode.
 
         if len(context.selected_objects) > 2:
@@ -188,7 +188,7 @@ def getMeasurePoints(context):
             obj2_loc = obj2.matrix_world.to_translation()
             return (obj1_loc, obj2_loc, COLOR_GLOBAL)
 
-        elif (obj):
+        elif obj:
             # One object selected.
             # We measure the distance from the object to the 3D cursor.
             cur_loc = sce.cursor_location
@@ -235,7 +235,7 @@ def edgeLengthGlobal(edge, obj, globalSpace):
 #       running this with selectedOnly=1!
 # @todo Support other object types (surfaces, etc...)?
 def objectEdgeLength(obj, selectedOnly, globalSpace):
-    if (obj and obj.type == 'MESH' and obj.data):
+    if obj and obj.type == 'MESH' and obj.data:
         edgeTotal = 0
 
         mesh = obj.data
@@ -329,7 +329,7 @@ def faceAreaGlobal(face, obj):
 #       running this with selectedOnly=1!
 # @todo Support other object types (surfaces, etc...)?
 def objectSurfaceArea(obj, selectedOnly, globalSpace):
-    if (obj and obj.type == 'MESH' and obj.data):
+    if obj and obj.type == 'MESH' and obj.data:
         areaTotal = 0
         normTotal = Vector((0.0, 0.0, 0.0))
 
@@ -355,7 +355,7 @@ def objectSurfaceArea(obj, selectedOnly, globalSpace):
 # Calculate the volume of a mesh object.
 # Copyright Loonsbury (loonsbury@yahoo.com)
 def objectVolume(obj, globalSpace):
-    if (obj and obj.type == 'MESH' and obj.data):
+    if obj and obj.type == 'MESH' and obj.data:
 
         # Check if mesh is non-manifold
         if not checkManifold(obj):
@@ -372,7 +372,7 @@ def objectVolume(obj, globalSpace):
                 v1, v2, v3, v4 = face.vertices
             else:
                 v1, v2, v3 = face.vertices
-obj.data
+
             v1 = mesh.vertices[v1]
             v2 = mesh.vertices[v2]
             v3 = mesh.vertices[v3]
@@ -445,7 +445,7 @@ obj.data
 # Manifold Checks
 # Copyright Loonsbury (loonsbury@yahoo.com)
 def checkManifold(obj):
-    if (obj and obj.type == 'MESH' and obj.data):
+    if obj and obj.type == 'MESH' and obj.data:
         mesh = obj.data
 
         mc = dict([(ed.key, 0) for ed in mesh.edges])     # TODO
@@ -496,14 +496,14 @@ def draw_measurements_callback(self, context):
 
     # Get measured 3D points and colors.
     line = getMeasurePoints(context)
-    if (line and draw):
+    if line and draw:
         p1, p2, color = line
 
         # Get and convert the Perspective Matrix of the current view/region.
         view3d = bpy.context
         region = view3d.region_data
         perspMatrix = region.perspective_matrix
-        tempMat = [perspMatrix[i][j] for i in range(4) for j in range(4)]
+        tempMat = [perspMatrix[j][i] for i in range(4) for j in range(4)]
         perspBuff = bgl.Buffer(bgl.GL_FLOAT, 16, tempMat)
 
         # ---
@@ -633,19 +633,19 @@ def draw_measurements_callback(self, context):
 
             loc_y -= OFFSET_Y
 
-    if (sce.measure_panel_calc_edge_length):
-        if (context.mode == 'EDIT_MESH'):
+    if sce.measure_panel_calc_edge_length:
+        if context.mode == 'EDIT_MESH':
             obj = context.active_object
 
             length_total = objectEdgeLength(obj, True, measureGlobal(sce))
 
             sce.measure_panel_edge_length = length_total
 
-        elif (context.mode == 'OBJECT'):
+        elif context.mode == 'OBJECT':
             length_total = -1
 
             for o in context.selected_objects:
-                if (o.type == 'MESH'):
+                if o.type == 'MESH':
                     length = objectEdgeLength(o, False, measureGlobal(sce))
 
                     if length >= 0:
@@ -657,14 +657,14 @@ def draw_measurements_callback(self, context):
             sce.measure_panel_edge_length = length_total
 
     # Handle mesh surface area calulations
-    if (sce.measure_panel_calc_area):
+    if sce.measure_panel_calc_area:
         # Get a single selected object (or nothing).
         obj = getSingleObject(context)
 
-        if (context.mode == 'EDIT_MESH'):
+        if context.mode == 'EDIT_MESH':
             obj = context.active_object
 
-            if (obj and obj.type == 'MESH' and obj.data):
+            if obj and obj.type == 'MESH' and obj.data:
                 # "Note: a Mesh will return the selection state of the mesh
                 # when EditMode was last exited. A Python script operating
                 # in EditMode must exit EditMode before getting the current
@@ -696,11 +696,11 @@ def draw_measurements_callback(self, context):
                     if len(faces_selected) > 0:
                         area, normal = objectSurfaceArea(obj, True,
                             measureGlobal(sce))
-                        if (area >= 0):
+                        if area >= 0.0:
                             sce.measure_panel_area1 = area
                             sce.measure_panel_normal1 = normal
 
-        elif (context.mode == 'OBJECT'):
+        elif context.mode == 'OBJECT':
             # We are working in object mode.
 
             if len(context.selected_objects) > 2:
@@ -709,15 +709,15 @@ def draw_measurements_callback(self, context):
 #                # We have more that 2 objects selected...
 #
 #                mesh_objects = [o for o in context.selected_objects
-#                    if (o.type == 'MESH')]
+#                    if o.type == 'MESH']
 
-#                if (len(mesh_objects) > 0):
+#                if len(mesh_objects) > 0:
 #                    # ... and at least one of them is a mesh.
 #
 #                    for o in mesh_objects:
 #                        area = objectSurfaceArea(o, False,
 #                            measureGlobal(sce))
-#                        if (area >= 0):
+#                        if area >= 0:
 #                            #row.label(text=o.name, icon='OBJECT_DATA')
 #                            #row.label(text=str(round(area, PRECISION))
 #                            #    + " BU^2")
@@ -737,7 +737,7 @@ def draw_measurements_callback(self, context):
                 sce.measure_panel_normal1 = normal1
                 sce.measure_panel_normal2 = normal2
 
-            elif (obj):
+            elif obj:
                 # One object selected.
 
                 # Calculate surface area of the object.
@@ -747,10 +747,10 @@ def draw_measurements_callback(self, context):
                 sce.measure_panel_area1 = area
                 sce.measure_panel_normal1 = normal
 
-    if (sce.measure_panel_calc_volume):
+    if sce.measure_panel_calc_volume:
         obj = getSingleObject(context)
 
-        if (context.mode == 'OBJECT'):
+        if context.mode == 'OBJECT':
             # We are working in object mode.
 
             #if len(context.selected_objects) > 2:       # TODO
@@ -768,7 +768,7 @@ def draw_measurements_callback(self, context):
                 sce.measure_panel_volume1 = volume1
                 sce.measure_panel_volume2 = volume2
 
-            elif (obj):
+            elif obj:
                 # One object selected.
 
                 # Calculate surface area of the object.
@@ -839,7 +839,7 @@ class VIEW3D_OT_reenter_editmode(bpy.types.Operator):
         # Get the active object.
         obj = context.active_object
 
-        if (obj and obj.type == 'MESH' and context.mode == 'EDIT_MESH'):
+        if obj and obj.type == 'MESH' and context.mode == 'EDIT_MESH':
             # Exit and re-enter mesh EditMode.
             bpy.ops.object.mode_set(mode='OBJECT')
             bpy.ops.object.mode_set(mode='EDIT')
@@ -891,7 +891,7 @@ class VIEW3D_PT_measure(bpy.types.Panel):
 
         drawTansformButtons = 1
 
-        if (context.mode == 'EDIT_MESH'):
+        if context.mode == 'EDIT_MESH':
             obj = context.active_object
 
             row = layout.row()
@@ -904,7 +904,7 @@ class VIEW3D_PT_measure(bpy.types.Panel):
 #                    " to do this manually, after you changed" \
 #                    " the selection")
 
-            if (obj and obj.type == 'MESH' and obj.data):
+            if obj and obj.type == 'MESH' and obj.data:
                 # "Note: a Mesh will return the selection state of the mesh
                 # when EditMode was last exited. A Python script operating
                 # in EditMode must exit EditMode before getting the current
@@ -988,8 +988,8 @@ class VIEW3D_PT_measure(bpy.types.Panel):
                     row.prop(sce, "measure_panel_calc_edge_length",
                         text="Edge Length (selected edges)")
 
-                    if (sce.measure_panel_calc_edge_length):
-                        if (sce.measure_panel_edge_length >= 0):
+                    if sce.measure_panel_calc_edge_length:
+                        if sce.measure_panel_edge_length >= 0:
                             box = layout.box()
                             row = box.row()
                             row.label(
@@ -1005,14 +1005,14 @@ class VIEW3D_PT_measure(bpy.types.Panel):
                     row.prop(sce, "measure_panel_calc_area",
                         text="Surface area (selected faces)")
 
-                    if (sce.measure_panel_calc_area):
+                    if sce.measure_panel_calc_area:
                         # Get selected faces
                         # @todo: Better (more efficient) way to do this?
                         faces_selected = [f for f in mesh.faces
                             if f.select == 1]
 
                         if len(faces_selected) > 0:
-                            if (sce.measure_panel_area1 >= 0):
+                            if sce.measure_panel_area1 >= 0:
                                 box = layout.box()
                                 row = box.row()
                                 row.label(
@@ -1039,11 +1039,11 @@ class VIEW3D_PT_measure(bpy.types.Panel):
                         "measure_panel_transform",
                         expand=True)
 
-        elif (context.mode == 'OBJECT'):
+        elif context.mode == 'OBJECT':
             # We are working in object mode.
 
             mesh_objects = [o for o in context.selected_objects
-                        if (o.type == 'MESH')]
+                        if o.type == 'MESH']
 
             if len(context.selected_objects) > 2:
                 # We have more that 2 objects selected...
@@ -1053,8 +1053,8 @@ class VIEW3D_PT_measure(bpy.types.Panel):
                 row.prop(sce, "measure_panel_calc_edge_length",
                     text="Edge Length")
 
-                if (sce.measure_panel_calc_edge_length):
-                    if (len(mesh_objects) > 0):
+                if sce.measure_panel_calc_edge_length:
+                    if len(mesh_objects) > 0:
                         box = layout.box()
 
                         row = box.row()
@@ -1066,8 +1066,8 @@ class VIEW3D_PT_measure(bpy.types.Panel):
                 row.prop(sce, "measure_panel_calc_area",
                         text="Surface area")
 
-                if (sce.measure_panel_calc_area):
-                    if (len(mesh_objects) > 0):
+                if sce.measure_panel_calc_area:
+                    if len(mesh_objects) > 0:
                         # ... and at least one of them is a mesh.
 
                         # Calculate and display surface area of the objects.
@@ -1084,7 +1084,7 @@ class VIEW3D_PT_measure(bpy.types.Panel):
 #                        for o in mesh_objects:
 #                            area = objectSurfaceArea(o, False,
 #                                measureGlobal(sce))
-#                            if (area >= 0):
+#                            if area >= 0:
 #                                row = layout.row()
 #                                row.label(text=o.name, icon='OBJECT_DATA')
 #                                row.label(text=str(round(area, PRECISION))
@@ -1117,9 +1117,9 @@ class VIEW3D_PT_measure(bpy.types.Panel):
                 row.prop(sce, "measure_panel_calc_edge_length",
                     text="Edge Length")
 
-                if (sce.measure_panel_calc_edge_length):
-                    if (sce.measure_panel_edge_length >= 0):
-                        if (len(mesh_objects) > 0):
+                if sce.measure_panel_calc_edge_length:
+                    if sce.measure_panel_edge_length >= 0:
+                        if len(mesh_objects) > 0:
                             box = layout.box()
 
                             row = box.row()
@@ -1132,11 +1132,11 @@ class VIEW3D_PT_measure(bpy.types.Panel):
                 row.prop(sce, "measure_panel_calc_area",
                     text="Surface area")
 
-                if (sce.measure_panel_calc_area):
+                if sce.measure_panel_calc_area:
                     # Display surface area of the objects.
                     if (sce.measure_panel_area1 >= 0
                     or sce.measure_panel_area2 >= 0):
-                        if (sce.measure_panel_area1 >= 0):
+                        if sce.measure_panel_area1 >= 0:
                             box = layout.box()
                             row = box.row()
                             row.label(text=obj1.name, icon='OBJECT_DATA')
@@ -1150,7 +1150,7 @@ class VIEW3D_PT_measure(bpy.types.Panel):
                             row = box.row()
                             row.prop(sce, "measure_panel_normal1")
 
-                        if (sce.measure_panel_area2 >= 0):
+                        if sce.measure_panel_area2 >= 0:
                             box = layout.box()
                             row = box.row()
                             row.label(text=obj2.name, icon='OBJECT_DATA')
@@ -1169,14 +1169,14 @@ class VIEW3D_PT_measure(bpy.types.Panel):
                 row.prop(sce, "measure_panel_calc_volume",
                     text="Volume")
 
-                if (sce.measure_panel_calc_volume):
+                if sce.measure_panel_calc_volume:
                     # Display volume of the objects.
-                    if (sce.measure_panel_volume1 >= -1):
+                    if sce.measure_panel_volume1 >= -1:
                         box = layout.box()
                         row = box.row()
                         row.label(text=obj1.name, icon='OBJECT_DATA')
 
-                        if (sce.measure_panel_volume1 >= 0):
+                        if sce.measure_panel_volume1 >= 0:
                             row = box.row()
                             row.label(text="Volume")
                             row.prop(sce, "measure_panel_volume1")
@@ -1185,12 +1185,12 @@ class VIEW3D_PT_measure(bpy.types.Panel):
                             row.label(text="Mesh is non-manifold!",
                                 icon='INFO')
 
-                    if (sce.measure_panel_volume2 >= -1):
+                    if sce.measure_panel_volume2 >= -1:
                         box = layout.box()
                         row = box.row()
                         row.label(text=obj2.name, icon='OBJECT_DATA')
 
-                        if (sce.measure_panel_volume2 >= 0):
+                        if sce.measure_panel_volume2 >= 0:
                             row = box.row()
                             row.label(text="Volume")
                             row.prop(sce, "measure_panel_volume2")
@@ -1199,7 +1199,7 @@ class VIEW3D_PT_measure(bpy.types.Panel):
                             row.label(text="Mesh is non-manifold!",
                                 icon='INFO')
 
-            elif (obj):
+            elif obj:
                 # One object selected.
                 # We measure the distance from the object to the 3D cursor.
                 layout.label(text="Distance")
@@ -1223,9 +1223,9 @@ class VIEW3D_PT_measure(bpy.types.Panel):
                 row.prop(sce, "measure_panel_calc_edge_length",
                     text="Edge Length")
 
-                if (sce.measure_panel_calc_edge_length):
-                    if (sce.measure_panel_edge_length >= 0):
-                        if (len(mesh_objects) > 0):
+                if sce.measure_panel_calc_edge_length:
+                    if sce.measure_panel_edge_length >= 0:
+                        if len(mesh_objects) > 0:
                             box = layout.box()
 
                             row = box.row()
@@ -1237,10 +1237,10 @@ class VIEW3D_PT_measure(bpy.types.Panel):
                 row.prop(sce, "measure_panel_calc_area",
                     text="Surface area")
 
-                if (sce.measure_panel_calc_area):
+                if sce.measure_panel_calc_area:
                     # Display surface area of the object.
 
-                    if (sce.measure_panel_area1 >= 0):
+                    if sce.measure_panel_area1 >= 0.0:
                         box = layout.box()
                         row = box.row()
                         row.label(text=obj.name, icon='OBJECT_DATA')
@@ -1259,14 +1259,14 @@ class VIEW3D_PT_measure(bpy.types.Panel):
                 row.prop(sce, "measure_panel_calc_volume",
                     text="Volume")
 
-                if (sce.measure_panel_calc_volume):
+                if sce.measure_panel_calc_volume:
                     # Display volume of the objects.
-                    if (sce.measure_panel_volume1 >= -1):
+                    if sce.measure_panel_volume1 >= -1:
                         box = layout.box()
                         row = box.row()
                         row.label(text=obj.name, icon='OBJECT_DATA')
 
-                        if (sce.measure_panel_volume1 >= 0):
+                        if sce.measure_panel_volume1 >= 0:
                             row = box.row()
                             row.label(text="Volume")
                             row.prop(sce, "measure_panel_volume1")
@@ -1359,14 +1359,14 @@ def register():
     # Define property for the calc-area setting.
     # @todo prevent double calculations for each refresh automatically?
     bpy.types.Scene.measure_panel_calc_area = bpy.props.BoolProperty(
-        description="Calculate mesh surface area (heavy CPU" \
-            " usage on bigger meshes)",
+        description="Calculate mesh surface area (heavy CPU "
+                    "usage on bigger meshes)",
         default=0)
 
     # Define property for the calc-volume setting.
     bpy.types.Scene.measure_panel_calc_volume = bpy.props.BoolProperty(
-        description="Calculate mesh volume (heavy CPU" \
-            " usage on bigger meshes)",
+        description="Calculate mesh volume (heavy CPU "
+                    "usage on bigger meshes)",
         default=0)
 
     pass
