@@ -18,41 +18,6 @@
 
 # <pep8 compliant>
 
-# ##### CHANGELOG #####
-#
-#  0.0.1
-#      Initial release.
-#
-#  0.0.2
-#      Updates to follow Blender API:
-#        * bl_addon_info renamed in bl_info!
-#        * adding bpy.utils.(un)register_module calls.
-#      Also, in standard import, using “from . import …” now.
-#
-#  0.1.0
-#      Renamed in “Render Copy Settings”.
-#      Huge changes:
-#        * It is now possible to individually copy each render setting.
-#        * It is now possible to individually select each affected scene, and
-#          then filter them out even further with a regex.
-#
-#  0.1.1
-#      Minor changes:
-#        * PEP8 compliant.
-#        * Moved to contrib…
-#
-#  0.1.2
-#      Minor changes:
-#        * Updated accordingly to the changes in enhanced ui_template_list
-#          proposal.
-#
-#  0.1.3
-#      Minor changes:
-#        * Fixed a small bug that was disabling the whole UI when entering a
-#          filtering regex matching no scene.
-#
-# ##### END OF CHANGELOG #####
-
 bl_info = {
     "name": "Copy Settings",
     "author": "Bastien Montagne",
@@ -60,11 +25,11 @@ bl_info = {
     "blender": (2, 6, 1),
     "api": 42648,
     "location": "Render buttons (Properties window)",
-    "description": "Allows to copy a selection of render settings from " \
+    "description": "Allows to copy a selection of render settings from "
                    "current scene to others.",
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/" \
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"
                 "Scripts/Render/Copy Settings",
-    "tracker_url": "http://projects.blender.org/tracker/index.php?" \
+    "tracker_url": "http://projects.blender.org/tracker/index.php?"
                    "func=detail&aid=25832",
     "category": "Render"}
 
@@ -79,8 +44,11 @@ else:
 
 
 import bpy
-from bpy.props import StringProperty, BoolProperty, \
-                      IntProperty, CollectionProperty
+from bpy.props import (StringProperty,
+                       BoolProperty,
+                       IntProperty,
+                       CollectionProperty,
+                       PointerProperty)
 
 
 ###############################################################################
@@ -112,8 +80,8 @@ class RenderCopySettings(bpy.types.PropertyGroup):
     #      It should only contain one element for each render setting.
     affected_settings = CollectionProperty(type=RenderCopySettingsSetting,
                                            name="Affected Settings",
-                                           description="The list of all " \
-                                                       "available render " \
+                                           description="The list of all "
+                                                       "available render "
                                                        "settings")
     # XXX Unused, but needed for template_list…
     aff_sett_idx = IntProperty()
@@ -122,13 +90,13 @@ class RenderCopySettings(bpy.types.PropertyGroup):
     #      It should only contain one element for each scene.
     allowed_scenes = CollectionProperty(type=RenderCopySettingsScene,
                                         name="Allowed Scenes",
-                                        description="The list all scenes " \
+                                        description="The list all scenes "
                                                     "in the file")
     # XXX Unused, but needed for template_list…
     allw_scenes_idx = IntProperty()
 
     filter_scene = StringProperty(name="Filter Scene",
-                                  description="Regex to only affect scenes " \
+                                  description="Regex to only affect scenes "
                                               "which name matches it",
                                   default="")
 
@@ -139,7 +107,7 @@ def register():
     bpy.utils.register_class(RenderCopySettingsSetting)
     bpy.utils.register_class(RenderCopySettings)
     bpy.types.Scene.render_copy_settings = \
-        bpy.props.PointerProperty(type=RenderCopySettings)
+        PointerProperty(type=RenderCopySettings)
 
     bpy.utils.register_module(__name__)
 

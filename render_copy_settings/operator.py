@@ -94,12 +94,12 @@ class RenderCopySettingsPrepare(bpy.types.Operator):
                 try:
                     regex = re.compile(cp_sett.filter_scene)
                 except Exception as e:
-                    self.report('ERROR_INVALID_INPUT', "The filter-scene " \
+                    self.report('ERROR_INVALID_INPUT', "The filter-scene "
                                 "regex did not compile:\n    (%s)." % str(e))
                     return {'CANCELLED'}
             except:
                 regex = None
-                self.report('WARNING', "Unable to import the re module. " \
+                self.report('WARNING', "Unable to import the re module. "
                             "Regex scene filtering will be disabled!")
         scenes = set()
         for scene in bpy.data.scenes:
@@ -166,7 +166,7 @@ class RenderCopySettingsPreset(bpy.types.Operator):
 
 def do_copy(context, affected_settings, allowed_scenes):
     # Stores render settings from current scene.
-    p = {sett: getattr(context.scene.render, sett) \
+    p = {sett: getattr(context.scene.render, sett)
          for sett in affected_settings}
     # put it in all other (valid) scenes’ render settings!
     for scene in bpy.data.scenes:
@@ -192,9 +192,9 @@ class RenderCopySettings(bpy.types.Operator):
     def execute(self, context):
         regex = None
         cp_sett = context.scene.render_copy_settings
-        affected_settings = {sett.strid for sett in cp_sett.affected_settings \
+        affected_settings = {sett.strid for sett in cp_sett.affected_settings
                                                  if sett.copy}
-        allowed_scenes = {sce.name for sce in cp_sett.allowed_scenes \
+        allowed_scenes = {sce.name for sce in cp_sett.allowed_scenes
                                            if sce.allowed}
         do_copy(context, affected_settings=affected_settings,
                 allowed_scenes=allowed_scenes)

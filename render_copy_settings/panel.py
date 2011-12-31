@@ -48,7 +48,7 @@ class RENDER_PT_copy_settings(bpy.types.Panel):
                             prop_list="template_list_controls", rows=6)
 
         col = split.column()
-        all_set = {sett.strid for sett in cp_sett.affected_settings \
+        all_set = {sett.strid for sett in cp_sett.affected_settings
                                        if sett.copy}
         for p in presets.presets:
             label = ""
