@@ -26,10 +26,10 @@ bl_info = {
     "api": 42846,
     'location': 'View3D > Ctrl-C',
     'description': 'Copy Attributes Menu from Blender 2.4',
-    'wiki_url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/'\
-        'Scripts/3D_interaction/Copy_Attributes_Menu',
-    'tracker_url': 'https://projects.blender.org/tracker/index.php?'\
-        'func=detail&aid=22588',
+    'wiki_url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/'
+                'Scripts/3D_interaction/Copy_Attributes_Menu',
+    'tracker_url': 'https://projects.blender.org/tracker/index.php?'
+                   'func=detail&aid=22588',
     'category': '3D View'}
 
 import bpy
@@ -92,14 +92,14 @@ def getmat(bone, active, context, ignoreparent):
     '''Helper function for visual transform copy,
        gets the active transform in bone space
     '''
-    data_bone = context.active_object.data.bones[bone.name]
+    obj_act = context.active_object
+    data_bone = obj_act.data.bones[bone.name]
     #all matrices are in armature space unless commented otherwise
     otherloc = active.matrix  # final 4x4 mat of target, location.
-    bonemat_local = Matrix(data_bone.matrix_local)  # self rest matrix
+    bonemat_local = data_bone.matrix_local.copy()  # self rest matrix
     if data_bone.parent:
-        parentposemat = Matrix(
-           context.active_object.pose.bones[data_bone.parent.name].matrix)
-        parentbonemat = Matrix(data_bone.parent.matrix_local)
+        parentposemat = obj_act.pose.bones[data_bone.parent.name].matrix.copy()
+        parentbonemat = data_bone.parent.matrix_local.copy()
     else:
         parentposemat = parentbonemat = Matrix()
     if parentbonemat == parentposemat or ignoreparent:
@@ -117,8 +117,7 @@ def rotcopy(item, mat):
         item.rotation_quaternion = mat.to_3x3().to_quaternion()
     elif item.rotation_mode == 'AXIS_ANGLE':
         quat = mat.to_3x3().to_quaternion()
-        item.rotation_axis_angle = Vector([quat.axis[0],
-           quat.axis[1], quat.axis[2], quat.angle])
+        item.rotation_axis_angle = quat.axis[:] + (quat.angle, )
     else:
         item.rotation_euler = mat.to_3x3().to_euler(item.rotation_mode)
 
