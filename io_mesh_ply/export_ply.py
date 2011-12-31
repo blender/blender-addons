@@ -18,9 +18,6 @@
 
 # <pep8-80 compliant>
 
-# Copyright (C) 2004, 2005: Bruce Merry, bmerry@cs.uct.ac.za
-# Contributors: Bruce Merry, Campbell Barton
-
 """
 This script exports Stanford PLY files from Blender. It supports normals,
 colours, and texture coordinates per face or per vertex.

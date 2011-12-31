@@ -26,11 +26,14 @@ bl_info = {
     "location": "File > Import-Export",
     "description": "Import-Export PLY mesh data withs UV's and vertex colors",
     "warning": "",
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"\
-        "Scripts/Import-Export/Stanford_PLY",
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"
+                "Scripts/Import-Export/Stanford_PLY",
     "tracker_url": "",
     "support": 'OFFICIAL',
     "category": "Import-Export"}
+
+# Copyright (C) 2004, 2005: Bruce Merry, bmerry@cs.uct.ac.za
+# Contributors: Bruce Merry, Campbell Barton
 
 # To support reload properly, try to access a package var,
 # if it's there, reload everything

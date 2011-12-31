@@ -16,11 +16,9 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-# <pep8 compliant>
+# <pep8-80 compliant>
 
-__author__ = ["Anthony D'Agostino (Scorpius)", "Aurel Wildfellner"]
-__version__ = '0.2'
-__bpydoc__ = """\
+"""
 This script imports Raw Triangle File format files to Blender.
 
 The raw triangle format is very simple; it has no verts or faces lists.

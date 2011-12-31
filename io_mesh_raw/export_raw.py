@@ -16,11 +16,9 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-# <pep8 compliant>
+# <pep8-80 compliant>
 
-__author__ = ["Aurel Wildfellner"]
-__version__ = '0.2'
-__bpydoc__ = """\
+"""
 This script exports a Mesh to a RAW triangle format file.
 
 The raw triangle format is very simple; it has no verts or faces lists.
@@ -40,7 +38,7 @@ import bpy
 
 def faceToTriangles(face):
     triangles = []
-    if (len(face) == 4):
+    if len(face) == 4:
         triangles.append([face[0], face[1], face[2]])
         triangles.append([face[2], face[3], face[0]])
     else:

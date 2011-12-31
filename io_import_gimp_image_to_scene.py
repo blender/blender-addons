@@ -25,19 +25,19 @@ bl_info = {
     "location": "File > Import > GIMP Image to Scene(.xcf/.xjt)",
     "description": "Imports GIMP multilayer image files as a series of multiple planes",
     "warning": "XCF import requires xcftools installed",
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"\
-        "Scripts/Import-Export/GIMPImageToScene",
-    "tracker_url": "http://projects.blender.org/tracker/index.php?"\
-        "func=detail&aid=25136",
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"
+                "Scripts/Import-Export/GIMPImageToScene",
+    "tracker_url": "http://projects.blender.org/tracker/index.php?"
+                   "func=detail&aid=25136",
     "category": "Import-Export"}
 
 """
 This script imports GIMP layered image files into 3D Scenes (.xcf, .xjt)
 """
 
-def main(File, Path, LayerViewers, MixerViewers, LayerOffset,\
-    LayerScale, OpacityMode, PremulAlpha, ShadelessMats,\
-    SetCamera, SetupCompo, GroupUntagged, Ext):
+def main(File, Path, LayerViewers, MixerViewers, LayerOffset,
+         LayerScale, OpacityMode, PremulAlpha, ShadelessMats,
+         SetCamera, SetupCompo, GroupUntagged, Ext):
     
     #-------------------------------------------------
     
@@ -147,8 +147,8 @@ def main(File, Path, LayerViewers, MixerViewers, LayerOffset,\
                         os.rename(PathSaveRaw+imageFile, PathSaveRaw+NameShort+'.jpg')
                         if HasAlpha: os.rename(PathSaveRaw+imageFileAlpha, PathSaveRaw+NameShort+'_A'+'.jpg')
                         
-                IMGs.append({'LayerMode':md, 'LayerOpacity':op,\
-                            'LayerName':n, 'LayerNameShort':NameShort,\
+                IMGs.append({'LayerMode':md, 'LayerOpacity':op,
+                            'LayerName':n, 'LayerNameShort':NameShort,
                             'RenderLayer':RenderLayer, 'LayerCoords':[ow, oh, ox, oy], 'HasAlpha':HasAlpha})
     
     else: # Ext == '.xcf':
@@ -194,14 +194,14 @@ def main(File, Path, LayerViewers, MixerViewers, LayerOffset,\
                     Mode = LineThree[:Slash]
                     Opacity = float(LineThree[Slash+1:LineThree.find('%')])*.01
                 
-                IMGs.append ({\
-                    'LayerMode':Mode,\
-                    'LayerOpacity':Opacity,\
-                    'LayerName':Line[4].rstrip(),\
-                    'LayerNameShort':NameShort,\
-                    'LayerCoords':list(map(int, Line[1].replace('x', ' ').replace('+', ' +').replace('-', ' -').split())),\
-                    'RenderLayer':RenderLayer,\
-                    'HasAlpha':True,\
+                IMGs.append ({
+                    'LayerMode': Mode,
+                    'LayerOpacity': Opacity,
+                    'LayerName': Line[4].rstrip(),
+                    'LayerNameShort': NameShort,
+                    'LayerCoords': list(map(int, Line[1].replace('x', ' ').replace('+', ' +').replace('-', ' -').split())),
+                    'RenderLayer': RenderLayer,
+                    'HasAlpha': True,
                     })
             elif Line.startswith('Version'):
                 ResX, ResY = map (int, Line.split()[2].split('x'))
@@ -213,8 +213,8 @@ def main(File, Path, LayerViewers, MixerViewers, LayerOffset,\
         else:
             Opacity = ' --percent 100'
         for Layer in IMGs:
-            CMD = '%s -C %s%s -o %s%s.png "%s"%s' %\
-            (XCF2PNG, Path, File, PathSave, Layer['LayerName'].replace(' ', '_'), Layer['LayerName'], Opacity)
+            CMD = ('%s -C %s%s -o %s%s.png "%s"%s' %
+            (XCF2PNG, Path, File, PathSave, Layer['LayerName'].replace(' ', '_'), Layer['LayerName'], Opacity))
             os.system(CMD)
     
     #-------------------------------------------------
@@ -286,13 +286,12 @@ def main(File, Path, LayerViewers, MixerViewers, LayerOffset,\
                 LayerList.append([RenderLayer, LayerMode, LayerOpacity])
                 
                 LayerNum += 1
-        
+
         # Object
-        bpy.ops.mesh.primitive_plane_add(\
-        view_align=False,\
-        enter_editmode=False,\
-        rotation=(0, 0, pi))
-        
+        bpy.ops.mesh.primitive_plane_add(view_align=False,
+                                         enter_editmode=False,
+                                         rotation=(0, 0, pi))
+
         bpy.ops.object.transform_apply(location=False, rotation=True, scale=False)
 
         
@@ -301,8 +300,8 @@ def main(File, Path, LayerViewers, MixerViewers, LayerOffset,\
         if SetupCompo:
             Active.layers = LayerFlags[RenderLayer]
         
-        Active.location = (\
-            (float(Coords[2])-(ResX*0.5))*LayerScale,\
+        Active.location = (
+            (float(Coords[2])-(ResX*0.5))*LayerScale,
             (-float(Coords[3])+(ResY*0.5))*LayerScale, Z)
         
         for Vert in Active.data.vertices:
@@ -420,16 +419,15 @@ def main(File, Path, LayerViewers, MixerViewers, LayerOffset,\
     LayerList = []
     
     for Layer in IMGs:
-        Make3DLayer(\
-        Layer['LayerName'].replace(' ', '_'),\
-        Layer['LayerNameShort'].replace(' ', '_'),\
-        Z,\
-        Layer['LayerCoords'],\
-        Layer['RenderLayer'],\
-        Layer['LayerMode'],\
-        Layer['LayerOpacity'],\
-        Layer['HasAlpha'],\
-        )
+        Make3DLayer(Layer['LayerName'].replace(' ', '_'),
+                    Layer['LayerNameShort'].replace(' ', '_'),
+                    Z,
+                    Layer['LayerCoords'],
+                    Layer['RenderLayer'],
+                    Layer['LayerMode'],
+                    Layer['LayerOpacity'],
+                    Layer['HasAlpha'],
+                    )
         
         Z -= LayerOffset
     
@@ -647,9 +645,9 @@ class GIMPImageToScene(bpy.types.Operator):
         
         # Call Main Function
         if Ext:
-            main(filename, directory, LayerViewers, MixerViewers, LayerOffset,\
-                LayerScale, OpacityMode, PremulAlpha, ShadelessMats,\
-                SetCamera, SetupCompo, GroupUntagged, Ext)
+            main(filename, directory, LayerViewers, MixerViewers, LayerOffset,
+                 LayerScale, OpacityMode, PremulAlpha, ShadelessMats,
+                 SetCamera, SetupCompo, GroupUntagged, Ext)
         else:
             self.report({'ERROR'},"Selected file wasn't valid, try .xcf or .xjt")
         

@@ -23,17 +23,25 @@ bl_info = {
     "blender": (2, 5, 7),
     "api": 35622,
     "location": "File > Import > Images as Planes",
-    "description": "Imports images and creates planes with the appropriate aspect ratio. "\
-        "The images are mapped to the planes.",
+    "description": "Imports images and creates planes with the appropriate "
+                   "aspect ratio. The images are mapped to the planes.",
     "warning": "",
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"\
-        "Scripts/Add_Mesh/Planes_from_Images",
-    "tracker_url": "https://projects.blender.org/tracker/index.php?"\
-        "func=detail&aid=21751",
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"
+                "Scripts/Add_Mesh/Planes_from_Images",
+    "tracker_url": "https://projects.blender.org/tracker/index.php?"
+                   "func=detail&aid=21751",
     "category": "Import-Export"}
 
-import bpy, os, mathutils
-from bpy.props import *
+import bpy
+import mathutils
+import os
+
+from bpy.props import (BoolProperty,
+                       EnumProperty,
+                       IntProperty,
+                       FloatProperty,
+                       )
+
 from add_utils import *
 from bpy_extras.io_utils import ImportHelper
 from bpy_extras.image_utils import load_image
@@ -54,7 +62,7 @@ EXT_LIST = {
     'cin': ['cin'],
     'dpx': ['dpx'],
     'psd': ['psd']}
-EXT_VALS = [val for val in EXT_LIST.values()]
+EXT_VALS = list(EXT_LIST.values())
 EXTENSIONS = []
 for i in EXT_VALS:
     EXTENSIONS.extend(i)
@@ -189,12 +197,12 @@ def align_planes(self, planes):
     gap = self.align_offset
     offset = 0
     for i, plane in enumerate(planes):
-        offset += (plane.dimensions.x / 2) + gap
+        offset += (plane.dimensions.x / 2.0) + gap
         if i == 0: continue
         move_local = mathutils.Vector((offset, 0, 0))
         move_world = plane.location + move_local * plane.matrix_world.inverted()
         plane.location += move_world
-        offset += (plane.dimensions.x / 2)
+        offset += (plane.dimensions.x / 2.0)
         
 ##### MAIN #####
 def import_images(self, context):
@@ -363,7 +371,9 @@ class IMPORT_OT_image_to_plane(bpy.types.Operator, ImportHelper, AddObjectHelper
 ##### REGISTER #####
 
 def import_images_button(self, context):
-    self.layout.operator(IMPORT_OT_image_to_plane.bl_idname, text="Images as Planes", icon='PLUGIN')
+    self.layout.operator(IMPORT_OT_image_to_plane.bl_idname,
+                         text="Images as Planes",
+                         icon='PLUGIN')
 
 def register():
     bpy.utils.register_module(__name__)
