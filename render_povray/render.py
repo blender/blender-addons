@@ -210,16 +210,18 @@ def write_pov(filename, scene=None, info_callback=None):
         return name
 
     def writeMatrix(matrix):
-        tabWrite("matrix <%.6f, %.6f, %.6f,  %.6f, %.6f, %.6f,  %.6f, %.6f, %.6f,  %.6f, %.6f, " \
-                 "%.6f>\n" % (matrix[0][0], matrix[0][1], matrix[0][2], matrix[1][0], matrix[1][1],
-                              matrix[1][2], matrix[2][0], matrix[2][1], matrix[2][2], matrix[3][0],
-                              matrix[3][1], matrix[3][2]))
+        tabWrite("matrix <%.6f, %.6f, %.6f,  %.6f, %.6f, %.6f,  %.6f, %.6f, %.6f,  %.6f, %.6f, %.6f>\n" %
+                 (matrix[0][0], matrix[1][0], matrix[2][0],
+                  matrix[0][1], matrix[1][1], matrix[2][1],
+                  matrix[0][2], matrix[1][2], matrix[2][2],
+                  matrix[0][3], matrix[1][3], matrix[2][3]))
 
     def MatrixAsPovString(matrix):
-        sMatrix = ("matrix <%.6f, %.6f, %.6f,  %.6f, %.6f, %.6f,  %.6f, %.6f, %.6f,  %.6f, %.6f, " \
-                   "%.6f>\n" % (matrix[0][0], matrix[0][1], matrix[0][2], matrix[1][0], matrix[1][1],
-                                matrix[1][2], matrix[2][0], matrix[2][1], matrix[2][2], matrix[3][0],
-                                matrix[3][1], matrix[3][2]))
+        sMatrix = ("matrix <%.6f, %.6f, %.6f,  %.6f, %.6f, %.6f,  %.6f, %.6f, %.6f,  %.6f, %.6f, %.6f>\n" %
+                   (matrix[0][0], matrix[1][0], matrix[2][0],
+                    matrix[0][1], matrix[1][1], matrix[2][1],
+                    matrix[0][2], matrix[1][2], matrix[2][2],
+                    matrix[0][3], matrix[1][3], matrix[2][3]))
         return sMatrix
 
     def writeObjectMaterial(material, ob):
@@ -524,9 +526,9 @@ def write_pov(filename, scene=None, info_callback=None):
 
         # compute resolution
         Qsize = float(render.resolution_x) / float(render.resolution_y)
-        tabWrite("#declare camLocation  = <%.6f, %.6f, %.6f>;\n" % \
-                 (matrix[3][0], matrix[3][1], matrix[3][2]))
-        tabWrite("#declare camLookAt = <%.6f, %.6f, %.6f>;\n" % \
+        tabWrite("#declare camLocation  = <%.6f, %.6f, %.6f>;\n" %
+                 matrix.translation[:])
+        tabWrite("#declare camLookAt = <%.6f, %.6f, %.6f>;\n" %
                  tuple([degrees(e) for e in matrix.to_3x3().to_euler()]))
 
         tabWrite("camera {\n")
@@ -546,7 +548,7 @@ def write_pov(filename, scene=None, info_callback=None):
 
             tabWrite("rotate  <%.6f, %.6f, %.6f>\n" % \
                      tuple([degrees(e) for e in matrix.to_3x3().to_euler()]))
-            tabWrite("translate <%.6f, %.6f, %.6f>\n" % (matrix[3][0], matrix[3][1], matrix[3][2]))
+            tabWrite("translate <%.6f, %.6f, %.6f>\n" % matrix.translation[:])
             if camera.data.pov.dof_enable and focal_point != 0:
                 tabWrite("aperture %.3g\n" % camera.data.pov.dof_aperture)
                 tabWrite("blur_samples %d %d\n" % \
