@@ -220,12 +220,12 @@ def draw_callback_view(self, context):
         loc = context.scene.cursor_location.copy()
         for quat in data_quat.values():
             mat = quat.to_matrix().to_4x4()
-            mat[3][0:3] = loc
+            mat.translation = loc
             draw_matrix(mat)
 
     if data_euler:
         loc = context.scene.cursor_location.copy()
         for eul in data_euler.values():
             mat = eul.to_matrix().to_4x4()
-            mat[3][0:3] = loc
+            mat.translation = loc
             draw_matrix(mat)
