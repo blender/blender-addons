@@ -37,7 +37,7 @@ Only two objects must be selected.
 The first selected object will be added to the second selected
 object as a new shape key.
 
-- Original 2.4x script by ? (brecht?)
+- Original 2.4x script by Brecht
 - Unpose-function reused from a script by Tal Trachtman in 2007
   http://www.apexbow.com/randd.html
 - Converted to Blender 2.5 by Ivo Grigull
@@ -63,51 +63,29 @@ def reset_transform(ob):
 
 
 # this version is for shape_key data
-def extractX(ob, mesh):
-    x = []
-    
-    for i in range(0, len(mesh)):
-        v = mesh[i]
-        x += [v.co.copy()]
-    
-    return x
+def extract_vert_coords(ob, verts):
+    return [v.co.copy() for v in verts]
 
-# this version is for mesh data
-def extractX_2(ob, mesh):
-    x = []
-    
-    for i in range(0, len(mesh.vertices)):
-        v = mesh.vertices[i]
-        x += [v.co.copy()]
-    
-    return x
 
-def extractMappedX(ob, mesh):
-    totvert = len(mesh)
-    
-    mesh = ob.to_mesh( bpy.context.scene, True, 'PREVIEW' )
+def extract_mapped_coords(ob, shape_verts):
+    totvert = len(shape_verts)
 
-    x = []
+    mesh = ob.to_mesh(bpy.context.scene, True, 'PREVIEW')
 
     # cheating, the original mapped verts happen
     # to be at the end of the vertex array
-    for i in range(len(mesh.vertices)-totvert, len(mesh.vertices)):
-        v = mesh.vertices[i]
-        x += [v.co.copy()]
+    verts = mesh.vertices
+    arr = [verts[i].co.copy() for i in range(len(verts) - totvert, len(verts))]
 
     mesh.user_clear()
     bpy.data.meshes.remove(mesh)    
-    
-    return x
 
-def applyX(ob, mesh, x ):
-    for i in range(0, len(mesh)):
-        v = mesh[i]
+    return arr
+
+def apply_vert_coords(ob, mesh, x ):
+    for i, v in enumerate(mesh):
         v.co = x[i]
-    
     ob.data.update()
-    
-    return x
 
 
 def func_add_corrective_pose_shape( source, target):
@@ -144,14 +122,14 @@ def func_add_corrective_pose_shape( source, target):
     mesh_1_key_verts = mesh_1.shape_keys.key_blocks[ key_index ].data
     
     
-    x = extractX(ob_1, mesh_1_key_verts)
+    x = extract_vert_coords(ob_1, mesh_1_key_verts)
     
-    targetx = extractX_2(ob_2, mesh_2)
+    targetx = extract_vert_coords(ob_2, mesh_2.vertices)
     
     for iteration in range(0, iterations):
         dx = [[], [], [], [], [], []]
     
-        mapx = extractMappedX(ob_1, mesh_1_key_verts)
+        mapx = extract_mapped_coords(ob_1, mesh_1_key_verts)
         
         # finite differencing in X/Y/Z to get approximate gradient
         for i in range(0, len(mesh_1.vertices)):
@@ -168,8 +146,8 @@ def func_add_corrective_pose_shape( source, target):
             dx[5] += [x[i] + 0.5 * epsilon * Vector((0, 0, -1))]
     
         for j in range(0, 6):
-            applyX(ob_1, mesh_1_key_verts, dx[j])
-            dx[j] = extractMappedX(ob_1, mesh_1_key_verts)
+            apply_vert_coords(ob_1, mesh_1_key_verts, dx[j])
+            dx[j] = extract_mapped_coords(ob_1, mesh_1_key_verts)
     
         # take a step in the direction of the gradient
         for i in range(0, len(mesh_1.vertices)):
@@ -182,7 +160,7 @@ def func_add_corrective_pose_shape( source, target):
                 G = Matrix((Gx, Gy, Gz))
                 x[i] += G * (targetx[i] - mapx[i])
         
-        applyX(ob_1, mesh_1_key_verts, x )
+        apply_vert_coords(ob_1, mesh_1_key_verts, x )
     
 
     ob_1.active_shape_key.vertex_group = vgroup
@@ -195,7 +173,9 @@ def func_add_corrective_pose_shape( source, target):
     
 
 class add_corrective_pose_shape(bpy.types.Operator):    
-    '''Adds first object as shape to second object for the current pose while maintaining modifiers (i.e. anisculpt, avoiding crazy space) Beware of slowness!!!'''
+    """Adds first object as shape to second object for the current pose """ \
+    """while maintaining modifiers """ \
+    """(i.e. anisculpt, avoiding crazy space) Beware of slowness!"""
     
     bl_idname = "object.add_corrective_pose_shape"
     bl_label = "Add object as corrective pose shape"
@@ -237,17 +217,19 @@ class object_duplicate_flatten_modifiers(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
-        return context.active_object != None
+        return context.active_object is not None
 
     def execute(self, context):
-        new_object = func_object_duplicate_flatten_modifiers( context.active_object, context.scene )
-        context.scene.objects.active = new_object
+        scene = context.scene
+        obj_act = context.active_object
+        new_object = func_object_duplicate_flatten_modifiers(obj_act, context.scene)
+        
+        # setup the context
+        bpy.ops.object.select_all(action='DESELECT')
 
-        for n in bpy.data.objects:
-            if n != new_object:
-                n.select = False
-            else:
-                n.select = True
+        scene.objects.active = new_object
+        new_object.select = True
+
         return {'FINISHED'}
 
     
@@ -263,12 +245,12 @@ def unposeMesh(meshObToUnpose, meshObToUnposeWeightSrc, armatureOb):
     armData = armatureOb.data
 
     pose = armatureOb.pose
-    pbones =  pose.bones
+    pbones = pose.bones
     
 
     for index, v in enumerate(mesh.vertices):
-        # above is python shortcut for:index goes up from 0 to tot num of verts in mesh,
-        # with index incrementing by 1 each iteration
+        # above is python shortcut for:index goes up from 0 to tot num of
+        # verts in mesh, with index incrementing by 1 each iteration
         
         psdMeshVert = psdMesh[index]
 
@@ -379,7 +361,7 @@ def func_add_corrective_pose_shape_fast(source, target):
             break
     
     # set the new shape key value to 1.0, so we see the result instantly
-    target.data.shape_keys.key_blocks[ target.active_shape_key_index].value = 1.0
+    target.data.shape_keys.key_blocks[target.active_shape_key_index].value = 1.0
 
     try:
         target.active_shape_key.vertex_group = vgroup
@@ -425,9 +407,14 @@ class add_corrective_pose_shape_fast(bpy.types.Operator):
 def vgroups_draw(self, context):
     layout = self.layout
 
-    layout.row().operator("object.object_duplicate_flatten_modifiers", text='Create duplicate for editing' )
-    layout.row().operator("object.add_corrective_pose_shape_fast", text='Add as corrective pose-shape (fast, armatures only)', icon='COPY_ID') # icon is not ideal
-    layout.row().operator("object.add_corrective_pose_shape", text='Add as corrective pose-shape (slow, all modifiers)', icon='COPY_ID') # icon is not ideal
+    layout.operator("object.object_duplicate_flatten_modifiers",
+                    text='Create duplicate for editing' )
+    layout.operator("object.add_corrective_pose_shape_fast",
+                    text='Add as corrective pose-shape (fast, armatures only)',
+                    icon='COPY_ID') # icon is not ideal
+    layout.operator("object.add_corrective_pose_shape",
+                    text='Add as corrective pose-shape (slow, all modifiers)',
+                    icon='COPY_ID') # icon is not ideal
 
 def modifiers_draw(self, context):
     pass
