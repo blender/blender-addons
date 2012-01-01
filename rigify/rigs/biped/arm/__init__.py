@@ -38,21 +38,21 @@ if is_selected(fk_arm):
     except KeyError:
         pass
 if is_selected(fk_arm+ik_arm):
-    p = layout.operator("pose.rigify_arm_fk2ik_" + rig_id, text="Snap FK->IK (" + fk_arm[0] + ")")
-    p.uarm_fk = fk_arm[0]
-    p.farm_fk = fk_arm[1]
-    p.hand_fk = fk_arm[2]
-    p.uarm_ik = ik_arm[0]
-    p.farm_ik = ik_arm[1]
-    p.hand_ik = ik_arm[2]
-    p = layout.operator("pose.rigify_arm_ik2fk_" + rig_id, text="Snap IK->FK (" + fk_arm[0] + ")")
-    p.uarm_fk = fk_arm[0]
-    p.farm_fk = fk_arm[1]
-    p.hand_fk = fk_arm[2]
-    p.uarm_ik = ik_arm[0]
-    p.farm_ik = ik_arm[1]
-    p.hand_ik = ik_arm[2]
-    p.pole = ik_arm[3]
+    props = layout.operator("pose.rigify_arm_fk2ik_" + rig_id, text="Snap FK->IK (" + fk_arm[0] + ")")
+    props.uarm_fk = fk_arm[0]
+    props.farm_fk = fk_arm[1]
+    props.hand_fk = fk_arm[2]
+    props.uarm_ik = ik_arm[0]
+    props.farm_ik = ik_arm[1]
+    props.hand_ik = ik_arm[2]
+    props = layout.operator("pose.rigify_arm_ik2fk_" + rig_id, text="Snap IK->FK (" + fk_arm[0] + ")")
+    props.uarm_fk = fk_arm[0]
+    props.farm_fk = fk_arm[1]
+    props.hand_fk = fk_arm[2]
+    props.uarm_ik = ik_arm[0]
+    props.farm_ik = ik_arm[1]
+    props.hand_ik = ik_arm[2]
+    props.pole = ik_arm[3]
 
 """
 
