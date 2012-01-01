@@ -860,29 +860,32 @@ def load(operator, context, filepath,
 
     file = open(filepath, 'rb')
     for line in file:  # .readlines():
-        line = line.lstrip()  # rare cases there is white space at the start of the line
+        line_split = line.split()
 
-        if line.startswith(b"v "):
-            line_split = line.split()
+        if not line_split:
+            continue
+
+        line_start = line_split[0]  # we compare with this a _lot_
+
+        if line_start == b'v':
             verts_loc.append((float_func(line_split[1]), float_func(line_split[2]), float_func(line_split[3])))
 
-        elif line.startswith(b"vn "):
+        elif line_start == b'vn':
             pass
 
-        elif line.startswith(b"vt "):
-            line_split = line.split()
+        elif line_start == b'vt':
             verts_tex.append((float_func(line_split[1]), float_func(line_split[2])))
 
         # Handel faces lines (as faces) and the second+ lines of fa multiline face here
         # use 'f' not 'f ' because some objs (very rare have 'fo ' for faces)
-        elif line.startswith(b'f') or context_multi_line == b'f':
+        elif line_start == b'f' or context_multi_line == b'f':
 
             if context_multi_line:
                 # use face_vert_loc_indices and face_vert_tex_indices previously defined and used the obj_face
-                line_split = line.split()
+                pass
 
             else:
-                line_split = line[2:].split()
+                line_split = line_split[1:]
                 face_vert_loc_indices = []
                 face_vert_tex_indices = []
 
@@ -930,15 +933,15 @@ def load(operator, context, filepath,
             if len(face_vert_loc_indices) > 4:
                 has_ngons = True
 
-        elif use_edges and (line.startswith(b'l ') or context_multi_line == b'l'):
+        elif use_edges and (line_start == b'l' or context_multi_line == b'l'):
             # very similar to the face load function above with some parts removed
 
             if context_multi_line:
                 # use face_vert_loc_indices and face_vert_tex_indices previously defined and used the obj_face
-                line_split = line.split()
+                pass
 
             else:
-                line_split = line[2:].split()
+                line_split = line_split[1:]
                 face_vert_loc_indices = []
                 face_vert_tex_indices = []
 
@@ -955,7 +958,7 @@ def load(operator, context, filepath,
             else:
                 context_multi_line = b''
 
-            # isline = line.startswith(b'l')  # UNUSED
+            # isline = line_start == b'l'  # UNUSED
 
             for v in line_split:
                 vert_loc_index = int(v) - 1
@@ -966,20 +969,20 @@ def load(operator, context, filepath,
 
                 face_vert_loc_indices.append(vert_loc_index)
 
-        elif line.startswith(b's'):
+        elif line_start == b's':
             if use_smooth_groups:
-                context_smooth_group = line_value(line.split())
+                context_smooth_group = line_value(line_split)
                 if context_smooth_group == b'off':
                     context_smooth_group = None
                 elif context_smooth_group:  # is not None
                     unique_smooth_groups[context_smooth_group] = None
 
-        elif line.startswith(b'o'):
+        elif line_start == b'o':
             if use_split_objects:
-                context_object = line_value(line.split())
+                context_object = line_value(line_split)
                 # unique_obects[context_object]= None
 
-        elif line.startswith(b'g'):
+        elif line_start == b'g':
             if use_split_groups:
                 context_object = line_value(line.split())
                 # print 'context_object', context_object
@@ -991,18 +994,16 @@ def load(operator, context, filepath,
                 else:
                     context_vgroup = None  # dont assign a vgroup
 
-        elif line.startswith(b'usemtl'):
+        elif line_start == b'usemtl':
             context_material = line_value(line.split())
             unique_materials[context_material] = None
-        elif line.startswith(b'mtllib'):  # usemap or usemat
+        elif line_start == b'mtllib':  # usemap or usemat
             material_libs = list(set(material_libs) | set(line.split()[1:]))  # can have multiple mtllib filenames per line, mtllib can appear more than once, so make sure only occurance of material exists
 
             # Nurbs support
-        elif line.startswith(b'cstype '):
+        elif line_start == b'cstype':
             context_nurbs[b'cstype'] = line_value(line.split())  # 'rat bspline' / 'bspline'
-        elif line.startswith(b'curv ') or context_multi_line == b'curv':
-            line_split = line.split()
-
+        elif line_start == b'curv' or context_multi_line == b'curv':
             curv_idx = context_nurbs[b'curv_idx'] = context_nurbs.get(b'curv_idx', [])  # in case were multiline
 
             if not context_multi_line:
@@ -1022,9 +1023,7 @@ def load(operator, context, filepath,
 
                 curv_idx.append(vert_loc_index)
 
-        elif line.startswith(b'parm') or context_multi_line == b'parm':
-            line_split = line.split()
-
+        elif line_start == b'parm' or context_multi_line == b'parm':
             if context_multi_line:
                 context_multi_line = b''
             else:
@@ -1042,9 +1041,9 @@ def load(operator, context, filepath,
                 context_nurbs.setdefault(b'parm_v', []).extend([float_func(f) for f in line_split])
             # else: # may want to support other parm's ?
 
-        elif line.startswith(b'deg '):
+        elif line_start == b'deg':
             context_nurbs[b'deg'] = [int(i) for i in line.split()[1:]]
-        elif line.startswith(b'end'):
+        elif line_start == b'end':
             # Add the nurbs curve
             if context_object:
                 context_nurbs[b'name'] = context_object
@@ -1053,8 +1052,8 @@ def load(operator, context, filepath,
             context_parm = b''
 
         ''' # How to use usemap? depricated?
-        elif line.startswith(b'usema'): # usemap or usemat
-            context_image= line_value(line.split())
+        elif line_start == b'usema': # usemap or usemat
+            context_image= line_value(line_split)
         '''
 
     file.close()
