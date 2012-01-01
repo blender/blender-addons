@@ -629,7 +629,6 @@ def encode_multipart_data(data, files):
 
 def send_post(data, files):
     connection = http.client.HTTPConnection(rffi_xmlrpc_upload)
-    print("posting to ", rffi_xmlrpc_upload)
     connection.request('POST', '/burp/storage', *encode_multipart_data(data, files)) # was /file
     response = connection.getresponse()
     res = response.read()
@@ -663,11 +662,8 @@ def upload_file(key, userid, sessionid, path):
     return r
 
 def run_upload(key, userid, sessionid, path):
-    print('Upload', path)
     r = upload_file(key, userid, sessionid, path)
-    print("uploaded, now preparing for loads")
     o = xmlrpc.client.loads(r)
-    print("Done!")
     return o[0][0]
 
 def ore_upload(op, context):
@@ -681,16 +677,13 @@ def ore_upload(op, context):
         bpy.context.scene.render.engine = 'RENDERFARMFI_RENDER'
         return {'CANCELLED'}
     try:
-        print("ore_upload start")
         authproxy = xmlrpc.client.ServerProxy(rffi_xmlrpc_secure)
         res = authproxy.auth.getSessionKey(ore.username, ore.hash)
         key = res['key']
         userid = res['userId']
-        print("ore_upload authenticated")
         proxy = xmlrpc.client.ServerProxy(rffi_xmlrpc) #r'http://xmlrpc.renderfarm.fi/session')
         proxy._ServerProxy__transport.user_agent = 'Renderfarm.fi Uploader/%s' % (bpy.CURRENT_VERSION)
         res = proxy.session.createSession(userid, key)
-        print("session created", res)
         sessionid = res['sessionId']
         key = res['key']
         res = run_upload(key, userid, sessionid, bpy.data.filepath)
@@ -777,9 +770,6 @@ def xmlSessionsToOreSessions(sessions, stage=None): #, queue):
     output = []
     for session in sessions:
         s = session['title']
-        print("\n\n\n")
-        print(session)
-        print("\n\n\n")
         if stage:
             s = s + ' (' + stage + ')'
         #t = session['timestamps']
