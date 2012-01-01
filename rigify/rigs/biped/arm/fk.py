@@ -16,6 +16,8 @@
 #
 #======================= END GPL LICENSE BLOCK ========================
 
+# <pep8 compliant>
+
 import bpy
 from rigify.utils import MetarigError
 from rigify.utils import copy_bone
@@ -213,4 +215,3 @@ class Rig:
             mod.levels = 2
 
         return [uarm, farm, hand]
-

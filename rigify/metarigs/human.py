@@ -16,6 +16,8 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
+# <pep8 compliant>
+
 import bpy
 
 
@@ -1146,4 +1148,3 @@ def create(obj):
         arm.edit_bones.active = bone
 
     arm.layers = [(x in [0, 2, 4, 6, 8, 10, 12]) for x in range(0, 32)]
-

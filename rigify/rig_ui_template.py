@@ -16,6 +16,8 @@
 #
 #======================= END GPL LICENSE BLOCK ========================
 
+# <pep8 compliant>
+
 UI_SLIDERS = '''
 import bpy
 from mathutils import Matrix, Vector
@@ -543,7 +545,6 @@ class RigLayers(bpy.types.Panel):
     code += "\n        row = col.row()\n"
     code += "        row.prop(context.active_object.data, 'layers', index=28, toggle=True, text='Root')\n"
 
-
     return code
 
 
@@ -567,4 +568,3 @@ def unregister():
 
 register()
 '''
-

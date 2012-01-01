@@ -16,6 +16,8 @@
 #
 #======================= END GPL LICENSE BLOCK ========================
 
+# <pep8 compliant>
+
 import bpy
 from mathutils import Vector
 from math import pi, acos
@@ -335,4 +337,3 @@ class Rig:
             mod.levels = 2
 
         return [uarm, farm, hand, pole]
-

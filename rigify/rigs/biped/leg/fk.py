@@ -16,6 +16,8 @@
 #
 #======================= END GPL LICENSE BLOCK ========================
 
+# <pep8 compliant>
+
 import bpy
 from mathutils import Vector
 from rigify.utils import MetarigError
@@ -251,4 +253,3 @@ class Rig:
             mod.levels = 2
 
         return [thigh, shin, foot, foot_mch]
-

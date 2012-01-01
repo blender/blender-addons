@@ -16,6 +16,8 @@
 #
 #======================= END GPL LICENSE BLOCK ========================
 
+# <pep8 compliant>
+
 """ TODO:
     - Add parameters for bone transform alphas.
 """
@@ -71,8 +73,8 @@ class Rig:
         self.control_indices.sort()
 
         self.pivot_rest = self.params.rest_pivot_slide
-        self.pivot_rest = max(self.pivot_rest, 1.0/len(self.org_bones))
-        self.pivot_rest = min(self.pivot_rest, 1.0-(1.0/len(self.org_bones)))
+        self.pivot_rest = max(self.pivot_rest, 1.0 / len(self.org_bones))
+        self.pivot_rest = min(self.pivot_rest, 1.0 - (1.0 / len(self.org_bones)))
 
         if len(self.org_bones) <= 1:
             raise MetarigError("RIGIFY ERROR: Bone '%s': input to rig type must be a chain of 2 or more bones" % (strip_org(bone_name)))
@@ -531,7 +533,6 @@ class Rig:
         group.spine_main_control_name = bpy.props.StringProperty(name="Main control name", default="torso", description="Name that the main control bone should be given")
         group.rest_pivot_slide = bpy.props.FloatProperty(name="Rest Pivot Slide", default=0.0, min=0.0, max=1.0, soft_min=0.0, soft_max=1.0, description="The pivot slide value in the rest pose")
         group.chain_bone_controls = bpy.props.StringProperty(name="Control bone list", default="", description="Define which bones have controls")
-
 
     @classmethod
     def parameters_ui(self, layout, obj, bone):

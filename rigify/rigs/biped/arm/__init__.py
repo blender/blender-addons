@@ -16,6 +16,8 @@
 #
 #======================= END GPL LICENSE BLOCK ========================
 
+# <pep8 compliant>
+
 import bpy
 import imp
 from . import fk, ik, deform
@@ -231,4 +233,3 @@ class Rig:
             bone.select_head = True
             bone.select_tail = True
             arm.edit_bones.active = bone
-

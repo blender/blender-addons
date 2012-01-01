@@ -16,6 +16,8 @@
 #
 #======================= END GPL LICENSE BLOCK ========================
 
+# <pep8 compliant>
+
 import bpy
 from math import acos
 from rigify.utils import MetarigError
@@ -158,4 +160,3 @@ def set_mat(obj, bone_name, matrix):
         a.roll = roll_1
     else:
         a.roll = roll_2
-

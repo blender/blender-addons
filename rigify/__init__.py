@@ -16,6 +16,8 @@
 #
 #======================= END GPL LICENSE BLOCK ========================
 
+# <pep8 compliant>
+
 bl_info = {
     "name": "Rigify",
     "author": "Nathan Vegdahl",
@@ -24,10 +26,10 @@ bl_info = {
     "location": "View3D > Add > Armature",
     "description": "Adds various Rig Templates",
     "location": "Armature properties",
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"\
-        "Scripts/Rigging/Rigify",
-    "tracker_url": "http://projects.blender.org/tracker/index.php?"\
-        "func=detail&aid=25546",
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"
+                "Scripts/Rigging/Rigify",
+    "tracker_url": "http://projects.blender.org/tracker/index.php?"
+                   "func=detail&aid=25546",
     "category": "Rigging"}
 
 

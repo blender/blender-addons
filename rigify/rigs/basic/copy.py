@@ -16,6 +16,8 @@
 #
 #======================= END GPL LICENSE BLOCK ========================
 
+# <pep8 compliant>
+
 import bpy
 from rigify.utils import copy_bone
 from rigify.utils import strip_org, make_deformer_name
@@ -88,7 +90,6 @@ class Rig:
         group.make_control = bpy.props.BoolProperty(name="Control", default=True, description="Create a control bone for the copy")
         group.make_deform = bpy.props.BoolProperty(name="Deform", default=True, description="Create a deform bone for the copy")
 
-
     @classmethod
     def parameters_ui(self, layout, obj, bone):
         """ Create the ui for the rig parameters.
@@ -139,4 +140,3 @@ class Rig:
             bone.select_head = True
             bone.select_tail = True
             arm.edit_bones.active = bone
-

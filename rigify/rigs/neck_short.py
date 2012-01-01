@@ -16,6 +16,8 @@
 #
 #======================= END GPL LICENSE BLOCK ========================
 
+# <pep8 compliant>
+
 import bpy
 from rigify.utils import MetarigError
 from rigify.utils import copy_bone, new_bone, put_bone
@@ -388,4 +390,3 @@ class Rig:
             bone.select_head = True
             bone.select_tail = True
             arm.edit_bones.active = bone
-

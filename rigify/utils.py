@@ -16,6 +16,8 @@
 #
 #======================= END GPL LICENSE BLOCK ========================
 
+# <pep8 compliant>
+
 import bpy
 import imp
 import random
@@ -358,6 +360,7 @@ def create_compass_widget(rig, bone_name):
         mesh.from_pydata(verts, edges, [])
         mesh.update()
 
+
 def create_root_widget(rig, bone_name):
     """ Creates a widget for the root bone.
     """
@@ -536,7 +539,7 @@ def write_metarig(obj, layers=False, func_name="create_sample"):
     return "\n".join(code)
 
 
-def random_id(length = 8):
+def random_id(length=8):
     """ Generates a random alphanumeric id string.
     """
     tlength = int(length / 2)
@@ -548,4 +551,3 @@ def random_id(length = 8):
         text += random.choice(chars)
     text += str(hex(int(time.time())))[2:][-tlength:].rjust(tlength, '0')[::-1]
     return text
-

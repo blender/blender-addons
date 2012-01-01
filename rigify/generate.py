@@ -16,6 +16,8 @@
 #
 #======================= END GPL LICENSE BLOCK ========================
 
+# <pep8 compliant>
+
 import bpy
 import re
 import time
@@ -166,7 +168,7 @@ def generate_rig(context, metarig):
                                 getattr(bone.rigify_parameters[0], prop))
                     except AttributeError:
                         print("FAILED TO COPY PARAMETER: " + str(prop))
-        
+
         # Custom properties
         for prop in bone.keys():
             try:

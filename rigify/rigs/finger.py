@@ -16,6 +16,8 @@
 #
 #======================= END GPL LICENSE BLOCK ========================
 
+# <pep8 compliant>
+
 import bpy
 from mathutils import Vector
 from rigify.utils import MetarigError
@@ -408,4 +410,3 @@ class Rig:
             bone.select_head = True
             bone.select_tail = True
             arm.edit_bones.active = bone
-

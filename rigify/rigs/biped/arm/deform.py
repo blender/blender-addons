@@ -16,6 +16,8 @@
 #
 #======================= END GPL LICENSE BLOCK ========================
 
+# <pep8 compliant>
+
 import bpy
 from math import acos
 from mathutils import Vector, Matrix
@@ -227,4 +229,3 @@ class Rig:
             con.name = "track_to"
             con.target = self.obj
             con.subtarget = ftip
-
