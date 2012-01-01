@@ -54,9 +54,7 @@ def get_pose_matrix_in_other_space(mat, pose_bone):
     # Compensate for non-local location
     #if not pose_bone.bone.use_local_location:
     #    loc = smat.to_translation() * (par_rest.inverted() * rest).to_quaternion()
-    #    smat[3][0] = loc[0]
-    #    smat[3][1] = loc[1]
-    #    smat[3][2] = loc[2]
+    #    smat.translation = loc
 
     return smat
 
