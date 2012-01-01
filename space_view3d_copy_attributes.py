@@ -407,6 +407,7 @@ def obGrp(ob, active, context):
             grp.objects.link(ob)
     return('INFO', "groups copied")
 
+
 def obWei(ob, active, context):
     me_source = active.data
     me_target = ob.data
@@ -452,7 +453,7 @@ def obWei(ob, active, context):
                                    vgroupIndex_weight[i][1], "REPLACE")
     return('INFO', "weights copied")
 
-object_copies = (#('obj_loc', "Location",
+object_copies = ( # ('obj_loc', "Location",
                 #"Copy Location from Active to Selected", obLoc),
                 #('obj_rot', "Rotation",
                 #"Copy Rotation from Active to Selected", obRot),
@@ -502,6 +503,7 @@ object_copies = (#('obj_loc', "Location",
                 "Copy vertex weights based on indices", obWei),
                 ('obj_grp', "Group Links",
                 "Copy selected into active object's groups", obGrp))
+
 
 @classmethod
 def object_poll_func(cls, context):
