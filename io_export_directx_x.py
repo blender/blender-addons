@@ -236,10 +236,10 @@ def WriteRootFrame(Config):
     
     Config.File.write("{}FrameTransformMatrix {{\n".format("  " * Config.Whitespace))
     Config.Whitespace += 1
-    Config.File.write("{}{:9f},{:9f},{:9f},{:9f},\n".format("  " * Config.Whitespace, Config.SystemMatrix[0][0], Config.SystemMatrix[0][1], Config.SystemMatrix[0][2], Config.SystemMatrix[0][3]))
-    Config.File.write("{}{:9f},{:9f},{:9f},{:9f},\n".format("  " * Config.Whitespace, Config.SystemMatrix[1][0], Config.SystemMatrix[1][1], Config.SystemMatrix[1][2], Config.SystemMatrix[1][3]))
-    Config.File.write("{}{:9f},{:9f},{:9f},{:9f},\n".format("  " * Config.Whitespace, Config.SystemMatrix[2][0], Config.SystemMatrix[2][1], Config.SystemMatrix[2][2], Config.SystemMatrix[2][3]))
-    Config.File.write("{}{:9f},{:9f},{:9f},{:9f};;\n".format("  " * Config.Whitespace, Config.SystemMatrix[3][0], Config.SystemMatrix[3][1], Config.SystemMatrix[3][2], Config.SystemMatrix[3][3]))
+    Config.File.write("{}{:9f},{:9f},{:9f},{:9f},\n".format("  " * Config.Whitespace, Config.SystemMatrix[0][0], Config.SystemMatrix[1][0], Config.SystemMatrix[2][0], Config.SystemMatrix[3][0]))
+    Config.File.write("{}{:9f},{:9f},{:9f},{:9f},\n".format("  " * Config.Whitespace, Config.SystemMatrix[0][1], Config.SystemMatrix[1][1], Config.SystemMatrix[2][1], Config.SystemMatrix[3][1]))
+    Config.File.write("{}{:9f},{:9f},{:9f},{:9f},\n".format("  " * Config.Whitespace, Config.SystemMatrix[0][2], Config.SystemMatrix[1][2], Config.SystemMatrix[2][2], Config.SystemMatrix[3][2]))
+    Config.File.write("{}{:9f},{:9f},{:9f},{:9f};;\n".format("  " * Config.Whitespace, Config.SystemMatrix[0][3], Config.SystemMatrix[1][3], Config.SystemMatrix[2][3], Config.SystemMatrix[3][3]))
     Config.Whitespace -= 1
     Config.File.write("{}}}\n".format("  " * Config.Whitespace))
 
@@ -313,10 +313,10 @@ def WriteLocalMatrix(Config, Object):
 
     Config.File.write("{}FrameTransformMatrix {{\n".format("  " * Config.Whitespace))
     Config.Whitespace += 1
-    Config.File.write("{}{:9f},{:9f},{:9f},{:9f},\n".format("  " * Config.Whitespace, LocalMatrix[0][0], LocalMatrix[0][1], LocalMatrix[0][2], LocalMatrix[0][3]))
-    Config.File.write("{}{:9f},{:9f},{:9f},{:9f},\n".format("  " * Config.Whitespace, LocalMatrix[1][0], LocalMatrix[1][1], LocalMatrix[1][2], LocalMatrix[1][3]))
-    Config.File.write("{}{:9f},{:9f},{:9f},{:9f},\n".format("  " * Config.Whitespace, LocalMatrix[2][0], LocalMatrix[2][1], LocalMatrix[2][2], LocalMatrix[2][3]))
-    Config.File.write("{}{:9f},{:9f},{:9f},{:9f};;\n".format("  " * Config.Whitespace, LocalMatrix[3][0], LocalMatrix[3][1], LocalMatrix[3][2], LocalMatrix[3][3]))
+    Config.File.write("{}{:9f},{:9f},{:9f},{:9f},\n".format("  " * Config.Whitespace, LocalMatrix[0][0], LocalMatrix[1][0], LocalMatrix[2][0], LocalMatrix[3][0]))
+    Config.File.write("{}{:9f},{:9f},{:9f},{:9f},\n".format("  " * Config.Whitespace, LocalMatrix[0][1], LocalMatrix[1][1], LocalMatrix[2][1], LocalMatrix[3][1]))
+    Config.File.write("{}{:9f},{:9f},{:9f},{:9f},\n".format("  " * Config.Whitespace, LocalMatrix[0][2], LocalMatrix[1][2], LocalMatrix[2][2], LocalMatrix[3][2]))
+    Config.File.write("{}{:9f},{:9f},{:9f},{:9f};;\n".format("  " * Config.Whitespace, LocalMatrix[0][3], LocalMatrix[1][3], LocalMatrix[2][3], LocalMatrix[3][3]))
     Config.Whitespace -= 1
     Config.File.write("{}}}\n".format("  " * Config.Whitespace))
 
@@ -340,10 +340,10 @@ def WriteArmatureBones(Config, Object, ChildList):
         
         Config.File.write("{}FrameTransformMatrix {{\n".format("  " * Config.Whitespace))
         Config.Whitespace += 1
-        Config.File.write("{}{:9f},{:9f},{:9f},{:9f},\n".format("  " * Config.Whitespace, BoneMatrix[0][0], BoneMatrix[0][1], BoneMatrix[0][2], BoneMatrix[0][3]))
-        Config.File.write("{}{:9f},{:9f},{:9f},{:9f},\n".format("  " * Config.Whitespace, BoneMatrix[1][0], BoneMatrix[1][1], BoneMatrix[1][2], BoneMatrix[1][3]))
-        Config.File.write("{}{:9f},{:9f},{:9f},{:9f},\n".format("  " * Config.Whitespace, BoneMatrix[2][0], BoneMatrix[2][1], BoneMatrix[2][2], BoneMatrix[2][3]))
-        Config.File.write("{}{:9f},{:9f},{:9f},{:9f};;\n".format("  " * Config.Whitespace, BoneMatrix[3][0], BoneMatrix[3][1], BoneMatrix[3][2], BoneMatrix[3][3]))
+        Config.File.write("{}{:9f},{:9f},{:9f},{:9f},\n".format("  " * Config.Whitespace, BoneMatrix[0][0], BoneMatrix[1][0], BoneMatrix[2][0], BoneMatrix[3][0]))
+        Config.File.write("{}{:9f},{:9f},{:9f},{:9f},\n".format("  " * Config.Whitespace, BoneMatrix[0][1], BoneMatrix[1][1], BoneMatrix[2][1], BoneMatrix[3][1]))
+        Config.File.write("{}{:9f},{:9f},{:9f},{:9f},\n".format("  " * Config.Whitespace, BoneMatrix[0][2], BoneMatrix[1][2], BoneMatrix[2][2], BoneMatrix[3][2]))
+        Config.File.write("{}{:9f},{:9f},{:9f},{:9f};;\n".format("  " * Config.Whitespace, BoneMatrix[0][3], BoneMatrix[1][3], BoneMatrix[2][3], BoneMatrix[3][3]))
         Config.Whitespace -= 1
         Config.File.write("{}}}\n".format("  " * Config.Whitespace))
 
@@ -655,10 +655,10 @@ def WriteMeshSkinWeights(Config, Object, Mesh):
             BoneMatrix *= ArmatureObject.matrix_world.inverted()
             BoneMatrix *= Object.matrix_world
             
-            Config.File.write("{}{:9f},{:9f},{:9f},{:9f},\n".format("  " * Config.Whitespace, BoneMatrix[0][0], BoneMatrix[0][1], BoneMatrix[0][2], BoneMatrix[0][3]))
-            Config.File.write("{}{:9f},{:9f},{:9f},{:9f},\n".format("  " * Config.Whitespace, BoneMatrix[1][0], BoneMatrix[1][1], BoneMatrix[1][2], BoneMatrix[1][3]))
-            Config.File.write("{}{:9f},{:9f},{:9f},{:9f},\n".format("  " * Config.Whitespace, BoneMatrix[2][0], BoneMatrix[2][1], BoneMatrix[2][2], BoneMatrix[2][3]))
-            Config.File.write("{}{:9f},{:9f},{:9f},{:9f};;\n".format("  " * Config.Whitespace, BoneMatrix[3][0], BoneMatrix[3][1], BoneMatrix[3][2], BoneMatrix[3][3]))
+            Config.File.write("{}{:9f},{:9f},{:9f},{:9f},\n".format("  " * Config.Whitespace, BoneMatrix[0][0], BoneMatrix[1][0], BoneMatrix[2][0], BoneMatrix[3][0]))
+            Config.File.write("{}{:9f},{:9f},{:9f},{:9f},\n".format("  " * Config.Whitespace, BoneMatrix[0][1], BoneMatrix[1][1], BoneMatrix[2][1], BoneMatrix[3][1]))
+            Config.File.write("{}{:9f},{:9f},{:9f},{:9f},\n".format("  " * Config.Whitespace, BoneMatrix[0][2], BoneMatrix[1][2], BoneMatrix[2][2], BoneMatrix[3][2]))
+            Config.File.write("{}{:9f},{:9f},{:9f},{:9f};;\n".format("  " * Config.Whitespace, BoneMatrix[0][3], BoneMatrix[1][3], BoneMatrix[2][3], BoneMatrix[3][3]))
             Config.Whitespace -= 1
             Config.File.write("{}}}  //End of {} Skin Weights\n".format("  " * Config.Whitespace, LegalName(ArmatureObject.name) + "_" + LegalName(Bone.name)))
 
