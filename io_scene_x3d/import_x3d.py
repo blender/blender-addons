@@ -1414,15 +1414,7 @@ for i, f in enumerate(files):
 # -----------------------------------------------------------------------------------
 import bpy
 from bpy_extras import image_utils
-# import BPyImage
-# import BPySys
-# reload(BPySys)
-# reload(BPyImage)
-# import Blender
-# from Blender import Texture, Material, Mathutils, Mesh, Types, Window
 from mathutils import Vector, Matrix
-
-RAD_TO_DEG = 57.29578
 
 GLOBALS = {'CIRCLE_DETAIL': 16}
 

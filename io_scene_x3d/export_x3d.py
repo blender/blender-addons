@@ -1164,7 +1164,7 @@ def export(file,
                 elif uniform['type'] == gpu.GPU_DYNAMIC_OBJECT_IMAT:
                     frag_uniform_var_map[uniform['varname']] = None
                     if uniform['datatype'] == gpu.GPU_DATA_16F:
-                        value = ' '.join(['%.6f' % f for v in (global_matrix * obj.matrix_world).inverted() for f in v])
+                        value = ' '.join(['%.6f' % f for v in (global_matrix * obj.matrix_world).inverted().transposed() for f in v])
                         field_descr = " <!--- Object Invertex Matrix '%s' -->" % obj.name
                         fw('%s<field name="%s" type="SFMatrix4f" accessType="inputOutput" value="%s" />%s\n' % (ident, uniform['varname'], value, field_descr))
                     else:
