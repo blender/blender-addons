@@ -446,9 +446,9 @@ def pskimport(infile,importmesh,importbone,bDebugLogPSK,importmultiuvtextures):
                     newbone.head.y = parentbone.head.y + pos_y
                     newbone.head.z = parentbone.head.z + pos_z
                     #print("head:",newbone.head)
-                    newbone.tail.x = parentbone.head.x + (pos_x + bonesize * rotmatrix[1][0])
+                    newbone.tail.x = parentbone.head.x + (pos_x + bonesize * rotmatrix[0][1])
                     newbone.tail.y = parentbone.head.y + (pos_y + bonesize * rotmatrix[1][1])
-                    newbone.tail.z = parentbone.head.z + (pos_z + bonesize * rotmatrix[1][2])
+                    newbone.tail.z = parentbone.head.z + (pos_z + bonesize * rotmatrix[2][1])
                     #newbone.roll = fixRoll(newbone)
                 else:
                     #print("rotmatrix:",dir(bone.bindmat.to_matrix().resize_4x4()))
@@ -458,9 +458,9 @@ def pskimport(infile,importmesh,importbone,bDebugLogPSK,importmultiuvtextures):
                     newbone.head.x = bone.bindpos[0]
                     newbone.head.y = bone.bindpos[1]
                     newbone.head.z = bone.bindpos[2]
-                    newbone.tail.x = bone.bindpos[0] + bonesize * rotmatrix[1][0]
+                    newbone.tail.x = bone.bindpos[0] + bonesize * rotmatrix[0][1]
                     newbone.tail.y = bone.bindpos[1] + bonesize * rotmatrix[1][1]
-                    newbone.tail.z = bone.bindpos[2] + bonesize * rotmatrix[1][2]
+                    newbone.tail.z = bone.bindpos[2] + bonesize * rotmatrix[2][1]
                     #newbone.roll = fixRoll(newbone)
                     #print("no parent")
             
