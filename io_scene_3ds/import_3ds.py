@@ -617,7 +617,7 @@ def process_next_chunk(file, previous_chunk, importedObjects, IMAGE_SEARCH):
                                                   data[3:6] + [0],
                                                   data[6:9] + [0],
                                                   data[9:] + [1],
-                                                  ))
+                                                  )).transposed()
 
         elif  (new_chunk.ID == MAT_MAP_FILEPATH):
             texture_name, read_str_len = read_string(file)

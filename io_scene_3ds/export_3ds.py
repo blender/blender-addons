@@ -713,7 +713,7 @@ def make_uv_chunk(uv_array):
 
 def make_matrix_4x3_chunk(matrix):
     matrix_chunk = _3ds_chunk(OBJECT_TRANS_MATRIX)
-    for vec in matrix:
+    for vec in matrix.col:
         for f in vec[:3]:
             matrix_chunk.add_variable("matrix_f", _3ds_float(f))
     return matrix_chunk
