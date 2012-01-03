@@ -19,12 +19,13 @@
 bl_info = {
     'name': 'Import Autocad DXF Format (.dxf)',
     'author': 'Thomas Larsson, Remigiusz Fiedler',
-    'version': (0, 1, 5),
-    "blender": (2, 6, 0),
-    "api": 40791,
+    'version': (0, 1, 6),
+    "blender": (2, 6, 1),
+    "api": 42615,
     'location': 'File > Import > Autocad (.dxf)',
     'description': 'Import files in the Autocad DXF format (.dxf)',
-    'warning': 'Only subset of DXF specification is supported, work in progress.',
+    'warning': 'Only a subset of DXF specification is supported now.'\
+        ' Please support further development!',
     'wiki_url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/'\
         'Scripts/Import-Export/DXF_Importer',
     'tracker_url': 'https://projects.blender.org/tracker/index.php?'\
@@ -48,16 +49,18 @@ Script supports only a small part of DXF specification:
 - ignores COLOR, LINEWIDTH, LINESTYLE
 
 This script is a temporary solution.
-Probably no more improvements will be done to this script.
-The full-feature importer script from 2.49 will be back in 2.6 release.
+No functionality improvements are planed for this version.
+The advanced importer from 2.49 will replace it in the future.
 
 Installation:
 Place this file to Blender addons directory
   (on Windows it is %Blender_directory%\2.53\scripts\addons\)
-You must activate the script in the "Addons" tab (user preferences).
+The script must activated in "Addons" tab (user preferences).
 Access it from File > Import menu.
 
 History:
+ver 0.1.6 - 2012.01.03 by migius and trumanblending for r.42615
+- modified for recent changes to matrix indexing
 ver 0.1.5 - 2011.02.05 by migius for r.34661
 - changed support level to OFFICIAL
 - fixed missing last point at building Mesh-ARCs (by pildanovak)
@@ -311,7 +314,7 @@ class CArc(CEntity):
             ma = getOCS(self.normal)
             if ma:
                 #ma.invert()
-                points = [ma * v for v in points]
+                points = [v * ma for v in points]
         #print ('arc vn=', vn)
         #print ('faces=', len(faces))
         return ((points, edges, faces, vn))
@@ -520,7 +523,7 @@ class CCircle(CEntity):
             ma = getOCS(self.normal)
             if ma:
                 #ma.invert()
-                points = [ma * v for v in points]
+                points = [v * ma for v in points]
         #print ('cir vn=', vn)
         #print ('faces=',len(faces))
         return( (points, edges, faces, vn) )
@@ -626,7 +629,7 @@ class CEllipse(CEntity):
             ma = getOCS(self.normal)
             if ma:
                 #ma.invert()
-                points = [ma * v for v in points]
+                points = [v * ma for v in points]
         return ((points, edges, faces, vn))
 
 #
@@ -810,7 +813,7 @@ class CLWPolyLine(CEntity):
             ma = getOCS(self.normal)
             if ma:
                 #ma.invert()
-                verts = [ma * v for v in verts]
+                verts = [v * ma for v in verts]
         return (verts, edges, [], vn-1)
         
 #
@@ -1018,7 +1021,7 @@ class CPolyLine(CEntity):
         if self.normal!=Vector((0,0,1)):
             ma = getOCS(self.normal)
             if ma:
-                verts = [ma * v for v in verts]
+                verts = [v * ma for v in verts]
         return((verts, lines, [], vn-1))
 
 #
@@ -1182,7 +1185,7 @@ class CSolid(CEntity):
         if self.normal!=Vector((0,0,1)):
             ma = getOCS(self.normal)
             if ma:
-                points = [ma * v for v in points]
+                points = [v * ma for v in points]
         return((points, edges, faces, vn))
         
 #
@@ -1315,7 +1318,7 @@ class CTrace(CEntity):
         if self.normal!=Vector((0,0,1)):
             ma = getOCS(self.normal)
             if ma:
-                points = [ma * v for v in points]
+                points = [v * ma for v in points]
         return ((points, edges, faces, vn))
 
 #
@@ -1402,7 +1405,7 @@ def getOCS(az):  #--------------------------------------------------------------
         if az.z > 0.0:
             return False
         elif az.z < 0.0:
-            return Matrix((-WORLDX, WORLDY*1, -WORLDZ))
+            return Matrix((-WORLDX, WORLDY*1, -WORLDZ)).transposed()
 
     cap = 0.015625 # square polar cap value (1/64.0)
     if abs(az.x) < cap and abs(az.y) < cap:
@@ -1420,13 +1423,12 @@ def getOCS(az):  #--------------------------------------------------------------
 def transform(normal, rotation, obj):  #--------------------------------------------
     """Use the calculated ocs to determine the objects location/orientation in space.
     """
-    ma = Matrix()
+    ma = Matrix().resize_4x4()
     o = Vector(obj.location)
     ma_new = getOCS(normal)
     if ma_new:
-        ma = ma_new
-        ma.resize_4x4()
-        o = ma * o
+        ma = ma_new.resize_4x4()
+        o = o * ma
 
     if rotation != 0:
         g = radians(rotation)
