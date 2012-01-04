@@ -774,7 +774,7 @@ def xmlSessionsToOreSessions(sessions, stage=None): #, queue):
             s = s + ' (' + stage + ')'
         #t = session['timestamps']
         sinfo = OreSession(session['sessionId'], s) 
-        if stage in ('Completed', 'Active'):
+        if stage in {'Completed', 'Active'}:
             sinfo.frames = session['framesRendered']
         sinfo.startframe = session['startFrame']
         sinfo.endframe = session['endFrame']

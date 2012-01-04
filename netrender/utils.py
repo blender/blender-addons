@@ -88,7 +88,7 @@ else:
         def __exit__(self, exc_type, exc_value, traceback):
             pass
 
-if system in ('Windows', 'win32') and platform.version() >= '5': # Error mode is only available on Win2k or higher, that's version 5
+if system in {'Windows', 'win32'} and platform.version() >= '5': # Error mode is only available on Win2k or higher, that's version 5
     import ctypes
     class NoErrorDialogContext:
         def __init__(self):
@@ -189,9 +189,9 @@ def clientScan(report = None):
 def clientConnection(address, port, report = None, scan = True, timeout = 5):
     if address == "[default]":
 #            calling operator from python is fucked, scene isn't in context
-#			if bpy:
-#				bpy.ops.render.netclientscan()
-#			else:
+#            if bpy:
+#                bpy.ops.render.netclientscan()
+#            else:
         if not scan:
             return None
 

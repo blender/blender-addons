@@ -56,6 +56,3 @@ class CursorAccess:
     def getCursor(cls):
         spc = cls.findSpace()
         return spc.cursor_location
-
-
-
