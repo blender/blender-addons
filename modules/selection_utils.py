@@ -16,6 +16,11 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
+# <pep8-80 compliant>
+
+# Contributors: Mackraken, Andrew Hale (TrumanBlending)
+# Adapted from Mackraken's "Tools for Curves" addon
+
 import bpy
 
 selected = []
