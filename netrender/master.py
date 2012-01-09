@@ -20,6 +20,7 @@ import sys, os
 import http, http.client, http.server, socket, socketserver
 import shutil, time, hashlib
 import pickle
+import zipfile
 import select # for select.error
 import json
 
@@ -131,7 +132,7 @@ class MRenderJob(netrender.model.RenderJob):
 
     def testFinished(self):
         for f in self.frames:
-            if f.status == QUEUED or f.status == DISPATCHED:
+            if f.status == FRAME_QUEUED or f.status == FRAME_DISPATCHED:
                 break
         else:
             self.status = JOB_FINISHED
@@ -175,13 +176,16 @@ class MRenderJob(netrender.model.RenderJob):
     def getFrames(self):
         frames = []
         for f in self.frames:
-            if f.status == QUEUED:
+            if f.status == FRAME_QUEUED:
                 self.last_dispatched = time.time()
                 frames.append(f)
                 if len(frames) >= self.chunks:
                     break
 
         return frames
+    
+    def getResultPath(self, filename):
+        return os.path.join(self.save_path, filename)
 
 class MRenderFrame(netrender.model.RenderFrame):
     def __init__(self, frame, command):
@@ -189,17 +193,23 @@ class MRenderFrame(netrender.model.RenderFrame):
         self.number = frame
         self.slave = None
         self.time = 0
-        self.status = QUEUED
+        self.status = FRAME_QUEUED
         self.command = command
 
         self.log_path = None
 
+    def addDefaultRenderResult(self):
+        self.results.append(self.getRenderFilename())
+
+    def getRenderFilename(self):
+        return "%06d.exr" % self.number
+
     def reset(self, all):
-        if all or self.status == ERROR:
+        if all or self.status == FRAME_ERROR:
             self.log_path = None
             self.slave = None
             self.time = 0
-            self.status = QUEUED
+            self.status = FRAME_QUEUED
 
 
 # -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -208,6 +218,7 @@ class MRenderFrame(netrender.model.RenderFrame):
 # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 file_pattern = re.compile("/file_([a-zA-Z0-9]+)_([0-9]+)")
 render_pattern = re.compile("/render_([a-zA-Z0-9]+)_([0-9]+).exr")
+result_pattern = re.compile("/result_([a-zA-Z0-9]+).zip")
 thumb_pattern = re.compile("/thumb_([a-zA-Z0-9]+)_([0-9]+).jpg")
 log_pattern = re.compile("/log_([a-zA-Z0-9]+)_([0-9]+).log")
 reset_pattern = re.compile("/reset(all|)_([a-zA-Z0-9]+)_([0-9]+)")
@@ -295,22 +306,54 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
                     frame = job[frame_number]
 
                     if frame:
-                        if frame.status in (QUEUED, DISPATCHED):
+                        if frame.status in (FRAME_QUEUED, FRAME_DISPATCHED):
                             self.send_head(http.client.ACCEPTED)
-                        elif frame.status == DONE:
+                        elif frame.status == FRAME_DONE:
                             self.server.stats("", "Sending result to client")
 
-                            filename = os.path.join(job.save_path, "%06d.exr" % frame_number)
+                            filename = job.getResultPath(frame.getRenderFilename())
 
                             f = open(filename, 'rb')
                             self.send_head(content = "image/x-exr")
                             shutil.copyfileobj(f, self.wfile)
                             f.close()
-                        elif frame.status == ERROR:
+                        elif frame.status == FRAME_ERROR:
                             self.send_head(http.client.PARTIAL_CONTENT)
                     else:
                         # no such frame
                         self.send_head(http.client.NO_CONTENT)
+                else:
+                    # no such job id
+                    self.send_head(http.client.NO_CONTENT)
+            else:
+                # invalid url
+                self.send_head(http.client.NO_CONTENT)
+        # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+        elif self.path.startswith("/result"):
+            match = result_pattern.match(self.path)
+
+            if match:
+                job_id = match.groups()[0]
+
+                job = self.server.getJobID(job_id)
+
+                if job:
+                    self.server.stats("", "Sending result to client")
+
+                    zip_filepath = job.getResultPath("results.zip")
+                    with zipfile.ZipFile(zip_filepath, "w") as zfile:
+                        for frame in job.frames:
+                            if frame.status == FRAME_DONE:
+                                for filename in frame.results:
+                                    filepath = job.getResultPath(filename)
+                                    
+                                    zfile.write(filepath, filename)
+                                    
+                    
+                    f = open(zip_filepath, 'rb')
+                    self.send_head(content = "application/x-zip-compressed")
+                    shutil.copyfileobj(f, self.wfile)
+                    f.close()
                 else:
                     # no such job id
                     self.send_head(http.client.NO_CONTENT)
@@ -331,10 +374,10 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
                     frame = job[frame_number]
 
                     if frame:
-                        if frame.status in (QUEUED, DISPATCHED):
+                        if frame.status in (FRAME_QUEUED, FRAME_DISPATCHED):
                             self.send_head(http.client.ACCEPTED)
-                        elif frame.status == DONE:
-                            filename = os.path.join(job.save_path, "%06d.exr" % frame_number)
+                        elif frame.status == FRAME_DONE:
+                            filename = job.getResultPath(frame.getRenderFilename())
 
                             thumbname = thumbnail.generate(filename)
 
@@ -346,7 +389,7 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
                             else: # thumbnail couldn't be generated
                                 self.send_head(http.client.PARTIAL_CONTENT)
                                 return
-                        elif frame.status == ERROR:
+                        elif frame.status == FRAME_ERROR:
                             self.send_head(http.client.PARTIAL_CONTENT)
                     else:
                         # no such frame
@@ -371,7 +414,7 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
                     frame = job[frame_number]
 
                     if frame:
-                        if not frame.log_path or frame.status in (QUEUED, DISPATCHED):
+                        if not frame.log_path or frame.status in (FRAME_QUEUED, FRAME_DISPATCHED):
                             self.send_head(http.client.PROCESSING)
                         else:
                             self.server.stats("", "Sending log to client")
@@ -440,7 +483,7 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
                 if job and frames:
                     for f in frames:
                         print("dispatch", f.number)
-                        f.status = DISPATCHED
+                        f.status = FRAME_DISPATCHED
                         f.slave = slave
 
                     slave.job = job
@@ -790,10 +833,11 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
                         self.send_head(content = None)
 
                         if job.hasRenderResult():
-                            if job_result == DONE:
-                                self.write_file(os.path.join(job.save_path, "%06d.exr" % job_frame))
+                            if job_result == FRAME_DONE:
+                                frame.addDefaultRenderResult()
+                                self.write_file(job.getResultPath(frame.getRenderFilename()))
 
-                            elif job_result == ERROR:
+                            elif job_result == FRAME_ERROR:
                                 # blacklist slave on this job on error
                                 # slaves might already be in blacklist if errors on the whole chunk
                                 if not slave.id in job.blacklist:
@@ -806,6 +850,50 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
 
                         job.testFinished()
 
+                    else: # frame not found
+                        self.send_head(http.client.NO_CONTENT)
+                else: # job not found
+                    self.send_head(http.client.NO_CONTENT)
+            else: # invalid slave id
+                self.send_head(http.client.NO_CONTENT)
+        # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+        elif self.path == "/result":
+            self.server.stats("", "Receiving job result")
+
+            slave_id = self.headers['slave-id']
+
+            slave = self.server.getSeenSlave(slave_id)
+
+            if slave: # only if slave id is valid
+                job_id = self.headers['job-id']
+
+                job = self.server.getJobID(job_id)
+
+                if job:
+                    job_frame = int(self.headers['job-frame'])
+
+                    frame = job[job_frame]
+
+                    if frame:
+                        job_result = int(self.headers['job-result'])
+                        job_finished = self.headers['job-finished'] == str(True)
+                        
+                        self.send_head(content = None)
+
+                        if job_result == FRAME_DONE:
+                            result_filename = self.headers['result-filename']
+                            
+                            frame.results.append(result_filename)
+                            self.write_file(job.getResultPath(result_filename))
+                            
+                        if job_finished:
+                            job_time = float(self.headers['job-time'])
+                            slave.finishedFrame(job_frame)
+    
+                            frame.status = job_result
+                            frame.time = job_time
+
+                            job.testFinished()
                     else: # frame not found
                         self.send_head(http.client.NO_CONTENT)
                 else: # job not found
@@ -953,7 +1041,7 @@ class RenderMasterServer(socketserver.ThreadingMixIn, http.server.HTTPServer):
 
                 if slave.job:
                     for f in slave.job_frames:
-                        slave.job[f].status = ERROR
+                        slave.job[f].status = FRAME_ERROR
 
         for slave in removed:
             self.removeSlave(slave)

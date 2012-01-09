@@ -30,11 +30,6 @@ VERSION = b"0.3"
 
 PATH_PREFIX = "/tmp/"
 
-QUEUED = 0
-DISPATCHED = 1
-DONE = 2
-ERROR = 3
-
 LAST_ADDRESS_TEST = 0
 ADDRESS_TEST_TIMEOUT = 30
 
@@ -207,7 +202,7 @@ class RENDER_PT_network_job(NetRenderButtonsPanel, bpy.types.Panel):
         if netsettings.server_address != "[default]":
             layout.operator("render.netclientanim", icon='RENDER_ANIMATION')
             layout.operator("render.netclientsend", icon='FILE_BLEND')
-            #layout.operator("render.netclientsendbake", icon='PHYSICS')
+            layout.operator("render.netclientsendbake", icon='PHYSICS')
             layout.operator("render.netclientsendframe", icon='RENDER_STILL')
             if netsettings.job_id:
                 row = layout.row()
@@ -341,8 +336,8 @@ class RENDER_PT_network_jobs(NeedValidAddress, NetRenderButtonsPanel, bpy.types.
 
             layout.label(text="Name: %s" % job.name)
             layout.label(text="Length: %04i" % len(job))
-            layout.label(text="Done: %04i" % job.results[DONE])
-            layout.label(text="Error: %04i" % job.results[ERROR])
+            layout.label(text="Done: %04i" % job.results[FRAME_DONE])
+            layout.label(text="Error: %04i" % job.results[FRAME_ERROR])
 
 import bl_ui.properties_render as properties_render
 class RENDER_PT_network_output(NeedValidAddress, NetRenderButtonsPanel, bpy.types.Panel):

@@ -410,9 +410,9 @@ class netclientdownload(bpy.types.Operator):
             nb_missing = 0
                 
             for frame in job.frames:
-                if frame.status == DONE:
+                if frame.status == FRAME_DONE:
                     finished_frames.append(frame.number)
-                elif frame.status == ERROR:
+                elif frame.status == FRAME_ERROR:
                     nb_error += 1
                 else:
                     nb_missing += 1

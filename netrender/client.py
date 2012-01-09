@@ -224,7 +224,7 @@ def sendJobBaking(conn, scene):
 
     for i, task in enumerate(tasks):
         job.addFrame(i + 1)
-        job.frames[-1].command = "|".join(task)
+        job.frames[-1].command = netrender.baking.taskToCommand(task)
         
     # try to send path first
     with ConnectionContext():

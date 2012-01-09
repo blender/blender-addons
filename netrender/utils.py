@@ -45,16 +45,16 @@ JOB_STATUS_TEXT = {
 
 
 # Frames status
-QUEUED = 0
-DISPATCHED = 1
-DONE = 2
-ERROR = 3
+FRAME_QUEUED = 0
+FRAME_DISPATCHED = 1
+FRAME_DONE = 2
+FRAME_ERROR = 3
 
 FRAME_STATUS_TEXT = {
-        QUEUED: "Queued",
-        DISPATCHED: "Dispatched",
-        DONE: "Done",
-        ERROR: "Error"
+        FRAME_QUEUED: "Queued",
+        FRAME_DISPATCHED: "Dispatched",
+        FRAME_DONE: "Done",
+        FRAME_ERROR: "Error"
         }
 
 try:
@@ -243,6 +243,9 @@ def fileURL(job_id, file_index):
 
 def logURL(job_id, frame_number):
     return "/log_%s_%i.log" % (job_id, frame_number)
+
+def resultURL(job_id):
+    return "/result_%s.zip" % job_id
 
 def renderURL(job_id, frame_number):
     return "/render_%s_%i.exr" % (job_id, frame_number)

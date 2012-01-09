@@ -225,9 +225,7 @@ def render_slave(engine, netsettings, threads):
                 elif job.subtype == netrender.model.JOB_SUB_BAKING:
                     tasks = []
                     for frame in job.frames:
-                        i = frame.command.index("|")
-                        ri = frame.command.rindex("|")
-                        tasks.append((frame.command[:i], frame.command[i+1:ri], frame.command[ri+1:]))
+                        tasks.append(netrender.baking.commandToTask(frame.command))
                         
                     with NoErrorDialogContext():
                         process = netrender.baking.bake(job, tasks)
@@ -238,10 +236,13 @@ def render_slave(engine, netsettings, threads):
                         process = subprocess.Popen(command.split(" "), stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 
                 headers = {"slave-id":slave_id}
+                
+                results = []
 
                 cancelled = False
                 stdout = bytes()
                 run_t = time.time()
+                line = ""
                 while not cancelled and process.poll() is None:
                     stdout += process.stdout.read(1024)
                     current_t = time.time()
@@ -255,9 +256,17 @@ def render_slave(engine, netsettings, threads):
                                 conn.request("PUT", logURL(job.id, first_frame), stdout, headers=headers)
                             responseStatus(conn)
                             
+                            stdout_text = str(stdout, encoding='utf8')
+                            
                             # Also output on console
                             if netsettings.use_slave_output_log:
-                                print(str(stdout, encoding='utf8'), end="")
+                                print(stdout_text, end="")
+                                
+                            lines = stdout_text.split("\n")
+                            lines[0] = line + lines[0]
+                            line = lines.pop()
+                            if job.subtype == netrender.model.JOB_SUB_BAKING:
+                                results.extend(netrender.baking.resultsFromOuput(lines))
 
                             stdout = bytes()
 
@@ -283,10 +292,17 @@ def render_slave(engine, netsettings, threads):
 
                 # flush the rest of the logs
                 if stdout:
-                    # Also output on console
-                    if netsettings.use_slave_thumb:
-                        print(str(stdout, encoding='utf8'), end="")
+                    stdout_text = str(stdout, encoding='utf8')
                     
+                    # Also output on console
+                    if netsettings.use_slave_output_log:
+                        print(stdout_text, end="")
+                    
+                    lines = stdout_text.split("\n")
+                    lines[0] = line + lines[0]
+                    if job.subtype == netrender.model.JOB_SUB_BAKING:
+                        results.extend(netrender.baking.resultsFromOuput(lines))
+
                     # (only need to update on one frame, they are linked
                     with ConnectionContext():
                         conn.request("PUT", logURL(job.id, first_frame), stdout, headers=headers)
@@ -306,7 +322,7 @@ def render_slave(engine, netsettings, threads):
 
 
                 if status == 0: # non zero status is error
-                    headers["job-result"] = str(DONE)
+                    headers["job-result"] = str(FRAME_DONE)
                     for frame in job.frames:
                         headers["job-frame"] = str(frame.number)
                         if job.hasRenderResult():
@@ -333,12 +349,21 @@ def render_slave(engine, netsettings, threads):
                                 continue
 
                         elif job.subtype == netrender.model.JOB_SUB_BAKING:
-                            # For now just announce results
-                            # TODO SEND ALL BAKING RESULTS
-                            with ConnectionContext():
-                                conn.request("PUT", "/render", headers=headers)
-                            if responseStatus(conn) == http.client.NO_CONTENT:
-                                continue
+                            index = job.frames.index(frame)
+                            
+                            frame_results = [result_filepath for task_index, result_filepath in results if task_index == index]
+                            
+                            for result_filepath in frame_results:
+                                result_path, result_filename = os.path.split(result_filepath)
+                                headers["result-filename"] = result_filename
+                                headers["job-finished"] = str(result_filepath == frame_results[-1])
+                                    
+                                f = open(result_filepath, 'rb')
+                                with ConnectionContext():
+                                    conn.request("PUT", "/result", f, headers=headers)
+                                f.close()
+                                if responseStatus(conn) == http.client.NO_CONTENT:
+                                    continue
                             
                         elif job.type == netrender.model.JOB_PROCESS:
                             with ConnectionContext():
@@ -346,7 +371,7 @@ def render_slave(engine, netsettings, threads):
                             if responseStatus(conn) == http.client.NO_CONTENT:
                                 continue
                 else:
-                    headers["job-result"] = str(ERROR)
+                    headers["job-result"] = str(FRAME_ERROR)
                     for frame in job.frames:
                         headers["job-frame"] = str(frame.number)
                         # send error result back to server

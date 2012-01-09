@@ -21,7 +21,7 @@
 bl_info = {
     "name": "Network Renderer",
     "author": "Martin Poirier",
-    "version": (1, 7),
+    "version": (1, 8),
     "blender": (2, 6, 0),
     "api": 35011,
     "location": "Render > Engine > Network Render",

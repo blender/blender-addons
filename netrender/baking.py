@@ -17,10 +17,20 @@
 # ##### END GPL LICENSE BLOCK #####
 
 import bpy
-import sys, subprocess
+import sys, subprocess, re
+
+from netrender.utils import *
 
 BLENDER_PATH = sys.argv[0]
 
+def commandToTask(command):
+    i = command.index("|")
+    ri = command.rindex("|")
+    return (command[:i], command[i+1:ri], command[ri+1:])
+    
+def taskToCommand(task):
+    return "|".join(task)
+                    
 def bake(job, tasks):
     main_file = job.files[0]
     job_full_path = main_file.filepath
@@ -33,43 +43,91 @@ def bake(job, tasks):
     
     return process
 
-def process_cache(obj, point_cache):
+result_pattern = re.compile("BAKE FILE\[ ([0-9]+) \]: (.*)")
+def resultsFromOuput(lines):
+    results = []
+    for line in lines:
+        match = result_pattern.match(line)
+
+        if match:
+            task_id = int(match.groups()[0])
+            task_filename = match.groups()[1]
+            
+            results.append((task_id, task_filename))
+            
+    return results
+
+def bake_cache(obj, point_cache, task_index):
     if point_cache.is_baked:
         bpy.ops.ptcache.free_bake({"point_cache": point_cache})
         
     point_cache.use_disk_cache = True
+    point_cache.use_external = False
     
     bpy.ops.ptcache.bake({"point_cache": point_cache}, bake=True)
+    
+    results = cache_results(obj, point_cache)
+    
+    print()
+    
+    for filename in results:
+        print("BAKE FILE[", task_index, "]:", filename)
+  
 
-def process_generic(obj, index):
+def cache_results(obj, point_cache):
+    name = cacheName(obj, point_cache)
+    default_path = cachePath(bpy.data.filepath)
+
+    cache_path = bpy.path.abspath(point_cache.filepath) if point_cache.use_external else default_path
+    
+    index = "%02i" % point_cache.index
+
+    if os.path.exists(cache_path):
+        pattern = re.compile(name + "_([0-9]+)_" + index + "\.bphys")
+
+        cache_files = []
+
+        for cache_file in sorted(os.listdir(cache_path)):
+            match = pattern.match(cache_file)
+
+            if match:
+                cache_files.append(os.path.join(cache_path, cache_file))
+
+        cache_files.sort()
+        
+        return cache_files
+    
+    return []
+
+def process_generic(obj, index, task_index):
     modifier = obj.modifiers[index]
     point_cache = modifier.point_cache
-    process_cache(obj, point_cache)
+    bake_cache(obj, point_cache, task_index)
 
-def process_smoke(obj, index):
+def process_smoke(obj, index, task_index):
     modifier = obj.modifiers[index]
     point_cache = modifier.domain_settings.point_cache
-    process_cache(obj, point_cache)
+    bake_cache(obj, point_cache, task_index)
 
-def process_particle(obj, index):
+def process_particle(obj, index, task_index):
     psys = obj.particle_systems[index]
     point_cache = psys.point_cache
-    process_cache(obj, point_cache)
+    bake_cache(obj, point_cache, task_index)
 
-def process_paint(obj, index):
+def process_paint(obj, index, task_index):
     modifier = obj.modifiers[index]
     for surface in modifier.canvas_settings.canvas_surfaces:
-        process_cache(obj, surface.point_cache)
+        bake_cache(obj, surface.point_cache, task_index)
 
-def process_null(obj, index):
+def process_null(obj, index, task_index):
     raise ValueException("No baking possible with arguments: " + " ".join(sys.argv))
 
-bake_funcs = {}
-bake_funcs["CLOTH"] = process_generic
-bake_funcs["SOFT_BODY"] = process_generic
-bake_funcs["PARTICLE_SYSTEM"] = process_particle
-bake_funcs["SMOKE"] = process_smoke
-bake_funcs["DYNAMIC_PAINT"] = process_paint
+process_funcs = {}
+process_funcs["CLOTH"] = process_generic
+process_funcs["SOFT_BODY"] = process_generic
+process_funcs["PARTICLE_SYSTEM"] = process_particle
+process_funcs["SMOKE"] = process_smoke
+process_funcs["DYNAMIC_PAINT"] = process_paint
 
 if __name__ == "__main__":
     try:
@@ -84,4 +142,4 @@ if __name__ == "__main__":
             obj = bpy.data.objects[task_args[i+1]]
             index = int(task_args[i+2])
             
-            bake_funcs.get(bake_type, process_null)(obj, index)
+            process_funcs.get(bake_type, process_null)(obj, index, i)
