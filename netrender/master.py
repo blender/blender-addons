@@ -252,7 +252,7 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
     def send_head(self, code = http.client.OK, headers = {}, content = "application/octet-stream"):
         self.send_response(code)
         
-        if code != http.client.OK and content:
+        if code == http.client.OK and content:
             self.send_header("Content-type", content)
 
         for key, value in headers.items():
