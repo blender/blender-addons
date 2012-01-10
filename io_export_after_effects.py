@@ -21,9 +21,9 @@ bl_info = {
     'name': 'Export: Adobe After Effects (.jsx)',
     'description': 'Export selected cameras, objects & bundles to Adobe After Effects CS3 and above',
     'author': 'Bartek Skorupa',
-    'version': (0, 58),
-    'blender': (2, 6, 0),
-    'api': 42052,
+    'version': (0, 59),
+    'blender': (2, 6, 1),
+    'api': 43253,
     'location': 'File > Export > Adobe After Effects (.jsx)',
     'category': 'Import-Export',
     "warning": "",
@@ -59,7 +59,7 @@ def get_comp_data(context):
 
 # create managable list of selected objects
 # (only selected objects will be analyzed and exported)
-def get_selected(context, prefix):
+def get_selected(context):
     cameras = []  # list of selected cameras
     cams_names = []  # list of selected cameras' names (prevent from calling "ConvertName(ob)" function too many times)
     nulls = []  # list of all selected objects exept cameras (will be used to create nulls in AE)
@@ -69,11 +69,17 @@ def get_selected(context, prefix):
     for ob in obs:
         if ob.type == 'CAMERA':
             cameras.append(ob)
-            cams_names.append(convert_name(False, ob, prefix))
+            cams_names.append(convert_name(False, ob))
         else:
             nulls.append(ob)
-            nulls_names.append(convert_name(False, ob, prefix))
-
+            nulls_names.append(convert_name(False, ob))
+    # If no camera is selected - export at least scene's camera if exists
+    if not cameras:
+        cam = context.scene.camera
+        if cam:
+            cameras.append(cam)
+            cams_names.append(convert_name(False, cam))
+	
     selection = {
         'cameras': cameras,
         'cams_names': cams_names,
@@ -84,13 +90,13 @@ def get_selected(context, prefix):
     return selection
 
 
-# convert names of objects to avoid errors in AE. Add user specified prefix
-def convert_name(is_comp, ob, prefix):
+# convert names of objects to avoid errors in AE.
+def convert_name(is_comp, ob):
     if is_comp:
-        ob_name = prefix + ob
+        ob_name = ob
         ob_name = ob_name.replace('"', "_")
     else:
-        ob_name = prefix + "_" + ob.name
+        ob_name = "_" + ob.name
 
         if ob_name[0].isdigit():
             ob_name = "_" + ob_name
@@ -103,11 +109,12 @@ def convert_name(is_comp, ob, prefix):
 
 # get object's blender's location and rotation and return AE's Position and Rotation/Orientation
 # this function will be called for every object for every frame
-def convert_pos_rot_matrix(matrix, width, height, aspect, x_rot_correction=False):
+def convert_transform_matrix(matrix, width, height, aspect, x_rot_correction=False):
 
     # get blender location for ob
     b_loc_x, b_loc_y, b_loc_z = matrix.to_translation()
     b_rot_x, b_rot_y, b_rot_z = matrix.to_euler()
+    b_scale_x, b_scale_y, b_scale_z = matrix.to_scale()
 
     # get blender rotation for ob
     if x_rot_correction:
@@ -122,17 +129,20 @@ def convert_pos_rot_matrix(matrix, width, height, aspect, x_rot_correction=False
     x = (b_loc_x * 100.0) / aspect + width / 2.0  # calculate AE's X position
     y = (-b_loc_z * 100.0) + (height / 2.0)  # calculate AE's Y position
     z = b_loc_y * 100.0  # calculate AE's Z position
+    # Using AE's rotation combined with AE's orientation allows to compensate for different euler rotation order.
     rx = b_rot_x  # calculate AE's X rotation. Will become AE's RotationX property
     ry = -b_rot_z  # calculate AE's Y rotation. Will become AE's OrientationY property
     rz = b_rot_y  # calculate AE's Z rotation. Will become AE's OrentationZ property
-    # Using AE's rotation combined with AE's orientation allows to compensate for different euler rotation order.
+    sx = b_scale_x * 100.0
+    sy = b_scale_z * 100.0
+    sz = b_scale_y * 100.0
 
-    return x, y, z, rx, ry, rz
+    return x, y, z, rx, ry, rz, sx, sy, sz
 
 
-def convert_pos_rot(obj, width, height, aspect, x_rot_correction=False):
+def convert_transform(obj, width, height, aspect, x_rot_correction=False):
     matrix = obj.matrix_world.copy()
-    return convert_pos_rot_matrix(matrix, width, height, aspect, x_rot_correction)
+    return convert_transform_matrix(matrix, width, height, aspect, x_rot_correction)
 
 
 # get camera's lens and convert to AE's "zoom" value in pixels
@@ -181,15 +191,11 @@ def convert_pos_rot(obj, width, height, aspect, x_rot_correction=False):
 #    zoom = lens * dimension / sensor * aspect
 #
 def convert_lens(camera, width, height, aspect):
-    if hasattr(camera.data, "sensor_width"):  # Preserve compatibility with versions not supporting camera sensor.
-        if camera.data.sensor_fit == 'VERTICAL':
-            sensor = camera.data.sensor_height
-            dimension = height
-        else:
-            sensor = camera.data.sensor_width
-            dimension = width
+    if camera.data.sensor_fit == 'VERTICAL':
+        sensor = camera.data.sensor_height
+        dimension = height
     else:
-        sensor = 32  # standard blender's sensor size
+        sensor = camera.data.sensor_width
         dimension = width
     
     zoom = camera.data.lens * dimension / sensor * aspect
@@ -198,7 +204,7 @@ def convert_lens(camera, width, height, aspect):
 
 
 # jsx script for AE creation
-def write_jsx_file(file, data, selection, export_bundles, comp_name, prefix):
+def write_jsx_file(file, data, selection, export_bundles, include_rotation, include_scale):
     from mathutils import Matrix
 
     print("\n---------------------------\n- Export to After Effects -\n---------------------------")
@@ -229,6 +235,7 @@ def write_jsx_file(file, data, selection, export_bundles, comp_name, prefix):
             'position': '',
             'orientation': '',
             'rotationX': '',
+            'scale': '',
             }
 
     # get all keyframes for each objects and store into dico
@@ -244,14 +251,14 @@ def write_jsx_file(file, data, selection, export_bundles, comp_name, prefix):
             #get cam name
             name_ae = selection['cams_names'][i]
             #convert cam position to AE space
-            ae_pos_rot = convert_pos_rot(cam, data['width'], data['height'], data['aspect'], x_rot_correction=True)
+            ae_transform = convert_transform(cam, data['width'], data['height'], data['aspect'], x_rot_correction=True)
             #convert Blender's cam zoom to AE's
             zoom = convert_lens(cam, data['width'], data['height'], data['aspect'])
             #store all the value into dico
-            js_data['cameras'][name_ae]['position'] += '[%f,%f,%f],' % (ae_pos_rot[0], ae_pos_rot[1], ae_pos_rot[2])
-            js_data['cameras'][name_ae]['pointOfInterest'] += '[%f,%f,%f],' % (ae_pos_rot[0], ae_pos_rot[1], ae_pos_rot[2])
-            js_data['cameras'][name_ae]['orientation'] += '[%f,%f,%f],' % (0, ae_pos_rot[4], ae_pos_rot[5])
-            js_data['cameras'][name_ae]['rotationX'] += '%f ,' % (ae_pos_rot[3])
+            js_data['cameras'][name_ae]['position'] += '[%f,%f,%f],' % (ae_transform[0], ae_transform[1], ae_transform[2])
+            js_data['cameras'][name_ae]['pointOfInterest'] += '[%f,%f,%f],' % (ae_transform[0], ae_transform[1], ae_transform[2])
+            js_data['cameras'][name_ae]['orientation'] += '[%f,%f,%f],' % (0, ae_transform[4], ae_transform[5])
+            js_data['cameras'][name_ae]['rotationX'] += '%f ,' % (ae_transform[3])
             js_data['cameras'][name_ae]['zoom'] += '[%f],' % (zoom)
 
         #keyframes for all nulls
@@ -259,11 +266,14 @@ def write_jsx_file(file, data, selection, export_bundles, comp_name, prefix):
             #get object name
             name_ae = selection['nulls_names'][i]
             #convert ob position to AE space
-            ae_pos_rot = convert_pos_rot(ob, data['width'], data['height'], data['aspect'], x_rot_correction=False)
+            ae_transform = convert_transform(ob, data['width'], data['height'], data['aspect'], x_rot_correction=False)
             #store all datas into dico
-            js_data['objects'][name_ae]['position'] += '[%f,%f,%f],' % (ae_pos_rot[0], ae_pos_rot[1], ae_pos_rot[2])
-            js_data['objects'][name_ae]['orientation'] += '[%f,%f,%f],' % (0, ae_pos_rot[4], ae_pos_rot[5])
-            js_data['objects'][name_ae]['rotationX'] += '%f ,' % (ae_pos_rot[3])
+            js_data['objects'][name_ae]['position'] += '[%f,%f,%f],' % (ae_transform[0], ae_transform[1], ae_transform[2])
+            if include_rotation:
+                js_data['objects'][name_ae]['orientation'] += '[%f,%f,%f],' % (0, ae_transform[4], ae_transform[5])
+                js_data['objects'][name_ae]['rotationX'] += '%f ,' % (ae_transform[3])
+            if include_scale:
+                js_data['objects'][name_ae]['scale'] += '[%f,%f,%f],' % (ae_transform[6], ae_transform[7], ae_transform[8])
 
     # ---- write JSX file
     jsx_file = open(file, 'w')
@@ -282,7 +292,8 @@ def write_jsx_file(file, data, selection, export_bundles, comp_name, prefix):
     #wrap in function
     jsx_file.write("function compFromBlender(){\n")
     # create new comp
-    jsx_file.write('\nvar compName = "%s";' % (comp_name))
+    jsx_file.write('\nvar compName = prompt("Blender Comp\'s Name \\nEnter Name of newly created Composition","BlendComp","Composition\'s Name");')
+    jsx_file.write('if (compName){')
     jsx_file.write('\nvar newComp = app.project.items.addComp(compName, %i, %i, %f, %f, %i);\n\n\n' %
                    (data['width'], data['height'], data['aspect'], data['duration'], data['fps']))
 
@@ -311,6 +322,7 @@ def write_jsx_file(file, data, selection, export_bundles, comp_name, prefix):
         jsx_file.write('%s.property("rotationX").setValuesAtTimes([%s],[%s]);\n' % (name_ae, js_data['times'], js_data['objects'][obj]['rotationX']))
         jsx_file.write('%s.property("rotationY").setValue(0);\n' % name_ae)
         jsx_file.write('%s.property("rotationZ").setValue(0);\n\n\n' % name_ae)
+        jsx_file.write('%s.property("scale").setValuesAtTimes([%s],[%s]);\n' % (name_ae, js_data['times'], js_data['objects'][obj]['scale']))
 
     # create Bundles
     if export_bundles:
@@ -332,22 +344,22 @@ def write_jsx_file(file, data, selection, export_bundles, comp_name, prefix):
                     else:
                         mc = constrain.clip
 
-                    #go throuhg each tracking point
+                    #go through each tracking point
                     for track in mc.tracking.tracks:
                         #is this tracking point has a Bundles (does it's 3D position has been solved)
                         if track.has_bundle:
                             # bundle are in camera space, so transpose it to world space
                             matrix = Matrix.Translation(cam.matrix_basis * track.bundle)
                             #convert the position into AE space
-                            ae_pos_rot = convert_pos_rot_matrix(matrix, data['width'], data['height'], data['aspect'], x_rot_correction=False)
+                            ae_transform = convert_transform_matrix(matrix, data['width'], data['height'], data['aspect'], x_rot_correction=False)
                             #get the name of the tracker
-                            name_ae = convert_name(False, track, prefix)
+                            name_ae = convert_name(False, track)
                             #write JS script for this Bundle
                             jsx_file.write('var %s = newComp.layers.addNull();\n' % name_ae)
                             jsx_file.write('%s.threeDLayer = true;\n' % name_ae)
                             jsx_file.write('%s.source.name = "%s";\n' % (name_ae, name_ae))
-                            jsx_file.write('%s.property("position").setValue([%f,%f,%f]);\n\n\n' % (name_ae, ae_pos_rot[0], ae_pos_rot[1], ae_pos_rot[2]))
-
+                            jsx_file.write('%s.property("position").setValue([%f,%f,%f]);\n\n\n' % (name_ae, ae_transform[0], ae_transform[1], ae_transform[2]))
+    jsx_file.write('\n}else{alert ("Exit Import Blender animation data \\nNo Comp\'s name has been chosen","EXIT")};')
     jsx_file.write("}\n\n\n")
     jsx_file.write('app.beginUndoGroup("Import Blender animation data");\n')
     jsx_file.write('compFromBlender();\n')
@@ -361,11 +373,10 @@ def write_jsx_file(file, data, selection, export_bundles, comp_name, prefix):
 ##########################################
 
 
-def main(file, context, export_bundles, comp_name, prefix):
+def main(file, context, export_bundles, include_rotation, include_scale):
     data = get_comp_data(context)
-    selection = get_selected(context, prefix)
-    comp_name = convert_name(True, comp_name, "")
-    write_jsx_file(file, data, selection, export_bundles, comp_name, prefix)
+    selection = get_selected(context)
+    write_jsx_file(file, data, selection, export_bundles, include_rotation, include_scale)
     print ("\nExport to After Effects Completed")
     return {'FINISHED'}
 
@@ -383,29 +394,29 @@ class ExportJsx(bpy.types.Operator, ExportHelper):
     bl_label = "Export to Adobe After Effects"
     filename_ext = ".jsx"
     filter_glob = StringProperty(default="*.jsx", options={'HIDDEN'})
-
-    comp_name = StringProperty(
-            name="Comp Name",
-            description="Name of composition to be created in After Effects",
-            default="BlendComp"
+    include_rotation = BoolProperty(
+            name="Include Rotation",
+            description="Include export of selected objects' rotation",
+            default=True,
             )
-    prefix = StringProperty(
-            name="Layer's Prefix",
-            description="Prefix to use before AE layer's name",
-            #default="bl_"
+    include_scale = BoolProperty(
+            name="Include Scale",
+            description="Include export of selected objects' scale",
+            default=True,
             )
     export_bundles = BoolProperty(
             name="Export Bundles",
             description="Export 3D Tracking points of a selected camera",
-            default=False,
+            default=True,
             )
+
 
     @classmethod
     def poll(cls, context):
         return context.active_object is not None
 
     def execute(self, context):
-        return main(self.filepath, context, self.export_bundles, self.comp_name, self.prefix)
+        return main(self.filepath, context, self.export_bundles, self.include_rotation, self.include_scale)
 
 
 def menu_func(self, context):
