@@ -55,7 +55,7 @@ The advanced importer from 2.49 will replace it in the future.
 Installation:
 Place this file to Blender addons directory
   (on Windows it is %Blender_directory%\2.53\scripts\addons\)
-The script must activated in "Addons" tab (user preferences).
+The script must be activated in "Addons" tab (user preferences).
 Access it from File > Import menu.
 
 History:
@@ -314,7 +314,7 @@ class CArc(CEntity):
             ma = getOCS(self.normal)
             if ma:
                 #ma.invert()
-                points = [v * ma for v in points]
+                points = [ma * v for v in points]
         #print ('arc vn=', vn)
         #print ('faces=', len(faces))
         return ((points, edges, faces, vn))
@@ -523,7 +523,7 @@ class CCircle(CEntity):
             ma = getOCS(self.normal)
             if ma:
                 #ma.invert()
-                points = [v * ma for v in points]
+                points = [ma * v for v in points]
         #print ('cir vn=', vn)
         #print ('faces=',len(faces))
         return( (points, edges, faces, vn) )
@@ -629,7 +629,7 @@ class CEllipse(CEntity):
             ma = getOCS(self.normal)
             if ma:
                 #ma.invert()
-                points = [v * ma for v in points]
+                points = [ma * v for v in points]
         return ((points, edges, faces, vn))
 
 #
@@ -813,7 +813,7 @@ class CLWPolyLine(CEntity):
             ma = getOCS(self.normal)
             if ma:
                 #ma.invert()
-                verts = [v * ma for v in verts]
+                verts = [ma * v for v in verts]
         return (verts, edges, [], vn-1)
         
 #
@@ -1021,7 +1021,7 @@ class CPolyLine(CEntity):
         if self.normal!=Vector((0,0,1)):
             ma = getOCS(self.normal)
             if ma:
-                verts = [v * ma for v in verts]
+                verts = [ma * v for v in verts]
         return((verts, lines, [], vn-1))
 
 #
@@ -1185,7 +1185,7 @@ class CSolid(CEntity):
         if self.normal!=Vector((0,0,1)):
             ma = getOCS(self.normal)
             if ma:
-                points = [v * ma for v in points]
+                points = [ma * v for v in points]
         return((points, edges, faces, vn))
         
 #
@@ -1318,7 +1318,7 @@ class CTrace(CEntity):
         if self.normal!=Vector((0,0,1)):
             ma = getOCS(self.normal)
             if ma:
-                points = [v * ma for v in points]
+                points = [ma * v for v in points]
         return ((points, edges, faces, vn))
 
 #
@@ -1423,19 +1423,19 @@ def getOCS(az):  #--------------------------------------------------------------
 def transform(normal, rotation, obj):  #--------------------------------------------
     """Use the calculated ocs to determine the objects location/orientation in space.
     """
-    ma = Matrix().resize_4x4()
+    ma = Matrix()
     o = Vector(obj.location)
     ma_new = getOCS(normal)
     if ma_new:
-        ma = ma_new.resize_4x4()
-        o = o * ma
+        ma_new.resize_4x4()
+        ma = ma_new
+        o = ma * o
 
     if rotation != 0:
-        g = radians(rotation)
-        rmat = Matrix.Rotation(g, 3, 'Z')
-        ma = ma * rmat.to_4x4()
+        rmat = Matrix.Rotation(radians(rotation), 4, 'Z')
+        ma = ma * rmat
 
-    obj.matrix_world = ma #must be matrix4x4
+    obj.matrix_world = ma
     obj.location = o
 
 
