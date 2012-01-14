@@ -24,7 +24,6 @@ bl_info = {
     "author": "Michel J. Anders (varkenvarken)",
     "version": (2, 4, 2),
     "blender": (2, 5, 7),
-    "api": 35853,
     "location": "View3D > Add > Mesh > Gears ",
     "description": "Adds a mesh Gear to the Add Mesh menu",
     "warning": "",

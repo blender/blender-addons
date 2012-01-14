@@ -23,7 +23,6 @@ bl_info = {
     "author": "Guillaume Bouchard (Guillaum)",
     "version": (1, 0),
     "blender": (2, 5, 7),
-    "api": 35622,
     "location": "File > Import-Export > Stl",
     "description": "Import-Export STL files",
     "warning": "",

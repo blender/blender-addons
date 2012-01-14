@@ -23,7 +23,6 @@ bl_info = {
     "author": "Nathan Letwory <nathan@letworyinteractive.com>, Jesse Kaukonen <jesse.kaukonen@gmail.com>",
     "version": (13,),
     "blender": (2, 6, 1),
-    "api": 41934,
     "location": "Render > Engine > Renderfarm.fi",
     "description": "Send .blend as session to http://www.renderfarm.fi to render",
     "warning": "",

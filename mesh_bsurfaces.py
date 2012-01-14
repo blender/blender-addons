@@ -21,7 +21,6 @@ bl_info = {
     "author": "Eclectiel",
     "version": (0,9),
     "blender": (2, 5, 7),
-    "api": 35733,
     "location": "View3D > EditMode > ToolShelf",
     "description": "Draw meshes and re-topologies with Grease Pencil",
     "warning": "Beta",

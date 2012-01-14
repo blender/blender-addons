@@ -22,7 +22,6 @@ bl_info = {
     "name": "Quake MAP format",
     "author": "Campbell Barton",
     "blender": (2, 5, 7),
-    "api": 35622,
     "location": "File > Export",
     "description": "Export MAP brushes, nurbs surfaces, "
                    "lamps and empties as map nodes",

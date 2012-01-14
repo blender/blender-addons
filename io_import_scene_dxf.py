@@ -21,7 +21,6 @@ bl_info = {
     'author': 'Thomas Larsson, Remigiusz Fiedler',
     'version': (0, 1, 6),
     "blender": (2, 6, 1),
-    "api": 42615,
     'location': 'File > Import > Autocad (.dxf)',
     'description': 'Import files in the Autocad DXF format (.dxf)',
     'warning': 'Only a subset of DXF specification is supported now.'\

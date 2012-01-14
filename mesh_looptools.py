@@ -21,7 +21,6 @@ bl_info = {
     'author': "Bart Crouch",
     'version': (3, 2, 3),
     'blender': (2, 6, 1),
-    'api': 42905,
     'location': "View3D > Toolbar and View3D > Specials (W-key)",
     'warning': "",
     'description': "Mesh modelling toolkit. Several tools to aid modelling",

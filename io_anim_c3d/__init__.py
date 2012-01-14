@@ -27,7 +27,6 @@ bl_info = {
     'author': "Daniel Monteiro Basso <daniel@basso.inf.br>",
     'version': (2011, 11, 3, 1),
     'blender': (2, 6, 0),
-    'api': 41226,
     'location': "File > Import",
     'description': "Imports C3D Graphics Lab Motion Capture files",
     'wiki_url': "http://wiki.blender.org/index.php/Extensions:2.5/Py/"

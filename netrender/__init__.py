@@ -23,7 +23,6 @@ bl_info = {
     "author": "Martin Poirier",
     "version": (1, 8),
     "blender": (2, 6, 0),
-    "api": 35011,
     "location": "Render > Engine > Network Render",
     "description": "Distributed rendering for Blender",
     "warning": "Stable but still work in progress",

@@ -26,7 +26,6 @@ bl_info = {
     "author": "Fabian Fricke",
     "version": (1,1),
     "blender": (2, 5, 7),
-    "api": 35622,
     "location": "View3D > Specials > Relax ",
     "description": "Relax the selected verts while retaining the shape",
     "warning": "",

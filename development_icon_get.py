@@ -24,7 +24,6 @@ bl_info = {
     'author': 'Crouch, N.tox, PKHG, Campbell Barton, Dany Lebel',
     'version': (1, 5, 1),
     "blender": (2, 5, 7),
-    "api": 35850,
     'location': 'Text Editor > Properties or '\
         'Console > Console Menu',
     'warning': '',

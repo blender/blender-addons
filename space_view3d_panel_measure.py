@@ -28,7 +28,6 @@ bl_info = {
         " Benjamin Lauritzen (Loonsbury; Volume code)",
     "version": (0, 8, 2),
     "blender": (2, 6, 0),
-    "api": 42508,
     "location": "View3D > Properties > Measure Panel",
     "description": "Measure distances between objects",
     "warning": "Script needs repairs",

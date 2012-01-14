@@ -21,7 +21,6 @@ bl_info = {
     "author": "Aaron Keith",
     "version": (3, 9),
     "blender": (2, 5, 9),
-    "api": 39685,
     "location": "View3D > Add > Mesh",
     "description": "Add a bolt or nut",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"\

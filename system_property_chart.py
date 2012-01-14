@@ -23,7 +23,6 @@ bl_info = {
     "author": "Campbell Barton (ideasman42)",
     "version": (0, 1),
     "blender": (2, 5, 7),
-    "api": 35622,
     "location": "Tool Shelf",
     "description": "Edit arbitrary selected properties for objects of the same type",
     "warning": "",

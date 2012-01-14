@@ -21,7 +21,6 @@ bl_info = {
     "author": "Tim Spriggs (tims@uahirise.org)",
     "version": (0, 1, 2),
     "blender": (2, 5, 7),
-    "api": 35622,
     "location": "File > Import > HiRISE DTM from PDS IMG (.IMG)",
     "description": "Import a HiRISE DTM formatted as a PDS IMG file",
     "warning": "May consume a lot of memory",

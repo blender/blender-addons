@@ -27,7 +27,6 @@ bl_info = {
     "author": "michaelw",
     "version": (1, 3),
     "blender": (2, 5, 6),
-    "api": 35324,
     "location": "View3D > Q key",
     "description": "Menu of material tools (assign, select..)  in the 3D View",
     "warning": "",

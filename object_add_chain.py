@@ -21,7 +21,6 @@ bl_info = {
     "author": "Brian Hinton (Nichod)",
     "version": (0,1),
     "blender": (2, 5, 9),
-    "api": 39685,
     "location": "View3D > Add > Mesh",
     "description": "Adds Chain with curve guide for easy creation",
     "warning": "",

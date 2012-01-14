@@ -23,7 +23,6 @@ bl_info = {
     'author': 'Paulo Gomes, Bart Crouch, John E. Herrenyo, Gaia Clary',
     'version': (1, 5),
     'blender': (2, 6, 1),
-    'api': 43073,
     'location': 'View3D > Properties panel > Screencast Keys',
     'warning': '',
     'description': 'Display keys pressed in the 3d-view, '\

@@ -23,7 +23,6 @@ bl_info = {
     "author": "Campbell Barton",
     "version": (0, 1),
     "blender": (2, 5, 7),
-    "api": 36079,
     "location": "File > Export > Cameras & Markers (.py)",
     "description": "Export Cameras & Markers (.py)",
     "warning": "",

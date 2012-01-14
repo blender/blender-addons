@@ -24,7 +24,6 @@ bl_info = {
     "author": "Dany Lebel (Axon_D)",
     "version": (1, 0, 2),
     "blender": (2, 5, 7),
-    "api": 36079,
     "location": "Text Editor > Properties > API Navigator Panel",
     "description": "Allows exploration of the python api via the user interface",
     "warning": "",

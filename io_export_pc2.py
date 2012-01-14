@@ -21,7 +21,6 @@ bl_info = {
     "author": "Florian Meyer (tstscr)",
     "version": (1, 0),
     "blender": (2, 5, 7),
-    "api": 36079,
     "location": "File > Export > Pointcache (.pc2)",
     "description": "Export mesh Pointcache data (.pc2)",
     "warning": "",

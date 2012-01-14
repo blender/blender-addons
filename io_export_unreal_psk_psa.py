@@ -20,7 +20,6 @@ bl_info = {
     "author": "Darknet/Optimus_P-Fat/Active_Trash/Sinsoft/VendorX",
     "version": (2, 4),
     "blender": (2, 6, 0),
-    "api": 36079,
     "location": "File > Export > Skeletal Mesh/Animation Data (.psk/.psa)",
     "description": "Export Skeleletal Mesh/Animation Data",
     "warning": "",

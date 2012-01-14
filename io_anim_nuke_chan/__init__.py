@@ -23,7 +23,6 @@ bl_info = {
     "author": "Michael Krupa",
     "version": (1, 0),
     "blender": (2, 6, 1),
-    "api": 36079,
     "location": "File > Import/Export > Nuke (.chan)",
     "description": "Import/Export object's animation with nuke",
     "warning": "",

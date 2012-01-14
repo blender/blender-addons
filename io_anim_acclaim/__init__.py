@@ -27,7 +27,6 @@ bl_info = {
     'author': "Daniel Monteiro Basso <daniel@basso.inf.br>",
     'version': (2011, 11, 2, 1),
     'blender': (2, 6, 0),
-    'api': 41226,
     'location': "File > Import",
     'description': "Imports Acclaim Skeleton and Motion Capture Files",
     'wiki_url': "http://wiki.blender.org/index.php/Extensions:2.5/Py/"

@@ -23,7 +23,6 @@ bl_info = {
     'author': 'Bartek Skorupa',
     'version': (0, 5, 9),
     'blender': (2, 6, 1),
-    'api': 43253,
     'location': 'File > Export > Adobe After Effects (.jsx)',
     "warning": "",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"\

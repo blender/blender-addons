@@ -21,7 +21,6 @@ bl_info = {
     'author': 'Mitchell Stokes (Moguri)',
     'version': (0, 3, 1),
     "blender": (2, 6, 1),
-    "api": 42107,
     'location': 'File > Export',
     'description': 'Bundle a .blend file with the Blenderplayer',
     'warning': '',

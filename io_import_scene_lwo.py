@@ -21,7 +21,6 @@ bl_info= {
     "author": "Ken Nign (Ken9)",
     "version": (1, 2),
     "blender": (2, 5, 7),
-    "api": 35622,
     "location": "File > Import > LightWave Object (.lwo)",
     "description": "Imports a LWO file including any UV, Morph and Color maps. "\
         "Can convert Skelegons to an Armature.",

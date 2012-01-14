@@ -23,7 +23,6 @@ bl_info = {
     "author": "Campbell Barton, Silvio Falcinelli, Maurice Raybaud, Constantin Rahn, Bastien Montagne",
     "version": (0, 0, 9),
     "blender": (2, 5, 7),
-    "api": 35622,
     "location": "Render > Engine > POV-Ray 3.7",
     "description": "Basic POV-Ray 3.7 integration for blender",
     "warning": "both POV-Ray 3.7 and this script are beta",

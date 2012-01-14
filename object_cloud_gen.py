@@ -21,7 +21,6 @@ bl_info = {
     "author": "Nick Keeline(nrk)",
     "version": (1,0),
     "blender": (2, 5, 9),
-    "api": 39685,
     "location": "View3D > Tool Shelf > Cloud Generator Panel",
     "description": "Creates Volumetric Clouds",
     "warning": "",

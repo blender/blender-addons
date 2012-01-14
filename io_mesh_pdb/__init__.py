@@ -22,7 +22,6 @@ bl_info = {
     "author": "Clemens Barth",
     "version": (1,2),
     "blender": (2,6),
-    "api": 31236,
     "location": "File -> Import -> PDB (.pdb), Panel: View 3D - Tools",
     "warning": "",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts/Import-Export/PDB",

@@ -25,7 +25,6 @@ bl_info = {
     "author": "Campbell Barton",
     "version": (0, 1),
     "blender": (2, 5, 8),
-    "api": 36079,
     "location": "3D View, Add Mesh",
     "description": "Scatter a group of objects onto the active mesh using "
                    "the grease pencil lines",

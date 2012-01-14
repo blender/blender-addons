@@ -21,7 +21,6 @@ bl_info = {
     "author": "Darknet",
     "version": (2, 0),
     "blender": (2, 5, 9),
-    "api": 41077,
     "location": "File > Import > Skeleton Mesh (.psk)",
     "description": "Import Skeleleton Mesh",
     "warning": "",

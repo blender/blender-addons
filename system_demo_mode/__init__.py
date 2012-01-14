@@ -22,7 +22,6 @@ bl_info = {
     "name": "Demo Mode",
     "author": "Campbell Barton",
     "blender": (2, 5, 7),
-    "api": 35622,
     "location": "Demo Menu",
     "description": "Demo mode lets you select multiple blend files and loop over them.",
     "warning": "",

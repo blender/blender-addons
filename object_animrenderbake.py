@@ -21,7 +21,6 @@ bl_info = {
     "author": "Janne Karhu (jahka)",
     "version": (1, 0),
     "blender": (2, 5, 8),
-    "api": 35622,
     "location": "Properties > Render > Bake Panel",
     "description": "Renderbakes a series of frames",
     "category": "Object",

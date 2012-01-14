@@ -23,7 +23,6 @@ bl_info = {
     "author": "Multiple Authors",
     "version": (0, 3),
     "blender": (2, 6, 1),
-    "api": 42524,
     "location": "View3D > Add > Mesh > Extra Objects",
     "description": "Add extra object types",
     "warning": "",

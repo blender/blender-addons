@@ -25,7 +25,6 @@ bl_info = {
     "author": "Dany Lebel (Axon D)",
     "version": (0,9,0),
     "blender": (2, 5, 8),
-    "api": 37815,
     "location": "Image Editor and 3D View > Any Paint mode > Color Palette or Weight Palette panel",
     "description": "Palettes for color and weight paint modes",
     "warning": "",

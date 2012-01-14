@@ -21,7 +21,6 @@ bl_info = {
     'author': 'Daniel Salazar <zanqdo@gmail.com>',
     'version': (0, 8),
     "blender": (2, 5, 7),
-    "api": 35622,
     'location': 'Select a Curve: Tool Shelf > RotoBezier Panel',
     'description': 'Allows animation of Bezier and NURBS curves',
     'warning': '',

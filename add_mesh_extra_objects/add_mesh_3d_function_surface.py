@@ -21,7 +21,6 @@ bl_info = {
     "author": "Buerbaum Martin (Pontiac), Elod Csirmaz",
     "version": (0, 3, 8),
     "blender": (2, 5, 7),
-    "api": 37329,
     "location": "View3D > Add > Mesh",
     "description": "Create Objects using Math Formulas",
     "warning": "",

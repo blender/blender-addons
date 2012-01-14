@@ -21,7 +21,6 @@ bl_info = {
     'author': 'Daniel Salazar <zanqdo@gmail.com>',
     'version': (0, 4),
     "blender": (2, 5, 7),
-    "api": 35622,
     'location': 'Select a Mesh: Tool Shelf > AnimAll panel',
     'description': 'Allows animation of mesh and lattice data (Shape Keys, VCols, VGroups, UVs)',
     'warning': '',
