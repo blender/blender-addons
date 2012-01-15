@@ -221,6 +221,11 @@ class RENDER_PT_network_job(NetRenderButtonsPanel, bpy.types.Panel):
         row = layout.row()
         row.prop(netsettings, "priority")
         row.prop(netsettings, "chunks")
+        
+        if netsettings.job_type == "JOB_BLENDER":
+            layout.prop(netsettings, "save_before_job")
+            
+        
 
 class RENDER_PT_network_job_vcs(NetRenderButtonsPanel, bpy.types.Panel):
     bl_label = "VCS Job Settings"
@@ -491,6 +496,11 @@ class NetRenderSettings(bpy.types.PropertyGroup):
                         maxlen = 128,
                         default = "")
         
+        NetRenderSettings.save_before_job = BoolProperty(
+                        name="Save Before Job",
+                        description="Save current file before sending a job",
+                        default = False)
+
         NetRenderSettings.chunks = IntProperty(
                         name="Chunks",
                         description="Number of frame to dispatch to each slave in one chunk",

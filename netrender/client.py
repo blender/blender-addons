@@ -259,10 +259,13 @@ def sendJobBlender(conn, scene, anim = False):
         job.addFrame(scene.frame_current)
 
     filename = bpy.data.filepath
-    
+
     if not os.path.exists(filename):
         raise RuntimeError("Current file path not defined\nSave your file before sending a job")
     
+    if netsettings.save_before_job:
+        bpy.ops.wm.save_mainfile(filepath=filename, check_existing=False)
+
     job.addFile(filename)
 
     job_name = netsettings.job_name
