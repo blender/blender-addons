@@ -812,7 +812,7 @@ def doRefresh(op, rethrow=False):
         
         return 0
     except xmlrpc.client.Error as v:
-        op.report({'WARNING'}, "Error at refresh : " + str(v.faultCode) + " " + v.faultString)
+        op.report({'WARNING'}, "Error at refresh : " + str(type(v)) + " -> " + str(v.faultCode) + ": " + v.faultString)
         print(v)
         if rethrow:
             raise v
@@ -969,7 +969,10 @@ class ORE_CheckUpdate(bpy.types.Operator):
             self.report(set(['INFO']), 'Done checking for newer version on Renderfarm.fi')
         except xmlrpc.client.Fault as f:
             print('ERROR:', f)
-            self.report(set(['ERROR']), 'An error occurred while checking for newer version on Renderfarm.fi')
+            self.report(set(['ERROR']), 'An error occurred while checking for newer version on Renderfarm.fi: ' + f.faultString)
+        except xmlrpc.client.ProtocolError as e:
+            print('ERROR:', e)
+            self.report(set(['ERROR']), 'An HTTP error occurred while checking for newer version on Renderfarm.fi: ' + str(e.errcode) + ' ' + e.errmsg)
         
         return {'FINISHED'}
 
@@ -999,7 +1002,7 @@ class ORE_LoginOp(bpy.types.Operator):
             ore.passwordCorrect = False
             ore.hash = ''
             ore.password = ''
-            self.report({'WARNING'}, "Incorrect login")
+            self.report({'WARNING'}, "Incorrect login: " + v.faultString)
             print(v)
             return {'CANCELLED'}
         
