@@ -112,16 +112,12 @@ def add_object_data(context, obdata, operator=None):
     return base
 
 
-def flatten_vector_list(list):
+def flatten_vector_list(ls):
     '''flatten a list of vetcors to use in foreach_set and the like'''
-    if not list:
+    if not ls:
         return None
 
-    result = []
-    for vec in list:
-        result.extend([i for i in vec])
-
-    return result
+    return [i for v in ls for i in v]
 
 
 def list_to_vector_list(list, dimension=3):

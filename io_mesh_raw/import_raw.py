@@ -43,7 +43,7 @@ import bpy
 
 
 def readMesh(filename, objName):
-    file = open(filename, "rb")
+    filehandle = open(filename, "rb")
 
     def line_to_face(line):
         # Each triplet is an xyz float
@@ -59,12 +59,12 @@ def readMesh(filename, objName):
             return None
 
     faces = []
-    for line in file.readlines():
+    for line in filehandle.readlines():
         face = line_to_face(line)
         if face:
             faces.append(face)
 
-    file.close()
+    filehandle.close()
 
     # Generate verts and faces lists, without duplicates
     verts = []
