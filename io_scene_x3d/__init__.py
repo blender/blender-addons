@@ -134,13 +134,43 @@ class ExportX3D(bpy.types.Operator, ExportHelper):
             description="Export parent child relationships",
             default=True,
             )
+    name_decorations = BoolProperty(
+            name="Name decorations",
+            description="Add prefixes to the names of exported nodes to indicate their type.",
+            default=True,
+            )
     use_h3d = BoolProperty(
             name="H3D Extensions",
             description="Export shaders for H3D",
             default=False,
             )
-    axis_forward = EnumProperty(
-            name="Forward",
+            
+    blender_axis_forward = EnumProperty(
+            name="Blender Forward",
+            items=(('X', "X Forward", ""),
+                   ('Y', "Y Forward", ""),
+                   ('Z', "Z Forward", ""),
+                   ('-X', "-X Forward", ""),
+                   ('-Y', "-Y Forward", ""),
+                   ('-Z', "-Z Forward", ""),
+                   ),
+            default='-Y',
+            )
+            
+    blender_axis_up = EnumProperty(
+        name="Blender Up",
+        items=(('X', "X Up", ""),
+               ('Y', "Y Up", ""),
+               ('Z', "Z Up", ""),
+               ('-X', "-X Up", ""),
+               ('-Y', "-Y Up", ""),
+               ('-Z', "-Z Up", ""),
+               ),
+        default='Z',
+        )
+        
+    x3d_axis_forward = EnumProperty(
+            name="X3D Forward",
             items=(('X', "X Forward", ""),
                    ('Y', "Y Forward", ""),
                    ('Z', "Z Forward", ""),
@@ -151,8 +181,8 @@ class ExportX3D(bpy.types.Operator, ExportHelper):
             default='Z',
             )
 
-    axis_up = EnumProperty(
-            name="Up",
+    x3d_axis_up = EnumProperty(
+            name="X3D Up",
             items=(('X', "X Up", ""),
                    ('Y', "Y Up", ""),
                    ('Z', "Z Up", ""),
@@ -168,13 +198,17 @@ class ExportX3D(bpy.types.Operator, ExportHelper):
     def execute(self, context):
         from . import export_x3d
 
-        keywords = self.as_keywords(ignore=("axis_forward",
-                                            "axis_up",
+        keywords = self.as_keywords(ignore=("blender_axis_forward",
+                                            "blender_axis_up",
+                                            "x3d_axis_forward",
+                                            "x3d_axis_up",
                                             "check_existing",
                                             "filter_glob",
                                             ))
-        global_matrix = axis_conversion(to_forward=self.axis_forward,
-                                        to_up=self.axis_up,
+        global_matrix = axis_conversion(from_forward=self.blender_axis_forward,
+                                        from_up=self.blender_axis_up,
+                                        to_forward=self.x3d_axis_forward,
+                                        to_up=self.x3d_axis_up,
                                         ).to_4x4()
         keywords["global_matrix"] = global_matrix
 

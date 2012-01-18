@@ -187,7 +187,7 @@ def h3d_shader_glsl_frag_patch(filepath, scene, global_vars, frag_uniform_var_ma
             lines.append("\n")
         elif l.lstrip().startswith("lamp_visibility_other("):
             w = l.split(', ')
-            last_transform = w[1] + "_transform"  # XXX - HACK!!!
+            last_transform = w[1] + _TRANSFORM  # XXX - HACK!!!
             w[1] = '(view_matrix * %s_transform * vec4(%s.x, %s.y, %s.z, 1.0)).xyz' % (w[1], w[1], w[1], w[1])
             l = ", ".join(w)
         elif l.lstrip().startswith("lamp_visibility_sun_hemi("):
@@ -246,6 +246,7 @@ def export(file,
            use_hierarchy=True,
            use_h3d=False,
            path_mode='AUTO',
+           name_decorations=True,
            ):
 
     # -------------------------------------------------------------------------
@@ -255,13 +256,49 @@ def export(file,
     from bpy_extras.io_utils import unique_name
     from xml.sax.saxutils import quoteattr, escape
 
-    uuid_cache_object = {}    # object
-    uuid_cache_lamp = {}      # 'LA_' + object.name
-    uuid_cache_view = {}      # object, different namespace
-    uuid_cache_mesh = {}      # mesh
-    uuid_cache_material = {}  # material
-    uuid_cache_image = {}     # image
-    uuid_cache_world = {}     # world
+    
+    
+    if name_decorations:
+        # If names are decorated, the uuid map can be split up
+        # by type for efficiency of collision testing
+        # since objects of different types will always have
+        # different decorated names.
+        uuid_cache_object = {}    # object
+        uuid_cache_lamp = {}      # 'LA_' + object.name
+        uuid_cache_view = {}      # object, different namespace
+        uuid_cache_mesh = {}      # mesh
+        uuid_cache_material = {}  # material
+        uuid_cache_image = {}     # image
+        uuid_cache_world = {}     # world
+        CA_ = 'CA_'
+        OB_ = 'OB_'
+        ME_ = 'ME_'
+        IM_ = 'IM_'
+        WO_ = 'WO_'
+        MA_ = 'MA_'
+        LA_ = 'LA_'
+        group_ = 'group_'
+    else:
+        # If names are not decorated, it may be possible for two objects to
+        # have the same name, so there has to be a unified dictionary to 
+        # prevent uuid collisions.
+        uuid_cache_object = {}    # object
+        uuid_cache_lamp = uuid_cache_object      # 'LA_' + object.name
+        uuid_cache_view = uuid_cache_object      # object, different namespace
+        uuid_cache_mesh = uuid_cache_object      # mesh
+        uuid_cache_material = uuid_cache_object  # material
+        uuid_cache_image = uuid_cache_object     # image
+        uuid_cache_world = uuid_cache_object     # world
+        CA_ = ''
+        OB_ = ''
+        ME_ = ''
+        IM_ = ''
+        WO_ = ''
+        MA_ = ''
+        LA_ = ''
+        group_ = ''
+    
+    _TRANSFORM = '_TRANSFORM'
 
     # store files to copy
     copy_set = set()
@@ -328,7 +365,7 @@ def export(file,
         return ident
 
     def writeViewpoint(ident, obj, matrix, scene):
-        view_id = quoteattr(unique_name(obj, 'CA_' + obj.name, uuid_cache_view, clean_func=clean_def, sep="_"))
+        view_id = quoteattr(unique_name(obj, CA_ + obj.name, uuid_cache_view, clean_func=clean_def, sep="_"))
 
         loc, rot, scale = matrix.decompose()
         rot = rot.to_axis_angle()
@@ -396,7 +433,7 @@ def export(file,
 
     def writeSpotLight(ident, obj, matrix, lamp, world):
         # note, lamp_id is not re-used
-        lamp_id = quoteattr(unique_name(obj, 'LA_' + obj.name, uuid_cache_lamp, clean_func=clean_def, sep="_"))
+        lamp_id = quoteattr(unique_name(obj, LA_ + obj.name, uuid_cache_lamp, clean_func=clean_def, sep="_"))
 
         if world:
             ambi = world.ambient_color
@@ -432,7 +469,7 @@ def export(file,
 
     def writeDirectionalLight(ident, obj, matrix, lamp, world):
         # note, lamp_id is not re-used
-        lamp_id = quoteattr(unique_name(obj, 'LA_' + obj.name, uuid_cache_lamp, clean_func=clean_def, sep="_"))
+        lamp_id = quoteattr(unique_name(obj, LA_ + obj.name, uuid_cache_lamp, clean_func=clean_def, sep="_"))
 
         if world:
             ambi = world.ambient_color
@@ -457,7 +494,7 @@ def export(file,
 
     def writePointLight(ident, obj, matrix, lamp, world):
         # note, lamp_id is not re-used
-        lamp_id = quoteattr(unique_name(obj, 'LA_' + obj.name, uuid_cache_lamp, clean_func=clean_def, sep="_"))
+        lamp_id = quoteattr(unique_name(obj, LA_ + obj.name, uuid_cache_lamp, clean_func=clean_def, sep="_"))
 
         if world:
             ambi = world.ambient_color
@@ -482,9 +519,9 @@ def export(file,
         fw(ident_step + '/>\n')
 
     def writeIndexedFaceSet(ident, obj, mesh, matrix, world):
-        obj_id = quoteattr(unique_name(obj, 'OB_' + obj.name, uuid_cache_object, clean_func=clean_def, sep="_"))
-        mesh_id = quoteattr(unique_name(mesh, 'ME_' + mesh.name, uuid_cache_mesh, clean_func=clean_def, sep="_"))
-        mesh_id_group = prefix_quoted_str(mesh_id, 'group_')
+        obj_id = quoteattr(unique_name(obj, OB_ + obj.name, uuid_cache_object, clean_func=clean_def, sep="_"))
+        mesh_id = quoteattr(unique_name(mesh, ME_ + mesh.name, uuid_cache_mesh, clean_func=clean_def, sep="_"))
+        mesh_id_group = prefix_quoted_str(mesh_id, group_)
         mesh_id_coords = prefix_quoted_str(mesh_id, 'coords_')
         mesh_id_normals = prefix_quoted_str(mesh_id, 'normals_')
 
@@ -501,7 +538,7 @@ def export(file,
 
         # use _ifs_TRANSFORM suffix so we dont collide with transform node when
         # hierarchys are used.
-        ident = writeTransform_begin(ident, matrix, suffix_quoted_str(obj_id, "_ifs_TRANSFORM"))
+        ident = writeTransform_begin(ident, matrix, suffix_quoted_str(obj_id, "_ifs" + _TRANSFORM))
 
         if mesh.tag:
             fw('%s<Group USE=%s />\n' % (ident, mesh_id_group))
@@ -918,7 +955,7 @@ def export(file,
             fw('%s</Collision>\n' % ident)
 
     def writeMaterial(ident, material, world):
-        material_id = quoteattr(unique_name(material, 'MA_' + material.name, uuid_cache_material, clean_func=clean_def, sep="_"))
+        material_id = quoteattr(unique_name(material, MA_ + material.name, uuid_cache_material, clean_func=clean_def, sep="_"))
 
         # look up material name, use it if available
         if material.tag:
@@ -1084,7 +1121,7 @@ def export(file,
                     frag_uniform_var_map[uniform['varname']] = lamp_obj
 
                     if uniform['datatype'] == gpu.GPU_DATA_3F:  # should always be true!
-                        lamp_obj_id = quoteattr(unique_name(lamp_obj, 'LA_' + lamp_obj.name, uuid_cache_lamp, clean_func=clean_def, sep="_"))
+                        lamp_obj_id = quoteattr(unique_name(lamp_obj, LA_ + lamp_obj.name, uuid_cache_lamp, clean_func=clean_def, sep="_"))
                         lamp_obj_transform_id = quoteattr(unique_name(lamp_obj, lamp_obj.name, uuid_cache_object, clean_func=clean_def, sep="_"))
 
                         value = '%.6f %.6f %.6f' % (global_matrix * lamp_obj.matrix_world).to_translation()[:]
@@ -1100,7 +1137,7 @@ def export(file,
                         frag_vars.append("uniform mat4 %s_transform;" % uniform['varname'])
                         h3d_material_route.append(
                                 '<ROUTE fromNode=%s fromField="accumulatedForward" toNode=%s toField="%s_transform" />%s' %
-                                (suffix_quoted_str(lamp_obj_transform_id, "_TRANSFORM"), material_id, uniform['varname'], field_descr))
+                                (suffix_quoted_str(lamp_obj_transform_id, _TRANSFORM), material_id, uniform['varname'], field_descr))
 
                         h3d_material_route.append(
                                 '<ROUTE fromNode=%s fromField="location" toNode=%s toField="%s" /> %s' %
@@ -1141,7 +1178,7 @@ def export(file,
 
                         # route so we can have the lamp update the view
                         if h3d_is_object_view(scene, lamp_obj):
-                            lamp_id = quoteattr(unique_name(lamp_obj, 'LA_' + lamp_obj.name, uuid_cache_lamp, clean_func=clean_def, sep="_"))
+                            lamp_id = quoteattr(unique_name(lamp_obj, LA_ + lamp_obj.name, uuid_cache_lamp, clean_func=clean_def, sep="_"))
                             h3d_material_route.append(
                                 '<ROUTE fromNode=%s fromField="direction" toNode=%s toField="%s" />%s' %
                                         (lamp_id, material_id, uniform['varname'], field_descr))
@@ -1234,7 +1271,7 @@ def export(file,
             fw('%s</ComposedShader>\n' % ident)
 
     def writeImageTexture(ident, image):
-        image_id = quoteattr(unique_name(image, 'IM_' + image.name, uuid_cache_image, clean_func=clean_def, sep="_"))
+        image_id = quoteattr(unique_name(image, IM_ + image.name, uuid_cache_image, clean_func=clean_def, sep="_"))
 
         if image.tag:
             fw('%s<ImageTexture USE=%s />\n' % (ident, image_id))
@@ -1270,7 +1307,7 @@ def export(file,
             return
 
         # note, not re-used
-        world_id = quoteattr(unique_name(world, 'WO_' + world.name, uuid_cache_world, clean_func=clean_def, sep="_"))
+        world_id = quoteattr(unique_name(world, WO_ + world.name, uuid_cache_world, clean_func=clean_def, sep="_"))
 
         blending = world.use_sky_blend, world.use_sky_paper, world.use_sky_real
 
@@ -1350,7 +1387,7 @@ def export(file,
 
             obj_main_id = quoteattr(unique_name(obj_main, obj_main.name, uuid_cache_object, clean_func=clean_def, sep="_"))
 
-            ident = writeTransform_begin(ident, obj_main_matrix if obj_main_parent else global_matrix * obj_main_matrix, suffix_quoted_str(obj_main_id, "_TRANSFORM"))
+            ident = writeTransform_begin(ident, obj_main_matrix if obj_main_parent else global_matrix * obj_main_matrix, suffix_quoted_str(obj_main_id, _TRANSFORM))
 
         for obj, obj_matrix in (() if derived is None else derived):
             obj_type = obj.type
@@ -1507,6 +1544,7 @@ def save(operator, context, filepath="",
          use_h3d=False,
          global_matrix=None,
          path_mode='AUTO',
+         name_decorations=True,
          ):
 
     bpy.path.ensure_ext(filepath, '.x3dz' if use_compress else '.x3d')
@@ -1534,6 +1572,7 @@ def save(operator, context, filepath="",
            use_hierarchy=use_hierarchy,
            use_h3d=use_h3d,
            path_mode=path_mode,
+           name_decorations=name_decorations,
            )
 
     return {'FINISHED'}
