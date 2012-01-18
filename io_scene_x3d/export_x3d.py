@@ -187,7 +187,7 @@ def h3d_shader_glsl_frag_patch(filepath, scene, global_vars, frag_uniform_var_ma
             lines.append("\n")
         elif l.lstrip().startswith("lamp_visibility_other("):
             w = l.split(', ')
-            last_transform = w[1] + _TRANSFORM  # XXX - HACK!!!
+            last_transform = w[1] + "_transform"  # XXX - HACK!!!
             w[1] = '(view_matrix * %s_transform * vec4(%s.x, %s.y, %s.z, 1.0)).xyz' % (w[1], w[1], w[1], w[1])
             l = ", ".join(w)
         elif l.lstrip().startswith("lamp_visibility_sun_hemi("):
@@ -282,13 +282,15 @@ def export(file,
         # If names are not decorated, it may be possible for two objects to
         # have the same name, so there has to be a unified dictionary to 
         # prevent uuid collisions.
-        uuid_cache_object = {}    # object
-        uuid_cache_lamp = uuid_cache_object      # 'LA_' + object.name
-        uuid_cache_view = uuid_cache_object      # object, different namespace
-        uuid_cache_mesh = uuid_cache_object      # mesh
-        uuid_cache_material = uuid_cache_object  # material
-        uuid_cache_image = uuid_cache_object     # image
-        uuid_cache_world = uuid_cache_object     # world
+        uuid_cache = {}
+        uuid_cache_object = uuid_cache           # object
+        uuid_cache_lamp = uuid_cache             # 'LA_' + object.name
+        uuid_cache_view = uuid_cache             # object, different namespace
+        uuid_cache_mesh = uuid_cache             # mesh
+        uuid_cache_material = uuid_cache         # material
+        uuid_cache_image = uuid_cache            # image
+        uuid_cache_world = uuid_cache            # world
+        del uuid_cache
         CA_ = ''
         OB_ = ''
         ME_ = ''
