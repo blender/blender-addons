@@ -956,7 +956,7 @@ class ORE_CheckUpdate(bpy.types.Operator):
     bl_label = 'Check for a new version'
     
     def execute(self, context):
-        blenderproxy = xmlrpc.client.ServerProxy(r'http://xmlrpc.renderfarm.fi/blender')
+        blenderproxy = xmlrpc.client.ServerProxy(r'http://xmlrpc.renderfarm.fi/renderfarmfi/blender')
         try:
             self.report(set(['INFO']), 'Checking for newer version on Renderfarm.fi')
             dl_url = blenderproxy.blender.getCurrentVersion(bpy.CURRENT_VERSION)
