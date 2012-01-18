@@ -342,13 +342,13 @@ def fracture_group(context, group):
 
 
 class FractureSimple(bpy.types.Operator):
-    '''Split object with boolean operations for simulation, uses an object.'''
+    '''Split object with boolean operations for simulation, uses an object'''
     bl_idname = "object.fracture_simple"
     bl_label = "Fracture Object"
     bl_options = {'REGISTER', 'UNDO'}
 
     exe = BoolProperty(name="Execute",
-        description="If it shall actually run, for optimal performance...",
+        description="If it shall actually run, for optimal performance",
         default=False)
 
     hierarchy = BoolProperty(name="Generate hierarchy",
@@ -388,13 +388,13 @@ class FractureSimple(bpy.types.Operator):
 
 
 class FractureGroup(bpy.types.Operator):
-    '''Split object with boolean operations for simulation, uses a group.'''
+    '''Split object with boolean operations for simulation, uses a group'''
     bl_idname = "object.fracture_group"
     bl_label = "Fracture Object (Group)"
     bl_options = {'REGISTER', 'UNDO'}
 
     exe = BoolProperty(name="Execute",
-                       description="If it shall actually run, for optimal performance...",
+                       description="If it shall actually run, for optimal performance",
                        default=False)
 
     group = StringProperty(name="Group",

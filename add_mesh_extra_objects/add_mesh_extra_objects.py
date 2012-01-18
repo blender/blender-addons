@@ -357,7 +357,7 @@ def trapezohedron(s,r,h):
     return verts,faces
 
 class AddSqorus(bpy.types.Operator):
-    '''Add a sqorus mesh.'''
+    '''Add a sqorus mesh'''
     bl_idname = "mesh.primitive_sqorus_add"
     bl_label = "Add Sqorus"
     bl_options = {'REGISTER', 'UNDO', 'PRESET'}
@@ -386,7 +386,7 @@ class AddSqorus(bpy.types.Operator):
 
 
 class AddWedge(bpy.types.Operator):
-    '''Add a wedge mesh.'''
+    '''Add a wedge mesh'''
     bl_idname = "mesh.primitive_wedge_add"
     bl_label = "Add Wedge"
     bl_options = {'REGISTER', 'UNDO', 'PRESET'}
@@ -420,7 +420,7 @@ class AddWedge(bpy.types.Operator):
 
 
 class AddStar(bpy.types.Operator):
-    '''Add a star mesh.'''
+    '''Add a star mesh'''
     bl_idname = "mesh.primitive_star_add"
     bl_label = "Add Star"
     bl_options = {'REGISTER', 'UNDO', 'PRESET'}

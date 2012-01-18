@@ -1394,20 +1394,24 @@ def register():
     bpy.utils.register_module(__name__)
 
     wm = bpy.context.window_manager
-    km = wm.keyconfigs.addon.keymaps.new(name='3D View', space_type='VIEW_3D')
-    kmi = km.keymap_items.new('wm.call_menu', 'SPACE', 'PRESS')
-    kmi.properties.name = "VIEW3D_MT_Space_Dynamic_Menu"
+    kc = wm.keyconfigs.addon
+    if kc:
+        km = kc.keymaps.new(name='3D View', space_type='VIEW_3D')
+        kmi = km.keymap_items.new('wm.call_menu', 'SPACE', 'PRESS')
+        kmi.properties.name = "VIEW3D_MT_Space_Dynamic_Menu"
 
 def unregister():
     bpy.utils.unregister_module(__name__)
 
     wm = bpy.context.window_manager
-    km = wm.keyconfigs.addon.keymaps['3D View']
-    for kmi in km.keymap_items:
-        if kmi.idname == 'wm.call_menu':
-            if kmi.properties.name == "VIEW3D_MT_Space_Dynamic_Menu":
-                km.keymap_items.remove(kmi)
-                break
+    kc = wm.keyconfigs.addon
+    if kc:
+        km = kc.addon.keymaps['3D View']
+        for kmi in km.keymap_items:
+            if kmi.idname == 'wm.call_menu':
+                if kmi.properties.name == "VIEW3D_MT_Space_Dynamic_Menu":
+                    km.keymap_items.remove(kmi)
+                    break
 
 if __name__ == "__main__":
     register()

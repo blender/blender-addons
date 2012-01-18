@@ -130,7 +130,7 @@ class torus_knot_plus(bpy.types.Operator, AddObjectHelper):
     torus_res = IntProperty(name="Resoulution",
                 default=100,
                 min=3, soft_min=3,
-                description='Resolution, Number of controlverticies.')
+                description='Resolution, Number of controlverticies')
     torus_p = IntProperty(name="p",
                 default=2,
                 min=1, soft_min=1,

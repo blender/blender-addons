@@ -570,7 +570,7 @@ def add_worm(teethNum, rowNum, radius, Ad, De, p_angle,
 
 
 class AddGear(bpy.types.Operator):
-    '''Add a gear mesh.'''
+    '''Add a gear mesh'''
     bl_idname = "mesh.primitive_gear"
     bl_label = "Add Gear"
     bl_options = {'REGISTER', 'UNDO', 'PRESET'}
@@ -676,7 +676,7 @@ class AddGear(bpy.types.Operator):
 
 
 class AddWormGear(bpy.types.Operator):
-    '''Add a worm gear mesh.'''
+    '''Add a worm gear mesh'''
     bl_idname = "mesh.primitive_worm_gear"
     bl_label = "Add Worm Gear"
     bl_options = {'REGISTER', 'UNDO', 'PRESET'}

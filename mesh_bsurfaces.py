@@ -822,9 +822,10 @@ def register():
     bpy.types.Scene.SURFSK_keep_strokes = bpy.props.BoolProperty(name="Keep strokes", description="Keeps the sketched strokes after adding the surface", default=False)
 
     kc = bpy.context.window_manager.keyconfigs.addon
-    km = kc.keymaps.new(name="3D View", space_type="VIEW_3D")
-    keymap_item_add_surf = km.keymap_items.new("gpencil.surfsk_add_surface","E","PRESS", key_modifier="D")
-    keymap_item_stroke_to_curve = km.keymap_items.new("gpencil.surfsk_strokes_to_curves","C","PRESS", key_modifier="D")
+    if kc:
+        km = kc.keymaps.new(name="3D View", space_type="VIEW_3D")
+        keymap_item_add_surf = km.keymap_items.new("gpencil.surfsk_add_surface","E","PRESS", key_modifier="D")
+        keymap_item_stroke_to_curve = km.keymap_items.new("gpencil.surfsk_strokes_to_curves","C","PRESS", key_modifier="D")
     
 
 def unregister():
@@ -838,15 +839,16 @@ def unregister():
     del bpy.types.Scene.SURFSK_keep_strokes
     
     kc = bpy.context.window_manager.keyconfigs.addon
-    km = kc.keymaps["3D View"]
-    for kmi in km.keymap_items:
-        if kmi.idname == 'wm.call_menu':
-            if kmi.properties.name == "GPENCIL_OT_SURFSK_add_surface":
-                km.keymap_items.remove(kmi)
-            elif kmi.properties.name == "GPENCIL_OT_SURFSK_strokes_to_curves":
-                km.keymap_items.remove(kmi)   
-            else:
-                continue
+    if kc:
+        km = kc.keymaps["3D View"]
+        for kmi in km.keymap_items:
+            if kmi.idname == 'wm.call_menu':
+                if kmi.properties.name == "GPENCIL_OT_SURFSK_add_surface":
+                    km.keymap_items.remove(kmi)
+                elif kmi.properties.name == "GPENCIL_OT_SURFSK_strokes_to_curves":
+                    km.keymap_items.remove(kmi)   
+                else:
+                    continue
 
     
 if __name__ == "__main__":

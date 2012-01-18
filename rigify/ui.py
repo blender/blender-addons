@@ -251,7 +251,7 @@ class Generate(bpy.types.Operator):
 
 
 class Sample(bpy.types.Operator):
-    '''Create a sample metarig to be modified before generating the final rig.'''
+    '''Create a sample metarig to be modified before generating the final rig'''
 
     bl_idname = "armature.metarig_sample_add"
     bl_label = "Add a sample metarig for a rig type"
