@@ -39,7 +39,7 @@ Alternatively, run the script in the script editor (Alt-P), and access from the 
 bl_info = {
     'name': 'Import: MakeHuman (.mhx)',
     'author': 'Thomas Larsson',
-    'version': (1, 9, 1),
+    'version': (1, 9, 2),
     "blender": (2, 5, 9),
     'location': "File > Import > MakeHuman (.mhx)",
     'description': 'Import files in the MakeHuman eXchange format (.mhx)',
@@ -51,7 +51,7 @@ bl_info = {
 
 MAJOR_VERSION = 1
 MINOR_VERSION = 9
-SUB_VERSION = 0
+SUB_VERSION = 2
 BLENDER_VERSION = (2, 59, 2)
 
 #
@@ -3116,6 +3116,100 @@ VisemeList = [
 ]
 
 #
+#   makeVisemes(ob, scn):
+#   class VIEW3D_OT_MhxMakeVisemesButton(bpy.types.Operator):
+#
+
+def makeVisemes(ob, scn):
+    if ob.type != 'MESH':
+        print("Active object %s is not a mesh" % ob)
+        return
+    if not ob.data.shape_keys:
+        print("%s has no shapekeys" % ob)
+        return
+    adata = ob.data.shape_keys.animation_data
+    if not adata:
+        print("Shapekeys have not drivers")
+        return
+    try:
+        ob.data.shape_keys.key_blocks["VIS_Rest"]
+        print("Visemes already created")
+        return
+    except:
+        pass        
+    rig = ob.parent
+    scale = rig.data.bones['PFace'].length*0.2
+
+    boneShapes = {}
+    for fcu in adata.drivers:
+        name = fcu.data_path.split('"')[1]
+        for var in fcu.driver.variables:
+            if var.type == 'TRANSFORMS':
+                targ = var.targets[0]  
+                fmod = fcu.modifiers[0]
+                try:
+                    list = boneShapes[targ.bone_target]
+                except:
+                    list = []
+                    boneShapes[targ.bone_target] = list
+                list.append((targ.transform_type, fmod, ob.data.shape_keys.key_blocks[name]))
+            
+    verts = ob.data.vertices            
+    for (vis,bones) in bodyLanguageVisemes.items():
+        if vis in ['Blink', 'Unblink']:
+            continue
+        vkey = ob.shape_key_add(name="VIS_%s" % vis)  
+        print(vkey.name)
+        for n,v in enumerate(verts):
+            vkey.data[n].co = v.co
+        for (bone, xz) in bones:
+            try:
+                boneShapes[bone]
+                single = True
+            except:
+                single = False
+            if single:
+                addToVisShapeKey(boneShapes[bone], vkey, verts, xz, 1, scale)
+            else:
+                try:
+                    boneShapes[bone+"_L"]
+                    double = True
+                except:
+                    double = False
+                if double:
+                    addToVisShapeKey(boneShapes[bone+"_L"], vkey, verts, xz, 1, scale)
+                    #addToVisShapeKey(boneShapes[bone+"_R"], vkey, verts, xz, -1, scale)
+    print("Visemes made")                    
+    return
+    
+def addToVisShapeKey(shapes, vkey, verts, xz, sign, scale):
+    for (typ, fmod, skey) in shapes:
+        factor = fmod.coefficients[1]*scale
+        (x,z) = xz
+        if typ == 'LOC_X':
+            k = factor*sign*x
+        elif typ == 'LOC_Z':
+            k = factor*z
+        if k < skey.slider_min:
+            k = skey.slider_min
+        if k > skey.slider_max:
+            k = skey.slider_max
+        if abs(k) < 0.001:
+            continue
+        print("  %s %.3f %.3f %.3f %.3f" % (skey.name, factor, x, z, k))
+        for n,v in enumerate(verts):
+            vkey.data[n].co += k*(skey.data[n].co - v.co)
+    return            
+       
+class VIEW3D_OT_MhxMakeVisemesButton(bpy.types.Operator):
+    bl_idname = "mhx.make_visemes"
+    bl_label = "Generate viseme shapekeys"
+
+    def execute(self, context):
+        makeVisemes(context.object, context.scene)
+        return{'FINISHED'}    
+       
+#
 #    mohoVisemes
 #    magpieVisemes
 #
@@ -3327,6 +3421,8 @@ class MhxLipsyncPanel(bpy.types.Panel):
         row.operator("mhx.pose_load_moho")
         row.operator("mhx.pose_load_magpie")
         layout.operator("mhx.update")
+        layout.separator()
+        layout.operator("mhx.make_visemes")
         return
         
 #
