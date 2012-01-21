@@ -136,7 +136,7 @@ class ExportX3D(bpy.types.Operator, ExportHelper):
             )
     name_decorations = BoolProperty(
             name="Name decorations",
-            description="Add prefixes to the names of exported nodes to indicate their type.",
+            description="Add prefixes to the names of exported nodes to indicate their type",
             default=True,
             )
     use_h3d = BoolProperty(
