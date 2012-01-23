@@ -76,18 +76,17 @@ def get_active_cam_for_each_frame(scene, start, end):
                 sorted_markers.append([marker.frame, marker])
         sorted_markers = sorted(sorted_markers)
 
-        for i, marker in enumerate(sorted_markers):
-            cam = marker[1].camera
-            if i is 0 and marker[0] > start:
-                start_range = start
-            else:
-                start_range = sorted_markers[i][0]
-            if len(sorted_markers) > i + 1:
-                end_range = sorted_markers[i + 1][0] - 1
-            else:
-                end_range = end
-            for i in range(start_range, end_range + 1):
-                active_cam_frames.append(cam)
+        if sorted_markers:
+            for frame in range(start, end + 1):
+                for m, marker in enumerate(sorted_markers):
+                    if marker[0] > frame:
+                        if m != 0:
+                            active_cam_frames.append(sorted_markers[m - 1][1].camera)
+                        else:
+                            active_cam_frames.append(marker[1].camera)
+                        break
+                    elif m == len(sorted_markers) - 1:
+                        active_cam_frames.append(marker[1].camera)
     if not active_cam_frames:
         if scene.camera:
             # in this case active_cam_frames array will have legth of 1. This will indicate that there is only one active cam in all frames
@@ -459,10 +458,11 @@ def write_jsx_file(file, data, selection, include_active_cam, include_selected_c
     # wrap in function
     jsx_file.write("function compFromBlender(){\n")
     # create new comp
-    jsx_file.write('\nvar compName = prompt("Blender Comp\'s Name \\nEnter Name of newly created Composition","BlendComp","Composition\'s Name");')
+    jsx_file.write('\nvar compName = prompt("Blender Comp\'s Name \\nEnter Name of newly created Composition","BlendComp","Composition\'s Name");\n')
     jsx_file.write('if (compName){')
-    jsx_file.write('\nvar newComp = app.project.items.addComp(compName, %i, %i, %f, %f, %i);\n\n\n' %
+    jsx_file.write('\nvar newComp = app.project.items.addComp(compName, %i, %i, %f, %f, %i);' %
                    (data['width'], data['height'], data['aspect'], data['duration'], data['fps']))
+    jsx_file.write('\nnewComp.displayStartTime = %f;\n\n\n' % ((data['start'] + 1.0) / data['fps']))
 
     # create camera bundles (nulls)
     jsx_file.write('// **************  CAMERA 3D MARKERS  **************\n\n\n')
