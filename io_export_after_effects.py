@@ -1,9 +1,9 @@
-#  ***** BEGIN GPL LICENSE BLOCK *****
+# ##### BEGIN GPL LICENSE BLOCK #####
 #
-#  This program is free software: you can redistribute it and/or modify
-#  it under the terms of the GNU General Public License as published by
-#  the Free Software Foundation, either version 3 of the License, or
-#  (at your option) any later version.
+#  This program is free software; you can redistribute it and/or
+#  modify it under the terms of the GNU General Public License
+#  as published by the Free Software Foundation; either version 2
+#  of the License, or (at your option) any later version.
 #
 #  This program is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -11,12 +11,13 @@
 #  GNU General Public License for more details.
 #
 #  You should have received a copy of the GNU General Public License
-#  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#  along with this program; if not, write to the Free Software Foundation,
+#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
-#  The Original Code is: all of this file.
-#
-#  ***** END GPL LICENSE BLOCK *****
-#
+# ##### END GPL LICENSE BLOCK #####
+
+# <pep8 compliant>
+
 bl_info = {
     'name': 'Export: Adobe After Effects (.jsx)',
     'description': 'Export cameras, selected objects & camera solution 3D Markers to Adobe After Effects CS3 and above',
@@ -63,6 +64,7 @@ def get_comp_data(context):
         'curframe': scene.frame_current,
         }
 
+
 # create list of active camera for each frame in case active camera is set by markers
 def get_active_cam_for_each_frame(scene, start, end):
     active_cam_frames = []
@@ -73,15 +75,15 @@ def get_active_cam_for_each_frame(scene, start, end):
             if marker.camera:
                 sorted_markers.append([marker.frame, marker])
         sorted_markers = sorted(sorted_markers)
-        
-        for i, marker in enumerate (sorted_markers):
+
+        for i, marker in enumerate(sorted_markers):
             cam = marker[1].camera
             if i is 0 and marker[0] > start:
                 start_range = start
             else:
                 start_range = sorted_markers[i][0]
             if len(sorted_markers) > i + 1:
-                end_range = sorted_markers[i+1][0] - 1
+                end_range = sorted_markers[i + 1][0] - 1
             else:
                 end_range = end
             for i in range(start_range, end_range + 1):
@@ -91,7 +93,8 @@ def get_active_cam_for_each_frame(scene, start, end):
             # in this case active_cam_frames array will have legth of 1. This will indicate that there is only one active cam in all frames
             active_cam_frames.append(scene.camera)
 
-    return(active_cam_frames)    
+    return(active_cam_frames)
+
 
 # create managable list of selected objects
 def get_selected(context):
@@ -108,7 +111,7 @@ def get_selected(context):
         elif is_plane(ob):
             # not ready yet. is_plane(object) returns False in all cases. This is temporary
             solids.append([ob, convert_name(ob.name)])
-            
+
         elif ob.type == 'LAMP':
             # not ready yet. Lamps will be exported as nulls. This is temporary
             nulls.append([ob, convert_name(ob.name)])
@@ -125,10 +128,12 @@ def get_selected(context):
 
     return selection
 
+
 # check if object is plane and can be exported as AE's solid
 def is_plane(object):
     # work in progress. Not ready yet
     return False
+
 
 # convert names of objects to avoid errors in AE.
 def convert_name(name):
@@ -136,7 +141,7 @@ def convert_name(name):
 
     if name[0].isdigit():
         name = "_" + name
-        
+
     name = bpy.path.clean_name(name)
     name = name.replace("-", "_")
 
@@ -219,7 +224,8 @@ def convert_transform_matrix(matrix, width, height, aspect, x_rot_correction=Fal
 #
 #    above is true if square pixels are used. If not - aspect compensation is needed, so final formula is:
 #    zoom = lens * dimension / sensor * aspect
-#
+
+
 def convert_lens(camera, width, height, aspect):
     if camera.data.sensor_fit == 'VERTICAL':
         sensor = camera.data.sensor_height
@@ -227,7 +233,7 @@ def convert_lens(camera, width, height, aspect):
     else:
         sensor = camera.data.sensor_width
         dimension = width
-    
+
     zoom = camera.data.lens * dimension / sensor * aspect
 
     return zoom
@@ -284,28 +290,28 @@ def write_jsx_file(file, data, selection, include_active_cam, include_selected_c
                     'rotationX': '',
                     'zoom': '',
                     }
-    
+    '''
     # create structure for solids. Not ready yet. Temporarily not active
-#    for i, obj in enumerate(selection['solids']):
-#        name_ae = selection['solids'][i][1]
-#        js_data['solids'][name_ae] = {
-#            'position': '',
-#            'orientation': '',
-#            'rotationX': '',
-#            'scale': '',
-#            }
+    for i, obj in enumerate(selection['solids']):
+        name_ae = selection['solids'][i][1]
+        js_data['solids'][name_ae] = {
+            'position': '',
+            'orientation': '',
+            'rotationX': '',
+            'scale': '',
+            }
 
-    # create structure for lights. Not ready yet. Temporarily not active
-#    for i, obj in enumerate(selection['lights']):
-#        name_ae = selection['lights'][i][1]
-#        js_data['nulls'][name_ae] = {
-#            'position': '',
-#            'orientation': '',
-#            'rotationX': '',
-#            'scale': '',
-#            }
+   # create structure for lights. Not ready yet. Temporarily not active
+    for i, obj in enumerate(selection['lights']):
+        name_ae = selection['lights'][i][1]
+        js_data['nulls'][name_ae] = {
+            'position': '',
+            'orientation': '',
+            'rotationX': '',
+            'scale': '',
+            }
+    '''
 
-    
     # create structure for nulls
     for i, obj in enumerate(selection['nulls']):  # nulls representing blender's obs except cameras, lamps and solids
         if include_selected_objects:
@@ -354,8 +360,7 @@ def write_jsx_file(file, data, selection, include_active_cam, include_selected_c
                             matrix = Matrix.Translation(cam.matrix_basis.copy() * track.bundle)
                             # convert the position into AE space
                             ae_transform = convert_transform_matrix(matrix, data['width'], data['height'], data['aspect'], x_rot_correction=False)
-                            js_data['bundles_cam'][name_ae]['position'] += '[%f,%f,%f],' % (ae_transform[0], ae_transform[1], ae_transform[2])                            
-
+                            js_data['bundles_cam'][name_ae]['position'] += '[%f,%f,%f],' % (ae_transform[0], ae_transform[1], ae_transform[2])
 
     # get all keyframes for each object and store in dico
     for frame in range(data['start'], data['end'] + 1):
@@ -401,21 +406,21 @@ def write_jsx_file(file, data, selection, include_active_cam, include_selected_c
                     js_data['cameras'][name_ae]['orientation'] += '[%f,%f,%f],' % (0, ae_transform[4], ae_transform[5])
                     js_data['cameras'][name_ae]['rotationX'] += '%f ,' % (ae_transform[3])
                     js_data['cameras'][name_ae]['zoom'] += '[%f],' % (zoom)
-    
-    
+
+        '''
         # keyframes for all solids. Not ready yet. Temporarily not active
-#        for i, ob in enumerate(selection['solids']):
-#            #get object name
-#            name_ae = selection['solids'][i][1]
-#            #convert ob position to AE space
+        for i, ob in enumerate(selection['solids']):
+            #get object name
+            name_ae = selection['solids'][i][1]
+            #convert ob position to AE space
 
 
-        # keyframes for all lights. Not ready yet. Temporarily not active
-#        for i, ob in enumerate(selection['lights']):
-#            #get object name
-#            name_ae = selection['lights'][i][1]
-#            #convert ob position to AE space
-
+       # keyframes for all lights. Not ready yet. Temporarily not active
+        for i, ob in enumerate(selection['lights']):
+            #get object name
+            name_ae = selection['lights'][i][1]
+            #convert ob position to AE space
+        '''
 
         # keyframes for all nulls
         if include_selected_objects:
@@ -467,7 +472,7 @@ def write_jsx_file(file, data, selection, include_active_cam, include_selected_c
         jsx_file.write('%s.threeDLayer = true;\n' % name_ae)
         jsx_file.write('%s.source.name = "%s";\n' % (name_ae, name_ae))
         jsx_file.write('%s.property("position").setValue(%s);\n\n\n' % (name_ae, js_data['bundles_cam'][obj]['position']))
-    
+
     # create object bundles (not ready yet)
 
     # create objects (nulls)
@@ -538,46 +543,46 @@ class ExportJsx(bpy.types.Operator, ExportHelper):
     bl_label = "Export to Adobe After Effects"
     filename_ext = ".jsx"
     filter_glob = StringProperty(default="*.jsx", options={'HIDDEN'})
-    
+
     include_active_cam = BoolProperty(
-            name = "Active Camera",
-            description = "Include Active Camera Data",
-            default = True,
+            name="Active Camera",
+            description="Include Active Camera Data",
+            default=True,
             )
     include_selected_cams = BoolProperty(
-            name = "Selected Cameras",
-            description = "Add Selected Cameras Data",
-            default = True,
+            name="Selected Cameras",
+            description="Add Selected Cameras Data",
+            default=True,
             )
     include_selected_objects = BoolProperty(
-            name = "Selected Objects",
-            description = "Add Selected Objects Data",
-            default = True,
+            name="Selected Objects",
+            description="Add Selected Objects Data",
+            default=True,
             )
     include_rotation = BoolProperty(
-            name = "Rotation",
-            description  ="Include rotation of selected objects",
-            default = True,
+            name="Rotation",
+            description="Include rotation of selected objects",
+            default=True,
             )
     include_scale = BoolProperty(
-            name = "Scale",
-            description = "Include scale of selected object",
-            default = True,
+            name="Scale",
+            description="Include scale of selected object",
+            default=True,
             )
     include_cam_bundles = BoolProperty(
-            name = "Camera 3D Markers",
-            description = "Include 3D Markers of Camera Motion Solution for selected cameras",
-            default = True,
+            name="Camera 3D Markers",
+            description="Include 3D Markers of Camera Motion Solution for selected cameras",
+            default=True,
             )
 #    include_ob_bundles = BoolProperty(
-#            name = "Objects 3D Markers",
-#            description = "Include 3D Markers of Object Motion Solution for selected cameras",
-#            default = True,
+#            name="Objects 3D Markers",
+#            description="Include 3D Markers of Object Motion Solution for selected cameras",
+#            default=True,
 #            )
 
     def draw(self, context):
         layout = self.layout
-        
+
         box = layout.box()
         box.label('Include Cameras and Objects:')
         box.prop(self, 'include_active_cam')
