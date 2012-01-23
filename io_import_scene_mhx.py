@@ -26,7 +26,7 @@
 """
 Abstract
 MHX (MakeHuman eXchange format) importer for Blender 2.5x.
-Version 1.9.0
+Version 1.10.1
 
 This script should be distributed with Blender.
 If not, place it in the .blender/scripts/addons dir
@@ -39,7 +39,7 @@ Alternatively, run the script in the script editor (Alt-P), and access from the 
 bl_info = {
     'name': 'Import: MakeHuman (.mhx)',
     'author': 'Thomas Larsson',
-    'version': (1, 9, 2),
+    'version': (1, 10, 1),
     "blender": (2, 5, 9),
     'location': "File > Import > MakeHuman (.mhx)",
     'description': 'Import files in the MakeHuman eXchange format (.mhx)',
@@ -50,8 +50,8 @@ bl_info = {
     'category': 'Import-Export'}
 
 MAJOR_VERSION = 1
-MINOR_VERSION = 9
-SUB_VERSION = 2
+MINOR_VERSION = 10
+SUB_VERSION = 1
 BLENDER_VERSION = (2, 59, 2)
 
 #
@@ -173,7 +173,10 @@ def setFlagsAndFloats():
 #    Dictionaries
 #
 
-loadedData = {
+def initLoadedData():
+    global loadedData
+
+    loadedData = {
     'NONE' : {},
 
     'Object' : {},
@@ -206,7 +209,16 @@ loadedData = {
     'ObjectConstraints' : {},
     'ObjectModifiers' : {},
     'MaterialSlot' : {},
-}
+    }
+    return
+    
+def reinitGlobalData():
+    global loadedData
+    for key in [
+        'MeshTextureFaceLayer', 'MeshColorLayer', 'VertexGroup', 'ShapeKey',
+        'ParticleSystem', 'ObjectConstraints', 'ObjectModifiers', 'MaterialSlot']:
+        loadedData[key] = {}
+    return
 
 Plural = {
     'Object' : 'objects',
@@ -261,6 +273,7 @@ def readMhxFile(filePath):
     defaultScale = theScale
     One = 1.0/theScale
     warnedVersion = False
+    initLoadedData()
 
     fileName = os.path.expanduser(filePath)
     (shortName, ext) = os.path.splitext(fileName)
@@ -446,6 +459,7 @@ def parse(tokens):
         elif key == "Object":
             parseObject(val, sub)
         elif key == "Mesh":
+            reinitGlobalData()
             data = parseMesh(val, sub)
         elif key == "Armature":
             data = parseArmature(val, sub)
@@ -1455,8 +1469,11 @@ def parseVertexGroup(ob, me, args, tokens):
         return
 
     if (toggle & T_Armature) or (grpName in ['Eye_L', 'Eye_R', 'Gums', 'Head', 'Jaw', 'Left', 'Middle', 'Right', 'Scalp']):
-        group = ob.vertex_groups.new(grpName)
-        loadedData['VertexGroup'][grpName] = group
+        try:
+            group = loadedData['VertexGroup'][grpName]
+        except KeyError:
+            group = ob.vertex_groups.new(grpName)
+            loadedData['VertexGroup'][grpName] = group
         for (key, val, sub) in tokens:
             if key == 'wv':
                 group.add( [int(val[0])], float(val[1]), 'REPLACE' )
@@ -2065,7 +2082,7 @@ def deleteDiamonds(ob):
     bpy.ops.object.mode_set(mode='OBJECT')
     me = ob.data
     for f in me.faces:    
-        if f.material_index == 1:
+        if f.material_index >= 4:
             for vn in f.vertices:
                 me.vertices[vn].select = True
     bpy.ops.object.mode_set(mode='EDIT')
@@ -3646,7 +3663,7 @@ MhxLayers = [
     (( 1,    'FK Spine', 'MhxFKSpine'),
      (17,    'IK Spine', 'MhxIKSpine')),
     ((13,    'Inv FK Spine', 'MhxInvFKSpine'),
-     (29,    'Inv IK Spine', 'MhxInvIKSpine')),
+     (16,    'Clothes', 'MhxClothes')),
     ('Left', 'Right'),
     (( 2,    'IK Arm', 'MhxIKArm'),
      (18,    'IK Arm', 'MhxIKArm')),
