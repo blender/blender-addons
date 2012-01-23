@@ -52,7 +52,8 @@ function balance_enable(id, value)
 
 function showThumb(job, frame)
 {
-	if (lastFrame != -1) {
+	if (lastFrame != -1) {	
+
 		if (maxFrame != -1 && minFrame != -1) {
 			if (frame >= minFrame && frame <= maxFrame) {
 				for(i = minFrame; i <= maxFrame; i=i+1) {

@@ -24,6 +24,7 @@ import netrender.model
 class RatingRule:
     def __init__(self):
         self.enabled = True
+        self.editable = False
 
     def id(self):
         return str(id(self))
@@ -34,7 +35,7 @@ class RatingRule:
 class ExclusionRule:
     def __init__(self):
         self.enabled = True
-
+        self.editable = True
     def id(self):
         return str(id(self))
 
@@ -44,7 +45,7 @@ class ExclusionRule:
 class PriorityRule:
     def __init__(self):
         self.enabled = True
-
+        self.editable = True
     def id(self):
         return str(id(self))
 
@@ -118,6 +119,13 @@ class RatingUsage(RatingRule):
     def rate(self, job):
         # less usage is better
         return job.usage / job.priority
+    def serialize(self):
+        return { "type": "rating",
+                 "enabled": self.enabled,
+                 "descritpiton":str(self),
+                 "limit":"",
+                 "id":self.id()
+	  }
 
 class RatingUsageByCategory(RatingRule):
     def __init__(self, get_jobs):
@@ -133,6 +141,16 @@ class RatingUsageByCategory(RatingRule):
 
         # less usage is better
         return total_category_usage / maximum_priority
+
+    def serialize(self):
+        return { "type": "rating",
+                 "enabled": self.enabled,
+                 "editable": self.editable,
+                 "descritpiton":str(self),
+                 "limit":"",
+                 "id":self.id()
+	  }
+
 
 class NewJobPriority(PriorityRule):
     def __init__(self, limit = 1):
@@ -150,6 +168,15 @@ class NewJobPriority(PriorityRule):
 
     def test(self, job):
         return job.countFrames(status = FRAME_DONE) < self.limit
+    def serialize(self):
+        return { "type": "priority",
+                 "enabled": self.enabled,
+                 "editable": self.editable,
+                 "descritpiton":str(self),
+                 "limit": self.limit,           
+                 "limit_str":self.str_limit(),
+                 "id":self.id()
+	  }
 
 class MinimumTimeBetweenDispatchPriority(PriorityRule):
     def __init__(self, limit = 10):
@@ -168,12 +195,36 @@ class MinimumTimeBetweenDispatchPriority(PriorityRule):
     def test(self, job):
         return job.countFrames(status = FRAME_DISPATCHED) == 0 and (time.time() - job.last_dispatched) / 60 > self.limit
 
+    def serialize(self):
+        return { "type": "priority",
+                 "enabled": self.enabled,
+                 "editable": self.editable,
+                 "descritpiton":str(self),
+                 "limit": self.limit,
+                 "limit_str":self.str_limit(),
+                 "id":self.id()
+                 
+	  }
+
 class ExcludeQueuedEmptyJob(ExclusionRule):
+    def __init__(self):
+        super().__init__()
+        self.editable= False
     def __str__(self):
         return "Exclude non queued or empty jobs"
 
     def test(self, job):
         return job.status != JOB_QUEUED or job.countFrames(status = FRAME_QUEUED) == 0
+    
+    def serialize(self):
+        return { "type": "exception",
+                 "enabled": self.enabled,
+                 "editable": self.editable,
+                 "descritpiton":str(self),
+                 "limit": "",
+                 "limit_str":"",
+                 "id":self.id()
+	  }
 
 class ExcludeSlavesLimit(ExclusionRule):
     def __init__(self, count_jobs, count_slaves, limit = 0.75):
@@ -193,3 +244,13 @@ class ExcludeSlavesLimit(ExclusionRule):
 
     def test(self, job):
         return not ( self.count_jobs() == 1 or self.count_slaves() <= 1 or float(job.countSlaves() + 1) / self.count_slaves() <= self.limit )
+
+    def serialize(self):
+        return { "type": "exception",
+                 "enabled": self.enabled,
+                 "editable": self.editable,
+                 "descritpiton":str(self),
+                 "limit": self.limit,
+                 "limit_str":self.str_limit(),
+                 "id":self.id()
+	  }

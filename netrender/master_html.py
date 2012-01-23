@@ -20,9 +20,34 @@ import os
 import shutil
 from netrender.utils import *
 import netrender.model
+import json
+#import rpdb2
+
+# bitwise definition of the different files type
+
+CACHE_FILES=1
+FLUID_FILES=2
+OTHER_FILES=4
 
 src_folder = os.path.split(__file__)[0]
 
+#function to return counter of different type of files
+# job: the job that contain files
+
+def countFiles(job):
+    tot_cache = 0
+    tot_fluid = 0
+    tot_other = 0
+    for file in job.files:
+        if file.filepath.endswith(".bphys"):
+           tot_cache += 1
+        elif file.filepath.endswith(".bobj.gz") or file.filepath.endswith(".bvel.gz"):
+           tot_fluid += 1
+        elif not file == job.files[0]:
+           tot_other += 1
+    return tot_cache,tot_fluid,tot_other;
+    
+    
 def get(handler):
     def output(text):
         handler.wfile.write(bytes(text, encoding='utf8'))
@@ -32,7 +57,6 @@ def get(handler):
         if refresh:
             output("<meta http-equiv='refresh' content=5>")
         output("<script src='/html/netrender.js' type='text/javascript'></script>")
-#		output("<script src='/html/json2.js' type='text/javascript'></script>")
         output("<title>")
         output(title)
         output("</title></head><body>")
@@ -88,21 +112,196 @@ def get(handler):
 
     def checkbox(title, value, script=""):
         return """<input type="checkbox" title="%s" %s %s>""" % (title, "checked" if value else "", ("onclick=\"%s\"" % script) if script else "")
+    
+    def sendjson(message):
+        handler.send_head(content = "application/json") 
+        output(json.dumps(message,sort_keys=False))
+            
+    def sendFile(filename,content_type):
+        f = open(os.path.join(src_folder,filename), 'rb')
 
+        handler.send_head(content = content_type)
+        shutil.copyfileobj(f, handler.wfile)
+
+        f.close()
+    # return serialized version of job for html interface
+    # job: the base job
+    # includeFiles: boolean to indicate if we want file to be serialized too into job 
+    # includeFrames; boolean to  indicate if we want frame to be serialized too into job     
+    def gethtmlJobInfo(job,includeFiles=True,includeFrames=True):     
+        if (job):
+             results = job.framesStatus()
+             serializedJob = job.serialize(withFiles=includeFiles, withFrames=includeFrames)
+             serializedJob["p_rule"] = handler.server.balancer.applyPriorities(job)
+             serializedJob["e_rule"] = handler.server.balancer.applyExceptions(job)
+             serializedJob["wait"] = int(time.time() - job.last_dispatched) if job.status != JOB_FINISHED else "N/A"
+             serializedJob["length"] = len(job);
+             serializedJob["done"] = results[FRAME_DONE]
+             serializedJob["dispatched"] = results[FRAME_DISPATCHED]
+             serializedJob["error"] = results[FRAME_ERROR]
+             tot_cache, tot_fluid, tot_other = countFiles(job)
+             serializedJob["totcache"] = tot_cache
+             serializedJob["totfluid"] = tot_fluid
+             serializedJob["totother"] = tot_other                    
+        else:
+             serializedJob={"name":"invalid job"}
+           
+        return  serializedJob;
+    
+    # return serialized files based on cumulative file_type
+    # job_id: id of the job
+    # message: serialized content
+    # file_type: any combinaison of CACHE_FILE,FLUID_FILES, OTHER_FILES
+    
+    def getFiles(job_id,message,file_type):
+        
+        job=handler.server.getJobID(job_id)
+        print ("job.files.length="+str(len(job.files)))
+                
+        for file in job.files:
+            filedata=file.serialize()
+            filedata["name"] = os.path.split(file.filepath)[1]
+                
+            if file.filepath.endswith(".bphys") and (file_type & CACHE_FILES):
+               message.append(filedata);
+               continue
+            if (file.filepath.endswith(".bobj.gz") or file.filepath.endswith(".bvel.gz")) and (file_type & FLUID_FILES):
+               message.append(filedata);
+               continue
+            if (not file == job.files[0]) and (file_type &  OTHER_FILES) and ( not (file.filepath.endswith(".bobj.gz") or file.filepath.endswith(".bvel.gz"))) and not file.filepath.endswith(".bphys"):
+               message.append(filedata);
+               continue
+                  
+        
+    
     if handler.path == "/html/netrender.js":
-        f = open(os.path.join(src_folder, "netrender.js"), 'rb')
-
-        handler.send_head(content = "text/javascript")
-        shutil.copyfileobj(f, handler.wfile)
-
-        f.close()
+        sendFile("netrender.js","text/javascript")
+        
     elif handler.path == "/html/netrender.css":
-        f = open(os.path.join(src_folder, "netrender.css"), 'rb')
-
-        handler.send_head(content = "text/css")
-        shutil.copyfileobj(f, handler.wfile)
-
-        f.close()
+        sendFile("netrender.css","text/css")
+        
+    elif handler.path =="/html/newui":
+        sendFile("newui.html","text/html")
+         
+    elif handler.path.startswith("/html/js"):
+         path, filename = os.path.split(handler.path)
+         sendFile("js/"+filename,"text/javascript")
+         
+    elif handler.path.startswith("/html/css/images"): 
+         path, filename = os.path.split(handler.path)
+         sendFile("css/images/"+filename,"image/png")
+                  
+    elif handler.path.startswith("/html/css"):
+         path, filename = os.path.split(handler.path)
+         sendFile("css/"+filename,"text/css")
+    # return all master rules information      
+    elif handler.path == "/html/rules":
+         message = []
+         for rule in handler.server.balancer.rules:
+            message.append(rule.serialize())
+         for rule in handler.server.balancer.priorities:
+            message.append(rule.serialize())  
+         for rule in handler.server.balancer.exceptions:
+            message.append(rule.serialize())
+         sendjson(message)
+    #return all slaves list     
+    elif handler.path == "/html/slaves":
+         message = []
+         for slave in handler.server.slaves:
+            serializedSlave = slave.serialize()
+            if  slave.job:
+                serializedSlave["job_name"] = slave.job.name
+                serializedSlave["job_id"] = slave.job.id                      
+            else:
+                serializedSlave["job_name"] = "None"
+                serializedSlave["job_id"] = "0"
+            message.append(serializedSlave)
+         sendjson(message)
+    # return all job list                    
+    elif handler.path == "/html/jobs":
+         message = []
+         for job in handler.server.jobs:
+             if job:
+                message.append(gethtmlJobInfo(job, False, False))
+         sendjson(message)
+     #return a job information    
+    elif handler.path.startswith("/html/job_"):
+         
+         job_id = handler.path[10:]
+         job = handler.server.getJobID(job_id)
+         
+         message = []
+         if job:
+            
+             message.append(gethtmlJobInfo(job, includeFiles=False))
+         sendjson(message)
+    # return all frames for a job     
+    elif handler.path.startswith("/html/frames_"):
+     
+         job_id = handler.path[13:]
+         job = handler.server.getJobID(job_id)
+         
+         message = []
+         if job:
+             for f in job.frames:
+              message.append(f.serialize())
+             
+         sendjson(message)
+    # return physic cache files     
+    elif handler.path.startswith("/html/cachefiles_"):
+         job_id = handler.path[17:]
+         message = []
+         getFiles(job_id, message, CACHE_FILES);
+         sendjson(message)          
+    #return fluid cache files     
+    elif handler.path.startswith("/html/fluidfiles_"):
+         job_id = handler.path[17:]
+                 
+         message = []
+         getFiles(job_id, message, FLUID_FILES);
+         sendjson(message)                   
+         
+    #return list of other files ( images, sequences ...)         
+    elif handler.path.startswith("/html/otherfiles_"):
+         job_id = handler.path[17:]
+         
+         message = []
+         getFiles(job_id, message, OTHER_FILES);
+         sendjson(message)                   
+    # return blend file info      
+    elif handler.path.startswith("/html/blendfile_"):
+         job_id = handler.path[16:]
+         job = handler.server.getJobID(job_id)
+         message = []
+         if job:
+             if job.files:
+                message.append(job.files[0].serialize())
+         sendjson(message)
+    # return black listed slaves for a job
+    elif handler.path.startswith("/html/blacklist_"):
+         
+         job_id = handler.path[16:]
+         job = handler.server.getJobID(job_id)
+         
+         message = []
+         if job:
+           for slave_id in job.blacklist:
+               slave = handler.server.slaves_map.get(slave_id, None)
+               message.append(slave.serialize())
+         sendjson(message)
+    # return all slaves currently assigned to a job
+           
+    elif handler.path.startswith("/html/slavesjob_"):
+         
+         job_id = handler.path[16:]
+         job = handler.server.getJobID(job_id)
+         message = []
+         if job:
+           for slave in handler.server.slaves:
+               if slave.job and slave.job == job:
+                   message.append(slave.serialize())
+           sendjson(message)                                   
+    # here begin code for simple ui                                        
     elif handler.path == "/html" or handler.path == "/":
         handler.send_head(content = "text/html")
         head("NetRender", refresh = True)
@@ -175,6 +374,10 @@ def get(handler):
         output("<h2>Configuration</h2>")
 
         output("""<button title="remove all jobs" onclick="clear_jobs();">CLEAR JOB LIST</button>""")
+        
+        output("<br />")
+
+        output(link("new interface", "/html/newui"))
 
         startTable(caption = "Rules", class_style = "rules")
 
@@ -208,7 +411,6 @@ def get(handler):
                     )
 
         endTable()
-
         output("</body></html>")
 
     elif handler.path.startswith("/html/job"):
@@ -248,15 +450,8 @@ def get(handler):
                 tot_other = 0
     
                 rowTable(job.files[0].original_path)
-    
-                for file in job.files:
-                    if file.filepath.endswith(".bphys"):
-                        tot_cache += 1
-                    elif file.filepath.endswith(".bobj.gz") or file.filepath.endswith(".bvel.gz"):
-                        tot_fluid += 1
-                    elif not file == job.files[0]:
-                        tot_other += 1
-    
+                tot_cache, tot_fluid, tot_other = countFiles(job)    
+                
                 if tot_cache > 0:
                     rowTable("%i physic cache files" % tot_cache, class_style = "toggle", extra = "onclick='toggleDisplay(&quot;.cache&quot;, &quot;none&quot;, &quot;table-row&quot;)'")
                     for file in job.files:

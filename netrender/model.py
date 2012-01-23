@@ -185,6 +185,7 @@ class RenderFile:
         self.start = start
         self.end = end
         self.force = False
+        
 
     def serialize(self):
         return 	{
@@ -195,6 +196,7 @@ class RenderFile:
                     "end": self.end,
                     "signature": self.signature,
                     "force": self.force
+                    
                 }
 
     @staticmethod
@@ -319,10 +321,10 @@ class RenderJob:
         else:
             return None
 
-    def serialize(self, frames = None):
+    def serialize(self, frames = None,withFiles=True,withFrames=True):
         min_frame = min((f.number for f in frames)) if frames else -1
         max_frame = max((f.number for f in frames)) if frames else -1
-        return 	{
+        data={
                             "id": self.id,
                             "type": self.type,
                             "subtype": self.subtype,
@@ -330,8 +332,6 @@ class RenderJob:
                             "category": self.category,
                             "tags": tuple(self.tags),
                             "status": self.status,
-                            "files": [f.serialize() for f in self.files if f.start == -1 or not frames or (f.start <= max_frame and f.end >= min_frame)],
-                            "frames": [f.serialize() for f in self.frames if not frames or f in frames],
                             "chunks": self.chunks,
                             "priority": self.priority,
                             "usage": self.usage,
@@ -341,7 +341,13 @@ class RenderJob:
                             "resolution": self.resolution,
                             "render": self.render
                         }
-
+        if (withFiles):
+           data["files"]=[f.serialize() for f in self.files if f.start == -1 or not frames or (f.start <= max_frame and f.end >= min_frame)]
+          
+        if (withFrames):
+           data["frames"]=[f.serialize() for f in self.frames if not frames or f in frames]
+           
+        return data
     @staticmethod
     def materialize(data):
         if not data:
