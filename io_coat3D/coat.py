@@ -46,7 +46,7 @@ def set_exchange_folder():
             if(not(os.path.isdir(applink_folder))):
                 os.makedirs(applink_folder)
         else:
-            exchange_path = os.path.expanduser("~") + os.sep + '3DC2Blender' + os.sep + 'Exchange_folder.txt'
+            exchange_path = os.path.expanduser("~") + os.sep + 'Documents' + os.sep + '3DC2Blender' + os.sep + 'Exchange_folder.txt'
             applink_folder = os.path.expanduser("~") + os.sep + 'Documents' + os.sep + '3DC2Blender'
             if(not(os.path.isdir(applink_folder))):
                 os.makedirs(applink_folder)
