@@ -9,8 +9,8 @@
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #  GNU General Public License for more details.
-#
 #  You should have received a copy of the GNU General Public License
+#
 #  along with this program; if not, write to the Free Software Foundation,
 #  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
@@ -26,7 +26,7 @@
 """
 Abstract
 MHX (MakeHuman eXchange format) importer for Blender 2.5x.
-Version 1.10.1
+Version 1.10.2
 
 This script should be distributed with Blender.
 If not, place it in the .blender/scripts/addons dir
@@ -39,7 +39,7 @@ Alternatively, run the script in the script editor (Alt-P), and access from the 
 bl_info = {
     'name': 'Import: MakeHuman (.mhx)',
     'author': 'Thomas Larsson',
-    'version': (1, 10, 1),
+    'version': (1, 10, 2),
     "blender": (2, 5, 9),
     'location': "File > Import > MakeHuman (.mhx)",
     'description': 'Import files in the MakeHuman eXchange format (.mhx)',
@@ -51,7 +51,7 @@ bl_info = {
 
 MAJOR_VERSION = 1
 MINOR_VERSION = 10
-SUB_VERSION = 1
+SUB_VERSION = 2
 BLENDER_VERSION = (2, 59, 2)
 
 #
@@ -112,62 +112,8 @@ T_Rigify = 0x1000
 T_Opcns = 0x2000
 T_Symm = 0x4000
 
-toggle = (T_EnforceVersion + T_Replace + T_Mesh + T_Armature + 
+toggle = (T_EnforceVersion + T_Mesh + T_Armature + 
         T_Face + T_Shape + T_Proxy + T_Clothes + T_Rigify)
-
-#
-#    setFlagsAndFloats(rigFlags):
-#
-#    Global floats
-#fFingerPanel = 0.0
-#fFingerIK = 0.0
-fNoStretch = 0.0
-
-#    rigLeg and rigArm flags
-T_Toes = 0x0001
-#T_GoboFoot = 0x0002
-
-#T_InvFoot = 0x0010
-#T_InvFootPT = 0x0020
-#T_InvFootNoPT = 0x0040
-
-#T_FingerPanel = 0x100
-#T_FingerRot = 0x0200
-#T_FingerIK = 0x0400
-
-
-#T_LocalFKIK = 0x8000
-
-#rigLeg = 0
-#rigArm = 0
-
-def setFlagsAndFloats():
-    '''
-    global toggle, rigLeg, rigArm
-
-    (footRig, fingerRig) = rigFlags
-    rigLeg = 0
-    if footRig == 'Reverse foot': 
-        rigLeg |= T_InvFoot
-        if toggle & T_PoleTar:
-            rigLeg |= T_InvFootPT
-        else:
-            rigLeg |= T_InvFootNoPT
-    elif footRig == 'Gobo': rigLeg |= T_GoboFoot        
-
-    rigArm = 0
-    if fingerRig == 'Panel': rigArm |= T_FingerPanel
-    elif fingerRig == 'Rotation': rigArm |= T_FingerRot
-    elif fingerRig == 'IK': rigArm |= T_FingerIK
-
-    toggle |= T_Panel
-    '''
-    global fNoStretch
-    if toggle&T_Stretch: fNoStretch == 0.0
-    else: fNoStretch = 1.0
-
-    return
-
 
 #
 #    Dictionaries
@@ -291,8 +237,6 @@ def readMhxFile(filePath):
     nErrors = 0
     comment = 0
     nesting = 0
-
-    setFlagsAndFloats()
 
     file= open(fileName, "rU")
     print( "Tokenizing" )
@@ -1513,7 +1457,7 @@ def parseShapeKey(ob, me, args, tokens):
     if invalid(args[2]):
         return
 
-    if lr == 'Sym' or toggle & T_Symm:
+    if lr == 'Sym': # or toggle & T_Symm:
         addShapeKey(ob, name, None, tokens)
     elif lr == 'LR':
         addShapeKey(ob, name+'_L', 'Left', tokens)
@@ -2081,10 +2025,18 @@ def deleteDiamonds(ob):
     bpy.ops.mesh.select_all(action='DESELECT')
     bpy.ops.object.mode_set(mode='OBJECT')
     me = ob.data
-    for f in me.faces:    
-        if f.material_index >= 4:
-            for vn in f.vertices:
-                me.vertices[vn].select = True
+    invisioNum = -1
+    for mn,mat in enumerate(me.materials):
+        if "Invis" in mat.name:
+            invisioNum = mn
+            break
+    if invisioNum < 0:
+        print("WARNING: Nu Invisio material found. Cannot delete helper geometry")
+    else:        
+        for f in me.faces:    
+            if f.material_index >= invisioNum:
+                for vn in f.vertices:
+                    me.vertices[vn].select = True
     bpy.ops.object.mode_set(mode='EDIT')
     bpy.ops.mesh.delete(type='VERT')
     bpy.ops.object.mode_set(mode='OBJECT')
@@ -2348,6 +2300,7 @@ def clearScene():
     scn = bpy.context.scene
     for n in range(len(scn.layers)):
         scn.layers[n] = True
+    return scn
     print("clearScene %s %s" % (toggle & T_Replace, scn))
     if not toggle & T_Replace:
         return scn
@@ -2862,13 +2815,13 @@ MhxBoolProps = [
     ("mesh", "Mesh", "Use main mesh", T_Mesh),
     ("proxy", "Proxies", "Use proxies", T_Proxy),
     ("armature", "Armature", "Use armature", T_Armature),
-    ("replace", "Replace scene", "Replace scene", T_Replace),
+    #("replace", "Replace scene", "Replace scene", T_Replace),
     ("cage", "Cage", "Load mesh deform cage", T_Cage),
     ("clothes", "Clothes", "Include clothes", T_Clothes),
-    ("stretch", "Stretchy limbs", "Stretchy limbs", T_Stretch),
+    #("stretch", "Stretchy limbs", "Stretchy limbs", T_Stretch),
     ("face", "Face shapes", "Include facial shapekeys", T_Face),
     ("shape", "Body shapes", "Include body shapekeys", T_Shape),
-    ("symm", "Symmetric shapes", "Keep shapekeys symmetric", T_Symm),
+    #("symm", "Symmetric shapes", "Keep shapekeys symmetric", T_Symm),
     ("diamond", "Helper geometry", "Keep helper geometry", T_Diamond),
     ("rigify", "Rigify", "Create rigify control rig", T_Rigify),
 ]
