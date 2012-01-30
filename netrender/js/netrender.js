@@ -23,7 +23,7 @@ var jobTableHeader = ["action", "id", "name", "category", "tags", "type", "chunk
 var framesTableHeader = ["no", "status", "render time", "slave", "log", "result"];
 var JOB_TYPES = ["None", "Blender", "Process", "Versioned"];
 var JOB_STATUS_TEXT = ["Waiting", "Paused", "Finished", "Queued"];
-var JOB_SUBTYPE = ["BLENDER", "CYCLE"];
+var JOB_SUBTYPE = ["None", "BLENDER", "CYCLE"];
 var FRAME_STATUS_TEXT = ["Queued", "Dispatched", "Done", "error"];
 var JOB_TYPE_NONE = 0;
 var JOB_TYPE_BLENDER = 1;
@@ -86,7 +86,7 @@ function changeJobsTable(jobs) {
 		}
 
 		if(name == "type") {
-			return JOB_TYPES[row.type] + "[" + JOB_SUBTYPE[row.subtype] + "]";
+			return JOB_TYPES[row.type] + "[" + row.render + "]";
 		}
 
 		if(name == "status") {
@@ -283,14 +283,13 @@ function changeConfigureTable(rules) {
 function showJob(id, name) {
 
 	var job = {};
-
+    
 	function general(tab_name) {
-
-		var rendertime = 0;
+		var cumulate_rendertime = 0;
 		$.each(job.frames, function(index, frame) {
-			rendertime += frame.time;
+			cumulate_rendertime += frame.time;
 		});
-		var info = [new namevalue("resolution", job.resolution[0] + 'x' + job.resolution[1] + ' at ' + job.resolution[2] + '%'), new namevalue("tags", job.tags), new namevalue("result", getresult(id)), new namevalue("frames", job.frames.length), new namevalue("status", job.status), new namevalue("job name", job.name), new namevalue("type", job.type), new namevalue("render", job.subtype), new namevalue("render time:", secondsToHms(rendertime))];
+		var info = [new namevalue("resolution", job.resolution[0] + 'x' + job.resolution[1] + ' at ' + job.resolution[2] + '%'), new namevalue("tags", job.tags), new namevalue("result", getresult(id)), new namevalue("frames", job.frames.length), new namevalue("status", job.status), new namevalue("job name", job.name), new namevalue("type", job.type), new namevalue("render", job.subtype), new namevalue("render time", secondsToHms(job.wktime)), new namevalue("cumulate render time", secondsToHms(cumulate_rendertime))];
 
 		function cellview(name, row) {
 
@@ -313,7 +312,7 @@ function showJob(id, name) {
 					case "type":
 						return JOB_TYPES[job.type];
 					case "render":
-						return JOB_SUBTYPE[job.subtype];
+						return job.render;
 
 					default:
 						return row.value;

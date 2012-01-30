@@ -42,7 +42,7 @@ class RENDER_OT_netclientsendbake(bpy.types.Operator):
         netsettings = scene.network_render
 
         try:
-            conn = clientConnection(netsettings.server_address, netsettings.server_port, self.report)
+            conn = clientConnection(netsettings, report = self.report)
 
             if conn:
                 # Sending file
@@ -70,7 +70,7 @@ class RENDER_OT_netclientanim(bpy.types.Operator):
         scene = context.scene
         netsettings = scene.network_render
 
-        conn = clientConnection(netsettings.server_address, netsettings.server_port, self.report)
+        conn = clientConnection(netsettings, report = self.report)
 
         if conn:
             # Sending file
@@ -115,7 +115,7 @@ class RENDER_OT_netclientsend(bpy.types.Operator):
         netsettings = scene.network_render
 
         try:
-            conn = clientConnection(netsettings.server_address, netsettings.server_port, self.report)
+            conn = clientConnection(netsettings, report = self.report)
 
             if conn:
                 # Sending file
@@ -145,7 +145,7 @@ class RENDER_OT_netclientsendframe(bpy.types.Operator):
         netsettings = scene.network_render
 
         try:
-            conn = clientConnection(netsettings.server_address, netsettings.server_port, self.report)
+            conn = clientConnection(netsettings, report = self.report)
 
             if conn:
                 # Sending file
@@ -172,7 +172,7 @@ class RENDER_OT_netclientstatus(bpy.types.Operator):
 
     def execute(self, context):
         netsettings = context.scene.network_render
-        conn = clientConnection(netsettings.server_address, netsettings.server_port, self.report)
+        conn = clientConnection(netsettings, report = self.report)
 
         if conn:
             with ConnectionContext():
@@ -274,7 +274,7 @@ class RENDER_OT_netclientslaves(bpy.types.Operator):
 
     def execute(self, context):
         netsettings = context.scene.network_render
-        conn = clientConnection(netsettings.server_address, netsettings.server_port, self.report)
+        conn = clientConnection(netsettings, report = self.report)
 
         if conn:
             with ConnectionContext():
@@ -326,7 +326,7 @@ class RENDER_OT_netclientcancel(bpy.types.Operator):
 
     def execute(self, context):
         netsettings = context.scene.network_render
-        conn = clientConnection(netsettings.server_address, netsettings.server_port, self.report)
+        conn = clientConnection(netsettings, report = self.report)
 
         if conn:
             job = netrender.jobs[netsettings.active_job_index]
@@ -355,7 +355,7 @@ class RENDER_OT_netclientcancelall(bpy.types.Operator):
 
     def execute(self, context):
         netsettings = context.scene.network_render
-        conn = clientConnection(netsettings.server_address, netsettings.server_port, self.report)
+        conn = clientConnection(netsettings, report = self.report)
 
         if conn:
             with ConnectionContext():
@@ -385,7 +385,7 @@ class netclientdownload(bpy.types.Operator):
     def execute(self, context):
         netsettings = context.scene.network_render
 
-        conn = clientConnection(netsettings.server_address, netsettings.server_port, self.report)
+        conn = clientConnection(netsettings, report = self.report)
 
         if conn:
             job_id = netrender.jobs[netsettings.active_job_index].id
@@ -530,13 +530,14 @@ class netclientweb(bpy.types.Operator):
 
 
         # open connection to make sure server exists
-        conn = clientConnection(netsettings.server_address, netsettings.server_port, self.report)
+        conn = clientConnection(netsettings, report = self.report)
 
         if conn:
             conn.close()
-
-            webbrowser.open("http://%s:%i" % (netsettings.server_address, netsettings.server_port))
-
+            if netsettings.use_ssl:
+               webbrowser.open("https://%s:%i" % (netsettings.server_address, netsettings.server_port))
+            else:
+               webbrowser.open("http://%s:%i" % (netsettings.server_address, netsettings.server_port)) 
         return {'FINISHED'}
 
     def invoke(self, context, event):

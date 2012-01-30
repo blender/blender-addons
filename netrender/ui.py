@@ -70,7 +70,7 @@ def verify_address(netsettings, force=False):
         LAST_ADDRESS_TEST = time.time()
 
         try:
-            conn = clientConnection(netsettings.server_address, netsettings.server_port, scan = False, timeout = 1)
+            conn = clientConnection(netsettings, scan = False, timeout = 1)
         except:
             conn = None
 
@@ -120,25 +120,34 @@ class RENDER_PT_network_settings(NetRenderButtonsPanel, bpy.types.Panel):
             layout.operator("render.netclientstart", icon='PLAY')
 
         layout.prop(netsettings, "path")
+        
+        row = layout.row()
 
-        split = layout.split(percentage=0.7)
-
-        col = split.column()
-        col.label(text="Server Address:")
-        col.prop(netsettings, "server_address", text="")
+        split = layout.split(percentage=0.5)
 
         col = split.column()
-        col.label(text="Port:")
-        col.prop(netsettings, "server_port", text="")
+        col.prop(netsettings, "server_address", text="Address")
+
+        col = split.column()
+        row = col.row()
+        row.prop(netsettings, "server_port", text="Port")
+        row.prop(netsettings, "use_ssl", text="SSL")
 
         if netsettings.mode != "RENDER_MASTER":
             layout.operator("render.netclientscan", icon='FILE_REFRESH', text="")
             
         if not netrender.valid_address:
             layout.label(text="No master at specified address")
+        
+        
+        if netsettings.use_ssl and netsettings.mode == "RENDER_MASTER":
+            layout.prop(netsettings, "cert_path", text="Certificate")
+            layout.prop(netsettings, "key_path", text="Key")
 
         layout.operator("render.netclientweb", icon='QUESTION')
+        
 
+        
 class RENDER_PT_network_slave_settings(NetRenderButtonsPanel, bpy.types.Panel):
     bl_label = "Slave Settings"
     COMPAT_ENGINES = {'NET_RENDER'}
@@ -403,6 +412,22 @@ class NetRenderSettings(bpy.types.PropertyGroup):
                         name="Broadcast",
                         description="broadcast master server address on local network",
                         default = True)
+        NetRenderSettings.use_ssl = BoolProperty(
+                        name="use ssl",
+                        description="use ssl encryption for communication",
+                        default = False)
+        NetRenderSettings.cert_path = StringProperty(
+                        name="CertPath",
+                        description="Path to ssl certifcate",
+                        maxlen = 128,
+                        default = "",
+                        subtype='FILE_PATH')
+        NetRenderSettings.key_path = StringProperty(
+                        name="key",
+                        description="Path to ssl key file",
+                        maxlen = 128,
+                        default = "",
+                        subtype='FILE_PATH')
         
         NetRenderSettings.use_slave_clear = BoolProperty(
                         name="Clear on exit",

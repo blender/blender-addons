@@ -118,8 +118,8 @@ def render_slave(engine, netsettings, threads):
     if not os.access(slave_path, os.W_OK):
         print("Slave working path ( %s ) is not writable" % netsettings.path)
         return
-
-    conn = clientConnection(netsettings.server_address, netsettings.server_port)
+    
+    conn = clientConnection(netsettings)
     
     if not conn:
         print("Connection failed, will try connecting again at most %i times" % MAX_CONNECT_TRY)
@@ -128,7 +128,7 @@ def render_slave(engine, netsettings, threads):
         for i in range(MAX_CONNECT_TRY):
             bisleep.sleep()
             
-            conn = clientConnection(netsettings.server_address, netsettings.server_port)
+            conn = clientConnection(netsettings)
             
             if conn or engine.test_break():
                 break

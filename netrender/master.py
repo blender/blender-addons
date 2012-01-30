@@ -4,7 +4,7 @@
 #  modify it under the terms of the GNU General Public License
 #  as published by the Free Software Foundation; either version 2
 #  of the License, or (at your option) any later version.
-#
+#s
 #  This program is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -23,6 +23,7 @@ import pickle
 import zipfile
 import select # for select.error
 import json
+
 
 from netrender.utils import *
 import netrender.model
@@ -59,6 +60,7 @@ class MRenderSlave(netrender.model.RenderSlave):
         super().__init__(slave_info)
         self.id = hashlib.md5(bytes(repr(slave_info.name) + repr(slave_info.address), encoding='utf8')).hexdigest()
         self.last_seen = time.time()
+        
 
         self.job = None
         self.job_frames = []
@@ -82,7 +84,8 @@ class MRenderJob(netrender.model.RenderJob):
         super().__init__(job_info)
         self.id = job_id
         self.last_dispatched = time.time()
-
+        self.start_time = time.time()
+        self.finish_time = self.start_time
         # force one chunk for process jobs
         if self.type == netrender.model.JOB_PROCESS:
             self.chunks = 1
@@ -136,6 +139,7 @@ class MRenderJob(netrender.model.RenderJob):
                 break
         else:
             self.status = JOB_FINISHED
+            self.finish_time=time.time()
 
     def pause(self, status = None):
         if self.status not in {JOB_PAUSED, JOB_QUEUED}:
@@ -150,6 +154,7 @@ class MRenderJob(netrender.model.RenderJob):
 
     def start(self):
         self.status = JOB_QUEUED
+        
 
     def addLog(self, frames):
         frames = sorted(frames)
@@ -1149,11 +1154,13 @@ def saveMaster(path, httpd):
     with open(filepath, 'wb') as f:
         pickle.dump((httpd.path, httpd.jobs, httpd.slaves), f, pickle.HIGHEST_PROTOCOL)
 
-def runMaster(address, broadcast, clear, force, path, update_stats, test_break):
+def runMaster(address, broadcast, clear, force, path, update_stats, test_break,use_ssl=False,cert_path="",key_path=""):
     httpd = createMaster(address, clear, force, path)
     httpd.timeout = 1
     httpd.stats = update_stats
-
+    if use_ssl:
+        import ssl
+        httpd.socket=ssl.wrap_socket(httpd.socket,certfile=cert_path,server_side=True,keyfile=key_path,ciphers="ALL",ssl_version=ssl.PROTOCOL_SSLv3)
     if broadcast:
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         s.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)

@@ -186,8 +186,12 @@ def clientScan(report = None):
 
         return ("", 8000) # return default values
 
-def clientConnection(address, port, report = None, scan = True, timeout = 5):
-    if address == "[default]":
+def clientConnection(netsettings, report = None, scan = True, timeout = 5):
+    address = netsettings.server_address
+    port = netsettings.server_port
+    use_ssl = netsettings.use_ssl
+    
+    if address== "[default]":
 #            calling operator from python is fucked, scene isn't in context
 #            if bpy:
 #                bpy.ops.render.netclientscan()
@@ -198,13 +202,14 @@ def clientConnection(address, port, report = None, scan = True, timeout = 5):
         address, port = clientScan()
         if address == "":
             return None
-
+    conn = None
     try:
+        HTTPConnection = http.client.HTTPSConnection if use_ssl else http.client.HTTPConnection
         if platform.system() == "Darwin":
             with ConnectionContext(timeout):
-                conn = http.client.HTTPConnection(address, port)
+                conn = HTTPConnection(address, port)
         else:
-            conn = http.client.HTTPConnection(address, port, timeout = timeout)
+            conn = HTTPConnection(address, port, timeout = timeout)
 
         if conn:
             if clientVerifyVersion(conn):

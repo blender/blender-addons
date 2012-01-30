@@ -142,7 +142,8 @@ def get(handler):
              tot_cache, tot_fluid, tot_other = countFiles(job)
              serializedJob["totcache"] = tot_cache
              serializedJob["totfluid"] = tot_fluid
-             serializedJob["totother"] = tot_other                    
+             serializedJob["totother"] = tot_other  
+             serializedJob["wktime"] = (time.time()-job.start_time ) if job.status != JOB_FINISHED else (job.finish_time-job.start_time)             
         else:
              serializedJob={"name":"invalid job"}
            
