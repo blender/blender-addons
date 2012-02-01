@@ -152,7 +152,7 @@ class PresetMenu(bpy.types.Menu):
 
 class AddTree(bpy.types.Operator):
     bl_idname = "curve.tree_add"
-    bl_label = "Sapling"
+    bl_label = "Sapling: Add Tree"
     bl_options = {'REGISTER', 'UNDO'}
 
 
