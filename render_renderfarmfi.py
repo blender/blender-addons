@@ -21,7 +21,7 @@ DEV = False
 bl_info = {
     "name": "Renderfarm.fi",
     "author": "Nathan Letwory <nathan@letworyinteractive.com>, Jesse Kaukonen <jesse.kaukonen@gmail.com>",
-    "version": (13,),
+    "version": (14,),
     "blender": (2, 6, 1),
     "location": "Render > Engine > Renderfarm.fi",
     "description": "Send .blend as session to http://www.renderfarm.fi to render",
@@ -661,8 +661,11 @@ def upload_file(key, userid, sessionid, path):
     return r
 
 def run_upload(key, userid, sessionid, path):
+    print("Starting upload");
     r = upload_file(key, userid, sessionid, path)
+    print("Upload finished")
     o = xmlrpc.client.loads(r)
+    print("Loaded xmlrpc response")
     return o[0][0]
 
 def ore_upload(op, context):
@@ -676,17 +679,24 @@ def ore_upload(op, context):
         bpy.context.scene.render.engine = 'RENDERFARMFI_RENDER'
         return {'CANCELLED'}
     try:
+        print("Creating auth proxy")
         authproxy = xmlrpc.client.ServerProxy(rffi_xmlrpc_secure)
+        print("Getting session key")
         res = authproxy.auth.getSessionKey(ore.username, ore.hash)
         key = res['key']
         userid = res['userId']
+        print("Creating server proxy")
         proxy = xmlrpc.client.ServerProxy(rffi_xmlrpc) #r'http://xmlrpc.renderfarm.fi/session')
         proxy._ServerProxy__transport.user_agent = 'Renderfarm.fi Uploader/%s' % (bpy.CURRENT_VERSION)
+        print("Creating a new session")
         res = proxy.session.createSession(userid, key)
         sessionid = res['sessionId']
         key = res['key']
+        print("Session id is " + str(sessionid))
         res = run_upload(key, userid, sessionid, bpy.data.filepath)
+        print("Getting fileid from xmlrpc response data")
         fileid = int(res['fileId'])
+        print("Sending session details for session " + str(sessionid) + " with fileid " + str(fileid))
         res = proxy.session.setTitle(userid, res['key'], sessionid, ore.title)
         res = proxy.session.setLongDescription(userid, res['key'], sessionid, ore.longdesc)
         res = proxy.session.setShortDescription(userid, res['key'], sessionid, ore.shortdesc)
@@ -701,17 +711,20 @@ def ore_upload(op, context):
         res = proxy.session.setFrameRate(userid, res['key'], sessionid, ore.fps)
         res = proxy.session.setOutputLicense(userid, res['key'], sessionid, int(ore.outlicense))
         res = proxy.session.setInputLicense(userid, res['key'], sessionid, int(ore.inlicense))
+        print("Setting primary input file")
         res = proxy.session.setPrimaryInputFile(userid, res['key'], sessionid, fileid)
+        print("Submitting session")
         res = proxy.session.submit(userid, res['key'], sessionid)
+        print("Session submitted")
         op.report(set(['INFO']), 'Submission sent to Renderfarm.fi')
     except xmlrpc.client.Error as v:
         bpy.context.scene.render.engine = 'RENDERFARMFI_RENDER'
         print('ERROR:', v)
-        op.report(set(['ERROR']), 'An error occurred while sending submission to Renderfarm.fi')
+        op.report(set(['ERROR']), 'An XMLRPC error occurred while sending submission to Renderfarm.fi')
     except Exception as e:
         bpy.context.scene.render.engine = 'RENDERFARMFI_RENDER'
         print('Unhandled error:', e)
-        op.report(set(['ERROR']), 'An error occurred while sending submission to Renderfarm.fi')
+        op.report(set(['ERROR']), 'A generic error occurred while sending submission to Renderfarm.fi')
     
     bpy.context.scene.render.engine = 'RENDERFARMFI_RENDER'
     doRefresh(op)
