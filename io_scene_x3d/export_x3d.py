@@ -256,8 +256,6 @@ def export(file,
     from bpy_extras.io_utils import unique_name
     from xml.sax.saxutils import quoteattr, escape
 
-    
-    
     if name_decorations:
         # If names are decorated, the uuid map can be split up
         # by type for efficiency of collision testing
@@ -280,7 +278,7 @@ def export(file,
         group_ = 'group_'
     else:
         # If names are not decorated, it may be possible for two objects to
-        # have the same name, so there has to be a unified dictionary to 
+        # have the same name, so there has to be a unified dictionary to
         # prevent uuid collisions.
         uuid_cache = {}
         uuid_cache_object = uuid_cache           # object
@@ -299,7 +297,7 @@ def export(file,
         MA_ = ''
         LA_ = ''
         group_ = ''
-    
+
     _TRANSFORM = '_TRANSFORM'
 
     # store files to copy

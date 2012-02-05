@@ -452,7 +452,8 @@ def obWei(ob, active, context):
                                    vgroupIndex_weight[i][1], "REPLACE")
     return('INFO', "weights copied")
 
-object_copies = ( # ('obj_loc', "Location",
+object_copies = (
+                #('obj_loc', "Location",
                 #"Copy Location from Active to Selected", obLoc),
                 #('obj_rot', "Rotation",
                 #"Copy Rotation from Active to Selected", obRot),
