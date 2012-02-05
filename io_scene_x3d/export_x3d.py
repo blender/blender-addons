@@ -1534,6 +1534,23 @@ def export(file,
 ##########################################################
 
 
+def gzip_open_utf8(filepath, mode):
+    """Workaround for py3k only allowing binary gzip writing"""
+
+    import gzip
+
+    # need to investigate encoding
+    file = gzip.open(filepath, mode)
+    write_real = file.write
+
+    def write_wrap(data):
+        return write_real(data.encode("utf-8"))
+
+    file.write = write_wrap
+
+    return file
+
+
 def save(operator, context, filepath="",
          use_selection=True,
          use_apply_modifiers=False,
@@ -1553,9 +1570,7 @@ def save(operator, context, filepath="",
         bpy.ops.object.mode_set(mode='OBJECT')
 
     if use_compress:
-        import gzip
-        # need to investigate encoding
-        file = gzip.open(filepath, 'w')
+        file = gzip_open_utf8(filepath, 'w')
     else:
         file = open(filepath, 'w', encoding='utf-8')
 
