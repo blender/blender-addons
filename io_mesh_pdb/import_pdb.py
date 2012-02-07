@@ -1238,7 +1238,8 @@ def DEF_atom_pdb_main(use_mesh,Ball_azimuth,Ball_zenith,
                             material = all_atoms[stick.atom2-1].material
                             sticks_list.append([name, location, dv, material])
                               
-                sticks_all_lists.append(sticks_list)
+                if sticks_list != []:       
+                    sticks_all_lists.append(sticks_list)
         else:
             sticks_list = []
             for stick in all_sticks:
