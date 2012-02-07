@@ -21,7 +21,7 @@ DEV = False
 bl_info = {
     "name": "Renderfarm.fi",
     "author": "Nathan Letwory <nathan@letworyinteractive.com>, Jesse Kaukonen <jesse.kaukonen@gmail.com>",
-    "version": (14,),
+    "version": (15,),
     "blender": (2, 6, 1),
     "location": "Render > Engine > Renderfarm.fi",
     "description": "Send .blend as session to http://www.renderfarm.fi to render",
@@ -546,7 +546,7 @@ class UPLOAD_PT_RenderfarmFi(RenderButtonsPanel, bpy.types.Panel):
                 layout.label(text="Optional advanced settings", icon='MODIFIER')
                 row = layout.row()
                 row.prop(ore, 'memusage')
-                row.prop(ore, 'parts')
+                #row.prop(ore, 'parts')
                 layout.separator()
                 row = layout.row()
                 
