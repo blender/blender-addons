@@ -190,19 +190,19 @@ class BONE_PT_rigify_buttons(bpy.types.Panel):
                     rig.Rig.parameters_ui(box, C.active_object, bone.name)
 
 
-#class INFO_MT_armature_metarig_add(bpy.types.Menu):
-#    bl_idname = "INFO_MT_armature_metarig_add"
-#    bl_label = "Meta-Rig"
+#~ class INFO_MT_armature_metarig_add(bpy.types.Menu):
+    #~ bl_idname = "INFO_MT_armature_metarig_add"
+    #~ bl_label = "Meta-Rig"
 
-#    def draw(self, context):
-        #import rigify
+    #~ def draw(self, context):
+        #~ import rigify
 
-        #layout = self.layout
-        #layout.operator_context = 'INVOKE_REGION_WIN'
+        #~ layout = self.layout
+        #~ layout.operator_context = 'INVOKE_REGION_WIN'
 
-        #for submodule_type in rigify.get_submodule_types():
-        #    text = bpy.path.display_name(submodule_type)
-        #    layout.operator("pose.metarig_sample_add", text=text, icon='OUTLINER_OB_ARMATURE').metarig_type = submodule_type
+        #~ for submodule_type in rigify.get_submodule_types():
+            #~ text = bpy.path.display_name(submodule_type)
+            #~ layout.operator("pose.metarig_sample_add", text=text, icon='OUTLINER_OB_ARMATURE').metarig_type = submodule_type
 
 
 def rigify_report_exception(operator, exception):

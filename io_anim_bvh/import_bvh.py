@@ -94,7 +94,7 @@ def read_bvh(context, file_path, rotate_mode='XYZ', global_scale=1.0):
     # Split by whitespace.
     file_lines = [ll for ll in [l.split() for l in file_lines] if ll]
 
-    # Create Hirachy as empties
+    # Create hierarchy as empties
     if file_lines[0][0].lower() == 'hierarchy':
         #print 'Importing the BVH Hierarchy for:', file_path
         pass
