@@ -35,7 +35,7 @@ var maxItemsperTable = 10;
 function setupPage() {
 	/*$.themes.init({themeBase: 'http://ajax.googleapis.com/ajax/libs/jqueryui/1.7.2/themes/', icons: '/html/css/images/themes.gif',previews: '/html/css/images/themes-preview.gif'});*/
 
-	$('body').addClass("ui-widget-overlay");
+	$('body').addClass("ui-widget-content");
 	setupJobsPanel();
 	setupSlavesPanel();
 	setupConfigPanel();
@@ -217,6 +217,10 @@ function setupConfigPanel() {
 			$("#Interface").append('<a id="oldinterface" href="/">');
 			$("#oldinterface").html('Simple Interface');
 			$("#oldinterface").button();
+			$("#Interface").append('<div>Select the jquery theme you want to use</div>');
+            $("#Interface").append('<div id="switcher">');           
+            $('#switcher').themeswitcher();
+ 
 		}
 		return "";
 	}
