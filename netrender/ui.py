@@ -558,11 +558,11 @@ class NetRenderSettings(bpy.types.PropertyGroup):
                         maxlen = 256,
                         default = "")
     
-        NetRenderSettings.vcs_system = StringProperty(
-                        name="VCS",
-                        description="Version Control System",
-                        maxlen = 64,
-                        default = "Subversion")
+        NetRenderSettings.vcs_system = EnumProperty(
+                                items= netrender.versioning.ITEMS,
+                                name="VCS mode",
+                                description="Version Control System",
+                                default=netrender.versioning.ITEMS[0][0])
     
         NetRenderSettings.job_id = StringProperty(
                         name="Network job id",

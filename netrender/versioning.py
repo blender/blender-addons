@@ -46,6 +46,7 @@ class AbstractVCS:
     
 class Subversion(AbstractVCS):
     name = "Subversion"
+    description = "Use the Subversion version control system"
     def __init__(self):
         super().__init__()
         self.version_exp = re.compile("([0-9]*)") 
@@ -87,6 +88,7 @@ class Subversion(AbstractVCS):
 
 class Git(AbstractVCS):
     name = "Git"
+    description = "Use the Git distributed version control system"
     def __init__(self):
         super().__init__()
         self.version_exp = re.compile("^commit (.*)") 
@@ -124,3 +126,9 @@ SYSTEMS = {
             Subversion.name: Subversion(),
             Git.name: Git()
            }
+
+ITEMS =  (
+          (Subversion.name, Subversion.name, Subversion.description),
+          (Git.name, Git.name, Git.description),
+          )
+
