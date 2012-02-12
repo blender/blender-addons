@@ -59,7 +59,7 @@ def testCancel(conn, job_id, frame_number):
             return False
 
 def testFile(conn, job_id, slave_id, rfile, JOB_PREFIX, main_path=None):
-    job_full_path = prefixPath(JOB_PREFIX, rfile.filepath, main_path, force=rfile.force)
+    job_full_path = createLocalPath(rfile, JOB_PREFIX, main_path, rfile.force)
     
     found = os.path.exists(job_full_path)
     
@@ -73,7 +73,7 @@ def testFile(conn, job_id, slave_id, rfile, JOB_PREFIX, main_path=None):
 
     if not found:
         # Force prefix path if not found
-        job_full_path = prefixPath(JOB_PREFIX, rfile.filepath, main_path, force=True)
+        job_full_path = createLocalPath(rfile, JOB_PREFIX, main_path, True)
         print("Downloading", job_full_path)
         temp_path = os.path.join(JOB_PREFIX, "slave.temp")
         with ConnectionContext():
@@ -170,7 +170,7 @@ def render_slave(engine, netsettings, threads):
 
 
                 if job.type == netrender.model.JOB_BLENDER:
-                    job_path = job.files[0].filepath # path of main file
+                    job_path = job.files[0].original_path # original path of the first file
                     main_path, main_file = os.path.split(job_path)
 
                     job_full_path = testFile(conn, job.id, slave_id, job.files[0], JOB_PREFIX)

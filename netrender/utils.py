@@ -308,30 +308,54 @@ def processObjectDependencies(pointCacheFunction, fluidFunction, multiresFunctio
             pointCacheFunction(object, psys, psys.point_cache)
     
 
-def prefixPath(prefix_directory, file_path, prefix_path, force = False):
-    if (os.path.isabs(file_path) or
-        len(file_path) >= 3 and (file_path[1:3] == ":/" or file_path[1:3] == ":\\") or # Windows absolute path don't count as absolute on unix, have to handle them myself
-        file_path[0] == "/" or file_path[0] == "\\"): # and vice versa
+def createLocalPath(rfile, prefixdirectory, prefixpath, forcelocal):
+    filepath = rfile.original_path
+    prefixpath = os.path.normpath(prefixpath) if prefixpath else None
+    if (os.path.isabs(filepath) or
+        filepath[1:3] == ":/" or filepath[1:3] == ":\\" or # Windows absolute path don't count as absolute on unix, have to handle them ourself
+        filepath[:1] == "/" or filepath[:1] == "\\"): # and vice versa
 
         # if an absolute path, make sure path exists, if it doesn't, use relative local path
-        full_path = file_path
-        if force or not os.path.exists(full_path):
-            p, n = os.path.split(os.path.normpath(full_path))
+        finalpath = filepath
+        if forcelocal or not os.path.exists(finalpath):
+            path, name = os.path.split(os.path.normpath(finalpath))
+            
+            # Don't add signatures to cache files, relink fails otherwise
+            if not name.endswith(".bphys") and not name.endswith(".bobj.gz"):
+                name, ext = os.path.splitext(name)
+                name = name + "_" + rfile.signature + ext
+            
+            if prefixpath and path.startswith(prefixpath):
+                suffix = ""
+                while path != prefixpath:
+                    path, last = os.path.split(path)
+                    suffix = os.path.join(last, suffix)
 
-            if prefix_path and p.startswith(prefix_path):
-                if len(prefix_path) < len(p):
-                    directory = os.path.join(prefix_directory, p[len(prefix_path)+1:]) # +1 to remove separator
-                    if not os.path.exists(directory):
-                        os.mkdir(directory)
-                else:
-                    directory = prefix_directory
-                full_path = os.path.join(directory, n)
+                directory = os.path.join(prefixdirectory, suffix)
+                
+                if not os.path.exists(directory):
+                    os.mkdir(directory)
+
+                finalpath = os.path.join(directory, name)
             else:
-                full_path = os.path.join(prefix_directory, n)
+                finalpath = os.path.join(prefixdirectory, name)
     else:
-        full_path = os.path.join(prefix_directory, file_path)
+        directory, name = os.path.split(filepath)
 
-    return full_path
+        # Don't add signatures to cache files
+        if not name.endswith(".bphys") and not name.endswith(".bobj.gz"):
+            name, ext = os.path.splitext(name)
+            name = name + "_" + rfile.signature + ext
+        
+        directory = directory.replace("../")
+        directory = os.path.join(prefixdirectory, directory)
+
+        if not os.path.exists(directory):
+            os.mkdir(directory)
+
+        finalpath = os.path.join(directory, name)
+
+    return finalpath
 
 def getResults(server_address, server_port, job_id, resolution_x, resolution_y, resolution_percentage, frame_ranges):
     if bpy.app.debug:

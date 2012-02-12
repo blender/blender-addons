@@ -777,15 +777,15 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
 
                 if job:
 
-                    render_file = job.files[file_index]
+                    rfile = job.files[file_index]
 
-                    if render_file:
-                        main_file = job.files[0].filepath # filename of the first file
+                    if rfile:
+                        main_file = job.files[0].original_path # original path of the first file
 
                         main_path, main_name = os.path.split(main_file)
 
                         if file_index > 0:
-                            file_path = prefixPath(job.save_path, render_file.filepath, main_path, force = True)
+                            file_path = createLocalPath(rfile, job.save_path, main_path, True)
                         else:
                             file_path = os.path.join(job.save_path, main_name)
 
@@ -793,8 +793,8 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
                         
                         self.write_file(file_path)
                         
-                        render_file.filepath = file_path # set the new path
-                        found = render_file.updateStatus() # make sure we have the right file
+                        rfile.filepath = file_path # set the new path
+                        found = rfile.updateStatus() # make sure we have the right file
                         
                         if not found: # checksum mismatch
                             self.server.stats("", "File upload but checksum mismatch, this shouldn't happen")
