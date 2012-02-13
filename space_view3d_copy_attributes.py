@@ -357,8 +357,7 @@ def obLok(ob, active, context):
         ob.lock_location[index] = state
     for index, state in enumerate(active.lock_rotation):
         ob.lock_rotation[index] = state
-    for index, state in enumerate(active.lock_rotations_4d):
-        ob.lock_rotations_4d[index] = state
+    ob.lock_rotations_4d = active.lock_rotations_4d
     ob.lock_rotation_w = active.lock_rotation_w
     for index, state in enumerate(active.lock_scale):
         ob.lock_scale[index] = state
