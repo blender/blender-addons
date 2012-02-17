@@ -25,8 +25,9 @@
 bl_info = {
     "name": "Measure Panel",
     "author": "Buerbaum Martin (Pontiac), TNae (Normal patch)," \
-        " Benjamin Lauritzen (Loonsbury; Volume code)",
-    "version": (0, 8, 2),
+        " Benjamin Lauritzen (Loonsbury; Volume code)," \
+        " Alessandro Sala (patch: Units in 3D View)",
+    "version": (0, 8, 4),
     "blender": (2, 6, 0),
     "location": "View3D > Properties > Measure Panel",
     "description": "Measure distances between objects",
@@ -84,6 +85,61 @@ PRECISION = 4
 # Name of the custom properties as stored in the scene.
 COLOR_LOCAL = (1.0, 0.5, 0.0, 0.8)
 COLOR_GLOBAL = (0.5, 0.0, 1.0, 0.8)
+
+
+# Returns a tuple describing the current measuring system
+# and formatting options.
+# Returned data is meant to be passed to formatDistance().
+# Original by Alessandro Sala (Feb, 12th 2012)
+def getUnitsInfo():
+        scale = bpy.context.scene.unit_settings.scale_length
+        unit_system = bpy.context.scene.unit_settings.system
+        separate_units = bpy.context.scene.unit_settings.use_separate
+        if unit_system == 'METRIC':
+                scale_steps = ((1000, 'km'), (1, 'm'), (1 / 100, 'cm'),
+                    (1 / 1000, 'mm'), (1 / 1000000, '\u00b5m'))
+        elif unit_system == 'IMPERIAL':
+                scale_steps = ((1760, 'mi'), (1, 'yd'), (1 / 3, '\''),
+                    (1 / 36, '"'), (1 / 36000, 'thou'))
+                scale *= 1.0936133
+        else:
+                scale_steps = ((1, ' BU'),)
+                separate_units = False
+
+        return (scale, scale_steps, separate_units)
+
+
+# Converts a distance from BU into the measuring system
+# described by units_info.
+# Original by Alessandro Sala (Feb, 12th 2012)
+def convertDistance(val, units_info):
+        scale, scale_steps, separate_units = units_info
+        sval = val * scale
+        rsval = round(sval, PRECISION)
+        idx = 0
+        while idx < len(scale_steps) - 1:
+                if rsval >= scale_steps[idx][0]:
+                        break
+                idx += 1
+        factor, suffix = scale_steps[idx]
+        sval /= factor
+        if not separate_units or idx == len(scale_steps) - 1:
+                dval = str(round(sval, PRECISION)) + suffix
+        else:
+                ival = int(sval)
+                dval = str(ival) + suffix
+                fval = sval - ival
+                idx += 1
+                while idx < len(scale_steps):
+                        fval *= scale_steps[idx - 1][0] / scale_steps[idx][0]
+                        if fval >= 1:
+                                dval += ' ' \
+                                    + str(round(fval, 1)) \
+                                    + scale_steps[idx][1]
+                                break
+                        idx += 1
+
+        return dval
 
 
 # Returns a single selected object.
@@ -609,21 +665,24 @@ def draw_measurements_callback(self, context):
             sce.measure_panel_dist = dist
             context.area.tag_redraw()
 
-        texts = [("Dist:", round(dist, PRECISION)),
-            ("X:", round(abs(p1[0] - p2[0]), PRECISION)),
-            ("Y:", round(abs(p1[1] - p2[1]), PRECISION)),
-            ("Z:", round(abs(p1[2] - p2[2]), PRECISION))]
+        texts = [("Dist:", dist),
+            ("X:", abs(p1[0] - p2[0])),
+            ("Y:", abs(p1[1] - p2[1])),
+            ("Z:", abs(p1[2] - p2[2]))]
 
         # Draw all texts
         # @todo Get user pref for text color in 3D View
         bgl.glColor4f(1.0, 1.0, 1.0, 1.0)
         blf.size(0, 12, 72)  # Prevent font size to randomly change.
 
+        uinfo = getUnitsInfo()
+
         loc_x = coord_2d[0] + OFFSET_LINE
         loc_y = coord_2d[1]
         for t in texts:
             text = t[0]
-            value = str(t[1]) + " BU"
+
+            value = convertDistance(t[1], uinfo)
 
             blf.position(0, loc_x, loc_y, 0)
             blf.draw(0, text)
@@ -1311,24 +1370,31 @@ def register():
         precision=PRECISION,
         unit="LENGTH")
     bpy.types.Scene.measure_panel_edge_length = bpy.props.FloatProperty(
+        name="",
         precision=PRECISION,
         unit="LENGTH")
     bpy.types.Scene.measure_panel_area1 = bpy.props.FloatProperty(
+        name="",
         precision=PRECISION,
         unit="AREA")
     bpy.types.Scene.measure_panel_area2 = bpy.props.FloatProperty(
+        name="",
         precision=PRECISION,
         unit="AREA")
     bpy.types.Scene.measure_panel_normal1 = bpy.props.FloatVectorProperty(
+        name="",
         precision=PRECISION,
         subtype="XYZ")
     bpy.types.Scene.measure_panel_normal2 = bpy.props.FloatVectorProperty(
+        name="",
         precision=PRECISION,
         subtype="XYZ")
     bpy.types.Scene.measure_panel_volume1 = bpy.props.FloatProperty(
+        name="",
         precision=PRECISION,
         unit="VOLUME")
     bpy.types.Scene.measure_panel_volume2 = bpy.props.FloatProperty(
+        name="",
         precision=PRECISION,
         unit="VOLUME")
 
