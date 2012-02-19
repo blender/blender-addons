@@ -840,7 +840,7 @@ class VIEW3D_MT_SelectEditMenu(bpy.types.Menu):
         layout.operator("mesh.edges_select_sharp", text="Sharp Edges")
         layout.operator("mesh.faces_select_linked_flat",
                         text="Linked Flat Faces")
-        layout.operator("mesh.faces_select_interior", text="Interior Faces")
+        layout.operator("mesh.select_interior_faces", text="Interior Faces")
         layout.operator("mesh.select_axis", text="Side of Active")
         layout.separator()
 
