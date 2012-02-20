@@ -133,7 +133,7 @@ def makeObjectIntoBoundBox(scene, object, sizeDifference, takeFromObject):
 
     # Delete all geometry from the object.
     bpy.ops.mesh.select_all(action='SELECT')
-    bpy.ops.mesh.delete(type='ALL')
+    bpy.ops.mesh.delete(type='VERT')
 
     # Must be in object mode for from_pydata to work
     bpy.ops.object.mode_set(mode='OBJECT')
@@ -221,7 +221,7 @@ def convertParticlesToMesh(scene, particlesobj, destobj, replacemesh):
     #Delete everything in mesh if replace true
     if replacemesh:
         bpy.ops.mesh.select_all(action='SELECT')
-        bpy.ops.mesh.delete(type='ALL')
+        bpy.ops.mesh.delete(type='VERT')
 
     meshPnts = destobj.data
 
