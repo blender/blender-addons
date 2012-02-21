@@ -323,7 +323,7 @@ def polyAreaGlobal(poly, obj):
 
     if len(poly.vertices) > 4:
         # n-Gon (5++)
-        verts = poly.vertices # vertex indices
+        verts = poly.vertices
         nr = poly.loop_total
 
         # first: find dominant axis: 0==X, 1==Y, 2==Z
@@ -578,6 +578,7 @@ def checkManifold(obj):
     else:
         return -1
 
+
 # Check if a mesh has n-gons (polygon with more than 4 edges).
 def checkNgon(obj):
     if obj and obj.type == 'MESH' and obj.data:
@@ -591,6 +592,7 @@ def checkNgon(obj):
 
     else:
         return -1
+
 
 # User friendly access to the "space" setting.
 def measureGlobal(sce):
