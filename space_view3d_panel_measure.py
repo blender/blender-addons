@@ -27,7 +27,7 @@ bl_info = {
     "author": "Buerbaum Martin (Pontiac), TNae (Normal patch)," \
         " Benjamin Lauritzen (Loonsbury; Volume code)," \
         " Alessandro Sala (patch: Units in 3D View)",
-    "version": (0, 8, 4),
+    "version": (0, 8, 5),
     "blender": (2, 6, 0),
     "location": "View3D > Properties > Measure Panel",
     "description": "Measure distances between objects",
@@ -312,17 +312,63 @@ def objectEdgeLength(obj, selectedOnly, globalSpace):
 # @sa: rna_mesh.c:rna_MeshFace_area_get
 # @sa: math_geom.c:area_quad_v3
 # @sa: math_geom.c:area_tri_v3
-def faceAreaGlobal(face, obj):
+# @sa: math_geom.c:area_poly_v3
+# @todo Fix calculation of "n" for n-gons?
+def polyAreaGlobal(poly, obj):
     area = 0.0
 
     mesh = obj.data
     mat = obj.matrix_world.copy()
+    norm = poly.normal
 
-    if len(face.vertices) == 4:
+    if len(poly.vertices) > 4:
+        # n-Gon (5++)
+        verts = poly.vertices # vertex indices
+        nr = poly.loop_total
+
+        # first: find dominant axis: 0==X, 1==Y, 2==Z
+        # don't use 'axis_dominant_v3()' because we need max axis too
+        x = abs(norm[0])
+        y = abs(norm[1])
+        z = abs(norm[2])
+        maximum = max(x, y, z)
+
+        px = 0
+        py = 1
+        if maximum == y:
+            py = 2
+        elif maximum == x:
+            px = 1
+            py = 2
+
+        # The Trapezium Area Rule
+        idx_prev = verts[nr - 1]
+        idx_cur = verts[0]
+
+        #for (a=0; a<nr; a++):
+        for a in range(nr):
+            prev = mesh.vertices[idx_prev]
+            cur = mesh.vertices[idx_cur]
+
+            prev = mat * prev.co
+            cur = mat * cur.co
+
+            area += (cur[px] - prev[px]) * (cur[py] + prev[py])
+
+            idx_prev = verts[a]
+
+            if a == nr - 1:
+                idx_cur = verts[0]
+            else:
+                idx_cur = verts[a + 1]
+
+        area = abs(0.5 * area / maximum)
+
+    if len(poly.vertices) == 4:
         # Quad
 
         # Get vertex indices
-        v1, v2, v3, v4 = face.vertices
+        v1, v2, v3, v4 = poly.vertices
 
         # Get vertex data
         v1 = mesh.vertices[v1]
@@ -350,11 +396,11 @@ def faceAreaGlobal(face, obj):
 
         area += n.length / 2.0
 
-    elif len(face.vertices) == 3:
+    elif len(poly.vertices) == 3:
         # Triangle
 
         # Get vertex indices
-        v1, v2, v3 = face.vertices
+        v1, v2, v3 = poly.vertices
 
         # Get vertex data
         v1 = mesh.vertices[v1]
@@ -373,7 +419,10 @@ def faceAreaGlobal(face, obj):
 
         area = n.length / 2.0
 
-    return area, n
+    # Apply world matrix to normal as well.
+    norm = mat * norm
+
+    return area, norm
 
 
 # Calculate the surface area of a mesh object.
@@ -391,15 +440,15 @@ def objectSurfaceArea(obj, selectedOnly, globalSpace):
         mesh = obj.data
 
         # Count the area of all the faces.
-        for face in mesh.faces:
-            if not selectedOnly or face.select:
+        for poly in mesh.polygons:
+            if not selectedOnly or poly.select:
                 if globalSpace:
-                    a, n = faceAreaGlobal(face, obj)
+                    a, n = polyAreaGlobal(poly, obj)
                     areaTotal += a
                     normTotal += n
                 else:
-                    areaTotal += face.area
-                    normTotal += face.normal
+                    areaTotal += poly.area
+                    normTotal += poly.normal
 
         return areaTotal, normTotal
 
@@ -416,17 +465,21 @@ def objectVolume(obj, globalSpace):
         if not checkManifold(obj):
             return -1
 
+        # Check if mesh has n-gons
+        if checkNgon(obj):
+            return -2
+
         mesh = obj.data
 
         volTot = 0
 
-        for face in mesh.faces:
-            fzn = face.normal.z
+        for poly in mesh.polygons:
+            fzn = poly.normal.z
 
-            if len(face.vertices) == 4:
-                v1, v2, v3, v4 = face.vertices
+            if len(poly.vertices) == 4:
+                v1, v2, v3, v4 = poly.vertices
             else:
-                v1, v2, v3 = face.vertices
+                v1, v2, v3 = poly.vertices
 
             v1 = mesh.vertices[v1]
             v2 = mesh.vertices[v2]
@@ -459,7 +512,7 @@ def objectVolume(obj, globalSpace):
             volume = ((z1 + z2 + z3) / 3.0) * pa
 
             # Allowing for quads
-            if len(face.vertices) == 4:
+            if len(poly.vertices) == 4:
                 # Get vertex data
                 v4 = mesh.vertices[v4]
 
@@ -494,7 +547,7 @@ def objectVolume(obj, globalSpace):
 #    else:
 #        print obj.name, ': Object must be a mesh!'        # TODO
 
-    return -2
+    return -3
 
 
 # Manifold Checks
@@ -505,8 +558,8 @@ def checkManifold(obj):
 
         mc = dict([(ed.key, 0) for ed in mesh.edges])     # TODO
 
-        for f in mesh.faces:
-            for ek in f.edge_keys:
+        for p in mesh.polygons:
+            for ek in p.edge_keys:
                 mc[ek] += 1
                 if mc[ek] > 2:
                     return 0
@@ -525,6 +578,19 @@ def checkManifold(obj):
     else:
         return -1
 
+# Check if a mesh has n-gons (polygon with more than 4 edges).
+def checkNgon(obj):
+    if obj and obj.type == 'MESH' and obj.data:
+        mesh = obj.data
+
+        for p in mesh.polygons:
+            if len(p.vertices) > 4:
+                return 1
+
+        return 0
+
+    else:
+        return -1
 
 # User friendly access to the "space" setting.
 def measureGlobal(sce):
@@ -748,10 +814,10 @@ def draw_measurements_callback(self, context):
                 if len(verts_selected) >= 3:
                     # Get selected faces
                     # @todo: Better (more efficient) way to do this?
-                    faces_selected = [f for f in mesh.faces
+                    polys_selected = [f for f in mesh.polygons
                         if f.select == 1]
 
-                    if len(faces_selected) > 0:
+                    if len(polys_selected) > 0:
                         area, normal = objectSurfaceArea(obj, True,
                             measureGlobal(sce))
                         if area >= 0.0:
@@ -1066,15 +1132,15 @@ class VIEW3D_PT_measure(bpy.types.Panel):
                     if sce.measure_panel_calc_area:
                         # Get selected faces
                         # @todo: Better (more efficient) way to do this?
-                        faces_selected = [f for f in mesh.faces
-                            if f.select == 1]
+                        polys_selected = [p for p in mesh.polygons
+                            if p.select == 1]
 
-                        if len(faces_selected) > 0:
+                        if len(polys_selected) > 0:
                             if sce.measure_panel_area1 >= 0:
                                 box = layout.box()
                                 row = box.row()
                                 row.label(
-                                    text=str(len(faces_selected)),
+                                    text=str(len(polys_selected)),
                                     icon='FACESEL')
 
                                 row = box.row()
@@ -1229,7 +1295,7 @@ class VIEW3D_PT_measure(bpy.types.Panel):
 
                 if sce.measure_panel_calc_volume:
                     # Display volume of the objects.
-                    if sce.measure_panel_volume1 >= -1:
+                    if sce.measure_panel_volume1 >= -2:
                         box = layout.box()
                         row = box.row()
                         row.label(text=obj1.name, icon='OBJECT_DATA')
@@ -1238,12 +1304,17 @@ class VIEW3D_PT_measure(bpy.types.Panel):
                             row = box.row()
                             row.label(text="Volume")
                             row.prop(sce, "measure_panel_volume1")
-                        else:  # -1
+                        elif sce.measure_panel_volume1 >= -1:
                             row = box.row()
                             row.label(text="Mesh is non-manifold!",
                                 icon='INFO')
+                        else:  # -2
+                            row = box.row()
+                            row.label(text="Mesh has n-gons (faces with " \
+                                "more than 4 edges)!",
+                                icon='INFO')
 
-                    if sce.measure_panel_volume2 >= -1:
+                    if sce.measure_panel_volume2 >= -2:
                         box = layout.box()
                         row = box.row()
                         row.label(text=obj2.name, icon='OBJECT_DATA')
@@ -1252,9 +1323,14 @@ class VIEW3D_PT_measure(bpy.types.Panel):
                             row = box.row()
                             row.label(text="Volume")
                             row.prop(sce, "measure_panel_volume2")
-                        else:  # -1
+                        elif sce.measure_panel_volume2 >= -1:
                             row = box.row()
                             row.label(text="Mesh is non-manifold!",
+                                icon='INFO')
+                        else:  # -2
+                            row = box.row()
+                            row.label(text="Mesh has n-gons (faces with " \
+                                "more than 4 edges)!",
                                 icon='INFO')
 
             elif obj:
@@ -1319,7 +1395,7 @@ class VIEW3D_PT_measure(bpy.types.Panel):
 
                 if sce.measure_panel_calc_volume:
                     # Display volume of the objects.
-                    if sce.measure_panel_volume1 >= -1:
+                    if sce.measure_panel_volume1 >= -2:
                         box = layout.box()
                         row = box.row()
                         row.label(text=obj.name, icon='OBJECT_DATA')
@@ -1328,9 +1404,14 @@ class VIEW3D_PT_measure(bpy.types.Panel):
                             row = box.row()
                             row.label(text="Volume")
                             row.prop(sce, "measure_panel_volume1")
-                        else:  # -1
+                        elif sce.measure_panel_volume1 >= -1:
                             row = box.row()
                             row.label(text="Mesh is non-manifold!",
+                                icon='INFO')
+                        else:  # -2
+                            row = box.row()
+                            row.label(text="Mesh has n-gons (faces with " \
+                                "more than 4 edges)!",
                                 icon='INFO')
 
             elif not context.selected_objects:
