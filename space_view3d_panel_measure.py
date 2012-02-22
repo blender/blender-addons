@@ -27,7 +27,7 @@ bl_info = {
     "author": "Buerbaum Martin (Pontiac), TNae (Normal patch)," \
         " Benjamin Lauritzen (Loonsbury; Volume code)," \
         " Alessandro Sala (patch: Units in 3D View)",
-    "version": (0, 8, 5),
+    "version": (0, 8, 6),
     "blender": (2, 6, 0),
     "location": "View3D > Properties > Measure Panel",
     "description": "Measure distances between objects",
@@ -77,6 +77,7 @@ from mathutils import Vector, Matrix
 import bgl
 import blf
 from bpy_extras.view3d_utils import location_3d_to_region_2d
+from bpy_extras.mesh_utils import ngon_tesselate
 
 
 # Precicion for display of float values.
@@ -315,86 +316,42 @@ def objectEdgeLength(obj, selectedOnly, globalSpace):
 # @sa: math_geom.c:area_poly_v3
 # @todo Fix calculation of "n" for n-gons?
 def polyAreaGlobal(poly, obj):
-    area = 0.0
-
     mesh = obj.data
     mat = obj.matrix_world.copy()
     norm = poly.normal
 
-    if len(poly.vertices) > 4:
-        # n-Gon (5++)
-        verts = poly.vertices
-        nr = poly.loop_total
+    area = 0.0
 
-        # first: find dominant axis: 0==X, 1==Y, 2==Z
-        # don't use 'axis_dominant_v3()' because we need max axis too
-        x = abs(norm[0])
-        y = abs(norm[1])
-        z = abs(norm[2])
-        maximum = max(x, y, z)
+    if len(poly.vertices) > 3:
+        # Tesselate the polygon into multiple tris
+        tris = ngon_tesselate(mesh, poly.vertices)
 
-        px = 0
-        py = 1
-        if maximum == y:
-            py = 2
-        elif maximum == x:
-            px = 1
-            py = 2
+        for tri in tris:
+            # Get vertex data
+            v1, v2, v3 = tri
 
-        # The Trapezium Area Rule
-        idx_prev = verts[nr - 1]
-        idx_cur = verts[0]
+            # Get indices from original poly
+            v1 = poly.vertices[v1]
+            v2 = poly.vertices[v2]
+            v3 = poly.vertices[v3]
 
-        #for (a=0; a<nr; a++):
-        for a in range(nr):
-            prev = mesh.vertices[idx_prev]
-            cur = mesh.vertices[idx_cur]
+            # Get vertex information from indices
+            v1 = mesh.vertices[v1]
+            v2 = mesh.vertices[v2]
+            v3 = mesh.vertices[v3]
 
-            prev = mat * prev.co
-            cur = mat * cur.co
+            # Apply transform matrix to vertex coordinates.
+            v1 = mat * v1.co
+            v2 = mat * v2.co
+            v3 = mat * v3.co
 
-            area += (cur[px] - prev[px]) * (cur[py] + prev[py])
+            # Calculate area for the new tri
+            vec1 = v3 - v2
+            vec2 = v1 - v2
 
-            idx_prev = verts[a]
+            n = vec1.cross(vec2)
 
-            if a == nr - 1:
-                idx_cur = verts[0]
-            else:
-                idx_cur = verts[a + 1]
-
-        area = abs(0.5 * area / maximum)
-
-    if len(poly.vertices) == 4:
-        # Quad
-
-        # Get vertex indices
-        v1, v2, v3, v4 = poly.vertices
-
-        # Get vertex data
-        v1 = mesh.vertices[v1]
-        v2 = mesh.vertices[v2]
-        v3 = mesh.vertices[v3]
-        v4 = mesh.vertices[v4]
-
-        # Apply transform matrix to vertex coordinates.
-        v1 = mat * v1.co
-        v2 = mat * v2.co
-        v3 = mat * v3.co
-        v4 = mat * v4.co
-
-        vec1 = v2 - v1
-        vec2 = v4 - v1
-
-        n = vec1.cross(vec2)
-
-        area = n.length / 2.0
-
-        vec1 = v4 - v3
-        vec2 = v2 - v3
-
-        n = vec1.cross(vec2)
-
-        area += n.length / 2.0
+            area += n.length / 2.0
 
     elif len(poly.vertices) == 3:
         # Triangle
@@ -1312,8 +1269,8 @@ class VIEW3D_PT_measure(bpy.types.Panel):
                                 icon='INFO')
                         else:  # -2
                             row = box.row()
-                            row.label(text="Mesh has n-gons (faces with " \
-                                "more than 4 edges)!",
+                            row.label(text="Mesh has faces with " \
+                                "more than 4 edges!",
                                 icon='INFO')
 
                     if sce.measure_panel_volume2 >= -2:
@@ -1331,8 +1288,8 @@ class VIEW3D_PT_measure(bpy.types.Panel):
                                 icon='INFO')
                         else:  # -2
                             row = box.row()
-                            row.label(text="Mesh has n-gons (faces with " \
-                                "more than 4 edges)!",
+                            row.label(text="Mesh has faces with " \
+                                "more than 4 edges!",
                                 icon='INFO')
 
             elif obj:
@@ -1412,8 +1369,8 @@ class VIEW3D_PT_measure(bpy.types.Panel):
                                 icon='INFO')
                         else:  # -2
                             row = box.row()
-                            row.label(text="Mesh has n-gons (faces with " \
-                                "more than 4 edges)!",
+                            row.label(text="Mesh has faces with " \
+                                "more than 4 edges!",
                                 icon='INFO')
 
             elif not context.selected_objects:
