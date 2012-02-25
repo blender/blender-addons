@@ -979,8 +979,7 @@ class RenderMasterServer(socketserver.ThreadingMixIn, http.server.HTTPServer):
         else:
             self.path = path
 
-        if not os.path.exists(self.path):
-            os.mkdir(self.path)
+        verifyCreateDir(self.path)
 
         self.slave_timeout = 5 # 5 mins: need a parameter for that
 
@@ -1105,8 +1104,7 @@ class RenderMasterServer(socketserver.ThreadingMixIn, http.server.HTTPServer):
 
         # create job directory
         job.save_path = os.path.join(self.path, "job_" + job.id)
-        if not os.path.exists(job.save_path):
-            os.mkdir(job.save_path)
+        verifyCreateDir(job.save_path)
 
         job.save()
 

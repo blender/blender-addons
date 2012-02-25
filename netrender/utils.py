@@ -269,6 +269,23 @@ def hashData(data):
     m.update(data)
     return m.hexdigest()
 
+def verifyCreateDir(directory_path):
+    original_path = directory_path
+    directory_path = os.path.expanduser(directory_path)
+    directory_path = os.path.expandvars(directory_path)
+    if not os.path.exists(directory_path):
+        try:
+            os.makedirs(directory_path)
+            print("Created directory:", directory_path)
+            if original_path != directory_path:
+                print("Expanded from the following path:", original_path)
+        except:
+            print("Couldn't create directory:", directory_path)
+            if original_path != directory_path:
+                print("Expanded from the following path:", original_path)
+            raise
+    
+
 def cacheName(ob, point_cache):
     name = point_cache.name
     if name == "":
@@ -332,9 +349,7 @@ def createLocalPath(rfile, prefixdirectory, prefixpath, forcelocal):
                     suffix = os.path.join(last, suffix)
 
                 directory = os.path.join(prefixdirectory, suffix)
-                
-                if not os.path.exists(directory):
-                    os.mkdir(directory)
+                verifyCreateDir(directory)
 
                 finalpath = os.path.join(directory, name)
             else:
@@ -350,8 +365,7 @@ def createLocalPath(rfile, prefixdirectory, prefixpath, forcelocal):
         directory = directory.replace("../")
         directory = os.path.join(prefixdirectory, directory)
 
-        if not os.path.exists(directory):
-            os.mkdir(directory)
+        verifyCreateDir(directory)
 
         finalpath = os.path.join(directory, name)
 

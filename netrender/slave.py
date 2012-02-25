@@ -144,8 +144,7 @@ def render_slave(engine, netsettings, threads):
         slave_id = response.getheader("slave-id")
 
         NODE_PREFIX = os.path.join(slave_path, "slave_" + slave_id)
-        if not os.path.exists(NODE_PREFIX):
-            os.mkdir(NODE_PREFIX)
+        verifyCreateDir(NODE_PREFIX)
 
         engine.update_stats("", "Network render connected to master, waiting for jobs")
 
@@ -161,8 +160,7 @@ def render_slave(engine, netsettings, threads):
                 engine.update_stats("", "Network render processing job from master")
 
                 JOB_PREFIX = os.path.join(NODE_PREFIX, "job_" + job.id)
-                if not os.path.exists(JOB_PREFIX):
-                    os.mkdir(JOB_PREFIX)
+                verifyCreateDir(JOB_PREFIX)
 
                 # set tempdir for fsaa temp files
                 # have to set environ var because render is done in a subprocess and that's the easiest way to propagate the setting

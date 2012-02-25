@@ -443,9 +443,7 @@ class NetworkRenderEngine(bpy.types.RenderEngine):
             result_path = os.path.join(bpy.path.abspath(netsettings.path), "output.exr")
             
             folder = os.path.split(result_path)[0]
-            
-            if not os.path.exists(folder):
-                os.mkdir(folder)
+            verifyCreateDir(folder)
 
             f = open(result_path, "wb")
 
