@@ -1,4 +1,4 @@
-#  ##### BEGIN GPL LICENSE BLOCK #####
+﻿#  ##### BEGIN GPL LICENSE BLOCK #####
 #
 #  This program is free software; you can redistribute it and/or
 #  modify it under the terms of the GNU General Public License
@@ -464,13 +464,11 @@ def write_pov(filename, scene=None, info_callback=None):
 
                 if material.subsurface_scattering.use:
                     subsurface_scattering = material.subsurface_scattering
-                    tabWrite("subsurface { <%.3g, %.3g, %.3g>, <%.3g, %.3g, %.3g> }\n" % (
-                             sqrt(subsurface_scattering.radius[0]) * 1.5,
-                             sqrt(subsurface_scattering.radius[1]) * 1.5,
-                             sqrt(subsurface_scattering.radius[2]) * 1.5,
-                             1.0 - subsurface_scattering.color[0],
-                             1.0 - subsurface_scattering.color[1],
-                             1.0 - subsurface_scattering.color[2])
+                    tabWrite("subsurface { translucency <%.3g, %.3g, %.3g> }\n" % (
+                             (subsurface_scattering.radius[0]) * subsurface_scattering.color[0],
+                             (subsurface_scattering.radius[1]) * subsurface_scattering.color[1],
+                             (subsurface_scattering.radius[2]) * subsurface_scattering.color[2],                   
+                             )
                             )
 
                 if material.pov.irid_enable:
@@ -722,7 +720,7 @@ def write_pov(filename, scene=None, info_callback=None):
                 writeObjectMaterial(material, ob)
 
                 writeMatrix(global_matrix * ob.matrix_world)
-                #Importance for radiosity sampling added here:
+                # Importance for radiosity sampling added here
                 tabWrite("radiosity { \n")
                 tabWrite("importance %3g \n" % importance)
                 tabWrite("}\n")
@@ -999,19 +997,32 @@ def write_pov(filename, scene=None, info_callback=None):
 
                     else:
                         if material:
-                            diffuse_color = material.diffuse_color[:]
-                            key = diffuse_color[0], diffuse_color[1], diffuse_color[2], \
-                                  material_index
-                            vertCols[key] = [-1]
+                            # Multiply diffuse with SSS Color
+                            if material.subsurface_scattering.use:
+                                diffuse_color = [i*j for i,j in zip(material.subsurface_scattering.color[:], material.diffuse_color[:])]
+                                key = diffuse_color[0], diffuse_color[1], diffuse_color[2], \
+                                      material_index
+                                vertCols[key] = [-1]
+                            else:
+                                diffuse_color = material.diffuse_color[:]
+                                key = diffuse_color[0], diffuse_color[1], diffuse_color[2], \
+                                      material_index
+                                vertCols[key] = [-1]
 
             else:
                 # No vertex colours, so write material colours as vertex colours
                 for i, material in enumerate(me_materials):
 
                     if material:
-                        diffuse_color = material.diffuse_color[:]
-                        key = diffuse_color[0], diffuse_color[1], diffuse_color[2], i  # i == f.mat
-                        vertCols[key] = [-1]
+                        # Multiply diffuse with SSS Color
+                        if material.subsurface_scattering.use:
+                            diffuse_color = [i*j for i,j in zip(material.subsurface_scattering.color[:], material.diffuse_color[:])]
+                            key = diffuse_color[0], diffuse_color[1], diffuse_color[2], i  # i == f.mat
+                            vertCols[key] = [-1]
+                        else:
+                            diffuse_color = material.diffuse_color[:]
+                            key = diffuse_color[0], diffuse_color[1], diffuse_color[2], i  # i == f.mat
+                            vertCols[key] = [-1]
 
             # Vert Colours
             tabWrite("texture_list {\n")
@@ -1424,7 +1435,6 @@ def write_pov(filename, scene=None, info_callback=None):
                             ci3 = vertCols[col3[0], col3[1], col3[2], material_index][0]
                         else:
                             # Colour per material - flat material colour
-                            diffuse_color = material.diffuse_color
                             ci1 = ci2 = ci3 = vertCols[diffuse_color[0], diffuse_color[1], \
                                               diffuse_color[2], f.material_index][0]
 
@@ -1705,6 +1715,8 @@ def write_pov(filename, scene=None, info_callback=None):
                 tabWrite("mm_per_unit %.6f\n" % \
                          (material.subsurface_scattering.scale * (-100.0) + 15.0))
                 # In POV-Ray, the scale factor for all subsurface shaders needs to be the same
+                sslt_samples= (11-material.subsurface_scattering.error_threshold)*100
+                tabWrite("subsurface { samples %d, %d }\n" % (sslt_samples, sslt_samples/10))
                 onceSss = 0
 
             if world and onceAmbient:
