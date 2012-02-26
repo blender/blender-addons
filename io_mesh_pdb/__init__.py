@@ -22,6 +22,7 @@ bl_info = {
     "author": "Clemens Barth",
     "version": (1,2),
     "blender": (2,6),
+    "api": 31236,
     "location": "File -> Import -> PDB (.pdb), Panel: View 3D - Tools",
     "warning": "",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts/Import-Export/PDB",
@@ -32,7 +33,7 @@ bl_info = {
 
 import bpy
 from bpy.types import Operator, Panel
-from bpy_extras.io_utils import ImportHelper
+from bpy_extras.io_utils import ImportHelper, ExportHelper
 from bpy.props import (StringProperty,
                        BoolProperty,
                        EnumProperty,
@@ -42,6 +43,8 @@ from bpy.props import (StringProperty,
 
 # TODO, allow reload
 from . import import_pdb
+from . import export_pdb
+
 
 ATOM_PDB_ERROR = ""
 
@@ -234,7 +237,7 @@ class CLASS_atom_pdb_IO(bpy.types.PropertyGroup):
         description="The sticks are round (sectors are not visible)")     
     scn.use_atom_pdb_sticks_bonds = BoolProperty(
         name="Bonds", default=False,
-        description="Show double and tripple bonds")
+        description="Show double and tripple bonds.")
     scn.atom_pdb_sticks_dist = FloatProperty(
         name="Distance", default = 1.1, min=1.0, max=3.0,
         description="Distance between sticks measured in stick diameter")        
@@ -596,6 +599,30 @@ class ImportPDB(Operator, ImportHelper):
         return {'FINISHED'}
 
 
+
+# This is the class for the file dialog.
+class ExportPDB(Operator, ExportHelper):
+    bl_idname = "export_mesh.pdb"
+    bl_label  = "Export Protein Data Bank(*.pdb)"
+
+    filename_ext = ".pdb"
+    filter_glob  = StringProperty(default="*.pdb", options={'HIDDEN'},)
+
+    def draw(self, context):
+        layout = self.layout
+        scn = bpy.context.scene
+
+    def execute(self, context):
+        scn = bpy.context.scene
+
+        # This is in order to solve this strange 'relative path' thing.
+        export_pdb.ATOM_PDB_FILEPATH = bpy.path.abspath(self.filepath)
+        export_pdb.DEF_atom_pdb_export()
+
+        return {'FINISHED'}
+
+
+
 class CLASS_atom_pdb_error_dialog(bpy.types.Operator):
     bl_idname = "atom_pdb.error_dialog"
     bl_label = "Attention !"
@@ -612,17 +639,23 @@ class CLASS_atom_pdb_error_dialog(bpy.types.Operator):
 
 
 # The entry into the menu 'file -> import'
-def menu_func(self, context):
+def menu_func_import(self, context):
     self.layout.operator(ImportPDB.bl_idname, text="Protein Data Bank (.pdb)")
+
+# The entry into the menu 'file -> export'
+def menu_func_export(self, context):
+    self.layout.operator(ExportPDB.bl_idname, text="Protein Data Bank (.pdb)")
 
 
 def register():
     bpy.utils.register_module(__name__)
-    bpy.types.INFO_MT_file_import.append(menu_func)
+    bpy.types.INFO_MT_file_import.append(menu_func_import)
+    bpy.types.INFO_MT_file_export.append(menu_func_export)
 
 def unregister():
     bpy.utils.unregister_module(__name__)
-    bpy.types.INFO_MT_file_import.remove(menu_func)
+    bpy.types.INFO_MT_file_import.remove(menu_func_import)
+    bpy.types.INFO_MT_file_export.remove(menu_func_export)
 
 if __name__ == "__main__":
 

@@ -26,7 +26,7 @@
 """
 Abstract
 MHX (MakeHuman eXchange format) importer for Blender 2.5x.
-Version 1.10.2
+Version 1.10.3
 
 This script should be distributed with Blender.
 If not, place it in the .blender/scripts/addons dir
@@ -39,8 +39,8 @@ Alternatively, run the script in the script editor (Alt-P), and access from the 
 bl_info = {
     'name': 'Import: MakeHuman (.mhx)',
     'author': 'Thomas Larsson',
-    'version': (1, 10, 2),
-    "blender": (2, 5, 9),
+    'version': (1, 10, 3),
+    "blender": (2, 6, 2),
     'location': "File > Import > MakeHuman (.mhx)",
     'description': 'Import files in the MakeHuman eXchange format (.mhx)',
     'warning': '',
@@ -51,7 +51,7 @@ bl_info = {
 
 MAJOR_VERSION = 1
 MINOR_VERSION = 10
-SUB_VERSION = 2
+SUB_VERSION = 3
 BLENDER_VERSION = (2, 59, 2)
 
 #
@@ -1051,7 +1051,7 @@ def parseObject(args, tokens):
             parseDefault(ob.field, sub, {}, [])
         else:
             defaultKey(key, val, sub, "ob", ['type', 'data'], globals(), locals())
-
+            
     # Needed for updating layers
     if bpy.context.object == ob:
         pass
@@ -1341,12 +1341,17 @@ def parseFaces2(tokens, me):
 
 def parseUvTexture(args, tokens, me):
     name = args[0]
-    me.uv_textures.new(name = name)
-    uvtex = me.uv_textures[-1]
-    loadedData['MeshTextureFaceLayer'][name] = uvtex
+    uvtex = me.uv_textures.new(name = name)
+    print("WARNING: UV texture %s ignored until BMesh api is understood" % name)
+    return
+    uvtex.active = True
+    tessUvtex = me.tessface_uv_textures.active   
+    print("UV textures:")
+    print("  ", me.uv_textures.active_index, uvtex, tessUvtex)
+    loadedData['MeshTextureFaceLayer'][name] = tessUvtex
     for (key, val, sub) in tokens:
         if key == 'Data':
-            parseUvTexData(val, sub, uvtex.data)
+            parseUvTexData(val, sub, tessUvtex.data)
         else:
             defaultKey(key, val,  sub, "uvtex", [], globals(), locals())
     return
@@ -1360,6 +1365,9 @@ def parseUvTexData(args, tokens, data):
             data[n].uv3 = (float(val[4]), float(val[5]))
             if len(val) > 6:
                 data[n].uv4 = (float(val[6]), float(val[7]))
+            print(val)
+            print(data[n].uv1, data[n].uv2, data[n].uv3, data[n].uv4)
+            halt
             n += 1    
         else:
             pass
@@ -2007,7 +2015,7 @@ def postProcess(args):
     except:
         ob = None
     if toggle & T_Diamond == 0 and ob:
-        deleteDiamonds(ob)
+        deleteDiamonds(ob)        
     return            
 
 #
@@ -3248,7 +3256,7 @@ def setViseme(context, vis, setKey, frame):
         else:
             setBoneLocation(context, pbones[b+'_L'], scale, loc, False, setKey, frame)
             setBoneLocation(context, pbones[b+'_R'], scale, loc, True, setKey, frame)
-    updatePose(rig)
+    updatePose(context.scene)
     return
 
 def setBoneLocation(context, pb, scale, loc, mirror, setKey, frame):
@@ -3297,7 +3305,7 @@ def readMoho(context, filepath, offs):
             setViseme(context, vis, True, int(words[0])+offs)
     fp.close()
     setInterpolation(rig)
-    updatePose(rig)
+    updatePose(context.scene)
     print("Moho file %s loaded" % filepath)
     return
 
@@ -3315,7 +3323,7 @@ def readMagpie(context, filepath, offs):
             setViseme(context, vis, True, int(words[0])+offs)
     fp.close()
     setInterpolation(rig)
-    updatePose(rig)
+    updatePose(context.scene)
     print("Magpie file %s loaded" % filepath)
     return
 
@@ -3397,13 +3405,14 @@ class MhxLipsyncPanel(bpy.types.Panel):
         return
         
 #
-#   updatePose(rig):
+#   updatePose(scn):
 #   class VIEW3D_OT_MhxUpdateButton(bpy.types.Operator):
 #
 
-def updatePose(rig):
-    pb = rig.pose.bones["PFaceDisp"]
-    pb.location = pb.location
+def updatePose(scn):
+    scn = bpy.context.scene
+    scn.frame_current = scn.frame_current
+    #scn.frame_current -= 1
     return
 
 class VIEW3D_OT_MhxUpdateButton(bpy.types.Operator):
@@ -3411,8 +3420,7 @@ class VIEW3D_OT_MhxUpdateButton(bpy.types.Operator):
     bl_label = "Update"
 
     def execute(self, context):
-        rig = getMhxRig(context.object)
-        updatePose(rig)
+        updatePose(context.scene)
         return{'FINISHED'}    
         
 
@@ -3434,7 +3442,7 @@ class VIEW3D_OT_MhxResetExpressionsButton(bpy.types.Operator):
         props = getShapeProps(rig)
         for (prop, name) in props:
             rig[prop] = 0.0
-        updatePose(rig)
+        updatePose(context.scene)
         return{'FINISHED'}    
 
 #
@@ -3451,7 +3459,7 @@ class VIEW3D_OT_MhxKeyExpressionsButton(bpy.types.Operator):
         frame = context.scene.frame_current
         for (prop, name) in props:
             rig.keyframe_insert('["%s"]' % prop, frame=frame)
-        updatePose(rig)
+        updatePose(context.scene)
         return{'FINISHED'}    
 #
 #    class VIEW3D_OT_MhxPinExpressionButton(bpy.types.Operator):
@@ -3481,7 +3489,7 @@ class VIEW3D_OT_MhxPinExpressionButton(bpy.types.Operator):
                     rig[prop] = 1.0
                 else:
                     rig[prop] = 0.0
-        updatePose(rig)
+        updatePose(context.scene)
         return{'FINISHED'}    
 
 #
@@ -3599,12 +3607,34 @@ class MhxVisibilityPanel(bpy.types.Panel):
 
     def draw(self, context):
         ob = context.object
+        layout = self.layout
         props = list(ob.keys())
         props.sort()
         for prop in props:
             if prop[0:4] == "Hide": 
-                self.layout.prop(ob, '["%s"]' % prop)
+                layout.prop(ob, '["%s"]' % prop)
+        layout.separator()
+        layout.operator("mhx.update_textures")
         return
+
+class VIEW3D_OT_MhxUpdateTexturesButton(bpy.types.Operator):
+    bl_idname = "mhx.update_textures"
+    bl_label = "Update"
+
+    def execute(self, context):
+        scn = context.scene
+        for mat in bpy.data.materials:
+            if mat.animation_data:
+                try:
+                    mat["MhxDriven"]
+                except:
+                    continue
+                for driver in mat.animation_data.drivers:
+                    prop = mat.path_resolve(driver.data_path)
+                    value = driver.evaluate(scn.frame_current)
+                    #print("Update %s[%d] = %s" % (driver.data_path, driver.array_index, value))
+                    prop[driver.array_index] = value
+        return{'FINISHED'}    
 
 ###################################################################################    
 #
@@ -3747,7 +3777,6 @@ def setInterpolation(rig):
         fcu.extrapolation = 'CONSTANT'
     return
     
-
 ###################################################################################    
 #
 #    initialize and register
@@ -3762,14 +3791,17 @@ def register():
     bpy.types.INFO_MT_file_import.append(menu_func)
 
 def unregister():
-    bpy.utils.unregister_module(__name__)
-    bpy.types.INFO_MT_file_import.remove(menu_func)
-
-if __name__ == "__main__":
     try:
-        unregister()
+        bpy.utils.unregister_module(__name__)
     except:
         pass
+    try:
+        bpy.types.INFO_MT_file_import.remove(menu_func)
+    except:
+        pass
+
+if __name__ == "__main__":
+    unregister()
     register()
 
 
