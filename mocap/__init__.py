@@ -564,7 +564,7 @@ class OBJECT_OT_LooperButton(bpy.types.Operator):
     #Operator to trim fcurves which contain a few loops to a single one on the selected object
     '''Trim active armature's animation to a single cycle, given a cyclic animation (such as a walk cycle)'''
     bl_idname = "mocap.looper"
-    bl_label = "loop animation / sampled mocap data"
+    bl_label = "Loop animation / sampled mocap data"
 
     def execute(self, context):
         mocap_tools.autoloop_anim()
