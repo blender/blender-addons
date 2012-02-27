@@ -23,7 +23,7 @@ bl_info = {
     "blender": (2, 5, 9),
     "location": "View3D > Tool Shelf > Cloud Generator Panel",
     "description": "Creates Volumetric Clouds",
-    "warning": "",
+    "warning": "broken with bmesh",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"\
         "Scripts/Object/Cloud_Gen",
     "tracker_url": "https://projects.blender.org/tracker/index.php?"\
