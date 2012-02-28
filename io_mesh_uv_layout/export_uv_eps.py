@@ -39,7 +39,7 @@ def write(fw, mesh, image_width, image_height, opacity, face_iter_func):
     fw("1 setlinejoin\n")
     fw("1 setlinecap\n")
 
-    faces = mesh.faces
+    polys = mesh.polygons
 
     if opacity > 0.0:
         for i, mat in enumerate(mesh.materials if mesh.materials else [None]):
@@ -67,7 +67,7 @@ def write(fw, mesh, image_width, image_height, opacity, face_iter_func):
                     fw("%.5f %.5f lineto\n" % uv_scale)
 
             fw("closepath\n")
-            fw("DRAW_%d\n" % faces[i].material_index)
+            fw("DRAW_%d\n" % polys[i].material_index)
 
     # stroke only
     for i, uvs in face_iter_func():

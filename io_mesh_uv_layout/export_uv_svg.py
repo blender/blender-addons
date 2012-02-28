@@ -47,10 +47,10 @@ def write(fw, mesh, image_width, image_height, opacity, face_iter_func):
         else:
             fill_settings.append(fill_default)
 
-    faces = mesh.faces
+    polys = mesh.polygons
     for i, uvs in face_iter_func():
         try:  # rare cases material index is invalid.
-            fill = fill_settings[faces[i].material_index]
+            fill = fill_settings[polys[i].material_index]
         except IndexError:
             fill = fill_default
 
