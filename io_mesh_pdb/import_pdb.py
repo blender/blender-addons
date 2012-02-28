@@ -25,7 +25,7 @@
 #
 #  Start of project              : 2011-08-31 by Clemens Barth
 #  First publication in Blender  : 2011-11-11
-#  Last modified                 : 2012-02-27
+#  Last modified                 : 2012-02-29
 #
 #  Acknowledgements: Thanks to ideasman, meta_androcto, truman, kilon,
 #  dairin0d, PKHG, Valter, etc
@@ -1170,7 +1170,7 @@ def DEF_atom_pdb_main(use_mesh,Ball_azimuth,Ball_zenith,
         if atom[0] == "Vacancy":
             ball.name = "Cube_"+atom[0]
         else:
-            ball.name = "Ball (NURBS)_"+atom[0]
+            ball.name = "Ball_"+atom[0]
         ball.active_material = atom[1]
         ball.parent = new_atom_mesh
         new_atom_mesh.dupli_type = 'VERTS'

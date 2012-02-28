@@ -194,7 +194,7 @@ class CLASS_atom_pdb_IO(bpy.types.PropertyGroup):
                 scnn.atom_pdb_radius_how,
                 )
 
-    # In the file dialog window
+    # In the file dialog window - Import
     scn = bpy.types.Scene
     scn.use_atom_pdb_cam = BoolProperty(
         name="Camera", default=False,
@@ -249,6 +249,14 @@ class CLASS_atom_pdb_IO(bpy.types.PropertyGroup):
                ('2', "van der Waals", "Use van der Waals radius")),
                default='0',)
 
+    # In the file dialog window - Export
+    scn.atom_pdb_export_type = EnumProperty(
+        name="Type of Objects",
+        description="Choose type of objects",
+        items=(('0', "All", "Export all active objects"),
+               ('1', "Elements", "Export only those active objects which have a proper element name")),
+               default='1',)    
+    
     # In the panel
     scn.atom_pdb_datafile = StringProperty(
         name = "", description="Path to your custom data file",
@@ -612,12 +620,15 @@ class ExportPDB(Operator, ExportHelper):
         layout = self.layout
         scn = bpy.context.scene
 
+        row = layout.row()
+        row.prop(scn, "atom_pdb_export_type")
+
     def execute(self, context):
         scn = bpy.context.scene
 
         # This is in order to solve this strange 'relative path' thing.
         export_pdb.ATOM_PDB_FILEPATH = bpy.path.abspath(self.filepath)
-        export_pdb.DEF_atom_pdb_export()
+        export_pdb.DEF_atom_pdb_export(scn.atom_pdb_export_type)
 
         return {'FINISHED'}
 

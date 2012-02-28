@@ -25,7 +25,7 @@
 #
 #  Start of project              : 2011-08-31 by Clemens Barth
 #  First publication in Blender  : 2011-11-11
-#  Last modified                 : 2012-02-27
+#  Last modified                 : 2012-02-29
 #
 #  Acknowledgements: Thanks to ideasman, meta_androcto, truman, kilon,
 #  dairin0d, PKHG, Valter, etc
@@ -61,7 +61,7 @@ class CLASS_atom_pdb_atoms_export(object):
 
 
 
-def DEF_atom_pdb_export():
+def DEF_atom_pdb_export(obj_type):
 
     list_atoms = []
     for obj in bpy.context.selected_objects:
@@ -71,27 +71,37 @@ def DEF_atom_pdb_export():
             
         if obj.type != "SURFACE" and obj.type != "MESH":
             continue 
-        
-        for element in import_pdb.ATOM_PDB_ELEMENTS:
-            if element.name in obj.name:
-                if element.short_name == "Vac":
+       
+        name = ""
+        for element in import_pdb.ATOM_PDB_ELEMENTS_DEFAULT:
+            if element[1] in obj.name:
+                if element[2] == "Vac":
                     name = "X"
                 else:
-                    name = element.short_name
+                    name = element[2]
+            elif element[1][:3] in obj.name:
+                if element[2] == "Vac":
+                    name = "X"
+                else:
+                    name = element[2]
+        
+        if name == "":
+            if obj_type == "0":
+                name = "?"
+            else:
+                continue
 
-                if len(obj.children) != 0:
-                    for vertex in obj.data.vertices:
-                        list_atoms.append(CLASS_atom_pdb_atoms_export(
+        if len(obj.children) != 0:
+            for vertex in obj.data.vertices:
+                list_atoms.append(CLASS_atom_pdb_atoms_export(
                                                        name,
                                                        obj.location+vertex.co))
-                        
-                else:
-                    if not obj.parent:
-                        list_atoms.append(CLASS_atom_pdb_atoms_export(
+        else:
+            if not obj.parent:
+                list_atoms.append(CLASS_atom_pdb_atoms_export(
                                                        name,
                                                        obj.location))
-                                                       
-                    
+
     pdb_file_p = open(ATOM_PDB_FILEPATH, "w")
     pdb_file_p.write(ATOM_PDB_PDBTEXT)
 
