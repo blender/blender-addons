@@ -87,7 +87,7 @@ bpy.childParticleWarning = False
 bpy.simulationWarning = False
 bpy.ready = False
 
-if DEV:
+if False and DEV:
     rffi_xmlrpc_secure = r'http://192.168.0.109/burp/xmlrpc'
     rffi_xmlrpc = r'http://192.168.0.109/burp/xmlrpc'
     rffi_xmlrpc_upload = '192.168.0.109'
@@ -680,13 +680,13 @@ def ore_upload(op, context):
         return {'CANCELLED'}
     try:
         print("Creating auth proxy")
-        authproxy = xmlrpc.client.ServerProxy(rffi_xmlrpc_secure)
+        authproxy = xmlrpc.client.ServerProxy(rffi_xmlrpc_secure, verbose=DEV)
         print("Getting session key")
         res = authproxy.auth.getSessionKey(ore.username, ore.hash)
         key = res['key']
         userid = res['userId']
         print("Creating server proxy")
-        proxy = xmlrpc.client.ServerProxy(rffi_xmlrpc) #r'http://xmlrpc.renderfarm.fi/session')
+        proxy = xmlrpc.client.ServerProxy(rffi_xmlrpc, verbose=DEV)
         proxy._ServerProxy__transport.user_agent = 'Renderfarm.fi Uploader/%s' % (bpy.CURRENT_VERSION)
         print("Creating a new session")
         res = proxy.session.createSession(userid, key)
@@ -709,6 +709,7 @@ def ore_upload(op, context):
         res = proxy.session.setXSize(userid, res['key'], sessionid, ore.resox)
         res = proxy.session.setYSize(userid, res['key'], sessionid, ore.resoy)
         res = proxy.session.setFrameRate(userid, res['key'], sessionid, ore.fps)
+        res = proxy.session.setRenderer(userid, res['key'], sessionid, 'blender')
         res = proxy.session.setOutputLicense(userid, res['key'], sessionid, int(ore.outlicense))
         res = proxy.session.setInputLicense(userid, res['key'], sessionid, int(ore.inlicense))
         print("Setting primary input file")
@@ -798,10 +799,10 @@ def doRefresh(op, rethrow=False):
     ore = sce.ore_render
     try:
     
-        proxy = xmlrpc.client.ServerProxy(rffi_xmlrpc_secure)
+        proxy = xmlrpc.client.ServerProxy(rffi_xmlrpc_secure, verbose=DEV)
         res = proxy.auth.getSessionKey(ore.username, ore.hash)
         userid = res['userID']
-        proxy = xmlrpc.client.ServerProxy(rffi_xmlrpc)
+        proxy = xmlrpc.client.ServerProxy(rffi_xmlrpc, verbose=DEV)
 
         bpy.ore_sessions = []
 
@@ -894,7 +895,7 @@ class ORE_CancelSession(bpy.types.Operator):
     def execute(self, context):
         sce = context.scene
         ore = sce.ore_render
-        proxy = xmlrpc.client.ServerProxy(rffi_xmlrpc_secure)
+        proxy = xmlrpc.client.ServerProxy(rffi_xmlrpc_secure, verbose=DEV)
         if len(bpy.ore_complete_session_queue)>0:
             s = bpy.ore_complete_session_queue[ore.selected_session]
             try:
@@ -969,7 +970,7 @@ class ORE_CheckUpdate(bpy.types.Operator):
     bl_label = 'Check for a new version'
     
     def execute(self, context):
-        blenderproxy = xmlrpc.client.ServerProxy(r'http://xmlrpc.renderfarm.fi/renderfarmfi/blender')
+        blenderproxy = xmlrpc.client.ServerProxy(r'http://xmlrpc.renderfarm.fi/renderfarmfi/blender', verbose=DEV)
         try:
             self.report(set(['INFO']), 'Checking for newer version on Renderfarm.fi')
             dl_url = blenderproxy.blender.getCurrentVersion(bpy.CURRENT_VERSION)
