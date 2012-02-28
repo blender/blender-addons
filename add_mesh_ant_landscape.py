@@ -446,7 +446,7 @@ class landscape_add(bpy.types.Operator):
                 description="Generate Sphere mesh")
 
     SmoothMesh = BoolProperty(name="Smooth",
-                default=False,
+                default=True,
                 description="Shade smooth")
 
     Subdivision = IntProperty(name="Subdivisions",
@@ -775,7 +775,9 @@ class landscape_add(bpy.types.Operator):
 
             # create mesh object
             obj = create_mesh_object(context, verts, [], faces, "Landscape")
-
+            bpy.ops.object.mode_set(mode='EDIT')
+            bpy.ops.mesh.normals_make_consistent(inside=False)
+            bpy.ops.object.mode_set(mode='OBJECT')
             # sphere, remove doubles
             if self.SphereMesh !=0:
                 bpy.ops.object.mode_set(mode='EDIT')
