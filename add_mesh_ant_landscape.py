@@ -446,7 +446,7 @@ class landscape_add(bpy.types.Operator):
                 description="Generate Sphere mesh")
 
     SmoothMesh = BoolProperty(name="Smooth",
-                default=True,
+                default=False,
                 description="Shade smooth")
 
     Subdivision = IntProperty(name="Subdivisions",
@@ -783,11 +783,11 @@ class landscape_add(bpy.types.Operator):
                 bpy.ops.object.mode_set(mode='OBJECT')
 
             # Shade smooth
-#            if self.SmoothMesh !=0:
-#                if bpy.ops.object.shade_smooth.poll():
-#                    bpy.ops.object.shade_smooth()
-#                else: # edit mode
-#                    bpy.ops.mesh.faces_shade_smooth()
+            if self.SmoothMesh !=0:
+                if bpy.ops.object.shade_smooth.poll():
+                    bpy.ops.object.shade_smooth()
+                else: # edit mode
+                    bpy.ops.mesh.faces_shade_smooth()
 
             # restore pre operator undo state
             bpy.context.user_preferences.edit.use_global_undo = undo
