@@ -25,9 +25,9 @@
 bl_info = {
     'name': "Acclaim Motion Capture Files (.asf, .amc)",
     'author': "Daniel Monteiro Basso <daniel@basso.inf.br>",
-    'version': (2011, 11, 2, 1),
-    'blender': (2, 6, 0),
-    'location': "File > Import",
+    'version': (2012, 2, 29, 1),
+    'blender': (2, 6, 2),
+    'location': "File > Import-Export",
     'description': "Imports Acclaim Skeleton and Motion Capture Files",
     'wiki_url': "http://wiki.blender.org/index.php/Extensions:2.5/Py/"
                 "Scripts/Import-Export/Acclaim_Importer",
@@ -39,7 +39,7 @@ bl_info = {
 import re
 import bpy
 from mathutils import Vector, Matrix
-from math import radians
+from math import radians, degrees
 from bpy.props import (StringProperty,
                        BoolProperty,
                        FloatProperty,
@@ -140,6 +140,11 @@ class DataStructure:
                     loc = Vector(vs[:3]) * self.scale
                     vs = vs[3:]
                 rot = Matrix()
+                if 'dof' not in self.bones[b[0]]:
+                    # If 'dof' isn't defined it probably means the AMC comes
+                    # from a different origin than the ASF, such as the
+                    # AMC exporter in this package. Assume XYZ order.
+                    self.bones[b[0]]['dof'] = ['X', 'Y', 'Z']
                 for dof, ang in zip(self.bones[b[0]]['dof'], vs):
                     rot = Matrix.Rotation(radians(ang), 4, dof) * rot
                 self.pose_def[b[0]] = rot
@@ -156,7 +161,7 @@ class DataStructure:
         if bone in self.pose_def:
             tail = bd['axis'] * self.pose_def[bone] * bd['axis_inv'] * tail
         world = parent * tail
-        local = parent.inverted() * world
+        local = tail
         yield(bone, world, local)
         if bone in self.hierarchy:
             for child in self.hierarchy[bone]:
@@ -281,7 +286,7 @@ class StructureBuilder(DataStructure):
                                  b.matrix.to_3x3(),
                                  b.matrix.to_3x3().inverted(),
                                  )
-        self.fno = 0
+        self.fno = 1  # default Blender scene start frame
         self.use_frame_no = use_frame_no
         self.motion = iter(self.scan_motion_capture(filename, frame_skip))
 
@@ -304,9 +309,9 @@ class StructureBuilder(DataStructure):
 
 
 class AsfImporter(bpy.types.Operator):
-    """
-        Load an Acclaim Skeleton File
-    """
+    #
+    "Load an Acclaim Skeleton File"
+    #
     bl_idname = "import_anim.asf"
     bl_label = "Import ASF"
 
@@ -398,9 +403,9 @@ class AmcAnimator(bpy.types.Operator):
 
 
 class AmcImporter(bpy.types.Operator):
-    """
-        Load an Acclaim Motion Capture
-    """
+    #
+    "Load an Acclaim Motion Capture"
+    #
     bl_idname = "import_anim.amc"
     bl_label = "Import AMC"
 
@@ -453,26 +458,87 @@ class AmcImporter(bpy.types.Operator):
         return {'RUNNING_MODAL'}
 
 
+class AmcExporter(bpy.types.Operator):
+    #
+    "Save an animation in Acclaim format"
+    #
+    bl_idname = "export_anim.amc"
+    bl_label = "Export AMC"
+
+    filepath = StringProperty(
+            subtype='FILE_PATH'
+            )
+    use_scale = BoolProperty(
+            name="Use original armature scale",
+            default=True,
+            description="Scale movement to original scale if available",
+            )
+
+    filter_glob = StringProperty(default="*.amc", options={'HIDDEN'})
+
+    @classmethod
+    def poll(cls, context):
+        ob = context.active_object
+        return (ob and ob.type == 'ARMATURE' and 'source_file_path' in ob)
+
+    def execute(self, context):
+        ob = context.active_object
+        scn = context.scene
+        out = open(self.filepath, "w")
+        out.write(":FULLY-SPECIFIED\n:DEGREES\n")
+        ds = DataStructure(ob['source_file_path'], ob['source_scale'])
+        scale = ds.scale if self.use_scale else 1
+        for frame in range(scn.frame_start, scn.frame_end + 1):
+            out.write("{}\n".format(frame))
+            scn.frame_set(frame)
+            for bone in ob.pose.bones:
+                out.write("{} ".format(bone.name))
+                if bone.name == "root":
+                    loc = bone.location / scale
+                    out.write(" ".join(str(v) for v in loc) + " ")
+                    rot = bone.matrix.to_euler()
+                else:
+                    A = ds.bones[bone.name]['axis'].to_3x3()
+                    R = ob.data.bones[bone.name].matrix_local.to_3x3()
+                    AiR = A.transposed() * R
+                    AiR_i = AiR.inverted()
+                    rot = (AiR * bone.matrix_basis.to_3x3() * AiR_i).to_euler()
+                out.write(" ".join(str(degrees(v)) for v in rot) + "\n")
+        return {'FINISHED'}
+
+    def invoke(self, context, event):
+        wm = context.window_manager
+        wm.fileselect_add(self)
+        return {'RUNNING_MODAL'}
+
+
 def menu_func_s(self, context):
     self.layout.operator(AsfImporter.bl_idname,
                          text="Acclaim Skeleton File (.asf)")
 
 
-def menu_func_m(self, context):
+def menu_func_mi(self, context):
     self.layout.operator(AmcImporter.bl_idname,
+                         text="Acclaim Motion Capture (.amc)")
+
+
+def menu_func_me(self, context):
+    self.layout.operator(AmcExporter.bl_idname,
                          text="Acclaim Motion Capture (.amc)")
 
 
 def register():
     bpy.utils.register_module(__name__)
     bpy.types.INFO_MT_file_import.append(menu_func_s)
-    bpy.types.INFO_MT_file_import.append(menu_func_m)
+    bpy.types.INFO_MT_file_import.append(menu_func_mi)
+    bpy.types.INFO_MT_file_export.append(menu_func_me)
 
 
 def unregister():
     bpy.utils.unregister_module(__name__)
     bpy.types.INFO_MT_file_import.remove(menu_func_s)
-    bpy.types.INFO_MT_file_import.remove(menu_func_m)
+    bpy.types.INFO_MT_file_import.remove(menu_func_mi)
+    bpy.types.INFO_MT_file_export.remove(menu_func_me)
 
 
 if __name__ == "__main__":
