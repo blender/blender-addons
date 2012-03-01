@@ -113,6 +113,7 @@ class CLASS_atom_pdb_panel(Panel):
         col = row.column(align=True)
         col.prop(scn, "atom_pdb_sticks_sectors")
         col.prop(scn, "atom_pdb_sticks_radius")
+        col.prop(scn, "atom_pdb_sticks_unit_length")
         col = row.column(align=True)        
         col.prop(scn, "use_atom_pdb_sticks_color")        
         col.prop(scn, "use_atom_pdb_sticks_smooth")
@@ -229,6 +230,9 @@ class CLASS_atom_pdb_IO(bpy.types.PropertyGroup):
     scn.atom_pdb_sticks_radius = FloatProperty(
         name = "Radius", default=0.1, min=0.0,
         description ="Radius of a stick")
+    scn.atom_pdb_sticks_unit_length = FloatProperty(
+        name = "Unit", default=0.2, min=0,
+        description = "Length of the unit of a stick in Angstrom")        
     scn.use_atom_pdb_sticks_color = BoolProperty(
         name="Color", default=True,
         description="The sticks appear in the color of the atoms")
@@ -499,6 +503,7 @@ class CLASS_atom_pdb_load_button(Operator):
         sradius    = scn.atom_pdb_sticks_radius
         stick_bond = scn.use_atom_pdb_sticks_bonds
         stick_dist = scn.atom_pdb_sticks_dist
+        stick_unit = scn.atom_pdb_sticks_unit_length
         
         cam        = scn.use_atom_pdb_cam
         lamp       = scn.use_atom_pdb_lamp
@@ -508,7 +513,7 @@ class CLASS_atom_pdb_load_button(Operator):
         # Execute main routine an other time ... from the panel
         atom_number = import_pdb.DEF_atom_pdb_main(
                 mesh, azimuth, zenith, bradius, radiustype, bdistance, 
-                sticks, sticks_col, sticks_sm, stick_bond,
+                sticks, sticks_col, sticks_sm, stick_bond, stick_unit,
                 stick_dist, ssector, sradius, center, cam, lamp, datafile)
         scn.atom_pdb_number_atoms = str(atom_number) + " atoms"
 
@@ -549,9 +554,10 @@ class ImportPDB(Operator, ImportHelper):
         col.prop(scn, "use_atom_pdb_sticks")
         row = layout.row()        
         row.active = scn.use_atom_pdb_sticks
-        col = row.column(align=True)
+        col = row.column()
         col.prop(scn, "atom_pdb_sticks_sectors")
         col.prop(scn, "atom_pdb_sticks_radius")
+        col.prop(scn, "atom_pdb_sticks_unit_length")
         col = row.column(align=True)        
         col.prop(scn, "use_atom_pdb_sticks_color")        
         col.prop(scn, "use_atom_pdb_sticks_smooth")
@@ -590,6 +596,7 @@ class ImportPDB(Operator, ImportHelper):
         sradius    = scn.atom_pdb_sticks_radius
         stick_bond = scn.use_atom_pdb_sticks_bonds
         stick_dist = scn.atom_pdb_sticks_dist
+        stick_unit = scn.atom_pdb_sticks_unit_length
                 
         cam        = scn.use_atom_pdb_cam
         lamp       = scn.use_atom_pdb_lamp
@@ -599,7 +606,7 @@ class ImportPDB(Operator, ImportHelper):
         # Execute main routine
         atom_number = import_pdb.DEF_atom_pdb_main(
                 mesh, azimuth, zenith, bradius, radiustype, bdistance, 
-                sticks, sticks_col, sticks_sm, stick_bond,
+                sticks, sticks_col, sticks_sm, stick_bond, stick_unit,
                 stick_dist, ssector, sradius, center, cam, lamp, datafile)
 
         scn.atom_pdb_number_atoms = str(atom_number) + " atoms"

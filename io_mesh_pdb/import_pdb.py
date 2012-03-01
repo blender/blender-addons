@@ -567,7 +567,7 @@ def DEF_atom_pdb_custom_datafile(path_datafile):
 def DEF_atom_pdb_main(use_mesh,Ball_azimuth,Ball_zenith,
                Ball_radius_factor,radiustype,Ball_distance_factor,
                use_sticks,use_sticks_color,use_sticks_smooth,
-               use_sticks_bonds,Stick_dist,
+               use_sticks_bonds, Stick_unit, Stick_dist,
                Stick_sectors,Stick_diameter,put_to_center,
                use_camera,use_lamp,path_datafile):
 
@@ -1186,7 +1186,7 @@ def DEF_atom_pdb_main(use_mesh,Ball_azimuth,Ball_zenith,
 
     if use_sticks == True and all_sticks != []:
             
-        dl = 0.05
+        dl = Stick_unit
          
         if use_sticks_color == False:   
             bpy.ops.object.material_slot_add()
