@@ -22,8 +22,8 @@ bl_info = {
     'name': 'Export: Adobe After Effects (.jsx)',
     'description': 'Export cameras, selected objects & camera solution 3D Markers to Adobe After Effects CS3 and above',
     'author': 'Bartek Skorupa',
-    'version': (0, 6, 0),
-    'blender': (2, 6, 1),
+    'version': (0, 6, 1),
+    'blender': (2, 6, 2),
     'location': 'File > Export > Adobe After Effects (.jsx)',
     "warning": "",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"\
@@ -427,7 +427,7 @@ def write_jsx_file(file, data, selection, include_active_cam, include_selected_c
                 # get object name
                 name_ae = selection['nulls'][i][1]
                 # convert ob transform properties to AE space
-                ae_transform = convert_transform_matrix(ob[0].matrix_world.copy(), data['width'], data['height'], data['aspect'], x_rot_correction=False)
+                ae_transform = convert_transform_matrix(ob[0].matrix_world.copy(), data['width'], data['height'], data['aspect'], x_rot_correction=True)
                 # store all values in dico
                 js_data['nulls'][name_ae]['position'] += '[%f,%f,%f],' % (ae_transform[0], ae_transform[1], ae_transform[2])
                 if include_rotation:
