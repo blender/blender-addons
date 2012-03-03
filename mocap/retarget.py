@@ -307,7 +307,7 @@ def copyTranslation(performer_obj, enduser_obj, perfFeet, root, s_frame, e_frame
 
 
 def IKRetarget(performer_obj, enduser_obj, s_frame, e_frame, scene, step):
-    bpy.ops.object.select_name(name=enduser_obj.name, extend=False)
+    bpy.ops.object.select_pattern(pattern=enduser_obj.name, extend=False)
     end_bones = enduser_obj.pose.bones
     for pose_bone in end_bones:
         ik_constraint = hasIKConstraint(pose_bone)
@@ -530,15 +530,15 @@ def totalRetarget(performer_obj, enduser_obj, scene, s_frame, e_frame):
     stride_bone = copyTranslation(performer_obj, enduser_obj, feetBones, root, s_frame, e_frame, scene, enduser_obj_mat)
     if not advanced:
         IKRetarget(performer_obj, enduser_obj, s_frame, e_frame, scene, step)
-        bpy.ops.object.select_name(name=stride_bone.name, extend=False)
+        bpy.ops.object.select_pattern(pattern=stride_bone.name, extend=False)
     restoreObjMat(performer_obj, enduser_obj, perf_obj_mat, enduser_obj_mat, stride_bone, scene, s_frame)
     bpy.ops.object.mode_set(mode='OBJECT')
     if not advanced:
-        bpy.ops.object.select_name(name=inter_obj.name, extend=False)
+        bpy.ops.object.select_pattern(pattern=inter_obj.name, extend=False)
         bpy.ops.object.delete()
     else:
         cleanTempConstraints(enduser_obj)
-    bpy.ops.object.select_name(name=enduser_obj.name, extend=False)
+    bpy.ops.object.select_pattern(pattern=enduser_obj.name, extend=False)
 
     if not name in [tracks.name for tracks in end_arm.mocapNLATracks]:
         NLATracks = end_arm.mocapNLATracks.add()
