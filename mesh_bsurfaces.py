@@ -278,9 +278,12 @@ class GPENCIL_OT_SURFSK_add_surface(bpy.types.Operator):
             
         
         ob_gp_strokes.name = "SURFSK_temp_strokes"
-        
         bpy.ops.object.select_all('INVOKE_REGION_WIN', action='DESELECT')
-        bpy.ops.object.select_name('INVOKE_REGION_WIN', name = ob_gp_strokes.name)
+
+        myobject = bpy.data.objects[ob_gp_strokes.name]
+        bpy.context.scene.objects.active = myobject
+        myobject.select = True
+#        bpy.ops.object.select_name('INVOKE_REGION_WIN', name = ob_gp_strokes.name)
         bpy.context.scene.objects.active = bpy.context.scene.objects[ob_gp_strokes.name]
         
         
@@ -298,7 +301,9 @@ class GPENCIL_OT_SURFSK_add_surface(bpy.types.Operator):
             bpy.ops.object.editmode_toggle('INVOKE_REGION_WIN')
             
             bpy.ops.object.select_all('INVOKE_REGION_WIN', action='DESELECT')
-            bpy.ops.object.select_name('INVOKE_REGION_WIN', name = ob_gp_strokes.name)
+            myobject = bpy.data.objects[ob_gp_strokes.name]
+            bpy.context.scene.objects.active = myobject
+            myobject.select = True
             bpy.context.scene.objects.active = bpy.context.scene.objects[ob_gp_strokes.name]
         
         
@@ -594,7 +599,10 @@ class GPENCIL_OT_SURFSK_add_surface(bpy.types.Operator):
                 vert_num_in_spline += 1
         
         bpy.ops.object.select_all('INVOKE_REGION_WIN', action='DESELECT')
-        bpy.ops.object.select_name('INVOKE_REGION_WIN', name = ob_ctrl_pts.name)
+        myobject = bpy.data.objects[ob_ctrl_pts.name]
+        bpy.context.scene.objects.active = myobject
+        myobject.select = True
+#        bpy.ops.object.select_name('INVOKE_REGION_WIN', name = ob_ctrl_pts.name)
         bpy.context.scene.objects.active = bpy.data.objects[ob_ctrl_pts.name]
         
         
@@ -678,12 +686,18 @@ class GPENCIL_OT_SURFSK_add_surface(bpy.types.Operator):
         
         #### Delete object with control points and object from grease pencil convertion.
         bpy.ops.object.select_all('INVOKE_REGION_WIN', action='DESELECT')
-        bpy.ops.object.select_name('INVOKE_REGION_WIN', name = ob_ctrl_pts.name)
+        myobject = bpy.data.objects[ob_ctrl_pts.name]
+        bpy.context.scene.objects.active = myobject
+        myobject.select = True
+#        bpy.ops.object.select_name('INVOKE_REGION_WIN', name = ob_ctrl_pts.name)
         bpy.context.scene.objects.active = bpy.data.objects[ob_ctrl_pts.name]
         bpy.ops.object.delete()
         
         bpy.ops.object.select_all('INVOKE_REGION_WIN', action='DESELECT')
-        bpy.ops.object.select_name('INVOKE_REGION_WIN', name = ob_gp_strokes.name)
+        myobject = bpy.data.objects[ob_gp_strokes.name]
+        bpy.context.scene.objects.active = myobject
+        myobject.select = True
+#        bpy.ops.object.select_name('INVOKE_REGION_WIN', name = ob_gp_strokes.name)
         bpy.context.scene.objects.active = bpy.data.objects[ob_gp_strokes.name]
         bpy.ops.object.delete()
             
@@ -724,7 +738,7 @@ class GPENCIL_OT_SURFSK_add_surface(bpy.types.Operator):
         bpy.context.scene.objects.active = bpy.data.objects[self.main_object.name]
         bpy.ops.object.join('INVOKE_REGION_WIN')
         bpy.ops.object.editmode_toggle('INVOKE_REGION_WIN')
-        bpy.ops.mesh.remove_doubles('INVOKE_REGION_WIN', limit=0.0001)
+        bpy.ops.mesh.remove_doubles('INVOKE_REGION_WIN', mergedist=0.0001)
         bpy.ops.mesh.normals_make_consistent('INVOKE_REGION_WIN', inside=False)
         bpy.ops.mesh.select_all('INVOKE_REGION_WIN', action='DESELECT')
         
