@@ -18,9 +18,9 @@
 '''
 bl_info = {
     "name": "Add PolySphere",
-    "author": "Andy Davies (metalliandy)",
-    "version": (0,1,5),
-    "blender": (2, 5, 8),
+    "author": "Andy Davies (metalliandy)",			
+    "version": (0,1,6),
+    "blender": (2, 6, 2),
     "location": "View3D > Add > Mesh > PolySphere",
     "description": "Adds a PolySphere (all quads) for sculpting",
     "warning": "",
@@ -62,7 +62,7 @@ def Add_PolySphere():
     bpy.ops.object.editmode_toggle()
 
     #Selects cube in Editmode
-    bpy.ops.mesh.select_all(action='TOGGLE')
+    #bpy.ops.mesh.select_all(action='TOGGLE')
 
     #Adds transform "To Sphere"
     bpy.ops.transform.tosphere(value=1)
