@@ -103,9 +103,9 @@ class ExportUVLayout(bpy.types.Operator):
             min=0.0, max=1.0,
             default=0.25,
             )
-    tesselated = BoolProperty(
-            name="Tesselated UVs",
-            description="Export tesselated UVs instead of polygons ones",
+    tessellated = BoolProperty(
+            name="Tessellated UVs",
+            description="Export tessellated UVs instead of polygons ones",
             default=False,
             options={'HIDDEN'},  # As not working currently :/
             )
@@ -137,7 +137,7 @@ class ExportUVLayout(bpy.types.Operator):
 
         return image_width, image_height
 
-    def _face_uv_iter(self, context, mesh, tesselated):
+    def _face_uv_iter(self, context, mesh, tessellated):
         uv_layer = mesh.uv_loop_layers.active.data
         polys = mesh.polygons
 
@@ -202,8 +202,8 @@ class ExportUVLayout(bpy.types.Operator):
             mesh = obj.data
 
         func(fw, mesh, self.size[0], self.size[1], self.opacity,
-#             self.tesselated,
-             lambda: self._face_uv_iter(context, mesh, self.tesselated))
+#             self.tessellated,
+             lambda: self._face_uv_iter(context, mesh, self.tessellated))
 
         if self.modified:
             bpy.data.meshes.remove(mesh)
