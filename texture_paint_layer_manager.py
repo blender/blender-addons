@@ -346,16 +346,17 @@ def main(context,tn):
     m_id = ob.active_material_index 
 
     if img:
-        for f in me.faces:  
+        for f in me.polygons:  
             if f.material_index == m_id:
-                uvtex[f.index].select_uv
                 uvtex[f.index].image = img
+        print('if')
             
 
     else:
-        for f in me.faces:  
+        for f in me.polygons:  
             if f.material_index == m_id:
                 uvtex[f.index].image = None
+        print('else')
     me.update()
 
 
