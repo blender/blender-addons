@@ -145,7 +145,7 @@ def do_inset(mesh, amount, height, region, as_percent):
     blender_faces = m.faces[orig_numf:len(m.faces)]
     blender_old_face_index = m.face_data[orig_numf:len(m.faces)]
     for i in range(orig_numv, len(m.points.pos)):
-        bvertnew = bm.verts.new(mathutils.Vector(m.points.pos[i]))
+        bvertnew = bm.verts.new(m.points.pos[i])
     bm.verts.index_update()
     new_faces = []
     start_faces = len(bm.faces)
