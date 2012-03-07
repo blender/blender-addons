@@ -561,7 +561,7 @@ def create_mesh(new_objects,
     me.faces.foreach_set("vertices_raw", unpack_face_list([f[0] for f in faces]))
 
     if verts_tex and me.faces:
-        me.uv_textures.new()
+        me.tessface_uv_textures.new()
 
     context_material_old = -1  # avoid a dict lookup
     mat = 0  # rare case it may be un-initialized.
@@ -597,7 +597,7 @@ def create_mesh(new_objects,
 
             if verts_tex:
 
-                blender_tface = me.uv_textures[0].data[i]
+                blender_tface = me.tessface_uv_textures[0].data[i]
 
                 if context_material:
                     image, has_data = unique_material_images[context_material]
