@@ -126,6 +126,12 @@ class OBJECT_PT_blendinfo(bpy.types.Panel):
         row.label(text=quantity_string(num, "Empty", "Empties"),
             icon='EMPTY_DATA')
 
+        row = ob_cols[1].row()
+        empties = [o for o in objects.values() if o.type == 'SPEAKER']
+        num = len(empties)
+        row.label(text=quantity_string(num, "Speaker", "Speakers"),
+            icon='OUTLINER_OB_SPEAKER')
+
         layout.separator()
         
         # DATABLOCKS
