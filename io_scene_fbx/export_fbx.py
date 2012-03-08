@@ -1352,7 +1352,7 @@ def save_single(operator, scene, filepath="",
         # if there are non NULL materials on this mesh
         do_materials = bool(my_mesh.blenMaterials)
         do_textures = bool(my_mesh.blenTextures)
-        do_uvs = bool(me.uv_textures)
+        do_uvs = bool(me.tessface_uv_textures)
         do_shapekeys = (my_mesh.blenObject.type == 'MESH' and
                         my_mesh.blenObject.data.shape_keys and
                         len(my_mesh.blenObject.data.vertices) == len(me.vertices))
@@ -1524,8 +1524,8 @@ def save_single(operator, scene, filepath="",
         # Write VertexColor Layers
         # note, no programs seem to use this info :/
         collayers = []
-        if len(me.vertex_colors):
-            collayers = me.vertex_colors
+        if len(me.tessface_vertex_colors):
+            collayers = me.tessface_vertex_colors
             for colindex, collayer in enumerate(collayers):
                 fw('\n\t\tLayerElementColor: %i {' % colindex)
                 fw('\n\t\t\tVersion: 101')
@@ -1538,7 +1538,7 @@ def save_single(operator, scene, filepath="",
 
                 i = -1
                 ii = 0  # Count how many Colors we write
-
+                print(len(me_faces), len(collayer.data))
                 for fi, cf in enumerate(collayer.data):
                     if len(me_faces[fi].vertices) == 4:
                         colors = cf.color1[:], cf.color2[:], cf.color3[:], cf.color4[:]
@@ -1575,8 +1575,8 @@ def save_single(operator, scene, filepath="",
         # Write UV and texture layers.
         uvlayers = []
         if do_uvs:
-            uvlayers = me.uv_textures
-            for uvindex, uvlayer in enumerate(me.uv_textures):
+            uvlayers = me.tessface_uv_textures
+            for uvindex, uvlayer in enumerate(me.tessface_uv_textures):
                 fw('\n\t\tLayerElementUV: %i {' % uvindex)
                 fw('\n\t\t\tVersion: 101')
                 fw('\n\t\t\tName: "%s"' % uvlayer.name)
@@ -1696,8 +1696,8 @@ def save_single(operator, scene, filepath="",
 
                 mats = my_mesh.blenMaterialList
 
-                if me.uv_textures.active:
-                    uv_faces = me.uv_textures.active.data
+                if me.tessface_uv_textures.active:
+                    uv_faces = me.tessface_uv_textures.active.data
                 else:
                     uv_faces = [None] * len(me_faces)
 
@@ -1757,7 +1757,7 @@ def save_single(operator, scene, filepath="",
 				TypedIndex: 0
 			}''')
 
-        if me.vertex_colors:
+        if me.tessface_vertex_colors:
             fw('''
 			LayerElement:  {
 				Type: "LayerElementColor"
@@ -2002,8 +2002,8 @@ def save_single(operator, scene, filepath="",
 
                     texture_mapping_local = {}
                     material_mapping_local = {}
-                    if me.uv_textures:
-                        for uvlayer in me.uv_textures:
+                    if me.tessface_uv_textures:
+                        for uvlayer in me.tessface_uv_textures:
                             for f, uf in zip(me.faces, uvlayer.data):
                                 tex = uf.image
                                 textures[tex] = texture_mapping_local[tex] = None
