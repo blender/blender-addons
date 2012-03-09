@@ -876,7 +876,9 @@ def DEF_atom_pdb_main(use_mesh,Ball_azimuth,Ball_zenith,
                         dist_n = dist_n.cross(plane_n)
                         dist_n = dist_n / dist_n.length  
                     else:
-                        dist_n = Vector((0,0,0))                               
+                        dist_n = (all_atoms[atom1-1].location 
+                                - all_atoms[atom2-1].location)
+                        dist_n = Vector((dist_n[1],dist_n[0],0))                                
                 elif number > 3:
                     number = 1
                     dist_n = None
