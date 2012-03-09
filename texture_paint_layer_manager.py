@@ -446,7 +446,7 @@ def add_paint(context, size =2048, typ = 'NORMAL'):
         ts.use_map_normal = True
         ts.use_map_color_diffuse =False
         ts.normal_factor = -1
-        ts.bump_method='BUMP_DEFAULT'
+        ts.bump_method='BUMP_ORIGINAL'
         ts.bump_objectspace='BUMP_OBJECTSPACE'
         
     elif typ == 'SPECULAR':
