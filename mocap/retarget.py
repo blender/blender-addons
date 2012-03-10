@@ -307,7 +307,6 @@ def copyTranslation(performer_obj, enduser_obj, perfFeet, root, s_frame, e_frame
 
 
 def IKRetarget(performer_obj, enduser_obj, s_frame, e_frame, scene, step):
-    bpy.ops.object.select_pattern(pattern=enduser_obj.name, extend=False)
     end_bones = enduser_obj.pose.bones
     for pose_bone in end_bones:
         ik_constraint = hasIKConstraint(pose_bone)
@@ -529,6 +528,10 @@ def totalRetarget(performer_obj, enduser_obj, scene, s_frame, e_frame):
     print("Second pass: retargeting root translation and clean up")
     stride_bone = copyTranslation(performer_obj, enduser_obj, feetBones, root, s_frame, e_frame, scene, enduser_obj_mat)
     if not advanced:
+        print("hry")
+        bpy.ops.object.select_all(action='DESELECT')
+        bpy.context.scene.objects.active = enduser_obj
+        bpy.ops.object.select_pattern(pattern=enduser_obj.name, extend=False)
         IKRetarget(performer_obj, enduser_obj, s_frame, e_frame, scene, step)
         bpy.ops.object.select_pattern(pattern=stride_bone.name, extend=False)
     restoreObjMat(performer_obj, enduser_obj, perf_obj_mat, enduser_obj_mat, stride_bone, scene, s_frame)

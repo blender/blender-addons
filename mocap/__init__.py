@@ -21,11 +21,11 @@
 bl_info = {
     "name": "Motion Capture Tools",
     "author": "Benjy Cook",
-    "blender": (2, 5, 9),
+    "blender": (2, 6, 2),
     "location": "Object UI -> Mocap tools",
     "description": "Various tools for working with motion capture animation",
     "warning": "",
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/Scripts/Animation/Motion_Capture_Tools",
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts/Animation/Motion_Capture_Tools",
     "tracker_url": "http://projects.blender.org/tracker/index.php?func=detail&aid=28321",
     "support": 'OFFICIAL',
     "category": "Animation"}
@@ -312,7 +312,7 @@ class MocapPanel(bpy.types.Panel):
                     for bone in perf.bones:
                         footCol.prop(data=bone, property='foot', text='', icon='POSE_DATA')
                         nameCol.label(bone.name)
-                        mapCol.prop_search(bone, "map", enduser_arm, "bones")
+                        mapCol.prop_search(bone, "map", enduser_arm, "bones", text='')
                         selectCol.operator("mocap.selectmap", text='', icon='CURSOR').perf_bone = bone.name
                         label_mod = "FK"
                         if bone.map:
@@ -370,7 +370,7 @@ class MocapConstraintsPanel(bpy.types.Panel):
                         headerRow.operator("mocap.removeconstraint", text="", icon='X', emboss=False).constraint = i
                         if m_constraint.show_expanded:
                             box.separator()
-                            box.prop_search(m_constraint, 'constrained_bone', enduser_obj.pose, "bones", icon='BONE_DATA')
+                            box.prop_search(m_constraint, 'constrained_bone', enduser_obj.pose, "bones", icon='BONE_DATA',text='')
                             if m_constraint.type == "distance" or m_constraint.type == "point":
                                 box.prop_search(m_constraint, 'constrained_boneB', enduser_obj.pose, "bones", icon='CONSTRAINT_BONE')
                             frameRow = box.row()
