@@ -383,7 +383,7 @@ def split_mesh(verts_loc, faces, unique_materials, filepath, SPLIT_OB_OR_GROUP):
                 faces_split = []
                 verts_split = []
                 unique_materials_split = {}
-                vert_remap = [-1] * len(verts_loc)
+                vert_remap = {}
 
                 face_split_dict[key] = (verts_split, faces_split, unique_materials_split, vert_remap)
 
@@ -393,13 +393,13 @@ def split_mesh(verts_loc, faces, unique_materials, filepath, SPLIT_OB_OR_GROUP):
 
         # Remap verts to new vert list and add where needed
         for enum, i in enumerate(face_vert_loc_indices):
-            if vert_remap[i] == -1:
-                new_index = len(verts_split)
-                vert_remap[i] = new_index  # set the new remapped index so we only add once and can reference next time.
-                face_vert_loc_indices[enum] = new_index  # remap to the local index
+            map_index = vert_remap.get(i)
+            if map_index is None:
+                map_index = len(verts_split)
+                vert_remap[i] = map_index  # set the new remapped index so we only add once and can reference next time.
                 verts_split.append(verts_loc[i])  # add the vert to the local verts
-            else:
-                face_vert_loc_indices[enum] = vert_remap[i]  # remap to the local index
+
+            face_vert_loc_indices[enum] = map_index  # remap to the local index
 
             matname = face[2]
             if matname and matname not in unique_materials_split:
