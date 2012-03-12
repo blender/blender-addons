@@ -28,20 +28,22 @@ from mathutils import Vector, Euler, Matrix
 
 class BVH_Node(object):
     __slots__ = (
-    'name',  # bvh joint name
-    'parent',  # BVH_Node type or None for no parent
-    'children',  # a list of children of this type.
-    'rest_head_world',  # worldspace rest location for the head of this node
-    'rest_head_local',  # localspace rest location for the head of this node
-    'rest_tail_world',  # worldspace rest location for the tail of this node
-    'rest_tail_local',  # worldspace rest location for the tail of this node
-    'channels',  # list of 6 ints, -1 for an unused channel, otherwise an index for the BVH motion data lines, lock triple then rot triple
-    'rot_order',  # a triple of indices as to the order rotation is applied. [0,1,2] is x/y/z - [None, None, None] if no rotation.
-    'rot_order_str',  # same as above but a string 'XYZ' format.
-    'anim_data',  # a list one tuple's one for each frame. (locx, locy, locz, rotx, roty, rotz), euler rotation ALWAYS stored xyz order, even when native used.
-    'has_loc',  # Conveinience function, bool, same as (channels[0]!=-1 or channels[1]!=-1 channels[2]!=-1)
-    'has_rot',  # Conveinience function, bool, same as (channels[3]!=-1 or channels[4]!=-1 channels[5]!=-1)
-    'temp')  # use this for whatever you want
+        'name',  # bvh joint name
+        'parent',  # BVH_Node type or None for no parent
+        'children',  # a list of children of this type.
+        'rest_head_world',  # worldspace rest location for the head of this node
+        'rest_head_local',  # localspace rest location for the head of this node
+        'rest_tail_world',  # worldspace rest location for the tail of this node
+        'rest_tail_local',  # worldspace rest location for the tail of this node
+        'channels',  # list of 6 ints, -1 for an unused channel, otherwise an index for the BVH motion data lines, lock triple then rot triple
+        'rot_order',  # a triple of indices as to the order rotation is applied. [0,1,2] is x/y/z - [None, None, None] if no rotation.
+        'rot_order_str',  # same as above but a string 'XYZ' format.
+        'anim_data',  # a list one tuple's one for each frame. (locx, locy, locz, rotx, roty, rotz), euler rotation ALWAYS stored xyz order, even when native used.
+        'has_loc',  # Conveinience function, bool, same as (channels[0]!=-1 or channels[1]!=-1 channels[2]!=-1)
+        'has_rot',  # Conveinience function, bool, same as (channels[3]!=-1 or channels[4]!=-1 channels[5]!=-1)
+        'index',  # index from the file, not strictly needed but nice to maintain order
+        'temp',  # use this for whatever you want
+        )  
 
     _eul_order_lookup = {(0, 1, 2): 'XYZ',
                          (0, 2, 1): 'XZY',
@@ -51,7 +53,7 @@ class BVH_Node(object):
                          (2, 1, 0): 'ZYX',
                          }
 
-    def __init__(self, name, rest_head_world, rest_head_local, parent, channels, rot_order):
+    def __init__(self, name, rest_head_world, rest_head_local, parent, channels, rot_order, index):
         self.name = name
         self.rest_head_world = rest_head_world
         self.rest_head_local = rest_head_local
@@ -61,6 +63,7 @@ class BVH_Node(object):
         self.channels = channels
         self.rot_order = tuple(rot_order)
         self.rot_order_str = BVH_Node._eul_order_lookup[self.rot_order]
+        self.index = index
 
         # convenience functions
         self.has_loc = channels[0] != -1 or channels[1] != -1 or channels[2] != -1
@@ -78,6 +81,12 @@ class BVH_Node(object):
         (self.name,\
         self.rest_head_world.x, self.rest_head_world.y, self.rest_head_world.z,\
         self.rest_head_world.x, self.rest_head_world.y, self.rest_head_world.z)
+
+
+def sorted_nodes(bvh_nodes):
+    bvh_nodes_list = list(bvh_nodes.values())
+    bvh_nodes_list.sort(key=lambda bvh_node: bvh_node.index)
+    return bvh_nodes_list
 
 
 def read_bvh(context, file_path, rotate_mode='XYZ', global_scale=1.0):
@@ -167,7 +176,7 @@ def read_bvh(context, file_path, rotate_mode='XYZ', global_scale=1.0):
             else:
                 rest_head_world = my_parent.rest_head_world + rest_head_local
 
-            bvh_node = bvh_nodes[name] = BVH_Node(name, rest_head_world, rest_head_local, my_parent, my_channel, my_rot_order)
+            bvh_node = bvh_nodes[name] = BVH_Node(name, rest_head_world, rest_head_local, my_parent, my_channel, my_rot_order, len(bvh_nodes) - 1)
 
             # If we have another child then we can call ourselves a parent, else
             bvh_nodes_serial.append(bvh_node)
@@ -199,7 +208,9 @@ def read_bvh(context, file_path, rotate_mode='XYZ', global_scale=1.0):
     # Dont use anymore
     del bvh_nodes_serial
 
-    bvh_nodes_list = bvh_nodes.values()
+    # importing world with any order but nicer to maintain order
+    # second life expects it, which isnt to spec.
+    bvh_nodes_list = sorted_nodes(bvh_nodes)
 
     while lineIdx < len(file_lines):
         line = file_lines[lineIdx]
@@ -228,13 +239,13 @@ def read_bvh(context, file_path, rotate_mode='XYZ', global_scale=1.0):
         lineIdx += 1
 
     # Assign children
-    for bvh_node in bvh_nodes.values():
+    for bvh_node in bvh_nodes_list:
         bvh_node_parent = bvh_node.parent
         if bvh_node_parent:
             bvh_node_parent.children.append(bvh_node)
 
     # Now set the tip of each bvh_node
-    for bvh_node in bvh_nodes.values():
+    for bvh_node in bvh_nodes_list:
 
         if not bvh_node.rest_tail_world:
             if len(bvh_node.children) == 0:
@@ -359,10 +370,12 @@ def bvh_node_dict2armature(context,
     bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
     bpy.ops.object.mode_set(mode='EDIT', toggle=False)
 
+    bvh_nodes_list = sorted_nodes(bvh_nodes)
+
     # Get the average bone length for zero length bones, we may not use this.
     average_bone_length = 0.0
     nonzero_count = 0
-    for bvh_node in bvh_nodes.values():
+    for bvh_node in bvh_nodes_list:
         l = (bvh_node.rest_head_local - bvh_node.rest_tail_local).length
         if l:
             average_bone_length += l
@@ -380,9 +393,10 @@ def bvh_node_dict2armature(context,
         arm_ob.edit_bones.remove(arm_data.edit_bones[-1])
 
     ZERO_AREA_BONES = []
-    for name, bvh_node in bvh_nodes.items():
+    for bvh_node in bvh_nodes_list:
+
         # New editbone
-        bone = bvh_node.temp = arm_data.edit_bones.new(name)
+        bone = bvh_node.temp = arm_data.edit_bones.new(bvh_node.name)
 
         bone.head = bvh_node.rest_head_world
         bone.tail = bvh_node.rest_tail_world
@@ -401,7 +415,7 @@ def bvh_node_dict2armature(context,
 
             ZERO_AREA_BONES.append(bone.name)
 
-    for bvh_node in bvh_nodes.values():
+    for bvh_node in bvh_nodes_list:
         if bvh_node.parent:
             # bvh_node.temp is the Editbone
 
@@ -417,7 +431,7 @@ def bvh_node_dict2armature(context,
 
     # Replace the editbone with the editbone name,
     # to avoid memory errors accessing the editbone outside editmode
-    for bvh_node in bvh_nodes.values():
+    for bvh_node in bvh_nodes_list:
         bvh_node.temp = bvh_node.temp.name
 
     # Now Apply the animation to the armature
@@ -429,7 +443,7 @@ def bvh_node_dict2armature(context,
     pose_bones = pose.bones
 
     if rotate_mode == 'NATIVE':
-        for bvh_node in bvh_nodes.values():
+        for bvh_node in bvh_nodes_list:
             bone_name = bvh_node.temp  # may not be the same name as the bvh_node, could have been shortened.
             pose_bone = pose_bones[bone_name]
             pose_bone.rotation_mode = bvh_node.rot_order_str
@@ -449,7 +463,7 @@ def bvh_node_dict2armature(context,
 
     # Replace the bvh_node.temp (currently an editbone)
     # With a tuple  (pose_bone, armature_bone, bone_rest_matrix, bone_rest_matrix_inv)
-    for bvh_node in bvh_nodes.values():
+    for bvh_node in bvh_nodes_list:
         bone_name = bvh_node.temp  # may not be the same name as the bvh_node, could have been shortened.
         pose_bone = pose_bones[bone_name]
         rest_bone = arm_data.bones[bone_name]
@@ -479,7 +493,7 @@ def bvh_node_dict2armature(context,
         scene.frame_set(frame_start + frame_current)
 
         # Dont neet to set the current frame
-        for i, bvh_node in enumerate(bvh_nodes.values()):
+        for i, bvh_node in enumerate(bvh_nodes_list):
             pose_bone, bone, bone_rest_matrix, bone_rest_matrix_inv = bvh_node.temp
             lx, ly, lz, rx, ry, rz = bvh_node.anim_data[frame_current + 1]
 

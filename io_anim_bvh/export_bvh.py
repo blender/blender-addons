@@ -54,12 +54,10 @@ def write_armature(context,
     for bone in arm.bones:
         children[bone.name] = []
 
+    # keep bone order from armature, no sorting, not esspential but means
+    # we can maintain order from import -> export which secondlife incorrectly expects.
     for bone in arm.bones:
         children[getattr(bone.parent, "name", None)].append(bone.name)
-
-    # sort the children
-    for children_list in children.values():
-        children_list.sort()
 
     # bone name list in the order that the bones are written
     serialized_names = []
@@ -157,7 +155,8 @@ def write_armature(context,
             "skip_position",  # is the bone disconnected to the parent bone?
             "rot_order",
             "rot_order_str",
-        )
+            "rot_order_str_reverse",  # needed for the euler order when converting from a matrix
+            )
 
         _eul_order_lookup = {
             'XYZ': (0, 1, 2),
@@ -177,6 +176,7 @@ def write_armature(context,
                 self.rot_order_str = ensure_rot_order(self.pose_bone.rotation_mode)
             else:
                 self.rot_order_str = rotate_mode
+            self.rot_order_str_reverse = self.rot_order_str[::-1]
 
             self.rot_order = DecoratedBone._eul_order_lookup[self.rot_order_str]
 
@@ -192,7 +192,7 @@ def write_armature(context,
             self.rest_local_imat = self.rest_local_mat.inverted()
 
             self.parent = None
-            self.prev_euler = Euler((0.0, 0.0, 0.0), self.rot_order_str)
+            self.prev_euler = Euler((0.0, 0.0, 0.0), self.rot_order_str_reverse)
             self.skip_position = ((self.rest_bone.use_connect or root_transform_only) and self.rest_bone.parent)
 
         def update_posedata(self):
@@ -246,12 +246,12 @@ def write_armature(context,
                 loc = mat_final.to_translation() + dbone.rest_bone.head
 
             # keep eulers compatible, no jumping on interpolation.
-            rot = mat_final.to_3x3().inverted().to_euler(dbone.rot_order_str, dbone.prev_euler)
+            rot = mat_final.to_euler(dbone.rot_order_str_reverse, dbone.prev_euler)
 
             if not dbone.skip_position:
                 file.write("%.6f %.6f %.6f " % (loc * global_scale)[:])
 
-            file.write("%.6f %.6f %.6f " % (-degrees(rot[dbone.rot_order[0]]), -degrees(rot[dbone.rot_order[1]]), -degrees(rot[dbone.rot_order[2]])))
+            file.write("%.6f %.6f %.6f " % (degrees(rot[dbone.rot_order[0]]), degrees(rot[dbone.rot_order[1]]), degrees(rot[dbone.rot_order[2]])))
 
             dbone.prev_euler = rot
 
