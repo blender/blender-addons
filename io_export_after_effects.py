@@ -22,7 +22,7 @@ bl_info = {
     'name': 'Export: Adobe After Effects (.jsx)',
     'description': 'Export cameras, selected objects & camera solution 3D Markers to Adobe After Effects CS3 and above',
     'author': 'Bartek Skorupa',
-    'version': (0, 6, 2),
+    'version': (0, 6, 3),
     'blender': (2, 6, 2),
     'location': 'File > Export > Adobe After Effects (.jsx)',
     "warning": "",
@@ -36,7 +36,7 @@ bl_info = {
 
 import bpy
 import datetime
-from math import pi
+from math import degrees
 from mathutils import Matrix
 
 
@@ -154,29 +154,25 @@ def convert_name(name):
 def convert_transform_matrix(matrix, width, height, aspect, x_rot_correction=False):
 
     # get blender transform data for ob
-    b_loc_x, b_loc_y, b_loc_z = matrix.to_translation()
-    b_rot_x, b_rot_y, b_rot_z = matrix.to_euler()
-    b_scale_x, b_scale_y, b_scale_z = matrix.to_scale()
-
-    # convert radians to degrees
-    b_rot_x = b_rot_x / pi * 180.0
-    b_rot_y = b_rot_y / pi * 180.0
-    b_rot_z = b_rot_z / pi * 180.0
-    if x_rot_correction:
-        b_rot_x -= 90.0
+    b_loc = matrix.to_translation()
+    b_rot = matrix.to_euler('ZYX')  # ZYX euler matches AE's orientation and allows to use x_rot_correction
+    b_scale = matrix.to_scale()
 
     # convert to AE Position Rotation and Scale
     # Axes in AE are different. AE's X is blender's X, AE's Y is negative Blender's Z, AE's Z is Blender's Y
-    x = (b_loc_x * 100.0) / aspect + width / 2.0  # calculate AE's X position
-    y = (-b_loc_z * 100.0) + (height / 2.0)  # calculate AE's Y position
-    z = b_loc_y * 100.0  # calculate AE's Z position
-    # Using AE's rotation combined with AE's orientation allows to compensate for different euler rotation order.
-    rx = b_rot_x  # calculate AE's X rotation. Will become AE's RotationX property
-    ry = -b_rot_z  # calculate AE's Y rotation. Will become AE's OrientationY property
-    rz = b_rot_y  # calculate AE's Z rotation. Will become AE's OrentationZ property
-    sx = b_scale_x * 100.0  # scale of 1.0 is 100% in AE
-    sy = b_scale_z * 100.0  # scale of 1.0 is 100% in AE
-    sz = b_scale_y * 100.0  # scale of 1.0 is 100% in AE
+    x = (b_loc.x * 100.0) / aspect + width / 2.0  # calculate AE's X position
+    y = (-b_loc.z * 100.0) + (height / 2.0)  # calculate AE's Y position
+    z = b_loc.y * 100.0  # calculate AE's Z position
+    # Convert rotations to match AE's orientation.
+    rx = degrees(b_rot.x)  # if not x_rot_correction - AE's X orientation = blender's X rotation if 'ZYX' euler.
+    ry = -degrees(b_rot.y)  # AE's Y orientation is negative blender's Y rotation if 'ZYX' euler
+    rz = -degrees(b_rot.z)  # AE's Z orientation is negative blender's Z rotation if 'ZYX' euler
+    if x_rot_correction:
+        rx -= 90.0  # In blender - ob of zero rotation lay on floor. In AE layer of zero orientation "stands"
+    # Convert scale to AE scale
+    sx = b_scale.x * 100.0  # scale of 1.0 is 100% in AE
+    sy = b_scale.z * 100.0  # scale of 1.0 is 100% in AE
+    sz = b_scale.y * 100.0  # scale of 1.0 is 100% in AE
 
     return x, y, z, rx, ry, rz, sx, sy, sz
 
@@ -277,9 +273,6 @@ def write_jsx_file(file, data, selection, include_animation, include_active_cam,
             'orientation': '',
             'orientation_static': '',
             'orientation_anim': False,
-            'rotationX': '',
-            'rotationX_static': '',
-            'rotationX_anim': False,
             'zoom': '',
             'zoom_static': '',
             'zoom_anim': False,
@@ -297,9 +290,6 @@ def write_jsx_file(file, data, selection, include_animation, include_active_cam,
                     'orientation': '',
                     'orientation_static': '',
                     'orientation_anim': False,
-                    'rotationX': '',
-                    'rotationX_static': '',
-                    'rotationX_anim': False,
                     'zoom': '',
                     'zoom_static': '',
                     'zoom_anim': False,
@@ -339,9 +329,6 @@ def write_jsx_file(file, data, selection, include_animation, include_active_cam,
                 'orientation': '',
                 'orientation_static': '',
                 'orientation_anim': False,
-                'rotationX': '',
-                'rotationX_static': '',
-                'rotationX_anim': False,
                 }
 
 
@@ -356,9 +343,6 @@ def write_jsx_file(file, data, selection, include_animation, include_active_cam,
                 'orientation': '',
                 'orientation_static': '',
                 'orientation_anim': False,
-                'rotationX': '',
-                'rotationX_static': '',
-                'rotationX_anim': False,
                 'scale': '',
                 'scale_static': '',
                 'scale_anim': False,
@@ -430,12 +414,10 @@ def write_jsx_file(file, data, selection, include_animation, include_active_cam,
             zoom = convert_lens(active_cam, data['width'], data['height'], data['aspect'])
             # store all values in dico
             position = '[%f,%f,%f],' % (ae_transform[0], ae_transform[1], ae_transform[2])
-            orientation = '[%f,%f,%f],' % (0, ae_transform[4], ae_transform[5])
-            rotationX = '%f ,' % (ae_transform[3])
+            orientation = '[%f,%f,%f],' % (ae_transform[3], ae_transform[4], ae_transform[5])
             zoom = '%f,' % (zoom)
             js_data['cameras'][name_ae]['position'] += position
             js_data['cameras'][name_ae]['orientation'] += orientation
-            js_data['cameras'][name_ae]['rotationX'] += rotationX
             js_data['cameras'][name_ae]['zoom'] += zoom
             # Check if properties change values compared to previous frame
             # If property don't change through out the whole animation - keyframes won't be added
@@ -444,13 +426,10 @@ def write_jsx_file(file, data, selection, include_animation, include_active_cam,
                     js_data['cameras'][name_ae]['position_anim'] = True
                 if orientation != js_data['cameras'][name_ae]['orientation_static']:
                     js_data['cameras'][name_ae]['orientation_anim'] = True
-                if rotationX != js_data['cameras'][name_ae]['rotationX_static']:
-                    js_data['cameras'][name_ae]['rotationX_anim'] = True
                 if zoom != js_data['cameras'][name_ae]['zoom_static']:
                     js_data['cameras'][name_ae]['zoom_anim'] = True
             js_data['cameras'][name_ae]['position_static'] = position
             js_data['cameras'][name_ae]['orientation_static'] = orientation
-            js_data['cameras'][name_ae]['rotationX_static'] = rotationX
             js_data['cameras'][name_ae]['zoom_static'] = zoom
 
         # keyframes for selected cameras
@@ -465,12 +444,10 @@ def write_jsx_file(file, data, selection, include_animation, include_active_cam,
                     zoom = convert_lens(cam[0], data['width'], data['height'], data['aspect'])
                     # store all values in dico
                     position = '[%f,%f,%f],' % (ae_transform[0], ae_transform[1], ae_transform[2])
-                    orientation = '[%f,%f,%f],' % (0, ae_transform[4], ae_transform[5])
-                    rotationX = '%f ,' % (ae_transform[3])
+                    orientation = '[%f,%f,%f],' % (ae_transform[3], ae_transform[4], ae_transform[5])
                     zoom = '%f,' % (zoom)
                     js_data['cameras'][name_ae]['position'] += position
                     js_data['cameras'][name_ae]['orientation'] += orientation
-                    js_data['cameras'][name_ae]['rotationX'] += rotationX
                     js_data['cameras'][name_ae]['zoom'] += zoom
                     # Check if properties change values compared to previous frame
                     # If property don't change through out the whole animation - keyframes won't be added
@@ -479,13 +456,10 @@ def write_jsx_file(file, data, selection, include_animation, include_active_cam,
                             js_data['cameras'][name_ae]['position_anim'] = True
                         if orientation != js_data['cameras'][name_ae]['orientation_static']:
                             js_data['cameras'][name_ae]['orientation_anim'] = True
-                        if rotationX != js_data['cameras'][name_ae]['rotationX_static']:
-                            js_data['cameras'][name_ae]['rotationX_anim'] = True
                         if zoom != js_data['cameras'][name_ae]['zoom_static']:
                             js_data['cameras'][name_ae]['zoom_anim'] = True
                     js_data['cameras'][name_ae]['position_static'] = position
                     js_data['cameras'][name_ae]['orientation_static'] = orientation
-                    js_data['cameras'][name_ae]['rotationX_static'] = rotationX
                     js_data['cameras'][name_ae]['zoom_static'] = zoom
     
         '''
@@ -507,13 +481,11 @@ def write_jsx_file(file, data, selection, include_animation, include_active_cam,
                 color = ob[0].data.color
                 # store all values in dico
                 position = '[%f,%f,%f],' % (ae_transform[0], ae_transform[1], ae_transform[2])
-                orientation = '[%f,%f,%f],' % (0, ae_transform[4], ae_transform[5])
-                rotationX = '%f ,' % (ae_transform[3])
+                orientation = '[%f,%f,%f],' % (ae_transform[3], ae_transform[4], ae_transform[5])
                 energy = '[%f],' % (ob[0].data.energy * 100.0)
                 color = '[%f,%f,%f],' % (color[0], color[1], color[2])
                 js_data['lights'][name_ae]['position'] += position
                 js_data['lights'][name_ae]['orientation'] += orientation
-                js_data['lights'][name_ae]['rotationX'] += rotationX
                 js_data['lights'][name_ae]['energy'] += energy
                 js_data['lights'][name_ae]['color'] += color
                 # Check if properties change values compared to previous frame
@@ -523,15 +495,12 @@ def write_jsx_file(file, data, selection, include_animation, include_active_cam,
                         js_data['lights'][name_ae]['position_anim'] = True
                     if orientation != js_data['lights'][name_ae]['orientation_static']:
                         js_data['lights'][name_ae]['orientation_anim'] = True
-                    if rotationX != js_data['lights'][name_ae]['rotationX_static']:
-                        js_data['lights'][name_ae]['rotationX_anim'] = True
                     if energy != js_data['lights'][name_ae]['energy_static']:
                         js_data['lights'][name_ae]['energy_anim'] = True
                     if color != js_data['lights'][name_ae]['color_static']:
                         js_data['lights'][name_ae]['color_anim'] = True
                 js_data['lights'][name_ae]['position_static'] = position
                 js_data['lights'][name_ae]['orientation_static'] = orientation
-                js_data['lights'][name_ae]['rotationX_static'] = rotationX
                 js_data['lights'][name_ae]['energy_static'] = energy
                 js_data['lights'][name_ae]['color_static'] = color
                 if type == 'SPOT':
@@ -558,12 +527,10 @@ def write_jsx_file(file, data, selection, include_animation, include_active_cam,
                 ae_transform = convert_transform_matrix(ob[0].matrix_world.copy(), data['width'], data['height'], data['aspect'], x_rot_correction=True)
                 # store all values in dico
                 position = '[%f,%f,%f],' % (ae_transform[0], ae_transform[1], ae_transform[2])
-                orientation = '[%f,%f,%f],' % (0, ae_transform[4], ae_transform[5])
-                rotationX = '%f ,' % (ae_transform[3])
+                orientation = '[%f,%f,%f],' % (ae_transform[3], ae_transform[4], ae_transform[5])
                 scale = '[%f,%f,%f],' % (ae_transform[6], ae_transform[7], ae_transform[8])
                 js_data['nulls'][name_ae]['position'] += position
                 js_data['nulls'][name_ae]['orientation'] += orientation
-                js_data['nulls'][name_ae]['rotationX'] += rotationX
                 js_data['nulls'][name_ae]['scale'] += scale
                 # Check if properties change values compared to previous frame
                 # If property don't change through out the whole animation - keyframes won't be added
@@ -572,13 +539,10 @@ def write_jsx_file(file, data, selection, include_animation, include_active_cam,
                         js_data['nulls'][name_ae]['position_anim'] = True
                     if orientation != js_data['nulls'][name_ae]['orientation_static']:
                         js_data['nulls'][name_ae]['orientation_anim'] = True
-                    if rotationX != js_data['nulls'][name_ae]['rotationX_static']:
-                        js_data['nulls'][name_ae]['rotationX_anim'] = True
                     if scale != js_data['nulls'][name_ae]['scale_static']:
                         js_data['nulls'][name_ae]['scale_anim'] = True
                 js_data['nulls'][name_ae]['position_static'] = position
                 js_data['nulls'][name_ae]['orientation_static'] = orientation
-                js_data['nulls'][name_ae]['rotationX_static'] = rotationX
                 js_data['nulls'][name_ae]['scale_static'] = scale
 
         # keyframes for all object bundles. Not ready yet.
@@ -630,8 +594,6 @@ def write_jsx_file(file, data, selection, include_animation, include_active_cam,
         jsx_file.write('%s.threeDLayer = true;\n' % name_ae)
         jsx_file.write('%s.source.name = "%s";\n' % (name_ae, name_ae))
         # Set values of properties, add kyeframes only where needed
-        jsx_file.write('%s.property("rotationY").setValue(0);\n' % name_ae)
-        jsx_file.write('%s.property("rotationZ").setValue(0);\n' % name_ae)
         if include_animation and js_data['nulls'][name_ae]['position_anim']:
             jsx_file.write('%s.property("position").setValuesAtTimes([%s],[%s]);\n' % (name_ae, js_data['times'], js_data['nulls'][obj]['position']))
         else:
@@ -640,10 +602,6 @@ def write_jsx_file(file, data, selection, include_animation, include_active_cam,
             jsx_file.write('%s.property("orientation").setValuesAtTimes([%s],[%s]);\n' % (name_ae, js_data['times'], js_data['nulls'][obj]['orientation']))
         else:
             jsx_file.write('%s.property("orientation").setValue(%s);\n' % (name_ae, js_data['nulls'][obj]['orientation_static']))
-        if include_animation and js_data['nulls'][name_ae]['rotationX_anim']:
-            jsx_file.write('%s.property("rotationX").setValuesAtTimes([%s],[%s]);\n' % (name_ae, js_data['times'], js_data['nulls'][obj]['rotationX']))
-        else:
-            jsx_file.write('%s.property("rotationX").setValue(%s);\n' % (name_ae, js_data['nulls'][obj]['rotationX_static']))
         if include_animation and js_data['nulls'][name_ae]['scale_anim']:
             jsx_file.write('%s.property("scale").setValuesAtTimes([%s],[%s]);\n\n\n' % (name_ae, js_data['times'], js_data['nulls'][obj]['scale']))
         else:
@@ -657,8 +615,6 @@ def write_jsx_file(file, data, selection, include_animation, include_active_cam,
         jsx_file.write('var %s = newComp.layers.addLight("%s", [0.0, 0.0]);\n' % (name_ae, name_ae))
         jsx_file.write('%s.autoOrient = AutoOrientType.NO_AUTO_ORIENT;\n' % name_ae)
         # Set values of properties, add kyeframes only where needed
-        jsx_file.write('%s.property("rotationY").setValue(0);\n' % name_ae)
-        jsx_file.write('%s.property("rotationZ").setValue(0);\n' % name_ae)
         if include_animation and js_data['lights'][name_ae]['position_anim']:
             jsx_file.write('%s.property("position").setValuesAtTimes([%s],[%s]);\n' % (name_ae, js_data['times'], js_data['lights'][obj]['position']))
         else:
@@ -667,10 +623,6 @@ def write_jsx_file(file, data, selection, include_animation, include_active_cam,
             jsx_file.write('%s.property("orientation").setValuesAtTimes([%s],[%s]);\n' % (name_ae, js_data['times'], js_data['lights'][obj]['orientation']))
         else:
             jsx_file.write('%s.property("orientation").setValue(%s);\n' % (name_ae, js_data['lights'][obj]['orientation_static']))
-        if include_animation and js_data['lights'][name_ae]['rotationX_anim']:
-            jsx_file.write('%s.property("rotationX").setValuesAtTimes([%s],[%s]);\n' % (name_ae, js_data['times'], js_data['lights'][obj]['rotationX']))
-        else:
-            jsx_file.write('%s.property("rotationX").setValue(%s);\n' % (name_ae, js_data['lights'][obj]['rotationX_static']))
         if include_animation and js_data['lights'][name_ae]['energy_anim']:
             jsx_file.write('%s.property("intensity").setValuesAtTimes([%s],[%s]);\n' % (name_ae, js_data['times'], js_data['lights'][obj]['energy']))
         else:
@@ -697,8 +649,6 @@ def write_jsx_file(file, data, selection, include_animation, include_active_cam,
         jsx_file.write('var %s = newComp.layers.addCamera("%s",[0,0]);\n' % (name_ae, name_ae))
         jsx_file.write('%s.autoOrient = AutoOrientType.NO_AUTO_ORIENT;\n' % name_ae)
         # Set values of properties, add kyeframes only where needed
-        jsx_file.write('%s.property("rotationY").setValue(0);\n' % name_ae)
-        jsx_file.write('%s.property("rotationZ").setValue(0);\n' % name_ae)
         if include_animation and js_data['cameras'][name_ae]['position_anim']:
             jsx_file.write('%s.property("position").setValuesAtTimes([%s],[%s]);\n' % (name_ae, js_data['times'], js_data['cameras'][cam]['position']))
         else:
@@ -707,10 +657,6 @@ def write_jsx_file(file, data, selection, include_animation, include_active_cam,
             jsx_file.write('%s.property("orientation").setValuesAtTimes([%s],[%s]);\n' % (name_ae, js_data['times'], js_data['cameras'][cam]['orientation']))
         else:
             jsx_file.write('%s.property("orientation").setValue(%s);\n' % (name_ae, js_data['cameras'][cam]['orientation_static']))
-        if include_animation and js_data['cameras'][name_ae]['rotationX_anim']:
-            jsx_file.write('%s.property("rotationX").setValuesAtTimes([%s],[%s]);\n' % (name_ae, js_data['times'], js_data['cameras'][cam]['rotationX']))
-        else:
-            jsx_file.write('%s.property("rotationX").setValue(%s);\n' % (name_ae, js_data['cameras'][cam]['rotationX_static']))
         if include_animation and js_data['cameras'][name_ae]['zoom_anim']:
             jsx_file.write('%s.property("zoom").setValuesAtTimes([%s],[%s]);\n\n\n' % (name_ae, js_data['times'], js_data['cameras'][cam]['zoom']))
         else:
@@ -826,3 +772,4 @@ def unregister():
 
 if __name__ == "__main__":
     register()
+
