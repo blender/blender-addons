@@ -40,7 +40,7 @@ bl_info = {
     'name': 'Import: MakeHuman (.mhx)',
     'author': 'Thomas Larsson',
     'version': (1, 10, 3),
-    "blender": (2, 6, 2),
+    "blender": (2, 6, 3),
     'location': "File > Import > MakeHuman (.mhx)",
     'description': 'Import files in the MakeHuman eXchange format (.mhx)',
     'warning': '',
@@ -1244,12 +1244,13 @@ def parseMesh (args, tokens):
     linkObject(ob, me)
         
     mats = []
+    nuvlayers = 0
     for (key, val, sub) in tokens:
         if key == 'Verts' or key == 'Edges' or key == 'Faces':
             pass
         elif key == 'MeshTextureFaceLayer':
             parseUvTexture(val, sub, me)
-        elif key == 'MeshColorLayer':
+        elif key == 'MeshColorLayer':            
             parseVertColorLayer(val, sub, me)
         elif key == 'VertexGroup':
             parseVertexGroup(ob, me, val, sub)
@@ -1307,7 +1308,7 @@ def parseFaces2(tokens, me):
     n = 0
     for (key, val, sub) in tokens:
         if key == 'ft':
-            f = me.faces[n]
+            f = me.polygons[n]
             f.material_index = int(val[0])
             f.use_smooth = int(val[1])
             n += 1
@@ -1316,42 +1317,40 @@ def parseFaces2(tokens, me):
             us = int(val[2])
             npts = int(val[0])
             for i in range(npts):
-                f = me.faces[n]
+                f = me.polygons[n]
                 f.material_index = mn
                 f.use_smooth = us
                 n += 1
         elif key == 'mn':
             fn = int(val[0])
             mn = int(val[1])
-            f = me.faces[fn]
+            f = me.polygons[fn]
             f.material_index = mn
         elif key == 'ftall':
             mat = int(val[0])
             smooth = int(val[1])
-            for f in me.faces:
+            for f in me.polygons:
                 f.material_index = mat
                 f.use_smooth = smooth
     return
 
 
 #
-#    parseUvTexture(args, tokens, me):
+#    parseUvTexture(args, tokens, me,):
 #    parseUvTexData(args, tokens, uvdata):
 #
 
 def parseUvTexture(args, tokens, me):
     name = args[0]
     uvtex = me.uv_textures.new(name = name)
-    print("WARNING: UV texture %s ignored until BMesh api is understood" % name)
-    return
     uvtex.active = True
-    tessUvtex = me.tessface_uv_textures.active   
-    print("UV textures:")
-    print("  ", me.uv_textures.active_index, uvtex, tessUvtex)
-    loadedData['MeshTextureFaceLayer'][name] = tessUvtex
+    uvloop = me.uv_loop_layers[-1]
+    #print("UV", name, uvtex)
+    #print("  ", uvloop, uvloop.data)
+    loadedData['MeshTextureFaceLayer'][name] = uvloop    
     for (key, val, sub) in tokens:
         if key == 'Data':
-            parseUvTexData(val, sub, tessUvtex.data)
+            parseUvTexData(val, sub, uvloop.data)
         else:
             defaultKey(key, val,  sub, "uvtex", [], globals(), locals())
     return
@@ -1360,15 +1359,15 @@ def parseUvTexData(args, tokens, data):
     n = 0
     for (key, val, sub) in tokens:
         if key == 'vt':
-            data[n].uv1 = (float(val[0]), float(val[1]))
-            data[n].uv2 = (float(val[2]), float(val[3]))
-            data[n].uv3 = (float(val[4]), float(val[5]))
+            data[n].uv = (float(val[0]), float(val[1]))
+            n += 1
+            data[n].uv = (float(val[2]), float(val[3]))
+            n += 1
+            data[n].uv = (float(val[4]), float(val[5]))
+            n += 1
             if len(val) > 6:
-                data[n].uv4 = (float(val[6]), float(val[7]))
-            print(val)
-            print(data[n].uv1, data[n].uv2, data[n].uv3, data[n].uv4)
-            halt
-            n += 1    
+                data[n].uv = (float(val[6]), float(val[7]))
+                n += 1
         else:
             pass
             #for i in range(n):
@@ -2041,7 +2040,7 @@ def deleteDiamonds(ob):
     if invisioNum < 0:
         print("WARNING: Nu Invisio material found. Cannot delete helper geometry")
     else:        
-        for f in me.faces:    
+        for f in me.polygons:    
             if f.material_index >= invisioNum:
                 for vn in f.vertices:
                     me.vertices[vn].select = True
