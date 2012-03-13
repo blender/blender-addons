@@ -504,7 +504,7 @@ def write_jsx_file(file, data, selection, include_animation, include_active_cam,
                 js_data['lights'][name_ae]['energy_static'] = energy
                 js_data['lights'][name_ae]['color_static'] = color
                 if type == 'SPOT':
-                    cone_angle = '[%f],' % (ob[0].data.spot_size / pi * 180.0)
+                    cone_angle = '[%f],' % (degrees(ob[0].data.spot_size))
                     cone_feather = '[%f],' % (ob[0].data.spot_blend * 100.0)
                     js_data['lights'][name_ae]['cone_angle'] += cone_angle
                     js_data['lights'][name_ae]['cone_feather'] += cone_feather
