@@ -132,6 +132,11 @@ class ExportFBX(bpy.types.Operator, ExportHelper):
                          "pipeline errors with XNA"),
             default=False,
             )
+    use_armature_deform_only = BoolProperty(
+            name="Only Deform Bones",
+            description="Only write deforming bones",
+            default=False,
+            )
     use_anim = BoolProperty(
             name="Include Animation",
             description="Export keyframe animation",

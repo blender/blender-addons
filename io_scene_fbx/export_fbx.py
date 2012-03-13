@@ -216,6 +216,7 @@ def save_single(operator, scene, filepath="",
         object_types={'EMPTY', 'CAMERA', 'LAMP', 'ARMATURE', 'MESH'},
         use_mesh_modifiers=True,
         mesh_smooth_type='FACE',
+        use_armature_deform_only=False,
         use_anim=True,
         use_anim_optimize=True,
         anim_optimize_precision=6,
@@ -2098,10 +2099,29 @@ def save_single(operator, scene, filepath="",
         # fbxName, blenderObject, my_bones, blenderActions
         #ob_arms[i] = fbxArmObName, ob, arm_my_bones, (ob.action, [])
 
+        if use_armature_deform_only:
+            # tag non deforming bones that have no deforming children
+            deform_map = dict.fromkeys(my_arm.blenData.bones, False)
+            for bone in my_arm.blenData.bones:
+                if bone.use_deform:
+                    deform_map[bone] = True
+                    # tag all parents, even ones that are not deform since their child _is_
+                    for parent in bone.parent_recursive:
+                        deform_map[parent] = True
+
         for bone in my_arm.blenData.bones:
+
+            if use_armature_deform_only:
+                # if this bone doesnt deform, and none of its children deform, skip it!
+                if not deform_map[bone]:
+                    continue
+
             my_bone = my_bone_class(bone, my_arm)
             my_arm.fbxBones.append(my_bone)
             ob_bones.append(my_bone)
+
+        if use_armature_deform_only:
+            del deform_map
 
     # add the meshes to the bones and replace the meshes armature with own armature class
     #for obname, ob, mtx, me, mats, arm, armname in ob_meshes:
@@ -2932,6 +2952,7 @@ def defaults_unity3d():
                 use_selection=False,
                 object_types={'ARMATURE', 'EMPTY', 'MESH'},
                 use_mesh_modifiers=True,
+                use_armature_deform_only=True,
                 use_anim=True,
                 use_anim_optimize=False,
                 use_anim_action_all=True,
