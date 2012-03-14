@@ -37,7 +37,7 @@ bl_info = {
 import bpy
 from bpy.props import *
 from math import sin, cos, pi
-from add_utils import *
+from bpy_extras.object_utils import AddObjectHelper, object_data_add
 
     
 ########################################################################
@@ -93,7 +93,7 @@ def create_torus_knot(self, context):
         #curve_data.offset = self.geo_width # removed, somehow screws things up all of a sudden
         curve_data.resolution_u = self.geo_res
     
-    new_obj = add_object_data(context, curve_data, operator=self)
+    new_obj = object_data_add(context, curve_data, operator=self)
 
 
 class torus_knot_plus(bpy.types.Operator, AddObjectHelper):

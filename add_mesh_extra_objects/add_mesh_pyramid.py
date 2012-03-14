@@ -32,8 +32,7 @@ bl_info = {
 
 import bpy
 from bpy.props import IntProperty, FloatProperty
-
-from add_utils import AddObjectHelper, add_object_data
+from bpy_extras.object_utils import AddObjectHelper, object_data_add
 
 
 def makePyramid(initial_size, step_height, step_width, number_steps):
@@ -105,7 +104,7 @@ def add_pyramid_object(self, context):
     mesh_data = bpy.data.meshes.new(name="Pyramid")
     mesh_data.from_pydata(verts, [], faces)
     mesh_data.update()
-    res = add_object_data(context, mesh_data, operator=self)
+    res = object_data_add(context, mesh_data, operator=self)
 
 
 class AddPyramid(bpy.types.Operator, AddObjectHelper):

@@ -42,7 +42,7 @@ from bpy.props import (BoolProperty,
                        FloatProperty,
                        )
 
-from add_utils import AddObjectHelper, add_object_data
+from bpy_extras.object_utils import AddObjectHelper, object_data_add
 from bpy_extras.io_utils import ImportHelper
 from bpy_extras.image_utils import load_image
 
@@ -174,7 +174,7 @@ def create_image_plane(self, context, material):
     mesh_data = bpy.data.meshes.new(img.name)
     mesh_data.from_pydata(verts, [], faces)
     mesh_data.update()
-    add_object_data(context, mesh_data, operator=self)
+    object_data_add(context, mesh_data, operator=self)
     plane = context.scene.objects.active
     plane.data.uv_textures.new()
     plane.data.materials.append(material)
