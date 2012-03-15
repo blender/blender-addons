@@ -27,8 +27,8 @@ from struct import pack, unpack
 import os
 import queue, threading
 
-class image_props:
-    ''' keeps track of image attributes throughout the hirise_dtm_helper class '''
+class image_properties:
+    ''' keeps track of image attributes throughout the hirise_dtm_importer class '''
     def __init__(self, name, dimensions, pixel_scale):
       self.name( name )
       self.dims( dimensions )
@@ -55,7 +55,7 @@ class image_props:
         self.__pixel_scale = pixel_scale
       return self.__pixel_scale
 
-class hirise_dtm_helper(object):
+class hirise_dtm_importer(object):
     ''' methods to understand/import a HiRISE DTM formatted as a PDS .IMG '''
 
     def __init__(self, context, filepath):
@@ -65,7 +65,6 @@ class hirise_dtm_helper(object):
       self.__bin_mode = 'BIN6'
       self.scale( 1.0 )
       self.__cropXY = False
-      self.marsRed(False)
 
     def bin_mode(self, bin_mode=None):
       if bin_mode != None:
@@ -80,14 +79,6 @@ class hirise_dtm_helper(object):
     def crop(self, widthX, widthY, offX, offY):
       self.__cropXY = [ widthX, widthY, offX, offY ]
       return self.__cropXY
-
-    def marsRed(self, marsRed=None):
-      if marsRed is not None:
-        self.__marsRed = marsRed
-      return self.__marsRed
-
-    def dbg(self, mesg):
-      print(mesg)
 
     ############################################################################
     ## PDS Label Operations
@@ -153,8 +144,6 @@ class hirise_dtm_helper(object):
       ''' uses the parsed PDS Label to get the LINES and LINE_SAMPLES parameters
           from the first object named "IMAGE" -- is hackish
       '''
-      lines = None
-      line_samples = None
       for obj in label:
         if obj[0] == "IMAGE":
           return self.getLinesAndSamples(obj[1])
@@ -202,27 +191,6 @@ class hirise_dtm_helper(object):
     ## Image operations
     ############################################################################
 
-    # decorator to run a generator in a thread
-    def threaded_generator(func):
-      def start(*args,**kwargs):
-        # Setup a queue of returned items
-        yield_q = queue.Queue()
-        # Thread to run generator inside of
-        def worker():
-          for obj in func(*args,**kwargs): yield_q.put(obj)
-          yield_q.put(StopIteration)
-        t = threading.Thread(target=worker)
-        t.start()
-        # yield from the queue as fast as we can
-        obj = yield_q.get()
-        while obj is not StopIteration:
-          yield obj
-          obj = yield_q.get()
-
-      # return the thread-wrapped generator
-      return start
-
-    @threaded_generator
     def bin2(self, image_iter, bin2_method_type="SLOW"):
       ''' this is an iterator that: Given an image iterator will yield binned lines '''
 
@@ -252,10 +220,8 @@ class hirise_dtm_helper(object):
             del tmp_list[0:2]
           yield ret_list
           ret_list = []
-        # last_line = line  # UNUSED
         line_count += 1
 
-    @threaded_generator
     def bin6(self, image_iter, bin6_method_type="SLOW"):
       ''' this is an iterator that: Given an image iterator will yield binned lines '''
 
@@ -292,22 +258,23 @@ class hirise_dtm_helper(object):
       binned_data = []
 
       # Filter out those unwanted hugely negative values...
-      filter_fun = lambda a: self.__ignore_value.__ne__(a)
+      IGNORE_VALUE = self.__ignore_value
 
       base = 0
       for i in range(0, len(raw_data[0])//6):
 
-        ints = list(filter( filter_fun, raw_data[0][base:base+6] +
+        ints = (raw_data[0][base:base+6] +
           raw_data[1][base:base+6] +
           raw_data[2][base:base+6] +
           raw_data[3][base:base+6] +
           raw_data[4][base:base+6] +
-          raw_data[5][base:base+6] ))
-        len_ints = len( ints )
+          raw_data[5][base:base+6] )
+
+        ints = [num for num in ints if num != IGNORE_VALUE]
 
         # If we have all pesky values, return a pesky value
-        if len_ints == 0:
-          binned_data.append( self.__ignore_value )
+        if not ints:
+          binned_data.append( IGNORE_VALUE )
         else:
           binned_data.append( sum(ints) / len(ints) )
 
@@ -327,7 +294,6 @@ class hirise_dtm_helper(object):
 
       return binned_data
 
-    @threaded_generator
     def bin12(self, image_iter, bin12_method_type="SLOW"):
       ''' this is an iterator that: Given an image iterator will yield binned lines '''
 
@@ -395,7 +361,6 @@ class hirise_dtm_helper(object):
       ''' takes a single value from each 12x12 sample of raw_data and returns a single line of data '''
       return raw_data[0][11::12]
 
-    @threaded_generator
     def cropXY(self, image_iter, XSize=None, YSize=None, XOffset=0, YOffset=0):
       ''' return a cropped portion of the image '''
 
@@ -409,11 +374,9 @@ class hirise_dtm_helper(object):
         YSize = processed_dims[1]
 
       if XSize + XOffset > processed_dims[0]:
-        self.dbg("WARNING: Upstream dims are larger than cropped XSize dim")
         XSize = processed_dims[0]
         XOffset = 0
       if YSize + YOffset > processed_dims[1]:
-        self.dbg("WARNING: Upstream dims are larger than cropped YSize dim")
         YSize = processed_dims[1]
         YOffset = 0
 
@@ -429,11 +392,9 @@ class hirise_dtm_helper(object):
           return
         currentY += 1
 
-    @threaded_generator
     def getImage(self, img, img_props):
       ''' Assumes 32-bit pixels -- bins image '''
       dims = img_props.dims()
-      self.dbg("getting image (x,y): %d,%d" % ( dims[0], dims[1] ))
 
       # setup to unpack more efficiently.
       x_len = dims[0]
@@ -462,7 +423,6 @@ class hirise_dtm_helper(object):
           if len(new_pixels) == 0:
             x_bytes = -1
             pixels = []
-            self.dbg("Uh oh: unexpected EOF!")
         if len(pixels) == x_bytes:
           if 0 == 1:
             repacked_pixels = b''
@@ -472,7 +432,6 @@ class hirise_dtm_helper(object):
           else:
             yield unpack( unpack_str, pixels )
 
-    @threaded_generator
     def shiftToOrigin(self, image_iter, image_min_max):
       ''' takes a generator and shifts the points by the valid minimum
           also removes points with value self.__ignore_value and replaces them with None
@@ -484,7 +443,6 @@ class hirise_dtm_helper(object):
       # pass on dimensions/pixel_scale since we don't modify them here
       yield next(image_iter)
 
-      self.dbg("shiftToOrigin filter enabled...");
 
       # closures rock!
       def normalize_fun(point):
@@ -494,9 +452,7 @@ class hirise_dtm_helper(object):
 
       for line in image_iter:
         yield list(map(normalize_fun, line))
-      self.dbg("shifted all points")
 
-    @threaded_generator
     def scaleZ(self, image_iter, scale_factor):
       ''' scales the mesh values by a factor '''
       # pass on dimensions since we don't modify them here
@@ -563,16 +519,12 @@ class hirise_dtm_helper(object):
       # the space between vertices so that blender is more efficient at managing the final
       # structure.
 
-      self.dbg('generate mesh coords/faces from processed image data...')
-
       # read each new line and generate coordinates+faces
       for dtm_line in image_iter:
 
         # Keep track of where we are in the image
         line_count += 1
         y_val = line_count*-scale_y
-        if line_count % 31 == 0:
-          self.dbg("reading image... %d of %d" % ( line_count, max_y ))
 
         # Just add all points blindly
         # TODO: turn this into a map
@@ -626,22 +578,14 @@ class hirise_dtm_helper(object):
         # remember what we just saw (and forget anything before that)
         last_line = dtm_line
 
-      self.dbg('generate mesh from coords/faces...')
       me = bpy.data.meshes.new(img_props.name()) # create a new mesh
 
-      self.dbg('coord: %d' % coord)
-      self.dbg('len(coords): %d' % len(coords))
-      self.dbg('len(faces): %d' % len(faces))
-
-      self.dbg('setting coords...')
       me.vertices.add(len(coords)/3)
       me.vertices.foreach_set("co", coords)
 
-      self.dbg('setting faces...')
       me.faces.add(len(faces)/4)
       me.faces.foreach_set("vertices_raw", faces)
 
-      self.dbg('running update...')
       me.update()
 
       bin_desc = self.bin_mode()
@@ -652,40 +596,19 @@ class hirise_dtm_helper(object):
 
       return ob
 
-    def marsRedMaterial(self):
-      ''' produce some approximation of a mars surface '''
-      mat = None
-      for material in bpy.data.materials:
-        if material.getName() == "redMars":
-          mat = material
-      if mat is None:
-        mat = bpy.data.materials.new("redMars")
-        mat.diffuse_shader = 'MINNAERT'
-        mat.setRGBCol(  (0.426, 0.213, 0.136) )
-        mat.setDiffuseDarkness(0.8)
-        mat.specular_shader = 'WARDISO'
-        mat.setSpecCol( (1.000, 0.242, 0.010) )
-        mat.setSpec( 0.010 )
-        mat.setRms( 0.100 )
-      return mat
-
     ################################################################################
-    #  Yay, done with helper functions ... let's see the abstraction in action!    #
+    #  Yay, done with importer functions ... let's see the abstraction in action!    #
     ################################################################################
     def execute(self):
 
-      self.dbg('opening/importing file: %s' % self.__filepath)
       img = open(self.__filepath, 'rb')
 
-      self.dbg('read PDS Label...')
       (label, parsedLabel) = self.getPDSLabel(img)
 
-      self.dbg('parse PDS Label...')
       image_dims = self.getLinesAndSamples(parsedLabel)
       img_min_max_vals = self.getValidMinMax(parsedLabel)
       self.__ignore_value = self.getMissingConstant(parsedLabel)
 
-      self.dbg('import/bin image data...')
 
       # MAGIC VALUE? -- need to formalize this to rid ourselves of bad points
       img.seek(28)
@@ -699,7 +622,7 @@ class hirise_dtm_helper(object):
       image_name = os.path.basename( self.__filepath )
 
       # Set the properties of the image in a manageable object
-      img_props = image_props( image_name, image_dims, pixel_scale )
+      img_props = image_properties( image_name, image_dims, pixel_scale )
 
       # Get an iterator to iterate over lines
       image_iter = self.getImage(img, img_props)
@@ -737,19 +660,13 @@ class hirise_dtm_helper(object):
         image_iter = self.scaleZ(image_iter, img_min_max_vals)
 
       # Create a new mesh object and set data from the image iterator
-      self.dbg('generating mesh object...')
       ob_new = self.genMesh(image_iter)
-
-      if self.marsRed():
-        mars_red = self.marsRedMaterial()
-        ob_new.materials += [mars_red]
 
       if img:
         img.close()
 
       # Add mesh object to the current scene
       scene = self.__context.scene
-      self.dbg('linking object to scene...')
       scene.objects.link(ob_new)
       scene.update()
 
@@ -760,21 +677,17 @@ class hirise_dtm_helper(object):
       # Select the new mesh
       ob_new.select = True
 
-      self.dbg('done with ops ... now wait for blender ...')
-
       return ('FINISHED',)
 
-def load(operator, context, filepath, scale, bin_mode, cropVars, marsRed):
+def load(operator, context, filepath, scale, bin_mode, cropVars):
     print("Bin Mode: %s" % bin_mode)
     print("Scale: %f" % scale)
-    helper = hirise_dtm_helper(context,filepath)
-    helper.bin_mode( bin_mode )
-    helper.scale( scale )
+    importer = hirise_dtm_importer(context,filepath)
+    importer.bin_mode( bin_mode )
+    importer.scale( scale )
     if cropVars:
-        helper.crop( cropVars[0], cropVars[1], cropVars[2], cropVars[3] )
-    helper.execute()
-    if marsRed:
-        helper.marsRed(marsRed)
+        importer.crop( cropVars[0], cropVars[1], cropVars[2], cropVars[3] )
+    importer.execute()
 
     print("Loading %s" % filepath)
     return {'FINISHED'}

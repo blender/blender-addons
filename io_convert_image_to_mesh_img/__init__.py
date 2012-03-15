@@ -19,8 +19,8 @@
 bl_info = {
     "name": "HiRISE DTM from PDS IMG",
     "author": "Tim Spriggs (tims@uahirise.org)",
-    "version": (0, 1, 2),
-    "blender": (2, 5, 7),
+    "version": (0, 1, 3),
+    "blender": (2, 6, 2),
     "location": "File > Import > HiRISE DTM from PDS IMG (.IMG)",
     "description": "Import a HiRISE DTM formatted as a PDS IMG file",
     "warning": "May consume a lot of memory",
@@ -38,6 +38,9 @@ bl_info = {
 #         trunk/py/scripts/addons/io_convert_image_to_mesh_img
 #         may be moved out to contrib once the blender downloader works well
 #         (TJS - 2010-12-14)
+# 0.1.3 - upstream blender updates
+#         performance enhancements by Chris Van Horne
+#         (TJS - 2012-03-14)
 
 
 if "bpy" in locals():
@@ -82,11 +85,6 @@ class ImportHiRISEIMGDTM(bpy.types.Operator, ImportHelper):
                             default='BIN12-FAST'
                             )
 
-    #red_material = BoolProperty(name="Mars Red Mesh",
-    #                            description="Set the mesh as a 'Mars' red value",
-    #                            default=True
-    #			        )
-
     ## TODO: add support for cropping on import when the checkbox is checked
     # do_crop = BoolProperty(name="Crop Image", description="Crop the image during import", ... )
     ## we only want these visible when the above is "true"
@@ -109,8 +107,6 @@ class ImportHiRISEIMGDTM(bpy.types.Operator, ImportHelper):
                              scale=self.scale,
                              bin_mode=self.bin_mode,
                              cropVars=False,
-                             # marsRed=self.red_material
-                             marsRed=False
                              )
 
 ## How to register the script inside of Blender
