@@ -525,6 +525,10 @@ def export(file,
         mesh_id_coords = prefix_quoted_str(mesh_id, 'coords_')
         mesh_id_normals = prefix_quoted_str(mesh_id, 'normals_')
 
+        # tesselation faces may not exist
+        if not mesh.faces and mesh.polygons:
+            mesh.update(calc_tessface=True)
+
         if not mesh.faces:
             return
 
@@ -548,7 +552,7 @@ def export(file,
             fw('%s<Group DEF=%s>\n' % (ident, mesh_id_group))
             ident += '\t'
 
-            is_uv = bool(mesh.uv_textures.active)
+            is_uv = bool(mesh.tessface_uv_textures.active)
             # is_col, defined for each material
 
             is_coords_written = False
@@ -583,7 +587,11 @@ def export(file,
             mesh_faces_vertices = [f.vertices[:] for f in mesh_faces]
 
             if is_uv and True in mesh_materials_use_face_texture:
-                mesh_faces_image = [(fuv.image if (mesh_materials_use_face_texture[mesh_faces_materials[i]]) else mesh_material_images[mesh_faces_materials[i]]) for i, fuv in enumerate(mesh.uv_textures.active.data)]
+                mesh_faces_image = [(fuv.image
+                                     if mesh_materials_use_face_texture[mesh_faces_materials[i]]
+                                     else mesh_material_images[mesh_faces_materials[i]])
+                                     for i, fuv in enumerate(mesh.tessface_uv_textures.active.data)]
+
                 mesh_faces_image_unique = set(mesh_faces_image)
             elif len(set(mesh_material_images) | {None}) > 1:  # make sure there is at least one image
                 mesh_faces_image = [mesh_material_images[material_index] for material_index in mesh_faces_materials]
@@ -614,7 +622,7 @@ def export(file,
                     ident += '\t'
 
                     is_smooth = False
-                    is_col = (mesh.vertex_colors.active and (material is None or material.use_vertex_color_paint))
+                    is_col = (mesh.tessface_vertex_colors.active and (material is None or material.use_vertex_color_paint))
 
                     # kludge but as good as it gets!
                     for i in face_group:
@@ -691,8 +699,8 @@ def export(file,
                     ident = ident[:-1]
                     fw('%s</Appearance>\n' % ident)
 
-                    mesh_faces_col = mesh.vertex_colors.active.data if is_col else None
-                    mesh_faces_uv = mesh.uv_textures.active.data if is_uv else None
+                    mesh_faces_col = mesh.tessface_vertex_colors.active.data if is_col else None
+                    mesh_faces_uv = mesh.tessface_uv_textures.active.data if is_uv else None
 
                     #-- IndexedFaceSet or IndexedLineSet
                     if use_triangulate:
