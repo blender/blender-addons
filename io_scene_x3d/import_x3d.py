@@ -1675,7 +1675,7 @@ def importMesh_IndexedFaceSet(geom, bpyima, ancestry):
         #   bpymesh.faces.extend(faces, smooth=True)
 
     bpymesh.validate()
-    bpymesh.update()
+    # bpymesh.update()  # cant call now, because it would convert tessface
 
     if len(bpymesh.faces) != len(faces):
         print('\tWarning: adding faces did not work! file is invalid, not adding UVs or vcolors')
@@ -1687,7 +1687,7 @@ def importMesh_IndexedFaceSet(geom, bpyima, ancestry):
     if coords_tex:
         #print(ifs_texpoints)
         # print(geom)
-        uvlay = bpymesh.uv_textures.new()
+        uvlay = bpymesh.tessface_uv_textures.new()
 
         for i, f in enumerate(uvlay.data):
             f.image = bpyima
@@ -1762,7 +1762,7 @@ def importMesh_IndexedFaceSet(geom, bpyima, ancestry):
             # This should be safe because when 2 axies have the same length, the lower index will be used.
             axis_v += 1
 
-        uvlay = bpymesh.uv_textures.new()
+        uvlay = bpymesh.tessface_uv_textures.new()
 
         # HACK !!! - seems to be compatible with Cosmo though.
         depth_v = depth_u = max(depth_v, depth_u)
@@ -1782,7 +1782,7 @@ def importMesh_IndexedFaceSet(geom, bpyima, ancestry):
     # Add vcote
     if vcolor:
         # print(ifs_vcol)
-        collay = bpymesh.vertex_colors.new()
+        collay = bpymesh.tessface_vertex_colors.new()
 
         for f_idx, f in enumerate(collay.data):
             fv = bpymesh.faces[f_idx].vertices[:]
@@ -1828,6 +1828,8 @@ def importMesh_IndexedFaceSet(geom, bpyima, ancestry):
 
     # XXX25
     # bpymesh.vertices.delete([0, ])  # EEKADOODLE
+
+    bpymesh.update()
 
     return bpymesh, ccw
 
@@ -2169,17 +2171,17 @@ def importShape(node, ancestry, global_matrix):
                 if bpymat:
                     bpydata.materials.append(bpymat)
 
-                if bpydata.uv_textures:
+                if bpydata.tessface_uv_textures:
 
                     if depth == 32:  # set the faces alpha flag?
                         transp = Mesh.FaceTranspModes.ALPHA
-                        for f in bpydata.uv_textures.active.data:
+                        for f in bpydata.tessface_uv_textures.active.data:
                             f.blend_type = 'ALPHA'
 
                     if texmtx:
                         # Apply texture transform?
                         uv_copy = Vector()
-                        for f in bpydata.uv_textures.active.data:
+                        for f in bpydata.tessface_uv_textures.active.data:
                             fuv = f.uv
                             for i, uv in enumerate(fuv):
                                 uv_copy.x = uv[0]
