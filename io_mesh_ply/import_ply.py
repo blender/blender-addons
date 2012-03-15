@@ -296,9 +296,9 @@ def load_ply(filepath):
 
         if uvindices or colindices:
             if uvindices:
-                uvlay = mesh.uv_textures.new()
+                uvlay = mesh.tessface_uv_textures.new()
             if colindices:
-                vcol_lay = mesh.vertex_colors.new()
+                vcol_lay = mesh.tessface_vertex_colors.new()
 
             if uvindices:
                 for i, f in enumerate(uvlay.data):

@@ -65,9 +65,9 @@ def save(operator,
 
     # mesh.transform(obj.matrix_world) # XXX
 
-    has_uv = (len(mesh.uv_textures) > 0)
+    has_uv = (len(mesh.tessface_uv_textures) > 0)
     has_uv_vertex = (len(mesh.sticky) > 0)
-    has_vcol = len(mesh.vertex_colors) > 0
+    has_vcol = len(mesh.tessface_vertex_colors) > 0
 
     if (not has_uv) and (not has_uv_vertex):
         use_uv_coords = False
@@ -80,7 +80,7 @@ def save(operator,
         has_vcol = False
 
     if has_uv:
-        active_uv_layer = mesh.uv_textures.active
+        active_uv_layer = mesh.tessface_uv_textures.active
         if not active_uv_layer:
             use_uv_coords = False
             has_uv = False
@@ -88,7 +88,7 @@ def save(operator,
             active_uv_layer = active_uv_layer.data
 
     if has_vcol:
-        active_col_layer = mesh.vertex_colors.active
+        active_col_layer = mesh.tessface_vertex_colors.active
         if not active_col_layer:
             use_colors = False
             has_vcol = False
@@ -113,7 +113,7 @@ def save(operator,
 
         if has_uv:
             uv = active_uv_layer[i]
-            uv = uv.uv1, uv.uv2, uv.uv3, uv.uv4  # XXX - crufty :/
+            uv = uv.uv1, uv.uv2, uv.uv3, uv.uv4
         if has_vcol:
             col = active_col_layer[i]
             col = col.color1[:], col.color2[:], col.color3[:], col.color4[:]
