@@ -39,8 +39,8 @@ class BVH_Node(object):
         'rot_order',  # a triple of indices as to the order rotation is applied. [0,1,2] is x/y/z - [None, None, None] if no rotation.
         'rot_order_str',  # same as above but a string 'XYZ' format.
         'anim_data',  # a list one tuple's one for each frame. (locx, locy, locz, rotx, roty, rotz), euler rotation ALWAYS stored xyz order, even when native used.
-        'has_loc',  # Conveinience function, bool, same as (channels[0]!=-1 or channels[1]!=-1 channels[2]!=-1)
-        'has_rot',  # Conveinience function, bool, same as (channels[3]!=-1 or channels[4]!=-1 channels[5]!=-1)
+        'has_loc',  # Convenience function, bool, same as (channels[0]!=-1 or channels[1]!=-1 or channels[2]!=-1)
+        'has_rot',  # Convenience function, bool, same as (channels[3]!=-1 or channels[4]!=-1 or channels[5]!=-1)
         'index',  # index from the file, not strictly needed but nice to maintain order
         'temp',  # use this for whatever you want
         )  
@@ -72,7 +72,7 @@ class BVH_Node(object):
         self.children = []
 
         # list of 6 length tuples: (lx,ly,lz, rx,ry,rz)
-        # even if the channels arnt used they will just be zero
+        # even if the channels aren't used they will just be zero
         #
         self.anim_data = [(0, 0, 0, 0, 0, 0)]
 
@@ -125,9 +125,9 @@ def read_bvh(context, file_path, rotate_mode='XYZ', global_scale=1.0):
                 file_lines[lineIdx][1] = '_'.join(file_lines[lineIdx][1:])
                 file_lines[lineIdx] = file_lines[lineIdx][:2]
 
-            # MAY NEED TO SUPPORT MULTIPLE ROOT's HERE!!!, Still unsure weather multiple roots are possible.??
+            # MAY NEED TO SUPPORT MULTIPLE ROOTS HERE! Still unsure weather multiple roots are possible?
 
-            # Make sure the names are unique- Object names will match joint names exactly and both will be unique.
+            # Make sure the names are unique - Object names will match joint names exactly and both will be unique.
             name = file_lines[lineIdx][1]
 
             #print '%snode: %s, parent: %s' % (len(bvh_nodes_serial) * '  ', name,  bvh_nodes_serial[-1])
@@ -137,9 +137,9 @@ def read_bvh(context, file_path, rotate_mode='XYZ', global_scale=1.0):
             lineIdx += 1  # Increment to the next line (Channels)
 
             # newChannel[Xposition, Yposition, Zposition, Xrotation, Yrotation, Zrotation]
-            # newChannel references indecies to the motiondata,
+            # newChannel references indices to the motiondata,
             # if not assigned then -1 refers to the last value that will be added on loading at a value of zero, this is appended
-            # We'll add a zero value onto the end of the MotionDATA so this is always refers to a value.
+            # We'll add a zero value onto the end of the MotionDATA so this always refers to a value.
             my_channel = [-1, -1, -1, -1, -1, -1]
             my_rot_order = [None, None, None]
             rot_count = 0
@@ -189,7 +189,7 @@ def read_bvh(context, file_path, rotate_mode='XYZ', global_scale=1.0):
             bvh_nodes_serial[-1].rest_tail_world = bvh_nodes_serial[-1].rest_head_world + rest_tail
             bvh_nodes_serial[-1].rest_tail_local = bvh_nodes_serial[-1].rest_head_local + rest_tail
 
-            # Just so we can remove the Parents in a uniform way- End has kids
+            # Just so we can remove the Parents in a uniform way - End has kids
             # so this is a placeholder
             bvh_nodes_serial.append(None)
 
@@ -209,7 +209,7 @@ def read_bvh(context, file_path, rotate_mode='XYZ', global_scale=1.0):
     del bvh_nodes_serial
 
     # importing world with any order but nicer to maintain order
-    # second life expects it, which isnt to spec.
+    # second life expects it, which isn't to spec.
     bvh_nodes_list = sorted_nodes(bvh_nodes)
 
     while lineIdx < len(file_lines):
@@ -270,7 +270,7 @@ def read_bvh(context, file_path, rotate_mode='XYZ', global_scale=1.0):
                 bvh_node.rest_tail_world = rest_tail_world * (1.0 / len(bvh_node.children))
                 bvh_node.rest_tail_local = rest_tail_local * (1.0 / len(bvh_node.children))
 
-        # Make sure tail isnt the same location as the head.
+        # Make sure tail isn't the same location as the head.
         if (bvh_node.rest_tail_local - bvh_node.rest_head_local).length <= 0.001 * global_scale:
             print("\tzero length node found:", bvh_node.name)
             bvh_node.rest_tail_local.y = bvh_node.rest_tail_local.y + global_scale / 10
@@ -381,7 +381,7 @@ def bvh_node_dict2armature(context,
             average_bone_length += l
             nonzero_count += 1
 
-    # Very rare cases all bones couldbe zero length???
+    # Very rare cases all bones could be zero length???
     if not average_bone_length:
         average_bone_length = 0.1
     else:
