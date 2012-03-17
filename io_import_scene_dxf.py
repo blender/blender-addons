@@ -2467,7 +2467,7 @@ class IMPORT_OT_autocad_dxf(bpy.types.Operator):
             )
     draw_one = BoolProperty(
             name="Merge all",
-            description="Draw all into one mesh-object",
+            description="Draw all into one mesh object",
             default=toggle & T_DrawOne,
             )
     circleResolution = IntProperty(
