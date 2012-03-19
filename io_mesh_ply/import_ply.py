@@ -257,7 +257,7 @@ def load_ply(filepath):
     def add_face(vertices, indices, uvindices, colindices):
         mesh_faces.append(indices)
         if uvindices:
-            mesh_uvs.append([(vertices[index][uvindices[0]], 1.0 - vertices[index][uvindices[1]]) for index in indices])
+            mesh_uvs.append([(vertices[index][uvindices[0]], vertices[index][uvindices[1]]) for index in indices])
         if colindices:
             mesh_colors.append([(vertices[index][colindices[0]] * colmultiply[0],
                                  vertices[index][colindices[1]] * colmultiply[1],

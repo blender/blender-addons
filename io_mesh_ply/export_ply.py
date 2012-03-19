@@ -129,10 +129,10 @@ def save(operator,
                 normal_key = rvec3d(normal)
 
             if has_uv:
-                uvcoord = uv[j][0], 1.0 - uv[j][1]
+                uvcoord = uv[j][0], uv[j][1]
                 uvcoord_key = rvec2d(uvcoord)
             elif has_uv_vertex:
-                uvcoord = v.uvco[0], 1.0 - v.uvco[1]
+                uvcoord = v.uvco[0], v.uvco[1]
                 uvcoord_key = rvec2d(uvcoord)
 
             if has_vcol:
