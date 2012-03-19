@@ -123,7 +123,7 @@ def do_inset(mesh, amount, height, region, as_percent):
     pitch = math.atan(height / amount)
     selfaces = []
     selface_indices = []
-    bm = bmesh.from_mesh(mesh)
+    bm = bmesh.from_edit_mesh(mesh)
     for face in bm.faces:
         if face.select:
             selfaces.append(face)
