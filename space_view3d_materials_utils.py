@@ -25,8 +25,8 @@
 bl_info = {
     "name": "Material Utils",
     "author": "michaelw",
-    "version": (1, 3),
-    "blender": (2, 5, 6),
+    "version": (1, 4),
+    "blender": (2, 6, 2),
     "location": "View3D > Q key",
     "description": "Menu of material tools (assign, select..)  in the 3D View",
     "warning": "",
@@ -486,7 +486,7 @@ def texface_to_mat():
 # operator classes:
 
 class VIEW3D_OT_texface_to_material(bpy.types.Operator):
-    ''''''
+    '''Create texture materials for images assigned in UV editor'''
     bl_idname = "view3d.texface_to_material"
     bl_label = "MW Texface Images to Material/Texture"
     bl_options = {'REGISTER', 'UNDO'}
@@ -506,7 +506,7 @@ class VIEW3D_OT_texface_to_material(bpy.types.Operator):
 
 
 class VIEW3D_OT_assign_material(bpy.types.Operator):
-    '''assign a material to the selection'''
+    '''Assign a material to the selection'''
     bl_idname = "view3d.assign_material"
     bl_label = "MW Assign Material"
     bl_options = {'REGISTER', 'UNDO'}
@@ -532,8 +532,8 @@ class VIEW3D_OT_assign_material(bpy.types.Operator):
 
 
 class VIEW3D_OT_clean_material_slots(bpy.types.Operator):
-    '''removes any material slots from the
-    selected objects that are not used by the mesh'''
+    '''Removes any material slots from selected objects '''\
+    '''that are not used by the mesh'''
     bl_idname = "view3d.clean_material_slots"
     bl_label = "MW Clean Material Slots"
     bl_options = {'REGISTER', 'UNDO'}
@@ -548,7 +548,7 @@ class VIEW3D_OT_clean_material_slots(bpy.types.Operator):
 
 
 class VIEW3D_OT_material_to_texface(bpy.types.Operator):
-    ''''''
+    '''Transfer material assignments to UV editor'''
     bl_idname = "view3d.material_to_texface"
     bl_label = "MW Material Images to Texface"
     bl_options = {'REGISTER', 'UNDO'}
@@ -563,7 +563,7 @@ class VIEW3D_OT_material_to_texface(bpy.types.Operator):
 
 
 class VIEW3D_OT_select_material_by_name(bpy.types.Operator):
-    ''''''
+    '''Select geometry with this material assigned to it'''
     bl_idname = "view3d.select_material_by_name"
     bl_label = "MW Select Material By Name"
     bl_options = {'REGISTER', 'UNDO'}
@@ -584,7 +584,7 @@ class VIEW3D_OT_select_material_by_name(bpy.types.Operator):
 
 
 class VIEW3D_OT_replace_material(bpy.types.Operator):
-    '''assign a material to the selection'''
+    '''Replace a material by name'''
     bl_idname = "view3d.replace_material"
     bl_label = "MW Replace Material"
     bl_options = {'REGISTER', 'UNDO'}
@@ -599,8 +599,8 @@ class VIEW3D_OT_replace_material(bpy.types.Operator):
             maxlen=21,
             )
     all_objects = BoolProperty(
-            name="all_objects",
-            description="replace for all objects in this blend file",
+            name="All objects",
+            description="Replace for all objects in this blend file",
             default=True,
             )
 
@@ -620,7 +620,7 @@ class VIEW3D_OT_replace_material(bpy.types.Operator):
 # menu classes
 
 class VIEW3D_MT_master_material(bpy.types.Menu):
-    bl_label = "Master Material Menu"
+    bl_label = "Material Utils Menu"
 
     def draw(self, context):
         layout = self.layout
