@@ -51,8 +51,8 @@ from bpy.props import (BoolProperty,
 
 
 class Inset(bpy.types.Operator):
-    bl_idname = "mesh.inset"
-    bl_label = "Inset"
+    bl_idname = "mesh.insetpoly"
+    bl_label = "Inset Polygon"
     bl_description = "Make an inset polygon inside selection"
     bl_options = {'REGISTER', 'UNDO'}
 
@@ -171,8 +171,8 @@ def do_inset(mesh, amount, height, region, as_percent):
 
 
 def panel_func(self, context):
-    self.layout.label(text="Inset:")
-    self.layout.operator("mesh.inset", text="Inset")
+    self.layout.label(text="Inset Polygon:")
+    self.layout.operator("mesh.insetpoly", text="Inset Polygon")
 
 
 def register():
