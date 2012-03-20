@@ -69,12 +69,32 @@ global_state = {
     "reset_anim": False,
     "anim_cycles": 0,  # count how many times we played the anim
     "last_frame": -1,
-    "render_out": "",
+    "is_render": False,
     "render_time": "",  # time render was finished.
     "timer": None,
     "basedir": "",  # demo.py is stored here
     "demo_index": 0,
 }
+
+
+# -----------------------------------------------------------------------------
+# render handler - maintain "is_render"
+
+def handle_render_clear():
+    for ls in (bpy.app.handlers.render_complete, bpy.app.handlers.render_cancel):
+        while handle_render_done_cb in ls:
+            ls.remove(handle_render_done_cb)
+
+
+def handle_render_done_cb(self):
+    global_state["is_render"] = True
+
+
+def handle_render_init():
+    handle_render_clear()
+    bpy.app.handlers.render_complete.append(handle_render_done_cb)
+    bpy.app.handlers.render_cancel.append(handle_render_done_cb)
+    global_state["is_render"] = False
 
 
 def demo_mode_auto_select():
@@ -162,18 +182,9 @@ def demo_mode_init():
     elif global_config["mode"] == 'RENDER':
         print("  render")
 
-        # setup tempfile
-        handle, global_state["render_out"] = tempfile.mkstemp()
-        os.close(handle)
-        del handle
-
-        if os.path.exists(global_state["render_out"]):
-            print("  render!!!")
-            os.remove(global_state["render_out"])
-
         # setup scene.
         scene = bpy.context.scene
-        scene.render.filepath = global_state["render_out"]
+        scene.render.filepath = "TEMP_RENDER"
         scene.render.image_settings.file_format = 'AVI_JPEG' if global_config["anim_render"] else 'PNG'
         scene.render.use_file_extension = False
         scene.render.use_placeholder = False
@@ -181,12 +192,13 @@ def demo_mode_init():
             if global_config["anim_render"]:
                 bpy.ops.render.render('INVOKE_DEFAULT', animation=True)
             else:
-                bpy.ops.render.render('INVOKE_DEFAULT', write_still=True)
+                bpy.ops.render.render('INVOKE_DEFAULT')  # write_still=True, no need to write now.
+
+                handle_render_init()
+
         except RuntimeError:  # no camera for eg:
             import traceback
             traceback.print_exc()
-
-            open(global_state["render_out"], 'w').close()  # touch so we move on.
 
     else:
         raise Exception("Unsupported mode %r" % global_config["mode"])
@@ -254,14 +266,14 @@ def demo_mode_update():
     # --------------------------------------------------------------------------
     # RENDER MODE
     elif global_config["mode"] == 'RENDER':
-        if os.path.exists(global_state["render_out"]):
+        if global_state["is_render"]:
             # wait until the time has passed
             # XXX, todo, if rendering an anim we need some way to check its done.
             if global_state["render_time"] == -1.0:
                 global_state["render_time"] = time.time()
             else:
                 if time.time() - global_state["render_time"] > global_config["display_render"]:
-                    os.remove(global_state["render_out"])
+                    handle_render_clear()
                     demo_mode_next_file()
                     return
     else:
