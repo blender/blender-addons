@@ -1455,7 +1455,7 @@ def register():
     bpy.types.Scene.measure_panel_draw = bpy.props.BoolProperty(
         name="Draw distance",
         description="Draw distances in 3D View",
-        default=1)
+        default=0)
 
     bpy.types.Scene.measure_panel_calc_edge_length = bpy.props.BoolProperty(
         description="Calculate total length of (selected) edges",
@@ -1479,7 +1479,10 @@ def register():
 
 def unregister():
     bpy.utils.unregister_module(__name__)
-
+    bpy.types.Scene.measure_panel_draw = bpy.props.BoolProperty(
+        name="Draw distance",
+        description="Draw distances in 3D View",
+        default=0)
     pass
 
 if __name__ == "__main__":
