@@ -27,7 +27,7 @@ bl_info = {
     "author": "Buerbaum Martin (Pontiac), TNae (Normal patch)," \
         " Benjamin Lauritzen (Loonsbury; Volume code)," \
         " Alessandro Sala (patch: Units in 3D View)",
-    "version": (0, 8, 6),
+    "version": (0, 8, 7),
     "blender": (2, 6, 0),
     "location": "View3D > Properties > Measure Panel",
     "description": "Measure distances between objects",
@@ -73,11 +73,12 @@ http://blenderartists.org/forum/showthread.php?t=177800
 
 import bpy
 from bpy.props import *
+from bpy.app.handlers import persistent
 from mathutils import Vector, Matrix
 import bgl
 import blf
 from bpy_extras.view3d_utils import location_3d_to_region_2d
-from bpy_extras.mesh_utils import ngon_tesselate
+from bpy_extras.mesh_utils import ngon_tessellate
 
 
 # Precicion for display of float values.
@@ -86,6 +87,15 @@ PRECISION = 4
 # Name of the custom properties as stored in the scene.
 COLOR_LOCAL = (1.0, 0.5, 0.0, 0.8)
 COLOR_GLOBAL = (0.5, 0.0, 1.0, 0.8)
+
+# 3D View - text offset
+OFFSET_LINE = 10   # Offset the text a bit to the right.
+OFFSET_Y = 15      # Offset of the lines.
+OFFSET_VALUE = 30  # Offset of value(s) from the text.
+
+# 3D View - line width
+LINE_WIDTH_XYZ = 1
+LINE_WIDTH_DIST = 2
 
 
 # Returns a tuple describing the current measuring system
@@ -146,9 +156,9 @@ def convertDistance(val, units_info):
 # Returns a single selected object.
 # Returns None if more than one (or nothing) is selected.
 # Note: Ignores the active object.
-def getSingleObject(context):
-    if len(context.selected_objects) == 1:
-        return context.selected_objects[0]
+def getSingleObject():
+    if len(bpy.context.selected_objects) == 1:
+        return bpy.context.selected_objects[0]
 
     return None
 
@@ -157,11 +167,12 @@ def getSingleObject(context):
 # depending on the current view mode and the selection.
 def getMeasurePoints(context):
     sce = context.scene
+    mode = context.mode
 
     # Get a single selected object (or nothing).
-    obj = getSingleObject(context)
+    obj = getSingleObject()
 
-    if context.mode == 'EDIT_MESH':
+    if mode == 'EDIT_MESH':
         obj = context.active_object
 
         if obj and obj.type == 'MESH' and obj.data:
@@ -231,7 +242,7 @@ def getMeasurePoints(context):
             else:
                 return None
 
-    elif context.mode == 'OBJECT':
+    elif mode == 'OBJECT':
         # We are working in object mode.
 
         if len(context.selected_objects) > 2:
@@ -324,7 +335,7 @@ def polyAreaGlobal(poly, obj):
 
     if len(poly.vertices) > 3:
         # Tesselate the polygon into multiple tris
-        tris = ngon_tesselate(mesh, poly.vertices)
+        tris = ngon_tessellate(mesh, poly.vertices)
 
         for tri in tris:
             # Get vertex data
@@ -561,6 +572,175 @@ def measureLocal(sce):
     return (sce.measure_panel_transform == "measure_local")
 
 
+# Calculate values if geometry, selection or cursor changed.
+@persistent
+def scene_update(context):
+    sce = context
+    mode = bpy.context.mode
+
+    if (mode == 'EDIT_MESH' and not sce.measure_panel_update):
+        return
+
+    if (bpy.data.objects.is_updated
+        or bpy.context.scene.is_updated
+        or sce.measure_panel_update):
+        # TODO: Better way to check selection changes and cursor changes?
+
+        sel_objs = bpy.context.selected_objects
+
+        # EDGE LENGTH
+        if sce.measure_panel_calc_edge_length:
+            if (mode == 'EDIT_MESH'
+                and sce.measure_panel_update):
+                sce.measure_panel_update = 0
+                obj = context.active_object
+
+                #if obj.is_updated:
+                length_total = objectEdgeLength(obj, True,
+                    measureGlobal(sce))
+                sce.measure_panel_edge_length = length_total
+
+            elif mode == 'OBJECT':
+                length_total = -1
+
+                for o in sel_objs:
+                    if o.type == 'MESH':
+                        length = objectEdgeLength(o, False, measureGlobal(sce))
+
+                        if length >= 0:
+                            if length_total < 0:
+                                length_total = 0
+
+                            length_total += length
+
+                sce.measure_panel_edge_length = length_total
+
+        # AREA
+        # Handle mesh surface area calulations
+        if sce.measure_panel_calc_area:
+            if (mode == 'EDIT_MESH'
+                and sce.measure_panel_update):
+                sce.measure_panel_update = 0
+                obj = bpy.context.active_object
+
+                if obj and obj.type == 'MESH' and obj.data:
+                    # "Note: a Mesh will return the selection state of the mesh
+                    # when EditMode was last exited. A Python script operating
+                    # in EditMode must exit EditMode before getting the current
+                    # selection state of the mesh."
+                    # http://www.blender.org/documentation/249PythonDoc/
+                    # /Mesh.MVert-class.html#sel
+                    # We can only provide this by existing &
+                    # re-entering EditMode.
+                    # @todo: Better way to do this?
+
+                    # Get mesh data from Object.
+                    me = obj.data
+
+                    # Get transformation matrix from object.
+                    ob_mat = obj.matrix_world
+                    # Also make an inversed copy! of the matrix.
+                    ob_mat_inv = ob_mat.copy()
+                    Matrix.invert(ob_mat_inv)
+
+                    # Get the selected vertices.
+                    # @todo: Better (more efficient) way to do this?
+                    verts_selected = [v for v in me.vertices if v.select == 1]
+
+                    if len(verts_selected) >= 3:
+                        # Get selected faces
+                        # @todo: Better (more efficient) way to do this?
+                        polys_selected = [p for p in me.polygons
+                            if p.select == 1]
+
+                        if len(polys_selected) > 0:
+                            area, normal = objectSurfaceArea(obj, True,
+                                measureGlobal(sce))
+                            if area >= 0.0:
+                                sce.measure_panel_area1 = area
+                                sce.measure_panel_normal1 = normal
+
+            elif mode == 'OBJECT':
+                # We are working in object mode.
+
+                # Get a single selected object (or nothing).
+                obj = getSingleObject()
+
+                if len(sel_objs) > 2:
+                    return
+# @todo Make this work again.
+#                    # We have more that 2 objects selected...
+#
+#                    mesh_objects = [o for o in context.selected_objects
+#                       if o.type == 'MESH']
+
+#                    if len(mesh_objects) > 0:
+#                        # ... and at least one of them is a mesh.
+#
+#                        for o in mesh_objects:
+#                            area = objectSurfaceArea(o, False,
+#                                measureGlobal(sce))
+#                           if area >= 0:
+#                               #row.label(text=o.name, icon='OBJECT_DATA')
+#                               #row.label(text=str(round(area, PRECISION))
+#                               #    + " BU^2")
+
+                elif len(sel_objs) == 2:
+                    # 2 objects selected.
+
+                    obj1, obj2 = sel_objs
+
+                    # Calculate surface area of the objects.
+                    area1, normal1 = objectSurfaceArea(obj1, False,
+                        measureGlobal(sce))
+                    area2, normal2 = objectSurfaceArea(obj2, False,
+                        measureGlobal(sce))
+                    sce.measure_panel_area1 = area1
+                    sce.measure_panel_area2 = area2
+                    sce.measure_panel_normal1 = normal1
+                    sce.measure_panel_normal2 = normal2
+
+                elif obj:
+                    # One object selected.
+
+                    # Calculate surface area of the object.
+                    area, normal = objectSurfaceArea(obj, False,
+                        measureGlobal(sce))
+
+                    sce.measure_panel_area1 = area
+                    sce.measure_panel_normal1 = normal
+
+        # VOLUME
+        # Handle mesh volume calulations.
+        if sce.measure_panel_calc_volume:
+            obj = getSingleObject()
+
+            if mode == 'OBJECT':
+                # We are working in object mode.
+
+                #if len(sel_objs) > 2:       # TODO
+                #el
+                if len(sel_objs) == 2:
+                    # 2 objects selected.
+
+                    obj1, obj2 = sel_objs
+
+                    # Calculate surface area of the objects.
+                    volume1 = objectVolume(obj1, measureGlobal(sce))
+                    volume2 = objectVolume(obj2, measureGlobal(sce))
+
+                    sce.measure_panel_volume1 = volume1
+                    sce.measure_panel_volume2 = volume2
+
+                elif obj:
+                    # One object selected.
+
+                    # Calculate surface area of the object.
+                    volume1 = objectVolume(obj, measureGlobal(sce))
+
+                    sce.measure_panel_volume1 = volume1
+
+
 def draw_measurements_callback(self, context):
     sce = context.scene
 
@@ -574,290 +754,147 @@ def draw_measurements_callback(self, context):
     #bgl.glVertex2i(80, 100)
     #bgl.glEnd()
 
-    # Get measured 3D points and colors.
-    line = getMeasurePoints(context)
-    if line and draw:
-        p1, p2, color = line
+    if draw:
+        # Get measured 3D points and colors.
+        line = getMeasurePoints(context)
 
-        # Get and convert the Perspective Matrix of the current view/region.
-        view3d = bpy.context
-        region = view3d.region_data
-        perspMatrix = region.perspective_matrix
-        tempMat = [perspMatrix[j][i] for i in range(4) for j in range(4)]
-        perspBuff = bgl.Buffer(bgl.GL_FLOAT, 16, tempMat)
+        if line:
+            p1, p2, color = line
 
-        # ---
-        # Store previous OpenGL settings.
-        # Store MatrixMode
-        MatrixMode_prev = bgl.Buffer(bgl.GL_INT, [1])
-        bgl.glGetIntegerv(bgl.GL_MATRIX_MODE, MatrixMode_prev)
-        MatrixMode_prev = MatrixMode_prev[0]
+            # Get & convert the Perspective Matrix of the current view/region.
+            view3d = bpy.context
+            region = view3d.region_data
+            perspMatrix = region.perspective_matrix
+            tempMat = [perspMatrix[j][i] for i in range(4) for j in range(4)]
+            perspBuff = bgl.Buffer(bgl.GL_FLOAT, 16, tempMat)
 
-        # Store projection matrix
-        ProjMatrix_prev = bgl.Buffer(bgl.GL_DOUBLE, [16])
-        bgl.glGetFloatv(bgl.GL_PROJECTION_MATRIX, ProjMatrix_prev)
+            # ---
+            # Store previous OpenGL settings.
+            # Store MatrixMode
+            MatrixMode_prev = bgl.Buffer(bgl.GL_INT, [1])
+            bgl.glGetIntegerv(bgl.GL_MATRIX_MODE, MatrixMode_prev)
+            MatrixMode_prev = MatrixMode_prev[0]
 
-        # Store Line width
-        lineWidth_prev = bgl.Buffer(bgl.GL_FLOAT, [1])
-        bgl.glGetFloatv(bgl.GL_LINE_WIDTH, lineWidth_prev)
-        lineWidth_prev = lineWidth_prev[0]
+            # Store projection matrix
+            ProjMatrix_prev = bgl.Buffer(bgl.GL_DOUBLE, [16])
+            bgl.glGetFloatv(bgl.GL_PROJECTION_MATRIX, ProjMatrix_prev)
 
-        # Store GL_BLEND
-        blend_prev = bgl.Buffer(bgl.GL_BYTE, [1])
-        bgl.glGetFloatv(bgl.GL_BLEND, blend_prev)
-        blend_prev = blend_prev[0]
+            # Store Line width
+            lineWidth_prev = bgl.Buffer(bgl.GL_FLOAT, [1])
+            bgl.glGetFloatv(bgl.GL_LINE_WIDTH, lineWidth_prev)
+            lineWidth_prev = lineWidth_prev[0]
 
-        line_stipple_prev = bgl.Buffer(bgl.GL_BYTE, [1])
-        bgl.glGetFloatv(bgl.GL_LINE_STIPPLE, line_stipple_prev)
-        line_stipple_prev = line_stipple_prev[0]
+            # Store GL_BLEND
+            blend_prev = bgl.Buffer(bgl.GL_BYTE, [1])
+            bgl.glGetFloatv(bgl.GL_BLEND, blend_prev)
+            blend_prev = blend_prev[0]
 
-        # Store glColor4f
-        color_prev = bgl.Buffer(bgl.GL_FLOAT, [4])
-        bgl.glGetFloatv(bgl.GL_COLOR, color_prev)
+            line_stipple_prev = bgl.Buffer(bgl.GL_BYTE, [1])
+            bgl.glGetFloatv(bgl.GL_LINE_STIPPLE, line_stipple_prev)
+            line_stipple_prev = line_stipple_prev[0]
 
-        # ---
-        # Prepare for 3D drawing
-        bgl.glLoadIdentity()
-        bgl.glMatrixMode(bgl.GL_PROJECTION)
-        bgl.glLoadMatrixf(perspBuff)
+            # Store glColor4f
+            color_prev = bgl.Buffer(bgl.GL_FLOAT, [4])
+            bgl.glGetFloatv(bgl.GL_COLOR, color_prev)
 
-        bgl.glEnable(bgl.GL_BLEND)
-        bgl.glEnable(bgl.GL_LINE_STIPPLE)
+            # ---
+            # Prepare for 3D drawing
+            bgl.glLoadIdentity()
+            bgl.glMatrixMode(bgl.GL_PROJECTION)
+            bgl.glLoadMatrixf(perspBuff)
 
-        # ---
-        # Draw 3D stuff.
-        width = 1
-        bgl.glLineWidth(width)
-        # X
-        bgl.glColor4f(1, 0, 0, 0.8)
-        bgl.glBegin(bgl.GL_LINE_STRIP)
-        bgl.glVertex3f(p1[0], p1[1], p1[2])
-        bgl.glVertex3f(p2[0], p1[1], p1[2])
-        bgl.glEnd()
-        # Y
-        bgl.glColor4f(0, 1, 0, 0.8)
-        bgl.glBegin(bgl.GL_LINE_STRIP)
-        bgl.glVertex3f(p1[0], p1[1], p1[2])
-        bgl.glVertex3f(p1[0], p2[1], p1[2])
-        bgl.glEnd()
-        # Z
-        bgl.glColor4f(0, 0, 1, 0.8)
-        bgl.glBegin(bgl.GL_LINE_STRIP)
-        bgl.glVertex3f(p1[0], p1[1], p1[2])
-        bgl.glVertex3f(p1[0], p1[1], p2[2])
-        bgl.glEnd()
+            bgl.glEnable(bgl.GL_BLEND)
+            bgl.glEnable(bgl.GL_LINE_STIPPLE)
 
-        # Dist
-        width = 2
-        bgl.glLineWidth(width)
-        bgl.glColor4f(color[0], color[1], color[2], color[3])
-        bgl.glBegin(bgl.GL_LINE_STRIP)
-        bgl.glVertex3f(p1[0], p1[1], p1[2])
-        bgl.glVertex3f(p2[0], p2[1], p2[2])
-        bgl.glEnd()
+            # ---
+            # Draw 3D stuff.
+            bgl.glLineWidth(LINE_WIDTH_XYZ)
+            # X
+            bgl.glColor4f(1, 0, 0, 0.8)
+            bgl.glBegin(bgl.GL_LINE_STRIP)
+            bgl.glVertex3f(p1[0], p1[1], p1[2])
+            bgl.glVertex3f(p2[0], p1[1], p1[2])
+            bgl.glEnd()
+            # Y
+            bgl.glColor4f(0, 1, 0, 0.8)
+            bgl.glBegin(bgl.GL_LINE_STRIP)
+            bgl.glVertex3f(p1[0], p1[1], p1[2])
+            bgl.glVertex3f(p1[0], p2[1], p1[2])
+            bgl.glEnd()
+            # Z
+            bgl.glColor4f(0, 0, 1, 0.8)
+            bgl.glBegin(bgl.GL_LINE_STRIP)
+            bgl.glVertex3f(p1[0], p1[1], p1[2])
+            bgl.glVertex3f(p1[0], p1[1], p2[2])
+            bgl.glEnd()
 
-        # ---
-        # Restore previous OpenGL settings
-        bgl.glLoadIdentity()
-        bgl.glMatrixMode(MatrixMode_prev)
-        bgl.glLoadMatrixf(ProjMatrix_prev)
-        bgl.glLineWidth(lineWidth_prev)
-        if not blend_prev:
-            bgl.glDisable(bgl.GL_BLEND)
-        if not line_stipple_prev:
-            bgl.glDisable(bgl.GL_LINE_STIPPLE)
-        bgl.glColor4f(color_prev[0],
-            color_prev[1],
-            color_prev[2],
-            color_prev[3])
+            # Dist
+            bgl.glLineWidth(LINE_WIDTH_DIST)
+            bgl.glColor4f(color[0], color[1], color[2], color[3])
+            bgl.glBegin(bgl.GL_LINE_STRIP)
+            bgl.glVertex3f(p1[0], p1[1], p1[2])
+            bgl.glVertex3f(p2[0], p2[1], p2[2])
+            bgl.glEnd()
 
-        # ---
-        # Draw (2D) text
-        # We do this after drawing the lines so
-        # we can draw it OVER the line.
-        coord_2d = location_3d_to_region_2d(context.region,
-                                            context.space_data.region_3d,
-                                            p1.lerp(p2, 0.5),
-                                            )
-        OFFSET_LINE = 10   # Offset the text a bit to the right.
-        OFFSET_Y = 15      # Offset of the lines.
-        OFFSET_VALUE = 30  # Offset of value(s) from the text.
-        dist = (p1 - p2).length
+            # ---
+            # Restore previous OpenGL settings
+            bgl.glLoadIdentity()
+            bgl.glMatrixMode(MatrixMode_prev)
+            bgl.glLoadMatrixf(ProjMatrix_prev)
+            bgl.glLineWidth(lineWidth_prev)
+            if not blend_prev:
+                bgl.glDisable(bgl.GL_BLEND)
+            if not line_stipple_prev:
+                bgl.glDisable(bgl.GL_LINE_STIPPLE)
+            bgl.glColor4f(
+                color_prev[0],
+                color_prev[1],
+                color_prev[2],
+                color_prev[3])
 
-        # Write distance value into the scene property,
-        # so we can display it in the panel & refresh the panel.
-        if hasattr(sce, "measure_panel_dist"):
-            sce.measure_panel_dist = dist
-            context.area.tag_redraw()
+            # ---
+            # Draw (2D) text
+            # We do this after drawing the lines so
+            # we can draw it OVER the line.
+            coord_2d = location_3d_to_region_2d(
+                context.region,
+                context.space_data.region_3d,
+                p1.lerp(p2, 0.5))
+            dist = (p1 - p2).length
 
-        texts = [("Dist:", dist),
-            ("X:", abs(p1[0] - p2[0])),
-            ("Y:", abs(p1[1] - p2[1])),
-            ("Z:", abs(p1[2] - p2[2]))]
+            # Write distance value into the scene property,
+            # so we can display it in the panel & refresh the panel.
+            if hasattr(sce, "measure_panel_dist"):
+                sce.measure_panel_dist = dist
+                context.area.tag_redraw()
 
-        # Draw all texts
-        # @todo Get user pref for text color in 3D View
-        bgl.glColor4f(1.0, 1.0, 1.0, 1.0)
-        blf.size(0, 12, 72)  # Prevent font size to randomly change.
+            texts = [
+                ("Dist:", dist),
+                ("X:", abs(p1[0] - p2[0])),
+                ("Y:", abs(p1[1] - p2[1])),
+                ("Z:", abs(p1[2] - p2[2]))]
 
-        uinfo = getUnitsInfo()
+            # Draw all texts
+            # @todo Get user pref for text color in 3D View
+            bgl.glColor4f(1.0, 1.0, 1.0, 1.0)
+            blf.size(0, 12, 72)  # Prevent font size to randomly change.
 
-        loc_x = coord_2d[0] + OFFSET_LINE
-        loc_y = coord_2d[1]
-        for t in texts:
-            text = t[0]
+            uinfo = getUnitsInfo()
 
-            value = convertDistance(t[1], uinfo)
+            loc_x = coord_2d[0] + OFFSET_LINE
+            loc_y = coord_2d[1]
 
-            blf.position(0, loc_x, loc_y, 0)
-            blf.draw(0, text)
-            blf.position(0, loc_x + OFFSET_VALUE, loc_y, 0)
-            blf.draw(0, value)
+            for t in texts:
+                text = t[0]
 
-            loc_y -= OFFSET_Y
+                value = convertDistance(t[1], uinfo)
 
-    if sce.measure_panel_calc_edge_length:
-        if context.mode == 'EDIT_MESH':
-            obj = context.active_object
+                blf.position(0, loc_x, loc_y, 0)
+                blf.draw(0, text)
+                blf.position(0, loc_x + OFFSET_VALUE, loc_y, 0)
+                blf.draw(0, value)
 
-            length_total = objectEdgeLength(obj, True, measureGlobal(sce))
-
-            sce.measure_panel_edge_length = length_total
-
-        elif context.mode == 'OBJECT':
-            length_total = -1
-
-            for o in context.selected_objects:
-                if o.type == 'MESH':
-                    length = objectEdgeLength(o, False, measureGlobal(sce))
-
-                    if length >= 0:
-                        if length_total < 0:
-                            length_total = 0
-
-                        length_total += length
-
-            sce.measure_panel_edge_length = length_total
-
-    # Handle mesh surface area calulations
-    if sce.measure_panel_calc_area:
-        # Get a single selected object (or nothing).
-        obj = getSingleObject(context)
-
-        if context.mode == 'EDIT_MESH':
-            obj = context.active_object
-
-            if obj and obj.type == 'MESH' and obj.data:
-                # "Note: a Mesh will return the selection state of the mesh
-                # when EditMode was last exited. A Python script operating
-                # in EditMode must exit EditMode before getting the current
-                # selection state of the mesh."
-                # http://www.blender.org/documentation/249PythonDoc/
-                # /Mesh.MVert-class.html#sel
-                # We can only provide this by existing & re-entering EditMode.
-                # @todo: Better way to do this?
-
-                # Get mesh data from Object.
-                mesh = obj.data
-
-                # Get transformation matrix from object.
-                ob_mat = obj.matrix_world
-                # Also make an inversed copy! of the matrix.
-                ob_mat_inv = ob_mat.copy()
-                Matrix.invert(ob_mat_inv)
-
-                # Get the selected vertices.
-                # @todo: Better (more efficient) way to do this?
-                verts_selected = [v for v in mesh.vertices if v.select == 1]
-
-                if len(verts_selected) >= 3:
-                    # Get selected faces
-                    # @todo: Better (more efficient) way to do this?
-                    polys_selected = [f for f in mesh.polygons
-                        if f.select == 1]
-
-                    if len(polys_selected) > 0:
-                        area, normal = objectSurfaceArea(obj, True,
-                            measureGlobal(sce))
-                        if area >= 0.0:
-                            sce.measure_panel_area1 = area
-                            sce.measure_panel_normal1 = normal
-
-        elif context.mode == 'OBJECT':
-            # We are working in object mode.
-
-            if len(context.selected_objects) > 2:
-                return
-# @todo Make this work again.
-#                # We have more that 2 objects selected...
-#
-#                mesh_objects = [o for o in context.selected_objects
-#                    if o.type == 'MESH']
-
-#                if len(mesh_objects) > 0:
-#                    # ... and at least one of them is a mesh.
-#
-#                    for o in mesh_objects:
-#                        area = objectSurfaceArea(o, False,
-#                            measureGlobal(sce))
-#                        if area >= 0:
-#                            #row.label(text=o.name, icon='OBJECT_DATA')
-#                            #row.label(text=str(round(area, PRECISION))
-#                            #    + " BU^2")
-
-            elif len(context.selected_objects) == 2:
-                # 2 objects selected.
-
-                obj1, obj2 = context.selected_objects
-
-                # Calculate surface area of the objects.
-                area1, normal1 = objectSurfaceArea(obj1, False,
-                    measureGlobal(sce))
-                area2, normal2 = objectSurfaceArea(obj2, False,
-                    measureGlobal(sce))
-                sce.measure_panel_area1 = area1
-                sce.measure_panel_area2 = area2
-                sce.measure_panel_normal1 = normal1
-                sce.measure_panel_normal2 = normal2
-
-            elif obj:
-                # One object selected.
-
-                # Calculate surface area of the object.
-                area, normal = objectSurfaceArea(obj, False,
-                    measureGlobal(sce))
-
-                sce.measure_panel_area1 = area
-                sce.measure_panel_normal1 = normal
-
-    if sce.measure_panel_calc_volume:
-        obj = getSingleObject(context)
-
-        if context.mode == 'OBJECT':
-            # We are working in object mode.
-
-            #if len(context.selected_objects) > 2:       # TODO
-
-            #el
-            if len(context.selected_objects) == 2:
-                # 2 objects selected.
-
-                obj1, obj2 = context.selected_objects
-
-                # Calculate surface area of the objects.
-                volume1 = objectVolume(obj1, measureGlobal(sce))
-                volume2 = objectVolume(obj2, measureGlobal(sce))
-
-                sce.measure_panel_volume1 = volume1
-                sce.measure_panel_volume2 = volume2
-
-            elif obj:
-                # One object selected.
-
-                # Calculate surface area of the object.
-                volume1 = objectVolume(obj, measureGlobal(sce))
-
-                sce.measure_panel_volume1 = volume1
+                loc_y -= OFFSET_Y
 
 
 class VIEW3D_OT_display_measurements(bpy.types.Operator):
@@ -921,11 +958,13 @@ class VIEW3D_OT_reenter_editmode(bpy.types.Operator):
 
         # Get the active object.
         obj = context.active_object
+        sce = context.scene
 
         if obj and obj.type == 'MESH' and context.mode == 'EDIT_MESH':
             # Exit and re-enter mesh EditMode.
             bpy.ops.object.mode_set(mode='OBJECT')
             bpy.ops.object.mode_set(mode='EDIT')
+            sce.measure_panel_update = 1
             return {'FINISHED'}
 
         return {'CANCELLED'}
@@ -940,9 +979,9 @@ class VIEW3D_PT_measure(bpy.types.Panel):
     @classmethod
     def poll(cls, context):
         # Only display this panel in the object and edit mode 3D view.
+        mode = context.mode
         if (context.area.type == 'VIEW_3D' and
-            (context.mode == 'EDIT_MESH'
-            or context.mode == 'OBJECT')):
+            (mode == 'EDIT_MESH' or mode == 'OBJECT')):
             return 1
 
         return 0
@@ -951,30 +990,23 @@ class VIEW3D_PT_measure(bpy.types.Panel):
         layout = self.layout
         sce = context.scene
 
-        # Force a redraw.
-        # This prevents the lines still be drawn after
-        # disabling the "measure_panel_draw" checkbox.
-        # @todo Better solution?
-        context.area.tag_redraw()
-
         mgr_ops = context.window_manager.operators.values()
         if (not "VIEW3D_OT_display_measurements"
             in [op.bl_idname for op in mgr_ops]):
             layout.operator("view3d.activate_measure_panel",
                         text="Activate")
 
-        context.area.tag_redraw()
-
     def draw(self, context):
         layout = self.layout
         sce = context.scene
+        mode = context.mode
 
         # Get a single selected object (or nothing).
-        obj = getSingleObject(context)
+        obj = getSingleObject()
 
         drawTansformButtons = 1
 
-        if context.mode == 'EDIT_MESH':
+        if mode == 'EDIT_MESH':
             obj = context.active_object
 
             row = layout.row()
@@ -1122,7 +1154,7 @@ class VIEW3D_PT_measure(bpy.types.Panel):
                         "measure_panel_transform",
                         expand=True)
 
-        elif context.mode == 'OBJECT':
+        elif mode == 'OBJECT':
             # We are working in object mode.
 
             mesh_objects = [o for o in context.selected_objects
@@ -1269,8 +1301,8 @@ class VIEW3D_PT_measure(bpy.types.Panel):
                                 icon='INFO')
                         else:  # -2
                             row = box.row()
-                            row.label(text="Mesh has faces with " \
-                                "more than 4 edges!",
+                            row.label(text="Mesh has n-gons (faces with " \
+                                "more than 4 edges)!",
                                 icon='INFO')
 
                     if sce.measure_panel_volume2 >= -2:
@@ -1288,8 +1320,8 @@ class VIEW3D_PT_measure(bpy.types.Panel):
                                 icon='INFO')
                         else:  # -2
                             row = box.row()
-                            row.label(text="Mesh has faces with " \
-                                "more than 4 edges!",
+                            row.label(text="Mesh has n-gons (faces with " \
+                                "more than 4 edges)!",
                                 icon='INFO')
 
             elif obj:
@@ -1369,8 +1401,8 @@ class VIEW3D_PT_measure(bpy.types.Panel):
                                 icon='INFO')
                         else:  # -2
                             row = box.row()
-                            row.label(text="Mesh has faces with " \
-                                "more than 4 edges!",
+                            row.label(text="Mesh has n-gons (faces with " \
+                                "more than 4 edges)!",
                                 icon='INFO')
 
             elif not context.selected_objects:
@@ -1403,6 +1435,8 @@ class VIEW3D_PT_measure(bpy.types.Panel):
 
 def register():
     bpy.utils.register_module(__name__)
+
+    bpy.app.handlers.scene_update_post.append(scene_update)
 
     # Define a temporary attribute for the distance value
     bpy.types.Scene.measure_panel_dist = bpy.props.FloatProperty(
@@ -1455,7 +1489,7 @@ def register():
     bpy.types.Scene.measure_panel_draw = bpy.props.BoolProperty(
         name="Draw distance",
         description="Draw distances in 3D View",
-        default=0)
+        default=1)
 
     bpy.types.Scene.measure_panel_calc_edge_length = bpy.props.BoolProperty(
         description="Calculate total length of (selected) edges",
@@ -1474,15 +1508,33 @@ def register():
                     "usage on bigger meshes)",
         default=0)
 
+     # Define dropdown for the global/local setting
+    bpy.types.Scene.measure_panel_update = bpy.props.BoolProperty(
+        description="Update CPU heavy calculations",
+        default=0)
+
     pass
 
 
 def unregister():
     bpy.utils.unregister_module(__name__)
-    bpy.types.Scene.measure_panel_draw = bpy.props.BoolProperty(
-        name="Draw distance",
-        description="Draw distances in 3D View",
-        default=0)
+
+    # Remove properties.
+    del bpy.types.Scene.measure_panel_dist
+    del bpy.types.Scene.measure_panel_edge_length
+    del bpy.types.Scene.measure_panel_area1
+    del bpy.types.Scene.measure_panel_area2
+    del bpy.types.Scene.measure_panel_normal1
+    del bpy.types.Scene.measure_panel_normal2
+    del bpy.types.Scene.measure_panel_volume1
+    del bpy.types.Scene.measure_panel_volume2
+    del bpy.types.Scene.measure_panel_transform
+    del bpy.types.Scene.measure_panel_draw
+    del bpy.types.Scene.measure_panel_calc_edge_length
+    del bpy.types.Scene.measure_panel_calc_area
+    del bpy.types.Scene.measure_panel_calc_volume
+    del bpy.types.Scene.measure_panel_update
+
     pass
 
 if __name__ == "__main__":
