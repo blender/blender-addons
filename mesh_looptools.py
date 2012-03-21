@@ -19,10 +19,10 @@
 bl_info = {
     'name': "LoopTools",
     'author': "Bart Crouch",
-    'version': (3, 2, 3),
-    'blender': (2, 6, 1),
+    'version': (3, 2, 4),
+    'blender': (2, 6, 2),
     'location': "View3D > Toolbar and View3D > Specials (W-key)",
-    'warning': "",
+    'warning': "Bridge & Loft functions removed",
     'description': "Mesh modelling toolkit. Several tools to aid modelling",
     'wiki_url': "http://wiki.blender.org/index.php/Extensions:2.5/Py/"\
         "Scripts/Modeling/LoopTools",
@@ -3293,11 +3293,11 @@ class VIEW3D_MT_edit_mesh_looptools(bpy.types.Menu):
     def draw(self, context):
         layout = self.layout
         
-        layout.operator("mesh.looptools_bridge", text="Bridge").loft = False
+#        layout.operator("mesh.looptools_bridge", text="Bridge").loft = False
         layout.operator("mesh.looptools_circle")
         layout.operator("mesh.looptools_curve")
         layout.operator("mesh.looptools_flatten")
-        layout.operator("mesh.looptools_bridge", text="Loft").loft = True
+#        layout.operator("mesh.looptools_bridge", text="Loft").loft = True
         layout.operator("mesh.looptools_relax")
         layout.operator("mesh.looptools_space")
 
@@ -3315,40 +3315,40 @@ class VIEW3D_PT_tools_looptools(bpy.types.Panel):
         lt = context.window_manager.looptools
         
         # bridge - first line
-        split = col.split(percentage=0.15)
-        if lt.display_bridge:
-            split.prop(lt, "display_bridge", text="", icon='DOWNARROW_HLT')
-        else:
-            split.prop(lt, "display_bridge", text="", icon='RIGHTARROW')
-        split.operator("mesh.looptools_bridge", text="Bridge").loft = False
+#        split = col.split(percentage=0.15)
+#        if lt.display_bridge:
+#            split.prop(lt, "display_bridge", text="", icon='DOWNARROW_HLT')
+#        else:
+#            split.prop(lt, "display_bridge", text="", icon='RIGHTARROW')
+#        split.operator("mesh.looptools_bridge", text="Bridge").loft = False
         # bridge - settings
-        if lt.display_bridge:
-            box = col.column(align=True).box().column()
+#        if lt.display_bridge:
+#            box = col.column(align=True).box().column()
             #box.prop(self, "mode")
             
             # top row
-            col_top = box.column(align=True)
-            row = col_top.row(align=True)
-            col_left = row.column(align=True)
-            col_right = row.column(align=True)
-            col_right.active = lt.bridge_segments != 1
-            col_left.prop(lt, "bridge_segments")
-            col_right.prop(lt, "bridge_min_width", text="")
-            # bottom row
-            bottom_left = col_left.row()
-            bottom_left.active = lt.bridge_segments != 1
-            bottom_left.prop(lt, "bridge_interpolation", text="")
-            bottom_right = col_right.row()
-            bottom_right.active = lt.bridge_interpolation == 'cubic'
-            bottom_right.prop(lt, "bridge_cubic_strength")
+#            col_top = box.column(align=True)
+#            row = col_top.row(align=True)
+#            col_left = row.column(align=True)
+#            col_right = row.column(align=True)
+#            col_right.active = lt.bridge_segments != 1
+#            col_left.prop(lt, "bridge_segments")
+#            col_right.prop(lt, "bridge_min_width", text="")
+#            # bottom row
+#            bottom_left = col_left.row()
+#            bottom_left.active = lt.bridge_segments != 1
+#            bottom_left.prop(lt, "bridge_interpolation", text="")
+#            bottom_right = col_right.row()
+#            bottom_right.active = lt.bridge_interpolation == 'cubic'
+#            bottom_right.prop(lt, "bridge_cubic_strength")
             # boolean properties
-            col_top.prop(lt, "bridge_remove_faces")
+#            col_top.prop(lt, "bridge_remove_faces")
             
             # override properties
-            col_top.separator()
-            row = box.row(align = True)
-            row.prop(lt, "bridge_twist")
-            row.prop(lt, "bridge_reverse")
+#            col_top.separator()
+#            row = box.row(align = True)
+#            row.prop(lt, "bridge_twist")
+#            row.prop(lt, "bridge_reverse")
         
         # circle - first line
         split = col.split(percentage=0.15)
@@ -3409,41 +3409,41 @@ class VIEW3D_PT_tools_looptools(bpy.types.Panel):
             box.prop(lt, "flatten_influence")
         
         # loft - first line
-        split = col.split(percentage=0.15)
-        if lt.display_loft:
-            split.prop(lt, "display_loft", text="", icon='DOWNARROW_HLT')
-        else:
-            split.prop(lt, "display_loft", text="", icon='RIGHTARROW')
-        split.operator("mesh.looptools_bridge", text="Loft").loft = True
-        # loft - settings
-        if lt.display_loft:
-            box = col.column(align=True).box().column()
-            #box.prop(self, "mode")
-            
-            # top row
-            col_top = box.column(align=True)
-            row = col_top.row(align=True)
-            col_left = row.column(align=True)
-            col_right = row.column(align=True)
-            col_right.active = lt.bridge_segments != 1
-            col_left.prop(lt, "bridge_segments")
-            col_right.prop(lt, "bridge_min_width", text="")
-            # bottom row
-            bottom_left = col_left.row()
-            bottom_left.active = lt.bridge_segments != 1
-            bottom_left.prop(lt, "bridge_interpolation", text="")
-            bottom_right = col_right.row()
-            bottom_right.active = lt.bridge_interpolation == 'cubic'
-            bottom_right.prop(lt, "bridge_cubic_strength")
-            # boolean properties
-            col_top.prop(lt, "bridge_remove_faces")
-            col_top.prop(lt, "bridge_loft_loop")
-            
-            # override properties
-            col_top.separator()
-            row = box.row(align = True)
-            row.prop(lt, "bridge_twist")
-            row.prop(lt, "bridge_reverse")
+#        split = col.split(percentage=0.15)
+#        if lt.display_loft:
+#            split.prop(lt, "display_loft", text="", icon='DOWNARROW_HLT')
+#        else:
+#            split.prop(lt, "display_loft", text="", icon='RIGHTARROW')
+#        split.operator("mesh.looptools_bridge", text="Loft").loft = True
+#        # loft - settings
+#        if lt.display_loft:
+#            box = col.column(align=True).box().column()
+#            #box.prop(self, "mode")
+#            
+#            # top row
+#            col_top = box.column(align=True)
+#            row = col_top.row(align=True)
+#            col_left = row.column(align=True)
+#            col_right = row.column(align=True)
+#            col_right.active = lt.bridge_segments != 1
+#            col_left.prop(lt, "bridge_segments")
+#            col_right.prop(lt, "bridge_min_width", text="")
+#            # bottom row
+#            bottom_left = col_left.row()
+#            bottom_left.active = lt.bridge_segments != 1
+#            bottom_left.prop(lt, "bridge_interpolation", text="")
+#            bottom_right = col_right.row()
+#            bottom_right.active = lt.bridge_interpolation == 'cubic'
+#            bottom_right.prop(lt, "bridge_cubic_strength")
+#            # boolean properties
+#            col_top.prop(lt, "bridge_remove_faces")
+#            col_top.prop(lt, "bridge_loft_loop")
+#            
+#            # override properties
+#            col_top.separator()
+#            row = box.row(align = True)
+#            row.prop(lt, "bridge_twist")
+#            row.prop(lt, "bridge_reverse")
         
         # relax - first line
         split = col.split(percentage=0.15)
@@ -3485,9 +3485,9 @@ class LoopToolsProps(bpy.types.PropertyGroup):
     """
     
     # general display properties
-    display_bridge = bpy.props.BoolProperty(name = "Bridge settings",
-        description = "Display settings of the Bridge tool",
-        default = False)
+#    display_bridge = bpy.props.BoolProperty(name = "Bridge settings",
+#        description = "Display settings of the Bridge tool",
+#        default = False)
     display_circle = bpy.props.BoolProperty(name = "Circle settings",
         description = "Display settings of the Circle tool",
         default = False)
@@ -3497,9 +3497,9 @@ class LoopToolsProps(bpy.types.PropertyGroup):
     display_flatten = bpy.props.BoolProperty(name = "Flatten settings",
         description = "Display settings of the Flatten tool",
         default = False)
-    display_loft = bpy.props.BoolProperty(name = "Loft settings",
-        description = "Display settings of the Loft tool",
-        default = False)
+#    display_loft = bpy.props.BoolProperty(name = "Loft settings",
+#        description = "Display settings of the Loft tool",
+#        default = False)
     display_relax = bpy.props.BoolProperty(name = "Relax settings",
         description = "Display settings of the Relax tool",
         default = False)
