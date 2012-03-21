@@ -428,7 +428,7 @@ def create_mesh(new_objects,
     Takes all the data gathered and generates a mesh, adding the new object to new_objects
     deals with fgons, sharp edges and assigning materials
     '''
-    from bpy_extras.mesh_utils import ngon_tesselate
+    from bpy_extras.mesh_utils import ngon_tessellate
 
     if not has_ngons:
         use_ngons = False
@@ -490,7 +490,7 @@ def create_mesh(new_objects,
             # FGons into triangles
             if has_ngons and len_face_vert_loc_indices > 4:
 
-                ngon_face_indices = ngon_tesselate(verts_loc, face_vert_loc_indices)
+                ngon_face_indices = ngon_tessellate(verts_loc, face_vert_loc_indices)
                 faces.extend([([face_vert_loc_indices[ngon[0]],
                                 face_vert_loc_indices[ngon[1]],
                                 face_vert_loc_indices[ngon[2]],

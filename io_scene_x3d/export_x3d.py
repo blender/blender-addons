@@ -525,7 +525,7 @@ def export(file,
         mesh_id_coords = prefix_quoted_str(mesh_id, 'coords_')
         mesh_id_normals = prefix_quoted_str(mesh_id, 'normals_')
 
-        # tesselation faces may not exist
+        # tessellation faces may not exist
         if not mesh.faces and mesh.polygons:
             mesh.update(calc_tessface=True)
 

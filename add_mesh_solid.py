@@ -43,7 +43,7 @@ from bpy_extras.object_utils import object_data_add
 # assumes each polygon is convex.
 #  poly: list of faces, or a single face, like those
 #        needed for mesh.from_pydata.
-#  returns the tesselated faces.
+#  returns the tessellated faces.
 def createPolys(poly):
     # check for faces
     if len(poly) == 0:

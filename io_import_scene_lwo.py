@@ -68,7 +68,7 @@ import chunk
 
 import bpy
 import mathutils
-from mathutils.geometry import tesselate_polygon
+from mathutils.geometry import tessellate_polygon
 
 
 class _obj_layer(object):
@@ -1133,7 +1133,7 @@ def build_objects(object_layers, object_surfs, object_tags, object_name, add_sub
                 v_locs= []
                 for vi in range(len(ng)):
                     v_locs.append(mathutils.Vector(layer_data.pnts[ngons[ng_key][vi]]))
-                tris= tesselate_polygon([v_locs])
+                tris= tessellate_polygon([v_locs])
                 me.faces.add(len(tris))
                 for tri in tris:
                     face= me.faces[face_offset]
