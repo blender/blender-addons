@@ -27,7 +27,7 @@ bl_info = {
     "author": "Buerbaum Martin (Pontiac), TNae (Normal patch)," \
         " Benjamin Lauritzen (Loonsbury; Volume code)," \
         " Alessandro Sala (patch: Units in 3D View)",
-    "version": (0, 8, 8),
+    "version": (0, 8, 9),
     "blender": (2, 6, 0),
     "location": "View3D > Properties > Measure Panel",
     "description": "Measure distances between objects",
@@ -1524,6 +1524,8 @@ def register():
 
 def unregister():
     bpy.utils.unregister_module(__name__)
+
+    bpy.app.handlers.scene_update_post.remove(scene_update)
 
     # Remove properties.
     del bpy.types.Scene.measure_panel_dist
