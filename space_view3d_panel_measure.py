@@ -27,7 +27,7 @@ bl_info = {
     "author": "Buerbaum Martin (Pontiac), TNae (Normal patch)," \
         " Benjamin Lauritzen (Loonsbury; Volume code)," \
         " Alessandro Sala (patch: Units in 3D View)",
-    "version": (0, 8, 7),
+    "version": (0, 8, 8),
     "blender": (2, 6, 0),
     "location": "View3D > Properties > Measure Panel",
     "description": "Measure distances between objects",
@@ -387,8 +387,14 @@ def polyAreaGlobal(poly, obj):
 
         area = n.length / 2.0
 
-    # Apply world matrix to normal as well.
-    norm = mat * norm
+    # Apply rotation and scale to the normal as well.
+    rot_mat = obj.matrix_world.to_quaternion()
+    scale = obj.matrix_world.to_scale()
+    norm = rot_mat * norm
+    norm = Vector((
+        norm.x * scale.x,
+        norm.y * scale.y,
+        norm.z * scale.z)).normalized()
 
     return area, norm
 
