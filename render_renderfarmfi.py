@@ -21,7 +21,7 @@ DEV = False
 bl_info = {
     "name": "Renderfarm.fi",
     "author": "Nathan Letwory <nathan@letworyinteractive.com>, Jesse Kaukonen <jesse.kaukonen@gmail.com>",
-    "version": (16,),
+    "version": (17,),
     "blender": (2, 6, 2),
     "location": "Render > Engine > Renderfarm.fi",
     "description": "Send .blend as session to http://www.renderfarm.fi to render",
@@ -88,10 +88,10 @@ bpy.simulationWarning = False
 bpy.file_format_warning = False
 bpy.ready = False
 
-if False and DEV:
-    rffi_xmlrpc_secure = r'http://192.168.0.109/burp/xmlrpc'
-    rffi_xmlrpc = r'http://192.168.0.109/burp/xmlrpc'
-    rffi_xmlrpc_upload = '192.168.0.109'
+if True: #DEV:
+    rffi_xmlrpc_secure = r'http://renderfarm.local/burp/xmlrpc'
+    rffi_xmlrpc = r'http://renderfarm.local/burp/xmlrpc'
+    rffi_xmlrpc_upload = 'renderfarm.local'
 else:
     rffi_xmlrpc_secure = r'https://xmlrpc.renderfarm.fi/burp/xmlrpc'
     rffi_xmlrpc = r'http://xmlrpc.renderfarm.fi/burp/xmlrpc'
@@ -126,6 +126,7 @@ class ORESettings(bpy.types.PropertyGroup):
     url = StringProperty(name='Project URL', description='Project URL. Leave empty if not applicable', maxlen=256, default='')
     engine = StringProperty(name='Engine', description='The rendering engine that is used for rendering', maxlen=64, default='blender')
     samples = IntProperty(name='Samples', description='Number of samples that is used (Cycles only)', min=1, max=1000000, soft_min=1, soft_max=100000, default=100)
+    subsamples = IntProperty(name='Subsample Frames', description='Number of subsample frames that is used (Cycles only)', min=1, max=1000000, soft_min=1, soft_max=1000, default=10)
     file_format = StringProperty(name='File format', description='File format used for the rendering', maxlen=20, default='PNG_FORMAT')
     
     parts = IntProperty(name='Parts/Frame', description='', min=1, max=1000, soft_min=1, soft_max=64, default=1)
@@ -544,6 +545,7 @@ class RENDER_PT_RenderfarmFi(RenderButtonsPanel, bpy.types.Panel):
             row = layout.row()
             if (ore.engine == 'cycles'):
                 row.prop(ore, 'samples')
+                row.prop(ore, 'subsamples')
             row = layout.row()
             row.prop(ore, 'memusage')
             #row.prop(ore, 'parts')
@@ -765,8 +767,11 @@ def ore_upload(op, context):
         res = proxy.session.setFrameFormat(userid, res['key'], sessionid, ore.file_format)
         res = proxy.session.setRenderer(userid, res['key'], sessionid, ore.engine)
         res = proxy.session.setSamples(userid, res['key'], sessionid, ore.samples)
+        res = proxy.session.setSubSamples(userid, res['key'], sessionid, ore.subsamples)
         if (ore.engine == 'cycles'):
             res = proxy.session.setReplication(userid, res['key'], sessionid, 1)
+            if ore.subsamples > 1:
+                res = proxy.session.setStitcher(userid, res['key'], sessionid, 'AVERAGE')
         else:
             res = proxy.session.setReplication(userid, res['key'], sessionid, 3)
         res = proxy.session.setOutputLicense(userid, res['key'], sessionid, int(ore.outlicense))
@@ -1056,6 +1061,9 @@ class ORE_LoginOp(bpy.types.Operator):
     def execute(self, context):
         sce = context.scene
         ore = sce.ore_render
+
+        ore.password = ore.password.strip()
+        ore.username = ore.username.strip().lower()
         
         if ore.hash=='':
             if ore.password != '' and ore.username != '':
