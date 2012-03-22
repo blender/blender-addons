@@ -21,7 +21,7 @@ DEV = False
 bl_info = {
     "name": "Renderfarm.fi",
     "author": "Nathan Letwory <nathan@letworyinteractive.com>, Jesse Kaukonen <jesse.kaukonen@gmail.com>",
-    "version": (17,),
+    "version": (18,),
     "blender": (2, 6, 2),
     "location": "Render > Engine > Renderfarm.fi",
     "description": "Send .blend as session to http://www.renderfarm.fi to render",
@@ -241,13 +241,13 @@ def changeSettings():
     sce = bpy.context.scene
     rd = sce.render
     ore = sce.ore_render
-    
+
     # Necessary settings for BURP
-    ore.resox = rd.resolution_x
-    ore.resoy = rd.resolution_y
-    ore.start = sce.frame_start
-    ore.end = sce.frame_end
-    ore.fps = rd.fps
+    rd.resolution_x = ore.resox
+    rd.resolution_y = ore.resoy
+    sce.frame_start = ore.start
+    sce.frame_end = ore.end
+    rd.fps = ore.fps
     
     bpy.file_format_warning = False
     bpy.simulationWarning = False
@@ -272,7 +272,13 @@ def changeSettings():
         ore.file_format = 'PNG_FORMAT'
         
     if (ore.engine == 'cycles'):
-        ore.samples = bpy.context.scene.cycles.samples
+        bpy.context.scene.cycles.samples = ore.samples
+        
+    if (ore.subsamples <= 0):
+        ore.subsamples = 1
+    
+    if (ore.samples / ore.subsamples < 100.0):
+        ore.subsamples = float(ore.samples) / 100.0
         
     # Multipart support doesn' work if SSS is used
     if ((rd.use_sss == True and hasSSSMaterial()) and ore.parts > 1):
@@ -295,13 +301,7 @@ def prepareScene():
     ore = sce.ore_render
     
     changeSettings()
-    
-    ore.resox = rd.resolution_x
-    ore.resoy = rd.resolution_y
-    ore.fps = rd.fps
-    ore.start = sce.frame_start
-    ore.end = sce.frame_end
-    
+
     print("Packing external textures...")
     try:
         bpy.ops.file.pack_all()
@@ -349,11 +349,19 @@ class OpSwitchRenderfarm(bpy.types.Operator):
     bl_idname = "ore.switch_to_renderfarm_render"
     
     def execute(self, context):
-        changeSettings()
-        if (bpy.context.scene.render.engine == 'CYCLES'):
-            bpy.context.scene.ore_render.engine = 'cycles'
+        ore = bpy.context.scene.ore_render
+        rd = bpy.context.scene.render
+        
+        ore.resox = rd.resolution_x
+        ore.resoy = rd.resolution_y
+        ore.fps = rd.fps
+        ore.start = bpy.context.scene.frame_start
+        ore.end = bpy.context.scene.frame_end
+        if (rd.engine == 'CYCLES'):
+            ore.samples = bpy.context.scene.cycles.samples
+            ore.engine = 'cycles'
         else:
-            bpy.context.scene.ore_render.engine = 'blender'
+            ore.engine = 'blender'
         bpy.context.scene.render.engine = 'RENDERFARMFI_RENDER'
         return {'FINISHED'}
 
@@ -370,7 +378,8 @@ class OpSwitchBlenderRender(bpy.types.Operator):
         bpy.context.scene.frame_start = ore.start
         bpy.context.scene.frame_end = ore.end
         if (bpy.context.scene.ore_render.engine == 'cycles'):
-            bpy.context.scene.render.engine = 'CYCLES'
+            rd.engine = 'CYCLES'
+            bpy.context.scene.cycles.samples = ore.samples
         else:
             bpy.context.scene.render.engine = 'BLENDER_RENDER'
         return {'FINISHED'}
