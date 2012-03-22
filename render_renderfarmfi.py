@@ -88,7 +88,7 @@ bpy.simulationWarning = False
 bpy.file_format_warning = False
 bpy.ready = False
 
-if True: #DEV:
+if DEV:
     rffi_xmlrpc_secure = r'http://renderfarm.local/burp/xmlrpc'
     rffi_xmlrpc = r'http://renderfarm.local/burp/xmlrpc'
     rffi_xmlrpc_upload = 'renderfarm.local'
