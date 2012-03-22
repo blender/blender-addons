@@ -20,16 +20,19 @@ bl_info = {
     "name": "PDB Atomic Blender",
     "description": "Loading and manipulating atoms from PDB files",
     "author": "Clemens Barth",
-    "version": (1,2),
+    "version": (1,3),
     "blender": (2,6),
     "location": "File -> Import -> PDB (.pdb), Panel: View 3D - Tools",
     "warning": "",
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts/Import-Export/PDB",
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/"
+                "Py/Scripts/Import-Export/PDB",
     "tracker_url": "http://projects.blender.org/tracker/"
                    "index.php?func=detail&aid=29226",
     "category": "Import-Export"
 }
 
+import os
+import io
 import bpy
 from bpy.types import Operator, Panel
 from bpy_extras.io_utils import ImportHelper, ExportHelper
@@ -46,6 +49,7 @@ from . import export_pdb
 
 
 ATOM_PDB_ERROR = ""
+ATOM_PDB_PANEL = ""
 
 # -----------------------------------------------------------------------------
 #                                                                           GUI
@@ -54,20 +58,25 @@ ATOM_PDB_ERROR = ""
 # chosen via the menu 'File -> Import'
 class CLASS_atom_pdb_panel(Panel):
     bl_label       = "PDB - Atomic Blender"
-    #bl_space_type  = "PROPERTIES"
-    #bl_region_type = "WINDOW"
-    #bl_context     = "physics"
-    # This could be also an option ... :
     bl_space_type  = "VIEW_3D"
-    #bl_region_type = "TOOLS"
     bl_region_type = "TOOL_PROPS"
 
     @classmethod
     def poll(self, context):
-        if import_pdb.ATOM_PDB_FILEPATH == "":
+        global ATOM_PDB_PANEL
+        
+        if ATOM_PDB_PANEL == "0" and import_pdb.ATOM_PDB_FILEPATH == "":
             return False
-        else:
+        if ATOM_PDB_PANEL == "0" and import_pdb.ATOM_PDB_FILEPATH != "":
             return True
+        
+        if ATOM_PDB_PANEL == "1":
+            return True
+        
+        if ATOM_PDB_PANEL == "2":
+            return False
+        
+        return True
 
     def draw(self, context):
         layout = self.layout
@@ -498,8 +507,60 @@ class CLASS_atom_pdb_load_button(Operator):
         return {'FINISHED'}
 
 
+def DEF_panel_yes_no():
+    global ATOM_PDB_PANEL
+
+    datafile_path = bpy.utils.user_resource('SCRIPTS', path='', create=False)
+    if os.path.isdir(datafile_path) == False:
+        bpy.utils.user_resource('SCRIPTS', path='', create=True)
+        
+    datafile_path = os.path.join(datafile_path, "presets")
+    if os.path.isdir(datafile_path) == False:
+        os.mkdir(datafile_path)   
+        
+    datafile = os.path.join(datafile_path, "io_mesh_pdb.pref")
+    if os.path.isfile(datafile):
+        datafile_fp = io.open(datafile, "r")
+        for line in datafile_fp:
+            if "Panel" in line:
+                ATOM_PDB_PANEL = line[-2:]
+                ATOM_PDB_PANEL = ATOM_PDB_PANEL[0:1]
+                bpy.context.scene.use_panel = ATOM_PDB_PANEL
+                break       
+        datafile_fp.close()
+    else:
+        DEF_panel_write_pref("0") 
+
+
+def DEF_panel_write_pref(value): 
+    datafile_path = bpy.utils.user_resource('SCRIPTS', path='', create=False)
+    datafile_path = os.path.join(datafile_path, "presets")
+    datafile = os.path.join(datafile_path, "io_mesh_pdb.pref")
+    datafile_fp = io.open(datafile, "w")
+    datafile_fp.write("Atomic Blender PDB - Import/Export - Preferences\n")
+    datafile_fp.write("================================================\n")
+    datafile_fp.write("\n")
+    datafile_fp.write("Panel: "+value+"\n\n\n")
+    datafile_fp.close()        
+
+
+class CLASS_atom_pdb_error_dialog(bpy.types.Operator):
+    bl_idname = "atom_pdb.error_dialog"
+    bl_label = "Attention !"
+    
+    def draw(self, context):
+        layout = self.layout
+        row = layout.row()
+        row.label(text="                          "+ATOM_PDB_ERROR) 
+    def execute(self, context):
+        print("Atomic Blender - Error: "+ATOM_PDB_ERROR+"\n")
+        return {'FINISHED'}
+    def invoke(self, context, event):
+        return context.window_manager.invoke_props_dialog(self)        
+
+
 # This is the class for the file dialog of the importer.
-class ImportPDB(Operator, ImportHelper):
+class CLASS_ImportPDB(Operator, ImportHelper):
     bl_idname = "import_mesh.pdb"
     bl_label  = "Import Protein Data Bank(*.pdb)"
     bl_options = {'PRESET', 'UNDO'}
@@ -507,6 +568,13 @@ class ImportPDB(Operator, ImportHelper):
     filename_ext = ".pdb"
     filter_glob  = StringProperty(default="*.pdb", options={'HIDDEN'},)
 
+    bpy.types.Scene.use_panel = EnumProperty(
+        name="Panel",
+        description="Choose whether the panel shall appear or not in the View 3D.",
+        items=(('0', "Once", "The panel appears only in this session"),
+               ('1', "Always", "The panel always appears when Blender is started"),
+               ('2', "Never", "The panel never appears")),
+               default='0')  
     use_camera = BoolProperty(
         name="Camera", default=False,
         description="Do you need a camera?")
@@ -528,9 +596,13 @@ class ImportPDB(Operator, ImportHelper):
     scale_distances = FloatProperty (
         name = "Distances", default=1.0, min=0.0001,
         description = "Scale factor for all distances")
-    use_center = BoolProperty(
-        name = "Object to origin", default=True,
-        description = "Put the object into the global origin")
+    atomradius = EnumProperty(
+        name="Type of radius",
+        description="Choose type of atom radius",
+        items=(('0', "Pre-defined", "Use pre-defined radius"),
+               ('1', "Atomic", "Use atomic radius"),
+               ('2', "van der Waals", "Use van der Waals radius")),
+               default='0',)        
     use_sticks = BoolProperty(
         name="Use sticks", default=True,
         description="Do you want to display the sticks?")
@@ -555,13 +627,9 @@ class ImportPDB(Operator, ImportHelper):
     sticks_dist = FloatProperty(
         name="Distance", default = 1.1, min=1.0, max=3.0,
         description="Distance between sticks measured in stick diameter")        
-    atomradius = EnumProperty(
-        name="Type of radius",
-        description="Choose type of atom radius",
-        items=(('0', "Pre-defined", "Use pre-defined radius"),
-               ('1', "Atomic", "Use atomic radius"),
-               ('2', "van der Waals", "Use van der Waals radius")),
-               default='0',)
+    use_center = BoolProperty(
+        name = "Object to origin", default=True,
+        description = "Put the object into the global origin")           
     datafile = StringProperty(
         name = "", description="Path to your custom data file",
         maxlen = 256, default = "", subtype='FILE_PATH')
@@ -585,6 +653,8 @@ class ImportPDB(Operator, ImportHelper):
         col.prop(self, "scale_ballradius")
         col.prop(self, "scale_distances")
         row = layout.row()
+        row.prop(self, "atomradius")
+        row = layout.row()
         col = row.column()
         col.prop(self, "use_sticks")
         row = layout.row()        
@@ -606,7 +676,7 @@ class ImportPDB(Operator, ImportHelper):
         row = layout.row()
         row.prop(self, "use_center")
         row = layout.row()
-        row.prop(self, "atomradius")
+        row.prop(bpy.context.scene, "use_panel")
 
     def execute(self, context):
         # This is in order to solve this strange 'relative path' thing.
@@ -656,13 +726,17 @@ class ImportPDB(Operator, ImportHelper):
         
         scn.number_atoms = str(atom_number) + " atoms"
         scn.PDB_file = import_pdb.ATOM_PDB_FILEPATH
+      
+        global ATOM_PDB_PANEL
+        ATOM_PDB_PANEL = bpy.context.scene.use_panel
+        DEF_panel_write_pref(bpy.context.scene.use_panel)
 
         return {'FINISHED'}
 
 
 
 # This is the class for the file dialog of the exporter.
-class ExportPDB(Operator, ExportHelper):
+class CLASS_ExportPDB(Operator, ExportHelper):
     bl_idname = "export_mesh.pdb"
     bl_label  = "Export Protein Data Bank(*.pdb)"
     filename_ext = ".pdb"
@@ -674,7 +748,8 @@ class ExportPDB(Operator, ExportHelper):
         name="Type of Objects",
         description="Choose type of objects",
         items=(('0', "All", "Export all active objects"),
-               ('1', "Elements", "Export only those active objects which have a proper element name")),
+               ('1', "Elements", "Export only those active objects which have"
+                                 " a proper element name")),
                default='1',) 
 
     def draw(self, context):
@@ -690,42 +765,27 @@ class ExportPDB(Operator, ExportHelper):
         return {'FINISHED'}
 
 
-
-class CLASS_atom_pdb_error_dialog(bpy.types.Operator):
-    bl_idname = "atom_pdb.error_dialog"
-    bl_label = "Attention !"
-    
-    def draw(self, context):
-        layout = self.layout
-        row = layout.row()
-        row.label(text="                          "+ATOM_PDB_ERROR) 
-    def execute(self, context):
-        print("Atomic Blender - Error: "+ATOM_PDB_ERROR+"\n")
-        return {'FINISHED'}
-    def invoke(self, context, event):
-        return context.window_manager.invoke_props_dialog(self)
-
-
 # The entry into the menu 'file -> import'
-def menu_func_import(self, context):
-    self.layout.operator(ImportPDB.bl_idname, text="Protein Data Bank (.pdb)")
+def DEF_menu_func_import(self, context):
+    self.layout.operator(CLASS_ImportPDB.bl_idname, text="Protein Data Bank (.pdb)")
 
 # The entry into the menu 'file -> export'
-def menu_func_export(self, context):
-    self.layout.operator(ExportPDB.bl_idname, text="Protein Data Bank (.pdb)")
+def DEF_menu_func_export(self, context):
+    self.layout.operator(CLASS_ExportPDB.bl_idname, text="Protein Data Bank (.pdb)")
 
 
 def register():
+    DEF_panel_yes_no()
     bpy.utils.register_module(__name__)
-    bpy.types.INFO_MT_file_import.append(menu_func_import)
-    bpy.types.INFO_MT_file_export.append(menu_func_export)
+    bpy.types.INFO_MT_file_import.append(DEF_menu_func_import)
+    bpy.types.INFO_MT_file_export.append(DEF_menu_func_export)
     bpy.types.Scene.atom_pdb = bpy.props.CollectionProperty(type=CLASS_atom_pdb_Properties)    
     bpy.context.scene.atom_pdb.add()
     
 def unregister():
     bpy.utils.unregister_module(__name__)
-    bpy.types.INFO_MT_file_import.remove(menu_func_import)
-    bpy.types.INFO_MT_file_export.remove(menu_func_export)
+    bpy.types.INFO_MT_file_import.remove(DEF_menu_func_import)
+    bpy.types.INFO_MT_file_export.remove(DEF_menu_func_export)
 
 if __name__ == "__main__":
 

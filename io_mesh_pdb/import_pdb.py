@@ -25,7 +25,7 @@
 #
 #  Start of project              : 2011-08-31 by Clemens Barth
 #  First publication in Blender  : 2011-11-11
-#  Last modified                 : 2012-03-21
+#  Last modified                 : 2012-03-22
 #
 #  Acknowledgements: Thanks to ideasman, meta_androcto, truman, kilon,
 #  dairin0d, PKHG, Valter, etc
@@ -1073,10 +1073,10 @@ def DEF_atom_pdb_main(use_mesh,Ball_azimuth,Ball_zenith,
     print()
     print(ATOM_PDB_STRING)
     print()
-    print("Total number of atoms   : " + str(Number_of_total_atoms))
-    print("Total number of sticks  : " + str(Number_of_sticks))
-    print("Center of object        : ", object_center_vec)
-    print("Size of object          : ", object_size)
+    print("Total number of atoms       : " + str(Number_of_total_atoms))
+    print("Total number of sticks      : " + str(Number_of_sticks))
+    print("Center of object (Angstrom) : ", object_center_vec)
+    print("Size of object (Angstrom)   : ", object_size)
     print()
 
 
