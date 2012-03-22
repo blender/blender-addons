@@ -69,10 +69,8 @@ class CLASS_atom_pdb_panel(Panel):
             return False
         if ATOM_PDB_PANEL == "0" and import_pdb.ATOM_PDB_FILEPATH != "":
             return True
-        
         if ATOM_PDB_PANEL == "1":
             return True
-        
         if ATOM_PDB_PANEL == "2":
             return False
         
@@ -173,7 +171,6 @@ class CLASS_atom_pdb_panel(Panel):
         col.operator( "atom_pdb.radius_sticks" )
 
         if bpy.context.mode == 'EDIT_MESH':
-
             row = layout.row()
             row.label(text="Separate atom")
             box = layout.box()
@@ -385,7 +382,6 @@ class CLASS_atom_pdb_separate_atom(Operator):
         new_atom.scale = scale
         new_atom.active_material = material
         new_atom.name = name + "_sep"
-
         # Switch back into the 'Edit mode' because we would like to seprate
         # other atoms may be (more convinient)
         new_atom.select = False
@@ -463,8 +459,7 @@ class CLASS_atom_pdb_radius_sticks_button(Operator):
                 
         result = import_pdb.DEF_atom_pdb_radius_sticks(
                      scn.sticks_radius * 0.9,
-                     scn.radius_how,
-                     )
+                     scn.radius_how,)
                      
         if result == False:
             ATOM_PDB_ERROR = "No sticks => no changes"
@@ -513,11 +508,9 @@ def DEF_panel_yes_no():
     datafile_path = bpy.utils.user_resource('SCRIPTS', path='', create=False)
     if os.path.isdir(datafile_path) == False:
         bpy.utils.user_resource('SCRIPTS', path='', create=True)
-        
     datafile_path = os.path.join(datafile_path, "presets")
     if os.path.isdir(datafile_path) == False:
         os.mkdir(datafile_path)   
-        
     datafile = os.path.join(datafile_path, "io_mesh_pdb.pref")
     if os.path.isfile(datafile):
         datafile_fp = io.open(datafile, "r")
