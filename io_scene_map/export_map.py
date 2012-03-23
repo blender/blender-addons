@@ -354,8 +354,11 @@ def export_map(context, filepath):
         # High quality normals
         #XXX25: BPyMesh.meshCalcNormals(dummy_mesh)
 
+        # We need tessfaces
+        dummy_mesh.update(calc_tessface)
+
         # Split mesh into connected regions
-        for face_group in mesh_utils.mesh_linked_faces(dummy_mesh):
+        for face_group in mesh_utils.mesh_linked_tessfaces(dummy_mesh):
             if is_cube_facegroup(face_group):
                 write_cube2brush(file, face_group)
                 TOTBRUSH += 1

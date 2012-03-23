@@ -60,9 +60,10 @@ import os
 import bpy
 from bpy.props import StringProperty, BoolProperty, CollectionProperty
 from bpy_extras.io_utils import ExportHelper, ImportHelper
+from bpy.types import Operator, OperatorFileListElement
 
 
-class ImportSTL(bpy.types.Operator, ImportHelper):
+class ImportSTL(Operator, ImportHelper):
     '''Load STL triangle mesh data'''
     bl_idname = "import_mesh.stl"
     bl_label = "Import STL"
@@ -76,7 +77,7 @@ class ImportSTL(bpy.types.Operator, ImportHelper):
             )
     files = CollectionProperty(
             name="File Path",
-            type=bpy.types.OperatorFileListElement,
+            type=OperatorFileListElement,
             )
     directory = StringProperty(
             subtype='DIR_PATH',
@@ -106,12 +107,13 @@ class ImportSTL(bpy.types.Operator, ImportHelper):
         return {'FINISHED'}
 
 
-class ExportSTL(bpy.types.Operator, ExportHelper):
+class ExportSTL(Operator, ExportHelper):
     '''Save STL triangle mesh data from the active object'''
     bl_idname = "export_mesh.stl"
     bl_label = "Export STL"
 
     filename_ext = ".stl"
+    filter_glob = StringProperty(default="*.stl", options={'HIDDEN'})
 
     ascii = BoolProperty(name="Ascii",
                          description="Save the file in ASCII file format",
@@ -136,14 +138,12 @@ class ExportSTL(bpy.types.Operator, ExportHelper):
 
 
 def menu_import(self, context):
-    self.layout.operator(ImportSTL.bl_idname,
-                         text="Stl (.stl)").filepath = "*.stl"
+    self.layout.operator(ImportSTL.bl_idname, text="Stl (.stl)")
 
 
 def menu_export(self, context):
     default_path = os.path.splitext(bpy.data.filepath)[0] + ".stl"
-    self.layout.operator(ExportSTL.bl_idname,
-                         text="Stl (.stl)").filepath = default_path
+    self.layout.operator(ExportSTL.bl_idname, text="Stl (.stl)")
 
 
 def register():

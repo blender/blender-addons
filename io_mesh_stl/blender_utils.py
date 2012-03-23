@@ -66,7 +66,7 @@ def faces_from_mesh(ob, apply_modifier=False, triangulate=True):
     if triangulate:
         # From a list of faces, return the face triangulated if needed.
         def iter_face_index():
-            for face in mesh.faces:
+            for face in mesh.tessfaces:
                 vertices = face.vertices[:]
                 if len(vertices) == 4:
                     yield vertices[0], vertices[1], vertices[2]
@@ -75,7 +75,7 @@ def faces_from_mesh(ob, apply_modifier=False, triangulate=True):
                     yield vertices
     else:
         def iter_face_index():
-            for face in mesh.faces:
+            for face in mesh.tessfaces:
                 yield face.vertices[:]
 
     vertices = mesh.vertices

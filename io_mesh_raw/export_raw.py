@@ -79,7 +79,7 @@ def write(filepath,
 
         if me is not None:
             matrix = obj.matrix_world.copy()
-            for face in me.faces:
+            for face in me.tessfaces:
                 fv = faceValues(face, me, matrix)
                 if triangulate:
                     faces.extend(faceToTriangles(fv))

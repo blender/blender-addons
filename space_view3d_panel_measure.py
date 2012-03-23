@@ -321,7 +321,7 @@ def objectEdgeLength(obj, selectedOnly, globalSpace):
 # Return the area of a face (in global space).
 # @note Copies the functionality of the following functions,
 # but also respects the scaling (via the "obj.matrix_world" parameter):
-# @sa: rna_mesh.c:rna_MeshFace_area_get
+# @sa: rna_mesh.c:rna_MeshTessFace_area_get
 # @sa: math_geom.c:area_quad_v3
 # @sa: math_geom.c:area_tri_v3
 # @sa: math_geom.c:area_poly_v3

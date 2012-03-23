@@ -301,8 +301,8 @@ def load_ply(filepath):
     mesh.vertices.foreach_set("co", [a for v in obj[b'vertex'] for a in (v[vindices_x], v[vindices_y], v[vindices_z])])
 
     if mesh_faces:
-        mesh.faces.add(len(mesh_faces))
-        mesh.faces.foreach_set("vertices_raw", unpack_face_list(mesh_faces))
+        mesh.tessfaces.add(len(mesh_faces))
+        mesh.tessfaces.foreach_set("vertices_raw", unpack_face_list(mesh_faces))
 
         if uvindices or colindices:
             if uvindices:

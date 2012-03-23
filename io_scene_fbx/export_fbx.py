@@ -1364,7 +1364,7 @@ def save_single(operator, scene, filepath="",
         # convert into lists once.
         me_vertices = me.vertices[:]
         me_edges = me.edges[:] if use_mesh_edges else ()
-        me_faces = me.faces[:]
+        me_faces = me.tessfaces[:]
 
         poseMatrix = write_object_props(my_mesh.blenObject, None, my_mesh.parRelMatrix())[3]
         pose_items.append((my_mesh.fbxName, poseMatrix))
@@ -2005,7 +2005,7 @@ def save_single(operator, scene, filepath="",
                     material_mapping_local = {}
                     if me.tessface_uv_textures:
                         for uvlayer in me.tessface_uv_textures:
-                            for f, uf in zip(me.faces, uvlayer.data):
+                            for f, uf in zip(me.tessfaces, uvlayer.data):
                                 tex = uf.image
                                 textures[tex] = texture_mapping_local[tex] = None
 

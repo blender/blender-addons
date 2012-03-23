@@ -526,10 +526,10 @@ def export(file,
         mesh_id_normals = prefix_quoted_str(mesh_id, 'normals_')
 
         # tessellation faces may not exist
-        if not mesh.faces and mesh.polygons:
+        if not mesh.tessfaces and mesh.polygons:
             mesh.update(calc_tessface=True)
 
-        if not mesh.faces:
+        if not mesh.tessfaces:
             return
 
         use_collnode = bool([mod for mod in obj.modifiers
@@ -582,7 +582,7 @@ def export(file,
 
             # fast access!
             mesh_vertices = mesh.vertices[:]
-            mesh_faces = mesh.faces[:]
+            mesh_faces = mesh.tessfaces[:]
             mesh_faces_materials = [f.material_index for f in mesh_faces]
             mesh_faces_vertices = [f.vertices[:] for f in mesh_faces]
 
@@ -750,7 +750,7 @@ def export(file,
                         # build a mesh mapping dict
                         vertex_hash = [{} for i in range(len(mesh.vertices))]
                         # worst case every face is a quad
-                        face_tri_list = [[None, None, None] for i in range(len(mesh.faces) * 2)]
+                        face_tri_list = [[None, None, None] for i in range(len(mesh.tessfaces) * 2)]
                         vert_tri_list = []
                         totvert = 0
                         totface = 0

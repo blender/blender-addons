@@ -1667,17 +1667,17 @@ def importMesh_IndexedFaceSet(geom, bpyima, ancestry):
     # print(len(ifs_points), faces, edges, ngons)
 
     try:
-        bpymesh.faces.add(len(faces))
-        bpymesh.faces.foreach_set("vertices_raw", [a for f in faces for a in (f + [0] if len(f) == 3 else f)])  # XXX25 speed
+        bpymesh.tessfaces.add(len(faces))
+        bpymesh.tessfaces.foreach_set("vertices_raw", [a for f in faces for a in (f + [0] if len(f) == 3 else f)])  # XXX25 speed
     except KeyError:
         print("one or more vert indices out of range. corrupt file?")
         #for f in faces:
-        #   bpymesh.faces.extend(faces, smooth=True)
+        #   bpymesh.tessfaces.extend(faces, smooth=True)
 
     bpymesh.validate()
     # bpymesh.update()  # cant call now, because it would convert tessface
 
-    if len(bpymesh.faces) != len(faces):
+    if len(bpymesh.tessfaces) != len(faces):
         print('\tWarning: adding faces did not work! file is invalid, not adding UVs or vcolors')
         return bpymesh, ccw
 
@@ -1700,7 +1700,7 @@ def importMesh_IndexedFaceSet(geom, bpyima, ancestry):
                     print('\tWarning: UV Index out of range')
                     f.uv[j] = ifs_texpoints[0]  # XXX25, speedup
 
-    elif bpyima and len(bpymesh.faces):
+    elif bpyima and len(bpymesh.tessfaces):
         # Oh Bugger! - we cant really use blenders ORCO for for texture space since texspace dosnt rotate.
         # we have to create VRML's coords as UVs instead.
 
@@ -1768,7 +1768,7 @@ def importMesh_IndexedFaceSet(geom, bpyima, ancestry):
         depth_v = depth_u = max(depth_v, depth_u)
 
         bpymesh_vertices = bpymesh.vertices[:]
-        bpymesh_faces = bpymesh.faces[:]
+        bpymesh_faces = bpymesh.tessfaces[:]
 
         for j, f in enumerate(uvlay.data):
             f.image = bpyima
@@ -1785,7 +1785,7 @@ def importMesh_IndexedFaceSet(geom, bpyima, ancestry):
         collay = bpymesh.tessface_vertex_colors.new()
 
         for f_idx, f in enumerate(collay.data):
-            fv = bpymesh.faces[f_idx].vertices[:]
+            fv = bpymesh.tessfaces[f_idx].vertices[:]
             if len(fv) == 3:  # XXX speed
                 fcol = f.color1, f.color2, f.color3
             else:
@@ -1963,7 +1963,7 @@ def importMesh_Cylinder(geom, ancestry):
     if not side:
         # remove all quads
         # XXX25
-        # bpymesh.faces.delete(1, [f for f in bpymesh.faces if len(f) == 4])
+        # bpymesh.tessfaces.delete(1, [f for f in bpymesh.tessfaces if len(f) == 4])
         pass
 
     return bpymesh

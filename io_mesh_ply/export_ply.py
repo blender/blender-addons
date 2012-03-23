@@ -102,9 +102,9 @@ def save(operator,
     ply_verts = []  # list of dictionaries
     # vdict = {} # (index, normal, uv) -> new index
     vdict = [{} for i in range(len(mesh_verts))]
-    ply_faces = [[] for f in range(len(mesh.faces))]
+    ply_faces = [[] for f in range(len(mesh.tessfaces))]
     vert_count = 0
-    for i, f in enumerate(mesh.faces):
+    for i, f in enumerate(mesh.tessfaces):
 
         smooth = f.use_smooth
         if not smooth:
@@ -177,7 +177,7 @@ def save(operator,
            "property uchar green\n"
            "property uchar blue\n")
 
-    fw("element face %d\n" % len(mesh.faces))
+    fw("element face %d\n" % len(mesh.tessfaces))
     fw("property list uchar uint vertex_indices\n")
     fw("end_header\n")
 
