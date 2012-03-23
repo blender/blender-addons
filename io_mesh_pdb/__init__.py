@@ -42,11 +42,8 @@ from bpy.props import (StringProperty,
                        IntProperty,
                        FloatProperty)
 
-
-# TODO, allow reload
 from . import import_pdb
 from . import export_pdb
-
 
 ATOM_PDB_ERROR = ""
 ATOM_PDB_PANEL = ""
@@ -230,7 +227,7 @@ class CLASS_atom_pdb_Properties(bpy.types.PropertyGroup):
         name = "Radius", default=0.1, min=0.0001,
         description ="Radius of a stick")
     sticks_unit_length = FloatProperty(
-        name = "Unit", default=0.2, min=0.0001,
+        name = "Unit", default=0.05, min=0.0001,
         description = "Length of the unit of a stick in Angstrom")        
     use_sticks_color = BoolProperty(
         name="Color", default=True,
@@ -303,22 +300,6 @@ class CLASS_atom_pdb_datafile_apply(Operator):
 
         import_pdb.DEF_atom_pdb_custom_datafile(scn.datafile)
 
-        # TODO, move this into 'import_pdb' and call the function
-        for obj in bpy.context.selected_objects:
-            if len(obj.children) != 0:
-                child = obj.children[0]
-                if child.type == "SURFACE" or child.type  == "MESH":
-                    for element in import_pdb.ATOM_PDB_ELEMENTS:
-                        if element.name in obj.name:
-                            child.scale = (element.radii[0],) * 3
-                            child.active_material.diffuse_color = element.color
-            else:
-                if obj.type == "SURFACE" or obj.type == "MESH":
-                    for element in import_pdb.ATOM_PDB_ELEMENTS:
-                        if element.name in obj.name:
-                            obj.scale = (element.radii[0],) * 3
-                            obj.active_material.diffuse_color = element.color
-
         return {'FINISHED'}
 
 
@@ -350,7 +331,7 @@ class CLASS_atom_pdb_separate_atom(Operator):
         # ... delete the new mesh including the separated vertex
         bpy.ops.object.select_all(action='DESELECT')
         new_object.select = True
-        bpy.ops.object.delete()  # TODO, use scene.objects.unlink()
+        bpy.ops.object.delete()  
 
         # Create a new atom/vacancy at the position of the old atom
         current_layers=bpy.context.scene.layers
@@ -426,8 +407,7 @@ class CLASS_atom_pdb_radius_all_bigger_button(Operator):
         scn = bpy.context.scene.atom_pdb[0]
         import_pdb.DEF_atom_pdb_radius_all(
                 scn.radius_all,
-                scn.radius_how,
-                )
+                scn.radius_how,)
         return {'FINISHED'}
 
 
@@ -441,8 +421,7 @@ class CLASS_atom_pdb_radius_all_smaller_button(Operator):
         scn = bpy.context.scene.atom_pdb[0]
         import_pdb.DEF_atom_pdb_radius_all(
                 1.0/scn.radius_all,
-                scn.radius_how,
-                )
+                scn.radius_how,)
         return {'FINISHED'}
 
 
@@ -458,9 +437,8 @@ class CLASS_atom_pdb_radius_sticks_button(Operator):
         scn = bpy.context.scene.atom_pdb[0]
                 
         result = import_pdb.DEF_atom_pdb_radius_sticks(
-                     scn.sticks_radius * 0.9,
-                     scn.radius_how,)
-                     
+                     0.01,
+                     scn.radius_how,)  
         if result == False:
             ATOM_PDB_ERROR = "No sticks => no changes"
             bpy.ops.atom_pdb.error_dialog('INVOKE_DEFAULT')
@@ -606,7 +584,7 @@ class CLASS_ImportPDB(Operator, ImportHelper):
         name = "Radius", default=0.1, min=0.0001,
         description ="Radius of a stick")
     sticks_unit_length = FloatProperty(
-        name = "Unit", default=0.2, min=0.0001,
+        name = "Unit", default=0.05, min=0.0001,
         description = "Length of the unit of a stick in Angstrom")        
     use_sticks_color = BoolProperty(
         name="Color", default=True,

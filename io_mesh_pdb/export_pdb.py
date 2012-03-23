@@ -25,7 +25,7 @@
 #
 #  Start of project              : 2011-08-31 by Clemens Barth
 #  First publication in Blender  : 2011-11-11
-#  Last modified                 : 2012-03-22
+#  Last modified                 : 2012-03-23
 #
 #  Acknowledgements: Thanks to ideasman, meta_androcto, truman, kilon,
 #  dairin0d, PKHG, Valter, etc
@@ -50,15 +50,11 @@ ATOM_PDB_PDBTEXT  = (  "REMARK This pdb file has been created with Blender "
                      + "REMARK\n")
 
 
-
-
 class CLASS_atom_pdb_atoms_export(object):  
     __slots__ = ('element', 'location')
     def __init__(self, element, location):
         self.element  = element
         self.location = location
-
-
 
 
 def DEF_atom_pdb_export(obj_type):
@@ -117,3 +113,4 @@ def DEF_atom_pdb_export(obj_type):
     pdb_file_p.close()
 
     return True
+
