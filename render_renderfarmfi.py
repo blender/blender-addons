@@ -21,7 +21,7 @@ DEV = False
 bl_info = {
     "name": "Renderfarm.fi",
     "author": "Nathan Letwory <nathan@letworyinteractive.com>, Jesse Kaukonen <jesse.kaukonen@gmail.com>",
-    "version": (18,),
+    "version": (19,),
     "blender": (2, 6, 2),
     "location": "Render > Engine > Renderfarm.fi",
     "description": "Send .blend as session to http://www.renderfarm.fi to render",
@@ -127,7 +127,7 @@ class ORESettings(bpy.types.PropertyGroup):
     engine = StringProperty(name='Engine', description='The rendering engine that is used for rendering', maxlen=64, default='blender')
     samples = IntProperty(name='Samples', description='Number of samples that is used (Cycles only)', min=1, max=1000000, soft_min=1, soft_max=100000, default=100)
     subsamples = IntProperty(name='Subsample Frames', description='Number of subsample frames that is used (Cycles only)', min=1, max=1000000, soft_min=1, soft_max=1000, default=10)
-    file_format = StringProperty(name='File format', description='File format used for the rendering', maxlen=20, default='PNG_FORMAT')
+    file_format = StringProperty(name='File format', description='File format used for the rendering', maxlen=30, default='PNG_FORMAT')
     
     parts = IntProperty(name='Parts/Frame', description='', min=1, max=1000, soft_min=1, soft_max=64, default=1)
     resox = IntProperty(name='Resolution X', description='X of render', min=1, max=10000, soft_min=1, soft_max=10000, default=1920)
