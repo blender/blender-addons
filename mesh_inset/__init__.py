@@ -115,6 +115,7 @@ class Inset(bpy.types.Operator):
         do_inset(mesh, self.inset_amount, self.inset_height, self.region,
             self.scale == 'PERCENT')
         bpy.context.user_preferences.edit.use_global_undo = save_global_undo
+        bpy.context.area.tag_redraw()
 
 
 def do_inset(mesh, amount, height, region, as_percent):
