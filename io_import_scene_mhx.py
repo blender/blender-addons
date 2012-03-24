@@ -3810,8 +3810,29 @@ class VIEW3D_OT_MhxSnapIk2FkButton(bpy.types.Operator):
             ik2fkLeg(context, self.bone[-2:])
         return{'FINISHED'}    
 
-class MhxSnappingPanel(bpy.types.Panel):
-    bl_label = "MHX Snapping"
+class VIEW3D_OT_MhxToggleFkIkButton(bpy.types.Operator):
+    bl_idname = "mhx.toggle_fk_ik"
+    bl_label = "FK - IK"
+    toggle = StringProperty()    
+
+    def execute(self, context):
+        scn = context.scene
+        words = self.toggle.split()
+        rig = context.object
+        prop = words[0]
+        value = float(words[1]) 
+        onLayer = int(words[2])
+        offLayer = int(words[3])
+        rig.data.layers[onLayer] = True
+        rig.data.layers[offLayer] = False
+        rig[prop] = value
+        if context.tool_settings.use_keyframe_insert_auto:
+            rig.keyframe_insert('["%s"]' % prop, frame=scn.frame_current)        
+        updatePose(scn)
+        return{'FINISHED'}    
+
+class MhxFKIKPanel(bpy.types.Panel):
+    bl_label = "MHX FK/IK switch"
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI"
     bl_options = {'DEFAULT_CLOSED'}
@@ -3821,9 +3842,26 @@ class MhxSnappingPanel(bpy.types.Panel):
         return pollMhxRig(context.object)
 
     def draw(self, context):
-        ob = context.object
-        layout = self.layout
+        rig = context.object
+        layout = self.layout        
 
+        row = layout.row()
+        row.label("")
+        row.label("Left")
+        row.label("Right")
+
+        row = layout.row()
+        row.label("Arm")
+        self.toggleButton(row, rig, "&ArmIk_L", " 3", " 2")
+        self.toggleButton(row, rig, "&ArmIk_R", " 19", " 18")
+
+        row = layout.row()
+        row.label("Leg")
+        self.toggleButton(row, rig, "&LegIk_L", " 5", " 4")
+        self.toggleButton(row, rig, "&LegIk_R", " 21", " 20")
+        
+        layout.separator()
+        layout.label("Snapping")
         row = layout.row()
         row.label("Left arm")
         row.operator("mhx.snap_fk_ik").bone = "Arm_L"
@@ -3840,9 +3878,16 @@ class MhxSnappingPanel(bpy.types.Panel):
         row.operator("mhx.snap_ik_fk").bone = "Leg_L"
 
         row = layout.row()
-        row.label("Right arm")
+        row.label("Right leg")
         row.operator("mhx.snap_fk_ik").bone = "Leg_R"
         row.operator("mhx.snap_ik_fk").bone = "Leg_R"
+
+    def toggleButton(self, row, rig, prop, fk, ik):
+        if rig[prop] > 0.5:
+            row.operator("mhx.toggle_fk_ik", text="IK").toggle = prop + " 0" + fk + ik
+        else:
+            row.operator("mhx.toggle_fk_ik", text="FK").toggle = prop + " 1" + ik + fk
+            
 
 ###################################################################################    
 #
