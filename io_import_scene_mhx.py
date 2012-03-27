@@ -50,9 +50,9 @@ bl_info = {
     'category': 'Import-Export'}
 
 MAJOR_VERSION = 1
-MINOR_VERSION = 10
-SUB_VERSION = 3
-BLENDER_VERSION = (2, 59, 2)
+MINOR_VERSION = 11
+SUB_VERSION = 0
+BLENDER_VERSION = (2, 6, 2)
 
 #
 #
@@ -98,7 +98,7 @@ todo = []
 
 T_EnforceVersion = 0x01
 T_Clothes = 0x02
-T_CloRig = 0x04
+T_HardParents = 0x04
 
 T_Diamond = 0x10
 T_Replace = 0x20
@@ -2826,7 +2826,7 @@ MhxBoolProps = [
     #("replace", "Replace scene", "Replace scene", T_Replace),
     ("cage", "Cage", "Load mesh deform cage", T_Cage),
     ("clothes", "Clothes", "Include clothes", T_Clothes),
-    ("clorig", "Clothes rig", "Include clothes rig", T_CloRig),
+    ("hardpar", "Hard parents", "Actual parenting rather than Childof constraints", T_HardParents),
     ("face", "Face shapes", "Include facial shapekeys", T_Face),
     ("shape", "Body shapes", "Include body shapekeys", T_Shape),
     #("symm", "Symmetric shapes", "Keep shapekeys symmetric", T_Symm),
@@ -3754,11 +3754,16 @@ def ik2fkLeg(context, suffix):
     (uplegIk, lolegIk, kneePt, ankleIk, legIk, legFk) = getSnapBones(rig, "LegIK", suffix)
     (uplegFk, lolegFk, footFk) = getSnapBones(rig, "LegFK", suffix)
 
-    legIkToAngle = "&LegIkToAnkle" + suffix
-    oldLegIkToAnkle = rig[legIkToAngle]
+    legIkToAnkle = "&LegIkToAnkle" + suffix
+    try:
+        oldLegIkToAnkle = rig[legIkToAnkle]
+        isHard = False
+    except:
+        oldLegIkToAnkle = 1.0
+        isHard = True
     oldActive = rig.data.bones.active
     rig.data.bones.active = ankleIk.bone
-    rig[legIkToAngle] = 1.0
+    rig[legIkToAnkle] = 1.0
     matchPoseTranslation(ankleIk, footFk)
     if oldLegIkToAnkle > 0.5:
         matchPoseTranslation(legIk, legFk)
@@ -3766,7 +3771,8 @@ def ik2fkLeg(context, suffix):
         matchPoseScale(legIk, legFk)
     matchPoleTarget(uplegIk, lolegIk, kneePt, uplegFk, (uplegIk.length + lolegIk.length))        
     rig.data.bones.active = ankleIk.bone
-    rig[legIkToAngle] = oldLegIkToAnkle
+    if not isHard:
+        rig[legIkToAnkle] = oldLegIkToAnkle
 
     return
 
