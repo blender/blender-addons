@@ -2046,8 +2046,12 @@ def deleteDiamonds(ob):
                 for vn in f.vertices:
                     me.vertices[vn].select = True
     bpy.ops.object.mode_set(mode='EDIT')
-    bpy.ops.mesh.delete(type='VERT')
+    print("Do delete")
+    #bpy.ops.mesh.delete(type='VERT')
+    print("Verts deleted")
     bpy.ops.object.mode_set(mode='OBJECT')
+    print("Back to object mode")
+    print("\n  *** WARNING ***\nHelper deletion turned off due to Blender crash.\nHelpers can be deleted by deleting all selected vertices in Edit mode\n     **********\n")
     return
   
 #
