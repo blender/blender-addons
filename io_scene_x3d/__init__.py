@@ -48,7 +48,7 @@ from bpy_extras.io_utils import (ImportHelper,
 
 
 class ImportX3D(bpy.types.Operator, ImportHelper):
-    '''Import and X3D or VRML2 file'''
+    '''Import an X3D or VRML2 file'''
     bl_idname = "import_scene.x3d"
     bl_label = "Import X3D/VRML2"
     bl_options = {'PRESET', 'UNDO'}
