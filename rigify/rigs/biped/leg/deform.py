@@ -113,7 +113,7 @@ class Rig:
 
         if toe is None:
             raise MetarigError("RIGIFY ERROR: Bone '%s': incorrect bone configuration for rig type -- toe is None" % (strip_org(bone)))
-            
+
         self.org_bones = leg_bones + [foot, toe, heel]
 
         # Get rig parameters

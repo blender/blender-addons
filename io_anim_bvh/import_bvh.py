@@ -43,7 +43,7 @@ class BVH_Node(object):
         'has_rot',  # Convenience function, bool, same as (channels[3]!=-1 or channels[4]!=-1 or channels[5]!=-1)
         'index',  # index from the file, not strictly needed but nice to maintain order
         'temp',  # use this for whatever you want
-        )  
+        )
 
     _eul_order_lookup = {(0, 1, 2): 'XYZ',
                          (0, 2, 1): 'XZY',
