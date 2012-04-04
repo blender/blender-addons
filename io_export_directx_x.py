@@ -18,8 +18,8 @@
 bl_info = {
     "name": "DirectX Model Format (.x)",
     "author": "Chris Foster (Kira Vakaan)",
-    "version": (2, 1, 2),
-    "blender": (2, 5, 8),
+    "version": (2, 1, 3),
+    "blender": (2, 6, 3),
     "location": "File > Export > DirectX (.x)",
     "description": "Export DirectX Model Format (.x)",
     "warning": "",
@@ -188,12 +188,12 @@ def GetObjectChildren(Parent):
 #Returns the vertex count of Mesh, counting each vertex for every face.
 def GetMeshVertexCount(Mesh):
     VertexCount = 0
-    for Face in Mesh.faces:
-        VertexCount += len(Face.vertices)
+    for Polygon in Mesh.polygons:
+        VertexCount += len(Polygon.vertices)
     return VertexCount
 
 #Returns the file path of first image texture from Material.
-def GetMaterialTexture(Material):
+def GetMaterialTextureFileName(Material):
     if Material:
         #Create a list of Textures that have type "IMAGE"
         ImageTextures = [Material.texture_slots[TextureSlot].texture for TextureSlot in Material.texture_slots.keys() if Material.texture_slots[TextureSlot].texture.type == "IMAGE"]
@@ -391,11 +391,12 @@ def WriteMeshVertices(Config, Mesh):
     VertexCount = GetMeshVertexCount(Mesh)
     Config.File.write("{}{};\n".format("  " * Config.Whitespace, VertexCount))
 
-    for Face in Mesh.faces:
-        Vertices = list(Face.vertices)
+    for Polygon in Mesh.polygons:
+        Vertices = list(Polygon.vertices)
 
         if Config.CoordinateSystem == 1:
             Vertices = Vertices[::-1]
+
         for Vertex in [Mesh.vertices[Vertex] for Vertex in Vertices]:
             Position = Vertex.co
             Config.File.write("{}{:9f};{:9f};{:9f};".format("  " * Config.Whitespace, Position[0], Position[1], Position[2]))
@@ -406,11 +407,11 @@ def WriteMeshVertices(Config, Mesh):
                 Config.File.write(",\n")
 
     Index = 0
-    Config.File.write("{}{};\n".format("  " * Config.Whitespace, len(Mesh.faces)))
+    Config.File.write("{}{};\n".format("  " * Config.Whitespace, len(Mesh.polygons)))
 
-    for Face in Mesh.faces:
-        Config.File.write("{}{};".format("  " * Config.Whitespace, len(Face.vertices)))
-        for Vertex in Face.vertices:
+    for Polygon in Mesh.polygons:
+        Config.File.write("{}{};".format("  " * Config.Whitespace, len(Polygon.vertices)))
+        for Vertex in Polygon.vertices:
             Config.File.write("{};".format(Index))
             Index += 1
         if Index == VertexCount:
@@ -427,16 +428,16 @@ def WriteMeshNormals(Config, Mesh):
     VertexCount = GetMeshVertexCount(Mesh)
     Config.File.write("{}{};\n".format("  " * Config.Whitespace, VertexCount))
 
-    for Face in Mesh.faces:
-        Vertices = list(Face.vertices)
+    for Polygon in Mesh.polygons:
+        Vertices = list(Polygon.vertices)
 
         if Config.CoordinateSystem == 1:
             Vertices = Vertices[::-1]
         for Vertex in [Mesh.vertices[Vertex] for Vertex in Vertices]:
-            if Face.use_smooth:
+            if Polygon.use_smooth:
                 Normal = Vertex.normal
             else:
-                Normal = Face.normal
+                Normal = Polygon.normal
             if Config.FlipNormals:
                 Normal = -Normal
             Config.File.write("{}{:9f};{:9f};{:9f};".format("  " * Config.Whitespace, Normal[0], Normal[1], Normal[2]))
@@ -447,11 +448,11 @@ def WriteMeshNormals(Config, Mesh):
                 Config.File.write(",\n")
 
     Index = 0
-    Config.File.write("{}{};\n".format("  " * Config.Whitespace, len(Mesh.faces)))
+    Config.File.write("{}{};\n".format("  " * Config.Whitespace, len(Mesh.polygons)))
 
-    for Face in Mesh.faces:
-        Config.File.write("{}{};".format("  " * Config.Whitespace, len(Face.vertices)))
-        for Vertex in Face.vertices:
+    for Polygon in Mesh.polygons:
+        Config.File.write("{}{};".format("  " * Config.Whitespace, len(Polygon.vertices)))
+        for Vertex in Polygon.vertices:
             Config.File.write("{};".format(Index))
             Index += 1
         if Index == VertexCount:
@@ -469,17 +470,17 @@ def WriteMeshMaterials(Config, Mesh):
     Materials = Mesh.materials
     if Materials.keys():
         MaterialIndexes = {}
-        for Face in Mesh.faces:
-            if Materials[Face.material_index] not in MaterialIndexes:
-                MaterialIndexes[Materials[Face.material_index]] = len(MaterialIndexes)
+        for Polygon in Mesh.polygons:
+            if Materials[Polygon.material_index] not in MaterialIndexes:
+                MaterialIndexes[Materials[Polygon.material_index]] = len(MaterialIndexes)
 
-        FaceCount = len(Mesh.faces)
+        PolygonCount = len(Mesh.polygons)
         Index = 0
-        Config.File.write("{}{};\n{}{};\n".format("  " * Config.Whitespace, len(MaterialIndexes), "  " * Config.Whitespace, FaceCount))
-        for Face in Mesh.faces:
-            Config.File.write("{}{}".format("  " * Config.Whitespace, MaterialIndexes[Materials[Face.material_index]]))
+        Config.File.write("{}{};\n{}{};\n".format("  " * Config.Whitespace, len(MaterialIndexes), "  " * Config.Whitespace, PolygonCount))
+        for Polygon in Mesh.polygons:
+            Config.File.write("{}{}".format("  " * Config.Whitespace, MaterialIndexes[Materials[Polygon.material_index]]))
             Index += 1
-            if Index == FaceCount:
+            if Index == PolygonCount:
                 Config.File.write(";;\n")
             else:
                 Config.File.write(",\n")
@@ -517,9 +518,9 @@ def WriteMaterial(Config, Material=None):
         Config.File.write("{} 0.500000; 0.500000; 0.500000;;\n".format("  " * Config.Whitespace))
     Config.File.write("{} 0.000000; 0.000000; 0.000000;;\n".format("  " * Config.Whitespace))
     if Config.ExportTextures:
-        Texture = GetMaterialTexture(Material)
-        if Texture:
-            Config.File.write("{}TextureFilename {{\"{}\";}}\n".format("  " * Config.Whitespace, Texture))
+        TextureFileName = GetMaterialTextureFileName(Material)
+        if TextureFileName:
+            Config.File.write("{}TextureFilename {{\"{}\";}}\n".format("  " * Config.Whitespace, TextureFileName))
     Config.Whitespace -= 1
     Config.File.write("{}}}\n".format("  " * Config.Whitespace))
 
@@ -528,20 +529,16 @@ def WriteMeshUVCoordinates(Config, Mesh):
     Config.File.write("{}MeshTextureCoords {{ //{} UV Coordinates\n".format("  " * Config.Whitespace, LegalName(Mesh.name)))
     Config.Whitespace += 1
 
-    UVCoordinates = None
-    for UV in Mesh.uv_textures:
-        if UV.active_render:
-            UVCoordinates = UV.data
-            break
+    UVCoordinates = Mesh.uv_loop_layers.active.data
 
     Index = 0
     VertexCount = GetMeshVertexCount(Mesh)
     Config.File.write("{}{};\n".format("  " * Config.Whitespace, VertexCount))
 
-    for Face in UVCoordinates:
+    for Polygon in Mesh.polygons:
         Vertices = []
-        for Vertex in Face.uv:
-            Vertices.append(tuple(Vertex))
+        for Vertex in [UVCoordinates[Vertex] for Vertex in Polygon.loops]:
+            Vertices.append(tuple(Vertex.uv))
         if Config.CoordinateSystem == 1:
             Vertices = Vertices[::-1]
         for Vertex in Vertices:
@@ -551,6 +548,7 @@ def WriteMeshUVCoordinates(Config, Mesh):
                 Config.File.write(";\n")
             else:
                 Config.File.write(",\n")
+    
     Config.Whitespace -= 1
     Config.File.write("{}}} //End of {} UV Coordinates\n".format("  " * Config.Whitespace, LegalName(Mesh.name)))
 
@@ -594,8 +592,8 @@ def WriteMeshSkinWeights(Config, Object, Mesh):
         for Bone in UsedBones:
             VertexCount = 0
             VertexIndexes = [Vertex.index for Vertex in VertexGroups[Bone]]
-            for Face in Mesh.faces:
-                for Vertex in Face.vertices:
+            for Polygon in Mesh.polygons:
+                for Vertex in Polygon.vertices:
                     if Vertex in VertexIndexes:
                         VertexCount += 1
 
@@ -606,11 +604,11 @@ def WriteMeshSkinWeights(Config, Object, Mesh):
             VertexWeights = []
             Index = 0
             WrittenIndexes = 0
-            for Face in Mesh.faces:
-                FaceVertices = list(Face.vertices)
+            for Polygon in Mesh.polygons:
+                PolygonVertices = list(Polygon.vertices)
                 if Config.CoordinateSystem == 1:
-                    FaceVertices = FaceVertices[::-1]
-                for Vertex in FaceVertices:
+                    PolygonVertices = PolygonVertices[::-1]
+                for Vertex in PolygonVertices:
                     if Vertex in VertexIndexes:
                         Config.File.write("{}{}".format("  " * Config.Whitespace, Index))
 
