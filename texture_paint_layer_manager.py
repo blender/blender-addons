@@ -349,14 +349,14 @@ def main(context,tn):
         for f in me.polygons:  
             if f.material_index == m_id:
                 uvtex[f.index].image = img
-        print('if')
+
             
 
     else:
         for f in me.polygons:  
             if f.material_index == m_id:
                 uvtex[f.index].image = None
-        print('else')
+ 
     me.update()
 
 
@@ -384,7 +384,7 @@ class set_active_paint_layer(bpy.types.Operator):
 
 
 def add_image_kludge(iname = 'grey', iwidth = 256, iheight = 256, 
-        icolor = (0.5,0.5,0.5,1.0)):
+        icolor = (0.5,0.5,0.5,1.0), nfloat = False):
     #evil kludge to get index of new image created using bpy.ops
     #store current images
     tl =[]
@@ -395,7 +395,7 @@ def add_image_kludge(iname = 'grey', iwidth = 256, iheight = 256,
     #create a new image
 
     bpy.ops.image.new(name =iname,width =iwidth,height =iheight, 
-            color = icolor)
+            color = icolor, float = nfloat)
         
     #find its creation index
     it = 0
@@ -411,10 +411,12 @@ def add_paint(context, size =2048, typ = 'NORMAL'):
     ob = bpy.context.object
     mat = ob.active_material
     ts = mat.texture_slots.add()
+    ifloat = False
 
     if typ =='NORMAL':
         color =(0.5,0.5,0.5,1.0)
         iname = 'Bump'
+        ifloat = True
     elif typ =='COLOR':
         iname ='Color'
         color = (1.0,1.0,1.0,0.0)
@@ -435,7 +437,7 @@ def add_paint(context, size =2048, typ = 'NORMAL'):
     tex = bpy.data.textures.new(name = iname, type = 'IMAGE')
     ts.texture = tex
     img = add_image_kludge(iname = typ, 
-        iwidth = size,iheight = size, icolor= color )
+        iwidth = size,iheight = size, icolor= color, nfloat = ifloat)
     tex.image = img
     
     if typ == 'COLOR':
@@ -446,7 +448,7 @@ def add_paint(context, size =2048, typ = 'NORMAL'):
         ts.use_map_normal = True
         ts.use_map_color_diffuse =False
         ts.normal_factor = -1
-        ts.bump_method='BUMP_ORIGINAL'
+        ts.bump_method='BUMP_MEDIUM_QUALITY'
         ts.bump_objectspace='BUMP_OBJECTSPACE'
         
     elif typ == 'SPECULAR':
