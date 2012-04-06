@@ -18,6 +18,8 @@
 
 # <pep8 compliant>
 
+# test comment
+
 import bpy
 from bpy.props import StringProperty
 import rigify
