@@ -21,7 +21,7 @@ DEV = False
 bl_info = {
     "name": "Renderfarm.fi",
     "author": "Nathan Letwory <nathan@letworyinteractive.com>, Jesse Kaukonen <jesse.kaukonen@gmail.com>",
-    "version": (19,),
+    "version": (20,),
     "blender": (2, 6, 2),
     "location": "Render > Engine > Renderfarm.fi",
     "description": "Send .blend as session to http://www.renderfarm.fi to render",
@@ -43,6 +43,7 @@ import http.client
 import xmlrpc.client
 import math
 from os.path import isabs, isfile
+import os
 import time
 
 from bpy.props import PointerProperty, StringProperty, BoolProperty, EnumProperty, IntProperty, CollectionProperty
@@ -81,7 +82,7 @@ bpy.cancelError = False
 bpy.texturePackError = False
 bpy.linkedFileError = False
 bpy.uploadInProgress = False
-bpy.originalFileName = bpy.path.display_name_from_filepath(bpy.data.filepath)
+bpy.originalFileName = bpy.data.filepath
 bpy.particleBakeWarning = False
 bpy.childParticleWarning = False
 bpy.simulationWarning = False
@@ -324,14 +325,29 @@ def prepareScene():
     
     # Save with a different name
     print("Saving into a new file...")
+    bpy.originalFileName = bpy.data.filepath
+    print("Original path is " + bpy.originalFileName)
     try:
-        # If the filename is empty, we'll make one from the path of the Blender installation
+        # If the filename is empty, we'll make one from the path of the user's resource folder
         if (len(bpy.originalFileName) == 0):
-            bpy.originalFileName = bpy.utils.resource_path(type='LOCAL') + "renderfarm.blend"
-            bpy.ops.wm.save_mainfile(filepath=bpy.originalFileName)
+            print("No existing file path found, saving to autosave directory")
+            savePath = bpy.utils.user_resource("AUTOSAVE")
+            try:
+                os.mkdir(savePath)
+            except Exception as ex:
+                print(ex)
+            try:
+                savePath = savePath + "_renderfarm"
+            except Exception as ex:
+                print(ex)
+            try:
+                bpy.ops.wm.save_mainfile(filepath=savePath)
+            except Exception as ex:
+                print(ex)
         else:
+            print("Saving to current .blend directory")
             savePath = bpy.originalFileName
-            savePath = savePath + "_renderfarm"
+            savePath = savePath + "_renderfarm.blend"
             bpy.ops.wm.save_mainfile(filepath=savePath)
     except Exception as e:
         print(e)
@@ -691,9 +707,13 @@ def encode_multipart_data(data, files):
     return body, headers
 
 def send_post(data, files):
+    print("Forming connection for post")
     connection = http.client.HTTPConnection(rffi_xmlrpc_upload)
+    print("Requesting")
     connection.request('POST', '/burp/storage', *encode_multipart_data(data, files)) # was /file
+    print("Getting response")
     response = connection.getresponse()
+    print("Reading response")
     res = response.read()
     return res
 
@@ -709,7 +729,9 @@ def md5_for_file(filepath):
     return md5hash.hexdigest()
 
 def upload_file(key, userid, sessionid, path):
+    print("Asserting absolute path")
     assert isabs(path)
+    print("Asserting path is a file")
     assert isfile(path)
     data = {
         'userId': str(userid),
