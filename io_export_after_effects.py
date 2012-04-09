@@ -331,7 +331,6 @@ def write_jsx_file(file, data, selection, include_animation, include_active_cam,
                 'orientation_anim': False,
                 }
 
-
     # create structure for nulls
     for i, obj in enumerate(selection['nulls']):  # nulls representing blender's obs except cameras, lamps and solids
         if include_selected_objects:
@@ -461,7 +460,7 @@ def write_jsx_file(file, data, selection, include_animation, include_active_cam,
                     js_data['cameras'][name_ae]['position_static'] = position
                     js_data['cameras'][name_ae]['orientation_static'] = orientation
                     js_data['cameras'][name_ae]['zoom_static'] = zoom
-    
+
         '''
         # keyframes for all solids. Not ready yet. Temporarily not active
         for i, ob in enumerate(selection['solids']):
@@ -469,7 +468,7 @@ def write_jsx_file(file, data, selection, include_animation, include_active_cam,
             name_ae = selection['solids'][i][1]
             #convert ob position to AE space
         '''
-    
+
         # keyframes for all lights.
         if include_selected_objects:
             for i, ob in enumerate(selection['lights']):
@@ -549,7 +548,6 @@ def write_jsx_file(file, data, selection, include_animation, include_active_cam,
         #
         #
         #
-        
 
     # ---- write JSX file
     jsx_file = open(file, 'w')
@@ -678,6 +676,7 @@ def write_jsx_file(file, data, selection, include_animation, include_active_cam,
 # DO IT
 ##########################################
 
+
 def main(file, context, include_animation, include_active_cam, include_selected_cams, include_selected_objects, include_cam_bundles):
     data = get_comp_data(context)
     selection = get_selected(context)
@@ -772,4 +771,3 @@ def unregister():
 
 if __name__ == "__main__":
     register()
-

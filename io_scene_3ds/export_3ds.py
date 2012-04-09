@@ -525,13 +525,13 @@ def extract_triangles(mesh):
 
     If the mesh contains quads, they will be split into triangles.'''
     tri_list = []
-    do_uv = len(mesh.uv_textures)
+    do_uv = bool(mesh.tessface_uv_textures)
 
     img = None
-    for i, face in enumerate(mesh.faces):
+    for i, face in enumerate(mesh.tessfaces):
         f_v = face.vertices
 
-        uf = mesh.uv_textures.active.data[i] if do_uv else None
+        uf = mesh.tessface_uv_textures.active.data[i] if do_uv else None
 
         if do_uv:
             f_uv = uf.uv
@@ -638,7 +638,7 @@ def make_faces_chunk(tri_list, mesh, materialDict):
     face_chunk = _3ds_chunk(OBJECT_FACES)
     face_list = _3ds_array()
 
-    if mesh.uv_textures:
+    if mesh.tessface_uv_textures:
         # Gather materials used in this mesh - mat/image pairs
         unique_mats = {}
         for i, tri in enumerate(tri_list):
@@ -725,7 +725,7 @@ def make_mesh_chunk(mesh, matrix, materialDict):
     # Extract the triangles from the mesh:
     tri_list = extract_triangles(mesh)
 
-    if mesh.uv_textures:
+    if mesh.tessface_uv_textures:
         # Remove the face UVs and convert it to vertex UV:
         vert_array, uv_array, tri_list = remove_face_uv(mesh.vertices, tri_list)
     else:
@@ -963,11 +963,11 @@ def save(operator,
                 mat_ls_len = len(mat_ls)
 
                 # get material/image tuples.
-                if data.uv_textures:
+                if data.tessface_uv_textures:
                     if not mat_ls:
                         mat = mat_name = None
 
-                    for f, uf in zip(data.faces, data.uv_textures.active.data):
+                    for f, uf in zip(data.tessfaces, data.tessface_uv_textures.active.data):
                         if mat_ls:
                             mat_index = f.material_index
                             if mat_index >= mat_ls_len:
@@ -987,7 +987,7 @@ def save(operator,
                             materialDict.setdefault((mat.name, None), (mat, None))
 
                     # Why 0 Why!
-                    for f in data.faces:
+                    for f in data.tessfaces:
                         if f.material_index >= mat_ls_len:
                             f.material_index = 0
 
