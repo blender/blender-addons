@@ -1865,17 +1865,6 @@ def save_single(operator, scene, filepath="",
                     i += 1
                 fw('\n\t\t}')
 
-        for v in me_vertices:
-            if i == -1:
-                fw('%.6f,%.6f,%.6f' % v.co[:])
-                i = 0
-            else:
-                if i == 7:
-                    fw('\n\t\t')
-                    i = 0
-                fw(',%.6f,%.6f,%.6f' % v.co[:])
-            i += 1
-
         fw('\n\t}')
 
     def write_group(name):
