@@ -277,15 +277,19 @@ def process_next_chunk(file, previous_chunk, importedObjects, IMAGE_SEARCH):
         if myContextMesh_vertls:
 
             bmesh.vertices.add(len(myContextMesh_vertls) // 3)
-            bmesh.faces.add(len(myContextMesh_facels))
             bmesh.vertices.foreach_set("co", myContextMesh_vertls)
 
+            nbr_faces = len(myContextMesh_facels)
+            bmesh.polygons.add(nbr_faces)
+            bmesh.loops.add(nbr_faces * 3)
             eekadoodle_faces = []
             for v1, v2, v3 in myContextMesh_facels:
-                eekadoodle_faces.extend([v3, v1, v2, 0] if v3 == 0 else [v1, v2, v3, 0])
-            bmesh.faces.foreach_set("vertices_raw", eekadoodle_faces)
+                eekadoodle_faces.extend((v3, v1, v2) if v3 == 0 else (v1, v2, v3))
+            bmesh.polygons.foreach_set("loop_start", range(0, nbr_faces * 3, 3))
+            bmesh.polygons.foreach_set("loop_total", (3,) * nbr_faces)
+            bmesh.loops.foreach_set("vertex_index", eekadoodle_faces)
 
-            if bmesh.faces and contextMeshUV:
+            if bmesh.polygons and contextMeshUV:
                 bmesh.uv_textures.new()
                 uv_faces = bmesh.uv_textures.active.data[:]
             else:
@@ -308,15 +312,15 @@ def process_next_chunk(file, previous_chunk, importedObjects, IMAGE_SEARCH):
 
                 if uv_faces  and img:
                     for fidx in faces:
-                        bmesh.faces[fidx].material_index = mat_idx
-                        uf = uv_faces[fidx]
-                        uf.image = img
+                        bmesh.polygons[fidx].material_index = mat_idx
+                        uv_faces[fidx].image = img
                 else:
                     for fidx in faces:
-                        bmesh.faces[fidx].material_index = mat_idx
+                        bmesh.polygons[fidx].material_index = mat_idx
 
             if uv_faces:
-                for fidx, uf in enumerate(uv_faces):
+                uvl = bmesh.uv_loop_layers.active.data[:]
+                for fidx, pl in enumerate(bmesh.polygons):
                     face = myContextMesh_facels[fidx]
                     v1, v2, v3 = face
 
@@ -324,9 +328,9 @@ def process_next_chunk(file, previous_chunk, importedObjects, IMAGE_SEARCH):
                     if v3 == 0:
                         v1, v2, v3 = v3, v1, v2
 
-                    uf.uv1 = contextMeshUV[v1 * 2:(v1 * 2) + 2]
-                    uf.uv2 = contextMeshUV[v2 * 2:(v2 * 2) + 2]
-                    uf.uv3 = contextMeshUV[v3 * 2:(v3 * 2) + 2]
+                    uvl[pl.loop_start] = contextMeshUV[v1 * 2:(v1 * 2) + 2]
+                    uvl[pl.loop_start + 1] = contextMeshUV[v2 * 2:(v2 * 2) + 2]
+                    uvl[pl.loop_start + 2] = contextMeshUV[v3 * 2:(v3 * 2) + 2]
                     # always a tri
 
         bmesh.validate()
