@@ -98,7 +98,7 @@ todo = []
 T_EnforceVersion = 0x01
 T_Clothes = 0x02
 T_HardParents = 0x0
-T_CrashSafe = 0x04
+T_CrashSafe = 0x0
 
 T_Diamond = 0x10
 T_Replace = 0x20
@@ -2869,7 +2869,7 @@ from bpy_extras.io_utils import ImportHelper
 
 MhxBoolProps = [
     ("enforce", "Enforce version", "Only accept MHX files of correct version", T_EnforceVersion),
-    ("crash_safe", "Crash-safe", "Disable features that have caused Blender crashes", T_CrashSafe),
+    #("crash_safe", "Crash-safe", "Disable features that have caused Blender crashes", T_CrashSafe),
     ("mesh", "Mesh", "Use main mesh", T_Mesh),
     ("proxy", "Proxies", "Use proxies", T_Proxy),
     ("armature", "Armature", "Use armature", T_Armature),
