@@ -120,17 +120,17 @@ def getIslands(shard):
 
             while len(gproc) > 0:
                 i = gproc.pop(0)
-                for f in sm.faces:
+                for p in sm.polygons:
                     #if i in f.vertices:
-                    for v in f.vertices:
+                    for v in p.vertices:
                         if v == i:
-                            for v1 in f.vertices:
+                            for v1 in p.vertices:
                                 if vgi[v1] == -1:
                                     vgi[v1] = gindex
                                     vgroups[gindex].append(v1)
                                     gproc.append(v1)
 
-                            fgroups[gindex].append(f.index)
+                            fgroups[gindex].append(p.index)
 
             gindex += 1
 
