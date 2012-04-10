@@ -107,9 +107,7 @@ def getIslands(shard):
     vgroups = []
     fgroups = []
 
-    vgi = []
-    for v in sm.vertices:
-        vgi.append(-1)
+    vgi = [-1] * len(sm.vertices)
 
     gindex = 0
     for i in range(len(vgi)):
@@ -119,6 +117,7 @@ def getIslands(shard):
             fgroups.append([])
 
             while len(gproc) > 0:
+                # XXX - is popping the first needed? - pop() without args is fastest - campbell
                 i = gproc.pop(0)
                 for p in sm.polygons:
                     #if i in f.vertices:
