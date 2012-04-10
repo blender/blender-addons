@@ -106,7 +106,7 @@ def save(operator,
     vert_count = 0
     for i, f in enumerate(mesh.tessfaces):
 
-        smooth = f.use_smooth
+        smooth = not use_normals or f.use_smooth
         if not smooth:
             normal = tuple(f.normal)
             normal_key = rvec3d(normal)
