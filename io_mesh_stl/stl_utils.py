@@ -23,7 +23,7 @@ Import and export STL files
 
 Used as a blender script, it load all the stl files in the scene:
 
-blender -P stl_utils.py -- file1.stl file2.stl file3.stl ...
+blender --python stl_utils.py -- file1.stl file2.stl file3.stl ...
 '''
 
 import struct
@@ -84,6 +84,11 @@ class ListDict(dict):
 
 BINARY_HEADER = 80
 BINARY_STRIDE = 12 * 4 + 2
+
+
+def _header_version():
+    import bpy
+    return "Exported from Blender-" + bpy.app.version_string
 
 
 def _is_ascii_file(data):
@@ -176,12 +181,13 @@ def _binary_write(filename, faces):
 
         # header, with correct value now
         data.seek(0)
-        data.write(struct.pack('<80sI', b"Exported from blender", nb))
+        data.write(struct.pack('<80sI', _header_version().encode('ascii'), nb))
 
 
 def _ascii_write(filename, faces):
     with open(filename, 'w') as data:
-        data.write('solid Exported from blender\n')
+        header = _header_version()
+        data.write('solid %s\n' % header)
 
         for face in faces:
             data.write('''facet normal 0 0 0\nouter loop\n''')
@@ -189,7 +195,7 @@ def _ascii_write(filename, faces):
                 data.write('vertex %f %f %f\n' % vert[:])
             data.write('endloop\nendfacet\n')
 
-        data.write('endsolid Exported from blender\n')
+        data.write('endsolid %s\n' % header)
 
 
 def write_stl(filename, faces, ascii=False):
