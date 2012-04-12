@@ -22,8 +22,8 @@
 bl_info = {
     'name': 'Mesh Pyramid',
     'author': 'Phil Cote, cotejrp1, (http://www.blenderaddons.com)',
-    'version': (0, 3),
-    "blender": (2, 5, 8),
+    'version': (0, 4),
+    "blender": (2, 6, 3),
     'location': 'View3D > Add > Mesh',
     'description': 'Create an egyption-style step pyramid',
     'warning': '',  # used for warning icon and text in addons panel
@@ -31,6 +31,8 @@ bl_info = {
 '''
 
 import bpy
+import bmesh
+
 from bpy.props import IntProperty, FloatProperty
 from bpy_extras.object_utils import AddObjectHelper, object_data_add
 
@@ -100,11 +102,18 @@ def makePyramid(initial_size, step_height, step_width, number_steps):
 def add_pyramid_object(self, context):
     verts, faces = makePyramid(self.initial_size, self.step_height,
                             self.step_width, self.number_steps)
-
-    mesh_data = bpy.data.meshes.new(name="Pyramid")
-    mesh_data.from_pydata(verts, [], faces)
-    mesh_data.update()
-    res = object_data_add(context, mesh_data, operator=self)
+    bm = bmesh.new()
+    mesh = bpy.data.meshes.new(name="Pyramid")
+    
+    for vert in verts:
+        bm.verts.new(vert)
+    
+    for face in faces:
+        bm.faces.new([bm.verts[i] for i in face])
+    
+    bm.to_mesh(mesh)
+    mesh.update()
+    res = object_data_add(context, mesh, operator=self)
 
 
 class AddPyramid(bpy.types.Operator, AddObjectHelper):
