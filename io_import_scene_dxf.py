@@ -20,12 +20,11 @@ bl_info = {
     'name': 'Import Autocad DXF Format (.dxf)',
     'author': 'Thomas Larsson, Remigiusz Fiedler',
     'version': (0, 1, 6),
-    "blender": (2, 6, 1),
+    'blender': (2, 6, 3),
     'location': 'File > Import > Autocad (.dxf)',
     'description': 'Import files in the Autocad DXF format (.dxf)',
-    'warning': 'Only a subset of DXF specification is supported now.'\
-        ' Please support further development!',
-    'wiki_url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/'\
+    'warning': 'Under construction! Visit Wiki for details.',
+    'wiki_url': 'http://wiki.blender.org/index.php/Extensions:2.6/Py/'\
         'Scripts/Import-Export/DXF_Importer',
     'tracker_url': 'https://projects.blender.org/tracker/index.php?'\
         'func=detail&aid=23480',
@@ -107,7 +106,7 @@ T_ThicON = 0x40
 
 toggle = T_Merge | T_NewScene | T_DrawOne | T_ThicON
 theCircleRes = 32
-theMergeLimit = 1e-5
+theMergeLimit = 1e-4
 
 #
 #    class CSection:
@@ -2352,7 +2351,7 @@ def removeDoubles(ob):
         scn = bpy.context.scene
         scn.objects.active = ob
         bpy.ops.object.mode_set(mode='EDIT')
-        bpy.ops.mesh.remove_doubles(limit=theMergeLimit)
+        bpy.ops.mesh.remove_doubles(mergedist=theMergeLimit)
         bpy.ops.object.mode_set(mode='OBJECT')
 
 
@@ -2458,12 +2457,12 @@ class IMPORT_OT_autocad_dxf(bpy.types.Operator):
             )
     mergeLimit = FloatProperty(
             name="Limit",
-            description="Merge limit",
+            description="Merge limit * 0.0001",
             default=theMergeLimit * 1e4,
             min=1.0,
             soft_min=1.0,
-            max=100.0,
-            soft_max=100.0,
+            max=1000.0,
+            soft_max=1000.0,
             )
     draw_one = BoolProperty(
             name="Merge all",
