@@ -537,7 +537,7 @@ def WriteMeshUVCoordinates(Config, Mesh):
 
     for Polygon in Mesh.polygons:
         Vertices = []
-        for Vertex in [UVCoordinates[Vertex] for Vertex in Polygon.loops]:
+        for Vertex in [UVCoordinates[Vertex] for Vertex in Polygon.loop_indices]:
             Vertices.append(tuple(Vertex.uv))
         if Config.CoordinateSystem == 1:
             Vertices = Vertices[::-1]
