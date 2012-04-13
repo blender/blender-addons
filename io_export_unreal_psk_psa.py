@@ -18,8 +18,8 @@
 bl_info = {
     "name": "Export Unreal Engine Format(.psk/.psa)",
     "author": "Darknet/Optimus_P-Fat/Active_Trash/Sinsoft/VendorX",
-    "version": (2, 4),
-    "blender": (2, 6, 0),
+    "version": (2, 5),
+    "blender": (2, 6, 3),
     "location": "File > Export > Skeletal Mesh/Animation Data (.psk/.psa)",
     "description": "Export Skeleletal Mesh/Animation Data",
     "warning": "",
@@ -83,6 +83,7 @@ import bpy
 import mathutils
 import random
 import operator
+import bmesh
 
 from struct import pack
 
@@ -653,41 +654,23 @@ def triangulateNMesh(object):
         me_ob = object
     return me_ob
 
+#Texture not working still find a way to get it work
 # Actual object parsing functions
-def parse_meshes(blender_meshes, psk_file):
-    #this is use to call the bone name and the index array for group index matches
-    global bDeleteMergeMesh
-    print ("----- parsing meshes -----")
+def parse_meshes(blender_meshes, psk_file):	
+    global bDeleteMergeMesh, exportmessage
     print("Number of Object Meshes:",len(blender_meshes))
     for current_obj in blender_meshes: #number of mesh that should be one mesh here
-        #bpy.ops.object.mode_set(mode='EDIT')
-        current_obj = triangulateNMesh(current_obj)
-        #print(dir(current_obj))
-        print("Mesh Name:",current_obj.name)
-        current_mesh = current_obj.data
-        
-        #collect a list of the material names
-        print("== MATERIAL EXPORT LIST & INDEX")
+        #material
         if len(current_obj.material_slots) > 0:
             counter = 0
-            
             while counter < len(current_obj.material_slots):
                 print("[MATERIAL IDX:",counter,"=]")
                 MaterialName.append(current_obj.material_slots[counter].name)
-                #print("Material Name:",current_obj.material_slots[counter].name)
-                #print("Material Name:",dir(current_obj.material_slots[counter].material))                
-                #print("TEXTURE:",dir(current_obj.material_slots[counter].material.texture_slots[0].texture.image.filepath))
-                #print("Imagepath:",(current_obj.material_slots[counter].material.texture_slots[0].texture.image.filepath))
-                #print("TEXTURES:",len(current_obj.material_slots[counter].material.texture_slots))
-                #while slot in current_obj.material_slots[counter].material.texture_slots:
-                    #print(dir(slot))
-                    #if slot.texture.image.filepath != None:
-                        #print("file path:",slot.texture.image.filepath)
-                if current_obj.material_slots[counter].material.texture_slots[0] != None:
-                    if current_obj.material_slots[counter].material.texture_slots[0].texture.image.filepath != None:
-                        print("TEXTURE PATH:",current_obj.material_slots[counter].material.texture_slots[0].texture.image.filepath)
-                #print("Imagepath:",(current_obj.material_slots[counter].material.texture_slots[0].texture.image.filepath_raw))
-                #print("Imagepath2:",dir(current_obj.material_slots[counter].material.texture_slots[0].texture.image))				
+                
+                #if current_obj.material_slots[counter].material.texture_slots[0] != None:
+                    #if current_obj.material_slots[counter].material.texture_slots[0].texture.image.filepath != None:
+                        #print("TEXTURE PATH:",current_obj.material_slots[counter].material.texture_slots[0].texture.image.filepath)
+                
                 #create the current material
                 matdata = psk_file.GetMatByIndex(counter)
                 matdata.MaterialName = current_obj.material_slots[counter].name
@@ -696,93 +679,58 @@ def parse_meshes(blender_meshes, psk_file):
                 #print("materials: ",MaterialName[counter])
                 counter += 1
                 print("PSK INDEX:",matdata.TextureIndex)
-                print("=====")
-                print("")
-        #    object_mat = current_obj.materials[0]
-        object_material_index = current_obj.active_material_index
-    
+                
+                
+                
         points = ObjMap()
         wedges = ObjMap()
-        
         discarded_face_count = 0
-        print (" -- Dumping Mesh Faces -- LEN:", len(current_mesh.faces))
-        for current_face in current_mesh.faces:
-            #print ' -- Dumping UVs -- '
-            #print current_face.uv_textures
-            # modified by VendorX
-            object_material_index = current_face.material_index
+        has_UV = True
+        faceUV = None
+        scene = bpy.context.scene #get current scene
+        EXPORT_APPLY_MODIFIERS = True
+        me = current_obj.to_mesh(scene, EXPORT_APPLY_MODIFIERS, 'PREVIEW') #apply modified mesh and write mesh
+        
+        faceuv = len(me.uv_textures) > 0 #check if has uv texture
+        if faceuv:
+            uv_layer = me.tessface_uv_textures.active.data[:]
+        else:
+            has_UV = False
+        
+        for face in me.tessfaces:
+            print("Vertices count:",len(face.vertices))
+            #get or create the current material
+            object_material_index = face.material_index
+            psk_file.GetMatByIndex(object_material_index)
+            #print(dir(face))
+            #print(dir(uv_layer[face.index]))
+            if len(face.vertices) != 3:
+                #raise RuntimeError("Non-triangular face (%i)" % len(face.vertices))
+                exportmessage = "MESH IS NOT TRIANGLE (Alt + T)"
+                return
             
-            if len(current_face.vertices) != 3:
-                raise RuntimeError("Non-triangular face (%i)" % len(current_face.vertices))
-            
-            #No Triangulate Yet
-            #            if len(current_face.vertices) != 3:
-            #                raise RuntimeError("Non-triangular face (%i)" % len(current_face.vertices))
-            #                #TODO: add two fake faces made of triangles?
-            
-            #RG - apparently blender sometimes has problems when you do quad to triangle 
-            #    conversion, and ends up creating faces that have only TWO points -
-            #     one of the points is simply in the vertex list for the face twice. 
-            #    This is bad, since we can't get a real face normal for a LINE, we need 
-            #    a plane for this. So, before we add the face to the list of real faces, 
-            #    ensure that the face is actually a plane, and not a line. If it is not 
-            #    planar, just discard it and notify the user in the console after we're
-            #    done dumping the rest of the faces
-            
-            if not is_1d_face(current_face,current_mesh):
-                #print("faces")
+            if not is_1d_face(face,me):#face , Mesh
                 wedge_list = []
                 vect_list = []
+                faceUV = uv_layer[face.index]#UV TEXTURE
                 
-                #get or create the current material
-                psk_file.GetMatByIndex(object_material_index)
-
-                face_index = current_face.index
-                has_UV = False
-                faceUV = None
-                
-                if len(current_mesh.uv_textures) > 0:
-                    has_UV = True    
-                    #print("face index: ",face_index)
-                    #faceUV = current_mesh.uv_textures.active.data[face_index]#UVs for current face
-                    #faceUV = current_mesh.uv_textures.active.data[0]#UVs for current face
-                    #print(face_index,"<[FACE NUMBER")
-                    uv_layer = current_mesh.uv_textures.active
-                    faceUV = uv_layer.data[face_index]
-                    #print("============================")
-                    #size(data) is number of texture faces. Each face has UVs
-                    #print("DATA face uv: ",len(faceUV.uv), " >> ",(faceUV.uv[0][0]))
-                
-                for i in range(3):
-                    vert_index = current_face.vertices[i]
-                    vert = current_mesh.vertices[vert_index]
+                for i in range(3): #UV TEXTURE, VERTICES
+                    vert_index = face.vertices[i]
+                    vert = me.vertices[vert_index]
                     uv = []
-                    #assumes 3 UVs Per face (for now).
                     if (has_UV):
                         if len(faceUV.uv) != 3:
                             print ("WARNING: Current face is missing UV coordinates - writing 0,0...")
                             print ("WARNING: Face has more than 3 UVs - writing 0,0...")
                             uv = [0.0, 0.0]
                         else:
-                            #uv.append(faceUV.uv[i][0])
-                            #uv.append(faceUV.uv[i][1])
                             uv = [faceUV.uv[i][0],faceUV.uv[i][1]] #OR bottom works better # 24 for cube
-                            #uv = list(faceUV.uv[i]) #30 just cube    
                     else:
-                        #print ("No UVs?")
                         uv = [0.0, 0.0]
-                    #print("UV >",uv)
-                    #uv = [0.0, 0.0] #over ride uv that is not fixed
-                    #print(uv)
-                    #flip V coordinate because UEd requires it and DOESN'T flip it on its own like it
-                    #does with the mesh Y coordinates.
-                    #this is otherwise known as MAGIC-2
-                    uv[1] = 1.0 - uv[1]
                     
-                    #deal with the min and max value
-                    #check if limit boolean
-                    #if value is over the set limit it will null the uv texture
-                    if bpy.context.scene.limituv:
+                    uv[1] = 1.0 - uv[1] #flip uv
+                    
+                    if bpy.context.scene.limituv:#set limit to 0-1 or not
                         if (uv[0] > 1):
                             uv[0] = 1
                         if (uv[0] < 0):
@@ -791,17 +739,10 @@ def parse_meshes(blender_meshes, psk_file):
                             uv[1] = 1
                         if (uv[1] < 0):
                             uv[1] = 0
-                        #print("limited on")
-                    #else:
-                        #print("limited off")
                     
-                    # RE - Append untransformed vector (for normal calc below)
-                    # TODO: convert to Blender.Mathutils
                     vect_list.append(FVector(vert.co.x, vert.co.y, vert.co.z))
-                    
-                    # Transform position for export
-                    #vpos = vert.co * object_material_index
                     vpos = current_obj.matrix_local * vert.co
+                    
                     # Create the point
                     p = VPoint()
                     p.Point.X = vpos.x
@@ -817,17 +758,10 @@ def parse_meshes(blender_meshes, psk_file):
                     w.V = uv[1]
                     index_wedge = wedges.get(w)
                     wedge_list.append(index_wedge)
-                    
-                    #print results
-                    #print 'result PointIndex=%i, U=%f, V=%f, wedge_index=%i' % (
-                    #    w.PointIndex,
-                    #    w.U,
-                    #    w.V,
-                    #    wedge_index)
                 
                 # Determine face vertex order
                 # get normal from blender
-                no = current_face.normal
+                no = face.normal
                 
                 # TODO: convert to Blender.Mathutils
                 # convert to FVector
@@ -840,7 +774,7 @@ def parse_meshes(blender_meshes, psk_file):
                 # this gives the product of the two vectors' lengths along the blender normal axis
                 # all that matters is the sign
                 dot = norm.dot(tnorm)
-
+                
                 # print results
                 #print 'face norm: (%f,%f,%f), tnorm=(%f,%f,%f), dot=%f' % (
                 #    norm.X, norm.Y, norm.Z,
@@ -857,21 +791,23 @@ def parse_meshes(blender_meshes, psk_file):
                 elif (dot < 0):
                     (tri.WedgeIndex0, tri.WedgeIndex1, tri.WedgeIndex2) = wedge_list
                 else:
-                    dindex0 = current_face.vertices[0];
-                    dindex1 = current_face.vertices[1];
-                    dindex2 = current_face.vertices[2];
+                    dindex0 = face.vertices[0];
+                    dindex1 = face.vertices[1];
+                    dindex2 = face.vertices[2];
 
-                    current_mesh.vertices[dindex0].select = True
-                    current_mesh.vertices[dindex1].select = True
-                    current_mesh.vertices[dindex2].select = True
+                    me.vertices[dindex0].select = True
+                    me.vertices[dindex1].select = True
+                    me.vertices[dindex2].select = True
                     
-                    raise RuntimeError("normal vector coplanar with face! points:", current_mesh.vertices[dindex0].co, current_mesh.vertices[dindex1].co, current_mesh.vertices[dindex2].co)
+                    #raise RuntimeError("normal vector coplanar with face! points:", me.vertices[dindex0].co, current_mesh.vertices[dindex1].co, current_mesh.vertices[dindex2].co)
+                    exportmessage = "One of the face is dot or period or line, coplanar with the face"
+                    return 
                 #print(dir(current_face))
-                current_face.select = True
+                face.select = True
                 #print("smooth:",(current_face.use_smooth))
                 #not sure if this right
                 #tri.SmoothingGroups
-                if current_face.use_smooth == True:
+                if face.use_smooth == True:
                     tri.SmoothingGroups = 1
                 else:
                     tri.SmoothingGroups = 0
@@ -885,8 +821,8 @@ def parse_meshes(blender_meshes, psk_file):
         print (" -- Dumping Mesh Points -- LEN:",len(points.dict))
         for point in points.items():
             psk_file.AddPoint(point)
-        if len(points.dict) > 32767:
-            raise RuntimeError("Vertex point reach max limited 32767 in pack data. Your",len(points.dict))
+        #if len(points.dict) > 32767:
+            #raise RuntimeError("Vertex point reach max limited 32767 in pack data. Your",len(points.dict))
         print (" -- Dumping Mesh Wedge -- LEN:",len(wedges.dict))
         
         for wedge in wedges.items():
@@ -910,7 +846,7 @@ def parse_meshes(blender_meshes, psk_file):
             #print("bone gourp build:",obvgroup.name)#print bone name
             #print(dir(obvgroup))
             vert_list = []
-            for current_vert in current_mesh.vertices:
+            for current_vert in me.vertices:
                 #print("INDEX V:",current_vert.index)
                 vert_index = current_vert.index
                 for vgroup in current_vert.groups:#vertex groupd id
@@ -939,18 +875,18 @@ def parse_meshes(blender_meshes, psk_file):
             bpy.context.scene.objects.unlink(current_obj)
         el
         '''
-        if bDeleteMergeMesh == True:
-            print("Remove Merge tmp Mesh [ " ,current_obj.name, " ] from scene >"  ,(bpy.context.scene.unrealtriangulatebool ))
-            bpy.ops.object.mode_set(mode='OBJECT') # set it in object
-            bpy.context.scene.objects.unlink(current_obj)
-        elif bpy.context.scene.unrealtriangulatebool == True:
-            print("Remove tri tmp Mesh [ " ,current_obj.name, " ] from scene >"  ,(bpy.context.scene.unrealtriangulatebool ))
-            bpy.ops.object.mode_set(mode='OBJECT') # set it in object
-            bpy.context.scene.objects.unlink(current_obj)
+        #if bDeleteMergeMesh == True:
+            #print("Remove Merge tmp Mesh [ " ,current_obj.name, " ] from scene >"  ,(bpy.context.scene.unrealtriangulatebool ))
+            #bpy.ops.object.mode_set(mode='OBJECT') # set it in object
+            #bpy.context.scene.objects.unlink(current_obj)
+        #elif bpy.context.scene.unrealtriangulatebool == True:
+            #print("Remove tri tmp Mesh [ " ,current_obj.name, " ] from scene >"  ,(bpy.context.scene.unrealtriangulatebool ))
+            #bpy.ops.object.mode_set(mode='OBJECT') # set it in object
+            #bpy.context.scene.objects.unlink(current_obj)
         #if bDeleteMergeMesh == True:
             #print("Remove merge Mesh [ " ,current_obj.name, " ] from scene")
             #bpy.ops.object.mode_set(mode='OBJECT') # set it in object
-            #bpy.context.scene.objects.unlink(current_obj)
+            #bpy.context.scene.objects.unlink(current_obj)    
         
 def make_fquat(bquat):
     quat = FQuat()
@@ -2056,9 +1992,9 @@ class VIEW3D_PT_unrealtools_objectmode(bpy.types.Panel):
                 entry = obj.myCollectionUEA[obj.myCollectionUEA_index]
                 layout.prop(entry, "name")
                 layout.prop(entry, "mybool")
-        layout.operator(OBJECT_OT_UTSelectedFaceSmooth.bl_idname)        
+        #layout.operator(OBJECT_OT_UTSelectedFaceSmooth.bl_idname)        
         layout.operator(OBJECT_OT_UTRebuildArmature.bl_idname)
-        layout.operator(OBJECT_OT_UTRebuildMesh.bl_idname)
+        #layout.operator(OBJECT_OT_UTRebuildMesh.bl_idname)
         layout.operator(OBJECT_OT_ToggleConsle.bl_idname)
         layout.operator(OBJECT_OT_DeleteActionSet.bl_idname)
         layout.operator(OBJECT_OT_MeshClearWeights.bl_idname)
@@ -2087,7 +2023,10 @@ class OBJECT_OT_UnrealExport(bpy.types.Operator):
         default_path = os.path.splitext(bpy.data.filepath)[0] + ".psk"
         fs_callback(default_path, bpy.context)        
         #self.report({'WARNING', 'INFO'}, exportmessage)
-        self.report({'INFO'}, exportmessage)
+        #self.report({'INFO'}, exportmessage)
+        #self.report({'DEBUG'}, exportmessage)
+        #self.report({'WARNING'}, exportmessage)
+        self.report({'ERROR'}, exportmessage)
         return{'FINISHED'}   
 
 class OBJECT_OT_ToggleConsle(bpy.types.Operator):
