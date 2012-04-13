@@ -225,7 +225,7 @@ function setupConfigPanel() {
 		return "";
 	}
 
-	createPanelwidget("body", "configure", "Confgiguration", "");
+	createPanelwidget("body", "configure", "Configuration", "");
 	createTabswidget("#configure_Panelcontent", "conf", [{
 		name : "Rules",
 		f_content : confTab
