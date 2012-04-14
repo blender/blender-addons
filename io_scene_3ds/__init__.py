@@ -60,8 +60,8 @@ class Import3DS(bpy.types.Operator, ImportHelper):
 
     constrain_size = FloatProperty(
             name="Size Constraint",
-            description="Scale the model by 10 until it reacehs the " \
-                        "size constraint. Zero Disables",
+            description="Scale the model by 10 until it reaches the " \
+                        "size constraint (0 to disable)",
             min=0.0, max=1000.0,
             soft_min=0.0, soft_max=1000.0,
             default=10.0,

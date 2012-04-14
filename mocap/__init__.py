@@ -145,7 +145,7 @@ class AnimationStitchSettings(bpy.types.PropertyGroup):
     blend_frame = IntProperty(name="Stitch frame",
             description="Frame to locate stitch on")
     blend_amount = IntProperty(name="Blend amount",
-            description="Size of blending transitiion, on both sides of the stitch",
+            description="Size of blending transition, on both sides of the stitch",
             default=10)
     second_offset = IntProperty(name="Second offset",
             description="Frame offset for 2nd animation, where it should start",
@@ -648,7 +648,7 @@ class OBJECT_OT_RotateFixArmature(bpy.types.Operator):
 
 class OBJECT_OT_ScaleFixArmature(bpy.types.Operator):
     #Operator to scale down the selected armature to match the active one
-    '''Rescale selected armature to match the active animation, for convienence'''
+    '''Rescale selected armature to match the active animation, for convenience'''
     bl_idname = "mocap.scale_fix"
     bl_label = "Scale performer armature to match target armature"
 

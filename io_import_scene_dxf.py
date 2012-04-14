@@ -2471,7 +2471,7 @@ class IMPORT_OT_autocad_dxf(bpy.types.Operator):
             )
     circleResolution = IntProperty(
             name="Circle resolution",
-            description="Circle/Arc are aproximated with this factor",
+            description="Circle/Arc are approximated with this factor",
             default=theCircleRes,
             min=4,
             soft_min=4,
