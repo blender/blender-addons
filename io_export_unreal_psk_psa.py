@@ -113,7 +113,6 @@ MaterialName = []
 # ======================================================================
 # TODO: remove this 1am hack
 nbone = 0
-bDeleteMergeMesh = False
 exportmessage = "Export Finish" 
 
 ########################################################################
@@ -607,57 +606,59 @@ def is_1d_face(blender_face,mesh):
     mesh.vertices[v1].co == mesh.vertices[v2].co or \
     mesh.vertices[v2].co == mesh.vertices[v0].co)
     return False
+#blender 2.63 format using the Operators/Commands to merge the meshes into one
+def meshmerge(selectedobjects):
+    bpy.ops.object.mode_set(mode='OBJECT')
+    cloneobjects = []
+    if len(selectedobjects) > 1:
+        print("selectedobjects:",len(selectedobjects))
+        count = 0 #reset count
+        for count in range(len( selectedobjects)):
+            #print("Index:",count)
+            if selectedobjects[count] != None:
+                cloneobjects.append(selectedobjects[count])
+        for i in bpy.data.objects: i.select = False #deselect all objects
+        count = 0 #reset count
+        for count in range(len( cloneobjects)):
+            if count == 0:
+                bpy.context.scene.objects.active = cloneobjects[count]
+                print("Set Active Object:",cloneobjects[count].name)
+            cloneobjects[count].select = True
+        bpy.ops.object.join()
+        return cloneobjects[0]	
 
 ##################################################
 # http://en.wikibooks.org/wiki/Blender_3D:_Blending_Into_Python/Cookbook#Triangulate_NMesh
-#blender 2.50 format using the Operators/command convert the mesh to tri mesh
+#blender 2.63 format using the Operators/Commands to convert the mesh to tri mesh
 def triangulateNMesh(object):
-    global bDeleteMergeMesh
-    bneedtri = False
+    print("Converting quad to tri mesh...")
     scene = bpy.context.scene
     bpy.ops.object.mode_set(mode='OBJECT')
     for i in scene.objects: i.select = False #deselect all objects
     object.select = True
     scene.objects.active = object #set the mesh object to current
     bpy.ops.object.mode_set(mode='OBJECT')
-    print("Checking mesh if needs to convert quad to Tri...")
-    for face in object.data.faces:
-        if (len(face.vertices) > 3):
-            bneedtri = True
-            break
-    
-    bpy.ops.object.mode_set(mode='OBJECT')
-    if bneedtri == True:
-        print("Converting quad to tri mesh...")
-        me_da = object.data.copy() #copy data
-        me_ob = object.copy() #copy object
-        #note two copy two types else it will use the current data or mesh
-        me_ob.data = me_da
-        bpy.context.scene.objects.link(me_ob)#link the object to the scene #current object location
-        for i in scene.objects: i.select = False #deselect all objects
-        me_ob.select = True
-        scene.objects.active = me_ob #set the mesh object to current
-        bpy.ops.object.mode_set(mode='EDIT') #Operators
-        bpy.ops.mesh.select_all(action='SELECT')#select all the face/vertex/edge
-        bpy.ops.mesh.quads_convert_to_tris() #Operators
-        bpy.context.scene.update()
-        bpy.ops.object.mode_set(mode='OBJECT') # set it in object
-        bpy.context.scene.unrealtriangulatebool = True
-        print("Triangulate Mesh Done!")
-        if bDeleteMergeMesh == True:
-            print("Remove Merge tmp Mesh [ " ,object.name, " ] from scene!" )
-            bpy.ops.object.mode_set(mode='OBJECT') # set it in object
-            bpy.context.scene.objects.unlink(object)
-    else:
-        bpy.context.scene.unrealtriangulatebool = False
-        print("No need to convert tri mesh.")
-        me_ob = object
+    me_da = object.data.copy() #copy data
+    me_ob = object.copy() #copy object
+    #note two copy two types else it will use the current data or mesh
+    me_ob.data = me_da
+    scene = bpy.context.scene
+    bpy.context.scene.objects.link(me_ob)#link the object to the scene #current object location
+    for i in scene.objects: i.select = False #deselect all objects
+    me_ob.select = True
+    scene.objects.active = me_ob #set the mesh object to current
+    bpy.ops.object.mode_set(mode='EDIT') #Operators
+    bpy.ops.mesh.select_all(action='SELECT')#select all the face/vertex/edge
+    bpy.ops.mesh.quads_convert_to_tris() #Operators
+    bpy.context.scene.update()
+    bpy.ops.object.mode_set(mode='OBJECT') # set it in object
+    print("Triangulate Mesh Done!")
     return me_ob
 
 #Texture not working still find a way to get it work
 # Actual object parsing functions
 def parse_meshes(blender_meshes, psk_file):	
-    global bDeleteMergeMesh, exportmessage
+    global exportmessage
     print("Number of Object Meshes:",len(blender_meshes))
     for current_obj in blender_meshes: #number of mesh that should be one mesh here
         #material
@@ -689,16 +690,23 @@ def parse_meshes(blender_meshes, psk_file):
         faceUV = None
         scene = bpy.context.scene #get current scene
         EXPORT_APPLY_MODIFIERS = True
+        currentmeshobject = current_obj;
+        
+        current_obj = triangulateNMesh(currentmeshobject) #convert tri incase
+        bpy.context.scene.objects.unlink(currentmeshobject)
         me = current_obj.to_mesh(scene, EXPORT_APPLY_MODIFIERS, 'PREVIEW') #apply modified mesh and write mesh
+        
+        #print(dir(me))
         
         faceuv = len(me.uv_textures) > 0 #check if has uv texture
         if faceuv:
             uv_layer = me.tessface_uv_textures.active.data[:]
         else:
+            
             has_UV = False
         
         for face in me.tessfaces:
-            print("Vertices count:",len(face.vertices))
+            #print("Vertices count:",len(face.vertices))
             #get or create the current material
             object_material_index = face.material_index
             psk_file.GetMatByIndex(object_material_index)
@@ -712,13 +720,14 @@ def parse_meshes(blender_meshes, psk_file):
             if not is_1d_face(face,me):#face , Mesh
                 wedge_list = []
                 vect_list = []
-                faceUV = uv_layer[face.index]#UV TEXTURE
+                
                 
                 for i in range(3): #UV TEXTURE, VERTICES
                     vert_index = face.vertices[i]
                     vert = me.vertices[vert_index]
                     uv = []
                     if (has_UV):
+                        faceUV = uv_layer[face.index]#UV TEXTURE
                         if len(faceUV.uv) != 3:
                             print ("WARNING: Current face is missing UV coordinates - writing 0,0...")
                             print ("WARNING: Face has more than 3 UVs - writing 0,0...")
@@ -807,10 +816,15 @@ def parse_meshes(blender_meshes, psk_file):
                 #print("smooth:",(current_face.use_smooth))
                 #not sure if this right
                 #tri.SmoothingGroups
+                print(face.use_smooth)
                 if face.use_smooth == True:
-                    tri.SmoothingGroups = 1
-                else:
                     tri.SmoothingGroups = 0
+                else:
+                    tri.SmoothingGroups = 1
+                #tri.SmoothingGroups = face.use_smooth
+                #tri.SmoothingGroups = hex(face.use_smooth)
+                #print(hex(True))
+                print(hex(face.use_smooth))
                 #tri.SmoothingGroups = 1
                 tri.MatIndex = object_material_index
                 #print(tri)
@@ -864,29 +878,8 @@ def parse_meshes(blender_meshes, psk_file):
             #bone name, [point id and wieght]
             #print("Add Vertex Group:",obvgroup.name, " No. Points:",len(vert_list))
             psk_file.VertexGroups[obvgroup.name] = vert_list
-        
-        #unrealtriangulatebool #this will remove the mesh from the scene
-        '''
-        if (bpy.context.scene.unrealtriangulatebool == True) and (bDeleteMergeMesh == True):
-            #if bDeleteMergeMesh == True:
-            #    print("Removing merge mesh.")
-            print("Remove tmp Mesh [ " ,current_obj.name, " ] from scene >"  ,(bpy.context.scene.unrealtriangulatebool ))
-            bpy.ops.object.mode_set(mode='OBJECT') # set it in object
-            bpy.context.scene.objects.unlink(current_obj)
-        el
-        '''
-        #if bDeleteMergeMesh == True:
-            #print("Remove Merge tmp Mesh [ " ,current_obj.name, " ] from scene >"  ,(bpy.context.scene.unrealtriangulatebool ))
-            #bpy.ops.object.mode_set(mode='OBJECT') # set it in object
-            #bpy.context.scene.objects.unlink(current_obj)
-        #elif bpy.context.scene.unrealtriangulatebool == True:
-            #print("Remove tri tmp Mesh [ " ,current_obj.name, " ] from scene >"  ,(bpy.context.scene.unrealtriangulatebool ))
-            #bpy.ops.object.mode_set(mode='OBJECT') # set it in object
-            #bpy.context.scene.objects.unlink(current_obj)
-        #if bDeleteMergeMesh == True:
-            #print("Remove merge Mesh [ " ,current_obj.name, " ] from scene")
-            #bpy.ops.object.mode_set(mode='OBJECT') # set it in object
-            #bpy.context.scene.objects.unlink(current_obj)    
+        #unlink copy of object from scene
+        bpy.context.scene.objects.unlink(current_obj)
         
 def make_fquat(bquat):
     quat = FQuat()
@@ -1473,37 +1466,9 @@ def parse_animation(blender_scene, blender_armatures, psa_file):
                 print("---- Action End ----")
                 print("==== Finish Action Build ====")
     
-def meshmerge(selectedobjects):
-    bpy.ops.object.mode_set(mode='OBJECT')
-    cloneobjects = []
-    if len(selectedobjects) > 1:
-        print("selectedobjects:",len(selectedobjects))
-        count = 0 #reset count
-        for count in range(len( selectedobjects)):
-            #print("Index:",count)
-            if selectedobjects[count] != None:
-                me_da = selectedobjects[count].data.copy() #copy data
-                me_ob = selectedobjects[count].copy() #copy object
-                #note two copy two types else it will use the current data or mesh
-                me_ob.data = me_da
-                bpy.context.scene.objects.link(me_ob)#link the object to the scene #current object location
-                print("Index:",count,"clone object",me_ob.name)
-                cloneobjects.append(me_ob)
-        #bpy.ops.object.mode_set(mode='OBJECT')
-        for i in bpy.data.objects: i.select = False #deselect all objects
-        count = 0 #reset count
-        #bpy.ops.object.mode_set(mode='OBJECT')
-        for count in range(len( cloneobjects)):
-            if count == 0:
-                bpy.context.scene.objects.active = cloneobjects[count]
-                print("Set Active Object:",cloneobjects[count].name)
-            cloneobjects[count].select = True
-        bpy.ops.object.join()
-        return cloneobjects[0]
-        
 def fs_callback(filename, context):
     #this deal with repeat export and the reset settings
-    global nbone, exportmessage, bDeleteMergeMesh
+    global nbone, exportmessage
     nbone = 0
     
     start_time = time.clock()
@@ -1540,7 +1505,9 @@ def fs_callback(filename, context):
             blender_meshes.append(next_obj)
             if (next_obj.select):
                 #print("mesh object select")
-                selectmesh.append(next_obj)
+                copymesh = next_obj.copy()
+                bpy.context.scene.objects.link(copymesh)
+                selectmesh.append(copymesh)
         if next_obj.type == 'ARMATURE':
             blender_armature.append(next_obj)
             if (next_obj.select):
@@ -1552,13 +1519,22 @@ def fs_callback(filename, context):
     print("Checking Mesh Condtion(s):")
     #if there 1 mesh in scene add to the array
     if len(blender_meshes) == 1:
+        mesh = blender_meshes[0]
+        blender_meshes = []
+        blender_meshes.append(mesh.copy())
         print(" - One Mesh Scene")
     #if there more than one mesh and one mesh select add to array
     elif (len(blender_meshes) > 1) and (len(selectmesh) == 1):
+        if selectmesh[0].location.x != 0 and selectmesh[0].location.y != 0 and selectmesh[0].location.z != 0:
+            exportmessage = "Error, Mesh Object not Center right should be (0,0,0)."
+            for mesh in selectmesh:#remove object
+                bpy.context.scene.objects.unlink(mesh)
+            return
         blender_meshes = []
-        blender_meshes.append(selectmesh[0])
+        copymesh = selectmesh[0]
+        blender_meshes.append(copymesh)
         print(" - One Mesh [Select]")
-    elif (len(blender_meshes) > 1) and (len(selectmesh) >= 1):
+    elif (len(blender_meshes) > 1) and (len(selectmesh) >= 1):#if there more than one mesh and some area off center check.
         #code build check for merge mesh before ops
         print("More than one mesh is selected!")
         centermesh = []
@@ -1580,42 +1556,50 @@ def fs_callback(filename, context):
             for countm in range(len(notcentermesh)):
                 selectmesh.append(notcentermesh[countm])
             blender_meshes.append(meshmerge(selectmesh))
-            bDeleteMergeMesh = True
         else:
-            bDeleteMergeMesh = False
             bmesh = False
             print("Center Object Not Found")
     else:
         print(" - Too Many Meshes!")
+        exportmessage = " - Select Mesh(s) For Export!"
         print(" - Select One Mesh Object!")
         bmesh = False
-        bDeleteMergeMesh = False
+        return
 		
     print("====================================")
     print("Checking Armature Condtion(s):")
     if len(blender_armature) == 1:
         print(" - One Armature Scene")
     elif (len(blender_armature) > 1) and (len(selectarmature) == 1):
-        print(" - One Armature [Select]")
-    else:
         print(" - Too Armature Meshes!")
-        print(" - Select One Armature Object Only!")
+        print(" - [Select] One Armature!")
+    else:
         barmature = False
+        exportmessage = "None Armature! Create One!"
+        return
     bMeshScale = True
     bMeshCenter = True
     if len(blender_meshes) > 0:
         if blender_meshes[0].scale.x == 1 and blender_meshes[0].scale.y == 1 and blender_meshes[0].scale.z == 1:
             #print("Okay")
             bMeshScale = True
-        else:
+        elif blender_meshes[0].scale.x != 1 and blender_meshes[0].scale.y != 1 and blender_meshes[0].scale.z != 1:
             print("Error, Mesh Object not scale right should be (1,1,1).")
-            bMeshScale = False
-        if blender_meshes[0].location.x == 0 and blender_meshes[0].location.y == 0 and blender_meshes[0].location.z == 0:
+            exportmessage = "Error, Mesh Object not scale right should be (1,1,1)."
+            return
+        elif blender_meshes[0].location.x == 0 and blender_meshes[0].location.y == 0 and blender_meshes[0].location.z == 0:
             #print("Okay")
             bMeshCenter = True
-        else:
+            return
+        elif blender_meshes[0].location.x != 0 and blender_meshes[0].location.y != 0 and blender_meshes[0].location.z != 0:
             print("Error, Mesh Object not center.",blender_meshes[0].location)
+            #exportmessage = "Error, Mesh Object not center."
+            exportmessage = "Error, Mesh Object not center."
             bMeshCenter = False
+            return
+        else:
+            exportmessage = "Please Select your Meshes that matches that Armature for Export."
+            return
     else:
         bmesh = False
     bArmatureScale = True
@@ -1626,12 +1610,14 @@ def fs_callback(filename, context):
             bArmatureScale = True
         else:
             print("Error, Armature Object not scale right should be (1,1,1).")
+            exportmessage = "Error, Armature Object not scale right should be (1,1,1)."
             bArmatureScale = False
         if blender_armature[0].location.x == 0 and blender_armature[0].location.y == 0 and blender_armature[0].location.z == 0:
             #print("Okay")
             bArmatureCenter = True
         else:
             print("Error, Armature Object not center.",blender_armature[0].location)
+            exportmessage = "Error, Armature Object not center."
             bArmatureCenter = False
 			
 		
