@@ -418,7 +418,8 @@ class netclientdownload(bpy.types.Operator):
                     nb_missing += 1
             
             if not finished_frames:
-                return
+                self.report({'ERROR'}, "Job doesn't have any finished frames")
+                return {'ERROR'}
             
             frame_ranges = []
     
