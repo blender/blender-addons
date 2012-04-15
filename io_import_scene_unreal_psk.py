@@ -20,7 +20,7 @@ bl_info = {
     "name": "Import Unreal Skeleton Mesh (.psk)",
     "author": "Darknet",
     "version": (2, 1),
-    "blender": (2, 6, 2),
+    "blender": (2, 6, 3),
     "location": "File > Import > Skeleton Mesh (.psk)",
     "description": "Import Skeleleton Mesh",
     "warning": "",
@@ -74,13 +74,6 @@ skala = 1
 flipyz = False   
 flipuv = True
 
-"""
-def unpack_list(list_of_tuples):
-    l = []
-    for t in list_of_tuples:
-        l.extend(t)
-    return l
-"""	
 #pack read words	
 def word(long): 
    s=''
@@ -154,289 +147,7 @@ def drawmesh():
         ob.vertex_groups.new(namebone)
     me_ob.update()
     bpy.context.scene.objects.link(ob) 
-def drawmesh4():
-    global DEBUGLOG, plik,vertexes,uvcoord,faceslist,num_faces,facemat,facesmooth,m
-    global vertexes_ids,bonesdata,meshesdata,groups,num_materials,skala,flipyz,flipuv,mat_faceslist
-    global vertices,faces
-    print("CREATING MESH")
-    me_ob = bpy.data.meshes.new('testmesh')
-    print("CREATING BMESH")
-    bm = bmesh.new()   # create an empty BMesh    
-    #print(dir(bm))
-    bm.from_mesh(me_ob)   # fill it in from a Mesh
-        
-    #print("CREATING:")
-    
-    #vertices
-    #print("-VERTICES")
-    #for v_co in vertices:
-        #bm.verts.new(v_co)
-    
-    #faces
-    #print("-FACES")
-    for f_idx in faces:
-        #face idx
-        bm.faces.new([bm.verts[i] for i in f_idx])
-    
-    print("-FACE SMOOTHS")
-    for face in bm.faces:
-        face.smooth = facesmooth[face.index]    
-    
-    bm.to_mesh(me_ob) #write mesh
-    ob = bpy.data.objects.new("TestObject",me_ob) 
-    me_ob.update() #update object
-    bpy.context.scene.objects.link(ob) #link to scene
-    
-    #print(dir(bm))
-    
-    #create vertex group
-    for bone_id in range(len(bonesdata)):
-        bonedata = bonesdata[str(bone_id)]
-        namebone = bonedata[0]#.strip()[-25:]
-        #print("NAME:",namebone)
-        ob.vertex_groups.new(namebone)
-        
-    #print("CREATING > Assign Weights")
-    
-    
-    materialname = "pskmat"
-    psktexname = "psktex"
-    
-    me_ob.uv_textures.new()
-    for matcount in range(1):
-        matdata = bpy.data.materials.new(materialname + str(1))
-        me_ob.materials.append(matdata)
-    
-    
-    print(dir(me_ob))
-    #me_ob.tessface_uv_textures.new(name=psktexname)
-    #me_ob.uv_textures.new(name=psktexname)
-    #me_ob.uv_textures[0].active =True
-    
-    #print((me_ob.uv_textures[0].name))
-    #print(dir(me_ob.uv_textures[0]))
-    #for uv in me_ob.uv_textures:
-        #print(dir(uv.data[0]))
-        
-    """
-    print("NEW TEXTURE")
-    me_ob.uv_textures.new()
-    
-    print("CREATING UV")
-    for uv in me_ob.uv_textures:
-        #print(len(uv.data))
-        for face in bm.faces:
-            print(dir(face.verts[0]))
-            #print(dir(uv.data[face.index].image))
-            #print(dir(uv.data[face.index]))
-    
-    print("CREATING > Vertex Group")
-    """
-    bpy.context.scene.update()
-def drawmesh3():
-    global DEBUGLOG, plik,vertexes,uvcoord,faceslist,num_faces,facemat,facesmooth,m
-    global vertexes_ids,bonesdata,meshesdata,groups,num_materials,skala,flipyz,flipuv,mat_faceslist
-    global vertices,faces
-    print("CREATING MESH")
-    me_ob = bpy.data.meshes.new('testmesh')
-    print("CREATING BMESH")
-    bm = bmesh.new()   # create an empty BMesh    
-    #print(dir(bm))
-    bm.from_mesh(me_ob)   # fill it in from a Mesh
-        
-    print("CREATING:")
-    
-    #vertices
-    print("-VERTICES")
-    for v_co in vertices:
-        bm.verts.new(v_co)
-    
-    #faces
-    print("-FACES")
-    for f_idx in faces:
-        #face idx
-        bm.faces.new([bm.verts[i] for i in f_idx])
-    
-    print("-FACE SMOOTHS")
-    for face in bm.faces:
-        face.smooth = facesmooth[face.index]    
-    
-    bm.to_mesh(me_ob) #write mesh
-    ob = bpy.data.objects.new("TestObject",me_ob) 
-    me_ob.update() #update object
-    bpy.context.scene.objects.link(ob) #link to scene
-    
-    #print(dir(bm))
-    
-    #create vertex group
-    for bone_id in range(len(bonesdata)):
-        bonedata = bonesdata[str(bone_id)]
-        namebone = bonedata[0]#.strip()[-25:]
-        #print("NAME:",namebone)
-        ob.vertex_groups.new(namebone)
-        
-    #print("CREATING > Assign Weights")
-    
-    
-    materialname = "pskmat"
-    psktexname = "psktex"
-    
-    me_ob.uv_textures.new()
-    for matcount in range(1):
-        matdata = bpy.data.materials.new(materialname + str(1))
-        me_ob.materials.append(matdata)
-    
-    
-    print(dir(me_ob))
-    me_ob.tessface_uv_textures.new(name=psktexname)
-    #me_ob.uv_textures.new(name=psktexname)
-    #me_ob.uv_textures[0].active =True
-    
-    #print((me_ob.uv_textures[0].name))
-    #print(dir(me_ob.uv_textures[0]))
-    #for uv in me_ob.uv_textures:
-        #print(dir(uv.data[0]))
-        
-    """
-    print("NEW TEXTURE")
-    me_ob.uv_textures.new()
-    
-    print("CREATING UV")
-    for uv in me_ob.uv_textures:
-        #print(len(uv.data))
-        for face in bm.faces:
-            print(dir(face.verts[0]))
-            #print(dir(uv.data[face.index].image))
-            #print(dir(uv.data[face.index]))
-    
-    print("CREATING > Vertex Group")
-    """
-    bpy.context.scene.update()    
-def drawmesh1():
-    global DEBUGLOG, plik,vertexes,uvcoord,faceslist,num_faces,facemat,facesmooth,m
-    global vertexes_ids,bonesdata,meshesdata,groups,num_materials,skala,flipyz,flipuv,mat_faceslist
-    global vertices,faces
-    print(faces[0])
-    me_ob = bpy.data.meshes.new('testmesh')
-    #obmesh = bpy.data.objects.new('testdata',me_ob)
-    #uvtex = me_ob.uv_textures.new(name="pskuvtexture")
-    #uvtex = me_ob.tessface_uv_textures.new(name="pskuvtexture")
-    
-    #material = bpy.data.materials.new('pskmat')
-    #me_ob.materials.append(material)
-    #uvtex = me_ob.uv_textures.new('pskuvtexture')
-    
-    #create mesh
-    #me_ob.from_pydata(vertexes,[],faceslist)#create the faces and vertices
-	
-    me_ob.vertices.add(len(vertices))
-    me_ob.tessfaces.add(len(faces))
-    me_ob.vertices.foreach_set("co", unpack_list(vertices))
-    me_ob.tessfaces.foreach_set("vertices_raw",unpack_list( faces))
-    
-    
-    
-    #bm = bmesh.new()   # create an empty BMesh    
-    #print(dir(bm))
-    #bm.from_mesh(me_ob)   # fill it in from a Mesh
-    
-    
-    #for v_co in vertices:
-        #bm.verts.new(v_co)
-    #for f_idx in faces:
-        #bm.faces.new([bm.verts[i] for i in f_idx])
-    
-    
-    #bm.to_mesh(me_ob)
-    ob = bpy.data.objects.new("TestObject",me_ob)
-    me_ob.update()
-    bpy.context.scene.objects.link(ob) 
-    
-    #set face smooth list boolean
-    #for face in bm.faces:
-        #face.smooth = facesmooth[face.index]
-    #bm.uv_textures.new()
-    #print(dir(bm))
-    #bm.verts.foreach_set("co", vertices)
-    #bm.faces.add(len(faces))
-    #bm.faces.foreach_set("vertices_raw", faces)
-    
-    #print(dir(me_ob))
-    #print(dir(bm))
-    
-    #print(dir(uvtex.data[0].image))
-    #for countm in range(len(me_ob.uv_textures)):
-        #me_ob.update()
-        #uvtex = me_ob.uv_textures[countm] #add one uv texture
-        #me_ob.update()
-        #for i, face in enumerate(bm.faces):
-            #print(dir(face))
-        
-        
-        
-        
-    #texture
-    #texture = bpy.data.textures.new(name="texture",type='IMAGE')
-    #material
-    #matdata = bpy.data.materials.new(name="pskmat")
-    #mtex = matdata.texture_slots.add()
-    #mtex.texture = texture
-    #mtex.texture_coords = 'UV'
-    #mtex.use_map_color_diffuse = True
-    #mtex.use_map_alpha = True
-    #uvtex = me_ob.uv_textures[0]
-    
-    #print(dir(uvtex.data[0]))
-    #print(dir(uvtex.data[0].image))
-    #print(dir(texture))
-    
-    #for i, face in enumerate(bm.faces):
-        #print(face.material_index)
-        #face.material_index = faceuv[i][1]
-        #blender_tface = uvtex.data[i].image #face
-    """
-    
-    #mesh vertex group #not done
-	#create vertex group
-    for bone_id in range(len(bonesdata)):
-       bonedata = bonesdata[str(bone_id)]
-       namebone = bonedata[0]#.strip()[-25:]
-       obmesh.vertex_groups.new(namebone)
-    #assgin group
-    for m in range(len(groups)):
-            data = groups[m]
-            w = float(data[0])
-            v_id = data[1]
-            gr = data[2]
-            gr = bonenames[gr]
-    
-    #for vgroup in obmesh.vertex_groups:
-        #print(vgroup.name,":",vgroup.index)
-    
-        for vgp in RWghts:
-            #bone index
-            if vgp[1] == vgroup.index:
-                #print(vgp)
-                #[vertex id],weight
-                vgroup.add([vgp[0]], vgp[2], 'ADD')
-    """
-    
-    
-    # Finish up, write the bmesh back to the mesh
-    #bm.to_mesh(me_ob)
-    
-    
-    
-    #print((uvtex.name))
-    #print((uvtex.data))
-    #print(dir(uvtex))
-    #print(dir(uvtex.data[0].image))
-    #print(type(uvtex.data[0].image))
-    
-    
-    
-    #bpy.context.scene.objects.link(obmesh)    
-    bpy.context.scene.update()	
+
 #Create Armature
 def check_armature():
     global DEBUGLOG, plik,vertexes,uvcoord,faceslist,num_faces,facemat,facesmooth,m
@@ -802,6 +513,67 @@ def pskimport(filename,importmesh,importbone,bDebugLogPSK,importmultiuvtextures)
     print ("IMPORTER PSK Blender 2.6 completed")
 #End of def pskimport#########################
 
+def psaimport(filename):
+    global plik,bonesdata,animdata,anim_offset,animation_names
+    bonesdata = {}
+    animation_names = []
+    animation_num_bones = []
+    animation_num_keys = []
+    animation_loc_keys = []
+    animation_rot_keys = []
+    animdata = {}
+    plik = open(filename,'rb')
+    print (word(20),i(3))
+
+    #-------BONES------
+    #check_armature_for_psa()
+    print (word(20))
+    data = i(3)
+    #print data
+    num_bones = data[2]
+    for m in range(num_bones):
+        bonesdata[str(m)] = []
+        name = word(64)
+        bonesdata[str(m)].append(name)
+        bonesdata[str(m)].append(i(3))
+        bonesdata[str(m)].append(f(11))
+
+
+    #--------ANIMATIONS-INFO
+    print (word(20))
+    data = i(3)
+    #print data
+    for m in range(data[2]):
+        name_animation = word(64)#name animation
+        print("NAME:",name_animation)
+        animation_names.append(name_animation)
+        word(64)#name of owner of animation ?
+        data = i(4)#num bones - 0 - 0 - num keys for all bones for this animation
+        num_bones = data[0] 
+        animation_num_bones.append(num_bones)
+        f(3)
+        data = i(3) 
+        num_keys = data[2]
+        animation_num_keys.append(num_keys)
+    print (plik.tell())
+
+    #--------ANIMATIONS-KEYS
+    print (word(20))
+    data = i(3)
+    #print data
+    anim_offset = {}
+    seek = plik.tell()
+    for m in range(len(animation_names)):
+        anim_name = animation_names[m]
+        anim_bones = animation_num_bones[m]
+        anim_keys = animation_num_keys[m]
+        anim_offset[anim_name] = []
+        anim_offset[anim_name].append(seek)
+        anim_offset[anim_name].append(anim_keys)
+        anim_offset[anim_name].append(anim_bones)
+        seek+=anim_keys*anim_bones*32
+    
+    
 def getInputFilename(self,filename,importmesh,importbone,bDebugLogPSK,importmultiuvtextures):
     checktype = filename.split('\\')[-1].split('.')[1]
     print ("------------",filename)
@@ -932,7 +704,8 @@ class OBJECT_OT_PSAPath(bpy.types.Operator):
             options={'HIDDEN'},
             )
     def execute(self, context):
-        context.scene.importpsapath = self.properties.filepath
+        #context.scene.importpsapath = self.properties.filepath
+        psaimport(self.filepath)
         return {'FINISHED'}
         
     def invoke(self, context, event):
@@ -941,7 +714,7 @@ class OBJECT_OT_PSAPath(bpy.types.Operator):
 		
 class OBJECT_OT_Path(bpy.types.Operator):
     bl_idname = "object.path"
-    bl_label = "MESH BUILD"
+    bl_label = "MESH BUILD TEST"
     __doc__ = ""
     # generic transform props
     view_align = BoolProperty(
@@ -991,206 +764,7 @@ class OBJECT_OT_Path(bpy.types.Operator):
             #print(dir(uv.data[0]))
             #print(dir(uv.data[0].uv1))
         return {'RUNNING_MODAL'}
-"""
-class OBJECT_OT_Path(bpy.types.Operator):
-    bl_idname = "object.path"
-    bl_label = "MESH BUILD"
-    __doc__ = ""
-    # generic transform props
-    view_align = BoolProperty(
-            name="Align to View",
-            default=False,
-            )
-    location = FloatVectorProperty(
-            name="Location",
-            subtype='TRANSLATION',
-            )
-    rotation = FloatVectorProperty(
-            name="Rotation",
-            subtype='EULER',
-            )
-    def execute(self, context):
-        return {'FINISHED'}
-        
-    def invoke(self, context, event):
-        me = bpy.data.meshes.new("test")
-        obmade = bpy.data.objects.new("TestObject",me)
-        print("Create Simple Mesh")
-        bpy.data.scenes[0].objects.link(obmade)
-        for i in bpy.context.scene.objects: i.select = False #deselect all objects
-        obmade.select = True
-        bpy.context.scene.objects.active = obmade
-        
-        #bpy.ops.object.mode_set(mode='EDIT')
-        #me.from_pydata([(0,0,0),(2,0,0),(2,0,2)],[(1,2),(2,3),(3,1)],[(1,2,3)])
-        #me.from_pydata([(0,0,0),(2,0,0),(2,0,2)],[(1,2),(2,3),(3,1)],[(1,2,3)])
-        verts = [(0,0,0),(2,0,0),(2,0,2)]
-        #faces = [([0, 1, 2])]
-        
-        faces = []
-        #faces.extend([(1,2,3,0)])
-        faces.extend([(0,1,2,0)])
-        #print(faces[0][0])
-        #print(dir(me.tessfaces))
-        me.vertices.add(len(verts))
-        me.vertices.foreach_set("co", unpack_list(verts))
-        
-        me.tessfaces.add(len(faces))
-        #me.tessfaces.foreach_set("vertices_raw", unpack_list(faces))
-        me.tessfaces.foreach_set("vertices", unpack_list(faces))
-        #me.tessfaces.foreach_set("vertices_raw", (faces))
-        print(len(me.tessfaces))
-        me.tessface_uv_textures.new("uvtexture")
-        for uv in me.tessface_uv_textures:
-            print(len(uv.data))
-            print(dir(uv.data[0]))
-        bm = bmesh.new()
-        bm.to_mesh(me)
-        #for v_co in verts:
-            #bm.verts.new(v_co)
-        for f_idx in faces:
-            bm.faces.new([bm.verts[i] for i in f_idx])
-        #bm.to_mesh(me)
-        #ob = bpy.data.objects.new("TestObject",me)
-        #me.update()
-        
-        #print(dir(me))
-        #me.uv_textures.new("uvtexture")
-        #for uv in me.uv_textures:
-            #print(len(uv.data))
-        #from bpy_extras import object_utils
-        #object_utils.object_data_add(context, me, operator=self)
-        #ob = bpy.data.objects.new("TestObject",me)
-        #bpy.context.scene.objects.link(ob) 
 
-        return {'RUNNING_MODAL'}		
-"""
-"""
-class OBJECT_OT_Path(bpy.types.Operator):
-    bl_idname = "object.path"
-    bl_label = "PSA Path"
-    __doc__ = ""
-    # generic transform props
-    view_align = BoolProperty(
-            name="Align to View",
-            default=False,
-            )
-    location = FloatVectorProperty(
-            name="Location",
-            subtype='TRANSLATION',
-            )
-    rotation = FloatVectorProperty(
-            name="Rotation",
-            subtype='EULER',
-            )
-    def execute(self, context):
-        return {'FINISHED'}
-        
-    def invoke(self, context, event):
-        me = bpy.data.meshes.new("test")
-        #ob = bpy.data.objects.new("TestObject",me)
-        print("Create Simple Mesh")
-        #bpy.data.scenes[0].objects.link(ob)
-        
-        #me.from_pydata([(0,0,0),(2,0,0),(2,0,2)],[(1,2),(2,3),(3,1)],[(1,2,3)])
-        #me.from_pydata([(0,0,0),(2,0,0),(2,0,2)],[(1,2),(2,3),(3,1)],[(1,2,3)])
-        verts = [(0,0,0),(2,0,0),(2,0,2)]
-        faces = [(0, 1, 2)]
-        #faces = [([1,2,3])]
-        
-        
-        bm = bmesh.new()
- 
-        for v_co in verts:
-            bm.verts.new(v_co)
-
-        for f_idx in faces:
-            bm.faces.new([bm.verts[i] for i in f_idx])
-
-        bm.to_mesh(me)
-        ob = bpy.data.objects.new("TestObject",me)
-        me.update()
-        
-        print(dir(me))
-        me.uv_textures.new("uvtexture")
-        for uv in me.uv_textures:
-            print(len(uv.data))
-        
-        
-        
-        
-        #from bpy_extras import object_utils
-        #object_utils.object_data_add(context, me, operator=self)
-        bpy.context.scene.objects.link(ob) 
-
-        return {'RUNNING_MODAL'}
-"""
-"""		
-class OBJECT_OT_Path(bpy.types.Operator):
-    bl_idname = "object.path"
-    bl_label = "PSA Path"
-    __doc__ = ""
-    # generic transform props
-    view_align = BoolProperty(
-            name="Align to View",
-            default=False,
-            )
-    location = FloatVectorProperty(
-            name="Location",
-            subtype='TRANSLATION',
-            )
-    rotation = FloatVectorProperty(
-            name="Rotation",
-            subtype='EULER',
-            )
-    #filepath = StringProperty(name="PSA File Path", description="Filepath used for importing the PSA file", maxlen= 1024, default= "")
-    #filter_glob = StringProperty(
-            #default="*.psa",
-            #options={'HIDDEN'},
-            #)
-    def execute(self, context):
-        #context.scene.importpsapath = self.properties.filepath
-        return {'FINISHED'}
-        
-    def invoke(self, context, event):
-        me = bpy.data.meshes.new("test")
-        #ob = bpy.data.objects.new("TestObject",me)
-        print("Create Simple Mesh")
-        #bpy.data.scenes[0].objects.link(ob)
-        
-        #me.from_pydata([(0,0,0),(2,0,0),(2,0,2)],[(1,2),(2,3),(3,1)],[(1,2,3)])
-        #me.from_pydata([(0,0,0),(2,0,0),(2,0,2)],[(1,2),(2,3),(3,1)],[(1,2,3)])
-        verts = [(0,0,0),(2,0,0),(2,0,2)]
-        faces = [(0, 1, 2, 3)]
-        #faces = [([1,2,3])]
-        
-        
-        bm = bmesh.new()
- 
-        for v_co in verts:
-            bm.verts.new(v_co)
-
-        #for f_idx in faces:
-            #bm.faces.new([bm.verts[i] for i in f_idx])
-        bm.to_mesh(me)
-        me.update()
-        from bpy_extras import object_utils
-        object_utils.object_data_add(context, me, operator=self)
-        
-        #bpy.context.scene.objects.link(me) 
-      
-        #me.from_pydata(verts,[],faces)
-        me.vertices.add(len(verts))
-        me.tessfaces.add(len(faces))
-        
-        me.vertices.foreach_set("co", unpack_list(verts))
-        me.tessfaces.foreach_set("vertices_raw", (faces))#not working
-        
-        me.update()
-       
-        #bpy.context.window_manager.fileselect_add(self)
-        return {'RUNNING_MODAL'}		
-"""
 #import menu panel tool bar
 class VIEW3D_PT_unrealimport_objectmode(bpy.types.Panel):
     bl_space_type = "VIEW_3D"

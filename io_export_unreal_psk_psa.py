@@ -2052,7 +2052,7 @@ class OBJECT_OT_UTSelectedFaceSmooth(bpy.types.Operator):
                 for i in bpy.context.scene.objects: i.select = False #deselect all objects
                 obj.select = True #set current object select
                 bpy.context.scene.objects.active = obj #set active object
-                for face in obj.data.faces:
+                for face in obj.data.tessfaces:
                     if face.use_smooth == True:
                         face.select = True
                         smoothcount += 1
