@@ -1845,14 +1845,10 @@ class OBJECT_OT_add_remove_Collection_Items_UE(bpy.types.Operator):
                     if (len(ActionNLA.groups) == len(BoneNames)) and (nobone == len(ActionNLA.groups)):
                         actionsetmatchcount += 1
                         ActionNames.append(ActionNLA.name)
-            #print(dir(collection))
-            #print("collection:",len(collection))
             print("action list check")
             for action in ActionNames:
                 BfoundAction = False
-                #print("action:",action)
                 for c in collection:
-                    #print(c.name)
                     if c.name == action:
                         BfoundAction = True
                         break
@@ -1992,12 +1988,15 @@ class VIEW3D_PT_unrealtools_objectmode(bpy.types.Panel):
                 entry = obj.myCollectionUEA[obj.myCollectionUEA_index]
                 layout.prop(entry, "name")
                 layout.prop(entry, "mybool")
-        #layout.operator(OBJECT_OT_UTSelectedFaceSmooth.bl_idname)        
-        layout.operator(OBJECT_OT_UTRebuildArmature.bl_idname)
-        #layout.operator(OBJECT_OT_UTRebuildMesh.bl_idname)
-        layout.operator(OBJECT_OT_ToggleConsle.bl_idname)
-        layout.operator(OBJECT_OT_DeleteActionSet.bl_idname)
+        
+        layout.operator(OBJECT_OT_UTSelectedFaceSmooth.bl_idname)        
+        layout.operator(OBJECT_OT_UTRebuildMesh.bl_idname)
         layout.operator(OBJECT_OT_MeshClearWeights.bl_idname)
+        layout.operator(OBJECT_OT_UTRebuildArmature.bl_idname)
+        layout.operator(OBJECT_OT_DeleteActionSet.bl_idname)
+        layout.operator(OBJECT_OT_ToggleConsle.bl_idname)
+        
+        
         
 class OBJECT_OT_UnrealExport(bpy.types.Operator):
     global exportmessage
@@ -2052,15 +2051,17 @@ class OBJECT_OT_UTSelectedFaceSmooth(bpy.types.Operator):
                 for i in bpy.context.scene.objects: i.select = False #deselect all objects
                 obj.select = True #set current object select
                 bpy.context.scene.objects.active = obj #set active object
-                for face in obj.data.tessfaces:
-                    if face.use_smooth == True:
+                mesh = bmesh.new();
+                mesh.from_mesh(obj.data)
+                for face in mesh.faces:
+                    print(dir(face))
+                    if face.smooth == True:
                         face.select = True
                         smoothcount += 1
                     else:
                         flatcount += 1
                         face.select = False
-                    #print("selected:",face.select)
-                    #print(("smooth:",face.use_smooth))
+                mesh.to_mesh(obj.data)
                 bpy.context.scene.update()
                 bpy.ops.object.mode_set(mode='EDIT')
                 print("Select Smooth Count(s):",smoothcount," Flat Count(s):",flatcount)
@@ -2092,7 +2093,7 @@ class OBJECT_OT_DeleteActionSet(bpy.types.Operator):
 			
 class OBJECT_OT_MeshClearWeights(bpy.types.Operator):
     bl_idname = "object.meshclearweights"  # XXX, name???
-    bl_label = "Mesh Clear Weights"
+    bl_label = "Mesh Clear Vertex Weights"
     __doc__ = """Clear selected mesh vertex group weights for the bones. Be sure you unparent the armature"""
     
     def invoke(self, context, event):
@@ -2195,69 +2196,45 @@ class OBJECT_OT_UTRebuildMesh(bpy.types.Operator):
                 verts = []
                 smoothings = []
                 uvfaces = []
-                #print(dir(mesh))
                 print("creating array build mesh...")
-                uv_layer = mesh.uv_textures.active
-                for face in mesh.faces:
+                mmesh = obj.to_mesh(bpy.context.scene,True,'PREVIEW')
+                uv_layer = mmesh.tessface_uv_textures.active
+                for face in mmesh.tessfaces:
                     smoothings.append(face.use_smooth)#smooth or flat in boolean
                     if uv_layer != None:#check if there texture data exist
                         faceUV = uv_layer.data[face.index]
-                        #print(len(faceUV.uv))
                         uvs = []
                         for uv in faceUV.uv:
-                            #vert = mesh.vertices[videx]
-                            #print("UV:",uv[0],":",uv[1])
                             uvs.append((uv[0],uv[1]))
-                        #print(uvs)
                         uvfaces.append(uvs)
-                    faces.append(face.vertices[:])           
+                    print((face.vertices[:]))
+                    faces.extend([(face.vertices[0],face.vertices[1],face.vertices[2],face.vertices[3])])
                 #vertex positions
                 for vertex in mesh.vertices:
                     verts.append(vertex.co.to_tuple())				
                 #vertices weight groups into array
                 vertGroups = {} #array in strings
                 for vgroup in obj.vertex_groups:
-                    #print(dir(vgroup))
-                    #print("name:",(vgroup.name),"index:",vgroup.index)
-                    #vertex in index and weight
                     vlist = []
                     for v in mesh.vertices:
                         for vg in v.groups:
                             if vg.group == vgroup.index:
                                 vlist.append((v.index,vg.weight))
                                 #print((v.index,vg.weight))
-                    vertGroups[vgroup.name] = vlist					
-                '''
-				#Fail for this method
-				#can't covert the tri face plogyon
-                for face in mesh.faces:
-                    x = [f for f in face.vertices]
-                    faces.extend(x)
-                    smoothings.append(face.use_smooth)
-                for vertex in mesh.vertices:
-                    verts.append(vertex.co.to_tuple())
-                me_ob.vertices.add(len(verts))
-                me_ob.faces.add(len(faces)//4)
-                me_ob.vertices.foreach_set("co", unpack_list(verts))
-                me_ob.faces.foreach_set("vertices_raw", faces)
-                me_ob.faces.foreach_set("use_smooth", smoothings)
-                '''
-                #test dummy mesh
-                #verts = [(-1,1,0),(1,1,0),(1,-1,0),(-1,-1,0),(0,1,1),(0,-1,1)]
-                #faces = [(0,1,2,3),(1,2,5,4),(0,3,5,4),(0,1,4),(2,3,5)]
-                #for f in faces:
-                    #print("face",f)
-                #for v in verts:
-                    #print("vertex",v)
-                #me_ob = bpy.data.objects.new("ReBuildMesh",me_ob)
+                    vertGroups[vgroup.name] = vlist
+                
                 print("creating mesh object...")
-                me_ob.from_pydata(verts, [], faces)
-                me_ob.faces.foreach_set("use_smooth", smoothings)#smooth array from face
-                me_ob.update()
+                #me_ob.from_pydata(verts, [], faces)
+                me_ob.vertices.add(len(verts))
+                me_ob.tessfaces.add(len(faces))
+                me_ob.vertices.foreach_set("co", unpack_list(verts)) 
+                me_ob.tessfaces.foreach_set("vertices_raw",unpack_list( faces))
+                me_ob.tessfaces.foreach_set("use_smooth", smoothings)#smooth array from face
+                
                 #check if there is uv faces
                 if len(uvfaces) > 0:
-                    uvtex = me_ob.uv_textures.new(name="retex")
-                    for i, face in enumerate(me_ob.faces):
+                    uvtex = me_ob.tessface_uv_textures.new(name="retex")
+                    for i, face in enumerate(me_ob.tessfaces):
                         blender_tface = uvtex.data[i] #face
                         mfaceuv = uvfaces[i]
                         if len(mfaceuv) == 3:
@@ -2270,6 +2247,7 @@ class OBJECT_OT_UTRebuildMesh(bpy.types.Operator):
                             blender_tface.uv3 = mfaceuv[2];
                             blender_tface.uv4 = mfaceuv[3];
                 
+                me_ob.update()#need to update the information to able to see into the secne
                 obmesh = bpy.data.objects.new(("Re_"+obj.name),me_ob)
                 bpy.context.scene.update()
                 #Build tmp materials
@@ -2278,20 +2256,13 @@ class OBJECT_OT_UTRebuildMesh(bpy.types.Operator):
                     matdata = bpy.data.materials.new(materialname)
                     me_ob.materials.append(matdata)
                 #assign face to material id
-                for face in mesh.faces:
-                    #print(dir(face))
+                for face in mesh.tessfaces:
                     me_ob.faces[face.index].material_index = face.material_index
                 #vertices weight groups
                 for vgroup in vertGroups:
-                    #print("vgroup",vgroup)#name of group
-                    #print(dir(vgroup))
-                    #print(vertGroups[vgroup])
                     group = obmesh.vertex_groups.new(vgroup)
-                    #print("group index",group.index)
                     for v in vertGroups[vgroup]:
                         group.add([v[0]], v[1], 'ADD')# group.add(array[vertex id],weight,add)
-                        #print("[vertex id, weight]",v) #array (0,0)
-                        #print("[vertex id, weight]",v[0],":",v[1]) #array (0,0)
                 bpy.context.scene.objects.link(obmesh)
                 print("Mesh Material Count:",len(me_ob.materials))
                 matcount = 0
@@ -2299,10 +2270,8 @@ class OBJECT_OT_UTRebuildMesh(bpy.types.Operator):
                 for mat in me_ob.materials:
                     print("-Material:",mat.name,"INDEX:",matcount)
                     matcount += 1
-                print("")
                 print("Object Name:",obmesh.name)
                 bpy.context.scene.update()
-                #bpy.ops.wm.console_toggle()
                 bselected = True
                 break
         if bselected:
