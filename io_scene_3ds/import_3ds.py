@@ -328,9 +328,9 @@ def process_next_chunk(file, previous_chunk, importedObjects, IMAGE_SEARCH):
                     if v3 == 0:
                         v1, v2, v3 = v3, v1, v2
 
-                    uvl[pl.loop_start] = contextMeshUV[v1 * 2:(v1 * 2) + 2]
-                    uvl[pl.loop_start + 1] = contextMeshUV[v2 * 2:(v2 * 2) + 2]
-                    uvl[pl.loop_start + 2] = contextMeshUV[v3 * 2:(v3 * 2) + 2]
+                    uvl[pl.loop_start].uv = contextMeshUV[v1 * 2: (v1 * 2) + 2]
+                    uvl[pl.loop_start + 1].uv = contextMeshUV[v2 * 2: (v2 * 2) + 2]
+                    uvl[pl.loop_start + 2].uv = contextMeshUV[v3 * 2: ( v3 * 2) + 2]
                     # always a tri
 
         bmesh.validate()
