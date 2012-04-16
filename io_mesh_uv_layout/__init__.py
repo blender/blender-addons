@@ -158,9 +158,6 @@ class ExportUVLayout(bpy.types.Operator):
                     end = start + p.loop_total
                     uvs = tuple((uv.uv[0], uv.uv[1])
                                 for uv in uv_layer[start:end])
-                    #~ uv = uv_elem.uv
-                    #~ if False not in uv_elem.select_uv[:len(uv)]:
-                    #~     yield (i, uv)
 
                     # just write what we see.
                     yield (i, uvs)
@@ -192,7 +189,7 @@ class ExportUVLayout(bpy.types.Operator):
         elif mode == 'PNG':
             from . import export_uv_png
             func = export_uv_png.write
-        if mode == 'SVG':
+        elif mode == 'SVG':
             from . import export_uv_svg
             func = export_uv_svg.write
 
@@ -202,7 +199,6 @@ class ExportUVLayout(bpy.types.Operator):
             mesh = obj.data
 
         func(fw, mesh, self.size[0], self.size[1], self.opacity,
-#             self.tessellated,
              lambda: self._face_uv_iter(context, mesh, self.tessellated))
 
         if self.modified:
