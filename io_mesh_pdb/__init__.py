@@ -75,6 +75,11 @@ class CLASS_atom_pdb_panel(Panel):
 
     def draw(self, context):
         layout = self.layout
+
+        # This is for the case that a blend file is loaded. 
+        if len(context.scene.atom_pdb) == 0:
+            bpy.context.scene.atom_pdb.add()
+
         scn    = context.scene.atom_pdb[0]
 
         row = layout.row()
