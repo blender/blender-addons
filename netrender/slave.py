@@ -46,6 +46,13 @@ def slave_Info(netsettings):
     slave.stats = sysname + " " + release + " " + machine + " " + processor
     if netsettings.slave_tags:
         slave.tags = set(netsettings.slave_tags.split(";"))
+    
+    if netsettings.slave_bake:
+        slave.tags.add(netrender.model.TAG_BAKING)
+    
+    if netsettings.slave_render:
+        slave.tags.add(netrender.model.TAG_RENDER)
+        
     return slave
 
 def testCancel(conn, job_id, frame_number):
