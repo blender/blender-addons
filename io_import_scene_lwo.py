@@ -1019,7 +1019,7 @@ def build_objects(object_layers, object_surfs, object_tags, object_name, add_sub
     for layer_data in object_layers:
         me= bpy.data.meshes.new(layer_data.name)
         me.vertices.add(len(layer_data.pnts))
-        me.faces.add(len(layer_data.pols))
+        me.tessfaces.add(len(layer_data.pols))
         # for vi in range(len(layer_data.pnts)):
         #     me.vertices[vi].co= layer_data.pnts[vi]
 
@@ -1038,7 +1038,7 @@ def build_objects(object_layers, object_surfs, object_tags, object_name, add_sub
             vlen= len(fpol)
             if vlen == 3 or vlen == 4:
                 for i in range(vlen):
-                    me.faces[fi].vertices_raw[i]= fpol[i]
+                    me.tessfaces[fi].vertices_raw[i]= fpol[i]
             elif vlen == 2:
                 edges.append(fi)
             elif vlen != 1:
@@ -1058,8 +1058,8 @@ def build_objects(object_layers, object_surfs, object_tags, object_name, add_sub
                 me.materials.append(object_surfs[object_tags[surf_key]].bl_mat)
 
                 for fi in layer_data.surf_tags[surf_key]:
-                    me.faces[fi].material_index= mat_slot
-                    me.faces[fi].use_smooth= object_surfs[object_tags[surf_key]].smooth
+                    me.tessfaces[fi].material_index= mat_slot
+                    me.tessfaces[fi].use_smooth= object_surfs[object_tags[surf_key]].smooth
 
                 mat_slot+=1
 
@@ -1109,7 +1109,9 @@ def build_objects(object_layers, object_surfs, object_tags, object_name, add_sub
             print("Adding %d UV Textures" % len(layer_data.uvmaps))
             for uvmap_key in layer_data.uvmaps:
                 map_pack= create_mappack(layer_data, uvmap_key, "UV")
-                uvm= me.uv_textures.new(uvmap_key)
+                uvm= me.uv_textures.new(name=uvmap_key)
+                uvloop = me.uv_loop_layers[-1]
+                uvm = uvloop.data
                 if not uvm:
                     break
                 for fi in map_pack:
@@ -1128,7 +1130,7 @@ def build_objects(object_layers, object_surfs, object_tags, object_name, add_sub
         # Now add the NGons.
         if len(ngons) > 0:
             for ng_key in ngons:
-                face_offset= len(me.faces)
+                face_offset= len(me.tessfaces)
                 ng= ngons[ng_key]
                 v_locs= []
                 for vi in range(len(ng)):
@@ -1136,7 +1138,7 @@ def build_objects(object_layers, object_surfs, object_tags, object_name, add_sub
                 tris= tessellate_polygon([v_locs])
                 me.faces.add(len(tris))
                 for tri in tris:
-                    face= me.faces[face_offset]
+                    face= me.tessfaces[face_offset]
                     face.vertices_raw[0]= ng[tri[0]]
                     face.vertices_raw[1]= ng[tri[1]]
                     face.vertices_raw[2]= ng[tri[2]]
