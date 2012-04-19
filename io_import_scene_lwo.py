@@ -1136,7 +1136,7 @@ def build_objects(object_layers, object_surfs, object_tags, object_name, add_sub
                 for vi in range(len(ng)):
                     v_locs.append(mathutils.Vector(layer_data.pnts[ngons[ng_key][vi]]))
                 tris= tessellate_polygon([v_locs])
-                me.faces.add(len(tris))
+                me.tessfaces.add(len(tris))
                 for tri in tris:
                     face= me.tessfaces[face_offset]
                     face.vertices_raw[0]= ng[tri[0]]
