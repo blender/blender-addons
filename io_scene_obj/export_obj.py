@@ -42,13 +42,13 @@ def write_mtl(scene, filepath, path_mode, copy_set, mtl_dict):
     else:
         world_amb = Color((0.0, 0.0, 0.0))
 
-    source_dir = bpy.data.filepath
+    source_dir = os.path.dirname(bpy.data.filepath)
     dest_dir = os.path.dirname(filepath)
 
     file = open(filepath, "w", encoding="utf8", newline="\n")
     fw = file.write
 
-    fw('# Blender MTL File: %r\n' % os.path.basename(bpy.data.filepath))
+    fw('# Blender MTL File: %r\n' % (os.path.basename(bpy.data.filepath) or "None"))
     fw('# Material Count: %i\n' % len(mtl_dict))
 
     mtl_dict_values = list(mtl_dict.values())
