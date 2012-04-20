@@ -25,6 +25,7 @@ bl_info = {
     "blender": (2, 6, 1),
     'location': 'View3D > Ctrl-C',
     'description': 'Copy Attributes Menu from Blender 2.4',
+    "warning": "some mesh functions broken",
     'wiki_url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/'
                 'Scripts/3D_interaction/Copy_Attributes_Menu',
     'tracker_url': 'https://projects.blender.org/tracker/index.php?'
@@ -691,7 +692,7 @@ class MESH_OT_CopyFaceSettings(bpy.types.Operator):
         bpy.ops.object.editmode_toggle()
 
         if mode == 'MAT':
-            from_data = mesh.faces
+            from_data = mesh.polygons
             to_data = from_data
         else:
             if mode == 'VCOL':
@@ -704,9 +705,9 @@ class MESH_OT_CopyFaceSettings(bpy.types.Operator):
                 return _end({'CANCELLED'})
             from_data = layers[layername or act_layer.name].data
             to_data = act_layer.data
-        from_face = from_data[mesh.faces.active]
+        from_face = from_data[mesh.polygons.active]
 
-        for f in mesh.faces:
+        for f in mesh.polygons:
             if f.select:
                 if to_data != from_data:
                     from_face = from_data[f.index]
