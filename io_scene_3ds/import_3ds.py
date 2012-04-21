@@ -66,6 +66,13 @@ MAT_REFLECTION_MAP = 0xA220  # This is a header for a new reflection map
 MAT_BUMP_MAP = 0xA230  # This is a header for a new bump map
 MAT_MAP_FILEPATH = 0xA300  # This holds the file name of the texture
 
+MAT_MAP_TILING = 0xa351   # 2nd bit (from LSB) is mirror UV flag
+MAT_MAP_USCALE = 0xA354   # U axis scaling
+MAT_MAP_VSCALE = 0xA356   # V axis scaling
+MAT_MAP_UOFFSET = 0xA358  # U axis offset
+MAT_MAP_VOFFSET = 0xA35A  # V axis offset
+MAT_MAP_ANG = 0xA35C      # UV rotation around the z-axis in rad
+
 MAT_FLOAT_COLOR = 0x0010  # color defined as 3 floats
 MAT_24BIT_COLOR = 0x0011  # color defined as 3 bytes
 
@@ -211,7 +218,7 @@ def skip_to_end(file, skip_chunk):
     skip_chunk.bytes_read += buffer_size
 
 
-def add_texture_to_material(image, texture, material, mapto):
+def add_texture_to_material(image, texture, scale, offset, extension, material, mapto):
     #print('assigning %s to %s' % (texture, material))
 
     if mapto not in {'COLOR', 'SPECULARITY', 'ALPHA', 'NORMAL'}:
@@ -225,6 +232,18 @@ def add_texture_to_material(image, texture, material, mapto):
     mtex.texture = texture
     mtex.texture_coords = 'UV'
     mtex.use_map_color_diffuse = False
+
+    mtex.scale = (scale[0], scale[1], 1.0)
+    mtex.offset = (offset[0], offset[1], 0.0)
+
+    texture.extension = 'REPEAT'
+    if extension == 'mirror':
+        # 3DS mirror flag can be emulated by these settings (at least so it seems)
+        texture.repeat_x = texture.repeat_y = 2
+        texture.use_mirror_x = texture.use_mirror_y = True
+    elif extension == 'decal':
+        # 3DS' decal mode maps best to Blenders CLIP
+        texture.extension = 'CLIP'
 
     if mapto == 'COLOR':
         mtex.use_map_color_diffuse = True
@@ -255,6 +274,7 @@ def process_next_chunk(file, previous_chunk, importedObjects, IMAGE_SEARCH):
 # 	TEXMODE = Mesh.FaceModes['TEX']
 
     # Localspace variable names, faster.
+    STRUCT_SIZE_FLOAT = struct.calcsize('f')
     STRUCT_SIZE_2FLOAT = struct.calcsize('2f')
     STRUCT_SIZE_3FLOAT = struct.calcsize('3f')
     STRUCT_SIZE_4FLOAT = struct.calcsize('4f')
@@ -330,7 +350,7 @@ def process_next_chunk(file, previous_chunk, importedObjects, IMAGE_SEARCH):
 
                     uvl[pl.loop_start].uv = contextMeshUV[v1 * 2: (v1 * 2) + 2]
                     uvl[pl.loop_start + 1].uv = contextMeshUV[v2 * 2: (v2 * 2) + 2]
-                    uvl[pl.loop_start + 2].uv = contextMeshUV[v3 * 2: ( v3 * 2) + 2]
+                    uvl[pl.loop_start + 2].uv = contextMeshUV[v3 * 2: (v3 * 2) + 2]
                     # always a tri
 
         bmesh.validate()
@@ -352,9 +372,19 @@ def process_next_chunk(file, previous_chunk, importedObjects, IMAGE_SEARCH):
     CreateBlenderObject = False
 
     def read_float_color(temp_chunk):
-        temp_data = file.read(struct.calcsize('3f'))
-        temp_chunk.bytes_read += 12
+        temp_data = file.read(STRUCT_SIZE_3FLOAT)
+        temp_chunk.bytes_read += STRUCT_SIZE_3FLOAT
         return [float(col) for col in struct.unpack('<3f', temp_data)]
+
+    def read_float(temp_chunk):
+        temp_data = file.read(STRUCT_SIZE_FLOAT)
+        temp_chunk.bytes_read += STRUCT_SIZE_FLOAT
+        return struct.unpack('<f', temp_data)[0]
+
+    def read_short(temp_chunk):
+        temp_data = file.read(STRUCT_SIZE_UNSIGNED_SHORT)
+        temp_chunk.bytes_read += STRUCT_SIZE_UNSIGNED_SHORT
+        return struct.unpack('<H', temp_data)[0]
 
     def read_byte_color(temp_chunk):
         temp_data = file.read(struct.calcsize('3B'))
@@ -364,24 +394,46 @@ def process_next_chunk(file, previous_chunk, importedObjects, IMAGE_SEARCH):
     def read_texture(new_chunk, temp_chunk, name, mapto):
         new_texture = bpy.data.textures.new(name, type='IMAGE')
 
-        img = None
+        u_scale, v_scale, u_offset, v_offset = 1.0, 1.0, 0.0, 0.0
+        mirror = False
+        extension = 'wrap'
         while (new_chunk.bytes_read < new_chunk.length):
             #print 'MAT_TEXTURE_MAP..while', new_chunk.bytes_read, new_chunk.length
             read_chunk(file, temp_chunk)
 
             if temp_chunk.ID == MAT_MAP_FILEPATH:
                 texture_name, read_str_len = read_string(file)
+
                 img = TEXTURE_DICT[contextMaterial.name] = load_image(texture_name, dirname)
-                new_chunk.bytes_read += read_str_len  # plus one for the null character that gets removed
+                temp_chunk.bytes_read += read_str_len  # plus one for the null character that gets removed
 
-            else:
-                skip_to_end(file, temp_chunk)
+            elif temp_chunk.ID == MAT_MAP_USCALE:
+                u_scale = read_float(temp_chunk)
+            elif temp_chunk.ID == MAT_MAP_VSCALE:
+                v_scale = read_float(temp_chunk)
 
+            elif temp_chunk.ID == MAT_MAP_UOFFSET:
+                u_offset = read_float(temp_chunk)
+            elif temp_chunk.ID == MAT_MAP_VOFFSET:
+                v_offset = read_float(temp_chunk)
+
+            elif temp_chunk.ID == MAT_MAP_TILING:
+                tiling = read_short(temp_chunk)
+                if tiling & 0x2:
+                    extension = 'mirror'
+                elif tiling & 0x10:
+                    extension = 'decal'
+
+            elif temp_chunk.ID == MAT_MAP_ANG:
+                print("\nwarning: ignoring UV rotation")
+
+            skip_to_end(file, temp_chunk)
             new_chunk.bytes_read += temp_chunk.bytes_read
 
         # add the map to the material in the right channel
         if img:
-            add_texture_to_material(img, new_texture, contextMaterial, mapto)
+            add_texture_to_material(img, new_texture, (u_scale, v_scale),
+                                    (u_offset, v_offset), extension, contextMaterial, mapto)
 
     dirname = os.path.dirname(file.name)
 

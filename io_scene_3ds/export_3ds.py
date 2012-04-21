@@ -49,8 +49,21 @@ MATAMBIENT = 0xA010  # Ambient color of the object/material
 MATDIFFUSE = 0xA020  # This holds the color of the object/material
 MATSPECULAR = 0xA030  # SPecular color of the object/material
 MATSHINESS = 0xA040  # ??
-MATMAP = 0xA200  # This is a header for a new material
-MATMAPFILE = 0xA300  # This holds the file name of the texture
+
+MAT_DIFFUSEMAP = 0xA200  # This is a header for a new diffuse texture
+MAT_OPACMAP = 0xA210  # head for opacity map
+MAT_BUMPMAP = 0xA230  # read for normal map
+MAT_SPECMAP = 0xA204  # read for specularity map
+
+#>------ sub defines of MAT_???MAP
+MATMAPFILE = 0xA300  # This holds the file name of a texture
+
+MAT_MAP_TILING = 0xa351   # 2nd bit (from LSB) is mirror UV flag
+MAT_MAP_USCALE = 0xA354   # U axis scaling
+MAT_MAP_VSCALE = 0xA356   # V axis scaling
+MAT_MAP_UOFFSET = 0xA358  # U axis offset
+MAT_MAP_VOFFSET = 0xA35A  # V axis offset
+MAT_MAP_ANG = 0xA35C      # UV rotation around the z-axis in rad
 
 RGB1 = 0x0011
 RGB2 = 0x0012
@@ -423,10 +436,10 @@ class _3ds_chunk(object):
 # EXPORT
 ######################################################
 
-def get_material_images(material):
+def get_material_image_texslots(material):
     # blender utility func.
     if material:
-        return [s.texture.image for s in material.texture_slots if s and s.texture.type == 'IMAGE' and s.texture.image]
+        return [s for s in material.texture_slots if s and s.texture.type == 'IMAGE' and s.texture.image]
 
     return []
 # 	images = []
@@ -454,22 +467,76 @@ def make_material_subchunk(chunk_id, color):
     return mat_sub
 
 
-def make_material_texture_chunk(chunk_id, images):
-    """Make Material Map texture chunk
-    """
-    mat_sub = _3ds_chunk(chunk_id)
+def make_material_texture_chunk(chunk_id, texslots, tess_uv_image=None):
+    """Make Material Map texture chunk given a seq. of `MaterialTextureSlot`'s
 
-    def add_image(image):
-        import bpy
+        `tess_uv_image` is optionally used as image source if the slots are
+        empty. No additional filtering for mapping modes is done, all
+        slots are written "as is".
+    """
+
+    mat_sub = _3ds_chunk(chunk_id)
+    has_entry = False
+
+    import bpy
+
+    def add_texslot(texslot):
+        texture = texslot.texture
+        image = texture.image
+
         filename = bpy.path.basename(image.filepath)
         mat_sub_file = _3ds_chunk(MATMAPFILE)
         mat_sub_file.add_variable("mapfile", _3ds_string(sane_name(filename)))
         mat_sub.add_subchunk(mat_sub_file)
 
-    for image in images:
-        add_image(image)
+        maptile = 0
 
-    return mat_sub
+        # no perfect mapping for mirror modes - 3DS only has uniform mirror w. repeat=2
+        if texture.extension == 'REPEAT' and (texture.use_mirror_x and texture.repeat_x > 1) \
+           or (texture.use_mirror_y and texture.repeat_y > 1):
+            maptile |= 0x2
+        # CLIP maps to 3DS' decal flag
+        elif texture.extension == 'CLIP':
+            maptile |= 0x10
+
+        mat_sub_tile = _3ds_chunk(MAT_MAP_TILING)
+        mat_sub_tile.add_variable("maptiling", _3ds_ushort(maptile))
+        mat_sub.add_subchunk(mat_sub_tile)
+
+        mat_sub_uscale = _3ds_chunk(MAT_MAP_USCALE)
+        mat_sub_uscale.add_variable("mapuscale", _3ds_float(texslot.scale[0]))
+        mat_sub.add_subchunk(mat_sub_uscale)
+
+        mat_sub_vscale = _3ds_chunk(MAT_MAP_VSCALE)
+        mat_sub_vscale.add_variable("mapuscale", _3ds_float(texslot.scale[1]))
+        mat_sub.add_subchunk(mat_sub_vscale)
+
+        mat_sub_uoffset = _3ds_chunk(MAT_MAP_UOFFSET)
+        mat_sub_uoffset.add_variable("mapuoffset", _3ds_float(texslot.offset[0]))
+        mat_sub.add_subchunk(mat_sub_uoffset)
+
+        mat_sub_voffset = _3ds_chunk(MAT_MAP_VOFFSET)
+        mat_sub_voffset.add_variable("mapvoffset", _3ds_float(texslot.offset[1]))
+        mat_sub.add_subchunk(mat_sub_voffset)
+
+    # store all textures for this mapto in order. This at least is what
+    # the 3DS exporter did so far, afaik most readers will just skip
+    # over 2nd textures.
+    for slot in texslots:
+        add_texslot(slot)
+        has_entry = True
+
+    # image from tess. UV face - basically the code above should handle
+    # this already. No idea why its here so keep it :-)
+    if tess_uv_image and not has_entry:
+        has_entry = True
+
+        filename = bpy.path.basename(tess_uv_image.filepath)
+        mat_sub_file = _3ds_chunk(MATMAPFILE)
+        mat_sub_file.add_variable("mapfile", _3ds_string(sane_name(filename)))
+        mat_sub.add_subchunk(mat_sub_file)
+
+    return mat_sub if has_entry else None
 
 
 def make_material_chunk(material, image):
@@ -495,12 +562,40 @@ def make_material_chunk(material, image):
         material_chunk.add_subchunk(make_material_subchunk(MATDIFFUSE, material.diffuse_color[:]))
         material_chunk.add_subchunk(make_material_subchunk(MATSPECULAR, material.specular_color[:]))
 
-        images = get_material_images(material)  # can be None
-        if image:
-            images.append(image)
+        slots = get_material_image_texslots(material)  # can be None
 
-        if images:
-            material_chunk.add_subchunk(make_material_texture_chunk(MATMAP, images))
+        if slots:
+
+            spec = [s for s in slots if s.use_map_specular or s.use_map_color_spec]
+            matmap = make_material_texture_chunk(MAT_SPECMAP, spec)
+            if matmap:
+                material_chunk.add_subchunk(matmap)
+
+            alpha = [s for s in slots if s.use_map_alpha]
+            matmap = make_material_texture_chunk(MAT_OPACMAP, alpha)
+            if matmap:
+                material_chunk.add_subchunk(matmap)
+
+            normal = [s for s in slots if s.use_map_normal]
+            matmap = make_material_texture_chunk(MAT_BUMPMAP, normal)
+            if matmap:
+                material_chunk.add_subchunk(matmap)
+
+            # make sure no textures are lost. Everything that doesn't fit
+            # into a channel is exported as diffuse texture with a
+            # warning.
+            diffuse = []
+            for s in slots:
+                if s.use_map_color_diffuse:
+                    diffuse.append(s)
+                elif not (s in normal or s in alpha or s in spec):
+                    print('\nwarning: failed to map texture to 3DS map channel, assuming diffuse')
+                    diffuse.append(s)
+
+            if diffuse:
+                matmap = make_material_texture_chunk(MAT_DIFFUSEMAP, diffuse, image)
+                if matmap:
+                    material_chunk.add_subchunk(matmap)
 
     return material_chunk
 
