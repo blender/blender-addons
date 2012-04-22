@@ -1359,7 +1359,7 @@ def parseUvTextureBMesh(args, tokens, me):
     bpy.ops.mesh.uv_texture_add()
     uvtex = me.uv_textures[-1]
     uvtex.name = name
-    uvloop = me.uv_loop_layers[-1]
+    uvloop = me.uv_layers[-1]
     loadedData['MeshTextureFaceLayer'][name] = uvloop    
     for (key, val, sub) in tokens:
         if key == 'Data':

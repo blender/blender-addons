@@ -96,8 +96,10 @@ class ExportPLY(bpy.types.Operator, ExportHelper):
             )
     use_normals = BoolProperty(
             name="Normals",
-            description="Export Normals for smooth and hard shaded faces " \
-                        "(hard shaded faces will be exported as individual faces)",
+            description="Export Normals for smooth and "
+                        "hard shaded faces "
+                        "(hard shaded faces will be exported "
+                        "as individual faces)",
             default=True,
             )
     use_uv_coords = BoolProperty(

@@ -339,7 +339,7 @@ def process_next_chunk(file, previous_chunk, importedObjects, IMAGE_SEARCH):
                         bmesh.polygons[fidx].material_index = mat_idx
 
             if uv_faces:
-                uvl = bmesh.uv_loop_layers.active.data[:]
+                uvl = bmesh.uv_layers.active.data[:]
                 for fidx, pl in enumerate(bmesh.polygons):
                     face = myContextMesh_facels[fidx]
                     v1, v2, v3 = face

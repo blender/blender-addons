@@ -138,7 +138,7 @@ class ExportUVLayout(bpy.types.Operator):
         return image_width, image_height
 
     def _face_uv_iter(self, context, mesh, tessellated):
-        uv_layer = mesh.uv_loop_layers.active.data
+        uv_layer = mesh.uv_layers.active.data
         polys = mesh.polygons
 
         if not self.export_all:

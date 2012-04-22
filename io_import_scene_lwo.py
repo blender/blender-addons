@@ -1110,7 +1110,7 @@ def build_objects(object_layers, object_surfs, object_tags, object_name, add_sub
             for uvmap_key in layer_data.uvmaps:
                 map_pack= create_mappack(layer_data, uvmap_key, "UV")
                 uvm= me.uv_textures.new(name=uvmap_key)
-                uvloop = me.uv_loop_layers[-1]
+                uvloop = me.uv_layers[-1]
                 uvm = uvloop.data
                 if not uvm:
                     break
