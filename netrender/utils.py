@@ -30,33 +30,6 @@ except:
 
 VERSION = bytes(".".join((str(n) for n in netrender.bl_info["version"])), encoding='utf8')
 
-# Jobs status
-JOB_WAITING = 0 # before all data has been entered
-JOB_PAUSED = 1 # paused by user
-JOB_FINISHED = 2 # finished rendering
-JOB_QUEUED = 3 # ready to be dispatched
-
-JOB_STATUS_TEXT = {
-        JOB_WAITING: "Waiting",
-        JOB_PAUSED: "Paused",
-        JOB_FINISHED: "Finished",
-        JOB_QUEUED: "Queued"
-        }
-
-
-# Frames status
-FRAME_QUEUED = 0
-FRAME_DISPATCHED = 1
-FRAME_DONE = 2
-FRAME_ERROR = 3
-
-FRAME_STATUS_TEXT = {
-        FRAME_QUEUED: "Queued",
-        FRAME_DISPATCHED: "Dispatched",
-        FRAME_DONE: "Done",
-        FRAME_ERROR: "Error"
-        }
-
 try:
     system = platform.system()
 except UnicodeDecodeError:

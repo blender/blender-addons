@@ -134,16 +134,16 @@ def get(handler):
              serializedJob = job.serialize(withFiles=includeFiles, withFrames=includeFrames)
              serializedJob["p_rule"] = handler.server.balancer.applyPriorities(job)
              serializedJob["e_rule"] = handler.server.balancer.applyExceptions(job)
-             serializedJob["wait"] = int(time.time() - job.last_dispatched) if job.status != JOB_FINISHED else "N/A"
+             serializedJob["wait"] = int(time.time() - job.last_dispatched) if job.status != netrender.model.JOB_FINISHED else "N/A"
              serializedJob["length"] = len(job);
-             serializedJob["done"] = results[FRAME_DONE]
-             serializedJob["dispatched"] = results[FRAME_DISPATCHED]
-             serializedJob["error"] = results[FRAME_ERROR]
+             serializedJob["done"] = results[netrender.model.FRAME_DONE]
+             serializedJob["dispatched"] = results[netrender.model.FRAME_DISPATCHED]
+             serializedJob["error"] = results[netrender.model.FRAME_ERROR]
              tot_cache, tot_fluid, tot_other = countFiles(job)
              serializedJob["totcache"] = tot_cache
              serializedJob["totfluid"] = tot_fluid
              serializedJob["totother"] = tot_other  
-             serializedJob["wktime"] = (time.time()-job.start_time ) if job.status != JOB_FINISHED else (job.finish_time-job.start_time)             
+             serializedJob["wktime"] = (time.time()-job.start_time ) if job.status != netrender.model.JOB_FINISHED else (job.finish_time-job.start_time)             
         else:
              serializedJob={"name":"invalid job"}
            
@@ -327,13 +327,19 @@ def get(handler):
                         "dispatched",
                         "error",
                         "priority",
-                        "exception"
+                        "exception",
+                        "started",
+                        "finished"
                     )
 
         handler.server.balance()
 
         for job in handler.server.jobs:
             results = job.framesStatus()
+            
+            time_finished = job.time_finished
+            time_started = job.time_started
+            
             rowTable(
                         """<button title="cancel job" onclick="cancel_job('%s');">X</button>""" % job.id +
                         """<button title="pause job" onclick="request('/pause_%s', null);">P</button>""" % job.id +
@@ -350,15 +356,17 @@ def get(handler):
                         """<button title="increase priority" onclick="request('/edit_%s', &quot;{'priority': %i}&quot;);">+</button>""" % (job.id, job.priority + 1) +
                         """<button title="decrease priority" onclick="request('/edit_%s', &quot;{'priority': %i}&quot;);" %s>-</button>""" % (job.id, job.priority - 1, "disabled=True" if job.priority == 1 else ""),
                         "%0.1f%%" % (job.usage * 100),
-                        "%is" % int(time.time() - job.last_dispatched) if job.status != JOB_FINISHED else "N/A",
+                        "%is" % int(time.time() - job.last_dispatched) if job.status != netrender.model.JOB_FINISHED else "N/A",
                         job.statusText(),
                         len(job),
-                        results[FRAME_DONE],
-                        results[FRAME_DISPATCHED],
-                        str(results[FRAME_ERROR]) +
-                        """<button title="reset error frames" onclick="request('/reset_%s_0', null);" %s>R</button>""" % (job.id, "disabled=True" if not results[FRAME_ERROR] else ""),
+                        results[netrender.model.FRAME_DONE],
+                        results[netrender.model.FRAME_DISPATCHED],
+                        str(results[netrender.model.FRAME_ERROR]) +
+                        """<button title="reset error frames" onclick="request('/reset_%s_0', null);" %s>R</button>""" % (job.id, "disabled=True" if not results[netrender.model.FRAME_ERROR] else ""),
                         "yes" if handler.server.balancer.applyPriorities(job) else "no",
-                        "yes" if handler.server.balancer.applyExceptions(job) else "no"
+                        "yes" if handler.server.balancer.applyExceptions(job) else "no",
+                        time.ctime(time_started) if time_started else "Not Started",
+                        time.ctime(time_finished) if time_finished else "Not Finished"
                     )
 
         endTable()
@@ -503,6 +511,16 @@ def get(handler):
 
                 endTable()
 
+            output("<h2>Transitions</h2>")
+
+            startTable()
+            headerTable("Event", "Time")
+
+            for transition, time_value in job.transitions:
+                rowTable(transition, time.ctime(time_value))
+
+            endTable()
+
             output("<h2>Frames</h2>")
 
             startTable()
@@ -518,7 +536,7 @@ def get(handler):
                              frame.slave.name if frame.slave else "&nbsp;",
                              link("view log", logURL(job_id, frame.number)) if frame.log_path else "&nbsp;",
                              link("view result", renderURL(job_id, frame.number))  + " [" +
-                             tag("span", "show", attr="class='thumb' onclick='showThumb(%s, %i)'" % (job.id, frame.number)) + "]" if frame.status == FRAME_DONE else "&nbsp;",
+                             tag("span", "show", attr="class='thumb' onclick='showThumb(%s, %i)'" % (job.id, frame.number)) + "]" if frame.status == netrender.model.FRAME_DONE else "&nbsp;",
                              "<img name='thumb%i' title='hide thumbnails' src='' class='thumb' onclick='showThumb(%s, %i)'>" % (frame.number, job.id, frame.number)
                              )
             else:

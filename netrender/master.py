@@ -91,7 +91,7 @@ class MRenderJob(netrender.model.RenderJob):
             self.chunks = 1
 
         # Force WAITING status on creation
-        self.status = JOB_WAITING
+        self.status = netrender.model.JOB_WAITING
 
         # special server properties
         self.last_update = 0
@@ -135,25 +135,25 @@ class MRenderJob(netrender.model.RenderJob):
 
     def testFinished(self):
         for f in self.frames:
-            if f.status == FRAME_QUEUED or f.status == FRAME_DISPATCHED:
+            if f.status == netrender.model.FRAME_QUEUED or f.status == netrender.model.FRAME_DISPATCHED:
                 break
         else:
-            self.status = JOB_FINISHED
+            self.status = netrender.model.JOB_FINISHED
             self.finish_time=time.time()
 
     def pause(self, status = None):
-        if self.status not in {JOB_PAUSED, JOB_QUEUED}:
+        if self.status not in {netrender.model.JOB_PAUSED, netrender.model.JOB_QUEUED}:
             return
 
         if status is None:
-            self.status = JOB_PAUSED if self.status == JOB_QUEUED else JOB_QUEUED
+            self.status = netrender.model.JOB_PAUSED if self.status == netrender.model.JOB_QUEUED else netrender.model.JOB_QUEUED
         elif status:
-            self.status = JOB_QUEUED
+            self.status = netrender.model.JOB_QUEUED
         else:
-            self.status = JOB_PAUSED
+            self.status = netrender.model.JOB_PAUSED
 
     def start(self):
-        self.status = JOB_QUEUED
+        self.status = netrender.model.JOB_QUEUED
         
 
     def addLog(self, frames):
@@ -176,12 +176,12 @@ class MRenderJob(netrender.model.RenderJob):
             f.reset(all)
             
         if all:
-            self.status = JOB_QUEUED
+            self.status = netrender.model.JOB_QUEUED
 
     def getFrames(self):
         frames = []
         for f in self.frames:
-            if f.status == FRAME_QUEUED:
+            if f.status == netrender.model.FRAME_QUEUED:
                 self.last_dispatched = time.time()
                 frames.append(f)
                 if len(frames) >= self.chunks:
@@ -198,7 +198,7 @@ class MRenderFrame(netrender.model.RenderFrame):
         self.number = frame
         self.slave = None
         self.time = 0
-        self.status = FRAME_QUEUED
+        self.status = netrender.model.FRAME_QUEUED
         self.command = command
 
         self.log_path = None
@@ -210,11 +210,11 @@ class MRenderFrame(netrender.model.RenderFrame):
         return "%06d.exr" % self.number
 
     def reset(self, all):
-        if all or self.status == FRAME_ERROR:
+        if all or self.status == netrender.model.FRAME_ERROR:
             self.log_path = None
             self.slave = None
             self.time = 0
-            self.status = FRAME_QUEUED
+            self.status = netrender.model.FRAME_QUEUED
 
 
 # -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -311,9 +311,9 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
                     frame = job[frame_number]
 
                     if frame:
-                        if frame.status in (FRAME_QUEUED, FRAME_DISPATCHED):
+                        if frame.status in (netrender.model.FRAME_QUEUED, netrender.model.FRAME_DISPATCHED):
                             self.send_head(http.client.ACCEPTED)
-                        elif frame.status == FRAME_DONE:
+                        elif frame.status == netrender.model.FRAME_DONE:
                             self.server.stats("", "Sending result to client")
 
                             filename = job.getResultPath(frame.getRenderFilename())
@@ -322,7 +322,7 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
                             self.send_head(content = "image/x-exr")
                             shutil.copyfileobj(f, self.wfile)
                             f.close()
-                        elif frame.status == FRAME_ERROR:
+                        elif frame.status == netrender.model.FRAME_ERROR:
                             self.send_head(http.client.PARTIAL_CONTENT)
                     else:
                         # no such frame
@@ -348,7 +348,7 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
                     zip_filepath = job.getResultPath("results.zip")
                     with zipfile.ZipFile(zip_filepath, "w") as zfile:
                         for frame in job.frames:
-                            if frame.status == FRAME_DONE:
+                            if frame.status == netrender.model.FRAME_DONE:
                                 for filename in frame.results:
                                     filepath = job.getResultPath(filename)
                                     
@@ -379,9 +379,9 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
                     frame = job[frame_number]
 
                     if frame:
-                        if frame.status in (FRAME_QUEUED, FRAME_DISPATCHED):
+                        if frame.status in (netrender.model.FRAME_QUEUED, netrender.model.FRAME_DISPATCHED):
                             self.send_head(http.client.ACCEPTED)
-                        elif frame.status == FRAME_DONE:
+                        elif frame.status == netrender.model.FRAME_DONE:
                             filename = job.getResultPath(frame.getRenderFilename())
 
                             thumbname = thumbnail.generate(filename)
@@ -394,7 +394,7 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
                             else: # thumbnail couldn't be generated
                                 self.send_head(http.client.PARTIAL_CONTENT)
                                 return
-                        elif frame.status == FRAME_ERROR:
+                        elif frame.status == netrender.model.FRAME_ERROR:
                             self.send_head(http.client.PARTIAL_CONTENT)
                     else:
                         # no such frame
@@ -419,7 +419,7 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
                     frame = job[frame_number]
 
                     if frame:
-                        if not frame.log_path or frame.status in (FRAME_QUEUED, FRAME_DISPATCHED):
+                        if not frame.log_path or frame.status in (netrender.model.FRAME_QUEUED, netrender.model.FRAME_DISPATCHED):
                             self.send_head(http.client.PROCESSING)
                         else:
                             self.server.stats("", "Sending log to client")
@@ -488,7 +488,7 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
                 if job and frames:
                     for f in frames:
                         print("dispatch", f.number)
-                        f.status = FRAME_DISPATCHED
+                        f.status = netrender.model.FRAME_DISPATCHED
                         f.slave = slave
 
                     slave.job = job
@@ -838,11 +838,11 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
                         self.send_head(content = None)
 
                         if job.hasRenderResult():
-                            if job_result == FRAME_DONE:
+                            if job_result == netrender.model.FRAME_DONE:
                                 frame.addDefaultRenderResult()
                                 self.write_file(job.getResultPath(frame.getRenderFilename()))
 
-                            elif job_result == FRAME_ERROR:
+                            elif job_result == netrender.model.FRAME_ERROR:
                                 # blacklist slave on this job on error
                                 # slaves might already be in blacklist if errors on the whole chunk
                                 if not slave.id in job.blacklist:
@@ -885,7 +885,7 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
                         
                         self.send_head(content = None)
 
-                        if job_result == FRAME_DONE:
+                        if job_result == netrender.model.FRAME_DONE:
                             result_filename = self.headers['result-filename']
                             
                             frame.results.append(result_filename)
@@ -1045,7 +1045,7 @@ class RenderMasterServer(socketserver.ThreadingMixIn, http.server.HTTPServer):
 
                 if slave.job:
                     for f in slave.job_frames:
-                        slave.job[f].status = FRAME_ERROR
+                        slave.job[f].status = netrender.model.FRAME_ERROR
 
         for slave in removed:
             self.removeSlave(slave)
@@ -1075,7 +1075,7 @@ class RenderMasterServer(socketserver.ThreadingMixIn, http.server.HTTPServer):
     def getJobs(self):
         return self.jobs
 
-    def countJobs(self, status = JOB_QUEUED):
+    def countJobs(self, status = netrender.model.JOB_QUEUED):
         total = 0
         for j in self.jobs:
             if j.status == status:

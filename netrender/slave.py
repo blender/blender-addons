@@ -65,8 +65,8 @@ def testCancel(conn, job_id, frame_number):
         else:
             return False
 
-def testFile(conn, job_id, slave_id, rfile, JOB_PREFIX, main_path=None):
-    job_full_path = createLocalPath(rfile, JOB_PREFIX, main_path, rfile.force)
+def testFile(conn, job_id, slave_id, rfile, job_prefix, main_path=None):
+    job_full_path = createLocalPath(rfile, job_prefix, main_path, rfile.force)
     
     found = os.path.exists(job_full_path)
     
@@ -80,9 +80,9 @@ def testFile(conn, job_id, slave_id, rfile, JOB_PREFIX, main_path=None):
 
     if not found:
         # Force prefix path if not found
-        job_full_path = createLocalPath(rfile, JOB_PREFIX, main_path, True)
+        job_full_path = createLocalPath(rfile, job_prefix, main_path, True)
         print("Downloading", job_full_path)
-        temp_path = os.path.join(JOB_PREFIX, "slave.temp")
+        temp_path = os.path.join(job_prefix, "slave.temp")
         with ConnectionContext():
             conn.request("GET", fileURL(job_id, rfile.index), headers={"slave-id":slave_id})
         response = conn.getresponse()
@@ -166,24 +166,24 @@ def render_slave(engine, netsettings, threads):
                 job = netrender.model.RenderJob.materialize(json.loads(str(response.read(), encoding='utf8')))
                 engine.update_stats("", "Network render processing job from master")
 
-                JOB_PREFIX = os.path.join(NODE_PREFIX, "job_" + job.id)
-                verifyCreateDir(JOB_PREFIX)
+                job_prefix = os.path.join(NODE_PREFIX, "job_" + job.id)
+                verifyCreateDir(job_prefix)
 
                 # set tempdir for fsaa temp files
                 # have to set environ var because render is done in a subprocess and that's the easiest way to propagate the setting
-                os.environ["TMP"] = JOB_PREFIX
+                os.environ["TMP"] = job_prefix
 
 
                 if job.type == netrender.model.JOB_BLENDER:
                     job_path = job.files[0].original_path # original path of the first file
                     main_path, main_file = os.path.split(job_path)
 
-                    job_full_path = testFile(conn, job.id, slave_id, job.files[0], JOB_PREFIX)
+                    job_full_path = testFile(conn, job.id, slave_id, job.files[0], job_prefix)
                     print("Fullpath", job_full_path)
                     print("File:", main_file, "and %i other files" % (len(job.files) - 1,))
 
                     for rfile in job.files[1:]:
-                        testFile(conn, job.id, slave_id, rfile, JOB_PREFIX, main_path)
+                        testFile(conn, job.id, slave_id, rfile, job_prefix, main_path)
                         print("\t", rfile.filepath)
                         
                     netrender.repath.update(job)
@@ -225,7 +225,7 @@ def render_slave(engine, netsettings, threads):
                         frame_args += ["-f", str(frame.number)]
 
                     with NoErrorDialogContext():
-                        process = subprocess.Popen([BLENDER_PATH, "-b", "-noaudio", job_full_path, "-t", str(threads), "-o", os.path.join(JOB_PREFIX, "######"), "-E", job.render, "-F", "MULTILAYER"] + frame_args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+                        process = subprocess.Popen([BLENDER_PATH, "-b", "-noaudio", job_full_path, "-t", str(threads), "-o", os.path.join(job_prefix, "######"), "-E", job.render, "-F", "MULTILAYER"] + frame_args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
                         
                 elif job.subtype == netrender.model.JOB_SUB_BAKING:
                     tasks = []
@@ -354,13 +354,13 @@ def render_slave(engine, netsettings, threads):
 
 
                 if status == 0: # non zero status is error
-                    headers["job-result"] = str(FRAME_DONE)
+                    headers["job-result"] = str(netrender.model.FRAME_DONE)
                     for frame in job.frames:
                         headers["job-frame"] = str(frame.number)
                         if job.hasRenderResult():
                             # send image back to server
 
-                            filename = os.path.join(JOB_PREFIX, "%06d.exr" % frame.number)
+                            filename = os.path.join(job_prefix, "%06d.exr" % frame.number)
 
                             # thumbnail first
                             if netsettings.use_slave_thumb:
@@ -403,7 +403,7 @@ def render_slave(engine, netsettings, threads):
                             if responseStatus(conn) == http.client.NO_CONTENT:
                                 continue
                 else:
-                    headers["job-result"] = str(FRAME_ERROR)
+                    headers["job-result"] = str(netrender.model.FRAME_ERROR)
                     for frame in job.frames:
                         headers["job-frame"] = str(frame.number)
                         # send error result back to server

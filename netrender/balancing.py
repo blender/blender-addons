@@ -167,7 +167,7 @@ class NewJobPriority(PriorityRule):
         return "Priority to new jobs"
 
     def test(self, job):
-        return job.countFrames(status = FRAME_DONE) < self.limit
+        return job.countFrames(status = netrender.model.FRAME_DONE) < self.limit
     def serialize(self):
         return { "type": "priority",
                  "enabled": self.enabled,
@@ -193,7 +193,7 @@ class MinimumTimeBetweenDispatchPriority(PriorityRule):
         return "Priority to jobs that haven't been dispatched recently"
 
     def test(self, job):
-        return job.countFrames(status = FRAME_DISPATCHED) == 0 and (time.time() - job.last_dispatched) / 60 > self.limit
+        return job.countFrames(status = netrender.model.FRAME_DISPATCHED) == 0 and (time.time() - job.last_dispatched) / 60 > self.limit
 
     def serialize(self):
         return { "type": "priority",
@@ -214,7 +214,7 @@ class ExcludeQueuedEmptyJob(ExclusionRule):
         return "Exclude non queued or empty jobs"
 
     def test(self, job):
-        return job.status != JOB_QUEUED or job.countFrames(status = FRAME_QUEUED) == 0
+        return job.status != netrender.model.JOB_QUEUED or job.countFrames(status = netrender.model.FRAME_QUEUED) == 0
     
     def serialize(self):
         return { "type": "exception",

@@ -26,7 +26,7 @@ from netrender.utils import *
 
 from bpy.props import PointerProperty, StringProperty, BoolProperty, EnumProperty, IntProperty, CollectionProperty
 
-VERSION = b"0.3"
+VERSION = b"0.5"
 
 PATH_PREFIX = "/tmp/"
 
@@ -352,8 +352,8 @@ class RENDER_PT_network_jobs(NeedValidAddress, NetRenderButtonsPanel, bpy.types.
 
             layout.label(text="Name: %s" % job.name)
             layout.label(text="Length: %04i" % len(job))
-            layout.label(text="Done: %04i" % job.results[FRAME_DONE])
-            layout.label(text="Error: %04i" % job.results[FRAME_ERROR])
+            layout.label(text="Done: %04i" % job.results[netrender.model.FRAME_DONE])
+            layout.label(text="Error: %04i" % job.results[netrender.model.FRAME_ERROR])
 
 import bl_ui.properties_render as properties_render
 class RENDER_PT_network_output(NeedValidAddress, NetRenderButtonsPanel, bpy.types.Panel):

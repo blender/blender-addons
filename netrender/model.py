@@ -19,6 +19,70 @@
 import netrender.versioning as versioning
 from netrender.utils import *
 
+import time
+
+# Jobs status
+JOB_WAITING = 0 # before all data has been entered
+JOB_PAUSED = 1 # paused by user
+JOB_FINISHED = 2 # finished rendering
+JOB_QUEUED = 3 # ready to be dispatched
+
+JOB_STATUS_TEXT = {
+        JOB_WAITING: "Waiting",
+        JOB_PAUSED: "Paused",
+        JOB_FINISHED: "Finished",
+        JOB_QUEUED: "Queued"
+        }
+
+JOB_TRANSITION_STARTED = "Started"
+JOB_TRANSITION_PAUSED = "Paused"
+JOB_TRANSITION_RESUMED = "Resumed"
+JOB_TRANSITION_FINISHED = "Finished"
+JOB_TRANSITION_RESTARTED = "Restarted"
+
+JOB_TRANSITIONS = {
+       (JOB_WAITING, JOB_QUEUED) : JOB_TRANSITION_STARTED,
+       (JOB_QUEUED, JOB_PAUSED) : JOB_TRANSITION_PAUSED,
+       (JOB_PAUSED, JOB_QUEUED) : JOB_TRANSITION_RESUMED,
+       (JOB_QUEUED, JOB_FINISHED) : JOB_TRANSITION_FINISHED,
+       (JOB_FINISHED, JOB_QUEUED) : JOB_TRANSITION_RESTARTED
+       }
+
+# Job types (depends on the dependency type)
+JOB_BLENDER = 1
+JOB_PROCESS = 2
+JOB_VCS     = 3
+
+JOB_TYPES = {
+                JOB_BLENDER: "Blender",
+                JOB_PROCESS: "Process",
+                JOB_VCS:     "Versioned",
+            }
+
+JOB_SUB_RENDER = 1
+JOB_SUB_BAKING = 2
+
+# Job subtypes
+JOB_SUBTYPES = {
+                JOB_SUB_RENDER: "Render",
+                JOB_SUB_BAKING: "Baking",
+            }
+
+
+# Frames status
+FRAME_QUEUED = 0
+FRAME_DISPATCHED = 1
+FRAME_DONE = 2
+FRAME_ERROR = 3
+
+FRAME_STATUS_TEXT = {
+        FRAME_QUEUED: "Queued",
+        FRAME_DISPATCHED: "Dispatched",
+        FRAME_DONE: "Done",
+        FRAME_ERROR: "Error"
+        }
+
+# Tags
 TAG_BAKING = "baking"
 TAG_RENDER = "render"
 
@@ -105,24 +169,6 @@ class RenderSlave:
             RenderSlave._slave_map[slave_id] = slave
 
         return slave
-
-JOB_BLENDER = 1
-JOB_PROCESS = 2
-JOB_VCS     = 3
-
-JOB_TYPES = {
-                JOB_BLENDER: "Blender",
-                JOB_PROCESS: "Process",
-                JOB_VCS:     "Versioned",
-            }
-
-JOB_SUB_RENDER = 1
-JOB_SUB_BAKING = 2
-
-JOB_SUBTYPES = {
-                JOB_SUB_RENDER: "Render",
-                JOB_SUB_BAKING: "Baking",
-            }
 
 class VersioningInfo:
     def __init__(self, info = None):
@@ -219,7 +265,10 @@ class RenderJob:
         self.usage = 0.0
         self.last_dispatched = 0.0
         self.frames = []
-
+        self.transitions = []
+        
+        self._status = None
+        
         if info:
             self.type = info.type
             self.subtype = info.subtype
@@ -246,6 +295,39 @@ class RenderJob:
             self.blacklist = []
             self.version_info = None
             self.render = "BLENDER_RENDER"
+
+    @property
+    def status(self):
+        """Status of the job (waiting, paused, finished or queued)"""
+        return self._status
+    
+    @status.setter
+    def status(self, value):
+        transition = JOB_TRANSITIONS.get((self.status, value), None)
+        if transition:
+            self.transitions.append((transition, time.time()))
+            
+        self._status = value
+
+    @property
+    def time_started(self):
+        started_time = None
+        for transition, time_value in self.transitions:
+            if transition == JOB_TRANSITION_STARTED:
+                started_time = time_value
+                break
+            
+        return started_time
+
+    @property
+    def time_finished(self):
+        finished_time = None
+        if self.status == JOB_FINISHED:
+            for transition, time_value in self.transitions:
+                if transition == JOB_TRANSITION_FINISHED:
+                    finished_time = time_value
+            
+        return finished_time
 
     def hasRenderResult(self):
         return self.subtype == JOB_SUB_RENDER
@@ -332,6 +414,7 @@ class RenderJob:
                             "category": self.category,
                             "tags": tuple(self.tags),
                             "status": self.status,
+                            "transitions": self.transitions,
                             "chunks": self.chunks,
                             "priority": self.priority,
                             "usage": self.usage,
@@ -361,6 +444,7 @@ class RenderJob:
         job.category = data["category"]
         job.tags = set(data["tags"])
         job.status = data["status"]
+        job.transitions = data["transitions"]
         job.files = [RenderFile.materialize(f) for f in data["files"]]
         job.frames = [RenderFrame.materialize(f) for f in data["frames"]]
         job.chunks = data["chunks"]
