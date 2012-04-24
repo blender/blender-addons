@@ -515,7 +515,7 @@ class VIEW3D_OT_assign_material(bpy.types.Operator):
             name='Material Name',
             description='Name of Material to Assign',
             default="",
-            maxlen=21,
+            maxlen=63,
             )
 
     @classmethod
@@ -570,7 +570,7 @@ class VIEW3D_OT_select_material_by_name(bpy.types.Operator):
     matname = StringProperty(
             name='Material Name',
             description='Name of Material to Select',
-            maxlen=21,
+            maxlen=63,
             )
 
     @classmethod
@@ -592,11 +592,11 @@ class VIEW3D_OT_replace_material(bpy.types.Operator):
     matorg = StringProperty(
             name='Material to Replace',
             description="Name of Material to Assign",
-            maxlen=21,
+            maxlen=63,
             )
     matrep = StringProperty(name="Replacement material",
             description='Name of Material to Assign',
-            maxlen=21,
+            maxlen=63,
             )
     all_objects = BoolProperty(
             name="All objects",
