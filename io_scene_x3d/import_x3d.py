@@ -1386,6 +1386,8 @@ def x3d_parse(path):
     except:
         return None, 'Not a valid x3d document, cannot import'
 
+    bpy.ops.object.select_all(action='DESELECT')
+
     root = x3dNode(None, NODE_NORMAL, x3dnode)
     root.setRoot(path)  # so images and Inline's we load have a relative path
     root.parse()
@@ -2157,7 +2159,7 @@ def importShape(node, ancestry, global_matrix):
             bpydata.name = vrmlname
 
             bpyob = node.blendObject = bpy.data.objects.new(vrmlname, bpydata)
-            bpy.context.scene.objects.link(bpyob)
+            bpy.context.scene.objects.link(bpyob).select = True
 
             if type(bpydata) == bpy.types.Mesh:
                 is_solid = geom.getFieldAsBool('solid', True, ancestry)
@@ -2298,7 +2300,7 @@ def importLamp(node, spec, ancestry, global_matrix):
         raise ValueError
 
     bpyob = node.blendObject = bpy.data.objects.new("TODO", bpylamp)
-    bpy.context.scene.objects.link(bpyob)
+    bpy.context.scene.objects.link(bpyob).select = True
 
     bpyob.matrix_world = getFinalMatrix(node, mtx, ancestry, global_matrix)
 
@@ -2321,7 +2323,7 @@ def importViewpoint(node, ancestry, global_matrix):
     mtx = Matrix.Translation(Vector(position)) * translateRotation(orientation)
 
     bpyob = node.blendObject = bpy.data.objects.new(name, bpycam)
-    bpy.context.scene.objects.link(bpyob)
+    bpy.context.scene.objects.link(bpyob).select = True
     bpyob.matrix_world = getFinalMatrix(node, mtx, ancestry, global_matrix)
 
 
@@ -2331,7 +2333,7 @@ def importTransform(node, ancestry, global_matrix):
         name = 'Transform'
 
     bpyob = node.blendObject = bpy.data.objects.new(name, None)
-    bpy.context.scene.objects.link(bpyob)
+    bpy.context.scene.objects.link(bpyob).select = True
 
     bpyob.matrix_world = getFinalMatrix(node, None, ancestry, global_matrix)
 
@@ -2590,7 +2592,7 @@ def load_web3d(path,
                 node = defDict[key]
                 if node.blendObject is None:  # Add an object if we need one for animation
                     node.blendObject = bpy.data.objects.new('AnimOb', None)  # , name)
-                    bpy.context.scene.objects.link(node.blendObject)
+                    bpy.context.scene.objects.link(node.blendObject).select = True
 
                 if node.blendObject.animation_data is None:
                     node.blendObject.animation_data_create()
