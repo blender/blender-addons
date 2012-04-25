@@ -1832,6 +1832,7 @@ def importMesh_IndexedFaceSet(geom, bpyima, ancestry):
     # bpymesh.vertices.delete([0, ])  # EEKADOODLE
 
     bpymesh.update()
+    bpymesh.validate()
 
     return bpymesh, ccw
 
