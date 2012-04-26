@@ -144,6 +144,7 @@ import os
 import time
 import bpy
 import mathutils
+import math
 import random
 import operator
 import sys
@@ -905,16 +906,16 @@ def parse_smooth_groups( mesh ):
 	smoothgroup_list	= []
 	edge_sharing_list	= determine_edge_sharing(mesh)
 	#print("faces:",len(mesh.tessfaces))
-	interval = int(len(mesh.tessfaces) / 100)
-	#print("interval:",interval)
+	interval =  math.floor(len(mesh.tessfaces) / 100)
+	#print("FACES:",len(mesh.tessfaces),"//100 =" "interval:",interval)
 	for face in mesh.tessfaces:
 		#print(dir(face))
 		determine_smoothgroup_for_face(mesh, face, edge_sharing_list, smoothgroup_list)
-		# progress indicator, writes to console without scrolling #bug in the code for face  to tessface
-		#if face.index > 0 and (face.index % interval) == 0:
-			#print("Processing... {}%\r".format( int(face.index / len(mesh.tessfaces) * 100) ), end='')
-			#sys.stdout.flush()
-	print("Completed" + ' '*20)
+		# progress indicator, writes to console without scrolling
+		if face.index > 0 and (face.index % interval) == 0:
+			print("Processing... {}%\r".format( int(face.index / len(mesh.tessfaces) * 100) ), end='')
+			sys.stdout.flush()
+	print("Completed" , ' '*20)
 	
 	verbose("len(smoothgroup_list)={}".format(len(smoothgroup_list)))
 	
@@ -947,8 +948,6 @@ def triangulate_mesh( object ):
 	
 	me_ob.select			= True
 	scene.objects.active	= me_ob
-	
-	#bpy.ops.object.mode_set(mode='OBJECT')
 	
 	print("Copy and Convert mesh just incase any way...")
 	
@@ -1579,7 +1578,7 @@ def find_armature_and_mesh():
 	# otherwise, expect a single mesh parented to the armature (other object types are ignored)
 	else:
 		parented_meshes = [obj for obj in armature.children if obj.type == 'MESH']
-		
+		print("Number of meshes:",len(parented_meshes))
 		if len(parented_meshes) == 1:
 			mesh = parented_meshes[0]
 			
