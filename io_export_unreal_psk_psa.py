@@ -907,6 +907,8 @@ def parse_smooth_groups( mesh ):
 	edge_sharing_list	= determine_edge_sharing(mesh)
 	#print("faces:",len(mesh.tessfaces))
 	interval =  math.floor(len(mesh.tessfaces) / 100)
+	if interval == 0: #if the faces are few do this
+	    interval =  math.floor(len(mesh.tessfaces) / 10)	
 	#print("FACES:",len(mesh.tessfaces),"//100 =" "interval:",interval)
 	for face in mesh.tessfaces:
 		#print(dir(face))
@@ -1588,8 +1590,11 @@ def find_armature_and_mesh():
 		else:
 			raise Error("No mesh parented to armature")
 		
-	verbose("Found mesh: {}".format(mesh.name))
-	
+	verbose("Found mesh: {}".format(mesh.name))	
+	if len(armature.pose.bones) == len(mesh.vertex_groups):
+		print("Armature and Mesh Vertex Groups matches Ok!")
+	else:
+		raise Error("Armature bones:" + str(len(armature.pose.bones)) + " Mesh Vertex Groups:" + str(len(mesh.vertex_groups)) +" doesn't match!")
 	return armature, mesh
 
 
