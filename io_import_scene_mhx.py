@@ -194,10 +194,9 @@ Plural = {
 #
 
 def readMhxFile(filePath):
-    global todo, nErrors, theScale, defaultScale, One, toggle, warnedVersion, BMeshAware, theMessage
+    global todo, nErrors, theScale, defaultScale, One, toggle, warnedVersion, theMessage
 
     print("Blender r%s" % bpy.app.build_revision)
-    BMeshAware = (int(bpy.app.build_revision) > 44136)    
     defaultScale = theScale
     One = 1.0/theScale
     warnedVersion = False
@@ -1191,7 +1190,7 @@ def unpackList(list_of_tuples):
 #
 
 def parseMesh (args, tokens):
-    global todo
+    global todo, BMeshAware
     if verbosity > 2:
         print( "Parsing mesh %s" % args )
 
@@ -1220,6 +1219,15 @@ def parseMesh (args, tokens):
         me.from_pydata(verts, edges, [])
     me.update()
     linkObject(ob, me)
+    
+    if faces:
+        try:
+            me.polygons
+            BMeshAware = True
+            print("Using BMesh")
+        except:
+            BMeshAware = False
+            print("Not using BMesh")
         
     mats = []
     nuvlayers = 0
