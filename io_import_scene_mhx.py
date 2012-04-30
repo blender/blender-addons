@@ -196,7 +196,6 @@ Plural = {
 def readMhxFile(filePath):
     global todo, nErrors, theScale, defaultScale, One, toggle, warnedVersion, theMessage
 
-    print("Blender r%s" % bpy.app.build_revision)
     defaultScale = theScale
     One = 1.0/theScale
     warnedVersion = False
