@@ -1094,7 +1094,7 @@ class ORE_LoginOp(bpy.types.Operator):
         ore = sce.ore_render
 
         ore.password = ore.password.strip()
-        ore.username = ore.username.strip().lower()
+        ore.username = ore.username.strip()
         
         if ore.hash=='':
             if ore.password != '' and ore.username != '':
