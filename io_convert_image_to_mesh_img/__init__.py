@@ -20,7 +20,7 @@ bl_info = {
     "name": "HiRISE DTM from PDS IMG",
     "author": "Tim Spriggs (tims@uahirise.org)",
     "version": (0, 1, 3),
-    "blender": (2, 6, 2),
+    "blender": (2, 6, 3),
     "location": "File > Import > HiRISE DTM from PDS IMG (.IMG)",
     "description": "Import a HiRISE DTM formatted as a PDS IMG file",
     "warning": "May consume a lot of memory",
@@ -41,6 +41,9 @@ bl_info = {
 # 0.1.3 - upstream blender updates
 #         performance enhancements by Chris Van Horne
 #         (TJS - 2012-03-14)
+# 0.1.4 - use bmesh from_pydata in blender 2.6.3
+#         fixed/optimized bin2 method
+#         (TJS - 2012-04-30)
 
 
 if "bpy" in locals():

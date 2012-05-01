@@ -194,6 +194,8 @@ class hirise_dtm_importer(object):
     def bin2(self, image_iter, bin2_method_type="SLOW"):
       ''' this is an iterator that: Given an image iterator will yield binned lines '''
 
+      ignore_value = self.__ignore_value
+
       img_props = next(image_iter)
       # dimensions shrink as we remove pixels
       processed_dims = img_props.processed_dims()
@@ -207,7 +209,7 @@ class hirise_dtm_importer(object):
 
       # Take two lists  [a1, a2, a3], [b1, b2, b3] and combine them into one
       # list of [a1 + b1, a2+b2,  ... ] as long as both values are not ignorable
-      combine_fun = lambda a, b: a != self.__ignore_value and b != self.__ignore_value and a + b or self.__ignore_value
+      combine_fun = lambda a, b: a != ignore_value and b != ignore_value and (a + b)/2 or ignore_value
 
       line_count = 0
       ret_list = []
@@ -220,7 +222,9 @@ class hirise_dtm_importer(object):
             del tmp_list[0:2]
           yield ret_list
           ret_list = []
-        line_count += 1
+        else:
+          last_line = line
+          line_count += 1
 
     def bin6(self, image_iter, bin6_method_type="SLOW"):
       ''' this is an iterator that: Given an image iterator will yield binned lines '''
@@ -276,9 +280,10 @@ class hirise_dtm_importer(object):
         if not ints:
           binned_data.append( IGNORE_VALUE )
         else:
-          binned_data.append( sum(ints) / len(ints) )
+          binned_data.append( sum(ints, 0.0) / len(ints) )
 
         base += 6
+
       return binned_data
 
     def bin6_real_fast(self, raw_data):
@@ -499,7 +504,7 @@ class hirise_dtm_importer(object):
       point_offset += len( last_line ) - last_line.count(None)
       for z in last_line:
         if z != None:
-          coords.extend([x*scale_x, 0.0, z])
+          coords.append( (x*scale_x, 0.0, z) )
           coord += 1
         x += 1
 
@@ -531,7 +536,7 @@ class hirise_dtm_importer(object):
         x = 0
         for z in dtm_line:
           if z != None:
-            coords.extend( [x*scale_x, y_val, z] )
+            coords.append( (x*scale_x, y_val, z) )
             coord += 1
           x += 1
 
@@ -549,12 +554,12 @@ class hirise_dtm_importer(object):
 
           # Common case: we can create a square face
           if none_val == 0:
-            faces.extend( [
+            faces.append( (
               previous_point_offset,
               previous_point_offset+1,
               point_offset+1,
               point_offset,
-              ] )
+              ) )
             face_count += 1
           elif none_val == 1:
             # special case: we can implement a triangular face
@@ -579,12 +584,27 @@ class hirise_dtm_importer(object):
         last_line = dtm_line
 
       me = bpy.data.meshes.new(img_props.name()) # create a new mesh
+      #from_pydata(self, vertices, edges, faces)
+      #Make a mesh from a list of vertices/edges/faces
+      #Until we have a nicer way to make geometry, use this.
+      #:arg vertices:
+      #   float triplets each representing (X, Y, Z)
+      #   eg: [(0.0, 1.0, 0.5), ...].
+      #:type vertices: iterable object
+      #:arg edges:
+      #   int pairs, each pair contains two indices to the
+      #   *vertices* argument. eg: [(1, 2), ...]
+      #:type edges: iterable object
+      #:arg faces:
+      #   iterator of faces, each faces contains three or more indices to
+      #   the *vertices* argument. eg: [(5, 6, 8, 9), (1, 2, 3), ...]
+      #:type faces: iterable object
+      me.from_pydata(coords, [], faces)      
 
-      me.vertices.add(len(coords)/3)
-      me.vertices.foreach_set("co", coords)
-
-      me.faces.add(len(faces)/4)
-      me.faces.foreach_set("vertices_raw", faces)
+      # me.vertices.add(len(coords)/3)
+      # me.vertices.foreach_set("co", coords)
+      # me.faces.add(len(faces)/4)
+      # me.faces.foreach_set("vertices_raw", faces)
 
       me.update()
 
