@@ -355,7 +355,7 @@ def export_map(context, filepath):
         #XXX25: BPyMesh.meshCalcNormals(dummy_mesh)
 
         # We need tessfaces
-        dummy_mesh.update(calc_tessface)
+        dummy_mesh.update(calc_tessface=True)
 
         # Split mesh into connected regions
         for face_group in mesh_utils.mesh_linked_tessfaces(dummy_mesh):
