@@ -17,7 +17,6 @@
 # ##### END GPL LICENSE BLOCK #####
 # Contributed to by
 # Pontiac, Fourmadmen, varkenvarken, tuga3d, meta-androcto, metalliandy, dreampainter & cotejrp1#
-# Kayo Phoenix, Anthony D'Agostino#
 
 bl_info = {
     "name": "Extra Objects",
@@ -46,6 +45,7 @@ if "bpy" in locals():
     imp.reload(add_mesh_pyramid)
     imp.reload(add_mesh_torusknot)
     imp.reload(add_mesh_honeycomb)
+    imp.reload(add_mesh_teapot)
 else:
     from . import add_mesh_extra_objects
     from . import add_mesh_twisted_torus
@@ -57,6 +57,7 @@ else:
     from . import add_mesh_pyramid
     from . import add_mesh_torusknot
     from . import add_mesh_honeycomb
+    from . import add_mesh_teapot
 import bpy
 
 
@@ -160,6 +161,8 @@ class INFO_MT_mesh_misc_add(bpy.types.Menu):
             text="Step Pyramid")
         layout.operator("mesh.honeycomb_add",
             text="Honeycomb")
+        layout.operator("mesh.primitive_teapot_add",
+            text="Teapot+")
 # Register all operators and panels
 
 # Define "Extras" menu
