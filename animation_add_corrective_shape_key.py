@@ -224,7 +224,7 @@ class object_duplicate_flatten_modifiers(bpy.types.Operator):
         scene = context.scene
         obj_act = context.active_object
 
-        new_object = func_object_duplicate_flatten_modifiers(obj_act, scene)
+        new_object = func_object_duplicate_flatten_modifiers(scene, obj_act)
 
         # setup the context
         bpy.ops.object.select_all(action='DESELECT')
