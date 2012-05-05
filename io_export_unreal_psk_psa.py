@@ -969,6 +969,56 @@ def triangulate_mesh( object ):
 	bpy.context.scene.update()
 	return me_ob
 
+#copy mesh data and then merge them into one object
+def meshmerge(selectedobjects):
+    bpy.ops.object.mode_set(mode='OBJECT')
+    cloneobjects = []
+    if len(selectedobjects) > 1:
+        print("selectedobjects:",len(selectedobjects))
+        count = 0 #reset count
+        for count in range(len( selectedobjects)):
+            #print("Index:",count)
+            if selectedobjects[count] != None:
+                me_da = selectedobjects[count].data.copy() #copy data
+                me_ob = selectedobjects[count].copy() #copy object
+                #note two copy two types else it will use the current data or mesh
+                me_ob.data = me_da
+                bpy.context.scene.objects.link(me_ob)#link the object to the scene #current object location
+                print("Index:",count,"clone object",me_ob.name)
+                cloneobjects.append(me_ob)
+        #bpy.ops.object.mode_set(mode='OBJECT')
+        for i in bpy.data.objects: i.select = False #deselect all objects
+        count = 0 #reset count
+        #bpy.ops.object.mode_set(mode='OBJECT')
+        for count in range(len( cloneobjects)):
+            if count == 0:
+                bpy.context.scene.objects.active = cloneobjects[count]
+                print("Set Active Object:",cloneobjects[count].name)
+            cloneobjects[count].select = True
+        bpy.ops.object.join()
+        if len(cloneobjects) > 1:
+            bpy.types.Scene.udk_copy_merge = True
+    return cloneobjects[0]
+	
+#sort the mesh center top list and not center at the last array. Base on order while select to merge mesh to make them center.
+def sortmesh(selectmesh):
+	print("MESH SORTING...")
+	centermesh = []
+	notcentermesh = []
+	for countm in range(len(selectmesh)):
+		if selectmesh[countm].location.x == 0 and selectmesh[countm].location.y == 0 and selectmesh[countm].location.z == 0:
+			centermesh.append(selectmesh[countm])
+		else:
+			notcentermesh.append(selectmesh[countm])
+	selectmesh = []
+	for countm in range(len(centermesh)):
+		selectmesh.append(centermesh[countm])
+	for countm in range(len(notcentermesh)):
+		selectmesh.append(notcentermesh[countm])
+	if len(selectmesh) == 1:
+		return selectmesh[0]
+	else:
+		return meshmerge(selectmesh)
 
 #===========================================================================
 # parse_mesh
@@ -1535,24 +1585,7 @@ def collate_actions():
 	
 	return actions_to_export
 
-def sortmesh(selectmesh):
-	print("MESH SORTING...")
-	centermesh = []
-	notcentermesh = []
-	for countm in range(len(selectmesh)):
-		if selectmesh[countm].location.x == 0 and selectmesh[countm].location.y == 0 and selectmesh[countm].location.z == 0:
-			centermesh.append(selectmesh[countm])
-		else:
-			notcentermesh.append(selectmesh[countm])
-	selectmesh = []
-	for countm in range(len(centermesh)):
-		selectmesh.append(centermesh[countm])
-	for countm in range(len(notcentermesh)):
-		selectmesh.append(notcentermesh[countm])
-	if len(selectmesh) == 1:
-		return selectmesh[0]
-	else:
-		return meshmerge(selectmesh)
+
 #===========================================================================
 # Locate the target armature and mesh for export
 # RETURNS armature, mesh
@@ -1640,36 +1673,6 @@ def collate_vertex_groups( mesh ):
 		verbose("  " + group.name)
 	
 	return groups
-
-def meshmerge(selectedobjects):
-    bpy.ops.object.mode_set(mode='OBJECT')
-    cloneobjects = []
-    if len(selectedobjects) > 1:
-        print("selectedobjects:",len(selectedobjects))
-        count = 0 #reset count
-        for count in range(len( selectedobjects)):
-            #print("Index:",count)
-            if selectedobjects[count] != None:
-                me_da = selectedobjects[count].data.copy() #copy data
-                me_ob = selectedobjects[count].copy() #copy object
-                #note two copy two types else it will use the current data or mesh
-                me_ob.data = me_da
-                bpy.context.scene.objects.link(me_ob)#link the object to the scene #current object location
-                print("Index:",count,"clone object",me_ob.name)
-                cloneobjects.append(me_ob)
-        #bpy.ops.object.mode_set(mode='OBJECT')
-        for i in bpy.data.objects: i.select = False #deselect all objects
-        count = 0 #reset count
-        #bpy.ops.object.mode_set(mode='OBJECT')
-        for count in range(len( cloneobjects)):
-            if count == 0:
-                bpy.context.scene.objects.active = cloneobjects[count]
-                print("Set Active Object:",cloneobjects[count].name)
-            cloneobjects[count].select = True
-        bpy.ops.object.join()
-        if len(cloneobjects) > 1:
-            bpy.types.Scene.udk_copy_merge = True
-    return cloneobjects[0]
 		
 #===========================================================================
 # Main
@@ -1878,9 +1881,246 @@ bpy.types.Scene.udk_option_triangulate = BoolProperty(
 		default		= False)
 		
 
+import bmesh
 #===========================================================================
 # User interface
 #===========================================================================
+class OBJECT_OT_UTSelectedFaceSmooth(bpy.types.Operator):
+    bl_idname = "object.utselectfacesmooth"  # XXX, name???
+    bl_label = "Select Smooth faces"
+    __doc__ = """It will only select smooth faces that is select mesh"""
+    
+    def invoke(self, context, event):
+        print("----------------------------------------")
+        print("Init Select Face(s):")
+        bselected = False
+        for obj in bpy.data.objects:
+            if obj.type == 'MESH' and obj.select == True:
+                smoothcount = 0
+                flatcount = 0
+                bpy.ops.object.mode_set(mode='OBJECT')#it need to go into object mode to able to select the faces
+                for i in bpy.context.scene.objects: i.select = False #deselect all objects
+                obj.select = True #set current object select
+                bpy.context.scene.objects.active = obj #set active object
+                mesh = bmesh.new();
+                mesh.from_mesh(obj.data)
+                for face in mesh.faces:
+                    face.select = False
+                for face in mesh.faces:
+                    if face.smooth == True:
+                        face.select = True
+                        smoothcount += 1
+                    else:
+                        flatcount += 1
+                        face.select = False
+                mesh.to_mesh(obj.data)
+                bpy.context.scene.update()
+                bpy.ops.object.mode_set(mode='EDIT')
+                print("Select Smooth Count(s):",smoothcount," Flat Count(s):",flatcount)
+                bselected = True
+                break
+        if bselected:
+            print("Selected Face(s) Exectue!")
+            self.report({'INFO'}, "Selected Face(s) Exectue!")
+        else:
+            print("Didn't select Mesh Object!")
+            self.report({'INFO'}, "Didn't Select Mesh Object!")
+        print("----------------------------------------")        
+        return{'FINISHED'}
+		
+class OBJECT_OT_MeshClearWeights(bpy.types.Operator):
+    bl_idname = "object.meshclearweights"  # XXX, name???
+    bl_label = "Remove Mesh vertex weights"
+    __doc__ = """Remove all mesh vertex groups weights for the bones."""
+    
+    def invoke(self, context, event):
+        for obj in bpy.data.objects:
+            if obj.type == 'MESH' and obj.select == True:
+                for vg in obj.vertex_groups:
+                    obj.vertex_groups.remove(vg)
+                self.report({'INFO'}, "Mesh Vertex Groups Remove!")
+                break			
+        return{'FINISHED'}
+
+def unpack_list(list_of_tuples):
+    l = []
+    for t in list_of_tuples:
+        l.extend(t)
+    return l
+	
+class OBJECT_OT_UTRebuildMesh(bpy.types.Operator):
+    bl_idname = "object.utrebuildmesh"  # XXX, name???
+    bl_label = "Rebuild Mesh"
+    __doc__ = """It rebuild the mesh from scrape from the selected mesh object. Note the scale will be 1:1 for object mode. To keep from deforming"""
+    
+    def invoke(self, context, event):
+        print("----------------------------------------")
+        print("Init Mesh Bebuild...")
+        bselected = False
+        for obj in bpy.data.objects:
+            if obj.type == 'MESH' and obj.select == True:
+                for i in bpy.context.scene.objects: i.select = False #deselect all objects
+                obj.select = True
+                bpy.context.scene.objects.active = obj
+                bpy.ops.object.mode_set(mode='OBJECT')
+                me_ob = bpy.data.meshes.new(("Re_"+obj.name))
+                mesh = obj.data
+                faces = []
+                verts = []
+                smoothings = []
+                uvfaces = []
+                print("creating array build mesh...")
+                mmesh = obj.to_mesh(bpy.context.scene,True,'PREVIEW')
+                uv_layer = mmesh.tessface_uv_textures.active
+                for face in mmesh.tessfaces:
+                    smoothings.append(face.use_smooth)#smooth or flat in boolean
+                    if uv_layer != None:#check if there texture data exist
+                        faceUV = uv_layer.data[face.index]
+                        uvs = []
+                        for uv in faceUV.uv:
+                            uvs.append((uv[0],uv[1]))
+                        uvfaces.append(uvs)
+                    print((face.vertices[:]))
+                    if len(face.vertices) == 3:
+                        faces.extend([(face.vertices[0],face.vertices[1],face.vertices[2],0)])
+                    else:
+                        faces.extend([(face.vertices[0],face.vertices[1],face.vertices[2],face.vertices[3])])
+                #vertex positions
+                for vertex in mesh.vertices:
+                    verts.append(vertex.co.to_tuple())				
+                #vertices weight groups into array
+                vertGroups = {} #array in strings
+                for vgroup in obj.vertex_groups:
+                    vlist = []
+                    for v in mesh.vertices:
+                        for vg in v.groups:
+                            if vg.group == vgroup.index:
+                                vlist.append((v.index,vg.weight))
+                                #print((v.index,vg.weight))
+                    vertGroups[vgroup.name] = vlist
+                
+                print("creating mesh object...")
+                #me_ob.from_pydata(verts, [], faces)
+                me_ob.vertices.add(len(verts))
+                me_ob.tessfaces.add(len(faces))
+                me_ob.vertices.foreach_set("co", unpack_list(verts)) 
+                me_ob.tessfaces.foreach_set("vertices_raw",unpack_list( faces))
+                me_ob.tessfaces.foreach_set("use_smooth", smoothings)#smooth array from face
+                
+                #check if there is uv faces
+                if len(uvfaces) > 0:
+                    uvtex = me_ob.tessface_uv_textures.new(name="retex")
+                    for i, face in enumerate(me_ob.tessfaces):
+                        blender_tface = uvtex.data[i] #face
+                        mfaceuv = uvfaces[i]
+                        if len(mfaceuv) == 3:
+                            blender_tface.uv1 = mfaceuv[0];
+                            blender_tface.uv2 = mfaceuv[1];
+                            blender_tface.uv3 = mfaceuv[2];
+                        if len(mfaceuv) == 4:
+                            blender_tface.uv1 = mfaceuv[0];
+                            blender_tface.uv2 = mfaceuv[1];
+                            blender_tface.uv3 = mfaceuv[2];
+                            blender_tface.uv4 = mfaceuv[3];
+                
+                me_ob.update()#need to update the information to able to see into the secne
+                obmesh = bpy.data.objects.new(("Re_"+obj.name),me_ob)
+                bpy.context.scene.update()
+                #Build tmp materials
+                materialname = "ReMaterial"
+                for matcount in mesh.materials:
+                    matdata = bpy.data.materials.new(materialname)
+                    me_ob.materials.append(matdata)
+                #assign face to material id
+                for face in mesh.tessfaces:
+                    me_ob.faces[face.index].material_index = face.material_index
+                #vertices weight groups
+                for vgroup in vertGroups:
+                    group = obmesh.vertex_groups.new(vgroup)
+                    for v in vertGroups[vgroup]:
+                        group.add([v[0]], v[1], 'ADD')# group.add(array[vertex id],weight,add)
+                bpy.context.scene.objects.link(obmesh)
+                print("Mesh Material Count:",len(me_ob.materials))
+                matcount = 0
+                print("MATERIAL ID OREDER:")
+                for mat in me_ob.materials:
+                    print("-Material:",mat.name,"INDEX:",matcount)
+                    matcount += 1
+                print("Object Name:",obmesh.name)
+                bpy.context.scene.update()
+                bselected = True
+                break
+        if bselected:
+            self.report({'INFO'}, "Rebuild Mesh Finish!")
+            print("Finish Mesh Build...")
+        else:
+            self.report({'INFO'}, "Didn't Select Mesh Object!")
+            print("Didn't Select Mesh Object!")
+        print("----------------------------------------")
+        return{'FINISHED'}
+		
+class OBJECT_OT_UTRebuildArmature(bpy.types.Operator):
+    bl_idname = "object.utrebuildarmature"  # XXX, name???
+    bl_label = "Rebuild Armature"
+    __doc__ = """If mesh is deform when importing to unreal engine try this. It rebuild the bones one at the time by select one armature object scrape to raw setup build. Note the scale will be 1:1 for object mode. To keep from deforming"""
+    
+    def invoke(self, context, event):
+        print("----------------------------------------")
+        print("Init Rebuild Armature...")
+        bselected = False
+        for obj in bpy.data.objects:
+            if obj.type == 'ARMATURE' and obj.select == True:
+                currentbone = [] #select armature for roll copy
+                print("Armature Name:",obj.name)
+                objectname = "ArmatureDataPSK"
+                meshname ="ArmatureObjectPSK"
+                armdata = bpy.data.armatures.new(objectname)
+                ob_new = bpy.data.objects.new(meshname, armdata)
+                bpy.context.scene.objects.link(ob_new)
+                bpy.ops.object.mode_set(mode='OBJECT')
+                for i in bpy.context.scene.objects: i.select = False #deselect all objects
+                ob_new.select = True
+                bpy.context.scene.objects.active = obj
+                
+                bpy.ops.object.mode_set(mode='EDIT')
+                for bone in obj.data.edit_bones:
+                    if bone.parent != None:
+                        currentbone.append([bone.name,bone.roll])
+                    else:
+                        currentbone.append([bone.name,bone.roll])
+                bpy.ops.object.mode_set(mode='OBJECT')
+                for i in bpy.context.scene.objects: i.select = False #deselect all objects
+                bpy.context.scene.objects.active = ob_new
+                bpy.ops.object.mode_set(mode='EDIT')
+                
+                for bone in obj.data.bones:
+                    bpy.ops.object.mode_set(mode='EDIT')
+                    newbone = ob_new.data.edit_bones.new(bone.name)
+                    newbone.head = bone.head_local
+                    newbone.tail = bone.tail_local
+                    for bonelist in currentbone:
+                        if bone.name == bonelist[0]:
+                            newbone.roll = bonelist[1]
+                            break
+                    if bone.parent != None:
+                        parentbone = ob_new.data.edit_bones[bone.parent.name]
+                        newbone.parent = parentbone
+                print("Bone Count:",len(obj.data.bones))
+                print("Hold Bone Count",len(currentbone))
+                print("New Bone Count",len(ob_new.data.edit_bones))
+                print("Rebuild Armture Finish:",ob_new.name)
+                bpy.context.scene.update()
+                bselected = True
+                break
+        if bselected:
+            self.report({'INFO'}, "Rebuild Armature Finish!")
+        else:
+            self.report({'INFO'}, "Didn't Select Armature Object!")
+        print("End of Rebuild Armature.")
+        print("----------------------------------------")
+        return{'FINISHED'}
+
+
 class Panel_UDKExport( bpy.types.Panel ):
 
 	bl_label		= "UDK Export"
@@ -1917,22 +2157,26 @@ class Panel_UDKExport( bpy.types.Panel ):
 		row = layout.row()
 		row.label(text="Active object: " + object_name)
 
-		layout.separator()
+		#layout.separator()
 
 		layout.prop(context.scene, "udk_option_filename_src")
 		row = layout.row()
 		row.label(text=path)
 
-		layout.separator()
+		#layout.separator()
 
 		layout.prop(context.scene, "udk_option_export")
 		layout.operator("object.udk_export")
 		
-		layout.separator()
+		#layout.separator()
 		
 		layout.operator("object.toggle_console")
+		layout.operator(OBJECT_OT_UTRebuildArmature.bl_idname)
+		layout.operator(OBJECT_OT_MeshClearWeights.bl_idname)
+		layout.operator(OBJECT_OT_UTSelectedFaceSmooth.bl_idname)
+		layout.operator(OBJECT_OT_UTRebuildMesh.bl_idname)
 
-		layout.separator()
+		#layout.separator()
 
 class ExportUDKAnimData(bpy.types.Operator):
     
