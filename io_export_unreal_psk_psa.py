@@ -18,9 +18,9 @@
 
 bl_info = {
     "name": "Export Unreal Engine Format(.psk/.psa)",
-    "author": "Darknet/Optimus_P-Fat/Active_Trash/Sinsoft/VendorX",
-    "version": (2, 4),
-    "blender": (2, 6, 2),
+    "author": "Darknet/Optimus_P-Fat/Active_Trash/Sinsoft/VendorX/Spoof",
+    "version": (2, 5),
+    "blender": (2, 6, 3),
     "api": 36079,
     "location": "File > Export > Skeletal Mesh/Animation Data (.psk/.psa)",
     "description": "Export Skeleletal Mesh/Animation Data",
@@ -981,7 +981,10 @@ def parse_mesh( mesh, psk ):
 	scene = bpy.context.scene
 	for i in scene.objects: i.select = False # deselect all objects
 	scene.objects.active	= mesh
+	setmesh = mesh
 	mesh = triangulate_mesh(mesh)
+	if bpy.types.Scene.udk_copy_merge == True:
+		bpy.context.scene.objects.unlink(setmesh)
 	#print("FACES----:",len(mesh.data.tessfaces))
 	verbose("Working mesh object: {}".format(mesh.name))
 	
@@ -1532,7 +1535,24 @@ def collate_actions():
 	
 	return actions_to_export
 
-
+def sortmesh(selectmesh):
+	print("MESH SORTING...")
+	centermesh = []
+	notcentermesh = []
+	for countm in range(len(selectmesh)):
+		if selectmesh[countm].location.x == 0 and selectmesh[countm].location.y == 0 and selectmesh[countm].location.z == 0:
+			centermesh.append(selectmesh[countm])
+		else:
+			notcentermesh.append(selectmesh[countm])
+	selectmesh = []
+	for countm in range(len(centermesh)):
+		selectmesh.append(centermesh[countm])
+	for countm in range(len(notcentermesh)):
+		selectmesh.append(notcentermesh[countm])
+	if len(selectmesh) == 1:
+		return selectmesh[0]
+	else:
+		return meshmerge(selectmesh)
 #===========================================================================
 # Locate the target armature and mesh for export
 # RETURNS armature, mesh
@@ -1547,7 +1567,7 @@ def find_armature_and_mesh():
 	
 	# TODO:
 	# this could be more intuitive
-
+	bpy.ops.object.mode_set(mode='OBJECT')
 	# try the active object
 	if active_object and active_object.type == 'ARMATURE':
 		armature = active_object
@@ -1567,10 +1587,15 @@ def find_armature_and_mesh():
 	
 	verbose("Found armature: {}".format(armature.name))
 	
-	
+	meshselected = []
+	parented_meshes = [obj for obj in armature.children if obj.type == 'MESH']
+	for obj in armature.children:
+		#print(dir(obj))
+		if obj.type == 'MESH' and obj.select == True:
+			meshselected.append(obj)
 	# try the active object
-	if active_object and active_object.type == 'MESH':
-		
+	if active_object and active_object.type == 'MESH' and len(meshselected) == 0:
+	
 		if active_object.parent == armature:
 			mesh = active_object
 		
@@ -1579,14 +1604,16 @@ def find_armature_and_mesh():
 	
 	# otherwise, expect a single mesh parented to the armature (other object types are ignored)
 	else:
-		parented_meshes = [obj for obj in armature.children if obj.type == 'MESH']
 		print("Number of meshes:",len(parented_meshes))
+		print("Number of meshes (selected):",len(meshselected))
 		if len(parented_meshes) == 1:
 			mesh = parented_meshes[0]
 			
 		elif len(parented_meshes) > 1:
-			raise Error("More than one mesh parented to armature")
-			
+			if len(meshselected) >= 1:
+				mesh = sortmesh(meshselected)
+			else:
+				raise Error("More than one mesh(s) parented to armature. Select object(s)!")
 		else:
 			raise Error("No mesh parented to armature")
 		
@@ -1614,13 +1641,42 @@ def collate_vertex_groups( mesh ):
 	
 	return groups
 
-
+def meshmerge(selectedobjects):
+    bpy.ops.object.mode_set(mode='OBJECT')
+    cloneobjects = []
+    if len(selectedobjects) > 1:
+        print("selectedobjects:",len(selectedobjects))
+        count = 0 #reset count
+        for count in range(len( selectedobjects)):
+            #print("Index:",count)
+            if selectedobjects[count] != None:
+                me_da = selectedobjects[count].data.copy() #copy data
+                me_ob = selectedobjects[count].copy() #copy object
+                #note two copy two types else it will use the current data or mesh
+                me_ob.data = me_da
+                bpy.context.scene.objects.link(me_ob)#link the object to the scene #current object location
+                print("Index:",count,"clone object",me_ob.name)
+                cloneobjects.append(me_ob)
+        #bpy.ops.object.mode_set(mode='OBJECT')
+        for i in bpy.data.objects: i.select = False #deselect all objects
+        count = 0 #reset count
+        #bpy.ops.object.mode_set(mode='OBJECT')
+        for count in range(len( cloneobjects)):
+            if count == 0:
+                bpy.context.scene.objects.active = cloneobjects[count]
+                print("Set Active Object:",cloneobjects[count].name)
+            cloneobjects[count].select = True
+        bpy.ops.object.join()
+        if len(cloneobjects) > 1:
+            bpy.types.Scene.udk_copy_merge = True
+    return cloneobjects[0]
+		
 #===========================================================================
 # Main
 #===========================================================================
 def export(filepath):
 	print(header("Export", 'RIGHT'))
-	
+	bpy.types.Scene.udk_copy_merge = False #in case fail to export set this to default
 	t		= time.clock()
 	context	= bpy.context
 	
@@ -1792,6 +1848,11 @@ bpy.types.Scene.udk_option_clamp_uv = BoolProperty(
 		name		= "Clamp UV",
 		description	= "Clamp UV co-ordinates to [0-1]",
 		default		= False)
+		
+bpy.types.Scene.udk_copy_merge = BoolProperty(
+		name		= "merge mesh",
+		description	= "Deal with unlinking the mesh to be remove while exporting the object.",
+		default		= False)
 
 bpy.types.Scene.udk_option_export = EnumProperty(
 		name		= "Export",
@@ -1931,6 +1992,7 @@ class ExportUDKAnimData(bpy.types.Operator):
 def menu_func(self, context):
     default_path = os.path.splitext(bpy.data.filepath)[0] + ".psk"
     self.layout.operator(ExportUDKAnimData.bl_idname, text="Skeleton Mesh / Animation Data (.psk/.psa)").filepath = default_path
+
 #===========================================================================
 # Entry
 #===========================================================================
