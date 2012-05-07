@@ -1971,6 +1971,7 @@ def save_single(operator, scene, filepath="",
                         mats = me.materials
                     else:
                         me = ob.data
+                        me.update(calc_tessface=True)
                         mats = me.materials
 
 # 						# Support object colors
