@@ -613,7 +613,7 @@ def read_weight_vmad(ew_bytes, object_layers):
     # Some info: LW stores a face's points in a clock-wize order (with the
     # normal pointing at you). This gives edges a 'direction' which is used
     # when it comes to storing CC edge weight values. The weight is given
-    # to the point preceeding the edge that the weight belongs to.
+    # to the point preceding the edge that the weight belongs to.
     while offset < chunk_len:
         pnt_id, pnt_id_len = read_vx(ew_bytes[offset:offset+4])
         offset+= pnt_id_len
