@@ -643,7 +643,7 @@ def VecDot(a, b):
 
 
 def VecLen(a):
-    """Return the Euclidean lenght of the argument vector.
+    """Return the Euclidean length of the argument vector.
 
     Args:
       a: n-tuple of floats

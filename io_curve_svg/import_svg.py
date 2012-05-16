@@ -447,7 +447,7 @@ class SVGPathData:
 
     __slots__ = ('_data',   # List of tokens
                  '_index',  # Index of current token in tokens list
-                 '_len')    # Lenght og tokens list
+                 '_len')    # Length of tokens list
 
     def __init__(self, d):
         """
