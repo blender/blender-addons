@@ -1142,8 +1142,8 @@ def build_objects(object_layers, object_surfs, object_tags, object_name, add_sub
                     face.vertices_raw[0]= ng[tri[0]]
                     face.vertices_raw[1]= ng[tri[1]]
                     face.vertices_raw[2]= ng[tri[2]]
-                    face.material_index= me.faces[ng_key].material_index
-                    face.use_smooth= me.faces[ng_key].use_smooth
+                    face.material_index= me.tessfaces[ng_key].material_index
+                    face.use_smooth= me.tessfaces[ng_key].use_smooth
                     face_offset+= 1
 
         # FaceIDs are no longer a concern, so now update the mesh.
