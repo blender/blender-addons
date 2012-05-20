@@ -780,7 +780,7 @@ def unregister():
                 if kmi.properties.name == 'MESH_MT_CopyFaceSettings':
                     km.keymap_items.remove(kmi)
 
-        km = kc.addon.keymaps['Object Mode']
+        km = kc.keymaps['Object Mode']
         for kmi in km.keymap_items:
             if kmi.idname == 'wm.call_menu':
                 if kmi.properties.name == 'VIEW3D_MT_copypopup':
