@@ -1938,7 +1938,7 @@ def importMesh_Cylinder(geom, ancestry):
     bpy.ops.mesh.primitive_cylinder_add(vertices=GLOBALS['CIRCLE_DETAIL'],
                                         radius=diameter,
                                         depth=height,
-                                        cap_ends=True,
+                                        end_fill_type='NGON',
                                         view_align=False,
                                         enter_editmode=False,
                                         )
