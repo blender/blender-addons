@@ -131,6 +131,12 @@ def demo_mode_auto_select():
 
 
 def demo_mode_next_file(step=1):
+
+    # support for temp 
+    if global_config_files[global_state["demo_index"]].get("is_tmp"):
+        del global_config_files[global_state["demo_index"]]
+        global_state["demo_index"] -= 1
+
     print(global_state["demo_index"])
     global_state["demo_index"] = (global_state["demo_index"] + step) % len(global_config_files)
     print(global_state["demo_index"], "....")
@@ -157,6 +163,22 @@ def demo_mode_load_file():
     print("func:demo_mode_load_file")
     DemoMode.first_run = True
     bpy.ops.wm.demo_mode('EXEC_DEFAULT')
+
+
+def demo_mode_temp_file():
+    """ Initialize a temp config for the duration of the play time.
+        Use this so we can initialize the demo intro screen but not show again.
+    """
+    assert(global_state["demo_index"] == 0)
+
+    temp_config = global_config_fallback.copy()
+    temp_config["anim_time_min"] = 0.0
+    temp_config["anim_time_max"] = 60.0
+    temp_config["anim_cycles"] = 1
+    temp_config["mode"] = 'PLAY'
+    temp_config["is_tmp"] = True
+
+    global_config_files.insert(0, temp_config)
 
 
 def demo_mode_init():
@@ -189,6 +211,8 @@ def demo_mode_init():
         scene.render.use_file_extension = False
         scene.render.use_placeholder = False
         try:
+            # XXX - without this rendering will crash because of a bug in blender!
+            bpy.ops.wm.redraw_timer(type='DRAW_WIN_SWAP', iterations=1)
             if global_config["anim_render"]:
                 bpy.ops.render.render('INVOKE_DEFAULT', animation=True)
             else:
@@ -346,6 +370,8 @@ class DemoMode(bpy.types.Operator):
         # load config if not loaded
         if not global_config_files:
             load_config()
+            demo_mode_temp_file()  # play this once through then never again
+
         if not global_config_files:
             self.report({'INFO'}, "No configuration found with text or file: %s. Run File -> Demo Mode Setup" % DEMO_CFG)
             return {'CANCELLED'}
