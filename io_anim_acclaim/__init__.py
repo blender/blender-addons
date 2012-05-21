@@ -319,7 +319,7 @@ class AsfImporter(bpy.types.Operator):
             subtype='FILE_PATH',
             )
     armature_name = StringProperty(
-            name="Armature Name", maxlen=32,
+            name="Armature Name", maxlen=63,
             default="Skeleton",
             description="Name of the new object",
             )
