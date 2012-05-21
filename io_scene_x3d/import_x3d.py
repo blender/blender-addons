@@ -1980,9 +1980,10 @@ def importMesh_Cone(geom, ancestry):
     # bpymesh = Mesh.Primitives.Cone(GLOBALS['CIRCLE_DETAIL'], diameter, height)
 
     bpy.ops.mesh.primitive_cone_add(vertices=GLOBALS['CIRCLE_DETAIL'],
-                                    radius=diameter,
+                                    radius1=diameter,
+                                    radius2=0,
                                     depth=height,
-                                    cap_end=True,
+                                    end_fill_type='NGON',
                                     view_align=False,
                                     enter_editmode=False,
                                     )
