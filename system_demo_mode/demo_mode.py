@@ -174,7 +174,7 @@ def demo_mode_temp_file():
     temp_config = global_config_fallback.copy()
     temp_config["anim_time_min"] = 0.0
     temp_config["anim_time_max"] = 60.0
-    temp_config["anim_cycles"] = 1
+    temp_config["anim_cycles"] = 0  # ensures we switch when hitting the end
     temp_config["mode"] = 'PLAY'
     temp_config["is_tmp"] = True
 
