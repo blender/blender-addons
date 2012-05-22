@@ -19,7 +19,7 @@
 bl_info = {
     'name': "LoopTools",
     'author': "Bart Crouch",
-    'version': (4, 0, 0),
+    'version': (4, 0, 1),
     'blender': (2, 6, 3),
     'location': "View3D > Toolbar and View3D > Specials (W-key)",
     'warning': "",
@@ -394,12 +394,12 @@ def dict_vert_verts(edge_keys):
 
 # return the edgekey ([v1.index, v2.index]) of a bmesh edge
 def edgekey(edge):
-    return((edge.verts[0].index, edge.verts[1].index))
+    return(tuple(sorted([edge.verts[0].index, edge.verts[1].index])))
 
 
 # returns the edgekeys of a bmesh face
 def face_edgekeys(face):
-    return([(edge.verts[0].index, edge.verts[1].index) for \
+    return([tuple(sorted([edge.verts[0].index, edge.verts[1].index])) for \
         edge in face.edges])
 
 
