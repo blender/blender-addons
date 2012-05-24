@@ -686,7 +686,11 @@ def save_single(operator, scene, filepath="",
 
         #~ poseMatrix = write_object_props(my_bone.blenBone, None, None, my_bone.fbxArm.parRelMatrix())[3]
         poseMatrix = write_object_props(my_bone.blenBone, pose_bone=my_bone.getPoseBone())[3]  # dont apply bone matrices anymore
-        pose_items.append((my_bone.fbxName, poseMatrix))
+
+        # Use the same calculation as in write_sub_deformer_skin to compute the global
+        # transform of the bone for the bind pose.
+        global_matrix_bone = (my_bone.fbxArm.matrixWorld * my_bone.restMatrix) * mtx4_z90
+        pose_items.append((my_bone.fbxName, global_matrix_bone))
 
         # fw('\n\t\t\tProperty: "Size", "double", "",%.6f' % ((my_bone.blenData.head['ARMATURESPACE'] - my_bone.blenData.tail['ARMATURESPACE']) * my_bone.fbxArm.parRelMatrix()).length)
         fw('\n\t\t\tProperty: "Size", "double", "",1')
@@ -1331,19 +1335,19 @@ def save_single(operator, scene, filepath="",
                 fw(',%.8f' % vg[1])
             i += 1
 
-        if my_mesh.fbxParent:
-            # TODO FIXME, this case is broken in some cases. skinned meshes just shouldnt have parents where possible!
-            m = (my_mesh.matrixWorld.inverted() * my_bone.fbxArm.matrixWorld.copy() * my_bone.restMatrix) * mtx4_z90
-        else:
-            # Yes! this is it...  - but dosnt work when the mesh is a.
-            m = (my_mesh.matrixWorld.inverted() * my_bone.fbxArm.matrixWorld.copy() * my_bone.restMatrix) * mtx4_z90
+        # Set TransformLink to the global transform of the bone and Transform
+        # equal to the mesh's transform in bone space.
+        # http://area.autodesk.com/forum/autodesk-fbx/fbx-sdk/why-the-values-return-by-fbxcluster-gettransformmatrix-x-not-same-with-the-value-in-ascii-fbx-file/
 
-        #m = mtx4_z90 * my_bone.restMatrix
-        matstr = mat4x4str(m)
-        matstr_i = mat4x4str(m.inverted())
+        global_bone_matrix = (my_bone.fbxArm.matrixWorld * my_bone.restMatrix) * mtx4_z90
+        global_mesh_matrix = my_mesh.matrixWorld
+        transform_matrix = (global_bone_matrix.inverted() * global_mesh_matrix)
 
-        fw('\n\t\tTransform: %s' % matstr_i)  # THIS IS __NOT__ THE GLOBAL MATRIX AS DOCUMENTED :/
-        fw('\n\t\tTransformLink: %s' % matstr)
+        global_bone_matrix_string = mat4x4str(global_bone_matrix )
+        transform_matrix_string = mat4x4str(transform_matrix )
+
+        fw('\n\t\tTransform: %s' % transform_matrix_string)
+        fw('\n\t\tTransformLink: %s' % global_bone_matrix_string)
         fw('\n\t}')
 
     def write_mesh(my_mesh):
@@ -1367,7 +1371,11 @@ def save_single(operator, scene, filepath="",
         me_faces = me.tessfaces[:]
 
         poseMatrix = write_object_props(my_mesh.blenObject, None, my_mesh.parRelMatrix())[3]
-        pose_items.append((my_mesh.fbxName, poseMatrix))
+
+        # Calculate the global transform for the mesh in the bind pose the same way we do
+        # in write_sub_deformer_skin
+        globalMeshBindPose = my_mesh.matrixWorld * mtx4_z90
+        pose_items.append((my_mesh.fbxName, globalMeshBindPose))
 
         if do_shapekeys:
             for kb in my_mesh.blenObject.data.shape_keys.key_blocks[1:]:
