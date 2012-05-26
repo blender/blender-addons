@@ -295,7 +295,7 @@ class OBJECT_OT_create_lightfield_rig(bpy.types.Operator):
             else:
                 self.createLightfieldEmitter(textured=False)
 
-        return 'FINISHED'
+        return {'FINISHED'}
    
 
 
@@ -389,7 +389,7 @@ class OBJECT_OT_create_lightfield_basemesh(bpy.types.Operator):
         mesh.from_pydata(verts, [], [])
         self.addMeshObj(mesh)
 
-        return 'FINISHED'
+        return {'FINISHED'}
         
 
 
