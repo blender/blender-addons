@@ -94,12 +94,12 @@ class RenderCopySettingsPrepare(bpy.types.Operator):
                 try:
                     regex = re.compile(cp_sett.filter_scene)
                 except Exception as e:
-                    self.report('ERROR_INVALID_INPUT', "The filter-scene "
+                    self.report({'ERROR_INVALID_INPUT'}, "The filter-scene "
                                 "regex did not compile:\n    (%s)." % str(e))
                     return {'CANCELLED'}
             except:
                 regex = None
-                self.report('WARNING', "Unable to import the re module. "
+                self.report({'WARNING'}, "Unable to import the re module. "
                             "Regex scene filtering will be disabled!")
         scenes = set()
         for scene in bpy.data.scenes:
@@ -137,7 +137,7 @@ class RenderCopySettingsPreset(bpy.types.Operator):
 
     presets = EnumProperty(items=(p.rna_enum for p in presets.presets),
                            default=set(),
-                           options={"ENUM_FLAG"})
+                           options={'ENUM_FLAG'})
 
     @staticmethod
     def process_elements(settings, elts):

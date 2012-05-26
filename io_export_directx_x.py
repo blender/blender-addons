@@ -1269,7 +1269,7 @@ class DirectXExporter(bpy.types.Operator):
                                          Verbose=self.Verbose)
 
         ExportDirectX(Config)
-        return {"FINISHED"}
+        return {'FINISHED'}
 
     def invoke(self, context, event):
         if not self.filepath:

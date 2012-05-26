@@ -755,7 +755,7 @@ class GPENCIL_OT_SURFSK_add_surface(bpy.types.Operator):
         bpy.ops.object.editmode_toggle('INVOKE_REGION_WIN')
         
         
-        return {"FINISHED"}
+        return {'FINISHED'}
         
     def invoke (self, context, event):
         bpy.ops.object.editmode_toggle('INVOKE_REGION_WIN')
@@ -764,7 +764,7 @@ class GPENCIL_OT_SURFSK_add_surface(bpy.types.Operator):
         
         self.execute(context)
         
-        return {"FINISHED"}
+        return {'FINISHED'}
 
 
 
@@ -822,7 +822,7 @@ class GPENCIL_OT_SURFSK_strokes_to_curves(bpy.types.Operator):
         
         self.execute(context)
         
-        return {"FINISHED"}
+        return {'FINISHED'}
 
 
 def register():

@@ -328,7 +328,7 @@ class PALETTE_OT_add_color(bpy.types.Operator):
         pp.current_color_index = new_index
         sample()
         update_panels()
-        return {"FINISHED"}
+        return {'FINISHED'}
 
 
 class PALETTE_OT_remove_color(bpy.types.Operator):
@@ -349,7 +349,7 @@ class PALETTE_OT_remove_color(bpy.types.Operator):
 
         if pp.current_color_index >= pp.colors.__len__():
             pp.index = pp.current_color_index = pp.colors.__len__() - 1
-        return {"FINISHED"}
+        return {'FINISHED'}
 
 
 class PALETTE_OT_sample_tool_color(bpy.types.Operator):
@@ -361,7 +361,7 @@ class PALETTE_OT_sample_tool_color(bpy.types.Operator):
         pp = bpy.context.scene.palette_props
         brush = current_brush()
         pp.colors[pp.current_color_index].color = brush.color
-        return {"FINISHED"}
+        return {'FINISHED'}
 
 
 class IMAGE_OT_select_color(bpy.types.Operator):
@@ -377,7 +377,7 @@ class IMAGE_OT_select_color(bpy.types.Operator):
         palette_props.current_color_index = self.color_index
 
         update_panels()
-        return {"FINISHED"}
+        return {'FINISHED'}
 
 
 def color_palette_draw(self, context):
@@ -543,7 +543,7 @@ class VIEW3D_OT_select_weight(bpy.types.Operator):
             weight = palette_props.weight_10
         palette_props.weight = weight
         #bpy.context.tool_settings.vertex_group_weight = weight
-        return {"FINISHED"}
+        return {'FINISHED'}
 
 
 class VIEW3D_OT_reset_weight_palette(bpy.types.Operator):
@@ -597,7 +597,7 @@ class VIEW3D_OT_reset_weight_palette(bpy.types.Operator):
         if palette_props.current_weight_index == 10:
             palette_props.weight = 1.0
         palette_props.weight_10 = 1.0
-        return {"FINISHED"}
+        return {'FINISHED'}
 
 class VIEW3D_PT_weight_palette(PaintPanel, bpy.types.Panel):
     bl_label = "Weight Palette"

@@ -61,7 +61,7 @@ class RenderCopySettingsScene(bpy.types.PropertyGroup):
     # A string of identifiers (colon delimited) which property’s controls
     # should be displayed in a template_list.
     template_list_controls = StringProperty(default="allowed",
-                                            options={"HIDDEN"})
+                                            options={'HIDDEN'})
 
 
 class RenderCopySettingsSetting(bpy.types.PropertyGroup):
@@ -71,7 +71,7 @@ class RenderCopySettingsSetting(bpy.types.PropertyGroup):
     # A string of identifiers (colon delimited) which property’s controls
     # should be displayed in a template_list.
     template_list_controls = StringProperty(default="copy",
-                                            options={"HIDDEN"})
+                                            options={'HIDDEN'})
 
 
 class RenderCopySettings(bpy.types.PropertyGroup):

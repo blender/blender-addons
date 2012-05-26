@@ -454,7 +454,7 @@ class OBJECT_OT_RetargetButton(bpy.types.Operator):
             enduser_obj.data.advancedRetarget = True
         else:
             retarget.totalRetarget(performer_obj, enduser_obj, scene, s_frame, e_frame)
-        return {"FINISHED"}
+        return {'FINISHED'}
 
     @classmethod
     def poll(cls, context):
@@ -477,7 +477,7 @@ class OBJECT_OT_SaveMappingButton(bpy.types.Operator):
         enduser_obj = bpy.context.active_object
         performer_obj = [obj for obj in bpy.context.selected_objects if obj != enduser_obj][0]
         retarget.createDictionary(performer_obj.data, enduser_obj.data)
-        return {"FINISHED"}
+        return {'FINISHED'}
 
     @classmethod
     def poll(cls, context):
@@ -500,7 +500,7 @@ class OBJECT_OT_LoadMappingButton(bpy.types.Operator):
         enduser_obj = bpy.context.active_object
         performer_obj = [obj for obj in bpy.context.selected_objects if obj != enduser_obj][0]
         retarget.loadMapping(performer_obj.data, enduser_obj.data)
-        return {"FINISHED"}
+        return {'FINISHED'}
 
     @classmethod
     def poll(cls, context):
@@ -532,7 +532,7 @@ class OBJECT_OT_SelectMapBoneButton(bpy.types.Operator):
                         selectedBone = bone.name
                         break
         performer_obj.data.bones[self.perf_bone].map = selectedBone
-        return {"FINISHED"}
+        return {'FINISHED'}
 
     @classmethod
     def poll(cls, context):
@@ -553,7 +553,7 @@ class OBJECT_OT_ConvertSamplesButton(bpy.types.Operator):
 
     def execute(self, context):
         mocap_tools.fcurves_simplify(context, context.active_object)
-        return {"FINISHED"}
+        return {'FINISHED'}
 
     @classmethod
     def poll(cls, context):
@@ -568,7 +568,7 @@ class OBJECT_OT_LooperButton(bpy.types.Operator):
 
     def execute(self, context):
         mocap_tools.autoloop_anim()
-        return {"FINISHED"}
+        return {'FINISHED'}
 
     @classmethod
     def poll(cls, context):
@@ -583,7 +583,7 @@ class OBJECT_OT_DenoiseButton(bpy.types.Operator):
 
     def execute(self, context):
         mocap_tools.denoise_median()
-        return {"FINISHED"}
+        return {'FINISHED'}
 
     @classmethod
     def poll(cls, context):
@@ -599,7 +599,7 @@ class OBJECT_OT_LimitDOFButton(bpy.types.Operator):
     def execute(self, context):
         performer_obj = [obj for obj in context.selected_objects if obj != context.active_object][0]
         mocap_tools.limit_dof(context, performer_obj, context.active_object)
-        return {"FINISHED"}
+        return {'FINISHED'}
 
     @classmethod
     def poll(cls, context):
@@ -620,7 +620,7 @@ class OBJECT_OT_RemoveLimitDOFButton(bpy.types.Operator):
 
     def execute(self, context):
         mocap_tools.limit_dof_toggle_off(context, context.active_object)
-        return {"FINISHED"}
+        return {'FINISHED'}
 
     @classmethod
     def poll(cls, context):
@@ -638,7 +638,7 @@ class OBJECT_OT_RotateFixArmature(bpy.types.Operator):
 
     def execute(self, context):
         mocap_tools.rotate_fix_armature(context.active_object.data)
-        return {"FINISHED"}
+        return {'FINISHED'}
 
     @classmethod
     def poll(cls, context):
@@ -656,7 +656,7 @@ class OBJECT_OT_ScaleFixArmature(bpy.types.Operator):
         enduser_obj = bpy.context.active_object
         performer_obj = [obj for obj in bpy.context.selected_objects if obj != enduser_obj][0]
         mocap_tools.scale_fix_armature(performer_obj, enduser_obj)
-        return {"FINISHED"}
+        return {'FINISHED'}
 
     @classmethod
     def poll(cls, context):
@@ -686,7 +686,7 @@ class MOCAP_OT_AddMocapFix(bpy.types.Operator):
         enduser_arm = enduser_obj.data
         new_mcon = enduser_arm.mocap_constraints.add()
         new_mcon.type = self.type
-        return {"FINISHED"}
+        return {'FINISHED'}
 
     @classmethod
     def poll(cls, context):
@@ -711,7 +711,7 @@ class OBJECT_OT_RemoveMocapConstraint(bpy.types.Operator):
             cons_obj = mocap_constraints.getConsObj(bone)
             mocap_constraints.removeConstraint(m_constraint, cons_obj)
         m_constraints.remove(self.constraint)
-        return {"FINISHED"}
+        return {'FINISHED'}
 
     @classmethod
     def poll(cls, context):
@@ -727,7 +727,7 @@ class OBJECT_OT_BakeMocapConstraints(bpy.types.Operator):
 
     def execute(self, context):
         mocap_constraints.bakeConstraints(context)
-        return {"FINISHED"}
+        return {'FINISHED'}
 
     @classmethod
     def poll(cls, context):
@@ -743,7 +743,7 @@ class OBJECT_OT_UnbakeMocapConstraints(bpy.types.Operator):
 
     def execute(self, context):
         mocap_constraints.unbakeConstraints(context)
-        return {"FINISHED"}
+        return {'FINISHED'}
 
     @classmethod
     def poll(cls, context):
@@ -760,7 +760,7 @@ class OBJECT_OT_UpdateMocapConstraints(bpy.types.Operator):
 
     def execute(self, context):
         mocap_constraints.updateConstraints(context.active_object, context)
-        return {"FINISHED"}
+        return {'FINISHED'}
 
     @classmethod
     def poll(cls, context):
@@ -778,7 +778,7 @@ class OBJECT_OT_GuessHierachyMapping(bpy.types.Operator):
         enduser_obj = bpy.context.active_object
         performer_obj = [obj for obj in bpy.context.selected_objects if obj != enduser_obj][0]
         mocap_tools.guessMapping(performer_obj, enduser_obj)
-        return {"FINISHED"}
+        return {'FINISHED'}
 
     @classmethod
     def poll(cls, context):
@@ -800,7 +800,7 @@ class OBJECT_OT_PathEditing(bpy.types.Operator):
     def execute(self, context):
         path = [obj for obj in context.selected_objects if obj != context.active_object][0]
         mocap_tools.path_editing(context, context.active_object, path)
-        return {"FINISHED"}
+        return {'FINISHED'}
 
     @classmethod
     def poll(cls, context):
@@ -819,7 +819,7 @@ class OBJECT_OT_AnimationStitchingButton(bpy.types.Operator):
 
     def execute(self, context):
         mocap_tools.anim_stitch(context, context.active_object)
-        return {"FINISHED"}
+        return {'FINISHED'}
 
     @classmethod
     def poll(cls, context):
@@ -840,7 +840,7 @@ class OBJECT_OT_GuessAnimationStitchingButton(bpy.types.Operator):
 
     def execute(self, context):
         mocap_tools.guess_anim_stitch(context, context.active_object)
-        return {"FINISHED"}
+        return {'FINISHED'}
 
     @classmethod
     def poll(cls, context):
