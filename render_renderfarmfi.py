@@ -759,7 +759,7 @@ def ore_upload(op, context):
     ore = sce.ore_render
     
     if not bpy.ready:
-        op.report(set(['ERROR']), 'Your user or scene information is not complete')
+        op.report({'ERROR'}, 'Your user or scene information is not complete')
         bpy.infoError = True
         bpy.errorStartTime = time.time()
         bpy.context.scene.render.engine = 'RENDERFARMFI_RENDER'
@@ -812,15 +812,15 @@ def ore_upload(op, context):
         print("Submitting session")
         res = proxy.session.submit(userid, res['key'], sessionid)
         print("Session submitted")
-        op.report(set(['INFO']), 'Submission sent to Renderfarm.fi')
+        op.report({'INFO'}, 'Submission sent to Renderfarm.fi')
     except xmlrpc.client.Error as v:
         bpy.context.scene.render.engine = 'RENDERFARMFI_RENDER'
         print('ERROR:', v)
-        op.report(set(['ERROR']), 'An XMLRPC error occurred while sending submission to Renderfarm.fi')
+        op.report({'ERROR'}, 'An XMLRPC error occurred while sending submission to Renderfarm.fi')
     except Exception as e:
         bpy.context.scene.render.engine = 'RENDERFARMFI_RENDER'
         print('Unhandled error:', e)
-        op.report(set(['ERROR']), 'A generic error occurred while sending submission to Renderfarm.fi')
+        op.report({'ERROR'}, 'A generic error occurred while sending submission to Renderfarm.fi')
     
     bpy.context.scene.render.engine = 'RENDERFARMFI_RENDER'
     doRefresh(op)
@@ -999,9 +999,9 @@ class ORE_CancelSession(bpy.types.Operator):
                 userid = res['userId']
                 res = proxy.session.cancelSession(userid, key, s.id)
                 doRefresh(self)
-                self.report(set(['INFO']), 'Session ' + s.title + ' with id ' + str(s.id) + ' cancelled')
+                self.report({'INFO'}, 'Session ' + s.title + ' with id ' + str(s.id) + ' cancelled')
             except xmlrpc.client.Error as v:
-                self.report(set(['ERROR']), 'Could not cancel session ' + s.title + ' with id ' + str(s.id))
+                self.report({'ERROR'}, 'Could not cancel session ' + s.title + ' with id ' + str(s.id))
                 print(v)
                 bpy.cancelError = True
                 bpy.errorStartTime = time.time()
@@ -1067,21 +1067,21 @@ class ORE_CheckUpdate(bpy.types.Operator):
     def execute(self, context):
         blenderproxy = xmlrpc.client.ServerProxy(r'http://xmlrpc.renderfarm.fi/renderfarmfi/blender', verbose=DEV)
         try:
-            self.report(set(['INFO']), 'Checking for newer version on Renderfarm.fi')
+            self.report({'INFO'}, 'Checking for newer version on Renderfarm.fi')
             dl_url = blenderproxy.blender.getCurrentVersion(bpy.CURRENT_VERSION)
             if len(dl_url['url']) > 0:
-                self.report(set(['INFO']), 'Found a newer version on Renderfarm.fi ' + dl_url['url'])
+                self.report({'INFO'}, 'Found a newer version on Renderfarm.fi ' + dl_url['url'])
                 bpy.download_location = dl_url['url']
                 bpy.found_newer_version = True
             else:
                 bpy.up_to_date = True
-            self.report(set(['INFO']), 'Done checking for newer version on Renderfarm.fi')
+            self.report({'INFO'}, 'Done checking for newer version on Renderfarm.fi')
         except xmlrpc.client.Fault as f:
             print('ERROR:', f)
-            self.report(set(['ERROR']), 'An error occurred while checking for newer version on Renderfarm.fi: ' + f.faultString)
+            self.report({'ERROR'}, 'An error occurred while checking for newer version on Renderfarm.fi: ' + f.faultString)
         except xmlrpc.client.ProtocolError as e:
             print('ERROR:', e)
-            self.report(set(['ERROR']), 'An HTTP error occurred while checking for newer version on Renderfarm.fi: ' + str(e.errcode) + ' ' + e.errmsg)
+            self.report({'ERROR'}, 'An HTTP error occurred while checking for newer version on Renderfarm.fi: ' + str(e.errcode) + ' ' + e.errmsg)
         
         return {'FINISHED'}
 

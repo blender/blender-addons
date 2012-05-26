@@ -226,7 +226,7 @@ def rigify_report_exception(operator, exception):
 
     message.reverse()  # XXX - stupid! menu's are upside down!
 
-    operator.report(set(['INFO']), '\n'.join(message))
+    operator.report({'INFO'}, '\n'.join(message))
 
 
 class Generate(bpy.types.Operator):
