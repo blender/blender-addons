@@ -428,8 +428,7 @@ def menu_func(self, context):
     # print("func:menu_func - DemoMode.enabled:", DemoMode.enabled, "bpy.app.driver_namespace:", DemoKeepAlive.secret_attr not in bpy.app.driver_namespace, 'global_state["timer"]:', global_state["timer"])
     layout = self.layout
     layout.operator_context = 'EXEC_DEFAULT'
-    box = layout.row()  # BOX messes layout
-    row = box.row(align=True)
+    row = layout.row(align=True)
     row.label("Demo Mode:")
     if not DemoMode.enabled:
         row.operator("wm.demo_mode", icon='PLAY', text="")
