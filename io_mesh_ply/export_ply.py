@@ -65,6 +65,9 @@ def save(operator,
 
     # mesh.transform(obj.matrix_world) # XXX
 
+    # Be sure tessface & co are available!
+    mesh.calc_tessface()
+
     has_uv = (len(mesh.tessface_uv_textures) > 0)
     has_uv_vertex = (len(mesh.sticky) > 0)
     has_vcol = len(mesh.tessface_vertex_colors) > 0
