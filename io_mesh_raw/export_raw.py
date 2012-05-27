@@ -75,6 +75,8 @@ def write(filepath,
             is_tmp_mesh = True
         else:
             me = obj.data
+            if not me.tessfaces and me.polygons:
+                me.calc_tessface()
             is_tmp_mesh = False
 
         if me is not None:

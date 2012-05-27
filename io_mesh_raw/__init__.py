@@ -43,6 +43,7 @@ else:
     import bpy
 
 from bpy.props import StringProperty, BoolProperty
+from bpy_extras.io_utils import ExportHelper
 
 
 class RawImporter(bpy.types.Operator):
@@ -67,20 +68,14 @@ class RawImporter(bpy.types.Operator):
         return {'RUNNING_MODAL'}
 
 
-class RawExporter(bpy.types.Operator):
+class RawExporter(bpy.types.Operator, ExportHelper):
     '''Save Raw triangle mesh data'''
     bl_idname = "export_mesh.raw"
     bl_label = "Export RAW"
 
-    filepath = StringProperty(
-            subtype='FILE_PATH',
-            )
-    check_existing = BoolProperty(
-            name="Check Existing",
-            description="Check and warn on overwriting existing files",
-            default=True,
-            options={'HIDDEN'},
-            )
+    filename_ext = ".raw"
+    filter_glob = StringProperty(default="*.raw", options={'HIDDEN'})
+
     apply_modifiers = BoolProperty(
             name="Apply Modifiers",
             description="Use transformed mesh data from each object",
@@ -100,13 +95,6 @@ class RawExporter(bpy.types.Operator):
                          )
 
         return {'FINISHED'}
-
-    def invoke(self, context, event):
-        if not self.filepath:
-            self.filepath = bpy.path.ensure_ext(bpy.data.filepath, ".raw")
-        wm = context.window_manager
-        wm.fileselect_add(self)
-        return {'RUNNING_MODAL'}
 
 
 def menu_import(self, context):
