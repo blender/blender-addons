@@ -19,10 +19,10 @@
 bl_info = {
     'name': 'AnimAll',
     'author': 'Daniel Salazar <zanqdo@gmail.com>',
-    'version': (0, 4),
-    "blender": (2, 5, 7),
-    'location': 'Select a Mesh: Tool Shelf > AnimAll panel',
-    'description': 'Allows animation of mesh and lattice data (Shape Keys, VCols, VGroups, UVs)',
+    'version': (0, 5),
+    "blender": (2, 6, 3),
+    'location': 'Select a Mesh/Lattice/Curve: Tool Shelf > AnimAll panel',
+    'description': 'Allows animation of mesh, lattice and curve data (Shape Keys, VCols, VGroups, UVs, Points, Radius, Tilt)',
     'warning': '',
     'wiki_url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/Scripts/Animation/AnimAll',
     'tracker_url': 'http://projects.blender.org/tracker/index.php?'\
@@ -39,6 +39,7 @@ Rev 0.3 added support for animating Lattice points
 Rev 0.4 added support for ShapeKey layer animation, removed support
 for direct point animation since this new aproach is much stronger
 and inline with the animation system
+Rev 0.5 merged curve animation features from rotobezier and ported to new bmesh API
 -------------------------------------------------------------------------'''
 
 import bpy
@@ -68,6 +69,20 @@ bpy.types.WindowManager.key_vgroups = BoolProperty(
     description="Insert keyframes on active Vertex Group values",
     default=False)
 
+bpy.types.WindowManager.key_points = BoolProperty(
+    name="Points",
+    description="Insert keyframes on point locations",
+    default=True)
+
+bpy.types.WindowManager.key_radius = BoolProperty(
+    name="Radius",
+    description="Insert keyframes on point radius (Shrink/Fatten)",
+    default=False)
+
+bpy.types.WindowManager.key_tilt = BoolProperty(
+    name="Tilt",
+    description="Insert keyframes on point tilt",
+    default=False)
 
 #
 # GUI (Panel)
@@ -83,7 +98,8 @@ class VIEW3D_PT_animall(bpy.types.Panel):
     def poll(self, context):
         if context.active_object:
             return context.active_object.type  == 'MESH'\
-				or context.active_object.type  == 'LATTICE'
+				or context.active_object.type  == 'LATTICE'\
+                or context.active_object.type  == 'CURVE'
     
     # draw the gui
     def draw(self, context):
@@ -91,17 +107,24 @@ class VIEW3D_PT_animall(bpy.types.Panel):
         Obj = context.active_object
         
         layout = self.layout
-        
         col = layout.column(align=True)
-        
-        #col.label(text="Keyframing:")
         row = col.row()
-        row.prop(context.window_manager, "key_shape")
-        if context.active_object.type == 'MESH':
+        
+        if Obj.type == 'LATTICE':
+            row.prop(context.window_manager, "key_shape")
+            
+        elif Obj.type == 'MESH':
+            row.prop(context.window_manager, "key_shape")
             row.prop(context.window_manager, "key_uvs")
             row = col.row()
             row.prop(context.window_manager, "key_vcols")
             row.prop(context.window_manager, "key_vgroups")
+            
+        elif Obj.type == 'CURVE':
+            row.prop(context.window_manager, "key_points")
+            row.prop(context.window_manager, "key_radius")
+            row = col.row()
+            row.prop(context.window_manager, "key_tilt")
         
         row = col.row()
         row.operator('anim.insert_keyframe_animall', icon='KEY_HLT')
@@ -109,7 +132,7 @@ class VIEW3D_PT_animall(bpy.types.Panel):
         row = layout.row()
         row.operator('anim.clear_animation_animall', icon='X')
         
-        if context.window_manager.key_shape:
+        if Obj.type != 'CURVE' and context.window_manager.key_shape:
             
             ShapeKey = Obj.active_shape_key
             
@@ -162,19 +185,14 @@ class ANIM_OT_insert_keyframe_animall(bpy.types.Operator):
                         Group.keyframe_insert('weight')
                     
             if context.window_manager.key_uvs:
-                for UVLayer in Data.uv_textures:
-                    if UVLayer.active: # only insert in active UV layer
-                        for Data in UVLayer.data:
-                            Data.keyframe_insert('uv')
+                for UV in Data.uv_layers.active.data:
+                    UV.keyframe_insert('uv')
 
             if context.window_manager.key_vcols:
                 for VColLayer in Data.vertex_colors:
                     if VColLayer.active: # only insert in active VCol layer
                         for Data in VColLayer.data:
-                            Data.keyframe_insert('color1')
-                            Data.keyframe_insert('color2')
-                            Data.keyframe_insert('color3')
-                            Data.keyframe_insert('color4')
+                            Data.keyframe_insert('color')
             
             if Mode:
                 bpy.ops.object.editmode_toggle()
@@ -184,6 +202,38 @@ class ANIM_OT_insert_keyframe_animall(bpy.types.Operator):
                 if Obj.active_shape_key:
                     for Point in Obj.active_shape_key.data:
                         Point.keyframe_insert('co')
+        
+        if Obj.type == 'CURVE':
+            Mode = False
+            if context.mode != 'OBJECT':
+                Mode = not Mode
+                bpy.ops.object.editmode_toggle()
+            
+            Data = Obj.data
+            
+            for Spline in Data.splines:
+                if Spline.type == 'BEZIER':
+                    for CV in Spline.bezier_points:
+                        if context.window_manager.key_points:
+                            CV.keyframe_insert('co')
+                            CV.keyframe_insert('handle_left')
+                            CV.keyframe_insert('handle_right')
+                        if context.window_manager.key_radius:
+                            CV.keyframe_insert('radius')
+                        if context.window_manager.key_tilt:
+                            CV.keyframe_insert('tilt')
+                        
+                elif Spline.type == 'NURBS':
+                    for CV in Spline.points:
+                        if context.window_manager.key_points:
+                            CV.keyframe_insert('co')
+                        if context.window_manager.key_radius:
+                            CV.keyframe_insert('radius')
+                        if context.window_manager.key_tilt:
+                            CV.keyframe_insert('tilt')
+                
+            if Mode:
+                bpy.ops.object.editmode_toggle()
 
 
         return {'FINISHED'}
@@ -225,21 +275,16 @@ class ANIM_OT_delete_keyframe_animall(bpy.types.Operator):
                 for Vert in Data.vertices:
                     for Group in Vert.groups:
                         Group.keyframe_delete('weight')
-                    
+            
             if context.window_manager.key_uvs:
-                for UVLayer in Data.uv_textures:
-                    if UVLayer.active: # only delete in active UV layer
-                        for Data in UVLayer.data:
-                            Data.keyframe_delete('uv')
-
+                for UV in Data.uv_layers.active.data:
+                    UV.keyframe_delete('uv')
+            
             if context.window_manager.key_vcols:
                 for VColLayer in Data.vertex_colors:
                     if VColLayer.active: # only delete in active VCol layer
                         for Data in VColLayer.data:
-                            Data.keyframe_delete('color1')
-                            Data.keyframe_delete('color2')
-                            Data.keyframe_delete('color3')
-                            Data.keyframe_delete('color4')
+                            Data.keyframe_delete('color')
             
             
             if Mode:
@@ -250,6 +295,39 @@ class ANIM_OT_delete_keyframe_animall(bpy.types.Operator):
                 if Obj.active_shape_key:
                     for Point in Obj.active_shape_key.data:
                         Point.keyframe_delete('co')
+        
+        if Obj.type == 'CURVE':
+            Mode = False
+            if context.mode != 'OBJECT':
+                Mode = not Mode
+                bpy.ops.object.editmode_toggle()
+            
+            Data = Obj.data
+            
+            for Spline in Data.splines:
+                if Spline.type == 'BEZIER':
+                    for CV in Spline.bezier_points:
+                        if context.window_manager.key_points:
+                            CV.keyframe_delete('co')
+                            CV.keyframe_delete('handle_left')
+                            CV.keyframe_delete('handle_right')
+                        if context.window_manager.key_radius:
+                            CV.keyframe_delete('radius')
+                        if context.window_manager.key_tilt:
+                            CV.keyframe_delete('tilt')
+                        
+                elif Spline.type == 'NURBS':
+                    for CV in Spline.points:
+                        if context.window_manager.key_points:
+                            CV.keyframe_delete('co')
+                        if context.window_manager.key_radius:
+                            CV.keyframe_delete('radius')
+                        if context.window_manager.key_tilt:
+                            CV.keyframe_delete('tilt')
+                
+            if Mode:
+                bpy.ops.object.editmode_toggle()
+
 
         return {'FINISHED'}
 
