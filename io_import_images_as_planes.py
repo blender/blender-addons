@@ -19,7 +19,7 @@
 bl_info = {
     "name": "Import Images as Planes",
     "author": "Florian Meyer (tstscr)",
-    "version": (1, 1),
+    "version": (1, 5),
     "blender": (2, 6, 3),
     "location": "File > Import > Images as Planes",
     "description": "Imports images and creates planes with the appropriate "
@@ -70,10 +70,9 @@ EXTENSIONS = [ext for ext_ls in EXT_LIST.values() for ext in ext_ls]
 
 
 # -----------------------------------------------------------------------------
-# Functions
+# misc
 def set_image_options(self, image):
     image.use_premultiply = self.use_premultiply
-
     if self.relative:
         image.filepath = bpy.path.relpath(image.filepath)
 
@@ -88,8 +87,48 @@ def is_image_fn_single(fn, ext_key):
     return ext in EXT_LIST[ext_key]
 
 
-def create_image_textures(self, image):
+def align_planes(self, planes):
+    gap = self.align_offset
+    offset = 0
+    for i, plane in enumerate(planes):
+        offset += (plane.dimensions.x / 2.0) + gap
+        if i == 0:
+            continue
+        move_local = mathutils.Vector((offset, 0.0, 0.0))
+        move_world = plane.location + move_local * plane.matrix_world.inverted()
+        plane.location += move_world
+        offset += (plane.dimensions.x / 2.0)
 
+
+def generate_paths(self):
+    directory, fn = os.path.split(self.filepath)
+
+    if fn and not self.all_in_directory:
+        # test for extension
+        if not is_image_fn_any(fn):
+            return [], directory
+
+        return [self.filepath], directory
+
+    if not fn or self.all_in_directory:
+        imagepaths = []
+        files_in_directory = os.listdir(directory)
+        # clean files from nonimages
+        files_in_directory = [fn for fn in files_in_directory
+                              if is_image_fn_any(fn)]
+        # clean from unwanted extensions
+        if self.extension != "*":
+            files_in_directory = [fn for fn in files_in_directory
+                                  if is_image_fn_single(fn, self.extension)]
+        # create paths
+        for fn in files_in_directory:
+            imagepaths.append(os.path.join(directory, fn))
+        #print(imagepaths)
+        return imagepaths, directory
+
+# -----------------------------------------------------------------------------
+# Blender
+def create_image_textures(self, image):
     fn_full = os.path.normpath(bpy.path.abspath(image.filepath))
 
     # look for texture with importsettings
@@ -152,7 +191,14 @@ def create_material_for_texture(self, texture):
 
 
 def create_image_plane(self, context, material):
-    img = material.texture_slots[0].texture.image
+    engine = context.scene.render.engine
+    if engine == 'BLENDER_RENDER':
+        img = material.texture_slots[0].texture.image
+    if engine == 'CYCLES':
+        nodes = material.node_tree.nodes
+        img_node = [node for node in nodes if node.type == 'TEX_IMAGE'][0]
+        img = img_node.image
+        
     px, py = img.size
 
     # can't load data
@@ -187,51 +233,123 @@ def create_image_plane(self, context, material):
     return plane
 
 
-def generate_paths(self):
-    directory, fn = os.path.split(self.filepath)
+# -----------------------------------------------------------------------------
+# Cycles
+def get_input_links(node, nodes, links):
+    input_links = []
+    for link in links:
+        if link.to_node == node:
+            input_links.append(link)
+    
+    sorted_links = []
+    while input_links:
+        for input in node.inputs:
+            for link in input_links:
+                if link.to_socket == input:
+                    sorted_links.append(link)
+                    input_links.remove(link)
+    return sorted_links
 
-    if fn and not self.all_in_directory:
-        # test for extension
-        if not is_image_fn_any(fn):
-            return [], directory
+def get_input_nodes(node, nodes, links):
+    input_nodes = []
+    input_links = get_input_links(node, nodes, links)
+    for link in input_links:
+        input_nodes.append(link.from_node)
+    return input_nodes
 
-        return [self.filepath], directory
+def auto_align_nodes(node_tree):
+    print('\nAligning Nodes')
+    x_gap = 200
+    y_gap = 100
+    nodes = node_tree.nodes
+    links = node_tree.links
+    to_node = [node for node in nodes if node.type == 'OUTPUT_MATERIAL'][0]
 
-    if not fn or self.all_in_directory:
-        imagepaths = []
-        files_in_directory = os.listdir(directory)
-        # clean files from nonimages
-        files_in_directory = [fn for fn in files_in_directory
-                              if is_image_fn_any(fn)]
-        # clean from unwanted extensions
-        if self.extension != "*":
-            files_in_directory = [fn for fn in files_in_directory
-                                  if is_image_fn_single(fn, self.extension)]
-        # create paths
-        for fn in files_in_directory:
-            imagepaths.append(os.path.join(directory, fn))
+    def align(to_node, nodes, links):
+        from_nodes = get_input_nodes(to_node, nodes, links)
+                
+        for i, node in enumerate(from_nodes):
+            node.location.x = to_node.location.x - x_gap
+            node.location.y = to_node.location.y
+            node.location.y -= i * y_gap
+            node.location.y += (len(from_nodes)-1) * y_gap / (len(from_nodes))
+            align(node, nodes, links)
+    
+    align(to_node, nodes, links)
 
-        #print(imagepaths)
-        return imagepaths, directory
+def clean_node_tree(node_tree):
+    nodes = node_tree.nodes
+    for node in nodes:
+        if not node.type == 'OUTPUT_MATERIAL':
+            nodes.remove(node)
+    return node_tree.nodes[0]
+
+def create_cycles_material(self, image):
+    name_compat = bpy.path.display_name_from_filepath(image.filepath)
+    material = None
+    for mat in bpy.data.materials:
+        if mat.name == name_compat and self.overwrite_node_tree:
+            material = mat
+    if not material:
+        material = bpy.data.materials.new(name=name_compat)
+    
+    material.use_nodes = True
+    node_tree = material.node_tree
+    out_node = clean_node_tree(node_tree)
+    
+    if self.shader == 'BSDF_DIFFUSE':
+        bsdf_diffuse = node_tree.nodes.new('BSDF_DIFFUSE')
+        tex_image = node_tree.nodes.new('TEX_IMAGE')
+        tex_image.image = image
+        tex_image.show_texture = True
+        node_tree.links.new(out_node.inputs[0], bsdf_diffuse.outputs[0])
+        node_tree.links.new(bsdf_diffuse.inputs[0], tex_image.outputs[0])
+
+    if self.shader == 'EMISSION':
+        emission = node_tree.nodes.new('EMISSION')
+        tex_image = node_tree.nodes.new('TEX_IMAGE')
+        tex_image.image = image
+        tex_image.show_texture = True
+        node_tree.links.new(out_node.inputs[0], emission.outputs[0])
+        node_tree.links.new(emission.inputs[0], tex_image.outputs[0])
+
+    if self.shader == 'BSDF_DIFFUSE + BSDF TRANSPARENT':
+        bsdf_diffuse = node_tree.nodes.new('BSDF_DIFFUSE')
+        bsdf_transparent = node_tree.nodes.new('BSDF_TRANSPARENT')
+        mix_shader = node_tree.nodes.new('MIX_SHADER')
+        tex_image = node_tree.nodes.new('TEX_IMAGE')
+        tex_image.image = image
+        tex_image.show_texture = True
+        node_tree.links.new(out_node.inputs[0], mix_shader.outputs[0])
+        node_tree.links.new(mix_shader.inputs[0], tex_image.outputs[1])
+        node_tree.links.new(mix_shader.inputs[1], bsdf_diffuse.outputs[0])
+        node_tree.links.new(mix_shader.inputs[2], bsdf_transparent.outputs[0])
+        node_tree.links.new(bsdf_diffuse.inputs[0], tex_image.outputs[0])
+
+    
+    if self.shader == 'EMISSION + BSDF TRANSPARENT':
+        emission = node_tree.nodes.new('EMISSION')
+        bsdf_transparent = node_tree.nodes.new('BSDF_TRANSPARENT')
+        mix_shader = node_tree.nodes.new('MIX_SHADER')
+        tex_image = node_tree.nodes.new('TEX_IMAGE')
+        tex_image.image = image
+        tex_image.show_texture = True
+        node_tree.links.new(out_node.inputs[0], mix_shader.outputs[0])
+        node_tree.links.new(mix_shader.inputs[0], tex_image.outputs[1])
+        node_tree.links.new(mix_shader.inputs[1], emission.outputs[0])
+        node_tree.links.new(mix_shader.inputs[2], bsdf_transparent.outputs[0])
+        node_tree.links.new(emission.inputs[0], tex_image.outputs[0])
 
 
-def align_planes(self, planes):
-    gap = self.align_offset
-    offset = 0
-    for i, plane in enumerate(planes):
-        offset += (plane.dimensions.x / 2.0) + gap
-        if i == 0:
-            continue
-        move_local = mathutils.Vector((offset, 0.0, 0.0))
-        move_world = plane.location + move_local * plane.matrix_world.inverted()
-        plane.location += move_world
-        offset += (plane.dimensions.x / 2.0)
+    auto_align_nodes(node_tree)
 
+    return material
 
 # -----------------------------------------------------------------------------
 # Main
 
 def import_images(self, context):
+    engine = context.scene.render.engine
     import_list, directory = generate_paths(self)
     images = []
     textures = []
@@ -241,16 +359,24 @@ def import_images(self, context):
     for path in import_list:
         images.append(load_image(path, directory))
 
-    for image in images:
-        set_image_options(self, image)
-        textures.append(create_image_textures(self, image))
+    if engine == 'BLENDER_RENDER':
+        for image in images:
+            set_image_options(self, image)
+            textures.append(create_image_textures(self, image))
+    
+        for texture in textures:
+            materials.append(create_material_for_texture(self, texture))
+    
+        for material in materials:
+            planes.append(create_image_plane(self, context, material))
+    
+    if engine == 'CYCLES':
+        for image in images:
+            materials.append(create_cycles_material(self, image))
+            
+        for material in materials:
+            planes.append(create_image_plane(self, context, material))
 
-    for texture in textures:
-        materials.append(create_material_for_texture(self, texture))
-
-    for material in materials:
-        plane = create_image_plane(self, context, material)
-        planes.append(plane)
 
     context.scene.update()
     if self.align:
@@ -316,7 +442,7 @@ class IMPORT_OT_image_to_plane(Operator, ImportHelper, AddObjectHelper):
             ('psd', 'PSD (.psd)', 'Photoshop Document')),
             )
     use_dimension = BoolProperty(name="Use image dimensions",
-            description="Use the images pixels to derive planes size",
+            description="Use the images pixels to derive planes size in Blender Units",
             default=False,
             )
     factor = IntProperty(name="Pixels/BU",
@@ -355,6 +481,29 @@ class IMPORT_OT_image_to_plane(Operator, ImportHelper, AddObjectHelper):
             default=False,
             )
 
+    shader = EnumProperty(
+            name="Shader",
+            description="Shader",
+            items=(
+            ('BSDF_DIFFUSE',
+            'Diffuse',
+            'Diffuse Shader'),
+            ('EMISSION',
+            'Emission',
+            'Emission Shader'),
+            ('BSDF_DIFFUSE + BSDF TRANSPARENT',
+            'Diffuse + Transparent',
+            'Diffuse + Transparent Mix'),
+            ('EMISSION + BSDF TRANSPARENT',
+            'Emission + Transparent',
+            'Emission + Transparent Mix')),
+            )
+    overwrite_node_tree = BoolProperty(
+            name="overwrite Material",
+            description="overwrite existing Material with new nodetree (based on material name)",
+            default=True,
+            )
+    
     # -------------
     # Image Options
     use_premultiply = BoolProperty(name="Premultiply",
@@ -368,6 +517,7 @@ class IMPORT_OT_image_to_plane(Operator, ImportHelper, AddObjectHelper):
             )
 
     def draw(self, context):
+        engine = context.scene.render.engine
         layout = self.layout
 
         box = layout.box()
@@ -381,14 +531,21 @@ class IMPORT_OT_image_to_plane(Operator, ImportHelper, AddObjectHelper):
         row.active = bpy.data.is_saved
         row.prop(self, "relative")
 
-        box = layout.box()
-        box.label("Material mappings:", icon='MATERIAL')
-        box.prop(self, "use_shadeless")
-        box.prop(self, "use_transparency")
-        box.prop(self, "use_premultiply")
-        box.prop(self, "transparency_method", expand=True)
-        box.prop(self, "use_transparent_shadows")
+        if engine == 'BLENDER_RENDER':
+            box = layout.box()
+            box.label("Material Settings: (Blender)", icon='MATERIAL')
+            box.prop(self, "use_shadeless")
+            box.prop(self, "use_transparency")
+            box.prop(self, "use_premultiply")
+            box.prop(self, "transparency_method", expand=True)
+            box.prop(self, "use_transparent_shadows")
 
+        if engine == 'CYCLES':
+            box = layout.box()
+            box.label("Material Settings: (Cycles)", icon='MATERIAL')
+            box.prop(self, 'shader', expand = True)
+            box.prop(self, 'overwrite_node_tree')
+            
         box = layout.box()
         box.label("Plane dimensions:", icon='ARROW_LEFTRIGHT')
         box.prop(self, "use_dimension")
