@@ -322,8 +322,8 @@ def create_cycles_material(self, image):
         tex_image.show_texture = True
         node_tree.links.new(out_node.inputs[0], mix_shader.outputs[0])
         node_tree.links.new(mix_shader.inputs[0], tex_image.outputs[1])
-        node_tree.links.new(mix_shader.inputs[1], bsdf_diffuse.outputs[0])
-        node_tree.links.new(mix_shader.inputs[2], bsdf_transparent.outputs[0])
+        node_tree.links.new(mix_shader.inputs[2], bsdf_diffuse.outputs[0])
+        node_tree.links.new(mix_shader.inputs[1], bsdf_transparent.outputs[0])
         node_tree.links.new(bsdf_diffuse.inputs[0], tex_image.outputs[0])
 
     
@@ -336,8 +336,8 @@ def create_cycles_material(self, image):
         tex_image.show_texture = True
         node_tree.links.new(out_node.inputs[0], mix_shader.outputs[0])
         node_tree.links.new(mix_shader.inputs[0], tex_image.outputs[1])
-        node_tree.links.new(mix_shader.inputs[1], emission.outputs[0])
-        node_tree.links.new(mix_shader.inputs[2], bsdf_transparent.outputs[0])
+        node_tree.links.new(mix_shader.inputs[2], emission.outputs[0])
+        node_tree.links.new(mix_shader.inputs[1], bsdf_transparent.outputs[0])
         node_tree.links.new(emission.inputs[0], tex_image.outputs[0])
 
 
