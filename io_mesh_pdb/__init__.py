@@ -49,6 +49,7 @@ bl_info = {
 import os
 import io
 import bpy
+import bmesh
 from bpy.types import Operator, Panel
 from bpy_extras.io_utils import ImportHelper, ExportHelper
 from bpy.props import (StringProperty,
@@ -332,20 +333,27 @@ class CLASS_atom_pdb_separate_atom(Operator):
     def execute(self, context):
         scn = bpy.context.scene.atom_pdb[0]
 
-        # Get first all important properties from the atom which the user
+        # Get first all important properties from the atoms, which the user
         # has chosen: location, color, scale
         obj = bpy.context.edit_object
-        name = obj.name
-        loc_obj_vec = obj.location
+        bm = bmesh.from_edit_mesh(obj.data)
+
+        locations = []
+
+        for v in bm.verts:
+            if v.select:
+                locations.append(obj.matrix_world * v.co)
+
+        bm.free()
+        del(bm)
+
+        name  = obj.name
         scale = obj.children[0].scale
         material = obj.children[0].active_material
 
         # Separate the vertex from the main mesh and create a new mesh.
         bpy.ops.mesh.separate()
         new_object = bpy.context.scene.objects[0]
-        # Keep in mind the coordinates <= We only need this
-        loc_vec = new_object.data.vertices[0].co
-
         # And now, switch to the OBJECT mode such that we can ...
         bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
         # ... delete the new mesh including the separated vertex
@@ -353,43 +361,42 @@ class CLASS_atom_pdb_separate_atom(Operator):
         new_object.select = True
         bpy.ops.object.delete()  
 
-        # Create a new atom/vacancy at the position of the old atom
+        # Create new atoms/vacancies at the position of the old atoms
         current_layers=bpy.context.scene.layers
 
-        if "Vacancy" not in name:
-            if scn.use_mesh == False:
-                bpy.ops.surface.primitive_nurbs_surface_sphere_add(
+        # For all selected positions do:
+        for location in locations:
+            if "Vacancy" not in name:
+                if scn.use_mesh == False:
+                    bpy.ops.surface.primitive_nurbs_surface_sphere_add(
                                     view_align=False, enter_editmode=False,
-                                    location=loc_vec+loc_obj_vec,
+                                    location=location,
                                     rotation=(0.0, 0.0, 0.0),
                                     layers=current_layers)
-            else:
-                bpy.ops.mesh.primitive_uv_sphere_add(
+                else:
+                    bpy.ops.mesh.primitive_uv_sphere_add(
                                 segments=scn.mesh_azimuth,
                                 ring_count=scn.mesh_zenith,
                                 size=1, view_align=False, enter_editmode=False,
-                                location=loc_vec+loc_obj_vec,
+                                location=location,
                                 rotation=(0, 0, 0),
                                 layers=current_layers)
-        else:
-            bpy.ops.mesh.primitive_cube_add(
+            else:
+                bpy.ops.mesh.primitive_cube_add(
                                view_align=False, enter_editmode=False,
-                               location=loc_vec+loc_obj_vec,
+                               location=location,
                                rotation=(0.0, 0.0, 0.0),
                                layers=current_layers)
 
-        new_atom = bpy.context.scene.objects.active
-        # Scale, material and name it.
-        new_atom.scale = scale
-        new_atom.active_material = material
-        new_atom.name = name + "_sep"
-        # Switch back into the 'Edit mode' because we would like to seprate
-        # other atoms may be (more convinient)
-        new_atom.select = False
-        obj.select = True
+            new_atom = bpy.context.scene.objects.active
+            # Scale, material and name it.
+            new_atom.scale = scale
+            new_atom.active_material = material
+            new_atom.name = name + "_sep"
+            new_atom.select = False
+
         bpy.context.scene.objects.active = obj
         bpy.ops.object.select_all(action='DESELECT')
-        bpy.ops.object.mode_set(mode='EDIT', toggle=False)
 
         return {'FINISHED'}
 
