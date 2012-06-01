@@ -3954,7 +3954,7 @@ class MhxFKIKPanel(bpy.types.Panel):
     
     @classmethod
     def poll(cls, context):
-        return pollMhxRig(context.object)
+        return (mhxRigName(context.object) == 'MHX')
 
     def draw(self, context):
         rig = context.object
@@ -4035,7 +4035,7 @@ class MhxDriversPanel(bpy.types.Panel):
     
     @classmethod
     def poll(cls, context):
-        return pollMhxRig(context.object)
+        return mhxRigName(context.object)
 
     def draw(self, context):
         lProps = []
@@ -4083,7 +4083,7 @@ class MhxVisibilityPanel(bpy.types.Panel):
     
     @classmethod
     def poll(cls, context):
-        return pollMhxRig(context.object)
+        return mhxRigName(context.object)
 
     def draw(self, context):
         ob = context.object
@@ -4205,7 +4205,7 @@ class MhxLayersPanel(bpy.types.Panel):
     
     @classmethod
     def poll(cls, context):
-        return pollMhxRig(context.object)
+        return (mhxRigName(context.object) == 'MHX')
 
     def draw(self, context):
         layout = self.layout
@@ -4262,11 +4262,11 @@ class VIEW3D_OT_MhxDisableAllLayersButton(bpy.types.Operator):
 #   getMhxRig(ob):
 #
 
-def pollMhxRig(ob):
+def mhxRigName(ob):
     try:
-        return (ob["MhxRig"] == "MHX")
+        return ob["MhxRig"]
     except:
-        return False
+        return None
         
 def getMhxRig(ob):
     if ob.type == 'ARMATURE':
