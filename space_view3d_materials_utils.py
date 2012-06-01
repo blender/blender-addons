@@ -630,14 +630,14 @@ class VIEW3D_MT_master_material(bpy.types.Menu):
         layout.menu("VIEW3D_MT_select_material", icon='HAND')
         layout.separator()
         layout.operator("view3d.clean_material_slots",
-                        text='Clean Material Slots',
+                        text="Clean Material Slots",
                         icon='CANCEL')
         layout.operator("view3d.material_to_texface",
-                        text='Material to Texface',
-                        icon='polygonsEL_HLT')
+                        text="Material to Texface",
+                        icon='MATERIAL_DATA')
         layout.operator("view3d.texface_to_material",
                         text="Texface to Material",
-                        icon='polygonsEL_HLT')
+                        icon='MATERIAL_DATA')
 
         layout.separator()
         layout.operator("view3d.replace_material",
