@@ -125,6 +125,20 @@ url_manual_mapping = (
     ("bpy.types.HemiLamp.*",   "Lighting/Lamps/Hemi"),  # catchall, TODO - refine
     ("bpy.types.Lamp.*",       "Lighting"),             # catchall, TODO - refine
 
+    # --- Animation ---
+    ("bpy.types.Keyframe.*", "Animation/Keyframes"),
+    ("bpy.types.FCurve.*", "Animation/FCurves"),
+    
+    # --- Rigging ---
+    ("bpy.types.Bone.*",      "Armatures/Bones"),
+    ("bpy.types.EditBone.*",  "Armatures/Bones"),
+    ("bpy.types.PoseBone.*",  "Rigging/Posing"),
+
+    # --- World ---
+    ("bpy.types.World.*",  "World"),
+
+    ("bpy.types.Texture.*",  "Textures"),
+
     # === Operators ===
 
     # *** Window/Screen ***
