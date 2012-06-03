@@ -26,7 +26,7 @@
 """
 Abstract
 MHX (MakeHuman eXchange format) importer for Blender 2.5x.
-Version 1.13.0
+Version 1.13.1
 
 This script should be distributed with Blender.
 If not, place it in the .blender/scripts/addons dir
@@ -39,7 +39,7 @@ Alternatively, run the script in the script editor (Alt-P), and access from the 
 bl_info = {
     'name': 'Import: MakeHuman (.mhx)',
     'author': 'Thomas Larsson',
-    'version': (1, 13, 0),
+    'version': (1, 13, 1),
     "blender": (2, 6, 3),
     'location': "File > Import > MakeHuman (.mhx)",
     'description': 'Import files in the MakeHuman eXchange format (.mhx)',
@@ -2021,6 +2021,7 @@ def correctRig(args):
         ob = loadedData['Object'][human]
     except:
         return
+    ob["MhxShapekeyDrivers"] = (toggle&T_Shapekeys and toggle&T_ShapeDrivers)
     bpy.context.scene.objects.active = ob
     bpy.ops.object.mode_set(mode='POSE')
     amt = ob.data
@@ -2056,7 +2057,7 @@ def postProcess(args):
     except:
         ob = None
     if toggle & T_Diamond == 0 and ob:
-        deleteDiamonds(ob)        
+        deleteDiamonds(ob) 
     return            
 
 #
@@ -2949,7 +2950,7 @@ class ImportMhx(bpy.types.Operator, ImportHelper):
 #
 #    visemes
 #
-
+"""
 stopStaringVisemes = ({
     'Rest' : [
         ('PMouth', (0,0)), 
@@ -3032,117 +3033,205 @@ stopStaringVisemes = ({
     'Blink' : [('PUpLid', (0,1.0)), ('PLoLid', (0,-1.0))], 
     'Unblink' : [('PUpLid', (0,0)), ('PLoLid', (0,0))], 
 })
-
+"""
 bodyLanguageVisemes = ({
     'Rest' : [
-        ('PMouth', (0,0)), 
-        ('PMouthMid', (0,-0.6)), 
-        ('PUpLipMid', (0,0)), 
-        ('PLoLipMid', (0,0)), 
-        ('PJaw', (0,0)), 
-        ('PTongue', (0,0))], 
+        ('MouthNarrow_L', 0), 
+        ('MouthNarrow_R', 0), 
+        ('LipsPart', 0.6), 
+        ('UpLipsMidHeight', 0), 
+        ('LoLipsMidHeight', 0), 
+        ('LoLipsIn', 0),
+        ('MouthOpen', 0), 
+        ('TongueBackHeight', 0),
+        ('TongueHeight', 0),
+        ], 
     'Etc' : [
-        ('PMouth', (0,0)), 
-        ('PMouthMid', (0,-0.4)), 
-        ('PUpLipMid', (0,0)), 
-        ('PLoLipMid', (0,0)), 
-        ('PJaw', (0,0)), 
-        ('PTongue', (0,0))], 
+        ('MouthNarrow_L', 0), 
+        ('MouthNarrow_R', 0), 
+        ('LipsPart', 0.4), 
+        ('UpLipsMidHeight', 0), 
+        ('LoLipsMidHeight', 0), 
+        ('LoLipsIn', 0),
+        ('MouthOpen', 0), 
+        ('TongueBackHeight', 0),
+        ('TongueHeight', 0),
+        ], 
     'MBP' : [
-        ('PMouth', (0,0)), 
-        ('PMouthMid', (0,0)), 
-        ('PUpLipMid', (0,0)), 
-        ('PLoLipMid', (0,0)), 
-        ('PJaw', (0,0)), 
-        ('PTongue', (0,0))], 
+        ('MouthNarrow_L', 0), 
+        ('MouthNarrow_R', 0), 
+        ('LipsPart', 0), 
+        ('UpLipsMidHeight', 0), 
+        ('LoLipsMidHeight', 0), 
+        ('LoLipsIn', 0),
+        ('MouthOpen', 0), 
+        ('TongueBackHeight', 0),
+        ('TongueHeight', 0),
+        ], 
     'OO' : [
-        ('PMouth', (-1.0,0)), 
-        ('PMouthMid', (0,0)), 
-        ('PUpLipMid', (0,0)), 
-        ('PLoLipMid', (0,0)), 
-        ('PJaw', (0,0.4)), 
-        ('PTongue', (0,0))], 
+        ('MouthNarrow_L', 1.0), 
+        ('MouthNarrow_R', 1.0), 
+        ('LipsPart', 0), 
+        ('UpLipsMidHeight', 0), 
+        ('LoLipsMidHeight', 0), 
+        ('LoLipsIn', 0),
+        ('MouthOpen', 0.4), 
+        ('TongueBackHeight', 0),
+        ('TongueHeight', 0),
+        ], 
     'O' : [
-        ('PMouth', (-0.9,0)), 
-        ('PMouthMid', (0,0)), 
-        ('PUpLipMid', (0,0)), 
-        ('PLoLipMid', (0,0)), 
-        ('PJaw', (0,0.8)), 
-        ('PTongue', (0,0))], 
+        ('MouthNarrow_L', 0.9), 
+        ('MouthNarrow_R', 0.9), 
+        ('LipsPart', 0), 
+        ('UpLipsMidHeight', 0), 
+        ('LoLipsMidHeight', 0), 
+        ('LoLipsIn', 0),
+        ('MouthOpen', 0.8), 
+        ('TongueBackHeight', 0),
+        ('TongueHeight', 0),
+        ], 
     'R' : [
-        ('PMouth', (-0.5,0)), 
-        ('PMouthMid', (0,0)), 
-        ('PUpLipMid', (0,-0.2)), 
-        ('PLoLipMid', (0,0.2)), 
-        ('PJaw', (0,0)), 
-        ('PTongue', (0,0))], 
+        ('MouthNarrow_L', 0.5), 
+        ('MouthNarrow_R', 0.5), 
+        ('LipsPart', 0), 
+        ('UpLipsMidHeight', 0.2), 
+        ('LoLipsMidHeight', -0.2), 
+        ('LoLipsIn', 0),
+        ('MouthOpen', 0), 
+        ('TongueBackHeight', 0),
+        ('TongueHeight', 0),
+        ], 
     'FV' : [
-        ('PMouth', (-0.2,0)), 
-        ('PMouthMid', (0,1.0)), 
-        ('PUpLipMid', (0,0)), 
-        ('PLoLipMid', (-0.6,-0.3)), 
-        ('PJaw', (0,0)), 
-        ('PTongue', (0,0))], 
+        ('MouthNarrow_L', -0.2), 
+        ('MouthNarrow_R', -0.2), 
+        ('LipsPart', 1.0), 
+        ('UpLipsMidHeight', 0), 
+        ('LoLipsMidHeight', 0.3), 
+        ('LoLipsIn', 0.6),
+        ('MouthOpen', 0), 
+        ('TongueBackHeight', 0),
+        ('TongueHeight', 0),
+        ], 
     'S' : [
-        ('PMouth', (0,0)), 
-        ('PMouthMid', (0,0)), 
-        ('PUpLipMid', (0,-0.5)), 
-        ('PLoLipMid', (0,0.7)), 
-        ('PJaw', (0,0)), 
-        ('PTongue', (0,0))], 
+        ('MouthNarrow_L', 0), 
+        ('MouthNarrow_R', 0), 
+        ('LipsPart', 0), 
+        ('UpLipsMidHeight', 0.5), 
+        ('LoLipsMidHeight', -0.7), 
+        ('LoLipsIn', 0),
+        ('MouthOpen', 0), 
+        ('TongueBackHeight', 0),
+        ('TongueHeight', 0),
+        ], 
     'SH' : [
-        ('PMouth', (-0.8,0)), 
-        ('PMouthMid', (0,0)), 
-        ('PUpLipMid', (0,-1.0)), 
-        ('PLoLipMid', (0,1.0)), 
-        ('PJaw', (0,0)), 
-        ('PTongue', (0,0))], 
+        ('MouthNarrow_L', -0.8), 
+        ('MouthNarrow_R', -0.8), 
+        ('LipsPart', 0), 
+        ('UpLipsMidHeight', 1.0), 
+        ('LoLipsMidHeight', -1.0), 
+        ('LoLipsIn', 0),
+        ('MouthOpen', 0), 
+        ('TongueBackHeight', 0),
+        ('TongueHeight', 0),
+        ], 
     'EE' : [
-        ('PMouth', (0.2,0)), 
-        ('PMouthMid', (0,0)), 
-        ('PUpLipMid', (0,-0.6)), 
-        ('PLoLipMid', (0,0.6)), 
-        ('PJaw', (0,0.05)), 
-        ('PTongue', (0,0))], 
+        ('MouthNarrow_L', -0.2), 
+        ('MouthNarrow_R', -0.2), 
+        ('LipsPart', 0), 
+        ('UpLipsMidHeight', 0.6), 
+        ('LoLipsMidHeight', -0.6), 
+        ('LoLipsIn', 0),
+        ('MouthOpen', 0.5), 
+        ('TongueBackHeight', 0),
+        ('TongueHeight', 0),
+        ], 
     'AH' : [
-        ('PMouth', (0,0)), 
-        ('PMouthMid', (0,0)), 
-        ('PUpLipMid', (0,-0.4)), 
-        ('PLoLipMid', (0,0)), 
-        ('PJaw', (0,0.7)), 
-        ('PTongue', (0,0))], 
+        ('MouthNarrow_L', 0), 
+        ('MouthNarrow_R', 0), 
+        ('LipsPart', 0), 
+        ('UpLipsMidHeight', 0.4), 
+        ('LoLipsMidHeight', 0), 
+        ('LoLipsIn', 0),
+        ('MouthOpen', 0.7), 
+        ('TongueBackHeight', 0),
+        ('TongueHeight', 0),
+        ], 
     'EH' : [
-        ('PMouth', (0,0)), 
-        ('PMouthMid', (0,0)), 
-        ('PUpLipMid', (0,-0.5)), 
-        ('PLoLipMid', (0,0.6)), 
-        ('PJaw', (0,0.25)), 
-        ('PTongue', (0,0))], 
+        ('MouthNarrow_L', 0), 
+        ('MouthNarrow_R', 0), 
+        ('LipsPart', 0), 
+        ('UpLipsMidHeight', 0.5), 
+        ('LoLipsMidHeight', -0.6), 
+        ('LoLipsIn', 0),
+        ('MouthOpen', 0.25), 
+        ('TongueBackHeight', 0),
+        ('TongueHeight', 0),
+        ], 
     'TH' : [
-        ('PMouth', (0,0)), 
-        ('PMouthMid', (0,0)), 
-        ('PUpLipMid', (0,0)), 
-        ('PLoLipMid', (0,0)), 
-        ('PJaw', (0,0.2)), 
-        ('PTongue', (1.0,1.0))], 
+        ('MouthNarrow_L', 0), 
+        ('MouthNarrow_R', 0), 
+        ('LipsPart', 0), 
+        ('UpLipsMidHeight', 0), 
+        ('LoLipsMidHeight', 0), 
+        ('LoLipsIn', 0),
+        ('MouthOpen', 0.2), 
+        ('TongueBackHeight', 1.0),
+        ('TongueHeight', 1.0)
+        ], 
     'L' : [
-        ('PMouth', (0,0)), 
-        ('PMouthMid', (0,0)), 
-        ('PUpLipMid', (0,-0.5)), 
-        ('PLoLipMid', (0,0.5)), 
-        ('PJaw', (0,-0.2)), 
-        ('PTongue', (1.0,1.0))], 
+        ('MouthNarrow_L', 0), 
+        ('MouthNarrow_R', 0), 
+        ('LipsPart', 0), 
+        ('UpLipsMidHeight', 0.5), 
+        ('LoLipsMidHeight', -0.5), 
+        ('LoLipsIn', 0),
+        ('MouthOpen', -0.2), 
+        ('TongueBackHeight', 1.0),
+        ('TongueHeight', 1.0),
+        ], 
     'G' : [
-        ('PMouth', (0,0)), 
-        ('PMouthMid', (0,0)), 
-        ('PUpLipMid', (0,-0.5)), 
-        ('PLoLipMid', (0,0.5)), 
-        ('PJaw', (0,-0.2)), 
-        ('PTongue', (-1.0,0))], 
+        ('MouthNarrow_L', 0), 
+        ('MouthNarrow_R', 0), 
+        ('LipsPart', 0), 
+        ('UpLipsMidHeight', 0.5), 
+        ('LoLipsMidHeight', -0.5), 
+        ('LoLipsIn', 0),
+        ('MouthOpen', -0.2), 
+        ('TongueBackHeight', 1.0),
+        ('TongueHeight', 0),
+        ], 
 
-    'Blink' : [('PUpLid', (0,1.0)), ('PLoLid', (0,-1.0))], 
-    'Unblink' : [('PUpLid', (0,0)), ('PLoLid', (0,0))], 
+    'Blink' : [
+        ('UpLidUp_L', 1), 
+        ('UpLidUp_R', 1), 
+        ('LoLidDown_L', 1),
+        ('LoLidDown_R', 1)
+        ], 
+        
+    'Unblink' : [
+        ('UpLidUp_L', 0), 
+        ('UpLidUp_R', 0), 
+        ('LoLidDown_L', 0),
+        ('LoLidDown_R', 0)
+        ], 
 })
+
+VisemePanelBones = {
+    'MouthOpen' :       ('PJaw', (0,0.25)),
+    'UpLipsMidHeight' : ('PUpLipMid', (0,-0.25)),
+    'LoLipsMidHeight' : ('PLoLipMid', (0,-0.25)),
+    'LoLipsIn':         ('PLoLipMid', (-0.25,0)),
+    'MouthNarrow_L' :   ('PMouth_L', (-0.25,0)),
+    'MouthNarrow_R' :   ('PMouth_R', (0.25,0)),
+    'LipsPart' :        ('PMouthMid', (0, -0.25)),    
+    'TongueBackHeight': ('PTongue', (-0.25, 0)),
+    'TongueHeight' :    ('PTongue', (0, -0.25)),
+    
+    'UpLidUp_L' :       ('PUpLid_L', (0,1.0)),
+    'UpLidUp_R' :       ('PUpLid_R', (0,1.0)),
+    'LoLidDown_L' :     ('PLoLid_L', (0,-1.0)), 
+    'LoLidDown_R' :     ('PLoLid_R', (0,-1.0)), 
+}    
 
 VisemeList = [
     ('Rest', 'Etc', 'AH'),
@@ -3294,39 +3383,50 @@ def getVisemeSet(context, rig):
     else:
         raise MhxError("Unknown viseme set %s" % visset)
 
-def setViseme(context, vis, setKey, frame):
-    rig = getMhxRig(context.object)
-    pbones = rig.pose.bones
-    try:
-        scale = pbones['PFace'].bone.length
-    except:
-        return
-    visemes = getVisemeSet(context, rig)
-    for (b, (x, z)) in visemes[vis]:
-        loc = mathutils.Vector((float(x),0,float(z)))
-        try:
-            pb = pbones[b]
-        except:
 
-            pb = None
-            
-        if pb:
-            setBoneLocation(context, pb, scale, loc, False, setKey, frame)
-        else:
-            setBoneLocation(context, pbones[b+'_L'], scale, loc, False, setKey, frame)
-            setBoneLocation(context, pbones[b+'_R'], scale, loc, True, setKey, frame)
+def setViseme(context, vis, setKey, frame):
+    (rig, mesh) = getMhxRigMesh(context.object)
+    isPanel = False
+    isProp = False
+    shapekeys = None
+    scale = 0.75
+    if rig["MhxShapekeyDrivers"]:
+        try:
+            scale *= rig.pose.bones['PFace'].bone.length
+            isPanel = True
+        except:
+            isProp = True
+    elif mesh:
+        shapekeys = mesh.data.shape_keys.key_blocks
+    visemes = getVisemeSet(context, rig)
+    for (skey, value) in visemes[vis]:
+        if isPanel:
+            (b, (x,z)) = VisemePanelBones[skey]
+            loc = mathutils.Vector((float(x*value),0,float(z*value)))            
+            pb = rig.pose.bones[b]
+            pb.location = loc*scale
+            if setKey or context.tool_settings.use_keyframe_insert_auto:
+                for n in range(3):
+                    pb.keyframe_insert('location', index=n, frame=frame, group=pb.name)
+        elif isProp:
+            skey = '&_' + skey
+            try:
+                prop = rig[skey]
+            except:
+                continue
+            rig[skey] = value*scale
+            if setKey or context.tool_settings.use_keyframe_insert_auto:
+                rig.keyframe_insert('["%s"]' % skey, frame=frame, group="Visemes")    
+        elif shapekeys:
+            try:
+                shapekeys[skey].value = value*scale
+            except:
+                continue
+            if setKey or context.tool_settings.use_keyframe_insert_auto:
+                shapekeys[skey].keyframe_insert("value", frame=frame)            
     updatePose(context)
     return
-
-def setBoneLocation(context, pb, scale, loc, mirror, setKey, frame):
-    if mirror:
-        loc[0] = -loc[0]
-    pb.location = loc*scale*0.2
-
-    if setKey or context.tool_settings.use_keyframe_insert_auto:
-        for n in range(3):
-            pb.keyframe_insert('location', index=n, frame=frame, group=pb.name)
-    return
+    
 
 class VIEW3D_OT_MhxVisemeButton(bpy.types.Operator):
     bl_idname = 'mhx.pose_viseme'
@@ -3351,7 +3451,7 @@ def openFile(context, filepath):
     return open(filepath, "rU")
 
 def readMoho(context, filepath, offs):
-    rig = getMhxRig(context.object)
+    (rig, mesh) = getMhxRigMesh(context.object)
     context.scene.objects.active = rig
     bpy.ops.object.mode_set(mode='POSE')    
     fp = openFile(context, filepath)        
@@ -3369,7 +3469,7 @@ def readMoho(context, filepath, offs):
     return
 
 def readMagpie(context, filepath, offs):
-    rig = getMhxRig(context.object)
+    rig,mesh = getMhxRigMesh(context.object)
     context.scene.objects.active = rig
     bpy.ops.object.mode_set(mode='POSE')    
     fp = openFile(context, filepath)        
@@ -3439,7 +3539,7 @@ class MhxLipsyncPanel(bpy.types.Panel):
         return context.object
 
     def draw(self, context):
-        rig = getMhxRig(context.object)
+        rig,mesh = getMhxRigMesh(context.object)
         if not rig:
             return
 
@@ -3498,7 +3598,7 @@ class VIEW3D_OT_MhxResetExpressionsButton(bpy.types.Operator):
     bl_label = "Reset expressions"
 
     def execute(self, context):
-        rig = getMhxRig(context.object)
+        rig,mesh = getMhxRigMesh(context.object)
         props = getShapeProps(rig)
         for (prop, name) in props:
             rig[prop] = 0.0
@@ -3514,7 +3614,7 @@ class VIEW3D_OT_MhxKeyExpressionsButton(bpy.types.Operator):
     bl_label = "Key expressions"
 
     def execute(self, context):
-        rig = getMhxRig(context.object)
+        rig,mesh = getMhxRigMesh(context.object)
         props = getShapeProps(rig)
         frame = context.scene.frame_current
         for (prop, name) in props:
@@ -3531,7 +3631,7 @@ class VIEW3D_OT_MhxPinExpressionButton(bpy.types.Operator):
     expression = StringProperty()
 
     def execute(self, context):
-        rig = getMhxRig(context.object)
+        rig,mesh = getMhxRigMesh(context.object)
         props = getShapeProps(rig)
         if context.tool_settings.use_keyframe_insert_auto:
             frame = context.scene.frame_current
@@ -3577,16 +3677,21 @@ class MhxExpressionsPanel(bpy.types.Panel):
     
     @classmethod
     def poll(cls, context):
-        return context.object
+        return context.object and context.object.type in ['ARMATURE', 'MESH']
 
     def draw(self, context):
-        rig = getMhxRig(context.object)
+        layout = self.layout
+        rig,mesh = getMhxRigMesh(context.object)
         if not rig:
+            print("No MHX rig found")
+            return
+        if not rig["MhxShapekeyDrivers"]:
+            layout.label("No shapekey drivers.")
+            layout.label("Set expression values in mesh context instead")
             return
         props = getShapeProps(rig)
         if not props:
             return
-        layout = self.layout
         layout.label(text="Expressions")
         layout.operator("mhx.pose_reset_expressions")
         layout.operator("mhx.pose_key_expressions")
@@ -4230,7 +4335,7 @@ class VIEW3D_OT_MhxEnableAllLayersButton(bpy.types.Operator):
     bl_label = "Enable all layers"
 
     def execute(self, context):
-        rig = getMhxRig(context.object)
+        rig,mesh = getMhxRigMesh(context.object)
         for (left,right) in MhxLayers:
             if type(left) != str:
                 for (n, name, prop) in [left,right]:
@@ -4242,7 +4347,7 @@ class VIEW3D_OT_MhxDisableAllLayersButton(bpy.types.Operator):
     bl_label = "Disable all layers"
 
     def execute(self, context):
-        rig = getMhxRig(context.object)
+        rig,mesh = getMhxRigMesh(context.object)
         layers = 32*[False]
         pb = context.active_pose_bone
         if pb:
@@ -4262,7 +4367,7 @@ class VIEW3D_OT_MhxDisableAllLayersButton(bpy.types.Operator):
 ###################################################################################    
 #
 #   pollMhxRig(ob):
-#   getMhxRig(ob):
+#   getMhxRigMesh(ob):
 #
 
 def mhxRigName(ob):
@@ -4271,20 +4376,24 @@ def mhxRigName(ob):
     except:
         return None
         
-def getMhxRig(ob):
+def getMhxRigMesh(ob):
     if ob.type == 'ARMATURE':
         rig = ob
+        for mesh in rig.children:
+            try:
+                mesh["MhxMesh"]
+                rig["MhxRig"]
+                return (rig, mesh)
+            except:
+                pass
+        return (rig, None)                
     elif ob.type == 'MESH':
-        rig = ob.parent
-    else:
-        return None
-    try:        
-        if (rig["MhxRig"] == "MHX"):
-            return rig
-        else:
-            return None
-    except:
-        return None
+        try:
+            ob["MhxMesh"]
+        except:
+            return (None, None)
+        return (ob.parent, ob)
+    return (None, None)
     
         
 #
