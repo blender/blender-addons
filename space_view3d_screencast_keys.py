@@ -63,7 +63,7 @@ def getBoundingBox(current_width, current_height, new_text):
     return(current_width, current_height)
 
 
-def draw_callback_px(self, context):
+def draw_callback_px_text(self, context):
     wm = context.window_manager
     sc = context.scene
     if not wm.screencast_keys_keys:
@@ -73,9 +73,9 @@ def draw_callback_px(self, context):
     mouse_size = sc.screencast_keys_mouse_size
     box_draw   = sc.screencast_keys_box_draw
     pos_x, pos_y = getDisplayLocation(context)
+    label_time_max = sc.screencast_keys_fade_time
 
     # draw text in the 3d-view
-    # ========================
     blf.size(0, sc.screencast_keys_font_size, 72)
     blf.enable(0, blf.SHADOW)
     blf.shadow_offset(0, 1, -1)
@@ -86,10 +86,19 @@ def draw_callback_px(self, context):
     row_count = len(self.key)
 
     keypos_x = pos_x
-    if box_draw==True:
+
+    if sc.screencast_keys_mouse_position == 'left':
         keypos_x += mouse_size * MOUSE_RATIO * 1.7
+    if sc.screencast_keys_mouse != 'icon':
+        keypos_x -= mouse_size * MOUSE_RATIO
+    if sc.screencast_keys_mouse_position == 'right' and sc.screencast_keys_mouse != 'icon':
+        keypos_x = pos_x
+
     shift = 0
-    if mouse_size > font_size*row_count:
+
+    # we want to make sure we can shift vertically the text if the mouse is big,
+    # but don't care if aligned to right 
+    if mouse_size > font_size*row_count and not sc.screencast_keys_mouse_position == 'right':
         shift = (mouse_size - font_size*row_count) / 2
 
     text_width, text_height = 0,0
@@ -97,15 +106,15 @@ def draw_callback_px(self, context):
     alpha = 1.0
     for i in range(len(self.key)):
         label_time = time.time() - self.time[i]
-        if label_time < 4: # only display key-presses of last 2 seconds
-            if label_time > 3.2:
+        if label_time < label_time_max: # only display key-presses of last 2 seconds
+            if label_time > (label_time_max / 1.2):
                 blf.blur(0, 1)
-            if label_time > 3.7:
+            if label_time > (label_time_max / 1.1):
                 blf.blur(0, 3)
             keypos_y = pos_y + shift + font_size*(i+0.1)
 
             blf.position(0, keypos_x, keypos_y , 0)
-            alpha = min(1.0, max(0.0, 4 * (4 - label_time)))
+            alpha = min(1.0, max(0.0, label_time_max * (label_time_max - label_time)))
             bgl.glColor4f(font_color_r, font_color_g, font_color_b, font_color_alpha * alpha)
             blf.draw(0, self.key[i])
             text_width, text_height = getBoundingBox(text_width, text_height,
@@ -126,7 +135,6 @@ def draw_callback_px(self, context):
     self.time = self.time[:final]
 
     # draw graphical representation of the mouse
-    # ==========================================
     if sc.screencast_keys_mouse == 'icon':
         for shape in ["mouse", "left_button", "middle_button", "right_button"]:
             draw_mouse(context, shape, "outline", font_color_alpha * 0.4)
@@ -155,50 +163,59 @@ def draw_callback_px_box(self, context):
 
     font_size  = sc.screencast_keys_font_size
     mouse_size = sc.screencast_keys_mouse_size
+
+    if sc.screencast_keys_mouse_position == 'right':
+        mouse_size = 25
+
     box_draw   = sc.screencast_keys_box_draw
     pos_x, pos_y = getDisplayLocation(context)
 
     # get text-width/height to resize the box
-    # ========================
     blf.size(0, sc.screencast_keys_font_size, 72)
     box_width, box_height = sc.screencast_keys_box_width,0
     final = 0
     row_count = 0
+    box_hide = sc.screencast_keys_box_hide
+    label_time_max = sc.screencast_keys_fade_time
 
     for i in range(len(self.key)):
         label_time = time.time() - self.time[i]
-        if label_time < 4.5: # only display key-presses of last 4 seconds
+
+        if label_time < label_time_max: # only display key-presses of last 4 seconds
             box_width, box_height = getBoundingBox(box_width, box_height, self.key[i])
             row_count += 1
             final = i + 1
+            box_hide = False
         else:
             break
 
-    # Draw border
+    # Got the size right, now draw box using proper colors
     box_color_r, box_color_g, box_color_b, box_color_alpha = sc.screencast_keys_box_color
 
-    if box_draw:
+    if box_draw and not box_hide:
         padding_x = 16
         padding_y = 12
         x0 = max(0, pos_x - padding_x)
         y0 = max(0, pos_y - padding_y)
-        x1 = pos_x + box_width + mouse_size * MOUSE_RATIO * 1.1 + padding_x
+        x1 = pos_x + box_width + mouse_size * MOUSE_RATIO * 1.3 + padding_x
         y1 = pos_y + max(mouse_size, font_size * row_count) + padding_y
         positions = [[x0, y0], [x0, y1], [x1, y1], [x1, y0]]
-        settings = [[bgl.GL_QUADS, min(0.2, box_color_alpha)], [bgl.GL_LINE_LOOP, min(0.4,box_color_alpha)]]
+        settings = [[bgl.GL_QUADS, min(0.0, box_color_alpha)], [bgl.GL_LINE_LOOP, min(0.0, box_color_alpha)]]
 
         for mode, box_alpha in settings:
-            if sc.screencast_keys_box_hide:
-                label_time = time.time() - self.time[i]
             bgl.glEnable(bgl.GL_BLEND)
             bgl.glBegin(mode)
-            bgl.glColor4f(box_color_r, box_color_g, box_color_b, box_color_alpha )
+            bgl.glColor4f(box_color_r, box_color_g, box_color_b, box_color_alpha)
             for v1, v2 in positions:
                 bgl.glVertex2f(v1, v2)
             bgl.glEnd()
 
     if sc.screencast_keys_show_operator:
         draw_last_operator(context, pos_x, pos_y)
+
+    # get rid of status texts that aren't displayed anymore
+    self.key = self.key[:final]
+    self.time = self.time[:final]
 
 def draw_last_operator(context, pos_x, pos_y):
 
@@ -207,16 +224,17 @@ def draw_last_operator(context, pos_x, pos_y):
     font_color_r, font_color_g, font_color_b, font_color_alpha = sc.screencast_keys_text_color
     pos_x, pos_y = getDisplayLocation(context)
 
-    last_operator = wm.operators[-1].bl_label
+    if wm.operators:
+        last_operator = wm.operators[-1].bl_label
 
-    blf.enable(0, blf.SHADOW)
-    blf.shadow_offset(0, 1, -1)
-    blf.shadow(0, 5, 0.0, 0.0, 0.0, 0.8)
-    blf.size(0, sc.screencast_keys_font_size, 36)
-    blf.position(0, pos_x - 14, pos_y - 30, 0)
-    bgl.glColor4f(font_color_r, font_color_g, font_color_b, font_color_alpha * 0.8)
-    blf.draw(0, "Last: %s" % (last_operator))
-    blf.disable(0, blf.SHADOW)
+        blf.enable(0, blf.SHADOW)
+        blf.shadow_offset(0, 1, -1)
+        blf.shadow(0, 5, 0.0, 0.0, 0.0, 0.8)
+        blf.size(0, sc.screencast_keys_font_size, 36)
+        blf.position(0, pos_x - 14, pos_y - 30, 0)
+        bgl.glColor4f(font_color_r, font_color_g, font_color_b, font_color_alpha * 0.8)
+        blf.draw(0, "Last: %s" % (last_operator))
+        blf.disable(0, blf.SHADOW)
 
 
 def draw_mouse(context, shape, style, alpha):
@@ -227,9 +245,10 @@ def draw_mouse(context, shape, style, alpha):
     box_draw = sc.screencast_keys_box_draw
 
     pos_x, pos_y = getDisplayLocation(context)
-    if box_draw:
+
+    if sc.screencast_keys_mouse_position == 'left':
         offset_x = pos_x
-    else:
+    if sc.screencast_keys_mouse_position == 'right':
         offset_x = context.region.width - pos_x - (mouse_size * MOUSE_RATIO)
 
     offset_y = pos_y
@@ -550,7 +569,7 @@ class ScreencastKeysStatus(bpy.types.Operator):
 
     def invoke(self, context, event):
         if context.area.type == 'VIEW_3D':
-            if context.window_manager.screencast_keys_keys == False:
+            if context.window_manager.screencast_keys_keys is False:
                 # operator is called for the first time, start everything
                 context.window_manager.screencast_keys_keys = True
                 context.window_manager.modal_handler_add(self)
@@ -560,7 +579,7 @@ class ScreencastKeysStatus(bpy.types.Operator):
                 self.mouse_time = []
                 self._handle = context.region.callback_add(draw_callback_px_box,
                     (self, context), 'POST_PIXEL')
-                self._handle = context.region.callback_add(draw_callback_px,
+                self._handle = context.region.callback_add(draw_callback_px_text,
                     (self, context), 'POST_PIXEL')
                 self._timer = context.window_manager.event_timer_add(0.025,
                     context.window)
@@ -592,7 +611,7 @@ def init_properties():
     scene.screencast_keys_pos_y = bpy.props.IntProperty(
         name="Position Y",
         description="Margin on the Y axis",
-        default=9,
+        default=10,
         min=0,
         max=100)
     scene.screencast_keys_font_size = bpy.props.IntProperty(
@@ -630,17 +649,30 @@ def init_properties():
               ("icon", "Icon", "Display graphical representation of "\
                "the mouse"),
               ("text", "Text", "Display mouse events as text lines")),
-        name="Mouse display",
+        name="Mouse Display",
         description="Display mouse events",
         default='icon')
+    scene.screencast_keys_mouse_position = bpy.props.EnumProperty(
+        items=(("left", "Left", "Align to the left"),
+              ("right", "Right", "Align to the right")),
+        name="Icon Position",
+        description="Align the mouse icon on the 3D View",
+        default='left')
     scene.screencast_keys_box_draw = bpy.props.BoolProperty(
-        name="Draw Box",
-        description = "Merge mouse & text inside a box",
+        name="Display Box",
+        description = "Display a bounding box behind the text",
         default = True)
     scene.screencast_keys_box_hide = bpy.props.BoolProperty(
         name="Hide Box",
         description = "Hide the box when no key is pressed",
         default = False)
+    scene.screencast_keys_fade_time = bpy.props.FloatProperty(
+        name="Fade Out Time",
+        description = "Time in seconds for keys to last on screen",
+        default = 3.5,
+        min = 0.5,
+        max = 5.0,
+        subtype = 'TIME')
     scene.screencast_keys_show_operator = bpy.props.BoolProperty(
         name="Display Last Operator",
         description = "Display the last operator used",
@@ -655,6 +687,7 @@ def init_properties():
 def clear_properties():
     props = ["screencast_keys_keys", "screencast_keys_mouse",
      "screencast_keys_font_size", "screencast_keys_mouse_size",
+     "screencast_keys_mouse_position", "screencast_keys_fade_time",
      "screencast_keys_pos_x", "screencast_keys_pos_y",
      "screencast_keys_box_draw", "screencast_keys_text_color",
      "screencast_keys_box_color", "screencast_keys_box_hide",
@@ -703,9 +736,16 @@ class OBJECT_PT_keys_status(bpy.types.Panel):
 
         row = layout.row(align=True)
         row.prop(sc, "screencast_keys_text_color")
+        row = layout.row(align=True)
+        row.prop(sc, "screencast_keys_fade_time")
+
+        layout.separator()
 
         row = layout.row(align=True)
-        row.prop(sc, "screencast_keys_mouse", text="Show Mouse")
+        row.prop(sc, "screencast_keys_mouse", text="Display Mouse")
+        row = layout.row(align=True)
+        row.enabled = sc.screencast_keys_mouse == 'icon'
+        row.prop(sc, "screencast_keys_mouse_position", expand=True)
 
         row = layout.row(align=True)
         row.prop(sc, "screencast_keys_box_draw")
@@ -714,6 +754,7 @@ class OBJECT_PT_keys_status(bpy.types.Panel):
         row.prop(sc, "screencast_keys_box_color", text="")
         row.prop(sc, "screencast_keys_box_hide", text="Hide")
         row = layout.row(align=True)
+        row.active = sc.screencast_keys_box_draw
         row.prop(sc, "screencast_keys_box_width")
         row = layout.row(align=True)
         row.prop(sc, "screencast_keys_show_operator")
