@@ -3036,6 +3036,8 @@ stopStaringVisemes = ({
 """
 bodyLanguageVisemes = ({
     'Rest' : [
+        ('MouthWidth_L', 0), 
+        ('MouthWidth_R', 0), 
         ('MouthNarrow_L', 0), 
         ('MouthNarrow_R', 0), 
         ('LipsPart', 0.6), 
@@ -3047,6 +3049,8 @@ bodyLanguageVisemes = ({
         ('TongueHeight', 0),
         ], 
     'Etc' : [
+        ('MouthWidth_L', 0), 
+        ('MouthWidth_R', 0), 
         ('MouthNarrow_L', 0), 
         ('MouthNarrow_R', 0), 
         ('LipsPart', 0.4), 
@@ -3058,6 +3062,8 @@ bodyLanguageVisemes = ({
         ('TongueHeight', 0),
         ], 
     'MBP' : [
+        ('MouthWidth_L', 0), 
+        ('MouthWidth_R', 0), 
         ('MouthNarrow_L', 0), 
         ('MouthNarrow_R', 0), 
         ('LipsPart', 0), 
@@ -3069,6 +3075,8 @@ bodyLanguageVisemes = ({
         ('TongueHeight', 0),
         ], 
     'OO' : [
+        ('MouthWidth_L', 0), 
+        ('MouthWidth_R', 0), 
         ('MouthNarrow_L', 1.0), 
         ('MouthNarrow_R', 1.0), 
         ('LipsPart', 0), 
@@ -3080,6 +3088,8 @@ bodyLanguageVisemes = ({
         ('TongueHeight', 0),
         ], 
     'O' : [
+        ('MouthWidth_L', 0), 
+        ('MouthWidth_R', 0), 
         ('MouthNarrow_L', 0.9), 
         ('MouthNarrow_R', 0.9), 
         ('LipsPart', 0), 
@@ -3091,6 +3101,8 @@ bodyLanguageVisemes = ({
         ('TongueHeight', 0),
         ], 
     'R' : [
+        ('MouthWidth_L', 0), 
+        ('MouthWidth_R', 0), 
         ('MouthNarrow_L', 0.5), 
         ('MouthNarrow_R', 0.5), 
         ('LipsPart', 0), 
@@ -3102,8 +3114,10 @@ bodyLanguageVisemes = ({
         ('TongueHeight', 0),
         ], 
     'FV' : [
-        ('MouthNarrow_L', -0.2), 
-        ('MouthNarrow_R', -0.2), 
+        ('MouthWidth_L', 0.2), 
+        ('MouthWidth_R', 0.2), 
+        ('MouthNarrow_L', 0), 
+        ('MouthNarrow_R', 0), 
         ('LipsPart', 1.0), 
         ('UpLipsMidHeight', 0), 
         ('LoLipsMidHeight', 0.3), 
@@ -3113,6 +3127,8 @@ bodyLanguageVisemes = ({
         ('TongueHeight', 0),
         ], 
     'S' : [
+        ('MouthWidth_L', 0), 
+        ('MouthWidth_R', 0), 
         ('MouthNarrow_L', 0), 
         ('MouthNarrow_R', 0), 
         ('LipsPart', 0), 
@@ -3124,19 +3140,23 @@ bodyLanguageVisemes = ({
         ('TongueHeight', 0),
         ], 
     'SH' : [
-        ('MouthNarrow_L', -0.8), 
-        ('MouthNarrow_R', -0.8), 
+        ('MouthWidth_L', 0.8), 
+        ('MouthWidth_R', 0.8), 
+        ('MouthNarrow_L', 0), 
+        ('MouthNarrow_R', 0), 
         ('LipsPart', 0), 
         ('UpLipsMidHeight', 1.0), 
-        ('LoLipsMidHeight', -1.0), 
+        ('LoLipsMidHeight', 0), 
         ('LoLipsIn', 0),
         ('MouthOpen', 0), 
         ('TongueBackHeight', 0),
         ('TongueHeight', 0),
         ], 
     'EE' : [
-        ('MouthNarrow_L', -0.2), 
-        ('MouthNarrow_R', -0.2), 
+        ('MouthWidth_L', 0.2), 
+        ('MouthWidth_R', 0.2), 
+        ('MouthNarrow_L', 0), 
+        ('MouthNarrow_R', 0), 
         ('LipsPart', 0), 
         ('UpLipsMidHeight', 0.6), 
         ('LoLipsMidHeight', -0.6), 
@@ -3146,6 +3166,8 @@ bodyLanguageVisemes = ({
         ('TongueHeight', 0),
         ], 
     'AH' : [
+        ('MouthWidth_L', 0), 
+        ('MouthWidth_R', 0), 
         ('MouthNarrow_L', 0), 
         ('MouthNarrow_R', 0), 
         ('LipsPart', 0), 
@@ -3157,6 +3179,8 @@ bodyLanguageVisemes = ({
         ('TongueHeight', 0),
         ], 
     'EH' : [
+        ('MouthWidth_L', 0), 
+        ('MouthWidth_R', 0), 
         ('MouthNarrow_L', 0), 
         ('MouthNarrow_R', 0), 
         ('LipsPart', 0), 
@@ -3168,6 +3192,8 @@ bodyLanguageVisemes = ({
         ('TongueHeight', 0),
         ], 
     'TH' : [
+        ('MouthWidth_L', 0), 
+        ('MouthWidth_R', 0), 
         ('MouthNarrow_L', 0), 
         ('MouthNarrow_R', 0), 
         ('LipsPart', 0), 
@@ -3179,6 +3205,8 @@ bodyLanguageVisemes = ({
         ('TongueHeight', 1.0)
         ], 
     'L' : [
+        ('MouthWidth_L', 0), 
+        ('MouthWidth_R', 0), 
         ('MouthNarrow_L', 0), 
         ('MouthNarrow_R', 0), 
         ('LipsPart', 0), 
@@ -3190,6 +3218,8 @@ bodyLanguageVisemes = ({
         ('TongueHeight', 1.0),
         ], 
     'G' : [
+        ('MouthWidth_L', 0), 
+        ('MouthWidth_R', 0), 
         ('MouthNarrow_L', 0), 
         ('MouthNarrow_R', 0), 
         ('LipsPart', 0), 
@@ -3221,6 +3251,8 @@ VisemePanelBones = {
     'UpLipsMidHeight' : ('PUpLipMid', (0,-0.25)),
     'LoLipsMidHeight' : ('PLoLipMid', (0,-0.25)),
     'LoLipsIn':         ('PLoLipMid', (-0.25,0)),
+    'MouthWidth_L' :    ('PMouth_L', (0.25,0)),
+    'MouthWidth_R' :    ('PMouth_R', (-0.25,0)),
     'MouthNarrow_L' :   ('PMouth_L', (-0.25,0)),
     'MouthNarrow_R' :   ('PMouth_R', (0.25,0)),
     'LipsPart' :        ('PMouthMid', (0, -0.25)),    
@@ -3253,80 +3285,31 @@ def makeVisemes(ob, scn):
     if not ob.data.shape_keys:
         print("%s has no shapekeys" % ob)
         return
-    adata = ob.data.shape_keys.animation_data
-    if not adata:
-        print("Shapekeys have not drivers")
-        return
     try:
         ob.data.shape_keys.key_blocks["VIS_Rest"]
         print("Visemes already created")
         return
     except:
         pass        
-    rig = ob.parent
-    scale = rig.data.bones['PFace'].length*0.2
 
-    boneShapes = {}
-    for fcu in adata.drivers:
-        name = fcu.data_path.split('"')[1]
-        for var in fcu.driver.variables:
-            if var.type == 'TRANSFORMS':
-                targ = var.targets[0]  
-                fmod = fcu.modifiers[0]
-                try:
-                    list = boneShapes[targ.bone_target]
-                except:
-                    list = []
-                    boneShapes[targ.bone_target] = list
-                list.append((targ.transform_type, fmod, ob.data.shape_keys.key_blocks[name]))
-            
     verts = ob.data.vertices            
-    for (vis,bones) in bodyLanguageVisemes.items():
+    for (vis,shapes) in bodyLanguageVisemes.items():
         if vis in ['Blink', 'Unblink']:
             continue
         vkey = ob.shape_key_add(name="VIS_%s" % vis)  
         print(vkey.name)
         for n,v in enumerate(verts):
             vkey.data[n].co = v.co
-        for (bone, xz) in bones:
-            try:
-                boneShapes[bone]
-                single = True
-            except:
-                single = False
-            if single:
-                addToVisShapeKey(boneShapes[bone], vkey, verts, xz, 1, scale)
-            else:
-                try:
-                    boneShapes[bone+"_L"]
-                    double = True
-                except:
-                    double = False
-                if double:
-                    addToVisShapeKey(boneShapes[bone+"_L"], vkey, verts, xz, 1, scale)
-                    #addToVisShapeKey(boneShapes[bone+"_R"], vkey, verts, xz, -1, scale)
+        for (name,value) in shapes:
+            if name[-2:] == "_R":
+                continue
+            skey = ob.data.shape_keys.key_blocks[name]
+            factor = 0.75*value
+            for n,v in enumerate(verts):
+                vkey.data[n].co += factor*(skey.data[n].co - v.co)
     print("Visemes made")                    
     return
-    
-def addToVisShapeKey(shapes, vkey, verts, xz, sign, scale):
-    for (typ, fmod, skey) in shapes:
-        factor = fmod.coefficients[1]*scale
-        (x,z) = xz
-        if typ == 'LOC_X':
-            k = factor*sign*x
-        elif typ == 'LOC_Z':
-            k = factor*z
-        if k < skey.slider_min:
-            k = skey.slider_min
-        if k > skey.slider_max:
-            k = skey.slider_max
-        if abs(k) < 0.001:
-            continue
-        print("  %s %.3f %.3f %.3f %.3f" % (skey.name, factor, x, z, k))
-        for n,v in enumerate(verts):
-            vkey.data[n].co += k*(skey.data[n].co - v.co)
-    return            
-       
+           
 class VIEW3D_OT_MhxMakeVisemesButton(bpy.types.Operator):
     bl_idname = "mhx.make_visemes"
     bl_label = "Generate viseme shapekeys"
