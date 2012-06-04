@@ -23,7 +23,7 @@ bl_info = {
     "blender": (2, 5, 7),
     'location': 'Select a Curve: Tool Shelf > RotoBezier Panel',
     'description': 'Allows animation of Bezier and NURBS curves',
-    'warning': '',
+    'warning': 'This script will be deleted soon. Please use AnimAll instead!',
     'wiki_url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/'\
         'Scripts/Animation/RotoBezier',
     'tracker_url': 'http://projects.blender.org/tracker/index.php?'\
