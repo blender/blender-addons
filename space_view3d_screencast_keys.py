@@ -21,13 +21,13 @@
 bl_info = {
     'name': "Screencast Keys",
     'author': 'Paulo Gomes, Bart Crouch, John E. Herrenyo, Gaia Clary, Pablo Vazquez',
-    'version': (1, 6),
+    'version': (1, 7),
     'blender': (2, 6, 3),
-    'location': 'View3D > Properties panel > Screencast Keys',
+    'location': '3D View > Properties Panel > Screencast Keys',
     'warning': '',
-    'description': 'Display keys pressed in the 3d-view, '\
+    'description': 'Display keys pressed in the 3D View, '\
         'useful for screencasts.',
-    'wiki_url': 'http://wiki.blender.org/index.php/Extensions:2.5/'
+    'wiki_url': 'http://wiki.blender.org/index.php/Extensions:2.6/'
                 'Py/Scripts/3D_interaction/Screencast_Key_Status_Tool',
     'tracker_url': 'http://projects.blender.org/tracker/index.php?'
                    'func=detail&aid=21612',
@@ -75,7 +75,7 @@ def draw_callback_px_text(self, context):
     pos_x, pos_y = getDisplayLocation(context)
     label_time_max = sc.screencast_keys_fade_time
 
-    # draw text in the 3d-view
+    # draw text in the 3D View
     blf.size(0, sc.screencast_keys_font_size, 72)
     blf.enable(0, blf.SHADOW)
     blf.shadow_offset(0, 1, -1)
@@ -482,8 +482,8 @@ def map_mouse_event(event):
 
 class ScreencastKeysStatus(bpy.types.Operator):
     bl_idname = "view3d.screencast_keys"
-    bl_label = "Screencast Key Status Tool"
-    bl_description = "Display keys pressed in the 3D-view"
+    bl_label = "Screencast Keys"
+    bl_description = "Display keys pressed in the 3D View"
     last_activity = 'NONE'
 
     _handle = None
@@ -498,7 +498,7 @@ class ScreencastKeysStatus(bpy.types.Operator):
             return {'PASS_THROUGH'}
 
         scene = context.scene
-        # keys that shouldn't show up in the 3d-view
+        # keys that shouldn't show up in the 3D View
         mouse_keys = ['MOUSEMOVE','MIDDLEMOUSE','LEFTMOUSE',
          'RIGHTMOUSE', 'WHEELDOWNMOUSE','WHEELUPMOUSE']
         ignore_keys = ['LEFT_SHIFT', 'RIGHT_SHIFT', 'LEFT_ALT',
@@ -593,7 +593,7 @@ class ScreencastKeysStatus(bpy.types.Operator):
                 self.mouse_time = []
                 return {'CANCELLED'}
         else:
-            self.report({'WARNING'}, "View3D not found, can't run operator")
+            self.report({'WARNING'}, "3D View not found, can't run Screencast Keys")
             return {'CANCELLED'}
 
 
@@ -714,50 +714,50 @@ class OBJECT_PT_keys_status(bpy.types.Panel):
         layout = self.layout
 
         if not wm.screencast_keys_keys:
-            layout.operator("view3d.screencast_keys", text="Start display",
-                icon='PLAY')
+            layout.operator("view3d.screencast_keys", text="Start Display",
+                icon = "PLAY")
         else:
-            layout.operator("view3d.screencast_keys", text="Stop display",
-                icon='PAUSE')
+            layout.operator("view3d.screencast_keys", text="Stop Display",
+                icon = "PAUSE")
 
-        split = layout.split()
+            split = layout.split()
 
-        col = split.column()
-        sub = col.column(align=True)
-        sub.label(text="Size:")
-        sub.prop(sc, "screencast_keys_font_size", text="Text")
-        sub.prop(sc, "screencast_keys_mouse_size", text="Mouse")
+            col = split.column()
+            sub = col.column(align=True)
+            sub.label(text="Size:")
+            sub.prop(sc, "screencast_keys_font_size", text="Text")
+            sub.prop(sc, "screencast_keys_mouse_size", text="Mouse")
 
-        col = split.column()
-        sub = col.column(align=True)
-        sub.label(text="Position:")
-        sub.prop(sc, "screencast_keys_pos_x", text="X")
-        sub.prop(sc, "screencast_keys_pos_y", text="Y")
+            col = split.column()
+            sub = col.column(align=True)
+            sub.label(text="Position:")
+            sub.prop(sc, "screencast_keys_pos_x", text="X")
+            sub.prop(sc, "screencast_keys_pos_y", text="Y")
 
-        row = layout.row(align=True)
-        row.prop(sc, "screencast_keys_text_color")
-        row = layout.row(align=True)
-        row.prop(sc, "screencast_keys_fade_time")
+            row = layout.row(align=True)
+            row.prop(sc, "screencast_keys_text_color")
+            row = layout.row(align=True)
+            row.prop(sc, "screencast_keys_fade_time")
 
-        layout.separator()
+            layout.separator()
 
-        row = layout.row(align=True)
-        row.prop(sc, "screencast_keys_mouse", text="Display Mouse")
-        row = layout.row(align=True)
-        row.enabled = sc.screencast_keys_mouse == 'icon'
-        row.prop(sc, "screencast_keys_mouse_position", expand=True)
+            row = layout.row(align=True)
+            row.prop(sc, "screencast_keys_mouse", text="Display Mouse")
+            row = layout.row(align=True)
+            row.enabled = sc.screencast_keys_mouse == 'icon'
+            row.prop(sc, "screencast_keys_mouse_position", expand=True)
 
-        row = layout.row(align=True)
-        row.prop(sc, "screencast_keys_box_draw")
-        row = layout.row(align=True)
-        row.active = sc.screencast_keys_box_draw
-        row.prop(sc, "screencast_keys_box_color", text="")
-        row.prop(sc, "screencast_keys_box_hide", text="Hide")
-        row = layout.row(align=True)
-        row.active = sc.screencast_keys_box_draw
-        row.prop(sc, "screencast_keys_box_width")
-        row = layout.row(align=True)
-        row.prop(sc, "screencast_keys_show_operator")
+            row = layout.row(align=True)
+            row.prop(sc, "screencast_keys_box_draw")
+            row = layout.row(align=True)
+            row.active = sc.screencast_keys_box_draw
+            row.prop(sc, "screencast_keys_box_color", text="")
+            row.prop(sc, "screencast_keys_box_hide", text="Hide")
+            row = layout.row(align=True)
+            row.active = sc.screencast_keys_box_draw
+            row.prop(sc, "screencast_keys_box_width")
+            row = layout.row(align=True)
+            row.prop(sc, "screencast_keys_show_operator")
 
 classes = [ScreencastKeysStatus,
     OBJECT_PT_keys_status]
@@ -768,10 +768,24 @@ def register():
     for c in classes:
         bpy.utils.register_class(c)
 
+    kc = bpy.context.window_manager.keyconfigs.addon
+    if kc:
+        km = kc.keymaps.new(name='3D View', space_type='VIEW_3D')
+        kmi = km.keymap_items.new('view3d.screencast_keys', 'C', 'PRESS', shift=True, alt=True)
+
 
 def unregister():
     for c in classes:
         bpy.utils.unregister_class(c)
+
+    kc = bpy.context.window_manager.keyconfigs.addon
+    if kc:
+        km = kc.keymaps['3D View']
+        for item in km.keymap_items:
+            if item.idname == 'view3d.screencast_keys':
+                km.keymap_items.remove(item)
+                break
+
     clear_properties()
 
 
