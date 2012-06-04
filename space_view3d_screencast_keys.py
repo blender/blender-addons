@@ -641,9 +641,10 @@ def init_properties():
     scene.screencast_keys_box_width = bpy.props.IntProperty(
         name="Box Width",
         description="Box default width (resizes with text if needed)",
-        default=0,
-        min=0,
-        max=1024)
+        default = 0,
+        min = 0,
+        max = 2048,
+        soft_max = 1024)
     scene.screencast_keys_mouse = bpy.props.EnumProperty(
         items=(("none", "No Mouse", "Don't display mouse events"),
               ("icon", "Icon", "Display graphical representation of "\
@@ -671,7 +672,9 @@ def init_properties():
         description = "Time in seconds for keys to last on screen",
         default = 3.5,
         min = 0.5,
-        max = 5.0,
+        max = 10.0,
+        soft_max = 5.0,
+        step = 10,
         subtype = 'TIME')
     scene.screencast_keys_show_operator = bpy.props.BoolProperty(
         name="Display Last Operator",
