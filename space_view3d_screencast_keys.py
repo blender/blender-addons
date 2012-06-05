@@ -37,6 +37,7 @@ import bgl
 import blf
 import bpy
 import time
+import datetime
 
 
 MOUSE_RATIO = 0.535
@@ -104,6 +105,7 @@ def draw_callback_px_text(self, context):
     text_width, text_height = 0,0
     row_count = 0
     alpha = 1.0
+
     for i in range(len(self.key)):
         label_time = time.time() - self.time[i]
         if label_time < label_time_max: # only display key-presses of last 2 seconds
@@ -158,6 +160,7 @@ def draw_callback_px_text(self, context):
 def draw_callback_px_box(self, context):
     wm = context.window_manager
     sc = context.scene
+
     if not wm.screencast_keys_keys:
         return
 
@@ -213,6 +216,9 @@ def draw_callback_px_box(self, context):
     if sc.screencast_keys_show_operator:
         draw_last_operator(context, pos_x, pos_y)
 
+    if sc.screencast_keys_timer_show:
+        draw_timer(context, pos_x, pos_y)
+
     # get rid of status texts that aren't displayed anymore
     self.key = self.key[:final]
     self.time = self.time[:final]
@@ -236,6 +242,21 @@ def draw_last_operator(context, pos_x, pos_y):
         blf.draw(0, "Last: %s" % (last_operator))
         blf.disable(0, blf.SHADOW)
 
+def draw_timer(context, pos_x, pos_y):
+
+    #calculate overall time
+    overall_time = datetime.timedelta(seconds=int(time.time() - ScreencastKeysStatus.overall_time[0]))
+
+    sc = context.scene
+    timer_color_r, timer_color_g, timer_color_b, timer_color_alpha = sc.screencast_keys_timer_color
+    pos_x, pos_y = getDisplayLocation(context)
+    pos_x = context.region.width - pos_x / 3 * sc.screencast_keys_timer_size 
+    pos_y = 10
+
+    blf.size(0, sc.screencast_keys_timer_size, 72)
+    blf.position(0, pos_x, pos_y, 0)
+    bgl.glColor4f(timer_color_r, timer_color_g, timer_color_b, timer_color_alpha)
+    blf.draw(0, "Elapsed Time: %s" % (overall_time))
 
 def draw_mouse(context, shape, style, alpha):
     # shape and position
@@ -479,7 +500,6 @@ def map_mouse_event(event):
 
     return(shape)
 
-
 class ScreencastKeysStatus(bpy.types.Operator):
     bl_idname = "view3d.screencast_keys"
     bl_label = "Screencast Keys"
@@ -577,12 +597,14 @@ class ScreencastKeysStatus(bpy.types.Operator):
                 self.time = []
                 self.mouse = []
                 self.mouse_time = []
+                ScreencastKeysStatus.overall_time = []
                 self._handle = context.region.callback_add(draw_callback_px_box,
                     (self, context), 'POST_PIXEL')
                 self._handle = context.region.callback_add(draw_callback_px_text,
                     (self, context), 'POST_PIXEL')
                 self._timer = context.window_manager.event_timer_add(0.025,
                     context.window)
+                ScreencastKeysStatus.overall_time.insert(0, time.time())
                 return {'RUNNING_MODAL'}
             else:
                 # operator is called again, stop displaying
@@ -591,10 +613,21 @@ class ScreencastKeysStatus(bpy.types.Operator):
                 self.time = []
                 self.mouse = []
                 self.mouse_time = []
+                ScreencastKeysStatus.overall_time = []
                 return {'CANCELLED'}
         else:
             self.report({'WARNING'}, "3D View not found, can't run Screencast Keys")
             return {'CANCELLED'}
+
+class ScreencastKeysTimerReset(bpy.types.Operator):
+    """Reset Timer"""
+    bl_idname = "view3d.screencast_keys_timer_reset"
+    bl_label = "Reset Timer"
+    bl_description = "Set the timer back to zero"
+
+    def execute(self, context):
+        ScreencastKeysStatus.overall_time = [time.time()]
+        return {'FINISHED'}
 
 
 # properties used by the script
@@ -680,6 +713,22 @@ def init_properties():
         name="Display Last Operator",
         description = "Display the last operator used",
         default = True)
+    scene.screencast_keys_timer_show = bpy.props.BoolProperty(
+        name="Display Timer",
+        description = "Counter of the elapsed time in H:MM:SS since the script started",
+        default = True)
+    scene.screencast_keys_timer_size = bpy.props.IntProperty(
+        name="Size",
+        description="Timer text size displayed on 3D View",
+        default=12, min=8, max=100)
+    scene.screencast_keys_timer_color = bpy.props.FloatVectorProperty(
+        name="Timer Color",
+        description="Color for the timer",
+        default=(1.0, 1.0, 1.0, 0.3),
+        min=0,
+        max=1,
+        subtype='COLOR',
+        size=4)
 
     # Runstate initially always set to False
     # note: it is not stored in the Scene, but in window manager:
@@ -694,7 +743,9 @@ def clear_properties():
      "screencast_keys_pos_x", "screencast_keys_pos_y",
      "screencast_keys_box_draw", "screencast_keys_text_color",
      "screencast_keys_box_color", "screencast_keys_box_hide",
-     "screencast_keys_box_width", "screencast_keys_show_operator" ]
+     "screencast_keys_box_width", "screencast_keys_show_operator",
+     "screencast_keys_timer_show", "screencast_keys_timer_color",
+     "screencast_keys_timer_size" ]
     for p in props:
         if bpy.context.window_manager.get(p) != None:
             del bpy.context.window_manager[p]
@@ -745,13 +796,14 @@ class OBJECT_PT_keys_status(bpy.types.Panel):
             layout.separator()
 
             row = layout.row(align=True)
-            row.prop(sc, "screencast_keys_mouse", text="Display Mouse")
+            row.prop(sc, "screencast_keys_mouse", text="Mouse")
             row = layout.row(align=True)
             row.enabled = sc.screencast_keys_mouse == 'icon'
             row.prop(sc, "screencast_keys_mouse_position", expand=True)
 
+            layout.label(text="Display:")
             row = layout.row(align=True)
-            row.prop(sc, "screencast_keys_box_draw")
+            row.prop(sc, "screencast_keys_box_draw", text="Box")
             row = layout.row(align=True)
             row.active = sc.screencast_keys_box_draw
             row.prop(sc, "screencast_keys_box_color", text="")
@@ -760,9 +812,19 @@ class OBJECT_PT_keys_status(bpy.types.Panel):
             row.active = sc.screencast_keys_box_draw
             row.prop(sc, "screencast_keys_box_width")
             row = layout.row(align=True)
-            row.prop(sc, "screencast_keys_show_operator")
+            row.prop(sc, "screencast_keys_show_operator", text="Last Operator")
+            row = layout.row(align=True)
+            row.prop(sc, "screencast_keys_timer_show", text="Timer")
+            row.active = sc.screencast_keys_timer_show
+            row.prop(sc, "screencast_keys_timer_color", text="")
+            row = layout.row(align=True)
+            row.enabled = sc.screencast_keys_timer_show
+            row.prop(sc,"screencast_keys_timer_size")
+            row = layout.row(align=True)
+            row.enabled = sc.screencast_keys_timer_show
+            row.operator("view3d.screencast_keys_timer_reset", text="Reset")
 
-classes = [ScreencastKeysStatus,
+classes = [ScreencastKeysStatus, ScreencastKeysTimerReset, 
     OBJECT_PT_keys_status]
 
 
