@@ -244,15 +244,15 @@ def draw_last_operator(context, pos_x, pos_y):
 
 def draw_timer(context, pos_x, pos_y):
 
+    sc = context.scene
     #calculate overall time
     overall_time = datetime.timedelta(seconds=int(time.time() - ScreencastKeysStatus.overall_time[0]))
 
-    sc = context.scene
     timer_color_r, timer_color_g, timer_color_b, timer_color_alpha = sc.screencast_keys_timer_color
-    pos_x, pos_y = getDisplayLocation(context)
-    pos_x = context.region.width - pos_x / 3 * sc.screencast_keys_timer_size 
+    pos_x = context.region.width - (sc.screencast_keys_timer_size * 12) + 12
     pos_y = 10
 
+    #draw time
     blf.size(0, sc.screencast_keys_timer_size, 72)
     blf.position(0, pos_x, pos_y, 0)
     bgl.glColor4f(timer_color_r, timer_color_g, timer_color_b, timer_color_alpha)
@@ -716,14 +716,14 @@ def init_properties():
     scene.screencast_keys_timer_show = bpy.props.BoolProperty(
         name="Display Timer",
         description = "Counter of the elapsed time in H:MM:SS since the script started",
-        default = True)
+        default = False)
     scene.screencast_keys_timer_size = bpy.props.IntProperty(
-        name="Size",
-        description="Timer text size displayed on 3D View",
+        name="Time Size",
+        description="Time size displayed on 3D View",
         default=12, min=8, max=100)
     scene.screencast_keys_timer_color = bpy.props.FloatVectorProperty(
-        name="Timer Color",
-        description="Color for the timer",
+        name="Time Color",
+        description="Color for the time display",
         default=(1.0, 1.0, 1.0, 0.3),
         min=0,
         max=1,
@@ -813,10 +813,17 @@ class OBJECT_PT_keys_status(bpy.types.Panel):
             row.prop(sc, "screencast_keys_box_width")
             row = layout.row(align=True)
             row.prop(sc, "screencast_keys_show_operator", text="Last Operator")
-            row = layout.row(align=True)
-            row.prop(sc, "screencast_keys_timer_show", text="Timer")
-            row.active = sc.screencast_keys_timer_show
-            row.prop(sc, "screencast_keys_timer_color", text="")
+
+            split = layout.split()
+
+            col = split.column()
+            sub = col.column(align=True)
+            sub.prop(sc, "screencast_keys_timer_show", text="Time")
+            col = split.column()
+            sub = col.column(align=True)
+            sub.active = sc.screencast_keys_timer_show
+            sub.prop(sc, "screencast_keys_timer_color", text="")
+
             row = layout.row(align=True)
             row.enabled = sc.screencast_keys_timer_show
             row.prop(sc,"screencast_keys_timer_size")
