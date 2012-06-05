@@ -144,6 +144,7 @@ url_manual_mapping = (
     # *** Window/Screen ***
     ("bpy.ops.screen.*",  "Interface/Window_system"),
     ("bpy.ops.wm.*",      "Interface/Window_system"),
+    ("bpy.ops.render.*",  "Render"),  # catchall, TODO - refine
 )
 
 # may have 'url_reference_mapping'... etc later
