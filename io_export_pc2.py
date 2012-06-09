@@ -46,9 +46,8 @@ import time
 from bpy_extras.io_utils import ExportHelper
 
 def getSampling(start, end, sampling):
-    samples = [start - sampling
-               + x * sampling
-               for x in range(start, int((end-start) * 1.0 / sampling) + 1)]
+    samples = [start + x * sampling
+               for x in range(int((end - start) / sampling) + 1)]
     return samples
 
 def do_export(context, props, filepath):
