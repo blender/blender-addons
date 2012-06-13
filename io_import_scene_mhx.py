@@ -2414,6 +2414,7 @@ def hideLayers(args):
         for n in hidelayers:
             if ob.layers[n]:
                 ob.hide = True
+                ob.hide_render = True
 
     if boneLayers:    
         human = args[1]
