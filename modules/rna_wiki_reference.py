@@ -96,26 +96,45 @@ url_manual_mapping = (
     ("bpy.types.RigidBodyJointConstraint.*",  "Constraints/Relationship/Rigid_Body_Joint"),
     ("bpy.types.ShrinkwrapConstraint.*",      "Constraints/Relationship/Shrinkwrap"),
 
-    # *** Materials (blender internal) ***
-    ("bpy.types.Material.diffuse*", "Materials/Properties/Diffuse_Shaders"),
-    ("bpy.types.Material.*", "Materials/Properties/Diffuse_Shaders"),  # catchall, until the section is filled in
-    # ... todo, many more options
-
     ("bpy.types.ImageFormatSettings.*",  "Render/Output#File_Type"),
     ("bpy.types.RenderSettings.filepath",  "Render/Output#File_Locations"),
     ("bpy.types.RenderSettings.*",       "Render"),  # catchall, TODO - refine
 
-    # --- ObData ---
+    # *** ID Subclasses ***
+    ("bpy.types.Action.*", "Animation/Actions"),
+    #("bpy.types.Brush.*", ""),  # TODO - manual has no place for this! XXX
+    ("bpy.types.Curve.*", "Modeling/Curves"),
+    #("bpy.types.GreasePencil.*", ""), # TODO - manual has no place for this! XXX
+    ("bpy.types.Group.*", "Modeling/Objects/Groups_and_Parenting#Grouping_objects"),
+    ("bpy.types.Image.*", "Textures/Types/Image"),
+    ("bpy.types.ShapeKey.*", "Animation/Basic/Deformation/Shape_Keys"), # not an ID but include because of Key
+    ("bpy.types.Key.*", "Animation/Basic/Deformation/Shape_Keys"),
+    #("bpy.types.Lattice.*", ""), # TODO - manual has no place for this! XXX
+    ("bpy.types.Library.*", "Manual/Data_System/Linked_Libraries"),
+    #("bpy.types.Mask.*", ""), # TODO - manual has no place for this! XXX
+    # *** Materials (blender internal) ***
+    ("bpy.types.Material.diffuse*", "Materials/Properties/Diffuse_Shaders"),
+    ("bpy.types.Material.*", "Materials/Properties/Diffuse_Shaders"),  # catchall, until the section is filled in
+    # ... todo, many more options
+    ("bpy.types.MovieClip.*", "Motion_Tracking#Movie_Clip_Editor"),
+    #("bpy.types.NodeTree.*", ""),  # dont document
     ("bpy.types.Object.*",  "Modeling/Objects"),  # catchall, TODO - refine
+    ("bpy.types.ParticleSettings.*", "Physics/Particles"),
+    ("bpy.types.Scene.*", "Interface/Scenes"),
+    ("bpy.types.Screen.*", "Interface/Screens"),
+    #("bpy.types.Sound.*", ""), # TODO - manual has no place for this! XXX
+    #("bpy.types.Speaker.*", ""), # TODO - manual has no place for this! XXX
+    ("bpy.types.Text.*", "Extensions/Python/Text_editor"),
+    ("bpy.types.Texture.*", "Textures"),
+    ("bpy.types.VectorFont.*", "Modeling/Texts"),
+    ("bpy.types.WindowManager.*", "Interface/Window_system"),
+    ("bpy.types.World.*", "World"),
 
+    # *** ID Subclasses (cont.) Object Data ***
     ("bpy.types.Mesh.*",  "Modeling/Meshes"),  # catchall, TODO - refine
-
     ("bpy.types.MetaBall.*",  "Modeling/Metas"),  # catchall, TODO - refine
-
     ("bpy.types.TextCurve.*",  "Modeling/Texts"),  # catchall, TODO - refine
-
     ("bpy.types.Armature.*",  "Rigging/Armatures"),  # catchall, TODO - refine
-
     ("bpy.types.Camera.*",  "Render/Camera"),  # catchall, TODO - refine
 
     ("bpy.types.PointLamp.*",  "Lighting/Lamps/Lamp"),  # catchall, TODO - refine
@@ -148,3 +167,6 @@ url_manual_mapping = (
 )
 
 # may have 'url_reference_mapping'... etc later
+"""
+
+"""
