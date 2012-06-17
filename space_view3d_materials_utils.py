@@ -481,7 +481,15 @@ def texface_to_mat():
     if editmode:
         bpy.ops.object.mode_set(mode='EDIT')
 
+def remove_materials():
 
+	for ob in bpy.data.objects:
+		print (ob.name)
+		try:
+			bpy.ops.object.material_slot_remove()
+			print ("removed material from " + ob.name)
+		except:
+			print (ob.name + " does not have materials.")
 # -----------------------------------------------------------------------------
 # operator classes:
 
@@ -561,6 +569,20 @@ class VIEW3D_OT_material_to_texface(bpy.types.Operator):
         mat_to_texface()
         return {'FINISHED'}
 
+class VIEW3D_OT_material_remove(bpy.types.Operator):
+    '''Remove all material slots from active objects'''
+    bl_idname = "view3d.material_remove"
+    bl_label = "Remove All Material Slots"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    @classmethod
+    def poll(cls, context):
+        return context.active_object != None
+
+    def execute(self, context):
+        remove_materials()
+        return {'FINISHED'}
+
 
 class VIEW3D_OT_select_material_by_name(bpy.types.Operator):
     '''Select geometry with this material assigned to it'''
@@ -631,6 +653,9 @@ class VIEW3D_MT_master_material(bpy.types.Menu):
         layout.separator()
         layout.operator("view3d.clean_material_slots",
                         text="Clean Material Slots",
+                        icon='CANCEL')
+        layout.operator("view3d.material_remove",
+                        text="Remove Material Slots",
                         icon='CANCEL')
         layout.operator("view3d.material_to_texface",
                         text="Material to Texface",
