@@ -228,15 +228,15 @@ class SCENE_OT_export(bpy.types.Operator):
 
         obj.location = (0,0,0)
         obj.rotation_euler = (0,0,0)
-        obj.scale = (1,1,1)
-
+        bpy.ops.object.transform_apply(scale=True)
+        
         bpy.ops.export_scene.obj(filepath=coa.applink_name,use_selection=True,
-        use_apply_modifiers=False,use_blen_objects=True, group_by_material= True,
-        use_materials = False,keep_vertex_order = True,axis_forward='X',axis_up='Y')
-
+        use_apply_modifiers=False,use_blen_objects=True, use_materials = False,
+        keep_vertex_order = True,axis_forward='X',axis_up='Y')
+        
         obj.location = coa.loc
         obj.rotation_euler = coa.rot
-        obj.scale = coa.sca
+        
 
         bpy.context.scene.cursor_location = coat3D.cursor_loc
         bpy.context.scene.cursor_location = coat3D.cursor_orginal
@@ -249,6 +249,8 @@ class SCENE_OT_export(bpy.types.Operator):
         file.close()
 
         coa.objecttime = str(os.path.getmtime(coa.applink_name))
+        
+        
                
         return {'FINISHED'}
 
