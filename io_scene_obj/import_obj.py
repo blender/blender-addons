@@ -675,7 +675,7 @@ def create_mesh(new_objects,
     me.update(calc_edges=use_edges)
     me.validate()
 
-    ob = bpy.data.objects.new("Mesh", me)
+    ob = bpy.data.objects.new(me.name, me)
     new_objects.append(ob)
 
     # Create the vertex groups. No need to have the flag passed here since we test for the
