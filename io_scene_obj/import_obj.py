@@ -644,6 +644,27 @@ def create_mesh(new_objects,
     def edges_match(e1, e2):
         return (e1[0] == e2[0] and e1[1] == e2[1]) or (e1[0] == e2[1] and e1[1] == e2[0])
 
+    me.validate()
+    me.update(calc_edges=use_edges)
+
+    if unique_smooth_groups and sharp_edges:
+        import bmesh
+        bm = bmesh.new()
+        bm.from_mesh(me)
+        # to avoid slow iterator lookups later / indexing verts is slow in bmesh
+        bm_verts = bm.verts[:]
+        
+        for sharp_edge in sharp_edges.keys():
+            vert1 = bm_verts[sharp_edge[0]]
+            vert2 = bm_verts[sharp_edge[1]]
+            if vert1 != vert2:
+                edge = bm.edges.get((vert1, vert2))
+                if edge is not None:
+                    me.edges[edge.index].use_edge_sharp = True
+
+        bm.free()
+        del bm
+
     # XXX slow
 #     if use_ngons and fgon_edges:
 #         for fgon_edge in fgon_edges.keys():
@@ -671,9 +692,6 @@ def create_mesh(new_objects,
 #             if ed is not None:
 #                 me_edges[ed].flag |= SHARP
 #         del SHARP
-
-    me.validate()
-    me.update(calc_edges=use_edges)
 
     ob = bpy.data.objects.new(me.name, me)
     new_objects.append(ob)
