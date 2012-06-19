@@ -23,8 +23,8 @@
 bl_info = {
     "name": "Paint Palettes",
     "author": "Dany Lebel (Axon D)",
-    "version": (0,9,0),
-    "blender": (2, 5, 8),
+    "version": (0,9,1),
+    "blender": (2, 63, 12),
     "location": "Image Editor and 3D View > Any Paint mode > Color Palette or Weight Palette panel",
     "description": "Palettes for color and weight paint modes",
     "warning": "",
@@ -77,7 +77,7 @@ def current_brush():
 def update_weight_value():
     pp = bpy.context.scene.palette_props
     tt = bpy.context.tool_settings
-    tt.vertex_group_weight = pp.weight_value
+    tt.unified_paint_settings.weight = pp.weight_value
     return None
 
 
@@ -609,7 +609,7 @@ class VIEW3D_PT_weight_palette(PaintPanel, bpy.types.Panel):
 
     def draw(self, context):
         palette_props = bpy.context.scene.palette_props
-        vertex_group_weight = bpy.context.tool_settings.vertex_group_weight
+        #vertex_group_weight = bpy.context.tool_settings.unified_paint_settings.weight
 
         layout = self.layout
         row = layout.row()
@@ -757,7 +757,8 @@ class PaletteProps(bpy.types.PropertyGroup):
             pp.weight_9 = weight
         elif pp.current_weight_index == 10:
             pp.weight_10 = weight
-        bpy.context.tool_settings.vertex_group_weight = weight
+        bpy.context.tool_settings.unified_paint_settings.weight = weight
+        #bpy.context.tool_settings.vertex_group_weight = weight
         return None
 
     palette_name = StringProperty(
