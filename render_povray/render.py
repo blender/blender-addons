@@ -685,7 +685,7 @@ def write_pov(filename, scene=None, info_callback=None):
                                  (loc.x, loc.y, loc.z, elem.radius, stiffness))
 
                         # After this wecould do something simple like...
-                        # 	"pigment {Blue} }"
+                        #     "pigment {Blue} }"
                         # except we'll write the color
 
                     elif elem.type == 'ELLIPSOID':
@@ -828,7 +828,7 @@ def write_pov(filename, scene=None, info_callback=None):
 
             importance = ob.pov.importance_value
             me_materials = me.materials
-            me_faces = me.faces[:]
+            me_faces = me.tessfaces[:]
 
             if not me or not me_faces:
                 continue
@@ -856,7 +856,7 @@ def write_pov(filename, scene=None, info_callback=None):
                 info_callback("Object %2.d of %2.d (%s)" % (ob_num, len(sel), ob.name))
 
             #if ob.type != 'MESH':
-            #	continue
+            #    continue
             # me = ob.data
 
             matrix = global_matrix * ob.matrix_world
@@ -867,9 +867,11 @@ def write_pov(filename, scene=None, info_callback=None):
 
             print("Writing Down First Occurence")
 
-            try:
-                uv_layer = me.uv_textures.active.data
-            except AttributeError:
+            uv_textures = me.tessface_uv_textures
+            if len(uv_textures) > 0:
+                if me.uv_textures.active and uv_textures.active.data:
+                    uv_layer = uv_textures.active.data
+            else:
                 uv_layer = None
 
             try:
@@ -938,13 +940,13 @@ def write_pov(filename, scene=None, info_callback=None):
             if uv_layer:
                 # Generate unique UV's
                 uniqueUVs = {}
-
+                #n = 0
                 for fi, uv in enumerate(uv_layer):
 
                     if len(faces_verts[fi]) == 4:
-                        uvs = uv.uv1, uv.uv2, uv.uv3, uv.uv4
+                        uvs = uv_layer[fi].uv[0], uv_layer[fi].uv[1], uv_layer[fi].uv[2], uv_layer[fi].uv[3]
                     else:
-                        uvs = uv.uv1, uv.uv2, uv.uv3
+                        uvs = uv_layer[fi].uv[0], uv_layer[fi].uv[1], uv_layer[fi].uv[2]
 
                     for uv in uvs:
                         uniqueUVs[uv[:]] = [-1]
@@ -1504,9 +1506,9 @@ def write_pov(filename, scene=None, info_callback=None):
 
                     uv = uv_layer[fi]
                     if len(faces_verts[fi]) == 4:
-                        uvs = uv.uv1[:], uv.uv2[:], uv.uv3[:], uv.uv4[:]
+                        uvs = uv.uv[0][:], uv.uv[1][:], uv.uv[2][:], uv.uv[3][:]
                     else:
-                        uvs = uv.uv1[:], uv.uv2[:], uv.uv3[:]
+                        uvs = uv.uv[0][:], uv.uv[1][:], uv.uv[2][:]
 
                     for i1, i2, i3 in indices:
                         if not scene.pov.tempfiles_enable and scene.pov.list_lf_enable:
