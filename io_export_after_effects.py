@@ -26,7 +26,7 @@ bl_info = {
     'blender': (2, 6, 2),
     'location': 'File > Export > Adobe After Effects (.jsx)',
     "warning": "",
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"\
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"\
         "Scripts/Import-Export/Adobe_After_Effects",
     "tracker_url": "https://projects.blender.org/tracker/index.php?"\
         "func=detail&aid=29858",

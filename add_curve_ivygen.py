@@ -27,7 +27,7 @@ bl_info = {
     "description": "Adds generated ivy to a mesh object starting at the 3D"\
                    " cursor",
     "warning": "",
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"\
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"\
                 "Scripts/Curve/Ivy_Gen",
     "tracker_url": "http://projects.blender.org/tracker/index.php?"\
                    "func=detail&aid=27234",

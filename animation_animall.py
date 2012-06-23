@@ -24,7 +24,7 @@ bl_info = {
     'location': 'Select a Mesh/Lattice/Curve: Tool Shelf > AnimAll panel',
     'description': 'Allows animation of mesh, lattice and curve data (Shape Keys, VCols, VGroups, UVs, Points, Radius, Tilt)',
     'warning': '',
-    'wiki_url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/Scripts/Animation/AnimAll',
+    'wiki_url': 'http://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts/Animation/AnimAll',
     'tracker_url': 'http://projects.blender.org/tracker/index.php?'\
         'func=detail&aid=24874',
     'category': 'Animation'}

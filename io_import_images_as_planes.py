@@ -25,7 +25,7 @@ bl_info = {
     "description": "Imports images and creates planes with the appropriate "
                    "aspect ratio. The images are mapped to the planes.",
     "warning": "",
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
                 "Scripts/Add_Mesh/Planes_from_Images",
     "tracker_url": "https://projects.blender.org/tracker/index.php?"
                    "func=detail&aid=21751",

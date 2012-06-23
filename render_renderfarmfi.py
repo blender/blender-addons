@@ -26,7 +26,7 @@ bl_info = {
     "location": "Render > Engine > Renderfarm.fi",
     "description": "Send .blend as session to http://www.renderfarm.fi to render",
     "warning": "",
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"\
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"\
         "Scripts/Render/Renderfarm.fi",
     "tracker_url": "https://projects.blender.org/tracker/index.php?"\
         "func=detail&aid=22927",

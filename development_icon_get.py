@@ -29,7 +29,7 @@ bl_info = {
     'warning': '',
     'description': 'Click an icon to display its name and copy it '\
         'to the clipboard',
-    'wiki_url': 'http://wiki.blender.org/index.php/Extensions:2.5/'\
+    'wiki_url': 'http://wiki.blender.org/index.php/Extensions:2.6/'\
         'Py/Scripts/System/Display_All_Icons',
     'tracker_url': 'http://projects.blender.org/tracker/index.php?'\
         'func=detail&aid=22011',

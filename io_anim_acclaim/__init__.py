@@ -29,7 +29,7 @@ bl_info = {
     'blender': (2, 6, 2),
     'location': "File > Import-Export",
     'description': "Imports Acclaim Skeleton and Motion Capture Files",
-    'wiki_url': "http://wiki.blender.org/index.php/Extensions:2.5/Py/"
+    'wiki_url': "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
                 "Scripts/Import-Export/Acclaim_Importer",
     'tracker_url': "http://projects.blender.org/tracker/index.php?"
                    "func=detail&aid=27127&group_id=153&atid=467",

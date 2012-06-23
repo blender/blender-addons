@@ -25,7 +25,7 @@ bl_info= {
     "description": "Imports a LWO file including any UV, Morph and Color maps. "\
         "Can convert Skelegons to an Armature.",
     "warning": "",
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"\
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"\
         "Scripts/Import-Export/LightWave_Object",
     "tracker_url": "https://projects.blender.org/tracker/index.php?"\
         "func=detail&aid=23623",

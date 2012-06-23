@@ -26,7 +26,7 @@ bl_info = {
     "description": "Import-Export 3DS, meshes, uvs, materials, textures, "
                    "cameras & lamps",
     "warning": "",
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
                 "Scripts/Import-Export/Autodesk_3DS",
     "tracker_url": "",
     "support": 'OFFICIAL',

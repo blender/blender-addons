@@ -26,7 +26,7 @@ bl_info = {
     "location": "File > Import/Export > Nuke (.chan)",
     "description": "Import/Export object's animation with nuke",
     "warning": "",
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
                 "Scripts/Import-Export/Nuke",
     "tracker_url": "http://projects.blender.org/tracker/?"
                    "func=detail&atid=467&aid=28368&group_id=153",

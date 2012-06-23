@@ -26,7 +26,7 @@ bl_info = {
     "location": "Render buttons (Properties window)",
     "description": "Allows to copy a selection of render settings from "
                    "current scene to others.",
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
                 "Scripts/Render/Copy Settings",
     "tracker_url": "http://projects.blender.org/tracker/index.php?"
                    "func=detail&aid=25832",

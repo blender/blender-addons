@@ -20,13 +20,13 @@ bl_info = {
     "name": "Sapling",
     "author": "Andrew Hale (TrumanBlending)",
     "version": (0, 2, 5),
-    "blender": (2, 5, 9),
+    "blender": (2, 6, 4),
     "location": "View3D > Add > Curve",
     "description": ("Adds a parametric tree. The method is presented by "
     "Jason Weber & Joseph Penn in their paper 'Creation and Rendering of "
     "Realistic Trees'."),
     "warning": "",  # used for warning icon and text in addons panel
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"\
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"\
         "Scripts/Curve/Sapling_Tree",
     "tracker_url": "http://projects.blender.org/tracker/"\
         "?func=detail&atid=469&aid=27226&group_id=153",

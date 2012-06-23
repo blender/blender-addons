@@ -26,7 +26,7 @@ bl_info = {
     "description": "Export MAP brushes, nurbs surfaces, "
                    "lamps and empties as map nodes",
     "warning": "",
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
                 "Scripts/Import-Export/Quake_MAP",
     "tracker_url": "",
     "support": 'OFFICIAL',

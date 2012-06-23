@@ -26,7 +26,7 @@ bl_info = {
     "location": "File > Import-Export > Stl",
     "description": "Import-Export STL files",
     "warning": "",
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
                 "Scripts/Import-Export/STL",
     "tracker_url": "https://projects.blender.org/tracker/index.php?"
                    "func=detail&aid=22837",
