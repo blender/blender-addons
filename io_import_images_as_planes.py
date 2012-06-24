@@ -19,9 +19,9 @@
 bl_info = {
     "name": "Import Images as Planes",
     "author": "Florian Meyer (tstscr)",
-    "version": (1, 5),
+    "version": (1, 6),
     "blender": (2, 6, 3),
-    "location": "File > Import > Images as Planes",
+    "location": "File > Import > Images as Planes or Add > Mesh > Images as Planes",
     "description": "Imports images and creates planes with the appropriate "
                    "aspect ratio. The images are mapped to the planes.",
     "warning": "",
@@ -35,227 +35,94 @@ import bpy
 from bpy.types import Operator
 import mathutils
 import os
+import collections
 
-from bpy.props import (BoolProperty,
+from bpy.props import (StringProperty,
+                       BoolProperty,
                        EnumProperty,
                        IntProperty,
                        FloatProperty,
+                       CollectionProperty,
                        )
 
 from bpy_extras.object_utils import AddObjectHelper, object_data_add
-from bpy_extras.io_utils import ImportHelper
 from bpy_extras.image_utils import load_image
 
 # -----------------------------------------------------------------------------
 # Global Vars
 
-EXT_LIST = {
-    'jpeg': ('jpeg', 'jpg', 'jpe'),
-    'png': ('png', ),
-    'tga': ('tga', 'tpic'),
-    'tiff': ('tiff', 'tif'),
-    'exr': ('exr', ),
-    'hdr': ('hdr', ),
-    'avi': ('avi', ),
-    'mov': ('mov', 'qt'),
-    'mp4': ('mp4', ),
-    'ogg': ('ogg', 'ogv'),
-    'bmp': ('bmp', 'dib'),
-    'cin': ('cin', ),
-    'dpx': ('dpx', ),
-    'psd': ('psd', ),
-    }
+EXT_FILTER = getattr(collections, "OrderedDict", dict)((
+    ("*", ((), "All image formats",
+           "Import all know image (or movie) formats.")),
+    ("jpeg", (("jpeg", "jpg", "jpe"), "JPEG ({})",
+              "Joint Photographic Experts Group")),
+    ("png", (("png", ), "PNG ({})", "Portable Network Graphics")),
+    ("tga", (("tga", "tpic"), "Truevision TGA ({})", "")),
+    ("tiff", (("tiff", "tif"), "TIFF ({})", "Tagged Image File Format")),
+    ("bmp", (("bmp", "dib"), "BMP ({})", "Windows Bitmap")),
+    ("cin", (("cin", ), "CIN ({})", "")),
+    ("dpx", (("dpx", ), "DPX ({})", "DPX (Digital Picture Exchange)")),
+    ("psd", (("psd", ), "PSD ({})", "Photoshop Document")),
+    ("exr", (("exr", ), "OpenEXR ({})", "OpenEXR HDR imaging image file format")),
+    ("hdr", (("hdr", "pic"), "Radiance HDR ({})", "")),
+    ("avi", (("avi", ), "AVI ({})", "Audio Video Interleave")),
+    ("mov", (("mov", "qt"), "QuickTime ({})", "")),
+    ("mp4", (("mp4", ), "MPEG-4 ({})", "MPEG-4 Part 14")),
+    ("ogg", (("ogg", "ogv"), "OGG Theora ({})", "")),
+    ))
 
-EXTENSIONS = [ext for ext_ls in EXT_LIST.values() for ext in ext_ls]
+# XXX Hack to avoid allowing videos with Cycles, crashes currently!
+VID_EXT_FILTER = {e for ext_k, ext_v in EXT_FILTER.items()
+                    if ext_k in {"avi", "mov", "mp4", "ogg"}
+                      for e in ext_v[0]}
 
+CYCLES_SHADERS = (
+    ('BSDF_DIFFUSE', "Diffuse", "Diffuse Shader"),
+    ('EMISSION', "Emission", "Emission Shader"),
+    ('BSDF_DIFFUSE_BSDF_TRANSPARENT', "Diffuse & Transparent",
+     "Diffuse and Transparent Mix"),
+    ('EMISSION_BSDF_TRANSPARENT', "Emission & Transparent",
+     "Emission and Transparent Mix")
+)
 
 # -----------------------------------------------------------------------------
-# misc
-def set_image_options(self, image):
-    image.use_premultiply = self.use_premultiply
-    if self.relative:
-        image.filepath = bpy.path.relpath(image.filepath)
+# Misc utils.
+def gen_ext_filter_ui_items():
+    return ((k,
+             name.format(", ".join("." + e for e in exts)) if "{}" in name else name,
+             desc)
+            for k, (exts, name, desc) in EXT_FILTER.items())
 
 
-def is_image_fn_any(fn):
+def is_image_fn(fn, ext_key):
+    if ext_key == "*":
+        return True  # Using Blender's image/movie filter.
     ext = os.path.splitext(fn)[1].lstrip(".").lower()
-    return ext in EXTENSIONS
-
-
-def is_image_fn_single(fn, ext_key):
-    ext = os.path.splitext(fn)[1].lstrip(".").lower()
-    return ext in EXT_LIST[ext_key]
-
-
-def align_planes(self, planes):
-    gap = self.align_offset
-    offset = 0
-    for i, plane in enumerate(planes):
-        offset += (plane.dimensions.x / 2.0) + gap
-        if i == 0:
-            continue
-        move_local = mathutils.Vector((offset, 0.0, 0.0))
-        move_world = plane.location + move_local * plane.matrix_world.inverted()
-        plane.location += move_world
-        offset += (plane.dimensions.x / 2.0)
-
-
-def generate_paths(self):
-    directory, fn = os.path.split(self.filepath)
-
-    if fn and not self.all_in_directory:
-        # test for extension
-        if not is_image_fn_any(fn):
-            return [], directory
-
-        return [self.filepath], directory
-
-    if not fn or self.all_in_directory:
-        imagepaths = []
-        files_in_directory = os.listdir(directory)
-        # clean files from nonimages
-        files_in_directory = [fn for fn in files_in_directory
-                              if is_image_fn_any(fn)]
-        # clean from unwanted extensions
-        if self.extension != "*":
-            files_in_directory = [fn for fn in files_in_directory
-                                  if is_image_fn_single(fn, self.extension)]
-        # create paths
-        for fn in files_in_directory:
-            imagepaths.append(os.path.join(directory, fn))
-        #print(imagepaths)
-        return imagepaths, directory
-
-# -----------------------------------------------------------------------------
-# Blender
-def create_image_textures(self, image):
-    fn_full = os.path.normpath(bpy.path.abspath(image.filepath))
-
-    # look for texture with importsettings
-    for texture in bpy.data.textures:
-        if texture.type == 'IMAGE':
-            tex_img = texture.image
-            if (tex_img is not None) and (tex_img.library is None):
-                fn_tex_full = os.path.normpath(bpy.path.abspath(tex_img.filepath))
-                if fn_full == fn_tex_full:
-                    texture.use_alpha = self.use_transparency
-                    return texture
-
-    # if no texture is found: create one
-    name_compat = bpy.path.display_name_from_filepath(image.filepath)
-    texture = bpy.data.textures.new(name=name_compat, type='IMAGE')
-    texture.image = image
-    texture.use_alpha = self.use_transparency
-    return texture
-
-
-def create_material_for_texture(self, texture):
-    # look for material with the needed texture
-    for material in bpy.data.materials:
-        slot = material.texture_slots[0]
-        if slot and slot.texture == texture:
-            if self.use_transparency:
-                material.alpha = 0.0
-                material.specular_alpha = 0.0
-                slot.use_map_alpha = True
-            else:
-                material.alpha = 1.0
-                material.specular_alpha = 1.0
-                slot.use_map_alpha = False
-            material.use_transparency = self.use_transparency
-            material.transparency_method = self.transparency_method
-            material.use_shadeless = self.use_shadeless
-            material.use_transparent_shadows = self.use_transparent_shadows
-            return material
-
-    # if no material found: create one
-    name_compat = bpy.path.display_name_from_filepath(texture.image.filepath)
-    material = bpy.data.materials.new(name=name_compat)
-    slot = material.texture_slots.add()
-    slot.texture = texture
-    slot.texture_coords = 'UV'
-    if self.use_transparency:
-        slot.use_map_alpha = True
-        material.alpha = 0.0
-        material.specular_alpha = 0.0
-    else:
-        material.alpha = 1.0
-        material.specular_alpha = 1.0
-        slot.use_map_alpha = False
-    material.use_transparency = self.use_transparency
-    material.transparency_method = self.transparency_method
-    material.use_shadeless = self.use_shadeless
-    material.use_transparent_shadows = self.use_transparent_shadows
-
-    return material
-
-
-def create_image_plane(self, context, material):
-    engine = context.scene.render.engine
-    if engine == 'BLENDER_RENDER':
-        img = material.texture_slots[0].texture.image
-    if engine == 'CYCLES':
-        nodes = material.node_tree.nodes
-        img_node = [node for node in nodes if node.type == 'TEX_IMAGE'][0]
-        img = img_node.image
-        
-    px, py = img.size
-
-    # can't load data
-    if px == 0 or py == 0:
-        px = py = 1
-
-    x = px / py
-    y = 1.0
-
-    if self.use_dimension:
-        x = (px * (1.0 / self.factor)) * 0.5
-        y = (py * (1.0 / self.factor)) * 0.5
-
-    verts = ((-x, -y, 0.0),
-             (+x, -y, 0.0),
-             (+x, +y, 0.0),
-             (-x, +y, 0.0),
-             )
-    faces = ((0, 1, 2, 3), )
-
-    mesh_data = bpy.data.meshes.new(img.name)
-    mesh_data.from_pydata(verts, [], faces)
-    mesh_data.update()
-    object_data_add(context, mesh_data, operator=self)
-    plane = context.scene.objects.active
-    plane.data.uv_textures.new()
-    plane.data.materials.append(material)
-    plane.data.uv_textures[0].data[0].image = img
-
-    material.game_settings.use_backface_culling = False
-    material.game_settings.alpha_blend = 'ALPHA'
-    return plane
+    return ext in EXT_FILTER[ext_key][0]
 
 
 # -----------------------------------------------------------------------------
-# Cycles
-def get_input_links(node, nodes, links):
-    input_links = []
-    for link in links:
-        if link.to_node == node:
-            input_links.append(link)
-    
-    sorted_links = []
-    while input_links:
-        for input in node.inputs:
-            for link in input_links:
-                if link.to_socket == input:
-                    sorted_links.append(link)
-                    input_links.remove(link)
-    return sorted_links
-
+# Cycles utils.
 def get_input_nodes(node, nodes, links):
-    input_nodes = []
-    input_links = get_input_links(node, nodes, links)
-    for link in input_links:
-        input_nodes.append(link.from_node)
-    return input_nodes
+    # Get all links going to node.
+    input_links = {lnk for lnk in links if lnk.to_node == node}
+    # Sort those links, get their input nodes (and avoid doubles!).
+    sorted_nodes = []
+    done_nodes = set()
+    for socket in node.inputs:
+        done_links = set()
+        for link in input_links:
+            nd = link.from_node
+            if nd in done_nodes:
+                # Node already treated!
+                done_links.add(link)
+            elif link.to_socket == socket:
+                sorted_nodes.append(nd)
+                done_links.add(link)
+                done_nodes.add(nd)
+        input_links -= done_links
+    return sorted_nodes
+
 
 def auto_align_nodes(node_tree):
     print('\nAligning Nodes')
@@ -263,19 +130,25 @@ def auto_align_nodes(node_tree):
     y_gap = 100
     nodes = node_tree.nodes
     links = node_tree.links
-    to_node = [node for node in nodes if node.type == 'OUTPUT_MATERIAL'][0]
+    to_node = None
+    for node in nodes:
+        if node.type == 'OUTPUT_MATERIAL':
+            to_node = node
+            break
+    if not to_node:
+        return  # Unlikely, but bette check anyway...
 
     def align(to_node, nodes, links):
         from_nodes = get_input_nodes(to_node, nodes, links)
-                
         for i, node in enumerate(from_nodes):
             node.location.x = to_node.location.x - x_gap
             node.location.y = to_node.location.y
             node.location.y -= i * y_gap
             node.location.y += (len(from_nodes)-1) * y_gap / (len(from_nodes))
             align(node, nodes, links)
-    
+
     align(to_node, nodes, links)
+
 
 def clean_node_tree(node_tree):
     nodes = node_tree.nodes
@@ -284,114 +157,11 @@ def clean_node_tree(node_tree):
             nodes.remove(node)
     return node_tree.nodes[0]
 
-def create_cycles_material(self, image):
-    name_compat = bpy.path.display_name_from_filepath(image.filepath)
-    material = None
-    for mat in bpy.data.materials:
-        if mat.name == name_compat and self.overwrite_node_tree:
-            material = mat
-    if not material:
-        material = bpy.data.materials.new(name=name_compat)
-    
-    material.use_nodes = True
-    node_tree = material.node_tree
-    out_node = clean_node_tree(node_tree)
-    
-    if self.shader == 'BSDF_DIFFUSE':
-        bsdf_diffuse = node_tree.nodes.new('BSDF_DIFFUSE')
-        tex_image = node_tree.nodes.new('TEX_IMAGE')
-        tex_image.image = image
-        tex_image.show_texture = True
-        node_tree.links.new(out_node.inputs[0], bsdf_diffuse.outputs[0])
-        node_tree.links.new(bsdf_diffuse.inputs[0], tex_image.outputs[0])
-
-    if self.shader == 'EMISSION':
-        emission = node_tree.nodes.new('EMISSION')
-        tex_image = node_tree.nodes.new('TEX_IMAGE')
-        tex_image.image = image
-        tex_image.show_texture = True
-        node_tree.links.new(out_node.inputs[0], emission.outputs[0])
-        node_tree.links.new(emission.inputs[0], tex_image.outputs[0])
-
-    if self.shader == 'BSDF_DIFFUSE + BSDF TRANSPARENT':
-        bsdf_diffuse = node_tree.nodes.new('BSDF_DIFFUSE')
-        bsdf_transparent = node_tree.nodes.new('BSDF_TRANSPARENT')
-        mix_shader = node_tree.nodes.new('MIX_SHADER')
-        tex_image = node_tree.nodes.new('TEX_IMAGE')
-        tex_image.image = image
-        tex_image.show_texture = True
-        node_tree.links.new(out_node.inputs[0], mix_shader.outputs[0])
-        node_tree.links.new(mix_shader.inputs[0], tex_image.outputs[1])
-        node_tree.links.new(mix_shader.inputs[2], bsdf_diffuse.outputs[0])
-        node_tree.links.new(mix_shader.inputs[1], bsdf_transparent.outputs[0])
-        node_tree.links.new(bsdf_diffuse.inputs[0], tex_image.outputs[0])
-
-    
-    if self.shader == 'EMISSION + BSDF TRANSPARENT':
-        emission = node_tree.nodes.new('EMISSION')
-        bsdf_transparent = node_tree.nodes.new('BSDF_TRANSPARENT')
-        mix_shader = node_tree.nodes.new('MIX_SHADER')
-        tex_image = node_tree.nodes.new('TEX_IMAGE')
-        tex_image.image = image
-        tex_image.show_texture = True
-        node_tree.links.new(out_node.inputs[0], mix_shader.outputs[0])
-        node_tree.links.new(mix_shader.inputs[0], tex_image.outputs[1])
-        node_tree.links.new(mix_shader.inputs[2], emission.outputs[0])
-        node_tree.links.new(mix_shader.inputs[1], bsdf_transparent.outputs[0])
-        node_tree.links.new(emission.inputs[0], tex_image.outputs[0])
-
-
-    auto_align_nodes(node_tree)
-
-    return material
-
-# -----------------------------------------------------------------------------
-# Main
-
-def import_images(self, context):
-    engine = context.scene.render.engine
-    import_list, directory = generate_paths(self)
-    images = []
-    textures = []
-    materials = []
-    planes = []
-
-    for path in import_list:
-        images.append(load_image(path, directory))
-
-    if engine == 'BLENDER_RENDER':
-        for image in images:
-            set_image_options(self, image)
-            textures.append(create_image_textures(self, image))
-    
-        for texture in textures:
-            materials.append(create_material_for_texture(self, texture))
-    
-        for material in materials:
-            planes.append(create_image_plane(self, context, material))
-    
-    if engine == 'CYCLES':
-        for image in images:
-            materials.append(create_cycles_material(self, image))
-            
-        for material in materials:
-            planes.append(create_image_plane(self, context, material))
-
-
-    context.scene.update()
-    if self.align:
-        align_planes(self, planes)
-
-    for plane in planes:
-        plane.select = True
-
-    self.report({'INFO'}, "Added %i Image Plane(s)" % len(planes))
-
 
 # -----------------------------------------------------------------------------
 # Operator
 
-class IMPORT_OT_image_to_plane(Operator, ImportHelper, AddObjectHelper):
+class IMPORT_OT_image_to_plane(Operator, AddObjectHelper):
     """Create mesh plane(s) from image files """ \
     """with the appropiate aspect ratio"""
 
@@ -399,122 +169,120 @@ class IMPORT_OT_image_to_plane(Operator, ImportHelper, AddObjectHelper):
     bl_label = "Import Images as Planes"
     bl_options = {'REGISTER', 'UNDO'}
 
-    # -------
-    # Options
-    all_in_directory = BoolProperty(
-            name="All in directory",
-            description=("Import all image files (of the selected type) "
-                         "in this directory"),
-            default=False,
-            )
-    align = BoolProperty(
-            name='Align Planes',
-            description='Create Planes in a row',
-            default=True,
-            )
-    align_offset = FloatProperty(
-            name='Offset',
-            description='Space between Planes',
-            min=0,
-            soft_min=0,
-            default=0.1,
-            )
-    extension = EnumProperty(
-            name="Extension",
-            description="Only import files of this type",
-            items=(
-            ('*', 'All image formats',
-                'Import all know image (or movie) formats.'),
-            ('jpeg', 'JPEG (.jpg, .jpeg, .jpe)',
-                'Joint Photographic Experts Group'),
-            ('png', 'PNG (.png)', 'Portable Network Graphics'),
-            ('tga', 'Truevision TGA (.tga, tpic)', ''),
-            ('tiff', 'TIFF (.tif, .tiff)', 'Tagged Image File Format'),
-            ('exr', 'OpenEXR (.exr)', 'OpenEXR HDR imaging image file format'),
-            ('hdr', 'Radiance HDR (.hdr, .pic)', ''),
-            ('avi', 'AVI (.avi)', 'Audio Video Interleave'),
-            ('mov', 'QuickTime (.mov, .qt)', ''),
-            ('mp4', 'MPEG-4 (.mp4)', ' MPEG-4 Part 14'),
-            ('ogg', 'OGG Theora (.ogg, .ogv)', ''),
-            ('bmp', 'BMP (.bmp, .dib)', 'Windows Bitmap'),
-            ('cin', 'CIN (.cin)', ''),
-            ('dpx', 'DPX (.dpx)', 'DPX (Digital Picture Exchange)'),
-            ('psd', 'PSD (.psd)', 'Photoshop Document')),
-            )
-    use_dimension = BoolProperty(name="Use image dimensions",
-            description="Use the images pixels to derive planes size in Blender Units",
-            default=False,
-            )
-    factor = IntProperty(name="Pixels/BU",
-            description="Number of pixels per Blenderunit",
-            min=1,
-            default=500,
-            )
+    # -----------
+    # File props.
+    files = CollectionProperty(type=bpy.types.OperatorFileListElement,
+                               options={'HIDDEN', 'SKIP_SAVE'})
 
-    # ----------------
-    # Material Options
-    use_shadeless = BoolProperty(
-            name="Shadeless",
-            description="Set material to shadeless",
-            default=False,
-            )
-    use_transparency = BoolProperty(
-            name="Use alpha",
-            description="Use alphachannel for transparency",
-            default=False,
-            )
+    directory = StringProperty(maxlen=1024, subtype='FILE_PATH',
+                               options={'HIDDEN', 'SKIP_SAVE'})
 
-    transparency_method = EnumProperty(
-            name="Transp. Method",
-            description="Transparency Method",
-            items=(
-            ('Z_TRANSPARENCY',
-            'Z Transparency',
-            'Use alpha buffer for transparent faces'),
-            ('RAYTRACE',
-            'Raytrace',
-            'Use raytracing for transparent refraction rendering.')),
-            )
-    use_transparent_shadows = BoolProperty(
-            name="Receive Transparent",
-            description="Set material to receive transparent shadows",
-            default=False,
-            )
+    # Show only images/videos, and directories!
+    filter_image = BoolProperty(default=True, options={'HIDDEN', 'SKIP_SAVE'})
+    filter_movie = BoolProperty(default=True, options={'HIDDEN', 'SKIP_SAVE'})
+    filter_folder = BoolProperty(default=True, options={'HIDDEN', 'SKIP_SAVE'})
+    filter_glob = StringProperty(default="", options={'HIDDEN', 'SKIP_SAVE'})
 
-    shader = EnumProperty(
-            name="Shader",
-            description="Shader",
-            items=(
-            ('BSDF_DIFFUSE',
-            'Diffuse',
-            'Diffuse Shader'),
-            ('EMISSION',
-            'Emission',
-            'Emission Shader'),
-            ('BSDF_DIFFUSE + BSDF TRANSPARENT',
-            'Diffuse + Transparent',
-            'Diffuse + Transparent Mix'),
-            ('EMISSION + BSDF TRANSPARENT',
-            'Emission + Transparent',
-            'Emission + Transparent Mix')),
-            )
-    overwrite_node_tree = BoolProperty(
-            name="overwrite Material",
-            description="overwrite existing Material with new nodetree (based on material name)",
-            default=True,
-            )
-    
-    # -------------
-    # Image Options
-    use_premultiply = BoolProperty(name="Premultiply",
-                                description="Premultiply image",
-                                default=False)
+    # --------
+    # Options.
+    align = BoolProperty(name="Align Planes", default=True,
+                         description="Create Planes in a row")
 
-    relative = BoolProperty(
-            name="Relative",
-            description="Apply relative paths",
-            default=True,
-            )
+    align_offset = FloatProperty(name="Offset", min=0, soft_min=0, default=0.1,
+                                 description="Space between Planes")
+
+    # Callback which will update File window's filter options accordingly
+    # to extension setting.
+    def update_extensions(self, context):
+        is_cycles = context.scene.render.engine == 'CYCLES'
+        if self.extension == "*":
+            self.filter_image = True
+            # XXX Hack to avoid allowing videos with Cycles, crashes currently!
+            self.filter_movie = True and not is_cycles
+            self.filter_glob = ""
+        else:
+            self.filter_image = False
+            self.filter_movie = False
+            if is_cycles:
+                # XXX Hack to avoid allowing videos with Cycles!
+                flt = ";".join(("*." + e for e in EXT_FILTER[self.extension][0]
+                                if e not in VID_EXT_FILTER))
+            else:
+                flt = ";".join(("*." + e
+                                for e in EXT_FILTER[self.extension][0]))
+            self.filter_glob = flt
+        # And now update space (file select window), if possible.
+        space = bpy.context.space_data
+        # XXX Can't use direct op comparison, these are not the same objects!
+        if (space.type != 'FILE_BROWSER' or
+            space.operator.bl_rna.identifier != self.bl_rna.identifier):
+            return
+        space.params.use_filter_image = self.filter_image
+        space.params.use_filter_movie = self.filter_movie
+        space.params.filter_glob = self.filter_glob
+        # XXX Seems to be necessary, else not all changes above take effect...
+        bpy.ops.file.refresh()
+    extension = EnumProperty(name="Extension", items=gen_ext_filter_ui_items(),
+                             description="Only import files of this type",
+                             update=update_extensions)
+
+    use_dimension = BoolProperty(name="Use Image Dimensions", default=False,
+                                 description="Use the images pixels to derive "
+                                             "planes size")
+
+    factor = IntProperty(name="Pixels/BU", min=1, default=500,
+                         description="Number of pixels per Blenderunit")
+
+    # -------------------------
+    # Blender material options.
+    t = bpy.types.Material.bl_rna.properties["use_shadeless"]
+    use_shadeless = BoolProperty(name=t.name, default=False,
+                                 description=t.description)
+
+    use_transparency = BoolProperty(name="Use Alpha", default=False,
+                                    description="Use alphachannel for "
+                                                "transparency")
+
+    t = bpy.types.Material.bl_rna.properties["transparency_method"]
+    items = ((it.identifier, it.name, it.description) for it in t.enum_items)
+    transparency_method = EnumProperty(name="Transp. Method",
+                                       description=t.description,
+                                       items=items)
+
+    t = bpy.types.Material.bl_rna.properties["use_transparent_shadows"]
+    use_transparent_shadows = BoolProperty(name=t.name, default=False,
+                                           description=t.description)
+
+    #-------------------------
+    # Cycles material options.
+    shader = EnumProperty(name="Shader", items=CYCLES_SHADERS,
+                          description="Node shader to use")
+
+    overwrite_node_tree = BoolProperty(name="Overwrite Material", default=True,
+                                       description="Overwrite existing "
+                                       "Material with new nodetree (based "
+                                       "on material name)")
+
+    # --------------
+    # Image Options.
+    t = bpy.types.Image.bl_rna.properties["use_premultiply"]
+    use_premultiply = BoolProperty(name=t.name, default=False,
+                                   description=t.description)
+
+    t = bpy.types.IMAGE_OT_match_movie_length.bl_rna
+    match_len = BoolProperty(name=t.name, default=True,
+                             description=t.description)
+
+    t = bpy.types.Image.bl_rna.properties["use_fields"]
+    use_fields = BoolProperty(name=t.name, default=False,
+                              description=t.description)
+
+    t = bpy.types.ImageUser.bl_rna.properties["use_auto_refresh"]
+    use_auto_refresh = BoolProperty(name=t.name, default=True,
+                                    description=t.description)
+
+    relative = BoolProperty(name="Relative", default=True,
+                            description="Apply relative paths")
 
     def draw(self, context):
         engine = context.scene.render.engine
@@ -522,7 +290,6 @@ class IMPORT_OT_image_to_plane(Operator, ImportHelper, AddObjectHelper):
 
         box = layout.box()
         box.label("Import Options:", icon='FILTER')
-        box.prop(self, "all_in_directory")
         box.prop(self, "extension", icon='FILE_IMAGE')
         box.prop(self, "align")
         box.prop(self, "align_offset")
@@ -530,29 +297,37 @@ class IMPORT_OT_image_to_plane(Operator, ImportHelper, AddObjectHelper):
         row = box.row()
         row.active = bpy.data.is_saved
         row.prop(self, "relative")
-
+        # XXX Hack to avoid allowing videos with Cycles, crashes currently!
         if engine == 'BLENDER_RENDER':
-            box = layout.box()
+            box.prop(self, "match_len")
+            box.prop(self, "use_fields")
+            box.prop(self, "use_auto_refresh")
+
+        box = layout.box()
+        if engine == 'BLENDER_RENDER':
             box.label("Material Settings: (Blender)", icon='MATERIAL')
             box.prop(self, "use_shadeless")
             box.prop(self, "use_transparency")
             box.prop(self, "use_premultiply")
             box.prop(self, "transparency_method", expand=True)
             box.prop(self, "use_transparent_shadows")
-
-        if engine == 'CYCLES':
+        elif engine == 'CYCLES':
             box = layout.box()
             box.label("Material Settings: (Cycles)", icon='MATERIAL')
             box.prop(self, 'shader', expand = True)
             box.prop(self, 'overwrite_node_tree')
-            
+
         box = layout.box()
         box.label("Plane dimensions:", icon='ARROW_LEFTRIGHT')
         box.prop(self, "use_dimension")
         box.prop(self, "factor", expand=True)
 
-    def execute(self, context):
+    def invoke(self, context, event):
+        self.update_extensions(context)
+        context.window_manager.fileselect_add(self)
+        return {'RUNNING_MODAL'}
 
+    def execute(self, context):
         if not bpy.data.is_saved:
             self.relative = False
 
@@ -561,34 +336,248 @@ class IMPORT_OT_image_to_plane(Operator, ImportHelper, AddObjectHelper):
         # disable relevant things beforehand
         editmode = context.user_preferences.edit.use_enter_edit_mode
         context.user_preferences.edit.use_enter_edit_mode = False
-        if context.active_object\
-        and context.active_object.mode == 'EDIT':
+        if (context.active_object and
+            context.active_object.mode == 'EDIT'):
             bpy.ops.object.mode_set(mode='OBJECT')
 
-        import_images(self, context)
+        self.import_images(context)
 
         context.user_preferences.edit.use_enter_edit_mode = editmode
         return {'FINISHED'}
 
+    # Main...
+    def import_images(self, context):
+        engine = context.scene.render.engine
+        import_list, directory = self.generate_paths()
+
+        images = (load_image(path, directory) for path in import_list)
+
+        if engine == 'BLENDER_RENDER':
+            textures = []
+            for img in images:
+                self.set_image_options(img)
+                textures.append(self.create_image_textures(img))
+
+            materials = (self.create_material_for_texture(tex)
+                         for tex in textures)
+
+        elif engine == 'CYCLES':
+            materials = (self.create_cycles_material(img) for img in images)
+
+        planes = tuple(self.create_image_plane(context, mat)
+                       for mat in materials)
+
+        context.scene.update()
+        if self.align:
+            self.align_planes(planes)
+
+        for plane in planes:
+            plane.select = True
+
+        self.report({'INFO'}, "Added {} Image Plane(s)".format(len(planes)))
+
+    def create_image_plane(self, context, material):
+        engine = context.scene.render.engine
+        if engine == 'BLENDER_RENDER':
+            img = material.texture_slots[0].texture.image
+        elif engine == 'CYCLES':
+            nodes = material.node_tree.nodes
+            img = next((node.image for node in nodes if node.type == 'TEX_IMAGE'))
+        px, py = img.size
+
+        # can't load data
+        if px == 0 or py == 0:
+            px = py = 1
+
+        x = px / py
+        y = 1.0
+
+        if self.use_dimension:
+            x = (px * (1.0 / self.factor)) * 0.5
+            y = (py * (1.0 / self.factor)) * 0.5
+
+        verts = ((-x, -y, 0.0),
+                 (+x, -y, 0.0),
+                 (+x, +y, 0.0),
+                 (-x, +y, 0.0),
+                 )
+        faces = ((0, 1, 2, 3), )
+
+        mesh_data = bpy.data.meshes.new(img.name)
+        mesh_data.from_pydata(verts, [], faces)
+        mesh_data.update()
+        object_data_add(context, mesh_data, operator=self)
+        plane = context.scene.objects.active
+        plane.data.uv_textures.new()
+        plane.data.materials.append(material)
+        plane.data.uv_textures[0].data[0].image = img
+
+        material.game_settings.use_backface_culling = False
+        material.game_settings.alpha_blend = 'ALPHA'
+        return plane
+
+    def align_planes(self, planes):
+        gap = self.align_offset
+        offset = 0
+        for i, plane in enumerate(planes):
+            offset += (plane.dimensions.x / 2.0) + gap
+            if i == 0:
+                continue
+            move_local = mathutils.Vector((offset, 0.0, 0.0))
+            move_world = plane.location + move_local * plane.matrix_world.inverted()
+            plane.location += move_world
+            offset += (plane.dimensions.x / 2.0)
+
+    def generate_paths(self):
+        return (fn.name for fn in self.files
+                if is_image_fn(fn.name, self.extension)), self.directory
+
+    # Internal
+    def create_image_textures(self, image):
+        fn_full = os.path.normpath(bpy.path.abspath(image.filepath))
+
+        # look for texture with importsettings
+        for texture in bpy.data.textures:
+            if texture.type == 'IMAGE':
+                tex_img = texture.image
+                if (tex_img is not None) and (tex_img.library is None):
+                    fn_tex_full = os.path.normpath(bpy.path.abspath(tex_img.filepath))
+                    if fn_full == fn_tex_full:
+                        self.set_texture_options(texture)
+                        return texture
+
+        # if no texture is found: create one
+        name_compat = bpy.path.display_name_from_filepath(image.filepath)
+        texture = bpy.data.textures.new(name=name_compat, type='IMAGE')
+        texture.image = image
+        self.set_texture_options(texture)
+        return texture
+
+    def create_material_for_texture(self, texture):
+        # look for material with the needed texture
+        for material in bpy.data.materials:
+            slot = material.texture_slots[0]
+            if slot and slot.texture == texture:
+                self.set_material_options(material, slot)
+                return material
+
+        # if no material found: create one
+        name_compat = bpy.path.display_name_from_filepath(texture.image.filepath)
+        material = bpy.data.materials.new(name=name_compat)
+        slot = material.texture_slots.add()
+        slot.texture = texture
+        slot.texture_coords = 'UV'
+        self.set_material_options(material, slot)
+        return material
+
+    def set_image_options(self, image):
+        image.use_premultiply = self.use_premultiply
+        image.use_fields = self.use_fields
+
+        if self.relative:
+            image.filepath = bpy.path.relpath(image.filepath)
+
+    def set_texture_options(self, texture):
+        texture.use_alpha = self.use_transparency
+        texture.image_user.use_auto_refresh = self.use_auto_refresh
+        if self.match_len:
+            ctx = {"edit_image": texture.image,
+                   "edit_image_user": texture.image_user,}
+            bpy.ops.image.match_movie_length(ctx)
+
+    def set_material_options(self, material, slot):
+        if self.use_transparency:
+            material.alpha = 0.0
+            material.specular_alpha = 0.0
+            slot.use_map_alpha = True
+        else:
+            material.alpha = 1.0
+            material.specular_alpha = 1.0
+            slot.use_map_alpha = False
+        material.use_transparency = self.use_transparency
+        material.transparency_method = self.transparency_method
+        material.use_shadeless = self.use_shadeless
+        material.use_transparent_shadows = self.use_transparent_shadows
+
+    #--------------------------------------------------------------------------
+    # Cycles
+    def create_cycles_material(self, image):
+        name_compat = bpy.path.display_name_from_filepath(image.filepath)
+        material = None
+        for mat in bpy.data.materials:
+            if mat.name == name_compat and self.overwrite_node_tree:
+                material = mat
+        if not material:
+            material = bpy.data.materials.new(name=name_compat)
+
+        material.use_nodes = True
+        node_tree = material.node_tree
+        out_node = clean_node_tree(node_tree)
+
+        if self.shader == 'BSDF_DIFFUSE':
+            bsdf_diffuse = node_tree.nodes.new('BSDF_DIFFUSE')
+            tex_image = node_tree.nodes.new('TEX_IMAGE')
+            tex_image.image = image
+            tex_image.show_texture = True
+            node_tree.links.new(out_node.inputs[0], bsdf_diffuse.outputs[0])
+            node_tree.links.new(bsdf_diffuse.inputs[0], tex_image.outputs[0])
+
+        elif self.shader == 'EMISSION':
+            emission = node_tree.nodes.new('EMISSION')
+            tex_image = node_tree.nodes.new('TEX_IMAGE')
+            tex_image.image = image
+            tex_image.show_texture = True
+            node_tree.links.new(out_node.inputs[0], emission.outputs[0])
+            node_tree.links.new(emission.inputs[0], tex_image.outputs[0])
+
+        elif self.shader == 'BSDF_DIFFUSE_BSDF_TRANSPARENT':
+            bsdf_diffuse = node_tree.nodes.new('BSDF_DIFFUSE')
+            bsdf_transparent = node_tree.nodes.new('BSDF_TRANSPARENT')
+            mix_shader = node_tree.nodes.new('MIX_SHADER')
+            tex_image = node_tree.nodes.new('TEX_IMAGE')
+            tex_image.image = image
+            tex_image.show_texture = True
+            node_tree.links.new(out_node.inputs[0], mix_shader.outputs[0])
+            node_tree.links.new(mix_shader.inputs[0], tex_image.outputs[1])
+            node_tree.links.new(mix_shader.inputs[2], bsdf_diffuse.outputs[0])
+            node_tree.links.new(mix_shader.inputs[1], bsdf_transparent.outputs[0])
+            node_tree.links.new(bsdf_diffuse.inputs[0], tex_image.outputs[0])
+
+        elif self.shader == 'EMISSION_BSDF_TRANSPARENT':
+            emission = node_tree.nodes.new('EMISSION')
+            bsdf_transparent = node_tree.nodes.new('BSDF_TRANSPARENT')
+            mix_shader = node_tree.nodes.new('MIX_SHADER')
+            tex_image = node_tree.nodes.new('TEX_IMAGE')
+            tex_image.image = image
+            tex_image.show_texture = True
+            node_tree.links.new(out_node.inputs[0], mix_shader.outputs[0])
+            node_tree.links.new(mix_shader.inputs[0], tex_image.outputs[1])
+            node_tree.links.new(mix_shader.inputs[2], emission.outputs[0])
+            node_tree.links.new(mix_shader.inputs[1], bsdf_transparent.outputs[0])
+            node_tree.links.new(emission.inputs[0], tex_image.outputs[0])
+
+        auto_align_nodes(node_tree)
+        return material
+
 
 # -----------------------------------------------------------------------------
 # Register
-
-
 def import_images_button(self, context):
     self.layout.operator(IMPORT_OT_image_to_plane.bl_idname,
-                         text="Images as Planes",
-                         icon='PLUGIN')
+                         text="Images as Planes", icon='TEXTURE')
 
 
 def register():
     bpy.utils.register_module(__name__)
     bpy.types.INFO_MT_file_import.append(import_images_button)
+    bpy.types.INFO_MT_mesh_add.append(import_images_button)
 
 
 def unregister():
     bpy.utils.unregister_module(__name__)
     bpy.types.INFO_MT_file_import.remove(import_images_button)
+    bpy.types.INFO_MT_mesh_add.remove(import_images_button)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     register()
