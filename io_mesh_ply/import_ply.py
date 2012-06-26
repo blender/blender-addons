@@ -217,12 +217,10 @@ def read(filepath):
 import bpy
 
 
-def load_ply(filepath):
-    import time
+def load_ply_mesh(filepath, ply_name):
     from bpy_extras.io_utils import unpack_face_list
     # from bpy_extras.image_utils import load_image  # UNUSED
 
-    t = time.time()
     obj_spec, obj, texture = read(filepath)
     if obj is None:
         print('Invalid file')
@@ -292,8 +290,6 @@ def load_ply(filepath):
                 for j in range(len_ind - 2):
                     add_face(verts, (ind[0], ind[j + 1], ind[j + 2]), uvindices, colindices)
 
-    ply_name = bpy.path.display_name_from_filepath(filepath)
-
     mesh = bpy.data.meshes.new(name=ply_name)
 
     mesh.vertices.add(len(obj[b'vertex']))
@@ -357,6 +353,16 @@ def load_ply(filepath):
             mesh.materials.append(material)
             for face in mesh.uv_textures[0].data:
                 face.image = image
+
+    return mesh
+
+def load_ply(filepath):
+    import time
+
+    t = time.time()
+    ply_name = bpy.path.display_name_from_filepath(filepath)
+
+    mesh = load_ply_mesh(filepath, ply_name)
 
     scn = bpy.context.scene
 
