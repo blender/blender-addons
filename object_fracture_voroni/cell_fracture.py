@@ -21,161 +21,19 @@
 # Script copyright (C) Blender Foundation 2012
 
 
-# -----------------------------------------------------------------------------
-# copied from bullet 2.8
-def areVerticesBehindPlane(planeNormal, vertices, margin):
-    planeNormal_xyz_dot = planeNormal.xyz.dot  # speedup
-    for i, N1 in enumerate(vertices):
-        dist = planeNormal_xyz_dot(N1) + planeNormal[3] - margin
-        if dist > 0.0:
-            return False
-    return True
-
-
-def notExist(planeEquation, planeEquations):
-    for N1 in planeEquations:
-        if planeEquation.dot(N1) > 0.999:
-            return False
-    return True
-
-
-def getPlaneEquationsFromVertices(vertices):
-    planeEquationsOut = []
-    for i, N1 in enumerate(vertices):
-        for j in range(i + 1, len(vertices)):
-            N2 = vertices[j]
-            for k in range(j + 1, len(vertices)):
-                N3 = vertices[k]
-                # btVector3 planeEquation,edge0,edge1;
-                edge0 = N2 - N1
-                edge1 = N3 - N1
-                normalSign = 1.0
-                for normalSign in (1.0, -1.0):
-                    planeEquation = normalSign * edge0.cross(edge1)
-                    if planeEquation.length_squared > 0.0001:
-                        planeEquation.normalize()
-                        if notExist(planeEquation, planeEquationsOut):
-                            planeEquation.resize_4d()
-                            planeEquation[3] = -planeEquation.xyz.dot(N1)
-
-                            # check if inside, and replace supportingVertexOut if needed
-                            if areVerticesBehindPlane(planeEquation, vertices, 0.01):
-                                planeEquationsOut.append(planeEquation)
-    return planeEquationsOut
-
-# end bullet copy
-# ---------------
-
-T = [0.0]
-# phymecutils.c
-def getVerticesInsidePlanes(planes, verticesOut, planeIndicesOut):
-    if 1:
-        import mathutils
-        r = mathutils.geometry.points_in_planes(planes)
-        verticesOut[:] = r[0]
-        #planeIndicesOut[:] = r[1]
-        planeIndicesOut.clear()
-        planeIndicesOut.update(set(r[1]))
-        # print(verticesOut)
-        return
-    
-    # populates verticesOut
-    # std::set<int>& planeIndicesOut
-    # Based on btGeometryUtil.cpp (Gino van den Bergen / Erwin Coumans)
-    tt = time.time()
-    verticesOut[:] = []
-    planeIndicesOut.clear()
-
-    for i in range(len(planes)):
-        N1 = planes[i]
-        for j in range(i + 1, len(planes)):
-            N2 = planes[j]
-            n1n2 = N1.xyz.cross(N2.xyz)
-            if n1n2.length_squared > 0.0001:
-                for k in range(j + 1, len(planes)):
-                    N3 = planes[k]
-                    n2n3 = N2.xyz.cross(N3.xyz)
-                    n3n1 = N3.xyz.cross(N1.xyz)
-                    if (n2n3.length_squared > 0.0001) and (n3n1.length_squared > 0.0001):
-                        quotient = N1.xyz.dot(n2n3)
-                        if abs(quotient) > 0.0001:
-                            potentialVertex = (n2n3 * N1[3] + n3n1 * N2[3] + n1n2 * N3[3]) * (-1.0 / quotient)
-
-                            ok = True
-                            for l in range(len(planes)):
-                                NP = planes[l]
-                                if NP.xyz.dot(potentialVertex) + NP[3] > 0.000001:
-                                    ok = False
-                                    break
-
-                            if ok == True:
-                                # vertex (three plane intersection) inside all planes
-                                verticesOut.append(potentialVertex)
-                                planeIndicesOut |= {i, j, k}
-    T[0] += time.time() - tt
-
-
 def points_as_bmesh_cells(verts, points):
-    """Generator for bmesh hull"""
+    import mathutils
+    from mathutils import Vector
 
     cells = []
 
     sortedVoronoiPoints = [p for p in points]
-
-    planeIndices = set()
-
+    plane_indices = []
     vertices = []
 
-    # each convex hull is one bmesh
-    if 0:
-        convexPlanes = getPlaneEquationsFromVertices(verts)
-    elif 0:
-        # Faster for large meshes...
-        convexPlanes = []
-
-        # get the convex hull
-        import bmesh
-        bm = bmesh.new()
-        for v in verts:
-            bm_vert = bm.verts.new(v)
-            bm_vert.tag = True
-        bmesh.ops.convex_hull(bm, {'TAG'})
-
-        # offset a tiny bit
-        bm.normal_update()
-        for v in bm.verts:
-            v.co += v.normal * 0.01
-
-        # collect the planes
-        for f in bm.faces:
-            v0, v1, v2 = [v.co for v in f.verts[0:3]]
-            plane = (v1 - v0).cross(v2 - v0).normalized()
-            plane.resize_4d()
-            plane[3] = -plane.xyz.dot(v0)
-            convexPlanes.append(plane)
-        bm.free()
-    elif 0:
-        # get 4 planes
-        xa = [v[0] for v in verts]
-        ya = [v[1] for v in verts]
-        za = [v[2] for v in verts]
-
-        xr = min(xa), max(xa)
-        yr = min(ya), max(ya)
-        zr = min(za), max(za)
-
-        verts_tmp = []
-        from mathutils import Vector
-        for xi in (0, 1):
-            for yi in (0, 1):
-                for zi in (0, 1):
-                    verts_tmp.append(Vector((xr[xi], yr[yi], zr[zi])))
-
-        convexPlanes = getPlaneEquationsFromVertices(verts_tmp)
-        aaa = "\n".join(sorted([repr(v.to_tuple(5)).replace("-0.0", "0.0") for v in convexPlanes]))
-        print(aaa)
-    else:
-        
+    # there are many ways we could get planes - convex hull for eg
+    # but it ends up fastest if we just use bounding box
+    if 1:
         xa = [v[0] for v in verts]
         ya = [v[1] for v in verts]
         za = [v[2] for v in verts]
@@ -183,7 +41,6 @@ def points_as_bmesh_cells(verts, points):
         xmin, xmax = min(xa), max(xa)
         ymin, ymax = min(ya), max(ya)
         zmin, zmax = min(za), max(za)
-        from mathutils import Vector
         convexPlanes = [
             Vector((+1.0, 0.0, 0.0, -abs(xmax))),
             Vector((-1.0, 0.0, 0.0, -abs(xmin))),
@@ -192,9 +49,6 @@ def points_as_bmesh_cells(verts, points):
             Vector((0.0, 0.0, +1.0, -abs(zmax))),
             Vector((0.0, 0.0, -1.0, -abs(zmin))),
             ]
-        
-        aaa = "\n".join(sorted([repr(v.to_tuple(5)) for v in convexPlanes]))
-        print(aaa)
 
     for i, curVoronoiPoint in enumerate(points):
         planes = [None] * len(convexPlanes)
@@ -204,8 +58,6 @@ def points_as_bmesh_cells(verts, points):
         maxDistance = 10000000000.0  # a big value!
 
         sortedVoronoiPoints.sort(key=lambda p: (p - curVoronoiPoint).length_squared)
-        # sortedVoronoiPoints.reverse()
-        # XXX need to reverse?
 
         for j in range(1, len(points)):
             normal = sortedVoronoiPoints[j] - curVoronoiPoint
@@ -216,20 +68,14 @@ def points_as_bmesh_cells(verts, points):
             plane = normal.normalized()
             plane.resize_4d()
             plane[3] = -nlength / 2.0
-            planes.append(plane.copy())
-            getVerticesInsidePlanes(planes, vertices, planeIndices)
+            planes.append(plane)
+            
+            vertices[:], plane_indices[:] = mathutils.geometry.points_in_planes(planes)
             if len(vertices) == 0:
                 break
-            numPlaneIndices = len(planeIndices)
-            if numPlaneIndices != len(planes):
-                #'''
-                planeIndicesIter = list(sorted(planeIndices))
-                for k in range(numPlaneIndices):
-                    if k != planeIndicesIter[k]:
-                        planes[k] = planes[planeIndicesIter[k]].copy()
-                planes[numPlaneIndices:] = []
-                #'''
-                #planes[:] = [planes[k] for k in planeIndices]
+
+            if len(plane_indices) != len(planes):
+                planes[:] = [planes[k] for k in plane_indices]
 
             maxDistance = vertices[0].length
             for k in range(1, len(vertices)):
@@ -294,10 +140,9 @@ def main():
     print(len(cells))
 
 
-if __name__ == "__main__"
+if __name__ == "__main__":
     import time
     t = time.time()
     main()
 
     print("%.5f sec" % (time.time() - t))
-    print("%.5f aa" % T[0])
