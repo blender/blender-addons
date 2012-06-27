@@ -21,7 +21,7 @@
 # Script copyright (C) Blender Foundation 2012
 
 
-def points_as_bmesh_cells(verts, points):
+def points_as_bmesh_cells(verts, points, margin=0.01):
     import mathutils
     from mathutils import Vector
 
@@ -38,9 +38,9 @@ def points_as_bmesh_cells(verts, points):
         ya = [v[1] for v in verts]
         za = [v[2] for v in verts]
         
-        xmin, xmax = min(xa), max(xa)
-        ymin, ymax = min(ya), max(ya)
-        zmin, zmax = min(za), max(za)
+        xmin, xmax = min(xa) - margin, max(xa) + margin
+        ymin, ymax = min(ya) - margin, max(ya) + margin
+        zmin, zmax = min(za) - margin, max(za) + margin
         convexPlanes = [
             Vector((+1.0, 0.0, 0.0, -abs(xmax))),
             Vector((-1.0, 0.0, 0.0, -abs(xmin))),
@@ -91,58 +91,3 @@ def points_as_bmesh_cells(verts, points):
         vertices[:] = []
 
     return cells
-
-
-# --- run ---
-# b ~/phys.blend -b --python cell_test.py
-
-def main():
-    import bpy
-    import sys
-    #points = [v.co.copy() for v in bpy.data.objects["points"].data.vertices]
-
-    sys.path.append("/media/data/blender-svn/blender-phymec/phymec_tools")
-
-    import phymec_tools as pt
-    pt.voro_add_points(100)
-    #pt.physics_voronoi_shatter(pt.voro_points(particles=True),True)
-    #return
-
-    points = []
-    points.extend([p.location for p in bpy.data.objects["verts"].particle_systems[0].particles])
-
-    verts = [v.co.copy() for v in bpy.data.objects["verts"].data.vertices]
-
-    cells = points_as_bmesh_cells(verts, points)
-    for cent, cell in cells:
-        me = bpy.data.meshes.new(name="Blah")
-        ob = bpy.data.objects.new(name="Blah", object_data=me)
-        bpy.context.scene.objects.link(ob)
-        bpy.context.scene.objects.active = ob
-        ob.location = cent
-
-        # create the convex hulls
-        import bmesh
-        bm = bmesh.new()
-        for i, v in enumerate(cell):
-            bm_vert = bm.verts.new(v)
-            bm_vert.tag = True
-        
-        import mathutils
-        bm.transform(mathutils.Matrix.Translation((+100.0, +100.0, +100.0))) # BUG IN BLENDER
-        bmesh.ops.remove_doubles(bm, {'TAG'}, 0.0001)
-        bmesh.ops.convex_hull(bm, {'TAG'})
-        bm.transform(mathutils.Matrix.Translation((-100.0, -100.0, -100.0))) # BUG IN BLENDER
-        
-        bm.to_mesh(me)
-        bm.free()
-
-    print(len(cells))
-
-
-if __name__ == "__main__":
-    import time
-    t = time.time()
-    main()
-
-    print("%.5f sec" % (time.time() - t))
