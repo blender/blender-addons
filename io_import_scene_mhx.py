@@ -26,7 +26,7 @@
 """
 Abstract
 MHX (MakeHuman eXchange format) importer for Blender 2.5x.
-Version 1.13.1
+Version 1.13.2
 
 This script should be distributed with Blender.
 If not, place it in the .blender/scripts/addons dir
@@ -39,7 +39,7 @@ Alternatively, run the script in the script editor (Alt-P), and access from the 
 bl_info = {
     'name': 'Import: MakeHuman (.mhx)',
     'author': 'Thomas Larsson',
-    'version': (1, 13, 1),
+    'version': (1, 13, 2),
     "blender": (2, 6, 3),
     'location': "File > Import > MakeHuman (.mhx)",
     'description': 'Import files in the MakeHuman eXchange format (.mhx)',
@@ -51,7 +51,7 @@ bl_info = {
 
 MAJOR_VERSION = 1
 MINOR_VERSION = 13
-SUB_VERSION = 0
+SUB_VERSION = 2
 
 #
 #
@@ -328,8 +328,8 @@ def checkMhxVersion(major, minor):
         else:
             msg = (
 "Wrong MHX version\n" +
-"Expected MHX %d.%d but the loaded file " % (MAJOR_VERSION, MINOR_VERSION) +
-"has version MHX %d.%d\n" % (major, minor))
+"Expected MHX %d.%02d but the loaded file " % (MAJOR_VERSION, MINOR_VERSION) +
+"has version MHX %d.%02d\n" % (major, minor))
             if minor < MINOR_VERSION:
                 msg += (
 "You can disable this error message by deselecting the \n" +
@@ -2311,7 +2311,7 @@ def parseCollection(data, tokens, exclude):
 #
 #    extractBpyType(data):
 #
-
+"""
 def extractBpyType(data):
     typeSplit = str(type(data)).split("'")
     if typeSplit[0] != '<class ':
@@ -2335,7 +2335,7 @@ def Bool(string):
         return False
     else:
         MyError("Bool %s?" % string)
-        
+"""        
 #
 #    invalid(condition):
 #
