@@ -33,13 +33,31 @@ bl_info = {
 
 if "bpy" in locals():
     import imp
-    imp.reload(cell_fracture)
-else:
-    from . import cell_fracture
+    imp.reload(fracture_cell_setup)
 
 import bpy
+from bpy.types import Operator
+
+def main(context):
+    from . import fracture_cell_setup
+    obj = context.active_object
+    objects = fracture_cell_setup.cell_fracture_objects(context, obj)
+    objects = fracture_cell_setup.cell_fracture_boolean(context, obj, objects)
+
+    bpy.ops.object.select_all(action='DESELECT')
+    for obj_cell in objects:
+        obj_cell.select = True
 
 
+class FractureCell(Operator):
+    bl_idname = "object.add_fracture_cell_objects"
+    bl_label = "Cell Fracture Helper Objects"
+
+    def execute(self, context):
+        main(context)
+        return {'FINISHED'}
+
+'''
 class INFO_MT_add_fracture_objects(bpy.types.Menu):
     bl_idname = "INFO_MT_add_fracture_objects"
     bl_label = "Fracture Helper Objects"
@@ -54,24 +72,24 @@ class INFO_MT_add_fracture_objects(bpy.types.Menu):
             text="Projectile")
         layout.operator("object.import_fracture_recorder",
             text="Rigidbody Recorder")
+'''
 
-
-def menu_func(self, context):
-    self.layout.menu("INFO_MT_add_fracture_objects", icon="PLUGIN")
+#def menu_func(self, context):
+#    self.layout.menu("INFO_MT_add_fracture_objects", icon="PLUGIN")
 
 
 def register():
-    bpy.utils.register_module(__name__)
+    bpy.utils.register_class(FractureCell)
 
     # Add the "add fracture objects" menu to the "Add" menu
-    bpy.types.INFO_MT_add.append(menu_func)
+    # bpy.types.INFO_MT_add.append(menu_func)
 
 
 def unregister():
-    bpy.utils.unregister_module(__name__)
+    bpy.utils.unregister_class(FractureCell)
 
     # Remove "add fracture objects" menu from the "Add" menu.
-    bpy.types.INFO_MT_add.remove(menu_func)
+    # bpy.types.INFO_MT_add.remove(menu_func)
 
 
 if __name__ == "__main__":

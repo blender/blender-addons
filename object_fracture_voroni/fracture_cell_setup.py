@@ -20,7 +20,11 @@
 
 # Script copyright (C) Blender Foundation 2012
 
-def cell_fracture_objects(context, obj, method={'OTHER'}):
+import bpy
+import bmesh
+
+
+def cell_fracture_objects(context, obj, method={'PARTICLES'}, clean=True):
 
     #assert(method in {'OTHER', 'PARTICLES'})
     
@@ -40,6 +44,8 @@ def cell_fracture_objects(context, obj, method={'OTHER'}):
                 matrix = obj_other.matrix_world.copy()
                 points.extend([matrix * v.co for v in mesh.vertices])
 
+    if not points:
+        return []
 
     mesh = obj.data
     matrix = obj.matrix_world.copy()
@@ -48,8 +54,6 @@ def cell_fracture_objects(context, obj, method={'OTHER'}):
     cells = fracture_cell_calc.points_as_bmesh_cells(verts, points)
     
     # some hacks here :S
-    import bmesh
-
     scene = context.scene
     cell_name = obj.name + "_cell"
     
@@ -73,36 +77,62 @@ def cell_fracture_objects(context, obj, method={'OTHER'}):
         bmesh.ops.remove_doubles(bm, {'TAG'}, 0.0001)
         bmesh.ops.convex_hull(bm, {'TAG'})
         bm.transform(mathutils.Matrix.Translation((-100.0, -100.0, -100.0))) # BUG IN BLENDER
-        
-        bm.to_mesh(me)
+
+        if clean:
+            for bm_vert in bm.verts:
+                bm_vert.tag = True
+            for bm_edge in bm.edges:
+                bm_edge.tag = True
+            bm.normal_update()
+            bmesh.ops.dissolve_limit(bm, {'TAG'}, {'TAG'}, 0.001)
+
+        bm.to_mesh(mesh)
         bm.free()
 
         objects.append(obj_cell)
     
-    return obj_cell
+    scene.update()
+
+    return objects
 
 
-
-
-def cell_fracture_boolean(context, obj, objects):
+def cell_fracture_boolean(context, obj, objects, apply=True, clean=True):
     scene = context.scene
+
+    objects_boolean = []
+    
     for obj_cell in objects:
-        mod = obj_cell.modifiers.new(type='BOOLEAN')
-        mod.object = boolobj
+        mod = obj_cell.modifiers.new(name="Boolean", type='BOOLEAN')
+        mod.object = obj
         mod.operation = 'INTERSECT'
-        
-        mesh_new = obj_cell.to_mesh(scene, apply_modifiers=True)
-        mesh_old = obj_cell.data
-        obj_cell.data = mesh_new
 
-        # remove if not valid
-        if not mesh_old.users:
-            bpy.data.meshes.remove(mesh_old)
-        if not mesh_new.verts:
-            scene.objects.unlink(obj_cell)
-            if not obj_cell.users:
-                bpy.data.objects.remove(obj_cell)
-                if not mesh_new.users:
-                    bpy.data.meshes.remove(mesh_old)
-        obj_cell.select = True
+        if apply:
+            mesh_new = obj_cell.to_mesh(scene, apply_modifiers=True, settings='PREVIEW')
+            mesh_old = obj_cell.data
+            obj_cell.data = mesh_new
+            obj_cell.modifiers.remove(mod)
 
+            # remove if not valid
+            if not mesh_old.users:
+                bpy.data.meshes.remove(mesh_old)
+            if not mesh_new.vertices:
+                scene.objects.unlink(obj_cell)
+                if not obj_cell.users:
+                    bpy.data.objects.remove(obj_cell)
+                    if not mesh_new.users:
+                        bpy.data.meshes.remove(mesh_new)
+
+            if clean:
+                bm = bmesh.new()
+                bm.from_mesh(mesh_new)
+                for bm_vert in bm.verts:
+                    bm_vert.tag = True
+                for bm_edge in bm.edges:
+                    bm_edge.tag = True
+                bm.normal_update()
+                bmesh.ops.dissolve_limit(bm, {'TAG'}, {'TAG'}, 0.01)
+                bm.to_mesh(mesh_new)
+                bm.free()
+
+        objects_boolean.append(obj_cell)
+    return objects_boolean
