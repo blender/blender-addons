@@ -27,7 +27,7 @@ def points_as_bmesh_cells(verts, points, margin=0.01):
 
     cells = []
 
-    sortedVoronoiPoints = [p for p in points]
+    points_sorted_current = [p for p in points]
     plane_indices = []
     vertices = []
 
@@ -37,7 +37,7 @@ def points_as_bmesh_cells(verts, points, margin=0.01):
         xa = [v[0] for v in verts]
         ya = [v[1] for v in verts]
         za = [v[2] for v in verts]
-        
+
         xmin, xmax = min(xa) - margin, max(xa) + margin
         ymin, ymax = min(ya) - margin, max(ya) + margin
         zmin, zmax = min(za) - margin, max(za) + margin
@@ -50,19 +50,19 @@ def points_as_bmesh_cells(verts, points, margin=0.01):
             Vector((0.0, 0.0, -1.0, -abs(zmin))),
             ]
 
-    for i, curVoronoiPoint in enumerate(points):
+    for i, point_cell_current in enumerate(points):
         planes = [None] * len(convexPlanes)
         for j in range(len(convexPlanes)):
             planes[j] = convexPlanes[j].copy()
-            planes[j][3] += planes[j].xyz.dot(curVoronoiPoint)
-        maxDistance = 10000000000.0  # a big value!
+            planes[j][3] += planes[j].xyz.dot(point_cell_current)
+        distance_max = 10000000000.0  # a big value!
 
-        sortedVoronoiPoints.sort(key=lambda p: (p - curVoronoiPoint).length_squared)
+        points_sorted_current.sort(key=lambda p: (p - point_cell_current).length_squared)
 
         for j in range(1, len(points)):
-            normal = sortedVoronoiPoints[j] - curVoronoiPoint
+            normal = points_sorted_current[j] - point_cell_current
             nlength = normal.length
-            if nlength > maxDistance:
+            if nlength > distance_max:
                 break
 
             plane = normal.normalized()
@@ -77,17 +77,17 @@ def points_as_bmesh_cells(verts, points, margin=0.01):
             if len(plane_indices) != len(planes):
                 planes[:] = [planes[k] for k in plane_indices]
 
-            maxDistance = vertices[0].length
+            distance_max = vertices[0].length
             for k in range(1, len(vertices)):
                 distance = vertices[k].length
-                if maxDistance < distance:
-                    maxDistance = distance
-            maxDistance *= 2.0
+                if distance_max < distance:
+                    distance_max = distance
+            distance_max *= 2.0
 
         if len(vertices) == 0:
             continue
 
-        cells.append((curVoronoiPoint, vertices[:]))
+        cells.append((point_cell_current, vertices[:]))
         vertices[:] = []
 
     return cells

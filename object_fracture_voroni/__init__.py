@@ -31,48 +31,213 @@ bl_info = {
     "category": "Object"}
 
 
-if "bpy" in locals():
-    import imp
-    imp.reload(fracture_cell_setup)
+#if "bpy" in locals():
+#    import imp
+#    imp.reload(fracture_cell_setup)
 
 import bpy
+from bpy.props import (StringProperty,
+                       BoolProperty,
+                       IntProperty,
+                       FloatProperty,
+                       EnumProperty)
+
 from bpy.types import Operator
 
-def main(context):
+def main_object(scene, obj, level, **kw):
+    import random
+
+    # pull out some args
+    kw_copy = kw.copy()
+    use_recenter = kw_copy.pop("use_recenter")
+    use_remove_original = kw_copy.pop("use_remove_original")
+    recursion = kw_copy.pop("recursion")
+    recursion_chance = kw_copy.pop("recursion_chance")
+    
     from . import fracture_cell_setup
+    
+    objects = fracture_cell_setup.cell_fracture_objects(scene, obj, **kw_copy)
+    objects = fracture_cell_setup.cell_fracture_boolean(scene, obj, objects)
+
+    # todo, split islands.
+
+    # must apply after boolean.
+    if use_recenter:
+        bpy.ops.object.origin_set({"selected_editable_objects": objects},
+                                  type='ORIGIN_GEOMETRY', center='MEDIAN')
+
+    if level < recursion:
+        objects_recursive = []
+        for i in range(len(objects) - 1, -1, -1):  # reverse loop
+            
+            if recursion_chance == 1.0 or recursion_chance < random.random():
+                obj_cell = objects[i]
+                objects_recursive += main_object(scene, obj_cell, level + 1, **kw)
+                if use_remove_original:
+                    scene.objects.unlink(obj_cell)
+                    del objects[i]
+        objects.extend(objects_recursive)
+                
+
+    # testing only!
+    obj.hide = True
+    return objects
+
+
+def main(context, **kw):
+    import time
+    t = time.time()
+    scene = context.scene
     obj = context.active_object
-    objects = fracture_cell_setup.cell_fracture_objects(context, obj)
-    objects = fracture_cell_setup.cell_fracture_boolean(context, obj, objects)
+    objects = main_object(scene, obj, 0, **kw)
 
     bpy.ops.object.select_all(action='DESELECT')
     for obj_cell in objects:
         obj_cell.select = True
+    
+    print("Done! %d objects in %.4f sec" % (len(objects), time.time() - t))
 
 
 class FractureCell(Operator):
     bl_idname = "object.add_fracture_cell_objects"
     bl_label = "Cell Fracture Helper Objects"
+    bl_options = {'PRESET'}
+
+    # -------------------------------------------------------------------------
+    # Source Options
+    source = EnumProperty(
+            name="Source",
+            items=(('VERT_OWN', "Own Verts", "Use own vertices"),
+                   ('EDGE_OWN', "Own Edges", "Use own edges"),
+                   ('FACE_OWN', "Own Faces", "Use own faces"),
+                   ('VERT_CHILD', "Child Verts", "Use own vertices"),
+                   ('EDGE_CHILD', "Child Edges", "Use own edges"),
+                   ('FACE_CHILD', "Child Faces", "Use own faces"),
+                   ('PARTICLE', "Particles", ("All particle systems of the "
+                                              "source object")),
+                   ('PENCIL', "Grease Pencil", "This objects grease pencil"),
+                   ),
+            options={'ENUM_FLAG'},
+            default={'PARTICLE', 'VERT_OWN'}  # 'VERT_OWN', 'EDGE_OWN', 'FACE_OWN'
+            )
+
+    source_limit = IntProperty(
+            name="Source Limit",
+            description="Limit the number of input points, 0 for unlimited",
+            min=0, max=5000,
+            default=1000,
+            )
+
+    source_noise = FloatProperty(
+            name="Noise",
+            description="Randomize point distrobution",
+            min=0.0, max=1.0,
+            default=0.0,
+            )
+
+    # -------------------------------------------------------------------------
+    # Mesh Data Options
+
+    use_smooth_faces = BoolProperty(
+            name="Smooth Faces",
+            default=False,
+            )
+
+    use_smooth_edges = BoolProperty(
+            name="Smooth Edges",
+            description="Set sharp edges whem disabled",
+            default=True,
+            )
+
+    use_data_match = BoolProperty(
+            name="Match Data",
+            description="Match original mesh materials and data layers",
+            default=True,
+            )
+
+    use_island_split = BoolProperty(
+            name="Split Islands",
+            description="Split disconnected meshes",
+            default=True,
+            )
+
+    # -------------------------------------------------------------------------
+    # Object Options
+
+    use_recenter = BoolProperty(
+            name="Recenter",
+            description="Recalculate the center points after splitting",
+            default=True,
+            )
+
+    use_remove_original = BoolProperty(
+            name="Remove Original",
+            description="Removes the parents used to create the shatter",
+            default=True,
+            )
+
+    # -------------------------------------------------------------------------
+    # Recursion
+
+    recursion = IntProperty(
+            name="Recursion",
+            description="Break shards resursively",
+            min=0, max=5000,
+            default=0,
+            )
+
+    recursion_chance = FloatProperty(
+            name="Random Factor",
+            description="Likelyhood of recursion",
+            min=0.0, max=1.0,
+            default=1.0,
+            )
 
     def execute(self, context):
-        main(context)
+        keywords = self.as_keywords()  # ignore=("blah",)
+
+        main(context, **keywords)
+
         return {'FINISHED'}
 
-'''
-class INFO_MT_add_fracture_objects(bpy.types.Menu):
-    bl_idname = "INFO_MT_add_fracture_objects"
-    bl_label = "Fracture Helper Objects"
+
+    def invoke(self, context, event):
+        wm = context.window_manager
+        return wm.invoke_props_dialog(self, width=600)
 
     def draw(self, context):
         layout = self.layout
-        layout.operator_context = 'INVOKE_REGION_WIN'
+        box = layout.box()
+        col = box.column()
+        col.label("Point Source")
+        rowsub = col.row()
+        rowsub.prop(self, "source")
+        rowsub = col.row()
+        rowsub.prop(self, "source_limit")
+        rowsub.prop(self, "source_noise")
+        rowsub = col.row()
 
-        layout.operator("object.import_fracture_bomb",
-            text="Bomb")
-        layout.operator("object.import_fracture_projectile",
-            text="Projectile")
-        layout.operator("object.import_fracture_recorder",
-            text="Rigidbody Recorder")
-'''
+        box = layout.box()
+        col = box.column()
+        col.label("Mesh Data")
+        rowsub = col.row(align=True)
+        rowsub.prop(self, "use_smooth_faces")
+        rowsub.prop(self, "use_smooth_edges")
+        rowsub.prop(self, "use_data_match")
+        # rowsub.prop(self, "use_island_split")  # TODO
+
+        box = layout.box()
+        col = box.column()
+        col.label("Object")
+        rowsub = col.row(align=True)
+        rowsub.prop(self, "use_recenter")
+
+        box = layout.box()
+        col = box.column()
+        col.label("Recursive Shatter")
+        rowsub = col.row(align=True)
+        rowsub.prop(self, "recursion")
+        rowsub.prop(self, "recursion_chance")
 
 #def menu_func(self, context):
 #    self.layout.menu("INFO_MT_add_fracture_objects", icon="PLUGIN")

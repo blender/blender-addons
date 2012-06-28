@@ -23,29 +23,151 @@
 import bpy
 import bmesh
 
+def _points_from_object(obj, source):
 
-def cell_fracture_objects(context, obj, method={'PARTICLES'}, clean=True):
+    _source_all = {
+        'PARTICLE', 'PENCIL',
+        'VERT_OWN', 'EDGE_OWN', 'FACE_OWN',
+        'VERT_CHILD', 'EDGE_CHILD', 'FACE_CHILD'}
 
-    #assert(method in {'OTHER', 'PARTICLES'})
-    
-    from . import fracture_cell_calc
+    print(source - _source_all)
+    print(source)
+    assert(len(source | _source_all) == len(_source_all))
+    assert(len(source))
 
     points = []
 
-    if 'PARTICLES' in method:
+    def edge_center(mesh, edge):
+        v1, v2 = edge.vertices
+        return (mesh.vertices[v1].co + mesh.vertices[v2].co) / 2.0
+
+    def poly_center(mesh, poly):
+        from mathutils import Vector
+        co = Vector()
+        tot = 0
+        for i in poly.loop_indices:
+            co += mesh.vertices[mesh.loops[i].vertex_index].co
+            tot += 1
+        return co / tot
+
+    def points_from_verts(obj):
+        if obj.type == 'MESH':
+            mesh = obj.data
+            matrix = obj.matrix_world.copy()
+            points.extend([matrix * v.co for v in mesh.vertices])
+
+    def points_from_edges(obj):
+        if obj.type == 'MESH':
+            mesh = obj.data
+            matrix = obj.matrix_world.copy()
+            points.extend([matrix * edge_center(mesh, e) for e in mesh.edges])
+
+    def points_from_faces(obj):
+        if obj.type == 'MESH':
+            mesh = obj.data
+            matrix = obj.matrix_world.copy()
+            points.extend([matrix * poly_center(mesh, p) for p in mesh.polygons])
+
+    # geom own
+    if 'VERT_OWN' in source:
+        points_from_verts(obj)
+    if 'EDGE_OWN' in source:
+        points_from_edges(obj)
+    if 'FACE_OWN' in source:
+        points_from_faces(obj)
+
+    # geom children
+    if 'VERT_CHILD' in source:
+        for obj_child in obj.children:
+            points_from_verts(obj_child)
+    if 'EDGE_CHILD' in source:
+        for obj_child in obj.children:
+            points_from_edges(obj_child)
+    if 'FACE_CHILD' in source:
+        for obj_child in obj.children:
+            points_from_faces(obj_child)
+
+    # geom particles
+    if 'PARTICLE' in source:
         points.extend([p.location.copy()
                          for psys in obj.particle_systems
                          for p in psys.particles])
 
-    if 'OTHER' in method:
-        for obj_other in context.selected_objects:
-            if obj_other.type == 'MESH':
-                mesh = obj_other.data
-                matrix = obj_other.matrix_world.copy()
-                points.extend([matrix * v.co for v in mesh.vertices])
+    # grease pencil
+    def get_points(stroke):
+        return [point.co.copy() for point in stroke.points]
+
+    def get_splines(gp):
+        if gp.layers.active:
+            frame = gp.layers.active.active_frame
+            return [get_points(stroke) for stroke in frame.strokes]
+        else:
+            return []
+
+    if 'PENCIL' in source:
+        gp = obj.grease_pencil
+        if gp:
+            points.extend([p for spline in get_splines(gp)
+                             for p in spline])
+
+    return points
+
+
+def cell_fracture_objects(scene, obj,
+                          source={'PARTICLE'},
+                          source_limit=0,
+                          source_noise=0.0,
+                          clean=True,
+                          # operator options
+                          use_smooth_faces=False,
+                          use_smooth_edges=True,
+                          use_data_match=False,
+                          use_island_split=False,
+                          ):
+    
+    from . import fracture_cell_calc
+
+    # -------------------------------------------------------------------------
+    # GET POINTS
+
+    points = _points_from_object(obj, source)
 
     if not points:
+        # print using fallback
+        points = _points_from_object(obj, source | {'VERT_OWN'})
+
+    if not points:
+        print("no points found")
         return []
+
+    # apply optional clamp
+    if source_limit != 0 and source_limit < len(points):
+        import random
+        random.shuffle(points)
+        points[source_limit:] = []
+
+
+    # saddly we cant be sure there are no doubles
+    from mathutils import Vector
+    to_tuple = Vector.to_tuple
+    points = list({to_tuple(p, 4): p for p in points}.values())
+    del to_tuple
+    del Vector
+
+
+    if source_noise > 0.0:
+        # boundbox approx of overall scale
+        from mathutils import Vector
+        matrix = obj.matrix_world.copy()
+        bb_world = [matrix * Vector(v) for v in obj.bound_box]
+        scalar = (bb_world[0] - bb_world[6]).length / 2.0
+
+        from mathutils.noise import noise_vector
+        
+        points[:] = [p + (noise_vector(p) * scalar) for p in points]
+    
+    # end remove doubles
+    # ------------------
 
     mesh = obj.data
     matrix = obj.matrix_world.copy()
@@ -54,17 +176,14 @@ def cell_fracture_objects(context, obj, method={'PARTICLES'}, clean=True):
     cells = fracture_cell_calc.points_as_bmesh_cells(verts, points)
     
     # some hacks here :S
-    scene = context.scene
     cell_name = obj.name + "_cell"
     
     objects = []
     
     for center_point, cell_points in cells:
-        mesh = bpy.data.meshes.new(name=cell_name)
-        obj_cell = bpy.data.objects.new(name=cell_name, object_data=mesh)
-        scene.objects.link(obj_cell)
-        # scene.objects.active = obj_cell
-        obj_cell.location = center_point
+
+        # ---------------------------------------------------------------------
+        # BMESH
 
         # create the convex hulls
         bm = bmesh.new()
@@ -73,10 +192,12 @@ def cell_fracture_objects(context, obj, method={'PARTICLES'}, clean=True):
             bm_vert.tag = True
 
         import mathutils
-        bm.transform(mathutils.Matrix.Translation((+100.0, +100.0, +100.0))) # BUG IN BLENDER
         bmesh.ops.remove_doubles(bm, {'TAG'}, 0.0001)
-        bmesh.ops.convex_hull(bm, {'TAG'})
-        bm.transform(mathutils.Matrix.Translation((-100.0, -100.0, -100.0))) # BUG IN BLENDER
+        try:
+            bmesh.ops.convex_hull(bm, {'TAG'})
+        except RuntimeError:
+            import traceback
+            traceback.print_exc()
 
         if clean:
             for bm_vert in bm.verts:
@@ -84,20 +205,66 @@ def cell_fracture_objects(context, obj, method={'PARTICLES'}, clean=True):
             for bm_edge in bm.edges:
                 bm_edge.tag = True
             bm.normal_update()
-            bmesh.ops.dissolve_limit(bm, {'TAG'}, {'TAG'}, 0.001)
+            try:
+                bmesh.ops.dissolve_limit(bm, {'TAG'}, {'TAG'}, 0.001)
+            except RuntimeError:
+                import traceback
+                traceback.print_exc()
 
-        bm.to_mesh(mesh)
+        if use_smooth_faces:
+            for bm_face in bm.faces:
+                bm_face.smooth = True
+
+        if use_smooth_edges:
+            for bm_edge in bm.edges:
+                bm_edge.smooth = True
+
+
+        # ---------------------------------------------------------------------
+        # MESH
+
+        mesh_dst = bpy.data.meshes.new(name=cell_name)
+
+        bm.to_mesh(mesh_dst)
         bm.free()
+        del bm
+
+        if use_data_match:
+            # match materials and data layers so boolean displays them
+            # currently only materials + data layers, could do others...
+            mesh_src = obj.data
+            for mat in mesh_src.materials:
+                mesh.materials.append(mat)
+            for lay_attr in ("vertex_colors", "uv_layers"):
+                lay_src = getattr(mesh_src, lay_attr)
+                lay_dst = getattr(mesh_dst, lay_attr)
+                for key in lay_src.keys():
+                    lay_dst.new(name=key)
+
+        # ---------------------------------------------------------------------
+        # OBJECT
+
+        obj_cell = bpy.data.objects.new(name=cell_name, object_data=mesh_dst)
+        scene.objects.link(obj_cell)
+        # scene.objects.active = obj_cell
+        obj_cell.location = center_point
 
         objects.append(obj_cell)
-    
+
     scene.update()
+
+
+    # move this elsewhere...
+    for obj_cell in objects:
+        game = obj_cell.game
+        game.physics_type = 'RIGID_BODY'
+        game.use_collision_bounds = True
+        game.collision_bounds_type = 'TRIANGLE_MESH'
 
     return objects
 
 
-def cell_fracture_boolean(context, obj, objects, apply=True, clean=True):
-    scene = context.scene
+def cell_fracture_boolean(scene, obj, objects, apply=True, clean=True):
 
     objects_boolean = []
     
@@ -107,7 +274,9 @@ def cell_fracture_boolean(context, obj, objects, apply=True, clean=True):
         mod.operation = 'INTERSECT'
 
         if apply:
-            mesh_new = obj_cell.to_mesh(scene, apply_modifiers=True, settings='PREVIEW')
+            mesh_new = obj_cell.to_mesh(scene,
+                                        apply_modifiers=True,
+                                        settings='PREVIEW')
             mesh_old = obj_cell.data
             obj_cell.data = mesh_new
             obj_cell.modifiers.remove(mod)
@@ -119,10 +288,12 @@ def cell_fracture_boolean(context, obj, objects, apply=True, clean=True):
                 scene.objects.unlink(obj_cell)
                 if not obj_cell.users:
                     bpy.data.objects.remove(obj_cell)
+                    obj_cell = None
                     if not mesh_new.users:
                         bpy.data.meshes.remove(mesh_new)
+                        mesh_new = None
 
-            if clean:
+            if clean and mesh_new is not None:
                 bm = bmesh.new()
                 bm.from_mesh(mesh_new)
                 for bm_vert in bm.verts:
@@ -130,9 +301,14 @@ def cell_fracture_boolean(context, obj, objects, apply=True, clean=True):
                 for bm_edge in bm.edges:
                     bm_edge.tag = True
                 bm.normal_update()
-                bmesh.ops.dissolve_limit(bm, {'TAG'}, {'TAG'}, 0.01)
+                try:
+                    bmesh.ops.dissolve_limit(bm, {'TAG'}, {'TAG'}, 0.001)
+                except RuntimeError:
+                    import traceback
+                    traceback.print_exc()
                 bm.to_mesh(mesh_new)
                 bm.free()
 
-        objects_boolean.append(obj_cell)
+        if obj_cell is not None:
+            objects_boolean.append(obj_cell)
     return objects_boolean
