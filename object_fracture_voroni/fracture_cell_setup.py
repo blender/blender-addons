@@ -123,6 +123,7 @@ def cell_fracture_objects(scene, obj,
                           use_smooth_edges=True,
                           use_data_match=False,
                           use_island_split=False,
+                          margin=0.0,
                           ):
     
     from . import fracture_cell_calc
@@ -173,7 +174,8 @@ def cell_fracture_objects(scene, obj,
     matrix = obj.matrix_world.copy()
     verts = [matrix * v.co for v in mesh.vertices]
 
-    cells = fracture_cell_calc.points_as_bmesh_cells(verts, points)
+    cells = fracture_cell_calc.points_as_bmesh_cells(verts, points,
+                                                     margin_cell=margin)
     
     # some hacks here :S
     cell_name = obj.name + "_cell"
@@ -259,7 +261,7 @@ def cell_fracture_objects(scene, obj,
         game = obj_cell.game
         game.physics_type = 'RIGID_BODY'
         game.use_collision_bounds = True
-        game.collision_bounds_type = 'TRIANGLE_MESH'
+        game.collision_bounds_type = 'CONVEX_HULL'
 
     return objects
 

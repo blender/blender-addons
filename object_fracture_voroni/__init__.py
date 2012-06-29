@@ -54,9 +54,7 @@ def main_object(scene, obj, level, **kw):
     recursion = kw_copy.pop("recursion")
     recursion_chance = kw_copy.pop("recursion_chance")
     recursion_chance_select = kw_copy.pop("recursion_chance_select")
-    
-    print("AAAA", recursion_chance_select * 10)
-    
+
     from . import fracture_cell_setup
     
     objects = fracture_cell_setup.cell_fracture_objects(scene, obj, **kw_copy)
@@ -92,7 +90,7 @@ def main_object(scene, obj, level, **kw):
                     c = scene.cursor_location.copy()
                     objects_recurse_input.sort(key=lambda ob_pair:
                         (ob_pair[1].matrix_world.translation - c).length_squared)
-                    if recursion_chance_select == 'SIZE_MAX':
+                    if recursion_chance_select == 'CURSOR_MAX':
                         objects_recurse_input.reverse()
 
                 objects_recurse_input[int(recursion_chance * len(objects_recurse_input)):] = []
@@ -193,6 +191,13 @@ class FractureCell(Operator):
             default=True,
             )
 
+    margin = FloatProperty(
+            name="Margin",
+            description="Gaps for the fracture (gives more stable physics)",
+            min=0.0, max=1.0,
+            default=0.001,
+            )
+
     # -------------------------------------------------------------------------
     # Object Options
 
@@ -230,8 +235,8 @@ class FractureCell(Operator):
             items=(('RANDOM', "Random", ""),
                    ('SIZE_MIN', "Small", "Recursively subdivide smaller objects"),
                    ('SIZE_MAX', "Big", "Recursively subdivide smaller objects"),
-                   ('CURSOR_MIN', "Cursor Min", "Recursively subdivide objects closer to the cursor"),
-                   ('CURSOR_MAX', "Cursor Max", "Recursively subdivide objects closer to the cursor"),
+                   ('CURSOR_MIN', "Cursor Close", "Recursively subdivide objects closer to the cursor"),
+                   ('CURSOR_MAX', "Cursor Far", "Recursively subdivide objects closer to the cursor"),
                    ),
             default='SIZE_MIN',
             )
@@ -247,7 +252,7 @@ class FractureCell(Operator):
     def invoke(self, context, event):
         print(self.recursion_chance_select)
         wm = context.window_manager
-        return wm.invoke_props_dialog(self, width=600)
+        return wm.invoke_props_dialog(self, width=1000)
 
     def draw(self, context):
         layout = self.layout
@@ -268,6 +273,7 @@ class FractureCell(Operator):
         rowsub.prop(self, "use_smooth_faces")
         rowsub.prop(self, "use_smooth_edges")
         rowsub.prop(self, "use_data_match")
+        rowsub.prop(self, "margin")
         # rowsub.prop(self, "use_island_split")  # TODO
 
         box = layout.box()

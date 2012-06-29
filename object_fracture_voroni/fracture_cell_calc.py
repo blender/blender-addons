@@ -21,7 +21,9 @@
 # Script copyright (C) Blender Foundation 2012
 
 
-def points_as_bmesh_cells(verts, points, margin=0.01):
+def points_as_bmesh_cells(verts, points,
+                          margin_bounds=0.01,
+                          margin_cell=0.0):
     import mathutils
     from mathutils import Vector
 
@@ -38,9 +40,9 @@ def points_as_bmesh_cells(verts, points, margin=0.01):
         ya = [v[1] for v in verts]
         za = [v[2] for v in verts]
 
-        xmin, xmax = min(xa) - margin, max(xa) + margin
-        ymin, ymax = min(ya) - margin, max(ya) + margin
-        zmin, zmax = min(za) - margin, max(za) + margin
+        xmin, xmax = min(xa) - margin_bounds, max(xa) + margin_bounds
+        ymin, ymax = min(ya) - margin_bounds, max(ya) + margin_bounds
+        zmin, zmax = min(za) - margin_bounds, max(za) + margin_bounds
         convexPlanes = [
             Vector((+1.0, 0.0, 0.0, -abs(xmax))),
             Vector((-1.0, 0.0, 0.0, -abs(xmin))),
@@ -67,7 +69,7 @@ def points_as_bmesh_cells(verts, points, margin=0.01):
 
             plane = normal.normalized()
             plane.resize_4d()
-            plane[3] = -nlength / 2.0
+            plane[3] = (-nlength / 2.0) + margin_cell
             planes.append(plane)
             
             vertices[:], plane_indices[:] = mathutils.geometry.points_in_planes(planes)
