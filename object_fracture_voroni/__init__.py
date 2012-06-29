@@ -53,6 +53,9 @@ def main_object(scene, obj, level, **kw):
     use_remove_original = kw_copy.pop("use_remove_original")
     recursion = kw_copy.pop("recursion")
     recursion_chance = kw_copy.pop("recursion_chance")
+    recursion_chance_select = kw_copy.pop("recursion_chance_select")
+    
+    print("AAAA", recursion_chance_select * 10)
     
     from . import fracture_cell_setup
     
@@ -67,15 +70,44 @@ def main_object(scene, obj, level, **kw):
                                   type='ORIGIN_GEOMETRY', center='MEDIAN')
 
     if level < recursion:
-        objects_recursive = []
-        for i in range(len(objects) - 1, -1, -1):  # reverse loop
+
+        objects_recurse_input = [(i, o) for i, o in enumerate(objects)]
+
+        if recursion_chance != 1.0:
             
-            if recursion_chance == 1.0 or recursion_chance < random.random():
-                obj_cell = objects[i]
-                objects_recursive += main_object(scene, obj_cell, level + 1, **kw)
-                if use_remove_original:
-                    scene.objects.unlink(obj_cell)
-                    del objects[i]
+            if 0:
+                random.shuffle(objects_recurse_input)
+            else:
+                from mathutils import Vector
+                if recursion_chance_select == 'RANDOM':
+                    pass
+                elif recursion_chance_select == {'SIZE_MIN', 'SIZE_MAX'}:
+                    objects_recurse_input.sort(key=lambda ob_pair:
+                        (Vector(ob_pair[1].bound_box[0]) -
+                         Vector(ob_pair[1].bound_box[6])).length_squared)
+                    if recursion_chance_select == 'SIZE_MAX':
+                        objects_recurse_input.reverse()
+                elif recursion_chance_select == {'CURSOR_MIN', 'CURSOR_MAX'}:
+                    print(recursion_chance_select)
+                    c = scene.cursor_location.copy()
+                    objects_recurse_input.sort(key=lambda ob_pair:
+                        (ob_pair[1].matrix_world.translation - c).length_squared)
+                    if recursion_chance_select == 'SIZE_MAX':
+                        objects_recurse_input.reverse()
+
+                objects_recurse_input[int(recursion_chance * len(objects_recurse_input)):] = []
+                objects_recurse_input.sort()
+
+        # reverse index values so we can remove from original list.
+        objects_recurse_input.reverse()
+
+        objects_recursive = []
+        for i, obj_cell in objects_recurse_input:
+            assert(objects[i] is obj_cell)
+            objects_recursive += main_object(scene, obj_cell, level + 1, **kw)
+            if use_remove_original:
+                scene.objects.unlink(obj_cell)
+                del objects[i]
         objects.extend(objects_recursive)
                 
 
@@ -193,6 +225,17 @@ class FractureCell(Operator):
             default=1.0,
             )
 
+    recursion_chance_select = EnumProperty(
+            name="Recurse Over",
+            items=(('RANDOM', "Random", ""),
+                   ('SIZE_MIN', "Small", "Recursively subdivide smaller objects"),
+                   ('SIZE_MAX', "Big", "Recursively subdivide smaller objects"),
+                   ('CURSOR_MIN', "Cursor Min", "Recursively subdivide objects closer to the cursor"),
+                   ('CURSOR_MAX', "Cursor Max", "Recursively subdivide objects closer to the cursor"),
+                   ),
+            default='SIZE_MIN',
+            )
+
     def execute(self, context):
         keywords = self.as_keywords()  # ignore=("blah",)
 
@@ -202,6 +245,7 @@ class FractureCell(Operator):
 
 
     def invoke(self, context, event):
+        print(self.recursion_chance_select)
         wm = context.window_manager
         return wm.invoke_props_dialog(self, width=600)
 
@@ -237,7 +281,9 @@ class FractureCell(Operator):
         col.label("Recursive Shatter")
         rowsub = col.row(align=True)
         rowsub.prop(self, "recursion")
+        rowsub = col.row()
         rowsub.prop(self, "recursion_chance")
+        rowsub.prop(self, "recursion_chance_select", expand=True)
 
 #def menu_func(self, context):
 #    self.layout.menu("INFO_MT_add_fracture_objects", icon="PLUGIN")
