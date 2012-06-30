@@ -3314,6 +3314,7 @@ def makeVisemes(ob, scn):
 class VIEW3D_OT_MhxMakeVisemesButton(bpy.types.Operator):
     bl_idname = "mhx.make_visemes"
     bl_label = "Generate viseme shapekeys"
+    bl_options = {'UNDO'}
 
     def execute(self, context):
         makeVisemes(context.object, context.scene)
@@ -3415,6 +3416,7 @@ def setViseme(context, vis, setKey, frame):
 class VIEW3D_OT_MhxVisemeButton(bpy.types.Operator):
     bl_idname = 'mhx.pose_viseme'
     bl_label = 'Viseme'
+    bl_options = {'UNDO'}
     viseme = StringProperty()
 
     def invoke(self, context, event):
@@ -3477,6 +3479,7 @@ def readMagpie(context, filepath, offs):
 class VIEW3D_OT_MhxLoadMohoButton(bpy.types.Operator):
     bl_idname = "mhx.pose_load_moho"
     bl_label = "Moho (.dat)"
+    bl_options = {'UNDO'}
     filepath = StringProperty(subtype='FILE_PATH')
     startFrame = IntProperty(name="Start frame", description="First frame to import", default=1)
 
@@ -3580,6 +3583,7 @@ class VIEW3D_OT_MhxUpdateButton(bpy.types.Operator):
 class VIEW3D_OT_MhxResetExpressionsButton(bpy.types.Operator):
     bl_idname = "mhx.pose_reset_expressions"
     bl_label = "Reset expressions"
+    bl_options = {'UNDO'}
 
     def execute(self, context):
         rig,mesh = getMhxRigMesh(context.object)
@@ -3596,6 +3600,7 @@ class VIEW3D_OT_MhxResetExpressionsButton(bpy.types.Operator):
 class VIEW3D_OT_MhxKeyExpressionsButton(bpy.types.Operator):
     bl_idname = "mhx.pose_key_expressions"
     bl_label = "Key expressions"
+    bl_options = {'UNDO'}
 
     def execute(self, context):
         rig,mesh = getMhxRigMesh(context.object)
@@ -3612,6 +3617,7 @@ class VIEW3D_OT_MhxKeyExpressionsButton(bpy.types.Operator):
 class VIEW3D_OT_MhxPinExpressionButton(bpy.types.Operator):
     bl_idname = "mhx.pose_pin_expression"
     bl_label = "Pin"
+    bl_options = {'UNDO'}
     expression = StringProperty()
 
     def execute(self, context):
@@ -3759,7 +3765,6 @@ def matchPoseReverse(pb, fkPb, auto):
     insertRotation(pb, mat, auto)
     
 
-
 def matchPoseScale(pb, fkPb, auto):
     mat = getPoseMatrix(fkPb.matrix, pb)
     pb.scale = mat.to_scale()
@@ -3776,11 +3781,11 @@ def fk2ikArm(context, suffix):
     (uparmIk, loarmIk, elbow, elbowPt, wrist) = getSnapBones(rig, "ArmIK", suffix)
     (uparmFk, loarmFk, elbowPtFk, handFk) = getSnapBones(rig, "ArmFK", suffix)
 
-    matchPoseRotation(uparmFk, uparmIk, auto)
-    matchPoseScale(uparmFk, uparmIk, auto)
+    matchPoseRotation(uparmFk, uparmFk, auto)
+    matchPoseScale(uparmFk, uparmFk, auto)
 
-    matchPoseRotation(loarmFk, loarmIk, auto)
-    matchPoseScale(loarmFk, loarmIk, auto)
+    matchPoseRotation(loarmFk, loarmFk, auto)
+    matchPoseScale(loarmFk, loarmFk, auto)
 
     if rig["&HandFollowsWrist" + suffix]:
         matchPoseRotation(handFk, wrist, auto)
@@ -3814,11 +3819,11 @@ def fk2ikLeg(context, suffix):
     (uplegIk, lolegIk, kneePt, ankleIk, legIk, legFk, footIk, toeIk) = getSnapBones(rig, "LegIK", suffix)
     (uplegFk, lolegFk, kneePtFk, footFk, toeFk) = getSnapBones(rig, "LegFK", suffix)
 
-    matchPoseRotation(uplegFk, uplegIk, auto)
-    matchPoseScale(uplegFk, uplegIk, auto)
+    matchPoseRotation(uplegFk, uplegFk, auto)
+    matchPoseScale(uplegFk, uplegFk, auto)
 
-    matchPoseRotation(lolegFk, lolegIk, auto)
-    matchPoseScale(lolegFk, lolegIk, auto)
+    matchPoseRotation(lolegFk, lolegFk, auto)
+    matchPoseScale(lolegFk, lolegFk, auto)
     return
 
 
@@ -3904,6 +3909,7 @@ class VIEW3D_OT_FixAnkleButton(bpy.types.Operator):
     bl_idname = "mhx.fix_ankle"
     bl_label = "Fix ankle"
     bl_description = "Set inverse for ankle Child-of constraints"
+    bl_options = {'UNDO'}
     suffix = StringProperty()
 
     def execute(self, context):
@@ -3915,6 +3921,7 @@ class VIEW3D_OT_ClearAnkleButton(bpy.types.Operator):
     bl_idname = "mhx.clear_ankle"
     bl_label = "Clear ankle"
     bl_description = "Clear inverse for ankle Child-of constraints"
+    bl_options = {'UNDO'}
     suffix = StringProperty()
 
     def execute(self, context):
@@ -3944,6 +3951,7 @@ def getSnapBones(rig, key, suffix):
 class VIEW3D_OT_MhxSnapFk2IkButton(bpy.types.Operator):
     bl_idname = "mhx.snap_fk_ik"
     bl_label = "Snap FK"
+    bl_options = {'UNDO'}
     data = StringProperty()    
 
     def execute(self, context):
@@ -3961,6 +3969,7 @@ class VIEW3D_OT_MhxSnapFk2IkButton(bpy.types.Operator):
 class VIEW3D_OT_MhxSnapIk2FkButton(bpy.types.Operator):
     bl_idname = "mhx.snap_ik_fk"
     bl_label = "Snap IK"
+    bl_options = {'UNDO'}
     data = StringProperty()    
 
     def execute(self, context):
@@ -4015,6 +4024,7 @@ def restoreSnapProp(rig, prop, old, context):
 class VIEW3D_OT_MhxToggleFkIkButton(bpy.types.Operator):
     bl_idname = "mhx.toggle_fk_ik"
     bl_label = "FK - IK"
+    bl_options = {'UNDO'}
     toggle = StringProperty()    
 
     def execute(self, context):
@@ -4195,6 +4205,7 @@ class MhxVisibilityPanel(bpy.types.Panel):
 class VIEW3D_OT_MhxUpdateTexturesButton(bpy.types.Operator):
     bl_idname = "mhx.update_textures"
     bl_label = "Update"
+    bl_options = {'UNDO'}
 
     def execute(self, context):
         scn = context.scene
@@ -4214,6 +4225,7 @@ class VIEW3D_OT_MhxUpdateTexturesButton(bpy.types.Operator):
 class VIEW3D_OT_MhxAddHidersButton(bpy.types.Operator):
     bl_idname = "mhx.add_hiders"
     bl_label = "Add Hide Property"
+    bl_options = {'UNDO'}
 
     def execute(self, context):
         rig = context.object
@@ -4241,6 +4253,7 @@ def addHider(ob, attr, rig, prop):
 class VIEW3D_OT_MhxRemoveHidersButton(bpy.types.Operator):
     bl_idname = "mhx.remove_hiders"
     bl_label = "Remove Hide Property"
+    bl_options = {'UNDO'}
 
     def execute(self, context):
         rig = context.object
@@ -4317,6 +4330,7 @@ class MhxLayersPanel(bpy.types.Panel):
 class VIEW3D_OT_MhxEnableAllLayersButton(bpy.types.Operator):
     bl_idname = "mhx.pose_enable_all_layers"
     bl_label = "Enable all layers"
+    bl_options = {'UNDO'}
 
     def execute(self, context):
         rig,mesh = getMhxRigMesh(context.object)
@@ -4329,6 +4343,7 @@ class VIEW3D_OT_MhxEnableAllLayersButton(bpy.types.Operator):
 class VIEW3D_OT_MhxDisableAllLayersButton(bpy.types.Operator):
     bl_idname = "mhx.pose_disable_all_layers"
     bl_label = "Disable all layers"
+    bl_options = {'UNDO'}
 
     def execute(self, context):
         rig,mesh = getMhxRigMesh(context.object)
