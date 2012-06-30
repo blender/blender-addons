@@ -194,9 +194,9 @@ def cell_fracture_objects(scene, obj,
             bm_vert.tag = True
 
         import mathutils
-        bmesh.ops.remove_doubles(bm, {'TAG'}, 0.0001)
+        bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=0.0001)
         try:
-            bmesh.ops.convex_hull(bm, {'TAG'})
+            bmesh.ops.convex_hull(bm, input=bm.verts)
         except RuntimeError:
             import traceback
             traceback.print_exc()
@@ -208,7 +208,7 @@ def cell_fracture_objects(scene, obj,
                 bm_edge.tag = True
             bm.normal_update()
             try:
-                bmesh.ops.dissolve_limit(bm, {'TAG'}, {'TAG'}, 0.001)
+                bmesh.ops.dissolve_limit(bm, verts=bm.verts, angle_limit=0.001)
             except RuntimeError:
                 import traceback
                 traceback.print_exc()
@@ -304,7 +304,7 @@ def cell_fracture_boolean(scene, obj, objects, apply=True, clean=True):
                     bm_edge.tag = True
                 bm.normal_update()
                 try:
-                    bmesh.ops.dissolve_limit(bm, {'TAG'}, {'TAG'}, 0.001)
+                    bmesh.ops.dissolve_limit(bm, verts=bm.verts, edges=bm.edges, angle_limit=0.001)
                 except RuntimeError:
                     import traceback
                     traceback.print_exc()
