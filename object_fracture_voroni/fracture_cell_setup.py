@@ -237,7 +237,7 @@ def cell_fracture_objects(scene, obj,
             mesh_src = obj.data
             for mat in mesh_src.materials:
                 mesh_dst.materials.append(mat)
-            for lay_attr in ("vertex_colors", "uv_layers"):
+            for lay_attr in ("vertex_colors", "uv_textures"):
                 lay_src = getattr(mesh_src, lay_attr)
                 lay_dst = getattr(mesh_dst, lay_attr)
                 for key in lay_src.keys():
