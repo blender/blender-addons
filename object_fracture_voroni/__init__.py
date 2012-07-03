@@ -56,12 +56,13 @@ def main_object(scene, obj, level, **kw):
     recursion_chance_select = kw_copy.pop("recursion_chance_select")
     use_layer_next = kw_copy.pop("use_layer_next")
     group_name = kw_copy.pop("group_name")
-    
+    use_island_split = kw_copy.pop("use_island_split")
 
     from . import fracture_cell_setup
     
     objects = fracture_cell_setup.cell_fracture_objects(scene, obj, **kw_copy)
-    objects = fracture_cell_setup.cell_fracture_boolean(scene, obj, objects)
+    objects = fracture_cell_setup.cell_fracture_boolean(scene, obj, objects,
+                                                        use_island_split=use_island_split)
 
     # todo, split islands.
 
@@ -327,6 +328,7 @@ class FractureCell(Operator):
         rowsub.prop(self, "use_smooth_faces")
         rowsub.prop(self, "use_smooth_edges")
         rowsub.prop(self, "use_data_match")
+        rowsub.prop(self, "use_island_split")
         rowsub.prop(self, "margin")
         # rowsub.prop(self, "use_island_split")  # TODO
 

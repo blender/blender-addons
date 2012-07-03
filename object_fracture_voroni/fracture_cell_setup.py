@@ -122,7 +122,6 @@ def cell_fracture_objects(scene, obj,
                           use_smooth_faces=False,
                           use_smooth_edges=True,
                           use_data_match=False,
-                          use_island_split=False,
                           use_debug_points=False,
                           margin=0.0,
                           ):
@@ -279,7 +278,11 @@ def cell_fracture_objects(scene, obj,
     return objects
 
 
-def cell_fracture_boolean(scene, obj, objects, apply=True, clean=True):
+def cell_fracture_boolean(scene, obj, objects,
+                          apply=True,
+                          clean=True,
+                          use_island_split=False,
+                          ):
 
     objects_boolean = []
     
@@ -326,4 +329,28 @@ def cell_fracture_boolean(scene, obj, objects, apply=True, clean=True):
 
         if obj_cell is not None:
             objects_boolean.append(obj_cell)
+
+    if use_island_split:
+        # this is ugly and Im not proud of this - campbell
+        objects_islands = []
+        for obj_cell in objects_boolean:
+
+            scene.objects.active = obj_cell
+
+            group_island = bpy.data.groups.new(name="Islands")
+            group_island.objects.link(obj_cell)
+
+            bpy.ops.object.mode_set(mode='EDIT')
+            bpy.ops.mesh.select_all(action='SELECT')
+            bpy.ops.mesh.separate(type='LOOSE')
+            bpy.ops.object.mode_set(mode='OBJECT')
+
+            objects_islands.extend(group_island.objects[:])
+
+            bpy.data.groups.remove(group_island)
+
+            scene.objects.active = None
+
+        objects_boolean = objects_islands
+
     return objects_boolean
