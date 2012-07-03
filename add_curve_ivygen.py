@@ -109,7 +109,7 @@ def createIvyGeometry(IVY, growLeaves):
                     node = root.ivyNodes[i]
                     nodeNext = root.ivyNodes[i + 1]
 
-                    # Find the weight and normalise the smooth adhesion vector
+                    # Find the weight and normalize the smooth adhesion vector
                     weight = pow(node.length * prevIvyLength, 0.7)
 
                     # Calculate the ground ivy and the new weight
@@ -276,7 +276,7 @@ class Ivy:
         self.maxAdhesionDistance = maxAdhesionDistance
         self.maxLength = 0.0
 
-        # Normalise all the weights only on intialisation
+        # Normalize all the weights only on intialisation
         sum = self.primaryWeight + self.randomWeight + self.adhesionWeight
         self.primaryWeight /= sum
         self.randomWeight /= sum
@@ -312,7 +312,7 @@ class Ivy:
             # Set the primary direction from the last node
             primaryVector = prevIvy.primaryDir
 
-            # Make the random vector and normalise
+            # Make the random vector and normalize
             randomVector = Vector((rand_val() - 0.5, rand_val() - 0.5,
                                    rand_val() - 0.5)) + Vector((0, 0, 0.2))
             randomVector.normalize()

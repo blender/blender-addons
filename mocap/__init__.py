@@ -433,7 +433,7 @@ class OBJECT_OT_RetargetButton(bpy.types.Operator):
     # has an action for retargeting
     """Retarget animation from selected armature to active armature"""
     bl_idname = "mocap.retarget"
-    bl_label = "Retarget active action from Performer to Enduser"
+    bl_label = "Retarget active action from Performer to End-user"
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
@@ -471,7 +471,7 @@ class OBJECT_OT_SaveMappingButton(bpy.types.Operator):
     #Operator for saving mapping to enduser armature
     """Save mapping to active armature (for future retargets)"""
     bl_idname = "mocap.savemapping"
-    bl_label = "Save user generated mapping from Performer to Enduser"
+    bl_label = "Save user generated mapping from Performer to End-user"
 
     def execute(self, context):
         enduser_obj = bpy.context.active_object
@@ -494,7 +494,7 @@ class OBJECT_OT_LoadMappingButton(bpy.types.Operator):
     """Load saved mapping from active armature"""
     #Operator for loading mapping to enduser armature
     bl_idname = "mocap.loadmapping"
-    bl_label = "Load user generated mapping from Performer to Enduser"
+    bl_label = "Load user generated mapping from Performer to End-user"
 
     def execute(self, context):
         enduser_obj = bpy.context.active_object
@@ -780,7 +780,7 @@ class OBJECT_OT_GuessHierachyMapping(bpy.types.Operator):
     #Operator which calls heurisitic function to guess mapping between 2 armatures
     """Attempt to auto figure out hierarchy mapping"""
     bl_idname = "mocap.guessmapping"
-    bl_label = "Attemp to auto figure out hierarchy mapping"
+    bl_label = "Attempt to auto figure out hierarchy mapping"
 
     def execute(self, context):
         enduser_obj = bpy.context.active_object
