@@ -60,9 +60,14 @@ def main_object(scene, obj, level, **kw):
 
     from . import fracture_cell_setup
     
+    if kw_copy["use_debug_redraw"]:
+        obj_draw_type_prev = obj.draw_type
+        obj.draw_type = 'WIRE'
+    
     objects = fracture_cell_setup.cell_fracture_objects(scene, obj, **kw_copy)
     objects = fracture_cell_setup.cell_fracture_boolean(scene, obj, objects,
-                                                        use_island_split=use_island_split)
+                                                        use_island_split=use_island_split,
+                                                        use_debug_redraw=kw_copy["use_debug_redraw"])
 
     # todo, split islands.
 
@@ -128,6 +133,9 @@ def main_object(scene, obj, level, **kw):
             group = bpy.data.groups.new(group_name)
         for obj_cell in objects:
             group.objects.link(obj_cell)
+
+    if kw_copy["use_debug_redraw"]:
+        obj.draw_type = obj_draw_type_prev
 
     # testing only!
     # obj.hide = True
@@ -292,6 +300,12 @@ class FractureCell(Operator):
             description="Create mesh data showing the points used for fracture",
             default=False,
             )
+            
+    use_debug_redraw = BoolProperty(
+            name="Show Progress Realtime",
+            description="Redraw as fracture is done",
+            default=True,
+            )
 
     def execute(self, context):
         keywords = self.as_keywords()  # ignore=("blah",)
@@ -358,6 +372,7 @@ class FractureCell(Operator):
         col = box.column()
         col.label("Debug")
         rowsub = col.row(align=True)
+        rowsub.prop(self, "use_debug_redraw")
         rowsub.prop(self, "use_debug_points")
 
 #def menu_func(self, context):

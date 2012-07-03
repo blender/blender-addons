@@ -23,6 +23,14 @@
 import bpy
 import bmesh
 
+
+def _redraw_yasiamevil():
+    _redraw_yasiamevil.opr(**_redraw_yasiamevil.arg)
+_redraw_yasiamevil.opr = bpy.ops.wm.redraw_timer
+_redraw_yasiamevil.arg = dict(type='DRAW_WIN_SWAP', iterations=1)
+
+    
+
 def _points_from_object(obj, source):
 
     _source_all = {
@@ -125,6 +133,7 @@ def cell_fracture_objects(scene, obj,
                           use_debug_points=False,
                           margin=0.0,
                           material_index=0,
+                          use_debug_redraw=False,
                           ):
     
     from . import fracture_cell_calc
@@ -189,7 +198,7 @@ def cell_fracture_objects(scene, obj,
 
     cells = fracture_cell_calc.points_as_bmesh_cells(verts, points,
                                                      margin_cell=margin)
-    
+
     # some hacks here :S
     cell_name = obj.name + "_cell"
     
@@ -270,6 +279,10 @@ def cell_fracture_objects(scene, obj,
 
         objects.append(obj_cell)
 
+        if use_debug_redraw:
+            scene.update()
+            _redraw_yasiamevil()
+
     scene.update()
 
 
@@ -287,6 +300,7 @@ def cell_fracture_boolean(scene, obj, objects,
                           apply=True,
                           clean=True,
                           use_island_split=False,
+                          use_debug_redraw=False,
                           ):
 
     objects_boolean = []
@@ -334,6 +348,9 @@ def cell_fracture_boolean(scene, obj, objects,
 
         if obj_cell is not None:
             objects_boolean.append(obj_cell)
+            
+            if use_debug_redraw:
+                _redraw_yasiamevil()
 
     if use_island_split:
         # this is ugly and Im not proud of this - campbell
