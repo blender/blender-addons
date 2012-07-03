@@ -246,6 +246,12 @@ class FractureCell(Operator):
             default=0.001,
             )
 
+    material_index = IntProperty(
+            name="Material",
+            description="Material index for interior faces",
+            default=0,
+            )
+
     # -------------------------------------------------------------------------
     # Object Options
 
@@ -324,13 +330,15 @@ class FractureCell(Operator):
         box = layout.box()
         col = box.column()
         col.label("Mesh Data")
-        rowsub = col.row(align=True)
+        rowsub = col.row()
         rowsub.prop(self, "use_smooth_faces")
         rowsub.prop(self, "use_smooth_edges")
         rowsub.prop(self, "use_data_match")
-        rowsub.prop(self, "use_island_split")
+        rowsub.prop(self, "material_index")
+        rowsub = col.row()
+        # could be own section, control how we subdiv
         rowsub.prop(self, "margin")
-        # rowsub.prop(self, "use_island_split")  # TODO
+        rowsub.prop(self, "use_island_split")
 
         box = layout.box()
         col = box.column()

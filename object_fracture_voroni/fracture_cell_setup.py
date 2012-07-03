@@ -124,6 +124,7 @@ def cell_fracture_objects(scene, obj,
                           use_data_match=False,
                           use_debug_points=False,
                           margin=0.0,
+                          material_index=0,
                           ):
     
     from . import fracture_cell_calc
@@ -232,6 +233,10 @@ def cell_fracture_objects(scene, obj,
         if use_smooth_edges:
             for bm_edge in bm.edges:
                 bm_edge.smooth = True
+
+        if material_index != 0:
+            for bm_face in bm.faces:
+                bm_face.material_index = material_index
 
 
         # ---------------------------------------------------------------------
