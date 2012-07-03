@@ -62,7 +62,7 @@ def setupshards(context):
 
 
 class SetupFractureShards(bpy.types.Operator):
-    ''''''
+    """"""
     bl_idname = "object.setup_fracture_shards"
     bl_label = "Setup Fracture Shards"
     bl_options = {'REGISTER', 'UNDO'}

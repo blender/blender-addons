@@ -338,7 +338,7 @@ def read(file, context, op):
 
 
 class M3Importer(bpy.types.Operator):
-    '''Import from M3 file format (.m3)'''
+    """Import from M3 file format (.m3)"""
     bl_idname = "import_mesh.blizzard_m3"
     bl_label = 'Import M3'
     bl_options = {'UNDO'}

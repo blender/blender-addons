@@ -17,14 +17,14 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-'''
+"""
     constants_utils.py
 
     Useful constants...
     
 
 
-'''
+"""
 
 
 

@@ -211,7 +211,7 @@ def func_object_duplicate_flatten_modifiers(scene, obj):
 
 
 class object_duplicate_flatten_modifiers(bpy.types.Operator):
-    '''Duplicates the selected object with modifiers applied'''
+    """Duplicates the selected object with modifiers applied"""
 
     bl_idname = "object.object_duplicate_flatten_modifiers"
     bl_label = "Duplicate and apply all"

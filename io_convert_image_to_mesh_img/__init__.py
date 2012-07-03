@@ -59,7 +59,7 @@ from bpy_extras.io_utils import ImportHelper
 
 
 class ImportHiRISEIMGDTM(bpy.types.Operator, ImportHelper):
-    '''Import a HiRISE DTM formatted as a PDS IMG file'''
+    """Import a HiRISE DTM formatted as a PDS IMG file"""
     bl_idname = "import_shape.img"
     bl_label  = "Import HiRISE DTM from PDS IMG"
     bl_options = {'UNDO'}

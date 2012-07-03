@@ -44,7 +44,7 @@ import time
 
 
 def createIvyGeometry(IVY, growLeaves):
-    '''Create the curve geometry for IVY'''
+    """Create the curve geometry for IVY"""
     # Compute the local size and the gauss weight filter
     #local_ivyBranchSize = IVY.ivyBranchSize  # * radius * IVY.ivySize
     gaussWeight = (1.0, 2.0, 4.0, 7.0, 9.0, 10.0, 9.0, 7.0, 4.0, 2.0, 1.0)

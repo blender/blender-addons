@@ -45,7 +45,7 @@ from bpy_extras.io_utils import ExportHelper, ImportHelper
 
 
 class ImportMDD(bpy.types.Operator, ImportHelper):
-    '''Import MDD vertex keyframe file to shape keys'''
+    """Import MDD vertex keyframe file to shape keys"""
     bl_idname = "import_shape.mdd"
     bl_label = "Import MDD"
     bl_options = {'UNDO'}
@@ -87,7 +87,7 @@ class ImportMDD(bpy.types.Operator, ImportHelper):
 
 
 class ExportMDD(bpy.types.Operator, ExportHelper):
-    '''Animated mesh to MDD vertex keyframe file'''
+    """Animated mesh to MDD vertex keyframe file"""
     bl_idname = "export_shape.mdd"
     bl_label = "Export MDD"
 

@@ -2419,7 +2419,7 @@ def tripleList(list1):
     return list3
 
 class IMPORT_OT_autocad_dxf(bpy.types.Operator):
-    '''Import from DXF file format (.dxf)'''
+    """Import from DXF file format (.dxf)"""
     bl_idname = "import_scene.autocad_dxf"
     bl_description = 'Import from DXF file format (.dxf)'
     bl_label = "Import DXF" +' v.'+ __version__

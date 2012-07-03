@@ -238,7 +238,7 @@ def add_diamond(segments, girdle_radius, table_radius,
 
 
 class AddDiamond(bpy.types.Operator):
-    '''Add a diamond mesh'''
+    """Add a diamond mesh"""
     bl_idname = "mesh.primitive_diamond_add"
     bl_label = "Add Diamond"
     bl_options = {'REGISTER', 'UNDO', 'PRESET'}

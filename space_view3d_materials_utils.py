@@ -494,7 +494,7 @@ def remove_materials():
 # operator classes:
 
 class VIEW3D_OT_texface_to_material(bpy.types.Operator):
-    '''Create texture materials for images assigned in UV editor'''
+    """Create texture materials for images assigned in UV editor"""
     bl_idname = "view3d.texface_to_material"
     bl_label = "MW Texface Images to Material/Texture"
     bl_options = {'REGISTER', 'UNDO'}
@@ -514,7 +514,7 @@ class VIEW3D_OT_texface_to_material(bpy.types.Operator):
 
 
 class VIEW3D_OT_assign_material(bpy.types.Operator):
-    '''Assign a material to the selection'''
+    """Assign a material to the selection"""
     bl_idname = "view3d.assign_material"
     bl_label = "MW Assign Material"
     bl_options = {'REGISTER', 'UNDO'}
@@ -540,8 +540,8 @@ class VIEW3D_OT_assign_material(bpy.types.Operator):
 
 
 class VIEW3D_OT_clean_material_slots(bpy.types.Operator):
-    '''Removes any material slots from selected objects '''\
-    '''that are not used by the mesh'''
+    """Removes any material slots from selected objects """ \
+    """that are not used by the mesh"""
     bl_idname = "view3d.clean_material_slots"
     bl_label = "MW Clean Material Slots"
     bl_options = {'REGISTER', 'UNDO'}
@@ -556,7 +556,7 @@ class VIEW3D_OT_clean_material_slots(bpy.types.Operator):
 
 
 class VIEW3D_OT_material_to_texface(bpy.types.Operator):
-    '''Transfer material assignments to UV editor'''
+    """Transfer material assignments to UV editor"""
     bl_idname = "view3d.material_to_texface"
     bl_label = "MW Material Images to Texface"
     bl_options = {'REGISTER', 'UNDO'}
@@ -570,7 +570,7 @@ class VIEW3D_OT_material_to_texface(bpy.types.Operator):
         return {'FINISHED'}
 
 class VIEW3D_OT_material_remove(bpy.types.Operator):
-    '''Remove all material slots from active objects'''
+    """Remove all material slots from active objects"""
     bl_idname = "view3d.material_remove"
     bl_label = "Remove All Material Slots"
     bl_options = {'REGISTER', 'UNDO'}
@@ -585,7 +585,7 @@ class VIEW3D_OT_material_remove(bpy.types.Operator):
 
 
 class VIEW3D_OT_select_material_by_name(bpy.types.Operator):
-    '''Select geometry with this material assigned to it'''
+    """Select geometry with this material assigned to it"""
     bl_idname = "view3d.select_material_by_name"
     bl_label = "MW Select Material By Name"
     bl_options = {'REGISTER', 'UNDO'}
@@ -606,7 +606,7 @@ class VIEW3D_OT_select_material_by_name(bpy.types.Operator):
 
 
 class VIEW3D_OT_replace_material(bpy.types.Operator):
-    '''Replace a material by name'''
+    """Replace a material by name"""
     bl_idname = "view3d.replace_material"
     bl_label = "MW Replace Material"
     bl_options = {'REGISTER', 'UNDO'}

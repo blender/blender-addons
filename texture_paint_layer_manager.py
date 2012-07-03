@@ -48,7 +48,7 @@ def load_a_brush(context, filepath):
 
 
 class load_single_brush(bpy.types.Operator, ImportHelper):
-    ''' Load an image as a brush texture'''
+    """Load an image as a brush texture"""
     bl_idname = "texture.load_single_brush"  
     bl_label = "Load Image as Brush"
 
@@ -97,7 +97,7 @@ def loadbrushes(context, filepath):
 
 
 class ImportBrushes(bpy.types.Operator, ImportHelper):
-    ''' Load a directory of images as brush textures '''
+    """Load a directory of images as brush textures"""
     bl_idname = "texture.load_brushes"  
     bl_label = "Load brushes directory"
 
@@ -366,7 +366,7 @@ def main(context,tn):
 
 
 class set_active_paint_layer(bpy.types.Operator):
-    ''''''
+    """"""
     bl_idname = "object.set_active_paint_layer"
     bl_label = "set_active_paint_layer"
     tex_index = IntProperty(name = 'tex_index', 
@@ -525,7 +525,7 @@ def add_paint(context, size =2048, typ = 'NORMAL'):
     
 
 class add_paint_layer(bpy.types.Operator):
-    ''''''
+    """"""
     bl_idname = "object.add_paint_layer"
     bl_label = "Add Paint Layer"
     ttype = StringProperty(name ='ttype',default ='NORMAL')
@@ -596,7 +596,7 @@ def save_all_paint():
             
             
 class save_all_generated(bpy.types.Operator):
-    '''Saves painted layers to disc '''
+    """Saves painted layers to disc"""
     bl_idname = "paint.save_all_generated" 
      
     bl_label = "SAVE PAINT LAYERS"

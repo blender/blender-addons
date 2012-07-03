@@ -123,7 +123,7 @@ def createFaces(vertIdx1, vertIdx2, closed=False, flipped=False):
 
 class AddElbowJoint(bpy.types.Operator):
     # Create the vertices and polygons for a simple elbow (bent pipe).
-    '''Add an Elbow pipe mesh'''
+    """Add an Elbow pipe mesh"""
     bl_idname = "mesh.primitive_elbow_joint_add"
     bl_label = "Add Pipe Elbow"
     bl_options = {'REGISTER', 'UNDO', 'PRESET'}
@@ -224,7 +224,7 @@ class AddElbowJoint(bpy.types.Operator):
 class AddTeeJoint(bpy.types.Operator):
     # Create the vertices and polygons for a simple tee (T) joint.
     # The base arm of the T can be positioned in an angle if needed though.
-    '''Add a Tee-Joint mesh'''
+    """Add a Tee-Joint mesh"""
     bl_idname = "mesh.primitive_tee_joint_add"
     bl_label = "Add Pipe Tee-Joint"
     bl_options = {'REGISTER', 'UNDO', 'PRESET'}
@@ -401,7 +401,7 @@ class AddTeeJoint(bpy.types.Operator):
 
 
 class AddWyeJoint(bpy.types.Operator):
-    '''Add a Wye-Joint mesh'''
+    """Add a Wye-Joint mesh"""
     bl_idname = "mesh.primitive_wye_joint_add"
     bl_label = "Add Pipe Wye-Joint"
     bl_options = {'REGISTER', 'UNDO', 'PRESET'}
@@ -595,7 +595,7 @@ class AddWyeJoint(bpy.types.Operator):
 
 
 class AddCrossJoint(bpy.types.Operator):
-    '''Add a Cross-Joint mesh'''
+    """Add a Cross-Joint mesh"""
     # Create the vertices and polygons for a coss (+ or X) pipe joint.
     bl_idname = "mesh.primitive_cross_joint_add"
     bl_label = "Add Pipe Cross-Joint"
@@ -850,7 +850,7 @@ class AddCrossJoint(bpy.types.Operator):
 
 
 class AddNJoint(bpy.types.Operator):
-    '''Add a N-Joint mesh'''
+    """Add a N-Joint mesh"""
     # Create the vertices and polygons for a regular n-joint.
     bl_idname = "mesh.primitive_n_joint_add"
     bl_label = "Add Pipe N-Joint"

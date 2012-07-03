@@ -17,14 +17,14 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-'''
+"""
     ui_utils.py
 
     Some UI utility functions
     
     
 
-'''
+"""
 
 
 

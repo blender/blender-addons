@@ -97,7 +97,7 @@ def create_torus_knot(self, context):
 
 
 class torus_knot_plus(bpy.types.Operator, AddObjectHelper):
-    ''''''
+    """"""
     bl_idname = "curve.torus_knot_plus"
     bl_label = "Torus Knot +"
     bl_options = {'REGISTER', 'UNDO'}

@@ -22,10 +22,10 @@ import bpy
 
 
 def create_and_link_mesh(name, faces, points):
-    '''
+    """
     Create a blender mesh and object called name from a list of
     *points* and *faces* and link it in the current scene.
-    '''
+    """
 
     mesh = bpy.data.meshes.new(name)
     mesh.from_pydata(points, [], faces)
@@ -42,7 +42,7 @@ def create_and_link_mesh(name, faces, points):
 
 
 def faces_from_mesh(ob, apply_modifier=False, triangulate=True):
-    '''
+    """
     From an object, return a generator over a list of faces.
 
     Each faces is a list of his vertexes. Each vertex is a tuple of
@@ -53,7 +53,7 @@ def faces_from_mesh(ob, apply_modifier=False, triangulate=True):
 
     triangulate
         Split the quad into two triangles
-    '''
+    """
 
     # get the modifiers
     try:

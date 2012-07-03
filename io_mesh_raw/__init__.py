@@ -47,7 +47,7 @@ from bpy_extras.io_utils import ExportHelper
 
 
 class RawImporter(bpy.types.Operator):
-    '''Load Raw triangle mesh data'''
+    """Load Raw triangle mesh data"""
     bl_idname = "import_mesh.raw"
     bl_label = "Import RAW"
     bl_options = {'UNDO'}
@@ -69,7 +69,7 @@ class RawImporter(bpy.types.Operator):
 
 
 class RawExporter(bpy.types.Operator, ExportHelper):
-    '''Save Raw triangle mesh data'''
+    """Save Raw triangle mesh data"""
     bl_idname = "export_mesh.raw"
     bl_label = "Export RAW"
 

@@ -274,7 +274,7 @@ def _main(self,
                     # align the object with worldspace
                     obj_new.matrix_world = obj_mat
 
-                    # BGE settings for testiing
+                    # BGE settings for testing
                     '''
                     inst_ob.game.physics_type = 'RIGID_BODY'
                     inst_ob.game.use_collision_bounds = True
@@ -321,7 +321,7 @@ from bpy.props import FloatProperty,  StringProperty
 
 
 class Scatter(bpy.types.Operator):
-    ''''''
+    """"""
     bl_idname = "object.scatter"
     bl_label = "Grease Pencil Scatter"
 

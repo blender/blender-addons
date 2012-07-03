@@ -142,7 +142,7 @@ def Add_Chain():
 
 #makes AddChain an operator
 class AddChain(bpy.types.Operator):
-    '''Add a Chain'''
+    """Add a Chain"""
     bl_idname = "mesh.primitive_chain_add"
     bl_label = "Add Chain"
     bl_options = {'REGISTER', 'UNDO'}

@@ -2179,8 +2179,7 @@ class Panel_UDKExport( bpy.types.Panel ):
 		#layout.separator()
 
 class ExportUDKAnimData(bpy.types.Operator):
-    
-    '''Export Skeleton Mesh / Animation Data file(s)'''
+    """Export Skeleton Mesh / Animation Data file(s)"""
     bl_idname = "export_anim.udk" # this is important since its how bpy.ops.export.udk_anim_data is constructed
     bl_label = "Export PSK/PSA"
     __doc__ = """One mesh and one armature else select one mesh or armature to be exported"""

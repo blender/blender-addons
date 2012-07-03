@@ -52,7 +52,7 @@ from bpy_extras.io_utils import (ImportHelper,
 
 
 class ImportBVH(bpy.types.Operator, ImportHelper):
-    '''Load a BVH motion capture file'''
+    """Load a BVH motion capture file"""
     bl_idname = "import_anim.bvh"
     bl_label = "Import BVH"
     bl_options = {'REGISTER', 'UNDO'}
@@ -143,7 +143,7 @@ class ImportBVH(bpy.types.Operator, ImportHelper):
 
 
 class ExportBVH(bpy.types.Operator, ExportHelper):
-    '''Save a BVH motion capture file from an armature'''
+    """Save a BVH motion capture file from an armature"""
     bl_idname = "export_anim.bvh"
     bl_label = "Export BVH"
 

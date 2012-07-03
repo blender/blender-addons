@@ -182,7 +182,7 @@ def add_twisted_torus(major_rad, minor_rad, major_seg, minor_seg, twists):
 
 
 class AddTwistedTorus(bpy.types.Operator):
-    '''Add a torus mesh'''
+    """Add a torus mesh"""
     bl_idname = "mesh.primitive_twisted_torus_add"
     bl_label = "Add Torus"
     bl_options = {'REGISTER', 'UNDO', 'PRESET'}

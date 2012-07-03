@@ -87,9 +87,9 @@ def main(File, Path, LayerViewers, MixerViewers, LayerOffset,
                         ResX, ResY = map (int, Segment[4:].split(','))
             if Line.startswith("b'L") or Line.startswith("b'l"):
                 
-                '''The "nice" method to check if layer has alpha channel
+                """The "nice" method to check if layer has alpha channel
                 sadly GIMP sometimes decides not to export an alpha channel
-                if it's pure white so we are not completly sure here yet'''
+                if it's pure white so we are not completly sure here yet"""
                 if Line.startswith("b'L"): HasAlpha = True
                 else: HasAlpha = False
                 
@@ -103,8 +103,8 @@ def main(File, Path, LayerViewers, MixerViewers, LayerOffset,
                         imageFile = 'l' + Segment[3:] + '.jpg'
                         imageFileAlpha ='la'+Segment[3:]+'.jpg'
                         
-                        '''Phisically double checking if alpha image exists
-                        now we can be sure! (damn GIMP)'''
+                        """Phisically double checking if alpha image exists
+                        now we can be sure! (damn GIMP)"""
                         if HasAlpha:
                             if not os.path.isfile(PathSaveRaw+imageFileAlpha): HasAlpha = False
                         
@@ -541,7 +541,7 @@ from math import pi
 
 # Operator
 class GIMPImageToScene(bpy.types.Operator):
-    ''''''
+    """"""
     bl_idname = "import.gimp_image_to_scene"
     bl_label = "GIMP Image to Scene"
     bl_description = "Imports GIMP multilayer image files into 3D Scenes"

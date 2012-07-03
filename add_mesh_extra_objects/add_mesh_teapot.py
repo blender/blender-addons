@@ -37,7 +37,7 @@ bl_info = {
 import bpy, mathutils, io, operator, functools
 
 class AddTeapot(bpy.types.Operator):
-	'''Add a teapot mesh.'''
+	"""Add a teapot mesh"""
 	bl_idname = "mesh.primitive_teapot_add"
 	bl_label = "Add Teapot"
 	bl_options = {"REGISTER", "UNDO"}

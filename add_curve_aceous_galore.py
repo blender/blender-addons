@@ -762,11 +762,10 @@ def main(context, self, align_matrix):
     return
 
 class Curveaceous_galore(bpy.types.Operator):
-    ''''''
+    """Add many types of curves"""
     bl_idname = "mesh.curveaceous_galore"
     bl_label = "Curveaceous galore"
     bl_options = {'REGISTER', 'UNDO'}
-    bl_description = "adds many types of curves"
 
     # align_matrix for the invoke
     align_matrix = Matrix()

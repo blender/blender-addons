@@ -54,7 +54,7 @@ from bpy_extras.io_utils import (ExportHelper,
 
 
 class ImportOBJ(bpy.types.Operator, ImportHelper):
-    '''Load a Wavefront OBJ File'''
+    """Load a Wavefront OBJ File"""
     bl_idname = "import_scene.obj"
     bl_label = "Import OBJ"
     bl_options = {'PRESET', 'UNDO'}
@@ -196,7 +196,7 @@ class ImportOBJ(bpy.types.Operator, ImportHelper):
 
 
 class ExportOBJ(bpy.types.Operator, ExportHelper):
-    '''Save a Wavefront OBJ File'''
+    """Save a Wavefront OBJ File"""
 
     bl_idname = "export_scene.obj"
     bl_label = 'Export OBJ'

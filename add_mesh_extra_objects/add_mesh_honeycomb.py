@@ -207,7 +207,7 @@ def edge_max(diam):
     return diam * sin(pi / 3)
 
 class add_mesh_honeycomb(bpy.types.Operator):
-    '''Simple honeycomb mesh generator'''
+    """Simple honeycomb mesh generator"""
     bl_idname = 'mesh.honeycomb_add'
     bl_label = 'Add HoneyComb'
     bl_options = {'REGISTER', 'UNDO'}

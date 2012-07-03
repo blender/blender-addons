@@ -904,7 +904,7 @@ def draw_measurements_callback(self, context):
 
 
 class VIEW3D_OT_display_measurements(bpy.types.Operator):
-    '''Display the measurements made in the 'Measure' panel'''
+    """Display the measurements made in the 'Measure' panel"""
     bl_idname = "view3d.display_measurements"
     bl_label = "Display the measurements made in the" \
         " 'Measure' panel in the 3D View"

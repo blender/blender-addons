@@ -40,10 +40,10 @@ from bpy_extras.image_utils import load_image
 
 
 def line_value(line_split):
-    '''
+    """
     Returns 1 string represneting the value for this line
     None will be returned if theres only 1 word
-    '''
+    """
     length = len(line_split)
     if length == 1:
         return None
@@ -56,10 +56,10 @@ def line_value(line_split):
 
 
 def obj_image_load(imagepath, DIR, recursive):
-    '''
+    """
     Mainly uses comprehensiveImageLoad
     but tries to replace '_' with ' ' for Max's exporter replaces spaces with underscores.
-    '''
+    """
     if b'_' in imagepath:
         image = load_image(imagepath.replace(b'_', b' '), DIR, recursive=recursive)
         if image:
@@ -69,10 +69,10 @@ def obj_image_load(imagepath, DIR, recursive):
 
 
 def create_materials(filepath, material_libs, unique_materials, unique_material_images, use_image_search):
-    '''
+    """
     Create all the used materials in this obj,
     assign colors and images to the materials from all referenced material libs
-    '''
+    """
     DIR = os.path.dirname(filepath)
 
     #==================================================================================#
@@ -349,10 +349,10 @@ def create_materials(filepath, material_libs, unique_materials, unique_material_
 
 
 def split_mesh(verts_loc, faces, unique_materials, filepath, SPLIT_OB_OR_GROUP):
-    '''
+    """
     Takes vert_loc and faces, and separates into multiple sets of
     (verts_loc, faces, unique_materials, dataname)
-    '''
+    """
 
     filename = os.path.splitext((os.path.basename(filepath)))[0]
 
@@ -424,10 +424,10 @@ def create_mesh(new_objects,
                 vertex_groups,
                 dataname,
                 ):
-    '''
+    """
     Takes all the data gathered and generates a mesh, adding the new object to new_objects
     deals with fgons, sharp edges and assigning materials
-    '''
+    """
     from bpy_extras.mesh_utils import ngon_tessellate
 
     if not has_ngons:
@@ -705,9 +705,9 @@ def create_mesh(new_objects,
 
 
 def create_nurbs(context_nurbs, vert_loc, new_objects):
-    '''
+    """
     Add nurbs object to blender, only support one type at the moment
-    '''
+    """
     deg = context_nurbs.get(b'deg', (3,))
     curv_range = context_nurbs.get(b'curv_range')
     curv_idx = context_nurbs.get(b'curv_idx', [])
@@ -788,10 +788,10 @@ def strip_slash(line_split):
 
 
 def get_float_func(filepath):
-    '''
+    """
     find the float function for this obj file
     - whether to replace commas or not
-    '''
+    """
     file = open(filepath, 'rb')
     for line in file:  # .readlines():
         line = line.lstrip()
@@ -819,12 +819,12 @@ def load(operator, context, filepath,
          use_groups_as_vgroups=False,
          global_matrix=None,
          ):
-    '''
+    """
     Called by the user interface or another script.
     load_obj(path) - should give acceptable results.
     This function passes the file and sends the data off
         to be split into objects and then converted into mesh objects
-    '''
+    """
     print('\nimporting obj %r' % filepath)
 
     filepath = os.fsencode(filepath)

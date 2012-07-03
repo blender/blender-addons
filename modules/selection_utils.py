@@ -27,8 +27,8 @@ selected = []
 
 
 class SelectionOrder(bpy.types.Operator):
-    '''Store the object names in the order they are selected.
-    Use RETURN key to confirm selection, ESCAPE key to cancel'''
+    """Store the object names in the order they are selected, """ \
+    """use RETURN key to confirm selection, ESCAPE key to cancel"""
     bl_idname = "object.select_order"
     bl_label = "Select with Order"
     bl_options = {'UNDO'}

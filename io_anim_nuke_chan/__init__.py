@@ -66,8 +66,8 @@ rotation_order = EnumProperty(
 
 
 class ImportChan(Operator, ImportHelper):
-    '''Import animation from .chan file, exported from nuke or houdini. ''' \
-    '''The importer uses frame numbers from the file'''
+    """Import animation from .chan file, exported from nuke or houdini """ \
+    """(the importer uses frame numbers from the file)"""
     bl_idname = "import_scene.import_chan"
     bl_label = "Import chan file"
 
@@ -106,8 +106,8 @@ class ImportChan(Operator, ImportHelper):
 
 
 class ExportChan(Operator, ExportHelper):
-    '''Export the animation to .chan file, readable by nuke and houdini. ''' \
-    '''The exporter uses frames from the frames range'''
+    """Export the animation to .chan file, readable by nuke and houdini """ \
+    """(the exporter uses frames from the frames range)"""
     bl_idname = "export.export_chan"
     bl_label = "Export chan file"
 

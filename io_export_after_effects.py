@@ -693,7 +693,7 @@ from bpy.props import StringProperty, BoolProperty
 
 
 class ExportJsx(bpy.types.Operator, ExportHelper):
-    '''Export selected cameras and objects animation to After Effects'''
+    """Export selected cameras and objects animation to After Effects"""
     bl_idname = "export.jsx"
     bl_label = "Export to Adobe After Effects"
     filename_ext = ".jsx"

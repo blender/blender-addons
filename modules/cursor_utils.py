@@ -17,14 +17,14 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-'''
+"""
     cursor_utils.py
 
     Helper methods for accessing the 3D cursor
     
     
 
-'''
+"""
 
 
 import bpy

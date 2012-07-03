@@ -131,7 +131,7 @@ class PALETTE_MT_menu(bpy.types.Menu):
 
 
 class LoadGimpPalette(bpy.types.Operator):
-    ''' Executes a preset '''
+    """Execute a preset"""
     bl_idname = "palette.load_gimp_palette"
     bl_label = "Load a Gimp palette"
 
@@ -201,10 +201,10 @@ class LoadGimpPalette(bpy.types.Operator):
 
 
 class WriteGimpPalette():
-    '''Base preset class, only for subclassing
+    """Base preset class, only for subclassing
     subclasses must define
      - preset_values
-     - preset_subdir '''
+     - preset_subdir """
     bl_options = {'REGISTER'}  # only because invoke_props_popup requires.
 
 
@@ -298,7 +298,7 @@ class WriteGimpPalette():
 
 
 class AddPresetPalette(WriteGimpPalette, bpy.types.Operator):
-    '''Add a Palette Preset'''
+    """Add a Palette Preset"""
     bl_idname = "palette.preset_add"
     bl_label = "Add Palette Preset"
     preset_menu = "PALETTE_MT_menu"

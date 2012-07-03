@@ -59,7 +59,7 @@ def unpack_face_list(list_of_tuples):
 
     return l
 
-'''
+"""
 Remove Doubles takes a list on Verts and a list of Faces and
 removes the doubles, much like Blender does in edit mode.
 It doesn’t have the range function  but it will round the corrdinates
@@ -67,7 +67,7 @@ and remove verts that are very close togther.  The function
 is useful because you can perform a “Remove Doubles” with out
 having to enter Edit Mode. Having to enter edit mode has the
 disadvantage of not being able to interactively change the properties.
-'''
+"""
 
 
 def RemoveDoubles(verts,faces,Decimal_Places = 4):

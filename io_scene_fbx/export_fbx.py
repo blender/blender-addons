@@ -158,10 +158,10 @@ def action_bone_names(obj, action):
 
 # ob must be OB_MESH
 def BPyMesh_meshWeight2List(ob, me):
-    ''' Takes a mesh and return its group names and a list of lists, one list per vertex.
+    """ Takes a mesh and return its group names and a list of lists, one list per vertex.
     aligning the each vert list with the group names, each list contains float value for the weight.
     These 2 lists can be modified and then used with list2MeshWeight to apply the changes.
-    '''
+    """
 
     # Clear the vert group.
     groupNames = [g.name for g in ob.vertex_groups]
@@ -464,9 +464,9 @@ def save_single(operator, scene, filepath="",
 
     # --------------- funcs for exporting
     def object_tx(ob, loc, matrix, matrix_mod=None):
-        '''
+        """
         Matrix mod is so armature objects can modify their bone matrices
-        '''
+        """
         if isinstance(ob, bpy.types.Bone):
 
             # we know we have a matrix
@@ -524,11 +524,11 @@ def save_single(operator, scene, filepath="",
         return loc, rot, scale, matrix, matrix_rot
 
     def write_object_tx(ob, loc, matrix, matrix_mod=None):
-        '''
+        """
         We have loc to set the location if non blender objects that have a location
 
         matrix_mod is only used for bones at the moment
-        '''
+        """
         loc, rot, scale, matrix, matrix_rot = object_tx(ob, loc, matrix, matrix_mod)
 
         fw('\n\t\t\tProperty: "Lcl Translation", "Lcl Translation", "A+",%.15f,%.15f,%.15f' % loc)
@@ -850,9 +850,9 @@ def save_single(operator, scene, filepath="",
         write_camera_dummy('Producer Left', (-4000, 0, 0), 1, 30000, 1, (0, 1, 0))
 
     def write_camera(my_cam):
-        '''
+        """
         Write a blender camera
-        '''
+        """
         render = scene.render
         width = render.resolution_x
         height = render.resolution_y
@@ -897,14 +897,14 @@ def save_single(operator, scene, filepath="",
         fw('\n\t\t\tProperty: "AspectW", "double", "",%i' % width)
         fw('\n\t\t\tProperty: "AspectH", "double", "",%i' % height)
 
-        '''Camera aspect ratio modes.
+        """Camera aspect ratio modes.
             0 If the ratio mode is eWINDOW_SIZE, both width and height values aren't relevant.
             1 If the ratio mode is eFIXED_RATIO, the height value is set to 1.0 and the width value is relative to the height value.
             2 If the ratio mode is eFIXED_RESOLUTION, both width and height values are in pixels.
             3 If the ratio mode is eFIXED_WIDTH, the width value is in pixels and the height value is relative to the width value.
             4 If the ratio mode is eFIXED_HEIGHT, the height value is in pixels and the width value is relative to the height value.
 
-        Definition at line 234 of file kfbxcamera.h. '''
+        Definition at line 234 of file kfbxcamera.h. """
 
         fw('\n\t\t\tProperty: "PixelAspectRatio", "double", "",1'
            '\n\t\t\tProperty: "UseFrameColor", "bool", "",0'
@@ -1253,9 +1253,9 @@ def save_single(operator, scene, filepath="",
 	}''')
 
     def write_deformer_skin(obname):
-        '''
+        """
         Each mesh has its own deformer
-        '''
+        """
         fw('\n\tDeformer: "Deformer::Skin %s", "Skin" {' % obname)
         fw('''
 		Version: 100
@@ -1269,13 +1269,13 @@ def save_single(operator, scene, filepath="",
     # in the example was 'Bip01 L Thigh_2'
     def write_sub_deformer_skin(my_mesh, my_bone, weights):
 
-        '''
+        """
         Each subdeformer is specific to a mesh, but the bone it links to can be used by many sub-deformers
         So the SubDeformer needs the mesh-object name as a prefix to make it unique
 
         Its possible that there is no matching vgroup in this mesh, in that case no verts are in the subdeformer,
         a but silly but dosnt really matter
-        '''
+        """
         fw('\n\tDeformer: "SubDeformer::Cluster %s %s", "Cluster" {' % (my_mesh.fbxName, my_bone.fbxName))
 
         fw('''

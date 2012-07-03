@@ -18,7 +18,7 @@
 
 # <pep8 compliant>
 
-'''
+"""
 Even though this is in a package this can run as a stand alone scripts.
 
 # --- example usage
@@ -32,7 +32,7 @@ config = [
     ]
 # ---
 /data/src/blender/lib/tests/rendering/
-'''
+"""
 
 import bpy
 import time

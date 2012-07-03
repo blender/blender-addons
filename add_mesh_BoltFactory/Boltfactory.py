@@ -42,7 +42,7 @@ def align_matrix(context):
 
 
 class add_mesh_bolt(bpy.types.Operator):
-    ''''''
+    """"""
     bl_idname = "mesh.bolt_add"
     bl_label = "Add Bolt"
     bl_options = {'REGISTER', 'UNDO', 'PRESET'}

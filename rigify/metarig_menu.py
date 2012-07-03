@@ -23,7 +23,7 @@ from rigify.metarigs import human
 
 
 class AddHuman(bpy.types.Operator):
-    '''Add an advanced human metarig base'''
+    """Add an advanced human metarig base"""
     bl_idname = "object.armature_human_advanced_add"
     bl_label = "Add Humanoid (advanced metarig)"
     bl_options = {'REGISTER', 'UNDO'}

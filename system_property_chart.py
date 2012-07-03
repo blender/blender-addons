@@ -54,9 +54,9 @@ def _property_chart_data_get(self, context):
 
 
 def _property_chart_draw(self, context):
-    '''
+    """
     This function can run for different types.
-    '''
+    """
     obj, selected_objects = _property_chart_data_get(self, context)
 
     if not obj:

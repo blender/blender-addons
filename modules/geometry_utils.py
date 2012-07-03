@@ -17,14 +17,14 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-'''
+"""
     geometry_utils.py
 
     3d geometry calculations
     
     
 
-'''
+"""
 
 
 from mathutils import Vector, Matrix

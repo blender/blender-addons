@@ -49,10 +49,8 @@ def collection_property_sort(collection, sortkey, start_idx=0):
 
 
 class RenderCopySettingsPrepare(bpy.types.Operator):
-    '''
-    Prepare internal data for render_copy_settings (gathering all existing
-    render settings, and scenes)
-    '''
+    """Prepare internal data for render_copy_settings (gathering all """ \
+    """existingrender settings, and scenes)"""
     bl_idname = "scene.render_copy_settings_prepare"
     bl_label = "Render: Copy Settings Prepare"
     bl_option = {'REGISTER'}
@@ -128,7 +126,7 @@ from bpy.props import EnumProperty
 
 
 class RenderCopySettingsPreset(bpy.types.Operator):
-    '''Apply some presets of render settings to copy to other scenes'''
+    """Apply some presets of render settings to copy to other scenes"""
     bl_idname = "scene.render_copy_settings_preset"
     bl_label = "Render: Copy Settings Preset"
     bl_description = "Apply or clear this preset of render settings"
@@ -179,7 +177,7 @@ def do_copy(context, affected_settings, allowed_scenes):
 
 
 class RenderCopySettings(bpy.types.Operator):
-    '''Copy render settings from current scene to others'''
+    """Copy render settings from current scene to others"""
     bl_idname = "scene.render_copy_settings"
     bl_label = "Render: Copy Settings"
     # Enable undo…

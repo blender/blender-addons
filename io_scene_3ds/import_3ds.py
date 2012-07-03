@@ -608,9 +608,9 @@ def process_next_chunk(file, previous_chunk, importedObjects, IMAGE_SEARCH):
             # print 'Found an OBJECT_MESH chunk'
             pass
         elif new_chunk.ID == OBJECT_VERTICES:
-            '''
+            """
             Worldspace vertex locations
-            '''
+            """
             # print 'elif new_chunk.ID == OBJECT_VERTICES:'
             temp_data = file.read(STRUCT_SIZE_UNSIGNED_SHORT)
             num_verts = struct.unpack('<H', temp_data)[0]

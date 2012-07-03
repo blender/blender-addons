@@ -53,7 +53,7 @@ from bpy_extras.io_utils import (ExportHelper,
 
 
 class ExportFBX(bpy.types.Operator, ExportHelper):
-    '''Selection to an ASCII Autodesk FBX'''
+    """Selection to an ASCII Autodesk FBX"""
     bl_idname = "export_scene.fbx"
     bl_label = "Export FBX"
     bl_options = {'PRESET'}

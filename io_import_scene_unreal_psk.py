@@ -585,7 +585,7 @@ def getInputFilename(self,filename,importmesh,importbone,bDebugLogPSK,importmult
         pskimport(filename,importmesh,importbone,bDebugLogPSK,importmultiuvtextures)
 #import panel
 class IMPORT_OT_psk(bpy.types.Operator):
-    '''Load a skeleton mesh psk File'''
+    """Load a skeleton mesh psk File"""
     bl_idname = "import_scene.psk"
     bl_label = "Import PSK"
     bl_space_type = "PROPERTIES"

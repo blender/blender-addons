@@ -341,7 +341,7 @@ def fracture_group(context, group):
 
 
 class FractureSimple(bpy.types.Operator):
-    '''Split object with boolean operations for simulation, uses an object'''
+    """Split object with boolean operations for simulation, uses an object"""
     bl_idname = "object.fracture_simple"
     bl_label = "Fracture Object"
     bl_options = {'REGISTER', 'UNDO'}
@@ -387,7 +387,7 @@ class FractureSimple(bpy.types.Operator):
 
 
 class FractureGroup(bpy.types.Operator):
-    '''Split object with boolean operations for simulation, uses a group'''
+    """Split object with boolean operations for simulation, uses a group"""
     bl_idname = "object.fracture_group"
     bl_label = "Fracture Object (Group)"
     bl_options = {'REGISTER', 'UNDO'}
@@ -447,7 +447,7 @@ def import_object(obname):
 
 
 class ImportFractureRecorder(bpy.types.Operator):
-    '''Imports a rigidbody recorder'''
+    """Imports a rigidbody recorder"""
     bl_idname = "object.import_fracture_recorder"
     bl_label = "Add Rigidbody Recorder (Fracture)"
     bl_options = {'REGISTER', 'UNDO'}
@@ -459,7 +459,7 @@ class ImportFractureRecorder(bpy.types.Operator):
 
 
 class ImportFractureBomb(bpy.types.Operator):
-    '''Import a bomb'''
+    """Import a bomb"""
     bl_idname = "object.import_fracture_bomb"
     bl_label = "Add Bomb (Fracture)"
     bl_options = {'REGISTER', 'UNDO'}
@@ -471,7 +471,7 @@ class ImportFractureBomb(bpy.types.Operator):
 
 
 class ImportFractureProjectile(bpy.types.Operator, ):
-    '''Imports a projectile'''
+    """Imports a projectile"""
     bl_idname = "object.import_fracture_projectile"
     bl_label = "Add Projectile (Fracture)"
     bl_options = {'REGISTER', 'UNDO'}

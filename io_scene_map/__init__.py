@@ -45,7 +45,7 @@ from bpy_extras.io_utils import ExportHelper
 
 
 class ExportMAP(bpy.types.Operator, ExportHelper):
-    '''Export selection to a quake map'''
+    """Export selection to a quake map"""
     bl_idname = "export_scene.quake_map"
     bl_label = "Export MAP"
     bl_options = {'PRESET'}

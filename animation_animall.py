@@ -29,7 +29,7 @@ bl_info = {
         'func=detail&aid=24874',
     'category': 'Animation'}
 
-'''-------------------------------------------------------------------------
+"""-------------------------------------------------------------------------
 Thanks to Campbell Barton and Joshua Leung for hes API additions and fixes
 Daniel 'ZanQdo' Salazar
 
@@ -40,7 +40,7 @@ Rev 0.4 added support for ShapeKey layer animation, removed support
 for direct point animation since this new aproach is much stronger
 and inline with the animation system
 Rev 0.5 merged curve animation features from rotobezier and ported to new bmesh API
--------------------------------------------------------------------------'''
+-------------------------------------------------------------------------"""
 
 import bpy
 from bpy.props import *

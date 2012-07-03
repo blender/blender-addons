@@ -92,7 +92,8 @@ def relax_mesh(context):
     bpy.ops.object.mode_set(mode='EDIT')
 
 class Relax(bpy.types.Operator):
-    '''Relaxes selected vertices while retaining the shape as much as possible'''
+    """Relaxes selected vertices while retaining the shape """ \
+    """as much as possible"""
     bl_idname = 'mesh.relax'
     bl_label = 'Relax'
     bl_options = {'REGISTER', 'UNDO'}

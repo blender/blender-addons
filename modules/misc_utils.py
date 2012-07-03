@@ -17,12 +17,12 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-'''
+"""
     misc_util.py
     
     Miscellaneous helper methods.
 
-'''
+"""
 
 import bpy
 from cursor_utils import *

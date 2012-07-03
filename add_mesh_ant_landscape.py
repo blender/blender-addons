@@ -30,7 +30,7 @@ bl_info = {
         "func=detail&aid=23130",
     "category": "Add Mesh"}
 
-'''
+"""
 Another Noise Tool: Landscape mesh generator
 
 MESH OPTIONS:
@@ -66,7 +66,7 @@ Sealevel:        Flattens terrain below sealevel.
 Platlevel:       Flattens terrain above plateau level.
 Strata:          Strata amount, number of strata/terrace layers.
 Strata type:     Strata types, Smooth, Sharp-sub, Sharp-add
-'''
+"""
 
 # import modules
 import bpy
@@ -430,7 +430,7 @@ def sphere_gen( sub_d, size_me, options ):
 ###------------------------------------------------------------
 # Add landscape
 class landscape_add(bpy.types.Operator):
-    '''Add a landscape mesh'''
+    """Add a landscape mesh"""
     bl_idname = "mesh.landscape_add"
     bl_label = "Landscape"
     bl_options = {'REGISTER', 'UNDO', 'PRESET'}

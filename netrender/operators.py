@@ -29,7 +29,7 @@ import netrender.model
 import netrender.versioning as versioning
 
 class RENDER_OT_netclientsendbake(bpy.types.Operator):
-    '''Send a baking job to the Network'''
+    """Send a baking job to the Network"""
     bl_idname = "render.netclientsendbake"
     bl_label = "Bake on network"
 
@@ -58,7 +58,7 @@ class RENDER_OT_netclientsendbake(bpy.types.Operator):
         return self.execute(context)
 
 class RENDER_OT_netclientanim(bpy.types.Operator):
-    '''Start rendering an animation on network'''
+    """Start rendering an animation on network"""
     bl_idname = "render.netclientanim"
     bl_label = "Animation on network"
 
@@ -85,7 +85,7 @@ class RENDER_OT_netclientanim(bpy.types.Operator):
         return self.execute(context)
 
 class RENDER_OT_netclientrun(bpy.types.Operator):
-    '''Start network rendering service'''
+    """Start network rendering service"""
     bl_idname = "render.netclientstart"
     bl_label = "Start Service"
 
@@ -102,7 +102,7 @@ class RENDER_OT_netclientrun(bpy.types.Operator):
         return self.execute(context)
 
 class RENDER_OT_netclientsend(bpy.types.Operator):
-    '''Send Render Job to the Network'''
+    """Send Render Job to the Network"""
     bl_idname = "render.netclientsend"
     bl_label = "Send job"
 
@@ -132,7 +132,7 @@ class RENDER_OT_netclientsend(bpy.types.Operator):
         return self.execute(context)
 
 class RENDER_OT_netclientsendframe(bpy.types.Operator):
-    '''Send Render Job with current frame to the Network'''
+    """Send Render Job with current frame to the Network"""
     bl_idname = "render.netclientsendframe"
     bl_label = "Send current frame job"
 
@@ -162,7 +162,7 @@ class RENDER_OT_netclientsendframe(bpy.types.Operator):
         return self.execute(context)
 
 class RENDER_OT_netclientstatus(bpy.types.Operator):
-    '''Refresh the status of the current jobs'''
+    """Refresh the status of the current jobs"""
     bl_idname = "render.netclientstatus"
     bl_label = "Client Status"
 
@@ -203,7 +203,7 @@ class RENDER_OT_netclientstatus(bpy.types.Operator):
         return self.execute(context)
 
 class RENDER_OT_netclientblacklistslave(bpy.types.Operator):
-    '''Exclude from rendering, by adding slave to the blacklist'''
+    """Exclude from rendering, by adding slave to the blacklist"""
     bl_idname = "render.netclientblacklistslave"
     bl_label = "Client Blacklist Slave"
 
@@ -233,7 +233,7 @@ class RENDER_OT_netclientblacklistslave(bpy.types.Operator):
         return self.execute(context)
 
 class RENDER_OT_netclientwhitelistslave(bpy.types.Operator):
-    '''Remove slave from the blacklist'''
+    """Remove slave from the blacklist"""
     bl_idname = "render.netclientwhitelistslave"
     bl_label = "Client Whitelist Slave"
 
@@ -264,7 +264,7 @@ class RENDER_OT_netclientwhitelistslave(bpy.types.Operator):
 
 
 class RENDER_OT_netclientslaves(bpy.types.Operator):
-    '''Refresh status about available Render slaves'''
+    """Refresh status about available Render slaves"""
     bl_idname = "render.netclientslaves"
     bl_label = "Client Slaves"
 
@@ -315,7 +315,7 @@ class RENDER_OT_netclientslaves(bpy.types.Operator):
         return self.execute(context)
 
 class RENDER_OT_netclientcancel(bpy.types.Operator):
-    '''Cancel the selected network rendering job'''
+    """Cancel the selected network rendering job"""
     bl_idname = "render.netclientcancel"
     bl_label = "Client Cancel"
 
@@ -345,7 +345,7 @@ class RENDER_OT_netclientcancel(bpy.types.Operator):
         return self.execute(context)
 
 class RENDER_OT_netclientcancelall(bpy.types.Operator):
-    '''Cancel all running network rendering jobs'''
+    """Cancel all running network rendering jobs"""
     bl_idname = "render.netclientcancelall"
     bl_label = "Client Cancel All"
 
@@ -373,7 +373,7 @@ class RENDER_OT_netclientcancelall(bpy.types.Operator):
         return self.execute(context)
 
 class netclientdownload(bpy.types.Operator):
-    '''Download render results from the network'''
+    """Download render results from the network"""
     bl_idname = "render.netclientdownload"
     bl_label = "Client Download"
 
@@ -461,7 +461,7 @@ class netclientdownload(bpy.types.Operator):
         return self.execute(context)
 
 class netclientscan(bpy.types.Operator):
-    '''Listen on network for master server broadcasting its address and port'''
+    """Listen on network for master server broadcasting its address and port"""
     bl_idname = "render.netclientscan"
     bl_label = "Client Scan"
 
@@ -485,7 +485,7 @@ class netclientscan(bpy.types.Operator):
         return self.execute(context)
 
 class netclientvcsguess(bpy.types.Operator):
-    '''Guess VCS setting for the current file'''
+    """Guess VCS setting for the current file"""
     bl_idname = "render.netclientvcsguess"
     bl_label = "VCS Guess"
 
@@ -517,7 +517,7 @@ class netclientvcsguess(bpy.types.Operator):
 
 
 class netclientweb(bpy.types.Operator):
-    '''Open new window with information about running rendering jobs'''
+    """Open new window with information about running rendering jobs"""
     bl_idname = "render.netclientweb"
     bl_label = "Open Master Monitor"
 

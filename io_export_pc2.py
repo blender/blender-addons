@@ -30,13 +30,13 @@ bl_info = {
         "func=detail&aid=24703",
     "category": "Import-Export"}
 
-'''
+"""
 Usage Notes:
 
 in Maya Mel:
 cacheFile -pc2 1 -pcf "<insert filepath of source>" -f "<insert target filename w/o extension>" -dir "<insert directory path for target>" -format "OneFile";
 
-'''
+"""
 
 import bpy
 from bpy.props import *
@@ -104,7 +104,7 @@ def do_export(context, props, filepath):
 
 ###### EXPORT OPERATOR #######
 class Export_pc2(bpy.types.Operator, ExportHelper):
-    '''Exports the active Object as a .pc2 Pointcache file'''
+    """Export the active Object as a .pc2 Pointcache file"""
     bl_idname = "export_shape.pc2"
     bl_label = "Export Pointcache (.pc2)"
 

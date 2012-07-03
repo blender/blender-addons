@@ -46,7 +46,7 @@ from bpy_extras.io_utils import ImportHelper
 
 
 class ImportSVG(bpy.types.Operator, ImportHelper):
-    '''Load a SVG file'''
+    """Load a SVG file"""
     bl_idname = "import_curve.svg"
     bl_label = "Import SVG"
     bl_options = {'UNDO'}

@@ -74,9 +74,9 @@ settings = [('0', 'Geometry', 'Geometry'),
 
 
 def getPresetpath():
-    '''Support user defined scripts directory
+    """Support user defined scripts directory
        Find the first ocurrence of add_curve_sapling/presets in possible script paths
-       and return it as preset path'''
+       and return it as preset path"""
     presetpath = ""
     for p in bpy.utils.script_paths():
         presetpath = os.path.join(p, 'addons', 'add_curve_sapling', 'presets')
@@ -86,7 +86,7 @@ def getPresetpath():
 
 
 class ExportData(bpy.types.Operator):
-    '''This operator handles writing presets to file'''
+    """This operator handles writing presets to file"""
     bl_idname = 'sapling.exportdata'
     bl_label = 'Export Preset'
 
@@ -114,7 +114,7 @@ class ExportData(bpy.types.Operator):
 
 
 class ImportData(bpy.types.Operator):
-    '''This operator handles importing existing presets'''
+    """This operator handles importing existing presets"""
     bl_idname = 'sapling.importdata'
     bl_label = 'Import Preset'
 
@@ -135,9 +135,8 @@ class ImportData(bpy.types.Operator):
 
 
 class PresetMenu(bpy.types.Menu):
-    '''Create the preset menu by finding all preset files
-    in the preset directory
-    '''
+    """Create the preset menu by finding all preset files """ \
+    """in the preset directory"""
     bl_idname = "sapling.presetmenu"
     bl_label = "Presets"
 

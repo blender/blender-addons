@@ -462,10 +462,10 @@ def get_layers(layers):
 
 
 def write_metarig(obj, layers=False, func_name="create_sample"):
-    '''
+    """
     Write a metarig as a python script, this rig is to have all info needed for
     generating the real rig with rigify.
-    '''
+    """
     code = []
 
     code.append("def %s(obj):" % func_name)

@@ -39,9 +39,9 @@ class OBJECT_OT_animrenderbake(bpy.types.Operator):
     bl_register = True
 
     def framefile(self, orig, frame):
-        '''
+        """
         Set frame number to file name image.png -> image0013.png
-        '''
+        """
         dot = orig.rfind(".")
         return orig[:dot] + ('%04d' % frame) + orig[dot:]
     

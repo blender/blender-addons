@@ -28,7 +28,7 @@ import os
 import queue, threading
 
 class image_properties:
-    ''' keeps track of image attributes throughout the hirise_dtm_importer class '''
+    """ keeps track of image attributes throughout the hirise_dtm_importer class """
     def __init__(self, name, dimensions, pixel_scale):
       self.name( name )
       self.dims( dimensions )
@@ -56,7 +56,7 @@ class image_properties:
       return self.__pixel_scale
 
 class hirise_dtm_importer(object):
-    ''' methods to understand/import a HiRISE DTM formatted as a PDS .IMG '''
+    """ methods to understand/import a HiRISE DTM formatted as a PDS .IMG """
 
     def __init__(self, context, filepath):
       self.__context = context
@@ -141,9 +141,9 @@ class hirise_dtm_importer(object):
       return (label, self.parsePDSLabel(self.iterArr(label)))
 
     def getLinesAndSamples(self, label):
-      ''' uses the parsed PDS Label to get the LINES and LINE_SAMPLES parameters
+      """ uses the parsed PDS Label to get the LINES and LINE_SAMPLES parameters
           from the first object named "IMAGE" -- is hackish
-      '''
+      """
       for obj in label:
         if obj[0] == "IMAGE":
           return self.getLinesAndSamples(obj[1])
@@ -155,9 +155,9 @@ class hirise_dtm_importer(object):
       return ( line_samples, lines )
 
     def getValidMinMax(self, label):
-      ''' uses the parsed PDS Label to get the VALID_MINIMUM and VALID_MAXIMUM parameters
+      """ uses the parsed PDS Label to get the VALID_MINIMUM and VALID_MAXIMUM parameters
           from the first object named "IMAGE" -- is hackish
-      '''
+      """
       for obj in label:
         if obj[0] == "IMAGE":
           return self.getValidMinMax(obj[1])
@@ -169,9 +169,9 @@ class hirise_dtm_importer(object):
       return vmin, vmax
 
     def getMissingConstant(self, label):
-      ''' uses the parsed PDS Label to get the MISSING_CONSTANT parameter
+      """ uses the parsed PDS Label to get the MISSING_CONSTANT parameter
           from the first object named "IMAGE" -- is hackish
-      '''
+      """
       for obj in label:
         if obj[0] == "IMAGE":
           return self.getMissingConstant(obj[1])
@@ -192,7 +192,7 @@ class hirise_dtm_importer(object):
     ############################################################################
 
     def bin2(self, image_iter, bin2_method_type="SLOW"):
-      ''' this is an iterator that: Given an image iterator will yield binned lines '''
+      """ this is an iterator that: Given an image iterator will yield binned lines """
 
       ignore_value = self.__ignore_value
 
@@ -227,7 +227,7 @@ class hirise_dtm_importer(object):
           line_count += 1
 
     def bin6(self, image_iter, bin6_method_type="SLOW"):
-      ''' this is an iterator that: Given an image iterator will yield binned lines '''
+      """ this is an iterator that: Given an image iterator will yield binned lines """
 
       img_props = next(image_iter)
       # dimensions shrink as we remove pixels
@@ -256,7 +256,7 @@ class hirise_dtm_importer(object):
           raw_data = []
 
     def bin6_real(self, raw_data):
-      ''' does a 6x6 sample of raw_data and returns a single line of data '''
+      """ does a 6x6 sample of raw_data and returns a single line of data """
       # TODO: make this more efficient
 
       binned_data = []
@@ -287,7 +287,7 @@ class hirise_dtm_importer(object):
       return binned_data
 
     def bin6_real_fast(self, raw_data):
-      ''' takes a single value from each 6x6 sample of raw_data and returns a single line of data '''
+      """ takes a single value from each 6x6 sample of raw_data and returns a single line of data """
       # TODO: make this more efficient
 
       binned_data = []
@@ -300,7 +300,7 @@ class hirise_dtm_importer(object):
       return binned_data
 
     def bin12(self, image_iter, bin12_method_type="SLOW"):
-      ''' this is an iterator that: Given an image iterator will yield binned lines '''
+      """ this is an iterator that: Given an image iterator will yield binned lines """
 
       img_props = next(image_iter)
       # dimensions shrink as we remove pixels
@@ -329,7 +329,7 @@ class hirise_dtm_importer(object):
           raw_data = []
 
     def bin12_real(self, raw_data):
-      ''' does a 12x12 sample of raw_data and returns a single line of data '''
+      """ does a 12x12 sample of raw_data and returns a single line of data """
 
       binned_data = []
 
@@ -363,11 +363,11 @@ class hirise_dtm_importer(object):
       return binned_data
 
     def bin12_real_fast(self, raw_data):
-      ''' takes a single value from each 12x12 sample of raw_data and returns a single line of data '''
+      """ takes a single value from each 12x12 sample of raw_data and returns a single line of data """
       return raw_data[0][11::12]
 
     def cropXY(self, image_iter, XSize=None, YSize=None, XOffset=0, YOffset=0):
-      ''' return a cropped portion of the image '''
+      """ return a cropped portion of the image """
 
       img_props = next(image_iter)
       # dimensions shrink as we remove pixels
@@ -398,7 +398,7 @@ class hirise_dtm_importer(object):
         currentY += 1
 
     def getImage(self, img, img_props):
-      ''' Assumes 32-bit pixels -- bins image '''
+      """ Assumes 32-bit pixels -- bins image """
       dims = img_props.dims()
 
       # setup to unpack more efficiently.
@@ -438,9 +438,9 @@ class hirise_dtm_importer(object):
             yield unpack( unpack_str, pixels )
 
     def shiftToOrigin(self, image_iter, image_min_max):
-      ''' takes a generator and shifts the points by the valid minimum
+      """ takes a generator and shifts the points by the valid minimum
           also removes points with value self.__ignore_value and replaces them with None
-      '''
+      """
 
       # use the passed in values ...
       valid_min = image_min_max[0]
@@ -459,7 +459,7 @@ class hirise_dtm_importer(object):
         yield list(map(normalize_fun, line))
 
     def scaleZ(self, image_iter, scale_factor):
-      ''' scales the mesh values by a factor '''
+      """ scales the mesh values by a factor """
       # pass on dimensions since we don't modify them here
       yield next(image_iter)
 
@@ -475,9 +475,9 @@ class hirise_dtm_importer(object):
         yield list(map(scale_fun, line))
 
     def genMesh(self, image_iter):
-      '''Returns a mesh object from an image iterator this has the
+      """Returns a mesh object from an image iterator this has the
          value-added feature that a value of "None" is ignored
-      '''
+      """
 
       # Get the output image size given the above transforms
       img_props = next(image_iter)

@@ -2896,7 +2896,7 @@ MhxBoolProps = [
 ]
 
 class ImportMhx(bpy.types.Operator, ImportHelper):
-    '''Import from MHX file format (.mhx)'''
+    """Import from MHX file format (.mhx)"""
     bl_idname = "import_scene.makehuman_mhx"
     bl_description = 'Import from MHX file format (.mhx)'
     bl_label = "Import MHX"

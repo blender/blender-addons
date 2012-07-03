@@ -53,11 +53,11 @@ def face_material_get(face):
 
 
 def write_cube2brush(file, faces):
-    '''
+    """
     Takes 6 faces and writes a brush,
     these faces can be from 1 mesh, 1 cube within a mesh of larger cubes
     Faces could even come from different meshes or be contrived.
-    '''
+    """
     # comment only
     # file.write('// brush "%s", "%s"\n' % (ob.name, ob.data.name))
     file.write('// brush from cube\n{\n')
@@ -102,10 +102,10 @@ def round_vec(v):
 
 
 def write_face2brush(file, face):
-    '''
+    """
     takes a face and writes it as a brush
     each face is a cube/brush
-    '''
+    """
 
     if PREF_GRID_SNAP:
         format_vec = '( %d %d %d ) '
@@ -173,9 +173,9 @@ def write_face2brush(file, face):
 
 
 def is_cube_facegroup(faces):
-    '''
-    Returens a bool, true if the faces make up a cube
-    '''
+    """
+    Returns a bool, true if the faces make up a cube
+    """
     # cube must have 6 faces
     if len(faces) != 6:
         # print('1')
@@ -209,10 +209,10 @@ def is_cube_facegroup(faces):
 
 
 def is_tricyl_facegroup(faces):
-    '''
+    """
     is the face group a tri cylinder
-    Returens a bool, true if the faces make an extruded tri solid
-    '''
+    Returns a bool, true if the faces make an extruded tri solid
+    """
 
     # cube must have 5 faces
     if len(faces) != 5:
@@ -246,11 +246,11 @@ def is_tricyl_facegroup(faces):
 
 
 def write_node_map(file, ob):
-    '''
+    """
     Writes the properties of an object (empty in this case)
     as a MAP node as long as it has the property name - classname
     returns True/False based on weather a node was written
-    '''
+    """
     props = [(p.name, p.value) for p in ob.game.properties]
 
     IS_MAP_NODE = False

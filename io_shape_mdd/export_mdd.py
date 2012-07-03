@@ -35,18 +35,18 @@ from struct import pack
 
 
 def zero_file(filepath):
-    '''
+    """
     If a file fails, this replaces it with 1 char, better not remove it?
-    '''
+    """
     file = open(filepath, 'w')
     file.write('\n')  # apparently macosx needs some data in a blank file?
     file.close()
 
 
 def check_vertcount(mesh, vertcount):
-    '''
+    """
     check and make sure the vertcount is consistent throughout the frame range
-    '''
+    """
     if len(mesh.vertices) != vertcount:
         raise Exception('Error, number of verts has changed during animation, cannot export')
 

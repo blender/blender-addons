@@ -229,12 +229,12 @@ def write_file(filepath, objects, scene,
                EXPORT_GLOBAL_MATRIX=None,
                EXPORT_PATH_MODE='AUTO',
                ):
-    '''
+    """
     Basic write function. The context and options must be already set
     This can be accessed externaly
     eg.
     write( 'c:\\test\\foobar.obj', Blender.Object.GetSelected() ) # Using default options.
-    '''
+    """
 
     if EXPORT_GLOBAL_MATRIX is None:
         EXPORT_GLOBAL_MATRIX = mathutils.Matrix()
@@ -684,11 +684,11 @@ def _write(context, filepath,
 #   Window.WaitCursor(0)
 
 
-'''
+"""
 Currently the exporter lacks these features:
 * multiple scene export (only active scene is written)
 * particles
-'''
+"""
 
 
 def save(operator, context, filepath="",

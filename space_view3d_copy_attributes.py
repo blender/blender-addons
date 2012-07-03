@@ -37,7 +37,7 @@ from mathutils import Matrix, Vector
 
 
 def build_exec(loopfunc, func):
-    '''Generator function that returns exec functions for operators '''
+    """Generator function that returns exec functions for operators """
 
     def exec_func(self, context):
         loopfunc(self, context, func)
@@ -46,7 +46,7 @@ def build_exec(loopfunc, func):
 
 
 def build_invoke(loopfunc, func):
-    '''Generator function that returns invoke functions for operators'''
+    """Generator function that returns invoke functions for operators"""
 
     def invoke_func(self, context, event):
         loopfunc(self, context, func)
@@ -55,7 +55,7 @@ def build_invoke(loopfunc, func):
 
 
 def build_op(idname, label, description, fpoll, fexec, finvoke):
-    '''Generator function that returns the basic operator'''
+    """Generator function that returns the basic operator"""
 
     class myopic(bpy.types.Operator):
         bl_idname = idname
@@ -68,7 +68,7 @@ def build_op(idname, label, description, fpoll, fexec, finvoke):
 
 
 def genops(copylist, oplist, prefix, poll_func, loopfunc):
-    '''Generate ops from the copy list and its associated functions '''
+    """Generate ops from the copy list and its associated functions """
     for op in copylist:
         exec_func = build_exec(loopfunc, op[3])
         invoke_func = build_invoke(loopfunc, op[3])
@@ -78,7 +78,7 @@ def genops(copylist, oplist, prefix, poll_func, loopfunc):
 
 
 def generic_copy(source, target, string=""):
-    ''' copy attributes from source to target that have string in them '''
+    """ copy attributes from source to target that have string in them """
     for attr in dir(source):
         if attr.find(string) > -1:
             try:
@@ -89,9 +89,9 @@ def generic_copy(source, target, string=""):
 
 
 def getmat(bone, active, context, ignoreparent):
-    '''Helper function for visual transform copy,
+    """Helper function for visual transform copy,
        gets the active transform in bone space
-    '''
+    """
     obj_act = context.active_object
     data_bone = obj_act.data.bones[bone.name]
     #all matrices are in armature space unless commented otherwise
@@ -112,7 +112,7 @@ def getmat(bone, active, context, ignoreparent):
 
 
 def rotcopy(item, mat):
-    '''copy rotation to item from matrix mat depending on item.rotation_mode'''
+    """copy rotation to item from matrix mat depending on item.rotation_mode"""
     if item.rotation_mode == 'QUATERNION':
         item.rotation_quaternion = mat.to_3x3().to_quaternion()
     elif item.rotation_mode == 'AXIS_ANGLE':
@@ -123,7 +123,7 @@ def rotcopy(item, mat):
 
 
 def pLoopExec(self, context, funk):
-    '''Loop over selected bones and execute funk on them'''
+    """Loop over selected bones and execute funk on them"""
     active = context.active_pose_bone
     selected = context.selected_pose_bones
     selected.remove(active)
@@ -218,7 +218,7 @@ def pose_invoke_func(self, context, event):
 
 
 class CopySelectedPoseConstraints(bpy.types.Operator):
-    ''' Copy Chosen constraints from active to selected'''
+    """Copy Chosen constraints from active to selected"""
     bl_idname = "pose.copy_selected_constraints"
     bl_label = "Copy Selected Constraints"
     selection = bpy.props.BoolVectorProperty(size=32)
@@ -263,7 +263,7 @@ class VIEW3D_MT_posecopypopup(bpy.types.Menu):
 
 
 def obLoopExec(self, context, funk):
-    '''Loop over selected objects and execute funk on them'''
+    """Loop over selected objects and execute funk on them"""
     active = context.active_object
     selected = context.selected_objects[:]
     selected.remove(active)
@@ -274,7 +274,7 @@ def obLoopExec(self, context, funk):
 
 
 def world_to_basis(active, ob, context):
-    '''put world coords of active as basis coords of ob'''
+    """put world coords of active as basis coords of ob"""
     local = ob.parent.matrix_world.inverted() * active.matrix_world
     P = ob.matrix_basis * ob.matrix_local.inverted()
     mat = P * local
@@ -517,7 +517,7 @@ def object_invoke_func(self, context, event):
 
 
 class CopySelectedObjectConstraints(bpy.types.Operator):
-    ''' Copy Chosen constraints from active to selected'''
+    """Copy Chosen constraints from active to selected"""
     bl_idname = "object.copy_selected_constraints"
     bl_label = "Copy Selected Constraints"
     selection = bpy.props.BoolVectorProperty(size=32)
@@ -547,7 +547,7 @@ class CopySelectedObjectConstraints(bpy.types.Operator):
 
 
 class CopySelectedObjectModifiers(bpy.types.Operator):
-    ''' Copy Chosen modifiers from active to selected'''
+    """Copy Chosen modifiers from active to selected"""
     bl_idname = "object.copy_selected_modifiers"
     bl_label = "Copy Selected Modifiers"
     selection = bpy.props.BoolVectorProperty(size=32)

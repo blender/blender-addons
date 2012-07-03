@@ -145,7 +145,7 @@ def createFaces(vertIdx1, vertIdx2, closed=False, flipped=False):
 
 
 class AddZFunctionSurface(bpy.types.Operator):
-    '''Add a surface defined defined by a function z=f(x,y)'''
+    """Add a surface defined defined by a function z=f(x,y)"""
     bl_idname = "mesh.primitive_z_function_surface"
     bl_label = "Add Z Function Surface"
     bl_options = {'REGISTER', 'UNDO', 'PRESET'}
@@ -398,8 +398,8 @@ def xyz_function_surface_faces(self, x_eq, y_eq, z_eq,
 # v_min = -pi/4,
 # v max = 5*pi/2
 class AddXYZFunctionSurface(bpy.types.Operator):
-    '''Add a surface defined defined by 3 functions:''' \
-    + ''' x=F1(u,v), y=F2(u,v) and z=F3(u,v)'''
+    """Add a surface defined defined by 3 functions:""" \
+    """ x=F1(u,v), y=F2(u,v) and z=F3(u,v)"""
     bl_idname = "mesh.primitive_xyz_function_surface"
     bl_label = "Add X,Y,Z Function Surface"
     bl_options = {'REGISTER', 'UNDO', 'PRESET'}

@@ -355,7 +355,7 @@ def fcurves_simplify(context, obj, options, fcurves):
 #### ANIMATION CURVES OPERATOR ##################
 #################################################
 class GRAPH_OT_simplify(bpy.types.Operator):
-    ''''''
+    """"""
     bl_idname = "graph.simplify"
     bl_label = "simplifiy f-curves"
     bl_description = "simplify selected f-curves"
@@ -459,7 +459,7 @@ class GRAPH_OT_simplify(bpy.types.Operator):
 ##### Curves OPERATOR #####
 ###########################
 class CURVE_OT_simplify(bpy.types.Operator):
-    ''''''
+    """"""
     bl_idname = "curve.simplify"
     bl_label = "simplifiy curves"
     bl_description = "simplify curves"

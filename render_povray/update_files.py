@@ -122,9 +122,7 @@ def update2_0_0_9():
 
 
 class RenderCopySettings(bpy.types.Operator):
-    '''
-    Update old POV properties to new ones.
-    '''
+    """Update old POV properties to new ones"""
     bl_idname = "scene.pov_update_properties"
     bl_label = "PovRay render: Update to script v0.0.9"
     bl_option = {'REGISTER'}
