@@ -123,6 +123,7 @@ def cell_fracture_objects(scene, obj,
                           use_smooth_edges=True,
                           use_data_match=False,
                           use_island_split=False,
+                          use_debug_points=False,
                           margin=0.0,
                           ):
     
@@ -157,18 +158,30 @@ def cell_fracture_objects(scene, obj,
 
 
     if source_noise > 0.0:
+        from random import random
         # boundbox approx of overall scale
         from mathutils import Vector
         matrix = obj.matrix_world.copy()
         bb_world = [matrix * Vector(v) for v in obj.bound_box]
-        scalar = (bb_world[0] - bb_world[6]).length / 2.0
+        scalar = source_noise * ((bb_world[0] - bb_world[6]).length / 2.0)
 
-        from mathutils.noise import noise_vector
+        from mathutils.noise import random_unit_vector
         
-        points[:] = [p + (noise_vector(p) * scalar) for p in points]
+        points[:] = [p + (random_unit_vector() * (scalar * random())) for p in points]
     
     # end remove doubles
     # ------------------
+
+    if use_debug_points:
+        bm = bmesh.new()
+        for p in points:
+            bm.verts.new(p)
+        mesh_tmp = bpy.data.meshes.new(name="DebugPoints")
+        bm.to_mesh(mesh_tmp)
+        bm.free()
+        obj_tmp = bpy.data.objects.new(name=mesh_tmp.name, object_data=mesh_tmp)
+        scene.objects.link(obj_tmp)
+        del obj_tmp, mesh_tmp
 
     mesh = obj.data
     matrix = obj.matrix_world.copy()

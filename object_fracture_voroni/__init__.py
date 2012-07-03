@@ -54,6 +54,9 @@ def main_object(scene, obj, level, **kw):
     recursion = kw_copy.pop("recursion")
     recursion_chance = kw_copy.pop("recursion_chance")
     recursion_chance_select = kw_copy.pop("recursion_chance_select")
+    use_layer_next = kw_copy.pop("use_layer_next")
+    group_name = kw_copy.pop("group_name")
+    
 
     from . import fracture_cell_setup
     
@@ -107,10 +110,26 @@ def main_object(scene, obj, level, **kw):
                 scene.objects.unlink(obj_cell)
                 del objects[i]
         objects.extend(objects_recursive)
-                
+
+    #--------------
+    # Scene Options
+
+    # layer
+    if use_layer_next:
+        layers_new = [False] * 20
+        layers_new[(obj.layers[:].index(True) + 1) % 20] = True
+        for obj_cell in objects:
+            obj_cell.layers = layers_new
+    # group
+    if group_name:
+        group = bpy.data.groups.get(group_name)
+        if group is None:
+            group = bpy.data.groups.new(group_name)
+        for obj_cell in objects:
+            group.objects.link(obj_cell)
 
     # testing only!
-    obj.hide = True
+    # obj.hide = True
     return objects
 
 
@@ -166,6 +185,34 @@ class FractureCell(Operator):
             )
 
     # -------------------------------------------------------------------------
+    # Recursion
+
+    recursion = IntProperty(
+            name="Recursion",
+            description="Break shards resursively",
+            min=0, max=5000,
+            default=0,
+            )
+
+    recursion_chance = FloatProperty(
+            name="Random Factor",
+            description="Likelyhood of recursion",
+            min=0.0, max=1.0,
+            default=1.0,
+            )
+
+    recursion_chance_select = EnumProperty(
+            name="Recurse Over",
+            items=(('RANDOM', "Random", ""),
+                   ('SIZE_MIN', "Small", "Recursively subdivide smaller objects"),
+                   ('SIZE_MAX', "Big", "Recursively subdivide smaller objects"),
+                   ('CURSOR_MIN', "Cursor Close", "Recursively subdivide objects closer to the cursor"),
+                   ('CURSOR_MAX', "Cursor Far", "Recursively subdivide objects closer to the cursor"),
+                   ),
+            default='SIZE_MIN',
+            )
+
+    # -------------------------------------------------------------------------
     # Mesh Data Options
 
     use_smooth_faces = BoolProperty(
@@ -214,31 +261,29 @@ class FractureCell(Operator):
             )
 
     # -------------------------------------------------------------------------
-    # Recursion
+    # Scene Options
+    #
+    # .. dirreferent from object options in that this controls how the objects
+    #    are setup in the scene.  
 
-    recursion = IntProperty(
-            name="Recursion",
-            description="Break shards resursively",
-            min=0, max=5000,
-            default=0,
+    use_layer_next = BoolProperty(
+            name="Next Layer",
+            description="At the object into the next layer",
+            default=True,
             )
 
-    recursion_chance = FloatProperty(
-            name="Random Factor",
-            description="Likelyhood of recursion",
-            min=0.0, max=1.0,
-            default=1.0,
+    group_name = StringProperty(
+            name="Group",
+            description="Create objects int a group "
+                        "(use existing or create new)",
             )
 
-    recursion_chance_select = EnumProperty(
-            name="Recurse Over",
-            items=(('RANDOM', "Random", ""),
-                   ('SIZE_MIN', "Small", "Recursively subdivide smaller objects"),
-                   ('SIZE_MAX', "Big", "Recursively subdivide smaller objects"),
-                   ('CURSOR_MIN', "Cursor Close", "Recursively subdivide objects closer to the cursor"),
-                   ('CURSOR_MAX', "Cursor Far", "Recursively subdivide objects closer to the cursor"),
-                   ),
-            default='SIZE_MIN',
+    # -------------------------------------------------------------------------
+    # Debug
+    use_debug_points = BoolProperty(
+            name="Debug Points",
+            description="Create mesh data showing the points used for fracture",
+            default=False,
             )
 
     def execute(self, context):
@@ -252,7 +297,7 @@ class FractureCell(Operator):
     def invoke(self, context, event):
         print(self.recursion_chance_select)
         wm = context.window_manager
-        return wm.invoke_props_dialog(self, width=1000)
+        return wm.invoke_props_dialog(self, width=600)
 
     def draw(self, context):
         layout = self.layout
@@ -265,6 +310,15 @@ class FractureCell(Operator):
         rowsub.prop(self, "source_limit")
         rowsub.prop(self, "source_noise")
         rowsub = col.row()
+
+        box = layout.box()
+        col = box.column()
+        col.label("Recursive Shatter")
+        rowsub = col.row(align=True)
+        rowsub.prop(self, "recursion")
+        rowsub = col.row()
+        rowsub.prop(self, "recursion_chance")
+        rowsub.prop(self, "recursion_chance_select", expand=True)
 
         box = layout.box()
         col = box.column()
@@ -282,14 +336,19 @@ class FractureCell(Operator):
         rowsub = col.row(align=True)
         rowsub.prop(self, "use_recenter")
 
+
         box = layout.box()
         col = box.column()
-        col.label("Recursive Shatter")
+        col.label("Scene")
         rowsub = col.row(align=True)
-        rowsub.prop(self, "recursion")
-        rowsub = col.row()
-        rowsub.prop(self, "recursion_chance")
-        rowsub.prop(self, "recursion_chance_select", expand=True)
+        rowsub.prop(self, "use_layer_next")
+        rowsub.prop(self, "group_name")
+        
+        box = layout.box()
+        col = box.column()
+        col.label("Debug")
+        rowsub = col.row(align=True)
+        rowsub.prop(self, "use_debug_points")
 
 #def menu_func(self, context):
 #    self.layout.menu("INFO_MT_add_fracture_objects", icon="PLUGIN")
