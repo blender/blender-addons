@@ -59,7 +59,10 @@ def main_object(scene, obj, level, **kw):
     use_island_split = kw_copy.pop("use_island_split")
 
     from . import fracture_cell_setup
-    
+
+    # not essential but selection is visual distraction.
+    obj.select = False
+
     if kw_copy["use_debug_redraw"]:
         obj_draw_type_prev = obj.draw_type
         obj.draw_type = 'WIRE'

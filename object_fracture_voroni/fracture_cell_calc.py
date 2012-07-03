@@ -22,7 +22,7 @@
 
 
 def points_as_bmesh_cells(verts, points,
-                          margin_bounds=0.01,
+                          margin_bounds=0.05,
                           margin_cell=0.0):
     import mathutils
     from mathutils import Vector

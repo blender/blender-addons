@@ -216,7 +216,7 @@ def cell_fracture_objects(scene, obj,
             bm_vert.tag = True
 
         import mathutils
-        bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=0.0001)
+        bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=0.005)
         try:
             bmesh.ops.convex_hull(bm, input=bm.verts)
         except RuntimeError:
@@ -352,7 +352,7 @@ def cell_fracture_boolean(scene, obj, objects,
             if use_debug_redraw:
                 _redraw_yasiamevil()
 
-    if use_island_split:
+    if apply and use_island_split:
         # this is ugly and Im not proud of this - campbell
         objects_islands = []
         for obj_cell in objects_boolean:
@@ -374,5 +374,7 @@ def cell_fracture_boolean(scene, obj, objects,
             scene.objects.active = None
 
         objects_boolean = objects_islands
+
+    scene.update()
 
     return objects_boolean
