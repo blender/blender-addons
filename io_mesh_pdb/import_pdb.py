@@ -950,7 +950,7 @@ def DEF_atom_pdb_main(use_mesh,Ball_azimuth,Ball_zenith,
     # ... and the average is taken. This gives the center of the object.
     object_center_vec = sum_vec / Number_of_total_atoms
 
-    # Now, we determine the size.The farest atom from the object center is
+    # Now, we determine the size.The farthest atom from the object center is
     # taken as a measure. The size is used to place well the camera and light
     # into the scene.
     object_size_vec = [atom.location - object_center_vec for atom in all_atoms]

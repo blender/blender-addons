@@ -162,7 +162,7 @@ class ExportFBX(bpy.types.Operator, ExportHelper):
             )
     anim_optimize_precision = FloatProperty(
             name="Precision",
-            description=("Tolerence for comparing double keyframes "
+            description=("Tolerance for comparing double keyframes "
                         "(higher for greater accuracy)"),
             min=1, max=16,
             soft_min=1, soft_max=16,

@@ -169,7 +169,7 @@ class AddTree(bpy.types.Operator):
         items=settings,
         default='0', update=no_update_tree)
     bevel = BoolProperty(name='Bevel',
-        description='Whether the curve is bevelled',
+        description='Whether the curve is beveled',
         default=False, update=update_tree)
     prune = BoolProperty(name='Prune',
         description='Whether the tree is pruned',
