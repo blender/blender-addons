@@ -567,7 +567,7 @@ def write_pov(filename, scene=None, info_callback=None):
 
             matrix = global_matrix * ob.matrix_world
 
-            # Colour is modified by energy #muiltiplie by 2 for a better match --Maurice
+            # Color is modified by energy #muiltiplie by 2 for a better match --Maurice
             color = tuple([c * lamp.energy * 2.0 for c in lamp.color])
 
             tabWrite("light_source {\n")
@@ -934,8 +934,8 @@ def write_pov(filename, scene=None, info_callback=None):
             file.write("\n")
             tabWrite("}\n")
 
-            # Vertex colours
-            vertCols = {}  # Use for material colours also.
+            # Vertex colors
+            vertCols = {}  # Use for material colors also.
 
             if uv_layer:
                 # Generate unique UV's
@@ -1012,7 +1012,7 @@ def write_pov(filename, scene=None, info_callback=None):
                                 vertCols[key] = [-1]
 
             else:
-                # No vertex colours, so write material colours as vertex colours
+                # No vertex colors, so write material colors as vertex colors
                 for i, material in enumerate(me_materials):
 
                     if material:
@@ -1026,7 +1026,7 @@ def write_pov(filename, scene=None, info_callback=None):
                             key = diffuse_color[0], diffuse_color[1], diffuse_color[2], i  # i == f.mat
                             vertCols[key] = [-1]
 
-            # Vert Colours
+            # Vert Colors
             tabWrite("texture_list {\n")
             file.write(tabStr + "%s" % (len(vertCols)))  # vert count
             idx = 0
@@ -1426,7 +1426,7 @@ def write_pov(filename, scene=None, info_callback=None):
                     material = me_materials[material_index]
                     for i1, i2, i3 in indices:
                         if me.vertex_colors and material.use_vertex_color_paint:
-                            # Colour per vertex - vertex colour
+                            # Color per vertex - vertex color
 
                             col1 = cols[i1]
                             col2 = cols[i2]
@@ -1436,7 +1436,7 @@ def write_pov(filename, scene=None, info_callback=None):
                             ci2 = vertCols[col2[0], col2[1], col2[2], material_index][0]
                             ci3 = vertCols[col3[0], col3[1], col3[2], material_index][0]
                         else:
-                            # Colour per material - flat material colour
+                            # Color per material - flat material color
                             if material.subsurface_scattering.use:
                                 diffuse_color = [i * j for i, j in zip(material.subsurface_scattering.color[:], material.diffuse_color[:])]
                             else:

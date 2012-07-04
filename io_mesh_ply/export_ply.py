@@ -20,7 +20,7 @@
 
 """
 This script exports Stanford PLY files from Blender. It supports normals,
-colours, and texture coordinates per face or per vertex.
+colors, and texture coordinates per face or per vertex.
 Only one mesh can be exported at a time.
 """
 

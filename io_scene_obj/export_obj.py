@@ -72,7 +72,7 @@ def write_mtl(scene, filepath, path_mode, copy_set, mtl_dict):
             fw('Ns %.6f\n' % tspec)
             del tspec
 
-            fw('Ka %.6f %.6f %.6f\n' % (mat.ambient * world_amb)[:])  # Ambient, uses mirror colour,
+            fw('Ka %.6f %.6f %.6f\n' % (mat.ambient * world_amb)[:])  # Ambient, uses mirror color,
             fw('Kd %.6f %.6f %.6f\n' % (mat.diffuse_intensity * mat.diffuse_color)[:])  # Diffuse
             fw('Ks %.6f %.6f %.6f\n' % (mat.specular_intensity * mat.specular_color)[:])  # Specular
             if hasattr(mat, "ior"):
@@ -92,7 +92,7 @@ def write_mtl(scene, filepath, path_mode, copy_set, mtl_dict):
         else:
             #write a dummy material here?
             fw('Ns 0\n')
-            fw('Ka %.6f %.6f %.6f\n' % world_amb[:])  # Ambient, uses mirror colour,
+            fw('Ka %.6f %.6f %.6f\n' % world_amb[:])  # Ambient, uses mirror color,
             fw('Kd 0.8 0.8 0.8\n')
             fw('Ks 0.8 0.8 0.8\n')
             fw('d 1\n')  # No alpha
