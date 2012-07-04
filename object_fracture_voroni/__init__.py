@@ -161,7 +161,7 @@ def main(context, **kw):
 
 class FractureCell(Operator):
     bl_idname = "object.add_fracture_cell_objects"
-    bl_label = "Cell Fracture Helper Objects"
+    bl_label = "Cell Fracture Mesh"
     bl_options = {'PRESET'}
 
     # -------------------------------------------------------------------------
@@ -169,11 +169,7 @@ class FractureCell(Operator):
     source = EnumProperty(
             name="Source",
             items=(('VERT_OWN', "Own Verts", "Use own vertices"),
-                   ('EDGE_OWN', "Own Edges", "Use own edges"),
-                   ('FACE_OWN', "Own Faces", "Use own faces"),
                    ('VERT_CHILD', "Child Verts", "Use own vertices"),
-                   ('EDGE_CHILD', "Child Edges", "Use own edges"),
-                   ('FACE_CHILD', "Child Faces", "Use own faces"),
                    ('PARTICLE', "Particles", ("All particle systems of the "
                                               "source object")),
                    ('PENCIL', "Grease Pencil", "This objects grease pencil"),

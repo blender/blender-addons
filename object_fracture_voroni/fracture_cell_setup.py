@@ -35,8 +35,8 @@ def _points_from_object(obj, source):
 
     _source_all = {
         'PARTICLE', 'PENCIL',
-        'VERT_OWN', 'EDGE_OWN', 'FACE_OWN',
-        'VERT_CHILD', 'EDGE_CHILD', 'FACE_CHILD'}
+        'VERT_OWN', 'VERT_CHILD',
+        }
 
     print(source - _source_all)
     print(source)
@@ -59,41 +59,32 @@ def _points_from_object(obj, source):
         return co / tot
 
     def points_from_verts(obj):
+        """Takes points from _any_ object with geometry"""
         if obj.type == 'MESH':
             mesh = obj.data
             matrix = obj.matrix_world.copy()
             points.extend([matrix * v.co for v in mesh.vertices])
+        else:
+            try:
+                mesh = ob.to_mesh(scene=bpy.context.scene,
+                                  apply_modifiers=True,
+                                  settings='PREVIEW')
+            except:
+                mesh = None
 
-    def points_from_edges(obj):
-        if obj.type == 'MESH':
-            mesh = obj.data
-            matrix = obj.matrix_world.copy()
-            points.extend([matrix * edge_center(mesh, e) for e in mesh.edges])
-
-    def points_from_faces(obj):
-        if obj.type == 'MESH':
-            mesh = obj.data
-            matrix = obj.matrix_world.copy()
-            points.extend([matrix * poly_center(mesh, p) for p in mesh.polygons])
+            if mesh is not None:
+                matrix = obj.matrix_world.copy()
+                points.extend([matrix * v.co for v in mesh.vertices])
+                bpy.data.meshes.remove(mesh)
 
     # geom own
     if 'VERT_OWN' in source:
         points_from_verts(obj)
-    if 'EDGE_OWN' in source:
-        points_from_edges(obj)
-    if 'FACE_OWN' in source:
-        points_from_faces(obj)
 
     # geom children
     if 'VERT_CHILD' in source:
         for obj_child in obj.children:
             points_from_verts(obj_child)
-    if 'EDGE_CHILD' in source:
-        for obj_child in obj.children:
-            points_from_edges(obj_child)
-    if 'FACE_CHILD' in source:
-        for obj_child in obj.children:
-            points_from_faces(obj_child)
 
     # geom particles
     if 'PARTICLE' in source:
