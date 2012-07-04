@@ -4143,6 +4143,9 @@ class MhxDriversPanel(bpy.types.Panel):
         lProps = []
         rProps = []
         props = []
+        lFaceProps = []
+        rFaceProps = []
+        faceProps = []
         plist = list(context.object.keys())
         plist.sort()
         for prop in plist:
@@ -4151,11 +4154,20 @@ class MhxDriversPanel(bpy.types.Panel):
             else:
                 continue
             if prop[-2:] == '_L':
-                lProps.append((prop, prop1[:-2]))
+                if prop1[0] == '_':
+                    lFaceProps.append((prop, prop1[1:-2]))
+                else:
+                    lProps.append((prop, prop1[:-2]))
             elif prop[-2:] == '_R':
-                rProps.append((prop, prop1[:-2]))
+                if prop1[0] == '_':
+                    rFaceProps.append((prop, prop1[1:-2]))
+                else:
+                    rProps.append((prop, prop1[:-2]))
             else:
-                props.append((prop, prop1))
+                if prop1[0] == '_':
+                    faceProps.append((prop, prop1[1:]))
+                else:
+                    props.append((prop, prop1))
         ob = context.object
         layout = self.layout
         for (prop, pname) in props:
@@ -4166,6 +4178,17 @@ class MhxDriversPanel(bpy.types.Panel):
         layout.label("Right")
         for (prop, pname) in rProps:
             layout.prop(ob, '["%s"]' % prop, text=pname)
+        if faceProps:
+            layout.separator()
+            layout.label("Face shapes")
+            for (prop, pname) in faceProps:
+                layout.prop(ob, '["%s"]' % prop, text=pname)
+            layout.label("Left")
+            for (prop, pname) in lFaceProps:
+                layout.prop(ob, '["%s"]' % prop, text=pname)
+            layout.label("Right")
+            for (prop, pname) in rFaceProps:
+                layout.prop(ob, '["%s"]' % prop, text=pname)        
         return
 
 ###################################################################################    
