@@ -426,7 +426,7 @@ def create_mesh(new_objects,
                 ):
     """
     Takes all the data gathered and generates a mesh, adding the new object to new_objects
-    deals with fgons, sharp edges and assigning materials
+    deals with ngons, sharp edges and assigning materials
     """
     from bpy_extras.mesh_utils import ngon_tessellate
 
@@ -438,7 +438,7 @@ def create_mesh(new_objects,
         smooth_group_users = {context_smooth_group: {} for context_smooth_group in list(unique_smooth_groups.keys())}
         context_smooth_group_old = -1
 
-    # Split fgons into tri's
+    # Split ngons into tri's
     fgon_edges = {}  # Used for storing fgon keys
     if use_edges:
         edges = []
@@ -487,7 +487,7 @@ def create_mesh(new_objects,
                     except KeyError:
                         edge_dict[i1, i2] = 1
 
-            # FGons into triangles
+            # NGons into triangles
             if has_ngons and len_face_vert_loc_indices > 4:
 
                 ngon_face_indices = ngon_tessellate(verts_loc, face_vert_loc_indices)
@@ -506,7 +506,7 @@ def create_mesh(new_objects,
                              for ngon in ngon_face_indices]
                             )
 
-                # edges to make fgons
+                # edges to make ngons
                 if use_ngons:
                     edge_users = {}
                     for ngon in ngon_face_indices:
