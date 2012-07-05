@@ -205,7 +205,21 @@ def cell_fracture_objects(scene, obj,
 
         # create the convex hulls
         bm = bmesh.new()
+        
+        # WORKAROUND FOR CONVEX HULL BUG/LIMIT
+        # XXX small noise
+        import random
+        def R(): return (random.random() - 0.5) * 0.01
+        # XXX small noise
+
         for i, co in enumerate(cell_points):
+            
+            # XXX small noise
+            co.x += R()
+            co.y += R()
+            co.z += R()
+            # XXX small noise
+            
             bm_vert = bm.verts.new(co)
             bm_vert.tag = True
 
@@ -291,7 +305,7 @@ def cell_fracture_objects(scene, obj,
 
 
 def cell_fracture_boolean(scene, obj, objects,
-                          apply=True,
+                          use_debug_bool=False,
                           clean=True,
                           use_island_split=False,
                           use_debug_redraw=False,
@@ -304,7 +318,7 @@ def cell_fracture_boolean(scene, obj, objects,
         mod.object = obj
         mod.operation = 'INTERSECT'
 
-        if apply:
+        if not use_debug_bool:
             mesh_new = obj_cell.to_mesh(scene,
                                         apply_modifiers=True,
                                         settings='PREVIEW')
@@ -346,7 +360,7 @@ def cell_fracture_boolean(scene, obj, objects,
             if use_debug_redraw:
                 _redraw_yasiamevil()
 
-    if apply and use_island_split:
+    if (not use_debug_bool) and use_island_split:
         # this is ugly and Im not proud of this - campbell
         objects_islands = []
         for obj_cell in objects_boolean:

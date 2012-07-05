@@ -58,6 +58,7 @@ def main_object(scene, obj, level, **kw):
     use_layer_next = kw_copy.pop("use_layer_next")
     group_name = kw_copy.pop("group_name")
     use_island_split = kw_copy.pop("use_island_split")
+    use_debug_bool = kw_copy.pop("use_debug_bool")
 
     from . import fracture_cell_setup
 
@@ -71,6 +72,7 @@ def main_object(scene, obj, level, **kw):
     objects = fracture_cell_setup.cell_fracture_objects(scene, obj, **kw_copy)
     objects = fracture_cell_setup.cell_fracture_boolean(scene, obj, objects,
                                                         use_island_split=use_island_split,
+                                                        use_debug_bool=use_debug_bool,
                                                         use_debug_redraw=kw_copy["use_debug_redraw"])
 
     # todo, split islands.
@@ -315,6 +317,12 @@ class FractureCell(Operator):
             default=True,
             )
 
+    use_debug_bool = BoolProperty(
+            name="Debug Boolean",
+            description="Skip applying the boolean modifier",
+            default=False,
+            )
+
     def execute(self, context):
         keywords = self.as_keywords()  # ignore=("blah",)
 
@@ -383,6 +391,7 @@ class FractureCell(Operator):
         rowsub = col.row(align=True)
         rowsub.prop(self, "use_debug_redraw")
         rowsub.prop(self, "use_debug_points")
+        rowsub.prop(self, "use_debug_bool")
 
 #def menu_func(self, context):
 #    self.layout.menu("INFO_MT_add_fracture_objects", icon="PLUGIN")
