@@ -44,6 +44,9 @@ def points_as_bmesh_cells(verts,
     plane_indices = []
     vertices = []
 
+    if points_scale == (1.0, 1.0, 1.0):
+        points_scale = None
+
     # there are many ways we could get planes - convex hull for eg
     # but it ends up fastest if we just use bounding box
     if 1:

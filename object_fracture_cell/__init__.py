@@ -56,6 +56,7 @@ def main_object(scene, obj, level, **kw):
     recursion_chance = kw_copy.pop("recursion_chance")
     recursion_chance_select = kw_copy.pop("recursion_chance_select")
     use_layer_next = kw_copy.pop("use_layer_next")
+    use_layer_index = kw_copy.pop("use_layer_index")
     group_name = kw_copy.pop("group_name")
     use_island_split = kw_copy.pop("use_island_split")
     use_debug_bool = kw_copy.pop("use_debug_bool")
@@ -127,11 +128,18 @@ def main_object(scene, obj, level, **kw):
     # Scene Options
 
     # layer
-    if use_layer_next:
+    layers_new = None
+    if use_layer_index != 0:
+        layers_new = [False] * 20
+        layers_new[use_layer_index - 1] = True
+    elif use_layer_next:
         layers_new = [False] * 20
         layers_new[(obj.layers[:].index(True) + 1) % 20] = True
+
+    if layers_new is not None:
         for obj_cell in objects:
             obj_cell.layers = layers_new
+
     # group
     if group_name:
         group = bpy.data.groups.get(group_name)
@@ -152,8 +160,12 @@ def main(context, **kw):
     import time
     t = time.time()
     scene = context.scene
-    obj = context.active_object
-    objects = main_object(scene, obj, 0, **kw)
+    objects_context = context.selected_editable_objects
+
+    objects = []
+    for obj in objects_context:
+        if obj.type == 'MESH':
+            objects += main_object(scene, obj, 0, **kw)
 
     bpy.ops.object.select_all(action='DESELECT')
     for obj_cell in objects:
@@ -164,7 +176,7 @@ def main(context, **kw):
 
 class FractureCell(Operator):
     bl_idname = "object.add_fracture_cell_objects"
-    bl_label = "Cell Fracture Mesh"
+    bl_label = "Cell fracture selected mesh objects"
     bl_options = {'PRESET'}
 
     # -------------------------------------------------------------------------
@@ -291,9 +303,16 @@ class FractureCell(Operator):
     # .. dirreferent from object options in that this controls how the objects
     #    are setup in the scene.  
 
+    use_layer_index = IntProperty(
+            name="Layer Index",
+            description="Layer to add the objects into or 0 for existing",
+            default=-1,
+            min=0, max=20,
+            )
+
     use_layer_next = BoolProperty(
             name="Next Layer",
-            description="At the object into the next layer",
+            description="At the object into the next layer (layer index overrides)",
             default=True,
             )
 
@@ -382,6 +401,7 @@ class FractureCell(Operator):
         col = box.column()
         col.label("Scene")
         rowsub = col.row(align=True)
+        rowsub.prop(self, "use_layer_index")
         rowsub.prop(self, "use_layer_next")
         rowsub.prop(self, "group_name")
         
@@ -393,22 +413,22 @@ class FractureCell(Operator):
         rowsub.prop(self, "use_debug_points")
         rowsub.prop(self, "use_debug_bool")
 
-#def menu_func(self, context):
-#    self.layout.menu("INFO_MT_add_fracture_objects", icon="PLUGIN")
+
+def menu_func(self, context):
+    layout = self.layout
+    layout.label("Cell Fracture:")
+    layout.operator("object.add_fracture_cell_objects",
+                    text="Cell Fracture")
 
 
 def register():
     bpy.utils.register_class(FractureCell)
-
-    # Add the "add fracture objects" menu to the "Add" menu
-    # bpy.types.INFO_MT_add.append(menu_func)
+    bpy.types.VIEW3D_PT_tools_objectmode.append(menu_func)
 
 
 def unregister():
     bpy.utils.unregister_class(FractureCell)
-
-    # Remove "add fracture objects" menu from the "Add" menu.
-    # bpy.types.INFO_MT_add.remove(menu_func)
+    bpy.types.VIEW3D_PT_tools_objectmode.remove(menu_func)
 
 
 if __name__ == "__main__":
