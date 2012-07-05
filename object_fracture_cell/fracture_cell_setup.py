@@ -125,6 +125,7 @@ def cell_fracture_objects(scene, obj,
                           margin=0.0,
                           material_index=0,
                           use_debug_redraw=False,
+                          cell_scale=(1.0, 1.0, 1.0),
                           ):
     
     from . import fracture_cell_calc
@@ -136,7 +137,7 @@ def cell_fracture_objects(scene, obj,
 
     if not points:
         # print using fallback
-        points = _points_from_object(obj, source | {'VERT_OWN'})
+        points = _points_from_object(obj, {'VERT_OWN'})
 
     if not points:
         print("no points found")
@@ -187,7 +188,9 @@ def cell_fracture_objects(scene, obj,
     matrix = obj.matrix_world.copy()
     verts = [matrix * v.co for v in mesh.vertices]
 
-    cells = fracture_cell_calc.points_as_bmesh_cells(verts, points,
+    cells = fracture_cell_calc.points_as_bmesh_cells(verts,
+                                                     points,
+                                                     cell_scale,
                                                      margin_cell=margin)
 
     # some hacks here :S

@@ -40,6 +40,7 @@ from bpy.props import (StringProperty,
                        BoolProperty,
                        IntProperty,
                        FloatProperty,
+                       FloatVectorProperty,
                        EnumProperty)
 
 from bpy.types import Operator
@@ -192,6 +193,14 @@ class FractureCell(Operator):
             default=0.0,
             )
 
+    cell_scale = FloatVectorProperty(
+            name="Scale",
+            description="Scale Cell Shape",
+            size=3,
+            min=0.0, max=1.0,
+            default=(1.0, 1.0, 1.0),
+            )
+
     # -------------------------------------------------------------------------
     # Recursion
 
@@ -330,6 +339,7 @@ class FractureCell(Operator):
         rowsub.prop(self, "source_limit")
         rowsub.prop(self, "source_noise")
         rowsub = col.row()
+        rowsub.prop(self, "cell_scale")
 
         box = layout.box()
         col = box.column()

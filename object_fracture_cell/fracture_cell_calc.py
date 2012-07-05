@@ -21,7 +21,9 @@
 # Script copyright (C) Blender Foundation 2012
 
 
-def points_as_bmesh_cells(verts, points,
+def points_as_bmesh_cells(verts,
+                          points,
+                          points_scale=None,
                           margin_bounds=0.05,
                           margin_cell=0.0):
     from math import sqrt
@@ -29,6 +31,14 @@ def points_as_bmesh_cells(verts, points,
     from mathutils import Vector
 
     cells = []
+    
+    '''
+    if points_scale:
+        points_scale = (1.0 / points_scale[0],
+                        1.0 / points_scale[1],
+                        1.0 / points_scale[2],
+                        )
+    '''
 
     points_sorted_current = [p for p in points]
     plane_indices = []
@@ -65,6 +75,20 @@ def points_as_bmesh_cells(verts, points,
         for j in range(1, len(points)):
             normal = points_sorted_current[j] - point_cell_current
             nlength = normal.length
+
+            if points_scale is not None:                
+                normal_alt = normal.copy()
+                normal_alt.x *= points_scale[0]
+                normal_alt.y *= points_scale[1]
+                normal_alt.z *= points_scale[2]
+
+                # rotate plane to new distance
+                # should always be positive!! - but abs incase
+                scalar = normal_alt.normalized().dot(normal.normalized())
+                # assert(scalar >= 0.0)
+                nlength *= scalar
+                normal = normal_alt
+
             if nlength > distance_max:
                 break
 
