@@ -24,6 +24,7 @@
 def points_as_bmesh_cells(verts, points,
                           margin_bounds=0.05,
                           margin_cell=0.0):
+    from math import sqrt
     import mathutils
     from mathutils import Vector
 
@@ -79,11 +80,14 @@ def points_as_bmesh_cells(verts, points,
             if len(plane_indices) != len(planes):
                 planes[:] = [planes[k] for k in plane_indices]
 
-            distance_max = vertices[0].length
-            for k in range(1, len(vertices)):
-                distance = vertices[k].length
+            # for comparisons use length_squared and delay
+            # converting to a real length until the end.
+            distance_max = 10000000000.0  # a big value!
+            for v in vertices:
+                distance = v.length_squared
                 if distance_max < distance:
                     distance_max = distance
+            distance_max = sqrt(distance_max)  # make real length
             distance_max *= 2.0
 
         if len(vertices) == 0:
