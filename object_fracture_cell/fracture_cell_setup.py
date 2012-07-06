@@ -109,6 +109,8 @@ def _points_from_object(obj, source):
             points.extend([p for spline in get_splines(gp)
                              for p in spline])
 
+    print("Found %d points" % len(points))
+
     return points
 
 
@@ -209,7 +211,7 @@ def cell_fracture_objects(scene, obj,
         # WORKAROUND FOR CONVEX HULL BUG/LIMIT
         # XXX small noise
         import random
-        def R(): return (random.random() - 0.5) * 0.01
+        def R(): return (random.random() - 0.5) * 0.001
         # XXX small noise
 
         for i, co in enumerate(cell_points):
