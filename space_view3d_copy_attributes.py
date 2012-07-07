@@ -20,12 +20,11 @@
 
 bl_info = {
     'name': 'Copy Attributes Menu',
-    'author': 'Bassam Kurdali, Fabian Fricke, wiseman303',
-    'version': (0, 4, 6),
-    "blender": (2, 6, 1),
+    'author': 'Bassam Kurdali, Fabian Fricke, Adam Wiseman',
+    'version': (0, 4, 7),
+    'blender': (2, 6, 3),
     'location': 'View3D > Ctrl-C',
     'description': 'Copy Attributes Menu from Blender 2.4',
-    "warning": "some mesh functions broken",
     'wiki_url': 'http://wiki.blender.org/index.php/Extensions:2.6/Py/'
                 'Scripts/3D_interaction/Copy_Attributes_Menu',
     'tracker_url': 'https://projects.blender.org/tracker/index.php?'
@@ -607,16 +606,24 @@ class MESH_MT_CopyFaceSettings(bpy.types.Menu):
         vc = len(mesh.vertex_colors) > 1
         layout = self.layout
 
-        layout.operator(MESH_OT_CopyFaceSettings.bl_idname,
-                        text="Copy Material")['mode'] = 'MAT'
+        op = layout.operator(MESH_OT_CopyFaceSettings.bl_idname,
+                        text="Copy Material")
+        op['layer'] = ''
+        op['mode'] = 'MAT'
         if mesh.uv_textures.active:
-            layout.operator(MESH_OT_CopyFaceSettings.bl_idname,
-                            text="Copy Image")['mode'] = 'IMAGE'
-            layout.operator(MESH_OT_CopyFaceSettings.bl_idname,
-                            text="Copy UV Coords")['mode'] = 'UV'
+            op = layout.operator(MESH_OT_CopyFaceSettings.bl_idname,
+                            text="Copy Image")
+            op['layer'] = ''
+            op['mode'] = 'IMAGE'
+            op = layout.operator(MESH_OT_CopyFaceSettings.bl_idname,
+                            text="Copy UV Coords")
+            op['layer'] = ''
+            op['mode'] = 'UV'
         if mesh.vertex_colors.active:
-            layout.operator(MESH_OT_CopyFaceSettings.bl_idname,
-                            text="Copy Vertex Colors")['mode'] = 'VCOL'
+            op = layout.operator(MESH_OT_CopyFaceSettings.bl_idname,
+                            text="Copy Vertex Colors")
+            op['layer'] = ''
+            op['mode'] = 'VCOL'
         if uv or vc:
             layout.separator()
             if uv:
@@ -683,55 +690,70 @@ class MESH_OT_CopyFaceSettings(bpy.types.Operator):
         return context.mode == 'EDIT_MESH'
 
     def execute(self, context):
+        mode = getattr(self, 'mode', '')
+        if not mode in ('MAT', 'VCOL', 'IMAGE', 'UV'):
+            self.report({'ERROR'}, "No mode specified or invalid mode.")
+            return self._end(context, {'CANCELLED'})
+        layername = getattr(self, 'layer', '')
         mesh = context.object.data
-        mode = getattr(self, 'mode', 'MODE')
-        layername = getattr(self, 'layer', None)
 
         # Switching out of edit mode updates the selected state of faces and
         # makes the data from the uv texture and vertex color layers available.
         bpy.ops.object.editmode_toggle()
 
+        polys = mesh.polygons
         if mode == 'MAT':
-            from_data = mesh.polygons
-            to_data = from_data
+            to_data = from_data = polys
         else:
             if mode == 'VCOL':
                 layers = mesh.vertex_colors
                 act_layer = mesh.vertex_colors.active
-            else:
+            elif mode == 'IMAGE':
                 layers = mesh.uv_textures
                 act_layer = mesh.uv_textures.active
+            elif mode == 'UV':
+                layers = mesh.uv_layers
+                act_layer = mesh.uv_layers.active
             if not layers or (layername and not layername in layers):
-                return _end({'CANCELLED'})
+                self.report({'ERROR'}, "Invalid UV or color layer.")
+                return self._end(context, {'CANCELLED'})
             from_data = layers[layername or act_layer.name].data
             to_data = act_layer.data
-        from_face = from_data[mesh.polygons.active]
+        from_index = polys.active
 
-        for f in mesh.polygons:
+        for f in polys:
             if f.select:
                 if to_data != from_data:
-                    from_face = from_data[f.index]
+                    # Copying from another layer.
+                    # from_face is to_face's counterpart from other layer.
+                    from_index = f.index
+                elif f.index == from_index:
+                    # Otherwise skip copying a face to itself.
+                    continue
                 if mode == 'MAT':
-                    f.material_index = from_face.material_index
+                    f.material_index = polys[from_index].material_index
                     continue
-                to_face = to_data[f.index]
-                if to_face is from_face:
+                elif mode == 'IMAGE':
+                    to_data[f.index].image = from_data[from_index].image
                     continue
-                if mode == 'VCOL':
-                    to_face.color1 = from_face.color1
-                    to_face.color2 = from_face.color2
-                    to_face.color3 = from_face.color3
-                    to_face.color4 = from_face.color4
-                elif mode in {'UV', 'IMAGE'}:
-                    attr = mode.lower()
-                    setattr(to_face, attr, getattr(from_face, attr))
-        return _end({'FINISHED'})
+                if len(f.loop_indices) != len(polys[from_index].loop_indices):
+                    self.report({'WARNING'}, "Different number of vertices.")
+                for i in range(len(f.loop_indices)):
+                    to_vertex = f.loop_indices[i]
+                    from_vertex = polys[from_index].loop_indices[i]
+                    if mode == 'VCOL':
+                        to_data[to_vertex].color = from_data[from_vertex].color
+                    elif mode == 'UV':
+                        to_data[to_vertex].uv = from_data[from_vertex].uv
+
+        return self._end(context, {'FINISHED'})
 
 
-def _end(retval):
-    # Clean up by returning to edit mode like it was before.
-    bpy.ops.object.editmode_toggle()
-    return(retval)
+    def _end(self, context, retval):
+        if context.mode != 'EDIT_MESH':
+            # Clean up by returning to edit mode like it was before.
+            bpy.ops.object.editmode_toggle()
+        return(retval)
 
 
 def register():
