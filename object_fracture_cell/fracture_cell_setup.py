@@ -34,7 +34,8 @@ _redraw_yasiamevil.arg = dict(type='DRAW_WIN_SWAP', iterations=1)
 def _points_from_object(obj, source):
 
     _source_all = {
-        'PARTICLE', 'PENCIL',
+        'PARTICLE_OWN', 'PARTICLE_CHILD',
+        'PENCIL',
         'VERT_OWN', 'VERT_CHILD',
         }
 
@@ -77,6 +78,12 @@ def _points_from_object(obj, source):
                 points.extend([matrix * v.co for v in mesh.vertices])
                 bpy.data.meshes.remove(mesh)
 
+    def points_from_particles(obj):
+        points.extend([p.location.copy()
+                         for psys in obj.particle_systems
+                         for p in psys.particles])
+
+
     # geom own
     if 'VERT_OWN' in source:
         points_from_verts(obj)
@@ -87,10 +94,12 @@ def _points_from_object(obj, source):
             points_from_verts(obj_child)
 
     # geom particles
-    if 'PARTICLE' in source:
-        points.extend([p.location.copy()
-                         for psys in obj.particle_systems
-                         for p in psys.particles])
+    if 'PARTICLE_OWN' in source:
+        points_from_verts(obj)
+
+    if 'PARTICLE_CHILD' in source:
+        for obj_child in obj.children:
+            points_from_particles(obj_child)
 
     # grease pencil
     def get_points(stroke):
@@ -115,7 +124,7 @@ def _points_from_object(obj, source):
 
 
 def cell_fracture_objects(scene, obj,
-                          source={'PARTICLE'},
+                          source={'PARTICLE_OWN'},
                           source_limit=0,
                           source_noise=0.0,
                           clean=True,

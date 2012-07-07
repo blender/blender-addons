@@ -183,12 +183,14 @@ class FractureCell(Operator):
             name="Source",
             items=(('VERT_OWN', "Own Verts", "Use own vertices"),
                    ('VERT_CHILD', "Child Verts", "Use own vertices"),
-                   ('PARTICLE', "Particles", ("All particle systems of the "
-                                              "source object")),
+                   ('PARTICLE_OWN', "Own Particles", ("All particle systems of the "
+                                                      "source object")),
+                   ('PARTICLE_CHILD', "Child Particles", ("All particle systems of the "
+                                                          "child objects")),
                    ('PENCIL', "Grease Pencil", "This objects grease pencil"),
                    ),
             options={'ENUM_FLAG'},
-            default={'PARTICLE', 'VERT_OWN'}  # 'VERT_OWN', 'EDGE_OWN', 'FACE_OWN'
+            default={'PARTICLE_OWN', 'VERT_OWN'},
             )
 
     source_limit = IntProperty(
