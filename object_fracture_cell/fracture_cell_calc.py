@@ -31,19 +31,13 @@ def points_as_bmesh_cells(verts,
     from mathutils import Vector
 
     cells = []
-    
-    '''
-    if points_scale:
-        points_scale = (1.0 / points_scale[0],
-                        1.0 / points_scale[1],
-                        1.0 / points_scale[2],
-                        )
-    '''
 
     points_sorted_current = [p for p in points]
     plane_indices = []
     vertices = []
 
+    if points_scale is not None:
+        points_scale = tuple(points_scale)
     if points_scale == (1.0, 1.0, 1.0):
         points_scale = None
 
@@ -79,7 +73,7 @@ def points_as_bmesh_cells(verts,
             normal = points_sorted_current[j] - point_cell_current
             nlength = normal.length
 
-            if points_scale is not None:                
+            if points_scale is not None:
                 normal_alt = normal.copy()
                 normal_alt.x *= points_scale[0]
                 normal_alt.y *= points_scale[1]
