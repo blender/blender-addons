@@ -19,7 +19,7 @@
 # <pep8 compliant>
 
 # Script copyright (C) Bob Holcomb
-# Contributors: Campbell Barton, Bob Holcomb, Richard LÃ¤rkÃ¤ng, Damien McGinnes, Mark Stijnman
+# Contributors: Campbell Barton, Bob Holcomb, Richard Lärkäng, Damien McGinnes, Mark Stijnman
 
 """
 Exporting is based on 3ds loader from www.gametutorials.com(Thanks DigiBen) and using information
@@ -40,8 +40,8 @@ VERSION = 0x0002  # This gives the version of the .3ds file
 KFDATA = 0xB000  # This is the header for all of the key frame info
 
 #------ sub defines of OBJECTINFO
-MATERIAL = 45055  # 0xAFFF				// This stored the texture info
-OBJECT = 16384  # 0x4000				// This stores the faces, vertices, etc...
+MATERIAL = 45055  # 0xAFFF // This stored the texture info
+OBJECT = 16384 # 0x4000 // This stores the faces, vertices, etc...
 
 #>------ sub defines of MATERIAL
 MATNAME = 0xA000  # This holds the material name
@@ -222,7 +222,7 @@ class _3ds_point_3d(object):
         return '(%f, %f, %f)' % (self.x, self.y, self.z)
 
 # Used for writing a track
-"""
+'''
 class _3ds_point_4d(object):
     """Class representing a four-dimensional point for a 3ds file, for instance a quaternion."""
     __slots__ = "x","y","z","w"
@@ -238,7 +238,7 @@ class _3ds_point_4d(object):
 
     def __str__(self):
         return '(%f, %f, %f, %f)' % (self.x, self.y, self.z, self.w)
-"""
+'''
 
 
 class _3ds_point_uv(object):
@@ -442,14 +442,17 @@ def get_material_image_texslots(material):
         return [s for s in material.texture_slots if s and s.texture.type == 'IMAGE' and s.texture.image]
 
     return []
-# 	images = []
-# 	if material:
-# 		for mtex in material.getTextures():
-# 			if mtex and mtex.tex.type == Blender.Texture.Types.IMAGE:
-# 				image = mtex.tex.image
-# 				if image:
-# 					images.append(image) # maye want to include info like diffuse, spec here.
-# 	return images
+
+    """
+    images = []
+    if material:
+        for mtex in material.getTextures():
+            if mtex and mtex.tex.type == Blender.Texture.Types.IMAGE:
+                image = mtex.tex.image
+                if image:
+                    images.append(image) # maye want to include info like diffuse, spec here.
+    return images
+    """
 
 
 def make_material_subchunk(chunk_id, color):
@@ -460,10 +463,12 @@ def make_material_subchunk(chunk_id, color):
     col1 = _3ds_chunk(RGB1)
     col1.add_variable("color1", _3ds_rgb_color(color))
     mat_sub.add_subchunk(col1)
-# optional:
-#	col2 = _3ds_chunk(RGB1)
-#	col2.add_variable("color2", _3ds_rgb_color(color))
-#	mat_sub.add_subchunk(col2)
+
+    """optional:
+    col2 = _3ds_chunk(RGB1)
+    col2.add_variable("color2", _3ds_rgb_color(color))
+    mat_sub.add_subchunk(col2)
+    """
     return mat_sub
 
 
@@ -855,7 +860,7 @@ def make_mesh_chunk(mesh, matrix, materialDict):
     return mesh_chunk
 
 
-""" # COMMENTED OUT FOR 2.42 RELEASE!! CRASHES 3DS MAX
+''' # COMMENTED OUT FOR 2.42 RELEASE!! CRASHES 3DS MAX
 def make_kfdata(start=0, stop=0, curtime=0):
     """Make the basic keyframe data chunk"""
     kfdata = _3ds_chunk(KFDATA)
@@ -878,9 +883,7 @@ def make_kfdata(start=0, stop=0, curtime=0):
     kfdata.add_subchunk(kfseg)
     kfdata.add_subchunk(kfcurtime)
     return kfdata
-"""
 
-"""
 def make_track_chunk(ID, obj):
     """Make a chunk for track data.
 
@@ -918,9 +921,7 @@ def make_track_chunk(ID, obj):
             track_chunk.add_variable("scale", _3ds_point_3d((1.0, 1.0, 1.0)))
 
     return track_chunk
-"""
 
-"""
 def make_kf_obj_node(obj, name_to_id):
     """Make a node chunk for a Blender object.
 
@@ -980,7 +981,7 @@ def make_kf_obj_node(obj, name_to_id):
     kf_obj_node.add_subchunk(make_track_chunk(SCL_TRACK_TAG, obj))
 
     return kf_obj_node
-"""
+'''
 
 
 def save(operator,
@@ -999,7 +1000,7 @@ def save(operator,
 
     # Time the export
     time1 = time.clock()
-#	Blender.Window.WaitCursor(1)
+    #Blender.Window.WaitCursor(1)
 
     if global_matrix is None:
         global_matrix = mathutils.Matrix()
@@ -1099,7 +1100,7 @@ def save(operator,
     for ob, data in mesh_objects:
         name_to_id[ob.name]= len(name_to_id)
     #for ob in empty_objects:
-    #	name_to_id[ob.name]= len(name_to_id)
+    #    name_to_id[ob.name]= len(name_to_id)
     """
 
     # Create object chunks for all meshes:
@@ -1126,9 +1127,10 @@ def save(operator,
         # make a kf object node for the object:
         kfdata.add_subchunk(make_kf_obj_node(ob, name_to_id))
         '''
+
         if not blender_mesh.users:
             bpy.data.meshes.remove(blender_mesh)
-# 		blender_mesh.vertices = None
+                #blender_mesh.vertices = None
 
         i += i
 
@@ -1166,7 +1168,7 @@ def save(operator,
     name_mapping.clear()
 
     # Debugging only: report the exporting time:
-# 	Blender.Window.WaitCursor(0)
+    #Blender.Window.WaitCursor(0)
     print("3ds export time: %.2f" % (time.clock() - time1))
 
     # Debugging only: dump the chunk hierarchy:
