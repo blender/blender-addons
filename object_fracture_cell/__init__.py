@@ -392,7 +392,7 @@ class FractureCell(Operator):
         rowsub.prop(self, "use_smooth_faces")
         rowsub.prop(self, "use_smooth_edges")
         rowsub.prop(self, "use_data_match")
-        # rowsub.prop(self, "use_interior_vgroup")
+        rowsub.prop(self, "use_interior_vgroup")
         rowsub.prop(self, "material_index")
         rowsub = col.row()
         # could be own section, control how we subdiv
