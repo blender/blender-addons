@@ -52,12 +52,12 @@ def points_as_bmesh_cells(verts,
         ymin, ymax = min(ya) - margin_bounds, max(ya) + margin_bounds
         zmin, zmax = min(za) - margin_bounds, max(za) + margin_bounds
         convexPlanes = [
-            Vector((+1.0, 0.0, 0.0, -abs(xmax))),
-            Vector((-1.0, 0.0, 0.0, -abs(xmin))),
-            Vector((0.0, +1.0, 0.0, -abs(ymax))),
-            Vector((0.0, -1.0, 0.0, -abs(ymin))),
-            Vector((0.0, 0.0, +1.0, -abs(zmax))),
-            Vector((0.0, 0.0, -1.0, -abs(zmin))),
+            Vector((+1.0, 0.0, 0.0, -xmax)),
+            Vector((-1.0, 0.0, 0.0, +xmin)),
+            Vector((0.0, +1.0, 0.0, -ymax)),
+            Vector((0.0, -1.0, 0.0, +ymin)),
+            Vector((0.0, 0.0, +1.0, -zmax)),
+            Vector((0.0, 0.0, -1.0, +zmin)),
             ]
 
     for i, point_cell_current in enumerate(points):
