@@ -95,7 +95,7 @@ def _points_from_object(obj, source):
 
     # geom particles
     if 'PARTICLE_OWN' in source:
-        points_from_verts(obj)
+        points_from_particles(obj)
 
     if 'PARTICLE_CHILD' in source:
         for obj_child in obj.children:
@@ -168,6 +168,8 @@ def cell_fracture_objects(scene, obj,
     del to_tuple
     del Vector
 
+    # end remove doubles
+    # ------------------
 
     if source_noise > 0.0:
         from random import random
@@ -180,9 +182,7 @@ def cell_fracture_objects(scene, obj,
         from mathutils.noise import random_unit_vector
         
         points[:] = [p + (random_unit_vector() * (scalar * random())) for p in points]
-    
-    # end remove doubles
-    # ------------------
+
 
     if use_debug_points:
         bm = bmesh.new()
@@ -319,6 +319,7 @@ def cell_fracture_boolean(scene, obj, objects,
                           use_debug_bool=False,
                           clean=True,
                           use_island_split=False,
+                          use_interior_vgroup=False,
                           use_debug_redraw=False,
                           ):
 

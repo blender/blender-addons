@@ -58,6 +58,7 @@ def main_object(scene, obj, level, **kw):
     group_name = kw_copy.pop("group_name")
     use_island_split = kw_copy.pop("use_island_split")
     use_debug_bool = kw_copy.pop("use_debug_bool")
+    use_interior_vgroup = kw_copy.pop("use_interior_vgroup")
 
     from . import fracture_cell_setup
 
@@ -71,6 +72,7 @@ def main_object(scene, obj, level, **kw):
     objects = fracture_cell_setup.cell_fracture_objects(scene, obj, **kw_copy)
     objects = fracture_cell_setup.cell_fracture_boolean(scene, obj, objects,
                                                         use_island_split=use_island_split,
+                                                        use_interior_vgroup=use_interior_vgroup,
                                                         use_debug_bool=use_debug_bool,
                                                         use_debug_redraw=kw_copy["use_debug_redraw"])
 
@@ -282,6 +284,12 @@ class FractureCell(Operator):
             default=0,
             )
 
+    use_interior_vgroup = BoolProperty(
+            name="Interior VGroup",
+            description="Create a vertex group for interior verts",
+            default=False,
+            )
+
     # -------------------------------------------------------------------------
     # Object Options
 
@@ -384,6 +392,7 @@ class FractureCell(Operator):
         rowsub.prop(self, "use_smooth_faces")
         rowsub.prop(self, "use_smooth_edges")
         rowsub.prop(self, "use_data_match")
+        # rowsub.prop(self, "use_interior_vgroup")
         rowsub.prop(self, "material_index")
         rowsub = col.row()
         # could be own section, control how we subdiv
