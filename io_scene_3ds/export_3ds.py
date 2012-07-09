@@ -19,7 +19,7 @@
 # <pep8 compliant>
 
 # Script copyright (C) Bob Holcomb
-# Contributors: Campbell Barton, Bob Holcomb, Richard L‰rk‰ng, Damien McGinnes, Mark Stijnman
+# Contributors: Campbell Barton, Bob Holcomb, Richard L√§rk√§ng, Damien McGinnes, Mark Stijnman
 
 """
 Exporting is based on 3ds loader from www.gametutorials.com(Thanks DigiBen) and using information
@@ -463,12 +463,10 @@ def make_material_subchunk(chunk_id, color):
     col1 = _3ds_chunk(RGB1)
     col1.add_variable("color1", _3ds_rgb_color(color))
     mat_sub.add_subchunk(col1)
-
-    """optional:
-    col2 = _3ds_chunk(RGB1)
-    col2.add_variable("color2", _3ds_rgb_color(color))
-    mat_sub.add_subchunk(col2)
-    """
+    # optional:
+    #col2 = _3ds_chunk(RGB1)
+    #col2.add_variable("color2", _3ds_rgb_color(color))
+    #mat_sub.add_subchunk(col2)
     return mat_sub
 
 
@@ -1130,7 +1128,7 @@ def save(operator,
 
         if not blender_mesh.users:
             bpy.data.meshes.remove(blender_mesh)
-                #blender_mesh.vertices = None
+        #blender_mesh.vertices = None
 
         i += i
 
