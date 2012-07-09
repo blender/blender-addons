@@ -21,12 +21,12 @@ DEV = False
 bl_info = {
     "name": "Renderfarm.fi",
     "author": "Nathan Letwory <nathan@letworyinteractive.com>, Jesse Kaukonen <jesse.kaukonen@gmail.com>",
-    "version": (20,),
-    "blender": (2, 6, 2),
+    "version": (21,),
+    "blender": (2, 6, 3),
     "location": "Render > Engine > Renderfarm.fi",
     "description": "Send .blend as session to http://www.renderfarm.fi to render",
     "warning": "",
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"\
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"\
         "Scripts/Render/Renderfarm.fi",
     "tracker_url": "https://projects.blender.org/tracker/index.php?"\
         "func=detail&aid=22927",
@@ -42,9 +42,10 @@ import hashlib
 import http.client
 import xmlrpc.client
 import math
-from os.path import isabs, isfile
+from os.path import isabs, isfile, join, exists
 import os
 import time
+import imp
 
 from bpy.props import PointerProperty, StringProperty, BoolProperty, EnumProperty, IntProperty, CollectionProperty
 
@@ -52,6 +53,12 @@ bpy.CURRENT_VERSION = bl_info["version"][0]
 bpy.found_newer_version = False
 bpy.up_to_date = False
 bpy.download_location = 'http://www.renderfarm.fi/blender'
+
+bpy.rffi_creds_found = False
+bpy.rffi_user = ''
+bpy.rffi_hash = ''
+bpy.passwordCorrect = False
+bpy.loginInserted = False
 
 bpy.errorMessages = {
     'missing_desc': 'You need to enter a title, short and long description',
@@ -118,7 +125,6 @@ class ORESession(bpy.types.PropertyGroup):
 class ORESettings(bpy.types.PropertyGroup):
     username = StringProperty(name='E-mail', description='E-mail for Renderfarm.fi', maxlen=256, default='')
     password = StringProperty(name='Password', description='Renderfarm.fi password', maxlen=256, default='')
-    hash = StringProperty(name='Hash', description='hash calculated out of credentials', maxlen=33, default='')
     
     shortdesc = StringProperty(name='Short description', description='A short description of the scene (100 characters)', maxlen=101, default='-')
     tags = StringProperty(name='Tags', description='A list of tags that best suit the animation', maxlen=102, default='')
@@ -139,8 +145,6 @@ class ORESettings(bpy.types.PropertyGroup):
     fps = IntProperty(name='FPS', description='FPS', min=1, max=120, default=25)
     
     prepared = BoolProperty(name='Prepared', description='Set to True if preparation has been run', default=False)
-    loginInserted = BoolProperty(name='LoginInserted', description='Set to True if user has logged in', default=False)
-    passwordCorrect = BoolProperty(name='PasswordCorrect', description='Set to False if the password is incorrect', default=True)
     debug = BoolProperty(name='Debug', description='Verbose output in console', default=False)
     selected_session = IntProperty(name='Selected Session', description='The selected session', default=0)
     hasUnsupportedSimulation = BoolProperty(name='HasSimulation', description='Set to True if therea re unsupported simulations', default=False)
@@ -447,7 +451,7 @@ class RENDERFARM_MT_Session(bpy.types.Menu):
         layout = self.layout
         ore = context.scene.ore_render
         
-        if (ore.loginInserted == True):
+        if (bpy.loginInserted == True):
             layout.operator('ore.completed_sessions')
             layout.operator('ore.accept_sessions')
             layout.operator('ore.active_sessions')
@@ -467,21 +471,28 @@ class LOGIN_PT_RenderfarmFi(RenderButtonsPanel, bpy.types.Panel):
         return (rd.use_game_engine==False) and (rd.engine in cls.COMPAT_ENGINES)
     
     def draw(self, context):
+
+        # login 
+        if not bpy.loginInserted:
+            print("trying to log in in draw()")
+            if _login(None, False, True):
+                bpy.passwordCorrect = True
+                bpy.loginInserted = True
+
         layout = self.layout
         ore = context.scene.ore_render
         checkStatus(ore)
         
-        if (ore.passwordCorrect == False):
+        if bpy.passwordCorrect == False:
             row = layout.row()
             row.label(text="Email or password missing/incorrect", icon='ERROR')
-        if ore.hash=='':
             col = layout.column()
-            if ore.hash=='':
-                col.prop(ore, 'username', icon=bpy.statusMessage['username'])
-                col.prop(ore, 'password', icon=bpy.statusMessage['password'])
+            col.prop(ore, 'username', icon=bpy.statusMessage['username'])
+            col.prop(ore, 'password', icon=bpy.statusMessage['password'])
             layout.operator('ore.login')
         else:
-            layout.label(text='Successfully logged in', icon='INFO')
+            layout.label(text='Successfully logged in as:', icon='INFO')
+            layout.label(text=bpy.rffi_user)
             layout.operator('ore.change_user')
 
 class SESSIONS_PT_RenderfarmFi(RenderButtonsPanel, bpy.types.Panel):
@@ -495,7 +506,7 @@ class SESSIONS_PT_RenderfarmFi(RenderButtonsPanel, bpy.types.Panel):
     
     def draw(self, context):
         ore = context.scene.ore_render
-        if (ore.passwordCorrect == True and ore.loginInserted == True):
+        if (bpy.passwordCorrect == True and bpy.loginInserted == True):
             layout = self.layout
             
             layout.template_list(ore, 'all_sessions', ore, 'selected_session', rows=5)
@@ -526,7 +537,7 @@ class RENDER_PT_RenderfarmFi(RenderButtonsPanel, bpy.types.Panel):
         ore = sce.ore_render
         rd = sce.render
         
-        if (ore.passwordCorrect == False or ore.loginInserted == False):
+        if (bpy.passwordCorrect == False or bpy.loginInserted == False):
             layout.label(text='You must login first')
         else:
             layout.prop(ore, 'title', icon=bpy.statusMessage['title'])
@@ -603,7 +614,7 @@ class UPLOAD_PT_RenderfarmFi(RenderButtonsPanel, bpy.types.Panel):
         sce = context.scene
         ore = sce.ore_render
         rd = sce.render
-        if (ore.passwordCorrect == False or ore.loginInserted == False):
+        if (bpy.passwordCorrect == False or bpy.loginInserted == False):
             layout.label(text="You must login first")
         else:
             if (bpy.ready):
@@ -765,14 +776,12 @@ def ore_upload(op, context):
         bpy.context.scene.render.engine = 'RENDERFARMFI_RENDER'
         return {'CANCELLED'}
     try:
-        print("Creating auth proxy")
-        authproxy = xmlrpc.client.ServerProxy(rffi_xmlrpc_secure, verbose=DEV)
-        print("Getting session key")
-        res = authproxy.auth.getSessionKey(ore.username, ore.hash)
+        _read_credentials()
+        res = _login(op, True)
         key = res['key']
         userid = res['userId']
         print("Creating server proxy")
-        proxy = xmlrpc.client.ServerProxy(rffi_xmlrpc, verbose=DEV) #r'http://xmlrpc.renderfarm.fi/session')
+        proxy = xmlrpc.client.ServerProxy(rffi_xmlrpc, verbose=DEV)
         proxy._ServerProxy__transport.user_agent = 'Renderfarm.fi Uploader/%s' % (bpy.CURRENT_VERSION)
         print("Creating a new session")
         res = proxy.session.createSession(userid, key)  # This may use an existing, non-rendered session. Prevents spamming in case the upload fails for some reason
@@ -836,18 +845,57 @@ def showStatus(layoutform, property, message):
     if bpy.statusMessage[property] == 'ERROR':
         layoutform.label(text='', icon='ERROR')
 
+def _write_credentials(hash, user):
+    with open(join(bpy.utils.user_resource('CONFIG', 'rffi', True), 'rffi_credentials.py'), 'w') as pwfile:
+        pwfile.write('hash=\''+hash+'\'\n')
+        pwfile.write('user=\''+user+'\'')
+
+def _read_credentials():
+    bpy.rffi_creds_found = False
+    bpy.rffi_user = ''
+    bpy.rffi_hash = ''
+
+    pwfile = bpy.utils.user_resource('CONFIG', 'rffi', True)
+    try:
+        pwmod = imp.find_module('rffi_credentials',[pwfile])
+    except ImportError as e:
+        _write_credentials('', '')
+        pwmod = imp.find_module('rffi_credentials',[pwfile])
+    try:
+        user_creds = imp.load_module('rffi_credentials', pwmod[0], pwmod[1], pwmod[2])
+        bpy.rffi_user = user_creds.user
+        bpy.rffi_hash = user_creds.hash
+        bpy.rffi_creds_found = True
+    except ImportError as e:
+        # doesn't exist yet, write template
+        _write_credentials('', '')
+        pwfile = bpy.utils.user_resource('CONFIG', 'rffi', True)
+        pwmod = imp.find_module('rffi_credentials',[pwfile])
+        try:
+            user_creds = imp.load_module('rffi_credentials', pwmod[0], pwmod[1], pwmod[2])
+            bpy.rffi_user = user_creds.user
+            bpy.rffi_hash = user_creds.hash
+            bpy.rffi_creds_found = True
+        except Exception as e2:
+            print("Couldn't write rffi_credentials.py", e2)
+    finally:
+        if pwmod[0]: pwmod[0].close()
+
+    return bpy.rffi_creds_found
+
+
 def checkStatus(ore):
     bpy.errors = []
     
-    if ore.hash=='' and (ore.username=='' or ore.password==''):
+    if bpy.rffi_creds_found == False and bpy.rffi_hash == '':
         bpy.errors.append('missing_creds')
     
     if '' in {ore.title, ore.longdesc, ore.shortdesc}:
         bpy.errors.append('missing_desc')
         bpy.infoError = True
-    
-    setStatus('username', ore.hash=='' and ore.username=='')
-    setStatus('password', ore.hash=='' and ore.password=='')
+
+    setStatus('username', bpy.rffi_hash=='' and ore.username=='')
+    setStatus('password', bpy.rffi_hash=='' and ore.password=='')
     
     setStatus('title', ore.title=='')
     setStatus('longdesc', ore.longdesc=='')
@@ -874,13 +922,12 @@ class OreSession:
             done = 100
         return done
 
-def xmlSessionsToOreSessions(sessions, stage=None): #, queue):
+def xmlSessionsToOreSessions(sessions, stage=None):
     output = []
     for session in sessions:
         s = session['title']
         if stage:
             s = s + ' (' + stage + ')'
-        #t = session['timestamps']
         sinfo = OreSession(session['sessionId'], s) 
         if stage in {'Completed', 'Active'}:
             sinfo.frames = session['framesRendered']
@@ -889,48 +936,75 @@ def xmlSessionsToOreSessions(sessions, stage=None): #, queue):
         output.append(sinfo)
     return output
 
-def doRefresh(op, rethrow=False):
+def _login(op, rethrow=False, print_errors=True):
+    res = None
+    if _read_credentials():
+        try:
+            print("credentials read, refreshing")
+            proxy = xmlrpc.client.ServerProxy(rffi_xmlrpc_secure, verbose=DEV)
+            res = proxy.auth.getSessionKey(bpy.rffi_user, bpy.rffi_hash)
+        except xmlrpc.client.Error as v:
+            print("xmlrpc error")
+            if op: op.report({'WARNING'}, "Error at refresh : " + str(type(v)) + " -> " + str(v.faultCode) + ": " + v.faultString)
+            if print_errors: print(v)
+            if rethrow:
+                raise v
+            return None
+        except Exception as v:
+            print("dorefresh exception")
+            if op: op.report({'WARNING'}, "Non XMLRPC Error at refresh: " + str(v))
+            if print_errors: print(v)
+            if rethrow:
+                raise v
+            return None
+    
+    return res
+
+def doRefresh(op, rethrow=False, print_errors=True):
     sce = bpy.context.scene
     ore = sce.ore_render
-    try:
-    
-        proxy = xmlrpc.client.ServerProxy(rffi_xmlrpc_secure, verbose=DEV)
-        res = proxy.auth.getSessionKey(ore.username, ore.hash)
-        userid = res['userID']
-        proxy = xmlrpc.client.ServerProxy(rffi_xmlrpc, verbose=DEV)
 
-        bpy.ore_sessions = []
+    if _read_credentials():
+        try:
+            res = _login(op, True, print_errors)
+            proxy = xmlrpc.client.ServerProxy(rffi_xmlrpc, verbose=DEV)
 
-        sessions = proxy.session.getSessions(userid, 'accept', 0, 100, 'full')
-        bpy.ore_sessions = xmlSessionsToOreSessions(sessions, stage='Pending')
-        bpy.ore_pending_sessions = bpy.ore_sessions
+            bpy.ore_sessions = []
 
-        sessions = proxy.session.getSessions(userid, 'completed', 0, 100, 'full')
-        bpy.ore_sessions = xmlSessionsToOreSessions(sessions, stage='Completed')
-        bpy.ore_completed_sessions = bpy.ore_sessions
+            sessions = proxy.session.getSessions(userid, 'accept', 0, 100, 'full')
+            bpy.ore_sessions = xmlSessionsToOreSessions(sessions, stage='Pending')
+            bpy.ore_pending_sessions = bpy.ore_sessions
 
-        sessions = proxy.session.getSessions(userid, 'cancelled', 0, 100, 'full')
-        bpy.ore_sessions = xmlSessionsToOreSessions(sessions, stage='Cancelled')
-        bpy.ore_cancelled_sessions = bpy.ore_sessions
+            sessions = proxy.session.getSessions(userid, 'completed', 0, 100, 'full')
+            bpy.ore_sessions = xmlSessionsToOreSessions(sessions, stage='Completed')
+            bpy.ore_completed_sessions = bpy.ore_sessions
 
-        sessions = proxy.session.getSessions(userid, 'render', 0, 100, 'full')
-        bpy.ore_sessions = xmlSessionsToOreSessions(sessions, stage='Rendering')
-        bpy.ore_active_sessions = bpy.ore_sessions
-        
-        updateCompleteSessionList(ore)
-        
-        return 0
-    except xmlrpc.client.Error as v:
-        op.report({'WARNING'}, "Error at refresh : " + str(type(v)) + " -> " + str(v.faultCode) + ": " + v.faultString)
-        print(v)
-        if rethrow:
-            raise v
-        return 1
-    except Exception as v:
-        op.report({'WARNING'}, "Non XMLRPC Error at refresh: " + str(v))
-        print(v)
-        if rethrow:
-            raise v
+            sessions = proxy.session.getSessions(userid, 'cancelled', 0, 100, 'full')
+            bpy.ore_sessions = xmlSessionsToOreSessions(sessions, stage='Cancelled')
+            bpy.ore_cancelled_sessions = bpy.ore_sessions
+
+            sessions = proxy.session.getSessions(userid, 'render', 0, 100, 'full')
+            bpy.ore_sessions = xmlSessionsToOreSessions(sessions, stage='Rendering')
+            bpy.ore_active_sessions = bpy.ore_sessions
+            
+            updateCompleteSessionList(ore)
+            
+            return 0
+        except xmlrpc.client.Error as v:
+            print("xmlrpc error")
+            if op: op.report({'WARNING'}, "Error at refresh : " + str(type(v)) + " -> " + str(v.faultCode) + ": " + v.faultString)
+            if print_errors: print(v)
+            if rethrow:
+                raise v
+            return 1
+        except Exception as v:
+            print("dorefresh exception")
+            if op: op.report({'WARNING'}, "Non XMLRPC Error at refresh: " + str(v))
+            if print_errors: print(v)
+            if rethrow:
+                raise v
+            return 1
+    else:
         return 1
 
 class ORE_RefreshOp(bpy.types.Operator):
@@ -993,12 +1067,13 @@ class ORE_CancelSession(bpy.types.Operator):
         proxy = xmlrpc.client.ServerProxy(rffi_xmlrpc_secure, verbose=DEV)
         if len(bpy.ore_complete_session_queue)>0:
             s = bpy.ore_complete_session_queue[ore.selected_session]
+            _read_credentials()
             try:
-                res = proxy.auth.getSessionKey(ore.username, ore.hash)
+                res = proxy.auth.getSessionKey(bpy.rffi_user, bpy.rffi_hash)
                 key = res['key']
                 userid = res['userId']
                 res = proxy.session.cancelSession(userid, key, s.id)
-                doRefresh(self)
+                doRefresh(self, True)
                 self.report({'INFO'}, 'Session ' + s.title + ' with id ' + str(s.id) + ' cancelled')
             except xmlrpc.client.Error as v:
                 self.report({'ERROR'}, 'Could not cancel session ' + s.title + ' with id ' + str(s.id))
@@ -1096,22 +1171,28 @@ class ORE_LoginOp(bpy.types.Operator):
         ore.password = ore.password.strip()
         ore.username = ore.username.strip()
         
-        if ore.hash=='':
-            if ore.password != '' and ore.username != '':
-                ore.hash = hashlib.md5(ore.password.encode() + ore.username.encode()).hexdigest()
-                ore.password = ''
-                ore.loginInserted = False
+        if ore.password != '' and ore.username != '':
+            print("writing new credentials")
+            _write_credentials(hashlib.md5(ore.password.encode() + ore.username.encode()).hexdigest(),ore.username)
+            _read_credentials()
+            ore.password = ''
+            ore.username = ''
+            bpy.loginInserted = False
+            bpy.passwordCorrect = False
         
         try:
             doRefresh(self, True)
             
-            ore.passwordCorrect = True
-            ore.loginInserted = True
+            bpy.passwordCorrect = True
+            bpy.loginInserted = True
             
         except xmlrpc.client.Error as v:
             bpy.ready = False
-            ore.loginInserted = False
-            ore.passwordCorrect = False
+            bpy.loginInserted = False
+            bpy.passwordCorrect = False
+            ore.username = bpy.rffi_user
+            _write_credentials('', '')
+            _read_credentials()
             ore.hash = ''
             ore.password = ''
             self.report({'WARNING'}, "Incorrect login: " + v.faultString)
@@ -1128,7 +1209,7 @@ class ORE_ResetOp(bpy.types.Operator):
         sce = context.scene
         ore = sce.ore_render
         ore.prepared = False
-        ore.loginInserted = False
+        bpy.loginInserted = False
         bpy.prepared = False
         ore.hash = ''
         ore.username = ''
@@ -1208,10 +1289,15 @@ class ORE_ChangeUser(bpy.types.Operator):
     
     def execute(self, context):
         ore = context.scene.ore_render
+        _write_credentials('', '')
+        _read_credentials()
         ore.password = ''
         ore.hash = ''
-        ore.passwordCorrect = False
-        ore.loginInserted = False
+        bpy.rffi_user = ''
+        bpy.rffi_hash = ''
+        bpy.rffi_creds_found = False
+        bpy.passwordCorrect = False
+        bpy.loginInserted = False
         
         return {'FINISHED'}
 
@@ -1222,23 +1308,12 @@ class RenderfarmFi(bpy.types.RenderEngine):
     def render(self, scene):
         print('Do test renders with Blender Render')
 
-
-#~ def menu_export(self, context):
-    #~ import os
-    #~ default_path = os.path.splitext(bpy.data.filepath)[0] + ".py"
-    #~ self.layout.operator(RenderfarmFi.bl_idname, text=RenderfarmFi.bl_label)
-
-
 def register():
     bpy.utils.register_module(__name__)
     bpy.types.Scene.ore_render = PointerProperty(type=ORESettings, name='ORE Render', description='ORE Render Settings')
 
-    #~ bpy.types.INFO_MT_render.append(menu_export)
-
 def unregister():
     bpy.utils.unregister_module(__name__)
-
-    #~ bpy.types.INFO_MT_render.remove(menu_export)
 
 if __name__ == "__main__":
     register()
