@@ -229,7 +229,7 @@ class UI_OT_edittranslation(bpy.types.Operator):
         if self.rna_ctxt:
             layout.label(text="    RNA Context: " + self.rna_ctxt)
 
-        if self.but_label or self.rna_label or self.enum_label:
+        if self.org_but_label or self.org_rna_label or self.org_enum_label:
             # XXX Can't use box, labels are not enought readable in them :/
 #            box = layout.box()
             box = layout
@@ -237,7 +237,7 @@ class UI_OT_edittranslation(bpy.types.Operator):
             split = box.split(percentage=0.15)
             col1 = split.column()
             col2 = split.column()
-            if self.but_label:
+            if self.org_but_label:
                 col1.label(text="Button Label:")
                 row = col2.row()
                 row.enabled = False
@@ -247,7 +247,7 @@ class UI_OT_edittranslation(bpy.types.Operator):
                     col1.prop_enum(self, "but_label_flags", 'FUZZY', text="Fuzzy")
                     col2.prop(self, "but_label", text="")
                 row.prop(self, "org_but_label", text="")
-            if self.rna_label:
+            if self.org_rna_label:
                 col1.label(text="RNA Label:")
                 row = col2.row()
                 row.enabled = False
@@ -257,7 +257,7 @@ class UI_OT_edittranslation(bpy.types.Operator):
                     col1.prop_enum(self, "rna_label_flags", 'FUZZY', text="Fuzzy")
                     col2.prop(self, "rna_label", text="")
                 row.prop(self, "org_rna_label", text="")
-            if self.enum_label:
+            if self.org_enum_label:
                 col1.label(text="Enum Item Label:")
                 row = col2.row()
                 row.enabled = False
@@ -268,7 +268,7 @@ class UI_OT_edittranslation(bpy.types.Operator):
                     col2.prop(self, "enum_label", text="")
                 row.prop(self, "org_enum_label", text="")
 
-        if self.but_tip or self.rna_tip or self.enum_tip:
+        if self.org_but_tip or self.org_rna_tip or self.org_enum_tip:
             # XXX Can't use box, labels are not enought readable in them :/
 #            box = layout.box()
             box = layout
@@ -276,7 +276,7 @@ class UI_OT_edittranslation(bpy.types.Operator):
             split = box.split(percentage=0.15)
             col1 = split.column()
             col2 = split.column()
-            if self.but_tip:
+            if self.org_but_tip:
                 col1.label(text="Button Tip:")
                 row = col2.row()
                 row.enabled = False
@@ -286,7 +286,7 @@ class UI_OT_edittranslation(bpy.types.Operator):
                     col1.prop_enum(self, "but_tip_flags", 'FUZZY', text="Fuzzy")
                     col2.prop(self, "but_tip", text="")
                 row.prop(self, "org_but_tip", text="")
-            if self.rna_tip:
+            if self.org_rna_tip:
                 col1.label(text="RNA Tip:")
                 row = col2.row()
                 row.enabled = False
@@ -296,7 +296,7 @@ class UI_OT_edittranslation(bpy.types.Operator):
                     col1.prop_enum(self, "rna_tip_flags", 'FUZZY', text="Fuzzy")
                     col2.prop(self, "rna_tip", text="")
                 row.prop(self, "org_rna_tip", text="")
-            if self.enum_tip:
+            if self.org_enum_tip:
                 col1.label(text="Enum Item Tip:")
                 row = col2.row()
                 row.enabled = False
