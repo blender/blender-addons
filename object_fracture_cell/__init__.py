@@ -18,7 +18,7 @@
 
 bl_info = {
     "name": "Cell Fracture",
-    "author": "ideasman42, phymec",
+    "author": "ideasman42, phymec, Sergey Sharybin",
     "version": (0, 1),
     "blender": (2, 6, 4),
     "location": "Search > Fracture Object & Add -> Fracture Helper Objects",
@@ -164,15 +164,60 @@ def main(context, **kw):
     scene = context.scene
     objects_context = context.selected_editable_objects
 
+    kw_copy = kw.copy()
+
+    # mass
+    mass_mode = kw_copy.pop("mass_mode")
+    mass = kw_copy.pop("mass")
+
     objects = []
     for obj in objects_context:
         if obj.type == 'MESH':
-            objects += main_object(scene, obj, 0, **kw)
+            objects += main_object(scene, obj, 0, **kw_copy)
 
     bpy.ops.object.select_all(action='DESELECT')
     for obj_cell in objects:
         obj_cell.select = True
     
+    if mass_mode == 'UNIFORM':
+        for obj_cell in objects:
+            obj_cell.game.mass = mass
+    elif mass_mode == 'VOLUME':
+        from mathutils import Vector
+        def _get_volume(obj_cell):
+            def _getObjectBBMinMax():
+                min_co = Vector((1000000.0, 1000000.0, 1000000.0))
+                max_co = -min_co
+                matrix = obj_cell.matrix_world
+                for i in range(0, 8):
+                    bb_vec = obj_cell.matrix_world * Vector(obj_cell.bound_box[i])
+                    min_co[0] = min(bb_vec[0], min_co[0])
+                    min_co[1] = min(bb_vec[1], min_co[1])
+                    min_co[2] = min(bb_vec[2], min_co[2])
+                    max_co[0] = max(bb_vec[0], max_co[0])
+                    max_co[1] = max(bb_vec[1], max_co[1])
+                    max_co[2] = max(bb_vec[2], max_co[2])
+                return (min_co, max_co)
+
+            def _getObjectVolume():
+                min_co, max_co = _getObjectBBMinMax()
+                x = max_co[0] - min_co[0]
+                y = max_co[1] - min_co[1]
+                z = max_co[2] - min_co[2]
+                volume = x * y * z
+                return volume
+
+            return _getObjectVolume()
+        
+        
+        obj_volume_ls = [_get_volume(obj_cell) for obj_cell in objects]
+        obj_volume_tot = sum(obj_volume_ls)
+        mass_fac = mass / obj_volume_tot
+        for i, obj_cell in enumerate(objects):
+            obj_cell.game.mass = obj_volume_ls[i] * mass_fac
+    else:
+        assert(0)
+
     print("Done! %d objects in %.4f sec" % (len(objects), time.time() - t))
 
 
@@ -293,6 +338,25 @@ class FractureCell(Operator):
             )
 
     # -------------------------------------------------------------------------
+    # Physics Options
+    
+    mass_mode = EnumProperty(
+            name="Mass Mode",
+            items=(('VOLUME', "Volume", "All objects get the same volume"),
+                   ('UNIFORM', "Uniform", "All objects get the same volume"),
+                   ),
+            default='VOLUME',
+            )
+    
+    mass = FloatProperty(
+            name="Mass",
+            description="Mass to give created objects",
+            min=0.001, max=1000.0,
+            default=1.0,
+            )
+
+
+    # -------------------------------------------------------------------------
     # Object Options
 
     use_recenter = BoolProperty(
@@ -400,6 +464,15 @@ class FractureCell(Operator):
         # could be own section, control how we subdiv
         rowsub.prop(self, "margin")
         rowsub.prop(self, "use_island_split")
+
+
+        box = layout.box()
+        col = box.column()
+        col.label("Physics")
+        rowsub = col.row(align=True)
+        rowsub.prop(self, "mass_mode")
+        rowsub.prop(self, "mass")
+
 
         box = layout.box()
         col = box.column()
