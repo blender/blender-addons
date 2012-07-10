@@ -177,7 +177,8 @@ class UI_OT_edittranslation(bpy.types.Operator):
             # Always invalidate all caches afterward!
             clear_caches(self.po_file)
         if self.update_mo:
-            bpy.ops.ui.edittranslation_update_mo(po_file=self.po_file, lang=self.lang)
+            lang = os.path.splitext(os.path.basename(self.po_file))[0]
+            bpy.ops.ui.edittranslation_update_mo(po_file=self.po_file, lang=lang)
         elif self.clean_mo:
             bpy.ops.ui.edittranslation_update_mo(clean_mo=True)
         return {'FINISHED'}
