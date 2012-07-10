@@ -59,7 +59,7 @@ def bpy_path(rstruct, rprop, renum):
     return src, src_rna, src_enum
 
 
-def find_best_msgs_matches(obj, cache_key, msgmap, msgs, state, ctxt, rstruct, rprop, renum):
+def find_best_msgs_matches(obj, cache_key, msgmap, msgs, state, rna_ctxt, rstruct, rprop, renum):
     comm_prfx = settings.COMMENT_PREFIX_SOURCE + "bpy.types."
 
     # Build helper mappings.
@@ -111,7 +111,7 @@ def find_best_msgs_matches(obj, cache_key, msgmap, msgs, state, ctxt, rstruct, r
     rlbl = getattr(obj, msgmap["rna_label"]["msgstr"])
     print("rna label: '"+rlbl+"'", rlbl in msgid_to_msg, rlbl in msgstr_to_msg)
     if rlbl:
-        k = ctxt_to_msg[ctxt].copy()
+        k = ctxt_to_msg[rna_ctxt].copy()
         if k and rlbl in msgid_to_msg:
             k &= msgid_to_msg[rlbl]
         elif k and rlbl in msgstr_to_msg:
@@ -128,7 +128,7 @@ def find_best_msgs_matches(obj, cache_key, msgmap, msgs, state, ctxt, rstruct, r
         # Num buttons report their label with a trailing ': '...
         blbls.append(blbl[:-len(NUM_BUTTON_SUFFIX)])
     print("button label: '"+blbl+"'")
-    if blbl and elbl not in blbls and (rlbl not in blbls or ctxt != BLF_I18NCONTEXT_DEFAULT):
+    if blbl and elbl not in blbls and (rlbl not in blbls or rna_ctxt != BLF_I18NCONTEXT_DEFAULT):
         # Always Default context for button label :/
         k = ctxt_to_msg[BLF_I18NCONTEXT_DEFAULT].copy()
         found = False
