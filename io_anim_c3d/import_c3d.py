@@ -47,7 +47,8 @@ class Parameter:
         if not nameLength:
             self.name = ''
             return
-        if nameLength < 0 or nameLength > 64:
+        nameLength = abs(nameLength)  # negative flags something
+        if nameLength > 64:
             raise ValueError
         self.name = infile.read(nameLength).decode('ascii')
         (offset, b) = struct.unpack('hb', infile.read(3))
@@ -195,7 +196,14 @@ class MarkerSet:
             if not g.name:
                 break
             self.paramGroups[g.name] = g
-        self.markerLabels = self.paramGroups['POINT'].params['LABELS'].decode()
+        for pg in self.paramGroups:
+            #print("group: " + pg)
+            #for p in self.paramGroups[pg].params:
+            #    print("   * " + p)
+            if 'LABELS' in self.paramGroups[pg].params:
+                break
+        # pg should be 'POINT', but let's be liberal and accept any group
+        self.markerLabels = self.paramGroups[pg].params['LABELS'].decode()
 
     def readMarker(self, infile):
         pass  # ...
