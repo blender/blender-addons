@@ -2021,7 +2021,7 @@ def correctRig(args):
         ob = loadedData['Object'][human]
     except:
         return
-    ob["MhxShapekeyDrivers"] = (toggle&T_Shapekeys and toggle&T_ShapeDrivers)
+    ob.MhxShapekeyDrivers = (toggle&T_Shapekeys and toggle&T_ShapeDrivers)
     bpy.context.scene.objects.active = ob
     bpy.ops.object.mode_set(mode='POSE')
     amt = ob.data
@@ -2255,7 +2255,13 @@ def pushOnTodoList(var, expr, glbals, lcals):
     global todo
     print("Tdo", var)
     print(dir(eval(var, glbals, lcals)))
-    MyError("Todo %s" % expr)
+    MyError(
+        "Unrecognized expression %s.\n"  % expr +
+        "This can mean that Blender's python API has changed\n" +
+        "since the MHX file was exported. Try to export again\n" +
+        "from an up-to-date MakeHuman nightly build.\n" +
+        "Alternatively, your Blender version may be obsolete.\n" +
+        "Download an up-to-date version from www.graphicall.org")
     todo.append((expr, glbals, lcals))
     return
 
@@ -2493,7 +2499,7 @@ def rigifyMhx(context, name):
     print("Modifying MHX rig to Rigify")
     scn = context.scene 
     mhx = loadedData['Object'][name]
-    mhx['MhxRigify'] = True
+    mhx.MhxRigify = True
     bpy.context.scene.objects.active = mhx
 
     # Delete old widgets
@@ -2799,10 +2805,7 @@ class RigifyMhxPanel(bpy.types.Panel):
     @classmethod
     def poll(cls, context):
         if context.object:
-            try:
-                return context.object['MhxRigify']
-            except:
-                return False
+            return context.object.MhxRigify
         return False
 
     def draw(self, context):
@@ -3375,7 +3378,7 @@ def setViseme(context, vis, setKey, frame):
     isProp = False
     shapekeys = None
     scale = 0.75
-    if rig["MhxShapekeyDrivers"]:
+    if rig.MhxShapekeyDrivers:
         try:
             scale *= rig.pose.bones['PFace'].bone.length
             isPanel = True
@@ -3523,7 +3526,7 @@ class MhxLipsyncPanel(bpy.types.Panel):
     
     @classmethod
     def poll(cls, context):
-        return context.object
+        return pollMhx(context.object)
 
     def draw(self, context):
         rig,mesh = getMhxRigMesh(context.object)
@@ -3667,7 +3670,7 @@ class MhxExpressionsPanel(bpy.types.Panel):
     
     @classmethod
     def poll(cls, context):
-        return context.object and context.object.type in ['ARMATURE', 'MESH']
+        return pollMhx(context.object)
 
     def draw(self, context):
         layout = self.layout
@@ -3675,7 +3678,7 @@ class MhxExpressionsPanel(bpy.types.Panel):
         if not rig:
             print("No MHX rig found")
             return
-        if not rig["MhxShapekeyDrivers"]:
+        if not rig.MhxShapekeyDrivers:
             layout.label("No shapekey drivers.")
             layout.label("Set expression values in mesh context instead")
             return
@@ -3852,7 +3855,7 @@ def ik2fkLeg(context, suffix):
         matchPoseTranslation(ankleIk, footFk, auto)
     return
    
-           
+"""           
 #
 #   setInverse(rig, pb):
 #
@@ -3927,6 +3930,7 @@ class VIEW3D_OT_ClearAnkleButton(bpy.types.Operator):
     def execute(self, context):
         clearAnkle(context.object, self.suffix, context.scene)
         return{'FINISHED'}    
+"""        
 #
 #
 #
@@ -4056,7 +4060,7 @@ class MhxFKIKPanel(bpy.types.Panel):
     
     @classmethod
     def poll(cls, context):
-        return (mhxRigName(context.object) == 'MHX')
+        return (context.object and context.object.MhxRig == 'MHX')
 
     def draw(self, context):
         rig = context.object
@@ -4104,6 +4108,7 @@ class MhxFKIKPanel(bpy.types.Panel):
         row.label("IK Leg")
         row.operator("mhx.snap_ik_fk", text="Snap L IK Leg").data = "&LegIk_L 4 5 12"
         row.operator("mhx.snap_ik_fk", text="Snap R IK Leg").data = "&LegIk_R 20 21 28"
+        """
         row = layout.row()
         row.label("Ankle")
         row.operator("mhx.fix_ankle", text="Fix L Ankle").suffix = "_L"
@@ -4112,6 +4117,7 @@ class MhxFKIKPanel(bpy.types.Panel):
         row.label("")
         row.operator("mhx.clear_ankle", text="Clear L Ankle").suffix = "_L"
         row.operator("mhx.clear_ankle", text="Clear R Ankle").suffix = "_R"
+        """
 
     def toggleButton(self, row, rig, prop, fk, ik):
         if rig[prop] > 0.5:
@@ -4137,7 +4143,7 @@ class MhxDriversPanel(bpy.types.Panel):
     
     @classmethod
     def poll(cls, context):
-        return mhxRigName(context.object)
+        return (context.object and context.object.MhxRig)
 
     def draw(self, context):
         lProps = []
@@ -4208,7 +4214,7 @@ class MhxVisibilityPanel(bpy.types.Panel):
     
     @classmethod
     def poll(cls, context):
-        return mhxRigName(context.object)
+        return (context.object and context.object.MhxRig)
 
     def draw(self, context):
         ob = context.object
@@ -4333,7 +4339,10 @@ class MhxLayersPanel(bpy.types.Panel):
     
     @classmethod
     def poll(cls, context):
-        return (mhxRigName(context.object) == 'MHX')
+        ob = context.object
+        if (ob and ob.MhxRig == 'MHX'):
+            return True
+        return False
 
     def draw(self, context):
         layout = self.layout
@@ -4388,33 +4397,35 @@ class VIEW3D_OT_MhxDisableAllLayersButton(bpy.types.Operator):
 #
 ###################################################################################    
 #
-#   pollMhxRig(ob):
 #   getMhxRigMesh(ob):
 #
 
-def mhxRigName(ob):
-    try:
-        return ob["MhxRig"]
-    except:
-        return None
-        
+def pollMhx(ob):        
+    if not ob:
+        return False
+    elif ob.type == 'ARMATURE':
+        return ob.MhxRig
+    elif ob.type == 'MESH':
+        par = ob.parent
+        return (par and (par.type == 'ARMATURE') and par.MhxRig)
+    else:
+        return False
+
 def getMhxRigMesh(ob):
     if ob.type == 'ARMATURE':
-        rig = ob
-        for mesh in rig.children:
-            try:
-                mesh["MhxMesh"]
-                rig["MhxRig"]
-                return (rig, mesh)
-            except:
-                pass
-        return (rig, None)                
+        for mesh in ob.children:
+            if mesh.MhxMesh and ob.MhxRig:
+                return (ob, mesh)
+        return (ob, None)                
     elif ob.type == 'MESH':
-        try:
-            ob["MhxMesh"]
-        except:
+        par = ob.parent
+        if (par and par.type == 'ARMATURE' and par.MhxRig):
+            if ob.MhxMesh:
+                return (par, ob)
+            else:
+                return (par, None)
+        else:
             return (None, None)
-        return (ob.parent, ob)
     return (None, None)
     
         
@@ -4444,6 +4455,10 @@ def menu_func(self, context):
     self.layout.operator(ImportMhx.bl_idname, text="MakeHuman (.mhx)...")
 
 def register():
+    bpy.types.Object.MhxMesh = BoolProperty(default=False)
+    bpy.types.Object.MhxRig = StringProperty(default="")
+    bpy.types.Object.MhxRigify = BoolProperty(default=False)
+    bpy.types.Object.MhxShapekeyDrivers = BoolProperty(default=True)
     bpy.utils.register_module(__name__)
     bpy.types.INFO_MT_file_import.append(menu_func)
 
