@@ -206,14 +206,13 @@ class ORE_LoginOp(bpy.types.Operator):
         ore.password = ore.password.strip()
         ore.username = ore.username.strip()
         
-        if ore.password != '' and ore.username != '':
-            print("writing new credentials")
-            _write_credentials(hashlib.md5(ore.password.encode() + ore.username.encode()).hexdigest(),ore.username)
-            _read_credentials()
-            ore.password = ''
-            ore.username = ''
-            bpy.loginInserted = False
-            bpy.passwordCorrect = False
+        print("writing new credentials")
+        _write_credentials(hashlib.md5(ore.password.encode() + ore.username.encode()).hexdigest(),ore.username)
+        _read_credentials()
+        ore.password = ''
+        ore.username = ''
+        bpy.loginInserted = False
+        bpy.passwordCorrect = False
         
         try:
             _do_refresh(self, True)

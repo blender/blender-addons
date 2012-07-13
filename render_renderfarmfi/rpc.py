@@ -129,7 +129,7 @@ def _do_refresh(op, rethrow=False, print_errors=True):
             
             return 0
         except LoginFailedException as lfe:
-            print("_do_refresh login failed", lfe)
+            if print_errors: print("_do_refresh login failed", lfe)
             if rethrow:
                 raise lfe
             return 1
@@ -145,12 +145,22 @@ class RffiRpc(object):
 
     def login(self, op, rethrow=False, print_errors=True):
         self.res = None
+
+        if bpy.rffi_user=='':
+            raise LoginFailedException("No email address given")
+
+        if bpy.rffi_hash=='':
+            raise LoginFailedException("No password given")
+
         try:
             self.res = self.sproxy.auth.getSessionKey(bpy.rffi_user, bpy.rffi_hash)
         except xmlrpc.client.Error as v:
             if op: op.report({'WARNING'}, "Error at login : " + str(type(v)) + " -> " + str(v.faultCode) + ": " + v.faultString)
             if print_errors: print("Error at login: ",v)
             if rethrow:
+                vstr = str(v)
+                if "Failed to invoke method getSessionKey" in vstr:
+                    raise LoginFailedException('User '+bpy.rffi_user+' doesn\'t exist')
                 raise LoginFailedException(v.faultString)
             return None
         except Exception as v:
