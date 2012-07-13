@@ -61,6 +61,9 @@ def main_object(scene, obj, level, **kw):
     use_debug_bool = kw_copy.pop("use_debug_bool")
     use_interior_vgroup = kw_copy.pop("use_interior_vgroup")
 
+    if level != 0:
+        kw_copy["source_limit"] = recursion_source_limit
+
     from . import fracture_cell_setup
 
     # not essential but selection is visual distraction.
@@ -88,7 +91,7 @@ def main_object(scene, obj, level, **kw):
 
         objects_recurse_input = [(i, o) for i, o in enumerate(objects)]
 
-        if recursion_chance != 1.0 or recursion_source_limit != 0:
+        if recursion_chance != 1.0:
             
             if 0:
                 random.shuffle(objects_recurse_input)
@@ -110,11 +113,7 @@ def main_object(scene, obj, level, **kw):
                     if recursion_chance_select == 'CURSOR_MAX':
                         objects_recurse_input.reverse()
 
-                recursion_tot = int(recursion_chance * len(objects_recurse_input))
-                if recursion_source_limit != 0 and recursion_tot > recursion_source_limit:
-                    recursion_tot = recursion_source_limit
-
-                objects_recurse_input[recursion_tot:] = []
+                objects_recurse_input[int(recursion_chance * len(objects_recurse_input)):] = []
                 objects_recurse_input.sort()
 
         # reverse index values so we can remove from original list.
