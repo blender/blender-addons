@@ -51,6 +51,7 @@ def main_object(scene, obj, level, **kw):
     use_recenter = kw_copy.pop("use_recenter")
     use_remove_original = kw_copy.pop("use_remove_original")
     recursion = kw_copy.pop("recursion")
+    recursion_source_limit = kw_copy.pop("recursion_source_limit")
     recursion_chance = kw_copy.pop("recursion_chance")
     recursion_chance_select = kw_copy.pop("recursion_chance_select")
     use_layer_next = kw_copy.pop("use_layer_next")
@@ -87,7 +88,7 @@ def main_object(scene, obj, level, **kw):
 
         objects_recurse_input = [(i, o) for i, o in enumerate(objects)]
 
-        if recursion_chance != 1.0:
+        if recursion_chance != 1.0 or recursion_source_limit != 0:
             
             if 0:
                 random.shuffle(objects_recurse_input)
@@ -109,7 +110,11 @@ def main_object(scene, obj, level, **kw):
                     if recursion_chance_select == 'CURSOR_MAX':
                         objects_recurse_input.reverse()
 
-                objects_recurse_input[int(recursion_chance * len(objects_recurse_input)):] = []
+                recursion_tot = int(recursion_chance * len(objects_recurse_input))
+                if recursion_source_limit != 0 and recursion_tot > recursion_source_limit:
+                    recursion_tot = recursion_source_limit
+
+                objects_recurse_input[recursion_tot:] = []
                 objects_recurse_input.sort()
 
         # reverse index values so we can remove from original list.
@@ -272,6 +277,13 @@ class FractureCell(Operator):
             description="Break shards resursively",
             min=0, max=5000,
             default=0,
+            )
+
+    recursion_source_limit = IntProperty(
+            name="Source Limit",
+            description="Limit the number of input points, 0 for unlimited (applies to recursion only)",
+            min=0, max=5000,
+            default=8,
             )
 
     recursion_chance = FloatProperty(
@@ -447,6 +459,7 @@ class FractureCell(Operator):
         col.label("Recursive Shatter")
         rowsub = col.row(align=True)
         rowsub.prop(self, "recursion")
+        rowsub.prop(self, "recursion_source_limit")
         rowsub = col.row()
         rowsub.prop(self, "recursion_chance")
         rowsub.prop(self, "recursion_chance_select", expand=True)
