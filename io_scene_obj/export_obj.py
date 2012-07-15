@@ -291,6 +291,10 @@ def write_file(filepath, objects, scene,
     # A Dict of Materials
     # (material.name, image.name):matname_imagename # matname_imagename has gaps removed.
     mtl_dict = {}
+    # Used to reduce the usage of matname_texname materials, which can become annoying in case of
+    # repeated exports/imports, yet keeping unique mat names per keys!
+    # mtl_name: (material.name, image.name)
+    mtl_rev_dict = {}
 
     copy_set = set()
 
@@ -505,10 +509,21 @@ def write_file(filepath, objects, scene,
                             # converting any spaces to underscores with name_compat.
 
                             # If none image dont bother adding it to the name
-                            if key[1] is None:
-                                mat_data = mtl_dict[key] = ("%s" % name_compat(key[0])), materials[f_mat], f_image
-                            else:
-                                mat_data = mtl_dict[key] = ("%s_%s" % (name_compat(key[0]), name_compat(key[1]))), materials[f_mat], f_image
+                            # Try to avoid as much as possible adding texname (or other things)
+                            # to the mtl name (see [#32102])...
+                            mtl_name = "%s" % name_compat(key[0])
+                            if mtl_rev_dict.get(mtl_name, None) not in {key, None}:
+                                if key[1] is None:
+                                    tmp_ext = "_NONE"
+                                else:
+                                    tmp_ext = "_%s" % name_compat(key[1])
+                                i = 0
+                                while mtl_rev_dict.get(mtl_name + tmp_ext, None) not in {key, None}:
+                                    i += 1
+                                    tmp_ext = "_%3d" % i
+                                mtl_name += tmp_ext
+                            mat_data = mtl_dict[key] = mtl_name, materials[f_mat], f_image
+                            mtl_rev_dict[mtl_name] = key
 
                         if EXPORT_GROUP_BY_MAT:
                             fw("g %s_%s_%s\n" % (name_compat(ob.name), name_compat(ob.data.name), mat_data[0]))  # can be mat_image or (null)
