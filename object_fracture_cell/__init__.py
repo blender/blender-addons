@@ -60,6 +60,8 @@ def main_object(scene, obj, level, **kw):
     use_island_split = kw_copy.pop("use_island_split")
     use_debug_bool = kw_copy.pop("use_debug_bool")
     use_interior_vgroup = kw_copy.pop("use_interior_vgroup")
+    use_smooth_edges = kw_copy.pop("use_smooth_edges")
+    use_smooth_edges_apply = kw_copy.pop("use_smooth_edges_apply")
 
     if level != 0:
         kw_copy["source_limit"] = recursion_source_limit
@@ -78,7 +80,10 @@ def main_object(scene, obj, level, **kw):
                                                         use_island_split=use_island_split,
                                                         use_interior_vgroup=use_interior_vgroup,
                                                         use_debug_bool=use_debug_bool,
-                                                        use_debug_redraw=kw_copy["use_debug_redraw"])
+                                                        use_debug_redraw=kw_copy["use_debug_redraw"],
+                                                        use_smooth_edges=use_smooth_edges,
+                                                        use_smooth_edges_apply=use_smooth_edges_apply,
+                                                        )
 
     # todo, split islands.
 
@@ -243,14 +248,14 @@ class FractureCell(Operator):
                    ('PENCIL', "Grease Pencil", "This objects grease pencil"),
                    ),
             options={'ENUM_FLAG'},
-            default={'PARTICLE_OWN', 'VERT_OWN'},
+            default={'PARTICLE_OWN'},
             )
 
     source_limit = IntProperty(
             name="Source Limit",
             description="Limit the number of input points, 0 for unlimited",
             min=0, max=5000,
-            default=1000,
+            default=100,
             )
 
     source_noise = FloatProperty(
@@ -289,7 +294,7 @@ class FractureCell(Operator):
             name="Random Factor",
             description="Likelyhood of recursion",
             min=0.0, max=1.0,
-            default=1.0,
+            default=0.5,
             )
 
     recursion_chance_select = EnumProperty(
@@ -313,8 +318,14 @@ class FractureCell(Operator):
 
     use_smooth_edges = BoolProperty(
             name="Smooth Edges",
-            description="Set sharp edges whem disabled",
+            description="Set sharp edges when disabled",
             default=True,
+            )
+
+    use_smooth_edges_apply = BoolProperty(
+            name="Apply Split Edge",
+            description="Split sharp hard edges",
+            default=False,
             )
 
     use_data_match = BoolProperty(
@@ -469,11 +480,15 @@ class FractureCell(Operator):
         rowsub = col.row()
         rowsub.prop(self, "use_smooth_faces")
         rowsub.prop(self, "use_smooth_edges")
+        rowsub.prop(self, "use_smooth_edges_apply")
         rowsub.prop(self, "use_data_match")
-        rowsub.prop(self, "use_interior_vgroup")
-        rowsub.prop(self, "material_index")
         rowsub = col.row()
-        # could be own section, control how we subdiv
+
+        # on same row for even layout but infact are not all that related
+        rowsub.prop(self, "material_index")
+        rowsub.prop(self, "use_interior_vgroup")
+
+        # could be own section, control how we subdiv        
         rowsub.prop(self, "margin")
         rowsub.prop(self, "use_island_split")
 

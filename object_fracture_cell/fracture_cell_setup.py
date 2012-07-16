@@ -232,7 +232,6 @@ def cell_fracture_objects(scene, obj,
             # XXX small noise
             
             bm_vert = bm.verts.new(co)
-            bm_vert.tag = True
 
         import mathutils
         bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=0.005)
@@ -243,10 +242,6 @@ def cell_fracture_objects(scene, obj,
             traceback.print_exc()
 
         if clean:
-            for bm_vert in bm.verts:
-                bm_vert.tag = True
-            for bm_edge in bm.edges:
-                bm_edge.tag = True
             bm.normal_update()
             try:
                 bmesh.ops.dissolve_limit(bm, verts=bm.verts, angle_limit=0.001)
@@ -258,9 +253,7 @@ def cell_fracture_objects(scene, obj,
             for bm_face in bm.faces:
                 bm_face.smooth = True
 
-        if use_smooth_edges:
-            for bm_edge in bm.edges:
-                bm_edge.smooth = True
+        # use_smooth_edges is handled after boolean
 
         if material_index != 0:
             for bm_face in bm.faces:
@@ -321,13 +314,17 @@ def cell_fracture_boolean(scene, obj, objects,
                           use_island_split=False,
                           use_interior_vgroup=False,
                           use_debug_redraw=False,
+                          use_smooth_edges=True,
+                          use_smooth_edges_apply=True,
                           ):
 
     objects_boolean = []
 
-    if use_interior_vgroup:
+    do_hide_hack = use_interior_vgroup or (use_smooth_edges is False)
+
+    if do_hide_hack:
         obj.data.polygons.foreach_set("hide", [False] * len(obj.data.polygons))
-    
+
     for obj_cell in objects:
         mod = obj_cell.modifiers.new(name="Boolean", type='BOOLEAN')
         mod.object = obj
@@ -335,7 +332,7 @@ def cell_fracture_boolean(scene, obj, objects,
 
         if not use_debug_bool:
 
-            if use_interior_vgroup:
+            if do_hide_hack:
                 obj_cell.data.polygons.foreach_set("hide", [True] * len(obj_cell.data.polygons))
 
             mesh_new = obj_cell.to_mesh(scene,
@@ -357,43 +354,58 @@ def cell_fracture_boolean(scene, obj, objects,
                         bpy.data.meshes.remove(mesh_new)
                         mesh_new = None
 
-            if clean and mesh_new is not None:
-                bm = bmesh.new()
-                bm.from_mesh(mesh_new)
-                for bm_vert in bm.verts:
-                    bm_vert.tag = True
-                for bm_edge in bm.edges:
-                    bm_edge.tag = True
+            # avoid unneeded bmesh re-conversion
+            bm = None
+
+            if clean and mesh_new:
+                if bm is None:  # ok this will always be true for now...
+                    bm = bmesh.new()
+                    bm.from_mesh(mesh_new)
                 bm.normal_update()
                 try:
                     bmesh.ops.dissolve_limit(bm, verts=bm.verts, edges=bm.edges, angle_limit=0.001)
                 except RuntimeError:
                     import traceback
                     traceback.print_exc()
-                bm.to_mesh(mesh_new)
-                bm.free()
 
-            if use_interior_vgroup and mesh_new:
-                bm = bmesh.new()
-                bm.from_mesh(mesh_new)
-                for bm_vert in bm.verts:
-                    bm_vert.tag = True
-                for bm_face in bm.faces:
-                    if not bm_face.hide:
-                        for bm_vert in bm_face.verts:
-                            bm_vert.tag = False
-                # now add all vgroups
-                defvert_lay = bm.verts.layers.deform.verify()
-                for bm_vert in bm.verts:
-                    if bm_vert.tag:
-                        bm_vert[defvert_lay][0] = 1.0
+            if do_hide_hack and mesh_new:
+                # use_interior_vgroup or (use_smooth_edges == False)
+                if bm is None:
+                    bm = bmesh.new()
+                    bm.from_mesh(mesh_new)
+
+                if use_interior_vgroup:
+                    for bm_vert in bm.verts:
+                        bm_vert.tag = True
+                    for bm_face in bm.faces:
+                        if not bm_face.hide:
+                            for bm_vert in bm_face.verts:
+                                bm_vert.tag = False
+
+                    # now add all vgroups
+                    defvert_lay = bm.verts.layers.deform.verify()
+                    for bm_vert in bm.verts:
+                        if bm_vert.tag:
+                            bm_vert[defvert_lay][0] = 1.0
+
+                if use_smooth_edges is False:
+                    mesh_new.show_edge_sharp = True
+                    for bm_edge in bm.edges:
+                        if len({bm_face.hide for bm_face in bm_edge.link_faces}) == 2:
+                            bm_edge.smooth = False
+
                 for bm_face in bm.faces:
                     bm_face.hide = False
+
+            if bm is not None:
                 bm.to_mesh(mesh_new)
                 bm.free()
 
+            if use_interior_vgroup:
                 # add a vgroup
                 obj_cell.vertex_groups.new(name="Interior")
+            del mesh_new
+            del mesh_old
 
         if obj_cell is not None:
             objects_boolean.append(obj_cell)
@@ -423,6 +435,20 @@ def cell_fracture_boolean(scene, obj, objects,
             scene.objects.active = None
 
         objects_boolean = objects_islands
+
+    # _must_ be done after split islands
+    if use_smooth_edges is False and use_smooth_edges_apply is True:
+        for obj_cell in objects_boolean:
+            mesh = obj_cell.data
+            bm = bmesh.new()
+            bm.from_mesh(mesh)
+            bm.normal_update()            
+            bmesh.ops.split_edges(bm,
+                                  edges=[edge for edge in bm.edges
+                                  if not edge.smooth]
+                                  )
+            bm.to_mesh(mesh)
+            bm.free()
 
     scene.update()
 
