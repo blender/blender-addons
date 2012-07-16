@@ -524,11 +524,13 @@ class IMPORT_OT_image_to_plane(Operator, AddObjectHelper):
 
         elif self.shader == 'EMISSION':
             emission = node_tree.nodes.new('EMISSION')
+            lightpath = node_tree.nodes.new('LIGHT_PATH')
             tex_image = node_tree.nodes.new('TEX_IMAGE')
             tex_image.image = image
             tex_image.show_texture = True
             node_tree.links.new(out_node.inputs[0], emission.outputs[0])
             node_tree.links.new(emission.inputs[0], tex_image.outputs[0])
+            node_tree.links.new(emission.inputs[1], lightpath.outputs[0])
 
         elif self.shader == 'BSDF_DIFFUSE_BSDF_TRANSPARENT':
             bsdf_diffuse = node_tree.nodes.new('BSDF_DIFFUSE')
@@ -545,6 +547,7 @@ class IMPORT_OT_image_to_plane(Operator, AddObjectHelper):
 
         elif self.shader == 'EMISSION_BSDF_TRANSPARENT':
             emission = node_tree.nodes.new('EMISSION')
+            lightpath = node_tree.nodes.new('LIGHT_PATH')
             bsdf_transparent = node_tree.nodes.new('BSDF_TRANSPARENT')
             mix_shader = node_tree.nodes.new('MIX_SHADER')
             tex_image = node_tree.nodes.new('TEX_IMAGE')
@@ -555,6 +558,7 @@ class IMPORT_OT_image_to_plane(Operator, AddObjectHelper):
             node_tree.links.new(mix_shader.inputs[2], emission.outputs[0])
             node_tree.links.new(mix_shader.inputs[1], bsdf_transparent.outputs[0])
             node_tree.links.new(emission.inputs[0], tex_image.outputs[0])
+            node_tree.links.new(emission.inputs[1], lightpath.outputs[0])
 
         auto_align_nodes(node_tree)
         return material
