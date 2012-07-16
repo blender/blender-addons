@@ -97,29 +97,24 @@ def main_object(scene, obj, level, **kw):
         objects_recurse_input = [(i, o) for i, o in enumerate(objects)]
 
         if recursion_chance != 1.0:
-            
-            if 0:
+            from mathutils import Vector
+            if recursion_chance_select == 'RANDOM':
                 random.shuffle(objects_recurse_input)
-            else:
-                from mathutils import Vector
-                if recursion_chance_select == 'RANDOM':
-                    pass
-                elif recursion_chance_select == {'SIZE_MIN', 'SIZE_MAX'}:
-                    objects_recurse_input.sort(key=lambda ob_pair:
-                        (Vector(ob_pair[1].bound_box[0]) -
-                         Vector(ob_pair[1].bound_box[6])).length_squared)
-                    if recursion_chance_select == 'SIZE_MAX':
-                        objects_recurse_input.reverse()
-                elif recursion_chance_select == {'CURSOR_MIN', 'CURSOR_MAX'}:
-                    print(recursion_chance_select)
-                    c = scene.cursor_location.copy()
-                    objects_recurse_input.sort(key=lambda ob_pair:
-                        (ob_pair[1].matrix_world.translation - c).length_squared)
-                    if recursion_chance_select == 'CURSOR_MAX':
-                        objects_recurse_input.reverse()
+            elif recursion_chance_select in {'SIZE_MIN', 'SIZE_MAX'}:
+                objects_recurse_input.sort(key=lambda ob_pair:
+                    (Vector(ob_pair[1].bound_box[0]) -
+                     Vector(ob_pair[1].bound_box[6])).length_squared)
+                if recursion_chance_select == 'SIZE_MAX':
+                    objects_recurse_input.reverse()
+            elif recursion_chance_select in {'CURSOR_MIN', 'CURSOR_MAX'}:
+                c = scene.cursor_location.copy()
+                objects_recurse_input.sort(key=lambda ob_pair:
+                    (ob_pair[1].location - c).length_squared)
+                if recursion_chance_select == 'CURSOR_MAX':
+                    objects_recurse_input.reverse()
 
-                objects_recurse_input[int(recursion_chance * len(objects_recurse_input)):] = []
-                objects_recurse_input.sort()
+            objects_recurse_input[int(recursion_chance * len(objects_recurse_input)):] = []
+            objects_recurse_input.sort()
 
         # reverse index values so we can remove from original list.
         objects_recurse_input.reverse()
