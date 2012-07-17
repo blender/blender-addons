@@ -60,8 +60,8 @@ def main_object(scene, obj, level, **kw):
     use_island_split = kw_copy.pop("use_island_split")
     use_debug_bool = kw_copy.pop("use_debug_bool")
     use_interior_vgroup = kw_copy.pop("use_interior_vgroup")
-    use_smooth_edges = kw_copy.pop("use_smooth_edges")
-    use_smooth_edges_apply = kw_copy.pop("use_smooth_edges_apply")
+    use_sharp_edges = kw_copy.pop("use_sharp_edges")
+    use_sharp_edges_apply = kw_copy.pop("use_sharp_edges_apply")
 
     if level != 0:
         kw_copy["source_limit"] = recursion_source_limit
@@ -78,14 +78,11 @@ def main_object(scene, obj, level, **kw):
     objects = fracture_cell_setup.cell_fracture_objects(scene, obj, **kw_copy)
     objects = fracture_cell_setup.cell_fracture_boolean(scene, obj, objects,
                                                         use_island_split=use_island_split,
-                                                        use_interior_vgroup=use_interior_vgroup,
+                                                        use_interior_hide=(use_interior_vgroup or use_sharp_edges),
                                                         use_debug_bool=use_debug_bool,
                                                         use_debug_redraw=kw_copy["use_debug_redraw"],
-                                                        use_smooth_edges=use_smooth_edges,
-                                                        use_smooth_edges_apply=use_smooth_edges_apply,
+                                                        level=level,
                                                         )
-
-    # todo, split islands.
 
     # must apply after boolean.
     if use_recenter:
@@ -127,6 +124,17 @@ def main_object(scene, obj, level, **kw):
                 scene.objects.unlink(obj_cell)
                 del objects[i]
         objects.extend(objects_recursive)
+
+    #--------------
+    # Level Options
+    if level == 0:
+        # import pdb; pdb.set_trace()
+        if use_interior_vgroup or use_sharp_edges:
+            fracture_cell_setup.cell_fracture_interior_handle(objects,
+                                                              use_interior_vgroup=use_interior_vgroup,
+                                                              use_sharp_edges=use_sharp_edges,
+                                                              use_sharp_edges_apply=use_sharp_edges_apply,
+                                                              )
 
     #--------------
     # Scene Options
@@ -182,7 +190,7 @@ def main(context, **kw):
     bpy.ops.object.select_all(action='DESELECT')
     for obj_cell in objects:
         obj_cell.select = True
-    
+
     if mass_mode == 'UNIFORM':
         for obj_cell in objects:
             obj_cell.game.mass = mass
@@ -311,16 +319,16 @@ class FractureCell(Operator):
             default=False,
             )
 
-    use_smooth_edges = BoolProperty(
-            name="Smooth Edges",
+    use_sharp_edges = BoolProperty(
+            name="Sharp Edges",
             description="Set sharp edges when disabled",
             default=True,
             )
 
-    use_smooth_edges_apply = BoolProperty(
+    use_sharp_edges_apply = BoolProperty(
             name="Apply Split Edge",
             description="Split sharp hard edges",
-            default=False,
+            default=True,
             )
 
     use_data_match = BoolProperty(
@@ -474,8 +482,8 @@ class FractureCell(Operator):
         col.label("Mesh Data")
         rowsub = col.row()
         rowsub.prop(self, "use_smooth_faces")
-        rowsub.prop(self, "use_smooth_edges")
-        rowsub.prop(self, "use_smooth_edges_apply")
+        rowsub.prop(self, "use_sharp_edges")
+        rowsub.prop(self, "use_sharp_edges_apply")
         rowsub.prop(self, "use_data_match")
         rowsub = col.row()
 

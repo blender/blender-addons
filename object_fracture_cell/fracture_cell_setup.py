@@ -80,8 +80,8 @@ def _points_from_object(obj, source):
 
     def points_from_particles(obj):
         points.extend([p.location.copy()
-                         for psys in obj.particle_systems
-                         for p in psys.particles])
+                       for psys in obj.particle_systems
+                       for p in psys.particles])
 
 
     # geom own
@@ -130,7 +130,6 @@ def cell_fracture_objects(scene, obj,
                           clean=True,
                           # operator options
                           use_smooth_faces=False,
-                          use_smooth_edges=True,
                           use_data_match=False,
                           use_debug_points=False,
                           margin=0.0,
@@ -253,8 +252,6 @@ def cell_fracture_objects(scene, obj,
             for bm_face in bm.faces:
                 bm_face.smooth = True
 
-        # use_smooth_edges is handled after boolean
-
         if material_index != 0:
             for bm_face in bm.faces:
                 bm_face.material_index = material_index
@@ -312,17 +309,15 @@ def cell_fracture_boolean(scene, obj, objects,
                           use_debug_bool=False,
                           clean=True,
                           use_island_split=False,
-                          use_interior_vgroup=False,
+                          use_interior_hide=False,
                           use_debug_redraw=False,
-                          use_smooth_edges=True,
-                          use_smooth_edges_apply=True,
+                          level=0,
                           ):
 
     objects_boolean = []
 
-    do_hide_hack = use_interior_vgroup or (use_smooth_edges is False)
-
-    if do_hide_hack:
+    if use_interior_hide and level == 0:
+        # only set for level 0
         obj.data.polygons.foreach_set("hide", [False] * len(obj.data.polygons))
 
     for obj_cell in objects:
@@ -332,7 +327,7 @@ def cell_fracture_boolean(scene, obj, objects,
 
         if not use_debug_bool:
 
-            if do_hide_hack:
+            if use_interior_hide:
                 obj_cell.data.polygons.foreach_set("hide", [True] * len(obj_cell.data.polygons))
 
             mesh_new = obj_cell.to_mesh(scene,
@@ -368,42 +363,10 @@ def cell_fracture_boolean(scene, obj, objects,
                     import traceback
                     traceback.print_exc()
 
-            if do_hide_hack and mesh_new:
-                # use_interior_vgroup or (use_smooth_edges == False)
-                if bm is None:
-                    bm = bmesh.new()
-                    bm.from_mesh(mesh_new)
-
-                if use_interior_vgroup:
-                    for bm_vert in bm.verts:
-                        bm_vert.tag = True
-                    for bm_face in bm.faces:
-                        if not bm_face.hide:
-                            for bm_vert in bm_face.verts:
-                                bm_vert.tag = False
-
-                    # now add all vgroups
-                    defvert_lay = bm.verts.layers.deform.verify()
-                    for bm_vert in bm.verts:
-                        if bm_vert.tag:
-                            bm_vert[defvert_lay][0] = 1.0
-
-                if use_smooth_edges is False:
-                    mesh_new.show_edge_sharp = True
-                    for bm_edge in bm.edges:
-                        if len({bm_face.hide for bm_face in bm_edge.link_faces}) == 2:
-                            bm_edge.smooth = False
-
-                for bm_face in bm.faces:
-                    bm_face.hide = False
-
             if bm is not None:
                 bm.to_mesh(mesh_new)
                 bm.free()
 
-            if use_interior_vgroup:
-                # add a vgroup
-                obj_cell.vertex_groups.new(name="Interior")
             del mesh_new
             del mesh_old
 
@@ -436,20 +399,58 @@ def cell_fracture_boolean(scene, obj, objects,
 
         objects_boolean = objects_islands
 
-    # _must_ be done after split islands
-    if use_smooth_edges is False and use_smooth_edges_apply is True:
-        for obj_cell in objects_boolean:
-            mesh = obj_cell.data
-            bm = bmesh.new()
-            bm.from_mesh(mesh)
-            bm.normal_update()            
-            bmesh.ops.split_edges(bm,
-                                  edges=[edge for edge in bm.edges
-                                  if not edge.smooth]
-                                  )
-            bm.to_mesh(mesh)
-            bm.free()
-
     scene.update()
 
     return objects_boolean
+
+
+def cell_fracture_interior_handle(objects,
+                                  use_interior_vgroup=False,
+                                  use_sharp_edges=False,
+                                  use_sharp_edges_apply=False,
+                                  ):
+    """Run after doing _all_ booleans"""
+
+    assert(use_interior_vgroup or use_sharp_edges or use_sharp_edges_apply)
+
+    for obj_cell in objects:
+        mesh = obj_cell.data
+        bm = bmesh.new()
+        bm.from_mesh(mesh)
+        
+        if use_interior_vgroup:
+            for bm_vert in bm.verts:
+                bm_vert.tag = True
+            for bm_face in bm.faces:
+                if not bm_face.hide:
+                    for bm_vert in bm_face.verts:
+                        bm_vert.tag = False
+
+            # now add all vgroups
+            defvert_lay = bm.verts.layers.deform.verify()
+            for bm_vert in bm.verts:
+                if bm_vert.tag:
+                    bm_vert[defvert_lay][0] = 1.0
+
+            # add a vgroup
+            obj_cell.vertex_groups.new(name="Interior")
+
+        if use_sharp_edges:
+            mesh.show_edge_sharp = True
+            for bm_edge in bm.edges:
+                if len({bm_face.hide for bm_face in bm_edge.link_faces}) == 2:
+                    bm_edge.smooth = False
+    
+        
+            if use_sharp_edges_apply:
+                edges = [edge for edge in bm.edges if edge.smooth is False]
+                if edges:
+                    bm.normal_update()
+                    bmesh.ops.split_edges(bm, edges=edges)
+
+        for bm_face in bm.faces:
+            bm_face.hide = False
+    
+
+        bm.to_mesh(mesh)
+        bm.free()
