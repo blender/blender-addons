@@ -52,6 +52,7 @@ def main_object(scene, obj, level, **kw):
     use_remove_original = kw_copy.pop("use_remove_original")
     recursion = kw_copy.pop("recursion")
     recursion_source_limit = kw_copy.pop("recursion_source_limit")
+    recursion_clamp = kw_copy.pop("recursion_clamp")
     recursion_chance = kw_copy.pop("recursion_chance")
     recursion_chance_select = kw_copy.pop("recursion_chance_select")
     use_layer_next = kw_copy.pop("use_layer_next")
@@ -89,41 +90,47 @@ def main_object(scene, obj, level, **kw):
         bpy.ops.object.origin_set({"selected_editable_objects": objects},
                                   type='ORIGIN_GEOMETRY', center='MEDIAN')
 
-    if level < recursion:
+    if level == 0:
+        for level_sub in range(1, recursion + 1):
 
-        objects_recurse_input = [(i, o) for i, o in enumerate(objects)]
+            objects_recurse_input = [(i, o) for i, o in enumerate(objects)]
 
-        if recursion_chance != 1.0:
-            from mathutils import Vector
-            if recursion_chance_select == 'RANDOM':
-                random.shuffle(objects_recurse_input)
-            elif recursion_chance_select in {'SIZE_MIN', 'SIZE_MAX'}:
-                objects_recurse_input.sort(key=lambda ob_pair:
-                    (Vector(ob_pair[1].bound_box[0]) -
-                     Vector(ob_pair[1].bound_box[6])).length_squared)
-                if recursion_chance_select == 'SIZE_MAX':
-                    objects_recurse_input.reverse()
-            elif recursion_chance_select in {'CURSOR_MIN', 'CURSOR_MAX'}:
-                c = scene.cursor_location.copy()
-                objects_recurse_input.sort(key=lambda ob_pair:
-                    (ob_pair[1].location - c).length_squared)
-                if recursion_chance_select == 'CURSOR_MAX':
-                    objects_recurse_input.reverse()
+            if recursion_chance != 1.0:
+                from mathutils import Vector
+                if recursion_chance_select == 'RANDOM':
+                    random.shuffle(objects_recurse_input)
+                elif recursion_chance_select in {'SIZE_MIN', 'SIZE_MAX'}:
+                    objects_recurse_input.sort(key=lambda ob_pair:
+                        (Vector(ob_pair[1].bound_box[0]) -
+                         Vector(ob_pair[1].bound_box[6])).length_squared)
+                    if recursion_chance_select == 'SIZE_MAX':
+                        objects_recurse_input.reverse()
+                elif recursion_chance_select in {'CURSOR_MIN', 'CURSOR_MAX'}:
+                    c = scene.cursor_location.copy()
+                    objects_recurse_input.sort(key=lambda ob_pair:
+                        (ob_pair[1].location - c).length_squared)
+                    if recursion_chance_select == 'CURSOR_MAX':
+                        objects_recurse_input.reverse()
 
-            objects_recurse_input[int(recursion_chance * len(objects_recurse_input)):] = []
-            objects_recurse_input.sort()
+                objects_recurse_input[int(recursion_chance * len(objects_recurse_input)):] = []
+                objects_recurse_input.sort()
 
-        # reverse index values so we can remove from original list.
-        objects_recurse_input.reverse()
+            # reverse index values so we can remove from original list.
+            objects_recurse_input.reverse()
 
-        objects_recursive = []
-        for i, obj_cell in objects_recurse_input:
-            assert(objects[i] is obj_cell)
-            objects_recursive += main_object(scene, obj_cell, level + 1, **kw)
-            if use_remove_original:
-                scene.objects.unlink(obj_cell)
-                del objects[i]
-        objects.extend(objects_recursive)
+            objects_recursive = []
+            for i, obj_cell in objects_recurse_input:
+                assert(objects[i] is obj_cell)
+                objects_recursive += main_object(scene, obj_cell, level_sub, **kw)
+                if use_remove_original:
+                    scene.objects.unlink(obj_cell)
+                    del objects[i]
+                if recursion_clamp and len(objects) + len(objects_recursive) >= recursion_clamp:
+                    break
+            objects.extend(objects_recursive)
+
+            if recursion_clamp and len(objects) > recursion_clamp:
+                break
 
     #--------------
     # Level Options
@@ -293,11 +300,18 @@ class FractureCell(Operator):
             default=8,
             )
 
+    recursion_clamp = IntProperty(
+            name="Clamp Recursion",
+            description="Finish recursion when this number of objects is reached (prevents recursing for extended periods of time), zero disables",
+            min=0, max=10000,
+            default=250,
+            )
+
     recursion_chance = FloatProperty(
             name="Random Factor",
             description="Likelyhood of recursion",
             min=0.0, max=1.0,
-            default=0.5,
+            default=0.25,
             )
 
     recursion_chance_select = EnumProperty(
@@ -473,6 +487,7 @@ class FractureCell(Operator):
         rowsub = col.row(align=True)
         rowsub.prop(self, "recursion")
         rowsub.prop(self, "recursion_source_limit")
+        rowsub.prop(self, "recursion_clamp")
         rowsub = col.row()
         rowsub.prop(self, "recursion_chance")
         rowsub.prop(self, "recursion_chance_select", expand=True)
