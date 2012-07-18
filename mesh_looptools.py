@@ -19,7 +19,7 @@
 bl_info = {
     'name': "LoopTools",
     'author': "Bart Crouch",
-    'version': (4, 0, 1),
+    'version': (4, 2, 0),
     'blender': (2, 6, 3),
     'location': "View3D > Toolbar and View3D > Specials (W-key)",
     'warning': "",
@@ -36,6 +36,7 @@ import bpy
 import collections
 import mathutils
 import math
+from bpy_extras import view3d_utils
 
 
 ##########################################
@@ -703,6 +704,10 @@ def initialise():
     global_undo = bpy.context.user_preferences.edit.use_global_undo
     bpy.context.user_preferences.edit.use_global_undo = False
     object = bpy.context.active_object
+    if 'MIRROR' in [mod.type for mod in object.modifiers if mod.show_viewport]:
+        # ensure that selection is synced for the derived mesh
+        bpy.ops.object.mode_set(mode='OBJECT')
+        bpy.ops.object.mode_set(mode='EDIT')
     bm = bmesh.from_edit_mesh(object.data)
     
     return(global_undo, object, bm)
@@ -2420,6 +2425,232 @@ def flatten_project(bm, loop, com, normal):
     return(verts_projected)
 
 
+
+
+##########################################
+####### Gstretch functions ###############
+##########################################
+
+# flips loops, if necessary, to obtain maximum alignment to stroke
+def gstretch_align_pairs(ls_pairs, object, bm_mod, method):    
+    # returns total distance between all verts in loop and corresponding stroke
+    def distance_loop_stroke(loop, stroke, object, bm_mod, method):
+        stroke_lengths_cache = False
+        loop_length = len(loop[0])
+        total_distance = 0
+        
+        if method != 'regular':
+            relative_lengths = gstretch_relative_lengths(loop, bm_mod)
+        
+        for i, v_index in enumerate(loop[0]):
+            if method == 'regular':
+                relative_distance = i / (loop_length - 1)
+            else:
+                relative_distance = relative_lengths[i]
+            
+            loc1 = object.matrix_world * bm_mod.verts[v_index].co
+            loc2, stroke_lengths_cache = gstretch_eval_stroke(stroke,
+                relative_distance, stroke_lengths_cache)
+            total_distance += (loc2 - loc1).length
+    
+        return(total_distance)
+    
+    if ls_pairs:
+        for (loop, stroke) in ls_pairs:
+            distance_loop_stroke 
+            total_dist = distance_loop_stroke(loop, stroke, object, bm_mod,
+                method)
+            loop[0].reverse()
+            total_dist_rev = distance_loop_stroke(loop, stroke, object, bm_mod,
+                method)
+            if total_dist_rev > total_dist:
+                loop[0].reverse()
+    
+    return(ls_pairs)
+
+
+# calculate vertex positions on stroke
+def gstretch_calculate_verts(loop, stroke, object, bm_mod, method):
+    move = []
+    stroke_lengths_cache = False
+    loop_length = len(loop[0])
+    matrix_inverse = object.matrix_world.inverted()
+    
+    # return intersection of line with stroke, or None
+    def intersect_line_stroke(vec1, vec2, stroke):
+        for i, p in enumerate(stroke.points[1:]):
+            intersections = mathutils.geometry.intersect_line_line(vec1, vec2,
+                p.co, stroke.points[i].co)
+            if intersections and \
+            (intersections[0] - intersections[1]).length < 1e-2:
+                x, dist = mathutils.geometry.intersect_point_line(
+                    intersections[0], p.co, stroke.points[i].co)
+                if -1 < dist < 1:
+                    return(intersections[0])
+        return(None)
+    
+    if method == 'project':
+        projection_vectors = []
+        vert_edges = dict_vert_edges(bm_mod)
+        
+        for v_index in loop[0]:
+            for ek in vert_edges[v_index]:
+                v1, v2 = ek
+                v1 = bm_mod.verts[v1]
+                v2 = bm_mod.verts[v2]
+                if v1.select + v2.select == 1 and not v1.hide and not v2.hide:
+                    vec1 = object.matrix_world * v1.co
+                    vec2 = object.matrix_world * v2.co
+                    intersection = intersect_line_stroke(vec1, vec2, stroke)
+                    if intersection:
+                        break
+            if not intersection:
+                v = bm_mod.verts[v_index]
+                intersection = intersect_line_stroke(v.co, v.co + v.normal,
+                    stroke)
+            if intersection:
+                move.append([v_index, matrix_inverse * intersection])
+    
+    else:
+        if method == 'irregular':
+            relative_lengths = gstretch_relative_lengths(loop, bm_mod)
+        
+        for i, v_index in enumerate(loop[0]):
+            if method == 'regular':
+                relative_distance = i / (loop_length - 1)
+            else: # method == 'irregular'
+                relative_distance = relative_lengths[i]
+            loc, stroke_lengths_cache = gstretch_eval_stroke(stroke,
+                relative_distance, stroke_lengths_cache)
+            loc = matrix_inverse * loc
+            move.append([v_index, loc])
+    
+    return(move)
+
+
+# erases the grease pencil stroke
+def gstretch_erase_stroke(stroke, context):
+    # change 3d coordinate into a stroke-point
+    def sp(loc, context):
+        lib = {'name': "",
+            'pen_flip': False,
+            'is_start': False,
+            'location': (0, 0, 0),
+            'mouse': (view3d_utils.location_3d_to_region_2d(\
+                context.region, context.space_data.region_3d, loc)),
+            'pressure': 1,
+            'time': 0}
+        return(lib)
+
+    erase_stroke = [sp(p.co, context) for p in stroke.points]
+    if erase_stroke:
+        erase_stroke[0]['is_start'] = True
+    bpy.ops.gpencil.draw(mode='ERASER', stroke=erase_stroke)
+
+
+# get point on stroke, given by relative distance (0.0 - 1.0)
+def gstretch_eval_stroke(stroke, distance, stroke_lengths_cache=False):
+    # use cache if available
+    if not stroke_lengths_cache:
+        lengths = [0]
+        for i, p in enumerate(stroke.points[1:]):
+            lengths.append((p.co - stroke.points[i].co).length + \
+                lengths[-1])
+        total_length = max(lengths[-1], 1e-7)
+        stroke_lengths_cache = [length / total_length for length in
+            lengths]
+    stroke_lengths = stroke_lengths_cache[:]
+    
+    if distance in stroke_lengths:
+        loc = stroke.points[stroke_lengths.index(distance)].co
+    elif distance > stroke_lengths[-1]:
+        # should be impossible, but better safe than sorry
+        loc = stroke.points[-1].co
+    else:
+        stroke_lengths.append(distance)
+        stroke_lengths.sort()
+        stroke_index = stroke_lengths.index(distance)
+        interval_length = stroke_lengths[stroke_index+1] - \
+            stroke_lengths[stroke_index-1]
+        distance_relative = (distance - stroke_lengths[stroke_index-1]) / \
+            interval_length
+        interval_vector = stroke.points[stroke_index].co - \
+            stroke.points[stroke_index-1].co
+        loc = stroke.points[stroke_index-1].co + \
+            distance_relative * interval_vector
+    
+    return(loc, stroke_lengths_cache)
+
+
+# get grease pencil strokes for the active object
+def gstretch_get_strokes(object):
+    gp = object.grease_pencil
+    if not gp:
+        return(None)
+    layer = gp.layers.active
+    if not layer:
+        return(None)
+    frame = layer.active_frame
+    if not frame:
+        return(None)
+    strokes = frame.strokes
+    if len(strokes) < 1:
+        return(None)
+    
+    return(strokes)
+
+
+# returns a list with loop-stroke pairs
+def gstretch_match_loops_strokes(loops, strokes, object, bm_mod):
+    if not loops or not strokes:
+        return(None)
+    
+    # calculate loop centers
+    loop_centers = []
+    for loop in loops:
+        center = mathutils.Vector()
+        for v_index in loop[0]:
+            center += bm_mod.verts[v_index].co
+        center /= len(loop[0])
+        center = object.matrix_world * center
+        loop_centers.append([center, loop])
+    
+    # calculate stroke centers
+    stroke_centers = []
+    for stroke in strokes:
+        center = mathutils.Vector()
+        for p in stroke.points:
+            center += p.co
+        center /= len(stroke.points)
+        stroke_centers.append([center, stroke, 0])
+    
+    # match, first by stroke use count, then by distance
+    ls_pairs = []
+    for lc in loop_centers:
+        distances = []
+        for i, sc in enumerate(stroke_centers):
+            distances.append([sc[2], (lc[0] - sc[0]).length, i])
+        distances.sort()
+        best_stroke = distances[0][2]
+        ls_pairs.append([lc[1], stroke_centers[best_stroke][1]])
+        stroke_centers[best_stroke][2] += 1 # increase stroke use count
+    
+    return(ls_pairs)
+
+
+# returns list with a relative distance (0.0 - 1.0) of each vertex on the loop
+def gstretch_relative_lengths(loop, bm_mod):
+    lengths = [0]
+    for i, v_index in enumerate(loop[0][1:]):
+        lengths.append((bm_mod.verts[v_index].co - \
+            bm_mod.verts[loop[0][i]].co).length + lengths[-1])
+        total_length = max(lengths[-1], 1e-7)
+        relative_lengths = [length / total_length for length in
+            lengths]
+    
+    return(relative_lengths)
+
+
 ##########################################
 ####### Relax functions ##################
 ##########################################
@@ -3094,6 +3325,101 @@ class Flatten(bpy.types.Operator):
         return{'FINISHED'}
 
 
+# gstretch operator
+class GStretch(bpy.types.Operator):
+    bl_idname = "mesh.looptools_gstretch"
+    bl_label = "Gstretch"
+    bl_description = "Stretch selected vertices to Grease Pencil stroke"
+    bl_options = {'REGISTER', 'UNDO'}
+    
+    delete_strokes = bpy.props.BoolProperty(name="Delete strokes",
+        description = "Remove Grease Pencil strokes if they have been used "\
+            "for Gstretch",
+        default = False)    
+    influence = bpy.props.FloatProperty(name = "Influence",
+        description = "Force of the tool",
+        default = 100.0,
+        min = 0.0,
+        max = 100.0,
+        precision = 1,
+        subtype = 'PERCENTAGE')
+    method = bpy.props.EnumProperty(name = "Method",
+        items = (("project", "Project", "Project vertices onto the stroke, "\
+            "using vertex normals and connected edges"),
+            ("irregular", "Spread", "Distribute vertices along the full "\
+            "stroke, retaining relative distances between the vertices"),
+            ("regular", "Spread evenly", "Distribute vertices at regular "\
+            "distances along the full stroke")),
+        description = "Method of distributing the vertices over the Grease "\
+            "Pencil stroke",
+        default = 'regular')
+        
+    @classmethod
+    def poll(cls, context):
+        ob = context.active_object
+        return(ob and ob.type == 'MESH' and context.mode == 'EDIT_MESH'
+            and ob.grease_pencil)
+    
+    def draw(self, context):
+        layout = self.layout
+        col = layout.column()
+        
+        col.prop(self, "delete_strokes")
+        col.prop(self, "method")
+        col.separator()
+        col.prop(self, "influence")
+    
+    def invoke(self, context, event):
+        # load custom settings
+        settings_load(self)
+        return self.execute(context)
+    
+    def execute(self, context):
+        # initialise
+        global_undo, object, bm = initialise()
+        settings_write(self)
+        
+        # check cache to see if we can save time
+        cached, single_loops, loops, derived, mapping = cache_read("Gstretch",
+            object, bm, False, False)
+        if cached:
+            derived, bm_mod = get_derived_bmesh(object, bm, context.scene)
+        else:
+            # find loops
+            derived, bm_mod, loops = get_connected_input(object, bm,
+                context.scene, input='selected')
+            mapping = get_mapping(derived, bm, bm_mod, False, False, loops)
+            loops = check_loops(loops, mapping, bm_mod)
+        strokes = gstretch_get_strokes(object)
+        
+        # saving cache for faster execution next time
+        if not cached:
+            cache_write("Gstretch", object, bm, False, False, False, loops,
+                derived, mapping)
+        
+        # pair loops and strokes
+        ls_pairs = gstretch_match_loops_strokes(loops, strokes, object, bm_mod)
+        ls_pairs = gstretch_align_pairs(ls_pairs, object, bm_mod, self.method)
+        
+        move = []
+        if ls_pairs:
+            for (loop, stroke) in ls_pairs:
+                move.append(gstretch_calculate_verts(loop, stroke, object,
+                    bm_mod, self.method))
+                if self.delete_strokes:
+                    gstretch_erase_stroke(stroke, context)
+        
+        # move vertices to new locations
+        move_verts(object, bm, mapping, move, self.influence)
+        
+        # cleaning up 
+        if derived:
+            bm_mod.free()
+        terminate(global_undo)
+        
+        return{'FINISHED'}
+
+
 # relax operator
 class Relax(bpy.types.Operator):
     bl_idname = "mesh.looptools_relax"
@@ -3263,7 +3589,6 @@ class Space(bpy.types.Operator):
                 tknots, loop[0][:])
             move.append(space_calculate_verts(bm_mod, self.interpolation,
                 tknots, tpoints, loop[0][:-1], splines))
-        
         # move vertices to new locations
         move_verts(object, bm, mapping, move, self.influence)
         
@@ -3290,6 +3615,7 @@ class VIEW3D_MT_edit_mesh_looptools(bpy.types.Menu):
         layout.operator("mesh.looptools_circle")
         layout.operator("mesh.looptools_curve")
         layout.operator("mesh.looptools_flatten")
+        layout.operator("mesh.looptools_gstretch")
         layout.operator("mesh.looptools_bridge", text="Loft").loft = True
         layout.operator("mesh.looptools_relax")
         layout.operator("mesh.looptools_space")
@@ -3401,6 +3727,21 @@ class VIEW3D_PT_tools_looptools(bpy.types.Panel):
             
             box.prop(lt, "flatten_influence")
         
+        # gstretch - first line
+        split = col.split(percentage=0.15)
+        if lt.display_gstretch:
+            split.prop(lt, "display_gstretch", text="", icon='DOWNARROW_HLT')
+        else:
+            split.prop(lt, "display_gstretch", text="", icon='RIGHTARROW')
+        split.operator("mesh.looptools_gstretch")
+        # gstretch settings
+        if lt.display_gstretch:
+            box = col.column(align=True).box().column()
+            box.prop(lt, "gstretch_delete_strokes")
+            box.prop(lt, "gstretch_method")
+            box.separator()
+            box.prop(lt, "gstretch_influence")
+        
         # loft - first line
         split = col.split(percentage=0.15)
         if lt.display_loft:
@@ -3489,6 +3830,9 @@ class LoopToolsProps(bpy.types.PropertyGroup):
         default = False)
     display_flatten = bpy.props.BoolProperty(name = "Flatten settings",
         description = "Display settings of the Flatten tool",
+        default = False)
+    display_gstretch = bpy.props.BoolProperty(name = "Gstretch settings",
+        description = "Display settings of the Gstretch tool",
         default = False)
     display_loft = bpy.props.BoolProperty(name = "Loft settings",
         description = "Display settings of the Loft tool",
@@ -3598,7 +3942,7 @@ class LoopToolsProps(bpy.types.PropertyGroup):
         description = "Algorithm used for interpolation",
         default = 'cubic')
     curve_regular = bpy.props.BoolProperty(name = "Regular",
-        description = "Distribute vertices at constant distances along the" \
+        description = "Distribute vertices at constant distances along the " \
             "curve",
         default = True)
     curve_restriction = bpy.props.EnumProperty(name = "Restriction",
@@ -3632,6 +3976,29 @@ class LoopToolsProps(bpy.types.PropertyGroup):
             "movement inside the bounding box of the selection")),
         description = "Restrictions on how the vertices can be moved",
         default = 'none')
+    
+    # gstretch properties
+    gstretch_delete_strokes = bpy.props.BoolProperty(name="Delete strokes",
+        description = "Remove Grease Pencil strokes if they have been used "\
+            "for Gstretch",
+        default = False)   
+    gstretch_influence = bpy.props.FloatProperty(name = "Influence",
+        description = "Force of the tool",
+        default = 100.0,
+        min = 0.0,
+        max = 100.0,
+        precision = 1,
+        subtype = 'PERCENTAGE')
+    gstretch_method = bpy.props.EnumProperty(name = "Method",
+        items = (("project", "Project", "Project vertices onto the stroke, "\
+            "using vertex normals and connected edges"),
+            ("irregular", "Spread", "Distribute vertices along the full "\
+            "stroke, retaining relative distances between the vertices"),
+            ("regular", "Spread evenly", "Distribute vertices at regular "\
+            "distances along the full stroke")),
+        description = "Method of distributing the vertices over the Grease "\
+            "Pencil stroke",
+        default = 'regular')
     
     # relax properties
     relax_input = bpy.props.EnumProperty(name = "Input",
@@ -3693,6 +4060,7 @@ classes = [VIEW3D_MT_edit_mesh_looptools,
     Circle,
     Curve,
     Flatten,
+    GStretch,
     Relax,
     Space]
 
