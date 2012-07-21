@@ -231,9 +231,10 @@ def main(context, **kw):
         
         obj_volume_ls = [_get_volume(obj_cell) for obj_cell in objects]
         obj_volume_tot = sum(obj_volume_ls)
-        mass_fac = mass / obj_volume_tot
-        for i, obj_cell in enumerate(objects):
-            obj_cell.game.mass = obj_volume_ls[i] * mass_fac
+        if obj_volume_tot > 0.0:
+            mass_fac = mass / obj_volume_tot
+            for i, obj_cell in enumerate(objects):
+                obj_cell.game.mass = obj_volume_ls[i] * mass_fac
     else:
         assert(0)
 
