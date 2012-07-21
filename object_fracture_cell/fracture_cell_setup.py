@@ -378,26 +378,15 @@ def cell_fracture_boolean(scene, obj, objects,
 
     if (not use_debug_bool) and use_island_split:
         # this is ugly and Im not proud of this - campbell
-        objects_islands = []
+        base = None
+        for base in scene.object_bases:
+            base.select = False
         for obj_cell in objects_boolean:
+            obj_cell.select = True
 
-            scene.objects.active = obj_cell
+        bpy.ops.mesh.separate(type='LOOSE')
 
-            group_island = bpy.data.groups.new(name="Islands")
-            group_island.objects.link(obj_cell)
-
-            bpy.ops.object.mode_set(mode='EDIT')
-            bpy.ops.mesh.select_all(action='SELECT')
-            bpy.ops.mesh.separate(type='LOOSE')
-            bpy.ops.object.mode_set(mode='OBJECT')
-
-            objects_islands.extend(group_island.objects[:])
-
-            bpy.data.groups.remove(group_island)
-
-            scene.objects.active = None
-
-        objects_boolean = objects_islands
+        objects_boolean[:] = [obj_cell for obj_cell in scene.objects if obj_cell.select]
 
     scene.update()
 
