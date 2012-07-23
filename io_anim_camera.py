@@ -37,10 +37,21 @@ bl_info = {
 import bpy
 
 
-def writeCameras(context, filepath, frame_start, frame_end, only_selected=False):
+def write_cameras(context, filepath, frame_start, frame_end, only_selected=False):
 
-    data_attrs = ['lens', 'shift_x', 'shift_y', 'dof_distance', 'clip_start', 'clip_end', 'draw_size']
-    obj_attrs = ['hide_render']
+    data_attrs = (
+        'lens',
+        'shift_x',
+        'shift_y',
+        'dof_distance',
+        'clip_start',
+        'clip_end',
+        'draw_size',
+        )
+
+    obj_attrs = (
+        'hide_render',
+        )
 
     fw = open(filepath, 'w').write
 
@@ -58,23 +69,24 @@ def writeCameras(context, filepath, frame_start, frame_end, only_selected=False)
 
     frame_range = range(frame_start, frame_end + 1)
 
-    fw("cameras = {}\n")
-    fw("scene = bpy.context.scene\n")
-    fw("frame = scene.frame_current - 1\n")
-    fw("\n")
+    fw("import bpy\n"
+       "cameras = {}\n"
+       "scene = bpy.context.scene\n"
+       "frame = scene.frame_current - 1\n"
+       "\n")
 
     for obj, obj_data in cameras:
-        fw("data = bpy.data.cameras.new('%s')\n" % obj.name)
+        fw("data = bpy.data.cameras.new(%r)\n" % obj.name)
         for attr in data_attrs:
             fw("data.%s = %s\n" % (attr, repr(getattr(obj_data, attr))))
 
-        fw("obj = bpy.data.objects.new('%s', data)\n" % obj.name)
+        fw("obj = bpy.data.objects.new(%r, data)\n" % obj.name)
 
         for attr in obj_attrs:
             fw("obj.%s = %s\n" % (attr, repr(getattr(obj, attr))))
 
         fw("scene.objects.link(obj)\n")
-        fw("cameras['%s'] = obj\n" % obj.name)
+        fw("cameras[%r] = obj\n" % obj.name)
         fw("\n")
 
     for f in frame_range:
@@ -104,12 +116,12 @@ def writeCameras(context, filepath, frame_start, frame_end, only_selected=False)
     # now markers
     fw("# markers\n")
     for marker in scene.timeline_markers:
-        fw("marker = scene.timeline_markers.new('%s')\n" % marker.name)
+        fw("marker = scene.timeline_markers.new(%r)\n" % marker.name)
         fw("marker.frame = %d + frame\n" % marker.frame)
 
         # will fail if the cameras not selected
         if marker.camera:
-            fw("marker.camera = cameras.get('%s')\n" % marker.camera.name)
+            fw("marker.camera = cameras.get(%r)\n" % marker.camera.name)
         fw("\n")
 
 
@@ -135,7 +147,7 @@ class CameraExporter(bpy.types.Operator, ExportHelper):
             default=True)
 
     def execute(self, context):
-        writeCameras(context, self.filepath, self.frame_start, self.frame_end, self.only_selected)
+        write_cameras(context, self.filepath, self.frame_start, self.frame_end, self.only_selected)
         return {'FINISHED'}
 
     def invoke(self, context, event):
