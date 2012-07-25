@@ -312,6 +312,7 @@ def cell_fracture_boolean(scene, obj, objects,
                           use_interior_hide=False,
                           use_debug_redraw=False,
                           level=0,
+                          remove_doubles=True
                           ):
 
     objects_boolean = []
@@ -350,22 +351,29 @@ def cell_fracture_boolean(scene, obj, objects,
                         mesh_new = None
 
             # avoid unneeded bmesh re-conversion
-            bm = None
+            if mesh_new is not None:
+                bm = None
 
-            if clean and mesh_new:
-                if bm is None:  # ok this will always be true for now...
-                    bm = bmesh.new()
-                    bm.from_mesh(mesh_new)
-                bm.normal_update()
-                try:
-                    bmesh.ops.dissolve_limit(bm, verts=bm.verts, edges=bm.edges, angle_limit=0.001)
-                except RuntimeError:
-                    import traceback
-                    traceback.print_exc()
+                if clean:
+                    if bm is None:  # ok this will always be true for now...
+                        bm = bmesh.new()
+                        bm.from_mesh(mesh_new)
+                    bm.normal_update()
+                    try:
+                        bmesh.ops.dissolve_limit(bm, verts=bm.verts, edges=bm.edges, angle_limit=0.001)
+                    except RuntimeError:
+                        import traceback
+                        traceback.print_exc()
 
-            if bm is not None:
-                bm.to_mesh(mesh_new)
-                bm.free()
+                if remove_doubles:
+                    if bm is None:
+                        bm = bmesh.new()
+                        bm.from_mesh(mesh_new)
+                    bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=0.005)
+
+                if bm is not None:
+                    bm.to_mesh(mesh_new)
+                    bm.free()
 
             del mesh_new
             del mesh_old
@@ -429,8 +437,7 @@ def cell_fracture_interior_handle(objects,
             for bm_edge in bm.edges:
                 if len({bm_face.hide for bm_face in bm_edge.link_faces}) == 2:
                     bm_edge.smooth = False
-    
-        
+
             if use_sharp_edges_apply:
                 edges = [edge for edge in bm.edges if edge.smooth is False]
                 if edges:
