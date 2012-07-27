@@ -67,7 +67,7 @@ def current_brush():
         brush = context.tool_settings.vertex_paint.brush
     elif context.area.type == 'VIEW_3D' and context.image_paint_object:
         brush = context.tool_settings.image_paint.brush
-    elif context.area.type == 'IMAGE_EDITOR' and  context.space_data.use_image_paint:
+    elif context.area.type == 'IMAGE_EDITOR' and  context.space_data.mode == 'PAINT':
         brush = context.tool_settings.image_paint.brush
     else :
         brush = None
