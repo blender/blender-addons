@@ -3855,7 +3855,6 @@ def ik2fkLeg(context, suffix):
         matchPoseTranslation(ankleIk, footFk, auto)
     return
    
-"""           
 #
 #   setInverse(rig, pb):
 #
@@ -3873,6 +3872,7 @@ def setInverse(rig, pb):
     return
 
 
+"""           
 def clearInverse(rig, pb):
     rig.data.bones.active = pb.bone
     pb.bone.select = True
