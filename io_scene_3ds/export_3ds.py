@@ -41,7 +41,7 @@ KFDATA = 0xB000  # This is the header for all of the key frame info
 
 #------ sub defines of OBJECTINFO
 MATERIAL = 45055  # 0xAFFF // This stored the texture info
-OBJECT = 16384 # 0x4000 // This stores the faces, vertices, etc...
+OBJECT = 16384  # 0x4000 // This stores the faces, vertices, etc...
 
 #>------ sub defines of MATERIAL
 MATNAME = 0xA000  # This holds the material name

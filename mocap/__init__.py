@@ -370,7 +370,7 @@ class MocapConstraintsPanel(bpy.types.Panel):
                         headerRow.operator("mocap.removeconstraint", text="", icon='X', emboss=False).constraint = i
                         if m_constraint.show_expanded:
                             box.separator()
-                            box.prop_search(m_constraint, 'constrained_bone', enduser_obj.pose, "bones", icon='BONE_DATA',text="")
+                            box.prop_search(m_constraint, 'constrained_bone', enduser_obj.pose, "bones", icon='BONE_DATA', text="")
                             if m_constraint.type == "distance" or m_constraint.type == "point":
                                 box.prop_search(m_constraint, 'constrained_boneB', enduser_obj.pose, "bones", icon='CONSTRAINT_BONE')
                             frameRow = box.row()

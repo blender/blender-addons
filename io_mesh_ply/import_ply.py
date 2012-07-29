@@ -356,6 +356,7 @@ def load_ply_mesh(filepath, ply_name):
 
     return mesh
 
+
 def load_ply(filepath):
     import time
 

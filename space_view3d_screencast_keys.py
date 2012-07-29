@@ -826,13 +826,14 @@ class OBJECT_PT_keys_status(bpy.types.Panel):
 
             row = layout.row(align=True)
             row.enabled = sc.screencast_keys_timer_show
-            row.prop(sc,"screencast_keys_timer_size")
+            row.prop(sc, "screencast_keys_timer_size")
             row = layout.row(align=True)
             row.enabled = sc.screencast_keys_timer_show
             row.operator("view3d.screencast_keys_timer_reset", text="Reset")
 
-classes = [ScreencastKeysStatus, ScreencastKeysTimerReset, 
-    OBJECT_PT_keys_status]
+classes = (ScreencastKeysStatus,
+           ScreencastKeysTimerReset,
+           OBJECT_PT_keys_status)
 
 
 def register():

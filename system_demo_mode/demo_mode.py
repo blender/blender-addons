@@ -132,7 +132,7 @@ def demo_mode_auto_select():
 
 def demo_mode_next_file(step=1):
 
-    # support for temp 
+    # support for temp
     if global_config_files[global_state["demo_index"]].get("is_tmp"):
         del global_config_files[global_state["demo_index"]]
         global_state["demo_index"] -= 1

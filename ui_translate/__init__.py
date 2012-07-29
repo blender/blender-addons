@@ -79,7 +79,7 @@ class UI_OT_edittranslation_update_mo(bpy.types.Operator):
     clean_mo = BoolProperty(description="Clean up (remove) all local "
                                         "translation files, to be able to use "
                                         "all system's ones again",
-                            default = False, options={'SKIP_SAVE'})
+                            default=False, options={'SKIP_SAVE'})
 
     def execute(self, context):
         if self.clean_mo:
@@ -140,12 +140,12 @@ class UI_OT_edittranslation(bpy.types.Operator):
     enum_tip_flags = EnumProperty(items=flag_items, description="Flags about the RNA enum item tip of the button", options={'SKIP_SAVE', 'ENUM_FLAG'})
 
     stats_str = StringProperty(description="Stats from opened po", options={'SKIP_SAVE'})
-    update_po = BoolProperty(description="Update po file, try to rebuild mo file, and refresh Blender UI", default = False, options={'SKIP_SAVE'})
-    update_mo = BoolProperty(description="Try to rebuild mo file, and refresh Blender UI (WARNING: you should use a local Blender installation, as you probably have no right to write in the system Blender installation...)", default = False, options={'SKIP_SAVE'})
+    update_po = BoolProperty(description="Update po file, try to rebuild mo file, and refresh Blender UI", default=False, options={'SKIP_SAVE'})
+    update_mo = BoolProperty(description="Try to rebuild mo file, and refresh Blender UI (WARNING: you should use a local Blender installation, as you probably have no right to write in the system Blender installation...)", default=False, options={'SKIP_SAVE'})
     clean_mo = BoolProperty(description="Clean up (remove) all local "
                                         "translation files, to be able to use "
                                         "all system's ones again",
-                            default = False, options={'SKIP_SAVE'})
+                            default=False, options={'SKIP_SAVE'})
 
     def execute(self, context):
         if not hasattr(self, "msgmap"):

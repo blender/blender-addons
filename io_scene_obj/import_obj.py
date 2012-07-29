@@ -653,7 +653,7 @@ def create_mesh(new_objects,
         bm.from_mesh(me)
         # to avoid slow iterator lookups later / indexing verts is slow in bmesh
         bm_verts = bm.verts[:]
-        
+
         for sharp_edge in sharp_edges.keys():
             vert1 = bm_verts[sharp_edge[0]]
             vert2 = bm_verts[sharp_edge[1]]

@@ -36,7 +36,6 @@ BLF_I18NCONTEXT_DEFAULT = ""
 NUM_BUTTON_SUFFIX = ": "
 
 
-
 # Mo root datapath.
 MO_PATH_ROOT = "locale"
 
@@ -94,7 +93,7 @@ def find_best_msgs_matches(obj, cache_key, msgmap, msgs, state, rna_ctxt, rstruc
 
     # Labels.
     elbl = getattr(obj, msgmap["enum_label"]["msgstr"])
-    print("enum label: '"+elbl+"'")
+    print("enum label: %r" % elbl)
     if elbl:
         # Enum items' labels have no i18n context...
         k = ctxt_to_msg[BLF_I18NCONTEXT_DEFAULT].copy()
@@ -109,7 +108,7 @@ def find_best_msgs_matches(obj, cache_key, msgmap, msgs, state, rna_ctxt, rstruc
             k &= src_to_msg[src_enum]
         msgmap["enum_label"]["key"] = k
     rlbl = getattr(obj, msgmap["rna_label"]["msgstr"])
-    print("rna label: '"+rlbl+"'", rlbl in msgid_to_msg, rlbl in msgstr_to_msg)
+    print("rna label: %r" % rlbl, rlbl in msgid_to_msg, rlbl in msgstr_to_msg)
     if rlbl:
         k = ctxt_to_msg[rna_ctxt].copy()
         if k and rlbl in msgid_to_msg:
@@ -127,7 +126,7 @@ def find_best_msgs_matches(obj, cache_key, msgmap, msgs, state, rna_ctxt, rstruc
     if blbl.endswith(NUM_BUTTON_SUFFIX):
         # Num buttons report their label with a trailing ': '...
         blbls.append(blbl[:-len(NUM_BUTTON_SUFFIX)])
-    print("button label: '"+blbl+"'")
+    print("button label: %r" % blbl)
     if blbl and elbl not in blbls and (rlbl not in blbls or rna_ctxt != BLF_I18NCONTEXT_DEFAULT):
         # Always Default context for button label :/
         k = ctxt_to_msg[BLF_I18NCONTEXT_DEFAULT].copy()
@@ -149,7 +148,7 @@ def find_best_msgs_matches(obj, cache_key, msgmap, msgs, state, rna_ctxt, rstruc
 
     # Tips (they never have a specific context).
     etip = getattr(obj, msgmap["enum_tip"]["msgstr"])
-    print("enum tip: '"+etip+"'")
+    print("enum tip: %r" % etip)
     if etip:
         k = ctxt_to_msg[BLF_I18NCONTEXT_DEFAULT].copy()
         if etip in msgid_to_msg:
@@ -163,7 +162,7 @@ def find_best_msgs_matches(obj, cache_key, msgmap, msgs, state, rna_ctxt, rstruc
             k &= src_to_msg[src_enum]
         msgmap["enum_tip"]["key"] = k
     rtip = getattr(obj, msgmap["rna_tip"]["msgstr"])
-    print("rna tip: '"+rtip+"'")
+    print("rna tip: %r" % rtip )
     if rtip:
         k = ctxt_to_msg[BLF_I18NCONTEXT_DEFAULT].copy()
         if k and rtip in msgid_to_msg:
@@ -178,7 +177,7 @@ def find_best_msgs_matches(obj, cache_key, msgmap, msgs, state, rna_ctxt, rstruc
         msgmap["rna_tip"]["key"] = k
         print(k)
     btip = getattr(obj, msgmap["but_tip"]["msgstr"])
-    print("button tip: '"+btip+"'")
+    print("button tip: %r" % btip)
     if btip and btip not in {rtip, etip}:
         k = ctxt_to_msg[BLF_I18NCONTEXT_DEFAULT].copy()
         if btip in msgid_to_msg:

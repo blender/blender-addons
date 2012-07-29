@@ -32,7 +32,7 @@ bl_info = {
     'category': '3D View'}
 
 import bpy
-from mathutils import Matrix, Vector
+from mathutils import Matrix
 
 
 def build_exec(loopfunc, func):
