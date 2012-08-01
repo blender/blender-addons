@@ -165,7 +165,7 @@ class IMPORT_OT_image_to_plane(Operator, AddObjectHelper):
     """Create mesh plane(s) from image files """ \
     """with the appropiate aspect ratio"""
 
-    bl_idname = "import.image_to_plane"
+    bl_idname = "import_image.to_plane"
     bl_label = "Import Images as Planes"
     bl_options = {'REGISTER', 'UNDO'}
 
