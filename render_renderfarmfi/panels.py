@@ -134,6 +134,10 @@ class RENDER_PT_RenderfarmFi(RenderButtonsPanel, bpy.types.Panel):
         else:
             layout.prop(ore, 'title', icon=bpy.statusMessage['title'])
             layout.label(text="Example: Blue Skies project, scene 8")
+            layout.row()
+            layout.label(text="The description *MUST* mention some project")
+            layout.label(text="The project can be a film, commercial work, portfolio or something similar")
+            layout.label(text="We render only animation projects. Test renders are rejected.")
             # layout.prop(ore, 'shortdesc', icon=bpy.statusMessage['shortdesc'])
             layout.prop(ore, 'longdesc', icon=bpy.statusMessage['longdesc'])
             layout.label(text="Example: In this shot the main hero is running across a flowery field towards the castle.")
@@ -142,7 +146,8 @@ class RENDER_PT_RenderfarmFi(RenderButtonsPanel, bpy.types.Panel):
             layout.prop(ore, 'url')
             layout.label(text="Example: www.sintel.org")
             
-            layout.label(text="Please verify your settings", icon='MODIFIER')
+            #layout.label(text="Please verify your settings", icon='MODIFIER')
+            row = layout.row()
             row = layout.row()
             #row.operator('ore.copy_settings')
             #row = layout.row()
