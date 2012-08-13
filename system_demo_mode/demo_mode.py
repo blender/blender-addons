@@ -375,14 +375,19 @@ class DemoMode(bpy.types.Operator):
     def execute(self, context):
         print("func:DemoMode.execute:", len(global_config_files), "files")
 
+        use_temp = False
+
         # load config if not loaded
         if not global_config_files:
             load_config()
-            demo_mode_temp_file()  # play this once through then never again
+            use_temp = True
 
         if not global_config_files:
             self.report({'INFO'}, "No configuration found with text or file: %s. Run File -> Demo Mode Setup" % DEMO_CFG)
             return {'CANCELLED'}
+
+        if use_temp:
+            demo_mode_temp_file()  # play this once through then never again
 
         # toggle
         if DemoMode.enabled and DemoMode.first_run == False:
