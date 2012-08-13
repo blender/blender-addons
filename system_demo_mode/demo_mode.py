@@ -44,7 +44,6 @@ DEMO_CFG = "demo.py"
 # populate from script
 global_config_files = []
 
-
 global_config = dict(anim_cycles=1,
                      anim_render=False,
                      anim_screen_switch=0.0,
@@ -74,6 +73,7 @@ global_state = {
     "timer": None,
     "basedir": "",  # demo.py is stored here
     "demo_index": 0,
+    "exit": False,
 }
 
 
@@ -138,7 +138,15 @@ def demo_mode_next_file(step=1):
         global_state["demo_index"] -= 1
 
     print(global_state["demo_index"])
-    global_state["demo_index"] = (global_state["demo_index"] + step) % len(global_config_files)
+    demo_index_next = (global_state["demo_index"] + step) % len(global_config_files)
+
+    if global_state["exit"] and step > 0:
+        # check if we cycled
+        if demo_index_next < global_state["demo_index"]:
+            import sys
+            sys.exit(0)
+
+    global_state["demo_index"] = demo_index_next
     print(global_state["demo_index"], "....")
     print("func:demo_mode_next_file", global_state["demo_index"])
     filepath = global_config_files[global_state["demo_index"]]["file"]
@@ -483,6 +491,7 @@ def load_config(cfg_name=DEMO_CFG):
 
     demo_config = namespace["config"]
     demo_search_path = namespace.get("search_path")
+    global_state["exit"] = namespace.get("exit", False)
 
     if demo_search_path is None:
         print("reading: %r, no search_path found, missing files wont be searched." % demo_path)

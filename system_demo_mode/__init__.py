@@ -80,6 +80,11 @@ class DemoModeSetup(bpy.types.Operator):
             description="Run demo immediately",
             default=True,
             )
+    exit = BoolProperty(
+            name="Exit",
+            description="Run once and exit",
+            default=False,
+            )
 
     # these are mapped directly to the config!
     #
@@ -134,8 +139,11 @@ class DemoModeSetup(bpy.types.Operator):
     def execute(self, context):
         from . import config
 
-        keywords = self.as_keywords(ignore=("filepath", "random_order", "run"))
-        cfg_str, dirpath = config.as_string(self.filepath, self.random_order, **keywords)
+        keywords = self.as_keywords(ignore=("filepath", "random_order", "run", "exit"))
+        cfg_str, dirpath = config.as_string(self.filepath,
+                                            self.random_order,
+                                            self.exit,
+                                            **keywords)
         text = bpy.data.texts.get("demo.py")
         if text:
             text.name += ".back"
@@ -163,6 +171,7 @@ class DemoModeSetup(bpy.types.Operator):
         box.label("Writes: demo.py config text")
 
         layout.prop(self, "run")
+        layout.prop(self, "exit")
 
         layout.label("Generate Settings:")
         row = layout.row()

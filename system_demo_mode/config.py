@@ -36,7 +36,7 @@ def generate(dirpath, random_order, **kwargs):
     return config, dirpath
 
 
-def as_string(dirpath, random_order, **kwargs):
+def as_string(dirpath, random_order, exit, **kwargs):
     """ Config loader is in demo_mode.py
     """
     cfg, dirpath = generate(dirpath, random_order, **kwargs)
@@ -50,6 +50,8 @@ def as_string(dirpath, random_order, **kwargs):
     cfg_str += ["# Use '//' for current blend file path.\n"]
     cfg_str += ["\n"]
     cfg_str += ["search_path = %r\n" % dirpath]
+    cfg_str += ["\n"]
+    cfg_str += ["exit = %r\n" % exit]
     cfg_str += ["\n"]
 
     # All these work but use nicest formatting!
