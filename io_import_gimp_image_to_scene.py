@@ -471,29 +471,29 @@ def main(File, Path, LayerViewers, MixerViewers, LayerOffset,
                 Mode = LayerList[Offset][1] # has to go one step further
                 LayerOpacity = LayerList[Offset][2]
                 
-                if not Mode in ('Normal', '-1'):
+                if not Mode in {'Normal', '-1'}:
                     
                     Node = Tree.nodes.new('MIX_RGB')
                     if OpacityMode == 'COMPO': Node.inputs['Fac'].default_value[0] = LayerOpacity
                     else: Node.inputs['Fac'].default_value[0] = 1
                     Node.use_alpha = True
                     
-                    if Mode in ('Addition', '7'): Node.blend_type = 'ADD'
-                    elif Mode in ('Subtract', '8'): Node.blend_type = 'SUBTRACT'
-                    elif Mode in ('Multiply', '3'): Node.blend_type = 'MULTIPLY'
-                    elif Mode in ('DarkenOnly', '9'): Node.blend_type = 'DARKEN'
-                    elif Mode in ('Dodge', '16'): Node.blend_type = 'DODGE'
-                    elif Mode in ('LightenOnly', '10'): Node.blend_type = 'LIGHTEN'
-                    elif Mode in ('Difference', '6'): Node.blend_type = 'DIFFERENCE'
-                    elif Mode in ('Divide', '15'): Node.blend_type = 'DIVIDE'
-                    elif Mode in ('Overlay', '5'): Node.blend_type = 'OVERLAY'
-                    elif Mode in ('Screen', '4'): Node.blend_type = 'SCREEN'
-                    elif Mode in ('Burn', '17'): Node.blend_type = 'BURN'
-                    elif Mode in ('Color', '13'): Node.blend_type = 'COLOR'
-                    elif Mode in ('Value', '14'): Node.blend_type = 'VALUE'
-                    elif Mode in ('Saturation', '12'): Node.blend_type = 'SATURATION'
-                    elif Mode in ('Hue', '11'): Node.blend_type = 'HUE'
-                    elif Mode in ('Softlight', '19'): Node.blend_type = 'SOFT_LIGHT'
+                    if Mode in {'Addition', '7'}: Node.blend_type = 'ADD'
+                    elif Mode in {'Subtract', '8'}: Node.blend_type = 'SUBTRACT'
+                    elif Mode in {'Multiply', '3'}: Node.blend_type = 'MULTIPLY'
+                    elif Mode in {'DarkenOnly', '9'}: Node.blend_type = 'DARKEN'
+                    elif Mode in {'Dodge', '16'}: Node.blend_type = 'DODGE'
+                    elif Mode in {'LightenOnly', '10'}: Node.blend_type = 'LIGHTEN'
+                    elif Mode in {'Difference', '6'}: Node.blend_type = 'DIFFERENCE'
+                    elif Mode in {'Divide', '15'}: Node.blend_type = 'DIVIDE'
+                    elif Mode in {'Overlay', '5'}: Node.blend_type = 'OVERLAY'
+                    elif Mode in {'Screen', '4'}: Node.blend_type = 'SCREEN'
+                    elif Mode in {'Burn', '17'}: Node.blend_type = 'BURN'
+                    elif Mode in {'Color', '13'}: Node.blend_type = 'COLOR'
+                    elif Mode in {'Value', '14'}: Node.blend_type = 'VALUE'
+                    elif Mode in {'Saturation', '12'}: Node.blend_type = 'SATURATION'
+                    elif Mode in {'Hue', '11'}: Node.blend_type = 'HUE'
+                    elif Mode in {'Softlight', '19'}: Node.blend_type = 'SOFT_LIGHT'
                     else: pass
                     
                 else:
@@ -517,7 +517,7 @@ def main(File, Path, LayerViewers, MixerViewers, LayerOffset,
         Nodes = bpy.context.scene.node_tree.nodes
         
         if LayerLen > 1:
-            for i in range (1, LayerLen+1):
+            for i in range (1, LayerLen + 1):
                 if i == 1:
                     Tree.links.new(Nodes['R_'+str(i)].outputs[0], Nodes['M_'+str(i)].inputs[1])
                 if 1 < i < LayerLen:

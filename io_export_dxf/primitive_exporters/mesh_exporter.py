@@ -112,7 +112,7 @@ class MeshDXFExporter(BasePrimitiveDXFExporter):
                     args = copy.copy(kwargs)
                     args['points'] = points
                     entities.append(('Line', args))
-        elif c in ('POLYFACE','POLYLINE'):
+        elif c in {'POLYFACE', 'POLYLINE'}:
             if faces and allpoints:
                 #TODO: purge allpoints: left only vertices used by faces
 #                    if exportsettings['verbose']: 

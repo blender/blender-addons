@@ -183,7 +183,7 @@ class MarkerSet:
         (ig, ig, pointIdx,
          self.procType) = struct.unpack('BBBB', infile.read(4))
         self.procType -= 83
-        if self.procType not in (1, 2):
+        if self.procType not in {1, 2}:
             # 1(INTEL-PC); 2(DEC-VAX); 3(MIPS-SUN/SGI)
             print('Warning: importer was not tested for files from '
                   'architectures other than Intel-PC and DEC-VAX')

@@ -116,7 +116,7 @@ class RENDER_PT_network_settings(NetRenderButtonsPanel, bpy.types.Panel):
 
         layout.prop(netsettings, "mode", expand=True)
 
-        if netsettings.mode in ("RENDER_MASTER", "RENDER_SLAVE"):
+        if netsettings.mode in {'RENDER_MASTER', 'RENDER_SLAVE'}:
             layout.operator("render.netclientstart", icon='PLAY')
 
         layout.prop(netsettings, "path")

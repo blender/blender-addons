@@ -691,7 +691,7 @@ class MESH_OT_CopyFaceSettings(bpy.types.Operator):
 
     def execute(self, context):
         mode = getattr(self, 'mode', '')
-        if not mode in ('MAT', 'VCOL', 'IMAGE', 'UV'):
+        if not mode in {'MAT', 'VCOL', 'IMAGE', 'UV'}:
             self.report({'ERROR'}, "No mode specified or invalid mode.")
             return self._end(context, {'CANCELLED'})
         layername = getattr(self, 'layer', '')

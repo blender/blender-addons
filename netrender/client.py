@@ -140,7 +140,7 @@ def sendJobVCS(conn, scene, anim = False):
 
     filename = filename[len(netsettings.vcs_wpath):]
     
-    if filename[0] in (os.sep, os.altsep):
+    if filename[0] in {os.sep, os.altsep}:
         filename = filename[1:]
     
     job.addFile(filename, signed=False)

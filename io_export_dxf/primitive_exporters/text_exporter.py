@@ -36,7 +36,7 @@ def exportText(ob, mx, mw, **common):
     #3=aligned, 4=middle, 5=fit
     Alignment = None
     alignment = text3d.getAlignment().value
-    if alignment in (1,2): Alignment = alignment
+    if alignment in {1, 2}: Alignment = alignment
 
     textHeight = text3d.getSize() / 1.7
     textFlag = 0

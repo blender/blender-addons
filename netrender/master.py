@@ -311,7 +311,7 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
                     frame = job[frame_number]
 
                     if frame:
-                        if frame.status in (netrender.model.FRAME_QUEUED, netrender.model.FRAME_DISPATCHED):
+                        if frame.status in {netrender.model.FRAME_QUEUED, netrender.model.FRAME_DISPATCHED}:
                             self.send_head(http.client.ACCEPTED)
                         elif frame.status == netrender.model.FRAME_DONE:
                             self.server.stats("", "Sending result to client")
@@ -379,7 +379,7 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
                     frame = job[frame_number]
 
                     if frame:
-                        if frame.status in (netrender.model.FRAME_QUEUED, netrender.model.FRAME_DISPATCHED):
+                        if frame.status in {netrender.model.FRAME_QUEUED, netrender.model.FRAME_DISPATCHED}:
                             self.send_head(http.client.ACCEPTED)
                         elif frame.status == netrender.model.FRAME_DONE:
                             filename = job.getResultPath(frame.getRenderFilename())
@@ -419,7 +419,7 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
                     frame = job[frame_number]
 
                     if frame:
-                        if not frame.log_path or frame.status in (netrender.model.FRAME_QUEUED, netrender.model.FRAME_DISPATCHED):
+                        if not frame.log_path or frame.status in {netrender.model.FRAME_QUEUED, netrender.model.FRAME_DISPATCHED}:
                             self.send_head(http.client.PROCESSING)
                         else:
                             self.server.stats("", "Sending log to client")
