@@ -2027,6 +2027,7 @@ def correctRig(args):
     amt = ob.data
     cnslist = []
     for pb in ob.pose.bones:
+        pb.bone.select = False
         for cns in pb.constraints:
             if cns.type == 'CHILD_OF':
                 cnslist.append((pb, cns, cns.influence))
