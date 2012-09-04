@@ -15,7 +15,7 @@
 #  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # ##### END GPL LICENSE BLOCK #####
-
+'''
 bl_info = {
     'name': 'Curveaceous Galore!',
     'author': 'Jimmy Hazevoet, testscreenings',
@@ -29,7 +29,7 @@ bl_info = {
     'tracker_url': 'https://projects.blender.org/tracker/index.php?'\
         'func=detail&aid=22404',
     'category': 'Add Curve'}
-
+'''
 
 ##------------------------------------------------------------
 #### import modules
@@ -765,7 +765,7 @@ class Curveaceous_galore(bpy.types.Operator):
     """Add many types of curves"""
     bl_idname = "mesh.curveaceous_galore"
     bl_label = "Curveaceous galore"
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = {'REGISTER', 'UNDO', 'PRESET'}
 
     # align_matrix for the invoke
     align_matrix = Matrix()
@@ -1120,23 +1120,3 @@ class Curveaceous_galore(bpy.types.Operator):
         self.execute(context)
 
         return {'FINISHED'}
-
-################################################################################
-##### REGISTER #####
-
-def Curveaceous_galore_button(self, context):
-    self.layout.operator(Curveaceous_galore.bl_idname, text="curvatures gallore", icon="PLUGIN")
-
-
-def register():
-    bpy.utils.register_module(__name__)
-
-    bpy.types.INFO_MT_curve_add.append(Curveaceous_galore_button)
-
-def unregister():
-    bpy.utils.unregister_module(__name__)
-
-    bpy.types.INFO_MT_curve_add.remove(Curveaceous_galore_button)
-
-if __name__ == "__main__":
-    register()

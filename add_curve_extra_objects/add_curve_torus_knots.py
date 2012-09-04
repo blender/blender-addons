@@ -16,7 +16,7 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-
+'''
 bl_info = {
     "name": "Torus Knots",
     "author": "testscreenings",
@@ -30,7 +30,7 @@ bl_info = {
     "tracker_url": "https://projects.blender.org/tracker/index.php?"\
         "func=detail&aid=22403",
     "category": "Add Curve"}
-    
+'''    
     
 ##------------------------------------------------------------
 #### import modules
@@ -100,7 +100,7 @@ class torus_knot_plus(bpy.types.Operator, AddObjectHelper):
     """"""
     bl_idname = "curve.torus_knot_plus"
     bl_label = "Torus Knot +"
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = {'REGISTER', 'UNDO', 'PRESET'}
     bl_description = "adds many types of knots"
 
     #### general options
@@ -223,23 +223,3 @@ class torus_knot_plus(bpy.types.Operator, AddObjectHelper):
         bpy.context.user_preferences.edit.use_global_undo = undo
 
         return {'FINISHED'}
-
-################################################################################
-##### REGISTER #####
-
-def torus_knot_plus_button(self, context):
-    self.layout.operator(torus_knot_plus.bl_idname, text="Torus Knot +", icon="PLUGIN")
-
-
-def register():
-    bpy.utils.register_module(__name__)
-
-    bpy.types.INFO_MT_curve_add.append(torus_knot_plus_button)
-
-def unregister():
-    bpy.utils.unregister_module(__name__)
-
-    bpy.types.INFO_MT_curve_add.remove(torus_knot_plus_button)
-
-if __name__ == "__main__":
-    register()
