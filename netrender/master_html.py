@@ -41,7 +41,7 @@ def countFiles(job):
     for file in job.files:
         if file.filepath.endswith(".bphys"):
            tot_cache += 1
-        elif file.filepath.endswith(".bobj.gz") or file.filepath.endswith(".bvel.gz"):
+        elif file.filepath.endswith((".bobj.gz", ".bvel.gz")):
            tot_fluid += 1
         elif not file == job.files[0]:
            tot_other += 1
@@ -166,10 +166,10 @@ def get(handler):
             if file.filepath.endswith(".bphys") and (file_type & CACHE_FILES):
                message.append(filedata);
                continue
-            if (file.filepath.endswith(".bobj.gz") or file.filepath.endswith(".bvel.gz")) and (file_type & FLUID_FILES):
+            if file.filepath.endswith((".bobj.gz", ".bvel.gz")) and (file_type & FLUID_FILES):
                message.append(filedata);
                continue
-            if (not file == job.files[0]) and (file_type &  OTHER_FILES) and ( not (file.filepath.endswith(".bobj.gz") or file.filepath.endswith(".bvel.gz"))) and not file.filepath.endswith(".bphys"):
+            if (not file == job.files[0]) and (file_type & OTHER_FILES) and (not file.filepath.endswith((".bobj.gz", ".bvel.gz"))) and not file.filepath.endswith(".bphys"):
                message.append(filedata);
                continue
                   
@@ -470,7 +470,7 @@ def get(handler):
                 if tot_fluid > 0:
                     rowTable("%i fluid bake files" % tot_fluid, class_style = "toggle", extra = "onclick='toggleDisplay(&quot;.fluid&quot;, &quot;none&quot;, &quot;table-row&quot;)'")
                     for file in job.files:
-                        if file.filepath.endswith(".bobj.gz") or file.filepath.endswith(".bvel.gz"):
+                        if file.filepath.endswith((".bobj.gz", ".bvel.gz")):
                             rowTable(os.path.split(file.filepath)[1], class_style = "fluid")
     
                 if tot_other > 0:
@@ -478,7 +478,7 @@ def get(handler):
                     for file in job.files:
                         if (
                             not file.filepath.endswith(".bphys")
-                            and not file.filepath.endswith(".bobj.gz") or file.filepath.endswith(".bvel.gz")
+                            and not file.filepath.endswith((".bobj.gz", ".bvel.gz"))
                             and not file == job.files[0]
                             ):
 

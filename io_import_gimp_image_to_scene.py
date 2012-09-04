@@ -85,7 +85,7 @@ def main(File, Path, LayerViewers, MixerViewers, LayerOffset,
                 for Segment in Line.split():
                     if Segment.startswith('w/h:'):
                         ResX, ResY = map (int, Segment[4:].split(','))
-            if Line.startswith("b'L") or Line.startswith("b'l"):
+            if Line.startswith(("b'L", "b'l")):
                 
                 """The "nice" method to check if layer has alpha channel
                 sadly GIMP sometimes decides not to export an alpha channel

@@ -212,7 +212,7 @@ def create_materials(filepath, material_libs, unique_materials, unique_material_
                         context_material.specular_hardness = int((float(line_split[1]) * 0.51))
                     elif line_lower.startswith(b'ni'):  # Refraction index
                         context_material.raytrace_transparency.ior = max(1, min(float(line_split[1]), 3))  # between 1 and 3
-                    elif line_lower.startswith(b'd') or line_lower.startswith(b'tr'):
+                    elif line_lower.startswith((b'd', b'tr')):
                         context_material.alpha = float(line_split[1])
                         context_material.use_transparency = True
                         context_material.transparency_method = 'Z_TRANSPARENCY'
@@ -330,11 +330,11 @@ def create_materials(filepath, material_libs, unique_materials, unique_material_
                         img_filepath = line_value(line.split())
                         if img_filepath:
                             load_material_image(context_material, context_material_name, img_filepath, 'Kd')
-                    elif line_lower.startswith(b'map_bump') or line_lower.startswith(b'bump'):  # 'bump' is incorrect but some files use it.
+                    elif line_lower.startswith((b'map_bump', b'bump')):  # 'bump' is incorrect but some files use it.
                         img_filepath = line_value(line.split())
                         if img_filepath:
                             load_material_image(context_material, context_material_name, img_filepath, 'Bump')
-                    elif line_lower.startswith(b'map_d') or line_lower.startswith(b'map_tr'):  # Alpha map - Dissolve
+                    elif line_lower.startswith((b'map_d', b'map_tr')):  # Alpha map - Dissolve
                         img_filepath = line_value(line.split())
                         if img_filepath:
                             load_material_image(context_material, context_material_name, img_filepath, 'D')
