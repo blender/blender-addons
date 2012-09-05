@@ -72,8 +72,9 @@ class SelectionOrder(bpy.types.Operator):
         return {'PASS_THROUGH'}
 
     def invoke(self, context, event):
-        context.window_manager.modal_handler_add(self)
         self.update(context)
+
+        context.window_manager.modal_handler_add(self)
         return {'RUNNING_MODAL'}
 
 

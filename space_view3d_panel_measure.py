@@ -922,7 +922,6 @@ class VIEW3D_OT_display_measurements(bpy.types.Operator):
                 # Add the region OpenGL drawing callback
                 for WINregion in context.area.regions:
                     if WINregion.type == 'WINDOW':
-                        context.window_manager.modal_handler_add(self)
                         self._handle = WINregion.callback_add(
                             draw_measurements_callback,
                             (self, context),
@@ -930,6 +929,7 @@ class VIEW3D_OT_display_measurements(bpy.types.Operator):
 
                         print("Measure panel display callback added")
 
+                        context.window_manager.modal_handler_add(self)
                         return {'RUNNING_MODAL'}
 
             return {'CANCELLED'}

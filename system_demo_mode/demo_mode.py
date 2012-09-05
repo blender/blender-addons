@@ -396,8 +396,8 @@ class DemoMode(bpy.types.Operator):
             return {'CANCELLED'}
         else:
             DemoMode.enabled = True
-            context.window_manager.modal_handler_add(self)
 
+            context.window_manager.modal_handler_add(self)
             return {'RUNNING_MODAL'}
 
     def cancel(self, context):
