@@ -148,68 +148,64 @@ def read(filepath):
                   b'double': 'd',
                   b'string': 's'}
     obj_spec = object_spec()
+    invalid_ply = (None, None, None)
 
-    file = open(filepath, 'rb')  # Only for parsing the header, not binary data
-    signature = file.readline()
+    with open(filepath, 'rb') as plyf:
+        signature = plyf.readline()
 
-    if not signature.startswith(b'ply'):
-        print('Signature line was invalid')
-        return None
+        if not signature.startswith(b'ply'):
+            print('Signature line was invalid')
+            return invalid_ply
 
-    while 1:
-        tokens = re.split(br'[ \r\n]+', file.readline())
+        valid_header = False
+        for line in plyf:
+            tokens = re.split(br'[ \r\n]+', line)
 
-        if len(tokens) == 0:
-            continue
-        if tokens[0] == b'end_header':
-            break
-        elif tokens[0] == b'comment':
-            if len(tokens) < 2:
+            if len(tokens) == 0:
                 continue
-            elif tokens[1] == b'TextureFile':
-                if len(tokens) < 4:
-                    print('Invalid texture line')
+            if tokens[0] == b'end_header':
+                valid_header = True
+                break
+            elif tokens[0] == b'comment':
+                if len(tokens) < 2:
+                    continue
+                elif tokens[1] == b'TextureFile':
+                    if len(tokens) < 4:
+                        print('Invalid texture line')
+                    else:
+                        texture = tokens[2]
+                continue
+            elif tokens[0] == b'obj_info':
+                continue
+            elif tokens[0] == b'format':
+                if len(tokens) < 3:
+                    print('Invalid format line')
+                    return invalid_ply
+                if tokens[1] not in format_specs:
+                    print('Unknown format', tokens[1])
+                    return invalid_ply
+                if tokens[2] != version:
+                    print('Unknown version', tokens[2])
+                    return invalid_ply
+                format = tokens[1]
+            elif tokens[0] == b'element':
+                if len(tokens) < 3:
+                    print(b'Invalid element line')
+                    return invalid_ply
+                obj_spec.specs.append(element_spec(tokens[1], int(tokens[2])))
+            elif tokens[0] == b'property':
+                if not len(obj_spec.specs):
+                    print('Property without element')
+                    return invalid_ply
+                if tokens[1] == b'list':
+                    obj_spec.specs[-1].properties.append(property_spec(tokens[4], type_specs[tokens[2]], type_specs[tokens[3]]))
                 else:
-                    texture = tokens[2]
-            continue
-        elif tokens[0] == b'obj_info':
-            continue
-        elif tokens[0] == b'format':
-            if len(tokens) < 3:
-                print('Invalid format line')
-                return None
-            if tokens[1] not in format_specs:
-                print('Unknown format', tokens[1])
-                return None
-            if tokens[2] != version:
-                print('Unknown version', tokens[2])
-                return None
-            format = tokens[1]
-        elif tokens[0] == b'element':
-            if len(tokens) < 3:
-                print(b'Invalid element line')
-                return None
-            obj_spec.specs.append(element_spec(tokens[1], int(tokens[2])))
-        elif tokens[0] == b'property':
-            if not len(obj_spec.specs):
-                print('Property without element')
-                return None
-            if tokens[1] == b'list':
-                obj_spec.specs[-1].properties.append(property_spec(tokens[4], type_specs[tokens[2]], type_specs[tokens[3]]))
-            else:
-                obj_spec.specs[-1].properties.append(property_spec(tokens[2], None, type_specs[tokens[1]]))
+                    obj_spec.specs[-1].properties.append(property_spec(tokens[2], None, type_specs[tokens[1]]))
+        if not valid_header:
+            print("Invalid header ('end_header' line not found!)")
+            return invalid_ply
 
-    if format != b'ascii':
-        file.close()  # was ascii, now binary
-        file = open(filepath, 'rb')
-
-        # skip the header...
-        while not file.readline().startswith(b'end_header'):
-            pass
-
-    obj = obj_spec.load(format_specs[format], file)
-
-    file.close()
+        obj = obj_spec.load(format_specs[format], plyf)
 
     return obj_spec, obj, texture
 
@@ -364,6 +360,8 @@ def load_ply(filepath):
     ply_name = bpy.path.display_name_from_filepath(filepath)
 
     mesh = load_ply_mesh(filepath, ply_name)
+    if not mesh:
+        return {'CANCELLED'}
 
     scn = bpy.context.scene
 
@@ -373,8 +371,8 @@ def load_ply(filepath):
     obj.select = True
 
     print('\nSuccessfully imported %r in %.3f sec' % (filepath, time.time() - t))
+    return {'FINISHED'}
 
 
 def load(operator, context, filepath=""):
-    load_ply(filepath)
-    return {'FINISHED'}
+    return load_ply(filepath)
