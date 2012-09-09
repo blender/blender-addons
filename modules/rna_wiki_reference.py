@@ -158,6 +158,9 @@ url_manual_mapping = (
 
     ("bpy.types.Texture.*",  "Textures"),
 
+    # *** Spaces ***
+    ("bpy.types.SpaceView3D.*", "3D_interaction/Navigating/3D_View_Options"),
+
     # === Operators ===
     # Catch all only for now!
     # *** Window/Screen ***
