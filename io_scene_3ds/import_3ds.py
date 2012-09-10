@@ -927,39 +927,35 @@ def load_3ds(filepath,
             ob.sel = 1
     """
 
-    if 0:
-# 	if IMPORT_CONSTRAIN_BOUNDS!=0.0:
-        # Set bounds from objecyt bounding box
+    context.scene.update()
+
+    axis_min = [1000000000] * 3
+    axis_max = [-1000000000] * 3
+    global_clamp_size = IMPORT_CONSTRAIN_BOUNDS
+    if global_clamp_size != 0.0:
+        # Get all object bounds
         for ob in importedObjects:
-            if ob.type == 'MESH':
-# 			if ob.type=='Mesh':
-                ob.makeDisplayList()  # Why dosnt this update the bounds?
-                for v in ob.getBoundBox():
-                    for i in (0, 1, 2):
-                        if v[i] < BOUNDS_3DS[i]:
-                            BOUNDS_3DS[i] = v[i]  # min
+            for v in ob.bound_box:
+                for axis, value in enumerate(v):
+                    if axis_min[axis] > value:
+                        axis_min[axis] = value
+                    if axis_max[axis] < value:
+                        axis_max[axis] = value
 
-                        if v[i] > BOUNDS_3DS[i + 3]:
-                            BOUNDS_3DS[i + 3] = v[i]  # min
+        # Scale objects
+        max_axis = max(axis_max[0] - axis_min[0],
+                       axis_max[1] - axis_min[1],
+                       axis_max[2] - axis_min[2])
+        scale = 1.0
 
-        # Get the max axis x/y/z
-        max_axis = max(BOUNDS_3DS[3] - BOUNDS_3DS[0], BOUNDS_3DS[4] - BOUNDS_3DS[1], BOUNDS_3DS[5] - BOUNDS_3DS[2])
-        # print max_axis
-        if max_axis < 1 << 30:  # Should never be false but just make sure.
+        while global_clamp_size < max_axis * scale:
+            scale = scale / 10.0
 
-            # Get a new scale factor if set as an option
-            SCALE = 1.0
-            while (max_axis * SCALE) > IMPORT_CONSTRAIN_BOUNDS:
-                SCALE /= 10.0
+        scale_mat = mathutils.Matrix.Scale(scale, 4)
 
-            # SCALE Matrix
-            SCALE_MAT = mathutils.Matrix.Scale(SCALE, 4)
-
-            for ob in importedObjects:
-                if ob.parent is None:
-                    ob.matrix_world = ob.matrix_world * SCALE_MAT
-
-        # Done constraining to bounds.
+        for obj in importedObjects:
+            if obj.parent is None:
+                obj.matrix_world = scale_mat * obj.matrix_world
 
     # Select all new objects.
     print(" done in %.4f sec." % (time.clock() - time1))

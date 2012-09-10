@@ -421,7 +421,7 @@ def save_single(operator, scene, filepath="",
     except:
         import traceback
         traceback.print_exc()
-        operator.report({'ERROR'}, "Could'nt open file %r" % filepath)
+        operator.report({'ERROR'}, "Couldn't open file %r" % filepath)
         return {'CANCELLED'}
 
     # convenience
