@@ -5,6 +5,18 @@
 
 url_manual_prefix = "http://wiki.blender.org/index.php/Doc:2.6/Manual/"
 
+# to make international...
+# Doc:2.6 --> FR/Doc:2.6
+
+LANG = {
+    "FRENCH":   "FR",
+    "RUSSIAN":  "RU",
+}.get(__import__("bpy").context.user_preferences.system.language)
+
+url_manual_prefix = url_manual_prefix \
+    if LANG is None \
+    else url_manual_prefix.replace("Doc:2.6", "Doc:" + LANG + "/" + "2.6")
+
 # - The first item is a wildcard - typical file system globbing
 #   using python module 'fnmatch.fnmatch'
 # - Expressions are evaluated top down (include catch-all expressions last).
