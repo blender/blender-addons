@@ -1843,6 +1843,8 @@ def readDxfFile(fileName):
                 known = False
             elif data == 'OBJECTS':
                 parseObjects(section, statements, handles)
+            elif data == 'THUMBNAILIMAGE':
+                parseThumbnail(section, statements, handles)
             sections[data] = section
         elif code == 999:
             pass
@@ -2229,7 +2231,30 @@ def parseObjects(data, statements, handles):
                 return
 
     return
-            
+
+#    
+#    THUMBNAILIMAGE
+#     90
+#        45940
+#    310
+#    28000000B40000005500000001001800000000000000000000000000000000000000000000000000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+#    310
+#    FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+#    310
+#    .......
+#      0
+#    ENDSEC
+
+def parseThumbnail(section, statements, handles):
+    """ Just skip these """
+    while statements:
+        (code,data) = statements.pop()
+        if code == 0:
+            if data == 'ENDSEC':
+                return
+
+    return
+
 #
 #    buildGeometry(entities):
 #    addMesh(name, verts, edges, faces):                            
