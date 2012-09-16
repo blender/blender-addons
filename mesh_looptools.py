@@ -3627,6 +3627,7 @@ class VIEW3D_PT_tools_looptools(bpy.types.Panel):
     bl_region_type = 'TOOLS'
     bl_context = "mesh_edit"
     bl_label = "LoopTools"
+    bl_options = {'DEFAULT_CLOSED'}
 
     def draw(self, context):
         layout = self.layout
