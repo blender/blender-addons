@@ -92,7 +92,7 @@ class VIEW3D_PT_animall(bpy.types.Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'TOOLS'
     bl_label = 'AnimAll'
-
+    bl_options = {'DEFAULT_CLOSED'}
     # show this addon only in the Camera-Data-Panel
     @classmethod
     def poll(self, context):
