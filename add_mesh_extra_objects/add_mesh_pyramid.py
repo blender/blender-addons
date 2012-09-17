@@ -50,8 +50,7 @@ def create_step(width, base_level, step_height, num_sides):
         quaternions = [Quaternion(axis, quat_angle) 
                             for quat_angle in quat_angles]
                             
-        init_vectors = [Vector([rad, 0, base_level]) 
-                            for quat in quaternions]
+        init_vectors = [Vector([rad, 0, base_level])] * len(quaternions)
         
         quat_vector_pairs = list(zip(quaternions, init_vectors))
         vectors = [quaternion * vec for quaternion, vec in quat_vector_pairs]
