@@ -22,6 +22,7 @@ DEBUG = False
 
 # This should work without a blender at all
 import os
+import shlex
 
 
 def imageConvertCompat(path):
@@ -1173,7 +1174,8 @@ class vrmlNode(object):
                             else:
                                 value += '\n' + l
 
-                    value_all = value.split()
+                    # use shlex so we get '"a b" "b v"' --> '"a b"', '"b v"'
+                    value_all = shlex.split(value, posix=False)
 
                     def iskey(k):
                         if k[0] != '"' and k[0].isalpha() and k.upper() not in {'TRUE', 'FALSE'}:
