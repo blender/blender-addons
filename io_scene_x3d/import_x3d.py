@@ -2047,6 +2047,7 @@ def importShape(node, ancestry, global_matrix):
         texmtx = None
 
         depth = 0  # so we can set alpha face flag later
+        is_vcol = (geom.getChildBySpec('Color') is not None)
 
         if appr:
 
@@ -2087,6 +2088,8 @@ def importShape(node, ancestry, global_matrix):
                 bpymat.alpha = 1.0 - mat.getFieldAsFloat('transparency', 0.0, ancestry)
                 if bpymat.alpha < 0.999:
                     bpymat.use_transparency = True
+                if is_vcol:
+                    bpymat.use_vertex_color_paint = True
 
             if ima:
                 ima_url = ima.getFieldAsString('url', None, ancestry)
