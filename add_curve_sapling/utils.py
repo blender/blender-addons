@@ -482,6 +482,8 @@ def addTree(props):
     cu = bpy.data.curves.new('tree','CURVE')
     treeOb = bpy.data.objects.new('tree',cu)
     bpy.context.scene.objects.link(treeOb)
+    
+    treeOb.location=bpy.context.scene.cursor_location
 
     cu.dimensions = '3D'
     cu.fill_mode = 'FULL'
