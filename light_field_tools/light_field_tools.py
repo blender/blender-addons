@@ -65,6 +65,7 @@ plane.
 
 
 Version history:
+v0.3.0 - Make compatible with 2.64
 v0.2.1 - Empty handler, multiple camera grid, r34843
 v0.2.0 - To be included in contrib, r34456
 v0.1.4 - To work with r34261
@@ -229,8 +230,7 @@ class OBJECT_OT_create_lightfield_rig(bpy.types.Operator):
     def createSpot(self, index, textured=False):
         scene = bpy.context.scene
         bpy.ops.object.lamp_add(
-                type='SPOT', 
-                layers=self.layer0)
+                type='SPOT')
         spot = bpy.context.active_object
 
         # set object props
@@ -320,7 +320,7 @@ class OBJECT_OT_create_lightfield_basemesh(bpy.types.Operator):
     def getCamVec(self, obj, angle):
         width = self.getWidth(obj)
         itmat = obj.matrix_local.inverted().transposed()
-        normal = itmat * obj.data.faces[0].normal.normalized()
+        normal = itmat * obj.data.polygons[0].normal.normalized()
         vl = (width/2) * (1/math.tan(math.radians(angle/2)))
         return normal*vl
 
@@ -349,7 +349,7 @@ class OBJECT_OT_create_lightfield_basemesh(bpy.types.Operator):
             return 'CANCELLED'
 
         # check if it has one single face
-        if len(obj.data.faces) != 1:
+        if len(obj.data.polygons) != 1:
             self.report({'ERROR'}, "The selected mesh object has to have exactly one quad!")
             return 'CANCELLED'
 
