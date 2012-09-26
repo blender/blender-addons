@@ -93,7 +93,7 @@ def points_as_bmesh_cells(verts,
             plane.resize_4d()
             plane[3] = (-nlength / 2.0) + margin_cell
             planes.append(plane)
-            
+
             vertices[:], plane_indices[:] = mathutils.geometry.points_in_planes(planes)
             if len(vertices) == 0:
                 break

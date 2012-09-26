@@ -748,7 +748,6 @@ class MESH_OT_CopyFaceSettings(bpy.types.Operator):
 
         return self._end(context, {'FINISHED'})
 
-
     def _end(self, context, retval):
         if context.mode != 'EDIT_MESH':
             # Clean up by returning to edit mode like it was before.

@@ -162,7 +162,7 @@ def find_best_msgs_matches(obj, cache_key, msgmap, msgs, state, rna_ctxt, rstruc
             k &= src_to_msg[src_enum]
         msgmap["enum_tip"]["key"] = k
     rtip = getattr(obj, msgmap["rna_tip"]["msgstr"])
-    print("rna tip: %r" % rtip )
+    print("rna tip: %r" % rtip)
     if rtip:
         k = ctxt_to_msg[BLF_I18NCONTEXT_DEFAULT].copy()
         if k and rtip in msgid_to_msg:

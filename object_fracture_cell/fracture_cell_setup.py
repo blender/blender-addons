@@ -29,7 +29,6 @@ def _redraw_yasiamevil():
 _redraw_yasiamevil.opr = bpy.ops.wm.redraw_timer
 _redraw_yasiamevil.arg = dict(type='DRAW_WIN_SWAP', iterations=1)
 
-    
 
 def _points_from_object(obj, source):
 
@@ -82,7 +81,6 @@ def _points_from_object(obj, source):
         points.extend([p.location.copy()
                        for psys in obj.particle_systems
                        for p in psys.particles])
-
 
     # geom own
     if 'VERT_OWN' in source:
@@ -137,7 +135,7 @@ def cell_fracture_objects(scene, obj,
                           use_debug_redraw=False,
                           cell_scale=(1.0, 1.0, 1.0),
                           ):
-    
+
     from . import fracture_cell_calc
 
     # -------------------------------------------------------------------------
@@ -159,7 +157,6 @@ def cell_fracture_objects(scene, obj,
         random.shuffle(points)
         points[source_limit:] = []
 
-
     # saddly we cant be sure there are no doubles
     from mathutils import Vector
     to_tuple = Vector.to_tuple
@@ -179,9 +176,8 @@ def cell_fracture_objects(scene, obj,
         scalar = source_noise * ((bb_world[0] - bb_world[6]).length / 2.0)
 
         from mathutils.noise import random_unit_vector
-        
-        points[:] = [p + (random_unit_vector() * (scalar * random())) for p in points]
 
+        points[:] = [p + (random_unit_vector() * (scalar * random())) for p in points]
 
     if use_debug_points:
         bm = bmesh.new()
@@ -205,9 +201,9 @@ def cell_fracture_objects(scene, obj,
 
     # some hacks here :S
     cell_name = obj.name + "_cell"
-    
+
     objects = []
-    
+
     for center_point, cell_points in cells:
 
         # ---------------------------------------------------------------------
@@ -215,21 +211,22 @@ def cell_fracture_objects(scene, obj,
 
         # create the convex hulls
         bm = bmesh.new()
-        
+
         # WORKAROUND FOR CONVEX HULL BUG/LIMIT
         # XXX small noise
         import random
-        def R(): return (random.random() - 0.5) * 0.001
+        def R():
+            return (random.random() - 0.5) * 0.001
         # XXX small noise
 
         for i, co in enumerate(cell_points):
-            
+
             # XXX small noise
             co.x += R()
             co.y += R()
             co.z += R()
             # XXX small noise
-            
+
             bm_vert = bm.verts.new(co)
 
         import mathutils
@@ -259,7 +256,6 @@ def cell_fracture_objects(scene, obj,
 
         # ---------------------------------------------------------------------
         # MESH
-
         mesh_dst = bpy.data.meshes.new(name=cell_name)
 
         bm.to_mesh(mesh_dst)
@@ -293,7 +289,6 @@ def cell_fracture_objects(scene, obj,
             _redraw_yasiamevil()
 
     scene.update()
-
 
     # move this elsewhere...
     for obj_cell in objects:
@@ -380,7 +375,7 @@ def cell_fracture_boolean(scene, obj, objects,
 
         if obj_cell is not None:
             objects_boolean.append(obj_cell)
-            
+
             if use_debug_redraw:
                 _redraw_yasiamevil()
 
@@ -414,7 +409,7 @@ def cell_fracture_interior_handle(objects,
         mesh = obj_cell.data
         bm = bmesh.new()
         bm.from_mesh(mesh)
-        
+
         if use_interior_vgroup:
             for bm_vert in bm.verts:
                 bm_vert.tag = True
@@ -446,7 +441,6 @@ def cell_fracture_interior_handle(objects,
 
         for bm_face in bm.faces:
             bm_face.hide = False
-    
 
         bm.to_mesh(mesh)
         bm.free()
