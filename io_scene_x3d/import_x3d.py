@@ -1578,7 +1578,8 @@ def importMesh_IndexedFaceSet(geom, bpyima, ancestry):
         coords_tex = geom.getChildBySpec('TextureCoordinate')
 
         if coords_tex:
-            ifs_texpoints = coords_tex.getFieldAsArray('point', 2, ancestry)
+            ifs_texpoints = [(0, 0)] # EEKADOODLE - vertex start at 1
+            ifs_texpoints.extend(coords_tex.getFieldAsArray('point', 2, ancestry))
             ifs_texfaces = geom.getFieldAsArray('texCoordIndex', 0, ancestry)
 
             if not ifs_texpoints:
