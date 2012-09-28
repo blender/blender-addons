@@ -251,12 +251,12 @@ class FractureCell(Operator):
     source = EnumProperty(
             name="Source",
             items=(('VERT_OWN', "Own Verts", "Use own vertices"),
-                   ('VERT_CHILD', "Child Verts", "Use own vertices"),
+                   ('VERT_CHILD', "Child Verts", "Use child object vertices"),
                    ('PARTICLE_OWN', "Own Particles", ("All particle systems of the "
                                                       "source object")),
                    ('PARTICLE_CHILD', "Child Particles", ("All particle systems of the "
                                                           "child objects")),
-                   ('PENCIL', "Grease Pencil", "This objects grease pencil"),
+                   ('PENCIL', "Grease Pencil", "This object's grease pencil"),
                    ),
             options={'ENUM_FLAG'},
             default={'PARTICLE_OWN'},
@@ -271,7 +271,7 @@ class FractureCell(Operator):
 
     source_noise = FloatProperty(
             name="Noise",
-            description="Randomize point distrobution",
+            description="Randomize point distribution",
             min=0.0, max=1.0,
             default=0.0,
             )
@@ -289,7 +289,7 @@ class FractureCell(Operator):
 
     recursion = IntProperty(
             name="Recursion",
-            description="Break shards resursively",
+            description="Break shards recursively",
             min=0, max=5000,
             default=0,
             )
@@ -310,7 +310,7 @@ class FractureCell(Operator):
 
     recursion_chance = FloatProperty(
             name="Random Factor",
-            description="Likelyhood of recursion",
+            description="Likelihood of recursion",
             min=0.0, max=1.0,
             default=0.25,
             )
@@ -319,9 +319,9 @@ class FractureCell(Operator):
             name="Recurse Over",
             items=(('RANDOM', "Random", ""),
                    ('SIZE_MIN', "Small", "Recursively subdivide smaller objects"),
-                   ('SIZE_MAX', "Big", "Recursively subdivide smaller objects"),
+                   ('SIZE_MAX', "Big", "Recursively subdivide bigger objects"),
                    ('CURSOR_MIN', "Cursor Close", "Recursively subdivide objects closer to the cursor"),
-                   ('CURSOR_MAX', "Cursor Far", "Recursively subdivide objects closer to the cursor"),
+                   ('CURSOR_MAX', "Cursor Far", "Recursively subdivide objects farther from the cursor"),
                    ),
             default='SIZE_MIN',
             )
@@ -382,8 +382,8 @@ class FractureCell(Operator):
     
     mass_mode = EnumProperty(
             name="Mass Mode",
-            items=(('VOLUME', "Volume", "All objects get the same volume"),
-                   ('UNIFORM', "Uniform", "All objects get the same volume"),
+            items=(('VOLUME', "Volume", "Objects get part of specified mass based on their volume"),
+                   ('UNIFORM', "Uniform", "All objects get the specified mass"),
                    ),
             default='VOLUME',
             )
@@ -414,7 +414,7 @@ class FractureCell(Operator):
     # -------------------------------------------------------------------------
     # Scene Options
     #
-    # .. dirreferent from object options in that this controls how the objects
+    # .. different from object options in that this controls how the objects
     #    are setup in the scene.  
 
     use_layer_index = IntProperty(
