@@ -113,8 +113,8 @@ class ImportOBJ(bpy.types.Operator, ImportHelper):
             )
 
     global_clamp_size = FloatProperty(
-            name="Clamp Scale",
-            description="Clamp the size to this maximum (Zero to Disable)",
+            name="Clamp Size",
+            description="Clamp bounds under this value (zero to disable)",
             min=0.0, max=1000.0,
             soft_min=0.0, soft_max=1000.0,
             default=0.0,
