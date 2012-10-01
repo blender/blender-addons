@@ -83,6 +83,15 @@ for member in dir(properties_data_lamp):
         pass
 del properties_data_lamp
 
+from bl_ui import properties_particle as properties_particle
+for member in dir(properties_particle):  # add all "particle" panels from blender
+    subclass = getattr(properties_particle, member)
+    try:
+        subclass.COMPAT_ENGINES.add('POVRAY_RENDER')
+    except:
+        pass
+del properties_particle
+
 
 class RenderButtonsPanel():
     bl_space_type = 'PROPERTIES'

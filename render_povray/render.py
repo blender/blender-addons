@@ -1,4 +1,4 @@
- # ***** BEGIN GPL LICENSE BLOCK *****
+Ôªø # ***** BEGIN GPL LICENSE BLOCK *****
  #
  # This program is free software; you can redistribute it and/or
  # modify it under the terms of the GNU General Public License
@@ -751,7 +751,7 @@ def write_pov(filename, scene=None, info_callback=None):
 #                for ms in ob.material_slots:
 #                    if ms.material != None and ms.link == 'OBJECT':
 #                        # If there is at least one material slot linked to the object
-#                        # and not the data (mesh), always create a new, ‚Äúprivate‚Äù data instance.
+#                        # and not the data (mesh), always create a new, ìprivateî data instance.
 #                        return True
 #            return False
         # For objects using local material(s) only!
@@ -790,7 +790,7 @@ def write_pov(filename, scene=None, info_callback=None):
         def store(scene, ob, name, dataname, matrix):
             # The Object needs to be written at least once but if its data is
             # already in data_ref this has already been done.
-            # This func returns the ‚Äúpovray‚Äù name of the data, or None
+            # This func returns the ìpovrayî name of the data, or None
             # if no writing is needed.
             if ob.is_modified(scene, 'RENDER'):
                 # Data modified.
@@ -816,9 +816,142 @@ def write_pov(filename, scene=None, info_callback=None):
             ob_num += 1
 
             # XXX I moved all those checks here, as there is no need to compute names
-            #     for object we won‚Äôt export here!
+            #     for object we wonít export here!
             if ob.type in {'LAMP', 'CAMERA', 'EMPTY', 'META', 'ARMATURE', 'LATTICE'}:
                 continue
+                   
+            # Export Hair
+
+            if hasattr(ob, 'particle_systems') != False:
+                for pSys in ob.particle_systems:
+                    if not pSys.settings.use_render_emitter:
+                        continue #don't render mesh
+                    for mod in [m for m in ob.modifiers if (m is not None) and (m.type == 'PARTICLE_SYSTEM')]:
+                        if (pSys.settings.render_type == 'PATH') and mod.show_render and (pSys.name == mod.particle_system.name):
+                            tstart = time.time()
+                            if ob.active_material is not None:
+                                pmaterial = ob.active_material
+                                if pmaterial.strand.use_blender_units:
+                                    strandStart = pmaterial.strand.root_size
+                                    strandEnd = pmaterial.strand.tip_size
+                                    strandShape = pmaterial.strand.shape
+                                else:  # Blender unit conversion
+                                    strandStart = pmaterial.strand.root_size / 200
+                                    strandEnd = pmaterial.strand.tip_size / 200
+                                    strandShape = pmaterial.strand.shape
+                            else:
+                                pmaterial = "default"  # No material assigned in blender, use default one
+                                strandStart = 0.01
+                                strandEnd = 0.01
+                                strandShape = 0.0
+                                
+                            totalNumberOfHairs = len(pSys.particles)
+                            hairCounter = 0
+                            file.write('#declare HairArray = array[%i] {\n' % totalNumberOfHairs)
+                            for particle in pSys.particles:
+                                if particle.is_exist and particle.is_visible:
+                                    hairCounter += 1
+                                    controlPointCounter = 0
+                                    # Each hair is represented as a separate sphere_sweep in POV-Ray.
+                                    
+                                    file.write('sphere_sweep{')
+                                    if pSys.settings.use_hair_bspline:
+                                        file.write('b_spline ')
+                                        file.write('%i,\n' % (len(particle.hair_keys) + 2))  # +2 because the first point needs tripling to be more than a handle in POV
+
+                                    else:
+                                        file.write('linear_spline ')
+                                        file.write('%i,\n' % (len(particle.hair_keys)))
+                                    for controlPoint in particle.hair_keys:
+                                        if pSys.settings.clump_factor != 0:
+                                            hDiameter = pSys.settings.clump_factor #* random.uniform(0.5, 1)
+                                        elif controlPointCounter == 0:
+                                            hDiameter = strandStart
+                                        else:
+                                            hDiameter += (strandEnd-strandStart)/(len(particle.hair_keys)+1) #XXX +1 or not?
+                                        if controlPointCounter == 0 and pSys.settings.use_hair_bspline:
+                                            # Write three times the first point to compensate pov Bezier handling
+                                            file.write('<%.6g,%.6g,%.6g>,%.7g,\n' % (controlPoint.co[0], controlPoint.co[1], controlPoint.co[2], abs(hDiameter)))
+                                            file.write('<%.6g,%.6g,%.6g>,%.7g,\n' % (controlPoint.co[0], controlPoint.co[1], controlPoint.co[2], abs(hDiameter)))                                          
+											#file.write('<%.6g,%.6g,%.6g>,%.7g' % (particle.location[0], particle.location[1], particle.location[2], abs(hDiameter))) # Useless because particle location is the tip, not the root.
+                                            #file.write(',\n')
+                                        controlPointCounter += 1
+                                        #totalNumberOfHairs += len(pSys.particles)# len(particle.hair_keys)
+                                             
+                                      # Each control point is written out, along with the radius of the
+                                      # hair at that point.
+                                        file.write('<%.6g,%.6g,%.6g>,%.7g' % (controlPoint.co[0], controlPoint.co[1], controlPoint.co[2], abs(hDiameter)))
+
+                                      # All coordinates except the last need a following comma.
+
+                                        if controlPointCounter != len(particle.hair_keys):
+                                            file.write(',\n')
+                                        else:
+                                            # End the sphere_sweep declaration for this hair
+                                            file.write('}\n')
+                                        
+                                      # All but the final sphere_sweep (each array element) needs a terminating comma.
+
+                                    if hairCounter != totalNumberOfHairs:
+                                        file.write(',\n')
+                                    else:
+                                        file.write('\n')
+
+                            # End the array declaration.
+
+                            file.write('}\n')
+                            file.write('\n')
+
+                            # Pick up the hair color and create a default POV-Ray hair texture.
+
+                            file.write('#ifndef (HairTexture)\n')
+                            file.write('  #declare HairTexture = texture {\n')
+                            file.write('    pigment {rgbt <%s,%s,%s,%s>}\n' % (pmaterial.diffuse_color[0], pmaterial.diffuse_color[1], pmaterial.diffuse_color[2], (pmaterial.strand.width_fade + 0.05)))
+                            file.write('  }\n')
+                            file.write('#end\n')
+                            file.write('\n')
+
+                            # Dynamically create a union of the hairs (or a subset of the hairs).
+                            # By default use every 25th hair, which is usually ok for test renders.
+
+                            file.write('#ifndef(HairStep) #declare HairStep = %d; #end\n' % ((totalNumberOfHairs/(totalNumberOfHairs * pSys.settings.draw_percentage / 100))))
+                            file.write('union{\n')
+                            file.write('  #local I = 0;\n')
+                            file.write('  #while (I < %i)\n' % totalNumberOfHairs)
+                            file.write('    object {HairArray[I] texture{HairTexture}\n')
+                            
+                            # Translucency of the hair:
+                            file.write('        hollow\n')
+                            file.write('        double_illuminate\n')
+                            file.write('        interior {\n')
+                            file.write('            ior 1.45\n')
+                            file.write('            media {\n')
+                            file.write('                scattering { 1, 10*<0.73, 0.35, 0.15> /*extinction 0*/ }\n')
+                            file.write('                absorption 10/<0.83, 0.75, 0.15>\n')
+                            file.write('                samples 1\n')
+                            file.write('                method 2\n')
+                            file.write('                density {\n')
+                            file.write('                    color_map {\n')
+                            file.write('                        [0.0 rgb <0.83, 0.45, 0.35>]\n')
+                            file.write('                        [0.5 rgb <0.8, 0.8, 0.4>]\n')
+                            file.write('                        [1.0 rgb <1,1,1>]\n')
+                            file.write('                    }\n')
+                            file.write('                }\n')
+                            file.write('            }\n')
+                            file.write('        }\n')
+                            file.write('    }\n')
+                            
+                            file.write('    #local I = I + HairStep;\n')
+                            file.write('  #end\n')
+                            
+                            writeMatrix(global_matrix * ob.matrix_world)
+
+                            
+                            file.write('}')
+                            print('Totals hairstrands written: %i' % totalNumberOfHairs)
+                            print('Number of tufts (particle systems)', len(ob.particle_systems))
+
+                                
 
             try:
                 me = ob.to_mesh(scene, True, 'RENDER')
@@ -829,14 +962,14 @@ def write_pov(filename, scene=None, info_callback=None):
             importance = ob.pov.importance_value
             me_materials = me.materials
             me_faces = me.tessfaces[:]
-
+            
             if not me or not me_faces:
                 continue
 
 #############################################
             # Generating a name for object just like materials to be able to use it
             # (baking for now or anything else).
-            # XXX I don‚Äôt understand that ‚Äì¬†if we are here, sel if a non-empty iterable,
+            # XXX I donít understand that ñ†if we are here, sel if a non-empty iterable,
             #     so this condition is always True, IMO -- mont29
             if sel:
                 name_orig = "OB" + ob.name
