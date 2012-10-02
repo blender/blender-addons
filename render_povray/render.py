@@ -1,20 +1,20 @@
-ï»¿ # ***** BEGIN GPL LICENSE BLOCK *****
- #
- # This program is free software; you can redistribute it and/or
- # modify it under the terms of the GNU General Public License
- # as published by the Free Software Foundation; either version 2
- # of the License, or (at your option) any later version.
- #
- # This program is distributed in the hope that it will be useful,
- # but WITHOUT ANY WARRANTY; without even the implied warranty of
- # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- # GNU General Public License for more details.
- #
- # You should have received a copy of the GNU General Public License
- # along with this program; if not, write to the Free Software Foundation,
- # Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- #
- # #**** END GPL LICENSE BLOCK #****
+# ***** BEGIN GPL LICENSE BLOCK *****
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 2
+# of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software Foundation,
+# Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+#
+# #**** END GPL LICENSE BLOCK #****
 
 # <pep8 compliant>
 
@@ -751,7 +751,7 @@ def write_pov(filename, scene=None, info_callback=None):
 #                for ms in ob.material_slots:
 #                    if ms.material != None and ms.link == 'OBJECT':
 #                        # If there is at least one material slot linked to the object
-#                        # and not the data (mesh), always create a new, “private” data instance.
+#                        # and not the data (mesh), always create a new, "private" data instance.
 #                        return True
 #            return False
         # For objects using local material(s) only!
@@ -790,7 +790,7 @@ def write_pov(filename, scene=None, info_callback=None):
         def store(scene, ob, name, dataname, matrix):
             # The Object needs to be written at least once but if its data is
             # already in data_ref this has already been done.
-            # This func returns the “povray” name of the data, or None
+            # This func returns the "povray" name of the data, or None
             # if no writing is needed.
             if ob.is_modified(scene, 'RENDER'):
                 # Data modified.
@@ -816,7 +816,7 @@ def write_pov(filename, scene=None, info_callback=None):
             ob_num += 1
 
             # XXX I moved all those checks here, as there is no need to compute names
-            #     for object we won’t export here!
+            #     for object we won't export here!
             if ob.type in {'LAMP', 'CAMERA', 'EMPTY', 'META', 'ARMATURE', 'LATTICE'}:
                 continue
                    
@@ -969,7 +969,7 @@ def write_pov(filename, scene=None, info_callback=None):
 #############################################
             # Generating a name for object just like materials to be able to use it
             # (baking for now or anything else).
-            # XXX I don’t understand that – if we are here, sel if a non-empty iterable,
+            # XXX I don't understand that:Â if we are here, sel if a non-empty iterable,
             #     so this condition is always True, IMO -- mont29
             if sel:
                 name_orig = "OB" + ob.name
