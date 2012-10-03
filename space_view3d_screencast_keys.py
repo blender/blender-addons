@@ -22,7 +22,7 @@ bl_info = {
     'name': "Screencast Keys",
     'author': 'Paulo Gomes, Bart Crouch, John E. Herrenyo, Gaia Clary, Pablo Vazquez',
     'version': (1, 7),
-    'blender': (2, 6, 3),
+    'blender': (2, 6, 4),
     'location': '3D View > Properties Panel > Screencast Keys',
     'warning': '',
     'description': 'Display keys pressed in the 3D View, '\
@@ -601,7 +601,7 @@ class ScreencastKeysStatus(bpy.types.Operator):
                     (self, context), 'POST_PIXEL')
                 self._handle = context.region.callback_add(draw_callback_px_text,
                     (self, context), 'POST_PIXEL')
-                self._timer = context.window_manager.event_timer_add(0.025,
+                self._timer = context.window_manager.event_timer_add(0.075,
                     context.window)
                 ScreencastKeysStatus.overall_time.insert(0, time.time())
                 context.window_manager.modal_handler_add(self)
