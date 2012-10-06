@@ -99,7 +99,7 @@ def write_armature(context,
 
         if my_children:
             # store the location for the children
-            # to het their relative offset
+            # to get their relative offset
 
             # Write children
             for child_bone in my_children:
@@ -124,15 +124,23 @@ def write_armature(context,
         write_recursive_nodes(key, indent)
 
     else:
-        # Write a dummy parent node
+        # Write a dummy parent node, with a dummy key name
+        # Just be sure it's not used by another bone!
+        i = 0
+        key = "__%d" % i
+        while key in children:
+            i += 1
+            key = "__%d" % i
         file.write("ROOT %s\n" % key)
         file.write("{\n")
         file.write("\tOFFSET 0.0 0.0 0.0\n")
         file.write("\tCHANNELS 0\n")  # Xposition Yposition Zposition Xrotation Yrotation Zrotation
-        key = None
         indent = 1
 
-        write_recursive_nodes(key, indent)
+        # Write children
+        for child_bone in children[None]:
+            serialized_names.append(child_bone)
+            write_recursive_nodes(child_bone, indent)
 
         file.write("}\n")
 

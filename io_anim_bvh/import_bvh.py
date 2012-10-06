@@ -35,7 +35,7 @@ class BVH_Node(object):
         'rest_head_local',  # localspace rest location for the head of this node
         'rest_tail_world',  # worldspace rest location for the tail of this node
         'rest_tail_local',  # worldspace rest location for the tail of this node
-        'channels',  # list of 6 ints, -1 for an unused channel, otherwise an index for the BVH motion data lines, lock triple then rot triple
+        'channels',  # list of 6 ints, -1 for an unused channel, otherwise an index for the BVH motion data lines, loc triple then rot triple
         'rot_order',  # a triple of indices as to the order rotation is applied. [0,1,2] is x/y/z - [None, None, None] if no rotation.
         'rot_order_str',  # same as above but a string 'XYZ' format.
         'anim_data',  # a list one tuple's one for each frame. (locx, locy, locz, rotx, roty, rotz), euler rotation ALWAYS stored xyz order, even when native used.
@@ -45,7 +45,8 @@ class BVH_Node(object):
         'temp',  # use this for whatever you want
         )
 
-    _eul_order_lookup = {(0, 1, 2): 'XYZ',
+    _eul_order_lookup = {(None, None, None): 'XYZ', # XXX Dummy one, no rotation anyway!
+                         (0, 1, 2): 'XYZ',
                          (0, 2, 1): 'XZY',
                          (1, 0, 2): 'YXZ',
                          (1, 2, 0): 'YZX',
