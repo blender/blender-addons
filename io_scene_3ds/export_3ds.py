@@ -831,14 +831,8 @@ def make_mesh_chunk(mesh, matrix, materialDict):
         vert_array = _3ds_array()
         for vert in mesh.vertices:
             vert_array.add(_3ds_point_3d(vert.co))
-        # If the mesh has vertex UVs, create an array of UVs:
-        if mesh.sticky:
-            uv_array = _3ds_array()
-            for uv in mesh.sticky:
-                uv_array.add(_3ds_point_uv(uv.co))
-        else:
-            # no UV at all:
-            uv_array = None
+        # no UV at all:
+        uv_array = None
 
     # create the chunk:
     mesh_chunk = _3ds_chunk(OBJECT_MESH)
