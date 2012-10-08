@@ -195,7 +195,7 @@ class Rig:
         pole_p.lock_scale = True, True, True
 
         # Set up custom properties
-        if self.switch == True:
+        if self.switch is True:
             prop = rna_idprop_ui_prop_get(hand_p, "ikfk_switch", create=True)
             hand_p["ikfk_switch"] = 0.0
             prop["soft_min"] = prop["min"] = 0.0
@@ -246,7 +246,7 @@ class Rig:
         con.name = "ik"
         con.target = self.obj
         con.subtarget = uarm
-        if self.switch == True:
+        if self.switch is True:
             # IK/FK switch driver
             fcurve = con.driver_add("influence")
             driver = fcurve.driver
@@ -261,7 +261,7 @@ class Rig:
         con.name = "ik"
         con.target = self.obj
         con.subtarget = farm
-        if self.switch == True:
+        if self.switch is True:
             # IK/FK switch driver
             fcurve = con.driver_add("influence")
             driver = fcurve.driver
@@ -276,7 +276,7 @@ class Rig:
         con.name = "ik"
         con.target = self.obj
         con.subtarget = hand
-        if self.switch == True:
+        if self.switch is True:
             # IK/FK switch driver
             fcurve = con.driver_add("influence")
             driver = fcurve.driver

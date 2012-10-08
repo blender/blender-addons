@@ -102,7 +102,7 @@ class RenderButtonsPanel():
     @classmethod
     def poll(cls, context):
         rd = context.scene.render
-        return (rd.use_game_engine == False) and (rd.engine in cls.COMPAT_ENGINES)
+        return (rd.use_game_engine is False) and (rd.engine in cls.COMPAT_ENGINES)
 
 
 class MaterialButtonsPanel():
@@ -115,7 +115,7 @@ class MaterialButtonsPanel():
     def poll(cls, context):
         mat = context.material
         rd = context.scene.render
-        return mat and (rd.use_game_engine == False) and (rd.engine in cls.COMPAT_ENGINES)
+        return mat and (rd.use_game_engine is False) and (rd.engine in cls.COMPAT_ENGINES)
 
 
 class TextureButtonsPanel():
@@ -128,7 +128,7 @@ class TextureButtonsPanel():
     def poll(cls, context):
         tex = context.texture
         rd = context.scene.render
-        return tex and (rd.use_game_engine == False) and (rd.engine in cls.COMPAT_ENGINES)
+        return tex and (rd.use_game_engine is False) and (rd.engine in cls.COMPAT_ENGINES)
 
 
 class ObjectButtonsPanel():
@@ -141,7 +141,7 @@ class ObjectButtonsPanel():
     def poll(cls, context):
         obj = context.object
         rd = context.scene.render
-        return obj and (rd.use_game_engine == False) and (rd.engine in cls.COMPAT_ENGINES)
+        return obj and (rd.use_game_engine is False) and (rd.engine in cls.COMPAT_ENGINES)
 
 
 class CameraDataButtonsPanel():
@@ -154,7 +154,7 @@ class CameraDataButtonsPanel():
     def poll(cls, context):
         cam = context.camera
         rd = context.scene.render
-        return cam and (rd.use_game_engine == False) and (rd.engine in cls.COMPAT_ENGINES)
+        return cam and (rd.use_game_engine is False) and (rd.engine in cls.COMPAT_ENGINES)
 
 
 class TextButtonsPanel():
@@ -167,7 +167,7 @@ class TextButtonsPanel():
     def poll(cls, context):
         text = context.space_data
         rd = context.scene.render
-        return text and (rd.use_game_engine == False) and (rd.engine in cls.COMPAT_ENGINES)
+        return text and (rd.use_game_engine is False) and (rd.engine in cls.COMPAT_ENGINES)
 
 
 class RENDER_PT_povray_export_settings(RenderButtonsPanel, bpy.types.Panel):

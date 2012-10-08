@@ -171,7 +171,7 @@ class Rig:
         for bone in bones[1:]:
             pb[bone].lock_location = True, True, True
 
-        if pb[self.org_bones[0]].bone.use_connect == True:
+        if pb[self.org_bones[0]].bone.use_connect is True:
             pb[bones[0]].lock_location = True, True, True
 
         pb[ctrl].lock_scale = True, False, True

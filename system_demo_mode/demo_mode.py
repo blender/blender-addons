@@ -390,7 +390,7 @@ class DemoMode(bpy.types.Operator):
             demo_mode_temp_file()  # play this once through then never again
 
         # toggle
-        if DemoMode.enabled and DemoMode.first_run == False:
+        if DemoMode.enabled and DemoMode.first_run is False:
             # this actually cancells the previous running instance
             # should never happen now, DemoModeControl is for this.
             return {'CANCELLED'}
@@ -409,7 +409,7 @@ class DemoMode(bpy.types.Operator):
     # call from DemoModeControl
     @classmethod
     def disable(cls):
-        if cls.enabled and cls.first_run == False:
+        if cls.enabled and cls.first_run is False:
             # this actually cancells the previous running instance
             # should never happen now, DemoModeControl is for this.
             cls.enabled = False

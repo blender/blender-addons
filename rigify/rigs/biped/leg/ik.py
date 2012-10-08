@@ -105,7 +105,7 @@ class Rig:
         heel = None
         rocker = None
         for b in self.obj.data.bones[leg_bones[1]].children:
-            if b.use_connect == True:
+            if b.use_connect is True:
                 if len(b.children) >= 1 and has_connected_children(b):
                     foot = b.name
                 else:
@@ -120,7 +120,7 @@ class Rig:
         # Get the toe
         toe = None
         for b in self.obj.data.bones[foot].children:
-            if b.use_connect == True:
+            if b.use_connect is True:
                 toe = b.name
 
         # Get toe
@@ -373,7 +373,7 @@ class Rig:
         pole_p.lock_scale = True, True, True
 
         # Set up custom properties
-        if self.switch == True:
+        if self.switch is True:
             prop = rna_idprop_ui_prop_get(foot_p, "ikfk_switch", create=True)
             foot_p["ikfk_switch"] = 0.0
             prop["soft_min"] = prop["min"] = 0.0
@@ -495,7 +495,7 @@ class Rig:
         con.name = "ik"
         con.target = self.obj
         con.subtarget = thigh
-        if self.switch == True:
+        if self.switch is True:
             # IK/FK switch driver
             fcurve = con.driver_add("influence")
             driver = fcurve.driver
@@ -510,7 +510,7 @@ class Rig:
         con.name = "ik"
         con.target = self.obj
         con.subtarget = shin
-        if self.switch == True:
+        if self.switch is True:
             # IK/FK switch driver
             fcurve = con.driver_add("influence")
             driver = fcurve.driver
@@ -525,7 +525,7 @@ class Rig:
         con.name = "ik"
         con.target = self.obj
         con.subtarget = foot_ik_target
-        if self.switch == True:
+        if self.switch is True:
             # IK/FK switch driver
             fcurve = con.driver_add("influence")
             driver = fcurve.driver

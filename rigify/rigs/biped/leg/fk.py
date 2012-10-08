@@ -54,7 +54,7 @@ class Rig:
         foot = None
         heel = None
         for b in self.obj.data.bones[leg_bones[1]].children:
-            if b.use_connect == True:
+            if b.use_connect is True:
                 if len(b.children) >= 1 and has_connected_children(b):
                     foot = b.name
                 else:
@@ -66,7 +66,7 @@ class Rig:
         # Get the toe
         toe = None
         for b in self.obj.data.bones[foot].children:
-            if b.use_connect == True:
+            if b.use_connect is True:
                 toe = b.name
 
         # Get the toe

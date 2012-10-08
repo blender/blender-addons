@@ -822,7 +822,7 @@ def write_pov(filename, scene=None, info_callback=None):
                    
             # Export Hair
 
-            if hasattr(ob, 'particle_systems') != False:
+            if hasattr(ob, 'particle_systems'):
                 for pSys in ob.particle_systems:
                     if not pSys.settings.use_render_emitter:
                         continue #don't render mesh

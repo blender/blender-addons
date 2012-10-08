@@ -101,7 +101,7 @@ def _property_chart_draw(self, context):
             prop_found = False
             for attr_string in strings:
                 prop_pairs.append(obj_prop_get(obj, attr_string))
-                if prop_found == False and prop_pairs[-1] != (None, None):
+                if prop_found is False and prop_pairs[-1] != (None, None):
                     prop_found = True
 
             if prop_found:

@@ -477,7 +477,6 @@ def process_next_chunk(file, previous_chunk, importedObjects, IMAGE_SEARCH):
                 ## preparando para receber o proximo objeto
                 contextMeshMaterials = []  # matname:[face_idxs]
                 contextMeshUV = None
-                #contextMesh.vertexUV = 1 # Make sticky coords.
                 # Reset matrix
                 contextMatrix_rot = None
                 #contextMatrix_tx = None

@@ -85,7 +85,7 @@ def vrmlFormat(data):
                 q = not q  # invert
 
             elif c == '#':
-                if q == False:
+                if q is False:
                     return l[:i - 1]
 
         return l
@@ -2608,7 +2608,7 @@ def load_web3d(path,
                 node.blendObject.animation_data.action = action
 
     # Add in hierarchy
-    if PREF_FLAT == False:
+    if PREF_FLAT is False:
         child_dict = {}
         for node, ancestry in all_nodes:
             if node.blendObject:
