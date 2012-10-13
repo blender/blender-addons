@@ -25,10 +25,9 @@ from math import pi, cos, sin
 from mathutils import Vector, Matrix
 from copy import copy
 
-# These are variables, which contain the name of the PDB file and
-# the path of the PDB file.
-# They are used almost everywhere, which is the reason why they
-# should stay global. First, they are empty and get 'filled' directly
+# This variable contains the path of the PDB file.
+# It is used almost everywhere, which explains why it
+# should stay global. First, it is empty and gets 'filled' directly
 # after having chosen the PDB file (see 'class LoadPDB' further below).
 
 ATOM_PDB_FILEPATH = ""
@@ -1001,7 +1000,7 @@ def DEF_atom_pdb_main(use_mesh,Ball_azimuth,Ball_zenith,
 
         # Rotate the camera around its axis by 90° such that we have a nice
         # camera position and view onto the object.
-        bpy.ops.transform.rotate(value=(90.0*2*math.pi/360.0,),
+        bpy.ops.transform.rotate(value=(90.0*2*math.pi/360.0),
                                  axis=object_camera_vec,
                                  constraint_axis=(False, False, False),
                                  constraint_orientation='GLOBAL',
