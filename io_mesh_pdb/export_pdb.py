@@ -74,14 +74,16 @@ def DEF_atom_pdb_export(obj_type):
 
         if len(obj.children) != 0:
             for vertex in obj.data.vertices:
+                location = obj.matrix_world*vertex.co
                 list_atoms.append(CLASS_atom_pdb_atoms_export(
                                                        name,
-                                                       obj.location+vertex.co))
+                                                       location))
         else:
             if not obj.parent:
+                location = obj.location
                 list_atoms.append(CLASS_atom_pdb_atoms_export(
                                                        name,
-                                                       obj.location))
+                                                       location))
 
     pdb_file_p = open(ATOM_PDB_FILEPATH, "w")
     pdb_file_p.write(ATOM_PDB_PDBTEXT)
