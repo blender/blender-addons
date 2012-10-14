@@ -29,7 +29,7 @@ from . import import_pdb
 
 ATOM_PDB_FILEPATH = ""
 ATOM_PDB_PDBTEXT  = (  "REMARK This pdb file has been created with Blender "
-                     + "and the Atomic Blender script\n"
+                     + "and the addon Atomic Blender - PDB\n"
                      + "REMARK For more details see wiki.blender.org/index.php/Extensions:2.6/Py/Scripts/Import-Export/PDB\n"
                      + "REMARK\n"
                      + "REMARK\n")
