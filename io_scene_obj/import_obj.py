@@ -68,7 +68,7 @@ def obj_image_load(imagepath, DIR, recursive):
     return load_image(imagepath, DIR, recursive=recursive, place_holder=True)
 
 
-def create_materials(filepath, material_libs, unique_materials, unique_material_images, use_image_search):
+def create_materials(filepath, material_libs, unique_materials, unique_material_images, use_image_search, float_func):
     """
     Create all the used materials in this obj,
     assign colors and images to the materials from all referenced material libs
@@ -203,17 +203,17 @@ def create_materials(filepath, material_libs, unique_materials, unique_material_
                     line_split = line.split()
                     line_lower = line.lower().lstrip()
                     if line_lower.startswith(b'ka'):
-                        context_material.mirror_color = float(line_split[1]), float(line_split[2]), float(line_split[3])
+                        context_material.mirror_color = float_func(line_split[1]), float_func(line_split[2]), float_func(line_split[3])
                     elif line_lower.startswith(b'kd'):
-                        context_material.diffuse_color = float(line_split[1]), float(line_split[2]), float(line_split[3])
+                        context_material.diffuse_color = float_func(line_split[1]), float_func(line_split[2]), float_func(line_split[3])
                     elif line_lower.startswith(b'ks'):
-                        context_material.specular_color = float(line_split[1]), float(line_split[2]), float(line_split[3])
+                        context_material.specular_color = float_func(line_split[1]), float_func(line_split[2]), float_func(line_split[3])
                     elif line_lower.startswith(b'ns'):
-                        context_material.specular_hardness = int((float(line_split[1]) * 0.51))
+                        context_material.specular_hardness = int((float_func(line_split[1]) * 0.51))
                     elif line_lower.startswith(b'ni'):  # Refraction index
-                        context_material.raytrace_transparency.ior = max(1, min(float(line_split[1]), 3))  # between 1 and 3
+                        context_material.raytrace_transparency.ior = max(1, min(float_func(line_split[1]), 3))  # between 1 and 3
                     elif line_lower.startswith((b'd', b'tr')):
-                        context_material.alpha = float(line_split[1])
+                        context_material.alpha = float_func(line_split[1])
                         context_material.use_transparency = True
                         context_material.transparency_method = 'Z_TRANSPARENCY'
                     elif line_lower.startswith(b'tf'):
@@ -1080,7 +1080,7 @@ def load(operator, context, filepath,
     time_sub = time_new
 
     print('\tloading materials and images...')
-    create_materials(filepath, material_libs, unique_materials, unique_material_images, use_image_search)
+    create_materials(filepath, material_libs, unique_materials, unique_material_images, use_image_search, float_func)
 
     time_new = time.time()
     print("%.4f sec" % (time_new - time_sub))
