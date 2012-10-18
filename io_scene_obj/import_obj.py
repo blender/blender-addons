@@ -339,7 +339,7 @@ def create_materials(filepath, material_libs, unique_materials, unique_material_
                         if img_filepath:
                             load_material_image(context_material, context_material_name, img_filepath, 'D')
 
-                    elif line_lower.startswith(b'refl'):  # reflectionmap
+                    elif line_lower.startswith((b'map_refl', b'refl')):  # reflectionmap
                         img_filepath = line_value(line.split())
                         if img_filepath:
                             load_material_image(context_material, context_material_name, img_filepath, 'refl')
