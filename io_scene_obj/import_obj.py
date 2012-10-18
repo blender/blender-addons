@@ -159,9 +159,8 @@ def create_materials(filepath, material_libs, unique_materials, unique_material_
             mtex.use_map_color_diffuse = False
 
             mtex.texture = texture
-            mtex.texture_coords = 'UV'
-            mtex.use_map_reflect = True
-
+            mtex.texture_coords = 'REFLECTION'
+            mtex.use_map_color_diffuse = True
         else:
             raise Exception("invalid type %r" % type)
 
@@ -212,10 +211,12 @@ def create_materials(filepath, material_libs, unique_materials, unique_material_
                         context_material.specular_hardness = int((float_func(line_split[1]) * 0.51))
                     elif line_lower.startswith(b'ni'):  # Refraction index
                         context_material.raytrace_transparency.ior = max(1, min(float_func(line_split[1]), 3))  # between 1 and 3
-                    elif line_lower.startswith((b'd', b'tr')):
+                    elif line_lower.startswith(b'd'):  # dissolve (trancparency)
                         context_material.alpha = float_func(line_split[1])
                         context_material.use_transparency = True
                         context_material.transparency_method = 'Z_TRANSPARENCY'
+                    elif line_lower.startswith(b'tr'):  # trancelucency
+                        context_material.translucency = float_func(line_split[1])
                     elif line_lower.startswith(b'tf'):
                         # rgb, filter color, blender has no support for this.
                         pass
