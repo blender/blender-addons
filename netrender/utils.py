@@ -185,7 +185,7 @@ def clientConnection(netsettings, report = None, scan = True, timeout = 5):
             conn = HTTPConnection(address, port, timeout = timeout)
 
         if conn:
-            if clientVerifyVersion(conn):
+            if clientVerifyVersion(conn, timeout):
                 return conn
             else:
                 conn.close()
@@ -198,8 +198,8 @@ def clientConnection(netsettings, report = None, scan = True, timeout = 5):
             print(err)
             return None
 
-def clientVerifyVersion(conn):
-    with ConnectionContext():
+def clientVerifyVersion(conn, timeout):
+    with ConnectionContext(timeout):
         conn.request("GET", "/version")
     response = conn.getresponse()
 
