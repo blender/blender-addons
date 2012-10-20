@@ -51,7 +51,7 @@ bl_info = {
 
 MAJOR_VERSION = 1
 MINOR_VERSION = 13
-SUB_VERSION = 2
+SUB_VERSION = 3
 
 #
 #
@@ -117,8 +117,11 @@ T_Rigify = 0x1000
 T_Opcns = 0x2000
 T_Symm = 0x4000
 
-toggle = ( T_EnforceVersion + T_Mesh + T_Armature + 
+DefaultToggle = ( T_EnforceVersion + T_Mesh + T_Armature + 
     T_Shapekeys + T_ShapeDrivers + T_Proxy + T_Clothes + T_Rigify )
+    
+toggle = DefaultToggle
+toggleSettings = toggle
 
 #
 #    Dictionaries
@@ -2455,7 +2458,7 @@ ConfigFile = '~/mhx_import.cfg'
 
 
 def readDefaults():
-    global toggle, theScale
+    global toggle, toggleSettings, theScale
     path = os.path.realpath(os.path.expanduser(ConfigFile))
     try:
         fp = open(path, 'rU')
@@ -2473,10 +2476,11 @@ def readDefaults():
             except:
                 print('Configuration file "%s" is corrupt' % path)                
     fp.close()
+    toggleSettings = toggle
     return
 
 def writeDefaults():
-    global toggle, theScale
+    global toggleSettings, theScale
     path = os.path.realpath(os.path.expanduser(ConfigFile))
     try:
         fp = open(path, 'w')
@@ -2484,7 +2488,7 @@ def writeDefaults():
     except:
         print('Cannot open "%s" for writing' % path)
         return
-    fp.write("%x %f Graphicall" % (toggle, theScale))
+    fp.write("%x %f Graphicall" % (toggleSettings, theScale))
     fp.close()
     return
 
@@ -2908,21 +2912,36 @@ class ImportMhx(bpy.types.Operator, ImportHelper):
     bl_region_type = "WINDOW"
     bl_options = {'UNDO'}
 
-    scale = FloatProperty(name="Scale", description="Default meter, decimeter = 1.0", default = theScale)
     filename_ext = ".mhx"
     filter_glob = StringProperty(default="*.mhx", options={'HIDDEN'})
     filepath = StringProperty(subtype='FILE_PATH')
-
+    
+    scale = FloatProperty(name="Scale", description="Default meter, decimeter = 1.0", default = theScale)
+    advanced = BoolProperty(name="Advanced settings", description="Use advanced import settings", default=False)
     for (prop, name, desc, flag) in MhxBoolProps:
-        expr = '%s = BoolProperty(name="%s", description="%s", default=toggle&%s)' % (prop, name, desc, flag)
+        expr = '%s = BoolProperty(name="%s", description="%s", default=toggleSettings&%s)' % (prop, name, desc, flag)
         exec(expr)
+    
+    
+    def draw(self, context):
+        layout = self.layout
+        layout.prop(self, "scale")
+        layout.prop(self, "advanced")
+        if self.advanced:
+            for (prop, name, desc, flag) in MhxBoolProps:
+                layout.prop(self, prop)
+
         
     def execute(self, context):
-        global toggle, theScale, MhxBoolProps
-        toggle = T_Armature
-        for (prop, name, desc, flag) in MhxBoolProps:
-            expr = '(%s if self.%s else 0)' % (flag, prop)
-            toggle |=  eval(expr)
+        global toggle, toggleSettings, theScale, MhxBoolProps
+        if not self.advanced:
+            toggle = DefaultToggle
+        else:
+            toggle = T_Armature
+            for (prop, name, desc, flag) in MhxBoolProps:
+                expr = '(%s if self.%s else 0)' % (flag, prop)
+                toggle |=  eval(expr)
+            toggleSettings = toggle
         print("execute flags %x" % toggle)
         theScale = self.scale
 
@@ -2932,8 +2951,11 @@ class ImportMhx(bpy.types.Operator, ImportHelper):
         except MhxError:
             print("Error when loading MHX file:\n" + theMessage)
 
-        writeDefaults()
+        if self.advanced:
+            writeDefaults()
+            self.advanced = False
         return {'FINISHED'}
+
 
     def invoke(self, context, event):
         global toggle, theScale, MhxBoolProps
