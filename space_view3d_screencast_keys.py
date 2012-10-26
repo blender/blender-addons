@@ -506,7 +506,8 @@ class ScreencastKeysStatus(bpy.types.Operator):
     bl_description = "Display keys pressed in the 3D View"
     last_activity = 'NONE'
 
-    _handle = None
+    _handle_a = None
+    _handle_b = None
     _timer = None
 
     def modal(self, context, event):
@@ -575,7 +576,8 @@ class ScreencastKeysStatus(bpy.types.Operator):
         if not context.window_manager.screencast_keys_keys:
             # stop script
             context.window_manager.event_timer_remove(self._timer)
-            context.region.callback_remove(self._handle)
+            context.region.callback_remove(self._handle_a)
+            context.region.callback_remove(self._handle_b)
             return {'CANCELLED'}
 
         return {'PASS_THROUGH'}
@@ -583,7 +585,8 @@ class ScreencastKeysStatus(bpy.types.Operator):
     def cancel(self, context):
         if context.window_manager.screencast_keys_keys:
             context.window_manager.event_timer_remove(self._timer)
-            context.region.callback_remove(self._handle)
+            context.region.callback_remove(self._handle_a)
+            context.region.callback_remove(self._handle_b)
             context.window_manager.screencast_keys_keys = False
         return {'CANCELLED'}
 
@@ -597,9 +600,9 @@ class ScreencastKeysStatus(bpy.types.Operator):
                 self.mouse = []
                 self.mouse_time = []
                 ScreencastKeysStatus.overall_time = []
-                self._handle = context.region.callback_add(draw_callback_px_box,
+                self._handle_a = context.region.callback_add(draw_callback_px_box,
                     (self, context), 'POST_PIXEL')
-                self._handle = context.region.callback_add(draw_callback_px_text,
+                self._handle_b = context.region.callback_add(draw_callback_px_text,
                     (self, context), 'POST_PIXEL')
                 self._timer = context.window_manager.event_timer_add(0.075,
                     context.window)
