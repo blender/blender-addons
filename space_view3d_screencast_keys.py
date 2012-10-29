@@ -223,6 +223,12 @@ def draw_callback_px_box(self, context):
     self.key = self.key[:final]
     self.time = self.time[:final]
 
+
+def draw_callback_px(self, context):
+    draw_callback_px_text(self, context)
+    draw_callback_px_box(self, context)
+
+
 def draw_last_operator(context, pos_x, pos_y):
 
     wm = context.window_manager
@@ -506,8 +512,7 @@ class ScreencastKeysStatus(bpy.types.Operator):
     bl_description = "Display keys pressed in the 3D View"
     last_activity = 'NONE'
 
-    _handle_a = None
-    _handle_b = None
+    _handle = None
     _timer = None
 
     def modal(self, context, event):
@@ -576,8 +581,7 @@ class ScreencastKeysStatus(bpy.types.Operator):
         if not context.window_manager.screencast_keys_keys:
             # stop script
             context.window_manager.event_timer_remove(self._timer)
-            context.region.callback_remove(self._handle_a)
-            context.region.callback_remove(self._handle_b)
+            context.region.callback_remove(self._handle)
             return {'CANCELLED'}
 
         return {'PASS_THROUGH'}
@@ -585,8 +589,7 @@ class ScreencastKeysStatus(bpy.types.Operator):
     def cancel(self, context):
         if context.window_manager.screencast_keys_keys:
             context.window_manager.event_timer_remove(self._timer)
-            context.region.callback_remove(self._handle_a)
-            context.region.callback_remove(self._handle_b)
+            context.region.callback_remove(self._handle)
             context.window_manager.screencast_keys_keys = False
         return {'CANCELLED'}
 
@@ -600,9 +603,7 @@ class ScreencastKeysStatus(bpy.types.Operator):
                 self.mouse = []
                 self.mouse_time = []
                 ScreencastKeysStatus.overall_time = []
-                self._handle_a = context.region.callback_add(draw_callback_px_box,
-                    (self, context), 'POST_PIXEL')
-                self._handle_b = context.region.callback_add(draw_callback_px_text,
+                self._handle = context.region.callback_add(draw_callback_px,
                     (self, context), 'POST_PIXEL')
                 self._timer = context.window_manager.event_timer_add(0.075,
                     context.window)
