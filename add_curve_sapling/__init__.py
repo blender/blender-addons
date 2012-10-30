@@ -378,7 +378,7 @@ class AddTree(bpy.types.Operator):
     presetName = StringProperty(name='Preset Name',
         description='The name of the preset to be saved',
         default='',
-        subtype='FILENAME', update=no_update_tree)
+        subtype='FILE_NAME', update=no_update_tree)
     limitImport = BoolProperty(name='Limit Import',
         description='Limited imported tree to 2 levels & no leaves for speed',
         default=True, update=no_update_tree)

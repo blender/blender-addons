@@ -762,7 +762,7 @@ class PaletteProps(bpy.types.PropertyGroup):
         return None
 
     palette_name = StringProperty(
-        name="Palette Name", default="Preset", subtype="FILENAME")
+        name="Palette Name", default="Preset", subtype='FILE_NAME')
 
     color_name = StringProperty(
         name="", description="Color Name", default="Untitled", update=update_color_name)
