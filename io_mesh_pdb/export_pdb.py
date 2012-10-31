@@ -60,11 +60,6 @@ def DEF_atom_pdb_export(obj_type):
                     name = "X"
                 else:
                     name = element[2]
-            elif element[1][:3] in obj.name:
-                if element[2] == "Vac":
-                    name = "X"
-                else:
-                    name = element[2]
         
         if name == "":
             if obj_type == "0":
