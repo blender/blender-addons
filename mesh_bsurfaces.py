@@ -1561,7 +1561,7 @@ class GPENCIL_OT_SURFSK_add_surface(bpy.types.Operator):
         
         bpy.ops.object.editmode_toggle('INVOKE_REGION_WIN')
         bpy.ops.mesh.select_all(action='DESELECT')
-        bpy.ops.mesh.select_by_number_vertices(type='NOTEQUAL')
+        bpy.ops.mesh.select_face_by_sides(type='NOTEQUAL')
         bpy.ops.mesh.delete()
         bpy.ops.object.editmode_toggle('INVOKE_REGION_WIN')
         
