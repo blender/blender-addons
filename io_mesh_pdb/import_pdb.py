@@ -711,7 +711,7 @@ def DEF_atom_pdb_main(use_mesh,
         camera = bpy.data.objects.new("A_camera", camera_data)
         camera.location = camera_xyz_vec
         camera.layers = current_layers
-        bpy.context.scene.objects.link(camera) 
+        bpy.context.scene.objects.link(camera)
 
         # Here the camera is rotated such it looks towards the center of
         # the object. The [0.0, 0.0, 1.0] vector along the z axis
@@ -722,11 +722,12 @@ def DEF_atom_pdb_main(use_mesh,
         axis_vec               = z_axis_vec.cross(object_camera_vec)
         # Rotate 'axis_vec' by 'angle' and convert this to euler parameters.
         # 4 is the size of the matrix.
-        euler                  = Matrix.Rotation(angle, 4, axis_vec).to_euler()
-        camera.rotation_euler  = euler
+        camera.rotation_euler  = Matrix.Rotation(angle, 4, axis_vec).to_euler()
 
         # Rotate the camera around its axis by 90° such that we have a nice
         # camera position and view onto the object.
+        bpy.ops.object.select_all(action='DESELECT')        
+        camera.select = True 
         bpy.ops.transform.rotate(value=(90.0*2*math.pi/360.0),
                                  axis=object_camera_vec,
                                  constraint_axis=(False, False, False),
