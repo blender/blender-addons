@@ -457,12 +457,12 @@ def write_file(filepath, objects, scene,
             if EXPORT_POLYGROUPS:
                 # Retrieve the list of vertex groups
                 vertGroupNames = ob.vertex_groups.keys()
-
-                currentVGroup = ''
-                # Create a dictionary keyed by face id and listing, for each vertex, the vertex groups it belongs to
-                vgroupsMap = [[] for _i in range(len(me_verts))]
-                for v_idx, v_ls in enumerate(vgroupsMap):
-                    v_ls[:] = [(vertGroupNames[g.group], g.weight) for g in me_verts[v_idx].groups]
+                if vertGroupNames:
+                    currentVGroup = ''
+                    # Create a dictionary keyed by face id and listing, for each vertex, the vertex groups it belongs to
+                    vgroupsMap = [[] for _i in range(len(me_verts))]
+                    for v_idx, v_ls in enumerate(vgroupsMap):
+                        v_ls[:] = [(vertGroupNames[g.group], g.weight) for g in me_verts[v_idx].groups]
 
             for f, f_index in face_index_pairs:
                 f_smooth = f.use_smooth
@@ -480,7 +480,7 @@ def write_file(filepath, objects, scene,
 
                 # Write the vertex group
                 if EXPORT_POLYGROUPS:
-                    if ob.vertex_groups:
+                    if vertGroupNames:
                         # find what vertext group the face belongs to
                         vgroup_of_face = findVertexGroupName(f, vgroupsMap)
                         if vgroup_of_face != currentVGroup:
