@@ -32,9 +32,9 @@ from . import svg_colors
 # TODO: "em" and "ex" aren't actually supported
 SVGUnits = {"": 1.0,
             "px": 1.0,
-            "in": 90.0 / 12.0 * 0.3048,
-            "mm": 90.0 / 1000.0,
-            "cm": 90.0 / 100.0,
+            "in": 90.0,
+            "mm": 90.0 / 25.4,
+            "cm": 90.0 / 2.54,
             "pt": 1.25,
             "pc": 15.0,
             "em": 1.0,
@@ -1781,8 +1781,8 @@ class SVGLoader(SVGGeometryContainer):
         node = xml.dom.minidom.parse(filepath)
 
         m = Matrix()
-        m = m * Matrix.Scale(1.0 / 90.0, 4, Vector((1.0, 0.0, 0.0)))
-        m = m * Matrix.Scale(-1.0 / 90.0, 4, Vector((0.0, 1.0, 0.0)))
+        m = m * Matrix.Scale(1.0 / 90.0 * 0.3048 / 12.0, 4, Vector((1.0, 0.0, 0.0)))
+        m = m * Matrix.Scale(-1.0 / 90.0 * 0.3048 / 12.0, 4, Vector((0.0, 1.0, 0.0)))
 
         rect = (1, 1)
 
