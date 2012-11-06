@@ -32,9 +32,9 @@ from . import svg_colors
 # TODO: "em" and "ex" aren't actually supported
 SVGUnits = {"": 1.0,
             "px": 1.0,
-            "in": 90,
-            "mm": 90 / 25.4,
-            "cm": 90 / 2.54,
+            "in": 90.0 / 12.0 * 0.3048,
+            "mm": 90.0 / 1000.0,
+            "cm": 90.0 / 100.0,
             "pt": 1.25,
             "pc": 15.0,
             "em": 1.0,
