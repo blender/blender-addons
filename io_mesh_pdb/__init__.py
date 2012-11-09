@@ -24,7 +24,7 @@
 #
 #  Start of project              : 2011-08-31 by Clemens Barth
 #  First publication in Blender  : 2011-11-11
-#  Last modified                 : 2012-11-03
+#  Last modified                 : 2012-11-09
 #
 #  Acknowledgements 
 #  ================
@@ -49,10 +49,7 @@ bl_info = {
     "category": "Import-Export"
 }
 
-import os
-import io
 import bpy
-import bmesh
 from bpy.types import Operator, Panel
 from bpy_extras.io_utils import ImportHelper, ExportHelper
 from bpy.props import (StringProperty,
@@ -67,9 +64,8 @@ from . import export_pdb
 # -----------------------------------------------------------------------------
 #                                                                           GUI
 
-
 # This is the class for the file dialog of the importer.
-class CLASS_ImportPDB(Operator, ImportHelper):
+class ImportPDB(Operator, ImportHelper):
     bl_idname = "import_mesh.pdb"
     bl_label  = "Import Protein Data Bank(*.pdb)"
     bl_options = {'PRESET', 'UNDO'}
@@ -183,7 +179,7 @@ class CLASS_ImportPDB(Operator, ImportHelper):
         filepath_pdb = bpy.path.abspath(self.filepath)
 
         # Execute main routine                
-        atom_number = import_pdb.DEF_atom_pdb_main(
+        atom_number = import_pdb.import_pdb(
                       self.use_mesh,
                       self.mesh_azimuth,
                       self.mesh_zenith,
@@ -206,9 +202,8 @@ class CLASS_ImportPDB(Operator, ImportHelper):
         return {'FINISHED'}
 
 
-
 # This is the class for the file dialog of the exporter.
-class CLASS_ExportPDB(Operator, ExportHelper):
+class ExportPDB(Operator, ExportHelper):
     bl_idname = "export_mesh.pdb"
     bl_label  = "Export Protein Data Bank(*.pdb)"
     filename_ext = ".pdb"
@@ -230,31 +225,29 @@ class CLASS_ExportPDB(Operator, ExportHelper):
         row.prop(self, "atom_pdb_export_type")
 
     def execute(self, context):
-        # This is in order to solve this strange 'relative path' thing.
-        export_pdb.ATOM_PDB_FILEPATH = bpy.path.abspath(self.filepath)
-        export_pdb.DEF_atom_pdb_export(self.atom_pdb_export_type)
+        export_pdb.export_pdb(self.atom_pdb_export_type,
+                              bpy.path.abspath(self.filepath))
 
         return {'FINISHED'}
 
 
 # The entry into the menu 'file -> import'
-def DEF_menu_func_import(self, context):
-    self.layout.operator(CLASS_ImportPDB.bl_idname, text="Protein Data Bank (.pdb)")
+def menu_func_import(self, context):
+    self.layout.operator(ImportPDB.bl_idname, text="Protein Data Bank (.pdb)")
 
 # The entry into the menu 'file -> export'
-def DEF_menu_func_export(self, context):
-    self.layout.operator(CLASS_ExportPDB.bl_idname, text="Protein Data Bank (.pdb)")
-
+def menu_func_export(self, context):
+    self.layout.operator(ExportPDB.bl_idname, text="Protein Data Bank (.pdb)")
 
 def register():
     bpy.utils.register_module(__name__)
-    bpy.types.INFO_MT_file_import.append(DEF_menu_func_import)
-    bpy.types.INFO_MT_file_export.append(DEF_menu_func_export)
+    bpy.types.INFO_MT_file_import.append(menu_func_import)
+    bpy.types.INFO_MT_file_export.append(menu_func_export)
     
 def unregister():
     bpy.utils.unregister_module(__name__)
-    bpy.types.INFO_MT_file_import.remove(DEF_menu_func_import)
-    bpy.types.INFO_MT_file_export.remove(DEF_menu_func_export)
+    bpy.types.INFO_MT_file_import.remove(menu_func_import)
+    bpy.types.INFO_MT_file_export.remove(menu_func_export)
 
 if __name__ == "__main__":
 

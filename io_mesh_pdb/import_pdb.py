@@ -17,11 +17,8 @@
 # ##### END GPL LICENSE BLOCK #####
 
 import bpy
-import io
-import math
 import os
-import copy
-from math import pi, cos, sin
+from math import pi, cos, sin, sqrt, ceil
 from mathutils import Vector, Matrix
 from copy import copy
 
@@ -40,7 +37,7 @@ from copy import copy
 # charge states for any atom are listed, if existing.
 # The list is fixed and cannot be changed ... (see below)
 
-ATOM_PDB_ELEMENTS_DEFAULT = (
+ELEMENTS_DEFAULT = (
 ( 1,      "Hydrogen",        "H", (  1.0,   1.0,   1.0), 0.32, 0.32, 0.79 , -1 , 1.54 ),
 ( 2,        "Helium",       "He", ( 0.85,   1.0,   1.0), 0.93, 0.93, 0.49 ),
 ( 3,       "Lithium",       "Li", (  0.8,  0.50,   1.0), 1.23, 1.23, 2.05 ,  1 , 0.68 ),
@@ -152,14 +149,14 @@ ATOM_PDB_ELEMENTS_DEFAULT = (
 # This list here contains all data of the elements and will be used during
 # runtime. It is a list of classes.
 # During executing Atomic Blender, the list will be initialized with the fixed
-# data from above via the class structure below (CLASS_atom_pdb_Elements). We
+# data from above via the class structure below (ElementProp). We
 # have then one fixed list (above), which will never be changed, and a list of
 # classes with same data. The latter can be modified via loading a separate
 # custom data file.
-ATOM_PDB_ELEMENTS = []
+ELEMENTS = []
 
 # This is the class, which stores the properties for one element.
-class CLASS_atom_pdb_Elements(object):
+class ElementProp(object):
     __slots__ = ('number', 'name', 'short_name', 'color', 'radii', 'radii_ionic')
     def __init__(self, number, name, short_name, color, radii, radii_ionic):
         self.number = number
@@ -170,7 +167,7 @@ class CLASS_atom_pdb_Elements(object):
         self.radii_ionic = radii_ionic
 
 # This is the class, which stores the properties of one atom.
-class CLASS_atom_pdb_atom(object):  
+class AtomProp(object):  
     __slots__ = ('element', 'name', 'location', 'radius', 'color', 'material')
     def __init__(self, element, name, location, radius, color, material):
         self.element = element
@@ -181,7 +178,7 @@ class CLASS_atom_pdb_atom(object):
         self.material = material
 
 # This is the class, which stores the two atoms of one stick.
-class CLASS_atom_pdb_stick(object):
+class StickProp(object):
     __slots__ = ('atom1', 'atom2', 'number', 'dist')
     def __init__(self, atom1, atom2, number, dist):
         self.atom1 = atom1
@@ -189,15 +186,14 @@ class CLASS_atom_pdb_stick(object):
         self.number = number
         self.dist = dist
 
-
 # -----------------------------------------------------------------------------
 #                                                           Some basic routines  
 
-def DEF_atom_pdb_read_elements():
+def read_elements():
 
-    ATOM_PDB_ELEMENTS[:] = []
+    ELEMENTS[:] = []
 
-    for item in ATOM_PDB_ELEMENTS_DEFAULT:
+    for item in ELEMENTS_DEFAULT:
 
         # All three radii into a list
         radii = [item[4],item[5],item[6]]
@@ -205,22 +201,22 @@ def DEF_atom_pdb_read_elements():
         # empty list.
         radii_ionic = []
 
-        li = CLASS_atom_pdb_Elements(item[0],item[1],item[2],item[3],
+        li = ElementProp(item[0],item[1],item[2],item[3],
                                      radii,radii_ionic)
-        ATOM_PDB_ELEMENTS.append(li)
+        ELEMENTS.append(li)
 
 
 # filepath_pdb: path to pdb file
 # radiustype  : '0' default
 #               '1' atomic radii
 #               '2' van der Waals
-def DEF_atom_pdb_read_pdb_file(filepath_pdb,radiustype):
+def read_pdb_file(filepath_pdb, radiustype):
 
     # The list of all atoms as read from the PDB file.
     all_atoms  = []
 
     # Open the pdb file ...
-    filepath_pdb_p = io.open(filepath_pdb, "r")
+    filepath_pdb_p = open(filepath_pdb, "r")
 
     #Go to the line, in which "ATOM" or "HETATM" appears.
     for line in filepath_pdb_p:
@@ -249,7 +245,7 @@ def DEF_atom_pdb_read_pdb_file(filepath_pdb,radiustype):
             color = [0,0,0]
             location = Vector((0,0,0))
             # Append the TER into the list. Material remains empty so far.
-            all_atoms.append(CLASS_atom_pdb_atom(short_name,
+            all_atoms.append(AtomProp(short_name,
                                                  name,
                                                  location,
                                                  radius,
@@ -283,7 +279,7 @@ def DEF_atom_pdb_read_pdb_file(filepath_pdb,radiustype):
                 
                 if short_name2.isalpha() == True:
                     FOUND = False
-                    for element in ATOM_PDB_ELEMENTS:
+                    for element in ELEMENTS:
                         if str.upper(short_name2) == str.upper(element.short_name):
                             FOUND = True
                             break
@@ -291,10 +287,9 @@ def DEF_atom_pdb_read_pdb_file(filepath_pdb,radiustype):
                         short_name = short_name2
             # ....................................................... to here.
             
-
             # Go through all elements and find the element of the current atom.
             FLAG_FOUND = False
-            for element in ATOM_PDB_ELEMENTS:
+            for element in ELEMENTS:
                 if str.upper(short_name) == str.upper(element.short_name):
                     # Give the atom its proper names, color and radius:
                     short_name = str.upper(element.short_name)
@@ -313,16 +308,16 @@ def DEF_atom_pdb_read_pdb_file(filepath_pdb,radiustype):
                 if "X" in short_name:
                     short_name = "VAC"
                     name = "Vacancy"
-                    radius = float(ATOM_PDB_ELEMENTS[-3].radii[int(radiustype)])
-                    color = ATOM_PDB_ELEMENTS[-3].color
+                    radius = float(ELEMENTS[-3].radii[int(radiustype)])
+                    color = ELEMENTS[-3].color
                 # ... take what is written in the PDB file. These are somewhat
                 # unknown atoms. This should never happen, the element list is
                 # almost complete. However, we do this due to security reasons.
                 else:
                     short_name = str.upper(short_name)
                     name = str.upper(short_name)
-                    radius = float(ATOM_PDB_ELEMENTS[-2].radii[int(radiustype)])
-                    color = ATOM_PDB_ELEMENTS[-2].color
+                    radius = float(ELEMENTS[-2].radii[int(radiustype)])
+                    color = ELEMENTS[-2].color
 
             # x,y and z are at fixed positions in the PDB file.
             x = float(line[30:38].rsplit()[0])
@@ -334,11 +329,11 @@ def DEF_atom_pdb_read_pdb_file(filepath_pdb,radiustype):
             j += 1
 
             # Append the atom to the list. Material remains empty so far.
-            all_atoms.append(CLASS_atom_pdb_atom(short_name,
-                                             name,
-                                             location,
-                                             radius,
-                                             color,[]))
+            all_atoms.append(AtomProp(short_name,
+                                      name,
+                                      location,
+                                      radius,
+                                      color,[]))
 
         line = filepath_pdb_p.readline()
         line = line[:-1]
@@ -350,14 +345,13 @@ def DEF_atom_pdb_read_pdb_file(filepath_pdb,radiustype):
     return (Number_of_total_atoms, all_atoms)
     
 
-def DEF_atom_pdb_read_pdb_file_sticks(filepath_pdb,
-                                      use_sticks_bonds):
+def read_pdb_file_sticks(filepath_pdb, use_sticks_bonds):
 
     # The list of all sticks.
     all_sticks = []
 
     # Open the PDB file again.
-    filepath_pdb_p = io.open(filepath_pdb, "r")
+    filepath_pdb_p = open(filepath_pdb, "r")
 
     line = filepath_pdb_p.readline()
     split_list = line.split(' ')
@@ -460,7 +454,7 @@ def DEF_atom_pdb_read_pdb_file_sticks(filepath_pdb,
             # If the stick is not yet registered (FLAG_BAR == False), then
             # register it!
             if FLAG_BAR == False:
-                all_sticks.append(CLASS_atom_pdb_stick(atom1,atom2,number,dist_n))
+                all_sticks.append(StickProp(atom1,atom2,number,dist_n))
                 Number_of_sticks += 1
                 j += 1
 
@@ -473,7 +467,7 @@ def DEF_atom_pdb_read_pdb_file_sticks(filepath_pdb,
 
 
 # Routine which produces a cylinder. All is somewhat easy to undertsand.
-def DEF_atom_pdb_build_stick(radius, length, sectors):
+def build_stick(radius, length, sectors):
 
     dphi = 2.0 * pi/(float(sectors)-1)
 
@@ -535,23 +529,23 @@ def DEF_atom_pdb_build_stick(radius, length, sectors):
 # -----------------------------------------------------------------------------
 #                                                            The main routine
 
-def DEF_atom_pdb_main(use_mesh,
-                      Ball_azimuth,
-                      Ball_zenith,
-                      Ball_radius_factor,
-                      radiustype,
-                      Ball_distance_factor,
-                      use_sticks,
-                      use_sticks_color,
-                      use_sticks_smooth,
-                      use_sticks_bonds, 
-                      Stick_unit, Stick_dist,
-                      Stick_sectors,
-                      Stick_diameter,
-                      put_to_center,
-                      use_camera,
-                      use_lamp,
-                      filepath_pdb):
+def import_pdb(use_mesh,
+               Ball_azimuth,
+               Ball_zenith,
+               Ball_radius_factor,
+               radiustype,
+               Ball_distance_factor,
+               use_sticks,
+               use_sticks_color,
+               use_sticks_smooth,
+               use_sticks_bonds, 
+               Stick_unit, Stick_dist,
+               Stick_sectors,
+               Stick_diameter,
+               put_to_center,
+               use_camera,
+               use_lamp,
+               filepath_pdb):
 
 
     # List of materials
@@ -561,17 +555,15 @@ def DEF_atom_pdb_main(use_mesh,
     # structure.
     atom_object_list = []
 
-
     # ------------------------------------------------------------------------
     # INITIALIZE THE ELEMENT LIST
 
-    DEF_atom_pdb_read_elements()
+    read_elements()
 
     # ------------------------------------------------------------------------
     # READING DATA OF ATOMS
 
-    (Number_of_total_atoms, all_atoms) = DEF_atom_pdb_read_pdb_file(filepath_pdb, 
-                                                                    radiustype)
+    (Number_of_total_atoms, all_atoms) = read_pdb_file(filepath_pdb, radiustype)
 
     # ------------------------------------------------------------------------
     # MATERIAL PROPERTIES FOR ATOMS
@@ -631,9 +623,7 @@ def DEF_atom_pdb_main(use_mesh,
     # ------------------------------------------------------------------------
     # READING DATA OF STICKS
 
-    all_sticks = DEF_atom_pdb_read_pdb_file_sticks(filepath_pdb, 
-                                                   use_sticks_bonds)
-
+    all_sticks = read_pdb_file_sticks(filepath_pdb, use_sticks_bonds)
 
     # So far, all atoms, sticks and materials have been registered.
 
@@ -695,12 +685,12 @@ def DEF_atom_pdb_main(use_mesh,
 
         # Assume that the object is put into the global origin. Then, the
         # camera is moved in x and z direction, not in y. The object has its
-        # size at distance math.sqrt(object_size) from the origin. So, move the
+        # size at distance sqrt(object_size) from the origin. So, move the
         # camera by this distance times a factor of camera_factor in x and z.
         # Then add x, y and z of the origin of the object.
-        object_camera_vec = Vector((math.sqrt(object_size) * camera_factor,
+        object_camera_vec = Vector((sqrt(object_size) * camera_factor,
                                     0.0,
-                                    math.sqrt(object_size) * camera_factor))
+                                    sqrt(object_size) * camera_factor))
         camera_xyz_vec = object_center_vec + object_camera_vec
 
         # Create the camera
@@ -728,7 +718,7 @@ def DEF_atom_pdb_main(use_mesh,
         # camera position and view onto the object.
         bpy.ops.object.select_all(action='DESELECT')        
         camera.select = True 
-        bpy.ops.transform.rotate(value=(90.0*2*math.pi/360.0),
+        bpy.ops.transform.rotate(value=(90.0*2*pi/360.0),
                                  axis=object_camera_vec,
                                  constraint_axis=(False, False, False),
                                  constraint_orientation='GLOBAL',
@@ -744,7 +734,7 @@ def DEF_atom_pdb_main(use_mesh,
 
         # This is the distance from the object measured in terms of %
         # of the camera distance. It is set onto 50% (1/2) distance.
-        lamp_dl = math.sqrt(object_size) * 15 * 0.5
+        lamp_dl = sqrt(object_size) * 15 * 0.5
         # This is a factor to which extend the lamp shall go to the right
         # (from the camera  point of view).
         lamp_dy_right = lamp_dl * (3.0/4.0)
@@ -874,8 +864,8 @@ def DEF_atom_pdb_main(use_mesh,
          
         if use_sticks_color == False:   
             bpy.ops.object.material_slot_add()
-            stick_material = bpy.data.materials.new(ATOM_PDB_ELEMENTS[-1].name)
-            stick_material.diffuse_color = ATOM_PDB_ELEMENTS[-1].color            
+            stick_material = bpy.data.materials.new(ELEMENTS[-1].name)
+            stick_material.diffuse_color = ELEMENTS[-1].color            
 
         # Sort the sticks and put them into a new list such that ...            
         sticks_all_lists = []
@@ -917,7 +907,7 @@ def DEF_atom_pdb_main(use_mesh,
                             material = all_atoms[stick.atom1-1].material
                             sticks_list.append([name, location, dv, material])
                         if atom_type[0] == all_atoms[stick.atom2-1].name: 
-                            location = atom1 - n * dl * int(math.ceil(dv.length / (2.0 * dl)))
+                            location = atom1 - n * dl * int(ceil(dv.length / (2.0 * dl)))
                             name     = "_" + all_atoms[stick.atom2-1].name
                             material = all_atoms[stick.atom2-1].material
                             sticks_list.append([name, location, dv, material])
@@ -978,9 +968,9 @@ def DEF_atom_pdb_main(use_mesh,
                 n_b   = b / b.length
                 
                 if use_sticks_color == True:
-                    loops = int(math.ceil(dv.length / (2.0 * dl)))
+                    loops = int(ceil(dv.length / (2.0 * dl)))
                 else:
-                    loops = int(math.ceil(dv.length / dl))
+                    loops = int(ceil(dv.length / dl))
                     
                 for j in range(loops):
 
@@ -1004,7 +994,7 @@ def DEF_atom_pdb_main(use_mesh,
             bpy.context.scene.objects.link(new_mesh)
 
             current_layers = bpy.context.scene.layers
-            object_stick = DEF_atom_pdb_build_stick(Stick_diameter, dl, Stick_sectors)
+            object_stick = build_stick(Stick_diameter, dl, Stick_sectors)
             stick_cylinder = object_stick[0]
             stick_cylinder.active_material = stick[3]
             stick_cups = object_stick[1]

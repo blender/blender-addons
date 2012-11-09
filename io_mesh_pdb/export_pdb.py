@@ -17,32 +17,17 @@
 # ##### END GPL LICENSE BLOCK #####
 
 import bpy
-import io
-import math
-import os
-import copy
-from math import pi, cos, sin
-from mathutils import Vector, Matrix
-from copy import copy
 
 from . import import_pdb
 
-ATOM_PDB_FILEPATH = ""
-ATOM_PDB_PDBTEXT  = (  "REMARK This pdb file has been created with Blender "
-                     + "and the addon Atomic Blender - PDB\n"
-                     + "REMARK For more details see wiki.blender.org/index.php/Extensions:2.6/Py/Scripts/Import-Export/PDB\n"
-                     + "REMARK\n"
-                     + "REMARK\n")
-
-
-class CLASS_atom_pdb_atoms_export(object):  
+class AtomPropExport(object):  
     __slots__ = ('element', 'location')
     def __init__(self, element, location):
         self.element  = element
         self.location = location
 
 
-def DEF_atom_pdb_export(obj_type):
+def export_pdb(obj_type, filepath_pdb):
 
     list_atoms = []
     for obj in bpy.context.selected_objects:
@@ -54,7 +39,7 @@ def DEF_atom_pdb_export(obj_type):
             continue 
        
         name = ""
-        for element in import_pdb.ATOM_PDB_ELEMENTS_DEFAULT:
+        for element in import_pdb.ELEMENTS_DEFAULT:
             if element[1] in obj.name:
                 if element[2] == "Vac":
                     name = "X"
@@ -70,18 +55,19 @@ def DEF_atom_pdb_export(obj_type):
         if len(obj.children) != 0:
             for vertex in obj.data.vertices:
                 location = obj.matrix_world*vertex.co
-                list_atoms.append(CLASS_atom_pdb_atoms_export(
-                                                       name,
-                                                       location))
+                list_atoms.append(AtomPropExport(name, location))
         else:
             if not obj.parent:
                 location = obj.location
-                list_atoms.append(CLASS_atom_pdb_atoms_export(
-                                                       name,
-                                                       location))
+                list_atoms.append(AtomPropExport(name, location))
 
-    pdb_file_p = open(ATOM_PDB_FILEPATH, "w")
-    pdb_file_p.write(ATOM_PDB_PDBTEXT)
+    pdb_file_p = open(filepath_pdb, "w")
+    pdb_file_p.write("REMARK This pdb file has been created with Blender "
+                     "and the addon Atomic Blender - PDB\n"
+                     "REMARK For more details see wiki.blender.org/index.php/"
+                     "Extensions:2.6/Py/Scripts/Import-Export/PDB\n"
+                     "REMARK\n"
+                     "REMARK\n")
 
     for i, atom in enumerate(list_atoms):
         string = "ATOM %6d%3s%24.3f%8.3f%8.3f%6.2f%6.2f%12s\n" % (
