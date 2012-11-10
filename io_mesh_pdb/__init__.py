@@ -50,7 +50,7 @@ bl_info = {
 }
 
 import bpy
-from bpy.types import Operator, Panel
+from bpy.types import Operator
 from bpy_extras.io_utils import ImportHelper, ExportHelper
 from bpy.props import (StringProperty,
                        BoolProperty,
@@ -79,9 +79,13 @@ class ImportPDB(Operator, ImportHelper):
     use_lamp = BoolProperty(
         name="Lamp", default=False,
         description = "Do you need a lamp?")
-    use_mesh = BoolProperty(
-        name = "Mesh balls", default=False,
-        description = "Use mesh balls instead of NURBS")
+    ball = EnumProperty(
+        name="Type of ball",
+        description="Choose ball",
+        items=(('0', "NURBS", "NURBS balls"),
+               ('1', "Mesh" , "Mesh balls"),
+               ('2', "Meta" , "Metaballs")),
+               default='0',) 
     mesh_azimuth = IntProperty(
         name = "Azimuth", default=32, min=1,
         description = "Number of sectors (azimuth)")
@@ -139,9 +143,10 @@ class ImportPDB(Operator, ImportHelper):
         row.prop(self, "use_lamp")
         row = layout.row()
         col = row.column()
-        col.prop(self, "use_mesh")
-        col = row.column(align=True)
-        col.active = self.use_mesh
+        col.prop(self, "ball")
+        row = layout.row()
+        row.active = (self.ball == "1")
+        col = row.column(align=True)             
         col.prop(self, "mesh_azimuth")
         col.prop(self, "mesh_zenith")
         row = layout.row()
@@ -179,8 +184,8 @@ class ImportPDB(Operator, ImportHelper):
         filepath_pdb = bpy.path.abspath(self.filepath)
 
         # Execute main routine                
-        atom_number = import_pdb.import_pdb(
-                      self.use_mesh,
+        import_pdb.import_pdb(
+                      self.ball,
                       self.mesh_azimuth,
                       self.mesh_zenith,
                       self.scale_ballradius,

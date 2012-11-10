@@ -35,7 +35,7 @@ def export_pdb(obj_type, filepath_pdb):
         if "Stick" in obj.name:
             continue
             
-        if obj.type != "SURFACE" and obj.type != "MESH":
+        if obj.type not in {'MESH', 'SURFACE', 'META'}:
             continue 
        
         name = ""

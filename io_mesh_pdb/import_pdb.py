@@ -17,7 +17,6 @@
 # ##### END GPL LICENSE BLOCK #####
 
 import bpy
-import os
 from math import pi, cos, sin, sqrt, ceil
 from mathutils import Vector, Matrix
 from copy import copy
@@ -245,11 +244,12 @@ def read_pdb_file(filepath_pdb, radiustype):
             color = [0,0,0]
             location = Vector((0,0,0))
             # Append the TER into the list. Material remains empty so far.
-            all_atoms.append(AtomProp(short_name,
-                                                 name,
-                                                 location,
-                                                 radius,
-                                                 color,[]))
+            all_atoms.append(AtomProp(short_name, 
+                                      name, 
+                                      location, 
+                                      radius,
+                                      color,[]))
+                                      
         # If 'ATOM or 'HETATM' appears in the line then do ...
         elif "ATOM" in line or "HETATM" in line:
 
@@ -345,7 +345,7 @@ def read_pdb_file(filepath_pdb, radiustype):
     return (Number_of_total_atoms, all_atoms)
     
 
-def read_pdb_file_sticks(filepath_pdb, use_sticks_bonds):
+def read_pdb_file_sticks(filepath_pdb, use_sticks_bonds, all_atoms):
 
     # The list of all sticks.
     all_sticks = []
@@ -529,7 +529,7 @@ def build_stick(radius, length, sectors):
 # -----------------------------------------------------------------------------
 #                                                            The main routine
 
-def import_pdb(use_mesh,
+def import_pdb(Ball_type,
                Ball_azimuth,
                Ball_zenith,
                Ball_radius_factor,
@@ -623,7 +623,9 @@ def import_pdb(use_mesh,
     # ------------------------------------------------------------------------
     # READING DATA OF STICKS
 
-    all_sticks = read_pdb_file_sticks(filepath_pdb, use_sticks_bonds)
+    all_sticks = read_pdb_file_sticks(filepath_pdb, 
+                                      use_sticks_bonds, 
+                                      all_atoms)
 
     # So far, all atoms, sticks and materials have been registered.
 
@@ -828,18 +830,23 @@ def import_pdb(use_mesh,
                             layers=current_layers)
         else:
             # NURBS balls
-            if use_mesh == False:
+            if Ball_type == "0":
                 bpy.ops.surface.primitive_nurbs_surface_sphere_add(
                             view_align=False, enter_editmode=False,
                             location=(0,0,0), rotation=(0.0, 0.0, 0.0),
                             layers=current_layers)
             # UV balls
-            else:
+            elif Ball_type == "1":
                 bpy.ops.mesh.primitive_uv_sphere_add(
                             segments=Ball_azimuth, ring_count=Ball_zenith,
                             size=1, view_align=False, enter_editmode=False,
                             location=(0,0,0), rotation=(0, 0, 0),
                             layers=current_layers)
+            # Meta balls
+            elif Ball_type == "2":
+                bpy.ops.object.metaball_add(type='BALL', view_align=False, 
+                            enter_editmode=False, location=(0, 0, 0), 
+                            rotation=(0, 0, 0), layers=current_layers)
 
         ball = bpy.context.scene.objects.active
         ball.scale  = (atom[3]*Ball_radius_factor,) * 3
