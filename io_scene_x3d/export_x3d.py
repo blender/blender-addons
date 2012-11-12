@@ -369,7 +369,7 @@ def export(file,
 
         loc, rot, scale = matrix.decompose()
         rot = rot.to_axis_angle()
-        rot = rot[0][:] + (rot[1], )
+        rot = rot[0].normalized()[:] + (rot[1], )
 
         ident_step = ident + (' ' * (-len(ident) + \
         fw('%s<Viewpoint ' % ident)))
