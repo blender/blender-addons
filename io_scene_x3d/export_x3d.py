@@ -852,8 +852,10 @@ def export(file,
 
                         # --- Write IndexedFaceSet Attributes (same as IndexedTriangleSet)
                         fw('solid="%s"\n' % ('true' if material and material.game_settings.use_backface_culling else 'false'))
-                        if is_smooth and mesh.use_auto_smooth:
-                            fw(ident_step + 'creaseAngle="%.4f"\n' % mesh.auto_smooth_angle)
+                        if is_smooth:
+                            # use Auto-Smooth angle, if enabled. Otherwise make
+                            # the mesh perfectly smooth by creaseAngle > pi.
+                            fw(ident_step + 'creaseAngle="%.4f"\n' % (mesh.auto_smooth_angle if mesh.use_auto_smooth else 4.0))
 
                         if use_normals:
                             # currently not optional, could be made so:
