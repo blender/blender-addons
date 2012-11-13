@@ -1335,9 +1335,9 @@ def export(file,
         # Blend Gradient
         elif blending == (True, False, False):
             fw(ident_step + 'groundColor="%.3f %.3f %.3f, %.3f %.3f %.3f"\n' % (grd_triple + mix_triple))
-            fw(ident_step + 'groundAngle="1.57, 1.57"\n')
+            fw(ident_step + 'groundAngle="1.57"\n')
             fw(ident_step + 'skyColor="%.3f %.3f %.3f, %.3f %.3f %.3f"\n' % (sky_triple + mix_triple))
-            fw(ident_step + 'skyAngle="1.57, 1.57"\n')
+            fw(ident_step + 'skyAngle="1.57"\n')
         # Blend+Real Gradient Inverse
         elif blending == (True, False, True):
             fw(ident_step + 'groundColor="%.3f %.3f %.3f, %.3f %.3f %.3f"\n' % (sky_triple + grd_triple))
@@ -1351,9 +1351,9 @@ def export(file,
         # Blend+Real+Paper - komplex gradient
         elif blending == (True, True, True):
             fw(ident_step + 'groundColor="%.3f %.3f %.3f, %.3f %.3f %.3f"\n' % (sky_triple + grd_triple))
-            fw(ident_step + 'groundAngle="1.57, 1.57"\n')
+            fw(ident_step + 'groundAngle="1.57"\n')
             fw(ident_step + 'skyColor="%.3f %.3f %.3f, %.3f %.3f %.3f"\n' % (sky_triple + grd_triple))
-            fw(ident_step + 'skyAngle="1.57, 1.57"\n')
+            fw(ident_step + 'skyAngle="1.57"\n')
         # Any Other two colors
         else:
             fw(ident_step + 'groundColor="%.3f %.3f %.3f"\n' % grd_triple)
