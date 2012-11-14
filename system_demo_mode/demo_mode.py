@@ -468,7 +468,7 @@ def unregister():
 
 def load_config(cfg_name=DEMO_CFG):
     namespace = {}
-    global_config_files[:] = []
+    del global_config_files[:]
     basedir = os.path.dirname(bpy.data.filepath)
 
     text = bpy.data.texts.get(cfg_name)

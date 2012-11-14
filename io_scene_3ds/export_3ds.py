@@ -1156,7 +1156,7 @@ def save(operator,
     file.close()
 
     # Clear name mapping vars, could make locals too
-    name_unique[:] = []
+    del name_unique[:]
     name_mapping.clear()
 
     # Debugging only: report the exporting time:

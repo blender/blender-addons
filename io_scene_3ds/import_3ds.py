@@ -859,7 +859,7 @@ def load_3ds(filepath,
     if IMPORT_CONSTRAIN_BOUNDS:
         BOUNDS_3DS[:] = [1 << 30, 1 << 30, 1 << 30, -1 << 30, -1 << 30, -1 << 30]
     else:
-        BOUNDS_3DS[:] = []
+        del BOUNDS_3DS[:]
 
     ##IMAGE_SEARCH
 

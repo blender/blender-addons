@@ -115,6 +115,6 @@ def points_as_bmesh_cells(verts,
             continue
 
         cells.append((point_cell_current, vertices[:]))
-        vertices[:] = []
+        del vertices[:]
 
     return cells

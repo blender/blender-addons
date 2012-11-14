@@ -46,7 +46,7 @@ class SelectionOrder(bpy.types.Operator):
 
         if num == 0:
             # Reset the list
-            selected[:] = []
+            del selected[:]
         elif num > self.num_selected:
             # Get all the newly selected objects and add
             new = [ob.name for ob in sel if ob.name not in selected]
