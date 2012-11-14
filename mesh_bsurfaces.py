@@ -789,7 +789,7 @@ class GPENCIL_OT_SURFSK_add_surface(bpy.types.Operator):
         
         #### Perform "Remove Doubles" to weld all the disconnected verts
         bpy.ops.object.mode_set('INVOKE_REGION_WIN', mode='EDIT')
-        bpy.ops.mesh.remove_doubles(mergedist = 0.0001)
+        bpy.ops.mesh.remove_doubles(threshold=0.0001)
         
         bpy.ops.object.mode_set('INVOKE_REGION_WIN', mode='OBJECT')
         
@@ -1082,7 +1082,7 @@ class GPENCIL_OT_SURFSK_add_surface(bpy.types.Operator):
             # Find "intersection-nodes".
             bpy.ops.object.editmode_toggle('INVOKE_REGION_WIN')
             bpy.ops.mesh.select_all('INVOKE_REGION_WIN', action='SELECT')
-            bpy.ops.mesh.remove_doubles('INVOKE_REGION_WIN', mergedist=self.crosshatch_merge_distance)
+            bpy.ops.mesh.remove_doubles('INVOKE_REGION_WIN', threshold=self.crosshatch_merge_distance)
             bpy.ops.mesh.select_all('INVOKE_REGION_WIN', action='DESELECT')
             bpy.ops.object.editmode_toggle('INVOKE_REGION_WIN')
             
@@ -1114,7 +1114,7 @@ class GPENCIL_OT_SURFSK_add_surface(bpy.types.Operator):
             bpy.ops.mesh.select_all('INVOKE_REGION_WIN', action='SELECT')
             
             # Remove doubles to discard very near verts from calculations of distance.
-            bpy.ops.mesh.remove_doubles('INVOKE_REGION_WIN', mergedist=self.crosshatch_merge_distance * 4)
+            bpy.ops.mesh.remove_doubles('INVOKE_REGION_WIN', threshold=self.crosshatch_merge_distance * 4.0)
             bpy.ops.object.editmode_toggle('INVOKE_REGION_WIN')
             
             # Get all coords of the resulting nodes.
@@ -1420,7 +1420,7 @@ class GPENCIL_OT_SURFSK_add_surface(bpy.types.Operator):
         
         bpy.ops.object.editmode_toggle('INVOKE_REGION_WIN')
         bpy.ops.mesh.select_all('INVOKE_REGION_WIN', action='SELECT')
-        bpy.ops.mesh.remove_doubles('INVOKE_REGION_WIN', mergedist=average_edge_length / 15)
+        bpy.ops.mesh.remove_doubles('INVOKE_REGION_WIN', threshold=average_edge_length / 15.0)
         bpy.ops.object.editmode_toggle('INVOKE_REGION_WIN')
         
         final_points_ob = bpy.context.scene.objects.active
@@ -1703,7 +1703,7 @@ class GPENCIL_OT_SURFSK_add_surface(bpy.types.Operator):
         bpy.ops.object.editmode_toggle('INVOKE_REGION_WIN')
         # Perform Remove doubles to merge verts.
         if not (self.automatic_join == False and self.main_object_selected_verts_count == 0):
-            bpy.ops.mesh.remove_doubles(mergedist=0.0001)
+            bpy.ops.mesh.remove_doubles(threshold=0.0001)
         
         bpy.ops.mesh.select_all(action='DESELECT')
         
@@ -2850,7 +2850,7 @@ class GPENCIL_OT_SURFSK_add_surface(bpy.types.Operator):
         
         bpy.ops.object.editmode_toggle('INVOKE_REGION_WIN')
         
-        bpy.ops.mesh.remove_doubles('INVOKE_REGION_WIN', mergedist=0.0001)
+        bpy.ops.mesh.remove_doubles('INVOKE_REGION_WIN', threshold=0.0001)
         bpy.ops.mesh.normals_make_consistent('INVOKE_REGION_WIN', inside=False)
         bpy.ops.mesh.select_all('INVOKE_REGION_WIN', action='DESELECT')
         

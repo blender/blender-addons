@@ -2376,7 +2376,7 @@ def removeDoubles(ob):
         scn = bpy.context.scene
         scn.objects.active = ob
         bpy.ops.object.mode_set(mode='EDIT')
-        bpy.ops.mesh.remove_doubles(mergedist=theMergeLimit)
+        bpy.ops.mesh.remove_doubles(threshold=theMergeLimit)
         bpy.ops.object.mode_set(mode='OBJECT')
 
 
