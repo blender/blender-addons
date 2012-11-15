@@ -2987,8 +2987,13 @@ class GPENCIL_OT_SURFSK_add_surface(bpy.types.Operator):
             if self.strokes_type == "GP_STROKES":
                 # Convert grease pencil strokes to curve.
                 bpy.ops.object.editmode_toggle('INVOKE_REGION_WIN')
-                bpy.ops.gpencil.convert('INVOKE_REGION_WIN', type='CURVE')
-                self.original_curve = bpy.context.object
+                bpy.ops.gpencil.convert('INVOKE_REGION_WIN', type='CURVE', use_link_strokes=False)
+                # XXX gpencil.convert now keep org object as active/selected, *not* newly created curve!
+                # XXX This is far from perfect, but should work in most cases...
+#                self.original_curve = bpy.context.object
+                for ob in bpy.context.selected_objects:
+                    if ob != bpy.context.scene.objects.active and ob.name.startswith("GP_Layer"):
+                        self.original_curve = ob
                 self.using_external_curves = False
             elif self.strokes_type == "EXTERNAL_CURVE":
                 for ob in bpy.context.selected_objects:
