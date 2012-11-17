@@ -282,7 +282,10 @@ url_manual_mapping = (
     ("bpy.ops.pose.*",  "Rigging/Posing"),
     ("bpy.ops.poselib.*",  "Rigging/Posing/Pose_Library"),
     # ("bpy.ops.ptcache.*",  ""),  # TODO
-    ("bpy.ops.render.*",  "Render"),
+
+    ("bpy.ops.render.play_rendered_anim",  "Render/Display#Animation_Playback"),
+    ("bpy.ops.render.*",  "Render"),  # catchall
+
     ("bpy.ops.scene.*",  "Interface/Scenes"),
     ("bpy.ops.screen.*",  "Interface/Window_system"),
     ("bpy.ops.script.*",  "Extensions/Python"),
