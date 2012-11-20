@@ -198,10 +198,18 @@ class ANIM_OT_insert_keyframe_animall(bpy.types.Operator):
                 bpy.ops.object.editmode_toggle()
         
         if Obj.type == 'LATTICE':
+            Mode = False
+            if context.mode != 'OBJECT':
+                Mode = not Mode
+                bpy.ops.object.editmode_toggle()
+            
             if context.window_manager.key_shape:
                 if Obj.active_shape_key:
                     for Point in Obj.active_shape_key.data:
                         Point.keyframe_insert('co')
+            
+            if Mode:
+                bpy.ops.object.editmode_toggle()
         
         if Obj.type == 'CURVE':
             Mode = False
