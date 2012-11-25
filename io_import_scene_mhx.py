@@ -26,7 +26,7 @@
 """
 Abstract
 MHX (MakeHuman eXchange format) importer for Blender 2.5x.
-Version 1.13.2
+Version 1.14.0
 
 This script should be distributed with Blender.
 If not, place it in the .blender/scripts/addons dir
@@ -39,8 +39,8 @@ Alternatively, run the script in the script editor (Alt-P), and access from the 
 bl_info = {
     'name': 'Import: MakeHuman (.mhx)',
     'author': 'Thomas Larsson',
-    'version': (1, 13, 2),
-    "blender": (2, 6, 3),
+    'version': (1, 14, 0),
+    "blender": (2, 6, 4),
     'location': "File > Import > MakeHuman (.mhx)",
     'description': 'Import files in the MakeHuman eXchange format (.mhx)',
     'warning': '',
@@ -50,8 +50,9 @@ bl_info = {
     'category': 'Import-Export'}
 
 MAJOR_VERSION = 1
-MINOR_VERSION = 13
-SUB_VERSION = 3
+MINOR_VERSION = 14
+FROM_VERSION = 13
+SUB_VERSION = 0
 
 #
 #
@@ -325,7 +326,7 @@ def getObject(name, var, glbals, lcals):
 def checkMhxVersion(major, minor):
     global warnedVersion
     print("MHX", (major,minor), (MAJOR_VERSION, MINOR_VERSION), warnedVersion)
-    if  major != MAJOR_VERSION or minor != MINOR_VERSION:
+    if  major != MAJOR_VERSION or minor < FROM_VERSION:
         if warnedVersion:
             return
         else:
@@ -333,7 +334,7 @@ def checkMhxVersion(major, minor):
 "Wrong MHX version\n" +
 "Expected MHX %d.%02d but the loaded file " % (MAJOR_VERSION, MINOR_VERSION) +
 "has version MHX %d.%02d\n" % (major, minor))
-            if minor < MINOR_VERSION:
+            if minor < FROM_VERSION:
                 msg += (
 "You can disable this error message by deselecting the \n" +
 "Enforce version option when importing. Better:\n" +
@@ -746,7 +747,14 @@ def parseDriverTarget(var, nTarget, rna, args, tokens):
     targ.id = loadedData[dtype][name]
     #print("    ->", targ.id)
     for (key, val, sub) in tokens:
-        defaultKey(key, val, sub, 'targ', [], globals(), locals())
+        if key == 'data_path':
+            words = val[0].split('"')
+            if len(words) > 1:
+                targ.data_path = propNames(words[1])[1]
+            else:
+                targ.data_path = propNames(val)[1]
+        else:
+            defaultKey(key, val, sub, 'targ', [], globals(), locals())
     return targ
 
     
@@ -1496,6 +1504,17 @@ def parseShapeKeys(ob, me, args, tokens):
         elif key == 'AnimationData':
             if me.shape_keys:
                 parseAnimationData(me.shape_keys, val, sub)
+        elif key == 'Expression':
+            prop = "Mhe" + val[0].capitalize()
+            string = ""
+            for words in sub:
+                unit = words[0].replace("-","_")
+                value = words[1][0]
+                string += "%s:%s;" % (unit, value)
+            print(prop)
+            print("  ", string)
+            rig = ob.parent
+            rig[prop] = string
     ob.active_shape_key_index = 0
     print("Shapekeys parsed")
     return
@@ -2112,36 +2131,75 @@ def deleteDiamonds(ob):
 #    defaultKey(ext, args, tokens, var, exclude, glbals, lcals):
 #
 
-thePropTip = ""
+theProperty = None
+
+def propNames(string):
+    if string[0] == "&":
+        name = "Mha" + string[1:].replace("-","_")
+        return name,name
+    elif string[0] == "*":
+        name = "Mhs" + string[1:].replace("-","_")
+        return name,name
+    elif string[0:4] == "Hide":
+        name =  "Mhh" + string[4:]
+        return name, '["%s"]' % name
+    elif string[0] == "_":
+        return None,None
+    else:
+        return string,string
+        
+def setProperty(args, var, glbals, lcals):
+    global theProperty
+    tip = ""
+    name = propNames(args[0])[0]
+    value = args[1]
+    if name:
+        expr = '%s["%s"] = %s' % (var, name, value)
+        exec(expr, glbals, lcals)
+        print(expr)
+        
+        if len(args) > 2:
+            tip = 'description="%s"' % args[2].replace("_", " ")
+        if value in ["True", "False"]:
+            proptype = "Bool"
+        elif value[0] in ["'",'"']:
+            proptype = "String"
+        elif "." in value:
+            proptype = "Float"
+        else:
+            proptype = "Int"
+        theProperty = (name, tip, proptype)
+        #if proptype == "Int":
+        #    halt
+    return
+
+
+def defineProperty(args):
+    global theProperty
+    if theProperty is None:
+        return
+    (name, tip, proptype) = theProperty
+    if len(args) >= 2 and proptype != "Bool":
+        if "BOOLEAN" in args[1]:
+            proptype = "Bool"
+        else:
+            tip = tip + ", " + args[1].replace(":", "=").replace('"', "")
+    expr = "bpy.types.Object.%s = %sProperty(%s)" % (name, proptype, tip)
+    print(expr)
+    exec(expr)
+    if proptype == "Int":
+        halt
+    theProperty = None
+    return
+
 
 def defaultKey(ext, args, tokens, var, exclude, glbals, lcals):
-    global todo, thePropTip
+    global todo
 
     if ext == 'Property':
-        thePropTip = ""
-        try:
-            expr = '%s["%s"] = %s' % (var, args[0], args[1])
-        except:
-            expr = None
-        #print("Property", expr)
-        if expr:
-            exec(expr, glbals, lcals)
-            if len(args) > 2:
-                thePropTip =  '"description":"%s"' % args[2].replace("_", " ")
-        return
+        return setProperty(args, var, glbals, lcals)        
     elif ext == 'PropKeys':
-        if len(args) < 2:
-            values = '{%s}' % thePropTip
-        else:
-            values = '{%s%s}' % (args[1], thePropTip)        
-        try:
-            expr = '%s["_RNA_UI"]["%s"] = %s' % (var, args[0], values)
-        except:
-            expr = None
-        #print("PropKeys", expr)
-        if expr:
-            exec(expr, glbals, lcals)
-        return
+        return defineProperty(args)
 
     if ext == 'bpyops':
         expr = "bpy.ops.%s" % args[0]
@@ -3613,8 +3671,8 @@ class VIEW3D_OT_MhxResetExpressionsButton(bpy.types.Operator):
 
     def execute(self, context):
         rig,mesh = getMhxRigMesh(context.object)
-        props = getShapeProps(rig)
-        for (prop, name) in props:
+        props = getProps(rig, "Mhs")
+        for prop in props:
             rig[prop] = 0.0
         updatePose(context)
         return{'FINISHED'}    
@@ -3630,12 +3688,13 @@ class VIEW3D_OT_MhxKeyExpressionsButton(bpy.types.Operator):
 
     def execute(self, context):
         rig,mesh = getMhxRigMesh(context.object)
-        props = getShapeProps(rig)
+        props = getProps(rig, "Mhs")
         frame = context.scene.frame_current
-        for (prop, name) in props:
+        for prop in props:
             rig.keyframe_insert('["%s"]' % prop, frame=frame)
         updatePose(context)
-        return{'FINISHED'}    
+        return{'FINISHED'}   
+        
 #
 #    class VIEW3D_OT_MhxPinExpressionButton(bpy.types.Operator):
 #
@@ -3648,10 +3707,10 @@ class VIEW3D_OT_MhxPinExpressionButton(bpy.types.Operator):
 
     def execute(self, context):
         rig,mesh = getMhxRigMesh(context.object)
-        props = getShapeProps(rig)
+        props = getProps(rig, "Mhs")
         if context.tool_settings.use_keyframe_insert_auto:
             frame = context.scene.frame_current
-            for (prop, name) in props:
+            for prop in props:
                 old = rig[prop]
                 if prop == self.expression:
                     rig[prop] = 1.0
@@ -3660,7 +3719,7 @@ class VIEW3D_OT_MhxPinExpressionButton(bpy.types.Operator):
                 if abs(rig[prop] - old) > 1e-3:
                     rig.keyframe_insert('["%s"]' % prop, frame=frame)
         else:                    
-            for (prop, name) in props:
+            for prop in props:
                 if prop == self.expression:
                     rig[prop] = 1.0
                 else:
@@ -3669,16 +3728,50 @@ class VIEW3D_OT_MhxPinExpressionButton(bpy.types.Operator):
         return{'FINISHED'}    
 
 #
-#   getShapeProps(ob):        
+#    class VIEW3D_OT_MhxMhmButton(bpy.types.Operator):
 #
 
-def getShapeProps(rig):
+def setMhmProps(rig, string, factor):
+    words = string.split(";")
+    units = []
+    print(string)
+    for word in words:
+        if word == "":
+            continue
+        unit = word.split(":") 
+        prop = "Mhs" + unit[0]
+        value = float(unit[1])
+        rig[prop] = factor*value
+        print(prop, " = ", value)
+            
+
+class VIEW3D_OT_MhxMhmButton(bpy.types.Operator):
+    bl_idname = "mhx.pose_mhm"
+    bl_label = "Mhm"
+    bl_options = {'UNDO'}
+    data = StringProperty()
+
+    def execute(self, context):   
+        rig,mesh = getMhxRigMesh(context.object)
+        props = getProps(rig, "Mhs")
+        for prop in props:
+            rig[prop] = 0.0
+        setMhmProps(rig, self.data, rig.MhxStrength)
+        updatePose(context)
+        return{'FINISHED'}  
+                
+
+#
+#   getProps(ob, prefix):        
+#
+
+def getProps(rig, prefix):
     props = []        
     plist = list(rig.keys())
     plist.sort()
     for prop in plist:
-        if prop[0] == '*':
-            props.append((prop, prop[1:]))
+        if prop[0:3] == prefix:
+            props.append(prop)
     return props                
 
 #
@@ -3705,17 +3798,28 @@ class MhxExpressionsPanel(bpy.types.Panel):
             layout.label("No shapekey drivers.")
             layout.label("Set expression values in mesh context instead")
             return
-        props = getShapeProps(rig)
+        props = getProps(rig, "Mhs")
         if not props:
             return
-        layout.label(text="Expressions")
+            
         layout.operator("mhx.pose_reset_expressions")
         layout.operator("mhx.pose_key_expressions")
         #layout.operator("mhx.update")
+
+        exprs = getProps(rig, "Mhe")
+        if exprs:
+            layout.prop(rig, "MhxStrength")
+            layout.separator()
+            layout.label(text="Expressions")
+            for prop in exprs:
+                if prop[0:3] == "Mhe":
+                    layout.operator("mhx.pose_mhm", text=prop[3:]).data=rig[prop]
+        
         layout.separator()
-        for (prop, name) in props:
+        layout.label(text="Expressions Units")
+        for prop in props:
             row = layout.split(0.85)
-            row.prop(rig, '["%s"]' % prop, text=name)
+            row.prop(rig, '["%s"]' % prop, text=prop[3:])
             row.operator("mhx.pose_pin_expression", text="", icon='UNPINNED').expression = prop
         return
 
@@ -3813,7 +3917,7 @@ def fk2ikArm(context, suffix):
     matchPoseRotation(loarmFk, loarmFk, auto)
     matchPoseScale(loarmFk, loarmFk, auto)
 
-    if rig["&HandFollowsWrist" + suffix]:
+    if rig["MhaHandFollowsWrist" + suffix]:
         matchPoseRotation(handFk, wrist, auto)
         matchPoseScale(handFk, wrist, auto)
     return
@@ -3864,7 +3968,7 @@ def ik2fkLeg(context, suffix):
     #rig["&KneeFollowsHip" + suffix] = False
     #rig["&KneeFollowsFoot" + suffix] = False
     
-    legIkToAnkle = rig["&LegIkToAnkle" + suffix]
+    legIkToAnkle = rig["MhaLegIkToAnkle" + suffix]
     if legIkToAnkle:
         matchPoseTranslation(ankleIk, footFk, auto)
     matchPoseTranslation(legIk, legFk, auto)
@@ -3985,9 +4089,9 @@ class VIEW3D_OT_MhxSnapFk2IkButton(bpy.types.Operator):
         bpy.ops.object.mode_set(mode='POSE')
         rig = context.object
         (prop, old) = setSnapProp(rig, self.data, 1.0, context, False)
-        if prop[:4] == "&Arm":
+        if prop[:6] == "MhaArm":
             fk2ikArm(context, prop[-2:])
-        elif prop[:4] == "&Leg":
+        elif prop[:6] == "MhaLeg":
             fk2ikLeg(context, prop[-2:])
         restoreSnapProp(rig, prop, old, context)
         return{'FINISHED'}    
@@ -4003,9 +4107,9 @@ class VIEW3D_OT_MhxSnapIk2FkButton(bpy.types.Operator):
         bpy.ops.object.mode_set(mode='POSE')
         rig = context.object
         (prop, old) = setSnapProp(rig, self.data, 0.0, context, True)
-        if prop[:4] == "&Arm":
+        if prop[:6] == "MhaArm":
             ik2fkArm(context, prop[-2:])
-        elif prop[:4] == "&Leg":
+        elif prop[:6] == "MhaLeg":
             ik2fkLeg(context, prop[-2:])
         restoreSnapProp(rig, prop, old, context)
         return{'FINISHED'}    
@@ -4097,12 +4201,12 @@ class MhxFKIKPanel(bpy.types.Panel):
         layout.label("FK/IK switch")
         row = layout.row()
         row.label("Arm")
-        self.toggleButton(row, rig, "&ArmIk_L", " 3", " 2")
-        self.toggleButton(row, rig, "&ArmIk_R", " 19", " 18")
+        self.toggleButton(row, rig, "MhaArmIk_L", " 3", " 2")
+        self.toggleButton(row, rig, "MhaArmIk_R", " 19", " 18")
         row = layout.row()
         row.label("Leg")
-        self.toggleButton(row, rig, "&LegIk_L", " 5", " 4")
-        self.toggleButton(row, rig, "&LegIk_R", " 21", " 20")
+        self.toggleButton(row, rig, "MhaLegIk_L", " 5", " 4")
+        self.toggleButton(row, rig, "MhaLegIk_R", " 21", " 20")
         
         try:
             ok = (rig["MhxVersion"] >= 12)
@@ -4115,22 +4219,22 @@ class MhxFKIKPanel(bpy.types.Panel):
         layout.label("Snap Arm bones")
         row = layout.row()
         row.label("FK Arm")
-        row.operator("mhx.snap_fk_ik", text="Snap L FK Arm").data = "&ArmIk_L 2 3 12"
-        row.operator("mhx.snap_fk_ik", text="Snap R FK Arm").data = "&ArmIk_R 18 19 28"
+        row.operator("mhx.snap_fk_ik", text="Snap L FK Arm").data = "MhaArmIk_L 2 3 12"
+        row.operator("mhx.snap_fk_ik", text="Snap R FK Arm").data = "MhaArmIk_R 18 19 28"
         row = layout.row()
         row.label("IK Arm")
-        row.operator("mhx.snap_ik_fk", text="Snap L IK Arm").data = "&ArmIk_L 2 3 12"
-        row.operator("mhx.snap_ik_fk", text="Snap R IK Arm").data = "&ArmIk_R 18 19 28"
+        row.operator("mhx.snap_ik_fk", text="Snap L IK Arm").data = "MhaArmIk_L 2 3 12"
+        row.operator("mhx.snap_ik_fk", text="Snap R IK Arm").data = "MhaArmIk_R 18 19 28"
 
         layout.label("Snap Leg bones")
         row = layout.row()
         row.label("FK Leg")
-        row.operator("mhx.snap_fk_ik", text="Snap L FK Leg").data = "&LegIk_L 4 5 12"
-        row.operator("mhx.snap_fk_ik", text="Snap R FK Leg").data = "&LegIk_R 20 21 28"
+        row.operator("mhx.snap_fk_ik", text="Snap L FK Leg").data = "MhaLegIk_L 4 5 12"
+        row.operator("mhx.snap_fk_ik", text="Snap R FK Leg").data = "MhaLegIk_R 20 21 28"
         row = layout.row()
         row.label("IK Leg")
-        row.operator("mhx.snap_ik_fk", text="Snap L IK Leg").data = "&LegIk_L 4 5 12"
-        row.operator("mhx.snap_ik_fk", text="Snap R IK Leg").data = "&LegIk_R 20 21 28"
+        row.operator("mhx.snap_ik_fk", text="Snap L IK Leg").data = "MhaLegIk_L 4 5 12"
+        row.operator("mhx.snap_ik_fk", text="Snap R IK Leg").data = "MhaLegIk_R 20 21 28"
         """
         row = layout.row()
         row.label("Ankle")
@@ -4169,55 +4273,57 @@ class MhxDriversPanel(bpy.types.Panel):
         return (context.object and context.object.MhxRig)
 
     def draw(self, context):
-        lProps = []
-        rProps = []
+        lrProps = []
         props = []
-        lFaceProps = []
-        rFaceProps = []
+        lrFaceProps = []
         faceProps = []
         plist = list(context.object.keys())
         plist.sort()
         for prop in plist:
-            if prop[0] == '&':
-                prop1 = prop[1:]
-            else:
-                continue
-            if prop[-2:] == '_L':
-                if prop1[0] == '_':
-                    lFaceProps.append((prop, prop1[1:-2]))
+            if prop[0:3] != 'Mha':
+                pass
+            elif prop[-2:] == '_L':
+                if prop[3] == '_':
+                    lrFaceProps.append(prop[:-2])
                 else:
-                    lProps.append((prop, prop1[:-2]))
+                    lrProps.append(prop[:-2])
             elif prop[-2:] == '_R':
-                if prop1[0] == '_':
-                    rFaceProps.append((prop, prop1[1:-2]))
-                else:
-                    rProps.append((prop, prop1[:-2]))
+                pass
             else:
-                if prop1[0] == '_':
-                    faceProps.append((prop, prop1[1:]))
+                if prop[3] == '_':
+                    faceProps.append(prop)
                 else:
-                    props.append((prop, prop1))
+                    props.append(prop)
+                    
         ob = context.object
         layout = self.layout
-        for (prop, pname) in props:
-            layout.prop(ob, '["%s"]' % prop, text=pname)
-        layout.label("Left")
-        for (prop, pname) in lProps:
-            layout.prop(ob, '["%s"]' % prop, text=pname)
-        layout.label("Right")
-        for (prop, pname) in rProps:
-            layout.prop(ob, '["%s"]' % prop, text=pname)
+        for prop in props:
+            layout.prop(ob, prop, text=prop[3:])
+
+        layout.separator()
+        row = layout.row()
+        row.label("Left")
+        row.label("Right")
+        for prop in lrProps:
+            row = layout.row()
+            row.prop(ob, prop+"_L", text=prop[3:])
+            row.prop(ob, prop+"_R", text=prop[3:])
+
         if faceProps:
             layout.separator()
             layout.label("Face shapes")
-            for (prop, pname) in faceProps:
-                layout.prop(ob, '["%s"]' % prop, text=pname)
-            layout.label("Left")
-            for (prop, pname) in lFaceProps:
-                layout.prop(ob, '["%s"]' % prop, text=pname)
-            layout.label("Right")
-            for (prop, pname) in rFaceProps:
-                layout.prop(ob, '["%s"]' % prop, text=pname)        
+            for prop in faceProps:
+                layout.prop(ob, prop, text=pname[4:])
+
+            layout.separator()
+            row = layout.row()
+            row.label("Left")
+            row.label("Right")
+            for prop in lrFaceProps:
+                row = layout.row()
+                row.prop(ob, prop+"_L", text=prop[4:])
+                row.prop(ob, prop+"_R", text=prop[4:])
+     
         return
 
 ###################################################################################    
@@ -4245,8 +4351,8 @@ class MhxVisibilityPanel(bpy.types.Panel):
         props = list(ob.keys())
         props.sort()
         for prop in props:
-            if prop[0:4] == "Hide": 
-                layout.prop(ob, '["%s"]' % prop)
+            if prop[0:3] == "Mhh": 
+                layout.prop(ob, prop, text="Hide %s" % prop[3:])
         layout.separator()
         layout.operator("mhx.update_textures")
         layout.separator()
@@ -4283,7 +4389,7 @@ class VIEW3D_OT_MhxAddHidersButton(bpy.types.Operator):
         rig = context.object
         for ob in context.scene.objects:
             if ob.select and ob != rig:
-                prop = "Hide%s" % ob.name        
+                prop = "Mhh%s" % ob.name        
                 rig[prop] = False        
                 addHider(ob, "hide", rig, prop)
                 addHider(ob, "hide_render", rig, prop)
@@ -4313,7 +4419,7 @@ class VIEW3D_OT_MhxRemoveHidersButton(bpy.types.Operator):
             if ob.select and ob != rig:
                 ob.driver_remove("hide")
                 ob.driver_remove("hide_render")
-                del rig["Hide%s" % ob.name]
+                del rig["Mhh%s" % ob.name]
         return{'FINISHED'}    
         
 ###################################################################################    
@@ -4482,6 +4588,11 @@ def register():
     bpy.types.Object.MhxRig = StringProperty(default="")
     bpy.types.Object.MhxRigify = BoolProperty(default=False)
     bpy.types.Object.MhxShapekeyDrivers = BoolProperty(default=True)
+    bpy.types.Object.MhxStrength = FloatProperty(
+        name = "Expression strength",
+        description = "Multiply expression with this factor",
+        default=1.0, min=-1.0, max=2.0
+        )
     bpy.utils.register_module(__name__)
     bpy.types.INFO_MT_file_import.append(menu_func)
 
