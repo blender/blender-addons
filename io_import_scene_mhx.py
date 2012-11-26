@@ -2139,7 +2139,7 @@ def deleteDiamonds(ob):
 theProperty = None
 
 def propNames(string):
-    if string[0:3] in ["Mha", "Mhf", "Mhs"]:
+    if string[0:3] in ["Mha", "Mhf", "Mhs", "Mhh"]:
         name = string.replace("-","_")
         return name, name
     elif string[0] == "_":
@@ -3951,8 +3951,8 @@ def ik2fkArm(context, suffix):
     (uparmIk, loarmIk, elbow, elbowPt, wrist) = getSnapBones(rig, "ArmIK", suffix)
     (uparmFk, loarmFk, elbowPtFk, handFk) = getSnapBones(rig, "ArmFK", suffix)
 
-    #rig["&ElbowFollowsShoulder" + suffix] = False
-    #rig["&ElbowFollowsWrist" + suffix] = False
+    #rig["MhaElbowFollowsShoulder" + suffix] = False
+    #rig["MhaElbowFollowsWrist" + suffix] = False
     
     matchPoseTranslation(wrist, handFk, auto)
     matchPoseRotation(wrist, handFk, auto)  
@@ -3985,8 +3985,8 @@ def ik2fkLeg(context, suffix):
     (uplegIk, lolegIk, kneePt, ankleIk, legIk, legFk, footIk, toeIk) = getSnapBones(rig, "LegIK", suffix)
     (uplegFk, lolegFk, kneePtFk, footFk, toeFk) = getSnapBones(rig, "LegFK", suffix)
 
-    #rig["&KneeFollowsHip" + suffix] = False
-    #rig["&KneeFollowsFoot" + suffix] = False
+    #rig["MhaKneeFollowsHip" + suffix] = False
+    #rig["MhaKneeFollowsFoot" + suffix] = False
     
     legIkToAnkle = rig["MhaLegIkToAnkle" + suffix]
     if legIkToAnkle:
