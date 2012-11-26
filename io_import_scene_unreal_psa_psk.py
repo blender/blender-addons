@@ -19,7 +19,7 @@
 bl_info = {
     "name": "Import Unreal Skeleton Mesh (.psk)/Animation Set (psa)",
     "author": "Darknet, flufy3d, camg188",
-    "version": (2, 1),
+    "version": (2, 2),
     "blender": (2, 6, 4),
     "location": "File > Import > Skeleton Mesh (.psk)/Animation Set (psa)",
     "description": "Import Skeleleton Mesh/Animation Data",
@@ -123,6 +123,7 @@ def getheadpos(pbone,bones):
     pos_head[2] = pos.z
     
     return pos_head
+	
 def gettailpos(pbone,bones):
     pos_tail = [0.0]*3
     ischildfound = False
@@ -157,8 +158,6 @@ def gettailpos(pbone,bones):
         
     return pos_tail
 
-        
-        
 def pskimport(infile,importmesh,importbone,bDebugLogPSK,importmultiuvtextures):
     global DEBUGLOG
     DEBUGLOG = bDebugLogPSK
@@ -371,8 +370,7 @@ def pskimport(infile,importmesh,importbone,bDebugLogPSK,importmultiuvtextures):
         
     for pbone in md5_bones:
         pbone.parent =  md5_bones[pbone.parent_index]
-        
-        
+
     for pbone in md5_bones:
         if pbone.name != pbone.parent.name:
             pbone.bindmat =   pbone.parent.bindmat * pbone.bindmat 
@@ -387,14 +385,10 @@ def pskimport(infile,importmesh,importbone,bDebugLogPSK,importmultiuvtextures):
         
     for pbone in md5_bones:
         pbone.tail = gettailpos(pbone,md5_bones)
-        
-    
 
     for pbone in md5_bones:
         pbone.parent =  md5_bones[pbone.parent_index].name
-      
-        
-            
+
     bonecount = 0
     for armbone in bone:
         temp_name = armbone[0][:30]
@@ -567,8 +561,7 @@ def pskimport(infile,importmesh,importbone,bDebugLogPSK,importmultiuvtextures):
     me_ob.tessfaces.foreach_set("vertices_raw",unpack_list( faces))
     
     for face in me_ob.tessfaces:
-	    face.use_smooth = facesmooth[face.index]
-    
+	    face.use_smooth = facesmooth[face.index]    
         
     """
     Material setup coding.
@@ -670,8 +663,7 @@ def pskimport(infile,importmesh,importbone,bDebugLogPSK,importmultiuvtextures):
         #print("names:",bone.name,":",dir(bone))
         #print("names:",bone.name)
         group = obmesh.vertex_groups.new(bone.name)
-    
-        
+
     for vgroup in obmesh.vertex_groups:
         #print(vgroup.name,":",vgroup.index)
         for vgp in RWghts:
@@ -681,8 +673,7 @@ def pskimport(infile,importmesh,importbone,bDebugLogPSK,importmultiuvtextures):
                 #print(vgp)
                 #[vertex id],weight
                 vgroup.add([vgp[0]], vgp[2], 'ADD')
-    
-    
+
     #check if there is a material to set to
     if len(materials) > 0:
         obmesh.active_material = materials[0] #material setup tmp
@@ -781,7 +772,6 @@ class IMPORT_OT_psk(bpy.types.Operator):
         wm = context.window_manager
         wm.fileselect_add(self)
         return {'RUNNING_MODAL'}  
-
 
 class psa_bone:
     name=""
@@ -911,7 +901,22 @@ def psaimport(filename,context):
         bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
         
     NeededBoneMatrix = {}
-    for bone in bpy.data.armatures['armaturedata'].bones:
+    ARMATURE_OBJ = 'ArmObject'
+    ARMATURE_DATA = 'armaturedata'
+    if bpy.context.scene.udk_importarmatureselect:
+        if len(bpy.context.scene.udkas_list) > 0:
+            print("CHECKING ARMATURE...")
+			#for bone in bpy.data.objects[ARMATURE_OBJ].pose.bones:
+            #for objd in bpy.data.objects:
+                #print("NAME:",objd.name," TYPE:",objd.type)
+                #if objd.type == 'ARMARURE':
+                    #print(dir(objd))
+            armature_list = bpy.context.scene.udkas_list #armature list array
+            armature_idx = bpy.context.scene.udkimportarmature_list_idx #armature index selected
+            ARMATURE_OBJ = bpy.data.objects[armature_list[armature_idx]].name #object armature
+            ARMATURE_DATA = bpy.data.objects[armature_list[armature_idx]].data.name #object data
+            
+    for bone in bpy.data.armatures[ARMATURE_DATA].bones:
         name = bone.name
         ori_matrix = bone.matrix
         matrix = bone.matrix_local.to_3x3()
@@ -926,7 +931,7 @@ def psaimport(filename,context):
         
     #build tmp pose bone tree
     psa_bones = {}
-    for bone in bpy.data.objects['ArmObject'].pose.bones:
+    for bone in bpy.data.objects[ARMATURE_OBJ].pose.bones:
         _psa_bone = psa_bone()
         _psa_bone.name = bone.name
         _psa_bone.Transform = bone.matrix
@@ -1069,6 +1074,185 @@ class IMPORT_OT_psa(bpy.types.Operator):
         wm.fileselect_add(self)
         return {'RUNNING_MODAL'}  
 
+bpy.types.Scene.udk_importpsk = StringProperty(
+		name		= "Import .psk",
+		description	= "Skeleton mesh file path for psk",
+		default		= "")
+bpy.types.Scene.udk_importpsa = StringProperty(
+		name		= "Import .psa",
+		description	= "Animation Data to Action Set(s) file path for psa",
+		default		= "")
+bpy.types.Scene.udk_importarmatureselect = BoolProperty(
+		name		= "Armature Selected",
+		description	= "Select Armature to Import psa animation data.",
+		default		= False)
+
+class Panel_UDKImport( bpy.types.Panel ):
+
+	bl_label		= "UDK Import"
+	bl_idname		= "OBJECT_PT_udk_import"
+	bl_space_type	= "VIEW_3D"
+	bl_region_type	= "TOOLS"
+	
+	filepath = StringProperty(
+            subtype='FILE_PATH',
+            )
+	
+	#@classmethod
+	#def poll(cls, context):
+	#	return context.active_object
+
+	def draw(self, context):
+		layout = self.layout
+		layout.operator(OBJECT_OT_PSKPath.bl_idname)		
+		
+		layout.prop(context.scene, "udk_importarmatureselect")
+		if bpy.context.scene.udk_importarmatureselect:
+			layout.operator(OBJECT_OT_UDKImportArmature.bl_idname)
+			layout.template_list(context.scene, "udkimportarmature_list", context.scene, "udkimportarmature_list_idx",prop_list="template_list_controls", rows=5)
+		layout.operator(OBJECT_OT_PSAPath.bl_idname)
+		
+class OBJECT_OT_PSKPath(bpy.types.Operator):
+    bl_idname = "object.pskpath"
+    bl_label = "Import PSK Path"
+    __doc__ = " Select .psk file path to import for skeleton mesh."
+
+    filepath = StringProperty(
+            subtype='FILE_PATH',
+            )
+    filter_glob = StringProperty(
+            default="*.psk",
+            options={'HIDDEN'},
+            )
+    importmesh = BoolProperty(
+            name="Mesh",
+            description="Import mesh only. (not yet build.)",
+            default=True,
+            )
+    importbone = BoolProperty(
+            name="Bones",
+            description="Import bones only. Current not working yet",
+            default=True,
+            )
+    importmultiuvtextures = BoolProperty(
+            name="Single UV Texture(s)",
+            description="Single or Multi uv textures",
+            default=True,
+            )
+    bDebugLogPSK = BoolProperty(
+            name="Debug Log.txt",
+            description="Log the output of raw format. It will save in " \
+                        "current file dir. Note this just for testing",
+            default=False,
+            )
+    unrealbonesize = FloatProperty(
+            name="Bone Length",
+            description="Bone Length from head to tail distance",
+            default=1,
+            min=0.001,
+            max=1000,
+            )
+    
+    def execute(self, context):
+        #context.scene.importpskpath = self.properties.filepath
+        bpy.types.Scene.unrealbonesize = self.unrealbonesize
+        getInputFilenamepsk(self,self.filepath,self.importmesh,self.importbone,self.bDebugLogPSK,self.importmultiuvtextures)
+        return {'FINISHED'}
+        
+    def invoke(self, context, event):
+        #bpy.context.window_manager.fileselect_add(self)
+        wm = context.window_manager
+        wm.fileselect_add(self)
+        return {'RUNNING_MODAL'}
+	
+class UDKImportArmaturePG(bpy.types.PropertyGroup):
+	bool    = BoolProperty(default=False)
+	string  = StringProperty()
+	bexport    = BoolProperty(default=False,name="Export", options={"HIDDEN"},description = "This will be ignore when exported")
+	bselect    = BoolProperty(default=False,name="Select", options={"HIDDEN"},description = "This will be ignore when exported")
+	otype  = StringProperty(name="Type",description = "This will be ignore when exported")
+	template_list_controls = StringProperty(default="", options={"HIDDEN"})
+
+bpy.utils.register_class(UDKImportArmaturePG)
+bpy.types.Scene.udkimportarmature_list = CollectionProperty(type=UDKImportArmaturePG)
+bpy.types.Scene.udkimportarmature_list_idx = IntProperty()
+
+class OBJECT_OT_PSAPath(bpy.types.Operator):
+	bl_idname = "object.psapath"
+	bl_label = "Import PSA Path"
+	__doc__ = " Select .psa file path to import for animation data."
+
+	filepath = StringProperty(name="PSA File Path", description="Filepath used for importing the PSA file", maxlen= 1024, default= "")
+	filter_glob = StringProperty(
+            default="*.psa",
+            options={'HIDDEN'},
+            )
+			
+	def execute(self, context):
+		#context.scene.importpsapath = self.properties.filepath
+		getInputFilenamepsa(self,self.filepath,context)
+		return {'FINISHED'}
+        
+	def invoke(self, context, event):
+		bpy.context.window_manager.fileselect_add(self)
+		return {'RUNNING_MODAL'}
+		
+class OBJECT_OT_UDKImportArmature(bpy.types.Operator):
+	bl_idname = "object.udkimportarmature"
+	bl_label = "Update Armature"
+	__doc__		= "This will update the filter of the mesh and armature."
+ 
+	def execute(self, context):
+		my_objlist = bpy.context.scene.udkimportarmature_list
+		objectl = []
+		for objarm in bpy.context.scene.objects:#list and filter only mesh and armature
+			if objarm.type == 'ARMATURE':
+				objectl.append(objarm)
+		for _objd in objectl:#check if list has in udk list
+			bfound_obj = False
+			for _obj in my_objlist:
+				if _obj.name == _objd.name and _obj.otype == _objd.type:
+					_obj.bselect = _objd.select
+					bfound_obj = True
+					break
+			if bfound_obj == False:
+				#print("ADD ARMATURE...")
+				my_item = my_objlist.add()
+				my_item.name = _objd.name
+				my_item.bselect = _objd.select
+				my_item.otype = _objd.type
+		removeobject = []
+		for _udkobj in my_objlist:
+			bfound_objv = False
+			for _objd in bpy.context.scene.objects: #check if there no existing object from sense to remove it
+				if _udkobj.name == _objd.name and _udkobj.otype == _objd.type:
+					bfound_objv = True
+					break
+			if bfound_objv == False:
+				removeobject.append(_udkobj)
+		#print("remove check...")
+		for _item in removeobject: #loop remove object from udk list object
+			count = 0
+			for _obj in my_objlist:
+				if _obj.name == _item.name and _obj.otype == _item.otype:
+					my_objlist.remove(count)
+					break
+				count += 1
+		return{'FINISHED'}
+		
+class OBJECT_OT_UDKImportA(bpy.types.Operator):
+	bl_idname = "object.udkimporta"
+	bl_label = "Update Armature"
+	__doc__		= "This will update the filter of the mesh and armature."
+ 
+	def execute(self, context):
+		for objd in bpy.data.objects:
+			print("NAME:",objd.name," TYPE:",objd.type)
+			if objd.type == "ARMATURE":
+				print(dir(objd))
+				print((objd.data.name))
+		return{'FINISHED'}		
+		
 def menu_func(self, context):
     self.layout.operator(IMPORT_OT_psk.bl_idname, text="Skeleton Mesh (.psk)")
     self.layout.operator(IMPORT_OT_psa.bl_idname, text="Skeleton Anim (.psa)")
