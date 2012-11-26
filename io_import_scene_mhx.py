@@ -39,7 +39,7 @@ Alternatively, run the script in the script editor (Alt-P), and access from the 
 bl_info = {
     'name': 'Import: MakeHuman (.mhx)',
     'author': 'Thomas Larsson',
-    'version': (1, 14, 0),
+    'version': (1, 14, 1),
     "blender": (2, 6, 4),
     'location': "File > Import > MakeHuman (.mhx)",
     'description': 'Import files in the MakeHuman eXchange format (.mhx)',
@@ -51,8 +51,8 @@ bl_info = {
 
 MAJOR_VERSION = 1
 MINOR_VERSION = 14
-FROM_VERSION = 13
-SUB_VERSION = 0
+FROM_VERSION = 14
+SUB_VERSION = 1
 
 #
 #
@@ -201,10 +201,11 @@ Plural = {
 #
 
 def readMhxFile(filePath):
-    global todo, nErrors, theScale, defaultScale, One, toggle, warnedVersion, theMessage
+    global todo, nErrors, theScale, theArmature, defaultScale, One, toggle, warnedVersion, theMessage
 
     defaultScale = theScale
     One = 1.0/theScale
+    theArmature = None
     warnedVersion = False
     initLoadedData()
     theMessage = ""
@@ -284,7 +285,7 @@ def readMhxFile(filePath):
 
     if level != 0:
         MyError("Tokenizer out of kilter %d" % level)    
-    clearScene()
+    scn = clearScene()
     print( "Parsing" )
     parse(tokens)
     
@@ -298,6 +299,10 @@ def readMhxFile(filePath):
             nErrors += 1
             #MyError(msg)
 
+    if theArmature is not None:
+        scn.objects.active = theArmature
+        #bpy.ops.wm.properties_edit(data_path="object", property="MhxRig", value=theArmature["MhxRig"])
+        
     time2 = time.clock()
     print("toggle = %x" % toggle)
     msg = "File %s loaded in %g s" % (fileName, time2-time1)
@@ -1564,7 +1569,7 @@ def addShapeKey(ob, name, vgroup, tokens):
 #
 
 def parseArmature (args, tokens):
-    global toggle
+    global toggle, theArmature
     if verbosity > 2:
         print( "Parsing armature %s" % args )
     
@@ -1573,10 +1578,9 @@ def parseArmature (args, tokens):
     mode = args[2]
     
     amt = bpy.data.armatures.new(amtname)
-    ob = createObject('ARMATURE', obname, amt, amtname)    
-
-    linkObject(ob, amt)
-    print("Linked")
+    ob = createObject('ARMATURE', obname, amt, amtname) 
+    linkObject(ob, amt)    
+    theArmature = ob
 
     bpy.ops.object.mode_set(mode='OBJECT')
     bpy.ops.object.mode_set(mode='EDIT')
@@ -1608,6 +1612,7 @@ def parseArmature (args, tokens):
         else:
             defaultKey(key, val,  sub, "amt", ['MetaRig'], globals(), locals())
     bpy.ops.object.mode_set(mode='OBJECT')
+    
     return amt
         
 #
@@ -2134,19 +2139,32 @@ def deleteDiamonds(ob):
 theProperty = None
 
 def propNames(string):
-    if string[0] == "&":
-        name = "Mha" + string[1:].replace("-","_")
-        return name,name
-    elif string[0] == "*":
-        name = "Mhs" + string[1:].replace("-","_")
-        return name,name
-    elif string[0:4] == "Hide":
-        name =  "Mhh" + string[4:]
-        return name, '["%s"]' % name
+    if string[0:3] in ["Mha", "Mhf", "Mhs"]:
+        name = string.replace("-","_")
+        return name, name
     elif string[0] == "_":
         return None,None
     else:
-        return string,string
+        return string, '["%s"]' % string
+        
+
+def defProp(args, var, glbals, lcals):
+    proptype = args[0]
+    name = propNames(args[1])[0]
+    value = args[2]    
+    rest = 'description="%s"' % args[3].replace("_", " ")
+    if len(args) > 4:
+        rest += ", " + args[4]
+        
+    if name:
+        expr = 'bpy.types.Object.%s = %sProperty(%s)' % (name, proptype, rest)
+        print(expr)
+        exec(expr)
+        expr = '%s.%s = %s' % (var, name, value)
+        print(expr)
+        exec(expr, glbals, lcals)
+        
+
         
 def setProperty(args, var, glbals, lcals):
     global theProperty
@@ -2173,7 +2191,7 @@ def setProperty(args, var, glbals, lcals):
         #    halt
     return
 
-
+"""
 def defineProperty(args):
     global theProperty
     if theProperty is None:
@@ -2183,7 +2201,7 @@ def defineProperty(args):
         if "BOOLEAN" in args[1]:
             proptype = "Bool"
         else:
-            tip = tip + ", " + args[1].replace(":", "=").replace('"', "")
+            tip = tip + "," + args[1].replace(":", "=").replace('"', " ")
     expr = "bpy.types.Object.%s = %sProperty(%s)" % (name, proptype, tip)
     print(expr)
     exec(expr)
@@ -2191,15 +2209,17 @@ def defineProperty(args):
         halt
     theProperty = None
     return
-
+"""
 
 def defaultKey(ext, args, tokens, var, exclude, glbals, lcals):
     global todo
 
     if ext == 'Property':
         return setProperty(args, var, glbals, lcals)        
-    elif ext == 'PropKeys':
-        return defineProperty(args)
+    #elif ext == 'PropKeys':
+    #    return defineProperty(args)
+    elif ext == 'DefProp':
+        return defProp(args, var, glbals, lcals)
 
     if ext == 'bpyops':
         expr = "bpy.ops.%s" % args[0]
@@ -3478,14 +3498,14 @@ def setViseme(context, vis, setKey, frame):
                 for n in range(3):
                     pb.keyframe_insert('location', index=n, frame=frame, group=pb.name)
         elif isProp:
-            skey = '&_' + skey
+            skey = 'Mhf' + skey
             try:
                 prop = rig[skey]
             except:
                 continue
             rig[skey] = value*scale
             if setKey or context.tool_settings.use_keyframe_insert_auto:
-                rig.keyframe_insert('["%s"]' % skey, frame=frame, group="Visemes")    
+                rig.keyframe_insert(skey, frame=frame, group="Visemes")    
         elif shapekeys:
             try:
                 shapekeys[skey].value = value*scale
@@ -4280,20 +4300,16 @@ class MhxDriversPanel(bpy.types.Panel):
         plist = list(context.object.keys())
         plist.sort()
         for prop in plist:
-            if prop[0:3] != 'Mha':
-                pass
-            elif prop[-2:] == '_L':
-                if prop[3] == '_':
-                    lrFaceProps.append(prop[:-2])
-                else:
+            if prop[0:3] == 'Mha':
+                if prop[-2:] == '_L':
                     lrProps.append(prop[:-2])
-            elif prop[-2:] == '_R':
-                pass
-            else:
-                if prop[3] == '_':
-                    faceProps.append(prop)
-                else:
+                elif prop[-2:] != '_R':
                     props.append(prop)
+            elif prop[0:3] == 'Mhf':
+                if prop[-2:] == '_L':
+                    lrFaceProps.append(prop[:-2])
+                elif prop[-2:] != '_R':
+                    faceProps.append(prop)
                     
         ob = context.object
         layout = self.layout
@@ -4313,7 +4329,7 @@ class MhxDriversPanel(bpy.types.Panel):
             layout.separator()
             layout.label("Face shapes")
             for prop in faceProps:
-                layout.prop(ob, prop, text=pname[4:])
+                layout.prop(ob, prop, text=prop[3:])
 
             layout.separator()
             row = layout.row()
@@ -4321,8 +4337,8 @@ class MhxDriversPanel(bpy.types.Panel):
             row.label("Right")
             for prop in lrFaceProps:
                 row = layout.row()
-                row.prop(ob, prop+"_L", text=prop[4:])
-                row.prop(ob, prop+"_R", text=prop[4:])
+                row.prop(ob, prop+"_L", text=prop[3:])
+                row.prop(ob, prop+"_R", text=prop[3:])
      
         return
 
