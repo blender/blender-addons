@@ -51,7 +51,7 @@ bl_info = {
 
 MAJOR_VERSION = 1
 MINOR_VERSION = 14
-FROM_VERSION = 14
+FROM_VERSION = 13
 SUB_VERSION = 1
 
 #
@@ -201,11 +201,13 @@ Plural = {
 #
 
 def readMhxFile(filePath):
-    global todo, nErrors, theScale, theArmature, defaultScale, One, toggle, warnedVersion, theMessage
+    global todo, nErrors, theScale, theArmature, defaultScale, One
+    global toggle, warnedVersion, theMessage, alpha7
 
     defaultScale = theScale
     One = 1.0/theScale
     theArmature = None
+    alpha7 = False
     warnedVersion = False
     initLoadedData()
     theMessage = ""
@@ -299,8 +301,9 @@ def readMhxFile(filePath):
             nErrors += 1
             #MyError(msg)
 
-    if theArmature is not None:
-        scn.objects.active = theArmature
+    scn.objects.active = theArmature
+    if not alpha7:
+        theArmature["MHAlpha8"] = True
         #bpy.ops.wm.properties_edit(data_path="object", property="MhxRig", value=theArmature["MhxRig"])
         
     time2 = time.clock()
@@ -1511,18 +1514,25 @@ def parseShapeKeys(ob, me, args, tokens):
                 parseAnimationData(me.shape_keys, val, sub)
         elif key == 'Expression':
             prop = "Mhe" + val[0].capitalize()
-            string = ""
-            for words in sub:
-                unit = words[0].replace("-","_")
-                value = words[1][0]
-                string += "%s:%s;" % (unit, value)
-            print(prop)
-            print("  ", string)
-            rig = ob.parent
-            rig[prop] = string
+            parseUnits(prop, ob, sub)
+        elif key == 'Viseme':
+            prop = "Mhv" + val[0].upper()
+            parseUnits(prop, ob, sub)            
     ob.active_shape_key_index = 0
     print("Shapekeys parsed")
     return
+
+            
+def parseUnits(prop, ob, sub):
+    string = ""
+    for words in sub:
+        unit = words[0].replace("-","_")
+        value = words[1][0]
+        string += "%s:%s;" % (unit, value)
+    print(prop)
+    print("  ", string)
+    rig = ob.parent
+    rig[prop] = string
 
 
 def parseShapeKey(ob, me, args, tokens):
@@ -1773,7 +1783,7 @@ def parseConstraint(constraints, pb, args, tokens):
         elif key == 'rot_lock':
             parseArray(cns, ["lock_rotation_x", "lock_rotation_y", "lock_rotation_z"], val)
         else:
-            defaultKey(key, val,  sub, "cns", [], globals(), locals())
+            defaultKey(key, val,  sub, "cns", ["use_target"], globals(), locals())
 
 
     #print("cns %s done" % cns.name)
@@ -2139,7 +2149,22 @@ def deleteDiamonds(ob):
 theProperty = None
 
 def propNames(string):
-    if string[0:3] in ["Mha", "Mhf", "Mhs", "Mhh"]:
+    global alpha7
+    # Alpha 7 compatibility
+    if string[0:2] == "&_":
+        string = "Mhf"+string[2:]
+        alpha7 = True
+    elif string[0] == "&":
+        string = "Mha"+string[1:]
+        alpha7 = True
+    elif string[0] == "*":
+        string = "Mhs"+string[1:]
+        alpha7 = True
+    elif string[0:4] == "Hide":
+        string = "Mhh"+string[4:]
+        alpha7 = True
+    
+    if string[0:3] in ["Mha", "Mhf", "Mhs", "Mhh", "Mhv"]:
         name = string.replace("-","_")
         return name, name
     elif string[0] == "_":
@@ -2191,7 +2216,7 @@ def setProperty(args, var, glbals, lcals):
         #    halt
     return
 
-"""
+
 def defineProperty(args):
     global theProperty
     if theProperty is None:
@@ -2209,15 +2234,15 @@ def defineProperty(args):
         halt
     theProperty = None
     return
-"""
+
 
 def defaultKey(ext, args, tokens, var, exclude, glbals, lcals):
     global todo
 
     if ext == 'Property':
         return setProperty(args, var, glbals, lcals)        
-    #elif ext == 'PropKeys':
-    #    return defineProperty(args)
+    elif ext == 'PropKeys':
+        return defineProperty(args)
     elif ext == 'DefProp':
         return defProp(args, var, glbals, lcals)
 
@@ -3633,27 +3658,40 @@ class MhxLipsyncPanel(bpy.types.Panel):
         rig,mesh = getMhxRigMesh(context.object)
         if not rig:
             return
+        try:
+            alpha8 = rig["MHAlpha8"]
+        except:
+            alpha8 = False
 
         layout = self.layout        
         layout.label(text="Visemes")
-        for (vis1, vis2, vis3) in VisemeList:
-            row = layout.row()
-            row.operator("mhx.pose_viseme", text=vis1).viseme = vis1
-            row.operator("mhx.pose_viseme", text=vis2).viseme = vis2
-            row.operator("mhx.pose_viseme", text=vis3).viseme = vis3
-        layout.separator()
-        row = layout.row()
-        row.operator("mhx.pose_viseme", text="Blink").viseme = 'Blink'
-        row.operator("mhx.pose_viseme", text="Unblink").viseme = 'Unblink'
-        layout.label(text="Load file")
-        row = layout.row()
-        row.operator("mhx.pose_load_moho")
-        row.operator("mhx.pose_load_magpie")
-        layout.operator("mhx.update")
-        layout.separator()
-        layout.operator("mhx.make_visemes")
-        return
         
+        if alpha8:
+            visemes = getProps(rig, "Mhv")
+            layout.operator("mhx.pose_reset_expressions")
+            layout.operator("mhx.pose_key_expressions")
+            layout.prop(rig, "MhxStrength")
+            layout.separator()
+            for prop in visemes:
+                layout.operator("mhx.pose_mhm", text=prop[3:]).data=rig[prop]        
+        else:         
+            for (vis1, vis2, vis3) in VisemeList:
+                row = layout.row()
+                row.operator("mhx.pose_viseme", text=vis1).viseme = vis1
+                row.operator("mhx.pose_viseme", text=vis2).viseme = vis2
+                row.operator("mhx.pose_viseme", text=vis3).viseme = vis3
+            layout.separator()
+            row = layout.row()
+            row.operator("mhx.pose_viseme", text="Blink").viseme = 'Blink'
+            row.operator("mhx.pose_viseme", text="Unblink").viseme = 'Unblink'
+            layout.label(text="Load file")
+            row = layout.row()
+            row.operator("mhx.pose_load_moho")
+            row.operator("mhx.pose_load_magpie")
+            layout.operator("mhx.update")
+            layout.separator()
+            layout.operator("mhx.make_visemes")
+
 #
 #   updatePose(context):
 #   class VIEW3D_OT_MhxUpdateButton(bpy.types.Operator):
@@ -3814,6 +3852,34 @@ class MhxExpressionsPanel(bpy.types.Panel):
         if not rig:
             print("No MHX rig found")
             return
+        exprs = getProps(rig, "Mhe")
+        if not exprs:
+            return
+            
+        layout.operator("mhx.pose_reset_expressions")
+        layout.operator("mhx.pose_key_expressions")
+        layout.prop(rig, "MhxStrength")
+        layout.separator()
+        for prop in exprs:
+            layout.operator("mhx.pose_mhm", text=prop[3:]).data=rig[prop]
+
+
+class MhxExpressionUnitsPanel(bpy.types.Panel):
+    bl_label = "MHX Expression Units"
+    bl_space_type = "VIEW_3D"
+    bl_region_type = "UI"
+    bl_options = {'DEFAULT_CLOSED'}
+    
+    @classmethod
+    def poll(cls, context):
+        return pollMhx(context.object)
+
+    def draw(self, context):
+        layout = self.layout
+        rig,mesh = getMhxRigMesh(context.object)
+        if not rig:
+            print("No MHX rig found")
+            return
         if not rig.MhxShapekeyDrivers:
             layout.label("No shapekey drivers.")
             layout.label("Set expression values in mesh context instead")
@@ -3826,17 +3892,7 @@ class MhxExpressionsPanel(bpy.types.Panel):
         layout.operator("mhx.pose_key_expressions")
         #layout.operator("mhx.update")
 
-        exprs = getProps(rig, "Mhe")
-        if exprs:
-            layout.prop(rig, "MhxStrength")
-            layout.separator()
-            layout.label(text="Expressions")
-            for prop in exprs:
-                if prop[0:3] == "Mhe":
-                    layout.operator("mhx.pose_mhm", text=prop[3:]).data=rig[prop]
-        
         layout.separator()
-        layout.label(text="Expressions Units")
         for prop in props:
             row = layout.split(0.85)
             row.prop(rig, '["%s"]' % prop, text=prop[3:])
