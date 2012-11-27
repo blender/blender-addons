@@ -302,9 +302,8 @@ def readMhxFile(filePath):
             #MyError(msg)
 
     scn.objects.active = theArmature
-    if not alpha7:
-        theArmature["MHAlpha8"] = True
-        #bpy.ops.wm.properties_edit(data_path="object", property="MhxRig", value=theArmature["MhxRig"])
+    theArmature.MhAlpha8 = not alpha7
+    #bpy.ops.wm.properties_edit(data_path="object", property="MhxRig", value=theArmature["MhxRig"])
         
     time2 = time.clock()
     print("toggle = %x" % toggle)
@@ -1516,7 +1515,10 @@ def parseShapeKeys(ob, me, args, tokens):
             prop = "Mhe" + val[0].capitalize()
             parseUnits(prop, ob, sub)
         elif key == 'Viseme':
-            prop = "Mhv" + val[0].upper()
+            name = val[0].upper()
+            if name in ["REST", "ETC"]:
+                name = name.capitalize()
+            prop = "Mhv" + name
             parseUnits(prop, ob, sub)            
     ob.active_shape_key_index = 0
     print("Shapekeys parsed")
@@ -1529,8 +1531,6 @@ def parseUnits(prop, ob, sub):
         unit = words[0].replace("-","_")
         value = words[1][0]
         string += "%s:%s;" % (unit, value)
-    print(prop)
-    print("  ", string)
     rig = ob.parent
     rig[prop] = string
 
@@ -2160,11 +2160,11 @@ def propNames(string):
     elif string[0] == "*":
         string = "Mhs"+string[1:]
         alpha7 = True
-    elif string[0:4] == "Hide":
+    elif string.startswith("Hide"):
         string = "Mhh"+string[4:]
         alpha7 = True
     
-    if string[0:3] in ["Mha", "Mhf", "Mhs", "Mhh", "Mhv"]:
+    if string.startswith(("Mha", "Mhf", "Mhs", "Mhh", "Mhv")):
         name = string.replace("-","_")
         return name, name
     elif string[0] == "_":
@@ -3163,7 +3163,7 @@ stopStaringVisemes = ({
     'Blink' : [('PUpLid', (0,1.0)), ('PLoLid', (0,-1.0))], 
     'Unblink' : [('PUpLid', (0,0)), ('PLoLid', (0,0))], 
 })
-"""
+
 bodyLanguageVisemes = ({
     'Rest' : [
         ('MouthWidth_L', 0), 
@@ -3448,13 +3448,13 @@ class VIEW3D_OT_MhxMakeVisemesButton(bpy.types.Operator):
     def execute(self, context):
         makeVisemes(context.object, context.scene)
         return{'FINISHED'}    
-       
+"""       
 #
 #    mohoVisemes
 #    magpieVisemes
 #
 
-mohoVisemes = dict({
+MohoVisemes = dict({
     'rest' : 'Rest', 
     'etc' : 'Etc', 
     'AI' : 'AH', 
@@ -3467,7 +3467,7 @@ mohoVisemes = dict({
     'FV' : 'FV', 
 })
 
-magpieVisemes = dict({
+MagpieVisemes = dict({
     "CONS" : "t,d,k,g,T,D,s,z,S,Z,h,n,N,j,r,tS", 
     "AI" : "i,&,V,aU,I,0,@,aI", 
     "E" : "eI,3,e", 
@@ -3484,7 +3484,7 @@ magpieVisemes = dict({
 #    setBoneLocation(context, pbone, loc, mirror, setKey, frame):
 #    class VIEW3D_OT_MhxVisemeButton(bpy.types.Operator):
 #
-
+"""
 def getVisemeSet(context, rig):
     try:
         visset = rig['MhxVisemeSet']
@@ -3498,7 +3498,7 @@ def getVisemeSet(context, rig):
         raise MhxError("Unknown viseme set %s" % visset)
 
 
-def setViseme(context, vis, setKey, frame):
+def setVisemeAlpha7(context, vis, visemes, setKey, frame):
     (rig, mesh) = getMhxRigMesh(context.object)
     isPanel = False
     isProp = False
@@ -3512,7 +3512,7 @@ def setViseme(context, vis, setKey, frame):
             isProp = True
     elif mesh:
         shapekeys = mesh.data.shape_keys.key_blocks
-    visemes = getVisemeSet(context, rig)
+
     for (skey, value) in visemes[vis]:
         if isPanel:
             (b, (x,z)) = VisemePanelBones[skey]
@@ -3530,7 +3530,7 @@ def setViseme(context, vis, setKey, frame):
                 continue
             rig[skey] = value*scale
             if setKey or context.tool_settings.use_keyframe_insert_auto:
-                rig.keyframe_insert(skey, frame=frame, group="Visemes")    
+                rig.keyframe_insert('["%s"]' % skey, frame=frame, group="Visemes")    
         elif shapekeys:
             try:
                 shapekeys[skey].value = value*scale
@@ -3540,7 +3540,7 @@ def setViseme(context, vis, setKey, frame):
                 shapekeys[skey].keyframe_insert("value", frame=frame)            
     updatePose(context)
     return
-    
+
 
 class VIEW3D_OT_MhxVisemeButton(bpy.types.Operator):
     bl_idname = 'mhx.pose_viseme'
@@ -3549,15 +3549,15 @@ class VIEW3D_OT_MhxVisemeButton(bpy.types.Operator):
     viseme = StringProperty()
 
     def invoke(self, context, event):
-        setViseme(context, self.viseme, False, context.scene.frame_current)
+        (rig, mesh) = getMhxRigMesh(context.object)
+        visemes = getVisemeSet(context, rig)
+        setVisemeAlpha7(context, self.viseme, visemes, False, context.scene.frame_current)
         return{'FINISHED'}
 
-
+"""
 
 #
-#    openFile(context, filepath):
-#    readMoho(context, filepath, offs):
-#    readMagpie(context, filepath, offs):
+#    readLipsync(context, filepath, offs, struct)
 #
 
 def openFile(context, filepath):
@@ -3565,91 +3565,79 @@ def openFile(context, filepath):
     (name, ext) = os.path.splitext(fileName)
     return open(filepath, "rU")
 
-def readMoho(context, filepath, offs):
+
+def readLipsync(context, filepath, offs, struct):
     (rig, mesh) = getMhxRigMesh(context.object)
+    if rig.MhAlpha8:
+        props = getProps(rig, "Mhv")
+        visemes = {}
+        oldKeys = []
+        for prop in props:
+            dummy,units = getUnitsFromString("x;"+rig[prop])
+            print("VV", prop, units)
+            visemes[prop] = units
+        props = getProps(rig, "Mhsmouth")
+        auto = context.tool_settings.use_keyframe_insert_auto
+        auto = True
+        factor = rig.MhxStrength
+    else:
+        visemes = getVisemeSet(context, rig)    
     context.scene.objects.active = rig
     bpy.ops.object.mode_set(mode='POSE')    
+    
     fp = openFile(context, filepath)        
     for line in fp:
         words= line.split()
         if len(words) < 2:
-            pass
+            continue
         else:
-            vis = mohoVisemes[words[1]]
-            setViseme(context, vis, True, int(words[0])+offs)
+            vis = "Mhv" + struct[words[1]]
+            frame = int(words[0])+offs
+        if rig.MhAlpha8:
+            print("Frame", frame, words[1], vis)
+            print("  ", visemes[vis])
+            setMhmProps(rig, "Mhsmouth", visemes[vis], factor, auto, frame)
+        else:
+            setVisemeAlpha7(context, vis, visemes, True, frame)
     fp.close()
+    
     setInterpolation(rig)
     updatePose(context)
-    print("Moho file %s loaded" % filepath)
-    return
+    print("Lipsync file %s loaded" % filepath)
 
-def readMagpie(context, filepath, offs):
-    rig,mesh = getMhxRigMesh(context.object)
-    context.scene.objects.active = rig
-    bpy.ops.object.mode_set(mode='POSE')    
-    fp = openFile(context, filepath)        
-    for line in fp: 
-        words= line.split()
-        if len(words) < 3:
-            pass
-        elif words[2] == 'X':
-            vis = magpieVisemes[words[3]]
-            setViseme(context, vis, True, int(words[0])+offs)
-    fp.close()
-    setInterpolation(rig)
-    updatePose(context)
-    print("Magpie file %s loaded" % filepath)
-    return
 
-# 
-#    class VIEW3D_OT_MhxLoadMohoButton(bpy.types.Operator):
-#
-
-class VIEW3D_OT_MhxLoadMohoButton(bpy.types.Operator):
-    bl_idname = "mhx.pose_load_moho"
+class VIEW3D_OT_MhxLipsyncButton(bpy.types.Operator, ImportHelper):
+    bl_idname = "mhx.pose_load_lipsync"
     bl_label = "Moho (.dat)"
     bl_options = {'UNDO'}
-    filepath = StringProperty(subtype='FILE_PATH')
+
+    type = StringProperty()
     startFrame = IntProperty(name="Start frame", description="First frame to import", default=1)
+
+    filename_ext = ".dat"
+    filter_glob = StringProperty(default="*.dat", options={'HIDDEN'})
+    filepath = StringProperty(subtype='FILE_PATH')    
 
     def execute(self, context):
         import bpy, os, mathutils
-        readMoho(context, self.properties.filepath, self.properties.startFrame-1)        
+        if self.type == "Moho":
+            struct = MohoVisemes
+        elif self.type == "Magpie":
+            struct = MagpieVisemes
+        readLipsync(context, self.properties.filepath, self.properties.startFrame-1, struct)        
         return{'FINISHED'}    
 
     def invoke(self, context, event):
         context.window_manager.fileselect_add(self)
         return {'RUNNING_MODAL'}    
 
-#
-#    class VIEW3D_OT_MhxLoadMagpieButton(bpy.types.Operator):
-#
-
-class VIEW3D_OT_MhxLoadMagpieButton(bpy.types.Operator):
-    bl_idname = "mhx.pose_load_magpie"
-    bl_label = "Magpie (.mag)"
-    filepath = StringProperty(subtype='FILE_PATH')
-    startFrame = IntProperty(name="Start frame", description="First frame to import", default=1)
-
-    def execute(self, context):
-        import bpy, os, mathutils
-        readMagpie(context, self.properties.filepath, self.properties.startFrame-1)        
-        return{'FINISHED'}    
-
-    def invoke(self, context, event):
-        context.window_manager.fileselect_add(self)
-        return {'RUNNING_MODAL'}    
-
-#
-#    class MhxLipsyncPanel(bpy.types.Panel):
-#
 
 class MhxLipsyncPanel(bpy.types.Panel):
     bl_label = "MHX Lipsync"
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI"
     bl_options = {'DEFAULT_CLOSED'}
-    
+
     @classmethod
     def poll(cls, context):
         return pollMhx(context.object)
@@ -3658,23 +3646,31 @@ class MhxLipsyncPanel(bpy.types.Panel):
         rig,mesh = getMhxRigMesh(context.object)
         if not rig:
             return
-        try:
-            alpha8 = rig["MHAlpha8"]
-        except:
-            alpha8 = False
-
         layout = self.layout        
-        layout.label(text="Visemes")
         
-        if alpha8:
+        if rig.MhAlpha8:
             visemes = getProps(rig, "Mhv")
-            layout.operator("mhx.pose_reset_expressions")
-            layout.operator("mhx.pose_key_expressions")
+            layout.operator("mhx.pose_reset_expressions", text="Reset visemes").prefix="Mhsmouth"
+            layout.operator("mhx.pose_key_expressions", text="Key visemes").prefix="Mhsmouth"
             layout.prop(rig, "MhxStrength")
             layout.separator()
+            n = 0
             for prop in visemes:
-                layout.operator("mhx.pose_mhm", text=prop[3:]).data=rig[prop]        
-        else:         
+                if n % 3 == 0:
+                    row = layout.row()
+                    n = 0
+                row.operator("mhx.pose_mhm", text=prop[3:]).data="Mhsmouth;"+rig[prop]        
+                n += 1
+            while n % 3 != 0:
+                row.label("")
+                n += 1
+            layout.separator()
+            row = layout.row()
+            row.operator("mhx.pose_mhm", text="Blink").data="Mhsmouth;eye_left_closure:1;eye_right_closure:1"        
+            row.operator("mhx.pose_mhm", text="Unblink").data="Mhsmouth;eye_left_closure:0;eye_right_closure:0"        
+        else:   
+            layout.label("Lipsync disabled for alpha7 mhx files")
+            return
             for (vis1, vis2, vis3) in VisemeList:
                 row = layout.row()
                 row.operator("mhx.pose_viseme", text=vis1).viseme = vis1
@@ -3684,13 +3680,14 @@ class MhxLipsyncPanel(bpy.types.Panel):
             row = layout.row()
             row.operator("mhx.pose_viseme", text="Blink").viseme = 'Blink'
             row.operator("mhx.pose_viseme", text="Unblink").viseme = 'Unblink'
-            layout.label(text="Load file")
-            row = layout.row()
-            row.operator("mhx.pose_load_moho")
-            row.operator("mhx.pose_load_magpie")
-            layout.operator("mhx.update")
             layout.separator()
             layout.operator("mhx.make_visemes")
+            
+        layout.separator()
+        row = layout.row()
+        row.operator("mhx.pose_load_lipsync", text="Load Moho (.dat)").type="Moho"
+        #row.operator("mhx.pose_load_lipsync", text="Magpie (.mgp)").type="Magpie"
+        #layout.operator("mhx.update")
 
 #
 #   updatePose(context):
@@ -3726,12 +3723,11 @@ class VIEW3D_OT_MhxResetExpressionsButton(bpy.types.Operator):
     bl_idname = "mhx.pose_reset_expressions"
     bl_label = "Reset expressions"
     bl_options = {'UNDO'}
+    prefix = StringProperty(default="Mhs")
 
     def execute(self, context):
         rig,mesh = getMhxRigMesh(context.object)
-        props = getProps(rig, "Mhs")
-        for prop in props:
-            rig[prop] = 0.0
+        clearMhmProps(rig, self.prefix, context.tool_settings.use_keyframe_insert_auto, context.scene.frame_current)
         updatePose(context)
         return{'FINISHED'}    
 
@@ -3743,13 +3739,14 @@ class VIEW3D_OT_MhxKeyExpressionsButton(bpy.types.Operator):
     bl_idname = "mhx.pose_key_expressions"
     bl_label = "Key expressions"
     bl_options = {'UNDO'}
+    prefix = StringProperty(default="Mhs")
 
     def execute(self, context):
         rig,mesh = getMhxRigMesh(context.object)
-        props = getProps(rig, "Mhs")
+        props = getProps(rig, self.prefix)
         frame = context.scene.frame_current
         for prop in props:
-            rig.keyframe_insert('["%s"]' % prop, frame=frame)
+            rig.keyframe_insert(prop, frame=frame)
         updatePose(context)
         return{'FINISHED'}   
         
@@ -3775,7 +3772,7 @@ class VIEW3D_OT_MhxPinExpressionButton(bpy.types.Operator):
                 else:
                     rig[prop] = 0.0
                 if abs(rig[prop] - old) > 1e-3:
-                    rig.keyframe_insert('["%s"]' % prop, frame=frame)
+                    rig.keyframe_insert(prop, frame=frame)
         else:                    
             for prop in props:
                 if prop == self.expression:
@@ -3789,18 +3786,35 @@ class VIEW3D_OT_MhxPinExpressionButton(bpy.types.Operator):
 #    class VIEW3D_OT_MhxMhmButton(bpy.types.Operator):
 #
 
-def setMhmProps(rig, string, factor):
+def setMhmProps(rig, prefix, units, factor, auto, frame):
+    clearMhmProps(rig, prefix, auto, frame)
+    for (prop, value) in units:
+        rig[prop] = factor*value
+        if auto:
+            rig.keyframe_insert(prop, frame=frame)    
+    
+    
+def clearMhmProps(rig, prefix, auto, frame):
+    props = getProps(rig, prefix)
+    for prop in props:
+        rig[prop] = 0.0
+        if auto:
+            rig.keyframe_insert(prop, frame=frame)   
+
+
+def getUnitsFromString(string):    
     words = string.split(";")
+    prefix = words[0]
     units = []
     print(string)
-    for word in words:
+    for word in words[1:]:
         if word == "":
             continue
         unit = word.split(":") 
         prop = "Mhs" + unit[0]
         value = float(unit[1])
-        rig[prop] = factor*value
-        print(prop, " = ", value)
+        units.append((prop, value))
+    return prefix,units            
             
 
 class VIEW3D_OT_MhxMhmButton(bpy.types.Operator):
@@ -3811,30 +3825,22 @@ class VIEW3D_OT_MhxMhmButton(bpy.types.Operator):
 
     def execute(self, context):   
         rig,mesh = getMhxRigMesh(context.object)
-        props = getProps(rig, "Mhs")
-        for prop in props:
-            rig[prop] = 0.0
-        setMhmProps(rig, self.data, rig.MhxStrength)
+        auto = context.tool_settings.use_keyframe_insert_auto
+        frame = context.scene.frame_current
+        prefix,units = getUnitsFromString(self.data)        
+        setMhmProps(rig, prefix, units, rig.MhxStrength, auto, frame)
         updatePose(context)
         return{'FINISHED'}  
                 
 
-#
-#   getProps(ob, prefix):        
-#
-
 def getProps(rig, prefix):
-    props = []        
-    plist = list(rig.keys())
-    plist.sort()
-    for prop in plist:
-        if prop[0:3] == prefix:
+    props = []
+    for prop in rig.keys():
+        if prop.startswith(prefix):
             props.append(prop)
-    return props                
+    props.sort()            
+    return props
 
-#
-#    class MhxExpressionsPanel(bpy.types.Panel):
-#
 
 class MhxExpressionsPanel(bpy.types.Panel):
     bl_label = "MHX Expressions"
@@ -3856,12 +3862,12 @@ class MhxExpressionsPanel(bpy.types.Panel):
         if not exprs:
             return
             
-        layout.operator("mhx.pose_reset_expressions")
-        layout.operator("mhx.pose_key_expressions")
+        layout.operator("mhx.pose_reset_expressions").prefix="Mhs"
+        layout.operator("mhx.pose_key_expressions").prefix="Mhs"
         layout.prop(rig, "MhxStrength")
         layout.separator()
         for prop in exprs:
-            layout.operator("mhx.pose_mhm", text=prop[3:]).data=rig[prop]
+            layout.operator("mhx.pose_mhm", text=prop[3:]).data="Mhs;"+rig[prop]
 
 
 class MhxExpressionUnitsPanel(bpy.types.Panel):
@@ -3888,14 +3894,14 @@ class MhxExpressionUnitsPanel(bpy.types.Panel):
         if not props:
             return
             
-        layout.operator("mhx.pose_reset_expressions")
-        layout.operator("mhx.pose_key_expressions")
+        layout.operator("mhx.pose_reset_expressions").prefix="Mhs"
+        layout.operator("mhx.pose_key_expressions").prefix="Mhs"
         #layout.operator("mhx.update")
 
         layout.separator()
         for prop in props:
             row = layout.split(0.85)
-            row.prop(rig, '["%s"]' % prop, text=prop[3:])
+            row.prop(rig, prop, text=prop[3:])
             row.operator("mhx.pose_pin_expression", text="", icon='UNPINNED').expression = prop
         return
 
@@ -4656,6 +4662,7 @@ def menu_func(self, context):
     self.layout.operator(ImportMhx.bl_idname, text="MakeHuman (.mhx)...")
 
 def register():
+    bpy.types.Object.MhAlpha8 = BoolProperty(default=True)
     bpy.types.Object.MhxMesh = BoolProperty(default=False)
     bpy.types.Object.MhxRig = StringProperty(default="")
     bpy.types.Object.MhxRigify = BoolProperty(default=False)
