@@ -392,8 +392,9 @@ class SCENE_OT_import(bpy.types.Operator):
                         obj_data = objekti.data.id_data
                         objekti.data = obj_proxy.data.id_data
                         if(bpy.data.meshes[obj_data.name].users == 0):
-                            bpy.data.meshes.remove(obj_data)
                             objekti.data.id_data.name = obj_data.name
+                            bpy.data.meshes.remove(obj_data)
+                            
 
                     obj_proxy.select = True
                     bpy.ops.object.delete()
