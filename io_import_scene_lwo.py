@@ -1088,8 +1088,9 @@ def build_objects(object_layers, object_surfs, object_tags, object_name, add_sub
             print("Adding %d Vertex Color Maps" % len(layer_data.colmaps))
             for cmap_key in layer_data.colmaps:
                 map_pack= create_mappack(layer_data, cmap_key, "COLOR")
-                vcol= me.vertex_colors.new(cmap_key)
-                if not vcol:
+                me.vertex_colors.new(cmap_key)
+                vcol= me.tessface_vertex_colors[-1]
+                if not vcol or not vcol.data:
                     break
                 for fi in map_pack:
                     if fi > len(vcol.data):
@@ -1109,10 +1110,9 @@ def build_objects(object_layers, object_surfs, object_tags, object_name, add_sub
             print("Adding %d UV Textures" % len(layer_data.uvmaps))
             for uvmap_key in layer_data.uvmaps:
                 map_pack= create_mappack(layer_data, uvmap_key, "UV")
-                uvm= me.uv_textures.new(name=uvmap_key)
-                uvloop = me.uv_layers[-1]
-                uvm = uvloop.data
-                if not uvm:
+                me.uv_textures.new(name=uvmap_key)
+                uvm= me.tessface_uv_textures[-1]
+                if not uvm or not uvm.data:
                     break
                 for fi in map_pack:
                     if fi > len(uvm.data):
