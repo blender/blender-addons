@@ -163,7 +163,7 @@ def _ascii_read(data):
 def _binary_write(filename, faces):
     with open(filename, 'wb') as data:
         # header
-        # we write padding at header begginning to avoid to
+        # we write padding at header beginning to avoid to
         # call len(list(faces)) which may be expensive
         data.write(struct.calcsize('<80sI') * b'\0')
 

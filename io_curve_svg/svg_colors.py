@@ -19,7 +19,7 @@
 # <pep8 compliant>
 
 #
-# Copied and adoptedfrom paths_svg2obj.py scring for Blender 2.49 which is
+# Copied and adopted from paths_svg2obj.py script for Blender 2.49 which is
 # Copyright (c) jm soler juillet/novembre 2004-april 2009,
 #
 

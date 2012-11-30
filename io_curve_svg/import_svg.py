@@ -87,7 +87,7 @@ def SVGParseFloat(s, i=0):
                 token += s[i]
                 i += 1
         elif s[i].isspace() or s[i] == ',':
-            # Inkscape sometimes uses qeird float format with missed
+            # Inkscape sometimes uses weird float format with missed
             # fractional part after dot. Suppose zero fractional part
             # for this case
             pass
@@ -790,7 +790,7 @@ class SVGPathParser:
         """
         Calc arc paths
 
-        Copied and adoptedfrom paths_svg2obj.py scring for Blender 2.49
+        Copied and adoptedfrom paths_svg2obj.py script for Blender 2.49
         which is Copyright (c) jm soler juillet/novembre 2004-april 2009,
         """
 
