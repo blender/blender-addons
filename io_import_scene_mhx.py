@@ -2166,7 +2166,7 @@ def propNames(string):
     
     if string.startswith(("Mha", "Mhf", "Mhs", "Mhh", "Mhv", "Mhc")):
         name = string.replace("-","_")
-        return name, name
+        return name, '["%s"]' % name
     elif string[0] == "_":
         return None,None
     else:
@@ -2189,6 +2189,11 @@ def defProp(args, var, glbals, lcals):
         print(expr)
         exec(expr, glbals, lcals)
         
+
+def defNewProp(name, proptype, rest):
+    expr = 'bpy.types.Object.%s = %sProperty(%s)' % (name, proptype, rest)
+    print(expr)
+    exec(expr)
 
         
 def setProperty(args, var, glbals, lcals):
@@ -3890,7 +3895,7 @@ def drawShapePanel(self, context, prefix, name):
     layout.separator()
     for prop in props:
         row = layout.split(0.85)
-        row.prop(rig, prop, text=prop[3:])
+        row.prop(rig, '["%s"]' % prop, text=prop[3:])
         row.operator("mhx.pose_pin_expression", text="", icon='UNPINNED').data = (prefix + ";" + prop)
     return
 
@@ -4394,7 +4399,7 @@ class MhxDriversPanel(bpy.types.Panel):
         ob = context.object
         layout = self.layout
         for prop in props:
-            layout.prop(ob, prop, text=prop[3:])
+            layout.prop(ob, '["%s"]' % prop, text=prop[3:])
 
         layout.separator()
         row = layout.row()
@@ -4402,14 +4407,14 @@ class MhxDriversPanel(bpy.types.Panel):
         row.label("Right")
         for prop in lrProps:
             row = layout.row()
-            row.prop(ob, prop+"_L", text=prop[3:])
-            row.prop(ob, prop+"_R", text=prop[3:])
+            row.prop(ob, '["%s"]' % (prop+"_L"), text=prop[3:])
+            row.prop(ob, '["%s"]' % (prop+"_R"), text=prop[3:])
 
         if faceProps:
             layout.separator()
             layout.label("Face shapes")
             for prop in faceProps:
-                layout.prop(ob, prop, text=prop[3:])
+                layout.prop(ob, '["%s"]' % prop, text=prop[3:])
 
             layout.separator()
             row = layout.row()
@@ -4417,8 +4422,8 @@ class MhxDriversPanel(bpy.types.Panel):
             row.label("Right")
             for prop in lrFaceProps:
                 row = layout.row()
-                row.prop(ob, prop+"_L", text=prop[3:])
-                row.prop(ob, prop+"_R", text=prop[3:])
+                row.prop(ob, '["%s"]' % (prop+"_L"), text=prop[3:])
+                row.prop(ob, '["%s"]' % (prop+"_R"), text=prop[3:])
      
         return
 
@@ -4448,7 +4453,7 @@ class MhxVisibilityPanel(bpy.types.Panel):
         props.sort()
         for prop in props:
             if prop[0:3] == "Mhh": 
-                layout.prop(ob, prop, text="Hide %s" % prop[3:])
+                layout.prop(ob, '["%s"]' % prop, text="Hide %s" % prop[3:])
         layout.separator()
         layout.operator("mhx.update_textures")
         layout.separator()
@@ -4486,6 +4491,7 @@ class VIEW3D_OT_MhxAddHidersButton(bpy.types.Operator):
         for ob in context.scene.objects:
             if ob.select and ob != rig:
                 prop = "Mhh%s" % ob.name        
+                defNewProp(prop, "Bool", "default=False")
                 rig[prop] = False        
                 addHider(ob, "hide", rig, prop)
                 addHider(ob, "hide_render", rig, prop)
