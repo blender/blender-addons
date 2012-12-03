@@ -18,9 +18,9 @@
 
 bl_info = {
     "name": "Import Images as Planes",
-    "author": "Florian Meyer (tstscr)",
-    "version": (1, 6),
-    "blender": (2, 6, 3),
+    "author": "Florian Meyer (tstscr), mont29, matali",
+    "version": (1, 7),
+    "blender": (2, 6, 5),
     "location": "File > Import > Images as Planes or Add > Mesh > Images as Planes",
     "description": "Imports images and creates planes with the appropriate "
                    "aspect ratio. The images are mapped to the planes.",
@@ -226,12 +226,21 @@ class IMPORT_OT_image_to_plane(Operator, AddObjectHelper):
                              description="Only import files of this type",
                              update=update_extensions)
 
-    use_dimension = BoolProperty(name="Use Image Dimensions", default=False,
-                                 description="Use the images pixels to derive "
-                                             "planes size")
+    # -------------------
+    # Plane size options.
+    _size_modes = (
+        ('ABSOLUTE', "Absolute", "Use absolute size"),
+        ('DPI', "Dpi", "Use definition of the image as dots per inch"),
+        ('DPBU', "Dots/BU", "Use definition of the image as dots per Blender Unit"),
+    )
+    size_mode = EnumProperty(name="Size Mode", default='DPI', items=_size_modes,
+                             description="How the size of the plane is computed")
 
-    factor = IntProperty(name="Pixels/BU", min=1, default=500,
-                         description="Number of pixels per Blenderunit")
+    height = FloatProperty(name="Height", description="Height of the created plane",
+                           default=1.0, min=0.001, soft_min=0.001, subtype='DISTANCE', unit='LENGTH')
+
+    factor = FloatProperty(name="Definition", min=1.0, default=600.0,
+                           description="Number of pixels per inch or Blender Unit")
 
     # -------------------------
     # Blender material options.
@@ -309,7 +318,8 @@ class IMPORT_OT_image_to_plane(Operator, AddObjectHelper):
             box.prop(self, "use_shadeless")
             box.prop(self, "use_transparency")
             box.prop(self, "use_premultiply")
-            box.prop(self, "transparency_method", expand=True)
+            row = box.row()
+            row.prop(self, "transparency_method", expand=True)
             box.prop(self, "use_transparent_shadows")
         elif engine == 'CYCLES':
             box = layout.box()
@@ -319,8 +329,12 @@ class IMPORT_OT_image_to_plane(Operator, AddObjectHelper):
 
         box = layout.box()
         box.label("Plane dimensions:", icon='ARROW_LEFTRIGHT')
-        box.prop(self, "use_dimension")
-        box.prop(self, "factor", expand=True)
+        row = box.row()
+        row.prop(self, "size_mode", expand=True)
+        if self.size_mode == 'ABSOLUTE':
+            box.prop(self, "height")
+        else:
+            box.prop(self, "factor")
 
     def invoke(self, context, event):
         self.update_extensions(context)
@@ -356,7 +370,7 @@ class IMPORT_OT_image_to_plane(Operator, AddObjectHelper):
             textures = []
             for img in images:
                 self.set_image_options(img)
-                textures.append(self.create_image_textures(img))
+                textures.append(self.create_image_textures(context, img))
 
             materials = (self.create_material_for_texture(tex)
                          for tex in textures)
@@ -389,12 +403,17 @@ class IMPORT_OT_image_to_plane(Operator, AddObjectHelper):
         if px == 0 or py == 0:
             px = py = 1
 
-        x = px / py
-        y = 1.0
-
-        if self.use_dimension:
-            x = (px * (1.0 / self.factor)) * 0.5
-            y = (py * (1.0 / self.factor)) * 0.5
+        if self.size_mode == 'ABSOLUTE':
+            y = self.height / 2
+            x = px / py * y
+        elif self.size_mode == 'DPI':
+            fact = 1 / self.factor / context.scene.unit_settings.scale_length * 0.0254 / 2
+            x = px * fact
+            y = py * fact
+        else:  # self.size_mode == 'DPBU'
+            fact = 1 / self.factor / 2
+            x = px * fact
+            y = py * fact
 
         verts = ((-x, -y, 0.0),
                  (+x, -y, 0.0),
@@ -433,7 +452,7 @@ class IMPORT_OT_image_to_plane(Operator, AddObjectHelper):
                 if is_image_fn(fn.name, self.extension)), self.directory
 
     # Internal
-    def create_image_textures(self, image):
+    def create_image_textures(self, context, image):
         fn_full = os.path.normpath(bpy.path.abspath(image.filepath))
 
         # look for texture with importsettings
@@ -443,14 +462,14 @@ class IMPORT_OT_image_to_plane(Operator, AddObjectHelper):
                 if (tex_img is not None) and (tex_img.library is None):
                     fn_tex_full = os.path.normpath(bpy.path.abspath(tex_img.filepath))
                     if fn_full == fn_tex_full:
-                        self.set_texture_options(texture)
+                        self.set_texture_options(context, texture)
                         return texture
 
         # if no texture is found: create one
         name_compat = bpy.path.display_name_from_filepath(image.filepath)
         texture = bpy.data.textures.new(name=name_compat, type='IMAGE')
         texture.image = image
-        self.set_texture_options(texture)
+        self.set_texture_options(context, texture)
         return texture
 
     def create_material_for_texture(self, texture):
@@ -477,12 +496,13 @@ class IMPORT_OT_image_to_plane(Operator, AddObjectHelper):
         if self.relative:
             image.filepath = bpy.path.relpath(image.filepath)
 
-    def set_texture_options(self, texture):
+    def set_texture_options(self, context, texture):
         texture.use_alpha = self.use_transparency
         texture.image_user.use_auto_refresh = self.use_auto_refresh
         if self.match_len:
-            ctx = {"edit_image": texture.image,
-                   "edit_image_user": texture.image_user,}
+            ctx = context.copy()
+            ctx["edit_image"] = texture.image
+            ctx["edit_image_user"] = texture.image_user
             bpy.ops.image.match_movie_length(ctx)
 
     def set_material_options(self, material, slot):
