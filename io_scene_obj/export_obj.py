@@ -393,7 +393,7 @@ def write_file(filepath, objects, scene,
             # avoid bad index errors
             if not materials:
                 materials = [None]
-                material_names = [""]
+                material_names = [name_compat(None)]
 
             # Sort by Material, then images
             # so we dont over context switch in the obj file.
