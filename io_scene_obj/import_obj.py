@@ -85,14 +85,18 @@ def create_materials(filepath, material_libs, unique_materials, unique_material_
         # Absolute path - c:\.. etc would work here
         image = obj_image_load(imagepath, DIR, use_image_search)
         has_data = False
+        image_depth = 0
 
         if image:
             texture.image = image
+            # note, this causes the image to load, see: [#32637]
+            # which makes the following has_data work as expected.
+            image_depth = image.depth
             has_data = image.has_data
 
         # Adds textures for materials (rendering)
         if type == 'Kd':
-            if has_data and image.depth == 32:
+            if image_depth in {32, 128}:
                 # Image has alpha
 
                 mtex = blender_material.texture_slots.add()
