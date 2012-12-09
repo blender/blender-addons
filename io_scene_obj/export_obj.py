@@ -79,7 +79,7 @@ def write_mtl(scene, filepath, path_mode, copy_set, mtl_dict):
                 fw('Ni %.6f\n' % mat.ior)  # Refraction index
             else:
                 fw('Ni %.6f\n' % 1.0)
-            fw('d %.6f\n' % mat.alpha)  # Alpha (obj uses 'd' for dissolve)
+            fw('d %.6f\n' % (1.0 - mat.alpha))  # Alpha (obj uses 'd' for dissolve)
 
             # 0 to disable lighting, 1 for ambient & diffuse only (specular color set to black), 2 for full lighting.
             if mat.use_shadeless:
