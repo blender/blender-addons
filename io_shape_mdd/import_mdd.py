@@ -34,6 +34,41 @@
 import bpy
 from struct import unpack
 
+def obj_update_frame(file, scene, obj, fr, step):
+
+    # Insert new shape key
+    new_shapekey = obj.shape_key_add()
+    new_shapekey.name = ("frame_%.4d" % fr)
+
+    obj.active_shape_key_index = len(obj.data.shape_keys.key_blocks) - 1
+    index = len(obj.data.shape_keys.key_blocks) - 1
+    obj.show_only_shape_key = True
+
+    verts = obj.data.shape_keys.key_blocks[len(obj.data.shape_keys.key_blocks) - 1].data
+
+    for v in verts:  # 12 is the size of 3 floats
+        v.co[:] = unpack('>3f', file.read(12))
+
+    # me.update()
+    obj.show_only_shape_key = False
+
+    # insert keyframes
+    shape_keys = obj.data.shape_keys
+
+    scene.frame_current -= step
+    obj.data.shape_keys.key_blocks[index].value = 0.0
+    shape_keys.key_blocks[len(obj.data.shape_keys.key_blocks) - 1].keyframe_insert("value")
+
+    scene.frame_current += step
+    obj.data.shape_keys.key_blocks[index].value = 1.0
+    shape_keys.key_blocks[len(obj.data.shape_keys.key_blocks) - 1].keyframe_insert("value")
+
+    scene.frame_current += step
+    obj.data.shape_keys.key_blocks[index].value = 0.0
+    shape_keys.key_blocks[len(obj.data.shape_keys.key_blocks) - 1].keyframe_insert("value")
+
+    obj.data.update()
+
 
 def load(operator, context, filepath, frame_start=0, frame_step=1):
 
@@ -60,42 +95,7 @@ def load(operator, context, filepath, frame_start=0, frame_step=1):
 
     scene.frame_current = frame_start
 
-    def UpdateMesh(ob, fr, step):
-
-        # Insert new shape key
-        new_shapekey = obj.shape_key_add()
-        new_shapekey.name = ("frame_%.4d" % fr)
-
-        obj.active_shape_key_index = len(obj.data.shape_keys.key_blocks) - 1
-        index = len(obj.data.shape_keys.key_blocks) - 1
-        obj.show_only_shape_key = True
-
-        verts = obj.data.shape_keys.key_blocks[len(obj.data.shape_keys.key_blocks) - 1].data
-
-        for v in verts:  # 12 is the size of 3 floats
-            v.co[:] = unpack('>3f', file.read(12))
-
-        # me.update()
-        obj.show_only_shape_key = False
-
-        # insert keyframes
-        shape_keys = obj.data.shape_keys
-
-        scene.frame_current -= step
-        obj.data.shape_keys.key_blocks[index].value = 0.0
-        shape_keys.key_blocks[len(obj.data.shape_keys.key_blocks) - 1].keyframe_insert("value")
-
-        scene.frame_current += step
-        obj.data.shape_keys.key_blocks[index].value = 1.0
-        shape_keys.key_blocks[len(obj.data.shape_keys.key_blocks) - 1].keyframe_insert("value")
-
-        scene.frame_current += step
-        obj.data.shape_keys.key_blocks[index].value = 0.0
-        shape_keys.key_blocks[len(obj.data.shape_keys.key_blocks) - 1].keyframe_insert("value")
-
-        obj.data.update()
-
     for i in range(frames):
-        UpdateMesh(obj, i, frame_step)
+        obj_update_frame(file, scene, obj, i, frame_step)
 
     return {'FINISHED'}

@@ -51,7 +51,7 @@ def check_vertcount(mesh, vertcount):
         raise Exception('Error, number of verts has changed during animation, cannot export')
 
 
-def save(operator, context, filepath="", frame_start=1, frame_end=300, fps=25):
+def save(operator, context, filepath="", frame_start=1, frame_end=300, fps=25.0):
     """
     Blender.Window.WaitCursor(1)
 
@@ -70,16 +70,18 @@ def save(operator, context, filepath="", frame_start=1, frame_end=300, fps=25):
     me = obj.to_mesh(scene, True, 'PREVIEW')
 
     #Flip y and z
+    '''
     mat_flip = mathutils.Matrix(((1.0, 0.0, 0.0, 0.0),
                                  (0.0, 0.0, 1.0, 0.0),
                                  (0.0, 1.0, 0.0, 0.0),
                                  (0.0, 0.0, 0.0, 1.0),
                                  ))
+    '''
+    mat_flip = mathutils.Matrix()
 
     numverts = len(me.vertices)
 
     numframes = frame_end - frame_start + 1
-    fps = float(fps)
     f = open(filepath, 'wb')  # no Errors yet:Safe to create file
 
     # Write the header
@@ -89,21 +91,11 @@ def save(operator, context, filepath="", frame_start=1, frame_end=300, fps=25):
     f.write(pack(">%df" % (numframes), *[frame / fps for frame in range(numframes)]))  # seconds
 
     #rest frame needed to keep frames in sync
-    """
-    Blender.Set('curframe', frame_start)
-    me_tmp.getFromObject(obj.name)
-    """
-
     check_vertcount(me, numverts)
     me.transform(mat_flip * obj.matrix_world)
     f.write(pack(">%df" % (numverts * 3), *[axis for v in me.vertices for axis in v.co]))
 
     for frame in range(frame_start, frame_end + 1):  # in order to start at desired frame
-        """
-        Blender.Set('curframe', frame)
-        me_tmp.getFromObject(obj.name)
-        """
-
         scene.frame_set(frame)
         me = obj.to_mesh(scene, True, 'PREVIEW')
         check_vertcount(me, numverts)
@@ -112,16 +104,9 @@ def save(operator, context, filepath="", frame_start=1, frame_end=300, fps=25):
         # Write the vertex data
         f.write(pack(">%df" % (numverts * 3), *[axis for v in me.vertices for axis in v.co]))
 
-    """
-    me_tmp.vertices= None
-    """
     f.close()
 
     print('MDD Exported: %r frames:%d\n' % (filepath, numframes - 1))
-    """
-    Blender.Window.WaitCursor(0)
-    Blender.Set('curframe', orig_frame)
-    """
     scene.frame_set(orig_frame)
 
     return {'FINISHED'}
