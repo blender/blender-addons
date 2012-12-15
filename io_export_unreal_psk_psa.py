@@ -175,7 +175,6 @@ SIZE_VTRIANGLE          = 12
 
 MaterialName            = []
 
-
 #===========================================================================
 # Custom exception class
 #===========================================================================
@@ -940,31 +939,30 @@ def triangulate_mesh( object ):
 
 #copy mesh data and then merge them into one object
 def meshmerge(selectedobjects):
-    bpy.ops.object.mode_set(mode='OBJECT')
-    cloneobjects = []
+    bpy.ops.object.mode_set(mode='OBJECT') #object mode and not edit mode
+    cloneobjects = [] #object holder for copying object data
     if len(selectedobjects) > 1:
-        print("selectedobjects:",len(selectedobjects))
+        print("selectedobjects:",len(selectedobjects)) #print select object
         count = 0 #reset count
-        for count in range(len( selectedobjects)):
+        for count in range(len( selectedobjects)): 
             #print("Index:",count)
             if selectedobjects[count] != None:
                 me_da = selectedobjects[count].data.copy() #copy data
                 me_ob = selectedobjects[count].copy() #copy object
                 #note two copy two types else it will use the current data or mesh
-                me_ob.data = me_da
+                me_ob.data = me_da #assign the data
                 bpy.context.scene.objects.link(me_ob)#link the object to the scene #current object location
-                print("Index:",count,"clone object",me_ob.name)
-                cloneobjects.append(me_ob)
-        #bpy.ops.object.mode_set(mode='OBJECT')
+                print("Index:",count,"clone object",me_ob.name) #print clone object
+                cloneobjects.append(me_ob) #add object to the array
         for i in bpy.data.objects: i.select = False #deselect all objects
         count = 0 #reset count
-        #bpy.ops.object.mode_set(mode='OBJECT')
+        #begin merging the mesh together as one
         for count in range(len( cloneobjects)):
             if count == 0:
                 bpy.context.scene.objects.active = cloneobjects[count]
                 print("Set Active Object:",cloneobjects[count].name)
             cloneobjects[count].select = True
-        bpy.ops.object.join()
+        bpy.ops.object.join() #join object together
         if len(cloneobjects) > 1:
             bpy.types.Scene.udk_copy_merge = True
     return cloneobjects[0]
@@ -975,19 +973,21 @@ def sortmesh(selectmesh):
     centermesh = []
     notcentermesh = []
     for countm in range(len(selectmesh)):
+        #if object are center add here
         if selectmesh[countm].location.x == 0 and selectmesh[countm].location.y == 0 and selectmesh[countm].location.z == 0:
             centermesh.append(selectmesh[countm])
-        else:
+        else:#if not add here for not center
             notcentermesh.append(selectmesh[countm])
     selectmesh = []
+    #add mesh object in order for merge object 
     for countm in range(len(centermesh)):
         selectmesh.append(centermesh[countm])
     for countm in range(len(notcentermesh)):
         selectmesh.append(notcentermesh[countm])
-    if len(selectmesh) == 1:
-        return selectmesh[0]
+    if len(selectmesh) == 1: #if there one mesh just do some here
+        return selectmesh[0] #return object mesh
     else:
-        return meshmerge(selectmesh)
+        return meshmerge(selectmesh) #return merge object mesh
 
 #===========================================================================
 # parse_mesh
@@ -1034,7 +1034,7 @@ def parse_mesh( mesh, psk ):
     #FIXME ^ this is redundant due to "= face.material_index" in face loop
 
     wedges          = ObjMap()
-    points          = ObjMap()
+    points          = ObjMap() #vertex
     points_linked   = {}
     
     discarded_face_count = 0
@@ -1128,11 +1128,9 @@ def parse_mesh( mesh, psk ):
                 #vpos = vert.co * object_material_index
 
                 #should fixed this!!
-                
-                
                 vpos = mesh.matrix_local * vert.co
                 if bpy.context.scene.udk_option_scale < 0 or bpy.context.scene.udk_option_scale > 1:
-                    print("OK!")
+                    #print("OK!")
                     vpos.x = vpos.x * bpy.context.scene.udk_option_scale
                     vpos.y = vpos.y * bpy.context.scene.udk_option_scale
                     vpos.z = vpos.z * bpy.context.scene.udk_option_scale
@@ -1203,7 +1201,7 @@ def parse_mesh( mesh, psk ):
                 dindex0 = face.vertices[0];
                 dindex1 = face.vertices[1];
                 dindex2 = face.vertices[2];
-
+                
                 mesh.data.vertices[dindex0].select = True
                 mesh.data.vertices[dindex1].select = True
                 mesh.data.vertices[dindex2].select = True
@@ -1276,9 +1274,7 @@ def parse_mesh( mesh, psk ):
             #print(dir(vertex))
             # all groups this vertex is a member of...
             for vgroup in vertex.groups:
-                
                 if vgroup.group == obj_vertex_group.index:
-                    
                     vertex_weight   = vgroup.weight
                     p               = VPointSimple()
                     vpos            = mesh.matrix_local * vertex.co
@@ -1388,11 +1384,9 @@ def recurse_bone( bone, bones, psk, psa, parent_id, parent_matrix, indent="" ):
     
     #RG - dump influences for this bone - use the data we collected in the mesh dump phase to map our bones to vertex groups
     if bone.name in psk.VertexGroups:
-        
         vertex_list = psk.VertexGroups[bone.name]
         #print("vertex list:", len(vertex_list), " of >" ,bone.name )
         for vertex_data in vertex_list:
-            
             point_index             = vertex_data[0]
             vertex_weight           = vertex_data[1]
             influence               = VRawBoneInfluence()
@@ -1401,7 +1395,6 @@ def recurse_bone( bone, bones, psk, psa, parent_id, parent_matrix, indent="" ):
             influence.PointIndex    = point_index
             #print ("   AddInfluence to vertex {}, weight={},".format(point_index, vertex_weight))
             psk.AddInfluence(influence)
-
     else:
         status = "No vertex group"
         #FIXME overwriting previous status error?
@@ -1435,7 +1428,7 @@ def parse_animation( armature, udk_bones, actions_to_export, psa ):
     print("Scene: {} FPS: {} Frames: {} to {}".format(context.scene.name, anim_rate, context.scene.frame_start, context.scene.frame_end))
     print("Processing {} action(s)".format(len(actions_to_export)))
     print()
-    if armature.animation_data == None: #this will make sure if animation data was create for the armature else it skip it.
+    if armature.animation_data == None: #if animation data was not create for the armature it will skip the exporting action set(s)
         print("None Actions Set! skipping...")
         return
     restoreAction   = armature.animation_data.action    # Q: is animation_data always valid?
@@ -1465,6 +1458,7 @@ def parse_animation( armature, udk_bones, actions_to_export, psa ):
                 continue
         '''
         # apply action to armature and update scene
+        # note if loop all actions that is not armature it will override and will break armature animation.
         armature.animation_data.action = action
         context.scene.update()
         
@@ -1792,7 +1786,6 @@ def export(filepath):
     psa_filename = filepath + '.psa'
     
     if context.scene.udk_option_export_psk == True:
-        
         print("Skeletal mesh data...")
         psk.PrintOut()
         file = open(psk_filename, "wb") 
@@ -1802,7 +1795,6 @@ def export(filepath):
         print()
     
     if context.scene.udk_option_export_psa == True:
-        
         print("Animation data...")
         if not psa.IsEmpty():
             psa.PrintOut()
@@ -1810,7 +1802,6 @@ def export(filepath):
             file.write(psa.dump())
             file.close() 
             print("Exported: " + psa_filename)
-        
         else:
             print("No Animation (.psa file) to export")
 
@@ -1960,6 +1951,11 @@ bpy.types.Scene.udk_option_selectobjects = BoolProperty(
 bpy.types.Scene.udk_option_rebuildobjects = BoolProperty(
         name        = "Rebuild Objects",
         description = "In case of deform skeleton mesh and animations data. This will rebuild objects from raw format on export when checked.",
+        default     = False)
+        
+bpy.types.Scene.udk_option_ignoreactiongroupnames = BoolProperty(
+        name        = "Ignore Action Group Names",
+        description = "This will Ignore Action Set Group Names Check With Armature Bones. It will override armature to set action set.",
         default     = False)
 
 bpy.types.Scene.udk_option_scale = FloatProperty(
@@ -2310,6 +2306,7 @@ class Panel_UDKExport( bpy.types.Panel ):
         test = layout.separator()
         layout.prop(context.scene, "udk_option_scale")
         layout.prop(context.scene, "udk_option_rebuildobjects")
+        #layout.prop(context.scene, "udk_option_ignoreactiongroupnames")
         row11 = layout.row()
         row11.operator("object.udk_export")
         row11.operator("object.toggle_console")
@@ -2320,7 +2317,6 @@ class Panel_UDKExport( bpy.types.Panel ):
         layout.operator(OBJECT_OT_UTRebuildMesh.bl_idname)
         layout.operator(OBJECT_OT_UDKCheckMeshLines.bl_idname)
 
-        
 def udkupdateobjects():
         my_objlist = bpy.context.scene.udkArm_list
         objectl = []
