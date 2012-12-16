@@ -74,6 +74,7 @@ def create_materials(filepath, material_libs, unique_materials, unique_material_
     assign colors and images to the materials from all referenced material libs
     """
     DIR = os.path.dirname(filepath)
+    context_material_vars = set()
 
     #==================================================================================#
     # This function sets textures defined in .mtl file                                 #
@@ -109,7 +110,8 @@ def create_materials(filepath, material_libs, unique_materials, unique_material_
                 texture.use_interpolation = True
                 texture.use_alpha = True
                 blender_material.use_transparency = True
-                blender_material.alpha = 0.0
+                if "alpha" not in context_material_vars:
+                    blender_material.alpha = 0.0
 
                 blender_material.game_settings.alpha_blend = 'ALPHA'
             else:
@@ -155,7 +157,8 @@ def create_materials(filepath, material_libs, unique_materials, unique_material_
             mtex.use_map_alpha = True
             blender_material.use_transparency = True
             blender_material.transparency_method = 'Z_TRANSPARENCY'
-            blender_material.alpha = 0.0
+            if "alpha" not in context_material_vars:
+                blender_material.alpha = 0.0
             # Todo, unset deffuse material alpha if it has an alpha channel
 
         elif type == 'refl':
@@ -200,6 +203,7 @@ def create_materials(filepath, material_libs, unique_materials, unique_material_
                 elif line.startswith(b'newmtl'):
                     context_material_name = line_value(line.split())
                     context_material = unique_materials.get(context_material_name)
+                    context_material_vars.clear()
 
                 elif context_material:
                     # we need to make a material to assign properties to it.
@@ -215,10 +219,12 @@ def create_materials(filepath, material_libs, unique_materials, unique_material_
                         context_material.specular_hardness = int((float_func(line_split[1]) * 0.51))
                     elif line_lower.startswith(b'ni'):  # Refraction index
                         context_material.raytrace_transparency.ior = max(1, min(float_func(line_split[1]), 3))  # between 1 and 3
+                        context_material_vars.add("ior")
                     elif line_lower.startswith(b'd'):  # dissolve (trancparency)
                         context_material.alpha = float_func(line_split[1])
                         context_material.use_transparency = True
                         context_material.transparency_method = 'Z_TRANSPARENCY'
+                        context_material_vars.add("alpha")
                     elif line_lower.startswith(b'tr'):  # trancelucency
                         context_material.translucency = float_func(line_split[1])
                     elif line_lower.startswith(b'tf'):
@@ -305,10 +311,12 @@ def create_materials(filepath, material_libs, unique_materials, unique_material_
                         if do_transparency:
                             context_material.use_transparency = True
                             context_material.transparency_method = 'RAYTRACE' if do_raytrace else 'Z_TRANSPARENCY'
-                            context_material.alpha = 0.0
+                            if "alpha" not in context_material_vars:
+                                context_material.alpha = 0.0
 
                         if do_glass:
-                            context_material.raytrace_transparency.ior = 1.5
+                            if "ior" not in context_material_vars:
+                                context_material.raytrace_transparency.ior = 1.5
 
                         if do_fresnel:
                             context_material.raytrace_mirror.fresnel = 1.0  # could be any value for 'ON'
