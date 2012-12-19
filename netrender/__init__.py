@@ -72,11 +72,6 @@ def register():
     import bpy
     bpy.utils.register_module(__name__)
 
-    scene = bpy.context.scene
-    if scene:
-        ui.init_data(scene.network_render)
-    
-
 def unregister():
     import bpy
     bpy.utils.unregister_module(__name__)
