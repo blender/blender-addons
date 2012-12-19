@@ -26,14 +26,14 @@
 # ***** END GPL LICENCE BLOCK *****
 
 bl_info = {
-	"name": "Torus Knot",
-	"author": "Anthony D'Agostino",
-	"version": (1, 0),
-	"blender": (2, 5, 7),
-	"location": "View3D > Add > Mesh ",
-	"url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/Scripts/Add_TorusKnot",
-	"category": "Add Mesh"}
-'''	
+    "name": "Torus Knot",
+    "author": "Anthony D'Agostino",
+    "version": (1, 0),
+    "blender": (2, 5, 7),
+    "location": "View3D > Add > Mesh ",
+    "url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/Scripts/Add_TorusKnot",
+    "category": "Add Mesh"}
+'''
 import bpy, mathutils, math
 
 def create_mesh_object(context, verts, edges, faces, name):

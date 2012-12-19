@@ -26,13 +26,13 @@
 # ***** END GPL LICENCE BLOCK *****
 
 bl_info = {
-	"name": "Teapot+",
-	"author": "Anthony D'Agostino",
-	"version": (1, 0),
-	"blender": (2, 5, 7),
-	"location": "View3D > Add > Mesh ",
-	"url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/Scripts/Add_Teapot",
-	"category": "Add Mesh"}
+    "name": "Teapot+",
+    "author": "Anthony D'Agostino",
+    "version": (1, 0),
+    "blender": (2, 5, 7),
+    "location": "View3D > Add > Mesh ",
+    "url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/Scripts/Add_Teapot",
+    "category": "Add Mesh"}
 '''
 import bpy, mathutils, io, operator, functools
 
