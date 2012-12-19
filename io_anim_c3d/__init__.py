@@ -23,17 +23,17 @@
 
 
 bl_info = {
-    'name': "C3D Graphics Lab Motion Capture file (.c3d)",
-    'author': "Daniel Monteiro Basso <daniel@basso.inf.br>",
-    'version': (2012, 7, 11, 1),
-    'blender': (2, 6, 3),
-    'location': "File > Import",
-    'description': "Imports C3D Graphics Lab Motion Capture files",
-    'wiki_url': "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
+    "name": "C3D Graphics Lab Motion Capture file (.c3d)",
+    "author": "Daniel Monteiro Basso <daniel@basso.inf.br>",
+    "version": (2012, 7, 11, 1),
+    "blender": (2, 6, 3),
+    "location": "File > Import",
+    "description": "Imports C3D Graphics Lab Motion Capture files",
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
                 "Scripts/Import-Export/C3D_Importer",
-    'tracker_url': "http://projects.blender.org/tracker/?func=detail&atid=467"
+    "tracker_url": "http://projects.blender.org/tracker/?func=detail&atid=467"
                    "&aid=29061&group_id=153",
-    'category': 'Import-Export'}
+    "category": 'Import-Export'}
 
 
 import bpy

@@ -19,18 +19,18 @@
 # <pep8 compliant>
 
 bl_info = {
-    'name': 'Export: Adobe After Effects (.jsx)',
-    'description': 'Export cameras, selected objects & camera solution 3D Markers to Adobe After Effects CS3 and above',
-    'author': 'Bartek Skorupa',
-    'version': (0, 6, 3),
-    'blender': (2, 6, 2),
-    'location': 'File > Export > Adobe After Effects (.jsx)',
+    "name": "Export: Adobe After Effects (.jsx)",
+    "description": "Export cameras, selected objects & camera solution 3D Markers to Adobe After Effects CS3 and above",
+    "author": "Bartek Skorupa",
+    "version": (0, 6, 3),
+    "blender": (2, 6, 2),
+    "location": "File > Export > Adobe After Effects (.jsx)",
     "warning": "",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"\
         "Scripts/Import-Export/Adobe_After_Effects",
     "tracker_url": "https://projects.blender.org/tracker/index.php?"\
         "func=detail&aid=29858",
-    'category': 'Import-Export',
+    "category": "Import-Export",
     }
 
 

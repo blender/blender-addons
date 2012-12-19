@@ -17,19 +17,19 @@
 # ##### END GPL LICENSE BLOCK #####
 
 bl_info = {
-    'name': 'Import Autocad DXF Format (.dxf)',
-    'author': 'Thomas Larsson, Remigiusz Fiedler',
-    'version': (0, 1, 6),
-    'blender': (2, 6, 3),
-    'location': 'File > Import > Autocad (.dxf)',
-    'description': 'Import files in the Autocad DXF format (.dxf)',
-    'warning': 'Under construction! Visit Wiki for details.',
-    'wiki_url': 'http://wiki.blender.org/index.php/Extensions:2.6/Py/'\
-        'Scripts/Import-Export/DXF_Importer',
-    'tracker_url': 'https://projects.blender.org/tracker/index.php?'\
-        'func=detail&aid=23480',
-    'support': 'OFFICIAL',
-    'category': 'Import-Export',
+    "name": "Import Autocad DXF Format (.dxf)",
+    "author": "Thomas Larsson, Remigiusz Fiedler",
+    "version": (0, 1, 6),
+    "blender": (2, 6, 3),
+    "location": "File > Import > Autocad (.dxf)",
+    "description": "Import files in the Autocad DXF format (.dxf)",
+    "warning": "Under construction! Visit Wiki for details.",
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
+                "Scripts/Import-Export/DXF_Importer",
+    "tracker_url": "https://projects.blender.org/tracker/index.php?"
+                   "func=detail&aid=23480",
+    "support": "OFFICIAL",
+    "category": "Import-Export",
     }
 
 """

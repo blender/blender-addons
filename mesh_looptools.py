@@ -17,18 +17,18 @@
 # ##### END GPL LICENSE BLOCK #####
 
 bl_info = {
-    'name': "LoopTools",
-    'author': "Bart Crouch",
-    'version': (4, 2, 0),
-    'blender': (2, 6, 3),
-    'location': "View3D > Toolbar and View3D > Specials (W-key)",
-    'warning': "",
-    'description': "Mesh modelling toolkit. Several tools to aid modelling",
-    'wiki_url': "http://wiki.blender.org/index.php/Extensions:2.6/Py/"\
-        "Scripts/Modeling/LoopTools",
-    'tracker_url': "http://projects.blender.org/tracker/index.php?"\
-        "func=detail&aid=26189",
-    'category': 'Mesh'}
+    "name": "LoopTools",
+    "author": "Bart Crouch",
+    "version": (4, 2, 0),
+    "blender": (2, 6, 3),
+    "location": "View3D > Toolbar and View3D > Specials (W-key)",
+    "warning": "",
+    "description": "Mesh modelling toolkit. Several tools to aid modelling",
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
+                "Scripts/Modeling/LoopTools",
+    "tracker_url": "http://projects.blender.org/tracker/index.php?"
+                   "func=detail&aid=26189",
+    "category": "Mesh"}
 
 
 import bmesh

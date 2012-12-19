@@ -19,19 +19,19 @@
 # <pep8 compliant>
 
 bl_info = {
-    'name': "Screencast Keys",
-    'author': 'Paulo Gomes, Bart Crouch, John E. Herrenyo, Gaia Clary, Pablo Vazquez',
-    'version': (1, 7),
-    'blender': (2, 6, 4),
-    'location': '3D View > Properties Panel > Screencast Keys',
-    'warning': '',
-    'description': 'Display keys pressed in the 3D View, '\
-        'useful for screencasts.',
-    'wiki_url': 'http://wiki.blender.org/index.php/Extensions:2.6/'
-                'Py/Scripts/3D_interaction/Screencast_Key_Status_Tool',
-    'tracker_url': 'http://projects.blender.org/tracker/index.php?'
-                   'func=detail&aid=21612',
-    'category': '3D View'}
+    "name": "Screencast Keys",
+    "author": "Paulo Gomes, Bart Crouch, John E. Herrenyo, Gaia Clary, Pablo Vazquez",
+    "version": (1, 7),
+    "blender": (2, 6, 4),
+    "location": "3D View > Properties Panel > Screencast Keys",
+    "warning": "",
+    "description": "Display keys pressed in the 3D View, "
+                   "useful for screencasts.",
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/"
+                "Py/Scripts/3D_interaction/Screencast_Key_Status_Tool",
+    "tracker_url": "http://projects.blender.org/tracker/index.php?"
+                   "func=detail&aid=21612",
+    "category": "3D View"}
 
 import bgl
 import blf

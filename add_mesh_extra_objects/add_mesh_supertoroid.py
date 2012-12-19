@@ -1,14 +1,14 @@
 '''
 bl_addon_info = {
-    'name': 'Add Mesh: SuperToroid',
-    'author': 'DreamPainter',
-    'version': '1',
-    'blender': (2, 5, 3),
-    'location': 'View3D > Add > Mesh > SuperToroid',
-    'description': 'Add a SuperToroid mesh',
-    'url': 'http://wiki.blender.org/index.php/Extensions:2.5/Py/' \
-        'Scripts/Add_Mesh/',  # no url
-    'category': 'Add Mesh'}
+    "name": "Add Mesh: SuperToroid",
+    "author": "DreamPainter",
+    "version": (1, 0, 0),
+    "blender": (2, 5, 3),
+    "location": "View3D > Add > Mesh > SuperToroid",
+    "description": "Add a SuperToroid mesh",
+    "url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/" \
+        "Scripts/Add_Mesh/",  # no url
+    "category": "Add Mesh"}
 '''
 import bpy
 from bpy.props import FloatProperty,BoolProperty,IntProperty

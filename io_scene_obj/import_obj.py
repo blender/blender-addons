@@ -1171,15 +1171,3 @@ def load(operator, context, filepath,
 
     print("finished importing: %r in %.4f sec." % (filepath, (time_new - time_main)))
     return {'FINISHED'}
-
-
-# NOTES (all line numbers refer to 2.4x import_obj.py, not this file)
-# check later: line 489
-# can convert now: edge flags, edges: lines 508-528
-# ngon (uses python module BPyMesh): 384-414
-# NEXT clamp size: get bound box with RNA
-# get back to l 140 (here)
-# search image in bpy.config.textureDir - load_image
-# replaced BPyImage.comprehensiveImageLoad with a simplified version that only checks additional directory specified, but doesn't search dirs recursively (obj_image_load)
-# bitmask won't work? - 132
-# uses bpy.sys.time()
