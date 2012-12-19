@@ -3260,8 +3260,12 @@ class GPENCIL_OT_SURFSK_edit_strokes(bpy.types.Operator):
         elif self.strokes_type == "GP_STROKES" or self.strokes_type == "SINGLE_GP_STROKE_NO_SELECTION":
             #### Convert grease pencil strokes to curve.
             bpy.ops.object.editmode_toggle('INVOKE_REGION_WIN')
-            bpy.ops.gpencil.convert('INVOKE_REGION_WIN', type='CURVE')
-            ob_gp_strokes = bpy.context.object
+            bpy.ops.gpencil.convert('INVOKE_REGION_WIN', type='CURVE', use_link_strokes=False)
+            for ob in bpy.context.selected_objects:
+                    if ob != bpy.context.scene.objects.active and ob.name.startswith("GP_Layer"):
+                        ob_gp_strokes = ob
+            
+            #ob_gp_strokes = bpy.context.object
             
             #### Delete grease pencil strokes.
             bpy.ops.object.select_all('INVOKE_REGION_WIN', action='DESELECT')
@@ -3319,9 +3323,12 @@ class CURVE_OT_SURFSK_reorder_splines(bpy.types.Operator):
         objects_to_delete = []
         #### Convert grease pencil strokes to curve.
         bpy.ops.object.editmode_toggle('INVOKE_REGION_WIN')
-        bpy.ops.gpencil.convert('INVOKE_REGION_WIN', type='CURVE')
+        bpy.ops.gpencil.convert('INVOKE_REGION_WIN', type='CURVE', use_link_strokes=False)
+        for ob in bpy.context.selected_objects:
+            if ob != bpy.context.scene.objects.active and ob.name.startswith("GP_Layer"):
+                GP_strokes_curve = ob
         
-        GP_strokes_curve = bpy.context.object
+        #GP_strokes_curve = bpy.context.object
         objects_to_delete.append(GP_strokes_curve)
         
         bpy.ops.object.select_all('INVOKE_REGION_WIN', action='DESELECT')
