@@ -27,7 +27,7 @@ bl_info = {
     "author": "Buerbaum Martin (Pontiac), TNae (Normal patch)," \
         " Benjamin Lauritzen (Loonsbury; Volume code)," \
         " Alessandro Sala (patch: Units in 3D View)",
-    "version": (0, 8, 9),
+    "version": (0, 9, 0),
     "blender": (2, 6, 0),
     "location": "View3D > Properties > Measure Panel",
     "description": "Measure distances between objects",
@@ -82,7 +82,7 @@ from bpy_extras.mesh_utils import ngon_tessellate
 
 
 # Precicion for display of float values.
-PRECISION = 4
+PRECISION = 5
 
 # Name of the custom properties as stored in the scene.
 COLOR_LOCAL = (1.0, 0.5, 0.0, 0.8)
@@ -102,6 +102,7 @@ LINE_WIDTH_DIST = 2
 # and formatting options.
 # Returned data is meant to be passed to formatDistance().
 # Original by Alessandro Sala (Feb, 12th 2012)
+# Update by Alessandro Sala (Dec, 18th 2012)
 def getUnitsInfo():
         scale = bpy.context.scene.unit_settings.scale_length
         unit_system = bpy.context.scene.unit_settings.system
@@ -110,9 +111,9 @@ def getUnitsInfo():
                 scale_steps = ((1000, 'km'), (1, 'm'), (1 / 100, 'cm'),
                     (1 / 1000, 'mm'), (1 / 1000000, '\u00b5m'))
         elif unit_system == 'IMPERIAL':
-                scale_steps = ((1760, 'mi'), (1, 'yd'), (1 / 3, '\''),
-                    (1 / 36, '"'), (1 / 36000, 'thou'))
-                scale *= 1.0936133
+                scale_steps = ((5280, 'mi'), (1, '\''),
+                    (1 / 12, '"'), (1 / 12000, 'thou'))
+                scale /= 0.3048	# BU to feet
         else:
                 scale_steps = ((1, ' BU'),)
                 separate_units = False
@@ -123,13 +124,13 @@ def getUnitsInfo():
 # Converts a distance from BU into the measuring system
 # described by units_info.
 # Original by Alessandro Sala (Feb, 12th 2012)
+# Update by Alessandro Sala (Dec, 18th 2012)
 def convertDistance(val, units_info):
         scale, scale_steps, separate_units = units_info
         sval = val * scale
-        rsval = round(sval, PRECISION)
         idx = 0
         while idx < len(scale_steps) - 1:
-                if rsval >= scale_steps[idx][0]:
+                if sval >= scale_steps[idx][0]:
                         break
                 idx += 1
         factor, suffix = scale_steps[idx]
@@ -138,14 +139,14 @@ def convertDistance(val, units_info):
                 dval = str(round(sval, PRECISION)) + suffix
         else:
                 ival = int(sval)
-                dval = str(ival) + suffix
+                dval = str(round(ival, PRECISION)) + suffix
                 fval = sval - ival
                 idx += 1
                 while idx < len(scale_steps):
                         fval *= scale_steps[idx - 1][0] / scale_steps[idx][0]
                         if fval >= 1:
                                 dval += ' ' \
-                                    + str(round(fval, 1)) \
+                                    + ("%.1f" % fval) \
                                     + scale_steps[idx][1]
                                 break
                         idx += 1
