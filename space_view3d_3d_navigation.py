@@ -25,7 +25,7 @@ bl_info = {
     "name": "3D Navigation",
     "author": "Demohero, uriel",
     "version": (1, 2),
-    "blender": (2, 5, 7),
+    "blender": (2, 57, 0),
     "location": "View3D > Tool Shelf > 3D Nav",
     "description": "Navigate the Camera & 3D View from the Toolshelf",
     "warning": "",

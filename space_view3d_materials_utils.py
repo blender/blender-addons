@@ -26,7 +26,7 @@ bl_info = {
     "name": "Material Utils",
     "author": "michaelw",
     "version": (1, 4),
-    "blender": (2, 6, 2),
+    "blender": (2, 62, 0),
     "location": "View3D > Q key",
     "description": "Menu of material tools (assign, select..)  in the 3D View",
     "warning": "Buggy, Broken in Cycles mode",

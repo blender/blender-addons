@@ -20,7 +20,7 @@ bl_info = {
     "name": "Import Unreal Skeleton Mesh (.psk)/Animation Set (psa)",
     "author": "Darknet, flufy3d, camg188",
     "version": (2, 2),
-    "blender": (2, 6, 4),
+    "blender": (2, 64, 0),
     "location": "File > Import > Skeleton Mesh (.psk)/Animation Set (psa)",
     "description": "Import Skeleleton Mesh/Animation Data",
     "warning": "",

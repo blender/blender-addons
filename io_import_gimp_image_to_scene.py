@@ -20,7 +20,7 @@ bl_info = {
     "name": "Import GIMP Image to Scene (.xcf/.xjt)",
     "author": "Daniel Salazar (ZanQdo)",
     "version": (2, 0, 0),
-    "blender": (2, 5, 7),
+    "blender": (2, 57, 0),
     "location": "File > Import > GIMP Image to Scene(.xcf/.xjt)",
     "description": "Imports GIMP multilayer image files as a series of multiple planes",
     "warning": "XCF import requires xcftools installed",

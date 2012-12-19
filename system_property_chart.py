@@ -22,7 +22,7 @@ bl_info = {
     "name": "Object Property Chart",
     "author": "Campbell Barton (ideasman42)",
     "version": (0, 1),
-    "blender": (2, 5, 7),
+    "blender": (2, 57, 0),
     "location": "Tool Shelf",
     "description": "Edit arbitrary selected properties for objects of the same type",
     "warning": "",

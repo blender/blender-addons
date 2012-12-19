@@ -20,7 +20,7 @@ bl_info = {
     "name": "Add PolySphere",
     "author": "Andy Davies (metalliandy)",			
     "version": (0,1,6),
-    "blender": (2, 6, 2),
+    "blender": (2, 62, 0),
     "location": "View3D > Add > Mesh > PolySphere",
     "description": "Adds a PolySphere (all quads) for sculpting",
     "warning": "",

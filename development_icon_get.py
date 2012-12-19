@@ -23,7 +23,7 @@ bl_info = {
     'name': 'Icons',
     'author': 'Crouch, N.tox, PKHG, Campbell Barton, Dany Lebel',
     'version': (1, 5, 1),
-    "blender": (2, 5, 7),
+    "blender": (2, 57, 0),
     'location': 'Text Editor > Properties or '\
         'Console > Console Menu',
     'warning': '',

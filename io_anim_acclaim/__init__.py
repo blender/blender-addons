@@ -26,7 +26,7 @@ bl_info = {
     "name": "Acclaim Motion Capture Files (.asf, .amc)",
     "author": "Daniel Monteiro Basso <daniel@basso.inf.br>",
     "version": (2012, 2, 29, 1),
-    "blender": (2, 6, 2),
+    "blender": (2, 62, 0),
     "location": "File > Import-Export",
     "description": "Imports Acclaim Skeleton and Motion Capture Files",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"

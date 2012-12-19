@@ -21,7 +21,7 @@
 bl_info = {
     "name": "BioVision Motion Capture (BVH) format",
     "author": "Campbell Barton",
-    "blender": (2, 5, 7),
+    "blender": (2, 57, 0),
     "location": "File > Import-Export",
     "description": "Import-Export BVH from armature objects",
     "warning": "",

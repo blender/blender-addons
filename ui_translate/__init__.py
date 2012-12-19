@@ -21,7 +21,7 @@
 bl_info = {
     "name": "Translate UI Messages",
     "author": "Bastien Montagne",
-    "blender": (2, 6, 3),
+    "blender": (2, 63, 0),
     "location": "Any UI control",
     "description": "Allow to translate UI directly from Blender",
     "warning": "",

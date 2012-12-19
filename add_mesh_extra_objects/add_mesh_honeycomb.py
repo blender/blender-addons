@@ -20,7 +20,7 @@ bl_info = {
     "name": "HoneyComb",
     "author": "Kayo Phoenix <kayo@illumium.org>",
     "version": (0, 1),
-    "blender": (2, 5, 7),
+    "blender": (2, 57, 0),
     "api": 35853,
     "location": "View3D > Add > Mesh > HoneyComb",
     "description": "Adds HoneyComb Mesh",

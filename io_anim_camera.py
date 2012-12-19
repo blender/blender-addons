@@ -22,7 +22,7 @@ bl_info = {
     "name": "Export Camera Animation",
     "author": "Campbell Barton",
     "version": (0, 1),
-    "blender": (2, 5, 7),
+    "blender": (2, 57, 0),
     "location": "File > Export > Cameras & Markers (.py)",
     "description": "Export Cameras & Markers (.py)",
     "warning": "",

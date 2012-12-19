@@ -38,8 +38,8 @@ bl_info = {
     "name": "Atomic Blender - PDB",
     "description": "Loading and manipulating atoms from PDB files",
     "author": "Clemens Barth",
-    "version": (1,5),
-    "blender": (2,6),
+    "version": (1, 5),
+    "blender": (2, 60, 0),
     "location": "File -> Import -> PDB (.pdb)",
     "warning": "",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/"

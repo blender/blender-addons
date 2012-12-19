@@ -20,7 +20,7 @@ bl_info = {
     "name": "Fracture Tools",
     "author": "pildanovak",
     "version": (2, 0),
-    "blender": (2, 5, 7),
+    "blender": (2, 57, 0),
     "location": "Search > Fracture Object & Add -> Fracture Helper Objects",
     "description": "Fractured Object, Bomb, Projectile, Recorder",
     "warning": "",

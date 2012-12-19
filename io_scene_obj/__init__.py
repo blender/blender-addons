@@ -21,7 +21,7 @@
 bl_info = {
     "name": "Wavefront OBJ format",
     "author": "Campbell Barton",
-    "blender": (2, 5, 8),
+    "blender": (2, 58, 0),
     "location": "File > Import-Export",
     "description": "Import-Export OBJ, Import OBJ mesh, UV's, "
                    "materials and textures",

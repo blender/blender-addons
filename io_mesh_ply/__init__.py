@@ -21,7 +21,7 @@
 bl_info = {
     "name": "Stanford PLY format",
     "author": "Bruce Merry, Campbell Barton",
-    "blender": (2, 5, 7),
+    "blender": (2, 57, 0),
     "location": "File > Import-Export",
     "description": "Import-Export PLY mesh data withs UV's and vertex colors",
     "warning": "",

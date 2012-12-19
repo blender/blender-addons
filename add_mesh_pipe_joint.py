@@ -20,7 +20,7 @@ bl_info = {
     "name": "Pipe Joints",
     "author": "Buerbaum Martin (Pontiac)",
     "version": (0, 10, 7),
-    "blender": (2, 6, 1),
+    "blender": (2, 61, 0),
     "location": "View3D > Add > Mesh > Pipe Joints",
     "description": "Add different types of pipe joints",
     "warning": "",

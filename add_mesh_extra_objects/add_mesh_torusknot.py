@@ -29,7 +29,7 @@ bl_info = {
     "name": "Torus Knot",
     "author": "Anthony D'Agostino",
     "version": (1, 0),
-    "blender": (2, 5, 7),
+    "blender": (2, 57, 0),
     "location": "View3D > Add > Mesh ",
     "url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/Scripts/Add_TorusKnot",
     "category": "Add Mesh"}

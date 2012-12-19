@@ -22,7 +22,7 @@ bl_info = {
     "name": "Math Vis (Console)",
     "author": "Campbell Barton",
     "version": (0, 1),
-    "blender": (2, 5, 7),
+    "blender": (2, 57, 0),
     "location": "View3D > Tool Shelf or Console",
     "description": "Display console defined mathutils variables in the 3D view",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"

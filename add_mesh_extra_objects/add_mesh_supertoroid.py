@@ -1,9 +1,9 @@
 '''
-bl_addon_info = {
+bl_info = {
     "name": "Add Mesh: SuperToroid",
     "author": "DreamPainter",
     "version": (1, 0, 0),
-    "blender": (2, 5, 3),
+    "blender": (2, 53, 0),
     "location": "View3D > Add > Mesh > SuperToroid",
     "description": "Add a SuperToroid mesh",
     "url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/" \

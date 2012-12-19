@@ -23,8 +23,8 @@
 bl_info = {
     "name": "Paint Palettes",
     "author": "Dany Lebel (Axon D)",
-    "version": (0,9,1),
-    "blender": (2, 63, 12),
+    "version": (0, 9, 1),
+    "blender": (2, 63, 0),
     "location": "Image Editor and 3D View > Any Paint mode > Color Palette or Weight Palette panel",
     "description": "Palettes for color and weight paint modes",
     "warning": "",

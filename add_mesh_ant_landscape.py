@@ -20,7 +20,7 @@ bl_info = {
     "name": "ANT Landscape",
     "author": "Jimmy Hazevoet",
     "version": (0,1,2),
-    "blender": (2, 6, 1),
+    "blender": (2, 61, 0),
     "location": "View3D > Add > Mesh",
     "description": "Add a landscape primitive",
     "warning": "", # used for warning icon and text in addons panel

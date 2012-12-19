@@ -20,7 +20,7 @@ bl_info = {
     "name": "Simplify curves",
     "author": "testscreenings",
     "version": (1,),
-    "blender": (2, 5, 9),
+    "blender": (2, 59, 0),
     "location": "Search > Simplify Curves",
     "description": "Simplifies 3D curves and fcurves",
     "warning": "",

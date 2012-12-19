@@ -24,7 +24,7 @@ bl_info = {
     "name": "Grease Scatter Objects",
     "author": "Campbell Barton",
     "version": (0, 1),
-    "blender": (2, 5, 8),
+    "blender": (2, 58, 0),
     "location": "3D View, Add Mesh",
     "description": "Scatter a group of objects onto the active mesh using "
                    "the grease pencil lines",

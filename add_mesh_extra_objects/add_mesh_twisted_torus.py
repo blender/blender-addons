@@ -24,7 +24,7 @@ bl_info = {
     "name": "Twisted Torus",
     "author": "Paulo_Gomes",
     "version": (0, 11, 1),
-    "blender": (2, 5, 7),
+    "blender": (2, 57, 0),
     "location": "View3D > Add > Mesh ",
     "description": "Adds a mesh Twisted Torus to the Add Mesh menu",
     "warning": "",

@@ -21,7 +21,7 @@
 bl_info = {
     "name": "Rigify",
     "author": "Nathan Vegdahl",
-    "blender": (2, 5, 7),
+    "blender": (2, 57, 0),
     "location": "View3D > Add > Armature",
     "description": "Adds various Rig Templates",
     "location": "Armature properties",

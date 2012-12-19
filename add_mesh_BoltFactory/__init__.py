@@ -20,7 +20,7 @@ bl_info = {
     "name": "BoltFactory",
     "author": "Aaron Keith",
     "version": (3, 9),
-    "blender": (2, 6, 3),
+    "blender": (2, 63, 0),
     "location": "View3D > Add > Mesh",
     "description": "Add a bolt or nut",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"\

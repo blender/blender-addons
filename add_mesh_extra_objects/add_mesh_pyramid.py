@@ -23,7 +23,7 @@ bl_info = {
     'name': 'Mesh Pyramid',
     'author': 'Phil Cote, cotejrp1, (http://www.blenderaddons.com)',
     'version': (0, 5),
-    "blender": (2, 6, 3),
+    "blender": (2, 63, 0),
     'location': 'View3D > Add > Mesh',
     'description': 'Create an egyption-style step pyramid',
     'warning': '',  # used for warning icon and text in addons panel

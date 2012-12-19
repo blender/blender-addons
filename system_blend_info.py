@@ -24,7 +24,7 @@ bl_info = {
     "name": "Scene Information",
     "author": "uselessdreamer",
     "version": (0,3),
-    "blender": (2, 5, 9),
+    "blender": (2, 59, 0),
     "location": "Properties > Scene > Blend Info Panel",
     "description": "Show information about the .blend",
     "warning": "",

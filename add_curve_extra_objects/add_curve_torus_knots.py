@@ -21,7 +21,7 @@ bl_info = {
     "name": "Torus Knots",
     "author": "testscreenings",
     "version": (0,1),
-    "blender": (2, 5, 9),
+    "blender": (2, 59, 0),
     "location": "View3D > Add > Curve",
     "description": "Adds many types of (torus) knots",
     "warning": "",

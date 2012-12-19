@@ -20,7 +20,7 @@ bl_info = {
     "name": "3D Function Surfaces",
     "author": "Buerbaum Martin (Pontiac), Elod Csirmaz",
     "version": (0, 3, 8),
-    "blender": (2, 5, 7),
+    "blender": (2, 57, 0),
     "location": "View3D > Add > Mesh",
     "description": "Create Objects using Math Formulas",
     "warning": "",

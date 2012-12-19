@@ -20,7 +20,7 @@ bl_info = {
     "name": "Cell Fracture",
     "author": "ideasman42, phymec, Sergey Sharybin",
     "version": (0, 1),
-    "blender": (2, 6, 4),
+    "blender": (2, 64, 0),
     "location": "Search > Fracture Object & Add -> Fracture Helper Objects",
     "description": "Fractured Object, Bomb, Projectile, Recorder",
     "warning": "",

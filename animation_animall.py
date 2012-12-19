@@ -20,7 +20,7 @@ bl_info = {
     'name': 'AnimAll',
     'author': 'Daniel Salazar <zanqdo@gmail.com>',
     'version': (0, 5),
-    "blender": (2, 6, 3),
+    "blender": (2, 63, 0),
     'location': 'Select a Mesh/Lattice/Curve: Tool Shelf > AnimAll panel',
     'description': 'Allows animation of mesh, lattice and curve data (Shape Keys, VCols, VGroups, UVs, Points, Radius, Tilt)',
     'warning': '',

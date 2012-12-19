@@ -22,7 +22,7 @@ bl_info = {
     "name": "Screencast Keys",
     "author": "Paulo Gomes, Bart Crouch, John E. Herrenyo, Gaia Clary, Pablo Vazquez",
     "version": (1, 7),
-    "blender": (2, 6, 4),
+    "blender": (2, 64, 0),
     "location": "3D View > Properties Panel > Screencast Keys",
     "warning": "",
     "description": "Display keys pressed in the 3D View, "

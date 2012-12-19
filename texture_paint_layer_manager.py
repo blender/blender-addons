@@ -2,7 +2,7 @@ bl_info = {
     "name": "Texture Paint Layer Manager",
     "author": "Michael Wiliamson",
     "version": (1, 0),
-    "blender": (2, 5, 7),
+    "blender": (2, 57, 0),
     "location": "Texture Paint > Properties > Texture Paint Layers Panels",
     "description": "Adds a layer manager for image based texture slots in paint and quick add layer tools",
     "warning": "",

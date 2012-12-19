@@ -20,7 +20,7 @@ bl_info = {
     "name": "Import Autocad DXF Format (.dxf)",
     "author": "Thomas Larsson, Remigiusz Fiedler",
     "version": (0, 1, 6),
-    "blender": (2, 6, 3),
+    "blender": (2, 63, 0),
     "location": "File > Import > Autocad (.dxf)",
     "description": "Import files in the Autocad DXF format (.dxf)",
     "warning": "Under construction! Visit Wiki for details.",

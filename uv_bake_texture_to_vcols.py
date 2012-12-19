@@ -34,7 +34,7 @@ bl_info = {
     "description": "Bakes the colors of the active UV Texture to a Vertex Color layer. ",
     "author": "Patrick Boelens, CoDEmanX",
     "version": (0, 6),
-    "blender": (2, 6, 3),
+    "blender": (2, 63, 0),
     "location": "3D View > Vertex Paint > Toolshelf > Bake",
     "warning": "Requires image texture, generated textures aren't supported.",
     "wiki_url": "http://wiki.blender.org/index.php?title=Extensions:2.6/"

@@ -21,7 +21,7 @@ bl_info = {
     "name": "Regular Solids",
     "author": "DreamPainter",
     "version": (2, 0),
-    "blender": (2, 5, 9),
+    "blender": (2, 59, 0),
     "location": "View3D > Add > Mesh > Solids",
     "description": "Add a regular solid",
     "warning": "",

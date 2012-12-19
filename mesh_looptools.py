@@ -20,7 +20,7 @@ bl_info = {
     "name": "LoopTools",
     "author": "Bart Crouch",
     "version": (4, 2, 0),
-    "blender": (2, 6, 3),
+    "blender": (2, 63, 0),
     "location": "View3D > Toolbar and View3D > Specials (W-key)",
     "warning": "",
     "description": "Mesh modelling toolkit. Several tools to aid modelling",

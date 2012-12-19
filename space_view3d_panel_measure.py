@@ -28,7 +28,7 @@ bl_info = {
         " Benjamin Lauritzen (Loonsbury; Volume code)," \
         " Alessandro Sala (patch: Units in 3D View)",
     "version": (0, 9, 0),
-    "blender": (2, 6, 0),
+    "blender": (2, 60, 0),
     "location": "View3D > Properties > Measure Panel",
     "description": "Measure distances between objects",
     "warning": "Script needs repairs",

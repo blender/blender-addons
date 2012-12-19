@@ -20,7 +20,7 @@ bl_info = {
     "name": "Animated Render Baker",
     "author": "Janne Karhu (jahka)",
     "version": (1, 0),
-    "blender": (2, 5, 8),
+    "blender": (2, 58, 0),
     "location": "Properties > Render > Bake Panel",
     "description": "Renderbakes a series of frames",
     "category": "Object",

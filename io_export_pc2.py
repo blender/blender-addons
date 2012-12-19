@@ -20,7 +20,7 @@ bl_info = {
     "name": "Export Pointcache Format(.pc2)",
     "author": "Florian Meyer (tstscr)",
     "version": (1, 0),
-    "blender": (2, 5, 7),
+    "blender": (2, 57, 0),
     "location": "File > Export > Pointcache (.pc2)",
     "description": "Export mesh Pointcache data (.pc2)",
     "warning": "",

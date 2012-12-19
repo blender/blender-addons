@@ -19,7 +19,7 @@ bl_info = {
     "name": "Export Autocad DXF Format (.dxf)",
     "author": "Remigiusz Fiedler (AKA migius), Vaclav Klecanda",
     "version": (2, 1, 3),
-    "blender": (2, 6, 3),
+    "blender": (2, 63, 0),
     "location": "File > Export > Autodesk (.dxf)",
     "description": "The script exports Blender geometry to DXF format r12 version.",
     "warning": "Under construction! Visit Wiki for details.",

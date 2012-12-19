@@ -22,7 +22,7 @@ bl_info = {
     "name": "Network Renderer",
     "author": "Martin Poirier",
     "version": (1, 8),
-    "blender": (2, 6, 0),
+    "blender": (2, 60, 0),
     "location": "Render > Engine > Network Render",
     "description": "Distributed rendering for Blender",
     "warning": "Stable but still work in progress",

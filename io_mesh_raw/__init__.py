@@ -23,7 +23,7 @@ bl_info = {
     "name": "Raw mesh format (.raw)",
     "author": "Anthony D,Agostino (Scorpius), Aurel Wildfellner",
     "version": (0, 2),
-    "blender": (2, 5, 7),
+    "blender": (2, 57, 0),
     "location": "File > Import-Export > Raw Faces (.raw) ",
     "description": "Import-Export Raw Faces",
     "warning": "",

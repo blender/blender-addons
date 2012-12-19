@@ -21,7 +21,7 @@ bl_info = {
     "name": "Bsurfaces GPL Edition",
     "author": "Eclectiel",
     "version": (1,5),
-    "blender": (2, 6, 3),
+    "blender": (2, 63, 0),
     "api": 45996,
     "location": "View3D > EditMode > ToolShelf",
     "description": "Modeling and retopology tool.",

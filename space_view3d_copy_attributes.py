@@ -22,7 +22,7 @@ bl_info = {
     "name": "Copy Attributes Menu",
     "author": "Bassam Kurdali, Fabian Fricke, Adam Wiseman",
     "version": (0, 4, 7),
-    "blender": (2, 6, 3),
+    "blender": (2, 63, 0),
     "location": "View3D > Ctrl-C",
     "description": "Copy Attributes Menu from Blender 2.4",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"

@@ -22,7 +22,7 @@ bl_info = {
     "name": "Cloud Generator",
     "author": "Nick Keeline(nrk)",
     "version": (1, 0),
-    "blender": (2, 5, 9),
+    "blender": (2, 59, 0),
     "location": "View3D > Tool Shelf > Cloud Generator Panel",
     "description": "Creates Volumetric Clouds",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"

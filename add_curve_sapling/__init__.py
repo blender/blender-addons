@@ -20,7 +20,7 @@ bl_info = {
     "name": "Sapling",
     "author": "Andrew Hale (TrumanBlending)",
     "version": (0, 2, 6),
-    "blender": (2, 6, 4),
+    "blender": (2, 64, 0),
     "location": "View3D > Add > Curve",
     "description": ("Adds a parametric tree. The method is presented by "
     "Jason Weber & Joseph Penn in their paper 'Creation and Rendering of "
