@@ -581,7 +581,7 @@ class ScreencastKeysStatus(bpy.types.Operator):
         if not context.window_manager.screencast_keys_keys:
             # stop script
             context.window_manager.event_timer_remove(self._timer)
-            context.region.callback_remove(self._handle)
+            bpy.types.SpaceView3D.draw_handler_remove(self._handle, 'WINDOW')
             return {'CANCELLED'}
 
         return {'PASS_THROUGH'}
@@ -589,7 +589,7 @@ class ScreencastKeysStatus(bpy.types.Operator):
     def cancel(self, context):
         if context.window_manager.screencast_keys_keys:
             context.window_manager.event_timer_remove(self._timer)
-            context.region.callback_remove(self._handle)
+            bpy.types.SpaceView3D.draw_handler_remove(self._handle, 'WINDOW')
             context.window_manager.screencast_keys_keys = False
         return {'CANCELLED'}
 
@@ -603,8 +603,8 @@ class ScreencastKeysStatus(bpy.types.Operator):
                 self.mouse = []
                 self.mouse_time = []
                 ScreencastKeysStatus.overall_time = []
-                self._handle = context.region.callback_add(draw_callback_px,
-                    (self, context), 'POST_PIXEL')
+                self._handle = bpy.types.SpaceView3D.draw_handler_add(draw_callback_px,
+                    (self, context), 'WINDOW', 'POST_PIXEL')
                 self._timer = context.window_manager.event_timer_add(0.075,
                     context.window)
                 ScreencastKeysStatus.overall_time.insert(0, time.time())
