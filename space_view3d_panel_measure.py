@@ -913,7 +913,6 @@ class VIEW3D_OT_display_measurements(bpy.types.Operator):
 
     def modal(self, context, event):
         context.area.tag_redraw()
-
         return {'FINISHED'}
 
     def execute(self, context):
@@ -921,17 +920,18 @@ class VIEW3D_OT_display_measurements(bpy.types.Operator):
             mgr_ops = context.window_manager.operators.values()
             if not self.bl_idname in [op.bl_idname for op in mgr_ops]:
                 # Add the region OpenGL drawing callback
-                for WINregion in context.area.regions:
-                    if WINregion.type == 'WINDOW':
-                        self._handle = WINregion.callback_add(
-                            draw_measurements_callback,
-                            (self, context),
-                            'POST_PIXEL')
 
-                        print("Measure panel display callback added")
+                # XXX, this is never removed!, it should be! (at least when disabling the addon)
+                self._handle = bpy.types.SpaceView3D.draw_handler_add(
+                        draw_measurements_callback,
+                        (self, context),
+                        'WINDOW', 'POST_PIXEL')
 
-                        context.window_manager.modal_handler_add(self)
-                        return {'RUNNING_MODAL'}
+                print("Measure panel display callback added")
+
+                # XXX, never removed!
+                context.window_manager.modal_handler_add(self)
+                return {'RUNNING_MODAL'}
 
             return {'CANCELLED'}
 
