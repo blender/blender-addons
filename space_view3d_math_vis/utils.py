@@ -1,4 +1,4 @@
-#====================== BEGIN GPL LICENSE BLOCK ======================
+# ##### BEGIN GPL LICENSE BLOCK #####
 #
 #  This program is free software; you can redistribute it and/or
 #  modify it under the terms of the GNU General Public License
@@ -14,7 +14,9 @@
 #  along with this program; if not, write to the Free Software Foundation,
 #  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
-#======================= END GPL LICENSE BLOCK ========================
+# ##### END GPL LICENSE BLOCK #####
+
+# <pep8 compliant>
 
 def console_namespace():
     import console_python
@@ -24,6 +26,7 @@ def console_namespace():
         for console, stdout, stderr in get_consoles.consoles.values():
             return console.locals
     return {}
+
 
 def console_math_data():
     from mathutils import Matrix, Vector, Quaternion, Euler
@@ -66,4 +69,3 @@ def console_math_data():
                     data_vector_array[key] = var
 
     return data_matrix, data_quat, data_euler, data_vector, data_vector_array
-

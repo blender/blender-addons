@@ -1,4 +1,4 @@
-#====================== BEGIN GPL LICENSE BLOCK ======================
+# ##### BEGIN GPL LICENSE BLOCK #####
 #
 #  This program is free software; you can redistribute it and/or
 #  modify it under the terms of the GNU General Public License
@@ -14,25 +14,57 @@
 #  along with this program; if not, write to the Free Software Foundation,
 #  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
-#======================= END GPL LICENSE BLOCK ========================
+# ##### END GPL LICENSE BLOCK #####
+
+# <pep8 compliant>
 
 import bpy
 import blf
 
 from . import utils
 from mathutils import Vector, Matrix
-
-callbacks = {}
-
-
-def callbacks_clear():
-    for region, handle_pixel, handle_view in callbacks.values():
-        region.callback_remove(handle_pixel)
-        region.callback_remove(handle_view)
-    callbacks.clear()
+SpaceView3D = bpy.types.SpaceView3D
+callback_handle = []
 
 
-def draw_callback_px(self, context):
+def tag_redraw_all_view3d():
+    context = bpy.context
+
+    # Py cant access notifers
+    for window in context.window_manager.windows:
+        for area in window.screen.areas:
+            if area.type == 'VIEW_3D':
+                for region in area.regions:
+                    if region.type == 'WINDOW':
+                        region.tag_redraw()
+
+
+def callback_enable():
+    if callback_handle:
+        return
+
+    handle_pixel = SpaceView3D.draw_handler_add(draw_callback_px, (), 'WINDOW', 'POST_PIXEL')
+    handle_view = SpaceView3D.draw_handler_add(draw_callback_view, (), 'WINDOW', 'POST_VIEW')
+    callback_handle[:] = handle_pixel, handle_view
+
+    tag_redraw_all_view3d()
+
+
+def callback_disable():
+    if not callback_handle:
+        return
+
+    handle_pixel, handle_view = callback_handle
+    SpaceView3D.draw_handler_remove(handle_pixel, 'WINDOW')
+    SpaceView3D.draw_handler_remove(handle_view, 'WINDOW')
+    callback_handle[:] = []
+
+    tag_redraw_all_view3d()
+
+
+def draw_callback_px():
+    context = bpy.context
+
     from bgl import glColor3f
     font_id = 0  # XXX, need to find out how best to get this.
     blf.size(font_id, 12, 72)
@@ -93,7 +125,9 @@ def draw_callback_px(self, context):
             draw_text(key, loc)
 
 
-def draw_callback_view(self, context):
+def draw_callback_view():
+    context = bpy.context
+
     from bgl import glEnable, glDisable, glColor3f, glVertex3f, glPointSize, glLineWidth, glBegin, glEnd, glLineStipple, GL_POINTS, GL_LINE_STRIP, GL_LINES, GL_LINE_STIPPLE
 
     data_matrix, data_quat, data_euler, data_vector, data_vector_array = utils.console_math_data()

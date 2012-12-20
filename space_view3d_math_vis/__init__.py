@@ -42,62 +42,18 @@ else:
 import bpy
 
 
-class VIEW3D_PT_math_vis(bpy.types.Panel):
-    bl_space_type = "VIEW_3D"
-    bl_region_type = "TOOLS"
-    bl_label = "Math View"
-
-    def draw(self, context):
-        callbacks = draw.callbacks
-        ok = False
-        for region in context.area.regions:
-            if callbacks.get(hash(region)):
-                ok = True
-                break
-
-        self.layout.operator("view3d.math_vis_toggle", emboss=False, icon='CHECKBOX_HLT' if ok else 'CHECKBOX_DEHLT')
-
-
-class SetupMathView(bpy.types.Operator):
-    """Visualize mathutils type python variables from the """ \
-    """interactive console, see addon docs"""
-    bl_idname = "view3d.math_vis_toggle"
-    bl_label = "Use Math Vis"
-
-    def execute(self, context):
-        callbacks = draw.callbacks
-        region = context.region
-        region_id = hash(region)
-        cb_data = callbacks.get(region_id)
-        if cb_data is None:
-            handle_pixel = region.callback_add(draw.draw_callback_px, (self, context), 'POST_PIXEL')
-            handle_view = region.callback_add(draw.draw_callback_view, (self, context), 'POST_VIEW')
-            callbacks[region_id] = region, handle_pixel, handle_view
-        else:
-            region.callback_remove(cb_data[1])
-            region.callback_remove(cb_data[2])
-            del callbacks[region_id]
-
-        context.area.tag_redraw()
-        return {'FINISHED'}
-
-
 def console_hook():
-    for region, handle_pixel, handle_view in draw.callbacks.values():
-        region.tag_redraw()
-
+    draw.tag_redraw_all_view3d()
 
 def register():
-    bpy.utils.register_module(__name__)
+    draw.callback_enable()
 
     import console_python
     console_python.execute.hooks.append((console_hook, ()))
 
 
 def unregister():
-    bpy.utils.unregister_module(__name__)
+    draw.callback_disable()
 
     import console_python
     console_python.execute.hooks.remove((console_hook, ()))
-
-    draw.callbacks_clear()
