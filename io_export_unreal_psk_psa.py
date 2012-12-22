@@ -20,7 +20,7 @@ bl_info = {
     "name": "Export Unreal Engine Format(.psk/.psa)",
     "author": "Darknet/Optimus_P-Fat/Active_Trash/Sinsoft/VendorX/Spoof",
     "version": (2, 7),
-    "blender": (2, 63, 0),
+    "blender": (2, 65, 0),
     "api": 36079,
     "location": "File > Export > Skeletal Mesh/Animation Data (.psk/.psa)",
     "description": "Export Skeleletal Mesh/Animation Data",
