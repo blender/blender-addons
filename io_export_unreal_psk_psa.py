@@ -2289,8 +2289,7 @@ class Panel_UDKExport( bpy.types.Panel ):
         row.label(text=path)
         #layout.separator()
         layout.prop(context.scene, "udk_option_export")
-        row10 = layout.row()
-        row10.prop(context.scene, "udk_option_selectobjects")
+        layout.prop(context.scene, "udk_option_selectobjects")
         
         if context.scene.udk_option_selectobjects:
             layout.operator("object.selobjectpdate")
@@ -2298,7 +2297,7 @@ class Panel_UDKExport( bpy.types.Panel ):
             layout.template_list(context.scene, "udkArm_list", context.scene, "udkArm_list_idx",prop_list="template_list_controls", rows=3)
             layout.label(text="MESH")
             layout.template_list(context.scene, "udkmesh_list", context.scene, "udkmesh_list_idx",prop_list="template_list_controls", rows=5)
-            
+        layout.prop(context.scene, "udk_option_selectanimations")
         if context.scene.udk_option_selectanimations:
             layout.operator("action.setanimupdate")
             layout.label(text="Action Set(s)")
