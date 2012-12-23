@@ -73,10 +73,12 @@ def draw_callback_px():
 
     if not data_matrix and not data_quat and not data_euler and not data_vector and not data_vector_array:
 
+        '''
         # draw some text
         glColor3f(1.0, 0.0, 0.0)
         blf.position(font_id, 180, 10, 0)
         blf.draw(font_id, "Python Console has no mathutils definitions")
+        '''
         return
 
     glColor3f(1.0, 1.0, 1.0)
