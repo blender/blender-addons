@@ -3611,12 +3611,12 @@ class VIEW3D_MT_edit_mesh_looptools(bpy.types.Menu):
     def draw(self, context):
         layout = self.layout
         
-        layout.operator("mesh.looptools_bridge", text="Bridge").loft = False
+#        layout.operator("mesh.looptools_bridge", text="Bridge").loft = False
         layout.operator("mesh.looptools_circle")
         layout.operator("mesh.looptools_curve")
         layout.operator("mesh.looptools_flatten")
         layout.operator("mesh.looptools_gstretch")
-        layout.operator("mesh.looptools_bridge", text="Loft").loft = True
+#        layout.operator("mesh.looptools_bridge", text="Loft").loft = True
         layout.operator("mesh.looptools_relax")
         layout.operator("mesh.looptools_space")
 
@@ -3640,7 +3640,7 @@ class VIEW3D_PT_tools_looptools(bpy.types.Panel):
             split.prop(lt, "display_bridge", text="", icon='DOWNARROW_HLT')
         else:
             split.prop(lt, "display_bridge", text="", icon='RIGHTARROW')
-        split.operator("mesh.looptools_bridge", text="Bridge").loft = False
+#        split.operator("mesh.looptools_bridge", text="Bridge").loft = False
         # bridge - settings
         if lt.display_bridge:
             box = col.column(align=True).box().column()
@@ -3749,7 +3749,7 @@ class VIEW3D_PT_tools_looptools(bpy.types.Panel):
             split.prop(lt, "display_loft", text="", icon='DOWNARROW_HLT')
         else:
             split.prop(lt, "display_loft", text="", icon='RIGHTARROW')
-        split.operator("mesh.looptools_bridge", text="Loft").loft = True
+#        split.operator("mesh.looptools_bridge", text="Loft").loft = True
         # loft - settings
         if lt.display_loft:
             box = col.column(align=True).box().column()
