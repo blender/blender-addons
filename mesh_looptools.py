@@ -751,7 +751,14 @@ def settings_write(self):
 
 # clean up and set settings back to original state
 def terminate(global_undo):
-    bpy.context.user_preferences.edit.use_global_undo = global_undo
+    context = bpy.context
+
+    # update editmesh cached data
+    obj = context.active_object
+    if obj.mode == 'EDIT':
+        bmesh.update_edit_mesh(obj.data, tessface=True, destructive=True)
+
+    context.user_preferences.edit.use_global_undo = global_undo
 
 
 ##########################################
@@ -2997,6 +3004,7 @@ class Bridge(bpy.types.Operator):
             if self.remove_faces and old_selected_faces:
                 bridge_remove_internal_faces(bm, old_selected_faces)
             # make sure normals are facing outside
+            bmesh.update_edit_mesh(object.data, tessface=False, destructive=True)
             bpy.ops.mesh.normals_make_consistent()
         
         # cleaning up
