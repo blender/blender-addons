@@ -2058,7 +2058,7 @@ def correctRig(args):
         ob = loadedData['Object'][human]
     except:
         return
-    ob.MhxShapekeyDrivers = (toggle&T_Shapekeys and toggle&T_ShapeDrivers)
+    ob.MhxShapekeyDrivers = (toggle&T_Shapekeys != 0 and toggle&T_ShapeDrivers != 0)
     bpy.context.scene.objects.active = ob
     bpy.ops.object.mode_set(mode='POSE')
     amt = ob.data
@@ -3027,7 +3027,7 @@ class ImportMhx(bpy.types.Operator, ImportHelper):
     scale = FloatProperty(name="Scale", description="Default meter, decimeter = 1.0", default = theScale)
     advanced = BoolProperty(name="Advanced settings", description="Use advanced import settings", default=False)
     for (prop, name, desc, flag) in MhxBoolProps:
-        expr = '%s = BoolProperty(name="%s", description="%s", default=toggleSettings&%s)' % (prop, name, desc, flag)
+        expr = '%s = BoolProperty(name="%s", description="%s", default=(toggleSettings&%s != 0))' % (prop, name, desc, flag)
         exec(expr)
     
     
@@ -3070,7 +3070,7 @@ class ImportMhx(bpy.types.Operator, ImportHelper):
         readDefaults()
         self.scale = theScale
         for (prop, name, desc, flag) in MhxBoolProps:
-            expr = 'self.%s = toggle&%s' % (prop, flag)
+            expr = 'self.%s = (toggle&%s != 0)' % (prop, flag)
             exec(expr)
         context.window_manager.fileselect_add(self)
         return {'RUNNING_MODAL'}
