@@ -21,15 +21,12 @@
 bl_info = {
     "name": "Copy Settings",
     "author": "Bastien Montagne",
-    "version": (0, 1, 4),
-    "blender": (2, 61, 0),
+    "version": (0, 1, 5),
+    "blender": (2, 65, 0),
     "location": "Render buttons (Properties window)",
-    "description": "Allows to copy a selection of render settings from "
-                   "current scene to others.",
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
-                "Scripts/Render/Copy Settings",
-    "tracker_url": "http://projects.blender.org/tracker/index.php?"
-                   "func=detail&aid=25832",
+    "description": "Allows to copy a selection of render settings from current scene to others.",
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts/Render/Copy Settings",
+    "tracker_url": "http://projects.blender.org/tracker/index.php?func=detail&aid=25832",
     "category": "Render"}
 
 
@@ -50,28 +47,17 @@ from bpy.props import (StringProperty,
                        PointerProperty)
 
 
-###############################################################################
-# Global properties for the script, for UI (as there’s no way to let them in
-# the operator…).
-###############################################################################
+########################################################################################################################
+# Global properties for the script, for UI (as there’s no way to let them in the operator…).
+########################################################################################################################
 
 class RenderCopySettingsScene(bpy.types.PropertyGroup):
     allowed = BoolProperty(default=True)
-
-    # A string of identifiers (colon delimited) which property’s controls
-    # should be displayed in a template_list.
-    template_list_controls = StringProperty(default="allowed",
-                                            options={'HIDDEN'})
 
 
 class RenderCopySettingsSetting(bpy.types.PropertyGroup):
     strid = StringProperty(default="")
     copy = BoolProperty(default=False)
-
-    # A string of identifiers (colon delimited) which property’s controls
-    # should be displayed in a template_list.
-    template_list_controls = StringProperty(default="copy",
-                                            options={'HIDDEN'})
 
 
 class RenderCopySettings(bpy.types.PropertyGroup):
@@ -79,24 +65,20 @@ class RenderCopySettings(bpy.types.PropertyGroup):
     #      It should only contain one element for each render setting.
     affected_settings = CollectionProperty(type=RenderCopySettingsSetting,
                                            name="Affected Settings",
-                                           description="The list of all "
-                                                       "available render "
-                                                       "settings")
+                                           description="The list of all available render settings")
     # XXX Unused, but needed for template_list…
-    aff_sett_idx = IntProperty()
+    affected_settings_idx = IntProperty()
 
     # XXX: The consistency of this collection is delegated to the UI code.
     #      It should only contain one element for each scene.
     allowed_scenes = CollectionProperty(type=RenderCopySettingsScene,
                                         name="Allowed Scenes",
-                                        description="The list all scenes "
-                                                    "in the file")
+                                        description="The list all scenes in the file")
     # XXX Unused, but needed for template_list…
-    allw_scenes_idx = IntProperty()
+    allowed_scenes_idx = IntProperty()
 
     filter_scene = StringProperty(name="Filter Scene",
-                                  description="Regex to only affect scenes "
-                                              "which name matches it",
+                                  description="Regex to only affect scenes which name matches it",
                                   default="")
 
 
@@ -105,8 +87,7 @@ def register():
     bpy.utils.register_class(RenderCopySettingsScene)
     bpy.utils.register_class(RenderCopySettingsSetting)
     bpy.utils.register_class(RenderCopySettings)
-    bpy.types.Scene.render_copy_settings = \
-        PointerProperty(type=RenderCopySettings)
+    bpy.types.Scene.render_copy_settings = PointerProperty(type=RenderCopySettings)
 
     bpy.utils.register_module(__name__)
 

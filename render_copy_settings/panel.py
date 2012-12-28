@@ -22,6 +22,24 @@ import bpy
 from . import presets
 
 
+class RENDER_UL_copy_settings(bpy.types.UIList):
+    def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
+        #assert(isinstance(item, (bpy.types.RenderCopySettingsScene, bpy.types.RenderCopySettingsSetting)))
+        if self.layout_type in {'DEFAULT', 'COMPACT'}:
+            if isinstance(item, bpy.types.RenderCopySettingsSetting):
+                layout.label(item.name, icon_value=icon)
+                layout.prop(item, "copy", text="")
+            else: #elif isinstance(item, bpy.types.RenderCopySettingsScene):
+                layout.prop(item, "allowed", text=item.name, toggle=True)
+        elif self.layout_type in {'GRID'}:
+            layout.alignment = 'CENTER'
+            if isinstance(item, bpy.types.RenderCopySettingsSetting):
+                layout.label(item.name, icon_value=icon)
+                layout.prop(item, "copy", text="")
+            else: #elif isinstance(item, bpy.types.RenderCopySettingsScene):
+                layout.prop(item, "allowed", text=item.name, toggle=True)
+
+
 class RENDER_PT_copy_settings(bpy.types.Panel):
     bl_label = "Copy Settings"
     bl_space_type = "PROPERTIES"
@@ -34,8 +52,7 @@ class RENDER_PT_copy_settings(bpy.types.Panel):
         layout = self.layout
         cp_sett = context.scene.render_copy_settings
 
-        layout.operator("scene.render_copy_settings",
-                        text="Copy Render Settings")
+        layout.operator("scene.render_copy_settings", text="Copy Render Settings")
 
         # This will update affected_settings/allowed_scenes (as this seems
         # to be impossible to do it from here…).
@@ -43,28 +60,24 @@ class RENDER_PT_copy_settings(bpy.types.Panel):
             bpy.ops.scene.render_copy_settings_prepare()
 
         split = layout.split(0.75)
-        split.template_list(cp_sett, "affected_settings", cp_sett,
-                            "aff_sett_idx",
-                            prop_list="template_list_controls", rows=6)
+        split.template_list("RENDER_UL_copy_settings", "settings", cp_sett, "affected_settings",
+                            cp_sett, "affected_settings_idx", rows=6)
 
         col = split.column()
-        all_set = {sett.strid for sett in cp_sett.affected_settings
-                                       if sett.copy}
+        all_set = {sett.strid for sett in cp_sett.affected_settings if sett.copy}
         for p in presets.presets:
             label = ""
             if p.elements & all_set == p.elements:
                 label = "Clear {}".format(p.ui_name)
             else:
                 label = "Set {}".format(p.ui_name)
-            col.operator("scene.render_copy_settings_preset",
-                         text=label).presets = {p.rna_enum[0]}
+            col.operator("scene.render_copy_settings_preset", text=label).presets = {p.rna_enum[0]}
 
         layout.prop(cp_sett, "filter_scene")
         if len(cp_sett.allowed_scenes):
             layout.label("Affected Scenes:")
-            # XXX Unfortunately, there can only be one template_list per panel…
-            col = layout.column_flow(columns=0)
-            for i, prop in enumerate(cp_sett.allowed_scenes):
-                col.prop(prop, "allowed", toggle=True, text=prop.name)
+            layout.template_list("RENDER_UL_copy_settings", "scenes", cp_sett, "allowed_scenes",
+#                                 cp_sett, "allowed_scenes_idx", rows=6, type='GRID')
+                                 cp_sett, "allowed_scenes_idx", rows=6) # XXX Grid is not nice currently...
         else:
             layout.label(text="No Affectable Scenes!", icon="ERROR")
