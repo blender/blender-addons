@@ -40,7 +40,7 @@ bl_info = {
     'name': 'Import: MakeHuman (.mhx)',
     'author': 'Thomas Larsson',
     'version': (1, 14, 1),
-    "blender": (2, 64, 0),
+    "blender": (2, 65, 0),
     'location': "File > Import > MakeHuman (.mhx)",
     'description': 'Import files in the MakeHuman eXchange format (.mhx)',
     'warning': '',
@@ -4013,8 +4013,11 @@ def fk2ikArm(context, suffix):
     rig = context.object
     auto = context.scene.tool_settings.use_keyframe_insert_auto
     print("Snap FK Arm%s" % suffix)
-    (uparmIk, loarmIk, elbow, elbowPt, wrist) = getSnapBones(rig, "ArmIK", suffix)
-    (uparmFk, loarmFk, elbowPtFk, handFk) = getSnapBones(rig, "ArmFK", suffix)
+    snapIk,cnsIk = getSnapBones(rig, "ArmIK", suffix)
+    (uparmIk, loarmIk, elbow, elbowPt, wrist) = snapIk
+    snapFk,cnsFk = getSnapBones(rig, "ArmFK", suffix)
+    (uparmFk, loarmFk, elbowPtFk, handFk) = snapFk
+    muteConstraints(cnsFk, True)
 
     matchPoseRotation(uparmFk, uparmFk, auto)
     matchPoseScale(uparmFk, uparmFk, auto)
@@ -4025,6 +4028,8 @@ def fk2ikArm(context, suffix):
     if rig["MhaHandFollowsWrist" + suffix]:
         matchPoseRotation(handFk, wrist, auto)
         matchPoseScale(handFk, wrist, auto)
+
+    muteConstraints(cnsFk, False)
     return
 
 
@@ -4033,8 +4038,11 @@ def ik2fkArm(context, suffix):
     scn = context.scene
     auto = scn.tool_settings.use_keyframe_insert_auto
     print("Snap IK Arm%s" % suffix)
-    (uparmIk, loarmIk, elbow, elbowPt, wrist) = getSnapBones(rig, "ArmIK", suffix)
-    (uparmFk, loarmFk, elbowPtFk, handFk) = getSnapBones(rig, "ArmFK", suffix)
+    snapIk,cnsIk = getSnapBones(rig, "ArmIK", suffix)
+    (uparmIk, loarmIk, elbow, elbowPt, wrist) = snapIk
+    snapFk,cnsFk = getSnapBones(rig, "ArmFK", suffix)
+    (uparmFk, loarmFk, elbowPtFk, handFk) = snapFk
+    muteConstraints(cnsIk, True)
 
     #rig["MhaElbowFollowsShoulder" + suffix] = False
     #rig["MhaElbowFollowsWrist" + suffix] = False
@@ -4044,6 +4052,7 @@ def ik2fkArm(context, suffix):
     matchPoseTranslation(elbow, elbowPtFk, auto)
     matchPoseTranslation(elbowPt, elbowPtFk, auto)
     setInverse(rig, elbowPt)
+    muteConstraints(cnsIk, False)
     return
 
 
@@ -4051,14 +4060,23 @@ def fk2ikLeg(context, suffix):
     rig = context.object
     auto = context.scene.tool_settings.use_keyframe_insert_auto
     print("Snap FK Leg%s" % suffix)
-    (uplegIk, lolegIk, kneePt, ankleIk, legIk, legFk, footIk, toeIk) = getSnapBones(rig, "LegIK", suffix)
-    (uplegFk, lolegFk, kneePtFk, footFk, toeFk) = getSnapBones(rig, "LegFK", suffix)
-
+    snapIk,cnsIk = getSnapBones(rig, "LegIK", suffix)
+    (uplegIk, lolegIk, kneePt, ankleIk, legIk, legFk, footIk, toeIk) = snapIk
+    snapFk,cnsFk = getSnapBones(rig, "LegFK", suffix)
+    (uplegFk, lolegFk, kneePtFk, footFk, toeFk) = snapFk
+    muteConstraints(cnsFk, True)
+    
+    if not rig["MhaLegIkToAnkle" + suffix]:
+        matchPoseRotation(footFk, footFk, auto)
+        matchPoseRotation(toeFk, toeFk, auto)
+    
     matchPoseRotation(uplegFk, uplegFk, auto)
     matchPoseScale(uplegFk, uplegFk, auto)
 
     matchPoseRotation(lolegFk, lolegFk, auto)
     matchPoseScale(lolegFk, lolegFk, auto)
+    
+    muteConstraints(cnsFk, False)
     return
 
 
@@ -4067,8 +4085,11 @@ def ik2fkLeg(context, suffix):
     scn = context.scene
     auto = scn.tool_settings.use_keyframe_insert_auto
     print("Snap IK Leg%s" % suffix)
-    (uplegIk, lolegIk, kneePt, ankleIk, legIk, legFk, footIk, toeIk) = getSnapBones(rig, "LegIK", suffix)
-    (uplegFk, lolegFk, kneePtFk, footFk, toeFk) = getSnapBones(rig, "LegFK", suffix)
+    snapIk,cnsIk = getSnapBones(rig, "LegIK", suffix)
+    (uplegIk, lolegIk, kneePt, ankleIk, legIk, legFk, footIk, toeIk) = snapIk
+    snapFk,cnsFk = getSnapBones(rig, "LegFK", suffix)
+    (uplegFk, lolegFk, kneePtFk, footFk, toeFk) = snapFk
+    muteConstraints(cnsIk, True)
 
     #rig["MhaKneeFollowsHip" + suffix] = False
     #rig["MhaKneeFollowsFoot" + suffix] = False
@@ -4085,8 +4106,11 @@ def ik2fkLeg(context, suffix):
     setInverse(rig, kneePt)
     if not legIkToAnkle:
         matchPoseTranslation(ankleIk, footFk, auto)
+
+    muteConstraints(cnsIk, False)
     return
-   
+
+
 #
 #   setInverse(rig, pb):
 #
@@ -4103,66 +4127,6 @@ def setInverse(rig, pb):
     bpy.ops.object.mode_set(mode='POSE')
     return
 
-
-"""           
-def clearInverse(rig, pb):
-    rig.data.bones.active = pb.bone
-    pb.bone.select = True
-    bpy.ops.object.mode_set(mode='OBJECT')
-    bpy.ops.object.mode_set(mode='POSE')
-    for cns in pb.constraints:
-        if cns.type == 'CHILD_OF':
-            bpy.ops.constraint.childof_clear_inverse(constraint=cns.name, owner='BONE')
-    bpy.ops.object.mode_set(mode='OBJECT')
-    bpy.ops.object.mode_set(mode='POSE')
-    return
-
-
-def fixAnkle(rig, suffix, scn):
-    layers = list(rig.data.layers)
-    try:
-        rig.data.layers = 32*[True]
-        setInverse(rig, rig.pose.bones["Ankle" + suffix])
-        scn.frame_current = scn.frame_current
-    finally:
-        rig.data.layers = layers
-    return
-
-
-def clearAnkle(rig, suffix, scn):
-    layers = list(rig.data.layers)
-    try:
-        rig.data.layers = 32*[True]
-        clearInverse(rig, rig.pose.bones["Ankle" + suffix])
-        scn.frame_current = scn.frame_current
-    finally:
-        rig.data.layers = layers
-    return
-
-
-class VIEW3D_OT_FixAnkleButton(bpy.types.Operator):
-    bl_idname = "mhx.fix_ankle"
-    bl_label = "Fix ankle"
-    bl_description = "Set inverse for ankle Child-of constraints"
-    bl_options = {'UNDO'}
-    suffix = StringProperty()
-
-    def execute(self, context):
-        fixAnkle(context.object, self.suffix, context.scene)
-        return{'FINISHED'}    
-
-
-class VIEW3D_OT_ClearAnkleButton(bpy.types.Operator):
-    bl_idname = "mhx.clear_ankle"
-    bl_label = "Clear ankle"
-    bl_description = "Clear inverse for ankle Child-of constraints"
-    bl_options = {'UNDO'}
-    suffix = StringProperty()
-
-    def execute(self, context):
-        clearAnkle(context.object, self.suffix, context.scene)
-        return{'FINISHED'}    
-"""        
 #
 #
 #
@@ -4178,10 +4142,19 @@ SnapBones = {
 def getSnapBones(rig, key, suffix):
     names = SnapBones[key]
     pbones = []
+    constraints = []
     for name in names:
         pb = rig.pose.bones[name+suffix]
         pbones.append(pb)
-    return tuple(pbones)
+        for cns in pb.constraints:
+            if cns.type == 'LIMIT_ROTATION' and not cns.mute:
+                constraints.append(cns)
+    return tuple(pbones),constraints
+
+
+def muteConstraints(constraints, value):
+    for cns in constraints:
+        cns.mute = value
 
 
 class VIEW3D_OT_MhxSnapFk2IkButton(bpy.types.Operator):
@@ -4193,6 +4166,8 @@ class VIEW3D_OT_MhxSnapFk2IkButton(bpy.types.Operator):
     def execute(self, context):
         bpy.ops.object.mode_set(mode='POSE')
         rig = context.object
+        if rig.MhxSnapExact:
+            rig["MhaRotationLimits"] = 0.0
         (prop, old) = setSnapProp(rig, self.data, 1.0, context, False)
         if prop[:6] == "MhaArm":
             fk2ikArm(context, prop[-2:])
@@ -4211,6 +4186,8 @@ class VIEW3D_OT_MhxSnapIk2FkButton(bpy.types.Operator):
     def execute(self, context):
         bpy.ops.object.mode_set(mode='POSE')
         rig = context.object
+        if rig.MhxSnapExact:
+            rig["MhaRotationLimits"] = 0.0
         (prop, old) = setSnapProp(rig, self.data, 0.0, context, True)
         if prop[:6] == "MhaArm":
             ik2fkArm(context, prop[-2:])
@@ -4313,6 +4290,16 @@ class MhxFKIKPanel(bpy.types.Panel):
         self.toggleButton(row, rig, "MhaLegIk_L", " 5", " 4")
         self.toggleButton(row, rig, "MhaLegIk_R", " 21", " 20")
         
+        layout.label("IK Influence")
+        row = layout.row()
+        row.label("Arm")
+        row.prop(rig, '["MhaArmIk_L"]', text="")
+        row.prop(rig, '["MhaArmIk_R"]', text="")
+        row = layout.row()
+        row.label("Leg")
+        row.prop(rig, '["MhaLegIk_L"]', text="")
+        row.prop(rig, '["MhaLegIk_R"]', text="")
+        
         try:
             ok = (rig["MhxVersion"] >= 12)
         except:
@@ -4320,6 +4307,13 @@ class MhxFKIKPanel(bpy.types.Panel):
         if not ok:
             layout.label("Snapping only works with MHX version 1.12 and later.")
             return
+        
+        layout.separator()
+        layout.label("Snapping")
+        row = layout.row()
+        row.label("Rotation Limits")
+        row.prop(rig, '["MhaRotationLimits"]', text="")
+        row.prop(rig, "MhxSnapExact", text="Exact Snapping")
         
         layout.label("Snap Arm bones")
         row = layout.row()
@@ -4340,16 +4334,7 @@ class MhxFKIKPanel(bpy.types.Panel):
         row.label("IK Leg")
         row.operator("mhx.snap_ik_fk", text="Snap L IK Leg").data = "MhaLegIk_L 4 5 12"
         row.operator("mhx.snap_ik_fk", text="Snap R IK Leg").data = "MhaLegIk_R 20 21 28"
-        """
-        row = layout.row()
-        row.label("Ankle")
-        row.operator("mhx.fix_ankle", text="Fix L Ankle").suffix = "_L"
-        row.operator("mhx.fix_ankle", text="Fix R Ankle").suffix = "_R"
-        row = layout.row()
-        row.label("")
-        row.operator("mhx.clear_ankle", text="Clear L Ankle").suffix = "_L"
-        row.operator("mhx.clear_ankle", text="Clear R Ankle").suffix = "_R"
-        """
+
 
     def toggleButton(self, row, rig, prop, fk, ik):
         if rig[prop] > 0.5:
@@ -4690,6 +4675,7 @@ def register():
     bpy.types.Object.MhxMesh = BoolProperty(default=False)
     bpy.types.Object.MhxRig = StringProperty(default="")
     bpy.types.Object.MhxRigify = BoolProperty(default=False)
+    bpy.types.Object.MhxSnapExact = BoolProperty(default=False)
     bpy.types.Object.MhxShapekeyDrivers = BoolProperty(default=True)
     bpy.types.Object.MhxStrength = FloatProperty(
         name = "Expression strength",
