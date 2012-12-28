@@ -276,7 +276,7 @@ class RENDER_PT_network_slaves(NeedValidAddress, NetRenderButtonsPanel, bpy.type
         netsettings = context.scene.network_render
 
         row = layout.row()
-        row.template_list(netsettings, "slaves", netsettings, "active_slave_index", rows=2)
+        row.template_list("UI_UL_list", "", netsettings, "slaves", netsettings, "active_slave_index", rows=2)
 
         sub = row.column(align=True)
         sub.operator("render.netclientslaves", icon='FILE_REFRESH', text="")
@@ -307,7 +307,8 @@ class RENDER_PT_network_slaves_blacklist(NeedValidAddress, NetRenderButtonsPanel
         netsettings = context.scene.network_render
 
         row = layout.row()
-        row.template_list(netsettings, "slaves_blacklist", netsettings, "active_blacklisted_slave_index", rows=2)
+        row.template_list("UI_UL_list", "", netsettings, "slaves_blacklist",
+                          netsettings, "active_blacklisted_slave_index", rows=2)
 
         sub = row.column(align=True)
         sub.operator("render.netclientwhitelistslave", icon='ZOOMOUT', text="")
@@ -337,7 +338,7 @@ class RENDER_PT_network_jobs(NeedValidAddress, NetRenderButtonsPanel, bpy.types.
         netsettings = context.scene.network_render
 
         row = layout.row()
-        row.template_list(netsettings, "jobs", netsettings, "active_job_index", rows=2)
+        row.template_list("UI_UL_list", "", netsettings, "jobs", netsettings, "active_job_index", rows=2)
 
         sub = row.column(align=True)
         sub.operator("render.netclientstatus", icon='FILE_REFRESH', text="")

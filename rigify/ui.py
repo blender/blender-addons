@@ -77,7 +77,7 @@ class DATA_PT_rigify_buttons(bpy.types.Panel):
 
             # Rig type list
             row = layout.row()
-            row.template_list(id_store, "rigify_types", id_store, 'rigify_active_type')
+            row.template_list("UI_UL_list", "", id_store, "rigify_types", id_store, 'rigify_active_type')
 
             op = layout.operator("armature.metarig_sample_add", text="Add sample")
             op.metarig_type = id_store.rigify_types[id_store.rigify_active_type].name
