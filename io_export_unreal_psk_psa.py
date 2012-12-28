@@ -1966,6 +1966,29 @@ bpy.types.Scene.udk_option_scale = FloatProperty(
 #===========================================================================
 # User interface
 #===========================================================================
+class EXPORT_UL_UDKlists(bpy.types.UIList):
+    def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
+        if not isinstance(item, (bpy.types.UDKActionSetListPG, bpy.types.UDKObjListPG, bpy.types.UDKMeshListPG,
+                                 bpy.types.UDKArmListPG)):
+            return
+        if self.layout_type in {'DEFAULT', 'COMPACT'}:
+            layout.label(item.name, icon_value=icon)
+            if isinstance(item, bpy.types.UDKActionSetListPG):
+                layout.prop(item, "bmatch", text="")
+                layout.prop(item, "bexport", text="")
+            if isinstance(item, bpy.types.UDKObjListPG):
+                layout.prop(item, "otype", text="")
+                layout.prop(item, "bselect", text="")
+            if isinstance(item, bpy.types.UDKMeshListPG):
+                layout.prop(item, "bselect", text="")
+                layout.prop(item, "bexport", text="")
+            if isinstance(item, bpy.types.UDKArmListPG):
+                pass # Nothing special here for now...
+        elif self.layout_type in {'GRID'}:
+            layout.alignment = 'CENTER'
+            layout.label("", icon_value=icon)
+
+
 class OBJECT_OT_UTSelectedFaceSmooth(bpy.types.Operator):
     bl_idname = "object.utselectfacesmooth"  # XXX, name???
     bl_label = "Select Smooth Faces"#"Select Smooth faces"
@@ -2202,48 +2225,44 @@ class OBJECT_OT_UTRebuildArmature(bpy.types.Operator):
         return{'FINISHED'}
 
 class UDKActionSetListPG(bpy.types.PropertyGroup):
-    bool    = BoolProperty(default=False)
-    string  = StringProperty()
-    actionname  = StringProperty()
-    bmatch    = BoolProperty(default=False,name="Match", options={"HIDDEN"},description = "This check against bone names and action group names matches and override boolean if true.")
-    bexport    = BoolProperty(default=False,name="Export",description = "Check this to export the animation")
-    template_list_controls = StringProperty(default="bmatch:bexport", options={"HIDDEN"})
+#    boolean = BoolProperty(default=False)
+    string = StringProperty()
+    actionname = StringProperty()
+    bmatch = BoolProperty(default=False,name="Match", options={"HIDDEN"},description = "This check against bone names and action group names matches and override boolean if true.")
+    bexport = BoolProperty(default=False,name="Export",description = "Check this to export the animation")
 
 bpy.utils.register_class(UDKActionSetListPG)
 bpy.types.Scene.udkas_list = CollectionProperty(type=UDKActionSetListPG)
 bpy.types.Scene.udkas_list_idx = IntProperty()
 
 class UDKObjListPG(bpy.types.PropertyGroup):
-    bool    = BoolProperty(default=False)
-    string  = StringProperty()
-    bexport    = BoolProperty(default=False,name="Export", options={"HIDDEN"},description = "This will be ignore when exported")
-    bselect    = BoolProperty(default=False,name="Select", options={"HIDDEN"},description = "This will be ignore when exported")
-    otype  = StringProperty(name="Type",description = "This will be ignore when exported")
-    template_list_controls = StringProperty(default="otype:bselect", options={"HIDDEN"})
+#    boolean = BoolProperty(default=False)
+    string = StringProperty()
+    bexport = BoolProperty(default=False,name="Export", options={"HIDDEN"},description = "This will be ignore when exported")
+    bselect = BoolProperty(default=False,name="Select", options={"HIDDEN"},description = "This will be ignore when exported")
+    otype = StringProperty(name="Type",description = "This will be ignore when exported")
 
 bpy.utils.register_class(UDKObjListPG)
 bpy.types.Scene.udkobj_list = CollectionProperty(type=UDKObjListPG)
 bpy.types.Scene.udkobj_list_idx = IntProperty()
 
 class UDKMeshListPG(bpy.types.PropertyGroup):
-    bool    = BoolProperty(default=False)
-    string  = StringProperty()
-    bexport    = BoolProperty(default=False,name="Export", options={"HIDDEN"},description = "This object will be export when true.")
-    bselect    = BoolProperty(default=False,name="Select", options={"HIDDEN"},description = "Make sure you have Mesh is parent to Armature.")
-    otype  = StringProperty(name="Type",description = "This will be ignore when exported")
-    template_list_controls = StringProperty(default="bselect:bexport", options={"HIDDEN"})
+#    boolean = BoolProperty(default=False)
+    string = StringProperty()
+    bexport = BoolProperty(default=False,name="Export", options={"HIDDEN"},description = "This object will be export when true.")
+    bselect = BoolProperty(default=False,name="Select", options={"HIDDEN"},description = "Make sure you have Mesh is parent to Armature.")
+    otype = StringProperty(name="Type",description = "This will be ignore when exported")
 
 bpy.utils.register_class(UDKMeshListPG)
 bpy.types.Scene.udkmesh_list = CollectionProperty(type=UDKMeshListPG)
 bpy.types.Scene.udkmesh_list_idx = IntProperty()
 
 class UDKArmListPG(bpy.types.PropertyGroup):
-    bool    = BoolProperty(default=False)
-    string  = StringProperty()
-    bexport    = BoolProperty(default=False,name="Export", options={"HIDDEN"},description = "This will be ignore when exported")
-    bselect    = BoolProperty(default=False,name="Select", options={"HIDDEN"},description = "This will be ignore when exported")
-    otype  = StringProperty(name="Type",description = "This will be ignore when exported")
-    template_list_controls = StringProperty(default="", options={"HIDDEN"})
+    boolean = BoolProperty(default=False)
+    string = StringProperty()
+    bexport = BoolProperty(default=False,name="Export", options={"HIDDEN"},description = "This will be ignore when exported")
+    bselect = BoolProperty(default=False,name="Select", options={"HIDDEN"},description = "This will be ignore when exported")
+    otype = StringProperty(name="Type",description = "This will be ignore when exported")
 
 bpy.utils.register_class(UDKArmListPG)
 bpy.types.Scene.udkArm_list = CollectionProperty(type=UDKArmListPG)
@@ -2294,14 +2313,17 @@ class Panel_UDKExport( bpy.types.Panel ):
         if context.scene.udk_option_selectobjects:
             layout.operator("object.selobjectpdate")
             layout.label(text="ARMATURE")
-            layout.template_list(context.scene, "udkArm_list", context.scene, "udkArm_list_idx",prop_list="template_list_controls", rows=3)
+            layout.template_list("EXPORT_UL_UDKlists", "", context.scene, "udkArm_list",
+                                 context.scene, "udkArm_list_idx", rows=3)
             layout.label(text="MESH")
-            layout.template_list(context.scene, "udkmesh_list", context.scene, "udkmesh_list_idx",prop_list="template_list_controls", rows=5)
+            layout.template_list("EXPORT_UL_UDKlists", "", context.scene, "udkmesh_list",
+                                 context.scene, "udkmesh_list_idx", rows=5)
         layout.prop(context.scene, "udk_option_selectanimations")
         if context.scene.udk_option_selectanimations:
             layout.operator("action.setanimupdate")
             layout.label(text="Action Set(s)")
-            layout.template_list(context.scene, "udkas_list", context.scene, "udkas_list_idx",prop_list="template_list_controls", rows=5)
+            layout.template_list("EXPORT_UL_UDKlists", "", context.scene, "udkas_list",
+                                 context.scene, "udkas_list_idx", rows=5)
         test = layout.separator()
         layout.prop(context.scene, "udk_option_scale")
         layout.prop(context.scene, "udk_option_rebuildobjects")
@@ -2531,7 +2553,6 @@ class OBJECT_OT_ActionSetAnimUpdate(bpy.types.Operator):
                 my_item = my_sett.add()
                 #print(dir(my_item.bmatch))
                 my_item.name = action.name
-                my_item.template_list_controls = "bmatch:bexport"
                 if len(bones) == len(action.groups) == count:
                     my_item.bmatch = True
                 else:
