@@ -247,8 +247,9 @@ class IMPORT_OT_image_to_plane(Operator, AddObjectHelper):
 
     # --------------
     # Image Options.
-    t = bpy.types.Image.bl_rna.properties["use_premultiply"]
-    use_premultiply = BoolProperty(name=t.name, default=False, description=t.description)
+    t = bpy.types.Image.bl_rna.properties["alpha_mode"]
+    alpha_mode_items = tuple((e.identifier, e.name, e.description) for e in t.enum_items)
+    alpha_mode = EnumProperty(name=t.name, items=alpha_mode_items, default=t.default, description=t.description)
 
     t = bpy.types.IMAGE_OT_match_movie_length.bl_rna
     match_len = BoolProperty(name=t.name, default=True, description=t.description)
@@ -285,7 +286,7 @@ class IMPORT_OT_image_to_plane(Operator, AddObjectHelper):
             box.label("Material Settings: (Blender)", icon='MATERIAL')
             box.prop(self, "use_shadeless")
             box.prop(self, "use_transparency")
-            box.prop(self, "use_premultiply")
+            box.prop(self, "alpha_mode")
             row = box.row()
             row.prop(self, "transparency_method", expand=True)
             box.prop(self, "use_transparent_shadows")
@@ -453,14 +454,14 @@ class IMPORT_OT_image_to_plane(Operator, AddObjectHelper):
         return material
 
     def set_image_options(self, image):
-        image.use_premultiply = self.use_premultiply
+        image.alpha_mode = self.alpha_mode
         image.use_fields = self.use_fields
 
         if self.relative:
             image.filepath = bpy.path.relpath(image.filepath)
 
     def set_texture_options(self, context, texture):
-        texture.use_alpha = self.use_transparency
+        texture.image.use_alpha = self.use_transparency
         texture.image_user.use_auto_refresh = self.use_auto_refresh
         if self.match_len:
             ctx = context.copy()
