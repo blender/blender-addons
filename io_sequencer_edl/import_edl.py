@@ -473,7 +473,7 @@ class EditList:
 
     def parse(self, filename, fps):
         try:
-            file = open(filename, "rU")
+            file = open(filename, "r", encoding="utf-8")
         except:
             return False
 
