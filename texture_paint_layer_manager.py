@@ -568,7 +568,6 @@ def save_painted(ts):
                         else:
                             i.filepath = fp
                         i.name = name
-                        i.use_premultiply = True
                     except:
                         print("something wrong with", fp)
     #THAT'S THE GENERATED FILES saved, pathed and reloaded
