@@ -113,7 +113,7 @@ def write(fw, mesh_source, image_width, image_height, opacity, face_iter_func):
 
     # scene render settings
     scene.render.use_raytrace = False
-    scene.render.alpha_mode = 'STRAIGHT'
+    scene.render.alpha_mode = 'TRANSPARENT'
     scene.render.image_settings.color_mode = 'RGBA'
 
     scene.render.resolution_x = image_width
