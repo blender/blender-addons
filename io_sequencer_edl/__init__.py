@@ -75,7 +75,6 @@ class ReloadEDL(Operator):
         edl_import_info = scene.edl_import_info
         bl_reels = edl_import_info.reels
 
-        #scene[EDL_DATA_ID] = {}
         data_prev = {reel.name: (reel.filepath, reel.frame_offset)
                      for reel in edl_import_info.reels}
 
@@ -93,6 +92,116 @@ class ReloadEDL(Operator):
                 reel.frame_offset = frame_offset
 
         return {'FINISHED'}
+
+
+class FindReelsEDL(Operator):
+    """Scan a path for missing reel files, """ \
+    """ Matching by reel name and existing filename when set"""
+    bl_idname = "sequencer.import_edl_findreel"
+    bl_label = "Find Missing Reel Files"
+    directory = StringProperty(
+            subtype='DIR_PATH',
+            )
+
+    @staticmethod
+    def missing_reels(context):
+        import os
+        scene = context.scene
+        edl_import_info = scene.edl_import_info
+        return [reel for reel in edl_import_info.reels
+                if not os.path.exists(reel.filepath)]
+
+    def execute(self, context):
+        import os
+
+        # walk over .avi, .mov, .wav etc.
+        def media_file_walker(path):
+            for dirpath, dirnames, filenames in os.walk(path):
+                # skip '.svn'
+                if dirpath.startswith("."):
+                    continue
+                for filename in filenames:
+                    fileonly, ext = os.path.splitext(filename)
+                    ext_lower = ext.lower()
+                    if ext_lower in bpy.path.extensions_movie:
+                        yield os.path.join(dirpath, filename), fileonly
+                    elif ext_lower in bpy.path.extensions_audio:
+                        yield os.path.join(dirpath, filename), fileonly
+
+        scene = context.scene
+        edl_import_info = scene.edl_import_info
+
+        bl_reels = FindReelsEDL.missing_reels(context)
+        assert(len(bl_reels))
+
+        # Search is as follows
+        # Each reel has a triple:
+        #    ([search_names, ...], [(priority, found_file), ...], bl_reel)
+        bl_reels_search = [(set(), [], reel) for reel in bl_reels]
+
+        # first get the search names...
+        for reel_names, reel_files_found, reel in bl_reels_search:
+            reel_names_list = []
+            reel_names_list.append(reel.name.lower())
+            # use the filepath if set
+            reel_filepath = reel.filepath
+            if reel_filepath:
+                reel_filepath = os.path.basename(reel_filepath)
+                reel_filepath = os.path.splitext(reel_filepath)[0]
+                reel_names_list.append(reel_filepath.lower())
+
+            # when '_' are found, replace with space
+            reel_names_list += [reel_filepath.replace("_", " ")
+                                for reel_filepath in reel_names_list
+                                if "_" in reel_filepath]
+            reel_names.update(reel_names_list)
+
+        for filename, fileonly in media_file_walker(self.directory):
+            for reel_names, reel_files_found, reel in bl_reels_search:
+                if fileonly.lower() in reel_names:
+                    reel_files_found.append((0, filename))
+                else:
+                    # check on partial match
+                    for r in reel_names:
+                        if fileonly.startswith(r):
+                            reel_files_found.append((1, filename))
+                        if fileonly.endswith(r):
+                            reel_files_found.append((2, filename))
+
+        # apply back and report
+        tot_done = 0
+        tot_fail = 0
+        for reel_names, reel_files_found, reel in bl_reels_search:
+            if reel_files_found:
+                # make sure partial matches end last
+                reel_files_found.sort()
+                reel.filepath = reel_files_found[0][1]
+                tot_done += 1
+            else:
+                tot_fail += 1
+
+        self.report({'INFO'} if tot_fail == 0 else {'WARNING'},
+                    "Found %d clips, missing %d" % (tot_done, tot_fail))
+
+        return {'FINISHED'}
+
+    def invoke(self, context, event):
+        import os
+        scene = context.scene
+        edl_import_info = scene.edl_import_info
+
+        if not FindReelsEDL.missing_reels(context):
+            self.report({'INFO'},
+                        "Nothing to do, all reels point to valid files")
+            return {'CANCELLED'}
+
+        # default to the EDL path
+        if not self.directory and edl_import_info.filepath:
+            self.directory = os.path.dirname(edl_import_info.filepath)
+
+        wm = context.window_manager
+        wm.fileselect_add(self)
+        return {"RUNNING_MODAL"}
 
 
 class ImportEDL(Operator):
@@ -166,11 +275,11 @@ class SEQUENCER_PT_import_edl(bpy.types.Panel):
         scene = context.scene
         edl_import_info = scene.edl_import_info
 
-        layout.operator("sequencer.import_edl")
+        layout.operator(ImportEDL.bl_idname)
 
         col = layout.column(align=True)
         col.prop(edl_import_info, "filepath", text="")
-        col.operator("sequencer.import_edl_refresh", icon='FILE_REFRESH')
+        col.operator(ReloadEDL.bl_idname, icon='FILE_REFRESH')
 
         box = layout.box()
         reel = None
@@ -183,9 +292,12 @@ class SEQUENCER_PT_import_edl(bpy.types.Panel):
         if reel is None:
             box.label("Empty (No EDL Data)")
 
+        box.operator(FindReelsEDL.bl_idname, icon='EXTERNAL_DATA')
+
 
 def register():
     bpy.utils.register_class(ReloadEDL)
+    bpy.utils.register_class(FindReelsEDL)
     bpy.utils.register_class(ImportEDL)
     bpy.utils.register_class(SEQUENCER_PT_import_edl)
 
@@ -197,6 +309,7 @@ def register():
 
 def unregister():
     bpy.utils.unregister_class(ReloadEDL)
+    bpy.utils.unregister_class(FindReelsEDL)
     bpy.utils.unregister_class(ImportEDL)
     bpy.utils.unregister_class(SEQUENCER_PT_import_edl)
 
