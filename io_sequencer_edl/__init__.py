@@ -54,7 +54,7 @@ class ReloadEDL(Operator):
 
     def execute(self, context):
         import os
-        from . import import_edl
+        from . import parse_edl
 
         scene = context.scene
         edl_import_info = scene.edl_import_info
@@ -66,7 +66,7 @@ class ReloadEDL(Operator):
             self.report({'ERROR'}, "File Not Found %r" % filepath)
             return {'CANCELLED'}
 
-        elist = import_edl.EditList()
+        elist = parse_edl.EditList()
         if not elist.parse(filepath, dummy_fps):
             self.report({'ERROR'}, "Failed to parse EDL %r" % filepath)
             return {'CANCELLED'}
@@ -79,7 +79,7 @@ class ReloadEDL(Operator):
         data_prev = {reel.name: (reel.filepath, reel.frame_offset)
                      for reel in edl_import_info.reels}
 
-        reels = elist.getReels()
+        reels = elist.reels_as_dict()
         reels = [k for k in reels.keys() if k != "bw"]
 
         # re-create reels collection, keeping old values

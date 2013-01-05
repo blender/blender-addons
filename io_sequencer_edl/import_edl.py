@@ -143,7 +143,7 @@ def load_edl(scene, filename, reel_files, reel_offsets):
         unedited_start = rec_start - src_start
         offset_start = src_start - int(src_start * scale)  # works for scaling up AND down
 
-        if edit.transition_type == parse_edl.TRANSITION_CUT and (not elist.testOverlap(edit)):
+        if edit.transition_type == parse_edl.TRANSITION_CUT and (not elist.overlap_test(edit)):
             track = 1
 
         strip = None
@@ -272,7 +272,7 @@ def load_edl(scene, filename, reel_files, reel_offsets):
         if final_strips:
             for strip in final_strips:
                 # strip.frame_duration = length
-                final_strip.name = edit.asName()
+                final_strip.name = edit.as_name()
                 edit.custom_data[:] = final_strips
                 # track = not track
                 prev_edit = edit
@@ -293,7 +293,7 @@ def _test():
     _fps = 25
     if not elist.parse(_filename, _fps):
         assert(0)
-    reels = elist.getReels()
+    reels = elist.reels_as_dict()
 
     print(list(reels.keys()))
 
@@ -303,4 +303,4 @@ def _test():
                    {'tapec': "/fe/edl/cinesoft/rush/rushes3.avi"},
                    {'tapec': 0})  # /tmp/test.edl
     print(msg)
-_test()
+# _test()

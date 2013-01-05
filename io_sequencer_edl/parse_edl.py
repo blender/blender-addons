@@ -39,22 +39,22 @@ class TimeCode:
     def __init__(self, data, fps):
         self.fps = fps
         if type(data) == str:
-            self.fromString(data)
-            frame = self.asFrame()
-            self.fromFrame(frame)
+            self.from_string(data)
+            frame = self.as_frame()
+            self.from_frame(frame)
         else:
-            self.fromFrame(data)
+            self.from_frame(data)
 
-    def fromString(self, text):
+    def from_string(self, text):
         # hh:mm:ss:ff
         # No dropframe support yet
 
         if text.lower().endswith("mps"):  # 5.2mps
-            return self.fromFrame(int(float(text[:-3]) * self.fps))
+            return self.from_frame(int(float(text[:-3]) * self.fps))
         elif text.lower().endswith("s"):  # 5.2s
-            return self.fromFrame(int(float(text[:-1]) * self.fps))
+            return self.from_frame(int(float(text[:-1]) * self.fps))
         elif text.isdigit():  # 1234
-            return self.fromFrame(int(text))
+            return self.from_frame(int(text))
         elif ":" in text:  # hh:mm:ss:ff
             text = text.replace(";", ":").replace(",", ":").replace(".", ":")
             text = text.split(":")
@@ -68,7 +68,7 @@ class TimeCode:
             print("ERROR: could not convert this into timecode %r" % text)
             return self
 
-    def fromFrame(self, frame):
+    def from_frame(self, frame):
 
         if frame < 0:
             frame = -frame
@@ -107,7 +107,7 @@ class TimeCode:
 
         return self
 
-    def asFrame(self):
+    def as_frame(self):
         abs_frame = self.frame
         abs_frame += self.seconds * self.fps
         abs_frame += self.minutes * 60 * self.fps
@@ -115,19 +115,19 @@ class TimeCode:
 
         return abs_frame
 
-    def asString(self):
-        self.fromFrame(int(self))
+    def as_string(self):
+        self.from_frame(int(self))
         return "%.2d:%.2d:%.2d:%.2d" % (self.hours, self.minutes, self.seconds, self.frame)
 
     def __repr__(self):
-        return self.asString()
+        return self.as_string()
 
     # Numeric stuff, may as well have this
     def __neg__(self):
         return TimeCode(-int(self), self.fps)
 
     def __int__(self):
-        return self.asFrame()
+        return self.as_frame()
 
     def __sub__(self, other):
         return TimeCode(int(self) - int(other), self.fps)
@@ -145,13 +145,13 @@ class TimeCode:
         return TimeCode(abs(int(self)), self.fps)
 
     def __iadd__(self, other):
-        return self.fromFrame(int(self) + int(other))
+        return self.from_frame(int(self) + int(other))
 
     def __imul__(self, other):
-        return self.fromFrame(int(self) * int(other))
+        return self.from_frame(int(self) * int(other))
 
     def __idiv__(self, other):
-        return self.fromFrame(int(self) // int(other))
+        return self.from_frame(int(self) // int(other))
 # end timecode
 
 
@@ -266,15 +266,6 @@ t /= 2
 print t
 """
 
-
-def editFlagsToText(flag):
-    items = []
-    for item, val in EDIT_DICT.items():
-        if val & flag:
-            items.append(item)
-    return "/".join(items)
-
-
 class EditDecision:
     __slots__ = (
         "number",
@@ -293,6 +284,10 @@ class EditDecision:
         "filename",
         "custom_data",
     )
+
+    @staticmethod
+    def edit_flags_to_text(flag):
+        return "/".join([item for item, val in EDIT_DICT.items() if val & flag])
 
     def __init__(self, text=None, fps=25):
         # print text
@@ -320,7 +315,7 @@ class EditDecision:
         txt = "num: %d, " % self.number
         txt += "reel: %s, " % self.reel
         txt += "edit_type: "
-        txt += editFlagsToText(self.edit_type) + ", "
+        txt += EditDecision.edit_flags_to_text(self.edit_type) + ", "
 
         txt += "trans_type: "
         for item, val in TRANSITION_DICT.items():
@@ -424,7 +419,7 @@ class EditDecision:
         self.renumber()
 
         # TODO
-    def asName(self):
+    def as_name(self):
         cut_type = "nil"
         for k, v in TRANSITION_DICT.items():
             if v == self.transition_type:
@@ -547,7 +542,7 @@ class EditList:
         file.close()
         return True
 
-    def testOverlap(self, edit_test):
+    def overlap_test(self, edit_test):
         recIn = int(edit_test.recIn)
         recOut = int(edit_test.recOut)
 
@@ -570,7 +565,7 @@ class EditList:
 
         return False
 
-    def getReels(self):
+    def reels_as_dict(self):
         reels = {}
         for edit in self.edits:
             reels.setdefault(edit.reel, []).append(edit)
