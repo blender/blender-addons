@@ -79,7 +79,7 @@ class ReloadEDL(Operator):
                      for reel in edl_import_info.reels}
 
         reels = elist.reels_as_dict()
-        reels = [k for k in reels.keys() if k != "bw"]
+        reels = [k for k in reels.keys() if k not in parse_edl.BLACK_ID]
 
         # re-create reels collection, keeping old values
         bl_reels.clear()
@@ -116,6 +116,7 @@ class FindReelsEDL(Operator):
 
         # walk over .avi, .mov, .wav etc.
         def media_file_walker(path):
+            ext_check = bpy.path.extensions_movie | bpy.path.extensions_audio
             for dirpath, dirnames, filenames in os.walk(path):
                 # skip '.svn'
                 if dirpath.startswith("."):
@@ -123,9 +124,7 @@ class FindReelsEDL(Operator):
                 for filename in filenames:
                     fileonly, ext = os.path.splitext(filename)
                     ext_lower = ext.lower()
-                    if ext_lower in bpy.path.extensions_movie:
-                        yield os.path.join(dirpath, filename), fileonly
-                    elif ext_lower in bpy.path.extensions_audio:
+                    if ext_lower in ext_check:
                         yield os.path.join(dirpath, filename), fileonly
 
         scene = context.scene
@@ -143,6 +142,11 @@ class FindReelsEDL(Operator):
         for reel_names, reel_files_found, reel in bl_reels_search:
             reel_names_list = []
             reel_names_list.append(reel.name.lower())
+
+            # add non-extension version of the reel name
+            if "." in reel_names_list[-1]:
+                reel_names_list.append(os.path.splitext(reel_names_list[-1])[0])
+
             # use the filepath if set
             reel_filepath = reel.filepath
             if reel_filepath:
@@ -155,6 +159,12 @@ class FindReelsEDL(Operator):
                                 for reel_filepath in reel_names_list
                                 if "_" in reel_filepath]
             reel_names.update(reel_names_list)
+
+        # debug info
+        print("Searching or %d reels" % len(bl_reels_search))
+        for reel_names, reel_files_found, reel in bl_reels_search:
+            print("Reel: %r --> (%s)" % (reel.name, " ".join(sorted(reel_names))))
+        print()
 
         for filename, fileonly in media_file_walker(self.directory):
             for reel_names, reel_files_found, reel in bl_reels_search:
@@ -227,7 +237,8 @@ class ImportEDL(Operator):
 
         msg = import_edl.load_edl(
                 scene, filepath,
-                reel_filepaths, reel_offsets)
+                reel_filepaths, reel_offsets,
+                edl_import_info.frame_offset)
 
         if msg:
             self.report({'WARNING'}, msg)
@@ -258,7 +269,9 @@ class EDLImportInfo(bpy.types.PropertyGroup):
     reels = bpy.props.CollectionProperty(
             type=EDLReelInfo,
             )
-
+    frame_offset = IntProperty(
+            name="Global Frame Offset",
+            )
 
 # ----------------------------------------------------------------------------
 # Panel to show EDL Import UI
@@ -278,6 +291,7 @@ class SEQUENCER_PT_import_edl(bpy.types.Panel):
         layout.operator(ImportEDL.bl_idname)
 
         col = layout.column(align=True)
+        col.prop(edl_import_info, "frame_offset")
         col.prop(edl_import_info, "filepath", text="")
         col.operator(ReloadEDL.bl_idname, icon='FILE_REFRESH')
 

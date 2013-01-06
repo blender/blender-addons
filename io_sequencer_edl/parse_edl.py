@@ -223,9 +223,9 @@ EDIT_VIDEO_AUDIO = 1 << enum
 enum += 1
 
 EDIT_DICT = {
+    "none": 0,  # TODO, investigate this more.
     "v": EDIT_VIDEO,
     "a": EDIT_AUDIO,
-    "a2": EDIT_AUDIO,  # TODO, what is this really?, FCP uses.
     "aa": EDIT_AUDIO_STEREO,
     "va": EDIT_VIDEO_AUDIO,
     "b": EDIT_VIDEO_AUDIO,
@@ -247,6 +247,13 @@ KEY_IN = enum  # This is assumed if no second type is set
 enum += 1
 KEY_OUT = enum  # K O
 enum += 1
+
+BLACK_ID = {
+    "bw",
+    "bl",
+    "blk",
+    "black",
+    }
 
 
 """
@@ -289,6 +296,10 @@ class EditDecision:
     @staticmethod
     def edit_flags_to_text(flag):
         return "/".join([item for item, val in EDIT_DICT.items() if val & flag])
+
+    @staticmethod
+    def strip_digits(text):
+        return "".join(filter(lambda x: not x.isdigit(), text))
 
     def __init__(self, text=None, fps=25):
         # print text
@@ -351,7 +362,8 @@ class EditDecision:
         # AA/V can be an edit type
         self.edit_type = 0
         for edit_type in line[index].lower().split("/"):
-            self.edit_type |= EDIT_DICT[edit_type]
+            # stripping digits is done because we don't do 'a1, a2...'
+            self.edit_type |= EDIT_DICT[EditDecision.strip_digits(edit_type)]
         index += 1
 
         tx_name = "".join([c for c in line[index].lower() if not c.isdigit()])
