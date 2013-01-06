@@ -35,7 +35,7 @@ def scale_meta_speed(sequence_editor, strip_list, strip_movie, scale):
             name="Speed",
             type='SPEED',
             seq1=strip_movie,
-            start_frame=dummy_frame,
+            frame_start=dummy_frame,
             channel=strip_movie.channel + 1)
     strip_list.append(strip_speed)
 
@@ -159,8 +159,8 @@ def load_edl(scene, filename, reel_files, reel_offsets, global_offset):
             strip = sequence_editor.sequences.new_effect(
                     name="Color",
                     type='COLOR',
-                    start_frame=rec_start,
-                    end_frame=rec_start + max(1, rec_length),
+                    frame_start=rec_start,
+                    frame_end=rec_start + max(1, rec_length),
                     channel=track + 1)
             strip_list.append(strip)
             final_strips.append(strip)
@@ -177,7 +177,7 @@ def load_edl(scene, filename, reel_files, reel_offsets, global_offset):
                         name=edit.reel,
                         filepath=path_full,
                         channel=track + 1,
-                        start_frame=unedited_start + offset_start)
+                        frame_start=unedited_start + offset_start)
                 strip_list.append(strip)
                 #except:
                 #    return "Invalid input for movie"
@@ -214,7 +214,12 @@ def load_edl(scene, filename, reel_files, reel_offsets, global_offset):
                     other_track = track + 2
                     for other in prev_edit.custom_data:
                         if other.type != 'SOUND':
-                            strip_wipe = sequence_editor.sequences.new_effect(name="Wipe", type='WIPE', seq1=final_strip, start_frame=dummy_frame, channel=other_track)
+                            strip_wipe = sequence_editor.sequences.new_effect(
+                                    name="Wipe",
+                                    type='WIPE',
+                                    seq1=final_strip,
+                                    frame_start=dummy_frame,
+                                    channel=other_track)
                             strip_list.append(strip_wipe)
 
                             from math import radians
@@ -244,7 +249,7 @@ def load_edl(scene, filename, reel_files, reel_offsets, global_offset):
                                 name=edit.reel,
                                 filepath=path_full,
                                 channel=track + 6,
-                                start_frame=unedited_start + offset_start)
+                                frame_start=unedited_start + offset_start)
                         strip_list.append(strip)
                     except:
 
@@ -257,7 +262,7 @@ def load_edl(scene, filename, reel_files, reel_offsets, global_offset):
                                 name=edit.reel,
                                 filepath=path_full_wav,
                                 channel=track + 6,
-                                start_frame=unedited_start + offset_start)
+                                frame_start=unedited_start + offset_start)
                         strip_list.append(strip)
                         #except:
                         #   return "Invalid input for audio"
