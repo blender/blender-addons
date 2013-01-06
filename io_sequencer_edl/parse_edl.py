@@ -225,6 +225,7 @@ enum += 1
 EDIT_DICT = {
     "v": EDIT_VIDEO,
     "a": EDIT_AUDIO,
+    "a2": EDIT_AUDIO,  # TODO, what is this really?, FCP uses.
     "aa": EDIT_AUDIO_STEREO,
     "va": EDIT_VIDEO_AUDIO,
     "b": EDIT_VIDEO_AUDIO,
