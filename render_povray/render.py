@@ -1781,7 +1781,7 @@ def write_pov(filename, scene=None, info_callback=None):
                     #if render.alpha_mode == 'STRAIGHT':
                         #tabWrite("[0.0 rgbt<%.3g, %.3g, %.3g, 1>]\n" % (world.horizon_color[:]))
                         #tabWrite("[1.0 rgbt<%.3g, %.3g, %.3g, 1>]\n" % (world.zenith_color[:]))
-                    elif render.alpha_mode == 'TRANSPARENT':
+                    if render.alpha_mode == 'TRANSPARENT':
                         tabWrite("[0.0 rgbt<%.3g, %.3g, %.3g, 0.99>]\n" % (world.horizon_color[:]))
                         # aa premult not solved with transmit 1
                         tabWrite("[1.0 rgbt<%.3g, %.3g, %.3g, 0.99>]\n" % (world.zenith_color[:]))
