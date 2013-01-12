@@ -169,6 +169,7 @@ url_manual_mapping = (
 
     ("bpy.types.ImageFormatSettings.*",  "Render/Output#File_Type"),
     ("bpy.types.RenderSettings.filepath",  "Render/Output#File_Locations"),
+    ("bpy.types.RenderSettings.display_mode",  "Render/Display#Displaying_Renders"),
     ("bpy.types.RenderSettings.*",       "Render"),  # catchall, TODO - refine
 
     # *** ID Subclasses ***
@@ -185,7 +186,18 @@ url_manual_mapping = (
     #("bpy.types.Mask.*", ""), # TODO - manual has no place for this! XXX
     # *** Materials (blender internal) ***
     ("bpy.types.Material.diffuse*", "Materials/Properties/Diffuse_Shaders"),
+    ("bpy.types.Material.specular*", "Materials/Properties/Specular_Shaders"),
+    ("bpy.types.Material.ambient*", "Materials/Properties/Ambient_Light_Effect"),
+    ("bpy.types.Material.preview_render_type", "Materials/Preview"),
     ("bpy.types.Material.*", "Materials"),  # catchall, until the section is filled in
+
+    ("bpy.types.MaterialSlot.link", "Materials/Options#Material_naming_and_linking"),
+    ("bpy.types.MaterialVolume.*", "Materials/Properties/Volume"),
+    ("bpy.types.MaterialHalo.*", "Materials/Halos"),
+    ("bpy.types.MaterialStrand.*", "Materials/Properties/Strands"),
+    ("bpy.types.MaterialSubsurfaceScattering.*", "Materials/Properties/Subsurface_Scattering"),
+    ("bpy.types.MaterialRaytraceMirror.*", "Materials/Properties/Raytraced_Reflections"),
+    ("bpy.types.MaterialRaytraceTransparency.*", "Materials/Properties/Raytraced_Transparency#Raytraced_Transparency"),
     # ... todo, many more options
     ("bpy.types.MovieClip.*", "Motion_Tracking#Movie_Clip_Editor"),
     #("bpy.types.NodeTree.*", ""),  # dont document
@@ -270,6 +282,7 @@ url_manual_mapping = (
     ("bpy.ops.logic.*",  "Game_Engine/Logic"),
     ("bpy.ops.marker.*",  "Animation/Markers"),
     # ("bpy.ops.mask.*",  ""),  # TODO
+    ("bpy.ops.material.new",  "Materials/Assigning_a_material#Creating_a_new_Material"),
     ("bpy.ops.material.*",  "Materials"),
     ("bpy.ops.mball.*",  "Modeling/Metas"),
     ("bpy.ops.mesh.*",  "Modeling/Meshes"),
