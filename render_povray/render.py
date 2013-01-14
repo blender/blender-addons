@@ -873,7 +873,7 @@ def write_pov(filename, scene=None, info_callback=None):
                                             # Write three times the first point to compensate pov Bezier handling
                                             file.write('<%.6g,%.6g,%.6g>,%.7g,\n' % (controlPoint.co[0], controlPoint.co[1], controlPoint.co[2], abs(hDiameter)))
                                             file.write('<%.6g,%.6g,%.6g>,%.7g,\n' % (controlPoint.co[0], controlPoint.co[1], controlPoint.co[2], abs(hDiameter)))                                          
-											#file.write('<%.6g,%.6g,%.6g>,%.7g' % (particle.location[0], particle.location[1], particle.location[2], abs(hDiameter))) # Useless because particle location is the tip, not the root.
+                                            #file.write('<%.6g,%.6g,%.6g>,%.7g' % (particle.location[0], particle.location[1], particle.location[2], abs(hDiameter))) # Useless because particle location is the tip, not the root.
                                             #file.write(',\n')
                                         controlPointCounter += 1
                                         #totalNumberOfHairs += len(pSys.particles)# len(particle.hair_keys)
@@ -2010,6 +2010,46 @@ class PovrayRender(bpy.types.RenderEngine):
     bl_label = "POV-Ray 3.7"
     DELAY = 0.5
 
+    @staticmethod
+    def _locate_binary():
+        addon_prefs = bpy.context.user_preferences.addons[__package__].preferences
+
+        # Use the system preference if its set.
+        pov_binary = addon_prefs.filepath_povray
+        if pov_binary:
+            if os.path.exists(pov_binary):
+                return pov_binary
+            else:
+                print("User Preference to povray %r NOT FOUND, checking $PATH" % pov_binary)
+
+        # Windows Only
+        # assume if there is a 64bit binary that the user has a 64bit capable OS
+        if sys.platform[:3] == "win":
+            import winreg
+            win_reg_key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, "Software\\POV-Ray\\v3.7\\Windows")
+            win_home = winreg.QueryValueEx(win_reg_key, "Home")[0]
+
+            # First try 64bits
+            pov_binary = os.path.join(win_home, "bin", "pvengine64.exe")
+            if os.path.exists(pov_binary):
+                return pov_binary
+
+            # Then try 32bits
+            pov_binary = os.path.join(win_home, "bin", "pvengine.exe")
+            if os.path.exists(pov_binary):
+                return pov_binary
+
+        # search the path all os's
+        pov_binary_default = "povray"
+
+        os_path_ls = os.getenv("PATH").split(':') + [""]
+
+        for dir_name in os_path_ls:
+            pov_binary = os.path.join(dir_name, pov_binary_default)
+            if os.path.exists(pov_binary):
+                return pov_binary
+        return ""
+
     def _export(self, scene, povPath, renderImagePath):
         import tempfile
 
@@ -2042,27 +2082,19 @@ class PovrayRender(bpy.types.RenderEngine):
         write_pov(self._temp_file_in, scene, info_callback)
 
     def _render(self, scene):
-        addon_prefs = bpy.context.user_preferences.addons[__package__].preferences
-
         try:
             os.remove(self._temp_file_out)  # so as not to load the old file
         except OSError:
             pass
 
+        pov_binary = PovrayRender._locate_binary()
+        if not pov_binary:
+            print("POV-Ray 3.7: could not execute povray, possibly POV-Ray isn't installed")
+            return False
+
         write_pov_ini(scene, self._temp_file_ini, self._temp_file_in, self._temp_file_out)
 
         print ("***-STARTING-***")
-
-        # Use the system preference if its set.
-        pov_binary = addon_prefs.filepath_povray
-        pov_binary_default = "povray"
-        if pov_binary:
-            pov_binary_found = os.path.exists(pov_binary)
-        else:
-            pov_binary = pov_binary_default
-            pov_binary_found = False
-            
-        
 
         extra_args = []
 
@@ -2074,134 +2106,26 @@ class PovrayRender(bpy.types.RenderEngine):
         if sys.platform[:3] == "win":
             self._is_windows = True
             #extra_args.append("/EXIT")
-
-            import winreg
-            import platform as pltfrm
-            if pltfrm.architecture()[0] == "64bit":
-                bitness = 64
-            else:
-                bitness = 32
-
-            regKey = winreg.OpenKey(winreg.HKEY_CURRENT_USER, "Software\\POV-Ray\\v3.7\\Windows")
-
-            # TODO, report api
-
-            # 64 bits blender
-            if bitness == 64:
-                try:
-                    if not pov_binary_found:
-                        pov_binary = winreg.QueryValueEx(regKey, "Home")[0] + "\\bin\\pvengine64"
-                    self._process = subprocess.Popen(
-                            [pov_binary, self._temp_file_ini] + extra_args,
-                            stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-                    # This would work too but means we have to wait until its done:
-                    # os.system("%s %s" % (pov_binary, self._temp_file_ini))
-
-                except OSError:
-                    # someone might run povray 32 bits on a 64 bits blender machine
-                    try:
-                        if not pov_binary_found:
-                            pov_binary = winreg.QueryValueEx(regKey, "Home")[0] + "\\bin\\pvengine"
-                        self._process = subprocess.Popen(
-                                [pov_binary, self._temp_file_ini] + extra_args,
-                                stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-
-                    except OSError:
-                        # TODO, report api
-                        print("POV-Ray 3.7: could not execute '%s', possibly POV-Ray isn't " \
-                              "installed" % pov_binary)
-                        import traceback
-                        traceback.print_exc()
-                        print ("***-DONE-***")
-                        return False
-
-                    else:
-                        print("POV-Ray 3.7 64 bits could not execute, running 32 bits instead")
-                        print("Command line arguments passed: " + str(extra_args))
-                        return True
-
-                else:
-                    print("POV-Ray 3.7 64 bits found")
-                    print("Command line arguments passed: " + str(extra_args))
-                    return True
-
-            #32 bits blender
-            else:
-                try:
-                    if not pov_binary_found:
-                        pov_binary = winreg.QueryValueEx(regKey, "Home")[0] + "\\bin\\pvengine"
-                    self._process = subprocess.Popen(
-                            [pov_binary, self._temp_file_ini] + extra_args,
-                            stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-
-                # someone might also run povray 64 bits with a 32 bits build of blender.
-                except OSError:
-                    try:
-                        if not pov_binary_found:
-                            pov_binary = winreg.QueryValueEx(regKey, "Home")[0] + "\\bin\\pvengine64"
-                        self._process = subprocess.Popen(
-                                [pov_binary, self._temp_file_ini] + extra_args,
-                                stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-
-                    except OSError:
-                        # TODO, report api
-                        print("POV-Ray 3.7: could not execute '%s', possibly POV-Ray isn't " \
-                              "installed" % pov_binary)
-                        import traceback
-                        traceback.print_exc()
-                        print ("***-DONE-***")
-                        return False
-
-                    else:
-                        print("Running POV-Ray 3.7 64 bits build with 32 bits Blender,\n" \
-                              "You might want to run Blender 64 bits as well.")
-                        print("Command line arguments passed: " + str(extra_args))
-                        return True
-
-                else:
-                    print("POV-Ray 3.7 32 bits found")
-                    print("Command line arguments passed: " + str(extra_args))
-                    return True
-
         else:
-            # DH - added -d option to prevent render window popup which leads to segfault on linux
+            # added -d option to prevent render window popup which leads to segfault on linux
             extra_args.append("-d")
 
-            if not pov_binary_found:
-                pov_binary_found = False
-                sysPathList = os.getenv("PATH").split(':')
-                sysPathList.append("")
+        # Start Rendering!
+        try:
+            self._process = subprocess.Popen([pov_binary, self._temp_file_ini] + extra_args,
+                                             stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        except OSError:
+            # TODO, report api
+            print("POV-Ray 3.7: could not execute '%s'" % pov_binary)
+            import traceback
+            traceback.print_exc()
+            print ("***-DONE-***")
+            return False
 
-                for dirName in sysPathList:
-                    fn = os.path.join(dirName, pov_binary_default)
-                    if os.path.exists(fn):
-                        pov_binary = fn
-                        pov_binary_found = True
-                        break
-
-                if not pov_binary_found:
-                    print("POV-Ray 3.7: could not found execute '%s' - not if PATH" % pov_binary)
-                    import traceback
-                    traceback.print_exc()
-                    print ("***-DONE-***")
-                    return False
-
-            try:
-                self._process = subprocess.Popen([pov_binary, self._temp_file_ini] + extra_args,
-                                                 stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-
-            except OSError:
-                # TODO, report api
-                print("POV-Ray 3.7: could not execute '%s'" % pov_binary)
-                import traceback
-                traceback.print_exc()
-                print ("***-DONE-***")
-                return False
-
-            else:
-                print("POV-Ray 3.7 found")
-                print("Command line arguments passed: " + str(extra_args))
-                return True
+        else:
+            print("POV-Ray 3.7 found")
+            print("Command line arguments passed: " + str(extra_args))
+            return True
 
         # Now that we have a valid process
 
@@ -2426,47 +2350,49 @@ class PovrayRender(bpy.types.RenderEngine):
 
             # Not needed right now, might only be useful if we find a way to use temp raw output of
             # pov 3.7 (in which case it might go under _test_wait()).
-#            def update_image():
-#                # possible the image wont load early on.
-#                try:
-#                    lay.load_from_file(self._temp_file_out)
-#                    # XXX, tests for border render.
-#                    #lay.load_from_file(self._temp_file_out, xmin, ymin)
-#                    #lay.load_from_file(self._temp_file_out, xmin, ymin)
-#                except RuntimeError:
-#                    pass
+            '''
+            def update_image():
+                # possible the image wont load early on.
+                try:
+                    lay.load_from_file(self._temp_file_out)
+                    # XXX, tests for border render.
+                    #lay.load_from_file(self._temp_file_out, xmin, ymin)
+                    #lay.load_from_file(self._temp_file_out, xmin, ymin)
+                except RuntimeError:
+                    pass
 
-#            # Update while POV-Ray renders
-#            while True:
-#                # print("***POV RENDER LOOP***")
+            # Update while POV-Ray renders
+            while True:
+                # print("***POV RENDER LOOP***")
 
-#                # test if POV-Ray exists
-#                if self._process.poll() is not None:
-#                    print("***POV PROCESS FINISHED***")
-#                    update_image()
-#                    break
+                # test if POV-Ray exists
+                if self._process.poll() is not None:
+                    print("***POV PROCESS FINISHED***")
+                    update_image()
+                    break
 
-#                # user exit
-#                if self.test_break():
-#                    try:
-#                        self._process.terminate()
-#                        print("***POV PROCESS INTERRUPTED***")
-#                    except OSError:
-#                        pass
+                # user exit
+                if self.test_break():
+                    try:
+                        self._process.terminate()
+                        print("***POV PROCESS INTERRUPTED***")
+                    except OSError:
+                        pass
 
-#                    break
+                    break
 
-#                # Would be nice to redirect the output
-#                # stdout_value, stderr_value = self._process.communicate() # locks
+                # Would be nice to redirect the output
+                # stdout_value, stderr_value = self._process.communicate() # locks
 
-#                # check if the file updated
-#                new_size = os.path.getsize(self._temp_file_out)
+                # check if the file updated
+                new_size = os.path.getsize(self._temp_file_out)
 
-#                if new_size != prev_size:
-#                    update_image()
-#                    prev_size = new_size
+                if new_size != prev_size:
+                    update_image()
+                    prev_size = new_size
 
-#                time.sleep(self.DELAY)
+                time.sleep(self.DELAY)
+            '''
 
             self.end_result(result)
 
