@@ -40,6 +40,9 @@ if "bpy" in locals():
 
 else:
     import bpy
+    from bpy.types import (AddonPreferences,
+                           PropertyGroup,
+                           )
     from bpy.props import (StringProperty,
                            BoolProperty,
                            IntProperty,
@@ -57,7 +60,7 @@ else:
 ###############################################################################
 # Scene POV properties.
 ###############################################################################
-class RenderPovSettingsScene(bpy.types.PropertyGroup):
+class RenderPovSettingsScene(PropertyGroup):
     # File Options
     tempfiles_enable = BoolProperty(
             name="Enable Tempfiles",
@@ -290,7 +293,7 @@ class RenderPovSettingsScene(bpy.types.PropertyGroup):
 ###############################################################################
 # Material POV properties.
 ###############################################################################
-class RenderPovSettingsMaterial(bpy.types.PropertyGroup):
+class RenderPovSettingsMaterial(PropertyGroup):
     irid_enable = BoolProperty(
             name="Enable Iridescence",
             description="Newton's thin film interference (like an oil slick on a puddle of "
@@ -393,7 +396,7 @@ class RenderPovSettingsMaterial(bpy.types.PropertyGroup):
 ###############################################################################
 # Texture POV properties.
 ###############################################################################
-class RenderPovSettingsTexture(bpy.types.PropertyGroup):
+class RenderPovSettingsTexture(PropertyGroup):
     #Custom texture gamma
     tex_gamma_enable = BoolProperty(
             name="Enable custom texture gamma",
@@ -419,7 +422,7 @@ class RenderPovSettingsTexture(bpy.types.PropertyGroup):
 ###############################################################################
 # Object POV properties.
 ###############################################################################
-class RenderPovSettingsObject(bpy.types.PropertyGroup):
+class RenderPovSettingsObject(PropertyGroup):
     # Importance sampling
     importance_value = FloatProperty(
             name="Radiosity Importance",
@@ -456,7 +459,7 @@ class RenderPovSettingsObject(bpy.types.PropertyGroup):
 ###############################################################################
 # Camera POV properties.
 ###############################################################################
-class RenderPovSettingsCamera(bpy.types.PropertyGroup):
+class RenderPovSettingsCamera(PropertyGroup):
     #DOF Toggle
     dof_enable = BoolProperty(
             name="Depth Of Field", description="EnablePOV-Ray Depth Of Field ",
@@ -504,11 +507,27 @@ class RenderPovSettingsCamera(bpy.types.PropertyGroup):
 ###############################################################################
 # Text POV properties.
 ###############################################################################
-class RenderPovSettingsText(bpy.types.PropertyGroup):
+class RenderPovSettingsText(PropertyGroup):
     custom_code = BoolProperty(
             name="Custom Code",
             description="Add this text at the top of the exported POV-Ray file",
             default=False)
+
+
+###############################################################################
+# Povray Preferences.
+###############################################################################
+class PovrayPreferences(AddonPreferences):
+    bl_idname = __name__
+
+    filepath_povray = StringProperty(
+                name="Povray Location",
+                description="Path to renderer executable",
+                subtype='FILE_PATH',
+                )
+    def draw(self, context):
+        layout = self.layout
+        layout.prop(self, "filepath_povray")
 
 
 def register():

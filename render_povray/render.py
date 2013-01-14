@@ -2042,6 +2042,7 @@ class PovrayRender(bpy.types.RenderEngine):
         write_pov(self._temp_file_in, scene, info_callback)
 
     def _render(self, scene):
+        addon_prefs = bpy.context.user_preferences.addons[__package__].preferences
 
         try:
             os.remove(self._temp_file_out)  # so as not to load the old file
@@ -2052,7 +2053,16 @@ class PovrayRender(bpy.types.RenderEngine):
 
         print ("***-STARTING-***")
 
-        pov_binary = "povray"
+        # Use the system preference if its set.
+        pov_binary = addon_prefs.filepath_povray
+        pov_binary_default = "povray"
+        if pov_binary:
+            pov_binary_found = os.path.exists(pov_binary)
+        else:
+            pov_binary = pov_binary_default
+            pov_binary_found = False
+            
+        
 
         extra_args = []
 
@@ -2079,7 +2089,8 @@ class PovrayRender(bpy.types.RenderEngine):
             # 64 bits blender
             if bitness == 64:
                 try:
-                    pov_binary = winreg.QueryValueEx(regKey, "Home")[0] + "\\bin\\pvengine64"
+                    if not pov_binary_found:
+                        pov_binary = winreg.QueryValueEx(regKey, "Home")[0] + "\\bin\\pvengine64"
                     self._process = subprocess.Popen(
                             [pov_binary, self._temp_file_ini] + extra_args,
                             stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
@@ -2089,7 +2100,8 @@ class PovrayRender(bpy.types.RenderEngine):
                 except OSError:
                     # someone might run povray 32 bits on a 64 bits blender machine
                     try:
-                        pov_binary = winreg.QueryValueEx(regKey, "Home")[0] + "\\bin\\pvengine"
+                        if not pov_binary_found:
+                            pov_binary = winreg.QueryValueEx(regKey, "Home")[0] + "\\bin\\pvengine"
                         self._process = subprocess.Popen(
                                 [pov_binary, self._temp_file_ini] + extra_args,
                                 stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
@@ -2116,7 +2128,8 @@ class PovrayRender(bpy.types.RenderEngine):
             #32 bits blender
             else:
                 try:
-                    pov_binary = winreg.QueryValueEx(regKey, "Home")[0] + "\\bin\\pvengine"
+                    if not pov_binary_found:
+                        pov_binary = winreg.QueryValueEx(regKey, "Home")[0] + "\\bin\\pvengine"
                     self._process = subprocess.Popen(
                             [pov_binary, self._temp_file_ini] + extra_args,
                             stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
@@ -2124,7 +2137,8 @@ class PovrayRender(bpy.types.RenderEngine):
                 # someone might also run povray 64 bits with a 32 bits build of blender.
                 except OSError:
                     try:
-                        pov_binary = winreg.QueryValueEx(regKey, "Home")[0] + "\\bin\\pvengine64"
+                        if not pov_binary_found:
+                            pov_binary = winreg.QueryValueEx(regKey, "Home")[0] + "\\bin\\pvengine64"
                         self._process = subprocess.Popen(
                                 [pov_binary, self._temp_file_ini] + extra_args,
                                 stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
@@ -2153,21 +2167,24 @@ class PovrayRender(bpy.types.RenderEngine):
             # DH - added -d option to prevent render window popup which leads to segfault on linux
             extra_args.append("-d")
 
-            isExists = False
-            sysPathList = os.getenv("PATH").split(':')
-            sysPathList.append("")
+            if not pov_binary_found:
+                pov_binary_found = False
+                sysPathList = os.getenv("PATH").split(':')
+                sysPathList.append("")
 
-            for dirName in sysPathList:
-                if (os.path.exists(os.path.join(dirName, pov_binary))):
-                    isExists = True
-                    break
+                for dirName in sysPathList:
+                    fn = os.path.join(dirName, pov_binary_default)
+                    if os.path.exists(fn):
+                        pov_binary = fn
+                        pov_binary_found = True
+                        break
 
-            if not isExists:
-                print("POV-Ray 3.7: could not found execute '%s' - not if PATH" % pov_binary)
-                import traceback
-                traceback.print_exc()
-                print ("***-DONE-***")
-                return False
+                if not pov_binary_found:
+                    print("POV-Ray 3.7: could not found execute '%s' - not if PATH" % pov_binary)
+                    import traceback
+                    traceback.print_exc()
+                    print ("***-DONE-***")
+                    return False
 
             try:
                 self._process = subprocess.Popen([pov_binary, self._temp_file_ini] + extra_args,
