@@ -168,11 +168,11 @@ def write_pov(filename, scene=None, info_callback=None):
 
     def setTab(tabtype, spaces):
         TabStr = ""
-        if tabtype == '0':
+        if tabtype == 'NONE':
             TabStr = ""
-        elif tabtype == '1':
+        elif tabtype == 'TAB':
             TabStr = "\t"
-        elif tabtype == '2':
+        elif tabtype == 'SPACE':
             TabStr = spaces * " "
         return TabStr
 

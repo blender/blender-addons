@@ -179,7 +179,7 @@ class RENDER_PT_povray_export_settings(RenderButtonsPanel, bpy.types.Panel):
 
         scene = context.scene
 
-        layout.active = scene.pov.max_trace_level
+        layout.active = (scene.pov.max_trace_level != 0)
         split = layout.split()
 
         col = split.column()
@@ -199,7 +199,7 @@ class RENDER_PT_povray_export_settings(RenderButtonsPanel, bpy.types.Panel):
 
             split = layout.split()
             split.prop(scene.pov, "indentation_character", text="Indent")
-            if scene.pov.indentation_character == "2":
+            if scene.pov.indentation_character == 'SPACE':
                 split.prop(scene.pov, "indentation_spaces", text="Spaces")
 
             row = layout.row()
@@ -216,7 +216,7 @@ class RENDER_PT_povray_render_settings(RenderButtonsPanel, bpy.types.Panel):
 
         scene = context.scene
 
-        layout.active = scene.pov.max_trace_level
+        layout.active = (scene.pov.max_trace_level != 0)
 
         col = layout.column()
 

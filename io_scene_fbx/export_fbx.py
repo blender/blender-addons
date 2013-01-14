@@ -28,7 +28,6 @@ import math  # math.pi
 import bpy
 from mathutils import Vector, Matrix
 
-
 # I guess FBX uses degrees instead of radians (Arystan).
 # Call this function just before writing to FBX.
 # 180 / math.pi == 57.295779513

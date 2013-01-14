@@ -26,10 +26,10 @@ bl_info = {
     "location": "Render > Engine > POV-Ray 3.7",
     "description": "Basic POV-Ray 3.7 integration for blender",
     "warning": "both POV-Ray 3.7 and this script are beta",
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"\
-        "Scripts/Render/POV-Ray",
-    "tracker_url": "https://projects.blender.org/tracker/index.php?"\
-        "func=detail&aid=23145",
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
+                "Scripts/Render/POV-Ray",
+    "tracker_url": "https://projects.blender.org/tracker/index.php?"
+                   "func=detail&aid=23145",
     "category": "Render"}
 
 if "bpy" in locals():
@@ -40,8 +40,14 @@ if "bpy" in locals():
 
 else:
     import bpy
-    from bpy.props import StringProperty, BoolProperty, IntProperty, FloatProperty, \
-                          FloatVectorProperty, EnumProperty, PointerProperty
+    from bpy.props import (StringProperty,
+                           BoolProperty,
+                           IntProperty,
+                           FloatProperty,
+                           FloatVectorProperty,
+                           EnumProperty,
+                           PointerProperty,
+                           )
     from . import ui
     from . import render
     from . import update_files
@@ -63,7 +69,7 @@ class RenderPovSettingsScene(bpy.types.PropertyGroup):
             default=True)
     scene_name = StringProperty(
             name="Scene Name",
-            description="Name of POV-Ray scene to create. Empty name will use the name of " \
+            description="Name of POV-Ray scene to create. Empty name will use the name of "
                         "the blend file",
             default="", maxlen=1024)
     scene_path = StringProperty(
@@ -77,7 +83,7 @@ class RenderPovSettingsScene(bpy.types.PropertyGroup):
             default="", maxlen=1024, subtype="DIR_PATH")
     list_lf_enable = BoolProperty(
             name="LF in lists",
-            description="Enable line breaks in lists (vectors and indices). Disabled: " \
+            description="Enable line breaks in lists (vectors and indices). Disabled: "
                         "lists are exported in one line",
             default=True)
 
@@ -96,7 +102,7 @@ class RenderPovSettingsScene(bpy.types.PropertyGroup):
             default=False)
     media_samples = IntProperty(
             name="Samples",
-            description="Number of samples taken from camera to first object " \
+            description="Number of samples taken from camera to first object "
                         "encountered along ray path for media calculation",
             min=1, max=100, default=35)
 
@@ -112,10 +118,10 @@ class RenderPovSettingsScene(bpy.types.PropertyGroup):
     indentation_character = EnumProperty(
             name="Indentation",
             description="Select the indentation type",
-            items=(("0", "None", "No indentation"),
-                   ("1", "Tabs", "Indentation with tabs"),
-                   ("2", "Spaces", "Indentation with spaces")),
-            default="2")
+            items=(('NONE', "None", "No indentation"),
+                   ('TAB', "Tabs", "Indentation with tabs"),
+                   ('SPACE', "Spaces", "Indentation with spaces")),
+            default='SPACE')
     indentation_spaces = IntProperty(
             name="Quantity of spaces",
             description="The number of spaces for indentation",
@@ -129,7 +135,7 @@ class RenderPovSettingsScene(bpy.types.PropertyGroup):
     # Real pov options
     command_line_switches = StringProperty(
             name="Command Line Switches",
-            description="Command line switches consist of a + (plus) or - (minus) sign, followed " \
+            description="Command line switches consist of a + (plus) or - (minus) sign, followed "
                         "by one or more alphabetic characters and possibly a numeric value",
             default="", maxlen=500)
 
@@ -139,7 +145,7 @@ class RenderPovSettingsScene(bpy.types.PropertyGroup):
 
     antialias_method = EnumProperty(
             name="Method",
-            description="AA-sampling method. Type 1 is an adaptive, non-recursive, super-sampling "\
+            description="AA-sampling method. Type 1 is an adaptive, non-recursive, super-sampling "
                         "method. Type 2 is an adaptive and recursive super-sampling method",
             items=(("0", "non-recursive AA", "Type 1 Sampling in POV-Ray"),
                    ("1", "recursive AA", "Type 2 Sampling in POV-Ray")),
@@ -155,7 +161,7 @@ class RenderPovSettingsScene(bpy.types.PropertyGroup):
 
     jitter_enable = BoolProperty(
             name="Jitter",
-            description="Enable Jittering. Adds noise into the sampling process (it should be " \
+            description="Enable Jittering. Adds noise into the sampling process (it should be "
                         "avoided to use jitter in animation)",
             default=True)
 
@@ -165,7 +171,7 @@ class RenderPovSettingsScene(bpy.types.PropertyGroup):
 
     antialias_gamma = FloatProperty(
             name="Antialias Gamma",
-            description="POV-Ray compares gamma-adjusted values for super sampling. Antialias " \
+            description="POV-Ray compares gamma-adjusted values for super sampling. Antialias "
                         "Gamma sets the Gamma before comparison",
             min=0.0, max=5.0, soft_min=0.01, soft_max=2.5, default=2.5)
 
@@ -176,7 +182,7 @@ class RenderPovSettingsScene(bpy.types.PropertyGroup):
 
     photon_spacing = FloatProperty(
             name="Spacing",
-            description="Average distance between photons on surfaces. half this get four times " \
+            description="Average distance between photons on surfaces. half this get four times "
                         "as many surface photons",
             min=0.001, max=1.000, soft_min=0.001, soft_max=1.000, default=0.005, precision=3)
 
@@ -187,7 +193,7 @@ class RenderPovSettingsScene(bpy.types.PropertyGroup):
 
     photon_adc_bailout = FloatProperty(
             name="ADC Bailout",
-            description="The adc_bailout for photons. Use adc_bailout = " \
+            description="The adc_bailout for photons. Use adc_bailout = "
                         "0.01 / brightest_ambient_object for good results",
             min=0.0, max=1000.0, soft_min=0.0, soft_max=1.0, default=0.1, precision=3)
 
@@ -201,43 +207,43 @@ class RenderPovSettingsScene(bpy.types.PropertyGroup):
 
     radio_adc_bailout = FloatProperty(
             name="ADC Bailout",
-            description="The adc_bailout for radiosity rays. Use " \
+            description="The adc_bailout for radiosity rays. Use "
                         "adc_bailout = 0.01 / brightest_ambient_object for good results",
             min=0.0, max=1000.0, soft_min=0.0, soft_max=1.0, default=0.01, precision=3)
 
     radio_always_sample = BoolProperty(
             name="Always Sample",
-            description="Only use the data from the pretrace step and not gather " \
+            description="Only use the data from the pretrace step and not gather "
                         "any new samples during the final radiosity pass",
             default=True)
 
     radio_brightness = FloatProperty(
             name="Brightness",
-            description="Amount objects are brightened before being returned " \
+            description="Amount objects are brightened before being returned "
                         "upwards to the rest of the system",
             min=0.0, max=1000.0, soft_min=0.0, soft_max=10.0, default=1.0)
 
     radio_count = IntProperty(
             name="Ray Count",
-            description="Number of rays for each new radiosity value to be calculated " \
+            description="Number of rays for each new radiosity value to be calculated "
                         "(halton sequence over 1600)",
             min=1, max=10000, soft_max=1600, default=35)
 
     radio_error_bound = FloatProperty(
             name="Error Bound",
-            description="One of the two main speed/quality tuning values, " \
+            description="One of the two main speed/quality tuning values, "
                         "lower values are more accurate",
             min=0.0, max=1000.0, soft_min=0.1, soft_max=10.0, default=1.8)
 
     radio_gray_threshold = FloatProperty(
             name="Gray Threshold",
-            description="One of the two main speed/quality tuning values, " \
+            description="One of the two main speed/quality tuning values, "
                         "lower values are more accurate",
             min=0.0, max=1.0, soft_min=0, soft_max=1, default=0.0)
 
     radio_low_error_factor = FloatProperty(
             name="Low Error Factor",
-            description="Just enough samples is slightly blotchy. Low error changes error " \
+            description="Just enough samples is slightly blotchy. Low error changes error "
                         "tolerance for less critical last refining pass",
             min=0.0, max=1.0, soft_min=0.0, soft_max=1.0, default=0.5)
 
@@ -248,13 +254,13 @@ class RenderPovSettingsScene(bpy.types.PropertyGroup):
 
     radio_minimum_reuse = FloatProperty(
             name="Minimum Reuse",
-            description="Fraction of the screen width which sets the minimum radius of reuse " \
+            description="Fraction of the screen width which sets the minimum radius of reuse "
                         "for each sample point (At values higher than 2% expect errors)",
             min=0.0, max=1.0, soft_min=0.1, soft_max=0.1, default=0.015, precision=3)
 
     radio_nearest_count = IntProperty(
             name="Nearest Count",
-            description="Number of old ambient values blended together to " \
+            description="Number of old ambient values blended together to "
                         "create a new interpolated value",
             min=1, max=20, default=5)
 
@@ -264,19 +270,19 @@ class RenderPovSettingsScene(bpy.types.PropertyGroup):
 
     radio_recursion_limit = IntProperty(
             name="Recursion Limit",
-            description="how many recursion levels are used to calculate " \
+            description="how many recursion levels are used to calculate "
                         "the diffuse inter-reflection",
             min=1, max=20, default=3)
 
     radio_pretrace_start = FloatProperty(
             name="Pretrace Start",
-            description="Fraction of the screen width which sets the size of the " \
+            description="Fraction of the screen width which sets the size of the "
                         "blocks in the mosaic preview first pass",
             min=0.01, max=1.00, soft_min=0.02, soft_max=1.0, default=0.08)
 
     radio_pretrace_end = FloatProperty(
             name="Pretrace End",
-            description="Fraction of the screen width which sets the size of the blocks " \
+            description="Fraction of the screen width which sets the size of the blocks "
                         "in the mosaic preview last pass",
             min=0.001, max=1.00, soft_min=0.01, soft_max=1.00, default=0.04, precision=3)
 
@@ -287,13 +293,13 @@ class RenderPovSettingsScene(bpy.types.PropertyGroup):
 class RenderPovSettingsMaterial(bpy.types.PropertyGroup):
     irid_enable = BoolProperty(
             name="Enable Iridescence",
-            description="Newton's thin film interference (like an oil slick on a puddle of " \
+            description="Newton's thin film interference (like an oil slick on a puddle of "
                         "water or the rainbow hues of a soap bubble.)",
             default=False)
 
     mirror_use_IOR = BoolProperty(
             name="Correct Reflection",
-            description="Use same IOR as raytrace transparency to calculate mirror reflections. " \
+            description="Use same IOR as raytrace transparency to calculate mirror reflections. "
                         "More physically correct",
             default=False)
 
@@ -304,21 +310,21 @@ class RenderPovSettingsMaterial(bpy.types.PropertyGroup):
 
     conserve_energy = BoolProperty(
             name="Conserve Energy",
-            description="Light transmitted is more correctly reduced by mirror reflections, " \
+            description="Light transmitted is more correctly reduced by mirror reflections, "
                         "also the sum of diffuse and translucency gets reduced below one ",
             default=True)
 
     irid_amount = FloatProperty(
             name="amount",
-            description="Contribution of the iridescence effect to the overall surface color. " \
-                        "As a rule of thumb keep to around 0.25 (25% contribution) or less, " \
-                        "but experiment. If the surface is coming out too white, try lowering " \
+            description="Contribution of the iridescence effect to the overall surface color. "
+                        "As a rule of thumb keep to around 0.25 (25% contribution) or less, "
+                        "but experiment. If the surface is coming out too white, try lowering "
                         "the diffuse and possibly the ambient values of the surface",
             min=0.0, max=1.0, soft_min=0.01, soft_max=1.0, default=0.25)
 
     irid_thickness = FloatProperty(
             name="thickness",
-            description="A very thin film will have a high frequency of color changes while a " \
+            description="A very thin film will have a high frequency of color changes while a "
                         "thick film will have large areas of color",
             min=0.0, max=1000.0, soft_min=0.1, soft_max=10.0, default=1)
 
@@ -333,7 +339,7 @@ class RenderPovSettingsMaterial(bpy.types.PropertyGroup):
 
     caustics_enable = BoolProperty(
             name="Caustics",
-            description="use only fake refractive caustics (default) or photon based " \
+            description="use only fake refractive caustics (default) or photon based "
                         "reflective/refractive caustics",
             default=True)
 
@@ -343,8 +349,8 @@ class RenderPovSettingsMaterial(bpy.types.PropertyGroup):
 
     fake_caustics_power = FloatProperty(
             name="Fake caustics power",
-            description="Values typically range from 0.0 to 1.0 or higher. Zero is no caustics. " \
-                        "Low, non-zero values give broad hot-spots while higher values give " \
+            description="Values typically range from 0.0 to 1.0 or higher. Zero is no caustics. "
+                        "Low, non-zero values give broad hot-spots while higher values give "
                         "tighter, smaller simulated focal points",
             min=0.00, max=10.0, soft_min=0.00, soft_max=1.10, default=0.1)
 
@@ -354,8 +360,8 @@ class RenderPovSettingsMaterial(bpy.types.PropertyGroup):
 
     photons_dispersion = FloatProperty(
             name="Chromatic Dispersion",
-            description="Light passing through will be separated according to wavelength. " \
-                        "This ratio of refractive indices for violet to red controls how much " \
+            description="Light passing through will be separated according to wavelength. "
+                        "This ratio of refractive indices for violet to red controls how much "
                         "the colors are spread out 1 = no dispersion, good values are 1.01 to 1.1",
             min=1.0000, max=10.000, soft_min=1.0000, soft_max=1.1000, precision=4, default=1.0000)
 
@@ -379,7 +385,7 @@ class RenderPovSettingsMaterial(bpy.types.PropertyGroup):
     ##################################CustomPOV Code############################
     replacement_text = StringProperty(
             name="Declared name:",
-            description="Type the declared name in custom POV code or an external " \
+            description="Type the declared name in custom POV code or an external "
                         ".inc it points at. texture {} expected",
             default="")
 
@@ -391,8 +397,8 @@ class RenderPovSettingsTexture(bpy.types.PropertyGroup):
     #Custom texture gamma
     tex_gamma_enable = BoolProperty(
             name="Enable custom texture gamma",
-            description="Notify some custom gamma for which texture has been precorrected " \
-                        "without the file format carrying it and only if it differs from your " \
+            description="Notify some custom gamma for which texture has been precorrected "
+                        "without the file format carrying it and only if it differs from your "
                         "OS expected standard (see pov doc)",
             default=False)
 
@@ -405,7 +411,7 @@ class RenderPovSettingsTexture(bpy.types.PropertyGroup):
     #Only DUMMIES below for now:
     replacement_text = StringProperty(
             name="Declared name:",
-            description="Type the declared name in custom POV code or an external .inc " \
+            description="Type the declared name in custom POV code or an external .inc "
                         "it points at. pigment {} expected",
             default="")
 
@@ -414,35 +420,35 @@ class RenderPovSettingsTexture(bpy.types.PropertyGroup):
 # Object POV properties.
 ###############################################################################
 class RenderPovSettingsObject(bpy.types.PropertyGroup):
-    #Importance sampling
+    # Importance sampling
     importance_value = FloatProperty(
             name="Radiosity Importance",
-            description="Priority value relative to other objects for sampling radiosity rays. " \
-                        "Increase to get more radiosity rays at comparatively small yet " \
+            description="Priority value relative to other objects for sampling radiosity rays. "
+                        "Increase to get more radiosity rays at comparatively small yet "
                         "bright objects",
             min=0.01, max=1.00, default=1.00)
 
-    #Collect photons
+    # Collect photons
     collect_photons = BoolProperty(
             name="Receive Photon Caustics",
-            description="Enable object to collect photons from other objects caustics. Turn " \
-                        "off for objects that don't really need to receive caustics (e.g. objects" \
+            description="Enable object to collect photons from other objects caustics. Turn "
+                        "off for objects that don't really need to receive caustics (e.g. objects"
                         " that generate caustics often don't need to show any on themselves)",
             default=True)
 
-    #Photons spacing_multiplier
+    # Photons spacing_multiplier
     spacing_multiplier = FloatProperty(
             name="Photons Spacing Multiplier",
-            description="Multiplier value relative to global spacing of photons. " \
-                        "Decrease by half to get 4x more photons at surface of " \
+            description="Multiplier value relative to global spacing of photons. "
+                        "Decrease by half to get 4x more photons at surface of "
                         "this object (or 8x media photons than specified in the globals",
             min=0.01, max=1.00, default=1.00)
 
     ##################################CustomPOV Code############################
-    #Only DUMMIES below for now:
+    # Only DUMMIES below for now:
     replacement_text = StringProperty(
             name="Declared name:",
-            description="Type the declared name in custom POV code or an external .inc " \
+            description="Type the declared name in custom POV code or an external .inc "
                         "it points at. Any POV shape expected e.g: isosurface {}",
             default="")
 
@@ -456,15 +462,15 @@ class RenderPovSettingsCamera(bpy.types.PropertyGroup):
             name="Depth Of Field", description="EnablePOV-Ray Depth Of Field ",
             default=False)
 
-    #Aperture (Intensity of the Blur)
+    # Aperture (Intensity of the Blur)
     dof_aperture = FloatProperty(
             name="Aperture",
-            description="Similar to a real camera's aperture effect over focal blur (though not " \
-                        "in physical units and independant of focal length). " \
+            description="Similar to a real camera's aperture effect over focal blur (though not "
+                        "in physical units and independant of focal length). "
                         "Increase to get more blur",
             min=0.01, max=1.00, default=0.25)
 
-    #Aperture adaptive sampling
+    # Aperture adaptive sampling
     dof_samples_min = IntProperty(
             name="Samples Min", description="Minimum number of rays to use for each pixel",
             min=1, max=128, default=96)
@@ -475,22 +481,22 @@ class RenderPovSettingsCamera(bpy.types.PropertyGroup):
 
     dof_variance = IntProperty(
             name="Variance",
-            description="Minimum threshold (fractional value) for adaptive DOF sampling (up " \
-                        "increases quality and render time). The value for the variance should " \
+            description="Minimum threshold (fractional value) for adaptive DOF sampling (up "
+                        "increases quality and render time). The value for the variance should "
                         "be in the range of the smallest displayable color difference",
             min=1, max=100000, soft_max=10000, default=256)
 
     dof_confidence = FloatProperty(
             name="Confidence",
-            description="Probability to reach the real color value. Larger confidence values " \
+            description="Probability to reach the real color value. Larger confidence values "
                         "will lead to more samples, slower traces and better images",
             min=0.01, max=0.99, default=0.90)
 
     ##################################CustomPOV Code############################
-    #Only DUMMIES below for now:
+    # Only DUMMIES below for now:
     replacement_text = StringProperty(
             name="Texts in blend file",
-            description="Type the declared name in custom POV code or an external .inc " \
+            description="Type the declared name in custom POV code or an external .inc "
                         "it points at. camera {} expected",
             default="")
 
