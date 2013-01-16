@@ -24,7 +24,7 @@
 #
 #  Start of project              : 2011-08-31 by Clemens Barth
 #  First publication in Blender  : 2011-11-11
-#  Last modified                 : 2012-11-09
+#  Last modified                 : 2013-01-16
 #
 #  Acknowledgements 
 #  ================
@@ -121,7 +121,7 @@ class ImportPDB(Operator, ImportHelper):
         name="Color", default=True,
         description="The sticks appear in the color of the atoms")
     use_sticks_smooth = BoolProperty(
-        name="Smooth", default=False,
+        name="Smooth", default=True,
         description="The sticks are round (sectors are not visible)")     
     use_sticks_bonds = BoolProperty(
         name="Bonds", default=False,
