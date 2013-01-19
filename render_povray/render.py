@@ -25,7 +25,7 @@ import sys
 import time
 from math import atan, pi, degrees, sqrt
 import re
-
+import random
 ##############################SF###########################
 ##############find image texture
 
@@ -821,11 +821,12 @@ def write_pov(filename, scene=None, info_callback=None):
                 continue
                    
             # Export Hair
-
+            renderEmitter = True
             if hasattr(ob, 'particle_systems'):
+                renderEmitter = False
                 for pSys in ob.particle_systems:
-                    if not pSys.settings.use_render_emitter:
-                        continue #don't render mesh
+                    if pSys.settings.use_render_emitter:
+                        renderEmitter = True
                     for mod in [m for m in ob.modifiers if (m is not None) and (m.type == 'PARTICLE_SYSTEM')]:
                         if (pSys.settings.render_type == 'PATH') and mod.show_render and (pSys.name == mod.particle_system.name):
                             tstart = time.time()
@@ -834,10 +835,10 @@ def write_pov(filename, scene=None, info_callback=None):
                                 if pmaterial.strand.use_blender_units:
                                     strandStart = pmaterial.strand.root_size
                                     strandEnd = pmaterial.strand.tip_size
-                                    strandShape = pmaterial.strand.shape
+                                    strandShape = pmaterial.strand.shape 
                                 else:  # Blender unit conversion
-                                    strandStart = pmaterial.strand.root_size / 200
-                                    strandEnd = pmaterial.strand.tip_size / 200
+                                    strandStart = pmaterial.strand.root_size / 200.0
+                                    strandEnd = pmaterial.strand.tip_size / 200.0
                                     strandShape = pmaterial.strand.shape
                             else:
                                 pmaterial = "default"  # No material assigned in blender, use default one
@@ -864,7 +865,7 @@ def write_pov(filename, scene=None, info_callback=None):
                                         file.write('%i,\n' % (len(particle.hair_keys)))
                                     for controlPoint in particle.hair_keys:
                                         if pSys.settings.clump_factor != 0:
-                                            hDiameter = pSys.settings.clump_factor #* random.uniform(0.5, 1)
+                                            hDiameter = pSys.settings.clump_factor / 200.0 * random.uniform(0.5, 1)
                                         elif controlPointCounter == 0:
                                             hDiameter = strandStart
                                         else:
@@ -951,8 +952,8 @@ def write_pov(filename, scene=None, info_callback=None):
                             print('Totals hairstrands written: %i' % totalNumberOfHairs)
                             print('Number of tufts (particle systems)', len(ob.particle_systems))
 
-                                
-
+                            if renderEmitter == False:
+                                continue #don't render mesh, skip to next object.
             try:
                 me = ob.to_mesh(scene, True, 'RENDER')
             except:
@@ -1854,9 +1855,9 @@ def write_pov(filename, scene=None, info_callback=None):
                 # In pov, the scale has reversed influence compared to blender. these number
                 # should correct that
                 tabWrite("mm_per_unit %.6f\n" % \
-                         (material.subsurface_scattering.scale * (-100.0) + 15.0))
+                         (material.subsurface_scattering.scale * 10000.0))# formerly ...scale * (-100.0) + 15.0))
                 # In POV-Ray, the scale factor for all subsurface shaders needs to be the same
-                sslt_samples = (11 - material.subsurface_scattering.error_threshold) * 100
+                sslt_samples = (11 - material.subsurface_scattering.error_threshold) * 10 # formerly ...*100
                 tabWrite("subsurface { samples %d, %d }\n" % (sslt_samples, sslt_samples / 10))
                 onceSss = 0
 
