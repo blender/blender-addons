@@ -90,8 +90,7 @@ def register():
     bpy.types.Scene.render_copy_settings = PointerProperty(type=RenderCopySettings)
 
     bpy.utils.register_module(__name__)
-    if hasattr(bpy.app, "translations"):
-        bpy.app.translations.register(__name__, translations.translations_dict)
+    bpy.app.translations.register(__name__, translations.translations_dict)
 
 
 def unregister():
@@ -102,8 +101,7 @@ def unregister():
     del bpy.types.Scene.render_copy_settings
 
     bpy.utils.unregister_module(__name__)
-    if hasattr(bpy.app, "translations"):
-        bpy.app.translations.unregister(__name__)
+    bpy.app.translations.unregister(__name__)
 
 
 if __name__ == "__main__":
