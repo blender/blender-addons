@@ -20,9 +20,9 @@
 
 # Tuple of tuples (key, (sources, comments), (lang, translation, (is_fuzzy, comments)), ...)
 translations_tuple = (
-    (("", "Allows to copy a selection of render settings from current scene to others."),
+    ((None, "Allows to copy a selection of render settings from current scene to others."),
      ((), ()),
-     ("fr", "Permet de copier une sélection des réglages de rendu depuis la scène courante vers d’autres scènes",
+     ("fr", "Permet de copier une sélection des réglages de rendu depuis la scène courante vers d’autres scènes.",
       (False, ())),
     ),
 )
