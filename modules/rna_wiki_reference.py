@@ -113,6 +113,7 @@ url_manual_mapping = (
     ("bpy.types.DynamicPaintModifier.*",  "Physics/Dynamic_Paint"),
     ("bpy.types.HookModifier.*",          "Modifiers/Deform/Hooks"),
     ("bpy.types.LatticeModifier.*",       "Modifiers/Deform/Lattice"),
+    ("bpy.types.MeshCache.*",             "Modifiers/Deform/Mesh_Cache"),
     ("bpy.types.MeshDeformModifier.*",    "Modifiers/Deform/Mesh_Deform"),
     ("bpy.types.RemeshModifier.*",        "Modifiers/Deform/"),
     ("bpy.types.ShrinkwrapModifier.*",    "Modifiers/Deform/Shrinkwrap"),
