@@ -88,7 +88,7 @@ def create_materials(filepath, material_libs, unique_materials, unique_material_
         has_data = False
         image_depth = 0
 
-        if image:
+        if image is not None:
             texture.image = image
             # note, this causes the image to load, see: [#32637]
             # which makes the following has_data work as expected.
@@ -108,7 +108,8 @@ def create_materials(filepath, material_libs, unique_materials, unique_material_
 
                 texture.use_mipmap = True
                 texture.use_interpolation = True
-                texture.use_alpha = True
+                if image is not None:
+                    image.use_alpha = True
                 blender_material.use_transparency = True
                 if "alpha" not in context_material_vars:
                     blender_material.alpha = 0.0
