@@ -1285,11 +1285,16 @@ def parse_mesh( mesh, psk ):
                     p.Point.X       = vpos.x
                     p.Point.Y       = vpos.y 
                     p.Point.Z       = vpos.z
-                        
-                    for point in points_linked[p]:
-                        point_index = points.get(point) #point index
-                        v_item      = (point_index, vertex_weight)
-                        vertex_list.append(v_item)
+                    #print(p)
+                    #print(len(points_linked[p]))
+                    try: #check if point doesn't give error
+                        for point in points_linked[p]:
+                            point_index = points.get(point) #point index
+                            v_item      = (point_index, vertex_weight)
+                            vertex_list.append(v_item)
+                    except Exception:#if get error ignore them #not safe I think
+                        print("Error link points!")
+                        pass
                     
         #bone name, [point id and wieght]
         #print("Add Vertex Group:",obj_vertex_group.name, " No. Points:",len(vertex_list))
