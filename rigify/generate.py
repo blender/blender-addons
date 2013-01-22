@@ -350,7 +350,7 @@ def generate_rig(context, metarig):
     # Assign shapes to bones
     # Object's with name WGT-<bone_name> get used as that bone's shape.
     for bone in bones:
-        wgt_name = (WGT_PREFIX + obj.data.bones[bone].name)[:21]  # Object names are limited to 21 characters... arg
+        wgt_name = (WGT_PREFIX + obj.data.bones[bone].name)[:63]  # Object names are limited to 63 characters... arg
         if wgt_name in context.scene.objects:
             # Weird temp thing because it won't let me index by object name
             for ob in context.scene.objects:
