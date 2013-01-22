@@ -396,7 +396,10 @@ def get_rig_type(rig_type):
     """ Fetches a rig module by name, and returns it.
     """
     #print("%s.%s.%s" % (__package__,RIG_DIR,rig_type))
-    submod = __import__(name="%s.%s.%s" % (MODULE_NAME, RIG_DIR, rig_type), fromlist=[rig_type])
+    name="%s.%s.%s" % (MODULE_NAME, RIG_DIR, rig_type)
+    submod = __import__(name)
+    for c in (name.split("."))[1:]:
+        submod = getattr(submod, c)
     imp.reload(submod)
     return submod
 
