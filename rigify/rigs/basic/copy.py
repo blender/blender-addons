@@ -121,7 +121,7 @@ class Rig:
 
         bpy.ops.object.mode_set(mode='OBJECT')
         pbone = obj.pose.bones[bones['Bone']]
-        pbone.rigify_type = 'simple.bone'
+        pbone.rigify_type = 'basic.copy'
         pbone.lock_location = (False, False, False)
         pbone.lock_rotation = (False, False, False)
         pbone.lock_rotation_w = False
