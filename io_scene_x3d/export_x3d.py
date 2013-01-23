@@ -1405,6 +1405,8 @@ def export(file,
             if use_hierarchy:
                 # make transform node relative
                 obj_matrix = obj_main_matrix_world_invert * obj_matrix
+            else:
+                obj_matrix = global_matrix * obj_matrix
 
             # H3D - use for writing a dummy transform parent
             is_dummy_tx = False
