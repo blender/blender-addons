@@ -74,6 +74,10 @@ class OBJECT_OT_animrenderbake(bpy.types.Operator):
             self.report({'ERROR'}, "The baked object must be a mesh object")
             return {'CANCELLED'}
 
+        if context.active_object.mode == 'EDIT':
+            self.report({'ERROR'}, "Can't bake in edit-mode")
+            return {'CANCELLED'}
+
         img = None
 
         # find the image that's used for rendering
