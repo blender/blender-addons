@@ -1666,10 +1666,17 @@ def find_armature_and_mesh():
             #bpy.ops.object.mode_set(mode='OBJECT')
             all_armatures = [obj for obj in bpy.context.scene.objects if obj.type == 'ARMATURE']
             
-            if len(all_armatures) == 1:
+            if len(all_armatures) == 1:#if armature has one scene just assign it
                 armature = all_armatures[0]
-            elif len(all_armatures) > 1:
-                raise Error("Please select an armature in the scene")
+            elif len(all_armatures) > 1:#if there more armature then find the select armature
+                barmselect = False
+                for _armobj in all_armatures:
+                    if _armobj.select:
+                        armature = _armobj
+                        barmselect = True
+                        break
+                if barmselect == False:
+                    raise Error("Please select an armatures in the scene")
             else:
                 raise Error("No armatures in scene")
         
@@ -1677,6 +1684,10 @@ def find_armature_and_mesh():
         
         meshselected = []
         parented_meshes = [obj for obj in armature.children if obj.type == 'MESH']
+        
+        if len(armature.children) == 0:
+            raise Error("The selected Armature has no mesh parented to the Armature Object!")
+        
         for obj in armature.children:
             #print(dir(obj))
             if obj.type == 'MESH' and obj.select == True:
@@ -2249,7 +2260,7 @@ class UDKArmListPG(bpy.types.PropertyGroup):
     bexport    = BoolProperty(default=False,name="Export", options={"HIDDEN"},description = "This will be ignore when exported")
     bselect    = BoolProperty(default=False,name="Select", options={"HIDDEN"},description = "This will be ignore when exported")
     otype  = StringProperty(name="Type",description = "This will be ignore when exported")
-    template_list_controls = StringProperty(default="", options={"HIDDEN"})
+    armtemplate_list_controls = StringProperty(default="", options={"HIDDEN"})
 
 bpy.utils.register_class(UDKArmListPG)
 bpy.types.Scene.udkArm_list = CollectionProperty(type=UDKArmListPG)
