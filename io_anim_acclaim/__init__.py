@@ -25,8 +25,8 @@
 bl_info = {
     "name": "Acclaim Motion Capture Files (.asf, .amc)",
     "author": "Daniel Monteiro Basso <daniel@basso.inf.br>",
-    "version": (2012, 2, 29, 1),
-    "blender": (2, 62, 0),
+    "version": (2013, 1, 26, 1),
+    "blender": (2, 65, 9),
     "location": "File > Import-Export",
     "description": "Imports Acclaim Skeleton and Motion Capture Files",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
@@ -360,9 +360,9 @@ class AsfImporter(bpy.types.Operator):
         sb.create_armature()
         sb.build_structure(self.use_limits)
         if self.use_rot_x:
-            bpy.ops.transform.rotate(value=(radians(90.0),), axis=(1, 0, 0))
+            bpy.ops.transform.rotate(value=radians(90.0), axis=(1, 0, 0))
         if self.use_rot_z:
-            bpy.ops.transform.rotate(value=(radians(90.0),), axis=(0, 0, 1))
+            bpy.ops.transform.rotate(value=radians(90.0), axis=(0, 0, 1))
         return {'FINISHED'}
 
     def invoke(self, context, event):
