@@ -387,12 +387,12 @@ def main(File, Path, LayerViewers, MixerViewers, LayerOffset,
                 Tex = bpy.data.textures.new(NameShort+'_A', 'IMAGE')
                 Tex.extension = 'CLIP'
                 Tex.use_preview_alpha = True
-                Tex.use_alpha = False
                 
                 Img = bpy.data.images.new(NameShort+'_A', 128, 128)
                 Img.source = 'FILE'
                 Img.alpha_mode = AlphaMode
                 Img.filepath = '%s%s_A%s' % (PathSaveRaw, Name, ExtSave)
+                Img.use_alpha = False
                 
                 Tex.image = Img
                 
