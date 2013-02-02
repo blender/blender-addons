@@ -30,7 +30,7 @@ bl_info = {
     'wiki_url': "http://wiki.blender.org/index.php/Extensions:2.6/Py/"\
             "Scripts/Import-Export/MilkShape3D_MS3D",
     'tracker_url': "http://projects.blender.org/tracker/index.php"\
-            "?func=detail&aid=29404",
+            "?func=detail&aid=34084",
     'category': "Import-Export",
     }
 
