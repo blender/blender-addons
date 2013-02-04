@@ -1399,6 +1399,9 @@ def export(file,
 
             ident = writeTransform_begin(ident, obj_main_matrix if obj_main_parent else global_matrix * obj_main_matrix, suffix_quoted_str(obj_main_id, _TRANSFORM))
 
+        # Set here just incase we dont enter the loop below.
+        is_dummy_tx = False
+
         for obj, obj_matrix in (() if derived is None else derived):
             obj_type = obj.type
 
