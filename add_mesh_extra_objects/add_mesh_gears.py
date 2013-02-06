@@ -282,6 +282,7 @@ def add_gear(teethNum, radius, Ad, De, base, p_angle,
     if rack:
         teethNum = 1
 
+    print(radius, width, conangle)
     scale = (radius - 2 * width * tan(conangle)) / radius
 
     verts = []
@@ -584,46 +585,55 @@ class AddGear(bpy.types.Operator):
         description="Radius of the gear, negative for crown gear",
         min=-100.0,
         max=100.0,
+        unit='LENGTH',
         default=1.0)
     addendum = FloatProperty(name="Addendum",
         description="Addendum, extent of tooth above radius",
         min=0.01,
         max=100.0,
+        unit='LENGTH',
         default=0.1)
     dedendum = FloatProperty(name="Dedendum",
         description="Dedendum, extent of tooth below radius",
         min=0.0,
         max=100.0,
+        unit='LENGTH',
         default=0.1)
     angle = FloatProperty(name="Pressure Angle",
-        description="Pressure angle, skewness of tooth tip (degrees)",
+        description="Pressure angle, skewness of tooth tip",
         min=0.0,
-        max=45.0,
+        max=radians(45.0),
+        unit='ROTATION',
         default=20.0)
     base = FloatProperty(name="Base",
         description="Base, extent of gear below radius",
         min=0.0,
         max=100.0,
+        unit='LENGTH',
         default=0.2)
     width = FloatProperty(name="Width",
         description="Width, thickness of gear",
         min=0.05,
         max=100.0,
+        unit='LENGTH',
         default=0.2)
     skew = FloatProperty(name="Skewness",
-        description="Skew of teeth (degrees)",
-        min=-90.0,
-        max=90.0,
+        description="Skew of teeth",
+        min=radians(-90.0),
+        max=radians(90.0),
+        unit='ROTATION',
         default=0.0)
     conangle = FloatProperty(name="Conical angle",
-        description="Conical angle of gear (degrees)",
+        description="Conical angle of gear",
         min=0.0,
-        max=90.0,
+        max=radians(90.0),
+        unit='ROTATION',
         default=0.0)
     crown = FloatProperty(name="Crown",
         description="Inward pointing extend of crown teeth",
         min=0.0,
         max=100.0,
+        unit='LENGTH',
         default=0.0)
 
     def draw(self, context):
@@ -655,10 +665,10 @@ class AddGear(bpy.types.Operator):
             self.addendum,
             self.dedendum,
             self.base,
-            radians(self.angle),
+            self.angle,
             width=self.width,
-            skew=radians(self.skew),
-            conangle=radians(self.conangle),
+            skew=self.skew,
+            conangle=self.conangle,
             crown=self.crown)
 
         # Actually create the mesh object from this geometry data.
@@ -695,36 +705,43 @@ class AddWormGear(bpy.types.Operator):
         description="Radius of the gear, negative for crown gear",
         min=-100.0,
         max=100.0,
+        unit='LENGTH',
         default=1.0)
     addendum = FloatProperty(name="Addendum",
         description="Addendum, extent of tooth above radius",
         min=0.01,
         max=100.0,
+        unit='LENGTH',
         default=0.1)
     dedendum = FloatProperty(name="Dedendum",
         description="Dedendum, extent of tooth below radius",
         min=0.0,
         max=100.0,
+        unit='LENGTH',
         default=0.1)
     angle = FloatProperty(name="Pressure Angle",
-        description="Pressure angle, skewness of tooth tip (degrees)",
+        description="Pressure angle, skewness of tooth tip",
         min=0.0,
-        max=45.0,
-        default=20.0)
+        max=radians(45.0),
+        default=radians(20.0),
+        unit='ROTATION')
     row_height = FloatProperty(name="Row Height",
         description="Height of each Row",
         min=0.05,
         max=100.0,
+        unit='LENGTH',
         default=0.2)
     skew = FloatProperty(name="Skewness per Row",
-        description="Skew of each row (degrees)",
-        min=-90.0,
-        max=90.0,
-        default=11.25)
+        description="Skew of each row",
+        min=radians(-90.0),
+        max=radians(90.0),
+        default=radians(11.25),
+        unit='ROTATION')
     crown = FloatProperty(name="Crown",
         description="Inward pointing extend of crown teeth",
         min=0.0,
         max=100.0,
+        unit='LENGTH',
         default=0.0)
 
     def draw(self, context):
@@ -750,9 +767,9 @@ class AddWormGear(bpy.types.Operator):
             self.radius,
             self.addendum,
             self.dedendum,
-            radians(self.angle),
+            self.angle,
             width=self.row_height,
-            skew=radians(self.skew),
+            skew=self.skew,
             crown=self.crown)
 
         # Actually create the mesh object from this geometry data.
