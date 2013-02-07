@@ -31,7 +31,7 @@ import os
 def save(operator,
          context,
          filepath="",
-         use_modifiers=True,
+         use_mesh_modifiers=True,
          use_normals=True,
          use_uv_coords=True,
          use_colors=True,
@@ -55,7 +55,7 @@ def save(operator,
     if scene.objects.active:
         bpy.ops.object.mode_set(mode='OBJECT')
 
-    if use_modifiers:
+    if use_mesh_modifiers:
         mesh = obj.to_mesh(scene, True, 'PREVIEW')
     else:
         mesh = obj.data
@@ -200,7 +200,7 @@ def save(operator,
     file.close()
     print("writing %r done" % filepath)
 
-    if use_modifiers:
+    if use_mesh_modifiers:
         bpy.data.meshes.remove(mesh)
 
     # XXX

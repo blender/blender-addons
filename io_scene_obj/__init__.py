@@ -221,7 +221,7 @@ class ExportOBJ(bpy.types.Operator, ExportHelper):
             )
 
     # object group
-    use_apply_modifiers = BoolProperty(
+    use_mesh_modifiers = BoolProperty(
             name="Apply Modifiers",
             description="Apply modifiers (preview resolution)",
             default=True,

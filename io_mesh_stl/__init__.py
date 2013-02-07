@@ -115,13 +115,16 @@ class ExportSTL(Operator, ExportHelper):
     filename_ext = ".stl"
     filter_glob = StringProperty(default="*.stl", options={'HIDDEN'})
 
-    ascii = BoolProperty(name="Ascii",
-                         description="Save the file in ASCII file format",
-                         default=False)
-    apply_modifiers = BoolProperty(name="Apply Modifiers",
-                                   description="Apply the modifiers "
-                                               "before saving",
-                                   default=True)
+    ascii = BoolProperty(
+            name="Ascii",
+            description="Save the file in ASCII file format",
+            default=False,
+            )
+    use_mesh_modifiers = BoolProperty(
+            name="Apply Modifiers",
+            description="Apply the modifiers before saving",
+            default=True,
+            )
 
     def execute(self, context):
         from . import stl_utils
@@ -129,7 +132,7 @@ class ExportSTL(Operator, ExportHelper):
         import itertools
 
         faces = itertools.chain.from_iterable(
-            blender_utils.faces_from_mesh(ob, self.apply_modifiers)
+            blender_utils.faces_from_mesh(ob, self.use_mesh_modifiers)
             for ob in context.selected_objects)
 
         stl_utils.write_stl(self.filepath, faces, self.ascii)

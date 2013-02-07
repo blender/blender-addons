@@ -74,16 +74,16 @@ class RenderPovSettingsScene(PropertyGroup):
             name="Scene Name",
             description="Name of POV-Ray scene to create. Empty name will use the name of "
                         "the blend file",
-            default="", maxlen=1024)
+            maxlen=1024)
     scene_path = StringProperty(
             name="Export scene path",
             # description="Path to directory where the exported scene (POV and INI) is created",  # Bug in POV-Ray RC3
             description="Path to directory where the files are created",
-            default="", maxlen=1024, subtype="DIR_PATH")
+            maxlen=1024, subtype="DIR_PATH")
     renderimage_path = StringProperty(
             name="Rendered image path",
             description="Full path to directory where the rendered image is saved",
-            default="", maxlen=1024, subtype="DIR_PATH")
+            maxlen=1024, subtype="DIR_PATH")
     list_lf_enable = BoolProperty(
             name="LF in lists",
             description="Enable line breaks in lists (vectors and indices). Disabled: "
@@ -140,7 +140,7 @@ class RenderPovSettingsScene(PropertyGroup):
             name="Command Line Switches",
             description="Command line switches consist of a + (plus) or - (minus) sign, followed "
                         "by one or more alphabetic characters and possibly a numeric value",
-            default="", maxlen=500)
+            maxlen=500)
 
     antialias_enable = BoolProperty(
             name="Anti-Alias", description="Enable Anti-Aliasing",
