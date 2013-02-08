@@ -845,47 +845,54 @@ def write_pov(filename, scene=None, info_callback=None):
                                 strandStart = 0.01
                                 strandEnd = 0.01
                                 strandShape = 0.0
-                                
-                            totalNumberOfHairs = len(pSys.particles)
-                            hairCounter = 0
+                            # Set the number of particles to render count rather than 3d view display    
+                            pSys.set_resolution(scene, ob, 'RENDER')    
+                            steps = pSys.settings.draw_step
+                            steps = 3 ** steps # or (power of 2 rather than 3) + 1 # Formerly : len(particle.hair_keys)
+                            
+                            totalNumberOfHairs = ( len(pSys.particles) + len(pSys.child_particles) )
+                            #hairCounter = 0
                             file.write('#declare HairArray = array[%i] {\n' % totalNumberOfHairs)
-                            for particle in pSys.particles:
-                                if particle.is_exist and particle.is_visible:
-                                    hairCounter += 1
-                                    controlPointCounter = 0
+                            for pindex in range(0, totalNumberOfHairs):
+
+                                #if particle.is_exist and particle.is_visible:
+                                    #hairCounter += 1
+                                    #controlPointCounter = 0
                                     # Each hair is represented as a separate sphere_sweep in POV-Ray.
                                     
                                     file.write('sphere_sweep{')
                                     if pSys.settings.use_hair_bspline:
                                         file.write('b_spline ')
-                                        file.write('%i,\n' % (len(particle.hair_keys) + 2))  # +2 because the first point needs tripling to be more than a handle in POV
-
+                                        file.write('%i,\n' % (steps + 2))  # +2 because the first point needs tripling to be more than a handle in POV
                                     else:
                                         file.write('linear_spline ')
-                                        file.write('%i,\n' % (len(particle.hair_keys)))
-                                    for controlPoint in particle.hair_keys:
+                                        file.write('%i,\n' % (steps))
+                                        
+                                    for step in range(0, steps):
+                                        co = pSys.co_hair(ob, mod, pindex, step)
+                                    #for controlPoint in particle.hair_keys:
                                         if pSys.settings.clump_factor != 0:
                                             hDiameter = pSys.settings.clump_factor / 200.0 * random.uniform(0.5, 1)
-                                        elif controlPointCounter == 0:
+                                        elif step == 0:
                                             hDiameter = strandStart
                                         else:
-                                            hDiameter += (strandEnd-strandStart)/(len(particle.hair_keys)+1) #XXX +1 or not?
-                                        if controlPointCounter == 0 and pSys.settings.use_hair_bspline:
+                                            hDiameter += (strandEnd-strandStart)/(pSys.settings.draw_step+1) #XXX +1 or not?
+                                        if step == 0 and pSys.settings.use_hair_bspline:
                                             # Write three times the first point to compensate pov Bezier handling
-                                            file.write('<%.6g,%.6g,%.6g>,%.7g,\n' % (controlPoint.co[0], controlPoint.co[1], controlPoint.co[2], abs(hDiameter)))
-                                            file.write('<%.6g,%.6g,%.6g>,%.7g,\n' % (controlPoint.co[0], controlPoint.co[1], controlPoint.co[2], abs(hDiameter)))                                          
+                                            file.write('<%.6g,%.6g,%.6g>,%.7g,\n' % (co[0], co[1], co[2], abs(hDiameter)))
+                                            file.write('<%.6g,%.6g,%.6g>,%.7g,\n' % (co[0], co[1], co[2], abs(hDiameter)))                                          
                                             #file.write('<%.6g,%.6g,%.6g>,%.7g' % (particle.location[0], particle.location[1], particle.location[2], abs(hDiameter))) # Useless because particle location is the tip, not the root.
                                             #file.write(',\n')
-                                        controlPointCounter += 1
+                                        #controlPointCounter += 1
                                         #totalNumberOfHairs += len(pSys.particles)# len(particle.hair_keys)
                                              
                                       # Each control point is written out, along with the radius of the
                                       # hair at that point.
-                                        file.write('<%.6g,%.6g,%.6g>,%.7g' % (controlPoint.co[0], controlPoint.co[1], controlPoint.co[2], abs(hDiameter)))
+                                        file.write('<%.6g,%.6g,%.6g>,%.7g' % (co[0], co[1], co[2], abs(hDiameter)))
 
                                       # All coordinates except the last need a following comma.
 
-                                        if controlPointCounter != len(particle.hair_keys):
+                                        if step != steps - 1:
                                             file.write(',\n')
                                         else:
                                             # End the sphere_sweep declaration for this hair
@@ -893,7 +900,7 @@ def write_pov(filename, scene=None, info_callback=None):
                                         
                                       # All but the final sphere_sweep (each array element) needs a terminating comma.
 
-                                    if hairCounter != totalNumberOfHairs:
+                                    if pindex != totalNumberOfHairs:
                                         file.write(',\n')
                                     else:
                                         file.write('\n')
@@ -951,7 +958,10 @@ def write_pov(filename, scene=None, info_callback=None):
                             file.write('}')
                             print('Totals hairstrands written: %i' % totalNumberOfHairs)
                             print('Number of tufts (particle systems)', len(ob.particle_systems))
-
+                            
+                            # Set back the displayed number of particles to preview count
+                            pSys.set_resolution(scene, ob, 'PREVIEW')
+                            
                             if renderEmitter == False:
                                 continue #don't render mesh, skip to next object.
             try:
