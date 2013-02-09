@@ -342,70 +342,77 @@ class Ms3dExporter():
                     if self.options_use_animation and layer_deform:
                         blender_vertex_group_ids = bmv[layer_deform]
                         if blender_vertex_group_ids:
-                            count = 0
-                            bone_ids = []
-                            weights = []
+                            bone_weights = {}
                             for blender_index, blender_weight \
                                     in blender_vertex_group_ids.items():
                                 ms3d_joint = blender_to_ms3d_bones.get(
                                         blender_mesh_object_temp.vertex_groups[\
                                                 blender_index].name)
                                 if ms3d_joint:
-                                    if count == 0:
-                                        ms3d_vertex.bone_id = ms3d_joint.__index
-                                        weights.append(
-                                                int(blender_weight * 100.0))
-                                    elif count == 1:
-                                        bone_ids.append(ms3d_joint.__index)
-                                        weights.append(
-                                                int(blender_weight * 100.0))
-                                    elif count == 2:
-                                        bone_ids.append(ms3d_joint.__index)
-                                        weights.append(
-                                                int(blender_weight * 100.0))
-                                    elif count == 3:
-                                        bone_ids.append(ms3d_joint.__index)
-                                        self.report(
-                                                {'WARNING', 'INFO'},
-                                                ms3d_str['WARNING_EXPORT_SKIP_WEIGHT'])
-                                    else:
-                                        # only first three weights will be supported / four bones
-                                        self.report(
-                                                {'WARNING', 'INFO'},
-                                                ms3d_str['WARNING_EXPORT_SKIP_WEIGHT_EX'])
-                                        break
-                                count+= 1
+                                    weight = bone_weights.get(ms3d_joint.__index)
+                                    if not weight:
+                                        weight = 0
+                                    bone_weights[ms3d_joint.__index] = weight + blender_weight
 
-                            while len(bone_ids) < 3:
-                                bone_ids.append(Ms3dSpec.DEFAULT_VERTEX_BONE_ID)
-                            while len(weights) < 3:
-                                weights.append(0)
+                            # sort (bone_id: weight) according its weights
+                            # to skip only less important weights in the next pass
+                            bone_weights_sorted = sorted(bone_weights.items(), key=lambda item: item[1], reverse=True)
 
-                            # normalize weights to 100
+                            count = 0
+                            bone_ids = []
+                            weights = []
+                            for ms3d_index, blender_weight \
+                                    in bone_weights_sorted:
+
+                                if count == 0:
+                                    ms3d_vertex.bone_id = ms3d_index
+                                    weights.append(blender_weight)
+                                elif count == 1:
+                                    bone_ids.append(ms3d_index)
+                                    weights.append(blender_weight)
+                                elif count == 2:
+                                    bone_ids.append(ms3d_index)
+                                    weights.append(blender_weight)
+                                elif count == 3:
+                                    bone_ids.append(ms3d_index)
+                                    self.report(
+                                            {'WARNING', 'INFO'},
+                                            ms3d_str['WARNING_EXPORT_SKIP_WEIGHT'])
+                                else:
+                                    # only first three weights will be supported / four bones
+                                    self.report(
+                                            {'WARNING', 'INFO'},
+                                            ms3d_str['WARNING_EXPORT_SKIP_WEIGHT_EX'])
+                                    break
+                                count += 1
+
+                            # normalize weights to 100%
                             if self.options_normalize_weights:
-                                weight_sum = 0
+                                weight_sum = 0.0
                                 for weight in weights:
                                     weight_sum += weight
 
-                                if weight_sum > 100:
-                                    weight_normalize = 100 / weight_sum
-                                else:
-                                    weight_normalize = 1
+                                weight_normalize = 1.0 / weight_sum
 
-                                weight_sum = 100
+                                weight_sum = 1.0
                                 for index, weight in enumerate(weights):
                                     if index >= count-1:
-                                        weights[index] = weight_sum
+                                        weights[index] = weight_sum + 0.009
                                         break
-                                    normalized_weight = int(
-                                            weight * weight_normalize)
+                                    normalized_weight = weight * weight_normalize
                                     weight_sum -= normalized_weight
                                     weights[index] = normalized_weight
+
+                            # fill up missing values
+                            while len(bone_ids) < 3:
+                                bone_ids.append(Ms3dSpec.DEFAULT_VERTEX_BONE_ID)
+                            while len(weights) < 3:
+                                weights.append(0.0)
 
                             ms3d_vertex._vertex_ex_object._bone_ids = \
                                     tuple(bone_ids)
                             ms3d_vertex._vertex_ex_object._weights = \
-                                    tuple(weights)
+                                    tuple([int(value * 100) for value in weights])
 
                     if layer_extra:
                         #ms3d_vertex._vertex_ex_object.extra = bmv[layer_extra]
