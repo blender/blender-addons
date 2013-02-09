@@ -492,7 +492,7 @@ class Ms3dExportOperator(Operator, ExportHelper):
             default=ms3d_str['FILE_FILTER'],
             options={'HIDDEN', }
             )
-            
+
     ##def object_items(self, blender_context):
     ##    return[(item.name, item.name, "") for item in blender_context.selected_objects if item.type in {'MESH', }]
     ##

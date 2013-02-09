@@ -62,9 +62,11 @@ ms3d_str = {
                 " ~{1:.4}s, converter: ~{2:.4}s)",
         'SUMMARY_EXPORT': "elapsed time: {0:.4}s (converter:"\
                 " ~{1:.4}s, media io: ~{2:.4}s)",
-        'WARNING_EXPORT_SKIP_WEIGHT' : "skipped weight",
+        'WARNING_EXPORT_SKIP_WEIGHT' : "skipped weight (ms3d can handle 3 weighs max.,"\
+                " the less weighty weight was skipped)",
         'WARNING_EXPORT_SKIP_WEIGHT_EX' : "skipped weight:"\
-                " limit exceeded",
+                " limit exceeded (ms3d can handle 3 weighs max., the less weighty"\
+                " weights were skipped)",
 
         ###############################
         'TEXT_OPERATOR': "MilkShape 3D (.ms3d)",
@@ -210,15 +212,14 @@ ms3d_str = {
                 " Display | Textured Solid,"\
                 " View | Clip (0.001 mm ... 1 km)",
         'PROP_NAME_NORMALIZE_WEIGHTS' : "Normalize Weights",
-        'PROP_DESC_NORMALIZE_WEIGHTS' : "normalize weights to 100%,"\
-                " when its sum of weights is greater than 100%",
+        'PROP_DESC_NORMALIZE_WEIGHTS' : "normalize all weights to 100%,",
         'PROP_NAME_SHRINK_TO_KEYS' : "Shrink To Keys",
         'PROP_DESC_SHRINK_TO_KEYS' : "shrinks the animation to region from"\
                 " first keyframe to last keyframe",
         'PROP_NAME_BAKE_EACH_FRAME' : "Bake Each Frame As Key",
         'PROP_DESC_BAKE_EACH_FRAME' : "if enabled, to each frame there will be"\
                 " a key baked",
-        'LABEL_NAME_JOINT_TO_BONES' : "works only with some models!",
+        'LABEL_NAME_JOINT_TO_BONES' : "use only for bones created in blender",
         'PROP_NAME_JOINT_TO_BONES' : "Joints To Bones",
         'PROP_DESC_JOINT_TO_BONES' : "changes the length of the bones",
         'PROP_NAME_USE_BLENDER_NAMES' : "Use Blender Names Only",

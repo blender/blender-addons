@@ -263,9 +263,9 @@ class Ms3dExporter():
 
             # apply transform
             if self.options_apply_transform:
-                matrix_transform = blender_mesh_object_temp.matrix_local
+                matrix_transform = blender_mesh_object_temp.matrix_basis
             else:
-                matrix_transform = Matrix()
+                matrix_transform = 1
 
             # apply modifiers
             for modifier in blender_mesh_object_temp.modifiers:
@@ -564,6 +564,13 @@ class Ms3dExporter():
                                 blender_modifier.object.animation_data.action
                         blender_nla_tracks = \
                                 blender_modifier.object.animation_data.nla_tracks
+
+                    # apply transform
+                    if self.options_apply_transform:
+                        matrix_transform = blender_modifier.object.matrix_basis
+                    else:
+                        matrix_transform = 1
+
                     break
 
             if blender_bones is None \
@@ -597,11 +604,11 @@ class Ms3dExporter():
                 if blender_bone.parent:
                     ms3d_joint.parent_name = blender_bone.parent.name
                     ms3d_joint.__matrix = matrix_difference(
-                            blender_bone.matrix_local,
-                            blender_bone.parent.matrix_local)
+                            matrix_transform * blender_bone.matrix_local,
+                            matrix_transform * blender_bone.parent.matrix_local)
                 else:
                     ms3d_joint.__matrix = base_bone_correction \
-                            * blender_bone.matrix_local
+                            * matrix_transform * blender_bone.matrix_local
 
                 mat = ms3d_joint.__matrix
                 loc = mat.to_translation()
@@ -675,7 +682,7 @@ class Ms3dExporter():
                     if blender_pose_bone.parent:
                         m2 = blender_pose_bone.parent.matrix_channel.inverted()
                     else:
-                        m2 = Matrix()
+                        m2 = 1
                     m3 = blender_pose_bone.matrix.copy()
                     m = ((m1 * m2) * m3)
                     loc = m.to_translation()
