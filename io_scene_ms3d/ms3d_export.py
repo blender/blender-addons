@@ -392,7 +392,10 @@ class Ms3dExporter():
                                 for weight in weights:
                                     weight_sum += weight
 
-                                weight_normalize = 1.0 / weight_sum
+                                if weight_sum > 0.0:
+                                    weight_normalize = 1.0 / weight_sum
+                                else:
+                                    weight_normalize = 1.0
 
                                 weight_sum = 1.0
                                 for index, weight in enumerate(weights):
