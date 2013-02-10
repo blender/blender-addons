@@ -37,6 +37,9 @@ from struct import (
 from sys import (
         exc_info,
         )
+from codecs import (
+        register_error,
+        )
 
 ###############################################################################
 #
@@ -95,6 +98,22 @@ class Ms3dSpec:
     # values
     #
     HEADER = "MS3D000000"
+
+
+    ## TEST_STR = 'START@€@µ@²@³@©@®@¶@ÿ@A@END.bmp'
+    ## TEST_RAW = b'START@\x80@\xb5@\xb2@\xb3@\xa9@\xae@\xb6@\xff@A@END.bmp\x00'
+    ##
+    STRING_MS3D_REPLACE = 'use_ms3d_replace'
+    STRING_ENCODING = "ascii" # wrong encoding (too limited), but there is an UnicodeEncodeError issue, that prevent using the correct one for the moment
+    ##STRING_ENCODING = "cp437" # US, wrong encoding and shows UnicodeEncodeError
+    ##STRING_ENCODING = "cp858" # Europe + €, wrong encoding and shows UnicodeEncodeError
+    ##STRING_ENCODING = "cp1252" # WIN EU, this would be the better codepage, but shows UnicodeEncodeError, on print on system console and writing to file
+    STRING_ERROR = STRING_MS3D_REPLACE
+    ##STRING_ERROR = 'replace'
+    ##STRING_ERROR = 'ignore'
+    ##STRING_ERROR = 'surrogateescape'
+    STRING_TERMINATION = b'\x00'
+    STRING_REPLACE = u'_'
 
 
     ###########################################################################
@@ -251,52 +270,39 @@ class Ms3dIo:
             itemValue = value[i]
             Ms3dIo.write_array(raw_io, itemWriter, count2, itemValue)
 
+
+    @staticmethod
+    def ms3d_replace(exc):
+        """ http://www.python.org/dev/peps/pep-0293/ """
+        if isinstance(exc, UnicodeEncodeError):
+            return ((exc.end-exc.start)*Ms3dSpec.STRING_REPLACE, exc.end)
+        elif isinstance(exc, UnicodeDecodeError):
+            return (Ms3dSpec.STRING_REPLACE, exc.end)
+        elif isinstance(exc, UnicodeTranslateError):
+            return ((exc.end-exc.start)*Ms3dSpec.STRING_REPLACE, exc.end)
+        else:
+            raise TypeError("can't handle %s" % exc.__name__)
+
     @staticmethod
     def read_string(raw_io, length):
         """ read a string of a specific length from raw_io """
-        value = []
-        skip = False
-        for i in range(length):
-            buffer = raw_io.read(Ms3dIo.SIZE_SBYTE)
-            if not buffer:
-                raise EOFError()
-            raw = (int)(unpack('<b', buffer)[0])
-            if (raw >= 32) & (raw <= 255):
-                pass
-            else:
-                if (raw == 0):
-                    raw = 0
-                    skip = True
-                else:
-                    raw = 32
-
-            c = chr(raw)
-
-            if (not skip):
-                value.append(c)
-
-        finalValue = "".join(value)
-        return finalValue
+        buffer = raw_io.read(length)
+        if not buffer:
+            raise EOFError()
+        eol = buffer.find(Ms3dSpec.STRING_TERMINATION)
+        register_error(Ms3dSpec.STRING_MS3D_REPLACE, Ms3dIo.ms3d_replace)
+        s = buffer[:eol].decode(encoding=Ms3dSpec.STRING_ENCODING, errors=Ms3dSpec.STRING_ERROR)
+        return s
 
     @staticmethod
     def write_string(raw_io, length, value):
         """ write a string of a specific length to raw_io """
-        l = len(value)
-        for i in range(length):
-            if(i < l):
-                c = value[i]
-
-                if (isinstance(c, str)):
-                    c = c[0]
-                    raw = ord(c)
-                elif (isinstance(c, int)):
-                    raw = c
-                else:
-                    pass
-            else:
-                raw = 0
-
-            raw_io.write(pack('<b', (int)(raw % 256)))
+        register_error(Ms3dSpec.STRING_MS3D_REPLACE, Ms3dIo.ms3d_replace)
+        buffer = value.encode(encoding=Ms3dSpec.STRING_ENCODING, errors=Ms3dSpec.STRING_ERROR)
+        if not buffer:
+            buffer = bytes()
+        raw_io.write(pack('<{}s'.format(length), buffer))
+        return
 
 
 ###############################################################################
