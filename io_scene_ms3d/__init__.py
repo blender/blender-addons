@@ -23,7 +23,7 @@ bl_info = {
     'description': "Import / Export MilkShape3D MS3D files"\
             " (conform with MilkShape3D v1.8.4)",
     'author': "Alexander Nussbaumer",
-    'version': (0, 95, 2),
+    'version': (0, 95, 3),
     'blender': (2, 65, 3),
     'location': "File > Import & File > Export",
     'warning': "",
@@ -41,7 +41,7 @@ bl_info = {
 
 # ##### BEGIN COPYRIGHT BLOCK #####
 #
-# initial script copyright (c)2011,2012 Alexander Nussbaumer
+# initial script copyright (c)2011-2013 Alexander Nussbaumer
 #
 # ##### END COPYRIGHT BLOCK #####
 

@@ -25,7 +25,7 @@
 
 # ##### BEGIN COPYRIGHT BLOCK #####
 #
-# initial script copyright (c)2011,2012 Alexander Nussbaumer
+# initial script copyright (c)2011-2013 Alexander Nussbaumer
 #
 # ##### END COPYRIGHT BLOCK #####
 SEE_MS3D_DOC = "see MilkShape 3D documentation"

@@ -25,7 +25,7 @@
 
 # ##### BEGIN COPYRIGHT BLOCK #####
 #
-# initial script copyright (c)2011,2012 Alexander Nussbaumer
+# initial script copyright (c)2011-2013 Alexander Nussbaumer
 #
 # ##### END COPYRIGHT BLOCK #####
 
@@ -103,15 +103,16 @@ class Ms3dImporter():
         self.options_use_joint_size = use_joint_size
         self.options_joint_size = joint_size
         self.options_use_joint_to_bones = use_joint_to_bones
+        self.directory_name = ""
+        self.file_name = ""
         pass
 
     ###########################################################################
     # create empty blender ms3d_model
     # read ms3d file
     # fill blender with ms3d_model content
-    """ read ms3d file and convert ms3d content to bender content """
     def read(self, blender_context, filepath):
-
+        """ read ms3d file and convert ms3d content to bender content """
         t1 = time()
         t2 = None
         self.has_textures = False

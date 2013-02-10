@@ -25,7 +25,7 @@
 
 # ##### BEGIN COPYRIGHT BLOCK #####
 #
-# initial script copyright (c)2011,2012 Alexander Nussbaumer
+# initial script copyright (c)2011-2013 Alexander Nussbaumer
 #
 # ##### END COPYRIGHT BLOCK #####
 
@@ -64,6 +64,7 @@ from io_scene_ms3d.ms3d_spec import (
         Ms3dRotationKeyframe,
         Ms3dTranslationKeyframe,
         Ms3dCommentEx,
+        Ms3dComment,
         )
 from io_scene_ms3d.ms3d_utils import (
         select_all,
@@ -226,6 +227,9 @@ class Ms3dExporter():
             ms3d_model._model_ex_object.transparency_mode = \
                     Ms3dUi.transparency_mode_to_ms3d(
                     blender_mesh.ms3d.transparency_mode)
+
+            if blender_mesh.ms3d.comment:
+                ms3d_model._comment_object = Ms3dComment(blender_mesh.ms3d.comment)
 
             ##########################
             # prepare ms3d groups if available
@@ -397,25 +401,28 @@ class Ms3dExporter():
                                 else:
                                     weight_normalize = 1.0
 
-                                weight_sum = 1.0
+                                weight_sum = 100
                                 for index, weight in enumerate(weights):
-                                    if index >= count-1:
-                                        weights[index] = weight_sum + 0.009
+                                    if index >= count-1 or index >= 2:
+                                        # take the full rest instead of calculate,
+                                        # that should fill up to exactly 100%
+                                        # (in some cases it is only 99% bacaus of roulding errors)
+                                        weights[index] = int(weight_sum)
                                         break
-                                    normalized_weight = weight * weight_normalize
-                                    weight_sum -= normalized_weight
+                                    normalized_weight = int(weight * weight_normalize * 100)
                                     weights[index] = normalized_weight
+                                    weight_sum -= normalized_weight
 
                             # fill up missing values
                             while len(bone_ids) < 3:
                                 bone_ids.append(Ms3dSpec.DEFAULT_VERTEX_BONE_ID)
                             while len(weights) < 3:
-                                weights.append(0.0)
+                                weights.append(0)
 
                             ms3d_vertex._vertex_ex_object._bone_ids = \
                                     tuple(bone_ids)
                             ms3d_vertex._vertex_ex_object._weights = \
-                                    tuple([int(value * 100) for value in weights])
+                                    tuple(weights)
 
                     if layer_extra:
                         #ms3d_vertex._vertex_ex_object.extra = bmv[layer_extra]

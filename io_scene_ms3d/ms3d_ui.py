@@ -25,7 +25,7 @@
 
 # ##### BEGIN COPYRIGHT BLOCK #####
 #
-# initial script copyright (c)2011,2012 Alexander Nussbaumer
+# initial script copyright (c)2011-2013 Alexander Nussbaumer
 #
 # ##### END COPYRIGHT BLOCK #####
 
@@ -357,11 +357,10 @@ class Ms3dImportOperator(Operator, ImportHelper):
         if (self.use_animation):
             box.prop(self, 'rotation_mode', icon=Ms3dUi.ICON_ROTATION_MODE,
                     expand=False)
-            box.prop(self, 'use_joint_size')
+            flow = box.column_flow()
+            flow.prop(self, 'use_joint_size')
             if (self.use_joint_size):
-                col = box.column()
-                row = col.row()
-                row.prop(self, 'joint_size')
+                flow.prop(self, 'joint_size')
             box.prop(self, 'use_joint_to_bones')
             if (self.use_joint_to_bones):
                 box.box().label(ms3d_str['LABEL_NAME_JOINT_TO_BONES'],
