@@ -39,6 +39,25 @@ from bpy_extras.io_utils import unpack_list, unpack_face_list
 from bpy_extras.image_utils import load_image
 
 
+def mesh_untessellate(me, fgon_edges):
+    import bmesh
+    bm = bmesh.new()
+    bm.from_mesh(me)
+    verts = bm.verts[:]
+    get = bm.edges.get
+    edges = [get((verts[key[0]], verts[key[1]])) for key in fgon_edges]
+    try:
+        bmesh.ops.dissolve_edges(bm, edges=edges, use_verts=False)
+    except:
+        # Possible dissolve fails for some edges
+        # but dont fail silently unless this is a real bug.
+        import traceback
+        traceback.print_exc()
+
+    bm.to_mesh(me)
+    bm.free()
+
+
 def line_value(line_split):
     """
     Returns 1 string represneting the value for this line
@@ -453,7 +472,7 @@ def create_mesh(new_objects,
         context_smooth_group_old = -1
 
     # Split ngons into tri's
-    fgon_edges = {}  # Used for storing fgon keys
+    fgon_edges = set()  # Used for storing fgon keys
     if use_edges:
         edges = []
 
@@ -537,7 +556,7 @@ def create_mesh(new_objects,
 
                     for key, users in edge_users.items():
                         if users > 1:
-                            fgon_edges[key] = None
+                            fgon_edges.add(key)
 
                 # remove all after 3, means we dont have to pop this one.
                 faces.pop(f_idx)
@@ -679,19 +698,7 @@ def create_mesh(new_objects,
         bm.free()
         del bm
 
-    # XXX slow
-#     if use_ngons and fgon_edges:
-#         for fgon_edge in fgon_edges.keys():
-#             for ed in me.edges:
-#                 if edges_match(fgon_edge, ed.vertices):
-#                     ed.is_fgon = True
-
-#     if use_ngons and fgon_edges:
-#         FGON= Mesh.EdgeFlags.FGON
-#         for ed in me.findEdges( fgon_edges.keys() ):
-#             if ed is not None:
-#                 me_edges[ed].flag |= FGON
-#         del FGON
+    mesh_untessellate(me, fgon_edges)
 
     # XXX slow
 #     if unique_smooth_groups and sharp_edges:
