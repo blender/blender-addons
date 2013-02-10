@@ -447,23 +447,25 @@ def write_file(filepath, objects, scene,
                 # in case removing some of these dont get defined.
                 uv = uvkey = uv_dict = f_index = uv_index = None
 
-                uv_face_mapping = [[0] * a[0].loop_total for i, a in enumerate(face_index_pairs)]
+                uv_face_mapping = [None] * len(face_index_pairs)
 
                 uv_dict = {}  # could use a set() here
                 for f, f_index in face_index_pairs:
+                    uv_ls = uv_face_mapping[f_index] = []
                     for uv_index, l_index in enumerate(f.loop_indices):
                         uv = uv_layer[l_index].uv
 
                         uvkey = veckey2d(uv)
                         try:
-                            uv_face_mapping[f_index][uv_index] = uv_dict[uvkey]
+                            uv_k = uv_dict[uvkey]
                         except:
-                            uv_face_mapping[f_index][uv_index] = uv_dict[uvkey] = len(uv_dict)
+                            uv_k = uv_dict[uvkey] = len(uv_dict)
                             fw('vt %.6f %.6f\n' % uv[:])
+                        uv_ls.append(uv_k)
 
                 uv_unique_count = len(uv_dict)
 
-                del uv, uvkey, uv_dict, f_index, uv_index
+                del uv, uvkey, uv_dict, f_index, uv_index, uv_ls, uv_k
                 # Only need uv_unique_count and uv_face_mapping
 
             # NORMAL, Smooth/Non smoothed.
