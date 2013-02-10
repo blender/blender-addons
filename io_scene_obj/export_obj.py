@@ -34,15 +34,12 @@ def name_compat(name):
 
 
 def mesh_triangulate(me):
-    pass
-    '''
     import bmesh
     bm = bmesh.new()
     bm.from_mesh(me)
     bmesh.ops.triangulate(bm, faces=bm.faces)
     bm.to_mesh(me)
     bm.free()
-    '''
 
 
 def write_mtl(scene, filepath, path_mode, copy_set, mtl_dict):
@@ -371,6 +368,10 @@ def write_file(filepath, objects, scene,
 
             me.transform(EXPORT_GLOBAL_MATRIX * ob_mat)
 
+            if EXPORT_TRI:
+                # _must_ do this first since it re-allocs arrays
+                mesh_triangulate(me)
+
             if EXPORT_UV:
                 faceuv = len(me.uv_textures) > 0
                 if faceuv:
@@ -396,9 +397,6 @@ def write_file(filepath, objects, scene,
                 bpy.data.meshes.remove(me)
 
                 continue  # dont bother with this mesh.
-
-            if EXPORT_TRI:
-                mesh_triangulate(me)
 
             if EXPORT_NORMALS and face_index_pairs:
                 me.calc_normals()
