@@ -359,7 +359,7 @@ def write_file(filepath, objects, scene,
             # END NURBS
 
             try:
-                me = ob.to_mesh(scene, EXPORT_APPLY_MODIFIERS, 'PREVIEW')
+                me = ob.to_mesh(scene, EXPORT_APPLY_MODIFIERS, 'PREVIEW', calc_tessface=False)
             except RuntimeError:
                 me = None
 
