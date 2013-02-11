@@ -89,7 +89,10 @@ bpy.cancelError = False
 bpy.texturePackError = False
 bpy.linkedFileError = False
 bpy.uploadInProgress = False
-bpy.originalFileName = bpy.data.filepath
+try:
+    bpy.originalFileName = bpy.data.filepath
+except:
+    bpy.originalFileName = 'untitled.blend'
 bpy.particleBakeWarning = False
 bpy.childParticleWarning = False
 bpy.simulationWarning = False
@@ -117,7 +120,7 @@ class ORESession(bpy.types.PropertyGroup):
 class ORESettings(bpy.types.PropertyGroup):
     username = StringProperty(name='E-mail', description='E-mail for Renderfarm.fi', maxlen=256, default='')
     password = StringProperty(name='Password', description='Renderfarm.fi password', maxlen=256, default='')
-    
+
     shortdesc = StringProperty(name='Short description', description='A short description of the scene (100 characters)', maxlen=101, default='-')
     tags = StringProperty(name='Tags', description='A list of tags that best suit the animation', maxlen=102, default='')
     longdesc = StringProperty(name='Description', description='Description of the scene (2k)', maxlen=2048, default='')
@@ -127,7 +130,7 @@ class ORESettings(bpy.types.PropertyGroup):
     samples = IntProperty(name='Samples', description='Number of samples that is used (Cycles only)', min=1, max=1000000, soft_min=1, soft_max=100000, default=100)
     subsamples = IntProperty(name='Subsample Frames', description='Number of subsample frames that is used (Cycles only)', min=1, max=1000000, soft_min=1, soft_max=1000, default=10)
     file_format = StringProperty(name='File format', description='File format used for the rendering', maxlen=30, default='PNG_FORMAT')
-    
+
     parts = IntProperty(name='Parts/Frame', description='', min=1, max=1000, soft_min=1, soft_max=64, default=1)
     resox = IntProperty(name='Resolution X', description='X of render', min=1, max=10000, soft_min=1, soft_max=10000, default=1920)
     resoy = IntProperty(name='Resolution Y', description='Y of render', min=1, max=10000, soft_min=1, soft_max=10000, default=1080)
@@ -135,12 +138,12 @@ class ORESettings(bpy.types.PropertyGroup):
     start = IntProperty(name='Start Frame', description='Start Frame', default=1)
     end = IntProperty(name='End Frame', description='End Frame', default=250)
     fps = IntProperty(name='FPS', description='FPS', min=1, max=120, default=25)
-    
+
     prepared = BoolProperty(name='Prepared', description='Set to True if preparation has been run', default=False)
     debug = BoolProperty(name='Debug', description='Verbose output in console', default=False)
     selected_session = IntProperty(name='Selected Session', description='The selected session', default=0)
     hasUnsupportedSimulation = BoolProperty(name='HasSimulation', description='Set to True if therea re unsupported simulations', default=False)
-    
+
     inlicense = EnumProperty(items=licenses, name='Scene license', description='License speficied for the source files', default='1')
     outlicense = EnumProperty(items=licenses, name='Product license', description='License speficied for the output files', default='1')
     sessions = CollectionProperty(type=ORESession, name='Sessions', description='Sessions on Renderfarm.fi')
@@ -155,11 +158,11 @@ class ORESettings(bpy.types.PropertyGroup):
 
 class RENDERFARM_MT_Session(bpy.types.Menu):
     bl_label = "Show Session"
-    
+
     def draw(self, context):
         layout = self.layout
         ore = context.scene.ore_render
-        
+
         if (bpy.loginInserted == True):
             layout.operator('ore.completed_sessions')
             layout.operator('ore.accept_sessions')

@@ -71,7 +71,7 @@ def isFilterNode(node):
     return t==bpy.types.CompositorNodeBlur or t==bpy.types.CompositorNodeDBlur
 
 def changeSettings():
-    
+
     sce = bpy.context.scene
     rd = sce.render
     ore = sce.ore_render
@@ -82,17 +82,17 @@ def changeSettings():
     sce.frame_start = ore.start
     sce.frame_end = ore.end
     rd.fps = ore.fps
-    
+
     bpy.file_format_warning = False
     bpy.simulationWarning = False
     bpy.texturePackError = False
     bpy.particleBakeWarning = False
     bpy.childParticleWarning = False
-    
+
     if (rd.image_settings.file_format == 'HDR'):
         rd.image_settings.file_format = 'PNG'
         bpy.file_format_warning = True
-    
+
     # Convert between Blender's image format and BURP's formats
     if (rd.image_settings.file_format == 'PNG'):
         ore.file_format = 'PNG_FORMAT'
@@ -104,26 +104,26 @@ def changeSettings():
         ore.file_format = 'PNG_FORMAT'
     else:
         ore.file_format = 'PNG_FORMAT'
-        
+
     if (ore.engine == 'cycles'):
         bpy.context.scene.cycles.samples = ore.samples
-        
+
     if (ore.subsamples <= 0):
         ore.subsamples = 1
-    
+
     if (ore.samples / ore.subsamples < 100.0):
         ore.subsamples = float(ore.samples) / 100.0
-        
+
     # Multipart support doesn' work if SSS is used
     if ((rd.use_sss == True and hasSSSMaterial()) and ore.parts > 1):
         ore.parts = 1;
-    
+
     if (hasParticleSystem()):
         tuneParticles()
     else:
         bpy.particleBakeWarning = False
         bpy.childParticleWarning = False
-    
+
     if (hasUnsupportedSimulation()):
         simulationWarning = True
     else:
@@ -133,7 +133,7 @@ def _prepare_scene():
     sce = bpy.context.scene
     rd = sce.render
     ore = sce.ore_render
-    
+
     changeSettings()
 
     print("Packing external textures...")
@@ -143,7 +143,7 @@ def _prepare_scene():
     except Exception as e:
         bpy.texturePackError = True
         print(e)
-    
+
     linkedData = bpy.utils.blend_paths()
     if (len(linkedData) > 0):
         print("Appending linked .blend files...")
@@ -155,10 +155,13 @@ def _prepare_scene():
             print(e)
     else:
         print("No external .blends used, skipping...")
-    
+
     # Save with a different name
     print("Saving into a new file...")
-    bpy.originalFileName = bpy.data.filepath
+    try:
+        bpy.originalFileName = bpy.data.filepath
+    except:
+        bpy.originalFileName = 'untitled.blend'
     print("Original path is " + bpy.originalFileName)
     try:
         # If the filename is empty, we'll make one from the path of the user's resource folder
@@ -184,7 +187,7 @@ def _prepare_scene():
             bpy.ops.wm.save_mainfile(filepath=savePath)
     except Exception as e:
         print(e)
-    
+
     print(".blend prepared")
 
 
