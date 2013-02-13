@@ -28,7 +28,7 @@ import shlex
 def imageConvertCompat(path):
 
     if os.sep == '\\':
-        return path  # assime win32 has quicktime, dont convert
+        return path  # assume win32 has quicktime, dont convert
 
     if path.lower().endswith('.gif'):
         path_to = path[:-3] + 'png'
@@ -1684,6 +1684,7 @@ def importMesh_IndexedFaceSet(geom, bpyima, ancestry):
 
     if len(bpymesh.tessfaces) != len(faces):
         print('\tWarning: adding faces did not work! file is invalid, not adding UVs or vcolors')
+        bpymesh.update()
         return bpymesh, ccw
 
     # Apply UVs if we have them
