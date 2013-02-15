@@ -157,17 +157,15 @@ def generate_rig(context, metarig):
 
         # rigify_type and rigify_parameters
         bone_gen.rigify_type = bone.rigify_type
-        if len(bone.rigify_parameters) > 0:
-            bone_gen.rigify_parameters.add()
-            for prop in dir(bone_gen.rigify_parameters[0]):
-                if (not prop.startswith("_")) \
-                and (not prop.startswith("bl_")) \
-                and (prop != "rna_type"):
-                    try:
-                        setattr(bone_gen.rigify_parameters[0], prop, \
-                                getattr(bone.rigify_parameters[0], prop))
-                    except AttributeError:
-                        print("FAILED TO COPY PARAMETER: " + str(prop))
+        for prop in dir(bone_gen.rigify_parameters):
+            if (not prop.startswith("_")) \
+            and (not prop.startswith("bl_")) \
+            and (prop != "rna_type"):
+                try:
+                    setattr(bone_gen.rigify_parameters, prop, \
+                            getattr(bone.rigify_parameters, prop))
+                except AttributeError:
+                    print("FAILED TO COPY PARAMETER: " + str(prop))
 
         # Custom properties
         for prop in bone.keys():
@@ -412,10 +410,7 @@ def get_bone_rigs(obj, bone_name, halt_on_missing=False):
         pass
     else:
         # Gather parameters
-        try:
-            params = obj.pose.bones[bone_name].rigify_parameters[0]
-        except (KeyError, IndexError):
-            params = None
+        params = obj.pose.bones[bone_name].rigify_parameters
 
         # Get the rig
         try:

@@ -122,18 +122,18 @@ class Rig:
                 create_bone_widget(self.obj, bone)
 
     @classmethod
-    def add_parameters(self, group):
+    def add_parameters(self, params):
         """ Add the parameters of this rig type to the
             RigifyParameters PropertyGroup
         """
-        group.make_controls = bpy.props.BoolProperty(name="Controls", default=True, description="Create control bones for the copy")
-        group.make_deforms = bpy.props.BoolProperty(name="Deform", default=True, description="Create deform bones for the copy")
+        params.make_controls = bpy.props.BoolProperty(name="Controls", default=True, description="Create control bones for the copy")
+        params.make_deforms = bpy.props.BoolProperty(name="Deform", default=True, description="Create deform bones for the copy")
 
     @classmethod
     def parameters_ui(self, layout, obj, bone):
         """ Create the ui for the rig parameters.
         """
-        params = obj.pose.bones[bone].rigify_parameters[0]
+        params = obj.pose.bones[bone].rigify_parameters
 
         r = layout.row()
         r.prop(params, "make_controls")
@@ -180,7 +180,6 @@ class Rig:
         pbone.lock_rotation_w = False
         pbone.lock_scale = (False, False, False)
         pbone.rotation_mode = 'QUATERNION'
-        pbone.rigify_parameters.add()
         pbone = obj.pose.bones[bones['bone.02']]
         pbone.rigify_type = ''
         pbone.lock_location = (False, False, False)

@@ -177,9 +177,6 @@ class BONE_PT_rigify_buttons(bpy.types.Panel):
 
         # Rig type parameters / Rig type non-exist alert
         if rig_name != "":
-            if len(bone.rigify_parameters) < 1:
-                bone.rigify_parameters.add()
-
             try:
                 rig = get_rig_type(rig_name)
                 rig.Rig

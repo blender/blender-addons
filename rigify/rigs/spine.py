@@ -483,30 +483,23 @@ class Rig:
         # Control appearance
         # Main
         pb[main_control].custom_shape_transform = pb[main_wgt2]
-        w = create_compass_widget(self.obj, main_control)
-        if w != None:
-            obj_to_bone(w, self.obj, main_wgt2)
+        w = create_compass_widget(self.obj, main_control, bone_transform_name=main_wgt2)
 
         # Spines
         for name, i in zip(controls[1:-1], self.control_indices[1:-1]):
             pb[name].custom_shape_transform = pb[self.org_bones[i]]
             # Create control widgets
-            w = create_circle_widget(self.obj, name, radius=1.0, head_tail=0.5, with_line=True)
-            if w != None:
-                obj_to_bone(w, self.obj, self.org_bones[i])
+            w = create_circle_widget(self.obj, name, radius=1.0, head_tail=0.5, with_line=True, bone_transform_name=self.org_bones[i])
+
         # Hips
         pb[controls[0]].custom_shape_transform = pb[self.org_bones[0]]
         # Create control widgets
-        w = create_circle_widget(self.obj, controls[0], radius=1.0, head_tail=0.5, with_line=True)
-        if w != None:
-            obj_to_bone(w, self.obj, self.org_bones[0])
+        w = create_circle_widget(self.obj, controls[0], radius=1.0, head_tail=0.5, with_line=True, bone_transform_name=self.org_bones[0])
 
         # Ribs
         pb[controls[-1]].custom_shape_transform = pb[self.org_bones[-1]]
         # Create control widgets
-        w = create_circle_widget(self.obj, controls[-1], radius=1.0, head_tail=0.5, with_line=True)
-        if w != None:
-            obj_to_bone(w, self.obj, self.org_bones[-1])
+        w = create_circle_widget(self.obj, controls[-1], radius=1.0, head_tail=0.5, with_line=True, bone_transform_name=self.org_bones[-1])
 
         # Layers
         pb[main_control].bone.layers = pb[self.org_bones[0]].bone.layers
@@ -526,19 +519,19 @@ class Rig:
         return [script % (controls[0], controls_string)]
 
     @classmethod
-    def add_parameters(self, group):
+    def add_parameters(self, params):
         """ Add the parameters of this rig type to the
             RigifyParameters PropertyGroup
         """
-        group.spine_main_control_name = bpy.props.StringProperty(name="Main control name", default="torso", description="Name that the main control bone should be given")
-        group.rest_pivot_slide = bpy.props.FloatProperty(name="Rest Pivot Slide", default=0.0, min=0.0, max=1.0, soft_min=0.0, soft_max=1.0, description="The pivot slide value in the rest pose")
-        group.chain_bone_controls = bpy.props.StringProperty(name="Control bone list", default="", description="Define which bones have controls")
+        params.spine_main_control_name = bpy.props.StringProperty(name="Main control name", default="torso", description="Name that the main control bone should be given")
+        params.rest_pivot_slide = bpy.props.FloatProperty(name="Rest Pivot Slide", default=0.0, min=0.0, max=1.0, soft_min=0.0, soft_max=1.0, description="The pivot slide value in the rest pose")
+        params.chain_bone_controls = bpy.props.StringProperty(name="Control bone list", default="", description="Define which bones have controls")
 
     @classmethod
     def parameters_ui(self, layout, obj, bone):
         """ Create the ui for the rig parameters.
         """
-        params = obj.pose.bones[bone].rigify_parameters[0]
+        params = obj.pose.bones[bone].rigify_parameters
 
         r = layout.row()
         r.prop(params, "spine_main_control_name")
@@ -602,8 +595,7 @@ class Rig:
         pbone.rotation_mode = 'QUATERNION'
         pbone = obj.pose.bones[bones['hips']]
         pbone['rigify_type'] = 'spine'
-        pbone.rigify_parameters.add()
-        pbone.rigify_parameters[0].chain_bone_controls = "1, 2, 3"
+        pbone.rigify_parameters.chain_bone_controls = "1, 2, 3"
 
         bpy.ops.object.mode_set(mode='EDIT')
         for bone in arm.edit_bones:

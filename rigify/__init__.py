@@ -131,7 +131,7 @@ def register():
     bpy.utils.register_class(RigifyArmatureLayer)
 
     bpy.types.PoseBone.rigify_type = bpy.props.StringProperty(name="Rigify Type", description="Rig type for this bone")
-    bpy.types.PoseBone.rigify_parameters = bpy.props.CollectionProperty(type=RigifyParameters)
+    bpy.types.PoseBone.rigify_parameters = bpy.props.PointerProperty(type=RigifyParameters)
 
     bpy.types.Armature.rigify_layers = bpy.props.CollectionProperty(type=RigifyArmatureLayer)
 

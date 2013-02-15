@@ -91,28 +91,28 @@ class Rig:
         return [script % (fk_controls[0], fk_controls[1], fk_controls[2], fk_controls[3], ik_controls[0], ik_controls[1], ik_controls[2], ik_controls[3], ik_controls[4], ik_controls[5])]
 
     @classmethod
-    def add_parameters(self, group):
+    def add_parameters(self, params):
         """ Add the parameters of this rig type to the
             RigifyParameters PropertyGroup
 
         """
         items = [('X', 'X', ''), ('Y', 'Y', ''), ('Z', 'Z', ''), ('-X', '-X', ''), ('-Y', '-Y', ''), ('-Z', '-Z', '')]
-        group.primary_rotation_axis = bpy.props.EnumProperty(items=items, name="Primary Rotation Axis", default='X')
+        params.primary_rotation_axis = bpy.props.EnumProperty(items=items, name="Primary Rotation Axis", default='X')
 
-        group.bend_hint = bpy.props.BoolProperty(name="Bend Hint", default=True, description="Give IK chain a hint about which way to bend (useful for perfectly straight chains)")
+        params.bend_hint = bpy.props.BoolProperty(name="Bend Hint", default=True, description="Give IK chain a hint about which way to bend (useful for perfectly straight chains)")
 
-        group.separate_ik_layers = bpy.props.BoolProperty(name="Separate IK Control Layers:", default=False, description="Enable putting the ik controls on a separate layer from the fk controls")
-        group.ik_layers = bpy.props.BoolVectorProperty(size=32, description="Layers for the ik controls to be on")
+        params.separate_ik_layers = bpy.props.BoolProperty(name="Separate IK Control Layers:", default=False, description="Enable putting the ik controls on a separate layer from the fk controls")
+        params.ik_layers = bpy.props.BoolVectorProperty(size=32, description="Layers for the ik controls to be on")
 
-        group.use_thigh_twist = bpy.props.BoolProperty(name="Thigh Twist", default=True, description="Generate the dual-bone twist setup for the thigh")
-        group.use_shin_twist = bpy.props.BoolProperty(name="Shin Twist", default=True, description="Generate the dual-bone twist setup for the shin")
+        params.use_thigh_twist = bpy.props.BoolProperty(name="Thigh Twist", default=True, description="Generate the dual-bone twist setup for the thigh")
+        params.use_shin_twist = bpy.props.BoolProperty(name="Shin Twist", default=True, description="Generate the dual-bone twist setup for the shin")
 
     @classmethod
     def parameters_ui(self, layout, obj, bone):
         """ Create the ui for the rig parameters.
 
         """
-        params = obj.pose.bones[bone].rigify_parameters[0]
+        params = obj.pose.bones[bone].rigify_parameters
 
         r = layout.row()
         r.prop(params, "separate_ik_layers")
@@ -229,7 +229,6 @@ class Rig:
         pbone.lock_rotation_w = False
         pbone.lock_scale = (False, False, False)
         pbone.rotation_mode = 'QUATERNION'
-        pbone.rigify_parameters.add()
         pbone = obj.pose.bones[bones['shin']]
         pbone.rigify_type = ''
         pbone.lock_location = (False, False, False)

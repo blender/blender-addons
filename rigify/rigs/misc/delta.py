@@ -114,7 +114,6 @@ class Rig:
         pbone.lock_rotation_w = False
         pbone.lock_scale = (False, False, False)
         pbone.rotation_mode = 'QUATERNION'
-        pbone.rigify_parameters.add()
         pbone = obj.pose.bones[bones['Bone']]
         pbone.rigify_type = ''
         pbone.lock_location = (False, False, False)

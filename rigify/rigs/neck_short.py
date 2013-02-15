@@ -313,13 +313,8 @@ class Rig:
             i += 1
 
         # Create control widgets
-        w1 = create_circle_widget(self.obj, neck_ctrl, radius=1.0, head_tail=0.5)
-        w2 = create_circle_widget(self.obj, head_ctrl, radius=1.0, head_tail=0.5)
-
-        if w1 != None:
-            obj_to_bone(w1, self.obj, self.org_bones[(len(self.org_bones) - 1) // 2])
-        if w2 != None:
-            obj_to_bone(w2, self.obj, self.org_bones[-1])
+        w1 = create_circle_widget(self.obj, neck_ctrl, radius=1.0, head_tail=0.5, bone_transform_name=self.org_bones[(len(self.org_bones) - 1) // 2])
+        w2 = create_circle_widget(self.obj, head_ctrl, radius=1.0, head_tail=0.5, bone_transform_name=self.org_bones[-1])
 
         # Return control bones
         return (head_ctrl, neck_ctrl)
@@ -370,7 +365,6 @@ class Rig:
         pbone.lock_rotation_w = False
         pbone.lock_scale = (False, False, False)
         pbone.rotation_mode = 'QUATERNION'
-        pbone.rigify_parameters.add()
         pbone = obj.pose.bones[bones['head']]
         pbone.rigify_type = ''
         pbone.lock_location = (False, False, False)

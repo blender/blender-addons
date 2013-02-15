@@ -275,23 +275,23 @@ class Rig:
         self.control()
 
     @classmethod
-    def add_parameters(self, group):
+    def add_parameters(self, params):
         """ Add the parameters of this rig type to the
             RigifyParameters PropertyGroup
         """
         items = [('X', 'X', ''), ('Y', 'Y', ''), ('Z', 'Z', ''), ('-X', '-X', ''), ('-Y', '-Y', ''), ('-Z', '-Z', '')]
-        group.primary_rotation_axis = bpy.props.EnumProperty(items=items, name="Primary Rotation Axis", default='X')
+        params.primary_rotation_axis = bpy.props.EnumProperty(items=items, name="Primary Rotation Axis", default='X')
 
-        group.separate_extra_layers = bpy.props.BoolProperty(name="Separate Secondary Control Layers:", default=False, description="Enable putting the secondary controls on a separate layer from the primary controls")
-        group.extra_layers = bpy.props.BoolVectorProperty(size=32, description="Layers for the secondary controls to be on")
+        params.separate_extra_layers = bpy.props.BoolProperty(name="Separate Secondary Control Layers:", default=False, description="Enable putting the secondary controls on a separate layer from the primary controls")
+        params.extra_layers = bpy.props.BoolVectorProperty(size=32, description="Layers for the secondary controls to be on")
 
-        group.use_digit_twist = bpy.props.BoolProperty(name="Digit Twist", default=True, description="Generate the dual-bone twist setup for the first finger digit")
+        params.use_digit_twist = bpy.props.BoolProperty(name="Digit Twist", default=True, description="Generate the dual-bone twist setup for the first finger digit")
 
     @classmethod
     def parameters_ui(self, layout, obj, bone):
         """ Create the ui for the rig parameters.
         """
-        params = obj.pose.bones[bone].rigify_parameters[0]
+        params = obj.pose.bones[bone].rigify_parameters
 
         r = layout.row()
         r.prop(params, "separate_extra_layers")
@@ -383,7 +383,6 @@ class Rig:
         pbone.lock_rotation_w = False
         pbone.lock_scale = (False, False, False)
         pbone.rotation_mode = 'YZX'
-        pbone.rigify_parameters.add()
         pbone = obj.pose.bones[bones['finger.02']]
         pbone.rigify_type = ''
         pbone.lock_location = (False, False, False)

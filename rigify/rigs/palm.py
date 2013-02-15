@@ -161,20 +161,20 @@ class Rig:
             mod.levels = 2
 
     @classmethod
-    def add_parameters(self, group):
+    def add_parameters(self, params):
         """ Add the parameters of this rig type to the
             RigifyParameters PropertyGroup
 
         """
         items = [('X', 'X', ''), ('Z', 'Z', '')]
-        group.palm_rotation_axis = bpy.props.EnumProperty(items=items, name="Palm Rotation Axis", default='X')
+        params.palm_rotation_axis = bpy.props.EnumProperty(items=items, name="Palm Rotation Axis", default='X')
 
     @classmethod
     def parameters_ui(self, layout, obj, bone):
         """ Create the ui for the rig parameters.
 
         """
-        params = obj.pose.bones[bone].rigify_parameters[0]
+        params = obj.pose.bones[bone].rigify_parameters
 
         r = layout.row()
         r.label(text="Primary rotation axis:")
@@ -259,7 +259,6 @@ class Rig:
         pbone.lock_rotation_w = False
         pbone.lock_scale = (False, False, False)
         pbone.rotation_mode = 'YXZ'
-        pbone.rigify_parameters.add()
 
         bpy.ops.object.mode_set(mode='EDIT')
         for bone in arm.edit_bones:
