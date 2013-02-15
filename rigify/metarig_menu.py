@@ -61,15 +61,15 @@ def make_metarig_add_execute(m):
         bpy.ops.object.armature_add()
         obj = context.active_object
         obj.name = "metarig"
-        
+
         # Remove default bone
         bpy.ops.object.mode_set(mode='EDIT')
         bones = context.active_object.data.edit_bones
         bones.remove(bones[0])
-        
+
         # Create metarig
         m.create(obj)
-        
+
         bpy.ops.object.mode_set(mode='OBJECT')
         return {'FINISHED'}
     return execute
@@ -84,7 +84,6 @@ def make_metarig_menu_func(bl_idname, text):
     return metarig_menu
 
 
-
 # Get the metarig modules
 metarigs = get_metarig_list("")
 
@@ -92,21 +91,20 @@ metarigs = get_metarig_list("")
 metarig_ops = []
 for m in metarigs:
     name = m.__name__.rsplit('.', 1)[1]
-    
+
     # Dynamically construct an Operator
     T = type("Add_" + name + "_Metarig", (bpy.types.Operator,), {})
     T.bl_idname = "object.armature_" + name + "_metarig_add"
     T.bl_label = "Add " + name.replace("_", " ").capitalize() + " (metarig)"
     T.bl_options = {'REGISTER', 'UNDO'}
     T.execute = make_metarig_add_execute(m)
-        
+
     metarig_ops.append((T, name))
 
 # Create menu functions
 menu_funcs = []
 for mop, name in metarig_ops:
     text = capwords(name.replace("_", " ")) + " (Meta-Rig)"
-    
     menu_funcs += [make_metarig_menu_func(mop.bl_idname, text)]
 
 
@@ -116,6 +114,7 @@ def register():
 
     for mf in menu_funcs:
         bpy.types.INFO_MT_armature_add.append(mf)
+
 
 def unregister():
     for mop in metarig_ops:
