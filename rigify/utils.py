@@ -281,6 +281,7 @@ def create_widget(rig, bone_name, bone_transform_name=None):
         # This is necessary so we can then create the object without
         # name conflicts.
         if obj_name in bpy.data.objects:
+            bpy.data.objects[obj_name].user_clear()
             bpy.data.objects.remove(bpy.data.objects[obj_name])
         
         # Create mesh object
