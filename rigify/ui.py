@@ -101,8 +101,14 @@ class DATA_PT_rigify_layer_names(bpy.types.Panel):
         obj = context.object
 
         # Ensure that the layers exist
-        for i in range(1 + len(obj.data.rigify_layers), 29):
-            obj.data.rigify_layers.add()
+        if 0:
+            for i in range(1 + len(obj.data.rigify_layers), 29):
+                obj.data.rigify_layers.add()
+        else:
+            # Can't add while drawing, just use button
+            if len(obj.data.rigify_layers) < 28:
+                layout.operator("pose.rigify_layer_init")
+                return
 
         # UI
         for i in range(28):
@@ -229,6 +235,20 @@ def rigify_report_exception(operator, exception):
     operator.report({'INFO'}, '\n'.join(message))
 
 
+class LayerInit(bpy.types.Operator):
+    """Initialize armature rigify layers"""
+
+    bl_idname = "pose.rigify_layer_init"
+    bl_label = "Add Rigify Layers"
+    bl_options = {'UNDO'}
+
+    def execute(self, context):
+        obj = context.object
+        for i in range(1 + len(obj.data.rigify_layers), 29):
+            obj.data.rigify_layers.add()
+        return {'FINISHED'}
+
+
 class Generate(bpy.types.Operator):
     """Generates a rig from the active metarig armature"""
 
@@ -292,6 +312,7 @@ def register():
     bpy.utils.register_class(DATA_PT_rigify_layer_names)
     bpy.utils.register_class(DATA_PT_rigify_buttons)
     bpy.utils.register_class(BONE_PT_rigify_buttons)
+    bpy.utils.register_class(LayerInit)
     bpy.utils.register_class(Generate)
     bpy.utils.register_class(Sample)
 
@@ -302,5 +323,6 @@ def unregister():
     bpy.utils.unregister_class(DATA_PT_rigify_layer_names)
     bpy.utils.unregister_class(DATA_PT_rigify_buttons)
     bpy.utils.unregister_class(BONE_PT_rigify_buttons)
+    bpy.utils.unregister_class(LayerInit)
     bpy.utils.unregister_class(Generate)
     bpy.utils.unregister_class(Sample)
