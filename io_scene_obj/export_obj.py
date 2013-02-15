@@ -124,7 +124,7 @@ def write_mtl(scene, filepath, path_mode, copy_set, mtl_dict):
             image_map = {}
             # backwards so topmost are highest priority
             for mtex in reversed(mat.texture_slots):
-                if mtex and mtex.texture.type == 'IMAGE':
+                if mtex and mtex.texture and mtex.texture.type == 'IMAGE':
                     image = mtex.texture.image
                     if image:
                         # texface overrides others
