@@ -26,6 +26,7 @@ from mathutils import Vector
 from rna_prop_ui import rna_idprop_ui_prop_get
 
 RIG_DIR = "rigs"  # Name of the directory where rig types are kept
+METARIG_DIR = "metarigs"  # Name of the directory where metarigs are kept
 
 ORG_PREFIX = "ORG-"  # Prefix of original bones.
 MCH_PREFIX = "MCH-"  # Prefix of mechanism bones.
@@ -414,6 +415,18 @@ def get_rig_type(rig_type):
     """
     #print("%s.%s.%s" % (__package__,RIG_DIR,rig_type))
     name="%s.%s.%s" % (MODULE_NAME, RIG_DIR, rig_type)
+    submod = __import__(name)
+    for c in (name.split("."))[1:]:
+        submod = getattr(submod, c)
+    imp.reload(submod)
+    return submod
+
+
+def get_metarig_module(metarig):
+    """ Fetches a rig module by name, and returns it.
+    """
+    #print("%s.%s.%s" % (__package__,METARIG_DIR,metarig))
+    name="%s.%s.%s" % (MODULE_NAME, METARIG_DIR, metarig)
     submod = __import__(name)
     for c in (name.split("."))[1:]:
         submod = getattr(submod, c)
