@@ -67,7 +67,7 @@ class DATA_PT_rigify_buttons(bpy.types.Panel):
                 elif r.startswith(collection_name + '.'):
                     a = id_store.rigify_types.add()
                     a.name = r
-                elif collection_name == "None" and len(r.split('.')) == 1:
+                elif (collection_name == "None") and ("." not in r):
                     a = id_store.rigify_types.add()
                     a.name = r
 
@@ -79,8 +79,8 @@ class DATA_PT_rigify_buttons(bpy.types.Panel):
             row = layout.row()
             row.template_list("UI_UL_list", "", id_store, "rigify_types", id_store, 'rigify_active_type')
 
-            op = layout.operator("armature.metarig_sample_add", text="Add sample")
-            op.metarig_type = id_store.rigify_types[id_store.rigify_active_type].name
+            props = layout.operator("armature.metarig_sample_add", text="Add sample")
+            props.metarig_type = id_store.rigify_types[id_store.rigify_active_type].name
 
 
 class DATA_PT_rigify_layer_names(bpy.types.Panel):
@@ -99,19 +99,21 @@ class DATA_PT_rigify_layer_names(bpy.types.Panel):
     def draw(self, context):
         layout = self.layout
         obj = context.object
+        arm = obj.data
 
         # Ensure that the layers exist
         if 0:
-            for i in range(1 + len(obj.data.rigify_layers), 29):
-                obj.data.rigify_layers.add()
+            for i in range(1 + len(arm.rigify_layers), 29):
+                arm.rigify_layers.add()
         else:
             # Can't add while drawing, just use button
-            if len(obj.data.rigify_layers) < 28:
+            if len(arm.rigify_layers) < 28:
                 layout.operator("pose.rigify_layer_init")
                 return
 
         # UI
-        for i in range(28):
+        for i, rigify_layer in enumerate(arm.rigify_layers):
+            # note: rigify_layer == arm.rigify_layers[i]
             if (i % 16) == 0:
                 col = layout.column()
                 if i == 0:
@@ -121,11 +123,11 @@ class DATA_PT_rigify_layer_names(bpy.types.Panel):
             if (i % 8) == 0:
                 col = layout.column(align=True)
             row = col.row()
-            row.prop(obj.data, "layers", index=i, text="", toggle=True)
+            row.prop(arm, "layers", index=i, text="", toggle=True)
             split = row.split(percentage=0.8)
-            split.prop(obj.data.rigify_layers[i], "name", text="Layer %d" % (i + 1))
-            split.prop(obj.data.rigify_layers[i], "row", text="")
-            #split.prop(obj.data.rigify_layers[i], "column", text="")
+            split.prop(rigify_layer, "name", text="Layer %d" % (i + 1))
+            split.prop(rigify_layer, "row", text="")
+            #split.prop(rigify_layer, "column", text="")
 
 
 class BONE_PT_rigify_buttons(bpy.types.Panel):
@@ -244,8 +246,9 @@ class LayerInit(bpy.types.Operator):
 
     def execute(self, context):
         obj = context.object
-        for i in range(1 + len(obj.data.rigify_layers), 29):
-            obj.data.rigify_layers.add()
+        arm = obj.data
+        for i in range(1 + len(arm.rigify_layers), 29):
+            arm.rigify_layers.add()
         return {'FINISHED'}
 
 
