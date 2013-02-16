@@ -21,7 +21,7 @@
 import bpy
 from bpy.props import StringProperty
 
-from .utils import get_rig_type, MetarigError
+from .utils import get_rig_type, write_metarig, MetarigError
 from . import rig_lists
 from . import generate
 
@@ -196,6 +196,22 @@ class BONE_PT_rigify_buttons(bpy.types.Panel):
                     rig.parameters_ui(box, bone.rigify_parameters)
 
 
+class VIEW3D_PT_tools_rigify_dev(bpy.types.Panel):
+    bl_label = "Rigify Dev Tools"
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'TOOLS'
+
+    @classmethod
+    def poll(cls, context):
+        return obj.mode == 'EDIT_ARMATURE'
+
+    def draw(self, context):
+        r = self.layout.row()
+        r.operator("armature.rigify_encode_metarig", text="Encode Metarig to Python")
+        r = self.layout.row()
+        r.operator("armature.rigify_encode_metarig_sample", text="Encode Sample to Python")
+
+
 #~ class INFO_MT_armature_metarig_add(bpy.types.Menu):
     #~ bl_idname = "INFO_MT_armature_metarig_add"
     #~ bl_label = "Meta-Rig"
@@ -303,6 +319,61 @@ class Sample(bpy.types.Operator):
         return {'FINISHED'}
 
 
+class EncodeMetarig(bpy.types.Operator):
+    """ Creates Python code that will generate the selected metarig.
+    """
+    bl_idname = "armature.rigify_encode_metarig"
+    bl_label = "Rigify Encode Metarig"
+    bl_options = {'UNDO'}
+
+    @classmethod
+    def poll(self, context):
+        return context.mode == 'EDIT_ARMATURE'
+
+    def execute(self, context):
+        name = "metarig.py"
+
+        if name in bpy.data.texts:
+            text_block = bpy.data.texts[name]
+            text_block.clear()
+        else:
+            text_block = bpy.data.texts.new(name)
+
+        text = write_metarig(context.active_object, layers=True, func_name="create")
+        text_block.write(text)
+        bpy.ops.object.mode_set(mode='EDIT')
+
+        return {'FINISHED'}
+
+
+class EncodeMetarigSample(bpy.types.Operator):
+    """ Creates Python code that will generate the selected metarig
+        as a sample.
+    """
+    bl_idname = "armature.rigify_encode_metarig_sample"
+    bl_label = "Rigify Encode Metarig Sample"
+    bl_options = {'UNDO'}
+
+    @classmethod
+    def poll(self, context):
+        return context.mode == 'EDIT_ARMATURE'
+
+    def execute(self, context):
+        name = "metarig_sample.py"
+
+        if name in bpy.data.texts:
+            text_block = bpy.data.texts[name]
+            text_block.clear()
+        else:
+            text_block = bpy.data.texts.new(name)
+
+        text = write_metarig(context.active_object, layers=False, func_name="create_sample")
+        text_block.write(text)
+        bpy.ops.object.mode_set(mode='EDIT')
+
+        return {'FINISHED'}
+
+
 #menu_func = (lambda self, context: self.layout.menu("INFO_MT_armature_metarig_add", icon='OUTLINER_OB_ARMATURE'))
 
 #from bl_ui import space_info  # ensure the menu is loaded first
@@ -311,9 +382,12 @@ def register():
     bpy.utils.register_class(DATA_PT_rigify_layer_names)
     bpy.utils.register_class(DATA_PT_rigify_buttons)
     bpy.utils.register_class(BONE_PT_rigify_buttons)
+    bpy.utils.register_class(VIEW3D_PT_tools_rigify_dev)
     bpy.utils.register_class(LayerInit)
     bpy.utils.register_class(Generate)
     bpy.utils.register_class(Sample)
+    bpy.utils.register_class(EncodeMetarig)
+    bpy.utils.register_class(EncodeMetarigSample)
 
     #space_info.INFO_MT_armature_add.append(ui.menu_func)
 
@@ -322,6 +396,9 @@ def unregister():
     bpy.utils.unregister_class(DATA_PT_rigify_layer_names)
     bpy.utils.unregister_class(DATA_PT_rigify_buttons)
     bpy.utils.unregister_class(BONE_PT_rigify_buttons)
+    bpy.utils.unregister_class(VIEW3D_PT_tools_rigify_dev)
     bpy.utils.unregister_class(LayerInit)
     bpy.utils.unregister_class(Generate)
     bpy.utils.unregister_class(Sample)
+    bpy.utils.unregister_class(EncodeMetarig)
+    bpy.utils.unregister_class(EncodeMetarigSample)
