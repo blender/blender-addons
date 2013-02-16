@@ -20,6 +20,7 @@
 
 """ TODO:
     - Add parameters for bone transform alphas.
+    - Add IK spine controls
 """
 
 from math import floor
@@ -32,7 +33,7 @@ from ..utils import MetarigError
 from ..utils import copy_bone, new_bone, flip_bone, put_bone
 from ..utils import connected_children_names
 from ..utils import strip_org, make_mechanism_name, make_deformer_name
-from ..utils import obj_to_bone, create_circle_widget, create_compass_widget
+from ..utils import obj_to_bone, create_circle_widget, create_cube_widget
 
 script = """
 main = "%s"
@@ -73,6 +74,7 @@ class Rig:
         self.control_indices.sort()
 
         self.pivot_rest = self.params.rest_pivot_slide
+        # Clamp pivot_rest to within the middle bones of the spine
         self.pivot_rest = max(self.pivot_rest, 1.0 / len(self.org_bones))
         self.pivot_rest = min(self.pivot_rest, 1.0 - (1.0 / len(self.org_bones)))
 
@@ -148,21 +150,11 @@ class Rig:
         # Create main control bone
         main_control = new_bone(self.obj, self.params.spine_main_control_name)
 
-        # Create main control WGT bones
-        main_wgt1 = new_bone(self.obj, make_mechanism_name(self.params.spine_main_control_name + ".01"))
-        main_wgt2 = new_bone(self.obj, make_mechanism_name(self.params.spine_main_control_name + ".02"))
-
         eb = self.obj.data.edit_bones
 
         # Parent the main control
         eb[main_control].use_connect = False
         eb[main_control].parent = eb[self.org_bones[0]].parent
-
-        # Parent the main WGTs
-        eb[main_wgt1].use_connect = False
-        eb[main_wgt1].parent = eb[main_control]
-        eb[main_wgt2].use_connect = False
-        eb[main_wgt2].parent = eb[main_wgt1]
 
         # Parent the controls and sub-controls
         for name, subname in zip(controls, subcontrols):
@@ -180,12 +172,6 @@ class Rig:
         # Position the main bone
         put_bone(self.obj, main_control, pivot_rest_pos)
         eb[main_control].length = sum([eb[b].length for b in self.org_bones]) / 2
-
-        # Position the main WGTs
-        eb[main_wgt1].tail = (0.0, 0.0, sum([eb[b].length for b in self.org_bones]) / 4)
-        eb[main_wgt2].length = sum([eb[b].length for b in self.org_bones]) / 4
-        put_bone(self.obj, main_wgt1, pivot_rest_pos)
-        put_bone(self.obj, main_wgt2, pivot_rest_pos)
 
         # Position the controls and sub-controls
         pos = eb[controls[0]].head.copy()
@@ -379,11 +365,6 @@ class Rig:
         con.target = self.obj
         con.subtarget = rev_bones[0]
 
-        con = pb[main_wgt1].constraints.new('COPY_ROTATION')
-        con.name = "copy_rotation"
-        con.target = self.obj
-        con.subtarget = rev_bones[0]
-
         # Slide constraints
         i = 1
         tot = len(rev_bones)
@@ -406,26 +387,6 @@ class Rig:
             mod = fcurve.modifiers[0]
             mod.poly_order = 1
             mod.coefficients[0] = 1 - i
-            mod.coefficients[1] = tot
-
-            # Main WGT
-            con = pb[main_wgt1].constraints.new('COPY_ROTATION')
-            con.name = "slide." + str(i)
-            con.target = self.obj
-            con.subtarget = rb
-
-            # Driver
-            fcurve = con.driver_add("influence")
-            driver = fcurve.driver
-            var = driver.variables.new()
-            driver.type = 'AVERAGE'
-            var.name = "slide"
-            var.targets[0].id_type = 'OBJECT'
-            var.targets[0].id = self.obj
-            var.targets[0].data_path = main_control_p.path_from_id() + '["pivot_slide"]'
-            mod = fcurve.modifiers[0]
-            mod.poly_order = 1
-            mod.coefficients[0] = 1.5 - i
             mod.coefficients[1] = tot
 
             i += 1
@@ -482,8 +443,7 @@ class Rig:
 
         # Control appearance
         # Main
-        pb[main_control].custom_shape_transform = pb[main_wgt2]
-        w = create_compass_widget(self.obj, main_control, bone_transform_name=main_wgt2)
+        w = create_cube_widget(self.obj, main_control)
 
         # Spines
         for name, i in zip(controls[1:-1], self.control_indices[1:-1]):

@@ -25,7 +25,7 @@ from mathutils import Vector
 from ....utils import MetarigError
 from ....utils import copy_bone
 from ....utils import connected_children_names, has_connected_children
-from ....utils import strip_org, make_mechanism_name
+from ....utils import strip_org, make_mechanism_name, insert_before_lr
 from ....utils import get_layers
 from ....utils import create_widget, create_limb_widget
 
@@ -99,9 +99,9 @@ class Rig:
         bpy.ops.object.mode_set(mode='EDIT')
 
         # Create the control bones
-        thigh = copy_bone(self.obj, self.org_bones[0], strip_org(self.org_bones[0]))
-        shin = copy_bone(self.obj, self.org_bones[1], strip_org(self.org_bones[1]))
-        foot = copy_bone(self.obj, self.org_bones[2], strip_org(self.org_bones[2]))
+        thigh = copy_bone(self.obj, self.org_bones[0], strip_org(insert_before_lr(self.org_bones[0], ".fk")))
+        shin = copy_bone(self.obj, self.org_bones[1], strip_org(insert_before_lr(self.org_bones[1], ".fk")))
+        foot = copy_bone(self.obj, self.org_bones[2], strip_org(insert_before_lr(self.org_bones[2], ".fk")))
 
         # Create the foot mechanism bone
         foot_mch = copy_bone(self.obj, self.org_bones[2], make_mechanism_name(strip_org(self.org_bones[2])))

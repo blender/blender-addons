@@ -24,7 +24,7 @@ from rna_prop_ui import rna_idprop_ui_prop_get
 from ....utils import MetarigError
 from ....utils import copy_bone
 from ....utils import connected_children_names
-from ....utils import strip_org, make_mechanism_name
+from ....utils import strip_org, make_mechanism_name, insert_before_lr
 from ....utils import get_layers
 from ....utils import create_widget, create_limb_widget
 
@@ -73,9 +73,9 @@ class Rig:
         bpy.ops.object.mode_set(mode='EDIT')
 
         # Create the control bones
-        uarm = copy_bone(self.obj, self.org_bones[0], strip_org(self.org_bones[0]))
-        farm = copy_bone(self.obj, self.org_bones[1], strip_org(self.org_bones[1]))
-        hand = copy_bone(self.obj, self.org_bones[2], strip_org(self.org_bones[2]))
+        uarm = copy_bone(self.obj, self.org_bones[0], strip_org(insert_before_lr(self.org_bones[0], ".fk")))
+        farm = copy_bone(self.obj, self.org_bones[1], strip_org(insert_before_lr(self.org_bones[1], ".fk")))
+        hand = copy_bone(self.obj, self.org_bones[2], strip_org(insert_before_lr(self.org_bones[2], ".fk")))
 
         # Create the hinge bones
         if self.org_parent != None:

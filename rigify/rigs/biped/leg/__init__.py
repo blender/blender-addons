@@ -100,6 +100,8 @@ class Rig:
         params.primary_rotation_axis = bpy.props.EnumProperty(items=items, name="Primary Rotation Axis", default='X')
 
         params.bend_hint = bpy.props.BoolProperty(name="Bend Hint", default=True, description="Give IK chain a hint about which way to bend (useful for perfectly straight chains)")
+        params.knee_target_base_name = bpy.props.StringProperty(name="Knee Target Name", default="knee_target", description="Base name for the generated knee target.")
+
 
         params.separate_ik_layers = bpy.props.BoolProperty(name="Separate IK Control Layers:", default=False, description="Enable putting the ik controls on a separate layer from the fk controls")
         params.ik_layers = bpy.props.BoolVectorProperty(size=32, description="Layers for the ik controls to be on")
@@ -113,6 +115,9 @@ class Rig:
 
         """
         params = obj.pose.bones[bone].rigify_parameters
+
+        r = layout.row()
+        r.prop(params, "knee_target_base_name")
 
         r = layout.row()
         r.prop(params, "separate_ik_layers")

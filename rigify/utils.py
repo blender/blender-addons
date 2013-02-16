@@ -331,6 +331,19 @@ def create_circle_widget(rig, bone_name, radius=1.0, head_tail=0.0, with_line=Fa
         return None
 
 
+def create_cube_widget(rig, bone_name, radius=0.5, bone_transform_name=None):
+    """ Creates a basic cube widget.
+    """
+    obj = create_widget(rig, bone_name, bone_transform_name)
+    if obj != None:
+        r = radius
+        verts = [(r, r, r), (r, -r, r), (-r, -r, r), (-r, r, r), (r, r, -r), (r, -r, -r), (-r, -r, -r), (-r, r, -r)]
+        edges = [(0, 1), (1, 2), (2, 3), (3, 0), (4, 5), (5, 6), (6, 7), (7, 4), (0, 4), (1, 5), (2, 6), (3, 7)]
+        mesh = obj.data
+        mesh.from_pydata(verts, edges, [])
+        mesh.update()
+
+
 def create_sphere_widget(rig, bone_name, bone_transform_name=None):
     """ Creates a basic sphere widget, three pependicular overlapping circles.
     """
