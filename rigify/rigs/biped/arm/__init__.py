@@ -88,151 +88,149 @@ class Rig:
         ik_controls = self.ik_rig.generate()
         return [script % (fk_controls[0], fk_controls[1], fk_controls[2], ik_controls[0], ik_controls[1], ik_controls[2], ik_controls[3])]
 
-    @classmethod
-    def add_parameters(self, params):
-        """ Add the parameters of this rig type to the
-            RigifyParameters PropertyGroup
 
-        """
-        items = [('X', 'X', ''), ('Y', 'Y', ''), ('Z', 'Z', ''), ('-X', '-X', ''), ('-Y', '-Y', ''), ('-Z', '-Z', '')]
-        params.primary_rotation_axis = bpy.props.EnumProperty(items=items, name="Primary Rotation Axis", default='X')
+def add_parameters(params):
+    """ Add the parameters of this rig type to the
+        RigifyParameters PropertyGroup
 
-        params.bend_hint = bpy.props.BoolProperty(name="Bend Hint", default=True, description="Give IK chain a hint about which way to bend.  Useful for perfectly straight chains")
-        params.elbow_target_base_name = bpy.props.StringProperty(name="Elbow Target Name", default="elbow_target", description="Base name for the generated elbow target.")
+    """
+    items = [('X', 'X', ''), ('Y', 'Y', ''), ('Z', 'Z', ''), ('-X', '-X', ''), ('-Y', '-Y', ''), ('-Z', '-Z', '')]
+    params.primary_rotation_axis = bpy.props.EnumProperty(items=items, name="Primary Rotation Axis", default='X')
 
-        params.separate_ik_layers = bpy.props.BoolProperty(name="Separate IK Control Layers:", default=False, description="Enable putting the ik controls on a separate layer from the fk controls")
-        params.ik_layers = bpy.props.BoolVectorProperty(size=32, description="Layers for the ik controls to be on")
+    params.bend_hint = bpy.props.BoolProperty(name="Bend Hint", default=True, description="Give IK chain a hint about which way to bend.  Useful for perfectly straight chains")
+    params.elbow_target_base_name = bpy.props.StringProperty(name="Elbow Target Name", default="elbow_target", description="Base name for the generated elbow target.")
 
-        params.use_upper_arm_twist = bpy.props.BoolProperty(name="Upper Arm Twist", default=True, description="Generate the dual-bone twist setup for the upper arm")
-        params.use_forearm_twist = bpy.props.BoolProperty(name="Forearm Twist", default=True, description="Generate the dual-bone twist setup for the forearm")
+    params.separate_ik_layers = bpy.props.BoolProperty(name="Separate IK Control Layers:", default=False, description="Enable putting the ik controls on a separate layer from the fk controls")
+    params.ik_layers = bpy.props.BoolVectorProperty(size=32, description="Layers for the ik controls to be on")
 
-    @classmethod
-    def parameters_ui(self, layout, obj, bone):
-        """ Create the ui for the rig parameters.
+    params.use_upper_arm_twist = bpy.props.BoolProperty(name="Upper Arm Twist", default=True, description="Generate the dual-bone twist setup for the upper arm")
+    params.use_forearm_twist = bpy.props.BoolProperty(name="Forearm Twist", default=True, description="Generate the dual-bone twist setup for the forearm")
 
-        """
-        params = obj.pose.bones[bone].rigify_parameters
 
-        r = layout.row()
-        r.prop(params, "elbow_target_base_name")
+def parameters_ui(layout, params):
+    """ Create the ui for the rig parameters.
 
-        r = layout.row()
-        r.prop(params, "separate_ik_layers")
+    """
+    r = layout.row()
+    r.prop(params, "elbow_target_base_name")
 
-        r = layout.row()
-        r.active = params.separate_ik_layers
+    r = layout.row()
+    r.prop(params, "separate_ik_layers")
 
-        col = r.column(align=True)
-        row = col.row(align=True)
-        row.prop(params, "ik_layers", index=0, toggle=True, text="")
-        row.prop(params, "ik_layers", index=1, toggle=True, text="")
-        row.prop(params, "ik_layers", index=2, toggle=True, text="")
-        row.prop(params, "ik_layers", index=3, toggle=True, text="")
-        row.prop(params, "ik_layers", index=4, toggle=True, text="")
-        row.prop(params, "ik_layers", index=5, toggle=True, text="")
-        row.prop(params, "ik_layers", index=6, toggle=True, text="")
-        row.prop(params, "ik_layers", index=7, toggle=True, text="")
-        row = col.row(align=True)
-        row.prop(params, "ik_layers", index=16, toggle=True, text="")
-        row.prop(params, "ik_layers", index=17, toggle=True, text="")
-        row.prop(params, "ik_layers", index=18, toggle=True, text="")
-        row.prop(params, "ik_layers", index=19, toggle=True, text="")
-        row.prop(params, "ik_layers", index=20, toggle=True, text="")
-        row.prop(params, "ik_layers", index=21, toggle=True, text="")
-        row.prop(params, "ik_layers", index=22, toggle=True, text="")
-        row.prop(params, "ik_layers", index=23, toggle=True, text="")
+    r = layout.row()
+    r.active = params.separate_ik_layers
 
-        col = r.column(align=True)
-        row = col.row(align=True)
-        row.prop(params, "ik_layers", index=8, toggle=True, text="")
-        row.prop(params, "ik_layers", index=9, toggle=True, text="")
-        row.prop(params, "ik_layers", index=10, toggle=True, text="")
-        row.prop(params, "ik_layers", index=11, toggle=True, text="")
-        row.prop(params, "ik_layers", index=12, toggle=True, text="")
-        row.prop(params, "ik_layers", index=13, toggle=True, text="")
-        row.prop(params, "ik_layers", index=14, toggle=True, text="")
-        row.prop(params, "ik_layers", index=15, toggle=True, text="")
-        row = col.row(align=True)
-        row.prop(params, "ik_layers", index=24, toggle=True, text="")
-        row.prop(params, "ik_layers", index=25, toggle=True, text="")
-        row.prop(params, "ik_layers", index=26, toggle=True, text="")
-        row.prop(params, "ik_layers", index=27, toggle=True, text="")
-        row.prop(params, "ik_layers", index=28, toggle=True, text="")
-        row.prop(params, "ik_layers", index=29, toggle=True, text="")
-        row.prop(params, "ik_layers", index=30, toggle=True, text="")
-        row.prop(params, "ik_layers", index=31, toggle=True, text="")
+    col = r.column(align=True)
+    row = col.row(align=True)
+    row.prop(params, "ik_layers", index=0, toggle=True, text="")
+    row.prop(params, "ik_layers", index=1, toggle=True, text="")
+    row.prop(params, "ik_layers", index=2, toggle=True, text="")
+    row.prop(params, "ik_layers", index=3, toggle=True, text="")
+    row.prop(params, "ik_layers", index=4, toggle=True, text="")
+    row.prop(params, "ik_layers", index=5, toggle=True, text="")
+    row.prop(params, "ik_layers", index=6, toggle=True, text="")
+    row.prop(params, "ik_layers", index=7, toggle=True, text="")
+    row = col.row(align=True)
+    row.prop(params, "ik_layers", index=16, toggle=True, text="")
+    row.prop(params, "ik_layers", index=17, toggle=True, text="")
+    row.prop(params, "ik_layers", index=18, toggle=True, text="")
+    row.prop(params, "ik_layers", index=19, toggle=True, text="")
+    row.prop(params, "ik_layers", index=20, toggle=True, text="")
+    row.prop(params, "ik_layers", index=21, toggle=True, text="")
+    row.prop(params, "ik_layers", index=22, toggle=True, text="")
+    row.prop(params, "ik_layers", index=23, toggle=True, text="")
 
-        r = layout.row()
-        r.label(text="Elbow rotation axis:")
-        r.prop(params, "primary_rotation_axis", text="")
+    col = r.column(align=True)
+    row = col.row(align=True)
+    row.prop(params, "ik_layers", index=8, toggle=True, text="")
+    row.prop(params, "ik_layers", index=9, toggle=True, text="")
+    row.prop(params, "ik_layers", index=10, toggle=True, text="")
+    row.prop(params, "ik_layers", index=11, toggle=True, text="")
+    row.prop(params, "ik_layers", index=12, toggle=True, text="")
+    row.prop(params, "ik_layers", index=13, toggle=True, text="")
+    row.prop(params, "ik_layers", index=14, toggle=True, text="")
+    row.prop(params, "ik_layers", index=15, toggle=True, text="")
+    row = col.row(align=True)
+    row.prop(params, "ik_layers", index=24, toggle=True, text="")
+    row.prop(params, "ik_layers", index=25, toggle=True, text="")
+    row.prop(params, "ik_layers", index=26, toggle=True, text="")
+    row.prop(params, "ik_layers", index=27, toggle=True, text="")
+    row.prop(params, "ik_layers", index=28, toggle=True, text="")
+    row.prop(params, "ik_layers", index=29, toggle=True, text="")
+    row.prop(params, "ik_layers", index=30, toggle=True, text="")
+    row.prop(params, "ik_layers", index=31, toggle=True, text="")
 
-        r = layout.row()
-        r.prop(params, "bend_hint")
+    r = layout.row()
+    r.label(text="Elbow rotation axis:")
+    r.prop(params, "primary_rotation_axis", text="")
 
-        col = layout.column()
-        col.prop(params, "use_upper_arm_twist")
-        col.prop(params, "use_forearm_twist")
+    r = layout.row()
+    r.prop(params, "bend_hint")
 
-    @classmethod
-    def create_sample(self, obj):
-        # generated by rigify.utils.write_meta_rig
-        bpy.ops.object.mode_set(mode='EDIT')
-        arm = obj.data
+    col = layout.column()
+    col.prop(params, "use_upper_arm_twist")
+    col.prop(params, "use_forearm_twist")
 
-        bones = {}
 
-        bone = arm.edit_bones.new('upper_arm')
-        bone.head[:] = 0.0000, 0.0000, 0.0000
-        bone.tail[:] = 0.3000, 0.0300, 0.0000
-        bone.roll = 1.5708
-        bone.use_connect = False
-        bones['upper_arm'] = bone.name
-        bone = arm.edit_bones.new('forearm')
-        bone.head[:] = 0.3000, 0.0300, 0.0000
-        bone.tail[:] = 0.6000, 0.0000, 0.0000
-        bone.roll = 1.5708
-        bone.use_connect = True
-        bone.parent = arm.edit_bones[bones['upper_arm']]
-        bones['forearm'] = bone.name
-        bone = arm.edit_bones.new('hand')
-        bone.head[:] = 0.6000, 0.0000, 0.0000
-        bone.tail[:] = 0.7000, 0.0000, 0.0000
-        bone.roll = 3.1416
-        bone.use_connect = True
-        bone.parent = arm.edit_bones[bones['forearm']]
-        bones['hand'] = bone.name
+def create_sample(obj):
+    # generated by rigify.utils.write_meta_rig
+    bpy.ops.object.mode_set(mode='EDIT')
+    arm = obj.data
 
-        bpy.ops.object.mode_set(mode='OBJECT')
-        pbone = obj.pose.bones[bones['upper_arm']]
-        pbone.rigify_type = 'biped.arm'
-        pbone.lock_location = (True, True, True)
-        pbone.lock_rotation = (False, False, False)
-        pbone.lock_rotation_w = False
-        pbone.lock_scale = (False, False, False)
-        pbone.rotation_mode = 'QUATERNION'
-        pbone = obj.pose.bones[bones['forearm']]
-        pbone.rigify_type = ''
-        pbone.lock_location = (False, False, False)
-        pbone.lock_rotation = (False, False, False)
-        pbone.lock_rotation_w = False
-        pbone.lock_scale = (False, False, False)
-        pbone.rotation_mode = 'QUATERNION'
-        pbone = obj.pose.bones[bones['hand']]
-        pbone.rigify_type = ''
-        pbone.lock_location = (False, False, False)
-        pbone.lock_rotation = (False, False, False)
-        pbone.lock_rotation_w = False
-        pbone.lock_scale = (False, False, False)
-        pbone.rotation_mode = 'QUATERNION'
+    bones = {}
 
-        bpy.ops.object.mode_set(mode='EDIT')
-        for bone in arm.edit_bones:
-            bone.select = False
-            bone.select_head = False
-            bone.select_tail = False
-        for b in bones:
-            bone = arm.edit_bones[bones[b]]
-            bone.select = True
-            bone.select_head = True
-            bone.select_tail = True
-            arm.edit_bones.active = bone
+    bone = arm.edit_bones.new('upper_arm')
+    bone.head[:] = 0.0000, 0.0000, 0.0000
+    bone.tail[:] = 0.3000, 0.0300, 0.0000
+    bone.roll = 1.5708
+    bone.use_connect = False
+    bones['upper_arm'] = bone.name
+    bone = arm.edit_bones.new('forearm')
+    bone.head[:] = 0.3000, 0.0300, 0.0000
+    bone.tail[:] = 0.6000, 0.0000, 0.0000
+    bone.roll = 1.5708
+    bone.use_connect = True
+    bone.parent = arm.edit_bones[bones['upper_arm']]
+    bones['forearm'] = bone.name
+    bone = arm.edit_bones.new('hand')
+    bone.head[:] = 0.6000, 0.0000, 0.0000
+    bone.tail[:] = 0.7000, 0.0000, 0.0000
+    bone.roll = 3.1416
+    bone.use_connect = True
+    bone.parent = arm.edit_bones[bones['forearm']]
+    bones['hand'] = bone.name
+
+    bpy.ops.object.mode_set(mode='OBJECT')
+    pbone = obj.pose.bones[bones['upper_arm']]
+    pbone.rigify_type = 'biped.arm'
+    pbone.lock_location = (True, True, True)
+    pbone.lock_rotation = (False, False, False)
+    pbone.lock_rotation_w = False
+    pbone.lock_scale = (False, False, False)
+    pbone.rotation_mode = 'QUATERNION'
+    pbone = obj.pose.bones[bones['forearm']]
+    pbone.rigify_type = ''
+    pbone.lock_location = (False, False, False)
+    pbone.lock_rotation = (False, False, False)
+    pbone.lock_rotation_w = False
+    pbone.lock_scale = (False, False, False)
+    pbone.rotation_mode = 'QUATERNION'
+    pbone = obj.pose.bones[bones['hand']]
+    pbone.rigify_type = ''
+    pbone.lock_location = (False, False, False)
+    pbone.lock_rotation = (False, False, False)
+    pbone.lock_rotation_w = False
+    pbone.lock_scale = (False, False, False)
+    pbone.rotation_mode = 'QUATERNION'
+
+    bpy.ops.object.mode_set(mode='EDIT')
+    for bone in arm.edit_bones:
+        bone.select = False
+        bone.select_head = False
+        bone.select_tail = False
+    for b in bones:
+        bone = arm.edit_bones[bones[b]]
+        bone.select = True
+        bone.select_head = True
+        bone.select_tail = True
+        arm.edit_bones.active = bone

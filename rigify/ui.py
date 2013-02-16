@@ -185,15 +185,15 @@ class BONE_PT_rigify_buttons(bpy.types.Panel):
                 box.label(text="ALERT: type \"%s\" does not exist!" % rig_name)
             else:
                 try:
-                    rig.Rig.parameters_ui
+                    rig.parameters_ui
                 except AttributeError:
-                    pass
+                    col = layout.column()
+                    col.label(text="No options")
                 else:
                     col = layout.column()
                     col.label(text="Options:")
                     box = layout.box()
-
-                    rig.Rig.parameters_ui(box, C.active_object, bone.name)
+                    rig.parameters_ui(box, bone.rigify_parameters)
 
 
 #~ class INFO_MT_armature_metarig_add(bpy.types.Menu):
@@ -290,10 +290,10 @@ class Sample(bpy.types.Operator):
             use_global_undo = context.user_preferences.edit.use_global_undo
             context.user_preferences.edit.use_global_undo = False
             try:
-                rig = get_rig_type(self.metarig_type).Rig
+                rig = get_rig_type(self.metarig_type)
                 create_sample = rig.create_sample
             except (ImportError, AttributeError):
-                print("Rigify: rig type has no sample.")
+                raise Exception("rig type '" + self.metarig_type + "' has no sample.")
             else:
                 create_sample(context.active_object)
             finally:

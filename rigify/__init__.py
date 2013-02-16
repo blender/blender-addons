@@ -80,7 +80,7 @@ def register():
 
     # Add rig parameters
     for rig in rig_lists.rig_list:
-        r = utils.get_rig_type(rig).Rig
+        r = utils.get_rig_type(rig)
         try:
             r.add_parameters(RigifyParameters)
         except AttributeError:

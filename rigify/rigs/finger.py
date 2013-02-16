@@ -276,138 +276,136 @@ class Rig:
         self.deform()
         self.control()
 
-    @classmethod
-    def add_parameters(self, params):
-        """ Add the parameters of this rig type to the
-            RigifyParameters PropertyGroup
-        """
-        items = [('X', 'X', ''), ('Y', 'Y', ''), ('Z', 'Z', ''), ('-X', '-X', ''), ('-Y', '-Y', ''), ('-Z', '-Z', '')]
-        params.primary_rotation_axis = bpy.props.EnumProperty(items=items, name="Primary Rotation Axis", default='X')
 
-        params.separate_extra_layers = bpy.props.BoolProperty(name="Separate Secondary Control Layers:", default=False, description="Enable putting the secondary controls on a separate layer from the primary controls")
-        params.extra_layers = bpy.props.BoolVectorProperty(size=32, description="Layers for the secondary controls to be on")
+def add_parameters(params):
+    """ Add the parameters of this rig type to the
+        RigifyParameters PropertyGroup
+    """
+    items = [('X', 'X', ''), ('Y', 'Y', ''), ('Z', 'Z', ''), ('-X', '-X', ''), ('-Y', '-Y', ''), ('-Z', '-Z', '')]
+    params.primary_rotation_axis = bpy.props.EnumProperty(items=items, name="Primary Rotation Axis", default='X')
 
-        params.use_digit_twist = bpy.props.BoolProperty(name="Digit Twist", default=True, description="Generate the dual-bone twist setup for the first finger digit")
+    params.separate_extra_layers = bpy.props.BoolProperty(name="Separate Secondary Control Layers:", default=False, description="Enable putting the secondary controls on a separate layer from the primary controls")
+    params.extra_layers = bpy.props.BoolVectorProperty(size=32, description="Layers for the secondary controls to be on")
 
-    @classmethod
-    def parameters_ui(self, layout, obj, bone):
-        """ Create the ui for the rig parameters.
-        """
-        params = obj.pose.bones[bone].rigify_parameters
+    params.use_digit_twist = bpy.props.BoolProperty(name="Digit Twist", default=True, description="Generate the dual-bone twist setup for the first finger digit")
 
-        r = layout.row()
-        r.prop(params, "separate_extra_layers")
 
-        r = layout.row()
-        r.active = params.separate_extra_layers
+def parameters_ui(layout, params):
+    """ Create the ui for the rig parameters.
+    """
+    r = layout.row()
+    r.prop(params, "separate_extra_layers")
 
-        col = r.column(align=True)
-        row = col.row(align=True)
-        row.prop(params, "extra_layers", index=0, toggle=True, text="")
-        row.prop(params, "extra_layers", index=1, toggle=True, text="")
-        row.prop(params, "extra_layers", index=2, toggle=True, text="")
-        row.prop(params, "extra_layers", index=3, toggle=True, text="")
-        row.prop(params, "extra_layers", index=4, toggle=True, text="")
-        row.prop(params, "extra_layers", index=5, toggle=True, text="")
-        row.prop(params, "extra_layers", index=6, toggle=True, text="")
-        row.prop(params, "extra_layers", index=7, toggle=True, text="")
-        row = col.row(align=True)
-        row.prop(params, "extra_layers", index=16, toggle=True, text="")
-        row.prop(params, "extra_layers", index=17, toggle=True, text="")
-        row.prop(params, "extra_layers", index=18, toggle=True, text="")
-        row.prop(params, "extra_layers", index=19, toggle=True, text="")
-        row.prop(params, "extra_layers", index=20, toggle=True, text="")
-        row.prop(params, "extra_layers", index=21, toggle=True, text="")
-        row.prop(params, "extra_layers", index=22, toggle=True, text="")
-        row.prop(params, "extra_layers", index=23, toggle=True, text="")
+    r = layout.row()
+    r.active = params.separate_extra_layers
 
-        col = r.column(align=True)
-        row = col.row(align=True)
-        row.prop(params, "ik_layers", index=8, toggle=True, text="")
-        row.prop(params, "ik_layers", index=9, toggle=True, text="")
-        row.prop(params, "ik_layers", index=10, toggle=True, text="")
-        row.prop(params, "ik_layers", index=11, toggle=True, text="")
-        row.prop(params, "ik_layers", index=12, toggle=True, text="")
-        row.prop(params, "ik_layers", index=13, toggle=True, text="")
-        row.prop(params, "ik_layers", index=14, toggle=True, text="")
-        row.prop(params, "ik_layers", index=15, toggle=True, text="")
-        row = col.row(align=True)
-        row.prop(params, "ik_layers", index=24, toggle=True, text="")
-        row.prop(params, "ik_layers", index=25, toggle=True, text="")
-        row.prop(params, "ik_layers", index=26, toggle=True, text="")
-        row.prop(params, "ik_layers", index=27, toggle=True, text="")
-        row.prop(params, "ik_layers", index=28, toggle=True, text="")
-        row.prop(params, "ik_layers", index=29, toggle=True, text="")
-        row.prop(params, "ik_layers", index=30, toggle=True, text="")
-        row.prop(params, "ik_layers", index=31, toggle=True, text="")
+    col = r.column(align=True)
+    row = col.row(align=True)
+    row.prop(params, "extra_layers", index=0, toggle=True, text="")
+    row.prop(params, "extra_layers", index=1, toggle=True, text="")
+    row.prop(params, "extra_layers", index=2, toggle=True, text="")
+    row.prop(params, "extra_layers", index=3, toggle=True, text="")
+    row.prop(params, "extra_layers", index=4, toggle=True, text="")
+    row.prop(params, "extra_layers", index=5, toggle=True, text="")
+    row.prop(params, "extra_layers", index=6, toggle=True, text="")
+    row.prop(params, "extra_layers", index=7, toggle=True, text="")
+    row = col.row(align=True)
+    row.prop(params, "extra_layers", index=16, toggle=True, text="")
+    row.prop(params, "extra_layers", index=17, toggle=True, text="")
+    row.prop(params, "extra_layers", index=18, toggle=True, text="")
+    row.prop(params, "extra_layers", index=19, toggle=True, text="")
+    row.prop(params, "extra_layers", index=20, toggle=True, text="")
+    row.prop(params, "extra_layers", index=21, toggle=True, text="")
+    row.prop(params, "extra_layers", index=22, toggle=True, text="")
+    row.prop(params, "extra_layers", index=23, toggle=True, text="")
 
-        r = layout.row()
-        r.label(text="Bend rotation axis:")
-        r.prop(params, "primary_rotation_axis", text="")
+    col = r.column(align=True)
+    row = col.row(align=True)
+    row.prop(params, "ik_layers", index=8, toggle=True, text="")
+    row.prop(params, "ik_layers", index=9, toggle=True, text="")
+    row.prop(params, "ik_layers", index=10, toggle=True, text="")
+    row.prop(params, "ik_layers", index=11, toggle=True, text="")
+    row.prop(params, "ik_layers", index=12, toggle=True, text="")
+    row.prop(params, "ik_layers", index=13, toggle=True, text="")
+    row.prop(params, "ik_layers", index=14, toggle=True, text="")
+    row.prop(params, "ik_layers", index=15, toggle=True, text="")
+    row = col.row(align=True)
+    row.prop(params, "ik_layers", index=24, toggle=True, text="")
+    row.prop(params, "ik_layers", index=25, toggle=True, text="")
+    row.prop(params, "ik_layers", index=26, toggle=True, text="")
+    row.prop(params, "ik_layers", index=27, toggle=True, text="")
+    row.prop(params, "ik_layers", index=28, toggle=True, text="")
+    row.prop(params, "ik_layers", index=29, toggle=True, text="")
+    row.prop(params, "ik_layers", index=30, toggle=True, text="")
+    row.prop(params, "ik_layers", index=31, toggle=True, text="")
 
-        col = layout.column()
-        col.prop(params, "use_digit_twist")
+    r = layout.row()
+    r.label(text="Bend rotation axis:")
+    r.prop(params, "primary_rotation_axis", text="")
 
-    @classmethod
-    def create_sample(self, obj):
-        # generated by rigify.utils.write_metarig
-        bpy.ops.object.mode_set(mode='EDIT')
-        arm = obj.data
+    col = layout.column()
+    col.prop(params, "use_digit_twist")
 
-        bones = {}
 
-        bone = arm.edit_bones.new('finger.01')
-        bone.head[:] = 0.0000, 0.0000, 0.0000
-        bone.tail[:] = 0.2529, 0.0000, 0.0000
-        bone.roll = 3.1416
-        bone.use_connect = False
-        bones['finger.01'] = bone.name
-        bone = arm.edit_bones.new('finger.02')
-        bone.head[:] = 0.2529, 0.0000, 0.0000
-        bone.tail[:] = 0.4024, 0.0000, -0.0264
-        bone.roll = -2.9671
-        bone.use_connect = True
-        bone.parent = arm.edit_bones[bones['finger.01']]
-        bones['finger.02'] = bone.name
-        bone = arm.edit_bones.new('finger.03')
-        bone.head[:] = 0.4024, 0.0000, -0.0264
-        bone.tail[:] = 0.4975, -0.0000, -0.0610
-        bone.roll = -2.7925
-        bone.use_connect = True
-        bone.parent = arm.edit_bones[bones['finger.02']]
-        bones['finger.03'] = bone.name
+def create_sample(obj):
+    # generated by rigify.utils.write_metarig
+    bpy.ops.object.mode_set(mode='EDIT')
+    arm = obj.data
 
-        bpy.ops.object.mode_set(mode='OBJECT')
-        pbone = obj.pose.bones[bones['finger.01']]
-        pbone.rigify_type = 'finger'
-        pbone.lock_location = (True, True, True)
-        pbone.lock_rotation = (False, False, False)
-        pbone.lock_rotation_w = False
-        pbone.lock_scale = (False, False, False)
-        pbone.rotation_mode = 'YZX'
-        pbone = obj.pose.bones[bones['finger.02']]
-        pbone.rigify_type = ''
-        pbone.lock_location = (False, False, False)
-        pbone.lock_rotation = (False, False, False)
-        pbone.lock_rotation_w = False
-        pbone.lock_scale = (False, False, False)
-        pbone.rotation_mode = 'YZX'
-        pbone = obj.pose.bones[bones['finger.03']]
-        pbone.rigify_type = ''
-        pbone.lock_location = (False, False, False)
-        pbone.lock_rotation = (False, False, False)
-        pbone.lock_rotation_w = False
-        pbone.lock_scale = (False, False, False)
-        pbone.rotation_mode = 'YZX'
+    bones = {}
 
-        bpy.ops.object.mode_set(mode='EDIT')
-        for bone in arm.edit_bones:
-            bone.select = False
-            bone.select_head = False
-            bone.select_tail = False
-        for b in bones:
-            bone = arm.edit_bones[bones[b]]
-            bone.select = True
-            bone.select_head = True
-            bone.select_tail = True
-            arm.edit_bones.active = bone
+    bone = arm.edit_bones.new('finger.01')
+    bone.head[:] = 0.0000, 0.0000, 0.0000
+    bone.tail[:] = 0.2529, 0.0000, 0.0000
+    bone.roll = 3.1416
+    bone.use_connect = False
+    bones['finger.01'] = bone.name
+    bone = arm.edit_bones.new('finger.02')
+    bone.head[:] = 0.2529, 0.0000, 0.0000
+    bone.tail[:] = 0.4024, 0.0000, -0.0264
+    bone.roll = -2.9671
+    bone.use_connect = True
+    bone.parent = arm.edit_bones[bones['finger.01']]
+    bones['finger.02'] = bone.name
+    bone = arm.edit_bones.new('finger.03')
+    bone.head[:] = 0.4024, 0.0000, -0.0264
+    bone.tail[:] = 0.4975, -0.0000, -0.0610
+    bone.roll = -2.7925
+    bone.use_connect = True
+    bone.parent = arm.edit_bones[bones['finger.02']]
+    bones['finger.03'] = bone.name
+
+    bpy.ops.object.mode_set(mode='OBJECT')
+    pbone = obj.pose.bones[bones['finger.01']]
+    pbone.rigify_type = 'finger'
+    pbone.lock_location = (True, True, True)
+    pbone.lock_rotation = (False, False, False)
+    pbone.lock_rotation_w = False
+    pbone.lock_scale = (False, False, False)
+    pbone.rotation_mode = 'YZX'
+    pbone = obj.pose.bones[bones['finger.02']]
+    pbone.rigify_type = ''
+    pbone.lock_location = (False, False, False)
+    pbone.lock_rotation = (False, False, False)
+    pbone.lock_rotation_w = False
+    pbone.lock_scale = (False, False, False)
+    pbone.rotation_mode = 'YZX'
+    pbone = obj.pose.bones[bones['finger.03']]
+    pbone.rigify_type = ''
+    pbone.lock_location = (False, False, False)
+    pbone.lock_rotation = (False, False, False)
+    pbone.lock_rotation_w = False
+    pbone.lock_scale = (False, False, False)
+    pbone.rotation_mode = 'YZX'
+
+    bpy.ops.object.mode_set(mode='EDIT')
+    for bone in arm.edit_bones:
+        bone.select = False
+        bone.select_head = False
+        bone.select_tail = False
+    for b in bones:
+        bone = arm.edit_bones[bones[b]]
+        bone.select = True
+        bone.select_head = True
+        bone.select_tail = True
+        arm.edit_bones.active = bone
