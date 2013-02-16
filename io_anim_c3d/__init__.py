@@ -25,8 +25,8 @@
 bl_info = {
     "name": "C3D Graphics Lab Motion Capture file (.c3d)",
     "author": "Daniel Monteiro Basso <daniel@basso.inf.br>",
-    "version": (2012, 7, 11, 1),
-    "blender": (2, 63, 0),
+    "version": (2013, 2, 16, 1),
+    "blender": (2, 65, 9),
     "location": "File > Import",
     "description": "Imports C3D Graphics Lab Motion Capture files",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"

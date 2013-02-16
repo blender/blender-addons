@@ -204,6 +204,13 @@ class MarkerSet:
                 break
         # pg should be 'POINT', but let's be liberal and accept any group
         self.markerLabels = self.paramGroups[pg].params['LABELS'].decode()
+        repeats = {}
+        for i, m in enumerate(self.markerLabels):
+            if m in repeats:
+                self.markerLabels[i] = '{}.{}'.format(m, repeats[m])
+                repeats[m] += 1
+            else:
+                repeats[m] = 1
 
     def readMarker(self, infile):
         pass  # ...
