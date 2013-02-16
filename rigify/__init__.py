@@ -38,73 +38,11 @@ if "bpy" in locals():
     imp.reload(ui)
     imp.reload(utils)
     imp.reload(metarig_menu)
+    imp.reload(rig_lists)
 else:
-    from . import generate, ui, utils, metarig_menu
+    from . import utils, rig_lists, generate, ui, metarig_menu
 
 import bpy
-import os
-
-
-def get_rig_list(path):
-    """ Recursively searches for rig types, and returns a list.
-    """
-    rigs = []
-    MODULE_DIR = os.path.dirname(__file__)
-    RIG_DIR_ABS = os.path.join(MODULE_DIR, utils.RIG_DIR)
-    SEARCH_DIR_ABS = os.path.join(RIG_DIR_ABS, path)
-    files = os.listdir(SEARCH_DIR_ABS)
-    files.sort()
-
-    for f in files:
-        is_dir = os.path.isdir(os.path.join(SEARCH_DIR_ABS, f))  # Whether the file is a directory
-        if f[0] in {".", "_"}:
-            pass
-        elif f.count(".") >= 2 or (is_dir and "." in f):
-            print("Warning: %r, filename contains a '.', skipping" % os.path.join(SEARCH_DIR_ABS, f))
-        else:
-            if is_dir:
-                # Check directories
-                module_name = os.path.join(path, f).replace(os.sep, ".")
-                try:
-                    rig = utils.get_rig_type(module_name)
-                except ImportError as e:
-                    print("Rigify: " + str(e))
-                else:
-                    # Check if it's a rig itself
-                    if not hasattr(rig, "Rig"):
-                        # Check for sub-rigs
-                        ls = get_rig_list(os.path.join(path, f, ""))  # "" adds a final slash
-                        rigs.extend(["%s.%s" % (f, l) for l in ls])
-                    else:
-                        rigs += [f]
-
-            elif f.endswith(".py"):
-                # Check straight-up python files
-                t = f[:-3]
-                module_name = os.path.join(path, t).replace(os.sep, ".")
-                try:
-                    utils.get_rig_type(module_name).Rig
-                except (ImportError, AttributeError):
-                    pass
-                else:
-                    rigs += [t]
-    rigs.sort()
-    return rigs
-
-
-rig_list = get_rig_list("")
-
-
-collection_list = []
-for r in rig_list:
-    a = r.split(".")
-    if len(a) >= 2 and a[0] not in collection_list:
-        collection_list += [a[0]]
-
-
-col_enum_list = [("All", "All", ""), ("None", "None", "")]
-for c in collection_list:
-    col_enum_list += [(c, c, "")]
 
 
 class RigifyName(bpy.types.PropertyGroup):
@@ -136,12 +74,12 @@ def register():
     bpy.types.Armature.rigify_layers = bpy.props.CollectionProperty(type=RigifyArmatureLayer)
 
     IDStore = bpy.types.WindowManager
-    IDStore.rigify_collection = bpy.props.EnumProperty(items=col_enum_list, default="All", name="Rigify Active Collection", description="The selected rig collection")
+    IDStore.rigify_collection = bpy.props.EnumProperty(items=rig_lists.col_enum_list, default="All", name="Rigify Active Collection", description="The selected rig collection")
     IDStore.rigify_types = bpy.props.CollectionProperty(type=RigifyName)
     IDStore.rigify_active_type = bpy.props.IntProperty(name="Rigify Active Type", description="The selected rig type")
 
     # Add rig parameters
-    for rig in rig_list:
+    for rig in rig_lists.rig_list:
         r = utils.get_rig_type(rig).Rig
         try:
             r.add_parameters(RigifyParameters)

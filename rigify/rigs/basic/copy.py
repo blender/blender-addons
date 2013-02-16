@@ -19,9 +19,10 @@
 # <pep8 compliant>
 
 import bpy
-from rigify.utils import copy_bone
-from rigify.utils import strip_org, make_deformer_name
-from rigify.utils import create_bone_widget
+
+from ...utils import copy_bone
+from ...utils import strip_org, make_deformer_name
+from ...utils import create_bone_widget
 
 
 class Rig:

@@ -20,6 +20,7 @@
 
 import bpy
 import imp
+import importlib
 import random
 import time
 from mathutils import Vector
@@ -266,16 +267,16 @@ def create_widget(rig, bone_name, bone_transform_name=None):
     """
     if bone_transform_name == None:
         bone_transform_name = bone_name
-        
+
     obj_name = WGT_PREFIX + bone_name
     scene = bpy.context.scene
-    
+
     # Check if it already exists in the scene
     if obj_name in scene.objects:
         # Move object to bone position, in case it changed
         obj = scene.objects[obj_name]
         obj_to_bone(obj, rig, bone_transform_name)
-        
+
         return None
     else:
         # Delete object if it exists in blend data but not scene data.
@@ -284,7 +285,7 @@ def create_widget(rig, bone_name, bone_transform_name=None):
         if obj_name in bpy.data.objects:
             bpy.data.objects[obj_name].user_clear()
             bpy.data.objects.remove(bpy.data.objects[obj_name])
-        
+
         # Create mesh object
         mesh = bpy.data.meshes.new(obj_name)
         obj = bpy.data.objects.new(obj_name, mesh)
@@ -413,23 +414,17 @@ def copy_attributes(a, b):
 def get_rig_type(rig_type):
     """ Fetches a rig module by name, and returns it.
     """
-    #print("%s.%s.%s" % (__package__,RIG_DIR,rig_type))
-    name="%s.%s.%s" % (MODULE_NAME, RIG_DIR, rig_type)
-    submod = __import__(name)
-    for c in (name.split("."))[1:]:
-        submod = getattr(submod, c)
+    name = ".%s.%s" % (RIG_DIR, rig_type)
+    submod = importlib.import_module(name, package=MODULE_NAME)
     imp.reload(submod)
     return submod
 
 
-def get_metarig_module(metarig):
+def get_metarig_module(metarig_name):
     """ Fetches a rig module by name, and returns it.
     """
-    #print("%s.%s.%s" % (__package__,METARIG_DIR,metarig))
-    name="%s.%s.%s" % (MODULE_NAME, METARIG_DIR, metarig)
-    submod = __import__(name)
-    for c in (name.split("."))[1:]:
-        submod = getattr(submod, c)
+    name = ".%s.%s" % (METARIG_DIR, metarig_name)
+    submod = importlib.import_module(name, package=MODULE_NAME)
     imp.reload(submod)
     return submod
 
@@ -500,7 +495,7 @@ def write_metarig(obj, layers=False, func_name="create"):
     generating the real rig with rigify.
     """
     code = []
-    
+
     code.append("import bpy\n")
 
     code.append("def %s(obj):" % func_name)

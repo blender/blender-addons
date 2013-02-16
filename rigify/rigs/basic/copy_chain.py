@@ -19,11 +19,12 @@
 # <pep8 compliant>
 
 import bpy
-from rigify.utils import MetarigError
-from rigify.utils import copy_bone
-from rigify.utils import connected_children_names
-from rigify.utils import strip_org, make_deformer_name
-from rigify.utils import create_bone_widget
+
+from ...utils import MetarigError
+from ...utils import copy_bone
+from ...utils import connected_children_names
+from ...utils import strip_org, make_deformer_name
+from ...utils import create_bone_widget
 
 
 class Rig:

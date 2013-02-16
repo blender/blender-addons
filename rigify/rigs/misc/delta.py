@@ -18,11 +18,13 @@
 
 # <pep8 compliant>
 
-import bpy
 from math import acos
-from rigify.utils import MetarigError
-from rigify.utils import copy_bone
-from rigify.utils import org_name, make_mechanism_name
+
+import bpy
+
+from ...utils import MetarigError
+from ...utils import copy_bone
+from ...utils import org_name, make_mechanism_name
 
 
 class Rig:

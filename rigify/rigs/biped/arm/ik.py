@@ -18,15 +18,17 @@
 
 # <pep8 compliant>
 
-import bpy
-from mathutils import Vector
 from math import pi, acos
-from rigify.utils import MetarigError
-from rigify.utils import copy_bone
-from rigify.utils import connected_children_names
-from rigify.utils import strip_org, make_mechanism_name, insert_before_lr
-from rigify.utils import create_widget, create_line_widget, create_sphere_widget
+
+import bpy
 from rna_prop_ui import rna_idprop_ui_prop_get
+from mathutils import Vector
+
+from ....utils import MetarigError
+from ....utils import copy_bone
+from ....utils import connected_children_names
+from ....utils import strip_org, make_mechanism_name, insert_before_lr
+from ....utils import create_widget, create_line_widget, create_sphere_widget
 
 
 def angle_on_plane(plane, vec1, vec2):

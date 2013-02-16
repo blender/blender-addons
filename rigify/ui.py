@@ -18,13 +18,12 @@
 
 # <pep8 compliant>
 
-# test comment
-
 import bpy
 from bpy.props import StringProperty
-import rigify
-from rigify.utils import get_rig_type
-from rigify import generate
+
+from .utils import get_rig_type
+from . import rig_lists
+from . import generate
 
 
 class DATA_PT_rigify_buttons(bpy.types.Panel):
@@ -59,7 +58,7 @@ class DATA_PT_rigify_buttons(bpy.types.Panel):
             for i in range(0, len(id_store.rigify_types)):
                 id_store.rigify_types.remove(0)
 
-            for r in rigify.rig_list:
+            for r in rig_lists.rig_list:
                 # collection = r.split('.')[0]  # UNUSED
                 if collection_name == "All":
                     a = id_store.rigify_types.add()
@@ -159,7 +158,7 @@ class BONE_PT_rigify_buttons(bpy.types.Panel):
         for i in range(0, len(id_store.rigify_types)):
             id_store.rigify_types.remove(0)
 
-        for r in rigify.rig_list:
+        for r in rig_lists.rig_list:
             # collection = r.split('.')[0]  # UNUSED
             if collection_name == "All":
                 a = id_store.rigify_types.add()

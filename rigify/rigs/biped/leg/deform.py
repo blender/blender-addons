@@ -18,13 +18,15 @@
 
 # <pep8 compliant>
 
-import bpy
 from math import acos
+
+import bpy
 from mathutils import Vector, Matrix
-from rigify.utils import MetarigError
-from rigify.utils import copy_bone, put_bone
-from rigify.utils import connected_children_names, has_connected_children
-from rigify.utils import strip_org, make_mechanism_name, make_deformer_name
+
+from ....utils import MetarigError
+from ....utils import copy_bone, put_bone
+from ....utils import connected_children_names, has_connected_children
+from ....utils import strip_org, make_mechanism_name, make_deformer_name
 
 
 def align_roll(obj, bone1, bone2):

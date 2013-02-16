@@ -18,13 +18,15 @@
 
 # <pep8 compliant>
 
-import bpy
-from math import cos, pi
-from rigify.utils import MetarigError
-from rigify.utils import copy_bone
-from rigify.utils import strip_org, deformer
-from rigify.utils import create_widget
 import re
+from math import cos, pi
+
+import bpy
+
+from ..utils import MetarigError
+from ..utils import copy_bone
+from ..utils import strip_org, deformer
+from ..utils import create_widget
 
 
 def bone_siblings(obj, bone):
