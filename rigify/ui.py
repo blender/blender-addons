@@ -203,7 +203,7 @@ class VIEW3D_PT_tools_rigify_dev(bpy.types.Panel):
 
     @classmethod
     def poll(cls, context):
-        return obj.mode == 'EDIT_ARMATURE'
+        return (context.mode == 'EDIT_ARMATURE')
 
     def draw(self, context):
         r = self.layout.row()
