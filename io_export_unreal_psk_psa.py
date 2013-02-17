@@ -20,8 +20,7 @@ bl_info = {
     "name": "Export Unreal Engine Format(.psk/.psa)",
     "author": "Darknet/Optimus_P-Fat/Active_Trash/Sinsoft/VendorX/Spoof",
     "version": (2, 7),
-    "blender": (2, 65, 0),
-    "api": 36079,
+    "blender": (2, 65, 4),
     "location": "File > Export > Skeletal Mesh/Animation Data (.psk/.psa)",
     "description": "Export Skeleletal Mesh/Animation Data",
     "warning": "",
@@ -1837,10 +1836,9 @@ def export(filepath):
 # Operator
 #===========================================================================
 class Operator_UDKExport( bpy.types.Operator ):
-
+    """Export to UDK"""
     bl_idname   = "object.udk_export"
     bl_label    = "Export now"
-    __doc__     = "Export to UDK"
     
     def execute(self, context):
         print( "\n"*8 )
@@ -1877,10 +1875,9 @@ class Operator_UDKExport( bpy.types.Operator ):
 # Operator
 #===========================================================================
 class Operator_ToggleConsole( bpy.types.Operator ):
-
+    """Show or hide the console"""
     bl_idname   = "object.toggle_console"
     bl_label    = "Toggle console"
-    __doc__     = "Show or hide the console"
     
     #def invoke(self, context, event):
     #   bpy.ops.wm.console_toggle()
@@ -1983,9 +1980,9 @@ bpy.types.Scene.udk_option_scale = FloatProperty(
 # User interface
 #===========================================================================
 class OBJECT_OT_UTSelectedFaceSmooth(bpy.types.Operator):
+    """It will only select smooth faces that is select mesh"""
     bl_idname = "object.utselectfacesmooth"  # XXX, name???
     bl_label = "Select Smooth Faces"#"Select Smooth faces"
-    __doc__ = """It will only select smooth faces that is select mesh"""
     
     def invoke(self, context, event):
         print("----------------------------------------")
@@ -2026,9 +2023,9 @@ class OBJECT_OT_UTSelectedFaceSmooth(bpy.types.Operator):
         return{'FINISHED'}
         
 class OBJECT_OT_MeshClearWeights(bpy.types.Operator):
+    """Remove all mesh vertex groups weights for the bones."""
     bl_idname = "object.meshclearweights"  # XXX, name???
     bl_label = "Remove Vertex Weights"#"Remove Mesh vertex weights"
-    __doc__ = """Remove all mesh vertex groups weights for the bones."""
     
     def invoke(self, context, event):
         for obj in bpy.data.objects:
@@ -2141,9 +2138,10 @@ def rebuildmesh(obj):
     return obmesh
 
 class OBJECT_OT_UTRebuildMesh(bpy.types.Operator):
+    """It rebuild the mesh from scrape from the selected mesh object. """ \
+    """Note the scale will be 1:1 for object mode. To keep from deforming"""
     bl_idname = "object.utrebuildmesh"  # XXX, name???
     bl_label = "Rebuild Mesh"#"Rebuild Mesh"
-    __doc__ = """It rebuild the mesh from scrape from the selected mesh object. Note the scale will be 1:1 for object mode. To keep from deforming"""
     
     def invoke(self, context, event):
         print("----------------------------------------")
@@ -2202,9 +2200,11 @@ def rebuildarmature(obj):
     return ob_new
         
 class OBJECT_OT_UTRebuildArmature(bpy.types.Operator):
+    """If mesh is deform when importing to unreal engine try this. """ \
+    """It rebuild the bones one at the time by select one armature object scrape to raw setup build. """ \
+    """Note the scale will be 1:1 for object mode. To keep from deforming"""
     bl_idname = "object.utrebuildarmature"  # XXX, name???
     bl_label = "Rebuild Armature" #Rebuild Armature
-    __doc__ = """If mesh is deform when importing to unreal engine try this. It rebuild the bones one at the time by select one armature object scrape to raw setup build. Note the scale will be 1:1 for object mode. To keep from deforming"""
     
     def invoke(self, context, event):
         print("----------------------------------------")
@@ -2224,11 +2224,16 @@ class UDKActionSetListPG(bpy.types.PropertyGroup):
     actionname  = StringProperty()
     bmatch    = BoolProperty(default=False,name="Match", options={"HIDDEN"},description = "This check against bone names and action group names matches and override boolean if true.")
     bexport    = BoolProperty(default=False,name="Export",description = "Check this to export the animation")
-    template_list_controls = StringProperty(default="bmatch:bexport", options={"HIDDEN"})
 
 bpy.utils.register_class(UDKActionSetListPG)
 bpy.types.Scene.udkas_list = CollectionProperty(type=UDKActionSetListPG)
 bpy.types.Scene.udkas_list_idx = IntProperty()
+
+class UL_UDKActionSetList(bpy.types.UIList):
+    def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
+        layout.label(item.name)
+        layout.prop(item, "bmatch", text="")
+        layout.prop(item, "bexport", text="")
 
 class UDKObjListPG(bpy.types.PropertyGroup):
     bool    = BoolProperty(default=False)
@@ -2236,11 +2241,16 @@ class UDKObjListPG(bpy.types.PropertyGroup):
     bexport    = BoolProperty(default=False,name="Export", options={"HIDDEN"},description = "This will be ignore when exported")
     bselect    = BoolProperty(default=False,name="Select", options={"HIDDEN"},description = "This will be ignore when exported")
     otype  = StringProperty(name="Type",description = "This will be ignore when exported")
-    template_list_controls = StringProperty(default="otype:bselect", options={"HIDDEN"})
 
 bpy.utils.register_class(UDKObjListPG)
 bpy.types.Scene.udkobj_list = CollectionProperty(type=UDKObjListPG)
 bpy.types.Scene.udkobj_list_idx = IntProperty()
+
+class UL_UDKObjList(bpy.types.UIList):
+    def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
+        layout.label(item.name)
+        layout.prop(item, "otype", text="")
+        layout.prop(item, "bselect", text="")
 
 class UDKMeshListPG(bpy.types.PropertyGroup):
     bool    = BoolProperty(default=False)
@@ -2248,11 +2258,16 @@ class UDKMeshListPG(bpy.types.PropertyGroup):
     bexport    = BoolProperty(default=False,name="Export", options={"HIDDEN"},description = "This object will be export when true.")
     bselect    = BoolProperty(default=False,name="Select", options={"HIDDEN"},description = "Make sure you have Mesh is parent to Armature.")
     otype  = StringProperty(name="Type",description = "This will be ignore when exported")
-    template_list_controls = StringProperty(default="bselect:bexport", options={"HIDDEN"})
 
 bpy.utils.register_class(UDKMeshListPG)
 bpy.types.Scene.udkmesh_list = CollectionProperty(type=UDKMeshListPG)
 bpy.types.Scene.udkmesh_list_idx = IntProperty()
+
+class UL_UDKMeshList(bpy.types.UIList):
+    def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
+        layout.label(item.name)
+        layout.prop(item, "bselect", text="")
+        layout.prop(item, "bexport", text="")
 
 class UDKArmListPG(bpy.types.PropertyGroup):
     bool    = BoolProperty(default=False)
@@ -2260,7 +2275,6 @@ class UDKArmListPG(bpy.types.PropertyGroup):
     bexport    = BoolProperty(default=False,name="Export", options={"HIDDEN"},description = "This will be ignore when exported")
     bselect    = BoolProperty(default=False,name="Select", options={"HIDDEN"},description = "This will be ignore when exported")
     otype  = StringProperty(name="Type",description = "This will be ignore when exported")
-    armtemplate_list_controls = StringProperty(default="", options={"HIDDEN"})
 
 bpy.utils.register_class(UDKArmListPG)
 bpy.types.Scene.udkArm_list = CollectionProperty(type=UDKArmListPG)
@@ -2311,14 +2325,14 @@ class Panel_UDKExport( bpy.types.Panel ):
         if context.scene.udk_option_selectobjects:
             layout.operator("object.selobjectpdate")
             layout.label(text="ARMATURE")
-            layout.template_list(context.scene, "udkArm_list", context.scene, "udkArm_list_idx",prop_list="template_list_controls", rows=3)
-            layout.label(text="MESH")
-            layout.template_list(context.scene, "udkmesh_list", context.scene, "udkmesh_list_idx",prop_list="template_list_controls", rows=5)
+            layout.template_list("UI_UL_list", "", context.scene, "udkArm_list", context.scene, "udkArm_list_idx", rows=3)
+            layout.label(text="MESH - Select / Export")
+            layout.template_list("UL_UDKMeshList", "", context.scene, "udkmesh_list", context.scene, "udkmesh_list_idx", rows=5)
         layout.prop(context.scene, "udk_option_selectanimations")
         if context.scene.udk_option_selectanimations:
             layout.operator("action.setanimupdate")
-            layout.label(text="Action Set(s)")
-            layout.template_list(context.scene, "udkas_list", context.scene, "udkas_list_idx",prop_list="template_list_controls", rows=5)
+            layout.label(text="Action Set(s) - Match / Export")
+            layout.template_list("UL_UDKActionSetList", "", context.scene, "udkas_list", context.scene, "udkas_list_idx", rows=5)
         test = layout.separator()
         layout.prop(context.scene, "udk_option_scale")
         layout.prop(context.scene, "udk_option_rebuildobjects")
@@ -2406,9 +2420,10 @@ def udkupdateobjects():
                 count += 1
                 
 class OBJECT_OT_UDKObjUpdate(bpy.types.Operator):
+    """This will update the filter of the mesh and armature."""
     bl_idname = "object.selobjectpdate"
     bl_label = "Update Object(s)"
-    __doc__     = "This will update the filter of the mesh and armature."
+    
     actionname = bpy.props.StringProperty()
  
     def execute(self, context):
@@ -2485,9 +2500,10 @@ def udkcheckmeshline():
     return message
 
 class OBJECT_OT_UDKCheckMeshLines(bpy.types.Operator):
+    """Select the mesh for export test. This will create dummy mesh to see which area are broken. """ \
+    """If the vertices share the same position it will causes an bug."""
     bl_idname = "object.udkcheckmeshline"
     bl_label = "Check Mesh Vertices"
-    __doc__     = """Select the mesh for export test. This will create dummy mesh to see which area are broken. If the vertices share the same position it will causes an bug."""
  
     def execute(self, context):
         message = udkcheckmeshline()
@@ -2495,9 +2511,11 @@ class OBJECT_OT_UDKCheckMeshLines(bpy.types.Operator):
         return{'FINISHED'}
 
 class OBJECT_OT_ActionSetAnimUpdate(bpy.types.Operator):
+    """Select Armture to match the action set groups. """ \
+    """All bones keys must be set to match with number of bones."""
     bl_idname = "action.setanimupdate"
     bl_label = "Update Action Set(s)"
-    __doc__     = "Select Armture to match the action set groups. All bones keys must be set to match with number of bones."
+
     actionname = bpy.props.StringProperty()
  
     def execute(self, context):
@@ -2548,7 +2566,7 @@ class OBJECT_OT_ActionSetAnimUpdate(bpy.types.Operator):
                 my_item = my_sett.add()
                 #print(dir(my_item.bmatch))
                 my_item.name = action.name
-                my_item.template_list_controls = "bmatch:bexport"
+                #my_item.template_list_controls = "bmatch:bexport"
                 if len(bones) == len(action.groups) == count:
                     my_item.bmatch = True
                 else:
@@ -2580,10 +2598,10 @@ class OBJECT_OT_ActionSetAnimUpdate(bpy.types.Operator):
         return{'FINISHED'}      
         
 class ExportUDKAnimData(bpy.types.Operator):
-    """Export Skeleton Mesh / Animation Data file(s)"""
+    """Export Skeleton Mesh / Animation Data file(s). """ \
+    """One mesh and one armature else select one mesh or armature to be exported"""
     bl_idname = "export_anim.udk" # this is important since its how bpy.ops.export.udk_anim_data is constructed
     bl_label = "Export PSK/PSA"
-    __doc__ = """One mesh and one armature else select one mesh or armature to be exported"""
 
     # List of operator properties, the attributes will be assigned
     # to the class instance from the operator settings before calling.
