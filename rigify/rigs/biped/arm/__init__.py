@@ -98,7 +98,7 @@ def add_parameters(params):
     params.primary_rotation_axis = bpy.props.EnumProperty(items=items, name="Primary Rotation Axis", default='X')
 
     params.bend_hint = bpy.props.BoolProperty(name="Bend Hint", default=True, description="Give IK chain a hint about which way to bend.  Useful for perfectly straight chains")
-    params.elbow_target_base_name = bpy.props.StringProperty(name="Elbow Target Name", default="elbow_target", description="Base name for the generated elbow target.")
+    params.elbow_target_base_name = bpy.props.StringProperty(name="Elbow Target Name", default="elbow_target", description="Base name for the generated elbow target")
 
     params.separate_ik_layers = bpy.props.BoolProperty(name="Separate IK Control Layers:", default=False, description="Enable putting the ik controls on a separate layer from the fk controls")
     params.ik_layers = bpy.props.BoolVectorProperty(size=32, description="Layers for the ik controls to be on")
