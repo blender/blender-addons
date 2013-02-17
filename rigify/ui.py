@@ -21,7 +21,8 @@
 import bpy
 from bpy.props import StringProperty
 
-from .utils import get_rig_type, write_metarig, MetarigError
+from .utils import get_rig_type, MetarigError
+from .utils import write_metarig, write_widget
 from . import rig_lists
 from . import generate
 
@@ -201,16 +202,18 @@ class VIEW3D_PT_tools_rigify_dev(bpy.types.Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'TOOLS'
 
-    @classmethod
-    def poll(cls, context):
-        return (context.mode == 'EDIT_ARMATURE')
-
     def draw(self, context):
-        r = self.layout.row()
-        r.operator("armature.rigify_encode_metarig", text="Encode Metarig to Python")
-        r = self.layout.row()
-        r.operator("armature.rigify_encode_metarig_sample", text="Encode Sample to Python")
+        obj = context.active_object
+        if obj != None:
+            if context.mode == 'EDIT_ARMATURE':
+                r = self.layout.row()
+                r.operator("armature.rigify_encode_metarig", text="Encode Metarig to Python")
+                r = self.layout.row()
+                r.operator("armature.rigify_encode_metarig_sample", text="Encode Sample to Python")
 
+            if context.mode == 'EDIT_MESH':
+                r = self.layout.row()
+                r.operator("mesh.rigify_encode_mesh_widget", text="Encode Mesh Widget to Python")
 
 #~ class INFO_MT_armature_metarig_add(bpy.types.Menu):
     #~ bl_idname = "INFO_MT_armature_metarig_add"
@@ -374,6 +377,33 @@ class EncodeMetarigSample(bpy.types.Operator):
         return {'FINISHED'}
 
 
+class EncodeWidget(bpy.types.Operator):
+    """ Creates Python code that will generate the selected metarig.
+    """
+    bl_idname = "mesh.rigify_encode_mesh_widget"
+    bl_label = "Rigify Encode Widget"
+    bl_options = {'UNDO'}
+
+    @classmethod
+    def poll(self, context):
+        return context.mode == 'EDIT_MESH'
+
+    def execute(self, context):
+        name = "widget.py"
+
+        if name in bpy.data.texts:
+            text_block = bpy.data.texts[name]
+            text_block.clear()
+        else:
+            text_block = bpy.data.texts.new(name)
+
+        text = write_widget(context.active_object)
+        text_block.write(text)
+        bpy.ops.object.mode_set(mode='EDIT')
+
+        return {'FINISHED'}
+
+
 #menu_func = (lambda self, context: self.layout.menu("INFO_MT_armature_metarig_add", icon='OUTLINER_OB_ARMATURE'))
 
 #from bl_ui import space_info  # ensure the menu is loaded first
@@ -388,6 +418,7 @@ def register():
     bpy.utils.register_class(Sample)
     bpy.utils.register_class(EncodeMetarig)
     bpy.utils.register_class(EncodeMetarigSample)
+    bpy.utils.register_class(EncodeWidget)
 
     #space_info.INFO_MT_armature_add.append(ui.menu_func)
 
@@ -402,3 +433,4 @@ def unregister():
     bpy.utils.unregister_class(Sample)
     bpy.utils.unregister_class(EncodeMetarig)
     bpy.utils.unregister_class(EncodeMetarigSample)
+    bpy.utils.register_class(EncodeWidget)

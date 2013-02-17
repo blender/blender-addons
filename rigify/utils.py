@@ -611,6 +611,50 @@ def write_metarig(obj, layers=False, func_name="create"):
     return "\n".join(code)
 
 
+def write_widget(obj):
+    """ Write a mesh object as a python script for widget use.
+    """
+    script = ""
+    script += "def create_thing_widget(rig, bone_name, size=1.0, bone_transform_name=None):\n"
+    script += "    obj = create_widget(rig, bone_name, bone_transform_name)\n"
+    script += "    if obj != None:\n"
+
+    # Vertices
+    if len(obj.data.vertices) > 0:
+        script += "        verts = ["
+        for v in obj.data.vertices:
+            script += "(" + str(v.co[0]) + "*size, " + str(v.co[1]) + "*size, " + str(v.co[2]) + "*size), "
+        script += "]\n"
+
+    # Edges
+    if len(obj.data.edges) > 0:
+        script += "        edges = ["
+        for e in obj.data.edges:
+            script += "(" + str(e.vertices[0]) + ", " + str(e.vertices[1]) + "), "
+        script += "]\n"
+
+    # Faces
+    if len(obj.data.polygons) > 0:
+        script += "        faces = ["
+        for f in obj.data.polygons:
+            script += "("
+            for v in f.vertices:
+                script += str(v) + ", "
+            script += "), "
+        script += "]\n"
+
+    # Build mesh
+    script += "\n        mesh = obj.data\n"
+    script += "        mesh.from_pydata(verts, edges, faces)\n"
+    script += "        mesh.update()\n"
+    script += "        mesh.update()\n"
+    script += "        return obj\n"
+    script += "    else:\n"
+    script += "        return None\n"
+
+    return script
+
+
 def random_id(length=8):
     """ Generates a random alphanumeric id string.
     """
