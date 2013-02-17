@@ -24,7 +24,7 @@ bl_info = {
     "blender": (2, 63, 0),
     "location": "Any UI control",
     "description": "Allow to translate UI directly from Blender",
-    "warning": "",
+    "warning": "Broken in this release!",
     "wiki_url": "",
     "tracker_url": "",
     "support": 'OFFICIAL',
