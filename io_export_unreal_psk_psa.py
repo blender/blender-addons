@@ -1037,7 +1037,7 @@ def parse_mesh( mesh, psk ):
     points_linked   = {}
     
     discarded_face_count = 0
-
+    sys.setrecursionlimit(1000000)
     smoothgroup_list = parse_smooth_groups(mesh.data)
     
     print("{} faces".format(len(mesh.data.tessfaces)))
@@ -1448,19 +1448,7 @@ def parse_animation( armature, udk_bones, actions_to_export, psa ):
         if not len(action.fcurves):
             print("{} has no keys, skipping".format(action.name))
             continue
-        '''
-        if bpy.context.scene.udk_option_selectanimations:
-            print("Action Set is selected!")
-            bready = False
-            for actionlist in bpy.context.scene.udkas_list:
-                if actionlist.name == action.name and actionlist.bmatch == True and actionlist.bexport == True:
-                    bready = True
-                    print("Added Action Set:",action.name)
-                    break
-            if bready == False:#don't export it
-                print("Skipping Action Set:",action.name)
-                continue
-        '''
+
         # apply action to armature and update scene
         # note if loop all actions that is not armature it will override and will break armature animation.
         armature.animation_data.action = action
@@ -2232,8 +2220,8 @@ bpy.types.Scene.udkas_list_idx = IntProperty()
 class UL_UDKActionSetList(bpy.types.UIList):
     def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
         layout.label(item.name)
-        layout.prop(item, "bmatch", text="")
-        layout.prop(item, "bexport", text="")
+        layout.prop(item, "bmatch", text="Match")
+        layout.prop(item, "bexport", text="Export")
 
 class UDKObjListPG(bpy.types.PropertyGroup):
     bool    = BoolProperty(default=False)
@@ -2266,8 +2254,8 @@ bpy.types.Scene.udkmesh_list_idx = IntProperty()
 class UL_UDKMeshList(bpy.types.UIList):
     def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
         layout.label(item.name)
-        layout.prop(item, "bselect", text="")
-        layout.prop(item, "bexport", text="")
+        layout.prop(item, "bselect", text="Select")
+        layout.prop(item, "bexport", text="Export")
 
 class UDKArmListPG(bpy.types.PropertyGroup):
     bool    = BoolProperty(default=False)
@@ -2279,6 +2267,12 @@ class UDKArmListPG(bpy.types.PropertyGroup):
 bpy.utils.register_class(UDKArmListPG)
 bpy.types.Scene.udkArm_list = CollectionProperty(type=UDKArmListPG)
 bpy.types.Scene.udkArm_list_idx = IntProperty()
+
+class UL_UDKArmList(bpy.types.UIList):
+    def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
+        layout.label(item.name)
+        layout.prop(item, "bselect", text="Select")
+        layout.prop(item, "bexport", text="Export")
 
 class Panel_UDKExport( bpy.types.Panel ):
 
@@ -2325,7 +2319,7 @@ class Panel_UDKExport( bpy.types.Panel ):
         if context.scene.udk_option_selectobjects:
             layout.operator("object.selobjectpdate")
             layout.label(text="ARMATURE")
-            layout.template_list("UI_UL_list", "udk_armatures", context.scene, "udkArm_list",
+            layout.template_list("UL_UDKArmList", "udk_armatures", context.scene, "udkArm_list",
                                  context.scene, "udkArm_list_idx", rows=3)
             layout.label(text="MESH - Select / Export")
             layout.template_list("UL_UDKMeshList", "", context.scene, "udkmesh_list",
