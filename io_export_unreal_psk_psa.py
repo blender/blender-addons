@@ -1607,10 +1607,11 @@ def find_armature_and_mesh():
         else:
             raise Error("There is no Armature in the list!")
         meshselected = []
-        parented_meshes = [obj for obj in armature.children if obj.type == 'MESH']
-        for obj in armature.children:
+        #parented_meshes = [obj for obj in armature.children if obj.type == 'MESH']
+        meshes = [obj for obj in bpy.context.scene.objects if obj.type == 'MESH']
+        for obj in meshes:
             #print(dir(obj))
-            if obj.type == 'MESH' and obj.select == True:
+            if obj.type == 'MESH':
                 bexportmesh = False
                 #print("PARENT MESH:",obj.name)
                 for udkmeshlist in bpy.context.scene.udkmesh_list:
@@ -1630,12 +1631,12 @@ def find_armature_and_mesh():
     
         # otherwise, expect a single mesh parented to the armature (other object types are ignored)
         else:
-            print("Number of meshes:",len(parented_meshes))
-            print("Number of meshes (selected):",len(meshselected))
-            if len(parented_meshes) == 1:
-                mesh = parented_meshes[0]
+            print("Number of meshes:",len(meshes))
+            print("Number of meshes (selected):",len(meshes))
+            if len(meshes) == 1:
+                mesh = meshes[0]
                 
-            elif len(parented_meshes) > 1:
+            elif len(meshes) > 1:
                 if len(meshselected) >= 1:
                     mesh = sortmesh(meshselected)
                 else:
@@ -2152,7 +2153,7 @@ def rebuildarmature(obj):
     armdata = bpy.data.armatures.new(objectname)
     ob_new = bpy.data.objects.new(meshname, armdata)
     bpy.context.scene.objects.link(ob_new)
-    bpy.ops.object.mode_set(mode='OBJECT')
+    #bpy.ops.object.mode_set(mode='OBJECT')
     for i in bpy.context.scene.objects: i.select = False #deselect all objects
     ob_new.select = True
     bpy.context.scene.objects.active = obj
