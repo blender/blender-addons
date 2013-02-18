@@ -1246,11 +1246,14 @@ class Ms3dMaterialProperties(PropertyGroup):
 
 
 ###############################################################################
-# http://projects.blender.org/scm/viewvc.php?view=rev&root=bf-blender&revision=53355
+# http://www.blender.org/documentation/blender_python_api_2_65_10/bpy.types.UIList.html
 class Ms3dGroupUILise(UIList):
     def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
-        layout.label(item.name, icon_value=icon)
-
+        if self.layout_type in {'DEFAULT', 'COMPACT', }:
+            layout.label(text=item.name, icon_value=icon)
+        elif self.layout_type in {'GRID', }:
+            layout.alignment = 'CENTER'
+            layout.label(text="", icon_value=icon)
 
 ###############################################################################
 class Ms3dMeshPanel(Panel):
@@ -1409,7 +1412,6 @@ class Ms3dGroupPanel(Panel):
 
         row = layout.row()
 
-        # http://projects.blender.org/scm/viewvc.php?view=rev&root=bf-blender&revision=53355
         row.template_list(
                 listtype_name='Ms3dGroupUILise',
                 dataptr=custom_data,
