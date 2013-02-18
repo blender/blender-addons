@@ -295,7 +295,7 @@ class property_group_renderer(bpy.types.Panel):
                                 )
 
                             elif current_property['type'] in ['template_list']:
-                                layout.template_list("UI_UL_list", "",
+                                layout.template_list("UI_UL_list", current_property['src_attr'],  # Use that as uid...
                                     current_property['src'](supercontext, context),
                                     current_property['src_attr'],
                                     current_property['trg'](supercontext, context),

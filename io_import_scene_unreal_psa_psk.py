@@ -1120,7 +1120,7 @@ class Panel_UDKImport(bpy.types.Panel):
         layout.prop(context.scene, "udk_importarmatureselect")
         if bpy.context.scene.udk_importarmatureselect:
             layout.operator(OBJECT_OT_UDKImportArmature.bl_idname)
-            layout.template_list("UI_UL_list", "", context.scene, "udkimportarmature_list",
+            layout.template_list("UI_UL_list", "udkimportarmature_list", context.scene, "udkimportarmature_list",
                                  context.scene, "udkimportarmature_list_idx", rows=5)
         layout.operator(OBJECT_OT_PSAPath.bl_idname)
 

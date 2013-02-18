@@ -101,7 +101,7 @@ class SESSIONS_PT_RenderfarmFi(RenderButtonsPanel, bpy.types.Panel):
         if (bpy.passwordCorrect == True and bpy.loginInserted == True):
             layout = self.layout
             
-            layout.template_list("UI_UL_list", "", ore, 'all_sessions', ore, 'selected_session', rows=5)
+            layout.template_list("UI_UL_list", "rederfarmfi_render", ore, 'all_sessions', ore, 'selected_session', rows=5)
             layout.operator('ore.cancel_session')
             if (bpy.cancelError == True):
                 layout.label("This session cannot be cancelled")

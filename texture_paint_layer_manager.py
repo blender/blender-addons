@@ -155,7 +155,7 @@ class OBJECT_PT_Texture_paint_layers(bpy.types.Panel):
                 row.label(' Add a Material first!', icon = 'ERROR')
             else:
                 row = layout.row()
-                row.template_list("UI_UL_list", "", ob, "material_slots", ob,
+                row.template_list("UI_UL_list", "texture_paint_layers", ob, "material_slots", ob,
                                   "active_material_index", rows=2 )
 
                 #list Paintable textures

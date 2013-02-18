@@ -2325,14 +2325,17 @@ class Panel_UDKExport( bpy.types.Panel ):
         if context.scene.udk_option_selectobjects:
             layout.operator("object.selobjectpdate")
             layout.label(text="ARMATURE")
-            layout.template_list("UI_UL_list", "", context.scene, "udkArm_list", context.scene, "udkArm_list_idx", rows=3)
+            layout.template_list("UI_UL_list", "udk_armatures", context.scene, "udkArm_list",
+                                 context.scene, "udkArm_list_idx", rows=3)
             layout.label(text="MESH - Select / Export")
-            layout.template_list("UL_UDKMeshList", "", context.scene, "udkmesh_list", context.scene, "udkmesh_list_idx", rows=5)
+            layout.template_list("UL_UDKMeshList", "", context.scene, "udkmesh_list",
+                                 context.scene, "udkmesh_list_idx", rows=5)
         layout.prop(context.scene, "udk_option_selectanimations")
         if context.scene.udk_option_selectanimations:
             layout.operator("action.setanimupdate")
             layout.label(text="Action Set(s) - Match / Export")
-            layout.template_list("UL_UDKActionSetList", "", context.scene, "udkas_list", context.scene, "udkas_list_idx", rows=5)
+            layout.template_list("UL_UDKActionSetList", "", context.scene, "udkas_list",
+                                 context.scene, "udkas_list_idx", rows=5)
         test = layout.separator()
         layout.prop(context.scene, "udk_option_scale")
         layout.prop(context.scene, "udk_option_rebuildobjects")
