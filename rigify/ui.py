@@ -433,4 +433,4 @@ def unregister():
     bpy.utils.unregister_class(Sample)
     bpy.utils.unregister_class(EncodeMetarig)
     bpy.utils.unregister_class(EncodeMetarigSample)
-    bpy.utils.register_class(EncodeWidget)
+    bpy.utils.unregister_class(EncodeWidget)

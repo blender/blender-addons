@@ -118,7 +118,7 @@ def register():
 
 
 def unregister():
-    for mop in metarig_ops:
+    for mop, name in metarig_ops:
         bpy.utils.unregister_class(mop)
 
     for mf in menu_funcs:
