@@ -82,6 +82,17 @@ url_manual_prefix = url_manual_prefix \
 
 url_manual_mapping = (
 
+    # *** User Prefs ***
+    ("bpy.types.UserPreferences.*",                "Preferences"),
+    ("bpy.types.UserPreferencesView.*",            "Preferences/Interface"),
+    ("bpy.types.UserPreferencesEdit.*",            "Preferences/Editing"),
+    ("bpy.types.UserPreferencesInput.*",           "Preferences/Input"),
+    ("bpy.ops.wm.addon_*",                         "Preferences/Addons"),
+    ("bpy.types.Theme.*",                          "Preferences/Themes"),
+    ("bpy.types.UserPreferencesFilePaths.*",       "Preferences/File"),
+    ("bpy.types.UserPreferencesSystem.*",          "Preferences/System"),
+    ("bpy.types.UserSolidLight.*",                 "Preferences/System"),
+
     # *** Modifiers ***
     # --- Intro ---
     ("bpy.types.Modifier.show_*", "Modifiers/The_Stack"),
