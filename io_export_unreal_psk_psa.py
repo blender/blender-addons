@@ -496,6 +496,8 @@ class VTriangle:
         
     def dump(self):
         return pack('HHHBBL', self.WedgeIndex0, self.WedgeIndex1, self.WedgeIndex2, self.MatIndex, self.AuxMatIndex, self.SmoothingGroups)
+        #print("smooth",self.SmoothingGroups)
+        #return pack('HHHBBI', self.WedgeIndex0, self.WedgeIndex1, self.WedgeIndex2, self.MatIndex, self.AuxMatIndex, self.SmoothingGroups)
 
 # END UNREAL DATA STRUCTS
 #===========================================================================
@@ -987,7 +989,7 @@ def sortmesh(selectmesh):
         return selectmesh[0] #return object mesh
     else:
         return meshmerge(selectmesh) #return merge object mesh
-
+import binascii
 #===========================================================================
 # parse_mesh
 #===========================================================================
@@ -1208,19 +1210,15 @@ def parse_mesh( mesh, psk ):
                 raise Error("Normal coplanar with face! points:", mesh.data.vertices[dindex0].co, mesh.data.vertices[dindex1].co, mesh.data.vertices[dindex2].co)
             
             face.select = True
-            #print("smooth:",(current_face.use_smooth))
-            #not sure if this right
-            #tri.SmoothingGroups
             if face.use_smooth == True:
                 tri.SmoothingGroups = 1
             else:
                 tri.SmoothingGroups = 0
-            
-            #tri.SmoothingGroups = 1
             tri.MatIndex = object_material_index
 
             if bpy.context.scene.udk_option_smoothing_groups:
                 tri.SmoothingGroups = smoothgroup_id
+                print("Bool Smooth")
             
             psk.AddFace(tri)
 
@@ -1705,10 +1703,10 @@ def find_armature_and_mesh():
         verbose("Found mesh: {}".format(mesh.name))
     if mesh == None or armature == None:
         raise Error("Check Mesh and Armature are list!")
-    if len(armature.pose.bones) == len(mesh.vertex_groups):
-        print("Armature and Mesh Vertex Groups matches Ok!")
-    else:
-        raise Error("Armature bones:" + str(len(armature.pose.bones)) + " Mesh Vertex Groups:" + str(len(mesh.vertex_groups)) +" doesn't match!")
+    #if len(armature.pose.bones) == len(mesh.vertex_groups):
+        #print("Armature and Mesh Vertex Groups matches Ok!")
+    #else:
+        #raise Error("Armature bones:" + str(len(armature.pose.bones)) + " Mesh Vertex Groups:" + str(len(mesh.vertex_groups)) +" doesn't match!")
     
     #this will check if object need to be rebuild.
     if bpy.context.scene.udk_option_rebuildobjects:
@@ -2255,7 +2253,7 @@ bpy.types.Scene.udkmesh_list_idx = IntProperty()
 class UL_UDKMeshList(bpy.types.UIList):
     def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
         layout.label(item.name)
-        layout.prop(item, "bselect", text="Select")
+        #layout.prop(item, "bselect", text="Select")
         layout.prop(item, "bexport", text="Export")
 
 class UDKArmListPG(bpy.types.PropertyGroup):
@@ -2272,8 +2270,6 @@ bpy.types.Scene.udkArm_list_idx = IntProperty()
 class UL_UDKArmList(bpy.types.UIList):
     def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
         layout.label(item.name)
-        layout.prop(item, "bselect", text="Select")
-        layout.prop(item, "bexport", text="Export")
 
 class Panel_UDKExport( bpy.types.Panel ):
 
@@ -2319,10 +2315,10 @@ class Panel_UDKExport( bpy.types.Panel ):
         
         if context.scene.udk_option_selectobjects:
             layout.operator("object.selobjectpdate")
-            layout.label(text="ARMATURE")
+            layout.label(text="ARMATURE - Index")
             layout.template_list("UL_UDKArmList", "udk_armatures", context.scene, "udkArm_list",
                                  context.scene, "udkArm_list_idx", rows=3)
-            layout.label(text="MESH - Select / Export")
+            layout.label(text="MESH - Export")
             layout.template_list("UL_UDKMeshList", "", context.scene, "udkmesh_list",
                                  context.scene, "udkmesh_list_idx", rows=5)
         layout.prop(context.scene, "udk_option_selectanimations")
