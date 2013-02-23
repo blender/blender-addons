@@ -17,6 +17,8 @@
 #======================= END GPL LICENSE BLOCK ========================
 
 import os
+import traceback
+import logging
 
 from . import utils
 
@@ -33,37 +35,32 @@ def get_rig_list(path):
 
     for f in files:
         is_dir = os.path.isdir(os.path.join(SEARCH_DIR_ABS, f))  # Whether the file is a directory
-        if f[0] in {".", "_"}:
-            pass
-        elif f.count(".") >= 2 or (is_dir and "." in f):
-            print("Warning: %r, filename contains a '.', skipping" % os.path.join(SEARCH_DIR_ABS, f))
-        else:
-            if is_dir:
-                # Check directories
-                module_name = os.path.join(path, f).replace(os.sep, ".")
-                try:
-                    rig = utils.get_rig_type(module_name)
-                except ImportError as e:
-                    print("Rigify: " + str(e))
-                else:
-                    # Check if it's a rig itself
-                    if not hasattr(rig, "Rig"):
-                        # Check for sub-rigs
-                        ls = get_rig_list(os.path.join(path, f, ""))  # "" adds a final slash
-                        rigs.extend(["%s.%s" % (f, l) for l in ls])
-                    else:
-                        rigs += [f]
 
-            elif f.endswith(".py"):
-                # Check straight-up python files
-                t = f[:-3]
-                module_name = os.path.join(path, t).replace(os.sep, ".")
-                try:
-                    utils.get_rig_type(module_name).Rig
-                except (ImportError, AttributeError):
-                    pass
-                else:
-                    rigs += [t]
+        # Stop cases
+        if f[0] in [".", "_"]:
+            continue
+        if f.count(".") >= 2 or (is_dir and "." in f):
+            print("Warning: %r, filename contains a '.', skipping" % os.path.join(SEARCH_DIR_ABS, f))
+            continue
+
+        if is_dir:
+            # Check directories
+            module_name = os.path.join(path, f).replace(os.sep, ".")
+            rig = utils.get_rig_type(module_name)
+            # Check if it's a rig itself
+            if hasattr(rig, "Rig"):
+                rigs += [f]
+            else:
+                # Check for sub-rigs
+                ls = get_rig_list(os.path.join(path, f, ""))  # "" adds a final slash
+                rigs.extend(["%s.%s" % (f, l) for l in ls])
+        elif f.endswith(".py"):
+            # Check straight-up python files
+            t = f[:-3]
+            module_name = os.path.join(path, t).replace(os.sep, ".")
+            rig = utils.get_rig_type(module_name)
+            if hasattr(rig, "Rig"):
+                rigs += [t]
     rigs.sort()
     return rigs
 
