@@ -29,7 +29,7 @@ bl_info = {
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:"
                 "2.6/Py/Scripts/Import-Export/EDL_Import",
     "tracker_url": "",
-    "category": "Import"}
+    "category": "Import-Export"}
 
 import bpy
 
