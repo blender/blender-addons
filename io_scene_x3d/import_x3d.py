@@ -2050,7 +2050,7 @@ def importShape(node, ancestry, global_matrix):
         bpyima = None
         texmtx = None
 
-        depth = 0  # so we can set alpha face flag later
+        image_depth = 0  # so we can set alpha face flag later
         is_vcol = (geom.getChildBySpec('Color') is not None)
 
         if appr:
@@ -2077,7 +2077,7 @@ def importShape(node, ancestry, global_matrix):
                     mat = ima  # This is a bit dumb, but just means we use default values for all
 
                 # all values between 0.0 and 1.0, defaults from VRML docs
-                bpymat = bpy.data.materials.new("XXX")
+                bpymat = bpy.data.materials.new(vrmlname)
                 bpymat.ambient = mat.getFieldAsFloat('ambientIntensity', 0.2, ancestry)
                 bpymat.diffuse_color = mat.getFieldAsFloatTuple('diffuseColor', [0.8, 0.8, 0.8], ancestry)
 
@@ -2096,39 +2096,50 @@ def importShape(node, ancestry, global_matrix):
                     bpymat.use_vertex_color_paint = True
 
             if ima:
-                ima_url = ima.getFieldAsString('url', None, ancestry)
+                ima_urls = ima.getFieldAsString('url', None, ancestry)
 
-                if ima_url is None:
+                if ima_urls is None:
                     try:
-                        ima_url = ima.getFieldAsStringArray('url', ancestry)[0]  # in some cases we get a list of images.
+                        ima_urls = ima.getFieldAsStringArray('url', ancestry)  # in some cases we get a list of images.
                     except:
-                        ima_url = None
-
-                if ima_url is None:
+                        ima_urls = None
+                else:
+                    if '" "' in ima_urls:
+                        # '"foo" "bar"' --> ['foo', 'bar']
+                        ima_urls = [w.strip('"') for w in ima_urls.split('" "')]
+                    else:
+                        ima_urls = [ima_urls]
+                # ima_urls is a list or None
+                        
+                if ima_urls is None:
                     print("\twarning, image with no URL, this is odd")
                 else:
-                    bpyima = image_utils.load_image(ima_url, os.path.dirname(node.getFilename()), place_holder=False, recursive=False, convert_callback=imageConvertCompat)
+                    bpyima = None
+                    for f in ima_urls:
+                        bpyima = image_utils.load_image(f, os.path.dirname(node.getFilename()), place_holder=False, recursive=False, convert_callback=imageConvertCompat)
+                        if bpyima:
+                            break
+
                     if bpyima:
-                        texture = bpy.data.textures.new("XXX", 'IMAGE')
+                        texture = bpy.data.textures.new(bpyima.name, 'IMAGE')
                         texture.image = bpyima
 
                         # Adds textures for materials (rendering)
                         try:
-                            depth = bpyima.depth
+                            image_depth = bpyima.depth
                         except:
-                            depth = -1
+                            image_depth = -1
+                        
+                        mtex = bpymat.texture_slots.add()
+                        mtex.texture = texture
 
-                        if depth == 32:
-                            # Image has alpha
-                            bpymat.setTexture(0, texture, Texture.TexCo.UV, Texture.MapTo.COL | Texture.MapTo.ALPHA)
-                            texture.setImageFlags('MipMap', 'InterPol', 'UseAlpha')
-                            bpymat.mode |= Material.Modes.ZTRANSP
-                            bpymat.alpha = 0.0
-                        else:
-                            mtex = bpymat.texture_slots.add()
-                            mtex.texture = texture
-                            mtex.texture_coords = 'UV'
-                            mtex.use_map_diffuse = True
+                        mtex.texture_coords = 'UV'
+                        mtex.use_map_diffuse = True
+
+                        if image_depth in {32, 128}:
+                            bpymat.use_transparency = True
+                            mtex.use_map_alpha = True
+                            mtex.alpha_factor = 0.0
 
                         ima_repS = ima.getFieldAsBool('repeatS', True, ancestry)
                         ima_repT = ima.getFieldAsBool('repeatT', True, ancestry)
@@ -2184,7 +2195,7 @@ def importShape(node, ancestry, global_matrix):
 
                 if bpydata.tessface_uv_textures:
 
-                    if depth == 32:  # set the faces alpha flag?
+                    if image_depth in {32, 128}:  # set the faces alpha flag?
                         transp = Mesh.FaceTranspModes.ALPHA
                         for f in bpydata.tessface_uv_textures.active.data:
                             f.blend_type = 'ALPHA'
