@@ -1701,7 +1701,7 @@ def importMesh_IndexedFaceSet(geom, bpyima, ancestry):
             for j, uv in enumerate(f.uv):
                 # print(fuv, j, len(ifs_texpoints))
                 try:
-                    f.uv[j] = ifs_texpoints[fuv[j]]  # XXX25, speedup
+                    f.uv[j] = ifs_texpoints[fuv[j] + 1]  # XXX25, speedup
                 except:
                     print('\tWarning: UV Index out of range')
                     f.uv[j] = ifs_texpoints[0]  # XXX25, speedup
