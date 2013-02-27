@@ -110,10 +110,14 @@ class UI_PT_i18n_update_translations_settings(bpy.types.Panel):
             layout.label(text="Please edit the preferences of the UI Translate addon")
         else:
             split = layout.split(0.75)
-            split.template_list("UI_UL_i18n_languages", "", i18n_sett, "langs", i18n_sett, "active_lang", rows=5)
+            split.template_list("UI_UL_i18n_languages", "", i18n_sett, "langs", i18n_sett, "active_lang", rows=8)
             col = split.column()
+            col.operator("ui.i18n_updatetranslation_svn_init_settings", text="Reset Settings")
             col.operator("ui.i18n_updatetranslation_svn_settings_select_all", text="Select All").use_select = True
             col.operator("ui.i18n_updatetranslation_svn_settings_select_all", text="Deselect All").use_select = False
+            col.separator()
+            col.operator("ui.i18n_updatetranslation_svn_branches", text="Update Branches")
+            col.operator("ui.i18n_updatetranslation_svn_trunk", text="Update Trunk")
 
             if i18n_sett.active_lang >= 0 and i18n_sett.active_lang < len(i18n_sett.langs):
                 lng = i18n_sett.langs[i18n_sett.active_lang]
@@ -127,10 +131,6 @@ class UI_PT_i18n_update_translations_settings(bpy.types.Panel):
                 col.prop(lng, "mo_path_trunk")
             layout.separator()
             layout.prop(i18n_sett, "pot_path")
-            row = layout.row()
-            row.operator("ui.i18n_updatetranslation_svn_init_settings", text="Reset Settings")
-            row.operator("ui.i18n_updatetranslation_svn_branches", text="Update Branches")
-            row.operator("ui.i18n_updatetranslation_svn_trunk", text="Update Trunk")
 
 
 ##### Operators #####
@@ -281,6 +281,9 @@ class UI_OT_i18n_updatetranslation_svn_trunk(bpy.types.Operator):
             po.update_info()
             stats[lng.uid] = po.nbr_trans_msgs / po.nbr_msgs
             print("\n")
+
+        # Copy pot file from branches to trunk.
+        shutil.copy2(self.settings.FILE_NAME_POT, self.settings.TRUNK_PO_DIR)
 
         print("Generating languages' menu...")
         # First complete our statistics by checking po files we did not touch this time!
