@@ -33,7 +33,7 @@ from ..utils import MetarigError
 from ..utils import copy_bone, new_bone, flip_bone, put_bone
 from ..utils import connected_children_names
 from ..utils import strip_org, make_mechanism_name, make_deformer_name
-from ..utils import obj_to_bone, create_circle_widget, create_cube_widget
+from ..utils import create_circle_widget, create_cube_widget
 
 script = """
 main = "%s"
@@ -174,7 +174,6 @@ class Rig:
         eb[main_control].length = sum([eb[b].length for b in self.org_bones]) / 2
 
         # Position the controls and sub-controls
-        pos = eb[controls[0]].head.copy()
         for name, subname in zip(controls, subcontrols):
             put_bone(self.obj, name, pivot_rest_pos)
             put_bone(self.obj, subname, pivot_rest_pos)
@@ -443,23 +442,23 @@ class Rig:
 
         # Control appearance
         # Main
-        w = create_cube_widget(self.obj, main_control)
+        create_cube_widget(self.obj, main_control)
 
         # Spines
         for name, i in zip(controls[1:-1], self.control_indices[1:-1]):
             pb[name].custom_shape_transform = pb[self.org_bones[i]]
             # Create control widgets
-            w = create_circle_widget(self.obj, name, radius=1.0, head_tail=0.5, with_line=True, bone_transform_name=self.org_bones[i])
+            create_circle_widget(self.obj, name, radius=1.0, head_tail=0.5, with_line=True, bone_transform_name=self.org_bones[i])
 
         # Hips
         pb[controls[0]].custom_shape_transform = pb[self.org_bones[0]]
         # Create control widgets
-        w = create_circle_widget(self.obj, controls[0], radius=1.0, head_tail=0.5, with_line=True, bone_transform_name=self.org_bones[0])
+        create_circle_widget(self.obj, controls[0], radius=1.0, head_tail=0.5, with_line=True, bone_transform_name=self.org_bones[0])
 
         # Ribs
         pb[controls[-1]].custom_shape_transform = pb[self.org_bones[-1]]
         # Create control widgets
-        w = create_circle_widget(self.obj, controls[-1], radius=1.0, head_tail=0.5, with_line=True, bone_transform_name=self.org_bones[-1])
+        create_circle_widget(self.obj, controls[-1], radius=1.0, head_tail=0.5, with_line=True, bone_transform_name=self.org_bones[-1])
 
         # Layers
         pb[main_control].bone.layers = pb[self.org_bones[0]].bone.layers

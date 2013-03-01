@@ -19,15 +19,15 @@
 # <pep8 compliant>
 
 import bpy
-from rna_prop_ui import rna_idprop_ui_prop_get
 from mathutils import Vector
 
+from .. import limb_common
+
 from ....utils import MetarigError
-from ....utils import copy_bone
 from ....utils import connected_children_names, has_connected_children
-from ....utils import strip_org, make_mechanism_name, insert_before_lr
+from ....utils import strip_org
 from ....utils import get_layers
-from ....utils import create_widget, create_limb_widget
+from ....utils import create_widget
 
 
 class Rig:
@@ -84,11 +84,14 @@ class Rig:
 
         # Get rig parameters
         if "layers" in params:
-            self.layers = get_layers(params["layers"])
+            layers = get_layers(params["layers"])
         else:
-            self.layers = None
+            layers = None
 
-        self.primary_rotation_axis = params.primary_rotation_axis
+        primary_rotation_axis = params.primary_rotation_axis
+
+        # Leg is based on common limb
+        self.fk_limb = limb_common.FKLimb(obj, self.org_bones[0], self.org_bones[1], self.org_bones[2], primary_rotation_axis, layers)
 
     def generate(self):
         """ Generate the rig.
@@ -96,152 +99,23 @@ class Rig:
             The main armature should be selected and active before this is called.
 
         """
+        ctrl_bones = self.fk_limb.generate()
+        thigh = ctrl_bones[0]
+        shin = ctrl_bones[1]
+        foot = ctrl_bones[2]
+        foot_mch = ctrl_bones[3]
+
+        # Position foot control
         bpy.ops.object.mode_set(mode='EDIT')
-
-        # Create the control bones
-        thigh = copy_bone(self.obj, self.org_bones[0], strip_org(insert_before_lr(self.org_bones[0], ".fk")))
-        shin = copy_bone(self.obj, self.org_bones[1], strip_org(insert_before_lr(self.org_bones[1], ".fk")))
-        foot = copy_bone(self.obj, self.org_bones[2], strip_org(insert_before_lr(self.org_bones[2], ".fk")))
-
-        # Create the foot mechanism bone
-        foot_mch = copy_bone(self.obj, self.org_bones[2], make_mechanism_name(strip_org(self.org_bones[2])))
-
-        # Create the hinge bones
-        if self.org_parent != None:
-            hinge = copy_bone(self.obj, self.org_parent, make_mechanism_name(thigh + ".hinge"))
-            socket1 = copy_bone(self.obj, thigh, make_mechanism_name(thigh + ".socket1"))
-            socket2 = copy_bone(self.obj, thigh, make_mechanism_name(thigh + ".socket2"))
-
-        # Get edit bones
         eb = self.obj.data.edit_bones
-
-        thigh_e = eb[thigh]
-        shin_e = eb[shin]
         foot_e = eb[foot]
-        foot_mch_e = eb[foot_mch]
-
-        if self.org_parent != None:
-            hinge_e = eb[hinge]
-            socket1_e = eb[socket1]
-            socket2_e = eb[socket2]
-
-        # Parenting
-        shin_e.parent = thigh_e
-        foot_e.parent = shin_e
-
-        foot_mch_e.use_connect = False
-        foot_mch_e.parent = foot_e
-
-        if self.org_parent != None:
-            hinge_e.use_connect = False
-            socket1_e.use_connect = False
-            socket2_e.use_connect = False
-
-            thigh_e.parent = hinge_e
-            hinge_e.parent = socket2_e
-            socket2_e.parent = None
-
-        # Positioning
         vec = Vector(eb[self.org_bones[3]].vector)
         vec.normalize()
         foot_e.tail = foot_e.head + (vec * foot_e.length)
         foot_e.roll = eb[self.org_bones[3]].roll
-
-        if self.org_parent != None:
-            center = (hinge_e.head + hinge_e.tail) / 2
-            hinge_e.head = center
-            socket1_e.length /= 4
-            socket2_e.length /= 3
-
-        # Object mode, get pose bones
         bpy.ops.object.mode_set(mode='OBJECT')
-        pb = self.obj.pose.bones
 
-        thigh_p = pb[thigh]
-        shin_p = pb[shin]
-        foot_p = pb[foot]
-        if self.org_parent != None:
-            hinge_p = pb[hinge]
-
-        if self.org_parent != None:
-            # socket1_p = pb[socket1]  # UNUSED
-            socket2_p = pb[socket2]
-
-        # Set the knee to only bend on the x-axis.
-        shin_p.rotation_mode = 'XYZ'
-        if 'X' in self.primary_rotation_axis:
-            shin_p.lock_rotation = (False, True, True)
-        elif 'Y' in self.primary_rotation_axis:
-            shin_p.lock_rotation = (True, False, True)
-        else:
-            shin_p.lock_rotation = (True, True, False)
-
-        # Hinge transforms are locked, for auto-ik
-        if self.org_parent != None:
-            hinge_p.lock_location = True, True, True
-            hinge_p.lock_rotation = True, True, True
-            hinge_p.lock_rotation_w = True
-            hinge_p.lock_scale = True, True, True
-
-        # Set up custom properties
-        if self.org_parent != None:
-            prop = rna_idprop_ui_prop_get(thigh_p, "isolate", create=True)
-            thigh_p["isolate"] = 0.0
-            prop["soft_min"] = prop["min"] = 0.0
-            prop["soft_max"] = prop["max"] = 1.0
-
-        # Hinge constraints / drivers
-        if self.org_parent != None:
-            con = socket2_p.constraints.new('COPY_LOCATION')
-            con.name = "copy_location"
-            con.target = self.obj
-            con.subtarget = socket1
-
-            con = socket2_p.constraints.new('COPY_TRANSFORMS')
-            con.name = "isolate_off"
-            con.target = self.obj
-            con.subtarget = socket1
-
-            # Driver
-            fcurve = con.driver_add("influence")
-            driver = fcurve.driver
-            var = driver.variables.new()
-            driver.type = 'AVERAGE'
-            var.name = "var"
-            var.targets[0].id_type = 'OBJECT'
-            var.targets[0].id = self.obj
-            var.targets[0].data_path = thigh_p.path_from_id() + '["isolate"]'
-            mod = fcurve.modifiers[0]
-            mod.poly_order = 1
-            mod.coefficients[0] = 1.0
-            mod.coefficients[1] = -1.0
-
-        # Constrain org bones to controls
-        con = pb[self.org_bones[0]].constraints.new('COPY_TRANSFORMS')
-        con.name = "fk"
-        con.target = self.obj
-        con.subtarget = thigh
-
-        con = pb[self.org_bones[1]].constraints.new('COPY_TRANSFORMS')
-        con.name = "fk"
-        con.target = self.obj
-        con.subtarget = shin
-
-        con = pb[self.org_bones[2]].constraints.new('COPY_TRANSFORMS')
-        con.name = "fk"
-        con.target = self.obj
-        con.subtarget = foot_mch
-
-        # Set layers if specified
-        if self.layers:
-            thigh_p.bone.layers = self.layers
-            shin_p.bone.layers = self.layers
-            foot_p.bone.layers = self.layers
-
-        # Create control widgets
-        create_limb_widget(self.obj, thigh)
-        create_limb_widget(self.obj, shin)
-
+        # Create foot widget
         ob = create_widget(self.obj, foot)
         if ob != None:
             verts = [(0.7, 1.5, 0.0), (0.7, -0.25, 0.0), (-0.7, -0.25, 0.0), (-0.7, 1.5, 0.0), (0.7, 0.723, 0.0), (-0.7, 0.723, 0.0), (0.7, 0.0, 0.0), (-0.7, 0.0, 0.0)]

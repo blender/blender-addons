@@ -265,7 +265,6 @@ def generate_rig(context, metarig):
     try:
         # Collect/initialize all the rigs.
         rigs = []
-        deformation_rigs = []
         for bone in bones_sorted:
             bpy.ops.object.mode_set(mode='EDIT')
             rigs += get_bone_rigs(obj, bone)
@@ -306,6 +305,16 @@ def generate_rig(context, metarig):
             obj.data.edit_bones[bone].use_connect = False
             obj.data.edit_bones[bone].parent = obj.data.edit_bones[root_bone]
     bpy.ops.object.mode_set(mode='OBJECT')
+
+    # Lock transforms on all non-control bones
+    r = re.compile("[A-Z][A-Z][A-Z]-")
+    for bone in bones:
+        if r.match(bone):
+            pb = obj.pose.bones[bone]
+            pb.lock_location = (True, True, True)
+            pb.lock_rotation = (True, True, True)
+            pb.lock_rotation_w = True
+            pb.lock_scale = (True, True, True)
 
     # Every bone that has a name starting with "DEF-" make deforming.  All the
     # others make non-deforming.

@@ -70,8 +70,9 @@ a parent, and sets the root bone (which Rigify creates) as their parent.
 
 THE GUTS OF A RIG TYPE, BASIC
 -----------------------------
-A rig type is simply a python module containing a class named "Rig".  The Rig
-class is only required to have two methods: __init__() and generate()
+A rig type is simply a python module containing a class named "Rig", and some
+optional module functions.  The Rig class has only two methods:
+__init__() and generate()
 
 __init__() is the "information gathering" code for the rig type.  When Rigify
 loops through the bones and finds a tagged bone, it will create a python
@@ -85,7 +86,7 @@ A proper rig-type __init__() will look like this:
         # code goes here
 
 At the bare minimum, you are going to want to store the object and bone name
-in the rig type object for later reference in the generate method.  So:
+in the rig type object for later reference in the generate() method.  So:
 
     def __init__(self, obj, bone_name, params):
         self.obj = obj
@@ -163,17 +164,11 @@ one place (those functions) and all the rig types will still work.
 THE GUTS OF A RIG TYPE, ADVANCED
 --------------------------------
 If you look at any of the rig types included with Rigify, you'll note that they
-have several more methods than just __init__() and generate().
-THESE ADDITIONAL METHODS ARE _NOT_ REQUIRED for a rig type to function.  But
+have several functions outside of the Rig class.
+THESE ADDITIONAL FUNCTIONS ARE _NOT_ REQUIRED for a rig type to function.  But
 they can add some nifty functionality to your rig.
 
-Not all of the additional methods you see in the included rig types have any
-special purpose for Rigify, however.  For example, I often create separate
-methods for generating the deformation and control rigs, and then call them
-both from the main generate() method.  But that is just for organization, and
-has nothing to do with Rigify itself.
-
-Here are the additional methods relevant to Rigify, with brief decriptions of
+Here are the additional functions relevant to Rigify, with brief decriptions of
 what they are for:
 
 
@@ -183,25 +178,21 @@ For many rig types, it is handy for the user to be able to tweak how they are
 generated.  For example, the included biped arm rig allows the user to specify
 the axis of rotation for the elbow.
 
-There are two methods necessary to give a rig type user-tweakable parameters,
-both of which must be class methods:
+There are two functions necessary to give a rig type user-tweakable parameters:
 add_parameters()
 parameters_ui()
 
 add_parameters() takes an IDPropertyGroup as input, and adds its parameters
 to that group as RNA properties.  For example:
 
-    @classmethod
-    def add_parameters(self, group):
-        group.toggle_param = bpy.props.BoolProperty(name="Test toggle:", default=False, description="Just a test, not really used for anything.")
+    def add_parameters(params):
+        params.toggle_param = bpy.props.BoolProperty(name="Test toggle:", default=False, description="Just a test, not really used for anything.")
 
-parameter_ui() recieves a Blender UILayout object, the metarig object, and the
-tagged bone name.  It creates a GUI in the UILayout for the user to tweak the
-parameters.  For example:
+parameters_ui() recieves a Blender UILayout object and an IDPropertyGroup
+containing the parameters added by add_parameters().  It creates a GUI in the
+UILayout for the user to tweak those parameters.  For example:
 
-    @classmethod
-    def parameters_ui(self, layout, obj, bone):
-        params = obj.pose.bones[bone].rigify_parameters[0]
+    def parameters_ui(layout, params):
         r = layout.row()
         r.prop(params, "toggle_param")
 
@@ -209,14 +200,12 @@ parameters.  For example:
 SAMPLE METARIG
 --------------
 It is a good idea for all rig types to have a sample metarig that the user can
-add to their own metarig.  This is what the create_sample() method is for.
-Like the parameter methods above, create_sample() must be a class method.
+add to their own metarig.  This is what the create_sample() function is for.
 
 create_sample() takes the current armature object as input, and adds the bones
 for its rig-type's metarig.  For example:
 
-    @classmethod
-    def create_sample(self, obj):
+    def create_sample(obj):
         bpy.ops.object.mode_set(mode='EDIT')
         arm = obj.data
 
@@ -232,21 +221,24 @@ for its rig-type's metarig.  For example:
         pbone.rigify_parameters.add()
 
 Obviously, this isn't something that you generally want to hand-code,
-especially with more complex samples.  There is a function in utils.py
-that will generate the code for create_sample() for you, based on a selected
-armature.  The function is called write_metarig()
+especially with more complex samples.  When in edit-mode on an armature,
+there is a "Rigify Dev Tools" panel in the View3d tools panel containing a
+button labeled "Encode Sample to Python".  This button will generate the python
+code for create_sample() from the armature you are editing.  The generated code
+appears in a text block called "metarig_sample.py"
 
 
 GENERATING A PYTHON UI
 ----------------------
-The generate() method can also, optionally, return python code as a string.
-This python code is added to the "rig properties" panel that gets
+The generate() method can also, optionally, return python code as a single
+string.  This python code is added to the "rig properties" panel that gets
 auto-generated along with the rig.  This is useful for exposing things like
 IK/FK switches in a nice way to the animator.
 
-The string must be returned in a list:
+The string must be returned in a list, e.g.:
 
 return ["my python code"]
 
-Otherwise it won't work.
+The reason it needs to be put in a list is to leave room for expanding the API
+in the future, for returning additional information.
 

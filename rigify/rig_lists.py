@@ -17,8 +17,6 @@
 #======================= END GPL LICENSE BLOCK ========================
 
 import os
-import traceback
-import logging
 
 from . import utils
 

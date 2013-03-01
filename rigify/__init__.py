@@ -20,15 +20,14 @@
 
 bl_info = {
     "name": "Rigify",
+    "version": (0, 4),
     "author": "Nathan Vegdahl",
-    "blender": (2, 57, 0),
-    "location": "View3D > Add > Armature",
-    "description": "Adds various Rig Templates",
-    "location": "Armature properties",
+    "blender": (2, 66, 0),
+    "description": "Automatic rigging from building-block components",
+    "location": "Armature properties, Bone properties, View3d tools panel, Armature Add menu",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"
                 "Scripts/Rigging/Rigify",
-    "tracker_url": "http://projects.blender.org/tracker/index.php?"
-                   "func=detail&aid=25546",
+    "tracker_url": "http://github.com/cessen/rigify/issues",
     "category": "Rigging"}
 
 

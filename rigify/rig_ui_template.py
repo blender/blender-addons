@@ -245,6 +245,13 @@ def fk2ik_arm(obj, fk, ik):
     farmi = obj.pose.bones[ik[1]]
     handi = obj.pose.bones[ik[2]]
 
+    # Stretch
+    if handi['auto_stretch'] == 0.0:
+        uarm['stretch_length'] = handi['stretch_length']
+    else:
+        diff = (uarmi.vector.length + farmi.vector.length) / (uarm.vector.length + farm.vector.length)
+        uarm['stretch_length'] *= diff
+
     # Upper arm position
     match_pose_rotation(uarm, uarmi)
     match_pose_scale(uarm, uarmi)
@@ -272,6 +279,9 @@ def ik2fk_arm(obj, fk, ik):
     handi = obj.pose.bones[ik[2]]
     pole  = obj.pose.bones[ik[3]]
 
+    # Stretch
+    handi['stretch_length'] = uarm['stretch_length']
+
     # Hand position
     match_pose_translation(handi, hand)
     match_pose_rotation(handi, hand)
@@ -293,7 +303,15 @@ def fk2ik_leg(obj, fk, ik):
     mfoot  = obj.pose.bones[fk[3]]
     thighi = obj.pose.bones[ik[0]]
     shini  = obj.pose.bones[ik[1]]
-    mfooti = obj.pose.bones[ik[2]]
+    footi  = obj.pose.bones[ik[2]]
+    mfooti = obj.pose.bones[ik[3]]
+
+    # Stretch
+    if footi['auto_stretch'] == 0.0:
+        thigh['stretch_length'] = footi['stretch_length']
+    else:
+        diff = (thighi.vector.length + shini.vector.length) / (thigh.vector.length + shin.vector.length)
+        thigh['stretch_length'] *= diff
 
     # Thigh position
     match_pose_rotation(thigh, thighi)
@@ -327,6 +345,9 @@ def ik2fk_leg(obj, fk, ik):
     footroll = obj.pose.bones[ik[3]]
     pole     = obj.pose.bones[ik[4]]
     mfooti   = obj.pose.bones[ik[5]]
+
+    # Stretch
+    footi['stretch_length'] = thigh['stretch_length']
 
     # Clear footroll
     set_pose_rotation(footroll, Matrix())
@@ -421,6 +442,7 @@ class Rigify_Leg_FK2IK(bpy.types.Operator):
 
     thigh_ik = bpy.props.StringProperty(name="Thigh IK Name")
     shin_ik  = bpy.props.StringProperty(name="Shin IK Name")
+    foot_ik  = bpy.props.StringProperty(name="Foot IK Name")
     mfoot_ik = bpy.props.StringProperty(name="MFoot IK Name")
 
     @classmethod
@@ -431,7 +453,7 @@ class Rigify_Leg_FK2IK(bpy.types.Operator):
         use_global_undo = context.user_preferences.edit.use_global_undo
         context.user_preferences.edit.use_global_undo = False
         try:
-            fk2ik_leg(context.active_object, fk=[self.thigh_fk, self.shin_fk, self.foot_fk, self.mfoot_fk], ik=[self.thigh_ik, self.shin_ik, self.mfoot_ik])
+            fk2ik_leg(context.active_object, fk=[self.thigh_fk, self.shin_fk, self.foot_fk, self.mfoot_fk], ik=[self.thigh_ik, self.shin_ik, self.foot_ik, self.mfoot_ik])
         finally:
             context.user_preferences.edit.use_global_undo = use_global_undo
         return {'FINISHED'}

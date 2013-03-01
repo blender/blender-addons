@@ -25,7 +25,7 @@ from ..utils import MetarigError
 from ..utils import copy_bone, new_bone, put_bone
 from ..utils import connected_children_names
 from ..utils import strip_org, make_mechanism_name, make_deformer_name
-from ..utils import obj_to_bone, create_circle_widget
+from ..utils import create_circle_widget
 
 
 script1 = """
@@ -315,8 +315,8 @@ class Rig:
             i += 1
 
         # Create control widgets
-        w1 = create_circle_widget(self.obj, neck_ctrl, radius=1.0, head_tail=0.5, bone_transform_name=self.org_bones[(len(self.org_bones) - 1) // 2])
-        w2 = create_circle_widget(self.obj, head_ctrl, radius=1.0, head_tail=0.5, bone_transform_name=self.org_bones[-1])
+        create_circle_widget(self.obj, neck_ctrl, radius=1.0, head_tail=0.5, bone_transform_name=self.org_bones[(len(self.org_bones) - 1) // 2])
+        create_circle_widget(self.obj, head_ctrl, radius=1.0, head_tail=0.5, bone_transform_name=self.org_bones[-1])
 
         # Return control bones
         return (head_ctrl, neck_ctrl)

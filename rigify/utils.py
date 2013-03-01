@@ -21,9 +21,10 @@
 import bpy
 import imp
 import importlib
+import math
 import random
 import time
-from mathutils import Vector
+from mathutils import Vector, Matrix
 from rna_prop_ui import rna_idprop_ui_prop_get
 
 RIG_DIR = "rigs"  # Name of the directory where rig types are kept
@@ -227,7 +228,7 @@ def put_bone(obj, bone_name, pos):
     """ Places a bone at the given position.
     """
     if bone_name not in obj.data.bones:
-        raise MetarigError("put_bone(): bone '%s' not found, cannot copy it" % bone_name)
+        raise MetarigError("put_bone(): bone '%s' not found, cannot move it" % bone_name)
 
     if obj == bpy.context.active_object and bpy.context.mode == 'EDIT_ARMATURE':
         bone = obj.data.edit_bones[bone_name]
@@ -236,6 +237,68 @@ def put_bone(obj, bone_name, pos):
         bone.translate(delta)
     else:
         raise MetarigError("Cannot 'put' bones outside of edit mode")
+
+
+def make_nonscaling_child(obj, bone_name, location, child_name_postfix=""):
+    """ Takes the named bone and creates a non-scaling child of it at
+        the given location.  The returned bone (returned by name) is not
+        a true child, but behaves like one sans inheriting scaling.
+
+        It is intended as an intermediate construction to prevent rig types
+        from scaling with their parents.  The named bone is assumed to be
+        an ORG bone.
+    """
+    if bone_name not in obj.data.bones:
+        raise MetarigError("make_nonscaling_child(): bone '%s' not found, cannot copy it" % bone_name)
+
+    if obj == bpy.context.active_object and bpy.context.mode == 'EDIT_ARMATURE':
+        # Create desired names for bones
+        name1 = make_mechanism_name(strip_org(insert_before_lr(bone_name, child_name_postfix + "_ns_ch")))
+        name2 = make_mechanism_name(strip_org(insert_before_lr(bone_name, child_name_postfix + "_ns_intr")))
+
+        # Create bones
+        child = copy_bone(obj, bone_name, name1)
+        intermediate_parent = copy_bone(obj, bone_name, name2)
+
+        # Get edit bones
+        eb = obj.data.edit_bones
+        child_e = eb[child]
+        intrpar_e = eb[intermediate_parent]
+
+        # Parenting
+        child_e.use_connect = False
+        child_e.parent = None
+
+        intrpar_e.use_connect = False
+        intrpar_e.parent = eb[bone_name]
+
+        # Positioning
+        child_e.length *= 0.5
+        intrpar_e.length *= 0.25
+
+        put_bone(obj, child, location)
+        put_bone(obj, intermediate_parent, location)
+
+        # Object mode
+        bpy.ops.object.mode_set(mode='OBJECT')
+        pb = obj.pose.bones
+
+        # Add constraints
+        con = pb[child].constraints.new('COPY_LOCATION')
+        con.name = "parent_loc"
+        con.target = obj
+        con.subtarget = intermediate_parent
+
+        con = pb[child].constraints.new('COPY_ROTATION')
+        con.name = "parent_loc"
+        con.target = obj
+        con.subtarget = intermediate_parent
+
+        bpy.ops.object.mode_set(mode='EDIT')
+
+        return child
+    else:
+        raise MetarigError("Cannot make nonscaling child outside of edit mode")
 
 
 #=============================================
@@ -406,6 +469,132 @@ def create_root_widget(rig, bone_name, bone_transform_name=None):
 
 
 #=============================================
+# Math
+#=============================================
+
+def angle_on_plane(plane, vec1, vec2):
+    """ Return the angle between two vectors projected onto a plane.
+    """
+    plane.normalize()
+    vec1 = vec1 - (plane * (vec1.dot(plane)))
+    vec2 = vec2 - (plane * (vec2.dot(plane)))
+    vec1.normalize()
+    vec2.normalize()
+
+    # Determine the angle
+    angle = math.acos(max(-1.0, min(1.0, vec1.dot(vec2))))
+
+    if angle < 0.00001:  # close enough to zero that sign doesn't matter
+        return angle
+
+    # Determine the sign of the angle
+    vec3 = vec2.cross(vec1)
+    vec3.normalize()
+    sign = vec3.dot(plane)
+    if sign >= 0:
+        sign = 1
+    else:
+        sign = -1
+
+    return angle * sign
+
+
+def align_bone_roll(obj, bone1, bone2):
+    """ Aligns the roll of two bones.
+    """
+    bone1_e = obj.data.edit_bones[bone1]
+    bone2_e = obj.data.edit_bones[bone2]
+
+    bone1_e.roll = 0.0
+
+    # Get the directions the bones are pointing in, as vectors
+    y1 = bone1_e.y_axis
+    x1 = bone1_e.x_axis
+    y2 = bone2_e.y_axis
+    x2 = bone2_e.x_axis
+
+    # Get the shortest axis to rotate bone1 on to point in the same direction as bone2
+    axis = y1.cross(y2)
+    axis.normalize()
+
+    # Angle to rotate on that shortest axis
+    angle = y1.angle(y2)
+
+    # Create rotation matrix to make bone1 point in the same direction as bone2
+    rot_mat = Matrix.Rotation(angle, 3, axis)
+
+    # Roll factor
+    x3 = rot_mat * x1
+    dot = x2 * x3
+    if dot > 1.0:
+        dot = 1.0
+    elif dot < -1.0:
+        dot = -1.0
+    roll = math.acos(dot)
+
+    # Set the roll
+    bone1_e.roll = roll
+
+    # Check if we rolled in the right direction
+    x3 = rot_mat * bone1_e.x_axis
+    check = x2 * x3
+
+    # If not, reverse
+    if check < 0.9999:
+        bone1_e.roll = -roll
+
+
+def align_bone_x_axis(obj, bone, vec):
+    """ Rolls the bone to align its x-axis as closely as possible to
+        the given vector.
+        Must be in edit mode.
+    """
+    bone_e = obj.data.edit_bones[bone]
+
+    vec = vec.cross(bone_e.y_axis)
+    vec.normalize()
+
+    dot = max(-1.0, min(1.0, bone_e.z_axis.dot(vec)))
+    angle = math.acos(dot)
+
+    bone_e.roll += angle
+
+    dot1 = bone_e.z_axis.dot(vec)
+
+    bone_e.roll -= angle * 2
+
+    dot2 = bone_e.z_axis.dot(vec)
+
+    if dot1 > dot2:
+        bone_e.roll += angle * 2
+
+
+def align_bone_z_axis(obj, bone, vec):
+    """ Rolls the bone to align its z-axis as closely as possible to
+        the given vector.
+        Must be in edit mode.
+    """
+    bone_e = obj.data.edit_bones[bone]
+
+    vec = bone_e.y_axis.cross(vec)
+    vec.normalize()
+
+    dot = max(-1.0, min(1.0, bone_e.x_axis.dot(vec)))
+    angle = math.acos(dot)
+
+    bone_e.roll += angle
+
+    dot1 = bone_e.x_axis.dot(vec)
+
+    bone_e.roll -= angle * 2
+
+    dot2 = bone_e.x_axis.dot(vec)
+
+    if dot1 > dot2:
+        bone_e.roll += angle * 2
+
+
+#=============================================
 # Misc
 #=============================================
 
@@ -555,7 +744,6 @@ def write_metarig(obj, layers=False, func_name="create"):
     # Rig type and other pose properties
     for bone_name in bones:
         pbone = obj.pose.bones[bone_name]
-        pbone_written = False
 
         code.append("    pbone = obj.pose.bones[bones[%r]]" % bone_name)
         code.append("    pbone.rigify_type = %r" % pbone.rigify_type)

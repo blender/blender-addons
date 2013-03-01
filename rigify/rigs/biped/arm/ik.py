@@ -18,44 +18,14 @@
 
 # <pep8 compliant>
 
-from math import pi, acos
-
 import bpy
-from rna_prop_ui import rna_idprop_ui_prop_get
-from mathutils import Vector
+
+from .. import limb_common
 
 from ....utils import MetarigError
-from ....utils import copy_bone
 from ....utils import connected_children_names
-from ....utils import strip_org, make_mechanism_name, insert_before_lr
-from ....utils import create_widget, create_line_widget, create_sphere_widget
-
-
-def angle_on_plane(plane, vec1, vec2):
-    """ Return the angle between two vectors projected onto a plane.
-    """
-    plane.normalize()
-    vec1 = vec1 - (plane * (vec1.dot(plane)))
-    vec2 = vec2 - (plane * (vec2.dot(plane)))
-    vec1.normalize()
-    vec2.normalize()
-
-    # Determine the angle
-    angle = acos(max(-1.0, min(1.0, vec1.dot(vec2))))
-
-    if angle < 0.00001:  # close enough to zero that sign doesn't matter
-        return angle
-
-    # Determine the sign of the angle
-    vec3 = vec2.cross(vec1)
-    vec3.normalize()
-    sign = vec3.dot(plane)
-    if sign >= 0:
-        sign = 1
-    else:
-        sign = -1
-
-    return angle * sign
+from ....utils import strip_org
+from ....utils import create_widget
 
 
 class Rig:
@@ -73,23 +43,23 @@ class Rig:
         """
         self.obj = obj
         self.params = params
-        self.switch = ikfk_switch
 
         # Get the chain of 3 connected bones
         self.org_bones = [bone] + connected_children_names(self.obj, bone)[:2]
-
         if len(self.org_bones) != 3:
             raise MetarigError("RIGIFY ERROR: Bone '%s': input to rig type must be a chain of 3 bones" % (strip_org(bone)))
 
         # Get the rig parameters
         if params.separate_ik_layers:
-            self.layers = list(params.ik_layers)
+            layers = list(params.ik_layers)
         else:
-            self.layers = None
+            layers = None
+        bend_hint = params.bend_hint
+        primary_rotation_axis = params.primary_rotation_axis
+        pole_target_base_name = self.params.elbow_base_name + "_target"
 
-        self.bend_hint = params.bend_hint
-
-        self.primary_rotation_axis = params.primary_rotation_axis
+        # Arm is based on common limb
+        self.ik_limb = limb_common.IKLimb(obj, self.org_bones[0], self.org_bones[1], self.org_bones[2], pole_target_base_name, primary_rotation_axis, bend_hint, layers, ikfk_switch)
 
     def generate(self):
         """ Generate the rig.
@@ -97,236 +67,14 @@ class Rig:
             The main armature should be selected and active before this is called.
 
         """
-        bpy.ops.object.mode_set(mode='EDIT')
-
-        # Create the bones
-        uarm = copy_bone(self.obj, self.org_bones[0], make_mechanism_name(strip_org(insert_before_lr(self.org_bones[0], ".ik"))))
-        farm = copy_bone(self.obj, self.org_bones[1], make_mechanism_name(strip_org(insert_before_lr(self.org_bones[1], ".ik"))))
-
-        hand = copy_bone(self.obj, self.org_bones[2], strip_org(insert_before_lr(self.org_bones[2], ".ik")))
-        pole_target_name = self.params.elbow_target_base_name + "." + insert_before_lr(self.org_bones[0], ".ik").split(".", 1)[1]
-        pole = copy_bone(self.obj, self.org_bones[0], pole_target_name)
-
-        vishand = copy_bone(self.obj, self.org_bones[2], "VIS-" + strip_org(insert_before_lr(self.org_bones[2], ".ik")))
-        vispole = copy_bone(self.obj, self.org_bones[1], "VIS-" + strip_org(insert_before_lr(self.org_bones[0], "_pole.ik")))
-
-        # Get edit bones
-        eb = self.obj.data.edit_bones
-
-        uarm_e = eb[uarm]
-        farm_e = eb[farm]
-        hand_e = eb[hand]
-        pole_e = eb[pole]
-        vishand_e = eb[vishand]
-        vispole_e = eb[vispole]
-
-        # Parenting
-        farm_e.parent = uarm_e
-
-        hand_e.use_connect = False
-        hand_e.parent = None
-
-        pole_e.use_connect = False
-
-        vishand_e.use_connect = False
-        vishand_e.parent = None
-
-        vispole_e.use_connect = False
-        vispole_e.parent = None
-
-        # Misc
-        hand_e.use_local_location = False
-
-        vishand_e.hide_select = True
-        vispole_e.hide_select = True
-
-        # Positioning
-        v1 = farm_e.tail - uarm_e.head
-        if 'X' in self.primary_rotation_axis or 'Y' in self.primary_rotation_axis:
-            v2 = v1.cross(farm_e.x_axis)
-            if (v2 * farm_e.z_axis) > 0.0:
-                v2 *= -1.0
-        else:
-            v2 = v1.cross(farm_e.z_axis)
-            if (v2 * farm_e.x_axis) < 0.0:
-                v2 *= -1.0
-        v2.normalize()
-        v2 *= v1.length
-
-        if '-' in self.primary_rotation_axis:
-            v2 *= -1
-
-        pole_e.head = farm_e.head + v2
-        pole_e.tail = pole_e.head + (Vector((0, 1, 0)) * (v1.length / 8))
-        pole_e.roll = 0.0
-
-        vishand_e.tail = vishand_e.head + Vector((0, 0, v1.length / 32))
-        vispole_e.tail = vispole_e.head + Vector((0, 0, v1.length / 32))
-
-        # Determine the pole offset value
-        plane = (farm_e.tail - uarm_e.head).normalized()
-        vec1 = uarm_e.x_axis.normalized()
-        vec2 = (pole_e.head - uarm_e.head).normalized()
-        pole_offset = angle_on_plane(plane, vec1, vec2)
-
-        # Object mode, get pose bones
-        bpy.ops.object.mode_set(mode='OBJECT')
-        pb = self.obj.pose.bones
-
-        # uarm_p = pb[uarm]  # UNUSED
-        farm_p = pb[farm]
-        hand_p = pb[hand]
-        pole_p = pb[pole]
-        vishand_p = pb[vishand]
-        vispole_p = pb[vispole]
-
-        # Set the elbow to only bend on the primary axis
-        if 'X' in self.primary_rotation_axis:
-            farm_p.lock_ik_y = True
-            farm_p.lock_ik_z = True
-        elif 'Y' in self.primary_rotation_axis:
-            farm_p.lock_ik_x = True
-            farm_p.lock_ik_z = True
-        else:
-            farm_p.lock_ik_x = True
-            farm_p.lock_ik_y = True
-
-        # Pole target only translates
-        pole_p.lock_location = False, False, False
-        pole_p.lock_rotation = True, True, True
-        pole_p.lock_rotation_w = True
-        pole_p.lock_scale = True, True, True
-
-        # Set up custom properties
-        if self.switch is True:
-            prop = rna_idprop_ui_prop_get(hand_p, "ikfk_switch", create=True)
-            hand_p["ikfk_switch"] = 0.0
-            prop["soft_min"] = prop["min"] = 0.0
-            prop["soft_max"] = prop["max"] = 1.0
-
-        # Bend direction hint
-        if self.bend_hint:
-            con = farm_p.constraints.new('LIMIT_ROTATION')
-            con.name = "bend_hint"
-            con.owner_space = 'LOCAL'
-            if self.primary_rotation_axis == 'X':
-                con.use_limit_x = True
-                con.min_x = pi / 10
-                con.max_x = pi / 10
-            elif self.primary_rotation_axis == '-X':
-                con.use_limit_x = True
-                con.min_x = -pi / 10
-                con.max_x = -pi / 10
-            elif self.primary_rotation_axis == 'Y':
-                con.use_limit_y = True
-                con.min_y = pi / 10
-                con.max_y = pi / 10
-            elif self.primary_rotation_axis == '-Y':
-                con.use_limit_y = True
-                con.min_y = -pi / 10
-                con.max_y = -pi / 10
-            elif self.primary_rotation_axis == 'Z':
-                con.use_limit_z = True
-                con.min_z = pi / 10
-                con.max_z = pi / 10
-            elif self.primary_rotation_axis == '-Z':
-                con.use_limit_z = True
-                con.min_z = -pi / 10
-                con.max_z = -pi / 10
-
-        # IK Constraint
-        con = farm_p.constraints.new('IK')
-        con.name = "ik"
-        con.target = self.obj
-        con.subtarget = hand
-        con.pole_target = self.obj
-        con.pole_subtarget = pole
-        con.pole_angle = pole_offset
-        con.chain_count = 2
-
-        # Constrain org bones to controls
-        con = pb[self.org_bones[0]].constraints.new('COPY_TRANSFORMS')
-        con.name = "ik"
-        con.target = self.obj
-        con.subtarget = uarm
-        if self.switch is True:
-            # IK/FK switch driver
-            fcurve = con.driver_add("influence")
-            driver = fcurve.driver
-            var = driver.variables.new()
-            driver.type = 'AVERAGE'
-            var.name = "var"
-            var.targets[0].id_type = 'OBJECT'
-            var.targets[0].id = self.obj
-            var.targets[0].data_path = hand_p.path_from_id() + '["ikfk_switch"]'
-
-        con = pb[self.org_bones[1]].constraints.new('COPY_TRANSFORMS')
-        con.name = "ik"
-        con.target = self.obj
-        con.subtarget = farm
-        if self.switch is True:
-            # IK/FK switch driver
-            fcurve = con.driver_add("influence")
-            driver = fcurve.driver
-            var = driver.variables.new()
-            driver.type = 'AVERAGE'
-            var.name = "var"
-            var.targets[0].id_type = 'OBJECT'
-            var.targets[0].id = self.obj
-            var.targets[0].data_path = hand_p.path_from_id() + '["ikfk_switch"]'
-
-        con = pb[self.org_bones[2]].constraints.new('COPY_TRANSFORMS')
-        con.name = "ik"
-        con.target = self.obj
-        con.subtarget = hand
-        if self.switch is True:
-            # IK/FK switch driver
-            fcurve = con.driver_add("influence")
-            driver = fcurve.driver
-            var = driver.variables.new()
-            driver.type = 'AVERAGE'
-            var.name = "var"
-            var.targets[0].id_type = 'OBJECT'
-            var.targets[0].id = self.obj
-            var.targets[0].data_path = hand_p.path_from_id() + '["ikfk_switch"]'
-
-        # VIS hand constraints
-        con = vishand_p.constraints.new('COPY_LOCATION')
-        con.name = "copy_loc"
-        con.target = self.obj
-        con.subtarget = self.org_bones[2]
-
-        con = vishand_p.constraints.new('STRETCH_TO')
-        con.name = "stretch_to"
-        con.target = self.obj
-        con.subtarget = hand
-        con.volume = 'NO_VOLUME'
-        con.rest_length = vishand_p.length
-
-        # VIS pole constraints
-        con = vispole_p.constraints.new('COPY_LOCATION')
-        con.name = "copy_loc"
-        con.target = self.obj
-        con.subtarget = self.org_bones[1]
-
-        con = vispole_p.constraints.new('STRETCH_TO')
-        con.name = "stretch_to"
-        con.target = self.obj
-        con.subtarget = pole
-        con.volume = 'NO_VOLUME'
-        con.rest_length = vispole_p.length
-
-        # Set layers if specified
-        if self.layers:
-            hand_p.bone.layers = self.layers
-            pole_p.bone.layers = self.layers
-            vishand_p.bone.layers = self.layers
-            vispole_p.bone.layers = self.layers
-
-        # Create widgets
-        create_line_widget(self.obj, vispole)
-        create_line_widget(self.obj, vishand)
-        create_sphere_widget(self.obj, pole)
+        bone_list = self.ik_limb.generate()
+        uarm = bone_list[0]
+        farm = bone_list[1]
+        hand = bone_list[2]
+        # hand_mch = bone_list[3]
+        pole = bone_list[4]
+        # vispole = bone_list[5]
+        # vishand = bone_list[6]
 
         ob = create_widget(self.obj, hand)
         if ob != None:
