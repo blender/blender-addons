@@ -813,6 +813,10 @@ class RubberHoseLimb:
             flimb2 = copy_bone(self.obj, self.org_bones[1], make_deformer_name(strip_org(insert_before_lr(self.org_bones[1], ".02"))))
             elimb = copy_bone(self.obj, self.org_bones[2], make_deformer_name(strip_org(self.org_bones[2])))
 
+            ulimb2_smoother = copy_bone(self.obj, self.org_bones[1], make_mechanism_name(strip_org(insert_before_lr(self.org_bones[0], "_smth.02"))))
+            flimb1_smoother = copy_bone(self.obj, self.org_bones[0], make_mechanism_name(strip_org(insert_before_lr(self.org_bones[1], "_smth.01"))))
+            flimb1_pos = copy_bone(self.obj, self.org_bones[1], make_mechanism_name(strip_org(insert_before_lr(self.org_bones[1], ".01"))))
+
             junc = copy_bone(self.obj, self.org_bones[1], make_mechanism_name(strip_org(insert_before_lr(self.org_bones[1], ".junc"))))
 
             uhose = new_bone(self.obj, strip_org(insert_before_lr(self.org_bones[0], "_hose")))
@@ -837,6 +841,10 @@ class RubberHoseLimb:
             flimb2_e = eb[flimb2]
             elimb_e = eb[elimb]
 
+            ulimb2_smoother_e = eb[ulimb2_smoother]
+            flimb1_smoother_e = eb[flimb1_smoother]
+            flimb1_pos_e = eb[flimb1_pos]
+
             junc_e = eb[junc]
 
             uhose_e = eb[uhose]
@@ -855,8 +863,17 @@ class RubberHoseLimb:
             ulimb2_e.use_connect = False
             ulimb2_e.parent = eb[self.org_bones[0]]
 
+            ulimb2_smoother_e.use_connect = True
+            ulimb2_smoother_e.parent = ulimb2_e
+
             flimb1_e.use_connect = True
-            flimb1_e.parent = ulimb2_e
+            flimb1_e.parent = flimb1_smoother_e
+
+            flimb1_smoother_e.use_connect = False
+            flimb1_smoother_e.parent = flimb1_pos_e
+
+            flimb1_pos_e.use_connect = False
+            flimb1_pos_e.parent = eb[self.org_bones[1]]
 
             flimb2_e.use_connect = False
             flimb2_e.parent = eb[self.org_bones[1]]
@@ -891,6 +908,12 @@ class RubberHoseLimb:
             flimb1_e.length *= 0.5
             flimb2_e.head = Vector(flimb1_e.tail)
             align_bone_roll(self.obj, flimb2, elimb)
+
+            ulimb2_smoother_e.tail = Vector(flimb1_e.tail)
+            ulimb2_smoother_e.roll = flimb1_e.roll
+
+            flimb1_smoother_e.head = Vector(ulimb1_e.tail)
+            flimb1_pos_e.length *= 0.5
 
             junc_e.length *= 0.2
 
@@ -949,6 +972,10 @@ class RubberHoseLimb:
             flimb2_p = pb[flimb2]
             elimb_p = pb[elimb]
 
+            ulimb2_smoother_p = pb[ulimb2_smoother]
+            flimb1_smoother_p = pb[flimb1_smoother]
+            flimb1_pos_p = pb[flimb1_pos]
+
             junc_p = pb[junc]
 
             uhose_p = pb[uhose]
@@ -977,34 +1004,23 @@ class RubberHoseLimb:
             ulimb2_p.bone.bbone_in = 0.0
             ulimb2_p.bone.bbone_out = 1.0
 
+            ulimb2_smoother_p.bone.bbone_segments = 16
+            ulimb2_smoother_p.bone.bbone_in = 1.0
+            ulimb2_smoother_p.bone.bbone_out = 0.0
+
             flimb1_p.bone.bbone_segments = 16
             flimb1_p.bone.bbone_in = 1.0
             flimb1_p.bone.bbone_out = 0.0
+
+            flimb1_smoother_p.bone.bbone_segments = 16
+            flimb1_smoother_p.bone.bbone_in = 0.0
+            flimb1_smoother_p.bone.bbone_out = 1.0
 
             # Custom properties
             prop = rna_idprop_ui_prop_get(jhose_p, "smooth_bend", create=True)
             jhose_p["smooth_bend"] = 0.0
             prop["soft_min"] = prop["min"] = 0.0
             prop["soft_max"] = prop["max"] = 1.0
-
-            # Drivers
-            fcurve = ulimb2_p.bone.driver_add("bbone_out")
-            driver = fcurve.driver
-            var = driver.variables.new()
-            driver.type = 'AVERAGE'
-            var.name = "var"
-            var.targets[0].id_type = 'OBJECT'
-            var.targets[0].id = self.obj
-            var.targets[0].data_path = jhose_p.path_from_id() + '["smooth_bend"]'
-
-            fcurve = flimb1_p.bone.driver_add("bbone_in")
-            driver = fcurve.driver
-            var = driver.variables.new()
-            driver.type = 'AVERAGE'
-            var.name = "var"
-            var.targets[0].id_type = 'OBJECT'
-            var.targets[0].id = self.obj
-            var.targets[0].data_path = jhose_p.path_from_id() + '["smooth_bend"]'
 
             # Constraints
             con = ulimb1_p.constraints.new('COPY_SCALE')
@@ -1035,22 +1051,54 @@ class RubberHoseLimb:
             con.subtarget = jhose
             con.volume = 'NO_VOLUME'
 
-            con = flimb1_p.constraints.new('COPY_TRANSFORMS')
-            con.name = "anchor"
+            con = ulimb2_smoother_p.constraints.new('COPY_TRANSFORMS')
+            con.name = "smoother"
             con.target = self.obj
-            con.subtarget = self.org_bones[1]
-            con = flimb1_p.constraints.new('COPY_LOCATION')
+            con.subtarget = flimb1_pos
+            fcurve = con.driver_add("influence")
+            driver = fcurve.driver
+            var = driver.variables.new()
+            driver.type = 'SUM'
+            var.name = "var"
+            var.targets[0].id_type = 'OBJECT'
+            var.targets[0].id = self.obj
+            var.targets[0].data_path = jhose_p.path_from_id() + '["smooth_bend"]'
+
+            con = flimb1_pos_p.constraints.new('COPY_LOCATION')
             con.name = "anchor"
             con.target = self.obj
             con.subtarget = jhose
-            con = flimb1_p.constraints.new('DAMPED_TRACK')
+            con = flimb1_pos_p.constraints.new('DAMPED_TRACK')
             con.name = "track"
             con.target = self.obj
             con.subtarget = fhose
-            con = flimb1_p.constraints.new('STRETCH_TO')
+            con = flimb1_pos_p.constraints.new('STRETCH_TO')
             con.name = "track"
             con.target = self.obj
             con.subtarget = fhose
+            con.volume = 'NO_VOLUME'
+
+            con = flimb1_p.constraints.new('COPY_TRANSFORMS')
+            con.name = "position"
+            con.target = self.obj
+            con.subtarget = flimb1_pos
+
+            con = flimb1_smoother_p.constraints.new('COPY_TRANSFORMS')
+            con.name = "smoother"
+            con.target = self.obj
+            con.subtarget = ulimb2
+            fcurve = con.driver_add("influence")
+            driver = fcurve.driver
+            var = driver.variables.new()
+            driver.type = 'SUM'
+            var.name = "var"
+            var.targets[0].id_type = 'OBJECT'
+            var.targets[0].id = self.obj
+            var.targets[0].data_path = jhose_p.path_from_id() + '["smooth_bend"]'
+            con = flimb1_smoother_p.constraints.new('STRETCH_TO')
+            con.name = "track"
+            con.target = self.obj
+            con.subtarget = jhose
             con.volume = 'NO_VOLUME'
 
             con = flimb2_p.constraints.new('COPY_LOCATION')
