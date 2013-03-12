@@ -40,7 +40,7 @@ if "bpy" in locals():
 import os
 import bpy
 from bpy.props import CollectionProperty, StringProperty, BoolProperty, EnumProperty
-from bpy_extras.io_utils import ExportHelper, path_reference_mode
+from bpy_extras.io_utils import ExportHelper, path_reference_mode, axis_conversion
 
 class ExportVRML(bpy.types.Operator, ExportHelper):
     """Export mesh objects as a VRML2, """ \
@@ -80,6 +80,29 @@ class ExportVRML(bpy.types.Operator, ExportHelper):
             default=True,
             )
 
+    axis_forward = EnumProperty(
+            name="Forward",
+            items=(('X', "X Forward", ""),
+                   ('Y', "Y Forward", ""),
+                   ('Z', "Z Forward", ""),
+                   ('-X', "-X Forward", ""),
+                   ('-Y', "-Y Forward", ""),
+                   ('-Z', "-Z Forward", ""),
+               ),
+        default='Z',
+        )
+    axis_up = EnumProperty(
+            name="Up",
+            items=(('X', "X Up", ""),
+                   ('Y', "Y Up", ""),
+                   ('Z', "Z Up", ""),
+                   ('-X', "-X Up", ""),
+                   ('-Y', "-Y Up", ""),
+                   ('-Z', "-Z Up", ""),
+                   ),
+            default='Y',
+            )
+
     path_mode = path_reference_mode
 
     @classmethod
@@ -91,7 +114,17 @@ class ExportVRML(bpy.types.Operator, ExportHelper):
         filepath = self.filepath
         filepath = bpy.path.ensure_ext(filepath, self.filename_ext)
         from . import export_vrml2
-        keywords = self.as_keywords(ignore=("check_existing", "filter_glob"))
+
+        keywords = self.as_keywords(ignore=("axis_forward",
+                                            "axis_up",
+                                            "check_existing",
+                                            "filter_glob",
+                                            ))
+        global_matrix = axis_conversion(to_forward=self.axis_forward,
+                                        to_up=self.axis_up,
+                                        ).to_4x4()
+        keywords["global_matrix"] = global_matrix
+
         return export_vrml2.save(self, context, **keywords)
 
     def draw(self, context):
@@ -106,6 +139,8 @@ class ExportVRML(bpy.types.Operator, ExportHelper):
         row = layout.row()
         row.active = self.use_color
         row.prop(self, "color_type")
+        layout.prop(self, "axis_forward")
+        layout.prop(self, "axis_up")
         layout.prop(self, "path_mode")
 
 

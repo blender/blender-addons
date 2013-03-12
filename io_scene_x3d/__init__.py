@@ -157,7 +157,6 @@ class ExportX3D(bpy.types.Operator, ExportHelper):
                ),
         default='Z',
         )
-
     axis_up = EnumProperty(
             name="Up",
             items=(('X', "X Up", ""),

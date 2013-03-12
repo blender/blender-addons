@@ -165,7 +165,8 @@ def detect_default_image(obj, bm):
     return None
 
 
-def save_object(fw, scene, obj,
+def save_object(fw, global_matrix,
+                scene, obj,
                 use_mesh_modifiers,
                 use_color, color_type,
                 use_uv,
@@ -193,7 +194,7 @@ def save_object(fw, scene, obj,
             bm = bmesh.new()
             bm.from_mesh(me)
 
-    bm.transform(obj.matrix_world)
+    bm.transform(global_matrix * obj.matrix_world)
     bmesh.ops.triangulate(bm, faces=bm.faces, use_beauty=True)
 
     # default empty
@@ -232,6 +233,7 @@ def save_object(fw, scene, obj,
 def save(operator,
          context,
          filepath="",
+         global_matrix=None,
          use_selection=False,
          use_mesh_modifiers=True,
          use_color=True,
@@ -257,7 +259,8 @@ def save(operator,
     for obj in objects:
         if obj.type == 'MESH':
             fw("\n# %r\n" % obj.name)
-            save_object(fw, scene, obj,
+            save_object(fw, global_matrix,
+                        scene, obj,
                         use_mesh_modifiers,
                         use_color, color_type,
                         use_uv,
