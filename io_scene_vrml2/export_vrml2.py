@@ -36,7 +36,7 @@ def save_bmesh(fw, bm,
     if use_uv:
         fw('\t\ttexture ImageTexture {\n')
         filepath = uv_image.filepath
-        filepath_full = bpy.path.abspath(filepath, library=uv_image.library)
+        filepath_full = os.path.normpath(bpy.path.abspath(filepath, library=uv_image.library))
         filepath_ref = bpy_extras.io_utils.path_reference(filepath_full, base_src, base_dst, path_mode, "textures", copy_set, uv_image.library)
         filepath_base = os.path.basename(filepath_full)
 
