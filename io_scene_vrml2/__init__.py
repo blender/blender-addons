@@ -23,7 +23,7 @@ bl_info = {
     "author": "Campbell Barton",
     "blender": (2, 66, 0),
     "location": "File > Export",
-    "description": "Exports the active mesh object to VRML2, supporting vertex and material colors",
+    "description": "Exports mesh objects to VRML2, supporting vertex and material colors",
     "warning": "",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
                 "Scripts/Import-Export/VRML2",
@@ -43,9 +43,9 @@ from bpy.props import CollectionProperty, StringProperty, BoolProperty, EnumProp
 from bpy_extras.io_utils import ExportHelper, path_reference_mode
 
 class ExportVRML(bpy.types.Operator, ExportHelper):
-    """Export a single object as a VRML2, """ \
+    """Export mesh objects as a VRML2, """ \
     """colors and texture coordinates"""
-    bl_idname = "export_mesh.vrml2"
+    bl_idname = "export_scene.vrml2"
     bl_label = "Export VRML2"
 
     filename_ext = ".wrl"
