@@ -43,8 +43,10 @@ def save_bmesh(fw, bm,
         images = [
             filepath_ref,
             filepath_base,
-            filepath_full,
         ]
+        if path_mode != 'RELATIVE':
+            images.append(filepath_full)
+
         fw('\t\t\turl [ %s ]\n' % " ".join(['"%s"' % f for f in images]) )
         del images
         del filepath_ref, filepath_base, filepath_full, filepath

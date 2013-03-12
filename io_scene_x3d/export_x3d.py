@@ -1302,8 +1302,9 @@ def export(file,
             images = [
                 filepath_ref,
                 filepath_base,
-                filepath_full,
             ]
+            if path_mode != 'RELATIVE':
+                images.append(filepath_full)
 
             images = [f.replace('\\', '/') for f in images]
             images = [f for i, f in enumerate(images) if f not in images[:i]]
