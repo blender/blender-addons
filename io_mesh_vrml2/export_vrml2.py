@@ -39,7 +39,7 @@ def save_bmesh(fw, bm,
         filepath_full = bpy.path.abspath(filepath, library=uv_image.library)
         filepath_ref = bpy_extras.io_utils.path_reference(filepath_full, base_src, base_dst, path_mode, "textures", copy_set, uv_image.library)
         filepath_base = os.path.basename(filepath_full)
-        
+
         images = [
             filepath_ref,
             filepath_base,
@@ -90,7 +90,7 @@ def save_bmesh(fw, bm,
                 except:
                     l = None
                 fw(c_none if l is None else ("%.2f %.2f %.2f " % l[color_layer][:]))
-                
+
             del v
             fw(']\n')  # end 'color[]'
             fw('\t\t}\n')  # end 'Color'
@@ -232,11 +232,14 @@ def save_object(fw, scene, obj,
 def save(operator,
          context,
          filepath="",
+         use_selection=False,
          use_mesh_modifiers=True,
          use_color=True,
          color_type='MATERIAL',
          use_uv=True,
          path_mode='AUTO'):
+
+    scene = context.scene
 
     # store files to copy
     copy_set = set()
@@ -246,11 +249,19 @@ def save(operator,
     fw('#VRML V2.0 utf8\n')
     fw('#modeled using blender3d http://blender.org\n')
 
-    save_object(fw, context.scene, context.object,
-                use_mesh_modifiers,
-                use_color, color_type,
-                use_uv,
-                path_mode, copy_set)
+    if use_selection:
+        objects = context.selected_objects
+    else:
+        objects = scene.objects
+
+    for obj in objects:
+        if obj.type == 'MESH':
+            fw("\n# %r\n" % obj.name)
+            save_object(fw, scene, obj,
+                        use_mesh_modifiers,
+                        use_color, color_type,
+                        use_uv,
+                        path_mode, copy_set)
 
     file.close()
 

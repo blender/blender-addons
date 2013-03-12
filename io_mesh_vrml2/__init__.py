@@ -51,6 +51,12 @@ class ExportVRML(bpy.types.Operator, ExportHelper):
     filename_ext = ".wrl"
     filter_glob = StringProperty(default="*.wrl", options={'HIDDEN'})
 
+    use_selection = BoolProperty(
+            name="Selection Only",
+            description="Export selected objects only",
+            default=False,
+            )
+
     use_mesh_modifiers = BoolProperty(
             name="Apply Modifiers",
             description="Apply Modifiers to the exported mesh",
@@ -91,17 +97,16 @@ class ExportVRML(bpy.types.Operator, ExportHelper):
     def draw(self, context):
         layout = self.layout
 
-        row = layout.row()
-        row.prop(self, "use_mesh_modifiers")
+        layout.prop(self, "use_selection")
+        layout.prop(self, "use_mesh_modifiers")
+
         row = layout.row()
         row.prop(self, "use_uv")
         row.prop(self, "use_color")
         row = layout.row()
         row.active = self.use_color
         row.prop(self, "color_type")
-        row = layout.row()
-        row.prop(self, "path_mode")
-        
+        layout.prop(self, "path_mode")
 
 
 def menu_func_export(self, context):
