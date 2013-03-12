@@ -1824,6 +1824,8 @@ def importMesh_IndexedFaceSet(geom, bpyima, ancestry):
                             color_index = 0
                         else:
                             color_index = ifs_color_index[color_index]
+                    # skip eedadoodle vert
+                    color_index += 1
                     try:
                         col = ifs_vcol[color_index]
                     except IndexError:
@@ -2110,7 +2112,7 @@ def importShape(node, ancestry, global_matrix):
                     else:
                         ima_urls = [ima_urls]
                 # ima_urls is a list or None
-                        
+
                 if ima_urls is None:
                     print("\twarning, image with no URL, this is odd")
                 else:
@@ -2129,7 +2131,7 @@ def importShape(node, ancestry, global_matrix):
                             image_depth = bpyima.depth
                         except:
                             image_depth = -1
-                        
+
                         mtex = bpymat.texture_slots.add()
                         mtex.texture = texture
 
