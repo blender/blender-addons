@@ -19,7 +19,7 @@
 # <pep8 compliant>
 
 # Script copyright (C) Bob Holcomb
-# Contributors: Bob Holcomb, Richard L?rk?ng, Damien McGinnes, Campbell Barton, Mario Lapin, Dominique Lorre
+# Contributors: Bob Holcomb, Richard L?rk?ng, Damien McGinnes, Campbell Barton, Mario Lapin, Dominique Lorre, Andreas Atteneder
 
 import os
 import time
@@ -43,6 +43,10 @@ PRIMARY = 0x4D4D
 OBJECTINFO = 0x3D3D  # This gives the version of the mesh and is found right before the material and object information
 VERSION = 0x0002  # This gives the version of the .3ds file
 EDITKEYFRAME = 0xB000  # This is the header for all of the key frame info
+
+#------ Data Chunks, used for various attributes
+PERCENTAGE_SHORT = 0x30
+PERCENTAGE_FLOAT = 0x31
 
 #------ sub defines of OBJECTINFO
 MATERIAL = 0xAFFF  # This stored the texture info
@@ -574,10 +578,18 @@ def process_next_chunk(file, previous_chunk, importedObjects, IMAGE_SEARCH):
         elif new_chunk.ID == MAT_TRANSPARENCY:
             #print 'elif new_chunk.ID == MAT_TRANSPARENCY:'
             read_chunk(file, temp_chunk)
-            temp_data = file.read(STRUCT_SIZE_UNSIGNED_SHORT)
 
-            temp_chunk.bytes_read += 2
-            contextMaterial.alpha = 1 - (float(struct.unpack('<H', temp_data)[0]) / 100)
+            if temp_chunk.ID == PERCENTAGE_SHORT:
+                temp_data = file.read(STRUCT_SIZE_UNSIGNED_SHORT)
+                temp_chunk.bytes_read += STRUCT_SIZE_UNSIGNED_SHORT
+                contextMaterial.alpha = 1 - (float(struct.unpack('<H', temp_data)[0]) / 100)
+            elif temp_chunk.ID == PERCENTAGE_FLOAT:
+                temp_data = file.read(STRUCT_SIZE_FLOAT)
+                temp_chunk.bytes_read += STRUCT_SIZE_FLOAT
+                contextMaterial.alpha = 1 - float(struct.unpack('f', temp_data)[0])
+            else:
+                print( "Cannot read material transparency")
+
             new_chunk.bytes_read += temp_chunk.bytes_read
 
         elif new_chunk.ID == OBJECT_LAMP:  # Basic lamp support.
