@@ -35,6 +35,42 @@ bl_info = {
 """List properties of selected objects"""
 
 import bpy
+from bl_operators.presets import AddPresetBase
+
+
+class AddPresetProperties(AddPresetBase, bpy.types.Operator):
+    """Add an properties preset"""
+    bl_idname = "scene.properties_preset_add"
+    bl_label = "Add Properties Preset"
+    preset_menu = "SCENE_MT_properties_presets"
+
+    preset_defines = [
+        "scene = bpy.context.scene",
+    ]
+
+    def pre_cb(self, context):
+        space_type = context.space_data.type
+        if space_type == 'VIEW_3D':
+            self.preset_subdir = "system_property_chart_view3d"
+            self.preset_values = ["scene.view3d_edit_props"]
+        else:
+            self.preset_subdir = "system_property_chart_sequencer"
+            self.preset_values = ["scene.sequencer_edit_props"]
+
+
+class SCENE_MT_properties_presets(bpy.types.Menu):
+    bl_label = "Properties Presets"
+    preset_operator = "script.execute_preset"
+
+    def draw(self, context):
+        space_type = context.space_data.type
+
+        if space_type == 'VIEW_3D':
+            self.preset_subdir = "system_property_chart_view3d"
+        else:
+            self.preset_subdir = "system_property_chart_sequencer"
+
+        bpy.types.Menu.draw_preset(self, context)
 
 
 def _property_chart_data_get(self, context):
@@ -132,9 +168,14 @@ def _property_chart_draw(self, context):
                 else:
                     col.label(text="<missing>")
 
-    # edit the display props
+    # Presets for properties
     col = layout.column()
-    col.label(text="Object Properties")
+    col.label(text="Properties")
+    row = col.row(align=True)
+    row.menu("SCENE_MT_properties_presets", text=bpy.types.SCENE_MT_properties_presets.bl_label)
+    row.operator("scene.properties_preset_add", text="", icon="ZOOMIN")
+    row.operator("scene.properties_preset_add", text="", icon="ZOOMOUT").remove_active = True
+    # edit the display props
     col.prop(id_storage, self._PROP_STORAGE_ID, text="")
 
 
