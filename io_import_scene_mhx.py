@@ -20,8 +20,8 @@
 # Product Home Page:   http://www.makehuman.org/
 # Code Home Page:      http://code.google.com/p/makehuman/
 # Authors:             Thomas Larsson
-# Script copyright (C) MakeHuman Team 2001-2011
-# Coding Standards:    See http://sites.google.com/site/makehumandocs/developers-guide
+# Script copyright (C) MakeHuman Team 2001-2013
+# Coding Standards: See http://www.makehuman.org/node/165
 
 """
 Abstract
@@ -39,7 +39,7 @@ Alternatively, run the script in the script editor (Alt-P), and access from the 
 bl_info = {
     'name': 'Import: MakeHuman (.mhx)',
     'author': 'Thomas Larsson',
-    'version': (1, 14, 2),
+    'version': (1, 15, 0),
     "blender": (2, 65, 0),
     'location': "File > Import > MakeHuman (.mhx)",
     'description': 'Import files in the MakeHuman eXchange format (.mhx)',
@@ -50,9 +50,9 @@ bl_info = {
     'category': 'Import-Export'}
 
 MAJOR_VERSION = 1
-MINOR_VERSION = 14
+MINOR_VERSION = 15
 FROM_VERSION = 13
-SUB_VERSION = 2
+SUB_VERSION = 0
 
 #
 #
