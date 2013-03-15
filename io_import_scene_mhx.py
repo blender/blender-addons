@@ -39,7 +39,7 @@ Alternatively, run the script in the script editor (Alt-P), and access from the 
 bl_info = {
     'name': 'Import: MakeHuman (.mhx)',
     'author': 'Thomas Larsson',
-    'version': (1, 15, 0),
+    'version': (1, 15, 1),
     "blender": (2, 65, 0),
     'location': "File > Import > MakeHuman (.mhx)",
     'description': 'Import files in the MakeHuman eXchange format (.mhx)',
@@ -52,7 +52,7 @@ bl_info = {
 MAJOR_VERSION = 1
 MINOR_VERSION = 15
 FROM_VERSION = 13
-SUB_VERSION = 0
+SUB_VERSION = 1
 
 #
 #
@@ -69,7 +69,7 @@ from bpy.props import *
 MHX249 = False
 Blender24 = False
 Blender25 = True
-TexDir = "~/makehuman/exports"
+theDir = "~/makehuman/exports"
 
 #
 #
@@ -202,7 +202,7 @@ Plural = {
 
 def readMhxFile(filePath):
     global todo, nErrors, theScale, theArmature, defaultScale, One
-    global toggle, warnedVersion, theMessage, alpha7
+    global toggle, warnedVersion, theMessage, alpha7, theDir
 
     defaultScale = theScale
     One = 1.0/theScale
@@ -212,6 +212,7 @@ def readMhxFile(filePath):
     initLoadedData()
     theMessage = ""
 
+    theDir = os.path.dirname(filePath)
     fileName = os.path.expanduser(filePath)
     _,ext = os.path.splitext(fileName)
     if ext.lower() != ".mhx":
@@ -902,66 +903,25 @@ def parseSocket(socket, args, tokens):
 
 
 #
-#    doLoadImage(filepath):
 #    loadImage(filepath):
 #    parseImage(args, tokens):
 #
 
-def doLoadImage(filepath):        
-    path1 = os.path.expanduser(filepath)
-    file1 = os.path.realpath(path1)
-    if os.path.isfile(file1):
-        print( "Found file %s." % file1.encode('utf-8','strict') )
+def loadImage(relFilepath):
+    filepath = os.path.normpath(os.path.join(theDir, relFilepath))
+    print( "Loading %s" % filepath.encode('utf-8','strict'))
+    if os.path.isfile(filepath):
+        #print( "Found file %s." % filepath.encode('utf-8','strict') )
         try:
-            img = bpy.data.images.load(file1)
+            img = bpy.data.images.load(filepath)
             return img
         except:
             print( "Cannot read image" )
             return None
     else:
-        print( "No such file: %s" % file1.encode('utf-8','strict') )
+        print( "No such file: %s" % filepath.encode('utf-8','strict') )
         return None
 
-
-def loadImage(filepath):
-    global TexDir, warnedTextureDir, loadedData
-
-    texDir = os.path.expanduser(TexDir)
-    path1 = os.path.expanduser(filepath)
-    file1 = os.path.realpath(path1)
-    (path, filename) = os.path.split(file1)
-    (name, ext) = os.path.splitext(filename)
-    print( "Loading %s = %s" % (filepath.encode('utf-8','strict'), filename.encode('utf-8','strict')) )
-
-    # img = doLoadImage(texDir+"/"+name+".png")
-    # if img:
-    #    return img
-
-    img = doLoadImage(os.path.join(texDir, filename))
-    if img:
-        return img
-
-    # img = doLoadImage(path+"/"+name+".png")
-    # if img:
-    #    return img
-
-    img = doLoadImage(os.path.join(path, filename))
-    if img:
-        return img
-
-    if warnedTextureDir:
-        return None
-    warnedTextureDir = True
-    return None
-    TexDir = Draw.PupStrInput("TexDir? ", path, 100)
-
-    texDir = os.path.expanduser(TexDir)
-    img =  doLoadImage(os.path.join(texDir, name+".png"))
-    if img:
-        return img
-
-    img = doLoadImage(TexDir+"/"+filename)
-    return img
     
 def parseImage(args, tokens):
     global todo
