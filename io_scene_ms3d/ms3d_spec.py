@@ -290,6 +290,8 @@ class Ms3dIo:
         if not buffer:
             raise EOFError()
         eol = buffer.find(Ms3dSpec.STRING_TERMINATION)
+        if eol < 0:
+            eol = len(buffer)
         register_error(Ms3dSpec.STRING_MS3D_REPLACE, Ms3dIo.ms3d_replace)
         s = buffer[:eol].decode(encoding=Ms3dSpec.STRING_ENCODING, errors=Ms3dSpec.STRING_ERROR)
         return s
@@ -1733,13 +1735,15 @@ class Ms3dModel:
         add content to blender scene
         """
 
+        debug_out = []
+
         self.header.read(raw_io)
         if (self.header != Ms3dHeader()):
-            print("\nwarning, invalid file header")
+            debug_out.append("\nwarning, invalid file header\n")
 
         _number_vertices = Ms3dIo.read_word(raw_io)
         if (_number_vertices > Ms3dSpec.MAX_VERTICES):
-            print("\nwarning, invalid count: number_vertices: {}".format(
+            debug_out.append("\nwarning, invalid count: number_vertices: {}\n".format(
                     _number_vertices))
         self._vertices = []
         for i in range(_number_vertices):
@@ -1747,7 +1751,7 @@ class Ms3dModel:
 
         _number_triangles = Ms3dIo.read_word(raw_io)
         if (_number_triangles > Ms3dSpec.MAX_TRIANGLES):
-            print("\nwarning, invalid count: number_triangles: {}".format(
+            debug_out.append("\nwarning, invalid count: number_triangles: {}\n".format(
                     _number_triangles))
         self._triangles = []
         for i in range(_number_triangles):
@@ -1755,7 +1759,7 @@ class Ms3dModel:
 
         _number_groups = Ms3dIo.read_word(raw_io)
         if (_number_groups > Ms3dSpec.MAX_GROUPS):
-            print("\nwarning, invalid count: number_groups: {}".format(
+            debug_out.append("\nwarning, invalid count: number_groups: {}\n".format(
                     _number_groups))
         self._groups = []
         for i in range(_number_groups):
@@ -1763,7 +1767,7 @@ class Ms3dModel:
 
         _number_materials = Ms3dIo.read_word(raw_io)
         if (_number_materials > Ms3dSpec.MAX_MATERIALS):
-            print("\nwarning, invalid count: number_materials: {}".format(
+            debug_out.append("\nwarning, invalid count: number_materials: {}\n".format(
                     _number_materials))
         self._materials = []
         for i in range(_number_materials):
@@ -1782,7 +1786,7 @@ class Ms3dModel:
             _number_joints = Ms3dIo.read_word(raw_io)
             _progress.add('NUMBER_JOINTS')
             if (_number_joints > Ms3dSpec.MAX_JOINTS):
-                print("\nwarning, invalid count: number_joints: {}".format(
+                debug_out.append("\nwarning, invalid count: number_joints: {}\n".format(
                         _number_joints))
             self._joints = []
             for i in range(_number_joints):
@@ -1794,61 +1798,61 @@ class Ms3dModel:
             _number_group_comments = Ms3dIo.read_dword(raw_io)
             _progress.add('NUMBER_GROUP_COMMENTS')
             if (_number_group_comments > Ms3dSpec.MAX_GROUPS):
-                print("\nwarning, invalid count:"\
-                        " number_group_comments: {}".format(
+                debug_out.append("\nwarning, invalid count:"\
+                        " number_group_comments: {}\n".format(
                         _number_group_comments))
             if _number_group_comments > _number_groups:
-                print("\nwarning, invalid count:"\
-                        " number_group_comments: {}, number_groups: {}".format(
+                debug_out.append("\nwarning, invalid count:"\
+                        " number_group_comments: {}, number_groups: {}\n".format(
                         _number_group_comments, _number_groups))
             for i in range(_number_group_comments):
                 item = Ms3dCommentEx().read(raw_io)
                 if item.index >= 0 and item.index < _number_groups:
                     self.groups[item.index]._comment_object = item
                 else:
-                    print("\nwarning, invalid index:"\
-                            " group_index: {}, number_groups: {}".format(
+                    debug_out.append("\nwarning, invalid index:"\
+                            " group_index: {}, number_groups: {}\n".format(
                             item.index, _number_groups))
             _progress.add('GROUP_COMMENTS')
 
             _number_material_comments = Ms3dIo.read_dword(raw_io)
             _progress.add('NUMBER_MATERIAL_COMMENTS')
             if (_number_material_comments > Ms3dSpec.MAX_MATERIALS):
-                print("\nwarning, invalid count:"\
-                        " number_material_comments: {}".format(
+                debug_out.append("\nwarning, invalid count:"\
+                        " number_material_comments: {}\n".format(
                         _number_material_comments))
             if _number_material_comments > _number_materials:
-                print("\nwarning, invalid count:"\
+                debug_out.append("\nwarning, invalid count:"\
                         " number_material_comments:"\
-                        " {}, number_materials: {}".format(
+                        " {}, number_materials: {}\n".format(
                         _number_material_comments, _number_materials))
             for i in range(_number_material_comments):
                 item = Ms3dCommentEx().read(raw_io)
                 if item.index >= 0 and item.index < _number_materials:
                     self.materials[item.index]._comment_object = item
                 else:
-                    print("\nwarning, invalid index:"\
+                    debug_out.append("\nwarning, invalid index:"\
                             " material_index: {}, number_materials:"\
-                            " {}".format(item.index, _number_materials))
+                            " {}\n".format(item.index, _number_materials))
             _progress.add('MATERIAL_COMMENTS')
 
             _number_joint_comments = Ms3dIo.read_dword(raw_io)
             _progress.add('NUMBER_JOINT_COMMENTS')
             if (_number_joint_comments > Ms3dSpec.MAX_JOINTS):
-                print("\nwarning, invalid count:"\
-                        " number_joint_comments: {}".format(
+                debug_out.append("\nwarning, invalid count:"\
+                        " number_joint_comments: {}\n".format(
                         _number_joint_comments))
             if _number_joint_comments > _number_joints:
-                print("\nwarning, invalid count:"\
-                        " number_joint_comments: {}, number_joints: {}".format(
+                debug_out.append("\nwarning, invalid count:"\
+                        " number_joint_comments: {}, number_joints: {}\n".format(
                         _number_joint_comments, _number_joints))
             for i in range(_number_joint_comments):
                 item = Ms3dCommentEx().read(raw_io)
                 if item.index >= 0 and item.index < _number_joints:
                     self.joints[item.index]._comment_object = item
                 else:
-                    print("\nwarning, invalid index:"\
-                            " joint_index: {}, number_joints: {}".format(
+                    debug_out.append("\nwarning, invalid index:"\
+                            " joint_index: {}, number_joints: {}\n".format(
                             item.index, _number_joints))
             _progress.add('JOINT_COMMENTS')
 
@@ -1872,8 +1876,8 @@ class Ms3dModel:
                     elif self.sub_version_vertex_extra == 3:
                         item = Ms3dVertexEx3()
                     else:
-                        print("\nwarning, invalid version:"\
-                                " sub_version_vertex_extra: {}".format(
+                        debug_out.append("\nwarning, invalid version:"\
+                                " sub_version_vertex_extra: {}\n".format(
                                 sub_version_vertex_extra))
                         continue
                     self.vertices[i]._vertex_ex_object = item.read(raw_io)
@@ -1894,13 +1898,13 @@ class Ms3dModel:
 
         except EOFError:
             # reached end of optional data.
-            print("Ms3dModel.read - optional data read: {}".format(_progress))
+            debug_out.append("Ms3dModel.read - optional data read: {}\n".format(_progress))
             pass
 
         except Exception:
             type, value, traceback = exc_info()
-            print("Ms3dModel.read - exception in optional try block,"
-                    " _progress={0}\n  type: '{1}'\n  value: '{2}'".format(
+            debug_out.append("Ms3dModel.read - exception in optional try block,"
+                    " _progress={0}\n  type: '{1}'\n  value: '{2}'\n".format(
                     _progress, type, value, traceback))
 
         else:
@@ -1935,7 +1939,7 @@ class Ms3dModel:
             self.sub_version_model_extra = 0
             self._model_ex_object = Ms3dModelEx()
 
-        return
+        return "".join(debug_out)
 
 
     def write(self, raw_io):
@@ -1943,6 +1947,8 @@ class Ms3dModel:
         add blender scene content to MS3D
         creates, writes MS3D file.
         """
+
+        debug_out = []
 
         self.header.write(raw_io)
 
@@ -2005,15 +2011,15 @@ class Ms3dModel:
 
         except Exception:
             type, value, traceback = exc_info()
-            print("Ms3dModel.write - exception in optional try block"
-                    "\n  type: '{0}'\n  value: '{1}'".format(
+            debug_out.append("Ms3dModel.write - exception in optional try block"
+                    "\n  type: '{0}'\n  value: '{1}'\n".format(
                     type, value, traceback))
             pass
 
         else:
             pass
 
-        return
+        return "".join(debug_out)
 
 
     def is_valid(self):

@@ -90,7 +90,16 @@ from bpy.app import (
 
 
 class Ms3dUi:
-    DEFAULT_VERBOSE = debug
+    VERBOSE_MODE_NONE = 'NONE'
+    VERBOSE_MODE_NORMAL = 'NORMAL'
+    VERBOSE_MODE_MAXIMAL = 'MAXIMAL'
+
+    VERBOSE_NONE = {}
+    VERBOSE_NORMAL = {True, VERBOSE_MODE_NORMAL, VERBOSE_MODE_MAXIMAL, }
+    VERBOSE_MAXIMAL = {True, VERBOSE_MODE_MAXIMAL, }
+
+    DEFAULT_VERBOSE = VERBOSE_MODE_NONE
+
 
     ###########################################################################
     FLAG_TEXTURE_COMBINE_ALPHA = 'COMBINE_ALPHA'
@@ -262,9 +271,22 @@ class Ms3dImportOperator(Operator, ImportHelper):
             options={'HIDDEN', }
             )
 
-    verbose = BoolProperty(
+    verbose = EnumProperty(
             name=ms3d_str['PROP_NAME_VERBOSE'],
             description=ms3d_str['PROP_DESC_VERBOSE'],
+            items=( (Ms3dUi.VERBOSE_MODE_NONE,
+                            ms3d_str['ENUM_VERBOSE_NONE_1'],
+                            ms3d_str['ENUM_VERBOSE_NONE_2'],
+                            ),
+                    (Ms3dUi.VERBOSE_MODE_NORMAL,
+                            ms3d_str['ENUM_VERBOSE_NORMAL_1'],
+                            ms3d_str['ENUM_VERBOSE_NORMAL_2'],
+                            ),
+                    (Ms3dUi.VERBOSE_MODE_MAXIMAL,
+                            ms3d_str['ENUM_VERBOSE_MAXIMALIMAL_1'],
+                            ms3d_str['ENUM_VERBOSE_MAXIMALIMAL_2'],
+                            ),
+                    ),
             default=Ms3dUi.PROP_DEFAULT_VERBOSE,
             )
 
@@ -370,7 +392,7 @@ class Ms3dImportOperator(Operator, ImportHelper):
     def execute(self, blender_context):
         """ start executing """
         from io_scene_ms3d.ms3d_import import (Ms3dImporter, )
-        return Ms3dImporter(
+        Ms3dImporter(
                 report=self.report,
                 verbose=self.verbose,
                 use_extended_normal_handling=self.use_extended_normal_handling,
@@ -383,6 +405,9 @@ class Ms3dImportOperator(Operator, ImportHelper):
                         blender_context,
                         self.filepath
                         )
+
+        blender_context.scene.update()
+        return {"FINISHED"}
 
     def invoke(self, blender_context, event):
         blender_context.window_manager.fileselect_add(self)
@@ -410,9 +435,22 @@ class Ms3dExportOperator(Operator, ExportHelper):
             options={'HIDDEN', }
             )
 
-    verbose = BoolProperty(
+    verbose = EnumProperty(
             name=ms3d_str['PROP_NAME_VERBOSE'],
             description=ms3d_str['PROP_DESC_VERBOSE'],
+            items=( (Ms3dUi.VERBOSE_MODE_NONE,
+                            ms3d_str['ENUM_VERBOSE_NONE_1'],
+                            ms3d_str['ENUM_VERBOSE_NONE_2'],
+                            ),
+                    (Ms3dUi.VERBOSE_MODE_NORMAL,
+                            ms3d_str['ENUM_VERBOSE_NORMAL_1'],
+                            ms3d_str['ENUM_VERBOSE_NORMAL_2'],
+                            ),
+                    (Ms3dUi.VERBOSE_MODE_MAXIMAL,
+                            ms3d_str['ENUM_VERBOSE_MAXIMALIMAL_1'],
+                            ms3d_str['ENUM_VERBOSE_MAXIMALIMAL_2'],
+                            ),
+                    ),
             default=Ms3dUi.PROP_DEFAULT_VERBOSE,
             )
 
@@ -557,7 +595,7 @@ class Ms3dExportOperator(Operator, ExportHelper):
     def execute(self, blender_context):
         """start executing"""
         from io_scene_ms3d.ms3d_export import (Ms3dExporter, )
-        return Ms3dExporter(
+        Ms3dExporter(
                 self.report,
                 verbose=self.verbose,
                 use_blender_names=self.use_blender_names,
@@ -573,6 +611,9 @@ class Ms3dExportOperator(Operator, ExportHelper):
                         blender_context,
                         self.filepath
                         )
+
+        blender_context.scene.update()
+        return {"FINISHED"}
 
     #
     def invoke(self, blender_context, event):

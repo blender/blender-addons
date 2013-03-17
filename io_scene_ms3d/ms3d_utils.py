@@ -114,8 +114,6 @@ def pre_setup_environment(porter, blender_context):
     # change back to object mode
     enable_edit_mode(False, blender_context)
 
-    blender_context.scene.update()
-
 
 ###############################################################################
 def post_setup_environment(porter, blender_context):

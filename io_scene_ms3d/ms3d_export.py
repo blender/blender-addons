@@ -94,7 +94,7 @@ class Ms3dExporter():
     """
     def __init__(self,
             report,
-            verbose=False,
+            verbose='NONE',
             use_blender_names=True,
             use_blender_materials=False,
             apply_transform=True,
@@ -142,14 +142,17 @@ class Ms3dExporter():
             try:
                 # write ms3d file to disk
                 with io.FileIO(filepath, "wb") as raw_io:
-                    ms3d_model.write(raw_io)
+                    debug_out = ms3d_model.write(raw_io)
                     raw_io.flush()
                     raw_io.close()
+
+                    if self.options_verbose in Ms3dUi.VERBOSE_MAXIMAL:
+                        print(debug_out)
             finally:
                 pass
 
             # if option is set, this time will enlargs the io time
-            if self.options_verbose:
+            if self.options_verbose in Ms3dUi.VERBOSE_MAXIMAL:
                 ms3d_model.print_internal()
 
             post_setup_environment(self, blender_context)
@@ -165,16 +168,18 @@ class Ms3dExporter():
             blender_context.user_preferences.edit.use_global_undo = self.undo
 
             is_valid, statistics = ms3d_model.is_valid()
-            print()
-            print("##########################################################")
-            print("Export from Blender to MS3D")
-            print(statistics)
-            print("##########################################################")
+            if self.options_verbose in Ms3dUi.VERBOSE_NORMAL:
+                print()
+                print("##########################################################")
+                print("Export from Blender to MS3D")
+                print(statistics)
+                print("##########################################################")
 
         except Exception:
             type, value, traceback = exc_info()
-            print("write - exception in try block\n  type: '{0}'\n"
-                    "  value: '{1}'".format(type, value, traceback))
+            if self.options_verbose in Ms3dUi.VERBOSE_NORMAL:
+                print("write - exception in try block\n  type: '{0}'\n"
+                        "  value: '{1}'".format(type, value, traceback))
 
             if t2 is None:
                 t2 = time()
@@ -185,8 +190,9 @@ class Ms3dExporter():
             pass
 
         t3 = time()
-        print(ms3d_str['SUMMARY_EXPORT'].format(
-                (t3 - t1), (t2 - t1), (t3 - t2)))
+        if self.options_verbose in Ms3dUi.VERBOSE_NORMAL:
+            print(ms3d_str['SUMMARY_EXPORT'].format(
+                    (t3 - t1), (t2 - t1), (t3 - t2)))
 
         return {"FINISHED"}
 
