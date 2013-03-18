@@ -80,6 +80,13 @@ class ImportBVH(bpy.types.Operator, ImportHelper):
             description="Starting frame for the animation",
             default=1,
             )
+    use_fps_scale = BoolProperty(
+            name="Scale FPS",
+            description=("Scale the framerate from the BVH to "
+                         " the current scenes, Otherwise each "
+                         "BVH frame maps directly to a Blender frame"),
+            default=False,
+            )
     use_cyclic = BoolProperty(
             name="Loop",
             description="Loop the animation playback",

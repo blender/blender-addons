@@ -113,6 +113,7 @@ def read_bvh(context, file_path, rotate_mode='XYZ', global_scale=1.0):
 
     bvh_nodes = {None: None}
     bvh_nodes_serial = [None]
+    bvh_frame_time = None
 
     channelIndex = -1
 
@@ -197,9 +198,22 @@ def read_bvh(context, file_path, rotate_mode='XYZ', global_scale=1.0):
         if len(file_lines[lineIdx]) == 1 and file_lines[lineIdx][0] == '}':  # == ['}']
             bvh_nodes_serial.pop()  # Remove the last item
 
+        # End of the hierarchy. Begin the animation section of the file with
+        # the following header.
+        #  MOTION
+        #  Frames: n
+        #  Frame Time: dt
         if len(file_lines[lineIdx]) == 1 and file_lines[lineIdx][0].lower() == 'motion':
-            #print '\nImporting motion data'
-            lineIdx += 3  # Set the cursor to the first frame
+            lineIdx += 2  # Read frame rate.
+
+            if (len(file_lines[lineIdx]) == 3 and
+                file_lines[lineIdx][0].lower() == 'frame' and
+                file_lines[lineIdx][1].lower() == 'time:'):
+
+                bvh_frame_time = float(file_lines[lineIdx][2])
+
+            lineIdx += 1  # Set the cursor to the first frame
+
             break
 
         lineIdx += 1
@@ -277,7 +291,7 @@ def read_bvh(context, file_path, rotate_mode='XYZ', global_scale=1.0):
             bvh_node.rest_tail_local.y = bvh_node.rest_tail_local.y + global_scale / 10
             bvh_node.rest_tail_world.y = bvh_node.rest_tail_world.y + global_scale / 10
 
-    return bvh_nodes
+    return bvh_nodes, bvh_frame_time
 
 
 def bvh_node_dict2objects(context, bvh_name, bvh_nodes, rotate_mode='NATIVE', frame_start=1, IMPORT_LOOP=False):
@@ -346,10 +360,12 @@ def bvh_node_dict2objects(context, bvh_name, bvh_nodes, rotate_mode='NATIVE', fr
 def bvh_node_dict2armature(context,
                            bvh_name,
                            bvh_nodes,
+                           bvh_frame_time,
                            rotate_mode='XYZ',
                            frame_start=1,
                            IMPORT_LOOP=False,
                            global_matrix=None,
+                           use_fps_scale=False,
                            ):
 
     if frame_start < 1:
@@ -464,6 +480,7 @@ def bvh_node_dict2armature(context,
 
     # Replace the bvh_node.temp (currently an editbone)
     # With a tuple  (pose_bone, armature_bone, bone_rest_matrix, bone_rest_matrix_inv)
+    num_frame = 0
     for bvh_node in bvh_nodes_list:
         bone_name = bvh_node.temp  # may not be the same name as the bvh_node, could have been shortened.
         pose_bone = pose_bones[bone_name]
@@ -477,50 +494,97 @@ def bvh_node_dict2armature(context,
         bone_rest_matrix.resize_4x4()
         bvh_node.temp = (pose_bone, bone, bone_rest_matrix, bone_rest_matrix_inv)
 
-    # Make a dict for fast access without rebuilding a list all the time.
+        if 0 == num_frame:
+            num_frame = len(bvh_node.anim_data)
 
-    # KEYFRAME METHOD, SLOW, USE IPOS DIRECT
-    # TODO: use f-point samples instead (Aligorith)
-    if rotate_mode != 'QUATERNION':
-        prev_euler = [Euler() for i in range(len(bvh_nodes))]
+    # Choose to skip some frames at the beginning. Frame 0 is the rest pose
+    # used internally by this importer. Frame 1, by convention, is also often
+    # the rest pose of the skeleton exported by the motion capture system.
+    skip_frame = 1
+    if num_frame > skip_frame:
+        num_frame = num_frame - skip_frame
 
-    # Animate the data, the last used bvh_node will do since they all have the same number of frames
-    for frame_current in range(len(bvh_node.anim_data) - 1):  # skip the first frame (rest frame)
-        # print frame_current
+    # Create a shared time axis for all animation curves.
+    time = [float(frame_start)] * num_frame
+    if use_fps_scale:
+        dt = scene.render.fps * bvh_frame_time
+        for frame_i in range(1, num_frame):
+            time[frame_i] += float(frame_i) * dt
+    else:
+        for frame_i in range(1, num_frame):
+            time[frame_i] += float(frame_i)
 
-        # if frame_current==40: # debugging
-        # 	break
+    #print("bvh_frame_time = %f, dt = %f, num_frame = %d"
+    #      % (bvh_frame_time, dt, num_frame]))
 
-        scene.frame_set(frame_start + frame_current)
+    for i, bvh_node in enumerate(bvh_nodes_list):
+        pose_bone, bone, bone_rest_matrix, bone_rest_matrix_inv = bvh_node.temp
 
-        # Dont neet to set the current frame
-        for i, bvh_node in enumerate(bvh_nodes_list):
-            pose_bone, bone, bone_rest_matrix, bone_rest_matrix_inv = bvh_node.temp
-            lx, ly, lz, rx, ry, rz = bvh_node.anim_data[frame_current + 1]
+        if bvh_node.has_loc:
+            # Not sure if there is a way to query this or access it in the
+            # PoseBone structure.
+            data_path = 'pose.bones["%s"].location' % pose_bone.name
 
-            if bvh_node.has_rot:
+            location = [(0.0, 0.0, 0.0)] * num_frame
+            for frame_i in range(num_frame):
+                bvh_loc = bvh_node.anim_data[frame_i + skip_frame][:3]
+
+                bone_translate_matrix = Matrix.Translation(
+                        Vector(bvh_loc) - bvh_node.rest_head_local)
+                location[frame_i] = (bone_rest_matrix_inv *
+                                     bone_translate_matrix).to_translation()
+
+            # For each location x, y, z.
+            for axis_i in range(3):
+                curve = action.fcurves.new(data_path=data_path, index=axis_i)
+                keyframe_points = curve.keyframe_points
+                keyframe_points.add(num_frame)
+
+                for frame_i in range(num_frame):
+                    keyframe_points[frame_i].co = \
+                            (time[frame_i], location[frame_i][axis_i])
+
+        if bvh_node.has_rot:
+            data_path = None
+            rotate = None
+
+            if 'QUATERNION' == rotate_mode:
+                rotate = [(1.0, 0.0, 0.0, 0.0)] * num_frame
+                data_path = ('pose.bones["%s"].rotation_quaternion'
+                             % pose_bone.name)
+            else:
+                rotate = [(0.0, 0.0, 0.0)] * num_frame
+                data_path = ('pose.bones["%s"].rotation_euler' %
+                             pose_bone.name)
+
+            prev_euler = Euler((0.0, 0.0, 0.0))
+            for frame_i in range(num_frame):
+                bvh_rot = bvh_node.anim_data[frame_i + skip_frame][3:]
+
                 # apply rotation order and convert to XYZ
                 # note that the rot_order_str is reversed.
-                bone_rotation_matrix = Euler((rx, ry, rz), bvh_node.rot_order_str[::-1]).to_matrix().to_4x4()
-                bone_rotation_matrix = bone_rest_matrix_inv * bone_rotation_matrix * bone_rest_matrix
+                euler = Euler(bvh_rot, bvh_node.rot_order_str[::-1])
+                bone_rotation_matrix = euler.to_matrix().to_4x4()
+                bone_rotation_matrix = (bone_rest_matrix_inv *
+                                        bone_rotation_matrix *
+                                        bone_rest_matrix)
 
-                if rotate_mode == 'QUATERNION':
-                    pose_bone.rotation_quaternion = bone_rotation_matrix.to_quaternion()
+                if 4 == len(rotate[frame_i]):
+                    rotate[frame_i] = bone_rotation_matrix.to_quaternion()
                 else:
-                    euler = bone_rotation_matrix.to_euler(pose_bone.rotation_mode, prev_euler[i])
-                    pose_bone.rotation_euler = euler
-                    prev_euler[i] = euler
+                    rotate[frame_i] = bone_rotation_matrix.to_euler(
+                            pose_bone.rotation_mode, prev_euler)
+                    prev_euler = rotate[frame_i]
 
-            if bvh_node.has_loc:
-                pose_bone.location = (bone_rest_matrix_inv * Matrix.Translation(Vector((lx, ly, lz)) - bvh_node.rest_head_local)).to_translation()
+            # For each Euler angle x, y, z (or Quaternion w, x, y, z).
+            for axis_i in range(len(rotate[0])):
+                curve = action.fcurves.new(data_path=data_path, index=axis_i)
+                keyframe_points = curve.keyframe_points
+                curve.keyframe_points.add(num_frame)
 
-            if bvh_node.has_loc:
-                pose_bone.keyframe_insert("location")
-            if bvh_node.has_rot:
-                if rotate_mode == 'QUATERNION':
-                    pose_bone.keyframe_insert("rotation_quaternion")
-                else:
-                    pose_bone.keyframe_insert("rotation_euler")
+                for frame_i in range(0, num_frame):
+                    keyframe_points[frame_i].co = \
+                            (time[frame_i], rotate[frame_i][axis_i])
 
     for cu in action.fcurves:
         if IMPORT_LOOP:
@@ -545,19 +609,24 @@ def load(operator,
          use_cyclic=False,
          frame_start=1,
          global_matrix=None,
+         use_fps_scale=False,
          ):
 
     import time
     t1 = time.time()
     print('\tparsing bvh %r...' % filepath, end="")
 
-    bvh_nodes = read_bvh(context, filepath,
+    bvh_nodes, bvh_frame_time = read_bvh(context, filepath,
             rotate_mode=rotate_mode,
             global_scale=global_scale)
 
     print('%.4f' % (time.time() - t1))
 
-    frame_orig = context.scene.frame_current
+    scene = context.scene
+    frame_orig = scene.frame_current
+    fps = scene.render.fps
+    if bvh_frame_time is None:
+        bvh_frame_time = 1.0 / scene.render.fps
 
     t1 = time.time()
     print('\timporting to blender...', end="")
@@ -565,11 +634,12 @@ def load(operator,
     bvh_name = bpy.path.display_name_from_filepath(filepath)
 
     if target == 'ARMATURE':
-        bvh_node_dict2armature(context, bvh_name, bvh_nodes,
+        bvh_node_dict2armature(context, bvh_name, bvh_nodes, bvh_frame_time,
                                rotate_mode=rotate_mode,
                                frame_start=frame_start,
                                IMPORT_LOOP=use_cyclic,
                                global_matrix=global_matrix,
+                               use_fps_scale=use_fps_scale,
                                )
 
     elif target == 'OBJECT':
