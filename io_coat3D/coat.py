@@ -231,7 +231,7 @@ class SCENE_OT_export(bpy.types.Operator):
         bpy.ops.object.transform_apply(scale=True)
         
         bpy.ops.export_scene.obj(filepath=coa.applink_name,use_selection=True,
-        use_apply_modifiers=False,use_blen_objects=True, use_materials = False,
+        use_mesh_modifiers=False,use_blen_objects=True, use_materials = True,
         keep_vertex_order = True,axis_forward='X',axis_up='Y')
         
         obj.location = coa.loc
@@ -364,7 +364,7 @@ class SCENE_OT_import(bpy.types.Operator):
                     if(os.path.isfile(mtl)):
                         os.remove(mtl)
                    
-                    bpy.ops.import_scene.obj(filepath=path_object,axis_forward='X',axis_up='Y')
+                    bpy.ops.import_scene.obj(filepath=path_object,axis_forward='X',axis_up='Y',use_image_search=False)
                     obj_proxy = scene.objects[0]
                     bpy.ops.object.select_all(action='TOGGLE')
                     obj_proxy.select = True
@@ -373,9 +373,11 @@ class SCENE_OT_import(bpy.types.Operator):
                     bpy.ops.object.transform_apply(rotation=True)
                     proxy_mat = obj_proxy.material_slots[0].material
                     if(delete_material):
-                        obj_proxy.data.materials.pop(0,1)
-                        proxy_mat.user_clear()
-                        bpy.data.materials.remove(proxy_mat)
+                        while(list(obj_proxy.data.materials) != []):
+                            proxy_mat = obj_proxy.material_slots[0].material
+                            obj_proxy.data.materials.pop(0,1)
+                            proxy_mat.user_clear()
+                            bpy.data.materials.remove(proxy_mat)
                     bpy.ops.object.select_all(action='TOGGLE')
 
                     if(coat3D.importlevel):
