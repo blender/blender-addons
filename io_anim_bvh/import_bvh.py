@@ -45,14 +45,15 @@ class BVH_Node(object):
         'temp',  # use this for whatever you want
         )
 
-    _eul_order_lookup = {(None, None, None): 'XYZ', # XXX Dummy one, no rotation anyway!
-                         (0, 1, 2): 'XYZ',
-                         (0, 2, 1): 'XZY',
-                         (1, 0, 2): 'YXZ',
-                         (1, 2, 0): 'YZX',
-                         (2, 0, 1): 'ZXY',
-                         (2, 1, 0): 'ZYX',
-                         }
+    _eul_order_lookup = {
+        (None, None, None): 'XYZ',  # XXX Dummy one, no rotation anyway!
+        (0, 1, 2): 'XYZ',
+        (0, 2, 1): 'XZY',
+        (1, 0, 2): 'YXZ',
+        (1, 2, 0): 'YZX',
+        (2, 0, 1): 'ZXY',
+        (2, 1, 0): 'ZYX',
+        }
 
     def __init__(self, name, rest_head_world, rest_head_local, parent, channels, rot_order, index):
         self.name = name
@@ -78,10 +79,10 @@ class BVH_Node(object):
         self.anim_data = [(0, 0, 0, 0, 0, 0)]
 
     def __repr__(self):
-        return 'BVH name:"%s", rest_loc:(%.3f,%.3f,%.3f), rest_tail:(%.3f,%.3f,%.3f)' %\
-        (self.name,\
-        self.rest_head_world.x, self.rest_head_world.y, self.rest_head_world.z,\
-        self.rest_head_world.x, self.rest_head_world.y, self.rest_head_world.z)
+        return ('BVH name:"%s", rest_loc:(%.3f,%.3f,%.3f), rest_tail:(%.3f,%.3f,%.3f)' %
+                (self.name,
+                 self.rest_head_world.x, self.rest_head_world.y, self.rest_head_world.z,
+                 self.rest_head_world.x, self.rest_head_world.y, self.rest_head_world.z))
 
 
 def sorted_nodes(bvh_nodes):
