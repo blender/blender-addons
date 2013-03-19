@@ -40,6 +40,7 @@ else:
 
 from bpy.app.translations import pgettext_iface as iface_
 
+import io
 import os
 import shutil
 import subprocess
@@ -113,11 +114,15 @@ class UI_PT_i18n_update_translations_settings(bpy.types.Panel):
             split.template_list("UI_UL_i18n_languages", "", i18n_sett, "langs", i18n_sett, "active_lang", rows=8)
             col = split.column()
             col.operator("ui.i18n_updatetranslation_svn_init_settings", text="Reset Settings")
-            col.operator("ui.i18n_updatetranslation_svn_settings_select_all", text="Select All").use_select = True
-            col.operator("ui.i18n_updatetranslation_svn_settings_select_all", text="Deselect All").use_select = False
+            if any(l.use for l in i18n_sett.langs):
+                col.operator("ui.i18n_updatetranslation_svn_settings_select", text="Deselect All").use_select = False
+            else:
+                col.operator("ui.i18n_updatetranslation_svn_settings_select", text="Select All").use_select = True
+            col.operator("ui.i18n_updatetranslation_svn_settings_select", text="Invert Selection").use_invert = True
             col.separator()
             col.operator("ui.i18n_updatetranslation_svn_branches", text="Update Branches")
             col.operator("ui.i18n_updatetranslation_svn_trunk", text="Update Trunk")
+            col.operator("ui.i18n_updatetranslation_svn_statistics", text="Statistics")
 
             if i18n_sett.active_lang >= 0 and i18n_sett.active_lang < len(i18n_sett.langs):
                 lng = i18n_sett.langs[i18n_sett.active_lang]
@@ -188,20 +193,26 @@ class UI_OT_i18n_updatetranslation_svn_init_settings(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class UI_OT_i18n_updatetranslation_svn_settings_select_all(bpy.types.Operator):
-    """(De)select all languages for i18n svn's update operators"""
-    bl_idname = "ui.i18n_updatetranslation_svn_settings_select_all"
+class UI_OT_i18n_updatetranslation_svn_settings_select(bpy.types.Operator):
+    """(De)select (or invert selection of) all languages for i18n svn's update operators"""
+    bl_idname = "ui.i18n_updatetranslation_svn_settings_select"
     bl_label = "Init I18n Update Select Languages"
 
-    use_select = BoolProperty(default=True, description="Select all if True, else deselect all")
+    use_select = BoolProperty(name="Select All", default=True, description="Select all if True, else deselect all")
+    use_invert = BoolProperty(name="Invert Selection", default=False,
+                              description="Inverse selection (overrides 'Select All' when True)")
 
     @classmethod
     def poll(cls, context):
         return context.window_manager != None
 
     def execute(self, context):
-        for lng in context.window_manager.i18n_update_svn_settings.langs:
-            lng.use = self.use_select
+        if self.use_invert:
+            for lng in context.window_manager.i18n_update_svn_settings.langs:
+                lng.use = not lng.use
+        else:
+            for lng in context.window_manager.i18n_update_svn_settings.langs:
+                lng.use = self.use_select
         return {'FINISHED'}
 
 
@@ -210,28 +221,33 @@ class UI_OT_i18n_updatetranslation_svn_branches(bpy.types.Operator):
     bl_idname = "ui.i18n_updatetranslation_svn_branches"
     bl_label = "Update I18n Branches"
 
+    use_skip_pot_gen = BoolProperty(name="Skip POT", default=False, description="Skip POT file generation")
+
     def execute(self, context):
         if not hasattr(self, "settings"):
             self.settings = settings.settings
         i18n_sett = context.window_manager.i18n_update_svn_settings
         self.settings.FILE_NAME_POT = i18n_sett.pot_path
-        # Generate base pot from RNA messages (we use another blender instance here, to be able to perfectly
-        # control our environment (factory startup, specific addons enabled/disabled...)).
-        # However, we need to export current user settings about this addon!
-        cmmd = (
-            bpy.app.binary_path,
-            "--background",
-            "--factory-startup",
-            "--python",
-            os.path.join(os.path.dirname(utils_i18n.__file__), "bl_extract_messages.py"),
-            "--",
-            "bl_extract_messages.py",  # arg parser expects first arg to be prog name!
-            "--settings",
-            self.settings.to_json(),
-        )
-        if subprocess.call(cmmd):
-            self.report({'ERROR'}, "Message extraction process failed!")
-            return {'CANCELLED'}
+
+        if not self.use_skip_pot_gen:
+            # Generate base pot from RNA messages (we use another blender instance here, to be able to perfectly
+            # control our environment (factory startup, specific addons enabled/disabled...)).
+            # However, we need to export current user settings about this addon!
+            cmmd = (
+                bpy.app.binary_path,
+                "--background",
+                "--factory-startup",
+                "--python",
+                os.path.join(os.path.dirname(utils_i18n.__file__), "bl_extract_messages.py"),
+                "--",
+                "bl_extract_messages.py",  # arg parser expects first arg to be prog name!
+                "--settings",
+                self.settings.to_json(),
+            )
+            if subprocess.call(cmmd):
+                self.report({'ERROR'}, "Message extraction process failed!")
+                return {'CANCELLED'}
+
         # Now we should have a valid POT file, we have to merge it in all languages po's...
         pot = utils_i18n.I18nMessages(kind='PO', src=self.settings.FILE_NAME_POT, settings=self.settings)
         for lng in i18n_sett.langs:
@@ -245,6 +261,10 @@ class UI_OT_i18n_updatetranslation_svn_branches(bpy.types.Operator):
             po.write(kind="PO", dest=lng.po_path)
             print("{} PO written!".format(lng.uid))
         return {'FINISHED'}
+
+    def invoke(self, context, event):
+        wm = context.window_manager
+        return wm.invoke_props_dialog(self)
 
 
 class UI_OT_i18n_updatetranslation_svn_trunk(bpy.types.Operator):
@@ -297,3 +317,59 @@ class UI_OT_i18n_updatetranslation_svn_trunk(bpy.types.Operator):
         utils_languages_menu.gen_menu_file(stats, self.settings)
 
         return {'FINISHED'}
+
+
+class UI_OT_i18n_updatetranslation_svn_statistics(bpy.types.Operator):
+    """Create or extend a 'i18n_info.txt' Text datablock containing statistics and checks about """
+    """current branches and/or trunk"""
+    bl_idname = "ui.i18n_updatetranslation_svn_statistics"
+    bl_label = "Update I18n Statistics"
+
+    use_branches = BoolProperty(name="Check Branches", default=True, description="Check po files in branches")
+    use_trunk = BoolProperty(name="Check Trunk", default=False, description="Check po files in trunk")
+
+    report_name = "i18n_info.txt"
+
+    def execute(self, context):
+        if not hasattr(self, "settings"):
+            self.settings = settings.settings
+        i18n_sett = context.window_manager.i18n_update_svn_settings
+
+        buff = io.StringIO()
+        lst = []
+        if self.use_branches:
+            lst += [(lng, lng.po_path) for lng in i18n_sett.langs]
+        if self.use_trunk:
+            lst += [(lng, lng.po_path_trunk) for lng in i18n_sett.langs
+                                             if lng.uid not in self.settings.IMPORT_LANGUAGES_SKIP]
+
+        for lng, path in lst:
+            if not lng.use:
+                print("Skipping {} language ({}).".format(lng.name, lng.uid))
+                continue
+            buff.write("Processing {} language ({}, {}).\n".format(lng.name, lng.uid, path))
+            po = utils_i18n.I18nMessages(uid=lng.uid, kind='PO', src=path, settings=self.settings)
+            po.print_info(prefix="    ", output=buff.write)
+            errs = po.check(fix=False)
+            if errs:
+                buff.write("    WARNING! Po contains following errors:\n")
+                buff.write("        " + "\n        ".join(errs))
+                buff.write("\n")
+            buff.write("\n\n")
+
+        text = None
+        if self.report_name not in bpy.data.texts:
+            text = bpy.data.texts.new(self.report_name)
+        else:
+            text = bpy.data.texts[self.report_name]
+        data = text.as_string()
+        data = data + "\n" + buff.getvalue()
+        text.from_string(data)
+        self.report({'INFO'}, "Info written to {} text datablock!".format(self.report_name))
+
+        return {'FINISHED'}
+
+
+    def invoke(self, context, event):
+        wm = context.window_manager
+        return wm.invoke_props_dialog(self)
