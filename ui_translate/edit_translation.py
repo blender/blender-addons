@@ -21,7 +21,7 @@
 if "bpy" in locals():
     import imp
     imp.reload(settings)
-    imp.reload(i18n_utils)
+    imp.reload(utils_i18n)
 else:
     import bpy
     from bpy.props import (BoolProperty,
@@ -34,7 +34,7 @@ else:
                            StringProperty,
                            )
     from . import settings
-    from bl_i18n_utils import utils as i18n_utils
+    from bl_i18n_utils import utils as utils_i18n
 
 
 import os
@@ -47,7 +47,7 @@ PO_CACHE = {}
 
 def _get_messages(lang, fname):
     if fname not in PO_CACHE:
-        PO_CACHE[fname] = i18n_utils.I18nMessages(uid=lang, kind='PO', key=fname, src=fname, settings=settings.settings)
+        PO_CACHE[fname] = utils_i18n.I18nMessages(uid=lang, kind='PO', key=fname, src=fname, settings=settings.settings)
     return PO_CACHE[fname]
 
 

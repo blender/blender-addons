@@ -21,8 +21,8 @@
 if "bpy" in locals():
     import imp
     imp.reload(settings)
-    imp.reload(i18n_utils)
-    imp.reload(languages_menu_utils)
+    imp.reload(utils_i18n)
+    imp.reload(utils_languages_menu)
 else:
     import bpy
     from bpy.props import (BoolProperty,
@@ -35,8 +35,8 @@ else:
                            StringProperty,
                            )
     from . import settings
-    from bl_i18n_utils import utils as i18n_utils
-    from bl_i18n_utils import languages_menu_utils
+    from bl_i18n_utils import utils as utils_i18n
+    from bl_i18n_utils import utils_languages_menu
 
 from bpy.app.translations import pgettext_iface as iface_
 
@@ -47,14 +47,14 @@ import tempfile
 
 ##### Helpers #####
 def find_best_isocode_matches(uid, iso_codes):
-    tmp = ((e, i18n_utils.locale_match(e, uid)) for e in iso_codes)
+    tmp = ((e, utils_i18n.locale_match(e, uid)) for e in iso_codes)
     return tuple(e[0] for e in sorted((e for e in tmp if e[1] is not ... and e[1] >= 0), key=lambda e: e[1]))
 
 
 ##### Data #####
 class I18nUpdateTranslationLanguage(bpy.types.PropertyGroup):
     """Settings/info about a language"""
-    uid = StringProperty(name="Language ID", default="", description="Iso code, like fr_FR")
+    uid = StringProperty(name="Language ID", default="", description="ISO code, like fr_FR")
     num_id = IntProperty(name="Numeric ID", default=0, min=0, description="Numeric ID (readonly!)")
     name = StringProperty(name="Language Name", default="",
                           description="English language name/label (like \"French (Français)\")")
@@ -173,7 +173,7 @@ class UI_OT_i18n_updatetranslation_svn_init_settings(bpy.types.Operator):
                 lng.mo_path_trunk = root_tr_mo.format(isocode)
             else:
                 lng.use = False
-                language, _1, _2, language_country, language_variant = i18n_utils.locale_explode(uid)
+                language, _1, _2, language_country, language_variant = utils_i18n.locale_explode(uid)
                 for isocode in (language, language_variant, language_country, uid):
                     p = os.path.join(root_br, isocode, isocode + ".po")
                     if not os.path.exists(p):
@@ -223,7 +223,7 @@ class UI_OT_i18n_updatetranslation_svn_branches(bpy.types.Operator):
             "--background",
             "--factory-startup",
             "--python",
-            os.path.join(os.path.dirname(i18n_utils.__file__), "bl_extract_messages.py"),
+            os.path.join(os.path.dirname(utils_i18n.__file__), "bl_extract_messages.py"),
             "--",
             "bl_extract_messages.py",  # arg parser expects first arg to be prog name!
             "--settings",
@@ -233,12 +233,12 @@ class UI_OT_i18n_updatetranslation_svn_branches(bpy.types.Operator):
             self.report({'ERROR'}, "Message extraction process failed!")
             return {'CANCELLED'}
         # Now we should have a valid POT file, we have to merge it in all languages po's...
-        pot = i18n_utils.I18nMessages(kind='PO', src=self.settings.FILE_NAME_POT, settings=self.settings)
+        pot = utils_i18n.I18nMessages(kind='PO', src=self.settings.FILE_NAME_POT, settings=self.settings)
         for lng in i18n_sett.langs:
             if not lng.use:
                 continue
             if os.path.isfile(lng.po_path):
-                po = i18n_utils.I18nMessages(uid=lng.uid, kind='PO', src=lng.po_path, settings=self.settings)
+                po = utils_i18n.I18nMessages(uid=lng.uid, kind='PO', src=lng.po_path, settings=self.settings)
                 po.update(pot)
             else:
                 po = pot
@@ -267,7 +267,7 @@ class UI_OT_i18n_updatetranslation_svn_trunk(bpy.types.Operator):
                 print("Skipping {} language ({}).".format(lng.name, lng.uid))
                 continue
             print("Processing {} language ({}).".format(lng.name, lng.uid))
-            po = i18n_utils.I18nMessages(uid=lng.uid, kind='PO', src=lng.po_path, settings=self.settings)
+            po = utils_i18n.I18nMessages(uid=lng.uid, kind='PO', src=lng.po_path, settings=self.settings)
             print("Cleaned up {} commented messages.".format(po.clean_commented()))
             errs = po.check(fix=True)
             if errs:
@@ -292,8 +292,8 @@ class UI_OT_i18n_updatetranslation_svn_trunk(bpy.types.Operator):
             uid = po_to_uid.get(po_path, None)
             po_path = os.path.join(self.settings.TRUNK_PO_DIR, po_path)
             if uid and uid not in stats:
-                po = i18n_utils.I18nMessages(uid=uid, kind='PO', src=po_path, settings=self.settings)
+                po = utils_i18n.I18nMessages(uid=uid, kind='PO', src=po_path, settings=self.settings)
                 stats[uid] = po.nbr_trans_msgs / po.nbr_msgs
-        languages_menu_utils.gen_menu_file(stats, self.settings)
+        utils_languages_menu.gen_menu_file(stats, self.settings)
 
         return {'FINISHED'}
