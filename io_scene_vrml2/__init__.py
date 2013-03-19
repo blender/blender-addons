@@ -70,9 +70,8 @@ class ExportVRML(bpy.types.Operator, ExportHelper):
     color_type = EnumProperty(
             name='Color',
             items=(
-            ('MATERIAL', "Material Color", ""),
-            ('VERTEX', "Vertex Color", "")),
-            default='MATERIAL',
+            ('VERTEX', "Vertex Color", ""),
+            ('MATERIAL', "Material Color", "")),
             )
     use_uv = BoolProperty(
             name="Texture/UVs",

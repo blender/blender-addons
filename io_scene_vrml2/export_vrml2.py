@@ -206,16 +206,16 @@ def save_object(fw, global_matrix,
     if use_color:
         if color_type == 'VERTEX':
             if bm.loops.layers.color.active is None:
-                use_color = False
-        elif color_type == 'MATERIAL':
+                # fallback to material
+                color_type = 'MATERIAL'
+        if color_type == 'MATERIAL':
             if not me.materials:
                 use_color = False
             else:
                 material_colors = [
                         "%.2f %.2f %.2f " % (m.diffuse_color[:] if m else (1.0, 1.0, 1.0))
                         for m in me.materials]
-        else:
-            assert(0)
+        assert(color_type in {'VERTEX', 'MATERIAL'})
 
     if use_uv:
         if bm.loops.layers.uv.active is None:
