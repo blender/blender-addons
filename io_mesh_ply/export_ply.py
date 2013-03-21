@@ -208,7 +208,8 @@ def save(operator,
         raise Exception("Error, could not get mesh data from active object")
 
     mesh.transform(obj.matrix_world)
-    mesh.calc_normals()
+    if use_normals:
+        mesh.calc_normals()
 
     ret = save_mesh(filepath, mesh,
                     use_normals=use_normals,
