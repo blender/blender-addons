@@ -83,7 +83,7 @@ class ImportBVH(bpy.types.Operator, ImportHelper):
     use_fps_scale = BoolProperty(
             name="Scale FPS",
             description=("Scale the framerate from the BVH to "
-                         " the current scenes, Otherwise each "
+                         "the current scenes, otherwise each "
                          "BVH frame maps directly to a Blender frame"),
             default=False,
             )
