@@ -997,9 +997,6 @@ def save(operator,
     if global_matrix is None:
         global_matrix = mathutils.Matrix()
 
-    if bpy.ops.object.mode_set.poll():
-        bpy.ops.object.mode_set(mode='OBJECT')
-
     # Initialize the main chunk (primary):
     primary = _3ds_chunk(PRIMARY)
     # Add version chunk:
@@ -1028,6 +1025,8 @@ def save(operator,
         objects = (ob for ob in scene.objects if ob.is_visible(scene))
 
     for ob in objects:
+        ob.update_from_editmode()
+
         # get derived objects
         free, derived = create_derived_objects(scene, ob)
 

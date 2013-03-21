@@ -1582,8 +1582,10 @@ def save(operator, context, filepath="",
 
     bpy.path.ensure_ext(filepath, '.x3dz' if use_compress else '.x3d')
 
-    if bpy.ops.object.mode_set.poll():
-        bpy.ops.object.mode_set(mode='OBJECT')
+    edit_object = context.edit_object
+    if edit_object:
+        edit_object.update_from_editmode()
+    del edit_object
 
     if use_compress:
         file = gzip_open_utf8(filepath, 'w')

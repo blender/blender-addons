@@ -55,6 +55,9 @@ def faces_from_mesh(ob, use_mesh_modifiers=False, triangulate=True):
         Split the quad into two triangles
     """
 
+    # get the editmode data
+    ob.update_from_editmode()
+
     # get the modifiers
     try:
         mesh = ob.to_mesh(bpy.context.scene, use_mesh_modifiers, "PREVIEW")

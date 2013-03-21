@@ -678,6 +678,7 @@ def _write(context, filepath,
     scene = context.scene
 
     # Exit edit mode before exporting, so current object states are exported properly.
+    # use this over obj.update_from_editmode() because of animation export.
     if bpy.ops.object.mode_set.poll():
         bpy.ops.object.mode_set(mode='OBJECT')
 
