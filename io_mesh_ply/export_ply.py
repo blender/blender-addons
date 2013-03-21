@@ -28,14 +28,12 @@ import bpy
 import os
 
 
-def save(operator,
-         context,
-         filepath="",
-         use_mesh_modifiers=True,
-         use_normals=True,
-         use_uv_coords=True,
-         use_colors=True,
-         ):
+def save_mesh(filepath,
+              mesh,
+              use_normals=True,
+              use_uv_coords=True,
+              use_colors=True,
+              ):
 
     def rvec3d(v):
         return round(v[0], 6), round(v[1], 6), round(v[2], 6)
@@ -43,34 +41,15 @@ def save(operator,
     def rvec2d(v):
         return round(v[0], 6), round(v[1], 6)
 
-    scene = context.scene
-    obj = context.active_object
-
-    if not obj:
-        raise Exception("Error, Select 1 active object")
-
     file = open(filepath, "w", encoding="utf8", newline="\n")
     fw = file.write
-
-    if scene.objects.active:
-        bpy.ops.object.mode_set(mode='OBJECT')
-
-    if use_mesh_modifiers:
-        mesh = obj.to_mesh(scene, True, 'PREVIEW')
-    else:
-        mesh = obj.data
-
-    if not mesh:
-        raise Exception("Error, could not get mesh data from active object")
-
-    # mesh.transform(obj.matrix_world) # XXX
 
     # Be sure tessface & co are available!
     if not mesh.tessfaces and mesh.polygons:
         mesh.calc_tessface()
 
-    has_uv = (len(mesh.tessface_uv_textures) > 0)
-    has_vcol = len(mesh.tessface_vertex_colors) > 0
+    has_uv = bool(mesh.tessface_uv_textures)
+    has_vcol = bool(mesh.tessface_vertex_colors)
 
     if not has_uv:
         use_uv_coords = False
@@ -111,7 +90,7 @@ def save(operator,
 
         smooth = not use_normals or f.use_smooth
         if not smooth:
-            normal = tuple(f.normal)
+            normal = f.normal[:]
             normal_key = rvec3d(normal)
 
         if has_uv:
@@ -128,7 +107,7 @@ def save(operator,
             v = mesh_verts[vidx]
 
             if smooth:
-                normal = tuple(v.normal)
+                normal = v.normal[:]
                 normal_key = rvec3d(normal)
 
             if has_uv:
@@ -200,13 +179,43 @@ def save(operator,
     file.close()
     print("writing %r done" % filepath)
 
+    return {'FINISHED'}
+
+
+def save(operator,
+         context,
+         filepath="",
+         use_mesh_modifiers=True,
+         use_normals=True,
+         use_uv_coords=True,
+         use_colors=True,
+         ):
+    
+    scene = context.scene
+    obj = context.active_object
+
+    if not obj:
+        raise Exception("Error, Select 1 active object")
+
+    obj.update_from_editmode()
+
+    if use_mesh_modifiers:
+        mesh = obj.to_mesh(scene, True, 'PREVIEW')
+    else:
+        mesh = obj.data.copy()
+
+    if not mesh:
+        raise Exception("Error, could not get mesh data from active object")
+
+    mesh.transform(obj.matrix_world)
+
+    ret = save_mesh(filepath, mesh,
+                    use_normals=use_normals,
+                    use_uv_coords=use_uv_coords,
+                    use_colors=use_colors,
+                    )
+
     if use_mesh_modifiers:
         bpy.data.meshes.remove(mesh)
 
-    # XXX
-    """
-    if is_editmode:
-        Blender.Window.EditMode(1, "", 0)
-    """
-
-    return {'FINISHED'}
+    return ret
