@@ -474,7 +474,7 @@ def read_pdb_file_sticks(filepath_pdb, use_sticks_bonds, all_atoms):
     return all_sticks
 
 
-# Routine which produces a cylinder. All is somewhat easy to undertsand.
+# Function, which produces a cylinder. All is somewhat easy to undertsand.
 def build_stick(radius, length, sectors):
 
     dphi = 2.0 * pi/(float(sectors)-1)
@@ -532,6 +532,93 @@ def build_stick(radius, length, sectors):
     bpy.context.scene.objects.link(new_cups)
 
     return (new_cylinder, new_cups)
+
+
+# Function, which puts a camera and light source into the 3D scene
+def camera_light_source(use_camera, 
+                        use_lamp, 
+                        object_center_vec, 
+                        object_size):
+
+    camera_factor = 15.0
+
+    # If chosen a camera is put into the scene.
+    if use_camera == True:
+
+        # Assume that the object is put into the global origin. Then, the
+        # camera is moved in x and z direction, not in y. The object has its
+        # size at distance sqrt(object_size) from the origin. So, move the
+        # camera by this distance times a factor of camera_factor in x and z.
+        # Then add x, y and z of the origin of the object.
+        object_camera_vec = Vector((sqrt(object_size) * camera_factor,
+                                    0.0,
+                                    sqrt(object_size) * camera_factor))
+        camera_xyz_vec = object_center_vec + object_camera_vec
+
+        # Create the camera
+        current_layers=bpy.context.scene.layers 
+        camera_data = bpy.data.cameras.new("A_camera")
+        camera_data.lens = 45
+        camera_data.clip_end = 500.0
+        camera = bpy.data.objects.new("A_camera", camera_data)
+        camera.location = camera_xyz_vec
+        camera.layers = current_layers
+        bpy.context.scene.objects.link(camera)
+
+        # Here the camera is rotated such it looks towards the center of
+        # the object. The [0.0, 0.0, 1.0] vector along the z axis
+        z_axis_vec             = Vector((0.0, 0.0, 1.0))
+        # The angle between the last two vectors
+        angle                  = object_camera_vec.angle(z_axis_vec, 0)
+        # The cross-product of z_axis_vec and object_camera_vec
+        axis_vec               = z_axis_vec.cross(object_camera_vec)
+        # Rotate 'axis_vec' by 'angle' and convert this to euler parameters.
+        # 4 is the size of the matrix.
+        camera.rotation_euler  = Matrix.Rotation(angle, 4, axis_vec).to_euler()
+
+        # Rotate the camera around its axis by 90° such that we have a nice
+        # camera position and view onto the object.
+        bpy.ops.object.select_all(action='DESELECT')        
+        camera.select = True 
+        bpy.ops.transform.rotate(value=(90.0*2*pi/360.0),
+                                 axis=object_camera_vec,
+                                 constraint_axis=(False, False, False),
+                                 constraint_orientation='GLOBAL',
+                                 mirror=False, proportional='DISABLED',
+                                 proportional_edit_falloff='SMOOTH',
+                                 proportional_size=1, snap=False,
+                                 snap_target='CLOSEST', snap_point=(0, 0, 0),
+                                 snap_align=False, snap_normal=(0, 0, 0),
+                                 release_confirm=False)
+
+    # Here a lamp is put into the scene, if chosen.
+    if use_lamp == True:
+
+        # This is the distance from the object measured in terms of %
+        # of the camera distance. It is set onto 50% (1/2) distance.
+        lamp_dl = sqrt(object_size) * 15 * 0.5
+        # This is a factor to which extend the lamp shall go to the right
+        # (from the camera  point of view).
+        lamp_dy_right = lamp_dl * (3.0/4.0)
+
+        # Create x, y and z for the lamp.
+        object_lamp_vec = Vector((lamp_dl,lamp_dy_right,lamp_dl))
+        lamp_xyz_vec = object_center_vec + object_lamp_vec
+
+        # Create the lamp
+        current_layers=bpy.context.scene.layers
+        lamp_data = bpy.data.lamps.new(name="A_lamp", type="POINT")
+        lamp_data.distance = 500.0
+        lamp_data.energy = 3.0
+        lamp_data.shadow_method = 'RAY_SHADOW'        
+        lamp = bpy.data.objects.new("A_lamp", lamp_data)
+        lamp.location = lamp_xyz_vec
+        lamp.layers = current_layers
+        bpy.context.scene.objects.link(lamp)         
+
+        # Some settings for the World: a bit ambient occlusion
+        bpy.context.scene.world.light_settings.use_ambient_occlusion = True
+        bpy.context.scene.world.light_settings.ao_factor = 0.2
 
 
 # -----------------------------------------------------------------------------
@@ -689,88 +776,6 @@ def import_pdb(Ball_type,
     object_size = max(object_size_vec).length
 
     # ------------------------------------------------------------------------
-    # CAMERA AND LAMP
-
-    camera_factor = 15.0
-
-    # If chosen a camera is put into the scene.
-    if use_camera == True:
-
-        # Assume that the object is put into the global origin. Then, the
-        # camera is moved in x and z direction, not in y. The object has its
-        # size at distance sqrt(object_size) from the origin. So, move the
-        # camera by this distance times a factor of camera_factor in x and z.
-        # Then add x, y and z of the origin of the object.
-        object_camera_vec = Vector((sqrt(object_size) * camera_factor,
-                                    0.0,
-                                    sqrt(object_size) * camera_factor))
-        camera_xyz_vec = object_center_vec + object_camera_vec
-
-        # Create the camera
-        current_layers=bpy.context.scene.layers 
-        camera_data = bpy.data.cameras.new("A_camera")
-        camera_data.lens = 45
-        camera_data.clip_end = 500.0
-        camera = bpy.data.objects.new("A_camera", camera_data)
-        camera.location = camera_xyz_vec
-        camera.layers = current_layers
-        bpy.context.scene.objects.link(camera)
-
-        # Here the camera is rotated such it looks towards the center of
-        # the object. The [0.0, 0.0, 1.0] vector along the z axis
-        z_axis_vec             = Vector((0.0, 0.0, 1.0))
-        # The angle between the last two vectors
-        angle                  = object_camera_vec.angle(z_axis_vec, 0)
-        # The cross-product of z_axis_vec and object_camera_vec
-        axis_vec               = z_axis_vec.cross(object_camera_vec)
-        # Rotate 'axis_vec' by 'angle' and convert this to euler parameters.
-        # 4 is the size of the matrix.
-        camera.rotation_euler  = Matrix.Rotation(angle, 4, axis_vec).to_euler()
-
-        # Rotate the camera around its axis by 90° such that we have a nice
-        # camera position and view onto the object.
-        bpy.ops.object.select_all(action='DESELECT')        
-        camera.select = True 
-        bpy.ops.transform.rotate(value=(90.0*2*pi/360.0),
-                                 axis=object_camera_vec,
-                                 constraint_axis=(False, False, False),
-                                 constraint_orientation='GLOBAL',
-                                 mirror=False, proportional='DISABLED',
-                                 proportional_edit_falloff='SMOOTH',
-                                 proportional_size=1, snap=False,
-                                 snap_target='CLOSEST', snap_point=(0, 0, 0),
-                                 snap_align=False, snap_normal=(0, 0, 0),
-                                 release_confirm=False)
-
-    # Here a lamp is put into the scene, if chosen.
-    if use_lamp == True:
-
-        # This is the distance from the object measured in terms of %
-        # of the camera distance. It is set onto 50% (1/2) distance.
-        lamp_dl = sqrt(object_size) * 15 * 0.5
-        # This is a factor to which extend the lamp shall go to the right
-        # (from the camera  point of view).
-        lamp_dy_right = lamp_dl * (3.0/4.0)
-
-        # Create x, y and z for the lamp.
-        object_lamp_vec = Vector((lamp_dl,lamp_dy_right,lamp_dl))
-        lamp_xyz_vec = object_center_vec + object_lamp_vec
-
-        # Create the lamp
-        current_layers=bpy.context.scene.layers
-        lamp_data = bpy.data.lamps.new(name="A_lamp", type="POINT")
-        lamp_data.distance = 500.0
-        lamp_data.energy = 3.0
-        lamp_data.shadow_method = 'RAY_SHADOW'        
-        lamp = bpy.data.objects.new("A_lamp", lamp_data)
-        lamp.location = lamp_xyz_vec
-        lamp.layers = current_layers
-        bpy.context.scene.objects.link(lamp)         
-
-        bpy.context.scene.world.light_settings.use_ambient_occlusion = True
-        bpy.context.scene.world.light_settings.ao_factor = 0.2
-
-    # ------------------------------------------------------------------------
     # SORTING THE ATOMS
 
     # Lists of atoms of one type are created. Example:
@@ -821,7 +826,7 @@ def import_pdb(Ball_type,
             # In fact, the object is created in the World's origin.
             # This is why 'object_center_vec' is substracted. At the end
             # the whole object is translated back to 'object_center_vec'.
-            atom_vertices.append( atom[2] - object_center_vec )
+            atom_vertices.append(atom[2] - object_center_vec)
 
         # Build the mesh
         atom_mesh = bpy.data.meshes.new("Mesh_"+atom[0])
@@ -1166,13 +1171,21 @@ def import_pdb(Ball_type,
             atom_object_list.append(new_mesh)
 
     # ------------------------------------------------------------------------
+    # CAMERA and LIGHT SOURCES
+
+    camera_light_source(use_camera, 
+                        use_lamp, 
+                        object_center_vec, 
+                        object_size)
+
+    # ------------------------------------------------------------------------
     # SELECT ALL LOADED OBJECTS
     bpy.ops.object.select_all(action='DESELECT')
     obj = None
     for obj in atom_object_list:
         obj.select = True
 
-    # activate the last selected object (perhaps another should be active?)
+    # activate the last selected object
     if obj:
         bpy.context.scene.objects.active = obj
 
