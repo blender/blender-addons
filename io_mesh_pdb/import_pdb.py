@@ -794,6 +794,11 @@ def draw_sticks_skin(all_atoms,
     new_stick_mesh.modifiers[1].levels = sticks_subdiv_view
     new_stick_mesh.modifiers[1].render_levels = sticks_subdiv_render
     
+    bpy.ops.object.material_slot_add()
+    stick_material = bpy.data.materials.new(ELEMENTS[-1].name)
+    stick_material.diffuse_color = ELEMENTS[-1].color 
+    new_stick_mesh.active_material = stick_material
+    
     # This is for putting the radiu of the sticks onto
     # the desired value 'Stick_diameter'
     bpy.context.scene.objects.active = new_stick_mesh
