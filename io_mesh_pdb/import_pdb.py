@@ -621,6 +621,74 @@ def camera_light_source(use_camera,
         bpy.context.scene.world.light_settings.ao_factor = 0.2
 
 
+# Function, which draws the atoms of one type (balls). this is one
+# dupliverts structure then. 
+# Return: the dupliverts structure
+def draw_atoms_one_type(draw_all_atoms_type, 
+                         Ball_type,
+                         Ball_radius_factor,
+                         object_center_vec):
+
+    # Create first the vertices composed of the coordinates of all
+    # atoms of one type
+    atom_vertices = []
+    for atom in draw_all_atoms_type:
+        # In fact, the object is created in the World's origin.
+        # This is why 'object_center_vec' is substracted. At the end
+        # the whole object is translated back to 'object_center_vec'.
+        atom_vertices.append(atom[2] - object_center_vec)
+
+    # Build the mesh
+    atom_mesh = bpy.data.meshes.new("Mesh_"+atom[0])
+    atom_mesh.from_pydata(atom_vertices, [], [])
+    atom_mesh.update()
+    new_atom_mesh = bpy.data.objects.new(atom[0], atom_mesh)
+    bpy.context.scene.objects.link(new_atom_mesh)
+
+    # Now, build a representative sphere (atom).
+    current_layers = bpy.context.scene.layers
+
+    if atom[0] == "Vacancy":
+        bpy.ops.mesh.primitive_cube_add(
+                        view_align=False, enter_editmode=False,
+                        location=(0.0, 0.0, 0.0),
+                        rotation=(0.0, 0.0, 0.0),
+                        layers=current_layers)
+    else:
+        # NURBS balls
+        if Ball_type == "0":
+            bpy.ops.surface.primitive_nurbs_surface_sphere_add(
+                        view_align=False, enter_editmode=False,
+                        location=(0,0,0), rotation=(0.0, 0.0, 0.0),
+                        layers=current_layers)
+        # UV balls
+        elif Ball_type == "1":
+            bpy.ops.mesh.primitive_uv_sphere_add(
+                        segments=Ball_azimuth, ring_count=Ball_zenith,
+                        size=1, view_align=False, enter_editmode=False,
+                        location=(0,0,0), rotation=(0, 0, 0),
+                        layers=current_layers)
+        # Meta balls
+        elif Ball_type == "2":
+            bpy.ops.object.metaball_add(type='BALL', view_align=False, 
+                        enter_editmode=False, location=(0, 0, 0), 
+                        rotation=(0, 0, 0), layers=current_layers)
+
+    ball = bpy.context.scene.objects.active
+    ball.scale  = (atom[3]*Ball_radius_factor,) * 3
+
+    if atom[0] == "Vacancy":
+        ball.name = "Cube_"+atom[0]
+    else:
+        ball.name = "Ball_"+atom[0]
+    ball.active_material = atom[1]
+    ball.parent = new_atom_mesh
+    new_atom_mesh.dupli_type = 'VERTS'
+    # The object is back translated to 'object_center_vec'.
+    new_atom_mesh.location = object_center_vec
+    
+    return new_atom_mesh
+
 # -----------------------------------------------------------------------------
 #                                                            The main routine
 
@@ -813,70 +881,16 @@ def import_pdb(Ball_type,
     # ------------------------------------------------------------------------
     # DRAWING THE ATOMS
 
-    # This is the number of all atoms which are put into the scene.
     bpy.ops.object.select_all(action='DESELECT')
 
     # For each list of atoms of ONE type (e.g. Hydrogen)
     for draw_all_atoms_type in draw_all_atoms:
 
-        # Create first the vertices composed of the coordinates of all
-        # atoms of one type
-        atom_vertices = []
-        for atom in draw_all_atoms_type:
-            # In fact, the object is created in the World's origin.
-            # This is why 'object_center_vec' is substracted. At the end
-            # the whole object is translated back to 'object_center_vec'.
-            atom_vertices.append(atom[2] - object_center_vec)
-
-        # Build the mesh
-        atom_mesh = bpy.data.meshes.new("Mesh_"+atom[0])
-        atom_mesh.from_pydata(atom_vertices, [], [])
-        atom_mesh.update()
-        new_atom_mesh = bpy.data.objects.new(atom[0], atom_mesh)
-        bpy.context.scene.objects.link(new_atom_mesh)
-
-        # Now, build a representative sphere (atom)
-        current_layers=bpy.context.scene.layers
-
-        if atom[0] == "Vacancy":
-            bpy.ops.mesh.primitive_cube_add(
-                            view_align=False, enter_editmode=False,
-                            location=(0.0, 0.0, 0.0),
-                            rotation=(0.0, 0.0, 0.0),
-                            layers=current_layers)
-        else:
-            # NURBS balls
-            if Ball_type == "0":
-                bpy.ops.surface.primitive_nurbs_surface_sphere_add(
-                            view_align=False, enter_editmode=False,
-                            location=(0,0,0), rotation=(0.0, 0.0, 0.0),
-                            layers=current_layers)
-            # UV balls
-            elif Ball_type == "1":
-                bpy.ops.mesh.primitive_uv_sphere_add(
-                            segments=Ball_azimuth, ring_count=Ball_zenith,
-                            size=1, view_align=False, enter_editmode=False,
-                            location=(0,0,0), rotation=(0, 0, 0),
-                            layers=current_layers)
-            # Meta balls
-            elif Ball_type == "2":
-                bpy.ops.object.metaball_add(type='BALL', view_align=False, 
-                            enter_editmode=False, location=(0, 0, 0), 
-                            rotation=(0, 0, 0), layers=current_layers)
-
-        ball = bpy.context.scene.objects.active
-        ball.scale  = (atom[3]*Ball_radius_factor,) * 3
-
-        if atom[0] == "Vacancy":
-            ball.name = "Cube_"+atom[0]
-        else:
-            ball.name = "Ball_"+atom[0]
-        ball.active_material = atom[1]
-        ball.parent = new_atom_mesh
-        new_atom_mesh.dupli_type = 'VERTS'
-        # The object is back translated to 'object_center_vec'.
-        new_atom_mesh.location = object_center_vec
-        atom_object_list.append(new_atom_mesh)
+        atom_mesh = draw_atoms_one_type(draw_all_atoms_type, 
+                                        Ball_type,
+                                        Ball_radius_factor,
+                                        object_center_vec)
+        atom_object_list.append(atom_mesh)
 
     # ------------------------------------------------------------------------
     # DRAWING THE STICKS: skin and subdivision modifier
