@@ -190,7 +190,7 @@ def save(operator,
          use_uv_coords=True,
          use_colors=True,
          ):
-    
+
     scene = context.scene
     obj = context.active_object
 
@@ -199,7 +199,7 @@ def save(operator,
 
     obj.update_from_editmode()
 
-    if use_mesh_modifiers:
+    if use_mesh_modifiers and obj.modifiers:
         mesh = obj.to_mesh(scene, True, 'PREVIEW')
     else:
         mesh = obj.data.copy()
