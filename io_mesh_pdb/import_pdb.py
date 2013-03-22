@@ -17,6 +17,7 @@
 # ##### END GPL LICENSE BLOCK #####
 
 import bpy
+import bmesh
 from math import pi, cos, sin, sqrt, ceil
 from mathutils import Vector, Matrix
 from copy import copy
@@ -188,6 +189,8 @@ class StickProp(object):
 # -----------------------------------------------------------------------------
 #                                                           Some basic routines  
 
+
+# The function, which reads all necessary properties of the elements. 
 def read_elements():
 
     del ELEMENTS[:]
@@ -205,6 +208,9 @@ def read_elements():
         ELEMENTS.append(li)
 
 
+# The function, which reads the x,y,z positions of all atoms in a PDB 
+# file.
+#
 # filepath_pdb: path to pdb file
 # radiustype  : '0' default
 #               '1' atomic radii
@@ -343,14 +349,15 @@ def read_pdb_file(filepath_pdb, radiustype):
     Number_of_total_atoms = j
 
     return (Number_of_total_atoms, all_atoms)
-    
 
+
+# The function, which reads the sticks in a PDB file.
 def read_pdb_file_sticks(filepath_pdb, use_sticks_bonds, all_atoms):
 
     # The list of all sticks.
     all_sticks = []
 
-    # Open the PDB file again.
+    # Open the PDB file.
     filepath_pdb_p = open(filepath_pdb, "r")
 
     line = filepath_pdb_p.readline()
@@ -411,6 +418,7 @@ def read_pdb_file_sticks(filepath_pdb, use_sticks_bonds, all_atoms):
                                          
             if use_sticks_bonds == True:
                 number = atom_list[1:].count(atom2)
+                
                 if number == 2 or number == 3:
                     basis_list = list(set(atom_list[1:]))
                  
@@ -536,6 +544,9 @@ def import_pdb(Ball_type,
                radiustype,
                Ball_distance_factor,
                use_sticks,
+               use_sticks_skin,
+               sticks_subdiv_view,
+               sticks_subdiv_render,
                use_sticks_color,
                use_sticks_smooth,
                use_sticks_bonds, 
@@ -863,9 +874,145 @@ def import_pdb(Ball_type,
         atom_object_list.append(new_atom_mesh)
 
     # ------------------------------------------------------------------------
-    # DRAWING THE STICKS
+    # DRAWING THE STICKS: skin and subdivision modifier
+    
+    if use_sticks == True and use_sticks_skin == True and all_sticks != []:
 
-    if use_sticks == True and all_sticks != []:
+        # These counters are for the edges, in the shape [i,i+1]. 
+        i = 0
+        
+        # This is the list of vertices, containing the atom position 
+        # (vectors)).
+        stick_vertices = []
+        # This is the 'same' list, which contains not vector position of
+        # the atoms but their numbers. It is used to handle the edges.
+        stick_vertices_nr = []
+        # This is the list of edges.
+        stick_edges = []
+        
+        # Go through the list of all sticks. For each stick do:
+        for stick in all_sticks:
+                    
+            # Each stick has two atoms = two vertices.        
+                    
+            """
+            [ 0,1 ,  3,4 ,  0,8 ,  7,3]
+            [[0,1], [2,3], [4,5], [6,7]]
+            
+            [ 0,1 ,  3,4 ,  x,8 ,   7,x]    x:deleted
+            [[0,1], [2,3], [0,5], [6,2]]
+            """
+        
+            # Check, if the vertex (atom) is already in the vertex list.
+            # edge: [s1,s2]
+            FLAG_s1 = False                           
+            s1 = 0
+            for stick2 in stick_vertices_nr: 
+                if stick2 == stick.atom1-1: 
+                    FLAG_s1 = True
+                    break
+                s1 += 1
+            FLAG_s2 = False
+            s2 = 0
+            for stick2 in stick_vertices_nr: 
+                if stick2 == stick.atom2-1:
+                    FLAG_s2 = True 
+                    break
+                s2 += 1
+
+            # If the vertex (atom) is not yet in the vertex list:
+            # append the number of atom and the vertex to the two lists.
+            # For the first atom:
+            if FLAG_s1 == False:
+                atom1 = copy(all_atoms[stick.atom1-1].location)
+                stick_vertices.append(atom1)
+                stick_vertices_nr.append(stick.atom1-1)
+            # For the second atom:                
+            if FLAG_s2 == False:               
+                atom2 = copy(all_atoms[stick.atom2-1].location)
+                stick_vertices.append(atom2)
+                stick_vertices_nr.append(stick.atom2-1) 
+
+            # Build the edges:
+            
+            # If both vertices (atoms) were not in the lists, then
+            # the edge is simply [i,i+1]. These are two new vertices
+            # (atoms), so increase i by 2.
+            if FLAG_s1 == False and FLAG_s2 == False:
+                stick_edges.append([i,i+1])
+                i += 2
+            # Both vertices (atoms) were already in the list, so then
+            # use the vertices (atoms), which already exist. They are
+            # at positions s1 and s2. 
+            if FLAG_s1 == True and FLAG_s2 == True:
+                stick_edges.append([s1,s2])
+            # The following two if cases describe the situation that 
+            # only one vertex (atom) was in the list. Since only ONE
+            # new vertex was added, increase i by one.
+            if FLAG_s1 == True and FLAG_s2 == False:
+                stick_edges.append([s1,i])
+                i += 1             
+            if FLAG_s1 == False and FLAG_s2 == True:
+                stick_edges.append([i,s2])
+                i += 1
+
+        # Build the mesh of the sticks
+        stick_mesh = bpy.data.meshes.new("Mesh_sticks")
+        stick_mesh.from_pydata(stick_vertices, stick_edges, [])
+        stick_mesh.update()
+        new_stick_mesh = bpy.data.objects.new("Sticks", stick_mesh)
+        bpy.context.scene.objects.link(new_stick_mesh)
+        
+        # Apply the skin modifier.        
+        new_stick_mesh.modifiers.new(name="Sticks_skin", type='SKIN')
+        # Smooth the skin surface if this option has been chosen.
+        new_stick_mesh.modifiers[0].use_smooth_shade = use_sticks_smooth
+        # Apply the Subdivision modifier.
+        new_stick_mesh.modifiers.new(name="Sticks_subsurf", type='SUBSURF')
+        # Options: choose the levels
+        new_stick_mesh.modifiers[1].levels = sticks_subdiv_view
+        new_stick_mesh.modifiers[1].render_levels = sticks_subdiv_render
+        
+        # This is for putting the radiu of the sticks onto
+        # the desired value 'Stick_diameter'
+        bpy.context.scene.objects.active = new_stick_mesh
+        # EDIT mode
+        bpy.ops.object.mode_set(mode='EDIT', toggle=False)     
+        bm = bmesh.from_edit_mesh(new_stick_mesh.data)
+        bpy.ops.mesh.select_all(action='DESELECT')
+       
+        # Select all vertices
+        for v in bm.verts:
+            v.select = True
+
+        # This is somewhat a factor for the radius.
+        r_f = 4.0
+        # Apply operator 'skin_resize'.
+        bpy.ops.transform.skin_resize(value=(Stick_diameter*r_f, 
+                                             Stick_diameter*r_f, 
+                                             Stick_diameter*r_f), 
+                                 constraint_axis=(False, False, False), 
+                                 constraint_orientation='GLOBAL', 
+                                 mirror=False, 
+                                 proportional='DISABLED', 
+                                 proportional_edit_falloff='SMOOTH', 
+                                 proportional_size=1, 
+                                 snap=False, 
+                                 snap_target='CLOSEST', 
+                                 snap_point=(0, 0, 0), 
+                                 snap_align=False, 
+                                 snap_normal=(0, 0, 0), 
+                                 texture_space=False, 
+                                 release_confirm=False)
+        # Back to the OBJECT mode.
+        bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
+
+
+
+    # ------------------------------------------------------------------------
+    # DRAWING THE STICKS: regular cylinders in a dupliverts structure 
+
+    if use_sticks == True and all_sticks != [] and use_sticks_skin == False:
             
         dl = Stick_unit
          

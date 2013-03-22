@@ -24,7 +24,7 @@
 #
 #  Start of project              : 2011-08-31 by Clemens Barth
 #  First publication in Blender  : 2011-11-11
-#  Last modified                 : 2013-01-16
+#  Last modified                 : 2013-03-22
 #
 #  Acknowledgements 
 #  ================
@@ -38,7 +38,7 @@ bl_info = {
     "name": "Atomic Blender - PDB",
     "description": "Loading and manipulating atoms from PDB files",
     "author": "Clemens Barth",
-    "version": (1, 5),
+    "version": (1, 6),
     "blender": (2, 60, 0),
     "location": "File -> Import -> PDB (.pdb)",
     "warning": "",
@@ -107,12 +107,21 @@ class ImportPDB(Operator, ImportHelper):
                default='0',)        
     use_sticks = BoolProperty(
         name="Use sticks", default=True,
-        description="Do you want to display the sticks?")
+        description="Do you want to display the sticks?")       
+    use_sticks_skin = BoolProperty(
+        name="Use skin modifier", default=False,
+        description="Do you want to display the sticks with the skin modifier?")    
+    sticks_subdiv_view  = IntProperty(
+        name = "SubDivV", default=2, min=1,
+        description="Number of subdivisions (view)")        
+    sticks_subdiv_render  = IntProperty(
+        name = "SubDivR", default=2, min=1,
+        description="Number of subdivisions (render)")           
     sticks_sectors = IntProperty(
         name = "Sector", default=20, min=1,
         description="Number of sectors of a stick")
     sticks_radius = FloatProperty(
-        name = "Radius", default=0.1, min=0.0001,
+        name = "Radius", default=0.2, min=0.0001,
         description ="Radius of a stick")
     sticks_unit_length = FloatProperty(
         name = "Unit", default=0.05, min=0.0001,
@@ -142,6 +151,8 @@ class ImportPDB(Operator, ImportHelper):
         row.prop(self, "use_camera")
         row.prop(self, "use_lamp")
         row = layout.row()
+        row.prop(self, "use_center")        
+        row = layout.row()
         col = row.column()
         col.prop(self, "ball")
         row = layout.row()
@@ -158,26 +169,39 @@ class ImportPDB(Operator, ImportHelper):
         row = layout.row()
         row.prop(self, "atomradius")
         row = layout.row()
-        col = row.column()
-        col.prop(self, "use_sticks")
-        row = layout.row()        
-        row.active = self.use_sticks
-        col = row.column()
-        col.prop(self, "sticks_sectors")
-        col.prop(self, "sticks_radius")
-        col.prop(self, "sticks_unit_length")
-        col = row.column(align=True)        
-        col.prop(self, "use_sticks_color")        
-        col.prop(self, "use_sticks_smooth")
-        col.prop(self, "use_sticks_bonds")
-        row = layout.row()        
-        row.active = self.use_sticks
-        col = row.column(align=True)
-        col = row.column(align=True)
-        col.active = self.use_sticks and self.use_sticks_bonds 
-        col.prop(self, "sticks_dist")
+        # Sticks        
+        row.prop(self, "use_sticks")
         row = layout.row()
-        row.prop(self, "use_center")
+        row.active = self.use_sticks                
+        row.prop(self, "use_sticks_skin")
+        row = layout.row()        
+        row.active = self.use_sticks
+        col = row.column()
+        if not self.use_sticks_skin: 
+            col.prop(self, "sticks_sectors")
+        col.prop(self, "sticks_radius")
+        if self.use_sticks_skin: 
+            row = layout.row()        
+            row.active = self.use_sticks
+            row.prop(self, "sticks_subdiv_view")
+            row.prop(self, "sticks_subdiv_render")
+            row = layout.row()        
+            row.active = self.use_sticks            
+        if not self.use_sticks_skin: 
+            col.prop(self, "sticks_unit_length")
+        col = row.column(align=True)    
+        if not self.use_sticks_skin: 
+            col.prop(self, "use_sticks_color")        
+        col.prop(self, "use_sticks_smooth")
+        if not self.use_sticks_skin:
+            col.prop(self, "use_sticks_bonds")
+        row = layout.row()        
+        row.active = self.use_sticks
+        col = row.column(align=True)
+        col = row.column(align=True)
+        col.active = self.use_sticks
+        if not self.use_sticks_skin: 
+            col.prop(self, "sticks_dist")
 
     def execute(self, context):
         # This is in order to solve this strange 'relative path' thing.
@@ -192,6 +216,9 @@ class ImportPDB(Operator, ImportHelper):
                       self.atomradius,
                       self.scale_distances,
                       self.use_sticks,
+                      self.use_sticks_skin,
+                      self.sticks_subdiv_view,
+                      self.sticks_subdiv_render,
                       self.use_sticks_color,
                       self.use_sticks_smooth,
                       self.use_sticks_bonds,
