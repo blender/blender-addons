@@ -22,7 +22,7 @@ bl_info = {
     "name": "Screencast Keys",
     "author": "Paulo Gomes, Bart Crouch, John E. Herrenyo, Gaia Clary, Pablo Vazquez",
     "version": (1, 7),
-    "blender": (2, 64, 0),
+    "blender": (2, 66, 0),
     "location": "3D View > Properties Panel > Screencast Keys",
     "warning": "",
     "description": "Display keys pressed in the 3D View, "
@@ -541,7 +541,7 @@ class ScreencastKeysStatus(bpy.types.Operator):
         mouse_keys = ['MOUSEMOVE','MIDDLEMOUSE','LEFTMOUSE',
          'RIGHTMOUSE', 'WHEELDOWNMOUSE','WHEELUPMOUSE']
         ignore_keys = ['LEFT_SHIFT', 'RIGHT_SHIFT', 'LEFT_ALT',
-         'RIGHT_ALT', 'LEFT_CTRL', 'RIGHT_CTRL', 'TIMER']
+         'RIGHT_ALT', 'LEFT_CTRL', 'RIGHT_CTRL', 'TIMER', 'INBETWEEN_MOUSEMOVE']
         if scene.screencast_keys_mouse != 'text':
             ignore_keys.extend(mouse_keys)
 
