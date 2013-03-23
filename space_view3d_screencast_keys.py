@@ -541,7 +541,8 @@ class ScreencastKeysStatus(bpy.types.Operator):
         mouse_keys = ['MOUSEMOVE','MIDDLEMOUSE','LEFTMOUSE',
          'RIGHTMOUSE', 'WHEELDOWNMOUSE','WHEELUPMOUSE']
         ignore_keys = ['LEFT_SHIFT', 'RIGHT_SHIFT', 'LEFT_ALT',
-         'RIGHT_ALT', 'LEFT_CTRL', 'RIGHT_CTRL', 'TIMER', 'INBETWEEN_MOUSEMOVE']
+         'RIGHT_ALT', 'LEFT_CTRL', 'RIGHT_CTRL', 'TIMER',
+         'MOUSEMOVE', 'INBETWEEN_MOUSEMOVE']
         if scene.screencast_keys_mouse != 'text':
             ignore_keys.extend(mouse_keys)
 
