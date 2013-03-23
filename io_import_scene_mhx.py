@@ -39,7 +39,7 @@ Alternatively, run the script in the script editor (Alt-P), and access from the 
 bl_info = {
     'name': 'Import: MakeHuman (.mhx)',
     'author': 'Thomas Larsson',
-    'version': (1, 15, 1),
+    'version': (1, 15, 2),
     "blender": (2, 65, 0),
     'location': "File > Import > MakeHuman (.mhx)",
     'description': 'Import files in the MakeHuman eXchange format (.mhx)',
@@ -3646,7 +3646,7 @@ class VIEW3D_OT_MhxKeyExpressionsButton(bpy.types.Operator):
         props = getProps(rig, self.prefix)
         frame = context.scene.frame_current
         for prop in props:
-            rig.keyframe_insert(prop, frame=frame)
+            rig.keyframe_insert('["%s"]'%prop, frame=frame)
         updatePose(context)
         return{'FINISHED'}   
         
@@ -3673,7 +3673,7 @@ class VIEW3D_OT_MhxPinExpressionButton(bpy.types.Operator):
                 else:
                     rig[prop] = 0.0
                 if abs(rig[prop] - old) > 1e-3:
-                    rig.keyframe_insert(prop, frame=frame)
+                    rig.keyframe_insert('["%s"]'%prop, frame=frame)
         else:                    
             for prop in props:
                 if prop == expression:
@@ -3702,7 +3702,7 @@ def setMhmProps(rig, shapekeys, prefix, units, factor, auto, frame):
         else:
             rig[prop] = factor*value
             if auto:
-                rig.keyframe_insert(prop, frame=frame)    
+                rig.keyframe_insert('["%s"]'%prop, frame=frame)    
     
     
 def clearMhmProps(rig, shapekeys, prefix, auto, frame):
@@ -3716,7 +3716,7 @@ def clearMhmProps(rig, shapekeys, prefix, auto, frame):
         else:
             rig[prop] = 0.0
             if auto:
-                rig.keyframe_insert(prop, frame=frame)   
+                rig.keyframe_insert('["%s"]'%prop, frame=frame)   
 
 
 def getUnitsFromString(string):    
@@ -3804,7 +3804,7 @@ def drawShapePanel(self, context, prefix, name):
         return
         
     layout.operator("mhx.pose_reset_expressions", text="Reset %ss" % name).prefix=prefix
-    layout.operator("mhx.pose_key_expressions", text="Reset %ss" % name).prefix=prefix
+    layout.operator("mhx.pose_key_expressions", text="Key %ss" % name).prefix=prefix
     #layout.operator("mhx.update")
 
     layout.separator()
@@ -3816,7 +3816,7 @@ def drawShapePanel(self, context, prefix, name):
 
 
 class MhxExpressionUnitsPanel(bpy.types.Panel):
-    bl_label = "MHX Expression Units"
+    bl_label = "MHX Expression Tuning"
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI"
     bl_options = {'DEFAULT_CLOSED'}
@@ -4377,7 +4377,6 @@ class VIEW3D_OT_MhxUpdateTexturesButton(bpy.types.Operator):
                 for driver in mat.animation_data.drivers:
                     prop = mat.path_resolve(driver.data_path)
                     value = driver.evaluate(scn.frame_current)
-                    #print("Update %s[%d] = %s" % (driver.data_path, driver.array_index, value))
                     prop[driver.array_index] = value
         return{'FINISHED'}    
         
