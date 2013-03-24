@@ -172,7 +172,9 @@ class ExportUVLayout(bpy.types.Operator):
     def execute(self, context):
 
         obj = context.active_object
-        obj.update_from_editmode()
+        is_editmode = (obj.mode == 'EDIT')
+        if is_editmode:
+            bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
 
         mode = self.mode
 
@@ -201,6 +203,9 @@ class ExportUVLayout(bpy.types.Operator):
 
         if self.modified:
             bpy.data.meshes.remove(mesh)
+
+        if is_editmode:
+            bpy.ops.object.mode_set(mode='EDIT', toggle=False)
 
         file.close()
 

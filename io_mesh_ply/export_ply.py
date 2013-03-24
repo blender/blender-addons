@@ -197,7 +197,8 @@ def save(operator,
     if not obj:
         raise Exception("Error, Select 1 active object")
 
-    obj.update_from_editmode()
+    if bpy.ops.object.mode_set.poll():
+        bpy.ops.object.mode_set(mode='OBJECT')
 
     if use_mesh_modifiers and obj.modifiers:
         mesh = obj.to_mesh(scene, True, 'PREVIEW')

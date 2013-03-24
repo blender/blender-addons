@@ -177,10 +177,16 @@ def save_object(fw, global_matrix,
     assert(obj.type == 'MESH')
 
     if use_mesh_modifiers:
-        obj.update_from_editmode()
+        is_editmode = (obj.mode == 'EDIT')
+        if is_editmode:
+            bpy.ops.object.editmode_toggle()
+
         me = obj.to_mesh(scene, True, 'PREVIEW', calc_tessface=False)
         bm = bmesh.new()
         bm.from_mesh(me)
+
+        if is_editmode:
+            bpy.ops.object.editmode_toggle()
     else:
         me = obj.data
         if obj.mode == 'EDIT':
