@@ -442,7 +442,7 @@ class Print3DCleanThin(Operator):
 # ... helper function for info UI
 
 class Print3DSelectReport(Operator):
-    """Select the data assosiated with this report"""
+    """Select the data associated with this report"""
     bl_idname = "mesh.print3d_select_report"
     bl_label = "Print3D Select Report"
     bl_options = {'INTERNAL'}
