@@ -38,7 +38,7 @@ def create_and_link_mesh(name, faces, points):
 
     obj = bpy.data.objects.new(name, mesh)
     scene.objects.link(obj)
-    scene.objects.active = 
+    scene.objects.active = obj
     obj.select = True
 
 
