@@ -145,19 +145,15 @@ def _ascii_read(data):
     data.readline()
 
     while True:
-        # strip facet normal // or end
-        data.readline()
-
-        # strip outer loup, in case of ending, break the loop
-        if not data.readline():
+        l = data.readline()
+        if not l:
             break
 
-        yield [tuple(map(float, data.readline().split()[1:]))
-               for _ in range(3)]
-
-        # strip facet normalend and outerloop end
-        data.readline()
-        data.readline()
+        # if we encounter a vertex, read next 2
+        l = l.lstrip()
+        if l.startswith(b'vertex'):
+            yield [tuple(map(float, l_item.split()[1:]))
+                   for l_item in (l, data.readline(), data.readline())]
 
 
 def _binary_write(filename, faces):
