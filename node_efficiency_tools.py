@@ -25,7 +25,7 @@ bl_info = {
     'description': "Nodes Efficiency Tools",
     'warning': "",
     'wiki_url': "http://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts/Nodes/Nodes_Efficiency_Tools",
-    'tracker_url': "http://projects.blender.org/tracker/?func=detail&atid=468&aid=33543&group_id=153",
+    'tracker_url': "http://projects.blender.org/tracker/index.php?func=detail&aid=33543&group_id=153&atid=469",
     'category': "Node",
     }
 
