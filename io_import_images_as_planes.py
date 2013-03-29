@@ -19,8 +19,8 @@
 bl_info = {
     "name": "Import Images as Planes",
     "author": "Florian Meyer (tstscr), mont29, matali",
-    "version": (1, 7),
-    "blender": (2, 65, 0),
+    "version": (1, 8),
+    "blender": (2, 66, 4),
     "location": "File > Import > Images as Planes or Add > Mesh > Images as Planes",
     "description": "Imports images and creates planes with the appropriate aspect ratio. "
                    "The images are mapped to the planes.",
@@ -499,17 +499,17 @@ class IMPORT_OT_image_to_plane(Operator, AddObjectHelper):
         out_node = clean_node_tree(node_tree)
 
         if self.shader == 'BSDF_DIFFUSE':
-            bsdf_diffuse = node_tree.nodes.new('BSDF_DIFFUSE')
-            tex_image = node_tree.nodes.new('TEX_IMAGE')
+            bsdf_diffuse = node_tree.nodes.new('ShaderNodeBsdfDiffuse')
+            tex_image = node_tree.nodes.new('ShaderNodeTexImage')
             tex_image.image = image
             tex_image.show_texture = True
             node_tree.links.new(out_node.inputs[0], bsdf_diffuse.outputs[0])
             node_tree.links.new(bsdf_diffuse.inputs[0], tex_image.outputs[0])
 
         elif self.shader == 'EMISSION':
-            emission = node_tree.nodes.new('EMISSION')
-            lightpath = node_tree.nodes.new('LIGHT_PATH')
-            tex_image = node_tree.nodes.new('TEX_IMAGE')
+            emission = node_tree.nodes.new('ShaderNodeEmission')
+            lightpath = node_tree.nodes.new('ShaderNodeLightPath')
+            tex_image = node_tree.nodes.new('ShaderNodeTexImage')
             tex_image.image = image
             tex_image.show_texture = True
             node_tree.links.new(out_node.inputs[0], emission.outputs[0])
@@ -517,10 +517,10 @@ class IMPORT_OT_image_to_plane(Operator, AddObjectHelper):
             node_tree.links.new(emission.inputs[1], lightpath.outputs[0])
 
         elif self.shader == 'BSDF_DIFFUSE_BSDF_TRANSPARENT':
-            bsdf_diffuse = node_tree.nodes.new('BSDF_DIFFUSE')
-            bsdf_transparent = node_tree.nodes.new('BSDF_TRANSPARENT')
-            mix_shader = node_tree.nodes.new('MIX_SHADER')
-            tex_image = node_tree.nodes.new('TEX_IMAGE')
+            bsdf_diffuse = node_tree.nodes.new('ShaderNodeBsdfDiffuse')
+            bsdf_transparent = node_tree.nodes.new('ShaderNodeBsdfTransparent')
+            mix_shader = node_tree.nodes.new('ShaderNodeMixShader')
+            tex_image = node_tree.nodes.new('ShaderNodeTexImage')
             tex_image.image = image
             tex_image.show_texture = True
             node_tree.links.new(out_node.inputs[0], mix_shader.outputs[0])
@@ -530,11 +530,11 @@ class IMPORT_OT_image_to_plane(Operator, AddObjectHelper):
             node_tree.links.new(bsdf_diffuse.inputs[0], tex_image.outputs[0])
 
         elif self.shader == 'EMISSION_BSDF_TRANSPARENT':
-            emission = node_tree.nodes.new('EMISSION')
-            lightpath = node_tree.nodes.new('LIGHT_PATH')
-            bsdf_transparent = node_tree.nodes.new('BSDF_TRANSPARENT')
-            mix_shader = node_tree.nodes.new('MIX_SHADER')
-            tex_image = node_tree.nodes.new('TEX_IMAGE')
+            emission = node_tree.nodes.new('ShaderNodeEmission')
+            lightpath = node_tree.nodes.new('ShaderNodeLightPath')
+            bsdf_transparent = node_tree.nodes.new('ShaderNodeBsdfTransparent')
+            mix_shader = node_tree.nodes.new('ShaderNodeMixShader')
+            tex_image = node_tree.nodes.new('ShaderNodeTexImage')
             tex_image.image = image
             tex_image.show_texture = True
             node_tree.links.new(out_node.inputs[0], mix_shader.outputs[0])
