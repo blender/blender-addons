@@ -19,7 +19,7 @@
 bl_info = {
     'name': "Nodes Efficiency Tools",
     'author': "Bartek Skorupa",
-    'version': (2, 20),
+    'version': (2, 21),
     'blender': (2, 6, 6),
     'location': "Node Editor Properties Panel (Ctrl-SPACE)",
     'description': "Nodes Efficiency Tools",
@@ -1481,7 +1481,7 @@ kmi_defs = (
     ('wm.call_menu', 'SLASH', False, False, False, (('name', AddReroutesMenu.bl_idname),)),
     ('wm.call_menu', 'NUMPAD_SLASH', False, False, False, (('name', AddReroutesMenu.bl_idname),)),
     ('wm.call_menu', 'EQUAL', False, True, False, (('name', NodeAlignMenu.bl_idname),)),
-    ('wm.call_menu', 'F', False, False, True, (('name', LinkUseNamesMenu.bl_idname),)),
+    ('wm.call_menu', 'F', False, True, True, (('name', LinkUseNamesMenu.bl_idname),)),
     ('wm.call_menu', 'C', False, True, False, (('name', CopyToSelectedMenu.bl_idname),)),
     ('wm.call_menu', 'S', False, True, False, (('name', NodesSwapMenu.bl_idname),)),
     )
