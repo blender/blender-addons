@@ -289,7 +289,7 @@ def main(File, Path, LayerViewers, MixerViewers, LayerOffset,
         # Object
         bpy.ops.mesh.primitive_plane_add(view_align=False,
                                          enter_editmode=False,
-                                         rotation=(0, 0, pi))
+                                         rotation=(0, 0, 0))
 
         bpy.ops.object.transform_apply(location=False, rotation=True, scale=False)
 
@@ -595,7 +595,7 @@ class GIMPImageToScene(bpy.types.Operator):
     LayerOffset = FloatProperty(name="Layer Separation",
         description="Distance between each 3D Layer in the Z axis",
         min=0,
-        default=0.01)
+        default=0.50)
     
     LayerScale = FloatProperty(name="Layer Scale",
         description="Scale pixel resolution by Blender units",
