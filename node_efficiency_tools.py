@@ -19,7 +19,7 @@
 bl_info = {
     'name': "Nodes Efficiency Tools",
     'author': "Bartek Skorupa",
-    'version': (2, 21),
+    'version': (2, 22),
     'blender': (2, 6, 6),
     'location': "Node Editor Properties Panel (Ctrl-SPACE)",
     'description': "Nodes Efficiency Tools",
@@ -125,6 +125,7 @@ regular_shaders = (
     ('ShaderNodeBsdfGlossy', 'BSDF_GLOSSY', 'Glossy BSDF'),
     ('ShaderNodeBsdfGlass', 'BSDF_GLASS', 'Glass BSDF'),
     ('ShaderNodeBsdfDiffuse', 'BSDF_DIFFUSE', 'Diffuse BSDF'),
+    ('ShaderNodeSubsurfaceScattering', 'SUBSURFACE_SCATTERING', 'Subsurface Scattering'),
     ('ShaderNodeEmission', 'EMISSION', 'Emission'),
     ('ShaderNodeBsdfVelvet', 'BSDF_VELVET', 'Velvet BSDF'),
     ('ShaderNodeBsdfTranslucent', 'BSDF_TRANSLUCENT', 'Translucent BSDF'),
@@ -712,6 +713,7 @@ class NodesSwap(Operator, NodeToolBase):
                 ('ShaderNodeBsdfGlossy', 'Glossy BSDF', 'Glossy BSDF'),
                 ('ShaderNodeBsdfGlass', 'Glass BSDF', 'Glass BSDF'),
                 ('ShaderNodeBsdfDiffuse', 'Diffuse BSDF', 'Diffuse BSDF'),
+                ('ShaderNodeSubsurfaceScattering', 'SUBSURFACE_SCATTERING', 'Subsurface Scattering'),
                 ('ShaderNodeEmission', 'Emission', 'Emission'),
                 ('ShaderNodeBsdfVelvet', 'Velvet BSDF', 'Velvet BSDF'),
                 ('ShaderNodeBsdfTranslucent', 'Translucent BSDF', 'Translucent BSDF'),
@@ -1076,9 +1078,9 @@ class EfficiencyToolsPanel(Panel, NodeToolBase):
         box.menu(NodeAlignMenu.bl_idname, text="Align Nodes (Shift =)")
         box.menu(CopyToSelectedMenu.bl_idname, text="Copy to Selected (Shift-C)")
         box.operator(NodesClearLabel.bl_idname).option = True
-        box.menu(AddReroutesMenu.bl_idname, text="Add Reroutes")
-        box.menu(NodesSwapMenu.bl_idname, text="Swap Nodes")
-        box.menu(LinkActiveToSelectedMenu.bl_idname, text="Link Active To Selected")
+        box.menu(AddReroutesMenu.bl_idname, text="Add Reroutes ( / )")
+        box.menu(NodesSwapMenu.bl_idname, text="Swap Nodes (Shift-S)")
+        box.menu(LinkActiveToSelectedMenu.bl_idname, text="Link Active To Selected ( \\ )")
 
 
 #############################################################
@@ -1264,7 +1266,8 @@ class LinkActiveToSelectedMenu(Menu, NodeToolBase):
     def draw(self, context):
         layout = self.layout
         layout.menu(LinkStandardMenu.bl_idname)
-        layout.menu(LinkUseNamesMenu.bl_idname, text="Use names/labels")
+        layout.menu(LinkUseNodeNameMenu.bl_idname)
+        layout.menu(LinkUseOutputsNamesMenu.bl_idname)
 
 
 class LinkStandardMenu(Menu, NodeToolBase):
@@ -1273,24 +1276,14 @@ class LinkStandardMenu(Menu, NodeToolBase):
 
     def draw(self, context):
         layout = self.layout
-        props = layout.operator(NodesLinkActiveToSelected.bl_idname, text="Don't Replace Links (Shift-F)")
+        props = layout.operator(NodesLinkActiveToSelected.bl_idname, text="Don't Replace Links")
         props.replace = False
         props.use_node_name = False
         props.use_outputs_names = False
-        props = layout.operator(NodesLinkActiveToSelected.bl_idname, text="Replace Links (Ctrl-Shift-F)")
+        props = layout.operator(NodesLinkActiveToSelected.bl_idname, text="Replace Links")
         props.replace = True
         props.use_node_name = False
         props.use_outputs_names = False
-
-
-class LinkUseNamesMenu(Menu, NodeToolBase):
-    bl_idname = "NODE_MT_link_use_names_menu"
-    bl_label = "Link Active to Selected"
-
-    def draw(self, context):
-        layout = self.layout
-        layout.menu(LinkUseNodeNameMenu.bl_idname, text="Use Node Name/Label")
-        layout.menu(LinkUseOutputsNamesMenu.bl_idname, text="Use Outputs Names")
 
 
 class LinkUseNodeNameMenu(Menu, NodeToolBase):
@@ -1299,12 +1292,12 @@ class LinkUseNodeNameMenu(Menu, NodeToolBase):
 
     def draw(self, context):
         layout = self.layout
-        props = layout.operator(NodesLinkActiveToSelected.bl_idname, text="Replace Links")
-        props.replace = True
-        props.use_node_name = True
-        props.use_outputs_names = False
         props = layout.operator(NodesLinkActiveToSelected.bl_idname, text="Don't Replace Links")
         props.replace = False
+        props.use_node_name = True
+        props.use_outputs_names = False
+        props = layout.operator(NodesLinkActiveToSelected.bl_idname, text="Replace Links")
+        props.replace = True
         props.use_node_name = True
         props.use_outputs_names = False
 
@@ -1315,12 +1308,12 @@ class LinkUseOutputsNamesMenu(Menu, NodeToolBase):
 
     def draw(self, context):
         layout = self.layout
-        props = layout.operator(NodesLinkActiveToSelected.bl_idname, text="Replace Links")
-        props.replace = True
-        props.use_node_name = False
-        props.use_outputs_names = True
         props = layout.operator(NodesLinkActiveToSelected.bl_idname, text="Don't Replace Links")
         props.replace = False
+        props.use_node_name = False
+        props.use_outputs_names = True
+        props = layout.operator(NodesLinkActiveToSelected.bl_idname, text="Replace Links")
+        props.replace = True
         props.use_node_name = False
         props.use_outputs_names = True
 
@@ -1451,12 +1444,23 @@ kmi_defs = (
     (BatchChangeNodes.bl_idname, 'UP_ARROW', False, False, True,
         (('blend_type', 'PREV'), ('operation', 'PREV'),)),
     # LINK ACTIVE TO SELECTED
-    # Don't use names, replace links (Ctrl Shift F)
-    (NodesLinkActiveToSelected.bl_idname, 'F', True, True, False,
-        (('replace', True), ('use_node_name', False), ('use_outputs_names', False),)),
-    # Don't use names, don't replace links (Shift F)
-    (NodesLinkActiveToSelected.bl_idname, 'F', False, True, False,
+    # Don't use names, don't replace links (K)
+    (NodesLinkActiveToSelected.bl_idname, 'K', False, False, False,
         (('replace', False), ('use_node_name', False), ('use_outputs_names', False),)),
+    # Don't use names, replace links (Shift K)
+    (NodesLinkActiveToSelected.bl_idname, 'K', False, True, False,
+        (('replace', True), ('use_node_name', False), ('use_outputs_names', False),)),
+    # Use node name, don't replace links (')
+    (NodesLinkActiveToSelected.bl_idname, 'QUOTE', False, False, False,
+        (('replace', False), ('use_node_name', True), ('use_outputs_names', False),)),
+    # Don't use names, replace links (')
+    (NodesLinkActiveToSelected.bl_idname, 'QUOTE', False, True, False,
+        (('replace', True), ('use_node_name', True), ('use_outputs_names', False),)),
+    (NodesLinkActiveToSelected.bl_idname, 'SEMI_COLON', False, False, False,
+        (('replace', False), ('use_node_name', False), ('use_outputs_names', True),)),
+    # Don't use names, replace links (')
+    (NodesLinkActiveToSelected.bl_idname, 'SEMI_COLON', False, True, False,
+        (('replace', True), ('use_node_name', False), ('use_outputs_names', True),)),
     # CHANGE MIX FACTOR
     (ChangeMixFactor.bl_idname, 'LEFT_ARROW', False, False, True, (('option', -0.1),)),
     (ChangeMixFactor.bl_idname, 'RIGHT_ARROW', False, False, True, (('option', 0.1),)),
@@ -1481,7 +1485,7 @@ kmi_defs = (
     ('wm.call_menu', 'SLASH', False, False, False, (('name', AddReroutesMenu.bl_idname),)),
     ('wm.call_menu', 'NUMPAD_SLASH', False, False, False, (('name', AddReroutesMenu.bl_idname),)),
     ('wm.call_menu', 'EQUAL', False, True, False, (('name', NodeAlignMenu.bl_idname),)),
-    ('wm.call_menu', 'F', False, True, True, (('name', LinkUseNamesMenu.bl_idname),)),
+    ('wm.call_menu', 'BACK_SLASH', False, False, False, (('name', LinkActiveToSelectedMenu.bl_idname),)),
     ('wm.call_menu', 'C', False, True, False, (('name', CopyToSelectedMenu.bl_idname),)),
     ('wm.call_menu', 'S', False, True, False, (('name', NodesSwapMenu.bl_idname),)),
     )
