@@ -76,7 +76,7 @@ class Print3DSettings(PropertyGroup):
             description="Minimum thickness",
             subtype='DISTANCE',
             default=0.001,  # 1mm
-            min=0.0, max=1.0,
+            min=0.0, max=10.0,
             )
     threshold_zero = FloatProperty(
             name="Threshold",
@@ -89,7 +89,7 @@ class Print3DSettings(PropertyGroup):
             name="Angle",
             description="Limit for checking distorted faces",
             subtype='ANGLE',
-            default=math.radians(15.0),
+            default=math.radians(45.0),
             min=0.0, max=math.radians(180.0),
             )
     angle_sharp = FloatProperty(

@@ -256,7 +256,7 @@ class Print3DCheckSharp(Operator):
         bm.normal_update()
 
         edges_sharp = [ele.index for ele in bm.edges
-                       if ele.is_manifold and ele.calc_face_angle() > angle_sharp]
+                       if ele.is_manifold and ele.calc_face_angle_signed() > angle_sharp]
 
         info.append(("Sharp Edge: %d" % len(edges_sharp),
                     (bmesh.types.BMEdge, edges_sharp)))
@@ -482,8 +482,8 @@ class Print3DSelectReport(Operator):
             # possible arrays are out of sync
             self.report({'WARNING'}, "Report is out of date, re-run check")
 
-        # Perhaps this is annoying? but also handy!
-        bpy.ops.view3d.view_selected(use_all_regions=False)
+        # cool, but in fact annoying
+        #~ bpy.ops.view3d.view_selected(use_all_regions=False)
 
         return {'FINISHED'}
 
