@@ -19,7 +19,7 @@
 bl_info = {
     'name': "Nodes Efficiency Tools",
     'author': "Bartek Skorupa",
-    'version': (2, 22),
+    'version': (2, 23),
     'blender': (2, 6, 6),
     'location': "Node Editor Properties Panel (Ctrl-SPACE)",
     'description': "Nodes Efficiency Tools",
@@ -117,7 +117,7 @@ navs = [
     ('PREV', 'Prev', 'Previous blend type/operation'),
     ]
 # list of mixing shaders
-merge_shaders = ('MIX', 'ADD')
+merge_shaders_types = ('MIX', 'ADD')
 # list of regular shaders. Entry: (identified, type, name for humans). Will be used in SwapShaders and menus.
 # Keeping mixed case to avoid having to translate entries when adding new nodes in SwapNodes.
 regular_shaders = (
@@ -135,7 +135,10 @@ regular_shaders = (
     ('ShaderNodeBsdfAnisotropic', 'BSDF_ANISOTROPIC', 'Anisotropic BSDF'),
     ('ShaderNodeHoldout', 'HOLDOUT', 'Holdout'),
     )
-
+merge_shaders = (
+    ('ShaderNodeAddShader', 'ADD_SHADER', 'Add Shader'),
+    ('ShaderNodeMixShader', 'MIX_SHADER', 'Mix Shader'),
+    )
 
 def get_nodes_links(context):
     space = context.space_data
@@ -206,7 +209,7 @@ class MergeNodes(Operator, NodeToolBase):
             if node.select and node.outputs:
                 if merge_type == 'AUTO':
                     for (type, types_list, dst) in (
-                            ('SHADER', merge_shaders, selected_shader),
+                            ('SHADER', merge_shaders_types, selected_shader),
                             ('RGBA', [t[0] for t in blend_types], selected_mix),
                             ('VALUE', [t[0] for t in operations], selected_math),
                             ):
@@ -224,7 +227,7 @@ class MergeNodes(Operator, NodeToolBase):
                             dst.append([i, node.location.x, node.location.y])
                 else:
                     for (type, types_list, dst) in (
-                            ('SHADER', merge_shaders, selected_shader),
+                            ('SHADER', merge_shaders_types, selected_shader),
                             ('MIX', [t[0] for t in blend_types], selected_mix),
                             ('MATH', [t[0] for t in operations], selected_math),
                             ):
@@ -722,6 +725,8 @@ class NodesSwap(Operator, NodeToolBase):
                 ('ShaderNodeBsdfRefraction', 'Refraction BSDF', 'Refraction BSDF'),
                 ('ShaderNodeBsdfAnisotropic', 'Anisotropic BSDF', 'Anisotropic BSDF'),
                 ('ShaderNodeHoldout', 'Holdout', 'Holdout'),
+                ('ShaderNodeAddShader', 'Add Shader', 'Add Shader'),
+                ('ShaderNodeMixShader', 'Mix Shader', 'Mix Shader'),
                 ]
             )
 
@@ -739,9 +744,11 @@ class NodesSwap(Operator, NodeToolBase):
         # regular_shaders - global list. Entry: (identifier, type, name for humans)
         # example: ('ShaderNodeBsdfTransparent', 'BSDF_TRANSPARENT', 'Transparent BSDF')
         swap_shaders = option in (s[0] for s in regular_shaders)
-        if swap_shaders:
+        swap_merge_shaders = option in (s[0] for s in merge_shaders)
+        if swap_shaders or swap_merge_shaders:
             # replace_types - list of node types that can be replaced using selected option
-            replace_types = [type[1] for type in regular_shaders]
+            shaders = regular_shaders + merge_shaders
+            replace_types = [type[1] for type in shaders]
             new_type = option
         elif option == 'CompositorNodeSwitch':
             replace_types = ('REROUTE', 'MIX_RGB', 'MATH', 'ALPHAOVER')
@@ -775,15 +782,25 @@ class NodesSwap(Operator, NodeToolBase):
                             new_node.operation = node.blend_type
                 old_inputs_count = len(node.inputs)
                 new_inputs_count = len(new_node.inputs)
+                replace = []  # entries - pairs: old input index, new input index.
                 if swap_shaders:
-                    replace = []
                     for old_i, old_input in enumerate(node.inputs):
                         for new_i, new_input in enumerate(new_node.inputs):
                             if old_input.name == new_input.name:
                                 replace.append((old_i, new_i))
                                 break
+                elif option == 'ShaderNodeAddShader':
+                    if node.type == 'ADD_SHADER':
+                        replace = ((0, 0), (1, 1))
+                    elif node.type == 'MIX_SHADER':
+                        replace = ((1, 0), (2, 1))
+                elif option == 'ShaderNodeMixShader':
+                    if node.type == 'ADD_SHADER':
+                        replace = ((0, 1), (1, 2))
+                    elif node.type == 'MIX_SHADER':
+                        replace = ((1, 1), (2, 2))
                 elif new_inputs_count == 1:
-                    replace = ((0, 0), )  # old input 0 (first of the entry) will be replaced by new input 0.
+                    replace = ((0, 0), )
                 elif new_inputs_count == 2:
                     if old_inputs_count == 1:
                         replace = ((0, 0), )
@@ -1125,7 +1142,7 @@ class MergeShadersMenu(Menu, NodeToolBase):
 
     def draw(self, context):
         layout = self.layout
-        for type in merge_shaders:
+        for type in merge_shaders_types:
             props = layout.operator(MergeNodes.bl_idname, text=type)
             props.mode = type
             props.merge_type = 'SHADER'
@@ -1255,7 +1272,8 @@ class ShadersSwapMenu(Menu):
 
     def draw(self, context):
         layout = self.layout
-        for opt, type, txt in regular_shaders:
+        shaders = regular_shaders + merge_shaders
+        for opt, type, txt in shaders:
             layout.operator(NodesSwap.bl_idname, text=txt).option = opt
 
 
