@@ -311,7 +311,15 @@ def write_pov(filename, scene=None, info_callback=None):
 
         name = materialNames[name_orig] = uniqueName(bpy.path.clean_name(name_orig), materialNames)
         comments = scene.pov.comments_enable
-
+        
+        if material:
+            if (material.specular_color.r == material.specular_color.g) and (material.specular_color.r == material.specular_color.b):
+                colored_specular_found = False
+            else:
+                colored_specular_found = True
+        
+        
+        
         ##################
         # Several versions of the finish: Level conditions are variations for specular/Mirror
         # texture channel map with alternative finish of 0 specular and no mirror reflection.
@@ -446,6 +454,9 @@ def write_pov(filename, scene=None, info_callback=None):
                     # really works. --Maurice.
                     tabWrite("conserve_energy\n")
 
+                if colored_specular_found == True:
+                     tabWrite("metallic\n")          
+
                 # 'phong 70.0 '
                 if Level != 1:
                     if material.raytrace_mirror.use:
@@ -507,7 +518,7 @@ def write_pov(filename, scene=None, info_callback=None):
                     special_texture_found = True
                     continue  # Some texture found
 
-            if special_texture_found:
+            if special_texture_found or colored_specular_found:
                 # Level=1 Means No specular nor Mirror reflection
                 povHasnoSpecularMaps(Level=1)
 
@@ -1170,475 +1181,512 @@ def write_pov(filename, scene=None, info_callback=None):
                             key = diffuse_color[0], diffuse_color[1], diffuse_color[2], i  # i == f.mat
                             vertCols[key] = [-1]
 
-            # Vert Colors
-            tabWrite("texture_list {\n")
-            file.write(tabStr + "%s" % (len(vertCols)))  # vert count
-            idx = 0
+                        idx = 0
+                        LocalMaterialNames = []                        
+                        for col, index in vertCols.items():
+                            #if me_materials:
+                            material = me_materials[col[3]]
+                            if me_materials == None: #XXX working?
+                                material_finish = DEF_MAT_NAME  # not working properly,
+                                trans = 0.0
 
-            for col, index in vertCols.items():
-                if me_materials:
-                    material = me_materials[col[3]]
-                    material_finish = materialNames[material.name]
+                            else:
+                                material_finish = materialNames[material.name]                        
+                                if material.use_transparency:
+                                    trans = 1.0 - material.alpha
+                                else:
+                                    trans = 0.0                            
+                                if (material.specular_color.r == material.specular_color.g) and (material.specular_color.r == material.specular_color.b):
+                                    colored_specular_found = False
+                                else:
+                                    colored_specular_found = True
 
-                    if material.use_transparency:
-                        trans = 1.0 - material.alpha
-                    else:
-                        trans = 0.0
+                                if material.use_transparency and material.transparency_method == 'RAYTRACE':
+                                    povFilter = material.raytrace_transparency.filter * (1.0 - material.alpha)
+                                    trans = (1.0 - material.alpha) - povFilter
+                                else:
+                                    povFilter = 0.0
+                                    
+                                ##############SF
+                                texturesDif = ""
+                                texturesSpec = ""
+                                texturesNorm = ""
+                                texturesAlpha = ""
+                                for t in material.texture_slots:
+                                    if t and t.texture.type == 'IMAGE' and t.use and t.texture.image:
+                                        image_filename = path_image(t.texture.image)
+                                        imgGamma = ""
+                                        if image_filename:
+                                            if t.use_map_color_diffuse:
+                                                texturesDif = image_filename
+                                                # colvalue = t.default_value  # UNUSED
+                                                t_dif = t
+                                                if t_dif.texture.pov.tex_gamma_enable:
+                                                    imgGamma = (" gamma %.3g " % t_dif.texture.pov.tex_gamma_value)
+                                            if t.use_map_specular or t.use_map_raymir:
+                                                texturesSpec = image_filename
+                                                # colvalue = t.default_value  # UNUSED
+                                                t_spec = t
+                                            if t.use_map_normal:
+                                                texturesNorm = image_filename
+                                                # colvalue = t.normal_factor * 10.0  # UNUSED
+                                                #textNormName=t.texture.image.name + ".normal"
+                                                #was the above used? --MR
+                                                t_nor = t
+                                            if t.use_map_alpha:
+                                                texturesAlpha = image_filename
+                                                # colvalue = t.alpha_factor * 10.0  # UNUSED
+                                                #textDispName=t.texture.image.name + ".displ"
+                                                #was the above used? --MR
+                                                t_alpha = t
 
-                    if material.use_transparency and material.transparency_method == 'RAYTRACE':
-                        povFilter = material.raytrace_transparency.filter * (1.0 - material.alpha)
-                        trans = (1.0 - material.alpha) - povFilter
-                    else:
-                        povFilter = 0.0
-                else:
-                    material_finish = DEF_MAT_NAME  # not working properly,
-                    trans = 0.0
+                                ####################################################################################
 
-                ##############SF
-                texturesDif = ""
-                texturesSpec = ""
-                texturesNorm = ""
-                texturesAlpha = ""
-                for t in material.texture_slots:
-                    if t and t.texture.type == 'IMAGE' and t.use and t.texture.image:
-                        image_filename = path_image(t.texture.image)
-                        imgGamma = ""
-                        if image_filename:
-                            if t.use_map_color_diffuse:
-                                texturesDif = image_filename
-                                # colvalue = t.default_value  # UNUSED
-                                t_dif = t
-                                if t_dif.texture.pov.tex_gamma_enable:
-                                    imgGamma = (" gamma %.3g " % t_dif.texture.pov.tex_gamma_value)
-                            if t.use_map_specular or t.use_map_raymir:
-                                texturesSpec = image_filename
-                                # colvalue = t.default_value  # UNUSED
-                                t_spec = t
-                            if t.use_map_normal:
-                                texturesNorm = image_filename
-                                # colvalue = t.normal_factor * 10.0  # UNUSED
-                                #textNormName=t.texture.image.name + ".normal"
-                                #was the above used? --MR
-                                t_nor = t
-                            if t.use_map_alpha:
-                                texturesAlpha = image_filename
-                                # colvalue = t.alpha_factor * 10.0  # UNUSED
-                                #textDispName=t.texture.image.name + ".displ"
-                                #was the above used? --MR
-                                t_alpha = t
 
-                ####################################################################################
+                                file.write("\n")
+                                # THIS AREA NEEDS TO LEAVE THE TEXTURE OPEN UNTIL ALL MAPS ARE WRITTEN DOWN.
+                                # --MR
+                                currentMatName = string_strip_hyphen(materialNames[material.name])
+                                LocalMaterialNames.append(currentMatName)
+                                file.write("\n #declare MAT_%s = \ntexture{\n" % currentMatName)
 
+                                ################################################################################
+                                if material.diffuse_shader == 'MINNAERT':
+                                    tabWrite("\n")
+                                    tabWrite("aoi\n")
+                                    tabWrite("texture_map {\n")
+                                    tabWrite("[%.3g finish {diffuse %.3g}]\n" % \
+                                             (material.darkness / 2.0, 2.0 - material.darkness))
+                                    tabWrite("[%.3g\n" % (1.0 - (material.darkness / 2.0)))
+
+                                if material.diffuse_shader == 'FRESNEL':
+                                    # For FRESNEL diffuse in POV, we'll layer slope patterned textures
+                                    # with lamp vector as the slope vector and nest one slope per lamp
+                                    # into each texture map's entry.
+
+                                    c = 1
+                                    while (c <= lampCount):
+                                        tabWrite("slope { lampTarget%s }\n" % (c))
+                                        tabWrite("texture_map {\n")
+                                        # Diffuse Fresnel value and factor go up to five,
+                                        # other kind of values needed: used the number 5 below to remap
+                                        tabWrite("[%.3g finish {diffuse %.3g}]\n" % \
+                                                 ((5.0 - material.diffuse_fresnel) / 5,
+                                                  (material.diffuse_intensity *
+                                                   ((5.0 - material.diffuse_fresnel_factor) / 5))))
+                                        tabWrite("[%.3g\n" % ((material.diffuse_fresnel_factor / 5) *
+                                                              (material.diffuse_fresnel / 5.0)))
+                                        c += 1
+
+                                # if shader is a 'FRESNEL' or 'MINNAERT': slope pigment pattern or aoi
+                                # and texture map above, the rest below as one of its entry
+
+                                if texturesSpec != "" or texturesAlpha != "":
+                                    if texturesSpec != "":
+                                        # tabWrite("\n")
+                                        tabWrite("pigment_pattern {\n")
+                                        # POV-Ray "scale" is not a number of repetitions factor, but its
+                                        # inverse, a standard scale factor.
+                                        # Offset seems needed relatively to scale so probably center of the
+                                        # scale is not the same in blender and POV
+                                        mappingSpec = "translate <%.4g,%.4g,%.4g> scale <%.4g,%.4g,%.4g>\n" % \
+                                                      (-t_spec.offset.x, t_spec.offset.y, t_spec.offset.z,
+                                                       1.0 / t_spec.scale.x, 1.0 / t_spec.scale.y,
+                                                       1.0 / t_spec.scale.z)
+                                        tabWrite("uv_mapping image_map{%s \"%s\" %s}\n" % \
+                                                 (imageFormat(texturesSpec), texturesSpec, imgMap(t_spec)))
+                                        tabWrite("%s\n" % mappingSpec)
+                                        tabWrite("}\n")
+                                        tabWrite("texture_map {\n")
+                                        tabWrite("[0 \n")
+
+                                    if texturesDif == "":
+                                        if texturesAlpha != "":
+                                            tabWrite("\n")
+                                            # POV-Ray "scale" is not a number of repetitions factor, but its
+                                            # inverse, a standard scale factor.
+                                            # Offset seems needed relatively to scale so probably center of the
+                                            # scale is not the same in blender and POV
+                                            mappingAlpha = " translate <%.4g, %.4g, %.4g> " \
+                                                           "scale <%.4g, %.4g, %.4g>\n" % \
+                                                           (-t_alpha.offset.x, -t_alpha.offset.y,
+                                                            t_alpha.offset.z, 1.0 / t_alpha.scale.x,
+                                                            1.0 / t_alpha.scale.y, 1.0 / t_alpha.scale.z)
+                                            tabWrite("pigment {pigment_pattern {uv_mapping image_map" \
+                                                     "{%s \"%s\" %s}%s" % \
+                                                     (imageFormat(texturesAlpha), texturesAlpha,
+                                                      imgMap(t_alpha), mappingAlpha))
+                                            tabWrite("}\n")
+                                            tabWrite("pigment_map {\n")
+                                            tabWrite("[0 color rgbft<0,0,0,1,1>]\n")
+                                            tabWrite("[1 color rgbft<%.3g, %.3g, %.3g, %.3g, %.3g>]\n" % \
+                                                     (col[0], col[1], col[2], povFilter, trans))
+                                            tabWrite("}\n")
+                                            tabWrite("}\n")
+
+                                        else:
+
+                                            tabWrite("pigment {rgbft<%.3g, %.3g, %.3g, %.3g, %.3g>}\n" % \
+                                                     (col[0], col[1], col[2], povFilter, trans))
+
+                                        if texturesSpec != "":
+                                            # Level 1 is no specular
+                                            tabWrite("finish {%s}\n" % (safety(material_finish, Level=1)))
+
+                                        else:
+                                            # Level 2 is translated spec
+                                            tabWrite("finish {%s}\n" % (safety(material_finish, Level=2)))
+
+                                    else:
+                                        # POV-Ray "scale" is not a number of repetitions factor, but its
+                                        # inverse, a standard scale factor.
+                                        # Offset seems needed relatively to scale so probably center of the
+                                        # scale is not the same in blender and POV
+                                        mappingDif = ("translate <%.4g,%.4g,%.4g> scale <%.4g,%.4g,%.4g>" % \
+                                                      (-t_dif.offset.x, -t_dif.offset.y, t_dif.offset.z,
+                                                       1.0 / t_dif.scale.x, 1.0 / t_dif.scale.y,
+                                                       1.0 / t_dif.scale.z))
+                                        if texturesAlpha != "":
+                                            # POV-Ray "scale" is not a number of repetitions factor, but its
+                                            # inverse, a standard scale factor.
+                                            # Offset seems needed relatively to scale so probably center of the
+                                            # scale is not the same in blender and POV
+                                            mappingAlpha = " translate <%.4g,%.4g,%.4g> " \
+                                                           "scale <%.4g,%.4g,%.4g>" % \
+                                                           (-t_alpha.offset.x, -t_alpha.offset.y,
+                                                            t_alpha.offset.z, 1.0 / t_alpha.scale.x,
+                                                            1.0 / t_alpha.scale.y, 1.0 / t_alpha.scale.z)
+                                            tabWrite("pigment {\n")
+                                            tabWrite("pigment_pattern {\n")
+                                            tabWrite("uv_mapping image_map{%s \"%s\" %s}%s}\n" % \
+                                                     (imageFormat(texturesAlpha), texturesAlpha,
+                                                      imgMap(t_alpha), mappingAlpha))
+                                            tabWrite("pigment_map {\n")
+                                            tabWrite("[0 color rgbft<0,0,0,1,1>]\n")
+                                            tabWrite("[1 uv_mapping image_map {%s \"%s\" %s} %s]\n" % \
+                                                     (imageFormat(texturesDif), texturesDif,
+                                                      (imgGamma + imgMap(t_dif)), mappingDif))
+                                            tabWrite("}\n")
+                                            tabWrite("}\n")
+
+                                        else:
+                                            tabWrite("pigment {uv_mapping image_map {%s \"%s\" %s}%s}\n" % \
+                                                     (imageFormat(texturesDif), texturesDif,
+                                                      (imgGamma + imgMap(t_dif)), mappingDif))
+
+                                        if texturesSpec != "":
+                                            # Level 1 is no specular
+                                            tabWrite("finish {%s}\n" % (safety(material_finish, Level=1)))
+
+                                        else:
+                                            # Level 2 is translated specular
+                                            tabWrite("finish {%s}\n" % (safety(material_finish, Level=2)))
+
+                                        ## scale 1 rotate y*0
+                                        #imageMap = ("{image_map {%s \"%s\" %s }\n" % \
+                                        #            (imageFormat(textures),textures,imgMap(t_dif)))
+                                        #tabWrite("uv_mapping pigment %s} %s finish {%s}\n" % \
+                                        #         (imageMap,mapping,safety(material_finish)))
+                                        #tabWrite("pigment {uv_mapping image_map {%s \"%s\" %s}%s} " \
+                                        #         "finish {%s}\n" % \
+                                        #         (imageFormat(texturesDif), texturesDif, imgMap(t_dif),
+                                        #          mappingDif, safety(material_finish)))
+                                    if texturesNorm != "":
+                                        ## scale 1 rotate y*0
+                                        # POV-Ray "scale" is not a number of repetitions factor, but its
+                                        # inverse, a standard scale factor.
+                                        # Offset seems needed relatively to scale so probably center of the
+                                        # scale is not the same in blender and POV
+                                        mappingNor = " translate <%.4g,%.4g,%.4g> scale <%.4g,%.4g,%.4g>" % \
+                                                     (-t_nor.offset.x, -t_nor.offset.y, t_nor.offset.z,
+                                                      1.0 / t_nor.scale.x, 1.0 / t_nor.scale.y,
+                                                      1.0 / t_nor.scale.z)
+                                        #imageMapNor = ("{bump_map {%s \"%s\" %s mapping}" % \
+                                        #               (imageFormat(texturesNorm),texturesNorm,imgMap(t_nor)))
+                                        #We were not using the above maybe we should?
+                                        tabWrite("normal {uv_mapping bump_map " \
+                                                 "{%s \"%s\" %s  bump_size %.4g }%s}\n" % \
+                                                 (imageFormat(texturesNorm), texturesNorm, imgMap(t_nor),
+                                                  t_nor.normal_factor * 10, mappingNor))
+                                    if texturesSpec != "":
+                                        tabWrite("]\n")
+                                    ##################Second index for mapping specular max value###############
+                                        tabWrite("[1 \n")
+
+                                if texturesDif == "" and material.pov.replacement_text == "":
+                                    if texturesAlpha != "":
+                                        # POV-Ray "scale" is not a number of repetitions factor, but its inverse,
+                                        # a standard scale factor.
+                                        # Offset seems needed relatively to scale so probably center of the scale
+                                        # is not the same in blender and POV
+                                        # Strange that the translation factor for scale is not the same as for
+                                        # translate.
+                                        # TODO: verify both matches with blender internal.
+                                        mappingAlpha = " translate <%.4g,%.4g,%.4g> scale <%.4g,%.4g,%.4g>\n" % \
+                                                       (-t_alpha.offset.x, -t_alpha.offset.y, t_alpha.offset.z,
+                                                        1.0 / t_alpha.scale.x, 1.0 / t_alpha.scale.y,
+                                                        1.0 / t_alpha.scale.z)
+                                        tabWrite("pigment {pigment_pattern {uv_mapping image_map" \
+                                                 "{%s \"%s\" %s}%s}\n" % \
+                                                 (imageFormat(texturesAlpha), texturesAlpha, imgMap(t_alpha),
+                                                  mappingAlpha))
+                                        tabWrite("pigment_map {\n")
+                                        tabWrite("[0 color rgbft<0,0,0,1,1>]\n")
+                                        tabWrite("[1 color rgbft<%.3g, %.3g, %.3g, %.3g, %.3g>]\n" % \
+                                                 (col[0], col[1], col[2], povFilter, trans))
+                                        tabWrite("}\n")
+                                        tabWrite("}\n")
+
+                                    else:
+                                        tabWrite("pigment {rgbft<%.3g, %.3g, %.3g, %.3g, %.3g>}\n" % \
+                                                 (col[0], col[1], col[2], povFilter, trans))
+                                                 
+                                                                
+                                    if texturesSpec != "":
+                                        # Level 3 is full specular
+                                        tabWrite("finish {%s}\n" % (safety(material_finish, Level=3)))
+                                        
+                                    elif colored_specular_found:
+                                        # Level 1 is no specular
+                                        tabWrite("finish {%s}\n" % (safety(material_finish, Level=1)))
+
+                                    else:
+                                        # Level 2 is translated specular
+                                        tabWrite("finish {%s}\n" % (safety(material_finish, Level=2)))
+
+                                elif material.pov.replacement_text == "":
+                                    # POV-Ray "scale" is not a number of repetitions factor, but its inverse,
+                                    # a standard scale factor.
+                                    # Offset seems needed relatively to scale so probably center of the scale is
+                                    # not the same in blender and POV
+                                    # Strange that the translation factor for scale is not the same as for
+                                    # translate.
+                                    # TODO: verify both matches with blender internal.
+                                    mappingDif = ("translate <%.4g,%.4g,%.4g> scale <%.4g,%.4g,%.4g>" % \
+                                                  (-t_dif.offset.x, -t_dif.offset.y, t_dif.offset.z,
+                                                   1.0 / t_dif.scale.x, 1.0 / t_dif.scale.y, 1.0 / t_dif.scale.z))
+                                    if texturesAlpha != "":
+                                        # Strange that the translation factor for scale is not the same as for
+                                        # translate.
+                                        # TODO: verify both matches with blender internal.
+                                        mappingAlpha = "translate <%.4g,%.4g,%.4g> scale <%.4g,%.4g,%.4g>" % \
+                                                       (-t_alpha.offset.x, -t_alpha.offset.y, t_alpha.offset.z,
+                                                        1.0 / t_alpha.scale.x, 1.0 / t_alpha.scale.y,
+                                                        1.0 / t_alpha.scale.z)
+                                        tabWrite("pigment {pigment_pattern {uv_mapping image_map" \
+                                                 "{%s \"%s\" %s}%s}\n" % \
+                                                 (imageFormat(texturesAlpha), texturesAlpha, imgMap(t_alpha),
+                                                  mappingAlpha))
+                                        tabWrite("pigment_map {\n")
+                                        tabWrite("[0 color rgbft<0,0,0,1,1>]\n")
+                                        tabWrite("[1 uv_mapping image_map {%s \"%s\" %s} %s]\n" % \
+                                                 (imageFormat(texturesDif), texturesDif,
+                                                  (imgMap(t_dif) + imgGamma), mappingDif))
+                                        tabWrite("}\n")
+                                        tabWrite("}\n")
+
+                                    else:
+                                        tabWrite("pigment {\n")
+                                        tabWrite("uv_mapping image_map {\n")
+                                        #tabWrite("%s \"%s\" %s}%s\n" % \
+                                        #         (imageFormat(texturesDif), texturesDif,
+                                        #         (imgGamma + imgMap(t_dif)),mappingDif))
+                                        tabWrite("%s \"%s\" \n" % (imageFormat(texturesDif), texturesDif))
+                                        tabWrite("%s\n" % (imgGamma + imgMap(t_dif)))
+                                        tabWrite("}\n")
+                                        tabWrite("%s\n" % mappingDif)
+                                        tabWrite("}\n")
+                                          
+                                    if texturesSpec != "":
+                                        # Level 3 is full specular
+                                        tabWrite("finish {%s}\n" % (safety(material_finish, Level=3)))                  
+                                    else:
+                                        # Level 2 is translated specular
+                                        tabWrite("finish {%s}\n" % (safety(material_finish, Level=2)))
+
+                                    ## scale 1 rotate y*0
+                                    #imageMap = ("{image_map {%s \"%s\" %s }" % \
+                                    #            (imageFormat(textures), textures,imgMap(t_dif)))
+                                    #file.write("\n\t\t\tuv_mapping pigment %s} %s finish {%s}" % \
+                                    #           (imageMap, mapping, safety(material_finish)))
+                                    #file.write("\n\t\t\tpigment {uv_mapping image_map " \
+                                    #           "{%s \"%s\" %s}%s} finish {%s}" % \
+                                    #           (imageFormat(texturesDif), texturesDif,imgMap(t_dif),
+                                    #            mappingDif, safety(material_finish)))
+                                if texturesNorm != "" and material.pov.replacement_text == "":
+                                    ## scale 1 rotate y*0
+                                    # POV-Ray "scale" is not a number of repetitions factor, but its inverse,
+                                    # a standard scale factor.
+                                    # Offset seems needed relatively to scale so probably center of the scale is
+                                    # not the same in blender and POV
+                                    mappingNor = (" translate <%.4g,%.4g,%.4g> scale <%.4g,%.4g,%.4g>" % \
+                                                  (-t_nor.offset.x, -t_nor.offset.y, t_nor.offset.z,
+                                                   1.0 / t_nor.scale.x, 1.0 / t_nor.scale.y, 1.0 / t_nor.scale.z))
+                                    #imageMapNor = ("{bump_map {%s \"%s\" %s mapping}" % \
+                                    #               (imageFormat(texturesNorm),texturesNorm,imgMap(t_nor)))
+                                    #We were not using the above maybe we should?
+                                    tabWrite("normal {uv_mapping bump_map {%s \"%s\" %s  bump_size %.4g }%s}\n" % \
+                                             (imageFormat(texturesNorm), texturesNorm, imgMap(t_nor),
+                                              t_nor.normal_factor * 10.0, mappingNor))
+                                if texturesSpec != "" and material.pov.replacement_text == "":
+                                    tabWrite("]\n")
+
+                                    tabWrite("}\n")
+
+                                #End of slope/ior texture_map
+                                if material.diffuse_shader == 'MINNAERT' and material.pov.replacement_text == "":
+                                    tabWrite("]\n")
+                                    tabWrite("}\n")
+                                if material.diffuse_shader == 'FRESNEL' and material.pov.replacement_text == "":
+                                    c = 1
+                                    while (c <= lampCount):
+                                        tabWrite("]\n")
+                                        tabWrite("}\n")
+                                        c += 1
+
+                                if material.pov.replacement_text == "":
+
+                                    
+                                        
+                                    # Close first layer of POV "texture" (Blender material)
+                                    tabWrite("}\n")
+                                
+                                if (material.specular_color.r == material.specular_color.g) and (material.specular_color.r == material.specular_color.b):
+                                    colored_specular_found = False
+                                else:
+                                    colored_specular_found = True
+                                    
+                                # Write another layered texture using invisible diffuse and metallic trick 
+                                # to emulate colored specular highlights
+                                special_texture_found = False
+                                for t in material.texture_slots:
+                                    if(t and t.texture.type == 'IMAGE' and t.use and t.texture.image and
+                                       (t.use_map_specular or t.use_map_raymir)):
+                                        # Specular mapped textures would conflict with colored specular
+                                        # because POV can't layer over or under pigment patterned textures
+                                        special_texture_found = True
+                                
+                                if colored_specular_found and not special_texture_found:
+                                    if not scene.pov.tempfiles_enable and scene.pov.comments_enable:
+                                        file.write("  //Emulating colored highlights with a metallic layer\n")
+                                    else:
+                                        tabWrite("\n")
+                                
+                                    tabWrite("texture {\n")
+                                    tabWrite("pigment {rgbft<%.3g, %.3g, %.3g, 0, 1>}\n" % \
+                                                     (material.specular_color[0], material.specular_color[1], material.specular_color[2]))
+                                    tabWrite("finish {%s}\n" % (safety(material_finish, Level=2))) # Level 2 is translated spec
+
+                                    texturesNorm = ""
+                                    for t in material.texture_slots:
+                                        if t and t.texture.type == 'IMAGE' and t.use and t.texture.image:
+                                            image_filename = path_image(t.texture.image)
+                                            imgGamma = ""
+                                            if image_filename:
+                                                if t.use_map_normal:
+                                                    texturesNorm = image_filename
+                                                    # colvalue = t.normal_factor * 10.0  # UNUSED
+                                                    #textNormName=t.texture.image.name + ".normal"
+                                                    #was the above used? --MR
+                                                    t_nor = t
+
+                                                    tabWrite("normal {uv_mapping bump_map " \
+                                                             "{%s \"%s\" %s  bump_size %.4g }%s}\n" % \
+                                                             (imageFormat(texturesNorm), texturesNorm, imgMap(t_nor),
+                                                              t_nor.normal_factor * 10, mappingNor))
+                                                          
+                                    tabWrite("}\n") # THEN IT CAN CLOSE LAST LAYER OF TEXTURE   --MR
+
+
+                            ####################################################################################
+                            index[0] = idx
+                            idx += 1
+                            
+
+
+                    
+                # Vert Colors
+                tabWrite("texture_list {\n")
+                file.write(tabStr + "%s" % (len(vertCols)))  # vert count
+                    
                 if material.pov.replacement_text != "":
                     file.write("\n")
                     file.write(" texture{%s}\n" % material.pov.replacement_text)
 
                 else:
-                    file.write("\n")
-                    # THIS AREA NEEDS TO LEAVE THE TEXTURE OPEN UNTIL ALL MAPS ARE WRITTEN DOWN.
-                    # --MR
-                    tabWrite("texture {\n")
+                    # Loop through declared materials list
+                    for cMN in LocalMaterialNames:
+                        if material != "Default":
+                            file.write("\n texture{MAT_%s}\n" % cMN)#string_strip_hyphen(materialNames[material])) # Something like that
+                    
+                tabWrite("}\n")
 
-                    ################################################################################
-                    if material.diffuse_shader == 'MINNAERT':
-                        tabWrite("\n")
-                        tabWrite("aoi\n")
-                        tabWrite("texture_map {\n")
-                        tabWrite("[%.3g finish {diffuse %.3g}]\n" % \
-                                 (material.darkness / 2.0, 2.0 - material.darkness))
-                        tabWrite("[%.3g\n" % (1.0 - (material.darkness / 2.0)))
+                # Face indices
+                tabWrite("face_indices {\n")
+                tabWrite("%d" % (len(me_faces) + quadCount))  # faces count
+                tabStr = tab * tabLevel
 
-                    if material.diffuse_shader == 'FRESNEL':
-                        # For FRESNEL diffuse in POV, we'll layer slope patterned textures
-                        # with lamp vector as the slope vector and nest one slope per lamp
-                        # into each texture map's entry.
-
-                        c = 1
-                        while (c <= lampCount):
-                            tabWrite("slope { lampTarget%s }\n" % (c))
-                            tabWrite("texture_map {\n")
-                            # Diffuse Fresnel value and factor go up to five,
-                            # other kind of values needed: used the number 5 below to remap
-                            tabWrite("[%.3g finish {diffuse %.3g}]\n" % \
-                                     ((5.0 - material.diffuse_fresnel) / 5,
-                                      (material.diffuse_intensity *
-                                       ((5.0 - material.diffuse_fresnel_factor) / 5))))
-                            tabWrite("[%.3g\n" % ((material.diffuse_fresnel_factor / 5) *
-                                                  (material.diffuse_fresnel / 5.0)))
-                            c += 1
-
-                    # if shader is a 'FRESNEL' or 'MINNAERT': slope pigment pattern or aoi
-                    # and texture map above, the rest below as one of its entry
-
-                    if texturesSpec != "" or texturesAlpha != "":
-                        if texturesSpec != "":
-                            # tabWrite("\n")
-                            tabWrite("pigment_pattern {\n")
-                            # POV-Ray "scale" is not a number of repetitions factor, but its
-                            # inverse, a standard scale factor.
-                            # Offset seems needed relatively to scale so probably center of the
-                            # scale is not the same in blender and POV
-                            mappingSpec = "translate <%.4g,%.4g,%.4g> scale <%.4g,%.4g,%.4g>\n" % \
-                                          (-t_spec.offset.x, t_spec.offset.y, t_spec.offset.z,
-                                           1.0 / t_spec.scale.x, 1.0 / t_spec.scale.y,
-                                           1.0 / t_spec.scale.z)
-                            tabWrite("uv_mapping image_map{%s \"%s\" %s}\n" % \
-                                     (imageFormat(texturesSpec), texturesSpec, imgMap(t_spec)))
-                            tabWrite("%s\n" % mappingSpec)
-                            tabWrite("}\n")
-                            tabWrite("texture_map {\n")
-                            tabWrite("[0 \n")
-
-                        if texturesDif == "":
-                            if texturesAlpha != "":
-                                tabWrite("\n")
-                                # POV-Ray "scale" is not a number of repetitions factor, but its
-                                # inverse, a standard scale factor.
-                                # Offset seems needed relatively to scale so probably center of the
-                                # scale is not the same in blender and POV
-                                mappingAlpha = " translate <%.4g, %.4g, %.4g> " \
-                                               "scale <%.4g, %.4g, %.4g>\n" % \
-                                               (-t_alpha.offset.x, -t_alpha.offset.y,
-                                                t_alpha.offset.z, 1.0 / t_alpha.scale.x,
-                                                1.0 / t_alpha.scale.y, 1.0 / t_alpha.scale.z)
-                                tabWrite("pigment {pigment_pattern {uv_mapping image_map" \
-                                         "{%s \"%s\" %s}%s" % \
-                                         (imageFormat(texturesAlpha), texturesAlpha,
-                                          imgMap(t_alpha), mappingAlpha))
-                                tabWrite("}\n")
-                                tabWrite("pigment_map {\n")
-                                tabWrite("[0 color rgbft<0,0,0,1,1>]\n")
-                                tabWrite("[1 color rgbft<%.3g, %.3g, %.3g, %.3g, %.3g>]\n" % \
-                                         (col[0], col[1], col[2], povFilter, trans))
-                                tabWrite("}\n")
-                                tabWrite("}\n")
-
-                            else:
-
-                                tabWrite("pigment {rgbft<%.3g, %.3g, %.3g, %.3g, %.3g>}\n" % \
-                                         (col[0], col[1], col[2], povFilter, trans))
-
-                            if texturesSpec != "":
-                                # Level 1 is no specular
-                                tabWrite("finish {%s}\n" % (safety(material_finish, Level=1)))
-
-                            else:
-                                # Level 2 is translated spec
-                                tabWrite("finish {%s}\n" % (safety(material_finish, Level=2)))
-
-                        else:
-                            # POV-Ray "scale" is not a number of repetitions factor, but its
-                            # inverse, a standard scale factor.
-                            # Offset seems needed relatively to scale so probably center of the
-                            # scale is not the same in blender and POV
-                            mappingDif = ("translate <%.4g,%.4g,%.4g> scale <%.4g,%.4g,%.4g>" % \
-                                          (-t_dif.offset.x, -t_dif.offset.y, t_dif.offset.z,
-                                           1.0 / t_dif.scale.x, 1.0 / t_dif.scale.y,
-                                           1.0 / t_dif.scale.z))
-                            if texturesAlpha != "":
-                                # POV-Ray "scale" is not a number of repetitions factor, but its
-                                # inverse, a standard scale factor.
-                                # Offset seems needed relatively to scale so probably center of the
-                                # scale is not the same in blender and POV
-                                mappingAlpha = " translate <%.4g,%.4g,%.4g> " \
-                                               "scale <%.4g,%.4g,%.4g>" % \
-                                               (-t_alpha.offset.x, -t_alpha.offset.y,
-                                                t_alpha.offset.z, 1.0 / t_alpha.scale.x,
-                                                1.0 / t_alpha.scale.y, 1.0 / t_alpha.scale.z)
-                                tabWrite("pigment {\n")
-                                tabWrite("pigment_pattern {\n")
-                                tabWrite("uv_mapping image_map{%s \"%s\" %s}%s}\n" % \
-                                         (imageFormat(texturesAlpha), texturesAlpha,
-                                          imgMap(t_alpha), mappingAlpha))
-                                tabWrite("pigment_map {\n")
-                                tabWrite("[0 color rgbft<0,0,0,1,1>]\n")
-                                tabWrite("[1 uv_mapping image_map {%s \"%s\" %s} %s]\n" % \
-                                         (imageFormat(texturesDif), texturesDif,
-                                          (imgGamma + imgMap(t_dif)), mappingDif))
-                                tabWrite("}\n")
-                                tabWrite("}\n")
-
-                            else:
-                                tabWrite("pigment {uv_mapping image_map {%s \"%s\" %s}%s}\n" % \
-                                         (imageFormat(texturesDif), texturesDif,
-                                          (imgGamma + imgMap(t_dif)), mappingDif))
-
-                            if texturesSpec != "":
-                                # Level 1 is no specular
-                                tabWrite("finish {%s}\n" % (safety(material_finish, Level=1)))
-
-                            else:
-                                # Level 2 is translated specular
-                                tabWrite("finish {%s}\n" % (safety(material_finish, Level=2)))
-
-                            ## scale 1 rotate y*0
-                            #imageMap = ("{image_map {%s \"%s\" %s }\n" % \
-                            #            (imageFormat(textures),textures,imgMap(t_dif)))
-                            #tabWrite("uv_mapping pigment %s} %s finish {%s}\n" % \
-                            #         (imageMap,mapping,safety(material_finish)))
-                            #tabWrite("pigment {uv_mapping image_map {%s \"%s\" %s}%s} " \
-                            #         "finish {%s}\n" % \
-                            #         (imageFormat(texturesDif), texturesDif, imgMap(t_dif),
-                            #          mappingDif, safety(material_finish)))
-                        if texturesNorm != "":
-                            ## scale 1 rotate y*0
-                            # POV-Ray "scale" is not a number of repetitions factor, but its
-                            # inverse, a standard scale factor.
-                            # Offset seems needed relatively to scale so probably center of the
-                            # scale is not the same in blender and POV
-                            mappingNor = " translate <%.4g,%.4g,%.4g> scale <%.4g,%.4g,%.4g>" % \
-                                         (-t_nor.offset.x, -t_nor.offset.y, t_nor.offset.z,
-                                          1.0 / t_nor.scale.x, 1.0 / t_nor.scale.y,
-                                          1.0 / t_nor.scale.z)
-                            #imageMapNor = ("{bump_map {%s \"%s\" %s mapping}" % \
-                            #               (imageFormat(texturesNorm),texturesNorm,imgMap(t_nor)))
-                            #We were not using the above maybe we should?
-                            tabWrite("normal {uv_mapping bump_map " \
-                                     "{%s \"%s\" %s  bump_size %.4g }%s}\n" % \
-                                     (imageFormat(texturesNorm), texturesNorm, imgMap(t_nor),
-                                      t_nor.normal_factor * 10, mappingNor))
-                        if texturesSpec != "":
-                            tabWrite("]\n")
-                        ##################Second index for mapping specular max value###############
-                            tabWrite("[1 \n")
-
-                if texturesDif == "" and material.pov.replacement_text == "":
-                    if texturesAlpha != "":
-                        # POV-Ray "scale" is not a number of repetitions factor, but its inverse,
-                        # a standard scale factor.
-                        # Offset seems needed relatively to scale so probably center of the scale
-                        # is not the same in blender and POV
-                        # Strange that the translation factor for scale is not the same as for
-                        # translate.
-                        # TODO: verify both matches with blender internal.
-                        mappingAlpha = " translate <%.4g,%.4g,%.4g> scale <%.4g,%.4g,%.4g>\n" % \
-                                       (-t_alpha.offset.x, -t_alpha.offset.y, t_alpha.offset.z,
-                                        1.0 / t_alpha.scale.x, 1.0 / t_alpha.scale.y,
-                                        1.0 / t_alpha.scale.z)
-                        tabWrite("pigment {pigment_pattern {uv_mapping image_map" \
-                                 "{%s \"%s\" %s}%s}\n" % \
-                                 (imageFormat(texturesAlpha), texturesAlpha, imgMap(t_alpha),
-                                  mappingAlpha))
-                        tabWrite("pigment_map {\n")
-                        tabWrite("[0 color rgbft<0,0,0,1,1>]\n")
-                        tabWrite("[1 color rgbft<%.3g, %.3g, %.3g, %.3g, %.3g>]\n" % \
-                                 (col[0], col[1], col[2], povFilter, trans))
-                        tabWrite("}\n")
-                        tabWrite("}\n")
-
-                    else:
-                        tabWrite("pigment {rgbft<%.3g, %.3g, %.3g, %.3g, %.3g>}\n" % \
-                                 (col[0], col[1], col[2], povFilter, trans))
-
-                    if texturesSpec != "":
-                        # Level 3 is full specular
-                        tabWrite("finish {%s}\n" % (safety(material_finish, Level=3)))
-
-                    else:
-                        # Level 2 is translated specular
-                        tabWrite("finish {%s}\n" % (safety(material_finish, Level=2)))
-
-                elif material.pov.replacement_text == "":
-                    # POV-Ray "scale" is not a number of repetitions factor, but its inverse,
-                    # a standard scale factor.
-                    # Offset seems needed relatively to scale so probably center of the scale is
-                    # not the same in blender and POV
-                    # Strange that the translation factor for scale is not the same as for
-                    # translate.
-                    # TODO: verify both matches with blender internal.
-                    mappingDif = ("translate <%.4g,%.4g,%.4g> scale <%.4g,%.4g,%.4g>" % \
-                                  (-t_dif.offset.x, -t_dif.offset.y, t_dif.offset.z,
-                                   1.0 / t_dif.scale.x, 1.0 / t_dif.scale.y, 1.0 / t_dif.scale.z))
-                    if texturesAlpha != "":
-                        # Strange that the translation factor for scale is not the same as for
-                        # translate.
-                        # TODO: verify both matches with blender internal.
-                        mappingAlpha = "translate <%.4g,%.4g,%.4g> scale <%.4g,%.4g,%.4g>" % \
-                                       (-t_alpha.offset.x, -t_alpha.offset.y, t_alpha.offset.z,
-                                        1.0 / t_alpha.scale.x, 1.0 / t_alpha.scale.y,
-                                        1.0 / t_alpha.scale.z)
-                        tabWrite("pigment {pigment_pattern {uv_mapping image_map" \
-                                 "{%s \"%s\" %s}%s}\n" % \
-                                 (imageFormat(texturesAlpha), texturesAlpha, imgMap(t_alpha),
-                                  mappingAlpha))
-                        tabWrite("pigment_map {\n")
-                        tabWrite("[0 color rgbft<0,0,0,1,1>]\n")
-                        tabWrite("[1 uv_mapping image_map {%s \"%s\" %s} %s]\n" % \
-                                 (imageFormat(texturesDif), texturesDif,
-                                  (imgMap(t_dif) + imgGamma), mappingDif))
-                        tabWrite("}\n")
-                        tabWrite("}\n")
-
-                    else:
-                        tabWrite("pigment {\n")
-                        tabWrite("uv_mapping image_map {\n")
-                        #tabWrite("%s \"%s\" %s}%s\n" % \
-                        #         (imageFormat(texturesDif), texturesDif,
-                        #         (imgGamma + imgMap(t_dif)),mappingDif))
-                        tabWrite("%s \"%s\" \n" % (imageFormat(texturesDif), texturesDif))
-                        tabWrite("%s\n" % (imgGamma + imgMap(t_dif)))
-                        tabWrite("}\n")
-                        tabWrite("%s\n" % mappingDif)
-                        tabWrite("}\n")
-                    if texturesSpec != "":
-                        # Level 3 is full specular
-                        tabWrite("finish {%s}\n" % (safety(material_finish, Level=3)))
-                    else:
-                        # Level 2 is translated specular
-                        tabWrite("finish {%s}\n" % (safety(material_finish, Level=2)))
-
-                    ## scale 1 rotate y*0
-                    #imageMap = ("{image_map {%s \"%s\" %s }" % \
-                    #            (imageFormat(textures), textures,imgMap(t_dif)))
-                    #file.write("\n\t\t\tuv_mapping pigment %s} %s finish {%s}" % \
-                    #           (imageMap, mapping, safety(material_finish)))
-                    #file.write("\n\t\t\tpigment {uv_mapping image_map " \
-                    #           "{%s \"%s\" %s}%s} finish {%s}" % \
-                    #           (imageFormat(texturesDif), texturesDif,imgMap(t_dif),
-                    #            mappingDif, safety(material_finish)))
-                if texturesNorm != "" and material.pov.replacement_text == "":
-                    ## scale 1 rotate y*0
-                    # POV-Ray "scale" is not a number of repetitions factor, but its inverse,
-                    # a standard scale factor.
-                    # Offset seems needed relatively to scale so probably center of the scale is
-                    # not the same in blender and POV
-                    mappingNor = (" translate <%.4g,%.4g,%.4g> scale <%.4g,%.4g,%.4g>" % \
-                                  (-t_nor.offset.x, -t_nor.offset.y, t_nor.offset.z,
-                                   1.0 / t_nor.scale.x, 1.0 / t_nor.scale.y, 1.0 / t_nor.scale.z))
-                    #imageMapNor = ("{bump_map {%s \"%s\" %s mapping}" % \
-                    #               (imageFormat(texturesNorm),texturesNorm,imgMap(t_nor)))
-                    #We were not using the above maybe we should?
-                    tabWrite("normal {uv_mapping bump_map {%s \"%s\" %s  bump_size %.4g }%s}\n" % \
-                             (imageFormat(texturesNorm), texturesNorm, imgMap(t_nor),
-                              t_nor.normal_factor * 10.0, mappingNor))
-                if texturesSpec != "" and material.pov.replacement_text == "":
-                    tabWrite("]\n")
-
-                    tabWrite("}\n")
-
-                #End of slope/ior texture_map
-                if material.diffuse_shader == 'MINNAERT' and material.pov.replacement_text == "":
-                    tabWrite("]\n")
-                    tabWrite("}\n")
-                if material.diffuse_shader == 'FRESNEL' and material.pov.replacement_text == "":
-                    c = 1
-                    while (c <= lampCount):
-                        tabWrite("]\n")
-                        tabWrite("}\n")
-                        c += 1
-
-                if material.pov.replacement_text == "":
-                    tabWrite("}\n")  # THEN IT CAN CLOSE IT   --MR
-
-                ####################################################################################
-                index[0] = idx
-                idx += 1
-
-            tabWrite("}\n")
-
-            # Face indices
-            tabWrite("face_indices {\n")
-            tabWrite("%d" % (len(me_faces) + quadCount))  # faces count
-            tabStr = tab * tabLevel
-
-            for fi, f in enumerate(me_faces):
-                fv = faces_verts[fi]
-                material_index = f.material_index
-                if len(fv) == 4:
-                    indices = (0, 1, 2), (0, 2, 3)
-                else:
-                    indices = ((0, 1, 2),)
-
-                if vcol_layer:
-                    col = vcol_layer[fi]
-
+                for fi, f in enumerate(me_faces):
+                    fv = faces_verts[fi]
+                    material_index = f.material_index
                     if len(fv) == 4:
-                        cols = col.color1, col.color2, col.color3, col.color4
+                        indices = (0, 1, 2), (0, 2, 3)
                     else:
-                        cols = col.color1, col.color2, col.color3
+                        indices = ((0, 1, 2),)
 
-                if not me_materials or me_materials[material_index] is None:  # No materials
-                    for i1, i2, i3 in indices:
-                        if not scene.pov.tempfiles_enable and scene.pov.list_lf_enable:
-                            file.write(",\n")
-                            # vert count
-                            file.write(tabStr + "<%d,%d,%d>" % (fv[i1], fv[i2], fv[i3]))
+                    if vcol_layer:
+                        col = vcol_layer[fi]
+
+                        if len(fv) == 4:
+                            cols = col.color1, col.color2, col.color3, col.color4
                         else:
-                            file.write(", ")
-                            file.write("<%d,%d,%d>" % (fv[i1], fv[i2], fv[i3]))  # vert count
-                else:
-                    material = me_materials[material_index]
-                    for i1, i2, i3 in indices:
-                        if me.vertex_colors and material.use_vertex_color_paint:
-                            # Color per vertex - vertex color
+                            cols = col.color1, col.color2, col.color3
 
-                            col1 = cols[i1]
-                            col2 = cols[i2]
-                            col3 = cols[i3]
-
-                            ci1 = vertCols[col1[0], col1[1], col1[2], material_index][0]
-                            ci2 = vertCols[col2[0], col2[1], col2[2], material_index][0]
-                            ci3 = vertCols[col3[0], col3[1], col3[2], material_index][0]
-                        else:
-                            # Color per material - flat material color
-                            if material.subsurface_scattering.use:
-                                diffuse_color = [i * j for i, j in zip(material.subsurface_scattering.color[:], material.diffuse_color[:])]
+                    if not me_materials or me_materials[material_index] is None:  # No materials
+                        for i1, i2, i3 in indices:
+                            if not scene.pov.tempfiles_enable and scene.pov.list_lf_enable:
+                                file.write(",\n")
+                                # vert count
+                                file.write(tabStr + "<%d,%d,%d>" % (fv[i1], fv[i2], fv[i3]))
                             else:
-                                diffuse_color = material.diffuse_color[:]
-                            ci1 = ci2 = ci3 = vertCols[diffuse_color[0], diffuse_color[1], \
-                                              diffuse_color[2], f.material_index][0]
-
-                        if not scene.pov.tempfiles_enable and scene.pov.list_lf_enable:
-                            file.write(",\n")
-                            file.write(tabStr + "<%d,%d,%d>, %d,%d,%d" % \
-                                       (fv[i1], fv[i2], fv[i3], ci1, ci2, ci3))  # vert count
-                        else:
-                            file.write(", ")
-                            file.write("<%d,%d,%d>, %d,%d,%d" % \
-                                       (fv[i1], fv[i2], fv[i3], ci1, ci2, ci3))  # vert count
-
-            file.write("\n")
-            tabWrite("}\n")
-
-            # normal_indices indices
-            tabWrite("normal_indices {\n")
-            tabWrite("%d" % (len(me_faces) + quadCount))  # faces count
-            tabStr = tab * tabLevel
-            for fi, fv in enumerate(faces_verts):
-
-                if len(fv) == 4:
-                    indices = (0, 1, 2), (0, 2, 3)
-                else:
-                    indices = ((0, 1, 2),)
-
-                for i1, i2, i3 in indices:
-                    if me_faces[fi].use_smooth:
-                        if not scene.pov.tempfiles_enable and scene.pov.list_lf_enable:
-                            file.write(",\n")
-                            file.write(tabStr + "<%d,%d,%d>" %\
-                            (uniqueNormals[verts_normals[fv[i1]]][0],\
-                             uniqueNormals[verts_normals[fv[i2]]][0],\
-                             uniqueNormals[verts_normals[fv[i3]]][0]))  # vert count
-                        else:
-                            file.write(", ")
-                            file.write("<%d,%d,%d>" %\
-                            (uniqueNormals[verts_normals[fv[i1]]][0],\
-                             uniqueNormals[verts_normals[fv[i2]]][0],\
-                             uniqueNormals[verts_normals[fv[i3]]][0]))  # vert count
+                                file.write(", ")
+                                file.write("<%d,%d,%d>" % (fv[i1], fv[i2], fv[i3]))  # vert count
                     else:
-                        idx = uniqueNormals[faces_normals[fi]][0]
-                        if not scene.pov.tempfiles_enable and scene.pov.list_lf_enable:
-                            file.write(",\n")
-                            file.write(tabStr + "<%d,%d,%d>" % (idx, idx, idx))  # vert count
-                        else:
-                            file.write(", ")
-                            file.write("<%d,%d,%d>" % (idx, idx, idx))  # vert count
+                        material = me_materials[material_index]
+                        for i1, i2, i3 in indices:
+                            if me.vertex_colors and material.use_vertex_color_paint:
+                                # Color per vertex - vertex color
 
-            file.write("\n")
-            tabWrite("}\n")
+                                col1 = cols[i1]
+                                col2 = cols[i2]
+                                col3 = cols[i3]
 
-            if uv_layer:
-                tabWrite("uv_indices {\n")
+                                ci1 = vertCols[col1[0], col1[1], col1[2], material_index][0]
+                                ci2 = vertCols[col2[0], col2[1], col2[2], material_index][0]
+                                ci3 = vertCols[col3[0], col3[1], col3[2], material_index][0]
+                            else:
+                                # Color per material - flat material color
+                                if material.subsurface_scattering.use:
+                                    diffuse_color = [i * j for i, j in zip(material.subsurface_scattering.color[:], material.diffuse_color[:])]
+                                else:
+                                    diffuse_color = material.diffuse_color[:]
+                                ci1 = ci2 = ci3 = vertCols[diffuse_color[0], diffuse_color[1], \
+                                                  diffuse_color[2], f.material_index][0]
+
+                            if not scene.pov.tempfiles_enable and scene.pov.list_lf_enable:
+                                file.write(",\n")
+                                file.write(tabStr + "<%d,%d,%d>, %d,%d,%d" % \
+                                           (fv[i1], fv[i2], fv[i3], ci1, ci2, ci3))  # vert count
+                            else:
+                                file.write(", ")
+                                file.write("<%d,%d,%d>, %d,%d,%d" % \
+                                           (fv[i1], fv[i2], fv[i3], ci1, ci2, ci3))  # vert count
+
+                file.write("\n")
+                tabWrite("}\n")
+
+                # normal_indices indices
+                tabWrite("normal_indices {\n")
                 tabWrite("%d" % (len(me_faces) + quadCount))  # faces count
                 tabStr = tab * tabLevel
                 for fi, fv in enumerate(faces_verts):
@@ -1648,42 +1696,79 @@ def write_pov(filename, scene=None, info_callback=None):
                     else:
                         indices = ((0, 1, 2),)
 
-                    uv = uv_layer[fi]
-                    if len(faces_verts[fi]) == 4:
-                        uvs = uv.uv[0][:], uv.uv[1][:], uv.uv[2][:], uv.uv[3][:]
-                    else:
-                        uvs = uv.uv[0][:], uv.uv[1][:], uv.uv[2][:]
-
                     for i1, i2, i3 in indices:
-                        if not scene.pov.tempfiles_enable and scene.pov.list_lf_enable:
-                            file.write(",\n")
-                            file.write(tabStr + "<%d,%d,%d>" % (
-                                     uniqueUVs[uvs[i1]][0],\
-                                     uniqueUVs[uvs[i2]][0],\
-                                     uniqueUVs[uvs[i3]][0]))
+                        if me_faces[fi].use_smooth:
+                            if not scene.pov.tempfiles_enable and scene.pov.list_lf_enable:
+                                file.write(",\n")
+                                file.write(tabStr + "<%d,%d,%d>" %\
+                                (uniqueNormals[verts_normals[fv[i1]]][0],\
+                                 uniqueNormals[verts_normals[fv[i2]]][0],\
+                                 uniqueNormals[verts_normals[fv[i3]]][0]))  # vert count
+                            else:
+                                file.write(", ")
+                                file.write("<%d,%d,%d>" %\
+                                (uniqueNormals[verts_normals[fv[i1]]][0],\
+                                 uniqueNormals[verts_normals[fv[i2]]][0],\
+                                 uniqueNormals[verts_normals[fv[i3]]][0]))  # vert count
                         else:
-                            file.write(", ")
-                            file.write("<%d,%d,%d>" % (
-                                     uniqueUVs[uvs[i1]][0],\
-                                     uniqueUVs[uvs[i2]][0],\
-                                     uniqueUVs[uvs[i3]][0]))
+                            idx = uniqueNormals[faces_normals[fi]][0]
+                            if not scene.pov.tempfiles_enable and scene.pov.list_lf_enable:
+                                file.write(",\n")
+                                file.write(tabStr + "<%d,%d,%d>" % (idx, idx, idx))  # vert count
+                            else:
+                                file.write(", ")
+                                file.write("<%d,%d,%d>" % (idx, idx, idx))  # vert count
 
                 file.write("\n")
                 tabWrite("}\n")
 
-            if me.materials:
-                try:
-                    material = me.materials[0]  # dodgy
-                    writeObjectMaterial(material, ob)
-                except IndexError:
-                    print(me)
+                if uv_layer:
+                    tabWrite("uv_indices {\n")
+                    tabWrite("%d" % (len(me_faces) + quadCount))  # faces count
+                    tabStr = tab * tabLevel
+                    for fi, fv in enumerate(faces_verts):
 
-            #Importance for radiosity sampling added here:
-            tabWrite("radiosity { \n")
-            tabWrite("importance %3g \n" % importance)
-            tabWrite("}\n")
+                        if len(fv) == 4:
+                            indices = (0, 1, 2), (0, 2, 3)
+                        else:
+                            indices = ((0, 1, 2),)
 
-            tabWrite("}\n")  # End of mesh block
+                        uv = uv_layer[fi]
+                        if len(faces_verts[fi]) == 4:
+                            uvs = uv.uv[0][:], uv.uv[1][:], uv.uv[2][:], uv.uv[3][:]
+                        else:
+                            uvs = uv.uv[0][:], uv.uv[1][:], uv.uv[2][:]
+
+                        for i1, i2, i3 in indices:
+                            if not scene.pov.tempfiles_enable and scene.pov.list_lf_enable:
+                                file.write(",\n")
+                                file.write(tabStr + "<%d,%d,%d>" % (
+                                         uniqueUVs[uvs[i1]][0],\
+                                         uniqueUVs[uvs[i2]][0],\
+                                         uniqueUVs[uvs[i3]][0]))
+                            else:
+                                file.write(", ")
+                                file.write("<%d,%d,%d>" % (
+                                         uniqueUVs[uvs[i1]][0],\
+                                         uniqueUVs[uvs[i2]][0],\
+                                         uniqueUVs[uvs[i3]][0]))
+
+                    file.write("\n")
+                    tabWrite("}\n")
+
+                if me.materials:
+                    try:
+                        material = me.materials[0]  # dodgy
+                        writeObjectMaterial(material, ob)
+                    except IndexError:
+                        print(me)
+
+                #Importance for radiosity sampling added here:
+                tabWrite("radiosity { \n")
+                tabWrite("importance %3g \n" % importance)
+                tabWrite("}\n")
+
+                tabWrite("}\n")  # End of mesh block
 
             bpy.data.meshes.remove(me)
 
