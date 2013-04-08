@@ -19,7 +19,7 @@
 bl_info = {
     'name': "Nodes Efficiency Tools",
     'author': "Bartek Skorupa",
-    'version': (2, 23),
+    'version': (2, 24),
     'blender': (2, 6, 6),
     'location': "Node Editor Properties Panel (Ctrl-SPACE)",
     'description': "Nodes Efficiency Tools",
@@ -772,14 +772,27 @@ class NodesSwap(Operator, NodeToolBase):
                     hide = True
                 new_node = nodes.new(new_type)
                 # if swap Mix to Math of vice-verca - try to set blend type or operation accordingly
-                if new_node.type == 'MIX_RGB':
+                if new_node.type in {'MIX_RGB', 'ALPHAOVER'}:
+                    new_node.inputs[0].default_value = 1.0
                     if node.type == 'MATH':
                         if node.operation in [entry[0] for entry in blend_types]:
-                            new_node.blend_type = node.operation
+                            if hasattr(new_node, 'blend_type'):
+                                new_node.blend_type = node.operation
+                        for i in range(2):
+                            new_node.inputs[i+1].default_value = [node.inputs[i].default_value] * 3 + [1.0]
+                    elif node.type in {'MIX_RGB', 'ALPHAOVER'}:
+                        for i in range(3):
+                            new_node.inputs[i].default_value = node.inputs[i].default_value
                 elif new_node.type == 'MATH':
-                    if node.type == 'MIX_RGB':
-                        if node.blend_type in [entry[0] for entry in operations]:
-                            new_node.operation = node.blend_type
+                    if node.type in {'MIX_RGB', 'ALPHAOVER'}:
+                        if hasattr(node, 'blend_type'):
+                            if node.blend_type in [entry[0] for entry in operations]:
+                                new_node.operation = node.blend_type
+                        for i in range(2):
+                            channels = []
+                            for c in range(3):
+                                channels.append(node.inputs[i+1].default_value[c])
+                            new_node.inputs[i].default_value = max(channels)
                 old_inputs_count = len(node.inputs)
                 new_inputs_count = len(new_node.inputs)
                 replace = []  # entries - pairs: old input index, new input index.
@@ -822,12 +835,10 @@ class NodesSwap(Operator, NodeToolBase):
                             links.new(in_link.from_socket, new_node.inputs[new_i])
                 for out_link in node.outputs[0].links:
                     links.new(new_node.outputs[0], out_link.to_socket)
-                new_node.location = node.location
-                new_node.label = node.label
+                for attr in {'location', 'label', 'mute', 'show_preview', 'width_hidden', 'use_clamp'}:
+                    if hasattr(node, attr) and hasattr(new_node, attr):
+                        setattr(new_node, attr, getattr(node, attr))
                 new_node.hide = hide
-                new_node.mute = node.mute
-                new_node.show_preview = node.show_preview
-                new_node.width_hidden = node.width_hidden
                 nodes.active = new_node
                 reselect.append(new_node)
                 bpy.ops.node.select_all(action="DESELECT")
