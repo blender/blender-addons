@@ -144,8 +144,8 @@ def bmesh_check_self_intersect_object(obj):
 
     faces_error = set()
 
-    EPS_NORMAL = 0.0001
-    EPS_CENTER = 0.00001  # should always be bigger
+    EPS_NORMAL = 0.000001
+    EPS_CENTER = 0.01  # should always be bigger
 
     for ed in me_tmp.edges:
         v1i, v2i = ed.vertices

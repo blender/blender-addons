@@ -98,6 +98,7 @@ url_manual_mapping = (
     ("bpy.types.Modifier.show_*", "Modifiers/The_Stack"),
     ("bpy.types.Modifier.*", "Modifiers"),  # catchall for various generic options
     # --- Modify Modifiers ---
+    ("bpy.types.MeshCacheModifier.*",              "Modifiers/Modify/Mesh_Cache"),
     ("bpy.types.UVProjectModifier.*",              "Modifiers/Modify/UV_Project"),
     ("bpy.types.UVWarpModifier.*",                 "Modifiers/Modify/UV_Warp"),
     ("bpy.types.VertexWeightMixModifier.*",        "Modifiers/Modify/Vertex_Weight"),
@@ -126,7 +127,6 @@ url_manual_mapping = (
     ("bpy.types.HookModifier.*",          "Modifiers/Deform/Hooks"),
     ("bpy.types.LaplacianSmoothModifier.*", "Modifiers/Deform/Laplacian_Smooth"),
     ("bpy.types.LatticeModifier.*",       "Modifiers/Deform/Lattice"),
-    ("bpy.types.MeshCacheModifier.*",     "Modifiers/Deform/Mesh_Cache"),
     ("bpy.types.MeshDeformModifier.*",    "Modifiers/Deform/Mesh_Deform"),
     ("bpy.types.RemeshModifier.*",        "Modifiers/Deform/"),
     ("bpy.types.ShrinkwrapModifier.*",    "Modifiers/Deform/Shrinkwrap"),
