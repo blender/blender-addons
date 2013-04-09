@@ -18,6 +18,18 @@
 
 # <pep8 compliant>
 
+bl_info = {
+    "name": "Copy Settings",
+    "author": "Bastien Montagne",
+    "version": (0, 1, 5),
+    "blender": (2, 65, 9),
+    "location": "Render buttons (Properties window)",
+    "description": "Allows to copy a selection of render settings from current scene to others.",
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts/Render/Copy Settings",
+    "tracker_url": "http://projects.blender.org/tracker/index.php?func=detail&aid=25832",
+    "category": "Render",
+}
+
 if "bpy" in locals():
     import imp
     imp.reload(operator)
@@ -34,18 +46,6 @@ from bpy.props import (StringProperty,
                        IntProperty,
                        CollectionProperty,
                        PointerProperty)
-
-bl_info = {
-    "name": "Copy Settings",
-    "author": "Bastien Montagne",
-    "version": (0, 1, 5),
-    "blender": (2, 65, 9),
-    "location": "Render buttons (Properties window)",
-    "description": "Allows to copy a selection of render settings from current scene to others.",
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts/Render/Copy Settings",
-    "tracker_url": "http://projects.blender.org/tracker/index.php?func=detail&aid=25832",
-    "category": "Render",
-}
 
 ########################################################################################################################
 # Global properties for the script, for UI (as there’s no way to let them in the operator…).
