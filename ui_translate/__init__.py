@@ -21,7 +21,8 @@
 bl_info = {
     "name": "Manage UI translations",
     "author": "Bastien Montagne",
-    "blender": (2, 65, 10),
+    "version": (1, 0, 1),
+    "blender": (2, 66, 5),
     "location": "Main \"File\" menu, text editor, any UI control",
     "description": "Allow to manage UI translations directly from Blender (update main po files, "
                    "update scripts' translations, etc.)",
@@ -37,11 +38,13 @@ if "bpy" in locals():
     imp.reload(settings)
     imp.reload(edit_translation)
     imp.reload(update_svn)
+    imp.reload(update_addon)
 else:
     import bpy
     from . import settings
     from . import edit_translation
     from . import update_svn
+    from . import update_addon
 
 
 import os
@@ -62,4 +65,5 @@ def register():
 
 def unregister():
     del bpy.types.WindowManager.i18n_update_svn_settings
+
     bpy.utils.unregister_module(__name__)

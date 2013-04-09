@@ -46,11 +46,6 @@ import shutil
 import subprocess
 import tempfile
 
-##### Helpers #####
-def find_best_isocode_matches(uid, iso_codes):
-    tmp = ((e, utils_i18n.locale_match(e, uid)) for e in iso_codes)
-    return tuple(e[0] for e in sorted((e for e in tmp if e[1] is not ... and e[1] >= 0), key=lambda e: e[1]))
-
 
 ##### Data #####
 class I18nUpdateTranslationLanguage(bpy.types.PropertyGroup):
@@ -137,6 +132,12 @@ class UI_PT_i18n_update_translations_settings(bpy.types.Panel):
             layout.separator()
             layout.prop(i18n_sett, "pot_path")
 
+            layout.separator()
+            layout.label("Addons:")
+            row = layout.row()
+            op = row.operator("UI_OT_i18n_addon_translation_invoke", text="Export PO...")
+            op.op_id = "ui.i18n_addon_translation_export"
+
 
 ##### Operators #####
 class UI_OT_i18n_updatetranslation_svn_init_settings(bpy.types.Operator):
@@ -164,7 +165,7 @@ class UI_OT_i18n_updatetranslation_svn_init_settings(bpy.types.Operator):
         isocodes = ((e, os.path.join(root_br, e, e + ".po")) for e in os.listdir(root_br))
         isocodes = dict(e for e in isocodes if os.path.isfile(e[1]))
         for num_id, name, uid in self.settings.LANGUAGES[2:]:  # Skip "default" and "en" languages!
-            best_po = find_best_isocode_matches(uid, isocodes)
+            best_po = utils_i18n.find_best_isocode_matches(uid, isocodes)
             #print(uid, "->", best_po)
             lng = i18n_sett.langs.add()
             lng.uid = uid
