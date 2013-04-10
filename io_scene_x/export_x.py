@@ -550,6 +550,9 @@ class MeshExportObject(ExportObject):
         # Write mesh normals.
         for Index, Vertex in enumerate(MeshEnumerator.vertices):
             Normal = Vertex.normal
+            if self.Config.FlipNormals:
+                Normal = -1.0 * Vertex.normal
+            
             self.Exporter.File.Write("{:9f};{:9f};{:9f};".format(Normal[0],
                 Normal[1], Normal[2]))
             

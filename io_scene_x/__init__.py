@@ -21,12 +21,11 @@
 bl_info = {
     "name": "DirectX X Format",
     "author": "Chris Foster",
-    "version": (3, 0, 0),
+    "version": (3, 0, 1),
     "blender": (2, 66, 0),
     "location": "File > Export > DirectX (.x)",
     "description": "Export mesh vertices, UV's, materials, textures, "\
         "vertex colors, armatures, empties, and actions.",
-    "warning": "This script is a WIP!",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"\
         "Scripts/Import-Export/DirectX_Exporter",
     "tracker_url": "https://projects.blender.org/tracker/index.php?"\
@@ -63,6 +62,11 @@ class ExportDirectX(bpy.types.Operator):
         name="    Export Normals",
         description="Export mesh normals",
         default=True)
+    
+    FlipNormals = BoolProperty(
+        name="        Flip Normals",
+        description="Flip mesh normals before export",
+        default=False)
     
     ExportUVCoordinates = BoolProperty(
         name="    Export UV Coordinates",
@@ -134,7 +138,7 @@ class ExportDirectX(bpy.types.Operator):
     def execute(self, context):
         self.filepath = bpy.path.ensure_ext(self.filepath, ".x")
 
-        import export_x
+        from . import export_x
         Exporter = export_x.DirectXExporter(self, context)
         Exporter.Export()
         return {'FINISHED'}
