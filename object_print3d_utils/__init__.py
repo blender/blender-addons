@@ -66,6 +66,11 @@ class Print3DSettings(PropertyGroup):
                    ('OBJ', "OBJ", "")),
             default='STL',
             )
+    use_export_texture = BoolProperty(
+            name="Copy Textures",
+            description="Copies textures on export to the output path",
+            default=False,
+            )
     export_path = StringProperty(
             name="Export Directory",
             description="Path to directory where the files are created",

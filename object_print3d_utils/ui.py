@@ -110,11 +110,13 @@ class Print3DToolBar:
 
         col = layout.column()
         col.label("Export Directory:")
-        col.prop(print_3d, "export_path", text="")
+        rowsub = col.row()
+        rowsub.prop(print_3d, "export_path", text="")
+        rowsub.prop(print_3d, "use_export_texture", text="", icon='FILE_IMAGE')
 
         rowsub = col.row(align=True)
         rowsub.prop(print_3d, "export_format", text="")
-        rowsub.operator("mesh.print3d_export", text="", icon='EXPORT')
+        rowsub.operator("mesh.print3d_export", text="Export", icon='EXPORT')
 
         Print3DToolBar.draw_report(layout, context)
 
