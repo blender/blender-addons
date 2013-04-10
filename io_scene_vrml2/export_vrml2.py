@@ -22,6 +22,8 @@ import bpy
 import bpy_extras
 import bmesh
 import os
+from bpy_extras import object_utils
+
 
 def save_bmesh(fw, bm,
                use_color, color_type, material_colors,
@@ -147,26 +149,6 @@ def save_bmesh(fw, bm,
     fw('}\n')  # end 'Shape'
 
 
-def detect_default_image(obj, bm):
-    tex_layer = bm.faces.layers.tex.active
-    if tex_layer is not None:
-        for f in bm.faces:
-            image = f[tex_layer].image
-            if image is not None:
-                return image
-    for m in obj.data.materials:
-        if m is not None:
-            # backwards so topmost are highest priority
-            for mtex in reversed(m.texture_slots):
-                if mtex and mtex.use_map_color_diffuse:
-                    texture = mtex.texture
-                    if texture and texture.type == 'IMAGE':
-                        image = texture.image
-                        if image is not None:
-                            return image
-    return None
-
-
 def save_object(fw, global_matrix,
                 scene, obj,
                 use_mesh_modifiers,
@@ -220,7 +202,7 @@ def save_object(fw, global_matrix,
     if use_uv:
         if bm.loops.layers.uv.active is None:
             use_uv = False
-        uv_image = detect_default_image(obj, bm)
+        uv_image = object_utils.object_image_guess(obj, bm=bm)
         if uv_image is None:
             use_uv = False
 
