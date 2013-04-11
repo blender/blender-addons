@@ -19,7 +19,7 @@
 bl_info = {
     "name": "Import Images as Planes",
     "author": "Florian Meyer (tstscr), mont29, matali",
-    "version": (1, 8),
+    "version": (1, 9),
     "blender": (2, 66, 4),
     "location": "File > Import > Images as Planes or Add > Mesh > Images as Planes",
     "description": "Imports images and creates planes with the appropriate aspect ratio. "
@@ -214,7 +214,7 @@ class IMPORT_OT_image_to_plane(Operator, AddObjectHelper):
         ('DPI', "Dpi", "Use definition of the image as dots per inch"),
         ('DPBU', "Dots/BU", "Use definition of the image as dots per Blender Unit"),
     )
-    size_mode = EnumProperty(name="Size Mode", default='DPI', items=_size_modes,
+    size_mode = EnumProperty(name="Size Mode", default='ABSOLUTE', items=_size_modes,
                              description="How the size of the plane is computed")
 
     height = FloatProperty(name="Height", description="Height of the created plane",
@@ -369,29 +369,24 @@ class IMPORT_OT_image_to_plane(Operator, AddObjectHelper):
             px = py = 1
 
         if self.size_mode == 'ABSOLUTE':
-            y = self.height / 2
+            y = self.height
             x = px / py * y
         elif self.size_mode == 'DPI':
-            fact = 1 / self.factor / context.scene.unit_settings.scale_length * 0.0254 / 2
+            fact = 1 / self.factor / context.scene.unit_settings.scale_length * 0.0254
             x = px * fact
             y = py * fact
         else:  # elif self.size_mode == 'DPBU'
-            fact = 1 / self.factor / 2
+            fact = 1 / self.factor
             x = px * fact
             y = py * fact
 
-        verts = ((-x, -y, 0.0),
-                 (+x, -y, 0.0),
-                 (+x, +y, 0.0),
-                 (-x, +y, 0.0),
-                 )
-        faces = ((0, 1, 2, 3), )
-
-        mesh_data = bpy.data.meshes.new(img.name)
-        mesh_data.from_pydata(verts, [], faces)
-        mesh_data.update()
-        object_data_add(context, mesh_data, operator=self)
+        bpy.ops.mesh.primitive_plane_add('INVOKE_REGION_WIN')
         plane = context.scene.objects.active
+        # Why does mesh.primitive_plane_add leave the object in edit mode???
+        if plane.mode is not 'OBJECT':
+            bpy.ops.object.mode_set(mode='OBJECT')
+        plane.dimensions = x, y, 0.0
+        bpy.ops.object.transform_apply(scale=True)
         plane.data.uv_textures.new()
         plane.data.materials.append(material)
         plane.data.uv_textures[0].data[0].image = img
