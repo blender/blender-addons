@@ -34,17 +34,27 @@
 import bpy
 from struct import unpack
 
-def obj_update_frame(file, scene, obj, fr, step):
+def set_linear_interpolation(obj, shapekey):
+    anim_data = obj.data.shape_keys.animation_data
+    data_path = "key_blocks[\"" + shapekey.name + "\"].value"
+
+    for fcu in anim_data.action.fcurves:
+        if fcu.data_path == data_path:
+            for keyframe in fcu.keyframe_points:
+                keyframe.interpolation = 'LINEAR'
+
+
+def obj_update_frame(file, scene, obj, start, fr, step):
 
     # Insert new shape key
     new_shapekey = obj.shape_key_add()
     new_shapekey.name = ("frame_%.4d" % fr)
+    new_shapekey_index = len(obj.data.shape_keys.key_blocks) - 1
 
-    obj.active_shape_key_index = len(obj.data.shape_keys.key_blocks) - 1
-    index = len(obj.data.shape_keys.key_blocks) - 1
+    obj.active_shape_key_index = new_shapekey_index
     obj.show_only_shape_key = True
 
-    verts = obj.data.shape_keys.key_blocks[len(obj.data.shape_keys.key_blocks) - 1].data
+    verts = new_shapekey.data
 
     for v in verts:  # 12 is the size of 3 floats
         v.co[:] = unpack('>3f', file.read(12))
@@ -53,19 +63,19 @@ def obj_update_frame(file, scene, obj, fr, step):
     obj.show_only_shape_key = False
 
     # insert keyframes
-    shape_keys = obj.data.shape_keys
+    new_shapekey = obj.data.shape_keys.key_blocks[new_shapekey_index]
+    frame = start + fr*step
 
-    scene.frame_current -= step
-    obj.data.shape_keys.key_blocks[index].value = 0.0
-    shape_keys.key_blocks[len(obj.data.shape_keys.key_blocks) - 1].keyframe_insert("value")
+    new_shapekey.value = 0.0
+    new_shapekey.keyframe_insert("value", frame=frame - step)
 
-    scene.frame_current += step
-    obj.data.shape_keys.key_blocks[index].value = 1.0
-    shape_keys.key_blocks[len(obj.data.shape_keys.key_blocks) - 1].keyframe_insert("value")
+    new_shapekey.value = 1.0
+    new_shapekey.keyframe_insert("value", frame=frame)
 
-    scene.frame_current += step
-    obj.data.shape_keys.key_blocks[index].value = 0.0
-    shape_keys.key_blocks[len(obj.data.shape_keys.key_blocks) - 1].keyframe_insert("value")
+    new_shapekey.value = 0.0
+    new_shapekey.keyframe_insert("value", frame=frame + step)
+
+    set_linear_interpolation(obj, new_shapekey)
 
     obj.data.update()
 
@@ -93,9 +103,7 @@ def load(operator, context, filepath, frame_start=0, frame_step=1):
         basis.name = "Basis"
         obj.data.update()
 
-    scene.frame_current = frame_start
-
     for i in range(frames):
-        obj_update_frame(file, scene, obj, i, frame_step)
+        obj_update_frame(file, scene, obj, frame_start, i, frame_step)
 
     return {'FINISHED'}
