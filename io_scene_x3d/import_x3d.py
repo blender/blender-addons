@@ -532,7 +532,7 @@ class vrmlNode(object):
             child.searchNodeTypeID(node_spec, results)
         return results
 
-    def getFieldName(self, field, ancestry, AS_CHILD=False):
+    def getFieldName(self, field, ancestry, AS_CHILD=False, SPLIT_COMMAS=False):
         self_real = self.getRealNode()  # in case we're an instance
 
         for f in self_real.fields:
@@ -739,7 +739,7 @@ class vrmlNode(object):
 
         self_real = self.getRealNode()  # in case we're an instance
 
-        child_array = self_real.getFieldName(field, ancestry, True)
+        child_array = self_real.getFieldName(field, ancestry, True, SPLIT_COMMAS=True)
 
         #if type(child_array)==list: # happens occasionaly
         #   array_data = child_array
@@ -747,23 +747,15 @@ class vrmlNode(object):
         if child_array is None:
             # For x3d, should work ok with vrml too
             # for x3d arrays are fields, vrml they are nodes, annoying but not tooo bad.
-            data_split = self.getFieldName(field, ancestry)
+            data_split = self.getFieldName(field, ancestry, SPLIT_COMMAS=True)
             if not data_split:
                 return []
-            array_data = ' '.join(data_split)
-            if array_data is None:
-                return []
-
-            array_data = array_data.replace(',', ' ')
-            data_split = array_data.split()
 
             array_data = array_as_number(data_split)
 
         elif type(child_array) == list:
             # x3d creates these
-            data_split = [w.strip(",") for w in child_array]
-
-            array_data = array_as_number(data_split)
+            array_data = array_as_number(child_array)
         else:
             # print(child_array)
             # Normal vrml
@@ -1344,7 +1336,7 @@ class x3dNode(vrmlNode):
 
     # Other funcs operate from vrml, but this means we can wrap XML fields, still use nice utility funcs
     # getFieldAsArray getFieldAsBool etc
-    def getFieldName(self, field, ancestry, AS_CHILD=False):
+    def getFieldName(self, field, ancestry, AS_CHILD=False, SPLIT_COMMAS=False):
         # ancestry and AS_CHILD are ignored, only used for VRML now
 
         self_real = self.getRealNode()  # in case we're an instance
@@ -1354,6 +1346,8 @@ class x3dNode(vrmlNode):
 
             # We may want to edit. for x3d specific stuff
             # Sucks a bit to return the field name in the list but vrml excepts this :/
+            if SPLIT_COMMAS:
+                value = value.replace(",", " ")
             return value.split()
         else:
             return None
