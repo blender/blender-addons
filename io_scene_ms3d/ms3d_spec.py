@@ -351,6 +351,10 @@ class Ms3dHeader:
         Ms3dIo.write_string(raw_io, Ms3dIo.LENGTH_ID, self.id)
         Ms3dIo.write_dword(raw_io, self.version)
 
+    class HeaderError(Exception):
+        pass
+
+
 
 ###############################################################################
 class Ms3dVertex:
@@ -1740,6 +1744,7 @@ class Ms3dModel:
         self.header.read(raw_io)
         if (self.header != Ms3dHeader()):
             debug_out.append("\nwarning, invalid file header\n")
+            raise Ms3dHeader.HeaderError
 
         _number_vertices = Ms3dIo.read_word(raw_io)
         if (_number_vertices > Ms3dSpec.MAX_VERTICES):

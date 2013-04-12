@@ -180,11 +180,13 @@ class Ms3dExporter():
             if self.options_verbose in Ms3dUi.VERBOSE_NORMAL:
                 print("write - exception in try block\n  type: '{0}'\n"
                         "  value: '{1}'".format(type, value, traceback))
+                if self.report:
+                    self.report({'WARNING', 'ERROR', }, "write - exception.")
 
             if t2 is None:
                 t2 = time()
 
-            raise
+            return False
 
         else:
             pass
@@ -194,7 +196,7 @@ class Ms3dExporter():
             print(ms3d_str['SUMMARY_EXPORT'].format(
                     (t3 - t1), (t2 - t1), (t3 - t2)))
 
-        return {"FINISHED"}
+        return True
 
 
     ###########################################################################
@@ -385,14 +387,16 @@ class Ms3dExporter():
                                     weights.append(blender_weight)
                                 elif count == 3:
                                     bone_ids.append(ms3d_index)
-                                    self.report(
-                                            {'WARNING', 'INFO'},
-                                            ms3d_str['WARNING_EXPORT_SKIP_WEIGHT'])
+                                    if self.report and self.options_verbose in Ms3dUi.VERBOSE_NORMAL:
+                                        self.report(
+                                                {'WARNING', 'INFO'},
+                                                ms3d_str['WARNING_EXPORT_SKIP_WEIGHT'])
                                 else:
                                     # only first three weights will be supported / four bones
-                                    self.report(
-                                            {'WARNING', 'INFO'},
-                                            ms3d_str['WARNING_EXPORT_SKIP_WEIGHT_EX'])
+                                    if self.report and self.options_verbose in Ms3dUi.VERBOSE_NORMAL:
+                                        self.report(
+                                                {'WARNING', 'INFO'},
+                                                ms3d_str['WARNING_EXPORT_SKIP_WEIGHT_EX'])
                                     break
                                 count += 1
 

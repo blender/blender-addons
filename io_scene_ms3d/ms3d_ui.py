@@ -392,7 +392,7 @@ class Ms3dImportOperator(Operator, ImportHelper):
     def execute(self, blender_context):
         """ start executing """
         from io_scene_ms3d.ms3d_import import (Ms3dImporter, )
-        Ms3dImporter(
+        finished = Ms3dImporter(
                 report=self.report,
                 verbose=self.verbose,
                 use_extended_normal_handling=self.use_extended_normal_handling,
@@ -405,9 +405,10 @@ class Ms3dImportOperator(Operator, ImportHelper):
                         blender_context,
                         self.filepath
                         )
-
-        blender_context.scene.update()
-        return {"FINISHED"}
+        if finished:
+            blender_context.scene.update()
+            return {"FINISHED"}
+        return {"CANCELLED"}
 
     def invoke(self, blender_context, event):
         blender_context.window_manager.fileselect_add(self)
@@ -595,7 +596,7 @@ class Ms3dExportOperator(Operator, ExportHelper):
     def execute(self, blender_context):
         """start executing"""
         from io_scene_ms3d.ms3d_export import (Ms3dExporter, )
-        Ms3dExporter(
+        finished = Ms3dExporter(
                 self.report,
                 verbose=self.verbose,
                 use_blender_names=self.use_blender_names,
@@ -611,9 +612,10 @@ class Ms3dExportOperator(Operator, ExportHelper):
                         blender_context,
                         self.filepath
                         )
-
-        blender_context.scene.update()
-        return {"FINISHED"}
+        if finished:
+            blender_context.scene.update()
+            return {"FINISHED"}
+        return {"CANCELLED"}
 
     #
     def invoke(self, blender_context, event):
