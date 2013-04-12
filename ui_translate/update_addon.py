@@ -66,29 +66,26 @@ def validate_module(op, context):
     return module_name, mod[0]
 
 
-# As it's a bit time heavy, we cache that enum, operators using this should invalidate the cache in Invoke func
-# at least.
+# As it's a bit time heavy, I'd like to cache that enum, but this does not seem easy to do! :/
+# That "self" is not the same thing as the "self" that operators get in their invoke/execute/etc. funcs... :(
 def enum_addons(self, context):
-    items = getattr(self.__class__, "__enum_addons_cache", [])
-    print(items)
-    if not items:
-        setts = getattr(self, "settings", settings.settings)
-        for mod in addon_utils.modules(addon_utils.addons_fake_modules):
-            mod_info = addon_utils.module_bl_info(mod)
-            # Skip OFFICIAL addons, they are already translated in main i18n system (together with Blender itself).
-            if mod_info["support"] in {'OFFICIAL'}:
-                continue
-            src = mod.__file__
-            if src.endswith("__init__.py"):
-                src = os.path.dirname(src)
-            has_translation, _ = utils_i18n.I18n.check_py_module_has_translations(src, setts)
-            name = mod_info["name"]
-            #if has_translation:
-                #name = name + " *"
-            items.append((mod.__name__, name, mod_info["description"]))
-        items.sort(key=lambda i: i[1])
-        if hasattr(self.__class__, "__enum_addons_cache"):
-            self.__class__.__enum_addons_cache = items
+    setts = getattr(self, "settings", settings.settings)
+    items = []
+    for mod in addon_utils.modules(addon_utils.addons_fake_modules):
+        mod_info = addon_utils.module_bl_info(mod)
+        # Skip OFFICIAL addons, they are already translated in main i18n system (together with Blender itself).
+        if mod_info["support"] in {'OFFICIAL'}:
+            continue
+        src = mod.__file__
+        if src.endswith("__init__.py"):
+            src = os.path.dirname(src)
+        has_translation, _ = utils_i18n.I18n.check_py_module_has_translations(src, setts)
+        name = mod_info["name"]
+        # XXX Gives ugly UUUUUUUUUUUUUUUUUUU in search list!
+        #if has_translation:
+            #name = name + " *"
+        items.append((mod.__name__, name, mod_info["description"]))
+    items.sort(key=lambda i: i[1])
     return items
 
 
@@ -151,24 +148,31 @@ class UI_OT_i18n_addon_translation_invoke(bpy.types.Operator):
 
     module_name = EnumProperty(items=enum_addons, name="Addon", description="Addon to process", options=set())
     op_id = StringProperty(name="Operator Name", description="Name (id) of the operator to invoke")
-
-    __enum_addons_cache = []
+    # XXX Ugly hack! invoke_search_popup does not preserve ops' properties :(
+    _op_id = ""
 
     def invoke(self, context, event):
         print("op_id:", self.op_id)
-        self.__enum_addons_cache.clear()
+        # XXX Ugly hack! invoke_search_popup does not preserve ops' properties :(
+        self.__class__._op_id = self.op_id
         context.window_manager.invoke_search_popup(self)
         return {'RUNNING_MODAL'}
 
     def execute(self, context):
-        print("op_id:", self.op_id)
+        print("op_id:", self.op_id, self.__class__._op_id)
+        if not self.op_id:
+            # XXX Ugly hack! invoke_search_popup does not preserve ops' properties :(
+            if not self.__class__._op_id:
+                return {'CANCELLED'}
+            self.op_id = self.__class__._op_id
+            self.__class__._op_id = ""
         op = bpy.ops
         for item in self.op_id.split('.'):
             op = getattr(op, item, None)
             print(self.op_id, item, op)
             if op is None:
                 return {'CANCELLED'}
-        op('INVOKE_DEFAULT', module_name=self.module_name)
+        return op('INVOKE_DEFAULT', module_name=self.module_name)
 
 class UI_OT_i18n_addon_translation_update(bpy.types.Operator):
     """Update given addon's translation data (found as a py tuple in the addon's source code)"""
@@ -176,8 +180,6 @@ class UI_OT_i18n_addon_translation_update(bpy.types.Operator):
     bl_label = "Update I18n Addon"
 
     module_name = EnumProperty(items=enum_addons, name="Addon", description="Addon to process", options=set())
-
-    __enum_addons_cache = []
 
     def execute(self, context):
         if not hasattr(self, "settings"):
@@ -212,8 +214,9 @@ class UI_OT_i18n_addon_translation_update(bpy.types.Operator):
 
         # And merge!
         for uid in uids:
-            if uid in trans.trans:
-                trans.trans[uid].update(pot, keep_old_commented=False)
+            if uid not in trans.trans:
+                trans.trans[uid] = utils_i18n.I18nMessages(uid=uid, settings=self.settings)
+            trans.trans[uid].update(pot, keep_old_commented=False)
         trans.trans[self.settings.PARSER_TEMPLATE_ID] = pot
 
         # For now we write all languages found in this trans!
@@ -233,8 +236,6 @@ class UI_OT_i18n_addon_translation_export(bpy.types.Operator):
                                        description="Update existing po files, if any, instead of overwriting them")
     directory = StringProperty(maxlen=1024, subtype='FILE_PATH', options={'HIDDEN', 'SKIP_SAVE'})
 
-    __enum_addons_cache = []
-
     def _dst(self, trans, path, uid, kind):
         if kind == 'PO':
             if uid == self.settings.PARSER_TEMPLATE_ID:
@@ -250,7 +251,6 @@ class UI_OT_i18n_addon_translation_export(bpy.types.Operator):
     def invoke(self, context, event):
         if not hasattr(self, "settings"):
             self.settings = settings.settings
-        self.__enum_addons_cache.clear()
         module_name, mod = validate_module(self, context)
         if mod:
             self.directory = os.path.dirname(mod.__file__)
@@ -291,7 +291,7 @@ class UI_OT_i18n_addon_translation_export(bpy.types.Operator):
             for uid in uids:
                 if uid == self.settings.PARSER_TEMPLATE_ID:
                     continue
-                path = trans.dst(trans.src[uid], uid, 'PO')
+                path = trans.dst(trans, trans.src[uid], uid, 'PO')
                 if not os.path.isfile(path):
                     continue
                 msgs = utils_i18n.I18nMessages(kind='PO', src=path, settings=self.settings)

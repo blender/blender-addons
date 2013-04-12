@@ -39,12 +39,15 @@ if "bpy" in locals():
     imp.reload(edit_translation)
     imp.reload(update_svn)
     imp.reload(update_addon)
+    imp.reload(update_ui)
 else:
     import bpy
-    from . import settings
-    from . import edit_translation
-    from . import update_svn
-    from . import update_addon
+    from . import (settings,
+                   edit_translation,
+                   update_svn,
+                   update_addon,
+                   update_ui,
+                  )
 
 
 import os
@@ -53,7 +56,7 @@ import os
 def register():
     bpy.utils.register_module(__name__)
     bpy.types.WindowManager.i18n_update_svn_settings = \
-                    bpy.props.PointerProperty(type=update_svn.I18nUpdateTranslationSettings)
+                    bpy.props.PointerProperty(type=update_ui.I18nUpdateTranslationSettings)
 
     # Init addon's preferences (unfortunately, as we are using an external storage for the properties,
     # the load/save user preferences process has no effect on them :( ).
