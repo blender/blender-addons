@@ -25,7 +25,7 @@ bl_info = {
     "api": 45996,
     "location": "View3D > EditMode > ToolShelf",
     "description": "Modeling and retopology tool.",
-    "wiki_url": "http://www.bsurfaces.info",
+    "wiki_url": "http://wiki.blender.org/index.php/Dev:Ref/Release_Notes/2.64/Bsurfaces_1.5",
     "tracker_url": "http://projects.blender.org/tracker/index.php?"\
         "func=detail&aid=26642",
     "category": "Mesh"}
