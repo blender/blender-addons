@@ -19,7 +19,7 @@
 bl_info = {
     'name': "Nodes Efficiency Tools",
     'author': "Bartek Skorupa",
-    'version': (2, 24),
+    'version': (2, 25),
     'blender': (2, 6, 6),
     'location': "Node Editor Properties Panel (Ctrl-SPACE)",
     'description': "Nodes Efficiency Tools",
@@ -1015,7 +1015,7 @@ class AlignNodes(Operator, NodeToolBase):
             max_y_w = selected_sorted_y[count - 1][3]  # width of node with max loc.y
             max_y_h = selected_sorted_y[count - 1][4]  # height of node with max loc.y
 
-            if self.option == 'AXIS_X':
+            if self.option == 'AXIS_Y':  # Horizontally. Equivelent of s -> x -> 0 with even spacing.
                 loc_x = min_x
                 #loc_y = (max_x_loc_y + min_x_loc_y) / 2.0
                 loc_y = (max_y - max_y_h / 2.0 + min_y - min_y_h / 2.0) / 2.0
