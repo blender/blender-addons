@@ -148,28 +148,18 @@ class UI_OT_i18n_addon_translation_invoke(bpy.types.Operator):
 
     module_name = EnumProperty(items=enum_addons, name="Addon", description="Addon to process", options=set())
     op_id = StringProperty(name="Operator Name", description="Name (id) of the operator to invoke")
-    # XXX Ugly hack! invoke_search_popup does not preserve ops' properties :(
-    _op_id = ""
 
     def invoke(self, context, event):
-        print("op_id:", self.op_id)
-        # XXX Ugly hack! invoke_search_popup does not preserve ops' properties :(
-        self.__class__._op_id = self.op_id
         context.window_manager.invoke_search_popup(self)
         return {'RUNNING_MODAL'}
 
     def execute(self, context):
-        print("op_id:", self.op_id, self.__class__._op_id)
         if not self.op_id:
-            # XXX Ugly hack! invoke_search_popup does not preserve ops' properties :(
-            if not self.__class__._op_id:
-                return {'CANCELLED'}
-            self.op_id = self.__class__._op_id
-            self.__class__._op_id = ""
+            return {'CANCELLED'}
         op = bpy.ops
         for item in self.op_id.split('.'):
             op = getattr(op, item, None)
-            print(self.op_id, item, op)
+            #print(self.op_id, item, op)
             if op is None:
                 return {'CANCELLED'}
         return op('INVOKE_DEFAULT', module_name=self.module_name)
