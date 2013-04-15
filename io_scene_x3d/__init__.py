@@ -39,7 +39,7 @@ if "bpy" in locals():
         imp.reload(export_x3d)
 
 import bpy
-from bpy.props import StringProperty, BoolProperty, EnumProperty
+from bpy.props import StringProperty, BoolProperty, EnumProperty, FloatProperty
 from bpy_extras.io_utils import (ImportHelper,
                                  ExportHelper,
                                  axis_conversion,
@@ -168,20 +168,28 @@ class ExportX3D(bpy.types.Operator, ExportHelper):
                    ),
             default='Y',
             )
+    global_scale = FloatProperty(
+            name="Scale",
+            min=0.01, max=1000.0,
+            default=1.0,
+            )
 
     path_mode = path_reference_mode
 
     def execute(self, context):
         from . import export_x3d
 
+        from mathutils import Matrix
+
         keywords = self.as_keywords(ignore=("axis_forward",
                                             "axis_up",
+                                            "global_scale",
                                             "check_existing",
                                             "filter_glob",
                                             ))
         global_matrix = axis_conversion(to_forward=self.axis_forward,
                                         to_up=self.axis_up,
-                                        ).to_4x4()
+                                        ).to_4x4() * Matrix.Scale(self.global_scale, 4)
         keywords["global_matrix"] = global_matrix
 
         return export_x3d.save(self, context, **keywords)

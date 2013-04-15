@@ -291,15 +291,6 @@ class ExportOBJ(bpy.types.Operator, ExportHelper):
             default=False,
             )
 
-    global_scale = FloatProperty(
-            name="Scale",
-            description="Scale all data",
-            min=0.01, max=1000.0,
-            soft_min=0.01,
-            soft_max=1000.0,
-            default=1.0,
-            )
-
     axis_forward = EnumProperty(
             name="Forward",
             items=(('X', "X Forward", ""),
@@ -323,6 +314,11 @@ class ExportOBJ(bpy.types.Operator, ExportHelper):
                    ),
             default='Y',
             )
+    global_scale = FloatProperty(
+            name="Scale",
+            min=0.01, max=1000.0,
+            default=1.0,
+            )
 
     path_mode = path_reference_mode
 
@@ -339,13 +335,7 @@ class ExportOBJ(bpy.types.Operator, ExportHelper):
                                             "filter_glob",
                                             ))
 
-        global_matrix = Matrix()
-
-        global_matrix[0][0] = \
-        global_matrix[1][1] = \
-        global_matrix[2][2] = self.global_scale
-
-        global_matrix = (global_matrix *
+        global_matrix = (Matrix.Scale(self.global_scale, 4) *
                          axis_conversion(to_forward=self.axis_forward,
                                          to_up=self.axis_up,
                                          ).to_4x4())
