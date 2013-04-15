@@ -46,8 +46,16 @@ if "bpy" in locals():
 
 import os
 import bpy
-from bpy.props import CollectionProperty, StringProperty, BoolProperty
-from bpy_extras.io_utils import ImportHelper, ExportHelper
+from bpy.props import (CollectionProperty,
+                       StringProperty,
+                       BoolProperty,
+                       EnumProperty,
+                       FloatProperty,
+                       )
+from bpy_extras.io_utils import (ImportHelper,
+                                 ExportHelper,
+                                 axis_conversion,
+                                 )
 
 
 class ImportPLY(bpy.types.Operator, ImportHelper):
@@ -110,17 +118,60 @@ class ExportPLY(bpy.types.Operator, ExportHelper):
     use_colors = BoolProperty(
             name="Vertex Colors",
             description="Export the active vertex color layer",
-            default=True)
+            default=True,
+            )
+
+    axis_forward = EnumProperty(
+            name="Forward",
+            items=(('X', "X Forward", ""),
+                   ('Y', "Y Forward", ""),
+                   ('Z', "Z Forward", ""),
+                   ('-X', "-X Forward", ""),
+                   ('-Y', "-Y Forward", ""),
+                   ('-Z', "-Z Forward", ""),
+                   ),
+            default='Y',
+            )
+    axis_up = EnumProperty(
+            name="Up",
+            items=(('X', "X Up", ""),
+                   ('Y', "Y Up", ""),
+                   ('Z', "Z Up", ""),
+                   ('-X', "-X Up", ""),
+                   ('-Y', "-Y Up", ""),
+                   ('-Z', "-Z Up", ""),
+                   ),
+            default='Z',
+            )
+    global_scale = FloatProperty(
+            name="Scale",
+            min=0.01, max=1000.0,
+            default=1.0,
+            )
 
     @classmethod
     def poll(cls, context):
         return context.active_object != None
 
     def execute(self, context):
+        from . import export_ply
+
+        from mathutils import Matrix
+
+        keywords = self.as_keywords(ignore=("axis_forward",
+                                            "axis_up",
+                                            "global_scale",
+                                            "check_existing",
+                                            "filter_glob",
+                                            ))
+        global_matrix = axis_conversion(to_forward=self.axis_forward,
+                                        to_up=self.axis_up,
+                                        ).to_4x4() * Matrix.Scale(self.global_scale, 4)
+        keywords["global_matrix"] = global_matrix
+
         filepath = self.filepath
         filepath = bpy.path.ensure_ext(filepath, self.filename_ext)
-        from . import export_ply
-        keywords = self.as_keywords(ignore=("check_existing", "filter_glob"))
+
         return export_ply.save(self, context, **keywords)
 
     def draw(self, context):
@@ -132,6 +183,10 @@ class ExportPLY(bpy.types.Operator, ExportHelper):
         row = layout.row()
         row.prop(self, "use_uv_coords")
         row.prop(self, "use_colors")
+
+        layout.prop(self, "axis_forward")
+        layout.prop(self, "axis_up")
+        layout.prop(self, "global_scale")
 
 
 def menu_func_import(self, context):

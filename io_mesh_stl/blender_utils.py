@@ -42,7 +42,7 @@ def create_and_link_mesh(name, faces, points):
     obj.select = True
 
 
-def faces_from_mesh(ob, use_mesh_modifiers=False, triangulate=True):
+def faces_from_mesh(ob, global_matrix, use_mesh_modifiers=False, triangulate=True):
     """
     From an object, return a generator over a list of faces.
 
@@ -65,7 +65,7 @@ def faces_from_mesh(ob, use_mesh_modifiers=False, triangulate=True):
     except RuntimeError:
         raise StopIteration
 
-    mesh.transform(ob.matrix_world)
+    mesh.transform(global_matrix * ob.matrix_world)
 
     if triangulate:
         # From a list of faces, return the face triangulated if needed.

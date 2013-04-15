@@ -46,8 +46,8 @@ from bpy.props import (BoolProperty,
                        StringProperty,
                        EnumProperty,
                        )
-from bpy_extras.io_utils import (ExportHelper,
-                                 ImportHelper,
+from bpy_extras.io_utils import (ImportHelper,
+                                 ExportHelper,
                                  path_reference_mode,
                                  axis_conversion,
                                  )
@@ -302,7 +302,6 @@ class ExportOBJ(bpy.types.Operator, ExportHelper):
                    ),
             default='-Z',
             )
-
     axis_up = EnumProperty(
             name="Up",
             items=(('X', "X Up", ""),

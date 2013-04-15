@@ -109,10 +109,12 @@ class Print3DToolBar:
         # col.operator("mesh.print3d_clean_thin", text="Wall Thickness")
 
         col = layout.column()
-        col.label("Export Directory:")
+        rowsub = col.row(align=True)
+        rowsub.label("Export Path:")
+        rowsub.prop(print_3d, "use_apply_scale", text="", icon='MAN_SCALE')
+        rowsub.prop(print_3d, "use_export_texture", text="", icon='FILE_IMAGE')
         rowsub = col.row()
         rowsub.prop(print_3d, "export_path", text="")
-        rowsub.prop(print_3d, "use_export_texture", text="", icon='FILE_IMAGE')
 
         rowsub = col.row(align=True)
         rowsub.prop(print_3d, "export_format", text="")

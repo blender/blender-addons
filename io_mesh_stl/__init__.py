@@ -58,8 +58,16 @@ if "bpy" in locals():
 import os
 
 import bpy
-from bpy.props import StringProperty, BoolProperty, CollectionProperty
-from bpy_extras.io_utils import ExportHelper, ImportHelper
+from bpy.props import (StringProperty,
+                       BoolProperty,
+                       CollectionProperty,
+                       EnumProperty,
+                       FloatProperty,
+                       )
+from bpy_extras.io_utils import (ImportHelper,
+                                 ExportHelper,
+                                 axis_conversion,
+                                 )
 from bpy.types import Operator, OperatorFileListElement
 
 
@@ -126,13 +134,46 @@ class ExportSTL(Operator, ExportHelper):
             default=True,
             )
 
+    axis_forward = EnumProperty(
+            name="Forward",
+            items=(('X', "X Forward", ""),
+                   ('Y', "Y Forward", ""),
+                   ('Z', "Z Forward", ""),
+                   ('-X', "-X Forward", ""),
+                   ('-Y', "-Y Forward", ""),
+                   ('-Z', "-Z Forward", ""),
+                   ),
+            default='Y',
+            )
+    axis_up = EnumProperty(
+            name="Up",
+            items=(('X', "X Up", ""),
+                   ('Y', "Y Up", ""),
+                   ('Z', "Z Up", ""),
+                   ('-X', "-X Up", ""),
+                   ('-Y', "-Y Up", ""),
+                   ('-Z', "-Z Up", ""),
+                   ),
+            default='Z',
+            )
+    global_scale = FloatProperty(
+            name="Scale",
+            min=0.01, max=1000.0,
+            default=1.0,
+            )
+
     def execute(self, context):
         from . import stl_utils
         from . import blender_utils
         import itertools
+        from mathutils import Matrix
+
+        global_matrix = axis_conversion(to_forward=self.axis_forward,
+                                        to_up=self.axis_up,
+                                        ).to_4x4() * Matrix.Scale(self.global_scale, 4)
 
         faces = itertools.chain.from_iterable(
-            blender_utils.faces_from_mesh(ob, self.use_mesh_modifiers)
+            blender_utils.faces_from_mesh(ob, global_matrix, self.use_mesh_modifiers)
             for ob in context.selected_objects)
 
         stl_utils.write_stl(self.filepath, faces, self.ascii)

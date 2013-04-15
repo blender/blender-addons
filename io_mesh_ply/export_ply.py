@@ -189,13 +189,15 @@ def save(operator,
          use_normals=True,
          use_uv_coords=True,
          use_colors=True,
+         global_matrix=None
          ):
 
     scene = context.scene
     obj = context.active_object
 
-    if not obj:
-        raise Exception("Error, Select 1 active object")
+    if global_matrix is None:
+        from mathutils import Matrix
+        global_matrix = Matrix()
 
     if bpy.ops.object.mode_set.poll():
         bpy.ops.object.mode_set(mode='OBJECT')
@@ -208,7 +210,7 @@ def save(operator,
     if not mesh:
         raise Exception("Error, could not get mesh data from active object")
 
-    mesh.transform(obj.matrix_world)
+    mesh.transform(global_matrix * obj.matrix_world)
     if use_normals:
         mesh.calc_normals()
 
