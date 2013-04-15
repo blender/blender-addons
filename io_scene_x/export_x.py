@@ -531,8 +531,8 @@ class MeshExportObject(ExportObject):
                             tuple(len(Polygon.vertices) * [Index]))
                         Index += 1
                     else:
-                        for Vertex in Polygon.vertices:
-                            self.vertices.append(Vertex)
+                        for VertexIndex in Polygon.vertices:
+                            self.vertices.append(Mesh.vertices[VertexIndex])
                         self.PolygonVertexIndexes.append(
                             tuple(range(Index, Index + len(Polygon.vertices))))
                         Index += len(Polygon.vertices)            
