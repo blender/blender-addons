@@ -68,12 +68,12 @@ class Print3DSettings(PropertyGroup):
             )
     use_export_texture = BoolProperty(
             name="Copy Textures",
-            description="Copies textures on export to the output path",
+            description="Copy textures on export to the output path",
             default=False,
             )
     use_apply_scale = BoolProperty(
             name="Apply Scale",
-            description="Applies scene scale setting on export",
+            description="Apply scene scale setting on export",
             default=False,
             )
     export_path = StringProperty(
