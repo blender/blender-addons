@@ -58,7 +58,7 @@ def write_mesh(context, info, report_cb):
     obj = obj_base.object
 
     export_format = print_3d.export_format
-    global_scale = (1.0 / unit.scale_length) if (unit.system != 'NONE' and print_3d.use_apply_scale) else 1.0
+    global_scale = unit.scale_length if (unit.system != 'NONE' and print_3d.use_apply_scale) else 1.0
     path_mode = 'COPY' if print_3d.use_export_texture else 'AUTO'
 
     context_override = context.copy()
