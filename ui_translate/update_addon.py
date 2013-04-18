@@ -215,8 +215,83 @@ class UI_OT_i18n_addon_translation_update(bpy.types.Operator):
         return {'FINISHED'}
 
 
+class UI_OT_i18n_addon_translation_import(bpy.types.Operator):
+    """Import given addon's translation data from PO files"""
+    bl_idname = "ui.i18n_addon_translation_import"
+    bl_label = "I18n Addon Import"
+
+    module_name = EnumProperty(items=enum_addons, name="Addon", description="Addon to process", options=set())
+    directory = StringProperty(maxlen=1024, subtype='FILE_PATH', options={'HIDDEN', 'SKIP_SAVE'})
+
+    def _dst(self, trans, path, uid, kind):
+        if kind == 'PO':
+            if uid == self.settings.PARSER_TEMPLATE_ID:
+                return os.path.join(self.directory, "blender.pot")
+            path = os.path.join(self.directory, uid)
+            if os.path.isdir(path):
+                return os.path.join(path, uid + ".po")
+            return path + ".po"
+        elif kind == 'PY':
+            return trans._dst(trans, path, uid, kind)
+        return path
+
+    def invoke(self, context, event):
+        if not hasattr(self, "settings"):
+            self.settings = settings.settings
+        module_name, mod = validate_module(self, context)
+        if mod:
+            self.directory = os.path.dirname(mod.__file__)
+            self.module_name = module_name
+        context.window_manager.fileselect_add(self)
+        return {'RUNNING_MODAL'}
+
+    def execute(self, context):
+        if not hasattr(self, "settings"):
+            self.settings = settings.settings
+        i18n_sett = context.window_manager.i18n_update_svn_settings
+
+        module_name, mod = validate_module(self, context)
+        if not (module_name and mod):
+            return {'CANCELLED'}
+
+        path = mod.__file__
+        if path.endswith("__init__.py"):
+            path = os.path.dirname(path)
+
+        trans = utils_i18n.I18n(kind='PY', src=path, settings=self.settings)
+
+        # Now search given dir, to find po's matching given languages...
+        # Mapping po_uid: po_file.
+        po_files = dict(utils_i18n.get_po_files_from_dir(self.directory))
+
+        # Note: uids in i18n_sett.langs and addon's py code should be the same (both taken from the locale's languages
+        #       file). So we just try to find the best match in po's for each enabled uid.
+        for lng in i18n_sett.langs:
+            if lng.uid in self.settings.IMPORT_LANGUAGES_SKIP:
+                print("Skipping {} language ({}), edit settings if you want to enable it.".format(lng.name, lng.uid))
+                continue
+            if not lng.use:
+                print("Skipping {} language ({}).".format(lng.name, lng.uid))
+                continue
+            uid = lng.uid
+            po_uid = utils_i18n.find_best_isocode_matches(uid, po_files.keys())
+            if not po_uid:
+                print("Skipping {} language, no PO file found for it ({}).".format(lng.name, uid))
+                continue
+            po_uid = po_uid[0]
+            msgs = utils_i18n.I18nMessages(uid=uid, kind='PO', key=uid, src=po_files[po_uid], settings=self.settings)
+            if uid in trans.trans:
+                trans.trans[uid].merge(msgs, replace=True)
+            else:
+                trans.trans[uid] = msgs
+
+        trans.write(kind='PY')
+
+        return {'FINISHED'}
+
+
 class UI_OT_i18n_addon_translation_export(bpy.types.Operator):
-    """Export given addon's translation data as a PO file"""
+    """Export given addon's translation data as PO files"""
     bl_idname = "ui.i18n_addon_translation_export"
     bl_label = "I18n Addon Export"
 
@@ -291,5 +366,3 @@ class UI_OT_i18n_addon_translation_export(bpy.types.Operator):
         trans.write(kind='PO', langs=set(uids))
 
         return {'FINISHED'}
-
-

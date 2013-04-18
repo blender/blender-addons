@@ -129,10 +129,12 @@ class UI_PT_i18n_update_translations_settings(bpy.types.Panel):
             layout.separator()
             layout.label("Addons:")
             row = layout.row()
-            op = row.operator("ui.i18n_addon_translation_invoke", text="Export PO...")
-            op.op_id = "ui.i18n_addon_translation_export"
             op = row.operator("ui.i18n_addon_translation_invoke", text="Refresh I18n Data...")
             op.op_id = "ui.i18n_addon_translation_update"
+            op = row.operator("ui.i18n_addon_translation_invoke", text="Export PO...")
+            op.op_id = "ui.i18n_addon_translation_export"
+            op = row.operator("ui.i18n_addon_translation_invoke", text="Import PO...")
+            op.op_id = "ui.i18n_addon_translation_import"
 
 
 ##### Operators #####
