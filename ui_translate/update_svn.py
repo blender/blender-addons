@@ -59,6 +59,8 @@ class UI_OT_i18n_updatetranslation_svn_branches(bpy.types.Operator):
         i18n_sett = context.window_manager.i18n_update_svn_settings
         self.settings.FILE_NAME_POT = i18n_sett.pot_path
 
+        context.window_manager.progress_begin(0, len(i18n_sett.langs) + 1)
+        context.window_manager.progress_update(0)
         if not self.use_skip_pot_gen:
             # Generate base pot from RNA messages (we use another blender instance here, to be able to perfectly
             # control our environment (factory startup, specific addons enabled/disabled...)).
@@ -74,13 +76,18 @@ class UI_OT_i18n_updatetranslation_svn_branches(bpy.types.Operator):
                 "--settings",
                 self.settings.to_json(),
             )
+            # Not working (UI is not refreshed...).
+            #self.report({'INFO'}, "Extracting messages, this will take some time...")
+            context.window_manager.progress_update(1)
             if subprocess.call(cmmd):
                 self.report({'ERROR'}, "Message extraction process failed!")
+                context.window_manager.progress_end()
                 return {'CANCELLED'}
 
         # Now we should have a valid POT file, we have to merge it in all languages po's...
         pot = utils_i18n.I18nMessages(kind='PO', src=self.settings.FILE_NAME_POT, settings=self.settings)
-        for lng in i18n_sett.langs:
+        for progress, lng in enumerate(i18n_sett.langs):
+            context.window_manager.progress_update(progress + 2)
             if not lng.use:
                 continue
             if os.path.isfile(lng.po_path):
@@ -90,6 +97,7 @@ class UI_OT_i18n_updatetranslation_svn_branches(bpy.types.Operator):
                 po = pot
             po.write(kind="PO", dest=lng.po_path)
             print("{} PO written!".format(lng.uid))
+        context.window_manager.progress_end()
         return {'FINISHED'}
 
     def invoke(self, context, event):
@@ -109,7 +117,10 @@ class UI_OT_i18n_updatetranslation_svn_trunk(bpy.types.Operator):
         # 'DEFAULT' and en_US are always valid, fully-translated "languages"!
         stats = {"DEFAULT": 1.0, "en_US": 1.0}
 
-        for lng in i18n_sett.langs:
+        context.window_manager.progress_begin(0, len(i18n_sett.langs) + 1)
+        context.window_manager.progress_update(0)
+        for progress, lng in enumerate(i18n_sett.langs):
+            context.window_manager.progress_update(progress + 1)
             if lng.uid in self.settings.IMPORT_LANGUAGES_SKIP:
                 print("Skipping {} language ({}), edit settings if you want to enable it.".format(lng.name, lng.uid))
                 continue
@@ -136,6 +147,7 @@ class UI_OT_i18n_updatetranslation_svn_trunk(bpy.types.Operator):
         shutil.copy2(self.settings.FILE_NAME_POT, self.settings.TRUNK_PO_DIR)
 
         print("Generating languages' menu...")
+        context.window_manager.progress_update(progress + 2)
         # First complete our statistics by checking po files we did not touch this time!
         po_to_uid = {os.path.basename(lng.po_path): lng.uid for lng in i18n_sett.langs}
         for po_path in os.listdir(self.settings.TRUNK_PO_DIR):
@@ -145,6 +157,7 @@ class UI_OT_i18n_updatetranslation_svn_trunk(bpy.types.Operator):
                 po = utils_i18n.I18nMessages(uid=uid, kind='PO', src=po_path, settings=self.settings)
                 stats[uid] = po.nbr_trans_msgs / po.nbr_msgs
         utils_languages_menu.gen_menu_file(stats, self.settings)
+        context.window_manager.progress_end()
 
         return {'FINISHED'}
 
@@ -173,7 +186,10 @@ class UI_OT_i18n_updatetranslation_svn_statistics(bpy.types.Operator):
             lst += [(lng, lng.po_path_trunk) for lng in i18n_sett.langs
                                              if lng.uid not in self.settings.IMPORT_LANGUAGES_SKIP]
 
-        for lng, path in lst:
+        context.window_manager.progress_begin(0, len(lst))
+        context.window_manager.progress_update(0)
+        for progress, (lng, path) in enumerate(lst):
+            context.window_manager.progress_update(progress + 1)
             if not lng.use:
                 print("Skipping {} language ({}).".format(lng.name, lng.uid))
                 continue
@@ -196,6 +212,7 @@ class UI_OT_i18n_updatetranslation_svn_statistics(bpy.types.Operator):
         data = data + "\n" + buff.getvalue()
         text.from_string(data)
         self.report({'INFO'}, "Info written to {} text datablock!".format(self.report_name))
+        context.window_manager.progress_end()
 
         return {'FINISHED'}
 

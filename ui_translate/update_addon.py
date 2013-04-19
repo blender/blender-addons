@@ -89,55 +89,6 @@ def enum_addons(self, context):
     return items
 
 
-##### Data #####
-
-
-##### UI #####
-#class UI_PT_i18n_update_translations_settings(bpy.types.Panel):
-    #bl_label = "I18n Update Translation Main"
-    #bl_space_type = "PROPERTIES"
-    #bl_region_type = "WINDOW"
-    #bl_context = "render"
-#
-    #def draw(self, context):
-        #layout = self.layout
-        #i18n_sett = context.window_manager.i18n_update_svn_settings
-#
-        #if not i18n_sett.is_init and bpy.ops.ui.i18n_updatetranslation_svn_init_settings.poll():
-            #bpy.ops.ui.i18n_updatetranslation_svn_init_settings()
-#
-        #if not i18n_sett.is_init:
-            #layout.label(text="Could not init languages data!")
-            #layout.label(text="Please edit the preferences of the UI Translate addon")
-        #else:
-            #split = layout.split(0.75)
-            #split.template_list("UI_UL_i18n_languages", "", i18n_sett, "langs", i18n_sett, "active_lang", rows=8)
-            #col = split.column()
-            #col.operator("ui.i18n_updatetranslation_svn_init_settings", text="Reset Settings")
-            #if any(l.use for l in i18n_sett.langs):
-                #col.operator("ui.i18n_updatetranslation_svn_settings_select", text="Deselect All").use_select = False
-            #else:
-                #col.operator("ui.i18n_updatetranslation_svn_settings_select", text="Select All").use_select = True
-            #col.operator("ui.i18n_updatetranslation_svn_settings_select", text="Invert Selection").use_invert = True
-            #col.separator()
-            #col.operator("ui.i18n_updatetranslation_svn_branches", text="Update Branches")
-            #col.operator("ui.i18n_updatetranslation_svn_trunk", text="Update Trunk")
-            #col.operator("ui.i18n_updatetranslation_svn_statistics", text="Statistics")
-#
-            #if i18n_sett.active_lang >= 0 and i18n_sett.active_lang < len(i18n_sett.langs):
-                #lng = i18n_sett.langs[i18n_sett.active_lang]
-                #col = layout.column()
-                #col.active = lng.use
-                #row = col.row()
-                #row.label(text="[{}]: \"{}\" ({})".format(lng.uid, iface_(lng.name), lng.num_id), translate=False)
-                #row.prop(lng, "use", text="")
-                #col.prop(lng, "po_path")
-                #col.prop(lng, "po_path_trunk")
-                #col.prop(lng, "mo_path_trunk")
-            #layout.separator()
-            #layout.prop(i18n_sett, "pot_path")
-
-
 ##### Operators #####
 # This one is a helper one, as we sometimes need another invoke function (like e.g. file selection)...
 class UI_OT_i18n_addon_translation_invoke(bpy.types.Operator):
@@ -182,7 +133,7 @@ class UI_OT_i18n_addon_translation_update(bpy.types.Operator):
         # influence over the final result).
         pot = bl_extract_messages.dump_addon_messages(module_name, True, self.settings)
 
-        # Now (try do) get current i18n data from the addon...
+        # Now (try to) get current i18n data from the addon...
         path = mod.__file__
         if path.endswith("__init__.py"):
             path = os.path.dirname(path)

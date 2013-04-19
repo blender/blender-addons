@@ -21,13 +21,13 @@
 bl_info = {
     "name": "Manage UI translations",
     "author": "Bastien Montagne",
-    "version": (1, 1, 0),
-    "blender": (2, 66, 5),
+    "version": (1, 1, 1),
+    "blender": (2, 66, 6),
     "location": "Main \"File\" menu, text editor, any UI control",
     "description": "Allow to manage UI translations directly from Blender (update main po files, "
                    "update scripts' translations, etc.)",
     "warning": "Still in development, not all features are fully implemented yet!",
-    "wiki_url": "http://wiki.blender.org/index.php/Dev:Doc/How_to/Translate_Blender/Addon",
+    "wiki_url": "http://wiki.blender.org/index.php/Dev:Doc/How_to/Translate_Blender",
     "tracker_url": "http://projects.blender.org/tracker/?atid=498&group_id=9&func=browse",
     "support": 'OFFICIAL',
     "category": "System"}

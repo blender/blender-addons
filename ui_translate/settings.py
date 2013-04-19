@@ -41,9 +41,9 @@ import os
 settings = settings_i18n.I18nSettings()
 
 
-class UI_OT_settings_i18n_load(bpy.types.Operator):
+class UI_OT_i18n_settings_load(bpy.types.Operator):
     """Load translations' settings from a persistent JSon file"""
-    bl_idname = "ui.settings_i18n_load"
+    bl_idname = "ui.i18n_settings_load"
     bl_label = "I18n Load Settings"
     bl_option = {'REGISTER'}
 
@@ -66,9 +66,9 @@ class UI_OT_settings_i18n_load(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class UI_OT_settings_i18n_save(bpy.types.Operator):
+class UI_OT_i18n_settings_save(bpy.types.Operator):
     """Save translations' settings in a persistent JSon file"""
-    bl_idname = "ui.settings_i18n_save"
+    bl_idname = "ui.i18n_settings_save"
     bl_label = "I18n Save Settings"
     bl_option = {'REGISTER'}
 
@@ -95,7 +95,7 @@ def _setattr(self, name, val):
     print(self, name, val)
     setattr(self, name, val)
 
-class UI_AP_settings_i18n(bpy.types.AddonPreferences):
+class UI_AP_i18n_settings(bpy.types.AddonPreferences):
     bl_idname = __name__.split(".")[0]  # We want "top" module name!
     bl_option = {'REGISTER'}
 
@@ -189,8 +189,8 @@ class UI_AP_settings_i18n(bpy.types.AddonPreferences):
         col = split.column()
         col.prop(self, "persistent_data_path")
         row = col.row()
-        row.operator("UI_OT_settings_i18n_save", text="Save").filepath = self.persistent_data_path
-        row.operator("UI_OT_settings_i18n_load", text="Load").filepath = self.persistent_data_path
+        row.operator("ui.i18n_settings_save", text="Save").filepath = self.persistent_data_path
+        row.operator("ui.i18n_settings_load", text="Load").filepath = self.persistent_data_path
         col = split.column()
-        col.operator("UI_OT_settings_i18n_save", text="Save Persistent To...")
-        col.operator("UI_OT_settings_i18n_load", text="Load Persistent From...")
+        col.operator("ui.i18n_settings_save", text="Save Persistent To...")
+        col.operator("ui.i18n_settings_load", text="Load Persistent From...")
