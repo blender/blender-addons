@@ -331,6 +331,9 @@ url_manual_mapping = (
     ("bpy.ops.view3d.*",  "3D_interaction/Navigating/3D_View"),  # this link is a bit arbitrary
     ("bpy.ops.wm.*",      "Interface/Window_system"),
     ("bpy.ops.world.*",  "World"),
+    
+    # === Tool Settings ===
+    ("bpy.types.MeshStatVis.*",  "Modeling/Meshes#Mesh_Analysis"),
 )
 
 # may have 'url_reference_mapping'... etc later
