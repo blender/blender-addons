@@ -68,25 +68,26 @@ def validate_module(op, context):
 
 # As it's a bit time heavy, I'd like to cache that enum, but this does not seem easy to do! :/
 # That "self" is not the same thing as the "self" that operators get in their invoke/execute/etc. funcs... :(
+_cached_enum_addons = []
 def enum_addons(self, context):
+    global _cached_enum_addons
     setts = getattr(self, "settings", settings.settings)
-    items = []
-    for mod in addon_utils.modules(addon_utils.addons_fake_modules):
-        mod_info = addon_utils.module_bl_info(mod)
-        # Skip OFFICIAL addons, they are already translated in main i18n system (together with Blender itself).
-        if mod_info["support"] in {'OFFICIAL'}:
-            continue
-        src = mod.__file__
-        if src.endswith("__init__.py"):
-            src = os.path.dirname(src)
-        has_translation, _ = utils_i18n.I18n.check_py_module_has_translations(src, setts)
-        name = mod_info["name"]
-        # XXX Gives ugly UUUUUUUUUUUUUUUUUUU in search list!
-        #if has_translation:
-            #name = name + " *"
-        items.append((mod.__name__, name, mod_info["description"]))
-    items.sort(key=lambda i: i[1])
-    return items
+    if not _cached_enum_addons:
+        for mod in addon_utils.modules(addon_utils.addons_fake_modules):
+            mod_info = addon_utils.module_bl_info(mod)
+            # Skip OFFICIAL addons, they are already translated in main i18n system (together with Blender itself).
+            if mod_info["support"] in {'OFFICIAL'}:
+                continue
+            src = mod.__file__
+            if src.endswith("__init__.py"):
+                src = os.path.dirname(src)
+            has_translation, _ = utils_i18n.I18n.check_py_module_has_translations(src, setts)
+            name = mod_info["name"]
+            if has_translation:
+                name = name + " *"
+            _cached_enum_addons.append((mod.__name__, name, mod_info["description"]))
+        _cached_enum_addons.sort(key=lambda i: i[1])
+    return _cached_enum_addons
 
 
 ##### Operators #####
@@ -101,10 +102,14 @@ class UI_OT_i18n_addon_translation_invoke(bpy.types.Operator):
     op_id = StringProperty(name="Operator Name", description="Name (id) of the operator to invoke")
 
     def invoke(self, context, event):
+        global _cached_enum_addons
+        _cached_enum_addons[:] = []
         context.window_manager.invoke_search_popup(self)
         return {'RUNNING_MODAL'}
 
     def execute(self, context):
+        global _cached_enum_addons
+        _cached_enum_addons[:] = []
         if not self.op_id:
             return {'CANCELLED'}
         op = bpy.ops
@@ -123,6 +128,8 @@ class UI_OT_i18n_addon_translation_update(bpy.types.Operator):
     module_name = EnumProperty(items=enum_addons, name="Addon", description="Addon to process", options=set())
 
     def execute(self, context):
+        global _cached_enum_addons
+        _cached_enum_addons[:] = []
         if not hasattr(self, "settings"):
             self.settings = settings.settings
         i18n_sett = context.window_manager.i18n_update_svn_settings
@@ -187,6 +194,8 @@ class UI_OT_i18n_addon_translation_import(bpy.types.Operator):
         return path
 
     def invoke(self, context, event):
+        global _cached_enum_addons
+        _cached_enum_addons[:] = []
         if not hasattr(self, "settings"):
             self.settings = settings.settings
         module_name, mod = validate_module(self, context)
@@ -197,6 +206,8 @@ class UI_OT_i18n_addon_translation_import(bpy.types.Operator):
         return {'RUNNING_MODAL'}
 
     def execute(self, context):
+        global _cached_enum_addons
+        _cached_enum_addons[:] = []
         if not hasattr(self, "settings"):
             self.settings = settings.settings
         i18n_sett = context.window_manager.i18n_update_svn_settings
@@ -265,6 +276,8 @@ class UI_OT_i18n_addon_translation_export(bpy.types.Operator):
         return path
 
     def invoke(self, context, event):
+        global _cached_enum_addons
+        _cached_enum_addons[:] = []
         if not hasattr(self, "settings"):
             self.settings = settings.settings
         module_name, mod = validate_module(self, context)
@@ -275,6 +288,8 @@ class UI_OT_i18n_addon_translation_export(bpy.types.Operator):
         return {'RUNNING_MODAL'}
 
     def execute(self, context):
+        global _cached_enum_addons
+        _cached_enum_addons[:] = []
         if not hasattr(self, "settings"):
             self.settings = settings.settings
         i18n_sett = context.window_manager.i18n_update_svn_settings
