@@ -19,7 +19,7 @@
 bl_info = {
     'name': "Nodes Efficiency Tools",
     'author': "Bartek Skorupa",
-    'version': (2, 25),
+    'version': (2, 26),
     'blender': (2, 6, 6),
     'location': "Node Editor Properties Panel (Ctrl-SPACE)",
     'description': "Nodes Efficiency Tools",
@@ -294,8 +294,14 @@ class MergeNodes(Operator, NodeToolBase):
                 count_adds = i + 1
                 count_after = len(nodes)
                 index = count_after - 1
+                first_selected = nodes[nodes_list[0][0]]
+                # "last" node has been added as first, so its index is count_before.
+                last_add = nodes[count_before]
+                # add links from last_add to all links 'to_socket' of out links of first selected.
+                for fs_link in first_selected.outputs[0].links:
+                    links.new(last_add.outputs[0], fs_link.to_socket)
                 # add link from "first" selected and "first" add node
-                links.new(nodes[nodes_list[0][0]].outputs[0], nodes[count_after - 1].inputs[first])
+                links.new(first_selected.outputs[0], nodes[count_after - 1].inputs[first])
                 # add links between added ADD nodes and between selected and ADD nodes
                 for i in range(count_adds):
                     if i < count_adds - 1:
@@ -304,7 +310,7 @@ class MergeNodes(Operator, NodeToolBase):
                         links.new(nodes[index].inputs[second], nodes[nodes_list[i + 1][0]].outputs[0])
                     index -= 1
                 # set "last" of added nodes as active
-                nodes.active = nodes[count_before]
+                nodes.active = last_add
                 for i, x, y in nodes_list:
                     nodes[i].select = False
 
