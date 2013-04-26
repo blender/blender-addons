@@ -17,12 +17,12 @@
 # ##### END GPL LICENSE BLOCK #####
 
 bl_info = {
-    "name": "Simplify curves",
+    "name": "Simplify Curves",
     "author": "testscreenings",
     "version": (1,),
     "blender": (2, 59, 0),
     "location": "Search > Simplify Curves",
-    "description": "Simplifies 3D curves and fcurves",
+    "description": "Simplifies 3D Curve objects and animation F-Curves",
     "warning": "",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"\
         "Scripts/Curve/Curve_Simplify",
@@ -31,7 +31,7 @@ bl_info = {
     "category": "Add Curve"}
 
 """
-This script simplifies Curves.
+This script simplifies Curve objects and animation F-Curves.
 """
 
 ####################################################
@@ -193,10 +193,17 @@ def simplify_RDP(splineVerts, options):
 ##########################
 # set bezierhandles to auto
 def setBezierHandles(newCurve):
-    bpy.ops.object.mode_set(mode='EDIT', toggle=True)
-    bpy.ops.curve.select_all(action='SELECT')
-    bpy.ops.curve.handle_type_set(type='AUTOMATIC')
-    bpy.ops.object.mode_set(mode='OBJECT', toggle=True)
+
+    #bpy.ops.object.mode_set(mode='EDIT', toggle=True)
+    #bpy.ops.curve.select_all(action='SELECT')
+    #bpy.ops.curve.handle_type_set(type='AUTOMATIC')
+    #bpy.ops.object.mode_set(mode='OBJECT', toggle=True)
+
+    # Faster:
+    for spline in newCurve.data.splines:
+        for p in spline.bezier_points:
+            p.handle_left_type = 'AUTO'
+            p.handle_right_type = 'AUTO'
 
 # get array of new coords for new spline from vertindices
 def vertsToPoints(newVerts, splineVerts, splineType):
@@ -234,7 +241,7 @@ def main(context, obj, options):
     splines = obj.data.splines.values()
 
     # create curvedatablock
-    curve = bpy.data.curves.new("simple_"+obj.name, type = 'CURVE')
+    curve = bpy.data.curves.new("Simple_"+obj.name, type = 'CURVE')
 
     # go through splines
     for spline_i, spline in enumerate(splines):
@@ -245,7 +252,7 @@ def main(context, obj, options):
                 splineType = spline.type
             else:
                 splineType = output
-            
+
             # get vec3 list to simplify
             if spline.type == 'BEZIER': # get bezierverts
                 splineVerts = [splineVert.co.copy()
@@ -256,16 +263,16 @@ def main(context, obj, options):
                                 for splineVert in spline.points.values()]
 
             # simplify spline according to mode
-            if mode == 'distance':
+            if mode == 'DISTANCE':
                 newVerts = simplify_RDP(splineVerts, options)
 
-            if mode == 'curvature':
+            if mode == 'CURVATURE':
                 newVerts = simplypoly(splineVerts, options)
 
             # convert indices into vectors3D
             newPoints = vertsToPoints(newVerts, splineVerts, splineType)
 
-            # create new spline            
+            # create new spline
             newSpline = curve.splines.new(type = splineType)
 
             # put newPoints into spline according to type
@@ -284,7 +291,7 @@ def main(context, obj, options):
             newSpline.use_endpoint_u = spline.use_endpoint_u
 
     # create ne object and put into scene
-    newCurve = bpy.data.objects.new("simple_"+obj.name, curve)
+    newCurve = bpy.data.objects.new("Simple_"+obj.name, curve)
     scene.objects.link(newCurve)
     newCurve.select = True
     scene.objects.active = newCurve
@@ -322,26 +329,26 @@ def fcurves_simplify(context, obj, options, fcurves):
 
     #get indices of selected fcurves
     fcurve_sel = selectedfcurves(obj)
-    
+
     # go through fcurves
     for fcurve_i, fcurve in enumerate(fcurves):
         # test if fcurve is long enough
         if len(fcurve) >= 7:
 
             # simplify spline according to mode
-            if mode == 'distance':
+            if mode == 'DISTANCE':
                 newVerts = simplify_RDP(fcurve, options)
 
-            if mode == 'curvature':
+            if mode == 'CURVATURE':
                 newVerts = simplypoly(fcurve, options)
 
             # convert indices into vectors3D
             newPoints = []
-        
+
             #this is different from the main() function for normal curves, different api...
             for v in newVerts:
                 newPoints.append(fcurve[v])
-            
+
             #remove all points from curve first
             for i in range(len(fcurve)-1,0,-1):
                 fcurve_sel[fcurve_i].keyframe_points.remove(fcurve_sel[fcurve_i].keyframe_points[i])
@@ -357,68 +364,68 @@ def fcurves_simplify(context, obj, options, fcurves):
 class GRAPH_OT_simplify(bpy.types.Operator):
     """"""
     bl_idname = "graph.simplify"
-    bl_label = "simplifiy f-curves"
-    bl_description = "simplify selected f-curves"
+    bl_label = "Simplifiy F-Curves"
+    bl_description = "Simplify selected F-Curves"
     bl_options = {'REGISTER', 'UNDO'}
 
     ## Properties
     opModes = [
-            ('distance', 'distance', 'distance'),
-            ('curvature', 'curvature', 'curvature')]
+            ('DISTANCE', 'Distance', 'Distance-based simplification (Poly)'),
+            ('CURVATURE', 'Curvature', 'Curvature-based simplification (RDP)')]
     mode = EnumProperty(name="Mode",
-                            description="choose algorithm to use",
+                            description="Choose algorithm to use",
                             items=opModes)
     k_thresh = FloatProperty(name="k",
                             min=0, soft_min=0,
                             default=0, precision=3,
-                            description="threshold")
+                            description="Threshold")
     pointsNr = IntProperty(name="n",
                             min=5, soft_min=5,
                             max=16, soft_max=9,
                             default=5,
-                            description="degree of curve to get averaged curvatures")
-    error = FloatProperty(name="error",
-                            description="maximum error to allow - distance",
+                            description="Degree of curve to get averaged curvatures")
+    error = FloatProperty(name="Error",
+                            description="Maximum error to allow - distance",
                             min=0.0, soft_min=0.0,
                             default=0, precision=3)
-    degreeOut = IntProperty(name="degree",
+    degreeOut = IntProperty(name="Degree",
                             min=3, soft_min=3,
                             max=7, soft_max=7,
                             default=5,
-                            description="degree of new curve")
-    dis_error = FloatProperty(name="distance error",
-                            description="maximum error in Blenderunits to allow - distance",
+                            description="Degree of new curve")
+    dis_error = FloatProperty(name="Distance error",
+                            description="Maximum error in Blender Units to allow - distance",
                             min=0, soft_min=0,
                             default=0.0, precision=3)
     fcurves = []
 
-    '''  Remove curvature mode as long as it isnn't significantly improved
-    
+    '''  Remove curvature mode as long as it isn't significantly improved
+
     def draw(self, context):
         layout = self.layout
         col = layout.column()
         col.label('Mode:')
         col.prop(self, 'mode', expand=True)
-        if self.mode == 'distance':
+        if self.mode == 'DISTANCE':
             box = layout.box()
             box.label(self.mode, icon='ARROW_LEFTRIGHT')
             box.prop(self, 'error', expand=True)
-        if self.mode == 'curvature':
+        if self.mode == 'CURVATURE':
             box = layout.box()
-            box.label('degree', icon='SMOOTHCURVE')
+            box.label('Degree', icon='SMOOTHCURVE')
             box.prop(self, 'pointsNr', expand=True)
-            box.label('threshold', icon='PARTICLE_PATH')
+            box.label('Threshold', icon='PARTICLE_PATH')
             box.prop(self, 'k_thresh', expand=True)
-            box.label('distance', icon='ARROW_LEFTRIGHT')
+            box.label('Distance', icon='ARROW_LEFTRIGHT')
             box.prop(self, 'dis_error', expand=True)
         col = layout.column()
     '''
-    
+
     def draw(self, context):
         layout = self.layout
         col = layout.column()
         col.prop(self, 'error', expand=True)
-        
+
     ## Check for animdata
     @classmethod
     def poll(cls, context):
@@ -449,7 +456,7 @@ class GRAPH_OT_simplify(bpy.types.Operator):
 
         if not self.fcurves:
             self.fcurves = getFcurveData(obj)
-        
+
         fcurves_simplify(context, obj, options, self.fcurves)
 
         #print("-------END-------")
@@ -461,19 +468,19 @@ class GRAPH_OT_simplify(bpy.types.Operator):
 class CURVE_OT_simplify(bpy.types.Operator):
     """"""
     bl_idname = "curve.simplify"
-    bl_label = "simplifiy curves"
-    bl_description = "simplify curves"
+    bl_label = "Simplifiy Curves"
+    bl_description = "Simplify Curves"
     bl_options = {'REGISTER', 'UNDO'}
 
     ## Properties
     opModes = [
-            ('distance', 'distance', 'distance'),
-            ('curvature', 'curvature', 'curvature')]
+            ('DISTANCE', 'Distance', 'Distance-based simplification (Poly)'),
+            ('CURVATURE', 'Curvature', 'Curvature-based simplification (RDP)')]
     mode = EnumProperty(name="Mode",
-                            description="choose algorithm to use",
+                            description="Choose algorithm to use",
                             items=opModes)
     SplineTypes = [
-                ('INPUT', 'Input', 'same type as input spline'),
+                ('INPUT', 'Input', 'Same type as input spline'),
                 ('NURBS', 'Nurbs', 'NURBS'),
                 ('BEZIER', 'Bezier', 'BEZIER'),
                 ('POLY', 'Poly', 'POLY')]
@@ -483,47 +490,47 @@ class CURVE_OT_simplify(bpy.types.Operator):
     k_thresh = FloatProperty(name="k",
                             min=0, soft_min=0,
                             default=0, precision=3,
-                            description="threshold")
+                            description="Threshold")
     pointsNr = IntProperty(name="n",
                             min=5, soft_min=5,
                             max=9, soft_max=9,
                             default=5,
-                            description="degree of curve to get averaged curvatures")
-    error = FloatProperty(name="error in Bu",
-                            description="maximum error in Blenderunits to allow - distance",
+                            description="Degree of curve to get averaged curvatures")
+    error = FloatProperty(name="Error in Blender Units",
+                            description="Maximum error in Blender Units to allow - distance",
                             min=0, soft_min=0,
                             default=0.0, precision=3)
-    degreeOut = IntProperty(name="degree",
+    degreeOut = IntProperty(name="Degree",
                             min=3, soft_min=3,
                             max=7, soft_max=7,
                             default=5,
-                            description="degree of new curve")
-    dis_error = FloatProperty(name="distance error",
-                            description="maximum error in Blenderunits to allow - distance",
+                            description="Degree of new curve")
+    dis_error = FloatProperty(name="Distance error",
+                            description="Maximum error in Blender Units to allow - distance",
                             min=0, soft_min=0,
                             default=0.0)
-    keepShort = BoolProperty(name="keep short Splines",
-                            description="keep short splines (less then 7 points)",
+    keepShort = BoolProperty(name="Keep short splines",
+                            description="Keep short splines (less then 7 points)",
                             default=True)
 
-    '''  Remove curvature mode as long as it isnn't significantly improved
+    '''  Remove curvature mode as long as it isn't significantly improved
 
     def draw(self, context):
         layout = self.layout
         col = layout.column()
         col.label('Mode:')
         col.prop(self, 'mode', expand=True)
-        if self.mode == 'distance':
+        if self.mode == 'DISTANCE':
             box = layout.box()
             box.label(self.mode, icon='ARROW_LEFTRIGHT')
             box.prop(self, 'error', expand=True)
-        if self.mode == 'curvature':
+        if self.mode == 'CURVATURE':
             box = layout.box()
-            box.label('degree', icon='SMOOTHCURVE')
+            box.label('Degree', icon='SMOOTHCURVE')
             box.prop(self, 'pointsNr', expand=True)
-            box.label('threshold', icon='PARTICLE_PATH')
+            box.label('Threshold', icon='PARTICLE_PATH')
             box.prop(self, 'k_thresh', expand=True)
-            box.label('distance', icon='ARROW_LEFTRIGHT')
+            box.label('Distance', icon='ARROW_LEFTRIGHT')
             box.prop(self, 'dis_error', expand=True)
         col = layout.column()
         col.separator()
@@ -532,7 +539,7 @@ class CURVE_OT_simplify(bpy.types.Operator):
             col.prop(self, 'degreeOut', expand=True)
         col.prop(self, 'keepShort', expand=True)
     '''
-        
+
     def draw(self, context):
         layout = self.layout
         col = layout.column()
@@ -541,8 +548,8 @@ class CURVE_OT_simplify(bpy.types.Operator):
         if self.output == 'NURBS':
             col.prop(self, 'degreeOut', expand=True)
         col.prop(self, 'keepShort', expand=True)
-        
-        
+
+
     ## Check for curve
     @classmethod
     def poll(cls, context):
