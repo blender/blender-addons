@@ -39,7 +39,7 @@ Alternatively, run the script in the script editor (Alt-P), and access from the 
 bl_info = {
     'name': 'Import: MakeHuman (.mhx)',
     'author': 'Thomas Larsson',
-    'version': (1, 15, 2),
+    'version': (1, 15, 3),
     "blender": (2, 65, 0),
     'location': "File > Import > MakeHuman (.mhx)",
     'description': 'Import files in the MakeHuman eXchange format (.mhx)',
@@ -52,7 +52,7 @@ bl_info = {
 MAJOR_VERSION = 1
 MINOR_VERSION = 15
 FROM_VERSION = 13
-SUB_VERSION = 1
+SUB_VERSION = 3
 
 #
 #
@@ -2547,10 +2547,10 @@ def rigifyMhx(context, name):
     newParents = {
         'head' : 'DEF-head',
         'ribs' : 'DEF-ribs',
-        'upper_arm.L' : 'DEF-upper_arm.L.02',
-        'thigh.L' : 'DEF-thigh.L.02',
-        'upper_arm.R' : 'DEF-upper_arm.R.02',
-        'thigh.R' : 'DEF-thigh.R.02',
+        'upper_arm.L' : 'DEF-upper_arm.02.L',
+        'thigh.L' : 'DEF-thigh.02.L',
+        'upper_arm.R' : 'DEF-upper_arm.02.R',
+        'thigh.R' : 'DEF-thigh.02.R',
     }
 
     for eb in mhx.data.edit_bones:
@@ -2589,7 +2589,7 @@ def rigifyMhx(context, name):
     # Change meta bone locations    
     scn.objects.active = None 
     try:
-        bpy.ops.object.armature_human_advanced_add()
+        bpy.ops.object.armature_human_metarig_add()
         success = True
     except:
         success = False
