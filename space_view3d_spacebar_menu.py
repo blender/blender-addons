@@ -846,7 +846,7 @@ class VIEW3D_MT_SelectEditMenu(bpy.types.Menu):
         layout.operator("mesh.select_face_by_sides", text="By Number of Verts")
         if context.scene.tool_settings.mesh_select_mode[2] == False:
             layout.operator("mesh.select_non_manifold", text="Non Manifold")
-        layout.operator("mesh.select_loose_verts", text="Loose Verts/Edges")
+        layout.operator("mesh.select_loose", text="Loose Geometry")
         layout.operator("mesh.select_similar", text="Similar")
 
         layout.separator()
