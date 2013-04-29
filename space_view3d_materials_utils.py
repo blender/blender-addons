@@ -1,7 +1,5 @@
 #(c) 2010 Michael Williamson (michaelw)
-#ported from original by Michael Williamsn
-#
-#tested r28370
+#ported from original by Michael Williamson
 #
 #
 # ##### BEGIN GPL LICENSE BLOCK #####
