@@ -168,6 +168,8 @@ def bmesh_check_self_intersect_object(obj):
     bpy.data.objects.remove(obj_tmp)
     bpy.data.meshes.remove(me_tmp)
 
+    scene.update()
+
     return array.array('i', faces_error)
 
 
@@ -253,6 +255,8 @@ def bmesh_check_thick_object(obj, thickness):
     bpy.data.objects.remove(obj_tmp)
     bpy.data.meshes.remove(me_tmp)
 
+    scene.update()
+
     return array.array('i', faces_error)
 
 
@@ -317,6 +321,8 @@ def object_merge(context, objects):
         #~ bpy.data.objects.remove(obj_new)
 
         bpy.data.meshes.remove(mesh_new)
+
+    scene.update()
 
     # return new object
     return base_base
