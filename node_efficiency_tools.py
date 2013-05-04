@@ -19,7 +19,7 @@
 bl_info = {
     'name': "Nodes Efficiency Tools",
     'author': "Bartek Skorupa",
-    'version': (2, 26),
+    'version': (2, 27),
     'blender': (2, 6, 6),
     'location': "Node Editor Properties Panel (Ctrl-SPACE)",
     'description': "Nodes Efficiency Tools",
@@ -807,6 +807,7 @@ class NodesSwap(Operator, NodeToolBase):
                         for new_i, new_input in enumerate(new_node.inputs):
                             if old_input.name == new_input.name:
                                 replace.append((old_i, new_i))
+                                new_input.default_value = old_input.default_value
                                 break
                 elif option == 'ShaderNodeAddShader':
                     if node.type == 'ADD_SHADER':
