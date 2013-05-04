@@ -23,8 +23,8 @@
 bl_info = {
     "name": "Material Utils",
     "author": "michaelw",
-    "version": (1, 4),
-    "blender": (2, 62, 0),
+    "version": (1, 5),
+    "blender": (2, 66, 6),
     "location": "View3D > Q key",
     "description": "Menu of material tools (assign, select..)  in the 3D View",
     "warning": "Buggy, Broken in Cycles mode",
@@ -35,7 +35,8 @@ bl_info = {
     "category": "Material"}
 
 """
-This script has several functions and operators... grouped for convenience
+This script has several functions and operators, grouped for convenience:
+
 * assign material:
     offers the user a list of ALL the materials in the blend file and an
     additional "new" entry the chosen material will be assigned to all the
@@ -63,15 +64,32 @@ This script has several functions and operators... grouped for convenience
     for all selected objects any empty material slots or material slots with
     materials that are not used by the mesh polygons will be removed.
 
-* Any un-used materials and slots will be removed
+* remove material slots
+    removes all material slots of the active object.
+
+* material to texface
+    transfers material assignments to the UV editor. This is useful if you
+    assigned materials in the properties editor, as it will use the already
+    set up materials to assign the UV images per-face. It will use the first
+    enabled image texture it finds.
+
+* texface to materials
+    creates texture materials from images assigned in UV editor.
+
+* replace materials
+    lets your replace one material by another. Optionally for all objects in
+    the blend, otherwise for selected editable objects only. An additional
+    option allows you to update object selection, to indicate which objects
+    were affected and which not.
+
 """
 
 
 import bpy
-from bpy.props import*
+from bpy.props import StringProperty, BoolProperty
 
 
-def replace_material(m1, m2, all_objects=False):
+def replace_material(m1, m2, all_objects=False, update_selection=False):
     # replace material named m1 with material named m2
     # m1 is the name of original material
     # m2 is the name of the material to replace it with
@@ -80,10 +98,9 @@ def replace_material(m1, m2, all_objects=False):
     matorg = bpy.data.materials.get(m1)
     matrep = bpy.data.materials.get(m2)
 
-    if matorg and matrep:
+    if matorg != matrep and None not in (matorg, matrep):
         #store active object
         scn = bpy.context.scene
-        ob_active = bpy.context.active_object
 
         if all_objects:
             objs = bpy.data.objects
@@ -93,16 +110,25 @@ def replace_material(m1, m2, all_objects=False):
 
         for ob in objs:
             if ob.type == 'MESH':
-                scn.objects.active = ob
 
-                for m in ob.material_slots.values():
+                match = False
+
+                for m in ob.material_slots:
                     if m.material == matorg:
                         m.material = matrep
                         # don't break the loop as the material can be
                         # ref'd more than once
 
-    else:
-        print('no match to replace')
+                        # Indicate which objects were affected
+                        if update_selection:
+                            ob.select = True
+                            match = True
+
+                if update_selection and not match:
+                    ob.select = False
+
+    #else:
+    #    print('Replace material: nothing to replace')
 
 
 def select_material_by_name(find_mat_name):
@@ -131,7 +157,7 @@ def select_material_by_name(find_mat_name):
         objs = bpy.data.objects
         for ob in objs:
             if ob.type in {'MESH', 'CURVE', 'SURFACE', 'FONT', 'META'}:
-                ms = ob.material_slots.values()
+                ms = ob.material_slots
                 for m in ms:
                     if m.material == find_mat:
                         ob.select = True
@@ -149,7 +175,7 @@ def select_material_by_name(find_mat_name):
     else:
         #it's editmode, so select the polygons
         ob = actob
-        ms = ob.material_slots.values()
+        ms = ob.material_slots
 
         #same material can be on multiple slots
         slot_indeces = []
@@ -186,23 +212,24 @@ def mat_to_texface():
     for ob in bpy.context.selected_editable_objects:
         if ob.type == 'MESH':
             #get the materials from slots
-            ms = ob.material_slots.values()
+            ms = ob.material_slots
 
             #build a list of images, one per material
             images = []
             #get the textures from the mats
             for m in ms:
+                if m.material is None:
+                    continue
                 gotimage = False
-                textures = m.material.texture_slots.values()
-                if len(textures) >= 1:
-                    for t in textures:
-                        if t != None:
-                            tex = t.texture
-                            if tex.type == 'IMAGE':
-                                img = tex.image
-                                images.append(img)
-                                gotimage = True
-                                break
+                textures = zip(m.material.texture_slots, m.material.use_textures)
+                for t, enabled in textures:
+                    if enabled and t is not None:
+                        tex = t.texture
+                        if tex.type == 'IMAGE':
+                            img = tex.image
+                            images.append(img)
+                            gotimage = True
+                            break
 
                 if not gotimage:
                     print('noimage on', m.name)
@@ -222,10 +249,10 @@ def mat_to_texface():
             #get active uvlayer
             for t in  me.uv_textures:
                 if t.active:
-                    uvtex = t.data.values()
+                    uvtex = t.data
                     for f in me.polygons:
                         #check that material had an image!
-                        if images[f.material_index] != None:
+                        if images[f.material_index] is not None:
                             uvtex[f.index].image = images[f.material_index]
                         else:
                             uvtex[f.index].image = None
@@ -473,7 +500,7 @@ def texface_to_mat():
 
         i = 0
         for f in faceindex:
-            if f != None:
+            if f is not None:
                 me.polygons[i].material_index = f
             i += 1
     if editmode:
@@ -494,12 +521,12 @@ def remove_materials():
 class VIEW3D_OT_texface_to_material(bpy.types.Operator):
     """Create texture materials for images assigned in UV editor"""
     bl_idname = "view3d.texface_to_material"
-    bl_label = "MW Texface Images to Material/Texture"
+    bl_label = "Texface Images to Material/Texture (Material Utils)"
     bl_options = {'REGISTER', 'UNDO'}
 
     @classmethod
     def poll(cls, context):
-        return context.active_object != None
+        return context.active_object is not None
 
     def execute(self, context):
         if context.selected_editable_objects:
@@ -514,7 +541,7 @@ class VIEW3D_OT_texface_to_material(bpy.types.Operator):
 class VIEW3D_OT_assign_material(bpy.types.Operator):
     """Assign a material to the selection"""
     bl_idname = "view3d.assign_material"
-    bl_label = "MW Assign Material"
+    bl_label = "Assign Material (Material Utils)"
     bl_options = {'REGISTER', 'UNDO'}
 
     matname = StringProperty(
@@ -526,7 +553,7 @@ class VIEW3D_OT_assign_material(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
-        return context.active_object != None
+        return context.active_object is not None
 
     def execute(self, context):
         mn = self.matname
@@ -541,12 +568,12 @@ class VIEW3D_OT_clean_material_slots(bpy.types.Operator):
     """Removes any material slots from selected objects """ \
     """that are not used by the mesh"""
     bl_idname = "view3d.clean_material_slots"
-    bl_label = "MW Clean Material Slots"
+    bl_label = "Clean Material Slots (Material Utils)"
     bl_options = {'REGISTER', 'UNDO'}
 
     @classmethod
     def poll(cls, context):
-        return context.active_object != None
+        return context.active_object is not None
 
     def execute(self, context):
         cleanmatslots()
@@ -556,12 +583,12 @@ class VIEW3D_OT_clean_material_slots(bpy.types.Operator):
 class VIEW3D_OT_material_to_texface(bpy.types.Operator):
     """Transfer material assignments to UV editor"""
     bl_idname = "view3d.material_to_texface"
-    bl_label = "MW Material Images to Texface"
+    bl_label = "Material Images to Texface (Material Utils)"
     bl_options = {'REGISTER', 'UNDO'}
 
     @classmethod
     def poll(cls, context):
-        return context.active_object != None
+        return context.active_object is not None
 
     def execute(self, context):
         mat_to_texface()
@@ -570,12 +597,12 @@ class VIEW3D_OT_material_to_texface(bpy.types.Operator):
 class VIEW3D_OT_material_remove(bpy.types.Operator):
     """Remove all material slots from active objects"""
     bl_idname = "view3d.material_remove"
-    bl_label = "Remove All Material Slots"
+    bl_label = "Remove All Material Slots (Material Utils)"
     bl_options = {'REGISTER', 'UNDO'}
 
     @classmethod
     def poll(cls, context):
-        return context.active_object != None
+        return context.active_object is not None
 
     def execute(self, context):
         remove_materials()
@@ -585,7 +612,7 @@ class VIEW3D_OT_material_remove(bpy.types.Operator):
 class VIEW3D_OT_select_material_by_name(bpy.types.Operator):
     """Select geometry with this material assigned to it"""
     bl_idname = "view3d.select_material_by_name"
-    bl_label = "MW Select Material By Name"
+    bl_label = "Select Material By Name (Material Utils)"
     bl_options = {'REGISTER', 'UNDO'}
     matname = StringProperty(
             name='Material Name',
@@ -595,7 +622,7 @@ class VIEW3D_OT_select_material_by_name(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
-        return context.active_object != None
+        return context.active_object is not None
 
     def execute(self, context):
         mn = self.matname
@@ -606,16 +633,16 @@ class VIEW3D_OT_select_material_by_name(bpy.types.Operator):
 class VIEW3D_OT_replace_material(bpy.types.Operator):
     """Replace a material by name"""
     bl_idname = "view3d.replace_material"
-    bl_label = "MW Replace Material"
+    bl_label = "Replace Material (Material Utils)"
     bl_options = {'REGISTER', 'UNDO'}
 
     matorg = StringProperty(
-            name='Material to Replace',
-            description="Name of Material to Assign",
+            name="Original",
+            description="Material to replace",
             maxlen=63,
             )
-    matrep = StringProperty(name="Replacement material",
-            description='Name of Material to Assign',
+    matrep = StringProperty(name="Replacement",
+            description="Replacement material",
             maxlen=63,
             )
     all_objects = BoolProperty(
@@ -623,16 +650,29 @@ class VIEW3D_OT_replace_material(bpy.types.Operator):
             description="Replace for all objects in this blend file",
             default=True,
             )
+    update_selection = BoolProperty(
+            name="Update Selection",
+            description="Select affected objects and deselect unaffected",
+            default=True,
+            )
 
-    @classmethod
-    def poll(cls, context):
-        return context.active_object != None
+    # Allow to replace all objects even without a selection / active object
+    #@classmethod
+    #def poll(cls, context):
+    #    return context.active_object is not None
+
+    def draw(self, context):
+        layout = self.layout
+        layout.prop_search(self, "matorg", bpy.data, "materials")
+        layout.prop_search(self, "matrep", bpy.data, "materials")
+        layout.prop(self, "all_objects")
+        layout.prop(self, "update_selection")
+
+    def invoke(self, context, event):
+        return context.window_manager.invoke_props_dialog(self)
 
     def execute(self, context):
-        m1 = self.matorg
-        m2 = self.matrep
-        all = self.all_objects
-        replace_material(m1, m2, all)
+        replace_material(self.matorg, self.matrep, self.all_objects, self.update_selection)
         return {'FINISHED'}
 
 
