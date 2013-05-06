@@ -489,14 +489,14 @@ class Print3DSelectReport(Operator):
 # -----------
 # Scale to...
 
-def _scale(scale, report=None):
+def _scale(scale, report=None, report_suffix=""):
     if scale != 1.0:
         bpy.ops.transform.resize(value=(scale,) * 3,
                                  mirror=False, proportional='DISABLED',
                                  snap=False,
                                  texture_space=False)
     if report is not None:
-        report({'INFO'}, "Scaled by %s" % clean_float("%.6f" % scale))
+        report({'INFO'}, "Scaled by %s%s" % (clean_float("%.6f" % scale), report_suffix))
 
 
 class Print3DScaleToVolume(Operator):
@@ -550,6 +550,9 @@ class Print3DScaleToBounds(Operator):
     length_init = FloatProperty(
             options={'HIDDEN'},
             )
+    axis_init = IntProperty(
+            options={'HIDDEN'},
+            )
     length = FloatProperty(
             name="Length Limit",
             unit='LENGTH',
@@ -558,24 +561,27 @@ class Print3DScaleToBounds(Operator):
 
     def execute(self, context):
         scale = self.length / self.length_init
-        _scale(scale, self.report)
+        _scale(scale,
+               report=self.report,
+               report_suffix=", Clamping %s-Axis" % "XYZ"[self.axis_init])
         return {'FINISHED'}
 
     def invoke(self, context, event):
         from mathutils import Vector
 
         def calc_length(vecs):
-            return max((max(v[i] for v in vecs) - min(v[i] for v in vecs)) for i in range(3))
+            return max(((max(v[i] for v in vecs) - min(v[i] for v in vecs)), i) for i in range(3))
 
         if context.mode == 'EDIT_MESH':
-            length = calc_length([Vector(v) * obj.matrix_world
-                                  for v in context.edit_object.bound_box])
+            length, axis = calc_length([Vector(v) * obj.matrix_world
+                                        for v in context.edit_object.bound_box])
         else:
-            length = calc_length([Vector(v) * obj.matrix_world
-                                  for obj in context.selected_editable_objects
-                                  if obj.type == 'MESH' for v in obj.bound_box])
+            length, axis = calc_length([Vector(v) * obj.matrix_world
+                                        for obj in context.selected_editable_objects
+                                        if obj.type == 'MESH' for v in obj.bound_box])
 
         self.length_init = self.length = length
+        self.axis_init = axis
 
         wm = context.window_manager
         return wm.invoke_props_dialog(self)
