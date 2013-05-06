@@ -98,6 +98,16 @@ def bmesh_calc_volume(bm):
                     for f in bm.faces)))
 
 
+def bmesh_calc_volume_signed(bm):
+    """
+    Calculate the volume of a triangulated bmesh.
+    """
+    def tri_signed_volume(p1, p2, p3):
+        return p1.dot(p2.cross(p3)) / 6.0
+    return sum((tri_signed_volume(*(v.co for v in f.verts))
+                for f in bm.faces))
+
+
 def bmesh_calc_area(bm):
     """
     Calculate the surface area.

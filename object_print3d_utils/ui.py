@@ -71,9 +71,9 @@ class Print3DToolBar:
 
         row = layout.row()
         row.label("Statistics:")
-        col = layout.column(align=True)
-        col.operator("mesh.print3d_info_volume", text="Volume")
-        col.operator("mesh.print3d_info_area", text="Area")
+        rowsub = layout.row(align=True)
+        rowsub.operator("mesh.print3d_info_volume", text="Volume")
+        rowsub.operator("mesh.print3d_info_area", text="Area")
 
         row = layout.row()
         row.label("Checks:")
@@ -107,6 +107,12 @@ class Print3DToolBar:
         rowsub.prop(print_3d, "angle_distort", text="")
         # XXX TODO
         # col.operator("mesh.print3d_clean_thin", text="Wall Thickness")
+
+        row = layout.row()
+        row.label("Scale To:")
+        rowsub = layout.row(align=True)
+        rowsub.operator("mesh.print3d_scale_to_volume", text="Volume")
+        rowsub.operator("mesh.print3d_scale_to_bounds", text="Bounds")
 
         col = layout.column()
         rowsub = col.row(align=True)

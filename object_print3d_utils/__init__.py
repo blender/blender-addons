@@ -137,6 +137,9 @@ classes = (
 
     operators.Print3DSelectReport,
 
+    operators.Print3DScaleToVolume,
+    operators.Print3DScaleToBounds,
+
     operators.Print3DExport,
 
     Print3DSettings,
