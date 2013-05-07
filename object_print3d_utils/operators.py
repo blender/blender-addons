@@ -62,14 +62,18 @@ class Print3DInfoVolume(Operator):
         obj = context.active_object
 
         bm = mesh_helpers.bmesh_copy_from_object(obj, apply_modifiers=True)
-        volume = mesh_helpers.bmesh_calc_volume(bm)
+        volume = bm.calc_volume()
         bm.free()
 
         info = []
-        info.append(("Volume: %s³" % clean_float("%.4f" % volume),
+        info.append(("Volume: %s³" % clean_float("%.8f" % volume),
                     None))
-        info.append(("%s cm³" % clean_float("%.4f" % ((volume * (scale * scale * scale)) / (0.01 * 0.01 * 0.01))),
-                    None))
+        if unit.system == 'IMPERIAL':
+            info.append(("%s \"³" % clean_float("%.4f" % ((volume * (scale * scale * scale)) / (0.0254 * 0.0254 * 0.0254))),
+                        None))
+        else:
+            info.append(("%s cm³" % clean_float("%.4f" % ((volume * (scale * scale * scale)) / (0.01 * 0.01 * 0.01))),
+                        None))
 
         report.update(*info)
         return {'FINISHED'}
@@ -91,10 +95,14 @@ class Print3DInfoArea(Operator):
         bm.free()
 
         info = []
-        info.append(("Area: %s²" % clean_float("%.4f" % area),
+        info.append(("Area: %s²" % clean_float("%.8f" % area),
                     None))
-        info.append(("%s cm²" % clean_float("%.4f" % ((area * (scale * scale)) / (0.01 * 0.01))),
-                    None))
+        if unit.system == 'IMPERIAL':
+            info.append(("%s \"²" % clean_float("%.4f" % ((area * (scale * scale)) / (0.0254 * 0.0254))),
+                        None))
+        else:
+            info.append(("%s cm²" % clean_float("%.4f" % ((area * (scale * scale)) / (0.01 * 0.01))),
+                        None))
         report.update(*info)
         return {'FINISHED'}
 
@@ -525,7 +533,7 @@ class Print3DScaleToVolume(Operator):
 
         def calc_volume(obj):
             bm = mesh_helpers.bmesh_copy_from_object(obj, apply_modifiers=True)
-            volume = mesh_helpers.bmesh_calc_volume_signed(bm)
+            volume = bm.calc_volume(signed=True)
             bm.free()
             return volume
 
