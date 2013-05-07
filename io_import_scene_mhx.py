@@ -2279,7 +2279,8 @@ def defaultKey(ext, args, tokens, var, exclude, glbals, lcals):
 
 def pushOnTodoList(var, expr, glbals, lcals):
     global todo
-    print("Tdo", var)
+    print("Unrecognized expression", expr)
+    return
     print(dir(eval(var, glbals, lcals)))
     MyError(
         "Unrecognized expression %s.\n"  % expr +
