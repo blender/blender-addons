@@ -1094,7 +1094,7 @@ class SelectParentChildren(Operator, NodeToolBase):
 
 class DetachOutputs(Operator, NodeToolBase):
     bl_idname = "node.detach_outputs"
-    bl_label = "Smart Detach"
+    bl_label = "Detach Outputs"
     bl_options = {'REGISTER', 'UNDO'}
     
     def execute(self, context):
