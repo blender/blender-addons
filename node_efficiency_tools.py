@@ -1135,7 +1135,6 @@ class LinkToOutputNode(Operator, NodeToolBase):
         if not output_node:
             bpy.ops.node.select_all(action="DESELECT")
             type = context.space_data.tree_type
-            print(type)
             if type == 'ShaderNodeTree':
                 output_node = nodes.new('ShaderNodeOutputMaterial')
             elif type == 'CompositorNodeTree':
