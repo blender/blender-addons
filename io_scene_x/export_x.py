@@ -471,9 +471,15 @@ class MeshExportObject(ExportObject):
             
             PolygonVertexIndexes = PolygonVertexIndexes[::-1]
             
-            for VertexIndex in PolygonVertexIndexes:
-                self.Exporter.File.Write("{},".format(VertexIndex),
-                    Indent=False)
+            for VertexCountIndex, VertexIndex in \
+                enumerate(PolygonVertexIndexes):
+
+                if VertexCountIndex == len(PolygonVertexIndexes) - 1:
+                    self.Exporter.File.Write("{};".format(VertexIndex),
+                        Indent=False)
+                else:
+                    self.Exporter.File.Write("{},".format(VertexIndex),
+                        Indent=False)
             
             if Index == PolygonCount - 1:
                 self.Exporter.File.Write(";\n", Indent=False)
@@ -569,9 +575,13 @@ class MeshExportObject(ExportObject):
             self.Exporter.File.Write("{};".format(len(Polygon)))
             
             # Reverse the winding order
-            for VertexIndex in Polygon[::-1]:
-                self.Exporter.File.Write("{},".format(VertexIndex),
-                    Indent=False)
+            for VertexCountIndex, VertexIndex in enumerate(Polygon[::-1]):
+                if VertexCountIndex == len(Polygon) - 1:
+                    self.Exporter.File.Write("{};".format(VertexIndex),
+                        Indent=False)
+                else:
+                    self.Exporter.File.Write("{},".format(VertexIndex),
+                        Indent=False)
             
             if Index == FaceCount - 1:
                 self.Exporter.File.Write(";\n", Indent=False)
