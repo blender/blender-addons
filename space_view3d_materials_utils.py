@@ -23,7 +23,7 @@
 bl_info = {
     "name": "Material Utils",
     "author": "michaelw",
-    "version": (1, 5),
+    "version": (1, 6),
     "blender": (2, 66, 6),
     "location": "View3D > Q key",
     "description": "Menu of material tools (assign, select..)  in the 3D View",
@@ -82,11 +82,50 @@ This script has several functions and operators, grouped for convenience:
     option allows you to update object selection, to indicate which objects
     were affected and which not.
 
+* set fake user
+    enable/disable fake user for materials. You can chose for which materials
+    it shall be set, materials of active / selected / objects in current scene
+    or used / unused / all materials.
+
 """
 
 
 import bpy
-from bpy.props import StringProperty, BoolProperty
+from bpy.props import StringProperty, BoolProperty, EnumProperty
+
+
+def fake_user_set(fake_user='ON', materials='UNUSED'):
+    if materials == 'ALL':
+        mats = (mat for mat in bpy.data.materials if mat.library is None)
+    elif materials == 'UNUSED':
+        mats = (mat for mat in bpy.data.materials if mat.library is None and mat.users == 0)
+    else:
+        mats = []
+        if materials == 'ACTIVE':
+            objs = [bpy.context.active_object]
+        elif materials == 'SELECTED':
+            objs = bpy.context.selected_objects
+        elif materials == 'SCENE':
+            objs = bpy.context.scene.objects
+        else: # materials == 'USED'
+            objs = bpy.data.objects
+            # Maybe check for users > 0 instead?
+
+        """ more reable than the following generator:
+        for ob in objs:
+            if hasattr(ob.data, "materials"):
+                for mat in ob.data.materials:
+                    if mat.library is None: #and not in mats:
+                        mats.append(mat)
+        """
+        mats = (mat for ob in objs if hasattr(ob.data, "materials") for mat in ob.data.materials if mat.library is None)
+
+    for mat in mats:
+        mat.use_fake_user = fake_user == 'ON'
+
+    for area in bpy.context.screen.areas:
+        if area.type in ('PROPERTIES', 'NODE_EDITOR'):
+            area.tag_redraw()
 
 
 def replace_material(m1, m2, all_objects=False, update_selection=False):
@@ -676,6 +715,44 @@ class VIEW3D_OT_replace_material(bpy.types.Operator):
         return {'FINISHED'}
 
 
+class VIEW3D_OT_fake_user_set(bpy.types.Operator):
+    """Enable/disable fake user for materials"""
+    bl_idname = "view3d.fake_user_set"
+    bl_label = "Set Fake User (Material Utils)"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    fake_user = EnumProperty(
+            name="Fake User",
+            description="Turn fake user on or off",
+            items=(('ON', "On", "Enable fake user"),('OFF', "Off", "Disable fake user")),
+            default='ON'
+            )
+
+    materials = EnumProperty(
+            name="Materials",
+            description="Which materials of objects to affect",
+            items=(('ACTIVE', "Active object", "Materials of active object only"),
+                   ('SELECTED', "Selected objects", "Materials of selected objects"),
+                   ('SCENE', "Scene objects", "Materials of objects in current scene"),
+                   ('USED', "Used", "All materials used by objects"),
+                   ('UNUSED', "Unused", "Currently unused materials"),
+                   ('ALL', "All", "All materials in this blend file")),
+            default='UNUSED'
+            )
+
+    def draw(self, context):
+        layout = self.layout
+        layout.prop(self, "fake_user", expand=True)
+        layout.prop(self, "materials")
+
+    def invoke(self, context, event):
+        return context.window_manager.invoke_props_dialog(self)
+
+    def execute(self, context):
+        fake_user_set(self.fake_user, self.materials)
+        return {'FINISHED'}
+
+
 # -----------------------------------------------------------------------------
 # menu classes
 
@@ -706,6 +783,10 @@ class VIEW3D_MT_master_material(bpy.types.Menu):
         layout.operator("view3d.replace_material",
                         text='Replace Material',
                         icon='ARROW_LEFTRIGHT')
+
+        layout.operator("view3d.fake_user_set",
+                        text='Set Fake User',
+                        icon='UNPINNED')
 
 
 class VIEW3D_MT_assign_material(bpy.types.Menu):
