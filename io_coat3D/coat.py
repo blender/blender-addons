@@ -33,8 +33,12 @@ def set_exchange_folder():
 
     if(platform == 'win32'):
         exchange = os.path.expanduser("~") + os.sep + 'Documents' + os.sep + '3D-CoatV4' + os.sep +'Exchange'
+        if not(os.path.isdir(exchange)):
+            exchange = os.path.expanduser("~") + os.sep + 'Documents' + os.sep + '3D-CoatV3' + os.sep +'Exchange'
     else:
         exchange = os.path.expanduser("~") + os.sep + '3D-CoatV4' + os.sep + 'Exchange'
+        if not(os.path.isdir(exchange)):
+            exchange = os.path.expanduser("~") + os.sep + '3D-CoatV3' + os.sep + 'Exchange'          
     if(not(os.path.isdir(exchange))):
         exchange = coat3D.exchangedir 
 
