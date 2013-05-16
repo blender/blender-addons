@@ -19,8 +19,8 @@
 bl_info = {
     'name': "Nodes Efficiency Tools",
     'author': "Bartek Skorupa",
-    'version': (2, 28),
-    'blender': (2, 6, 6),
+    'version': (2, 29),
+    'blender': (2, 6, 7),
     'location': "Node Editor Properties Panel (Ctrl-SPACE)",
     'description': "Nodes Efficiency Tools",
     'warning': "",
@@ -1107,10 +1107,11 @@ class DetachOutputs(Operator, NodeToolBase):
             node.select = True
         bpy.ops.node.delete_reconnect()
         for new_node in new_nodes:
-            new_node.location.y += 100.0
             new_node.select = True
-
+        bpy.ops.transform.translate('INVOKE_DEFAULT')
+        
         return {'FINISHED'}
+
 
 class LinkToOutputNode(Operator, NodeToolBase):
     bl_idname = "node.link_to_output_node"
