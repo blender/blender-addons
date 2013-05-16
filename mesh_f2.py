@@ -249,15 +249,11 @@ class MeshF2(bpy.types.Operator):
         bm = bmesh.from_edit_mesh(context.active_object.data)
         sel = [v for v in bm.verts if v.select]
         if len(sel) > 2:
-            if len(bm.faces) > 0:
-                if len([True for f in bm.faces if f.select]) == len(bm.faces):
-                    # all faces selected, can't create new one
-                    return {'CANCELLED'}
             # original 'Make Edge/Face' behaviour
             try:
                 bpy.ops.mesh.edge_face_add('INVOKE_DEFAULT')
             except:
-                pass
+                return {'CANCELLED'}
         elif len(sel) == 1:
             # single vertex selected -> mirror vertex and create new face
             quad_from_vertex(bm, sel[0], context, event)
