@@ -128,8 +128,6 @@ class ExportFBX(bpy.types.Operator, ExportHelper):
 
     use_mesh_edges = BoolProperty(
             name="Include Edges",
-            description=("Edges may not be necessary, can cause import "
-                         "pipeline errors with XNA"),
             default=False,
             )
     use_armature_deform_only = BoolProperty(
@@ -169,16 +167,6 @@ class ExportFBX(bpy.types.Operator, ExportHelper):
             default=6.0,
             )
     path_mode = path_reference_mode
-    use_rotate_workaround = BoolProperty(
-            name="XNA Rotate Animation Hack",
-            description="Disable global rotation, for XNA compatibility",
-            default=False,
-            )
-    xna_validate = BoolProperty(
-            name="XNA Strict Options",
-            description="Make sure options are compatible with Microsoft XNA",
-            default=False,
-            )
     batch_mode = EnumProperty(
             name="Batch Mode",
             items=(('OFF', "Off", "Active scene to file"),
@@ -197,45 +185,9 @@ class ExportFBX(bpy.types.Operator, ExportHelper):
             options={'HIDDEN'},
             )
 
-    # Validate that the options are compatible with XNA (JCB)
-    def _validate_xna_options(self):
-        if not self.xna_validate:
-            return False
-        changed = False
-        if not self.use_rotate_workaround:
-            changed = True
-            self.use_rotate_workaround = True
-        if self.global_scale != 1.0:
-            changed = True
-            self.global_scale = 1.0
-        if self.mesh_smooth_type != 'OFF':
-            changed = True
-            self.mesh_smooth_type = 'OFF'
-        if self.use_anim_optimize:
-            changed = True
-            self.use_anim_optimize = False
-        if self.use_mesh_edges:
-            changed = True
-            self.use_mesh_edges = False
-        if self.use_default_take:
-            changed = True
-            self.use_default_take = False
-        if self.object_types & {'CAMERA', 'LAMP', 'EMPTY'}:
-            changed = True
-            self.object_types -= {'CAMERA', 'LAMP', 'EMPTY'}
-        if self.path_mode != 'STRIP':
-            changed = True
-            self.path_mode = 'STRIP'
-        return changed
-
     @property
     def check_extension(self):
         return self.batch_mode == 'OFF'
-
-    def check(self, context):
-        is_def_change = super().check(context)
-        is_xna_change = self._validate_xna_options()
-        return (is_xna_change or is_def_change)
 
     def execute(self, context):
         from mathutils import Matrix
@@ -248,18 +200,16 @@ class ExportFBX(bpy.types.Operator, ExportHelper):
         global_matrix[1][1] = \
         global_matrix[2][2] = self.global_scale
 
-        if not self.use_rotate_workaround:
-            global_matrix = (global_matrix *
-                             axis_conversion(to_forward=self.axis_forward,
-                                             to_up=self.axis_up,
-                                             ).to_4x4())
+        global_matrix = (global_matrix *
+                         axis_conversion(to_forward=self.axis_forward,
+                                         to_up=self.axis_up,
+                                         ).to_4x4())
 
         keywords = self.as_keywords(ignore=("axis_forward",
                                             "axis_up",
                                             "global_scale",
                                             "check_existing",
                                             "filter_glob",
-                                            "xna_validate",
                                             ))
 
         keywords["global_matrix"] = global_matrix
