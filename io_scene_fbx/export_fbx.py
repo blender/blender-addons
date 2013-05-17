@@ -199,6 +199,20 @@ def meshNormalizedWeights(ob, me):
 
     return groupNames, vWeightList
 
+
+def save_custom_properties(fw, ob, ident):
+    for (key, value) in ob.items():
+        value_type = type(value)
+        if value_type == str:
+            fw('%sProperty: "%s", "KString", "U","%s"' % (ident, key, value.replace('"', "&quot;")))
+        elif value_type == int:
+            fw('%sProperty: "%s", "int", "U",%i' % (ident, key, value))
+        elif value_type == float:
+            fw('%sProperty: "%s", "double", "U",%.15f' % (ident, key, value))
+        # elif value_type == bool:
+        #     fw('%sProperty: "%s", "bool", "U",%i' % (ident, key, int(value)))
+
+
 header_comment = \
 '''; FBX 6.1.0 project file
 ; Created by Blender FBX Exporter
@@ -225,6 +239,7 @@ def save_single(operator, scene, filepath="",
         use_mesh_edges=True,
         use_rotate_workaround=False,
         use_default_take=True,
+        use_custom_properties=True,
     ):
 
     import bpy_extras.io_utils
@@ -674,6 +689,13 @@ def save_single(operator, scene, filepath="",
                '\n\t\t\tProperty: "Size", "double", "",100'
                '\n\t\t\tProperty: "Look", "enum", "",1'
                )
+
+        if use_custom_properties:
+            # object and bone are fine
+            if ob:
+                save_custom_properties(fw, ob, "\n\t\t\t")
+            elif pose_bone:
+                save_custom_properties(fw, pose_bone, "\n\t\t\t")
 
         return loc, rot, scale, matrix, matrix_rot
 
