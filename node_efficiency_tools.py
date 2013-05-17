@@ -19,7 +19,7 @@
 bl_info = {
     'name': "Nodes Efficiency Tools",
     'author': "Bartek Skorupa",
-    'version': (2, 29),
+    'version': (2, 30),
     'blender': (2, 6, 7),
     'location': "Node Editor Properties Panel (Ctrl-SPACE)",
     'description': "Nodes Efficiency Tools",
@@ -1120,7 +1120,14 @@ class LinkToOutputNode(Operator, NodeToolBase):
     
     @classmethod
     def poll(cls, context):
-        return context.active_node
+        space = context.space_data
+        valid = False
+        if (space.type == 'NODE_EDITOR' and
+                space.node_tree is not None and
+                context.active_node is not None
+                ):
+            valid = True
+        return valid
     
     def execute(self, context):
         nodes, links = get_nodes_links(context)
@@ -1585,7 +1592,10 @@ kmi_defs = (
     (SelectParentChildren.bl_idname, 'RIGHT_BRACKET', False, False, False, (('option', 'CHILD'),)),
     # Select Parent
     (SelectParentChildren.bl_idname, 'LEFT_BRACKET', False, False, False, (('option', 'PARENT'),)),
+    # Add Texture Setup
     (NodesAddTextureSetup.bl_idname, 'T', True, False, False, None),
+    # Copy Label from active to selected
+    (NodesCopyLabel.bl_idname, 'V', False, True, False, (('option', 'FROM_ACTIVE'),)),
     # MENUS
     ('wm.call_menu', 'SPACE', True, False, False, (('name', EfficiencyToolsMenu.bl_idname),)),
     ('wm.call_menu', 'SLASH', False, False, False, (('name', AddReroutesMenu.bl_idname),)),
