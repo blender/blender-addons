@@ -19,7 +19,7 @@
 bl_info = {
     'name': "Nodes Efficiency Tools",
     'author': "Bartek Skorupa",
-    'version': (2, 30),
+    'version': (2, 31),
     'blender': (2, 6, 7),
     'location': "Node Editor Properties Panel (Ctrl-SPACE)",
     'description': "Nodes Efficiency Tools",
@@ -300,7 +300,12 @@ class MergeNodes(Operator, NodeToolBase):
                 last_add = nodes[count_before]
                 # add links from last_add to all links 'to_socket' of out links of first selected.
                 for fs_link in first_selected.outputs[0].links:
-                    links.new(last_add.outputs[0], fs_link.to_socket)
+                    # Prevent cyclic dependencies when nodes to be marged are linked to one another.
+                    # Create list of invalid indexes.
+                    invalid_i = [n[0] for n in (selected_mix + selected_math + selected_shader)]
+                    # Link only if "to_node" index not in invalid indexes list.
+                    if fs_link.to_node not in [nodes[i] for i in invalid_i]:
+                        links.new(last_add.outputs[0], fs_link.to_socket)
                 # add link from "first" selected and "first" add node
                 links.new(first_selected.outputs[0], nodes[count_after - 1].inputs[first])
                 # add links between added ADD nodes and between selected and ADD nodes
