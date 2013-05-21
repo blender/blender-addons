@@ -25,8 +25,7 @@
 
 """
 Abstract
-MHX (MakeHuman eXchange format) importer for Blender 2.5x.
-Version 1.14.0
+MHX (MakeHuman eXchange format) importer for Blender 2.6x.
 
 This script should be distributed with Blender.
 If not, place it in the .blender/scripts/addons dir
@@ -39,8 +38,8 @@ Alternatively, run the script in the script editor (Alt-P), and access from the 
 bl_info = {
     'name': 'Import: MakeHuman (.mhx)',
     'author': 'Thomas Larsson',
-    'version': (1, 15, 3),
-    "blender": (2, 65, 0),
+    'version': (1, 15, 4),
+    "blender": (2, 67, 0),
     'location': "File > Import > MakeHuman (.mhx)",
     'description': 'Import files in the MakeHuman eXchange format (.mhx)',
     'warning': '',
@@ -437,7 +436,7 @@ def parse(tokens):
             correctRig(val)
         elif key == "Rigify":
             if toggle & T_Rigify:
-                rigifyMhx(bpy.context, val[0])
+                rigifyMhx(bpy.context)
         elif key == 'AnimationData':
             try:
                 ob = loadedData['Object'][val[0]]
@@ -2519,294 +2518,313 @@ def writeDefaults():
 #
 #   Postprocessing of rigify rig
 #
-#   rigifyMhx(context, name):
+#   rigifyMhx(context):
 #
 ###################################################################################
 
-def rigifyMhx(context, name):
+class RigifyBone:
+    def __init__(self, eb):
+        self.name = eb.name
+        self.realname = None
+        self.realname1 = None
+        self.realname2 = None
+        self.fkname = None
+        self.ikname = None
+        
+        self.head = eb.head.copy()
+        self.tail = eb.tail.copy()
+        self.roll = eb.roll
+        self.deform = eb.use_deform
+        self.parent = None
+        self.child = None
+        self.connect = False
+        self.original = False
+        self.extra = (eb.name in ["spine-1"])        
+        
+    def __repr__(self):
+        return ("<RigifyBone %s %s %s>" % (self.name, self.realname, self.realname1))
+        
+    
+def rigifyMhx(context):
+    from collections import OrderedDict
+
     print("Modifying MHX rig to Rigify")
     scn = context.scene 
-    mhx = loadedData['Object'][name]
-    mhx.MhxRigify = True
-    bpy.context.scene.objects.active = mhx
-
-    # Delete old widgets
-    """
-    for ob in scn.objects:
-        if ob.type == 'MESH' and ob.name[0:3] == "WGT":
-            scn.objects.unlink(ob)
-    """
-
-    # Save mhx bone locations    
-    heads = {}
-    tails = {}
-    rolls = {}
-    parents = {}
-    extras = {}
-    bpy.ops.object.mode_set(mode='EDIT')
-
-    newParents = {
-        'head' : 'DEF-head',
-        'ribs' : 'DEF-ribs',
-        'upper_arm.L' : 'DEF-upper_arm.02.L',
-        'thigh.L' : 'DEF-thigh.02.L',
-        'upper_arm.R' : 'DEF-upper_arm.02.R',
-        'thigh.R' : 'DEF-thigh.02.R',
-    }
-
-    for eb in mhx.data.edit_bones:
-        heads[eb.name] = eb.head.copy()
-        tails[eb.name] = eb.tail.copy()
-        rolls[eb.name] = eb.roll
-        if eb.parent:            
-            par = eb.parent.name
-            # print(eb.name, par)
-            try:
-                parents[eb.name] = newParents[par]
-            except:
-                parents[eb.name] = par
-        else:
-            parents[eb.name] = None
-        extras[eb.name] = not eb.layers[16]
-    bpy.ops.object.mode_set(mode='OBJECT')
-   
-    # Find corresponding meshes. Can be several (clothes etc.)   
-    meshes = []
-    for ob in scn.objects:
-        for mod in ob.modifiers:
-            if (mod.type == 'ARMATURE' and mod.object == mhx):
-                meshes.append((ob, mod))
-    if meshes == []:
-        MyError("Did not find matching mesh")
+    ob = context.object
+    if ob.type == 'ARMATURE':
+        rig = ob
+    elif ob.type == 'MESH':
+        rig = ob.parent
+    else:
+        rig = None
+    if not(rig and rig.type == 'ARMATURE'):
+        raise NameError("Rigify: %s is neither an armature nor has armature parent" % ob)
+    rig.MhxRigify = True
+    scn.objects.active = rig
+    
+    group = None
+    for grp in bpy.data.groups:
+        if rig.name in grp.objects:
+            group = grp
+            break
+    print("Group: %s" % group)        
         
-    # Rename Head vertex group    
-    for (mesh, mod) in meshes:
-        try:
-            vg = mesh.vertex_groups['DfmHead']
-            vg.name = 'DEF-head'
-        except:
-            pass
-
-    # Change meta bone locations    
-    scn.objects.active = None 
-    try:
-        bpy.ops.object.armature_human_metarig_add()
-        success = True
-    except:
-        success = False
-    if not success:
-        MyError("Unable to create advanced human. \n" \
-                "Make sure that the Rigify addon is enabled. \n" \
-                "It is found under Rigging.")
-        return
-
+    # Setup info about MHX bones    
+    bones = OrderedDict()
+    bpy.ops.object.mode_set(mode='EDIT')
+    for eb in rig.data.edit_bones:
+        bone = bones[eb.name] = RigifyBone(eb)
+        if eb.parent:        
+            bone.parent = eb.parent.name
+            bones[bone.parent].child = eb.name
+    bpy.ops.object.mode_set(mode='OBJECT')   
+    
+    # Create metarig    
+    bpy.ops.object.armature_human_metarig_add()
+    bpy.ops.object.location_clear()
+    bpy.ops.object.rotation_clear()
+    bpy.ops.object.scale_clear()
+    bpy.ops.transform.resize(value=(100, 100, 100))
+    bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)
+    
+    # Fit metarig to default MHX rig    
     meta = context.object
     bpy.ops.object.mode_set(mode='EDIT')
-    for eb in meta.data.edit_bones:
-        eb.head = heads[eb.name]
-        eb.tail = tails[eb.name]
-        eb.roll = rolls[eb.name]
-        extras[eb.name] = False
-
-    fingerPlanes = [
-        ('UP-thumb.L', 'thumb.01.L', 'thumb.03.L', ['thumb.02.L']),
-        ('UP-index.L', 'finger_index.01.L', 'finger_index.03.L', ['finger_index.02.L']),
-        ('UP-middle.L', 'finger_middle.01.L', 'finger_middle.03.L', ['finger_middle.02.L']),
-        ('UP-ring.L', 'finger_ring.01.L', 'finger_ring.03.L', ['finger_ring.02.L']),
-        ('UP-pinky.L', 'finger_pinky.01.L', 'finger_pinky.03.L', ['finger_pinky.02.L']),
-        ('UP-thumb.R', 'thumb.01.R', 'thumb.03.R', ['thumb.02.R']),
-        ('UP-index.R', 'finger_index.01.R', 'finger_index.03.R', ['finger_index.02.R']),
-        ('UP-middle.R', 'finger_middle.01.R', 'finger_middle.03.R', ['finger_middle.02.R']),
-        ('UP-ring.R', 'finger_ring.01.R', 'finger_ring.03.R', ['finger_ring.02.R']),
-        ('UP-pinky.R', 'finger_pinky.01.R', 'finger_pinky.03.R', ['finger_pinky.02.R']),
-    ]
-
-    for (upbone, first, last, middles) in fingerPlanes:
-        extras[upbone] = False
-        #lineateChain(upbone, first, last, middles, 0.01, meta, heads, tails)
-
-    ikPlanes = [
-        ('UP-leg.L', 'thigh.L', 'shin.L'),
-        ('UP-arm.L', 'upper_arm.L', 'forearm.L'),
-        ('UP-leg.R', 'thigh.R', 'shin.R'),
-        ('UP-arm.R', 'upper_arm.R', 'forearm.R'),
-    ]
-
-    for (upbone, first, last) in ikPlanes:
-        extras[upbone] = False
-        lineateChain(upbone, first, last, [], 0.1, meta, heads, tails)
-
+    extra = []
+    for bone in bones.values():  
+        try:
+            eb = meta.data.edit_bones[bone.name]
+        except KeyError:
+            eb = None
+        if eb:
+            eb.head = bone.head
+            eb.tail = bone.tail
+            eb.roll = bone.roll
+            bone.original = True
+        elif bone.extra:
+            extra.append(bone.name)
+            bone.original = True
+            eb = meta.data.edit_bones.new(bone.name)
+            eb.use_connect = False
+            eb.head = bones[bone.parent].tail
+            eb.tail = bones[bone.child].head
+            eb.roll = bone.roll
+            parent = meta.data.edit_bones[bone.parent]
+            child = meta.data.edit_bones[bone.child]
+            child.parent = eb
+            child.head = bones[bone.child].head
+            parent.tail = bones[bone.parent].tail
+            eb.parent = parent
+            eb.use_connect = True
+    
+    # Add rigify properties to extra bones
     bpy.ops.object.mode_set(mode='OBJECT')
-
+    for bname in extra:
+        pb = meta.pose.bones[bname]
+        pb["rigify_type"] = ""    
+        
     # Generate rigify rig    
     bpy.ops.pose.rigify_generate()
+    gen = context.object
+    print("Generated", gen)
     scn.objects.unlink(meta)
-    rigify = context.object
-    rigify.name = name+"Rig"
-    layers = 20*[False]
-    layers[1] = True        
-    rigify.layers = layers
-    rigify.show_x_ray = True
-    for (mesh, mod) in meshes:
-        mod.object = rigify
+    del meta
+    
+    for bone in bones.values():
+        if bone.original:
+            setBoneName(bone, gen)
+            
+    # Add extra bone to generated rig    
+    bpy.ops.object.mode_set(mode='EDIT')
+    layers = 32*[False]
+    layers[1] = True
+    for bone in bones.values():
+        if not bone.original:
+            if bone.deform:
+                bone.realname = "DEF-" + bone.name
+            else:
+                bone.realname = "MCH-" + bone.name
+            eb = gen.data.edit_bones.new(bone.realname)
+            eb.head = bone.head
+            eb.tail = bone.tail
+            eb.roll = bone.roll
+            eb.use_deform = bone.deform
+            if bone.parent:
+                parent = bones[bone.parent]
+                if parent.realname:
+                    eb.parent = gen.data.edit_bones[parent.realname]
+                elif parent.realname1:
+                    eb.parent = gen.data.edit_bones[parent.realname1]
+                else:
+                    print(bone)
+            eb.use_connect = (eb.parent != None and eb.parent.tail == eb.head)
+            eb.layers = layers
 
-    grp = loadedData['Group'][name]
-    grp.objects.link(rigify)
+    bpy.ops.object.mode_set(mode='OBJECT')
+    for bone in bones.values():
+        if not bone.original:
+            pb = gen.pose.bones[bone.realname]
+            db = rig.pose.bones[bone.name]
+            pb.rotation_mode = db.rotation_mode
+            for cns1 in db.constraints:
+                cns2 = pb.constraints.new(cns1.type)
+                fixConstraint(cns1, cns2, gen, bones)                
+    
+    # Add MHX properties    
+    for key in rig.keys():
+        gen[key] = rig[key]
+    
+    # Copy MHX bone drivers    
+    if rig.animation_data:
+        for fcu1 in rig.animation_data.drivers:
+            rna,channel = fcu1.data_path.rsplit(".", 1)
+            pb = eval("gen.%s" % rna)
+            fcu2 = pb.driver_add(channel, fcu1.array_index)
+            copyDriver(fcu1, fcu2, gen)    
+
+    # Copy MHX morph drivers and change armature modifier
+    for ob in rig.children:
+        if ob.type == 'MESH':
+            ob.parent = gen
+            
+            if ob.data.animation_data:
+                for fcu in ob.data.animation_data.drivers:
+                    print(ob, fcu.data_path)
+                    changeDriverTarget(fcu, gen)                     
+            
+            if ob.data.shape_keys and ob.data.shape_keys.animation_data:
+                for fcu in ob.data.shape_keys.animation_data.drivers:
+                    print(skey, fcu.data_path)
+                    changeDriverTarget(fcu, gen)                     
+            
+            for mod in ob.modifiers:
+                if mod.type == 'ARMATURE' and mod.object == rig:
+                    mod.object = gen                    
+
+    if group:
+        group.objects.link(gen)
 
     # Parent widgets under empty
     empty = bpy.data.objects.new("Widgets", None)
     scn.objects.link(empty)
     empty.layers = 20*[False]
     empty.layers[19] = True
-    empty.parent = rigify
+    empty.parent = gen
     for ob in scn.objects:
         if ob.type == 'MESH' and ob.name[0:4] == "WGT-" and not ob.parent:
             ob.parent = empty
             grp.objects.link(ob)
-        elif ob.parent == mhx:
-            ob.parent = rigify
-
-    # Copy extra bones to rigify rig
-    bpy.ops.object.mode_set(mode='EDIT')
-    for name in heads.keys():
-        if extras[name]:
-            eb = rigify.data.edit_bones.new(name)
-            eb.head = heads[name]
-            eb.tail = tails[name]
-            eb.roll = rolls[name]            
-    for name in heads.keys():
-        if extras[name] and parents[name]:
-            eb = rigify.data.edit_bones[name]
-            eb.parent = rigify.data.edit_bones[parents[name]]
-
-    # Copy constraints etc.
-    bpy.ops.object.mode_set(mode='POSE')
-    for name in heads.keys():
-        if extras[name]:
-            pb1 = mhx.pose.bones[name]
-            pb2 = rigify.pose.bones[name]
-            pb2.custom_shape = pb1.custom_shape
-            pb2.lock_location = pb1.lock_location
-            pb2.lock_rotation = pb1.lock_rotation
-            pb2.lock_scale = pb1.lock_scale
-            b1 = pb1.bone
-            b2 = pb2.bone
-            b2.use_deform = b1.use_deform
-            b2.hide_select = b1.hide_select
-            b2.show_wire = b1.show_wire
-            layers = 32*[False]
-            if b1.layers[8]:
-                layers[28] = True
-            else:
-                layers[29] = True
-            if b1.layers[10]:
-                layers[2] = True
-            b2.layers = layers
-            for cns1 in pb1.constraints:
-                cns2 = copyConstraint(cns1, pb1, pb2, mhx, rigify)    
-                if cns2.type == 'CHILD_OF':
-                    rigify.data.bones.active = pb2.bone
-                    bpy.ops.constraint.childof_set_inverse(constraint=cns2.name, owner='BONE')    
     
-    # Create animation data
-    if mhx.animation_data:
-        for fcu in mhx.animation_data.drivers:
-            rigify.animation_data.drivers.from_existing(src_driver=fcu)
+    #Clean up    
+    gen.show_x_ray = True
+    gen.data.draw_type = 'STICK'
+    name = rig.name
+    scn.objects.unlink(rig)
+    del rig
+    gen.name = name
+    print("MHX rig %s successfully rigified" % name)
+    
+    
 
-    fixDrivers(rigify.animation_data, mhx, rigify)
-    for (mesh, mod) in meshes:
-        mesh.parent = rigify
-        skeys = mesh.data.shape_keys
-        if skeys:
-            fixDrivers(skeys.animation_data, mhx, rigify)
+def setBoneName(bone, gen):
+    fkname = bone.name.replace(".", ".fk.")
+    try:
+        gen.data.bones[fkname]
+        bone.fkname = fkname
+        bone.ikname = fkname.replace(".fk.", ".ik")
+    except KeyError:
+        pass
 
-    scn.objects.unlink(mhx)
-    print("Rigify rig complete")    
-    return
-
-#
-#   lineateChain(upbone, first, last, middles, minDist, rig, heads, tails):
-#   lineate(pt, start, minDist, normal, offVector):
-#
-
-def lineateChain(upbone, first, last, middles, minDist, rig, heads, tails):
-    fb = rig.data.edit_bones[first]
-    lb = rig.data.edit_bones[last]
-    uhead = heads[upbone]
-    utail = tails[upbone]
-    tang = lb.tail - fb.head
-    tangent = tang/tang.length
-    up = (uhead+utail)/2 - fb.head
-    norm = up - tangent*tangent.dot(up)
-    normal = norm/norm.length
-    offVector = tangent.cross(normal)
-    vec = utail - uhead
-    fb.tail = lineate(fb.tail, fb.head, minDist, normal, offVector)
-    lb.head = lineate(lb.head, fb.head, minDist, normal, offVector)
-    for bone in middles:
-        mb = rig.data.edit_bones[bone]
-        mb.head = lineate(mb.head, fb.head, minDist, normal, offVector)
-        mb.tail = lineate(mb.tail, fb.head, minDist, normal, offVector)
-    return
-
-def lineate(pt, start, minDist, normal, offVector):
-    diff = pt - start
-    diff = diff - offVector*offVector.dot(diff) 
-    dist = diff.dot(normal)
-    if dist < minDist:
-        diff += (minDist - dist)*normal
-    return start + diff
-
-#
-#   fixDrivers(adata, mhx, rigify):
-#
-
-def fixDrivers(adata, mhx, rigify):
-    if not adata:
+    defname = "DEF-" + bone.name
+    try:
+        gen.data.bones[defname]
+        bone.realname = defname
         return
-    for fcu in adata.drivers:
-        for var in fcu.driver.variables:
-            for targ in var.targets:
-                if targ.id == mhx:
-                    targ.id = rigify
-    return
+    except KeyError:
+        pass
+        
+    defname1 = "DEF-" + bone.name + ".01"
+    try:
+        gen.data.bones[defname1]
+        bone.realname1 = defname1
+        bone.realname2 = defname1.replace(".01.", ".02.")
+        return
+    except KeyError:
+        pass
 
-#
-#   copyConstraint(cns1, pb1, pb2, mhx, rigify):
-#
+    defname1 = "DEF-" + bone.name.replace(".", ".01.")
+    try:
+        gen.data.bones[defname1]
+        bone.realname1 = defname1
+        bone.realname2 = defname1.replace(".01.", ".02")
+        return
+    except KeyError:
+        pass
 
-def copyConstraint(cns1, pb1, pb2, mhx, rigify):
-    substitute = {
-        'Head' : 'DEF-head',
-        'MasterFloor' : 'root',
-        'upper_arm.L' : 'DEF-upper_arm.L.01',
-        'upper_arm.R' : 'DEF-upper_arm.R.01',
-        'thigh.L' : 'DEF-thigh.L.01',
-        'thigh.R' : 'DEF-thigh.R.01',
-        'shin.L' : 'DEF-shin.L.01',
-        'shin.R' : 'DEF-shin.R.01'
-    }
+    try:
+        gen.data.edit_bones[bone.name]
+        bone.realname = bone.name
+    except KeyError:
+        pass
 
-    cns2 = pb2.constraints.new(cns1.type)
-    for prop in dir(cns1):
-        if prop == 'target':
-            if cns1.target == mhx:
-                cns2.target = rigify
-            else:
-                cns2.target = cns1.target
-        elif prop == 'subtarget':
-            try:
-                cns2.subtarget = substitute[cns1.subtarget]
-            except:
-                cns2.subtarget = cns1.subtarget
-        elif prop[0] != '_':
-            try:
-                expr = "cns2.%s = cns1.%s" % (prop, prop)
-                #print(pb1.name, expr)
-                exec(expr)
-            except:
-                pass
-    return cns2
+
+def fixConstraint(cns1, cns2, gen, bones):
+    for key in dir(cns1):
+        if ((key[0] != "_") and
+            (key not in ["bl_rna", "type", "rna_type", "is_valid", "error_location", "error_rotation"])):
+            expr = ("cns2.%s = cns1.%s" % (key, key))
+            exec(expr)
+
+    cns2.target = gen
+    
+    if cns1.type == 'STRETCH_TO':
+        bone = bones[cns1.subtarget]
+        if bone.realname:
+            cns2.subtarget = bone.realname
+            cns2.head_tail = cns1.head_tail
+        elif not bone.realname1:
+            print(bone)
+            halt
+        elif cns1.head_tail < 0.5:
+            cns2.subtarget = bone.realname1
+            cns2.head_tail = 2*cns1.head_tail
+        else:
+            cns2.subtarget = bone.realname2
+            cns2.head_tail = 2*cns1.head_tail-1
+
+    elif cns1.type == 'TRANSFORM':
+        bone = bones[cns1.subtarget]
+        if bone.fkname:
+            cns2.subtarget = bone.fkname
+        elif bone.ikname:
+            cns2.subtarget = bone.ikname
+        else:
+            cns2.subtarget = bone.realname
+
+
+def copyDriver(fcu1, fcu2, id):
+    drv1 = fcu1.driver
+    drv2 = fcu2.driver
+    
+    for var1 in drv1.variables:
+        var2 = drv2.variables.new()
+        var2.name = var1.name
+        var2.type = var1.type
+        targ1 = var1.targets[0]
+        targ2 = var2.targets[0]
+        targ2.id = id
+        targ2.data_path = targ1.data_path
+            
+    drv2.type = drv1.type
+    drv2.expression = drv1.expression
+    drv2.show_debug_info = drv1.show_debug_info
+
+
+def changeDriverTarget(fcu, id):
+    for var in fcu.driver.variables:
+        targ = var.targets[0]
+        targ.id = id       
+        
 
 #
 #   class OBJECT_OT_RigifyMhxButton(bpy.types.Operator):
@@ -2818,7 +2836,7 @@ class OBJECT_OT_RigifyMhxButton(bpy.types.Operator):
     bl_options = {'UNDO'}
 
     def execute(self, context):
-        rigifyMhx(context, context.object.name)
+        rigifyMhx(context)
         return{'FINISHED'}    
     
 #
