@@ -2580,7 +2580,10 @@ def rigifyMhx(context):
     bpy.ops.object.mode_set(mode='OBJECT')   
     
     # Create metarig    
-    bpy.ops.object.armature_human_metarig_add()
+    try:
+        bpy.ops.object.armature_human_metarig_add()
+    except AttributeError:
+        raise MyError("The Rigify add-on is not enabled. It is found under rigging.")
     bpy.ops.object.location_clear()
     bpy.ops.object.rotation_clear()
     bpy.ops.object.scale_clear()
@@ -2718,10 +2721,12 @@ def rigifyMhx(context):
     #Clean up    
     gen.show_x_ray = True
     gen.data.draw_type = 'STICK'
+    gen.MhxRigify = False    
     name = rig.name
     scn.objects.unlink(rig)
     del rig
     gen.name = name
+    bpy.ops.object.mode_set(mode='POSE')
     print("MHX rig %s successfully rigified" % name)
     
     
