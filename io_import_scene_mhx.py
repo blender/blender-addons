@@ -4542,7 +4542,8 @@ class VIEW3D_OT_MhxDisableAllLayersButton(bpy.types.Operator):
                     break
         else:
             layers[0] = True
-        rig.data.layers = layers            
+        if rig:
+            rig.data.layers = layers
         return{'FINISHED'}    
                 
 ###################################################################################    
