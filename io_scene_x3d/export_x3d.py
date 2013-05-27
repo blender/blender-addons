@@ -90,6 +90,10 @@ def suffix_quoted_str(value, suffix):
     return value[:-1] + suffix + value[-1:]
 
 
+def bool_as_str(value):
+    return ('false', 'true')[bool(value)]
+
+
 def clean_def(txt):
     # see report [#28256]
     if not txt:
@@ -397,10 +401,10 @@ def export(file,
         else:
             return
 
-    def writeNavigationInfo(ident, scene):
+    def writeNavigationInfo(ident, scene, has_lamp):
         ident_step = ident + (' ' * (-len(ident) + \
         fw('%s<NavigationInfo ' % ident)))
-        fw('headlight="false"\n')
+        fw('headlight="%s"\n' % bool_as_str(not has_lamp))
         fw(ident_step + 'visibilityLimit="0.0"\n')
         fw(ident_step + 'type=\'"EXAMINE", "ANY"\'\n')
         fw(ident_step + 'avatarSize="0.25, 1.75, 0.75"\n')
@@ -708,7 +712,7 @@ def export(file,
                         fw('%s<IndexedTriangleSet ' % ident)))
 
                         # --- Write IndexedTriangleSet Attributes (same as IndexedFaceSet)
-                        fw('solid="%s"\n' % ('true' if material and material.game_settings.use_backface_culling else 'false'))
+                        fw('solid="%s"\n' % bool_as_str(material and material.game_settings.use_backface_culling))
 
                         if use_normals or is_force_normals:
                             fw(ident_step + 'normalPerVertex="true"\n')
@@ -851,7 +855,7 @@ def export(file,
                         fw('%s<IndexedFaceSet ' % ident)))
 
                         # --- Write IndexedFaceSet Attributes (same as IndexedTriangleSet)
-                        fw('solid="%s"\n' % ('true' if material and material.game_settings.use_backface_culling else 'false'))
+                        fw('solid="%s"\n' % bool_as_str(material and material.game_settings.use_backface_culling))
                         if is_smooth:
                             # use Auto-Smooth angle, if enabled. Otherwise make
                             # the mesh perfectly smooth by creaseAngle > pi.
@@ -1503,20 +1507,20 @@ def export(file,
         bpy.data.materials.tag(False)
         bpy.data.images.tag(False)
 
-        print('Info: starting X3D export to %r...' % file.name)
-        ident = ''
-        ident = writeHeader(ident)
-
-        writeNavigationInfo(ident, scene)
-        writeBackground(ident, world)
-        writeFog(ident, world)
-
-        ident = '\t\t'
-
         if use_selection:
             objects = [obj for obj in scene.objects if obj.is_visible(scene) and obj.select]
         else:
             objects = [obj for obj in scene.objects if obj.is_visible(scene)]
+
+        print('Info: starting X3D export to %r...' % file.name)
+        ident = ''
+        ident = writeHeader(ident)
+
+        writeNavigationInfo(ident, scene, any(obj.type == 'LAMP' for obj in objects))
+        writeBackground(ident, world)
+        writeFog(ident, world)
+
+        ident = '\t\t'
 
         if use_hierarchy:
             objects_hierarchy = build_hierarchy(objects)
