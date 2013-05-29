@@ -19,17 +19,18 @@
 # <pep8 compliant>
 
 bl_info = {
-    "name": "Object Property Chart",
+    "name": "Property Chart",
     "author": "Campbell Barton (ideasman42)",
     "version": (0, 1),
     "blender": (2, 57, 0),
     "location": "Tool Shelf",
-    "description": "Edit arbitrary selected properties for objects of the same type",
+    "description": ("Edit arbitrary selected properties for "
+                    "objects/sequence strips of the same type"),
     "warning": "",
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"\
-        "Scripts/System/Object Property Chart",
-    "tracker_url": "https://projects.blender.org/tracker/index.php?"\
-        "func=detail&aid=22701",
+    "wiki_url": ("http://wiki.blender.org/index.php/Extensions:2.6/Py/"
+                 "Scripts/System/Object Property Chart"),
+    "tracker_url": ("https://projects.blender.org/tracker/index.php?"
+                    "func=detail&aid=22701"),
     "category": "System"}
 
 """List properties of selected objects"""
