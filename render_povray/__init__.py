@@ -248,7 +248,7 @@ class RenderPovSettingsScene(PropertyGroup):
             name="Low Error Factor",
             description="Just enough samples is slightly blotchy. Low error changes error "
                         "tolerance for less critical last refining pass",
-            min=0.0, max=1.0, soft_min=0.0, soft_max=1.0, default=0.5)
+            min=0.000001, max=1.0, soft_min=0.000001, soft_max=1.0, default=0.5)
 
     # max_sample - not available yet
     radio_media = BoolProperty(
@@ -355,7 +355,7 @@ class RenderPovSettingsMaterial(PropertyGroup):
             description="Values typically range from 0.0 to 1.0 or higher. Zero is no caustics. "
                         "Low, non-zero values give broad hot-spots while higher values give "
                         "tighter, smaller simulated focal points",
-            min=0.00, max=10.0, soft_min=0.00, soft_max=1.10, default=0.1)
+            min=0.00, max=10.0, soft_min=0.00, soft_max=1.10, default=0.5)
 
     photons_refraction = BoolProperty(
             name="Refractive Photon Caustics", description="more physically correct",
@@ -429,7 +429,7 @@ class RenderPovSettingsObject(PropertyGroup):
             description="Priority value relative to other objects for sampling radiosity rays. "
                         "Increase to get more radiosity rays at comparatively small yet "
                         "bright objects",
-            min=0.01, max=1.00, default=1.00)
+            min=0.01, max=1.00, default=0.50)
 
     # Collect photons
     collect_photons = BoolProperty(

@@ -1544,12 +1544,10 @@ def write_pov(filename, scene=None, info_callback=None):
                                         tabWrite("}\n")
                                         c += 1
 
-                                if material.pov.replacement_text == "":
-
-                                    
+                                  
                                         
-                                    # Close first layer of POV "texture" (Blender material)
-                                    tabWrite("}\n")
+                                # Close first layer of POV "texture" (Blender material)
+                                tabWrite("}\n")
                                 
                                 if (material.specular_color.r == material.specular_color.g) and (material.specular_color.r == material.specular_color.b):
                                     colored_specular_found = False
