@@ -621,13 +621,15 @@ def camera_light_source(use_camera,
         bpy.context.scene.world.light_settings.ao_factor = 0.2
 
 
-# Function, which draws the atoms of one type (balls). this is one
+# Function, which draws the atoms of one type (balls). This is one
 # dupliverts structure then. 
 # Return: the dupliverts structure
 def draw_atoms_one_type(draw_all_atoms_type, 
-                         Ball_type,
-                         Ball_radius_factor,
-                         object_center_vec):
+                        Ball_type,
+                        Ball_azimuth,
+                        Ball_zenith,
+                        Ball_radius_factor,
+                        object_center_vec):
 
     # Create first the vertices composed of the coordinates of all
     # atoms of one type
@@ -1318,6 +1320,8 @@ def import_pdb(Ball_type,
 
         atom_mesh = draw_atoms_one_type(draw_all_atoms_type, 
                                         Ball_type,
+                                        Ball_azimuth,
+                                        Ball_zenith,
                                         Ball_radius_factor,
                                         object_center_vec)
         atom_object_list.append(atom_mesh)
