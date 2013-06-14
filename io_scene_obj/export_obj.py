@@ -245,6 +245,7 @@ def write_nurb(fw, ob, ob_mat):
 def write_file(filepath, objects, scene,
                EXPORT_TRI=False,
                EXPORT_EDGES=False,
+               EXPORT_SMOOTH_GROUPS=False,
                EXPORT_NORMALS=False,
                EXPORT_UV=True,
                EXPORT_MTL=True,
@@ -401,6 +402,13 @@ def write_file(filepath, objects, scene,
             if EXPORT_NORMALS and face_index_pairs:
                 me.calc_normals()
 
+            if EXPORT_SMOOTH_GROUPS and face_index_pairs:
+                smooth_groups, smooth_groups_tot = me.calc_smooth_groups()
+                if smooth_groups_tot <= 1:
+                    smooth_groups, smooth_groups_tot = (), 0
+            else:
+                smooth_groups, smooth_groups_tot = (), 0
+
             materials = me.materials[:]
             material_names = [m.name if m else None for m in materials]
 
@@ -413,13 +421,33 @@ def write_file(filepath, objects, scene,
             # so we dont over context switch in the obj file.
             if EXPORT_KEEP_VERT_ORDER:
                 pass
-            elif faceuv:
-                face_index_pairs.sort(key=lambda a: (a[0].material_index, hash(uv_texture[a[1]].image), a[0].use_smooth))
-            elif len(materials) > 1:
-                face_index_pairs.sort(key=lambda a: (a[0].material_index, a[0].use_smooth))
             else:
-                # no materials
-                face_index_pairs.sort(key=lambda a: a[0].use_smooth)
+                if faceuv:
+                    if smooth_groups:
+                        sort_func = lambda a: (a[0].material_index,
+                                               hash(uv_texture[a[1]].image),
+                                               smooth_groups[a[1]] if a[0].use_smooth else False)
+                    else:
+                        sort_func = lambda a: (a[0].material_index,
+                                               hash(uv_texture[a[1]].image),
+                                               a[0].use_smooth)
+                elif len(materials) > 1:
+                    if smooth_groups:
+                        sort_func = lambda a: (a[0].material_index,
+                                               smooth_groups[a[1]] if a[0].use_smooth else False)
+                    else:
+                        sort_func = lambda a: (a[0].material_index,
+                                               a[0].use_smooth)
+                else:
+                    # no materials
+                    if smooth_groups:
+                        sort_func = lambda a: smooth_groups[a[1] if a[0].use_smooth else False]
+                    else:
+                        sort_func = lambda a: a[0].use_smooth
+
+                face_index_pairs.sort(key=sort_func)
+
+                del sort_func
 
             # Set the default mat to no material and no image.
             contextMat = 0, 0  # Can never be this, so we will label a new material the first chance we get.
@@ -503,6 +531,8 @@ def write_file(filepath, objects, scene,
 
             for f, f_index in face_index_pairs:
                 f_smooth = f.use_smooth
+                if f_smooth and smooth_groups:
+                    f_smooth = smooth_groups[f_index]
                 f_mat = min(f.material_index, len(materials) - 1)
 
                 if faceuv:
@@ -570,11 +600,14 @@ def write_file(filepath, objects, scene,
                 contextMat = key
                 if f_smooth != contextSmooth:
                     if f_smooth:  # on now off
-                        fw('s 1\n')
-                        contextSmooth = f_smooth
+                        if smooth_groups:
+                            f_smooth = smooth_groups[f_index]
+                            fw('s %d\n' % f_smooth)
+                        else:
+                            fw('s 1\n')
                     else:  # was off now on
                         fw('s off\n')
-                        contextSmooth = f_smooth
+                    contextSmooth = f_smooth
 
                 f_v = [(vi, me_verts[v_idx]) for vi, v_idx in enumerate(f.vertices)]
 
@@ -656,6 +689,7 @@ def write_file(filepath, objects, scene,
 def _write(context, filepath,
               EXPORT_TRI,  # ok
               EXPORT_EDGES,
+              EXPORT_SMOOTH_GROUPS,
               EXPORT_NORMALS,  # not yet
               EXPORT_UV,  # ok
               EXPORT_MTL,
@@ -707,6 +741,7 @@ def _write(context, filepath,
         write_file(full_path, objects, scene,
                    EXPORT_TRI,
                    EXPORT_EDGES,
+                   EXPORT_SMOOTH_GROUPS,
                    EXPORT_NORMALS,
                    EXPORT_UV,
                    EXPORT_MTL,
@@ -739,6 +774,7 @@ def save(operator, context, filepath="",
          use_triangles=False,
          use_edges=True,
          use_normals=False,
+         use_smooth_groups=False,
          use_uvs=True,
          use_materials=True,
          use_mesh_modifiers=True,
@@ -757,6 +793,7 @@ def save(operator, context, filepath="",
     _write(context, filepath,
            EXPORT_TRI=use_triangles,
            EXPORT_EDGES=use_edges,
+           EXPORT_SMOOTH_GROUPS=use_smooth_groups,
            EXPORT_NORMALS=use_normals,
            EXPORT_UV=use_uvs,
            EXPORT_MTL=use_materials,

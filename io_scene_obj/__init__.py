@@ -237,6 +237,11 @@ class ExportOBJ(bpy.types.Operator, ExportHelper):
             description="",
             default=True,
             )
+    use_smooth_groups = BoolProperty(
+            name="Smooth Groups",
+            description="Write sharp edges as smooth groups",
+            default=False,
+            )
     use_normals = BoolProperty(
             name="Include Normals",
             description="",
