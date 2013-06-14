@@ -628,7 +628,7 @@ def write_file(filepath, objects, scene,
             if EXPORT_EDGES:
                 for ed in edges:
                     if ed.is_loose:
-                        fw('f %d %d\n' % (ed.vertices[0] + totverts, ed.vertices[1] + totverts))
+                        fw('l %d %d\n' % (ed.vertices[0] + totverts, ed.vertices[1] + totverts))
 
             # Make the indices global rather then per mesh
             totverts += len(me_verts)
