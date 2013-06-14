@@ -317,8 +317,7 @@ class IMPORT_OT_image_to_plane(Operator, AddObjectHelper):
         # the add utils don't work in this case because many objects are added disable relevant things beforehand
         editmode = context.user_preferences.edit.use_enter_edit_mode
         context.user_preferences.edit.use_enter_edit_mode = False
-        if (context.active_object and
-            context.active_object.mode == 'EDIT'):
+        if context.active_object and context.active_object.mode == 'EDIT':
             bpy.ops.object.mode_set(mode='OBJECT')
 
         self.import_images(context)
@@ -333,16 +332,17 @@ class IMPORT_OT_image_to_plane(Operator, AddObjectHelper):
 
         images = (load_image(path, directory) for path in import_list)
 
-        if engine == 'BLENDER_RENDER':
+        if engine in {'BLENDER_RENDER', 'BLENDER_GAME'}:
             textures = []
             for img in images:
                 self.set_image_options(img)
                 textures.append(self.create_image_textures(context, img))
 
             materials = (self.create_material_for_texture(tex) for tex in textures)
-
         elif engine == 'CYCLES':
             materials = (self.create_cycles_material(img) for img in images)
+        else:
+            return
 
         planes = tuple(self.create_image_plane(context, mat) for mat in materials)
 
@@ -357,7 +357,7 @@ class IMPORT_OT_image_to_plane(Operator, AddObjectHelper):
 
     def create_image_plane(self, context, material):
         engine = context.scene.render.engine
-        if engine == 'BLENDER_RENDER':
+        if engine in {'BLENDER_RENDER', 'BLENDER_GAME'}:
             img = material.texture_slots[0].texture.image
         elif engine == 'CYCLES':
             nodes = material.node_tree.nodes
