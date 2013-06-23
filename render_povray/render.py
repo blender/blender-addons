@@ -288,16 +288,16 @@ def write_pov(filename, scene=None, info_callback=None):
 
             # (variable) dispersion_samples (constant count for now)
             tabWrite("}\n")
-
-            tabWrite("photons{")
-            if not ob.pov.collect_photons:
-                tabWrite("collect off\n")
+            if material.pov.photons_reflection or material.pov.refraction_type=="2":
+                tabWrite("photons{")
                 tabWrite("target %.3g\n" % ob.pov.spacing_multiplier)
-            if pov_photons_refraction:
-                tabWrite("refraction on\n")
-            if pov_photons_reflection:
-                tabWrite("reflection on\n")
-            tabWrite("}\n")
+                if not ob.pov.collect_photons:
+                    tabWrite("collect off\n")
+                if pov_photons_refraction:
+                    tabWrite("refraction on\n")
+                if pov_photons_reflection:
+                    tabWrite("reflection on\n")
+                tabWrite("}\n")
 
     materialNames = {}
     DEF_MAT_NAME = "Default"
@@ -306,10 +306,11 @@ def write_pov(filename, scene=None, info_callback=None):
         # Assumes only called once on each material
         if material:
             name_orig = material.name
+            name = materialNames[name_orig] = uniqueName(bpy.path.clean_name(name_orig), materialNames)
         else:
-            name_orig = DEF_MAT_NAME
+            name = name_orig = DEF_MAT_NAME
 
-        name = materialNames[name_orig] = uniqueName(bpy.path.clean_name(name_orig), materialNames)
+
         comments = scene.pov.comments_enable
         
         if material:
@@ -1948,7 +1949,7 @@ def write_pov(filename, scene=None, info_callback=None):
                 # In pov, the scale has reversed influence compared to blender. these number
                 # should correct that
                 tabWrite("mm_per_unit %.6f\n" % \
-                         (material.subsurface_scattering.scale * 10000.0))# formerly ...scale * (-100.0) + 15.0))
+                         (material.subsurface_scattering.scale * 1000.0))# formerly ...scale * (-100.0) + 15.0))
                 # In POV-Ray, the scale factor for all subsurface shaders needs to be the same
                 sslt_samples = (11 - material.subsurface_scattering.error_threshold) * 10 # formerly ...*100
                 tabWrite("subsurface { samples %d, %d }\n" % (sslt_samples, sslt_samples / 10))
@@ -1958,7 +1959,7 @@ def write_pov(filename, scene=None, info_callback=None):
                 tabWrite("ambient_light rgb<%.3g, %.3g, %.3g>\n" % world.ambient_color[:])
                 onceAmbient = 0
 
-            if (material.pov.photons_refraction or material.pov.photons_reflection)and oncePhotons:
+            if (material.pov.refraction_type == "2" or material.pov.photons_reflection == True) and oncePhotons:
                 tabWrite("photons {\n")
                 tabWrite("spacing %.6f\n" % scene.pov.photon_spacing)
                 tabWrite("max_trace_level %d\n" % scene.pov.photon_max_trace_level)
