@@ -25,7 +25,7 @@ bl_info = {
     "description": ("Adds a parametric tree. The method is presented by "
     "Jason Weber & Joseph Penn in their paper 'Creation and Rendering of "
     "Realistic Trees'."),
-    "warning": "",  # used for warning icon and text in addons panel
+    "warning": "length parameters may cause errors",  # used for warning icon and text in addons panel
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"\
         "Scripts/Curve/Sapling_Tree",
     "tracker_url": "http://projects.blender.org/tracker/"\
