@@ -31,7 +31,7 @@ bl_info = {
 
 import bpy
 from bpy.app.handlers import persistent
-import os, subprocess
+import os
 
 settings = {
     "original_file": "",
@@ -47,7 +47,7 @@ def linked_file_check(context):
             print("Editing a linked library.")
             bpy.ops.object.select_all(action='DESELECT')
             for ob_name in settings["linked_objects"]:
-                bpy.data.objects[ob_name].select = True #XXX Assumes selected object is in the active scene
+                bpy.data.objects[ob_name].select = True  # XXX Assumes selected object is in the active scene
             if len(settings["linked_objects"]) == 1:
                 bpy.context.scene.objects.active = bpy.data.objects[settings["linked_objects"][0]]
         else:
@@ -103,6 +103,7 @@ class EditLinked(bpy.types.Operator):
             settings["linked_file"] = bpy.path.abspath(targetpath)
 
             if self.use_instance:
+                import subprocess
                 try:
                     subprocess.Popen([bpy.app.binary_path, settings["linked_file"]])
                 except:
