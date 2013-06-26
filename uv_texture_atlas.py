@@ -19,9 +19,9 @@
 
 bl_info = {
     "name": "Texture Atlas",
-    "author": "Andreas Esau, Paul Geraskin",
+    "author": "Andreas Esau, Paul Geraskin, Campbell Barton",
     "version": (0, 18),
-    "blender": (2, 6, 6),
+    "blender": (2, 6, 7),
     "location": "Properties > Render",
     "description": "A simple Texture Atlas for unwrapping many objects. It creates additional UV",
     "wiki_url": "http://code.google.com/p/blender-addons-by-mifth/",
