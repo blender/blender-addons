@@ -76,11 +76,11 @@ RFFI_VERBOSE = _be_verbose()
 
 if RFFI_DEV:
     print("DEVELOPER MODE")
-    rffi_xmlrpc_secure = r'http://renderfarm.local/burp/xmlrpc'
-    rffi_xmlrpc = r'http://renderfarm.local/burp/xmlrpc'
-    rffi_xmlrpc_upload = 'renderfarm.local'
+    rffi_xmlrpc_secure = r'http://renderfarm.server/burp/xmlrpc'
+    rffi_xmlrpc = r'http://renderfarm.server/burp/xmlrpc'
+    rffi_xmlrpc_upload = 'renderfarm.server'
 else:
-    rffi_xmlrpc_secure = r'https://xmlrpc.renderfarm.fi/burp/xmlrpc'
+    rffi_xmlrpc_secure = r'http://xmlrpc.renderfarm.fi/burp/xmlrpc'
     rffi_xmlrpc = r'http://xmlrpc.renderfarm.fi/burp/xmlrpc'
     rffi_xmlrpc_upload = 'xmlrpc.renderfarm.fi'
 
@@ -124,9 +124,9 @@ def _do_refresh(op, rethrow=False, print_errors=True):
             sessions = rffi.get_sessions(userid, 'render', 0, 100, 'full')
             bpy.ore_sessions = _xmlsessions_to_oresessions(sessions, stage='Rendering')
             bpy.ore_active_sessions = bpy.ore_sessions
-            
+
             update_complete_session_list(ore)
-            
+
             return 0
         except LoginFailedException as lfe:
             if print_errors: print("_do_refresh login failed", lfe)
