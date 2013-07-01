@@ -74,7 +74,7 @@ class EditLinked(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
-        return settings["original_file"] == "" and (
+        return settings["original_file"] == "" and context.active_object is not None and (
                 (context.active_object.dupli_group and
                  context.active_object.dupli_group.library is not None) or
                  context.active_object.library is not None)
@@ -154,6 +154,10 @@ class PanelLinkedEdit(bpy.types.Panel):
     bl_label = "Edit Linked Library"
     bl_space_type = "VIEW_3D"
     bl_region_type = "TOOLS"
+
+    @classmethod
+    def poll(cls, context):
+        return (context.active_object is not None) or (settings["original_file"] != "")
 
     def draw(self, context):
         layout = self.layout
