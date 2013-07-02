@@ -286,7 +286,7 @@ class MocapPanel(bpy.types.Panel):
         if enduser_obj is None or len(performer_obj) != 1:
             layout.label("Select performer rig and target rig (as active)")
         else:
-            layout.operator("mocap.guessmapping", text="Guess Hiearchy Mapping")
+            layout.operator("mocap.guessmapping", text="Guess Hierarchy Mapping")
             labelRow = layout.row(align=True)
             labelRow.label("Performer Rig")
             labelRow.label("End user Rig")
@@ -304,7 +304,6 @@ class MocapPanel(bpy.types.Panel):
                     mapCol.scale_x = 2
                     selectCol = MappingRow.column(align=True)
                     twistCol = MappingRow.column(align=True)
-                    twistCol.scale_x = 0.1
                     IKCol = MappingRow.column(align=True)
                     IKCol.scale_x = 0.3
                     IKLabel = MappingRow.column(align=True)
