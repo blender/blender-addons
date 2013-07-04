@@ -236,7 +236,7 @@ class SCENE_OT_export(bpy.types.Operator):
         
         bpy.ops.export_scene.obj(filepath=coa.applink_name,use_selection=True,
         use_mesh_modifiers=False,use_blen_objects=True, use_materials = True,
-        keep_vertex_order = True,axis_forward='Y',axis_up='Z')
+        keep_vertex_order = True,axis_forward='-Z',axis_up='Y')
         
         obj.location = coa.loc
         obj.rotation_euler = coa.rot
@@ -368,7 +368,7 @@ class SCENE_OT_import(bpy.types.Operator):
                     if(os.path.isfile(mtl)):
                         os.remove(mtl)
                    
-                    bpy.ops.import_scene.obj(filepath=path_object,axis_forward='Y',axis_up='Z',use_image_search=False)
+                    bpy.ops.import_scene.obj(filepath=path_object,axis_forward='-Z',axis_up='Y',use_image_search=False)
                     obj_proxy = scene.objects[0]
                     bpy.ops.object.select_all(action='TOGGLE')
                     obj_proxy.select = True
@@ -479,7 +479,7 @@ class SCENE_OT_import(bpy.types.Operator):
             if(os.path.isfile(mtl_list)):
                 os.remove(mtl_list)
                 
-            bpy.ops.import_scene.obj(filepath=new_applink_name,axis_forward='Y',axis_up='Z')
+            bpy.ops.import_scene.obj(filepath=new_applink_name,axis_forward='-Z',axis_up='Y')
             bpy.ops.object.transform_apply(rotation=True)
             new_obj = scene.objects[0]
             new_obj.coat3D.applink_name = obj_path
