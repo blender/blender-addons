@@ -2999,6 +2999,8 @@ class ImportMhx(bpy.types.Operator, ImportHelper):
 
         #filepathname = self.filepath.encode('utf-8', 'strict')
         try:
+            if not context.user_preferences.system.use_scripts_auto_execute:
+                MyError("Auto Run Python Scripts must be turned on.\nIt is found under\n File > User Preferences > File")
             readMhxFile(self.filepath)
             bpy.ops.mhx.success('INVOKE_DEFAULT', message = self.filepath)
         except MhxError:
