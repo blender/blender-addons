@@ -38,12 +38,12 @@ Alternatively, run the script in the script editor (Alt-P), and access from the 
 bl_info = {
     'name': 'Import: MakeHuman (.mhx)',
     'author': 'Thomas Larsson',
-    'version': (1, 16, 0),
+    'version': (1, 16, 1),
     "blender": (2, 67, 1),
     'location': "File > Import > MakeHuman (.mhx)",
     'description': 'Import files in the MakeHuman eXchange format (.mhx)',
     'warning': '',
-    'wiki_url': 'http://sites.google.com/site/makehumandocs/blender-export-and-mhx',
+    'wiki_url': 'http://www.makehuman.org/documentation',
     'tracker_url': 'https://projects.blender.org/tracker/index.php?'\
         'func=detail&aid=21872',
     'category': 'Import-Export'}
@@ -51,7 +51,7 @@ bl_info = {
 MAJOR_VERSION = 1
 MINOR_VERSION = 16
 FROM_VERSION = 13
-SUB_VERSION = 0
+SUB_VERSION = 1
 
 majorVersion = MAJOR_VERSION
 minorVersion = MINOR_VERSION
@@ -3879,14 +3879,14 @@ class MhxCustomShapePanel(bpy.types.Panel):
 #
 #########################################
 
-def getPoseMatrix(mat, pb):
+def getPoseMatrix(gmat, pb):
     restInv = pb.bone.matrix_local.inverted()
     if pb.parent:
         parInv = pb.parent.matrix.inverted()
         parRest = pb.parent.bone.matrix_local
-        return restInv * (parRest * (parInv * mat))
+        return restInv * (parRest * (parInv * gmat))
     else:
-        return restInv * mat
+        return restInv * gmat
 
 
 def getGlobalMatrix(mat, pb):
@@ -3899,10 +3899,9 @@ def getGlobalMatrix(mat, pb):
         return gmat
 
 
-def matchPoseTranslation(pb, fkPb, auto):
-    mat = getPoseMatrix(fkPb.matrix, pb)
-    insertLocation(pb, mat, auto)
-    print("TRANS %s => %s" % (fkPb, pb))
+def matchPoseTranslation(pb, src, auto):
+    pmat = getPoseMatrix(src.matrix, pb)
+    insertLocation(pb, pmat, auto)
 
 
 def insertLocation(pb, mat, auto):
@@ -3913,10 +3912,15 @@ def insertLocation(pb, mat, auto):
     bpy.ops.object.mode_set(mode='POSE')
 
 
-def matchPoseRotation(pb, fkPb, auto):
-    mat = getPoseMatrix(fkPb.matrix, pb)
-    insertRotation(pb, mat, auto)
-    print("ROT %s => %s" % (fkPb, pb))
+def matchPoseRotation(pb, src, auto):
+    pmat = getPoseMatrix(src.matrix, pb)
+    insertRotation(pb, pmat, auto)
+
+
+def printMatrix(string,mat):
+    print(string)
+    for i in range(4):
+        print("    %.4g %.4g %.4g %.4g" % tuple(mat[i]))
 
 
 def insertRotation(pb, mat, auto):
@@ -3933,61 +3937,80 @@ def insertRotation(pb, mat, auto):
     bpy.ops.object.mode_set(mode='POSE')
 
 
-def matchPoseReverse(pb, fkPb, auto):
-    bpy.ops.object.mode_set(mode='OBJECT')
-    bpy.ops.object.mode_set(mode='POSE')
-    gmat = fkPb.matrix * Matrix.Rotation(math.pi, 4, 'Z')
-    offs = pb.bone.length * fkPb.matrix.col[1]
-    gmat[0][3] += offs[0]
-    gmat[1][3] += offs[1]
-    gmat[2][3] += offs[2]
-    mat = getPoseMatrix(gmat, pb)
-    pb.matrix_basis = mat
-    insertLocation(pb, mat, auto)
-    insertRotation(pb, mat, auto)
+def matchPoleTarget(pb, above, below, auto):
+    x = Vector(above.matrix.col[1][:3])
+    y = Vector(below.matrix.col[1][:3])
+    p0 = Vector(below.matrix.col[3][:3])
+    n = x.cross(y)
+    if abs(n.length) > 1e-4:
+        z = x - y
+        n = n/n.length
+        z -= z.dot(n)*n
+        p = p0 + z/z.length*3.0
+    else:
+        p = p0
+    gmat = Matrix.Translation(p)
+    pmat = getPoseMatrix(gmat, pb)
+    insertLocation(pb, pmat, auto)
 
 
-def matchPoseScale(pb, fkPb, auto):
-    mat = getPoseMatrix(fkPb.matrix, pb)
-    pb.scale = mat.to_scale()
+def matchPoseReverse(pb, src, auto):
+    gmat = src.matrix
+    tail = gmat.col[3] + src.length * gmat.col[1]
+    rmat = Matrix((gmat.col[0], -gmat.col[1], -gmat.col[2], tail))
+    rmat.transpose()
+    pmat = getPoseMatrix(rmat, pb)
+    pb.matrix_basis = pmat
+    insertLocation(pb, pmat, auto)
+    insertRotation(pb, pmat, auto)
+
+
+def matchPoseScale(pb, src, auto):
+    pmat = getPoseMatrix(src.matrix, pb)
+    pb.scale = pmat.to_scale()
     if auto:
         pb.keyframe_insert("scale", group=pb.name)
     bpy.ops.object.mode_set(mode='OBJECT')
     bpy.ops.object.mode_set(mode='POSE')
 
 
-def fk2ikArm(context, suffix):
+def snapFkArm(context, data):
     rig = context.object
+    prop,old,suffix = setSnapProp(rig, data, 1.0, context, False)
     auto = context.scene.tool_settings.use_keyframe_insert_auto
+
     print("Snap FK Arm%s" % suffix)
-    snap,_ = getSnapBones(rig, "Arm", suffix)
-    (uparm, loarm, hand) = snap
     snapFk,cnsFk = getSnapBones(rig, "ArmFK", suffix)
     (uparmFk, loarmFk, elbowPtFk, handFk) = snapFk
     muteConstraints(cnsFk, True)
+    snapIk,cnsIk = getSnapBones(rig, "ArmIK", suffix)
+    (uparmIk, loarmIk, elbow, elbowPt, handIk) = snapIk
 
-    matchPoseRotation(uparmFk, uparm, auto)
-    matchPoseScale(uparmFk, uparm, auto)
+    matchPoseRotation(uparmFk, uparmIk, auto)
+    matchPoseScale(uparmFk, uparmIk, auto)
 
-    matchPoseRotation(loarmFk, loarm, auto)
-    matchPoseScale(loarmFk, loarm, auto)
+    matchPoseRotation(loarmFk, loarmIk, auto)
+    matchPoseScale(loarmFk, loarmIk, auto)
+
+    restoreSnapProp(rig, prop, old, context)
 
     try:
         matchHand = rig["MhaHandFollowsWrist" + suffix]
     except KeyError:
         matchHand = True
     if matchHand:
-        matchPoseRotation(handFk, hand, auto)
-        matchPoseScale(handFk, hand, auto)
+        matchPoseRotation(handFk, handIk, auto)
+        matchPoseScale(handFk, handIk, auto)
 
-    muteConstraints(cnsFk, False)
+    #muteConstraints(cnsFk, False)
     return
 
 
-def ik2fkArm(context, suffix):
+def snapIkArm(context, data):
     rig = context.object
-    scn = context.scene
-    auto = scn.tool_settings.use_keyframe_insert_auto
+    prop,old,suffix = setSnapProp(rig, data, 0.0, context, True)
+    auto = context.scene.tool_settings.use_keyframe_insert_auto
+
     print("Snap IK Arm%s" % suffix)
     snapIk,cnsIk = getSnapBones(rig, "ArmIK", suffix)
     (uparmIk, loarmIk, elbow, elbowPt, handIk) = snapIk
@@ -3995,47 +4018,55 @@ def ik2fkArm(context, suffix):
     (uparmFk, loarmFk, elbowPtFk, handFk) = snapFk
     muteConstraints(cnsIk, True)
 
-    #rig["MhaElbowFollowsShoulder" + suffix] = False
-    #rig["MhaElbowFollowsWrist" + suffix] = False
-
     matchPoseTranslation(handIk, handFk, auto)
     matchPoseRotation(handIk, handFk, auto)
-    if elbow is not None:
-        matchPoseTranslation(elbow, elbowPtFk, auto)
-    matchPoseTranslation(elbowPt, elbowPtFk, auto)
-    setInverse(rig, elbowPt)
-    muteConstraints(cnsIk, False)
+
+    matchPoleTarget(elbowPt, uparmFk, loarmFk, auto)
+
+    matchPoseRotation(uparmIk, uparmFk, auto)
+    matchPoseRotation(loarmIk, loarmFk, auto)
+
+    restoreSnapProp(rig, prop, old, context)
+    #muteConstraints(cnsIk, False)
     return
 
 
-def fk2ikLeg(context, suffix):
+def snapFkLeg(context, data):
     rig = context.object
+    prop,old,suffix = setSnapProp(rig, data, 1.0, context, False)
     auto = context.scene.tool_settings.use_keyframe_insert_auto
+
     print("Snap FK Leg%s" % suffix)
     snap,_ = getSnapBones(rig, "Leg", suffix)
     (upleg, loleg, foot, toe) = snap
+    snapIk,cnsIk = getSnapBones(rig, "LegIK", suffix)
+    (uplegIk, lolegIk, kneePt, ankleIk, legIk, legFk, footRev, toeRev) = snapIk
     snapFk,cnsFk = getSnapBones(rig, "LegFK", suffix)
     (uplegFk, lolegFk, kneePtFk, footFk, toeFk) = snapFk
     muteConstraints(cnsFk, True)
 
-    matchPoseRotation(uplegFk, upleg, auto)
-    matchPoseScale(uplegFk, upleg, auto)
+    matchPoseRotation(uplegFk, uplegIk, auto)
+    matchPoseScale(uplegFk, uplegIk, auto)
 
-    matchPoseRotation(lolegFk, loleg, auto)
-    matchPoseScale(lolegFk, loleg, auto)
+    matchPoseRotation(lolegFk, lolegIk, auto)
+    matchPoseScale(lolegFk, lolegIk, auto)
+
+    restoreSnapProp(rig, prop, old, context)
 
     if not rig["MhaLegIkToAnkle" + suffix]:
-        matchPoseRotation(footFk, foot, auto)
-        matchPoseRotation(toeFk, toe, auto)
+        matchPoseReverse(footFk, footRev, auto)
+        matchPoseReverse(toeFk, toeRev, auto)
 
-    muteConstraints(cnsFk, False)
+    #muteConstraints(cnsFk, False)
     return
 
 
-def ik2fkLeg(context, suffix):
+def snapIkLeg(context, data):
     rig = context.object
     scn = context.scene
+    prop,old,suffix = setSnapProp(rig, data, 0.0, context, True)
     auto = scn.tool_settings.use_keyframe_insert_auto
+
     print("Snap IK Leg%s" % suffix)
     snapIk,cnsIk = getSnapBones(rig, "LegIK", suffix)
     (uplegIk, lolegIk, kneePt, ankleIk, legIk, legFk, footIk, toeIk) = snapIk
@@ -4043,26 +4074,30 @@ def ik2fkLeg(context, suffix):
     (uplegFk, lolegFk, kneePtFk, footFk, toeFk) = snapFk
     muteConstraints(cnsIk, True)
 
-    #rig["MhaKneeFollowsHip" + suffix] = False
-    #rig["MhaKneeFollowsFoot" + suffix] = False
-
     legIkToAnkle = rig["MhaLegIkToAnkle" + suffix]
     if legIkToAnkle:
         matchPoseTranslation(ankleIk, footFk, auto)
+
     matchPoseTranslation(legIk, legFk, auto)
     matchPoseRotation(legIk, legFk, auto)
+
     matchPoseReverse(toeIk, toeFk, auto)
     matchPoseReverse(footIk, footFk, auto)
-    setInverse(rig, ankleIk)
-    matchPoseTranslation(kneePt, kneePtFk, auto)
-    setInverse(rig, kneePt)
+
+    matchPoleTarget(kneePt, uplegFk, lolegFk, auto)
+
+    matchPoseRotation(uplegIk, uplegFk, auto)
+    matchPoseRotation(lolegIk, lolegFk, auto)
+
     if not legIkToAnkle:
         matchPoseTranslation(ankleIk, footFk, auto)
 
-    muteConstraints(cnsIk, False)
+    restoreSnapProp(rig, prop, old, context)
+    #muteConstraints(cnsIk, False)
     return
 
 
+"""
 #
 #   setInverse(rig, pb):
 #
@@ -4078,7 +4113,7 @@ def setInverse(rig, pb):
     bpy.ops.object.mode_set(mode='OBJECT')
     bpy.ops.object.mode_set(mode='POSE')
     return
-
+"""
 #
 #
 #
@@ -4118,7 +4153,6 @@ def getSnapBones(rig, key, suffix):
 
     if not names:
         raise NameError("Not an mhx armature")
-    print(key, names)
     pbones = []
     constraints = []
     for name in names:
@@ -4149,12 +4183,10 @@ class VIEW3D_OT_MhxSnapFk2IkButton(bpy.types.Operator):
         rig = context.object
         if rig.MhxSnapExact:
             rig["MhaRotationLimits"] = 0.0
-        (prop, old) = setSnapProp(rig, self.data, 1.0, context, False)
-        if prop[:6] == "MhaArm":
-            fk2ikArm(context, prop[-2:])
-        elif prop[:6] == "MhaLeg":
-            fk2ikLeg(context, prop[-2:])
-        restoreSnapProp(rig, prop, old, context)
+        if self.data[:6] == "MhaArm":
+            snapFkArm(context, self.data)
+        elif self.data[:6] == "MhaLeg":
+            snapFkLeg(context, self.data)
         return{'FINISHED'}
 
 
@@ -4169,12 +4201,10 @@ class VIEW3D_OT_MhxSnapIk2FkButton(bpy.types.Operator):
         rig = context.object
         if rig.MhxSnapExact:
             rig["MhaRotationLimits"] = 0.0
-        (prop, old) = setSnapProp(rig, self.data, 0.0, context, True)
-        if prop[:6] == "MhaArm":
-            ik2fkArm(context, prop[-2:])
-        elif prop[:6] == "MhaLeg":
-            ik2fkLeg(context, prop[-2:])
-        restoreSnapProp(rig, prop, old, context)
+        if self.data[:6] == "MhaArm":
+            snapIkArm(context, self.data)
+        elif self.data[:6] == "MhaLeg":
+            snapIkLeg(context, self.data)
         return{'FINISHED'}
 
 
@@ -4202,7 +4232,7 @@ def setSnapProp(rig, data, value, context, isIk):
         oldIk = False
         oldFk = True
         oldExtra = False
-    return (prop, (oldValue, ik, fk, extra, oldIk, oldFk, oldExtra))
+    return (prop, (oldValue, ik, fk, extra, oldIk, oldFk, oldExtra), prop[-2:])
 
 
 def restoreSnapProp(rig, prop, old, context):
@@ -4212,6 +4242,7 @@ def restoreSnapProp(rig, prop, old, context):
     rig.data.layers[ik] = oldIk
     rig.data.layers[fk] = oldFk
     rig.data.layers[extra] = oldExtra
+    updatePose(context)
     return
 
 
