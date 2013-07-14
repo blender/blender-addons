@@ -82,6 +82,21 @@ from bpy_extras.image_utils import (
 
 
 ###############################################################################
+FORMAT_GROUP = "{}.g"
+FORMAT_IMAGE = "{}.i"
+FORMAT_TEXTURE = "{}.tex"
+# keep material name like it is (prevent name "snakes" on re-import)
+#FORMAT_MATERIAL = "{}.mat"
+FORMAT_MATERIAL = "{}"
+FORMAT_ACTION = "{}.act"
+FORMAT_MESH = "{}.m"
+FORMAT_MESH_OBJECT = "{}.mo"
+FORMAT_EMPTY_OBJECT = "{}.eo"
+FORMAT_ARMATURE = "{}.a"
+FORMAT_ARMATURE_OBJECT = "{}.ao"
+FORMAT_ARMATURE_NLA = "{}.an"
+
+###############################################################################
 class Ms3dImporter():
     """
     Load a MilkShape3D MS3D File
@@ -140,7 +155,7 @@ class Ms3dImporter():
             finally:
                 pass
 
-            # if option is set, this time will enlargs the io time
+            # if option is set, this time will enlarges the io time
             if self.options_verbose in Ms3dUi.VERBOSE_MAXIMAL:
                 ms3d_model.print_internal()
 
@@ -213,16 +228,16 @@ class Ms3dImporter():
         ##########################
         # blender_armature_object to blender_mesh_object
         # that has bad side effects to the armature
-        # and causes cyclic dependecies
+        # and causes cyclic dependencies
         ###blender_armature_object.parent = blender_mesh_object
         ###blender_mesh_object.parent = blender_armature_object
 
         blender_scene = blender_context.scene
 
         blender_group = blender_context.blend_data.groups.new(
-                "{}.g".format(ms3d_model.name))
+                FORMAT_GROUP.format(ms3d_model.name))
         blender_empty_object = blender_context.blend_data.objects.new(
-                "{}.e".format(ms3d_model.name), None)
+                FORMAT_EMPTY_OBJECT.format(ms3d_model.name), None)
         blender_empty_object.location = blender_scene.cursor_location
         blender_scene.objects.link(blender_empty_object)
         blender_group.objects.link(blender_empty_object)
@@ -241,7 +256,7 @@ class Ms3dImporter():
         # blender stuff:
         # create a blender Mesh
         blender_mesh = blender_context.blend_data.meshes.new(
-                "{}.m".format(ms3d_model.name))
+                FORMAT_MESH.format(ms3d_model.name))
         blender_mesh.ms3d.name = ms3d_model.name
 
         ms3d_comment = ms3d_model.comment_object
@@ -259,11 +274,11 @@ class Ms3dImporter():
         # blender stuff:
         # link to blender object
         blender_mesh_object = blender_context.blend_data.objects.new(
-                "{}.m".format(ms3d_model.name), blender_mesh)
+                FORMAT_MESH_OBJECT.format(ms3d_model.name), blender_mesh)
 
         ##########################
         # blender stuff:
-        # create edge split modifire, to make sharp edges visible
+        # create edge split modifier, to make sharp edges visible
         blender_modifier = get_edge_split_modifier_add_if(blender_mesh_object)
 
         ##########################
@@ -370,9 +385,9 @@ class Ms3dImporter():
         for ms3d_material_index, ms3d_material in enumerate(
                 ms3d_model.materials):
             blender_material = blender_context.blend_data.materials.new(
-                    ms3d_material.name)
+                    FORMAT_MATERIAL.format(ms3d_material.name))
 
-            # custom datas
+            # custom data
             blender_material.ms3d.name = ms3d_material.name
             blender_material.ms3d.ambient = ms3d_material.ambient
             blender_material.ms3d.diffuse = ms3d_material.diffuse
@@ -393,7 +408,7 @@ class Ms3dImporter():
             if ms3d_comment is not None:
                 blender_material.ms3d.comment = ms3d_comment.comment
 
-            # blender datas
+            # blender data
             blender_material.ambient = (
                     (ms3d_material.ambient[0]
                     + ms3d_material.ambient[1]
@@ -421,9 +436,13 @@ class Ms3dImporter():
                 file_name_diffuse = path.split(ms3d_material.texture)[1]
                 blender_image_diffuse = load_image(
                         file_name_diffuse, dir_name_diffuse)
+                name_diffuse = path.splitext(file_name_diffuse)[0]
+                if blender_image_diffuse:
+                    blender_image_diffuse.name = FORMAT_IMAGE.format(name_diffuse)
                 blender_texture_diffuse = \
                         blender_context.blend_data.textures.new(
-                        name=file_name_diffuse, type='IMAGE')
+                        name=FORMAT_TEXTURE.format(name_diffuse),
+                        type='IMAGE')
                 blender_texture_diffuse.image = blender_image_diffuse
                 blender_texture_slot_diffuse \
                         = blender_material.texture_slots.add()
@@ -443,8 +462,12 @@ class Ms3dImporter():
                 file_name_alpha = path.split(ms3d_material.alphamap)[1]
                 blender_image_alpha = load_image(
                         file_name_alpha, dir_name_alpha)
+                name_alpha = path.splitext(file_name_alpha)[0]
+                if blender_image_alpha:
+                    blender_image_alpha.name = FORMAT_IMAGE.format(name_alpha)
                 blender_texture_alpha = blender_context.blend_data.textures.new(
-                        name=file_name_alpha, type='IMAGE')
+                        name=FORMAT_TEXTURE.format(file_name_alpha),
+                        type='IMAGE')
                 blender_texture_alpha.image = blender_image_alpha
                 blender_texture_slot_alpha \
                         = blender_material.texture_slots.add()
@@ -598,7 +621,7 @@ class Ms3dImporter():
 
         ##########################
         # BMesh stuff:
-        # finally tranfer BMesh to Mesh
+        # finally transfer BMesh to Mesh
         bm.to_mesh(blender_mesh)
         bm.free()
 
@@ -633,8 +656,9 @@ class Ms3dImporter():
             return
 
         ##########################
-        ms3d_armature_name = "{}.a".format(ms3d_model.name)
-        ms3d_action_name = "{}.act".format(ms3d_model.name)
+        ms3d_armature_name = FORMAT_ARMATURE.format(ms3d_model.name)
+        ms3d_armature_object_name = FORMAT_ARMATURE_OBJECT.format(ms3d_model.name)
+        ms3d_action_name = FORMAT_ACTION.format(ms3d_model.name)
 
         ##########################
         # create new blender_armature_object
@@ -645,7 +669,7 @@ class Ms3dImporter():
         blender_armature.show_axes = True
         blender_armature.use_auto_ik = True
         blender_armature_object = blender_context.blend_data.objects.new(
-                ms3d_armature_name, blender_armature)
+                ms3d_armature_object_name, blender_armature)
         blender_scene.objects.link(blender_armature_object)
         #blender_armature_object.location = blender_scene.cursor_location
         blender_armature_object.show_x_ray = True
@@ -653,7 +677,7 @@ class Ms3dImporter():
         ##########################
         # create new modifier
         blender_modifier = blender_mesh_object.modifiers.new(
-                ms3d_armature_name, type='ARMATURE')
+                blender_armature.name, type='ARMATURE')
         blender_modifier.show_expanded = False
         blender_modifier.use_vertex_groups = True
         blender_modifier.use_bone_envelopes = False
@@ -869,7 +893,7 @@ class Ms3dImporter():
         # http://www.youtube.com/watch?v=zc8b2Jo7mno
         # http://www.youtube.com/watch?v=rrUCBOlJdt4
         # you can fix it manually by selecting the affected keyframes
-        # and allpy the following option to it:
+        # and apply the following option to it:
         # "Graph Editor -> Key -> Discontinuity (Euler) Filter"
         # ==> "bpy.ops.graph.euler_filter()"
         # but this option is only available for Euler rotation f-curves!
