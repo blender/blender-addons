@@ -2605,10 +2605,9 @@ Connections:  {''')
 
         # get the current action first so we can use it if we only export one action (JCB)
         for my_arm in ob_arms:
-            if not blenActionDefault:
-                blenActionDefault = my_arm.blenAction
-                if blenActionDefault:
-                    break
+            blenActionDefault = my_arm.blenAction
+            if blenActionDefault:
+                break
 
         if use_anim_action_all:
             tmp_actions = bpy.data.actions[:]
