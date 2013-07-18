@@ -147,7 +147,8 @@ class Ms3dUi:
             return Ms3dUi.MODE_TRANSPARENCY_DEPTH_BUFFERED_WITH_ALPHA_REF
         elif(ms3d_value == Ms3dSpec.MODE_TRANSPARENCY_DEPTH_SORTED_TRIANGLES):
             return Ms3dUi.MODE_TRANSPARENCY_DEPTH_SORTED_TRIANGLES
-        return None
+
+        return Ms3dUi.MODE_TRANSPARENCY_SIMPLE
 
     @staticmethod
     def transparency_mode_to_ms3d(ui_value):
@@ -157,7 +158,8 @@ class Ms3dUi:
             return Ms3dSpec.MODE_TRANSPARENCY_DEPTH_BUFFERED_WITH_ALPHA_REF
         elif(ui_value == Ms3dUi.MODE_TRANSPARENCY_DEPTH_SORTED_TRIANGLES):
             return Ms3dSpec.MODE_TRANSPARENCY_DEPTH_SORTED_TRIANGLES
-        return None
+
+        return Ms3dSpec.MODE_TRANSPARENCY_SIMPLE
 
 
     FLAG_NONE = 'NONE'
