@@ -20,7 +20,7 @@
 bl_info = {
     "name": "Texture Atlas",
     "author": "Andreas Esau, Paul Geraskin, Campbell Barton",
-    "version": (0, 18),
+    "version": (0, 2, 0),
     "blender": (2, 6, 7),
     "location": "Properties > Render",
     "description": "A simple Texture Atlas for unwrapping many objects. It creates additional UV",
@@ -429,10 +429,9 @@ class AddLightmapGroup(Operator):
         item.resolution = '1024'
         scene.ms_lightmap_groups_index = len(scene.ms_lightmap_groups) - 1
 
-        # if len(context.selected_objects) > 0:
+        # Add selested objects to group
         for object in context.selected_objects:
-            # scene.objects.active = object
-            if context.active_object.type == 'MESH':
+            if object.type == 'MESH':
                 obj_group.objects.link(object)
 
         return {'FINISHED'}
@@ -493,24 +492,41 @@ class CreateLightmap(Operator):
         image.generated_type = 'COLOR_GRID'
         image.generated_width = self.resolution
         image.generated_height = self.resolution
+        obj_group = bpy.data.groups[self.group_name]
 
-        for object in bpy.data.groups[self.group_name].objects:
-            if object.data.uv_textures.active is None:
-                tex = object.data.uv_textures.new()
-                tex.name = self.group_name
+        # non MESH objects for removal list
+        NON_MESH_LIST = []
+
+        for object in obj_group.objects:
+            # Remove non MESH objects
+            if object.type != 'MESH':
+                NON_MESH_LIST.append(object)
+
             else:
-                if self.group_name not in object.data.uv_textures:
+                # Add Image to faces
+                if object.data.uv_textures.active is None:
                     tex = object.data.uv_textures.new()
                     tex.name = self.group_name
-                    tex.active = True
-                    tex.active_render = True
                 else:
-                    tex = object.data.uv_textures[self.group_name]
-                    tex.active = True
-                    tex.active_render = True
+                    if self.group_name not in object.data.uv_textures:
+                        tex = object.data.uv_textures.new()
+                        tex.name = self.group_name
+                        tex.active = True
+                        tex.active_render = True
+                    else:
+                        tex = object.data.uv_textures[self.group_name]
+                        tex.active = True
+                        tex.active_render = True
 
-            for face_tex in tex.data:
-                face_tex.image = image
+                for face_tex in tex.data:
+                    face_tex.image = image
+
+        # remove non NESH objects
+        for object in NON_MESH_LIST:
+            obj_group.objects.unlink(object)
+
+        NON_MESH_LIST.clear() # clear array
+
         return{'FINISHED'}
 
 
