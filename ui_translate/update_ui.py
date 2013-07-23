@@ -103,10 +103,11 @@ class UI_PT_i18n_update_translations_settings(bpy.types.Panel):
             split.template_list("UI_UL_i18n_languages", "", i18n_sett, "langs", i18n_sett, "active_lang", rows=8)
             col = split.column()
             col.operator("ui.i18n_updatetranslation_svn_init_settings", text="Reset Settings")
-            if any(l.use for l in i18n_sett.langs):
-                col.operator("ui.i18n_updatetranslation_svn_settings_select", text="Deselect All").use_select = False
-            else:
-                col.operator("ui.i18n_updatetranslation_svn_settings_select", text="Select All").use_select = True
+            deselect = any(l.use for l in i18n_sett.langs)
+            op = col.operator("ui.i18n_updatetranslation_svn_settings_select",
+                              text="Deselect All" if deselect else "Select All")
+            op.use_invert = False
+            op.use_select = False if deselect else True
             col.operator("ui.i18n_updatetranslation_svn_settings_select", text="Invert Selection").use_invert = True
             col.separator()
             col.operator("ui.i18n_updatetranslation_svn_branches", text="Update Branches")
