@@ -19,8 +19,8 @@
 bl_info = {
     'name': "Nodes Efficiency Tools",
     'author': "Bartek Skorupa",
-    'version': (2, 31),
-    'blender': (2, 6, 7),
+    'version': (2, 32),
+    'blender': (2, 6, 8),
     'location': "Node Editor Properties Panel (Ctrl-SPACE)",
     'description': "Nodes Efficiency Tools",
     'warning': "",
@@ -122,23 +122,24 @@ merge_shaders_types = ('MIX', 'ADD')
 # list of regular shaders. Entry: (identified, type, name for humans). Will be used in SwapShaders and menus.
 # Keeping mixed case to avoid having to translate entries when adding new nodes in SwapNodes.
 regular_shaders = (
-    ('ShaderNodeBsdfTransparent', 'BSDF_TRANSPARENT', 'Transparent BSDF'),
-    ('ShaderNodeBsdfGlossy', 'BSDF_GLOSSY', 'Glossy BSDF'),
-    ('ShaderNodeBsdfGlass', 'BSDF_GLASS', 'Glass BSDF'),
     ('ShaderNodeBsdfDiffuse', 'BSDF_DIFFUSE', 'Diffuse BSDF'),
+    ('ShaderNodeBsdfGlossy', 'BSDF_GLOSSY', 'Glossy BSDF'),
+    ('ShaderNodeBsdfTransparent', 'BSDF_TRANSPARENT', 'Transparent BSDF'),
+    ('ShaderNodeBsdfRefraction', 'BSDF_REFRACTION', 'Refraction BSDF'),
+    ('ShaderNodeBsdfGlass', 'BSDF_GLASS', 'Glass BSDF'),
+    ('ShaderNodeBsdfTranslucent', 'BSDF_TRANSLUCENT', 'Translucent BSDF'),
+    ('ShaderNodeBsdfAnisotropic', 'BSDF_ANISOTROPIC', 'Anisotropic BSDF'),
+    ('ShaderNodeBsdfVelvet', 'BSDF_VELVET', 'Velvet BSDF'),
+    ('ShaderNodeBsdfToon', 'BSDF_TOON', 'Toon BSDF'),
     ('ShaderNodeSubsurfaceScattering', 'SUBSURFACE_SCATTERING', 'Subsurface Scattering'),
     ('ShaderNodeEmission', 'EMISSION', 'Emission'),
-    ('ShaderNodeBsdfVelvet', 'BSDF_VELVET', 'Velvet BSDF'),
-    ('ShaderNodeBsdfTranslucent', 'BSDF_TRANSLUCENT', 'Translucent BSDF'),
-    ('ShaderNodeAmbientOcclusion', 'AMBIENT_OCCLUSION', 'Ambient Occlusion'),
     ('ShaderNodeBackground', 'BACKGROUND', 'Background'),
-    ('ShaderNodeBsdfRefraction', 'BSDF_REFRACTION', 'Refraction BSDF'),
-    ('ShaderNodeBsdfAnisotropic', 'BSDF_ANISOTROPIC', 'Anisotropic BSDF'),
+    ('ShaderNodeAmbientOcclusion', 'AMBIENT_OCCLUSION', 'Ambient Occlusion'),
     ('ShaderNodeHoldout', 'HOLDOUT', 'Holdout'),
     )
 merge_shaders = (
-    ('ShaderNodeAddShader', 'ADD_SHADER', 'Add Shader'),
     ('ShaderNodeMixShader', 'MIX_SHADER', 'Mix Shader'),
+    ('ShaderNodeAddShader', 'ADD_SHADER', 'Add Shader'),
     )
 
 def get_nodes_links(context):
@@ -724,21 +725,22 @@ class NodesSwap(Operator, NodeToolBase):
                 ('NodeMixRGB', 'Mix Node', 'Mix Node'),
                 ('NodeMath', 'Math Node', 'Math Node'),
                 ('CompositorNodeAlphaOver', 'Alpha Over', 'Alpha Over'),
-                ('ShaderNodeBsdfTransparent', 'Transparent BSDF', 'Transparent BSDF'),
-                ('ShaderNodeBsdfGlossy', 'Glossy BSDF', 'Glossy BSDF'),
-                ('ShaderNodeBsdfGlass', 'Glass BSDF', 'Glass BSDF'),
+                ('ShaderNodeMixShader', 'Mix Shader', 'Mix Shader'),
+                ('ShaderNodeAddShader', 'Add Shader', 'Add Shader'),
                 ('ShaderNodeBsdfDiffuse', 'Diffuse BSDF', 'Diffuse BSDF'),
+                ('ShaderNodeBsdfGlossy', 'Glossy BSDF', 'Glossy BSDF'),
+                ('ShaderNodeBsdfTransparent', 'Transparent BSDF', 'Transparent BSDF'),
+                ('ShaderNodeBsdfRefraction', 'Refraction BSDF', 'Refraction BSDF'),
+                ('ShaderNodeBsdfGlass', 'Glass BSDF', 'Glass BSDF'),
+                ('ShaderNodeBsdfTranslucent', 'Translucent BSDF', 'Translucent BSDF'),
+                ('ShaderNodeBsdfAnisotropic', 'Anisotropic BSDF', 'Anisotropic BSDF'),
+                ('ShaderNodeBsdfVelvet', 'Velvet BSDF', 'Velvet BSDF'),
+                ('ShaderNodeBsdfToon', 'Toon BSDF', 'Toon BSDF'),
                 ('ShaderNodeSubsurfaceScattering', 'SUBSURFACE_SCATTERING', 'Subsurface Scattering'),
                 ('ShaderNodeEmission', 'Emission', 'Emission'),
-                ('ShaderNodeBsdfVelvet', 'Velvet BSDF', 'Velvet BSDF'),
-                ('ShaderNodeBsdfTranslucent', 'Translucent BSDF', 'Translucent BSDF'),
-                ('ShaderNodeAmbientOcclusion', 'Ambient Occlusion', 'Ambient Occlusion'),
                 ('ShaderNodeBackground', 'Background', 'Background'),
-                ('ShaderNodeBsdfRefraction', 'Refraction BSDF', 'Refraction BSDF'),
-                ('ShaderNodeBsdfAnisotropic', 'Anisotropic BSDF', 'Anisotropic BSDF'),
+                ('ShaderNodeAmbientOcclusion', 'Ambient Occlusion', 'Ambient Occlusion'),
                 ('ShaderNodeHoldout', 'Holdout', 'Holdout'),
-                ('ShaderNodeAddShader', 'Add Shader', 'Add Shader'),
-                ('ShaderNodeMixShader', 'Mix Shader', 'Mix Shader'),
                 ]
             )
 
@@ -1368,7 +1370,7 @@ class ShadersSwapMenu(Menu):
 
     def draw(self, context):
         layout = self.layout
-        shaders = regular_shaders + merge_shaders
+        shaders = merge_shaders + regular_shaders
         for opt, type, txt in shaders:
             layout.operator(NodesSwap.bl_idname, text=txt).option = opt
 
