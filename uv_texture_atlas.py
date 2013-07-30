@@ -617,13 +617,11 @@ class MergeObjects(Operator):
 
             # Add material to a tempObject if there are no materialSlots on the object
             if len(activeNowObject.material_slots) == 0:
-                mat = None
                 matName = "zz_TextureAtlas_NO_Material"
+                mat = bpy.data.materials.get(matName)
 
-                if bpy.data.materials.get(matName) is None:
+                if mat is None:
                     mat = bpy.data.materials.new(matName)
-                else:
-                    mat = bpy.data.materials[matName]
 
                 activeNowObject.data.materials.append(mat)
 
