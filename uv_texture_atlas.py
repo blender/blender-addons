@@ -525,7 +525,7 @@ class CreateLightmap(Operator):
         for object in NON_MESH_LIST:
             obj_group.objects.unlink(object)
 
-        NON_MESH_LIST.clear() # clear array
+        NON_MESH_LIST.clear()  # clear array
 
         return{'FINISHED'}
 
@@ -638,17 +638,22 @@ class MergeObjects(Operator):
         bpy.ops.object.select_all(action='DESELECT')
         ob_merge.select = True
         scene.objects.active = ob_merge
-        bpy.ops.object.mode_set(mode='EDIT')
-        bpy.ops.mesh.select_all(action='SELECT')
 
-        if self.unwrap is True and scene.ms_lightmap_groups[self.group_name].unwrap_type == '0':
-            bpy.ops.uv.smart_project(
-                angle_limit=72.0, island_margin=0.2, user_area_weight=0.0)
-        elif self.unwrap is True and scene.ms_lightmap_groups[self.group_name].unwrap_type == '1':
-            bpy.ops.uv.lightmap_pack(
-                PREF_CONTEXT='ALL_FACES', PREF_PACK_IN_ONE=True, PREF_NEW_UVLAYER=False,
-                PREF_APPLY_IMAGE=False, PREF_IMG_PX_SIZE=1024, PREF_BOX_DIV=48, PREF_MARGIN_DIV=0.2)
-        bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
+        if self.unwrap is True:
+            unwrapType = scene.ms_lightmap_groups[self.group_name].unwrap_type
+
+            if unwrapType == '0' or unwrapType == '1':
+                bpy.ops.object.mode_set(mode='EDIT')
+                bpy.ops.mesh.select_all(action='SELECT')
+
+            if unwrapType == '0':
+                bpy.ops.uv.smart_project(
+                    angle_limit=72.0, island_margin=0.2, user_area_weight=0.0)
+            elif unwrapType == '1':
+                bpy.ops.uv.lightmap_pack(
+                    PREF_CONTEXT='ALL_FACES', PREF_PACK_IN_ONE=True, PREF_NEW_UVLAYER=False,
+                    PREF_APPLY_IMAGE=False, PREF_IMG_PX_SIZE=1024, PREF_BOX_DIV=48, PREF_MARGIN_DIV=0.2)
+            bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
 
         return{'FINISHED'}
 
