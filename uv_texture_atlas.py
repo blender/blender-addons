@@ -615,6 +615,18 @@ class MergeObjects(Operator):
             item = ob_merge.ms_merged_objects.add()
             item.name = object.name
 
+            # Add material to a tempObject if there are no materialSlots on the object
+            if len(activeNowObject.material_slots) == 0:
+                mat = None
+                matName = "zz_TextureAtlas_NO_Material"
+
+                if bpy.data.materials.get(matName) is None:
+                    mat = bpy.data.materials.new(matName)
+                else:
+                    mat = bpy.data.materials[matName]
+
+                activeNowObject.data.materials.append(mat)
+
             # merge objects together
             bpy.ops.object.select_all(action='DESELECT')
             activeNowObject.select = True
@@ -639,10 +651,6 @@ class MergeObjects(Operator):
                 PREF_CONTEXT='ALL_FACES', PREF_PACK_IN_ONE=True, PREF_NEW_UVLAYER=False,
                 PREF_APPLY_IMAGE=False, PREF_IMG_PX_SIZE=1024, PREF_BOX_DIV=48, PREF_MARGIN_DIV=0.2)
         bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
-
-        # remove all materials
-        # for material in ob_merge.material_slots:
-            # bpy.ops.object.material_slot_remove()
 
         return{'FINISHED'}
 
