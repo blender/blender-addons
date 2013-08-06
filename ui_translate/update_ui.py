@@ -107,7 +107,7 @@ class UI_PT_i18n_update_translations_settings(bpy.types.Panel):
             op = col.operator("ui.i18n_updatetranslation_svn_settings_select",
                               text="Deselect All" if deselect else "Select All")
             op.use_invert = False
-            op.use_select = False if deselect else True
+            op.use_select = not deselect
             col.operator("ui.i18n_updatetranslation_svn_settings_select", text="Invert Selection").use_invert = True
             col.separator()
             col.operator("ui.i18n_updatetranslation_svn_branches", text="Update Branches")
