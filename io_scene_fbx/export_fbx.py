@@ -3050,19 +3050,6 @@ def save(operator, context,
 # Please update the lists for UDK, Unity, XNA etc. on the following web page:
 #   http://wiki.blender.org/index.php/Dev:2.5/Py/Scripts/Import-Export/UnifiedFBX
 
-# XNA FBX Requirements (JCB 29 July 2011)
-# - Armature must be parented to the scene
-# - Armature must be a 'Limb' never a 'null'.  This is in several places.
-# - First bone must be parented to the armature.
-# - Rotation must be completely disabled including
-#       always returning the original matrix in In object_tx().
-#       It is the animation that gets distorted during rotation!
-# - Lone edges cause intermittent errors in the XNA content pipeline!
-#       I have added a warning message and excluded them.
-# - Bind pose must be included with the 'MESH'
-# Typical settings for XNA export
-#   No Cameras, No Lamps, No Edges, No face smoothing, No Default_Take, Armature as bone, Disable rotation
-
 # NOTE TO Campbell -
 #   Can any or all of the following notes be removed because some have been here for a long time? (JCB 27 July 2011)
 # NOTES (all line numbers correspond to original export_fbx.py (under release/scripts)
