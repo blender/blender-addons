@@ -197,8 +197,6 @@ class ExportFBX(bpy.types.Operator, ExportHelper):
 
     use_mesh_edges = BoolProperty(
             name="Include Edges",
-            description=("Edges may not be necessary, can cause import "
-                         "pipeline errors with XNA"),
             default=False,
             )
     use_armature_deform_only = BoolProperty(
@@ -238,11 +236,6 @@ class ExportFBX(bpy.types.Operator, ExportHelper):
             default=6.0,
             )
     path_mode = path_reference_mode
-    use_rotate_workaround = BoolProperty(
-            name="XNA Rotate Animation Hack",
-            description="Disable global rotation, for XNA compatibility",
-            default=False,
-            )
     batch_mode = EnumProperty(
             name="Batch Mode",
             items=(('OFF', "Off", "Active scene to file"),

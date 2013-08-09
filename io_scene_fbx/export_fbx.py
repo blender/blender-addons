@@ -223,7 +223,6 @@ def save_single(operator, scene, filepath="",
         use_metadata=True,
         path_mode='AUTO',
         use_mesh_edges=True,
-        use_rotate_workaround=False,
         use_default_take=True,
     ):
 
@@ -233,10 +232,6 @@ def save_single(operator, scene, filepath="",
     mtx_x90 = Matrix.Rotation(math.pi / 2.0, 3, 'X')
     # Used for mesh and armature rotations
     mtx4_z90 = Matrix.Rotation(math.pi / 2.0, 4, 'Z')
-    # Rotation does not work for XNA animations.  I do not know why but they end up a mess! (JCB)
-    if use_rotate_workaround:
-        # Set rotation to Matrix Identity for XNA (JCB)
-        mtx4_z90.identity()
 
     if global_matrix is None:
         global_matrix = Matrix()
@@ -484,10 +479,6 @@ def save_single(operator, scene, filepath="",
             loc = tuple(loc)
             rot = tuple(rot.to_euler())  # quat -> euler
             scale = tuple(scale)
-
-            # Essential for XNA to use the original matrix not rotated nor scaled (JCB)
-            if use_rotate_workaround:
-                matrix = ob.matrix_local
 
         else:
             # This is bad because we need the parent relative matrix from the fbx parent (if we have one), dont use anymore
@@ -2291,7 +2282,8 @@ Definitions:  {
 	}''' % tmp)
     del tmp
 
-    # Bind pose is essential for XNA if the 'MESH' is included (JCB)
+    # Bind pose is essential for XNA if the 'MESH' is included,
+    # but could be removed now?
     fw('''
 	ObjectType: "Pose" {
 		Count: 1
@@ -3047,7 +3039,7 @@ def save(operator, context,
         return {'FINISHED'}  # so the script wont run after we have batch exported.
 
 # APPLICATION REQUIREMENTS
-# Please update the lists for UDK, Unity, XNA etc. on the following web page:
+# Please update the lists for UDK, Unity etc. on the following web page:
 #   http://wiki.blender.org/index.php/Dev:2.5/Py/Scripts/Import-Export/UnifiedFBX
 
 # NOTE TO Campbell -
