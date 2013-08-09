@@ -113,6 +113,14 @@ def elem_props_get_color_rgb(elem, elem_prop_id, default=None):
     return default
 
 
+def elem_props_get_vector_3d(elem, elem_prop_id, default=None):
+    elem_prop = elem_props_find_first(elem, elem_prop_id)
+    if elem_prop is not None:
+        assert(elem_prop.props_type[4:7] == bytes((data_types.FLOAT64,)) * 3)
+        return elem_prop.props[4:7]
+    return default
+
+
 def elem_props_get_number(elem, elem_prop_id, default=None):
     elem_prop = elem_props_find_first(elem, elem_prop_id)
     if elem_prop is not None:
@@ -138,7 +146,7 @@ def elem_props_get_number(elem, elem_prop_id, default=None):
 # ------
 # Object
 
-def blen_read_object(fbx_obj, object_data):
+def blen_read_object(fbx_obj, object_data, global_matrix):
     elem_name, elem_class = elem_split_name_class(fbx_obj)
     elem_name_utf8 = elem_name.decode('utf-8')
 
@@ -151,13 +159,15 @@ def blen_read_object(fbx_obj, object_data):
     fbx_props = elem_find_first(fbx_obj, b'Properties70')
     assert(fbx_props is not None)
 
-    loc = elem_props_get_color_rgb(fbx_props, b'Lcl Translation', const_vector_zero_3d)
-    rot = elem_props_get_color_rgb(fbx_props, b'Lcl Rotation', const_vector_zero_3d)
-    sca = elem_props_get_color_rgb(fbx_props, b'Lcl Scaling', const_vector_one_3d)
+    loc = elem_props_get_vector_3d(fbx_props, b'Lcl Translation', const_vector_zero_3d)
+    rot = elem_props_get_vector_3d(fbx_props, b'Lcl Rotation', const_vector_zero_3d)
+    sca = elem_props_get_vector_3d(fbx_props, b'Lcl Scaling', const_vector_one_3d)
 
     obj.location = loc
     obj.rotation_euler = tuple_deg_to_rad(rot)
     obj.scale = sca
+
+    obj.matrix_basis = global_matrix * obj.matrix_basis
 
     return obj
 
@@ -469,11 +479,10 @@ def load(operator, context, filepath="",
             for fbx_lnk, fbx_lnk_item, fbx_lnk_type in connection_filter_forward(fbx_uuid, b'Model'):
 
                 # create when linking since we need object data
-                obj = blen_read_object(fbx_lnk, mesh)
+                obj = blen_read_object(fbx_lnk, mesh, global_matrix)
                 # fbx_lnk_item[1] = obj
 
                 # instance in scene
-                # obj.matrix_world = global_matrix * obj.matrix_world
                 obj_base = scene.objects.link(obj)
                 obj_base.select = True
 
