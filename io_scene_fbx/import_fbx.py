@@ -142,7 +142,7 @@ def elem_props_get_number(elem, elem_prop_id, default=None):
         else:
             assert(elem_prop.props[1] == b'Number')
             assert(elem_prop.props[2] == b'')
-            assert(elem_prop.props[3] == b'A')
+            assert(elem_prop.props[3] in {b'A', b'A+'})
 
         # we could allow other number types
         assert(elem_prop.props_type[4] == data_types.FLOAT64)
@@ -383,7 +383,10 @@ def blen_read_texture(fbx_obj, basedir, image_cache,
     return image
 
 
-def blen_read_camera(fbx_obj):
+def blen_read_camera(fbx_obj, global_scale):
+    # meters to inches
+    M2I = 0.0393700787
+    
     elem_name, elem_class = elem_split_name_class_nodeattr(fbx_obj)
     assert(elem_class == b'Camera')
     elem_name_utf8 = elem_name.decode('utf-8')
@@ -393,10 +396,23 @@ def blen_read_camera(fbx_obj):
 
     camera = bpy.data.cameras.new(name=elem_name_utf8)
 
+    camera.lens = elem_props_get_number(fbx_props, b'FocalLength', 35.0)
+    camera.sensor_width = elem_props_get_number(fbx_props, b'FilmWidth', 32.0 * M2I) / M2I
+    camera.sensor_height = elem_props_get_number(fbx_props, b'FilmHeight', 32.0 * M2I) / M2I
+
+    filmaspect = camera.sensor_width / camera.sensor_height
+    # film offset
+    camera.shift_x = elem_props_get_number(fbx_props, b'FilmOffsetX', 0.0) / (M2I * camera.sensor_width)
+    camera.shift_y = elem_props_get_number(fbx_props, b'FilmOffsetY', 0.0) / (M2I * camera.sensor_height * filmaspect)
+
+    camera.clip_start = elem_props_get_number(fbx_props, b'NearPlane', 0.01)
+    camera.clip_end = elem_props_get_number(fbx_props, b'FarPlane', 100.0)
+
     return camera
 
 
 def blen_read_light(fbx_obj):
+    import math
     elem_name, elem_class = elem_split_name_class_nodeattr(fbx_obj)
     assert(elem_class == b'Light')
     elem_name_utf8 = elem_name.decode('utf-8')
@@ -411,6 +427,13 @@ def blen_read_light(fbx_obj):
 
     lamp = bpy.data.lamps.new(name=elem_name_utf8, type=light_type)
 
+    if light_type == 'SPOT':
+        lamp.spot_size = math.radians(elem_props_get_number(fbx_props, b'Cone angle', 45.0))
+
+    # TODO, cycles
+    lamp.energy = elem_props_get_number(fbx_props, b'Intensity', 100.0) / 100.0
+    lamp.color = elem_props_get_number(fbx_props, b'Color', (1.0, 1.0, 1.0))
+
     return lamp
 
 
@@ -418,6 +441,8 @@ def load(operator, context, filepath="",
          global_matrix=None,
          use_cycles=True,
          use_image_search=False):
+
+    global_scale = (sum(global_matrix.to_scale()) / 3.0) if global_matrix else 1.0
 
     import os
     from . import parse_fbx
@@ -529,7 +554,7 @@ def load(operator, context, filepath="",
                 continue
             if fbx_obj.props[-1] == b'Camera':
                 assert(blen_data is None)
-                fbx_item[1] = blen_read_camera(fbx_obj)
+                fbx_item[1] = blen_read_camera(fbx_obj, global_scale)
     _(); del _
 
 
