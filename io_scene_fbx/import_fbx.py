@@ -75,6 +75,17 @@ def elem_split_name_class(elem):
     return elem_name, elem_class
 
 
+def elem_split_name_class_nodeattr(elem):
+    """ Return
+    """
+    assert(elem.props_type[-2] == data_types.STRING)
+    elem_name, elem_class = elem.props[-2].split(b'\x00\x01')
+    assert(elem_class == b'NodeAttribute')
+    assert(elem.props_type[-1] == data_types.STRING)
+    elem_class = elem.props[-1]
+    return elem_name, elem_class
+
+
 def elem_uuid(elem):
     assert(elem.props_type[0] == data_types.INT64)
     return elem.props[0]
@@ -140,6 +151,21 @@ def elem_props_get_number(elem, elem_prop_id, default=None):
     return default
 
 
+def elem_props_get_enum(elem, elem_prop_id, default=None):
+    elem_prop = elem_props_find_first(elem, elem_prop_id)
+    if elem_prop is not None:
+        assert(elem_prop.props[0] == elem_prop_id)
+        assert(elem_prop.props[1] == b'enum')
+        assert(elem_prop.props[2] == b'')
+        assert(elem_prop.props[3] == b'')
+
+        # we could allow other number types
+        assert(elem_prop.props_type[4] == data_types.INT32)
+
+        return elem_prop.props[4]
+    return default
+
+
 # ----------------------------------------------------------------------------
 # Blender
 
@@ -163,11 +189,19 @@ def blen_read_object(fbx_obj, object_data, global_matrix):
     rot = elem_props_get_vector_3d(fbx_props, b'Lcl Rotation', const_vector_zero_3d)
     sca = elem_props_get_vector_3d(fbx_props, b'Lcl Scaling', const_vector_one_3d)
 
-    obj.location = loc
-    obj.rotation_euler = tuple_deg_to_rad(rot)
-    obj.scale = sca
-
-    obj.matrix_basis = global_matrix * obj.matrix_basis
+    # Both can work...
+    from mathutils import Matrix, Euler
+    from math import pi
+    mat = Matrix()
+    mat[0][0], mat[1][1], mat[2][2] = sca
+    rmat = Euler(tuple_deg_to_rad(rot)).to_matrix().to_4x4()
+    if obj.type == 'CAMERA':
+        rmat = rmat * Matrix.Rotation(-pi / 2.0, 4, 'Y')
+    elif obj.type == 'LAMP':
+        rmat = rmat * Matrix.Rotation(-pi / 2.0, 4, 'X')
+    mat = mat * rmat
+    mat.translation = loc
+    obj.matrix_basis = global_matrix * mat
 
     return obj
 
@@ -349,6 +383,37 @@ def blen_read_texture(fbx_obj, basedir, image_cache,
     return image
 
 
+def blen_read_camera(fbx_obj):
+    elem_name, elem_class = elem_split_name_class_nodeattr(fbx_obj)
+    assert(elem_class == b'Camera')
+    elem_name_utf8 = elem_name.decode('utf-8')
+
+    fbx_props = elem_find_first(fbx_obj, b'Properties70')
+    assert(fbx_props is not None)
+
+    camera = bpy.data.cameras.new(name=elem_name_utf8)
+
+    return camera
+
+
+def blen_read_light(fbx_obj):
+    elem_name, elem_class = elem_split_name_class_nodeattr(fbx_obj)
+    assert(elem_class == b'Light')
+    elem_name_utf8 = elem_name.decode('utf-8')
+
+    fbx_props = elem_find_first(fbx_obj, b'Properties70')
+    assert(fbx_props is not None)
+
+    light_type = {
+        0: 'POINT',
+        1: 'SUN',
+        2: 'SPOT'}.get(elem_props_get_enum(fbx_props, b'LightType', 0), 'POINT')
+
+    lamp = bpy.data.lamps.new(name=elem_name_utf8, type=light_type)
+
+    return lamp
+
+
 def load(operator, context, filepath="",
          global_matrix=None,
          use_cycles=True,
@@ -454,13 +519,40 @@ def load(operator, context, filepath="",
                                             use_image_search)
     _(); del _
 
+
+    # ----
+    # Load camera data
+    def _():
+        for fbx_uuid, fbx_item in fbx_table_nodes.items():
+            fbx_obj, blen_data = fbx_item
+            if fbx_obj.id != b'NodeAttribute':
+                continue
+            if fbx_obj.props[-1] == b'Camera':
+                assert(blen_data is None)
+                fbx_item[1] = blen_read_camera(fbx_obj)
+    _(); del _
+
+
+    # ----
+    # Load lamp data
+    def _():
+        for fbx_uuid, fbx_item in fbx_table_nodes.items():
+            fbx_obj, blen_data = fbx_item
+            if fbx_obj.id != b'NodeAttribute':
+                continue
+            if fbx_obj.props[-1] == b'Light':
+                assert(blen_data is None)
+                fbx_item[1] = blen_read_light(fbx_obj)
+    _(); del _
+
+
     # ----
     # Connections
     def connection_filter_ex(fbx_uuid, fbx_id, dct):
         return [(c_found[0], c_found[1], c_type)
                 for (c_uuid, c_type) in dct.get(fbx_uuid, ())
                 for c_found in (fbx_table_nodes[c_uuid],)
-                if c_found[0].id == fbx_id]
+                if (fbx_id is None) or (c_found[0].id == fbx_id)]
 
     def connection_filter_forward(fbx_uuid, fbx_id):
         return connection_filter_ex(fbx_uuid, fbx_id, fbx_connection_map)
@@ -477,19 +569,39 @@ def load(operator, context, filepath="",
 
             mesh = fbx_table_nodes[fbx_uuid][1]
             for fbx_lnk, fbx_lnk_item, fbx_lnk_type in connection_filter_forward(fbx_uuid, b'Model'):
+                # link materials
+                fbx_lnk_uuid = elem_uuid(fbx_lnk)
+                for fbx_lnk_material, material, fbx_lnk_material_type in connection_filter_reverse(fbx_lnk_uuid, b'Material'):
+                    mesh.materials.append(material)
+    _(); del _
+
+
+    def _():
+        # Link objects
+        for fbx_uuid, fbx_item in fbx_table_nodes.items():
+            fbx_obj, blen_data = fbx_item
+            if fbx_obj.id != b'Model':
+                continue
+
+            # mesh = fbx_table_nodes[fbx_uuid][1]
+            for fbx_lnk, fbx_lnk_item, fbx_lnk_type in connection_filter_reverse(fbx_uuid, None):
+                if not isinstance(fbx_lnk_item, bpy.types.ID):
+                    continue
+                if isinstance(fbx_lnk_item, bpy.types.Material):
+                    continue
+
+                #print(fbx_lnk, fbx_lnk_item, fbx_lnk_type)
 
                 # create when linking since we need object data
-                obj = blen_read_object(fbx_lnk, mesh, global_matrix)
+                obj = blen_read_object(fbx_obj, fbx_lnk_item, global_matrix)
+
+                # TODO, we dont need it yet
                 # fbx_lnk_item[1] = obj
 
                 # instance in scene
                 obj_base = scene.objects.link(obj)
                 obj_base.select = True
 
-                # link materials
-                fbx_lnk_uuid = elem_uuid(fbx_lnk)
-                for fbx_lnk_material, material, fbx_lnk_material_type in connection_filter_reverse(fbx_lnk_uuid, b'Material'):
-                    mesh.materials.append(material)
     _(); del _
 
     def _():
