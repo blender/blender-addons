@@ -151,6 +151,22 @@ def elem_props_get_number(elem, elem_prop_id, default=None):
     return default
 
 
+def elem_props_get_bool(elem, elem_prop_id, default=None):
+    elem_prop = elem_props_find_first(elem, elem_prop_id)
+    if elem_prop is not None:
+        assert(elem_prop.props[0] == elem_prop_id)
+        assert(elem_prop.props[1] == b'bool')
+        assert(elem_prop.props[2] == b'')
+        assert(elem_prop.props[3] == b'')
+
+        # we could allow other number types
+        assert(elem_prop.props_type[4] == data_types.INT32)
+        assert(elem_prop.props_type[4] in {0, 1})
+
+        return bool(elem_prop.props[4])
+    return default
+
+
 def elem_props_get_enum(elem, elem_prop_id, default=None):
     elem_prop = elem_props_find_first(elem, elem_prop_id)
     if elem_prop is not None:
@@ -409,13 +425,13 @@ def blen_read_camera(fbx_obj, global_scale):
     camera.shift_x = elem_props_get_number(fbx_props, b'FilmOffsetX', 0.0) / (M2I * camera.sensor_width)
     camera.shift_y = elem_props_get_number(fbx_props, b'FilmOffsetY', 0.0) / (M2I * camera.sensor_height * filmaspect)
 
-    camera.clip_start = elem_props_get_number(fbx_props, b'NearPlane', 0.01)
-    camera.clip_end = elem_props_get_number(fbx_props, b'FarPlane', 100.0)
+    camera.clip_start = elem_props_get_number(fbx_props, b'NearPlane', 0.01) * global_scale
+    camera.clip_end = elem_props_get_number(fbx_props, b'FarPlane', 100.0) * global_scale
 
     return camera
 
 
-def blen_read_light(fbx_obj):
+def blen_read_light(fbx_obj, global_scale):
     import math
     elem_name, elem_class = elem_split_name_class_nodeattr(fbx_obj)
     assert(elem_class == b'Light')
@@ -435,8 +451,11 @@ def blen_read_light(fbx_obj):
         lamp.spot_size = math.radians(elem_props_get_number(fbx_props, b'Cone angle', 45.0))
 
     # TODO, cycles
-    lamp.energy = elem_props_get_number(fbx_props, b'Intensity', 100.0) / 100.0
     lamp.color = elem_props_get_number(fbx_props, b'Color', (1.0, 1.0, 1.0))
+    lamp.energy = elem_props_get_number(fbx_props, b'Intensity', 100.0) / 100.0
+    lamp.distance = elem_props_get_number(fbx_props, b'DecayStart', 25.0) * global_scale
+    lamp.shadow_method = ('RAY_SHADOW' if elem_props_get_bool(fbx_props, b'CastShadow', True) else 'NOSHADOW')
+    lamp.shadow_color = elem_props_get_color_rgb(fbx_props, b'ShadowColor', (0.0, 0.0, 0.0))
 
     return lamp
 
@@ -571,7 +590,7 @@ def load(operator, context, filepath="",
                 continue
             if fbx_obj.props[-1] == b'Light':
                 assert(blen_data is None)
-                fbx_item[1] = blen_read_light(fbx_obj)
+                fbx_item[1] = blen_read_light(fbx_obj, global_scale)
     _(); del _
 
     # ----
