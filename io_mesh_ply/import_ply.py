@@ -243,6 +243,8 @@ def load_ply_mesh(filepath, ply_name):
 
         elif el.name == b'face':
             findex = el.index(b'vertex_indices')
+        elif el.name == b'tristrips':
+            trindex = el.index(b'vertex_indices')
 
     mesh_faces = []
     mesh_uvs = []
@@ -285,6 +287,13 @@ def load_ply_mesh(filepath, ply_name):
                 # Fan fill the face
                 for j in range(len_ind - 2):
                     add_face(verts, (ind[0], ind[j + 1], ind[j + 2]), uvindices, colindices)
+
+    if b'tristrips' in obj:
+        for t in obj[b'tristrips']:
+            ind = t[trindex]
+            len_ind = len(ind)
+            for j in range(len_ind - 2):
+                add_face(verts, (ind[j], ind[j + 1], ind[j + 2]), uvindices, colindices)
 
     mesh = bpy.data.meshes.new(name=ply_name)
 
