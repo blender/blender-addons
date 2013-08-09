@@ -590,23 +590,7 @@ def load(operator, context, filepath="",
         return connection_filter_ex(fbx_uuid, fbx_id, fbx_connection_map_reverse)
 
     def _():
-        # link Material's to Geometry (via Model's)
-        for fbx_uuid, fbx_item in fbx_table_nodes.items():
-            fbx_obj, blen_data = fbx_item
-            if fbx_obj.id != b'Geometry':
-                continue
-
-            mesh = fbx_table_nodes[fbx_uuid][1]
-            for fbx_lnk, fbx_lnk_item, fbx_lnk_type in connection_filter_forward(fbx_uuid, b'Model'):
-                # link materials
-                fbx_lnk_uuid = elem_uuid(fbx_lnk)
-                for fbx_lnk_material, material, fbx_lnk_material_type in connection_filter_reverse(fbx_lnk_uuid, b'Material'):
-                    mesh.materials.append(material)
-    _(); del _
-
-
-    def _():
-        # Link objects
+        # Link objects, keep first, this also creates objects
         for fbx_uuid, fbx_item in fbx_table_nodes.items():
             fbx_obj, blen_data = fbx_item
             if fbx_obj.id != b'Model':
@@ -619,18 +603,29 @@ def load(operator, context, filepath="",
                 if isinstance(fbx_lnk_item, (bpy.types.Material, bpy.types.Image)):
                     continue
 
-                #print(fbx_lnk, fbx_lnk_item, fbx_lnk_type)
-
                 # create when linking since we need object data
                 obj = blen_read_object(fbx_obj, fbx_lnk_item, global_matrix)
-
-                # TODO, we dont need it yet
-                # fbx_lnk_item[1] = obj
+                assert(fbx_item[1] is None)
+                fbx_item[1] = obj
 
                 # instance in scene
                 obj_base = scene.objects.link(obj)
                 obj_base.select = True
+    _(); del _
 
+    def _():
+        # link Material's to Geometry (via Model's)
+        for fbx_uuid, fbx_item in fbx_table_nodes.items():
+            fbx_obj, blen_data = fbx_item
+            if fbx_obj.id != b'Geometry':
+                continue
+
+            mesh = fbx_table_nodes[fbx_uuid][1]
+            for fbx_lnk, fbx_lnk_item, fbx_lnk_type in connection_filter_forward(fbx_uuid, b'Model'):
+                # link materials
+                fbx_lnk_uuid = elem_uuid(fbx_lnk)
+                for fbx_lnk_material, material, fbx_lnk_material_type in connection_filter_reverse(fbx_lnk_uuid, b'Material'):
+                    mesh.materials.append(material)
     _(); del _
 
     def _():
