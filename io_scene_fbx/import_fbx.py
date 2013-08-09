@@ -262,32 +262,36 @@ def blen_read_geom(fbx_obj):
     # TODO
     # fbx_edges = elem_prop_first(elem_find_first(fbx_obj, b'Edges'))
 
+    if fbx_verts is None:
+        fbx_verts = ()
+    if fbx_polys is None:
+        fbx_polys = ()
+
     mesh = bpy.data.meshes.new(name=elem_name_utf8)
     mesh.vertices.add(len(fbx_verts) // 3)
     mesh.vertices.foreach_set("co", fbx_verts)
 
-    mesh.loops.add(len(fbx_polys))
+    if fbx_polys:
+        mesh.loops.add(len(fbx_polys))
+        poly_loop_starts = []
+        poly_loop_totals = []
+        poly_loop_prev = 0
+        for i, l in enumerate(mesh.loops):
+            index = fbx_polys[i]
+            if index < 0:
+                poly_loop_starts.append(poly_loop_prev)
+                poly_loop_totals.append((i - poly_loop_prev) + 1)
+                poly_loop_prev = i + 1
+                index = -(index + 1)
+            l.vertex_index = index
+        poly_loop_starts.append(poly_loop_prev)
+        poly_loop_totals.append((i - poly_loop_prev) + 1)
 
-    #poly_loops = []  # pairs (loop_start, loop_total)
-    poly_loop_starts = []
-    poly_loop_totals = []
-    poly_loop_prev = 0
-    for i, l in enumerate(mesh.loops):
-        index = fbx_polys[i]
-        if index < 0:
-            poly_loop_starts.append(poly_loop_prev)
-            poly_loop_totals.append((i - poly_loop_prev) + 1)
-            poly_loop_prev = i + 1
-            index = -(index + 1)
-        l.vertex_index = index
-    poly_loop_starts.append(poly_loop_prev)
-    poly_loop_totals.append((i - poly_loop_prev) + 1)
+        mesh.polygons.add(len(poly_loop_starts))
+        mesh.polygons.foreach_set("loop_start", poly_loop_starts)
+        mesh.polygons.foreach_set("loop_total", poly_loop_totals)
 
-    mesh.polygons.add(len(poly_loop_starts))
-    mesh.polygons.foreach_set("loop_start", poly_loop_starts)
-    mesh.polygons.foreach_set("loop_total", poly_loop_totals)
-
-    blen_read_geom_uv(fbx_obj, mesh)
+        blen_read_geom_uv(fbx_obj, mesh)
 
     mesh.validate()
     mesh.calc_normals()
@@ -612,7 +616,7 @@ def load(operator, context, filepath="",
             for fbx_lnk, fbx_lnk_item, fbx_lnk_type in connection_filter_reverse(fbx_uuid, None):
                 if not isinstance(fbx_lnk_item, bpy.types.ID):
                     continue
-                if isinstance(fbx_lnk_item, bpy.types.Material):
+                if isinstance(fbx_lnk_item, (bpy.types.Material, bpy.types.Image)):
                     continue
 
                 #print(fbx_lnk, fbx_lnk_item, fbx_lnk_type)
