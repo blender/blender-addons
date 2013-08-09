@@ -172,7 +172,7 @@ def elem_props_get_enum(elem, elem_prop_id, default=None):
 # ------
 # Object
 
-def blen_read_object(fbx_obj, object_data, global_matrix):
+def blen_read_object(fbx_obj, object_data):
     elem_name, elem_class = elem_split_name_class(fbx_obj)
     elem_name_utf8 = elem_name.decode('utf-8')
 
@@ -201,7 +201,7 @@ def blen_read_object(fbx_obj, object_data, global_matrix):
         rmat = rmat * Matrix.Rotation(-pi / 2.0, 4, 'X')
     mat = mat * rmat
     mat.translation = loc
-    obj.matrix_basis = global_matrix * mat
+    obj.matrix_basis = mat
 
     return obj
 
@@ -390,7 +390,7 @@ def blen_read_texture(fbx_obj, basedir, image_cache,
 def blen_read_camera(fbx_obj, global_scale):
     # meters to inches
     M2I = 0.0393700787
-    
+
     elem_name, elem_class = elem_split_name_class_nodeattr(fbx_obj)
     assert(elem_class == b'Camera')
     elem_name_utf8 = elem_name.decode('utf-8')
@@ -579,7 +579,8 @@ def load(operator, context, filepath="",
     def connection_filter_ex(fbx_uuid, fbx_id, dct):
         return [(c_found[0], c_found[1], c_type)
                 for (c_uuid, c_type) in dct.get(fbx_uuid, ())
-                for c_found in (fbx_table_nodes[c_uuid],)
+                # 0 is used for the root node, which isnt in fbx_table_nodes
+                for c_found in (() if c_uuid is 0 else (fbx_table_nodes[c_uuid],))
                 if (fbx_id is None) or (c_found[0].id == fbx_id)]
 
     def connection_filter_forward(fbx_uuid, fbx_id):
@@ -610,11 +611,10 @@ def load(operator, context, filepath="",
                         continue
                     ok = True
                     break
-
             if ok:
-                print(fbx_lnk_type)
+                # print(fbx_lnk_type)
                 # create when linking since we need object data
-                obj = blen_read_object(fbx_obj, fbx_lnk_item, global_matrix)
+                obj = blen_read_object(fbx_obj, fbx_lnk_item)
                 assert(fbx_item[1] is None)
                 fbx_item[1] = obj
 
@@ -624,15 +624,30 @@ def load(operator, context, filepath="",
     _(); del _
 
     def _():
-        # Link objects, keep first, this also creates objects
+        # Parent objects, after we created them...
         for fbx_uuid, fbx_item in fbx_table_nodes.items():
             fbx_obj, blen_data = fbx_item
             if fbx_obj.id != b'Model':
                 continue
             if fbx_item[1] is None:
                 continue  # no object loaded.. ignore
-            
 
+            for fbx_lnk, fbx_lnk_item, fbx_lnk_type in connection_filter_forward(fbx_uuid, b'Model'):
+                fbx_item[1].parent = fbx_lnk_item
+    _(); del _
+
+    def _():
+        if global_matrix is not None:
+            # Apply global matrix last (after parenting)
+            for fbx_uuid, fbx_item in fbx_table_nodes.items():
+                fbx_obj, blen_data = fbx_item
+                if fbx_obj.id != b'Model':
+                    continue
+                if fbx_item[1] is None:
+                    continue  # no object loaded.. ignore
+
+                if fbx_item[1].parent is None:
+                    fbx_item[1].matrix_basis = global_matrix * fbx_item[1].matrix_basis
     _(); del _
 
     def _():
