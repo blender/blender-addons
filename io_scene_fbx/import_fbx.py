@@ -574,7 +574,6 @@ def load(operator, context, filepath="",
                 fbx_item[1] = blen_read_light(fbx_obj)
     _(); del _
 
-
     # ----
     # Connections
     def connection_filter_ex(fbx_uuid, fbx_id, dct):
@@ -596,13 +595,24 @@ def load(operator, context, filepath="",
             if fbx_obj.id != b'Model':
                 continue
 
-            # mesh = fbx_table_nodes[fbx_uuid][1]
-            for fbx_lnk, fbx_lnk_item, fbx_lnk_type in connection_filter_reverse(fbx_uuid, None):
-                if not isinstance(fbx_lnk_item, bpy.types.ID):
-                    continue
-                if isinstance(fbx_lnk_item, (bpy.types.Material, bpy.types.Image)):
-                    continue
+            # Create empty object or search for object data
+            if fbx_obj.props[2] == b'Null':
+                fbx_lnk_item = None
+                ok = True
+            else:
+                ok = False
+                for fbx_lnk, fbx_lnk_item, fbx_lnk_type in connection_filter_reverse(fbx_uuid, None):
+                    if fbx_lnk_type.props[0] != b'OO':
+                        continue
+                    if not isinstance(fbx_lnk_item, bpy.types.ID):
+                        continue
+                    if isinstance(fbx_lnk_item, (bpy.types.Material, bpy.types.Image)):
+                        continue
+                    ok = True
+                    break
 
+            if ok:
+                print(fbx_lnk_type)
                 # create when linking since we need object data
                 obj = blen_read_object(fbx_obj, fbx_lnk_item, global_matrix)
                 assert(fbx_item[1] is None)
@@ -611,6 +621,18 @@ def load(operator, context, filepath="",
                 # instance in scene
                 obj_base = scene.objects.link(obj)
                 obj_base.select = True
+    _(); del _
+
+    def _():
+        # Link objects, keep first, this also creates objects
+        for fbx_uuid, fbx_item in fbx_table_nodes.items():
+            fbx_obj, blen_data = fbx_item
+            if fbx_obj.id != b'Model':
+                continue
+            if fbx_item[1] is None:
+                continue  # no object loaded.. ignore
+            
+
     _(); del _
 
     def _():
