@@ -744,6 +744,7 @@ def load(operator, context, filepath="",
 
     def _():
         # Link objects, keep first, this also creates objects
+        objects = []
         for fbx_uuid, fbx_item in fbx_table_nodes.items():
             fbx_obj, blen_data = fbx_item
             if fbx_obj.id != b'Model':
@@ -777,6 +778,14 @@ def load(operator, context, filepath="",
                 # instance in scene
                 obj_base = scene.objects.link(obj)
                 obj_base.select = True
+
+                objects.append(obj)
+
+        # until we load smoothing info
+        context_copy = context.copy()
+        context_copy["selected_editable_objects"] = objects
+        bpy.ops.object.shade_smooth(context_copy)
+
     _(); del _
 
     def _():
@@ -987,8 +996,6 @@ def load(operator, context, filepath="",
                             if material in material_decals:
                                 # recieve but dont cast shadows
                                 material.use_raytrace = False
-
-
     _(); del _
 
     # print(list(sorted(locals().keys())))
