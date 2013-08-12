@@ -327,13 +327,24 @@ class CyclesShaderWrapper():
         self._image_create_helper(image, node, (node.inputs["Color2"],))
 
     def alpha_value_set(self, value):
-        self.node_bsdf_alpha.mute = (value <= 0.0)
+        self.node_bsdf_alpha.mute &= (value >= 1.0)
         node = self.node_mix_color_alpha
         node.inputs["Color1"].default_value = (value,) * 4
 
     def alpha_image_set(self, image):
+        self.node_bsdf_alpha.mute = False
         node = self.node_mix_color_alpha
         self._image_create_helper(image, node, (node.inputs["Color2"],))
+
+    def alpha_image_set_from_diffuse(self):
+        tree = self.node_mix_color_diff.id_data
+        links = tree.links
+
+        self.node_bsdf_alpha.mute = False
+        node_image = self.node_mix_color_diff.inputs["Color2"].links[0].from_node
+        node = self.node_mix_color_alpha
+        links.new(node_image.outputs["Alpha"],
+                  node.inputs["Color2"])
 
     def normal_factor_set(self, value):
         node = self.node_normal_map

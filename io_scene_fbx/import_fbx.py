@@ -22,6 +22,10 @@
 
 # FBX 7.1.0 -> 7.3.0 loader for Blender
 
+# Not totally pep8 compliant.
+#   pep8 import_fbx.py --ignore=E501,E123,E702,E125
+
+
 import bpy
 
 # -----
@@ -588,7 +592,9 @@ def blen_read_light(fbx_obj, global_scale):
 def load(operator, context, filepath="",
          global_matrix=None,
          use_cycles=True,
-         use_image_search=False):
+         use_image_search=False,
+         use_alpha_decals=False,
+         decal_offset=0.0):
 
     global_scale = (sum(global_matrix.to_scale()) / 3.0) if global_matrix else 1.0
 
@@ -621,6 +627,11 @@ def load(operator, context, filepath="",
 
     # Tables: (FBX_byte_id -> [FBX_data, None or Blender_datablock])
     fbx_table_nodes = {}
+
+    if use_alpha_decals:
+        material_decals = set()
+    else:
+        material_decals = None
 
     scene = context.scene
 
@@ -820,10 +831,27 @@ def load(operator, context, filepath="",
     _(); del _
 
     def _():
+        material_images = {}
+
         # textures that use this material
         def texture_bumpfac_get(fbx_obj):
             fbx_props = elem_find_first(fbx_obj, b'Properties70')
             return elem_props_get_number(fbx_props, b'BumpFactor', 1.0)
+
+        if not use_cycles:
+            # Simple function to make a new mtex and set defaults
+            def material_mtex_new(material, image):
+                tex = texture_cache.get(image)
+                if tex is None:
+                    tex = bpy.data.textures.new(name=image.name, type='IMAGE')
+                    tex.image = image
+                    texture_cache[image] = tex
+
+                mtex = material.texture_slots.add()
+                mtex.texture = tex
+                mtex.texture_coords = 'UV'
+                mtex.use_map_color_diffuse = False
+                return mtex
 
         for fbx_uuid, fbx_item in fbx_table_nodes.items():
             fbx_obj, blen_data = fbx_item
@@ -847,8 +875,10 @@ def load(operator, context, filepath="",
                             ma_wrap.specular_image_set(image)
                         elif lnk_type == b'ReflectionColor':
                             ma_wrap.reflect_image_set(image)
-                        elif lnk_type == b'TransparentColor':
+                        elif lnk_type == b'TransparentColor':  # alpha
                             ma_wrap.alpha_image_set(image)
+                            if use_alpha_decals:
+                                material_decals.add(material)
                         elif lnk_type == b'DiffuseFactor':
                             pass  # TODO
                         elif lnk_type == b'ShininessExponent':
@@ -859,21 +889,15 @@ def load(operator, context, filepath="",
                         elif lnk_type == b'Bump':
                             ma_wrap.bump_image_set(image)
                             ma_wrap.bump_factor_set(texture_bumpfac_get(fbx_obj))
+                        else:
+                            print("WARNING: material link %r ignored" % lnk_type)
+
+                        material_images.setdefault(material, {})[lnk_type] = image
                 else:
                     if fbx_lnk_type.props[0] == b'OP':
                         lnk_type = fbx_lnk_type.props[3]
 
-                        # cache converted texture
-                        tex = texture_cache.get(image)
-                        if tex is None:
-                            tex = bpy.data.textures.new(name=image.name, type='IMAGE')
-                            tex.image = image
-                            texture_cache[image] = tex
-
-                        mtex = material.texture_slots.add()
-                        mtex.texture = tex
-                        mtex.texture_coords = 'UV'
-                        mtex.use_map_color_diffuse = False
+                        mtex = material_mtex_new(material, image)
 
                         if lnk_type == b'DiffuseColor':
                             mtex.use_map_color_diffuse = True
@@ -883,8 +907,14 @@ def load(operator, context, filepath="",
                             mtex.blend_type = 'MULTIPLY'
                         elif lnk_type == b'ReflectionColor':
                             mtex.use_map_raymir = True
-                        elif lnk_type == b'TransparentColor':
-                            pass
+                        elif lnk_type == b'TransparentColor':  # alpha
+                            material.use_transparency = True
+                            material.transparency_method = 'RAYTRACE'
+                            material.alpha = 0.0
+                            mtex.use_map_alpha = True
+                            mtex.alpha_factor = 1.0
+                            if use_alpha_decals:
+                                material_decals.add(material)
                         elif lnk_type == b'DiffuseFactor':
                             mtex.use_map_diffuse = True
                         elif lnk_type == b'ShininessExponent':
@@ -898,8 +928,68 @@ def load(operator, context, filepath="",
                             mtex.normal_factor = texture_bumpfac_get(fbx_obj)
                         else:
                             print("WARNING: material link %r ignored" % lnk_type)
+
+                        material_images.setdefault(material, {})[lnk_type] = image
+
+        # Check if the diffuse image has an alpha channel,
+        # if so, use the alpha channel.
+
+        # Note: this could be made optional since images may have alpha but be entirely opaque
+        for fbx_uuid, fbx_item in fbx_table_nodes.items():
+            fbx_obj, blen_data = fbx_item
+            if fbx_obj.id != b'Material':
+                continue
+            material = fbx_table_nodes[fbx_uuid][1]
+            image = material_images.get(material, {}).get(b'DiffuseColor')
+            # do we have alpha?
+            if image and image.depth == 32:
+                if use_alpha_decals:
+                    material_decals.add(material)
+                
+                if use_cycles:
+                    ma_wrap = cycles_material_wrap_map[material]
+                    if ma_wrap.node_bsdf_alpha.mute:
+                        ma_wrap.alpha_image_set_from_diffuse()
+                else:
+                    if not any((True for mtex in material.texture_slots if mtex and mtex.use_map_alpha)):
+                        mtex = material_mtex_new(material, image)
+
+                        material.use_transparency = True
+                        material.transparency_method = 'RAYTRACE'
+                        material.alpha = 0.0
+                        mtex.use_map_alpha = True
+                        mtex.alpha_factor = 1.0
+
+    _(); del _
+
+    def _():
+        # Annoying workaround for cycles having no z-offset
+        if material_decals and use_alpha_decals:
+            for fbx_uuid, fbx_item in fbx_table_nodes.items():
+                fbx_obj, blen_data = fbx_item
+                if fbx_obj.id != b'Geometry':
+                    continue
+                if fbx_obj.props[-1] == b'Mesh':
+                    mesh = fbx_item[1]
+
+                    if decal_offset != 0.0:
+                        for material in mesh.materials:
+                            if material in material_decals:
+                                for v in mesh.vertices:
+                                    v.co += v.normal * decal_offset
+                                break
+
+                    if use_cycles:
+                        for obj in (obj for obj in bpy.data.objects if obj.data == mesh):
+                            obj.cycles_visibility.shadow = False
+                    else:
+                        for material in mesh.materials:
+                            if material in material_decals:
+                                # recieve but dont cast shadows
+                                material.use_raytrace = False
+
+
     _(); del _
 
     # print(list(sorted(locals().keys())))
-
     return {'FINISHED'}

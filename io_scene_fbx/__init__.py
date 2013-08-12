@@ -72,6 +72,21 @@ class ImportFBX(bpy.types.Operator, ImportHelper):
             default=True,
             )
 
+    use_alpha_decals = BoolProperty(
+            name="Alpha Decals",
+            description="Treat materials with alpha as decals "
+                        "(no shadow casting)",
+            default=False,
+            options={'HIDDEN'}
+            )
+    decal_offset = FloatProperty(
+            name="Decal Offset",
+            description="Displace geometry of alpha meshes",
+            min=0.0, max=1.0,
+            default=0.0,
+            options={'HIDDEN'}
+            )
+
     axis_forward = EnumProperty(
             name="Forward",
             items=(('X', "X Forward", ""),
