@@ -70,16 +70,12 @@ def elem_repr(elem):
 
 
 def elem_split_name_class(elem):
-    """ Return
-    """
     assert(elem.props_type[-2] == data_types.STRING)
     elem_name, elem_class = elem.props[-2].split(b'\x00\x01')
     return elem_name, elem_class
 
 
 def elem_split_name_class_nodeattr(elem):
-    """ Return
-    """
     assert(elem.props_type[-2] == data_types.STRING)
     elem_name, elem_class = elem.props[-2].split(b'\x00\x01')
     assert(elem_class == b'NodeAttribute')
@@ -206,7 +202,7 @@ def blen_read_object(fbx_obj, object_data):
     # ----
     # Misc Attributes
 
-    obj.color = elem_props_get_color_rgb(fbx_props, b'Color', (0.8, 0.8, 0.8))
+    obj.color[0:3] = elem_props_get_color_rgb(fbx_props, b'Color', (0.8, 0.8, 0.8))
 
     # ----
     # Transformation
@@ -229,11 +225,12 @@ def blen_read_object(fbx_obj, object_data):
         pst_rot = elem_props_get_vector_3d(fbx_props, b'PostRotation', const_vector_zero_3d)
         rot_ord = {
             0: 'XYZ',
-            1: 'XZY',
-            2: 'YZX',
-            3: 'YXZ',
-            4: 'ZXY',
-            5: 'ZYX',
+            1: 'XYZ',
+            2: 'XZY',
+            3: 'YZX',
+            4: 'YXZ',
+            5: 'ZXY',
+            6: 'ZYX',
             }.get(elem_props_get_enum(fbx_props, b'RotationOrder', 0))
     else:
         pre_rot = const_vector_zero_3d
@@ -296,39 +293,100 @@ def blen_read_geom_layerinfo(fbx_layer):
         )
 
 
-def blen_read_geom_uv(fbx_obj, mesh):
+def blen_read_geom_array_mapped_vert(
+    blen_data,
+    fbx_layer_data, fbx_layer_index,
+    fbx_layer_mapping, fbx_layer_ref,
+    stride, descr,
+    ):
+    # TODO, generic mapping apply function
+    if fbx_layer_mapping == b'ByVertice':
+        if fbx_layer_ref == b'Direct':
+            assert(fbx_layer_index is None)
+            # TODO, more generic support for mapping types
+            for i, blen_data_item in enumerate(blen_data):
+                blen_data_item[:] = fbx_layer_data[(i * stride): (i * stride) + stride]
+            return True
+        else:
+            print("warning layer %r ref type unsupported: %r", (descr, fbx_layer_ref))
+    else:
+        print("warning layer %r mapping type unsupported: %r", (descr, fbx_layer_mapping))
 
-    for uvlayer_id in (b'LayerElementUV',):
-        fbx_uvlayer = elem_find_first(fbx_obj, uvlayer_id)
+    return False
 
-        if fbx_uvlayer is None:
+
+def blen_read_geom_array_mapped_poly(
+    blen_data,
+    fbx_layer_data, fbx_layer_index,
+    fbx_layer_mapping, fbx_layer_ref,
+    stride, descr,
+    ):
+
+    if fbx_layer_mapping == b'ByPolygonVertex':
+        if fbx_layer_ref == b'IndexToDirect':
+            assert(fbx_layer_index is not None)
+            for i, j in enumerate(fbx_layer_index):
+                blen_data[i][:] = fbx_layer_data[(j * stride): (j * stride) + stride]
+            return True
+        else:
+            print("warning layer %r ref type unsupported: %r", (descr, fbx_layer_ref))
+    else:
+        print("warning layer %r mapping type unsupported: %r", (descr, fbx_layer_mapping))
+    
+    return False
+
+
+def blen_read_geom_layer_uv(fbx_obj, mesh):
+
+    for layer_id in (b'LayerElementUV',):
+        fbx_layer = elem_find_first(fbx_obj, layer_id)
+
+        if fbx_layer is None:
             continue
 
         # all should be valid
-        (fbx_uvlayer_name,
-         fbx_uvlayer_mapping,
-         fbx_uvlayer_ref,
-         ) = blen_read_geom_layerinfo(fbx_uvlayer)
+        (fbx_layer_name,
+         fbx_layer_mapping,
+         fbx_layer_ref,
+         ) = blen_read_geom_layerinfo(fbx_layer)
 
-        # print(fbx_uvlayer_name, fbx_uvlayer_mapping, fbx_uvlayer_ref)
+        fbx_layer_data = elem_prop_first(elem_find_first(fbx_layer, b'UV'))
+        fbx_layer_index = elem_prop_first(elem_find_first(fbx_layer, b'UVIndex'))
 
-        fbx_layer_data = elem_prop_first(elem_find_first(fbx_uvlayer, b'UV'))
-        fbx_layer_index = elem_prop_first(elem_find_first(fbx_uvlayer, b'UVIndex'))
+        uv_tex = mesh.uv_textures.new(name=fbx_layer_name)
+        uv_lay = mesh.uv_layers[fbx_layer_name]
+        blen_data = [luv.uv for luv in uv_lay.data]
 
-        # TODO, generic mappuing apply function
-        if fbx_uvlayer_mapping == b'ByPolygonVertex':
-            if fbx_uvlayer_ref == b'IndexToDirect':
-                # TODO, more generic support for mapping types
-                uv_tex = mesh.uv_textures.new(name=fbx_uvlayer_name)
-                uv_lay = mesh.uv_layers[fbx_uvlayer_name]
-                uv_data = [luv.uv for luv in uv_lay.data]
+        blen_read_geom_array_mapped_poly(
+            blen_data,
+            fbx_layer_data, fbx_layer_index,
+            fbx_layer_mapping, fbx_layer_ref,
+            2, layer_id,
+            )
 
-                for i, j in enumerate(fbx_layer_index):
-                    uv_data[i][:] = fbx_layer_data[(j * 2): (j * 2) + 2]
-            else:
-                print("warning uv layer ref type unsupported:", fbx_uvlayer_ref)
-        else:
-            print("warning uv layer mapping type unsupported:", fbx_uvlayer_mapping)
+
+def blen_read_geom_layer_normal(fbx_obj, mesh):
+    fbx_layer = elem_find_first(fbx_obj, b'LayerElementNormal')
+
+    if fbx_layer is None:
+        return False
+
+    (fbx_layer_name,
+     fbx_layer_mapping,
+     fbx_layer_ref,
+     ) = blen_read_geom_layerinfo(fbx_layer)
+
+    layer_id = b'Normals'
+    fbx_layer_data = elem_prop_first(elem_find_first(fbx_layer, layer_id))
+
+    blen_data = [v.normal for v in mesh.vertices]
+
+    return blen_read_geom_array_mapped_vert(
+        blen_data,
+        fbx_layer_data, None,
+        fbx_layer_mapping, fbx_layer_ref,
+        3, layer_id,
+        )
 
 
 def blen_read_geom(fbx_obj):
@@ -370,10 +428,14 @@ def blen_read_geom(fbx_obj):
         mesh.polygons.foreach_set("loop_start", poly_loop_starts)
         mesh.polygons.foreach_set("loop_total", poly_loop_totals)
 
-        blen_read_geom_uv(fbx_obj, mesh)
+        blen_read_geom_layer_uv(fbx_obj, mesh)
+
+    ok_normals = blen_read_geom_layer_normal(fbx_obj, mesh)
 
     mesh.validate()
-    mesh.calc_normals()
+
+    if not ok_normals:
+        mesh.calc_normals()
 
     return mesh
 
