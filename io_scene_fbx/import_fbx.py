@@ -161,7 +161,7 @@ def elem_props_get_bool(elem, elem_prop_id, default=None):
 
         # we could allow other number types
         assert(elem_prop.props_type[4] == data_types.INT32)
-        assert(elem_prop.props_type[4] in {0, 1})
+        assert(elem_prop.props[4] in {0, 1})
 
         return bool(elem_prop.props[4])
     return default
@@ -201,23 +201,76 @@ def blen_read_object(fbx_obj, object_data):
     fbx_props = elem_find_first(fbx_obj, b'Properties70')
     assert(fbx_props is not None)
 
+    # This is quite involved, 'fbxRNode.cpp' from openscenegraph used as a reference
+
     loc = elem_props_get_vector_3d(fbx_props, b'Lcl Translation', const_vector_zero_3d)
     rot = elem_props_get_vector_3d(fbx_props, b'Lcl Rotation', const_vector_zero_3d)
     sca = elem_props_get_vector_3d(fbx_props, b'Lcl Scaling', const_vector_one_3d)
 
-    # Both can work...
+    rot_ofs = elem_props_get_vector_3d(fbx_props, b'RotationOffset', const_vector_zero_3d)
+    rot_piv = elem_props_get_vector_3d(fbx_props, b'RotationPivot', const_vector_zero_3d)
+    sca_ofs = elem_props_get_vector_3d(fbx_props, b'ScalingOffset', const_vector_zero_3d)
+    sca_piv = elem_props_get_vector_3d(fbx_props, b'ScalingPivot', const_vector_zero_3d)
+
+    is_rot_act = elem_props_get_bool(fbx_props, b'RotationActive', False)
+
+    if is_rot_act:
+        pre_rot = elem_props_get_vector_3d(fbx_props, b'PreRotation', const_vector_zero_3d)
+        pst_rot = elem_props_get_vector_3d(fbx_props, b'PostRotation', const_vector_zero_3d)
+        rot_ord = {
+            0: 'XYZ',
+            1: 'XZY',
+            2: 'YZX',
+            3: 'YXZ',
+            4: 'ZXY',
+            5: 'ZYX',
+            }.get(elem_props_get_number(fbx_props, b'RotationOrder', 0))
+    else:
+        pre_rot = const_vector_zero_3d
+        pst_rot = const_vector_zero_3d
+        rot_ord = 'XYZ'
+
     from mathutils import Matrix, Euler
     from math import pi
-    mat = Matrix()
-    mat[0][0], mat[1][1], mat[2][2] = sca
-    rmat = Euler(tuple_deg_to_rad(rot)).to_matrix().to_4x4()
+
+    # translation
+    lcl_translation = Matrix.Translation(loc)
+
+    # rotation
     if obj.type == 'CAMERA':
-        rmat = rmat * Matrix.Rotation(-pi / 2.0, 4, 'Y')
+        rot_alt_mat = Matrix.Rotation(pi / -2.0, 4, 'Y')
     elif obj.type == 'LAMP':
-        rmat = rmat * Matrix.Rotation(-pi / 2.0, 4, 'X')
-    mat = mat * rmat
-    mat.translation = loc
-    obj.matrix_basis = mat
+        rot_alt_mat = Matrix.Rotation(pi / -2.0, 4, 'X')
+    else:
+        rot_alt_mat = Matrix()
+
+    # rotation
+    lcl_rot = Euler(tuple_deg_to_rad(rot), rot_ord).to_matrix().to_4x4() * rot_alt_mat
+    pre_rot = Euler(tuple_deg_to_rad(pre_rot), rot_ord).to_matrix().to_4x4()
+    pst_rot = Euler(tuple_deg_to_rad(pst_rot), rot_ord).to_matrix().to_4x4()
+
+    rot_ofs = Matrix.Translation(rot_ofs)
+    rot_piv = Matrix.Translation(rot_piv)
+    sca_ofs = Matrix.Translation(sca_ofs)
+    sca_piv = Matrix.Translation(sca_piv)
+
+    # scale
+    lcl_scale = Matrix()
+    lcl_scale[0][0], lcl_scale[1][1], lcl_scale[2][2] = sca
+
+    obj.matrix_basis = (
+        lcl_translation *
+        rot_ofs *
+        rot_piv *
+        pre_rot *
+        lcl_rot *
+        pst_rot *
+        rot_piv.inverted() *
+        sca_ofs *
+        sca_piv *
+        lcl_scale *
+        sca_piv.inverted()
+        )
 
     return obj
 
@@ -567,7 +620,6 @@ def load(operator, context, filepath="",
                                             use_image_search)
     _(); del _
 
-
     # ----
     # Load camera data
     def _():
@@ -579,7 +631,6 @@ def load(operator, context, filepath="",
                 assert(blen_data is None)
                 fbx_item[1] = blen_read_camera(fbx_obj, global_scale)
     _(); del _
-
 
     # ----
     # Load lamp data
