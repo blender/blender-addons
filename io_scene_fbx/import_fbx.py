@@ -30,7 +30,9 @@ from .parse_fbx import data_types
 
 
 def tuple_deg_to_rad(eul):
-    return eul[0] / 57.295779513, eul[1] / 57.295779513, eul[2] / 57.295779513
+    return (eul[0] / 57.295779513,
+            eul[1] / 57.295779513,
+            eul[2] / 57.295779513)
 
 
 def elem_find_first(elem, id_search):
@@ -201,6 +203,14 @@ def blen_read_object(fbx_obj, object_data):
     fbx_props = elem_find_first(fbx_obj, b'Properties70')
     assert(fbx_props is not None)
 
+    # ----
+    # Misc Attributes
+
+    obj.color = elem_props_get_color_rgb(fbx_props, b'Color', (0.8, 0.8, 0.8))
+
+    # ----
+    # Transformation
+
     # This is quite involved, 'fbxRNode.cpp' from openscenegraph used as a reference
 
     loc = elem_props_get_vector_3d(fbx_props, b'Lcl Translation', const_vector_zero_3d)
@@ -224,7 +234,7 @@ def blen_read_object(fbx_obj, object_data):
             3: 'YXZ',
             4: 'ZXY',
             5: 'ZYX',
-            }.get(elem_props_get_number(fbx_props, b'RotationOrder', 0))
+            }.get(elem_props_get_enum(fbx_props, b'RotationOrder', 0))
     else:
         pre_rot = const_vector_zero_3d
         pst_rot = const_vector_zero_3d
