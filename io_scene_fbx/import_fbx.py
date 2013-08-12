@@ -332,7 +332,7 @@ def blen_read_geom_array_mapped_poly(
             print("warning layer %r ref type unsupported: %r", (descr, fbx_layer_ref))
     else:
         print("warning layer %r mapping type unsupported: %r", (descr, fbx_layer_mapping))
-    
+
     return False
 
 
@@ -744,7 +744,10 @@ def load(operator, context, filepath="",
                 ok = True
             else:
                 ok = False
-                for fbx_lnk, fbx_lnk_item, fbx_lnk_type in connection_filter_reverse(fbx_uuid, None):
+                for (fbx_lnk,
+                     fbx_lnk_item,
+                     fbx_lnk_type) in connection_filter_reverse(fbx_uuid, None):
+
                     if fbx_lnk_type.props[0] != b'OO':
                         continue
                     if not isinstance(fbx_lnk_item, bpy.types.ID):
@@ -774,7 +777,10 @@ def load(operator, context, filepath="",
             if fbx_item[1] is None:
                 continue  # no object loaded.. ignore
 
-            for fbx_lnk, fbx_lnk_item, fbx_lnk_type in connection_filter_forward(fbx_uuid, b'Model'):
+            for (fbx_lnk,
+                 fbx_lnk_item,
+                 fbx_lnk_type) in connection_filter_forward(fbx_uuid, b'Model'):
+
                 fbx_item[1].parent = fbx_lnk_item
     _(); del _
 
@@ -800,10 +806,16 @@ def load(operator, context, filepath="",
                 continue
 
             mesh = fbx_table_nodes[fbx_uuid][1]
-            for fbx_lnk, fbx_lnk_item, fbx_lnk_type in connection_filter_forward(fbx_uuid, b'Model'):
+            for (fbx_lnk,
+                 fbx_lnk_item,
+                 fbx_lnk_type) in connection_filter_forward(fbx_uuid, b'Model'):
+
                 # link materials
                 fbx_lnk_uuid = elem_uuid(fbx_lnk)
-                for fbx_lnk_material, material, fbx_lnk_material_type in connection_filter_reverse(fbx_lnk_uuid, b'Material'):
+                for (fbx_lnk_material,
+                     material,
+                     fbx_lnk_material_type) in connection_filter_reverse(fbx_lnk_uuid, b'Material'):
+
                     mesh.materials.append(material)
     _(); del _
 
@@ -819,7 +831,10 @@ def load(operator, context, filepath="",
                 continue
 
             material = fbx_table_nodes[fbx_uuid][1]
-            for fbx_lnk, image, fbx_lnk_type in connection_filter_reverse(fbx_uuid, b'Texture'):
+            for (fbx_lnk,
+                 image,
+                 fbx_lnk_type) in connection_filter_reverse(fbx_uuid, b'Texture'):
+
                 if use_cycles:
                     if fbx_lnk_type.props[0] == b'OP':
                         lnk_type = fbx_lnk_type.props[3]
