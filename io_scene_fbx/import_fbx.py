@@ -527,7 +527,8 @@ def blen_read_texture(fbx_obj, basedir, image_cache,
         recursive=use_image_search,
         )
 
-    image.name = elem_name_utf8
+    # name can be ../a/b/c
+    image.name = os.path.basename(elem_name_utf8)
 
     return image
 
@@ -954,7 +955,7 @@ def load(operator, context, filepath="",
             if image and image.depth == 32:
                 if use_alpha_decals:
                     material_decals.add(material)
-                
+
                 if use_cycles:
                     ma_wrap = cycles_material_wrap_map[material]
                     if ma_wrap.node_bsdf_alpha.mute:
