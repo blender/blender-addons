@@ -527,6 +527,7 @@ def blen_read_texture(fbx_obj, basedir, image_cache,
         recursive=use_image_search,
         )
 
+    image_cache[filepath] = image
     # name can be ../a/b/c
     image.name = os.path.basename(elem_name_utf8)
 
