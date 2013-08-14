@@ -24,6 +24,7 @@
 __all__ = (
     "parse",
     "data_types",
+    "parse_version",
     "FBXElem",
     )
 
@@ -37,6 +38,7 @@ import zlib
 _BLOCK_SENTINEL_LENGTH = 13
 _BLOCK_SENTINEL_DATA = (b'\0' * _BLOCK_SENTINEL_LENGTH)
 _IS_BIG_ENDIAN = (__import__("sys").byteorder != 'little')
+_HEAD_MAGIC = b'Kaydara FBX Binary\x20\x20\x00\x1a\x00'
 from collections import namedtuple
 FBXElem = namedtuple("FBXElem", ("id", "props", "props_type", "elems"))
 del namedtuple
@@ -129,18 +131,28 @@ def read_elem(read, tell, use_namedtuple):
     return FBXElem(*args) if use_namedtuple else args
 
 
-def parse(fn, use_namedtuple=True):
-    # import time
-    # t = time.time()
+def parse_version(fn):
+    """
+    Return the FBX version,
+    if the file isn't a binary FBX return zero.
+    """
+    with open(fn, 'rb') as f:
+        read = f.read
 
+        if read(len(_HEAD_MAGIC)) != _HEAD_MAGIC:
+            return 0
+
+        return read_uint(read)
+
+
+def parse(fn, use_namedtuple=True):
     root_elems = []
 
     with open(fn, 'rb') as f:
         read = f.read
         tell = f.tell
 
-        HEAD_MAGIC = b'Kaydara FBX Binary\x20\x20\x00\x1a\x00'
-        if read(len(HEAD_MAGIC)) != HEAD_MAGIC:
+        if read(len(_HEAD_MAGIC)) != _HEAD_MAGIC:
             raise IOError("Invalid header")
 
         fbx_version = read_uint(read)
@@ -150,8 +162,6 @@ def parse(fn, use_namedtuple=True):
             if elem is None:
                 break
             root_elems.append(elem)
-
-    # print("done in %.4f sec" % (time.time() - t))
 
     args = (b'', [], bytearray(0), root_elems)
     return FBXElem(*args) if use_namedtuple else args, fbx_version
