@@ -363,6 +363,7 @@ class Ms3dImporter():
         # create all vertices
         for ms3d_vertex_index, ms3d_vertex in enumerate(ms3d_model.vertices):
             bmv = bm.verts.new(self.geometry_correction(ms3d_vertex.vertex))
+            bmv.index = ms3d_vertex_index
 
             if layer_extra and ms3d_vertex.vertex_ex_object and \
                     (isinstance(ms3d_vertex.vertex_ex_object, Ms3dVertexEx2) \
@@ -526,6 +527,7 @@ class Ms3dImporter():
                         ms3d_model.vertices.append(
                                 ms3d_model.vertices[vert_index])
                         bmv_new = bm.verts.new(bmv.co)
+                        bmv_new.index = -vert_index
                         bmv_new.normal = blender_normal
                         bmv_new[layer_extra] = bmv[layer_extra]
                         vert_index = length_verts
@@ -557,6 +559,7 @@ class Ms3dImporter():
             bmf_normal.normalize()
 
             bmf = bm.faces.get(bmv_list)
+
             if bmf is not None:
                 if self.report and self.options_verbose in Ms3dUi.VERBOSE_NORMAL:
                     self.report(
@@ -566,15 +569,37 @@ class Ms3dImporter():
                 continue
 
             bmf = bm.faces.new(bmv_list)
+            bmf.index = ms3d_triangle_index
             bmf.normal = bmf_normal
 
+            ##########################
+            ## WORKAROUND
+            # [#36443] Vertex to UV index doesn't match with 2.68a
+            # https://projects.blender.org/tracker/index.php?func=detail&aid=36443&group_id=9&atid=498
+            #
+            scrambled_order = dict()
+            for face_vertex_index, face_bm_vertex in enumerate(bmf.verts):
+                scrambled_order[face_bm_vertex] = face_vertex_index
             # blender uv custom data per "face vertex"
-            bmf.loops[0][layer_uv].uv = Vector(
+            bmf.loops[scrambled_order[bmv_list[0]]][layer_uv].uv = Vector(
                     (ms3d_triangle.s[0], 1.0 - ms3d_triangle.t[0]))
-            bmf.loops[1][layer_uv].uv = Vector(
+            bmf.loops[scrambled_order[bmv_list[1]]][layer_uv].uv = Vector(
                     (ms3d_triangle.s[1], 1.0 - ms3d_triangle.t[1]))
-            bmf.loops[2][layer_uv].uv = Vector(
+            bmf.loops[scrambled_order[bmv_list[2]]][layer_uv].uv = Vector(
                     (ms3d_triangle.s[2], 1.0 - ms3d_triangle.t[2]))
+            scrambled_order = None
+            #
+            ## WORKAROUND
+            ##########################
+
+            ## blender uv custom data per "face vertex"
+            #bmf.loops[0][layer_uv].uv = Vector(
+            #        (ms3d_triangle.s[0], 1.0 - ms3d_triangle.t[0]))
+            #bmf.loops[1][layer_uv].uv = Vector(
+            #        (ms3d_triangle.s[1], 1.0 - ms3d_triangle.t[1]))
+            #bmf.loops[2][layer_uv].uv = Vector(
+            #        (ms3d_triangle.s[2], 1.0 - ms3d_triangle.t[2]))
+            ##########################
 
             # ms3d custom data per "mesh face"
             bmf[layer_smoothing_group] = ms3d_triangle.smoothing_group

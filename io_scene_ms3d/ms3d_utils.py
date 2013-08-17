@@ -178,40 +178,6 @@ def matrix_difference(mat_src, mat_dst):
 
 
 ###############################################################################
-def set_sence_to_metric(blender_context):
-    try:
-        # set metrics
-        blender_context.scene.unit_settings.system = 'METRIC'
-        blender_context.scene.unit_settings.system_rotation = 'DEGREES'
-        blender_context.scene.unit_settings.scale_length = 0.001 # 1.0mm
-        blender_context.scene.unit_settings.use_separate = False
-        blender_context.tool_settings.normal_size = 1.0 # 1.0mm
-
-        # set all 3D views to texture shaded
-        # and set up the clipping
-        for screen in blender_context.blend_data.screens:
-            for area in screen.areas:
-                if (area.type != 'VIEW_3D'):
-                    continue
-
-                for space in area.spaces:
-                    if (space.type != 'VIEW_3D'):
-                        continue
-
-                    #space.viewport_shade = 'SOLID'
-                    space.show_textured_solid = True
-                    space.clip_start = 0.1 # 0.1mm
-                    space.clip_end = 1000000.0 # 1km
-            #screen.scene.game_settings.material_mode = 'MULTITEXTURE'
-
-    except Exception:
-        raise
-
-    else:
-        pass
-
-
-###############################################################################
 
 ###############################################################################
 #234567890123456789012345678901234567890123456789012345678901234567890123456789
