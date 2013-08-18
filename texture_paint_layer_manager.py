@@ -559,12 +559,16 @@ def save_painted(ts):
                         name = name +'.tga' 
                         
                     bpy.context.scene.render.image_settings.color_mode = 'RGBA'                          
-                    fp =bpy.path.abspath('//textures' + sep + name)
+                    fp = bpy.path.abspath('//textures' + sep + name)
                     try:
                         i.save_render(fp)
                         i.source = 'FILE'
                         if bpy.context.user_preferences.filepaths.use_relative_paths:
-                            i.filepath = bpy.path.relpath(fp) 
+                            # can't always find the relative path (between drive letters on windows)
+                            try:
+                                i.filepath = bpy.path.relpath(fp)
+                            except ValueError:
+                                i.filepath = fp
                         else:
                             i.filepath = fp
                         i.name = name
