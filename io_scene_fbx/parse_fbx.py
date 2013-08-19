@@ -79,19 +79,19 @@ def unpack_array(read, array_type, array_stride, array_byteswap):
 
 
 read_data_dict = {
-    b'Y'[0]: lambda read, size: unpack(b'<h', read(2))[0],  # 16 bit int
-    b'C'[0]: lambda read, size: unpack(b'?', read(1))[0],   # 1 bit bool (yes/no)
-    b'I'[0]: lambda read, size: unpack(b'<i', read(4))[0],  # 32 bit int
-    b'F'[0]: lambda read, size: unpack(b'<f', read(4))[0],  # 32 bit float
-    b'D'[0]: lambda read, size: unpack(b'<d', read(8))[0],  # 64 bit float
-    b'L'[0]: lambda read, size: unpack(b'<q', read(8))[0],  # 64 bit int
-    b'R'[0]: lambda read, size: read(read_uint(read)),      # binary data
-    b'S'[0]: lambda read, size: read(read_uint(read)),      # string data
-    b'f'[0]: lambda read, size: unpack_array(read, 'f', 4, False),  # array (float)
-    b'i'[0]: lambda read, size: unpack_array(read, 'i', 4, True),   # array (int)
-    b'd'[0]: lambda read, size: unpack_array(read, 'd', 8, False),  # array (double)
-    b'l'[0]: lambda read, size: unpack_array(read, 'q', 8, True),   # array (long)
-    b'b'[0]: lambda read, size: read(size),  # unknown
+    b'Y'[0]: lambda read: unpack(b'<h', read(2))[0],  # 16 bit int
+    b'C'[0]: lambda read: unpack(b'?', read(1))[0],   # 1 bit bool (yes/no)
+    b'I'[0]: lambda read: unpack(b'<i', read(4))[0],  # 32 bit int
+    b'F'[0]: lambda read: unpack(b'<f', read(4))[0],  # 32 bit float
+    b'D'[0]: lambda read: unpack(b'<d', read(8))[0],  # 64 bit float
+    b'L'[0]: lambda read: unpack(b'<q', read(8))[0],  # 64 bit int
+    b'R'[0]: lambda read: read(read_uint(read)),      # binary data
+    b'S'[0]: lambda read: read(read_uint(read)),      # string data
+    b'f'[0]: lambda read: unpack_array(read, 'f', 4, False),  # array (float)
+    b'i'[0]: lambda read: unpack_array(read, 'i', 4, True),   # array (int)
+    b'd'[0]: lambda read: unpack_array(read, 'd', 8, False),  # array (double)
+    b'l'[0]: lambda read: unpack_array(read, 'q', 8, True),   # array (long)
+    b'b'[0]: lambda read: unpack_array(read, 'b', 1, False),  # bool array
     }
 
 
@@ -113,7 +113,7 @@ def read_elem(read, tell, use_namedtuple):
 
     for i in range(prop_count):
         data_type = read(1)[0]
-        elem_props_data[i] = read_data_dict[data_type](read, prop_length)
+        elem_props_data[i] = read_data_dict[data_type](read)
         elem_props_type[i] = data_type
 
     if tell() < end_offset:
@@ -183,4 +183,5 @@ FLOAT32_ARRAY = b'f'[0],
 INT32_ARRAY = b'i'[0],
 FLOAT64_ARRAY = b'd'[0],
 INT64_ARRAY = b'l'[0],
+BOOL_ARRAY = b'b'[0],
 ))
