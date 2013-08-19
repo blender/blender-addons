@@ -647,7 +647,8 @@ def load(operator, context, filepath="",
 
     def _():
         for fbx_obj in fbx_nodes.elems:
-            assert(fbx_obj.props_type == b'LSS')
+            # TODO, investigate what other items after first 3 may be
+            assert(fbx_obj.props_type[:3] == b'LSS')
             fbx_uuid = elem_uuid(fbx_obj)
             fbx_table_nodes[fbx_uuid] = [fbx_obj, None]
     _(); del _
