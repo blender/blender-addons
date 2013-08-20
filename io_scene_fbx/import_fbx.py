@@ -49,6 +49,13 @@ def elem_find_first(elem, id_search, default=None):
     return default
 
 
+def elem_find_iter(elem, id_search):
+    for fbx_item in elem.elems:
+        if fbx_item.id == id_search:
+            yield fbx_item
+    return []
+
+
 def elem_find_first_string(elem, id_search):
     fbx_item = elem_find_first(elem, id_search)
     if fbx_item is not None:
@@ -318,7 +325,7 @@ def blen_read_geom_layerinfo(fbx_layer):
 
 
 def blen_read_geom_array_mapped_vert(
-    blen_data,
+    mesh, blen_data, blend_attr,
     fbx_layer_data, fbx_layer_index,
     fbx_layer_mapping, fbx_layer_ref,
     stride, descr,
@@ -329,7 +336,7 @@ def blen_read_geom_array_mapped_vert(
             assert(fbx_layer_index is None)
             # TODO, more generic support for mapping types
             for i, blen_data_item in enumerate(blen_data):
-                blen_data_item[:] = fbx_layer_data[(i * stride): (i * stride) + stride]
+                setattr(blen_data_item, blend_attr, fbx_layer_data[(i * stride): (i * stride) + stride])
             return True
         else:
             print("warning layer %r ref type unsupported: %r" % (descr, fbx_layer_ref))
@@ -339,8 +346,32 @@ def blen_read_geom_array_mapped_vert(
     return False
 
 
-def blen_read_geom_array_mapped_poly(
-    blen_data,
+def blen_read_geom_array_mapped_polygon(
+    mesh, blen_data, blend_attr,
+    fbx_layer_data, fbx_layer_index,
+    fbx_layer_mapping, fbx_layer_ref,
+    stride, descr,
+    ):
+
+    if fbx_layer_mapping == b'ByPolygon':
+        if fbx_layer_ref == b'IndexToDirect':
+            if stride == 1:
+                for i, blen_data_item in enumerate(blen_data):
+                    setattr(blen_data_item, blend_attr, fbx_layer_data[i])
+            else:
+                for i, blen_data_item in enumerate(blen_data):
+                    setattr(blen_data_item, blend_attr, fbx_layer_data[(i * stride): (i * stride) + stride])
+            return True
+        else:
+            print("warning layer %r ref type unsupported: %r" % (descr, fbx_layer_ref))
+    else:
+        print("warning layer %r mapping type unsupported: %r" % (descr, fbx_layer_mapping))
+
+    return False
+
+
+def blen_read_geom_array_mapped_polyloop(
+    mesh, blen_data, blend_attr,
     fbx_layer_data, fbx_layer_index,
     fbx_layer_mapping, fbx_layer_ref,
     stride, descr,
@@ -350,8 +381,19 @@ def blen_read_geom_array_mapped_poly(
         if fbx_layer_ref == b'IndexToDirect':
             assert(fbx_layer_index is not None)
             for i, j in enumerate(fbx_layer_index):
-                blen_data[i][:] = fbx_layer_data[(j * stride): (j * stride) + stride]
+                setattr(blen_data[i], blend_attr, fbx_layer_data[(j * stride): (j * stride) + stride])
             return True
+        else:
+            print("warning layer %r ref type unsupported: %r" % (descr, fbx_layer_ref))
+    elif fbx_layer_mapping == b'ByVertice':
+        if fbx_layer_ref == b'Direct':
+            assert(fbx_layer_index is None)
+            loops = mesh.loops
+            polygons = mesh.polygons
+            for p in polygons:
+                for i in p.loop_indices:
+                    j = loops[i].vertex_index
+                    setattr(blen_data[i], blend_attr, fbx_layer_data[(j * stride): (j * stride) + stride])
         else:
             print("warning layer %r ref type unsupported: %r" % (descr, fbx_layer_ref))
     else:
@@ -360,33 +402,50 @@ def blen_read_geom_array_mapped_poly(
     return False
 
 
+def blen_read_geom_layer_materials(fbx_obj, mesh):
+    fbx_layer = elem_find_first(fbx_obj, b'LayerElementMaterial')
+
+    if fbx_layer is None:
+        return
+
+    (fbx_layer_name,
+     fbx_layer_mapping,
+     fbx_layer_ref,
+     ) = blen_read_geom_layerinfo(fbx_layer)
+
+    layer_id = b'Materials'
+    fbx_layer_data = elem_prop_first(elem_find_first(fbx_layer, layer_id))
+
+    blen_read_geom_array_mapped_polygon(
+        mesh, mesh.polygons, "material_index",
+        fbx_layer_data, None,
+        fbx_layer_mapping, fbx_layer_ref,
+        1, layer_id,
+        )
+
+
 def blen_read_geom_layer_uv(fbx_obj, mesh):
-
     for layer_id in (b'LayerElementUV',):
-        fbx_layer = elem_find_first(fbx_obj, layer_id)
+        for fbx_layer in elem_find_iter(fbx_obj, layer_id):
+            # all should be valid
+            (fbx_layer_name,
+             fbx_layer_mapping,
+             fbx_layer_ref,
+             ) = blen_read_geom_layerinfo(fbx_layer)
 
-        if fbx_layer is None:
-            continue
+            fbx_layer_data = elem_prop_first(elem_find_first(fbx_layer, b'UV'))
+            fbx_layer_index = elem_prop_first(elem_find_first(fbx_layer, b'UVIndex'))
 
-        # all should be valid
-        (fbx_layer_name,
-         fbx_layer_mapping,
-         fbx_layer_ref,
-         ) = blen_read_geom_layerinfo(fbx_layer)
+            uv_tex = mesh.uv_textures.new(name=fbx_layer_name)
+            uv_lay = mesh.uv_layers[fbx_layer_name]
+            blen_data = uv_lay.data[:]
 
-        fbx_layer_data = elem_prop_first(elem_find_first(fbx_layer, b'UV'))
-        fbx_layer_index = elem_prop_first(elem_find_first(fbx_layer, b'UVIndex'))
-
-        uv_tex = mesh.uv_textures.new(name=fbx_layer_name)
-        uv_lay = mesh.uv_layers[fbx_layer_name]
-        blen_data = [luv.uv for luv in uv_lay.data]
-
-        blen_read_geom_array_mapped_poly(
-            blen_data,
-            fbx_layer_data, fbx_layer_index,
-            fbx_layer_mapping, fbx_layer_ref,
-            2, layer_id,
-            )
+            blen_read_geom_array_mapped_polyloop(
+                mesh, blen_data, "uv",
+                fbx_layer_data, fbx_layer_index,
+                fbx_layer_mapping, fbx_layer_ref,
+                2, layer_id,
+                )
 
 
 def blen_read_geom_layer_normal(fbx_obj, mesh):
@@ -403,10 +462,10 @@ def blen_read_geom_layer_normal(fbx_obj, mesh):
     layer_id = b'Normals'
     fbx_layer_data = elem_prop_first(elem_find_first(fbx_layer, layer_id))
 
-    blen_data = [v.normal for v in mesh.vertices]
+    blen_data = mesh.vertices
 
     return blen_read_geom_array_mapped_vert(
-        blen_data,
+        mesh, blen_data, "normal",
         fbx_layer_data, None,
         fbx_layer_mapping, fbx_layer_ref,
         3, layer_id,
@@ -446,13 +505,12 @@ def blen_read_geom(fbx_tmpl, fbx_obj):
                 poly_loop_prev = i + 1
                 index = -(index + 1)
             l.vertex_index = index
-        poly_loop_starts.append(poly_loop_prev)
-        poly_loop_totals.append((i - poly_loop_prev) + 1)
 
         mesh.polygons.add(len(poly_loop_starts))
         mesh.polygons.foreach_set("loop_start", poly_loop_starts)
         mesh.polygons.foreach_set("loop_total", poly_loop_totals)
 
+        blen_read_geom_layer_materials(fbx_obj, mesh)
         blen_read_geom_layer_uv(fbx_obj, mesh)
 
     ok_normals = blen_read_geom_layer_normal(fbx_obj, mesh)
@@ -684,6 +742,7 @@ def load(operator, context, filepath="",
     # eg, (b'Texture', b'KFbxFileTexture')
     #     (b'Geometry', b'KFbxMesh')
     fbx_templates = {}
+
     def _():
         if fbx_defs is not None:
             for fbx_def in fbx_defs.elems:
