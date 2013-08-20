@@ -58,7 +58,7 @@ class ImportFBX(bpy.types.Operator, ImportHelper):
     """Load a FBX geometry file"""
     bl_idname = "import_scene.fbx"
     bl_label = "Import FBX"
-    bl_options = {'UNDO'}
+    bl_options = {'UNDO', 'PRESET'}
 
     directory = StringProperty()
 
@@ -140,7 +140,7 @@ class ExportFBX(bpy.types.Operator, ExportHelper):
     """Selection to an ASCII Autodesk FBX"""
     bl_idname = "export_scene.fbx"
     bl_label = "Export FBX"
-    bl_options = {'PRESET'}
+    bl_options = {'UNDO', 'PRESET'}
 
     filename_ext = ".fbx"
     filter_glob = StringProperty(default="*.fbx", options={'HIDDEN'})
