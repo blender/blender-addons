@@ -112,8 +112,10 @@ def elem_props_find_first(elem, elem_prop_id):
         for e in elem:
             result = elem_props_find_first(e, elem_prop_id)
             if result is not None:
+                '''
                 if e is elem[1]:
                     print("Using templ!!!", elem_prop_id)
+                '''
                 return result
         assert(len(elem) > 0)
         return None
