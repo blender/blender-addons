@@ -28,9 +28,12 @@
 
 import bpy
 
+# global singleton, assign on execution
+fbx_elem_nil = None
+
 # -----
 # Utils
-from .parse_fbx import data_types
+from .parse_fbx import data_types, FBXElem
 
 
 def tuple_deg_to_rad(eul):
@@ -39,10 +42,11 @@ def tuple_deg_to_rad(eul):
             eul[2] / 57.295779513)
 
 
-def elem_find_first(elem, id_search):
+def elem_find_first(elem, id_search, default=None):
     for fbx_item in elem.elems:
         if fbx_item.id == id_search:
             return fbx_item
+    return default
 
 
 def elem_find_first_string(elem, id_search):
@@ -101,6 +105,19 @@ def elem_prop_first(elem):
 # Support for
 # Properties70: { ... P:
 def elem_props_find_first(elem, elem_prop_id):
+
+    # support for templates (tuple of elems)
+    if type(elem) is not FBXElem:
+        assert(type(elem) is tuple)
+        for e in elem:
+            result = elem_props_find_first(e, elem_prop_id)
+            if result is not None:
+                if e is elem[1]:
+                    print("Using templ!!!", elem_prop_id)
+                return result
+        assert(len(elem) > 0)
+        return None
+
     for subelem in elem.elems:
         assert(subelem.id == b'P')
         if subelem.props[0] == elem_prop_id:
@@ -190,7 +207,7 @@ def elem_props_get_enum(elem, elem_prop_id, default=None):
 # ------
 # Object
 
-def blen_read_object(fbx_obj, object_data):
+def blen_read_object(fbx_tmpl, fbx_obj, object_data):
     elem_name, elem_class = elem_split_name_class(fbx_obj)
     elem_name_utf8 = elem_name.decode('utf-8')
 
@@ -200,8 +217,9 @@ def blen_read_object(fbx_obj, object_data):
     # Object data must be created already
     obj = bpy.data.objects.new(name=elem_name_utf8, object_data=object_data)
 
-    fbx_props = elem_find_first(fbx_obj, b'Properties70')
-    assert(fbx_props is not None)
+    fbx_props = (elem_find_first(fbx_obj, b'Properties70'),
+                 elem_find_first(fbx_tmpl, b'Properties70', fbx_elem_nil))
+    assert(fbx_props[0] is not None)
 
     # ----
     # Misc Attributes
@@ -312,9 +330,9 @@ def blen_read_geom_array_mapped_vert(
                 blen_data_item[:] = fbx_layer_data[(i * stride): (i * stride) + stride]
             return True
         else:
-            print("warning layer %r ref type unsupported: %r", (descr, fbx_layer_ref))
+            print("warning layer %r ref type unsupported: %r" % (descr, fbx_layer_ref))
     else:
-        print("warning layer %r mapping type unsupported: %r", (descr, fbx_layer_mapping))
+        print("warning layer %r mapping type unsupported: %r" % (descr, fbx_layer_mapping))
 
     return False
 
@@ -333,9 +351,9 @@ def blen_read_geom_array_mapped_poly(
                 blen_data[i][:] = fbx_layer_data[(j * stride): (j * stride) + stride]
             return True
         else:
-            print("warning layer %r ref type unsupported: %r", (descr, fbx_layer_ref))
+            print("warning layer %r ref type unsupported: %r" % (descr, fbx_layer_ref))
     else:
-        print("warning layer %r mapping type unsupported: %r", (descr, fbx_layer_mapping))
+        print("warning layer %r mapping type unsupported: %r" % (descr, fbx_layer_mapping))
 
     return False
 
@@ -393,7 +411,8 @@ def blen_read_geom_layer_normal(fbx_obj, mesh):
         )
 
 
-def blen_read_geom(fbx_obj):
+def blen_read_geom(fbx_tmpl, fbx_obj):
+    # TODO, use 'fbx_tmpl'
     elem_name, elem_class = elem_split_name_class(fbx_obj)
     assert(elem_class == b'Geometry')
     elem_name_utf8 = elem_name.decode('utf-8')
@@ -447,7 +466,7 @@ def blen_read_geom(fbx_obj):
 # --------
 # Material
 
-def blen_read_material(fbx_obj,
+def blen_read_material(fbx_tmpl, fbx_obj,
                        cycles_material_wrap_map, use_cycles):
     elem_name, elem_class = elem_split_name_class(fbx_obj)
     assert(elem_class == b'Material')
@@ -457,8 +476,9 @@ def blen_read_material(fbx_obj,
 
     const_color_white = 1.0, 1.0, 1.0
 
-    fbx_props = elem_find_first(fbx_obj, b'Properties70')
-    assert(fbx_props is not None)
+    fbx_props = (elem_find_first(fbx_obj, b'Properties70'),
+                 elem_find_first(fbx_tmpl, b'Properties70', fbx_elem_nil))
+    assert(fbx_props[0] is not None)
 
     ma_diff = elem_props_get_color_rgb(fbx_props, b'DiffuseColor', const_color_white)
     ma_spec = elem_props_get_color_rgb(fbx_props, b'SpecularColor', const_color_white)
@@ -501,7 +521,7 @@ def blen_read_material(fbx_obj,
 # -------
 # Texture
 
-def blen_read_texture(fbx_obj, basedir, image_cache,
+def blen_read_texture(fbx_tmpl, fbx_obj, basedir, image_cache,
                       use_image_search):
     import os
     from bpy_extras import image_utils
@@ -534,7 +554,7 @@ def blen_read_texture(fbx_obj, basedir, image_cache,
     return image
 
 
-def blen_read_camera(fbx_obj, global_scale):
+def blen_read_camera(fbx_tmpl, fbx_obj, global_scale):
     # meters to inches
     M2I = 0.0393700787
 
@@ -542,8 +562,9 @@ def blen_read_camera(fbx_obj, global_scale):
     assert(elem_class == b'Camera')
     elem_name_utf8 = elem_name.decode('utf-8')
 
-    fbx_props = elem_find_first(fbx_obj, b'Properties70')
-    assert(fbx_props is not None)
+    fbx_props = (elem_find_first(fbx_obj, b'Properties70'),
+                 elem_find_first(fbx_tmpl, b'Properties70', fbx_elem_nil))
+    assert(fbx_props[0] is not None)
 
     camera = bpy.data.cameras.new(name=elem_name_utf8)
 
@@ -562,14 +583,15 @@ def blen_read_camera(fbx_obj, global_scale):
     return camera
 
 
-def blen_read_light(fbx_obj, global_scale):
+def blen_read_light(fbx_tmpl, fbx_obj, global_scale):
     import math
     elem_name, elem_class = elem_split_name_class_nodeattr(fbx_obj)
     assert(elem_class == b'Light')
     elem_name_utf8 = elem_name.decode('utf-8')
 
-    fbx_props = elem_find_first(fbx_obj, b'Properties70')
-    assert(fbx_props is not None)
+    fbx_props = (elem_find_first(fbx_obj, b'Properties70'),
+                 elem_find_first(fbx_tmpl, b'Properties70', fbx_elem_nil))
+    assert(fbx_props[0] is not None)
 
     light_type = {
         0: 'POINT',
@@ -598,6 +620,9 @@ def load(operator, context, filepath="",
          use_alpha_decals=False,
          decal_offset=0.0):
 
+    global fbx_elem_nil
+    fbx_elem_nil = FBXElem('', (), (), ())
+
     global_scale = (sum(global_matrix.to_scale()) / 3.0) if global_matrix else 1.0
 
     import os
@@ -615,6 +640,10 @@ def load(operator, context, filepath="",
     if version < 7100:
         operator.report({'ERROR'}, "Version %r unsupported, must be %r or later" % (version, 7100))
         return {'CANCELLED'}
+
+    # so we can set smooth in object mode
+    if bpy.ops.object.mode_set.poll():
+        bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
 
     # deselect all
     if bpy.ops.object.select_all.poll():
@@ -637,6 +666,7 @@ def load(operator, context, filepath="",
 
     scene = context.scene
 
+    fbx_defs = elem_find_first(elem_root, b'Definitions')  # can be None
     fbx_nodes = elem_find_first(elem_root, b'Objects')
     fbx_connections = elem_find_first(elem_root, b'Connections')
 
@@ -645,6 +675,31 @@ def load(operator, context, filepath="",
     if fbx_connections is None:
         return print("no 'Connections' found")
 
+    # ----
+    # First load property templates
+    # Load 'PropertyTemplate' values.
+    # Key is a tuple, (ObjectType, FBXNodeType)
+    # eg, (b'Texture', b'KFbxFileTexture')
+    #     (b'Geometry', b'KFbxMesh')
+    fbx_templates = {}
+    def _():
+        if fbx_defs is not None:
+            for fbx_def in fbx_defs.elems:
+                if fbx_def.id == b'ObjectType':
+                    for fbx_subdef in fbx_def.elems:
+                        if fbx_subdef.id == b'PropertyTemplate':
+                            assert(fbx_def.props_type == b'S')
+                            assert(fbx_subdef.props_type == b'S')
+                            # (b'Texture', b'KFbxFileTexture') - eg.
+                            key = fbx_def.props[0], fbx_subdef.props[0]
+                            fbx_templates[key] = fbx_subdef
+    _(); del _
+
+    def fbx_template_get(key):
+        return fbx_templates.get(key, fbx_elem_nil)
+
+    # ----
+    # Build FBX node-table
     def _():
         for fbx_obj in fbx_nodes.elems:
             # TODO, investigate what other items after first 3 may be
@@ -654,7 +709,7 @@ def load(operator, context, filepath="",
     _(); del _
 
     # ----
-    # First load in the data
+    # Load in the data
     # http://download.autodesk.com/us/fbx/20112/FBX_SDK_HELP/index.html?url=WS73099cc142f487551fea285e1221e4f9ff8-7fda.htm,topicNumber=d0e6388
 
     fbx_connection_map = {}
@@ -674,60 +729,71 @@ def load(operator, context, filepath="",
     # ----
     # Load mesh data
     def _():
+        fbx_tmpl = fbx_template_get((b'Geometry', b'KFbxMesh'))
+
         for fbx_uuid, fbx_item in fbx_table_nodes.items():
             fbx_obj, blen_data = fbx_item
             if fbx_obj.id != b'Geometry':
                 continue
             if fbx_obj.props[-1] == b'Mesh':
                 assert(blen_data is None)
-                fbx_item[1] = blen_read_geom(fbx_obj)
+                fbx_item[1] = blen_read_geom(fbx_tmpl, fbx_obj)
     _(); del _
 
     # ----
     # Load material data
     def _():
+        fbx_tmpl = fbx_template_get((b'Material', b'KFbxSurfacePhong'))
+        # b'KFbxSurfaceLambert'
+
         for fbx_uuid, fbx_item in fbx_table_nodes.items():
             fbx_obj, blen_data = fbx_item
             if fbx_obj.id != b'Material':
                 continue
             assert(blen_data is None)
-            fbx_item[1] = blen_read_material(fbx_obj,
+            fbx_item[1] = blen_read_material(fbx_tmpl, fbx_obj,
                                              cycles_material_wrap_map, use_cycles)
     _(); del _
 
     # ----
     # Load image data
     def _():
+        fbx_tmpl = fbx_template_get((b'Texture', b'KFbxFileTexture'))
+
         for fbx_uuid, fbx_item in fbx_table_nodes.items():
             fbx_obj, blen_data = fbx_item
             if fbx_obj.id != b'Texture':
                 continue
-            fbx_item[1] = blen_read_texture(fbx_obj, basedir, image_cache,
+            fbx_item[1] = blen_read_texture(fbx_tmpl, fbx_obj, basedir, image_cache,
                                             use_image_search)
     _(); del _
 
     # ----
     # Load camera data
     def _():
+        fbx_tmpl = fbx_template_get((b'NodeAttribute', b'KFbxCamera'))
+
         for fbx_uuid, fbx_item in fbx_table_nodes.items():
             fbx_obj, blen_data = fbx_item
             if fbx_obj.id != b'NodeAttribute':
                 continue
             if fbx_obj.props[-1] == b'Camera':
                 assert(blen_data is None)
-                fbx_item[1] = blen_read_camera(fbx_obj, global_scale)
+                fbx_item[1] = blen_read_camera(fbx_tmpl, fbx_obj, global_scale)
     _(); del _
 
     # ----
     # Load lamp data
     def _():
+        fbx_tmpl = fbx_template_get((b'NodeAttribute', b'KFbxLight'))
+
         for fbx_uuid, fbx_item in fbx_table_nodes.items():
             fbx_obj, blen_data = fbx_item
             if fbx_obj.id != b'NodeAttribute':
                 continue
             if fbx_obj.props[-1] == b'Light':
                 assert(blen_data is None)
-                fbx_item[1] = blen_read_light(fbx_obj, global_scale)
+                fbx_item[1] = blen_read_light(fbx_tmpl, fbx_obj, global_scale)
     _(); del _
 
     # ----
@@ -746,6 +812,8 @@ def load(operator, context, filepath="",
         return connection_filter_ex(fbx_uuid, fbx_id, fbx_connection_map_reverse)
 
     def _():
+        fbx_tmpl = fbx_template_get((b'Model', b'KFbxNode'))
+
         # Link objects, keep first, this also creates objects
         objects = []
         for fbx_uuid, fbx_item in fbx_table_nodes.items():
@@ -774,7 +842,7 @@ def load(operator, context, filepath="",
             if ok:
                 # print(fbx_lnk_type)
                 # create when linking since we need object data
-                obj = blen_read_object(fbx_obj, fbx_lnk_item)
+                obj = blen_read_object(fbx_tmpl, fbx_obj, fbx_lnk_item)
                 assert(fbx_item[1] is None)
                 fbx_item[1] = obj
 
@@ -845,9 +913,14 @@ def load(operator, context, filepath="",
     def _():
         material_images = {}
 
+        fbx_tmpl = fbx_template_get((b'Material', b'KFbxSurfacePhong'))
+        # b'KFbxSurfaceLambert'
+
         # textures that use this material
         def texture_bumpfac_get(fbx_obj):
-            fbx_props = elem_find_first(fbx_obj, b'Properties70')
+            fbx_props = (elem_find_first(fbx_obj, b'Properties70'),
+                         elem_find_first(fbx_tmpl, b'Properties70', fbx_elem_nil))
+            assert(fbx_props[0] is not None)
             return elem_props_get_number(fbx_props, b'BumpFactor', 1.0)
 
         if not use_cycles:
@@ -932,7 +1005,7 @@ def load(operator, context, filepath="",
                         elif lnk_type == b'ShininessExponent':
                             mtex.use_map_hardness = True
                         elif lnk_type == b'NormalMap':
-                            tex.use_normal_map = True  # not ideal!
+                            mtex.texture.use_normal_map = True  # not ideal!
                             mtex.use_map_normal = True
                             mtex.normal_factor = texture_bumpfac_get(fbx_obj)
                         elif lnk_type == b'Bump':
