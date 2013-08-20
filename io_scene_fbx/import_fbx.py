@@ -53,7 +53,6 @@ def elem_find_iter(elem, id_search):
     for fbx_item in elem.elems:
         if fbx_item.id == id_search:
             yield fbx_item
-    return []
 
 
 def elem_find_first_string(elem, id_search):
