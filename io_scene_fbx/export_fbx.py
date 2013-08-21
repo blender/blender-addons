@@ -1505,13 +1505,13 @@ def save_single(operator, scene, filepath="",
             i = -1
             for ed in me_edges:
                 if i == -1:
-                    fw('%i' % (ed.use_edge_sharp))
+                    fw('%i' % (not ed.use_edge_sharp))
                     i = 0
                 else:
                     if i == 54:
                         fw('\n\t\t\t ')
                         i = 0
-                    fw(',%i' % ed.use_edge_sharp)
+                    fw(',%i' % (not ed.use_edge_sharp))
                 i += 1
 
             fw('\n\t\t}')
