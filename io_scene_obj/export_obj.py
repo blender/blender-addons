@@ -148,16 +148,16 @@ def write_mtl(scene, filepath, path_mode, copy_set, mtl_dict):
                             image_map["map_d"] = image
                         if mtex.use_map_translucency:
                             image_map["map_Tr"] = image
-                        if mtex.use_map_normal and (mtex.texture.use_normal_map is True):
+                        if mtex.use_map_normal:
                             image_map["map_Bump"] = image
-                        if mtex.use_map_normal and (mtex.texture.use_normal_map is False):
-                            image_map["map_Disp"] = image                      
+                        if mtex.use_map_displacement:
+                            image_map["disp"] = image                      
                         if mtex.use_map_color_diffuse and (mtex.texture_coords == 'REFLECTION'):
-                            image_map["map_refl"] = image
+                            image_map["refl"] = image
                         if mtex.use_map_emit:
                             image_map["map_Ke"] = image
 
-            for key, image in image_map.items():
+            for key, image in sorted(image_map.items()):
                 filepath = bpy_extras.io_utils.path_reference(image.filepath, source_dir, dest_dir,
                                                               path_mode, "", copy_set, image.library)
                 fw('%s %s\n' % (key, repr(filepath)[1:-1]))

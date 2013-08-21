@@ -106,45 +106,20 @@ def create_materials(filepath, relpath,
 
         # Absolute path - c:\.. etc would work here
         image = obj_image_load(imagepath, DIR, use_image_search, relpath)
-        has_data = False
-        image_depth = 0
 
         if image is not None:
             texture.image = image
-            # note, this causes the image to load, see: [#32637]
-            # which makes the following has_data work as expected.
-            image_depth = image.depth
-            has_data = image.has_data
 
         # Adds textures for materials (rendering)
         if type == 'Kd':
-            if image_depth in {32, 128}:
-                # Image has alpha
-
-                mtex = blender_material.texture_slots.add()
-                mtex.texture = texture
-                mtex.texture_coords = 'UV'
-                mtex.use_map_color_diffuse = True
-                mtex.use_map_alpha = True
-
-                texture.use_mipmap = True
-                texture.use_interpolation = True
-                if image is not None:
-                    image.use_alpha = True
-                blender_material.use_transparency = True
-                if "alpha" not in context_material_vars:
-                    blender_material.alpha = 0.0
-
-                blender_material.game_settings.alpha_blend = 'ALPHA'
-            else:
-                mtex = blender_material.texture_slots.add()
-                mtex.texture = texture
-                mtex.texture_coords = 'UV'
-                mtex.use_map_color_diffuse = True
+            mtex = blender_material.texture_slots.add()
+            mtex.texture = texture
+            mtex.texture_coords = 'UV'
+            mtex.use_map_color_diffuse = True
 
             # adds textures to faces (Textured/Alt-Z mode)
             # Only apply the diffuse texture to the face if the image has not been set with the inline usemat func.
-            unique_material_images[context_material_name] = image, has_data  # set the texface image
+            unique_material_images[context_material_name] = image  # set the texface image
 
         elif type == 'Ka':
             mtex = blender_material.texture_slots.add()
@@ -182,6 +157,14 @@ def create_materials(filepath, relpath,
             if "alpha" not in context_material_vars:
                 blender_material.alpha = 0.0
             # Todo, unset deffuse material alpha if it has an alpha channel
+
+        elif type == 'disp':
+            mtex = blender_material.texture_slots.add()
+            mtex.use_map_color_diffuse = False
+
+            mtex.texture = texture
+            mtex.texture_coords = 'UV'
+            mtex.use_map_displacement = True
 
         elif type == 'refl':
             mtex = blender_material.texture_slots.add()
@@ -373,6 +356,11 @@ def create_materials(filepath, relpath,
                         img_filepath = line_value(line.split())
                         if img_filepath:
                             load_material_image(context_material, context_material_name, img_filepath, 'D')
+
+                    elif line_lower.startswith((b'map_disp', b'disp')):  # reflectionmap
+                        img_filepath = line_value(line.split())
+                        if img_filepath:
+                            load_material_image(context_material, context_material_name, img_filepath, 'disp')
 
                     elif line_lower.startswith((b'map_refl', b'refl')):  # reflectionmap
                         img_filepath = line_value(line.split())
@@ -635,7 +623,7 @@ def create_mesh(new_objects,
                 blender_tface = me.tessface_uv_textures[0].data[i]
 
                 if context_material:
-                    image, has_data = unique_material_images[context_material]
+                    image = unique_material_images[context_material]
                     if image:  # Can be none if the material dosnt have an image.
                         blender_tface.image = image
 
