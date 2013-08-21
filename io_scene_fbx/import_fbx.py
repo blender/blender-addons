@@ -345,6 +345,30 @@ def blen_read_geom_array_mapped_vert(
     return False
 
 
+def blen_read_geom_array_mapped_edge(
+    mesh, blen_data, blend_attr,
+    fbx_layer_data, fbx_layer_index,
+    fbx_layer_mapping, fbx_layer_ref,
+    stride, descr,
+    ):
+
+    if fbx_layer_mapping == b'ByEdge':
+        if fbx_layer_ref == b'Direct':
+            if stride == 1:
+                for i, blen_data_item in enumerate(blen_data):
+                    setattr(blen_data_item, blend_attr, fbx_layer_data[i])
+            else:
+                for i, blen_data_item in enumerate(blen_data):
+                    setattr(blen_data_item, blend_attr, fbx_layer_data[(i * stride): (i * stride) + stride])
+            return True
+        else:
+            print("warning layer %r ref type unsupported: %r" % (descr, fbx_layer_ref))
+    else:
+        print("warning layer %r mapping type unsupported: %r" % (descr, fbx_layer_mapping))
+
+    return False
+
+
 def blen_read_geom_array_mapped_polygon(
     mesh, blen_data, blend_attr,
     fbx_layer_data, fbx_layer_index,
@@ -353,7 +377,7 @@ def blen_read_geom_array_mapped_polygon(
     ):
 
     if fbx_layer_mapping == b'ByPolygon':
-        if fbx_layer_ref == b'IndexToDirect':
+        if fbx_layer_ref in {b'IndexToDirect', b'Direct'}:
             if stride == 1:
                 for i, blen_data_item in enumerate(blen_data):
                     setattr(blen_data_item, blend_attr, fbx_layer_data[i])
@@ -401,7 +425,7 @@ def blen_read_geom_array_mapped_polyloop(
     return False
 
 
-def blen_read_geom_layer_materials(fbx_obj, mesh):
+def blen_read_geom_layer_material(fbx_obj, mesh):
     fbx_layer = elem_find_first(fbx_obj, b'LayerElementMaterial')
 
     if fbx_layer is None:
@@ -415,8 +439,9 @@ def blen_read_geom_layer_materials(fbx_obj, mesh):
     layer_id = b'Materials'
     fbx_layer_data = elem_prop_first(elem_find_first(fbx_layer, layer_id))
 
+    blen_data = mesh.polygons
     blen_read_geom_array_mapped_polygon(
-        mesh, mesh.polygons, "material_index",
+        mesh, blen_data, "material_index",
         fbx_layer_data, None,
         fbx_layer_mapping, fbx_layer_ref,
         1, layer_id,
@@ -445,6 +470,47 @@ def blen_read_geom_layer_uv(fbx_obj, mesh):
                 fbx_layer_mapping, fbx_layer_ref,
                 2, layer_id,
                 )
+
+
+def blen_read_geom_layer_smooth(fbx_obj, mesh):
+    fbx_layer = elem_find_first(fbx_obj, b'LayerElementSmoothing')
+    
+    if fbx_layer is None:
+        return False
+
+    # all should be valid
+    (fbx_layer_name,
+     fbx_layer_mapping,
+     fbx_layer_ref,
+     ) = blen_read_geom_layerinfo(fbx_layer)
+
+    layer_id = b'Smoothing'
+    fbx_layer_data = elem_prop_first(elem_find_first(fbx_layer, layer_id))
+
+    if fbx_layer_mapping == b'ByEdge':
+        blen_data = mesh.edges
+        ok_smooth = blen_read_geom_array_mapped_edge(
+            mesh, blen_data, "use_edge_sharp",
+            fbx_layer_data, None,
+            fbx_layer_mapping, fbx_layer_ref,
+            1, layer_id,
+            )
+        if ok_smooth:
+            # ugh, need to negate
+            for e in mesh.edges:
+                e.use_edge_sharp = not e.use_edge_sharp
+        return ok_smooth
+    elif fbx_layer_mapping == b'ByPolygon':
+        blen_data = mesh.polygons
+        return blen_read_geom_array_mapped_polygon(
+            mesh, blen_data, "use_smooth",
+            fbx_layer_data, None,
+            fbx_layer_mapping, fbx_layer_ref,
+            1, layer_id,
+            )
+    else:
+        print("warning layer %r mapping type unsupported: %r" % (fbx_layer.id, fbx_layer_mapping))
+        return False
 
 
 def blen_read_geom_layer_normal(fbx_obj, mesh):
@@ -479,8 +545,7 @@ def blen_read_geom(fbx_tmpl, fbx_obj):
 
     fbx_verts = elem_prop_first(elem_find_first(fbx_obj, b'Vertices'))
     fbx_polys = elem_prop_first(elem_find_first(fbx_obj, b'PolygonVertexIndex'))
-    # TODO
-    # fbx_edges = elem_prop_first(elem_find_first(fbx_obj, b'Edges'))
+    fbx_edges = elem_prop_first(elem_find_first(fbx_obj, b'Edges'))
 
     if fbx_verts is None:
         fbx_verts = ()
@@ -509,8 +574,15 @@ def blen_read_geom(fbx_tmpl, fbx_obj):
         mesh.polygons.foreach_set("loop_start", poly_loop_starts)
         mesh.polygons.foreach_set("loop_total", poly_loop_totals)
 
-        blen_read_geom_layer_materials(fbx_obj, mesh)
+        blen_read_geom_layer_material(fbx_obj, mesh)
         blen_read_geom_layer_uv(fbx_obj, mesh)
+
+    if fbx_edges:
+        mesh.edges.add(len(fbx_edges) // 2)
+        mesh.edges.foreach_set("vertices", fbx_edges)
+
+    # must be after edge, face loading.
+    ok_smooth = blen_read_geom_layer_smooth(fbx_obj, mesh)
 
     ok_normals = blen_read_geom_layer_normal(fbx_obj, mesh)
 
@@ -518,6 +590,10 @@ def blen_read_geom(fbx_tmpl, fbx_obj):
 
     if not ok_normals:
         mesh.calc_normals()
+
+    if not ok_smooth:
+        for p in mesh.polygons:
+            p.use_smooth = True
 
     return mesh
 
@@ -700,7 +776,6 @@ def load(operator, context, filepath="",
         operator.report({'ERROR'}, "Version %r unsupported, must be %r or later" % (version, 7100))
         return {'CANCELLED'}
 
-    # so we can set smooth in object mode
     if bpy.ops.object.mode_set.poll():
         bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
 
@@ -911,11 +986,6 @@ def load(operator, context, filepath="",
                 obj_base.select = True
 
                 objects.append(obj)
-
-        # until we load smoothing info
-        context_copy = context.copy()
-        context_copy["selected_editable_objects"] = objects
-        bpy.ops.object.shade_smooth(context_copy)
 
     _(); del _
 
