@@ -116,7 +116,6 @@ ms3d_str = {
         'ENUM_SELECT_2_SMOOTHING_GROUP': "selects all faces of selected"\
                 " smoothing group",
         'LABEL_NAME_ANIMATION': "Animation Processing:",
-        'LABEL_NAME_OBJECT': "World Processing:",
         'LABEL_NAME_OPTIONS': "Advanced Options:",
         'LABEL_NAME_PROCESSING': "Object Processing:",
         'LABEL_NAME_MODIFIER': "Modifier Processing:",
@@ -200,7 +199,7 @@ ms3d_str = {
         'PROP_NAME_ROTATION_MODE' : "Bone Rotation Mode",
         'PROP_DESC_ROTATION_MODE' : "set the preferred rotation mode of bones",
         'PROP_ITEM_ROTATION_MODE_EULER_1' : "Euler",
-        'PROP_ITEM_ROTATION_MODE_EULER_2' : "use euler bone rotation"\
+        'PROP_ITEM_ROTATION_MODE_EULER_2' : "use Euler bone rotation"\
                 " (gimbal-lock can be fixed by using "\
                 "'Graph Editor -> Key -> Discontinuity (Euler) Filter')",
         'PROP_ITEM_ROTATION_MODE_QUATERNION_1' : "Quaternion",
@@ -212,11 +211,6 @@ ms3d_str = {
         'PROP_NAME_IMPORT_JOINT_SIZE': "Joint Size",
         'PROP_DESC_IMPORT_JOINT_SIZE': "size of the joint representation in"\
                 " blender",
-        'BL_LABEL_SET_SCENE_TO_METRIC' : "Set Scene to 'Metric' [1 mm]",
-        'BL_DESC_SET_SCENE_TO_METRIC' : "set Scene | Units to Metric"\
-                " (1 Unit = 1 mm),"\
-                " Display | Textured Solid,"\
-                " View | Clip (0.001 mm ... 1 km)",
         'PROP_NAME_NORMALIZE_WEIGHTS' : "Normalize Weights",
         'PROP_DESC_NORMALIZE_WEIGHTS' : "normalize all weights to 100%,",
         'PROP_NAME_SHRINK_TO_KEYS' : "Shrink To Keys",

@@ -263,7 +263,7 @@ class Ms3dImportOperator(Operator, ImportHelper):
     bl_idname = 'import_scene.ms3d'
     bl_label = ms3d_str['BL_LABEL_IMPORTER']
     bl_description = ms3d_str['BL_DESCRIPTION_IMPORTER']
-    bl_options = {'PRESET', }
+    bl_options = {'UNDO', 'PRESET', }
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
 
@@ -428,7 +428,7 @@ class Ms3dExportOperator(Operator, ExportHelper):
     bl_idname = 'export_scene.ms3d'
     bl_label = ms3d_str['BL_LABEL_EXPORTER']
     bl_description = ms3d_str['BL_DESCRIPTION_EXPORTER']
-    bl_options = {'PRESET', }
+    bl_options = {'UNDO', 'PRESET', }
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
 
@@ -640,7 +640,7 @@ class Ms3dExportOperator(Operator, ExportHelper):
 class Ms3dSetSmoothingGroupOperator(Operator):
     bl_idname = Ms3dUi.OPT_SMOOTHING_GROUP_APPLY
     bl_label = ms3d_str['BL_LABEL_SMOOTHING_GROUP_OPERATOR']
-    bl_options = {'INTERNAL', }
+    bl_options = {'UNDO', 'INTERNAL', }
 
     smoothing_group_index = IntProperty(
             name=ms3d_str['PROP_SMOOTHING_GROUP_INDEX'],
@@ -716,7 +716,7 @@ class Ms3dSetSmoothingGroupOperator(Operator):
 class Ms3dGroupOperator(Operator):
     bl_idname = Ms3dUi.OPT_GROUP_APPLY
     bl_label = ms3d_str['BL_LABEL_GROUP_OPERATOR']
-    bl_options = {'INTERNAL', }
+    bl_options = {'UNDO', 'INTERNAL', }
 
     mode = EnumProperty(
             items=( ('', "", ""),
@@ -807,7 +807,7 @@ class Ms3dGroupOperator(Operator):
 class Ms3dMaterialOperator(Operator):
     bl_idname = Ms3dUi.OPT_MATERIAL_APPLY
     bl_label = ms3d_str['BL_LABEL_MATERIAL_OPERATOR']
-    bl_options = {'INTERNAL', }
+    bl_options = {'UNDO', 'INTERNAL', }
 
     mode = EnumProperty(
             items=( ('', "", ""),
