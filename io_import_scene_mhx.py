@@ -38,8 +38,8 @@ Alternatively, run the script in the script editor (Alt-P), and access from the 
 bl_info = {
     'name': 'Import: MakeHuman (.mhx)',
     'author': 'Thomas Larsson',
-    'version': (1, 16, 1),
-    "blender": (2, 67, 1),
+    'version': (1, 16, 2),
+    "blender": (2, 68, 0),
     'location': "File > Import > MakeHuman (.mhx)",
     'description': 'Import files in the MakeHuman eXchange format (.mhx)',
     'warning': '',
@@ -3939,6 +3939,48 @@ def insertRotation(pb, mat, auto):
     bpy.ops.object.mode_set(mode='POSE')
 
 
+def matchIkLeg(legIk, toeFk, mBall, mToe, mHeel, auto):
+    rmat = toeFk.matrix.to_3x3()
+    tHead = Vector(toeFk.matrix.col[3][:3])
+    ty = rmat.col[1]
+    tail = tHead + ty * toeFk.bone.length
+
+    zBall = mBall.matrix.col[3][2]
+    zToe = mToe.matrix.col[3][2]
+    zHeel = mHeel.matrix.col[3][2]
+
+    x = Vector(rmat.col[0])
+    y = Vector(rmat.col[1])
+    z = Vector(rmat.col[2])
+
+    if zHeel > zBall and zHeel > zToe:
+        # 1. foot.ik is flat
+        if abs(y[2]) > abs(z[2]):
+            y = -z
+        y[2] = 0
+    else:
+        # 2. foot.ik starts at heel
+        hHead = Vector(mHeel.matrix.col[3][:3])
+        y = tail - hHead
+
+    y.normalize()
+    x -= x.dot(y)*y
+    x.normalize()
+    z = x.cross(y)
+    head = tail - y * legIk.bone.length
+
+    # Create matrix
+    gmat = Matrix()
+    gmat.col[0][:3] = x
+    gmat.col[1][:3] = y
+    gmat.col[2][:3] = z
+    gmat.col[3][:3] = head
+    pmat = getPoseMatrix(gmat, legIk)
+
+    insertLocation(legIk, pmat, auto)
+    insertRotation(legIk, pmat, auto)
+
+
 def matchPoleTarget(pb, above, below, auto):
     x = Vector(above.matrix.col[1][:3])
     y = Vector(below.matrix.col[1][:3])
@@ -3963,7 +4005,6 @@ def matchPoseReverse(pb, src, auto):
     rmat.transpose()
     pmat = getPoseMatrix(rmat, pb)
     pb.matrix_basis = pmat
-    insertLocation(pb, pmat, auto)
     insertRotation(pb, pmat, auto)
 
 
@@ -3983,7 +4024,7 @@ def snapFkArm(context, data):
 
     print("Snap FK Arm%s" % suffix)
     snapFk,cnsFk = getSnapBones(rig, "ArmFK", suffix)
-    (uparmFk, loarmFk, elbowPtFk, handFk) = snapFk
+    (uparmFk, loarmFk, handFk) = snapFk
     muteConstraints(cnsFk, True)
     snapIk,cnsIk = getSnapBones(rig, "ArmIK", suffix)
     (uparmIk, loarmIk, elbow, elbowPt, handIk) = snapIk
@@ -4017,7 +4058,7 @@ def snapIkArm(context, data):
     snapIk,cnsIk = getSnapBones(rig, "ArmIK", suffix)
     (uparmIk, loarmIk, elbow, elbowPt, handIk) = snapIk
     snapFk,cnsFk = getSnapBones(rig, "ArmFK", suffix)
-    (uparmFk, loarmFk, elbowPtFk, handFk) = snapFk
+    (uparmFk, loarmFk, handFk) = snapFk
     muteConstraints(cnsIk, True)
 
     matchPoseTranslation(handIk, handFk, auto)
@@ -4025,8 +4066,8 @@ def snapIkArm(context, data):
 
     matchPoleTarget(elbowPt, uparmFk, loarmFk, auto)
 
-    matchPoseRotation(uparmIk, uparmFk, auto)
-    matchPoseRotation(loarmIk, loarmFk, auto)
+    #matchPoseRotation(uparmIk, uparmFk, auto)
+    #matchPoseRotation(loarmIk, loarmFk, auto)
 
     restoreSnapProp(rig, prop, old, context)
     #muteConstraints(cnsIk, False)
@@ -4042,9 +4083,9 @@ def snapFkLeg(context, data):
     snap,_ = getSnapBones(rig, "Leg", suffix)
     (upleg, loleg, foot, toe) = snap
     snapIk,cnsIk = getSnapBones(rig, "LegIK", suffix)
-    (uplegIk, lolegIk, kneePt, ankleIk, legIk, legFk, footRev, toeRev) = snapIk
+    (uplegIk, lolegIk, kneePt, ankleIk, legIk, footRev, toeRev, mBall, mToe, mHeel) = snapIk
     snapFk,cnsFk = getSnapBones(rig, "LegFK", suffix)
-    (uplegFk, lolegFk, kneePtFk, footFk, toeFk) = snapFk
+    (uplegFk, lolegFk, footFk, toeFk) = snapFk
     muteConstraints(cnsFk, True)
 
     matchPoseRotation(uplegFk, uplegIk, auto)
@@ -4071,25 +4112,26 @@ def snapIkLeg(context, data):
 
     print("Snap IK Leg%s" % suffix)
     snapIk,cnsIk = getSnapBones(rig, "LegIK", suffix)
-    (uplegIk, lolegIk, kneePt, ankleIk, legIk, legFk, footIk, toeIk) = snapIk
+    (uplegIk, lolegIk, kneePt, ankleIk, legIk, footRev, toeRev, mBall, mToe, mHeel) = snapIk
     snapFk,cnsFk = getSnapBones(rig, "LegFK", suffix)
-    (uplegFk, lolegFk, kneePtFk, footFk, toeFk) = snapFk
+    (uplegFk, lolegFk, footFk, toeFk) = snapFk
     muteConstraints(cnsIk, True)
 
     legIkToAnkle = rig["MhaLegIkToAnkle" + suffix]
     if legIkToAnkle:
         matchPoseTranslation(ankleIk, footFk, auto)
 
-    matchPoseTranslation(legIk, legFk, auto)
-    matchPoseRotation(legIk, legFk, auto)
+    #matchPoseTranslation(legIk, legFk, auto)
+    #matchPoseRotation(legIk, legFk, auto)
+    matchIkLeg(legIk, toeFk, mBall, mToe, mHeel, auto)
 
-    matchPoseReverse(toeIk, toeFk, auto)
-    matchPoseReverse(footIk, footFk, auto)
+    matchPoseReverse(toeRev, toeFk, auto)
+    matchPoseReverse(footRev, footFk, auto)
 
     matchPoleTarget(kneePt, uplegFk, lolegFk, auto)
 
-    matchPoseRotation(uplegIk, uplegFk, auto)
-    matchPoseRotation(lolegIk, lolegFk, auto)
+    #matchPoseRotation(uplegIk, uplegFk, auto)
+    #matchPoseRotation(lolegIk, lolegFk, auto)
 
     if not legIkToAnkle:
         matchPoseTranslation(ankleIk, footFk, auto)
@@ -4099,62 +4141,35 @@ def snapIkLeg(context, data):
     return
 
 
-"""
-#
-#   setInverse(rig, pb):
-#
-
-def setInverse(rig, pb):
-    rig.data.bones.active = pb.bone
-    pb.bone.select = True
-    bpy.ops.object.mode_set(mode='OBJECT')
-    bpy.ops.object.mode_set(mode='POSE')
-    for cns in pb.constraints:
-        if cns.type == 'CHILD_OF':
-            bpy.ops.constraint.childof_set_inverse(constraint=cns.name, owner='BONE')
-    bpy.ops.object.mode_set(mode='OBJECT')
-    bpy.ops.object.mode_set(mode='POSE')
-    return
-"""
-#
-#
-#
-
-SnapBonesAlpha7 = {
-    "Arm"   : ["UpArm", "LoArm", "Hand"],
-    "ArmFK" : ["UpArm", "LoArm", "ElbowPTFK", "Hand"],
-    "ArmIK" : ["UpArmIK", "LoArmIK", "Elbow", "ElbowPT", "Wrist"],
-    "Leg"   : ["UpLeg", "LoLeg", "Foot", "Toe"],
-    "LegFK" : ["UpLeg", "LoLeg", "KneePTFK", "Foot", "Toe"],
-    "LegIK" : ["UpLegIK", "LoLegIK", "KneePT", "Ankle", "LegIK", "LegFK", "FootRev", "ToeRev"],
-}
-
 SnapBonesAlpha8 = {
     "Arm"   : ["upper_arm", "forearm", "hand"],
-    "ArmFK" : ["upper_arm.fk", "forearm.fk", "elbow.pt.fk", "hand.fk"],
+    "ArmFK" : ["upper_arm.fk", "forearm.fk", "hand.fk"],
     "ArmIK" : ["upper_arm.ik", "forearm.ik", None, "elbow.pt.ik", "hand.ik"],
     "Leg"   : ["thigh", "shin", "foot", "toe"],
-    "LegFK" : ["thigh.fk", "shin.fk", "knee.pt.fk", "foot.fk", "toe.fk"],
-    "LegIK" : ["thigh.ik", "shin.ik", "knee.pt.ik", "ankle.ik", "foot.ik", "foot_helper", "foot.rev", "toe.rev"],
+    "LegFK" : ["thigh.fk", "shin.fk", "foot.fk", "toe.fk"],
+    "LegIK" : ["thigh.ik", "shin.ik", "knee.pt.ik", "ankle.ik", "foot.ik", "foot.rev", "toe.rev", "ball.marker", "toe.marker", "heel.marker"],
 }
+
 
 def getSnapBones(rig, key, suffix):
     try:
-        rig.pose.bones["UpLeg_L"]
-        names = SnapBonesAlpha7[key]
+        pb = rig.pose.bones["UpLeg_L"]
+    except KeyError:
+        pb = None
+
+    if pb is not None:
+        raise NameError("MakeHuman alpha 7 not supported after Blender 2.68")
+
+    try:
+        rig.pose.bones["thigh.fk.L"]
+        names = SnapBonesAlpha8[key]
+        suffix = '.' + suffix[1:]
     except KeyError:
         names = None
 
     if not names:
-        try:
-            rig.pose.bones["thigh.L"]
-            names = SnapBonesAlpha8[key]
-            suffix = '.' + suffix[1:]
-        except KeyError:
-            names = None
-
-    if not names:
         raise NameError("Not an mhx armature")
+
     pbones = []
     constraints = []
     for name in names:
