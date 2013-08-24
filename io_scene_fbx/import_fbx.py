@@ -377,13 +377,19 @@ def blen_read_geom_array_mapped_polygon(
     ):
 
     if fbx_layer_mapping == b'ByPolygon':
-        if fbx_layer_ref in {b'IndexToDirect', b'Direct'}:
+        if fbx_layer_ref == b'IndexToDirect':
             if stride == 1:
                 for i, blen_data_item in enumerate(blen_data):
                     setattr(blen_data_item, blend_attr, fbx_layer_data[i])
             else:
                 for i, blen_data_item in enumerate(blen_data):
                     setattr(blen_data_item, blend_attr, fbx_layer_data[(i * stride): (i * stride) + stride])
+            return True
+        elif fbx_layer_ref == b'Direct':
+            # looks like direct may have different meanings!
+            assert(stride == 1)
+            for i in fbx_layer_data:
+                setattr(blen_data[i - 1], blend_attr, True)
             return True
         else:
             print("warning layer %r ref type unsupported: %r" % (descr, fbx_layer_ref))
@@ -492,6 +498,10 @@ def blen_read_geom_layer_smooth(fbx_obj, mesh):
         return False
 
     if fbx_layer_mapping == b'ByEdge':
+        # some models have bad edge data, we cant use this info...
+        if not mesh.edges:
+            return False
+
         blen_data = mesh.edges
         ok_smooth = blen_read_geom_array_mapped_edge(
             mesh, blen_data, "use_edge_sharp",
@@ -582,8 +592,15 @@ def blen_read_geom(fbx_tmpl, fbx_obj):
         blen_read_geom_layer_uv(fbx_obj, mesh)
 
     if fbx_edges:
-        mesh.edges.add(len(fbx_edges) // 2)
-        mesh.edges.foreach_set("vertices", fbx_edges)
+        # workaround for odd number of edge vertices
+        tot_edges = len(fbx_edges) // 2
+
+        if len(fbx_edges) % 2:
+            print("Corrupt edges found in: %s" % elem_name_utf8)
+        else:
+            mesh.edges.add(tot_edges)
+            mesh.edges.foreach_set("vertices", fbx_edges)
+
 
     # must be after edge, face loading.
     ok_smooth = blen_read_geom_layer_smooth(fbx_obj, mesh)
