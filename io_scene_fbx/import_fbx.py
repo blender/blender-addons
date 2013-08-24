@@ -474,7 +474,7 @@ def blen_read_geom_layer_uv(fbx_obj, mesh):
 
 def blen_read_geom_layer_smooth(fbx_obj, mesh):
     fbx_layer = elem_find_first(fbx_obj, b'LayerElementSmoothing')
-    
+
     if fbx_layer is None:
         return False
 
@@ -486,6 +486,10 @@ def blen_read_geom_layer_smooth(fbx_obj, mesh):
 
     layer_id = b'Smoothing'
     fbx_layer_data = elem_prop_first(elem_find_first(fbx_layer, layer_id))
+
+    # udk has 'Direct' mapped, with no Smoothing, not sure why, but ignore these
+    if fbx_layer_data is None:
+        return False
 
     if fbx_layer_mapping == b'ByEdge':
         blen_data = mesh.edges
