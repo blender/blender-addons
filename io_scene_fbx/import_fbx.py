@@ -467,7 +467,7 @@ def blen_read_geom_layer_uv(fbx_obj, mesh):
             fbx_layer_index = elem_prop_first(elem_find_first(fbx_layer, b'UVIndex'))
 
             uv_tex = mesh.uv_textures.new(name=fbx_layer_name)
-            uv_lay = mesh.uv_layers[fbx_layer_name]
+            uv_lay = mesh.uv_layers[-1]
             blen_data = uv_lay.data[:]
 
             blen_read_geom_array_mapped_polyloop(
