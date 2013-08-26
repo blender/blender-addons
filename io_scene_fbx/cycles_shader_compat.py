@@ -269,7 +269,7 @@ class CyclesShaderWrapper():
                   self.node_out.inputs["Displacement"])
 
     @staticmethod
-    def _image_create_helper(image, node_dst, sockets_dst):
+    def _image_create_helper(image, node_dst, sockets_dst, use_alpha=False):
         tree = node_dst.id_data
         nodes = tree.nodes
         links = tree.links
@@ -279,7 +279,7 @@ class CyclesShaderWrapper():
         node.location = node_dst.location
         node.location.x -= CyclesShaderWrapper._col_size
         for socket in sockets_dst:
-            links.new(node.outputs["Color"],
+            links.new(node.outputs["Alpha" if use_alpha else "Color"],
                       socket)
         return node
 
@@ -334,7 +334,10 @@ class CyclesShaderWrapper():
     def alpha_image_set(self, image):
         self.node_bsdf_alpha.mute = False
         node = self.node_mix_color_alpha
-        self._image_create_helper(image, node, (node.inputs["Color2"],))
+        # note: use_alpha may need to be configurable
+        # its not always the case that alpha channels use the image alpha
+        # a greyscale image may also be used.
+        self._image_create_helper(image, node, (node.inputs["Color2"],), use_alpha=True)
 
     def alpha_image_set_from_diffuse(self):
         tree = self.node_mix_color_diff.id_data
