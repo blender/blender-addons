@@ -19,7 +19,7 @@
 bl_info = {
     'name': "Nodes Efficiency Tools",
     'author': "Bartek Skorupa",
-    'version': (2, 32),
+    'version': (2, 33),
     'blender': (2, 6, 8),
     'location': "Node Editor Properties Panel (Ctrl-SPACE)",
     'description': "Nodes Efficiency Tools",
@@ -63,6 +63,9 @@ rl_outputs = (
     ('use_pass_refraction', 'Refract', 'Refract', True, False),
     ('use_pass_shadow', 'Shadow', 'Shadow', True, True),
     ('use_pass_specular', 'Specular', 'Spec', True, False),
+    ('use_pass_subsurface_color', 'Subsurface Color', 'SubsurfaceCol', False, True),
+    ('use_pass_subsurface_direct', 'Subsurface Direct', 'SubsurfaceDir', False, True),
+    ('use_pass_subsurface_indirect', 'Subsurface Indirect', 'SubsurfaceInd', False, True),
     ('use_pass_transmission_color', 'Transmission Color', 'TransCol', False, True),
     ('use_pass_transmission_direct', 'Transmission Direct', 'TransDir', False, True),
     ('use_pass_transmission_indirect', 'Transmission Indirect', 'TransInd', False, True),
