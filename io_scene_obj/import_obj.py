@@ -187,10 +187,10 @@ def create_materials(filepath, relpath,
     for name in unique_materials:  # .keys()
         if name is not None:
             unique_materials[name] = bpy.data.materials.new(name.decode('utf-8', "replace"))
-            unique_material_images[name] = None, False  # assign None to all material images to start with, add to later.
+            unique_material_images[name] = None  # assign None to all material images to start with, add to later.
 
     unique_materials[None] = None
-    unique_material_images[None] = None, False
+    unique_material_images[None] = None
 
     for libname in material_libs:
         # print(libname)
