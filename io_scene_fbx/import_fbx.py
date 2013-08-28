@@ -141,7 +141,7 @@ def elem_props_get_color_rgb(elem, elem_prop_id, default=None):
             # FBX version 7300
             assert(elem_prop.props[1] == b'Color')
             assert(elem_prop.props[2] == b'')
-            assert(elem_prop.props[3] in {b'A', b'A+'})
+            assert(elem_prop.props[3] in {b'A', b'A+', b'AU'})
         else:
             assert(elem_prop.props[1] == b'ColorRGB')
             assert(elem_prop.props[2] == b'Color')
@@ -169,7 +169,7 @@ def elem_props_get_number(elem, elem_prop_id, default=None):
         else:
             assert(elem_prop.props[1] == b'Number')
             assert(elem_prop.props[2] == b'')
-            assert(elem_prop.props[3] in {b'A', b'A+'})
+            assert(elem_prop.props[3] in {b'A', b'A+', b'AU'})
 
         # we could allow other number types
         assert(elem_prop.props_type[4] == data_types.FLOAT64)
@@ -783,7 +783,10 @@ def blen_read_light(fbx_tmpl, fbx_obj, global_scale):
 
     fbx_props = (elem_find_first(fbx_obj, b'Properties70'),
                  elem_find_first(fbx_tmpl, b'Properties70', fbx_elem_nil))
-    assert(fbx_props[0] is not None)
+    # rare
+    if fbx_props[0] is None:
+        lamp = bpy.data.lamps.new(name=elem_name_utf8, type='POINT')
+        return lamp
 
     light_type = {
         0: 'POINT',
@@ -911,11 +914,10 @@ def load(operator, context, filepath="",
         for fbx_link in fbx_connections.elems:
             # print(fbx_link)
             c_type = fbx_link.props[0]
-            c_src, c_dst = fbx_link.props[1:3]
-            # if c_type == b'OO':
-
-            fbx_connection_map.setdefault(c_src, []).append((c_dst, fbx_link))
-            fbx_connection_map_reverse.setdefault(c_dst, []).append((c_src, fbx_link))
+            if fbx_link.props_type[1:3] == b'LL':
+                c_src, c_dst = fbx_link.props[1:3]
+                fbx_connection_map.setdefault(c_src, []).append((c_dst, fbx_link))
+                fbx_connection_map_reverse.setdefault(c_dst, []).append((c_src, fbx_link))
     _(); del _
 
     # ----
@@ -1029,6 +1031,9 @@ def load(operator, context, filepath="",
                         continue
                     if isinstance(fbx_lnk_item, (bpy.types.Material, bpy.types.Image)):
                         continue
+                    # Need to check why this happens, Bird_Leg.fbx
+                    if isinstance(fbx_lnk_item, (bpy.types.Object)):
+                        continue
                     ok = True
                     break
             if ok:
@@ -1084,6 +1089,11 @@ def load(operator, context, filepath="",
                 continue
 
             mesh = fbx_table_nodes[fbx_uuid][1]
+
+            # can happen in rare cases
+            if mesh is None:
+                continue
+
             for (fbx_lnk,
                  fbx_lnk_item,
                  fbx_lnk_type) in connection_filter_forward(fbx_uuid, b'Model'):
