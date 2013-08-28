@@ -56,11 +56,11 @@ class DemoModeSetup(bpy.types.Operator):
     # to the class instance from the operator settings before calling.
 
     # these are used to create the file list.
-    filepath = StringProperty(
-            name="File Path",
-            description="Filepath used for importing the file",
+    directory = StringProperty(
+            name="Search Path",
+            description="directory used for importing the file",
             maxlen=1024,
-            subtype='FILE_PATH',
+            subtype='DIR_PATH',
             )
     random_order = BoolProperty(
             name="Random Order",
@@ -139,8 +139,8 @@ class DemoModeSetup(bpy.types.Operator):
     def execute(self, context):
         from . import config
 
-        keywords = self.as_keywords(ignore=("filepath", "random_order", "run", "exit"))
-        cfg_str, dirpath = config.as_string(self.filepath,
+        keywords = self.as_keywords(ignore=("directory", "random_order", "run", "exit"))
+        cfg_str, dirpath = config.as_string(self.directory,
                                             self.random_order,
                                             self.exit,
                                             **keywords)

@@ -15,11 +15,6 @@ def blend_list(path):
 
 
 def generate(dirpath, random_order, **kwargs):
-
-    # in case file is selected!
-    if not os.path.exists(dirpath) or not os.path.isdir(dirpath):
-        dirpath = os.path.dirname(dirpath)
-
     files = list(blend_list(dirpath))
     if random_order:
         import random
