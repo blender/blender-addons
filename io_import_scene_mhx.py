@@ -38,7 +38,7 @@ Alternatively, run the script in the script editor (Alt-P), and access from the 
 bl_info = {
     'name': 'Import: MakeHuman (.mhx)',
     'author': 'Thomas Larsson',
-    'version': (1, 16, 2),
+    'version': (1, 16, 3),
     "blender": (2, 68, 0),
     'location': "File > Import > MakeHuman (.mhx)",
     'description': 'Import files in the MakeHuman eXchange format (.mhx)',
@@ -51,7 +51,7 @@ bl_info = {
 MAJOR_VERSION = 1
 MINOR_VERSION = 16
 FROM_VERSION = 13
-SUB_VERSION = 1
+SUB_VERSION = 3
 
 majorVersion = MAJOR_VERSION
 minorVersion = MINOR_VERSION
@@ -306,6 +306,9 @@ def readMhxFile(filePath):
             #MyError(msg)
 
     scn.objects.active = theArmature
+    bpy.ops.object.mode_set(mode='OBJECT')
+    bpy.ops.object.select_all(action='DESELECT')
+    theArmature.select = True
     theArmature.MhAlpha8 = not alpha7
     #bpy.ops.wm.properties_edit(data_path="object", property="MhxRig", value=theArmature["MhxRig"])
 
@@ -3002,7 +3005,7 @@ class ImportMhx(bpy.types.Operator, ImportHelper):
             if not context.user_preferences.system.use_scripts_auto_execute:
                 MyError("Auto Run Python Scripts must be turned on.\nIt is found under\n File > User Preferences > File")
             readMhxFile(self.filepath)
-            bpy.ops.mhx.success('INVOKE_DEFAULT', message = self.filepath)
+            #bpy.ops.mhx.success('INVOKE_DEFAULT', message = self.filepath)
         except MhxError:
             print("Error when loading MHX file %s:\n" % self.filepath + theMessage)
 
