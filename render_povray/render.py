@@ -1252,6 +1252,10 @@ def write_pov(filename, scene=None, info_callback=None):
                                 file.write("\n #declare MAT_%s = \ntexture{\n" % currentMatName)
 
                                 ################################################################################
+                                
+                                if material.pov.replacement_text != "":
+                                    file.write("%s\n" % material.pov.replacement_text)
+                                #################################################################################
                                 if material.diffuse_shader == 'MINNAERT':
                                     tabWrite("\n")
                                     tabWrite("aoi\n")
@@ -1971,7 +1975,10 @@ def write_pov(filename, scene=None, info_callback=None):
         tabWrite("}\n")
 
     def exportCustomCode():
-
+        # Write CurrentAnimation Frame for use in Custom POV Code
+        file.write("#declare CURFRAMENUM = %d;\n" % bpy.context.scene.frame_current)
+        #Change path and uncomment to add an animated include file by hand:
+        file.write("//#include \"/home/user/directory/animation_include_file.inc\"\n")
         for txt in bpy.data.texts:
             if txt.pov.custom_code:
                 # Why are the newlines needed?
@@ -1988,16 +1995,17 @@ def write_pov(filename, scene=None, info_callback=None):
     file.write("#version 3.7;\n")
 
     if not scene.pov.tempfiles_enable and comments:
-        file.write("\n//--CUSTOM CODE--\n\n")
-    exportCustomCode()
-
-    if not scene.pov.tempfiles_enable and comments:
-        file.write("\n//--Global settings and background--\n\n")
+        file.write("\n//--Global settings--\n\n")
 
     exportGlobalSettings(scene)
 
+    
     if not scene.pov.tempfiles_enable and comments:
-        file.write("\n")
+        file.write("\n//--Custom Code--\n\n")
+    exportCustomCode()
+    
+    if not scene.pov.tempfiles_enable and comments:
+        file.write("\n//--Background--\n\n")
 
     exportWorld(scene.world)
 

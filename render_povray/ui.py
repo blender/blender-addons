@@ -518,19 +518,19 @@ class TEXTURE_PT_povray_tex_gamma(TextureButtonsPanel, bpy.types.Panel):
         layout.active = tex.pov.tex_gamma_enable
         layout.prop(tex.pov, "tex_gamma_value", text="Gamma Value")
 
+#commented out below UI for texture only custom code inside exported material:
+# class TEXTURE_PT_povray_replacement_text(TextureButtonsPanel, bpy.types.Panel):
+    # bl_label = "Custom POV Code"
+    # COMPAT_ENGINES = {'POVRAY_RENDER'}
 
-class TEXTURE_PT_povray_replacement_text(TextureButtonsPanel, bpy.types.Panel):
-    bl_label = "Custom POV Code"
-    COMPAT_ENGINES = {'POVRAY_RENDER'}
+    # def draw(self, context):
+        # layout = self.layout
 
-    def draw(self, context):
-        layout = self.layout
+        # tex = context.texture
 
-        tex = context.texture
-
-        col = layout.column()
-        col.label(text="Replace properties with:")
-        col.prop(tex.pov, "replacement_text", text="")
+        # col = layout.column()
+        # col.label(text="Replace properties with:")
+        # col.prop(tex.pov, "replacement_text", text="")
 
 
 class OBJECT_PT_povray_obj_importance(ObjectButtonsPanel, bpy.types.Panel):

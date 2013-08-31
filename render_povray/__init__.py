@@ -411,12 +411,12 @@ class RenderPovSettingsTexture(PropertyGroup):
             min=0.45, max=5.00, soft_min=1.00, soft_max=2.50, default=1.00)
 
     ##################################CustomPOV Code############################
-    #Only DUMMIES below for now:
-    replacement_text = StringProperty(
-            name="Declared name:",
-            description="Type the declared name in custom POV code or an external .inc "
-                        "it points at. pigment {} expected",
-            default="")
+    #commented out below if we wanted custom pov code in texture only, inside exported material:
+    #replacement_text = StringProperty(
+    #        name="Declared name:",
+    #        description="Type the declared name in custom POV code or an external .inc "
+    #                    "it points at. pigment {} expected",
+    #        default="")
 
 
 ###############################################################################
