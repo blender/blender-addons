@@ -38,7 +38,7 @@ Alternatively, run the script in the script editor (Alt-P), and access from the 
 bl_info = {
     'name': 'Import: MakeHuman (.mhx)',
     'author': 'Thomas Larsson',
-    'version': (1, 16, 4),
+    'version': (1, 16, 5),
     "blender": (2, 68, 0),
     'location': "File > Import > MakeHuman (.mhx)",
     'description': 'Import files in the MakeHuman eXchange format (.mhx)',
@@ -51,7 +51,7 @@ bl_info = {
 MAJOR_VERSION = 1
 MINOR_VERSION = 16
 FROM_VERSION = 13
-SUB_VERSION = 3
+SUB_VERSION = 5
 
 majorVersion = MAJOR_VERSION
 minorVersion = MINOR_VERSION
@@ -123,6 +123,38 @@ DefaultToggle = ( T_EnforceVersion + T_Mesh + T_Armature +
 
 toggle = DefaultToggle
 toggleSettings = toggle
+loadedData = None
+
+#
+#   mhxEval(expr) - an attempt at a reasonably safe mhxEval.
+#   Note that expr never contains any whitespace due to the behavior
+#   of the mhx tokenizer.
+#
+
+def mhxEval(expr, locls={}):
+    globls = {
+        '__builtins__' : {},
+        'toggle' : toggle,
+        'theScale' : theScale,
+        'T_EnforceVersion' : T_EnforceVersion,
+        'T_Clothes' : T_Clothes,
+        'T_HardParents' : T_HardParents,
+        'T_CrashSafe' : T_CrashSafe,
+        'T_Diamond' : T_Diamond,
+        'T_Replace' : T_Replace,
+        'T_Shapekeys' : T_Shapekeys,
+        'T_ShapeDrivers' : T_ShapeDrivers,
+        'T_Face' : T_Face,
+        'T_Shape' : T_Shape,
+        'T_Mesh' : T_Mesh,
+        'T_Armature' : T_Armature,
+        'T_Proxy' : T_Proxy,
+        'T_Cage' : T_Cage,
+        'T_Rigify' : T_Rigify,
+        'T_Opcns' : T_Opcns,
+        'T_Symm' : T_Symm,
+    }
+    return eval(expr, globls, locls)
 
 #
 #    Dictionaries
@@ -244,7 +276,7 @@ def readMhxFile(filePath):
             if lineSplit[0] == '#if':
                 if comment == nesting:
                     try:
-                        res = eval(lineSplit[1])
+                        res = mhxEval(lineSplit[1])
                     except:
                         res = False
                     if res:
@@ -297,6 +329,7 @@ def readMhxFile(filePath):
     bpy.ops.object.mode_set(mode='OBJECT')
     bpy.ops.object.select_all(action='DESELECT')
     theArmature.select = True
+    bpy.ops.object.mode_set(mode='POSE')
     theArmature.MhAlpha8 = not alpha7
     #bpy.ops.wm.properties_edit(data_path="object", property="MhxRig", value=theArmature["MhxRig"])
 
@@ -313,12 +346,9 @@ def readMhxFile(filePath):
 
 def getObject(name, var):
     try:
-        ob = loadedData['Object'][name]
+        return loadedData['Object'][name]
     except:
-        if name != "None":
-            pushOnTodoList(None, "ob = loadedData['Object'][name]" % globals(), locals())
-        ob = None
-    return ob
+        raise MhxError("Bug: object %s not found" % ob)
 
 #
 #    checkMhxVersion(major, minor):
@@ -372,7 +402,7 @@ def parse(tokens):
             minorVersion = int(val[1])
             checkMhxVersion(majorVersion, minorVersion)
         elif key == 'MHX249':
-            MHX249 = eval(val[0])
+            MHX249 = mhxEval(val[0])
             print("Blender 2.49 compatibility mode is %s\n" % MHX249)
         elif MHX249:
             pass
@@ -386,7 +416,7 @@ def parse(tokens):
             msg = concatList(val)
             MyError(msg)
         elif key == 'NoScale':
-            if eval(val[0]):
+            if mhxEval(val[0]):
                 theScale = 1.0
             else:
                 theScale = defaultScale
@@ -470,7 +500,7 @@ def parseDefaultType(typ, args, tokens):
     name = args[0]
     data = None
     expr = "bpy.data.%s.new('%s')" % (Plural[typ], name)
-    data = eval(expr)
+    data = mhxEval(expr)
 
     bpyType = typ.capitalize()
     loadedData[bpyType][name] = data
@@ -546,7 +576,7 @@ def prepareActionFCurve(ob, created, args, tokens):
             times.append(int(val[0]))
 
     try:
-        data = eval(expr)
+        data = mhxEval(expr)
     except:
         print("Ignoring illegal expression: %s" % expr)
         return
@@ -628,7 +658,7 @@ def parseKeyFramePoint(pt, args, tokens):
 #
 
 def parseAnimationData(rna, args, tokens):
-    if not eval(args[1]):
+    if not mhxEval(args[1]):
         return
     if rna.animation_data is None:
         rna.animation_data_create()
@@ -673,7 +703,7 @@ def parseDriver(adata, dataPath, index, rna, args, tokens):
         expr = "rna." + words[0] + ']'
         pwords = words[1].split('"')
         prop = pwords[1]
-        bone = eval(expr)
+        bone = mhxEval(expr)
         return None
     else:
         words = dataPath.split('.')
@@ -683,7 +713,7 @@ def parseDriver(adata, dataPath, index, rna, args, tokens):
             expr += "." + words[n]
         expr += ".driver_add('%s', index)" % channel
 
-    fcu = eval(expr)
+    fcu = mhxEval(expr, locals())
     drv = fcu.driver
     drv.type = args[0]
     for (key, val, sub) in tokens:
@@ -822,8 +852,8 @@ def parseRamp(data, args, tokens):
     n = 0
     for (key, val, sub) in tokens:
         if key == 'Element':
-            elts[n].color = eval(val[0])
-            elts[n].position = eval(val[1])
+            elts[n].color = mhxEval(val[0], locals())
+            elts[n].position = mhxEval(val[1], locals())
             n += 1
         else:
             defaultKey(key, val, sub, tex, ['use_nodes', 'use_textures', 'contrast'])
@@ -1107,12 +1137,12 @@ def parseParticle(par, args, tokens):
     for (key, val, sub) in tokens:
         if key == 'h':
             h = par.hair[n]
-            h.location = eval(val[0])
+            h.location = mhxEval(val[0], locals())
             h.time = int(val[1])
             h.weight = float(val[2])
             n += 1
         elif key == 'location':
-            par.location = eval(val[0])
+            par.location = mhxEval(val[0], locals())
     return
 
 #
@@ -1374,10 +1404,10 @@ def parseVertColorData(args, tokens, data):
     n = 0
     for (key, val, sub) in tokens:
         if key == 'cv':
-            data[n].color1 = eval(val[0])
-            data[n].color2 = eval(val[1])
-            data[n].color3 = eval(val[2])
-            data[n].color4 = eval(val[3])
+            data[n].color1 = mhxEval(val[0])
+            data[n].color2 = mhxEval(val[1])
+            data[n].color3 = mhxEval(val[2])
+            data[n].color4 = mhxEval(val[3])
             n += 1
     return
 
@@ -1392,7 +1422,7 @@ def parseVertexGroup(ob, me, args, tokens):
         print( "Parsing vertgroup %s" % args )
     grpName = args[0]
     try:
-        res = eval(args[1])
+        res = mhxEval(args[1])
     except:
         res = True
     if not res:
@@ -1527,7 +1557,7 @@ def parseArmature (args, tokens):
             rolls = {}
             for bone in amt.edit_bones:
                 bone.select = False
-            blist = eval(val[0])
+            blist = mhxEval(val[0])
             for name in blist:
                 bone = amt.edit_bones[name]
                 bone.select = True
@@ -1582,7 +1612,7 @@ def parsePose (args, tokens):
         elif key == 'SetProp':
             bone = val[0]
             prop = val[1]
-            value = eval(val[2])
+            value = mhxEval(val[2])
             pb = pbones[bone]
             pb[prop] = value
         else:
@@ -1635,7 +1665,7 @@ def parsePoseBone(pbones, ob, args, tokens):
             parseArray(pb, ["ik_stiffness_x", "ik_stiffness_y", "ik_stiffness_z"], val)
         elif key == 'hide':
             #bpy.ops.object.mode_set(mode='OBJECT')
-            amt.bones[name].hide = eval(val[0])
+            amt.bones[name].hide = mhxEval(val[0])
             #bpy.ops.object.mode_set(mode='POSE')
 
         else:
@@ -1645,7 +1675,7 @@ def parsePoseBone(pbones, ob, args, tokens):
 def parseArray(data, exts, args):
     n = 1
     for ext in exts:
-        setattr(data, ext, eval(args[n]))
+        setattr(data, ext, mhxEval(args[n]))
         n += 1
     return
 
@@ -1758,16 +1788,16 @@ def parseSpline(cu, args, tokens):
     return
 
 def parseBezier(bez, args, tokens):
-    bez.co = eval(args[0])
+    bez.co = mhxEval(args[0])
     bez.co = theScale*bez.co
-    bez.handle1 = eval(args[1])
+    bez.handle1 = mhxEval(args[1])
     bez.handle1_type = args[2]
-    bez.handle2 = eval(args[3])
+    bez.handle2 = mhxEval(args[3])
     bez.handle2_type = args[4]
     return
 
 def parsePoint(pt, args, tokens):
-    pt.co = eval(args[0])
+    pt.co = mhxEval(args[0])
     pt.co = theScale*pt.co
     print(" pt", pt.co)
     return
@@ -2079,15 +2109,14 @@ def defProp(args, var):
 
 def defNewProp(name, proptype, rest):
     prop = "%sProperty(%s)" % (proptype, rest)
-    setattr(bpy.types.Object, name, eval(prop))
+    setattr(bpy.types.Object, name, mhxEval(prop))
 
 
 def setProperty(args, var):
     global theProperty
     tip = ""
     name = propNames(args[0])[0]
-    value = eval(args[1])
-    print("setProp", var, name, value)
+    value = mhxEval(args[1])
     if name:
         var[name] = value
         if len(args) > 2:
@@ -2114,7 +2143,6 @@ def setPropKeys(args):
         prop = FloatProperty(tip)
     elif isinstance(value, string):
         prop = StringProperty(tip)
-    print("SetPK", theProperty, name, prop)
     setattr(bpy.types.Object, name, prop)
     theProperty = None
 
@@ -2134,27 +2162,23 @@ def defaultKey(ext, args, tokens, var, exclude=[]):
 
     if ext in exclude:
         return
-    #nvar = "%s.%s" % (var, ext)
     nvar = getattr(var, ext)
 
     if len(args) == 0:
         MyError("Key length 0: %s" % ext)
 
     rnaType = args[0]
-    if rnaType == 'Add':
-        print("*** Cannot Add yet ***")
-        return
-
-    elif rnaType == 'Refer':
+    if rnaType == 'Refer':
         typ = args[1]
         name = args[2]
-        data = "loadedData['%s']['%s']" % (typ, name)
+        setattr(var, ext, loadedData[typ][name])
+        return
 
     elif rnaType == 'Struct' or rnaType == 'Define':
+        raise MhxError("Struct/Define!")
         typ = args[1]
         name = args[2]
         try:
-            #data = eval(nvar)
             data = getattr(var, ext)
         except:
             data = None
@@ -2165,11 +2189,10 @@ def defaultKey(ext, args, tokens, var, exclude=[]):
                 creator = args[3]
             except:
                 creator = None
-            # print("Creator", creator, eval(var,glbals,lcals))
 
             try:
-                rna = eval(var,glbals,lcals)
-                data = eval(creator)
+                rna = mhxEval(var, locals())
+                data = mhxEval(creator)
             except:
                 data = None
             # print("New struct", nvar, typ, data)
@@ -2183,7 +2206,7 @@ def defaultKey(ext, args, tokens, var, exclude=[]):
         return
 
     elif rnaType == 'PropertyRNA':
-        MyError("PropertyRNA!")
+        raise MhxError("PropertyRNA!")
         #print("PropertyRNA ", ext, var)
         for (key, val, sub) in tokens:
             defaultKey(ext, val, sub, nvar, [])
@@ -2191,19 +2214,22 @@ def defaultKey(ext, args, tokens, var, exclude=[]):
 
     elif rnaType == 'Array':
         for n in range(1, len(args)):
-            nvar[n-1] = eval(args[n])
+            nvar[n-1] = mhxEval(args[n], locals())
         if len(args) > 0:
-            nvar[0] = eval(args[1])
+            nvar[0] = mhxEval(args[1], locals())
         return
 
     elif rnaType == 'List':
+        raise MhxError("List!")
         data = []
         for (key, val, sub) in tokens:
-            elt = eval(val[1])
+            elt = mhxEval(val[1], locals())
             data.append(elt)
+        setattr(var, ext, data)
+        return
 
     elif rnaType == 'Matrix':
-        return
+        raise MhxError("Matrix!")
         i = 0
         n = len(tokens)
         for (key, val, sub) in tokens:
@@ -2216,13 +2242,12 @@ def defaultKey(ext, args, tokens, var, exclude=[]):
     else:
         try:
             data = loadedData[rnaType][args[1]]
-            #print("From loaded", rnaType, args[1], data)
-            return data
-        except:
-            data = rnaType
+            raise MhxError("From loaded %s %s!" % (rnaType, args[1]))
+        except KeyError:
+            pass
+        data = mhxEval(rnaType, locals())
+        setattr(var, ext, data)
 
-    setattr(var, ext, eval(data))
-    return
 
 #
 #
@@ -2231,7 +2256,7 @@ def defaultKey(ext, args, tokens, var, exclude=[]):
 def pushOnTodoList(var, expr):
     print("Unrecognized expression", expr)
     return
-    print(dir(eval(var)))
+    print(dir(mhxEval(var)))
     MyError(
         "Unrecognized expression %s.\n"  % expr +
         "This can mean that Blender's python API has changed\n" +
@@ -2324,9 +2349,8 @@ def Bool(string):
 
 def invalid(condition):
     global rigLeg, rigArm, toggle
-    res = eval(condition, globals())
     try:
-        res = eval(condition, globals())
+        res = mhxEval(condition)
         #print("%s = %s" % (condition, res))
         return not res
     except:
@@ -2631,7 +2655,7 @@ def rigifyMhx(context):
     if rig.animation_data:
         for fcu1 in rig.animation_data.drivers:
             rna,channel = fcu1.data_path.rsplit(".", 1)
-            pb = eval("gen.%s" % rna)
+            pb = mhxEval("gen.%s" % rna)
             fcu2 = pb.driver_add(channel, fcu1.array_index)
             copyDriver(fcu1, fcu2, gen)
 
@@ -2916,7 +2940,7 @@ class ImportMhx(bpy.types.Operator, ImportHelper):
     advanced = BoolProperty(name="Advanced settings", description="Use advanced import settings", default=False)
     for (prop, name, desc, flag) in MhxBoolProps:
         expr = 'BoolProperty(name="%s", description="%s", default=(toggleSettings&%s != 0))' % (name, desc, flag)
-        prop = eval(expr)
+        prop = eval(expr)   # Trusted source: this file.
 
 
     def draw(self, context):
@@ -2936,7 +2960,7 @@ class ImportMhx(bpy.types.Operator, ImportHelper):
             toggle = T_Armature
             for (prop, name, desc, flag) in MhxBoolProps:
                 expr = '(%s if self.%s else 0)' % (flag, prop)
-                toggle |=  eval(expr)
+                toggle |=  mhxEval(expr)
             toggleSettings = toggle
         print("execute flags %x" % toggle)
         theScale = self.scale
@@ -2961,7 +2985,7 @@ class ImportMhx(bpy.types.Operator, ImportHelper):
         readDefaults()
         self.scale = theScale
         for (prop, name, desc, flag) in MhxBoolProps:
-            setattr(self, prop, eval('(toggle&%s != 0)' % flag))
+            setattr(self, prop, mhxEval('(toggle&%s != 0)' % flag))
         context.window_manager.fileselect_add(self)
         return {'RUNNING_MODAL'}
 
