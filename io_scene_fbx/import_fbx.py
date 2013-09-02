@@ -616,7 +616,7 @@ def blen_read_geom(fbx_tmpl, fbx_obj):
                 poly_loop_starts.append(poly_loop_prev)
                 poly_loop_totals.append((i - poly_loop_prev) + 1)
                 poly_loop_prev = i + 1
-                index = -(index + 1)
+                index = index ^ -1
             l.vertex_index = index
 
         mesh.polygons.add(len(poly_loop_starts))
@@ -628,15 +628,33 @@ def blen_read_geom(fbx_tmpl, fbx_obj):
         blen_read_geom_layer_color(fbx_obj, mesh)
 
     if fbx_edges:
-        # workaround for odd number of edge vertices
-        tot_edges = len(fbx_edges) // 2
+        # edges in fact index the polygons (NOT the vertices)
+        import array
+        tot_edges = len(fbx_edges)
+        edges_conv = array.array('i', [0]) * (tot_edges * 2)
 
-        if len(fbx_edges) % 2:
-            print("Corrupt edges found in: %s" % elem_name_utf8)
-        else:
-            mesh.edges.add(tot_edges)
-            mesh.edges.foreach_set("vertices", fbx_edges)
+        edge_index = 0
+        for i in fbx_edges:
+            if fbx_polys[i] >= 0:
+                e_a, e_b = fbx_polys[i], fbx_polys[i + 1]
+                if e_b < 0:
+                    e_b = e_b ^ -1
+            else:
+                # Last index of polygon, wrap back to the start.
 
+                # ideally we wouldn't have to search back,
+                # but it should only be 2-3 iterations.
+                j = i - 1
+                while j >= 0 and fbx_polys[j] >= 0:
+                    j -= 1
+                e_a, e_b = fbx_polys[i] ^ -1, fbx_polys[j + 1]
+
+            edges_conv[edge_index] = e_a
+            edges_conv[edge_index + 1] = e_b
+            edge_index += 2
+
+        mesh.edges.add(tot_edges)
+        mesh.edges.foreach_set("vertices", edges_conv)
 
     # must be after edge, face loading.
     ok_smooth = blen_read_geom_layer_smooth(fbx_obj, mesh)
