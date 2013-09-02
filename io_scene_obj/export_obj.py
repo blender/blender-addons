@@ -246,6 +246,7 @@ def write_file(filepath, objects, scene,
                EXPORT_TRI=False,
                EXPORT_EDGES=False,
                EXPORT_SMOOTH_GROUPS=False,
+               EXPORT_SMOOTH_GROUPS_BITFLAGS=False,
                EXPORT_NORMALS=False,
                EXPORT_UV=True,
                EXPORT_MTL=True,
@@ -402,8 +403,8 @@ def write_file(filepath, objects, scene,
             if EXPORT_NORMALS and face_index_pairs:
                 me.calc_normals()
 
-            if EXPORT_SMOOTH_GROUPS and face_index_pairs:
-                smooth_groups, smooth_groups_tot = me.calc_smooth_groups()
+            if (EXPORT_SMOOTH_GROUPS or EXPORT_SMOOTH_GROUPS_BITFLAGS) and face_index_pairs:
+                smooth_groups, smooth_groups_tot = me.calc_smooth_groups(EXPORT_SMOOTH_GROUPS_BITFLAGS)
                 if smooth_groups_tot <= 1:
                     smooth_groups, smooth_groups_tot = (), 0
             else:
@@ -690,6 +691,7 @@ def _write(context, filepath,
               EXPORT_TRI,  # ok
               EXPORT_EDGES,
               EXPORT_SMOOTH_GROUPS,
+              EXPORT_SMOOTH_GROUPS_BITFLAGS,
               EXPORT_NORMALS,  # not yet
               EXPORT_UV,  # ok
               EXPORT_MTL,
@@ -742,6 +744,7 @@ def _write(context, filepath,
                    EXPORT_TRI,
                    EXPORT_EDGES,
                    EXPORT_SMOOTH_GROUPS,
+                   EXPORT_SMOOTH_GROUPS_BITFLAGS,
                    EXPORT_NORMALS,
                    EXPORT_UV,
                    EXPORT_MTL,
@@ -775,6 +778,7 @@ def save(operator, context, filepath="",
          use_edges=True,
          use_normals=False,
          use_smooth_groups=False,
+         use_smooth_groups_bitflags=False,
          use_uvs=True,
          use_materials=True,
          use_mesh_modifiers=True,
@@ -794,6 +798,7 @@ def save(operator, context, filepath="",
            EXPORT_TRI=use_triangles,
            EXPORT_EDGES=use_edges,
            EXPORT_SMOOTH_GROUPS=use_smooth_groups,
+           EXPORT_SMOOTH_GROUPS_BITFLAGS=use_smooth_groups_bitflags,
            EXPORT_NORMALS=use_normals,
            EXPORT_UV=use_uvs,
            EXPORT_MTL=use_materials,
