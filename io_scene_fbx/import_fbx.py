@@ -616,7 +616,7 @@ def blen_read_geom(fbx_tmpl, fbx_obj):
                 poly_loop_starts.append(poly_loop_prev)
                 poly_loop_totals.append((i - poly_loop_prev) + 1)
                 poly_loop_prev = i + 1
-                index = index ^ -1
+                index ^= -1
             l.vertex_index = index
 
         mesh.polygons.add(len(poly_loop_starts))
@@ -635,10 +635,11 @@ def blen_read_geom(fbx_tmpl, fbx_obj):
 
         edge_index = 0
         for i in fbx_edges:
-            if fbx_polys[i] >= 0:
-                e_a, e_b = fbx_polys[i], fbx_polys[i + 1]
+            e_a = fbx_polys[i]
+            if e_a >= 0:
+                e_b = fbx_polys[i + 1]
                 if e_b < 0:
-                    e_b = e_b ^ -1
+                    e_b ^= -1
             else:
                 # Last index of polygon, wrap back to the start.
 
@@ -647,7 +648,8 @@ def blen_read_geom(fbx_tmpl, fbx_obj):
                 j = i - 1
                 while j >= 0 and fbx_polys[j] >= 0:
                     j -= 1
-                e_a, e_b = fbx_polys[i] ^ -1, fbx_polys[j + 1]
+                e_a ^= -1
+                e_b = fbx_polys[j + 1]
 
             edges_conv[edge_index] = e_a
             edges_conv[edge_index + 1] = e_b
