@@ -47,11 +47,19 @@ class CyclesShaderWrapper():
         "node_mix_color_alpha",
         "node_mix_color_diff",
         "node_mix_color_spec",
-        "node_mix_color_spec_hard",
+        "node_mix_color_hard",
         "node_mix_color_refl",
         "node_mix_color_bump",
 
         "node_normal_map",
+        
+        "node_image_alpha",
+        "node_image_diff",
+        "node_image_spec",
+        "node_image_hard",
+        "node_image_refl",
+        "node_image_bump",
+        "node_image_normalmap",
         )
 
     _col_size = 200
@@ -223,10 +231,10 @@ class CyclesShaderWrapper():
         node.inputs["Fac"].default_value = 1.0
         node.inputs["Color1"].default_value = COLOR_WHITE
         node.inputs["Color2"].default_value = COLOR_BLACK
-        self.node_mix_color_spec_hard = node
+        self.node_mix_color_hard = node
         del node
         # Link
-        links.new(self.node_mix_color_spec_hard.outputs["Color"],
+        links.new(self.node_mix_color_hard.outputs["Color"],
                   self.node_bsdf_spec.inputs["Roughness"])
 
         # --------------------------------------------------------------------
@@ -293,7 +301,8 @@ class CyclesShaderWrapper():
 
     def diffuse_image_set(self, image):
         node = self.node_mix_color_diff
-        self._image_create_helper(image, node, (node.inputs["Color2"],))
+        (self.node_image_diff =
+         self._image_create_helper(image, node, (node.inputs["Color2"],)))
 
     def specular_color_set(self, color):
         self.node_bsdf_spec.mute = max(color) <= 0.0
@@ -301,15 +310,17 @@ class CyclesShaderWrapper():
 
     def specular_image_set(self, image):
         node = self.node_mix_color_spec
-        self._image_create_helper(image, node, (node.inputs["Color2"],))
+        (self.node_image_spec =
+         self._image_create_helper(image, node, (node.inputs["Color2"],)))
 
     def hardness_value_set(self, value):
-        node = self.node_mix_color_spec_hard
+        node = self.node_mix_color_hard
         node.inputs["Color1"].default_value = (value,) * 4
 
     def hardness_image_set(self, image):
-        node = self.node_mix_color_spec_hard
-        self._image_create_helper(image, node, (node.inputs["Color2"],))
+        node = self.node_mix_color_hard
+        (self.node_image_hard =
+         self._image_create_helper(image, node, (node.inputs["Color2"],)))
 
     def reflect_color_set(self, color):
         node = self.node_mix_color_refl
@@ -324,7 +335,8 @@ class CyclesShaderWrapper():
     def reflect_image_set(self, image):
         self.node_bsdf_refl.mute = False
         node = self.node_mix_color_refl
-        self._image_create_helper(image, node, (node.inputs["Color2"],))
+        (self.node_image_refl =
+         self._image_create_helper(image, node, (node.inputs["Color2"],)))
 
     def alpha_value_set(self, value):
         self.node_bsdf_alpha.mute &= (value >= 1.0)
@@ -337,9 +349,11 @@ class CyclesShaderWrapper():
         # note: use_alpha may need to be configurable
         # its not always the case that alpha channels use the image alpha
         # a greyscale image may also be used.
-        self._image_create_helper(image, node, (node.inputs["Color2"],), use_alpha=True)
+        (self.node_image_alpha =
+         self._image_create_helper(image, node, (node.inputs["Color2"],), use_alpha=True))
 
     def alpha_image_set_from_diffuse(self):
+        # XXX, remove?
         tree = self.node_mix_color_diff.id_data
         links = tree.links
 
@@ -356,9 +370,9 @@ class CyclesShaderWrapper():
     def normal_image_set(self, image):
         self.node_normal_map.mute = False
         node = self.node_normal_map
-        node_ima = self._image_create_helper(image, node,
-                                             (node.inputs["Color"],))
-        node_ima.color_space = 'NONE'
+        (self.node_image_normalmap =
+         self._image_create_helper(image, node, (node.inputs["Color"],)))
+        self.node_image_normalmap.color_space = 'NONE'
 
     def bump_factor_set(self, value):
         node = self.node_mix_color_bump
@@ -367,4 +381,5 @@ class CyclesShaderWrapper():
 
     def bump_image_set(self, image):
         node = self.node_mix_color_bump
-        self._image_create_helper(image, node, (node.inputs["Color2"],))
+        (self.node_image_bump =
+         self._image_create_helper(image, node, (node.inputs["Color2"],)))
