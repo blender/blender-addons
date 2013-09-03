@@ -51,7 +51,7 @@ class CyclesShaderWrapper():
         "node_mix_color_refl",
         "node_mix_color_bump",
 
-        "node_normal_map",
+        "node_normalmap",
         
         "node_image_alpha",
         "node_image_diff",
@@ -243,11 +243,11 @@ class CyclesShaderWrapper():
         node.label = "Normal/Map"
         node.location = self._grid_location(1, 2)
         node.mute = True  # unmute on use
-        self.node_normal_map = node
+        self.node_normalmap = node
         del node
 
         # Link (with diff shader)
-        socket_src = self.node_normal_map.outputs["Normal"]
+        socket_src = self.node_normalmap.outputs["Normal"]
         links.new(socket_src,
                   self.node_bsdf_diff.inputs["Normal"])
         # Link (with spec shader)
@@ -364,12 +364,12 @@ class CyclesShaderWrapper():
                   node.inputs["Color2"])
 
     def normal_factor_set(self, value):
-        node = self.node_normal_map
+        node = self.node_normalmap
         node.inputs["Strength"].default_value = value
 
     def normal_image_set(self, image):
-        self.node_normal_map.mute = False
-        node = self.node_normal_map
+        self.node_normalmap.mute = False
+        node = self.node_normalmap
         (self.node_image_normalmap =
          self._image_create_helper(image, node, (node.inputs["Color"],)))
         self.node_image_normalmap.color_space = 'NONE'

@@ -726,7 +726,6 @@ def blen_read_material(fbx_tmpl, fbx_obj,
             ma.raytrace_mirror.reflect_factor = ma_refl_factor
             ma.mirror_color = ma_refl_color
 
-    ma.use_fake_user = 1
     return ma
 
 
