@@ -751,7 +751,7 @@ def write_pov(filename, scene=None, info_callback=None):
 #            # Grab materials attached to object instances ...
 #            if hasattr(ob, 'material_slots'):
 #                for ms in ob.material_slots:
-#                    if ms.material != None and ms.link == 'OBJECT':
+#                    if ms.material is not None and ms.link == 'OBJECT':
 #                        if ms.material in obmatslist:
 #                            return False
 #                        else:
@@ -761,7 +761,7 @@ def write_pov(filename, scene=None, info_callback=None):
 #            # Grab materials attached to object instances ...
 #            if hasattr(ob, 'material_slots'):
 #                for ms in ob.material_slots:
-#                    if ms.material != None and ms.link == 'OBJECT':
+#                    if ms.material is not None and ms.link == 'OBJECT':
 #                        # If there is at least one material slot linked to the object
 #                        # and not the data (mesh), always create a new, "private" data instance.
 #                        return True
@@ -779,7 +779,7 @@ def write_pov(filename, scene=None, info_callback=None):
                 has_local_mats = False
                 key = [dataname]
                 for ms in ob.material_slots:
-                    if ms.material != None:
+                    if ms.material is not None:
                         key.append(ms.material.name)
                         if ms.link == 'OBJECT' and not has_local_mats:
                             has_local_mats = True
@@ -1003,7 +1003,7 @@ def write_pov(filename, scene=None, info_callback=None):
             name = string_strip_hyphen(bpy.path.clean_name(name_orig))
             dataname = string_strip_hyphen(bpy.path.clean_name(dataname_orig))
 ##            for slot in ob.material_slots:
-##                if slot.material != None and slot.link == 'OBJECT':
+##                if slot.material is not None and slot.link == 'OBJECT':
 ##                    obmaterial = slot.material
 
 #############################################
@@ -1187,7 +1187,7 @@ def write_pov(filename, scene=None, info_callback=None):
                         for col, index in vertCols.items():
                             #if me_materials:
                             material = me_materials[col[3]]
-                            if me_materials == None: #XXX working?
+                            if me_materials is None: #XXX working?
                                 material_finish = DEF_MAT_NAME  # not working properly,
                                 trans = 0.0
 
