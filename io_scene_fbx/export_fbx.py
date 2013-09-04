@@ -862,11 +862,9 @@ def save_single(operator, scene, filepath="",
         loc, rot, scale, matrix, matrix_rot = write_object_props(my_cam.blenObject, None, my_cam.parRelMatrix())
 
         fw('\n\t\t\tProperty: "Roll", "Roll", "A+",0')
-        fw('\n\t\t\tProperty: "FieldOfView", "FieldOfView", "A+",%.6f' % math.degrees(data.angle_y))
-
-        fw('\n\t\t\tProperty: "FieldOfViewX", "FieldOfView", "A+",1'
-           '\n\t\t\tProperty: "FieldOfViewY", "FieldOfView", "A+",1'
-           )
+        fw('\n\t\t\tProperty: "FieldOfView", "FieldOfView", "A+",%.6f' % math.degrees(data.angle_x))
+        fw('\n\t\t\tProperty: "FieldOfViewX", "FieldOfView", "A+",%.6f' % math.degrees(data.angle_x))
+        fw('\n\t\t\tProperty: "FieldOfViewY", "FieldOfView", "A+",%.6f' % math.degrees(data.angle_y))
 
         fw('\n\t\t\tProperty: "FocalLength", "Number", "A+",%.6f' % data.lens)
         fw('\n\t\t\tProperty: "FilmOffsetX", "Number", "A+",%.6f' % offsetx)
@@ -879,6 +877,7 @@ def save_single(operator, scene, filepath="",
            '\n\t\t\tProperty: "UseMotionBlur", "bool", "",0'
            '\n\t\t\tProperty: "UseRealTimeMotionBlur", "bool", "",1'
            '\n\t\t\tProperty: "ResolutionMode", "enum", "",0'
+            # note that aperture mode 3 is focal length and not horizontal
            '\n\t\t\tProperty: "ApertureMode", "enum", "",3'  # horizontal - Houdini compatible
            '\n\t\t\tProperty: "GateFit", "enum", "",2'
            '\n\t\t\tProperty: "CameraFormat", "enum", "",0'
@@ -1011,13 +1010,15 @@ def save_single(operator, scene, filepath="",
         fw('\n\t\t\tProperty: "DrawFrontFacingVolumetricLight", "bool", "",0')
         fw('\n\t\t\tProperty: "GoboProperty", "object", ""')
         fw('\n\t\t\tProperty: "Color", "Color", "A+",1,1,1')
-        fw('\n\t\t\tProperty: "Intensity", "Intensity", "A+",%.2f' % (min(light.energy * 100.0, 200.0)))  # clamp below 200
         if light.type == 'SPOT':
-            fw('\n\t\t\tProperty: "Cone angle", "Cone angle", "A+",%.2f' % math.degrees(light.spot_size))
+            fw('\n\t\t\tProperty: "OuterAngle", "Number", "A+",%.2f' %
+               math.degrees(light.spot_size))
+            fw('\n\t\t\tProperty: "InnerAngle", "Number", "A+",%.2f' %
+               (math.degrees(light.spot_size) - math.degrees(light.spot_size) * light.spot_blend))
+
         fw('\n\t\t\tProperty: "Fog", "Fog", "A+",50')
         fw('\n\t\t\tProperty: "Color", "Color", "A",%.2f,%.2f,%.2f' % tuple(light.color))
-
-        fw('\n\t\t\tProperty: "Intensity", "Intensity", "A+",%.2f' % (min(light.energy * 100.0, 200.0)))  # clamp below 200
+        fw('\n\t\t\tProperty: "Intensity", "Intensity", "A+",%.2f' % (light.energy * 100.0))
 
         fw('\n\t\t\tProperty: "Fog", "Fog", "A+",50')
         fw('\n\t\t\tProperty: "LightType", "enum", "",%i' % light_type)
@@ -1026,16 +1027,17 @@ def save_single(operator, scene, filepath="",
         fw('\n\t\t\tProperty: "DrawFrontFacingVolumetricLight", "bool", "",0')
         fw('\n\t\t\tProperty: "DrawVolumetricLight", "bool", "",1')
         fw('\n\t\t\tProperty: "GoboProperty", "object", ""')
-        fw('\n\t\t\tProperty: "DecayType", "enum", "",0')
-        fw('\n\t\t\tProperty: "DecayStart", "double", "",%.2f' % light.distance)
-
-        fw('\n\t\t\tProperty: "EnableNearAttenuation", "bool", "",0'
-           '\n\t\t\tProperty: "NearAttenuationStart", "double", "",0'
-           '\n\t\t\tProperty: "NearAttenuationEnd", "double", "",0'
-           '\n\t\t\tProperty: "EnableFarAttenuation", "bool", "",0'
-           '\n\t\t\tProperty: "FarAttenuationStart", "double", "",0'
-           '\n\t\t\tProperty: "FarAttenuationEnd", "double", "",0'
-           )
+        if light.type in {'SPOT', 'POINT'}:
+            if light.falloff_type == 'CONSTANT':
+                fw('\n\t\t\tProperty: "DecayType", "enum", "",0')
+            if light.falloff_type == 'INVERSE_LINEAR':
+                fw('\n\t\t\tProperty: "DecayType", "enum", "",1')
+                fw('\n\t\t\tProperty: "EnableFarAttenuation", "bool", "",1')
+                fw('\n\t\t\tProperty: "FarAttenuationEnd", "double", "",%.2f' % (light.distance * 2.0))
+            if light.falloff_type == 'INVERSE_SQUARE':
+                fw('\n\t\t\tProperty: "DecayType", "enum", "",2')
+                fw('\n\t\t\tProperty: "EnableFarAttenuation", "bool", "",1')
+                fw('\n\t\t\tProperty: "FarAttenuationEnd", "double", "",%.2f' % (light.distance * 2.0))
 
         fw('\n\t\t\tProperty: "CastShadows", "bool", "",%i' % do_shadow)
         fw('\n\t\t\tProperty: "ShadowColor", "ColorRGBA", "",0,0,0,1')
@@ -1090,12 +1092,12 @@ def save_single(operator, scene, filepath="",
             mat_cold = tuple(mat.diffuse_color)
             mat_cols = tuple(mat.specular_color)
             #mat_colm = tuple(mat.mirCol) # we wont use the mirror color
-            mat_colamb = world_amb
+            mat_colamb = 1.0, 1.0, 1.0
 
             mat_dif = mat.diffuse_intensity
             mat_amb = mat.ambient
-            mat_hard = (float(mat.specular_hardness) - 1.0) / 5.10
-            mat_spec = mat.specular_intensity / 2.0
+            mat_hard = ((float(mat.specular_hardness) - 1.0) / 510.0) * 128.0
+            mat_spec = mat.specular_intensity
             mat_alpha = mat.alpha
             mat_emit = mat.emit
             mat_shadeless = mat.use_shadeless
@@ -1107,13 +1109,14 @@ def save_single(operator, scene, filepath="",
                 else:
                     mat_shader = 'Phong'
         else:
-            mat_cols = mat_cold = 0.8, 0.8, 0.8
-            mat_colamb = 0.0, 0.0, 0.0
+            mat_cold = 0.8, 0.8, 0.8
+            mat_cols = 1.0, 1.0, 1.0
+            mat_colamb = 1.0, 1.0, 1.0
             # mat_colm
-            mat_dif = 1.0
-            mat_amb = 0.5
-            mat_hard = 20.0
-            mat_spec = 0.2
+            mat_dif = 0.8
+            mat_amb = 1.0
+            mat_hard = 12.3
+            mat_spec = 0.5
             mat_alpha = 1.0
             mat_emit = 0.0
             mat_shadeless = False
@@ -1139,7 +1142,7 @@ def save_single(operator, scene, filepath="",
         if not mat_shadeless:
             fw('\n\t\t\tProperty: "SpecularColor", "ColorRGB", "",%.4f,%.4f,%.4f' % mat_cols)
             fw('\n\t\t\tProperty: "SpecularFactor", "double", "",%.4f' % mat_spec)
-            fw('\n\t\t\tProperty: "ShininessExponent", "double", "",80.0')
+            fw('\n\t\t\tProperty: "ShininessExponent", "double", "",%.1f' % mat_hard)
             fw('\n\t\t\tProperty: "ReflectionColor", "ColorRGB", "",0,0,0')
             fw('\n\t\t\tProperty: "ReflectionFactor", "double", "",1')
         fw('\n\t\t\tProperty: "Emissive", "ColorRGB", "",0,0,0')
@@ -1448,23 +1451,36 @@ def save_single(operator, scene, filepath="",
         fw('\n\t\tGeometryVersion: 124')
 
         fw('''
-		LayerElementNormal: 0 {
-			Version: 101
-			Name: ""
-			MappingInformationType: "ByVertice"
-			ReferenceInformationType: "Direct"
-			Normals: ''')
+        LayerElementNormal: 0 {
+            Version: 101
+            Name: ""
+            MappingInformationType: "ByPolygonVertex"
+            ReferenceInformationType: "Direct"
+            Normals: ''')
 
+        # this could be compacted further
         i = -1
-        for v in me_vertices:
-            if i == -1:
-                fw('%.15f,%.15f,%.15f' % v.normal[:])
+        for f in me_faces:
+            fi = f.vertices[:]
+            if i != -1:
+                fw(',')  # ack!
+            elif i == 2:
+                fw('\n\t\t\t ')
                 i = 0
+
+            if f.use_smooth:
+                fw('%.6f,%.6f,%.6f' % me_vertices[fi[0]].normal[:])
+                fw(',%.6f,%.6f,%.6f' % me_vertices[fi[1]].normal[:])
+                fw(',%.6f,%.6f,%.6f' % me_vertices[fi[2]].normal[:])
+                if len(fi) == 4:
+                    fw(',%.6f,%.6f,%.6f' % me_vertices[fi[3]].normal[:])
             else:
-                if i == 2:
-                    fw('\n\t\t\t ')
-                    i = 0
-                fw(',%.15f,%.15f,%.15f' % v.normal[:])
+                f_no = f.normal[:]
+                fw('%.6f,%.6f,%.6f' % f_no)
+                fw(',%.6f,%.6f,%.6f' % f_no)
+                fw(',%.6f,%.6f,%.6f' % f_no)
+                if len(fi) == 4:
+                    fw(',%.6f,%.6f,%.6f' % f_no)
             i += 1
         fw('\n\t\t}')
 
@@ -3038,9 +3054,6 @@ def save(operator, context,
 
         return {'FINISHED'}  # so the script wont run after we have batch exported.
 
-# APPLICATION REQUIREMENTS
-# Please update the lists for UDK, Unity etc. on the following web page:
-#   http://wiki.blender.org/index.php/Dev:2.5/Py/Scripts/Import-Export/UnifiedFBX
 
 # NOTE TO Campbell -
 #   Can any or all of the following notes be removed because some have been here for a long time? (JCB 27 July 2011)
