@@ -2109,7 +2109,7 @@ def defProp(args, var):
 
 def defNewProp(name, proptype, rest):
     prop = "%sProperty(%s)" % (proptype, rest)
-    setattr(bpy.types.Object, name, mhxEval(prop))
+    setattr(bpy.types.Object, name, eval(prop)) # safe: only called from this file
 
 
 def setProperty(args, var):
