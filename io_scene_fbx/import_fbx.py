@@ -708,6 +708,7 @@ def blen_read_material(fbx_tmpl, fbx_obj,
         ma_wrap = cycles_shader_compat.CyclesShaderWrapper(ma)
         ma_wrap.diffuse_color_set(ma_diff)
         ma_wrap.specular_color_set([c * ma_spec_intensity for c in ma_spec])
+        ma_wrap.hardness_value_set(((ma_spec_hardness + 3.0) / 5.0) - 0.65)
         ma_wrap.alpha_value_set(ma_alpha)
         ma_wrap.reflect_factor_set(ma_refl_factor)
         ma_wrap.reflect_color_set(ma_refl_color)
@@ -1134,10 +1135,23 @@ def load(operator, context, filepath="",
 
         # textures that use this material
         def texture_bumpfac_get(fbx_obj):
+            assert(fbx_obj.id == b'Material')
             fbx_props = (elem_find_first(fbx_obj, b'Properties70'),
                          elem_find_first(fbx_tmpl, b'Properties70', fbx_elem_nil))
             assert(fbx_props[0] is not None)
-            return elem_props_get_number(fbx_props, b'BumpFactor', 1.0)
+            # (x / 7.142) is only a guess, cycles usable range is (0.0 -> 0.5)
+            return elem_props_get_number(fbx_props, b'BumpFactor', 2.5) / 7.142
+
+        def texture_mapping_get(fbx_obj):
+            assert(fbx_obj.id == b'Texture')
+
+            fbx_props = (elem_find_first(fbx_obj, b'Properties70'),
+                         elem_find_first(fbx_tmpl, b'Properties70', fbx_elem_nil))
+            assert(fbx_props[0] is not None)
+            return (elem_props_get_vector_3d(fbx_props, b'Translation', (0.0, 0.0, 0.0)),
+                    elem_props_get_vector_3d(fbx_props, b'Rotation', (0.0, 0.0, 0.0)),
+                    elem_props_get_vector_3d(fbx_props, b'Scaling', (1.0, 1.0, 1.0)),
+                    )
 
         if not use_cycles:
             # Simple function to make a new mtex and set defaults
@@ -1170,26 +1184,57 @@ def load(operator, context, filepath="",
 
                         ma_wrap = cycles_material_wrap_map[material]
 
+                        # tx/rot/scale
+                        tex_map = texture_mapping_get(fbx_lnk)
+                        if (tex_map[0] == (0.0, 0.0, 0.0) and
+                            tex_map[1] == (0.0, 0.0, 0.0) and
+                            tex_map[2] == (1.0, 1.0, 1.0)):
+
+                            use_mapping = False
+                        else:
+                            use_mapping = True
+                            tex_map_kw = {
+                                "translation": tex_map[0],
+                                "rotation": tex_map[1],
+                                "scale": tex_map[2],
+                                }
+
                         if lnk_type == b'DiffuseColor':
                             ma_wrap.diffuse_image_set(image)
+                            if use_mapping:
+                                ma_wrap.diffuse_mapping_set(**tex_map_kw)
                         elif lnk_type == b'SpecularColor':
                             ma_wrap.specular_image_set(image)
+                            if use_mapping:
+                                ma_wrap.specular_mapping_set(**tex_map_kw)
                         elif lnk_type == b'ReflectionColor':
                             ma_wrap.reflect_image_set(image)
+                            if use_mapping:
+                                ma_wrap.reflect_mapping_set(**tex_map_kw)
                         elif lnk_type == b'TransparentColor':  # alpha
                             ma_wrap.alpha_image_set(image)
+                            if use_mapping:
+                                ma_wrap.alpha_mapping_set(**tex_map_kw)
                             if use_alpha_decals:
                                 material_decals.add(material)
                         elif lnk_type == b'DiffuseFactor':
                             pass  # TODO
                         elif lnk_type == b'ShininessExponent':
                             ma_wrap.hardness_image_set(image)
-                        elif lnk_type == b'NormalMap':
+                            if use_mapping:
+                                ma_wrap.hardness_mapping_set(**tex_map_kw)
+                        elif lnk_type == b'NormalMap' or lnk_type == b'Bump':  # XXX, applications abuse bump!
                             ma_wrap.normal_image_set(image)
                             ma_wrap.normal_factor_set(texture_bumpfac_get(fbx_obj))
+                            if use_mapping:
+                                ma_wrap.normal_mapping_set(**tex_map_kw)
+                            """
                         elif lnk_type == b'Bump':
                             ma_wrap.bump_image_set(image)
                             ma_wrap.bump_factor_set(texture_bumpfac_get(fbx_obj))
+                            if use_mapping:
+                                ma_wrap.bump_mapping_set(**tex_map_kw)
+                            """
                         else:
                             print("WARNING: material link %r ignored" % lnk_type)
 
@@ -1220,13 +1265,15 @@ def load(operator, context, filepath="",
                             mtex.use_map_diffuse = True
                         elif lnk_type == b'ShininessExponent':
                             mtex.use_map_hardness = True
-                        elif lnk_type == b'NormalMap':
+                        elif lnk_type == b'NormalMap' or lnk_type == b'Bump':  # XXX, applications abuse bump!
                             mtex.texture.use_normal_map = True  # not ideal!
                             mtex.use_map_normal = True
                             mtex.normal_factor = texture_bumpfac_get(fbx_obj)
+                            """
                         elif lnk_type == b'Bump':
                             mtex.use_map_normal = True
                             mtex.normal_factor = texture_bumpfac_get(fbx_obj)
+                            """
                         else:
                             print("WARNING: material link %r ignored" % lnk_type)
 
