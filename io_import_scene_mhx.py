@@ -38,7 +38,7 @@ Alternatively, run the script in the script editor (Alt-P), and access from the 
 bl_info = {
     'name': 'Import: MakeHuman (.mhx)',
     'author': 'Thomas Larsson',
-    'version': (1, 16, 5),
+    'version': (1, 16, 6),
     "blender": (2, 68, 0),
     'location': "File > Import > MakeHuman (.mhx)",
     'description': 'Import files in the MakeHuman eXchange format (.mhx)',
@@ -126,7 +126,7 @@ toggleSettings = toggle
 loadedData = None
 
 #
-#   mhxEval(expr) - an attempt at a reasonably safe mhxEval.
+#   mhxEval(expr) - an attempt at a reasonably safe eval.
 #   Note that expr never contains any whitespace due to the behavior
 #   of the mhx tokenizer.
 #
@@ -2939,8 +2939,8 @@ class ImportMhx(bpy.types.Operator, ImportHelper):
     scale = FloatProperty(name="Scale", description="Default meter, decimeter = 1.0", default = theScale)
     advanced = BoolProperty(name="Advanced settings", description="Use advanced import settings", default=False)
     for (prop, name, desc, flag) in MhxBoolProps:
-        expr = 'BoolProperty(name="%s", description="%s", default=(toggleSettings&%s != 0))' % (name, desc, flag)
-        prop = eval(expr)   # Trusted source: this file.
+        expr = '%s = BoolProperty(name="%s", description="%s", default=(toggleSettings&%s != 0))' % (prop, name, desc, flag)
+        exec(expr)   # Trusted source: this file.
 
 
     def draw(self, context):
@@ -2960,7 +2960,7 @@ class ImportMhx(bpy.types.Operator, ImportHelper):
             toggle = T_Armature
             for (prop, name, desc, flag) in MhxBoolProps:
                 expr = '(%s if self.%s else 0)' % (flag, prop)
-                toggle |=  mhxEval(expr)
+                toggle |=  eval(expr)   # trusted source: this file
             toggleSettings = toggle
         print("execute flags %x" % toggle)
         theScale = self.scale
