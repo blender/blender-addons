@@ -58,7 +58,7 @@ class DemoModeSetup(bpy.types.Operator):
     # these are used to create the file list.
     directory = StringProperty(
             name="Search Path",
-            description="directory used for importing the file",
+            description="Directory used for importing the file",
             maxlen=1024,
             subtype='DIR_PATH',
             )
