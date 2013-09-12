@@ -19,7 +19,7 @@
 from math import floor
 
 class OreSession:
-    
+
     def __init__(self, id, title):
         self.id = id
         self.title = title
@@ -28,13 +28,13 @@ class OreSession:
         self.endframe = 0
         self.rendertime = 0
         self.percentage = 0
-    
+
     def percentageComplete(self):
         totFrames = self.endframe - self.startframe
         done = 0
         if totFrames != 0:
             done = floor((self.frames / totFrames)*100)
-        
+
         if done > 100:
             done = 100
         return done

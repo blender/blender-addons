@@ -19,7 +19,8 @@
 import xmlrpc.client
 import http.client
 import hashlib
-from os.path import isabs, isfile, join, exists
+from os.path import isabs, isfile
+import time
 
 import bpy
 
@@ -33,15 +34,15 @@ def _random_string(length):
 
 def _encode_multipart_data(data, files):
     boundary = _random_string(30)
-    
+
     def get_content_type(filename):
         return 'application/octet-stream' # default this
-    
+
     def encode_field(field_name):
         return ('--' + boundary,
                 'Content-Disposition: form-data; name="%s"' % field_name,
                 '', str(data[field_name]))
-    
+
     def encode_file(field_name):
         filename = files [field_name]
         fcontent = None
@@ -54,7 +55,7 @@ def _encode_multipart_data(data, files):
                 'Content-Disposition: form-data; name="%s"; filename="%s"' % (field_name, filename),
                 'Content-Type: %s' % get_content_type(filename),
                 '', fcontent)
-    
+
     lines = []
     for name in data:
         lines.extend(encode_field(name))
@@ -63,12 +64,12 @@ def _encode_multipart_data(data, files):
     lines.extend(('--%s--' % boundary, ''))
     print("joining lines into body")
     body = '\r\n'.join(lines)
-    
+
     headers = {'content-type': 'multipart/form-data; boundary=' + boundary,
                'content-length': str(len(body))}
 
     print("headers and body ready")
-    
+
     return body, headers
 
 def _send_post(data, files):
@@ -108,7 +109,7 @@ def _upload_file(key, userid, sessionid, path):
         'blenderfile': path
     }
     r = _send_post(data, files)
-    
+
     return r
 
 def _run_upload(key, userid, sessionid, path):
@@ -122,7 +123,7 @@ def _run_upload(key, userid, sessionid, path):
 def _ore_upload(op, context):
     sce = context.scene
     ore = sce.ore_render
-    
+
     if not bpy.ready:
         op.report({'ERROR'}, 'Your user or scene information is not complete')
         bpy.infoError = True
@@ -184,7 +185,7 @@ def _ore_upload(op, context):
         bpy.context.scene.render.engine = 'RENDERFARMFI_RENDER'
         print('Unhandled error:', e)
         op.report({'ERROR'}, 'A generic error occurred while sending submission to Renderfarm.fi')
-    
+
     bpy.context.scene.render.engine = 'RENDERFARMFI_RENDER'
     _do_refresh(op)
     return {'FINISHED'}

@@ -125,15 +125,11 @@ def changeSettings():
         bpy.childParticleWarning = False
 
     if (hasUnsupportedSimulation()):
-        simulationWarning = True
+        bpy.simulationWarning = True
     else:
         bpy.simulationWarning = False
 
 def _prepare_scene():
-    sce = bpy.context.scene
-    rd = sce.render
-    ore = sce.ore_render
-
     changeSettings()
 
     print("Packing external textures...")

@@ -27,54 +27,45 @@ class RenderButtonsPanel():
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = "render"
-    # COMPAT_ENGINES must be defined in each subclass, external engines can add themselves here    
+    # COMPAT_ENGINES must be defined in each subclass, external engines can add themselves here
 
 class EngineSelectPanel(RenderButtonsPanel, bpy.types.Panel):
     bl_idname = "OBJECT_PT_engineSelectPanel"
     bl_label = "Choose rendering mode"
     COMPAT_ENGINES = set(['RENDERFARMFI_RENDER'])
-    
+
     def draw(self, context):
         layout = self.layout
-        rd = context.scene.render
         row = layout.row()
         row.operator("ore.switch_to_renderfarm_render", text="Renderfarm.fi", icon='WORLD')
         row.operator("ore.switch_to_local_render", text="Local computer", icon='BLENDER')
-#        row = layout.row()
-#        if (bpy.context.scene.render.engine == 'RENDERFARMFI_RENDER'):
-#            if bpy.found_newer_version == True:
-#                layout.operator('ore.open_download_location')
-#            else:
-#                if bpy.up_to_date == True:
-#                    layout.label(text='You have the latest version')
-#                layout.operator('ore.check_update')
-                
+
 class LOGIN_PT_RenderfarmFi(RenderButtonsPanel, bpy.types.Panel):
     bl_label = 'Login to Renderfarm.fi'
     COMPAT_ENGINES = set(['RENDERFARMFI_RENDER'])
-    
+
     @classmethod
     def poll(cls, context):
         rd = context.scene.render
         return (rd.use_game_engine==False) and (rd.engine in cls.COMPAT_ENGINES)
-    
+
     def draw(self, context):
 
-        # login 
+        # login
         if not bpy.loginInserted:
             if _read_credentials():
                 try:
                     if rffi.login(None, True, False):
                         bpy.passwordCorrect = True
                         bpy.loginInserted = True
-                except LoginFailedException as lfe:
+                except LoginFailedException:
                     bpy.passwordCorrect = False
                     bpy.loginInserted = False
 
         layout = self.layout
         ore = context.scene.ore_render
         check_status(ore)
-        
+
         if bpy.passwordCorrect == False:
             row = layout.row()
             row.label(text="Email or password missing/incorrect", icon='ERROR')
@@ -87,20 +78,28 @@ class LOGIN_PT_RenderfarmFi(RenderButtonsPanel, bpy.types.Panel):
             layout.label(text=bpy.rffi_user)
             layout.operator('ore.change_user')
 
+        layout.label(text='Message from Renderfarm.fi', icon='INFO')
+        layout.label(text=bpy.rffi_motd)
+        if bpy.rffi_accepting:
+            layout.label(text='Accepting sessions', icon='FILE_TICK')
+        else:
+            layout.label(text='Not accepting sessions', icon='ERROR')
+        layout.operator('ore.check_status')
+
 class SESSIONS_PT_RenderfarmFi(RenderButtonsPanel, bpy.types.Panel):
     bl_label = 'My sessions'
     COMPAT_ENGINES = set(['RENDERFARMFI_RENDER'])
-    
+
     @classmethod
     def poll(cls, context):
         rd = context.scene.render
         return (rd.use_game_engine==False) and (rd.engine in cls.COMPAT_ENGINES)
-    
+
     def draw(self, context):
         ore = context.scene.ore_render
         if (bpy.passwordCorrect == True and bpy.loginInserted == True):
             layout = self.layout
-            
+
             layout.template_list("UI_UL_list", "rederfarmfi_render", ore, 'all_sessions', ore, 'selected_session', rows=5)
             layout.operator('ore.cancel_session')
             if (bpy.cancelError == True):
@@ -117,18 +116,21 @@ class SESSIONS_PT_RenderfarmFi(RenderButtonsPanel, bpy.types.Panel):
 class RENDER_PT_RenderfarmFi(RenderButtonsPanel, bpy.types.Panel):
     bl_label = "Settings"
     COMPAT_ENGINES = set(['RENDERFARMFI_RENDER'])
-    
+
     @classmethod
     def poll(cls, context):
         rd = context.scene.render
         return (rd.use_game_engine==False) and (rd.engine in cls.COMPAT_ENGINES)
-    
+
     def draw(self, context):
         layout = self.layout
         sce = context.scene
         ore = sce.ore_render
-        rd = sce.render
-        
+
+        if not bpy.rffi_accepting:
+            layout.label(text="Renderfarm.fi is currently not accepting sessions.")
+            return
+
         if (bpy.passwordCorrect == False or bpy.loginInserted == False):
             layout.label(text='You must login first')
         else:
@@ -145,13 +147,13 @@ class RENDER_PT_RenderfarmFi(RenderButtonsPanel, bpy.types.Panel):
             layout.label(text="Example: blue skies hero castle flowers grass particles")
             layout.prop(ore, 'url')
             layout.label(text="Example: www.sintel.org")
-            
+
             #layout.label(text="Please verify your settings", icon='MODIFIER')
             row = layout.row()
             row = layout.row()
             #row.operator('ore.copy_settings')
             #row = layout.row()
-            
+
             layout.label(text="Rendering engine")
             row = layout.row()
             if (ore.engine == 'blender'):
@@ -163,9 +165,9 @@ class RENDER_PT_RenderfarmFi(RenderButtonsPanel, bpy.types.Panel):
             else:
                 row.operator('ore.use_blender_render', icon='FILE_TICK')
                 row.operator('ore.use_cycles_render')
-            
+
             row = layout.row()
-            
+
             layout.separator()
             row = layout.row()
             row.prop(ore, 'resox')
@@ -184,13 +186,13 @@ class RENDER_PT_RenderfarmFi(RenderButtonsPanel, bpy.types.Panel):
             #row.prop(ore, 'parts')
             layout.separator()
             row = layout.row()
-            
+
             layout.label(text="Licenses", icon='FILE_REFRESH')
             row = layout.row()
             row.prop(ore, 'inlicense')
             row = layout.row()
             row.prop(ore, 'outlicense')
-            
+
             check_status(ore)
             if (len(bpy.errors) > 0):
                 bpy.ready = False
@@ -200,17 +202,19 @@ class RENDER_PT_RenderfarmFi(RenderButtonsPanel, bpy.types.Panel):
 class UPLOAD_PT_RenderfarmFi(RenderButtonsPanel, bpy.types.Panel):
     bl_label = "Upload to www.renderfarm.fi"
     COMPAT_ENGINES = set(['RENDERFARMFI_RENDER'])
-    
+
     @classmethod
     def poll(cls, context):
         rd = context.scene.render
         return (rd.use_game_engine==False) and (rd.engine in cls.COMPAT_ENGINES)
-    
+
     def draw(self, context):
         layout = self.layout
-        sce = context.scene
-        ore = sce.ore_render
-        rd = sce.render
+
+        if not bpy.rffi_accepting:
+            layout.label(text="Renderfarm.fi is currently not accepting sessions.")
+            return
+
         if (bpy.passwordCorrect == False or bpy.loginInserted == False):
             layout.label(text="You must login first")
         else:
@@ -224,9 +228,9 @@ class UPLOAD_PT_RenderfarmFi(RenderButtonsPanel, bpy.types.Panel):
                 layout.label(text="   * No filter type composite nodes (blur, glare etc.)")
                 layout.label(text="   * No SSS")
                 layout.label(text="   * No Motion Blur")
-                
+
                 layout.separator()
-                
+
                 row = layout.row()
                 if (bpy.uploadInProgress == True):
                     layout.label(text="------------------------")

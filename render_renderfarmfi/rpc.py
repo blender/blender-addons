@@ -18,10 +18,7 @@
 
 import xmlrpc.client
 import imp
-import traceback
-import sys
 import time
-
 import bpy
 
 from .exceptions import LoginFailedException, SessionCancelFailedException, \
@@ -39,11 +36,11 @@ def _is_dev():
             user_creds = imp.load_module('rffi_dev', pwmod[0], pwmod[1], pwmod[2])
             if 'dev' in dir(user_creds) and user_creds.dev:
                 is_dev = True
-        except ImportError as e:
+        except ImportError:
             is_dev = False
         finally:
             if pwmod and pwmod[0]: pwmod[0].close()
-    except ImportError as e:
+    except ImportError:
         is_dev = False
     finally:
         if pwmod and pwmod[0]: pwmod[0].close()
@@ -60,11 +57,11 @@ def _be_verbose():
             user_creds = imp.load_module('rffi_dev', pwmod[0], pwmod[1], pwmod[2])
             if 'verbose' in dir(user_creds) and user_creds.verbose:
                 be_verbose = True
-        except ImportError as e:
+        except ImportError:
             be_verbose = False
         finally:
             if pwmod and pwmod[0]: pwmod[0].close()
-    except ImportError as e:
+    except ImportError:
         be_verbose = False
     finally:
         if pwmod and pwmod[0]: pwmod[0].close()
@@ -192,5 +189,10 @@ class RffiRpc(object):
                 bpy.cancelError = True
                 bpy.errorStartTime = time.time()
                 raise SessionCancelFailedException(str(v))
+
+    def check_status(self):
+        res = self.proxy.service.motd()
+        bpy.rffi_accepts = res['accepting']
+        bpy.rffi_motd = res['motd']
 
 rffi = RffiRpc()
