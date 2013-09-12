@@ -675,12 +675,14 @@ class AddGear(bpy.types.Operator):
         base = create_mesh_object(context, verts, [], faces, "Gear")
         obj = base.object
 
-        # Create vertex groups from stored vertices.
-        tipGroup = obj.vertex_groups.new('Tips')
-        tipGroup.add(verts_tip, 1.0, 'ADD')
+        # XXX, supporting adding in editmode is move involved
+        if obj.mode != 'EDIT':
+            # Create vertex groups from stored vertices.
+            tipGroup = obj.vertex_groups.new('Tips')
+            tipGroup.add(verts_tip, 1.0, 'ADD')
 
-        valleyGroup = obj.vertex_groups.new('Valleys')
-        valleyGroup.add(verts_valley, 1.0, 'ADD')
+            valleyGroup = obj.vertex_groups.new('Valleys')
+            valleyGroup.add(verts_valley, 1.0, 'ADD')
 
         return {'FINISHED'}
 
@@ -776,11 +778,13 @@ class AddWormGear(bpy.types.Operator):
         base = create_mesh_object(context, verts, [], faces, "Worm Gear")
         obj = base.object
 
-        # Create vertex groups from stored vertices.
-        tipGroup = obj.vertex_groups.new('Tips')
-        tipGroup.add(verts_tip, 1.0, 'ADD')
+        # XXX, supporting adding in editmode is move involved
+        if obj.mode != 'EDIT':
+            # Create vertex groups from stored vertices.
+            tipGroup = obj.vertex_groups.new('Tips')
+            tipGroup.add(verts_tip, 1.0, 'ADD')
 
-        valleyGroup = obj.vertex_groups.new('Valleys')
-        valleyGroup.add(verts_valley, 1.0, 'ADD')
+            valleyGroup = obj.vertex_groups.new('Valleys')
+            valleyGroup.add(verts_valley, 1.0, 'ADD')
 
         return {'FINISHED'}
