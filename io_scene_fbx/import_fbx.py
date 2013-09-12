@@ -828,6 +828,17 @@ def blen_read_light(fbx_tmpl, fbx_obj, global_scale):
     return lamp
 
 
+def is_ascii(filepath, size):
+    with open(filepath, 'r', encoding="utf-8") as f:
+        try:
+            f.read(size)
+            return True
+        except UnicodeDecodeError:
+            pass
+
+    return False
+
+
 def load(operator, context, filepath="",
          global_matrix=None,
          use_cycles=True,
@@ -842,6 +853,11 @@ def load(operator, context, filepath="",
 
     import os
     from . import parse_fbx
+
+    # detect ascii files
+    if is_ascii(filepath, 24):
+        operator.report({'ERROR'}, "ASCII FBX files are not supported %r" % filepath)
+        return {'CANCELLED'}
 
     try:
         elem_root, version = parse_fbx.parse(filepath)
