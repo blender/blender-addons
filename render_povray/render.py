@@ -1186,25 +1186,25 @@ def write_pov(filename, scene=None, info_callback=None):
                         LocalMaterialNames = []                        
                         for col, index in vertCols.items():
                             #if me_materials:
-                            material = me_materials[col[3]]
+                            mater = me_materials[col[3]]
                             if me_materials is None: #XXX working?
                                 material_finish = DEF_MAT_NAME  # not working properly,
                                 trans = 0.0
 
                             else:
-                                material_finish = materialNames[material.name]                        
-                                if material.use_transparency:
-                                    trans = 1.0 - material.alpha
+                                material_finish = materialNames[mater.name]                        
+                                if mater.use_transparency:
+                                    trans = 1.0 - mater.alpha
                                 else:
                                     trans = 0.0                            
-                                if (material.specular_color.r == material.specular_color.g) and (material.specular_color.r == material.specular_color.b):
+                                if (mater.specular_color.r == mater.specular_color.g) and (mater.specular_color.r == mater.specular_color.b):
                                     colored_specular_found = False
                                 else:
                                     colored_specular_found = True
 
-                                if material.use_transparency and material.transparency_method == 'RAYTRACE':
-                                    povFilter = material.raytrace_transparency.filter * (1.0 - material.alpha)
-                                    trans = (1.0 - material.alpha) - povFilter
+                                if mater.use_transparency and mater.transparency_method == 'RAYTRACE':
+                                    povFilter = mater.raytrace_transparency.filter * (1.0 - mater.alpha)
+                                    trans = (1.0 - mater.alpha) - povFilter
                                 else:
                                     povFilter = 0.0
                                     
@@ -1213,7 +1213,7 @@ def write_pov(filename, scene=None, info_callback=None):
                                 texturesSpec = ""
                                 texturesNorm = ""
                                 texturesAlpha = ""
-                                for t in material.texture_slots:
+                                for t in mater.texture_slots:
                                     if t and t.texture.type == 'IMAGE' and t.use and t.texture.image:
                                         image_filename = path_image(t.texture.image)
                                         imgGamma = ""
@@ -1247,24 +1247,24 @@ def write_pov(filename, scene=None, info_callback=None):
                                 file.write("\n")
                                 # THIS AREA NEEDS TO LEAVE THE TEXTURE OPEN UNTIL ALL MAPS ARE WRITTEN DOWN.
                                 # --MR
-                                currentMatName = string_strip_hyphen(materialNames[material.name])
+                                currentMatName = string_strip_hyphen(materialNames[mater.name])
                                 LocalMaterialNames.append(currentMatName)
                                 file.write("\n #declare MAT_%s = \ntexture{\n" % currentMatName)
 
                                 ################################################################################
                                 
-                                if material.pov.replacement_text != "":
-                                    file.write("%s\n" % material.pov.replacement_text)
+                                if mater.pov.replacement_text != "":
+                                    file.write("%s\n" % mater.pov.replacement_text)
                                 #################################################################################
-                                if material.diffuse_shader == 'MINNAERT':
+                                if mater.diffuse_shader == 'MINNAERT':
                                     tabWrite("\n")
                                     tabWrite("aoi\n")
                                     tabWrite("texture_map {\n")
                                     tabWrite("[%.3g finish {diffuse %.3g}]\n" % \
-                                             (material.darkness / 2.0, 2.0 - material.darkness))
-                                    tabWrite("[%.3g\n" % (1.0 - (material.darkness / 2.0)))
+                                             (mater.darkness / 2.0, 2.0 - mater.darkness))
+                                    tabWrite("[%.3g\n" % (1.0 - (mater.darkness / 2.0)))
 
-                                if material.diffuse_shader == 'FRESNEL':
+                                if mater.diffuse_shader == 'FRESNEL':
                                     # For FRESNEL diffuse in POV, we'll layer slope patterned textures
                                     # with lamp vector as the slope vector and nest one slope per lamp
                                     # into each texture map's entry.
@@ -1276,11 +1276,11 @@ def write_pov(filename, scene=None, info_callback=None):
                                         # Diffuse Fresnel value and factor go up to five,
                                         # other kind of values needed: used the number 5 below to remap
                                         tabWrite("[%.3g finish {diffuse %.3g}]\n" % \
-                                                 ((5.0 - material.diffuse_fresnel) / 5,
-                                                  (material.diffuse_intensity *
-                                                   ((5.0 - material.diffuse_fresnel_factor) / 5))))
-                                        tabWrite("[%.3g\n" % ((material.diffuse_fresnel_factor / 5) *
-                                                              (material.diffuse_fresnel / 5.0)))
+                                                 ((5.0 - mater.diffuse_fresnel) / 5,
+                                                  (mater.diffuse_intensity *
+                                                   ((5.0 - mater.diffuse_fresnel_factor) / 5))))
+                                        tabWrite("[%.3g\n" % ((mater.diffuse_fresnel_factor / 5) *
+                                                              (mater.diffuse_fresnel / 5.0)))
                                         c += 1
 
                                 # if shader is a 'FRESNEL' or 'MINNAERT': slope pigment pattern or aoi
@@ -1418,7 +1418,7 @@ def write_pov(filename, scene=None, info_callback=None):
                                     ##################Second index for mapping specular max value###############
                                         tabWrite("[1 \n")
 
-                                if texturesDif == "" and material.pov.replacement_text == "":
+                                if texturesDif == "" and mater.pov.replacement_text == "":
                                     if texturesAlpha != "":
                                         # POV-Ray "scale" is not a number of repetitions factor, but its inverse,
                                         # a standard scale factor.
@@ -1459,7 +1459,7 @@ def write_pov(filename, scene=None, info_callback=None):
                                         # Level 2 is translated specular
                                         tabWrite("finish {%s}\n" % (safety(material_finish, Level=2)))
 
-                                elif material.pov.replacement_text == "":
+                                elif mater.pov.replacement_text == "":
                                     # POV-Ray "scale" is not a number of repetitions factor, but its inverse,
                                     # a standard scale factor.
                                     # Offset seems needed relatively to scale so probably center of the scale is
@@ -1518,7 +1518,7 @@ def write_pov(filename, scene=None, info_callback=None):
                                     #           "{%s \"%s\" %s}%s} finish {%s}" % \
                                     #           (imageFormat(texturesDif), texturesDif,imgMap(t_dif),
                                     #            mappingDif, safety(material_finish)))
-                                if texturesNorm != "" and material.pov.replacement_text == "":
+                                if texturesNorm != "" and mater.pov.replacement_text == "":
                                     ## scale 1 rotate y*0
                                     # POV-Ray "scale" is not a number of repetitions factor, but its inverse,
                                     # a standard scale factor.
@@ -1533,16 +1533,16 @@ def write_pov(filename, scene=None, info_callback=None):
                                     tabWrite("normal {uv_mapping bump_map {%s \"%s\" %s  bump_size %.4g }%s}\n" % \
                                              (imageFormat(texturesNorm), texturesNorm, imgMap(t_nor),
                                               t_nor.normal_factor * 10.0, mappingNor))
-                                if texturesSpec != "" and material.pov.replacement_text == "":
+                                if texturesSpec != "" and mater.pov.replacement_text == "":
                                     tabWrite("]\n")
 
                                     tabWrite("}\n")
 
                                 #End of slope/ior texture_map
-                                if material.diffuse_shader == 'MINNAERT' and material.pov.replacement_text == "":
+                                if mater.diffuse_shader == 'MINNAERT' and mater.pov.replacement_text == "":
                                     tabWrite("]\n")
                                     tabWrite("}\n")
-                                if material.diffuse_shader == 'FRESNEL' and material.pov.replacement_text == "":
+                                if mater.diffuse_shader == 'FRESNEL' and mater.pov.replacement_text == "":
                                     c = 1
                                     while (c <= lampCount):
                                         tabWrite("]\n")
@@ -1554,7 +1554,7 @@ def write_pov(filename, scene=None, info_callback=None):
                                 # Close first layer of POV "texture" (Blender material)
                                 tabWrite("}\n")
                                 
-                                if (material.specular_color.r == material.specular_color.g) and (material.specular_color.r == material.specular_color.b):
+                                if (mater.specular_color.r == mater.specular_color.g) and (mater.specular_color.r == mater.specular_color.b):
                                     colored_specular_found = False
                                 else:
                                     colored_specular_found = True
@@ -1562,7 +1562,7 @@ def write_pov(filename, scene=None, info_callback=None):
                                 # Write another layered texture using invisible diffuse and metallic trick 
                                 # to emulate colored specular highlights
                                 special_texture_found = False
-                                for t in material.texture_slots:
+                                for t in mater.texture_slots:
                                     if(t and t.texture.type == 'IMAGE' and t.use and t.texture.image and
                                        (t.use_map_specular or t.use_map_raymir)):
                                         # Specular mapped textures would conflict with colored specular
@@ -1577,11 +1577,11 @@ def write_pov(filename, scene=None, info_callback=None):
                                 
                                     tabWrite("texture {\n")
                                     tabWrite("pigment {rgbft<%.3g, %.3g, %.3g, 0, 1>}\n" % \
-                                                     (material.specular_color[0], material.specular_color[1], material.specular_color[2]))
+                                                     (mater.specular_color[0], mater.specular_color[1], mater.specular_color[2]))
                                     tabWrite("finish {%s}\n" % (safety(material_finish, Level=2))) # Level 2 is translated spec
 
                                     texturesNorm = ""
-                                    for t in material.texture_slots:
+                                    for t in mater.texture_slots:
                                         if t and t.texture.type == 'IMAGE' and t.use and t.texture.image:
                                             image_filename = path_image(t.texture.image)
                                             imgGamma = ""
@@ -1612,7 +1612,7 @@ def write_pov(filename, scene=None, info_callback=None):
                 tabWrite("texture_list {\n")
                 file.write(tabStr + "%s" % (len(vertCols)))  # vert count
                     
-                if material.pov.replacement_text != "":
+                if mater.pov.replacement_text != "":
                     file.write("\n")
                     file.write(" texture{%s}\n" % material.pov.replacement_text)
 
