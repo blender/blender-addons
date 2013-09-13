@@ -351,18 +351,29 @@ def blen_read_geom_array_mapped_edge(
     fbx_layer_data, fbx_layer_index,
     fbx_layer_mapping, fbx_layer_ref,
     stride, item_size, descr,
+    xform=None,
     ):
 
     if fbx_layer_mapping == b'ByEdge':
         if fbx_layer_ref == b'Direct':
             if stride == 1:
-                for i, blen_data_item in enumerate(blen_data):
-                    setattr(blen_data_item, blend_attr,
-                            fbx_layer_data[i])
+                if xform is None:
+                    for i, blen_data_item in enumerate(blen_data):
+                        setattr(blen_data_item, blend_attr,
+                                fbx_layer_data[i])
+                else:
+                    for i, blen_data_item in enumerate(blen_data):
+                        setattr(blen_data_item, blend_attr,
+                                xform(fbx_layer_data[i]))
             else:
-                for i, blen_data_item in enumerate(blen_data):
-                    setattr(blen_data_item, blend_attr,
-                            fbx_layer_data[(i * stride): (i * stride) + item_size])
+                if xform is None:
+                    for i, blen_data_item in enumerate(blen_data):
+                        setattr(blen_data_item, blend_attr,
+                                fbx_layer_data[(i * stride): (i * stride) + item_size])
+                else:
+                    for i, blen_data_item in enumerate(blen_data):
+                        setattr(blen_data_item, blend_attr,
+                                xform(fbx_layer_data[(i * stride): (i * stride) + item_size]))
             return True
         else:
             print("warning layer %r ref type unsupported: %r" % (descr, fbx_layer_ref))
@@ -377,6 +388,7 @@ def blen_read_geom_array_mapped_polygon(
     fbx_layer_data, fbx_layer_index,
     fbx_layer_mapping, fbx_layer_ref,
     stride, item_size, descr,
+    xform=None,
     ):
 
     if fbx_layer_mapping == b'ByPolygon':
@@ -393,8 +405,12 @@ def blen_read_geom_array_mapped_polygon(
         elif fbx_layer_ref == b'Direct':
             # looks like direct may have different meanings!
             assert(stride == 1)
-            for i in fbx_layer_data:
-                setattr(blen_data[i - 1], blend_attr, True)
+            if xform is None:
+                for i in range(len(fbx_layer_data)):
+                    setattr(blen_data[i], blend_attr, fbx_layer_data[i])
+            else:
+                for i in range(len(fbx_layer_data)):
+                    setattr(blen_data[i], blend_attr, xform(fbx_layer_data[i]))
             return True
         else:
             print("warning layer %r ref type unsupported: %r" % (descr, fbx_layer_ref))
@@ -543,11 +559,8 @@ def blen_read_geom_layer_smooth(fbx_obj, mesh):
             fbx_layer_data, None,
             fbx_layer_mapping, fbx_layer_ref,
             1, 1, layer_id,
+            xform=lambda s: not s,
             )
-        if ok_smooth:
-            # ugh, need to negate
-            for e in mesh.edges:
-                e.use_edge_sharp = not e.use_edge_sharp
         return ok_smooth
     elif fbx_layer_mapping == b'ByPolygon':
         blen_data = mesh.polygons
@@ -556,6 +569,7 @@ def blen_read_geom_layer_smooth(fbx_obj, mesh):
             fbx_layer_data, None,
             fbx_layer_mapping, fbx_layer_ref,
             1, 1, layer_id,
+            xform=lambda s: (s != 0),  # smoothgroup bitflags, treat as booleans for now
             )
     else:
         print("warning layer %r mapping type unsupported: %r" % (fbx_layer.id, fbx_layer_mapping))
