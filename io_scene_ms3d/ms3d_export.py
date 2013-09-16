@@ -574,25 +574,56 @@ class Ms3dExporter():
             blender_bones = None
             blender_action = None
             blender_nla_tracks = None
-            for blender_modifier in blender_mesh_object.modifiers:
-                if blender_modifier.type == 'ARMATURE' \
-                        and blender_modifier.object.pose:
-                    blender_bones = blender_modifier.object.data.bones
-                    blender_pose_bones = blender_modifier.object.pose.bones
-                    if blender_modifier.object.animation_data:
-                        blender_action = \
-                                blender_modifier.object.animation_data.action
-                        blender_nla_tracks = \
-                                blender_modifier.object.animation_data.nla_tracks
 
-                    # apply transform
-                    if self.options_apply_transform:
-                        matrix_transform = blender_modifier.object.matrix_basis
-                    else:
-                        matrix_transform = 1
+            # note: only one armature modifier/parent will be handled.
+            #   if the parent is an armature, it will be handled irrespective
+            #   of existence of any armature modifier
 
-                    break
+            # question: maybe it is better to handle
+            #   all existing armature sources (parent / modifier)
+            #   as a merged animation...
+            #   what is best practice in case of multiple animation sources?
 
+            # take parent to account if it is an armature
+            if blender_mesh_object.parent and \
+                    blender_mesh_object.parent_type == 'ARMATURE' and \
+                    blender_mesh_object.parent.pose:
+                blender_bones = blender_mesh_object.parent.data.bones
+                blender_pose_bones = blender_mesh_object.parent.pose.bones
+                if blender_mesh_object.parent.animation_data:
+                    blender_action = \
+                            blender_mesh_object.parent.animation_data.action
+                    blender_nla_tracks = \
+                            blender_mesh_object.parent.animation_data.nla_tracks
+
+                # apply transform
+                if self.options_apply_transform:
+                    matrix_transform = blender_mesh_object.parent.matrix_basis
+                else:
+                    matrix_transform = 1
+
+            # search for animation modifier
+            else:
+                for blender_modifier in blender_mesh_object.modifiers:
+                    if blender_modifier.type == 'ARMATURE' \
+                            and blender_modifier.object.pose:
+                        blender_bones = blender_modifier.object.data.bones
+                        blender_pose_bones = blender_modifier.object.pose.bones
+                        if blender_modifier.object.animation_data:
+                            blender_action = \
+                                    blender_modifier.object.animation_data.action
+                            blender_nla_tracks = \
+                                    blender_modifier.object.animation_data.nla_tracks
+
+                        # apply transform
+                        if self.options_apply_transform:
+                            matrix_transform = blender_modifier.object.matrix_basis
+                        else:
+                            matrix_transform = 1
+
+                        break
+
+            # skip animation/bone handling, if no animation data is available
             if blender_bones is None \
                     and (blender_action is None and blender_nla_tracks is None):
                 continue
