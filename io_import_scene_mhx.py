@@ -2520,6 +2520,7 @@ class RigifyBone:
 
 
 def rigifyMhx(context):
+    global theArmature
     from collections import OrderedDict
 
     print("Modifying MHX rig to Rigify")
@@ -2701,6 +2702,7 @@ def rigifyMhx(context):
     del rig
     gen.name = name
     bpy.ops.object.mode_set(mode='POSE')
+    theArmature = gen
     print("MHX rig %s successfully rigified" % name)
 
 
