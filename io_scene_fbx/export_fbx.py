@@ -1385,7 +1385,6 @@ def save_single(operator, scene, filepath="",
         # Write the Real Mesh data here
         fw('\n\t\tVertices: ')
         i = -1
-
         for v in me_vertices:
             if i == -1:
                 fw('%.6f,%.6f,%.6f' % v.co[:])
@@ -2601,7 +2600,8 @@ Connections:  {''')
         frame_orig = scene.frame_current
 
         if use_anim_optimize:
-            ANIM_OPTIMIZE_PRECISSION_FLOAT = 0.1 ** anim_optimize_precision
+            # Do we really want to keep such behavior? User could enter real value directly...
+            ANIM_OPTIMIZE_PRECISSION_FLOAT = 10 ** (-anim_optimize_precision + 2)
 
         # default action, when no actions are avaioable
         tmp_actions = []

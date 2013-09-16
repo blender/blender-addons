@@ -157,8 +157,8 @@ class ExportFBX(bpy.types.Operator, ExportHelper):
             name="Scale",
             description=("Scale all data "
                          "(Some importers do not support scaled armatures!)"),
-            min=0.01, max=1000.0,
-            soft_min=0.001, soft_max=1000.0,
+            min=0.001, max=1000.0,
+            soft_min=0.01, soft_max=1000.0,
             default=1.0,
             )
     axis_forward = EnumProperty(
@@ -246,9 +246,9 @@ class ExportFBX(bpy.types.Operator, ExportHelper):
             name="Precision",
             description=("Tolerance for comparing double keyframes "
                         "(higher for greater accuracy)"),
-            min=1, max=16,
-            soft_min=1, soft_max=16,
-            default=6.0,
+            min=0.0, max=20.0,  # from 10^2 to 10^-18 frames precision.
+            soft_min=1.0, soft_max=16.0,
+            default=6.0,  # default: 10^-4 frames.
             )
     path_mode = path_reference_mode
     batch_mode = EnumProperty(
