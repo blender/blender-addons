@@ -1240,7 +1240,7 @@ class GPENCIL_OT_SURFSK_add_surface(bpy.types.Operator):
             
             bpy.ops.curve.select_all(action = 'INVERT')
             
-            bpy.ops.curve.delete(type='SELECTED')
+            bpy.ops.curve.delete(type='VERT')
             bpy.ops.object.editmode_toggle('INVOKE_REGION_WIN')
             
             
@@ -2327,7 +2327,7 @@ class GPENCIL_OT_SURFSK_add_surface(bpy.types.Operator):
                 
                 # Delete the other vertices and make it non-cyclic to keep only the needed verts of the "closing segment".
                 bpy.ops.curve.select_all(action = 'INVERT')
-                bpy.ops.curve.delete(type='SELECTED')
+                bpy.ops.curve.delete(type='VERT')
                 ob_simplified_curve[i].data.splines[0].use_cyclic_u = False
                 bpy.ops.object.editmode_toggle('INVOKE_REGION_WIN')
                 
@@ -3039,7 +3039,7 @@ class GPENCIL_OT_SURFSK_add_surface(bpy.types.Operator):
                     sp.bezier_points[0].select_control_point = True
             
             bpy.ops.object.editmode_toggle('INVOKE_REGION_WIN')
-            bpy.ops.curve.delete(type='SELECTED')
+            bpy.ops.curve.delete(type='VERT')
             bpy.ops.object.editmode_toggle('INVOKE_REGION_WIN')
             
             
