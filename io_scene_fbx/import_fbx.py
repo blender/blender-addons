@@ -1338,6 +1338,11 @@ def load(operator, context, filepath="",
                         mtex.use_map_alpha = True
                         mtex.alpha_factor = 1.0
 
+            # propagate mapping from diffuse to all other channels which have none defined.
+            if use_cycles:
+                ma_wrap = cycles_material_wrap_map[material]
+                ma_wrap.mapping_set_from_diffuse()
+
     _(); del _
 
     def _():

@@ -467,3 +467,50 @@ class CyclesShaderWrapper():
                          translation=None, rotation=None, scale=None):
         return self._mapping_create_helper(
             self.node_image_bump, self.node_texcoords.outputs[coords], translation, rotation, scale)
+
+    def mapping_set_from_diffuse(self,
+                                 specular=True,
+                                 hardness=True,
+                                 reflect=True,
+                                 alpha=True,
+                                 normal=True,
+                                 bump=True):
+        """
+        Set all mapping based on diffuse
+        (sometimes we want to assume default mapping follows diffuse).
+        """
+        # get mapping from diffuse
+        links = self.node_image_diff.inputs["Vector"].links
+        if not links:
+            return
+
+        mapping_out_socket = links[0].from_socket
+
+        tree = self.material.node_tree
+        links = tree.links
+
+        def node_image_mapping_apply(node_image_attr):
+            # ensure strings are valid attrs
+            assert(node_image_attr in self.__slots__)
+
+            node_image = getattr(self, node_image_attr, None)
+
+            if node_image is not None:
+                node_image_input_socket = node_image.inputs["Vector"]
+                # don't overwrite existing sockets
+                if not node_image_input_socket.links:
+                    links.new(mapping_out_socket,
+                              node_image_input_socket)
+
+        if specular:
+            node_image_mapping_apply("node_image_spec")
+        if hardness:
+            node_image_mapping_apply("node_image_hard")
+        if reflect:
+            node_image_mapping_apply("node_image_refl")
+        if alpha:
+            node_image_mapping_apply("node_image_alpha")
+        if normal:
+            node_image_mapping_apply("node_image_normalmap")
+        if bump:
+            node_image_mapping_apply("node_image_bump")
