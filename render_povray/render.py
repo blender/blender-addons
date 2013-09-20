@@ -881,7 +881,7 @@ def write_pov(filename, scene=None, info_callback=None):
                                         file.write('%i,\n' % (steps))
                                         
                                     for step in range(0, steps):
-                                        co = pSys.co_hair(ob, mod, pindex, step)
+                                        co = pSys.co_hair(ob, pindex, step)
                                     #for controlPoint in particle.hair_keys:
                                         if pSys.settings.clump_factor != 0:
                                             hDiameter = pSys.settings.clump_factor / 200.0 * random.uniform(0.5, 1)
