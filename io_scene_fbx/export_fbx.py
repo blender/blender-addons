@@ -28,6 +28,30 @@ import math  # math.pi
 import bpy
 from mathutils import Vector, Matrix
 
+def grouper_exact(it, chunk_size):
+    """
+    Grouper-like func, but returns exactly all elements from it:
+
+    >>> for chunk in grouper_exact(range(10), 3): print(e)
+    (0,1,2)
+    (3,4,5)
+    (6,7,8)
+    (9,)
+
+    About 2 times slower than simple zip(*[it] * 3), but does not need to convert iterator to sequence to be sure to
+    get exactly all elements in it (i.e. get a last chunk that may be smaller than chunk_size).
+    """
+    import itertools
+    i = itertools.zip_longest(*[iter(it)] * chunk_size, fillvalue=...)
+    curr = next(i)
+    for nxt in i:
+        yield curr
+        curr = nxt
+    if ... in curr:
+        yield curr[:curr.index(...)]
+    else:
+        yield curr
+
 # I guess FBX uses degrees instead of radians (Arystan).
 # Call this function just before writing to FBX.
 # 180 / math.pi == 57.295779513
@@ -409,7 +433,7 @@ def save_single(operator, scene, filepath="",
     # ----------------------------------------------
 
     print('\nFBX export starting... %r' % filepath)
-    start_time = time.clock()
+    start_time = time.process_time()
     try:
         file = open(filepath, "w", encoding="utf8", newline="\n")
     except:
@@ -1344,24 +1368,21 @@ def save_single(operator, scene, filepath="",
         fw('\n\t}')
 
     def write_mesh(my_mesh):
-
         me = my_mesh.blenData
 
         # if there are non NULL materials on this mesh
         do_materials = bool(my_mesh.blenMaterials)
         do_textures = bool(my_mesh.blenTextures)
-        do_uvs = bool(me.tessface_uv_textures)
+        do_uvs = bool(me.uv_layers)
         do_shapekeys = (my_mesh.blenObject.type == 'MESH' and
                         my_mesh.blenObject.data.shape_keys and
                         len(my_mesh.blenObject.data.vertices) == len(me.vertices))
+        print(len(my_mesh.blenObject.data.vertices), len(me.vertices))
 
         fw('\n\tModel: "Model::%s", "Mesh" {' % my_mesh.fbxName)
         fw('\n\t\tVersion: 232')  # newline is added in write_object_props
 
         # convert into lists once.
-        me_vertices = me.vertices[:]
-        me_edges = me.edges[:] if use_mesh_edges else ()
-        me_faces = me.tessfaces[:]
 
         poseMatrix = write_object_props(my_mesh.blenObject, None, my_mesh.parRelMatrix())[3]
 
@@ -1384,151 +1405,89 @@ def save_single(operator, scene, filepath="",
 
         # Write the Real Mesh data here
         fw('\n\t\tVertices: ')
-        i = -1
-        for v in me_vertices:
-            if i == -1:
-                fw('%.6f,%.6f,%.6f' % v.co[:])
-                i = 0
-            else:
-                if i == 7:
-                    fw('\n\t\t')
-                    i = 0
-                fw(',%.6f,%.6f,%.6f' % v.co[:])
-            i += 1
+        _nchunk = 12  # Number of coordinates per line.
+        t_co = [None] * len(me.vertices) * 3
+        me.vertices.foreach_get("co", t_co)
+        fw(',\n\t\t          '.join(','.join('%.6f' % co for co in chunk) for chunk in grouper_exact(t_co, _nchunk)))
+        del t_co
 
         fw('\n\t\tPolygonVertexIndex: ')
-        i = -1
-        for f in me_faces:
-            fi = f.vertices[:]
+        _nchunk = 32  # Number of indices per line.
+        # A bit more complicated, as we have to ^-1 last index of each loop.
+        # NOTE: Here we assume that loops order matches polygons order!
+        t_vi = [None] * len(me.loops)
+        me.loops.foreach_get("vertex_index", t_vi)
+        t_ls = [None] * len(me.polygons)
+        me.polygons.foreach_get("loop_start", t_ls)
+        if t_ls != sorted(t_ls):
+            print("Error: polygons and loops orders do not match!")
+        for ls in t_ls:
+            t_vi[ls - 1] ^= -1
+        prep = ',\n\t\t                    '
+        fw(prep.join(','.join('%i' % vi for vi in chunk) for chunk in grouper_exact(t_vi, _nchunk)))
+        del t_vi
+        del t_ls
 
-            # last index XORd w. -1 indicates end of face
-            if i == -1:
-                if len(fi) == 3:
-                    fw('%i,%i,%i' % (fi[0], fi[1], fi[2] ^ -1))
-                else:
-                    fw('%i,%i,%i,%i' % (fi[0], fi[1], fi[2], fi[3] ^ -1))
-                i = 0
-            else:
-                if i == 13:
-                    fw('\n\t\t')
-                    i = 0
-                if len(fi) == 3:
-                    fw(',%i,%i,%i' % (fi[0], fi[1], fi[2] ^ -1))
-                else:
-                    fw(',%i,%i,%i,%i' % (fi[0], fi[1], fi[2], fi[3] ^ -1))
-            i += 1
+        if use_mesh_edges:
+            t_vi = [None] * len(me.edges) * 2
+            me.edges.foreach_get("vertices", t_vi)
 
-        # write loose edges as faces.
-        for ed in me_edges:
-            if ed.is_loose:
-                ed_val = ed.vertices[:]
-                ed_val = ed_val[0], ed_val[-1] ^ -1
+            # write loose edges as faces.
+            t_el = [None] * len(me.edges)
+            me.edges.foreach_get("is_loose", t_el)
+            num_lose = sum(t_el)
+            if num_lose != 0:
+                it_el = ((vi ^ -1) if (idx % 2) else vi for idx, vi in enumerate(t_vi) if t_el[idx // 2])
+                if (len(me.loops)):
+                    fw(prep)
+                fw(prep.join(','.join('%i' % vi for vi in chunk) for chunk in grouper_exact(it_el, _nchunk)))
 
-                if i == -1:
-                    fw('%i,%i' % ed_val)
-                    i = 0
-                else:
-                    if i == 13:
-                        fw('\n\t\t')
-                        i = 0
-                    fw(',%i,%i' % ed_val)
-            i += 1
-
-        fw('\n\t\tEdges: ')
-        i = -1
-        for ed in me_edges:
-            if i == -1:
-                fw('%i,%i' % (ed.vertices[0], ed.vertices[1]))
-                i = 0
-            else:
-                if i == 13:
-                    fw('\n\t\t')
-                    i = 0
-                fw(',%i,%i' % (ed.vertices[0], ed.vertices[1]))
-            i += 1
+            fw('\n\t\tEdges: ')
+            fw(',\n\t\t       '.join(','.join('%i' % vi for vi in chunk) for chunk in grouper_exact(t_vi, _nchunk)))
 
         fw('\n\t\tGeometryVersion: 124')
 
-        fw('''
-        LayerElementNormal: 0 {
-            Version: 101
-            Name: ""
-            MappingInformationType: "ByPolygonVertex"
-            ReferenceInformationType: "Direct"
-            Normals: ''')
-
-        # this could be compacted further
-        i = -1
-        for f in me_faces:
-            fi = f.vertices[:]
-            if i != -1:
-                fw(',')  # ack!
-            elif i == 2:
-                fw('\n\t\t\t ')
-                i = 0
-
-            if f.use_smooth:
-                fw('%.6f,%.6f,%.6f' % me_vertices[fi[0]].normal[:])
-                fw(',%.6f,%.6f,%.6f' % me_vertices[fi[1]].normal[:])
-                fw(',%.6f,%.6f,%.6f' % me_vertices[fi[2]].normal[:])
-                if len(fi) == 4:
-                    fw(',%.6f,%.6f,%.6f' % me_vertices[fi[3]].normal[:])
-            else:
-                f_no = f.normal[:]
-                fw('%.6f,%.6f,%.6f' % f_no)
-                fw(',%.6f,%.6f,%.6f' % f_no)
-                fw(',%.6f,%.6f,%.6f' % f_no)
-                if len(fi) == 4:
-                    fw(',%.6f,%.6f,%.6f' % f_no)
-            i += 1
+        _nchunk = 12  # Number of coordinates per line.
+        t_vn = [None] * len(me.loops) * 3
+        me.calc_normals_split()
+        # NOTE: Here we assume that loops order matches polygons order!
+        me.loops.foreach_get("normal", t_vn)
+        fw('\n\t\tLayerElementNormal: 0 {'
+           '\n\t\t\tVersion: 101'
+           '\n\t\t\tName: ""'
+           '\n\t\t\tMappingInformationType: "ByPolygonVertex"'
+           '\n\t\t\tReferenceInformationType: "Direct"'  # We could save some space with IndexToDirect here too...
+           '\n\t\t\tNormals: ')
+        fw(',\n\t\t\t         '.join(','.join('%.6f' % n for n in chunk) for chunk in grouper_exact(t_vn, _nchunk)))
         fw('\n\t\t}')
+        del t_vn
+        me.free_normals_split()
 
         # Write Face Smoothing
+        _nchunk = 64  # Number of bool per line.
         if mesh_smooth_type == 'FACE':
-            fw('''
-		LayerElementSmoothing: 0 {
-			Version: 102
-			Name: ""
-			MappingInformationType: "ByPolygon"
-			ReferenceInformationType: "Direct"
-			Smoothing: ''')
-
-            i = -1
-            for f in me_faces:
-                if i == -1:
-                    fw('%i' % f.use_smooth)
-                    i = 0
-                else:
-                    if i == 54:
-                        fw('\n\t\t\t ')
-                        i = 0
-                    fw(',%i' % f.use_smooth)
-                i += 1
-
+            t_ps = [None] * len(me.polygons)
+            me.polygons.foreach_get("use_smooth", t_ps)
+            fw('\n\t\tLayerElementSmoothing: 0 {'
+               '\n\t\t\tVersion: 102'
+               '\n\t\t\tName: ""'
+               '\n\t\t\tMappingInformationType: "ByPolygon"'
+               '\n\t\t\tReferenceInformationType: "Direct"'
+               '\n\t\t\tSmoothing: ')
+            fw(',\n\t\t\t           '.join(','.join('%d' % b for b in chunk) for chunk in grouper_exact(t_ps, _nchunk)))
             fw('\n\t\t}')
-
         elif mesh_smooth_type == 'EDGE':
             # Write Edge Smoothing
-            fw('''
-		LayerElementSmoothing: 0 {
-			Version: 101
-			Name: ""
-			MappingInformationType: "ByEdge"
-			ReferenceInformationType: "Direct"
-			Smoothing: ''')
-
-            i = -1
-            for ed in me_edges:
-                if i == -1:
-                    fw('%i' % (not ed.use_edge_sharp))
-                    i = 0
-                else:
-                    if i == 54:
-                        fw('\n\t\t\t ')
-                        i = 0
-                    fw(',%i' % (not ed.use_edge_sharp))
-                i += 1
-
+            t_es = [None] * len(me.edges)
+            me.edges.foreach_get("use_edge_sharp", t_es)
+            fw('\n\t\tLayerElementSmoothing: 0 {'
+               '\n\t\t\tVersion: 101'
+               '\n\t\t\tName: ""'
+               '\n\t\t\tMappingInformationType: "ByEdge"'
+               '\n\t\t\tReferenceInformationType: "Direct"'
+               '\n\t\t\tSmoothing: ')
+            fw(',\n\t\t\t           '
+               ''.join(','.join('%d' % (not b) for b in chunk) for chunk in grouper_exact(t_es, _nchunk)))
             fw('\n\t\t}')
         elif mesh_smooth_type == 'OFF':
             pass
@@ -1538,344 +1497,225 @@ def save_single(operator, scene, filepath="",
         # Write VertexColor Layers
         # note, no programs seem to use this info :/
         collayers = []
-        if len(me.tessface_vertex_colors):
-            collayers = me.tessface_vertex_colors
+        if len(me.vertex_colors):
+            collayers = me.vertex_colors
+            t_lc = [None] * len(me.loops) * 3
+            col2idx = None
+            _nchunk = 4  # Number of colors per line
+            _nchunk_idx = 64  # Number of color indices per line
             for colindex, collayer in enumerate(collayers):
-                fw('\n\t\tLayerElementColor: %i {' % colindex)
-                fw('\n\t\t\tVersion: 101')
-                fw('\n\t\t\tName: "%s"' % collayer.name)
+                collayer.data.foreach_get("color", t_lc)
+                t_lc = tuple(zip(*[iter(t_lc)] * 3))
+                fw('\n\t\tLayerElementColor: %i {'
+                   '\n\t\t\tVersion: 101'
+                   '\n\t\t\tName: "%s"'
+                   '\n\t\t\tMappingInformationType: "ByPolygonVertex"'
+                   '\n\t\t\tReferenceInformationType: "IndexToDirect"'
+                   '\n\t\t\tColors: ' % (colindex, collayer.name))
 
-                fw('''
-			MappingInformationType: "ByPolygonVertex"
-			ReferenceInformationType: "IndexToDirect"
-			Colors: ''')
-
-                i = -1
-                ii = 0  # Count how many Colors we write
-                print(len(me_faces), len(collayer.data))
-                for fi, cf in enumerate(collayer.data):
-                    if len(me_faces[fi].vertices) == 4:
-                        colors = cf.color1[:], cf.color2[:], cf.color3[:], cf.color4[:]
-                    else:
-                        colors = cf.color1[:], cf.color2[:], cf.color3[:]
-
-                    for col in colors:
-                        if i == -1:
-                            fw('%.4f,%.4f,%.4f,1' % col)
-                            i = 0
-                        else:
-                            if i == 7:
-                                fw('\n\t\t\t\t')
-                                i = 0
-                            fw(',%.4f,%.4f,%.4f,1' % col)
-                        i += 1
-                        ii += 1  # One more Color
+                col2idx = tuple(set(t_lc))
+                fw(',\n\t\t\t        '.join(','.join('%.6f,%.6f,%.6f,1' % c for c in chunk)
+                                            for chunk in grouper_exact(col2idx, _nchunk)))
 
                 fw('\n\t\t\tColorIndex: ')
-                i = -1
-                for j in range(ii):
-                    if i == -1:
-                        fw('%i' % j)
-                        i = 0
-                    else:
-                        if i == 55:
-                            fw('\n\t\t\t\t')
-                            i = 0
-                        fw(',%i' % j)
-                    i += 1
-
+                col2idx = {col: idx for idx, col in enumerate(col2idx)}
+                fw(',\n\t\t\t            '
+                   ''.join(','.join('%d' % col2idx[c] for c in chunk) for chunk in grouper_exact(t_lc, _nchunk_idx)))
                 fw('\n\t\t}')
 
         # Write UV and texture layers.
         uvlayers = []
+        uvtextures = []
         if do_uvs:
-            uvlayers = me.tessface_uv_textures
-            for uvindex, uvlayer in enumerate(me.tessface_uv_textures):
-                fw('\n\t\tLayerElementUV: %i {' % uvindex)
-                fw('\n\t\t\tVersion: 101')
-                fw('\n\t\t\tName: "%s"' % uvlayer.name)
+            uvlayers = me.uv_layers
+            t_uv = [None] * len(me.loops) * 2
+            t_pi = None
+            uv2idx = None
+            tex2idx = None
+            _nchunk = 6  # Number of UVs per line
+            _nchunk_idx = 64  # Number of UV indices per line
+            if do_textures:
+                uvtextures = me.uv_textures
+                is_tex_unique = len(my_mesh.blenTextures) == 1
+                tex2idx = {None: -1}
+                tex2idx.update({tex: i for i, tex in enumerate(my_mesh.blenTextures)})
 
-                fw('''
-			MappingInformationType: "ByPolygonVertex"
-			ReferenceInformationType: "IndexToDirect"
-			UV: ''')
-
-                i = -1
-                ii = 0  # Count how many UVs we write
-
-                for uf in uvlayer.data:
-                    # workaround, since uf.uv iteration is wrong atm
-                    for uv in uf.uv:
-                        if i == -1:
-                            fw('%.6f,%.6f' % uv[:])
-                            i = 0
-                        else:
-                            if i == 7:
-                                fw('\n\t\t\t ')
-                                i = 0
-                            fw(',%.6f,%.6f' % uv[:])
-                        i += 1
-                        ii += 1  # One more UV
-
+            for uvindex, (uvlayer, uvtexture) in enumerate(zip(uvlayers, uvtextures)):
+                uvlayer.data.foreach_get("uv", t_uv)
+                t_uv = tuple(zip(*[iter(t_uv)] * 2))
+                fw('\n\t\tLayerElementUV: %d {'
+                   '\n\t\t\tVersion: 101'
+                   '\n\t\t\tName: "%s"'
+                   '\n\t\t\tMappingInformationType: "ByPolygonVertex"'
+                   '\n\t\t\tReferenceInformationType: "IndexToDirect"'
+                   '\n\t\t\tUV: ' % (uvindex, uvlayer.name))
+                uv2idx = tuple(set(t_uv))
+                fw(',\n\t\t\t    '
+                   ''.join(','.join('%.6f,%.6f' % uv for uv in chunk) for chunk in grouper_exact(uv2idx, _nchunk)))
                 fw('\n\t\t\tUVIndex: ')
-                i = -1
-                for j in range(ii):
-                    if i == -1:
-                        fw('%i' % j)
-                        i = 0
-                    else:
-                        if i == 55:
-                            fw('\n\t\t\t\t')
-                            i = 0
-                        fw(',%i' % j)
-                    i += 1
-
+                uv2idx = {uv: idx for idx, uv in enumerate(uv2idx)}
+                fw(',\n\t\t\t         '
+                   ''.join(','.join('%d' % uv2idx[uv] for uv in chunk) for chunk in grouper_exact(t_uv, _nchunk_idx)))
                 fw('\n\t\t}')
 
                 if do_textures:
-                    fw('\n\t\tLayerElementTexture: %i {' % uvindex)
-                    fw('\n\t\t\tVersion: 101')
-                    fw('\n\t\t\tName: "%s"' % uvlayer.name)
-
-                    if len(my_mesh.blenTextures) == 1:
-                        fw('\n\t\t\tMappingInformationType: "AllSame"')
-                    else:
-                        fw('\n\t\t\tMappingInformationType: "ByPolygon"')
-
-                    fw('\n\t\t\tReferenceInformationType: "IndexToDirect"')
-                    fw('\n\t\t\tBlendMode: "Translucent"')
-                    fw('\n\t\t\tTextureAlpha: 1')
-                    fw('\n\t\t\tTextureId: ')
-
-                    if len(my_mesh.blenTextures) == 1:
+                    fw('\n\t\tLayerElementTexture: %d {'
+                       '\n\t\t\tVersion: 101'
+                       '\n\t\t\tName: "%s"' 
+                       '\n\t\t\tMappingInformationType: "%s"'
+                       '\n\t\t\tReferenceInformationType: "IndexToDirect"'
+                       '\n\t\t\tBlendMode: "Translucent"'
+                       '\n\t\t\tTextureAlpha: 1'
+                       '\n\t\t\tTextureId: '
+                       % (uvindex, uvlayer.name, ('AllSame' if is_tex_unique else 'ByPolygon')))
+                    if is_tex_unique:
                         fw('0')
                     else:
-                        texture_mapping_local = {None: -1}
-
-                        i = 0  # 1 for dummy
-                        for tex in my_mesh.blenTextures:
-                            if tex:  # None is set above
-                                texture_mapping_local[tex] = i
-                                i += 1
-
-                        i = -1
-                        for f in uvlayer.data:
-                            img_key = f.image
-
-                            if i == -1:
-                                i = 0
-                                fw('%s' % texture_mapping_local[img_key])
-                            else:
-                                if i == 55:
-                                    fw('\n			 ')
-                                    i = 0
-
-                                fw(',%s' % texture_mapping_local[img_key])
-                            i += 1
-
+                        t_pi = (d.image for d in uvtexture.data)  # Can't use foreach_get here :(
+                        fw(',\n\t\t\t           '.join(','.join('%d' % tex2idx[i] for i in chunk)
+                                                       for chunk in grouper_exact(t_pi, _nchunk_idx)))
                 else:
-                    fw('''
-		LayerElementTexture: 0 {
-			Version: 101
-			Name: ""
-			MappingInformationType: "NoMappingInformation"
-			ReferenceInformationType: "IndexToDirect"
-			BlendMode: "Translucent"
-			TextureAlpha: 1
-			TextureId: ''')
+                    fw('\n\t\tLayerElementTexture: 0 {'
+                       '\n\t\t\tVersion: 101'
+                       '\n\t\t\tName: ""'
+                       '\n\t\t\tMappingInformationType: "NoMappingInformation"'
+                       '\n\t\t\tReferenceInformationType: "IndexToDirect"'
+                       '\n\t\t\tBlendMode: "Translucent"'
+                       '\n\t\t\tTextureAlpha: 1'
+                       '\n\t\t\tTextureId: ')
                 fw('\n\t\t}')
 
         # Done with UV/textures.
         if do_materials:
-            fw('\n\t\tLayerElementMaterial: 0 {')
-            fw('\n\t\t\tVersion: 101')
-            fw('\n\t\t\tName: ""')
-
-            if len(my_mesh.blenMaterials) == 1:
-                fw('\n\t\t\tMappingInformationType: "AllSame"')
-            else:
-                fw('\n\t\t\tMappingInformationType: "ByPolygon"')
-
-            fw('\n\t\t\tReferenceInformationType: "IndexToDirect"')
-            fw('\n\t\t\tMaterials: ')
-
-            if len(my_mesh.blenMaterials) == 1:
+            is_mat_unique = len(my_mesh.blenMaterials) == 1
+            fw('\n\t\tLayerElementMaterial: 0 {'
+               '\n\t\t\tVersion: 101'
+               '\n\t\t\tName: ""'
+               '\n\t\t\tMappingInformationType: "%s"'
+               '\n\t\t\tReferenceInformationType: "IndexToDirect"'
+               '\n\t\t\tMaterials: ' % ('AllSame' if is_mat_unique else 'ByPolygon',))
+            if is_mat_unique:
                 fw('0')
             else:
+                _nchunk = 64  # Number of material indices per line
                 # Build a material mapping for this
-                material_mapping_local = {}  # local-mat & tex : global index.
-
-                for j, mat_tex_pair in enumerate(my_mesh.blenMaterials):
-                    material_mapping_local[mat_tex_pair] = j
-
+                mat2idx = {mt: i for i, mt in enumerate(my_mesh.blenMaterials)}  # (local-mat, tex) -> global index.
                 mats = my_mesh.blenMaterialList
-
-                if me.tessface_uv_textures.active:
-                    uv_faces = me.tessface_uv_textures.active.data
+                if me.uv_textures.active and do_uvs:
+                    poly_tex = me.uv_textures.active.data
                 else:
-                    uv_faces = [None] * len(me_faces)
-
-                i = -1
-                for f, uf in zip(me_faces, uv_faces):
-                    try:
-                        mat = mats[f.material_index]
-                    except:
-                        mat = None
-
-                    if do_uvs:
-                        tex = uf.image  # WARNING - MULTI UV LAYER IMAGES NOT SUPPORTED :/
-                    else:
-                        tex = None
-
-                    if i == -1:
-                        i = 0
-                        fw('%s' % material_mapping_local[mat, tex])  # None for mat or tex is ok
-                    else:
-                        if i == 55:
-                            fw('\n\t\t\t\t')
-                            i = 0
-
-                        fw(',%s' % material_mapping_local[mat, tex])
-                    i += 1
-
+                    poly_tex = [None] * len(me.polygons)
+                _it_mat = (mats[p.material_index] for p in me.polygons)
+                _it_tex = (pt.image if pt else None for pt in poly_tex)  # WARNING - MULTI UV LAYER IMAGES NOT SUPPORTED
+                t_mti = (mat2idx[m, t] for m, t in zip(_it_mat, _it_tex))
+                fw(',\n\t\t\t           '
+                   ''.join(','.join('%d' % i for i in chunk) for chunk in grouper_exact(t_mti, _nchunk)))
             fw('\n\t\t}')
 
-        fw('''
-		Layer: 0 {
-			Version: 100
-			LayerElement:  {
-				Type: "LayerElementNormal"
-				TypedIndex: 0
-			}''')
-
-        if do_materials:
-            fw('''
-			LayerElement:  {
-				Type: "LayerElementMaterial"
-				TypedIndex: 0
-			}''')
+        fw('\n\t\tLayer: 0 {'
+           '\n\t\t\tVersion: 100'
+           '\n\t\t\tLayerElement:  {'
+           '\n\t\t\t\tType: "LayerElementNormal"'
+           '\n\t\t\t\tTypedIndex: 0'
+           '\n\t\t\t}')
 
         # Smoothing info
         if mesh_smooth_type != 'OFF':
-            fw('''
-			LayerElement:  {
-				Type: "LayerElementSmoothing"
-				TypedIndex: 0
-			}''')
+            fw('\n\t\t\tLayerElement:  {'
+               '\n\t\t\t\tType: "LayerElementSmoothing"'
+               '\n\t\t\t\tTypedIndex: 0'
+               '\n\t\t\t}')
+
+        if me.tessface_vertex_colors:
+            fw('\n\t\t\tLayerElement:  {'
+               '\n\t\t\t\tType: "LayerElementColor"'
+               '\n\t\t\t\tTypedIndex: 0'
+               '\n\t\t\t}')
+
+        if do_uvs:  # same as me.faceUV
+            fw('\n\t\t\tLayerElement:  {'
+               '\n\t\t\t\tType: "LayerElementUV"'
+               '\n\t\t\t\tTypedIndex: 0'
+               '\n\t\t\t}')
 
         # Always write this
         if do_textures:
-            fw('''
-			LayerElement:  {
-				Type: "LayerElementTexture"
-				TypedIndex: 0
-			}''')
+            fw('\n\t\t\tLayerElement:  {'
+               '\n\t\t\t\tType: "LayerElementTexture"'
+               '\n\t\t\t\tTypedIndex: 0'
+               '\n\t\t\t}')
 
-        if me.tessface_vertex_colors:
-            fw('''
-			LayerElement:  {
-				Type: "LayerElementColor"
-				TypedIndex: 0
-			}''')
-
-        if do_uvs:  # same as me.faceUV
-            fw('''
-			LayerElement:  {
-				Type: "LayerElementUV"
-				TypedIndex: 0
-			}''')
+        if do_materials:
+            fw('\n\t\t\tLayerElement:  {'
+               '\n\t\t\t\tType: "LayerElementMaterial"'
+               '\n\t\t\t\tTypedIndex: 0'
+               '\n\t\t\t}')
 
         fw('\n\t\t}')
 
         if len(uvlayers) > 1:
-            for i in range(1, len(uvlayers)):
-
-                fw('\n\t\tLayer: %i {' % i)
-                fw('\n\t\t\tVersion: 100')
-
-                fw('''
-			LayerElement:  {
-				Type: "LayerElementUV"''')
-
-                fw('\n\t\t\t\tTypedIndex: %i' % i)
-                fw('\n\t\t\t}')
-
+            for i in range(1, len(uvlayers)):  # Why start at 1 (i.e. skip first UV layer)??? --mont29
+                fw('\n\t\tLayer: %d {'
+                   '\n\t\t\tVersion: 100'
+                   '\n\t\t\tLayerElement:  {'
+                   '\n\t\t\t\tType: "LayerElementUV"'
+                   '\n\t\t\t\tTypedIndex: %d'
+                   '\n\t\t\t}' % (i, i))
                 if do_textures:
-
-                    fw('''
-			LayerElement:  {
-				Type: "LayerElementTexture"''')
-
-                    fw('\n\t\t\t\tTypedIndex: %i' % i)
-                    fw('\n\t\t\t}')
-
+                    fw('\n\t\t\tLayerElement:  {'
+                       '\n\t\t\t\tType: "LayerElementTexture"'
+                       '\n\t\t\t\tTypedIndex: %d'
+                       '\n\t\t\t}' % i)
                 fw('\n\t\t}')
 
+        # XXX Col layers are written before UV ones above, why adding them after UV here???
+        #     And why this offset based on len(UV layers) - 1???
+        #     I have the feeling some indices are wrong here!
+        #     --mont29
         if len(collayers) > 1:
             # Take into account any UV layers
-            layer_offset = 0
-            if uvlayers:
-                layer_offset = len(uvlayers) - 1
-
+            layer_offset = len(uvlayers) - 1 if uvlayers else 0
             for i in range(layer_offset, len(collayers) + layer_offset):
-                fw('\n\t\tLayer: %i {' % i)
-                fw('\n\t\t\tVersion: 100')
-
-                fw('''
-			LayerElement:  {
-				Type: "LayerElementColor"''')
-
-                fw('\n\t\t\t\tTypedIndex: %i' % i)
-                fw('\n\t\t\t}')
-                fw('\n\t\t}')
+                fw('\n\t\tLayer: %d {'
+                   '\n\t\t\tVersion: 100'
+                   '\n\t\t\tLayerElement:  {'
+                   '\n\t\t\t\tType: "LayerElementColor"'
+                   '\n\t\t\t\tTypedIndex: %d'
+                   '\n\t\t\t}'
+                   '\n\t\t}' % (i, i))
 
         if do_shapekeys:
+            # Not sure this works really good...
+            #     Aren't key's co already relative if set as such?
+            #     Also, does not handle custom relative option for each key...
+
+            # --mont29
+            import operator
             key_blocks = my_mesh.blenObject.data.shape_keys.key_blocks[:]
+            t_sk_basis = [None] * len(me.vertices) * 3
+            t_sk = [None] * len(me.vertices) * 3
+            key_blocks[0].data.foreach_get("co", t_sk_basis)
+            _nchunk = 4  # Number of delta coordinates per line
+            _nchunk_idx = 32  # Number of vert indices per line
+
             for kb in key_blocks[1:]:
-
-                fw('\n\t\tShape: "%s" {' % kb.name)
-                fw('\n\t\t\tIndexes: ')
-
-                basis_verts = key_blocks[0].data
-                range_verts = []
-                delta_verts = []
-                i = -1
-                for j, kv in enumerate(kb.data):
-                    delta = kv.co - basis_verts[j].co
-                    if delta.length > 0.000001:
-                        if i == -1:
-                            fw('%d' % j)
-                        else:
-                            if i == 7:
-                                fw('\n\t\t\t')
-                                i = 0
-                            fw(',%d' % j)
-                        delta_verts.append(delta[:])
-                        i += 1
+                kb.data.foreach_get("co", t_sk)
+                _dcos = tuple(zip(*[map(operator.sub, t_sk, t_sk_basis)] * 3))
+                verts = tuple(i for i, dco in enumerate(_dcos) if sum(map(operator.pow, dco, (2, 2, 2))) > 3e-12)
+                dcos = (_dcos[i] for i in verts)
+                fw('\n\t\tShape: "%s" {'
+                   '\n\t\t\tIndexes: ' % kb.name)
+                fw(',\n\t\t\t         '
+                   ''.join(','.join('%d' % i for i in chunk) for chunk in grouper_exact(verts, _nchunk_idx)))
 
                 fw('\n\t\t\tVertices: ')
-                i = -1
-                for dv in delta_verts:
-                    if i == -1:
-                        fw("%.6f,%.6f,%.6f" % dv)
-                    else:
-                        if i == 4:
-                            fw('\n\t\t\t')
-                            i = 0
-                        fw(",%.6f,%.6f,%.6f" % dv)
-                    i += 1
-
+                fw(',\n\t\t\t          '
+                   ''.join(','.join('%.6f,%.6f,%.6f' % c for c in chunk) for chunk in grouper_exact(dcos, _nchunk)))
                 # all zero, why? - campbell
+                # Would need to recompute them I guess... and I assume those are supposed to be delta as well?
                 fw('\n\t\t\tNormals: ')
-                for j in range(len(delta_verts)):
-                    if i == -1:
-                        fw("0,0,0")
-                    else:
-                        if i == 4:
-                            fw('\n\t\t\t')
-                            i = 0
-                        fw(",0,0,0")
-                    i += 1
+                fw(',\n\t\t\t         '
+                   ''.join(','.join('0,0,0' for c in chunk) for chunk in grouper_exact(range(len(verts)), _nchunk)))
                 fw('\n\t\t}')
 
         fw('\n\t}')
@@ -2946,7 +2786,7 @@ Takes:  {''')
     # copy all collected files.
     bpy_extras.io_utils.path_reference_copy(copy_set)
 
-    print('export finished in %.4f sec.' % (time.clock() - start_time))
+    print('export finished in %.4f sec.' % (time.process_time() - start_time))
     return {'FINISHED'}
 
 
