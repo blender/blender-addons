@@ -53,7 +53,7 @@ class CyclesShaderWrapper():
 
         "node_normalmap",
         "node_texcoords",
-        
+
         "node_image_alpha",
         "node_image_diff",
         "node_image_spec",
@@ -307,7 +307,7 @@ class CyclesShaderWrapper():
         tree = node_dst.id_data
         nodes = tree.nodes
         links = tree.links
-        
+
         # in most cases:
         # (socket_src == self.node_texcoords.outputs['UV'])
 
@@ -480,6 +480,9 @@ class CyclesShaderWrapper():
         (sometimes we want to assume default mapping follows diffuse).
         """
         # get mapping from diffuse
+        if not hasattr(self, "node_image_diff"):
+            return
+
         links = self.node_image_diff.inputs["Vector"].links
         if not links:
             return
