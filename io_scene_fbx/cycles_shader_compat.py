@@ -213,7 +213,7 @@ class CyclesShaderWrapper():
                   self.node_mix_shader_spec.inputs[1])  # second 'Shader' slot
 
         node = nodes.new(type='ShaderNodeMixRGB')
-        node.label = "Mix Color/Diffuse"
+        node.label = "Mix Color/Spec"
         node.location = self._grid_location(1, 1)
         node.blend_type = 'MULTIPLY'
         node.inputs["Fac"].default_value = 1.0
@@ -227,11 +227,11 @@ class CyclesShaderWrapper():
 
         node = nodes.new(type='ShaderNodeMixRGB')
         node.label = "Mix Color/Hardness"
-        node.location = self._grid_location(0, 0)
+        node.location = self._grid_location(1, 0)
         node.blend_type = 'MULTIPLY'
         node.inputs["Fac"].default_value = 1.0
         node.inputs["Color1"].default_value = COLOR_WHITE
-        node.inputs["Color2"].default_value = COLOR_BLACK
+        node.inputs["Color2"].default_value = COLOR_WHITE
         self.node_mix_color_hard = node
         del node
         # Link
