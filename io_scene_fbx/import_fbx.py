@@ -1225,8 +1225,8 @@ def load(operator, context, filepath="",
                             use_mapping = True
                             tex_map_kw = {
                                 "translation": tex_map[0],
-                                "rotation": tex_map[1],
-                                "scale": tex_map[2],
+                                "rotation": [-i for i in tex_map[1]],
+                                "scale": [((1.0 / i) if i != 0.0 else 1.0) for i in tex_map[2]],
                                 }
 
                         if lnk_type == b'DiffuseColor':
