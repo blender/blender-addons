@@ -312,15 +312,10 @@ def write_pov(filename, scene=None, info_callback=None):
 
 
         comments = scene.pov.comments_enable
-        
+
         if material:
-            if (material.specular_color.r == material.specular_color.g) and (material.specular_color.r == material.specular_color.b):
-                colored_specular_found = False
-            else:
-                colored_specular_found = True
-        
-        
-        
+            colored_specular_found = (material.specular_color.s > 0.0)
+
         ##################
         # Several versions of the finish: Level conditions are variations for specular/Mirror
         # texture channel map with alternative finish of 0 specular and no mirror reflection.
