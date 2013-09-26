@@ -1181,7 +1181,8 @@ def load(operator, context, filepath="",
             return (elem_props_get_vector_3d(fbx_props, b'Translation', (0.0, 0.0, 0.0)),
                     elem_props_get_vector_3d(fbx_props, b'Rotation', (0.0, 0.0, 0.0)),
                     elem_props_get_vector_3d(fbx_props, b'Scaling', (1.0, 1.0, 1.0)),
-                    )
+                    (bool(elem_props_get_enum(fbx_props, b'WrapModeU', 0)),
+                     bool(elem_props_get_enum(fbx_props, b'WrapModeV', 0))))
 
         if not use_cycles:
             # Simple function to make a new mtex and set defaults
@@ -1218,7 +1219,8 @@ def load(operator, context, filepath="",
                         tex_map = texture_mapping_get(fbx_lnk)
                         if (tex_map[0] == (0.0, 0.0, 0.0) and
                             tex_map[1] == (0.0, 0.0, 0.0) and
-                            tex_map[2] == (1.0, 1.0, 1.0)):
+                            tex_map[2] == (1.0, 1.0, 1.0) and
+                            tex_map[3] == (False, False)):
 
                             use_mapping = False
                         else:
@@ -1227,6 +1229,7 @@ def load(operator, context, filepath="",
                                 "translation": tex_map[0],
                                 "rotation": [-i for i in tex_map[1]],
                                 "scale": [((1.0 / i) if i != 0.0 else 1.0) for i in tex_map[2]],
+                                "clamp": tex_map[3],
                                 }
 
                         if lnk_type == b'DiffuseColor':

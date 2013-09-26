@@ -303,7 +303,7 @@ class CyclesShaderWrapper():
 
     @staticmethod
     def _mapping_create_helper(node_dst, socket_src,
-                               translation, rotation, scale):
+                               translation, rotation, scale, clamp):
         tree = node_dst.id_data
         nodes = tree.nodes
         links = tree.links
@@ -311,11 +311,26 @@ class CyclesShaderWrapper():
         # in most cases:
         # (socket_src == self.node_texcoords.outputs['UV'])
 
-        node_map = nodes.new(type='ShaderNodeMapping')
-        node_map.location = node_dst.location
-        node_map.location.x -= CyclesShaderWrapper._col_size
+        node_map = None
 
-        node_map.width = 160.0
+        # find an existing mapping node (allows multiple calls)
+        if node_dst.inputs["Vector"].links:
+            node_map = node_dst.inputs["Vector"].links[0].from_node
+
+        if node_map is None:
+            node_map = nodes.new(type='ShaderNodeMapping')
+            node_map.location = node_dst.location
+            node_map.location.x -= CyclesShaderWrapper._col_size
+
+            node_map.width = 160.0
+
+            # link mapping -> image node
+            links.new(node_map.outputs["Vector"],
+                      node_dst.inputs["Vector"])
+
+            # link coord -> mapping
+            links.new(socket_src,
+                      node_map.inputs["Vector"])
 
         if translation is not None:
             node_map.translation = translation
@@ -323,14 +338,19 @@ class CyclesShaderWrapper():
             node_map.scale = scale
         if rotation is not None:
             node_map.rotation = rotation
+        if clamp is not None:
+            # awkward conversion UV clamping to minmax
+            node_map.min = (0.0, 0.0, 0.0)
+            node_map.max = (1.0, 1.0, 1.0)
 
-        # link mapping -> image node
-        links.new(node_map.outputs["Vector"],
-                  node_dst.inputs["Vector"])
+            if clamp in {(False, False), (True, True)}:
+                node_map.use_min = node_map.use_max = clamp[0]
+            else:
+                node_map.use_min = node_map.use_max = True
+                # use bool as index
+                node_map.min[not clamp[0]] = -1000000000.0
+                node_map.max[not clamp[0]] = 1000000000.0
 
-        # link coord -> mapping
-        links.new(socket_src,
-                  node_map.inputs["Vector"])
         return node_map
 
     # note, all ***_mapping_set() functions currenly work the same way
@@ -350,9 +370,9 @@ class CyclesShaderWrapper():
             self._image_create_helper(image, node, (node.inputs["Color2"],)))
 
     def diffuse_mapping_set(self, coords='UV',
-                            translation=None, rotation=None, scale=None):
+                            translation=None, rotation=None, scale=None, clamp=None):
         return self._mapping_create_helper(
-            self.node_image_diff, self.node_texcoords.outputs[coords], translation, rotation, scale)
+            self.node_image_diff, self.node_texcoords.outputs[coords], translation, rotation, scale, clamp)
 
     def specular_color_set(self, color):
         self.node_bsdf_spec.mute = max(color) <= 0.0
@@ -364,9 +384,9 @@ class CyclesShaderWrapper():
             self._image_create_helper(image, node, (node.inputs["Color2"],)))
 
     def specular_mapping_set(self, coords='UV',
-                             translation=None, rotation=None, scale=None):
+                             translation=None, rotation=None, scale=None, clamp=None):
         return self._mapping_create_helper(
-            self.node_image_spec, self.node_texcoords.outputs[coords], translation, rotation, scale)
+            self.node_image_spec, self.node_texcoords.outputs[coords], translation, rotation, scale, clamp)
 
     def hardness_value_set(self, value):
         node = self.node_mix_color_hard
@@ -378,9 +398,9 @@ class CyclesShaderWrapper():
             self._image_create_helper(image, node, (node.inputs["Color2"],)))
 
     def hardness_mapping_set(self, coords='UV',
-                             translation=None, rotation=None, scale=None):
+                             translation=None, rotation=None, scale=None, clamp=None):
         return self._mapping_create_helper(
-            self.node_image_hard, self.node_texcoords.outputs[coords], translation, rotation, scale)
+            self.node_image_hard, self.node_texcoords.outputs[coords], translation, rotation, scale, clamp)
 
     def reflect_color_set(self, color):
         node = self.node_mix_color_refl
@@ -399,9 +419,9 @@ class CyclesShaderWrapper():
             self._image_create_helper(image, node, (node.inputs["Color2"],)))
 
     def reflect_mapping_set(self, coords='UV',
-                            translation=None, rotation=None, scale=None):
+                            translation=None, rotation=None, scale=None, clamp=None):
         return self._mapping_create_helper(
-            self.node_image_refl, self.node_texcoords.outputs[coords], translation, rotation, scale)
+            self.node_image_refl, self.node_texcoords.outputs[coords], translation, rotation, scale, clamp)
 
     def alpha_value_set(self, value):
         self.node_bsdf_alpha.mute &= (value >= 1.0)
@@ -418,9 +438,9 @@ class CyclesShaderWrapper():
             self._image_create_helper(image, node, (node.inputs["Color2"],), use_alpha=True))
 
     def alpha_mapping_set(self, coords='UV',
-                          translation=None, rotation=None, scale=None):
+                          translation=None, rotation=None, scale=None, clamp=None):
         return self._mapping_create_helper(
-            self.node_image_alpha, self.node_texcoords.outputs[coords], translation, rotation, scale)
+            self.node_image_alpha, self.node_texcoords.outputs[coords], translation, rotation, scale, clamp)
 
     def alpha_image_set_from_diffuse(self):
         # XXX, remove?
@@ -449,9 +469,9 @@ class CyclesShaderWrapper():
         self.node_image_normalmap.color_space = 'NONE'
 
     def normal_mapping_set(self, coords='UV',
-                           translation=None, rotation=None, scale=None):
+                           translation=None, rotation=None, scale=None, clamp=None):
         return self._mapping_create_helper(
-            self.node_image_normalmap, self.node_texcoords.outputs[coords], translation, rotation, scale)
+            self.node_image_normalmap, self.node_texcoords.outputs[coords], translation, rotation, scale, clamp)
 
     def bump_factor_set(self, value):
         node = self.node_mix_color_bump
@@ -464,9 +484,9 @@ class CyclesShaderWrapper():
             self._image_create_helper(image, node, (node.inputs["Color2"],)))
 
     def bump_mapping_set(self, coords='UV',
-                         translation=None, rotation=None, scale=None):
+                         translation=None, rotation=None, scale=None, clamp=None):
         return self._mapping_create_helper(
-            self.node_image_bump, self.node_texcoords.outputs[coords], translation, rotation, scale)
+            self.node_image_bump, self.node_texcoords.outputs[coords], translation, rotation, scale, clamp)
 
     def mapping_set_from_diffuse(self,
                                  specular=True,
