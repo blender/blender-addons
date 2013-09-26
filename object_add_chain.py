@@ -19,8 +19,8 @@
 bl_info = {
     "name": "Add Chain",
     "author": "Brian Hinton (Nichod)",
-    "version": (0,1),
-    "blender": (2, 59, 0),
+    "version": (0, 1, 1),
+    "blender": (2, 68, 0),
     "location": "View3D > Add > Mesh",
     "description": "Adds Chain with curve guide for easy creation",
     "warning": "",
@@ -32,9 +32,8 @@ bl_info = {
 
 import bpy
 
-def Add_Chain():
-  
 
+def Add_Chain():
     ##Adds Empty to scene
     bpy.ops.object.add(type='EMPTY',
                        view_align=False,
@@ -66,7 +65,6 @@ def Add_Chain():
                                      minor_radius=0.25,
                                      major_segments=12,
                                      minor_segments=4,
-                                     use_abso=False,
                                      abso_major_rad=1,
                                      abso_minor_rad=0.5,
                                      )
