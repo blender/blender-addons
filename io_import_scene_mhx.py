@@ -38,7 +38,7 @@ Alternatively, run the script in the script editor (Alt-P), and access from the 
 bl_info = {
     'name': 'Import: MakeHuman (.mhx)',
     'author': 'Thomas Larsson',
-    'version': (1, 16, 6),
+    'version': (1, 16, 7),
     "blender": (2, 68, 0),
     'location': "File > Import > MakeHuman (.mhx)",
     'description': 'Import files in the MakeHuman eXchange format (.mhx)',
@@ -51,7 +51,7 @@ bl_info = {
 MAJOR_VERSION = 1
 MINOR_VERSION = 16
 FROM_VERSION = 13
-SUB_VERSION = 5
+SUB_VERSION = 7
 
 majorVersion = MAJOR_VERSION
 minorVersion = MINOR_VERSION
@@ -136,6 +136,7 @@ def mhxEval(expr, locls={}):
         '__builtins__' : {},
         'toggle' : toggle,
         'theScale' : theScale,
+        'One' : One,
         'T_EnforceVersion' : T_EnforceVersion,
         'T_Clothes' : T_Clothes,
         'T_HardParents' : T_HardParents,
@@ -3001,89 +3002,6 @@ class ImportMhx(bpy.types.Operator, ImportHelper):
 #
 #    visemes
 #
-"""
-stopStaringVisemes = ({
-    'Rest' : [
-        ('PMouth', (0,0)),
-        ('PUpLip', (0,-0.1)),
-        ('PLoLip', (0,0.1)),
-        ('PJaw', (0,0.05)),
-        ('PTongue', (0,0.0))],
-    'Etc' : [
-        ('PMouth', (0,0)),
-        ('PUpLip', (0,-0.1)),
-        ('PLoLip', (0,0.1)),
-        ('PJaw', (0,0.15)),
-        ('PTongue', (0,0.0))],
-    'MBP' : [('PMouth', (-0.3,0)),
-        ('PUpLip', (0,1)),
-        ('PLoLip', (0,0)),
-        ('PJaw', (0,0.1)),
-        ('PTongue', (0,0.0))],
-    'OO' : [('PMouth', (-1.5,0)),
-        ('PUpLip', (0,0)),
-        ('PLoLip', (0,0)),
-        ('PJaw', (0,0.2)),
-        ('PTongue', (0,0.0))],
-    'O' : [('PMouth', (-1.1,0)),
-        ('PUpLip', (0,0)),
-        ('PLoLip', (0,0)),
-        ('PJaw', (0,0.5)),
-        ('PTongue', (0,0.0))],
-    'R' : [('PMouth', (-0.9,0)),
-        ('PUpLip', (0,-0.2)),
-        ('PLoLip', (0,0.2)),
-        ('PJaw', (0,0.2)),
-        ('PTongue', (0,0.0))],
-    'FV' : [('PMouth', (0,0)),
-        ('PUpLip', (0,0)),
-        ('PLoLip', (0,-0.8)),
-        ('PJaw', (0,0.1)),
-        ('PTongue', (0,0.0))],
-    'S' : [('PMouth', (0,0)),
-        ('PUpLip', (0,-0.2)),
-        ('PLoLip', (0,0.2)),
-        ('PJaw', (0,0.05)),
-        ('PTongue', (0,0.0))],
-    'SH' : [('PMouth', (-0.6,0)),
-        ('PUpLip', (0,-0.5)),
-        ('PLoLip', (0,0.5)),
-        ('PJaw', (0,0)),
-        ('PTongue', (0,0.0))],
-    'EE' : [('PMouth', (0.3,0)),
-        ('PUpLip', (0,-0.3)),
-        ('PLoLip', (0,0.3)),
-        ('PJaw', (0,0.025)),
-        ('PTongue', (0,0.0))],
-    'AH' : [('PMouth', (-0.1,0)),
-        ('PUpLip', (0,-0.4)),
-        ('PLoLip', (0,0)),
-        ('PJaw', (0,0.35)),
-        ('PTongue', (0,0.0))],
-    'EH' : [('PMouth', (0.1,0)),
-        ('PUpLip', (0,-0.2)),
-        ('PLoLip', (0,0.2)),
-        ('PJaw', (0,0.2)),
-        ('PTongue', (0,0.0))],
-    'TH' : [('PMouth', (0,0)),
-        ('PUpLip', (0,-0.5)),
-        ('PLoLip', (0,0.5)),
-        ('PJaw', (-0.2,0.1)),
-        ('PTongue', (0,-0.6))],
-    'L' : [('PMouth', (0,0)),
-        ('PUpLip', (0,-0.2)),
-        ('PLoLip', (0,0.2)),
-        ('PJaw', (0.2,0.2)),
-        ('PTongue', (0,-0.8))],
-    'G' : [('PMouth', (0,0)),
-        ('PUpLip', (0,-0.1)),
-        ('PLoLip', (0,0.1)),
-        ('PJaw', (-0.3,0.1)),
-        ('PTongue', (0,-0.6))],
-
-    'Blink' : [('PUpLid', (0,1.0)), ('PLoLid', (0,-1.0))],
-    'Unblink' : [('PUpLid', (0,0)), ('PLoLid', (0,0))],
-})
 
 bodyLanguageVisemes = ({
     'Rest' : [
@@ -3330,6 +3248,7 @@ VisemeList = [
 #
 
 def makeVisemes(ob, scn):
+    rig = ob.parent
     if ob.type != 'MESH':
         print("Active object %s is not a mesh" % ob)
         return
@@ -3340,8 +3259,13 @@ def makeVisemes(ob, scn):
         ob.data.shape_keys.key_blocks["VIS_Rest"]
         print("Visemes already created")
         return
-    except:
+    except KeyError:
         pass
+    try:
+        ob.data.shape_keys.key_blocks["MouthOpen"]
+    except KeyError:
+        print("Mesh does not have face shapes")
+        return
 
     verts = ob.data.vertices
     for (vis,shapes) in bodyLanguageVisemes.items():
@@ -3369,28 +3293,28 @@ class VIEW3D_OT_MhxMakeVisemesButton(bpy.types.Operator):
     def execute(self, context):
         makeVisemes(context.object, context.scene)
         return{'FINISHED'}
-"""
+
 #
 #    mohoVisemes
 #    magpieVisemes
 #
 
 MohoVisemes = dict({
-    'rest' : 'Rest',
-    'etc' : 'Etc',
-    'AI' : 'AH',
-    'O' : 'O',
-    'U' : 'OO',
-    'WQ' : 'AH',
-    'L' : 'L',
-    'E' : 'EH',
-    'MBP' : 'MBP',
-    'FV' : 'FV',
+    "rest" : "Rest",
+    "etc" : "Etc",
+    "AI" : "AH",
+    "O" : "O",
+    "U" : "OO",
+    "WQ" : "AH",
+    "L" : "L",
+    "E" : "EH",
+    "MBP" : "MBP",
+    "FV" : "FV",
 })
 
 MagpieVisemes = dict({
     "CONS" : "Etc",
-    "AI" : 'AH',
+    "AI" : "AH",
     "E" : "EH",
     "O" : "O",
     "UW" : "AH",
@@ -3405,15 +3329,11 @@ MagpieVisemes = dict({
 #    setBoneLocation(context, pbone, loc, mirror, setKey, frame):
 #    class VIEW3D_OT_MhxVisemeButton(bpy.types.Operator):
 #
-"""
+
 def getVisemeSet(context, rig):
-    try:
-        visset = rig['MhxVisemeSet']
-    except:
-        return bodyLanguageVisemes
-    if visset == 'StopStaring':
+    if rig.MhxVisemeSet == "StopStaring":
         return stopStaringVisemes
-    elif visset == 'BodyLanguage':
+    elif rig.MhxVisemeSet == "BodyLanguage":
         return bodyLanguageVisemes
     else:
         raise MhxError("Unknown viseme set %s" % visset)
@@ -3475,12 +3395,12 @@ class VIEW3D_OT_MhxVisemeButton(bpy.types.Operator):
         setVisemeAlpha7(context, self.viseme, visemes, False, context.scene.frame_current)
         return{'FINISHED'}
 
-"""
-
 
 def readLipsync(context, filepath, offs, struct):
     (rig, mesh) = getMhxRigMesh(context.object)
-    if rig.MhAlpha8:
+    if rig.MhxVisemeSet:
+        visemes = getVisemeSet(context, rig)
+    else:
         props = getProps(rig, "Mhv")
         visemes = {}
         oldKeys = []
@@ -3492,8 +3412,6 @@ def readLipsync(context, filepath, offs, struct):
         auto = True
         factor = rig.MhxStrength
         shapekeys = getMhmShapekeys(rig, mesh)
-    else:
-        visemes = getVisemeSet(context, rig)
     context.scene.objects.active = rig
     bpy.ops.object.mode_set(mode='POSE')
 
@@ -3503,12 +3421,12 @@ def readLipsync(context, filepath, offs, struct):
         if len(words) < 2:
             continue
         else:
-            vis = "Mhv" + struct[words[1]]
+            vis = struct[words[1]]
             frame = int(words[0])+offs
-        if rig.MhAlpha8:
-            setMhmProps(rig, shapekeys, "Mhsmouth", visemes[vis], factor, auto, frame)
-        else:
+        if rig.MhxVisemeSet:
             setVisemeAlpha7(context, vis, visemes, True, frame)
+        else:
+            setMhmProps(rig, shapekeys, "Mhsmouth", visemes["Mhv"+vis], factor, auto, frame)
     fp.close()
 
     #setInterpolation(rig)
@@ -3551,7 +3469,7 @@ class MhxLipsyncPanel(bpy.types.Panel):
             return
         layout = self.layout
 
-        if rig.MhAlpha8:
+        if not rig.MhxVisemeSet:
             visemes = getProps(rig, "Mhv")
             if not visemes:
                 layout.label("No visemes found")
@@ -3576,8 +3494,6 @@ class MhxLipsyncPanel(bpy.types.Panel):
             row.operator("mhx.pose_mhm", text="Blink").data="Mhsmouth;eye_left_closure:1;eye_right_closure:1"
             row.operator("mhx.pose_mhm", text="Unblink").data="Mhsmouth;eye_left_closure:0;eye_right_closure:0"
         else:
-            layout.label("Lipsync disabled for alpha7 mhx files")
-            return
             for (vis1, vis2, vis3) in VisemeList:
                 row = layout.row()
                 row.operator("mhx.pose_viseme", text=vis1).viseme = vis1
@@ -4679,6 +4595,7 @@ def register():
     bpy.types.Object.MhAlpha8 = BoolProperty(default=True)
     bpy.types.Object.MhxMesh = BoolProperty(default=False)
     bpy.types.Object.MhxRig = StringProperty(default="")
+    bpy.types.Object.MhxVisemeSet = StringProperty(default="")
     bpy.types.Object.MhxRigify = BoolProperty(default=False)
     bpy.types.Object.MhxSnapExact = BoolProperty(default=False)
     bpy.types.Object.MhxShapekeyDrivers = BoolProperty(default=True)
