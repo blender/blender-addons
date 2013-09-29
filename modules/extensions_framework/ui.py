@@ -161,7 +161,7 @@ class property_group_renderer(bpy.types.Panel):
                 else:
                     splt = layout.row(True)
                 for sp in next_items:
-                    col2 = splt.column()
+                    col2 = splt.column(align=True)
                     self.draw_column(sp, col2, context, supercontext,
                         property_group)
         else:
