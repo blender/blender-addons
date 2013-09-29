@@ -317,8 +317,6 @@ def write_file(filepath, objects, scene,
 
     face_vert_index = 1
 
-    globalNormals = {}
-
     # A Dict of Materials
     # (material.name, image.name):matname_imagename # matname_imagename has gaps removed.
     mtl_dict = {}
@@ -352,6 +350,7 @@ def write_file(filepath, objects, scene,
             obs = [(ob_main, ob_main.matrix_world)]
 
         for ob, ob_mat in obs:
+            uv_unique_count = no_unique_count = 0
 
             # Nurbs curve support
             if EXPORT_CURVE_AS_NURBS and test_nurbs_compat(ob):
@@ -482,38 +481,37 @@ def write_file(filepath, objects, scene,
 
                 uv_face_mapping = [None] * len(face_index_pairs)
 
-                uv_dict = {}  # could use a set() here
+                uv_dict = {}
                 for f, f_index in face_index_pairs:
                     uv_ls = uv_face_mapping[f_index] = []
                     for uv_index, l_index in enumerate(f.loop_indices):
                         uv = uv_layer[l_index].uv
-
                         uvkey = veckey2d(uv)
-                        try:
+                        if uvkey in uv_dict:
                             uv_k = uv_dict[uvkey]
-                        except:
-                            uv_k = uv_dict[uvkey] = len(uv_dict)
+                        else:
+                            uv_k = uv_dict[uvkey] = uv_unique_count
                             fw('vt %.6f %.6f\n' % uv[:])
+                            uv_unique_count += 1
                         uv_ls.append(uv_k)
-
-                uv_unique_count = len(uv_dict)
 
                 del uv, uvkey, uv_dict, f_index, uv_index, uv_ls, uv_k
                 # Only need uv_unique_count and uv_face_mapping
 
             # NORMAL, Smooth/Non smoothed.
             if EXPORT_NORMALS:
+                normals_to_idx = {}
                 loops_to_normals = [0] * len(loops)
                 for f, f_index in face_index_pairs:
                     for l_idx in f.loop_indices:
                         noKey = veckey3d(loops[l_idx].normal)
-                        if noKey not in globalNormals:
-                            globalNormals[noKey] = totno
-                            loops_to_normals[l_idx] = totno
-                            fw('vn %.6f %.6f %.6f\n' % noKey)
-                            totno += 1
+                        if noKey in normals_to_idx:
+                            loops_to_normals[l_idx] = normals_to_idx[noKey]
                         else:
-                            loops_to_normals[l_idx] = globalNormals[noKey]
+                            loops_to_normals[l_idx] = normals_to_idx[noKey] = no_unique_count
+                            fw('vn %.6f %.6f %.6f\n' % noKey)
+                            no_unique_count += 1
+                del normals_to_idx
             else:
                 loops_to_normals = []
 
@@ -619,14 +617,14 @@ def write_file(filepath, objects, scene,
                     if EXPORT_NORMALS:
                         for vi, v, li in f_v:
                             fw(" %d/%d/%d" %
-                                       (v.index + totverts,
+                                       (totverts + v.index,
                                         totuvco + uv_face_mapping[f_index][vi],
-                                        loops_to_normals[li],
+                                        totno + loops_to_normals[li],
                                         ))  # vert, uv, normal
                     else:  # No Normals
                         for vi, v, li in f_v:
                             fw(" %d/%d" % (
-                                       v.index + totverts,
+                                       totverts + v.index,
                                        totuvco + uv_face_mapping[f_index][vi],
                                        ))  # vert, uv
 
@@ -635,10 +633,10 @@ def write_file(filepath, objects, scene,
                 else:  # No UV's
                     if EXPORT_NORMALS:
                         for vi, v, li in f_v:
-                            fw(" %d//%d" % (v.index + totverts, loops_to_normals[li]))
+                            fw(" %d//%d" % (totverts + v.index, totno + loops_to_normals[li]))
                     else:  # No Normals
                         for vi, v, li in f_v:
-                            fw(" %d" % (v.index + totverts))
+                            fw(" %d" % (totverts + v.index))
 
                 fw('\n')
 
@@ -646,12 +644,12 @@ def write_file(filepath, objects, scene,
             if EXPORT_EDGES:
                 for ed in edges:
                     if ed.is_loose:
-                        fw('l %d %d\n' % (ed.vertices[0] + totverts, ed.vertices[1] + totverts))
+                        fw('l %d %d\n' % (totverts + ed.vertices[0], totverts + ed.vertices[1]))
 
             # Make the indices global rather then per mesh
             totverts += len(me_verts)
-            if faceuv:
-                totuvco += uv_unique_count
+            totuvco += uv_unique_count
+            totno += no_unique_count
 
             # clean up
             bpy.data.meshes.remove(me)
