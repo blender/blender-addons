@@ -22,7 +22,7 @@
 bl_info = {
     'name': 'Icons',
     'author': 'Crouch, N.tox, PKHG, Campbell Barton, Dany Lebel',
-    'version': (1, 5, 1),
+    'version': (1, 5, 2),
     "blender": (2, 57, 0),
     'location': 'Text Editor > Properties or '\
         'Console > Console Menu',
@@ -98,10 +98,10 @@ class OBJECT_PT_icons(bpy.types.Panel):
             # expand button
             toprow = box.row()
             toprow.prop(props, "expand", icon="TRIA_RIGHT", icon_only=True,
-                emboss=False)
+                text="", emboss=False) # icon_only broken?
             # search buttons
             row = toprow.row(align=True)
-            row.prop(props, "search", icon="VIEWZOOM")
+            row.prop(props, "search", icon="VIEWZOOM", text="")
             # scroll button
             row = toprow.row()
             row.active = props.bl_rna.scroll[1]['max'] > 1
@@ -126,10 +126,10 @@ class OBJECT_PT_icons(bpy.types.Panel):
             # expand button
             toprow = box.row()
             toprow.prop(props, "expand", icon="TRIA_DOWN", icon_only=True,
-                emboss=False)
+                text="", emboss=False)
             # search buttons
             row = toprow.row(align=True)
-            row.prop(props, "search", icon="VIEWZOOM")
+            row.prop(props, "search", icon="VIEWZOOM", text="")
             # scroll button
             row = toprow.row()
             row.active = False
@@ -208,14 +208,17 @@ def register():
         bpy.context.scene.icon_props
         """
         console = bpy.props.BoolProperty(name='Show System Icons',
-            description='Display the Icons in the console header', default=False)
-        expand = bpy.props.BoolProperty(default=False,
-            description="Expand, to display all icons at once")
-        search = bpy.props.StringProperty(default="",
-            description="Search for icons by name")
-        scroll = bpy.props.IntProperty(default=1, min=1,
-            max=max(1, icons_total - icons_per_row + 1),
-            description="Drag to scroll icons")
+            description='Display the Icons in the console header',
+            default=False)
+        expand = bpy.props.BoolProperty(name="Expand",
+            description="Expand, to display all icons at once",
+            default=False)
+        search = bpy.props.StringProperty(name="Search",
+            description="Search for icons by name",
+            default="")
+        scroll = bpy.props.IntProperty(name="Scroll",
+            description="Drag to scroll icons",
+            default=1, min=1, max=max(1, icons_total - icons_per_row + 1))
 
     bpy.utils.register_module(__name__)
     bpy.types.Scene.icon_props = bpy.props.PointerProperty(type=IconProps)
