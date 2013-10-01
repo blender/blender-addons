@@ -284,6 +284,15 @@ def cell_fracture_objects(scene, obj,
 
         objects.append(obj_cell)
 
+        # support for object materials
+        if use_data_match:
+            for i in range(len(mesh_dst.materials)):
+                slot_src = obj.material_slots[i]
+                slot_dst = obj_cell.material_slots[i]
+
+                slot_dst.link = slot_src.link
+                slot_dst.material = slot_src.material
+
         if use_debug_redraw:
             scene.update()
             _redraw_yasiamevil()
