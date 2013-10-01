@@ -1403,6 +1403,11 @@ def save_single(operator, scene, filepath="",
            '\n\t\tCulling: "CullingOff"'
            )
 
+
+
+
+
+
         # Write the Real Mesh data here
         fw('\n\t\tVertices: ')
         _nchunk = 12  # Number of coordinates per line.
@@ -1444,6 +1449,8 @@ def save_single(operator, scene, filepath="",
 
             fw('\n\t\tEdges: ')
             fw(',\n\t\t       '.join(','.join('%i' % vi for vi in chunk) for chunk in grouper_exact(t_vi, _nchunk)))
+            del t_vi
+            del t_el
 
         fw('\n\t\tGeometryVersion: 124')
 
@@ -1499,11 +1506,11 @@ def save_single(operator, scene, filepath="",
         collayers = []
         if len(me.vertex_colors):
             collayers = me.vertex_colors
-            t_lc = [None] * len(me.loops) * 3
             col2idx = None
             _nchunk = 4  # Number of colors per line
             _nchunk_idx = 64  # Number of color indices per line
             for colindex, collayer in enumerate(collayers):
+                t_lc = [None] * len(me.loops) * 3
                 collayer.data.foreach_get("color", t_lc)
                 t_lc = tuple(zip(*[iter(t_lc)] * 3))
                 fw('\n\t\tLayerElementColor: %i {'
@@ -1522,13 +1529,13 @@ def save_single(operator, scene, filepath="",
                 fw(',\n\t\t\t            '
                    ''.join(','.join('%d' % col2idx[c] for c in chunk) for chunk in grouper_exact(t_lc, _nchunk_idx)))
                 fw('\n\t\t}')
+            del t_lc
 
         # Write UV and texture layers.
         uvlayers = []
         uvtextures = []
         if do_uvs:
             uvlayers = me.uv_layers
-            t_uv = [None] * len(me.loops) * 2
             t_pi = None
             uv2idx = None
             tex2idx = None
@@ -1541,6 +1548,7 @@ def save_single(operator, scene, filepath="",
                 tex2idx.update({tex: i for i, tex in enumerate(my_mesh.blenTextures)})
 
             for uvindex, (uvlayer, uvtexture) in enumerate(zip(uvlayers, uvtextures)):
+                t_uv = [None] * len(me.loops) * 2
                 uvlayer.data.foreach_get("uv", t_uv)
                 t_uv = tuple(zip(*[iter(t_uv)] * 2))
                 fw('\n\t\tLayerElementUV: %d {'
@@ -1584,6 +1592,7 @@ def save_single(operator, scene, filepath="",
                        '\n\t\t\tTextureAlpha: 1'
                        '\n\t\t\tTextureId: ')
                 fw('\n\t\t}')
+            del t_uv
 
         # Done with UV/textures.
         if do_materials:
@@ -1688,7 +1697,6 @@ def save_single(operator, scene, filepath="",
             # Not sure this works really good...
             #     Aren't key's co already relative if set as such?
             #     Also, does not handle custom relative option for each key...
-
             # --mont29
             import operator
             key_blocks = my_mesh.blenObject.data.shape_keys.key_blocks[:]
@@ -1717,6 +1725,8 @@ def save_single(operator, scene, filepath="",
                 fw(',\n\t\t\t         '
                    ''.join(','.join('0,0,0' for c in chunk) for chunk in grouper_exact(range(len(verts)), _nchunk)))
                 fw('\n\t\t}')
+            del t_sk_basis
+            del t_sk
 
         fw('\n\t}')
 
