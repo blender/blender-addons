@@ -319,6 +319,7 @@ class CyclesShaderWrapper():
 
         if node_map is None:
             node_map = nodes.new(type='ShaderNodeMapping')
+            node_map.vector_type = 'TEXTURE'
             node_map.location = node_dst.location
             node_map.location.x -= CyclesShaderWrapper._col_size
 
