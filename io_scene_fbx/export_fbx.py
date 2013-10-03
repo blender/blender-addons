@@ -1483,6 +1483,7 @@ def save_single(operator, scene, filepath="",
                '\n\t\t\tSmoothing: ')
             fw(',\n\t\t\t           '.join(','.join('%d' % b for b in chunk) for chunk in grouper_exact(t_ps, _nchunk)))
             fw('\n\t\t}')
+            del t_ps
         elif mesh_smooth_type == 'EDGE':
             # Write Edge Smoothing
             t_es = [None] * len(me.edges)
@@ -1496,6 +1497,7 @@ def save_single(operator, scene, filepath="",
             fw(',\n\t\t\t           '
                ''.join(','.join('%d' % (not b) for b in chunk) for chunk in grouper_exact(t_es, _nchunk)))
             fw('\n\t\t}')
+            del t_es
         elif mesh_smooth_type == 'OFF':
             pass
         else:
@@ -1506,13 +1508,13 @@ def save_single(operator, scene, filepath="",
         collayers = []
         if len(me.vertex_colors):
             collayers = me.vertex_colors
+            t_lc = [None] * len(me.loops) * 3
             col2idx = None
             _nchunk = 4  # Number of colors per line
             _nchunk_idx = 64  # Number of color indices per line
             for colindex, collayer in enumerate(collayers):
-                t_lc = [None] * len(me.loops) * 3
                 collayer.data.foreach_get("color", t_lc)
-                t_lc = tuple(zip(*[iter(t_lc)] * 3))
+                lc = tuple(zip(*[iter(t_lc)] * 3))
                 fw('\n\t\tLayerElementColor: %i {'
                    '\n\t\t\tVersion: 101'
                    '\n\t\t\tName: "%s"'
@@ -1520,14 +1522,14 @@ def save_single(operator, scene, filepath="",
                    '\n\t\t\tReferenceInformationType: "IndexToDirect"'
                    '\n\t\t\tColors: ' % (colindex, collayer.name))
 
-                col2idx = tuple(set(t_lc))
+                col2idx = tuple(set(lc))
                 fw(',\n\t\t\t        '.join(','.join('%.6f,%.6f,%.6f,1' % c for c in chunk)
                                             for chunk in grouper_exact(col2idx, _nchunk)))
 
                 fw('\n\t\t\tColorIndex: ')
                 col2idx = {col: idx for idx, col in enumerate(col2idx)}
                 fw(',\n\t\t\t            '
-                   ''.join(','.join('%d' % col2idx[c] for c in chunk) for chunk in grouper_exact(t_lc, _nchunk_idx)))
+                   ''.join(','.join('%d' % col2idx[c] for c in chunk) for chunk in grouper_exact(lc, _nchunk_idx)))
                 fw('\n\t\t}')
             del t_lc
 
@@ -1536,6 +1538,7 @@ def save_single(operator, scene, filepath="",
         uvtextures = []
         if do_uvs:
             uvlayers = me.uv_layers
+            t_uv = [None] * len(me.loops) * 2
             t_pi = None
             uv2idx = None
             tex2idx = None
@@ -1548,22 +1551,21 @@ def save_single(operator, scene, filepath="",
                 tex2idx.update({tex: i for i, tex in enumerate(my_mesh.blenTextures)})
 
             for uvindex, (uvlayer, uvtexture) in enumerate(zip(uvlayers, uvtextures)):
-                t_uv = [None] * len(me.loops) * 2
                 uvlayer.data.foreach_get("uv", t_uv)
-                t_uv = tuple(zip(*[iter(t_uv)] * 2))
+                uvco = tuple(zip(*[iter(t_uv)] * 2))
                 fw('\n\t\tLayerElementUV: %d {'
                    '\n\t\t\tVersion: 101'
                    '\n\t\t\tName: "%s"'
                    '\n\t\t\tMappingInformationType: "ByPolygonVertex"'
                    '\n\t\t\tReferenceInformationType: "IndexToDirect"'
                    '\n\t\t\tUV: ' % (uvindex, uvlayer.name))
-                uv2idx = tuple(set(t_uv))
+                uv2idx = tuple(set(uvco))
                 fw(',\n\t\t\t    '
                    ''.join(','.join('%.6f,%.6f' % uv for uv in chunk) for chunk in grouper_exact(uv2idx, _nchunk)))
                 fw('\n\t\t\tUVIndex: ')
                 uv2idx = {uv: idx for idx, uv in enumerate(uv2idx)}
                 fw(',\n\t\t\t         '
-                   ''.join(','.join('%d' % uv2idx[uv] for uv in chunk) for chunk in grouper_exact(t_uv, _nchunk_idx)))
+                   ''.join(','.join('%d' % uv2idx[uv] for uv in chunk) for chunk in grouper_exact(uvco, _nchunk_idx)))
                 fw('\n\t\t}')
 
                 if do_textures:
