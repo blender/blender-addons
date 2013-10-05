@@ -477,41 +477,43 @@ def write_file(filepath, objects, scene,
             # UV
             if faceuv:
                 # in case removing some of these dont get defined.
-                uv = uvkey = uv_dict = f_index = uv_index = uv_ls = uv_k = None
+                uv = f_index = uv_index = uv_key = uv_val = uv_ls = None
 
                 uv_face_mapping = [None] * len(face_index_pairs)
 
                 uv_dict = {}
+                uv_get = uv_dict.get
                 for f, f_index in face_index_pairs:
                     uv_ls = uv_face_mapping[f_index] = []
                     for uv_index, l_index in enumerate(f.loop_indices):
                         uv = uv_layer[l_index].uv
-                        uvkey = veckey2d(uv)
-                        if uvkey in uv_dict:
-                            uv_k = uv_dict[uvkey]
-                        else:
-                            uv_k = uv_dict[uvkey] = uv_unique_count
+                        uv_key = veckey2d(uv)
+                        uv_val = uv_get(uv_key)
+                        if uv_val is None:
+                            uv_val = uv_dict[uv_key] = uv_unique_count
                             fw('vt %.6f %.6f\n' % uv[:])
                             uv_unique_count += 1
-                        uv_ls.append(uv_k)
+                        uv_ls.append(uv_val)
 
-                del uv, uvkey, uv_dict, f_index, uv_index, uv_ls, uv_k
+                del uv_dict, uv, f_index, uv_index, uv_ls, uv_get, uv_key, uv_val
                 # Only need uv_unique_count and uv_face_mapping
 
             # NORMAL, Smooth/Non smoothed.
             if EXPORT_NORMALS:
+                no_key = no_val = None
                 normals_to_idx = {}
+                no_get = normals_to_idx.get
                 loops_to_normals = [0] * len(loops)
                 for f, f_index in face_index_pairs:
                     for l_idx in f.loop_indices:
-                        noKey = veckey3d(loops[l_idx].normal)
-                        if noKey in normals_to_idx:
-                            loops_to_normals[l_idx] = normals_to_idx[noKey]
-                        else:
-                            loops_to_normals[l_idx] = normals_to_idx[noKey] = no_unique_count
-                            fw('vn %.6f %.6f %.6f\n' % noKey)
+                        no_key = veckey3d(loops[l_idx].normal)
+                        no_val = no_get(no_key)
+                        if no_val is None:
+                            no_val = normals_to_idx[no_key] = no_unique_count
+                            fw('vn %.6f %.6f %.6f\n' % no_key)
                             no_unique_count += 1
-                del normals_to_idx
+                        loops_to_normals[l_idx] = no_val
+                del normals_to_idx, no_get, no_key, no_val
             else:
                 loops_to_normals = []
 
