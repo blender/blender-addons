@@ -1538,6 +1538,7 @@ def save_single(operator, scene, filepath="",
         uvtextures = []
         if do_uvs:
             uvlayers = me.uv_layers
+            uvtextures = me.uv_textures
             t_uv = [None] * len(me.loops) * 2
             t_pi = None
             uv2idx = None
@@ -1545,7 +1546,6 @@ def save_single(operator, scene, filepath="",
             _nchunk = 6  # Number of UVs per line
             _nchunk_idx = 64  # Number of UV indices per line
             if do_textures:
-                uvtextures = me.uv_textures
                 is_tex_unique = len(my_mesh.blenTextures) == 1
                 tex2idx = {None: -1}
                 tex2idx.update({tex: i for i, tex in enumerate(my_mesh.blenTextures)})
@@ -1595,6 +1595,7 @@ def save_single(operator, scene, filepath="",
                        '\n\t\t\tTextureId: ')
                 fw('\n\t\t}')
             del t_uv
+            del t_pi
 
         # Done with UV/textures.
         if do_materials:
