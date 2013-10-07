@@ -1232,6 +1232,8 @@ def gzipOpen(path):
             filehandle.close()
         except:
             pass
+    else:
+        data = data.decode('utf-8', "replace")
 
     return data
 
