@@ -497,6 +497,11 @@ def blen_read_geom_layer_uv(fbx_obj, mesh):
             uv_lay = mesh.uv_layers[-1]
             blen_data = uv_lay.data[:]
 
+            # some valid files omit this data
+            if fbx_layer_data is None or fbx_layer_index is None:
+                print("%r %r missing data" % (layer_id, fbx_layer_name))
+                continue
+
             blen_read_geom_array_mapped_polyloop(
                 mesh, blen_data, "uv",
                 fbx_layer_data, fbx_layer_index,
@@ -520,6 +525,11 @@ def blen_read_geom_layer_color(fbx_obj, mesh):
 
             color_lay = mesh.vertex_colors.new(name=fbx_layer_name)
             blen_data = color_lay.data[:]
+
+            # some valid files omit this data
+            if fbx_layer_data is None or fbx_layer_index is None:
+                print("%r %r missing data" % (layer_id, fbx_layer_name))
+                continue
 
             # ignore alpha layer (read 4 items into 3)
             blen_read_geom_array_mapped_polyloop(
