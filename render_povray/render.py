@@ -314,6 +314,7 @@ def write_pov(filename, scene=None, info_callback=None):
         comments = scene.pov.comments_enable
 
         if material:
+			# If saturation(.s) is not zero, then color is not grey, and has a tint
             colored_specular_found = (material.specular_color.s > 0.0)
 
         ##################
@@ -1211,6 +1212,14 @@ def write_pov(filename, scene=None, info_callback=None):
                                 for t in mater.texture_slots:
                                     if t and t.texture.type == 'IMAGE' and t.use and t.texture.image:
                                         image_filename = path_image(t.texture.image)
+                                        # IMAGE SEQUENCE BEGINS
+                                        if image_filename:
+                                            if bpy.data.images[t.texture.image.name].source == 'SEQUENCE':
+                                                korvaa = "." + str(bpy.data.textures[t.texture.name].image_user.frame_offset + 1).zfill(3) + "."
+                                                image_filename = image_filename.replace(".001.", korvaa)
+                                                print(" seq debug ")
+                                                print(image_filename)
+                                        # IMAGE SEQUENCE ENDS
                                         imgGamma = ""
                                         if image_filename:
                                             if t.use_map_color_diffuse:
@@ -1549,10 +1558,10 @@ def write_pov(filename, scene=None, info_callback=None):
                                 # Close first layer of POV "texture" (Blender material)
                                 tabWrite("}\n")
                                 
-                                if (mater.specular_color.r == mater.specular_color.g) and (mater.specular_color.r == mater.specular_color.b):
-                                    colored_specular_found = False
-                                else:
+                                if (mater.specular_color.s > 0.0):
                                     colored_specular_found = True
+                                else:
+                                    colored_specular_found = False
                                     
                                 # Write another layered texture using invisible diffuse and metallic trick 
                                 # to emulate colored specular highlights
