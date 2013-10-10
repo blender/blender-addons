@@ -1370,9 +1370,10 @@ def save_single(operator, scene, filepath="",
     def write_mesh(my_mesh):
         me = my_mesh.blenData
 
-        # if there are non NULL materials on this mesh
-        do_materials = bool(my_mesh.blenMaterials)
-        do_textures = bool(my_mesh.blenTextures)
+        # if there are non None materials on this mesh
+        print(my_mesh.blenMaterials)
+        do_materials = bool([m for m in my_mesh.blenMaterials if m is not None])
+        do_textures = bool([t for t in my_mesh.blenTextures if t is not None])
         do_uvs = bool(me.uv_layers)
         do_shapekeys = (my_mesh.blenObject.type == 'MESH' and
                         my_mesh.blenObject.data.shape_keys and
@@ -1638,7 +1639,7 @@ def save_single(operator, scene, filepath="",
                '\n\t\t\t\tTypedIndex: 0'
                '\n\t\t\t}')
 
-        if me.tessface_vertex_colors:
+        if me.vertex_colors:
             fw('\n\t\t\tLayerElement:  {'
                '\n\t\t\t\tType: "LayerElementColor"'
                '\n\t\t\t\tTypedIndex: 0'
@@ -1762,8 +1763,8 @@ def save_single(operator, scene, filepath="",
     ob_all_typegroups = [ob_meshes, ob_lights, ob_cameras, ob_arms, ob_null]
 
     groups = []  # blender groups, only add ones that have objects in the selections
-    materials = {}  # (mat, image) keys, should be a set()
-    textures = {}  # should be a set()
+    materials = set()  # (mat, image) items
+    textures = set()
 
     tmp_ob_type = None  # in case no objects are exported, so as not to raise an error
 
@@ -1837,7 +1838,7 @@ def save_single(operator, scene, filepath="",
                         mats = me.materials
                     else:
                         me = ob.data
-                        me.update(calc_tessface=True)
+                        me.update()
                         mats = me.materials
 
 # 						# Support object colors
@@ -1857,27 +1858,33 @@ def save_single(operator, scene, filepath="",
 # 					if EXP_MESH_HQ_NORMALS:
 # 						BPyMesh.meshCalcNormals(me) # high quality normals nice for realtime engines.
 
-                    texture_mapping_local = {}
-                    material_mapping_local = {}
-                    if me.tessface_uv_textures:
-                        for uvlayer in me.tessface_uv_textures:
-                            for f, uf in zip(me.tessfaces, uvlayer.data):
-                                tex = uf.image
-                                textures[tex] = texture_mapping_local[tex] = None
+                    if not mats:
+                        mats = [None]
 
-                                try:
-                                    mat = mats[f.material_index]
-                                except:
-                                    mat = None
+                    texture_set_local = set()
+                    material_set_local = set()
+                    if me.uv_textures:
+                        for uvlayer in me.uv_textures:
+                            for p, p_uv in zip(me.polygons, uvlayer.data):
+                                tex = p_uv.image
+                                texture_set_local.add(tex)
+                                mat = mats[p.material_index]
 
-                                materials[mat, tex] = material_mapping_local[mat, tex] = None  # should use sets, wait for blender 2.5
+                                # Should not be needed anymore.
+                                #try:
+                                    #mat = mats[p.material_index]
+                                #except:
+                                    #mat = None
+
+                                material_set_local.add((mat, tex))
 
                     else:
                         for mat in mats:
                             # 2.44 use mat.lib too for uniqueness
-                            materials[mat, None] = material_mapping_local[mat, None] = None
-                        else:
-                            materials[None, None] = None
+                            material_set_local.add((mat, None))
+
+                    textures |= texture_set_local
+                    materials |= material_set_local
 
                     if 'ARMATURE' in object_types:
                         armob = ob.find_armature()
@@ -1904,9 +1911,9 @@ def save_single(operator, scene, filepath="",
                     my_mesh = my_object_generic(ob, mtx)
                     my_mesh.blenData = me
                     my_mesh.origData = origData
-                    my_mesh.blenMaterials = list(material_mapping_local.keys())
+                    my_mesh.blenMaterials = list(material_set_local)
                     my_mesh.blenMaterialList = mats
-                    my_mesh.blenTextures = list(texture_mapping_local.keys())
+                    my_mesh.blenTextures = list(texture_set_local)
 
                     # sort the name so we get predictable output, some items may be NULL
                     my_mesh.blenMaterials.sort(key=lambda m: (getattr(m[0], "name", ""), getattr(m[1], "name", "")))
@@ -2058,8 +2065,8 @@ def save_single(operator, scene, filepath="",
     # == WRITE OBJECTS TO THE FILE ==
     # == From now on we are building the FBX file from the information collected above (JCB)
 
-    materials = [(sane_matname(mat_tex_pair), mat_tex_pair) for mat_tex_pair in materials.keys()]
-    textures = [(sane_texname(tex), tex) for tex in textures.keys()  if tex]
+    materials = [(sane_matname(mat_tex_pair), mat_tex_pair) for mat_tex_pair in materials]
+    textures = [(sane_texname(tex), tex) for tex in textures if tex]
     materials.sort(key=lambda m: m[0])  # sort by name
     textures.sort(key=lambda m: m[0])
 
@@ -2069,7 +2076,6 @@ def save_single(operator, scene, filepath="",
     try:
         assert(not (ob_meshes and ('MESH' not in object_types)))
         assert(not (materials and ('MESH' not in object_types)))
-        assert(not (textures and ('MESH' not in object_types)))
         assert(not (textures and ('MESH' not in object_types)))
 
         assert(not (ob_lights and ('LAMP' not in object_types)))
