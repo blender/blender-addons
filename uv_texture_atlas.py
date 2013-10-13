@@ -144,7 +144,7 @@ class RunAuto(Operator):
         group = scene.ms_lightmap_groups[scene.ms_lightmap_groups_index]
         context.area.type = 'VIEW_3D'
 
-        if context.mode is not 'OBJECT' and scene.objects.active is not None:
+        if bpy.ops.object.mode_set.poll():
             bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
 
         if group.bake is True and bpy.data.groups[group.name].objects:
@@ -183,7 +183,7 @@ class RunStart(Operator):
         context.area.type = 'VIEW_3D'
         group = scene.ms_lightmap_groups[scene.ms_lightmap_groups_index]
 
-        if context.mode is not 'OBJECT' and scene.objects.active is not None:
+        if bpy.ops.object.mode_set.poll():
             bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
 
         if group.bake is True and bpy.data.groups[group.name].objects and bpy.data.objects.get(group.name + "_mergedObject") is None:
@@ -221,7 +221,7 @@ class RunFinish(Operator):
         group = scene.ms_lightmap_groups[scene.ms_lightmap_groups_index]
         context.area.type = 'VIEW_3D'
 
-        if context.mode is not 'OBJECT' and scene.objects.active is not None:
+        if bpy.ops.object.mode_set.poll():
             bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
 
         if group.bake is True and bpy.data.groups[group.name].objects:
@@ -304,7 +304,7 @@ class AddSelectedToGroup(Operator):
             obj_group = bpy.data.groups.new(group_name)
 
         # Add objects to  a group
-        if context.mode is not 'OBJECT' and scene.objects.active is not None:
+        if bpy.ops.object.mode_set.poll():
             bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
 
         for object in context.selected_objects:
@@ -328,7 +328,7 @@ class SelectGroup(Operator):
         if check_group_exist(self, context) is False:
             return {'CANCELLED'}
 
-        if context.mode is not 'OBJECT' and scene.objects.active is not None:
+        if bpy.ops.object.mode_set.poll():
             bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
 
         bpy.ops.object.select_all(action='DESELECT')
@@ -354,7 +354,7 @@ class RemoveFromGroup(Operator):
         if check_group_exist(self, context) is False:
             return {'CANCELLED'}
 
-        if context.mode is not 'OBJECT' and scene.objects.active is not None:
+        if bpy.ops.object.mode_set.poll():
             bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
 
         for group in scene.ms_lightmap_groups:
@@ -392,7 +392,7 @@ class RemoveOtherUVs(Operator):
         if check_group_exist(self, context) is False:
             return {'CANCELLED'}
 
-        if context.mode is not 'OBJECT' and scene.objects.active is not None:
+        if bpy.ops.object.mode_set.poll():
             bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
         # bpy.ops.object.select_all(action='DESELECT')
 
