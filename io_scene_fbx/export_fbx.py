@@ -1585,16 +1585,17 @@ def save_single(operator, scene, filepath="",
                         t_pi = (d.image for d in uvtexture.data)  # Can't use foreach_get here :(
                         fw(',\n\t\t\t           '.join(','.join('%d' % tex2idx[i] for i in chunk)
                                                        for chunk in grouper_exact(t_pi, _nchunk_idx)))
-                else:
-                    fw('\n\t\tLayerElementTexture: 0 {'
-                       '\n\t\t\tVersion: 101'
-                       '\n\t\t\tName: ""'
-                       '\n\t\t\tMappingInformationType: "NoMappingInformation"'
-                       '\n\t\t\tReferenceInformationType: "IndexToDirect"'
-                       '\n\t\t\tBlendMode: "Translucent"'
-                       '\n\t\t\tTextureAlpha: 1'
-                       '\n\t\t\tTextureId: ')
-                fw('\n\t\t}')
+                    fw('\n\t\t}')
+            if not do_textures:
+                fw('\n\t\tLayerElementTexture: 0 {'
+                   '\n\t\t\tVersion: 101'
+                   '\n\t\t\tName: ""'
+                   '\n\t\t\tMappingInformationType: "NoMappingInformation"'
+                   '\n\t\t\tReferenceInformationType: "IndexToDirect"'
+                   '\n\t\t\tBlendMode: "Translucent"'
+                   '\n\t\t\tTextureAlpha: 1'
+                   '\n\t\t\tTextureId: '
+                   '\n\t\t}')
             del t_uv
             del t_pi
 
@@ -1652,7 +1653,8 @@ def save_single(operator, scene, filepath="",
                '\n\t\t\t}')
 
         # Always write this
-        if do_textures:
+        #if do_textures:
+        if True:
             fw('\n\t\t\tLayerElement:  {'
                '\n\t\t\t\tType: "LayerElementTexture"'
                '\n\t\t\t\tTypedIndex: 0'
@@ -1667,7 +1669,7 @@ def save_single(operator, scene, filepath="",
         fw('\n\t\t}')
 
         if len(uvlayers) > 1:
-            for i in range(1, len(uvlayers)):  # Why start at 1 (i.e. skip first UV layer)??? --mont29
+            for i in range(1, len(uvlayers)):
                 fw('\n\t\tLayer: %d {'
                    '\n\t\t\tVersion: 100'
                    '\n\t\t\tLayerElement:  {'
@@ -1679,6 +1681,11 @@ def save_single(operator, scene, filepath="",
                        '\n\t\t\t\tType: "LayerElementTexture"'
                        '\n\t\t\t\tTypedIndex: %d'
                        '\n\t\t\t}' % i)
+                else:
+                    fw('\n\t\t\tLayerElement:  {'
+                       '\n\t\t\t\tType: "LayerElementTexture"'
+                       '\n\t\t\t\tTypedIndex: 0'
+                       '\n\t\t\t}')
                 fw('\n\t\t}')
 
         # XXX Col layers are written before UV ones above, why adding them after UV here???
