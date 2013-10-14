@@ -20,7 +20,7 @@
 bl_info = {
     "name": "Edit Linked Library",
     "author": "Jason van Gumster (Fweeb), Bassam Kurdali, Pablo Vazquez",
-    "version": (0, 7, 4),
+    "version": (0, 8, 0),
     "blender": (2, 65, 0),
     "location": "View3D > Toolshelf > Edit Linked Library",
     "description": "Allows editing of objects linked from a .blend library.",
@@ -77,6 +77,8 @@ class EditLinked(bpy.types.Operator):
         return settings["original_file"] == "" and context.active_object is not None and (
                 (context.active_object.dupli_group and
                  context.active_object.dupli_group.library is not None) or
+                (context.active_object.proxy and
+                 context.active_object.proxy.library is not None) or
                  context.active_object.library is not None)
         #return context.active_object is not None
 
@@ -90,6 +92,10 @@ class EditLinked(bpy.types.Operator):
         elif target.library:
             targetpath = target.library.filepath
             settings["linked_objects"].append(target.name)
+        elif target.proxy:
+            target = target.proxy
+            targetpath = target.library.filepath
+            settings["linked_objects"].append(target.name)
 
         if targetpath:
             print(target.name + " is linked to " + targetpath)
@@ -98,8 +104,6 @@ class EditLinked(bpy.types.Operator):
                 bpy.ops.wm.save_mainfile()
 
             settings["original_file"] = bpy.data.filepath
-
-            # XXX: need to test for proxied rigs
             settings["linked_file"] = bpy.path.abspath(targetpath)
 
             if self.use_instance:
@@ -164,14 +168,21 @@ class PanelLinkedEdit(bpy.types.Panel):
         scene = context.scene
         icon = "OUTLINER_DATA_" + context.active_object.type
 
+        target = None
+
+        if context.active_object.proxy:
+            target = context.active_object.proxy
+        else:
+            target = context.active_object.dupli_group
+
         if settings["original_file"] == "" and (
-                (context.active_object.dupli_group and
-                 context.active_object.dupli_group.library is not None) or
+                (target and
+                 target.library is not None) or
                 context.active_object.library is not None):
 
-            if (context.active_object.dupli_group is not None):
+            if (target is not None):
                 props = layout.operator("object.edit_linked", icon="LINK_BLEND",
-                                        text="Edit Library: %s" % context.active_object.dupli_group.name)
+                                        text="Edit Library: %s" % target.name)
             else:
                 props = layout.operator("object.edit_linked", icon="LINK_BLEND",
                                         text="Edit Library: %s" % context.active_object.name)
@@ -181,9 +192,9 @@ class PanelLinkedEdit(bpy.types.Panel):
             layout.prop(scene, "use_autosave")
             layout.prop(scene, "use_instance")
 
-            if (context.active_object.dupli_group is not None):
+            if (target is not None):
                 layout.label(text="Path: %s" %
-                             context.active_object.dupli_group.library.filepath)
+                             target.library.filepath)
             else:
                 layout.label(text="Path: %s" %
                              context.active_object.library.filepath)
