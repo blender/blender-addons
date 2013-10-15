@@ -1371,14 +1371,13 @@ def save_single(operator, scene, filepath="",
         me = my_mesh.blenData
 
         # if there are non None materials on this mesh
-        print(my_mesh.blenMaterials)
         do_materials = bool([m for m in my_mesh.blenMaterials if m is not None])
         do_textures = bool([t for t in my_mesh.blenTextures if t is not None])
         do_uvs = bool(me.uv_layers)
         do_shapekeys = (my_mesh.blenObject.type == 'MESH' and
                         my_mesh.blenObject.data.shape_keys and
                         len(my_mesh.blenObject.data.vertices) == len(me.vertices))
-        print(len(my_mesh.blenObject.data.vertices), len(me.vertices))
+        # print(len(my_mesh.blenObject.data.vertices), len(me.vertices))  # XXX does not work when org obj is no mesh!
 
         fw('\n\tModel: "Model::%s", "Mesh" {' % my_mesh.fbxName)
         fw('\n\t\tVersion: 232')  # newline is added in write_object_props
