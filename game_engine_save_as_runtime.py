@@ -112,7 +112,6 @@ def WriteRuntime(player_path, output_path, copy_python, overwrite_lib, copy_dlls
                                 compress=False,
                                 copy=True,
                                 )
-    blend_path += '.blend'
     
     # Get the blend data
     blend_file = open(blend_path, 'rb')
