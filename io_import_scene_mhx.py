@@ -38,7 +38,7 @@ Alternatively, run the script in the script editor (Alt-P), and access from the 
 bl_info = {
     'name': 'Import: MakeHuman (.mhx)',
     'author': 'Thomas Larsson',
-    'version': (1, 16, 7),
+    'version': (1, 16, 8),
     "blender": (2, 68, 0),
     'location': "File > Import > MakeHuman (.mhx)",
     'description': 'Import files in the MakeHuman eXchange format (.mhx)',
@@ -51,7 +51,7 @@ bl_info = {
 MAJOR_VERSION = 1
 MINOR_VERSION = 16
 FROM_VERSION = 13
-SUB_VERSION = 7
+SUB_VERSION = 8
 
 majorVersion = MAJOR_VERSION
 minorVersion = MINOR_VERSION
@@ -399,9 +399,12 @@ def parse(tokens):
     for (key, val, sub) in tokens:
         data = None
         if key == 'MHX':
+            print("MHX importer version: ", bl_info["version"])
             majorVersion = int(val[0])
             minorVersion = int(val[1])
             checkMhxVersion(majorVersion, minorVersion)
+            for string in val[2:]:
+                print(string.replace("_"," "))
         elif key == 'MHX249':
             MHX249 = mhxEval(val[0])
             print("Blender 2.49 compatibility mode is %s\n" % MHX249)
@@ -2832,9 +2835,7 @@ class RigifyMhxPanel(bpy.types.Panel):
 
     @classmethod
     def poll(cls, context):
-        if context.object:
-            return context.object.MhxRigify
-        return False
+        return (context.object and context.object.MhxRigify)
 
     def draw(self, context):
         self.layout.operator("mhxrig.rigify_mhx")
@@ -3460,7 +3461,7 @@ class MhxLipsyncPanel(bpy.types.Panel):
 
     @classmethod
     def poll(cls, context):
-        return pollMhx(context.object)
+        return hasProps(context.object, "Mhv")
 
     def draw(self, context):
         rig,mesh = getMhxRigMesh(context.object)
@@ -3676,6 +3677,21 @@ def getProps(rig, prefix):
     return props
 
 
+def hasProps(ob, prefix):
+    if ob is None:
+        return False
+    if ob.type == 'MESH':
+        rig = ob.parent
+    elif ob.type == 'ARMATURE':
+        rig = ob
+    else:
+        return False
+    for prop in rig.keys():
+        if prop.startswith(prefix):
+            return True
+    return False
+
+
 class MhxExpressionsPanel(bpy.types.Panel):
     bl_label = "MHX Expressions"
     bl_space_type = "VIEW_3D"
@@ -3684,7 +3700,7 @@ class MhxExpressionsPanel(bpy.types.Panel):
 
     @classmethod
     def poll(cls, context):
-        return pollMhx(context.object)
+        return hasProps(context.object, "Mhe")
 
     def draw(self, context):
         layout = self.layout
@@ -3740,7 +3756,7 @@ class MhxExpressionUnitsPanel(bpy.types.Panel):
 
     @classmethod
     def poll(cls, context):
-        return pollMhx(context.object)
+        return hasProps(context.object, "Mhs")
 
     def draw(self, context):
         drawShapePanel(self, context, "Mhs", "expression")
@@ -3754,7 +3770,7 @@ class MhxCustomShapePanel(bpy.types.Panel):
 
     @classmethod
     def poll(cls, context):
-        return pollMhx(context.object)
+        return hasProps(context.object, "Mhc")
 
     def draw(self, context):
         drawShapePanel(self, context, "Mhc", "custom shape")
@@ -4281,7 +4297,7 @@ class MhxDriversPanel(bpy.types.Panel):
 
     @classmethod
     def poll(cls, context):
-        return (context.object and context.object.MhxRig)
+        return (context.object and context.object.MhxRig == 'MHX')
 
     def draw(self, context):
         lrProps = []
@@ -4475,10 +4491,7 @@ class MhxLayersPanel(bpy.types.Panel):
 
     @classmethod
     def poll(cls, context):
-        ob = context.object
-        if (ob and ob.MhxRig == 'MHX'):
-            return True
-        return False
+        return (context.object and context.object.MhxRig == 'MHX')
 
     def draw(self, context):
         layout = self.layout
