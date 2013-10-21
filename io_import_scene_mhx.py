@@ -38,7 +38,7 @@ Alternatively, run the script in the script editor (Alt-P), and access from the 
 bl_info = {
     'name': 'Import: MakeHuman (.mhx)',
     'author': 'Thomas Larsson',
-    'version': (1, 16, 8),
+    'version': "1.16.9",
     "blender": (2, 68, 0),
     'location': "File > Import > MakeHuman (.mhx)",
     'description': 'Import files in the MakeHuman eXchange format (.mhx)',
@@ -65,7 +65,7 @@ import os
 import time
 import math
 import mathutils
-from mathutils import Vector, Matrix
+from mathutils import Vector, Matrix, Quaternion
 from bpy.props import *
 
 MHX249 = False
@@ -2909,7 +2909,7 @@ class SuccessOperator(bpy.types.Operator):
 #
 ###################################################################################
 
-from bpy_extras.io_utils import ImportHelper
+from bpy_extras.io_utils import ImportHelper, ExportHelper
 
 MhxBoolProps = [
     ("enforce", "Enforce version", "Only accept MHX files of correct version", T_EnforceVersion),
@@ -2993,6 +2993,247 @@ class ImportMhx(bpy.types.Operator, ImportHelper):
         context.window_manager.fileselect_add(self)
         return {'RUNNING_MODAL'}
 
+
+###################################################################################
+#
+#    Main panel
+#
+###################################################################################
+
+MhxLayers = [
+    (( 0,    'Root', 'MhxRoot'),
+     ( 8,    'Face', 'MhxFace')),
+    (( 9,    'Tweak', 'MhxTweak'),
+     (10,    'Head', 'MhxHead')),
+    (( 1,    'FK Spine', 'MhxFKSpine'),
+     #(17,    'IK Spine', 'MhxIKSpine')),
+     #((13,    'Inv FK Spine', 'MhxInvFKSpine'),
+     (16,    'Clothes', 'MhxClothes')),
+    ('Left', 'Right'),
+    (( 2,    'IK Arm', 'MhxIKArm'),
+     (18,    'IK Arm', 'MhxIKArm')),
+    (( 3,    'FK Arm', 'MhxFKArm'),
+     (19,    'FK Arm', 'MhxFKArm')),
+    (( 4,    'IK Leg', 'MhxIKLeg'),
+     (20,    'IK Leg', 'MhxIKLeg')),
+    (( 5,    'FK Leg', 'MhxFKLeg'),
+     (21,    'FK Leg', 'MhxFKLeg')),
+    ((12,    'Extra', 'MhxExtra'),
+     (28,    'Extra', 'MhxExtra')),
+    (( 6,    'Fingers', 'MhxFingers'),
+     (22,    'Fingers', 'MhxFingers')),
+    (( 7,    'Links', 'MhxLinks'),
+     (23,    'Links', 'MhxLinks')),
+    ((11,    'Palm', 'MhxPalm'),
+     (27,    'Palm', 'MhxPalm')),
+]
+
+#
+#    class MhxMainPanel(bpy.types.Panel):
+#
+
+class MhxMainPanel(bpy.types.Panel):
+    bl_label = "MHX Main v %s" % bl_info["version"]
+    bl_space_type = "VIEW_3D"
+    bl_region_type = "UI"
+    #bl_options = {'DEFAULT_CLOSED'}
+
+    @classmethod
+    def poll(cls, context):
+        return (context.object and context.object.MhxRig)
+
+    def draw(self, context):
+        layout = self.layout
+        layout.label("Layers")
+        layout.operator("mhx.pose_enable_all_layers")
+        layout.operator("mhx.pose_disable_all_layers")
+        amt = context.object.data
+        for (left,right) in MhxLayers:
+            row = layout.row()
+            if type(left) == str:
+                row.label(left)
+                row.label(right)
+            else:
+                for (n, name, prop) in [left,right]:
+                    row.prop(amt, "layers", index=n, toggle=True, text=name)
+
+        layout.separator()
+        layout.label("Export/Import MHP")
+        layout.operator("mhx.saveas_mhp")
+        layout.operator("mhx.load_mhp")
+
+
+class VIEW3D_OT_MhxEnableAllLayersButton(bpy.types.Operator):
+    bl_idname = "mhx.pose_enable_all_layers"
+    bl_label = "Enable all layers"
+    bl_options = {'UNDO'}
+
+    def execute(self, context):
+        rig,mesh = getMhxRigMesh(context.object)
+        for (left,right) in MhxLayers:
+            if type(left) != str:
+                for (n, name, prop) in [left,right]:
+                    rig.data.layers[n] = True
+        return{'FINISHED'}
+
+
+class VIEW3D_OT_MhxDisableAllLayersButton(bpy.types.Operator):
+    bl_idname = "mhx.pose_disable_all_layers"
+    bl_label = "Disable all layers"
+    bl_options = {'UNDO'}
+
+    def execute(self, context):
+        rig,mesh = getMhxRigMesh(context.object)
+        layers = 32*[False]
+        pb = context.active_pose_bone
+        if pb:
+            for n in range(32):
+                if pb.bone.layers[n]:
+                    layers[n] = True
+                    break
+        else:
+            layers[0] = True
+        if rig:
+            rig.data.layers = layers
+        return{'FINISHED'}
+
+
+
+def saveMhpFile(rig, scn, filepath):
+    roots = []
+    for pb in rig.pose.bones:
+        if pb.parent is None:
+            roots.append(pb)
+
+    (pname, ext) = os.path.splitext(filepath)
+    mhppath = pname + ".mhp"
+
+    fp = open(mhppath, "w", encoding="utf-8", newline="\n")
+    for root in roots:
+        writeMhpBones(fp, root, None)
+    fp.close()
+    print("Mhp file %s saved" % mhppath)
+
+
+def writeMhpBones(fp, pb, log):
+    if not isMuscleBone(pb):
+        b = pb.bone
+        if pb.parent:
+            string = "quat"
+            mat = b.matrix_local.inverted() * b.parent.matrix_local * pb.parent.matrix.inverted() * pb.matrix
+        else:
+            string = "gquat"
+            mat = pb.matrix.copy()
+            maty = mat[1].copy()
+            matz = mat[2].copy()
+            mat[1] = matz
+            mat[2] = -maty
+
+        t,q,s = mat.decompose()
+        magn = math.sqrt(q.x*q.x + q.y*q.y + q.z*q.z)
+        if magn > 1e-5:
+            fp.write("%s\t%s\t%.5f\t%.5f\t%.5f\t%.5f\n" % (pb.name, string, q.w, q.x, q.y, q.z))
+
+    for child in pb.children:
+        writeMhpBones(fp, child, log)
+
+
+def isMuscleBone(pb):
+    layers = pb.bone.layers
+    if (layers[14] or layers[15] or layers[30] or layers[31]):
+        return True
+    for cns in pb.constraints:
+        if (cns.type == 'STRETCH_TO' or
+            cns.type == 'TRANSFORM' or
+            cns.type == 'TRACK_TO' or
+            cns.type == 'IK' or
+            cns.type[0:5] == 'COPY_'):
+            return True
+    return False
+
+
+def loadMhpFile(rig, scn, filepath):
+    (pname, ext) = os.path.splitext(filepath)
+    mhppath = pname + ".mhp"
+
+    fp = open(mhppath, "rU")
+    for line in fp:
+        words = line.split()
+        if len(words) < 4:
+            continue
+        elif words[1] == "quat":
+            try:
+                pb = rig.pose.bones[words[0]]
+            except KeyError:
+                print("Warning: Did not find bone %s" % words[0])
+                continue
+            if not isMuscleBone(pb):
+                q = Quaternion((float(words[2]), float(words[3]), float(words[4]), float(words[5])))
+                mat = q.to_matrix().to_4x4()
+                pb.matrix_basis = mat
+        elif words[1] == "gquat":
+            try:
+                pb = rig.pose.bones[words[0]]
+            except KeyError:
+                print("Warning: Did not find bone %s" % words[0])
+                continue
+            q = Quaternion((float(words[2]), float(words[3]), float(words[4]), float(words[5])))
+            mat = q.to_matrix().to_4x4()
+            maty = mat[1].copy()
+            matz = mat[2].copy()
+            mat[1] = -matz
+            mat[2] = maty
+            pb.matrix_basis = pb.bone.matrix_local.inverted() * mat
+        elif words[1] == "scale":
+            pass
+        else:
+            print("WARNING: Unknown line in mcp file:\n%s" % line)
+    fp.close()
+    print("Mhp file %s loaded" % mhppath)
+
+
+class VIEW3D_OT_LoadMhpButton(bpy.types.Operator):
+    bl_idname = "mhx.load_mhp"
+    bl_label = "Load MHP File"
+    bl_description = "Load a pose in MHP format"
+    bl_options = {'UNDO'}
+
+    filename_ext = ".mhp"
+    filter_glob = StringProperty(default="*.mhp", options={'HIDDEN'})
+    filepath = bpy.props.StringProperty(
+        name="File Path",
+        description="File path used for mhp file",
+        maxlen= 1024, default= "")
+
+    def execute(self, context):
+        loadMhpFile(context.object, context.scene, self.properties.filepath)
+        return {'FINISHED'}
+
+    def invoke(self, context, event):
+        context.window_manager.fileselect_add(self)
+        return {'RUNNING_MODAL'}
+
+
+class VIEW3D_OT_SaveasMhpFileButton(bpy.types.Operator, ExportHelper):
+    bl_idname = "mhx.saveas_mhp"
+    bl_label = "Save MHP File"
+    bl_description = "Save current pose in MHP format"
+    bl_options = {'UNDO'}
+
+    filename_ext = ".mhp"
+    filter_glob = StringProperty(default="*.mhp", options={'HIDDEN'})
+    filepath = bpy.props.StringProperty(
+        name="File Path",
+        description="File path used for mhp file",
+        maxlen= 1024, default= "")
+
+    def execute(self, context):
+        saveMhpFile(context.object, context.scene, self.properties.filepath)
+        return {'FINISHED'}
+
+    def invoke(self, context, event):
+        context.window_manager.fileselect_add(self)
+        return {'RUNNING_MODAL'}
 
 ###################################################################################
 #
@@ -4193,7 +4434,6 @@ class VIEW3D_OT_MhxToggleFkIkButton(bpy.types.Operator):
         updatePose(context)
         return{'FINISHED'}
 
-
 #
 #   MHX FK/IK Switch panel
 #
@@ -4443,102 +4683,6 @@ class VIEW3D_OT_MhxRemoveHidersButton(bpy.types.Operator):
                 ob.driver_remove("hide")
                 ob.driver_remove("hide_render")
                 del rig["Mhh%s" % ob.name]
-        return{'FINISHED'}
-
-###################################################################################
-#
-#    Layers panel
-#
-###################################################################################
-
-MhxLayers = [
-    (( 0,    'Root', 'MhxRoot'),
-     ( 8,    'Face', 'MhxFace')),
-    (( 9,    'Tweak', 'MhxTweak'),
-     (10,    'Head', 'MhxHead')),
-    (( 1,    'FK Spine', 'MhxFKSpine'),
-     #(17,    'IK Spine', 'MhxIKSpine')),
-     #((13,    'Inv FK Spine', 'MhxInvFKSpine'),
-     (16,    'Clothes', 'MhxClothes')),
-    ('Left', 'Right'),
-    (( 2,    'IK Arm', 'MhxIKArm'),
-     (18,    'IK Arm', 'MhxIKArm')),
-    (( 3,    'FK Arm', 'MhxFKArm'),
-     (19,    'FK Arm', 'MhxFKArm')),
-    (( 4,    'IK Leg', 'MhxIKLeg'),
-     (20,    'IK Leg', 'MhxIKLeg')),
-    (( 5,    'FK Leg', 'MhxFKLeg'),
-     (21,    'FK Leg', 'MhxFKLeg')),
-    ((12,    'Extra', 'MhxExtra'),
-     (28,    'Extra', 'MhxExtra')),
-    (( 6,    'Fingers', 'MhxFingers'),
-     (22,    'Fingers', 'MhxFingers')),
-    (( 7,    'Links', 'MhxLinks'),
-     (23,    'Links', 'MhxLinks')),
-    ((11,    'Palm', 'MhxPalm'),
-     (27,    'Palm', 'MhxPalm')),
-]
-
-#
-#    class MhxLayersPanel(bpy.types.Panel):
-#
-
-class MhxLayersPanel(bpy.types.Panel):
-    bl_label = "MHX Layers"
-    bl_space_type = "VIEW_3D"
-    bl_region_type = "UI"
-    #bl_options = {'DEFAULT_CLOSED'}
-
-    @classmethod
-    def poll(cls, context):
-        return (context.object and context.object.MhxRig == 'MHX')
-
-    def draw(self, context):
-        layout = self.layout
-        layout.operator("mhx.pose_enable_all_layers")
-        layout.operator("mhx.pose_disable_all_layers")
-        amt = context.object.data
-        for (left,right) in MhxLayers:
-            row = layout.row()
-            if type(left) == str:
-                row.label(left)
-                row.label(right)
-            else:
-                for (n, name, prop) in [left,right]:
-                    row.prop(amt, "layers", index=n, toggle=True, text=name)
-        return
-
-class VIEW3D_OT_MhxEnableAllLayersButton(bpy.types.Operator):
-    bl_idname = "mhx.pose_enable_all_layers"
-    bl_label = "Enable all layers"
-    bl_options = {'UNDO'}
-
-    def execute(self, context):
-        rig,mesh = getMhxRigMesh(context.object)
-        for (left,right) in MhxLayers:
-            if type(left) != str:
-                for (n, name, prop) in [left,right]:
-                    rig.data.layers[n] = True
-        return{'FINISHED'}
-
-class VIEW3D_OT_MhxDisableAllLayersButton(bpy.types.Operator):
-    bl_idname = "mhx.pose_disable_all_layers"
-    bl_label = "Disable all layers"
-    bl_options = {'UNDO'}
-
-    def execute(self, context):
-        rig,mesh = getMhxRigMesh(context.object)
-        layers = 32*[False]
-        pb = context.active_pose_bone
-        if pb:
-            for n in range(32):
-                if pb.bone.layers[n]:
-                    layers[n] = True
-                    break
-        else:
-            layers[0] = True
-        if rig:
-            rig.data.layers = layers
         return{'FINISHED'}
 
 ###################################################################################
