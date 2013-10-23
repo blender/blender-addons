@@ -38,7 +38,7 @@ Alternatively, run the script in the script editor (Alt-P), and access from the 
 bl_info = {
     'name': 'Import: MakeHuman (.mhx)',
     'author': 'Thomas Larsson',
-    'version': "1.16.9",
+    'version': "1.16.10",
     "blender": (2, 68, 0),
     'location': "File > Import > MakeHuman (.mhx)",
     'description': 'Import files in the MakeHuman eXchange format (.mhx)',
@@ -3921,7 +3921,7 @@ def getProps(rig, prefix):
 def hasProps(ob, prefix):
     if ob is None:
         return False
-    if ob.type == 'MESH':
+    if ob.type == 'MESH' and ob.parent:
         rig = ob.parent
     elif ob.type == 'ARMATURE':
         rig = ob
