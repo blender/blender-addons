@@ -38,7 +38,7 @@ Alternatively, run the script in the script editor (Alt-P), and access from the 
 bl_info = {
     'name': 'Import: MakeHuman (.mhx)',
     'author': 'Thomas Larsson',
-    'version': "1.16.10",
+    'version': "1.16.11",
     "blender": (2, 68, 0),
     'location': "File > Import > MakeHuman (.mhx)",
     'description': 'Import files in the MakeHuman eXchange format (.mhx)',
@@ -392,19 +392,42 @@ def checkMhxVersion(major, minor):
 
 ifResult = False
 
+def printMHXVersionInfo(versionStr, performVersionCheck = False):
+    versionInfo = dict()
+    val = versionStr.split()
+
+    majorVersion = int(val[0])
+    minorVersion = int(val[1])
+
+    for debugVal in val[2:]:
+        debugVal = debugVal.replace("_"," ")
+        dKey, dVal = debugVal.split(':')
+        versionInfo[ dKey.strip() ] = dVal.strip()
+
+    if 'MHXImporter' in versionInfo:
+        print("MHX importer version: ", versionInfo["MHXImporter"])
+    if performVersionCheck:
+        checkMhxVersion(majorVersion, minorVersion)
+    else:
+        print("MHX: %s.%s" % (majorVersion, minorVersion))
+
+    for (key, value) in versionInfo.items():
+        if key == "MHXImporter":
+            continue
+        print("%s: %s" % (key, value))
+
 def parse(tokens):
     global MHX249, ifResult, theScale, defaultScale, One
     global majorVersion, minorVersion
+    versionInfoStr = ""
 
     for (key, val, sub) in tokens:
         data = None
         if key == 'MHX':
-            print("MHX importer version: ", bl_info["version"])
-            majorVersion = int(val[0])
-            minorVersion = int(val[1])
-            checkMhxVersion(majorVersion, minorVersion)
-            for string in val[2:]:
-                print(string.replace("_"," "))
+            importerVerStr = "MHXImporter:_%s" % (bl_info["version"])
+            versionInfoStr = " ".join(val + [importerVerStr])
+
+            printMHXVersionInfo(versionInfoStr, performVersionCheck = True)
         elif key == 'MHX249':
             MHX249 = mhxEval(val[0])
             print("Blender 2.49 compatibility mode is %s\n" % MHX249)
@@ -426,7 +449,7 @@ def parse(tokens):
                 theScale = defaultScale
             One = 1.0/theScale
         elif key == "Object":
-            parseObject(val, sub)
+            parseObject(val, sub, versionInfoStr)
         elif key == "Mesh":
             reinitGlobalData()
             data = parseMesh(val, sub)
@@ -495,6 +518,7 @@ def parse(tokens):
                 parseShapeKeys(ob, ob.data, val, sub)
         else:
             data = parseDefaultType(key, val, sub)
+
 
 #
 #    parseDefaultType(typ, args, tokens):
@@ -969,7 +993,7 @@ def parseImage(args, tokens):
 #    setObjectAndData(args, typ):
 #
 
-def parseObject(args, tokens):
+def parseObject(args, tokens, versionInfoStr=""):
     if verbosity > 2:
         print( "Parsing object %s" % args )
     name = args[0]
@@ -1011,6 +1035,12 @@ def parseObject(args, tokens):
             parseDefault(ob.field, sub, {}, [])
         else:
             defaultKey(key, val, sub, ob, ['type', 'data'])
+
+    if versionInfoStr:
+        print('============= updating version string %s' % versionInfoStr)
+        ob.MhxVersionStr = versionInfoStr
+    else:
+        print('============= not updating version str')
 
     if bpy.context.object == ob:
         if ob.type == 'MESH':
@@ -3119,20 +3149,27 @@ def writeMhpBones(fp, pb, log):
     if not isMuscleBone(pb):
         b = pb.bone
         if pb.parent:
-            string = "quat"
             mat = b.matrix_local.inverted() * b.parent.matrix_local * pb.parent.matrix.inverted() * pb.matrix
         else:
-            string = "gquat"
             mat = pb.matrix.copy()
             maty = mat[1].copy()
             matz = mat[2].copy()
             mat[1] = matz
             mat[2] = -maty
 
-        t,q,s = mat.decompose()
-        magn = math.sqrt(q.x*q.x + q.y*q.y + q.z*q.z)
-        if magn > 1e-5:
-            fp.write("%s\t%s\t%.5f\t%.5f\t%.5f\t%.5f\n" % (pb.name, string, q.w, q.x, q.y, q.z))
+        diff = mat - Matrix()
+        nonzero = False
+        for i in range(4):
+            if abs(diff[i].length) > 5e-3:
+                nonzero = True
+                break
+
+        if nonzero:
+            fp.write("%s\tmatrix" % pb.name)
+            for i in range(4):
+                row = mat[i]
+                fp.write("\t%.4f\t%.4f\t%.4f\t%.4f" % (row[0], row[1], row[2], row[3]))
+            fp.write("\n")
 
     for child in pb.children:
         writeMhpBones(fp, child, log)
@@ -3153,6 +3190,10 @@ def isMuscleBone(pb):
 
 
 def loadMhpFile(rig, scn, filepath):
+    unit = Matrix()
+    for pb in rig.pose.bones:
+        pb.matrix_basis = unit
+
     (pname, ext) = os.path.splitext(filepath)
     mhppath = pname + ".mhp"
 
@@ -3161,22 +3202,20 @@ def loadMhpFile(rig, scn, filepath):
         words = line.split()
         if len(words) < 4:
             continue
+
+        try:
+            pb = rig.pose.bones[words[0]]
+        except KeyError:
+            print("Warning: Did not find bone %s" % words[0])
+            continue
+
+        if isMuscleBone(pb):
+            pass
         elif words[1] == "quat":
-            try:
-                pb = rig.pose.bones[words[0]]
-            except KeyError:
-                print("Warning: Did not find bone %s" % words[0])
-                continue
-            if not isMuscleBone(pb):
-                q = Quaternion((float(words[2]), float(words[3]), float(words[4]), float(words[5])))
-                mat = q.to_matrix().to_4x4()
-                pb.matrix_basis = mat
+            q = Quaternion((float(words[2]), float(words[3]), float(words[4]), float(words[5])))
+            mat = q.to_matrix().to_4x4()
+            pb.matrix_basis = mat
         elif words[1] == "gquat":
-            try:
-                pb = rig.pose.bones[words[0]]
-            except KeyError:
-                print("Warning: Did not find bone %s" % words[0])
-                continue
             q = Quaternion((float(words[2]), float(words[3]), float(words[4]), float(words[5])))
             mat = q.to_matrix().to_4x4()
             maty = mat[1].copy()
@@ -3184,6 +3223,21 @@ def loadMhpFile(rig, scn, filepath):
             mat[1] = -matz
             mat[2] = maty
             pb.matrix_basis = pb.bone.matrix_local.inverted() * mat
+        elif words[1] == "matrix":
+            rows = []
+            n = 2
+            for i in range(4):
+                rows.append((float(words[n]), float(words[n+1]), float(words[n+2]), float(words[n+3])))
+                n += 4
+            mat = Matrix(rows)
+            if pb.parent:
+                pb.matrix_basis = mat
+            else:
+                maty = mat[1].copy()
+                matz = mat[2].copy()
+                mat[1] = -matz
+                mat[2] = maty
+                pb.matrix_basis = pb.bone.matrix_local.inverted() * mat
         elif words[1] == "scale":
             pass
         else:
@@ -4749,6 +4803,7 @@ def menu_func(self, context):
     self.layout.operator(ImportMhx.bl_idname, text="MakeHuman (.mhx)...")
 
 def register():
+    bpy.types.Object.MhxVersionStr = StringProperty(name="Version", default="", maxlen=128)
     bpy.types.Object.MhAlpha8 = BoolProperty(default=True)
     bpy.types.Object.MhxMesh = BoolProperty(default=False)
     bpy.types.Object.MhxRig = StringProperty(default="")
