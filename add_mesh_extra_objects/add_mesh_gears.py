@@ -604,7 +604,7 @@ class AddGear(bpy.types.Operator):
         min=0.0,
         max=radians(45.0),
         unit='ROTATION',
-        default=20.0)
+        default=radians(20.0))
     base = FloatProperty(name="Base",
         description="Base, extent of gear below radius",
         min=0.0,
@@ -622,13 +622,13 @@ class AddGear(bpy.types.Operator):
         min=radians(-90.0),
         max=radians(90.0),
         unit='ROTATION',
-        default=0.0)
+        default=radians(0.0))
     conangle = FloatProperty(name="Conical angle",
         description="Conical angle of gear",
         min=0.0,
         max=radians(90.0),
         unit='ROTATION',
-        default=0.0)
+        default=radians(0.0))
     crown = FloatProperty(name="Crown",
         description="Inward pointing extend of crown teeth",
         min=0.0,
