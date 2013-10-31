@@ -95,7 +95,6 @@ class C3DAnimateCloud(bpy.types.Operator):
     def cancel(self, context):
         bpy.context.scene.frame_set(bpy.context.scene.frame_current)
         context.window_manager.event_timer_remove(self.timer)
-        return {'CANCELLED'}
 
 
 class C3DImporter(bpy.types.Operator):

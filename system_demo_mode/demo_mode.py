@@ -404,7 +404,6 @@ class DemoMode(bpy.types.Operator):
         print("func:DemoMode.cancel")
         # disable here means no running on file-load.
         self.cleanup()
-        return {'CANCELLED'}
 
     # call from DemoModeControl
     @classmethod
