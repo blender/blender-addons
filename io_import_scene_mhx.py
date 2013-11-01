@@ -38,7 +38,7 @@ Alternatively, run the script in the script editor (Alt-P), and access from the 
 bl_info = {
     'name': 'Import: MakeHuman (.mhx)',
     'author': 'Thomas Larsson',
-    'version': "1.16.11",
+    'version': "1.16.12",
     "blender": (2, 68, 0),
     'location': "File > Import > MakeHuman (.mhx)",
     'description': 'Import files in the MakeHuman eXchange format (.mhx)',
@@ -51,7 +51,7 @@ bl_info = {
 MAJOR_VERSION = 1
 MINOR_VERSION = 16
 FROM_VERSION = 13
-SUB_VERSION = 8
+SUB_VERSION = 12
 
 majorVersion = MAJOR_VERSION
 minorVersion = MINOR_VERSION
@@ -3032,13 +3032,13 @@ class ImportMhx(bpy.types.Operator, ImportHelper):
 
 MhxLayers = [
     (( 0,    'Root', 'MhxRoot'),
+     ( 1,    'Spine', 'MhxFKSpine')),
+    ((10,    'Head', 'MhxHead'),
      ( 8,    'Face', 'MhxFace')),
     (( 9,    'Tweak', 'MhxTweak'),
-     (10,    'Head', 'MhxHead')),
-    (( 1,    'FK Spine', 'MhxFKSpine'),
-     #(17,    'IK Spine', 'MhxIKSpine')),
-     #((13,    'Inv FK Spine', 'MhxInvFKSpine'),
      (16,    'Clothes', 'MhxClothes')),
+    #((17,    'IK Spine', 'MhxIKSpine'),
+     #((13,    'Inv FK Spine', 'MhxInvFKSpine')),
     ('Left', 'Right'),
     (( 2,    'IK Arm', 'MhxIKArm'),
      (18,    'IK Arm', 'MhxIKArm')),
@@ -3057,6 +3057,23 @@ MhxLayers = [
     ((11,    'Palm', 'MhxPalm'),
      (27,    'Palm', 'MhxPalm')),
 ]
+
+OtherLayers = [
+    (( 1,    'Spine', 'MhxFKSpine'),
+     ( 10,    'Head', 'MhxHead')),
+    (( 9,    'Tweak', 'MhxTweak'),
+     ( 8,    'Face', 'MhxFace')),
+    ('Left', 'Right'),
+    (( 3,    'Arm', 'MhxFKArm'),
+     (19,    'Arm', 'MhxFKArm')),
+    (( 5,    'Leg', 'MhxFKLeg'),
+     (21,    'Leg', 'MhxFKLeg')),
+    (( 7,    'Fingers', 'MhxLinks'),
+     (23,    'Fingers', 'MhxLinks')),
+    ((11,    'Palm', 'MhxPalm'),
+     (27,    'Palm', 'MhxPalm')),
+]
+
 
 #
 #    class MhxMainPanel(bpy.types.Panel):
@@ -3077,15 +3094,21 @@ class MhxMainPanel(bpy.types.Panel):
         layout.label("Layers")
         layout.operator("mhx.pose_enable_all_layers")
         layout.operator("mhx.pose_disable_all_layers")
-        amt = context.object.data
-        for (left,right) in MhxLayers:
+
+        rig = context.object
+        if rig.MhxRig == 'MHX':
+            layers = MhxLayers
+        else:
+            layers = OtherLayers
+
+        for (left,right) in layers:
             row = layout.row()
             if type(left) == str:
                 row.label(left)
                 row.label(right)
             else:
                 for (n, name, prop) in [left,right]:
-                    row.prop(amt, "layers", index=n, toggle=True, text=name)
+                    row.prop(rig.data, "layers", index=n, toggle=True, text=name)
 
         layout.separator()
         layout.label("Export/Import MHP")
