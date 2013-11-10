@@ -925,9 +925,11 @@ def load(operator, context, filepath="",
     fbx_connections = elem_find_first(elem_root, b'Connections')
 
     if fbx_nodes is None:
-        return print("no 'Objects' found")
+        operator.report({'ERROR'}, "No 'Objects' found in file %r" % filepath)
+        return {'CANCELLED'}
     if fbx_connections is None:
-        return print("no 'Connections' found")
+        operator.report({'ERROR'}, "No 'Connections' found in file %r" % filepath)
+        return {'CANCELLED'}
 
     # ----
     # First load property templates
