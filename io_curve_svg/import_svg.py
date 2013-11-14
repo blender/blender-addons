@@ -95,7 +95,7 @@ def SVGParseFloat(s, i=0):
             raise Exception('Invalid float value near ' + s[start:start + 10])
 
     # Degree
-    if  i < n and (s[i] == 'e' or s[i] == 'E'):
+    if i < n and (s[i] == 'e' or s[i] == 'E'):
         token += s[i]
         i += 1
         if s[i] == '+' or s[i] == '-':
@@ -670,7 +670,7 @@ class SVGPathParser:
         self._point = (x, y)
 
         cur = self._data.cur()
-        while  cur is not None and not cur.isalpha():
+        while cur is not None and not cur.isalpha():
             x, y = self._getCoordPair(relative, self._point)
 
             if self._spline is None:
