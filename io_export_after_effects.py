@@ -22,8 +22,8 @@ bl_info = {
     "name": "Export: Adobe After Effects (.jsx)",
     "description": "Export cameras, selected objects & camera solution 3D Markers to Adobe After Effects CS3 and above",
     "author": "Bartek Skorupa",
-    "version": (0, 6, 3),
-    "blender": (2, 62, 0),
+    "version": (0, 64),
+    "blender": (2, 6, 9),
     "location": "File > Export > Adobe After Effects (.jsx)",
     "warning": "",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"\
@@ -36,7 +36,7 @@ bl_info = {
 
 import bpy
 import datetime
-from math import degrees
+from math import degrees, floor
 from mathutils import Matrix
 
 
@@ -49,7 +49,7 @@ def get_comp_data(context):
     start = scene.frame_start
     end = scene.frame_end
     active_cam_frames = get_active_cam_for_each_frame(scene, start, end)
-    fps = scene.render.fps
+    fps = floor(scene.render.fps / (scene.render.fps_base) * 1000.0) / 1000.0
 
     return {
         'scn': scene,
@@ -569,7 +569,7 @@ def write_jsx_file(file, data, selection, include_animation, include_active_cam,
     # create new comp
     jsx_file.write('\nvar compName = prompt("Blender Comp\'s Name \\nEnter Name of newly created Composition","BlendComp","Composition\'s Name");\n')
     jsx_file.write('if (compName){')  # Continue only if comp name is given. If not - terminate
-    jsx_file.write('\nvar newComp = app.project.items.addComp(compName, %i, %i, %f, %f, %i);' %
+    jsx_file.write('\nvar newComp = app.project.items.addComp(compName, %i, %i, %f, %f, %f);' %
                    (data['width'], data['height'], data['aspect'], data['duration'], data['fps']))
     jsx_file.write('\nnewComp.displayStartTime = %f;\n\n\n' % ((data['start'] + 1.0) / data['fps']))
 
