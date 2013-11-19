@@ -31,7 +31,7 @@ bl_info = {
     "category": "Render"}
 
 """
-Copyright 2009-2012 Laurea University of Applied Sciences
+Copyright 2009-2013 Laurea University of Applied Sciences
 Authors: Nathan Letwory, Jesse Kaukonen
 """
 
