@@ -20,7 +20,7 @@ bl_info = {
     'name': "Nodes Efficiency Tools",
     'author': "Bartek Skorupa",
     'version': (2, 33),
-    'blender': (2, 6, 8),
+    'blender': (2, 6, 9),
     'location': "Node Editor Properties Panel (Ctrl-SPACE)",
     'description': "Nodes Efficiency Tools",
     'warning': "",
