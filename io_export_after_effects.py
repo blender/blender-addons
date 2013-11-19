@@ -23,7 +23,7 @@ bl_info = {
     "description": "Export cameras, selected objects & camera solution 3D Markers to Adobe After Effects CS3 and above",
     "author": "Bartek Skorupa",
     "version": (0, 64),
-    "blender": (2, 6, 9),
+    "blender": (2, 69, 0),
     "location": "File > Export > Adobe After Effects (.jsx)",
     "warning": "",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"\

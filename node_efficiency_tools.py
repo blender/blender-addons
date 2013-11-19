@@ -20,8 +20,8 @@ bl_info = {
     'name': "Nodes Efficiency Tools",
     'author': "Bartek Skorupa",
     'version': (2, 33),
-    'blender': (2, 6, 9),
-    'location': "Node Editor Properties Panel (Ctrl-SPACE)",
+    'blender': (2, 69, 0),
+    'location': "Node Editor Properties Panel (Ctrl+Space)",
     'description': "Nodes Efficiency Tools",
     'warning': "",
     'wiki_url': "http://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts/Nodes/Nodes_Efficiency_Tools",
@@ -1106,7 +1106,7 @@ class DetachOutputs(Operator, NodeToolBase):
     bl_idname = "node.detach_outputs"
     bl_label = "Detach Outputs"
     bl_options = {'REGISTER', 'UNDO'}
-    
+
     def execute(self, context):
         nodes, links = get_nodes_links(context)
         selected = context.selected_nodes
@@ -1119,7 +1119,7 @@ class DetachOutputs(Operator, NodeToolBase):
         for new_node in new_nodes:
             new_node.select = True
         bpy.ops.transform.translate('INVOKE_DEFAULT')
-        
+
         return {'FINISHED'}
 
 
@@ -1127,7 +1127,7 @@ class LinkToOutputNode(Operator, NodeToolBase):
     bl_idname = "node.link_to_output_node"
     bl_label = "Link to Output Node"
     bl_options = {'REGISTER', 'UNDO'}
-    
+
     @classmethod
     def poll(cls, context):
         space = context.space_data
@@ -1138,7 +1138,7 @@ class LinkToOutputNode(Operator, NodeToolBase):
                 ):
             valid = True
         return valid
-    
+
     def execute(self, context):
         nodes, links = get_nodes_links(context)
         active = nodes.active

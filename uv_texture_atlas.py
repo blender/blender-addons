@@ -21,7 +21,7 @@ bl_info = {
     "name": "Texture Atlas",
     "author": "Andreas Esau, Paul Geraskin, Campbell Barton",
     "version": (0, 2, 0),
-    "blender": (2, 6, 7),
+    "blender": (2, 67, 0),
     "location": "Properties > Render",
     "description": "A simple Texture Atlas for unwrapping many objects. It creates additional UV",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts/UV/TextureAtlas",
