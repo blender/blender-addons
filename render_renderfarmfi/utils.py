@@ -17,17 +17,12 @@
 # ##### END GPL LICENSE BLOCK #####
 
 import imp
-import xmlrpc.client
-import math
-import sys
-import traceback
 
 from os.path import join
 
 import bpy
 
 from .ore_session import OreSession
-from .exceptions import LoginFailedException
 
 def _write_credentials(hash, user):
     with open(join(bpy.utils.user_resource('CONFIG', 'rffi', True), 'rffi_credentials.py'), 'w') as pwfile:
