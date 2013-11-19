@@ -192,7 +192,7 @@ class RffiRpc(object):
 
     def check_status(self):
         res = self.proxy.service.motd()
-        bpy.rffi_accepts = res['accepting']
+        bpy.rffi_accepting = res['accepting']
         bpy.rffi_motd = res['motd']
 
 rffi = RffiRpc()
