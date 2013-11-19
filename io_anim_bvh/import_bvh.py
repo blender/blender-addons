@@ -110,7 +110,7 @@ def read_bvh(context, file_path, rotate_mode='XYZ', global_scale=1.0):
         #print 'Importing the BVH Hierarchy for:', file_path
         pass
     else:
-        raise 'ERROR: This is not a BVH file'
+        raise Exception("This is not a BVH file")
 
     bvh_nodes = {None: None}
     bvh_nodes_serial = [None]
@@ -274,7 +274,7 @@ def read_bvh(context, file_path, rotate_mode='XYZ', global_scale=1.0):
             else:
                 # allow this, see above
                 #if not bvh_node.children:
-                #	raise 'error, bvh node has no end and no children. bad file'
+                #	raise Exception("bvh node has no end and no children. bad file")
 
                 # Removed temp for now
                 rest_tail_world = Vector((0.0, 0.0, 0.0))

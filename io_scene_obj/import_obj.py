@@ -592,7 +592,7 @@ def create_mesh(new_objects,
 
     for i, face in enumerate(faces):
         if len(face[0]) < 2:
-            pass  # raise "bad face"
+            pass  # raise Exception("bad face")
         elif len(face[0]) == 2:
             if use_edges:
                 edges.append(face[0])
