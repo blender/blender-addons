@@ -75,8 +75,8 @@ def _xmlsessions_to_oresessions(sessions, stage=None):
         s = session['title']
         if stage:
             s = s + ' (' + stage + ')'
-        sinfo = OreSession(session['sessionId'], s) 
-        if stage in {'Completed', 'Active'}:
+        sinfo = OreSession(session['sessionId'], s)
+        if stage in {'Rendering', 'Completed', 'Active'}:
             sinfo.frames = session['framesRendered']
         sinfo.startframe = session['startFrame']
         sinfo.endframe = session['endFrame']
