@@ -543,6 +543,10 @@ class Print3DScaleToVolume(Operator):
             volume = sum(calc_volume(obj) for obj in context.selected_editable_objects
                          if obj.type == 'MESH')
 
+        if volume == 0.0:
+            self.report({'WARNING'}, "Object has zero volume")
+            return {'CANCELLED'}
+
         self.volume_init = self.volume = abs(volume)
 
         wm = context.window_manager
@@ -582,11 +586,16 @@ class Print3DScaleToBounds(Operator):
 
         if context.mode == 'EDIT_MESH':
             length, axis = calc_length([Vector(v) * obj.matrix_world
-                                        for v in context.edit_object.bound_box])
+                                        for obj in [context.edit_object]
+                                        for v in obj.bound_box])
         else:
             length, axis = calc_length([Vector(v) * obj.matrix_world
                                         for obj in context.selected_editable_objects
                                         if obj.type == 'MESH' for v in obj.bound_box])
+
+        if length == 0.0:
+            self.report({'WARNING'}, "Object has zero bounds")
+            return {'CANCELLED'}
 
         self.length_init = self.length = length
         self.axis_init = axis

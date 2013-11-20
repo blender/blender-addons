@@ -54,7 +54,7 @@ def bmesh_copy_from_object(obj, transform=True, triangulate=True, apply_modifier
         bm.transform(obj.matrix_world)
 
     if triangulate:
-        bmesh.ops.triangulate(bm, faces=bm.faces, use_beauty=True)
+        bmesh.ops.triangulate(bm, faces=bm.faces)
 
     return bm
 
@@ -103,6 +103,9 @@ def bmesh_check_self_intersect_object(obj):
     """
     import bpy
 
+    if not obj.data.polygons:
+        return array.array('i', ())
+
     # Heres what we do!
     #
     # * Take original Mesh.
@@ -115,7 +118,7 @@ def bmesh_check_self_intersect_object(obj):
     # Triangulate
     bm = bmesh_copy_from_object(obj, transform=False, triangulate=False)
     face_map_index_org = {f: i for i, f in enumerate(bm.faces)}
-    ret = bmesh.ops.triangulate(bm, faces=bm.faces, use_beauty=False)
+    ret = bmesh.ops.triangulate(bm, faces=bm.faces)
     face_map = ret["face_map"]
     # map new index to original index
     face_map_index = {i: face_map_index_org[face_map.get(f, f)] for i, f in enumerate(bm.faces)}
@@ -196,7 +199,7 @@ def bmesh_check_thick_object(obj, thickness):
     bm = bmesh_copy_from_object(obj, transform=True, triangulate=False)
     # map original faces to their index.
     face_index_map_org = {f: i for i, f in enumerate(bm.faces)}
-    ret = bmesh.ops.triangulate(bm, faces=bm.faces, use_beauty=False)
+    ret = bmesh.ops.triangulate(bm, faces=bm.faces)
     face_map = ret["face_map"]
     del ret
     # old edge -> new mapping
