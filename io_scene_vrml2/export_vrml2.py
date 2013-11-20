@@ -179,7 +179,7 @@ def save_object(fw, global_matrix,
             bm.from_mesh(me)
 
     bm.transform(global_matrix * obj.matrix_world)
-    bmesh.ops.triangulate(bm, faces=bm.faces, use_beauty=True)
+    bmesh.ops.triangulate(bm, faces=bm.faces)
 
     # default empty
     material_colors = []

@@ -695,7 +695,7 @@ class VIEW3D_MT_TransformMenu(bpy.types.Menu):
 
         layout.operator("transform.tosphere", text="To Sphere")
         layout.operator("transform.shear", text="Shear")
-        layout.operator("transform.warp", text="Warp")
+        layout.operator("transform.bend", text="Bend")
         layout.operator("transform.push_pull", text="Push/Pull")
         if context.edit_object and context.edit_object.type == 'ARMATURE':
             layout.operator("armature.align")
