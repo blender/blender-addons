@@ -194,8 +194,8 @@ url_manual_mapping = (
     ("bpy.types.GreasePencil.*", "3D_interaction/Sketching/Drawing"),
     ("bpy.types.Group.*", "Modeling/Objects/Groups_and_Parenting#Grouping_objects"),
     ("bpy.types.Image.*", "Textures/Types/Image"),
-    ("bpy.types.ShapeKey.*", "Animation/Basic/Deformation/Shape_Keys"), # not an ID but include because of Key
-    ("bpy.types.Key.*", "Animation/Basic/Deformation/Shape_Keys"),
+    ("bpy.types.ShapeKey.*", "Animation/Techs/Shape/Shape_Keys"), # not an ID but include because of Key
+    ("bpy.types.Key.*", "Animation/Techs/Shape/Shape_Keys"),
     #("bpy.types.Lattice.*", ""), # TODO - manual has no place for this! XXX
     ("bpy.types.Library.*", "Manual/Data_System/Linked_Libraries"),
     #("bpy.types.Mask.*", ""), # TODO - manual has no place for this! XXX
@@ -217,6 +217,8 @@ url_manual_mapping = (
     ("bpy.types.MovieClip.*", "Motion_Tracking#Movie_Clip_Editor"),
     #("bpy.types.NodeTree.*", ""),  # dont document
     ("bpy.types.Object.*",  "Modeling/Objects"),  # catchall, TODO - refine
+    ("bpy.types.Object.*shape_key*", "Animation/Techs/Shape/Shape_Keys"),
+    ("bpy.types.Object.join_shapes", "Animation/Techs/Shape/Shape_Keys"),
     ("bpy.types.ParticleSettings.*", "Physics/Particles"),
     ("bpy.types.Scene.*", "Interface/Scenes"),
     ("bpy.types.Screen.*", "Interface/Screens"),
