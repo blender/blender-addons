@@ -217,8 +217,6 @@ url_manual_mapping = (
     ("bpy.types.MovieClip.*", "Motion_Tracking#Movie_Clip_Editor"),
     #("bpy.types.NodeTree.*", ""),  # dont document
     ("bpy.types.Object.*",  "Modeling/Objects"),  # catchall, TODO - refine
-    ("bpy.types.Object.*shape_key*", "Animation/Techs/Shape/Shape_Keys"),
-    ("bpy.types.Object.join_shapes", "Animation/Techs/Shape/Shape_Keys"),
     ("bpy.types.ParticleSettings.*", "Physics/Particles"),
     ("bpy.types.Scene.*", "Interface/Scenes"),
     ("bpy.types.Screen.*", "Interface/Screens"),
@@ -315,6 +313,8 @@ url_manual_mapping = (
     ("bpy.ops.mesh.*",  "Modeling/Meshes"),
     ("bpy.ops.nla.*",  "Animation/Editors/NLA"),
     # ("bpy.ops.node.*",  ""),  # TODO
+    ("bpy.ops.object.*shape_key*", "Animation/Techs/Shape/Shape_Keys"),
+    ("bpy.ops.object.join_shapes", "Animation/Techs/Shape/Shape_Keys"),
     ("bpy.ops.object.*",  "Modeling/Objects"),
     ("bpy.ops.outliner.*",  "Data_System/The_Outliner"),
     # ("bpy.ops.paint.*",  ""),  # TODO
