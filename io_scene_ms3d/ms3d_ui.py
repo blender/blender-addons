@@ -1291,10 +1291,18 @@ class Ms3dMaterialProperties(PropertyGroup):
 
 ###############################################################################
 # http://www.blender.org/documentation/blender_python_api_2_65_10/bpy.types.UIList.html
+#
+# uiList: ctrl-clic-edit name
+# http://lists.blender.org/pipermail/bf-committers/2013-November/042113.html
+# http://git.blender.org/gitweb/gitweb.cgi/blender.git/commit/f842ce82e6c92b156c0036cbefb4e4d97cd1d498
+# http://git.blender.org/gitweb/gitweb.cgi/blender.git/commit/4c52e737df39e538d3b41a232035a4a1e240505d
 class Ms3dGroupUILise(UIList):
     def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
         if self.layout_type in {'DEFAULT', 'COMPACT', }:
-            layout.label(text=item.name, icon_value=icon)
+            if item:
+                layout.prop(item, "name", text="", emboss=False, icon_value=icon)
+            else:
+                layout.label(text="", icon_value=icon)
         elif self.layout_type in {'GRID', }:
             layout.alignment = 'CENTER'
             layout.label(text="", icon_value=icon)
@@ -1477,9 +1485,6 @@ class Ms3dGroupPanel(Panel):
         index = custom_data.selected_group_index
         collection = custom_data.groups
         if (index >= 0 and index < len(collection)):
-            row = layout.row()
-            row.prop(collection[index], 'name')
-
             row = layout.row()
             subrow = row.row(align=True)
             subrow.operator(
