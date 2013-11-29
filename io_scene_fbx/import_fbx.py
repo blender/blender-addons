@@ -431,8 +431,9 @@ def blen_read_geom_array_mapped_polyloop(
         if fbx_layer_ref == b'IndexToDirect':
             assert(fbx_layer_index is not None)
             for i, j in enumerate(fbx_layer_index):
-                setattr(blen_data[i], blend_attr,
-                        fbx_layer_data[(j * stride): (j * stride) + item_size])
+                if j != -1:
+                    setattr(blen_data[i], blend_attr,
+                            fbx_layer_data[(j * stride): (j * stride) + item_size])
             return True
         else:
             print("warning layer %r ref type unsupported: %r" % (descr, fbx_layer_ref))
