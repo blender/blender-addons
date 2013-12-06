@@ -249,8 +249,8 @@ class ExportOBJ(bpy.types.Operator, ExportHelper):
             default=False,
             )
     use_normals = BoolProperty(
-            name="Include Normals",
-            description="",
+            name="Loop Normals",
+            description="Export one normal per vertex and per face, to represent flat faces and sharp edges",
             default=False,
             )
     use_uvs = BoolProperty(
