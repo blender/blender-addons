@@ -34,9 +34,16 @@ class DirectXExporter:
         self.File = File(self.Config.filepath)
 
         self.Log("Setting up coordinate system...")
-        # SystemMatrix converts from right-handed, z-up to left-handed, y-up
-        self.SystemMatrix = (Matrix.Scale(-1, 4, Vector((0, 0, 1))) *
-            Matrix.Rotation(radians(-90), 4, 'X'))
+        
+        # SystemMatrix converts from right-handed, z-up to the target coordinate system
+        self.SystemMatrix = Matrix()
+        
+        if self.Config.CoordinateSystem == 'LEFT_HANDED':
+            self.SystemMatrix *= Matrix.Scale(-1, 4, Vector((0, 0, 1)))
+        
+        if self.Config.UpAxis == 'Y':
+            self.SystemMatrix *= Matrix.Rotation(radians(-90), 4, 'X')
+            
         self.Log("Done")
 
         self.Log("Generating object lists for export...")
@@ -469,8 +476,6 @@ class MeshExportObject(ExportObject):
             
             self.Exporter.File.Write("{};".format(len(PolygonVertexIndexes)))
             
-            PolygonVertexIndexes = PolygonVertexIndexes[::-1]
-            
             for VertexCountIndex, VertexIndex in \
                 enumerate(PolygonVertexIndexes):
 
@@ -574,8 +579,7 @@ class MeshExportObject(ExportObject):
         for Index, Polygon in enumerate(MeshEnumerator.PolygonVertexIndexes):
             self.Exporter.File.Write("{};".format(len(Polygon)))
             
-            # Reverse the winding order
-            for VertexCountIndex, VertexIndex in enumerate(Polygon[::-1]):
+            for VertexCountIndex, VertexIndex in enumerate(Polygon):
                 if VertexCountIndex == len(Polygon) - 1:
                     self.Exporter.File.Write("{};".format(VertexIndex),
                         Indent=False)

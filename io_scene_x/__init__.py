@@ -53,6 +53,20 @@ class ExportDirectX(bpy.types.Operator):
         description="Export only selected objects",
         default=True)
         
+    CoordinateSystem = EnumProperty(
+        name="Coordinate System",
+        description="Use the selected coordinate system for export",
+        items=(('LEFT_HANDED', "Left-Handed", "Use a Y up, Z forward system or a Z up, -Y forward system"),
+               ('RIGHT_HANDED', "Right-Handed", "Use a Y up, -Z forward system or a Z up, Y forward system")),
+        default='LEFT_HANDED')
+        
+    UpAxis = EnumProperty(
+        name="Up Axis",
+        description="The selected axis points upward",
+        items=(('Y', "Y", "The Y axis points up"),
+               ('Z', "Z", "The Z axis points up")),
+        default='Y')
+        
     ExportMeshes = BoolProperty(
         name="Export Meshes",
         description="Export mesh objects",
