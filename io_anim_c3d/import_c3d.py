@@ -196,14 +196,23 @@ class MarkerSet:
             if not g.name:
                 break
             self.paramGroups[g.name] = g
+        cand_mlabel = None
         for pg in self.paramGroups:
             #print("group: " + pg)
             #for p in self.paramGroups[pg].params:
             #    print("   * " + p)
             if 'LABELS' in self.paramGroups[pg].params:
-                break
+                cand_mlabel = self.paramGroups[pg].params['LABELS'].decode()
+                if len(cand_mlabel) == self.markerCount:
+                    break
+                cand_mlabel = None
         # pg should be 'POINT', but let's be liberal and accept any group
-        self.markerLabels = self.paramGroups[pg].params['LABELS'].decode()
+        # as long as the LABELS parameter has the same number of markers
+        if cand_mlabel is None:
+            self.markerLabels = ["m{}".format(idx)
+                                 for idx in range(self.markerCount)]
+        else:
+            self.markerLabels = cand_mlabel
         repeats = {}
         for i, m in enumerate(self.markerLabels):
             if m in repeats:

@@ -25,8 +25,8 @@
 bl_info = {
     "name": "C3D Graphics Lab Motion Capture file (.c3d)",
     "author": "Daniel Monteiro Basso <daniel@basso.inf.br>",
-    "version": (2013, 2, 16, 1),
-    "blender": (2, 65, 9),
+    "version": (2013, 12, 10, 1),
+    "blender": (2, 69, 5),
     "location": "File > Import",
     "description": "Imports C3D Graphics Lab Motion Capture files",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
@@ -95,6 +95,7 @@ class C3DAnimateCloud(bpy.types.Operator):
     def cancel(self, context):
         bpy.context.scene.frame_set(bpy.context.scene.frame_current)
         context.window_manager.event_timer_remove(self.timer)
+        return {'FINISHED'}
 
 
 class C3DImporter(bpy.types.Operator):
