@@ -91,7 +91,13 @@ class ExportDirectX(bpy.types.Operator):
         name="    Export Materials",
         description="Export material properties and reference image textures",
         default=True)
-
+    
+    ExportActiveImageMaterials = BoolProperty(
+        name="        Reference Active Images as Textures",
+        description="Reference the active image of each face as a texture, "\
+            "as opposed to the image assigned to the material",
+        default=False)
+    
     ExportVertexColors = BoolProperty(
         name="    Export Vertex Colors",
         description="Export mesh vertex colors, if any",
@@ -182,4 +188,3 @@ def unregister():
 
 if __name__ == "__main__":
     register()
-

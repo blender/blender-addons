@@ -506,7 +506,12 @@ class MeshExportObject(ExportObject):
 
         if self.Config.ExportMaterials:
             self.Exporter.Log("Writing mesh materials...")
-            self.__WriteMeshMaterials(Mesh)
+            if self.Config.ExportActiveImageMaterials:
+                self.Exporter.Log("Referencing active images instead of "\
+                    "material image textures.")
+                self.__WriteMeshActiveImageMaterials(Mesh)
+            else:
+                self.__WriteMeshMaterials(Mesh)
             self.Exporter.Log("Done")
         
         if self.Config.ExportVertexColors:
@@ -695,6 +700,86 @@ class MeshExportObject(ExportObject):
                 self.Exporter.File.Write(",\n", Indent=False)
         
         for Material in Materials:
+            WriteMaterial(self.Exporter, Material)
+        
+        self.Exporter.File.Unindent()
+        self.Exporter.File.Write("}} // End of {} material list\n".format(
+            self.SafeName))
+    
+    def __WriteMeshActiveImageMaterials(self, Mesh):
+        def WriteMaterial(Exporter, MaterialKey):
+            #Unpack key
+            Material, Image = MaterialKey
+            
+            Exporter.File.Write("Material {} {{\n".format(
+                Util.SafeName(Material.name)))
+            Exporter.File.Indent()
+            
+            Diffuse = list(Vector(Material.diffuse_color) *
+                Material.diffuse_intensity)
+            Diffuse.append(Material.alpha)
+            # Map Blender's range of 1 - 511 to 0 - 1000
+            Specularity = 1000 * (Material.specular_hardness - 1.0) / 510.0
+            Specular = list(Vector(Material.specular_color) *
+                Material.specular_intensity)
+            
+            Exporter.File.Write("{:9f};{:9f};{:9f};{:9f};;\n".format(Diffuse[0],
+                Diffuse[1], Diffuse[2], Diffuse[3]))
+            Exporter.File.Write(" {:9f};\n".format(Specularity))
+            Exporter.File.Write("{:9f};{:9f};{:9f};;\n".format(Specular[0],
+                Specular[1], Specular[2]))
+            Exporter.File.Write(" 0.000000; 0.000000; 0.000000;;\n")
+            
+            if Image is not None:
+                Exporter.File.Write("TextureFilename {{\"{}\";}}\n".format(
+                    bpy.path.basename(Image.filepath)))
+            
+            self.Exporter.File.Unindent()
+            self.Exporter.File.Write("}\n")
+        
+        def GetMaterialKey(Material, UVTexture, Index):
+            Image = None
+            if UVTexture != None and UVTexture.data[Index].image != None:
+                Image = UVTexture.data[Index].image if \
+                    UVTexture.data[Index].image.source == 'FILE' else None
+            
+            return (Material, Image)
+        
+        Materials = Mesh.materials
+        # Do not write materials if there are none
+        if not Materials.keys():
+            return
+        
+        self.Exporter.File.Write("MeshMaterialList {{ // {} material list\n".
+            format(self.SafeName))
+        self.Exporter.File.Indent()
+        
+        from array import array
+        MaterialIndexes = array("I", [0]) * len(Mesh.polygons) # Fast allocate
+        MaterialIndexMap = {}
+        
+        for Index, Polygon in enumerate(Mesh.polygons):
+            MaterialKey = GetMaterialKey(Materials[Polygon.material_index],
+                Mesh.uv_textures.active, Index)
+            
+            if MaterialKey in MaterialIndexMap:
+                MaterialIndexes[Index] = MaterialIndexMap[MaterialKey]
+            else:
+                MaterialIndex = len(MaterialIndexMap)
+                MaterialIndexMap[MaterialKey] = MaterialIndex
+                MaterialIndexes[Index] = MaterialIndex
+        
+        self.Exporter.File.Write("{};\n".format(len(MaterialIndexMap)))
+        self.Exporter.File.Write("{};\n".format(len(Mesh.polygons)))
+        
+        for Index in range(len(Mesh.polygons)):
+            self.Exporter.File.Write("{}".format(MaterialIndexes[Index]))
+            if Index == len(Mesh.polygons) - 1:
+                self.Exporter.File.Write(";;\n", Indent=False)
+            else:
+                self.Exporter.File.Write(",\n", Indent=False)
+        
+        for Material in MaterialIndexMap.keys():
             WriteMaterial(self.Exporter, Material)
         
         self.Exporter.File.Unindent()
