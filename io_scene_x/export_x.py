@@ -403,14 +403,14 @@ class MeshExportObject(ExportObject):
         def __init__(self, Mesh):
             self.Mesh = Mesh
             
-            # self.vertices and self.PolygonVertexIndexes relate to the
+            # self.vertices and self.PolygonVertexIndices relate to the
             # original mesh in the following way:
             
             # Mesh.vertices[Mesh.polygons[x].vertices[y]] == 
-            # self.vertices[self.PolygonVertexIndexes[x][y]]
+            # self.vertices[self.PolygonVertexIndices[x][y]]
             
             self.vertices = None 
-            self.PolygonVertexIndexes = None
+            self.PolygonVertexIndices = None
     
     # Represents the mesh as it is inside Blender
     class _OneToOneMeshEnumerator(_MeshEnumerator):
@@ -419,7 +419,7 @@ class MeshExportObject(ExportObject):
             
             self.vertices = Mesh.vertices
             
-            self.PolygonVertexIndexes = tuple(tuple(Polygon.vertices)
+            self.PolygonVertexIndices = tuple(tuple(Polygon.vertices)
                 for Polygon in Mesh.polygons)
 
     # Duplicates each vertex for each face
@@ -432,10 +432,10 @@ class MeshExportObject(ExportObject):
                 self.vertices += tuple(Mesh.vertices[VertexIndex]
                     for VertexIndex in Polygon.vertices)
             
-            self.PolygonVertexIndexes = []
+            self.PolygonVertexIndices = []
             Index = 0
             for Polygon in Mesh.polygons:
-                self.PolygonVertexIndexes.append(tuple(range(Index, 
+                self.PolygonVertexIndices.append(tuple(range(Index, 
                     Index + len(Polygon.vertices))))
                 Index += len(Polygon.vertices)
             
@@ -469,17 +469,17 @@ class MeshExportObject(ExportObject):
                 self.Exporter.File.Write(",\n", Indent=False)
         
         # Write face definitions
-        PolygonCount = len(MeshEnumerator.PolygonVertexIndexes)
+        PolygonCount = len(MeshEnumerator.PolygonVertexIndices)
         self.Exporter.File.Write("{};\n".format(PolygonCount))
-        for Index, PolygonVertexIndexes in \
-            enumerate(MeshEnumerator.PolygonVertexIndexes):
+        for Index, PolygonVertexIndices in \
+            enumerate(MeshEnumerator.PolygonVertexIndices):
             
-            self.Exporter.File.Write("{};".format(len(PolygonVertexIndexes)))
+            self.Exporter.File.Write("{};".format(len(PolygonVertexIndices)))
             
             for VertexCountIndex, VertexIndex in \
-                enumerate(PolygonVertexIndexes):
+                enumerate(PolygonVertexIndices):
 
-                if VertexCountIndex == len(PolygonVertexIndexes) - 1:
+                if VertexCountIndex == len(PolygonVertexIndices) - 1:
                     self.Exporter.File.Write("{};".format(VertexIndex),
                         Indent=False)
                 else:
@@ -538,19 +538,19 @@ class MeshExportObject(ExportObject):
                 MeshExportObject._MeshEnumerator(Mesh)
                 
                 self.vertices = []
-                self.PolygonVertexIndexes = []
+                self.PolygonVertexIndices = []
                 
                 Index = 0
                 for Polygon in Mesh.polygons:
                     if not Polygon.use_smooth:
                         self.vertices.append(Polygon)
-                        self.PolygonVertexIndexes.append(
+                        self.PolygonVertexIndices.append(
                             tuple(len(Polygon.vertices) * [Index]))
                         Index += 1
                     else:
                         for VertexIndex in Polygon.vertices:
                             self.vertices.append(Mesh.vertices[VertexIndex])
-                        self.PolygonVertexIndexes.append(
+                        self.PolygonVertexIndices.append(
                             tuple(range(Index, Index + len(Polygon.vertices))))
                         Index += len(Polygon.vertices)            
         
@@ -579,9 +579,9 @@ class MeshExportObject(ExportObject):
                 self.Exporter.File.Write(",\n", Indent=False)
         
         # Write face definitions.
-        FaceCount = len(MeshEnumerator.PolygonVertexIndexes)
+        FaceCount = len(MeshEnumerator.PolygonVertexIndices)
         self.Exporter.File.Write("{};\n".format(FaceCount))
-        for Index, Polygon in enumerate(MeshEnumerator.PolygonVertexIndexes):
+        for Index, Polygon in enumerate(MeshEnumerator.PolygonVertexIndices):
             self.Exporter.File.Write("{};".format(len(Polygon)))
             
             for VertexCountIndex, VertexIndex in enumerate(Polygon):
@@ -755,7 +755,7 @@ class MeshExportObject(ExportObject):
         self.Exporter.File.Indent()
         
         from array import array
-        MaterialIndexes = array("I", [0]) * len(Mesh.polygons) # Fast allocate
+        MaterialIndices = array("I", [0]) * len(Mesh.polygons) # Fast allocate
         MaterialIndexMap = {}
         
         for Index, Polygon in enumerate(Mesh.polygons):
@@ -763,17 +763,17 @@ class MeshExportObject(ExportObject):
                 Mesh.uv_textures.active, Index)
             
             if MaterialKey in MaterialIndexMap:
-                MaterialIndexes[Index] = MaterialIndexMap[MaterialKey]
+                MaterialIndices[Index] = MaterialIndexMap[MaterialKey]
             else:
                 MaterialIndex = len(MaterialIndexMap)
                 MaterialIndexMap[MaterialKey] = MaterialIndex
-                MaterialIndexes[Index] = MaterialIndex
+                MaterialIndices[Index] = MaterialIndex
         
         self.Exporter.File.Write("{};\n".format(len(MaterialIndexMap)))
         self.Exporter.File.Write("{};\n".format(len(Mesh.polygons)))
         
         for Index in range(len(Mesh.polygons)):
-            self.Exporter.File.Write("{}".format(MaterialIndexes[Index]))
+            self.Exporter.File.Write("{}".format(MaterialIndices[Index]))
             if Index == len(Mesh.polygons) - 1:
                 self.Exporter.File.Write(";;\n", Indent=False)
             else:
@@ -822,7 +822,7 @@ class MeshExportObject(ExportObject):
             self.SafeName))
     
     def __WriteMeshSkinWeights(self, Mesh, MeshEnumerator=None):
-        # This contains vertex indexes and weights for the vertices that belong
+        # This contains vertex indices and weights for the vertices that belong
         # to this bone's group.  Also calculates the bone skin matrix.
         class _BoneVertexGroup:
                 def __init__(self, BlenderObject, ArmatureObject, BoneName):
@@ -830,7 +830,7 @@ class MeshExportObject(ExportObject):
                     self.SafeName = Util.SafeName(ArmatureObject.name) + "_" + \
                         Util.SafeName(BoneName)
                     
-                    self.Indexes = []
+                    self.Indices = []
                     self.Weights = []
                     
                     # BoneMatrix transforms mesh vertices into the
@@ -849,7 +849,7 @@ class MeshExportObject(ExportObject):
                     self.BoneMatrix *= BlenderObject.matrix_world
                 
                 def AddVertex(self, Index, Weight):
-                    self.Indexes.append(Index)
+                    self.Indices.append(Index)
                     self.Weights.append(Weight)
         
         # Skin weights work well with vertex reuse per face.  Use a
@@ -926,11 +926,11 @@ class MeshExportObject(ExportObject):
                 self.Exporter.File.Write("\"{}\";\n".format(
                     BoneVertexGroup.SafeName))
                 
-                GroupVertexCount = len(BoneVertexGroup.Indexes)
+                GroupVertexCount = len(BoneVertexGroup.Indices)
                 self.Exporter.File.Write("{};\n".format(GroupVertexCount))
                 
-                # Write the indexes of the vertices this bone affects.
-                for Index, VertexIndex in enumerate(BoneVertexGroup.Indexes):
+                # Write the indices of the vertices this bone affects.
+                for Index, VertexIndex in enumerate(BoneVertexGroup.Indices):
                     self.Exporter.File.Write("{}".format(VertexIndex))
                     
                     if Index == GroupVertexCount - 1:
