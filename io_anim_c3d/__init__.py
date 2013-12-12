@@ -167,6 +167,11 @@ class C3DImporter(bpy.types.Operator):
             name="Name Prefix", maxlen=32,
             description="Prefix object names with this",
             )
+    use_existing = BoolProperty(
+            name="Use existing empties",
+            default=False,
+            description="Use previously created homonymous empties",
+            )
     confidence = FloatProperty(
             name="Minimum Confidence Level", default=0,
             description="Only consider markers with at least "
@@ -196,7 +201,7 @@ class C3DImporter(bpy.types.Operator):
         if zmin is None:  # could not find named markers, get extremes
             allz = [m.position[hidx] for m in ms.frames[0]]
             zmin, zmax = min(allz), max(allz)
-        return abs(zmax - zmin)
+        return abs(zmax - zmin) or 1
 
     def adjust_scale_magnitude(self, height, scale):
         mag = math.log10(height * scale)
@@ -236,14 +241,19 @@ class C3DImporter(bpy.types.Operator):
 
         # create the empties and get their collision-free names
         unames = {}
+        use_existing = self.properties.use_existing
         for ml in ms.markerLabels:
-            bpy.ops.object.add()
-            bpy.ops.transform.resize(value=empty_size)
             name = self.properties.prefix + ml
-            bpy.context.active_object.name = name
-            unames[name] = bpy.context.active_object.name
-            bpy.context.active_object.show_name = self.properties.show_names
-            bpy.context.active_object.show_x_ray = self.properties.x_ray
+            if use_existing and name in bpy.context.scene.objects:
+                o = bpy.context.scene.objects[name]
+            else:
+                bpy.ops.object.add()
+                o = bpy.context.active_object
+                o.name = name
+            unames[name] = o.name
+            bpy.ops.transform.resize(value=empty_size)
+            o.show_name = self.properties.show_names
+            o.show_x_ray = self.properties.x_ray
         for name in unames.values():
             bpy.context.scene.objects[name].select = True
 
