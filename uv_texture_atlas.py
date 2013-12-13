@@ -696,7 +696,7 @@ class TexAtl_SeparateObjects(Operator):
                     scene.objects.active = ob_merged
 
                     bpy.ops.object.mode_set(mode='EDIT')
-                    if doUnhidePolygons == False:
+                    if doUnhidePolygons is False:
                         # Unhide Polygons only once
                         bpy.ops.mesh.reveal()
                         doUnhidePolygons = True
