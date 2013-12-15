@@ -926,10 +926,10 @@ def write_pov(filename, scene=None, info_callback=None):
                             file.write('#end\n')
                             file.write('\n')
 
-                            # Dynamically create a union of the hairs (or a subset of the hairs).
-                            # By default use every 25th hair, which is usually ok for test renders.
-
-                            file.write('#ifndef(HairStep) #declare HairStep = %d; #end\n' % ((totalNumberOfHairs/(totalNumberOfHairs * pSys.settings.draw_percentage / 100))))
+                            # Dynamically create a union of the hairstrands (or a subset of them).
+                            # By default use every hairstrand, commented line is for hand tweaking test renders.
+                            file.write('//Increasing HairStep divides the amount of hair for test renders.\n')
+                            file.write('#ifndef(HairStep) #declare HairStep = 1; #end\n')
                             file.write('union{\n')
                             file.write('  #local I = 0;\n')
                             file.write('  #while (I < %i)\n' % totalNumberOfHairs)
