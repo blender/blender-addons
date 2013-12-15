@@ -1131,6 +1131,8 @@ def write_pov(filename, scene=None, info_callback=None):
                 tabWrite("texture_list {\n")
                 tabWrite("%d\n" % (((len(me_faces)-quadCount) * 3 )+ quadCount * 4)) # works only with tris and quad mesh for now
                 VcolIdx=0
+                if comments:
+                    file.write("\n  //Vertex colors: one simple pigment texture per vertex\n")
                 for fi, f in enumerate(me_faces):
                     # annoying, index may be invalid
                     material_index = f.material_index
@@ -1151,8 +1153,6 @@ def write_pov(filename, scene=None, info_callback=None):
                             key = col[0], col[1], col[2], material_index  # Material index!
                             VcolIdx+=1
                             vertCols[key] = [VcolIdx]
-                            if comments:
-                                file.write("\n  //Vertex colors: one simple pigment texture per vertex\n")
                             if linebreaksinlists:
                                 tabWrite("texture {pigment{ color rgb <%6f,%6f,%6f> }}\n" % (col[0], col[1], col[2]))
                             else:
