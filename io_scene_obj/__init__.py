@@ -249,7 +249,7 @@ class ExportOBJ(bpy.types.Operator, ExportHelper):
             default=False,
             )
     use_normals = BoolProperty(
-            name="Loop Normals",
+            name="Write Normals",
             description="Export one normal per vertex and per face, to represent flat faces and sharp edges",
             default=False,
             )
