@@ -499,7 +499,7 @@ def blen_read_geom_layer_uv(fbx_obj, mesh):
             blen_data = uv_lay.data[:]
 
             # some valid files omit this data
-            if fbx_layer_data is None or fbx_layer_index is None:
+            if fbx_layer_data is None:
                 print("%r %r missing data" % (layer_id, fbx_layer_name))
                 continue
 
@@ -528,7 +528,7 @@ def blen_read_geom_layer_color(fbx_obj, mesh):
             blen_data = color_lay.data[:]
 
             # some valid files omit this data
-            if fbx_layer_data is None or fbx_layer_index is None:
+            if fbx_layer_data is None:
                 print("%r %r missing data" % (layer_id, fbx_layer_name))
                 continue
 
