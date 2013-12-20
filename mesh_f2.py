@@ -20,9 +20,9 @@
 
 bl_info = {
     'name': "F2",
-    'author': "Bart Crouch",
-    'version': (1, 5, 0),
-    'blender': (2, 66, 3),
+    'author': "Bart Crouch, Alexander Nedovizin",
+    'version': (1, 6, 5),
+    'blender': (2, 68, 0),
     'location': "Editmode > F",
     'warning': "",
     'description': "Extends the 'Make Edge/Face' functionality",
@@ -232,6 +232,20 @@ def quad_from_vertex(bm, vert_sel, context, event):
     bpy.ops.object.mode_set(mode='EDIT')
 
 
+# autograb preference in addons panel
+class F2AddonPreferences(bpy.types.AddonPreferences):
+    bl_idname = __name__
+    autograb = bpy.props.BoolProperty(
+            name = "Auto Grab",
+            description = "Automatically puts a newly created vertex in grab \
+mode",
+            default = False)
+
+    def draw(self, context):
+        layout = self.layout
+        layout.prop(self, "autograb")
+
+
 class MeshF2(bpy.types.Operator):
     """Tooltip"""
     bl_idname = "mesh.f2"
@@ -257,6 +271,9 @@ class MeshF2(bpy.types.Operator):
         elif len(sel) == 1:
             # single vertex selected -> mirror vertex and create new face
             quad_from_vertex(bm, sel[0], context, event)
+            addon_prefs = context.user_preferences.addons[__name__].preferences
+            if addon_prefs.autograb:
+                bpy.ops.transform.translate('INVOKE_DEFAULT')
         elif len(sel) == 2:
             edges_sel = [ed for ed in bm.edges if ed.select]
             if len(edges_sel) != 1:
@@ -270,7 +287,7 @@ class MeshF2(bpy.types.Operator):
 
 
 # registration
-classes = [MeshF2]
+classes = [MeshF2, F2AddonPreferences]
 addon_keymaps = []
 
 
@@ -283,18 +300,18 @@ def register():
     km = bpy.context.window_manager.keyconfigs.addon.keymaps.new(\
         name='Mesh', space_type='EMPTY')
     kmi = km.keymap_items.new("mesh.f2", 'F', 'PRESS')
-    addon_keymaps.append(km)
+    addon_keymaps.append((km, kmi))
 
 
 def unregister():
-    # remove operator
-    for c in classes:
-        bpy.utils.unregister_class(c)
-
     # remove keymap entry
-    for km in addon_keymaps:
-        bpy.context.window_manager.keyconfigs.addon.keymaps.remove(km)
+    for km, kmi in addon_keymaps:
+        km.keymap_items.remove(kmi)
     addon_keymaps.clear()
+    
+    # remove operator and preferences
+    for c in reversed(classes):
+        bpy.utils.unregister_class(c)
 
 
 if __name__ == "__main__":
