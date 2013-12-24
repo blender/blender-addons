@@ -19,7 +19,7 @@
 bl_info = {
     "name": "LoopTools",
     "author": "Bart Crouch",
-    "version": (4, 5, 1),
+    "version": (4, 5, 2),
     "blender": (2, 69, 3),
     "location": "View3D > Toolbar and View3D > Specials (W-key)",
     "warning": "",
@@ -3695,6 +3695,7 @@ class GStretch(bpy.types.Operator):
             elif object.grease_pencil:
                 strokes = gstretch_get_strokes(object)
             else:
+                derived, bm_mod = get_derived_bmesh(object, bm, context.scene)
                 strokes = gstretch_get_fake_strokes(object, bm_mod, loops)
             derived, bm_mod = get_derived_bmesh(object, bm, context.scene)
         else:
