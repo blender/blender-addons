@@ -19,7 +19,7 @@
 bl_info = {
     "name": "LoopTools",
     "author": "Bart Crouch",
-    "version": (4, 5, 0),
+    "version": (4, 5, 1),
     "blender": (2, 69, 3),
     "location": "View3D > Toolbar and View3D > Specials (W-key)",
     "warning": "",
@@ -3625,7 +3625,7 @@ class GStretch(bpy.types.Operator):
         soft_max = 500)
     delete_strokes = bpy.props.BoolProperty(name="Delete strokes",
         description = "Remove Grease Pencil strokes if they have been used "\
-            "for Gstretch",
+            "for Gstretch. WARNING: DOES NOT SUPPORT UNDO",
         default = False)    
     influence = bpy.props.FloatProperty(name = "Influence",
         description = "Force of the tool",
@@ -3687,7 +3687,7 @@ class GStretch(bpy.types.Operator):
         
         # check cache to see if we can save time
         cached, safe_strokes, loops, derived, mapping = cache_read("Gstretch",
-            object, bm, False, self.delete_strokes)
+            object, bm, False, False)
         if cached:
             if safe_strokes:
                 strokes = gstretch_safe_to_true_strokes(safe_strokes)
@@ -3715,7 +3715,7 @@ class GStretch(bpy.types.Operator):
                 safe_strokes = gstretch_true_to_safe_strokes(strokes)
             else:
                 safe_strokes = []
-            cache_write("Gstretch", object, bm, False, self.delete_strokes,
+            cache_write("Gstretch", object, bm, False, False,
                 safe_strokes, loops, derived, mapping)
 
         # pair loops and strokes
@@ -3737,6 +3737,18 @@ class GStretch(bpy.types.Operator):
                 move.append(gstretch_calculate_verts(loop, stroke, object,
                     bm_mod, self.method))
                 if self.delete_strokes:
+                    if type(stroke) != bpy.types.GPencilStroke:
+                        # in case of cached fake stroke, get the real one
+                        if object.grease_pencil:
+                            strokes = gstretch_get_strokes(object)
+                            ls_pairs = gstretch_match_loops_strokes(loops,
+                                strokes, object, bm_mod)
+                            ls_pairs = gstretch_align_pairs(ls_pairs, object,
+                                bm_mod, self.method)
+                            for (l, s) in ls_pairs:
+                                if l == loop:
+                                    stroke = s
+                                    break
                     gstretch_erase_stroke(stroke, context)
 
         # move vertices to new locations
@@ -4367,7 +4379,7 @@ class LoopToolsProps(bpy.types.PropertyGroup):
         soft_max = 500)
     gstretch_delete_strokes = bpy.props.BoolProperty(name="Delete strokes",
         description = "Remove Grease Pencil strokes if they have been used "\
-            "for Gstretch",
+            "for Gstretch. WARNING: DOES NOT SUPPORT UNDO",
         default = False)   
     gstretch_influence = bpy.props.FloatProperty(name = "Influence",
         description = "Force of the tool",
