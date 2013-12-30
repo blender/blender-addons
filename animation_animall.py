@@ -88,11 +88,8 @@ class VIEW3D_PT_animall(bpy.types.Panel):
     # show this addon only in the Camera-Data-Panel
     @classmethod
     def poll(self, context):
-        if context.active_object:
-            return context.active_object.type  == 'MESH'\
-                or context.active_object.type  == 'LATTICE'\
-                or context.active_object.type  == 'CURVE'\
-                or context.active_object.type  == 'SURFACE'
+        if context.active_object.type in {'MESH', 'LATTICE', 'CURVE', 'SURFACE'}:
+            return context.active_object.type
     
     # draw the gui
     def draw(self, context):
@@ -228,7 +225,7 @@ class ANIM_OT_insert_keyframe_animall(bpy.types.Operator):
             if Mode:
                 bpy.ops.object.editmode_toggle()
         
-        if Obj.type == 'CURVE' or Obj.type == 'SURFACE':
+        if Obj.type in {'CURVE', 'SURFACE'}:
             Mode = False
             if context.mode != 'OBJECT':
                 Mode = not Mode
@@ -357,7 +354,7 @@ class ANIM_OT_delete_keyframe_animall(bpy.types.Operator):
             if Mode:
                 bpy.ops.object.editmode_toggle()
         
-        if Obj.type == 'CURVE' or Obj.type == 'SURFACE':
+        if Obj.type in {'CURVE', 'SURFACE'}:
             Mode = False
             if context.mode != 'OBJECT':
                 Mode = not Mode
