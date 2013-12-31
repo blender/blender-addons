@@ -19,10 +19,10 @@
 bl_info = {
     'name': 'AnimAll',
     'author': 'Daniel Salazar <zanqdo@gmail.com>',
-    'version': (0, 6),
+    'version': (0, 7),
     "blender": (2, 69, 7),
-    'location': 'Select a Mesh/Lattice/Curve/Surface: Tool Shelf > AnimAll panel',
-    'description': 'Allows animation of mesh, lattice, curve and surface data (Shape Keys, VCols, VGroups, UVs, Points, Radius, Tilt)',
+    'location': 'Tool Shelf > AnimAll panel',
+    'description': 'Allows animation of mesh, lattice, curve and surface data',
     'warning': '',
     'wiki_url': 'http://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts/Animation/AnimAll',
     'tracker_url': 'http://projects.blender.org/tracker/index.php?'\
