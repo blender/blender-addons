@@ -51,6 +51,16 @@ bpy.types.WindowManager.key_uvs = BoolProperty(
     description="Insert keyframes on active UV coordinates",
     default=False)
 
+bpy.types.WindowManager.key_bevel = BoolProperty(
+    name="Bevel",
+    description="Insert keyframes on edge bevel weight",
+    default=False)
+
+bpy.types.WindowManager.key_crease = BoolProperty(
+    name="Crease",
+    description="Insert keyframes on edge creases",
+    default=False)
+
 bpy.types.WindowManager.key_vcols = BoolProperty(
     name="VCols",
     description="Insert keyframes on active Vertex Color values",
@@ -107,6 +117,9 @@ class VIEW3D_PT_animall(bpy.types.Panel):
         elif Obj.type == 'MESH':
             row.prop(context.window_manager, "key_points")
             row.prop(context.window_manager, "key_shape")
+            row = col.row()
+            row.prop(context.window_manager, "key_bevel")
+            row.prop(context.window_manager, "key_crease")
             row = col.row()
             row.prop(context.window_manager, "key_vcols")
             row.prop(context.window_manager, "key_vgroups")
@@ -186,6 +199,14 @@ class ANIM_OT_insert_keyframe_animall(bpy.types.Operator):
             if context.window_manager.key_points:
                 for Vert in Data.vertices:
                     Vert.keyframe_insert('co')
+            
+            if context.window_manager.key_bevel:
+                for Edge in Data.edges:
+                    Edge.keyframe_insert('bevel_weight')
+            
+            if context.window_manager.key_crease:
+                for Edge in Data.edges:
+                    Edge.keyframe_insert('crease')
             
             if context.window_manager.key_vgroups:
                 for Vert in Data.vertices:
@@ -314,6 +335,14 @@ class ANIM_OT_delete_keyframe_animall(bpy.types.Operator):
             if context.window_manager.key_points:
                 for Vert in Data.vertices:
                     Vert.keyframe_delete('co')
+            
+            if context.window_manager.key_bevel:
+                for Edge in Data.edges:
+                    Edge.keyframe_delete('bevel_weight')
+            
+            if context.window_manager.key_crease:
+                for Edge in Data.edges:
+                    Edge.keyframe_delete('crease')
             
             if context.window_manager.key_vgroups:
                 for Vert in Data.vertices:
