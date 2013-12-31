@@ -88,7 +88,7 @@ class VIEW3D_PT_animall(bpy.types.Panel):
     # show this addon only in the Camera-Data-Panel
     @classmethod
     def poll(self, context):
-        if context.active_object.type in {'MESH', 'LATTICE', 'CURVE', 'SURFACE'}:
+        if context.active_object and context.active_object.type in {'MESH', 'LATTICE', 'CURVE', 'SURFACE'}:
             return context.active_object.type
     
     # draw the gui
