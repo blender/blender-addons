@@ -128,7 +128,7 @@ class VIEW3D_PT_animall(bpy.types.Panel):
             
         elif Obj.type == 'CURVE':
             row.prop(context.window_manager, "key_points")
-            #row.prop(context.window_manager, "key_shape")
+            row.prop(context.window_manager, "key_shape")
             row = col.row()
             row.prop(context.window_manager, "key_radius")
             row.prop(context.window_manager, "key_tilt")
@@ -158,6 +158,9 @@ class VIEW3D_PT_animall(bpy.types.Panel):
                 row.label(ShapeKey.name, icon='SHAPEKEY_DATA')
                 row.prop(ShapeKey, "value", text="")
                 row.prop(Obj, "show_only_shape_key", text="")
+                if ShapeKey.value < 1:
+                    row = layout.row()
+                    row.label('Maybe set "%s" to 1.0?' % ShapeKey.name, icon='INFO')
             elif ShapeKey:
                 row.label('Can not key on Basis Shape', icon='ERROR')
             else:
