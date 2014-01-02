@@ -25,6 +25,7 @@ from bpy.types import Panel
 from . import report
 
 class Print3DToolBar:
+    bl_category = "3D Printing"
     bl_label = "Print3D"
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'TOOLS'
