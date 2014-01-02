@@ -165,6 +165,10 @@ class VIEW3D_PT_animall(bpy.types.Panel):
                 row.label('Can not key on Basis Shape', icon='ERROR')
             else:
                 row.label('No active Shape Key', icon='ERROR')
+        
+        if context.window_manager.key_points and context.window_manager.key_shape:
+            row = layout.row()
+            row.label('"Points" and "Shape" are redundant?', icon='INFO')
 
 
 class ANIM_OT_insert_keyframe_animall(bpy.types.Operator):
