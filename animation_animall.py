@@ -244,7 +244,7 @@ class ANIM_OT_insert_keyframe_animall(bpy.types.Operator):
                         
             if context.window_manager.key_points:
                 for Point in Data.points:
-                    Point.keyframe_insert('co')
+                    Point.keyframe_insert('co_deform')
             
             if Mode:
                 bpy.ops.object.editmode_toggle()
@@ -381,7 +381,7 @@ class ANIM_OT_delete_keyframe_animall(bpy.types.Operator):
                         
             if context.window_manager.key_points:
                 for Point in Data.points:
-                    Point.keyframe_delete('co')
+                    Point.keyframe_delete('co_deform')
             
             if Mode:
                 bpy.ops.object.editmode_toggle()
