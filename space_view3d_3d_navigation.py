@@ -40,10 +40,10 @@ import bpy
 
 # main class of this toolbar
 class VIEW3D_PT_3dnavigationPanel(bpy.types.Panel):
+    bl_category = "Navigation"
     bl_space_type = "VIEW_3D"
     bl_region_type = "TOOLS"
     bl_label = "3D Nav"
-    bl_options = {"DEFAULT_CLOSED"}
 
     def draw(self, context):
         layout = self.layout
