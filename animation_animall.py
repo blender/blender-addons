@@ -93,9 +93,9 @@ class VIEW3D_PT_animall(bpy.types.Panel):
 
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'TOOLS'
+    bl_category = "Animation"
     bl_label = 'AnimAll'
     bl_options = {'DEFAULT_CLOSED'}
-    # show this addon only in the Camera-Data-Panel
     @classmethod
     def poll(self, context):
         if context.active_object and context.active_object.type in {'MESH', 'LATTICE', 'CURVE', 'SURFACE'}:
