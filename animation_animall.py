@@ -21,7 +21,7 @@ bl_info = {
     'author': 'Daniel Salazar <zanqdo@gmail.com>',
     'version': (0, 7),
     "blender": (2, 69, 7),
-    'location': 'Tool Shelf > AnimAll panel',
+    'location': 'Tool bar > Animation tab > AnimAll',
     'description': 'Allows animation of mesh, lattice, curve and surface data',
     'warning': '',
     'wiki_url': 'http://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts/Animation/AnimAll',
@@ -95,7 +95,7 @@ class VIEW3D_PT_animall(bpy.types.Panel):
     bl_region_type = 'TOOLS'
     bl_category = "Animation"
     bl_label = 'AnimAll'
-    bl_options = {'DEFAULT_CLOSED'}
+    #bl_options = {'DEFAULT_CLOSED'}
     @classmethod
     def poll(self, context):
         if context.active_object and context.active_object.type in {'MESH', 'LATTICE', 'CURVE', 'SURFACE'}:
