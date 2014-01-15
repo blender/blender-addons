@@ -379,8 +379,8 @@ def split_mesh(verts_loc, faces, unique_materials, filepath, SPLIT_OB_OR_GROUP):
 
     filename = os.path.splitext((os.path.basename(filepath)))[0]
 
-    if not SPLIT_OB_OR_GROUP:
-        # use the filename for the object name since we arnt chopping up the mesh.
+    if not SPLIT_OB_OR_GROUP or not faces:
+        # use the filename for the object name since we aren't chopping up the mesh.
         return [(verts_loc, faces, unique_materials, filename)]
 
     def key_to_name(key):
