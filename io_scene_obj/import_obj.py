@@ -991,7 +991,8 @@ def load(operator, context, filepath,
             # isline = line_start == b'l'  # UNUSED
 
             for v in line_split:
-                vert_loc_index = int(v) - 1
+                obj_vert = v.split(b'/')
+                vert_loc_index = int(obj_vert[0]) - 1
 
                 # Make relative negative vert indices absolute
                 if vert_loc_index < 0:
