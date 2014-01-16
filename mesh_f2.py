@@ -20,7 +20,8 @@
 
 bl_info = {
     'name': "F2",
-    'author': "Bart Crouch, Alexander Nedovizin",
+    'author': "Bart Crouch, Alexander Nedovizin, Paul Kotelevets "\
+        "(concept design)",
     'version': (1, 6, 5),
     'blender': (2, 68, 0),
     'location': "Editmode > F",
