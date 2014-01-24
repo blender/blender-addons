@@ -19,7 +19,7 @@
 bl_info = {
     'name': "Node Wrangler (aka Nodes Efficiency Tools)",
     'author': "Bartek Skorupa, Greg Zaal",
-    'version': (3, 00),
+    'version': (3, 1),
     'blender': (2, 69, 0),
     'location': "Node Editor Properties Panel  or  Ctrl-SPACE",
     'description': "Various tools to enhance and speed up node-based workflow",
@@ -117,9 +117,12 @@ shaders_shader_nodes_props = (
     ('ShaderNodeBsdfToon', 'BSDF_TOON', 'Toon BSDF'),
     ('ShaderNodeSubsurfaceScattering', 'SUBSURFACE_SCATTERING', 'Subsurface Scattering'),
     ('ShaderNodeEmission', 'EMISSION', 'Emission'),
+    ('ShaderNodeBsdfHair', 'BSDF_HAIR', 'Hair BSDF'),
     ('ShaderNodeBackground', 'BACKGROUND', 'Background'),
     ('ShaderNodeAmbientOcclusion', 'AMBIENT_OCCLUSION', 'Ambient Occlusion'),
     ('ShaderNodeHoldout', 'HOLDOUT', 'Holdout'),
+    ('ShaderNodeVolumeAbsorption', 'VOLUME_ABSORPTION', 'Volume Absorption'),
+    ('ShaderNodeVolumeScatter', 'VOLUME_SCATTER', 'Volume Scatter'),
 )
 # (rna_type.identifier, type, rna_type.name)
 # Keeping mixed case to avoid having to translate entries when adding new nodes in operators.
