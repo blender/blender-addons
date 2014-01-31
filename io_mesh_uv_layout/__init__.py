@@ -102,6 +102,7 @@ class ExportUVLayout(bpy.types.Operator):
             name="Fill Opacity",
             min=0.0, max=1.0,
             default=0.25,
+            description="Set amount of opacity for exported UV layout"
             )
     tessellated = BoolProperty(
             name="Tessellated UVs",
