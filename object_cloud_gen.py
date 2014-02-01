@@ -301,6 +301,7 @@ def getActionToDo(obj):
 class VIEW3D_PT_tools_cloud(Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'TOOLS'
+    bl_category = 'Create'
     bl_label = "Cloud Generator"
     bl_context = "objectmode"
     bl_options = {'DEFAULT_CLOSED'}
