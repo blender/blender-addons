@@ -45,6 +45,7 @@ from math import *
 class VIEW3D_PT_tools_SURFSK_mesh(bpy.types.Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'TOOLS'
+    bl_category = 'Tools'
     bl_context = "mesh_edit"
     bl_label = "Bsurfaces"
     
