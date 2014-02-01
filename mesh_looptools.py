@@ -3970,6 +3970,7 @@ class VIEW3D_MT_edit_mesh_looptools(bpy.types.Menu):
 class VIEW3D_PT_tools_looptools(bpy.types.Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'TOOLS'
+    bl_category = 'Tools'
     bl_context = "mesh_edit"
     bl_label = "LoopTools"
     bl_options = {'DEFAULT_CLOSED'}
