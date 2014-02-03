@@ -35,7 +35,7 @@ class element_spec(object):
 
     def load(self, format, stream):
         if format == b'ascii':
-            stream = re.split(b'\s+', stream.readline())
+            stream = stream.readline().split()
         return [x.load(format, stream) for x in self.properties]
 
     def index(self, name):
