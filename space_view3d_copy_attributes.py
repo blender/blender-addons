@@ -27,8 +27,7 @@ bl_info = {
     "description": "Copy Attributes Menu from Blender 2.4",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
                 "Scripts/3D_interaction/Copy_Attributes_Menu",
-    "tracker_url": "https://projects.blender.org/tracker/index.php?"
-                   "func=detail&aid=22588",
+    "tracker_url": "https://developer.blender.org/T22588",
     "category": "3D View"}
 
 import bpy

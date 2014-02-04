@@ -31,8 +31,7 @@ bl_info = {
     "warning": "",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
                 "Scripts/Object/Grease_Scatter",
-    "tracker_url": "https://projects.blender.org/tracker/index.php?"
-                   "func=detail&aid=TODO",
+    "tracker_url": "https://developer.blender.org",
     "support": 'OFFICIAL',
     "category": "Object"}
 

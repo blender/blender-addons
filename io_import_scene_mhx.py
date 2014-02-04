@@ -44,8 +44,7 @@ bl_info = {
     'description': 'Import files in the MakeHuman eXchange format (.mhx)',
     'warning': '',
     'wiki_url': 'http://www.makehuman.org/documentation',
-    'tracker_url': 'https://projects.blender.org/tracker/index.php?'\
-        'func=detail&aid=21872',
+    'tracker_url': 'https://developer.blender.org/T21872',
     'category': 'Import-Export'}
 
 MAJOR_VERSION = 1

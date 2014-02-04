@@ -26,7 +26,7 @@ bl_info = {
                    "The images are mapped to the planes.",
     "warning": "",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts/Add_Mesh/Planes_from_Images",
-    "tracker_url": "https://projects.blender.org/tracker/index.php?func=detail&aid=21751",
+    "tracker_url": "https://developer.blender.org/T21751",
     "category": "Import-Export"}
 
 import bpy

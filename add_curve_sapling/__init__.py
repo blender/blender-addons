@@ -26,11 +26,11 @@ bl_info = {
     "Jason Weber & Joseph Penn in their paper 'Creation and Rendering of "
     "Realistic Trees'."),
     "warning": "length parameters may cause errors",  # used for warning icon and text in addons panel
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"\
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
         "Scripts/Curve/Sapling_Tree",
-    "tracker_url": "http://projects.blender.org/tracker/"\
-        "?func=detail&atid=469&aid=27226&group_id=153",
+    "tracker_url": "https://developer.blender.org/T27226",
     "category": "Add Curve"}
+
 
 if "bpy" in locals():
     import imp
@@ -157,7 +157,7 @@ class AddTree(bpy.types.Operator):
 
     def update_tree(self, context):
         self.do_update = True
-    
+
     def no_update_tree(self, context):
         self.do_update = False
 
@@ -407,20 +407,20 @@ class AddTree(bpy.types.Operator):
             box = layout.box()
             box.label("Geometry:")
             box.prop(self, 'bevel')
-            
+
             row = box.row()
             row.prop(self, 'bevelRes')
             row.prop(self, 'resU')
-            
+
             box.prop(self, 'handleType')
             box.prop(self, 'shape')
             box.prop(self, 'seed')
             box.prop(self, 'ratio')
-            
+
             row = box.row()
             row.prop(self, 'scale')
             row.prop(self, 'scaleV')
-            
+
             row = box.row()
             row.prop(self, 'scale0')
             row.prop(self, 'scaleV0')
@@ -455,15 +455,15 @@ class AddTree(bpy.types.Operator):
             box.prop(self, 'levels')
             box.prop(self, 'baseSplits')
             box.prop(self, 'baseSize')
-            
+
             split = box.split()
-            
+
             col = split.column()
             col.prop(self, 'branches')
             col.prop(self, 'splitAngle')
             col.prop(self, 'downAngle')
             col.prop(self, 'rotate')
-            
+
             col = split.column()
             col.prop(self, 'segSplits')
             col.prop(self, 'splitAngleV')
@@ -477,19 +477,19 @@ class AddTree(bpy.types.Operator):
             box.label("Branch Growth:")
             box.prop(self, 'startCurv')
             box.prop(self, 'attractUp')
-            
+
             split = box.split()
-            
+
             col = split.column()
             col.prop(self, 'length')
             col.prop(self, 'curve')
             col.prop(self, 'curveBack')
-            
+
             col = split.column()
             col.prop(self, 'lengthV')
             col.prop(self, 'curveV')
             col.prop(self, 'taper')
-            
+
             box.column().prop(self, 'curveRes')
 
         elif self.chooseSet == '3':
@@ -499,7 +499,7 @@ class AddTree(bpy.types.Operator):
             box.prop(self, 'pruneRatio')
             box.prop(self, 'pruneWidth')
             box.prop(self, 'pruneWidthPeak')
-            
+
             row = box.row()
             row.prop(self, 'prunePowerHigh')
             row.prop(self, 'prunePowerLow')
@@ -511,25 +511,25 @@ class AddTree(bpy.types.Operator):
             box.prop(self, 'leafShape')
             box.prop(self, 'leaves')
             box.prop(self, 'leafDist')
-            
+
             row = box.row()
             row.prop(self, 'leafScale')
             row.prop(self, 'leafScaleX')
-            
+
             box.prop(self, 'bend')
 
         elif self.chooseSet == '5':
             box = layout.box()
             box.label("Armature and Animation:")
-            
+
             row = box.row()
             row.prop(self, 'useArm')
             row.prop(self, 'armAnim')
-            
+
             row = box.row()
             row.prop(self, 'windSpeed')
             row.prop(self, 'windGust')
-            
+
             box.prop(self, 'frameRate')
 
     def execute(self, context):
@@ -550,7 +550,7 @@ class AddTree(bpy.types.Operator):
         addTree(self)
         print("Tree creation in %0.1fs" %(time.time()-start_time))
         return {'FINISHED'}
-    
+
     def invoke(self, context, event):
 #        global settings, useSet
 #        useSet = True

@@ -20,18 +20,17 @@
 bl_info = {
     "name": "Torus Knots",
     "author": "testscreenings",
-    "version": (0,1),
+    "version": (0, 1),
     "blender": (2, 59, 0),
     "location": "View3D > Add > Curve",
     "description": "Adds many types of (torus) knots",
     "warning": "",
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"\
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
         "Scripts/Curve/Torus_Knot",
-    "tracker_url": "https://projects.blender.org/tracker/index.php?"\
-        "func=detail&aid=22403",
+    "tracker_url": "https://developer.blender.org/T22403",
     "category": "Add Curve"}
-'''    
-    
+'''
+
 ##------------------------------------------------------------
 #### import modules
 import bpy
@@ -39,7 +38,7 @@ from bpy.props import *
 from math import sin, cos, pi
 from bpy_extras.object_utils import AddObjectHelper, object_data_add
 
-    
+
 ########################################################################
 ####################### Knot Definitions ###############################
 ########################################################################
@@ -52,7 +51,7 @@ def Torus_Knot(self):
     u = self.torus_u
     v = self.torus_v
     rounds = self.torus_rounds
-    
+
     newPoints = []
     angle = 2*rounds
     step = angle/(res-1)
@@ -61,11 +60,11 @@ def Torus_Knot(self):
 
     for i in range(res-1):
         t = ( i*step*pi)
-        
+
         x = (2 * scale + cos((q*t)/p*v)) * cos(t * u)
         y = (2 * scale + cos((q*t)/p*v)) * sin(t * u)
         z = sin(q*t/p) * height
-        
+
         newPoints.extend([x,y,z,1])
 
     return newPoints
@@ -83,8 +82,8 @@ def create_torus_knot(self, context):
     spline.use_endpoint_u = True
     spline.use_cyclic_u = True
     spline.order_u = 4
-    curve_data.dimensions = '3D'    
-    
+    curve_data.dimensions = '3D'
+
     if self.geo_surf:
         curve_data.bevel_depth = self.geo_bDepth
         curve_data.bevel_resolution = self.geo_bRes
@@ -92,7 +91,7 @@ def create_torus_knot(self, context):
         curve_data.extrude = self.geo_extrude
         #curve_data.offset = self.geo_width # removed, somehow screws things up all of a sudden
         curve_data.resolution_u = self.geo_res
-    
+
     new_obj = object_data_add(context, curve_data, operator=self)
 
 
@@ -171,10 +170,10 @@ class torus_knot_plus(bpy.types.Operator, AddObjectHelper):
     def draw(self, context):
         layout = self.layout
 
-        # general options        
+        # general options
         layout.label(text="Torus Knot Parameters:")
 
-        # Parameters 
+        # Parameters
         box = layout.box()
         box.prop(self, 'torus_res')
         box.prop(self, 'torus_w')
@@ -201,7 +200,7 @@ class torus_knot_plus(bpy.types.Operator, AddObjectHelper):
         col = layout.column()
         col.prop(self, 'location')
         col.prop(self, 'rotation')
-    
+
     ##### POLL #####
     @classmethod
     def poll(cls, context):
@@ -212,13 +211,13 @@ class torus_knot_plus(bpy.types.Operator, AddObjectHelper):
         # turn off undo
         undo = bpy.context.user_preferences.edit.use_global_undo
         bpy.context.user_preferences.edit.use_global_undo = False
-        
+
         if not self.options_plus:
             self.torus_rounds = self.torus_p
 
         #recoded for add_utils
         create_torus_knot(self, context)
-        
+
         # restore pre operator undo state
         bpy.context.user_preferences.edit.use_global_undo = undo
 

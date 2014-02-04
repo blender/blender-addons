@@ -27,10 +27,9 @@ bl_info = {
     "location": "View3D > Add > Mesh > Gears ",
     "description": "Adds a mesh Gear to the Add Mesh menu",
     "warning": "",
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"\
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"
         "Scripts/Add_Mesh/Add_Gear",
-    "tracker_url": "https://projects.blender.org/tracker/index.php?"\
-        "func=detail&aid=21732",
+    "tracker_url": "https://developer.blender.org/T21732",
     "category": "Add Mesh"}
 '''
 
@@ -638,19 +637,19 @@ class AddGear(bpy.types.Operator):
 
     def draw(self, context):
         layout = self.layout
-        
+
         box = layout.box()
         box.prop(self, 'number_of_teeth')
-        
+
         box = layout.box()
         box.prop(self, 'radius')
         box.prop(self, 'width')
         box.prop(self, 'base')
-        
+
         box = layout.box()
         box.prop(self, 'dedendum')
         box.prop(self, 'addendum')
-        
+
         box = layout.box()
         box.prop(self, 'angle')
         box.prop(self, 'skew')

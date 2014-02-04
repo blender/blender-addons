@@ -27,8 +27,7 @@ bl_info = {
     "description": "Creates Volumetric Clouds",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
                 "Scripts/Object/Cloud_Gen",
-    "tracker_url": "https://projects.blender.org/tracker/index.php?"
-                   "func=detail&aid=22015",
+    "tracker_url": "https://developer.blender.org/T22015",
     "category": "Object"}
 
 import bpy

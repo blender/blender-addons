@@ -30,8 +30,7 @@ bl_info = {
     "warning": "",
     "wiki_url": 'http://wiki.blender.org/index.php/Extensions:2.6/Py/' \
         'Scripts/System/Blend Info',
-    "tracker_url": "https://projects.blender.org/tracker/index.php?" \
-        "func=detail&aid=22102",
+    "tracker_url": "https://developer.blender.org/T22102",
     "category": "System"}
 
 import bpy

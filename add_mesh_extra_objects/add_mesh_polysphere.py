@@ -18,17 +18,17 @@
 '''
 bl_info = {
     "name": "Add PolySphere",
-    "author": "Andy Davies (metalliandy)",			
+    "author": "Andy Davies (metalliandy)",
     "version": (0,1,6),
     "blender": (2, 62, 0),
     "location": "View3D > Add > Mesh > PolySphere",
     "description": "Adds a PolySphere (all quads) for sculpting",
     "warning": "",
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"\
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"
         "Scripts/Add_Mesh/Add_PolySphere",
     "tracker_url": "",
     "category": "Add Mesh"}
-'''    
+'''
 
 import bpy
 
@@ -50,7 +50,7 @@ def Add_PolySphere():
     subsurf = cube.modifiers['Subsurf']
 
     #Changes Subsurf levels
-    subsurf.levels = 3  
+    subsurf.levels = 3
 
     #Applys Subsurf Modifier
     bpy.ops.object.modifier_apply(apply_as='DATA', modifier="Subsurf")
@@ -69,16 +69,16 @@ def Add_PolySphere():
 
     #Change to Objectmode
     bpy.ops.object.editmode_toggle()
-    
+
     #Scales Object to 2.0 Units
     bpy.ops.transform.resize(value=(1.15525, 1.15525, 1.15525), constraint_axis=(False, False, False), constraint_orientation='GLOBAL', mirror=False, proportional='DISABLED', proportional_edit_falloff='SMOOTH', proportional_size=1, snap=False, snap_target='CLOSEST', snap_point=(0, 0, 0), snap_align=False, snap_normal=(0, 0, 0), release_confirm=False)
-    
+
     #Applys location, rotation and scale data
     bpy.ops.object.transform_apply(location=True, rotation=True, scale=True)
 
 #makes PolySphere an operator
 class AddPolySphere(bpy.types.Operator):
-    
+
     bl_idname = "mesh.primitive_polysphere_add"
     bl_label = "Add PolySphere"
     bl_options = {'REGISTER', 'UNDO'}

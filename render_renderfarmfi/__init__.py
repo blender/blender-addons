@@ -18,16 +18,16 @@
 
 bl_info = {
     "name": "Renderfarm.fi",
-    "author": "Nathan Letwory <nathan@letworyinteractive.com>, Jesse Kaukonen <jesse.kaukonen@gmail.com>",
+    "author": "Nathan Letwory <nathan@letworyinteractive.com>, "
+        "Jesse Kaukonen <jesse.kaukonen@gmail.com>",
     "version": (23,),
     "blender": (2, 63, 0),
     "location": "Render > Engine > Renderfarm.fi",
     "description": "Send .blend as session to http://www.renderfarm.fi to render",
     "warning": "",
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"\
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"
         "Scripts/Render/Renderfarm.fi",
-    "tracker_url": "https://projects.blender.org/tracker/index.php?"\
-        "func=detail&aid=22927",
+    "tracker_url": "https://developer.blender.org/T22927",
     "category": "Render"}
 
 """

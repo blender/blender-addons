@@ -25,10 +25,9 @@ bl_info = {
     "location": "View3D > Add > Mesh > Solids",
     "description": "Add a regular solid",
     "warning": "",
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"\
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
         "Scripts/Add_Mesh/Add_Solid",
-    "tracker_url": "https://projects.blender.org/tracker/index.php?"\
-        "func=detail&aid=22405",
+    "tracker_url": "https://developer.blender.org/T22405",
     "category": "Add Mesh"}
 
 import bpy
@@ -61,14 +60,14 @@ def createPolys(poly):
         else:
             f = [[i[x],i[x+1],i[L-2-x],i[L-1-x]] for x in range(L//2-1)]
             faces.extend(f)
-            if L&1 == 1: 
+            if L&1 == 1:
                 faces.append([i[L//2-1+x] for x in [0,1,2]])
     return faces
-    
-# function to make the reduce function work as a workaround to sum a list of vectors 
+
+# function to make the reduce function work as a workaround to sum a list of vectors
 def vSum(list):
     return reduce(lambda a,b: a+b, list)
-    
+
 # creates the 5 platonic solids as a base for the rest
 #  plato: should be one of {"4","6","8","12","20"}. decides what solid the
 #         outcome will be.
@@ -92,7 +91,7 @@ def source(plato):
     elif plato == "6":
         # Calculate the necessary constants
         s = 1/sqrt(3)
-    
+
         # create the vertices and faces
         v = [(-s,-s,-s),(s,-s,-s),(s,s,-s),(-s,s,-s),(-s,-s,s),(s,-s,s),(s,s,s),(-s,s,s)]
         faces = [[0,3,2,1],[0,1,5,4],[0,4,7,3],[6,5,1,2],[6,2,3,7],[6,7,4,5]]
@@ -137,7 +136,7 @@ def source(plato):
     verts = [Vector(i) for i in v]
 
     return verts,faces
-    
+
 # processes the raw data from source
 def createSolid(plato,vtrunc,etrunc,dual,snub):
     # the duals from each platonic solid
@@ -177,16 +176,16 @@ def createSolid(plato,vtrunc,etrunc,dual,snub):
                 return vInput, fInput
             vInput = [-i*supposedSize for i in vInput]
             return vInput, fInput
-    
+
     # generate connection database
     vDict = [{} for i in vInput]
-    # for every face, store what vertex comes after and before the current vertex    
+    # for every face, store what vertex comes after and before the current vertex
     for x in range(len(fInput)):
         i = fInput[x]
         for j in range(len(i)):
             vDict[i[j-1]][i[j]] = [i[j-2],x]
-            if len(vDict[i[j-1]]) == 1: vDict[i[j-1]][-1] = i[j] 
-    
+            if len(vDict[i[j-1]]) == 1: vDict[i[j-1]][-1] = i[j]
+
     # the actual connection database: exists out of:
     # [vtrunc pos, etrunc pos, connected vert IDs, connected face IDs]
     vData = [[[],[],[],[]] for i in vInput]
@@ -205,8 +204,8 @@ def createSolid(plato,vtrunc,etrunc,dual,snub):
             if current == i[-1]: break # if we're back at the first: stop the loop
         fvOutput.append([]) # new face from truncated vert
         fOffset = x*(len(i)-1) # where to start off counting faceVerts
-        # only create one vert where one is needed (v1 todo: done) 
-        if etrunc == 0.5: 
+        # only create one vert where one is needed (v1 todo: done)
+        if etrunc == 0.5:
             for j in range(len(i)-1):
                 vOutput.append((vData[x][0][j]+vData[x][0][j-1])*etrunc) # create vert
                 fvOutput[x].append(fOffset+j) # add to face
@@ -280,7 +279,7 @@ def createSolid(plato,vtrunc,etrunc,dual,snub):
     if supposedSize and not dual:                    # this to make the vtrunc > 1 work
         supposedSize *= len(fvOutput[0])/vSum(vOutput[i] for i in fvOutput[0]).length
         vOutput = [-i*supposedSize for i in vOutput]
-    
+
     # create new faces by replacing old vert IDs by newly generated verts
     ffOutput = [[] for i in fInput]
     for x in range(len(fInput)):
@@ -296,16 +295,16 @@ def createSolid(plato,vtrunc,etrunc,dual,snub):
             for i in fInput[x]:
                 ffOutput[x].append(fvOutput[i][vData[i][3].index(x)])
                 ffOutput[x].append(fvOutput[i][vData[i][3].index(x)-1])
-    
+
     if not dual:
         return vOutput,fvOutput + feOutput + ffOutput
-    else: 
+    else:
         # do the same procedure as above, only now on the generated mesh
         # generate connection database
         vDict = [{} for i in vOutput]
         dvOutput = [0 for i in fvOutput + feOutput + ffOutput]
         dfOutput = []
-        
+
         for x in range(len(dvOutput)): # for every face
             i = (fvOutput + feOutput + ffOutput)[x] # choose face to work with
             # find vertex from face
@@ -314,12 +313,12 @@ def createSolid(plato,vtrunc,etrunc,dual,snub):
             for j in range(len(i)): # create vert chain
                 vDict[i[j-1]][i[j]] = [i[j-2],x]
                 if len(vDict[i[j-1]]) == 1: vDict[i[j-1]][-1] = i[j]
-        
+
         # calculate supposed size for continuity
         supposedSize = vSum([vInput[i] for i in fInput[0]]).length/len(fInput[0])
         supposedSize /= dvOutput[-1].length
         dvOutput = [i*supposedSize for i in dvOutput]
-        
+
         # use chains to create faces
         for x in range(len(vOutput)):
             i = vDict[x]
@@ -330,7 +329,7 @@ def createSolid(plato,vtrunc,etrunc,dual,snub):
                 current = i[current][0]
                 if current == i[-1]: break
             dfOutput.append(face)
-        
+
         return dvOutput,dfOutput
 
 class Solids(bpy.types.Operator):
@@ -412,7 +411,7 @@ class Solids(bpy.types.Operator):
                                    ("ds12","Pentagonal Hexecontahedron","")),
                             name = "Presets",
                             description = "Parameters for some hard names")
-    
+
     # actual preset values
     p = {"t4":["4",2/3,0,0,"None"],
          "r4":["4",1,1,0,"None"],
@@ -440,7 +439,7 @@ class Solids(bpy.types.Operator):
          "db12":["12",1.1338,1,1,"None"],
          "dc12":["20",0.921,0.553,1,"None"],
          "ds12":["12",1.1235,0.68,1,"Left"]}
-    
+
     #previous preset, for User-friendly reasons
     previousSetting = ""
 
@@ -459,25 +458,25 @@ class Solids(bpy.types.Operator):
                 self.eTrunc = using[2]
                 self.dual = using[3]
                 self.snub = using[4]
-            else: 
+            else:
                 using = self.p[self.preset]
                 result0 = self.source == using[0]
                 result1 = abs(self.vTrunc - using[1]) < 0.004
                 result2 = abs(self.eTrunc - using[2]) < 0.0015
-                result4 = using[4] == self.snub or ((using[4] == "Left") and 
+                result4 = using[4] == self.snub or ((using[4] == "Left") and
                                                 self.snub in ["Left","Right"])
-                if (result0 and result1 and result2 and result4): 
+                if (result0 and result1 and result2 and result4):
                     if self.p[self.previousSetting][3] != self.dual:
-                        if self.preset[0] == "d": 
+                        if self.preset[0] == "d":
                             self.preset = self.preset[1:]
                         else:
                             self.preset = "d" + self.preset
-                else:   
+                else:
                     self.preset = "0"
 
         self.previousSetting = self.preset
-        
-        # generate mesh    
+
+        # generate mesh
         verts,faces  = createSolid(self.source,
                                    self.vTrunc,
                                    self.eTrunc,
@@ -486,7 +485,7 @@ class Solids(bpy.types.Operator):
 
         # turn n-gons in quads and tri's
         faces = createPolys(faces)
-        
+
         # resize to normal size, or if keepSize, make sure all verts are of length 'size'
         if self.keepSize:
             rad = self.size/verts[-1 if self.dual else 0].length
@@ -502,12 +501,12 @@ class Solids(bpy.types.Operator):
 
         # Update mesh geometry after adding stuff.
         mesh.update()
-        
+
         object_data_add(context, mesh, operator=None)
         # object generation done
 
         # turn undo back on
-        bpy.context.user_preferences.edit.use_global_undo = True 
+        bpy.context.user_preferences.edit.use_global_undo = True
 
         return {'FINISHED'}
 
@@ -564,7 +563,7 @@ class CatalanMenu(bpy.types.Menu):
     """Defines Catalan preset menu"""
     bl_idname = "Catalan_calls"
     bl_label = "Catalan"
-    
+
     def draw(self, context):
         layout = self.layout
         layout.operator_context = 'INVOKE_REGION_WIN'
@@ -581,7 +580,7 @@ class CatalanMenu(bpy.types.Menu):
         layout.operator(Solids.bl_idname, text = "Deltoidal Hexecontahedron").preset = "db12"
         layout.operator(Solids.bl_idname, text = "Disdyakis Triacontahedron").preset = "dc12"
         layout.operator(Solids.bl_idname, text = "Pentagonal Hexecontahedron").preset = "ds12"
-        
+
 def menu_func(self, context):
     self.layout.menu(Solids_add_menu.bl_idname, icon="PLUGIN")
 

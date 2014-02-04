@@ -28,9 +28,8 @@ bl_info = {
     "description": "Import-Export Raw Faces",
     "warning": "",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
-                "Scripts/Import-Export/Raw_Mesh_IO",
-    "tracker_url": "https://projects.blender.org/tracker/index.php?"
-                   "func=detail&aid=25692",
+        "Scripts/Import-Export/Raw_Mesh_IO",
+    "tracker_url": "https://developer.blender.org/T25692",
     "category": "Import-Export"}
 
 if "bpy" in locals():

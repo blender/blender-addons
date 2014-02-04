@@ -24,10 +24,9 @@ bl_info = {
     "location": "View3D > Add > Mesh",
     "description": "Add a landscape primitive",
     "warning": "", # used for warning icon and text in addons panel
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"\
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
         "Scripts/Add_Mesh/ANT_Landscape",
-    "tracker_url": "https://projects.blender.org/tracker/index.php?"\
-        "func=detail&aid=23130",
+    "tracker_url": "https://developer.blender.org/T23130",
     "category": "Add Mesh"}
 
 """
@@ -356,7 +355,7 @@ def landscape_gen(x,y,z,falloffsize,options=[0,1.0,1, 0,0,1.0,0,6,1.0,2.0,1.0,2.
         value = ( value * (1.0-0.5) + steps*0.5 ) * 2.0
     elif stratatype == '2':
         steps = -abs( sin( value*(strata)*pi ) * ( 0.1/(strata)*pi ) )
-        value =( value * (1.0-0.5) + steps*0.5 ) * 2.0 
+        value =( value * (1.0-0.5) + steps*0.5 ) * 2.0
     elif stratatype == '3':
         steps = abs( sin( value*(strata)*pi ) * ( 0.1/(strata)*pi ) )
         value =( value * (1.0-0.5) + steps*0.5 ) * 2.0
@@ -484,7 +483,7 @@ class landscape_add(bpy.types.Operator):
                 ("7","Marble","Marble"),
                 ("8","Shattered_hTerrain","Shattered_hTerrain"),
                 ("9","Strata_hTerrain","Strata_hTerrain")]
-                
+
     NoiseType = EnumProperty(name="Type",
                 description="Noise type",
                 items=NoiseTypes)

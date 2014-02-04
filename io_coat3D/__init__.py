@@ -24,12 +24,10 @@ bl_info = {
     "location": "Scene > 3D-Coat Applink",
     "description": "Transfer data between 3D-Coat/Blender",
     "warning": "",
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/" \
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
         "Scripts/Import-Export/3dcoat_applink",
-    "tracker_url": "https://projects.blender.org/tracker/?"\
-        "func=detail&aid=24446",
+    "tracker_url": "https://developer.blender.org/T24446",
     "category": "Import-Export"}
-
 
 
 if "bpy" in locals():
@@ -43,13 +41,13 @@ else:
 import bpy
 from bpy.props import *
 
-    
+
 def register():
     bpy.coat3D = dict()
     bpy.coat3D['active_coat'] = ''
     bpy.coat3D['status'] = 0
     bpy.coat3D['kuva'] = 1
-    
+
     class ObjectCoat3D(bpy.types.PropertyGroup):
         objpath = StringProperty(name="Object_Path")
         applink_name = StringProperty(name="Object_Applink_name")
@@ -71,7 +69,7 @@ def register():
             subtype="DIR_PATH",
         )
         cursor_loc = FloatVectorProperty(name="Cursor_loc",description="location")
-        
+
         exchangedir = StringProperty(
             name="FilePath",
             subtype="DIR_PATH"
@@ -82,8 +80,8 @@ def register():
         )
 
 
-    
-        
+
+
         wasactive = StringProperty(
             name="Pass active object",
         )
@@ -248,7 +246,7 @@ def unregister():
     del bpy.types.Object.coat3D
     del bpy.types.Scene.coat3D
     del bpy.coat3D
-    
+
     bpy.utils.unregister_module(__name__)
 
 

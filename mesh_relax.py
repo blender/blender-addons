@@ -24,15 +24,14 @@
 bl_info = {
     "name": "Relax",
     "author": "Fabian Fricke",
-    "version": (1,1),
+    "version": (1, 1),
     "blender": (2, 57, 0),
     "location": "View3D > Specials > Relax ",
     "description": "Relax the selected verts while retaining the shape",
     "warning": "",
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"\
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
         "Scripts/Modeling/Relax",
-    "tracker_url": "https://projects.blender.org/tracker/index.php?"\
-        "func=detail&aid=21421",
+    "tracker_url": "https://developer.blender.org/T21421",
     "category": "Mesh"}
 
 """
@@ -70,10 +69,10 @@ def relax_mesh(context):
         target.modifiers.remove(target.modifiers[0])
 
     context.scene.objects.active = obj
-    
+
     sw = obj.modifiers.new(type='SHRINKWRAP', name='relax_target')
     sw.target = target
-    
+
     # run smooth operator to relax the mesh
     bpy.ops.object.mode_set(mode='EDIT')
     bpy.ops.mesh.vertices_smooth()
@@ -81,12 +80,12 @@ def relax_mesh(context):
 
     # apply the modifier
     bpy.ops.object.modifier_apply(modifier='relax_target')
-    
+
     # delete the target object
     obj.select = False
     target.select = True
     bpy.ops.object.delete()
-    
+
     # go back to initial state
     obj.select = True
     bpy.ops.object.mode_set(mode='EDIT')

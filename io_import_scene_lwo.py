@@ -22,13 +22,12 @@ bl_info= {
     "version": (1, 2),
     "blender": (2, 57, 0),
     "location": "File > Import > LightWave Object (.lwo)",
-    "description": "Imports a LWO file including any UV, Morph and Color maps. "\
+    "description": "Imports a LWO file including any UV, Morph and Color maps. "
         "Can convert Skelegons to an Armature.",
     "warning": "",
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"\
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
         "Scripts/Import-Export/LightWave_Object",
-    "tracker_url": "https://projects.blender.org/tracker/index.php?"\
-        "func=detail&aid=23623",
+    "tracker_url": "https://developer.blender.org/T23623",
     "category": "Import-Export"}
 
 # Copyright (c) Ken Nign 2010
@@ -621,22 +620,22 @@ def read_weight_vmad(ew_bytes, object_layers):
         offset+= pol_id_len
         weight,= struct.unpack(">f", ew_bytes[offset:offset+4])
         offset+= 4
-        
+
         face_pnts= object_layers[-1].pols[pol_id]
         try:
             # Find the point's location in the polygon's point list
             first_idx= face_pnts.index(pnt_id)
         except:
             continue
-        
+
         # Then get the next point in the list, or wrap around to the first
         if first_idx == len(face_pnts) - 1:
             second_pnt= face_pnts[0]
         else:
             second_pnt= face_pnts[first_idx + 1]
-        
+
         object_layers[-1].edge_weights["{0} {1}".format(second_pnt, pnt_id)]= weight
-        
+
 
 def read_pols(pol_bytes, object_layers):
     """Read the layer's polygons, each one is just a list of point indexes."""

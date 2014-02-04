@@ -24,10 +24,9 @@ bl_info = {
     "location": "View3D > Add > Mesh",
     "description": "Adds Chain with curve guide for easy creation",
     "warning": "",
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"\
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
         "Scripts/Object/Add_Chain",
-    "tracker_url": "https://projects.blender.org/tracker/index.php?"\
-        "func=detail&aid=22203",
+    "tracker_url": "https://developer.blender.org/T22203",
     "category": "Object"}
 
 import bpy
@@ -38,7 +37,7 @@ def Add_Chain():
     bpy.ops.object.add(type='EMPTY',
                        view_align=False,
                        enter_editmode=False,
-                       location=(0, 0, 0), 
+                       location=(0, 0, 0),
                        rotation=(0, 0, 0),
                        )
 
@@ -71,10 +70,10 @@ def Add_Chain():
 
     ##Positions Torus primitive to center of scene
     bpy.context.active_object.location = 0.0, 0.0, 0.0
-    
+
     ##Reseting Torus rotation in case of 'Align to view' option enabled
     bpy.context.active_object.rotation_euler = 0.0, 0.0, 0.0
-    
+
 
     ##Changes Torus name to chain adds variable tor
     tor = bpy.context.object
@@ -89,7 +88,7 @@ def Add_Chain():
     ##Smooths tor
     bpy.ops.object.shade_smooth()
 
-    ##Select curv 
+    ##Select curv
     sce = bpy.context.scene
     sce.objects.active = curv
 

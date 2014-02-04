@@ -29,8 +29,7 @@ bl_info = {
     "warning": "",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
         "Scripts/Text_Editor/API_Navigator",
-    "tracker_url": "http://projects.blender.org/tracker/index.php?"\
-        "func=detail&aid=24982",
+    "tracker_url": "https://developer.blender.org/T24982",
     "category": "Development"}
 
 """

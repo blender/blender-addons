@@ -7,7 +7,7 @@ bl_info = {
     "description": "Adds a layer manager for image based texture slots in paint and quick add layer tools",
     "warning": "",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts/3D_interaction/Texture_paint_layers",
-    "tracker_url": "http://projects.blender.org/tracker/index.php?func=detail&aid=26789",
+    "tracker_url": "https://developer.blender.org/T26789",
     "category": "Paint"}
         
         

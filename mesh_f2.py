@@ -27,10 +27,9 @@ bl_info = {
     'location': "Editmode > F",
     'warning': "",
     'description': "Extends the 'Make Edge/Face' functionality",
-    'wiki_url': "http://wiki.blender.org/index.php/Extensions:2.6/Py/"\
+    'wiki_url': "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
         "Scripts/Modeling/F2",
-    'tracker_url': "http://projects.blender.org/tracker/index.php?"\
-        "func=detail&aid=33979",
+    'tracker_url': "https://developer.blender.org/T33979",
     'category': 'Mesh'}
 
 

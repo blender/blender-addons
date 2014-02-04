@@ -26,10 +26,9 @@ bl_info = {
     "location": "View3D > Add > Mesh > Extra Objects",
     "description": "Add extra object types",
     "warning": "",
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"\
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
         "Scripts/Add_Mesh/Add_Extra",
-    "tracker_url": "http://projects.blender.org/tracker/index.php?"\
-        "func=detail&aid=22457",
+    "tracker_url": "https://developer.blender.org/T22457",
     "category": "Add Mesh"}
 
 
@@ -89,7 +88,7 @@ class INFO_MT_mesh_gemstones_add(bpy.types.Menu):
         layout.operator("mesh.primitive_gem_add",
             text="Gem")
 
-			
+
 class INFO_MT_mesh_gears_add(bpy.types.Menu):
     # Define the "Gears" menu
     bl_idname = "INFO_MT_mesh_gears_add"
@@ -133,7 +132,7 @@ class INFO_MT_mesh_basic_add(bpy.types.Menu):
             text="Trapezohedron")
         layout.operator("mesh.primitive_polysphere_add",
             text="Polysphere")
-			
+
 class INFO_MT_mesh_torus_add(bpy.types.Menu):
     # Define the "Simple Objects" menu
     bl_idname = "INFO_MT_mesh_torus_add"

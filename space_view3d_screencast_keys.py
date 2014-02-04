@@ -26,11 +26,10 @@ bl_info = {
     "location": "3D View > Properties Panel > Screencast Keys",
     "warning": "",
     "description": "Display keys pressed in the 3D View, "
-                   "useful for screencasts.",
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/"
-                "Py/Scripts/3D_interaction/Screencast_Key_Status_Tool",
-    "tracker_url": "http://projects.blender.org/tracker/index.php?"
-                   "func=detail&aid=21612",
+       "useful for screencasts.",
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
+        "Scripts/3D_interaction/Screencast_Key_Status_Tool",
+    "tracker_url": "https://developer.blender.org/T21612",
     "category": "3D View"}
 
 import bgl
@@ -98,7 +97,7 @@ def draw_callback_px_text(self, context):
     shift = 0
 
     # we want to make sure we can shift vertically the text if the mouse is big,
-    # but don't care if aligned to right 
+    # but don't care if aligned to right
     if mouse_size > font_size*row_count and not sc.screencast_keys_mouse_position == 'right':
         shift = (mouse_size - font_size*row_count) / 2
 
@@ -126,7 +125,7 @@ def draw_callback_px_text(self, context):
         else:
             break
 
-    # remove blurriness 
+    # remove blurriness
 
     # disable shadows so they don't appear all over blender
     blf.blur(0,0)

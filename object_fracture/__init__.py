@@ -21,13 +21,12 @@ bl_info = {
     "author": "pildanovak",
     "version": (2, 0),
     "blender": (2, 57, 0),
-    "location": "Search > Fracture Object & Add -> Fracture Helper Objects",
+    "location": "Search > Fracture Object & Add > Fracture Helper Objects",
     "description": "Fractured Object, Bomb, Projectile, Recorder",
     "warning": "",
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"\
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
         "Scripts/Object/Fracture",
-    "tracker_url": "https://projects.blender.org/tracker/index.php?"\
-        "func=detail&aid=21793",
+    "tracker_url": "https://developer.blender.org/T21793",
     "category": "Object"}
 
 

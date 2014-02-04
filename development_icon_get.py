@@ -31,8 +31,7 @@ bl_info = {
         'to the clipboard',
     'wiki_url': 'http://wiki.blender.org/index.php/Extensions:2.6/'\
         'Py/Scripts/System/Display_All_Icons',
-    'tracker_url': 'http://projects.blender.org/tracker/index.php?'\
-        'func=detail&aid=22011',
+    'tracker_url': 'https://developer.blender.org/T22011',
     'category': 'Development'}
 
 

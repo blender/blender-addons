@@ -19,17 +19,17 @@
 bl_info = {
     'name': 'Curveaceous Galore!',
     'author': 'Jimmy Hazevoet, testscreenings',
-    'version': (0,2),
+    'version': (0, 2),
     "blender": (2, 59, 0),
     'location': 'View3D > Add > Curve',
     'description': 'Adds many different types of Curves',
     'warning': '', # used for warning icon and text in addons panel
-    'wiki_url': 'http://wiki.blender.org/index.php/Extensions:2.6/Py/' \
+    'wiki_url': 'http://wiki.blender.org/index.php/Extensions:2.6/Py/'
         'Scripts/Curve/Curves_Galore',
-    'tracker_url': 'https://projects.blender.org/tracker/index.php?'\
-        'func=detail&aid=22404',
+    'tracker_url': 'https://developer.blender.org/T22404',
     'category': 'Add Curve'}
 '''
+
 
 ##------------------------------------------------------------
 #### import modules
@@ -47,9 +47,9 @@ import mathutils.noise as Noise
 def randnum(low=0.0, high=1.0, seed=0):
     """
     randnum( low=0.0, high=1.0, seed=0 )
-    
+
     Create random number
-    
+
         Parameters:
             low - lower range
                 (type=float)
@@ -74,9 +74,9 @@ def randnum(low=0.0, high=1.0, seed=0):
 def vTurbNoise(x,y,z, iScale=0.25, Size=1.0, Depth=6, Hard=0, Basis=0, Seed=0):
     """
     vTurbNoise((x,y,z), iScale=0.25, Size=1.0, Depth=6, Hard=0, Basis=0, Seed=0 )
-    
+
     Create randomised vTurbulence noise
-    
+
         Parameters:
             xyz - (x,y,z) float values.
                 (type=3-float tuple)
@@ -126,9 +126,9 @@ def AxisFlip(x,y,z, x_axis=1, y_axis=1, z_axis=1, flip=0 ):
 def ProfileCurve(type=0, a=0.25, b=0.25):
     """
     ProfileCurve( type=0, a=0.25, b=0.25 )
-    
-    Create profile curve 
-        
+
+    Create profile curve
+
         Parameters:
             type - select profile type, L, H, T, U, Z
                 (type=int)
@@ -182,9 +182,9 @@ def ProfileCurve(type=0, a=0.25, b=0.25):
 def MiscCurve(type=1, a=1.0, b=0.5, c=1.0):
     """
     MiscCurve( type=1, a=1.0, b=0.5, c=1.0 )
-    
+
     Create miscellaneous curves
-    
+
         Parameters:
             type - select type, Diamond, Arrow1, Arrow2, Square
                 (type=int)
@@ -227,12 +227,12 @@ def MiscCurve(type=1, a=1.0, b=0.5, c=1.0):
         x = a / 2
         y = b / 2
         r = c / 2
-        
+
         if r > x:
             r = x - 0.0001
         if r > y:
             r = y - 0.0001
-        
+
         if r>0:
             newpoints.append([-x+r,y,0])
             newpoints.append([x-r,y,0])
@@ -258,9 +258,9 @@ def MiscCurve(type=1, a=1.0, b=0.5, c=1.0):
 def StarCurve(starpoints=8, innerradius=0.5, outerradius=1.0, twist=0.0):
     """
     StarCurve( starpoints=8, innerradius=0.5, outerradius=1.0, twist=0.0 )
-    
+
     Create star shaped curve
-    
+
         Parameters:
             starpoints - the number of points
                 (type=int)
@@ -294,9 +294,9 @@ def StarCurve(starpoints=8, innerradius=0.5, outerradius=1.0, twist=0.0):
 def FlowerCurve(petals=8, innerradius=0.5, outerradius=1.0, petalwidth=2.0):
     """
     FlowerCurve( petals=8, innerradius=0.5, outerradius=1.0, petalwidth=2.0 )
-    
+
     Create flower shaped curve
-    
+
         Parameters:
             petals - the number of petals
                 (type=int)
@@ -334,9 +334,9 @@ def FlowerCurve(petals=8, innerradius=0.5, outerradius=1.0, petalwidth=2.0):
 def ArcCurve(sides=6, startangle=0.0, endangle=90.0, innerradius=0.5, outerradius=1.0, type=3):
     """
     ArcCurve( sides=6, startangle=0.0, endangle=90.0, innerradius=0.5, outerradius=1.0, type=3 )
-    
+
     Create arc shaped curve
-    
+
         Parameters:
             sides - number of sides
                 (type=int)
@@ -386,13 +386,13 @@ def ArcCurve(sides=6, startangle=0.0, endangle=90.0, innerradius=0.5, outerradiu
     return newpoints
 
 ##------------------------------------------------------------
-# 2DCurve: Cog wheel: 
+# 2DCurve: Cog wheel:
 def CogCurve(theeth=8, innerradius=0.8, middleradius=0.95, outerradius=1.0, bevel=0.5):
     """
     CogCurve( theeth=8, innerradius=0.8, middleradius=0.95, outerradius=1.0, bevel=0.5 )
-    
+
     Create cog wheel shaped curve
-    
+
         Parameters:
             theeth - number of theeth
                 (type=int)
@@ -442,9 +442,9 @@ def CogCurve(theeth=8, innerradius=0.8, middleradius=0.95, outerradius=1.0, beve
 def nSideCurve(sides=6, radius=1.0):
     """
     nSideCurve( sides=6, radius=1.0 )
-    
+
     Create n-sided curve
-    
+
         Parameters:
             sides - number of sides
                 (type=int)
@@ -472,9 +472,9 @@ def nSideCurve(sides=6, radius=1.0):
 def SplatCurve(sides=24, scale=1.0, seed=0, basis=0, radius=1.0):
     """
     SplatCurve( sides=24, scale=1.0, seed=0, basis=0, radius=1.0 )
-    
+
     Create splat curve
-    
+
         Parameters:
             sides - number of sides
                 (type=int)
@@ -513,9 +513,9 @@ def SplatCurve(sides=24, scale=1.0, seed=0, basis=0, radius=1.0):
 def HelixCurve( number=100, height=2.0, startangle=0.0, endangle=360.0, width=1.0, a=0.0, b=0.0 ):
     """
     HelixCurve( number=100, height=2.0, startangle=0.0, endangle=360.0, width=1.0, a=0.0, b=0.0 )
-    
+
     Create helix curve
-    
+
         Parameters:
             number - the number of points
                 (type=int)
@@ -539,7 +539,7 @@ def HelixCurve( number=100, height=2.0, startangle=0.0, endangle=360.0, width=1.
     newpoints = []
     angle = (2.0/360.0)*(endangle-startangle)
     step = angle/(number-1)
-    h = height/angle    
+    h = height/angle
     start = (startangle*2.0/360.0)
     a/=angle
     i = 0
@@ -557,7 +557,7 @@ def HelixCurve( number=100, height=2.0, startangle=0.0, endangle=360.0, width=1.
 def CycloidCurve( number=24, length=2.0, type=0, a=1.0, b=1.0, startangle=0.0, endangle=360.0 ):
     """
     CycloidCurve( number=24, length=2.0, type=0, a=1.0, b=1.0, startangle=0.0, endangle=360.0 )
-    
+
     Create a Cycloid, Epicycloid or Hypocycloid curve
 
         Parameters:
@@ -752,7 +752,7 @@ def main(context, self, align_matrix):
                             self.cyclo_b,
                             self.cycloStart,
                             self.cycloEnd)
-        
+
     # turn verts into array
     vertArray = vertsToPoints(verts, splineType)
 
@@ -847,7 +847,7 @@ class Curveaceous_galore(bpy.types.Operator):
                     default=0.1,
                     min=0, soft_min=0,
                     description="var3 of MiscCurve")
-                    
+
     #### Common properties
     innerRadius = FloatProperty(name="Inner radius",
                     default=0.5,
@@ -861,7 +861,7 @@ class Curveaceous_galore(bpy.types.Operator):
                     default=1.0,
                     min=0, soft_min=0,
                     description="Outer radius")
-                    
+
     #### Flower properties
     petals = IntProperty(name="Petals",
                     default=8,
@@ -991,7 +991,7 @@ class Curveaceous_galore(bpy.types.Operator):
     def draw(self, context):
         layout = self.layout
 
-        # general options        
+        # general options
         col = layout.column()
         col.prop(self, 'GalloreType')
         col.label(text=self.GalloreType + " Options:")
@@ -1107,7 +1107,7 @@ class Curveaceous_galore(bpy.types.Operator):
 
         # main function
         main(context, self, self.align_matrix)
-        
+
         # restore pre operator undo state
         bpy.context.user_preferences.edit.use_global_undo = undo
 

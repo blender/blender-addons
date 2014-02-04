@@ -24,13 +24,13 @@ bl_info = {
     "version": (3, 1, 0),
     "blender": (2, 69, 0),
     "location": "File > Export > DirectX (.x)",
-    "description": "Export mesh vertices, UV's, materials, textures, "\
+    "description": "Export mesh vertices, UV's, materials, textures, "
         "vertex colors, armatures, empties, and actions.",
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"\
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
         "Scripts/Import-Export/DirectX_Exporter",
-    "tracker_url": "https://projects.blender.org/tracker/index.php?"\
-        "func=detail&aid=22795",
+    "tracker_url": "https://developer.blender.org/T22795",
     "category": "Import-Export"}
+
 
 import bpy
 from bpy.props import BoolProperty
@@ -45,43 +45,43 @@ class ExportDirectX(bpy.types.Operator):
     bl_label = "Export DirectX"
 
     filepath = StringProperty(subtype='FILE_PATH')
-    
+
     # Export options
 
     SelectedOnly = BoolProperty(
         name="Export Selected Objects Only",
         description="Export only selected objects",
         default=True)
-        
+
     CoordinateSystem = EnumProperty(
         name="Coordinate System",
         description="Use the selected coordinate system for export",
         items=(('LEFT_HANDED', "Left-Handed", "Use a Y up, Z forward system or a Z up, -Y forward system"),
                ('RIGHT_HANDED', "Right-Handed", "Use a Y up, -Z forward system or a Z up, Y forward system")),
         default='LEFT_HANDED')
-        
+
     UpAxis = EnumProperty(
         name="Up Axis",
         description="The selected axis points upward",
         items=(('Y', "Y", "The Y axis points up"),
                ('Z', "Z", "The Z axis points up")),
         default='Y')
-        
+
     ExportMeshes = BoolProperty(
         name="Export Meshes",
         description="Export mesh objects",
         default=True)
-        
+
     ExportNormals = BoolProperty(
         name="    Export Normals",
         description="Export mesh normals",
         default=True)
-    
+
     FlipNormals = BoolProperty(
         name="        Flip Normals",
         description="Flip mesh normals before export",
         default=False)
-    
+
     ExportUVCoordinates = BoolProperty(
         name="    Export UV Coordinates",
         description="Export mesh UV coordinates, if any",
@@ -91,33 +91,33 @@ class ExportDirectX(bpy.types.Operator):
         name="    Export Materials",
         description="Export material properties and reference image textures",
         default=True)
-    
+
     ExportActiveImageMaterials = BoolProperty(
         name="        Reference Active Images as Textures",
         description="Reference the active image of each face as a texture, "\
             "as opposed to the image assigned to the material",
         default=False)
-    
+
     ExportVertexColors = BoolProperty(
         name="    Export Vertex Colors",
         description="Export mesh vertex colors, if any",
         default=False)
-    
+
     ExportSkinWeights = BoolProperty(
         name="    Export Skin Weights",
         description="Bind mesh vertices to armature bones",
         default=False)
-    
+
     ApplyModifiers = BoolProperty(
         name="    Apply Modifiers",
         description="Apply the effects of object modifiers before export",
         default=False)
-    
+
     ExportArmatureBones = BoolProperty(
         name="Export Armature Bones",
         description="Export armatures bones",
         default=False)
-    
+
     ExportRestBone = BoolProperty(
         name="    Export Rest Position",
         description="Export bones in their rest position (recommended for "\
@@ -135,14 +135,14 @@ class ExportDirectX(bpy.types.Operator):
         description="Include the AnimTicksPerSecond template which is "\
             "used by some engines to control animation speed",
         default=False)
-    
+
     ExportActionsAsSets = BoolProperty(
         name="    Export Actions as AnimationSets",
         description="Export each action of each object as a separate "\
             "AnimationSet. Otherwise all current actions are lumped "\
             "together into a single set",
         default=False)
-    
+
     AttachToFirstArmature = BoolProperty(
         name="        Attach Unused Actions to First Armature",
         description="Export each unused action as if used by the first "\

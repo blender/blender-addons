@@ -24,11 +24,13 @@ bl_info = {
     "version": (0, 1, 5),
     "blender": (2, 65, 9),
     "location": "Render buttons (Properties window)",
-    "description": "Allows to copy a selection of render settings from current scene to others.",
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts/Render/Copy Settings",
-    "tracker_url": "http://projects.blender.org/tracker/index.php?func=detail&aid=25832",
-    "category": "Render",
-}
+    "description": "Allows to copy a selection of render settings "
+        "from current scene to others.",
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
+        "Scripts/Render/Copy Settings",
+    "tracker_url": "https://developer.blender.org/T25832",
+    "category": "Render"}
+
 
 if "bpy" in locals():
     import imp

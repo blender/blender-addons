@@ -1,6 +1,6 @@
 # 3D NAVIGATION TOOLBAR v1.2 - 3Dview Addon - Blender 2.5x
 #
-# THIS SCRIPT IS LICENSED UNDER GPL, 
+# THIS SCRIPT IS LICENSED UNDER GPL,
 # please read the license block.
 #
 # ##### BEGIN GPL LICENSE BLOCK #####
@@ -29,10 +29,9 @@ bl_info = {
     "location": "View3D > Tool Shelf > 3D Nav",
     "description": "Navigate the Camera & 3D View from the Toolshelf",
     "warning": "",
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"\
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
         "Scripts/3D_interaction/3D_Navigation",
-    "tracker_url": "http://projects.blender.org/tracker/index.php?"\
-	    "func=detail&aid=23530",
+    "tracker_url": "https://developer.blender.org/T23530",
     "category": "3D View"}
 
 # import the basic library
@@ -49,11 +48,11 @@ class VIEW3D_PT_3dnavigationPanel(bpy.types.Panel):
         layout = self.layout
         view = context.space_data
 
-# Triple boutons        
+# Triple boutons
         col = layout.column(align=True)
         col.operator("view3d.viewnumpad", text="View Camera", icon='CAMERA_DATA').type='CAMERA'
         col.operator("view3d.localview", text="View Global/Local")
-        col.operator("view3d.view_persportho", text="View Persp/Ortho")  
+        col.operator("view3d.view_persportho", text="View Persp/Ortho")
 
 # group of 6 buttons
         col = layout.column(align=True)
@@ -72,27 +71,27 @@ class VIEW3D_PT_3dnavigationPanel(bpy.types.Panel):
         col = layout.column(align=True)
         col.label(text="View to Object:")
         col.prop(view, "lock_object", text="")
-        col.operator("view3d.view_selected", text="View to Selected") 
-        
+        col.operator("view3d.view_selected", text="View to Selected")
+
         col = layout.column(align=True)
         col.label(text="Cursor:")
-        
+
         row = col.row()
         row.operator("view3d.snap_cursor_to_center", text="Center")
         row.operator("view3d.view_center_cursor", text="View")
-        
+
         col.operator("view3d.snap_cursor_to_selected", text="Cursor to Selected")
 
 # register the class
 def register():
     bpy.utils.register_module(__name__)
- 
-    pass 
+
+    pass
 
 def unregister():
     bpy.utils.unregister_module(__name__)
- 
-    pass 
 
-if __name__ == "__main__": 
+    pass
+
+if __name__ == "__main__":
     register()

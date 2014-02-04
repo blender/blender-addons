@@ -24,8 +24,9 @@ bl_info = {
     'location': "Node Editor Properties Panel  or  Ctrl-SPACE",
     'description': "Various tools to enhance and speed up node-based workflow",
     'warning': "",
-    'wiki_url': "http://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts/Nodes/Nodes_Efficiency_Tools",
-    'tracker_url': "http://projects.blender.org/tracker/index.php?func=detail&aid=33543&group_id=153&atid=469",
+    'wiki_url': "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
+        "Scripts/Nodes/Nodes_Efficiency_Tools",
+    'tracker_url': "https://developer.blender.org/T33543",
     'category': "Node",
 }
 

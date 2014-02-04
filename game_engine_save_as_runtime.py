@@ -26,8 +26,7 @@ bl_info = {
     'warning': '',
     'wiki_url': 'http://wiki.blender.org/index.php/Extensions:2.6/Py/'\
         'Scripts/Game_Engine/Save_As_Runtime',
-    'tracker_url': 'https://projects.blender.org/tracker/index.php?'\
-        'func=detail&aid=23564',
+    'tracker_url': 'https://developer.blender.org/T23564',
     'category': 'Game Engine'}
 
 import bpy

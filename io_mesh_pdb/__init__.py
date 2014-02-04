@@ -26,9 +26,9 @@
 #  First publication in Blender  : 2011-11-11
 #  Last modified                 : 2013-04-04
 #
-#  Acknowledgements 
+#  Acknowledgements
 #  ================
-#  Blender: ideasman, meta_androcto, truman, kilon, CoDEmanX, dairin0d, PKHG, 
+#  Blender: ideasman, meta_androcto, truman, kilon, CoDEmanX, dairin0d, PKHG,
 #           Valter, ...
 #  Other  : Frank Palmino
 #
@@ -44,12 +44,11 @@ bl_info = {
     "blender": (2, 60, 0),
     "location": "File -> Import -> PDB (.pdb)",
     "warning": "",
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/"
-                "Py/Scripts/Import-Export/PDB",
-    "tracker_url": "http://projects.blender.org/tracker/"
-                   "index.php?func=detail&aid=29226",
-    "category": "Import-Export"
-}
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
+        "Scripts/Import-Export/PDB",
+    "tracker_url": "https://developer.blender.org/T29226",
+    "category": "Import-Export"}
+
 
 import bpy
 from bpy.types import Operator
@@ -77,7 +76,7 @@ class ImportPDB(Operator, ImportHelper):
 
     use_center = BoolProperty(
         name = "Object to origin", default=True,
-        description = "Put the object into the global origin")  
+        description = "Put the object into the global origin")
     use_camera = BoolProperty(
         name="Camera", default=False,
         description="Do you need a camera?")
@@ -90,7 +89,7 @@ class ImportPDB(Operator, ImportHelper):
         items=(('0', "NURBS", "NURBS balls"),
                ('1', "Mesh" , "Mesh balls"),
                ('2', "Meta" , "Metaballs")),
-               default='0',) 
+               default='0',)
     mesh_azimuth = IntProperty(
         name = "Azimuth", default=32, min=1,
         description = "Number of sectors (azimuth)")
@@ -109,23 +108,23 @@ class ImportPDB(Operator, ImportHelper):
         items=(('0', "Pre-defined", "Use pre-defined radius"),
                ('1', "Atomic", "Use atomic radius"),
                ('2', "van der Waals", "Use van der Waals radius")),
-               default='0',)        
+               default='0',)
     use_sticks = BoolProperty(
         name="Use sticks", default=True,
-        description="Do you want to display the sticks?")     
+        description="Do you want to display the sticks?")
     use_sticks_type = EnumProperty(
         name="Type",
         description="Choose type of stick",
         items=(('0', "Dupliverts", "Use dupliverts structures"),
                ('1', "Skin", "Use skin and subdivision modifier"),
                ('2', "Normal", "Use simple cylinders")),
-               default='0',)   
+               default='0',)
     sticks_subdiv_view  = IntProperty(
         name = "SubDivV", default=2, min=1,
-        description="Number of subdivisions (view)")        
+        description="Number of subdivisions (view)")
     sticks_subdiv_render  = IntProperty(
         name = "SubDivR", default=2, min=1,
-        description="Number of subdivisions (render)")           
+        description="Number of subdivisions (render)")
     sticks_sectors = IntProperty(
         name = "Sector", default=20, min=1,
         description="Number of sectors of a stick")
@@ -134,25 +133,25 @@ class ImportPDB(Operator, ImportHelper):
         description ="Radius of a stick")
     sticks_unit_length = FloatProperty(
         name = "Unit", default=0.05, min=0.0001,
-        description = "Length of the unit of a stick in Angstrom")        
+        description = "Length of the unit of a stick in Angstrom")
     use_sticks_color = BoolProperty(
         name="Color", default=True,
         description="The sticks appear in the color of the atoms")
     use_sticks_smooth = BoolProperty(
         name="Smooth", default=True,
-        description="The sticks are round (sectors are not visible)")     
+        description="The sticks are round (sectors are not visible)")
     use_sticks_bonds = BoolProperty(
         name="Bonds", default=False,
         description="Show double and tripple bonds.")
     sticks_dist = FloatProperty(
         name="", default = 1.1, min=1.0, max=3.0,
-        description="Distance between sticks measured in stick diameter")         
+        description="Distance between sticks measured in stick diameter")
     use_sticks_one_object = BoolProperty(
         name="One object", default=True,
-        description="All sticks are one object.")     
+        description="All sticks are one object.")
     use_sticks_one_object_nr = IntProperty(
         name = "No.", default=200, min=10,
-        description="Number of sticks to be grouped at once")                 
+        description="Number of sticks to be grouped at once")
     datafile = StringProperty(
         name = "", description="Path to your custom data file",
         maxlen = 256, default = "", subtype='FILE_PATH')
@@ -163,17 +162,17 @@ class ImportPDB(Operator, ImportHelper):
         row.prop(self, "use_camera")
         row.prop(self, "use_lamp")
         row = layout.row()
-        row.prop(self, "use_center")     
+        row.prop(self, "use_center")
         # Balls
-        box = layout.box()   
-        row = box.row() 
-        row.label(text="Balls / atoms")        
+        box = layout.box()
+        row = box.row()
+        row.label(text="Balls / atoms")
         row = box.row()
         col = row.column()
         col.prop(self, "ball")
         row = box.row()
         row.active = (self.ball == "1")
-        col = row.column(align=True)             
+        col = row.column(align=True)
         col.prop(self, "mesh_azimuth")
         col.prop(self, "mesh_zenith")
         row = box.row()
@@ -184,55 +183,55 @@ class ImportPDB(Operator, ImportHelper):
         col.prop(self, "scale_distances")
         row = box.row()
         row.prop(self, "atomradius")
-        # Sticks     
-        box = layout.box()    
-        row = box.row() 
+        # Sticks
+        box = layout.box()
+        row = box.row()
         row.label(text="Sticks / bonds")
-        row = box.row()  
+        row = box.row()
         row.prop(self, "use_sticks")
         row = box.row()
-        row.active = self.use_sticks                
+        row.active = self.use_sticks
         row.prop(self, "use_sticks_type")
-        row = box.row()        
+        row = box.row()
         row.active = self.use_sticks
         col = row.column()
-        if self.use_sticks_type == '0' or self.use_sticks_type == '2': 
+        if self.use_sticks_type == '0' or self.use_sticks_type == '2':
             col.prop(self, "sticks_sectors")
         col.prop(self, "sticks_radius")
-        if self.use_sticks_type == '1': 
-            row = box.row()        
+        if self.use_sticks_type == '1':
+            row = box.row()
             row.active = self.use_sticks
             row.prop(self, "sticks_subdiv_view")
             row.prop(self, "sticks_subdiv_render")
-            row = box.row()        
-            row.active = self.use_sticks            
-        if self.use_sticks_type == '0': 
+            row = box.row()
+            row.active = self.use_sticks
+        if self.use_sticks_type == '0':
             col.prop(self, "sticks_unit_length")
-        col = row.column(align=True)    
-        if self.use_sticks_type == '0': 
-            col.prop(self, "use_sticks_color")        
+        col = row.column(align=True)
+        if self.use_sticks_type == '0':
+            col.prop(self, "use_sticks_color")
         col.prop(self, "use_sticks_smooth")
         if self.use_sticks_type == '0' or self.use_sticks_type == '2':
             col.prop(self, "use_sticks_bonds")
-        row = box.row()        
-        if self.use_sticks_type == '0': 
+        row = box.row()
+        if self.use_sticks_type == '0':
             row.active = self.use_sticks and self.use_sticks_bonds
             row.label(text="Distance")
             row.prop(self, "sticks_dist")
         if self.use_sticks_type == '2':
-            row.active = self.use_sticks      
-            col = row.column()    
+            row.active = self.use_sticks
+            col = row.column()
             col.prop(self, "use_sticks_one_object")
             col = row.column()
             col.active = self.use_sticks_one_object
             col.prop(self, "use_sticks_one_object_nr")
-            
-            
+
+
     def execute(self, context):
         # This is in order to solve this strange 'relative path' thing.
         filepath_pdb = bpy.path.abspath(self.filepath)
 
-        # Execute main routine                
+        # Execute main routine
         import_pdb.import_pdb(
                       self.ball,
                       self.mesh_azimuth,
@@ -256,7 +255,7 @@ class ImportPDB(Operator, ImportHelper):
                       self.use_center,
                       self.use_camera,
                       self.use_lamp,
-                      filepath_pdb)        
+                      filepath_pdb)
 
         return {'FINISHED'}
 
@@ -276,7 +275,7 @@ class ExportPDB(Operator, ExportHelper):
         items=(('0', "All", "Export all active objects"),
                ('1', "Elements", "Export only those active objects which have"
                                  " a proper element name")),
-               default='1',) 
+               default='1',)
 
     def draw(self, context):
         layout = self.layout
@@ -302,7 +301,7 @@ def register():
     bpy.utils.register_module(__name__)
     bpy.types.INFO_MT_file_import.append(menu_func_import)
     bpy.types.INFO_MT_file_export.append(menu_func_export)
-    
+
 def unregister():
     bpy.utils.unregister_module(__name__)
     bpy.types.INFO_MT_file_import.remove(menu_func_import)

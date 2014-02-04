@@ -22,11 +22,12 @@ bl_info = {
     "name": "Motion Capture Tools",
     "author": "Benjy Cook",
     "blender": (2, 62, 0),
-    "location": "Object UI -> Mocap tools",
+    "location": "Object UI > Mocap tools",
     "description": "Various tools for working with motion capture animation",
     "warning": "",
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts/Animation/Motion_Capture_Tools",
-    "tracker_url": "http://projects.blender.org/tracker/index.php?func=detail&aid=28321",
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
+        "Scripts/Animation/Motion_Capture_Tools",
+    "tracker_url": "https://developer.blender.org/T28321",
     "support": 'OFFICIAL',
     "category": "Animation"}
 

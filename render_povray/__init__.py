@@ -20,17 +20,18 @@
 
 bl_info = {
     "name": "POV-Ray 3.7",
-    "author": "Campbell Barton, Silvio Falcinelli, Maurice Raybaud, Constantin Rahn, Bastien Montagne",
+    "author": "Campbell Barton, Silvio Falcinelli, Maurice Raybaud, "
+        "Constantin Rahn, Bastien Montagne",
     "version": (0, 0, 9),
     "blender": (2, 57, 0),
     "location": "Render > Engine > POV-Ray 3.7",
     "description": "Basic POV-Ray 3.7 integration for blender",
     "warning": "both POV-Ray 3.7 and this script are beta",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
-                "Scripts/Render/POV-Ray",
-    "tracker_url": "https://projects.blender.org/tracker/index.php?"
-                   "func=detail&aid=23145",
+        "Scripts/Render/POV-Ray",
+    "tracker_url": "https://developer.blender.org/T23145",
     "category": "Render"}
+
 
 if "bpy" in locals():
     import imp
@@ -54,7 +55,7 @@ else:
     from . import ui
     from . import render
     from . import update_files
-    
+
 
 
 ###############################################################################

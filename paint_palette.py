@@ -29,7 +29,7 @@ bl_info = {
     "description": "Palettes for color and weight paint modes",
     "warning": "",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts/Paint/Palettes",
-    "tracker_url": "http://projects.blender.org/tracker/index.php?func=detail&aid=25908",
+    "tracker_url": "https://developer.blender.org/T25908",
     "category": "Paint"}
 
 """

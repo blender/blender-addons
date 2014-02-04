@@ -24,13 +24,12 @@ bl_info = {
     "version": (0, 1, 1),
     "blender": (2, 59, 0),
     "location": "View3D > Add > Curve",
-    "description": "Adds generated ivy to a mesh object starting at the 3D"\
-                   " cursor",
+    "description": "Adds generated ivy to a mesh object starting "
+        "at the 3D cursor",
     "warning": "",
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"\
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
                 "Scripts/Curve/Ivy_Gen",
-    "tracker_url": "http://projects.blender.org/tracker/index.php?"\
-                   "func=detail&aid=27234",
+    "tracker_url": "https://developer.blender.org/T27234",
     "category": "Add Curve"}
 
 

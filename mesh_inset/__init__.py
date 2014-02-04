@@ -26,11 +26,11 @@ bl_info = {
     "location": "View3D > Tools",
     "description": "Make an inset polygon inside selection.",
     "warning": "",
-    "wiki_url": \
-      "http://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts/Modeling/Inset-Polygon",
-    "tracker_url": \
-      "http://projects.blender.org/tracker/index.php?func=detail&aid=27290&group_id=153&atid=469",
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
+        "Scripts/Modeling/Inset-Polygon",
+    "tracker_url": "https://developer.blender.org/T27290",
     "category": "Mesh"}
+
 
 if "bpy" in locals():
     import imp

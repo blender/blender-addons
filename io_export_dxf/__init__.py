@@ -23,10 +23,11 @@ bl_info = {
     "location": "File > Export > Autodesk (.dxf)",
     "description": "The script exports Blender geometry to DXF format r12 version.",
     "warning": "Under construction! Visit Wiki for details.",
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts/Import-Export/DXF_Exporter",
-    "tracker_url": "https://projects.blender.org/tracker/index.php?func=detail&aid=28469",
-    "category": "Import-Export"
-}
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
+        "Scripts/Import-Export/DXF_Exporter",
+    "tracker_url": "https://developer.blender.org/T28469",
+    "category": "Import-Export"}
+
 
 import bpy
 from .operator import DXFExporter

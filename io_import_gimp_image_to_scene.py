@@ -26,8 +26,7 @@ bl_info = {
     "warning": "XCF import requires xcftools installed",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
                 "Scripts/Import-Export/GIMPImageToScene",
-    "tracker_url": "http://projects.blender.org/tracker/index.php?"
-                   "func=detail&aid=25136",
+    "tracker_url": "https://developer.blender.org/T25136",
     "category": "Import-Export"}
 
 """

@@ -24,13 +24,16 @@ bl_info = {
     "location": "File > Export > Pointcache (.pc2)",
     "description": "Export mesh Pointcache data (.pc2)",
     "warning": "",
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"\
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
         "Scripts/Import-Export/PC2_Pointcache_export",
-    "tracker_url": "https://projects.blender.org/tracker/index.php?"\
-        "func=detail&aid=24703",
+    "tracker_url": "",
     "category": "Import-Export"}
 
 """
+Related links:
+https://developer.blender.org/T34456
+https://developer.blender.org/T25408
+
 Usage Notes:
 
 in Maya Mel:
@@ -62,7 +65,7 @@ def do_export(context, props, filepath):
     vertCount = len(me.vertices)
     sampletimes = getSampling(start, end, sampling)
     sampleCount = len(sampletimes)
-    
+
     # Create the header
     headerFormat='<12siiffi'
     headerStr = struct.pack(headerFormat, b'POINTCACHE2\0',
@@ -70,11 +73,11 @@ def do_export(context, props, filepath):
 
     file = open(filepath, "wb")
     file.write(headerStr)
-    
+
     for frame in sampletimes:
         sc.frame_set(frame)
         me = ob.to_mesh(sc, apply_modifiers, 'PREVIEW')
-        
+
         if len(me.vertices) != vertCount:
             file.close()
             try:
@@ -85,18 +88,18 @@ def do_export(context, props, filepath):
                 empty.close()
             print('Export failed. Vertexcount of Object is not constant')
             return False
-        
+
         if props.world_space:
             me.transform(ob.matrix_world)
         if props.rot_x90:
             me.transform(mat_x90)
-        
+
         for v in me.vertices:
             thisVertex = struct.pack('<fff', float(v.co[0]),
                                              float(v.co[1]),
                                              float(v.co[2]))
             file.write(thisVertex)
-    
+
     file.flush()
     file.close()
     return True
@@ -109,7 +112,7 @@ class Export_pc2(bpy.types.Operator, ExportHelper):
     bl_label = "Export Pointcache (.pc2)"
 
     filename_ext = ".pc2"
-    
+
     rot_x90 = BoolProperty(name="Convert to Y-up",
             description="Rotate 90 degrees around X to convert to y-up",
             default=True,
@@ -147,7 +150,7 @@ class Export_pc2(bpy.types.Operator, ExportHelper):
                    ),
             default='1',
             )
-    
+
     @classmethod
     def poll(cls, context):
         return context.active_object.type in {'MESH', 'CURVE', 'SURFACE', 'FONT'}
@@ -160,11 +163,11 @@ class Export_pc2(bpy.types.Operator, ExportHelper):
         filepath = bpy.path.ensure_ext(filepath, self.filename_ext)
 
         exported = do_export(context, props, filepath)
-        
+
         if exported:
             print('finished export in %s seconds' %((time.time() - start_time)))
             print(filepath)
-            
+
         return {'FINISHED'}
 
     def invoke(self, context, event):
@@ -202,6 +205,6 @@ def unregister():
 
     bpy.types.INFO_MT_file_export.remove(menu_func)
     #bpy.types.VIEW3D_PT_tools_objectmode.remove(menu_func)
-    
+
 if __name__ == "__main__":
     register()
