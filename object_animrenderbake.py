@@ -26,7 +26,19 @@ bl_info = {
     "category": "Object",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
                 "Scripts/Object/Animated_Render_Baker",
-    "tracker_url": "https://developer.blender.org/T24836", filepath, frame):
+    "tracker_url": "https://developer.blender.org/T24836"}
+
+
+import bpy
+from bpy.props import IntProperty
+
+class OBJECT_OT_animrenderbake(bpy.types.Operator):
+    bl_label = "Animated Render Bake"
+    bl_description= "Bake animated image textures of selected objects"
+    bl_idname = "object.anim_bake_image"
+    bl_register = True
+
+    def framefile(self, filepath, frame):
         """
         Set frame number to file name image.png -> image0013.png
         """
