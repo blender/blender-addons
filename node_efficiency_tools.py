@@ -19,7 +19,7 @@
 bl_info = {
     'name': "Node Wrangler (aka Nodes Efficiency Tools)",
     'author': "Bartek Skorupa, Greg Zaal",
-    'version': (3, 1),
+    'version': (3, 2),
     'blender': (2, 69, 0),
     'location': "Node Editor Properties Panel  or  Ctrl-SPACE",
     'description': "Various tools to enhance and speed up node-based workflow",
@@ -32,7 +32,7 @@ bl_info = {
 
 import bpy, blf, bgl
 from bpy.types import Operator, Panel, Menu
-from bpy.props import FloatProperty, EnumProperty, BoolProperty, StringProperty, FloatVectorProperty
+from bpy.props import FloatProperty, EnumProperty, BoolProperty, IntProperty, StringProperty, FloatVectorProperty
 from mathutils import Vector
 from math import cos, sin, pi, sqrt
 
@@ -459,6 +459,10 @@ def hack_force_update(context, nodes):
     return False
 
 
+def dpifac():
+    return bpy.context.user_preferences.system.dpi/72
+
+
 def is_end_node(node):
     bool = True
     for output in node.outputs:
@@ -480,6 +484,14 @@ def node_mid_pt(node, axis):
 
 def autolink(node1, node2, links):
     link_made = False
+
+    for outp in node1.outputs:
+        for inp in node2.inputs:
+            if not inp.is_linked and inp.name == outp.name:
+                link_made = True
+                links.new(outp, inp)
+                return True
+
     for outp in node1.outputs:
         for inp in node2.inputs:
             if not inp.is_linked and inp.type == outp.type:
@@ -521,22 +533,47 @@ def node_at_pos(nodes, context, event):
 
     store_mouse_cursor(context, event)
     x, y = context.space_data.cursor_location
+    x = x
+    y = y
 
-    # nearest node
-    nodes_near_mouse = sorted(nodes, key=lambda k: sqrt((x - node_mid_pt(k, 'x')) ** 2 + (y - node_mid_pt(k, 'y')) ** 2))
+    # Make a list of each corner (and middle of border) for each node.
+    # Will be sorted to find nearest point and thus nearest node
+    node_points_with_dist = []
+    for node in nodes:
+        locx = node.location.x
+        locy = node.location.y
+        dimx = node.dimensions.x/dpifac()
+        dimy = node.dimensions.y/dpifac()
+        node_points_with_dist.append([node, sqrt((x - locx) ** 2 + (y - locy) ** 2)])  # Top Left
+        node_points_with_dist.append([node, sqrt((x - (locx+dimx)) ** 2 + (y - locy) ** 2)])  # Top Right
+        node_points_with_dist.append([node, sqrt((x - locx) ** 2 + (y - (locy-dimy)) ** 2)])  # Bottom Left
+        node_points_with_dist.append([node, sqrt((x - (locx+dimx)) ** 2 + (y - (locy-dimy)) ** 2)])  # Bottom Right
+
+        node_points_with_dist.append([node, sqrt((x - (locx+(dimx/2))) ** 2 + (y - locy) ** 2)])  # Mid Top
+        node_points_with_dist.append([node, sqrt((x - (locx+(dimx/2))) ** 2 + (y - (locy-dimy)) ** 2)])  # Mid Bottom
+        node_points_with_dist.append([node, sqrt((x - locx) ** 2 + (y - (locy-(dimy/2))) ** 2)])  # Mid Left
+        node_points_with_dist.append([node, sqrt((x - (locx+dimx)) ** 2 + (y - (locy-(dimy/2))) ** 2)])  # Mid Right
+
+        #node_points_with_dist.append([node, sqrt((x - (locx+(dimx/2))) ** 2 + (y - (locy-(dimy/2))) ** 2)])  # Center
+
+    nearest_node = sorted(node_points_with_dist, key=lambda k: k[1])[0][0]
 
     for node in nodes:
-        if (node.location.x <= x <= node.location.x + node.dimensions.x) and \
-           (node.location.y - node.dimensions.y <= y <= node.location.y):
+        locx = node.location.x
+        locy = node.location.y
+        dimx = node.dimensions.x/dpifac()
+        dimy = node.dimensions.y/dpifac()
+        if (locx <= x <= locx + dimx) and \
+           (locy - dimy <= y <= locy):
             nodes_under_mouse.append(node)
 
     if len(nodes_under_mouse) == 1:
-        if nodes_under_mouse[0] != nodes_near_mouse[0]:
+        if nodes_under_mouse[0] != nearest_node:
             target_node = nodes_under_mouse[0]  # use the node under the mouse if there is one and only one
         else:
-            target_node = nodes_near_mouse[0]  # else use the nearest node
+            target_node = nearest_node  # else use the nearest node
     else:
-        target_node = nodes_near_mouse[0]
+        target_node = nearest_node
     return target_node
 
 
@@ -554,16 +591,19 @@ def store_mouse_cursor(context, event):
 
 def draw_line(x1, y1, x2, y2, size, colour=[1.0, 1.0, 1.0, 0.7]):
     bgl.glEnable(bgl.GL_BLEND)
-    bgl.glColor4f(colour[0], colour[1], colour[2], colour[3])
     bgl.glLineWidth(size)
+    bgl.glShadeModel(bgl.GL_SMOOTH)
 
     bgl.glBegin(bgl.GL_LINE_STRIP)
     try:
+        bgl.glColor4f(colour[0]+(1.0-colour[0])/4, colour[1]+(1.0-colour[1])/4, colour[2]+(1.0-colour[2])/4, colour[3]+(1.0-colour[3])/4)
         bgl.glVertex2f(x1, y1)
+        bgl.glColor4f(colour[0], colour[1], colour[2], colour[3])
         bgl.glVertex2f(x2, y2)
     except:
         pass
     bgl.glEnd()
+    bgl.glShadeModel(bgl.GL_FLAT)
 
 
 def draw_circle(mx, my, radius, colour=[1.0, 1.0, 1.0, 0.7]):
@@ -578,41 +618,152 @@ def draw_circle(mx, my, radius, colour=[1.0, 1.0, 1.0, 0.7]):
     bgl.glEnd()
 
 
-def draw_callback_mixnodes(self, context, mode="MIX"):
+def draw_rounded_node_border(node, radius=8, colour=[1.0, 1.0, 1.0, 0.7]):
+    bgl.glEnable(bgl.GL_BLEND)
+    settings = bpy.context.user_preferences.addons[__name__].preferences
+    if settings.bgl_antialiasing:
+        bgl.glEnable(bgl.GL_LINE_SMOOTH)
+    sides = 16
+    bgl.glColor4f(colour[0], colour[1], colour[2], colour[3])
+
+    nlocx = (node.location.x+1)*dpifac()
+    nlocy = (node.location.y+1)*dpifac()
+    ndimx = node.dimensions.x
+    ndimy = node.dimensions.y
+
+    bgl.glBegin(bgl.GL_TRIANGLE_FAN)
+    mx, my = bpy.context.region.view2d.view_to_region(nlocx, nlocy)
+    bgl.glVertex2f(mx,my)
+    for i in range(sides+1):
+        if (4<=i<=8):
+            if mx != 12000 and my != 12000:  # nodes that go over the view border give 12000 as coords
+                cosine = radius * cos(i * 2 * pi / sides) + mx
+                sine = radius * sin(i * 2 * pi / sides) + my
+                bgl.glVertex2f(cosine, sine)
+    bgl.glEnd()
+
+    bgl.glBegin(bgl.GL_TRIANGLE_FAN)
+    mx, my = bpy.context.region.view2d.view_to_region(nlocx + ndimx, nlocy)
+    bgl.glVertex2f(mx,my)
+    for i in range(sides+1):
+        if (0<=i<=4):
+            if mx != 12000 and my != 12000:
+                cosine = radius * cos(i * 2 * pi / sides) + mx
+                sine = radius * sin(i * 2 * pi / sides) + my
+                bgl.glVertex2f(cosine, sine)
+
+    bgl.glEnd()
+    bgl.glBegin(bgl.GL_TRIANGLE_FAN)
+    mx, my = bpy.context.region.view2d.view_to_region(nlocx, nlocy - ndimy)
+    bgl.glVertex2f(mx,my)
+    for i in range(sides+1):
+        if (8<=i<=12):
+            if mx != 12000 and my != 12000:
+                cosine = radius * cos(i * 2 * pi / sides) + mx
+                sine = radius * sin(i * 2 * pi / sides) + my
+                bgl.glVertex2f(cosine, sine)
+    bgl.glEnd()
+
+    bgl.glBegin(bgl.GL_TRIANGLE_FAN)
+    mx, my = bpy.context.region.view2d.view_to_region(nlocx + ndimx, nlocy - ndimy)
+    bgl.glVertex2f(mx,my)
+    for i in range(sides+1):
+        if (12<=i<=16):
+            if mx != 12000 and my != 12000:
+                cosine = radius * cos(i * 2 * pi / sides) + mx
+                sine = radius * sin(i * 2 * pi / sides) + my
+                bgl.glVertex2f(cosine, sine)
+    bgl.glEnd()
+
+
+    bgl.glBegin(bgl.GL_QUADS)
+    m1x, m1y = bpy.context.region.view2d.view_to_region(nlocx, nlocy)
+    m2x, m2y = bpy.context.region.view2d.view_to_region(nlocx, nlocy - ndimy)
+    if m1x != 12000 and m1y != 12000 and m2x != 12000 and m2y != 12000:
+        bgl.glVertex2f(m2x-radius,m2y)  # draw order is important, start with bottom left and go anti-clockwise
+        bgl.glVertex2f(m2x,m2y)
+        bgl.glVertex2f(m1x,m1y)
+        bgl.glVertex2f(m1x-radius,m1y)
+    bgl.glEnd()
+
+    bgl.glBegin(bgl.GL_QUADS)
+    m1x, m1y = bpy.context.region.view2d.view_to_region(nlocx, nlocy)
+    m2x, m2y = bpy.context.region.view2d.view_to_region(nlocx + ndimx, nlocy)
+    if m1x != 12000 and m1y != 12000 and m2x != 12000 and m2y != 12000:
+        bgl.glVertex2f(m1x,m2y)  # draw order is important, start with bottom left and go anti-clockwise
+        bgl.glVertex2f(m2x,m2y)
+        bgl.glVertex2f(m2x,m1y+radius)
+        bgl.glVertex2f(m1x,m1y+radius)
+    bgl.glEnd()
+
+    bgl.glBegin(bgl.GL_QUADS)
+    m1x, m1y = bpy.context.region.view2d.view_to_region(nlocx + ndimx, nlocy)
+    m2x, m2y = bpy.context.region.view2d.view_to_region(nlocx + ndimx, nlocy - ndimy)
+    if m1x != 12000 and m1y != 12000 and m2x != 12000 and m2y != 12000:
+        bgl.glVertex2f(m2x,m2y)  # draw order is important, start with bottom left and go anti-clockwise
+        bgl.glVertex2f(m2x+radius,m2y)
+        bgl.glVertex2f(m1x+radius,m1y)
+        bgl.glVertex2f(m1x,m1y)
+    bgl.glEnd()
+
+    bgl.glBegin(bgl.GL_QUADS)
+    m1x, m1y = bpy.context.region.view2d.view_to_region(nlocx, nlocy-ndimy)
+    m2x, m2y = bpy.context.region.view2d.view_to_region(nlocx + ndimx, nlocy-ndimy)
+    if m1x != 12000 and m1y != 12000 and m2x != 12000 and m2y != 12000:
+        bgl.glVertex2f(m1x,m2y)  # draw order is important, start with bottom left and go anti-clockwise
+        bgl.glVertex2f(m2x,m2y)
+        bgl.glVertex2f(m2x,m1y-radius)
+        bgl.glVertex2f(m1x,m1y-radius)
+    bgl.glEnd()
+
+    bgl.glDisable(bgl.GL_BLEND)
+    if settings.bgl_antialiasing:
+        bgl.glDisable(bgl.GL_LINE_SMOOTH)
+
+
+def draw_callback_mixnodes(self, context, mode):
     if self.mouse_path:
+        nodes = context.space_data.node_tree.nodes
         settings = context.user_preferences.addons[__name__].preferences
         if settings.bgl_antialiasing:
             bgl.glEnable(bgl.GL_LINE_SMOOTH)
 
-        colors = []
-        if mode == 'MIX':
-            colors = draw_color_sets['red_white']
-        elif mode == 'RGBA':
-            colors = draw_color_sets['yellow']
-        elif mode == 'VECTOR':
-            colors = draw_color_sets['purple']
-        elif mode == 'VALUE':
-            colors = draw_color_sets['grey']
-        elif mode == 'SHADER':
-            colors = draw_color_sets['green']
-        else:
-            colors = draw_color_sets['black']
+        if mode == "LINK":
+            col_outer = [1.0, 0.2, 0.2, 0.4]
+            col_inner = [0.0, 0.0, 0.0, 0.5]
+            col_circle_inner = [0.3, 0.05, 0.05, 1.0]
+        if mode == "LINKMENU":
+            col_outer = [0.4, 0.6, 1.0, 0.4]
+            col_inner = [0.0, 0.0, 0.0, 0.5]
+            col_circle_inner = [0.08, 0.15, .3, 1.0]
+        elif mode == "MIX":
+            col_outer = [0.2, 1.0, 0.2, 0.4]
+            col_inner = [0.0, 0.0, 0.0, 0.5]
+            col_circle_inner = [0.05, 0.3, 0.05, 1.0]
 
         m1x = self.mouse_path[0][0]
         m1y = self.mouse_path[0][1]
         m2x = self.mouse_path[-1][0]
         m2y = self.mouse_path[-1][1]
 
-        # circle outline
-        draw_circle(m1x, m1y, 6, colors[0])
-        draw_circle(m2x, m2y, 6, colors[0])
+        n1 = nodes[context.scene.NWLazySource]
+        n2 = nodes[context.scene.NWLazyTarget]
 
-        draw_line(m1x, m1y, m2x, m2y, 4, colors[0])  # line outline
-        draw_line(m1x, m1y, m2x, m2y, 2, colors[1])  # line inner
+        draw_rounded_node_border(n1, radius=6, colour=col_outer)  # outline
+        draw_rounded_node_border(n1, radius=5, colour=col_inner)  # inner
+        draw_rounded_node_border(n2, radius=6, colour=col_outer)  # outline
+        draw_rounded_node_border(n2, radius=5, colour=col_inner)  # inner
+
+        draw_line(m1x, m1y, m2x, m2y, 4, col_outer)  # line outline
+        draw_line(m1x, m1y, m2x, m2y, 2, col_inner)  # line inner
+
+        # circle outline
+        draw_circle(m1x, m1y, 6, col_outer)
+        draw_circle(m2x, m2y, 6, col_outer)
 
         # circle inner
-        draw_circle(m1x, m1y, 5, colors[2])
-        draw_circle(m2x, m2y, 5, colors[2])
+        draw_circle(m1x, m1y, 5, col_circle_inner)
+        draw_circle(m2x, m2y, 5, col_circle_inner)
 
         # restore opengl defaults
         bgl.glLineWidth(1)
@@ -748,6 +899,9 @@ class NWLazyMix(Operator, NWBase):
             if context.scene.NWBusyDrawing != 'STOP':
                 node1 = nodes[context.scene.NWBusyDrawing]
 
+        context.scene.NWLazySource = node1.name
+        context.scene.NWLazyTarget = node_at_pos(nodes, context, event).name
+
         if event.type == 'MOUSEMOVE':
             self.mouse_path.append((event.mouse_region_x, event.mouse_region_y))
 
@@ -804,6 +958,7 @@ class NWLazyConnect(Operator, NWBase):
     bl_idname = "node.nw_lazy_connect"
     bl_label = "Lazy Connect"
     bl_options = {'REGISTER', 'UNDO'}
+    with_menu = BoolProperty()
 
     def modal(self, context, event):
         context.area.tag_redraw()
@@ -820,6 +975,9 @@ class NWLazyConnect(Operator, NWBase):
         else:
             if context.scene.NWBusyDrawing != 'STOP':
                 node1 = nodes[context.scene.NWBusyDrawing]
+
+        context.scene.NWLazySource = node1.name
+        context.scene.NWLazyTarget = node_at_pos(nodes, context, event).name
 
         if event.type == 'MOUSEMOVE':
             self.mouse_path.append((event.mouse_region_x, event.mouse_region_y))
@@ -850,7 +1008,14 @@ class NWLazyConnect(Operator, NWBase):
                     node1.select = True
                     node2.select = True
 
-                    link_success = autolink(node1, node2, links)
+                    #link_success = autolink(node1, node2, links)
+                    if self.with_menu:
+                        if len(node1.outputs) > 1 and node2.inputs:
+                            bpy.ops.wm.call_menu("INVOKE_DEFAULT", name=NWConnectionListOutputs.bl_idname)
+                        elif len(node1.outputs) == 1:
+                            bpy.ops.node.nw_call_inputs_menu(from_socket=0)
+                    else:
+                        link_success = autolink(node1, node2, links)
 
                     for node in original_sel:
                         node.select = True
@@ -874,13 +1039,12 @@ class NWLazyConnect(Operator, NWBase):
             node = node_at_pos(nodes, context, event)
             if node:
                 context.scene.NWBusyDrawing = node.name
-                if node.outputs:
-                    context.scene.NWDrawColType = node.outputs[0].type
-            else:
-                context.scene.NWDrawColType = 'x'
 
             # the arguments we pass the the callback
-            args = (self, context, context.scene.NWDrawColType)
+            mode = "LINK"
+            if self.with_menu:
+                mode = "LINKMENU"
+            args = (self, context, mode)
             # Add the region OpenGL drawing callback
             # draw in view space with 'POST_VIEW' and 'PRE_VIEW'
             self._handle = bpy.types.SpaceNodeEditor.draw_handler_add(draw_callback_mixnodes, args, 'WINDOW', 'POST_PIXEL')
@@ -2232,7 +2396,6 @@ class NWAlignNodes(Operator, NWBase):
                         parent = parent.parent
                     loc_x += offset_x + w
             else:  # if self.option == 'AXIS_Y'
-                #loc_x = (max_y_loc_x + max_y_w / 2.0 + min_y_loc_x + min_y_w / 2.0) / 2.0
                 loc_x = (max_x + max_x_w / 2.0 + min_x + min_x_w / 2.0) / 2.0
                 loc_y = min_y
                 offset_y = (max_y - min_y + total_h - min_y_h) / (count - 1)
@@ -2354,6 +2517,58 @@ class NWLinkToOutputNode(Operator, NWBase):
 
         hack_force_update(context, nodes)  # viewport render does not update
 
+        return {'FINISHED'}
+
+
+class NWMakeLink(Operator, NWBase):
+    """Make a link from one socket to another"""
+    bl_idname = 'node.nw_make_link'
+    bl_label = 'Make Link'
+    bl_options = {'REGISTER', 'UNDO'}
+    from_socket = IntProperty()
+    to_socket = IntProperty()
+
+    @classmethod
+    def poll(cls, context):
+        snode = context.space_data
+        return (snode.type == 'NODE_EDITOR' and snode.node_tree is not None)
+
+    def execute(self, context):
+        nodes, links = get_nodes_links(context)
+
+        n1 = nodes[context.scene.NWLazySource]
+        n2 = nodes[context.scene.NWLazyTarget]
+
+        links.new(n1.outputs[self.from_socket], n2.inputs[self.to_socket])
+
+        hack_force_update(context, nodes)
+
+        return {'FINISHED'}
+
+
+class NWCallInputsMenu(Operator, NWBase):
+    """Link from this output"""
+    bl_idname = 'node.nw_call_inputs_menu'
+    bl_label = 'Make Link'
+    bl_options = {'REGISTER', 'UNDO'}
+    from_socket = IntProperty()
+
+    @classmethod
+    def poll(cls, context):
+        snode = context.space_data
+        return (snode.type == 'NODE_EDITOR' and snode.node_tree is not None)
+
+    def execute(self, context):
+        nodes, links = get_nodes_links(context)
+
+        context.scene.NWSourceSocket = self.from_socket
+
+        n1 = nodes[context.scene.NWLazySource]
+        n2 = nodes[context.scene.NWLazyTarget]
+        if len(n2.inputs) > 1:
+            bpy.ops.wm.call_menu("INVOKE_DEFAULT", name=NWConnectionListInputs.bl_idname)
+        elif len(n2.inputs) == 1:
+            links.new(n1.outputs[self.from_socket], n2.inputs[0])
         return {'FINISHED'}
 
 
@@ -2479,6 +2694,49 @@ class NWMergeMixMenu(Menu, NWBase):
             props = layout.operator(NWMergeNodes.bl_idname, text=name)
             props.mode = type
             props.merge_type = 'MIX'
+
+
+class NWConnectionListOutputs(Menu, NWBase):
+    bl_idname = "NODE_MT_nw_connection_list_out"
+    bl_label = "From:"
+
+    def draw(self, context):
+        layout = self.layout
+        nodes, links = get_nodes_links(context)
+
+        n1 = nodes[context.scene.NWLazySource]
+
+        if n1.type == "R_LAYERS":
+            index=0
+            for o in n1.outputs:
+                if o.enabled:  # Check which passes the render layer has enabled
+                    layout.operator(NWCallInputsMenu.bl_idname, text=o.name, icon="RADIOBUT_OFF").from_socket=index
+                index+=1
+        else:
+            index=0
+            for o in n1.outputs:
+                layout.operator(NWCallInputsMenu.bl_idname, text=o.name, icon="RADIOBUT_OFF").from_socket=index
+                index+=1
+
+
+class NWConnectionListInputs(Menu, NWBase):
+    bl_idname = "NODE_MT_nw_connection_list_in"
+    bl_label = "To:"
+
+    def draw(self, context):
+        layout = self.layout
+        nodes, links = get_nodes_links(context)
+
+        n2 = nodes[context.scene.NWLazyTarget]
+
+        #print (self.from_socket)
+
+        index = 0
+        for i in n2.inputs:
+            op = layout.operator(NWMakeLink.bl_idname, text=i.name, icon="FORWARD")
+            op.from_socket = context.scene.NWSourceSocket
+            op.to_socket = index
+            index+=1
 
 
 class NWMergeMathMenu(Menu, NWBase):
@@ -3114,6 +3372,8 @@ kmi_defs = (
     (NWLazyMix.bl_idname, 'RIGHTMOUSE', False, False, True, None, "Lazy Mix"),
     # Lazy Connect
     (NWLazyConnect.bl_idname, 'RIGHTMOUSE', True, False, False, None, "Lazy Connect"),
+    # Lazy Connect with Menu
+    (NWLazyConnect.bl_idname, 'RIGHTMOUSE', True, True, False, (('with_menu', True),), "Lazy Connect with Socket Menu"),
     # MENUS
     ('wm.call_menu', 'SPACE', True, False, False, (('name', NodeWranglerMenu.bl_idname),), "Node Wranger menu"),
     ('wm.call_menu', 'SLASH', False, False, False, (('name', NWAddReroutesMenu.bl_idname),), "Add Reroutes menu"),
@@ -3131,10 +3391,18 @@ def register():
         name="Busy Drawing!",
         default="",
         description="An internal property used to store only the first mouse position")
-    bpy.types.Scene.NWDrawColType = StringProperty(
-        name="Color Type!",
+    bpy.types.Scene.NWLazySource = StringProperty(
+        name="Lazy Source!",
         default="x",
-        description="An internal property used to store the line color")
+        description="An internal property used to store the first node in a Lazy Connect operation")
+    bpy.types.Scene.NWLazyTarget = StringProperty(
+        name="Lazy Target!",
+        default="x",
+        description="An internal property used to store the last node in a Lazy Connect operation")
+    bpy.types.Scene.NWSourceSocket = IntProperty(
+        name="Source Socket!",
+        default=0,
+        description="An internal property used to store the source socket in a Lazy Connect operation")
 
     bpy.utils.register_module(__name__)
 
@@ -3157,7 +3425,9 @@ def register():
 def unregister():
     # props
     del bpy.types.Scene.NWBusyDrawing
-    del bpy.types.Scene.NWDrawColType
+    del bpy.types.Scene.NWLazySource
+    del bpy.types.Scene.NWLazyTarget
+    del bpy.types.Scene.NWSourceSocket
 
     bpy.utils.unregister_module(__name__)
 
