@@ -182,6 +182,14 @@ def pConExec(bone, active, context):
 def pIKsExec(bone, active, context):
     generic_copy(active, bone, "ik_")
 
+
+def pBBonesExec(bone, active, context):
+    object = active.id_data
+    generic_copy(
+        object.data.bones[active.name], 
+        object.data.bones[bone.name],
+        "bbone_")
+
 pose_copies = (('pose_loc_loc', "Local Location",
                 "Copy Location from Active to Selected", pLocLocExec),
                 ('pose_loc_rot', "Local Rotation",
@@ -201,7 +209,9 @@ pose_copies = (('pose_loc_loc', "Local Location",
                 ('pose_con', "Bone Constraints",
                 "Copy Object Constraints from Active to Selected", pConExec),
                 ('pose_iks', "IK Limits",
-                "Copy IK Limits from Active to Selected", pIKsExec))
+                "Copy IK Limits from Active to Selected", pIKsExec),
+                ('bbone_settings', "BBone Settings",
+                "Copy BBone Settings from Active to Selected", pBBonesExec),)
 
 
 @classmethod
