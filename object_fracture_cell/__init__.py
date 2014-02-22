@@ -20,8 +20,8 @@ bl_info = {
     "name": "Cell Fracture",
     "author": "ideasman42, phymec, Sergey Sharybin",
     "version": (0, 1),
-    "blender": (2, 64, 0),
-    "location": "Search > Fracture Object & Add -> Fracture Helper Objects",
+    "blender": (2, 70, 0),
+    "location": "Edit panel of Tools tab, in Object mode, 3D View tools",
     "description": "Fractured Object, Bomb, Projectile, Recorder",
     "warning": "",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
@@ -553,12 +553,12 @@ def menu_func(self, context):
 
 def register():
     bpy.utils.register_class(FractureCell)
-    bpy.types.VIEW3D_PT_tools_objectmode.append(menu_func)
+    bpy.types.VIEW3D_PT_tools_object.append(menu_func)
 
 
 def unregister():
     bpy.utils.unregister_class(FractureCell)
-    bpy.types.VIEW3D_PT_tools_objectmode.remove(menu_func)
+    bpy.types.VIEW3D_PT_tools_object.remove(menu_func)
 
 
 if __name__ == "__main__":
