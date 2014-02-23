@@ -297,8 +297,9 @@ class Print3DCheckOverhang(Operator):
         z_down = Vector((0, 0, -1.0))
         z_down_angle = z_down.angle
 
+        # 4.0 ignores zero area faces
         faces_overhang = [ele.index for ele in bm.faces
-                          if z_down_angle(ele.normal) < angle_overhang]
+                          if z_down_angle(ele.normal, 4.0) < angle_overhang]
 
         info.append(("Overhang Face: %d" % len(faces_overhang),
                     (bmesh.types.BMFace, faces_overhang)))
