@@ -57,6 +57,7 @@ for member in dir(properties_data_mesh):
 del properties_data_mesh
 
 from bl_ui import properties_texture
+from bl_ui.properties_texture import context_tex_datablock
 for member in dir(properties_texture):
     subclass = getattr(properties_texture, member)
     try:
@@ -64,6 +65,7 @@ for member in dir(properties_texture):
     except:
         pass
 del properties_texture
+
 
 from bl_ui import properties_data_camera
 for member in dir(properties_data_camera):
@@ -130,6 +132,14 @@ class TextureButtonsPanel():
         rd = context.scene.render
         return tex and (rd.use_game_engine is False) and (rd.engine in cls.COMPAT_ENGINES)
 
+# class TextureTypePanel(TextureButtonsPanel):
+
+    # @classmethod
+    # def poll(cls, context):
+        # tex = context.texture
+        # engine = context.scene.render.engine
+        # return tex and ((tex.type == cls.tex_type and not tex.use_nodes) and (engine in cls.COMPAT_ENGINES))
+
 
 class ObjectButtonsPanel():
     bl_space_type = 'PROPERTIES'
@@ -156,11 +166,22 @@ class CameraDataButtonsPanel():
         rd = context.scene.render
         return cam and (rd.use_game_engine is False) and (rd.engine in cls.COMPAT_ENGINES)
 
+class WorldButtonsPanel():
+    bl_space_type = 'PROPERTIES'
+    bl_region_type = 'WINDOW'
+    bl_context = "world"
+    # COMPAT_ENGINES must be defined in each subclass, external engines can add themselves here
 
+    @classmethod
+    def poll(cls, context):
+        wld = context.world
+        rd = context.scene.render
+        return wld and (rd.use_game_engine is False) and (rd.engine in cls.COMPAT_ENGINES)
+        
 class TextButtonsPanel():
     bl_space_type = 'TEXT_EDITOR'
     bl_region_type = 'UI'
-    bl_label = "P.O.V-Ray"
+    bl_label = "POV-Ray"
     # COMPAT_ENGINES must be defined in each subclass, external engines can add themselves here
 
     @classmethod
@@ -174,6 +195,8 @@ class RENDER_PT_povray_export_settings(RenderButtonsPanel, bpy.types.Panel):
     bl_label = "Export Settings"
     COMPAT_ENGINES = {'POVRAY_RENDER'}
 
+    def draw_header(self, context):
+        self.layout.label(icon='CONSOLE')
     def draw(self, context):
         layout = self.layout
 
@@ -187,6 +210,7 @@ class RENDER_PT_povray_export_settings(RenderButtonsPanel, bpy.types.Panel):
         col.prop(scene.pov, "command_line_switches", text="")
         split = layout.split()
         split.prop(scene.pov, "tempfiles_enable", text="OS Tempfiles")
+        split.prop(scene.pov, "pov_editor", text="POV Editor")
         if not scene.pov.tempfiles_enable:
             split.prop(scene.pov, "deletefiles_enable", text="Delete files")
 
@@ -209,13 +233,15 @@ class RENDER_PT_povray_export_settings(RenderButtonsPanel, bpy.types.Panel):
 
 class RENDER_PT_povray_render_settings(RenderButtonsPanel, bpy.types.Panel):
     bl_label = "Render Settings"
+    bl_icon = 'SETTINGS'
     COMPAT_ENGINES = {'POVRAY_RENDER'}
 
+    def draw_header(self, context):
+        self.layout.label(icon='SETTINGS')
     def draw(self, context):
         layout = self.layout
 
         scene = context.scene
-
         layout.active = (scene.pov.max_trace_level != 0)
 
         col = layout.column()
@@ -243,8 +269,10 @@ class RENDER_PT_povray_antialias(RenderButtonsPanel, bpy.types.Panel):
 
     def draw_header(self, context):
         scene = context.scene
-
-        self.layout.prop(scene.pov, "antialias_enable", text="")
+        if scene.pov.antialias_enable:
+            self.layout.prop(scene.pov, "antialias_enable", text="", icon='ANTIALIASED')
+        else:
+            self.layout.prop(scene.pov, "antialias_enable", text="", icon='ALIASED')
 
     def draw(self, context):
         layout = self.layout
@@ -275,11 +303,12 @@ class RENDER_PT_povray_antialias(RenderButtonsPanel, bpy.types.Panel):
 class RENDER_PT_povray_radiosity(RenderButtonsPanel, bpy.types.Panel):
     bl_label = "Radiosity"
     COMPAT_ENGINES = {'POVRAY_RENDER'}
-
     def draw_header(self, context):
         scene = context.scene
-
-        self.layout.prop(scene.pov, "radio_enable", text="")
+        if scene.pov.radio_enable:
+            self.layout.prop(scene.pov, "radio_enable", text="", icon='RADIO')
+        else:
+            self.layout.prop(scene.pov, "radio_enable", text="", icon='RADIOBUT_OFF')
 
     def draw(self, context):
         layout = self.layout
@@ -323,7 +352,7 @@ class RENDER_PT_povray_radiosity(RenderButtonsPanel, bpy.types.Panel):
             split.prop(scene.pov, "radio_always_sample")
 
 
-class RENDER_PT_povray_media(RenderButtonsPanel, bpy.types.Panel):
+class RENDER_PT_povray_media(WorldButtonsPanel, bpy.types.Panel):
     bl_label = "Atmosphere Media"
     COMPAT_ENGINES = {'POVRAY_RENDER'}
 
@@ -500,7 +529,251 @@ class MATERIAL_PT_povray_replacement_text(MaterialButtonsPanel, bpy.types.Panel)
         col.label(text="Replace properties with:")
         col.prop(mat.pov, "replacement_text", text="")
 
+class TEXTURE_PT_povray_type(TextureButtonsPanel, bpy.types.Panel):
+    bl_label = "POV-ray Textures"
+    COMPAT_ENGINES = {'POVRAY_RENDER'}
+    bl_options = {'HIDE_HEADER'}
 
+    def draw(self, context):
+        layout = self.layout
+
+        tex = context.texture
+
+        split = layout.split(percentage=0.2)
+        split.label(text="POV:")
+        split.prop(tex.pov, "tex_pattern_type", text="")
+
+class TEXTURE_PT_povray_preview(TextureButtonsPanel, bpy.types.Panel):
+    bl_label = "Preview"
+    COMPAT_ENGINES = {'POVRAY_RENDER'}
+    bl_options = {'HIDE_HEADER'}
+    
+    @classmethod
+    def poll(cls, context):
+        engine = context.scene.render.engine
+        if not hasattr(context, "texture_slot"):
+            return False
+        tex=context.texture
+        mat=context.material
+        return (tex and (tex.pov.tex_pattern_type != 'emulator') and (engine in cls.COMPAT_ENGINES))
+
+    def draw(self, context):
+        tex = context.texture
+        slot = getattr(context, "texture_slot", None)
+        idblock = context_tex_datablock(context)
+        layout = self.layout
+        # if idblock:
+            # layout.template_preview(tex, parent=idblock, slot=slot)
+        if tex.pov.tex_pattern_type != 'emulator':
+            layout.operator("tex.preview_update")
+        else:
+            layout.template_preview(tex, slot=slot)
+
+
+class TEXTURE_PT_povray_parameters(TextureButtonsPanel, bpy.types.Panel):
+    bl_label = "POV-ray Pattern Options"
+    COMPAT_ENGINES = {'POVRAY_RENDER'}
+    def draw(self, context):
+        mat = context.material
+        layout = self.layout
+        tex = context.texture
+        align=True
+        if tex is not None and tex.pov.tex_pattern_type != 'emulator':
+            if tex.pov.tex_pattern_type == 'agate':
+                layout.prop(tex.pov, "modifier_turbulence", text="Agate Turbulence")
+            if tex.pov.tex_pattern_type in {'spiral1', 'spiral2'}:
+                layout.prop(tex.pov, "modifier_numbers", text="Number of arms")
+            if tex.pov.tex_pattern_type == 'tiling':
+                layout.prop(tex.pov, "modifier_numbers", text="Pattern number")
+            if tex.pov.tex_pattern_type == 'magnet':
+                layout.prop(tex.pov, "magnet_style", text="Magnet style")
+            if tex.pov.tex_pattern_type == 'quilted':
+                row = layout.row(align=align)
+                row.prop(tex.pov, "modifier_control0", text="Control0")
+                row.prop(tex.pov, "modifier_control1", text="Control1")
+            if tex.pov.tex_pattern_type == 'brick':
+                col = layout.column(align=align)
+                row = col.row()
+                row.prop(tex.pov, "brick_size_x", text="Brick size X")
+                row.prop(tex.pov, "brick_size_y", text="Brick size Y")
+                row=col.row()
+                row.prop(tex.pov, "brick_size_z", text="Brick size Z")
+                row.prop(tex.pov, "brick_mortar", text="Brick mortar")
+            if tex.pov.tex_pattern_type in {'julia','mandel','magnet'}:
+                col = layout.column(align=align)
+                if tex.pov.tex_pattern_type == 'julia':
+                    row = col.row()
+                    row.prop(tex.pov, "julia_complex_1", text="Complex 1")
+                    row.prop(tex.pov, "julia_complex_2", text="Complex 2")
+                if tex.pov.tex_pattern_type == 'magnet' and tex.pov.magnet_style == 'julia':
+                    row = col.row()
+                    row.prop(tex.pov, "julia_complex_1", text="Complex 1")
+                    row.prop(tex.pov, "julia_complex_2", text="Complex 2")
+                row=col.row()
+                if tex.pov.tex_pattern_type in {'julia','mandel'}:            
+                    row.prop(tex.pov, "f_exponent", text="Exponent")
+                if tex.pov.tex_pattern_type == 'magnet':            
+                    row.prop(tex.pov, "magnet_type", text="Type")
+                row.prop(tex.pov, "f_iter", text="Iterations")
+                row=col.row()
+                row.prop(tex.pov, "f_ior", text="Interior")
+                row.prop(tex.pov, "f_ior_fac", text="Factor I")
+                row=col.row()
+                row.prop(tex.pov, "f_eor", text="Exterior")
+                row.prop(tex.pov, "f_eor_fac", text="Factor E")
+            if tex.pov.tex_pattern_type == 'gradient':        
+                layout.label(text="Gradient orientation:")
+                column_flow = layout.column_flow(columns=3, align=True)
+                column_flow.prop(tex.pov, "grad_orient_x", text="X")        
+                column_flow.prop(tex.pov, "grad_orient_y", text="Y")
+                column_flow.prop(tex.pov, "grad_orient_z", text="Z")
+            if tex.pov.tex_pattern_type == 'pavement':
+                layout.prop(tex.pov, "pave_sides", text="Pavement:number of sides")
+                col = layout.column(align=align)
+                column_flow = col.column_flow(columns=3, align=True)
+                column_flow.prop(tex.pov, "pave_tiles", text="Tiles")        
+                if tex.pov.pave_sides == '4' and tex.pov.pave_tiles == 6:
+                    column_flow.prop(tex.pov, "pave_pat_35", text="Pattern")
+                if tex.pov.pave_sides == '6' and tex.pov.pave_tiles == 5:
+                    column_flow.prop(tex.pov, "pave_pat_22", text="Pattern")
+                if tex.pov.pave_sides == '4' and tex.pov.pave_tiles == 5:
+                    column_flow.prop(tex.pov, "pave_pat_12", text="Pattern")
+                if tex.pov.pave_sides == '3' and tex.pov.pave_tiles == 6:
+                    column_flow.prop(tex.pov, "pave_pat_12", text="Pattern")
+                if tex.pov.pave_sides == '6' and tex.pov.pave_tiles == 4:
+                    column_flow.prop(tex.pov, "pave_pat_7", text="Pattern")
+                if tex.pov.pave_sides == '4' and tex.pov.pave_tiles == 4:
+                    column_flow.prop(tex.pov, "pave_pat_5", text="Pattern")
+                if tex.pov.pave_sides == '3' and tex.pov.pave_tiles == 5:
+                    column_flow.prop(tex.pov, "pave_pat_4", text="Pattern")
+                if tex.pov.pave_sides == '6' and tex.pov.pave_tiles == 3:
+                    column_flow.prop(tex.pov, "pave_pat_3", text="Pattern")
+                if tex.pov.pave_sides == '3' and tex.pov.pave_tiles == 4:
+                    column_flow.prop(tex.pov, "pave_pat_3", text="Pattern")
+                if tex.pov.pave_sides == '4' and tex.pov.pave_tiles == 3:
+                    column_flow.prop(tex.pov, "pave_pat_2", text="Pattern")
+                if tex.pov.pave_sides == '6' and tex.pov.pave_tiles == 6:
+                    column_flow.label(text="!!! 5 tiles!")
+                column_flow.prop(tex.pov, "pave_form", text="Form")
+            if tex.pov.tex_pattern_type == 'function':
+                layout.prop(tex.pov, "func_list", text="Functions") 
+            if tex.pov.tex_pattern_type == 'function' and tex.pov.func_list != "NONE":
+                func = None
+                if tex.pov.func_list in {"f_noise3d", "f_ph", "f_r", "f_th"}:
+                    func = 0
+                if tex.pov.func_list in {"f_comma","f_crossed_trough","f_cubic_saddle",
+                                         "f_cushion","f_devils_curve","f_enneper","f_glob",
+                                         "f_heart","f_hex_x","f_hex_y","f_hunt_surface",
+                                         "f_klein_bottle","f_kummer_surface_v1",
+                                         "f_lemniscate_of_gerono","f_mitre","f_nodal_cubic",
+                                         "f_noise_generator","f_odd","f_paraboloid","f_pillow",
+                                         "f_piriform","f_quantum","f_quartic_paraboloid",
+                                         "f_quartic_saddle","f_sphere","f_steiners_roman",
+                                         "f_torus_gumdrop","f_umbrella"}:
+                    func = 1
+                if tex.pov.func_list in {"f_bicorn","f_bifolia","f_boy_surface","f_superellipsoid","f_torus"}:
+                    func = 2
+                if tex.pov.func_list in {"f_ellipsoid","f_folium_surface","f_hyperbolic_torus",
+                                         "f_kampyle_of_eudoxus","f_parabolic_torus",
+                                         "f_quartic_cylinder","f_torus2"}:
+                    func = 3
+                if tex.pov.func_list in {"f_blob2","f_cross_ellipsoids","f_flange_cover",
+                                         "f_isect_ellipsoids","f_kummer_surface_v2","f_ovals_of_cassini",
+                                         "f_rounded_box","f_spikes_2d","f_strophoid"}:
+                    func = 4
+                if tex.pov.func_list in {"f_algbr_cyl1","f_algbr_cyl2","f_algbr_cyl3","f_algbr_cyl4",
+                                         "f_blob","f_mesh1","f_poly4","f_spikes"}:
+                    func = 5
+                if tex.pov.func_list in {"f_devils_curve_2d","f_dupin_cyclid","f_folium_surface_2d",
+                                         "f_hetero_mf","f_kampyle_of_eudoxus_2d","f_lemniscate_of_gerono_2d",
+                                         "f_polytubes","f_ridge","f_ridged_mf","f_spiral","f_witch_of_agnesi"}:
+                    func = 6
+                if tex.pov.func_list in {"f_helix1","f_helix2","f_piriform_2d","f_strophoid_2d"}:
+                    func = 7
+                if tex.pov.func_list == "f_helical_torus":
+                    func = 8
+                column_flow = layout.column_flow(columns=3, align=True)
+                column_flow.label(text="X")        
+                column_flow.prop(tex.pov, "func_plus_x", text="")
+                column_flow.prop(tex.pov, "func_x", text="Value")
+                column_flow = layout.column_flow(columns=3, align=True)
+                column_flow.label(text="Y")        
+                column_flow.prop(tex.pov, "func_plus_y", text="")
+                column_flow.prop(tex.pov, "func_y", text="Value")
+                column_flow = layout.column_flow(columns=3, align=True)
+                column_flow.label(text="Z")        
+                column_flow.prop(tex.pov, "func_plus_z", text="")
+                column_flow.prop(tex.pov, "func_z", text="Value")
+                row=layout.row(align=align)
+                if func > 0:
+                    row.prop(tex.pov, "func_P0", text="P0")
+                if func > 1:
+                    row.prop(tex.pov, "func_P1", text="P1")
+                row=layout.row(align=align)
+                if func > 2:
+                    row.prop(tex.pov, "func_P2", text="P2")
+                if func > 3:
+                    row.prop(tex.pov, "func_P3", text="P3")
+                row=layout.row(align=align)
+                if func > 4:
+                    row.prop(tex.pov, "func_P4", text="P4")
+                if func > 5:
+                    row.prop(tex.pov, "func_P5", text="P5")
+                row=layout.row(align=align)
+                if func > 6:
+                    row.prop(tex.pov, "func_P6", text="P6")
+                if func > 7:
+                    row.prop(tex.pov, "func_P7", text="P7")
+                    row=layout.row(align=align)
+                    row.prop(tex.pov, "func_P8", text="P8")
+                    row.prop(tex.pov, "func_P9", text="P9")
+        ###################################################End Patterns############################
+
+
+            layout.prop(tex.pov, "warp_types", text="Warp types") #warp
+            if tex.pov.warp_types == "TOROIDAL":
+                layout.prop(tex.pov, "warp_tor_major_radius", text="Major radius")
+            if tex.pov.warp_types not in {"CUBIC","NONE"}:
+                layout.prop(tex.pov, "warp_orientation", text="Warp orientation")
+            col = layout.column(align=align)
+            row = col.row()         
+            row.prop(tex.pov, "warp_dist_exp", text="Distance exponent")        
+            row = col.row()
+            row.prop(tex.pov, "modifier_frequency", text="Frequency")
+            row.prop(tex.pov, "modifier_phase", text="Phase")
+
+            row=layout.row()
+
+            row.label(text="Offset:")
+            row.label(text="Scale:")
+            row.label(text="Rotate:")
+            col=layout.column(align=align) 
+            row=col.row()
+            row.prop(tex.pov, "tex_mov_x", text="X")
+            row.prop(tex.pov, "tex_scale_x", text="X")
+            row.prop(tex.pov, "tex_rot_x", text="X")
+            row=col.row()
+            row.prop(tex.pov, "tex_mov_y", text="Y")
+            row.prop(tex.pov, "tex_scale_y", text="Y")
+            row.prop(tex.pov, "tex_rot_y", text="Y")
+            row=col.row()
+            row.prop(tex.pov, "tex_mov_z", text="Z")
+            row.prop(tex.pov, "tex_scale_z", text="Z")
+            row.prop(tex.pov, "tex_rot_z", text="Z")
+            row=layout.row()
+
+            row.label(text="Turbulence:")
+            col=layout.column(align=align) 
+            row=col.row()
+            row.prop(tex.pov, "warp_turbulence_x", text="X")
+            row.prop(tex.pov, "modifier_octaves", text="Octaves")
+            row=col.row()
+            row.prop(tex.pov, "warp_turbulence_y", text="Y")
+            row.prop(tex.pov, "modifier_lambda", text="Lambda")
+            row=col.row()
+            row.prop(tex.pov, "warp_turbulence_z", text="Z")
+            row.prop(tex.pov, "modifier_omega", text="Omega")
+        
 class TEXTURE_PT_povray_tex_gamma(TextureButtonsPanel, bpy.types.Panel):
     bl_label = "Image Gamma"
     COMPAT_ENGINES = {'POVRAY_RENDER'}
@@ -508,7 +781,7 @@ class TEXTURE_PT_povray_tex_gamma(TextureButtonsPanel, bpy.types.Panel):
     def draw_header(self, context):
         tex = context.texture
 
-        self.layout.prop(tex.pov, "tex_gamma_enable", text="")
+        self.layout.prop(tex.pov, "tex_gamma_enable", text="", icon='SEQ_LUMA_WAVEFORM')
 
     def draw(self, context):
         layout = self.layout

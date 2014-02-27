@@ -26,6 +26,9 @@ import time
 from math import atan, pi, degrees, sqrt
 import re
 import random
+import platform#
+import subprocess#
+from bpy.types import(Operator)#all added for render preview
 ##############################SF###########################
 ##############find image texture
 
@@ -42,8 +45,8 @@ def imageFormat(imgF):
         'SYS': "sys",
         'TIFF': "tiff",
         'TIF': "tiff",
-        'EXR': "exr",  # POV3.7 Only!
-        'HDR': "hdr",  # POV3.7 Only! --MR
+        'EXR': "exr",
+        'HDR': "hdr",
     }.get(os.path.splitext(imgF)[-1].upper(), "")
 
     if not ext:
@@ -57,7 +60,7 @@ def imgMap(ts):
     if ts.mapping == 'FLAT':
         image_map = "map_type 0 "
     elif ts.mapping == 'SPHERE':
-        image_map = "map_type 1 "  # map_type 7 in megapov
+        image_map = "map_type 1 " 
     elif ts.mapping == 'TUBE':
         image_map = "map_type 2 "
 
@@ -142,16 +145,488 @@ def safety(name, Level):
 ##############end safety string name material
 ##############################EndSF###########################
 
-def is_renderable(scene, ob):
-    return (ob.is_visible(scene) and not ob.hide_render)
+def is_renderable(ob):
+    return (ob.hide_render==False)
 
 
-def renderable_objects(scene):
-    return [ob for ob in scene.objects if is_renderable(scene, ob)]
+def renderable_objects():
+    return [ob for ob in bpy.data.objects if is_renderable(ob)]
 
 
 tabLevel = 0
+unpacked_images=[]
+ 
+def exportPattern(texture):
+    tex=texture
+    pat = tex.pov
+    PATname = "PAT_%s"%string_strip_hyphen(bpy.path.clean_name(tex.name))
+    mappingDif = ("translate <%.4g,%.4g,%.4g> scale <%.4g,%.4g,%.4g>" % \
+          (pat.tex_mov_x, pat.tex_mov_y, pat.tex_mov_z,
+           1.0 / pat.tex_scale_x, 1.0 / pat.tex_scale_y, 1.0 / pat.tex_scale_z))
+    texStrg=""
+    def exportColorRamp(texture):
+        tex=texture
+        pat = tex.pov      
+        colRampStrg="color_map {\n"
+        numColor=0
+        for el in tex.color_ramp.elements:
+            numColor+=1
+            pos = el.position
+            col=el.color
+            colR,colG,colB,colA = col[0],col[1],col[2],1-col[3]
+            if pat.tex_pattern_type not in {'checker', 'hexagon', 'square', 'triangular', 'brick'} :
+                colRampStrg+="[%.4g color rgbf<%.4g,%.4g,%.4g,%.4g>] \n"%(pos,colR,colG,colB,colA)
+            if pat.tex_pattern_type in {'brick','checker'} and numColor < 3:
+                colRampStrg+="color rgbf<%.4g,%.4g,%.4g,%.4g> \n"%(colR,colG,colB,colA)
+            if pat.tex_pattern_type == 'hexagon' and numColor < 4 :
+                colRampStrg+="color rgbf<%.4g,%.4g,%.4g,%.4g> \n"%(colR,colG,colB,colA)
+            if pat.tex_pattern_type == 'square' and numColor < 5 :
+                colRampStrg+="color rgbf<%.4g,%.4g,%.4g,%.4g> \n"%(colR,colG,colB,colA)
+            if pat.tex_pattern_type == 'triangular' and numColor < 7 :
+                colRampStrg+="color rgbf<%.4g,%.4g,%.4g,%.4g> \n"%(colR,colG,colB,colA)
+                      
+        colRampStrg+="} \n"
+        #end color map
+        return colRampStrg
+    #much work to be done here only defaults translated for now:
+    #pov noise_generator 3 means perlin noise
+    if pat.tex_pattern_type == 'emulator':
+        texStrg+="pigment {\n"
+        ####################### EMULATE BLENDER VORONOI TEXTURE ####################
+        if tex.type == 'VORONOI':  
+            texStrg+="crackle\n"
+            texStrg+="    offset %.4g\n"%tex.nabla
+            texStrg+="    form <%.4g,%.4g,%.4g>\n"%(tex.weight_1, tex.weight_2, tex.weight_3)
+            if tex.distance_metric == 'DISTANCE':
+                texStrg+="    metric 2.5\n"          
+            if tex.distance_metric == 'DISTANCE_SQUARED':
+                texStrg+="    metric 2.5\n"
+                texStrg+="    poly_wave 2\n"                
+            if tex.distance_metric == 'MINKOVSKY': 
+                texStrg+="    metric %s\n"%tex.minkovsky_exponent             
+            if tex.distance_metric == 'MINKOVSKY_FOUR': 
+                texStrg+="    metric 4\n"
+            if tex.distance_metric == 'MINKOVSKY_HALF': 
+                texStrg+="    metric 0.5\n"
+            if tex.distance_metric == 'CHEBYCHEV': 
+                texStrg+="    metric 10\n"
+            if tex.distance_metric == 'MANHATTAN': 
+                texStrg+="    metric 1\n"
 
+            if tex.color_mode == 'POSITION':
+                texStrg+="solid\n"
+            texStrg+="scale 0.25\n"
+            
+            if tex.use_color_ramp == True:
+                texStrg+=exportColorRamp(tex)
+            else:
+                texStrg+="color_map {\n"
+                texStrg+="[0 color rgbt<0,0,0,1>]\n"
+                texStrg+="[1 color rgbt<1,1,1,0>]\n" 
+                texStrg+="}\n"            
+        ####################### EMULATE BLENDER CLOUDS TEXTURE ####################
+        if tex.type == 'CLOUDS':  
+            if tex.noise_type == 'SOFT_NOISE':
+                texStrg+="wrinkles\n"
+                texStrg+="scale 0.25\n"
+            else:
+                texStrg+="granite\n"
+            if tex.use_color_ramp == True:
+                texStrg+=exportColorRamp(tex)
+            else:
+                texStrg+="color_map {\n"
+                texStrg+="[0 color rgbt<0,0,0,1>]\n"
+                texStrg+="[1 color rgbt<1,1,1,0>]\n" 
+                texStrg+="}\n"
+        ####################### EMULATE BLENDER WOOD TEXTURE ####################
+        if tex.type == 'WOOD':
+            if tex.wood_type == 'RINGS':
+                texStrg+="wood\n"
+                texStrg+="scale 0.25\n"
+            if tex.wood_type == 'RINGNOISE':
+                texStrg+="wood\n"
+                texStrg+="scale 0.25\n"
+                texStrg+="turbulence %.4g\n"%(tex.turbulence/100)
+            if tex.wood_type == 'BANDS':
+                texStrg+="marble\n"
+                texStrg+="scale 0.25\n"
+                texStrg+="rotate <45,-45,45>\n"
+            if tex.wood_type == 'BANDNOISE':
+                texStrg+="marble\n"
+                texStrg+="scale 0.25\n"
+                texStrg+="rotate <45,-45,45>\n"
+                texStrg+="turbulence %.4g\n"%(tex.turbulence/10)
+            
+            if tex.noise_basis_2 == 'SIN':
+                texStrg+="sine_wave\n"
+            if tex.noise_basis_2 == 'TRI':
+                texStrg+="triangle_wave\n"
+            if tex.noise_basis_2 == 'SAW':
+                texStrg+="ramp_wave\n"
+            if tex.use_color_ramp == True:
+                texStrg+=exportColorRamp(tex)
+            else:
+                texStrg+="color_map {\n"
+                texStrg+="[0 color rgbt<0,0,0,0>]\n"
+                texStrg+="[1 color rgbt<1,1,1,0>]\n" 
+                texStrg+="}\n"
+        ####################### EMULATE BLENDER STUCCI TEXTURE ####################
+        if tex.type == 'STUCCI':  
+            texStrg+="bozo\n"
+            texStrg+="scale 0.25\n"
+            if tex.noise_type == 'HARD_NOISE':
+                texStrg+="triangle_wave\n"
+                if tex.use_color_ramp == True:
+                    texStrg+=exportColorRamp(tex)
+                else:
+                    texStrg+="color_map {\n"
+                    texStrg+="[0 color rgbf<1,1,1,0>]\n"
+                    texStrg+="[1 color rgbt<0,0,0,1>]\n"
+                    texStrg+="}\n"
+            else:
+                if tex.use_color_ramp == True:
+                    texStrg+=exportColorRamp(tex)
+                else:
+                    texStrg+="color_map {\n"
+                    texStrg+="[0 color rgbf<0,0,0,1>]\n"
+                    texStrg+="[1 color rgbt<1,1,1,0>]\n"
+                    texStrg+="}\n"
+        ####################### EMULATE BLENDER MAGIC TEXTURE ####################
+        if tex.type == 'MAGIC':  
+            texStrg+="leopard\n"
+            if tex.use_color_ramp == True:
+                texStrg+=exportColorRamp(tex)
+            else:
+                texStrg+="color_map {\n"
+                texStrg+="[0 color rgbt<1,1,1,0.5>]\n"
+                texStrg+="[0.25 color rgbf<0,1,0,0.75>]\n"
+                texStrg+="[0.5 color rgbf<0,0,1,0.75>]\n"
+                texStrg+="[0.75 color rgbf<1,0,1,0.75>]\n"
+                texStrg+="[1 color rgbf<0,1,0,0.75>]\n"
+                texStrg+="}\n"
+            texStrg+="scale 0.1\n"            
+        ####################### EMULATE BLENDER MARBLE TEXTURE ####################
+        if tex.type == 'MARBLE':  
+            texStrg+="marble\n"
+            texStrg+="turbulence 0.5\n"
+            texStrg+="noise_generator 3\n"
+            texStrg+="scale 0.75\n"
+            texStrg+="rotate <45,-45,45>\n"
+            if tex.use_color_ramp == True:
+                texStrg+=exportColorRamp(tex)
+            else:
+                if tex.marble_type == 'SOFT':
+                    texStrg+="color_map {\n"
+                    texStrg+="[0 color rgbt<0,0,0,0>]\n"
+                    texStrg+="[0.05 color rgbt<0,0,0,0>]\n"
+                    texStrg+="[1 color rgbt<0.9,0.9,0.9,0>]\n"
+                    texStrg+="}\n"
+                elif tex.marble_type == 'SHARP':
+                    texStrg+="color_map {\n"
+                    texStrg+="[0 color rgbt<0,0,0,0>]\n"
+                    texStrg+="[0.025 color rgbt<0,0,0,0>]\n"
+                    texStrg+="[1 color rgbt<0.9,0.9,0.9,0>]\n"
+                    texStrg+="}\n"
+                else:
+                    texStrg+="[0 color rgbt<0,0,0,0>]\n"
+                    texStrg+="[1 color rgbt<1,1,1,0>]\n"            
+                    texStrg+="}\n"
+            if tex.noise_basis_2 == 'SIN':
+                texStrg+="sine_wave\n"
+            if tex.noise_basis_2 == 'TRI':
+                texStrg+="triangle_wave\n"
+            if tex.noise_basis_2 == 'SAW':
+                texStrg+="ramp_wave\n"
+        ####################### EMULATE BLENDER BLEND TEXTURE ####################
+        if tex.type == 'BLEND':
+            if tex.progression=='RADIAL':
+                texStrg+="radial\n"
+                if tex.use_flip_axis=='HORIZONTAL':
+                    texStrg+="rotate x*90\n"
+                else:
+                    texStrg+="rotate <-90,0,90>\n"
+                texStrg+="ramp_wave\n"
+            elif tex.progression=='SPHERICAL':
+                texStrg+="spherical\n"
+                texStrg+="scale 3\n"
+                texStrg+="poly_wave 1\n"
+            elif tex.progression=='QUADRATIC_SPHERE':
+                texStrg+="spherical\n"
+                texStrg+="scale 3\n"
+                texStrg+="    poly_wave 2\n"
+            elif tex.progression=='DIAGONAL':
+                texStrg+="gradient <1,1,0>\n"
+                texStrg+="scale 3\n"
+            elif tex.use_flip_axis=='HORIZONTAL':        
+                texStrg+="gradient x\n"
+                texStrg+="scale 2.01\n"
+            elif tex.use_flip_axis=='VERTICAL':
+                texStrg+="gradient y\n"
+                texStrg+="scale 2.01\n"
+            #texStrg+="ramp_wave\n"
+            #texStrg+="frequency 0.5\n"
+            texStrg+="phase 0.5\n"
+            if tex.use_color_ramp == True:
+                texStrg+=exportColorRamp(tex)
+            else:
+                texStrg+="color_map {\n"
+                texStrg+="[0 color rgbt<1,1,1,0>]\n"
+                texStrg+="[1 color rgbf<0,0,0,1>]\n"
+                texStrg+="}\n"
+            if tex.progression == 'LINEAR': 
+                texStrg+="    poly_wave 1\n"
+            if tex.progression == 'QUADRATIC': 
+                texStrg+="    poly_wave 2\n"
+            if tex.progression == 'EASING':
+                texStrg+="    poly_wave 1.5\n"            
+        ####################### EMULATE BLENDER MUSGRAVE TEXTURE ####################
+        # if tex.type == 'MUSGRAVE':  
+            # texStrg+="function{ f_ridged_mf( x, y, 0, 1, 2, 9, -0.5, 3,3 )*0.5}\n"
+            # texStrg+="color_map {\n"
+            # texStrg+="[0 color rgbf<0,0,0,1>]\n"
+            # texStrg+="[1 color rgbf<1,1,1,0>]\n"
+            # texStrg+="}\n"
+        # simplified for now:
+
+        if tex.type == 'MUSGRAVE':
+            texStrg+="bozo scale 0.25 \n"
+            if tex.use_color_ramp == True:
+                texStrg+=exportColorRamp(tex)
+            else: 
+                texStrg+="color_map {[0.5 color rgbf<0,0,0,1>][1 color rgbt<1,1,1,0>]}ramp_wave \n"            
+        ####################### EMULATE BLENDER DISTORTED NOISE TEXTURE ####################
+        if tex.type == 'DISTORTED_NOISE':  
+            texStrg+="average\n"
+            texStrg+="  pigment_map {\n"
+            texStrg+="  [1 bozo scale 0.25 turbulence %.4g\n" %tex.distortion
+            if tex.use_color_ramp == True:
+                texStrg+=exportColorRamp(tex)
+            else: 
+                texStrg+="color_map {\n"
+                texStrg+="[0 color rgbt<1,1,1,0>]\n"
+                texStrg+="[1 color rgbf<0,0,0,1>]\n"
+                texStrg+="}\n"
+            texStrg+="]\n"
+
+            if tex.noise_distortion == 'CELL_NOISE':
+                texStrg+="  [1 cells scale 0.1\n"
+                if tex.use_color_ramp == True:
+                    texStrg+=exportColorRamp(tex)
+                else: 
+                    texStrg+="color_map {\n"
+                    texStrg+="[0 color rgbt<1,1,1,0>]\n"
+                    texStrg+="[1 color rgbf<0,0,0,1>]\n"
+                    texStrg+="}\n"
+                texStrg+="]\n"                
+            if tex.noise_distortion=='VORONOI_CRACKLE':
+                texStrg+="  [1 crackle scale 0.25\n"
+                if tex.use_color_ramp == True:
+                    texStrg+=exportColorRamp(tex)
+                else: 
+                    texStrg+="color_map {\n"
+                    texStrg+="[0 color rgbt<1,1,1,0>]\n"
+                    texStrg+="[1 color rgbf<0,0,0,1>]\n"
+                    texStrg+="}\n"
+                texStrg+="]\n"                
+            if tex.noise_distortion in ['VORONOI_F1','VORONOI_F2','VORONOI_F3','VORONOI_F4','VORONOI_F2_F1']:
+                texStrg+="  [1 crackle metric 2.5 scale 0.25 turbulence %.4g\n" %(tex.distortion/2)
+                if tex.use_color_ramp == True:
+                    texStrg+=exportColorRamp(tex)
+                else: 
+                    texStrg+="color_map {\n"
+                    texStrg+="[0 color rgbt<1,1,1,0>]\n"
+                    texStrg+="[1 color rgbf<0,0,0,1>]\n"
+                    texStrg+="}\n"
+                texStrg+="]\n"                
+            else:
+                texStrg+="  [1 wrinkles scale 0.25\n" 
+                if tex.use_color_ramp == True:
+                    texStrg+=exportColorRamp(tex)
+                else: 
+                    texStrg+="color_map {\n"
+                    texStrg+="[0 color rgbt<1,1,1,0>]\n"
+                    texStrg+="[1 color rgbf<0,0,0,1>]\n"
+                    texStrg+="}\n"
+                texStrg+="]\n"
+            texStrg+="  }\n"
+        ####################### EMULATE BLENDER NOISE TEXTURE ####################
+        if tex.type == 'NOISE':  
+            texStrg+="cells\n"
+            texStrg+="turbulence 3\n"
+            texStrg+="omega 3\n"
+            if tex.use_color_ramp == True:
+                texStrg+=exportColorRamp(tex)
+            else: 
+                texStrg+="color_map {\n"
+                texStrg+="[0.75 color rgb<0,0,0,>]\n"
+                texStrg+="[1 color rgb<1,1,1,>]\n"
+                texStrg+="}\n"
+
+        ####################### IGNORE OTHER BLENDER TEXTURE ####################
+        else: #non translated textures
+            pass
+        texStrg+="}\n\n"            
+
+        texStrg+="#declare f%s=\n"%PATname
+        texStrg+="function{pigment{%s}}\n"%PATname       
+        texStrg+="\n"
+        
+    else:
+        texStrg+="pigment {\n"
+        texStrg+="%s\n"%pat.tex_pattern_type
+        if pat.tex_pattern_type == 'agate': 
+            texStrg+="agate_turb %.4g\n"%pat.modifier_turbulence                           
+        if pat.tex_pattern_type in {'spiral1', 'spiral2', 'tiling'}: 
+            texStrg+="%s\n"%pat.modifier_numbers
+        if pat.tex_pattern_type == 'quilted': 
+            texStrg+="control0 %s control1 %s\n"%(pat.modifier_control0, pat.modifier_control1)                           
+        if pat.tex_pattern_type == 'mandel': 
+            texStrg+="%s exponent %s \n"%(pat.f_iter, pat.f_exponent)  
+        if pat.tex_pattern_type == 'julia': 
+            texStrg+="<%.4g, %.4g> %s exponent %s \n"%(pat.julia_complex_1, pat.julia_complex_2, pat.f_iter, pat.f_exponent)   
+        if pat.tex_pattern_type == 'magnet' and pat.magnet_style == 'mandel': 
+            texStrg+="%s mandel %s \n"%(pat.magnet_type, pat.f_iter)
+        if pat.tex_pattern_type == 'magnet' and pat.magnet_style == 'julia':  
+            texStrg+="%s julia <%.4g, %.4g> %s\n"%(pat.magnet_type, pat.julia_complex_1, pat.julia_complex_2, pat.f_iter) 
+        if pat.tex_pattern_type in {'mandel', 'julia', 'magnet'}:
+            texStrg+="interior %s, %.4g\n"%(pat.f_ior, pat.f_ior_fac) 
+            texStrg+="exterior %s, %.4g\n"%(pat.f_eor, pat.f_eor_fac)
+        if pat.tex_pattern_type == 'gradient': 
+            texStrg+="<%s, %s, %s> \n"%(pat.grad_orient_x, pat.grad_orient_y, pat.grad_orient_z)
+        if pat.tex_pattern_type == 'pavement':
+            numTiles=pat.pave_tiles
+            numPattern=1
+            if pat.pave_sides == '4' and pat.pave_tiles == 3: 
+                 numPattern = pat.pave_pat_2
+            if pat.pave_sides == '6' and pat.pave_tiles == 3: 
+                numPattern = pat.pave_pat_3
+            if pat.pave_sides == '3' and pat.pave_tiles == 4: 
+                numPattern = pat.pave_pat_3
+            if pat.pave_sides == '3' and pat.pave_tiles == 5: 
+                numPattern = pat.pave_pat_4
+            if pat.pave_sides == '4' and pat.pave_tiles == 4: 
+                numPattern = pat.pave_pat_5
+            if pat.pave_sides == '6' and pat.pave_tiles == 4: 
+                numPattern = pat.pave_pat_7
+            if pat.pave_sides == '4' and pat.pave_tiles == 5: 
+                numPattern = pat.pave_pat_12
+            if pat.pave_sides == '3' and pat.pave_tiles == 6: 
+                numPattern = pat.pave_pat_12
+            if pat.pave_sides == '6' and pat.pave_tiles == 5: 
+                numPattern = pat.pave_pat_22
+            if pat.pave_sides == '4' and pat.pave_tiles == 6: 
+                numPattern = pat.pave_pat_35
+            if pat.pave_sides == '6' and pat.pave_tiles == 6: 
+                numTiles = 5                                
+            texStrg+="number_of_sides %s number_of_tiles %s pattern %s form %s \n"%(pat.pave_sides, numTiles, numPattern, pat.pave_form)
+        ################ functions #####################################################################################################
+        if pat.tex_pattern_type == 'function':                 
+            texStrg+="{ %s"%pat.func_list
+            texStrg+="(x"
+            if pat.func_plus_x != "NONE":
+                if pat.func_plus_x =='increase':
+                    texStrg+="*"                                    
+                if pat.func_plus_x =='plus':
+                    texStrg+="+"
+                texStrg+="%.4g"%pat.func_x
+            texStrg+=",y"
+            if pat.func_plus_y != "NONE":
+                if pat.func_plus_y =='increase':
+                    texStrg+="*"                                   
+                if pat.func_plus_y =='plus':
+                    texStrg+="+"
+                texStrg+="%.4g"%pat.func_y
+            texStrg+=",z"
+            if pat.func_plus_z != "NONE":
+                if pat.func_plus_z =='increase':
+                    texStrg+="*"                                    
+                if pat.func_plus_z =='plus':
+                    texStrg+="+"
+                texStrg+="%.4g"%pat.func_z
+            sort = -1
+            if pat.func_list in {"f_comma","f_crossed_trough","f_cubic_saddle","f_cushion","f_devils_curve",
+                                 "f_enneper","f_glob","f_heart","f_hex_x","f_hex_y","f_hunt_surface",
+                                 "f_klein_bottle","f_kummer_surface_v1","f_lemniscate_of_gerono","f_mitre",
+                                 "f_nodal_cubic","f_noise_generator","f_odd","f_paraboloid","f_pillow",
+                                 "f_piriform","f_quantum","f_quartic_paraboloid","f_quartic_saddle",
+                                 "f_sphere","f_steiners_roman","f_torus_gumdrop","f_umbrella"}:
+                sort = 0
+            if pat.func_list in {"f_bicorn","f_bifolia","f_boy_surface","f_superellipsoid","f_torus"}:
+                sort = 1
+            if pat.func_list in {"f_ellipsoid","f_folium_surface","f_hyperbolic_torus",
+                                 "f_kampyle_of_eudoxus","f_parabolic_torus","f_quartic_cylinder","f_torus2"}:
+                sort = 2
+            if pat.func_list in {"f_blob2","f_cross_ellipsoids","f_flange_cover","f_isect_ellipsoids",
+                                 "f_kummer_surface_v2","f_ovals_of_cassini","f_rounded_box","f_spikes_2d","f_strophoid"}:
+                sort = 3
+            if pat.func_list in {"f_algbr_cyl1","f_algbr_cyl2","f_algbr_cyl3","f_algbr_cyl4","f_blob","f_mesh1","f_poly4","f_spikes"}:
+                sort = 4
+            if pat.func_list in {"f_devils_curve_2d","f_dupin_cyclid","f_folium_surface_2d","f_hetero_mf","f_kampyle_of_eudoxus_2d",
+                                 "f_lemniscate_of_gerono_2d","f_polytubes","f_ridge","f_ridged_mf","f_spiral","f_witch_of_agnesi"}:
+                sort = 5
+            if pat.func_list in {"f_helix1","f_helix2","f_piriform_2d","f_strophoid_2d"}:
+                sort = 6
+            if pat.func_list == "f_helical_torus":
+                sort = 7
+            if sort > -1:
+                texStrg+=",%.4g"%pat.func_P0
+            if sort > 0:
+                texStrg+=",%.4g"%pat.func_P1
+            if sort > 1:
+                texStrg+=",%.4g"%pat.func_P2
+            if sort > 2:
+                texStrg+=",%.4g"%pat.func_P3
+            if sort > 3:
+                texStrg+=",%.4g"%pat.func_P4
+            if sort > 4:
+                texStrg+=",%.4g"%pat.func_P5
+            if sort > 5:
+                texStrg+=",%.4g"%pat.func_P6
+            if sort > 6:
+                texStrg+=",%.4g"%pat.func_P7
+                texStrg+=",%.4g"%pat.func_P8
+                texStrg+=",%.4g"%pat.func_P9
+            texStrg+=")}\n"
+        ############## end functions ###############################################################
+        if pat.tex_pattern_type not in {'checker', 'hexagon', 'square', 'triangular', 'brick'}:                        
+            texStrg+="color_map {\n"
+        numColor=0
+        if tex.use_color_ramp == True:
+            for el in tex.color_ramp.elements:
+                numColor+=1
+                pos = el.position
+                col=el.color
+                colR,colG,colB,colA = col[0],col[1],col[2],1-col[3]
+                if pat.tex_pattern_type not in {'checker', 'hexagon', 'square', 'triangular', 'brick'} :
+                    texStrg+="[%.4g color rgbf<%.4g,%.4g,%.4g,%.4g>] \n"%(pos,colR,colG,colB,colA)
+                if pat.tex_pattern_type in {'brick','checker'} and numColor < 3:
+                    texStrg+="color rgbf<%.4g,%.4g,%.4g,%.4g> \n"%(colR,colG,colB,colA)
+                if pat.tex_pattern_type == 'hexagon' and numColor < 4 :
+                    texStrg+="color rgbf<%.4g,%.4g,%.4g,%.4g> \n"%(colR,colG,colB,colA)
+                if pat.tex_pattern_type == 'square' and numColor < 5 :
+                    texStrg+="color rgbf<%.4g,%.4g,%.4g,%.4g> \n"%(colR,colG,colB,colA)
+                if pat.tex_pattern_type == 'triangular' and numColor < 7 :
+                    texStrg+="color rgbf<%.4g,%.4g,%.4g,%.4g> \n"%(colR,colG,colB,colA)
+        else:
+            texStrg+="[0 color rgbf<0,0,0,1>]\n"
+            texStrg+="[1 color rgbf<1,1,1,0>]\n"
+        if pat.tex_pattern_type not in {'checker', 'hexagon', 'square', 'triangular', 'brick'} :                        
+            texStrg+="} \n"                       
+        if pat.tex_pattern_type == 'brick':                        
+            texStrg+="brick_size <%.4g, %.4g, %.4g> mortar %.4g \n"%(pat.brick_size_x, pat.brick_size_y, pat.brick_size_z, pat.brick_mortar)
+        texStrg+="%s \n"%mappingDif
+        texStrg+="rotate <%.4g,%.4g,%.4g> \n"%(pat.tex_rot_x, pat.tex_rot_y, pat.tex_rot_z)
+        texStrg+="turbulence <%.4g,%.4g,%.4g> \n"%(pat.warp_turbulence_x, pat.warp_turbulence_y, pat.warp_turbulence_z)
+        texStrg+="octaves %s \n"%pat.modifier_octaves
+        texStrg+="lambda %.4g \n"%pat.modifier_lambda
+        texStrg+="omega %.4g \n"%pat.modifier_omega
+        texStrg+="frequency %.4g \n"%pat.modifier_frequency
+        texStrg+="phase %.4g \n"%pat.modifier_phase                       
+        texStrg+="}\n\n"
+        texStrg+="#declare f%s=\n"%PATname
+        texStrg+="function{pigment{%s}}\n"%PATname       
+        texStrg+="\n"
+    return(texStrg)
 
 def write_pov(filename, scene=None, info_callback=None):
     import mathutils
@@ -167,6 +642,7 @@ def write_pov(filename, scene=None, info_callback=None):
     global_matrix = mathutils.Matrix.Rotation(-pi / 2.0, 4, 'X')
     comments = scene.pov.comments_enable and not scene.pov.tempfiles_enable
     linebreaksinlists= scene.pov.list_lf_enable and not scene.pov.tempfiles_enable
+
     def setTab(tabtype, spaces):
         TabStr = ""
         if tabtype == 'NONE':
@@ -301,7 +777,7 @@ def write_pov(filename, scene=None, info_callback=None):
                 tabWrite("}\n")
 
     materialNames = {}
-    DEF_MAT_NAME = "Default"
+    DEF_MAT_NAME = "" #or "Default"?
 
     def writeMaterial(material):
         # Assumes only called once on each material
@@ -509,7 +985,12 @@ def write_pov(filename, scene=None, info_callback=None):
         if material:
             special_texture_found = False
             for t in material.texture_slots:
-                if(t and t.texture.type == 'IMAGE' and t.use and t.texture.image and
+                if t and t.use:
+                    if (t.texture.type == 'IMAGE' and t.texture.image) or t.texture.type != 'IMAGE':
+                        validPath=True
+                else:
+                    validPath=False
+                if(t and t.use and validPath and
                    (t.use_map_specular or t.use_map_raymir or t.use_map_normal or t.use_map_alpha)):
                     special_texture_found = True
                     continue  # Some texture found
@@ -1337,7 +1818,7 @@ def write_pov(filename, scene=None, info_callback=None):
                             vertCols[key] = [-1]
 
                         idx = 0
-                        LocalMaterialNames = []                        
+                        LocalMaterialNames = []                       
                         for col, index in vertCols.items():
                             #if me_materials:
                             mater = me_materials[col[3]]
@@ -1351,7 +1832,7 @@ def write_pov(filename, scene=None, info_callback=None):
                                     trans = 1.0 - mater.alpha
                                 else:
                                     trans = 0.0                            
-                                if (mater.specular_color.r == mater.specular_color.g) and (mater.specular_color.r == mater.specular_color.b):
+                                if (mater.specular_color.s == 0.0):
                                     colored_specular_found = False
                                 else:
                                     colored_specular_found = True
@@ -1367,9 +1848,52 @@ def write_pov(filename, scene=None, info_callback=None):
                                 texturesSpec = ""
                                 texturesNorm = ""
                                 texturesAlpha = ""
+                                #proceduralFlag=False
                                 for t in mater.texture_slots:
-                                    if t and t.texture.type == 'IMAGE' and t.use and t.texture.image:
-                                        image_filename = path_image(t.texture.image)
+                                    if t and t.use and t.texture.type != 'IMAGE' and t.texture.type != 'NONE':
+                                        proceduralFlag=True
+                                        image_filename = "PAT_%s"%string_strip_hyphen(bpy.path.clean_name(t.texture.name))
+                                        if image_filename:
+                                            if t.use_map_color_diffuse:
+                                                texturesDif = image_filename
+                                                # colvalue = t.default_value  # UNUSED
+                                                t_dif = t
+                                                if t_dif.texture.pov.tex_gamma_enable:
+                                                    imgGamma = (" gamma %.3g " % t_dif.texture.pov.tex_gamma_value)
+                                            if t.use_map_specular or t.use_map_raymir:
+                                                texturesSpec = image_filename
+                                                # colvalue = t.default_value  # UNUSED
+                                                t_spec = t
+                                            if t.use_map_normal:
+                                                texturesNorm = image_filename
+                                                # colvalue = t.normal_factor * 10.0  # UNUSED
+                                                #textNormName=t.texture.image.name + ".normal"
+                                                #was the above used? --MR
+                                                t_nor = t
+                                            if t.use_map_alpha:
+                                                texturesAlpha = image_filename
+                                                # colvalue = t.alpha_factor * 10.0  # UNUSED
+                                                #textDispName=t.texture.image.name + ".displ"
+                                                #was the above used? --MR
+                                                t_alpha = t
+
+                                    if t and t.texture.type == 'IMAGE' and t.use and t.texture.image and t.texture.pov.tex_pattern_type == 'emulator':
+                                        proceduralFlag=False
+                                        if t.texture.image.packed_file:
+                                            orig_image_filename=t.texture.image.filepath_raw
+                                            workDir=os.path.dirname(__file__)
+                                            previewDir=os.path.join(workDir, "preview")
+                                            unpackedfilename= os.path.join(previewDir,("unpacked_img_"+(string_strip_hyphen(bpy.path.clean_name(t.texture.name)))))
+                                            if not os.path.exists(unpackedfilename):
+                                                # record which images that were newly copied and can be safely
+                                                # cleaned up
+                                                unpacked_images.append(unpackedfilename)                                            
+                                            t.texture.image.filepath_raw=unpackedfilename
+                                            t.texture.image.save()
+                                            image_filename = unpackedfilename
+                                            t.texture.image.filepath_raw=orig_image_filename
+                                        else:
+                                            image_filename = path_image(t.texture.image)
                                         # IMAGE SEQUENCE BEGINS
                                         if image_filename:
                                             if bpy.data.images[t.texture.image.name].source == 'SEQUENCE':
@@ -1452,17 +1976,20 @@ def write_pov(filename, scene=None, info_callback=None):
                                     if texturesSpec != "":
                                         # tabWrite("\n")
                                         tabWrite("pigment_pattern {\n")
-                                        # POV-Ray "scale" is not a number of repetitions factor, but its
-                                        # inverse, a standard scale factor.
-                                        # Offset seems needed relatively to scale so probably center of the
-                                        # scale is not the same in blender and POV
-                                        mappingSpec = "translate <%.4g,%.4g,%.4g> scale <%.4g,%.4g,%.4g>\n" % \
-                                                      (-t_spec.offset.x, t_spec.offset.y, t_spec.offset.z,
-                                                       1.0 / t_spec.scale.x, 1.0 / t_spec.scale.y,
-                                                       1.0 / t_spec.scale.z)
-                                        tabWrite("uv_mapping image_map{%s \"%s\" %s}\n" % \
-                                                 (imageFormat(texturesSpec), texturesSpec, imgMap(t_spec)))
-                                        tabWrite("%s\n" % mappingSpec)
+                                        if texturesSpec and texturesSpec.startswith("PAT_"):
+                                            tabWrite("function{f%s(x,y,z).grey}" %texturesSpec) 
+                                        else:
+                                            # POV-Ray "scale" is not a number of repetitions factor, but its
+                                            # inverse, a standard scale factor.
+                                            # Offset seems needed relatively to scale so probably center of the
+                                            # scale is not the same in blender and POV
+                                            mappingSpec = "translate <%.4g,%.4g,%.4g> scale <%.4g,%.4g,%.4g>\n" % \
+                                                          (-t_spec.offset.x, t_spec.offset.y, t_spec.offset.z,
+                                                           1.0 / t_spec.scale.x, 1.0 / t_spec.scale.y,
+                                                           1.0 / t_spec.scale.z)
+                                            tabWrite("uv_mapping image_map{%s \"%s\" %s}\n" % \
+                                                     (imageFormat(texturesSpec), texturesSpec, imgMap(t_spec)))
+                                            tabWrite("%s\n" % mappingSpec)
                                         tabWrite("}\n")
                                         tabWrite("texture_map {\n")
                                         tabWrite("[0 \n")
@@ -1470,19 +1997,22 @@ def write_pov(filename, scene=None, info_callback=None):
                                     if texturesDif == "":
                                         if texturesAlpha != "":
                                             tabWrite("\n")
-                                            # POV-Ray "scale" is not a number of repetitions factor, but its
-                                            # inverse, a standard scale factor.
-                                            # Offset seems needed relatively to scale so probably center of the
-                                            # scale is not the same in blender and POV
-                                            mappingAlpha = " translate <%.4g, %.4g, %.4g> " \
-                                                           "scale <%.4g, %.4g, %.4g>\n" % \
-                                                           (-t_alpha.offset.x, -t_alpha.offset.y,
-                                                            t_alpha.offset.z, 1.0 / t_alpha.scale.x,
-                                                            1.0 / t_alpha.scale.y, 1.0 / t_alpha.scale.z)
-                                            tabWrite("pigment {pigment_pattern {uv_mapping image_map" \
-                                                     "{%s \"%s\" %s}%s" % \
-                                                     (imageFormat(texturesAlpha), texturesAlpha,
-                                                      imgMap(t_alpha), mappingAlpha))
+                                            if texturesAlpha and texturesAlpha.startswith("PAT_"):
+                                                tabWrite("function{f%s(x,y,z).transmit}\n" %texturesAlpha) 
+                                            else:
+                                                # POV-Ray "scale" is not a number of repetitions factor, but its
+                                                # inverse, a standard scale factor.
+                                                # Offset seems needed relatively to scale so probably center of the
+                                                # scale is not the same in blender and POV
+                                                mappingAlpha = " translate <%.4g, %.4g, %.4g> " \
+                                                               "scale <%.4g, %.4g, %.4g>\n" % \
+                                                               (-t_alpha.offset.x, -t_alpha.offset.y,
+                                                                t_alpha.offset.z, 1.0 / t_alpha.scale.x,
+                                                                1.0 / t_alpha.scale.y, 1.0 / t_alpha.scale.z)
+                                                tabWrite("pigment {pigment_pattern {uv_mapping image_map" \
+                                                         "{%s \"%s\" %s}%s" % \
+                                                         (imageFormat(texturesAlpha), texturesAlpha,
+                                                          imgMap(t_alpha), mappingAlpha))
                                             tabWrite("}\n")
                                             tabWrite("pigment_map {\n")
                                             tabWrite("[0 color rgbft<0,0,0,1,1>]\n")
@@ -1525,21 +2055,34 @@ def write_pov(filename, scene=None, info_callback=None):
                                                             1.0 / t_alpha.scale.y, 1.0 / t_alpha.scale.z)
                                             tabWrite("pigment {\n")
                                             tabWrite("pigment_pattern {\n")
-                                            tabWrite("uv_mapping image_map{%s \"%s\" %s}%s}\n" % \
-                                                     (imageFormat(texturesAlpha), texturesAlpha,
-                                                      imgMap(t_alpha), mappingAlpha))
+                                            if texturesAlpha and texturesAlpha.startswith("PAT_"):
+                                                tabWrite("function{f%s(x,y,z).transmit}\n" %texturesAlpha) 
+                                            else:
+                                                tabWrite("uv_mapping image_map{%s \"%s\" %s}%s}\n" % \
+                                                         (imageFormat(texturesAlpha), texturesAlpha,
+                                                          imgMap(t_alpha), mappingAlpha))
                                             tabWrite("pigment_map {\n")
                                             tabWrite("[0 color rgbft<0,0,0,1,1>]\n")
-                                            tabWrite("[1 uv_mapping image_map {%s \"%s\" %s} %s]\n" % \
-                                                     (imageFormat(texturesDif), texturesDif,
-                                                      (imgGamma + imgMap(t_dif)), mappingDif))
+                                            #if texturesAlpha and texturesAlpha.startswith("PAT_"):
+                                                #tabWrite("[1 pigment{%s}]\n" %texturesDif) 
+                                            if texturesDif and not texturesDif.startswith("PAT_"):
+                                                tabWrite("[1 uv_mapping image_map {%s \"%s\" %s} %s]\n" % \
+                                                         (imageFormat(texturesDif), texturesDif,
+                                                          (imgGamma + imgMap(t_dif)), mappingDif))
+                                            elif texturesDif and texturesDif.startswith("PAT_"):
+                                                tabWrite("[1 %s]\n" %texturesDif)                                                          
                                             tabWrite("}\n")
                                             tabWrite("}\n")
+                                            if texturesAlpha and texturesAlpha.startswith("PAT_"):
+                                                tabWrite("}\n")
 
                                         else:
-                                            tabWrite("pigment {uv_mapping image_map {%s \"%s\" %s}%s}\n" % \
-                                                     (imageFormat(texturesDif), texturesDif,
-                                                      (imgGamma + imgMap(t_dif)), mappingDif))
+                                            if texturesDif and texturesDif.startswith("PAT_"):
+                                                tabWrite("pigment{%s}\n" %texturesDif) 
+                                            else:
+                                                tabWrite("pigment {uv_mapping image_map {%s \"%s\" %s}%s}\n" % \
+                                                         (imageFormat(texturesDif), texturesDif,
+                                                          (imgGamma + imgMap(t_dif)), mappingDif))
 
                                         if texturesSpec != "":
                                             # Level 1 is no specular
@@ -1571,10 +2114,13 @@ def write_pov(filename, scene=None, info_callback=None):
                                         #imageMapNor = ("{bump_map {%s \"%s\" %s mapping}" % \
                                         #               (imageFormat(texturesNorm),texturesNorm,imgMap(t_nor)))
                                         #We were not using the above maybe we should?
-                                        tabWrite("normal {uv_mapping bump_map " \
-                                                 "{%s \"%s\" %s  bump_size %.4g }%s}\n" % \
-                                                 (imageFormat(texturesNorm), texturesNorm, imgMap(t_nor),
-                                                  t_nor.normal_factor * 10, mappingNor))
+                                        if texturesNorm and texturesNorm.startswith("PAT_"):
+                                            tabWrite("normal{function{f%s(x,y,z).grey} bump_size %.4g}\n" %(texturesNorm, t_nor.normal_factor * 10)) 
+                                        else:
+                                            tabWrite("normal {uv_mapping bump_map " \
+                                                     "{%s \"%s\" %s  bump_size %.4g }%s}\n" % \
+                                                     (imageFormat(texturesNorm), texturesNorm, imgMap(t_nor),
+                                                      t_nor.normal_factor * 10, mappingNor))
                                     if texturesSpec != "":
                                         tabWrite("]\n")
                                     ##################Second index for mapping specular max value###############
@@ -1593,10 +2139,13 @@ def write_pov(filename, scene=None, info_callback=None):
                                                        (-t_alpha.offset.x, -t_alpha.offset.y, t_alpha.offset.z,
                                                         1.0 / t_alpha.scale.x, 1.0 / t_alpha.scale.y,
                                                         1.0 / t_alpha.scale.z)
-                                        tabWrite("pigment {pigment_pattern {uv_mapping image_map" \
-                                                 "{%s \"%s\" %s}%s}\n" % \
-                                                 (imageFormat(texturesAlpha), texturesAlpha, imgMap(t_alpha),
-                                                  mappingAlpha))
+                                        if texturesAlpha and texturesAlpha.startswith("PAT_"):
+                                            tabWrite("function{f%s(x,y,z).transmit}\n" %texturesAlpha) 
+                                        else:
+                                            tabWrite("pigment {pigment_pattern {uv_mapping image_map" \
+                                                     "{%s \"%s\" %s}%s}\n" % \
+                                                     (imageFormat(texturesAlpha), texturesAlpha, imgMap(t_alpha),
+                                                      mappingAlpha))
                                         tabWrite("pigment_map {\n")
                                         tabWrite("[0 color rgbft<0,0,0,1,1>]\n")
                                         tabWrite("[1 color rgbft<%.3g, %.3g, %.3g, %.3g, %.3g>]\n" % \
@@ -1640,29 +2189,40 @@ def write_pov(filename, scene=None, info_callback=None):
                                                        (-t_alpha.offset.x, -t_alpha.offset.y, t_alpha.offset.z,
                                                         1.0 / t_alpha.scale.x, 1.0 / t_alpha.scale.y,
                                                         1.0 / t_alpha.scale.z)
-                                        tabWrite("pigment {pigment_pattern {uv_mapping image_map" \
-                                                 "{%s \"%s\" %s}%s}\n" % \
-                                                 (imageFormat(texturesAlpha), texturesAlpha, imgMap(t_alpha),
-                                                  mappingAlpha))
+                                        if texturesAlpha and texturesAlpha.startswith("PAT_"):
+                                            tabWrite("pigment{pigment_pattern {function{f%s(x,y,z).transmit}}\n" %texturesAlpha)
+                                        else:
+                                            tabWrite("pigment {pigment_pattern {uv_mapping image_map" \
+                                                     "{%s \"%s\" %s}%s}\n" % \
+                                                     (imageFormat(texturesAlpha), texturesAlpha, imgMap(t_alpha),
+                                                      mappingAlpha))
                                         tabWrite("pigment_map {\n")
                                         tabWrite("[0 color rgbft<0,0,0,1,1>]\n")
-                                        tabWrite("[1 uv_mapping image_map {%s \"%s\" %s} %s]\n" % \
-                                                 (imageFormat(texturesDif), texturesDif,
-                                                  (imgMap(t_dif) + imgGamma), mappingDif))
+                                        if texturesAlpha and texturesAlpha.startswith("PAT_"):
+                                            tabWrite("[1 function{f%s(x,y,z).transmit}]\n" %texturesAlpha) 
+                                        elif texturesDif and not texturesDif.startswith("PAT_"):                                       
+                                            tabWrite("[1 uv_mapping image_map {%s \"%s\" %s} %s]\n" % \
+                                                     (imageFormat(texturesDif), texturesDif,
+                                                      (imgMap(t_dif) + imgGamma), mappingDif))
+                                        elif texturesDif and texturesDif.startswith("PAT_"):
+                                            tabWrite("[1 %s]\n" %texturesDif)
                                         tabWrite("}\n")
                                         tabWrite("}\n")
 
                                     else:
-                                        tabWrite("pigment {\n")
-                                        tabWrite("uv_mapping image_map {\n")
-                                        #tabWrite("%s \"%s\" %s}%s\n" % \
-                                        #         (imageFormat(texturesDif), texturesDif,
-                                        #         (imgGamma + imgMap(t_dif)),mappingDif))
-                                        tabWrite("%s \"%s\" \n" % (imageFormat(texturesDif), texturesDif))
-                                        tabWrite("%s\n" % (imgGamma + imgMap(t_dif)))
-                                        tabWrite("}\n")
-                                        tabWrite("%s\n" % mappingDif)
-                                        tabWrite("}\n")
+                                        if texturesDif and texturesDif.startswith("PAT_"):
+                                            tabWrite("pigment{%s}\n" %texturesDif) 
+                                        else:                                    
+                                            tabWrite("pigment {\n")
+                                            tabWrite("uv_mapping image_map {\n")
+                                            #tabWrite("%s \"%s\" %s}%s\n" % \
+                                            #         (imageFormat(texturesDif), texturesDif,
+                                            #         (imgGamma + imgMap(t_dif)),mappingDif))
+                                            tabWrite("%s \"%s\" \n" % (imageFormat(texturesDif), texturesDif))
+                                            tabWrite("%s\n" % (imgGamma + imgMap(t_dif)))
+                                            tabWrite("}\n")
+                                            tabWrite("%s\n" % mappingDif)
+                                            tabWrite("}\n")
                                           
                                     if texturesSpec != "":
                                         # Level 3 is full specular
@@ -1692,9 +2252,12 @@ def write_pov(filename, scene=None, info_callback=None):
                                     #imageMapNor = ("{bump_map {%s \"%s\" %s mapping}" % \
                                     #               (imageFormat(texturesNorm),texturesNorm,imgMap(t_nor)))
                                     #We were not using the above maybe we should?
-                                    tabWrite("normal {uv_mapping bump_map {%s \"%s\" %s  bump_size %.4g }%s}\n" % \
-                                             (imageFormat(texturesNorm), texturesNorm, imgMap(t_nor),
-                                              t_nor.normal_factor * 10.0, mappingNor))
+                                    if texturesNorm and texturesNorm.startswith("PAT_"):
+                                        tabWrite("normal{function{f%s(x,y,z).grey} bump_size %.4g}\n" %(texturesNorm, t_nor.normal_factor * 10))
+                                    else:                                    
+                                        tabWrite("normal {uv_mapping bump_map {%s \"%s\" %s  bump_size %.4g }%s}\n" % \
+                                                 (imageFormat(texturesNorm), texturesNorm, imgMap(t_nor),
+                                                  t_nor.normal_factor * 10.0, mappingNor))
                                 if texturesSpec != "" and mater.pov.replacement_text == "":
                                     tabWrite("]\n")
 
@@ -1725,7 +2288,7 @@ def write_pov(filename, scene=None, info_callback=None):
                                 # to emulate colored specular highlights
                                 special_texture_found = False
                                 for t in mater.texture_slots:
-                                    if(t and t.texture.type == 'IMAGE' and t.use and t.texture.image and
+                                    if(t and t.use and ((t.texture.type == 'IMAGE' and t.texture.image) or t.texture.type != 'IMAGE') and
                                        (t.use_map_specular or t.use_map_raymir)):
                                         # Specular mapped textures would conflict with colored specular
                                         # because POV can't layer over or under pigment patterned textures
@@ -1733,7 +2296,7 @@ def write_pov(filename, scene=None, info_callback=None):
                                 
                                 if colored_specular_found and not special_texture_found:
                                     if comments:
-                                        file.write("  //Emulating colored highlights with a metallic layer\n")
+                                        file.write("  // colored highlights with a stransparent metallic layer\n")
                                     else:
                                         tabWrite("\n")
                                 
@@ -1744,7 +2307,12 @@ def write_pov(filename, scene=None, info_callback=None):
 
                                     texturesNorm = ""
                                     for t in mater.texture_slots:
-                                        if t and t.texture.type == 'IMAGE' and t.use and t.texture.image:
+
+                                        if t and t.texture.pov.tex_pattern_type != 'emulator':
+                                            proceduralFlag=True
+                                            image_filename = string_strip_hyphen(bpy.path.clean_name(t.texture.name))
+                                        if t and t.texture.type == 'IMAGE' and t.use and t.texture.image and t.texture.pov.tex_pattern_type == 'emulator':
+                                            proceduralFlag=False 
                                             image_filename = path_image(t.texture.image)
                                             imgGamma = ""
                                             if image_filename:
@@ -1754,12 +2322,14 @@ def write_pov(filename, scene=None, info_callback=None):
                                                     #textNormName=t.texture.image.name + ".normal"
                                                     #was the above used? --MR
                                                     t_nor = t
-
-                                                    tabWrite("normal {uv_mapping bump_map " \
-                                                             "{%s \"%s\" %s  bump_size %.4g }%s}\n" % \
-                                                             (imageFormat(texturesNorm), texturesNorm, imgMap(t_nor),
-                                                              t_nor.normal_factor * 10, mappingNor))
-                                                          
+                                                    if proceduralFlag:
+                                                        tabWrite("normal{function{f%s(x,y,z).grey} bump_size %.4g}\n" %(texturesNorm, t_nor.normal_factor * 10))
+                                                    else:
+                                                        tabWrite("normal {uv_mapping bump_map " \
+                                                                 "{%s \"%s\" %s  bump_size %.4g }%s}\n" % \
+                                                                 (imageFormat(texturesNorm), texturesNorm, imgMap(t_nor),
+                                                                  t_nor.normal_factor * 10, mappingNor))
+                                                                  
                                     tabWrite("}\n") # THEN IT CAN CLOSE LAST LAYER OF TEXTURE   --MR
 
 
@@ -1772,18 +2342,23 @@ def write_pov(filename, scene=None, info_callback=None):
                     
                 # Vert Colors
                 tabWrite("texture_list {\n")
-                file.write(tabStr + "%s" % (len(vertCols)))  # vert count
-                    
-                if mater.pov.replacement_text != "":
-                    file.write("\n")
-                    file.write(" texture{%s}\n" % material.pov.replacement_text)
-
+                # In case there's is no material slot, give at least one texture (empty so it uses pov default)
+                if len(vertCols)==0:
+                    file.write(tabStr + "1")
                 else:
-                    # Loop through declared materials list
-                    for cMN in LocalMaterialNames:
-                        if material != "Default":
-                            file.write("\n texture{MAT_%s}\n" % cMN)#string_strip_hyphen(materialNames[material])) # Something like that
-                    
+                    file.write(tabStr + "%s" % (len(vertCols)))  # vert count
+                if me_materials:    
+                    if mater.pov.replacement_text != "":
+                        file.write("\n")
+                        file.write(" texture{%s}\n" % material.pov.replacement_text)
+
+                    else:
+                        # Loop through declared materials list
+                        for cMN in LocalMaterialNames:
+                            if material != "Default":
+                                file.write("\n texture{MAT_%s}\n" % cMN)#string_strip_hyphen(materialNames[material])) # Something like that
+                else:
+                    file.write(" texture{}\n")                
                 tabWrite("}\n")
 
                 # Face indices
@@ -2148,7 +2723,7 @@ def write_pov(filename, scene=None, info_callback=None):
                 file.write(txt.as_string())
                 file.write("\n")
 
-    sel = renderable_objects(scene)
+    sel = renderable_objects()
     if comments:
         file.write("//----------------------------------------------\n" \
                    "//--Exported with POV-Ray exporter for Blender--\n" \
@@ -2164,7 +2739,17 @@ def write_pov(filename, scene=None, info_callback=None):
     if comments:
         file.write("\n//--Custom Code--\n\n")
     exportCustomCode()
-    
+
+    if comments:
+        file.write("\n//--Patterns Definitions--\n\n")
+    LocalPatternNames = []
+    for texture in bpy.data.textures: #ok?
+        if texture.users > 0:
+            currentPatName = string_strip_hyphen(bpy.path.clean_name(texture.name)) #string_strip_hyphen(patternNames[texture.name]) #maybe instead
+            LocalPatternNames.append(currentPatName) #use this list to prevent writing texture instances several times and assign in mats?
+            file.write("\n #declare PAT_%s = \n" % currentPatName)
+            file.write(exportPattern(texture))
+            file.write("\n")                
     if comments:
         file.write("\n//--Background--\n\n")
 
@@ -2182,7 +2767,8 @@ def write_pov(filename, scene=None, info_callback=None):
 
     if comments:
         file.write("\n//--Material Definitions--\n\n")
-
+    # write a default pigment for objects with no material (comment out to show black)
+    file.write("#default{ pigment{ color rgb 0.8 }}\n")
     # Convert all materials to strings we can access directly per vertex.
     #exportMaterials()
     writeMaterial(None)  # default material
@@ -2369,7 +2955,8 @@ class PovrayRender(bpy.types.RenderEngine):
         self._is_windows = False
         if sys.platform[:3] == "win":
             self._is_windows = True
-            #extra_args.append("/EXIT")
+            if"/EXIT" not in extra_args and not scene.pov.pov_editor:
+                extra_args.append("/EXIT")
         else:
             # added -d option to prevent render window popup which leads to segfault on linux
             extra_args.append("-d")
@@ -2403,7 +2990,15 @@ class PovrayRender(bpy.types.RenderEngine):
                     # Wait a bit before retrying file might be still in use by Blender,
                     # and Windows does not know how to delete a file in use!
                     time.sleep(self.DELAY)
-
+        for i in unpacked_images:
+            for c in range(5):
+                try:
+                    os.unlink(i)
+                    break
+                except OSError:
+                    # Wait a bit before retrying file might be still in use by Blender,
+                    # and Windows does not know how to delete a file in use!
+                    time.sleep(self.DELAY)
     def render(self, scene):
         import tempfile
 
@@ -2669,3 +3264,93 @@ class PovrayRender(bpy.types.RenderEngine):
 
         if scene.pov.tempfiles_enable or scene.pov.deletefiles_enable:
             self._cleanup()
+
+
+    
+#################################Operators#########################################
+class RenderPovTexturePreview(Operator):
+    bl_idname = "tex.preview_update"
+    bl_label = "Update preview"
+    def execute(self, context):
+        tex=bpy.context.object.active_material.active_texture #context.texture
+        texPrevName=string_strip_hyphen(bpy.path.clean_name(tex.name))+"_prev"
+        workDir=os.path.dirname(__file__)
+        previewDir=os.path.join(workDir, "preview")
+        iniPrevFile=os.path.join(previewDir, "Preview.ini")
+        inputPrevFile=os.path.join(previewDir, "Preview.pov")
+        outputPrevFile=os.path.join(previewDir, texPrevName)
+        ##################### ini ##########################################
+        fileIni=open("%s"%iniPrevFile,"w")
+        fileIni.write('Version=3.7\n')
+        fileIni.write('Input_File_Name="%s"\n'%inputPrevFile)
+        fileIni.write('Output_File_Name="%s.png"\n'%outputPrevFile)
+        fileIni.write('Library_Path="%s"\n'%previewDir)
+        fileIni.write('Width=256\n')
+        fileIni.write('Height=256\n')
+        fileIni.write('Pause_When_Done=0\n')
+        fileIni.write('Output_File_Type=N\n')
+        fileIni.write('Output_Alpha=1\n')
+        fileIni.write('Antialias=on\n')
+        fileIni.write('Sampling_Method=2\n')
+        fileIni.write('Antialias_Depth=3\n')
+        fileIni.write('-d\n')
+        fileIni.close()
+        ##################### pov ##########################################
+        filePov=open("%s"%inputPrevFile,"w")
+        PATname = "PAT_"+string_strip_hyphen(bpy.path.clean_name(tex.name))
+        filePov.write("#declare %s = \n"%PATname)
+        filePov.write(exportPattern(tex))
+
+        filePov.write("#declare Plane =\n")
+        filePov.write("mesh {\n")
+        filePov.write("    triangle {<-2.021,-1.744,2.021>,<-2.021,-1.744,-2.021>,<2.021,-1.744,2.021>}\n")
+        filePov.write("    triangle {<-2.021,-1.744,-2.021>,<2.021,-1.744,-2.021>,<2.021,-1.744,2.021>}\n")
+        filePov.write("    texture{%s}\n"%PATname)
+        filePov.write("}\n")
+        filePov.write("object {Plane}\n")
+        filePov.write("light_source {\n")
+        filePov.write("    <0,4.38,-1.92e-07>\n")
+        filePov.write("    color rgb<4, 4, 4>\n")
+        filePov.write("    parallel\n")
+        filePov.write("    point_at  <0, 0, -1>\n")
+        filePov.write("}\n")
+        filePov.write("camera {\n")
+        filePov.write("    location  <0, 0, 0>\n")
+        filePov.write("    look_at  <0, 0, -1>\n")
+        filePov.write("    right <-1.0, 0, 0>\n")
+        filePov.write("    up <0, 1, 0>\n")
+        filePov.write("    angle  96.805211\n")
+        filePov.write("    rotate  <-90.000003, -0.000000, 0.000000>\n")
+        filePov.write("    translate <0.000000, 0.000000, 0.000000>\n")
+        filePov.write("}\n")
+        filePov.close()
+        ##################### end write ##########################################
+
+        pov_binary = PovrayRender._locate_binary()
+        
+        if sys.platform[:3] == "win":
+            p1=subprocess.Popen(["%s"%pov_binary,"/EXIT","%s"%iniPrevFile],stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
+        else:
+            p1=subprocess.Popen(["%s"%pov_binary,"-d","%s"%iniPrevFile],stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
+        p1.wait()
+
+        tex.use_nodes = True
+        tree = tex.node_tree
+        links = tree.links
+        for n in tree.nodes:
+            tree.nodes.remove(n)
+        im = tree.nodes.new("TextureNodeImage")  
+        pathPrev="%s.png"%outputPrevFile
+        im.image = bpy.data.images.load(pathPrev)
+        name=pathPrev
+        name=name.split("/")
+        name=name[len(name)-1]
+        im.name = name  
+        im.location = 200,200
+        previewer = tree.nodes.new('TextureNodeOutput')    
+        previewer.label = "Preview"
+        previewer.location = 400,400
+        links.new(im.outputs[0],previewer.inputs[0])
+        #tex.type="IMAGE" # makes clip extend possible
+        #tex.extension="CLIP"
+        return {'FINISHED'}    
