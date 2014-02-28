@@ -1318,8 +1318,14 @@ def write_pov(filename, scene=None, info_callback=None):
                     for mod in [m for m in ob.modifiers if (m is not None) and (m.type == 'PARTICLE_SYSTEM')]:
                         if (pSys.settings.render_type == 'PATH') and mod.show_render and (pSys.name == mod.particle_system.name):
                             tstart = time.time()
+                            texturedHair=0
                             if ob.active_material is not None:
-                                pmaterial = ob.active_material
+                                pmaterial = ob.material_slots[pSys.settings.material-1].material
+                                for th in pmaterial.texture_slots:
+                                    if th and th.use:
+                                        if (th.texture.type == 'IMAGE' and th.texture.image) or th.texture.type != 'IMAGE':
+                                            if th.use_map_color_diffuse:
+                                                texturedHair=1
                                 if pmaterial.strand.use_blender_units:
                                     strandStart = pmaterial.strand.root_size
                                     strandEnd = pmaterial.strand.tip_size
@@ -1356,6 +1362,15 @@ def write_pov(filename, scene=None, info_callback=None):
                                         file.write('linear_spline ')
                                         file.write('%i,\n' % (steps))
                                         
+                                    initCo = pSys.co_hair(ob, pindex, 0)
+                                    if ob.active_material is not None:
+                                        pmaterial = ob.material_slots[pSys.settings.material-1].material
+                                        for th in pmaterial.texture_slots:
+                                            if th and th.use:
+                                                if (th.texture.type == 'IMAGE' and th.texture.image) or th.texture.type != 'IMAGE':
+                                                    if th.use_map_color_diffuse:
+                                                        #only overwrite variable for each competing texture for now
+                                                        initColor=th.texture.evaluate((initCo[0],initCo[1],initCo[2]))
                                     for step in range(0, steps):
                                         co = pSys.co_hair(ob, pindex, step)
                                     #for controlPoint in particle.hair_keys:
@@ -1383,6 +1398,9 @@ def write_pov(filename, scene=None, info_callback=None):
                                         if step != steps - 1:
                                             file.write(',\n')
                                         else:
+                                            if texturedHair:
+                                                # Write pigment
+                                                file.write('\npigment{ color rgbf < %.3g, %.3g, %.3g, %.3g> }\n' %(initColor[0], initColor[1], initColor[2], initColor[3]))
                                             # End the sphere_sweep declaration for this hair
                                             file.write('}\n')
                                         
@@ -1397,15 +1415,16 @@ def write_pov(filename, scene=None, info_callback=None):
 
                             file.write('}\n')
                             file.write('\n')
+                            
+                            if not texturedHair:
+                                # Pick up the hair material diffuse color and create a default POV-Ray hair texture.
 
-                            # Pick up the hair color and create a default POV-Ray hair texture.
-
-                            file.write('#ifndef (HairTexture)\n')
-                            file.write('  #declare HairTexture = texture {\n')
-                            file.write('    pigment {rgbt <%s,%s,%s,%s>}\n' % (pmaterial.diffuse_color[0], pmaterial.diffuse_color[1], pmaterial.diffuse_color[2], (pmaterial.strand.width_fade + 0.05)))
-                            file.write('  }\n')
-                            file.write('#end\n')
-                            file.write('\n')
+                                file.write('#ifndef (HairTexture)\n')
+                                file.write('  #declare HairTexture = texture {\n')
+                                file.write('    pigment {rgbt <%s,%s,%s,%s>}\n' % (pmaterial.diffuse_color[0], pmaterial.diffuse_color[1], pmaterial.diffuse_color[2], (pmaterial.strand.width_fade + 0.05)))
+                                file.write('  }\n')
+                                file.write('#end\n')
+                                file.write('\n')
 
                             # Dynamically create a union of the hairstrands (or a subset of them).
                             # By default use every hairstrand, commented line is for hand tweaking test renders.
@@ -1414,8 +1433,11 @@ def write_pov(filename, scene=None, info_callback=None):
                             file.write('union{\n')
                             file.write('  #local I = 0;\n')
                             file.write('  #while (I < %i)\n' % totalNumberOfHairs)
-                            file.write('    object {HairArray[I] texture{HairTexture}\n')
-                            
+                            file.write('    object {HairArray[I]')
+                            if not texturedHair:
+                                file.write(' texture{HairTexture}\n')
+                            else:
+                                file.write('\n')
                             # Translucency of the hair:
                             file.write('        hollow\n')
                             file.write('        double_illuminate\n')
