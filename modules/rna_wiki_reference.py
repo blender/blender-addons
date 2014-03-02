@@ -215,6 +215,12 @@ url_manual_mapping = (
     ("bpy.types.MaterialRaytraceTransparency.*", "Materials/Properties/Raytraced_Transparency#Raytraced_Transparency"),
     # ... todo, many more options
     ("bpy.types.MovieClip.*", "Motion_Tracking#Movie_Clip_Editor"),
+    ("bpy.types.MovieTrackingCamera.*", "Motion_Tracking#Camera_Data_Panel"),
+    ("bpy.types.MovieTrackingStabilization.*", "Motion_Tracking#Tools_available_in_reconstruction_mode"),
+    ("bpy.types.MovieTrackingTrack*", "Motion_Tracking#Tools_available_in_tracking_mode"),
+    ("bpy.types.MovieTracking*", "Motion_Tracking"),
+    ("bpy.types.SpaceClipEditor.*", "Motion_Tracking#Movie_Clip_Editor"),
+    ("bpy.types.ColorManaged*", "Render/Post_Process/CM_And_Exposure"),
     #("bpy.types.NodeTree.*", ""),  # dont document
     ("bpy.types.Object.*",  "Modeling/Objects"),  # catchall, TODO - refine
     ("bpy.types.ParticleSettings.*", "Physics/Particles"),
@@ -227,6 +233,191 @@ url_manual_mapping = (
     ("bpy.types.VectorFont.*", "Modeling/Texts"),
     ("bpy.types.WindowManager.*", "Interface/Window_system"),
     ("bpy.types.World.*", "World"),
+    ("bpy.types.WorldLighting.*ao*", "Lighting/Ambient_Occlusion"),
+    ("bpy.types.WorldLighting.*ambient*", "Lighting/Ambient_Occlusion"),
+    ("bpy.types.WorldLighting.*environment*", "Lighting/Ambient_Light"),
+    ("bpy.types.WorldLighting.*", "Lighting/Ambient_Occlusion#Gather"),  # only other WorldLighting props are in Gather panel
+
+    # *** Cycles ***
+    ("bpy.types.CyclesRenderSettings.*", "Render/Cycles/Integrator"),
+    ("bpy.types.CyclesVisibilitySettings.*", "Render/Cycles/Light_Paths#Ray_Visibility"),
+    ("bpy.types.CyclesWorldSettings.*", "Render/Cycles/World"),
+    ("bpy.types.SceneRenderLayer.*pass*", "Render/Post_Process/Passes"),
+    ("bpy.types.SceneRenderLayer.*", "Render/Post_Process/Layers"),
+    ("bpy.types.Cycles*", "Render/Cycles"),
+
+    # Currently all manual links on all sockets and values (such as Fac, Roughness, Color...) are NodeSocket* type.
+    # It'd be much better if the name of the socket could be used for the manual reference
+    ("bpy.types.NodeSocket*", "Composite_Nodes/Node_Controls"),  # no generic socket type page exists, but composite types are the same
+
+    # *** Cycles Material Nodes ***
+    # Outputs
+    ("bpy.types.ShaderNodeOutputLamp.*", "Render/Cycles/Lamps"),
+    ("bpy.types.ShaderNodeOutputMaterial.*", "Render/Cycles/Materials"),
+    ("bpy.types.ShaderNodeOutputWorld.*", "Render/Cycles/World"),
+    # Shaders
+    ("bpy.types.ShaderNodeAddShader.*", "Render/Cycles/Nodes/Shaders#Mix_and_Add"),
+    ("bpy.types.ShaderNodeAmbientOcclusion.*", "Render/Cycles/Nodes/Shaders#Ambient_Occlusion"),
+    ("bpy.types.ShaderNodeBackground.*", "Render/Cycles/Nodes/Shaders#Background"),
+    ("bpy.types.ShaderNodeBsdfAnisotropic.*", "Render/Cycles/Nodes/Shaders#Anisotropic"),
+    ("bpy.types.ShaderNodeBsdfDiffuse.*", "Render/Cycles/Nodes/Shaders#Diffuse"),
+    ("bpy.types.ShaderNodeBsdfGlass.*", "Render/Cycles/Nodes/Shaders#Glass"),
+    ("bpy.types.ShaderNodeBsdfGlossy.*", "Render/Cycles/Nodes/Shaders#Glossy"),
+    ("bpy.types.ShaderNodeBsdfHair.*", "Render/Cycles/Nodes/Shaders"),  # TODO doc
+    ("bpy.types.ShaderNodeBsdfRefraction.*", "Render/Cycles/Nodes/Shaders#Refraction"),
+    ("bpy.types.ShaderNodeBsdfToon.*", "Render/Cycles/Nodes/Shaders#Toon"),
+    ("bpy.types.ShaderNodeBsdfTranslucent.*", "Render/Cycles/Nodes/Shaders#Translucent"),
+    ("bpy.types.ShaderNodeBsdfTransparent.*", "Render/Cycles/Nodes/Shaders#Transparent"),
+    ("bpy.types.ShaderNodeBsdfVelvet.*", "Render/Cycles/Nodes/Shaders#Velvet"),
+    ("bpy.types.ShaderNodeEmission.*", "Render/Cycles/Nodes/Shaders#Emission"),
+    ("bpy.types.ShaderNodeHoldout.*", "Render/Cycles/Nodes/Shaders#Holdout"),
+    ("bpy.types.ShaderNodeMixShader.*", "Render/Cycles/Nodes/Shaders#Mix_and_Add"),
+    ("bpy.types.ShaderNodeSubsurfaceScattering.*", "Render/Cycles/Nodes/Shaders#Subsurface_Scattering"),
+    ("bpy.types.ShaderNodeVolumeAbsorption.*", "Render/Cycles/Nodes/Shaders"),  # TODO doc
+    ("bpy.types.ShaderNodeVolumeScatter.*", "Render/Cycles/Nodes/Shaders"),  # TODO doc
+    # Textures
+    ("bpy.types.ShaderNodeTexBrick.*", "Render/Cycles/Nodes/Textures#Brick_Texture"),
+    ("bpy.types.ShaderNodeTexChecker.*", "Render/Cycles/Nodes/Textures#Checker_Texture"),
+    ("bpy.types.ShaderNodeTexEnvironment.*", "Render/Cycles/Nodes/Textures#Environment_Texture"),
+    ("bpy.types.ShaderNodeTexGradient.*", "Render/Cycles/Nodes/Textures#Gradient_Texture"),
+    ("bpy.types.ShaderNodeTexImage.*", "Render/Cycles/Nodes/Textures#Image_Texture"),
+    ("bpy.types.ShaderNodeTexMagic.*", "Render/Cycles/Nodes/Textures#Magic_Texture"),
+    ("bpy.types.ShaderNodeTexMusgrave.*", "Render/Cycles/Nodes/Textures#Musgrave_Texture"),
+    ("bpy.types.ShaderNodeTexNoise.*", "Render/Cycles/Nodes/Textures#Noise_Texture"),
+    ("bpy.types.ShaderNodeTexSky.*", "Render/Cycles/Nodes/Textures#Sky_Texture"),
+    ("bpy.types.ShaderNodeTexVoronoi.*", "Render/Cycles/Nodes/Textures#Voronoi_Texture"),
+    ("bpy.types.ShaderNodeTexWave.*", "Render/Cycles/Nodes/Textures#Wave_Texture"),
+    # Other
+    ("bpy.types.ShaderNodeAttribute.*", "Render/Cycles/Nodes/More#Attribute"),
+    ("bpy.types.ShaderNodeBlackbody.*", "Render/Cycles/Nodes/More#Blackbody"),
+    ("bpy.types.ShaderNodeBrightContrast.*", "Composite_Nodes/Types/Color#Bright.2FContrast"),
+    ("bpy.types.ShaderNodeBump.*", "Render/Cycles/Nodes/More#Bump"),
+    ("bpy.types.ShaderNodeCameraData.*", "Render/Cycles/Nodes/More"),  # TODO doc
+    ("bpy.types.ShaderNodeCombineHSV.*", "Composite_Nodes/Types/Convertor#Separate.2FCombine_HSVA_Nodes"),
+    ("bpy.types.ShaderNodeCombineRGB.*", "Composite_Nodes/Types/Convertor#Separate.2FCombine_RGBA_Node"),
+    ("bpy.types.ShaderNodeFresnel.*", "Render/Cycles/Nodes/More#Fresnel"),
+    ("bpy.types.ShaderNodeGamma.*", "Composite_Nodes/Types/Color#Gamma"),
+    ("bpy.types.ShaderNodeGeometry.*", "Render/Cycles/Nodes/More#Geometry"),
+    ("bpy.types.ShaderNodeHairInfo.*", "Render/Cycles/Nodes/More#Hair_Info"),
+    ("bpy.types.ShaderNodeHueSaturation.*", "Composite_Nodes/Types/Color#Hue_Saturation_Node"),
+    ("bpy.types.ShaderNodeInvert.*", "Composite_Nodes/Types/Color#Invert"),
+    ("bpy.types.ShaderNodeLayerWeight.*", "Render/Cycles/Nodes/More#Layer_Weight"),
+    ("bpy.types.ShaderNodeLightFalloff.*", "Render/Cycles/Nodes/More#Light_Falloff"),
+    ("bpy.types.ShaderNodeLightPath.*", "Render/Cycles/Nodes/More#Light_Path"),
+    ("bpy.types.ShaderNodeMapping.*", "Render/Cycles/Nodes/More#Mapping"),
+    ("bpy.types.ShaderNodeMath.*", "Composite_Nodes/Types/Convertor#Math_Node"),
+    ("bpy.types.ShaderNodeMixRGB.*", "Composite_Nodes/Types/Color#Mix_Node"),
+    ("bpy.types.ShaderNodeNormalMap.*", "Render/Cycles/Nodes/More#Normal_Map"),
+    ("bpy.types.ShaderNodeObjectInfo.*", "Render/Cycles/Nodes/More#Object_Info"),
+    ("bpy.types.ShaderNodeParticleInfo.*", "Render/Cycles/Nodes/More#Particle_Info"),
+    ("bpy.types.ShaderNodeRGB.*", "Render/Cycles/Nodes/More#RGB"),
+    ("bpy.types.ShaderNodeRGBCurve.*", "Composite_Nodes/Types/Color#RGB_Curves_Node"),
+    ("bpy.types.ShaderNodeRGBToBW.*", "Composite_Nodes/Types/Convertor#RGB_to_BW_Node"),
+    ("bpy.types.ShaderNodeSeparateHSV.*", "Composite_Nodes/Types/Convertor#Separate.2FCombine_HSVA_Nodes"),
+    ("bpy.types.ShaderNodeSeparateRGB.*", "Composite_Nodes/Types/Convertor#Separate.2FCombine_RGBA_Node"),
+    ("bpy.types.ShaderNodeTangent.*", "Render/Cycles/Nodes/More#Tangent"),
+    ("bpy.types.ShaderNodeTexCoord.*", "Render/Cycles/Nodes/More#Texture_Coordinates"),
+    ("bpy.types.ShaderNodeValue.*", "Render/Cycles/Nodes/More#Value"),
+    ("bpy.types.ShaderNodeVectorCurve.*", "Composite_Nodes/Types/Vector#Vector_Curves_Node"),
+    ("bpy.types.ShaderNodeVectorMath.*", "Render/Cycles/Nodes/More"),  # TODO doc
+    ("bpy.types.ShaderNodeVectorTransform.*", "Render/Cycles/Nodes/More#Vector_Transform"),
+    ("bpy.types.ShaderNodeWavelength.*", "Render/Cycles/Nodes/More#Wavelength"),
+    ("bpy.types.ShaderNodeWireframe.*", "Render/Cycles/Nodes/More#Wireframe"),
+
+    ("bpy.types.ShaderNodeGroup.*", "Composite_Nodes/Node_Groups"),
+    ("bpy.types.ShaderNode*", "Render/Cycles/Nodes"),
+
+    ("bpy.types.ShaderNodeScript.*", "Render/Cycles/Nodes/OSL"),
+
+    # *** Compositing Nodes ***
+    # Input
+    ("bpy.types.CompositorNodeBokehImage.*", "Composite_Nodes/Types/Input"),  # TODO doc
+    ("bpy.types.CompositorNodeImage.*", "Composite_Nodes/Types/Input#Image_node"),
+    ("bpy.types.CompositorNodeMask.*", "Composite_Nodes/Types/Input"),  # TODO doc
+    ("bpy.types.CompositorNodeMovieClip.*", "Composite_Nodes/Types/Input"),  # TODO doc
+    ("bpy.types.CompositorNodeRGB.*", "Composite_Nodes/Types/Input#RGB_node"),
+    ("bpy.types.CompositorNodeRLayers.*", "Composite_Nodes/Types/Input#Render_Layers_Node"),
+    ("bpy.types.CompositorNodeTexture.*", "Composite_Nodes/Types/Input#Texture_Node"),
+    ("bpy.types.CompositorNodeTime.*", "Composite_Nodes/Types/Input#Time_node"),
+    ("bpy.types.CompositorNodeTrackPos.*", "Composite_Nodes/Types/Input"),  # TODO doc
+    ("bpy.types.CompositorNodeValue.*", "Composite_Nodes/Types/Input#Value_node"),
+    # Output
+    ("bpy.types.CompositorNodeComposite.*", "Composite_Nodes/Types/Output#Composite_Output_Nodes"),
+    ("bpy.types.CompositorNodeLevels.*", "Composite_Nodes/Types/Output#Levels_Node"),
+    ("bpy.types.CompositorNodeOutputFile*", "Composite_Nodes/Types/Output#File_Output_Node"),
+    ("bpy.types.CompositorNodeSplitViewer.*", "Composite_Nodes/Types/Output#SplitViewer_Node"),
+    ("bpy.types.CompositorNodeViewer.*", "Composite_Nodes/Types/Output#Viewer"),
+    # Color
+    ("bpy.types.CompositorNodeAlphaOver.*", "Composite_Nodes/Types/Color#AlphaOver_Node"),
+    ("bpy.types.CompositorNodeBrightContrast.*", "Composite_Nodes/Types/Color#Bright.2FContrast"),
+    ("bpy.types.CompositorNodeColorBalance.*", "Composite_Nodes/Types/Color#Color_Balance"),
+    ("bpy.types.CompositorNodeColorCorrection.*", "Composite_Nodes/Types/Color"),  # TODO doc
+    ("bpy.types.CompositorNodeCurveRGB.*", "Composite_Nodes/Types/Color#RGB_Curves_Node"),
+    ("bpy.types.CompositorNodeGamma.*", "Composite_Nodes/Types/Color#Gamma"),
+    ("bpy.types.CompositorNodeHueCorrect.*", "Composite_Nodes/Types/Color#Hue_Correct"),
+    ("bpy.types.CompositorNodeHueSat.*", "Composite_Nodes/Types/Color#Hue_Saturation_Node"),
+    ("bpy.types.CompositorNodeInvert.*", "Composite_Nodes/Types/Color#Invert"),
+    ("bpy.types.CompositorNodeMixRGB.*", "Composite_Nodes/Types/Color#Mix_Node"),
+    ("bpy.types.CompositorNodeTonemap.*", "Composite_Nodes/Types/Color#Tone_Map"),
+    ("bpy.types.CompositorNodeZcombine.*", "Composite_Nodes/Types/Color#Z-Combine_Node"),
+    # Converter (Misspelt 'Convertor' in wiki)
+    ("bpy.types.CompositorNodeSep*", "Composite_Nodes/Types/Convertor#Combine.2FSeparate_Nodes"),
+    ("bpy.types.CompositorNodeComb*", "Composite_Nodes/Types/Convertor#Combine.2FSeparate_Nodes"),
+    ("bpy.types.CompositorNodeIDMask.*", "Composite_Nodes/Types/Convertor#ID_Mask_Node"),
+    ("bpy.types.CompositorNodeMath.*", "Composite_Nodes/Types/Convertor#Math_Node"),
+    ("bpy.types.CompositorNodePremulKey.*", "Composite_Nodes/Types/Convertor#Alpha_Convert"),
+    ("bpy.types.CompositorNodeRGBToBW.*", "Composite_Nodes/Types/Convertor#RGB_to_BW_Node"),
+    ("bpy.types.CompositorNodeSetAlpha.*", "Composite_Nodes/Types/Convertor#Set_Alpha_Node"),
+    # Filter
+    ("bpy.types.CompositorNodeBilateralblur.*", "Composite_Nodes/Types/Filter#Bilateral_Blur_Node"),
+    ("bpy.types.CompositorNodeBlur.*", "Composite_Nodes/Types/Filter#Blur_Node"),
+    ("bpy.types.CompositorNodeBokehBlur.*", "Composite_Nodes/Types/Filter"),  # TODO doc
+    ("bpy.types.CompositorNodeDBlur.*", "Composite_Nodes/Types/Filter#Directional_Blur_Node"),
+    ("bpy.types.CompositorNodeDefocus.*", "Composite_Nodes/Types/Filter#Defocus"),
+    ("bpy.types.CompositorNodeDespeckle.*", "Composite_Nodes/Types/Filter"),  # TODO doc
+    ("bpy.types.CompositorNodeDilateErode.*", "Composite_Nodes/Types/Filter#Dilate.2FErode_Node"),
+    ("bpy.types.CompositorNodeFilter.*", "Composite_Nodes/Types/Filter#Filter_Node"),
+    ("bpy.types.CompositorNodeGlare.*", "Composite_Nodes/Types/Filter"),  # TODO doc
+    ("bpy.types.CompositorNodeInpaint.*", "Composite_Nodes/Types/Filter"),  # TODO doc
+    ("bpy.types.CompositorNodePixelate.*", "Composite_Nodes/Types/Filter"),  # TODO doc
+    ("bpy.types.CompositorNodeVecBlur.*", "Composite_Nodes/Types/Filter#Vector_.28Motion.29_Blur_Node"),
+    # Vector
+    ("bpy.types.CompositorNodeCurveVec.*", "Composite_Nodes/Types/Vector#Vector_Curves_Node"),
+    ("bpy.types.CompositorNodeMapRange.*", "Composite_Nodes/Types/Vector"),  # TODO doc
+    ("bpy.types.CompositorNodeMapValue.*", "Composite_Nodes/Types/Vector#Map_Value_Node"),
+    ("bpy.types.CompositorNodeNormal.*", "Composite_Nodes/Types/Vector#Normal_Node"),
+    ("bpy.types.CompositorNodeNormalize.*", "Composite_Nodes/Types/Vector#Normalize"),
+    # Matte
+    ("bpy.types.CompositorNodeBoxMask.*", "Composite_Nodes/Types/Matte"),  # TODO doc
+    ("bpy.types.CompositorNodeChannelMatte.*", "Composite_Nodes/Types/Matte#Channel_Key_Node"),
+    ("bpy.types.CompositorNodeChromaMatte.*", "Composite_Nodes/Types/Matte#Chroma_Key_Node"),
+    ("bpy.types.CompositorNodeColorMatte.*", "Composite_Nodes/Types/Matte#Color_Key"),
+    ("bpy.types.CompositorNodeColorSpill.*", "Composite_Nodes/Types/Matte#Color_Spill_Node"),
+    ("bpy.types.CompositorNodeDiffMatte.*", "Composite_Nodes/Types/Matte#Difference_Key_Node"),
+    ("bpy.types.CompositorNodeDistanceMatte.*", "Composite_Nodes/Types/Matte#Distance_Key"),  # TODO doc (header is there, no text)
+    ("bpy.types.CompositorNodeDoubleEdgeMask.*", "Composite_Nodes/Types/Matte"),  # TODO doc
+    ("bpy.types.CompositorNodeEllipseMask.*", "Composite_Nodes/Types/Matte"),  # TODO doc
+    ("bpy.types.CompositorNodeKeying.*", "Composite_Nodes/Types/Matte"),  # TODO doc
+    ("bpy.types.CompositorNodeKeyingScreen.*", "Composite_Nodes/Types/Matte"),  # TODO doc
+    ("bpy.types.CompositorNodeLumaMatte.*", "Composite_Nodes/Types/Matte#Luminance_Key_Node"),
+    # Distort
+    ("bpy.types.CompositorNodeCrop.*", "Composite_Nodes/Types/Distort#Crop_Node"),
+    ("bpy.types.CompositorNodeDisplace.*", "Composite_Nodes/Types/Distort#Displace_Node"),
+    ("bpy.types.CompositorNodeFlip.*", "Composite_Nodes/Types/Distort#Flip_Node"),
+    ("bpy.types.CompositorNodeLensdist.*", "Composite_Nodes/Types/Distort#Lens_Distortion"),
+    ("bpy.types.CompositorNodeMapUV.*", "Composite_Nodes/Types/Distort#Map_UV_Node"),
+    ("bpy.types.CompositorNodeMovieDistortion.*", "Composite_Nodes/Types/Distort"),  # TODO doc
+    ("bpy.types.CompositorNodePlaneTrackDeform.*", "Composite_Nodes/Types/Distort"),  # TODO doc
+    ("bpy.types.CompositorNodeRotate.*", "Composite_Nodes/Types/Distort#Rotate_Node"),
+    ("bpy.types.CompositorNodeScale.*", "Composite_Nodes/Types/Distort#Scale_Node"),
+    ("bpy.types.CompositorNodeStabilize.*", "Composite_Nodes/Types/Distort"),  # TODO doc
+    ("bpy.types.CompositorNodeTransform.*", "Composite_Nodes/Types/Distort"),  # TODO doc
+    ("bpy.types.CompositorNodeTranslate.*", "Composite_Nodes/Types/Distort#Translate_Node"),
+    #Other
+    ("bpy.types.CompositorNodeGroup.*", "Composite_Nodes/Node_Groups"),
+    ("bpy.types.CompositorNode*", "Composite_Nodes/Types"),  # catch anything else
+
+    ("bpy.types.ColorRamp*", "Materials/Properties/Ramps"),
 
     # *** ID Subclasses (cont.) Object Data ***
     ("bpy.types.Mesh.*",  "Modeling/Meshes"),  # catchall, TODO - refine
