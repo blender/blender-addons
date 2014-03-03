@@ -55,7 +55,7 @@ def getDisplayLocation(context):
 
 
 def getBoundingBox(current_width, current_height, new_text):
-    w,h = blf.dimensions(0,new_text)
+    w, h = blf.dimensions(0, new_text)
     if w > current_width:
         current_width = w
     current_height += h
@@ -101,7 +101,8 @@ def draw_callback_px_text(self, context):
     if mouse_size > font_size*row_count and not sc.screencast_keys_mouse_position == 'right':
         shift = (mouse_size - font_size*row_count) / 2
 
-    text_width, text_height = 0,0
+    text_width = 0
+    text_height = 0
     row_count = 0
     alpha = 1.0
 
@@ -169,12 +170,14 @@ def draw_callback_px_box(self, context):
     if sc.screencast_keys_mouse_position == 'right':
         mouse_size = 25
 
-    box_draw   = sc.screencast_keys_box_draw
+    box_draw = sc.screencast_keys_box_draw
     pos_x, pos_y = getDisplayLocation(context)
 
     # get text-width/height to resize the box
     blf.size(0, sc.screencast_keys_font_size, 72)
-    box_width, box_height = sc.screencast_keys_box_width,0
+    box_width_user = sc.screencast_keys_box_width
+    box_width = 0
+    box_height = 0
     final = 0
     row_count = 0
     box_hide = sc.screencast_keys_box_hide
@@ -199,7 +202,12 @@ def draw_callback_px_box(self, context):
         padding_y = 12
         x0 = max(0, pos_x - padding_x)
         y0 = max(0, pos_y - padding_y)
-        x1 = pos_x + box_width + mouse_size * MOUSE_RATIO * 1.3 + padding_x
+        if sc.screencast_keys_mouse_position == 'left':
+            box_width += mouse_size * MOUSE_RATIO * bool(row_count)
+            x1 = max(box_width, box_width_user) + pos_x + mouse_size * MOUSE_RATIO + padding_x
+        else:
+            x1 = max(box_width, box_width_user) + pos_x + padding_x
+            
         y1 = pos_y + max(mouse_size, font_size * row_count) + padding_y
         positions = [[x0, y0], [x0, y1], [x1, y1], [x1, y0]]
         settings = [[bgl.GL_QUADS, min(0.0, box_color_alpha)], [bgl.GL_LINE_LOOP, min(0.0, box_color_alpha)]]
@@ -224,8 +232,8 @@ def draw_callback_px_box(self, context):
 
 
 def draw_callback_px(self, context):
-    draw_callback_px_text(self, context)
     draw_callback_px_box(self, context)
+    draw_callback_px_text(self, context)
 
 
 def draw_last_operator(context, pos_x, pos_y):
@@ -339,7 +347,7 @@ def draw_mouse(context, shape, style, alpha):
 def get_shape_data(shape):
     data = []
     if shape == "mouse":
-        data = [[[0.404, 0.032, 0.0],
+        data = [[[0.284, 0.002, 0.0],
             [0.096, 0.002, 0.0],
             [0.059, 0.126, 0.0],
             [0.04, 0.213, 0.0]],
@@ -362,7 +370,7 @@ def get_shape_data(shape):
             [[0.499, 0.213, 0.0],
             [0.490, 0.126, 0.0],
             [0.432, 0.002, 0.0],
-            [0.404, 0.032, 0.0]]]
+            [0.284, 0.002, 0.0]]]
     elif shape == "left_button":
         data = [[[0.154, 0.763, 0.0],
             [0.126, 0.755, 0.0],
