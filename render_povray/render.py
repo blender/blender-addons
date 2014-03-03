@@ -1400,7 +1400,7 @@ def write_pov(filename, scene=None, info_callback=None):
                                         else:
                                             if texturedHair:
                                                 # Write pigment
-                                                file.write('\npigment{ color rgbf < %.3g, %.3g, %.3g, %.3g> }\n' %(initColor[0], initColor[1], initColor[2], initColor[3]))
+                                                file.write('\npigment{ color rgbf < %.3g, %.3g, %.3g, %.3g> }\n' %(initColor[0], initColor[1], initColor[2], 1.0-initColor[3]))
                                             # End the sphere_sweep declaration for this hair
                                             file.write('}\n')
                                         
