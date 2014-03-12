@@ -1320,7 +1320,7 @@ def write_pov(filename, scene=None, info_callback=None):
                             tstart = time.time()
                             texturedHair=0
                             if ob.active_material is not None:
-                                pmaterial = ob.material_slots[pSys.settings.material-1].material
+                                pmaterial = ob.material_slots[pSys.settings.material - 1].material
                                 for th in pmaterial.texture_slots:
                                     if th and th.use:
                                         if (th.texture.type == 'IMAGE' and th.texture.image) or th.texture.type != 'IMAGE':
@@ -1361,16 +1361,30 @@ def write_pov(filename, scene=None, info_callback=None):
                                     else:
                                         file.write('linear_spline ')
                                         file.write('%i,\n' % (steps))
-                                        
-                                    initCo = pSys.co_hair(ob, pindex, 0)
+                                    #changing world coordinates to object local coordinates by multiplying with inverted matrix    
+                                    initCo = ob.matrix_world.inverted()*(pSys.co_hair(ob, pindex, 0))
                                     if ob.active_material is not None:
                                         pmaterial = ob.material_slots[pSys.settings.material-1].material
                                         for th in pmaterial.texture_slots:
-                                            if th and th.use:
-                                                if (th.texture.type == 'IMAGE' and th.texture.image) or th.texture.type != 'IMAGE':
-                                                    if th.use_map_color_diffuse:
-                                                        #only overwrite variable for each competing texture for now
-                                                        initColor=th.texture.evaluate((initCo[0],initCo[1],initCo[2]))
+                                            if th and th.use and th.use_map_color_diffuse:
+                                                #treat POV textures as bitmaps
+                                                if (th.texture.type == 'IMAGE' and th.texture.image and th.texture_coords == 'UV' and ob.data.uv_textures != None): # or (th.texture.pov.tex_pattern_type != 'emulator' and th.texture_coords == 'UV' and ob.data.uv_textures != None):
+                                                    image=th.texture.image
+                                                    image_width = image.size[0]
+                                                    image_height = image.size[1]
+                                                    image_pixels = image.pixels[:]
+                                                    uv_co = pSys.uv_on_emitter(mod, pSys.particles[pindex], pindex, 0)
+                                                    x_co = round(uv_co[0] * (image_width - 1))
+                                                    y_co = round(uv_co[1] * (image_height - 1))
+                                                    pixelnumber = (image_width * y_co) + x_co
+                                                    r = image_pixels[pixelnumber*4]
+                                                    g = image_pixels[pixelnumber*4+1]
+                                                    b = image_pixels[pixelnumber*4+2]
+                                                    a = image_pixels[pixelnumber*4+3]
+                                                    initColor=(r,g,b,a)                                              
+                                                else:
+                                                    #only overwrite variable for each competing texture for now
+                                                    initColor=th.texture.evaluate((initCo[0],initCo[1],initCo[2]))
                                     for step in range(0, steps):
                                         co = pSys.co_hair(ob, pindex, step)
                                     #for controlPoint in particle.hair_keys:
@@ -1399,7 +1413,7 @@ def write_pov(filename, scene=None, info_callback=None):
                                             file.write(',\n')
                                         else:
                                             if texturedHair:
-                                                # Write pigment
+                                                # Write pigment and alpha (between Pov and Blender alpha 0 and 1 are reversed)
                                                 file.write('\npigment{ color rgbf < %.3g, %.3g, %.3g, %.3g> }\n' %(initColor[0], initColor[1], initColor[2], 1.0-initColor[3]))
                                             # End the sphere_sweep declaration for this hair
                                             file.write('}\n')
@@ -1490,7 +1504,7 @@ def write_pov(filename, scene=None, info_callback=None):
 #############################################
             # Generating a name for object just like materials to be able to use it
             # (baking for now or anything else).
-            # XXX I don't understand that: if we are here, sel if a non-empty iterable,
+            # XXX I don't understand that:&nbsp;if we are here, sel if a non-empty iterable,
             #     so this condition is always True, IMO -- mont29
             if sel:
                 name_orig = "OB" + ob.name
