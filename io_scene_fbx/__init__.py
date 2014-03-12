@@ -16,12 +16,12 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-# <pep8-80 compliant>
+# <pep8 compliant>
 
 bl_info = {
     "name": "Autodesk FBX format",
-    "author": "Campbell Barton",
-    "blender": (2, 59, 0),
+    "author": "Campbell Barton, Bastien Montagne",
+    "blender": (2, 70, 0),
     "location": "File > Import-Export",
     "description": "Export FBX meshes, UV's, vertex colors, materials, "
                    "textures, cameras, lamps and actions",
@@ -37,6 +37,8 @@ if "bpy" in locals():
     import imp
     if "import_fbx" in locals():
         imp.reload(import_fbx)
+    if "export_fbx_bin" in locals():
+        imp.reload(export_fbx_bin)
     if "export_fbx" in locals():
         imp.reload(export_fbx)
 
@@ -148,6 +150,15 @@ class ExportFBX(bpy.types.Operator, ExportHelper):
     # List of operator properties, the attributes will be assigned
     # to the class instance from the operator settings before calling.
 
+    version = EnumProperty(
+            items=(('BIN7400', "FBX 7.4 binary", "Newer 7.4 binary version, still in development (no animation yet)"),
+                   ('ASCII6100', "FBX 6.1 ASCII", "Legacy 6.1 ascii version"),
+                  ),
+            name="Exporter Version",
+            description="Choose which version of the exporter to use",
+            default='BIN7400',
+            )
+
     use_selection = BoolProperty(
             name="Selected Objects",
             description="Export selected objects on visible layers",
@@ -211,7 +222,18 @@ class ExportFBX(bpy.types.Operator, ExportHelper):
             )
 
     use_mesh_edges = BoolProperty(
-            name="Include Edges",
+            name="Include Loose Edges",
+            default=False,
+            )
+    use_tspace = BoolProperty(
+            name="Include Tangent Space",
+            description=("Add binormal and tangent vectors, together with normal they form the tangent space "
+                         "(will only work correctly with tris/quads only meshes!)"),
+            default=False,
+            )
+    use_custom_properties = BoolProperty(
+            name="Custom Properties",
+            description="Export custom properties",
             default=False,
             )
     use_armature_deform_only = BoolProperty(
@@ -251,6 +273,11 @@ class ExportFBX(bpy.types.Operator, ExportHelper):
             default=6.0,  # default: 10^-4 frames.
             )
     path_mode = path_reference_mode
+    embed_textures = BoolProperty(
+            name="Embed Textures",
+            description="Embed textures in FBX binary file (only for \"Copy\" path mode!)",
+            default=False,
+            )
     batch_mode = EnumProperty(
             name="Batch Mode",
             items=(('OFF', "Off", "Active scene to file"),
@@ -284,17 +311,19 @@ class ExportFBX(bpy.types.Operator, ExportHelper):
                                          to_up=self.axis_up,
                                          ).to_4x4())
 
-        keywords = self.as_keywords(ignore=("axis_forward",
-                                            "axis_up",
-                                            "global_scale",
+        keywords = self.as_keywords(ignore=("global_scale",
                                             "check_existing",
                                             "filter_glob",
                                             ))
 
         keywords["global_matrix"] = global_matrix
 
-        from . import export_fbx
-        return export_fbx.save(self, context, **keywords)
+        if self.version == 'BIN7400':
+            from . import export_fbx_bin
+            return export_fbx_bin.save(self, context, **keywords)
+        else:
+            from . import export_fbx
+            return export_fbx.save(self, context, **keywords)
 
 
 def menu_func_import(self, context):

@@ -248,6 +248,7 @@ def save_single(operator, scene, filepath="",
         path_mode='AUTO',
         use_mesh_edges=True,
         use_default_take=True,
+        **kwargs
     ):
 
     import bpy_extras.io_utils

@@ -32,6 +32,8 @@ from struct import unpack
 import array
 import zlib
 
+from . import data_types
+
 # at the end of each nested block, there is a NUL record to indicate
 # that the sub-scope exists (i.e. to distinguish between P: and P : {})
 # this NUL record is 13 bytes long.
@@ -87,12 +89,12 @@ read_data_dict = {
     b'L'[0]: lambda read: unpack(b'<q', read(8))[0],  # 64 bit int
     b'R'[0]: lambda read: read(read_uint(read)),      # binary data
     b'S'[0]: lambda read: read(read_uint(read)),      # string data
-    b'f'[0]: lambda read: unpack_array(read, 'f', 4, False),  # array (float)
-    b'i'[0]: lambda read: unpack_array(read, 'i', 4, True),   # array (int)
-    b'd'[0]: lambda read: unpack_array(read, 'd', 8, False),  # array (double)
-    b'l'[0]: lambda read: unpack_array(read, 'q', 8, True),   # array (long)
-    b'b'[0]: lambda read: unpack_array(read, 'b', 1, False),  # array (bool)
-    b'c'[0]: lambda read: unpack_array(read, 'B', 1, False),  # array (ubyte)
+    b'f'[0]: lambda read: unpack_array(read, data_types.ARRAY_FLOAT32, 4, False),  # array (float)
+    b'i'[0]: lambda read: unpack_array(read, data_types.ARRAY_INT32, 4, True),   # array (int)
+    b'd'[0]: lambda read: unpack_array(read, data_types.ARRAY_FLOAT64, 8, False),  # array (double)
+    b'l'[0]: lambda read: unpack_array(read, data_types.ARRAY_INT64, 8, True),   # array (long)
+    b'b'[0]: lambda read: unpack_array(read, data_types.ARRAY_BOOL, 1, False),  # array (bool)
+    b'c'[0]: lambda read: unpack_array(read, data_types.ARRAY_BYTE, 1, False),  # array (ubyte)
     }
 
 
@@ -166,24 +168,3 @@ def parse(fn, use_namedtuple=True):
 
     args = (b'', [], bytearray(0), root_elems)
     return FBXElem(*args) if use_namedtuple else args, fbx_version
-
-# Inline module, only for external use
-# pyfbx.data_types
-data_types = type(array)("data_types")
-data_types.__dict__.update(
-dict(
-INT16 = b'Y'[0],
-BOOL = b'C'[0],
-INT32 = b'I'[0],
-FLOAT32 = b'F'[0],
-FLOAT64 = b'D'[0],
-INT64 = b'L'[0],
-BYTES = b'R'[0],
-STRING = b'S'[0],
-FLOAT32_ARRAY = b'f'[0],
-INT32_ARRAY = b'i'[0],
-FLOAT64_ARRAY = b'd'[0],
-INT64_ARRAY = b'l'[0],
-BOOL_ARRAY = b'b'[0],
-BYTE_ARRAY = b'c'[0],
-))

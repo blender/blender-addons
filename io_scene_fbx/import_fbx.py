@@ -841,7 +841,17 @@ def blen_read_light(fbx_tmpl, fbx_obj, global_scale):
     lamp = bpy.data.lamps.new(name=elem_name_utf8, type=light_type)
 
     if light_type == 'SPOT':
-        lamp.spot_size = math.radians(elem_props_get_number(fbx_props, b'Cone angle', 45.0))
+        spot_size = elem_props_get_number(fbx_props, b'OuterAngle', None)
+        if spot_size is None:
+            # Deprecated.
+            spot_size = elem_props_get_number(fbx_props, b'Cone angle', 45.0)
+        lamp.spot_size = math.radians(spot_size)
+
+        spot_blend = elem_props_get_number(fbx_props, b'InnerAngle', None)
+        if spot_blend is None:
+            # Deprecated.
+            spot_blend = elem_props_get_number(fbx_props, b'HotSpot', 45.0)
+        lamp.spot_blend = 1.0 - (spot_blend / spot_size)
 
     # TODO, cycles
     lamp.color = elem_props_get_color_rgb(fbx_props, b'Color', (1.0, 1.0, 1.0))
