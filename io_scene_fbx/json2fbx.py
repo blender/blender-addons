@@ -140,7 +140,8 @@ def parse_json(json_root):
 
 
 def json2fbx(fn):
-    import os, json
+    import os
+    import json
 
     fn_fbx = "%s.fbx" % os.path.splitext(fn)[0]
     print("Writing: %r " % fn_fbx, end="")

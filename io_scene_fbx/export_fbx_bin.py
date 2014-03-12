@@ -69,7 +69,8 @@ FBX_KTIME = 46186158000  # This is the number of "ktimes" in one second (yep, pr
 
 MAT_CONVERT_LAMP = Matrix.Rotation(math.pi / 2.0, 4, 'X')  # Blender is -Z, FBX is -Y.
 MAT_CONVERT_CAMERA = Matrix.Rotation(math.pi / 2.0, 4, 'Y')  # Blender is -Z, FBX is +X.
-MAT_CONVERT_BONE = Matrix() #Matrix.Rotation(math.pi / -2.0, 4, 'X')  # Blender is +Y, FBX is +Z.
+#MAT_CONVERT_BONE = Matrix.Rotation(math.pi / -2.0, 4, 'X')  # Blender is +Y, FBX is +Z.
+MAT_CONVERT_BONE = Matrix()
 
 
 # Lamps.
@@ -105,6 +106,7 @@ UNITS = {
     "second": 1.0,  # Ref unit!
     "ktime": FBX_KTIME,
 }
+
 
 def units_convert(val, u_from, u_to):
     """Convert value."""
@@ -199,7 +201,7 @@ def get_fbxuid_from_key(key):
     return uid
 
 
-# XXX Not sure we'll actually need this one? 
+# XXX Not sure we'll actually need this one?
 def get_key_from_fbxuid(uid):
     """
     Return the key which generated this uid.
@@ -389,7 +391,7 @@ def elem_props_template_set(template, elem, ptype_name, name, value):
     tmpl_val, tmpl_ptype = template.properties.get(name, (None, None))
     if tmpl_ptype is not None:
         if ((len(ptype) == 4 and (tmpl_val, tmpl_ptype) == (value, ptype_name)) or
-            (len(ptype) > 4 and (tuple(tmpl_val), tmpl_ptype) == (tuple(value), ptype_name))):
+                (len(ptype) > 4 and (tuple(tmpl_val), tmpl_ptype) == (tuple(value), ptype_name))):
             return  # Already in template and same value.
     _elem_props_set(elem, ptype, name, value)
 
@@ -650,7 +652,7 @@ def fbx_template_def_video(scene, settings, override_defaults=None, nbr_users=0)
         props.update(override_defaults)
     return FBXTemplate(b"Video", b"FbxVideo", props, nbr_users)
 
- 
+
 def fbx_template_def_pose(scene, settings, override_defaults=None, nbr_users=0):
     props = {}
     if override_defaults is not None:
@@ -889,7 +891,7 @@ def fbx_data_mesh_elements(root, me, scene_data):
     #
     # We do loose edges as two-vertices faces, if enabled...
     #
-    # Note we have to process Edges in the same time, as they are based on poly's loops... 
+    # Note we have to process Edges in the same time, as they are based on poly's loops...
     loop_nbr = len(me.loops)
     t_pvi = array.array(data_types.ARRAY_INT32, (0,) * loop_nbr)
     t_ls = [None] * len(me.polygons)
@@ -975,7 +977,7 @@ def fbx_data_mesh_elements(root, me, scene_data):
         elem_data_single_string(lay_smooth, b"Name", b"")
         elem_data_single_string(lay_smooth, b"MappingInformationType", _map)
         elem_data_single_string(lay_smooth, b"ReferenceInformationType", b"Direct")
-        elem_data_single_int32_array(lay_smooth, b"Smoothing", t_ps);  # Sight, int32 for bool...
+        elem_data_single_int32_array(lay_smooth, b"Smoothing", t_ps)  # Sight, int32 for bool...
         del t_ps
 
     # TODO: Edge crease (LayerElementCrease).
@@ -1068,7 +1070,8 @@ def fbx_data_mesh_elements(root, me, scene_data):
     if vcolnumber:
         def _coltuples_gen(raw_cols):
             def _infinite_gen(val):
-                while 1: yield val
+                while 1:
+                    yield val
             return zip(*(iter(raw_cols),) * 3 + (_infinite_gen(1.0),))  # We need a fake alpha...
 
         t_lc = array.array(data_types.ARRAY_FLOAT64, [0.0] * len(me.loops) * 3)
@@ -1084,7 +1087,7 @@ def fbx_data_mesh_elements(root, me, scene_data):
             elem_data_single_float64_array(lay_vcol, b"Colors", chain(*col2idx))  # Flatten again...
 
             col2idx = {col: idx for idx, col in enumerate(col2idx)}
-            elem_data_single_int32_array(lay_vcol, b"ColorIndex", (col2idx[c] for c in _coltuples_gen(t_lc)));
+            elem_data_single_int32_array(lay_vcol, b"ColorIndex", (col2idx[c] for c in _coltuples_gen(t_lc)))
             del col2idx
         del t_lc
         del _coltuples_gen
@@ -1110,7 +1113,7 @@ def fbx_data_mesh_elements(root, me, scene_data):
             elem_data_single_float64_array(lay_uv, b"UV", chain(*uv2idx))  # Flatten again...
 
             uv2idx = {uv: idx for idx, uv in enumerate(uv2idx)}
-            elem_data_single_int32_array(lay_uv, b"UVIndex", (uv2idx[uv] for uv in _uvtuples_gen(t_luv)));
+            elem_data_single_int32_array(lay_uv, b"UVIndex", (uv2idx[uv] for uv in _uvtuples_gen(t_luv)))
             del uv2idx
         del t_luv
         del _uvtuples_gen
@@ -1224,7 +1227,7 @@ def fbx_data_material_elements(root, mat, scene_data):
     elem_props_template_set(tmpl, props, "p_color_rgb", b"TransparentColor", mat.diffuse_color)
     elem_props_template_set(tmpl, props, "p_number", b"TransparencyFactor", mat.alpha if mat.use_transparency else 1.0)
     # Those are for later!
-    """ 
+    """
     b"NormalMap": ((0.0, 0.0, 0.0), "p_vector_3d"),
     b"Bump": ((0.0, 0.0, 0.0), "p_vector_3d"),
     b"BumpFactor": (1.0, "p_number"),
@@ -1317,7 +1320,7 @@ def fbx_data_texture_file_elements(root, tex, scene_data):
     if scene_data.settings.use_custom_properties:
         fbx_data_element_custom_properties(tmpl, props, tex.texture)
 
- 
+
 def fbx_data_video_elements(root, vid, scene_data):
     """
     Write the actual image data block.
@@ -1362,7 +1365,7 @@ def fbx_data_armature_elements(root, armature, scene_data):
         fbx_bo = elem_data_single_int64(root, b"NodeAttribute", get_fbxuid_from_key(bo_data_key))
         fbx_bo.add_string(fbx_name_class(bo.name.encode(), b"NodeAttribute"))
         fbx_bo.add_string(b"LimbNode")
-        elem_data_single_string(fbx_bo, b"TypeFlags", b"Skeleton")    
+        elem_data_single_string(fbx_bo, b"TypeFlags", b"Skeleton")
 
         props = elem_properties(fbx_bo)
         elem_props_template_set(tmpl, props, "p_number", b"Size", (bo.tail_local - bo.head_local).length)
@@ -1370,7 +1373,6 @@ def fbx_data_armature_elements(root, armature, scene_data):
         # Custom properties.
         if scene_data.settings.use_custom_properties:
             fbx_data_element_custom_properties(tmpl, props, bo)
-
 
     # Deformers and BindPoses.
     # Note: we might also use Deformers for our "parent to vertex" stuff???
@@ -1413,8 +1415,8 @@ def fbx_data_armature_elements(root, armature, scene_data):
 
             for bo, clstr_key in clusters.items():
                 # Find which vertices are affected by this bone/vgroup pair, and matching weights.
-                indices = [];
-                weights = [];
+                indices = []
+                weights = []
                 vg_idx = obj.vertex_groups[bo.name].index
                 for idx, v in enumerate(me.vertices):
                     vert_vg = [vg for vg in v.groups if vg.group == vg_idx]
@@ -1438,8 +1440,9 @@ def fbx_data_armature_elements(root, armature, scene_data):
                 # Transform and TransformLink matrices...
                 # They seem to be mostly the same as BindPose ones???
                 # WARNING! Even though official FBX API presents Transform in global space,
-                #          **it is stored in bone space in FBX data!** See
-                #           http://area.autodesk.com/forum/autodesk-fbx/fbx-sdk/why-the-values-return-by-fbxcluster-gettransformmatrix-x-not-same-with-the-value-in-ascii-fbx-file/
+                #          **it is stored in bone space in FBX data!** See:
+                #          http://area.autodesk.com/forum/autodesk-fbx/fbx-sdk/why-the-values-return-
+                #                 by-fbxcluster-gettransformmatrix-x-not-same-with-the-value-in-ascii-fbx-file/
                 elem_data_single_float64_array(fbx_clstr, b"Transform",
                                                matrix_to_array(mat_world_bones[bo].inverted() * mat_world_obj))
                 elem_data_single_float64_array(fbx_clstr, b"TransformLink", matrix_to_array(mat_world_bones[bo]))
@@ -1726,7 +1729,8 @@ def fbx_data_from_scene(scene, settings):
         templates[b"BindPose"] = fbx_template_def_pose(scene, settings, nbr_users=len(arm_parents))
 
     if data_deformers:
-        nbr = len(data_deformers) + sum(len(clusters) for def_me in data_deformers.values() for a, b, clusters in def_me.values())
+        nbr = len(data_deformers)
+        nbr += sum(len(clusters) for def_me in data_deformers.values() for a, b, clusters in def_me.values())
         templates[b"Deformers"] = fbx_template_def_deformer(scene, settings, nbr_users=nbr)
 
     # No world support in FBX...
@@ -2052,6 +2056,7 @@ FBXSettings = namedtuple("FBXSettings", (
     "use_anim", "use_anim_optimize", "anim_optimize_precision", "use_anim_action_all", "use_default_take",
     "use_metadata", "media_settings", "use_custom_properties",
 ))
+
 
 # This func can be called with just the filepath
 def save_single(operator, scene, filepath="",

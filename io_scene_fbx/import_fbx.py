@@ -324,11 +324,11 @@ def blen_read_geom_layerinfo(fbx_layer):
 
 
 def blen_read_geom_array_mapped_vert(
-    mesh, blen_data, blend_attr,
-    fbx_layer_data, fbx_layer_index,
-    fbx_layer_mapping, fbx_layer_ref,
-    stride, item_size, descr,
-    ):
+        mesh, blen_data, blend_attr,
+        fbx_layer_data, fbx_layer_index,
+        fbx_layer_mapping, fbx_layer_ref,
+        stride, item_size, descr,
+        ):
     # TODO, generic mapping apply function
     if fbx_layer_mapping == b'ByVertice':
         if fbx_layer_ref == b'Direct':
@@ -347,13 +347,12 @@ def blen_read_geom_array_mapped_vert(
 
 
 def blen_read_geom_array_mapped_edge(
-    mesh, blen_data, blend_attr,
-    fbx_layer_data, fbx_layer_index,
-    fbx_layer_mapping, fbx_layer_ref,
-    stride, item_size, descr,
-    xform=None,
-    ):
-
+        mesh, blen_data, blend_attr,
+        fbx_layer_data, fbx_layer_index,
+        fbx_layer_mapping, fbx_layer_ref,
+        stride, item_size, descr,
+        xform=None,
+        ):
     if fbx_layer_mapping == b'ByEdge':
         if fbx_layer_ref == b'Direct':
             if stride == 1:
@@ -384,13 +383,12 @@ def blen_read_geom_array_mapped_edge(
 
 
 def blen_read_geom_array_mapped_polygon(
-    mesh, blen_data, blend_attr,
-    fbx_layer_data, fbx_layer_index,
-    fbx_layer_mapping, fbx_layer_ref,
-    stride, item_size, descr,
-    xform=None,
-    ):
-
+        mesh, blen_data, blend_attr,
+        fbx_layer_data, fbx_layer_index,
+        fbx_layer_mapping, fbx_layer_ref,
+        stride, item_size, descr,
+        xform=None,
+        ):
     if fbx_layer_mapping == b'ByPolygon':
         if fbx_layer_ref == b'IndexToDirect':
             if stride == 1:
@@ -421,12 +419,11 @@ def blen_read_geom_array_mapped_polygon(
 
 
 def blen_read_geom_array_mapped_polyloop(
-    mesh, blen_data, blend_attr,
-    fbx_layer_data, fbx_layer_index,
-    fbx_layer_mapping, fbx_layer_ref,
-    stride, item_size, descr,
-    ):
-
+        mesh, blen_data, blend_attr,
+        fbx_layer_data, fbx_layer_index,
+        fbx_layer_mapping, fbx_layer_ref,
+        stride, item_size, descr,
+        ):
     if fbx_layer_mapping == b'ByPolygonVertex':
         if fbx_layer_ref == b'IndexToDirect':
             assert(fbx_layer_index is not None)
@@ -539,6 +536,7 @@ def blen_read_geom_layer_color(fbx_obj, mesh):
                 fbx_layer_mapping, fbx_layer_ref,
                 4, 3, layer_id,
                 )
+
 
 def blen_read_geom_layer_smooth(fbx_obj, mesh):
     fbx_layer = elem_find_first(fbx_obj, b'LayerElementSmoothing')
@@ -978,7 +976,8 @@ def load(operator, context, filepath="",
 
     # ----
     # Load in the data
-    # http://download.autodesk.com/us/fbx/20112/FBX_SDK_HELP/index.html?url=WS73099cc142f487551fea285e1221e4f9ff8-7fda.htm,topicNumber=d0e6388
+    # http://download.autodesk.com/us/fbx/20112/FBX_SDK_HELP/index.html?url=
+    #        WS73099cc142f487551fea285e1221e4f9ff8-7fda.htm,topicNumber=d0e6388
 
     fbx_connection_map = {}
     fbx_connection_map_reverse = {}
@@ -1241,10 +1240,9 @@ def load(operator, context, filepath="",
                         # tx/rot/scale
                         tex_map = texture_mapping_get(fbx_lnk)
                         if (tex_map[0] == (0.0, 0.0, 0.0) and
-                            tex_map[1] == (0.0, 0.0, 0.0) and
-                            tex_map[2] == (1.0, 1.0, 1.0) and
-                            tex_map[3] == (False, False)):
-
+                                tex_map[1] == (0.0, 0.0, 0.0) and
+                                tex_map[2] == (1.0, 1.0, 1.0) and
+                                tex_map[3] == (False, False)):
                             use_mapping = False
                         else:
                             use_mapping = True
