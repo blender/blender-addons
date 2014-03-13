@@ -338,25 +338,25 @@ def elem_data_vec_float64(elem, name, value):
 # XXX Looks like there can be various variations of formats here... Will have to be checked ultimately!
 #     Among other things, what are those "A"/"A+"/"AU" codes?
 FBX_PROPERTIES_DEFINITIONS = {
-    "p_bool": (b"bool", b"", b"", "add_int32"),  # Yes, int32 for a bool (and they do have a core bool type)!!!
-    "p_integer": (b"int", b"Integer", b"", "add_int32"),
-    "p_enum": (b"enum", b"", b"", "add_int32"),
-    "p_number": (b"double", b"Number", b"", "add_float64"),
-    "p_visibility": (b"Visibility", b"", b"A+", "add_float64"),
-    "p_fov": (b"FieldOfView", b"", b"A+", "add_float64"),
-    "p_fov_x": (b"FieldOfViewX", b"", b"A+", "add_float64"),
-    "p_fov_y": (b"FieldOfViewY", b"", b"A+", "add_float64"),
-    "p_vector_3d": (b"Vector3D", b"Vector", b"", "add_float64", "add_float64", "add_float64"),
-    "p_lcl_translation": (b"Lcl Translation", b"", b"A+", "add_float64", "add_float64", "add_float64"),
-    "p_lcl_rotation": (b"Lcl Rotation", b"", b"A+", "add_float64", "add_float64", "add_float64"),
-    "p_lcl_scaling": (b"Lcl Scaling", b"", b"A+", "add_float64", "add_float64", "add_float64"),
-    "p_color_rgb": (b"ColorRGB", b"Color", b"", "add_float64", "add_float64", "add_float64"),
-    "p_string": (b"KString", b"", b"", "add_string_unicode"),
-    "p_string_url": (b"KString", b"Url", b"", "add_string_unicode"),
-    "p_timestamp": (b"KTime", b"Time", b"", "add_int64"),
-    "p_datetime": (b"DateTime", b"", b"", "add_string_unicode"),
-    "p_object": (b"object", b"", b""),  # XXX Check this! No value for this prop???
-    "p_compound": (b"Compound", b"", b""),  # XXX Check this! No value for this prop???
+    "p_bool": [b"bool", b"", b"", "add_int32"],  # Yes, int32 for a bool (and they do have a core bool type)!!!
+    "p_integer": [b"int", b"Integer", b"", "add_int32"],
+    "p_enum": [b"enum", b"", b"", "add_int32"],
+    "p_number": [b"double", b"Number", b"", "add_float64"],
+    "p_visibility": [b"Visibility", b"", b"A+", "add_float64"],
+    "p_fov": [b"FieldOfView", b"", b"A+", "add_float64"],
+    "p_fov_x": [b"FieldOfViewX", b"", b"A+", "add_float64"],
+    "p_fov_y": [b"FieldOfViewY", b"", b"A+", "add_float64"],
+    "p_vector_3d": [b"Vector3D", b"Vector", b"", "add_float64", "add_float64", "add_float64"],
+    "p_lcl_translation": [b"Lcl Translation", b"", b"A+", "add_float64", "add_float64", "add_float64"],
+    "p_lcl_rotation": [b"Lcl Rotation", b"", b"A+", "add_float64", "add_float64", "add_float64"],
+    "p_lcl_scaling": [b"Lcl Scaling", b"", b"A+", "add_float64", "add_float64", "add_float64"],
+    "p_color_rgb": [b"ColorRGB", b"Color", b"", "add_float64", "add_float64", "add_float64"],
+    "p_string": [b"KString", b"", b"", "add_string_unicode"],
+    "p_string_url": [b"KString", b"Url", b"", "add_string_unicode"],
+    "p_timestamp": [b"KTime", b"Time", b"", "add_int64"],
+    "p_datetime": [b"DateTime", b"", b"", "add_string_unicode"],
+    "p_object": [b"object", b"", b""],  # XXX Check this! No value for this prop???
+    "p_compound": [b"Compound", b"", b""],  # XXX Check this! No value for this prop???
 }
 
 
@@ -372,8 +372,10 @@ def _elem_props_set(elem, ptype, name, value):
             getattr(p, callback)(val)
 
 
-def elem_props_set(elem, ptype, name, value=None):
+def elem_props_set(elem, ptype, name, value=None, custom=False):
     ptype = FBX_PROPERTIES_DEFINITIONS[ptype]
+    if custom:
+        ptype[2] = b"U"
     _elem_props_set(elem, ptype, name, value)
 
 
@@ -386,12 +388,14 @@ def elem_props_compound(elem, cmpd_name):
     return _setter
 
 
-def elem_props_template_set(template, elem, ptype_name, name, value):
+def elem_props_template_set(template, elem, ptype_name, name, value, custom=False):
     """
     Only add a prop if the same value is not already defined in given template.
     Note it is important to not give iterators as value, here!
     """
     ptype = FBX_PROPERTIES_DEFINITIONS[ptype_name]
+    if custom:
+        ptype[2] = b"U"
     tmpl_val, tmpl_ptype = template.properties.get(name, (None, None))
     if tmpl_ptype is not None:
         if ((len(ptype) == 4 and (tmpl_val, tmpl_ptype) == (value, ptype_name)) or
@@ -737,11 +741,11 @@ def fbx_data_element_custom_properties(tmpl, props, bid):
     """
     for k, v in bid.items():
         if isinstance(v, str):
-            elem_props_template_set(tmpl, props, "p_string", k.encode(), v)
+            elem_props_template_set(tmpl, props, "p_string", k.encode(), v, True)
         elif isinstance(v, int):
-            elem_props_template_set(tmpl, props, "p_integer", k.encode(), v)
+            elem_props_template_set(tmpl, props, "p_integer", k.encode(), v, True)
         if isinstance(v, float):
-            elem_props_template_set(tmpl, props, "p_number", k.encode(), v)
+            elem_props_template_set(tmpl, props, "p_number", k.encode(), v, True)
 
 
 def fbx_data_lamp_elements(root, lamp, scene_data):
