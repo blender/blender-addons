@@ -34,6 +34,7 @@ from itertools import zip_longest, chain
 
 import bpy
 import bpy_extras
+from bpy.types import Object, Bone
 from mathutils import Vector, Matrix
 
 from . import encode_bin, data_types
@@ -111,10 +112,13 @@ UNITS = {
 def units_convert(val, u_from, u_to):
     """Convert value."""
     conv = UNITS[u_to] / UNITS[u_from]
-    try:
-        return (v * conv for v in val)
-    except:
-        return val * conv
+    return val * conv
+
+
+def units_convert_iter(it, u_from, u_to):
+    """Convert value."""
+    conv = UNITS[u_to] / UNITS[u_from]
+    return (v * conv for v in it)
 
 
 def matrix_to_array(mat):
@@ -677,7 +681,7 @@ def object_matrix(scene_data, obj, armature=None, global_space=False):
     If obj is a bone, and global_space is True, armature must be provided (it's the bone's armature object!).
     Applies specific rotation to bones, lamps and cameras (conversion Blender -> FBX).
     """
-    is_bone = isinstance(obj, bpy.types.Bone)
+    is_bone = isinstance(obj, Bone)
     # Objects which are not bones and do not have any parent are *always* in global space!
     is_global = global_space or not (is_bone or (obj.parent and obj.parent in scene_data.objects))
 
@@ -882,7 +886,7 @@ def fbx_data_mesh_elements(root, me, scene_data):
     elem_data_single_int32(geom, b"GeometryVersion", FBX_GEOMETRY_VERSION)
 
     # Vertex cos.
-    t_co = array.array(data_types.ARRAY_FLOAT64, [0.0] * len(me.vertices) * 3)
+    t_co = array.array(data_types.ARRAY_FLOAT64, (0.0,)) * len(me.vertices) * 3
     me.vertices.foreach_get("co", t_co)
     elem_data_single_float64_array(geom, b"Vertices", t_co)
     del t_co
@@ -893,7 +897,7 @@ def fbx_data_mesh_elements(root, me, scene_data):
     #
     # Note we have to process Edges in the same time, as they are based on poly's loops...
     loop_nbr = len(me.loops)
-    t_pvi = array.array(data_types.ARRAY_INT32, (0,) * loop_nbr)
+    t_pvi = array.array(data_types.ARRAY_INT32, (0,)) * loop_nbr
     t_ls = [None] * len(me.polygons)
 
     me.loops.foreach_get("vertex_index", t_pvi)
@@ -961,12 +965,12 @@ def fbx_data_mesh_elements(root, me, scene_data):
         t_ps = None
         _map = b""
         if smooth_type == 'FACE':
-            t_ps = array.array(data_types.ARRAY_INT32, [0] * len(me.polygons))
+            t_ps = array.array(data_types.ARRAY_INT32, (0,)) * len(me.polygons)
             me.polygons.foreach_get("use_smooth", t_ps)
             _map = b"ByPolygon"
         else:  # EDGE
             # Write Edge Smoothing.
-            t_ps = array.array(data_types.ARRAY_INT32, (0,) * edges_nbr)
+            t_ps = array.array(data_types.ARRAY_INT32, (0,)) * edges_nbr
             for e in me.edges:
                 if e.key not in edges_map:
                     continue  # Only loose edges, in theory!
@@ -994,7 +998,7 @@ def fbx_data_mesh_elements(root, me, scene_data):
         def _nortuples_gen(raw_nors):
             return zip(*(iter(raw_nors),) * 3)
 
-        t_ln = array.array(data_types.ARRAY_FLOAT64, [0.0] * len(me.loops) * 3)
+        t_ln = array.array(data_types.ARRAY_FLOAT64, (0.0,)) * len(me.loops) * 3
         me.loops.foreach_get("normal", t_ln)
         lay_nor = elem_data_single_int32(geom, b"LayerElementNormal", 0)
         elem_data_single_int32(lay_nor, b"Version", FBX_GEOMETRY_NORMAL_VERSION)
@@ -1005,16 +1009,18 @@ def fbx_data_mesh_elements(root, me, scene_data):
         ln2idx = tuple(set(_nortuples_gen(t_ln)))
         elem_data_single_float64_array(lay_nor, b"Normals", chain(*ln2idx))
         # Normal weights, no idea what it is.
-        elem_data_single_float64_array(lay_nor, b"NormalsW", (0.0,) * len(ln2idx))
+        t_lnw = array.array(data_types.ARRAY_FLOAT64, (0.0,)) * len(ln2idx)
+        elem_data_single_float64_array(lay_nor, b"NormalsW", t_lnw)
 
         ln2idx = {nor: idx for idx, nor in enumerate(ln2idx)}
         elem_data_single_int32_array(lay_nor, b"NormalIndex", (ln2idx[n] for n in _nortuples_gen(t_ln)))
 
         del ln2idx
         del t_ln
+        del t_lnw
         del _nortuples_gen
     else:
-        t_ln = array.array(data_types.ARRAY_FLOAT64, [0.0] * len(me.loops) * 3)
+        t_ln = array.array(data_types.ARRAY_FLOAT64, (0.0,)) * len(me.loops) * 3
         me.loops.foreach_get("normal", t_ln)
         lay_nor = elem_data_single_int32(geom, b"LayerElementNormal", 0)
         elem_data_single_int32(lay_nor, b"Version", FBX_GEOMETRY_NORMAL_VERSION)
@@ -1023,7 +1029,8 @@ def fbx_data_mesh_elements(root, me, scene_data):
         elem_data_single_string(lay_nor, b"ReferenceInformationType", b"Direct")
         elem_data_single_float64_array(lay_nor, b"Normals", t_ln)
         # Normal weights, no idea what it is.
-        elem_data_single_float64_array(lay_nor, b"NormalsW", (0.0,) * len(t_ln))
+        t_ln = array.array(data_types.ARRAY_FLOAT64, (0.0,)) * len(me.loops)
+        elem_data_single_float64_array(lay_nor, b"NormalsW", t_ln)
         del t_ln
 
     # tspace
@@ -1031,7 +1038,8 @@ def fbx_data_mesh_elements(root, me, scene_data):
     if scene_data.settings.use_tspace:
         tspacenumber = len(me.uv_layers)
         if tspacenumber:
-            t_ln = array.array(data_types.ARRAY_FLOAT64, (0.0,) * len(me.loops) * 3)
+            t_ln = array.array(data_types.ARRAY_FLOAT64, (0.0,)) * len(me.loops) * 3
+            t_lnw = array.array(data_types.ARRAY_FLOAT64, (0.0,)) * len(me.loops)
             for idx, uvlayer in enumerate(me.uv_layers):
                 name = uvlayer.name
                 me.calc_tangents(name)
@@ -1045,7 +1053,7 @@ def fbx_data_mesh_elements(root, me, scene_data):
                 elem_data_single_string(lay_nor, b"ReferenceInformationType", b"Direct")
                 elem_data_single_float64_array(lay_nor, b"Binormals", t_ln)
                 # Binormal weights, no idea what it is.
-                elem_data_single_float64_array(lay_nor, b"BinormalsW", (0.0,) * len(t_ln))
+                elem_data_single_float64_array(lay_nor, b"BinormalsW", t_lnw)
 
                 # Loop tangents.
                 # NOTE: this is not supported by importer currently.
@@ -1057,9 +1065,10 @@ def fbx_data_mesh_elements(root, me, scene_data):
                 elem_data_single_string(lay_nor, b"ReferenceInformationType", b"Direct")
                 elem_data_single_float64_array(lay_nor, b"Tangents", t_ln)
                 # Tangent weights, no idea what it is.
-                elem_data_single_float64_array(lay_nor, b"TangentsW", (0.0,) * len(t_ln))
+                elem_data_single_float64_array(lay_nor, b"TangentsW", t_lnw)
 
             del t_ln
+            del t_lnw
             me.free_tangents()
 
     me.free_normals_split()
@@ -1074,7 +1083,7 @@ def fbx_data_mesh_elements(root, me, scene_data):
                     yield val
             return zip(*(iter(raw_cols),) * 3 + (_infinite_gen(1.0),))  # We need a fake alpha...
 
-        t_lc = array.array(data_types.ARRAY_FLOAT64, [0.0] * len(me.loops) * 3)
+        t_lc = array.array(data_types.ARRAY_FLOAT64, (0.0,)) * len(me.loops) * 3
         for colindex, collayer in enumerate(me.vertex_colors):
             collayer.data.foreach_get("color", t_lc)
             lay_vcol = elem_data_single_int32(geom, b"LayerElementColor", colindex)
@@ -1100,7 +1109,7 @@ def fbx_data_mesh_elements(root, me, scene_data):
         def _uvtuples_gen(raw_uvs):
             return zip(*(iter(raw_uvs),) * 2)
 
-        t_luv = array.array(data_types.ARRAY_FLOAT64, [0.0] * len(me.loops) * 2)
+        t_luv = array.array(data_types.ARRAY_FLOAT64, (0.0,)) * len(me.loops) * 2
         for uvindex, uvlayer in enumerate(me.uv_layers):
             uvlayer.data.foreach_get("uv", t_luv)
             lay_uv = elem_data_single_int32(geom, b"LayerElementUV", uvindex)
@@ -1129,7 +1138,7 @@ def fbx_data_mesh_elements(root, me, scene_data):
             elem_data_single_string(lay_mat, b"Name", b"")
             nbr_mats = len(me_fbxmats_idx)
             if nbr_mats > 1:
-                t_pm = array.array(data_types.ARRAY_INT32, [0] * len(me.polygons))
+                t_pm = array.array(data_types.ARRAY_INT32, (0,)) * len(me.polygons)
                 me.polygons.foreach_get("material_index", t_pm)
 
                 # We have to validate mat indices, and map them to FBX indices.
@@ -1454,7 +1463,7 @@ def fbx_data_object_elements(root, obj, scene_data):
     Note we handle "Model" part of bones as well here!
     """
     obj_type = b"Null"  # default, sort of empty...
-    if isinstance(obj, bpy.types.Bone):
+    if isinstance(obj, Bone):
         obj_type = b"LimbNode"
     elif (obj.type == 'MESH'):
         obj_type = b"Mesh"
@@ -1471,7 +1480,7 @@ def fbx_data_object_elements(root, obj, scene_data):
 
     # Object transform info.
     loc, rot, scale, matrix, matrix_rot = object_tx(scene_data, obj)
-    rot = tuple(units_convert(rot, "radian", "degree"))
+    rot = tuple(units_convert_iter(rot, "radian", "degree"))
 
     tmpl = scene_data.templates[b"Model"]
     # For now add only loc/rot/scale...
@@ -1493,7 +1502,7 @@ def fbx_data_object_elements(root, obj, scene_data):
     elem_data_single_bool(model, b"Shading", True)
     elem_data_single_string(model, b"Culling", b"CullingOff")
 
-    if isinstance(obj, bpy.types.Object) and obj.type == 'CAMERA':
+    if isinstance(obj, Object) and obj.type == 'CAMERA':
         # Why, oh why are FBX cameras such a mess???
         # And WHY add camera data HERE??? Not even sure this is needed...
         render = scene_data.scene.render
@@ -1583,7 +1592,7 @@ def fbx_skeleton_from_armature(scene, settings, armature, objects, data_bones, d
         bones[bo.name] = bo
 
     for obj in objects.keys():
-        if not isinstance(obj, bpy.types.Object):
+        if not isinstance(obj, Object):
             continue
         if obj.type not in {'MESH'}:
             continue
@@ -1658,7 +1667,7 @@ def fbx_data_from_scene(scene, settings):
     data_materials = {}
     for obj in objects:
         # Only meshes for now!
-        if not isinstance(obj, bpy.types.Object) or obj.type not in {'MESH'}:
+        if not isinstance(obj, Object) or obj.type not in {'MESH'}:
             continue
         for mat_s in obj.material_slots:
             mat = mat_s.material
@@ -1757,7 +1766,7 @@ def fbx_data_from_scene(scene, settings):
     # Objects (with classical parenting).
     for obj, obj_key in objects.items():
         # Bones are handled later.
-        if isinstance(obj, bpy.types.Object):
+        if isinstance(obj, Object):
             par = obj.parent
             par_key = 0  # Convention, "root" node (never explicitly written).
             if par and par in objects:
@@ -1787,7 +1796,7 @@ def fbx_data_from_scene(scene, settings):
 
     # Object data.
     for obj, obj_key in objects.items():
-        if isinstance(obj, bpy.types.Bone):
+        if isinstance(obj, Bone):
             _bo_key, bo_data_key, _arm = data_bones[obj]
             assert(_bo_key == obj_key)
             connections.append((b"OO", get_fbxuid_from_key(bo_data_key), get_fbxuid_from_key(obj_key), None))
@@ -2013,7 +2022,7 @@ def fbx_objects_elements(root, scene_data):
         fbx_data_object_elements(objects, obj, scene_data)
 
     for obj in scene_data.objects.keys():
-        if not isinstance(obj, bpy.types.Object) or obj.type not in {'ARMATURE'}:
+        if not isinstance(obj, Object) or obj.type not in {'ARMATURE'}:
             continue
         fbx_data_armature_elements(objects, obj, scene_data)
 
