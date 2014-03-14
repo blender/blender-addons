@@ -586,6 +586,7 @@ def fbx_template_def_material(scene, settings, override_defaults=None, nbr_users
         b"DiffuseFactor": (0.8, "p_number"),
         b"TransparentColor": ((0.8, 0.8, 0.8), "p_color_rgb"),  # Same as diffuse.
         b"TransparencyFactor": (0.0, "p_number"),
+        b"Opacity": (1.0, "p_number"),
         b"NormalMap": ((0.0, 0.0, 0.0), "p_vector_3d"),
         b"Bump": ((0.0, 0.0, 0.0), "p_vector_3d"),
         b"BumpFactor": (1.0, "p_number"),
@@ -1238,10 +1239,12 @@ def fbx_data_material_elements(root, mat, scene_data):
     elem_props_template_set(tmpl, props, "p_color_rgb", b"DiffuseColor", mat.diffuse_color)
     elem_props_template_set(tmpl, props, "p_number", b"DiffuseFactor", mat.diffuse_intensity)
     elem_props_template_set(tmpl, props, "p_color_rgb", b"TransparentColor", mat.diffuse_color)
-    elem_props_template_set(tmpl, props, "p_number", b"TransparencyFactor", mat.alpha if mat.use_transparency else 1.0)
-    # Those are for later!
+    elem_props_template_set(tmpl, props, "p_number", b"TransparencyFactor",
+                            1.0 - mat.alpha if mat.use_transparency else 0.0)
+    elem_props_template_set(tmpl, props, "p_number", b"Opacity", mat.alpha if mat.use_transparency else 1.0)
+    elem_props_template_set(tmpl, props, "p_vector_3d", b"NormalMap", (0.0, 0.0, 0.0))
+    # Not sure about those...
     """
-    b"NormalMap": ((0.0, 0.0, 0.0), "p_vector_3d"),
     b"Bump": ((0.0, 0.0, 0.0), "p_vector_3d"),
     b"BumpFactor": (1.0, "p_number"),
     b"DisplacementColor": ((0.0, 0.0, 0.0), "p_color_rgb"),
@@ -1556,8 +1559,8 @@ def fbx_mat_properties_from_texture(tex):
         ("diffuse", "diffuse", b"EmissiveColor"),  # Uses diffuse color in Blender!
         ("ambient", "ambient", b"AmbientFactor"),
         #("", "", b"AmbientColor"),  # World stuff in Blender, for now ignore...
-        # Those are for later!
-        #("", "", b"NormalMap"),
+        ("normal", "normal", b"NormalMap"),
+        # Note: unsure about those... :/
         #("", "", b"Bump"),
         #("", "", b"BumpFactor"),
         #("", "", b"DisplacementColor"),
