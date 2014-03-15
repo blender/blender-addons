@@ -1150,11 +1150,15 @@ def fbx_data_mesh_elements(root, me, scene_data):
                 blmats_to_fbxmats_idxs = [me_fbxmats_idx[m] for m in me_blmats]
                 mat_idx_limit = len(blmats_to_fbxmats_idxs)
                 def_mat = blmats_to_fbxmats_idxs[0]
-                _gen = (blmats_to_fbxmats_idxs[m] if m < mat_idx_limit else def_mat for m in range(len(me_blmats)))
+                _gen = (blmats_to_fbxmats_idxs[m] if m < mat_idx_limit else def_mat for m in t_pm)
                 t_pm = array.array(data_types.ARRAY_INT32, _gen)
 
                 elem_data_single_string(lay_mat, b"MappingInformationType", b"ByPolygon")
-                elem_data_single_string(lay_mat, b"ReferenceInformationType", b"Direct")
+                # XXX Logically, should be "Direct" reference type, since we do not have any index array, and have one
+                #     value per polygon...
+                #     But looks like FBX expects it to be IndexToDirect here (maybe because materials are already
+                #     indices??? *sigh*).
+                elem_data_single_string(lay_mat, b"ReferenceInformationType", b"IndexToDirect")
                 elem_data_single_int32_array(lay_mat, b"Materials", t_pm)
                 del t_pm
             else:
