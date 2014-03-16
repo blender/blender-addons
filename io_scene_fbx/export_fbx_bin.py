@@ -1242,7 +1242,8 @@ def fbx_data_material_elements(root, mat, scene_data):
     elem_props_template_set(tmpl, props, "p_number", b"AmbientFactor", mat.ambient)
     elem_props_template_set(tmpl, props, "p_color_rgb", b"DiffuseColor", mat.diffuse_color)
     elem_props_template_set(tmpl, props, "p_number", b"DiffuseFactor", mat.diffuse_intensity)
-    elem_props_template_set(tmpl, props, "p_color_rgb", b"TransparentColor", mat.diffuse_color)
+    elem_props_template_set(tmpl, props, "p_color_rgb", b"TransparentColor",
+                            mat.diffuse_color if mat.use_transparency else (1.0, 1.0, 1.0))
     elem_props_template_set(tmpl, props, "p_number", b"TransparencyFactor",
                             1.0 - mat.alpha if mat.use_transparency else 0.0)
     elem_props_template_set(tmpl, props, "p_number", b"Opacity", mat.alpha if mat.use_transparency else 1.0)
@@ -1684,8 +1685,9 @@ def fbx_data_from_scene(scene, settings):
             mat = mat_s.material
             # Note theoretically, FBX supports any kind of materials, even GLSL shaders etc.
             # However, I doubt anything else than Lambert/Phong is really portable!
+            # We support any kind of 'surface' shader though, better to have some kind of default Lambert than nothing.
             # TODO: Support nodes (*BIG* todo!).
-            if mat.type in {'SURFACE'} and mat.diffuse_shader in {'LAMBERT'} and not mat.use_nodes:
+            if mat.type in {'SURFACE'} and not mat.use_nodes:
                 if mat in data_materials:
                     data_materials[mat][1].append(obj)
                 else:
