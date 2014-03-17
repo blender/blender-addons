@@ -47,6 +47,7 @@ else:
 
 import bpy
 import os
+import tempfile
 import threading
 import subprocess
 
@@ -244,7 +245,8 @@ class ExportSketchfab(bpy.types.Operator):
             basename = os.path.join(basename, "temp")
         if not ext:
             ext = ".blend"
-        filepath = basename + "-export-sketchfab" + ext
+        tempdir = tempfile.mkdtemp()
+        filepath = os.path.join(tempdir, "export-sketchfab" + ext)
 
         try:
             # save a copy of actual scene but don't interfere with the users models
@@ -262,6 +264,7 @@ class ExportSketchfab(bpy.types.Operator):
                     "-noaudio",
                     filepath,
                     "--python", os.path.join(script_path, "pack_for_export.py"),
+                    "--", tempdir
                     ])
 
             os.remove(filepath)
@@ -434,6 +437,7 @@ class SketchfabEmailToken(bpy.types.Operator):
 # remove file copy
 def terminate(filepath):
     os.remove(filepath)
+    os.rmdir(os.path.dirname(filepath))
 
 # registration
 classes = (

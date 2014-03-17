@@ -23,10 +23,12 @@
 import os
 import bpy
 import json
+import sys
 
 
 SKETCHFAB_EXPORT_DATA_FILENAME = 'sketchfab-export-data.json'
 
+SKETCHFAB_EXPORT_TEMP_DIR = sys.argv[-1]
 SKETCHFAB_EXPORT_DATA_FILE = os.path.join(
     bpy.utils.user_resource('SCRIPTS'),
     "presets",
@@ -38,7 +40,7 @@ SKETCHFAB_EXPORT_DATA_FILE = os.path.join(
 def save_blend_copy():
     import time
 
-    filepath = os.path.dirname(bpy.data.filepath)
+    filepath = SKETCHFAB_EXPORT_TEMP_DIR
     filename = time.strftime("Sketchfab_%Y_%m_%d_%H_%M_%S.blend",
                              time.localtime(time.time()))
     filepath = os.path.join(filepath, filename)
@@ -119,6 +121,5 @@ if __name__ == "__main__":
         import traceback
         traceback.print_exc()
 
-        import sys
         sys.exit(1)
 
