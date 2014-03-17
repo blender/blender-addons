@@ -873,6 +873,11 @@ def fbx_data_mesh_elements(root, me, scene_data):
     """
     Write the Mesh (Geometry) data block.
     """
+    # Ugly helper... :/
+    def _infinite_gen(val):
+        while 1:
+            yield val
+
     # No gscale/gmat here, all data are supposed to be in object space.
     smooth_type = scene_data.settings.mesh_smooth_type
 
@@ -999,10 +1004,10 @@ def fbx_data_mesh_elements(root, me, scene_data):
     # XXX Official docs says normals should use IndexToDirect,
     #     but this does not seem well supported by apps currently...
     me.calc_normals_split()
+    def _nortuples_gen(raw_nors):
+        # Great, now normals are also expected 4D!
+        return zip(*(iter(raw_nors),) * 3 + (_infinite_gen(1.0),))
     if 0:
-        def _nortuples_gen(raw_nors):
-            return zip(*(iter(raw_nors),) * 3)
-
         t_ln = array.array(data_types.ARRAY_FLOAT64, (0.0,)) * len(me.loops) * 3
         me.loops.foreach_get("normal", t_ln)
         lay_nor = elem_data_single_int32(geom, b"LayerElementNormal", 0)
@@ -1018,12 +1023,11 @@ def fbx_data_mesh_elements(root, me, scene_data):
         elem_data_single_float64_array(lay_nor, b"NormalsW", t_lnw)
 
         ln2idx = {nor: idx for idx, nor in enumerate(ln2idx)}
-        elem_data_single_int32_array(lay_nor, b"NormalIndex", (ln2idx[n] for n in _nortuples_gen(t_ln)))
+        elem_data_single_int32_array(lay_nor, b"NormalsIndex", (ln2idx[n] for n in _nortuples_gen(t_ln)))
 
         del ln2idx
         del t_ln
         del t_lnw
-        del _nortuples_gen
     else:
         t_ln = array.array(data_types.ARRAY_FLOAT64, (0.0,)) * len(me.loops) * 3
         me.loops.foreach_get("normal", t_ln)
@@ -1032,7 +1036,7 @@ def fbx_data_mesh_elements(root, me, scene_data):
         elem_data_single_string(lay_nor, b"Name", b"")
         elem_data_single_string(lay_nor, b"MappingInformationType", b"ByPolygonVertex")
         elem_data_single_string(lay_nor, b"ReferenceInformationType", b"Direct")
-        elem_data_single_float64_array(lay_nor, b"Normals", t_ln)
+        elem_data_single_float64_array(lay_nor, b"Normals", chain(*_nortuples_gen(t_ln)))
         # Normal weights, no idea what it is.
         t_ln = array.array(data_types.ARRAY_FLOAT64, (0.0,)) * len(me.loops)
         elem_data_single_float64_array(lay_nor, b"NormalsW", t_ln)
@@ -1056,7 +1060,7 @@ def fbx_data_mesh_elements(root, me, scene_data):
                 elem_data_single_string_unicode(lay_nor, b"Name", name)
                 elem_data_single_string(lay_nor, b"MappingInformationType", b"ByPolygonVertex")
                 elem_data_single_string(lay_nor, b"ReferenceInformationType", b"Direct")
-                elem_data_single_float64_array(lay_nor, b"Binormals", t_ln)
+                elem_data_single_float64_array(lay_nor, b"Binormals", chain(*_nortuples_gen(t_ln)))
                 # Binormal weights, no idea what it is.
                 elem_data_single_float64_array(lay_nor, b"BinormalsW", t_lnw)
 
@@ -1068,7 +1072,7 @@ def fbx_data_mesh_elements(root, me, scene_data):
                 elem_data_single_string_unicode(lay_nor, b"Name", name)
                 elem_data_single_string(lay_nor, b"MappingInformationType", b"ByPolygonVertex")
                 elem_data_single_string(lay_nor, b"ReferenceInformationType", b"Direct")
-                elem_data_single_float64_array(lay_nor, b"Tangents", t_ln)
+                elem_data_single_float64_array(lay_nor, b"Tangents", chain(*_nortuples_gen(t_ln)))
                 # Tangent weights, no idea what it is.
                 elem_data_single_float64_array(lay_nor, b"TangentsW", t_lnw)
 
@@ -1077,15 +1081,13 @@ def fbx_data_mesh_elements(root, me, scene_data):
             me.free_tangents()
 
     me.free_normals_split()
+    del _nortuples_gen
 
     # Write VertexColor Layers
     # note, no programs seem to use this info :/
     vcolnumber = len(me.vertex_colors)
     if vcolnumber:
         def _coltuples_gen(raw_cols):
-            def _infinite_gen(val):
-                while 1:
-                    yield val
             return zip(*(iter(raw_cols),) * 3 + (_infinite_gen(1.0),))  # We need a fake alpha...
 
         t_lc = array.array(data_types.ARRAY_FLOAT64, (0.0,)) * len(me.loops) * 3
