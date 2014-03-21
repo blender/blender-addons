@@ -917,7 +917,11 @@ def fbx_data_mesh_elements(root, me, scene_data):
     # global matrix, so we need to apply the global matrix to the vertices to get the correct result.
     geom_mat_co = scene_data.settings.global_matrix if do_bake_space_transform else None
     # We need to apply the inverse transpose of the global matrix when transforming normals.
-    geom_mat_no = scene_data.settings.global_matrix_inv_trans if do_bake_space_transform else None
+    geom_mat_no = Matrix(scene_data.settings.global_matrix_inv_transposed) if do_bake_space_transform else None
+    if geom_mat_no is not None:
+        # Remove translation & scaling!
+        geom_mat_no.translation = Vector()
+        geom_mat_no.normalize()
 
     geom = elem_data_single_int64(root, b"Geometry", get_fbxuid_from_key(me_key))
     geom.add_string(fbx_name_class(me.name.encode(), b"Geometry"))
@@ -2121,7 +2125,7 @@ FBXSettingsMedia = namedtuple("FBXSettingsMedia", (
 ))
 FBXSettings = namedtuple("FBXSettings", (
     "to_axes", "global_matrix", "global_scale",
-    "bake_space_transform", "global_matrix_inv", "global_matrix_inv_trans",
+    "bake_space_transform", "global_matrix_inv", "global_matrix_inv_transposed",
     "context_objects", "object_types", "use_mesh_modifiers",
     "mesh_smooth_type", "use_mesh_edges", "use_tspace", "use_armature_deform_only",
     "use_anim", "use_anim_optimize", "anim_optimize_precision", "use_anim_action_all", "use_default_take",
@@ -2159,7 +2163,8 @@ def save_single(operator, scene, filepath="",
 
     global_scale = global_matrix.median_scale
     global_matrix_inv = global_matrix.inverted()
-    global_matrix_inv_trans = global_matrix_inv.transposed().to_3x3().to_4x4()  # For transforming mesh normals.
+    # For transforming mesh normals.
+    global_matrix_inv_transposed = global_matrix_inv.transposed()
 
     # Only embed textures in COPY mode!
     if embed_textures and path_mode != 'COPY':
@@ -2177,7 +2182,7 @@ def save_single(operator, scene, filepath="",
 
     settings = FBXSettings(
         (axis_up, axis_forward), global_matrix, global_scale,
-        bake_space_transform, global_matrix_inv, global_matrix_inv_trans,
+        bake_space_transform, global_matrix_inv, global_matrix_inv_transposed,
         context_objects, object_types, use_mesh_modifiers,
         mesh_smooth_type, use_mesh_edges, use_tspace, use_armature_deform_only,
         use_anim, use_anim_optimize, anim_optimize_precision, use_anim_action_all, use_default_take,
