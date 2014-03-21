@@ -677,18 +677,31 @@ def fbx_template_def_deformer(scene, settings, override_defaults=None, nbr_users
 
 
 ##### FBX objects generators. #####
+def has_valid_parent(scene_data, obj):
+    return obj.parent and obj.parent in scene_data.objects
 
-def object_matrix(scene_data, obj, armature=None, global_space=False):
+
+def use_bake_space_transform(scene_data, obj):
+    # NOTE: Only applies to object types supporting this!!! Currently, only meshes...
+    #       Also, do not apply it to children objects.
+    # TODO: Check whether this can work for bones too...
+    return scene_data.settings.bake_space_transform and obj.type in {'MESH'} and not has_valid_parent(scene_data, obj)
+
+
+def object_matrix(scene_data, obj, armature=None, local_space=False, global_space=False):
     """
-    Generate object transform matrix.
-    If global_space is False, returned matrix is in parent space if parent exists and is exported, else in world space.
-    If global_space is True, returned matrix is always in world space.
+    Generate object transform matrix (*always* in matching *FBX* space!).
+    If local_space is True, returned matrix is *always* in local space.
+    Else:
+        If global_space is True, returned matrix is always in world space.
+        If global_space is False, returned matrix is in parent space if parent is valid, else in world space.
+    Note local_space has precedence over global_space.
     If obj is a bone, and global_space is True, armature must be provided (it's the bone's armature object!).
     Applies specific rotation to bones, lamps and cameras (conversion Blender -> FBX).
     """
     is_bone = isinstance(obj, Bone)
-    # Objects which are not bones and do not have any parent are *always* in global space!
-    is_global = global_space or not (is_bone or (obj.parent and obj.parent in scene_data.objects))
+    # Objects which are not bones and do not have any parent are *always* in global space (unless local_space is True!).
+    is_global = not local_space and (global_space or not (is_bone or has_valid_parent(scene_data, obj)))
 
     #assert((is_bone and is_global and armature is None) == False,
            #"You must provide an armature object to get bones transform matrix in global space!")
@@ -708,13 +721,28 @@ def object_matrix(scene_data, obj, armature=None, global_space=False):
         # Bones are in armature (object) space currently, either bring them to global space or real
         # local space (relative to parent bone).
         if is_global:
-            matrix = scene_data.settings.global_matrix * armature.matrix_world * matrix
+            matrix = armature.matrix_world * matrix
         elif obj.parent:  # Parent bone, get matrix relative to it.
             par_matrix = obj.parent.matrix_local * MAT_CONVERT_BONE
             matrix = par_matrix.inverted() * matrix
-    elif is_global:
-        if obj.parent:
+    elif obj.parent:
+        if is_global:
+            # Move matrix to global Blender space.
             matrix = obj.parent.matrix_world * matrix
+        elif use_bake_space_transform(scene_data, obj.parent):
+            # Blender's and FBX's local space of parent may differ if we use bake_space_transform...
+            # Apply parent's *Blender* local space...
+            matrix = obj.parent.matrix_local * matrix
+            # ...and move it back into parent's *FBX* local space.
+            par_mat = object_matrix(scene_data, obj.parent, local_space=True)
+            matrix = par_mat.inverted() * matrix
+
+    if use_bake_space_transform(scene_data, obj):
+        # If we bake the transforms we need to post-multiply inverse global transform.
+        # This means that the global transform will not apply to children of this transform.
+        matrix = matrix * scene_data.settings.global_matrix_inv
+    if is_global:
+        # In any case, pre-multiply the global matrix to get it in FBX global space!
         matrix = scene_data.settings.global_matrix * matrix
 
     return matrix
@@ -878,10 +906,19 @@ def fbx_data_mesh_elements(root, me, scene_data):
         while 1:
             yield val
 
+    me_key, me_obj = scene_data.data_meshes[me]
+
     # No gscale/gmat here, all data are supposed to be in object space.
     smooth_type = scene_data.settings.mesh_smooth_type
 
-    me_key = scene_data.data_meshes[me]
+    do_bake_space_transform = use_bake_space_transform(scene_data, me_obj)
+
+    # Vertices are in object space, but we are post-multiplying all transforms with the inverse of the
+    # global matrix, so we need to apply the global matrix to the vertices to get the correct result.
+    geom_mat_co = scene_data.settings.global_matrix if do_bake_space_transform else None
+    # We need to apply the inverse transpose of the global matrix when transforming normals.
+    geom_mat_no = scene_data.settings.global_matrix_inv_trans if do_bake_space_transform else None
+
     geom = elem_data_single_int64(root, b"Geometry", get_fbxuid_from_key(me_key))
     geom.add_string(fbx_name_class(me.name.encode(), b"Geometry"))
     geom.add_string(b"Mesh")
@@ -898,6 +935,11 @@ def fbx_data_mesh_elements(root, me, scene_data):
     # Vertex cos.
     t_co = array.array(data_types.ARRAY_FLOAT64, (0.0,)) * len(me.vertices) * 3
     me.vertices.foreach_get("co", t_co)
+    if geom_mat_co is not None:
+        def _vcos_transformed_gen(raw_cos, m=None):
+            # Note: we could most likely get much better performances with numpy, but will leave this as TODO for now.
+            return chain(*(m * Vector(v) for v in zip(*(iter(raw_cos),) * 3)))
+        t_co = _vcos_transformed_gen(t_co, geom_mat_co)
     elem_data_single_float64_array(geom, b"Vertices", t_co)
     del t_co
 
@@ -1004,43 +1046,45 @@ def fbx_data_mesh_elements(root, me, scene_data):
     # XXX Official docs says normals should use IndexToDirect,
     #     but this does not seem well supported by apps currently...
     me.calc_normals_split()
-    def _nortuples_gen(raw_nors):
+    def _nortuples_gen(raw_nors, m):
         # Great, now normals are also expected 4D!
-        return zip(*(iter(raw_nors),) * 3 + (_infinite_gen(1.0),))
+        gen = zip(*(iter(raw_nors),) * 3 + (_infinite_gen(1.0),))
+        return gen if m is None else (m * Vector(v) for v in gen)
+
+    t_ln = array.array(data_types.ARRAY_FLOAT64, (0.0,)) * len(me.loops) * 3
+    me.loops.foreach_get("normal", t_ln)
+    t_ln = _nortuples_gen(t_ln, geom_mat_no)
     if 0:
-        t_ln = array.array(data_types.ARRAY_FLOAT64, (0.0,)) * len(me.loops) * 3
-        me.loops.foreach_get("normal", t_ln)
+        t_ln = tuple(t_ln)  # No choice... :/
+
         lay_nor = elem_data_single_int32(geom, b"LayerElementNormal", 0)
         elem_data_single_int32(lay_nor, b"Version", FBX_GEOMETRY_NORMAL_VERSION)
         elem_data_single_string(lay_nor, b"Name", b"")
         elem_data_single_string(lay_nor, b"MappingInformationType", b"ByPolygonVertex")
         elem_data_single_string(lay_nor, b"ReferenceInformationType", b"IndexToDirect")
 
-        ln2idx = tuple(set(_nortuples_gen(t_ln)))
+        ln2idx = tuple(set(t_ln))
         elem_data_single_float64_array(lay_nor, b"Normals", chain(*ln2idx))
         # Normal weights, no idea what it is.
         t_lnw = array.array(data_types.ARRAY_FLOAT64, (0.0,)) * len(ln2idx)
         elem_data_single_float64_array(lay_nor, b"NormalsW", t_lnw)
 
         ln2idx = {nor: idx for idx, nor in enumerate(ln2idx)}
-        elem_data_single_int32_array(lay_nor, b"NormalsIndex", (ln2idx[n] for n in _nortuples_gen(t_ln)))
+        elem_data_single_int32_array(lay_nor, b"NormalsIndex", (ln2idx[n] for n in t_ln))
 
         del ln2idx
-        del t_ln
         del t_lnw
     else:
-        t_ln = array.array(data_types.ARRAY_FLOAT64, (0.0,)) * len(me.loops) * 3
-        me.loops.foreach_get("normal", t_ln)
         lay_nor = elem_data_single_int32(geom, b"LayerElementNormal", 0)
         elem_data_single_int32(lay_nor, b"Version", FBX_GEOMETRY_NORMAL_VERSION)
         elem_data_single_string(lay_nor, b"Name", b"")
         elem_data_single_string(lay_nor, b"MappingInformationType", b"ByPolygonVertex")
         elem_data_single_string(lay_nor, b"ReferenceInformationType", b"Direct")
-        elem_data_single_float64_array(lay_nor, b"Normals", chain(*_nortuples_gen(t_ln)))
+        elem_data_single_float64_array(lay_nor, b"Normals", chain(*t_ln))
         # Normal weights, no idea what it is.
         t_ln = array.array(data_types.ARRAY_FLOAT64, (0.0,)) * len(me.loops)
         elem_data_single_float64_array(lay_nor, b"NormalsW", t_ln)
-        del t_ln
+    del t_ln
 
     # tspace
     tspacenumber = 0
@@ -1060,7 +1104,7 @@ def fbx_data_mesh_elements(root, me, scene_data):
                 elem_data_single_string_unicode(lay_nor, b"Name", name)
                 elem_data_single_string(lay_nor, b"MappingInformationType", b"ByPolygonVertex")
                 elem_data_single_string(lay_nor, b"ReferenceInformationType", b"Direct")
-                elem_data_single_float64_array(lay_nor, b"Binormals", chain(*_nortuples_gen(t_ln)))
+                elem_data_single_float64_array(lay_nor, b"Binormals", chain(*_nortuples_gen(t_ln, geom_mat_no)))
                 # Binormal weights, no idea what it is.
                 elem_data_single_float64_array(lay_nor, b"BinormalsW", t_lnw)
 
@@ -1072,7 +1116,7 @@ def fbx_data_mesh_elements(root, me, scene_data):
                 elem_data_single_string_unicode(lay_nor, b"Name", name)
                 elem_data_single_string(lay_nor, b"MappingInformationType", b"ByPolygonVertex")
                 elem_data_single_string(lay_nor, b"ReferenceInformationType", b"Direct")
-                elem_data_single_float64_array(lay_nor, b"Tangents", chain(*_nortuples_gen(t_ln)))
+                elem_data_single_float64_array(lay_nor, b"Binormals", chain(*_nortuples_gen(t_ln, geom_mat_no)))
                 # Tangent weights, no idea what it is.
                 elem_data_single_float64_array(lay_nor, b"TangentsW", t_lnw)
 
@@ -1657,7 +1701,7 @@ def fbx_data_from_scene(scene, settings):
     data_lamps = {obj.data: get_blenderID_key(obj.data) for obj in objects if obj.type == 'LAMP'}
     # Unfortunately, FBX camera data contains object-level data (like position, orientation, etc.)...
     data_cameras = {obj: get_blenderID_key(obj.data) for obj in objects if obj.type == 'CAMERA'}
-    data_meshes = {obj.data: get_blenderID_key(obj.data) for obj in objects if obj.type == 'MESH'}
+    data_meshes = {obj.data: (get_blenderID_key(obj.data), obj) for obj in objects if obj.type == 'MESH'}
 
     # Armatures!
     data_bones = {}
@@ -1819,14 +1863,15 @@ def fbx_data_from_scene(scene, settings):
             lamp_key = data_lamps[obj.data]
             connections.append((b"OO", get_fbxuid_from_key(lamp_key), get_fbxuid_from_key(obj_key), None))
         elif obj.type == 'MESH':
-            mesh_key = data_meshes[obj.data]
+            mesh_key, _obj = data_meshes[obj.data]
             connections.append((b"OO", get_fbxuid_from_key(mesh_key), get_fbxuid_from_key(obj_key), None))
 
     # Deformers (armature-to-geometry, only for meshes currently)...
     for arm, deformed_meshes in data_deformers.items():
         for me, (skin_key, _obj, clusters) in deformed_meshes.items():
             # skin -> geometry
-            connections.append((b"OO", get_fbxuid_from_key(skin_key), get_fbxuid_from_key(data_meshes[me]), None))
+            mesh_key, _obj = data_meshes[me]
+            connections.append((b"OO", get_fbxuid_from_key(skin_key), get_fbxuid_from_key(mesh_key), None))
             for bo, clstr_key in clusters.items():
                 # cluster -> skin
                 connections.append((b"OO", get_fbxuid_from_key(clstr_key), get_fbxuid_from_key(skin_key), None))
@@ -2030,7 +2075,7 @@ def fbx_objects_elements(root, scene_data):
     for cam in scene_data.data_cameras.keys():
         fbx_data_camera_elements(objects, cam, scene_data)
 
-    for mesh in scene_data.data_meshes:
+    for mesh in scene_data.data_meshes.keys():
         fbx_data_mesh_elements(objects, mesh, scene_data)
 
     for obj in scene_data.objects.keys():
@@ -2075,7 +2120,9 @@ FBXSettingsMedia = namedtuple("FBXSettingsMedia", (
     "embed_textures", "copy_set",
 ))
 FBXSettings = namedtuple("FBXSettings", (
-    "to_axes", "global_matrix", "global_scale", "context_objects", "object_types", "use_mesh_modifiers",
+    "to_axes", "global_matrix", "global_scale",
+    "bake_space_transform", "global_matrix_inv", "global_matrix_inv_trans",
+    "context_objects", "object_types", "use_mesh_modifiers",
     "mesh_smooth_type", "use_mesh_edges", "use_tspace", "use_armature_deform_only",
     "use_anim", "use_anim_optimize", "anim_optimize_precision", "use_anim_action_all", "use_default_take",
     "use_metadata", "media_settings", "use_custom_properties",
@@ -2103,15 +2150,16 @@ def save_single(operator, scene, filepath="",
                 use_default_take=True,
                 embed_textures=False,
                 use_custom_properties=False,
+                bake_space_transform=False,
                 **kwargs
                 ):
 
     if object_types is None:
-        # XXX Temp, during dev...
-        #object_types = {'EMPTY', 'CAMERA', 'LAMP', 'MESH'}
         object_types = {'EMPTY', 'CAMERA', 'LAMP', 'ARMATURE', 'MESH'}
 
     global_scale = global_matrix.median_scale
+    global_matrix_inv = global_matrix.inverted()
+    global_matrix_inv_trans = global_matrix_inv.transposed().to_3x3().to_4x4()  # For transforming mesh normals.
 
     # Only embed textures in COPY mode!
     if embed_textures and path_mode != 'COPY':
@@ -2128,7 +2176,9 @@ def save_single(operator, scene, filepath="",
     )
 
     settings = FBXSettings(
-        (axis_up, axis_forward), global_matrix, global_scale, context_objects, object_types, use_mesh_modifiers,
+        (axis_up, axis_forward), global_matrix, global_scale,
+        bake_space_transform, global_matrix_inv, global_matrix_inv_trans,
+        context_objects, object_types, use_mesh_modifiers,
         mesh_smooth_type, use_mesh_edges, use_tspace, use_armature_deform_only,
         use_anim, use_anim_optimize, anim_optimize_precision, use_anim_action_all, use_default_take,
         use_metadata, media_settings, use_custom_properties,
@@ -2187,6 +2237,9 @@ def defaults_unity3d():
         "use_anim_action_all": True,
         "batch_mode": 'OFF',
         "use_default_take": True,
+        # Should really be True, but it can cause problems if a model is already in a scene or prefab
+        # with the old transforms.
+        "bake_space_transform": False,
     }
 
 

@@ -192,6 +192,13 @@ class ExportFBX(bpy.types.Operator, ExportHelper):
                ),
         default='Y',
     )
+    bake_space_transform = BoolProperty(
+        name="Bake Space Transform",
+        description=("Bake space transform into object data, avoids getting unwanted rotations to objects when "
+                     "target space is not aligned with Blender's space "
+                     "(WARNING! experimental option, might give odd/wrong results)"),
+        default=False,
+    )
 
     object_types = EnumProperty(
         name="Object Types",
@@ -218,7 +225,6 @@ class ExportFBX(bpy.types.Operator, ExportHelper):
                ),
         default='FACE',
     )
-
     use_mesh_edges = BoolProperty(
         name="Include Loose Edges",
         default=False,
