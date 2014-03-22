@@ -2730,7 +2730,7 @@ class NWAddSequence(Operator, ImportHelper):
 
         nodes_list = [node for node in nodes]
         if nodes_list:
-            Anodes_list.sort(key=lambda k: k.location.x)
+            nodes_list.sort(key=lambda k: k.location.x)
             xloc = nodes_list[0].location.x - 220  # place new nodes at far left
             yloc = 0
             for node in nodes:
