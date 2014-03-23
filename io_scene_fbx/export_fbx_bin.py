@@ -685,7 +685,8 @@ def use_bake_space_transform(scene_data, obj):
     # NOTE: Only applies to object types supporting this!!! Currently, only meshes...
     #       Also, do not apply it to children objects.
     # TODO: Check whether this can work for bones too...
-    return scene_data.settings.bake_space_transform and obj.type in {'MESH'} and not has_valid_parent(scene_data, obj)
+    return (scene_data.settings.bake_space_transform and not isinstance(obj, Bone) and
+            obj.type in {'MESH'} and not has_valid_parent(scene_data, obj))
 
 
 def object_matrix(scene_data, obj, armature=None, local_space=False, global_space=False):
