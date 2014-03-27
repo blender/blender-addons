@@ -165,7 +165,7 @@ class ExportFBX(bpy.types.Operator, ExportHelper):
     )
     global_scale = FloatProperty(
         name="Scale",
-        description=("Scale all data (Some importers do not support scaled armatures!)"),
+        description="Scale all data (Some importers do not support scaled armatures!)",
         min=0.001, max=1000.0,
         soft_min=0.01, soft_max=1000.0,
         default=1.0,
@@ -210,6 +210,7 @@ class ExportFBX(bpy.types.Operator, ExportHelper):
                ('ARMATURE', "Armature", ""),
                ('MESH', "Mesh", ""),
                ),
+        description="Which kind of object to export",
         default={'EMPTY', 'CAMERA', 'LAMP', 'ARMATURE', 'MESH'},
     )
 
@@ -224,15 +225,17 @@ class ExportFBX(bpy.types.Operator, ExportHelper):
                ('FACE', "Face", "Write face smoothing"),
                ('EDGE', "Edge", "Write edge smoothing"),
                ),
+        description="Export smoothing information (not mandatory if your target importer understand split normals)",
         default='FACE',
     )
     use_mesh_edges = BoolProperty(
-        name="Include Loose Edges",
+        name="Loose Edges",
+        description="Export loose edges (as two-vertices polygons)",
         default=False,
     )
     # 7.4 only
     use_tspace = BoolProperty(
-        name="Include Tangent Space",
+        name="Tangent Space",
         description=("Add binormal and tangent vectors, together with normal they form the tangent space "
                      "(will only work correctly with tris/quads only meshes!)"),
         default=False,
@@ -344,20 +347,26 @@ class ExportFBX(bpy.types.Operator, ExportHelper):
         if is_74bin:
             layout.prop(self, "use_custom_properties")
             layout.prop(self, "bake_anim")
-            layout.prop(self, "bake_anim_step")
-            layout.prop(self, "bake_anim_simplify_factor")
+            col = layout.column()
+            col.enabled = self.bake_anim
+            col.prop(self, "bake_anim_step")
+            col.prop(self, "bake_anim_simplify_factor")
         else:
             layout.prop(self, "use_armature_deform_only")
             layout.prop(self, "use_anim")
-            layout.prop(self, "use_anim_action_all")
-            layout.prop(self, "use_default_take")
-            layout.prop(self, "use_anim_optimize")
-            layout.prop(self, "anim_optimize_precision")
+            col = layout.column()
+            col.enabled = self.use_anim
+            col.prop(self, "use_anim_action_all")
+            col.prop(self, "use_default_take")
+            col.prop(self, "use_anim_optimize")
+            col.prop(self, "anim_optimize_precision")
 
         layout.separator()
         layout.prop(self, "path_mode")
         if is_74bin:
-            layout.prop(self, "embed_textures")
+            col = layout.column()
+            col.enabled = (self.path_mode == 'COPY')
+            col.prop(self, "embed_textures")
         layout.prop(self, "batch_mode")
         layout.prop(self, "use_batch_own_dir")
 
