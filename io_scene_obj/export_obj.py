@@ -84,8 +84,8 @@ def write_mtl(scene, filepath, path_mode, copy_set, mtl_dict):
             fw('Ka %.6f %.6f %.6f\n' % (mat.ambient * world_amb)[:])  # Ambient, uses mirror color,
             fw('Kd %.6f %.6f %.6f\n' % (mat.diffuse_intensity * mat.diffuse_color)[:])  # Diffuse
             fw('Ks %.6f %.6f %.6f\n' % (mat.specular_intensity * mat.specular_color)[:])  # Specular
-            if hasattr(mat, "ior"):
-                fw('Ni %.6f\n' % mat.ior)  # Refraction index
+            if hasattr(mat, "raytrace_transparency") and hasattr(mat.raytrace_transparency, "ior"):
+                fw('Ni %.6f\n' % mat.raytrace_transparency.ior)  # Refraction index
             else:
                 fw('Ni %.6f\n' % 1.0)
             fw('d %.6f\n' % mat.alpha)  # Alpha (obj uses 'd' for dissolve)
