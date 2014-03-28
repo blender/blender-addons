@@ -363,17 +363,20 @@ FBX_PROPERTIES_DEFINITIONS = {
     "p_bool": (b"bool", b"", "add_int32"),  # Yes, int32 for a bool (and they do have a core bool type)!!!
     "p_integer": (b"int", b"Integer", "add_int32"),
     "p_ulonglong": (b"ULongLong", b"", "add_int64"),
+    "p_double": (b"double", b"Number", "add_float64"),  # Non-animatable?
+    "p_number": (b"Number", b"", "add_float64"),  # Animatable-only?
     "p_enum": (b"enum", b"", "add_int32"),
-    "p_number": (b"double", b"Number", "add_float64"),
     "p_visibility": (b"Visibility", b"", "add_float64"),
     "p_fov": (b"FieldOfView", b"", "add_float64"),
     "p_fov_x": (b"FieldOfViewX", b"", "add_float64"),
     "p_fov_y": (b"FieldOfViewY", b"", "add_float64"),
-    "p_vector_3d": (b"Vector3D", b"Vector", "add_float64", "add_float64", "add_float64"),
+    "p_vector_3d": (b"Vector3D", b"Vector", "add_float64", "add_float64", "add_float64"),  # Non-animatable?
+    "p_vector": (b"Vector", b"", "add_float64", "add_float64", "add_float64"),  # Animatable-only?
     "p_lcl_translation": (b"Lcl Translation", b"", "add_float64", "add_float64", "add_float64"),
     "p_lcl_rotation": (b"Lcl Rotation", b"", "add_float64", "add_float64", "add_float64"),
     "p_lcl_scaling": (b"Lcl Scaling", b"", "add_float64", "add_float64", "add_float64"),
-    "p_color_rgb": (b"ColorRGB", b"Color", "add_float64", "add_float64", "add_float64"),
+    "p_color_rgb": (b"ColorRGB", b"Color", "add_float64", "add_float64", "add_float64"),  # Non-animatable?
+    "p_color": (b"Color", b"", "add_float64", "add_float64", "add_float64"),  # Animatable-only?
     "p_string": (b"KString", b"", "add_string_unicode"),
     "p_string_url": (b"KString", b"Url", "add_string_unicode"),
     "p_timestamp": (b"KTime", b"Time", "add_int64"),
@@ -503,10 +506,10 @@ def fbx_template_def_model(scene, settings, override_defaults=None, nbr_users=0)
         (b"TranslationMaxZ", (False, "p_bool", False)),
         (b"RotationOrder", (0, "p_enum", False)),  # we always use 'XYZ' order.
         (b"RotationSpaceForLimitOnly", (False, "p_bool", False)),
-        (b"RotationStiffnessX", (0.0, "p_number", False)),
-        (b"RotationStiffnessY", (0.0, "p_number", False)),
-        (b"RotationStiffnessZ", (0.0, "p_number", False)),
-        (b"AxisLen", (10.0, "p_number", False)),
+        (b"RotationStiffnessX", (0.0, "p_double", False)),
+        (b"RotationStiffnessY", (0.0, "p_double", False)),
+        (b"RotationStiffnessZ", (0.0, "p_double", False)),
+        (b"AxisLen", (10.0, "p_double", False)),
         (b"PreRotation", ((0.0, 0.0, 0.0), "p_vector_3d", False)),
         (b"PostRotation", ((0.0, 0.0, 0.0), "p_vector_3d", False)),
         (b"RotationActive", (False, "p_bool", False)),
@@ -531,21 +534,21 @@ def fbx_template_def_model(scene, settings, override_defaults=None, nbr_users=0)
         (b"GeometricTranslation", ((0.0, 0.0, 0.0), "p_vector_3d", False)),
         (b"GeometricRotation", ((0.0, 0.0, 0.0), "p_vector_3d", False)),
         (b"GeometricScaling", (Vector((1.0, 1.0, 1.0)) * gscale, "p_vector_3d", False)),
-        (b"MinDampRangeX", (0.0, "p_number", False)),
-        (b"MinDampRangeY", (0.0, "p_number", False)),
-        (b"MinDampRangeZ", (0.0, "p_number", False)),
-        (b"MaxDampRangeX", (0.0, "p_number", False)),
-        (b"MaxDampRangeY", (0.0, "p_number", False)),
-        (b"MaxDampRangeZ", (0.0, "p_number", False)),
-        (b"MinDampStrengthX", (0.0, "p_number", False)),
-        (b"MinDampStrengthY", (0.0, "p_number", False)),
-        (b"MinDampStrengthZ", (0.0, "p_number", False)),
-        (b"MaxDampStrengthX", (0.0, "p_number", False)),
-        (b"MaxDampStrengthY", (0.0, "p_number", False)),
-        (b"MaxDampStrengthZ", (0.0, "p_number", False)),
-        (b"PreferedAngleX", (0.0, "p_number", False)),
-        (b"PreferedAngleY", (0.0, "p_number", False)),
-        (b"PreferedAngleZ", (0.0, "p_number", False)),
+        (b"MinDampRangeX", (0.0, "p_double", False)),
+        (b"MinDampRangeY", (0.0, "p_double", False)),
+        (b"MinDampRangeZ", (0.0, "p_double", False)),
+        (b"MaxDampRangeX", (0.0, "p_double", False)),
+        (b"MaxDampRangeY", (0.0, "p_double", False)),
+        (b"MaxDampRangeZ", (0.0, "p_double", False)),
+        (b"MinDampStrengthX", (0.0, "p_double", False)),
+        (b"MinDampStrengthY", (0.0, "p_double", False)),
+        (b"MinDampStrengthZ", (0.0, "p_double", False)),
+        (b"MaxDampStrengthX", (0.0, "p_double", False)),
+        (b"MaxDampStrengthY", (0.0, "p_double", False)),
+        (b"MaxDampStrengthZ", (0.0, "p_double", False)),
+        (b"PreferedAngleX", (0.0, "p_double", False)),
+        (b"PreferedAngleY", (0.0, "p_double", False)),
+        (b"PreferedAngleZ", (0.0, "p_double", False)),
         (b"LookAtProperty", (None, "p_object", False)),
         (b"UpVectorProperty", (None, "p_object", False)),
         (b"Show", (True, "p_bool", False)),
@@ -571,7 +574,7 @@ def fbx_template_def_light(scene, settings, override_defaults=None, nbr_users=0)
         (b"Color", ((1.0, 1.0, 1.0), "p_color_rgb", True)),
         (b"Intensity", (100.0, "p_number", True)),  # Times 100 compared to Blender values...
         (b"DecayType", (2, "p_enum", False)),  # Quadratic.
-        (b"DecayStart", (30.0 * gscale, "p_number", False)),
+        (b"DecayStart", (30.0 * gscale, "p_double", False)),
         (b"CastShadows", (True, "p_bool", False)),
         (b"ShadowColor", ((0.0, 0.0, 0.0), "p_color_rgb", True)),
         (b"AreaLightShape", (0, "p_enum", False)),  # Rectangle.
@@ -615,29 +618,29 @@ def fbx_template_def_material(scene, settings, override_defaults=None, nbr_users
         (b"ShadingModel", ("phong", "p_string", False)),
         (b"MultiLayer", (False, "p_bool", False)),
         # Lambert-specific.
-        (b"EmissiveColor", ((0.8, 0.8, 0.8), "p_color_rgb", True)),  # Same as diffuse.
+        (b"EmissiveColor", ((0.8, 0.8, 0.8), "p_color", True)),  # Same as diffuse.
         (b"EmissiveFactor", (0.0, "p_number", True)),
-        (b"AmbientColor", ((0.0, 0.0, 0.0), "p_color_rgb", True)),
+        (b"AmbientColor", ((0.0, 0.0, 0.0), "p_color", True)),
         (b"AmbientFactor", (1.0, "p_number", True)),
-        (b"DiffuseColor", ((0.8, 0.8, 0.8), "p_color_rgb", True)),
+        (b"DiffuseColor", ((0.8, 0.8, 0.8), "p_color", True)),
         (b"DiffuseFactor", (0.8, "p_number", True)),
-        (b"TransparentColor", ((0.8, 0.8, 0.8), "p_color_rgb", True)),  # Same as diffuse.
+        (b"TransparentColor", ((0.8, 0.8, 0.8), "p_color", True)),  # Same as diffuse.
         (b"TransparencyFactor", (0.0, "p_number", True)),
         (b"Opacity", (1.0, "p_number", True)),
         (b"NormalMap", ((0.0, 0.0, 0.0), "p_vector_3d", False)),
         (b"Bump", ((0.0, 0.0, 0.0), "p_vector_3d", False)),
-        (b"BumpFactor", (1.0, "p_number", False)),
+        (b"BumpFactor", (1.0, "p_double", False)),
         (b"DisplacementColor", ((0.0, 0.0, 0.0), "p_color_rgb", False)),
-        (b"DisplacementFactor", (0.0, "p_number", False)),
+        (b"DisplacementFactor", (0.0, "p_double", False)),
         # Phong-specific.
-        (b"SpecularColor", ((1.0, 1.0, 1.0), "p_color_rgb", True)),
+        (b"SpecularColor", ((1.0, 1.0, 1.0), "p_color", True)),
         (b"SpecularFactor", (0.5 / 2.0, "p_number", True)),
         # Not sure about the name, importer uses this (but ShininessExponent for tex prop name!)
         # And in fbx exported by sdk, you have one in template, the other in actual material!!! :/
         # For now, using both.
         (b"Shininess", ((50.0 - 1.0) / 5.10, "p_number", True)),
         (b"ShininessExponent", ((50.0 - 1.0) / 5.10, "p_number", True)),
-        (b"ReflectionColor", ((1.0, 1.0, 1.0), "p_color_rgb", True)),
+        (b"ReflectionColor", ((1.0, 1.0, 1.0), "p_color", True)),
         (b"ReflectionFactor", (0.0, "p_number", True)),
     ))
     if override_defaults is not None:
@@ -651,7 +654,7 @@ def fbx_template_def_texture_file(scene, settings, override_defaults=None, nbr_u
     props = OrderedDict((
         (b"TextureTypeUse", (0, "p_enum", False)),  # Standard.
         (b"AlphaSource", (2, "p_enum", False)),  # Black (i.e. texture's alpha), XXX name guessed!.
-        (b"Texture alpha", (1.0, "p_number", False)),
+        (b"Texture alpha", (1.0, "p_double", False)),
         (b"PremultiplyAlpha", (False, "p_bool", False)),
         (b"CurrentTextureBlendMode", (0, "p_enum", False)),  # Translucent, assuming this means "Alpha over"!
         (b"CurrentMappingType", (1, "p_enum", False)),  # Planar.
@@ -684,14 +687,14 @@ def fbx_template_def_video(scene, settings, override_defaults=None, nbr_users=0)
         (b"StartFrame", (0, "p_integer", False)),
         (b"StopFrame", (0, "p_integer", False)),
         (b"Offset", (0, "p_timestamp", False)),
-        (b"PlaySpeed", (1.0, "p_number", False)),
+        (b"PlaySpeed", (1.0, "p_double", False)),
         (b"FreeRunning", (False, "p_bool", False)),
         (b"Loop", (False, "p_bool", False)),
         (b"InterlaceMode", (0, "p_enum", False)),  # None, i.e. progressive.
         # Image sequences.
         (b"ImageSequence", (False, "p_bool", False)),
         (b"ImageSequenceOffset", (0, "p_integer", False)),
-        (b"FrameRate", (scene.render.fps / scene.render.fps_base, "p_number", False)),
+        (b"FrameRate", (scene.render.fps / scene.render.fps_base, "p_double", False)),
         (b"LastFrame", (0, "p_integer", False)),
     ))
     if override_defaults is not None:
@@ -732,7 +735,7 @@ def fbx_template_def_animlayer(scene, settings, override_defaults=None, nbr_user
         (b"Mute", (False, "p_bool", False)),
         (b"Solo", (False, "p_bool", False)),
         (b"Lock", (False, "p_bool", False)),
-        (b"Color", ((0.8, 0.8, 0.8), "p_color_rgb", True)),
+        (b"Color", ((0.8, 0.8, 0.8), "p_color_rgb", False)),
         (b"BlendMode", (0, "p_enum", False)),
         (b"RotationAccumulationMode", (0, "p_enum", False)),
         (b"ScaleAccumulationMode", (0, "p_enum", False)),
@@ -858,7 +861,7 @@ def fbx_data_element_custom_properties(props, bid):
         elif isinstance(v, int):
             elem_props_set(props, "p_integer", k.encode(), v, custom=True)
         if isinstance(v, float):
-            elem_props_set(props, "p_number", k.encode(), v, custom=True)
+            elem_props_set(props, "p_double", k.encode(), v, custom=True)
 
 
 def fbx_data_lamp_elements(root, lamp, scene_data):
@@ -889,15 +892,15 @@ def fbx_data_lamp_elements(root, lamp, scene_data):
     props = elem_properties(light)
     elem_props_template_set(tmpl, props, "p_enum", b"LightType", FBX_LIGHT_TYPES[lamp.type])
     elem_props_template_set(tmpl, props, "p_bool", b"CastLight", do_light)
-    elem_props_template_set(tmpl, props, "p_color_rgb", b"Color", lamp.color)
+    elem_props_template_set(tmpl, props, "p_color", b"Color", lamp.color)
     elem_props_template_set(tmpl, props, "p_number", b"Intensity", lamp.energy * 100.0)
     elem_props_template_set(tmpl, props, "p_enum", b"DecayType", decay_type)
-    elem_props_template_set(tmpl, props, "p_number", b"DecayStart", lamp.distance * gscale)
+    elem_props_template_set(tmpl, props, "p_double", b"DecayStart", lamp.distance * gscale)
     elem_props_template_set(tmpl, props, "p_bool", b"CastShadows", do_shadow)
-    elem_props_template_set(tmpl, props, "p_color_rgb", b"ShadowColor", shadow_color)
+    elem_props_template_set(tmpl, props, "p_color", b"ShadowColor", shadow_color)
     if lamp.type in {'SPOT'}:
-        elem_props_template_set(tmpl, props, "p_number", b"OuterAngle", math.degrees(lamp.spot_size))
-        elem_props_template_set(tmpl, props, "p_number", b"InnerAngle",
+        elem_props_template_set(tmpl, props, "p_double", b"OuterAngle", math.degrees(lamp.spot_size))
+        elem_props_template_set(tmpl, props, "p_double", b"InnerAngle",
                                 math.degrees(lamp.spot_size * (1.0 - lamp.spot_blend)))
 
     # Custom properties.
@@ -939,18 +942,18 @@ def fbx_data_camera_elements(root, cam_obj, scene_data):
 
     tmpl = scene_data.templates[b"Camera"]
     props = elem_properties(cam)
-    elem_props_template_set(tmpl, props, "p_vector_3d", b"Position", loc)
-    elem_props_template_set(tmpl, props, "p_vector_3d", b"UpVector", up)
-    elem_props_template_set(tmpl, props, "p_vector_3d", b"InterestPosition", to)
+    elem_props_template_set(tmpl, props, "p_vector", b"Position", loc)
+    elem_props_template_set(tmpl, props, "p_vector", b"UpVector", up)
+    elem_props_template_set(tmpl, props, "p_vector", b"InterestPosition", to)
     # Should we use world value?
-    elem_props_template_set(tmpl, props, "p_color_rgb", b"BackgroundColor", (0.0, 0.0, 0.0))
+    elem_props_template_set(tmpl, props, "p_color", b"BackgroundColor", (0.0, 0.0, 0.0))
     elem_props_template_set(tmpl, props, "p_bool", b"DisplayTurnTableIcon", True)
 
-    elem_props_template_set(tmpl, props, "p_number", b"FilmWidth", filmwidth)
-    elem_props_template_set(tmpl, props, "p_number", b"FilmHeight", filmheight)
-    elem_props_template_set(tmpl, props, "p_number", b"FilmAspectRatio", filmaspect)
-    elem_props_template_set(tmpl, props, "p_number", b"FilmOffsetX", offsetx)
-    elem_props_template_set(tmpl, props, "p_number", b"FilmOffsetY", offsety)
+    elem_props_template_set(tmpl, props, "p_double", b"FilmWidth", filmwidth)
+    elem_props_template_set(tmpl, props, "p_double", b"FilmHeight", filmheight)
+    elem_props_template_set(tmpl, props, "p_double", b"FilmAspectRatio", filmaspect)
+    elem_props_template_set(tmpl, props, "p_double", b"FilmOffsetX", offsetx)
+    elem_props_template_set(tmpl, props, "p_double", b"FilmOffsetY", offsety)
 
     elem_props_template_set(tmpl, props, "p_enum", b"ApertureMode", 3)  # FocalLength.
     elem_props_template_set(tmpl, props, "p_enum", b"GateFit", 2)  # FitHorizontal.
@@ -958,13 +961,13 @@ def fbx_data_camera_elements(root, cam_obj, scene_data):
     elem_props_template_set(tmpl, props, "p_fov_x", b"FieldOfViewX", math.degrees(cam_data.angle_x))
     elem_props_template_set(tmpl, props, "p_fov_y", b"FieldOfViewY", math.degrees(cam_data.angle_y))
     # No need to convert to inches here...
-    elem_props_template_set(tmpl, props, "p_number", b"FocalLength", cam_data.lens)
-    elem_props_template_set(tmpl, props, "p_number", b"SafeAreaAspectRatio", aspect)
+    elem_props_template_set(tmpl, props, "p_double", b"FocalLength", cam_data.lens)
+    elem_props_template_set(tmpl, props, "p_double", b"SafeAreaAspectRatio", aspect)
 
-    elem_props_template_set(tmpl, props, "p_number", b"NearPlane", cam_data.clip_start * gscale)
-    elem_props_template_set(tmpl, props, "p_number", b"FarPlane", cam_data.clip_end * gscale)
+    elem_props_template_set(tmpl, props, "p_double", b"NearPlane", cam_data.clip_start * gscale)
+    elem_props_template_set(tmpl, props, "p_double", b"FarPlane", cam_data.clip_end * gscale)
     elem_props_template_set(tmpl, props, "p_enum", b"BackPlaneDistanceMode", 1)  # RelativeToCamera.
-    elem_props_template_set(tmpl, props, "p_number", b"BackPlaneDistance", cam_data.clip_end * gscale)
+    elem_props_template_set(tmpl, props, "p_double", b"BackPlaneDistance", cam_data.clip_end * gscale)
 
     # Custom properties.
     if scene_data.settings.use_custom_properties:
@@ -1370,13 +1373,13 @@ def fbx_data_material_elements(root, mat, scene_data):
     tmpl = scene_data.templates[b"Material"]
     props = elem_properties(fbx_mat)
     elem_props_template_set(tmpl, props, "p_string", b"ShadingModel", mat_type.decode())
-    elem_props_template_set(tmpl, props, "p_color_rgb", b"EmissiveColor", mat.diffuse_color)
+    elem_props_template_set(tmpl, props, "p_color", b"EmissiveColor", mat.diffuse_color)
     elem_props_template_set(tmpl, props, "p_number", b"EmissiveFactor", mat.emit)
-    elem_props_template_set(tmpl, props, "p_color_rgb", b"AmbientColor", ambient_color)
+    elem_props_template_set(tmpl, props, "p_color", b"AmbientColor", ambient_color)
     elem_props_template_set(tmpl, props, "p_number", b"AmbientFactor", mat.ambient)
-    elem_props_template_set(tmpl, props, "p_color_rgb", b"DiffuseColor", mat.diffuse_color)
+    elem_props_template_set(tmpl, props, "p_color", b"DiffuseColor", mat.diffuse_color)
     elem_props_template_set(tmpl, props, "p_number", b"DiffuseFactor", mat.diffuse_intensity)
-    elem_props_template_set(tmpl, props, "p_color_rgb", b"TransparentColor",
+    elem_props_template_set(tmpl, props, "p_color", b"TransparentColor",
                             mat.diffuse_color if mat.use_transparency else (1.0, 1.0, 1.0))
     elem_props_template_set(tmpl, props, "p_number", b"TransparencyFactor",
                             1.0 - mat.alpha if mat.use_transparency else 0.0)
@@ -1385,17 +1388,17 @@ def fbx_data_material_elements(root, mat, scene_data):
     # Not sure about those...
     """
     b"Bump": ((0.0, 0.0, 0.0), "p_vector_3d"),
-    b"BumpFactor": (1.0, "p_number"),
+    b"BumpFactor": (1.0, "p_double"),
     b"DisplacementColor": ((0.0, 0.0, 0.0), "p_color_rgb"),
-    b"DisplacementFactor": (0.0, "p_number"),
+    b"DisplacementFactor": (0.0, "p_double"),
     """
     if mat_type == b"phong":
-        elem_props_template_set(tmpl, props, "p_color_rgb", b"SpecularColor", mat.specular_color)
+        elem_props_template_set(tmpl, props, "p_color", b"SpecularColor", mat.specular_color)
         elem_props_template_set(tmpl, props, "p_number", b"SpecularFactor", mat.specular_intensity / 2.0)
         # See Material template about those two!
         elem_props_template_set(tmpl, props, "p_number", b"Shininess", (mat.specular_hardness - 1.0) / 5.10)
         elem_props_template_set(tmpl, props, "p_number", b"ShininessExponent", (mat.specular_hardness - 1.0) / 5.10)
-        elem_props_template_set(tmpl, props, "p_color_rgb", b"ReflectionColor", mat.mirror_color)
+        elem_props_template_set(tmpl, props, "p_color", b"ReflectionColor", mat.mirror_color)
         elem_props_template_set(tmpl, props, "p_number", b"ReflectionFactor",
                                 mat.raytrace_mirror.reflect_factor if mat.raytrace_mirror.use else 0.0)
 
@@ -1523,7 +1526,7 @@ def fbx_data_armature_elements(root, armature, scene_data):
         elem_data_single_string(fbx_bo, b"TypeFlags", b"Skeleton")
 
         props = elem_properties(fbx_bo)
-        elem_props_template_set(tmpl, props, "p_number", b"Size", (bo.tail_local - bo.head_local).length)
+        elem_props_template_set(tmpl, props, "p_double", b"Size", (bo.tail_local - bo.head_local).length)
 
         # Custom properties.
         if scene_data.settings.use_custom_properties:
@@ -1655,8 +1658,8 @@ def fbx_data_object_elements(root, obj, scene_data):
         width = render.resolution_x * 1.0
         height = render.resolution_y * 1.0
         elem_props_template_set(tmpl, props, "p_enum", b"ResolutionMode", 0)  # Don't know what it means
-        elem_props_template_set(tmpl, props, "p_number", b"AspectW", width)
-        elem_props_template_set(tmpl, props, "p_number", b"AspectH", height)
+        elem_props_template_set(tmpl, props, "p_double", b"AspectW", width)
+        elem_props_template_set(tmpl, props, "p_double", b"AspectH", height)
         elem_props_template_set(tmpl, props, "p_bool", b"ViewFrustum", True)
         elem_props_template_set(tmpl, props, "p_enum", b"BackgroundMode", 0)  # Don't know what it means
         elem_props_template_set(tmpl, props, "p_bool", b"ForegroundTransparent", True)
@@ -2318,7 +2321,7 @@ def fbx_header_elements(root, scene_data, time=None):
     elem_props_set(props, "p_integer", b"FrontAxisSign", front_axis[1])
     elem_props_set(props, "p_integer", b"CoordAxis", coord_axis[0])
     elem_props_set(props, "p_integer", b"CoordAxisSign", coord_axis[1])
-    elem_props_set(props, "p_number", b"UnitScaleFactor", 1.0)
+    elem_props_set(props, "p_double", b"UnitScaleFactor", 1.0)
     elem_props_set(props, "p_color_rgb", b"AmbientColor", (0.0, 0.0, 0.0))
     elem_props_set(props, "p_string", b"DefaultCamera", "Producer Perspective")
 
@@ -2332,7 +2335,7 @@ def fbx_header_elements(root, scene_data, time=None):
     #elem_props_set(props, "p_timestamp", b"TimeSpanStop", int(units_convert(f_end / fps, "second", "ktime")))
     elem_props_set(props, "p_timestamp", b"TimeSpanStart", 0)
     elem_props_set(props, "p_timestamp", b"TimeSpanStop", FBX_KTIME)
-    elem_props_set(props, "p_number", b"CustomFrameRate", fps)
+    elem_props_set(props, "p_double", b"CustomFrameRate", fps)
 
     ##### End of GlobalSettings element.
 
