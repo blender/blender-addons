@@ -1697,8 +1697,8 @@ def fbx_data_animation_elements(root, scene_data):
 
             acn_props = elem_properties(acurvenode)
 
-            for fbx_item, (acurve_key, default_value, keys) in acurves.items():
-                elem_props_template_set(acn_tmpl, acn_props, "p_number", fbx_item.encode(), default_value)
+            for fbx_item, (acurve_key, def_value, keys) in acurves.items():
+                elem_props_template_set(acn_tmpl, acn_props, "p_number", fbx_item.encode(), def_value, animatable=True)
 
                 # Only create Animation curve if needed!
                 if keys:
@@ -1707,6 +1707,7 @@ def fbx_data_animation_elements(root, scene_data):
                     acurve.add_string(b"")
 
                     # key attributes...
+                    nbr_keys = len(keys)
                     # flags...
                     keyattr_flags = (1 << 3 |   # interpolation mode, 1 = constant, 2 = linear, 3 = cubic.
                                      1 << 8 |   # tangent mode, 8 = auto, 9 = TCB, 10 = user, 11 = generic break,
@@ -1718,13 +1719,13 @@ def fbx_data_animation_elements(root, scene_data):
                     keyattr_datafloat = (0.0, 0.0, 9.419963346924634e-30, 0.0)
 
                     # And now, the *real* data!
-                    elem_data_single_float64(acurve, b"Default", default_value)
+                    elem_data_single_float64(acurve, b"Default", def_value)
                     elem_data_single_int32(acurve, b"KeyVer", FBX_ANIM_KEY_VERSION)
                     elem_data_single_int64_array(acurve, b"KeyTime", keys_to_ktimes(keys))
                     elem_data_single_float32_array(acurve, b"KeyValueFloat", (v for _f, v in keys))
                     elem_data_single_int32_array(acurve, b"KeyAttrFlags", keyattr_flags)
                     elem_data_single_float32_array(acurve, b"KeyAttrDataFloat", keyattr_datafloat)
-                    elem_data_single_int32_array(acurve, b"KeyAttrRefCount", (len(keys),))
+                    elem_data_single_int32_array(acurve, b"KeyAttrRefCount", (nbr_keys,))
 
 
 ##### Top-level FBX data container. #####
@@ -1870,12 +1871,14 @@ def fbx_animations_simplify(scene_data, animdata):
                     key_write[idx] = True
                     p_key_write[idx] = True
                     p_keyed[idx] = (currframe, val)
-                elif (abs(val - p_keyedval) > min_diffs[idx]) or (currframe - p_keyedframe >= max_frame_diff):
+                elif (abs(val - p_keyedval) >= min_diffs[idx]) or (currframe - p_keyedframe >= max_frame_diff):
                     # Else, if enough difference from previous keyed value (or max gap between keys is reached),
                     # key this value only!
                     key_write[idx] = True
                     p_keyed[idx] = (currframe, val)
             p_currframe, p_key, p_key_write = currframe, key, key_write
+        # Always key last sampled values (we ignore curves with a single valid key anyway).
+        p_key_write[:] = [True] * len(p_key_write)
 
 
 def fbx_animations_objects(scene_data):
@@ -2210,7 +2213,7 @@ def fbx_data_from_scene(scene, settings):
                 acurvenode_id = get_fbxuid_from_key(acurvenode_key)
                 connections.append((b"OO", acurvenode_id, alayer_id, None))
                 # Animcurvenode -> object property.
-                connections.append((b"OP", alayer_id, obj_id, fbx_prop.encode()))
+                connections.append((b"OP", acurvenode_id, obj_id, fbx_prop.encode()))
                 for fbx_item, (acurve_key, dafault_value, acurve) in acurves.items():
                     if acurve:
                         # Animcurve -> Animcurvenode.
@@ -2318,10 +2321,18 @@ def fbx_header_elements(root, scene_data, time=None):
     elem_props_set(props, "p_number", b"UnitScaleFactor", 1.0)
     elem_props_set(props, "p_color_rgb", b"AmbientColor", (0.0, 0.0, 0.0))
     elem_props_set(props, "p_string", b"DefaultCamera", "Producer Perspective")
-    # XXX Those time stuff is taken from a file, have no (complete) idea what it means!
-    elem_props_set(props, "p_enum", b"TimeMode", 11)
+
+    # Global timing data.
+    r = scene_data.scene.render
+    fps = r.fps / r.fps_base
+    f_start = scene_data.scene.frame_start
+    f_end = scene_data.scene.frame_end
+    elem_props_set(props, "p_enum", b"TimeMode", 14)  # FPS, 14 = custom...
+    #elem_props_set(props, "p_timestamp", b"TimeSpanStart", int(units_convert(f_start / fps, "second", "ktime")))
+    #elem_props_set(props, "p_timestamp", b"TimeSpanStop", int(units_convert(f_end / fps, "second", "ktime")))
     elem_props_set(props, "p_timestamp", b"TimeSpanStart", 0)
-    elem_props_set(props, "p_timestamp", b"TimeSpanStop", 46186158000)  # XXX One second!
+    elem_props_set(props, "p_timestamp", b"TimeSpanStop", FBX_KTIME)
+    elem_props_set(props, "p_number", b"CustomFrameRate", fps)
 
     ##### End of GlobalSettings element.
 
