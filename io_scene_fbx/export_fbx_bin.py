@@ -1812,15 +1812,15 @@ def fbx_data_animation_elements(root, scene_data):
         alayer.add_string(fbx_name_class(obj.name.encode(), b"AnimLayer"))
         alayer.add_string(b"")
 
-        for fbx_prop, (acurvenode_key, acurves) in acurvenodes.items():
+        for fbx_prop, (acurvenode_key, acurves, acurvenode_name) in acurvenodes.items():
             # Animation curve node.
             acurvenode = elem_data_single_int64(root, b"AnimationCurveNode", get_fbxuid_from_key(acurvenode_key))
-            acurvenode.add_string(fbx_name_class(fbx_prop.encode(), b"AnimCurveNode"))
+            acurvenode.add_string(fbx_name_class(acurvenode_name.encode(), b"AnimCurveNode"))
             acurvenode.add_string(b"")
 
             acn_props = elem_properties(acurvenode)
 
-            for fbx_item, (acurve_key, def_value, keys) in acurves.items():
+            for fbx_item, (acurve_key, def_value, keys, _acurve_valid) in acurves.items():
                 elem_props_template_set(acn_tmpl, acn_props, "p_number", fbx_item.encode(), def_value, animatable=True)
 
                 # Only create Animation curve if needed!
@@ -1919,7 +1919,7 @@ def fbx_skeleton_from_armature(scene, settings, armature, objects, data_bones, d
     arm_parents is a set of tuples (armature, object) for all successful armature bindings.
     """
     arm = armature.data
-    bones = {}
+    bones = OrderedDict()
     for bo in arm.bones:
         key, data_key = get_blender_bone_key(armature, bo)
         objects[bo] = key
@@ -2014,13 +2014,13 @@ def fbx_animations_objects(scene_data):
 
     # FBX mapping info: Property affected, and name of the "sub" property (to distinguish e.g. vector's channels).
     fbx_names = (
-        ("Lcl Translation", "d|X"), ("Lcl Translation", "d|Y"), ("Lcl Translation", "d|Z"),
-        ("Lcl Rotation", "d|X"), ("Lcl Rotation", "d|Y"), ("Lcl Rotation", "d|Z"),
-        ("Lcl Scaling", "d|X"), ("Lcl Scaling", "d|Y"), ("Lcl Scaling", "d|Z"),
+        ("Lcl Translation", "T", "d|X"), ("Lcl Translation", "T", "d|Y"), ("Lcl Translation", "T", "d|Z"),
+        ("Lcl Rotation", "R", "d|X"), ("Lcl Rotation", "R", "d|Y"), ("Lcl Rotation", "R", "d|Z"),
+        ("Lcl Scaling", "S", "d|X"), ("Lcl Scaling", "S", "d|Y"), ("Lcl Scaling", "S", "d|Z"),
     )
 
     back_currframe = scene.frame_current
-    animdata = {obj: [] for obj in objects.keys()}
+    animdata = OrderedDict((obj, []) for obj in objects.keys())
 
     currframe = scene.frame_start
     while currframe < scene.frame_end:
@@ -2038,7 +2038,7 @@ def fbx_animations_objects(scene_data):
 
     fbx_animations_simplify(scene_data, animdata)
 
-    animations = {}
+    animations = OrderedDict()
 
     # And now, produce final data (usable by FBX export code)...
     for obj, keys in animdata.items():
@@ -2055,17 +2055,17 @@ def fbx_animations_objects(scene_data):
         loc, rot, scale, _m, _mr = fbx_object_tx(scene_data, obj)
         tx = tuple(loc) + tuple(units_convert_iter(rot, "radian", "degree")) + tuple(scale)
         # If animation for a channel, (True, keyframes), else (False, current value).
-        final_keys = {}
+        final_keys = OrderedDict()
         for idx, c in enumerate(curves):
-            fbx_group, fbx_item = fbx_names[idx]
+            fbx_group, fbx_gname, fbx_item = fbx_names[idx]
             fbx_item_key = get_blender_anim_curve_key(obj, fbx_group, fbx_item)
             if fbx_group not in final_keys:
-                final_keys[fbx_group] = (get_blender_anim_curve_node_key(obj, fbx_group), {})
-            final_keys[fbx_group][1][fbx_item] = (fbx_item_key, tx[idx], c if len(c) > 1 else [])
+                final_keys[fbx_group] = (get_blender_anim_curve_node_key(obj, fbx_group), OrderedDict(), fbx_gname)
+            final_keys[fbx_group][1][fbx_item] = (fbx_item_key, tx[idx], c, True if len(c) > 1 else False)
         # And now, remove anim groups (i.e. groups of curves affecting a single FBX property) with no curve at all!
         del_groups = []
-        for grp, (_k, data) in final_keys.items():
-            if True in (bool(d[2]) for d in data.values()):
+        for grp, (_k, data, _n) in final_keys.items():
+            if True in (d[3] for d in data.values()):
                 continue
             del_groups.append(grp)
         for grp in del_groups:
@@ -2087,15 +2087,15 @@ def fbx_data_from_scene(scene, settings):
 
     # This is rather simple for now, maybe we could end generating templates with most-used values
     # instead of default ones?
-    objects = {obj: get_blenderID_key(obj) for obj in scene.objects if obj.type in objtypes}
-    data_lamps = {obj.data: get_blenderID_key(obj.data) for obj in objects if obj.type == 'LAMP'}
+    objects = OrderedDict((obj, get_blenderID_key(obj)) for obj in scene.objects if obj.type in objtypes)
+    data_lamps = OrderedDict((obj.data, get_blenderID_key(obj.data)) for obj in objects if obj.type == 'LAMP')
     # Unfortunately, FBX camera data contains object-level data (like position, orientation, etc.)...
-    data_cameras = {obj: get_blenderID_key(obj.data) for obj in objects if obj.type == 'CAMERA'}
-    data_meshes = {obj.data: (get_blenderID_key(obj.data), obj) for obj in objects if obj.type == 'MESH'}
+    data_cameras = OrderedDict((obj, get_blenderID_key(obj.data)) for obj in objects if obj.type == 'CAMERA')
+    data_meshes = OrderedDict((obj.data, (get_blenderID_key(obj.data), obj)) for obj in objects if obj.type == 'MESH')
 
     # Armatures!
-    data_bones = {}
-    data_deformers = {}
+    data_bones = OrderedDict()
+    data_deformers = OrderedDict()
     arm_parents = set()
     for obj in tuple(objects.keys()):
         if obj.type not in {'ARMATURE'}:
@@ -2104,15 +2104,15 @@ def fbx_data_from_scene(scene, settings):
 
     # Some world settings are embedded in FBX materials...
     if scene.world:
-        data_world = {scene.world: get_blenderID_key(scene.world)}
+        data_world = OrderedDict(((scene.world, get_blenderID_key(scene.world)),))
     else:
-        data_world = {}
+        data_world = OrderedDict()
 
     # TODO: Check all the mat stuff works even when mats are linked to Objects
     #       (we can then have the same mesh used with different materials...).
     #       *Should* work, as FBX always links its materials to Models (i.e. objects).
     #       XXX However, material indices would probably break...
-    data_materials = {}
+    data_materials = OrderedDict()
     for obj in objects:
         # Only meshes for now!
         if not isinstance(obj, Object) or obj.type not in {'MESH'}:
@@ -2131,9 +2131,9 @@ def fbx_data_from_scene(scene, settings):
 
     # Note FBX textures also hold their mapping info.
     # TODO: Support layers?
-    data_textures = {}
+    data_textures = OrderedDict()
     # FbxVideo also used to store static images...
-    data_videos = {}
+    data_videos = OrderedDict()
     # For now, do not use world textures, don't think they can be linked to anything FBX wise...
     for mat in data_materials.keys():
         for tex in mat.texture_slots:
@@ -2156,7 +2156,7 @@ def fbx_data_from_scene(scene, settings):
             if tex in data_textures:
                 data_textures[tex][1][mat] = tex_fbx_props
             else:
-                data_textures[tex] = (get_blenderID_key(tex), {mat: tex_fbx_props})
+                data_textures[tex] = (get_blenderID_key(tex), OrderedDict((mat, tex_fbx_props)))
             if img in data_videos:
                 data_videos[img][1].append(tex)
             else:
@@ -2228,8 +2228,8 @@ def fbx_data_from_scene(scene, settings):
         templates[b"AnimationCurveNode"] = fbx_template_def_animcurvenode(scene, settings, nbr_users=nbr)
         # And the number of curves themselves...
         nbr = sum(1 if ac else 0 for _kal, al in animations[1].values()
-                                 for _kacn, acn in al.values()
-                                 for _kac, _dv, ac in acn.values())
+                                 for _kacn, acn, _acn_n in al.values()
+                                 for _kac, _dv, ac, _acv in acn.values())
         templates[b"AnimationCurve"] = fbx_template_def_animcurve(scene, settings, nbr_users=nbr)
 
     templates_users = sum(tmpl.nbr_users for tmpl in templates.values())
@@ -2295,7 +2295,7 @@ def fbx_data_from_scene(scene, settings):
                 connections.append((b"OO", get_fbxuid_from_key(objects[bo]), get_fbxuid_from_key(clstr_key), None))
 
     # Materials
-    mesh_mat_indices = {}
+    mesh_mat_indices = OrderedDict()
     _objs_indices = {}
     for mat, (mat_key, objs) in data_materials.items():
         for obj in objs:
@@ -2306,7 +2306,7 @@ def fbx_data_from_scene(scene, settings):
             # Only mats for meshes currently...
             me = obj.data
             idx = _objs_indices[obj] = _objs_indices.get(obj, -1) + 1
-            mesh_mat_indices.setdefault(me, {})[mat] = idx
+            mesh_mat_indices.setdefault(me, OrderedDict())[mat] = idx
     del _objs_indices
 
     # Textures
@@ -2332,13 +2332,13 @@ def fbx_data_from_scene(scene, settings):
             # Animlayer -> animstack.
             alayer_id = get_fbxuid_from_key(alayer_key)
             connections.append((b"OO", alayer_id, astack_id, None))
-            for fbx_prop, (acurvenode_key, acurves) in acurvenodes.items():
+            for fbx_prop, (acurvenode_key, acurves, acurvenode_name) in acurvenodes.items():
                 # Animcurvenode -> animalayer.
                 acurvenode_id = get_fbxuid_from_key(acurvenode_key)
                 connections.append((b"OO", acurvenode_id, alayer_id, None))
                 # Animcurvenode -> object property.
                 connections.append((b"OP", acurvenode_id, obj_id, fbx_prop.encode()))
-                for fbx_item, (acurve_key, dafault_value, acurve) in acurves.items():
+                for fbx_item, (acurve_key, dafault_value, acurve, acurve_valid) in acurves.items():
                     if acurve:
                         # Animcurve -> Animcurvenode.
                         connections.append((b"OP", get_fbxuid_from_key(acurve_key), acurvenode_id, fbx_item.encode()))
