@@ -360,29 +360,38 @@ def elem_data_vec_float64(elem, name, value):
 #     Also, those "custom" types like 'FieldOfView' or 'Lcl Translation' are pure nonsense,
 #     these are just Vector3D ultimately... *sigh* (again).
 FBX_PROPERTIES_DEFINITIONS = {
+    # Generic types.
     "p_bool": (b"bool", b"", "add_int32"),  # Yes, int32 for a bool (and they do have a core bool type)!!!
     "p_integer": (b"int", b"Integer", "add_int32"),
     "p_ulonglong": (b"ULongLong", b"", "add_int64"),
     "p_double": (b"double", b"Number", "add_float64"),  # Non-animatable?
     "p_number": (b"Number", b"", "add_float64"),  # Animatable-only?
     "p_enum": (b"enum", b"", "add_int32"),
-    "p_visibility": (b"Visibility", b"", "add_float64"),
-    "p_fov": (b"FieldOfView", b"", "add_float64"),
-    "p_fov_x": (b"FieldOfViewX", b"", "add_float64"),
-    "p_fov_y": (b"FieldOfViewY", b"", "add_float64"),
     "p_vector_3d": (b"Vector3D", b"Vector", "add_float64", "add_float64", "add_float64"),  # Non-animatable?
     "p_vector": (b"Vector", b"", "add_float64", "add_float64", "add_float64"),  # Animatable-only?
-    "p_lcl_translation": (b"Lcl Translation", b"", "add_float64", "add_float64", "add_float64"),
-    "p_lcl_rotation": (b"Lcl Rotation", b"", "add_float64", "add_float64", "add_float64"),
-    "p_lcl_scaling": (b"Lcl Scaling", b"", "add_float64", "add_float64", "add_float64"),
     "p_color_rgb": (b"ColorRGB", b"Color", "add_float64", "add_float64", "add_float64"),  # Non-animatable?
     "p_color": (b"Color", b"", "add_float64", "add_float64", "add_float64"),  # Animatable-only?
     "p_string": (b"KString", b"", "add_string_unicode"),
     "p_string_url": (b"KString", b"Url", "add_string_unicode"),
     "p_timestamp": (b"KTime", b"Time", "add_int64"),
     "p_datetime": (b"DateTime", b"", "add_string_unicode"),
-    "p_object": (b"object", b""),  # XXX Check this! No value for this prop???
+    # Special types.
+    "p_object": (b"object", b""),  # XXX Check this! No value for this prop??? Would really like to know how it works!
     "p_compound": (b"Compound", b""),
+    # Specific types (sic).
+    ## Objects (Models).
+    "p_lcl_translation": (b"Lcl Translation", b"", "add_float64", "add_float64", "add_float64"),
+    "p_lcl_rotation": (b"Lcl Rotation", b"", "add_float64", "add_float64", "add_float64"),
+    "p_lcl_scaling": (b"Lcl Scaling", b"", "add_float64", "add_float64", "add_float64"),
+    "p_visibility": (b"Visibility", b"", "add_float64"),
+    "p_visibility_inheritance": (b"Visibility Inheritance", b"", "add_int32"),
+    ## Cameras!!!
+    "p_roll": (b"Roll", b"", "add_float64"),
+    "p_opticalcenterx": (b"OpticalCenterX", b"", "add_float64"),
+    "p_opticalcentery": (b"OpticalCenterY", b"", "add_float64"),
+    "p_fov": (b"FieldOfView", b"", "add_float64"),
+    "p_fov_x": (b"FieldOfViewX", b"", "add_float64"),
+    "p_fov_y": (b"FieldOfViewY", b"", "add_float64"),
 }
 
 
@@ -489,8 +498,8 @@ def fbx_template_def_globalsettings(scene, settings, override_defaults=None, nbr
 def fbx_template_def_model(scene, settings, override_defaults=None, nbr_users=0):
     gscale = settings.global_scale
     props = OrderedDict((
-        # Name,                     Value, Type,     Animatable
-        (b"QuaternionInterpolate", (False, "p_bool", False)),
+        # Name,                   Value, Type, Animatable
+        (b"QuaternionInterpolate", (0, "p_enum", False)),  # 0 = no quat interpolation.
         (b"RotationOffset", ((0.0, 0.0, 0.0), "p_vector_3d", False)),
         (b"RotationPivot", ((0.0, 0.0, 0.0), "p_vector_3d", False)),
         (b"ScalingOffset", ((0.0, 0.0, 0.0), "p_vector_3d", False)),
@@ -560,6 +569,7 @@ def fbx_template_def_model(scene, settings, override_defaults=None, nbr_users=0)
         (b"Lcl Rotation", ((0.0, 0.0, 0.0), "p_lcl_rotation", True)),
         (b"Lcl Scaling", (Vector((1.0, 1.0, 1.0)) * gscale, "p_lcl_scaling", True)),
         (b"Visibility", (1.0, "p_visibility", True)),
+        (b"Visibility Inheritance", (1, "p_visibility_inheritance", False)),
     ))
     if override_defaults is not None:
         props.update(override_defaults)
@@ -571,12 +581,12 @@ def fbx_template_def_light(scene, settings, override_defaults=None, nbr_users=0)
     props = OrderedDict((
         (b"LightType", (0, "p_enum", False)),  # Point light.
         (b"CastLight", (True, "p_bool", False)),
-        (b"Color", ((1.0, 1.0, 1.0), "p_color_rgb", True)),
+        (b"Color", ((1.0, 1.0, 1.0), "p_color", True)),
         (b"Intensity", (100.0, "p_number", True)),  # Times 100 compared to Blender values...
         (b"DecayType", (2, "p_enum", False)),  # Quadratic.
         (b"DecayStart", (30.0 * gscale, "p_double", False)),
         (b"CastShadows", (True, "p_bool", False)),
-        (b"ShadowColor", ((0.0, 0.0, 0.0), "p_color_rgb", True)),
+        (b"ShadowColor", ((0.0, 0.0, 0.0), "p_color", True)),
         (b"AreaLightShape", (0, "p_enum", False)),  # Rectangle.
     ))
     if override_defaults is not None:
@@ -585,7 +595,115 @@ def fbx_template_def_light(scene, settings, override_defaults=None, nbr_users=0)
 
 
 def fbx_template_def_camera(scene, settings, override_defaults=None, nbr_users=0):
-    props = OrderedDict()  # TODO!!!
+    r = scene.render
+    props = OrderedDict((
+        (b"Color", ((0.8, 0.8, 0.8), "p_color_rgb", False)),
+        (b"Position", ((0.0, 0.0, -50.0), "p_vector", True)),
+        (b"UpVector", ((0.0, 1.0, 0.0), "p_vector", True)),
+        (b"InterestPosition", ((0.0, 0.0, 0.0), "p_vector", True)),
+        (b"Roll", (0.0, "p_roll", True)),
+        (b"OpticalCenterX", (0.0, "p_opticalcenterx", True)),
+        (b"OpticalCenterY", (0.0, "p_opticalcentery", True)),
+        (b"BackgroundColor", ((0.8, 0.8, 0.8), "p_color", True)),
+        (b"TurnTable", (0.0, "p_number", True)),
+        (b"DisplayTurnTableIcon", (False, "p_bool", False)),
+        (b"UseMotionBlur", (False, "p_bool", False)),
+        (b"UseRealTimeMotionBlur", (True, "p_bool", False)),
+        (b"Motion Blur Intensity", (1.0, "p_number", True)),
+        (b"AspectRatioMode", (2, "p_enum", False)),  # Fixed ratio, height and width in pixels.
+        (b"AspectWidth", (float(r.resolution_x), "p_double", False)),
+        (b"AspectHeight", (float(r.resolution_y), "p_double", False)),
+        (b"PixelAspectRatio", (float(r.pixel_aspect_x / r.pixel_aspect_y), "p_double", False)),
+        (b"FilmOffsetX", (0.0, "p_number", True)),
+        (b"FilmOffsetY", (0.0, "p_number", True)),
+        (b"FilmWidth", (1.2598425196850394, "p_double", False)),
+        (b"FilmHeight", (0.7086614173228346, "p_double", False)),
+        (b"FilmAspectRatio", (1.777777777777778, "p_double", False)),
+        (b"FilmSqueezeRatio", (1.0, "p_double", False)),
+        (b"FilmFormatIndex", (0, "p_enum", False)),  # Assuming this is ApertureFormat, 0 = custom.
+        (b"PreScale", (1.0, "p_number", True)),
+        (b"FilmTranslateX", (0.0, "p_number", True)),
+        (b"FilmTranslateY", (0.0, "p_number", True)),
+        (b"FilmRollPivotX", (0.0, "p_number", True)),
+        (b"FilmRollPivotY", (0.0, "p_number", True)),
+        (b"FilmRollValue", (0.0, "p_number", True)),
+        (b"FilmRollOrder", (0, "p_enum", False)),  # 0 = rotate first (default).
+        (b"ApertureMode", (3, "p_enum", False)),  # 3 = focal length.
+        (b"GateFit", (0, "p_enum", False)),  # 0 = no resolution gate fit.
+        (b"FieldOfView", (49.13434207760448, "p_fov", True)),
+        (b"FieldOfViewX", (49.13434207760448, "p_fov_x", True)),
+        (b"FieldOfViewY", (28.841546110078532, "p_fov_y", True)),
+        (b"FocalLength", (35.0, "p_number", True)),
+        (b"CameraFormat", (0, "p_enum", False)),  # Custom camera format.
+        (b"UseFrameColor", (False, "p_bool", False)),
+        (b"FrameColor", ((0.3, 0.3, 0.3), "p_color_rgb", False)),
+        (b"ShowName", (True, "p_bool", False)),
+        (b"ShowInfoOnMoving", (True, "p_bool", False)),
+        (b"ShowGrid", (True, "p_bool", False)),
+        (b"ShowOpticalCenter", (False, "p_bool", False)),
+        (b"ShowAzimut", (True, "p_bool", False)),
+        (b"ShowTimeCode", (True, "p_bool", False)),
+        (b"ShowAudio", (False, "p_bool", False)),
+        (b"AudioColor", ((0.0, 1.0, 0.0), "p_vector_3d", False)),  # Yep, vector3d, not corlorgb… :cry:
+        (b"NearPlane", (1.0, "p_double", False)),
+        (b"FarPlane", (100.0, "p_double", False)),
+        (b"AutoComputeClipPanes", (False, "p_bool", False)),
+        (b"ViewCameraToLookAt", (True, "p_bool", False)),
+        (b"ViewFrustumNearFarPlane", (False, "p_bool", False)),
+        (b"ViewFrustumBackPlaneMode", (2, "p_enum", False)),  # 2 = show back plane if texture added.
+        (b"BackPlaneDistance", (100.0, "p_number", True)),
+        (b"BackPlaneDistanceMode", (1, "p_enum", False)),  # 1 = relative to camera.
+        (b"ViewFrustumFrontPlaneMode", (2, "p_enum", False)),  # 2 = show front plane if texture added.
+        (b"FrontPlaneDistance", (1.0, "p_number", True)),
+        (b"FrontPlaneDistanceMode", (1, "p_enum", False)),  # 1 = relative to camera.
+        (b"LockMode", (False, "p_bool", False)),
+        (b"LockInterestNavigation", (False, "p_bool", False)),
+        (b"BackPlateFitImage", (False, "p_bool", False)),
+        (b"BackPlateCrop", (False, "p_bool", False)),
+        (b"BackPlateCenter", (True, "p_bool", False)),
+        (b"BackPlateKeepRatio", (True, "p_bool", False)),
+        (b"BackgroundAlphaTreshold", (0.5, "p_double", False)),
+        (b"ShowBackplate", (True, "p_bool", False)),
+        (b"BackPlaneOffsetX", (0.0, "p_number", True)),
+        (b"BackPlaneOffsetY", (0.0, "p_number", True)),
+        (b"BackPlaneRotation", (0.0, "p_number", True)),
+        (b"BackPlaneScaleX", (1.0, "p_number", True)),
+        (b"BackPlaneScaleY", (1.0, "p_number", True)),
+        (b"Background Texture", (None, "p_object", False)),
+        (b"FrontPlateFitImage", (True, "p_bool", False)),
+        (b"FrontPlateCrop", (False, "p_bool", False)),
+        (b"FrontPlateCenter", (True, "p_bool", False)),
+        (b"FrontPlateKeepRatio", (True, "p_bool", False)),
+        (b"Foreground Opacity", (1.0, "p_double", False)),
+        (b"ShowFrontplate", (True, "p_bool", False)),
+        (b"FrontPlaneOffsetX", (0.0, "p_number", True)),
+        (b"FrontPlaneOffsetY", (0.0, "p_number", True)),
+        (b"FrontPlaneRotation", (0.0, "p_number", True)),
+        (b"FrontPlaneScaleX", (1.0, "p_number", True)),
+        (b"FrontPlaneScaleY", (1.0, "p_number", True)),
+        (b"Foreground Texture", (None, "p_object", False)),
+        (b"DisplaySafeArea", (True, "p_bool", False)),
+        (b"DisplaySafeAreaOnRender", (False, "p_bool", False)),
+        (b"SafeAreaDisplayStyle", (1, "p_enum", False)),  # 1 = rounded corners.
+        (b"SafeAreaAspectRatio", (1.777777777777778, "p_double", False)),
+        (b"Use2DMagnifierZoom", (False, "p_bool", False)),
+        (b"2D Magnifier Zoom", (100.0, "p_number", True)),
+        (b"2D Magnifier X", (50.0, "p_number", True)),
+        (b"2D Magnifier Y", (50.0, "p_number", True)),
+        (b"CameraProjectionType", (0, "p_enum", False)),  # 0 = perspective, 1 = orthogonal.
+        (b"OrthoZoom", (1.0, "p_double", False)),
+        (b"UseRealTimeDOFAndAA", (False, "p_bool", False)),
+        (b"UseDepthOfField", (False, "p_bool", False)),
+        (b"FocusSource", (1, "p_enum", False)),  # 0 = camera interest, 1 = distance from camera interest.
+        (b"FocusAngle", (3.5, "p_double", False)),  # ???
+        (b"FocusDistance", (10.0, "p_double", False)),
+        (b"UseAntialiasing", (False, "p_bool", False)),
+        (b"AntialiasingIntensity", (0.77777, "p_double", False)),
+        (b"AntialiasingMethod", (0, "p_enum", False)),  # 0 = oversampling, 1 = hardware.
+        (b"UseAccumulationBuffer", (False, "p_bool", False)),
+        (b"FrameSamplingCount", (7, "p_integer", False)),
+        (b"FrameSamplingType", (1, "p_enum", False)),  # 0 = uniform, 1 = stochastic.
+    ))
     if override_defaults is not None:
         props.update(override_defaults)
     return FBXTemplate(b"NodeAttribute", b"FbxCamera", props, nbr_users)
@@ -615,7 +733,7 @@ def fbx_template_def_geometry(scene, settings, override_defaults=None, nbr_users
 def fbx_template_def_material(scene, settings, override_defaults=None, nbr_users=0):
     # WIP...
     props = OrderedDict((
-        (b"ShadingModel", ("phong", "p_string", False)),
+        (b"ShadingModel", ("Phong", "p_string", False)),
         (b"MultiLayer", (False, "p_bool", False)),
         # Lambert-specific.
         (b"EmissiveColor", ((0.8, 0.8, 0.8), "p_color", True)),  # Same as diffuse.
@@ -1359,7 +1477,7 @@ def fbx_data_material_elements(root, mat, scene_data):
 
     mat_key, _objs = scene_data.data_materials[mat]
     # Approximation...
-    mat_type = b"phong" if mat.specular_shader in {'COOKTORR', 'PHONG', 'BLINN'} else b"lambert"
+    mat_type = b"Phong" if mat.specular_shader in {'COOKTORR', 'PHONG', 'BLINN'} else b"Lambert"
 
     fbx_mat = elem_data_single_int64(root, b"Material", get_fbxuid_from_key(mat_key))
     fbx_mat.add_string(fbx_name_class(mat.name.encode(), b"Material"))
@@ -1392,7 +1510,7 @@ def fbx_data_material_elements(root, mat, scene_data):
     b"DisplacementColor": ((0.0, 0.0, 0.0), "p_color_rgb"),
     b"DisplacementFactor": (0.0, "p_double"),
     """
-    if mat_type == b"phong":
+    if mat_type == b"Phong":
         elem_props_template_set(tmpl, props, "p_color", b"SpecularColor", mat.specular_color)
         elem_props_template_set(tmpl, props, "p_number", b"SpecularFactor", mat.specular_intensity / 2.0)
         # See Material template about those two!
@@ -2058,6 +2176,7 @@ def fbx_data_from_scene(scene, settings):
     templates = OrderedDict()
     templates[b"GlobalSettings"] = fbx_template_def_globalsettings(scene, settings, nbr_users=1)
 
+    # XXX Looks like there can only be one NodeAttribute template? At lest, never found a light template... :/
     if data_lamps:
         templates[b"Light"] = fbx_template_def_light(scene, settings, nbr_users=len(data_lamps))
 
@@ -2321,7 +2440,10 @@ def fbx_header_elements(root, scene_data, time=None):
     elem_props_set(props, "p_integer", b"FrontAxisSign", front_axis[1])
     elem_props_set(props, "p_integer", b"CoordAxis", coord_axis[0])
     elem_props_set(props, "p_integer", b"CoordAxisSign", coord_axis[1])
+    elem_props_set(props, "p_integer", b"OriginalUpAxis", -1)
+    elem_props_set(props, "p_integer", b"OriginalUpAxisSign", 1)
     elem_props_set(props, "p_double", b"UnitScaleFactor", 1.0)
+    elem_props_set(props, "p_double", b"OriginalUnitScaleFactor", 1.0)
     elem_props_set(props, "p_color_rgb", b"AmbientColor", (0.0, 0.0, 0.0))
     elem_props_set(props, "p_string", b"DefaultCamera", "Producer Perspective")
 
@@ -2331,10 +2453,10 @@ def fbx_header_elements(root, scene_data, time=None):
     f_start = scene_data.scene.frame_start
     f_end = scene_data.scene.frame_end
     elem_props_set(props, "p_enum", b"TimeMode", 14)  # FPS, 14 = custom...
-    #elem_props_set(props, "p_timestamp", b"TimeSpanStart", int(units_convert(f_start / fps, "second", "ktime")))
-    #elem_props_set(props, "p_timestamp", b"TimeSpanStop", int(units_convert(f_end / fps, "second", "ktime")))
-    elem_props_set(props, "p_timestamp", b"TimeSpanStart", 0)
-    elem_props_set(props, "p_timestamp", b"TimeSpanStop", FBX_KTIME)
+    elem_props_set(props, "p_timestamp", b"TimeSpanStart", int(units_convert(f_start / fps, "second", "ktime")))
+    elem_props_set(props, "p_timestamp", b"TimeSpanStop", int(units_convert(f_end / fps, "second", "ktime")))
+    #elem_props_set(props, "p_timestamp", b"TimeSpanStart", 0)
+    #elem_props_set(props, "p_timestamp", b"TimeSpanStop", FBX_KTIME)
     elem_props_set(props, "p_double", b"CustomFrameRate", fps)
 
     ##### End of GlobalSettings element.
@@ -2355,7 +2477,7 @@ def fbx_documents_elements(root, scene_data):
 
     doc_uid = get_fbxuid_from_key("__FBX_Document__" + name)
     doc = elem_data_single_int64(docs, b"Document", doc_uid)
-    doc.add_string(b"")
+    doc.add_string_unicode(name)
     doc.add_string_unicode(name)
 
     props = elem_properties(doc)
