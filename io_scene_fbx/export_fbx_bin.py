@@ -532,8 +532,8 @@ def fbx_template_def_model(scene, settings, override_defaults=None, nbr_users=0)
         (b"RotationMaxZ", (False, "p_bool", False)),
         (b"InheritType", (1, "p_enum", False)),  # RSrs
         (b"ScalingActive", (False, "p_bool", False)),
-        (b"ScalingMin", (Vector((1.0, 1.0, 1.0)) * gscale, "p_vector_3d", False)),
-        (b"ScalingMax", (Vector((1.0, 1.0, 1.0)) * gscale, "p_vector_3d", False)),
+        (b"ScalingMin", ((0.0, 0.0, 0.0), "p_vector_3d", False)),
+        (b"ScalingMax", ((1.0, 1.0, 1.0), "p_vector_3d", False)),
         (b"ScalingMinX", (False, "p_bool", False)),
         (b"ScalingMinY", (False, "p_bool", False)),
         (b"ScalingMinZ", (False, "p_bool", False)),
@@ -542,7 +542,7 @@ def fbx_template_def_model(scene, settings, override_defaults=None, nbr_users=0)
         (b"ScalingMaxZ", (False, "p_bool", False)),
         (b"GeometricTranslation", ((0.0, 0.0, 0.0), "p_vector_3d", False)),
         (b"GeometricRotation", ((0.0, 0.0, 0.0), "p_vector_3d", False)),
-        (b"GeometricScaling", (Vector((1.0, 1.0, 1.0)) * gscale, "p_vector_3d", False)),
+        (b"GeometricScaling", ((1.0, 1.0, 1.0), "p_vector_3d", False)),
         (b"MinDampRangeX", (0.0, "p_double", False)),
         (b"MinDampRangeY", (0.0, "p_double", False)),
         (b"MinDampRangeZ", (0.0, "p_double", False)),
@@ -567,7 +567,7 @@ def fbx_template_def_model(scene, settings, override_defaults=None, nbr_users=0)
         (b"LODBox", (False, "p_bool", False)),
         (b"Lcl Translation", ((0.0, 0.0, 0.0), "p_lcl_translation", True)),
         (b"Lcl Rotation", ((0.0, 0.0, 0.0), "p_lcl_rotation", True)),
-        (b"Lcl Scaling", (Vector((1.0, 1.0, 1.0)) * gscale, "p_lcl_scaling", True)),
+        (b"Lcl Scaling", ((1.0, 1.0, 1.0), "p_lcl_scaling", True)),
         (b"Visibility", (1.0, "p_visibility", True)),
         (b"Visibility Inheritance", (1, "p_visibility_inheritance", False)),
     ))
@@ -750,6 +750,8 @@ def fbx_template_def_material(scene, settings, override_defaults=None, nbr_users
         (b"BumpFactor", (1.0, "p_double", False)),
         (b"DisplacementColor", ((0.0, 0.0, 0.0), "p_color_rgb", False)),
         (b"DisplacementFactor", (0.0, "p_double", False)),
+        (b"VectorDisplacementColor", ((0.0, 0.0, 0.0), "p_color_rgb", False)),
+        (b"VectorDisplacementFactor", (0.0, "p_double", False)),
         # Phong-specific.
         (b"SpecularColor", ((1.0, 1.0, 1.0), "p_color", True)),
         (b"SpecularFactor", (0.5 / 2.0, "p_number", True)),
@@ -1062,7 +1064,7 @@ def fbx_data_camera_elements(root, cam_obj, scene_data):
     props = elem_properties(cam)
     elem_props_template_set(tmpl, props, "p_vector", b"Position", loc)
     elem_props_template_set(tmpl, props, "p_vector", b"UpVector", up)
-    elem_props_template_set(tmpl, props, "p_vector", b"InterestPosition", to)
+    elem_props_template_set(tmpl, props, "p_vector", b"InterestPosition", loc + to)  # Point, not vector!
     # Should we use world value?
     elem_props_template_set(tmpl, props, "p_color", b"BackgroundColor", (0.0, 0.0, 0.0))
     elem_props_template_set(tmpl, props, "p_bool", b"DisplayTurnTableIcon", True)
