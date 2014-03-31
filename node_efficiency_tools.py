@@ -19,7 +19,7 @@
 bl_info = {
     'name': "Node Wrangler (aka Nodes Efficiency Tools)",
     'author': "Bartek Skorupa, Greg Zaal",
-    'version': (3, 3),
+    'version': (3, 4),
     'blender': (2, 70, 0),
     'location': "Node Editor Properties Panel  or  Ctrl-SPACE",
     'description': "Various tools to enhance and speed up node-based workflow",
@@ -1732,6 +1732,7 @@ class NWMergeNodes(Operator, NWBase):
             ('SHADER', 'Shader', 'Merge using ADD or MIX Shader'),
             ('MIX', 'Mix Node', 'Merge using Mix Nodes'),
             ('MATH', 'Math Node', 'Merge using Math Nodes'),
+            ('ZCOMBINE', 'Z-Combine Node', 'Merge using Z-Combine Nodes')
         ),
     )
 
@@ -1756,9 +1757,15 @@ class NWMergeNodes(Operator, NWBase):
         nodes, links = get_nodes_links(context)
         mode = self.mode
         merge_type = self.merge_type
+        # Prevent trying to add Z-Combine in not 'COMPOSITING' node tree.
+        # 'ZCOMBINE' works only if mode == 'MIX'
+        # Setting mode to None prevents trying to add 'ZCOMBINE' node.
+        if merge_type == 'ZCOMBINE' and tree_type != 'COMPOSITING':
+            mode = None
         selected_mix = []  # entry = [index, loc]
         selected_shader = []  # entry = [index, loc]
         selected_math = []  # entry = [index, loc]
+        selected_z = []  # entry = [index, loc]
 
         for i, node in enumerate(nodes):
             if node.select and node.outputs:
@@ -1785,6 +1792,7 @@ class NWMergeNodes(Operator, NWBase):
                             ('SHADER', ('MIX', 'ADD'), selected_shader),
                             ('MIX', [t[0] for t in blend_types], selected_mix),
                             ('MATH', [t[0] for t in operations], selected_math),
+                            ('ZCOMBINE', ('MIX', ), selected_z),
                     ):
                         if merge_type == type and mode in types_list:
                             dst.append([i, node.location.x, node.location.y, node.dimensions.x, node.hide])
@@ -1795,7 +1803,7 @@ class NWMergeNodes(Operator, NWBase):
             selected_mix += selected_math
             selected_math = []
 
-        for nodes_list in [selected_mix, selected_shader, selected_math]:
+        for nodes_list in [selected_mix, selected_shader, selected_math, selected_z]:
             if nodes_list:
                 count_before = len(nodes)
                 # sort list by loc_x - reversed
@@ -1861,6 +1869,15 @@ class NWMergeNodes(Operator, NWBase):
                             first = 0
                             second = 1
                             add.width_hidden = 100.0
+                    elif nodes_list == selected_z:
+                        add = nodes.new('CompositorNodeZcombine')
+                        add.show_preview = False
+                        add.hide = do_hide
+                        if do_hide:
+                            loc_y = loc_y - 50
+                        first = 0
+                        second = 2
+                        add.width_hidden = 100.0
                     add.location = loc_x, loc_y
                     loc_y += offset_y
                     add.select = True
@@ -1874,18 +1891,40 @@ class NWMergeNodes(Operator, NWBase):
                 for fs_link in first_selected.outputs[0].links:
                     # Prevent cyclic dependencies when nodes to be marged are linked to one another.
                     # Create list of invalid indexes.
-                    invalid_i = [n[0] for n in (selected_mix + selected_math + selected_shader)]
+                    invalid_i = [n[0] for n in (selected_mix + selected_math + selected_shader + selected_z)]
                     # Link only if "to_node" index not in invalid indexes list.
                     if fs_link.to_node not in [nodes[i] for i in invalid_i]:
                         links.new(last_add.outputs[0], fs_link.to_socket)
                 # add link from "first" selected and "first" add node
-                links.new(first_selected.outputs[0], nodes[count_after - 1].inputs[first])
+                node_to = nodes[count_after - 1]
+                links.new(first_selected.outputs[0], node_to.inputs[first])
+                if node_to.type == 'ZCOMBINE':
+                    for fs_out in first_selected.outputs:
+                        if fs_out != first_selected.outputs[0] and fs_out.name in ('Z', 'Depth'):
+                            links.new(fs_out, node_to.inputs[1])
+                            break
                 # add links between added ADD nodes and between selected and ADD nodes
                 for i in range(count_adds):
                     if i < count_adds - 1:
-                        links.new(nodes[index - 1].inputs[first], nodes[index].outputs[0])
+                        node_from = nodes[index]
+                        node_to = nodes[index - 1]
+                        node_to_input_i = first
+                        node_to_z_i = 1  # if z combine - link z to first z input
+                        links.new(node_from.outputs[0], node_to.inputs[node_to_input_i])
+                        if node_to.type == 'ZCOMBINE':
+                            for from_out in node_from.outputs:
+                                if from_out != node_from.outputs[0] and from_out.name in ('Z', 'Depth'):
+                                    links.new(from_out, node_to.inputs[node_to_z_i])
                     if len(nodes_list) > 1:
-                        links.new(nodes[index].inputs[second], nodes[nodes_list[i + 1][0]].outputs[0])
+                        node_from = nodes[nodes_list[i + 1][0]]
+                        node_to = nodes[index]
+                        node_to_input_i = second
+                        node_to_z_i = 3  # if z combine - link z to second z input
+                        links.new(node_from.outputs[0], node_to.inputs[node_to_input_i])
+                        if node_to.type == 'ZCOMBINE':
+                            for from_out in node_from.outputs:
+                                if from_out != node_from.outputs[0] and from_out.name in ('Z', 'Depth'):
+                                    links.new(from_out, node_to.inputs[node_to_z_i])
                     index -= 1
                 # set "last" of added nodes as active
                 nodes.active = last_add
@@ -2915,6 +2954,9 @@ class NWMergeNodesMenu(Menu, NWBase):
             layout.menu(NWMergeShadersMenu.bl_idname, text="Use Shaders")
         layout.menu(NWMergeMixMenu.bl_idname, text="Use Mix Nodes")
         layout.menu(NWMergeMathMenu.bl_idname, text="Use Math Nodes")
+        props = layout.operator(NWMergeNodes.bl_idname, text="Use Z-Combine Nodes")
+        props.mode = 'MIX'
+        props.merge_type = 'ZCOMBINE'
 
 
 class NWMergeShadersMenu(Menu, NWBase):
@@ -3488,6 +3530,8 @@ kmi_defs = (
         (('mode', 'LESS_THAN'), ('merge_type', 'MATH'),), "Merge Nodes (Less than)"),
     (NWMergeNodes.bl_idname, 'PERIOD', True, False, False,
         (('mode', 'GREATER_THAN'), ('merge_type', 'MATH'),), "Merge Nodes (Greater than)"),
+    (NWMergeNodes.bl_idname, 'NUMPAD_PERIOD', True, False, False,
+        (('mode', 'MIX'), ('merge_type', 'ZCOMBINE'),), "Merge Nodes (Z-Combine)"),
     # NWMergeNodes with Ctrl Alt (MIX)
     (NWMergeNodes.bl_idname, 'NUMPAD_0', True, False, True,
         (('mode', 'MIX'), ('merge_type', 'MIX'),), "Merge Nodes (Color, Mix)"),
