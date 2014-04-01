@@ -183,6 +183,11 @@ def _key_to_uid(uids, key):
             uid = -uid
         if uid >= 2**63:
             uid //= 2
+    # Try to make our uid shorter!
+    if uid > int(1e9):
+        t_uid = uid % int(1e9)
+        if t_uid not in uids:
+            uid = t_uid
     # Make sure our uid *is* unique.
     if uid in uids:
         inc = 1 if uid < 2**62 else -1
@@ -1799,12 +1804,23 @@ def fbx_data_animation_elements(root, scene_data):
         return (int(v) for v in units_convert_iter((f / fps for f, _v in keys), "second", "ktime"))
 
     astack_key, alayers = animations
+    astack_tmpl = scene_data.templates[b"AnimationStack"]
     acn_tmpl = scene_data.templates[b"AnimationCurveNode"]
 
     # Animation stack.
     astack = elem_data_single_int64(root, b"AnimationStack", get_fbxuid_from_key(astack_key))
     astack.add_string(fbx_name_class(scene.name.encode(), b"AnimStack"))
     astack.add_string(b"")
+
+    astack_props = elem_properties(astack)
+    r = scene_data.scene.render
+    fps = r.fps / r.fps_base
+    f_start = int(units_convert(scene_data.scene.frame_start / fps, "second", "ktime"))
+    f_end = int(units_convert(scene_data.scene.frame_end / fps, "second", "ktime"))
+    elem_props_set(astack_props, "p_timestamp", b"LocalStart", f_start)
+    elem_props_set(astack_props, "p_timestamp", b"LocalStop", f_end)
+    elem_props_set(astack_props, "p_timestamp", b"ReferenceStart", f_start)
+    elem_props_set(astack_props, "p_timestamp", b"ReferenceStop", f_end)
 
     for obj, (alayer_key, acurvenodes) in alayers.items():
         # Animation layer.
@@ -1982,8 +1998,6 @@ def fbx_animations_simplify(scene_data, animdata):
         p_currframe, p_key, p_key_write = keys[0]
         p_keyed = [(p_currframe - max_frame_diff, val) for val in p_key]
         for currframe, key, key_write in keys:
-            #if obj.name == "Cube":
-                #print(currframe, key, key_write)
             for idx, (val, p_val) in enumerate(zip(key, p_key)):
                 p_keyedframe, p_keyedval = p_keyed[idx]
                 if val == p_val:
@@ -2455,10 +2469,10 @@ def fbx_header_elements(root, scene_data, time=None):
     f_start = scene_data.scene.frame_start
     f_end = scene_data.scene.frame_end
     elem_props_set(props, "p_enum", b"TimeMode", 14)  # FPS, 14 = custom...
-    elem_props_set(props, "p_timestamp", b"TimeSpanStart", int(units_convert(f_start / fps, "second", "ktime")))
-    elem_props_set(props, "p_timestamp", b"TimeSpanStop", int(units_convert(f_end / fps, "second", "ktime")))
-    #elem_props_set(props, "p_timestamp", b"TimeSpanStart", 0)
-    #elem_props_set(props, "p_timestamp", b"TimeSpanStop", FBX_KTIME)
+    #elem_props_set(props, "p_timestamp", b"TimeSpanStart", int(units_convert(f_start / fps, "second", "ktime")))
+    #elem_props_set(props, "p_timestamp", b"TimeSpanStop", int(units_convert(f_end / fps, "second", "ktime")))
+    elem_props_set(props, "p_timestamp", b"TimeSpanStart", 0)
+    elem_props_set(props, "p_timestamp", b"TimeSpanStop", FBX_KTIME)
     elem_props_set(props, "p_double", b"CustomFrameRate", fps)
 
     ##### End of GlobalSettings element.
