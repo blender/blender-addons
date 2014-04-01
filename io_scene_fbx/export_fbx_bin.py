@@ -745,7 +745,7 @@ def fbx_template_def_geometry(scene, settings, override_defaults=None, nbr_users
         (b"Primary Visibility", (True, "p_bool", False)),
         (b"Casts Shadows", (True, "p_bool", False)),
         (b"Receive Shadows", (True, "p_bool", False)),
-))
+    ))
     if override_defaults is not None:
         props.update(override_defaults)
     return FBXTemplate(b"Geometry", b"FbxMesh", props, nbr_users)
@@ -2206,7 +2206,7 @@ def fbx_data_from_scene(scene, settings):
             if tex in data_textures:
                 data_textures[tex][1][mat] = tex_fbx_props
             else:
-                data_textures[tex] = (get_blenderID_key(tex), OrderedDict((mat, tex_fbx_props)))
+                data_textures[tex] = (get_blenderID_key(tex), OrderedDict(((mat, tex_fbx_props),)))
             if img in data_videos:
                 data_videos[img][1].append(tex)
             else:
