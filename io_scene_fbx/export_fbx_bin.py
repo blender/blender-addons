@@ -225,6 +225,11 @@ def get_blenderID_key(bid):
     return "B" + bid.rna_type.name + "::" + bid.name
 
 
+def get_blender_empty_key(obj):
+    """Return bone's keys (Model and NodeAttribute)."""
+    return "|".join((get_blenderID_key(obj), "Empty"))
+
+
 def get_blender_bone_key(armature, bone):
     """Return bone's keys (Model and NodeAttribute)."""
     key = "|".join((get_blenderID_key(armature), get_blenderID_key(bone)))
@@ -579,6 +584,17 @@ def fbx_template_def_model(scene, settings, override_defaults=None, nbr_users=0)
     if override_defaults is not None:
         props.update(override_defaults)
     return FBXTemplate(b"Model", b"FbxNode", props, nbr_users)
+
+
+def fbx_template_def_null(scene, settings, override_defaults=None, nbr_users=0):
+    props = OrderedDict((
+        (b"Color", ((0.8, 0.8, 0.8), "p_color_rgb", False)),
+        (b"Size", (100.0, "p_double", False)),
+        (b"Look", (1, "p_enum", False)),  # Cross (0 is None, i.e. invisible?).
+    ))
+    if override_defaults is not None:
+        props.update(override_defaults)
+    return FBXTemplate(b"NodeAttribute", b"FbxNull", props, nbr_users)
 
 
 def fbx_template_def_light(scene, settings, override_defaults=None, nbr_users=0):
@@ -987,6 +1003,24 @@ def fbx_data_element_custom_properties(props, bid):
             elem_props_set(props, "p_integer", k.encode(), v, custom=True)
         if isinstance(v, float):
             elem_props_set(props, "p_double", k.encode(), v, custom=True)
+
+
+def fbx_data_empty_elements(root, empty, scene_data):
+    """
+    Write the Empty data block.
+    """
+    empty_key = scene_data.data_empties[empty]
+
+    null = elem_data_single_int64(root, b"NodeAttribute", get_fbxuid_from_key(empty_key))
+    null.add_string(fbx_name_class(empty.name.encode(), b"NodeAttribute"))
+    null.add_string(b"Null")
+
+    elem_data_single_string(null, b"TypeFlags", b"Null")
+
+    tmpl = scene_data.templates[b"Null"]
+    props = elem_properties(null)
+
+    # No custom properties, already saved with object (Model).
 
 
 def fbx_data_lamp_elements(root, lamp, scene_data):
@@ -1877,7 +1911,7 @@ def fbx_data_animation_elements(root, scene_data):
 FBXData = namedtuple("FBXData", (
     "templates", "templates_users", "connections",
     "settings", "scene", "objects", "animations",
-    "data_lamps", "data_cameras", "data_meshes", "mesh_mat_indices",
+    "data_empties", "data_lamps", "data_cameras", "data_meshes", "mesh_mat_indices",
     "data_bones", "data_deformers",
     "data_world", "data_materials", "data_textures", "data_videos",
 ))
@@ -2106,6 +2140,8 @@ def fbx_data_from_scene(scene, settings):
     # Unfortunately, FBX camera data contains object-level data (like position, orientation, etc.)...
     data_cameras = OrderedDict((obj, get_blenderID_key(obj.data)) for obj in objects if obj.type == 'CAMERA')
     data_meshes = OrderedDict((obj.data, (get_blenderID_key(obj.data), obj)) for obj in objects if obj.type == 'MESH')
+    # Yep! Contains nothing, but needed!
+    data_empties = OrderedDict((obj, get_blender_empty_key(obj)) for obj in objects if obj.type == 'EMPTY')
 
     # Armatures!
     data_bones = OrderedDict()
@@ -2181,7 +2217,7 @@ def fbx_data_from_scene(scene, settings):
     tmp_scdata = FBXData(  # Kind of hack, we need a temp scene_data for object's space handling to bake animations...
         None, None, None,
         settings, scene, objects, None,
-        data_lamps, data_cameras, data_meshes, None,
+        data_empties, data_lamps, data_cameras, data_meshes, None,
         data_bones, data_deformers,
         data_world, data_materials, data_textures, data_videos,
     )
@@ -2192,7 +2228,11 @@ def fbx_data_from_scene(scene, settings):
     templates = OrderedDict()
     templates[b"GlobalSettings"] = fbx_template_def_globalsettings(scene, settings, nbr_users=1)
 
-    # XXX Looks like there can only be one NodeAttribute template? At lest, never found a light template... :/
+    # XXX Looks like there can only be one NodeAttribute template? At lest, never found more than one
+    #     (null/light/camera) template in one file... :/
+    if data_empties:
+        templates[b"Null"] = fbx_template_def_null(scene, settings, nbr_users=len(data_empties))
+
     if data_lamps:
         templates[b"Light"] = fbx_template_def_light(scene, settings, nbr_users=len(data_lamps))
 
@@ -2278,6 +2318,11 @@ def fbx_data_from_scene(scene, settings):
             continue
         connections.append((b"OO", get_fbxuid_from_key(bo_key), get_fbxuid_from_key(objects[par]), None))
 
+    # Empties
+    for empty_obj, empty_key in data_empties.items():
+        empty_obj_key = objects[empty_obj]
+        connections.append((b"OO", get_fbxuid_from_key(empty_key), get_fbxuid_from_key(empty_obj_key), None))
+
     # Cameras
     for obj_cam, cam_key in data_cameras.items():
         cam_obj_key = objects[obj_cam]
@@ -2362,7 +2407,7 @@ def fbx_data_from_scene(scene, settings):
     return FBXData(
         templates, templates_users, connections,
         settings, scene, objects, animations,
-        data_lamps, data_cameras, data_meshes, mesh_mat_indices,
+        data_empties, data_lamps, data_cameras, data_meshes, mesh_mat_indices,
         data_bones, data_deformers,
         data_world, data_materials, data_textures, data_videos,
     )
@@ -2529,6 +2574,9 @@ def fbx_objects_elements(root, scene_data):
     Data (objects, geometry, material, textures, armatures, etc.
     """
     objects = elem_empty(root, b"Objects")
+
+    for empty in scene_data.data_empties.keys():
+        fbx_data_empty_elements(objects, empty, scene_data)
 
     for lamp in scene_data.data_lamps.keys():
         fbx_data_lamp_elements(objects, lamp, scene_data)
