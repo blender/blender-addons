@@ -30,23 +30,24 @@ import struct
 import mmap
 import contextlib
 import itertools
+from mathutils.geometry import normal
 
 # TODO: endien
 
 
 @contextlib.contextmanager
-def mmap_file(filename):
+def mmap_file(filepath):
     """
     Context manager over the data of an mmap'ed file (Read ONLY).
 
 
     Example:
 
-    with mmap_file(filename) as m:
+    with mmap_file(filepath) as m:
         m.read()
         print m[10:50]
     """
-    with open(filename, 'rb') as file:
+    with open(filepath, 'rb') as file:
         # check http://bugs.python.org/issue8046 to have mmap context
         # manager fixed in python
         mem_map = mmap.mmap(file.fileno(), 0, access=mmap.ACCESS_READ)
@@ -156,61 +157,91 @@ def _ascii_read(data):
                    for l_item in (l, data.readline(), data.readline())]
 
 
-def _binary_write(filename, faces):
-    with open(filename, 'wb') as data:
+def _binary_write(filepath, faces, use_normals):
+    with open(filepath, 'wb') as data:
+        fw = data.write
         # header
         # we write padding at header beginning to avoid to
         # call len(list(faces)) which may be expensive
-        data.write(struct.calcsize('<80sI') * b'\0')
+        fw(struct.calcsize('<80sI') * b'\0')
 
         # 3 vertex == 9f
         pack = struct.Struct('<9f').pack
-        # pad is to remove normal, we do use them
-        pad = b'\0' * struct.calcsize('<3f')
 
+        # number of vertices written
         nb = 0
-        for verts in faces:
-            # write pad as normal + vertexes + pad as attributes
-            data.write(pad + pack(*itertools.chain.from_iterable(verts)))
-            data.write(b'\0\0')
-            nb += 1
+
+        if use_normals:
+            for face in faces:
+                # calculate face normal
+                # write normal + vertexes + pad as attributes
+                fw(struct.pack('<3f', *normal(*face)) + pack(*itertools.chain.from_iterable(face)))
+                # attribute byte count (unused)
+                fw(b'\0\0') 
+                nb += 1
+        else:
+            # pad is to remove normal, we do use them
+            pad = b'\0' * struct.calcsize('<3f')
+
+            for face in faces:
+                # write pad as normal + vertexes + pad as attributes
+                fw(pad + pack(*itertools.chain.from_iterable(face)))
+                # attribute byte count (unused)
+                fw(b'\0\0')
+                nb += 1
 
         # header, with correct value now
         data.seek(0)
-        data.write(struct.pack('<80sI', _header_version().encode('ascii'), nb))
+        fw(struct.pack('<80sI', _header_version().encode('ascii'), nb))
 
 
-def _ascii_write(filename, faces):
-    with open(filename, 'w') as data:
+def _ascii_write(filepath, faces, use_normals):
+    with open(filepath, 'w') as data:
+        fw = data.write
         header = _header_version()
-        data.write('solid %s\n' % header)
+        fw('solid %s\n' % header)
 
-        for face in faces:
-            data.write('''facet normal 0 0 0\nouter loop\n''')
-            for vert in face:
-                data.write('vertex %f %f %f\n' % vert[:])
-            data.write('endloop\nendfacet\n')
+        if use_normals:
+            for face in faces:
+                # calculate face normal
+                fw('facet normal %f %f %f\nouter loop\n' % normal(*face)[:])
+                for vert in face:
+                    fw('vertex %f %f %f\n' % vert[:])
+                fw('endloop\nendfacet\n')
+        else:
+            for face in faces:
+                fw('facet normal 0 0 0\nouter loop\n')
+                for vert in face:
+                    fw('vertex %f %f %f\n' % vert[:])
+                fw('endloop\nendfacet\n')
 
-        data.write('endsolid %s\n' % header)
+        fw('endsolid %s\n' % header)
 
 
-def write_stl(filename, faces, ascii=False):
+def write_stl(filepath="",
+              faces=(),
+              ascii=False,
+              use_normals=False,
+              ):
     """
     Write a stl file from faces,
 
-    filename
-       output filename
+    filepath
+       output filepath
 
     faces
        iterable of tuple of 3 vertex, vertex is tuple of 3 coordinates as float
 
     ascii
        save the file in ascii format (very huge)
+
+    use_normals
+        calculate face normals and write them
     """
-    (_ascii_write if ascii else _binary_write)(filename, faces)
+    (_ascii_write if ascii else _binary_write)(filepath, faces, use_normals)
 
 
-def read_stl(filename):
+def read_stl(filepath):
     """
     Return the triangles and points of an stl binary file.
 
@@ -229,7 +260,7 @@ def read_stl(filename):
 
     Example of use:
 
-       >>> tris, pts = read_stl(filename, lambda x:)
+       >>> tris, pts = read_stl(filepath, lambda x:)
        >>> pts = list(pts)
        >>>
        >>> # print the coordinate of the triangle n
@@ -238,7 +269,7 @@ def read_stl(filename):
 
     tris, pts = [], ListDict()
 
-    with mmap_file(filename) as data:
+    with mmap_file(filepath) as data:
         # check for ascii or binary
         gen = _ascii_read if _is_ascii_file(data) else _binary_read
 
@@ -257,10 +288,10 @@ if __name__ == '__main__':
     import bpy
     from io_mesh_stl import blender_utils
 
-    filenames = sys.argv[sys.argv.index('--') + 1:]
+    filepaths = sys.argv[sys.argv.index('--') + 1:]
 
-    for filename in filenames:
-        objName = bpy.path.display_name(filename)
-        tris, pts = read_stl(filename)
+    for filepath in filepaths:
+        objName = bpy.path.display_name(filepath)
+        tris, pts = read_stl(filepath)
 
         blender_utils.create_and_link_mesh(objName, tris, pts)

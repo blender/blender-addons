@@ -128,6 +128,11 @@ class ExportSTL(Operator, ExportHelper):
             description="Save the file in ASCII file format",
             default=False,
             )
+    use_normals = BoolProperty(
+            name="Write Normals",
+            description="Export one normal per face, to represent flat faces and sharp edges",
+            default=False,
+            )
     use_mesh_modifiers = BoolProperty(
             name="Apply Modifiers",
             description="Apply the modifiers before saving",
@@ -167,6 +172,13 @@ class ExportSTL(Operator, ExportHelper):
         from . import blender_utils
         import itertools
         from mathutils import Matrix
+        keywords = self.as_keywords(ignore=("axis_forward",
+                                            "axis_up",
+                                            "global_scale",
+                                            "check_existing",
+                                            "filter_glob",
+                                            "use_mesh_modifiers",
+                                            ))
 
         global_matrix = axis_conversion(to_forward=self.axis_forward,
                                         to_up=self.axis_up,
@@ -176,7 +188,7 @@ class ExportSTL(Operator, ExportHelper):
             blender_utils.faces_from_mesh(ob, global_matrix, self.use_mesh_modifiers)
             for ob in context.selected_objects)
 
-        stl_utils.write_stl(self.filepath, faces, self.ascii)
+        stl_utils.write_stl(faces=faces, **keywords)
 
         return {'FINISHED'}
 
