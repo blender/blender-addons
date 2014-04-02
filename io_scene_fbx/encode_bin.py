@@ -42,6 +42,8 @@ _TIME_ID = b'1970-01-01 10:00:00:000'
 _FILE_ID = b'\x28\xb3\x2a\xeb\xb6\x24\xcc\xc2\xbf\xc8\xb0\x2a\xa9\x2b\xfc\xf1'
 _FOOT_ID = b'\xfa\xbc\xab\x09\xd0\xc8\xd4\x66\xb1\x76\xfb\x83\x1c\xf7\x26\x7e'
 
+# Awful exceptions: those "classes" of elements seem to need block sentinel even when having no children and some props.
+_ELEMS_ID_ALWAYS_BLOCK_SENTINEL = {b"AnimationStack", b"AnimationLayer"}
 
 class FBXElem:
     __slots__ = (
@@ -193,7 +195,6 @@ class FBXElem:
         assert(self._end_offset == -1)
         assert(self._props_length == -1)
 
-        # print("Offset", offset)
         offset += 12  # 3 uints
         offset += 1 + len(self.id)  # len + idname
 
@@ -215,7 +216,7 @@ class FBXElem:
             for elem in self.elems:
                 offset = elem._calc_offsets(offset, (elem is elem_last))
             offset += _BLOCK_SENTINEL_LENGTH
-        elif not self.props:
+        elif not self.props or self.id in _ELEMS_ID_ALWAYS_BLOCK_SENTINEL:
             if not is_last:
                 offset += _BLOCK_SENTINEL_LENGTH
 
@@ -225,7 +226,6 @@ class FBXElem:
         assert(self._end_offset != -1)
         assert(self._props_length != -1)
 
-        # print(self.id, self._end_offset, len(self.props), self._props_length)
         write(pack('<3I', self._end_offset, len(self.props), self._props_length))
 
         write(bytes((len(self.id),)))
@@ -248,7 +248,7 @@ class FBXElem:
                 assert(elem.id != b'')
                 elem._write(write, tell, (elem is elem_last))
             write(_BLOCK_SENTINEL_DATA)
-        elif not self.props:
+        elif not self.props or self.id in _ELEMS_ID_ALWAYS_BLOCK_SENTINEL:
             if not is_last:
                 write(_BLOCK_SENTINEL_DATA)
 
