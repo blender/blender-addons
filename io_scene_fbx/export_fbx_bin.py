@@ -2195,12 +2195,13 @@ def fbx_data_from_scene(scene, settings):
     Do some pre-processing over scene's data...
     """
     objtypes = settings.object_types
+    objects = settings.context_objects
 
     ##### Gathering data...
 
     # This is rather simple for now, maybe we could end generating templates with most-used values
     # instead of default ones?
-    objects = OrderedDict((obj, get_blenderID_key(obj)) for obj in scene.objects if obj.type in objtypes)
+    objects = OrderedDict((obj, get_blenderID_key(obj)) for obj in objects if obj.type in objtypes)
     data_lamps = OrderedDict((obj.data, get_blenderID_key(obj.data)) for obj in objects if obj.type == 'LAMP')
     # Unfortunately, FBX camera data contains object-level data (like position, orientation, etc.)...
     data_cameras = OrderedDict((obj, get_blenderID_key(obj.data)) for obj in objects if obj.type == 'CAMERA')
