@@ -99,8 +99,7 @@ def parse_json_rec(fbx_root, json_node):
             d = eval('b"""' + d + '"""')
             e.add_bytes(d)
         elif dt == "S":
-            d = d.encode()
-            d.replace(b"::", b"\x00\x01")
+            d = d.encode().replace(b"::", b"\x00\x01")
             e.add_string(d)
         elif dt == "i":
             e.add_int32_array(d)

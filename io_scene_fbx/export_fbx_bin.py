@@ -450,7 +450,6 @@ def elem_props_template_init(templates, template_type):
     if template_type in templates:
         tmpl = templates[template_type]
         written = tmpl.written[0]
-        print(template_type, written)
         props = tmpl.properties
         ret = OrderedDict((name, [val, ptype, anim, written]) for name, (val, ptype, anim) in props.items())
     return ret or OrderedDict()
@@ -1230,8 +1229,10 @@ def fbx_data_mesh_elements(root, me, scene_data):
     geom.add_string(fbx_name_class(me.name.encode(), b"Geometry"))
     geom.add_string(b"Mesh")
 
-    tmpl = scene_data.templates[b"Geometry"]
+    tmpl = elem_props_template_init(scene_data.templates, b"Geometry")
     props = elem_properties(geom)
+
+    elem_props_template_finalize(tmpl, props)
 
     # Custom properties.
     if scene_data.settings.use_custom_properties:
