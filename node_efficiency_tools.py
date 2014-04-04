@@ -3174,44 +3174,6 @@ class NWNodeAlignMenu(Menu, NWBase):
         layout.operator(NWAlignNodes.bl_idname, text="Vertically").option = 'AXIS_Y'
 
 
-class NWUVMenu(bpy.types.Menu):
-    bl_idname = "NODE_MT_nw_node_uvs_menu"
-    bl_label = "UV Maps"
-
-    @classmethod
-    def poll(cls, context):
-        if context.area.spaces[0].node_tree:
-            if context.area.spaces[0].node_tree.type == 'SHADER':
-                return True
-            else:
-                return False
-        else:
-            return False
-
-    def draw(self, context):
-        l = self.layout
-        nodes, links = get_nodes_links(context)
-        mat = context.object.active_material
-
-        objs = []
-        for obj in bpy.data.objects:
-            for slot in obj.material_slots:
-                if slot.material == mat:
-                    objs.append(obj)
-        uvs = []
-        for obj in objs:
-            if obj.data.uv_layers:
-                for uv in obj.data.uv_layers:
-                    uvs.append(uv.name)
-        uvs = list(set(uvs))  # get a unique list
-
-        if uvs:
-            for uv in uvs:
-                l.operator(NWAddAttrNode.bl_idname, text=uv).attr_name = uv
-        else:
-            l.label("No UV layers on objects with this material")
-
-
 class NWVertColMenu(bpy.types.Menu):
     bl_idname = "NODE_MT_nw_node_vertex_color_menu"
     bl_label = "Vertex Colors"
@@ -3480,7 +3442,6 @@ def select_parent_children_buttons(self, context):
 
 def attr_nodes_menu_func(self, context):
     col = self.layout.column(align=True)
-    col.menu("NODE_MT_nw_node_uvs_menu")
     col.menu("NODE_MT_nw_node_vertex_color_menu")
     col.separator()
 
