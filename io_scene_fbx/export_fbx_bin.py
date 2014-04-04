@@ -49,9 +49,11 @@ FBX_TEMPLATES_VERSION = 100
 FBX_MODELS_VERSION = 232
 
 FBX_GEOMETRY_VERSION = 124
-FBX_GEOMETRY_NORMAL_VERSION = 102
-FBX_GEOMETRY_BINORMAL_VERSION = 102
-FBX_GEOMETRY_TANGENT_VERSION = 102
+# Revert back normals to 101 (simple 3D values) for now, 102 (4D + weights) seems not well supported by most apps
+# currently, apart from some AD products.
+FBX_GEOMETRY_NORMAL_VERSION = 101
+FBX_GEOMETRY_BINORMAL_VERSION = 101
+FBX_GEOMETRY_TANGENT_VERSION = 101
 FBX_GEOMETRY_SMOOTHING_VERSION = 102
 FBX_GEOMETRY_VCOLOR_VERSION = 101
 FBX_GEOMETRY_UV_VERSION = 101
@@ -1356,7 +1358,9 @@ def fbx_data_mesh_elements(root, me, scene_data):
     me.calc_normals_split()
     def _nortuples_gen(raw_nors, m):
         # Great, now normals are also expected 4D!
-        gen = zip(*(iter(raw_nors),) * 3 + (_infinite_gen(1.0),))
+        # XXX Back to 3D normals for now!
+        #gen = zip(*(iter(raw_nors),) * 3 + (_infinite_gen(1.0),))
+        gen = zip(*(iter(raw_nors),) * 3)
         return gen if m is None else (m * Vector(v) for v in gen)
 
     t_ln = array.array(data_types.ARRAY_FLOAT64, (0.0,)) * len(me.loops) * 3
@@ -1374,14 +1378,14 @@ def fbx_data_mesh_elements(root, me, scene_data):
         ln2idx = tuple(set(t_ln))
         elem_data_single_float64_array(lay_nor, b"Normals", chain(*ln2idx))
         # Normal weights, no idea what it is.
-        t_lnw = array.array(data_types.ARRAY_FLOAT64, (0.0,)) * len(ln2idx)
-        elem_data_single_float64_array(lay_nor, b"NormalsW", t_lnw)
+        #t_lnw = array.array(data_types.ARRAY_FLOAT64, (0.0,)) * len(ln2idx)
+        #elem_data_single_float64_array(lay_nor, b"NormalsW", t_lnw)
 
         ln2idx = {nor: idx for idx, nor in enumerate(ln2idx)}
         elem_data_single_int32_array(lay_nor, b"NormalsIndex", (ln2idx[n] for n in t_ln))
 
         del ln2idx
-        del t_lnw
+        #del t_lnw
     else:
         lay_nor = elem_data_single_int32(geom, b"LayerElementNormal", 0)
         elem_data_single_int32(lay_nor, b"Version", FBX_GEOMETRY_NORMAL_VERSION)
@@ -1390,8 +1394,8 @@ def fbx_data_mesh_elements(root, me, scene_data):
         elem_data_single_string(lay_nor, b"ReferenceInformationType", b"Direct")
         elem_data_single_float64_array(lay_nor, b"Normals", chain(*t_ln))
         # Normal weights, no idea what it is.
-        t_ln = array.array(data_types.ARRAY_FLOAT64, (0.0,)) * len(me.loops)
-        elem_data_single_float64_array(lay_nor, b"NormalsW", t_ln)
+        #t_ln = array.array(data_types.ARRAY_FLOAT64, (0.0,)) * len(me.loops)
+        #elem_data_single_float64_array(lay_nor, b"NormalsW", t_ln)
     del t_ln
 
     # tspace
@@ -1400,7 +1404,7 @@ def fbx_data_mesh_elements(root, me, scene_data):
         tspacenumber = len(me.uv_layers)
         if tspacenumber:
             t_ln = array.array(data_types.ARRAY_FLOAT64, (0.0,)) * len(me.loops) * 3
-            t_lnw = array.array(data_types.ARRAY_FLOAT64, (0.0,)) * len(me.loops)
+            #t_lnw = array.array(data_types.ARRAY_FLOAT64, (0.0,)) * len(me.loops)
             for idx, uvlayer in enumerate(me.uv_layers):
                 name = uvlayer.name
                 me.calc_tangents(name)
@@ -1414,7 +1418,7 @@ def fbx_data_mesh_elements(root, me, scene_data):
                 elem_data_single_string(lay_nor, b"ReferenceInformationType", b"Direct")
                 elem_data_single_float64_array(lay_nor, b"Binormals", chain(*_nortuples_gen(t_ln, geom_mat_no)))
                 # Binormal weights, no idea what it is.
-                elem_data_single_float64_array(lay_nor, b"BinormalsW", t_lnw)
+                #elem_data_single_float64_array(lay_nor, b"BinormalsW", t_lnw)
 
                 # Loop tangents.
                 # NOTE: this is not supported by importer currently.
@@ -1426,10 +1430,10 @@ def fbx_data_mesh_elements(root, me, scene_data):
                 elem_data_single_string(lay_nor, b"ReferenceInformationType", b"Direct")
                 elem_data_single_float64_array(lay_nor, b"Binormals", chain(*_nortuples_gen(t_ln, geom_mat_no)))
                 # Tangent weights, no idea what it is.
-                elem_data_single_float64_array(lay_nor, b"TangentsW", t_lnw)
+                #elem_data_single_float64_array(lay_nor, b"TangentsW", t_lnw)
 
             del t_ln
-            del t_lnw
+            #del t_lnw
             me.free_tangents()
 
     me.free_normals_split()
