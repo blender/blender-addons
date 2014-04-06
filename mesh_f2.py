@@ -22,12 +22,12 @@ bl_info = {
     'name': "F2",
     'author': "Bart Crouch, Alexander Nedovizin, Paul Kotelevets "\
         "(concept design)",
-    'version': (1, 6, 5),
-    'blender': (2, 68, 0),
+    'version': (1, 7, 2),
+    'blender': (2, 70, 0),
     'location': "Editmode > F",
     'warning': "",
     'description': "Extends the 'Make Edge/Face' functionality",
-    'wiki_url': "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
+    'wiki_url': "http://wiki.blender.org/index.php/Extensions:2.6/Py/"\
         "Scripts/Modeling/F2",
     'tracker_url': "https://developer.blender.org/T33979",
     'category': 'Mesh'}
@@ -38,6 +38,30 @@ import bpy
 import itertools
 import mathutils
 from bpy_extras import view3d_utils
+
+
+# returns a custom data layer of the UV map, or None
+def get_uv_layer(ob, bm, mat_index):
+    uv = None
+    uv_layer = None
+    if not ob.material_slots:
+        me = ob.data
+        if me.uv_textures:
+            uv = me.uv_textures.active.name
+    else:
+        mat = ob.material_slots[mat_index].material
+        slot = mat.texture_slots[mat.active_texture_index]
+        if slot and slot.uv_layer:
+            uv = slot.uv_layer
+        else:
+            for tex_slot in mat.texture_slots:
+                if tex_slot and tex_slot.uv_layer:
+                    uv = tex_slot.uv_layer
+                    break
+    if uv:
+        uv_layer = bm.loops.layers.uv.get(uv)
+
+    return(uv_layer)
 
 
 # create a face from a single selected edge
@@ -122,7 +146,12 @@ def quad_from_edge(bm, edge_sel, context, event):
 
     # create quad
     try:
-        verts = [v3, v1, v2, v4]
+        if v3 == v4:
+            # triangle (usually at end of quad-strip
+            verts = [v3, v1, v2]
+        else:
+            # normal face creation
+            verts = [v3, v1, v2, v4]
         if flip_align:
             verts.reverse()
         face = bm.faces.new(verts)
@@ -143,6 +172,21 @@ def quad_from_edge(bm, edge_sel, context, event):
     v3.select = True
     v4.select = True
 
+    # adjust uv-map
+    if __name__ != '__main__':
+        addon_prefs = context.user_preferences.addons[__name__].preferences
+        if addon_prefs.adjustuv:
+            uv_layer = get_uv_layer(ob, bm, mat_index)
+            if uv_layer:
+                uv_ori = {}
+                for vert in [v1, v2, v3, v4]:
+                    for loop in vert.link_loops:
+                        if loop.face.index > -1:
+                            uv_ori[loop.vert.index] = loop[uv_layer].uv
+                if len(uv_ori) == 4 or len(uv_ori) == 3:
+                    for loop in face.loops:
+                        loop[uv_layer].uv = uv_ori[loop.vert.index]
+
     # toggle mode, to force correct drawing
     bpy.ops.object.mode_set(mode='OBJECT')
     bpy.ops.object.mode_set(mode='EDIT')
@@ -151,6 +195,7 @@ def quad_from_edge(bm, edge_sel, context, event):
 # create a face from a single selected vertex, if it is an open vertex
 def quad_from_vertex(bm, vert_sel, context, event):
     ob = context.active_object
+    me = ob.data
     region = context.region
     region_3d = context.space_data.region_3d
 
@@ -227,6 +272,42 @@ def quad_from_vertex(bm, vert_sel, context, event):
     vert_new.select = True
     vert_sel.select = False
 
+    # adjust uv-map
+    if __name__ != '__main__':
+        addon_prefs = context.user_preferences.addons[__name__].preferences
+        if addon_prefs.adjustuv:
+            uv_layer = get_uv_layer(ob, bm, mat_index)
+            if uv_layer:
+                uv_others = {}
+                uv_sel = None
+                uv_new = None
+                # get original uv coordinates
+                for i in range(2):
+                    for loop in other_verts[i].link_loops:
+                        if loop.face.index > -1:
+                            uv_others[loop.vert.index] = loop[uv_layer].uv
+                            break
+                if len(uv_others) == 2:
+                    mid_other = (list(uv_others.values())[0] + 
+                        list(uv_others.values())[1]) / 2
+                    for loop in vert_sel.link_loops:
+                        if loop.face.index > -1:
+                            uv_sel = loop[uv_layer].uv
+                            break
+                    if uv_sel:
+                        uv_new = 2 * (mid_other - uv_sel) + uv_sel
+
+                # set uv coordinates for new loops
+                if uv_new:
+                    for loop in face.loops:
+                        if loop.vert.index == -1:
+                            x, y = uv_new
+                        elif loop.vert.index in uv_others:
+                            x, y = uv_others[loop.vert.index]
+                        else:
+                            x, y = uv_sel
+                        loop[uv_layer].uv = (x, y)
+
     # toggle mode, to force correct drawing
     bpy.ops.object.mode_set(mode='OBJECT')
     bpy.ops.object.mode_set(mode='EDIT')
@@ -235,15 +316,19 @@ def quad_from_vertex(bm, vert_sel, context, event):
 # autograb preference in addons panel
 class F2AddonPreferences(bpy.types.AddonPreferences):
     bl_idname = __name__
+    adjustuv = bpy.props.BoolProperty(
+        name = "Adjust UV",
+        description = "Automatically update UV unwrapping",
+        default = True)
     autograb = bpy.props.BoolProperty(
-            name = "Auto Grab",
-            description = "Automatically puts a newly created vertex in grab \
-mode",
-            default = False)
+        name = "Auto Grab",
+        description = "Automatically puts a newly created vertex in grab mode",
+        default = False)
 
     def draw(self, context):
         layout = self.layout
         layout.prop(self, "autograb")
+        layout.prop(self, "adjustuv")
 
 
 class MeshF2(bpy.types.Operator):
@@ -271,9 +356,11 @@ class MeshF2(bpy.types.Operator):
         elif len(sel) == 1:
             # single vertex selected -> mirror vertex and create new face
             quad_from_vertex(bm, sel[0], context, event)
-            addon_prefs = context.user_preferences.addons[__name__].preferences
-            if addon_prefs.autograb:
-                bpy.ops.transform.translate('INVOKE_DEFAULT')
+            if __name__ != '__main__':
+                addon_prefs = context.user_preferences.addons[__name__].\
+                    preferences
+                if addon_prefs.autograb:
+                    bpy.ops.transform.translate('INVOKE_DEFAULT')
         elif len(sel) == 2:
             edges_sel = [ed for ed in bm.edges if ed.select]
             if len(edges_sel) != 1:
