@@ -34,7 +34,7 @@ from itertools import zip_longest, chain
 
 import bpy
 import bpy_extras
-from bpy.types import Object, Bone
+from bpy.types import Object, Bone, PoseBone
 from mathutils import Vector, Matrix
 
 from . import encode_bin, data_types
@@ -957,6 +957,8 @@ def fbx_template_def_animcurve(scene, settings, override_defaults=None, nbr_user
 
 ##### FBX objects generators. #####
 def has_valid_parent(scene_data, obj):
+    if isinstance(obj, PoseBone):
+        obj = obj.bone
     return obj.parent and obj.parent in scene_data.objects
 
 
@@ -964,7 +966,7 @@ def use_bake_space_transform(scene_data, obj):
     # NOTE: Only applies to object types supporting this!!! Currently, only meshes...
     #       Also, do not apply it to children objects.
     # TODO: Check whether this can work for bones too...
-    return (scene_data.settings.bake_space_transform and not isinstance(obj, Bone) and
+    return (scene_data.settings.bake_space_transform and not isinstance(obj, (PoseBone, Bone)) and
             obj.type in {'MESH'} and not has_valid_parent(scene_data, obj))
 
 
@@ -979,43 +981,49 @@ def fbx_object_matrix(scene_data, obj, armature=None, local_space=False, global_
     If obj is a bone, and global_space is True, armature must be provided (it's the bone's armature object!).
     Applies specific rotation to bones, lamps and cameras (conversion Blender -> FBX).
     """
-    is_bone = isinstance(obj, Bone)
+    is_posebone = isinstance(obj, PoseBone)
+    is_bone = is_posebone or isinstance(obj, Bone)
     # Objects which are not bones and do not have any parent are *always* in global space (unless local_space is True!).
     is_global = not local_space and (global_space or not (is_bone or has_valid_parent(scene_data, obj)))
 
-    #assert((is_bone and is_global and armature is None) == False,
-           #"You must provide an armature object to get bones transform matrix in global space!")
-
-    matrix = obj.matrix_local
-
-    # Lamps, cameras and bones need to be rotated (in local space!).
-    if is_bone:
-        matrix = matrix * MAT_CONVERT_BONE
-    elif obj.type == 'LAMP':
-        matrix = matrix * MAT_CONVERT_LAMP
-    elif obj.type == 'CAMERA':
-        matrix = matrix * MAT_CONVERT_CAMERA
-
     # Up till here, our matrix is in local space, time to bring it in its final desired space.
     if is_bone:
+        bo = obj
+        matrix = (bo.matrix if is_posebone else bo.matrix_local) * MAT_CONVERT_BONE
+
         # Bones are in armature (object) space currently, either bring them to global space or real
         # local space (relative to parent bone).
         if is_global:
             matrix = armature.matrix_world * matrix
-        elif obj.parent:  # Parent bone, get matrix relative to it.
-            par_matrix = obj.parent.matrix_local * MAT_CONVERT_BONE
-            matrix = par_matrix.inverted() * matrix
-    elif obj.parent:
-        if is_global:
-            # Move matrix to global Blender space.
-            matrix = obj.parent.matrix_world * matrix
-        elif use_bake_space_transform(scene_data, obj.parent):
-            # Blender's and FBX's local space of parent may differ if we use bake_space_transform...
-            # Apply parent's *Blender* local space...
-            matrix = obj.parent.matrix_local * matrix
-            # ...and move it back into parent's *FBX* local space.
-            par_mat = fbx_object_matrix(scene_data, obj.parent, local_space=True)
-            matrix = par_mat.inverted() * matrix
+        else:  # Handle parent bone is needed.
+            par_matrix = None
+            if is_posebone and bo.bone.parent:
+                par_matrix = scene_data.bones_to_posebones[bo.bone.parent].matrix
+            elif bo.parent:
+                par_matrix = bo.parent.matrix_local
+            if par_matrix:
+                par_matrix = par_matrix * MAT_CONVERT_BONE
+                matrix = par_matrix.inverted() * matrix
+    else:
+        matrix = obj.matrix_local
+
+        # Lamps, and cameras need to be rotated (in local space!).
+        if obj.type == 'LAMP':
+            matrix = matrix * MAT_CONVERT_LAMP
+        elif obj.type == 'CAMERA':
+            matrix = matrix * MAT_CONVERT_CAMERA
+
+        if obj.parent:
+            if is_global:
+                # Move matrix to global Blender space.
+                matrix = obj.parent.matrix_world * matrix
+            elif use_bake_space_transform(scene_data, obj.parent):
+                # Blender's and FBX's local space of parent may differ if we use bake_space_transform...
+                # Apply parent's *Blender* local space...
+                matrix = obj.parent.matrix_local * matrix
+                # ...and move it back into parent's *FBX* local space.
+                par_mat = fbx_object_matrix(scene_data, obj.parent, local_space=True)
+                matrix = par_mat.inverted() * matrix
 
     if use_bake_space_transform(scene_data, obj):
         # If we bake the transforms we need to post-multiply inverse global transform.
@@ -1984,7 +1992,7 @@ FBXData = namedtuple("FBXData", (
     "templates", "templates_users", "connections",
     "settings", "scene", "objects", "animations",
     "data_empties", "data_lamps", "data_cameras", "data_meshes", "mesh_mat_indices",
-    "data_bones", "data_deformers",
+    "bones_to_posebones", "data_bones", "data_deformers",
     "data_world", "data_materials", "data_textures", "data_videos",
 ))
 
@@ -2033,7 +2041,8 @@ def fbx_mat_properties_from_texture(tex):
     return tex_fbx_props
 
 
-def fbx_skeleton_from_armature(scene, settings, armature, objects, data_bones, data_deformers, arm_parents):
+def fbx_skeleton_from_armature(scene, settings, armature, objects, bones_to_posebones,
+                               data_bones, data_deformers, arm_parents):
     """
     Create skeleton from armature/bones (NodeAttribute/LimbNode and Model/LimbNode), and for each deformed mesh,
     create Pose/BindPose(with sub PoseNode) and Deformer/Skin(with Deformer/SubDeformer/Cluster).
@@ -2042,9 +2051,10 @@ def fbx_skeleton_from_armature(scene, settings, armature, objects, data_bones, d
     """
     arm = armature.data
     bones = OrderedDict()
-    for bo in arm.bones:
+    for bo, pbo in zip(arm.bones, armature.pose.bones):
         key, data_key = get_blender_bone_key(armature, bo)
         objects[bo] = key
+        bones_to_posebones[bo] = pbo
         data_bones[bo] = (key, data_key, armature)
         bones[bo.name] = bo
 
@@ -2131,6 +2141,7 @@ def fbx_animations_objects(scene_data):
     objects = scene_data.objects
     bake_step = scene_data.settings.bake_anim_step
     scene = scene_data.scene
+    bone_map = scene_data.bones_to_posebones
 
     # FBX mapping info: Property affected, and name of the "sub" property (to distinguish e.g. vector's channels).
     fbx_names = (
@@ -2146,10 +2157,10 @@ def fbx_animations_objects(scene_data):
     while currframe < scene.frame_end:
         scene.frame_set(int(currframe), currframe - int(currframe))
         for obj in objects.keys():
-            if isinstance(obj, Bone):
-                continue  # TODO!
+            # Get PoseBone from bone...
+            tobj = bone_map[obj] if isinstance(obj, Bone) else obj
             # We compute baked loc/rot/scale for all objects.
-            loc, rot, scale, _m, _mr = fbx_object_tx(scene_data, obj)
+            loc, rot, scale, _m, _mr = fbx_object_tx(scene_data, tobj)
             tx = tuple(loc) + tuple(units_convert_iter(rot, "radian", "degree")) + tuple(scale)
             animdata[obj].append((currframe, tx, [False] * len(tx)))
         currframe += bake_step
@@ -2170,7 +2181,9 @@ def fbx_animations_objects(scene_data):
                 if wrt:
                     curves[idx].append((currframe, val))
 
-        loc, rot, scale, _m, _mr = fbx_object_tx(scene_data, obj)
+        # Get PoseBone from bone...
+        tobj = bone_map[obj] if isinstance(obj, Bone) else obj
+        loc, rot, scale, _m, _mr = fbx_object_tx(scene_data, tobj)
         tx = tuple(loc) + tuple(units_convert_iter(rot, "radian", "degree")) + tuple(scale)
         # If animation for a channel, (True, keyframes), else (False, current value).
         final_keys = OrderedDict()
@@ -2217,11 +2230,13 @@ def fbx_data_from_scene(scene, settings):
     # Armatures!
     data_bones = OrderedDict()
     data_deformers = OrderedDict()
+    bones_to_posebones = dict()
     arm_parents = set()
     for obj in tuple(objects.keys()):
         if obj.type not in {'ARMATURE'}:
             continue
-        fbx_skeleton_from_armature(scene, settings, obj, objects, data_bones, data_deformers, arm_parents)
+        fbx_skeleton_from_armature(scene, settings, obj, objects, bones_to_posebones,
+                                   data_bones, data_deformers, arm_parents)
 
     # Some world settings are embedded in FBX materials...
     if scene.world:
@@ -2289,7 +2304,7 @@ def fbx_data_from_scene(scene, settings):
         None, None, None,
         settings, scene, objects, None,
         data_empties, data_lamps, data_cameras, data_meshes, None,
-        data_bones, data_deformers,
+        bones_to_posebones, data_bones, data_deformers,
         data_world, data_materials, data_textures, data_videos,
     )
     animations = fbx_animations_objects(tmp_scdata)
@@ -2477,7 +2492,7 @@ def fbx_data_from_scene(scene, settings):
         templates, templates_users, connections,
         settings, scene, objects, animations,
         data_empties, data_lamps, data_cameras, data_meshes, mesh_mat_indices,
-        data_bones, data_deformers,
+        bones_to_posebones, data_bones, data_deformers,
         data_world, data_materials, data_textures, data_videos,
     )
 
