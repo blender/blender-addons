@@ -86,7 +86,22 @@ if __name__ == "__main__":
     register()
 
 
+def create_mesh_face_hack(faces):
+    # FIXME, faces with duplicate vertices shouldn't be created in the first place.
+    faces_copy = []
+    for f in faces:
+        f_copy = []
+        for i in f:
+            if i not in f_copy:
+                f_copy.append(i)
+        faces_copy.append(f_copy)
+    faces[:] = faces_copy
+
+
 def create_mesh_object(context, verts, edges, faces, name):
+
+    create_mesh_face_hack(faces)
+
     # Create new mesh
     mesh = bpy.data.meshes.new(name)
     # Make a mesh from a list of verts/edges/faces.
