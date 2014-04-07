@@ -490,7 +490,6 @@ def elem_props_template_finalize(template, elem):
         if written:
             continue
         ptype = FBX_PROPERTIES_DEFINITIONS[ptype_name]
-        print(elem, ptype, name, value, _elem_props_flags(animatable, False))
         _elem_props_set(elem, ptype, name, value, _elem_props_flags(animatable, False))
 
 
@@ -513,7 +512,7 @@ FBXTemplate = namedtuple("FBXTemplate", ("type_name", "prop_type_name", "propert
 def fbx_templates_generate(root, fbx_templates):
     # We may have to gather different templates in the same node (e.g. NodeAttribute template gathers properties
     # for Lights, Cameras, LibNodes, etc.).
-    ref_templates = {(tmpl.type_name, tmpl.prop_type_name) : tmpl for tmpl in fbx_templates.values()}
+    ref_templates = {(tmpl.type_name, tmpl.prop_type_name): tmpl for tmpl in fbx_templates.values()}
 
     templates = OrderedDict()
     for type_name, prop_type_name, properties, nbr_users, _written in fbx_templates.values():
@@ -973,9 +972,9 @@ def fbx_object_matrix(scene_data, obj, armature=None, local_space=False, global_
     """
     Generate object transform matrix (*always* in matching *FBX* space!).
     If local_space is True, returned matrix is *always* in local space.
-    Else:
-        If global_space is True, returned matrix is always in world space.
-        If global_space is False, returned matrix is in parent space if parent is valid, else in world space.
+    Else if global_space is True, returned matrix is always in world space.
+    If both local_space and global_space are False, returned matrix is in parent space if parent is valid,
+    else in world space.
     Note local_space has precedence over global_space.
     If obj is a bone, and global_space is True, armature must be provided (it's the bone's armature object!).
     Applies specific rotation to bones, lamps and cameras (conversion Blender -> FBX).
@@ -1356,6 +1355,7 @@ def fbx_data_mesh_elements(root, me, scene_data):
     # XXX Official docs says normals should use IndexToDirect,
     #     but this does not seem well supported by apps currently...
     me.calc_normals_split()
+
     def _nortuples_gen(raw_nors, m):
         # Great, now normals are also expected 4D!
         # XXX Back to 3D normals for now!
@@ -1901,6 +1901,7 @@ def fbx_data_animation_elements(root, scene_data):
     scene = scene_data.scene
 
     fps = scene.render.fps / scene.render.fps_base
+
     def keys_to_ktimes(keys):
         return (int(v) for v in units_convert_iter((f / fps for f, _v in keys), "second", "ktime"))
 
@@ -1950,12 +1951,13 @@ def fbx_data_animation_elements(root, scene_data):
                     # key attributes...
                     nbr_keys = len(keys)
                     # flags...
-                    keyattr_flags = (1 << 3 |   # interpolation mode, 1 = constant, 2 = linear, 3 = cubic.
-                                     1 << 8 |   # tangent mode, 8 = auto, 9 = TCB, 10 = user, 11 = generic break,
-                                     1 << 13 |  # tangent mode, 12 = generic clamp, 13 = generic time independent,
-                                     1 << 14 |  # tangent mode, 13 + 14 = generic clamp progressive.
-                                     0,
-                                    )
+                    keyattr_flags = (
+                        1 << 3 |   # interpolation mode, 1 = constant, 2 = linear, 3 = cubic.
+                        1 << 8 |   # tangent mode, 8 = auto, 9 = TCB, 10 = user, 11 = generic break,
+                        1 << 13 |  # tangent mode, 12 = generic clamp, 13 = generic time independent,
+                        1 << 14 |  # tangent mode, 13 + 14 = generic clamp progressive.
+                        0,
+                    )
                     # Maybe values controlling TCB & co???
                     keyattr_datafloat = (0.0, 0.0, 9.419963346924634e-30, 0.0)
 
@@ -2164,8 +2166,6 @@ def fbx_animations_objects(scene_data):
             continue
         curves = [[] for k in keys[0][1]]
         for currframe, key, key_write in keys:
-            #if obj.name == "Cube":
-                #print(currframe, key, key_write)
             for idx, (val, wrt) in enumerate(zip(key, key_write)):
                 if wrt:
                     curves[idx].append((currframe, val))
