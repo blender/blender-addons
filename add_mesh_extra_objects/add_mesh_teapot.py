@@ -107,7 +107,7 @@ def create_mesh_object(context, verts, edges, faces, name):
     # Make a mesh from a list of verts/edges/faces.
     mesh.from_pydata(verts, edges, faces)
     # Update mesh geometry after adding stuff.
-    mesh.validate()
+    mesh.update()
     from bpy_extras import object_utils
     return object_utils.object_data_add(context, mesh, operator=None)
 
