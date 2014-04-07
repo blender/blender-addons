@@ -16,7 +16,7 @@
 #
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	See the
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
@@ -34,42 +34,57 @@ bl_info = {
     "url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/Scripts/Add_Teapot",
     "category": "Add Mesh"}
 '''
-import bpy, mathutils, io, operator, functools
+
+import bpy
+from bpy.props import IntProperty
+
+import mathutils
+
+import io
+import operator
+import functools
+
 
 class AddTeapot(bpy.types.Operator):
-	"""Add a teapot mesh"""
-	bl_idname = "mesh.primitive_teapot_add"
-	bl_label = "Add Teapot"
-	bl_options = {"REGISTER", "UNDO"}
+    """Add a teapot mesh"""
+    bl_idname = "mesh.primitive_teapot_add"
+    bl_label = "Add Teapot"
+    bl_options = {"REGISTER", "UNDO"}
 
-	resolution = bpy.props.IntProperty(name="Resolution",
-		description="Resolution of the Teapot",
-		default=5, min=2, max=15)
+    resolution = IntProperty(
+            name="Resolution",
+            description="Resolution of the Teapot",
+            default=5, min=2, max=15,
+            )
+    objecttype = IntProperty(
+            name="Object Type",
+            description="Type of Bezier Object",
+            default=1, min=1, max=2)
 
-	objecttype = bpy.props.IntProperty(name="Object Type",
-		description="Type of Bezier Object",
-		default=1, min=1, max=2)
+    def execute(self, context):
+        verts, faces = make_teapot(self.objecttype,
+                                   self.resolution)
+        # Actually create the mesh object from this geometry data.
+        obj = create_mesh_object(context, verts, [], faces, "Teapot")
+        return {'FINISHED'}
 
-	def execute(self, context):
-		verts, faces = make_teapot(self.objecttype,
-								   self.resolution)
-		# Actually create the mesh object from this geometry data.
-		obj = create_mesh_object(context, verts, [], faces, "Teapot")
-		return {'FINISHED'}
 
 def menu_func(self, context):
-	self.layout.operator(AddTeapot.bl_idname, text="Teapot+", icon="MESH_CUBE")
+    self.layout.operator(AddTeapot.bl_idname, text="Teapot+", icon="MESH_CUBE")
+
 
 def register():
-	bpy.utils.register_module(__name__)
-	bpy.types.INFO_MT_mesh_add.append(menu_func)
+    bpy.utils.register_module(__name__)
+    bpy.types.INFO_MT_mesh_add.append(menu_func)
+
 
 def unregister():
-	bpy.utils.unregister_module(__name__)
-	bpy.types.INFO_MT_mesh_add.remove(menu_func)
+    bpy.utils.unregister_module(__name__)
+    bpy.types.INFO_MT_mesh_add.remove(menu_func)
 
 if __name__ == "__main__":
-	register()
+    register()
+
 
 def create_mesh_object(context, verts, edges, faces, name):
     # Create new mesh
@@ -77,143 +92,144 @@ def create_mesh_object(context, verts, edges, faces, name):
     # Make a mesh from a list of verts/edges/faces.
     mesh.from_pydata(verts, edges, faces)
     # Update mesh geometry after adding stuff.
-    mesh.update()
+    mesh.validate()
     from bpy_extras import object_utils
     return object_utils.object_data_add(context, mesh, operator=None)
+
 
 # ==========================
 # === Bezier patch Block ===
 # ==========================
 def read_indexed_patch_file(filename):
-	file = io.StringIO(filename)
-	rawpatches = []
-	patches = []
-	numpatches = int(file.readline())
-	for i in range(numpatches):
-		line = file.readline()
-		a,b,c,d, e,f,g,h, i,j,k,l, m,n,o,p = map(int, line.split(","))
-		patches.append([[a,b,c,d], [e,f,g,h], [i,j,k,l], [m,n,o,p]])
-		rawpatches.append([[0,0,0,0], [0,0,0,0], [0,0,0,0], [0,0,0,0]])
-	verts = []
-	numverts = int(file.readline())
-	for i in range(numverts):
-		line = file.readline()
-		v1,v2,v3 = map(float, line.split(","))
-		verts.append((v1,v2,v3))
-	for i in range(len(patches)):
-		for j in range(4):	#len(patches[i])):
-			for k in range(4):	#len(patches[i][j])):
-				index = patches[i][j][k] - 1
-				rawpatches[i][j][k] = verts[index]
-	return rawpatches
+    file = io.StringIO(filename)
+    rawpatches = []
+    patches = []
+    numpatches = int(file.readline())
+    for i in range(numpatches):
+        line = file.readline()
+        (a, b, c, d,
+         e, f, g, h,
+         i, j, k, l,
+         m, n, o, p,
+         ) = map(int, line.split(","))
+        patches.append([[a, b, c, d], [e, f, g, h], [i, j, k, l], [m, n, o, p]])
+        rawpatches.append([[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]])
+    verts = []
+    numverts = int(file.readline())
+    for i in range(numverts):
+        line = file.readline()
+        v1, v2, v3 = map(float, line.split(","))
+        verts.append((v1, v2, v3))
+    for i in range(len(patches)):
+        for j in range(4):  # len(patches[i])):
+            for k in range(4):  # len(patches[i][j])):
+                index = patches[i][j][k] - 1
+                rawpatches[i][j][k] = verts[index]
+    return rawpatches
+
 
 def patches_to_raw(patches, resolution):
-	raw = []
-	for patch in patches:
-		verts = make_verts(patch, resolution)
-		faces = make_faces(resolution)
-		rawquads = indexed_to_rawquads(verts, faces)
-		raw.append(rawquads)
-	raw = functools.reduce(operator.add, raw)  # flatten the list
-	return raw
+    raw = []
+    for patch in patches:
+        verts = make_verts(patch, resolution)
+        faces = make_faces(resolution)
+        rawquads = indexed_to_rawquads(verts, faces)
+        raw.append(rawquads)
+    raw = functools.reduce(operator.add, raw)  # flatten the list
+    return raw
+
 
 def make_bezier(ctrlpnts, resolution):
-	b1 = lambda t: t*t*t
-	b2 = lambda t: 3*t * t * (1-t)
-	b3 = lambda t: 3*t * (1-t) * (1-t)
-	b4 = lambda t: (1-t) * (1-t) * (1-t)
-	makevec = lambda v: mathutils.Vector(v)
-	p1,p2,p3,p4 = map(makevec, ctrlpnts)
-	curveverts = []
-	for i in range(resolution+1):
-		t = i/resolution
-		x,y,z = b1(t)*p1 + b2(t)*p2 + b3(t)*p3 + b4(t)*p4
-		curveverts.append((x,y,z))
-	return curveverts
+    b1 = lambda t: t * t * t
+    b2 = lambda t: 3.0 * t * t * (1.0 - t)
+    b3 = lambda t: 3.0 * t * (1.0 - t) * (1.0 - t)
+    b4 = lambda t: (1.0 - t) * (1.0 - t) * (1.0 - t)
+    p1, p2, p3, p4 = map(mathutils.Vector, ctrlpnts)
 
-def make_bezier(ctrlpnts, resolution):
-	b1 = lambda t: t*t*t
-	b2 = lambda t: 3*t * t * (1-t)
-	b3 = lambda t: 3*t * (1-t) * (1-t)
-	b4 = lambda t: (1-t) * (1-t) * (1-t)
-	p1,p2,p3,p4 = map(mathutils.Vector, ctrlpnts)
-	def makevert(t):
-		x,y,z = b1(t)*p1 + b2(t)*p2 + b3(t)*p3 + b4(t)*p4
-		return (x,y,z)
-	curveverts = [makevert(i/resolution) for i in range(resolution+1)]
-	return curveverts
+    def makevert(t):
+        x, y, z = b1(t) * p1 + b2(t) * p2 + b3(t) * p3 + b4(t) * p4
+        return (x, y, z)
+    curveverts = [makevert(i/resolution) for i in range(resolution+1)]
+    return curveverts
+
 
 def make_verts(a, resolution):
-	s = []
-	for i in a:
-		c = make_bezier(i, resolution)
-		s.append(c)
-	b = transpose(s)
-	s = []
-	for i in b:
-		c = make_bezier(i, resolution)
-		s.append(c)
-	verts = s
-	verts = functools.reduce(operator.add, verts)  # flatten the list
-	return verts
+    s = []
+    for i in a:
+        c = make_bezier(i, resolution)
+        s.append(c)
+    b = transpose(s)
+    s = []
+    for i in b:
+        c = make_bezier(i, resolution)
+        s.append(c)
+    verts = s
+    verts = functools.reduce(operator.add, verts)  # flatten the list
+    return verts
+
 
 def make_faces(resolution):
-	n = resolution+1
-	faces = []
-	for i in range(n-1):
-		for j in range(n-1):
-			v1 = (i+1)*n+j
-			v2 = (i+1)*n+j+1
-			v3 = i*n+j+1
-			v4 = i*n+j
-			faces.append([v1,v2,v3,v4])
-	return faces
+    n = resolution + 1
+    faces = []
+    for i in range(resolution):
+        for j in range(resolution):
+            v1 = (i + 1) * n + j
+            v2 = (i + 1) * n + j + 1
+            v3 = i * n + j + 1
+            v4 = i * n + j
+            faces.append([v1, v2, v3, v4])
+    return faces
+
 
 def indexed_to_rawquads(verts, faces):
-	rows = len(faces)
-	cols = len(faces[0])	# or 4
-	rawquads = [[None]*cols for i in range(rows)]
-	for i in range(rows):
-		for j in range(cols):
-			index = faces[i][j]
-			rawquads[i][j] = verts[index]
-	return rawquads
+    rows = len(faces)
+    cols = len(faces[0])    # or 4
+    rawquads = [[None] * cols for i in range(rows)]
+    for i in range(rows):
+        for j in range(cols):
+            index = faces[i][j]
+            rawquads[i][j] = verts[index]
+    return rawquads
 
-def raw_to_indexed(rawfaces): # Generate verts and faces lists, without dups
-	verts = []
-	coords = {}
-	index = 0
-	for i in range(len(rawfaces)):
-		for j in range(len(rawfaces[i])):
-			vertex = rawfaces[i][j]
-			if vertex not in coords:
-				coords[vertex] = index
-				index += 1
-				verts.append(vertex)
-			rawfaces[i][j] = coords[vertex]
-	return verts, rawfaces
+
+def raw_to_indexed(rawfaces):
+    # Generate verts and faces lists, without dups
+    verts = []
+    coords = {}
+    index = 0
+    for i in range(len(rawfaces)):
+        for j in range(len(rawfaces[i])):
+            vertex = rawfaces[i][j]
+            if vertex not in coords:
+                coords[vertex] = index
+                index += 1
+                verts.append(vertex)
+            rawfaces[i][j] = coords[vertex]
+    return verts, rawfaces
+
 
 def transpose(rowsbycols):
-	rows = len(rowsbycols)
-	cols = len(rowsbycols[0])
-	colsbyrows = [[None]*rows for i in range(cols)]
-	for i in range(cols):
-		for j in range(rows):
-			colsbyrows[i][j] = rowsbycols[j][i]
-	return colsbyrows
+    rows = len(rowsbycols)
+    cols = len(rowsbycols[0])
+    colsbyrows = [[None] * rows for i in range(cols)]
+    for i in range(cols):
+        for j in range(rows):
+            colsbyrows[i][j] = rowsbycols[j][i]
+    return colsbyrows
+
 
 def make_teapot(filename, resolution):
-	filenames = [None, teapot, teaspoon]
-	filename = filenames[filename]
-	patches = read_indexed_patch_file(filename)
-	raw = patches_to_raw(patches, resolution)
-	verts, faces = raw_to_indexed(raw)
-	return (verts, faces)
+    filenames = [None, teapot, teaspoon]
+    filename = filenames[filename]
+    patches = read_indexed_patch_file(filename)
+    raw = patches_to_raw(patches, resolution)
+    verts, faces = raw_to_indexed(raw)
+    return (verts, faces)
 
 # =================================
 # === Indexed Bezier Data Block ===
 # =================================
-teapot="""32
+teapot = """32
 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16
 4,17,18,19,8,20,21,22,12,23,24,25,16,26,27,28
 19,29,30,31,22,32,33,34,25,35,36,37,28,38,39,40
@@ -555,7 +571,7 @@ teapot="""32
 1.425,-0.798,0.0
 """
 
-teaspoon="""16
+teaspoon = """16
 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16
 17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32
 33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48
