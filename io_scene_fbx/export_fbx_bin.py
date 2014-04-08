@@ -1036,14 +1036,18 @@ def fbx_object_matrix(scene_data, obj, armature=None, local_space=False, global_
     return matrix
 
 
-def fbx_object_tx(scene_data, obj):
+def fbx_object_tx(scene_data, obj, rot_euler_compat=None):
     """
     Generate object transform data (always in local space when possible).
     """
     matrix = fbx_object_matrix(scene_data, obj)
     loc, rot, scale = matrix.decompose()
     matrix_rot = rot.to_matrix()
-    rot = rot.to_euler()  # quat -> euler, we always use 'XYZ' order.
+    # quat -> euler, we always use 'XYZ' order, use ref rotation if given.
+    if rot_euler_compat is not None:
+        rot = rot.to_euler('XYZ', rot_euler_compat)
+    else:
+        rot = rot.to_euler('XYZ')
 
     return loc, rot, scale, matrix, matrix_rot
 
@@ -2158,14 +2162,18 @@ def fbx_animations_objects(scene_data):
     back_currframe = scene.frame_current
     animdata = OrderedDict((obj, []) for obj in objects.keys())
 
+    p_rots = {}
+
     currframe = scene.frame_start
     while currframe < scene.frame_end:
         scene.frame_set(int(currframe), currframe - int(currframe))
         for obj in objects.keys():
             # Get PoseBone from bone...
             tobj = bone_map[obj] if isinstance(obj, Bone) else obj
-            # We compute baked loc/rot/scale for all objects.
-            loc, rot, scale, _m, _mr = fbx_object_tx(scene_data, tobj)
+            # We compute baked loc/rot/scale for all objects (rot being euler-compat with previous value!).
+            p_rot = p_rots.get(tobj, None)
+            loc, rot, scale, _m, _mr = fbx_object_tx(scene_data, tobj, p_rot)
+            p_rots[tobj] = rot
             tx = tuple(loc) + tuple(units_convert_iter(rot, "radian", "degree")) + tuple(scale)
             animdata[obj].append((currframe, tx, [False] * len(tx)))
         currframe += bake_step
