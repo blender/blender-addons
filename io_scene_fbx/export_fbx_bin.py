@@ -254,14 +254,20 @@ def get_blender_bone_cluster_key(armature, mesh, bone):
                      get_blenderID_key(bone), "SubDeformerCluster"))
 
 
-def get_blender_anim_stack_key(scene):
+def get_blender_anim_stack_key(scene, ID=None):
     """Return single anim stack key."""
-    return "|".join((get_blenderID_key(scene), "AnimStack"))
+    if ID:
+        return "|".join((get_blenderID_key(scene), get_blenderID_key(ID), "AnimStack"))
+    else:
+        return "|".join((get_blenderID_key(scene), "AnimStack"))
 
 
-def get_blender_anim_layer_key(ID):
+def get_blender_anim_layer_key(scene, ID=None):
     """Return ID's anim layer key."""
-    return "|".join((get_blenderID_key(ID), "AnimLayer"))
+    if ID:
+        return "|".join((get_blenderID_key(scene), get_blenderID_key(ID), "AnimLayer"))
+    else:
+        return "|".join((get_blenderID_key(scene), "AnimLayer"))
 
 
 def get_blender_anim_curve_node_key(ID, fbx_prop_name):
@@ -1917,77 +1923,76 @@ def fbx_data_animation_elements(root, scene_data):
     def keys_to_ktimes(keys):
         return (int(v) for v in units_convert_iter((f / fps for f, _v in keys), "second", "ktime"))
 
-    astack_key, alayers, alayer_key = animations
+    # Animation stacks.
+    for astack_key, alayers, alayer_key, name, f_start, f_end in animations:
+        astack = elem_data_single_int64(root, b"AnimationStack", get_fbxuid_from_key(astack_key))
+        astack.add_string(fbx_name_class(name, b"AnimStack"))
+        astack.add_string(b"")
 
-    # Animation stack.
-    astack = elem_data_single_int64(root, b"AnimationStack", get_fbxuid_from_key(astack_key))
-    astack.add_string(fbx_name_class(scene.name.encode(), b"AnimStack"))
-    astack.add_string(b"")
+        astack_tmpl = elem_props_template_init(scene_data.templates, b"AnimationStack")
+        astack_props = elem_properties(astack)
+        r = scene_data.scene.render
+        fps = r.fps / r.fps_base
+        start = int(units_convert(f_start / fps, "second", "ktime"))
+        end = int(units_convert(f_end / fps, "second", "ktime"))
+        elem_props_template_set(astack_tmpl, astack_props, "p_timestamp", b"LocalStart", start)
+        elem_props_template_set(astack_tmpl, astack_props, "p_timestamp", b"LocalStop", end)
+        elem_props_template_set(astack_tmpl, astack_props, "p_timestamp", b"ReferenceStart", start)
+        elem_props_template_set(astack_tmpl, astack_props, "p_timestamp", b"ReferenceStop", end)
+        elem_props_template_finalize(astack_tmpl, astack_props)
 
-    astack_tmpl = elem_props_template_init(scene_data.templates, b"AnimationStack")
-    astack_props = elem_properties(astack)
-    r = scene_data.scene.render
-    fps = r.fps / r.fps_base
-    f_start = int(units_convert(scene_data.scene.frame_start / fps, "second", "ktime"))
-    f_end = int(units_convert(scene_data.scene.frame_end / fps, "second", "ktime"))
-    elem_props_template_set(astack_tmpl, astack_props, "p_timestamp", b"LocalStart", f_start)
-    elem_props_template_set(astack_tmpl, astack_props, "p_timestamp", b"LocalStop", f_end)
-    elem_props_template_set(astack_tmpl, astack_props, "p_timestamp", b"ReferenceStart", f_start)
-    elem_props_template_set(astack_tmpl, astack_props, "p_timestamp", b"ReferenceStop", f_end)
-    elem_props_template_finalize(astack_tmpl, astack_props)
+        # For now, only one layer for all animations.
+        alayer = elem_data_single_int64(root, b"AnimationLayer", get_fbxuid_from_key(alayer_key))
+        alayer.add_string(fbx_name_class(name, b"AnimLayer"))
+        alayer.add_string(b"")
 
-    # For now, only one layer for all animations.
-    alayer = elem_data_single_int64(root, b"AnimationLayer", get_fbxuid_from_key(alayer_key))
-    alayer.add_string(fbx_name_class(scene.name.encode(), b"AnimLayer"))
-    alayer.add_string(b"")
+        for obj, (alayer_key, acurvenodes) in alayers.items():
+            # Animation layer.
+            # alayer = elem_data_single_int64(root, b"AnimationLayer", get_fbxuid_from_key(alayer_key))
+            # alayer.add_string(fbx_name_class(obj.name.encode(), b"AnimLayer"))
+            # alayer.add_string(b"")
 
-    for obj, (alayer_key, acurvenodes) in alayers.items():
-        # Animation layer.
-        # alayer = elem_data_single_int64(root, b"AnimationLayer", get_fbxuid_from_key(alayer_key))
-        # alayer.add_string(fbx_name_class(obj.name.encode(), b"AnimLayer"))
-        # alayer.add_string(b"")
+            for fbx_prop, (acurvenode_key, acurves, acurvenode_name) in acurvenodes.items():
+                # Animation curve node.
+                acurvenode = elem_data_single_int64(root, b"AnimationCurveNode", get_fbxuid_from_key(acurvenode_key))
+                acurvenode.add_string(fbx_name_class(acurvenode_name.encode(), b"AnimCurveNode"))
+                acurvenode.add_string(b"")
 
-        for fbx_prop, (acurvenode_key, acurves, acurvenode_name) in acurvenodes.items():
-            # Animation curve node.
-            acurvenode = elem_data_single_int64(root, b"AnimationCurveNode", get_fbxuid_from_key(acurvenode_key))
-            acurvenode.add_string(fbx_name_class(acurvenode_name.encode(), b"AnimCurveNode"))
-            acurvenode.add_string(b"")
+                acn_tmpl = elem_props_template_init(scene_data.templates, b"AnimationCurveNode")
+                acn_props = elem_properties(acurvenode)
 
-            acn_tmpl = elem_props_template_init(scene_data.templates, b"AnimationCurveNode")
-            acn_props = elem_properties(acurvenode)
+                for fbx_item, (acurve_key, def_value, keys, _acurve_valid) in acurves.items():
+                    elem_props_template_set(acn_tmpl, acn_props, "p_number", fbx_item.encode(), def_value, animatable=True)
 
-            for fbx_item, (acurve_key, def_value, keys, _acurve_valid) in acurves.items():
-                elem_props_template_set(acn_tmpl, acn_props, "p_number", fbx_item.encode(), def_value, animatable=True)
+                    # Only create Animation curve if needed!
+                    if keys:
+                        acurve = elem_data_single_int64(root, b"AnimationCurve", get_fbxuid_from_key(acurve_key))
+                        acurve.add_string(fbx_name_class(b"", b"AnimCurve"))
+                        acurve.add_string(b"")
 
-                # Only create Animation curve if needed!
-                if keys:
-                    acurve = elem_data_single_int64(root, b"AnimationCurve", get_fbxuid_from_key(acurve_key))
-                    acurve.add_string(fbx_name_class(b"", b"AnimCurve"))
-                    acurve.add_string(b"")
+                        # key attributes...
+                        nbr_keys = len(keys)
+                        # flags...
+                        keyattr_flags = (
+                            1 << 3 |   # interpolation mode, 1 = constant, 2 = linear, 3 = cubic.
+                            1 << 8 |   # tangent mode, 8 = auto, 9 = TCB, 10 = user, 11 = generic break,
+                            1 << 13 |  # tangent mode, 12 = generic clamp, 13 = generic time independent,
+                            1 << 14 |  # tangent mode, 13 + 14 = generic clamp progressive.
+                            0,
+                        )
+                        # Maybe values controlling TCB & co???
+                        keyattr_datafloat = (0.0, 0.0, 9.419963346924634e-30, 0.0)
 
-                    # key attributes...
-                    nbr_keys = len(keys)
-                    # flags...
-                    keyattr_flags = (
-                        1 << 3 |   # interpolation mode, 1 = constant, 2 = linear, 3 = cubic.
-                        1 << 8 |   # tangent mode, 8 = auto, 9 = TCB, 10 = user, 11 = generic break,
-                        1 << 13 |  # tangent mode, 12 = generic clamp, 13 = generic time independent,
-                        1 << 14 |  # tangent mode, 13 + 14 = generic clamp progressive.
-                        0,
-                    )
-                    # Maybe values controlling TCB & co???
-                    keyattr_datafloat = (0.0, 0.0, 9.419963346924634e-30, 0.0)
+                        # And now, the *real* data!
+                        elem_data_single_float64(acurve, b"Default", def_value)
+                        elem_data_single_int32(acurve, b"KeyVer", FBX_ANIM_KEY_VERSION)
+                        elem_data_single_int64_array(acurve, b"KeyTime", keys_to_ktimes(keys))
+                        elem_data_single_float32_array(acurve, b"KeyValueFloat", (v for _f, v in keys))
+                        elem_data_single_int32_array(acurve, b"KeyAttrFlags", keyattr_flags)
+                        elem_data_single_float32_array(acurve, b"KeyAttrDataFloat", keyattr_datafloat)
+                        elem_data_single_int32_array(acurve, b"KeyAttrRefCount", (nbr_keys,))
 
-                    # And now, the *real* data!
-                    elem_data_single_float64(acurve, b"Default", def_value)
-                    elem_data_single_int32(acurve, b"KeyVer", FBX_ANIM_KEY_VERSION)
-                    elem_data_single_int64_array(acurve, b"KeyTime", keys_to_ktimes(keys))
-                    elem_data_single_float32_array(acurve, b"KeyValueFloat", (v for _f, v in keys))
-                    elem_data_single_int32_array(acurve, b"KeyAttrFlags", keyattr_flags)
-                    elem_data_single_float32_array(acurve, b"KeyAttrDataFloat", keyattr_datafloat)
-                    elem_data_single_int32_array(acurve, b"KeyAttrRefCount", (nbr_keys,))
-
-            elem_props_template_finalize(acn_tmpl, acn_props)
+                elem_props_template_finalize(acn_tmpl, acn_props)
 
 
 ##### Top-level FBX data container. #####
@@ -2143,9 +2148,9 @@ def fbx_animations_simplify(scene_data, animdata):
         p_key_write[:] = [True] * len(p_key_write)
 
 
-def fbx_animations_objects(scene_data):
+def fbx_animations_objects_do(scene_data, ref_id, f_start, f_end):
     """
-    Generate animation data from objects.
+    Generate animation data (a single AnimStack) from objects, for a given frame range.
     """
     objects = scene_data.objects
     bake_step = scene_data.settings.bake_anim_step
@@ -2164,8 +2169,8 @@ def fbx_animations_objects(scene_data):
 
     p_rots = {}
 
-    currframe = scene.frame_start
-    while currframe < scene.frame_end:
+    currframe = f_start
+    while currframe < f_end:
         scene.frame_set(int(currframe), currframe - int(currframe))
         for obj in objects.keys():
             # Get PoseBone from bone...
@@ -2217,9 +2222,54 @@ def fbx_animations_objects(scene_data):
             del final_keys[grp]
 
         if final_keys:
-            animations[obj] = (get_blender_anim_layer_key(obj), final_keys)
+            animations[obj] = (get_blender_anim_layer_key(scene, obj), final_keys)
 
-    return (get_blender_anim_stack_key(scene), animations, get_blender_anim_layer_key(scene)) if animations else None
+    astack_key = get_blender_anim_stack_key(scene, ref_id)
+    alayer_key = get_blender_anim_layer_key(scene, ref_id)
+    name = (ref_id.name if ref_id else scene.name).encode()
+
+    return (astack_key, animations, alayer_key, name, f_start, f_end) if animations else None
+
+
+def fbx_animations_objects(scene_data):
+    """
+    Generate global animation data from objects.
+    """
+    scene = scene_data.scene
+    animations = []
+
+    # Global (containing everything) animstack.
+    anim = fbx_animations_objects_do(scene_data, None, scene.frame_start, scene.frame_end)
+    if anim is not None:
+        animations.append(anim)
+
+    # Per-NLA strip animstacks.
+    if scene_data.settings.bake_anim_use_nla_strips:
+        strips = []
+        for obj in scene_data.objects:
+            # NLA tracks only for objects, not bones!
+            if not isinstance(obj, Object) or not obj.animation_data:
+                continue
+            for track in obj.animation_data.nla_tracks:
+                if track.mute:
+                    continue
+                for strip in track.strips:
+                    if strip.mute:
+                        continue
+                    strips.append(strip)
+                    strip.mute = True
+
+        for strip in strips:
+            strip.mute = False
+            anim = fbx_animations_objects_do(scene_data, strip, strip.frame_start, strip.frame_end)
+            if anim is not None:
+                animations.append(anim)
+            strip.mute = True
+
+        for strip in strips:
+            strip.mute = False
+
+    return animations
 
 
 def fbx_data_from_scene(scene, settings):
@@ -2373,19 +2423,23 @@ def fbx_data_from_scene(scene, settings):
         templates[b"Video"] = fbx_template_def_video(scene, settings, nbr_users=len(data_videos))
 
     if animations:
-        # One stack!
-        templates[b"AnimationStack"] = fbx_template_def_animstack(scene, settings, nbr_users=1)
+        nbr_astacks = len(animations)
+        nbr_acnodes = 0
+        nbr_acurves = 0
+        for _astack_key, astack, _al, _n, _fs, _fe in animations:
+            for _alayer_key, alayer in astack.values():
+                for _acnode_key, acnode, _acnode_name in alayer.values():
+                    nbr_acnodes += 1
+                    for _acurve_key, _dval, acurve, acurve_valid in acnode.values():
+                        if acurve:
+                            nbr_acurves += 1
+
+        templates[b"AnimationStack"] = fbx_template_def_animstack(scene, settings, nbr_users=nbr_astacks)
         # Would be nice to have one layer per animated object, but this seems tricky and not that well supported.
-        # So for now, only one layer for all animations.
-        templates[b"AnimationLayer"] = fbx_template_def_animlayer(scene, settings, nbr_users=1)
-        # As much curve node as animated properties.
-        nbr = sum(len(al) for _kal, al in animations[1].values())
-        templates[b"AnimationCurveNode"] = fbx_template_def_animcurvenode(scene, settings, nbr_users=nbr)
-        # And the number of curves themselves...
-        nbr = sum(1 if ac else 0 for _kal, al in animations[1].values()
-                                 for _kacn, acn, _acn_n in al.values()
-                                 for _kac, _dv, ac, _acv in acn.values())
-        templates[b"AnimationCurve"] = fbx_template_def_animcurve(scene, settings, nbr_users=nbr)
+        # So for now, only one layer per anim stack.
+        templates[b"AnimationLayer"] = fbx_template_def_animlayer(scene, settings, nbr_users=nbr_astacks)
+        templates[b"AnimationCurveNode"] = fbx_template_def_animcurvenode(scene, settings, nbr_users=nbr_acnodes)
+        templates[b"AnimationCurve"] = fbx_template_def_animcurve(scene, settings, nbr_users=nbr_acurves)
 
     templates_users = sum(tmpl.nbr_users for tmpl in templates.values())
 
@@ -2484,13 +2538,13 @@ def fbx_data_from_scene(scene, settings):
             connections.append((b"OO", get_fbxuid_from_key(vid_key), get_fbxuid_from_key(tex_key), None))
 
     #Animations
-    if animations:
+    for astack_key, astack, alayer_key, _name, _fstart, _fend in animations:
         # Animstack itself is linked nowhere!
-        astack_id = get_fbxuid_from_key(animations[0])
+        astack_id = get_fbxuid_from_key(astack_key)
         # For now, only one layer!
-        alayer_id = get_fbxuid_from_key(animations[2])
+        alayer_id = get_fbxuid_from_key(alayer_key)
         connections.append((b"OO", alayer_id, astack_id, None))
-        for obj, (alayer_key, acurvenodes) in animations[1].items():
+        for obj, (alayer_key, acurvenodes) in astack.items():
             obj_id = get_fbxuid_from_key(objects[obj])
             # Animlayer -> animstack.
             # alayer_id = get_fbxuid_from_key(alayer_key)
@@ -2723,14 +2777,14 @@ def fbx_connections_elements(root, scene_data):
 
 def fbx_takes_elements(root, scene_data):
     """
-    Animations. Have yet to check how this work...
+    Animations.
     """
     # XXX Are takes needed at all in new anim system?
     takes = elem_empty(root, b"Takes")
     elem_data_single_string(takes, b"Current", b"")
 
     animations = scene_data.animations
-    if animations is None:
+    if not animations:
         return
     scene = scene_data.scene
     take_name = scene.name.encode()
@@ -2756,7 +2810,7 @@ FBXSettings = namedtuple("FBXSettings", (
     "bake_space_transform", "global_matrix_inv", "global_matrix_inv_transposed",
     "context_objects", "object_types", "use_mesh_modifiers",
     "mesh_smooth_type", "use_mesh_edges", "use_tspace", "use_armature_deform_only",
-    "bake_anim", "bake_anim_step", "bake_anim_simplify_factor",
+    "bake_anim", "bake_anim_use_nla_strips", "bake_anim_step", "bake_anim_simplify_factor",
     "use_metadata", "media_settings", "use_custom_properties",
 ))
 
@@ -2771,6 +2825,7 @@ def save_single(operator, scene, filepath="",
                 use_mesh_modifiers=True,
                 mesh_smooth_type='FACE',
                 bake_anim=True,
+                bake_anim_use_nla_strips=True,
                 bake_anim_step=1.0,
                 bake_anim_simplify_factor=1.0,
                 use_metadata=True,
@@ -2810,7 +2865,7 @@ def save_single(operator, scene, filepath="",
         bake_space_transform, global_matrix_inv, global_matrix_inv_transposed,
         context_objects, object_types, use_mesh_modifiers,
         mesh_smooth_type, use_mesh_edges, use_tspace, False,
-        bake_anim, bake_anim_step, bake_anim_simplify_factor,
+        bake_anim, bake_anim_use_nla_strips, bake_anim_step, bake_anim_simplify_factor,
         False, media_settings, use_custom_properties,
     )
 

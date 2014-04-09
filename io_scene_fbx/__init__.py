@@ -258,6 +258,11 @@ class ExportFBX(bpy.types.Operator, ExportHelper):
         description="Export baked keyframe animation",
         default=True,
     )
+    bake_anim_use_nla_strips = BoolProperty(
+        name="NLA Strips",
+        description="Export each non-muted NLA strip as a separated FBX's AnimStack, if any",
+        default=True,
+    )
     bake_anim_step = FloatProperty(
         name="Sampling Rate",
         description=("How often to evaluate animated values (in frames)"),
