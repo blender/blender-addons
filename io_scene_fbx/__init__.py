@@ -261,7 +261,8 @@ class ExportFBX(bpy.types.Operator, ExportHelper):
     )
     bake_anim_use_nla_strips = BoolProperty(
         name="NLA Strips",
-        description="Export each non-muted NLA strip as a separated FBX's AnimStack, if any",
+        description=("Export each non-muted NLA strip as a separated FBX's AnimStack, if any, "
+                     "instead of global scene animation"),
         default=True,
     )
     bake_anim_step = FloatProperty(

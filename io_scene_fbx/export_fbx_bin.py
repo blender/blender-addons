@@ -2030,7 +2030,7 @@ def fbx_data_animation_elements(root, scene_data):
 #     * takes.
 FBXData = namedtuple("FBXData", (
     "templates", "templates_users", "connections",
-    "settings", "scene", "objects", "animations",
+    "settings", "scene", "objects", "animations", "frame_start", "frame_end",
     "data_empties", "data_lamps", "data_cameras", "data_meshes", "mesh_mat_indices",
     "bones_to_posebones", "data_bones", "data_deformers",
     "data_world", "data_materials", "data_textures", "data_videos",
@@ -2174,7 +2174,7 @@ def fbx_animations_simplify(scene_data, animdata):
         p_key_write[:] = [True] * len(p_key_write)
 
 
-def fbx_animations_objects_do(scene_data, ref_id, f_start, f_end):
+def fbx_animations_objects_do(scene_data, ref_id, f_start, f_end, start_zero):
     """
     Generate animation data (a single AnimStack) from objects, for a given frame range.
     """
@@ -2197,6 +2197,7 @@ def fbx_animations_objects_do(scene_data, ref_id, f_start, f_end):
 
     currframe = f_start
     while currframe < f_end:
+        real_currframe = currframe - f_start if start_zero else currframe
         scene.frame_set(int(currframe), currframe - int(currframe))
         for obj in objects.keys():
             # Get PoseBone from bone...
@@ -2206,7 +2207,7 @@ def fbx_animations_objects_do(scene_data, ref_id, f_start, f_end):
             loc, rot, scale, _m, _mr = fbx_object_tx(scene_data, tobj, p_rot)
             p_rots[tobj] = rot
             tx = tuple(loc) + tuple(units_convert_iter(rot, "radian", "degree")) + tuple(scale)
-            animdata[obj].append((currframe, tx, [False] * len(tx)))
+            animdata[obj].append((real_currframe, tx, [False] * len(tx)))
         currframe += bake_step
 
     scene.frame_set(back_currframe, 0.0)
@@ -2254,6 +2255,10 @@ def fbx_animations_objects_do(scene_data, ref_id, f_start, f_end):
     alayer_key = get_blender_anim_layer_key(scene, ref_id)
     name = (ref_id.name if ref_id else scene.name).encode()
 
+    if start_zero:
+        f_end -= f_start
+        f_start = 0.0
+
     return (astack_key, animations, alayer_key, name, f_start, f_end) if animations else None
 
 
@@ -2263,11 +2268,8 @@ def fbx_animations_objects(scene_data):
     """
     scene = scene_data.scene
     animations = []
-
-    # Global (containing everything) animstack.
-    anim = fbx_animations_objects_do(scene_data, None, scene.frame_start, scene.frame_end)
-    if anim is not None:
-        animations.append(anim)
+    frame_start = 1e100
+    frame_end = -1e100
 
     # Per-NLA strip animstacks.
     if scene_data.settings.bake_anim_use_nla_strips:
@@ -2287,15 +2289,30 @@ def fbx_animations_objects(scene_data):
 
         for strip in strips:
             strip.mute = False
-            anim = fbx_animations_objects_do(scene_data, strip, strip.frame_start, strip.frame_end)
+            anim = fbx_animations_objects_do(scene_data, strip, strip.frame_start, strip.frame_end, True)
             if anim is not None:
                 animations.append(anim)
+                f_start, f_end = anim [4:6]
+                if f_start < frame_start:
+                    frame_start = f_start
+                if f_end > frame_end:
+                    frame_end = f_end
             strip.mute = True
 
         for strip in strips:
             strip.mute = False
 
-    return animations
+    # Global (containing everything) animstack.
+    if not scene_data.settings.bake_anim_use_nla_strips or not animations:
+        anim = fbx_animations_objects_do(scene_data, None, scene.frame_start, scene.frame_end, False)
+        if anim is not None:
+            animations.append(anim)
+            if scene.frame_start < frame_start:
+                frame_start = scene.frame_start
+            if scene.frame_end > frame_end:
+                frame_end = scene.frame_end
+
+    return animations, frame_start, frame_end
 
 
 def fbx_data_from_scene(scene, settings):
@@ -2413,12 +2430,12 @@ def fbx_data_from_scene(scene, settings):
         # From objects & bones only for a start.
         tmp_scdata = FBXData(  # Kind of hack, we need a temp scene_data for object's space handling to bake animations...
             None, None, None,
-            settings, scene, objects, None,
+            settings, scene, objects, None, 0.0, 0.0,
             data_empties, data_lamps, data_cameras, data_meshes, None,
             bones_to_posebones, data_bones, data_deformers,
             data_world, data_materials, data_textures, data_videos,
         )
-        animations = fbx_animations_objects(tmp_scdata)
+        animations, frame_start, frame_end = fbx_animations_objects(tmp_scdata)
 
     ##### Creation of templates...
 
@@ -2610,7 +2627,7 @@ def fbx_data_from_scene(scene, settings):
 
     return FBXData(
         templates, templates_users, connections,
-        settings, scene, objects, animations,
+        settings, scene, objects, animations, frame_start, frame_end,
         data_empties, data_lamps, data_cameras, data_meshes, mesh_mat_indices,
         bones_to_posebones, data_bones, data_deformers,
         data_world, data_materials, data_textures, data_videos,
@@ -2846,8 +2863,8 @@ def fbx_takes_elements(root, scene_data):
     scene = scene_data.scene
     take_name = scene.name.encode()
     fps = scene.render.fps / scene.render.fps_base
-    scene_start_ktime = int(units_convert(scene.frame_start / fps, "second", "ktime"))
-    scene_end_ktime = int(units_convert(scene.frame_end / fps, "second", "ktime"))
+    scene_start_ktime = int(units_convert(scene_data.frame_start / fps, "second", "ktime"))
+    scene_end_ktime = int(units_convert(scene_data.frame_end + 1 / fps, "second", "ktime"))  # +1 is unity hack...
 
     take = elem_data_single_string(takes, b"Take", take_name)
     elem_data_single_string(take, b"FileName", take_name + b".tak")
