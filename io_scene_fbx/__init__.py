@@ -209,6 +209,7 @@ class ExportFBX(bpy.types.Operator, ExportHelper):
                ('LAMP', "Lamp", ""),
                ('ARMATURE', "Armature", ""),
                ('MESH', "Mesh", ""),
+               ('OTHER', "Other", "Other geometry types, like curve, metaball, etc. (converted to meshes)"),
                ),
         description="Which kind of object to export",
         default={'EMPTY', 'CAMERA', 'LAMP', 'ARMATURE', 'MESH'},
@@ -216,7 +217,7 @@ class ExportFBX(bpy.types.Operator, ExportHelper):
 
     use_mesh_modifiers = BoolProperty(
         name="Apply Modifiers",
-        description="Apply modifiers to mesh objects",
+        description="Apply modifiers to mesh objects (except Armature ones!)",
         default=True,
     )
     mesh_smooth_type = EnumProperty(
@@ -354,6 +355,7 @@ class ExportFBX(bpy.types.Operator, ExportHelper):
             layout.prop(self, "bake_anim")
             col = layout.column()
             col.enabled = self.bake_anim
+            col.prop(self, "bake_anim_use_nla_strips")
             col.prop(self, "bake_anim_step")
             col.prop(self, "bake_anim_simplify_factor")
         else:
