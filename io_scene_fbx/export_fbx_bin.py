@@ -134,6 +134,10 @@ def matrix_to_array(mat):
     return tuple(f for v in mat.transposed() for f in v)
 
 
+def similar_values(v1, v2, e=1e-6):
+    """Return True if v1 and v2 are nearly the same."""
+    return abs(v1 - v2) * max(abs(v1), abs(v2)) <= e
+
 RIGHT_HAND_AXES = {
     # Up, Front -> FBX values (tuples of (axis, sign), Up, Front, Coord).
     # Note: Since we always stay in right-handed system, third coord sign is always positive!
@@ -162,6 +166,24 @@ RIGHT_HAND_AXES = {
     ('-Z', 'Y'):  ((2, -1), (1, -1),  (0, 1)),
     ('-Z', '-Y'): ((2, -1), (1, 1), (0, 1)),
 }
+
+
+FBX_FRAMERATES = (
+    (-1.0, 14),  # Custom framerate.
+    (120.0, 1),
+    (100.0, 2),
+    (60.0, 3),
+    (50.0, 4),
+    (48.0, 5),
+    (30.0, 6),  # BW NTSC.
+    (30.0 / 1.001, 9),  # Color NTSC.
+    (25.0, 10),
+    (24.0, 11),
+    (24.0 / 1.001, 13),
+    (96.0, 15),
+    (72.0, 16),
+    (60.0 / 1.001, 17),
+)
 
 
 ##### UIDs code. #####
@@ -2703,14 +2725,15 @@ def fbx_header_elements(root, scene_data, time=None):
     # Global timing data.
     r = scene_data.scene.render
     fps = r.fps / r.fps_base
-    f_start = scene_data.scene.frame_start
-    f_end = scene_data.scene.frame_end
-    elem_props_set(props, "p_enum", b"TimeMode", 14)  # FPS, 14 = custom...
-    #elem_props_set(props, "p_timestamp", b"TimeSpanStart", int(units_convert(f_start / fps, "second", "ktime")))
-    #elem_props_set(props, "p_timestamp", b"TimeSpanStop", int(units_convert(f_end / fps, "second", "ktime")))
+    fbx_fps, fbx_fps_mode = FBX_FRAMERATES[0]  # Custom framerate.
+    for ref_fps, fps_mode in FBX_FRAMERATES:
+        if similar_values(fps, ref_fps):
+            fbx_fps = ref_fps
+            fbx_fps_mode = fps_mode
+    elem_props_set(props, "p_enum", b"TimeMode", fbx_fps_mode)
     elem_props_set(props, "p_timestamp", b"TimeSpanStart", 0)
     elem_props_set(props, "p_timestamp", b"TimeSpanStop", FBX_KTIME)
-    elem_props_set(props, "p_double", b"CustomFrameRate", fps)
+    elem_props_set(props, "p_double", b"CustomFrameRate", fbx_fps)
 
     ##### End of GlobalSettings element.
 
