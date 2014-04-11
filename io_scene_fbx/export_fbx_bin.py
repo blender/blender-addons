@@ -280,30 +280,32 @@ def get_blender_bone_cluster_key(armature, mesh, bone):
                      get_blenderID_key(bone), "SubDeformerCluster"))
 
 
-def get_blender_anim_stack_key(scene, ID=None):
+def get_blender_anim_id_base(scene, ref_id):
+    if ref_id is not None:
+        return get_blenderID_key(scene) + "|" + get_blenderID_key(ref_id)
+    else:
+        return get_blenderID_key(scene)
+
+
+def get_blender_anim_stack_key(scene, ref_id):
     """Return single anim stack key."""
-    if ID:
-        return "|".join((get_blenderID_key(scene), get_blenderID_key(ID), "AnimStack"))
-    else:
-        return "|".join((get_blenderID_key(scene), "AnimStack"))
+    return get_blender_anim_id_base(scene, ref_id) + "|AnimStack"
 
 
-def get_blender_anim_layer_key(scene, ID=None):
+def get_blender_anim_layer_key(scene, ref_id):
     """Return ID's anim layer key."""
-    if ID:
-        return "|".join((get_blenderID_key(scene), get_blenderID_key(ID), "AnimLayer"))
-    else:
-        return "|".join((get_blenderID_key(scene), "AnimLayer"))
+    return get_blender_anim_id_base(scene, ref_id) + "|AnimLayer"
 
 
-def get_blender_anim_curve_node_key(ID, fbx_prop_name):
-    """Return (ID, fbxprop) curve node key."""
-    return "|".join((get_blenderID_key(ID), fbx_prop_name, "AnimCurveNode"))
+def get_blender_anim_curve_node_key(scene, ref_id, ID, fbx_prop_name):
+    """Return (stack/layer, ID, fbxprop) curve node key."""
+    return "|".join((get_blender_anim_id_base(scene, ref_id), get_blenderID_key(ID), fbx_prop_name, "AnimCurveNode"))
 
 
-def get_blender_anim_curve_key(ID, fbx_prop_name, fbx_prop_item_name):
-    """Return (ID, fbxprop, item) curve key."""
-    return "|".join((get_blenderID_key(ID), fbx_prop_name, fbx_prop_item_name, "AnimCurve"))
+def get_blender_anim_curve_key(scene, ref_id, ID, fbx_prop_name, fbx_prop_item_name):
+    """Return (stack/layer, ID, fbxprop, item) curve key."""
+    return "|".join((get_blender_anim_id_base(scene, ref_id), get_blenderID_key(ID), fbx_prop_name,
+                     fbx_prop_item_name, "AnimCurve"))
 
 
 ##### Element generators. #####
@@ -2235,9 +2237,10 @@ def fbx_animations_objects_do(scene_data, ref_id, f_start, f_end, start_zero):
         final_keys = OrderedDict()
         for idx, c in enumerate(curves):
             fbx_group, fbx_gname, fbx_item = fbx_names[idx]
-            fbx_item_key = get_blender_anim_curve_key(obj, fbx_group, fbx_item)
+            fbx_item_key = get_blender_anim_curve_key(scene, ref_id, obj, fbx_group, fbx_item)
             if fbx_group not in final_keys:
-                final_keys[fbx_group] = (get_blender_anim_curve_node_key(obj, fbx_group), OrderedDict(), fbx_gname)
+                fbx_group_key = get_blender_anim_curve_node_key(scene, ref_id, obj, fbx_group)
+                final_keys[fbx_group] = (fbx_group_key, OrderedDict(), fbx_gname)
             final_keys[fbx_group][1][fbx_item] = (fbx_item_key, dtx[idx], c, True if len(c) > 1 else False)
         # And now, remove anim groups (i.e. groups of curves affecting a single FBX property) with no curve at all!
         del_groups = []
@@ -2271,6 +2274,16 @@ def fbx_animations_objects(scene_data):
     frame_start = 1e100
     frame_end = -1e100
 
+    def add_anim(animations, anim):
+        nonlocal frame_start, frame_end
+        if anim is not None:
+            animations.append(anim)
+            f_start, f_end = anim[4:6]
+            if f_start < frame_start:
+                frame_start = f_start
+            if f_end > frame_end:
+                frame_end = f_end
+
     # Per-NLA strip animstacks.
     if scene_data.settings.bake_anim_use_nla_strips:
         strips = []
@@ -2289,14 +2302,7 @@ def fbx_animations_objects(scene_data):
 
         for strip in strips:
             strip.mute = False
-            anim = fbx_animations_objects_do(scene_data, strip, strip.frame_start, strip.frame_end, True)
-            if anim is not None:
-                animations.append(anim)
-                f_start, f_end = anim [4:6]
-                if f_start < frame_start:
-                    frame_start = f_start
-                if f_end > frame_end:
-                    frame_end = f_end
+            add_anim(animations, fbx_animations_objects_do(scene_data, strip, strip.frame_start, strip.frame_end, True))
             strip.mute = True
 
         for strip in strips:
@@ -2304,13 +2310,7 @@ def fbx_animations_objects(scene_data):
 
     # Global (containing everything) animstack.
     if not scene_data.settings.bake_anim_use_nla_strips or not animations:
-        anim = fbx_animations_objects_do(scene_data, None, scene.frame_start, scene.frame_end, False)
-        if anim is not None:
-            animations.append(anim)
-            if scene.frame_start < frame_start:
-                frame_start = scene.frame_start
-            if scene.frame_end > frame_end:
-                frame_end = scene.frame_end
+        add_anim(animations, fbx_animations_objects_do(scene_data, None, scene.frame_start, scene.frame_end, False))
 
     return animations, frame_start, frame_end
 
@@ -2853,25 +2853,23 @@ def fbx_takes_elements(root, scene_data):
     """
     Animations.
     """
-    # XXX Are takes needed at all in new anim system?
+    # XXX Pretty sure takes are no more needed...
     takes = elem_empty(root, b"Takes")
     elem_data_single_string(takes, b"Current", b"")
 
     animations = scene_data.animations
-    if not animations:
-        return
-    scene = scene_data.scene
-    take_name = scene.name.encode()
-    fps = scene.render.fps / scene.render.fps_base
-    scene_start_ktime = int(units_convert(scene_data.frame_start / fps, "second", "ktime"))
-    scene_end_ktime = int(units_convert(scene_data.frame_end + 1 / fps, "second", "ktime"))  # +1 is unity hack...
+    for astack_key, animations, alayer_key, name, f_start, f_end in animations:
+        scene = scene_data.scene
+        fps = scene.render.fps / scene.render.fps_base
+        start_ktime = int(units_convert(f_start / fps, "second", "ktime"))
+        end_ktime = int(units_convert(f_end / fps, "second", "ktime"))  # +1 is unity hack...
 
-    take = elem_data_single_string(takes, b"Take", take_name)
-    elem_data_single_string(take, b"FileName", take_name + b".tak")
-    take_loc_time = elem_data_single_int64(take, b"LocalTime", scene_start_ktime)
-    take_loc_time.add_int64(scene_end_ktime)
-    take_ref_time = elem_data_single_int64(take, b"ReferenceTime", scene_start_ktime)
-    take_ref_time.add_int64(scene_end_ktime)
+        take = elem_data_single_string(takes, b"Take", name)
+        elem_data_single_string(take, b"FileName", name + b".tak")
+        take_loc_time = elem_data_single_int64(take, b"LocalTime", start_ktime)
+        take_loc_time.add_int64(end_ktime)
+        take_ref_time = elem_data_single_int64(take, b"ReferenceTime", start_ktime)
+        take_ref_time.add_int64(end_ktime)
 
 
 ##### "Main" functions. #####
