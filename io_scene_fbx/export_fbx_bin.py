@@ -1246,7 +1246,7 @@ def fbx_data_camera_elements(root, cam_obj, scene_data):
     elem_data_single_float64(cam, b"CameraOrthoZoom", 1.0)
 
 
-def fbx_data_mesh_elements(root, me_obj, scene_data):
+def fbx_data_mesh_elements(root, me_obj, scene_data, done_meshes):
     """
     Write the Mesh (Geometry) data block.
     """
@@ -1256,6 +1256,10 @@ def fbx_data_mesh_elements(root, me_obj, scene_data):
             yield val
 
     me_key, me, _free = scene_data.data_meshes[me_obj]
+
+    # In case of multiple instances of same mesh, only write it once!
+    if me_key in done_meshes:
+        return
 
     # No gscale/gmat here, all data are supposed to be in object space.
     smooth_type = scene_data.settings.mesh_smooth_type
@@ -1614,6 +1618,8 @@ def fbx_data_mesh_elements(root, me_obj, scene_data):
             lay_tan = elem_empty(layer, b"LayerElement")
             elem_data_single_string(lay_tan, b"Type", b"LayerElementTangent")
             elem_data_single_int32(lay_tan, b"TypedIndex", tspaceidx)
+
+    done_meshes.add(me_key)
 
 
 def fbx_data_material_elements(root, mat, scene_data):
@@ -2358,20 +2364,27 @@ def fbx_data_from_scene(scene, settings):
     for obj in objects:
         if obj.type not in BLENDER_OBJECT_TYPES_MESHLIKE:
             continue
+        use_org_data = True
         if settings.use_mesh_modifiers or obj.type in BLENDER_OTHER_OBJECT_TYPES:
+            use_org_data = False
             tmp_mods = []
-            if obj.type == 'MESH' and settings.bake_anim:
-                # For meshes, when anim export is enabled, disable Armature modifiers here!
+            if obj.type == 'MESH':
+                # No need to create a new mesh in this case, if no modifier is active!
+                use_org_data = True
                 for mod in obj.modifiers:
-                    if mod.type == 'ARMATURE':
+                    # For meshes, when anim export is enabled, disable Armature modifiers here!
+                    if mod.type == 'ARMATURE' and settings.bake_anim:
                         tmp_mods.append((mod, mod.show_render))
                         mod.show_render = False
-            tmp_me = obj.to_mesh(scene, apply_modifiers=True, settings='RENDER')
-            data_meshes[obj] = (get_blenderID_key(tmp_me), tmp_me, True)
+                    if mod.show_render:
+                        use_org_data = False
+            if not use_org_data:
+                tmp_me = obj.to_mesh(scene, apply_modifiers=True, settings='RENDER')
+                data_meshes[obj] = (get_blenderID_key(tmp_me), tmp_me, True)
             # Re-enable temporary disabled modifiers.
             for mod, show_render in tmp_mods:
                 mod.show_render = show_render
-        else:
+        if use_org_data:
             data_meshes[obj] = (get_blenderID_key(obj.data), obj.data, False)
 
     # Armatures!
@@ -2837,8 +2850,10 @@ def fbx_objects_elements(root, scene_data):
     for cam in scene_data.data_cameras.keys():
         fbx_data_camera_elements(objects, cam, scene_data)
 
+    done_meshes = set()
     for me_obj in scene_data.data_meshes.keys():
-        fbx_data_mesh_elements(objects, me_obj, scene_data)
+        fbx_data_mesh_elements(objects, me_obj, scene_data, done_meshes)
+    del done_meshes
 
     for obj in scene_data.objects.keys():
         fbx_data_object_elements(objects, obj, scene_data)
