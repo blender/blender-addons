@@ -962,7 +962,12 @@ def load(operator, context, filepath="",
     _(); del _
 
     def fbx_template_get(key):
-        return fbx_templates.get(key, fbx_elem_nil)
+        ret = fbx_templates.get(key, fbx_elem_nil)
+        if ret is None:
+            # Newest FBX (7.4 and above) use no more 'K' in their type names...
+            key = (key[0], key[1][1:])
+            return fbx_templates.get(key, fbx_elem_nil)
+        return ret
 
     # ----
     # Build FBX node-table
@@ -1104,6 +1109,7 @@ def load(operator, context, filepath="",
                     if isinstance(fbx_lnk_item, (bpy.types.Material, bpy.types.Image)):
                         continue
                     # Need to check why this happens, Bird_Leg.fbx
+                    # This is basic object parenting, also used by "bones".
                     if isinstance(fbx_lnk_item, (bpy.types.Object)):
                         continue
                     ok = True
