@@ -210,7 +210,7 @@ def _ascii_write(filepath, faces, use_normals):
                 fw('endloop\nendfacet\n')
         else:
             for face in faces:
-                fw('facet normal 0 0 0\nouter loop\n')
+                fw('outer loop\n')
                 for vert in face:
                     fw('vertex %f %f %f\n' % vert[:])
                 fw('endloop\nendfacet\n')
