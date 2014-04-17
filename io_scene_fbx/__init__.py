@@ -220,12 +220,6 @@ class ExportFBX(bpy.types.Operator, ExportHelper):
         description="Apply modifiers to mesh objects (except Armature ones!)",
         default=True,
     )
-    # 7.4 only
-    use_simplify_skinning = BoolProperty(
-        name="Simplify Skinning",
-        description="Many game engines do not support more than four bones per vertex, select four most important ones",
-        default=True,
-    )
     mesh_smooth_type = EnumProperty(
         name="Smoothing",
         items=(('OFF', "Off", "Don't write smoothing"),
@@ -354,10 +348,6 @@ class ExportFBX(bpy.types.Operator, ExportHelper):
         layout.separator()
         layout.prop(self, "object_types")
         layout.prop(self, "use_mesh_modifiers")
-        if is_74bin:
-            sub = layout.column()
-            sub.enabled = ({'ARMATURE', 'MESH'} <= self.object_types)
-            sub.prop(self, "use_simplify_skinning")
         layout.prop(self, "mesh_smooth_type")
         layout.prop(self, "use_mesh_edges")
         layout.prop(self, "use_tspace")

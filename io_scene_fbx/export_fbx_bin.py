@@ -1850,8 +1850,6 @@ def fbx_data_armature_elements(root, armature, scene_data):
             elem_data_single_float64(fbx_skin, b"Link_DeformAcuracy", 50.0)  # Only vague idea what it is...
 
             # Pre-process vertex weights (also to check vertices assigned ot more than four bones).
-            is_complex_skinning = False
-            simplify_skinning = scene_data.settings.use_simplify_skinning
             bo_vg_idx = {bo.name: obj.vertex_groups[bo.name].index for bo in clusters.keys()}
             valid_idxs = set(bo_vg_idx.values())
             vgroups = {vg.index: OrderedDict() for vg in obj.vertex_groups}
@@ -1859,21 +1857,8 @@ def fbx_data_armature_elements(root, armature, scene_data):
                                     key=lambda e: e[1], reverse=True)
                              for v in me.vertices)
             for idx, vgs in enumerate(verts_vgroups):
-                if len(vgs) > 4:
-                    is_complex_skinning = True
-                    if simplify_skinning:
-                        vgs[:] = vgs[:4]
                 for vg_idx, w in vgs:
                     vgroups[vg_idx][idx] = w
-
-            if is_complex_skinning:
-                report = scene_data.settings.report
-                if simplify_skinning:
-                    report({'WARNING'}, "Some vertices were assigned to more than four bones, "
-                                        "only the four most significant weights were kept")
-                else:
-                    report({'WARNING'}, "Some vertices are assigned to more than four bones, "
-                                        "this is usually not supported by game engines")
 
             for bo, clstr_key in clusters.items():
                 # Find which vertices are affected by this bone/vgroup pair, and matching weights.
@@ -2916,7 +2901,7 @@ FBXSettingsMedia = namedtuple("FBXSettingsMedia", (
 FBXSettings = namedtuple("FBXSettings", (
     "report", "to_axes", "global_matrix", "global_scale",
     "bake_space_transform", "global_matrix_inv", "global_matrix_inv_transposed",
-    "context_objects", "object_types", "use_mesh_modifiers", "use_simplify_skinning",
+    "context_objects", "object_types", "use_mesh_modifiers",
     "mesh_smooth_type", "use_mesh_edges", "use_tspace", "use_armature_deform_only",
     "bake_anim", "bake_anim_use_nla_strips", "bake_anim_step", "bake_anim_simplify_factor",
     "use_metadata", "media_settings", "use_custom_properties",
@@ -2931,7 +2916,6 @@ def save_single(operator, scene, filepath="",
                 context_objects=None,
                 object_types=None,
                 use_mesh_modifiers=True,
-                use_simplify_skinning=True,
                 mesh_smooth_type='FACE',
                 bake_anim=True,
                 bake_anim_use_nla_strips=True,
@@ -2975,7 +2959,7 @@ def save_single(operator, scene, filepath="",
     settings = FBXSettings(
         operator.report, (axis_up, axis_forward), global_matrix, global_scale,
         bake_space_transform, global_matrix_inv, global_matrix_inv_transposed,
-        context_objects, object_types, use_mesh_modifiers, use_simplify_skinning,
+        context_objects, object_types, use_mesh_modifiers,
         mesh_smooth_type, use_mesh_edges, use_tspace, False,
         bake_anim, bake_anim_use_nla_strips, bake_anim_step, bake_anim_simplify_factor,
         False, media_settings, use_custom_properties,
