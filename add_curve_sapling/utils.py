@@ -606,6 +606,7 @@ def addTree(props):
                         childStems = False
                     else:
                         childStems = leaves*shapeRatio(leafDist,p.offset/p.lengthPar)
+                branchL = max(branchL, 0.0)
                 # Determine the starting and ending radii of the stem using the tapering of the stem
                 startRad = min(p.radiusPar[0]*((branchL/p.lengthPar)**ratioPower), p.radiusPar[1])
                 endRad = startRad*(1 - taper[n])
