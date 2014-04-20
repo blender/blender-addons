@@ -2383,8 +2383,8 @@ def write_pov(filename, scene=None, info_callback=None):
                     file.write(tabStr + "1")
                 else:
                     file.write(tabStr + "%s" % (len(vertCols)))  # vert count
-                if me_materials:    
-                    if mater.pov.replacement_text != "":
+                if material is not None:    
+                    if material.pov.replacement_text != "":
                         file.write("\n")
                         file.write(" texture{%s}\n" % material.pov.replacement_text)
 
