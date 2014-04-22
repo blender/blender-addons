@@ -44,7 +44,6 @@ Import-Export STL files (binary or ascii)
 Issues:
 
 Import:
-    - Does not handle the normal of the triangles
     - Does not handle endien
 """
 
@@ -126,11 +125,6 @@ class ExportSTL(Operator, ExportHelper):
     ascii = BoolProperty(
             name="Ascii",
             description="Save the file in ASCII file format",
-            default=False,
-            )
-    use_normals = BoolProperty(
-            name="Write Normals",
-            description="Export one normal per face, to represent flat faces and sharp edges",
             default=False,
             )
     use_mesh_modifiers = BoolProperty(

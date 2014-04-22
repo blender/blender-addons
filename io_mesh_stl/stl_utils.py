@@ -157,7 +157,7 @@ def _ascii_read(data):
                    for l_item in (l, data.readline(), data.readline())]
 
 
-def _binary_write(filepath, faces, use_normals):
+def _binary_write(filepath, faces):
     with open(filepath, 'wb') as data:
         fw = data.write
         # header
@@ -171,49 +171,31 @@ def _binary_write(filepath, faces, use_normals):
         # number of vertices written
         nb = 0
 
-        if use_normals:
-            for face in faces:
-                # calculate face normal
-                # write normal + vertexes + pad as attributes
-                fw(struct.pack('<3f', *normal(*face)) + pack(*itertools.chain.from_iterable(face)))
-                # attribute byte count (unused)
-                fw(b'\0\0') 
-                nb += 1
-        else:
-            # pad is to remove normal, we do use them
-            pad = b'\0' * struct.calcsize('<3f')
-
-            for face in faces:
-                # write pad as normal + vertexes + pad as attributes
-                fw(pad + pack(*itertools.chain.from_iterable(face)))
-                # attribute byte count (unused)
-                fw(b'\0\0')
-                nb += 1
+        for face in faces:
+            # calculate face normal
+            # write normal + vertexes + pad as attributes
+            fw(struct.pack('<3f', *normal(*face)) + pack(*itertools.chain.from_iterable(face)))
+            # attribute byte count (unused)
+            fw(b'\0\0') 
+            nb += 1
 
         # header, with correct value now
         data.seek(0)
         fw(struct.pack('<80sI', _header_version().encode('ascii'), nb))
 
 
-def _ascii_write(filepath, faces, use_normals):
+def _ascii_write(filepath, faces):
     with open(filepath, 'w') as data:
         fw = data.write
         header = _header_version()
         fw('solid %s\n' % header)
 
-        if use_normals:
-            for face in faces:
-                # calculate face normal
-                fw('facet normal %f %f %f\nouter loop\n' % normal(*face)[:])
-                for vert in face:
-                    fw('vertex %f %f %f\n' % vert[:])
-                fw('endloop\nendfacet\n')
-        else:
-            for face in faces:
-                fw('outer loop\n')
-                for vert in face:
-                    fw('vertex %f %f %f\n' % vert[:])
-                fw('endloop\nendfacet\n')
+        for face in faces:
+            # calculate face normal
+            fw('facet normal %f %f %f\nouter loop\n' % normal(*face)[:])
+            for vert in face:
+                fw('vertex %f %f %f\n' % vert[:])
+            fw('endloop\nendfacet\n')
 
         fw('endsolid %s\n' % header)
 
@@ -221,7 +203,6 @@ def _ascii_write(filepath, faces, use_normals):
 def write_stl(filepath="",
               faces=(),
               ascii=False,
-              use_normals=False,
               ):
     """
     Write a stl file from faces,
@@ -234,11 +215,8 @@ def write_stl(filepath="",
 
     ascii
        save the file in ascii format (very huge)
-
-    use_normals
-        calculate face normals and write them
     """
-    (_ascii_write if ascii else _binary_write)(filepath, faces, use_normals)
+    (_ascii_write if ascii else _binary_write)(filepath, faces)
 
 
 def read_stl(filepath):
