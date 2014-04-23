@@ -1478,7 +1478,7 @@ def fbx_data_mesh_elements(root, me_obj, scene_data, done_meshes):
                 elem_data_single_string_unicode(lay_nor, b"Name", name)
                 elem_data_single_string(lay_nor, b"MappingInformationType", b"ByPolygonVertex")
                 elem_data_single_string(lay_nor, b"ReferenceInformationType", b"Direct")
-                elem_data_single_float64_array(lay_nor, b"Binormals", chain(*_nortuples_gen(t_ln, geom_mat_no)))
+                elem_data_single_float64_array(lay_nor, b"Tangents", chain(*_nortuples_gen(t_ln, geom_mat_no)))
                 # Tangent weights, no idea what it is.
                 #elem_data_single_float64_array(lay_nor, b"TangentsW", t_lnw)
 
