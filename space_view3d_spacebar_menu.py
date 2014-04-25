@@ -611,7 +611,7 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
             layout.operator("pose.quaternions_flip")
 
             layout.operator_context = 'INVOKE_AREA'
-            layout.operator("pose.armature_layers",
+            layout.operator("armature.armature_layers",
                             text="Change Armature Layers...")
             layout.operator("pose.bone_layers", text="Change Bone Layers...")
 
