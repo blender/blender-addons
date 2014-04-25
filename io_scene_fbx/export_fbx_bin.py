@@ -1581,6 +1581,13 @@ def fbx_data_mesh_elements(root, me_obj, scene_data, done_meshes):
     lay_nor = elem_empty(layer, b"LayerElement")
     elem_data_single_string(lay_nor, b"Type", b"LayerElementNormal")
     elem_data_single_int32(lay_nor, b"TypedIndex", 0)
+    if tspacenumber:
+        lay_binor = elem_empty(layer, b"LayerElement")
+        elem_data_single_string(lay_binor, b"Type", b"LayerElementBinormal")
+        elem_data_single_int32(lay_binor, b"TypedIndex", 0)
+        lay_tan = elem_empty(layer, b"LayerElement")
+        elem_data_single_string(lay_tan, b"Type", b"LayerElementTangent")
+        elem_data_single_int32(lay_tan, b"TypedIndex", 0)
     if smooth_type in {'FACE', 'EDGE'}:
         lay_smooth = elem_empty(layer, b"LayerElement")
         elem_data_single_string(lay_smooth, b"Type", b"LayerElementSmoothing")
