@@ -1134,7 +1134,7 @@ def fbx_data_lamp_elements(root, lamp, scene_data):
     do_shadow = False
     shadow_color = Vector((0.0, 0.0, 0.0))
     if lamp.type not in {'HEMI'}:
-        if lamp.type not in {'SUN'}:
+        if lamp.type not in {'SUN', 'AREA'}:
             decay_type = FBX_LIGHT_DECAY_TYPES[lamp.falloff_type]
         do_light = (not lamp.use_only_shadow) and (lamp.use_specular or lamp.use_diffuse)
         do_shadow = lamp.shadow_method not in {'NOSHADOW'}
