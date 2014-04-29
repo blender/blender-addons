@@ -1389,16 +1389,17 @@ def export(file,
     # Export Object Hierarchy (recursively called)
     # -------------------------------------------------------------------------
     def export_object(ident, obj_main_parent, obj_main, obj_children):
+        matrix_fallback = mathutils.Matrix()
         world = scene.world
         free, derived = create_derived_objects(scene, obj_main)
 
         if use_hierarchy:
             obj_main_matrix_world = obj_main.matrix_world
             if obj_main_parent:
-                obj_main_matrix = obj_main_parent.matrix_world.inverted() * obj_main_matrix_world
+                obj_main_matrix = obj_main_parent.matrix_world.inverted(matrix_fallback) * obj_main_matrix_world
             else:
                 obj_main_matrix = obj_main_matrix_world
-            obj_main_matrix_world_invert = obj_main_matrix_world.inverted()
+            obj_main_matrix_world_invert = obj_main_matrix_world.inverted(matrix_fallback)
 
             obj_main_id = quoteattr(unique_name(obj_main, obj_main.name, uuid_cache_object, clean_func=clean_def, sep="_"))
 
