@@ -136,7 +136,10 @@ def matrix_to_array(mat):
 
 def similar_values(v1, v2, e=1e-6):
     """Return True if v1 and v2 are nearly the same."""
-    return abs(v1 - v2) * max(abs(v1), abs(v2)) <= e
+    if v1 == v2:
+        return True
+    return ((abs(v1 - v2) / max(abs(v1), abs(v2))) <= e)
+
 
 RIGHT_HAND_AXES = {
     # Up, Front -> FBX values (tuples of (axis, sign), Up, Front, Coord).
