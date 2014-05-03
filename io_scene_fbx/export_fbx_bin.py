@@ -1802,6 +1802,7 @@ def fbx_data_armature_elements(root, armature, scene_data):
         * BindPose.
     Note armature itself has no data, it is a mere "Null" Model...
     """
+    mat_world_arm = fbx_object_matrix(scene_data, armature, global_space=True)
 
     # Bones "data".
     for bo in armature.data.bones:
@@ -1888,8 +1889,8 @@ def fbx_data_armature_elements(root, armature, scene_data):
                 if indices:
                     elem_data_single_int32_array(fbx_clstr, b"Indexes", indices)
                     elem_data_single_float64_array(fbx_clstr, b"Weights", weights)
-                # Transform and TransformLink matrices...
-                # They seem to be mostly the same as BindPose ones???
+                # Transform, TransformLink and TransformAssociateModel matrices...
+                # They seem to be doublons of BindPose ones??? Have armature (associatemodel) in addition, though.
                 # WARNING! Even though official FBX API presents Transform in global space,
                 #          **it is stored in bone space in FBX data!** See:
                 #          http://area.autodesk.com/forum/autodesk-fbx/fbx-sdk/why-the-values-return-
@@ -1897,6 +1898,7 @@ def fbx_data_armature_elements(root, armature, scene_data):
                 elem_data_single_float64_array(fbx_clstr, b"Transform",
                                                matrix_to_array(mat_world_bones[bo].inverted() * mat_world_obj))
                 elem_data_single_float64_array(fbx_clstr, b"TransformLink", matrix_to_array(mat_world_bones[bo]))
+                elem_data_single_float64_array(fbx_clstr, b"TransformAssociateModel", matrix_to_array(mat_world_arm))
 
 
 def fbx_data_object_elements(root, obj, scene_data):
