@@ -1877,7 +1877,7 @@ def fbx_data_armature_elements(root, armature, scene_data):
                 # Note we still write a cluster for bones not affecting the mesh, to get 'rest pose' data
                 # (the TransformBlah matrices).
                 vg_idx = bo_vg_idx.get(bo.name, None)
-                indices, weights = ((), ()) if vg_idx is None else zip(*vgroups[vg_idx].items())
+                indices, weights = ((), ()) if vg_idx is None or not vgroups[vg_idx] else zip(*vgroups[vg_idx].items())
 
                 # Create the cluster.
                 fbx_clstr = elem_data_single_int64(root, b"Deformer", get_fbxuid_from_key(clstr_key))
