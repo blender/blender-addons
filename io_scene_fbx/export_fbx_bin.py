@@ -2455,6 +2455,8 @@ def fbx_data_from_scene(scene, settings):
 
     # Animation...
     animations = ()
+    frame_start = scene.frame_start
+    frame_end = scene.frame_end
     if settings.bake_anim:
         # From objects & bones only for a start.
         tmp_scdata = FBXData(  # Kind of hack, we need a temp scene_data for object's space handling to bake animations...
@@ -2465,6 +2467,7 @@ def fbx_data_from_scene(scene, settings):
             data_world, data_materials, data_textures, data_videos,
         )
         animations, frame_start, frame_end = fbx_animations_objects(tmp_scdata)
+        
 
     ##### Creation of templates...
 
