@@ -21,6 +21,7 @@
 bl_info = {
     "name": "Autodesk FBX format",
     "author": "Campbell Barton, Bastien Montagne",
+    "version": (3, 0, 0),
     "blender": (2, 70, 0),
     "location": "File > Import-Export",
     "description": "Export FBX meshes, UV's, vertex colors, materials, "
