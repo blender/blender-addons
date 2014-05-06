@@ -1032,15 +1032,9 @@ def fbx_object_matrix(scene_data, obj, armature=None, local_space=False, global_
         # local space (relative to parent bone).
         if is_global:
             matrix = armature.matrix_world * matrix
-        else:  # Handle parent bone is needed.
-            par_matrix = None
-            if is_posebone and bo.bone.parent:
-                par_matrix = scene_data.bones_to_posebones[bo.bone.parent].matrix
-            elif bo.parent:
-                par_matrix = bo.parent.matrix_local
-            if par_matrix:
-                par_matrix = par_matrix * MAT_CONVERT_BONE
-                matrix = par_matrix.inverted() * matrix
+        elif bo.parent:  # Handle parent bone if needed.
+            par_matrix = bo.parent.matrix if is_posebone else bo.parent.matrix_local
+            matrix = (par_matrix * MAT_CONVERT_BONE).inverted() * matrix
     else:
         matrix = obj.matrix_local
 
@@ -1908,8 +1902,11 @@ def fbx_data_object_elements(root, obj, scene_data):
     Note we handle "Model" part of bones as well here!
     """
     obj_type = b"Null"  # default, sort of empty...
+    tobj = obj
     if isinstance(obj, Bone):
         obj_type = b"LimbNode"
+        # Get PoseBone for transformations!
+        tobj = scene_data.bones_to_posebones[obj]
     elif (obj.type in BLENDER_OBJECT_TYPES_MESHLIKE):
         obj_type = b"Mesh"
     elif (obj.type == 'LAMP'):
@@ -1924,7 +1921,7 @@ def fbx_data_object_elements(root, obj, scene_data):
     elem_data_single_int32(model, b"Version", FBX_MODELS_VERSION)
 
     # Object transform info.
-    loc, rot, scale, matrix, matrix_rot = fbx_object_tx(scene_data, obj)
+    loc, rot, scale, matrix, matrix_rot = fbx_object_tx(scene_data, tobj)
     rot = tuple(units_convert_iter(rot, "radian", "degree"))
 
     tmpl = elem_props_template_init(scene_data.templates, b"Model")
