@@ -2364,8 +2364,8 @@ def fbx_data_from_scene(scene, settings):
                 # No need to create a new mesh in this case, if no modifier is active!
                 use_org_data = True
                 for mod in obj.modifiers:
-                    # For meshes, when anim export is enabled, disable Armature modifiers here!
-                    if mod.type == 'ARMATURE' and settings.bake_anim:
+                    # For meshes, when armature export is enabled, disable Armature modifiers here!
+                    if mod.type == 'ARMATURE' and 'ARMATURE' in settings.object_types:
                         tmp_mods.append((mod, mod.show_render))
                         mod.show_render = False
                     if mod.show_render:
