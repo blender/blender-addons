@@ -1214,7 +1214,7 @@ def load(operator, context, filepath="",
 
         if not use_cycles:
             # Simple function to make a new mtex and set defaults
-            def material_mtex_new(material, image):
+            def material_mtex_new(material, image, tex_map):
                 tex = texture_cache.get(image)
                 if tex is None:
                     tex = bpy.data.textures.new(name=image.name, type='IMAGE')
@@ -1225,6 +1225,10 @@ def load(operator, context, filepath="",
                 mtex.texture = tex
                 mtex.texture_coords = 'UV'
                 mtex.use_map_color_diffuse = False
+
+                # No rotation here...
+                mtex.offset[:] = tex_map[0]
+                mtex.scale[:] = tex_map[2]
                 return mtex
 
         for fbx_uuid, fbx_item in fbx_table_nodes.items():
@@ -1303,7 +1307,10 @@ def load(operator, context, filepath="",
                     if fbx_lnk_type.props[0] == b'OP':
                         lnk_type = fbx_lnk_type.props[3]
 
-                        mtex = material_mtex_new(material, image)
+                        # tx/rot/scale (rot is ignored here!).
+                        tex_map = texture_mapping_get(fbx_lnk)
+
+                        mtex = material_mtex_new(material, image, tex_map)
 
                         if lnk_type == b'DiffuseColor':
                             mtex.use_map_color_diffuse = True
