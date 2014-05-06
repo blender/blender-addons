@@ -29,6 +29,7 @@ import time
 
 import collections
 from collections import namedtuple, OrderedDict
+from collections.abc import Iterable
 import itertools
 from itertools import zip_longest, chain
 
@@ -253,7 +254,17 @@ def get_key_from_fbxuid(uid):
 
 # Blender-specific key generators
 def get_blenderID_key(bid):
-    return "B" + bid.rna_type.name + "::" + bid.name
+    if isinstance(bid, Iterable):
+        return "|".join("B" + e.rna_type.name + "::" + e.name for e in bid)
+    else:
+        return "B" + bid.rna_type.name + "::" + bid.name
+
+
+def get_blenderID_name(bid):
+    if isinstance(bid, Iterable):
+        return "|".join(e.name for e in bid)
+    else:
+        return bid.name
 
 
 def get_blender_empty_key(obj):
@@ -2195,11 +2206,16 @@ def fbx_animations_simplify(scene_data, animdata):
         p_key_write[:] = [True] * len(p_key_write)
 
 
-def fbx_animations_objects_do(scene_data, ref_id, f_start, f_end, start_zero):
+def fbx_animations_objects_do(scene_data, ref_id, f_start, f_end, start_zero, objects=None):
     """
     Generate animation data (a single AnimStack) from objects, for a given frame range.
     """
-    objects = scene_data.objects
+    if objects is not None:
+        # Add bones!
+        objects |= {bo for vo in objects if (isinstance(vo, bpy.types.Object) and vo.type == 'ARMATURE')
+                       for bo in vo.data.bones}
+    else:
+        objects = scene_data.objects.keys()
     bake_step = scene_data.settings.bake_anim_step
     scene = scene_data.scene
     bone_map = scene_data.bones_to_posebones
@@ -2212,7 +2228,7 @@ def fbx_animations_objects_do(scene_data, ref_id, f_start, f_end, start_zero):
     )
 
     back_currframe = scene.frame_current
-    animdata = OrderedDict((obj, []) for obj in objects.keys())
+    animdata = OrderedDict((obj, []) for obj in objects)
 
     p_rots = {}
 
@@ -2220,7 +2236,7 @@ def fbx_animations_objects_do(scene_data, ref_id, f_start, f_end, start_zero):
     while currframe < f_end:
         real_currframe = currframe - f_start if start_zero else currframe
         scene.frame_set(int(currframe), currframe - int(currframe))
-        for obj in objects.keys():
+        for obj in objects:
             # Get PoseBone from bone...
             tobj = bone_map[obj] if isinstance(obj, Bone) else obj
             # We compute baked loc/rot/scale for all objects (rot being euler-compat with previous value!).
@@ -2275,7 +2291,7 @@ def fbx_animations_objects_do(scene_data, ref_id, f_start, f_end, start_zero):
 
     astack_key = get_blender_anim_stack_key(scene, ref_id)
     alayer_key = get_blender_anim_layer_key(scene, ref_id)
-    name = (ref_id.name if ref_id else scene.name).encode()
+    name = (get_blenderID_name(ref_id) if ref_id else scene.name).encode()
 
     if start_zero:
         f_end -= f_start
@@ -2326,6 +2342,72 @@ def fbx_animations_objects(scene_data):
 
         for strip in strips:
             strip.mute = False
+
+    # All actions.
+    if scene_data.settings.bake_anim_use_all_actions:
+        def validate_actions(act, path_resolve):
+            for fc in act.fcurves:
+                data_path = fc.data_path
+                if fc.array_index:
+                    data_path = data_path + "[%d]" % fc.array_index
+                try:
+                    path_resolve(data_path)
+                except ValueError:
+                    return False  # Invalid.
+            return True  # Valid.
+
+        def restore_object(obj_to, obj_from):
+            # Restore org state of object (ugh :/ ).
+            props = (
+                'location', 'rotation_quaternion', 'rotation_axis_angle', 'rotation_euler', 'rotation_mode', 'scale',
+                'delta_location', 'delta_rotation_euler', 'delta_rotation_quaternion', 'delta_scale',
+                'lock_location', 'lock_rotation', 'lock_rotation_w', 'lock_rotations_4d', 'lock_scale',
+                'tag', 'layers', 'select', 'track_axis', 'up_axis', 'active_material', 'active_material_index',
+                'matrix_parent_inverse', 'empty_draw_type', 'empty_draw_size', 'empty_image_offset', 'pass_index',
+                'color', 'hide', 'hide_select', 'hide_render', 'use_slow_parent', 'slow_parent_offset',
+                'use_extra_recalc_object', 'use_extra_recalc_data', 'dupli_type', 'use_dupli_frames_speed',
+                'use_dupli_vertices_rotation', 'use_dupli_faces_scale', 'dupli_faces_scale', 'dupli_group',
+                'dupli_frames_start', 'dupli_frames_end', 'dupli_frames_on', 'dupli_frames_off',
+                'draw_type', 'show_bounds', 'draw_bounds_type', 'show_name', 'show_axis', 'show_texture_space',
+                'show_wire', 'show_all_edges', 'show_transparent', 'show_x_ray',
+                'show_only_shape_key', 'use_shape_key_edit_mode', 'active_shape_key_index',
+            )
+            for p in props:
+                setattr(obj_to, p, getattr(obj_from, p))
+
+        for obj in scene_data.objects:
+            # Actions only for objects, not bones!
+            if not isinstance(obj, Object):
+                continue
+
+            # We can't play with animdata and actions and get back to org state easily.
+            # So we have to add a temp copy of the object to the scene, animate it, and remove it... :/
+            obj_copy = obj.copy()
+
+            if obj.animation_data:
+                org_act = obj.animation_data.action
+            else:
+                org_act = ...
+                obj.animation_data_create()
+            path_resolve = obj.path_resolve
+
+            for act in bpy.data.actions:
+                # For now, *all* paths in the action must be valid for the object, to validate the action.
+                # Unless that action was already assigned to the object!
+                if act != org_act and not validate_actions(act, path_resolve):
+                    continue
+                obj.animation_data.action = act
+                frame_start, frame_end = act.frame_range  # sic!
+                add_anim(animations,
+                         fbx_animations_objects_do(scene_data, (obj, act), frame_start, frame_end, True, {obj}))
+                # Ugly! :/
+                obj.animation_data.action = None if org_act is ... else org_act
+                restore_object(obj, obj_copy)
+
+            if org_act is ...:
+                obj.animation_data_clear()
+            else:
+                obj_copy.animation_data.action = org_act
 
     # Global (containing everything) animstack.
     if not scene_data.settings.bake_anim_use_nla_strips or not animations:
@@ -2913,7 +2995,7 @@ FBXSettings = namedtuple("FBXSettings", (
     "bake_space_transform", "global_matrix_inv", "global_matrix_inv_transposed",
     "context_objects", "object_types", "use_mesh_modifiers",
     "mesh_smooth_type", "use_mesh_edges", "use_tspace", "use_armature_deform_only",
-    "bake_anim", "bake_anim_use_nla_strips", "bake_anim_step", "bake_anim_simplify_factor",
+    "bake_anim", "bake_anim_use_nla_strips", "bake_anim_use_all_actions", "bake_anim_step", "bake_anim_simplify_factor",
     "use_metadata", "media_settings", "use_custom_properties",
 ))
 
@@ -2929,6 +3011,7 @@ def save_single(operator, scene, filepath="",
                 mesh_smooth_type='FACE',
                 bake_anim=True,
                 bake_anim_use_nla_strips=True,
+                bake_anim_use_all_actions=True,
                 bake_anim_step=1.0,
                 bake_anim_simplify_factor=1.0,
                 use_metadata=True,
@@ -2971,7 +3054,7 @@ def save_single(operator, scene, filepath="",
         bake_space_transform, global_matrix_inv, global_matrix_inv_transposed,
         context_objects, object_types, use_mesh_modifiers,
         mesh_smooth_type, use_mesh_edges, use_tspace, False,
-        bake_anim, bake_anim_use_nla_strips, bake_anim_step, bake_anim_simplify_factor,
+        bake_anim, bake_anim_use_nla_strips, bake_anim_use_all_actions, bake_anim_step, bake_anim_simplify_factor,
         False, media_settings, use_custom_properties,
     )
 
