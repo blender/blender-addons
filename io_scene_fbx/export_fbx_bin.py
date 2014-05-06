@@ -1033,10 +1033,10 @@ def fbx_object_matrix(scene_data, obj, armature=None, local_space=False, global_
         if is_global:
             matrix = armature.matrix_world * matrix
         elif bo.parent:  # Handle parent bone if needed.
-            par_matrix = bo.parent.matrix if is_posebone else bo.parent.matrix_local
+            par_matrix = (bo.parent.matrix if is_posebone else bo.parent.matrix_local).copy()
             matrix = (par_matrix * MAT_CONVERT_BONE).inverted() * matrix
     else:
-        matrix = obj.matrix_local
+        matrix = obj.matrix_local.copy()
 
         # Lamps, and cameras need to be rotated (in local space!).
         if obj.type == 'LAMP':
