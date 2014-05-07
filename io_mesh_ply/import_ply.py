@@ -239,7 +239,7 @@ def load_ply_mesh(filepath, ply_name):
             if -1 in colindices:
                 colindices = None
             else:  # if not a float assume uchar
-                colmultiply = [1.0 if el.properties[i].numeric_type in {'f', 'd'} else (1.0 / 256.0) for i in colindices]
+                colmultiply = [1.0 if el.properties[i].numeric_type in {'f', 'd'} else (1.0 / 255.0) for i in colindices]
 
         elif el.name == b'face':
             findex = el.index(b'vertex_indices')
