@@ -255,9 +255,9 @@ def get_key_from_fbxuid(uid):
 # Blender-specific key generators
 def get_blenderID_key(bid):
     if isinstance(bid, Iterable):
-        return "|".join("B" + e.rna_type.name + "::" + e.name for e in bid)
+        return "|".join("B" + e.rna_type.name + "#" + e.name for e in bid)
     else:
-        return "B" + bid.rna_type.name + "::" + bid.name
+        return "B" + bid.rna_type.name + "#" + bid.name
 
 
 def get_blenderID_name(bid):
@@ -1014,7 +1014,7 @@ def use_bake_space_transform(scene_data, obj):
     # NOTE: Only applies to object types supporting this!!! Currently, only meshes...
     #       Also, do not apply it to children objects.
     # TODO: Check whether this can work for bones too...
-    return (scene_data.settings.bake_space_transform and not isinstance(obj, (PoseBone, Bone)) and
+    return (scene_data.settings.bake_space_transform and isinstance(obj, Object) and
             obj.type in BLENDER_OBJECT_TYPES_MESHLIKE and not has_valid_parent(scene_data, obj))
 
 
@@ -2287,7 +2287,8 @@ def fbx_animations_objects_do(scene_data, ref_id, f_start, f_end, start_zero, ob
             del final_keys[grp]
 
         if final_keys:
-            animations[obj] = (get_blender_anim_layer_key(scene, obj), final_keys)
+            #animations[obj] = (get_blender_anim_layer_key(scene, obj), final_keys)
+            animations[obj] = ("dummy_unused_key", final_keys)
 
     astack_key = get_blender_anim_stack_key(scene, ref_id)
     alayer_key = get_blender_anim_layer_key(scene, ref_id)
@@ -2407,7 +2408,9 @@ def fbx_animations_objects(scene_data):
             if org_act is ...:
                 obj.animation_data_clear()
             else:
-                obj_copy.animation_data.action = org_act
+                obj.animation_data.action = org_act
+
+            bpy.data.objects.remove(obj_copy)
 
     # Global (containing everything) animstack.
     if not scene_data.settings.bake_anim_use_nla_strips or not animations:
@@ -2729,7 +2732,7 @@ def fbx_data_from_scene(scene, settings):
                 connections.append((b"OO", acurvenode_id, alayer_id, None))
                 # Animcurvenode -> object property.
                 connections.append((b"OP", acurvenode_id, obj_id, fbx_prop.encode()))
-                for fbx_item, (acurve_key, dafault_value, acurve, acurve_valid) in acurves.items():
+                for fbx_item, (acurve_key, default_value, acurve, acurve_valid) in acurves.items():
                     if acurve:
                         # Animcurve -> Animcurvenode.
                         connections.append((b"OP", get_fbxuid_from_key(acurve_key), acurvenode_id, fbx_item.encode()))
