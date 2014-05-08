@@ -2242,7 +2242,7 @@ def fbx_animations_objects_do(scene_data, ref_id, f_start, f_end, start_zero, ob
             if not isinstance(obj, Object):
                 continue
             if obj.type == 'ARMATURE':
-                objects |= set(vo.data.bones)
+                objects |= set(obj.data.bones)
             dupli_list_create(obj, scene, 'RENDER')
             objects |= {tuple(dup.persistent_id) for dup in obj.dupli_list if tuple(dup.persistent_id) in scene_data.objects}
             obj.dupli_list_clear()
