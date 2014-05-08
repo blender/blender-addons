@@ -2232,7 +2232,7 @@ def fbx_animations_simplify(scene_data, animdata):
         p_key_write[:] = [True] * len(p_key_write)
 
 
-def fbx_animations_objects_do(scene_data, ref_id, f_start, f_end, start_zero, objects=None):
+def fbx_animations_objects_do(scene_data, ref_id, f_start, f_end, start_zero, objects=None, force_keep=False):
     """
     Generate animation data (a single AnimStack) from objects, for a given frame range.
     """
@@ -2329,7 +2329,8 @@ def fbx_animations_objects_do(scene_data, ref_id, f_start, f_end, start_zero, ob
             if fbx_group not in final_keys:
                 fbx_group_key = get_blender_anim_curve_node_key(scene, ref_id, obj_key, fbx_group)
                 final_keys[fbx_group] = (fbx_group_key, OrderedDict(), fbx_gname)
-            final_keys[fbx_group][1][fbx_item] = (fbx_item_key, dtx[idx], c, True if len(c) > 1 else False)
+            final_keys[fbx_group][1][fbx_item] = (fbx_item_key, dtx[idx], c,
+                                                  True if (len(c) > 1 or (len(c) > 0 and force_keep)) else False)
         # And now, remove anim groups (i.e. groups of curves affecting a single FBX property) with no curve at all!
         del_groups = []
         for grp, (_k, data, _n) in final_keys.items():
@@ -2453,7 +2454,7 @@ def fbx_animations_objects(scene_data):
                 obj.animation_data.action = act
                 frame_start, frame_end = act.frame_range  # sic!
                 add_anim(animations,
-                         fbx_animations_objects_do(scene_data, (obj, act), frame_start, frame_end, True, {obj}))
+                         fbx_animations_objects_do(scene_data, (obj, act), frame_start, frame_end, True, {obj}, True))
                 # Ugly! :/
                 obj.animation_data.action = None if org_act is ... else org_act
                 restore_object(obj, obj_copy)
