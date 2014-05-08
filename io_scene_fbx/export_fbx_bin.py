@@ -2236,6 +2236,10 @@ def fbx_animations_objects_do(scene_data, ref_id, f_start, f_end, start_zero, ob
     """
     Generate animation data (a single AnimStack) from objects, for a given frame range.
     """
+    bake_step = scene_data.settings.bake_anim_step
+    scene = scene_data.scene
+    bone_map = scene_data.bones_to_posebones
+
     if objects is not None:
         # Add bones and duplis!
         for obj in tuple(objects):
@@ -2248,9 +2252,6 @@ def fbx_animations_objects_do(scene_data, ref_id, f_start, f_end, start_zero, ob
             obj.dupli_list_clear()
     else:
         objects = scene_data.objects.keys()
-    bake_step = scene_data.settings.bake_anim_step
-    scene = scene_data.scene
-    bone_map = scene_data.bones_to_posebones
 
     # FBX mapping info: Property affected, and name of the "sub" property (to distinguish e.g. vector's channels).
     fbx_names = (
