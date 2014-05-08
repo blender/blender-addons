@@ -274,7 +274,8 @@ def get_blender_empty_key(obj):
 
 def get_blender_dupli_key(dup):
     """Return dupli's key (Model only)."""
-    return "|".join((get_blenderID_key(dup.object), "Dupli", "".join(str(i) for i in dup.persistent_id)))
+    return "|".join((get_blenderID_key(dup.id_data), get_blenderID_key(dup.object), "Dupli",
+           "".join(str(i) for i in dup.persistent_id)))
 
 
 def get_blender_bone_key(armature, bone):
@@ -1016,6 +1017,9 @@ def dupli_list_create(obj, scene, settings='PREVIEW'):
         obj.dupli_list_create(scene, settings)
     except:
         pass
+
+def gen_dupli_key(dup):
+    return (dup.id_data,) + tuple(dup.persistent_id)
 
 
 def has_valid_parent(scene_data, obj):
@@ -1937,7 +1941,7 @@ def fbx_data_object_elements(root, obj, scene_data):
     obj_type = b"Null"  # default, sort of empty...
     tobj = obj
     if isinstance(obj, DupliObject):
-        obj_key = scene_data.objects[tuple(obj.persistent_id)][0]
+        obj_key = scene_data.objects[gen_dupli_key(obj)][0]
         obj = obj.object
     else:
         obj_key = scene_data.objects[obj]
@@ -2248,7 +2252,10 @@ def fbx_animations_objects_do(scene_data, ref_id, f_start, f_end, start_zero, ob
             if obj.type == 'ARMATURE':
                 objects |= set(obj.data.bones)
             dupli_list_create(obj, scene, 'RENDER')
-            objects |= {tuple(dup.persistent_id) for dup in obj.dupli_list if tuple(dup.persistent_id) in scene_data.objects}
+            for dup in obj.dupli_list:
+                dup_key = gen_dupli_key(dup)
+                if dup_key in scene_data.objects:
+                    objects.add(dup_key)
             obj.dupli_list_clear()
     else:
         objects = scene_data.objects.keys()
@@ -2275,7 +2282,7 @@ def fbx_animations_objects_do(scene_data, ref_id, f_start, f_end, start_zero, ob
             if not isinstance(obj, Object):
                 continue
             dupli_list_create(obj, scene, 'RENDER')
-            duplis.update((tuple(dup.persistent_id), dup) for dup in obj.dupli_list if tuple(dup.persistent_id) in objects)
+            duplis.update((gen_dupli_key(dup), dup) for dup in obj.dupli_list if gen_dupli_key(dup) in objects)
         for obj in objects:
             # Get PoseBone from bone...
             if isinstance(obj, Bone):
@@ -2522,7 +2529,7 @@ def fbx_data_from_scene(scene, settings):
     for obj in tuple(objects.keys()):
         dupli_list_create(obj, scene, 'RENDER')
         for dup in obj.dupli_list:
-            objects[tuple(dup.persistent_id)] = (get_blender_dupli_key(dup), dup.object, obj)
+            objects[gen_dupli_key(dup)] = (get_blender_dupli_key(dup), dup.object, obj)
         obj.dupli_list_clear()
 
     # Armatures!
@@ -2736,7 +2743,7 @@ def fbx_data_from_scene(scene, settings):
                 cam_key = data_cameras[obj]
                 connections.append((b"OO", get_fbxuid_from_key(cam_key), get_fbxuid_from_key(obj_key), None))
             elif obj.type == 'EMPTY':
-                empty_key = data_empties[obj.data]
+                empty_key = data_empties[obj]
                 connections.append((b"OO", get_fbxuid_from_key(empty_key), get_fbxuid_from_key(obj_key), None))
             elif obj.type in BLENDER_OBJECT_TYPES_MESHLIKE:
                 mesh_key, _me, _free = data_meshes[obj]
@@ -3019,7 +3026,8 @@ def fbx_objects_elements(root, scene_data):
         if isinstance(obj, Object):
             dupli_list_create(obj, scene_data.scene, 'RENDER')
             for dup in obj.dupli_list:
-                if tuple(dup.persistent_id) not in scene_data.objects:
+                dup_key = gen_dupli_key(dup)
+                if dup_key not in scene_data.objects:
                     continue
                 fbx_data_object_elements(objects, dup, scene_data)
             obj.dupli_list_clear()
