@@ -1206,7 +1206,9 @@ def parse_mesh( mesh, psk ):
                 mesh.data.vertices[dindex1].select = True
                 mesh.data.vertices[dindex2].select = True
 
-                raise Error("Normal coplanar with face! points:", mesh.data.vertices[dindex0].co, mesh.data.vertices[dindex1].co, mesh.data.vertices[dindex2].co)
+                raise Error("Normal coplanar with face! points: %s, %s, %s" % (str(mesh.data.vertices[dindex0].co),
+                                                                               str(mesh.data.vertices[dindex1].co),
+                                                                               str(mesh.data.vertices[dindex2].co)))
 
             face.select = True
             if face.use_smooth == True:
