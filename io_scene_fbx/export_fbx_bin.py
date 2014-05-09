@@ -1247,14 +1247,14 @@ def fbx_data_armature_elements(root, arm_obj, scene_data):
             elem_data_single_int32(fbx_pose, b"NbPoseNodes", 1 + len(arm_obj.bdata.data.bones))
 
             # First node is mesh/object.
-            mat_world_obj = obj.fbx_object_matrix(scene_data, global_space=True)
+            mat_world_obj = ob_obj.fbx_object_matrix(scene_data, global_space=True)
             fbx_posenode = elem_empty(fbx_pose, b"PoseNode")
-            elem_data_single_int64(fbx_posenode, b"Node", obj.fbx_uuid)
+            elem_data_single_int64(fbx_posenode, b"Node", ob_obj.fbx_uuid)
             elem_data_single_float64_array(fbx_posenode, b"Matrix", matrix_to_array(mat_world_obj))
             # And all bones of armature!
             mat_world_bones = {}
             for bo_obj in arm_obj.bones:
-                bomat = bo_obj.fbx_object_matrix(scene_data, global_space=True)
+                bomat = bo_obj.fbx_object_matrix(scene_data, rest=True, global_space=True)
                 mat_world_bones[bo_obj] = bomat
                 fbx_posenode = elem_empty(fbx_pose, b"PoseNode")
                 elem_data_single_int64(fbx_posenode, b"Node", bo_obj.fbx_uuid)
@@ -1522,7 +1522,7 @@ def fbx_skeleton_from_armature(scene, settings, arm_obj, objects, data_meshes,
         return
 
     for ob_obj in objects:
-        if not (ob_obj.is_object and ob_obj.type in {'MESH'} and ob_obj.parent == arm_obj):
+        if not (ob_obj.is_object and ob_obj.type == 'MESH' and ob_obj.parent == arm_obj):
             continue
 
         # Always handled by an Armature modifier...
@@ -1532,7 +1532,7 @@ def fbx_skeleton_from_armature(scene, settings, arm_obj, objects, data_meshes,
             if mod.type not in {'ARMATURE'}:
                 continue
             # We only support vertex groups binding method, not bone envelopes one!
-            if mod.object == arm_obj and mod.use_vertex_groups:
+            if mod.object == arm_obj.bdata and mod.use_vertex_groups:
                 found = True
                 break
 
