@@ -775,7 +775,7 @@ class landscape_add(bpy.types.Operator):
             # create mesh object
             obj = create_mesh_object(context, verts, [], faces, "Landscape")
             bpy.ops.object.mode_set(mode='EDIT')
-            bpy.ops.mesh.normals_make_consistent(inside=False)
+            bpy.ops.mesh.normals_make_consistent(inside=True)
             bpy.ops.object.mode_set(mode='OBJECT')
             # sphere, remove doubles
             if self.SphereMesh !=0:
