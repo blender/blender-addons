@@ -969,9 +969,8 @@ def load(operator, context, filepath="",
                    elem_props_get_integer(fbx_settings_props, b'UpAxisSign', 1))
         axis_coord = (elem_props_get_integer(fbx_settings_props, b'CoordAxis', 0),
                       elem_props_get_integer(fbx_settings_props, b'CoordAxisSign', 1))
-        print(axis_up, axis_forward, axis_coord)
-        axis_up, axis_forward = {v: k for k, v in RIGHT_HAND_AXES.items()}.get((axis_up, axis_forward, axis_coord), ('Z', 'Y'))
-        print(axis_up, axis_forward)
+        axis_key = (axis_up, axis_forward, axis_coord)
+        axis_up, axis_forward = {v: k for k, v in RIGHT_HAND_AXES.items()}.get(axis_key, ('Z', 'Y'))
         # FBX base unit seems to be the centimeter, while raw Blender Unit is equivalent to the meter...
         global_scale = elem_props_get_number(fbx_settings_props, b'UnitScaleFactor', 100.0) / 100.0
     global_matrix = (Matrix.Scale(global_scale, 4) *
