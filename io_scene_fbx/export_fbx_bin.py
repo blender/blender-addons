@@ -35,7 +35,7 @@ import bpy_extras
 from mathutils import Vector, Matrix
 
 from . import encode_bin, data_types
-from .export_fbx_bin_utils import (
+from .fbx_utils import (
     # Constants.
     FBX_VERSION, FBX_HEADER_VERSION, FBX_SCENEINFO_VERSION, FBX_TEMPLATES_VERSION,
     FBX_MODELS_VERSION,
