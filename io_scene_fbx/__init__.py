@@ -21,7 +21,7 @@
 bl_info = {
     "name": "Autodesk FBX format",
     "author": "Campbell Barton, Bastien Montagne",
-    "version": (3, 0, 0),
+    "version": (3, 1, 0),
     "blender": (2, 70, 0),
     "location": "File > Import-Export",
     "description": "Export FBX meshes, UV's, vertex colors, materials, "
@@ -69,26 +69,11 @@ class ImportFBX(bpy.types.Operator, ImportHelper):
     filename_ext = ".fbx"
     filter_glob = StringProperty(default="*.fbx", options={'HIDDEN'})
 
-    use_image_search = BoolProperty(
-        name="Image Search",
-        description="Search subdirs for any associated images (Warning, may be slow)",
-        default=True,
-    )
-
-    use_alpha_decals = BoolProperty(
-        name="Alpha Decals",
-        description="Treat materials with alpha as decals (no shadow casting)",
+    use_manual_orientation = BoolProperty(
+        name="Manual Orientation",
+        description="Specify orientation and scale, instead of using embeded data in FBX file",
         default=False,
-        options={'HIDDEN'}
     )
-    decal_offset = FloatProperty(
-        name="Decal Offset",
-        description="Displace geometry of alpha meshes",
-        min=0.0, max=1.0,
-        default=0.0,
-        options={'HIDDEN'}
-    )
-
     axis_forward = EnumProperty(
         name="Forward",
         items=(('X', "X Forward", ""),
@@ -117,21 +102,42 @@ class ImportFBX(bpy.types.Operator, ImportHelper):
         default=1.0,
     )
 
+    use_image_search = BoolProperty(
+        name="Image Search",
+        description="Search subdirs for any associated images (Warning, may be slow)",
+        default=True,
+    )
+
+    use_alpha_decals = BoolProperty(
+        name="Alpha Decals",
+        description="Treat materials with alpha as decals (no shadow casting)",
+        default=False,
+        options={'HIDDEN'}
+    )
+    decal_offset = FloatProperty(
+        name="Decal Offset",
+        description="Displace geometry of alpha meshes",
+        min=0.0, max=1.0,
+        default=0.0,
+        options={'HIDDEN'}
+    )
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.prop(self, "use_manual_orientation"),
+        sub = layout.column()
+        sub.enabled = self.use_manual_orientation
+        sub.prop(self, "axis_forward")
+        sub.prop(self, "axis_up")
+        sub.prop(self, "global_scale")
+
+        layout.prop(self, "use_image_search")
+        #layout.prop(self, "use_alpha_decals")
+        layout.prop(self, "decal_offset")
+
     def execute(self, context):
-        from mathutils import Matrix
-
-        keywords = self.as_keywords(ignore=("axis_forward",
-                                            "axis_up",
-                                            "global_scale",
-                                            "filter_glob",
-                                            "directory",
-                                            ))
-
-        global_matrix = (Matrix.Scale(self.global_scale, 4) *
-                         axis_conversion(from_forward=self.axis_forward,
-                                         from_up=self.axis_up,
-                                         ).to_4x4())
-        keywords["global_matrix"] = global_matrix
+        keywords = self.as_keywords(ignore=("filter_glob", "directory"))
         keywords["use_cycles"] = (context.scene.render.engine == 'CYCLES')
 
         from . import import_fbx

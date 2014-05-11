@@ -178,6 +178,24 @@ def elem_props_get_number(elem, elem_prop_id, default=None):
     return default
 
 
+def elem_props_get_integer(elem, elem_prop_id, default=None):
+    elem_prop = elem_props_find_first(elem, elem_prop_id)
+    if elem_prop is not None:
+        assert(elem_prop.props[0] == elem_prop_id)
+        if elem_prop.props[1] == b'int':
+            assert(elem_prop.props[1] == b'int')
+            assert(elem_prop.props[2] == b'Integer')
+        elif elem_prop.props[1] == b'ULongLong':
+            assert(elem_prop.props[1] == b'ULongLong')
+            assert(elem_prop.props[2] == b'')
+
+        # we could allow other number types
+        assert(elem_prop.props_type[4] in {data_types.INT32, data_types.INT64})
+
+        return elem_prop.props[4]
+    return default
+
+
 def elem_props_get_bool(elem, elem_prop_id, default=None):
     elem_prop = elem_props_find_first(elem, elem_prop_id)
     if elem_prop is not None:
@@ -873,7 +891,10 @@ def is_ascii(filepath, size):
 
 
 def load(operator, context, filepath="",
-         global_matrix=None,
+         use_manual_orientation=False,
+         axis_forward='-Z',
+         axis_up='Y',
+         global_scale=1.0,
          use_cycles=True,
          use_image_search=False,
          use_alpha_decals=False,
@@ -882,10 +903,12 @@ def load(operator, context, filepath="",
     global fbx_elem_nil
     fbx_elem_nil = FBXElem('', (), (), ())
 
-    global_scale = (sum(global_matrix.to_scale()) / 3.0) if global_matrix else 1.0
-
     import os
+    from bpy_extras.io_utils import axis_conversion
+    from mathutils import Matrix
+
     from . import parse_fbx
+    from .fbx_utils import RIGHT_HAND_AXES, FBX_FRAMERATES
 
     # detect ascii files
     if is_ascii(filepath, 24):
@@ -928,6 +951,43 @@ def load(operator, context, filepath="",
         material_decals = None
 
     scene = context.scene
+
+
+    #### Get some info from GlobalSettings.
+
+    fbx_settings = elem_find_first(elem_root, b'GlobalSettings')
+    fbx_settings_props = elem_find_first(fbx_settings, b'Properties70')
+    if fbx_settings is None or fbx_settings_props is None:
+        operator.report({'ERROR'}, "No 'GlobalSettings' found in file %r" % filepath)
+        return {'CANCELLED'}
+
+    # Compute global matrix and scale.
+    if not use_manual_orientation:
+        axis_forward = (elem_props_get_integer(fbx_settings_props, b'FrontAxis', 1),
+                        elem_props_get_integer(fbx_settings_props, b'FrontAxisSign', 1))
+        axis_up = (elem_props_get_integer(fbx_settings_props, b'UpAxis', 2),
+                   elem_props_get_integer(fbx_settings_props, b'UpAxisSign', 1))
+        axis_coord = (elem_props_get_integer(fbx_settings_props, b'CoordAxis', 0),
+                      elem_props_get_integer(fbx_settings_props, b'CoordAxisSign', 1))
+        print(axis_up, axis_forward, axis_coord)
+        axis_up, axis_forward = {v: k for k, v in RIGHT_HAND_AXES.items()}.get((axis_up, axis_forward, axis_coord), ('Z', 'Y'))
+        print(axis_up, axis_forward)
+        # FBX base unit seems to be the centimeter, while raw Blender Unit is equivalent to the meter...
+        global_scale = elem_props_get_number(fbx_settings_props, b'UnitScaleFactor', 100.0) / 100.0
+    global_matrix = (Matrix.Scale(global_scale, 4) *
+                     axis_conversion(from_forward=axis_forward, from_up=axis_up).to_4x4())
+
+    # Compute framerate settings.
+    custom_fps = elem_props_get_number(fbx_settings_props, b'CustomFrameRate', 25.0)
+    time_mode = elem_props_get_enum(fbx_settings_props, b'TimeMode')
+    real_fps = {eid: val for val, eid in FBX_FRAMERATES[1:]}.get(time_mode, custom_fps)
+    if real_fps < 0.0:
+        real_fps = 25.0
+    scene.render.fps = round(real_fps)
+    scene.render.fps_base = scene.render.fps / real_fps
+
+
+    #### And now, the "real" data.
 
     fbx_defs = elem_find_first(elem_root, b'Definitions')  # can be None
     fbx_nodes = elem_find_first(elem_root, b'Objects')

@@ -2240,11 +2240,14 @@ def fbx_header_elements(root, scene_data, time=None):
 
     ##### Start of GlobalSettings element.
     global_settings = elem_empty(root, b"GlobalSettings")
+    scene = scene_data.scene
 
     elem_data_single_int32(global_settings, b"Version", 1000)
 
     props = elem_properties(global_settings)
     up_axis, front_axis, coord_axis = RIGHT_HAND_AXES[scene_data.settings.to_axes]
+    # Currently not sure about that, but looks like default unit of FBX is cm...
+    scale_factor = (1.0 if scene.unit_settings.system == 'NONE' else scene.unit_settings.scale_length) * 100
     elem_props_set(props, "p_integer", b"UpAxis", up_axis[0])
     elem_props_set(props, "p_integer", b"UpAxisSign", up_axis[1])
     elem_props_set(props, "p_integer", b"FrontAxis", front_axis[0])
@@ -2253,15 +2256,15 @@ def fbx_header_elements(root, scene_data, time=None):
     elem_props_set(props, "p_integer", b"CoordAxisSign", coord_axis[1])
     elem_props_set(props, "p_integer", b"OriginalUpAxis", -1)
     elem_props_set(props, "p_integer", b"OriginalUpAxisSign", 1)
-    elem_props_set(props, "p_double", b"UnitScaleFactor", 1.0)
-    elem_props_set(props, "p_double", b"OriginalUnitScaleFactor", 1.0)
+    elem_props_set(props, "p_double", b"UnitScaleFactor", scale_factor)
+    elem_props_set(props, "p_double", b"OriginalUnitScaleFactor", scale_factor)
     elem_props_set(props, "p_color_rgb", b"AmbientColor", (0.0, 0.0, 0.0))
     elem_props_set(props, "p_string", b"DefaultCamera", "Producer Perspective")
 
     # Global timing data.
-    r = scene_data.scene.render
-    fps = r.fps / r.fps_base
-    fbx_fps, fbx_fps_mode = FBX_FRAMERATES[0]  # Custom framerate.
+    r = scene.render
+    _, fbx_fps_mode = FBX_FRAMERATES[0]  # Custom framerate.
+    fbx_fps = fps = r.fps / r.fps_base
     for ref_fps, fps_mode in FBX_FRAMERATES:
         if similar_values(fps, ref_fps):
             fbx_fps = ref_fps
