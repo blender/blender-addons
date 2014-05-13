@@ -71,7 +71,7 @@ class ImportFBX(bpy.types.Operator, ImportHelper):
 
     use_manual_orientation = BoolProperty(
         name="Manual Orientation",
-        description="Specify orientation and scale, instead of using embeded data in FBX file",
+        description="Specify orientation and scale, instead of using embedded data in FBX file",
         default=False,
     )
     axis_forward = EnumProperty(
