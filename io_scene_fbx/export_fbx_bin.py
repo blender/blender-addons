@@ -2100,7 +2100,7 @@ def fbx_data_from_scene(scene, settings):
                 # Only mats for meshes currently...
                 if ob_obj.type not in BLENDER_OBJECT_TYPES_MESHLIKE:
                     continue
-                me = ob_obj.bdata.data
+                _mesh_key, me, _free = data_meshes[ob_obj.bdata]
                 idx = _objs_indices[ob_obj] = _objs_indices.get(ob_obj, -1) + 1
                 mesh_mat_indices.setdefault(me, OrderedDict())[mat] = idx
     del _objs_indices
