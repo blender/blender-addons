@@ -447,6 +447,7 @@ class BrushButtonsPanel():
 class PaintPanel():
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'TOOLS'
+    bl_category = 'Tools'
 
     @staticmethod
     def paint_settings(context):
