@@ -2094,15 +2094,16 @@ def fbx_data_from_scene(scene, settings):
     for mat, (mat_key, ob_objs) in data_materials.items():
         for ob_obj in ob_objs:
             connections.append((b"OO", get_fbx_uuid_from_key(mat_key), ob_obj.fbx_uuid, None))
-            if ob_obj.is_object:
-                # Get index of this mat for this object.
-                # Mat indices for mesh faces are determined by their order in 'mat to ob' connections.
-                # Only mats for meshes currently...
-                if ob_obj.type not in BLENDER_OBJECT_TYPES_MESHLIKE:
-                    continue
-                _mesh_key, me, _free = data_meshes[ob_obj.bdata]
-                idx = _objs_indices[ob_obj] = _objs_indices.get(ob_obj, -1) + 1
-                mesh_mat_indices.setdefault(me, OrderedDict())[mat] = idx
+            # Get index of this mat for this object (or dupliobject).
+            # Mat indices for mesh faces are determined by their order in 'mat to ob' connections.
+            # Only mats for meshes currently...
+            # Note in case of dupliobjects a same me/mat idx will be generated several times...
+            # Should not be an issue in practice, and it's needed in case we export duplis but not the original!
+            if ob_obj.type not in BLENDER_OBJECT_TYPES_MESHLIKE:
+                continue
+            _mesh_key, me, _free = data_meshes[ob_obj.bdata]
+            idx = _objs_indices[ob_obj] = _objs_indices.get(ob_obj, -1) + 1
+            mesh_mat_indices.setdefault(me, OrderedDict())[mat] = idx
     del _objs_indices
 
     # Textures
