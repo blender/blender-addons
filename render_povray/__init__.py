@@ -28,8 +28,8 @@ bl_info = {
     "warning": "this script is RC",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
                 "Scripts/Render/POV-Ray",
-    "tracker_url": "https://developer.blender.org/T23145",
-    "category": "Render"}
+    "category": "Render",
+}
 
 if "bpy" in locals():
     import imp

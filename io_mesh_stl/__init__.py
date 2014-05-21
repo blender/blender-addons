@@ -27,10 +27,10 @@ bl_info = {
     "description": "Import-Export STL files",
     "warning": "",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
-        "Scripts/Import-Export/STL",
-    "tracker_url": "https://developer.blender.org/T22837",
+                "Scripts/Import-Export/STL",
     "support": 'OFFICIAL',
-    "category": "Import-Export"}
+    "category": "Import-Export",
+}
 
 
 # @todo write the wiki page

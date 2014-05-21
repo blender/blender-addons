@@ -25,9 +25,9 @@ bl_info = {
     "description": "Transfer data between 3D-Coat/Blender",
     "warning": "",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
-        "Scripts/Import-Export/3dcoat_applink",
-    "tracker_url": "https://developer.blender.org/T24446",
-    "category": "Import-Export"}
+                "Scripts/Import-Export/3dcoat_applink",
+    "category": "Import-Export",
+}
 
 
 if "bpy" in locals():

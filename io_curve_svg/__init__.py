@@ -26,10 +26,10 @@ bl_info = {
     "description": "Import SVG as curves",
     "warning": "",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
-        "Scripts/Import-Export/SVG",
-    "tracker_url": "https://developer.blender.org/T26166",
+                "Scripts/Import-Export/SVG",
     "support": 'OFFICIAL',
-    "category": "Import-Export"}
+    "category": "Import-Export",
+}
 
 
 # To support reload properly, try to access a package var,

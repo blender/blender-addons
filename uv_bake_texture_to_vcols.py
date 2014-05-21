@@ -39,9 +39,9 @@ bl_info = {
     "location": "3D View > Vertex Paint > Toolshelf > Bake",
     "warning": "Requires image texture, generated textures aren't supported.",
     "wiki_url": "http://wiki.blender.org/index.php?title=Extensions:2.6/Py/"
-        "Scripts/UV/Bake_Texture_to_Vertex_Colors",
-    "tracker_url": "https://developer.blender.org/T28211",
-    "category": "UV"}
+                "Scripts/UV/Bake_Texture_to_Vertex_Colors",
+    "category": "UV",
+}
 
 import bpy
 from bpy.props import BoolProperty, EnumProperty, FloatVectorProperty

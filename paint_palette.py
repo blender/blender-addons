@@ -28,9 +28,10 @@ bl_info = {
     "location": "Image Editor and 3D View > Any Paint mode > Color Palette or Weight Palette panel",
     "description": "Palettes for color and weight paint modes",
     "warning": "",
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts/Paint/Palettes",
-    "tracker_url": "https://developer.blender.org/T25908",
-    "category": "Paint"}
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
+                "Scripts/Paint/Palettes",
+    "category": "Paint",
+}
 
 """
 This addon brings palettes to the paint modes.

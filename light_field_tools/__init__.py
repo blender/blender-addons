@@ -26,8 +26,7 @@ bl_info = {
     "location": "View3D > Tool Shelf > Light Field Tools",
     "url": "http://www.jku.at/cg/",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
-        "Scripts/Render/Light_Field_Tools",
-    "tracker_url": "https://developer.blender.org/T25719",
+                "Scripts/Render/Light_Field_Tools",
     "category": "Render"
 }
 

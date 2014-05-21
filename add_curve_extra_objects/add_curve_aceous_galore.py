@@ -17,17 +17,17 @@
 # ##### END GPL LICENSE BLOCK #####
 '''
 bl_info = {
-    'name': 'Curveaceous Galore!',
-    'author': 'Jimmy Hazevoet, testscreenings',
-    'version': (0, 2),
+    "name": "Curveaceous Galore!",
+    "author": "Jimmy Hazevoet, testscreenings",
+    "version": (0, 2),
     "blender": (2, 59, 0),
-    'location': 'View3D > Add > Curve',
-    'description': 'Adds many different types of Curves',
-    'warning': '', # used for warning icon and text in addons panel
-    'wiki_url': 'http://wiki.blender.org/index.php/Extensions:2.6/Py/'
-        'Scripts/Curve/Curves_Galore',
-    'tracker_url': 'https://developer.blender.org/T22404',
-    'category': 'Add Curve'}
+    "location": "View3D > Add > Curve",
+    "description": "Adds many different types of Curves",
+    "warning": "", # used for warning icon and text in addons panel
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
+                "Scripts/Curve/Curves_Galore",
+    "category": "Add Curve",
+}
 '''
 
 

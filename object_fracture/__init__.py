@@ -25,9 +25,9 @@ bl_info = {
     "description": "Fractured Object, Bomb, Projectile, Recorder",
     "warning": "",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
-        "Scripts/Object/Fracture",
-    "tracker_url": "https://developer.blender.org/T21793",
-    "category": "Object"}
+                "Scripts/Object/Fracture",
+    "category": "Object",
+}
 
 
 if "bpy" in locals():

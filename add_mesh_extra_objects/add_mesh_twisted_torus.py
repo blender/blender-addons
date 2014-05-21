@@ -29,9 +29,9 @@ bl_info = {
     "description": "Adds a mesh Twisted Torus to the Add Mesh menu",
     "warning": "",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"
-        "Scripts/Add_Mesh/Add_Twisted_Torus",
-    "tracker_url": "https://developer.blender.org/T21622",
-    "category": "Add Mesh"}
+                "Scripts/Add_Mesh/Add_Twisted_Torus",
+    "category": "Add Mesh",
+}
 
 Usage:
 

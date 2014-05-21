@@ -28,7 +28,6 @@ bl_info = {
         "(update main po files, update scripts' translations, etc.)",
     "warning": "Still in development, not all features are fully implemented yet!",
     "wiki_url": "http://wiki.blender.org/index.php/Dev:Doc/How_to/Translate_Blender",
-    "tracker_url": "",
     "support": 'OFFICIAL',
     "category": "System"}
 

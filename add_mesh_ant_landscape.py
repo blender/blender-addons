@@ -25,9 +25,9 @@ bl_info = {
     "description": "Add a landscape primitive",
     "warning": "", # used for warning icon and text in addons panel
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
-        "Scripts/Add_Mesh/ANT_Landscape",
-    "tracker_url": "https://developer.blender.org/T23130",
-    "category": "Add Mesh"}
+                "Scripts/Add_Mesh/ANT_Landscape",
+    "category": "Add Mesh",
+}
 
 """
 Another Noise Tool: Landscape mesh generator

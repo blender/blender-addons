@@ -19,18 +19,18 @@
 # <pep8 compliant>
 
 bl_info = {
-    'name': "F2",
-    'author': "Bart Crouch, Alexander Nedovizin, Paul Kotelevets "\
-        "(concept design)",
-    'version': (1, 7, 2),
-    'blender': (2, 70, 0),
-    'location': "Editmode > F",
-    'warning': "",
-    'description': "Extends the 'Make Edge/Face' functionality",
-    'wiki_url': "http://wiki.blender.org/index.php/Extensions:2.6/Py/"\
-        "Scripts/Modeling/F2",
-    'tracker_url': "https://developer.blender.org/T33979",
-    'category': 'Mesh'}
+    "name": "F2",
+    "author": "Bart Crouch, Alexander Nedovizin, Paul Kotelevets "
+              "(concept design)",
+    "version": (1, 7, 2),
+    "blender": (2, 70, 0),
+    "location": "Editmode > F",
+    "warning": "",
+    "description": "Extends the 'Make Edge/Face' functionality",
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
+                "Scripts/Modeling/F2",
+    "category": "Mesh",
+}
 
 
 import bmesh

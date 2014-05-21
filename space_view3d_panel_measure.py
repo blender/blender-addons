@@ -24,18 +24,18 @@
 
 bl_info = {
     "name": "Measure Panel",
-    "author": "Buerbaum Martin (Pontiac), TNae (Normal patch)," \
-        " Benjamin Lauritzen (Loonsbury; Volume code)," \
-        " Alessandro Sala (patch: Units in 3D View)",
+    "author": "Buerbaum Martin (Pontiac), TNae (Normal patch), "
+              "Benjamin Lauritzen (Loonsbury; Volume code), "
+              "Alessandro Sala (patch: Units in 3D View) ",
     "version": (0, 9, 0),
     "blender": (2, 60, 0),
     "location": "View3D > Properties > Measure Panel",
     "description": "Measure distances between objects",
     "warning": "Script needs repairs",
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/" \
-        "Scripts/3D_interaction/Panel_Measure",
-    "tracker_url": "https://developer.blender.org/T21445",
-    "category": "3D View"}
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
+                "Scripts/3D_interaction/Panel_Measure",
+    "category": "3D View",
+}
 
 """
 Measure panel

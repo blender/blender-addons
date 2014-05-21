@@ -27,7 +27,6 @@ bl_info = {
     "warning": "",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
                 "Scripts/Modeling/PrintToolbox",
-    "tracker_url": "",
     "support": 'OFFICIAL',
     "category": "Mesh"}
 

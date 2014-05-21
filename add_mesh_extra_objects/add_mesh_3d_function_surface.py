@@ -25,8 +25,7 @@ bl_info = {
     "description": "Create Objects using Math Formulas",
     "warning": "",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"
-        "Scripts/Add_Mesh/Add_3d_Function_Surface",
-    "tracker_url": "https://developer.blender.org/T21444",
+                "Scripts/Add_Mesh/Add_3d_Function_Surface",
     "category": "Add Mesh"}
 '''
 

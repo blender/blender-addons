@@ -24,9 +24,10 @@ bl_info = {
     "blender": (2, 65, 0),
     "location": "View3D > Toolshelf > Edit Linked Library",
     "description": "Allows editing of objects linked from a .blend library.",
-    "wiki_url": "http://wiki.blender.org/index.php?title=Extensions:2.6/Py/Scripts/Object/Edit_Linked_Library",
-    "tracker_url": "https://developer.blender.org/T29630",
-    "category": "Object"}
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
+                "Scripts/Object/Edit_Linked_Library",
+    "category": "Object",
+}
 
 
 import bpy

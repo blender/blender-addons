@@ -28,10 +28,10 @@ bl_info = {
     "location": "Properties > Scene > Blend Info Panel",
     "description": "Show information about the .blend",
     "warning": "",
-    "wiki_url": 'http://wiki.blender.org/index.php/Extensions:2.6/Py/' \
-        'Scripts/System/Blend Info',
-    "tracker_url": "https://developer.blender.org/T22102",
-    "category": "System"}
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
+                "Scripts/System/Blend Info",
+    "category": "System",
+}
 
 import bpy
 

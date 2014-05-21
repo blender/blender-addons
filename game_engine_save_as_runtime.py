@@ -17,17 +17,17 @@
 # ##### END GPL LICENSE BLOCK #####
 
 bl_info = {
-    'name': 'Save As Game Engine Runtime',
-    'author': 'Mitchell Stokes (Moguri)',
-    'version': (0, 3, 1),
+    "name": "Save As Game Engine Runtime",
+    "author": "Mitchell Stokes (Moguri)",
+    "version": (0, 3, 1),
     "blender": (2, 61, 0),
-    'location': 'File > Export',
-    'description': 'Bundle a .blend file with the Blenderplayer',
-    'warning': '',
-    'wiki_url': 'http://wiki.blender.org/index.php/Extensions:2.6/Py/'\
-        'Scripts/Game_Engine/Save_As_Runtime',
-    'tracker_url': 'https://developer.blender.org/T23564',
-    'category': 'Game Engine'}
+    "location": "File > Export",
+    "description": "Bundle a .blend file with the Blenderplayer",
+    "warning": "",
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
+                "Scripts/Game_Engine/Save_As_Runtime",
+    "category": "Game Engine",
+}
 
 import bpy
 import os

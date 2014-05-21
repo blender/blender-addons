@@ -25,9 +25,9 @@ bl_info = {
     "description": "Simplifies 3D Curve objects and animation F-Curves",
     "warning": "",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
-        "Scripts/Curve/Curve_Simplify",
-    "tracker_url": "https://developer.blender.org/T22327",
-    "category": "Add Curve"}
+                "Scripts/Curve/Curve_Simplify",
+    "category": "Add Curve",
+}
 
 """
 This script simplifies Curve objects and animation F-Curves.

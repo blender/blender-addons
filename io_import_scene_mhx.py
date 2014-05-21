@@ -36,16 +36,16 @@ Alternatively, run the script in the script editor (Alt-P), and access from the 
 """
 
 bl_info = {
-    'name': 'Import: MakeHuman (.mhx)',
-    'author': 'Thomas Larsson',
-    'version': "1.16.12",
+    "name": "Import: MakeHuman (.mhx)",
+    "author": "Thomas Larsson",
+    "version": "1.16.12",
     "blender": (2, 68, 0),
-    'location': "File > Import > MakeHuman (.mhx)",
-    'description': 'Import files in the MakeHuman eXchange format (.mhx)',
-    'warning': '',
-    'wiki_url': 'http://www.makehuman.org/documentation',
-    'tracker_url': 'https://developer.blender.org/T21872',
-    'category': 'Import-Export'}
+    "location": "File > Import > MakeHuman (.mhx)",
+    "description": "Import files in the MakeHuman eXchange format (.mhx)",
+    "warning": "",
+    "wiki_url": "http://www.makehuman.org/documentation",
+    "category": "Import-Export",
+}
 
 MAJOR_VERSION = 1
 MINOR_VERSION = 16

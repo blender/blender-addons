@@ -25,9 +25,9 @@ bl_info = {
     "description": "Adds various gemstone (Diamond & Gem) meshes.",
     "warning": "",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"
-        "Scripts/Add_Mesh/Add_Gemstones",
-    "tracker_url": "https://developer.blender.org/T21432",
-    "category": "Add Mesh"}
+                "Scripts/Add_Mesh/Add_Gemstones",
+    "category": "Add Mesh",
+}
 '''
 import bpy
 from mathutils import *

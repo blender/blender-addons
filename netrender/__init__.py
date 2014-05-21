@@ -27,9 +27,9 @@ bl_info = {
     "description": "Distributed rendering for Blender",
     "warning": "Stable but still work in progress",
     "wiki_url": "http://wiki.blender.org/index.php/Doc:2.5/Manual/"
-        "Render/Engines/Netrender",
-    "tracker_url": "https://developer.blender.org/T36513",
-    "category": "Render"}
+                "Render/Engines/Netrender",
+    "category": "Render",
+}
 
 
 # To support reload properly, try to access a package var, if it's there, reload everything

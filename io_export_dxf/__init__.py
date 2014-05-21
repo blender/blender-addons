@@ -25,8 +25,8 @@ bl_info = {
     "warning": "Under construction! Visit Wiki for details.",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
         "Scripts/Import-Export/DXF_Exporter",
-    "tracker_url": "https://developer.blender.org/T28469",
-    "category": "Import-Export"}
+    "category": "Import-Export",
+}
 
 
 import bpy

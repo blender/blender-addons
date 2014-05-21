@@ -28,9 +28,9 @@ bl_info = {
     "description": "Adds a mesh Gear to the Add Mesh menu",
     "warning": "",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"
-        "Scripts/Add_Mesh/Add_Gear",
-    "tracker_url": "https://developer.blender.org/T21732",
-    "category": "Add Mesh"}
+                "Scripts/Add_Mesh/Add_Gear",
+    "category": "Add Mesh",
+}
 '''
 
 import bpy

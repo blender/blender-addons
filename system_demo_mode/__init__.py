@@ -27,7 +27,6 @@ bl_info = {
     "warning": "",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
                 "Scripts/System/Demo_Mode#Running_Demo_Mode",
-    "tracker_url": "",
     "support": 'OFFICIAL',
     "category": "System"}
 

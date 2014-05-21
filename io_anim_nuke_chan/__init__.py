@@ -27,9 +27,9 @@ bl_info = {
     "description": "Import/Export object's animation with nuke",
     "warning": "",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
-        "Scripts/Import-Export/Nuke",
-    "tracker_url": "https://developer.blender.org/T28368",
-    "category": "Import-Export"}
+                "Scripts/Import-Export/Nuke",
+    "category": "Import-Export",
+}
 
 
 # To support reload properly, try to access a package var,

@@ -28,10 +28,9 @@ bl_info = {
     "location": "File > Export > Adobe After Effects (.jsx)",
     "warning": "",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
-        "Scripts/Import-Export/Adobe_After_Effects",
-    "tracker_url": "https://developer.blender.org/T29858",
+                "Scripts/Import-Export/Adobe_After_Effects",
     "category": "Import-Export",
-    }
+}
 
 
 import bpy

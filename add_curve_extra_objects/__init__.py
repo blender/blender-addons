@@ -27,8 +27,7 @@ bl_info = {
     "description": "Add extra curve object types",
     "warning": "",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
-        "Scripts/Curve/Curve_Objects",
-    "tracker_url": "https://developer.blender.org/T32477",
+                "Scripts/Curve/Curve_Objects",
     "category": "Add Curve"}
 
 

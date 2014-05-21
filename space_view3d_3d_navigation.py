@@ -30,9 +30,9 @@ bl_info = {
     "description": "Navigate the Camera & 3D View from the Toolshelf",
     "warning": "",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
-        "Scripts/3D_interaction/3D_Navigation",
-    "tracker_url": "https://developer.blender.org/T23530",
-    "category": "3D View"}
+                "Scripts/3D_interaction/3D_Navigation",
+    "category": "3D View",
+}
 
 # import the basic library
 import bpy

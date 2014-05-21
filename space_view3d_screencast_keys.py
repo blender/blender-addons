@@ -28,9 +28,9 @@ bl_info = {
     "description": "Display keys pressed in the 3D View, "
        "useful for screencasts.",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
-        "Scripts/3D_interaction/Screencast_Key_Status_Tool",
-    "tracker_url": "https://developer.blender.org/T21612",
-    "category": "3D View"}
+                "Scripts/3D_interaction/Screencast_Key_Status_Tool",
+    "category": "3D View",
+}
 
 import bgl
 import blf

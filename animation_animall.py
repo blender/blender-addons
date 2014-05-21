@@ -17,16 +17,17 @@
 # ##### END GPL LICENSE BLOCK #####
 
 bl_info = {
-    'name': 'AnimAll',
-    'author': 'Daniel Salazar <zanqdo@gmail.com>',
-    'version': (0, 7),
+    "name": "AnimAll",
+    "author": "Daniel Salazar <zanqdo@gmail.com>",
+    "version": (0, 7),
     "blender": (2, 69, 7),
-    'location': 'Tool bar > Animation tab > AnimAll',
-    'description': 'Allows animation of mesh, lattice, curve and surface data',
-    'warning': '',
-    'wiki_url': 'http://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts/Animation/AnimAll',
-    'tracker_url': 'https://developer.blender.org/T24874',
-    'category': 'Animation'}
+    "location": "Tool bar > Animation tab > AnimAll",
+    "description": "Allows animation of mesh, lattice, curve and surface data",
+    "warning": "",
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
+                "Scripts/Animation/AnimAll",
+    "category": "Animation",
+}
 
 """-------------------------------------------------------------------------
 Thanks to Campbell Barton and Joshua Leung for hes API additions and fixes

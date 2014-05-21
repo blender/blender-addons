@@ -26,9 +26,9 @@ bl_info = {
     "description": "Add a regular solid",
     "warning": "",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
-        "Scripts/Add_Mesh/Add_Solid",
-    "tracker_url": "https://developer.blender.org/T22405",
-    "category": "Add Mesh"}
+                "Scripts/Add_Mesh/Add_Solid",
+    "category": "Add Mesh",
+}
 
 import bpy
 from bpy.props import FloatProperty,EnumProperty,BoolProperty

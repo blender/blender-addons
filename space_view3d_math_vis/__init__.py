@@ -26,10 +26,10 @@ bl_info = {
     "location": "View3D > Tool Shelf or Console",
     "description": "Display console defined mathutils variables in the 3D view",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
-        "Scripts/3D_interaction/Math_Viz",
-    "tracker_url": "https://developer.blender.org/T25545",
+                "Scripts/3D_interaction/Math_Viz",
     "support": "OFFICIAL",
-    "category": "3D View"}
+    "category": "3D View",
+}
 
 
 if "bpy" in locals():

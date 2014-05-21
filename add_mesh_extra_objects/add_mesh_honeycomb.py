@@ -24,8 +24,10 @@ bl_info = {
     "location": "View3D > Add > Mesh > HoneyComb",
     "description": "Adds HoneyComb Mesh",
     "warning": "",
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/Scripts/Add_Mesh/HoneyComb",
-    "category": "Add Mesh"}
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"
+                "Scripts/Add_Mesh/HoneyComb",
+    "category": "Add Mesh",
+}
 '''
 from math import pi, sin, cos
 

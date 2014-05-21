@@ -28,7 +28,6 @@ bl_info = {
     "warning": "",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
                 "Scripts/Import-Export/Autodesk_3DS",
-    "tracker_url": "",
     "support": 'OFFICIAL',
     "category": "Import-Export"}
 

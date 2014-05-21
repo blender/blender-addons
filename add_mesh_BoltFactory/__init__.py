@@ -24,9 +24,9 @@ bl_info = {
     "location": "View3D > Add > Mesh",
     "description": "Add a bolt or nut",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
-        "Scripts/Add_Mesh/BoltFactory",
-    "tracker_url": "https://developer.blender.org/T22842",
-    "category": "Add Mesh"}
+                "Scripts/Add_Mesh/BoltFactory",
+    "category": "Add Mesh",
+}
 
 
 if "bpy" in locals():

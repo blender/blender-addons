@@ -26,9 +26,9 @@ bl_info = {
     "description": "Send .blend as session to http://www.renderfarm.fi to render",
     "warning": "",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"
-        "Scripts/Render/Renderfarm.fi",
-    "tracker_url": "https://developer.blender.org/T22927",
-    "category": "Render"}
+                "Scripts/Render/Renderfarm.fi",
+    "category": "Render",
+}
 
 """
 Copyright 2009-2013 Laurea University of Applied Sciences

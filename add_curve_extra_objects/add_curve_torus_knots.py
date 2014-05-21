@@ -26,8 +26,7 @@ bl_info = {
     "description": "Adds many types of (torus) knots",
     "warning": "",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
-        "Scripts/Curve/Torus_Knot",
-    "tracker_url": "https://developer.blender.org/T22403",
+                "Scripts/Curve/Torus_Knot",
     "category": "Add Curve"}
 '''
 

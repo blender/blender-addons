@@ -29,8 +29,8 @@ bl_info = {
     "warning": "",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
                 "Scripts/3D interaction/Materials Utils",
-    "tracker_url": "https://developer.blender.org/T22140",
-    "category": "Material"}
+    "category": "Material",
+}
 
 """
 This script has several functions and operators, grouped for convenience:

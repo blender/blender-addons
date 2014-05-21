@@ -20,19 +20,18 @@
 
 
 bl_info = {
-    'name': 'Icons',
-    'author': 'Crouch, N.tox, PKHG, Campbell Barton, Dany Lebel',
-    'version': (1, 5, 2),
+    "name": "Icons",
+    "author": "Crouch, N.tox, PKHG, Campbell Barton, Dany Lebel",
+    "version": (1, 5, 2),
     "blender": (2, 57, 0),
-    'location': 'Text Editor > Properties or '\
-        'Console > Console Menu',
-    'warning': '',
-    'description': 'Click an icon to display its name and copy it '\
-        'to the clipboard',
-    'wiki_url': 'http://wiki.blender.org/index.php/Extensions:2.6/'\
-        'Py/Scripts/System/Display_All_Icons',
-    'tracker_url': 'https://developer.blender.org/T22011',
-    'category': 'Development'}
+    "location": "Text Editor > Properties or " "Console > Console Menu",
+    "warning": "",
+    "description": "Click an icon to display its name and "
+                   "copy it to the clipboard",
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/"
+                "Py/Scripts/System/Display_All_Icons",
+    "category": "Development",
+}
 
 
 import bpy

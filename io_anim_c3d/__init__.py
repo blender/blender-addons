@@ -30,9 +30,9 @@ bl_info = {
     "location": "File > Import",
     "description": "Imports C3D Graphics Lab Motion Capture files",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
-        "Scripts/Import-Export/C3D_Importer",
-    "tracker_url": "https://developer.blender.org/T29061",
-    "category": 'Import-Export'}
+                "Scripts/Import-Export/C3D_Importer",
+    "category": 'Import-Export',
+}
 
 
 import bpy

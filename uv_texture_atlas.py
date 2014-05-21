@@ -24,9 +24,10 @@ bl_info = {
     "blender": (2, 67, 0),
     "location": "Properties > Render",
     "description": "A simple Texture Atlas for unwrapping many objects. It creates additional UV",
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts/UV/TextureAtlas",
-    "tracker_url": "https://developer.blender.org/T32494",
-    "category": "UV"}
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
+                "Scripts/UV/TextureAtlas",
+    "category": "UV",
+}
 
 import bpy
 from bpy.types import (Operator,

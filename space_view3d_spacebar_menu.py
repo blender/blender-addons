@@ -27,9 +27,9 @@ bl_info = {
     "description": "Context Sensitive Spacebar Menu",
     "warning": "",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
-        "Scripts/3D_interaction/Dynamic_Spacebar_Menu",
-    "tracker_url": "https://developer.blender.org/T22060",
-    "category": "3D View"}
+                "Scripts/3D_interaction/Dynamic_Spacebar_Menu",
+    "category": "3D View",
+}
 
 import bpy
 from bpy import *

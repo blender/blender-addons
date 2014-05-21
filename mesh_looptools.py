@@ -25,9 +25,9 @@ bl_info = {
     "warning": "",
     "description": "Mesh modelling toolkit. Several tools to aid modelling",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
-        "Scripts/Modeling/LoopTools",
-    "tracker_url": "https://developer.blender.org/T26189",
-    "category": "Mesh"}
+                "Scripts/Modeling/LoopTools",
+    "category": "Mesh",
+}
 
 
 import bmesh

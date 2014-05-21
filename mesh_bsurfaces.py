@@ -25,8 +25,8 @@ bl_info = {
     "location": "View3D > EditMode > ToolShelf",
     "description": "Modeling and retopology tool.",
     "wiki_url": "http://wiki.blender.org/index.php/Dev:Ref/Release_Notes/2.64/Bsurfaces_1.5",
-    "tracker_url": "https://developer.blender.org/T26642",
-    "category": "Mesh"}
+    "category": "Mesh",
+}
 
 
 import bpy
@@ -3308,15 +3308,11 @@ class GPENCIL_OT_SURFSK_edit_strokes(bpy.types.Operator):
         return {"FINISHED"}
 
 
-
-
 class CURVE_OT_SURFSK_reorder_splines(bpy.types.Operator):
     bl_idname = "curve.surfsk_reorder_splines"
     bl_label = "Bsurfaces reorder splines"
-    bl_description = "Defines the order of the splines by using grease pencil strokes."
+    bl_description = "Defines the order of the splines by using grease pencil strokes"
     bl_options = {'REGISTER', 'UNDO'}
-
-
 
     def execute(self, context):
         objects_to_delete = []

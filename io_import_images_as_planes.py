@@ -25,9 +25,10 @@ bl_info = {
     "description": "Imports images and creates planes with the appropriate aspect ratio. "
                    "The images are mapped to the planes.",
     "warning": "",
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts/Add_Mesh/Planes_from_Images",
-    "tracker_url": "https://developer.blender.org/T21751",
-    "category": "Import-Export"}
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
+                "Scripts/Add_Mesh/Planes_from_Images",
+    "category": "Import-Export",
+}
 
 import bpy
 from bpy.types import Operator

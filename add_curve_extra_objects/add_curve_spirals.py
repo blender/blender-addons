@@ -6,10 +6,12 @@
     "blender": (2, 62, 0),
     "location": "View3D > Add > Curve",
     "warning": "", # used for warning icon and text in addons panel
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.4/Py/Scripts/Object/Spirals",
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.4/Py/"
+                "Scripts/Object/Spirals",
     "tracker_url": "http://alexvaqp.googlepages.com?"
                    "func=detail&aid=<number>",
-    "category": "Add Curve"}
+    "category": "Add Curve",
+}
 '''
 import bpy, time
 from bpy.props import *

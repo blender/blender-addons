@@ -25,7 +25,6 @@ bl_info = {
     "description": "Upload your model to Sketchfab",
     "warning": "",
     "wiki_url": "",
-    "tracker_url": "",
     "category": "Import-Export"
 }
 

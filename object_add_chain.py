@@ -26,8 +26,8 @@ bl_info = {
     "warning": "",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
         "Scripts/Object/Add_Chain",
-    "tracker_url": "https://developer.blender.org/T22203",
-    "category": "Object"}
+    "category": "Object",
+}
 
 import bpy
 

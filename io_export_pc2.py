@@ -25,8 +25,7 @@ bl_info = {
     "description": "Export mesh Pointcache data (.pc2)",
     "warning": "",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
-        "Scripts/Import-Export/PC2_Pointcache_export",
-    "tracker_url": "",
+                "Scripts/Import-Export/PC2_Pointcache_export",
     "category": "Import-Export"}
 
 """

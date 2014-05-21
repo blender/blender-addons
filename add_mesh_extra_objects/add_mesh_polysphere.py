@@ -25,8 +25,7 @@ bl_info = {
     "description": "Adds a PolySphere (all quads) for sculpting",
     "warning": "",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"
-        "Scripts/Add_Mesh/Add_PolySphere",
-    "tracker_url": "",
+                "Scripts/Add_Mesh/Add_PolySphere",
     "category": "Add Mesh"}
 '''
 

@@ -28,9 +28,9 @@ bl_info = {
     "description": "Allows exploration of the python api via the user interface",
     "warning": "",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
-        "Scripts/Text_Editor/API_Navigator",
-    "tracker_url": "https://developer.blender.org/T24982",
-    "category": "Development"}
+                "Scripts/Text_Editor/API_Navigator",
+    "category": "Development",
+}
 
 """
     You can browse through the tree structure of the api. Each child object appears in a list

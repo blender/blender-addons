@@ -30,9 +30,9 @@ bl_info = {
     "location": "File > Import-Export",
     "description": "Imports Acclaim Skeleton and Motion Capture Files",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
-        "Scripts/Import-Export/Acclaim_Importer",
-    "tracker_url": "https://developer.blender.org/T27127",
-    "category": "Import-Export"}
+                "Scripts/Import-Export/Acclaim_Importer",
+    "category": "Import-Export",
+}
 
 
 import re

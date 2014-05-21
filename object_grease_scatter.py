@@ -31,9 +31,9 @@ bl_info = {
     "warning": "",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
                 "Scripts/Object/Grease_Scatter",
-    "tracker_url": "https://developer.blender.org",
     "support": 'OFFICIAL',
-    "category": "Object"}
+    "category": "Object",
+}
 
 from mathutils import Vector, Matrix, Quaternion
 from random import uniform, shuffle
