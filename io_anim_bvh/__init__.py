@@ -191,8 +191,8 @@ class ExportBVH(bpy.types.Operator, ExportHelper):
             default='NATIVE',
             )
     root_transform_only = BoolProperty(
-            name="Root Transform Only",
-            description="Only write out transform channels for the root bone",
+            name="Root Translation Only",
+            description="Only write out translation channels for the root bone",
             default=False,
             )
 
