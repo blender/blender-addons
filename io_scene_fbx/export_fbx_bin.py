@@ -65,8 +65,7 @@ from .fbx_utils import (
     elem_data_single_float32, elem_data_single_float64,
     elem_data_single_bytes, elem_data_single_string, elem_data_single_string_unicode,
     elem_data_single_bool_array, elem_data_single_int32_array, elem_data_single_int64_array,
-    elem_data_single_float32_array, elem_data_single_float64_array,
-    elem_data_single_byte_array, elem_data_vec_float64,
+    elem_data_single_float32_array, elem_data_single_float64_array, elem_data_vec_float64,
     # FBX element properties.
     elem_properties, elem_props_set, elem_props_compound,
     # FBX element properties handling templates.
@@ -1186,18 +1185,29 @@ def fbx_data_video_elements(root, vid, scene_data):
 
     elem_data_single_string(fbx_vid, b"Type", b"Clip")
     # XXX No Version???
+
+    tmpl = elem_props_template_init(scene_data.templates, b"Video")
+    props = elem_properties(fbx_vid)
+    elem_props_template_set(tmpl, props, "p_string_url", b"Path", fname_abs)
+    elem_props_template_finalize(tmpl, props)
+
+    elem_data_single_int32(fbx_vid, b"UseMipMap", 0)
     elem_data_single_string_unicode(fbx_vid, b"FileName", fname_abs)
     elem_data_single_string_unicode(fbx_vid, b"RelativeFilename", fname_rel)
 
     if scene_data.settings.media_settings.embed_textures:
-        try:
-            with open(vid.filepath, 'br') as f:
-                elem_data_single_byte_array(fbx_vid, b"Content", f.read())
-        except Exception as e:
-            print("WARNING: embeding file {} failed ({})".format(vid.filepath, e))
-            elem_data_single_byte_array(fbx_vid, b"Content", b"")
+        if vid.packed_file is not None:
+            elem_data_single_bytes(fbx_vid, b"Content", vid.packed_file.data)
+        else:
+            filepath = bpy.path.abspath(vid.filepath)
+            try:
+                with open(filepath, 'br') as f:
+                    elem_data_single_bytes(fbx_vid, b"Content", f.read())
+            except Exception as e:
+                print("WARNING: embedding file {} failed ({})".format(filepath, e))
+                elem_data_single_bytes(fbx_vid, b"Content", b"")
     else:
-        elem_data_single_byte_array(fbx_vid, b"Content", b"")
+        elem_data_single_bytes(fbx_vid, b"Content", b"")
 
 
 def fbx_data_armature_elements(root, arm_obj, scene_data):
