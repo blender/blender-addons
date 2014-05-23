@@ -1929,6 +1929,8 @@ def fbx_data_from_scene(scene, settings):
         # If obj is not a valid object for materials, wrapper will just return an empty tuple...
         for mat_s in ob_obj.material_slots:
             mat = mat_s.material
+            if mat is None:
+                continue  # Empty slots!
             # Note theoretically, FBX supports any kind of materials, even GLSL shaders etc.
             # However, I doubt anything else than Lambert/Phong is really portable!
             # We support any kind of 'surface' shader though, better to have some kind of default Lambert than nothing.
