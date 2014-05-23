@@ -1840,6 +1840,9 @@ def fbx_animations_objects(scene_data):
     if not scene_data.settings.bake_anim_use_nla_strips or not animations:
         add_anim(animations, fbx_animations_objects_do(scene_data, None, scene.frame_start, scene.frame_end, False))
 
+    # Be sure to update all matrices back to org state!
+    scene.frame_set(scene.frame_current, 0.0)
+
     return animations, frame_start, frame_end
 
 
