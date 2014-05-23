@@ -1572,14 +1572,16 @@ def fbx_animations_simplify(scene_data, animdata):
     # So that, with default factor and step values (1), we get:
     max_frame_diff = step * fac * 10  # max step of 10 frames.
     value_diff_fac = fac / 1000  # min value evolution: 0.1% of whole range.
+    min_significant_diff = 1.0e-6
 
     for keys in animdata.values():
         if not keys:
             continue
         extremums = [(min(values), max(values)) for values in zip(*(k[1] for k in keys))]
-        min_diffs = [max((mx - mn) * value_diff_fac, 0.000001) for mx, mn in extremums]
+        min_diffs = [max((mx - mn) * value_diff_fac, min_significant_diff) for mn, mx in extremums]
         p_currframe, p_key, p_key_write = keys[0]
         p_keyed = [(p_currframe - max_frame_diff, val) for val in p_key]
+        are_keyed = [False] * len(p_key)
         for currframe, key, key_write in keys:
             for idx, (val, p_val) in enumerate(zip(key, p_key)):
                 p_keyedframe, p_keyedval = p_keyed[idx]
@@ -1591,14 +1593,23 @@ def fbx_animations_simplify(scene_data, animdata):
                     key_write[idx] = True
                     p_key_write[idx] = True
                     p_keyed[idx] = (currframe, val)
-                elif (abs(val - p_keyedval) >= min_diffs[idx]) or (currframe - p_keyedframe >= max_frame_diff):
-                    # Else, if enough difference from previous keyed value (or max gap between keys is reached),
-                    # key this value only!
-                    key_write[idx] = True
-                    p_keyed[idx] = (currframe, val)
+                    are_keyed[idx] = True
+                else:
+                    frame_diff = currframe - p_keyedframe
+                    val_diff = abs(val - p_keyedval)
+                    if ((val_diff >= min_diffs[idx]) or
+                        ((val_diff >= min_significant_diff) and (frame_diff >= max_frame_diff))):
+                        # Else, if enough difference from previous keyed value
+                        # (or any significant difference and max gap between keys is reached),
+                        # key this value only!
+                        key_write[idx] = True
+                        p_keyed[idx] = (currframe, val)
+                        are_keyed[idx] = True
             p_currframe, p_key, p_key_write = currframe, key, key_write
-        # Always key last sampled values (we ignore curves with a single valid key anyway).
-        p_key_write[:] = [True] * len(p_key_write)
+        # If we did key something, ensure first and last sampled values are keyed as well.
+        for idx, is_keyed in enumerate(are_keyed):
+            if is_keyed:
+                keys[0][2][idx] = keys[-1][2][idx] = True
 
 
 def fbx_animations_objects_do(scene_data, ref_id, f_start, f_end, start_zero, objects=None, force_keep=False):
