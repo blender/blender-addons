@@ -508,8 +508,8 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
             layout.operator("object.mode_set", text="Enter Object Mode",
                             icon='OBJECT_DATA')
 
-        elif ob.mode == 'EDIT':
-            # Armature menu
+        elif ob.mode == 'EDIT_ARMATURE':
+            # Armature Edit menu
 
             # Search Menu
             layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
