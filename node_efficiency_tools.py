@@ -34,7 +34,7 @@ from bpy.types import Operator, Panel, Menu
 from bpy.props import FloatProperty, EnumProperty, BoolProperty, IntProperty, StringProperty, FloatVectorProperty, CollectionProperty
 from bpy_extras.io_utils import ImportHelper
 from mathutils import Vector
-from math import cos, sin, pi, sqrt
+from math import cos, sin, pi, hypot
 from os import listdir
 
 #################
@@ -561,15 +561,15 @@ def node_at_pos(nodes, context, event):
                             # There's got to be a better way to do this...
                             skipnode = True
             if not skipnode:
-                node_points_with_dist.append([node, sqrt((x - locx) ** 2 + (y - locy) ** 2)])  # Top Left
-                node_points_with_dist.append([node, sqrt((x - (locx+dimx)) ** 2 + (y - locy) ** 2)])  # Top Right
-                node_points_with_dist.append([node, sqrt((x - locx) ** 2 + (y - (locy-dimy)) ** 2)])  # Bottom Left
-                node_points_with_dist.append([node, sqrt((x - (locx+dimx)) ** 2 + (y - (locy-dimy)) ** 2)])  # Bottom Right
+                node_points_with_dist.append([node, hypot(x - locx, y - locy)])  # Top Left
+                node_points_with_dist.append([node, hypot(x - (locx + dimx), y - locy)])  # Top Right
+                node_points_with_dist.append([node, hypot(x - locx, y - (locy - dimy))])  # Bottom Left
+                node_points_with_dist.append([node, hypot(x - (locx + dimx), y - (locy - dimy))])  # Bottom Right
 
-                node_points_with_dist.append([node, sqrt((x - (locx+(dimx/2))) ** 2 + (y - locy) ** 2)])  # Mid Top
-                node_points_with_dist.append([node, sqrt((x - (locx+(dimx/2))) ** 2 + (y - (locy-dimy)) ** 2)])  # Mid Bottom
-                node_points_with_dist.append([node, sqrt((x - locx) ** 2 + (y - (locy-(dimy/2))) ** 2)])  # Mid Left
-                node_points_with_dist.append([node, sqrt((x - (locx+dimx)) ** 2 + (y - (locy-(dimy/2))) ** 2)])  # Mid Right
+                node_points_with_dist.append([node, hypot(x - (locx + (dimx / 2)), y - locy)])  # Mid Top
+                node_points_with_dist.append([node, hypot(x - (locx + (dimx / 2)), y - (locy - dimy))])  # Mid Bottom
+                node_points_with_dist.append([node, hypot(x - locx, y - (locy - (dimy / 2)))])  # Mid Left
+                node_points_with_dist.append([node, hypot(x - (locx + dimx), y - (locy - (dimy / 2)))])  # Mid Right
 
     nearest_node = sorted(node_points_with_dist, key=lambda k: k[1])[0][0]
 

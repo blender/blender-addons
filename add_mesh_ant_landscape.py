@@ -332,7 +332,7 @@ def landscape_gen(x,y,z,falloffsize,options=[0,1.0,1, 0,0,1.0,0,6,1.0,2.0,1.0,2.
     # edge falloff
     if sphere == 0: # no edge falloff if spherical
         if falloff != 0:
-            fallofftypes = [ 0, sqrt((x*x)**2+(y*y)**2), sqrt(x*x+y*y), sqrt(y*y), sqrt(x*x) ]
+            fallofftypes = [0, hypot(x * x, y * y), hypot(x, y), abs(y), abs(x)]
             dist = fallofftypes[ falloff]
             if falloff ==1:
                 radius = (falloffsize/2)**2

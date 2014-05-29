@@ -22,7 +22,7 @@
 from . import geom
 import math
 import random
-from math import sqrt
+from math import sqrt, hypot
 
 # Points are 3-tuples or 2-tuples of reals: (x,y,z) or (x,y)
 # Faces are lists of integers (vertex indices into coord lists)
@@ -1051,7 +1051,7 @@ def Add2(a, b):
 def Length2(v):
     """Return length of vector v=(x,y)."""
 
-    return sqrt(v[0] * v[0] + v[1] * v[1])
+    return hypot(v[0], v[1])
 
 
 def LinInterp2(a, b, alpha):
