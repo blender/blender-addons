@@ -1220,9 +1220,10 @@ def fbx_data_armature_elements(root, arm_obj, scene_data):
     Note armature itself has no data, it is a mere "Null" Model...
     """
     mat_world_arm = arm_obj.fbx_object_matrix(scene_data, global_space=True)
+    bones = tuple(bo_obj for bo_obj in arm_obj.bones if bo_obj in scene_data.objects)
 
     # Bones "data".
-    for bo_obj in arm_obj.bones:
+    for bo_obj in bones:
         bo = bo_obj.bdata
         bo_data_key = scene_data.data_bones[bo_obj]
         fbx_bo = elem_data_single_int64(root, b"NodeAttribute", get_fbx_uuid_from_key(bo_data_key))
@@ -1254,7 +1255,7 @@ def fbx_data_armature_elements(root, arm_obj, scene_data):
 
             elem_data_single_string(fbx_pose, b"Type", b"BindPose")
             elem_data_single_int32(fbx_pose, b"Version", FBX_POSE_BIND_VERSION)
-            elem_data_single_int32(fbx_pose, b"NbPoseNodes", 1 + len(arm_obj.bdata.data.bones))
+            elem_data_single_int32(fbx_pose, b"NbPoseNodes", 1 + len(bones))
 
             # First node is mesh/object.
             mat_world_obj = ob_obj.fbx_object_matrix(scene_data, global_space=True)
@@ -1263,7 +1264,7 @@ def fbx_data_armature_elements(root, arm_obj, scene_data):
             elem_data_single_float64_array(fbx_posenode, b"Matrix", matrix_to_array(mat_world_obj))
             # And all bones of armature!
             mat_world_bones = {}
-            for bo_obj in arm_obj.bones:
+            for bo_obj in bones:
                 bomat = bo_obj.fbx_object_matrix(scene_data, rest=True, global_space=True)
                 mat_world_bones[bo_obj] = bomat
                 fbx_posenode = elem_empty(fbx_pose, b"PoseNode")
@@ -1522,14 +1523,26 @@ def fbx_skeleton_from_armature(scene, settings, arm_obj, objects, data_meshes,
     arm_parents is a set of tuples (armature, object) for all successful armature bindings.
     """
     arm_data = arm_obj.bdata.data
-    bones = OrderedDict()  # Because we do not have any ordered set :/
+    bones = OrderedDict()
     for bo in arm_obj.bones:
-        data_key = get_blender_bone_key(arm_obj.bdata, bo.bdata)
-        data_bones[bo] = data_key
-        bones[bo] = None
+        if settings.use_armature_deform_only:
+            if bo.bdata.use_deform:
+                bones[bo] = True
+                bo_par = bo.parent
+                while bo_par.is_bone:
+                    bones[bo_par] = True
+                    bo_par = bo_par.parent
+            elif bo not in bones:  # Do not override if already set in the loop above!
+                bones[bo] = False
+        else:
+            bones[bo] = True
+
+    bones = OrderedDict((bo, None) for bo, use in bones.items() if use)
 
     if not bones:
         return
+
+    data_bones.update((bo, get_blender_bone_key(arm_obj.bdata, bo.bdata)) for bo in bones)
 
     for ob_obj in objects:
         if not (ob_obj.is_object and ob_obj.type == 'MESH' and ob_obj.parent == arm_obj):
@@ -1625,7 +1638,7 @@ def fbx_animations_objects_do(scene_data, ref_id, f_start, f_end, start_zero, ob
             if not ob_obj.is_object:
                 continue
             if ob_obj.type == 'ARMATURE':
-                objects |= set(ob_obj.bones)
+                objects |= {bo_obj for bo_obj in ob_obj.bones if bo_obj in scene_data.objects}
             ob_obj.dupli_list_create(scene, 'RENDER')
             for dp_obj in ob_obj.dupli_list:
                 if dp_obj in scene_data.objects:
@@ -2442,6 +2455,7 @@ def save_single(operator, scene, filepath="",
                 object_types=None,
                 use_mesh_modifiers=True,
                 mesh_smooth_type='FACE',
+                use_armature_deform_only=False,
                 bake_anim=True,
                 bake_anim_use_nla_strips=True,
                 bake_anim_use_all_actions=True,
@@ -2489,7 +2503,7 @@ def save_single(operator, scene, filepath="",
         operator.report, (axis_up, axis_forward), global_matrix, global_scale,
         bake_space_transform, global_matrix_inv, global_matrix_inv_transposed,
         context_objects, object_types, use_mesh_modifiers,
-        mesh_smooth_type, use_mesh_edges, use_tspace, False,
+        mesh_smooth_type, use_mesh_edges, use_tspace, use_armature_deform_only,
         bake_anim, bake_anim_use_nla_strips, bake_anim_use_all_actions, bake_anim_step, bake_anim_simplify_factor,
         False, media_settings, use_custom_properties,
     )

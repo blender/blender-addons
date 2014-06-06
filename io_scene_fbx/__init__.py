@@ -253,10 +253,9 @@ class ExportFBX(bpy.types.Operator, ExportHelper):
         description="Export custom properties",
         default=False,
     )
-    # 6.1 only
     use_armature_deform_only = BoolProperty(
         name="Only Deform Bones",
-        description="Only write deforming bones",
+        description="Only write deforming bones (and non-deforming ones when they have deforming children)",
         default=False,
     )
     # Anim - 7.4
@@ -363,6 +362,7 @@ class ExportFBX(bpy.types.Operator, ExportHelper):
         layout.prop(self, "mesh_smooth_type")
         layout.prop(self, "use_mesh_edges")
         layout.prop(self, "use_tspace")
+        layout.prop(self, "use_armature_deform_only")
         if is_74bin:
             layout.prop(self, "use_custom_properties")
             layout.prop(self, "bake_anim")
@@ -373,7 +373,6 @@ class ExportFBX(bpy.types.Operator, ExportHelper):
             col.prop(self, "bake_anim_step")
             col.prop(self, "bake_anim_simplify_factor")
         else:
-            layout.prop(self, "use_armature_deform_only")
             layout.prop(self, "use_anim")
             col = layout.column()
             col.enabled = self.use_anim
