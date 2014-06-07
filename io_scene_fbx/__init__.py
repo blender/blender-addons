@@ -159,9 +159,8 @@ class ExportFBX(bpy.types.Operator, ExportHelper):
         items=(('BIN7400', "FBX 7.4 binary", "Newer 7.4 binary version, still in development (no animation yet)"),
                ('ASCII6100', "FBX 6.1 ASCII", "Legacy 6.1 ascii version"),
                ),
-        name="Exporter Version",
+        name="Version",
         description="Choose which version of the exporter to use",
-        default='BIN7400',
     )
 
     use_selection = BoolProperty(
@@ -200,7 +199,7 @@ class ExportFBX(bpy.types.Operator, ExportHelper):
     )
     # 7.4 only
     bake_space_transform = BoolProperty(
-        name="Bake Space Transform",
+        name="Apply Transform",
         description=("Bake space transform into object data, avoids getting unwanted rotations to objects when "
                      "target space is not aligned with Blender's space "
                      "(WARNING! experimental option, might give odd/wrong results)"),
