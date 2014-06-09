@@ -679,6 +679,10 @@ class ObjectWrapper(metaclass=MetaObjectWrapper):
         return get_fbx_uuid_from_key(self.key)
     fbx_uuid = property(get_fbx_uuid)
 
+    def get_hide(self):
+        return self.bdata.hide
+    hide = property(get_hide)
+
     def get_parent(self):
         if self._tag == 'OB':
             return ObjectWrapper(self.bdata.parent)

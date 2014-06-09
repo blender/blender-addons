@@ -227,6 +227,21 @@ def elem_props_get_enum(elem, elem_prop_id, default=None):
     return default
 
 
+def elem_props_get_visibility(elem, elem_prop_id, default=None):
+    elem_prop = elem_props_find_first(elem, elem_prop_id)
+    if elem_prop is not None:
+        assert(elem_prop.props[0] == elem_prop_id)
+        assert(elem_prop.props[1] == b'Visibility')
+        assert(elem_prop.props[2] == b'')
+        assert(elem_prop.props[3] in {b'A', b'A+', b'AU'})
+
+        # we could allow other number types
+        assert(elem_prop.props_type[4] == data_types.FLOAT64)
+
+        return elem_prop.props[4]
+    return default
+
+
 # ----------------------------------------------------------------------------
 # Blender
 
@@ -251,6 +266,7 @@ def blen_read_object(fbx_tmpl, fbx_obj, object_data):
     # Misc Attributes
 
     obj.color[0:3] = elem_props_get_color_rgb(fbx_props, b'Color', (0.8, 0.8, 0.8))
+    obj.hide = not bool(elem_props_get_visibility(fbx_props, b'Visibility', 1.0))
 
     # ----
     # Transformation

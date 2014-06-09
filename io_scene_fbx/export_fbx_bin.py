@@ -1353,6 +1353,7 @@ def fbx_data_object_elements(root, ob_obj, scene_data):
     elem_props_template_set(tmpl, props, "p_lcl_translation", b"Lcl Translation", loc)
     elem_props_template_set(tmpl, props, "p_lcl_rotation", b"Lcl Rotation", rot)
     elem_props_template_set(tmpl, props, "p_lcl_scaling", b"Lcl Scaling", scale)
+    elem_props_template_set(tmpl, props, "p_visibility", b"Visibility", float(not ob_obj.hide))
 
     # Custom properties.
     if scene_data.settings.use_custom_properties:
