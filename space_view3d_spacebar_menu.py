@@ -658,8 +658,7 @@ class VIEW3D_MT_AddMenu(bpy.types.Menu):
         layout.operator("object.add", text="Lattice",
                         icon='OUTLINER_OB_LATTICE').type = 'LATTICE'
         layout.separator()
-        layout.operator("object.add", text="Add Empty",
-                        icon='OUTLINER_OB_EMPTY')
+        layout.operator_menu_enum("object.empty_add", "type", text="Empty", icon='OUTLINER_OB_EMPTY')
         layout.separator()
         layout.operator("object.speaker_add", text="Speaker", icon='OUTLINER_OB_SPEAKER')
         layout.separator()
