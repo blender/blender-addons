@@ -1963,8 +1963,8 @@ def fbx_data_from_scene(scene, settings):
     data_videos = OrderedDict()
     # For now, do not use world textures, don't think they can be linked to anything FBX wise...
     for mat in data_materials.keys():
-        for tex in mat.texture_slots:
-            if tex is None:
+        for tex, use_tex in zip(mat.texture_slots, mat.use_textures):
+            if tex is None or not use_tex:
                 continue
             # For now, only consider image textures.
             # Note FBX does has support for procedural, but this is not portable at all (opaque blob),
