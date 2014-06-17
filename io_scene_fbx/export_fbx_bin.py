@@ -1477,9 +1477,6 @@ def fbx_mat_properties_from_texture(tex):
     Quite obviously, this is a fuzzy and far-from-perfect mapping! Amounts of influence are completely lost, e.g.
     Note tex is actually expected to be a texture slot.
     """
-    # Tex influence does not exists in FBX, so assume influence < 0.5 = no influence... :/
-    INFLUENCE_THRESHOLD = 0.5
-
     # Mapping Blender -> FBX (blend_use_name, blend_fact_name, fbx_name).
     blend_to_fbx = (
         # Lambert & Phong...
@@ -1509,7 +1506,8 @@ def fbx_mat_properties_from_texture(tex):
 
     tex_fbx_props = set()
     for use_map_name, name_factor, fbx_prop_name in blend_to_fbx:
-        if getattr(tex, "use_map_" + use_map_name) and getattr(tex, name_factor + "_factor") >= INFLUENCE_THRESHOLD:
+        # Always export enabled textures, even if they have a null influence...
+        if getattr(tex, "use_map_" + use_map_name):
             tex_fbx_props.add(fbx_prop_name)
 
     return tex_fbx_props
