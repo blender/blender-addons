@@ -19,7 +19,7 @@
 bl_info = {
     "name": "Node Wrangler (aka Nodes Efficiency Tools)",
     "author": "Bartek Skorupa, Greg Zaal",
-    "version": (3, 4),
+    "version": (3, 5),
     "blender": (2, 70, 0),
     "location": "Node Editor Properties Panel or Ctrl-Space",
     "description": "Various tools to enhance and speed up node-based workflow",
@@ -95,6 +95,7 @@ shaders_input_nodes_props = (
     ('ShaderNodeHairInfo', 'HAIR_INFO', 'Hair Info'),
     ('ShaderNodeParticleInfo', 'PARTICLE_INFO', 'Particle Info'),
     ('ShaderNodeCameraData', 'CAMERA', 'Camera Data'),
+    ('ShaderNodeUVMap', 'UVMAP', 'UV Map'),
 )
 # (rna_type.identifier, type, rna_type.name)
 # Keeping mixed case to avoid having to translate entries when adding new nodes in operators.
@@ -297,6 +298,7 @@ compo_distort_nodes_props = (
     ('CompositorNodeTransform', 'TRANSFORM', 'Transform'),
     ('CompositorNodeStabilize', 'STABILIZE2D', 'Stabilize 2D'),
     ('CompositorNodePlaneTrackDeform', 'PLANETRACKDEFORM', 'Plane Track Deform'),
+    ('CompositorNodeCornerPin', 'CORNERPIN', 'Corner Pin'),
 )
 # (rna_type.identifier, type, rna_type.name)
 # Keeping mixed case to avoid having to translate entries when adding new nodes in operators.
@@ -3707,3 +3709,4 @@ def unregister():
 
 if __name__ == "__main__":
     register()
+
