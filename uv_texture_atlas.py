@@ -730,6 +730,7 @@ class TexAtl_SeparateObjects(Operator):
                         ob_original.hide_render = False
                         ob_original.select = False
                         ob_original.hide_select = isOriginalToSelect
+                        ob_original.data.update()
 
                     # delete separeted object
                     bpy.ops.object.select_all(action='DESELECT')
