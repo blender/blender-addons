@@ -19,7 +19,7 @@
 bl_info = {
     "name": "Node Wrangler (aka Nodes Efficiency Tools)",
     "author": "Bartek Skorupa, Greg Zaal",
-    "version": (3, 5),
+    "version": (3, 6),
     "blender": (2, 70, 0),
     "location": "Node Editor Properties Panel or Ctrl-Space",
     "description": "Various tools to enhance and speed up node-based workflow",
@@ -459,6 +459,10 @@ def hack_force_update(context, nodes):
         node = nodes.new('ShaderNodeMath')
         node.inputs[0].default_value = 0.0
         nodes.remove(node)
+    elif context.space_data.tree_type == "CompositorNodeTree":
+        node = nodes.new('CompositorNodeMath')
+        node.inputs[0].default_value = 0.0
+        nodes.remove(node)
     return False
 
 
@@ -651,6 +655,7 @@ def draw_rounded_node_border(node, radius=8, colour=[1.0, 1.0, 1.0, 0.7]):
     nlocy = (node.location.y+1)*dpifac()
     ndimx = node.dimensions.x
     ndimy = node.dimensions.y
+    # This is a stupid way to do this... TODO use while loop
     if node.parent:
         nlocx += node.parent.location.x
         nlocy += node.parent.location.y
@@ -661,7 +666,17 @@ def draw_rounded_node_border(node, radius=8, colour=[1.0, 1.0, 1.0, 0.7]):
                 nlocx += node.parent.parent.parent.location.x
                 nlocy += node.parent.parent.parent.location.y
 
+    if node.hide:
+        nlocx += -1
+        nlocy += 5
+    if node.type == 'REROUTE':
+        #nlocx += 1
+        nlocy -= 1
+        ndimx = 0
+        ndimy = 0
+        radius += 6
 
+    # Top left corner
     bgl.glBegin(bgl.GL_TRIANGLE_FAN)
     mx, my = bpy.context.region.view2d.view_to_region(nlocx, nlocy)
     bgl.glVertex2f(mx,my)
@@ -673,6 +688,7 @@ def draw_rounded_node_border(node, radius=8, colour=[1.0, 1.0, 1.0, 0.7]):
                 bgl.glVertex2f(cosine, sine)
     bgl.glEnd()
 
+    # Top right corner
     bgl.glBegin(bgl.GL_TRIANGLE_FAN)
     mx, my = bpy.context.region.view2d.view_to_region(nlocx + ndimx, nlocy)
     bgl.glVertex2f(mx,my)
@@ -682,8 +698,9 @@ def draw_rounded_node_border(node, radius=8, colour=[1.0, 1.0, 1.0, 0.7]):
                 cosine = radius * cos(i * 2 * pi / sides) + mx
                 sine = radius * sin(i * 2 * pi / sides) + my
                 bgl.glVertex2f(cosine, sine)
-
     bgl.glEnd()
+
+    # Bottom left corner
     bgl.glBegin(bgl.GL_TRIANGLE_FAN)
     mx, my = bpy.context.region.view2d.view_to_region(nlocx, nlocy - ndimy)
     bgl.glVertex2f(mx,my)
@@ -695,6 +712,7 @@ def draw_rounded_node_border(node, radius=8, colour=[1.0, 1.0, 1.0, 0.7]):
                 bgl.glVertex2f(cosine, sine)
     bgl.glEnd()
 
+    # Bottom right corner
     bgl.glBegin(bgl.GL_TRIANGLE_FAN)
     mx, my = bpy.context.region.view2d.view_to_region(nlocx + ndimx, nlocy - ndimy)
     bgl.glVertex2f(mx,my)
@@ -707,6 +725,7 @@ def draw_rounded_node_border(node, radius=8, colour=[1.0, 1.0, 1.0, 0.7]):
     bgl.glEnd()
 
 
+    # Left edge
     bgl.glBegin(bgl.GL_QUADS)
     m1x, m1y = bpy.context.region.view2d.view_to_region(nlocx, nlocy)
     m2x, m2y = bpy.context.region.view2d.view_to_region(nlocx, nlocy - ndimy)
@@ -717,6 +736,7 @@ def draw_rounded_node_border(node, radius=8, colour=[1.0, 1.0, 1.0, 0.7]):
         bgl.glVertex2f(m1x-radius,m1y)
     bgl.glEnd()
 
+    # Top edge
     bgl.glBegin(bgl.GL_QUADS)
     m1x, m1y = bpy.context.region.view2d.view_to_region(nlocx, nlocy)
     m2x, m2y = bpy.context.region.view2d.view_to_region(nlocx + ndimx, nlocy)
@@ -727,6 +747,7 @@ def draw_rounded_node_border(node, radius=8, colour=[1.0, 1.0, 1.0, 0.7]):
         bgl.glVertex2f(m1x,m1y+radius)
     bgl.glEnd()
 
+    # Right edge
     bgl.glBegin(bgl.GL_QUADS)
     m1x, m1y = bpy.context.region.view2d.view_to_region(nlocx + ndimx, nlocy)
     m2x, m2y = bpy.context.region.view2d.view_to_region(nlocx + ndimx, nlocy - ndimy)
@@ -737,6 +758,7 @@ def draw_rounded_node_border(node, radius=8, colour=[1.0, 1.0, 1.0, 0.7]):
         bgl.glVertex2f(m1x,m1y)
     bgl.glEnd()
 
+    # Bottom edge
     bgl.glBegin(bgl.GL_QUADS)
     m1x, m1y = bpy.context.region.view2d.view_to_region(nlocx, nlocy-ndimy)
     m2x, m2y = bpy.context.region.view2d.view_to_region(nlocx + ndimx, nlocy-ndimy)
@@ -747,6 +769,8 @@ def draw_rounded_node_border(node, radius=8, colour=[1.0, 1.0, 1.0, 0.7]):
         bgl.glVertex2f(m1x,m1y-radius)
     bgl.glEnd()
 
+
+    # Restore defaults
     bgl.glDisable(bgl.GL_BLEND)
     if settings.bgl_antialiasing:
         bgl.glDisable(bgl.GL_LINE_SMOOTH)
@@ -780,10 +804,11 @@ def draw_callback_mixnodes(self, context, mode):
         n1 = nodes[context.scene.NWLazySource]
         n2 = nodes[context.scene.NWLazyTarget]
 
-        draw_rounded_node_border(n1, radius=6, colour=col_outer)  # outline
-        draw_rounded_node_border(n1, radius=5, colour=col_inner)  # inner
-        draw_rounded_node_border(n2, radius=6, colour=col_outer)  # outline
-        draw_rounded_node_border(n2, radius=5, colour=col_inner)  # inner
+        if n1 != n2:
+            draw_rounded_node_border(n1, radius=6, colour=col_outer)  # outline
+            draw_rounded_node_border(n1, radius=5, colour=col_inner)  # inner
+            draw_rounded_node_border(n2, radius=6, colour=col_outer)  # outline
+            draw_rounded_node_border(n2, radius=5, colour=col_inner)  # inner
 
         draw_line(m1x, m1y, m2x, m2y, 4, col_outer)  # line outline
         draw_line(m1x, m1y, m2x, m2y, 2, col_inner)  # line inner
@@ -1339,7 +1364,12 @@ class NWEmissionViewer(Operator, NWBase):
                 if (active.name != "Emission Viewer") and (active.type not in output_types) and not in_group:
                     if active.select:
                         if active.type not in shader_types:
-                            valid = True
+                            for outp in active.outputs:
+                                if outp.type == 'SHADER':  # Group nodes that have shader outputs
+                                    valid = False
+                                    break
+                                else:
+                                    valid = True
             if valid:
                 # get material_output node
                 materialout_exists = False
@@ -2646,7 +2676,9 @@ class NWLinkToOutputNode(Operator, NWBase):
 
             out_input_index = 0
             if tree_type == 'ShaderNodeTree':
-                if active.outputs[output_index].type != 'SHADER':  # connect to displacement if not a shader
+                if active.outputs[output_index].name == 'Volume':
+                    out_input_index = 1
+                elif active.outputs[output_index].type != 'SHADER':  # connect to displacement if not a shader
                     out_input_index = 2
             links.new(active.outputs[output_index], output_node.inputs[out_input_index])
 
