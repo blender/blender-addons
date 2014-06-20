@@ -568,8 +568,12 @@ class TexAtl_MergeObjects(Operator):
 
         bpy.ops.object.select_all(action='DESELECT')
 
+        # We do the MergeList beacuse we will duplicate grouped objects
+        mergeList = []
         for object in bpy.data.groups[self.group_name].objects:
+            mergeList.append(object)
 
+        for object in mergeList:
             # make object temporary unhidden
             isObjHideSelect = object.hide_select
             object.hide = False
@@ -637,6 +641,8 @@ class TexAtl_MergeObjects(Operator):
             ob_merge.select = True
             scene.objects.active = ob_merge
             bpy.ops.object.join()
+
+        mergeList.clear() # Clear Merge List
 
         # make Unwrap
         bpy.ops.object.select_all(action='DESELECT')
