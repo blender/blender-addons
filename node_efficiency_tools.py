@@ -648,7 +648,11 @@ def draw_rounded_node_border(node, radius=8, colour=[1.0, 1.0, 1.0, 0.7]):
     settings = bpy.context.user_preferences.addons[__name__].preferences
     if settings.bgl_antialiasing:
         bgl.glEnable(bgl.GL_LINE_SMOOTH)
+
+    area_width = bpy.context.area.width - (16*dpifac()) - 1
+    bottom_bar = (16*dpifac()) + 1
     sides = 16
+    radius = radius*dpifac()
     bgl.glColor4f(colour[0], colour[1], colour[2], colour[3])
 
     nlocx = (node.location.x+1)*dpifac()
@@ -678,11 +682,11 @@ def draw_rounded_node_border(node, radius=8, colour=[1.0, 1.0, 1.0, 0.7]):
 
     # Top left corner
     bgl.glBegin(bgl.GL_TRIANGLE_FAN)
-    mx, my = bpy.context.region.view2d.view_to_region(nlocx, nlocy)
+    mx, my = bpy.context.region.view2d.view_to_region(nlocx, nlocy, clip=False)
     bgl.glVertex2f(mx,my)
     for i in range(sides+1):
         if (4<=i<=8):
-            if mx != 12000 and my != 12000:  # nodes that go over the view border give 12000 as coords
+            if my > bottom_bar and mx < area_width:
                 cosine = radius * cos(i * 2 * pi / sides) + mx
                 sine = radius * sin(i * 2 * pi / sides) + my
                 bgl.glVertex2f(cosine, sine)
@@ -690,11 +694,11 @@ def draw_rounded_node_border(node, radius=8, colour=[1.0, 1.0, 1.0, 0.7]):
 
     # Top right corner
     bgl.glBegin(bgl.GL_TRIANGLE_FAN)
-    mx, my = bpy.context.region.view2d.view_to_region(nlocx + ndimx, nlocy)
+    mx, my = bpy.context.region.view2d.view_to_region(nlocx + ndimx, nlocy, clip=False)
     bgl.glVertex2f(mx,my)
     for i in range(sides+1):
         if (0<=i<=4):
-            if mx != 12000 and my != 12000:
+            if my > bottom_bar and mx < area_width:
                 cosine = radius * cos(i * 2 * pi / sides) + mx
                 sine = radius * sin(i * 2 * pi / sides) + my
                 bgl.glVertex2f(cosine, sine)
@@ -702,11 +706,11 @@ def draw_rounded_node_border(node, radius=8, colour=[1.0, 1.0, 1.0, 0.7]):
 
     # Bottom left corner
     bgl.glBegin(bgl.GL_TRIANGLE_FAN)
-    mx, my = bpy.context.region.view2d.view_to_region(nlocx, nlocy - ndimy)
+    mx, my = bpy.context.region.view2d.view_to_region(nlocx, nlocy - ndimy, clip=False)
     bgl.glVertex2f(mx,my)
     for i in range(sides+1):
         if (8<=i<=12):
-            if mx != 12000 and my != 12000:
+            if my > bottom_bar and mx < area_width:
                 cosine = radius * cos(i * 2 * pi / sides) + mx
                 sine = radius * sin(i * 2 * pi / sides) + my
                 bgl.glVertex2f(cosine, sine)
@@ -714,11 +718,11 @@ def draw_rounded_node_border(node, radius=8, colour=[1.0, 1.0, 1.0, 0.7]):
 
     # Bottom right corner
     bgl.glBegin(bgl.GL_TRIANGLE_FAN)
-    mx, my = bpy.context.region.view2d.view_to_region(nlocx + ndimx, nlocy - ndimy)
+    mx, my = bpy.context.region.view2d.view_to_region(nlocx + ndimx, nlocy - ndimy, clip=False)
     bgl.glVertex2f(mx,my)
     for i in range(sides+1):
         if (12<=i<=16):
-            if mx != 12000 and my != 12000:
+            if my > bottom_bar and mx < area_width:
                 cosine = radius * cos(i * 2 * pi / sides) + mx
                 sine = radius * sin(i * 2 * pi / sides) + my
                 bgl.glVertex2f(cosine, sine)
@@ -727,9 +731,11 @@ def draw_rounded_node_border(node, radius=8, colour=[1.0, 1.0, 1.0, 0.7]):
 
     # Left edge
     bgl.glBegin(bgl.GL_QUADS)
-    m1x, m1y = bpy.context.region.view2d.view_to_region(nlocx, nlocy)
-    m2x, m2y = bpy.context.region.view2d.view_to_region(nlocx, nlocy - ndimy)
-    if m1x != 12000 and m1y != 12000 and m2x != 12000 and m2y != 12000:
+    m1x, m1y = bpy.context.region.view2d.view_to_region(nlocx, nlocy, clip=False)
+    m2x, m2y = bpy.context.region.view2d.view_to_region(nlocx, nlocy - ndimy, clip=False)
+    m1y = max(m1y, bottom_bar)
+    m2y = max(m2y, bottom_bar)
+    if m1x < area_width and m2x < area_width:
         bgl.glVertex2f(m2x-radius,m2y)  # draw order is important, start with bottom left and go anti-clockwise
         bgl.glVertex2f(m2x,m2y)
         bgl.glVertex2f(m1x,m1y)
@@ -738,9 +744,11 @@ def draw_rounded_node_border(node, radius=8, colour=[1.0, 1.0, 1.0, 0.7]):
 
     # Top edge
     bgl.glBegin(bgl.GL_QUADS)
-    m1x, m1y = bpy.context.region.view2d.view_to_region(nlocx, nlocy)
-    m2x, m2y = bpy.context.region.view2d.view_to_region(nlocx + ndimx, nlocy)
-    if m1x != 12000 and m1y != 12000 and m2x != 12000 and m2y != 12000:
+    m1x, m1y = bpy.context.region.view2d.view_to_region(nlocx, nlocy, clip=False)
+    m2x, m2y = bpy.context.region.view2d.view_to_region(nlocx + ndimx, nlocy, clip=False)
+    m1x = min(m1x, area_width)
+    m2x = min(m2x, area_width)
+    if m1y > bottom_bar and m2y > bottom_bar:
         bgl.glVertex2f(m1x,m2y)  # draw order is important, start with bottom left and go anti-clockwise
         bgl.glVertex2f(m2x,m2y)
         bgl.glVertex2f(m2x,m1y+radius)
@@ -749,9 +757,11 @@ def draw_rounded_node_border(node, radius=8, colour=[1.0, 1.0, 1.0, 0.7]):
 
     # Right edge
     bgl.glBegin(bgl.GL_QUADS)
-    m1x, m1y = bpy.context.region.view2d.view_to_region(nlocx + ndimx, nlocy)
-    m2x, m2y = bpy.context.region.view2d.view_to_region(nlocx + ndimx, nlocy - ndimy)
-    if m1x != 12000 and m1y != 12000 and m2x != 12000 and m2y != 12000:
+    m1x, m1y = bpy.context.region.view2d.view_to_region(nlocx + ndimx, nlocy, clip=False)
+    m2x, m2y = bpy.context.region.view2d.view_to_region(nlocx + ndimx, nlocy - ndimy, clip=False)
+    m1y = max(m1y, bottom_bar)
+    m2y = max(m2y, bottom_bar)
+    if m1x < area_width and m2x < area_width:
         bgl.glVertex2f(m2x,m2y)  # draw order is important, start with bottom left and go anti-clockwise
         bgl.glVertex2f(m2x+radius,m2y)
         bgl.glVertex2f(m1x+radius,m1y)
@@ -760,9 +770,11 @@ def draw_rounded_node_border(node, radius=8, colour=[1.0, 1.0, 1.0, 0.7]):
 
     # Bottom edge
     bgl.glBegin(bgl.GL_QUADS)
-    m1x, m1y = bpy.context.region.view2d.view_to_region(nlocx, nlocy-ndimy)
-    m2x, m2y = bpy.context.region.view2d.view_to_region(nlocx + ndimx, nlocy-ndimy)
-    if m1x != 12000 and m1y != 12000 and m2x != 12000 and m2y != 12000:
+    m1x, m1y = bpy.context.region.view2d.view_to_region(nlocx, nlocy-ndimy, clip=False)
+    m2x, m2y = bpy.context.region.view2d.view_to_region(nlocx + ndimx, nlocy-ndimy, clip=False)
+    m1x = min(m1x, area_width)
+    m2x = min(m2x, area_width)
+    if m1y > bottom_bar and m2y > bottom_bar:
         bgl.glVertex2f(m1x,m2y)  # draw order is important, start with bottom left and go anti-clockwise
         bgl.glVertex2f(m2x,m2y)
         bgl.glVertex2f(m2x,m1y-radius)
