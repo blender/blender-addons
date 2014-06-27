@@ -285,6 +285,7 @@ class RENDER_PT_publish(bpy.types.Panel):
             row.prop(ap, 'overwrite')
 
         layout.label("Platforms")
+        layout.prop(ps, 'publish_default_platform')
         row = layout.row()
         row.template_list("UI_UL_list", "platforms_list", ps, 'platforms', ps, 'platforms_active')
 
@@ -299,8 +300,7 @@ class RENDER_PT_publish(bpy.types.Panel):
             layout.prop(platform, 'player_path')
             layout.prop(platform, 'publish')
 
-        layout.prop(ps, 'publish_default_platform')
-        layout.operator(PublishAllPlatforms.bl_idname, 'Publish')
+        layout.operator(PublishAllPlatforms.bl_idname, 'Publish Platforms')
 
 
 class PublishAutoPlatforms(bpy.types.Operator):
