@@ -29,7 +29,6 @@ import netrender.repath
 import netrender.baking
 import netrender.thumbnail as thumbnail
 
-BLENDER_PATH = sys.argv[0]
 
 CANCEL_POLL_SPEED = 2
 MAX_TIMEOUT = 10
@@ -225,7 +224,20 @@ def render_slave(engine, netsettings, threads):
                         frame_args += ["-f", str(frame.number)]
 
                     with NoErrorDialogContext():
-                        process = subprocess.Popen([BLENDER_PATH, "-b", "-noaudio", job_full_path, "-t", str(threads), "-o", os.path.join(job_prefix, "######"), "-E", job.render, "-F", "MULTILAYER"] + frame_args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+                        process = subprocess.Popen(
+                            [bpy.app.binary_path,
+                             "-b",
+                             "-y",
+                             "-noaudio",
+                             job_full_path,
+                             "-t", str(threads),
+                             "-o", os.path.join(job_prefix, "######"),
+                             "-E", job.render,
+                             "-F", "MULTILAYER",
+                             ] + frame_args,
+                            stdout=subprocess.PIPE,
+                            stderr=subprocess.STDOUT,
+                            )
                         
                 elif job.subtype == netrender.model.JOB_SUB_BAKING:
                     tasks = []

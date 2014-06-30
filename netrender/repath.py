@@ -25,7 +25,6 @@ DEBUG = False
 
 from netrender.utils import *
 
-BLENDER_PATH = sys.argv[0]
 
 def reset(job):
     main_file = job.files[0]
@@ -60,8 +59,21 @@ def update(job):
             paths.append(rfile.filepath)
     
     # Only update if needed
-    if paths:        
-        process = subprocess.Popen([BLENDER_PATH, "-b", "-noaudio", job_full_path, "-P", __file__, "--", new_path, original_path] + paths, stdout=sys.stdout, stderr=subprocess.STDOUT)
+    if paths:
+        process = subprocess.Popen(
+            [bpy.app.binary_path,
+             "-b",
+             "-y",
+             "-noaudio",
+             job_full_path,
+             "-P", __file__,
+             "--",
+             new_path,
+             original_path,
+             ] + paths,
+            stdout=sys.stdout,
+            stderr=subprocess.STDOUT,
+            )
         process.wait()
         
         os.renames(job_full_path, job_full_path + ".bak")

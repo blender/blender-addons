@@ -23,7 +23,18 @@ import bpy
 
 def generate(filename, external=True):
     if external:
-        process = subprocess.Popen([sys.argv[0],"-b", "-noaudio", "-P", __file__, "--", filename], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        process = subprocess.Popen(
+            [bpy.app.binary_path,
+             "-b",
+             "-y",
+             "-noaudio",
+             "-P", __file__,
+             "--",
+             filename,
+             ],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            )
         while process.poll() is None:
             process.stdout.read(1024) # empty buffer to be sure
         process.stdout.read()

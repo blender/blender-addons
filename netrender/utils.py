@@ -359,7 +359,25 @@ def getResults(server_address, server_port, job_id, resolution_x, resolution_y, 
     filepath = os.path.join(bpy.app.tempdir, "netrender_temp.blend")
     bpy.ops.wm.save_as_mainfile(filepath=filepath, copy=True, check_existing=False)
 
-    arguments = [sys.argv[0], "-b", "-noaudio", filepath, "-o", bpy.path.abspath(bpy.context.scene.render.filepath), "-P", __file__] + frame_arguments + ["--", "GetResults", server_address, str(server_port), job_id, str(resolution_x), str(resolution_y), str(resolution_percentage)]
+    arguments = (
+        [bpy.app.binary_path,
+         "-b",
+         "-y",
+         "-noaudio",
+         filepath,
+         "-o", bpy.path.abspath(bpy.context.scene.render.filepath),
+         "-P", __file__,
+         ] + frame_arguments +
+        ["--",
+         "GetResults",
+         server_address,
+         str(server_port),
+         job_id,
+         str(resolution_x),
+         str(resolution_y),
+         str(resolution_percentage),
+         ]
+        )
     if bpy.app.debug:
         print("Starting subprocess:")
         print(" ".join(arguments))
@@ -402,7 +420,19 @@ def _getResults(server_address, server_port, job_id, resolution_x, resolution_y,
     
 
 def getFileInfo(filepath, infos):
-    process = subprocess.Popen([sys.argv[0], "-b", "-noaudio", filepath, "-P", __file__, "--", "FileInfo"] + infos, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    process = subprocess.Popen(
+        [bpy.app.binary_path,
+         "-b",
+         "-y",
+         "-noaudio",
+         filepath,
+         "-P", __file__,
+         "--",
+         "FileInfo",
+         ] + infos,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        )
     stdout = bytes()
     while process.poll() is None:
         stdout += process.stdout.read(1024)

@@ -21,7 +21,6 @@ import sys, subprocess, re
 
 from netrender.utils import *
 
-BLENDER_PATH = sys.argv[0]
 
 def commandToTask(command):
     i = command.index("|")
@@ -38,9 +37,19 @@ def bake(job, tasks):
     task_commands = []
     for task in tasks:
         task_commands.extend(task)
-    
-    process = subprocess.Popen([BLENDER_PATH, "-b", "-noaudio", job_full_path, "-P", __file__, "--"] + task_commands, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-    
+
+    process = subprocess.Popen(
+        [bpy.app.binary_path,
+         "-b",
+         "-y",
+         "-noaudio",
+         job_full_path,
+         "-P", __file__,
+         "--",
+         ] + task_commands,
+        stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+        )
+
     return process
 
 result_pattern = re.compile("BAKE FILE\[ ([0-9]+) \]: (.*)")
