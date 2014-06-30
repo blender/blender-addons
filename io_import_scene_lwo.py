@@ -151,7 +151,8 @@ def load_lwo(filename,
              context,
              ADD_SUBD_MOD=True,
              LOAD_HIDDEN=False,
-             SKEL_TO_ARM=True):
+             SKEL_TO_ARM=True,
+             USE_EXISTING_MATERIALS=False):
     """Read the LWO file, hand off to version specific function."""
     name, ext= os.path.splitext(os.path.basename(filename))
     file= open(filename, 'rb')
@@ -180,7 +181,7 @@ def load_lwo(filename,
     file.close()
 
     # With the data gathered, build the object(s).
-    build_objects(layers, surfs, tags, name, ADD_SUBD_MOD, SKEL_TO_ARM)
+    build_objects(layers, surfs, tags, name, ADD_SUBD_MOD, SKEL_TO_ARM, USE_EXISTING_MATERIALS)
 
     layers= None
     surfs.clear()
@@ -978,30 +979,32 @@ def build_armature(layer_data, bones):
         prev_bone= nb
 
 
-def build_objects(object_layers, object_surfs, object_tags, object_name, add_subd_mod, skel_to_arm):
+def build_objects(object_layers, object_surfs, object_tags, object_name, add_subd_mod, skel_to_arm, use_existing_materials):
     """Using the gathered data, create the objects."""
     ob_dict= {}  # Used for the parenting setup.
     print("Adding %d Materials" % len(object_surfs))
 
     for surf_key in object_surfs:
         surf_data= object_surfs[surf_key]
-        surf_data.bl_mat= bpy.data.materials.new(surf_data.name)
-        surf_data.bl_mat.diffuse_color= (surf_data.colr[:])
-        surf_data.bl_mat.diffuse_intensity= surf_data.diff
-        surf_data.bl_mat.emit= surf_data.lumi
-        surf_data.bl_mat.specular_intensity= surf_data.spec
-        if surf_data.refl != 0.0:
-            surf_data.bl_mat.raytrace_mirror.use= True
-        surf_data.bl_mat.raytrace_mirror.reflect_factor= surf_data.refl
-        surf_data.bl_mat.raytrace_mirror.gloss_factor= 1.0-surf_data.rblr
-        if surf_data.tran != 0.0:
-            surf_data.bl_mat.use_transparency= True
-            surf_data.bl_mat.transparency_method= 'RAYTRACE'
-        surf_data.bl_mat.alpha= 1.0 - surf_data.tran
-        surf_data.bl_mat.raytrace_transparency.ior= surf_data.rind
-        surf_data.bl_mat.raytrace_transparency.gloss_factor= 1.0 - surf_data.tblr
-        surf_data.bl_mat.translucency= surf_data.trnl
-        surf_data.bl_mat.specular_hardness= int(4*((10*surf_data.glos)*(10*surf_data.glos)))+4
+        surf_data.bl_mat = bpy.data.materials.get(surf_data.name) if use_existing_materials else None
+        if surf_data.bl_mat is None:
+            surf_data.bl_mat= bpy.data.materials.new(surf_data.name)
+            surf_data.bl_mat.diffuse_color= (surf_data.colr[:])
+            surf_data.bl_mat.diffuse_intensity= surf_data.diff
+            surf_data.bl_mat.emit= surf_data.lumi
+            surf_data.bl_mat.specular_intensity= surf_data.spec
+            if surf_data.refl != 0.0:
+                surf_data.bl_mat.raytrace_mirror.use= True
+            surf_data.bl_mat.raytrace_mirror.reflect_factor= surf_data.refl
+            surf_data.bl_mat.raytrace_mirror.gloss_factor= 1.0-surf_data.rblr
+            if surf_data.tran != 0.0:
+                surf_data.bl_mat.use_transparency= True
+                surf_data.bl_mat.transparency_method= 'RAYTRACE'
+            surf_data.bl_mat.alpha= 1.0 - surf_data.tran
+            surf_data.bl_mat.raytrace_transparency.ior= surf_data.rind
+            surf_data.bl_mat.raytrace_transparency.gloss_factor= 1.0 - surf_data.tblr
+            surf_data.bl_mat.translucency= surf_data.trnl
+            surf_data.bl_mat.specular_hardness= int(4*((10*surf_data.glos)*(10*surf_data.glos)))+4
         # The Gloss is as close as possible given the differences.
 
     # Single layer objects use the object file's name instead.
@@ -1224,13 +1227,15 @@ class IMPORT_OT_lwo(bpy.types.Operator):
     ADD_SUBD_MOD= BoolProperty(name="Apply SubD Modifier", description="Apply the Subdivision Surface modifier to layers with Subpatches", default=True)
     LOAD_HIDDEN= BoolProperty(name="Load Hidden Layers", description="Load object layers that have been marked as hidden", default=False)
     SKEL_TO_ARM= BoolProperty(name="Create Armature", description="Create an armature from an embedded Skelegon rig", default=True)
+    USE_EXISTING_MATERIALS= BoolProperty(name="Use Existing Materials", description="Use existing materials if a material by that name already exists", default=False)
 
     def execute(self, context):
         load_lwo(self.filepath,
                  context,
                  self.ADD_SUBD_MOD,
                  self.LOAD_HIDDEN,
-                 self.SKEL_TO_ARM)
+                 self.SKEL_TO_ARM,
+                 self.USE_EXISTING_MATERIALS)
         return {'FINISHED'}
 
     def invoke(self, context, event):
