@@ -123,7 +123,7 @@ def fbx_template_def_model(scene, settings, override_defaults=None, nbr_users=0)
         (b"RotationMaxX", (False, "p_bool", False)),
         (b"RotationMaxY", (False, "p_bool", False)),
         (b"RotationMaxZ", (False, "p_bool", False)),
-        (b"InheritType", (1, "p_enum", False)),  # RSrs
+        (b"InheritType", (0, "p_enum", False)),  # RrSs
         (b"ScalingActive", (False, "p_bool", False)),
         (b"ScalingMin", ((0.0, 0.0, 0.0), "p_vector_3d", False)),
         (b"ScalingMax", ((1.0, 1.0, 1.0), "p_vector_3d", False)),
@@ -155,7 +155,7 @@ def fbx_template_def_model(scene, settings, override_defaults=None, nbr_users=0)
         (b"UpVectorProperty", (None, "p_object", False)),
         (b"Show", (True, "p_bool", False)),
         (b"NegativePercentShapeSupport", (True, "p_bool", False)),
-        (b"DefaultAttributeIndex", (0, "p_integer", False)),
+        (b"DefaultAttributeIndex", (-1, "p_integer", False)),
         (b"Freeze", (False, "p_bool", False)),
         (b"LODBox", (False, "p_bool", False)),
         (b"Lcl Translation", ((0.0, 0.0, 0.0), "p_lcl_translation", True)),
@@ -208,21 +208,21 @@ def fbx_template_def_camera(scene, settings, override_defaults=None, nbr_users=0
         (b"Roll", (0.0, "p_roll", True)),
         (b"OpticalCenterX", (0.0, "p_opticalcenterx", True)),
         (b"OpticalCenterY", (0.0, "p_opticalcentery", True)),
-        (b"BackgroundColor", ((0.8, 0.8, 0.8), "p_color", True)),
+        (b"BackgroundColor", ((0.63, 0.63, 0.63), "p_color", True)),
         (b"TurnTable", (0.0, "p_number", True)),
         (b"DisplayTurnTableIcon", (False, "p_bool", False)),
         (b"UseMotionBlur", (False, "p_bool", False)),
         (b"UseRealTimeMotionBlur", (True, "p_bool", False)),
         (b"Motion Blur Intensity", (1.0, "p_number", True)),
-        (b"AspectRatioMode", (2, "p_enum", False)),  # Fixed ratio, height and width in pixels.
-        (b"AspectWidth", (float(r.resolution_x), "p_double", False)),
-        (b"AspectHeight", (float(r.resolution_y), "p_double", False)),
-        (b"PixelAspectRatio", (float(r.pixel_aspect_x / r.pixel_aspect_y), "p_double", False)),
+        (b"AspectRatioMode", (0, "p_enum", False)),  # WindowSize.
+        (b"AspectWidth", (320, "p_double", False)),
+        (b"AspectHeight", (200, "p_double", False)),
+        (b"PixelAspectRatio", (1.0, "p_double", False)),
         (b"FilmOffsetX", (0.0, "p_number", True)),
         (b"FilmOffsetY", (0.0, "p_number", True)),
-        (b"FilmWidth", (1.2598425196850394, "p_double", False)),
-        (b"FilmHeight", (0.7086614173228346, "p_double", False)),
-        (b"FilmAspectRatio", (1.777777777777778, "p_double", False)),
+        (b"FilmWidth", (0.816, "p_double", False)),
+        (b"FilmHeight", (0.612, "p_double", False)),
+        (b"FilmAspectRatio", (1.3333333333333333, "p_double", False)),
         (b"FilmSqueezeRatio", (1.0, "p_double", False)),
         (b"FilmFormatIndex", (0, "p_enum", False)),  # Assuming this is ApertureFormat, 0 = custom.
         (b"PreScale", (1.0, "p_number", True)),
@@ -232,12 +232,12 @@ def fbx_template_def_camera(scene, settings, override_defaults=None, nbr_users=0
         (b"FilmRollPivotY", (0.0, "p_number", True)),
         (b"FilmRollValue", (0.0, "p_number", True)),
         (b"FilmRollOrder", (0, "p_enum", False)),  # 0 = rotate first (default).
-        (b"ApertureMode", (3, "p_enum", False)),  # 3 = focal length.
+        (b"ApertureMode", (2, "p_enum", False)),  # 2 = Vertical.
         (b"GateFit", (0, "p_enum", False)),  # 0 = no resolution gate fit.
-        (b"FieldOfView", (49.13434207760448, "p_fov", True)),
-        (b"FieldOfViewX", (49.13434207760448, "p_fov_x", True)),
-        (b"FieldOfViewY", (28.841546110078532, "p_fov_y", True)),
-        (b"FocalLength", (35.0, "p_number", True)),
+        (b"FieldOfView", (25.114999771118164, "p_fov", True)),
+        (b"FieldOfViewX", (40.0, "p_fov_x", True)),
+        (b"FieldOfViewY", (40.0, "p_fov_y", True)),
+        (b"FocalLength", (34.89327621672628, "p_number", True)),
         (b"CameraFormat", (0, "p_enum", False)),  # Custom camera format.
         (b"UseFrameColor", (False, "p_bool", False)),
         (b"FrameColor", ((0.3, 0.3, 0.3), "p_color_rgb", False)),
@@ -246,26 +246,28 @@ def fbx_template_def_camera(scene, settings, override_defaults=None, nbr_users=0
         (b"ShowGrid", (True, "p_bool", False)),
         (b"ShowOpticalCenter", (False, "p_bool", False)),
         (b"ShowAzimut", (True, "p_bool", False)),
-        (b"ShowTimeCode", (True, "p_bool", False)),
+        (b"ShowTimeCode", (False, "p_bool", False)),
         (b"ShowAudio", (False, "p_bool", False)),
         (b"AudioColor", ((0.0, 1.0, 0.0), "p_vector_3d", False)),  # Yep, vector3d, not corlorgb… :cry:
-        (b"NearPlane", (1.0, "p_double", False)),
-        (b"FarPlane", (100.0, "p_double", False)),
+        (b"NearPlane", (10.0, "p_double", False)),
+        (b"FarPlane", (4000.0, "p_double", False)),
         (b"AutoComputeClipPanes", (False, "p_bool", False)),
         (b"ViewCameraToLookAt", (True, "p_bool", False)),
         (b"ViewFrustumNearFarPlane", (False, "p_bool", False)),
         (b"ViewFrustumBackPlaneMode", (2, "p_enum", False)),  # 2 = show back plane if texture added.
-        (b"BackPlaneDistance", (100.0, "p_number", True)),
+        (b"BackPlaneDistance", (4000.0, "p_number", True)),
         (b"BackPlaneDistanceMode", (1, "p_enum", False)),  # 1 = relative to camera.
         (b"ViewFrustumFrontPlaneMode", (2, "p_enum", False)),  # 2 = show front plane if texture added.
-        (b"FrontPlaneDistance", (1.0, "p_number", True)),
+        (b"FrontPlaneDistance", (10.0, "p_number", True)),
         (b"FrontPlaneDistanceMode", (1, "p_enum", False)),  # 1 = relative to camera.
         (b"LockMode", (False, "p_bool", False)),
         (b"LockInterestNavigation", (False, "p_bool", False)),
-        (b"BackPlateFitImage", (False, "p_bool", False)),
-        (b"BackPlateCrop", (False, "p_bool", False)),
-        (b"BackPlateCenter", (True, "p_bool", False)),
-        (b"BackPlateKeepRatio", (True, "p_bool", False)),
+        # BackPlate... properties **arggggg!**
+        (b"FitImage", (False, "p_bool", False)),
+        (b"Crop", (False, "p_bool", False)),
+        (b"Center", (True, "p_bool", False)),
+        (b"KeepRatio", (True, "p_bool", False)),
+        # End of BackPlate...
         (b"BackgroundAlphaTreshold", (0.5, "p_double", False)),
         (b"ShowBackplate", (True, "p_bool", False)),
         (b"BackPlaneOffsetX", (0.0, "p_number", True)),
@@ -286,10 +288,10 @@ def fbx_template_def_camera(scene, settings, override_defaults=None, nbr_users=0
         (b"FrontPlaneScaleX", (1.0, "p_number", True)),
         (b"FrontPlaneScaleY", (1.0, "p_number", True)),
         (b"Foreground Texture", (None, "p_object", False)),
-        (b"DisplaySafeArea", (True, "p_bool", False)),
+        (b"DisplaySafeArea", (False, "p_bool", False)),
         (b"DisplaySafeAreaOnRender", (False, "p_bool", False)),
         (b"SafeAreaDisplayStyle", (1, "p_enum", False)),  # 1 = rounded corners.
-        (b"SafeAreaAspectRatio", (1.777777777777778, "p_double", False)),
+        (b"SafeAreaAspectRatio", (1.3333333333333333, "p_double", False)),
         (b"Use2DMagnifierZoom", (False, "p_bool", False)),
         (b"2D Magnifier Zoom", (100.0, "p_number", True)),
         (b"2D Magnifier X", (50.0, "p_number", True)),
@@ -298,9 +300,9 @@ def fbx_template_def_camera(scene, settings, override_defaults=None, nbr_users=0
         (b"OrthoZoom", (1.0, "p_double", False)),
         (b"UseRealTimeDOFAndAA", (False, "p_bool", False)),
         (b"UseDepthOfField", (False, "p_bool", False)),
-        (b"FocusSource", (1, "p_enum", False)),  # 0 = camera interest, 1 = distance from camera interest.
+        (b"FocusSource", (0, "p_enum", False)),  # 0 = camera interest, 1 = distance from camera interest.
         (b"FocusAngle", (3.5, "p_double", False)),  # ???
-        (b"FocusDistance", (10.0, "p_double", False)),
+        (b"FocusDistance", (200.0, "p_double", False)),
         (b"UseAntialiasing", (False, "p_bool", False)),
         (b"AntialiasingIntensity", (0.77777, "p_double", False)),
         (b"AntialiasingMethod", (0, "p_enum", False)),  # 0 = oversampling, 1 = hardware.
@@ -340,32 +342,32 @@ def fbx_template_def_material(scene, settings, override_defaults=None, nbr_users
         (b"ShadingModel", ("Phong", "p_string", False)),
         (b"MultiLayer", (False, "p_bool", False)),
         # Lambert-specific.
-        (b"EmissiveColor", ((0.8, 0.8, 0.8), "p_color", True)),  # Same as diffuse.
-        (b"EmissiveFactor", (0.0, "p_number", True)),
-        (b"AmbientColor", ((0.0, 0.0, 0.0), "p_color", True)),
+        (b"EmissiveColor", ((0.0, 0.0, 0.0), "p_color", True)),
+        (b"EmissiveFactor", (1.0, "p_number", True)),
+        (b"AmbientColor", ((0.2, 0.2, 0.2), "p_color", True)),
         (b"AmbientFactor", (1.0, "p_number", True)),
         (b"DiffuseColor", ((0.8, 0.8, 0.8), "p_color", True)),
-        (b"DiffuseFactor", (0.8, "p_number", True)),
-        (b"TransparentColor", ((0.8, 0.8, 0.8), "p_color", True)),  # Same as diffuse.
+        (b"DiffuseFactor", (1.0, "p_number", True)),
+        (b"TransparentColor", ((0.0, 0.0, 0.0), "p_color", True)),
         (b"TransparencyFactor", (0.0, "p_number", True)),
         (b"Opacity", (1.0, "p_number", True)),
         (b"NormalMap", ((0.0, 0.0, 0.0), "p_vector_3d", False)),
         (b"Bump", ((0.0, 0.0, 0.0), "p_vector_3d", False)),
         (b"BumpFactor", (1.0, "p_double", False)),
         (b"DisplacementColor", ((0.0, 0.0, 0.0), "p_color_rgb", False)),
-        (b"DisplacementFactor", (0.0, "p_double", False)),
+        (b"DisplacementFactor", (1.0, "p_double", False)),
         (b"VectorDisplacementColor", ((0.0, 0.0, 0.0), "p_color_rgb", False)),
-        (b"VectorDisplacementFactor", (0.0, "p_double", False)),
+        (b"VectorDisplacementFactor", (1.0, "p_double", False)),
         # Phong-specific.
-        (b"SpecularColor", ((1.0, 1.0, 1.0), "p_color", True)),
-        (b"SpecularFactor", (0.5 / 2.0, "p_number", True)),
+        (b"SpecularColor", ((0.2, 0.2, 0.2), "p_color", True)),
+        (b"SpecularFactor", (1.0, "p_number", True)),
         # Not sure about the name, importer uses this (but ShininessExponent for tex prop name!)
         # And in fbx exported by sdk, you have one in template, the other in actual material!!! :/
         # For now, using both.
-        (b"Shininess", ((50.0 - 1.0) / 5.10, "p_number", True)),
-        (b"ShininessExponent", ((50.0 - 1.0) / 5.10, "p_number", True)),
-        (b"ReflectionColor", ((1.0, 1.0, 1.0), "p_color", True)),
-        (b"ReflectionFactor", (0.0, "p_number", True)),
+        (b"Shininess", (20.0, "p_number", True)),
+        (b"ShininessExponent", (20.0, "p_number", True)),
+        (b"ReflectionColor", ((0.0, 0.0, 0.0), "p_color", True)),
+        (b"ReflectionFactor", (1.0, "p_number", True)),
     ))
     if override_defaults is not None:
         props.update(override_defaults)
@@ -379,9 +381,10 @@ def fbx_template_def_texture_file(scene, settings, override_defaults=None, nbr_u
         (b"TextureTypeUse", (0, "p_enum", False)),  # Standard.
         (b"AlphaSource", (2, "p_enum", False)),  # Black (i.e. texture's alpha), XXX name guessed!.
         (b"Texture alpha", (1.0, "p_double", False)),
-        (b"PremultiplyAlpha", (False, "p_bool", False)),
-        (b"CurrentTextureBlendMode", (0, "p_enum", False)),  # Translucent, assuming this means "Alpha over"!
-        (b"CurrentMappingType", (1, "p_enum", False)),  # Planar.
+        (b"PremultiplyAlpha", (True, "p_bool", False)),
+        (b"CurrentTextureBlendMode", (1, "p_enum", False)),  # Additive...
+        (b"CurrentMappingType", (0, "p_enum", False)),  # UV.
+        (b"UVSet", (b"default", "p_string", False)),
         (b"WrapModeU", (0, "p_enum", False)),  # Repeat.
         (b"WrapModeV", (0, "p_enum", False)),  # Repeat.
         (b"UVSwap", (False, "p_bool", False)),
@@ -390,8 +393,8 @@ def fbx_template_def_texture_file(scene, settings, override_defaults=None, nbr_u
         (b"Scaling", ((1.0, 1.0, 1.0), "p_vector_3d", False)),
         (b"TextureRotationPivot", ((0.0, 0.0, 0.0), "p_vector_3d", False)),
         (b"TextureScalingPivot", ((0.0, 0.0, 0.0), "p_vector_3d", False)),
-        # Not sure about those two... At least, UseMaterial should always be ON imho.
-        (b"UseMaterial", (True, "p_bool", False)),
+        # Not sure about those two...
+        (b"UseMaterial", (False, "p_bool", False)),
         (b"UseMipMap", (False, "p_bool", False)),
     ))
     if override_defaults is not None:
@@ -411,14 +414,14 @@ def fbx_template_def_video(scene, settings, override_defaults=None, nbr_users=0)
         (b"StartFrame", (0, "p_integer", False)),
         (b"StopFrame", (0, "p_integer", False)),
         (b"Offset", (0, "p_timestamp", False)),
-        (b"PlaySpeed", (1.0, "p_double", False)),
+        (b"PlaySpeed", (0.0, "p_double", False)),
         (b"FreeRunning", (False, "p_bool", False)),
         (b"Loop", (False, "p_bool", False)),
         (b"InterlaceMode", (0, "p_enum", False)),  # None, i.e. progressive.
         # Image sequences.
         (b"ImageSequence", (False, "p_bool", False)),
         (b"ImageSequenceOffset", (0, "p_integer", False)),
-        (b"FrameRate", (scene.render.fps / scene.render.fps_base, "p_double", False)),
+        (b"FrameRate", (0.0, "p_double", False)),
         (b"LastFrame", (0, "p_integer", False)),
     ))
     if override_defaults is not None:
@@ -617,6 +620,11 @@ def fbx_data_camera_elements(root, cam_obj, scene_data):
     # Should we use world value?
     elem_props_template_set(tmpl, props, "p_color", b"BackgroundColor", (0.0, 0.0, 0.0))
     elem_props_template_set(tmpl, props, "p_bool", b"DisplayTurnTableIcon", True)
+
+    elem_props_template_set(tmpl, props, "p_double", b"AspectRatioMode", 1)  # FixedRatio
+    elem_props_template_set(tmpl, props, "p_double", b"AspectWidth", float(r.resolution_x))
+    elem_props_template_set(tmpl, props, "p_double", b"AspectHeight", float(r.resolution_y))
+    elem_props_template_set(tmpl, props, "p_double", b"PixelAspectRatio", float(r.pixel_aspect_x / r.pixel_aspect_y))
 
     elem_props_template_set(tmpl, props, "p_double", b"FilmWidth", filmwidth)
     elem_props_template_set(tmpl, props, "p_double", b"FilmHeight", filmheight)
@@ -898,8 +906,7 @@ def fbx_data_mesh_elements(root, me_obj, scene_data, done_meshes):
     me.free_normals_split()
     del _nortuples_gen
 
-    # Write VertexColor Layers
-    # note, no programs seem to use this info :/
+    # Write VertexColor Layers.
     vcolnumber = len(me.vertex_colors)
     if vcolnumber:
         def _coltuples_gen(raw_cols):
@@ -1137,7 +1144,8 @@ def fbx_data_texture_file_elements(root, tex, scene_data):
         else:
             alpha_source = 2  # Black, i.e. alpha channel.
     # BlendMode not useful for now, only affects layered textures afaics.
-    mapping = 0  # None.
+    mapping = 0  # UV.
+    uvset = None
     if tex.texture_coords in {'ORCO'}:  # XXX Others?
         if tex.mapping in {'FLAT'}:
             mapping = 1  # Planar
@@ -1148,8 +1156,9 @@ def fbx_data_texture_file_elements(root, tex, scene_data):
         elif tex.mapping in {'SPHERE'}:
             mapping = 2  # Spherical
     elif tex.texture_coords in {'UV'}:
-        # XXX *HOW* do we link to correct UVLayer???
-        mapping = 6  # UV
+        mapping = 0  # UV
+        # Yuck, UVs are linked by mere names it seems... :/
+        uvset = tex.uv_layer
     wrap_mode = 1  # Clamp
     if tex.texture.extension in {'REPEAT'}:
         wrap_mode = 0  # Repeat
@@ -1160,10 +1169,14 @@ def fbx_data_texture_file_elements(root, tex, scene_data):
     elem_props_template_set(tmpl, props, "p_bool", b"PremultiplyAlpha",
                             img.alpha_mode in {'STRAIGHT'})  # Or is it PREMUL?
     elem_props_template_set(tmpl, props, "p_enum", b"CurrentMappingType", mapping)
+    if uvset is not None:
+        elem_props_template_set(tmpl, props, "p_string", b"UVSet", uvset)
     elem_props_template_set(tmpl, props, "p_enum", b"WrapModeU", wrap_mode)
     elem_props_template_set(tmpl, props, "p_enum", b"WrapModeV", wrap_mode)
     elem_props_template_set(tmpl, props, "p_vector_3d", b"Translation", tex.offset)
     elem_props_template_set(tmpl, props, "p_vector_3d", b"Scaling", tex.scale)
+    # UseMaterial should always be ON imho.
+    elem_props_template_set(tmpl, props, "p_bool", b"UseMaterial", True)
     elem_props_template_set(tmpl, props, "p_bool", b"UseMipMap", tex.texture.use_mipmap)
     elem_props_template_finalize(tmpl, props)
 
@@ -1354,6 +1367,12 @@ def fbx_data_object_elements(root, ob_obj, scene_data):
     elem_props_template_set(tmpl, props, "p_lcl_rotation", b"Lcl Rotation", rot)
     elem_props_template_set(tmpl, props, "p_lcl_scaling", b"Lcl Scaling", scale)
     elem_props_template_set(tmpl, props, "p_visibility", b"Visibility", float(not ob_obj.hide))
+
+    # Absolutely no idea what this is, but seems mandatory for validity of the file, and defaults to
+    # invalid -1 value...
+    elem_props_template_set(tmpl, props, "p_integer", b"DefaultAttributeIndex", 0)
+
+    elem_props_template_set(tmpl, props, "p_enum", b"InheritType", 1)  # RSrs
 
     # Custom properties.
     if scene_data.settings.use_custom_properties:
