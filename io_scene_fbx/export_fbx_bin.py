@@ -215,8 +215,8 @@ def fbx_template_def_camera(scene, settings, override_defaults=None, nbr_users=0
         (b"UseRealTimeMotionBlur", (True, "p_bool", False)),
         (b"Motion Blur Intensity", (1.0, "p_number", True)),
         (b"AspectRatioMode", (0, "p_enum", False)),  # WindowSize.
-        (b"AspectWidth", (320, "p_double", False)),
-        (b"AspectHeight", (200, "p_double", False)),
+        (b"AspectWidth", (320.0, "p_double", False)),
+        (b"AspectHeight", (200.0, "p_double", False)),
         (b"PixelAspectRatio", (1.0, "p_double", False)),
         (b"FilmOffsetX", (0.0, "p_number", True)),
         (b"FilmOffsetY", (0.0, "p_number", True)),
@@ -621,10 +621,11 @@ def fbx_data_camera_elements(root, cam_obj, scene_data):
     elem_props_template_set(tmpl, props, "p_color", b"BackgroundColor", (0.0, 0.0, 0.0))
     elem_props_template_set(tmpl, props, "p_bool", b"DisplayTurnTableIcon", True)
 
-    elem_props_template_set(tmpl, props, "p_double", b"AspectRatioMode", 1)  # FixedRatio
-    elem_props_template_set(tmpl, props, "p_double", b"AspectWidth", float(r.resolution_x))
-    elem_props_template_set(tmpl, props, "p_double", b"AspectHeight", float(r.resolution_y))
-    elem_props_template_set(tmpl, props, "p_double", b"PixelAspectRatio", float(r.pixel_aspect_x / r.pixel_aspect_y))
+    elem_props_template_set(tmpl, props, "p_double", b"AspectRatioMode", 1.0)  # FixedRatio
+    elem_props_template_set(tmpl, props, "p_double", b"AspectWidth", float(render.resolution_x))
+    elem_props_template_set(tmpl, props, "p_double", b"AspectHeight", float(render.resolution_y))
+    elem_props_template_set(tmpl, props, "p_double", b"PixelAspectRatio",
+                            float(render.pixel_aspect_x / render.pixel_aspect_y))
 
     elem_props_template_set(tmpl, props, "p_double", b"FilmWidth", filmwidth)
     elem_props_template_set(tmpl, props, "p_double", b"FilmHeight", filmheight)

@@ -578,7 +578,11 @@ def fbx_templates_generate(root, fbx_templates):
             elem = elem_data_single_string(template, b"PropertyTemplate", prop_type_name)
             props = elem_properties(elem)
             for name, (value, ptype, animatable) in properties.items():
-                elem_props_set(props, ptype, name, value, animatable=animatable)
+                try:
+                    elem_props_set(props, ptype, name, value, animatable=animatable)
+                except Exception as e:
+                    print("Failed to write template prop (%r)" % e)
+                    print(props, ptype, name, value, animatable)
 
 
 ##### FBX objects generators. #####

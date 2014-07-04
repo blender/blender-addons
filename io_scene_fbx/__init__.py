@@ -217,7 +217,7 @@ class ExportFBX(bpy.types.Operator, ExportHelper):
                ('OTHER', "Other", "Other geometry types, like curve, metaball, etc. (converted to meshes)"),
                ),
         description="Which kind of object to export",
-        default={'EMPTY', 'CAMERA', 'LAMP', 'ARMATURE', 'MESH'},
+        default={'EMPTY', 'CAMERA', 'LAMP', 'ARMATURE', 'MESH', 'OTHER'},
     )
 
     use_mesh_modifiers = BoolProperty(
