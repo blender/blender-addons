@@ -59,7 +59,7 @@ from .fbx_utils import (
     FBX_LIGHT_TYPES, FBX_LIGHT_DECAY_TYPES,
     RIGHT_HAND_AXES, FBX_FRAMERATES,
     # Miscellaneous utils.
-    units_convert, units_convert_iter, matrix_to_array, similar_values,
+    units_convertor, units_convertor_iter, matrix4_to_array, similar_values,
     # UUID from key.
     get_fbx_uuid_from_key,
     # Key generators.
@@ -86,6 +86,16 @@ from .fbx_utils import (
     # Top level.
     FBXSettingsMedia, FBXSettings, FBXData,
 )
+
+# Units convertors!
+convert_sec_to_ktime = units_convertor("second", "ktime")
+convert_sec_to_ktime_iter = units_convertor_iter("second", "ktime")
+
+convert_mm_to_inch = units_convertor("millimeter", "inch")
+
+convert_rad_to_deg = units_convertor("radian", "degree")
+convert_rad_to_deg_iter = units_convertor_iter("radian", "degree")
+
 
 ##### Templates #####
 # TODO: check all those "default" values, they should match Blender's default as much as possible, I guess?
@@ -609,8 +619,8 @@ def fbx_data_camera_elements(root, cam_obj, scene_data):
     height = render.resolution_y
     aspect = width / height
     # Film width & height from mm to inches
-    filmwidth = units_convert(cam_data.sensor_width, "millimeter", "inch")
-    filmheight = units_convert(cam_data.sensor_height, "millimeter", "inch")
+    filmwidth = convert_mm_to_inch(cam_data.sensor_width)
+    filmheight = convert_mm_to_inch(cam_data.sensor_height)
     filmaspect = filmwidth / filmheight
     # Film offset
     offsetx = filmwidth * cam_data.shift_x
@@ -967,9 +977,8 @@ def fbx_data_mesh_elements(root, me_obj, scene_data, done_meshes):
         del _uvtuples_gen
 
     # Face's materials.
-    me_fbxmats_idx = None
-    if me in scene_data.mesh_mat_indices:
-        me_fbxmats_idx = scene_data.mesh_mat_indices[me]
+    me_fbxmats_idx = scene_data.mesh_mat_indices.get(me)
+    if me_fbxmats_idx is not None:
         me_blmats = me.materials
         if me_fbxmats_idx and me_blmats:
             lay_mat = elem_data_single_int32(geom, b"LayerElementMaterial", 0)
@@ -1284,7 +1293,7 @@ def fbx_data_armature_elements(root, arm_obj, scene_data):
             mat_world_obj = ob_obj.fbx_object_matrix(scene_data, global_space=True)
             fbx_posenode = elem_empty(fbx_pose, b"PoseNode")
             elem_data_single_int64(fbx_posenode, b"Node", ob_obj.fbx_uuid)
-            elem_data_single_float64_array(fbx_posenode, b"Matrix", matrix_to_array(mat_world_obj))
+            elem_data_single_float64_array(fbx_posenode, b"Matrix", matrix4_to_array(mat_world_obj))
             # And all bones of armature!
             mat_world_bones = {}
             for bo_obj in bones:
@@ -1292,7 +1301,7 @@ def fbx_data_armature_elements(root, arm_obj, scene_data):
                 mat_world_bones[bo_obj] = bomat
                 fbx_posenode = elem_empty(fbx_pose, b"PoseNode")
                 elem_data_single_int64(fbx_posenode, b"Node", bo_obj.fbx_uuid)
-                elem_data_single_float64_array(fbx_posenode, b"Matrix", matrix_to_array(bomat))
+                elem_data_single_float64_array(fbx_posenode, b"Matrix", matrix4_to_array(bomat))
 
             # Deformer.
             fbx_skin = elem_data_single_int64(root, b"Deformer", get_fbx_uuid_from_key(skin_key))
@@ -1341,9 +1350,9 @@ def fbx_data_armature_elements(root, arm_obj, scene_data):
                 #          http://area.autodesk.com/forum/autodesk-fbx/fbx-sdk/why-the-values-return-
                 #                 by-fbxcluster-gettransformmatrix-x-not-same-with-the-value-in-ascii-fbx-file/
                 elem_data_single_float64_array(fbx_clstr, b"Transform",
-                                               matrix_to_array(mat_world_bones[bo_obj].inverted() * mat_world_obj))
-                elem_data_single_float64_array(fbx_clstr, b"TransformLink", matrix_to_array(mat_world_bones[bo_obj]))
-                elem_data_single_float64_array(fbx_clstr, b"TransformAssociateModel", matrix_to_array(mat_world_arm))
+                                               matrix4_to_array(mat_world_bones[bo_obj].inverted() * mat_world_obj))
+                elem_data_single_float64_array(fbx_clstr, b"TransformLink", matrix4_to_array(mat_world_bones[bo_obj]))
+                elem_data_single_float64_array(fbx_clstr, b"TransformAssociateModel", matrix4_to_array(mat_world_arm))
 
 
 def fbx_data_object_elements(root, ob_obj, scene_data):
@@ -1368,7 +1377,7 @@ def fbx_data_object_elements(root, ob_obj, scene_data):
 
     # Object transform info.
     loc, rot, scale, matrix, matrix_rot = ob_obj.fbx_object_tx(scene_data)
-    rot = tuple(units_convert_iter(rot, "radian", "degree"))
+    rot = tuple(convert_rad_to_deg_iter(rot))
 
     tmpl = elem_props_template_init(scene_data.templates, b"Model")
     # For now add only loc/rot/scale...
@@ -1423,7 +1432,7 @@ def fbx_data_animation_elements(root, scene_data):
     fps = scene.render.fps / scene.render.fps_base
 
     def keys_to_ktimes(keys):
-        return (int(v) for v in units_convert_iter((f / fps for f, _v in keys), "second", "ktime"))
+        return (int(v) for v in convert_sec_to_ktime_iter((f / fps for f, _v in keys)))
 
     # Animation stacks.
     for astack_key, alayers, alayer_key, name, f_start, f_end in animations:
@@ -1435,8 +1444,8 @@ def fbx_data_animation_elements(root, scene_data):
         astack_props = elem_properties(astack)
         r = scene_data.scene.render
         fps = r.fps / r.fps_base
-        start = int(units_convert(f_start / fps, "second", "ktime"))
-        end = int(units_convert(f_end / fps, "second", "ktime"))
+        start = int(convert_sec_to_ktime(f_start / fps))
+        end = int(convert_sec_to_ktime(f_end / fps))
         elem_props_template_set(astack_tmpl, astack_props, "p_timestamp", b"LocalStart", start)
         elem_props_template_set(astack_tmpl, astack_props, "p_timestamp", b"LocalStop", end)
         elem_props_template_set(astack_tmpl, astack_props, "p_timestamp", b"ReferenceStart", start)
@@ -1699,7 +1708,7 @@ def fbx_animations_objects_do(scene_data, ref_id, f_start, f_end, start_zero, ob
             p_rot = p_rots.get(ob_obj, None)
             loc, rot, scale, _m, _mr = ob_obj.fbx_object_tx(scene_data, rot_euler_compat=p_rot)
             p_rots[ob_obj] = rot
-            tx = tuple(loc) + tuple(units_convert_iter(rot, "radian", "degree")) + tuple(scale)
+            tx = tuple(loc) + tuple(convert_rad_to_deg_iter(rot)) + tuple(scale)
             animdata[ob_obj].append((real_currframe, tx, [False] * len(tx)))
         for ob_obj in objects:
             ob_obj.dupli_list_clear()
@@ -1725,7 +1734,7 @@ def fbx_animations_objects_do(scene_data, ref_id, f_start, f_end, start_zero, ob
         # Get PoseBone from bone...
         #tobj = bone_map[obj] if isinstance(obj, Bone) else obj
         #loc, rot, scale, _m, _mr = fbx_object_tx(scene_data, tobj)
-        #tx = tuple(loc) + tuple(units_convert_iter(rot, "radian", "degree")) + tuple(scale)
+        #tx = tuple(loc) + tuple(convert_rad_to_deg_iter(rot)) + tuple(scale)
         dtx = (0.0, 0.0, 0.0) + (0.0, 0.0, 0.0) + (1.0, 1.0, 1.0)
         # If animation for a channel, (True, keyframes), else (False, current value).
         final_keys = OrderedDict()
@@ -1980,8 +1989,9 @@ def fbx_data_from_scene(scene, settings):
             # We support any kind of 'surface' shader though, better to have some kind of default Lambert than nothing.
             # TODO: Support nodes (*BIG* todo!).
             if mat.type in {'SURFACE'} and not mat.use_nodes:
-                if mat in data_materials:
-                    data_materials[mat][1].append(ob_obj)
+                mat_data = data_materials.get(mat)
+                if mat_data is not None:
+                    mat_data[1].append(ob_obj)
                 else:
                     data_materials[mat] = (get_blenderID_key(mat), [ob_obj])
 
@@ -2009,12 +2019,14 @@ def fbx_data_from_scene(scene, settings):
             tex_fbx_props = fbx_mat_properties_from_texture(tex)
             if not tex_fbx_props:
                 continue
-            if tex in data_textures:
-                data_textures[tex][1][mat] = tex_fbx_props
+            tex_data = data_textures.get(tex)
+            if tex_data is not None:
+                tex_data[1][mat] = tex_fbx_props
             else:
                 data_textures[tex] = (get_blenderID_key(tex), OrderedDict(((mat, tex_fbx_props),)))
-            if img in data_videos:
-                data_videos[img][1].append(tex)
+            vid_data = data_videos.get(img)
+            if vid_data is not None:
+                vid_data[1].append(tex)
             else:
                 data_videos[img] = (get_blenderID_key(img), [tex])
 
@@ -2461,8 +2473,8 @@ def fbx_takes_elements(root, scene_data):
     for astack_key, animations, alayer_key, name, f_start, f_end in animations:
         scene = scene_data.scene
         fps = scene.render.fps / scene.render.fps_base
-        start_ktime = int(units_convert(f_start / fps, "second", "ktime"))
-        end_ktime = int(units_convert(f_end / fps, "second", "ktime"))  # +1 is unity hack...
+        start_ktime = int(convert_sec_to_ktime(f_start / fps))
+        end_ktime = int(convert_sec_to_ktime(f_end / fps))
 
         take = elem_data_single_string(takes, b"Take", name)
         elem_data_single_string(take, b"FileName", name + b".tak")

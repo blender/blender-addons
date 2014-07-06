@@ -34,18 +34,21 @@ import bpy
 
 # -----
 # Utils
-from . import parse_fbx
+from . import parse_fbx, fbx_utils
 
 from .parse_fbx import data_types, FBXElem
+from .fbx_utils import (
+    units_convertor_iter,
+    array_to_matrix4,
+    similar_values,
+    similar_values_iter,
+)
 
 # global singleton, assign on execution
 fbx_elem_nil = None
 
-
-def tuple_deg_to_rad(eul):
-    return (eul[0] / 57.295779513,
-            eul[1] / 57.295779513,
-            eul[2] / 57.295779513)
+# Units convertors...
+convert_deg_to_rad_iter = units_convertor_iter("degree", "radian")
 
 
 def elem_find_first(elem, id_search, default=None):
@@ -95,6 +98,13 @@ def elem_split_name_class(elem):
     return elem_name, elem_class
 
 
+def elem_name_ensure_class(elem, clss=...):
+    elem_name, elem_class = elem_split_name_class(elem)
+    if clss is not ...:
+        assert(elem_class == clss)
+    return elem_name.decode('utf-8')
+
+
 def elem_split_name_class_nodeattr(elem):
     assert(elem.props_type[-2] == data_types.STRING)
     elem_name, elem_class = elem.props[-2].split(b'\x00\x01')
@@ -109,8 +119,8 @@ def elem_uuid(elem):
     return elem.props[0]
 
 
-def elem_prop_first(elem):
-    return elem.props[0] if (elem is not None) and elem.props else None
+def elem_prop_first(elem, default=None):
+    return elem.props[0] if (elem is not None) and elem.props else default
 
 
 # ----
@@ -317,9 +327,9 @@ def blen_read_object(fbx_tmpl, fbx_obj, object_data):
         rot_alt_mat = Matrix()
 
     # rotation
-    lcl_rot = Euler(tuple_deg_to_rad(rot), rot_ord).to_matrix().to_4x4() * rot_alt_mat
-    pre_rot = Euler(tuple_deg_to_rad(pre_rot), rot_ord).to_matrix().to_4x4()
-    pst_rot = Euler(tuple_deg_to_rad(pst_rot), rot_ord).to_matrix().to_4x4()
+    lcl_rot = Euler(convert_deg_to_rad_iter(rot), rot_ord).to_matrix().to_4x4() * rot_alt_mat
+    pre_rot = Euler(convert_deg_to_rad_iter(pre_rot), rot_ord).to_matrix().to_4x4()
+    pst_rot = Euler(convert_deg_to_rad_iter(pst_rot), rot_ord).to_matrix().to_4x4()
 
     rot_ofs = Matrix.Translation(rot_ofs)
     rot_piv = Matrix.Translation(rot_piv)
@@ -646,9 +656,7 @@ def blen_read_geom_layer_normal(fbx_obj, mesh):
 
 def blen_read_geom(fbx_tmpl, fbx_obj):
     # TODO, use 'fbx_tmpl'
-    elem_name, elem_class = elem_split_name_class(fbx_obj)
-    assert(elem_class == b'Geometry')
-    elem_name_utf8 = elem_name.decode('utf-8')
+    elem_name_utf8 = elem_name_ensure_class(fbx_obj, b'Geometry')
 
     fbx_verts = elem_prop_first(elem_find_first(fbx_obj, b'Vertices'))
     fbx_polys = elem_prop_first(elem_find_first(fbx_obj, b'PolygonVertexIndex'))
@@ -733,14 +741,45 @@ def blen_read_geom(fbx_tmpl, fbx_obj):
     return mesh
 
 
+def blen_read_shape(fbx_tmpl, fbx_sdata, fbx_bcdata, meshes, scene, global_matrix):
+    from mathutils import Vector
+
+    elem_name_utf8 = elem_name_ensure_class(fbx_sdata, b'Geometry')
+    indices = elem_prop_first(elem_find_first(fbx_sdata, b'Indexes'), default=())
+    dvcos = tuple(co for co in zip(*[iter(elem_prop_first(elem_find_first(fbx_sdata, b'Vertices'), default=()))] * 3))
+    # We completely ignore normals here!
+    weight = elem_prop_first(elem_find_first(fbx_bcdata, b'DeformPercent'), default=100.0) / 100.0
+    vgweights = tuple(vgw / 100.0 for vgw in elem_prop_first(elem_find_first(fbx_bcdata, b'FullWeights'), default=()))
+
+    assert(len(vgweights) == len(indices) == len(dvcos))
+    create_vg = bool(set(vgweights) - {1.0})
+
+    for me, objects in meshes:
+        vcos = tuple((idx, me.vertices[idx].co + Vector(dvco)) for idx, dvco in zip(indices, dvcos))
+        objects = list({blen_o for fbx_o, blen_o in objects})
+        assert(objects)
+
+        if me.shape_keys is None:
+            objects[0].shape_key_add(name="Basis", from_mix=False)
+        objects[0].shape_key_add(name=elem_name_utf8, from_mix=False)
+        me.shape_keys.use_relative = True  # Should already be set as such.
+
+        kb = me.shape_keys.key_blocks[elem_name_utf8]
+        for idx, co in vcos:
+            kb.data[idx].co[:] = co
+        kb.value = weight
+
+        # Add vgroup if necessary.
+        if create_vg:
+            add_vgroup_to_objects(indices, vgweights, elem_name_utf8, objects)
+            kb.vertex_group = elem_name_utf8
+
+
 # --------
 # Material
 
-def blen_read_material(fbx_tmpl, fbx_obj,
-                       cycles_material_wrap_map, use_cycles):
-    elem_name, elem_class = elem_split_name_class(fbx_obj)
-    assert(elem_class == b'Material')
-    elem_name_utf8 = elem_name.decode('utf-8')
+def blen_read_material(fbx_tmpl, fbx_obj, cycles_material_wrap_map, use_cycles):
+    elem_name_utf8 = elem_name_ensure_class(fbx_obj, b'Material')
 
     ma = bpy.data.materials.new(name=elem_name_utf8)
 
@@ -796,9 +835,7 @@ def blen_read_texture(fbx_tmpl, fbx_obj, basedir, image_cache,
     import os
     from bpy_extras import image_utils
 
-    elem_name, elem_class = elem_split_name_class(fbx_obj)
-    assert(elem_class == b'Texture')
-    elem_name_utf8 = elem_name.decode('utf-8')
+    elem_name_utf8 = elem_name_ensure_class(fbx_obj, b'Texture')
 
     filepath = elem_find_first_string(fbx_obj, b'FileName')
     if os.sep == '/':
@@ -828,9 +865,7 @@ def blen_read_camera(fbx_tmpl, fbx_obj, global_scale):
     # meters to inches
     M2I = 0.0393700787
 
-    elem_name, elem_class = elem_split_name_class_nodeattr(fbx_obj)
-    assert(elem_class == b'Camera')
-    elem_name_utf8 = elem_name.decode('utf-8')
+    elem_name_utf8 = elem_name_ensure_class(fbx_obj, b'NodeAttribute')
 
     fbx_props = (elem_find_first(fbx_obj, b'Properties70'),
                  elem_find_first(fbx_tmpl, b'Properties70', fbx_elem_nil))
@@ -855,9 +890,7 @@ def blen_read_camera(fbx_tmpl, fbx_obj, global_scale):
 
 def blen_read_light(fbx_tmpl, fbx_obj, global_scale):
     import math
-    elem_name, elem_class = elem_split_name_class_nodeattr(fbx_obj)
-    assert(elem_class == b'Light')
-    elem_name_utf8 = elem_name.decode('utf-8')
+    elem_name_utf8 = elem_name_ensure_class(fbx_obj, b'NodeAttribute')
 
     fbx_props = (elem_find_first(fbx_obj, b'Properties70'),
                  elem_find_first(fbx_tmpl, b'Properties70', fbx_elem_nil))
@@ -920,12 +953,14 @@ def load(operator, context, filepath="",
     global fbx_elem_nil
     fbx_elem_nil = FBXElem('', (), (), ())
 
-    import os
+    import os, time
     from bpy_extras.io_utils import axis_conversion
     from mathutils import Matrix
 
     from . import parse_fbx
     from .fbx_utils import RIGHT_HAND_AXES, FBX_FRAMERATES
+
+    start_time = time.process_time()
 
     # detect ascii files
     if is_ascii(filepath, 24):
@@ -1483,4 +1518,5 @@ def load(operator, context, filepath="",
                                 material.use_raytrace = False
     _(); del _
 
+    print('Import finished in %.4f sec.' % (time.process_time() - start_time))
     return {'FINISHED'}

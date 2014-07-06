@@ -159,22 +159,31 @@ UNITS = {
 }
 
 
-def units_convert(val, u_from, u_to):
-    """Convert value."""
+def units_convertor(u_from, u_to):
+    """Return a convertor between specified units."""
     conv = UNITS[u_to] / UNITS[u_from]
-    return val * conv
+    return lambda v: v * conv
 
 
-def units_convert_iter(it, u_from, u_to):
-    """Convert value."""
-    conv = UNITS[u_to] / UNITS[u_from]
-    return (v * conv for v in it)
+def units_convertor_iter(u_from, u_to):
+    """Return an iterable convertor between specified units."""
+    conv = units_convertor(u_from, u_to)
+    def convertor(it):
+        for v in it:
+            yield(conv(v))
+    return convertor
 
 
-def matrix_to_array(mat):
+def matrix4_to_array(mat):
     """Concatenate matrix's columns into a single, flat tuple"""
     # blender matrix is row major, fbx is col major so transpose on write
     return tuple(f for v in mat.transposed() for f in v)
+
+
+def array_to_matrix4(arr):
+    """Convert a single 16-len tuple into a valid 4D Blender matrix"""
+    # Blender matrix is row major, fbx is col major so transpose on read
+    return Matrix(tuple(zip(*[iter(arr)]*4))).transposed()
 
 
 def similar_values(v1, v2, e=1e-6):
@@ -182,6 +191,16 @@ def similar_values(v1, v2, e=1e-6):
     if v1 == v2:
         return True
     return ((abs(v1 - v2) / max(abs(v1), abs(v2))) <= e)
+
+
+def similar_values_iter(v1, v2, e=1e-6):
+    """Return True if iterables v1 and v2 are nearly the same."""
+    if v1 == v2:
+        return True
+    for v1, v2 in zip(v1, v2):
+        if (abs(v1 - v2) / max(abs(v1), abs(v2))) > e:
+            return False
+    return True
 
 
 ##### UIDs code. #####
@@ -489,13 +508,13 @@ def elem_props_template_init(templates, template_type):
     """
     Init a writing template of given type, for *one* element's properties.
     """
-    ret = None
-    if template_type in templates:
-        tmpl = templates[template_type]
+    ret = OrderedDict()
+    tmpl = templates.get(template_type)
+    if tmpl is not None:
         written = tmpl.written[0]
         props = tmpl.properties
         ret = OrderedDict((name, [val, ptype, anim, written]) for name, (val, ptype, anim) in props.items())
-    return ret or OrderedDict()
+    return ret
 
 
 def elem_props_template_set(template, elem, ptype_name, name, value, animatable=False):
@@ -547,11 +566,12 @@ def fbx_templates_generate(root, fbx_templates):
 
     templates = OrderedDict()
     for type_name, prop_type_name, properties, nbr_users, _written in fbx_templates.values():
-        if type_name not in templates:
+        tmpl = templates.get(type_name)
+        if tmpl is None:
             templates[type_name] = [OrderedDict(((prop_type_name, (properties, nbr_users)),)), nbr_users]
         else:
-            templates[type_name][0][prop_type_name] = (properties, nbr_users)
-            templates[type_name][1] += nbr_users
+            tmpl[0][prop_type_name] = (properties, nbr_users)
+            tmpl[1] += nbr_users
 
     for type_name, (subprops, nbr_users) in templates.items():
         template = elem_data_single_string(root, b"ObjectType", type_name)
@@ -612,8 +632,8 @@ class MetaObjectWrapper(type):
         cache = getattr(cls, "_cache", None)
         if cache is None:
             cache = cls._cache = {}
-        if key in cache:
-            instance = cache[key]
+        instance = cache.get(key)
+        if instance is not None:
             # Duplis hack: since duplis are not persistent in Blender (we have to re-create them to get updated
             # info like matrix...), we *always* need to reset that matrix when calling ObjectWrapper() (all
             # other data is supposed valid during whole cache live, so we can skip resetting it).
