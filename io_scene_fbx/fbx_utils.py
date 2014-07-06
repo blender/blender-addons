@@ -523,7 +523,7 @@ def elem_props_template_finalize(template, elem):
     """
     Finalize one element's template/props.
     Issue is, some templates might be "needed" by different types (e.g. NodeAttribute is for lights, cameras, etc.),
-    but values for only *one* subtype can be written as template. So we have to be sure we write those for ths other
+    but values for only *one* subtype can be written as template. So we have to be sure we write those for the other
     subtypes in each and every elements, if they are not overriden by that element.
     Yes, hairy, FBX that is to say. When they could easily support several subtypes per template... :(
     """

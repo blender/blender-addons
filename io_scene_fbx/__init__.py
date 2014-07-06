@@ -34,13 +34,13 @@ bl_info = {
 
 
 if "bpy" in locals():
-    import imp
+    import importlib
     if "import_fbx" in locals():
-        imp.reload(import_fbx)
+        importlib.reload(import_fbx)
     if "export_fbx_bin" in locals():
-        imp.reload(export_fbx_bin)
+        importlib.reload(export_fbx_bin)
     if "export_fbx" in locals():
-        imp.reload(export_fbx)
+        importlib.reload(export_fbx)
 
 
 import bpy

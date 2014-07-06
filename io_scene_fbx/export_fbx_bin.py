@@ -30,11 +30,20 @@ import time
 from collections import OrderedDict
 from itertools import zip_longest, chain
 
+if "bpy" in locals():
+    import importlib
+    if "encode_bin" in locals():
+        importlib.reload(encode_bin)
+    if "data_types" in locals():
+        importlib.reload(data_types)
+    if "fbx_utils" in locals():
+        importlib.reload(fbx_utils)
+
 import bpy
 import bpy_extras
 from mathutils import Vector, Matrix
 
-from . import encode_bin, data_types
+from . import encode_bin, data_types, fbx_utils
 from .fbx_utils import (
     # Constants.
     FBX_VERSION, FBX_HEADER_VERSION, FBX_SCENEINFO_VERSION, FBX_TEMPLATES_VERSION,

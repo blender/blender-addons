@@ -20,20 +20,26 @@
 
 # Script copyright (C) Blender Foundation
 
-# FBX 7.1.0 -> 7.3.0 loader for Blender
+# FBX 7.1.0 -> 7.4.0 loader for Blender
 
 # Not totally pep8 compliant.
 #   pep8 import_fbx.py --ignore=E501,E123,E702,E125
 
+if "bpy" in locals():
+    import importlib
+    if "parse_fbx" in locals():
+        importlib.reload(parse_fbx)
 
 import bpy
 
-# global singleton, assign on execution
-fbx_elem_nil = None
-
 # -----
 # Utils
+from . import parse_fbx
+
 from .parse_fbx import data_types, FBXElem
+
+# global singleton, assign on execution
+fbx_elem_nil = None
 
 
 def tuple_deg_to_rad(eul):
@@ -118,10 +124,6 @@ def elem_props_find_first(elem, elem_prop_id):
         for e in elem:
             result = elem_props_find_first(e, elem_prop_id)
             if result is not None:
-                '''
-                if e is elem[1]:
-                    print("Using templ!!!", elem_prop_id)
-                '''
                 return result
         assert(len(elem) > 0)
         return None
@@ -145,7 +147,6 @@ def elem_props_get_color_rgb(elem, elem_prop_id, default=None):
         else:
             assert(elem_prop.props[1] == b'ColorRGB')
             assert(elem_prop.props[2] == b'Color')
-            #print(elem_prop.props_type[4:7])
         assert(elem_prop.props_type[4:7] == bytes((data_types.FLOAT64,)) * 3)
         return elem_prop.props[4:7]
     return default
@@ -1064,7 +1065,6 @@ def load(operator, context, filepath="",
 
     def _():
         for fbx_link in fbx_connections.elems:
-            # print(fbx_link)
             c_type = fbx_link.props[0]
             if fbx_link.props_type[1:3] == b'LL':
                 c_src, c_dst = fbx_link.props[1:3]
@@ -1190,7 +1190,6 @@ def load(operator, context, filepath="",
                     ok = True
                     break
             if ok:
-                # print(fbx_lnk_type)
                 # create when linking since we need object data
                 obj = blen_read_object(fbx_tmpl, fbx_obj, fbx_lnk_item)
                 assert(fbx_item[1] is None)
@@ -1484,5 +1483,4 @@ def load(operator, context, filepath="",
                                 material.use_raytrace = False
     _(); del _
 
-    # print(list(sorted(locals().keys())))
     return {'FINISHED'}
