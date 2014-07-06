@@ -54,6 +54,9 @@ FBX_GEOMETRY_VCOLOR_VERSION = 101
 FBX_GEOMETRY_UV_VERSION = 101
 FBX_GEOMETRY_MATERIAL_VERSION = 101
 FBX_GEOMETRY_LAYER_VERSION = 100
+FBX_GEOMETRY_SHAPE_VERSION = 100
+FBX_DEFORMER_SHAPE_VERSION = 100
+FBX_DEFORMER_SHAPECHANNEL_VERSION = 100
 FBX_POSE_BIND_VERSION = 100
 FBX_DEFORMER_SKIN_VERSION = 101
 FBX_DEFORMER_CLUSTER_VERSION = 100
@@ -285,14 +288,25 @@ def get_blender_empty_key(obj):
     return "|".join((get_blenderID_key(obj), "Empty"))
 
 
+def get_blender_mesh_shape_key(me):
+    """Return main shape deformer's key."""
+    return "|".join((get_blenderID_key(me), "Shape"))
+
+
+def get_blender_mesh_shape_channel_key(me, shape):
+    """Return shape channel and geometry shape keys."""
+    return ("|".join((get_blenderID_key(me), "Shape", get_blenderID_key(shape))),
+            "|".join((get_blenderID_key(me), "Geometry", get_blenderID_key(shape))))
+
+
 def get_blender_bone_key(armature, bone):
     """Return bone's keys (Model and NodeAttribute)."""
     return "|".join((get_blenderID_key((armature, bone)), "Data"))
 
 
-def get_blender_armature_bindpose_key(armature, mesh):
-    """Return armature's bindpose key."""
-    return "|".join((get_blenderID_key(armature), get_blenderID_key(mesh), "BindPose"))
+def get_blender_bindpose_key(obj, mesh):
+    """Return object's bindpose key."""
+    return "|".join((get_blenderID_key(obj), get_blenderID_key(mesh), "BindPose"))
 
 
 def get_blender_armature_skin_key(armature, mesh):
@@ -934,6 +948,6 @@ FBXData = namedtuple("FBXData", (
     "templates", "templates_users", "connections",
     "settings", "scene", "objects", "animations", "frame_start", "frame_end",
     "data_empties", "data_lamps", "data_cameras", "data_meshes", "mesh_mat_indices",
-    "data_bones", "data_deformers",
+    "data_bones", "data_deformers_skin", "data_deformers_shape",
     "data_world", "data_materials", "data_textures", "data_videos",
 ))

@@ -51,6 +51,7 @@ from .fbx_utils import (
     FBX_GEOMETRY_VERSION, FBX_GEOMETRY_NORMAL_VERSION, FBX_GEOMETRY_BINORMAL_VERSION, FBX_GEOMETRY_TANGENT_VERSION,
     FBX_GEOMETRY_SMOOTHING_VERSION, FBX_GEOMETRY_VCOLOR_VERSION, FBX_GEOMETRY_UV_VERSION,
     FBX_GEOMETRY_MATERIAL_VERSION, FBX_GEOMETRY_LAYER_VERSION,
+    FBX_GEOMETRY_SHAPE_VERSION, FBX_DEFORMER_SHAPE_VERSION, FBX_DEFORMER_SHAPECHANNEL_VERSION,
     FBX_POSE_BIND_VERSION, FBX_DEFORMER_SKIN_VERSION, FBX_DEFORMER_CLUSTER_VERSION,
     FBX_MATERIAL_VERSION, FBX_TEXTURE_VERSION,
     FBX_ANIM_KEY_VERSION,
@@ -59,13 +60,14 @@ from .fbx_utils import (
     FBX_LIGHT_TYPES, FBX_LIGHT_DECAY_TYPES,
     RIGHT_HAND_AXES, FBX_FRAMERATES,
     # Miscellaneous utils.
-    units_convertor, units_convertor_iter, matrix4_to_array, similar_values,
+    units_convertor, units_convertor_iter, matrix4_to_array, similar_values, similar_values_iter,
     # UUID from key.
     get_fbx_uuid_from_key,
     # Key generators.
     get_blenderID_key, get_blenderID_name,
+    get_blender_mesh_shape_key, get_blender_mesh_shape_channel_key,
     get_blender_empty_key, get_blender_bone_key,
-    get_blender_armature_bindpose_key, get_blender_armature_skin_key, get_blender_bone_cluster_key,
+    get_blender_bindpose_key, get_blender_armature_skin_key, get_blender_bone_cluster_key,
     get_blender_anim_id_base, get_blender_anim_stack_key, get_blender_anim_layer_key,
     get_blender_anim_curve_node_key, get_blender_anim_curve_key,
     # FBX element data.
@@ -683,6 +685,105 @@ def fbx_data_camera_elements(root, cam_obj, scene_data):
     elem_data_single_float64(cam, b"CameraOrthoZoom", 1.0)
 
 
+def fbx_data_bindpose_element(root, me_obj, me, scene_data, arm_obj=None, bones=[]):
+    """
+    Helper, since bindpose are used by both meshes shape keys and armature bones...
+    """
+    if arm_obj is None:
+        arm_obj = me_obj
+    # We assume bind pose for our bones are their "Editmode" pose...
+    # All matrices are expected in global (world) space.
+    bindpose_key = get_blender_bindpose_key(arm_obj.bdata, me)
+    fbx_pose = elem_data_single_int64(root, b"Pose", get_fbx_uuid_from_key(bindpose_key))
+    fbx_pose.add_string(fbx_name_class(me.name.encode(), b"Pose"))
+    fbx_pose.add_string(b"BindPose")
+
+    elem_data_single_string(fbx_pose, b"Type", b"BindPose")
+    elem_data_single_int32(fbx_pose, b"Version", FBX_POSE_BIND_VERSION)
+    elem_data_single_int32(fbx_pose, b"NbPoseNodes", 1 + len(bones))
+
+    # First node is mesh/object.
+    mat_world_obj = me_obj.fbx_object_matrix(scene_data, global_space=True)
+    fbx_posenode = elem_empty(fbx_pose, b"PoseNode")
+    elem_data_single_int64(fbx_posenode, b"Node", me_obj.fbx_uuid)
+    elem_data_single_float64_array(fbx_posenode, b"Matrix", matrix4_to_array(mat_world_obj))
+    # And all bones of armature!
+    mat_world_bones = {}
+    for bo_obj in bones:
+        bomat = bo_obj.fbx_object_matrix(scene_data, rest=True, global_space=True)
+        mat_world_bones[bo_obj] = bomat
+        fbx_posenode = elem_empty(fbx_pose, b"PoseNode")
+        elem_data_single_int64(fbx_posenode, b"Node", bo_obj.fbx_uuid)
+        elem_data_single_float64_array(fbx_posenode, b"Matrix", matrix4_to_array(bomat))
+
+    return mat_world_obj, mat_world_bones
+
+
+def fbx_data_mesh_shapes_elements(root, me_obj, me, scene_data, fbx_me_tmpl, fbx_me_props):
+    """
+    Write shape keys related data.
+    """
+    if me not in scene_data.data_deformers_shape:
+        return
+
+    # First, write the geometry data itself (i.e. shapes).
+    _me_key, shape_key, shapes = scene_data.data_deformers_shape[me]
+
+    channels = []
+
+    for shape, (channel_key, geom_key, shape_verts_co, shape_verts_idx) in shapes.items():
+        # Use vgroups as weights, if defined.
+        if shape.vertex_group and shape.vertex_group in me_obj.bdata.vertex_groups:
+            shape_verts_weights = [0.0] * (len(shape_verts_co) // 3)
+            vg_idx = me_obj.bdata.vertex_groups[shape.vertex_group].index
+            for sk_idx, v_idx in enumerate(shape_verts_idx):
+                for vg in me.vertices[v_idx].groups:
+                    if vg.group == vg_idx:
+                        shape_verts_weights[sk_idx] = vg.weight * 100.0
+        else:
+            shape_verts_weights = [100.0] * (len(shape_verts_co) // 3)
+        channels.append((channel_key, shape, shape_verts_weights))
+
+        geom = elem_data_single_int64(root, b"Geometry", get_fbx_uuid_from_key(geom_key))
+        geom.add_string(fbx_name_class(shape.name.encode(), b"Geometry"))
+        geom.add_string(b"Shape")
+
+        tmpl = elem_props_template_init(scene_data.templates, b"Geometry")
+        props = elem_properties(geom)
+        elem_props_template_finalize(tmpl, props)
+
+        elem_data_single_int32(geom, b"Version", FBX_GEOMETRY_SHAPE_VERSION)
+
+        elem_data_single_int32_array(geom, b"Indexes", shape_verts_idx)
+        elem_data_single_float64_array(geom, b"Vertices", shape_verts_co)
+        elem_data_single_float64_array(geom, b"Normals", [0.0] * len(shape_verts_co))
+
+    # Yiha! BindPose for shapekeys too! Dodecasigh...
+    # XXX Not sure yet whether several bindposes on same mesh are allowed, or not... :/
+    fbx_data_bindpose_element(root, me_obj, me, scene_data)
+
+    # ...and now, the deformers stuff.
+    fbx_shape = elem_data_single_int64(root, b"Deformer", get_fbx_uuid_from_key(shape_key))
+    fbx_shape.add_string(fbx_name_class(me.name.encode(), b"Deformer"))
+    fbx_shape.add_string(b"BlendShape")
+
+    elem_data_single_int32(fbx_shape, b"Version", FBX_DEFORMER_SHAPE_VERSION)
+
+    for channel_key, shape, shape_verts_weights in channels:
+        fbx_channel = elem_data_single_int64(root, b"Deformer", get_fbx_uuid_from_key(channel_key))
+        fbx_channel.add_string(fbx_name_class(shape.name.encode(), b"SubDeformer"))
+        fbx_channel.add_string(b"BlendShapeChannel")
+
+        elem_data_single_int32(fbx_channel, b"Version", FBX_DEFORMER_SHAPECHANNEL_VERSION)
+        elem_data_single_float64(fbx_channel, b"DeformPercent", shape.value * 100.0)  # Percents...
+        elem_data_single_float64_array(fbx_channel, b"FullWeights", shape_verts_weights)
+
+        # *WHY* add this in linked mesh properties too? *cry*
+        # No idea whether it’s percent here too, or more usual factor (assume percentage for now) :/
+        elem_props_template_set(fbx_me_tmpl, fbx_me_props, "p_number", shape.name.encode(), shape.value * 100.0,
+                                animatable=True)
+
+
 def fbx_data_mesh_elements(root, me_obj, scene_data, done_meshes):
     """
     Write the Mesh (Geometry) data block.
@@ -701,7 +802,7 @@ def fbx_data_mesh_elements(root, me_obj, scene_data, done_meshes):
     # No gscale/gmat here, all data are supposed to be in object space.
     smooth_type = scene_data.settings.mesh_smooth_type
 
-    do_bake_space_transform = ObjectWrapper(me_obj).use_bake_space_transform(scene_data)
+    do_bake_space_transform = me_obj.use_bake_space_transform(scene_data)
 
     # Vertices are in object space, but we are post-multiplying all transforms with the inverse of the
     # global matrix, so we need to apply the global matrix to the vertices to get the correct result.
@@ -719,8 +820,6 @@ def fbx_data_mesh_elements(root, me_obj, scene_data, done_meshes):
 
     tmpl = elem_props_template_init(scene_data.templates, b"Geometry")
     props = elem_properties(geom)
-
-    elem_props_template_finalize(tmpl, props)
 
     # Custom properties.
     if scene_data.settings.use_custom_properties:
@@ -1061,6 +1160,10 @@ def fbx_data_mesh_elements(root, me_obj, scene_data, done_meshes):
             elem_data_single_string(lay_tan, b"Type", b"LayerElementTangent")
             elem_data_single_int32(lay_tan, b"TypedIndex", tspaceidx)
 
+    # Shape keys...
+    fbx_data_mesh_shapes_elements(root, me_obj, me, scene_data, tmpl, props)
+
+    elem_props_template_finalize(tmpl, props)
     done_meshes.add(me_key)
 
 
@@ -1272,36 +1375,14 @@ def fbx_data_armature_elements(root, arm_obj, scene_data):
         if scene_data.settings.use_custom_properties:
             fbx_data_element_custom_properties(props, bo)
 
-    # Deformers and BindPoses.
+    # Skin deformers and BindPoses.
     # Note: we might also use Deformers for our "parent to vertex" stuff???
-    deformer = scene_data.data_deformers.get(arm_obj, None)
+    deformer = scene_data.data_deformers_skin.get(arm_obj, None)
     if deformer is not None:
         for me, (skin_key, ob_obj, clusters) in deformer.items():
             # BindPose.
-            # We assume bind pose for our bones are their "Editmode" pose...
-            # All matrices are expected in global (world) space.
-            bindpose_key = get_blender_armature_bindpose_key(arm_obj.bdata, me)
-            fbx_pose = elem_data_single_int64(root, b"Pose", get_fbx_uuid_from_key(bindpose_key))
-            fbx_pose.add_string(fbx_name_class(me.name.encode(), b"Pose"))
-            fbx_pose.add_string(b"BindPose")
 
-            elem_data_single_string(fbx_pose, b"Type", b"BindPose")
-            elem_data_single_int32(fbx_pose, b"Version", FBX_POSE_BIND_VERSION)
-            elem_data_single_int32(fbx_pose, b"NbPoseNodes", 1 + len(bones))
-
-            # First node is mesh/object.
-            mat_world_obj = ob_obj.fbx_object_matrix(scene_data, global_space=True)
-            fbx_posenode = elem_empty(fbx_pose, b"PoseNode")
-            elem_data_single_int64(fbx_posenode, b"Node", ob_obj.fbx_uuid)
-            elem_data_single_float64_array(fbx_posenode, b"Matrix", matrix4_to_array(mat_world_obj))
-            # And all bones of armature!
-            mat_world_bones = {}
-            for bo_obj in bones:
-                bomat = bo_obj.fbx_object_matrix(scene_data, rest=True, global_space=True)
-                mat_world_bones[bo_obj] = bomat
-                fbx_posenode = elem_empty(fbx_pose, b"PoseNode")
-                elem_data_single_int64(fbx_posenode, b"Node", bo_obj.fbx_uuid)
-                elem_data_single_float64_array(fbx_posenode, b"Matrix", matrix4_to_array(bomat))
+            mat_world_obj, mat_world_bones = fbx_data_bindpose_element(root, ob_obj, me, scene_data, arm_obj, bones)
 
             # Deformer.
             fbx_skin = elem_data_single_int64(root, b"Deformer", get_fbx_uuid_from_key(skin_key))
@@ -1552,7 +1633,7 @@ def fbx_mat_properties_from_texture(tex):
 
 
 def fbx_skeleton_from_armature(scene, settings, arm_obj, objects, data_meshes,
-                               data_bones, data_deformers, arm_parents):
+                               data_bones, data_deformers_skin, arm_parents):
     """
     Create skeleton from armature/bones (NodeAttribute/LimbNode and Model/LimbNode), and for each deformed mesh,
     create Pose/BindPose(with sub PoseNode) and Deformer/Skin(with Deformer/SubDeformer/Cluster).
@@ -1586,9 +1667,8 @@ def fbx_skeleton_from_armature(scene, settings, arm_obj, objects, data_meshes,
             continue
 
         # Always handled by an Armature modifier...
-        ob = ob_obj.bdata
         found = False
-        for mod in ob.modifiers:
+        for mod in ob_obj.bdata.modifiers:
             if mod.type not in {'ARMATURE'}:
                 continue
             # We only support vertex groups binding method, not bone envelopes one!
@@ -1602,10 +1682,10 @@ def fbx_skeleton_from_armature(scene, settings, arm_obj, objects, data_meshes,
         # Now we have a mesh using this armature.
         # Note: bindpose have no relations at all (no connections), so no need for any preprocess for them.
         # Create skin & clusters relations (note skins are connected to geometry, *not* model!).
-        _key, me, _free = data_meshes[ob]
+        _key, me, _free = data_meshes[ob_obj]
         clusters = OrderedDict((bo, get_blender_bone_cluster_key(arm_obj.bdata, me, bo.bdata)) for bo in bones)
-        data_deformers.setdefault(arm_obj, OrderedDict())[me] = (get_blender_armature_skin_key(arm_obj.bdata, me),
-                                                                 ob_obj, clusters)
+        data_deformers_skin.setdefault(arm_obj, OrderedDict())[me] = (get_blender_armature_skin_key(arm_obj.bdata, me),
+                                                                      ob_obj, clusters)
 
         # We don't want a regular parent relationship for those in FBX...
         arm_parents.add((arm_obj, ob_obj))
@@ -1950,22 +2030,46 @@ def fbx_data_from_scene(scene, settings):
                         use_org_data = False
             if not use_org_data:
                 tmp_me = ob.to_mesh(scene, apply_modifiers=True, settings='RENDER')
-                data_meshes[ob] = (get_blenderID_key(tmp_me), tmp_me, True)
+                data_meshes[ob_obj] = (get_blenderID_key(tmp_me), tmp_me, True)
             # Re-enable temporary disabled modifiers.
             for mod, show_render in tmp_mods:
                 mod.show_render = show_render
         if use_org_data:
-            data_meshes[ob] = (get_blenderID_key(ob.data), ob.data, False)
+            data_meshes[ob_obj] = (get_blenderID_key(ob.data), ob.data, False)
+
+    # ShapeKeys.
+    data_deformers_shape = OrderedDict()
+    for me_key, me, _org in data_meshes.values():
+        if not (me.shape_keys and me.shape_keys.key_blocks):
+            continue
+        shapes_key = get_blender_mesh_shape_key(me)
+        for shape in me.shape_keys.key_blocks:
+            # Only write vertices really different from org coordinates!
+            # XXX FBX does not like empty shapes (makes Unity crash e.g.), so we have to do this here... :/
+            shape_verts_co = []
+            shape_verts_idx = []
+            for idx, (sv, v) in enumerate(zip(shape.data, me.vertices)):
+                if similar_values_iter(sv.co, v.co):
+                    # Note: Maybe this is a bit too simplistic, should we use real shape base here? Though FBX does not
+                    #       have this at all... Anyway, this should cover most common cases imho.
+                    continue
+                shape_verts_co.extend(sv.co - v.co);
+                shape_verts_idx.append(idx);
+            if not shape_verts_co:
+                continue
+            channel_key, geom_key = get_blender_mesh_shape_channel_key(me, shape)
+            data = (channel_key, geom_key, shape_verts_co, shape_verts_idx)
+            data_deformers_shape.setdefault(me, (me_key, shapes_key, OrderedDict()))[2][shape] = data
 
     # Armatures!
+    data_deformers_skin = OrderedDict()
     data_bones = OrderedDict()
-    data_deformers = OrderedDict()
     arm_parents = set()
     for ob_obj in tuple(objects):
         if not (ob_obj.is_object and ob_obj.type in {'ARMATURE'}):
             continue
         fbx_skeleton_from_armature(scene, settings, ob_obj, objects, data_meshes,
-                                   data_bones, data_deformers, arm_parents)
+                                   data_bones, data_deformers_skin, arm_parents)
 
     # Some world settings are embedded in FBX materials...
     if scene.world:
@@ -2040,7 +2144,7 @@ def fbx_data_from_scene(scene, settings):
             None, None, None,
             settings, scene, objects, None, 0.0, 0.0,
             data_empties, data_lamps, data_cameras, data_meshes, None,
-            data_bones, data_deformers,
+            data_bones, data_deformers_skin, data_deformers_shape,
             data_world, data_materials, data_textures, data_videos,
         )
         animations, frame_start, frame_end = fbx_animations_objects(tmp_scdata)
@@ -2063,7 +2167,10 @@ def fbx_data_from_scene(scene, settings):
         templates[b"Bone"] = fbx_template_def_bone(scene, settings, nbr_users=len(data_bones))
 
     if data_meshes:
-        templates[b"Geometry"] = fbx_template_def_geometry(scene, settings, nbr_users=len(data_meshes))
+        nbr = len(data_meshes)
+        if data_deformers_shape:
+            nbr += sum(len(shapes[2]) for shapes in data_deformers_shape.values())
+        templates[b"Geometry"] = fbx_template_def_geometry(scene, settings, nbr_users=nbr)
 
     if objects:
         templates[b"Model"] = fbx_template_def_model(scene, settings, nbr_users=len(objects))
@@ -2072,9 +2179,15 @@ def fbx_data_from_scene(scene, settings):
         # Number of Pose|BindPose elements should be the same as number of meshes-parented-to-armatures
         templates[b"BindPose"] = fbx_template_def_pose(scene, settings, nbr_users=len(arm_parents))
 
-    if data_deformers:
-        nbr = len(data_deformers)
-        nbr += sum(len(clusters) for def_me in data_deformers.values() for a, b, clusters in def_me.values())
+    if data_deformers_skin or data_deformers_shape:
+        nbr = 0
+        if data_deformers_skin:
+            nbr += len(data_deformers_skin)
+            nbr += sum(len(clusters) for def_me in data_deformers_skin.values() for a, b, clusters in def_me.values())
+        if data_deformers_shape:
+            nbr += len(data_deformers_shape)
+            nbr += sum(len(shapes[2]) for shapes in data_deformers_shape.values())
+        assert(nbr != 0)
         templates[b"Deformers"] = fbx_template_def_deformer(scene, settings, nbr_users=nbr)
 
     # No world support in FBX...
@@ -2151,14 +2264,24 @@ def fbx_data_from_scene(scene, settings):
                 empty_key = data_empties[ob_obj]
                 connections.append((b"OO", get_fbx_uuid_from_key(empty_key), ob_obj.fbx_uuid, None))
             elif ob_obj.type in BLENDER_OBJECT_TYPES_MESHLIKE:
-                mesh_key, _me, _free = data_meshes[ob_obj.bdata]
+                mesh_key, _me, _free = data_meshes[ob_obj]
                 connections.append((b"OO", get_fbx_uuid_from_key(mesh_key), ob_obj.fbx_uuid, None))
 
-    # Deformers (armature-to-geometry, only for meshes currently)...
-    for arm, deformed_meshes in data_deformers.items():
+    # 'Shape' deformers (shape keys, only for meshes currently)...
+    for me_key, shapes_key, shapes in data_deformers_shape.values():
+        # shape -> geometry
+        connections.append((b"OO", get_fbx_uuid_from_key(shapes_key), get_fbx_uuid_from_key(me_key), None))
+        for channel_key, geom_key, _shape_verts_co, _shape_verts_idx in shapes.values():
+            # shape channel -> shape
+            connections.append((b"OO", get_fbx_uuid_from_key(channel_key), get_fbx_uuid_from_key(shapes_key), None))
+            # geometry (keys) -> shape channel
+            connections.append((b"OO", get_fbx_uuid_from_key(geom_key), get_fbx_uuid_from_key(channel_key), None))
+
+    # 'Skin' deformers (armature-to-geometry, only for meshes currently)...
+    for arm, deformed_meshes in data_deformers_skin.items():
         for me, (skin_key, ob_obj, clusters) in deformed_meshes.items():
             # skin -> geometry
-            mesh_key, _me, _free = data_meshes[ob_obj.bdata]
+            mesh_key, _me, _free = data_meshes[ob_obj]
             assert(me == _me)
             connections.append((b"OO", get_fbx_uuid_from_key(skin_key), get_fbx_uuid_from_key(mesh_key), None))
             for bo_obj, clstr_key in clusters.items():
@@ -2180,7 +2303,7 @@ def fbx_data_from_scene(scene, settings):
             # Should not be an issue in practice, and it's needed in case we export duplis but not the original!
             if ob_obj.type not in BLENDER_OBJECT_TYPES_MESHLIKE:
                 continue
-            _mesh_key, me, _free = data_meshes[ob_obj.bdata]
+            _mesh_key, me, _free = data_meshes[ob_obj]
             idx = _objs_indices[ob_obj] = _objs_indices.get(ob_obj, -1) + 1
             mesh_mat_indices.setdefault(me, OrderedDict())[mat] = idx
     del _objs_indices
@@ -2228,7 +2351,7 @@ def fbx_data_from_scene(scene, settings):
         templates, templates_users, connections,
         settings, scene, objects, animations, frame_start, frame_end,
         data_empties, data_lamps, data_cameras, data_meshes, mesh_mat_indices,
-        data_bones, data_deformers,
+        data_bones, data_deformers_skin, data_deformers_shape,
         data_world, data_materials, data_textures, data_videos,
     )
 
