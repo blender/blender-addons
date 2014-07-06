@@ -29,6 +29,8 @@ if "bpy" in locals():
     import importlib
     if "parse_fbx" in locals():
         importlib.reload(parse_fbx)
+    if "fbx_utils" in locals():
+        importlib.reload(fbx_utils)
 
 import bpy
 
