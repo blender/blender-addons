@@ -65,6 +65,7 @@ FBX_TEXTURE_VERSION = 202
 FBX_ANIM_KEY_VERSION = 4008
 
 FBX_NAME_CLASS_SEP = b"\x00\x01"
+FBX_ANIM_PROPSGROUP_NAME = "d"
 
 FBX_KTIME = 46186158000  # This is the number of "ktimes" in one second (yep, precision over the nanosecond...)
 
@@ -617,6 +618,136 @@ def fbx_templates_generate(root, fbx_templates):
                 except Exception as e:
                     print("Failed to write template prop (%r)" % e)
                     print(props, ptype, name, value, animatable)
+
+
+##### FBX animation helpers. #####
+
+
+class AnimationCurveNodeWrapper:
+    """
+    This class provides a same common interface for all (FBX-wise) AnimationCurveNode and AnimationCurve elements,
+    and easy API to handle those.
+    """
+    __slots__ = ('elem_keys', '_keys', 'default_values', 'fbx_group', 'fbx_gname', 'fbx_props')
+
+    kinds = {
+        'LCL_TRANSLATION': ("Lcl Translation", "T", ("X", "Y", "Z")),
+        'LCL_ROTATION': ("Lcl Rotation", "R", ("X", "Y", "Z")),
+        'LCL_SCALING': ("Lcl Scaling", "S", ("X", "Y", "Z")),
+        'SHAPE_KEY': ("DeformPercent", "DeformPercent", ("DeformPercent",)),
+    }
+
+    def __init__(self, elem_key, kind, default_values=...):
+        """
+        bdata might be an Object, DupliObject, Bone or PoseBone.
+        If Bone or PoseBone, armature Object must be provided.
+        """
+        self.elem_keys = [elem_key]
+        assert(kind in self.kinds)
+        self.fbx_group = [self.kinds[kind][0]]
+        self.fbx_gname = [self.kinds[kind][1]]
+        self.fbx_props = [self.kinds[kind][2]]
+        self._keys = []  # (frame, values, write_flags)
+        if default_values is not ...:
+            assert(len(default_values) == len(self.fbx_props[0]))
+            self.default_values = default_values
+        else:
+            self.default_values = (0.0) * len(self.fbx_props[0])
+
+    def __bool__(self):
+        # We are 'True' if we do have some validated keyframes...
+        return self._keys and True in ((True in k[2]) for k in self._keys)
+
+    def add_group(self, elem_key, fbx_group, fbx_gname, fbx_props):
+        """
+        Add another whole group stuff (curvenode, animated item/prop + curvnode/curve identifiers).
+        E.g. Shapes animations is written twice, houra!
+        """
+        assert(len(fbx_props) == len(self.fbx_props[0]))
+        self.elem_keys.append(elem_key)
+        self.fbx_group.append(fbx_group)
+        self.fbx_gname.append(fbx_gname)
+        self.fbx_props.append(fbx_props)
+
+    def add_keyframe(self, frame, values):
+        """
+        Add a new keyframe to all curves of the group.
+        """
+        assert(len(values) == len(self.fbx_props[0]))
+        self._keys.append((frame, values, [True] * len(values)))  # write everything by default.
+
+    def simplfy(self, fac, step):
+        """
+        Simplifies sampled curves by only enabling samples when:
+            * their values differ significantly from the previous sample ones, or
+            * their values differ significantly from the previous validated sample ones, or
+            * the previous validated samples are far enough from current ones in time.
+        """
+        if not self._keys:
+            return
+
+        # So that, with default factor and step values (1), we get:
+        max_frame_diff = step * fac * 10  # max step of 10 frames.
+        value_diff_fac = fac / 1000  # min value evolution: 0.1% of whole range.
+        min_significant_diff = 1.0e-6
+        keys = self._keys
+
+        extremums = tuple((min(values), max(values)) for values in zip(*(k[1] for k in keys)))
+        min_diffs = tuple(max((mx - mn) * value_diff_fac, min_significant_diff) for mn, mx in extremums)
+
+        p_currframe, p_key, p_key_write = keys[0]
+        p_keyed = [(p_currframe - max_frame_diff, val) for val in p_key]
+        are_keyed = [False] * len(p_key)
+        for currframe, key, key_write in keys:
+            for idx, (val, p_val) in enumerate(zip(key, p_key)):
+                key_write[idx] = False
+                p_keyedframe, p_keyedval = p_keyed[idx]
+                if val == p_val:
+                    # Never write keyframe when value is exactly the same as prev one!
+                    continue
+                if abs(val - p_val) >= min_diffs[idx]:
+                    # If enough difference from previous sampled value, key this value *and* the previous one!
+                    key_write[idx] = True
+                    p_key_write[idx] = True
+                    p_keyed[idx] = (currframe, val)
+                    are_keyed[idx] = True
+                else:
+                    frame_diff = currframe - p_keyedframe
+                    val_diff = abs(val - p_keyedval)
+                    if ((val_diff >= min_diffs[idx]) or
+                        ((val_diff >= min_significant_diff) and (frame_diff >= max_frame_diff))):
+                        # Else, if enough difference from previous keyed value
+                        # (or any significant difference and max gap between keys is reached),
+                        # key this value only!
+                        key_write[idx] = True
+                        p_keyed[idx] = (currframe, val)
+                        are_keyed[idx] = True
+            p_currframe, p_key, p_key_write = currframe, key, key_write
+        # If we did key something, ensure first and last sampled values are keyed as well.
+        for idx, is_keyed in enumerate(are_keyed):
+            if is_keyed:
+                keys[0][2][idx] = keys[-1][2][idx] = True
+
+    def get_final_data(self, scene, ref_id, force_keep=False):
+        """
+        Yield final anim data for this 'curvenode' (for all curvenodes defined).
+        force_keep is to force to keep a curve even if it only has one valid keyframe.
+        """
+        curves = [[] for k in self._keys[0][1]]
+        for currframe, key, key_write in self._keys:
+            for curve, val, wrt in zip(curves, key, key_write):
+                if wrt:
+                    curve.append((currframe, val))
+
+        for elem_key, fbx_group, fbx_gname, fbx_props in zip(self.elem_keys, self.fbx_group, self.fbx_gname, self.fbx_props):
+            group_key = get_blender_anim_curve_node_key(scene, ref_id, elem_key, fbx_group)
+            group = OrderedDict()
+            for c, def_val, fbx_item in zip(curves, self.default_values, fbx_props):
+                fbx_item = FBX_ANIM_PROPSGROUP_NAME + "|" + fbx_item
+                curve_key = get_blender_anim_curve_key(scene, ref_id, elem_key, fbx_group, fbx_item)
+                # (curve key, default value, keyframes, write flag).
+                group[fbx_item] = (curve_key, def_val, c, True if (len(c) > 1 or (len(c) > 0 and force_keep)) else False)
+            yield elem_key, group_key, group, fbx_group, fbx_gname
 
 
 ##### FBX objects generators. #####

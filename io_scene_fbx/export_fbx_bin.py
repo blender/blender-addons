@@ -55,6 +55,7 @@ from .fbx_utils import (
     FBX_POSE_BIND_VERSION, FBX_DEFORMER_SKIN_VERSION, FBX_DEFORMER_CLUSTER_VERSION,
     FBX_MATERIAL_VERSION, FBX_TEXTURE_VERSION,
     FBX_ANIM_KEY_VERSION,
+    FBX_ANIM_PROPSGROUP_NAME,
     FBX_KTIME,
     BLENDER_OTHER_OBJECT_TYPES, BLENDER_OBJECT_TYPES_MESHLIKE,
     FBX_LIGHT_TYPES, FBX_LIGHT_DECAY_TYPES,
@@ -83,6 +84,8 @@ from .fbx_utils import (
     elem_props_template_init, elem_props_template_set, elem_props_template_finalize,
     # Templates.
     FBXTemplate, fbx_templates_generate,
+    # Animation.
+    AnimationCurveNodeWrapper,
     # Objects.
     ObjectWrapper, fbx_name_class,
     # Top level.
@@ -496,7 +499,7 @@ def fbx_template_def_animlayer(scene, settings, override_defaults=None, nbr_user
 
 def fbx_template_def_animcurvenode(scene, settings, override_defaults=None, nbr_users=0):
     props = OrderedDict((
-        (b"d", (None, "p_compound", False)),
+        (FBX_ANIM_PROPSGROUP_NAME.encode(), (None, "p_compound", False)),
     ))
     if override_defaults is not None:
         props.update(override_defaults)
@@ -1693,61 +1696,13 @@ def fbx_skeleton_from_armature(scene, settings, arm_obj, objects, data_meshes,
     objects.update(bones)
 
 
-def fbx_animations_simplify(scene_data, animdata):
-    """
-    Simplifies FCurves!
-    """
-    fac = scene_data.settings.bake_anim_simplify_factor
-    step = scene_data.settings.bake_anim_step
-    # So that, with default factor and step values (1), we get:
-    max_frame_diff = step * fac * 10  # max step of 10 frames.
-    value_diff_fac = fac / 1000  # min value evolution: 0.1% of whole range.
-    min_significant_diff = 1.0e-6
-
-    for keys in animdata.values():
-        if not keys:
-            continue
-        extremums = [(min(values), max(values)) for values in zip(*(k[1] for k in keys))]
-        min_diffs = [max((mx - mn) * value_diff_fac, min_significant_diff) for mn, mx in extremums]
-        p_currframe, p_key, p_key_write = keys[0]
-        p_keyed = [(p_currframe - max_frame_diff, val) for val in p_key]
-        are_keyed = [False] * len(p_key)
-        for currframe, key, key_write in keys:
-            for idx, (val, p_val) in enumerate(zip(key, p_key)):
-                p_keyedframe, p_keyedval = p_keyed[idx]
-                if val == p_val:
-                    # Never write keyframe when value is exactly the same as prev one!
-                    continue
-                if abs(val - p_val) >= min_diffs[idx]:
-                    # If enough difference from previous sampled value, key this value *and* the previous one!
-                    key_write[idx] = True
-                    p_key_write[idx] = True
-                    p_keyed[idx] = (currframe, val)
-                    are_keyed[idx] = True
-                else:
-                    frame_diff = currframe - p_keyedframe
-                    val_diff = abs(val - p_keyedval)
-                    if ((val_diff >= min_diffs[idx]) or
-                        ((val_diff >= min_significant_diff) and (frame_diff >= max_frame_diff))):
-                        # Else, if enough difference from previous keyed value
-                        # (or any significant difference and max gap between keys is reached),
-                        # key this value only!
-                        key_write[idx] = True
-                        p_keyed[idx] = (currframe, val)
-                        are_keyed[idx] = True
-            p_currframe, p_key, p_key_write = currframe, key, key_write
-        # If we did key something, ensure first and last sampled values are keyed as well.
-        for idx, is_keyed in enumerate(are_keyed):
-            if is_keyed:
-                keys[0][2][idx] = keys[-1][2][idx] = True
-
-
-def fbx_animations_objects_do(scene_data, ref_id, f_start, f_end, start_zero, objects=None, force_keep=False):
+def fbx_animations_do(scene_data, ref_id, f_start, f_end, start_zero, objects=None, force_keep=False):
     """
     Generate animation data (a single AnimStack) from objects, for a given frame range.
     """
     bake_step = scene_data.settings.bake_anim_step
     scene = scene_data.scene
+    meshes = scene_data.data_meshes
 
     if objects is not None:
         # Add bones and duplis!
@@ -1764,15 +1719,22 @@ def fbx_animations_objects_do(scene_data, ref_id, f_start, f_end, start_zero, ob
     else:
         objects = scene_data.objects
 
-    # FBX mapping info: Property affected, and name of the "sub" property (to distinguish e.g. vector's channels).
-    fbx_names = (
-        ("Lcl Translation", "T", "d|X"), ("Lcl Translation", "T", "d|Y"), ("Lcl Translation", "T", "d|Z"),
-        ("Lcl Rotation", "R", "d|X"), ("Lcl Rotation", "R", "d|Y"), ("Lcl Rotation", "R", "d|Z"),
-        ("Lcl Scaling", "S", "d|X"), ("Lcl Scaling", "S", "d|Y"), ("Lcl Scaling", "S", "d|Z"),
-    )
-
     back_currframe = scene.frame_current
-    animdata = OrderedDict((obj, []) for obj in objects)
+    animdata_ob = OrderedDict((ob_obj, (AnimationCurveNodeWrapper(ob_obj.key, 'LCL_TRANSLATION', (0.0, 0.0, 0.0)),
+                                        AnimationCurveNodeWrapper(ob_obj.key, 'LCL_ROTATION', (0.0, 0.0, 0.0)),
+                                        AnimationCurveNodeWrapper(ob_obj.key, 'LCL_SCALING', (1.0, 1.0, 1.0))))
+                              for ob_obj in objects)
+
+    animdata_shapes = OrderedDict()
+    for me, (me_key, _shapes_key, shapes) in scene_data.data_deformers_shape.items():
+        # Ignore absolute shape keys for now!
+        if not me.shape_keys.use_relative:
+            continue
+        for shape, (channel_key, geom_key, _shape_verts_co, _shape_verts_idx) in shapes.items():
+            acnode = AnimationCurveNodeWrapper(channel_key, 'SHAPE_KEY', (0.0,))
+            # Sooooo happy to have to twist again like a mad snake... Yes, we need to write those curves twice. :/
+            acnode.add_group(me_key, shape.name, shape.name, (shape.name,))
+            animdata_shapes[channel_key] = (acnode, me, shape)
 
     p_rots = {}
 
@@ -1781,63 +1743,49 @@ def fbx_animations_objects_do(scene_data, ref_id, f_start, f_end, start_zero, ob
         real_currframe = currframe - f_start if start_zero else currframe
         scene.frame_set(int(currframe), currframe - int(currframe))
 
-        for ob_obj in objects:
+        for ob_obj in animdata_ob:
             ob_obj.dupli_list_create(scene, 'RENDER')
-        for ob_obj in objects:
+        for ob_obj, (anim_loc, anim_rot, anim_scale) in animdata_ob.items():
             # We compute baked loc/rot/scale for all objects (rot being euler-compat with previous value!).
             p_rot = p_rots.get(ob_obj, None)
             loc, rot, scale, _m, _mr = ob_obj.fbx_object_tx(scene_data, rot_euler_compat=p_rot)
             p_rots[ob_obj] = rot
-            tx = tuple(loc) + tuple(convert_rad_to_deg_iter(rot)) + tuple(scale)
-            animdata[ob_obj].append((real_currframe, tx, [False] * len(tx)))
+            anim_loc.add_keyframe(real_currframe, loc)
+            anim_rot.add_keyframe(real_currframe, tuple(convert_rad_to_deg_iter(rot)))
+            anim_scale.add_keyframe(real_currframe, scale)
         for ob_obj in objects:
             ob_obj.dupli_list_clear()
+        for anim_shape, me, shape in animdata_shapes.values():
+            anim_shape.add_keyframe(real_currframe, (shape.value * 100.0,))
         currframe += bake_step
 
     scene.frame_set(back_currframe, 0.0)
 
-    fbx_animations_simplify(scene_data, animdata)
-
     animations = OrderedDict()
+    simplify_fac = scene_data.settings.bake_anim_simplify_factor
 
-    # And now, produce final data (usable by FBX export code)...
-    for ob_obj, keys in animdata.items():
-        if not keys:
-            continue
-        curves = [[] for k in keys[0][1]]
-        for currframe, key, key_write in keys:
-            for idx, (val, wrt) in enumerate(zip(key, key_write)):
-                if wrt:
-                    curves[idx].append((currframe, val))
+    # And now, produce final data (usable by FBX export code)
+    # Objects-like loc/rot/scale...
+    for ob_obj, anims in animdata_ob.items():
+        for anim in anims:
+            anim.simplfy(simplify_fac, bake_step)
+            if anim:
+                for obj_key, group_key, group, fbx_group, fbx_gname in anim.get_final_data(scene, ref_id, force_keep):
+                    anim_data = animations.get(obj_key)
+                    if anim_data is None:
+                        anim_data = animations[obj_key] = ("dummy_unused_key", OrderedDict())
+                    anim_data[1][fbx_group] = (group_key, group, fbx_gname)
 
-        obj_key = ob_obj.key
-        # Get PoseBone from bone...
-        #tobj = bone_map[obj] if isinstance(obj, Bone) else obj
-        #loc, rot, scale, _m, _mr = fbx_object_tx(scene_data, tobj)
-        #tx = tuple(loc) + tuple(convert_rad_to_deg_iter(rot)) + tuple(scale)
-        dtx = (0.0, 0.0, 0.0) + (0.0, 0.0, 0.0) + (1.0, 1.0, 1.0)
-        # If animation for a channel, (True, keyframes), else (False, current value).
+    # And meshes' shape keys.
+    for channel_key, (anim_shape, me, shape) in animdata_shapes.items():
         final_keys = OrderedDict()
-        for idx, c in enumerate(curves):
-            fbx_group, fbx_gname, fbx_item = fbx_names[idx]
-            fbx_item_key = get_blender_anim_curve_key(scene, ref_id, obj_key, fbx_group, fbx_item)
-            if fbx_group not in final_keys:
-                fbx_group_key = get_blender_anim_curve_node_key(scene, ref_id, obj_key, fbx_group)
-                final_keys[fbx_group] = (fbx_group_key, OrderedDict(), fbx_gname)
-            final_keys[fbx_group][1][fbx_item] = (fbx_item_key, dtx[idx], c,
-                                                  True if (len(c) > 1 or (len(c) > 0 and force_keep)) else False)
-        # And now, remove anim groups (i.e. groups of curves affecting a single FBX property) with no curve at all!
-        del_groups = []
-        for grp, (_k, data, _n) in final_keys.items():
-            if True in (d[3] for d in data.values()):
-                continue
-            del_groups.append(grp)
-        for grp in del_groups:
-            del final_keys[grp]
-
-        if final_keys:
-            #animations[obj] = (get_blender_anim_layer_key(scene, obj.bdata), final_keys)
-            animations[ob_obj] = ("dummy_unused_key", final_keys)
+        anim_shape.simplfy(simplify_fac, bake_step)
+        if anim_shape:
+            for elem_key, group_key, group, fbx_group, fbx_gname in anim_shape.get_final_data(scene, ref_id, force_keep):
+                anim_data = animations.get(elem_key)
+                if anim_data is None:
+                    anim_data = animations[elem_key] = ("dummy_unused_key", OrderedDict())
+                anim_data[1][fbx_group] = (group_key, group, fbx_gname)
 
     astack_key = get_blender_anim_stack_key(scene, ref_id)
     alayer_key = get_blender_anim_layer_key(scene, ref_id)
@@ -1850,7 +1798,7 @@ def fbx_animations_objects_do(scene_data, ref_id, f_start, f_end, start_zero, ob
     return (astack_key, animations, alayer_key, name, f_start, f_end) if animations else None
 
 
-def fbx_animations_objects(scene_data):
+def fbx_animations(scene_data):
     """
     Generate global animation data from objects.
     """
@@ -1890,7 +1838,7 @@ def fbx_animations_objects(scene_data):
 
         for strip in strips:
             strip.mute = False
-            add_anim(animations, fbx_animations_objects_do(scene_data, strip, strip.frame_start, strip.frame_end, True))
+            add_anim(animations, fbx_animations_do(scene_data, strip, strip.frame_start, strip.frame_end, True))
             strip.mute = True
 
         for strip in strips:
@@ -1954,7 +1902,7 @@ def fbx_animations_objects(scene_data):
                 ob.animation_data.action = act
                 frame_start, frame_end = act.frame_range  # sic!
                 add_anim(animations,
-                         fbx_animations_objects_do(scene_data, (ob, act), frame_start, frame_end, True, {ob_obj}, True))
+                         fbx_animations_do(scene_data, (ob, act), frame_start, frame_end, True, {ob_obj}, True))
                 # Ugly! :/
                 ob.animation_data.action = None if org_act is ... else org_act
                 restore_object(ob, ob_copy)
@@ -1968,7 +1916,7 @@ def fbx_animations_objects(scene_data):
 
     # Global (containing everything) animstack.
     if not scene_data.settings.bake_anim_use_nla_strips or not animations:
-        add_anim(animations, fbx_animations_objects_do(scene_data, None, scene.frame_start, scene.frame_end, False))
+        add_anim(animations, fbx_animations_do(scene_data, None, scene.frame_start, scene.frame_end, False))
 
     # Be sure to update all matrices back to org state!
     scene.frame_set(scene.frame_current, 0.0)
@@ -2147,7 +2095,7 @@ def fbx_data_from_scene(scene, settings):
             data_bones, data_deformers_skin, data_deformers_shape,
             data_world, data_materials, data_textures, data_videos,
         )
-        animations, frame_start, frame_end = fbx_animations_objects(tmp_scdata)
+        animations, frame_start, frame_end = fbx_animations(tmp_scdata)
 
     ##### Creation of templates...
 
@@ -2329,8 +2277,8 @@ def fbx_data_from_scene(scene, settings):
         # For now, only one layer!
         alayer_id = get_fbx_uuid_from_key(alayer_key)
         connections.append((b"OO", alayer_id, astack_id, None))
-        for ob_obj, (alayer_key, acurvenodes) in astack.items():
-            ob_id = ob_obj.fbx_uuid
+        for elem_key, (alayer_key, acurvenodes) in astack.items():
+            elem_id = get_fbx_uuid_from_key(elem_key)
             # Animlayer -> animstack.
             # alayer_id = get_fbx_uuid_from_key(alayer_key)
             # connections.append((b"OO", alayer_id, astack_id, None))
@@ -2339,7 +2287,7 @@ def fbx_data_from_scene(scene, settings):
                 acurvenode_id = get_fbx_uuid_from_key(acurvenode_key)
                 connections.append((b"OO", acurvenode_id, alayer_id, None))
                 # Animcurvenode -> object property.
-                connections.append((b"OP", acurvenode_id, ob_id, fbx_prop.encode()))
+                connections.append((b"OP", acurvenode_id, elem_id, fbx_prop.encode()))
                 for fbx_item, (acurve_key, default_value, acurve, acurve_valid) in acurves.items():
                     if acurve:
                         # Animcurve -> Animcurvenode.
@@ -2542,8 +2490,8 @@ def fbx_objects_elements(root, scene_data):
         fbx_data_camera_elements(objects, cam, scene_data)
 
     done_meshes = set()
-    for me in scene_data.data_meshes:
-        fbx_data_mesh_elements(objects, me, scene_data, done_meshes)
+    for me_obj in scene_data.data_meshes:
+        fbx_data_mesh_elements(objects, me_obj, scene_data, done_meshes)
     del done_meshes
 
     for ob_obj in scene_data.objects:
