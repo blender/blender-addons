@@ -19,8 +19,8 @@
 bl_info = {
     "name": "Node Wrangler (aka Nodes Efficiency Tools)",
     "author": "Bartek Skorupa, Greg Zaal",
-    "version": (3, 6),
-    "blender": (2, 70, 0),
+    "version": (3, 7),
+    "blender": (2, 71, 0),
     "location": "Node Editor Properties Panel or Ctrl-Space",
     "description": "Various tools to enhance and speed up node-based workflow",
     "warning": "",
@@ -3755,5 +3755,4 @@ def unregister():
 
 if __name__ == "__main__":
     register()
-
 
