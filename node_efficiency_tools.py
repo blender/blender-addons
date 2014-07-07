@@ -172,6 +172,8 @@ shaders_converter_nodes_props = (
     ('ShaderNodeVectorMath', 'VECT_MATH', 'Vector Math'),
     ('ShaderNodeSeparateRGB', 'SEPRGB', 'Separate RGB'),
     ('ShaderNodeCombineRGB', 'COMBRGB', 'Combine RGB'),
+    ('ShaderNodeSeparateXYZ', 'SEPXYZ', 'Separate XYZ'),
+    ('ShaderNodeCombineXYZ', 'COMBXYZ', 'Combine XYZ'),
     ('ShaderNodeSeparateHSV', 'SEPHSV', 'Separate HSV'),
     ('ShaderNodeCombineHSV', 'COMBHSV', 'Combine HSV'),
     ('ShaderNodeWavelength', 'WAVELENGTH', 'Wavelength'),
@@ -3753,4 +3755,5 @@ def unregister():
 
 if __name__ == "__main__":
     register()
+
 
