@@ -594,7 +594,7 @@ class CEllipse(CEntity):
         for n in range(theCircleRes):
             x = r*math.sin(n*w + phi0)
             y = f*r*math.cos(n*w + phi0)
-            v = (center.x - a*x + b*y, center.y - a*y - b*x, center.z)
+            v = Vector((center.x - a*x + b*y, center.y - a*y - b*x, center.z))
             points.append(v)
 
         pn = len(points)
