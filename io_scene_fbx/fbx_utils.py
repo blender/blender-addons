@@ -202,7 +202,7 @@ def similar_values_iter(v1, v2, e=1e-6):
     if v1 == v2:
         return True
     for v1, v2 in zip(v1, v2):
-        if (abs(v1 - v2) / max(abs(v1), abs(v2))) > e:
+        if (v1 != v2) and ((abs(v1 - v2) / max(abs(v1), abs(v2))) > e):
             return False
     return True
 
