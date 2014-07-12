@@ -1294,6 +1294,17 @@ def load(operator, context, filepath="",
                      fbx_lnk_material_type) in connection_filter_reverse(fbx_lnk_uuid, b'Material'):
 
                     mesh.materials.append(material)
+
+            # We have to validate mesh polygons' mat_idx, see T41015!
+            # Some FBX seem to have an extra 'default' material which is not defined in FBX file.
+            max_idx = max(0, len(mesh.materials) - 1)
+            has_invalid_indexes = False
+            for p in mesh.polygons:
+                if p.material_index > max_idx:
+                    has_invalid_indexes = True
+                    p.material_index = 0
+            if has_invalid_indexes:
+                print("WARNING: mesh '%s' had invalid material indices, those were rest to first material" % mesh.name)
     _(); del _
 
     def _():
