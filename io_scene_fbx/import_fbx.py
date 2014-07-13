@@ -264,35 +264,63 @@ def elem_props_get_visibility(elem, elem_prop_id, default=None):
 
 # ------
 # Object
+from collections import namedtuple
 
-def blen_read_object(fbx_tmpl, fbx_obj, object_data):
-    elem_name, elem_class = elem_split_name_class(fbx_obj)
-    elem_name_utf8 = elem_name.decode('utf-8')
 
+FBXTransformData = namedtuple("FBXTransformData", (
+    "loc",
+    "rot", "rot_ofs", "rot_piv", "pre_rot", "pst_rot", "rot_ord", "rot_alt_mat",
+    "sca", "sca_ofs", "sca_piv",
+))
+
+
+object_tdata_cache = {}
+
+
+def blen_read_object_transform_do(transform_data):
+    from mathutils import Matrix, Euler
+
+    # translation
+    lcl_translation = Matrix.Translation(transform_data.loc)
+
+    # rotation
+    to_rot = lambda rot, rot_ord: Euler(convert_deg_to_rad_iter(rot), rot_ord).to_matrix().to_4x4()
+    lcl_rot = to_rot(transform_data.rot, transform_data.rot_ord) * transform_data.rot_alt_mat
+    pre_rot = to_rot(transform_data.pre_rot, transform_data.rot_ord)
+    pst_rot = to_rot(transform_data.pst_rot, transform_data.rot_ord)
+
+    rot_ofs = Matrix.Translation(transform_data.rot_ofs)
+    rot_piv = Matrix.Translation(transform_data.rot_piv)
+    sca_ofs = Matrix.Translation(transform_data.sca_ofs)
+    sca_piv = Matrix.Translation(transform_data.sca_piv)
+
+    # scale
+    lcl_scale = Matrix()
+    lcl_scale[0][0], lcl_scale[1][1], lcl_scale[2][2] = transform_data.sca
+
+    return (
+        lcl_translation *
+        rot_ofs *
+        rot_piv *
+        pre_rot *
+        lcl_rot *
+        pst_rot *
+        rot_piv.inverted() *
+        sca_ofs *
+        sca_piv *
+        lcl_scale *
+        sca_piv.inverted()
+    )
+
+
+def blen_read_object_transform_preprocess(fbx_props, fbx_obj, rot_alt_mat):
+    # This is quite involved, 'fbxRNode.cpp' from openscenegraph used as a reference
     const_vector_zero_3d = 0.0, 0.0, 0.0
     const_vector_one_3d = 1.0, 1.0, 1.0
 
-    # Object data must be created already
-    obj = bpy.data.objects.new(name=elem_name_utf8, object_data=object_data)
-
-    fbx_props = (elem_find_first(fbx_obj, b'Properties70'),
-                 elem_find_first(fbx_tmpl, b'Properties70', fbx_elem_nil))
-    assert(fbx_props[0] is not None)
-
-    # ----
-    # Misc Attributes
-
-    obj.color[0:3] = elem_props_get_color_rgb(fbx_props, b'Color', (0.8, 0.8, 0.8))
-    obj.hide = not bool(elem_props_get_visibility(fbx_props, b'Visibility', 1.0))
-
-    # ----
-    # Transformation
-
-    # This is quite involved, 'fbxRNode.cpp' from openscenegraph used as a reference
-
-    loc = elem_props_get_vector_3d(fbx_props, b'Lcl Translation', const_vector_zero_3d)
-    rot = elem_props_get_vector_3d(fbx_props, b'Lcl Rotation', const_vector_zero_3d)
-    sca = elem_props_get_vector_3d(fbx_props, b'Lcl Scaling', const_vector_one_3d)
+    loc = list(elem_props_get_vector_3d(fbx_props, b'Lcl Translation', const_vector_zero_3d))
+    rot = list(elem_props_get_vector_3d(fbx_props, b'Lcl Rotation', const_vector_zero_3d))
+    sca = list(elem_props_get_vector_3d(fbx_props, b'Lcl Scaling', const_vector_one_3d))
 
     rot_ofs = elem_props_get_vector_3d(fbx_props, b'RotationOffset', const_vector_zero_3d)
     rot_piv = elem_props_get_vector_3d(fbx_props, b'RotationPivot', const_vector_zero_3d)
@@ -318,12 +346,34 @@ def blen_read_object(fbx_tmpl, fbx_obj, object_data):
         pst_rot = const_vector_zero_3d
         rot_ord = 'XYZ'
 
-    from mathutils import Matrix, Euler
+    return FBXTransformData(loc,
+                            rot, rot_ofs, rot_piv, pre_rot, pst_rot, rot_ord, rot_alt_mat,
+                            sca, sca_ofs, sca_piv)
 
-    # translation
-    lcl_translation = Matrix.Translation(loc)
 
-    # rotation
+def blen_read_object(fbx_tmpl, fbx_obj, object_data):
+    elem_name_utf8 = elem_name_ensure_class(fbx_obj)
+
+    # Object data must be created already
+    obj = bpy.data.objects.new(name=elem_name_utf8, object_data=object_data)
+
+    fbx_props = (elem_find_first(fbx_obj, b'Properties70'),
+                 elem_find_first(fbx_tmpl, b'Properties70', fbx_elem_nil))
+    assert(fbx_props[0] is not None)
+
+    # ----
+    # Misc Attributes
+
+    obj.color[0:3] = elem_props_get_color_rgb(fbx_props, b'Color', (0.8, 0.8, 0.8))
+    obj.hide = not bool(elem_props_get_visibility(fbx_props, b'Visibility', 1.0))
+
+    # ----
+    # Transformation
+
+    from mathutils import Matrix
+    from math import pi
+
+    # rotation corrections
     if obj.type == 'CAMERA':
         rot_alt_mat = MAT_CONVERT_CAMERA
     elif obj.type == 'LAMP':
@@ -331,35 +381,14 @@ def blen_read_object(fbx_tmpl, fbx_obj, object_data):
     else:
         rot_alt_mat = Matrix()
 
-    # rotation
-    lcl_rot = Euler(convert_deg_to_rad_iter(rot), rot_ord).to_matrix().to_4x4() * rot_alt_mat
-    pre_rot = Euler(convert_deg_to_rad_iter(pre_rot), rot_ord).to_matrix().to_4x4()
-    pst_rot = Euler(convert_deg_to_rad_iter(pst_rot), rot_ord).to_matrix().to_4x4()
-
-    rot_ofs = Matrix.Translation(rot_ofs)
-    rot_piv = Matrix.Translation(rot_piv)
-    sca_ofs = Matrix.Translation(sca_ofs)
-    sca_piv = Matrix.Translation(sca_piv)
-
-    # scale
-    lcl_scale = Matrix()
-    lcl_scale[0][0], lcl_scale[1][1], lcl_scale[2][2] = sca
-
-    obj.matrix_basis = (
-        lcl_translation *
-        rot_ofs *
-        rot_piv *
-        pre_rot *
-        lcl_rot *
-        pst_rot *
-        rot_piv.inverted() *
-        sca_ofs *
-        sca_piv *
-        lcl_scale *
-        sca_piv.inverted()
-        )
+    transform_data = object_tdata_cache.get(obj)
+    if transform_data is None:
+        transform_data = blen_read_object_transform_preprocess(fbx_props, fbx_obj, rot_alt_mat)
+        object_tdata_cache[obj] = transform_data
+    obj.matrix_basis = blen_read_object_transform_do(transform_data)
 
     return obj
+
 
 
 # ----
