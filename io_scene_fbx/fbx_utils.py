@@ -72,7 +72,8 @@ FBX_KTIME = 46186158000  # This is the number of "ktimes" in one second (yep, pr
 
 MAT_CONVERT_LAMP = Matrix.Rotation(math.pi / 2.0, 4, 'X')  # Blender is -Z, FBX is -Y.
 MAT_CONVERT_CAMERA = Matrix.Rotation(math.pi / 2.0, 4, 'Y')  # Blender is -Z, FBX is +X.
-#MAT_CONVERT_BONE = Matrix.Rotation(math.pi / -2.0, 4, 'X')  # Blender is +Y, FBX is +Z.
+# XXX I can't get this working :(
+#MAT_CONVERT_BONE = Matrix.Rotation(math.pi / 2.0, 4, 'Z')  # Blender is +Y, FBX is -X.
 MAT_CONVERT_BONE = Matrix()
 
 
@@ -914,11 +915,10 @@ class ObjectWrapper(metaclass=MetaObjectWrapper):
         return False
 
     def use_bake_space_transform(self, scene_data):
-        # NOTE: Only applies to object types supporting this!!! Currently, only meshes...
-        #       Also, do not apply it to children objects.
+        # NOTE: Only applies to object types supporting this!!! Currently, only meshes and the like...
         # TODO: Check whether this can work for bones too...
-        return (scene_data.settings.bake_space_transform and self._tag == 'OB' and
-                self.bdata.type in BLENDER_OBJECT_TYPES_MESHLIKE and not self.has_valid_parent(scene_data.objects))
+        return (scene_data.settings.bake_space_transform and self._tag in {'OB', 'DP'} and
+                self.bdata.type in BLENDER_OBJECT_TYPES_MESHLIKE)
 
     def fbx_object_matrix(self, scene_data, rest=False, local_space=False, global_space=False):
         """
@@ -936,34 +936,32 @@ class ObjectWrapper(metaclass=MetaObjectWrapper):
         is_global = (not local_space and
                      (global_space or not (self._tag in {'DP', 'BO'} or self.has_valid_parent(scene_data.objects))))
 
+        # Since we have to apply corrections to some types of object, we always need local Blender space here...
+        matrix = self.matrix_rest_local if rest else self.matrix_local
+        parent = self.parent
+
+        # Bones, lamps and cameras need to be rotated (in local space!).
         if self._tag == 'BO':
-            if rest:
-                matrix = self.matrix_rest_global if is_global else self.matrix_rest_local
-            else:  # Current pose.
-                matrix = self.matrix_global if is_global else self.matrix_local
-        else:
-            # Since we have to apply corrections to some types of object, we always need local Blender space here...
-            matrix = self.matrix_local
-            parent = self.parent
+            # XXX This should work smoothly, but actually is only OK for 'rest' pose, actual pose/animations
+            #     give insane results... :(
+            matrix = matrix * MAT_CONVERT_BONE
+        elif self.bdata.type == 'LAMP':
+            matrix = matrix * MAT_CONVERT_LAMP
+        elif self.bdata.type == 'CAMERA':
+            matrix = matrix * MAT_CONVERT_CAMERA
 
-            # Lamps and cameras need to be rotated (in local space!).
-            if self.bdata.type == 'LAMP':
-                matrix = matrix * MAT_CONVERT_LAMP
-            elif self.bdata.type == 'CAMERA':
-                matrix = matrix * MAT_CONVERT_CAMERA
-
-            # Our matrix is in local space, time to bring it in its final desired space.
-            if parent:
-                if is_global:
-                    # Move matrix to global Blender space.
-                    matrix = parent.matrix_global * matrix
-                elif parent.use_bake_space_transform(scene_data):
-                    # Blender's and FBX's local space of parent may differ if we use bake_space_transform...
-                    # Apply parent's *Blender* local space...
-                    matrix = parent.matrix_local * matrix
-                    # ...and move it back into parent's *FBX* local space.
-                    par_mat = parent.fbx_object_matrix(scene_data, local_space=True)
-                    matrix = par_mat.inverted() * matrix
+        # Our matrix is in local space, time to bring it in its final desired space.
+        if parent:
+            if is_global:
+                # Move matrix to global Blender space.
+                matrix = (parent.matrix_rest_global if rest else parent.matrix_global) * matrix
+            elif parent.use_bake_space_transform(scene_data):
+                # Blender's and FBX's local space of parent may differ if we use bake_space_transform...
+                # Apply parent's *Blender* local space...
+                matrix = (parent.matrix_rest_local if rest else parent.matrix_local) * matrix
+                # ...and move it back into parent's *FBX* local space.
+                par_mat = parent.fbx_object_matrix(scene_data, rest=rest, local_space=True)
+                matrix = par_mat.inverted() * matrix
 
         if self.use_bake_space_transform(scene_data):
             # If we bake the transforms we need to post-multiply inverse global transform.

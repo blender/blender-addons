@@ -52,6 +52,10 @@ fbx_elem_nil = None
 # Units convertors...
 convert_deg_to_rad_iter = units_convertor_iter("degree", "radian")
 
+MAT_CONVERT_BONE = fbx_utils.MAT_CONVERT_BONE.inverted()
+MAT_CONVERT_LAMP = fbx_utils.MAT_CONVERT_LAMP.inverted()
+MAT_CONVERT_CAMERA = fbx_utils.MAT_CONVERT_CAMERA.inverted()
+
 
 def elem_find_first(elem, id_search, default=None):
     for fbx_item in elem.elems:
@@ -315,16 +319,15 @@ def blen_read_object(fbx_tmpl, fbx_obj, object_data):
         rot_ord = 'XYZ'
 
     from mathutils import Matrix, Euler
-    from math import pi
 
     # translation
     lcl_translation = Matrix.Translation(loc)
 
     # rotation
     if obj.type == 'CAMERA':
-        rot_alt_mat = Matrix.Rotation(pi / -2.0, 4, 'Y')
+        rot_alt_mat = MAT_CONVERT_CAMERA
     elif obj.type == 'LAMP':
-        rot_alt_mat = Matrix.Rotation(pi / -2.0, 4, 'X')
+        rot_alt_mat = MAT_CONVERT_LAMP
     else:
         rot_alt_mat = Matrix()
 
@@ -756,6 +759,8 @@ def blen_read_shape(fbx_tmpl, fbx_sdata, fbx_bcdata, meshes, scene, global_matri
     assert(len(vgweights) == len(indices) == len(dvcos))
     create_vg = bool(set(vgweights) - {1.0})
 
+    keyblocks = []
+
     for me, objects in meshes:
         vcos = tuple((idx, me.vertices[idx].co + Vector(dvco)) for idx, dvco in zip(indices, dvcos))
         objects = list({blen_o for fbx_o, blen_o in objects})
@@ -775,6 +780,10 @@ def blen_read_shape(fbx_tmpl, fbx_sdata, fbx_bcdata, meshes, scene, global_matri
         if create_vg:
             add_vgroup_to_objects(indices, vgweights, elem_name_utf8, objects)
             kb.vertex_group = elem_name_utf8
+
+        keyblocks.append(kb)
+
+    return keyblocks
 
 
 # --------
@@ -1246,14 +1255,14 @@ def load(operator, context, filepath="",
             fbx_obj, blen_data = fbx_item
             if fbx_obj.id != b'Model':
                 continue
-            if fbx_item[1] is None:
+            if blen_data is None:
                 continue  # no object loaded.. ignore
 
             for (fbx_lnk,
                  fbx_lnk_item,
                  fbx_lnk_type) in connection_filter_forward(fbx_uuid, b'Model'):
 
-                fbx_item[1].parent = fbx_lnk_item
+                blen_data.parent = fbx_lnk_item
     _(); del _
 
     def _():
@@ -1263,11 +1272,11 @@ def load(operator, context, filepath="",
                 fbx_obj, blen_data = fbx_item
                 if fbx_obj.id != b'Model':
                     continue
-                if fbx_item[1] is None:
+                if blen_data is None:
                     continue  # no object loaded.. ignore
 
-                if fbx_item[1].parent is None:
-                    fbx_item[1].matrix_basis = global_matrix * fbx_item[1].matrix_basis
+                if blen_data.parent is None:
+                    blen_data.matrix_basis = global_matrix * blen_data.matrix_basis
     _(); del _
 
     def _():
