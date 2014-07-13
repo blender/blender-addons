@@ -1584,6 +1584,57 @@ def load(operator, context, filepath="",
 
     # Now that we have objects...
 
+    # I) We can handle shapes.
+    blend_shape_channels = {}  # We do not need Shapes themselves, but keyblocks, for anim.
+    def _():
+        fbx_tmpl = fbx_template_get((b'Geometry', b'KFbxShape'))
+
+        for s_uuid, s_item in fbx_table_nodes.items():
+            fbx_sdata, bl_sdata = s_item = fbx_table_nodes.get(s_uuid, (None, None))
+            if fbx_sdata is None or fbx_sdata.id != b'Geometry' or fbx_sdata.props[2] != b'Shape':
+                continue
+
+            # shape -> blendshapechannel -> blendshape -> mesh.
+            for bc_uuid, bc_ctype in fbx_connection_map.get(s_uuid, ()):
+                if bc_ctype.props[0] != b'OO':
+                    continue
+                fbx_bcdata, _bl_bcdata = fbx_table_nodes.get(bc_uuid, (None, None))
+                if fbx_bcdata is None or fbx_bcdata.id != b'Deformer' or fbx_bcdata.props[2] != b'BlendShapeChannel':
+                    continue
+                meshes = []
+                objects = []
+                for bs_uuid, bs_ctype in fbx_connection_map.get(bc_uuid, ()):
+                    if bs_ctype.props[0] != b'OO':
+                        continue
+                    fbx_bsdata, _bl_bsdata = fbx_table_nodes.get(bs_uuid, (None, None))
+                    if fbx_bsdata is None or fbx_bsdata.id != b'Deformer' or fbx_bsdata.props[2] != b'BlendShape':
+                        continue
+                    for m_uuid, m_ctype in fbx_connection_map.get(bs_uuid, ()):
+                        if m_ctype.props[0] != b'OO':
+                            continue
+                        fbx_mdata, bl_mdata = fbx_table_nodes.get(m_uuid, (None, None))
+                        if fbx_mdata is None or fbx_mdata.id != b'Geometry' or fbx_mdata.props[2] != b'Mesh':
+                            continue
+                        # Blenmeshes are assumed already created at that time!
+                        assert(isinstance(bl_mdata, bpy.types.Mesh))
+                        # And we have to find all objects using this mesh!
+                        objects = []
+                        for o_uuid, o_ctype in fbx_connection_map.get(m_uuid, ()):
+                            if o_ctype.props[0] != b'OO':
+                                continue
+                            fbx_odata, bl_odata = o_item = fbx_table_nodes.get(o_uuid, (None, None))
+                            if fbx_odata is None or fbx_odata.id != b'Model' or fbx_odata.props[2] != b'Mesh':
+                                continue
+                            # bl_odata is still None, objects have not yet been created...
+                            objects.append(o_item)
+                        meshes.append((bl_mdata, objects))
+                    # BlendShape deformers are only here to connect BlendShapeChannels to meshes, nothing else to do.
+
+                # keyblocks is a list of tuples (mesh, keyblock) matching that shape/blendshapechannel, for animation.
+                keyblocks = blen_read_shape(fbx_tmpl, fbx_sdata, fbx_bcdata, meshes, scene, global_matrix)
+                blend_shape_channels[bc_uuid] = keyblocks
+    _(); del _
+
     # II) We can finish armatures processing.
     def _():
         fbx_tmpl = fbx_template_get((b'Model', b'KFbxNode'))
