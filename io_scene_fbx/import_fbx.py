@@ -1713,14 +1713,8 @@ def load(operator, context, filepath="",
 
             # We have to validate mesh polygons' mat_idx, see T41015!
             # Some FBX seem to have an extra 'default' material which is not defined in FBX file.
-            max_idx = max(0, len(mesh.materials) - 1)
-            has_invalid_indexes = False
-            for p in mesh.polygons:
-                if p.material_index > max_idx:
-                    has_invalid_indexes = True
-                    p.material_index = 0
-            if has_invalid_indexes:
-                print("WARNING: mesh '%s' had invalid material indices, those were rest to first material" % mesh.name)
+            if mesh.validate_material_indices():
+                print("WARNING: mesh '%s' had invalid material indices, those were reset to first material" % mesh.name)
     _(); del _
 
     def _():
