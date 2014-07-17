@@ -408,7 +408,7 @@ def fbx_template_def_texture_file(scene, settings, override_defaults=None, nbr_u
         (b"PremultiplyAlpha", (True, "p_bool", False)),
         (b"CurrentTextureBlendMode", (1, "p_enum", False)),  # Additive...
         (b"CurrentMappingType", (0, "p_enum", False)),  # UV.
-        (b"UVSet", (b"default", "p_string", False)),
+        (b"UVSet", ("default", "p_string", False)),  # UVMap name.
         (b"WrapModeU", (0, "p_enum", False)),  # Repeat.
         (b"WrapModeV", (0, "p_enum", False)),  # Repeat.
         (b"UVSwap", (False, "p_bool", False)),
