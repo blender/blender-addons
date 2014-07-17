@@ -834,7 +834,7 @@ class ObjectWrapper(metaclass=MetaObjectWrapper):
             if isinstance(bdata, PoseBone):
                 bdata = armature.data.bones[bdata.name]
             self._tag = 'BO'
-            self.name = get_blenderID_name((armature, bdata))
+            self.name = get_blenderID_name(bdata)
             self.bdata = bdata
             self._ref = armature
 
