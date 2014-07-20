@@ -1692,6 +1692,8 @@ def fbx_skeleton_from_armature(scene, settings, arm_obj, objects, data_meshes,
 
         # We don't want a regular parent relationship for those in FBX...
         arm_parents.add((arm_obj, ob_obj))
+        # Needed to handle matrices/spaces (since we do not parent them to 'armature' in FBX :/ ).
+        ob_obj.parented_to_armature = True
 
     objects.update(bones)
 

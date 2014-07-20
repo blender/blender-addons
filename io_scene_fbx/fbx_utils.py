@@ -803,7 +803,10 @@ class ObjectWrapper(metaclass=MetaObjectWrapper):
     Note since a same Blender object might be 'mapped' to several FBX models (esp. with duplis),
     we need to use a key to identify each.
     """
-    __slots__ = ('name', 'key', 'bdata', '_tag', '_ref', '_dupli_matrix')
+    __slots__ = (
+        'name', 'key', 'bdata', 'parented_to_armature',
+        '_tag', '_ref', '_dupli_matrix'
+    )
 
     @classmethod
     def cache_clear(cls):
@@ -837,6 +840,7 @@ class ObjectWrapper(metaclass=MetaObjectWrapper):
             self.name = get_blenderID_name(bdata)
             self.bdata = bdata
             self._ref = armature
+        self.parented_to_armature = False
 
     def __eq__(self, other):
         return isinstance(other, self.__class__) and self.key == other.key
@@ -935,6 +939,10 @@ class ObjectWrapper(metaclass=MetaObjectWrapper):
         # (unless local_space is True!).
         is_global = (not local_space and
                      (global_space or not (self._tag in {'DP', 'BO'} or self.has_valid_parent(scene_data.objects))))
+
+        # Objects (meshes!) parented to armature are not parented to anything in FBX, hence we need them
+        # in global space, which is their 'virtual' local space...
+        is_global = is_global or self.parented_to_armature
 
         # Since we have to apply corrections to some types of object, we always need local Blender space here...
         matrix = self.matrix_rest_local if rest else self.matrix_local

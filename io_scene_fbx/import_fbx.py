@@ -502,7 +502,7 @@ def blen_read_armatures_add_bone(bl_obj, bl_arm, bones, b_uuid, matrices, fbx_tm
     return ebo
 
 
-def blen_read_armatures(fbx_tmpl, armatures, fbx_bones_to_fake_object, scene, global_matrix):
+def blen_read_armatures(fbx_tmpl, armatures, fbx_bones_to_fake_object, scene, global_matrix, arm_parents):
     from mathutils import Matrix
 
     if global_matrix is None:
@@ -557,6 +557,8 @@ def blen_read_armatures(fbx_tmpl, armatures, fbx_bones_to_fake_object, scene, gl
 
             ob_me.parent = bl_adata
             ob_me.matrix_basis = me_mat_back
+            # Store the pair for later space corrections (bring back mesh in parent space).
+            arm_parents.add((bl_adata, ob_me))
         bl_adata.matrix_basis = arm_mat_back
 
         # Set Pose transformations...
@@ -1636,10 +1638,11 @@ def load(operator, context, filepath="",
     _(); del _
 
     # II) We can finish armatures processing.
+    arm_parents = set()
     def _():
         fbx_tmpl = fbx_template_get((b'Model', b'KFbxNode'))
 
-        blen_read_armatures(fbx_tmpl, armatures, fbx_bones_to_fake_object, scene, global_matrix)
+        blen_read_armatures(fbx_tmpl, armatures, fbx_bones_to_fake_object, scene, global_matrix, arm_parents)
     _(); del _
 
     def _():
@@ -1684,6 +1687,12 @@ def load(operator, context, filepath="",
 
                 if blen_data.parent is None:
                     blen_data.matrix_basis = global_matrix * blen_data.matrix_basis
+
+            for (ob_arm, ob_me) in arm_parents:
+                # Rigged meshes are in global space in FBX...
+                ob_me.matrix_basis = global_matrix * ob_me.matrix_basis
+                # And reverse-apply armature transform, so that it gets valid parented (local) position!
+                ob_me.matrix_parent_inverse = ob_arm.matrix_basis.inverted()
     _(); del _
 
     def _():
