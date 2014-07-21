@@ -581,6 +581,177 @@ def blen_read_armatures(fbx_tmpl, armatures, fbx_bones_to_fake_object, scene, gl
             pbo.matrix = mat
 
 
+# ---------
+# Animation
+def blen_read_animations_curves_iter(fbx_curves, blen_start_offset, fbx_start_offset, fps):
+    """
+    Get raw FBX AnimCurve list, and yield values for all curves at each singular curves' keyframes,
+    together with (blender) timing, in frames.
+    blen_start_offset is expected in frames, while fbx_start_offset is expected in FBX ktime.
+    """
+    # As a first step, assume linear interpolation between key frames, we'll (try to!) handle more
+    # of FBX curves later.
+    from .fbx_utils import FBX_KTIME
+    timefac = fps / FBX_KTIME
+
+    curves = tuple([0,
+                    elem_prop_first(elem_find_first(c[2], b'KeyTime')),
+                    elem_prop_first(elem_find_first(c[2], b'KeyValueFloat')),
+                    c]
+                    for c in fbx_curves)
+
+    while True:
+        tmin = min(curves, key=lambda e: e[1][e[0]])
+        curr_fbxktime = tmin[1][tmin[0]]
+        curr_values = []
+        do_break = True
+        for item in curves:
+            idx, times, values, fbx_curve = item
+            if idx != -1:
+                do_break = False
+            if times[idx] > curr_fbxktime:
+                if idx == 0:
+                    curr_values.append((values[idx], fbx_curve))
+                else:
+                    # Interpolate between this key and the previous one.
+                    ifac = (curr_fbxktime - times[idx - 1]) / (times[idx] - times[idx - 1])
+                    curr_values.append(((values[idx] - values[idx - 1]) * ifac + values[idx - 1], fbx_curve))
+            else:
+                curr_values.append((values[idx], fbx_curve))
+                if idx >= 0:
+                    idx += 1
+                    if idx >= len(times):
+                        # We have reached our last element for this curve, stay on it from now on...
+                        idx = -1
+                    item[0] = idx
+        curr_blenkframe = (curr_fbxktime - fbx_start_offset) * timefac + blen_start_offset
+        yield (curr_blenkframe, curr_values)
+        if do_break:
+            break
+
+
+def blen_read_animations_action_item(action, item, cnodes, global_matrix, force_global, fps):
+    """
+    'Bake' loc/rot/scale into the action, taking into account global_matrix if no parent is present.
+    """
+    from bpy.types import Object, PoseBone, ShapeKey
+    from mathutils import Euler, Matrix
+    from itertools import chain
+
+    blen_curves = []
+    fbx_curves = []
+    props = []
+
+    if isinstance(item, ShapeKey):
+        props = [(item.path_from_id("value"), 1, "Key")]
+    else:  # Object or PoseBone:
+        if item not in object_tdata_cache:
+            print("ERROR! object '%s' has no transform data, while being animated!" % ob.name)
+            return
+
+        # We want to create actions for objects, but for bones we 'reuse' armatures' actions!
+        grpname = None
+        if item.id_data != item:
+            grpname = item.name
+
+        # Since we might get other channels animated in the end, due to all FBX transform magic,
+        # we need to add curves for whole loc/rot/scale in any case.
+        props = [(item.path_from_id("location"), 3, grpname or "Location"),
+                 None,
+                 (item.path_from_id("scale"), 3, grpname or "Scale")]
+        rot_mode = item.rotation_mode
+        if rot_mode == 'QUATERNION':
+            props[1] = (item.path_from_id("rotation_quaternion"), 4, grpname or "Quaternion Rotation")
+        elif rot_mode == 'AXIS_ANGLE':
+            props[1] = (item.path_from_id("rotation_axis_angle"), 4, grpname or "Axis Angle Rotation")
+        else:  # Euler
+            props[1] = (item.path_from_id("rotation_euler"), 3, grpname or "Euler Rotation")
+
+    blen_curves = [action.fcurves.new(prop, channel, grpname)
+                   for prop, nbr_channels, grpname in props for channel in range(nbr_channels)]
+
+    for curves, fbxprop in cnodes.values():
+        for (fbx_acdata, _blen_data), channel in curves.values():
+            fbx_curves.append((fbxprop, channel, fbx_acdata))
+
+    if isinstance(item, ShapeKey):
+        # We assume for now blen init point is frame 1.0, while FBX ktime init point is 0.
+        for frame, values in blen_read_animations_curves_iter(fbx_curves, 1.0, 0, fps):
+            value = 0.0
+            for v, (fbxprop, channel, _fbx_acdata) in values:
+                assert(fbxprop == b'DeformPercent')
+                assert(channel == 0)
+                value = v / 100.0
+
+            for fc, v in zip(blen_curves, (value,)):
+                fc.keyframe_points.insert(frame, v, {'NEEDED', 'FAST'}).interpolation = 'LINEAR'
+
+    else:  # Object or PoseBone:
+        transform_data = object_tdata_cache[item]
+        rot_prev = item.rotation_euler.copy()
+
+        # We assume for now blen init point is frame 1.0, while FBX ktime init point is 0.
+        for frame, values in blen_read_animations_curves_iter(fbx_curves, 1.0, 0, fps):
+            for v, (fbxprop, channel, _fbx_acdata) in values:
+                if fbxprop == b'Lcl Translation':
+                    transform_data.loc[channel] = v
+                elif fbxprop == b'Lcl Rotation':
+                    transform_data.rot[channel] = v
+                elif fbxprop == b'Lcl Scaling':
+                    transform_data.sca[channel] = v
+            mat = blen_read_object_transform_do(transform_data)
+            # Don't forget global matrix - but never for bones!
+            if isinstance(item, Object):
+                if (not item.parent or force_global) and global_matrix is not None:
+                    mat = global_matrix * mat
+            else:  # PoseBone, Urg!
+                # First, get local (i.e. parentspace) rest pose matrix
+                restmat = item.bone.matrix_local
+                if item.parent:
+                    restmat = item.parent.bone.matrix_local.inverted() * restmat
+                # And now, remove that rest pose matrix from current mat (also in parent space).
+                mat = restmat.inverted() * mat
+
+            # Now we have a virtual matrix of transform from AnimCurves, we can insert keyframes!
+            loc, rot, sca = mat.decompose()
+            if rot_mode == 'QUATERNION':
+                pass  # nothing to do!
+            elif rot_mode == 'AXIS_ANGLE':
+                vec, ang = rot.to_axis_angle()
+                rot = ang, vec.x, vec.y, vec.z
+            else:  # Euler
+                rot = rot.to_euler(rot_mode, rot_prev)
+                rot_prev = rot
+            for fc, value in zip(blen_curves, chain(loc, rot, sca)):
+                fc.keyframe_points.insert(frame, value, {'NEEDED', 'FAST'}).interpolation = 'LINEAR'
+
+    # Since we inserted our keyframes in 'FAST' mode, we have to update the fcurves now.
+    for fc in blen_curves:
+        fc.update()
+
+
+def blen_read_animations(fbx_tmpl_astack, fbx_tmpl_alayer, stacks, scene, global_matrix, force_global_objects):
+    """
+    Recreate an action per stack/layer/object combinations.
+    Note actions are not linked to objects, this is up to the user!
+    """
+    actions = {}
+    for as_uuid, ((fbx_asdata, _blen_data), alayers) in stacks.items():
+        stack_name = elem_name_ensure_class(fbx_asdata, b'AnimStack')
+        for al_uuid, ((fbx_aldata, _blen_data), items) in alayers.items():
+            layer_name = elem_name_ensure_class(fbx_aldata, b'AnimLayer')
+            for item, cnodes in items.items():
+                id_data = item.id_data
+                key = (as_uuid, al_uuid, id_data)
+                action = actions.get(key)
+                if action is None:
+                    action_name = "|".join((id_data.name, stack_name, layer_name))
+                    actions[key] = action = bpy.data.actions.new(action_name)
+                    action.use_fake_user = True
+                blen_read_animations_action_item(action, item, cnodes, global_matrix,
+                                                 item in force_global_objects, scene.render.fps)
+
+
 # ----
 # Mesh
 
@@ -1639,6 +1810,7 @@ def load(operator, context, filepath="",
 
     # II) We can finish armatures processing.
     arm_parents = set()
+    force_global_objects = set()
     def _():
         fbx_tmpl = fbx_template_get((b'Model', b'KFbxNode'))
 
@@ -1693,6 +1865,97 @@ def load(operator, context, filepath="",
                 ob_me.matrix_basis = global_matrix * ob_me.matrix_basis
                 # And reverse-apply armature transform, so that it gets valid parented (local) position!
                 ob_me.matrix_parent_inverse = ob_arm.matrix_basis.inverted()
+                force_global_objects.add(ob_me)
+    _(); del _
+
+    # Animation!
+    def _():
+        fbx_tmpl_astack = fbx_template_get((b'AnimationStack', b'FbxAnimStack'))
+        fbx_tmpl_alayer = fbx_template_get((b'AnimationLayer', b'FbxAnimLayer'))
+        stacks = {}
+
+        # AnimationStacks.
+        for as_uuid, fbx_asitem in fbx_table_nodes.items():
+            fbx_asdata, _blen_data = fbx_asitem
+            if fbx_asdata.id != b'AnimationStack' or fbx_asdata.props[2] != b'':
+                continue
+            stacks[as_uuid] = (fbx_asitem, {})
+
+        # AnimationLayers (mixing is completely ignored for now, each layer results in an independent set of actions).
+        def get_astacks_from_alayer(al_uuid):
+            for as_uuid, as_ctype in fbx_connection_map.get(al_uuid, ()):
+                if as_ctype.props[0] != b'OO':
+                    continue
+                fbx_asdata, _bl_asdata = fbx_table_nodes.get(as_uuid, (None, None))
+                if (fbx_asdata is None or fbx_asdata.id != b'AnimationStack' or
+                    fbx_asdata.props[2] != b'' or as_uuid not in stacks):
+                    continue
+                yield as_uuid
+        for al_uuid, fbx_alitem in fbx_table_nodes.items():
+            fbx_aldata, _blen_data = fbx_alitem
+            if fbx_aldata.id != b'AnimationLayer' or fbx_aldata.props[2] != b'':
+                continue
+            for as_uuid in get_astacks_from_alayer(al_uuid):
+                _fbx_asitem, alayers = stacks[as_uuid]
+                alayers[al_uuid] = (fbx_alitem, {})
+
+        # AnimationCurveNodes (also the ones linked to actual animated data!).
+        curvenodes = {}
+        for acn_uuid, fbx_acnitem in fbx_table_nodes.items():
+            fbx_acndata, _blen_data = fbx_acnitem
+            if fbx_acndata.id != b'AnimationCurveNode' or fbx_acndata.props[2] != b'':
+                continue
+            cnode = curvenodes[acn_uuid] = {}
+            items = []
+            for n_uuid, n_ctype in fbx_connection_map.get(acn_uuid, ()):
+                if n_ctype.props[0] != b'OP':
+                    continue
+                lnk_prop = n_ctype.props[3]
+                if lnk_prop in {b'Lcl Translation', b'Lcl Rotation', b'Lcl Scaling'}:
+                    ob = fbx_table_nodes[n_uuid][1]
+                    if ob is None:
+                        continue
+                    items.append((ob, lnk_prop))
+                elif lnk_prop == b'DeformPercent':  # Shape keys.
+                    keyblocks = blend_shape_channels.get(n_uuid)
+                    if keyblocks is None:
+                        continue
+                    items += [(kb, lnk_prop) for kb in keyblocks]
+            for al_uuid, al_ctype in fbx_connection_map.get(acn_uuid, ()):
+                if al_ctype.props[0] != b'OO':
+                    continue
+                fbx_aldata, _blen_aldata = fbx_alitem = fbx_table_nodes.get(al_uuid, (None, None))
+                if fbx_aldata is None or fbx_aldata.id != b'AnimationLayer' or fbx_aldata.props[2] != b'':
+                    continue
+                for as_uuid in get_astacks_from_alayer(al_uuid):
+                    _fbx_alitem, anim_items = stacks[as_uuid][1][al_uuid]
+                    assert(_fbx_alitem == fbx_alitem)
+                    for item, item_prop in items:
+                        # No need to keep curvenode FBX data here, contains nothing useful for us.
+                        anim_items.setdefault(item, {})[acn_uuid] = (cnode, item_prop)
+
+        # AnimationCurves (real animation data).
+        for ac_uuid, fbx_acitem in fbx_table_nodes.items():
+            fbx_acdata, _blen_data = fbx_acitem
+            if fbx_acdata.id != b'AnimationCurve' or fbx_acdata.props[2] != b'':
+                continue
+            for acn_uuid, acn_ctype in fbx_connection_map.get(ac_uuid, ()):
+                if acn_ctype.props[0] != b'OP':
+                    continue
+                fbx_acndata, _bl_acndata = fbx_table_nodes.get(acn_uuid, (None, None))
+                if (fbx_acndata is None or fbx_acndata.id != b'AnimationCurveNode' or
+                    fbx_acndata.props[2] != b'' or acn_uuid not in curvenodes):
+                    continue
+                # Note this is an infamous simplification of the compound props stuff,
+                # seems to be standard naming but we'll probably have to be smarter to handle more exotic files?
+                channel = {b'd|X': 0, b'd|Y': 1, b'd|Z': 2, b'd|DeformPercent': 0}.get(acn_ctype.props[3], None)
+                if channel is None:
+                    continue
+                curvenodes[acn_uuid][ac_uuid] = (fbx_acitem, channel)
+
+        # And now that we have sorted all this, apply animations!
+        blen_read_animations(fbx_tmpl_astack, fbx_tmpl_alayer, stacks, scene, global_matrix, force_global_objects)
+
     _(); del _
 
     def _():
