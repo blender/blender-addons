@@ -690,6 +690,14 @@ def blen_read_animations_action_item(action, item, cnodes, global_matrix, force_
         transform_data = object_tdata_cache[item]
         rot_prev = item.rotation_euler.copy()
 
+        # Pre-compute inverted local rest matrix of the bone, if relevant.
+        if isinstance(item, PoseBone):
+            # First, get local (i.e. parentspace) rest pose matrix
+            restmat = item.bone.matrix_local
+            if item.parent:
+                restmat = item.parent.bone.matrix_local.inverted() * restmat
+            restmat_inv = restmat.inverted()
+
         # We assume for now blen init point is frame 1.0, while FBX ktime init point is 0.
         for frame, values in blen_read_animations_curves_iter(fbx_curves, 1.0, 0, fps):
             for v, (fbxprop, channel, _fbx_acdata) in values:
@@ -705,12 +713,8 @@ def blen_read_animations_action_item(action, item, cnodes, global_matrix, force_
                 if (not item.parent or force_global) and global_matrix is not None:
                     mat = global_matrix * mat
             else:  # PoseBone, Urg!
-                # First, get local (i.e. parentspace) rest pose matrix
-                restmat = item.bone.matrix_local
-                if item.parent:
-                    restmat = item.parent.bone.matrix_local.inverted() * restmat
                 # And now, remove that rest pose matrix from current mat (also in parent space).
-                mat = restmat.inverted() * mat
+                mat = restmat_inv * mat
 
             # Now we have a virtual matrix of transform from AnimCurves, we can insert keyframes!
             loc, rot, sca = mat.decompose()
