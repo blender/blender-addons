@@ -26,34 +26,13 @@ Used as a blender script, it load all the stl files in the scene:
 blender --python stl_utils.py -- file1.stl file2.stl file3.stl ...
 """
 
+import os
 import struct
-import mmap
 import contextlib
 import itertools
 from mathutils.geometry import normal
 
 # TODO: endien
-
-
-@contextlib.contextmanager
-def mmap_file(filepath):
-    """
-    Context manager over the data of an mmap'ed file (Read ONLY).
-
-
-    Example:
-
-    with mmap_file(filepath) as m:
-        m.read()
-        print m[10:50]
-    """
-    with open(filepath, 'rb') as file:
-        # check http://bugs.python.org/issue8046 to have mmap context
-        # manager fixed in python
-        mem_map = mmap.mmap(file.fileno(), 0, access=mmap.ACCESS_READ)
-        yield mem_map
-        mem_map.close()
-
 
 class ListDict(dict):
     """
@@ -100,9 +79,16 @@ def _is_ascii_file(data):
     represents a binary file. It can be a (very *RARE* in real life, but
     can easily be forged) ascii file.
     """
-    size = struct.unpack_from('<I', data, BINARY_HEADER)[0]
+	# Skip header...
+    data.seek(BINARY_HEADER)
+    size = struct.unpack('<I', data.read(4))[0]
+    # Use seek() method to get size of the file.
+    data.seek(0, os.SEEK_END)
+    file_size = data.tell()
+    # Reset to the start of the file.
+    data.seek(0)
 
-    return not data.size() == BINARY_HEADER + 4 + BINARY_STRIDE * size
+    return (file_size != BINARY_HEADER + 4 + BINARY_STRIDE * size)
 
 
 def _binary_read(data):
@@ -115,18 +101,28 @@ def _binary_read(data):
     #   - 9 * 4 bytes of coordinate (3*3 floats)
     #   - 2 bytes of garbage (usually 0)
 
-    # OFFSET for the first byte of coordinate (headers + first normal bytes)
+    # OFFSET is to skip normal bytes
     # STRIDE between each triangle (first normal + coordinates + garbage)
-    OFFSET = BINARY_HEADER + 4 + 12
+    OFFSET = 12
 
-    # read header size, ignore description
-    size = struct.unpack_from('<I', data, BINARY_HEADER)[0]
+	# Skip header...
+    data.seek(BINARY_HEADER)
+    size = struct.unpack('<I', data.read(4))[0]
+
+    # We read 4096 elements at once, avoids too much calls to read()!
+    CHUNK_LEN = 4096
+    chunks = [CHUNK_LEN] * (size // CHUNK_LEN)
+    chunks.append(size % CHUNK_LEN)
+
     unpack = struct.Struct('<9f').unpack_from
-
-    for i in range(size):
-        # read the points coordinates of each triangle
-        pt = unpack(data, OFFSET + BINARY_STRIDE * i)
-        yield pt[:3], pt[3:6], pt[6:]
+    for chunk_len in chunks:
+        if chunk_len == 0:
+            continue
+        buf = data.read(BINARY_STRIDE * chunk_len)
+        for i in range(chunk_len):
+            # read the points coordinates of each triangle
+            pt = unpack(buf, OFFSET + BINARY_STRIDE * i)
+            yield pt[:3], pt[3:6], pt[6:]
 
 
 def _ascii_read(data):
@@ -145,16 +141,11 @@ def _ascii_read(data):
     # strip header
     data.readline()
 
-    while True:
-        l = data.readline()
-        if not l:
-            break
-
+    for l in data:
         # if we encounter a vertex, read next 2
         l = l.lstrip()
         if l.startswith(b'vertex'):
-            yield [tuple(map(float, l_item.split()[1:]))
-                   for l_item in (l, data.readline(), data.readline())]
+            yield [tuple(map(float, l_item.split()[1:])) for l_item in (l, data.readline(), data.readline())]
 
 
 def _binary_write(filepath, faces):
@@ -244,10 +235,12 @@ def read_stl(filepath):
        >>> # print the coordinate of the triangle n
        >>> print(pts[i] for i in tris[n])
     """
+    import time
+    start_time = time.process_time()
 
     tris, pts = [], ListDict()
 
-    with mmap_file(filepath) as data:
+    with open(filepath, 'rb') as data:
         # check for ascii or binary
         gen = _ascii_read if _is_ascii_file(data) else _binary_read
 
@@ -257,6 +250,8 @@ def read_stl(filepath):
             # index returned by pts.add() will be the one from the
             # first equal point inserted.
             tris.append([pts.add(p) for p in pt])
+
+    print('Import finished in %.4f sec.' % (time.process_time() - start_time))
 
     return tris, pts.list
 
