@@ -31,8 +31,6 @@ import subprocess#
 from bpy.types import(Operator)#all added for render preview
 ##############################SF###########################
 ##############find image texture
-
-
 def imageFormat(imgF):
     ext = {
         'JPG': "jpeg",
@@ -3310,8 +3308,13 @@ class RenderPovTexturePreview(Operator):
     def execute(self, context):
         tex=bpy.context.object.active_material.active_texture #context.texture
         texPrevName=string_strip_hyphen(bpy.path.clean_name(tex.name))+"_prev"
-        workDir=os.path.dirname(__file__)
+        workDir=os.path.dirname(__file__)      
         previewDir=os.path.join(workDir, "preview")
+        
+        ## Make sure Preview directory exists and is empty
+        if not os.path.isdir(previewDir):
+            os.mkdir(previewDir)
+        
         iniPrevFile=os.path.join(previewDir, "Preview.ini")
         inputPrevFile=os.path.join(previewDir, "Preview.pov")
         outputPrevFile=os.path.join(previewDir, texPrevName)
