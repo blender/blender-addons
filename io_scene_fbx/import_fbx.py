@@ -1260,22 +1260,18 @@ def blen_read_texture(fbx_tmpl, fbx_obj, basedir, image_cache,
     if image is not None:
         return image
 
-    try:
-        image = image_utils.load_image(
-            filepath,
-            dirname=basedir,
-            place_holder=True,
-            recursive=use_image_search,
-            )
+    image = image_utils.load_image(
+        filepath,
+        dirname=basedir,
+        place_holder=True,
+        recursive=use_image_search,
+        )
 
-        image_cache[filepath] = image
-        # name can be ../a/b/c
-        image.name = os.path.basename(elem_name_utf8)
+    image_cache[filepath] = image
+    # name can be ../a/b/c
+    image.name = os.path.basename(elem_name_utf8)
 
-        return image
-    except Exception as e:
-        print("Warning, failed to load image file %s..." % filepath);
-        return None
+    return image
 
 
 def blen_read_camera(fbx_tmpl, fbx_obj, global_scale):
