@@ -534,12 +534,15 @@ def blen_read_armatures(fbx_tmpl, armatures, fbx_bones_to_fake_object, scene, gl
 
         # Switch to Edit mode.
         scene.objects.active = bl_adata
+        is_hidden = bl_adata.hide
+        bl_adata.hide = False  # Can't switch to Edit mode hidden objects...
         bpy.ops.object.mode_set(mode='EDIT')
 
         for b_uuid in bones:
             blen_read_armatures_add_bone(bl_adata, bl_arm, bones, b_uuid, matrices, fbx_tmpl)
 
         bpy.ops.object.mode_set(mode='OBJECT')
+        bl_adata.hide = is_hidden
 
         # Bind armature to objects.
         arm_mat_back = bl_adata.matrix_basis.copy()
