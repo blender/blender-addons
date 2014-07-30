@@ -598,7 +598,7 @@ def fbx_data_lamp_elements(root, lamp, scene_data):
     elem_props_template_finalize(tmpl, props)
 
     # Custom properties.
-    if scene_data.settings.use_custom_properties:
+    if scene_data.settings.use_custom_props:
         fbx_data_element_custom_properties(props, lamp)
 
 
@@ -674,7 +674,7 @@ def fbx_data_camera_elements(root, cam_obj, scene_data):
     elem_props_template_finalize(tmpl, props)
 
     # Custom properties.
-    if scene_data.settings.use_custom_properties:
+    if scene_data.settings.use_custom_props:
         fbx_data_element_custom_properties(props, cam_data)
 
     elem_data_single_string(cam, b"TypeFlags", b"Camera")
@@ -825,7 +825,7 @@ def fbx_data_mesh_elements(root, me_obj, scene_data, done_meshes):
     props = elem_properties(geom)
 
     # Custom properties.
-    if scene_data.settings.use_custom_properties:
+    if scene_data.settings.use_custom_props:
         fbx_data_element_custom_properties(props, me)
 
     elem_data_single_int32(geom, b"GeometryVersion", FBX_GEOMETRY_VERSION)
@@ -1227,7 +1227,7 @@ def fbx_data_material_elements(root, mat, scene_data):
     elem_props_template_finalize(tmpl, props)
 
     # Custom properties.
-    if scene_data.settings.use_custom_properties:
+    if scene_data.settings.use_custom_props:
         fbx_data_element_custom_properties(props, mat)
 
 
@@ -1306,7 +1306,7 @@ def fbx_data_texture_file_elements(root, tex, scene_data):
     elem_props_template_finalize(tmpl, props)
 
     # Custom properties.
-    if scene_data.settings.use_custom_properties:
+    if scene_data.settings.use_custom_props:
         fbx_data_element_custom_properties(props, tex.texture)
 
 
@@ -1375,7 +1375,7 @@ def fbx_data_armature_elements(root, arm_obj, scene_data):
         elem_props_template_finalize(tmpl, props)
 
         # Custom properties.
-        if scene_data.settings.use_custom_properties:
+        if scene_data.settings.use_custom_props:
             fbx_data_element_custom_properties(props, bo)
 
     # Skin deformers and BindPoses.
@@ -1478,7 +1478,7 @@ def fbx_data_object_elements(root, ob_obj, scene_data):
     elem_props_template_set(tmpl, props, "p_enum", b"InheritType", 1)  # RSrs
 
     # Custom properties.
-    if scene_data.settings.use_custom_properties:
+    if scene_data.settings.use_custom_props:
         fbx_data_element_custom_properties(props, ob_obj.bdata)
 
     # Those settings would obviously need to be edited in a complete version of the exporter, may depends on
@@ -2579,7 +2579,7 @@ def save_single(operator, scene, filepath="",
                 use_mesh_edges=True,
                 use_tspace=True,
                 embed_textures=False,
-                use_custom_properties=False,
+                use_custom_props=False,
                 bake_space_transform=False,
                 **kwargs
                 ):
@@ -2618,7 +2618,7 @@ def save_single(operator, scene, filepath="",
         context_objects, object_types, use_mesh_modifiers,
         mesh_smooth_type, use_mesh_edges, use_tspace, use_armature_deform_only,
         bake_anim, bake_anim_use_nla_strips, bake_anim_use_all_actions, bake_anim_step, bake_anim_simplify_factor,
-        False, media_settings, use_custom_properties,
+        False, media_settings, use_custom_props,
     )
 
     import bpy_extras.io_utils
@@ -2689,7 +2689,7 @@ def defaults_unity3d():
 
         "use_armature_deform_only": True,
 
-        "use_custom_properties": True,
+        "use_custom_props": True,
 
         "bake_anim": True,
         "bake_anim_simplify_factor": 1.0,

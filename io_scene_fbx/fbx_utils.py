@@ -1071,7 +1071,7 @@ FBXSettings = namedtuple("FBXSettings", (
     "context_objects", "object_types", "use_mesh_modifiers",
     "mesh_smooth_type", "use_mesh_edges", "use_tspace", "use_armature_deform_only",
     "bake_anim", "bake_anim_use_nla_strips", "bake_anim_use_all_actions", "bake_anim_step", "bake_anim_simplify_factor",
-    "use_metadata", "media_settings", "use_custom_properties",
+    "use_metadata", "media_settings", "use_custom_props",
 ))
 
 # Helper container gathering some data we need multiple times:

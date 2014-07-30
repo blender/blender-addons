@@ -249,7 +249,7 @@ class ExportFBX(bpy.types.Operator, ExportHelper):
             default=False,
             )
     # 7.4 only
-    use_custom_properties = BoolProperty(
+    use_custom_props = BoolProperty(
             name="Custom Properties",
             description="Export custom properties",
             default=False,
@@ -365,7 +365,7 @@ class ExportFBX(bpy.types.Operator, ExportHelper):
         layout.prop(self, "use_tspace")
         layout.prop(self, "use_armature_deform_only")
         if is_74bin:
-            layout.prop(self, "use_custom_properties")
+            layout.prop(self, "use_custom_props")
             layout.prop(self, "bake_anim")
             col = layout.column()
             col.enabled = self.bake_anim
