@@ -1888,6 +1888,8 @@ def fbx_animations(scene_data):
             # We can't play with animdata and actions and get back to org state easily.
             # So we have to add a temp copy of the object to the scene, animate it, and remove it... :/
             ob_copy = ob.copy()
+            # Great, have to handle bones as well if needed...
+            pbones_matrices = [pbo.matrix_basis.copy() for pbo in ob.pose.bones] if ob.type == 'ARMATURE' else ...
 
             if ob.animation_data:
                 org_act = ob.animation_data.action
@@ -1906,9 +1908,15 @@ def fbx_animations(scene_data):
                 add_anim(animations,
                          fbx_animations_do(scene_data, (ob, act), frame_start, frame_end, True, {ob_obj}, True))
                 # Ugly! :/
+                if pbones_matrices is not ...:
+                    for pbo, mat in zip(ob.pose.bones, pbones_matrices):
+                        pbo.matrix_basis = mat.copy()
                 ob.animation_data.action = None if org_act is ... else org_act
                 restore_object(ob, ob_copy)
 
+            if pbones_matrices is not ...:
+                for pbo, mat in zip(ob.pose.bones, pbones_matrices):
+                    pbo.matrix_basis = mat.copy()
             if org_act is ...:
                 ob.animation_data_clear()
             else:
