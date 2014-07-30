@@ -1153,7 +1153,12 @@ def blen_read_shape(fbx_tmpl, fbx_sdata, fbx_bcdata, meshes, scene, global_matri
     weight = elem_prop_first(elem_find_first(fbx_bcdata, b'DeformPercent'), default=100.0) / 100.0
     vgweights = tuple(vgw / 100.0 for vgw in elem_prop_first(elem_find_first(fbx_bcdata, b'FullWeights'), default=()))
 
-    assert(len(vgweights) == len(indices) == len(dvcos))
+    # Special case, in case all weights are the same, FullWeight can have only one element - *sigh!*
+    nbr_indices = len(indices)
+    if len(vgweights) == 1 and nbr_indices > 1:
+        vgweights = (vgweights[0],) * nbr_indices
+
+    assert(len(vgweights) == nbr_indices == len(dvcos))
     create_vg = bool(set(vgweights) - {1.0})
 
     keyblocks = []
