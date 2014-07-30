@@ -30,7 +30,8 @@ bl_info = {
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
                 "Scripts/Import-Export/Autodesk_FBX",
     "support": 'OFFICIAL',
-    "category": "Import-Export"}
+    "category": "Import-Export",
+}
 
 
 if "bpy" in locals():
@@ -69,57 +70,57 @@ class ImportFBX(bpy.types.Operator, ImportHelper):
     filter_glob = StringProperty(default="*.fbx", options={'HIDDEN'})
 
     use_manual_orientation = BoolProperty(
-        name="Manual Orientation",
-        description="Specify orientation and scale, instead of using embedded data in FBX file",
-        default=False,
-    )
+            name="Manual Orientation",
+            description="Specify orientation and scale, instead of using embedded data in FBX file",
+            default=False,
+            )
     axis_forward = EnumProperty(
-        name="Forward",
-        items=(('X', "X Forward", ""),
-               ('Y', "Y Forward", ""),
-               ('Z', "Z Forward", ""),
-               ('-X', "-X Forward", ""),
-               ('-Y', "-Y Forward", ""),
-               ('-Z', "-Z Forward", ""),
-               ),
-        default='-Z',
-    )
+            name="Forward",
+            items=(('X', "X Forward", ""),
+                   ('Y', "Y Forward", ""),
+                   ('Z', "Z Forward", ""),
+                   ('-X', "-X Forward", ""),
+                   ('-Y', "-Y Forward", ""),
+                   ('-Z', "-Z Forward", ""),
+                   ),
+            default='-Z',
+            )
     axis_up = EnumProperty(
-        name="Up",
-        items=(('X', "X Up", ""),
-               ('Y', "Y Up", ""),
-               ('Z', "Z Up", ""),
-               ('-X', "-X Up", ""),
-               ('-Y', "-Y Up", ""),
-               ('-Z', "-Z Up", ""),
-               ),
-        default='Y',
-    )
+            name="Up",
+            items=(('X', "X Up", ""),
+                   ('Y', "Y Up", ""),
+                   ('Z', "Z Up", ""),
+                   ('-X', "-X Up", ""),
+                   ('-Y', "-Y Up", ""),
+                   ('-Z', "-Z Up", ""),
+                   ),
+            default='Y',
+            )
     global_scale = FloatProperty(
-        name="Scale",
-        min=0.001, max=1000.0,
-        default=1.0,
-    )
+            name="Scale",
+            min=0.001, max=1000.0,
+            default=1.0,
+            )
 
     use_image_search = BoolProperty(
-        name="Image Search",
-        description="Search subdirs for any associated images (Warning, may be slow)",
-        default=True,
-    )
+            name="Image Search",
+            description="Search subdirs for any associated images (Warning, may be slow)",
+            default=True,
+            )
 
     use_alpha_decals = BoolProperty(
-        name="Alpha Decals",
-        description="Treat materials with alpha as decals (no shadow casting)",
-        default=False,
-        options={'HIDDEN'}
-    )
+            name="Alpha Decals",
+            description="Treat materials with alpha as decals (no shadow casting)",
+            default=False,
+            options={'HIDDEN'}
+            )
     decal_offset = FloatProperty(
-        name="Decal Offset",
-        description="Displace geometry of alpha meshes",
-        min=0.0, max=1.0,
-        default=0.0,
-        options={'HIDDEN'}
-    )
+            name="Decal Offset",
+            description="Displace geometry of alpha meshes",
+            min=0.0, max=1.0,
+            default=0.0,
+            options={'HIDDEN'}
+            )
 
     def draw(self, context):
         layout = self.layout
@@ -132,7 +133,7 @@ class ImportFBX(bpy.types.Operator, ImportHelper):
         sub.prop(self, "global_scale")
 
         layout.prop(self, "use_image_search")
-        #layout.prop(self, "use_alpha_decals")
+        # layout.prop(self, "use_alpha_decals")
         layout.prop(self, "decal_offset")
 
     def execute(self, context):
@@ -156,192 +157,193 @@ class ExportFBX(bpy.types.Operator, ExportHelper):
     # to the class instance from the operator settings before calling.
 
     version = EnumProperty(
-        items=(('BIN7400', "FBX 7.4 binary", "Newer 7.4 binary version, still in development (no animation yet)"),
-               ('ASCII6100', "FBX 6.1 ASCII", "Legacy 6.1 ascii version"),
-               ),
-        name="Version",
-        description="Choose which version of the exporter to use",
-    )
+            items=(('BIN7400', "FBX 7.4 binary", "Newer 7.4 binary version, still in development (no animation yet)"),
+                   ('ASCII6100', "FBX 6.1 ASCII", "Legacy 6.1 ascii version"),
+                   ),
+            name="Version",
+            description="Choose which version of the exporter to use",
+            )
 
     use_selection = BoolProperty(
-        name="Selected Objects",
-        description="Export selected objects on visible layers",
-        default=False,
-    )
+            name="Selected Objects",
+            description="Export selected objects on visible layers",
+            default=False,
+            )
     global_scale = FloatProperty(
-        name="Scale",
-        description="Scale all data (Some importers do not support scaled armatures!)",
-        min=0.001, max=1000.0,
-        soft_min=0.01, soft_max=1000.0,
-        default=1.0,
-    )
+            name="Scale",
+            description="Scale all data (Some importers do not support scaled armatures!)",
+            min=0.001, max=1000.0,
+            soft_min=0.01, soft_max=1000.0,
+            default=1.0,
+            )
     axis_forward = EnumProperty(
-        name="Forward",
-        items=(('X', "X Forward", ""),
-               ('Y', "Y Forward", ""),
-               ('Z', "Z Forward", ""),
-               ('-X', "-X Forward", ""),
-               ('-Y', "-Y Forward", ""),
-               ('-Z', "-Z Forward", ""),
-               ),
-        default='-Z',
-    )
+            name="Forward",
+            items=(('X', "X Forward", ""),
+                   ('Y', "Y Forward", ""),
+                   ('Z', "Z Forward", ""),
+                   ('-X', "-X Forward", ""),
+                   ('-Y', "-Y Forward", ""),
+                   ('-Z', "-Z Forward", ""),
+                   ),
+            default='-Z',
+            )
     axis_up = EnumProperty(
-        name="Up",
-        items=(('X', "X Up", ""),
-               ('Y', "Y Up", ""),
-               ('Z', "Z Up", ""),
-               ('-X', "-X Up", ""),
-               ('-Y', "-Y Up", ""),
-               ('-Z', "-Z Up", ""),
-               ),
-        default='Y',
-    )
+            name="Up",
+            items=(('X', "X Up", ""),
+                   ('Y', "Y Up", ""),
+                   ('Z', "Z Up", ""),
+                   ('-X', "-X Up", ""),
+                   ('-Y', "-Y Up", ""),
+                   ('-Z', "-Z Up", ""),
+                   ),
+            default='Y',
+            )
     # 7.4 only
     bake_space_transform = BoolProperty(
-        name="Apply Transform",
-        description=("Bake space transform into object data, avoids getting unwanted rotations to objects when "
-                     "target space is not aligned with Blender's space "
-                     "(WARNING! experimental option, might give odd/wrong results)"),
-        default=False,
-    )
+            name="Apply Transform",
+            description=("Bake space transform into object data, avoids getting unwanted rotations to objects when "
+                         "target space is not aligned with Blender's space "
+                         "(WARNING! experimental option, might give odd/wrong results)"),
+            default=False,
+            )
 
     object_types = EnumProperty(
-        name="Object Types",
-        options={'ENUM_FLAG'},
-        items=(('EMPTY', "Empty", ""),
-               ('CAMERA', "Camera", ""),
-               ('LAMP', "Lamp", ""),
-               ('ARMATURE', "Armature", ""),
-               ('MESH', "Mesh", ""),
-               ('OTHER', "Other", "Other geometry types, like curve, metaball, etc. (converted to meshes)"),
-               ),
-        description="Which kind of object to export",
-        default={'EMPTY', 'CAMERA', 'LAMP', 'ARMATURE', 'MESH', 'OTHER'},
-    )
+            name="Object Types",
+            options={'ENUM_FLAG'},
+            items=(('EMPTY', "Empty", ""),
+                   ('CAMERA', "Camera", ""),
+                   ('LAMP', "Lamp", ""),
+                   ('ARMATURE', "Armature", ""),
+                   ('MESH', "Mesh", ""),
+                   ('OTHER', "Other", "Other geometry types, like curve, metaball, etc. (converted to meshes)"),
+                   ),
+            description="Which kind of object to export",
+            default={'EMPTY', 'CAMERA', 'LAMP', 'ARMATURE', 'MESH', 'OTHER'},
+            )
 
     use_mesh_modifiers = BoolProperty(
-        name="Apply Modifiers",
-        description="Apply modifiers to mesh objects (except Armature ones!)",
-        default=True,
-    )
+            name="Apply Modifiers",
+            description="Apply modifiers to mesh objects (except Armature ones!)",
+            default=True,
+            )
     mesh_smooth_type = EnumProperty(
-        name="Smoothing",
-        items=(('OFF', "Off", "Don't write smoothing"),
-               ('FACE', "Face", "Write face smoothing"),
-               ('EDGE', "Edge", "Write edge smoothing"),
-               ),
-        description="Export smoothing information (not mandatory if your target importer understand split normals)",
-        default='FACE',
-    )
+            name="Smoothing",
+            items=(('OFF', "Off", "Don't write smoothing"),
+                   ('FACE', "Face", "Write face smoothing"),
+                   ('EDGE', "Edge", "Write edge smoothing"),
+                   ),
+            description=("Export smoothing information "
+                         "(not mandatory if your target importer understand split normals)"),
+            default='FACE',
+            )
     use_mesh_edges = BoolProperty(
-        name="Loose Edges",
-        description="Export loose edges (as two-vertices polygons)",
-        default=False,
-    )
+            name="Loose Edges",
+            description="Export loose edges (as two-vertices polygons)",
+            default=False,
+            )
     # 7.4 only
     use_tspace = BoolProperty(
-        name="Tangent Space",
-        description=("Add binormal and tangent vectors, together with normal they form the tangent space "
-                     "(will only work correctly with tris/quads only meshes!)"),
-        default=False,
-    )
+            name="Tangent Space",
+            description=("Add binormal and tangent vectors, together with normal they form the tangent space "
+                         "(will only work correctly with tris/quads only meshes!)"),
+            default=False,
+            )
     # 7.4 only
     use_custom_properties = BoolProperty(
-        name="Custom Properties",
-        description="Export custom properties",
-        default=False,
-    )
+            name="Custom Properties",
+            description="Export custom properties",
+            default=False,
+            )
     use_armature_deform_only = BoolProperty(
-        name="Only Deform Bones",
-        description="Only write deforming bones (and non-deforming ones when they have deforming children)",
-        default=False,
-    )
+            name="Only Deform Bones",
+            description="Only write deforming bones (and non-deforming ones when they have deforming children)",
+            default=False,
+            )
     # Anim - 7.4
     bake_anim = BoolProperty(
-        name="Baked Animation",
-        description="Export baked keyframe animation",
-        default=True,
-    )
+            name="Baked Animation",
+            description="Export baked keyframe animation",
+            default=True,
+            )
     bake_anim_use_nla_strips = BoolProperty(
-        name="NLA Strips",
-        description=("Export each non-muted NLA strip as a separated FBX's AnimStack, if any, "
-                     "instead of global scene animation"),
-        default=True,
-    )
+            name="NLA Strips",
+            description=("Export each non-muted NLA strip as a separated FBX's AnimStack, if any, "
+                         "instead of global scene animation"),
+            default=True,
+            )
     bake_anim_use_all_actions = BoolProperty(
-        name="All Actions",
-        description=("Export each action as a separated FBX's AnimStack, "
-                     "instead of global scene animation"),
-        default=True,
-    )
+            name="All Actions",
+            description=("Export each action as a separated FBX's AnimStack, "
+                         "instead of global scene animation"),
+            default=True,
+            )
     bake_anim_step = FloatProperty(
-        name="Sampling Rate",
-        description=("How often to evaluate animated values (in frames)"),
-        min=0.01, max=100.0,
-        soft_min=0.1, soft_max=10.0,
-        default=1.0,
-    )
+            name="Sampling Rate",
+            description=("How often to evaluate animated values (in frames)"),
+            min=0.01, max=100.0,
+            soft_min=0.1, soft_max=10.0,
+            default=1.0,
+            )
     bake_anim_simplify_factor = FloatProperty(
-        name="Simplify",
-        description=("How much to simplify baked values (0.0 to disable, the higher the more simplified"),
-        min=0.0, max=10.0,  # No simplification to up to 0.05 slope/100 max_frame_step.
-        default=1.0,  # default: min slope: 0.005, max frame step: 10.
-    )
+            name="Simplify",
+            description=("How much to simplify baked values (0.0 to disable, the higher the more simplified"),
+            min=0.0, max=10.0,  # No simplification to up to 0.05 slope/100 max_frame_step.
+            default=1.0,  # default: min slope: 0.005, max frame step: 10.
+            )
     # Anim - 6.1
     use_anim = BoolProperty(
-        name="Animation",
-        description="Export keyframe animation",
-        default=True,
-    )
+            name="Animation",
+            description="Export keyframe animation",
+            default=True,
+            )
     use_anim_action_all = BoolProperty(
-        name="All Actions",
-        description=("Export all actions for armatures or just the currently selected action"),
-        default=True,
-    )
+            name="All Actions",
+            description=("Export all actions for armatures or just the currently selected action"),
+            default=True,
+            )
     use_default_take = BoolProperty(
-        name="Default Take",
-        description=("Export currently assigned object and armature animations into a default take from the scene "
-                     "start/end frames"),
-        default=True
-    )
+            name="Default Take",
+            description=("Export currently assigned object and armature animations into a default take from the scene "
+                         "start/end frames"),
+            default=True
+            )
     use_anim_optimize = BoolProperty(
-        name="Optimize Keyframes",
-        description="Remove double keyframes",
-        default=True,
-    )
+            name="Optimize Keyframes",
+            description="Remove double keyframes",
+            default=True,
+            )
     anim_optimize_precision = FloatProperty(
-        name="Precision",
-        description=("Tolerance for comparing double keyframes (higher for greater accuracy)"),
-        min=0.0, max=20.0,  # from 10^2 to 10^-18 frames precision.
-        soft_min=1.0, soft_max=16.0,
-        default=6.0,  # default: 10^-4 frames.
-    )
+            name="Precision",
+            description=("Tolerance for comparing double keyframes (higher for greater accuracy)"),
+            min=0.0, max=20.0,  # from 10^2 to 10^-18 frames precision.
+            soft_min=1.0, soft_max=16.0,
+            default=6.0,  # default: 10^-4 frames.
+            )
     # End anim
     path_mode = path_reference_mode
     # 7.4 only
     embed_textures = BoolProperty(
-        name="Embed Textures",
-        description="Embed textures in FBX binary file (only for \"Copy\" path mode!)",
-        default=False,
-    )
+            name="Embed Textures",
+            description="Embed textures in FBX binary file (only for \"Copy\" path mode!)",
+            default=False,
+            )
     batch_mode = EnumProperty(
-        name="Batch Mode",
-        items=(('OFF', "Off", "Active scene to file"),
-               ('SCENE', "Scene", "Each scene as a file"),
-               ('GROUP', "Group", "Each group as a file"),
-               ),
-    )
+            name="Batch Mode",
+            items=(('OFF', "Off", "Active scene to file"),
+                   ('SCENE', "Scene", "Each scene as a file"),
+                   ('GROUP', "Group", "Each group as a file"),
+                   ),
+            )
     use_batch_own_dir = BoolProperty(
-        name="Batch Own Dir",
-        description="Create a dir for each exported file",
-        default=True,
-    )
+            name="Batch Own Dir",
+            description="Create a dir for each exported file",
+            default=True,
+            )
     use_metadata = BoolProperty(
-        name="Use Metadata",
-        default=True,
-        options={'HIDDEN'},
-    )
+            name="Use Metadata",
+            default=True,
+            options={'HIDDEN'},
+            )
 
     def draw(self, context):
         layout = self.layout
