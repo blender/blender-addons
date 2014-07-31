@@ -707,7 +707,7 @@ def blen_read_animations_action_item(action, item, cnodes, force_global, fps, se
         props = [(item.path_from_id("value"), 1, "Key")]
     else:  # Object or PoseBone:
         if item not in object_tdata_cache:
-            print("ERROR! object '%s' has no transform data, while being animated!" % ob.name)
+            print("ERROR! object '%s' has no transform data, while being animated!" % item.name)
             return
 
         # We want to create actions for objects, but for bones we 'reuse' armatures' actions!
@@ -1748,7 +1748,8 @@ def load(operator, context, filepath="",
                         if fbx_tdata is None or fbx_tdata.id != b'NodeAttribute' or fbx_tdata.props[2] != b'LimbNode':
                             continue
                         fbx_props = (elem_find_first(fbx_tdata, b'Properties70'),)
-                        size = elem_props_get_number(fbx_props, b'Size', default=size)
+                        if fbx_props[0] is not None:  # Some bones have no Properties70 at all...
+                            size = elem_props_get_number(fbx_props, b'Size', default=size)
                         break  # Only one bone data per bone!
 
                     clusters = []
@@ -1912,6 +1913,8 @@ def load(operator, context, filepath="",
     _(); del _
 
     def _():
+        from bpy.types import PoseBone
+
         # Parent objects, after we created them...
         for fbx_uuid, fbx_item in fbx_table_nodes.items():
             if fbx_uuid in fbx_objects_parent_ignore:
@@ -1931,7 +1934,12 @@ def load(operator, context, filepath="",
                  fbx_lnk_item,
                  fbx_lnk_type) in connection_filter_forward(fbx_uuid, b'Model'):
 
-                blen_data.parent = fbx_lnk_item
+                if isinstance(fbx_lnk_item, PoseBone):
+                    blen_data.parent = fbx_lnk_item.id_data  # get the armature the bone belongs to
+                    blen_data.parent_bone = fbx_lnk_item.name
+                    blen_data.parent_type = 'BONE'
+                else:
+                    blen_data.parent = fbx_lnk_item
     _(); del _
 
     def _():
@@ -2208,7 +2216,7 @@ def load(operator, context, filepath="",
                         else:
                             print("WARNING: material link %r ignored" % lnk_type)
 
-                        material_images.setdefault(material, {})[lnk_type] = image
+                        material_images.setdefault(material, {})[lnk_type] = (image, tex_map)
                 else:
                     if fbx_lnk_type.props[0] == b'OP':
                         lnk_type = fbx_lnk_type.props[3]
@@ -2250,7 +2258,7 @@ def load(operator, context, filepath="",
                         else:
                             print("WARNING: material link %r ignored" % lnk_type)
 
-                        material_images.setdefault(material, {})[lnk_type] = image
+                        material_images.setdefault(material, {})[lnk_type] = (image, tex_map)
 
         # Check if the diffuse image has an alpha channel,
         # if so, use the alpha channel.
@@ -2261,7 +2269,7 @@ def load(operator, context, filepath="",
             if fbx_obj.id != b'Material':
                 continue
             material = fbx_table_nodes[fbx_uuid][1]
-            image = material_images.get(material, {}).get(b'DiffuseColor')
+            image, tex_map = material_images.get(material, {}).get(b'DiffuseColor', (None, None))
             # do we have alpha?
             if image and image.depth == 32:
                 if use_alpha_decals:
@@ -2273,7 +2281,7 @@ def load(operator, context, filepath="",
                         ma_wrap.alpha_image_set_from_diffuse()
                 else:
                     if not any((True for mtex in material.texture_slots if mtex and mtex.use_map_alpha)):
-                        mtex = material_mtex_new(material, image)
+                        mtex = material_mtex_new(material, image, tex_map)
 
                         material.use_transparency = True
                         material.transparency_method = 'RAYTRACE'
