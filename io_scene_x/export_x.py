@@ -476,6 +476,9 @@ class MeshExportObject(ExportObject):
             
             self.Exporter.File.Write("{};".format(len(PolygonVertexIndices)))
             
+            if self.Config.CoordinateSystem == 'LEFT_HANDED':
+                PolygonVertexIndices = PolygonVertexIndices[::-1]
+            
             for VertexCountIndex, VertexIndex in \
                 enumerate(PolygonVertexIndices):
 
@@ -583,6 +586,9 @@ class MeshExportObject(ExportObject):
         self.Exporter.File.Write("{};\n".format(FaceCount))
         for Index, Polygon in enumerate(MeshEnumerator.PolygonVertexIndices):
             self.Exporter.File.Write("{};".format(len(Polygon)))
+            
+            if self.Config.CoordinateSystem == 'LEFT_HANDED':
+                Polygon = Polygon[::-1]
             
             for VertexCountIndex, VertexIndex in enumerate(Polygon):
                 if VertexCountIndex == len(Polygon) - 1:
@@ -1373,3 +1379,4 @@ class Util:
             return x.name
         
         return sorted(List, key=SortKey)
+
