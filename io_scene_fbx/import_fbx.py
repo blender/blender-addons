@@ -664,34 +664,29 @@ def blen_read_animations_curves_iter(fbx_curves, blen_start_offset, fbx_start_of
                     c]
                    for c in fbx_curves)
 
-    while True:
-        tmin = min(curves, key=lambda e: e[1][e[0]])
-        curr_fbxktime = tmin[1][tmin[0]]
+    allkeys = sorted({item for sublist in curves for item in sublist[1]})
+    for curr_fbxktime in allkeys:
         curr_values = []
-        do_break = True
         for item in curves:
             idx, times, values, fbx_curve = item
-            if idx != -1:
-                do_break = False
-            if times[idx] > curr_fbxktime:
-                if idx == 0:
-                    curr_values.append((values[idx], fbx_curve))
-                else:
-                    # Interpolate between this key and the previous one.
-                    ifac = (curr_fbxktime - times[idx - 1]) / (times[idx] - times[idx - 1])
-                    curr_values.append(((values[idx] - values[idx - 1]) * ifac + values[idx - 1], fbx_curve))
-            else:
-                curr_values.append((values[idx], fbx_curve))
+
+            if times[idx] < curr_fbxktime:
                 if idx >= 0:
                     idx += 1
                     if idx >= len(times):
                         # We have reached our last element for this curve, stay on it from now on...
                         idx = -1
                     item[0] = idx
+
+            if times[idx] >= curr_fbxktime:
+                if idx == 0:
+                    curr_values.append((values[idx], fbx_curve))
+                else:
+                    # Interpolate between this key and the previous one.
+                    ifac = (curr_fbxktime - times[idx - 1]) / (times[idx] - times[idx - 1])
+                    curr_values.append(((values[idx] - values[idx - 1]) * ifac + values[idx - 1], fbx_curve))
         curr_blenkframe = (curr_fbxktime - fbx_start_offset) * timefac + blen_start_offset
         yield (curr_blenkframe, curr_values)
-        if do_break:
-            break
 
 
 def blen_read_animations_action_item(action, item, cnodes, force_global, fps, settings):
