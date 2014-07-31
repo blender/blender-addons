@@ -1064,13 +1064,13 @@ def fbx_name_class(name, cls):
 # ##### Top-level FBX data container. #####
 
 # Helper sub-container gathering all exporter settings related to media (texture files).
-FBXSettingsMedia = namedtuple("FBXSettingsMedia", (
+FBXExportSettingsMedia = namedtuple("FBXExportSettingsMedia", (
     "path_mode", "base_src", "base_dst", "subdir",
     "embed_textures", "copy_set",
 ))
 
 # Helper container gathering all exporter settings.
-FBXSettings = namedtuple("FBXSettings", (
+FBXExportSettings = namedtuple("FBXExportSettings", (
     "report", "to_axes", "global_matrix", "global_scale",
     "bake_space_transform", "global_matrix_inv", "global_matrix_inv_transposed",
     "context_objects", "object_types", "use_mesh_modifiers",
@@ -1086,10 +1086,18 @@ FBXSettings = namedtuple("FBXSettings", (
 #     * object data.
 #     * skinning data (binding armature/mesh).
 #     * animations.
-FBXData = namedtuple("FBXData", (
+FBXExportData = namedtuple("FBXExportData", (
     "templates", "templates_users", "connections",
     "settings", "scene", "objects", "animations", "frame_start", "frame_end",
     "data_empties", "data_lamps", "data_cameras", "data_meshes", "mesh_mat_indices",
     "data_bones", "data_deformers_skin", "data_deformers_shape",
     "data_world", "data_materials", "data_textures", "data_videos",
+))
+
+# Helper container gathering all importer settings.
+FBXImportSettings = namedtuple("FBXImportSettings", (
+    "report", "to_axes", "global_matrix", "global_scale",
+    "use_cycles", "use_image_search",
+    "use_alpha_decals", "decal_offset",
+    "object_tdata_cache", "cycles_material_wrap_map", "image_cache",
 ))

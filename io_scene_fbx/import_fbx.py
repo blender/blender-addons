@@ -44,6 +44,7 @@ from .fbx_utils import (
     array_to_matrix4,
     similar_values,
     similar_values_iter,
+    FBXImportSettings
 )
 
 # global singleton, assign on execution
@@ -274,9 +275,6 @@ FBXTransformData = namedtuple("FBXTransformData", (
 ))
 
 
-object_tdata_cache = {}
-
-
 def blen_read_object_transform_do(transform_data):
     from mathutils import Matrix, Euler
 
@@ -365,11 +363,12 @@ def blen_read_object_transform_preprocess(fbx_props, fbx_obj, rot_alt_mat):
                             sca, sca_ofs, sca_piv)
 
 
-def blen_read_object(fbx_tmpl, fbx_obj, object_data):
+def blen_read_object(fbx_tmpl, fbx_obj, object_data, settings):
     elem_name_utf8 = elem_name_ensure_class(fbx_obj)
 
     # Object data must be created already
     obj = bpy.data.objects.new(name=elem_name_utf8, object_data=object_data)
+    object_tdata_cache = settings.object_tdata_cache
 
     fbx_props = (elem_find_first(fbx_obj, b'Properties70'),
                  elem_find_first(fbx_tmpl, b'Properties70', fbx_elem_nil))
@@ -502,11 +501,12 @@ def blen_read_armatures_add_bone(bl_obj, bl_arm, bones, b_uuid, matrices, fbx_tm
     return ebo
 
 
-def blen_read_armatures(fbx_tmpl, armatures, fbx_bones_to_fake_object, scene, global_matrix, arm_parents):
+def blen_read_armatures(fbx_tmpl, armatures, fbx_bones_to_fake_object, scene, arm_parents, settings):
     from mathutils import Matrix
 
-    if global_matrix is None:
-        global_matrix = Matrix()
+    global_matrix = settings.global_matrix
+    assert(global_matrix is not None)
+    object_tdata_cache = settings.object_tdata_cache
 
     for a_item, bones in armatures:
         fbx_adata, bl_adata = a_item
@@ -522,11 +522,12 @@ def blen_read_armatures(fbx_tmpl, armatures, fbx_bones_to_fake_object, scene, gl
 
         if fbx_adata.props[2] in {b'LimbNode', b'Root'}:
             # rootbone-as-armature case...
-            fbx_bones_to_fake_object[fbx_adata.props[0]] = bl_adata = blen_read_object(fbx_tmpl, fbx_adata, bl_arm)
+            bl_adata = blen_read_object(fbx_tmpl, fbx_adata, bl_arm, settings)
+            fbx_bones_to_fake_object[fbx_adata.props[0]] = bl_adata
             # reset transform.
             bl_adata.matrix_basis = Matrix()
         else:
-            bl_adata = a_item[1] = blen_read_object(fbx_tmpl, fbx_adata, bl_arm)
+            bl_adata = a_item[1] = blen_read_object(fbx_tmpl, fbx_adata, bl_arm, settings)
 
         # Instantiate in scene.
         obj_base = scene.objects.link(bl_adata)
@@ -633,7 +634,7 @@ def blen_read_animations_curves_iter(fbx_curves, blen_start_offset, fbx_start_of
             break
 
 
-def blen_read_animations_action_item(action, item, cnodes, global_matrix, force_global, fps):
+def blen_read_animations_action_item(action, item, cnodes, force_global, fps, settings):
     """
     'Bake' loc/rot/scale into the action, taking into account global_matrix if no parent is present.
     """
@@ -641,6 +642,8 @@ def blen_read_animations_action_item(action, item, cnodes, global_matrix, force_
     from mathutils import Euler, Matrix
     from itertools import chain
 
+    global_matrix = settings.global_matrix
+    object_tdata_cache = settings.object_tdata_cache
     blen_curves = []
     fbx_curves = []
     props = []
@@ -737,7 +740,7 @@ def blen_read_animations_action_item(action, item, cnodes, global_matrix, force_
         fc.update()
 
 
-def blen_read_animations(fbx_tmpl_astack, fbx_tmpl_alayer, stacks, scene, global_matrix, force_global_objects):
+def blen_read_animations(fbx_tmpl_astack, fbx_tmpl_alayer, stacks, scene, force_global_objects, settings):
     """
     Recreate an action per stack/layer/object combinations.
     Note actions are not linked to objects, this is up to the user!
@@ -755,8 +758,8 @@ def blen_read_animations(fbx_tmpl_astack, fbx_tmpl_alayer, stacks, scene, global
                     action_name = "|".join((id_data.name, stack_name, layer_name))
                     actions[key] = action = bpy.data.actions.new(action_name)
                     action.use_fake_user = True
-                blen_read_animations_action_item(action, item, cnodes, global_matrix,
-                                                 item in force_global_objects, scene.render.fps)
+                blen_read_animations_action_item(action, item, cnodes,
+                                                 item in force_global_objects, scene.render.fps, settings)
 
 
 # ----
@@ -1056,7 +1059,7 @@ def blen_read_geom_layer_normal(fbx_obj, mesh):
         )
 
 
-def blen_read_geom(fbx_tmpl, fbx_obj):
+def blen_read_geom(fbx_tmpl, fbx_obj, settings):
     # TODO, use 'fbx_tmpl'
     elem_name_utf8 = elem_name_ensure_class(fbx_obj, b'Geometry')
 
@@ -1143,7 +1146,7 @@ def blen_read_geom(fbx_tmpl, fbx_obj):
     return mesh
 
 
-def blen_read_shape(fbx_tmpl, fbx_sdata, fbx_bcdata, meshes, scene, global_matrix):
+def blen_read_shape(fbx_tmpl, fbx_sdata, fbx_bcdata, meshes, scene, settings):
     from mathutils import Vector
 
     elem_name_utf8 = elem_name_ensure_class(fbx_sdata, b'Geometry')
@@ -1191,9 +1194,10 @@ def blen_read_shape(fbx_tmpl, fbx_sdata, fbx_bcdata, meshes, scene, global_matri
 # --------
 # Material
 
-def blen_read_material(fbx_tmpl, fbx_obj, cycles_material_wrap_map, use_cycles):
+def blen_read_material(fbx_tmpl, fbx_obj, settings):
     elem_name_utf8 = elem_name_ensure_class(fbx_obj, b'Material')
 
+    cycles_material_wrap_map = settings.cycles_material_wrap_map
     ma = bpy.data.materials.new(name=elem_name_utf8)
 
     const_color_white = 1.0, 1.0, 1.0
@@ -1210,7 +1214,7 @@ def blen_read_material(fbx_tmpl, fbx_obj, cycles_material_wrap_map, use_cycles):
     ma_refl_factor = elem_props_get_number(fbx_props, b'ReflectionFactor', 0.0)
     ma_refl_color = elem_props_get_color_rgb(fbx_props, b'ReflectionColor', const_color_white)
 
-    if use_cycles:
+    if settings.use_cycles:
         from . import cycles_shader_compat
         # viewport color
         ma.diffuse_color = ma_diff
@@ -1243,12 +1247,13 @@ def blen_read_material(fbx_tmpl, fbx_obj, cycles_material_wrap_map, use_cycles):
 # -------
 # Texture
 
-def blen_read_texture(fbx_tmpl, fbx_obj, basedir, image_cache,
-                      use_image_search):
+def blen_read_texture(fbx_tmpl, fbx_obj, basedir, settings):
     import os
     from bpy_extras import image_utils
 
     elem_name_utf8 = elem_name_ensure_class(fbx_obj, b'Texture')
+
+    image_cache = settings.image_cache
 
     filepath = elem_find_first_string(fbx_obj, b'FileName')
     if os.sep == '/':
@@ -1264,7 +1269,7 @@ def blen_read_texture(fbx_tmpl, fbx_obj, basedir, image_cache,
         filepath,
         dirname=basedir,
         place_holder=True,
-        recursive=use_image_search,
+        recursive=settings.use_image_search,
         )
 
     image_cache[filepath] = image
@@ -1403,6 +1408,7 @@ def load(operator, context, filepath="",
 
     basedir = os.path.dirname(filepath)
 
+    object_tdata_cache = {}
     cycles_material_wrap_map = {}
     image_cache = {}
     if not use_cycles:
@@ -1450,6 +1456,13 @@ def load(operator, context, filepath="",
     scene.render.fps = round(real_fps)
     scene.render.fps_base = scene.render.fps / real_fps
 
+    # store global settings that need to be accessed during conversion
+    settings = FBXImportSettings(
+        operator.report, (axis_up, axis_forward), global_matrix, global_scale,
+        use_cycles, use_image_search,
+        use_alpha_decals, decal_offset,
+        object_tdata_cache, cycles_material_wrap_map, image_cache,
+    )
 
     # #### And now, the "real" data.
 
@@ -1531,7 +1544,7 @@ def load(operator, context, filepath="",
                 continue
             if fbx_obj.props[-1] == b'Mesh':
                 assert(blen_data is None)
-                fbx_item[1] = blen_read_geom(fbx_tmpl, fbx_obj)
+                fbx_item[1] = blen_read_geom(fbx_tmpl, fbx_obj, settings)
     _(); del _
 
     # ----
@@ -1545,8 +1558,7 @@ def load(operator, context, filepath="",
             if fbx_obj.id != b'Material':
                 continue
             assert(blen_data is None)
-            fbx_item[1] = blen_read_material(fbx_tmpl, fbx_obj,
-                                             cycles_material_wrap_map, use_cycles)
+            fbx_item[1] = blen_read_material(fbx_tmpl, fbx_obj, settings)
     _(); del _
 
     # ----
@@ -1558,8 +1570,7 @@ def load(operator, context, filepath="",
             fbx_obj, blen_data = fbx_item
             if fbx_obj.id != b'Texture':
                 continue
-            fbx_item[1] = blen_read_texture(fbx_tmpl, fbx_obj, basedir, image_cache,
-                                            use_image_search)
+            fbx_item[1] = blen_read_texture(fbx_tmpl, fbx_obj, basedir, settings)
     _(); del _
 
     # ----
@@ -1760,7 +1771,7 @@ def load(operator, context, filepath="",
                     break
             if ok:
                 # create when linking since we need object data
-                obj = blen_read_object(fbx_tmpl, fbx_obj, fbx_lnk_item)
+                obj = blen_read_object(fbx_tmpl, fbx_obj, fbx_lnk_item, settings)
                 assert(fbx_item[1] is None)
                 fbx_item[1] = obj
 
@@ -1819,7 +1830,7 @@ def load(operator, context, filepath="",
                     # BlendShape deformers are only here to connect BlendShapeChannels to meshes, nothing else to do.
 
                 # keyblocks is a list of tuples (mesh, keyblock) matching that shape/blendshapechannel, for animation.
-                keyblocks = blen_read_shape(fbx_tmpl, fbx_sdata, fbx_bcdata, meshes, scene, global_matrix)
+                keyblocks = blen_read_shape(fbx_tmpl, fbx_sdata, fbx_bcdata, meshes, scene, settings)
                 blend_shape_channels[bc_uuid] = keyblocks
     _(); del _
 
@@ -1830,7 +1841,7 @@ def load(operator, context, filepath="",
     def _():
         fbx_tmpl = fbx_template_get((b'Model', b'KFbxNode'))
 
-        blen_read_armatures(fbx_tmpl, armatures, fbx_bones_to_fake_object, scene, global_matrix, arm_parents)
+        blen_read_armatures(fbx_tmpl, armatures, fbx_bones_to_fake_object, scene, arm_parents, settings)
     _(); del _
 
     def _():
@@ -1970,7 +1981,7 @@ def load(operator, context, filepath="",
                 curvenodes[acn_uuid][ac_uuid] = (fbx_acitem, channel)
 
         # And now that we have sorted all this, apply animations!
-        blen_read_animations(fbx_tmpl_astack, fbx_tmpl_alayer, stacks, scene, global_matrix, force_global_objects)
+        blen_read_animations(fbx_tmpl_astack, fbx_tmpl_alayer, stacks, scene, force_global_objects, settings)
 
     _(); del _
 

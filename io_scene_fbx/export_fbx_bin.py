@@ -89,7 +89,7 @@ from .fbx_utils import (
     # Objects.
     ObjectWrapper, fbx_name_class,
     # Top level.
-    FBXSettingsMedia, FBXSettings, FBXData,
+    FBXExportSettingsMedia, FBXExportSettings, FBXExportData,
 )
 
 # Units convertors!
@@ -2307,7 +2307,7 @@ def fbx_data_from_scene(scene, settings):
 
     # ##### And pack all this!
 
-    return FBXData(
+    return FBXExportData(
         templates, templates_users, connections,
         settings, scene, objects, animations, frame_start, frame_end,
         data_empties, data_lamps, data_cameras, data_meshes, mesh_mat_indices,
@@ -2612,7 +2612,7 @@ def save_single(operator, scene, filepath="",
     if embed_textures and path_mode != 'COPY':
         embed_textures = False
 
-    media_settings = FBXSettingsMedia(
+    media_settings = FBXExportSettingsMedia(
         path_mode,
         os.path.dirname(bpy.data.filepath),  # base_src
         os.path.dirname(filepath),  # base_dst
@@ -2622,7 +2622,7 @@ def save_single(operator, scene, filepath="",
         set(),  # copy_set
     )
 
-    settings = FBXSettings(
+    settings = FBXExportSettings(
         operator.report, (axis_up, axis_forward), global_matrix, global_scale,
         bake_space_transform, global_matrix_inv, global_matrix_inv_transposed,
         context_objects, object_types, use_mesh_modifiers,
