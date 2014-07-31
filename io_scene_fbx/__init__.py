@@ -122,6 +122,19 @@ class ImportFBX(bpy.types.Operator, ImportHelper):
             options={'HIDDEN'}
             )
 
+    use_custom_props = BoolProperty(
+            name="Import user properties",
+            description="Import user properties as custom properties",
+            default=True,
+            options={'HIDDEN'},
+            )
+    use_custom_props_enum_as_string = BoolProperty(
+            name="Import enum properties as string",
+            description="Store enumeration values as string",
+            default=True,
+            options={'HIDDEN'},
+            )
+
     def draw(self, context):
         layout = self.layout
 
@@ -135,6 +148,11 @@ class ImportFBX(bpy.types.Operator, ImportHelper):
         layout.prop(self, "use_image_search")
         # layout.prop(self, "use_alpha_decals")
         layout.prop(self, "decal_offset")
+
+        layout.prop(self, "use_custom_props")
+        sub = layout.row()
+        sub.enabled = self.use_custom_props
+        sub.prop(self, "use_custom_props_enum_as_string")
 
     def execute(self, context):
         keywords = self.as_keywords(ignore=("filter_glob", "directory"))

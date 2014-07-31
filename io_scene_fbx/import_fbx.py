@@ -275,6 +275,63 @@ FBXTransformData = namedtuple("FBXTransformData", (
 ))
 
 
+def blen_read_custom_properties(fbx_obj, blen_obj, settings):
+    # There doesn't seem to be a way to put user properties into templates, so this only get the object properties:
+    fbx_obj_props = elem_find_first(fbx_obj, b'Properties70')
+    if fbx_obj_props:
+        for fbx_prop in fbx_obj_props.elems:
+            assert(fbx_prop.id == b'P')
+
+            if b'U' in fbx_prop.props[3]:
+                if fbx_prop.props[0] == b'UDP3DSMAX':
+                    # Special case for 3DS Max user properties:
+                    assert(fbx_prop.props[1] == b'KString')
+                    assert(fbx_prop.props_type[4] == data_types.STRING)
+                    items = fbx_prop.props[4].decode('utf-8')
+                    for item in items.split('\r\n'):
+                        if item:
+                            prop_name, prop_value = item.split('=', 1)
+                            blen_obj[prop_name.strip()] = prop_value.strip()
+                else:
+                    prop_name = fbx_prop.props[0].decode('utf-8')
+                    prop_type = fbx_prop.props[1]
+                    if prop_type in {b'Vector', b'Vector3D', b'Color', b'ColorRGB'}:
+                        assert(fbx_prop.props_type[4:7] == bytes((data_types.FLOAT64,)) * 3)
+                        blen_obj[prop_name] = fbx_prop.props[4:7]
+                    elif prop_type in {b'Vector4', b'ColorRGBA'}:
+                        assert(fbx_prop.props_type[4:8] == bytes((data_types.FLOAT64,)) * 4)
+                        blen_obj[prop_name] = fbx_prop.props[4:8]
+                    elif prop_type == b'Vector2D':
+                        assert(fbx_prop.props_type[4:6] == bytes((data_types.FLOAT64,)) * 2)
+                        blen_obj[prop_name] = fbx_prop.props[4:6]
+                    elif prop_type in {b'Integer', b'int'}:
+                        assert(fbx_prop.props_type[4] == data_types.INT32)
+                        blen_obj[prop_name] = fbx_prop.props[4]
+                    elif prop_type == b'KString':
+                        assert(fbx_prop.props_type[4] == data_types.STRING)
+                        blen_obj[prop_name] = fbx_prop.props[4].decode('utf-8')
+                    elif prop_type in {b'Number', b'double', b'Double'}:
+                        assert(fbx_prop.props_type[4] == data_types.FLOAT64)
+                        blen_obj[prop_name] = fbx_prop.props[4]
+                    elif prop_type in {b'Float', b'float'}:
+                        assert(fbx_prop.props_type[4] == data_types.FLOAT32)
+                        blen_obj[prop_name] = fbx_prop.props[4]
+                    elif prop_type in {b'Bool', b'bool'}:
+                        assert(fbx_prop.props_type[4] == data_types.INT32)
+                        blen_obj[prop_name] = fbx_prop.props[4] != 0
+                    elif prop_type in {b'Enum', b'enum'}:
+                        assert(fbx_prop.props_type[4:6] == bytes((data_types.INT32, data_types.STRING)))
+                        val = fbx_prop.props[4]
+                        if settings.use_custom_props_enum_as_string:
+                            enum_items = fbx_prop.props[5].decode('utf-8').split('~')
+                            assert(val >= 0 and val < len(enum_items))
+                            blen_obj[prop_name] = enum_items[val]
+                        else:
+                            blen_obj[prop_name] = val
+                    else:
+                        print ("WARNING: User property type '%s' is not supported" % prop_type.decode('utf-8'))
+
+
 def blen_read_object_transform_do(transform_data):
     from mathutils import Matrix, Euler
 
@@ -399,6 +456,9 @@ def blen_read_object(fbx_tmpl, fbx_obj, object_data, settings):
         transform_data = blen_read_object_transform_preprocess(fbx_props, fbx_obj, rot_alt_mat)
         object_tdata_cache[obj] = transform_data
     obj.matrix_basis = blen_read_object_transform_do(transform_data)
+
+    if settings.use_custom_props:
+        blen_read_custom_properties(fbx_obj, obj, settings)
 
     return obj
 
@@ -1143,6 +1203,9 @@ def blen_read_geom(fbx_tmpl, fbx_obj, settings):
         for p in mesh.polygons:
             p.use_smooth = True
 
+    if settings.use_custom_props:
+        blen_read_custom_properties(fbx_obj, mesh, settings)
+
     return mesh
 
 
@@ -1241,6 +1304,9 @@ def blen_read_material(fbx_tmpl, fbx_obj, settings):
             ma.raytrace_mirror.reflect_factor = ma_refl_factor
             ma.mirror_color = ma_refl_color
 
+    if settings.use_custom_props:
+        blen_read_custom_properties(fbx_obj, ma, settings)
+
     return ma
 
 
@@ -1275,6 +1341,9 @@ def blen_read_texture(fbx_tmpl, fbx_obj, basedir, settings):
     image_cache[filepath] = image
     # name can be ../a/b/c
     image.name = os.path.basename(elem_name_utf8)
+
+    if settings.use_custom_props:
+        blen_read_custom_properties(fbx_obj, image, settings)
 
     return image
 
@@ -1366,7 +1435,9 @@ def load(operator, context, filepath="",
          use_cycles=True,
          use_image_search=False,
          use_alpha_decals=False,
-         decal_offset=0.0):
+         decal_offset=0.0,
+         use_custom_props=True,
+         use_custom_props_enum_as_string=True):
 
     global fbx_elem_nil
     fbx_elem_nil = FBXElem('', (), (), ())
@@ -1461,6 +1532,7 @@ def load(operator, context, filepath="",
         operator.report, (axis_up, axis_forward), global_matrix, global_scale,
         use_cycles, use_image_search,
         use_alpha_decals, decal_offset,
+        use_custom_props, use_custom_props_enum_as_string,
         object_tdata_cache, cycles_material_wrap_map, image_cache,
     )
 
@@ -2051,6 +2123,14 @@ def load(operator, context, filepath="",
                     tex = bpy.data.textures.new(name=image.name, type='IMAGE')
                     tex.image = image
                     texture_cache[image] = tex
+
+                    # copy custom properties from image object to texture
+                    for key, value in image.items():
+                        tex[key] = value
+
+                    # delete custom properties on the image object
+                    for key in image.keys():
+                        del image[key]
 
                 mtex = material.texture_slots.add()
                 mtex.texture = tex

@@ -1099,5 +1099,6 @@ FBXImportSettings = namedtuple("FBXImportSettings", (
     "report", "to_axes", "global_matrix", "global_scale",
     "use_cycles", "use_image_search",
     "use_alpha_decals", "decal_offset",
+    "use_custom_props", "use_custom_props_enum_as_string",
     "object_tdata_cache", "cycles_material_wrap_map", "image_cache",
 ))
