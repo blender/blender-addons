@@ -601,7 +601,7 @@ def blen_read_animations_curves_iter(fbx_curves, blen_start_offset, fbx_start_of
                     elem_prop_first(elem_find_first(c[2], b'KeyTime')),
                     elem_prop_first(elem_find_first(c[2], b'KeyValueFloat')),
                     c]
-                    for c in fbx_curves)
+                   for c in fbx_curves)
 
     while True:
         tmin = min(curves, key=lambda e: e[1][e[0]])
@@ -1366,7 +1366,8 @@ def load(operator, context, filepath="",
     global fbx_elem_nil
     fbx_elem_nil = FBXElem('', (), (), ())
 
-    import os, time
+    import os
+    import time
     from bpy_extras.io_utils import axis_conversion
     from mathutils import Matrix
 
@@ -1417,8 +1418,7 @@ def load(operator, context, filepath="",
 
     scene = context.scene
 
-
-    #### Get some info from GlobalSettings.
+    # #### Get some info from GlobalSettings.
 
     fbx_settings = elem_find_first(elem_root, b'GlobalSettings')
     fbx_settings_props = elem_find_first(fbx_settings, b'Properties70')
@@ -1451,7 +1451,7 @@ def load(operator, context, filepath="",
     scene.render.fps_base = scene.render.fps / real_fps
 
 
-    #### And now, the "real" data.
+    # #### And now, the "real" data.
 
     fbx_defs = elem_find_first(elem_root, b'Definitions')  # can be None
     fbx_nodes = elem_find_first(elem_root, b'Objects')
@@ -1613,6 +1613,7 @@ def load(operator, context, filepath="",
     # from root bone uuid to Blender's object...
     fbx_bones_to_fake_object = dict()
     armatures = []
+
     def _():
         nonlocal fbx_objects_ignore, fbx_objects_parent_ignore
         for a_uuid, a_item in fbx_table_nodes.items():
@@ -1630,7 +1631,8 @@ def load(operator, context, filepath="",
                     if p_ctype.props[0] != b'OO':
                         continue
                     fbx_pdata, bl_pdata = p_item = fbx_table_nodes.get(p_uuid, (None, None))
-                    if (fbx_pdata and fbx_pdata.id == b'Model' and fbx_pdata.props[2] in {b'LimbNode', b'Root', b'Null'}):
+                    if (fbx_pdata and fbx_pdata.id == b'Model' and
+                        fbx_pdata.props[2] in {b'LimbNode', b'Root', b'Null'}):
                         # Not a root bone...
                         root_bone = False
                 if not root_bone:
@@ -1771,6 +1773,7 @@ def load(operator, context, filepath="",
 
     # I) We can handle shapes.
     blend_shape_channels = {}  # We do not need Shapes themselves, but keyblocks, for anim.
+
     def _():
         fbx_tmpl = fbx_template_get((b'Geometry', b'KFbxShape'))
 
@@ -1823,6 +1826,7 @@ def load(operator, context, filepath="",
     # II) We can finish armatures processing.
     arm_parents = set()
     force_global_objects = set()
+
     def _():
         fbx_tmpl = fbx_template_get((b'Model', b'KFbxNode'))
 

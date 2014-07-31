@@ -73,7 +73,7 @@ FBX_KTIME = 46186158000  # This is the number of "ktimes" in one second (yep, pr
 MAT_CONVERT_LAMP = Matrix.Rotation(math.pi / 2.0, 4, 'X')  # Blender is -Z, FBX is -Y.
 MAT_CONVERT_CAMERA = Matrix.Rotation(math.pi / -2.0, 4, 'Y')  # Blender is -Z, FBX is -X.
 # XXX I can't get this working :(
-#MAT_CONVERT_BONE = Matrix.Rotation(math.pi / 2.0, 4, 'Z')  # Blender is +Y, FBX is -X.
+# MAT_CONVERT_BONE = Matrix.Rotation(math.pi / 2.0, 4, 'Z')  # Blender is +Y, FBX is -X.
 MAT_CONVERT_BONE = Matrix()
 
 
@@ -146,7 +146,7 @@ FBX_FRAMERATES = (
 )
 
 
-##### Misc utilities #####
+# ##### Misc utilities #####
 
 # Note: this could be in a utility (math.units e.g.)...
 
@@ -173,9 +173,11 @@ def units_convertor(u_from, u_to):
 def units_convertor_iter(u_from, u_to):
     """Return an iterable convertor between specified units."""
     conv = units_convertor(u_from, u_to)
+
     def convertor(it):
         for v in it:
             yield(conv(v))
+
     return convertor
 
 
@@ -208,7 +210,7 @@ def similar_values_iter(v1, v2, e=1e-6):
     return True
 
 
-##### UIDs code. #####
+# ##### UIDs code. #####
 
 # ID class (mere int).
 class UUID(int):
@@ -350,7 +352,7 @@ def get_blender_anim_curve_key(scene, ref_id, obj_key, fbx_prop_name, fbx_prop_i
                      fbx_prop_item_name, "AnimCurve"))
 
 
-##### Element generators. #####
+# ##### Element generators. #####
 
 # Note: elem may be None, in this case the element is not added to any parent.
 def elem_empty(elem, name):
@@ -437,7 +439,8 @@ def elem_data_single_byte_array(elem, name, value):
 def elem_data_vec_float64(elem, name, value):
     return _elem_data_vec(elem, name, value, "add_float64")
 
-##### Generators for standard FBXProperties70 properties. #####
+
+# ##### Generators for standard FBXProperties70 properties. #####
 
 def elem_properties(elem):
     return elem_empty(elem, b"Properties70")
@@ -467,13 +470,13 @@ FBX_PROPERTIES_DEFINITIONS = {
     "p_object": (b"object", b""),  # XXX Check this! No value for this prop??? Would really like to know how it works!
     "p_compound": (b"Compound", b""),
     # Specific types (sic).
-    ## Objects (Models).
+    # ## Objects (Models).
     "p_lcl_translation": (b"Lcl Translation", b"", "add_float64", "add_float64", "add_float64"),
     "p_lcl_rotation": (b"Lcl Rotation", b"", "add_float64", "add_float64", "add_float64"),
     "p_lcl_scaling": (b"Lcl Scaling", b"", "add_float64", "add_float64", "add_float64"),
     "p_visibility": (b"Visibility", b"", "add_float64"),
     "p_visibility_inheritance": (b"Visibility Inheritance", b"", "add_int32"),
-    ## Cameras!!!
+    # ## Cameras!!!
     "p_roll": (b"Roll", b"", "add_float64"),
     "p_opticalcenterx": (b"OpticalCenterX", b"", "add_float64"),
     "p_opticalcentery": (b"OpticalCenterY", b"", "add_float64"),
@@ -569,7 +572,7 @@ def elem_props_template_finalize(template, elem):
         _elem_props_set(elem, ptype, name, value, _elem_props_flags(animatable, False))
 
 
-##### Templates #####
+# ##### Templates #####
 # TODO: check all those "default" values, they should match Blender's default as much as possible, I guess?
 
 FBXTemplate = namedtuple("FBXTemplate", ("type_name", "prop_type_name", "properties", "nbr_users", "written"))
@@ -621,7 +624,7 @@ def fbx_templates_generate(root, fbx_templates):
                     print(props, ptype, name, value, animatable)
 
 
-##### FBX animation helpers. #####
+# ##### FBX animation helpers. #####
 
 
 class AnimationCurveNodeWrapper:
@@ -740,18 +743,20 @@ class AnimationCurveNodeWrapper:
                 if wrt:
                     curve.append((currframe, val))
 
-        for elem_key, fbx_group, fbx_gname, fbx_props in zip(self.elem_keys, self.fbx_group, self.fbx_gname, self.fbx_props):
+        for elem_key, fbx_group, fbx_gname, fbx_props in \
+            zip(self.elem_keys, self.fbx_group, self.fbx_gname, self.fbx_props):
             group_key = get_blender_anim_curve_node_key(scene, ref_id, elem_key, fbx_group)
             group = OrderedDict()
             for c, def_val, fbx_item in zip(curves, self.default_values, fbx_props):
                 fbx_item = FBX_ANIM_PROPSGROUP_NAME + "|" + fbx_item
                 curve_key = get_blender_anim_curve_key(scene, ref_id, elem_key, fbx_group, fbx_item)
                 # (curve key, default value, keyframes, write flag).
-                group[fbx_item] = (curve_key, def_val, c, True if (len(c) > 1 or (len(c) > 0 and force_keep)) else False)
+                group[fbx_item] = (curve_key, def_val, c,
+                                   True if (len(c) > 1 or (len(c) > 0 and force_keep)) else False)
             yield elem_key, group_key, group, fbx_group, fbx_gname
 
 
-##### FBX objects generators. #####
+# ##### FBX objects generators. #####
 
 # FBX Model-like data (i.e. Blender objects, dupliobjects and bones) are wrapped in ObjectWrapper.
 # This allows us to have a (nearly) same code FBX-wise for all those types.
@@ -848,7 +853,7 @@ class ObjectWrapper(metaclass=MetaObjectWrapper):
     def __hash__(self):
         return hash(self.key)
 
-    #### Common to all _tag values.
+    # #### Common to all _tag values.
     def get_fbx_uuid(self):
         return get_fbx_uuid_from_key(self.key)
     fbx_uuid = property(get_fbx_uuid)
@@ -904,7 +909,7 @@ class ObjectWrapper(metaclass=MetaObjectWrapper):
             return self.matrix_global
     matrix_rest_global = property(get_matrix_rest_global)
 
-    #### Transform and helpers
+    # #### Transform and helpers
     def has_valid_parent(self, objects):
         par = self.parent
         if par in objects:
@@ -995,7 +1000,7 @@ class ObjectWrapper(metaclass=MetaObjectWrapper):
             rot = rot.to_euler('XYZ')
         return loc, rot, scale, matrix, matrix_rot
 
-    #### _tag dependent...
+    # #### _tag dependent...
     def get_is_object(self):
         return self._tag == 'OB'
     is_object = property(get_is_object)
@@ -1032,7 +1037,7 @@ class ObjectWrapper(metaclass=MetaObjectWrapper):
         return ()
     material_slots = property(get_material_slots)
 
-    #### Duplis...
+    # #### Duplis...
     def dupli_list_create(self, scene, settings='PREVIEW'):
         if self._tag == 'OB':
             # Sigh, why raise exception here? :/
@@ -1056,7 +1061,7 @@ def fbx_name_class(name, cls):
     return FBX_NAME_CLASS_SEP.join((name, cls))
 
 
-##### Top-level FBX data container. #####
+# ##### Top-level FBX data container. #####
 
 # Helper sub-container gathering all exporter settings related to media (texture files).
 FBXSettingsMedia = namedtuple("FBXSettingsMedia", (

@@ -45,6 +45,7 @@ _FOOT_ID = b'\xfa\xbc\xab\x09\xd0\xc8\xd4\x66\xb1\x76\xfb\x83\x1c\xf7\x26\x7e'
 # Awful exceptions: those "classes" of elements seem to need block sentinel even when having no children and some props.
 _ELEMS_ID_ALWAYS_BLOCK_SENTINEL = {b"AnimationStack", b"AnimationLayer"}
 
+
 class FBXElem:
     __slots__ = (
         "id",
