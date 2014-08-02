@@ -19,7 +19,7 @@
 bl_info = {
     "name": "Node Wrangler (aka Nodes Efficiency Tools)",
     "author": "Bartek Skorupa, Greg Zaal",
-    "version": (3, 7),
+    "version": (3, 8),
     "blender": (2, 71, 0),
     "location": "Node Editor Properties Panel or Ctrl-Space",
     "description": "Various tools to enhance and speed up node-based workflow",
@@ -1878,6 +1878,8 @@ class NWMergeNodes(Operator, NWBase):
                         add_type = node_type + 'MixRGB'
                         add = nodes.new(add_type)
                         add.blend_type = mode
+                        if mode != 'MIX':
+                            add.inputs[0].default_value = 1.0
                         add.show_preview = False
                         add.hide = do_hide
                         if do_hide:
@@ -3755,4 +3757,5 @@ def unregister():
 
 if __name__ == "__main__":
     register()
+
 
