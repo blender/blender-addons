@@ -16,17 +16,9 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 '''
-bl_info = {
     "name": "3D Function Surfaces",
     "author": "Buerbaum Martin (Pontiac), Elod Csirmaz",
     "version": (0, 3, 8),
-    "blender": (2, 57, 0),
-    "location": "View3D > Add > Mesh",
-    "description": "Create Objects using Math Formulas",
-    "warning": "",
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"
-                "Scripts/Add_Mesh/Add_3d_Function_Surface",
-    "category": "Add Mesh"}
 '''
 
 import bpy

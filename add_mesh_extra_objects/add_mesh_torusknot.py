@@ -1,4 +1,4 @@
-'''# +---------------------------------------------------------+
+# +---------------------------------------------------------+
 # | Copyright (c) 2005-2010 Anthony D'Agostino              |
 # | http://home.comcast.net/~chronosphere                   |
 # | scorpius@netzero.com                                    |
@@ -24,18 +24,7 @@
 # Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
 # ***** END GPL LICENCE BLOCK *****
-
-bl_info = {
-    "name": "Torus Knot",
-    "author": "Anthony D'Agostino",
-    "version": (1, 0),
-    "blender": (2, 57, 0),
-    "location": "View3D > Add > Mesh ",
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"
-                "Scripts/Add_TorusKnot",
-    "category": "Add Mesh",
-}
-'''
+# "version": (1, 0, 0)
 import bpy, mathutils, math
 
 def create_mesh_object(context, verts, edges, faces, name):
@@ -135,18 +124,3 @@ class AddTorusKnot(bpy.types.Operator):
 								 self.resolution)
 		obj = create_mesh_object(context, verts, [], faces, "Torus Knot")
 		return {'FINISHED'}
-'''
-def menu_func(self, context):
-	self.layout.operator(AddTorusKnot.bl_idname, text="Torus Knot", icon="MESH_CUBE")
-
-def register():
-    bpy.utils.register_module(__name__)
-    bpy.types.INFO_MT_mesh_add.append(menu_func)
-
-def unregister():
-    bpy.utils.unregister_module(__name__)
-    bpy.types.INFO_MT_mesh_add.remove(menu_func)
-
-if __name__ == "__main__":
-	register()
-'''

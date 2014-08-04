@@ -1,4 +1,4 @@
-'''# ##### BEGIN GPL LICENSE BLOCK #####
+# ##### BEGIN GPL LICENSE BLOCK #####
 #
 #  This program is free software; you can redistribute it and/or
 #  modify it under the terms of the GNU General Public License
@@ -15,19 +15,10 @@
 #  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # ##### END GPL LICENSE BLOCK #####
-
-bl_info = {
+'''
     "name": "HoneyComb",
     "author": "Kayo Phoenix <kayo@illumium.org>",
     "version": (0, 1),
-    "blender": (2, 57, 0),
-    "location": "View3D > Add > Mesh > HoneyComb",
-    "description": "Adds HoneyComb Mesh",
-    "warning": "",
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"
-                "Scripts/Add_Mesh/HoneyComb",
-    "category": "Add Mesh",
-}
 '''
 from math import pi, sin, cos
 

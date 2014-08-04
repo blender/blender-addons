@@ -1,14 +1,7 @@
 '''
-bl_info = {
     "name": "Add Mesh: SuperToroid",
     "author": "DreamPainter",
     "version": (1, 0, 0),
-    "blender": (2, 53, 0),
-    "location": "View3D > Add > Mesh > SuperToroid",
-    "description": "Add a SuperToroid mesh",
-    "url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/" \
-        "Scripts/Add_Mesh/",  # no url
-    "category": "Add Mesh"}
 '''
 import bpy
 from bpy.props import FloatProperty,BoolProperty,IntProperty
@@ -212,18 +205,3 @@ class add_supertoroid(bpy.types.Operator):
 
 
         return {'FINISHED'}
-'''
-menu_func = lambda self, context: self.layout.operator(add_supertoroid.bl_idname,
-                                    text = "SuperToroid", icon = 'PLUGIN')
-
-def register():
-    bpy.types.register(add_supertoroid)
-    bpy.types.INFO_MT_mesh_add.append(menu_func)
-
-def unregister():
-    bpy.types.unregister(add_supertoroid)
-    bpy.types.INFO_MT_mesh_add.remove(menu_func)
-
-if __name__ == "__main__":
-    register()
-'''

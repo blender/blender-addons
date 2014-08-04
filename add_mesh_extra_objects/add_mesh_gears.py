@@ -19,18 +19,9 @@
 #
 # ***** END GPL LICENCE BLOCK *****
 '''
-bl_info = {
     "name": "Gears",
     "author": "Michel J. Anders (varkenvarken)",
     "version": (2, 4, 2),
-    "blender": (2, 57, 0),
-    "location": "View3D > Add > Mesh > Gears ",
-    "description": "Adds a mesh Gear to the Add Mesh menu",
-    "warning": "",
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"
-                "Scripts/Add_Mesh/Add_Gear",
-    "category": "Add Mesh",
-}
 '''
 
 import bpy
@@ -53,7 +44,6 @@ def create_mesh_object(context, verts, edges, faces, name):
 
     from bpy_extras import object_utils
     return object_utils.object_data_add(context, mesh, operator=None)
-
 
 # A very simple "bridge" tool.
 # Connects two equally long vertex rows with faces.
@@ -123,7 +113,6 @@ def createFaces(vertIdx1, vertIdx2, closed=False, flipped=False):
 
     return faces
 
-
 # Calculate the vertex coordinates for a single
 # section of a gear tooth.
 # Returns 4 lists of vertex coords (list of tuples):
@@ -145,6 +134,7 @@ def createFaces(vertIdx1, vertIdx2, closed=False, flipped=False):
 # p_angle
 # rack
 # crown
+
 def add_tooth(a, t, d, radius, Ad, De, base, p_angle, rack=0, crown=0.0):
     A = [a, a + t / 4, a + t / 2, a + 3 * t / 4]
     C = [cos(i) for i in A]
@@ -193,7 +183,6 @@ def add_tooth(a, t, d, radius, Ad, De, base, p_angle, rack=0, crown=0.0):
     return (verts_inner_base, verts_outer_base,
         verts_middle_tooth, verts_tip_tooth)
 
-
 # EXPERIMENTAL Calculate the vertex coordinates for a single
 # section of a gearspoke.
 # Returns them as a list of tuples.
@@ -211,6 +200,7 @@ def add_tooth(a, t, d, radius, Ad, De, base, p_angle, rack=0, crown=0.0):
 # width
 #
 # @todo Finish this.
+
 def add_spoke(a, t, d, radius, De, base, s, w, l, gap=0, width=19):
     Rd = radius - De
     Rb = Rd - base
@@ -249,7 +239,6 @@ def add_spoke(a, t, d, radius, De, base, s, w, l, gap=0, width=19):
 
     return verts, edgefaces, edgefaces2, sf
 
-
 # Create gear geometry.
 # Returns:
 # * A list of vertices (list of tuples)
@@ -270,6 +259,7 @@ def add_spoke(a, t, d, radius, De, base, s, w, l, gap=0, width=19):
 # crown ... Inward pointing extend of crown teeth.
 #
 # inner radius = radius - (De + base)
+
 def add_gear(teethNum, radius, Ad, De, base, p_angle,
     width=1, skew=0, conangle=0, rack=0, crown=0.0):
 
@@ -382,7 +372,6 @@ def add_gear(teethNum, radius, Ad, De, base, p_angle,
 
     return verts, faces, vgroup_top, vgroup_valley
 
-
 # Create spokes geometry.
 # Returns:
 # * A list of vertices (list of tuples)
@@ -404,6 +393,7 @@ def add_gear(teethNum, radius, Ad, De, base, p_angle,
 # @todo Finish this
 # @todo Create a function that takes a "Gear" and creates a
 #       matching "Gear Spokes" object.
+
 def add_spokes(teethNum, radius, De, base, width=1, conangle=0, rack=0,
     spoke=3, spbevel=0.1, spwidth=0.2, splength=1.0, spresol=9):
 
@@ -465,7 +455,6 @@ def add_spokes(teethNum, radius, De, base, width=1, conangle=0, rack=0,
                 for (i) in range(5, 8)])
 
     return verts, faces
-
 
 # Create worm geometry.
 # Returns:
@@ -567,7 +556,6 @@ def add_worm(teethNum, rowNum, radius, Ad, De, p_angle,
         edgeloop_prev = edgeloop
 
     return verts, faces, vgroup_top, vgroup_valley
-
 
 class AddGear(bpy.types.Operator):
     """Add a gear mesh"""
@@ -684,7 +672,6 @@ class AddGear(bpy.types.Operator):
             valleyGroup.add(verts_valley, 1.0, 'ADD')
 
         return {'FINISHED'}
-
 
 class AddWormGear(bpy.types.Operator):
     """Add a worm gear mesh"""

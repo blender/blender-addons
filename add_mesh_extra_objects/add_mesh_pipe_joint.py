@@ -15,24 +15,14 @@
 #  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # ##### END GPL LICENSE BLOCK #####
-
-bl_info = {
+'''
     "name": "Pipe Joints",
     "author": "Buerbaum Martin (Pontiac)",
     "version": (0, 10, 7),
-    "blender": (2, 61, 0),
-    "location": "View3D > Add > Mesh > Pipe Joints",
-    "description": "Add different types of pipe joints",
-    "warning": "",
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
-                "Scripts/Add_Mesh/Add_Pipe_Joints",
-    "category": "Add Mesh",
-}
-
+'''
 import bpy
 from math import *
 from bpy.props import *
-
 
 # Create a new mesh (object) from verts/edges/faces.
 # verts/edges/faces ... List of vertices/edges/faces for the
@@ -118,7 +108,6 @@ def createFaces(vertIdx1, vertIdx2, closed=False, flipped=False):
             faces.append(face)
 
     return faces
-
 
 class AddElbowJoint(bpy.types.Operator):
     # Create the vertices and polygons for a simple elbow (bent pipe).
@@ -218,7 +207,6 @@ class AddElbowJoint(bpy.types.Operator):
         base = create_mesh_object(context, verts, [], faces, "Elbow Joint")
 
         return {'FINISHED'}
-
 
 class AddTeeJoint(bpy.types.Operator):
     # Create the vertices and polygons for a simple tee (T) joint.
@@ -397,7 +385,6 @@ class AddTeeJoint(bpy.types.Operator):
         base = create_mesh_object(context, verts, [], faces, "Tee Joint")
 
         return {'FINISHED'}
-
 
 class AddWyeJoint(bpy.types.Operator):
     """Add a Wye-Joint mesh"""
@@ -591,7 +578,6 @@ class AddWyeJoint(bpy.types.Operator):
         base = create_mesh_object(context, verts, [], faces, "Wye Joint")
 
         return {'FINISHED'}
-
 
 class AddCrossJoint(bpy.types.Operator):
     """Add a Cross-Joint mesh"""
@@ -847,7 +833,6 @@ class AddCrossJoint(bpy.types.Operator):
 
         return {'FINISHED'}
 
-
 class AddNJoint(bpy.types.Operator):
     """Add a N-Joint mesh"""
     # Create the vertices and polygons for a regular n-joint.
@@ -1004,47 +989,4 @@ class AddNJoint(bpy.types.Operator):
 
         return {'FINISHED'}
 
-
-class INFO_MT_mesh_pipe_joints_add(bpy.types.Menu):
-    # Define the "Pipe Joints" menu
-    bl_idname = "INFO_MT_mesh_pipe_joints_add"
-    bl_label = "Pipe Joints"
-
-    def draw(self, context):
-        layout = self.layout
-        layout.operator_context = 'INVOKE_REGION_WIN'
-        layout.operator("mesh.primitive_elbow_joint_add",
-            text="Pipe Elbow")
-        layout.operator("mesh.primitive_tee_joint_add",
-            text="Pipe T-Joint")
-        layout.operator("mesh.primitive_wye_joint_add",
-            text="Pipe Y-Joint")
-        layout.operator("mesh.primitive_cross_joint_add",
-            text="Pipe Cross-Joint")
-        layout.operator("mesh.primitive_n_joint_add",
-            text="Pipe N-Joint")
-
 ################################
-
-
-# Define "Pipe Joints" menu
-def menu_func(self, context):
-    self.layout.menu("INFO_MT_mesh_pipe_joints_add", icon="PLUGIN")
-
-
-def register():
-    bpy.utils.register_module(__name__)
-
-    # Add "Pipe Joints" menu to the "Add Mesh" menu
-    bpy.types.INFO_MT_mesh_add.append(menu_func)
-
-
-def unregister():
-    bpy.utils.unregister_module(__name__)
-
-    # Remove "Pipe Joints" menu from the "Add Mesh" menu.
-    bpy.types.INFO_MT_mesh_add.remove(menu_func)
-
-
-if __name__ == "__main__":
-    register()

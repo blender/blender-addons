@@ -39,7 +39,6 @@ def create_mesh_object(context, verts, edges, faces, name):
     from bpy_extras import object_utils
     return object_utils.object_data_add(context, mesh, operator=None)
 
-
 # A very simple "bridge" tool.
 # Connects two equally long vertex rows with faces.
 # Returns a list of the new faces (list of  lists)

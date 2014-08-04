@@ -16,18 +16,9 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 '''
-bl_info = {
     "name": "Gemstones",
     "author": "Pontiac, Fourmadmen, Dreampainter",
     "version": (0, 4),
-    "blender": (2, 57, 0),
-    "location": "View3D > Add > Mesh > Gemstones",
-    "description": "Adds various gemstone (Diamond & Gem) meshes.",
-    "warning": "",
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"
-                "Scripts/Add_Mesh/Add_Gemstones",
-    "category": "Add Mesh",
-}
 '''
 import bpy
 from mathutils import *
@@ -51,7 +42,6 @@ def create_mesh_object(context, verts, edges, faces, name):
 
     from bpy_extras import object_utils
     return object_utils.object_data_add(context, mesh, operator=None)
-
 
 # A very simple "bridge" tool.
 # Connects two equally long vertex rows with faces.
@@ -121,7 +111,6 @@ def createFaces(vertIdx1, vertIdx2, closed=False, flipped=False):
 
     return faces
 
-
 # @todo Clean up vertex&face creation process a bit.
 def add_gem(r1, r2, seg, h1, h2):
     """
@@ -181,7 +170,6 @@ def add_gem(r1, r2, seg, h1, h2):
 
     return verts, faces
 
-
 def add_diamond(segments, girdle_radius, table_radius,
     crown_height, pavilion_height):
 
@@ -235,7 +223,6 @@ def add_diamond(segments, girdle_radius, table_radius,
 
     return verts, faces
 
-
 class AddDiamond(bpy.types.Operator):
     """Add a diamond mesh"""
     bl_idname = "mesh.primitive_diamond_add"
@@ -278,7 +265,6 @@ class AddDiamond(bpy.types.Operator):
         obj = create_mesh_object(context, verts, [], faces, "Diamond")
 
         return {'FINISHED'}
-
 
 class AddGem(bpy.types.Operator):
     """Add a diamond gem"""

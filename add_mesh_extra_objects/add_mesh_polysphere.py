@@ -16,17 +16,9 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 '''
-bl_info = {
     "name": "Add PolySphere",
     "author": "Andy Davies (metalliandy)",
     "version": (0,1,6),
-    "blender": (2, 62, 0),
-    "location": "View3D > Add > Mesh > PolySphere",
-    "description": "Adds a PolySphere (all quads) for sculpting",
-    "warning": "",
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"
-                "Scripts/Add_Mesh/Add_PolySphere",
-    "category": "Add Mesh"}
 '''
 
 import bpy

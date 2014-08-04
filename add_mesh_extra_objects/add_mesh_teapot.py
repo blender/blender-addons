@@ -1,4 +1,4 @@
-'''# +---------------------------------------------------------+
+# +---------------------------------------------------------+
 # | Copyright (c) 2005-2010 Anthony D'Agostino              |
 # | http://home.comcast.net/~chronosphere                   |
 # | scorpius@netzero.com                                    |
@@ -24,18 +24,7 @@
 # Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
 # ***** END GPL LICENCE BLOCK *****
-
-bl_info = {
-    "name": "Teapot+",
-    "author": "Anthony D'Agostino",
-    "version": (1, 0),
-    "blender": (2, 57, 0),
-    "location": "View3D > Add > Mesh ",
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"
-                "Scripts/Add_Teapot",
-    "category": "Add Mesh",
-}
-'''
+# "version": (1, 0, 0)
 
 import bpy
 from bpy.props import IntProperty
@@ -45,7 +34,6 @@ import mathutils
 import io
 import operator
 import functools
-
 
 class AddTeapot(bpy.types.Operator):
     """Add a teapot mesh"""
@@ -70,24 +58,6 @@ class AddTeapot(bpy.types.Operator):
         obj = create_mesh_object(context, verts, [], faces, "Teapot")
         return {'FINISHED'}
 
-
-def menu_func(self, context):
-    self.layout.operator(AddTeapot.bl_idname, text="Teapot+", icon="MESH_CUBE")
-
-
-def register():
-    bpy.utils.register_module(__name__)
-    bpy.types.INFO_MT_mesh_add.append(menu_func)
-
-
-def unregister():
-    bpy.utils.unregister_module(__name__)
-    bpy.types.INFO_MT_mesh_add.remove(menu_func)
-
-if __name__ == "__main__":
-    register()
-
-
 def create_mesh_face_hack(faces):
     # FIXME, faces with duplicate vertices shouldn't be created in the first place.
     faces_copy = []
@@ -98,7 +68,6 @@ def create_mesh_face_hack(faces):
                 f_copy.append(i)
         faces_copy.append(f_copy)
     faces[:] = faces_copy
-
 
 def create_mesh_object(context, verts, edges, faces, name):
 

@@ -19,34 +19,21 @@
 # Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # ***** END GPL LICENCE BLOCK *****
-"""
-bl_info = {
-    "name": "Twisted Torus",
-    "author": "Paulo_Gomes",
-    "version": (0, 11, 1),
-    "blender": (2, 57, 0),
-    "location": "View3D > Add > Mesh ",
-    "description": "Adds a mesh Twisted Torus to the Add Mesh menu",
-    "warning": "",
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"
-                "Scripts/Add_Mesh/Add_Twisted_Torus",
-    "category": "Add Mesh",
-}
+#twisted torus by Paulo_Gomes
+# "version": (0, 11, 1)
 
+"""
 Usage:
 
 * Launch from Add Mesh menu
 
 * Modify parameters as desired or keep defaults
 """
-
-
 import bpy
 from bpy.props import *
 
 from mathutils import *
 from math import cos, sin, pi
-
 
 # Create a new mesh (object) from verts/edges/faces.
 # verts/edges/faces ... List of vertices/edges/faces for the
@@ -79,6 +66,7 @@ def create_mesh_object(context, verts, edges, faces, name):
 #       a fan/star of faces.
 # Note: If both vertex idx list are the same length they have
 #       to have at least 2 vertices.
+
 def createFaces(vertIdx1, vertIdx2, closed=False, flipped=False):
     faces = []
 
@@ -134,7 +122,6 @@ def createFaces(vertIdx1, vertIdx2, closed=False, flipped=False):
 
     return faces
 
-
 def add_twisted_torus(major_rad, minor_rad, major_seg, minor_seg, twists):
     PI_2 = pi * 2.0
     z_axis = (0.0, 0.0, 1.0)
@@ -178,7 +165,6 @@ def add_twisted_torus(major_rad, minor_rad, major_seg, minor_seg, twists):
     faces.extend(f)
 
     return verts, faces
-
 
 class AddTwistedTorus(bpy.types.Operator):
     """Add a torus mesh"""
@@ -245,4 +231,3 @@ class AddTwistedTorus(bpy.types.Operator):
         obj = create_mesh_object(context, verts, [], faces, "TwistedTorus")
 
         return {'FINISHED'}
-

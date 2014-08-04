@@ -16,20 +16,11 @@
 # Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # ***** END GPL LICENCE BLOCK *****
-
-bl_info = {
+'''
     "name": "Regular Solids",
     "author": "DreamPainter",
     "version": (2, 0),
-    "blender": (2, 59, 0),
-    "location": "View3D > Add > Mesh > Solids",
-    "description": "Add a regular solid",
-    "warning": "",
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
-                "Scripts/Add_Mesh/Add_Solid",
-    "category": "Add Mesh",
-}
-
+'''
 import bpy
 from bpy.props import FloatProperty,EnumProperty,BoolProperty
 from math import sqrt
@@ -509,93 +500,3 @@ class Solids(bpy.types.Operator):
         bpy.context.user_preferences.edit.use_global_undo = True
 
         return {'FINISHED'}
-
-class Solids_add_menu(bpy.types.Menu):
-    """Define the menu with presets"""
-    bl_idname = "Solids_add_menu"
-    bl_label = "Solids"
-
-    def draw(self,context):
-        layout = self.layout
-        layout.operator_context = 'INVOKE_REGION_WIN'
-        layout.operator(Solids.bl_idname, text = "Solid")
-        layout.menu(PlatonicMenu.bl_idname, text = "Platonic")
-        layout.menu(ArchiMenu.bl_idname, text = "Archimeadean")
-        layout.menu(CatalanMenu.bl_idname, text = "Catalan")
-
-class PlatonicMenu(bpy.types.Menu):
-    """Define Platonic menu"""
-    bl_idname = "Platonic_calls"
-    bl_label = "Platonic"
-
-    def draw(self,context):
-        layout = self.layout
-        layout.operator_context = 'INVOKE_REGION_WIN'
-        layout.operator(Solids.bl_idname, text = "Tetrahedron").source = "4"
-        layout.operator(Solids.bl_idname, text = "Hexahedron").source = "6"
-        layout.operator(Solids.bl_idname, text = "Octahedron").source = "8"
-        layout.operator(Solids.bl_idname, text = "Dodecahedron").source = "12"
-        layout.operator(Solids.bl_idname, text = "Icosahedron").source = "20"
-
-class ArchiMenu(bpy.types.Menu):
-    """Defines Achimedean preset menu"""
-    bl_idname = "Achimedean_calls"
-    bl_label = "Archimedean"
-
-    def draw(self,context):
-        layout = self.layout
-        layout.operator_context = 'INVOKE_REGION_WIN'
-        layout.operator(Solids.bl_idname, text = "Truncated Tetrahedron").preset = "t4"
-        layout.operator(Solids.bl_idname, text = "Cuboctahedron").preset = "r4"
-        layout.operator(Solids.bl_idname, text = "Truncated Cube").preset = "t6"
-        layout.operator(Solids.bl_idname, text = "Truncated Octahedron").preset = "t8"
-        layout.operator(Solids.bl_idname, text = "Rhombicuboctahedron").preset = "b6"
-        layout.operator(Solids.bl_idname, text = "Truncated Cuboctahedron").preset = "c6"
-        layout.operator(Solids.bl_idname, text = "Snub Cube").preset = "s6"
-        layout.operator(Solids.bl_idname, text = "Icosidodecahedron").preset = "r12"
-        layout.operator(Solids.bl_idname, text = "Truncated Dodecahedron").preset = "t12"
-        layout.operator(Solids.bl_idname, text = "Truncated Icosahedron").preset = "t20"
-        layout.operator(Solids.bl_idname, text = "Rhombicosidodecahedron").preset = "b12"
-        layout.operator(Solids.bl_idname, text = "Truncated Icosidodecahedron").preset = "c12"
-        layout.operator(Solids.bl_idname, text = "Snub Dodecahedron").preset = "s12"
-
-class CatalanMenu(bpy.types.Menu):
-    """Defines Catalan preset menu"""
-    bl_idname = "Catalan_calls"
-    bl_label = "Catalan"
-
-    def draw(self, context):
-        layout = self.layout
-        layout.operator_context = 'INVOKE_REGION_WIN'
-        layout.operator(Solids.bl_idname, text = "Triakis Tetrahedron").preset = "dt4"
-        layout.operator(Solids.bl_idname, text = "Rhombic Dodecahedron").preset = "dr4"
-        layout.operator(Solids.bl_idname, text = "Triakis Octahedron").preset = "dt6"
-        layout.operator(Solids.bl_idname, text = "Triakis Hexahedron").preset = "dt8"
-        layout.operator(Solids.bl_idname, text = "Deltoidal Icositetrahedron").preset = "db6"
-        layout.operator(Solids.bl_idname, text = "Disdyakis Dodecahedron").preset = "dc6"
-        layout.operator(Solids.bl_idname, text = "Pentagonal Icositetrahedron").preset = "ds6"
-        layout.operator(Solids.bl_idname, text = "Rhombic Triacontahedron").preset = "dr12"
-        layout.operator(Solids.bl_idname, text = "Triakis Icosahedron").preset = "dt12"
-        layout.operator(Solids.bl_idname, text = "Pentakis Dodecahedron").preset = "dt20"
-        layout.operator(Solids.bl_idname, text = "Deltoidal Hexecontahedron").preset = "db12"
-        layout.operator(Solids.bl_idname, text = "Disdyakis Triacontahedron").preset = "dc12"
-        layout.operator(Solids.bl_idname, text = "Pentagonal Hexecontahedron").preset = "ds12"
-
-def menu_func(self, context):
-    self.layout.menu(Solids_add_menu.bl_idname, icon="PLUGIN")
-
-
-def register():
-    bpy.utils.register_module(__name__)
-
-    bpy.types.INFO_MT_mesh_add.append(menu_func)
-
-
-def unregister():
-    bpy.utils.unregister_module(__name__)
-
-    bpy.types.INFO_MT_mesh_add.remove(menu_func)
-
-
-if __name__ == "__main__":
-    register()
