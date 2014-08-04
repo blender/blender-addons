@@ -338,7 +338,7 @@ def genLeafMesh(leafScale,leafScaleX,loc,quat,index,downAngle,downAngleV,rotate,
     # If the special -ve flag is used we need a different rotation of the leaf geometry
     if leaves < 0:
         rotMat = Matrix.Rotation(oldRot,3,'Y')
-        oldRot += rotate/(abs(leaves)-1)
+        oldRot += rotate/abs(leaves)
     else:
         oldRot += rotate+uniform(-rotateV,rotateV)
         downRotMat = Matrix.Rotation(downAngle+uniform(-downAngleV,downAngleV),3,'X')
@@ -400,6 +400,330 @@ def genLeafMesh(leafScale,leafScaleX,loc,quat,index,downAngle,downAngleV,rotate,
     for f in faces:
         facesList.append([f[0] + index,f[1] + index,f[2] + index,f[3] + index])
     return vertsList,facesList,oldRot
+
+
+def create_armature(armAnim, childP, cu, frameRate, leafMesh, leafObj, leafShape, leaves, levelCount, splineToBone,
+                    treeOb, windGust, windSpeed):
+    arm = bpy.data.armatures.new('tree')
+    armOb = bpy.data.objects.new('treeArm', arm)
+    bpy.context.scene.objects.link(armOb)
+    # Create a new action to store all animation
+    newAction = bpy.data.actions.new(name='windAction')
+    armOb.animation_data_create()
+    armOb.animation_data.action = newAction
+    arm.draw_type = 'STICK'
+    arm.use_deform_delay = True
+    # Add the armature modifier to the curve
+    armMod = treeOb.modifiers.new('windSway', 'ARMATURE')
+    # armMod.use_apply_on_spline = True
+    armMod.object = armOb
+    # If there are leaves then they need a modifier
+    if leaves:
+        armMod = leafObj.modifiers.new('windSway', 'ARMATURE')
+        armMod.object = armOb
+
+    # Make sure all objects are deselected (may not be required?)
+    for ob in bpy.data.objects:
+        ob.select = False
+
+    # Set the armature as active and go to edit mode to add bones
+    bpy.context.scene.objects.active = armOb
+    bpy.ops.object.mode_set(mode='EDIT')
+    masterBones = []
+    offsetVal = 0
+    # For all the splines in the curve we need to add bones at each bezier point
+    for i, parBone in enumerate(splineToBone):
+        s = cu.splines[i]
+        b = None
+        # Get some data about the spline like length and number of points
+        numPoints = len(s.bezier_points) - 1
+        splineL = numPoints * ((s.bezier_points[0].co - s.bezier_points[1].co).length)
+        # Set the random phase difference of the animation
+        bxOffset = uniform(0, 2 * pi)
+        byOffset = uniform(0, 2 * pi)
+        # Set the phase multiplier for the spline
+        bMult = (s.bezier_points[0].radius / splineL) * (1 / 15) * (1 / frameRate)
+        # For all the points in the curve (less the last) add a bone and name it by the spline it will affect
+        for n in range(numPoints):
+            oldBone = b
+            boneName = 'bone' + (str(i)).rjust(3, '0') + '.' + (str(n)).rjust(3, '0')
+            b = arm.edit_bones.new(boneName)
+            b.head = s.bezier_points[n].co
+            b.tail = s.bezier_points[n + 1].co
+
+            b.head_radius = s.bezier_points[n].radius
+            b.tail_radius = s.bezier_points[n + 1].radius
+            b.envelope_distance = 0.001  #0.001
+
+            # If there are leaves then we need a new vertex group so they will attach to the bone
+            if (len(levelCount) > 1) and (i >= levelCount[-2]) and leafObj:
+                leafObj.vertex_groups.new(boneName)
+            elif (len(levelCount) == 1) and leafObj:
+                leafObj.vertex_groups.new(boneName)
+            # If this is first point of the spline then it must be parented to the level above it
+            if n == 0:
+                if parBone:
+                    b.parent = arm.edit_bones[parBone]
+                #                            if len(parBone) > 11:
+                #                                b.use_connect = True
+            # Otherwise, we need to attach it to the previous bone in the spline
+            else:
+                b.parent = oldBone
+                b.use_connect = True
+            # If there isn't a previous bone then it shouldn't be attached
+            if not oldBone:
+                b.use_connect = False
+            #tempList.append(b)
+
+            # Add the animation to the armature if required
+            if armAnim:
+                # Define all the required parameters of the wind sway by the dimension of the spline
+                a0 = 4 * splineL * (1 - n / (numPoints + 1)) / s.bezier_points[n].radius
+                a1 = (windSpeed / 50) * a0
+                a2 = (windGust / 50) * a0 + a1 / 2
+
+                # Add new fcurves for each sway  as well as the modifiers
+                swayX = armOb.animation_data.action.fcurves.new('pose.bones["' + boneName + '"].rotation_euler', 0)
+                swayY = armOb.animation_data.action.fcurves.new('pose.bones["' + boneName + '"].rotation_euler', 2)
+
+                swayXMod1 = swayX.modifiers.new(type='FNGENERATOR')
+                swayXMod2 = swayX.modifiers.new(type='FNGENERATOR')
+
+                swayYMod1 = swayY.modifiers.new(type='FNGENERATOR')
+                swayYMod2 = swayY.modifiers.new(type='FNGENERATOR')
+
+                # Set the parameters for each modifier
+                swayXMod1.amplitude = radians(a1) / numPoints
+                swayXMod1.phase_offset = bxOffset
+                swayXMod1.phase_multiplier = degrees(bMult)
+
+                swayXMod2.amplitude = radians(a2) / numPoints
+                swayXMod2.phase_offset = 0.7 * bxOffset
+                swayXMod2.phase_multiplier = 0.7 * degrees(
+                    bMult)  # This shouldn't have to be in degrees but it looks much better in animation
+                swayXMod2.use_additive = True
+
+                swayYMod1.amplitude = radians(a1) / numPoints
+                swayYMod1.phase_offset = byOffset
+                swayYMod1.phase_multiplier = degrees(
+                    bMult)  # This shouldn't have to be in degrees but it looks much better in animation
+
+                swayYMod2.amplitude = radians(a2) / numPoints
+                swayYMod2.phase_offset = 0.7 * byOffset
+                swayYMod2.phase_multiplier = 0.7 * degrees(
+                    bMult)  # This shouldn't have to be in degrees but it looks much better in animation
+                swayYMod2.use_additive = True
+
+    # If there are leaves we need to assign vertices to their vertex groups
+    if leaves:
+        offsetVal = 0
+        leafVertSize = 6
+        if leafShape == 'rect':
+            leafVertSize = 4
+        for i, cp in enumerate(childP):
+            for v in leafMesh.vertices[leafVertSize * i:(leafVertSize * i + leafVertSize)]:
+                leafObj.vertex_groups[cp.parBone].add([v.index], 1.0, 'ADD')
+
+    # Now we need the rotation mode to be 'XYZ' to ensure correct rotation
+    bpy.ops.object.mode_set(mode='OBJECT')
+    for p in armOb.pose.bones:
+        p.rotation_mode = 'XYZ'
+    treeOb.parent = armOb
+
+
+def kickstart_trunk(addstem, branches, cu, curve, curveRes, curveV, length, lengthV, ratio, resU, scale0, scaleV0,
+                    scaleVal, taper, vertAtt):
+    vertAtt = 0.0
+    newSpline = cu.splines.new('BEZIER')
+    cu.resolution_u = resU
+    newPoint = newSpline.bezier_points[-1]
+    newPoint.co = Vector((0, 0, 0))
+    newPoint.handle_right = Vector((0, 0, 1))
+    newPoint.handle_left = Vector((0, 0, -1))
+    # (newPoint.handle_right_type,newPoint.handle_left_type) = ('VECTOR','VECTOR')
+    branchL = (scaleVal) * (length[0] + uniform(-lengthV[0], lengthV[0]))
+    childStems = branches[1]
+    startRad = branchL * ratio * (scale0 + uniform(-scaleV0, scaleV0))
+    endRad = startRad * (1 - taper[0])
+    newPoint.radius = startRad
+    addstem(
+        stemSpline(newSpline, curve[0] / curveRes[0], curveV[0] / curveRes[0], 0, curveRes[0], branchL / curveRes[0],
+                   childStems, startRad, endRad, 0))
+    return vertAtt
+
+
+def fabricate_stems(addsplinetobone, addstem, baseSize, branches, childP, cu, curve, curveBack, curveRes, curveV,
+                    downAngle, downAngleV, leafDist, leaves, length, lengthV, levels, n, oldRotate, ratioPower, resU,
+                    rotate, rotateV, scaleVal, shape, storeN, taper, vertAtt):
+    for p in childP:
+        # Add a spline and set the coordinate of the first point.
+        newSpline = cu.splines.new('BEZIER')
+        cu.resolution_u = resU
+        newPoint = newSpline.bezier_points[-1]
+        newPoint.co = p.co
+        tempPos = zAxis.copy()
+        # If the -ve flag for downAngle is used we need a special formula to find it
+        if downAngleV[n] < 0.0:
+            downV = downAngleV[n] * (
+            1 - 2 * shapeRatio(0, (p.lengthPar - p.offset) / (p.lengthPar - baseSize * scaleVal)))
+            random()
+        # Otherwise just find a random value
+        else:
+            downV = uniform(-downAngleV[n], downAngleV[n])
+        downRotMat = Matrix.Rotation(downAngle[n] + downV, 3, 'X')
+        tempPos.rotate(downRotMat)
+        # If the -ve flag for rotate is used we need to find which side of the stem the last child point was and then grow in the opposite direction.
+        if rotate[n] < 0.0:
+            oldRotate = -copysign(rotate[n] + uniform(-rotateV[n], rotateV[n]), oldRotate)
+        # Otherwise just generate a random number in the specified range
+        else:
+            oldRotate += rotate[n] + uniform(-rotateV[n], rotateV[n])
+        # Rotate the direction of growth and set the new point coordinates
+        rotMat = Matrix.Rotation(oldRotate, 3, 'Z')
+        tempPos.rotate(rotMat)
+        tempPos.rotate(p.quat)
+        newPoint.handle_right = p.co + tempPos
+        if (storeN>= levels-1):
+            # If this is the last level before leaves then we need to generate the child points differently
+            branchL = (length[n] + uniform(-lengthV[n], lengthV[n])) * (p.lengthPar - 0.6 * p.offset)
+            if leaves < 0:
+                childStems = False
+            else:
+                childStems = leaves * shapeRatio(leafDist, p.offset / p.lengthPar)
+        elif n == 1:
+            # If this is the first level of branching then upward attraction has no effect and a special formula is used to find branch length and the number of child stems
+            vertAtt = 0.0
+            lMax = length[1] + uniform(-lengthV[1], lengthV[1])
+            branchL = p.lengthPar * lMax * shapeRatio(shape,
+                                                      (p.lengthPar - p.offset) / (p.lengthPar - baseSize * scaleVal))
+            childStems = branches[2] * (0.2 + 0.8 * (branchL / p.lengthPar) / lMax)
+        else:
+            branchL = (length[n] + uniform(-lengthV[n], lengthV[n])) * (p.lengthPar - 0.6 * p.offset)
+            childStems = branches[min(3, n + 1)] * (1.0 - 0.5 * p.offset / p.lengthPar)
+
+        #print("n=%d, levels=%d, n'=%d, childStems=%s"%(n, levels, storeN, childStems))
+        branchL = max(branchL, 0.0)
+        # Determine the starting and ending radii of the stem using the tapering of the stem
+        startRad = min(p.radiusPar[0] * ((branchL / p.lengthPar) ** ratioPower), p.radiusPar[1])
+        endRad = startRad * (1 - taper[n])
+        newPoint.radius = startRad
+        # If curveBack is used then the curviness of the stem is different for the first half
+        if curveBack[n] == 0:
+            curveVal = curve[n] / curveRes[n]
+        else:
+            curveVal = 2 * curve[n] / curveRes[n]
+        # Add the new stem to list of stems to grow and define which bone it will be parented to
+        addstem(
+            stemSpline(newSpline, curveVal, curveV[n] / curveRes[n], 0, curveRes[n], branchL / curveRes[n], childStems,
+                       startRad, endRad, len(cu.splines) - 1))
+        addsplinetobone(p.parBone)
+    return vertAtt
+
+
+def perform_pruning(baseSize, baseSplits, childP, cu, currentMax, currentMin, currentScale, curve, curveBack, curveRes,
+                    deleteSpline, forceSprout, handles, n, oldMax, orginalSplineToBone, originalCo, originalCurv,
+                    originalCurvV, originalHandleL, originalHandleR, originalLength, originalSeg, prune, prunePowerHigh,
+                    prunePowerLow, pruneRatio, pruneWidth, pruneWidthPeak, randState, ratio, scaleVal, segSplits,
+                    splineToBone, splitAngle, splitAngleV, st, startPrune, vertAtt):
+    while startPrune and ((currentMax - currentMin) > 0.005):
+        setstate(randState)
+
+        # If the search will halt after this iteration, then set the adjustment of stem length to take into account the pruning ratio
+        if (currentMax - currentMin) < 0.01:
+            currentScale = (currentScale - 1) * pruneRatio + 1
+            startPrune = False
+            forceSprout = True
+        # Change the segment length of the stem by applying some scaling
+        st.segL = originalLength * currentScale
+        # To prevent millions of splines being created we delete any old ones and replace them with only their first points to begin the spline again
+        if deleteSpline:
+            for x in splineList:
+                cu.splines.remove(x.spline)
+            newSpline = cu.splines.new('BEZIER')
+            newPoint = newSpline.bezier_points[-1]
+            newPoint.co = originalCo
+            newPoint.handle_right = originalHandleR
+            newPoint.handle_left = originalHandleL
+            (newPoint.handle_left_type, newPoint.handle_right_type) = ('VECTOR', 'VECTOR')
+            st.spline = newSpline
+            st.curv = originalCurv
+            st.curvV = originalCurvV
+            st.seg = originalSeg
+            st.p = newPoint
+            newPoint.radius = st.radS
+            splineToBone = orginalSplineToBone
+
+        # Initialise the spline list for those contained in the current level of branching
+        splineList = [st]
+        # For each of the segments of the stem which must be grown we have to add to each spline in splineList
+        for k in range(curveRes[n]):
+            # Make a copy of the current list to avoid continually adding to the list we're iterating over
+            tempList = splineList[:]
+            # print('Leng: ',len(tempList))
+            # For each of the splines in this list set the number of splits and then grow it
+            for spl in tempList:
+                if k == 0:
+                    numSplit = 0
+                elif (k == 1) and (n == 0):
+                    numSplit = baseSplits
+                else:
+                    numSplit = splits(segSplits[n])
+                if (k == int(curveRes[n] / 2)) and (curveBack[n] != 0):
+                    spl.curvAdd(-2 * curve[n] / curveRes[n] + 2 * curveBack[n] / curveRes[n])
+                growSpline(spl, numSplit, splitAngle[n], splitAngleV[n], splineList, vertAtt, handles,
+                           splineToBone)  # Add proper refs for radius and attractUp
+
+        # If pruning is enabled then we must to the check to see if the end of the spline is within the evelope
+        if prune:
+            # Check each endpoint to see if it is inside
+            for s in splineList:
+                coordMag = (s.spline.bezier_points[-1].co.xy).length
+                ratio = (scaleVal - s.spline.bezier_points[-1].co.z) / (scaleVal * (1 - baseSize))
+                # Don't think this if part is needed
+                if (n == 0) and (s.spline.bezier_points[-1].co.z < baseSize * scaleVal):
+                    pass  # insideBool = True
+                else:
+                    insideBool = (
+                    (coordMag / scaleVal) < pruneWidth * shapeRatio(8, ratio, pruneWidthPeak, prunePowerHigh,
+                                                                    prunePowerLow))
+                # If the point is not inside then we adjust the scale and current search bounds
+                if not insideBool:
+                    oldMax = currentMax
+                    currentMax = currentScale
+                    currentScale = 0.5 * (currentMax + currentMin)
+                    break
+            # If the scale is the original size and the point is inside then we need to make sure it won't be pruned or extended to the edge of the envelope
+            if insideBool and (currentScale != 1):
+                currentMin = currentScale
+                currentMax = oldMax
+                currentScale = 0.5 * (currentMax + currentMin)
+            if insideBool and ((currentMax - currentMin) == 1):
+                currentMin = 1
+        # If the search will halt on the next iteration then we need to make sure we sprout child points to grow the next splines or leaves
+        if (((currentMax - currentMin) < 0.005) or not prune) or forceSprout:
+            tVals = findChildPoints(splineList, st.children)
+            #print("debug tvals[%d] , splineList[%d], %s" % ( len(tVals), len(splineList), st.children))
+            # If leaves is -ve then we need to make sure the only point which sprouts is the end of the spline
+            # if not st.children:
+            if not st.children:
+                tVals = [0.9]
+            # If this is the trunk then we need to remove some of the points because of baseSize
+            if n == 0:
+                trimNum = int(baseSize * (len(tVals) + 1))
+                tVals = tVals[trimNum:]
+
+            # For all the splines, we interpolate them and add the new points to the list of child points
+            for s in splineList:
+                #print(str(n)+'level: ',s.segMax*s.segL)
+                childP.extend(interpStem(s, tVals, s.segMax * s.segL, s.radS))
+
+        # Force the splines to be deleted
+        deleteSpline = True
+        # If pruning isn't enabled then make sure it doesn't loop
+        if not prune:
+            startPrune = False
+    return ratio, splineToBone
+
 
 def addTree(props):
     global splitError
@@ -544,81 +868,17 @@ def addTree(props):
         splitError = 0.0
         # If this is the first level of growth (the trunk) then we need some special work to begin the tree
         if n == 0:
-            vertAtt = 0.0
-            newSpline = cu.splines.new('BEZIER')
-            cu.resolution_u = resU
-            newPoint = newSpline.bezier_points[-1]
-            newPoint.co = Vector((0,0,0))
-            newPoint.handle_right = Vector((0,0,1))
-            newPoint.handle_left = Vector((0,0,-1))
-            #(newPoint.handle_right_type,newPoint.handle_left_type) = ('VECTOR','VECTOR')
-            branchL = (scaleVal)*(length[0] + uniform(-lengthV[0],lengthV[0]))
-            childStems = branches[1]
-            startRad = branchL*ratio*(scale0 + uniform(-scaleV0,scaleV0))
-            endRad = startRad*(1 - taper[0])
-            newPoint.radius = startRad
-            addstem(stemSpline(newSpline,curve[0]/curveRes[0],curveV[0]/curveRes[0],0,curveRes[0],branchL/curveRes[0],childStems,startRad,endRad,0))
+            vertAtt = kickstart_trunk(addstem, branches, cu, curve, curveRes, curveV, length, lengthV, ratio, resU,
+                                      scale0, scaleV0, scaleVal, taper, vertAtt)
         # If this isn't the trunk then we may have multiple stem to intialise
         else:
             # Store the old rotation to allow new stems to be rotated away from the previous one.
             oldRotate = 0
             # For each of the points defined in the list of stem starting points we need to grow a stem.
-            for p in childP:
-                # Add a spline and set the coordinate of the first point.
-                newSpline = cu.splines.new('BEZIER')
-                cu.resolution_u = resU
-                newPoint = newSpline.bezier_points[-1]
-                newPoint.co = p.co
-                tempPos = zAxis.copy()
-                # If the -ve flag for downAngle is used we need a special formula to find it
-                if downAngleV[n] < 0.0:
-                    downV = downAngleV[n]*(1 - 2*shapeRatio(0,(p.lengthPar - p.offset)/(p.lengthPar - baseSize*scaleVal)))
-                    random()
-                # Otherwise just find a random value
-                else:
-                    downV = uniform(-downAngleV[n],downAngleV[n])
-                downRotMat = Matrix.Rotation(downAngle[n]+downV,3,'X')
-                tempPos.rotate(downRotMat)
-                # If the -ve flag for rotate is used we need to find which side of the stem the last child point was and then grow in the opposite direction.
-                if rotate[n] < 0.0:
-                    oldRotate = -copysign(rotate[n] + uniform(-rotateV[n],rotateV[n]),oldRotate)
-                # Otherwise just generate a random number in the specified range
-                else:
-                    oldRotate += rotate[n]+uniform(-rotateV[n],rotateV[n])
-                # Rotate the direction of growth and set the new point coordinates
-                rotMat = Matrix.Rotation(oldRotate,3,'Z')
-                tempPos.rotate(rotMat)
-                tempPos.rotate(p.quat)
-                newPoint.handle_right = p.co + tempPos
-                # If this is the first level of branching then upward attraction has no effect and a special formula is used to find branch length and the number of child stems
-                if n == 1:
-                    vertAtt = 0.0
-                    lMax = length[1] + uniform(-lengthV[1],lengthV[1])
-                    branchL = p.lengthPar*lMax*shapeRatio(shape,(p.lengthPar - p.offset)/(p.lengthPar - baseSize*scaleVal))
-                    childStems = branches[2]*(0.2 + 0.8*(branchL/p.lengthPar)/lMax)
-                elif storeN <= levels - 2:
-                    branchL = (length[n] + uniform(-lengthV[n],lengthV[n]))*(p.lengthPar - 0.6*p.offset)
-                    childStems = branches[min(3,n+1)]*(1.0 - 0.5*p.offset/p.lengthPar)
-                # If this is the last level before leaves then we need to generate the child points differently
-                else:
-                    branchL = (length[n] + uniform(-lengthV[n],lengthV[n]))*(p.lengthPar - 0.6*p.offset)
-                    if leaves < 0:
-                        childStems = False
-                    else:
-                        childStems = leaves*shapeRatio(leafDist,p.offset/p.lengthPar)
-                branchL = max(branchL, 0.0)
-                # Determine the starting and ending radii of the stem using the tapering of the stem
-                startRad = min(p.radiusPar[0]*((branchL/p.lengthPar)**ratioPower), p.radiusPar[1])
-                endRad = startRad*(1 - taper[n])
-                newPoint.radius = startRad
-                # If curveBack is used then the curviness of the stem is different for the first half
-                if curveBack[n] == 0:
-                    curveVal = curve[n]/curveRes[n]
-                else:
-                    curveVal = 2*curve[n]/curveRes[n]
-                # Add the new stem to list of stems to grow and define which bone it will be parented to
-                addstem(stemSpline(newSpline,curveVal,curveV[n]/curveRes[n],0,curveRes[n],branchL/curveRes[n],childStems,startRad,endRad,len(cu.splines)-1))
-                addsplinetobone(p.parBone)
+            vertAtt = fabricate_stems(addsplinetobone, addstem, baseSize, branches, childP, cu, curve, curveBack,
+                                      curveRes, curveV, downAngle, downAngleV, leafDist, leaves, length, lengthV,
+                                      levels, n, oldRotate, ratioPower, resU, rotate, rotateV, scaleVal, shape, storeN,
+                                      taper, vertAtt)
 
         childP = []
         # Now grow each of the stems in the list of those to be extended
@@ -643,99 +903,13 @@ def addTree(props):
             orginalSplineToBone = copy.copy(splineToBone)
             forceSprout = False
             # Now do the iterative pruning, this uses a binary search and halts once the difference between upper and lower bounds of the search are less than 0.005
-            while startPrune and ((currentMax - currentMin) > 0.005):
-                setstate(randState)
-                
-                # If the search will halt after this iteration, then set the adjustment of stem length to take into account the pruning ratio
-                if (currentMax - currentMin) < 0.01:
-                    currentScale = (currentScale - 1)*pruneRatio + 1
-                    startPrune = False
-                    forceSprout = True
-                # Change the segment length of the stem by applying some scaling
-                st.segL = originalLength*currentScale
-                # To prevent millions of splines being created we delete any old ones and replace them with only their first points to begin the spline again
-                if deleteSpline:
-                    for x in splineList:
-                        cu.splines.remove(x.spline)
-                    newSpline = cu.splines.new('BEZIER')
-                    newPoint = newSpline.bezier_points[-1]
-                    newPoint.co = originalCo
-                    newPoint.handle_right = originalHandleR
-                    newPoint.handle_left = originalHandleL
-                    (newPoint.handle_left_type,newPoint.handle_right_type) = ('VECTOR','VECTOR')
-                    st.spline = newSpline
-                    st.curv = originalCurv
-                    st.curvV = originalCurvV
-                    st.seg = originalSeg
-                    st.p = newPoint
-                    newPoint.radius = st.radS
-                    splineToBone = orginalSplineToBone
-
-                # Initialise the spline list for those contained in the current level of branching
-                splineList = [st]
-                # For each of the segments of the stem which must be grown we have to add to each spline in splineList
-                for k in range(curveRes[n]):
-                    # Make a copy of the current list to avoid continually adding to the list we're iterating over
-                    tempList = splineList[:]
-                    #print('Leng: ',len(tempList))
-                    # For each of the splines in this list set the number of splits and then grow it
-                    for spl in tempList:
-                        if k == 0:
-                            numSplit = 0
-                        elif (k == 1) and (n == 0):
-                            numSplit = baseSplits
-                        else:
-                            numSplit = splits(segSplits[n])
-                        if (k == int(curveRes[n]/2)) and (curveBack[n] != 0):
-                            spl.curvAdd(-2*curve[n]/curveRes[n] + 2*curveBack[n]/curveRes[n])
-                        growSpline(spl,numSplit,splitAngle[n],splitAngleV[n],splineList,vertAtt,handles,splineToBone)# Add proper refs for radius and attractUp
-
-                # If pruning is enabled then we must to the check to see if the end of the spline is within the evelope
-                if prune:
-                    # Check each endpoint to see if it is inside
-                    for s in splineList:
-                        coordMag = (s.spline.bezier_points[-1].co.xy).length
-                        ratio = (scaleVal - s.spline.bezier_points[-1].co.z)/(scaleVal*(1 - baseSize))
-                        # Don't think this if part is needed
-                        if (n == 0) and (s.spline.bezier_points[-1].co.z < baseSize*scaleVal):
-                            pass#insideBool = True
-                        else:
-                            insideBool = ((coordMag/scaleVal) < pruneWidth*shapeRatio(8,ratio,pruneWidthPeak,prunePowerHigh,prunePowerLow))
-                        # If the point is not inside then we adjust the scale and current search bounds
-                        if not insideBool:
-                            oldMax = currentMax
-                            currentMax = currentScale
-                            currentScale = 0.5*(currentMax + currentMin)
-                            break
-                    # If the scale is the original size and the point is inside then we need to make sure it won't be pruned or extended to the edge of the envelope
-                    if insideBool and (currentScale != 1):
-                        currentMin = currentScale
-                        currentMax = oldMax
-                        currentScale = 0.5*(currentMax + currentMin)
-                    if insideBool and ((currentMax - currentMin) == 1):
-                        currentMin = 1
-                # If the search will halt on the next iteration then we need to make sure we sprout child points to grow the next splines or leaves
-                if (((currentMax - currentMin) < 0.005) or not prune) or forceSprout:
-                    tVals = findChildPoints(splineList,st.children)
-                    # If leaves is -ve then we need to make sure the only point which sprouts is the end of the spline
-                    #if not st.children:
-                    if not st.children:
-                        tVals = [0.9]
-                    # If this is the trunk then we need to remove some of the points because of baseSize
-                    if n == 0:
-                        trimNum = int(baseSize*(len(tVals)+1))
-                        tVals = tVals[trimNum:]
-
-                    # For all the splines, we interpolate them and add the new points to the list of child points
-                    for s in splineList:
-                        #print(str(n)+'level: ',s.segMax*s.segL)
-                        childP.extend(interpStem(s,tVals,s.segMax*s.segL,s.radS))
-
-                # Force the splines to be deleted
-                deleteSpline = True
-                # If pruning isn't enabled then make sure it doesn't loop
-                if not prune:
-                    startPrune = False
+            ratio, splineToBone = perform_pruning(baseSize, baseSplits, childP, cu, currentMax, currentMin,
+                                                  currentScale, curve, curveBack, curveRes, deleteSpline, forceSprout,
+                                                  handles, n, oldMax, orginalSplineToBone, originalCo, originalCurv,
+                                                  originalCurvV, originalHandleL, originalHandleR, originalLength,
+                                                  originalSeg, prune, prunePowerHigh, prunePowerLow, pruneRatio,
+                                                  pruneWidth, pruneWidthPeak, randState, ratio, scaleVal, segSplits,
+                                                  splineToBone, splitAngle, splitAngleV, st, startPrune, vertAtt)
 
         levelCount.append(len(cu.splines))
         # If we need to add leaves, we do it here
@@ -805,133 +979,6 @@ def addTree(props):
     # If we need and armature we add it
     if useArm:
         # Create the armature and objects
-        arm = bpy.data.armatures.new('tree')
-        armOb = bpy.data.objects.new('treeArm',arm)
-        bpy.context.scene.objects.link(armOb)
-        
-        # Create a new action to store all animation
-        newAction = bpy.data.actions.new(name='windAction')
-        armOb.animation_data_create()
-        armOb.animation_data.action = newAction
-
-        arm.draw_type = 'STICK'
-        arm.use_deform_delay = True
-        
-        # Add the armature modifier to the curve
-        armMod = treeOb.modifiers.new('windSway','ARMATURE')
-        #armMod.use_apply_on_spline = True
-        armMod.object = armOb
-        
-        # If there are leaves then they need a modifier
-        if leaves:
-            armMod = leafObj.modifiers.new('windSway','ARMATURE')
-            armMod.object = armOb
-
-        # Make sure all objects are deselected (may not be required?)
-        for ob in bpy.data.objects:
-            ob.select = False
-
-        # Set the armature as active and go to edit mode to add bones
-        bpy.context.scene.objects.active = armOb
-        bpy.ops.object.mode_set(mode='EDIT')
-
-        masterBones = []
-
-        offsetVal = 0
-
-        # For all the splines in the curve we need to add bones at each bezier point
-        for i,parBone in enumerate(splineToBone):
-            s = cu.splines[i]
-            b = None
-            # Get some data about the spline like length and number of points
-            numPoints = len(s.bezier_points)-1
-            splineL = numPoints*((s.bezier_points[0].co-s.bezier_points[1].co).length)
-            # Set the random phase difference of the animation
-            bxOffset = uniform(0,2*pi)
-            byOffset = uniform(0,2*pi)
-            # Set the phase multiplier for the spline
-            bMult = (s.bezier_points[0].radius/splineL)*(1/15)*(1/frameRate)
-            # For all the points in the curve (less the last) add a bone and name it by the spline it will affect
-            for n in range(numPoints):
-                oldBone = b
-                boneName = 'bone'+(str(i)).rjust(3,'0')+'.'+(str(n)).rjust(3,'0')
-                b = arm.edit_bones.new(boneName)
-                b.head = s.bezier_points[n].co
-                b.tail = s.bezier_points[n+1].co
-
-                b.head_radius = s.bezier_points[n].radius
-                b.tail_radius = s.bezier_points[n+1].radius
-                b.envelope_distance = 0.001#0.001
-
-                # If there are leaves then we need a new vertex group so they will attach to the bone
-                if (len(levelCount) > 1) and (i >= levelCount[-2]) and leafObj:
-                    leafObj.vertex_groups.new(boneName)
-                elif (len(levelCount) == 1) and leafObj:
-                    leafObj.vertex_groups.new(boneName)
-                # If this is first point of the spline then it must be parented to the level above it
-                if n == 0:
-                    if parBone:
-                        b.parent = arm.edit_bones[parBone]
-#                            if len(parBone) > 11:
-#                                b.use_connect = True
-                # Otherwise, we need to attach it to the previous bone in the spline
-                else:
-                    b.parent = oldBone
-                    b.use_connect = True
-                # If there isn't a previous bone then it shouldn't be attached
-                if not oldBone:
-                    b.use_connect = False
-                #tempList.append(b)
-                
-                # Add the animation to the armature if required
-                if armAnim:
-                    # Define all the required parameters of the wind sway by the dimension of the spline
-                    a0 = 4*splineL*(1-n/(numPoints+1))/s.bezier_points[n].radius
-                    a1 = (windSpeed/50)*a0
-                    a2 = (windGust/50)*a0 + a1/2
-
-                    # Add new fcurves for each sway  as well as the modifiers
-                    swayX = armOb.animation_data.action.fcurves.new('pose.bones["' + boneName + '"].rotation_euler',0)
-                    swayY = armOb.animation_data.action.fcurves.new('pose.bones["' + boneName + '"].rotation_euler',2)
-                    
-                    swayXMod1 = swayX.modifiers.new(type='FNGENERATOR')
-                    swayXMod2 = swayX.modifiers.new(type='FNGENERATOR')
-                    
-                    swayYMod1 = swayY.modifiers.new(type='FNGENERATOR')
-                    swayYMod2 = swayY.modifiers.new(type='FNGENERATOR')
-                    
-                    # Set the parameters for each modifier
-                    swayXMod1.amplitude = radians(a1)/numPoints
-                    swayXMod1.phase_offset = bxOffset
-                    swayXMod1.phase_multiplier = degrees(bMult)
-                    
-                    swayXMod2.amplitude = radians(a2)/numPoints
-                    swayXMod2.phase_offset = 0.7*bxOffset
-                    swayXMod2.phase_multiplier = 0.7*degrees(bMult) # This shouldn't have to be in degrees but it looks much better in animation
-                    swayXMod2.use_additive = True
-                    
-                    swayYMod1.amplitude = radians(a1)/numPoints
-                    swayYMod1.phase_offset = byOffset
-                    swayYMod1.phase_multiplier = degrees(bMult) # This shouldn't have to be in degrees but it looks much better in animation
-                    
-                    swayYMod2.amplitude = radians(a2)/numPoints
-                    swayYMod2.phase_offset = 0.7*byOffset
-                    swayYMod2.phase_multiplier = 0.7*degrees(bMult) # This shouldn't have to be in degrees but it looks much better in animation
-                    swayYMod2.use_additive = True
-
-        # If there are leaves we need to assign vertices to their vertex groups
-        if leaves:
-            offsetVal = 0
-            leafVertSize = 6
-            if leafShape == 'rect':
-                leafVertSize = 4
-            for i,cp in enumerate(childP):
-                for v in leafMesh.vertices[leafVertSize*i:(leafVertSize*i+leafVertSize)]:
-                    leafObj.vertex_groups[cp.parBone].add([v.index],1.0,'ADD')
-
-        # Now we need the rotation mode to be 'XYZ' to ensure correct rotation
-        bpy.ops.object.mode_set(mode='OBJECT')
-        for p in armOb.pose.bones:
-            p.rotation_mode = 'XYZ'
-        treeOb.parent = armOb
+        create_armature(armAnim, childP, cu, frameRate, leafMesh, leafObj, leafShape, leaves, levelCount, splineToBone,
+                        treeOb, windGust, windSpeed)
     #print(time.time()-startTime)
