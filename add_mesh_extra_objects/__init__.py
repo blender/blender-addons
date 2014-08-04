@@ -45,7 +45,6 @@ if "bpy" in locals():
     imp.reload(add_mesh_honeycomb)
     imp.reload(add_mesh_teapot)
     imp.reload(add_mesh_pipe_joint)
-    imp.reload(add_mesh_teapot)
     imp.reload(add_mesh_solid)
 
 else:
@@ -61,7 +60,6 @@ else:
     from . import add_mesh_honeycomb
     from . import add_mesh_teapot
     from . import add_mesh_pipe_joint
-    from . import add_mesh_teapot
     from . import add_mesh_solid
 
 import bpy
