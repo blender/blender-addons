@@ -415,13 +415,16 @@ def create_armature(armAnim, childP, cu, frameRate, leafMesh, leafObj, leafShape
     arm.use_deform_delay = True
     # Add the armature modifier to the curve
     armMod = treeOb.modifiers.new('windSway', 'ARMATURE')
-    # armMod.use_apply_on_spline = True
+    #armMod.use_apply_on_spline = True
     armMod.object = armOb
+    armMod.use_bone_envelopes = True
+    armMod.use_vertex_groups = False # curves don't have vertex groups (yet)
     # If there are leaves then they need a modifier
     if leaves:
         armMod = leafObj.modifiers.new('windSway', 'ARMATURE')
         armMod.object = armOb
-
+        armMod.use_bone_envelopes = True
+        armMod.use_vertex_groups = True 
     # Make sure all objects are deselected (may not be required?)
     for ob in bpy.data.objects:
         ob.select = False
@@ -856,8 +859,10 @@ def addTree(props):
 
     splineToBone = deque([''])
     addsplinetobone = splineToBone.append
+ 
+    leafMesh = None # in case we aren't creating leaves, we'll still have the variable
 
-    # Each of the levels needed by the user we grow all the splines
+     # Each of the levels needed by the user we grow all the splines
     for n in range(levels):
         storeN = n
         stemList = deque()
