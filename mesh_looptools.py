@@ -19,7 +19,7 @@
 bl_info = {
     "name": "LoopTools",
     "author": "Bart Crouch",
-    "version": (4, 6, 0),
+    "version": (4, 6, 1),
     "blender": (2, 69, 3),
     "location": "View3D > Toolbar and View3D > Specials (W-key)",
     "warning": "",
@@ -2702,6 +2702,7 @@ def gstretch_erase_stroke(stroke, context):
             'mouse': (view3d_utils.location_3d_to_region_2d(\
                 context.region, context.space_data.region_3d, loc)),
             'pressure': 1,
+            'size': 0,
             'time': 0}
         return(lib)
 
