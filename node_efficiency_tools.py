@@ -19,7 +19,7 @@
 bl_info = {
     "name": "Node Wrangler (aka Nodes Efficiency Tools)",
     "author": "Bartek Skorupa, Greg Zaal",
-    "version": (3, 9),
+    "version": (3, 10),
     "blender": (2, 71, 0),
     "location": "Node Editor Properties Panel or Ctrl-Space",
     "description": "Various tools to enhance and speed up node-based workflow",
@@ -1372,26 +1372,23 @@ class NWEmissionViewer(Operator, NWBase):
             nodes, links = get_nodes_links(context)
             in_group = context.active_node != context.space_data.node_tree.nodes.active
             active = nodes.active
-            valid = False
             output_types = [x[1] for x in shaders_output_nodes_props]
+            valid = False
             if active:
                 if (active.name != "Emission Viewer") and (active.type not in output_types) and not in_group:
-                    if active.select:
-                        if active.type not in shader_types:
-                            for outp in active.outputs:
-                                if outp.type == 'SHADER':  # Group nodes that have shader outputs
-                                    valid = False
-                                    break
-                                else:
-                                    valid = True
+                    valid = True
             if valid:
-                # get material_output node
+                # get material_output node, store selection, deselect all
                 materialout_exists = False
                 materialout = None  # placeholder node
+                selection = []
                 for node in nodes:
                     if node.type == shader_output_type:
                         materialout_exists = True
                         materialout = node
+                    if node.select:
+                        selection.append(node.name)
+                    node.select = False
                 if not materialout:
                     materialout = nodes.new(shader_output_ident)
                     sorted_by_xloc = (sorted(nodes, key=lambda x: x.location.x))
@@ -1402,80 +1399,59 @@ class NWEmissionViewer(Operator, NWBase):
                     sum_yloc = 0
                     for node in nodes:
                         sum_yloc += node.location.y
-                    materialout.location.y = sum_yloc / len(nodes)  # put material output at average y location
+                    # put material output at average y location
+                    materialout.location.y = sum_yloc / len(nodes)
                     materialout.select = False
-                # get Emission Viewer node
-                emission_exists = False
-                emission_placeholder = nodes[0]
-                for node in nodes:
-                    if "Emission Viewer" in node.name:
-                        emission_exists = True
-                        emission_placeholder = node
-
-                position = 0
-                for link in links:  # check if Emission Viewer is already connected to active node
-                    if link.from_node.name == active.name and "Emission Viewer" in link.to_node.name and "Emission Viewer" in materialout.inputs[0].links[0].from_node.name:
-                        num_outputs = len(link.from_node.outputs)
-                        index = 0
-                        for output in link.from_node.outputs:
-                            if link.from_socket == output:
-                                position = index
-                            index = index + 1
-                        position = position + 1
-                        if position >= num_outputs:
-                            position = 0
-
-                # Store selection
-                selection = []
-                for node in nodes:
-                    if node.select == True:
-                        selection.append(node.name)
-
-                locx = active.location.x
-                locy = active.location.y
-                dimx = active.dimensions.x
-                dimy = active.dimensions.y
-                if not emission_exists:
-                    emission = nodes.new(shader_viewer_ident)
-                    emission.hide = True
-                    emission.location = [materialout.location.x, (materialout.location.y + 40)]
-                    emission.label = "Viewer"
-                    emission.name = "Emission Viewer"
-                    emission.use_custom_color = True
-                    emission.color = (0.6, 0.5, 0.4)
-                else:
-                    emission = emission_placeholder
-
-                nodes.active = emission
-                links.new(active.outputs[position], emission.inputs[0])
-                bpy.ops.node.nw_link_out()
-
+                # Analyze outputs, add "Emission Viewer" if needed, make links
+                out_i = 0  # Start index of node's outputs
+                for i, out in enumerate(active.outputs):
+                    for out_link in out.links:
+                        linked_to_out = False
+                        if "Emission Viewer" in out_link.to_node.name or out_link.to_node == materialout:
+                            linked_to_out = True
+                        if linked_to_out:
+                            out_i = i + 1
+                        # If last output is linked to Viewer or materialout - go to first.
+                        if out_i == len(active.outputs):
+                            out_i = 0
+                make_links = []  # store sockets for new links
+                if active.outputs:
+                    # If output type not 'SHADER' - "Emission Viewer" needed
+                    if active.outputs[out_i].type != 'SHADER':
+                        # get Emission Viewer node
+                        emission_exists = False
+                        emission_placeholder = nodes[0]
+                        for node in nodes:
+                            if "Emission Viewer" in node.name:
+                                emission_exists = True
+                                emission_placeholder = node
+                        if not emission_exists:
+                            emission = nodes.new(shader_viewer_ident)
+                            emission.hide = True
+                            emission.location = [materialout.location.x, (materialout.location.y + 40)]
+                            emission.label = "Viewer"
+                            emission.name = "Emission Viewer"
+                            emission.use_custom_color = True
+                            emission.color = (0.6, 0.5, 0.4)
+                            emission.select = False
+                        else:
+                            emission = emission_placeholder
+                        make_links.append((active.outputs[out_i], emission.inputs[0]))
+                        make_links.append((emission.outputs[0], materialout.inputs[0]))
+                    else:
+                        make_links.append((active.outputs[out_i], materialout.inputs[0]))
+                        # output type is 'SHADER', no Viewer needed. Delete Viewer if exists.
+                        for node in nodes:
+                            if node.name == 'Emission Viewer':
+                                node.select = True
+                                bpy.ops.node.delete()
+                    for li_from, li_to in make_links:
+                        links.new(li_from, li_to)
                 # Restore selection
-                emission.select = False
                 nodes.active = active
                 for node in nodes:
                     if node.name in selection:
                         node.select = True
-            else:  # if active node is a shader, connect to output
-                if (active.name != "Emission Viewer") and (active.type not in output_types) and not in_group:
-                    bpy.ops.node.nw_link_out()
-
-                    # ----Delete Emission Viewer----
-                    if [x for x in nodes if x.name == 'Emission Viewer']:
-                        # Store selection
-                        selection = []
-                        for node in nodes:
-                            if node.select == True:
-                                selection.append(node.name)
-                                node.select = False
-                        # Delete it
-                        nodes['Emission Viewer'].select = True
-                        bpy.ops.node.delete()
-                        # Restore selection
-                        for node in nodes:
-                            if node.name in selection:
-                                node.select = True
-
             return {'FINISHED'}
         else:
             return {'CANCELLED'}
@@ -3773,4 +3749,3 @@ def unregister():
 
 if __name__ == "__main__":
     register()
-
