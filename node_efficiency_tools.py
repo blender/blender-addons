@@ -19,7 +19,7 @@
 bl_info = {
     "name": "Node Wrangler (aka Nodes Efficiency Tools)",
     "author": "Bartek Skorupa, Greg Zaal",
-    "version": (3, 8),
+    "version": (3, 9),
     "blender": (2, 71, 0),
     "location": "Node Editor Properties Panel or Ctrl-Space",
     "description": "Various tools to enhance and speed up node-based workflow",
@@ -1777,7 +1777,8 @@ class NWMergeNodes(Operator, NWBase):
             ('SHADER', 'Shader', 'Merge using ADD or MIX Shader'),
             ('MIX', 'Mix Node', 'Merge using Mix Nodes'),
             ('MATH', 'Math Node', 'Merge using Math Nodes'),
-            ('ZCOMBINE', 'Z-Combine Node', 'Merge using Z-Combine Nodes')
+            ('ZCOMBINE', 'Z-Combine Node', 'Merge using Z-Combine Nodes'),
+            ('ALPHAOVER', 'Alpha Over Node', 'Merge using Alpha Over Nodes'),
         ),
     )
 
@@ -1805,12 +1806,14 @@ class NWMergeNodes(Operator, NWBase):
         # Prevent trying to add Z-Combine in not 'COMPOSITING' node tree.
         # 'ZCOMBINE' works only if mode == 'MIX'
         # Setting mode to None prevents trying to add 'ZCOMBINE' node.
-        if merge_type == 'ZCOMBINE' and tree_type != 'COMPOSITING':
-            mode = None
+        if (merge_type == 'ZCOMBINE' or merge_type == 'ALPHAOVER') and tree_type != 'COMPOSITING':
+            merge_type = 'MIX'
+            mode = 'MIX'
         selected_mix = []  # entry = [index, loc]
         selected_shader = []  # entry = [index, loc]
         selected_math = []  # entry = [index, loc]
         selected_z = []  # entry = [index, loc]
+        selected_alphaover = []  # entry = [index, loc]
 
         for i, node in enumerate(nodes):
             if node.select and node.outputs:
@@ -1838,6 +1841,7 @@ class NWMergeNodes(Operator, NWBase):
                             ('MIX', [t[0] for t in blend_types], selected_mix),
                             ('MATH', [t[0] for t in operations], selected_math),
                             ('ZCOMBINE', ('MIX', ), selected_z),
+                            ('ALPHAOVER', ('MIX', ), selected_alphaover),
                     ):
                         if merge_type == type and mode in types_list:
                             dst.append([i, node.location.x, node.location.y, node.dimensions.x, node.hide])
@@ -1848,7 +1852,7 @@ class NWMergeNodes(Operator, NWBase):
             selected_mix += selected_math
             selected_math = []
 
-        for nodes_list in [selected_mix, selected_shader, selected_math, selected_z]:
+        for nodes_list in [selected_mix, selected_shader, selected_math, selected_z, selected_alphaover]:
             if nodes_list:
                 count_before = len(nodes)
                 # sort list by loc_x - reversed
@@ -1923,6 +1927,15 @@ class NWMergeNodes(Operator, NWBase):
                         if do_hide:
                             loc_y = loc_y - 50
                         first = 0
+                        second = 2
+                        add.width_hidden = 100.0
+                    elif nodes_list == selected_alphaover:
+                        add = nodes.new('CompositorNodeAlphaOver')
+                        add.show_preview = False
+                        add.hide = do_hide
+                        if do_hide:
+                            loc_y = loc_y - 50
+                        first = 1
                         second = 2
                         add.width_hidden = 100.0
                     add.location = loc_x, loc_y
@@ -3006,6 +3019,9 @@ class NWMergeNodesMenu(Menu, NWBase):
         props = layout.operator(NWMergeNodes.bl_idname, text="Use Z-Combine Nodes")
         props.mode = 'MIX'
         props.merge_type = 'ZCOMBINE'
+        props = layout.operator(NWMergeNodes.bl_idname, text="Use Alpha Over Nodes")
+        props.mode = 'MIX'
+        props.merge_type = 'ALPHAOVER'
 
 
 class NWMergeShadersMenu(Menu, NWBase):
@@ -3542,11 +3558,11 @@ kmi_defs = (
         (('mode', 'GREATER_THAN'), ('merge_type', 'MATH'),), "Merge Nodes (Greater than)"),
     (NWMergeNodes.bl_idname, 'NUMPAD_PERIOD', True, False, False,
         (('mode', 'MIX'), ('merge_type', 'ZCOMBINE'),), "Merge Nodes (Z-Combine)"),
-    # NWMergeNodes with Ctrl Alt (MIX)
+    # NWMergeNodes with Ctrl Alt (MIX or ALPHAOVER)
     (NWMergeNodes.bl_idname, 'NUMPAD_0', True, False, True,
-        (('mode', 'MIX'), ('merge_type', 'MIX'),), "Merge Nodes (Color, Mix)"),
+        (('mode', 'MIX'), ('merge_type', 'ALPHAOVER'),), "Merge Nodes (Alpha Over)"),
     (NWMergeNodes.bl_idname, 'ZERO', True, False, True,
-        (('mode', 'MIX'), ('merge_type', 'MIX'),), "Merge Nodes (Color, Mix)"),
+        (('mode', 'MIX'), ('merge_type', 'ALPHAOVER'),), "Merge Nodes (Alpha Over)"),
     (NWMergeNodes.bl_idname, 'NUMPAD_PLUS', True, False, True,
         (('mode', 'ADD'), ('merge_type', 'MIX'),), "Merge Nodes (Color, Add)"),
     (NWMergeNodes.bl_idname, 'EQUAL', True, False, True,
@@ -3757,5 +3773,4 @@ def unregister():
 
 if __name__ == "__main__":
     register()
-
 
