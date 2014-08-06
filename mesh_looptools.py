@@ -19,8 +19,8 @@
 bl_info = {
     "name": "LoopTools",
     "author": "Bart Crouch",
-    "version": (4, 6, 1),
-    "blender": (2, 69, 3),
+    "version": (4, 6, 2),
+    "blender": (2, 71, 3),
     "location": "View3D > Toolbar and View3D > Specials (W-key)",
     "warning": "",
     "description": "Mesh modelling toolkit. Several tools to aid modelling",
@@ -1686,7 +1686,7 @@ def circle_3d_to_2d(bm_mod, loop, com, normal):
     # calculate two vectors (p and q) along the plane
     m = mathutils.Vector((normal[0] + 1.0, normal[1], normal[2]))
     p = m - (m.dot(normal) * normal)
-    if p.dot(p) == 0.0:
+    if p.dot(p) < 1e-6:
         m = mathutils.Vector((normal[0], normal[1] + 1.0, normal[2]))
         p = m - (m.dot(normal) * normal)
     q = p.cross(normal)
@@ -4093,7 +4093,6 @@ class Space(bpy.types.Operator):
 
         # saving cache for faster execution next time
         if not cached:
-            print(loops)
             cache_write("Space", object, bm, self.input, False, False, loops,
                 derived, mapping)
 
