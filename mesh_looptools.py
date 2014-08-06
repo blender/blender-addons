@@ -19,7 +19,7 @@
 bl_info = {
     "name": "LoopTools",
     "author": "Bart Crouch",
-    "version": (4, 5, 2),
+    "version": (4, 6, 0),
     "blender": (2, 69, 3),
     "location": "View3D > Toolbar and View3D > Specials (W-key)",
     "warning": "",
@@ -741,7 +741,22 @@ def initialise():
 
 
 # move the vertices to their new locations
-def move_verts(object, bm, mapping, move, influence):
+def move_verts(object, bm, mapping, move, lock, influence):
+    if lock:
+        lock_x, lock_y, lock_z = lock
+        orientation = bpy.context.space_data.transform_orientation
+        custom = bpy.context.space_data.current_orientation
+        if custom:
+            mat = custom.matrix.to_4x4().inverted() * object.matrix_world.copy()
+        elif orientation == 'LOCAL':
+            mat = mathutils.Matrix.Identity(4)
+        elif orientation == 'VIEW':
+            mat = bpy.context.region_data.view_matrix.copy() * \
+                object.matrix_world.copy()
+        else: # orientation == 'GLOBAL'
+            mat = object.matrix_world.copy()
+        mat_inv = mat.inverted()
+
     for loop in move:
         for index, loc in loop:
             if mapping:
@@ -749,11 +764,22 @@ def move_verts(object, bm, mapping, move, influence):
                     continue
                 else:
                     index = mapping[index]
-            if influence >= 0:
-                bm.verts[index].co = loc*(influence/100) + \
-                    bm.verts[index].co*((100-influence)/100)
+            if lock:
+                delta = (loc - bm.verts[index].co) * mat_inv
+                if lock_x:
+                    delta[0] = 0
+                if lock_y:
+                    delta[1] = 0
+                if lock_z:
+                    delta[2] = 0
+                delta = delta * mat
+                loc = bm.verts[index].co + delta
+            if influence < 0:
+                new_loc = loc
             else:
-                bm.verts[index].co = loc
+                new_loc = loc*(influence/100) + \
+                    bm.verts[index].co*((100-influence)/100)
+            bm.verts[index].co = new_loc
     bm.normal_update()
     object.data.update()
 
@@ -1139,7 +1165,6 @@ def bridge_calculate_lines(bm, loops, mode, twist, reverse):
                     tri, quad = [(bm.verts[loop1[i+1]].co -
                                   bm.verts[loop2[j]].co).length
                                  for j in [prev_vert2, 0]]
-
                     circle_full = 2
                 elif len(loop1) - 1 - i == len(loop2) - 1 - prev_vert2 and \
                 not circle_full:
@@ -2130,7 +2155,6 @@ def curve_calculate_t(bm_mod, knots, points, pknots, regular, circular):
         if circular:
             tknots[-1] = tpoints[-1]
 
-
     return(tknots, tpoints)
 
 
@@ -2516,7 +2540,6 @@ def gstretch_align_pairs(ls_pairs, object, bm_mod, method):
 
     if ls_pairs:
         for (loop, stroke) in ls_pairs:
-            distance_loop_stroke
             total_dist = distance_loop_stroke(loop, stroke, object, bm_mod,
                 method)
             loop[0].reverse()
@@ -2553,6 +2576,7 @@ def gstretch_calculate_verts(loop, stroke, object, bm_mod, method):
         vert_edges = dict_vert_edges(bm_mod)
 
         for v_index in loop[0]:
+            intersection = None
             for ek in vert_edges[v_index]:
                 v1, v2 = ek
                 v1 = bm_mod.verts[v1]
@@ -3280,6 +3304,15 @@ class Circle(bpy.types.Operator):
         max = 100.0,
         precision = 1,
         subtype = 'PERCENTAGE')
+    lock_x = bpy.props.BoolProperty(name = "Lock X",
+        description = "Lock editing of the x-coordinate",
+        default = False)
+    lock_y = bpy.props.BoolProperty(name = "Lock Y",
+        description = "Lock editing of the y-coordinate",
+        default = False)
+    lock_z = bpy.props.BoolProperty(name = "Lock Z",
+        description = "Lock editing of the z-coordinate",
+        default = False)
     radius = bpy.props.FloatProperty(name = "Radius",
         description = "Custom radius for circle",
         default = 1.0,
@@ -3311,7 +3344,21 @@ class Circle(bpy.types.Operator):
         col.prop(self, "regular")
         col.separator()
 
-        col.prop(self, "influence")
+        col_move = col.column(align=True)
+        row = col_move.row(align=True)
+        if self.lock_x:
+            row.prop(self, "lock_x", text = "X", icon='LOCKED')
+        else:
+            row.prop(self, "lock_x", text = "X", icon='UNLOCKED')
+        if self.lock_y:
+            row.prop(self, "lock_y", text = "Y", icon='LOCKED')
+        else:
+            row.prop(self, "lock_y", text = "Y", icon='UNLOCKED')
+        if self.lock_z:
+            row.prop(self, "lock_z", text = "Z", icon='LOCKED')
+        else:
+            row.prop(self, "lock_z", text = "Z", icon='UNLOCKED')
+        col_move.prop(self, "influence")
 
     def invoke(self, context, event):
         # load custom settings
@@ -3375,7 +3422,11 @@ class Circle(bpy.types.Operator):
                     normal, single_loops[i]))
 
         # move vertices to new locations
-        move_verts(object, bm, mapping, move, -1)
+        if self.lock_x or self.lock_y or self.lock_z:
+            lock = [self.lock_x, self.lock_y, self.lock_z]
+        else:
+            lock = False
+        move_verts(object, bm, mapping, move, lock, -1)
 
         # cleaning up
         if derived:
@@ -3408,6 +3459,15 @@ class Curve(bpy.types.Operator):
             ("linear", "Linear", "Simple and fast linear algorithm")),
         description = "Algorithm used for interpolation",
         default = 'cubic')
+    lock_x = bpy.props.BoolProperty(name = "Lock X",
+        description = "Lock editing of the x-coordinate",
+        default = False)
+    lock_y = bpy.props.BoolProperty(name = "Lock Y",
+        description = "Lock editing of the y-coordinate",
+        default = False)
+    lock_z = bpy.props.BoolProperty(name = "Lock Z",
+        description = "Lock editing of the z-coordinate",
+        default = False)
     regular = bpy.props.BoolProperty(name = "Regular",
         description = "Distribute vertices at constant distances along the" \
             "curve",
@@ -3436,7 +3496,21 @@ class Curve(bpy.types.Operator):
         col.prop(self, "regular")
         col.separator()
 
-        col.prop(self, "influence")
+        col_move = col.column(align=True)
+        row = col_move.row(align=True)
+        if self.lock_x:
+            row.prop(self, "lock_x", text = "X", icon='LOCKED')
+        else:
+            row.prop(self, "lock_x", text = "X", icon='UNLOCKED')
+        if self.lock_y:
+            row.prop(self, "lock_y", text = "Y", icon='LOCKED')
+        else:
+            row.prop(self, "lock_y", text = "Y", icon='UNLOCKED')
+        if self.lock_z:
+            row.prop(self, "lock_z", text = "Z", icon='LOCKED')
+        else:
+            row.prop(self, "lock_z", text = "Z", icon='UNLOCKED')
+        col_move.prop(self, "influence")
 
     def invoke(self, context, event):
         # load custom settings
@@ -3480,7 +3554,11 @@ class Curve(bpy.types.Operator):
                 self.restriction))
 
         # move vertices to new locations
-        move_verts(object, bm, mapping, move, self.influence)
+        if self.lock_x or self.lock_y or self.lock_z:
+            lock = [self.lock_x, self.lock_y, self.lock_z]
+        else:
+            lock = False
+        move_verts(object, bm, mapping, move, lock, self.influence)
 
         # cleaning up
         if derived:
@@ -3504,6 +3582,15 @@ class Flatten(bpy.types.Operator):
         max = 100.0,
         precision = 1,
         subtype = 'PERCENTAGE')
+    lock_x = bpy.props.BoolProperty(name = "Lock X",
+        description = "Lock editing of the x-coordinate",
+        default = False)
+    lock_y = bpy.props.BoolProperty(name = "Lock Y",
+        description = "Lock editing of the y-coordinate",
+        default = False)
+    lock_z = bpy.props.BoolProperty(name = "Lock Z",
+        description = "Lock editing of the z-coordinate",
+        default = False)
     plane = bpy.props.EnumProperty(name = "Plane",
         items = (("best_fit", "Best fit", "Calculate a best fitting plane"),
             ("normal", "Normal", "Derive plane from averaging vertex "\
@@ -3532,7 +3619,21 @@ class Flatten(bpy.types.Operator):
         #col.prop(self, "restriction")
         col.separator()
 
-        col.prop(self, "influence")
+        col_move = col.column(align=True)
+        row = col_move.row(align=True)
+        if self.lock_x:
+            row.prop(self, "lock_x", text = "X", icon='LOCKED')
+        else:
+            row.prop(self, "lock_x", text = "X", icon='UNLOCKED')
+        if self.lock_y:
+            row.prop(self, "lock_y", text = "Y", icon='LOCKED')
+        else:
+            row.prop(self, "lock_y", text = "Y", icon='UNLOCKED')
+        if self.lock_z:
+            row.prop(self, "lock_z", text = "Z", icon='LOCKED')
+        else:
+            row.prop(self, "lock_z", text = "Z", icon='UNLOCKED')
+        col_move.prop(self, "influence")
 
     def invoke(self, context, event):
         # load custom settings
@@ -3566,7 +3667,13 @@ class Flatten(bpy.types.Operator):
                 move.append(to_move)
             else:
                 move.append(to_move)
-        move_verts(object, bm, False, move, self.influence)
+
+        # move vertices to new locations
+        if self.lock_x or self.lock_y or self.lock_z:
+            lock = [self.lock_x, self.lock_y, self.lock_z]
+        else:
+            lock = False
+        move_verts(object, bm, False, move, lock, self.influence)
 
         # cleaning up
         terminate(global_undo)
@@ -3633,6 +3740,15 @@ class GStretch(bpy.types.Operator):
         max = 100.0,
         precision = 1,
         subtype = 'PERCENTAGE')
+    lock_x = bpy.props.BoolProperty(name = "Lock X",
+        description = "Lock editing of the x-coordinate",
+        default = False)
+    lock_y = bpy.props.BoolProperty(name = "Lock Y",
+        description = "Lock editing of the y-coordinate",
+        default = False)
+    lock_z = bpy.props.BoolProperty(name = "Lock Z",
+        description = "Lock editing of the z-coordinate",
+        default = False)
     method = bpy.props.EnumProperty(name = "Method",
         items = (("project", "Project", "Project vertices onto the stroke, "\
             "using vertex normals and connected edges"),
@@ -3669,7 +3785,21 @@ class GStretch(bpy.types.Operator):
             col_conv.prop(self, "conversion_vertices")
         col.separator()
 
-        col.prop(self, "influence")
+        col_move = col.column(align=True)
+        row = col_move.row(align=True)
+        if self.lock_x:
+            row.prop(self, "lock_x", text = "X", icon='LOCKED')
+        else:
+            row.prop(self, "lock_x", text = "X", icon='UNLOCKED')
+        if self.lock_y:
+            row.prop(self, "lock_y", text = "Y", icon='LOCKED')
+        else:
+            row.prop(self, "lock_y", text = "Y", icon='UNLOCKED')
+        if self.lock_z:
+            row.prop(self, "lock_z", text = "Z", icon='LOCKED')
+        else:
+            row.prop(self, "lock_z", text = "Z", icon='UNLOCKED')
+        col_move.prop(self, "influence")
 
     def invoke(self, context, event):
         # flush cached strokes
@@ -3688,25 +3818,40 @@ class GStretch(bpy.types.Operator):
         cached, safe_strokes, loops, derived, mapping = cache_read("Gstretch",
             object, bm, False, False)
         if cached:
+            straightening = False
             if safe_strokes:
                 strokes = gstretch_safe_to_true_strokes(safe_strokes)
             # cached strokes were flushed (see operator's invoke function)
             elif object.grease_pencil:
                 strokes = gstretch_get_strokes(object)
             else:
-                derived, bm_mod = get_derived_bmesh(object, bm, context.scene)
+                # straightening function (no GP) -> loops ignore modifiers
+                straightening = True
+                derived = False
+                bm_mod = bm.copy()
                 strokes = gstretch_get_fake_strokes(object, bm_mod, loops)
-            derived, bm_mod = get_derived_bmesh(object, bm, context.scene)
+            if not straightening:
+                derived, bm_mod = get_derived_bmesh(object, bm, context.scene)
         else:
-            # find loops
-            derived, bm_mod, loops = get_connected_input(object, bm,
-                context.scene, input='selected')
-            mapping = get_mapping(derived, bm, bm_mod, False, False, loops)
-            loops = check_loops(loops, mapping, bm_mod)
-            # get strokes
+            # get loops and strokes
             if object.grease_pencil:
+                 # find loops
+                derived, bm_mod, loops = get_connected_input(object, bm,
+                context.scene, input='selected')
+                mapping = get_mapping(derived, bm, bm_mod, False, False, loops)
+                loops = check_loops(loops, mapping, bm_mod)
+                # get strokes
                 strokes = gstretch_get_strokes(object)
             else:
+                # straightening function (no GP) -> loops ignore modifiers
+                derived = False
+                mapping = False
+                bm_mod = bm.copy()
+                edge_keys = [edgekey(edge) for edge in bm_mod.edges if \
+                    edge.select and not edge.hide]
+                loops = get_connected_selections(edge_keys)
+                loops = check_loops(loops, mapping, bm_mod)
+                # create fake strokes
                 strokes = gstretch_get_fake_strokes(object, bm_mod, loops)
 
         # saving cache for faster execution next time
@@ -3741,20 +3886,24 @@ class GStretch(bpy.types.Operator):
                         # in case of cached fake stroke, get the real one
                         if object.grease_pencil:
                             strokes = gstretch_get_strokes(object)
-                            ls_pairs = gstretch_match_loops_strokes(loops,
-                                strokes, object, bm_mod)
-                            ls_pairs = gstretch_align_pairs(ls_pairs, object,
-                                bm_mod, self.method)
-                            for (l, s) in ls_pairs:
-                                if l == loop:
-                                    stroke = s
-                                    break
+                            if loops and strokes:
+                                ls_pairs = gstretch_match_loops_strokes(loops,
+                                    strokes, object, bm_mod)
+                                ls_pairs = gstretch_align_pairs(ls_pairs,
+                                    object, bm_mod, self.method)
+                                for (l, s) in ls_pairs:
+                                    if l == loop:
+                                        stroke = s
+                                        break
                     gstretch_erase_stroke(stroke, context)
 
         # move vertices to new locations
-        bmesh.update_edit_mesh(object.data, tessface=True,
-                destructive=True)
-        move_verts(object, bm, mapping, move, self.influence)
+        if self.lock_x or self.lock_y or self.lock_z:
+            lock = [self.lock_x, self.lock_y, self.lock_z]
+        else:
+            lock = False
+        bmesh.update_edit_mesh(object.data, tessface=True, destructive=True)
+        move_verts(object, bm, mapping, move, lock, self.influence)
 
         # cleaning up
         if derived:
@@ -3846,7 +3995,7 @@ class Relax(bpy.types.Operator):
                     tknots[i], knots[i]))
             move = [relax_calculate_verts(bm_mod, self.interpolation,
                 tknots, knots, tpoints, points, splines)]
-            move_verts(object, bm, mapping, move, -1)
+            move_verts(object, bm, mapping, move, False, -1)
 
         # cleaning up
         if derived:
@@ -3881,6 +4030,15 @@ class Space(bpy.types.Operator):
             ("linear", "Linear", "Vertices are projected on existing edges")),
         description = "Algorithm used for interpolation",
         default = 'cubic')
+    lock_x = bpy.props.BoolProperty(name = "Lock X",
+        description = "Lock editing of the x-coordinate",
+        default = False)
+    lock_y = bpy.props.BoolProperty(name = "Lock Y",
+        description = "Lock editing of the y-coordinate",
+        default = False)
+    lock_z = bpy.props.BoolProperty(name = "Lock Z",
+        description = "Lock editing of the z-coordinate",
+        default = False)
 
     @classmethod
     def poll(cls, context):
@@ -3895,7 +4053,21 @@ class Space(bpy.types.Operator):
         col.prop(self, "input")
         col.separator()
 
-        col.prop(self, "influence")
+        col_move = col.column(align=True)
+        row = col_move.row(align=True)
+        if self.lock_x:
+            row.prop(self, "lock_x", text = "X", icon='LOCKED')
+        else:
+            row.prop(self, "lock_x", text = "X", icon='UNLOCKED')
+        if self.lock_y:
+            row.prop(self, "lock_y", text = "Y", icon='LOCKED')
+        else:
+            row.prop(self, "lock_y", text = "Y", icon='UNLOCKED')
+        if self.lock_z:
+            row.prop(self, "lock_z", text = "Z", icon='LOCKED')
+        else:
+            row.prop(self, "lock_z", text = "Z", icon='UNLOCKED')
+        col_move.prop(self, "influence")
 
     def invoke(self, context, event):
         # load custom settings
@@ -3920,6 +4092,7 @@ class Space(bpy.types.Operator):
 
         # saving cache for faster execution next time
         if not cached:
+            print(loops)
             cache_write("Space", object, bm, self.input, False, False, loops,
                 derived, mapping)
 
@@ -3934,7 +4107,11 @@ class Space(bpy.types.Operator):
             move.append(space_calculate_verts(bm_mod, self.interpolation,
                 tknots, tpoints, loop[0][:-1], splines))
         # move vertices to new locations
-        move_verts(object, bm, mapping, move, self.influence)
+        if self.lock_x or self.lock_y or self.lock_z:
+            lock = [self.lock_x, self.lock_y, self.lock_z]
+        else:
+            lock = False
+        move_verts(object, bm, mapping, move, lock, self.influence)
 
         # cleaning up
         if derived:
@@ -4037,7 +4214,21 @@ class VIEW3D_PT_tools_looptools(bpy.types.Panel):
             box.prop(lt, "circle_regular")
             box.separator()
 
-            box.prop(lt, "circle_influence")
+            col_move = box.column(align=True)
+            row = col_move.row(align=True)
+            if lt.circle_lock_x:
+                row.prop(lt, "circle_lock_x", text = "X", icon='LOCKED')
+            else:
+                row.prop(lt, "circle_lock_x", text = "X", icon='UNLOCKED')
+            if lt.circle_lock_y:
+                row.prop(lt, "circle_lock_y", text = "Y", icon='LOCKED')
+            else:
+                row.prop(lt, "circle_lock_y", text = "Y", icon='UNLOCKED')
+            if lt.circle_lock_z:
+                row.prop(lt, "circle_lock_z", text = "Z", icon='LOCKED')
+            else:
+                row.prop(lt, "circle_lock_z", text = "Z", icon='UNLOCKED')
+            col_move.prop(lt, "circle_influence")
 
         # curve - first line
         split = col.split(percentage=0.15, align=True)
@@ -4055,7 +4246,21 @@ class VIEW3D_PT_tools_looptools(bpy.types.Panel):
             box.prop(lt, "curve_regular")
             box.separator()
 
-            box.prop(lt, "curve_influence")
+            col_move = box.column(align=True)
+            row = col_move.row(align=True)
+            if lt.curve_lock_x:
+                row.prop(lt, "curve_lock_x", text = "X", icon='LOCKED')
+            else:
+                row.prop(lt, "curve_lock_x", text = "X", icon='UNLOCKED')
+            if lt.curve_lock_y:
+                row.prop(lt, "curve_lock_y", text = "Y", icon='LOCKED')
+            else:
+                row.prop(lt, "curve_lock_y", text = "Y", icon='UNLOCKED')
+            if lt.curve_lock_z:
+                row.prop(lt, "curve_lock_z", text = "Z", icon='LOCKED')
+            else:
+                row.prop(lt, "curve_lock_z", text = "Z", icon='UNLOCKED')
+            col_move.prop(lt, "curve_influence")
 
         # flatten - first line
         split = col.split(percentage=0.15, align=True)
@@ -4071,7 +4276,21 @@ class VIEW3D_PT_tools_looptools(bpy.types.Panel):
             #box.prop(lt, "flatten_restriction")
             box.separator()
 
-            box.prop(lt, "flatten_influence")
+            col_move = box.column(align=True)
+            row = col_move.row(align=True)
+            if lt.flatten_lock_x:
+                row.prop(lt, "flatten_lock_x", text = "X", icon='LOCKED')
+            else:
+                row.prop(lt, "flatten_lock_x", text = "X", icon='UNLOCKED')
+            if lt.flatten_lock_y:
+                row.prop(lt, "flatten_lock_y", text = "Y", icon='LOCKED')
+            else:
+                row.prop(lt, "flatten_lock_y", text = "Y", icon='UNLOCKED')
+            if lt.flatten_lock_z:
+                row.prop(lt, "flatten_lock_z", text = "Z", icon='LOCKED')
+            else:
+                row.prop(lt, "flatten_lock_z", text = "Z", icon='UNLOCKED')
+            col_move.prop(lt, "flatten_influence")
 
         # gstretch - first line
         split = col.split(percentage=0.15, align=True)
@@ -4099,7 +4318,21 @@ class VIEW3D_PT_tools_looptools(bpy.types.Panel):
                 col_conv.prop(lt, "gstretch_conversion_vertices")
             box.separator()
 
-            box.prop(lt, "gstretch_influence")
+            col_move = box.column(align=True)
+            row = col_move.row(align=True)
+            if lt.gstretch_lock_x:
+                row.prop(lt, "gstretch_lock_x", text = "X", icon='LOCKED')
+            else:
+                row.prop(lt, "gstretch_lock_x", text = "X", icon='UNLOCKED')
+            if lt.gstretch_lock_y:
+                row.prop(lt, "gstretch_lock_y", text = "Y", icon='LOCKED')
+            else:
+                row.prop(lt, "gstretch_lock_y", text = "Y", icon='UNLOCKED')
+            if lt.gstretch_lock_z:
+                row.prop(lt, "gstretch_lock_z", text = "Z", icon='LOCKED')
+            else:
+                row.prop(lt, "gstretch_lock_z", text = "Z", icon='UNLOCKED')
+            col_move.prop(lt, "gstretch_influence")
 
         # loft - first line
         split = col.split(percentage=0.15, align=True)
@@ -4167,7 +4400,21 @@ class VIEW3D_PT_tools_looptools(bpy.types.Panel):
             box.prop(lt, "space_input")
             box.separator()
 
-            box.prop(lt, "space_influence")
+            col_move = box.column(align=True)
+            row = col_move.row(align=True)
+            if lt.space_lock_x:
+                row.prop(lt, "space_lock_x", text = "X", icon='LOCKED')
+            else:
+                row.prop(lt, "space_lock_x", text = "X", icon='UNLOCKED')
+            if lt.space_lock_y:
+                row.prop(lt, "space_lock_y", text = "Y", icon='LOCKED')
+            else:
+                row.prop(lt, "space_lock_y", text = "Y", icon='UNLOCKED')
+            if lt.space_lock_z:
+                row.prop(lt, "space_lock_z", text = "Z", icon='LOCKED')
+            else:
+                row.prop(lt, "space_lock_z", text = "Z", icon='UNLOCKED')
+            col_move.prop(lt, "space_influence")
 
 
 # property group containing all properties for the gui in the panel
@@ -4273,6 +4520,15 @@ class LoopToolsProps(bpy.types.PropertyGroup):
         max = 100.0,
         precision = 1,
         subtype = 'PERCENTAGE')
+    circle_lock_x = bpy.props.BoolProperty(name = "Lock X",
+        description = "Lock editing of the x-coordinate",
+        default = False)
+    circle_lock_y = bpy.props.BoolProperty(name = "Lock Y",
+        description = "Lock editing of the y-coordinate",
+        default = False)
+    circle_lock_z = bpy.props.BoolProperty(name = "Lock Z",
+        description = "Lock editing of the z-coordinate",
+        default = False)
     circle_radius = bpy.props.FloatProperty(name = "Radius",
         description = "Custom radius for circle",
         default = 1.0,
@@ -4300,6 +4556,15 @@ class LoopToolsProps(bpy.types.PropertyGroup):
             ("linear", "Linear", "Simple and fast linear algorithm")),
         description = "Algorithm used for interpolation",
         default = 'cubic')
+    curve_lock_x = bpy.props.BoolProperty(name = "Lock X",
+        description = "Lock editing of the x-coordinate",
+        default = False)
+    curve_lock_y = bpy.props.BoolProperty(name = "Lock Y",
+        description = "Lock editing of the y-coordinate",
+        default = False)
+    curve_lock_z = bpy.props.BoolProperty(name = "Lock Z",
+        description = "Lock editing of the z-coordinate",
+        default = False)
     curve_regular = bpy.props.BoolProperty(name = "Regular",
         description = "Distribute vertices at constant distances along the " \
             "curve",
@@ -4321,6 +4586,15 @@ class LoopToolsProps(bpy.types.PropertyGroup):
         max = 100.0,
         precision = 1,
         subtype = 'PERCENTAGE')
+    flatten_lock_x = bpy.props.BoolProperty(name = "Lock X",
+        description = "Lock editing of the x-coordinate",
+        default = False)
+    flatten_lock_y = bpy.props.BoolProperty(name = "Lock Y",
+        description = "Lock editing of the y-coordinate",
+        default = False)
+    flatten_lock_z = bpy.props.BoolProperty(name = "Lock Z",
+        description = "Lock editing of the z-coordinate",
+        default = False)
     flatten_plane = bpy.props.EnumProperty(name = "Plane",
         items = (("best_fit", "Best fit", "Calculate a best fitting plane"),
             ("normal", "Normal", "Derive plane from averaging vertex "\
@@ -4389,6 +4663,15 @@ class LoopToolsProps(bpy.types.PropertyGroup):
         max = 100.0,
         precision = 1,
         subtype = 'PERCENTAGE')
+    gstretch_lock_x = bpy.props.BoolProperty(name = "Lock X",
+        description = "Lock editing of the x-coordinate",
+        default = False)
+    gstretch_lock_y = bpy.props.BoolProperty(name = "Lock Y",
+        description = "Lock editing of the y-coordinate",
+        default = False)
+    gstretch_lock_z = bpy.props.BoolProperty(name = "Lock Z",
+        description = "Lock editing of the z-coordinate",
+        default = False)
     gstretch_method = bpy.props.EnumProperty(name = "Method",
         items = (("project", "Project", "Project vertices onto the stroke, "\
             "using vertex normals and connected edges"),
@@ -4444,6 +4727,15 @@ class LoopToolsProps(bpy.types.PropertyGroup):
             ("linear", "Linear", "Vertices are projected on existing edges")),
         description = "Algorithm used for interpolation",
         default = 'cubic')
+    space_lock_x = bpy.props.BoolProperty(name = "Lock X",
+        description = "Lock editing of the x-coordinate",
+        default = False)
+    space_lock_y = bpy.props.BoolProperty(name = "Lock Y",
+        description = "Lock editing of the y-coordinate",
+        default = False)
+    space_lock_z = bpy.props.BoolProperty(name = "Lock Z",
+        description = "Lock editing of the z-coordinate",
+        default = False)
 
 
 # draw function for integration in menus
