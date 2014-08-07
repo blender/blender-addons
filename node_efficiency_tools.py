@@ -1452,6 +1452,7 @@ class NWEmissionViewer(Operator, NWBase):
                 for node in nodes:
                     if node.name in selection:
                         node.select = True
+                hack_force_update(context, nodes)
             return {'FINISHED'}
         else:
             return {'CANCELLED'}
