@@ -808,6 +808,7 @@ def fbx_data_mesh_elements(root, me_obj, scene_data, done_meshes):
 
     # No gscale/gmat here, all data are supposed to be in object space.
     smooth_type = scene_data.settings.mesh_smooth_type
+    write_normals = smooth_type in {'OFF'}
 
     do_bake_space_transform = me_obj.use_bake_space_transform(scene_data)
 
@@ -944,93 +945,94 @@ def fbx_data_mesh_elements(root, me_obj, scene_data, done_meshes):
     del edges_map
 
     # Loop normals.
-    # NOTE: this is not supported by importer currently.
-    # XXX Official docs says normals should use IndexToDirect,
-    #     but this does not seem well supported by apps currently...
-    me.calc_normals_split()
+    if (write_normals):
+        # NOTE: this is not supported by importer currently.
+        # XXX Official docs says normals should use IndexToDirect,
+        #     but this does not seem well supported by apps currently...
+        me.calc_normals_split()
 
-    def _nortuples_gen(raw_nors, m):
-        # Great, now normals are also expected 4D!
-        # XXX Back to 3D normals for now!
-        # gen = zip(*(iter(raw_nors),) * 3 + (_infinite_gen(1.0),))
-        gen = zip(*(iter(raw_nors),) * 3)
-        return gen if m is None else (m * Vector(v) for v in gen)
+        def _nortuples_gen(raw_nors, m):
+            # Great, now normals are also expected 4D!
+            # XXX Back to 3D normals for now!
+            # gen = zip(*(iter(raw_nors),) * 3 + (_infinite_gen(1.0),))
+            gen = zip(*(iter(raw_nors),) * 3)
+            return gen if m is None else (m * Vector(v) for v in gen)
 
-    t_ln = array.array(data_types.ARRAY_FLOAT64, (0.0,)) * len(me.loops) * 3
-    me.loops.foreach_get("normal", t_ln)
-    t_ln = _nortuples_gen(t_ln, geom_mat_no)
-    if 0:
-        t_ln = tuple(t_ln)  # No choice... :/
+        t_ln = array.array(data_types.ARRAY_FLOAT64, (0.0,)) * len(me.loops) * 3
+        me.loops.foreach_get("normal", t_ln)
+        t_ln = _nortuples_gen(t_ln, geom_mat_no)
+        if 0:
+            t_ln = tuple(t_ln)  # No choice... :/
 
-        lay_nor = elem_data_single_int32(geom, b"LayerElementNormal", 0)
-        elem_data_single_int32(lay_nor, b"Version", FBX_GEOMETRY_NORMAL_VERSION)
-        elem_data_single_string(lay_nor, b"Name", b"")
-        elem_data_single_string(lay_nor, b"MappingInformationType", b"ByPolygonVertex")
-        elem_data_single_string(lay_nor, b"ReferenceInformationType", b"IndexToDirect")
+            lay_nor = elem_data_single_int32(geom, b"LayerElementNormal", 0)
+            elem_data_single_int32(lay_nor, b"Version", FBX_GEOMETRY_NORMAL_VERSION)
+            elem_data_single_string(lay_nor, b"Name", b"")
+            elem_data_single_string(lay_nor, b"MappingInformationType", b"ByPolygonVertex")
+            elem_data_single_string(lay_nor, b"ReferenceInformationType", b"IndexToDirect")
 
-        ln2idx = tuple(set(t_ln))
-        elem_data_single_float64_array(lay_nor, b"Normals", chain(*ln2idx))
-        # Normal weights, no idea what it is.
-        # t_lnw = array.array(data_types.ARRAY_FLOAT64, (0.0,)) * len(ln2idx)
-        # elem_data_single_float64_array(lay_nor, b"NormalsW", t_lnw)
+            ln2idx = tuple(set(t_ln))
+            elem_data_single_float64_array(lay_nor, b"Normals", chain(*ln2idx))
+            # Normal weights, no idea what it is.
+            # t_lnw = array.array(data_types.ARRAY_FLOAT64, (0.0,)) * len(ln2idx)
+            # elem_data_single_float64_array(lay_nor, b"NormalsW", t_lnw)
 
-        ln2idx = {nor: idx for idx, nor in enumerate(ln2idx)}
-        elem_data_single_int32_array(lay_nor, b"NormalsIndex", (ln2idx[n] for n in t_ln))
+            ln2idx = {nor: idx for idx, nor in enumerate(ln2idx)}
+            elem_data_single_int32_array(lay_nor, b"NormalsIndex", (ln2idx[n] for n in t_ln))
 
-        del ln2idx
-        # del t_lnw
-    else:
-        lay_nor = elem_data_single_int32(geom, b"LayerElementNormal", 0)
-        elem_data_single_int32(lay_nor, b"Version", FBX_GEOMETRY_NORMAL_VERSION)
-        elem_data_single_string(lay_nor, b"Name", b"")
-        elem_data_single_string(lay_nor, b"MappingInformationType", b"ByPolygonVertex")
-        elem_data_single_string(lay_nor, b"ReferenceInformationType", b"Direct")
-        elem_data_single_float64_array(lay_nor, b"Normals", chain(*t_ln))
-        # Normal weights, no idea what it is.
-        # t_ln = array.array(data_types.ARRAY_FLOAT64, (0.0,)) * len(me.loops)
-        # elem_data_single_float64_array(lay_nor, b"NormalsW", t_ln)
-    del t_ln
-
-    # tspace
-    tspacenumber = 0
-    if scene_data.settings.use_tspace:
-        tspacenumber = len(me.uv_layers)
-        if tspacenumber:
-            t_ln = array.array(data_types.ARRAY_FLOAT64, (0.0,)) * len(me.loops) * 3
-            # t_lnw = array.array(data_types.ARRAY_FLOAT64, (0.0,)) * len(me.loops)
-            for idx, uvlayer in enumerate(me.uv_layers):
-                name = uvlayer.name
-                me.calc_tangents(name)
-                # Loop bitangents (aka binormals).
-                # NOTE: this is not supported by importer currently.
-                me.loops.foreach_get("bitangent", t_ln)
-                lay_nor = elem_data_single_int32(geom, b"LayerElementBinormal", idx)
-                elem_data_single_int32(lay_nor, b"Version", FBX_GEOMETRY_BINORMAL_VERSION)
-                elem_data_single_string_unicode(lay_nor, b"Name", name)
-                elem_data_single_string(lay_nor, b"MappingInformationType", b"ByPolygonVertex")
-                elem_data_single_string(lay_nor, b"ReferenceInformationType", b"Direct")
-                elem_data_single_float64_array(lay_nor, b"Binormals", chain(*_nortuples_gen(t_ln, geom_mat_no)))
-                # Binormal weights, no idea what it is.
-                # elem_data_single_float64_array(lay_nor, b"BinormalsW", t_lnw)
-
-                # Loop tangents.
-                # NOTE: this is not supported by importer currently.
-                me.loops.foreach_get("tangent", t_ln)
-                lay_nor = elem_data_single_int32(geom, b"LayerElementTangent", idx)
-                elem_data_single_int32(lay_nor, b"Version", FBX_GEOMETRY_TANGENT_VERSION)
-                elem_data_single_string_unicode(lay_nor, b"Name", name)
-                elem_data_single_string(lay_nor, b"MappingInformationType", b"ByPolygonVertex")
-                elem_data_single_string(lay_nor, b"ReferenceInformationType", b"Direct")
-                elem_data_single_float64_array(lay_nor, b"Tangents", chain(*_nortuples_gen(t_ln, geom_mat_no)))
-                # Tangent weights, no idea what it is.
-                # elem_data_single_float64_array(lay_nor, b"TangentsW", t_lnw)
-
-            del t_ln
+            del ln2idx
             # del t_lnw
-            me.free_tangents()
+        else:
+            lay_nor = elem_data_single_int32(geom, b"LayerElementNormal", 0)
+            elem_data_single_int32(lay_nor, b"Version", FBX_GEOMETRY_NORMAL_VERSION)
+            elem_data_single_string(lay_nor, b"Name", b"")
+            elem_data_single_string(lay_nor, b"MappingInformationType", b"ByPolygonVertex")
+            elem_data_single_string(lay_nor, b"ReferenceInformationType", b"Direct")
+            elem_data_single_float64_array(lay_nor, b"Normals", chain(*t_ln))
+            # Normal weights, no idea what it is.
+            # t_ln = array.array(data_types.ARRAY_FLOAT64, (0.0,)) * len(me.loops)
+            # elem_data_single_float64_array(lay_nor, b"NormalsW", t_ln)
+        del t_ln
 
-    me.free_normals_split()
-    del _nortuples_gen
+        # tspace
+        tspacenumber = 0
+        if scene_data.settings.use_tspace:
+            tspacenumber = len(me.uv_layers)
+            if tspacenumber:
+                t_ln = array.array(data_types.ARRAY_FLOAT64, (0.0,)) * len(me.loops) * 3
+                # t_lnw = array.array(data_types.ARRAY_FLOAT64, (0.0,)) * len(me.loops)
+                for idx, uvlayer in enumerate(me.uv_layers):
+                    name = uvlayer.name
+                    me.calc_tangents(name)
+                    # Loop bitangents (aka binormals).
+                    # NOTE: this is not supported by importer currently.
+                    me.loops.foreach_get("bitangent", t_ln)
+                    lay_nor = elem_data_single_int32(geom, b"LayerElementBinormal", idx)
+                    elem_data_single_int32(lay_nor, b"Version", FBX_GEOMETRY_BINORMAL_VERSION)
+                    elem_data_single_string_unicode(lay_nor, b"Name", name)
+                    elem_data_single_string(lay_nor, b"MappingInformationType", b"ByPolygonVertex")
+                    elem_data_single_string(lay_nor, b"ReferenceInformationType", b"Direct")
+                    elem_data_single_float64_array(lay_nor, b"Binormals", chain(*_nortuples_gen(t_ln, geom_mat_no)))
+                    # Binormal weights, no idea what it is.
+                    # elem_data_single_float64_array(lay_nor, b"BinormalsW", t_lnw)
+
+                    # Loop tangents.
+                    # NOTE: this is not supported by importer currently.
+                    me.loops.foreach_get("tangent", t_ln)
+                    lay_nor = elem_data_single_int32(geom, b"LayerElementTangent", idx)
+                    elem_data_single_int32(lay_nor, b"Version", FBX_GEOMETRY_TANGENT_VERSION)
+                    elem_data_single_string_unicode(lay_nor, b"Name", name)
+                    elem_data_single_string(lay_nor, b"MappingInformationType", b"ByPolygonVertex")
+                    elem_data_single_string(lay_nor, b"ReferenceInformationType", b"Direct")
+                    elem_data_single_float64_array(lay_nor, b"Tangents", chain(*_nortuples_gen(t_ln, geom_mat_no)))
+                    # Tangent weights, no idea what it is.
+                    # elem_data_single_float64_array(lay_nor, b"TangentsW", t_lnw)
+
+                del t_ln
+                # del t_lnw
+                me.free_tangents()
+
+        me.free_normals_split()
+        del _nortuples_gen
 
     # Write VertexColor Layers.
     vcolnumber = len(me.vertex_colors)
