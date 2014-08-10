@@ -105,6 +105,8 @@ class Print3DToolBar:
         rowsub = col.row(align=True)
         rowsub.operator("mesh.print3d_clean_distorted", text="Distorted")
         rowsub.prop(print_3d, "angle_distort", text="")
+        col = layout.column()
+        col.operator("mesh.print3d_clean_non_manifold", text="Non-Manifold")
         # XXX TODO
         # col.operator("mesh.print3d_clean_thin", text="Wall Thickness")
 

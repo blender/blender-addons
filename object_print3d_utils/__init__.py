@@ -133,6 +133,7 @@ classes = (
     operators.Print3DCleanIsolated,
     operators.Print3DCleanDistorted,
     operators.Print3DCleanThin,
+    operators.Print3DCleanNonManifold,
 
     operators.Print3DSelectReport,
 
