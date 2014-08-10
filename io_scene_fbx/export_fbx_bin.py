@@ -669,6 +669,9 @@ def fbx_data_camera_elements(root, cam_obj, scene_data):
     # No need to convert to inches here...
     elem_props_template_set(tmpl, props, "p_double", b"FocalLength", cam_data.lens)
     elem_props_template_set(tmpl, props, "p_double", b"SafeAreaAspectRatio", aspect)
+    # Default to perspective camera.
+    elem_props_template_set(tmpl, props, "p_enum", b"CameraProjectionType", 1 if cam_data.type == 'ORTHO' else 0)
+    elem_props_template_set(tmpl, props, "p_double", b"OrthoZoom", cam_data.ortho_scale)
 
     elem_props_template_set(tmpl, props, "p_double", b"NearPlane", cam_data.clip_start * gscale)
     elem_props_template_set(tmpl, props, "p_double", b"FarPlane", cam_data.clip_end * gscale)
