@@ -948,6 +948,7 @@ def fbx_data_mesh_elements(root, me_obj, scene_data, done_meshes):
     del edges_map
 
     # Loop normals.
+    tspacenumber = 0
     if (write_normals):
         # NOTE: this is not supported by importer currently.
         # XXX Official docs says normals should use IndexToDirect,
@@ -997,7 +998,6 @@ def fbx_data_mesh_elements(root, me_obj, scene_data, done_meshes):
         del t_ln
 
         # tspace
-        tspacenumber = 0
         if scene_data.settings.use_tspace:
             tspacenumber = len(me.uv_layers)
             if tspacenumber:
