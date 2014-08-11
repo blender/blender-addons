@@ -1102,7 +1102,7 @@ def fbx_data_mesh_elements(root, me_obj, scene_data, done_meshes):
 
                 # We have to validate mat indices, and map them to FBX indices.
                 # Note a mat might not be in me_fbxmats_idx (e.g. node mats are ignored).
-                blmats_to_fbxmats_idxs = [me_fbxmats_idx[m] for m in me_blmats if m in me_fbxmats_idx]
+                blmats_to_fbxmats_idxs = [me_fbxmats_idx[m] for m in me_blmats]
                 mat_idx_limit = len(blmats_to_fbxmats_idxs)
                 def_mat = blmats_to_fbxmats_idxs[0]
                 _gen = (blmats_to_fbxmats_idxs[m] if m < mat_idx_limit else def_mat for m in t_pm)
@@ -1180,6 +1180,11 @@ def fbx_data_mesh_elements(root, me_obj, scene_data, done_meshes):
     done_meshes.add(me_key)
 
 
+def check_skip_material(mat):
+    """Simple helper to check whether we actually support exporting that material or not"""
+    return mat.type not in {'SURFACE'} or mat.use_nodes
+
+
 def fbx_data_material_elements(root, mat, scene_data):
     """
     Write the Material data block.
@@ -1189,8 +1194,11 @@ def fbx_data_material_elements(root, mat, scene_data):
         ambient_color = next(iter(scene_data.data_world.keys())).ambient_color
 
     mat_key, _objs = scene_data.data_materials[mat]
+    skip_mat = check_skip_material(mat)
+    mat_type = b"Phong"
     # Approximation...
-    mat_type = b"Phong" if mat.specular_shader in {'COOKTORR', 'PHONG', 'BLINN'} else b"Lambert"
+    if not skip_mat and mat.specular_shader not in {'COOKTORR', 'PHONG', 'BLINN'}:
+        mat_type = b"Lambert"
 
     fbx_mat = elem_data_single_int64(root, b"Material", get_fbx_uuid_from_key(mat_key))
     fbx_mat.add_string(fbx_name_class(mat.name.encode(), b"Material"))
@@ -1204,35 +1212,36 @@ def fbx_data_material_elements(root, mat, scene_data):
     tmpl = elem_props_template_init(scene_data.templates, b"Material")
     props = elem_properties(fbx_mat)
 
-    elem_props_template_set(tmpl, props, "p_string", b"ShadingModel", mat_type.decode())
-    elem_props_template_set(tmpl, props, "p_color", b"EmissiveColor", mat.diffuse_color)
-    elem_props_template_set(tmpl, props, "p_number", b"EmissiveFactor", mat.emit)
-    elem_props_template_set(tmpl, props, "p_color", b"AmbientColor", ambient_color)
-    elem_props_template_set(tmpl, props, "p_number", b"AmbientFactor", mat.ambient)
-    elem_props_template_set(tmpl, props, "p_color", b"DiffuseColor", mat.diffuse_color)
-    elem_props_template_set(tmpl, props, "p_number", b"DiffuseFactor", mat.diffuse_intensity)
-    elem_props_template_set(tmpl, props, "p_color", b"TransparentColor",
-                            mat.diffuse_color if mat.use_transparency else (1.0, 1.0, 1.0))
-    elem_props_template_set(tmpl, props, "p_number", b"TransparencyFactor",
-                            1.0 - mat.alpha if mat.use_transparency else 0.0)
-    elem_props_template_set(tmpl, props, "p_number", b"Opacity", mat.alpha if mat.use_transparency else 1.0)
-    elem_props_template_set(tmpl, props, "p_vector_3d", b"NormalMap", (0.0, 0.0, 0.0))
-    # Not sure about those...
-    """
-    b"Bump": ((0.0, 0.0, 0.0), "p_vector_3d"),
-    b"BumpFactor": (1.0, "p_double"),
-    b"DisplacementColor": ((0.0, 0.0, 0.0), "p_color_rgb"),
-    b"DisplacementFactor": (0.0, "p_double"),
-    """
-    if mat_type == b"Phong":
-        elem_props_template_set(tmpl, props, "p_color", b"SpecularColor", mat.specular_color)
-        elem_props_template_set(tmpl, props, "p_number", b"SpecularFactor", mat.specular_intensity / 2.0)
-        # See Material template about those two!
-        elem_props_template_set(tmpl, props, "p_number", b"Shininess", (mat.specular_hardness - 1.0) / 5.10)
-        elem_props_template_set(tmpl, props, "p_number", b"ShininessExponent", (mat.specular_hardness - 1.0) / 5.10)
-        elem_props_template_set(tmpl, props, "p_color", b"ReflectionColor", mat.mirror_color)
-        elem_props_template_set(tmpl, props, "p_number", b"ReflectionFactor",
-                                mat.raytrace_mirror.reflect_factor if mat.raytrace_mirror.use else 0.0)
+    if not skip_mat:
+        elem_props_template_set(tmpl, props, "p_string", b"ShadingModel", mat_type.decode())
+        elem_props_template_set(tmpl, props, "p_color", b"EmissiveColor", mat.diffuse_color)
+        elem_props_template_set(tmpl, props, "p_number", b"EmissiveFactor", mat.emit)
+        elem_props_template_set(tmpl, props, "p_color", b"AmbientColor", ambient_color)
+        elem_props_template_set(tmpl, props, "p_number", b"AmbientFactor", mat.ambient)
+        elem_props_template_set(tmpl, props, "p_color", b"DiffuseColor", mat.diffuse_color)
+        elem_props_template_set(tmpl, props, "p_number", b"DiffuseFactor", mat.diffuse_intensity)
+        elem_props_template_set(tmpl, props, "p_color", b"TransparentColor",
+                                mat.diffuse_color if mat.use_transparency else (1.0, 1.0, 1.0))
+        elem_props_template_set(tmpl, props, "p_number", b"TransparencyFactor",
+                                1.0 - mat.alpha if mat.use_transparency else 0.0)
+        elem_props_template_set(tmpl, props, "p_number", b"Opacity", mat.alpha if mat.use_transparency else 1.0)
+        elem_props_template_set(tmpl, props, "p_vector_3d", b"NormalMap", (0.0, 0.0, 0.0))
+        # Not sure about those...
+        """
+        b"Bump": ((0.0, 0.0, 0.0), "p_vector_3d"),
+        b"BumpFactor": (1.0, "p_double"),
+        b"DisplacementColor": ((0.0, 0.0, 0.0), "p_color_rgb"),
+        b"DisplacementFactor": (0.0, "p_double"),
+        """
+        if mat_type == b"Phong":
+            elem_props_template_set(tmpl, props, "p_color", b"SpecularColor", mat.specular_color)
+            elem_props_template_set(tmpl, props, "p_number", b"SpecularFactor", mat.specular_intensity / 2.0)
+            # See Material template about those two!
+            elem_props_template_set(tmpl, props, "p_number", b"Shininess", (mat.specular_hardness - 1.0) / 5.10)
+            elem_props_template_set(tmpl, props, "p_number", b"ShininessExponent", (mat.specular_hardness - 1.0) / 5.10)
+            elem_props_template_set(tmpl, props, "p_color", b"ReflectionColor", mat.mirror_color)
+            elem_props_template_set(tmpl, props, "p_number", b"ReflectionFactor",
+                                    mat.raytrace_mirror.reflect_factor if mat.raytrace_mirror.use else 0.0)
 
     elem_props_template_finalize(tmpl, props)
 
@@ -2060,13 +2069,12 @@ def fbx_data_from_scene(scene, settings):
             # Note theoretically, FBX supports any kind of materials, even GLSL shaders etc.
             # However, I doubt anything else than Lambert/Phong is really portable!
             # We support any kind of 'surface' shader though, better to have some kind of default Lambert than nothing.
-            # TODO: Support nodes (*BIG* todo!).
-            if mat.type in {'SURFACE'} and not mat.use_nodes:
-                mat_data = data_materials.get(mat)
-                if mat_data is not None:
-                    mat_data[1].append(ob_obj)
-                else:
-                    data_materials[mat] = (get_blenderID_key(mat), [ob_obj])
+            # Note we want to keep a 'dummy' empty mat even when we can't really support it, see T41396.
+            mat_data = data_materials.get(mat)
+            if mat_data is not None:
+                mat_data[1].append(ob_obj)
+            else:
+                data_materials[mat] = (get_blenderID_key(mat), [ob_obj])
 
     # Note FBX textures also hold their mapping info.
     # TODO: Support layers?
@@ -2075,6 +2083,8 @@ def fbx_data_from_scene(scene, settings):
     data_videos = OrderedDict()
     # For now, do not use world textures, don't think they can be linked to anything FBX wise...
     for mat in data_materials.keys():
+        if check_skip_material(mat):
+            continue
         for tex, use_tex in zip(mat.texture_slots, mat.use_textures):
             if tex is None or not use_tex:
                 continue
