@@ -1102,7 +1102,7 @@ def fbx_data_mesh_elements(root, me_obj, scene_data, done_meshes):
 
                 # We have to validate mat indices, and map them to FBX indices.
                 # Note a mat might not be in me_fbxmats_idx (e.g. node mats are ignored).
-                blmats_to_fbxmats_idxs = [me_fbxmats_idx[m] for m in me_blmats]
+                blmats_to_fbxmats_idxs = [me_fbxmats_idx[m] for m in me_blmats if m in me_fbxmats_idx]
                 mat_idx_limit = len(blmats_to_fbxmats_idxs)
                 def_mat = blmats_to_fbxmats_idxs[0]
                 _gen = (blmats_to_fbxmats_idxs[m] if m < mat_idx_limit else def_mat for m in t_pm)
