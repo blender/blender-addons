@@ -30,7 +30,6 @@ bl_info = {
                 "Scripts/Curve/Curve_Objects",
     "category": "Add Curve"}
 
-
 if "bpy" in locals():
     import imp
     imp.reload(add_curve_aceous_galore)
@@ -42,16 +41,15 @@ else:
     from . import add_curve_spirals
     from . import add_curve_torus_knots
 
-
 import bpy
-
 
 class INFO_MT_curve_extras_add(bpy.types.Menu):
     # Define the "Extras" menu
-    bl_idname = "INFO_MT_curve_extra_objects_add"
+    bl_idname = "curve_extra_objects_add"
     bl_label = "Extra Objects"
 
-    def draw(self, context):
+# Define "Extras" menu
+def menu_func(self, context):
         layout = self.layout
         layout.operator_context = 'INVOKE_REGION_WIN'
         layout.operator("mesh.curveaceous_galore",
@@ -61,20 +59,11 @@ class INFO_MT_curve_extras_add(bpy.types.Menu):
         layout.operator("curve.torus_knot_plus",
             text="Torus Knot Plus")
 
-
-# Register all operators and panels
-
-# Define "Extras" menu
-def menu_func(self, context):
-    self.layout.menu("INFO_MT_curve_extra_objects_add", icon="PLUGIN")
-
-
 def register():
     bpy.utils.register_module(__name__)
 
     # Add "Extras" menu to the "Add Curve" menu
     bpy.types.INFO_MT_curve_add.append(menu_func)
-
 
 def unregister():
     bpy.utils.unregister_module(__name__)
