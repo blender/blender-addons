@@ -29,7 +29,8 @@ bl_info = {
 
 
 import bpy
-from bpy.types import Menu
+from bpy.types import Menu, Operator
+from bpy.props import EnumProperty
 
 
 class VIEW3D_PIE_object_mode(Menu):
@@ -71,6 +72,27 @@ class VIEW3D_PIE_shade(Menu):
                 pie.operator("OBJECT_OT_shade_flat")
 
 
+class VIEW3D_manipulator_set(Operator):
+    bl_label = "Set Manipulator"
+    bl_idname = "view3d.manipulator_set"
+
+    type = EnumProperty(
+            name="Type",
+            items=(('TRANSLATE', "Translate", "Use the manipulator for movement transformations"),
+                   ('ROTATE', "Rotate", "Use the manipulator for rotation transformations"),
+                   ('SCALE', "Scale", "Use the manipulator for scale transformations"),
+                  ),
+        )
+
+    def execute(self, context):
+        #show manipulator if user selects an option
+        context.space_data.show_manipulator = True
+
+        context.space_data.transform_manipulators = {self.type}
+
+        return {'FINISHED'}
+
+
 class VIEW3D_PIE_manipulator(Menu):
     bl_label = "Manipulator"
 
@@ -78,7 +100,9 @@ class VIEW3D_PIE_manipulator(Menu):
         layout = self.layout
 
         pie = layout.menu_pie()
-        pie.prop(context.space_data, "transform_manipulators", expand=True)
+        pie.operator("view3d.manipulator_set", icon='MAN_TRANS', text="Translate").type = 'TRANSLATE'
+        pie.operator("view3d.manipulator_set", icon='MAN_ROT', text="Rotate").type = 'ROTATE'
+        pie.operator("view3d.manipulator_set", icon='MAN_SCALE', text="Scale").type = 'SCALE'
         pie.prop(context.space_data, "show_manipulator")
 
 
@@ -110,7 +134,9 @@ addon_keymaps = []
 
 
 def register():
-    #register menus first
+    bpy.utils.register_class(VIEW3D_manipulator_set)
+
+    #register menus
     bpy.utils.register_class(VIEW3D_PIE_object_mode)
     bpy.utils.register_class(VIEW3D_PIE_view)
     bpy.utils.register_class(VIEW3D_PIE_shade)
@@ -138,6 +164,8 @@ def register():
 
 
 def unregister():
+    bpy.utils.unregister_class(VIEW3D_manipulator_set)
+
     bpy.utils.unregister_class(VIEW3D_PIE_object_mode)
     bpy.utils.unregister_class(VIEW3D_PIE_view)
     bpy.utils.unregister_class(VIEW3D_PIE_shade)
