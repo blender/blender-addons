@@ -20,7 +20,7 @@ bl_info = {
     "name": "Add Chain",
     "author": "Brian Hinton (Nichod)",
     "version": (0, 1, 1),
-    "blender": (2, 68, 0),
+    "blender": (2, 71, 0),
     "location": "View3D > Add > Mesh",
     "description": "Adds Chain with curve guide for easy creation",
     "warning": "",
@@ -30,7 +30,7 @@ bl_info = {
 }
 
 import bpy
-
+from bpy.types import Operator, Panel
 
 def Add_Chain():
     ##Adds Empty to scene
@@ -137,36 +137,36 @@ def Add_Chain():
     ##Change Curve Modifier Parameters
     cur.object = curv
 
-#makes AddChain an operator
 class AddChain(bpy.types.Operator):
     """Add a Chain"""
     bl_idname = "mesh.primitive_chain_add"
     bl_label = "Add Chain"
     bl_options = {'REGISTER', 'UNDO'}
 
-
     def execute(self, context):
         Add_Chain()
 
         return {'FINISHED'}
 
-# Register the operator
-def menu_func(self, context):
-    self.layout.operator(AddChain.bl_idname, text="Chain", icon='PLUGIN')
+class add_chain(Panel):
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'TOOLS'
+    bl_category = 'Create'
+    bl_label = "Add Chain"
+    bl_context = "objectmode"
+    bl_options = {'DEFAULT_CLOSED'}
 
+    def draw(self, context):
+        layout = self.layout
+        layout.operator(AddChain.bl_idname, text="Chain")
 
 def register():
     bpy.utils.register_module(__name__)
-
-    # Add "Chain" menu to the "Add Mesh" menu.
-    bpy.types.INFO_MT_mesh_add.append(menu_func)
-
+    pass
 
 def unregister():
     bpy.utils.unregister_module(__name__)
-
-    # Remove "Chain" menu from the "Add Mesh" menu.
-    bpy.types.INFO_MT_mesh_add.remove(menu_func)
+    pass
 
 if __name__ == "__main__":
     register()
