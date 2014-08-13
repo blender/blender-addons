@@ -19,7 +19,7 @@
 bl_info = {
     "name": "Node Wrangler (aka Nodes Efficiency Tools)",
     "author": "Bartek Skorupa, Greg Zaal",
-    "version": (3, 10),
+    "version": (3, 11),
     "blender": (2, 71, 0),
     "location": "Node Editor Properties Panel or Ctrl-Space",
     "description": "Various tools to enhance and speed up node-based workflow",
@@ -337,8 +337,8 @@ blend_types = [
 # used list, not tuple for easy merging with other lists.
 operations = [
     ('ADD', 'Add', 'Add Mode'),
-    ('MULTIPLY', 'Multiply', 'Multiply Mode'),
     ('SUBTRACT', 'Subtract', 'Subtract Mode'),
+    ('MULTIPLY', 'Multiply', 'Multiply Mode'),
     ('DIVIDE', 'Divide', 'Divide Mode'),
     ('SINE', 'Sine', 'Sine Mode'),
     ('COSINE', 'Cosine', 'Cosine Mode'),
@@ -353,6 +353,8 @@ operations = [
     ('ROUND', 'Round', 'Round Mode'),
     ('LESS_THAN', 'Less Than', 'Less Than Mode'),
     ('GREATER_THAN', 'Greater Than', 'Greater Than Mode'),
+    ('MODULO', 'Modulo', 'Modulo Mode'),
+    ('ABSOLUTE', 'Absolute', 'Absolute Mode'),
 ]
 
 # in NWBatchChangeNodes additional types/operations. Can be used as 'items' for EnumProperty.
