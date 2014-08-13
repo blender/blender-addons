@@ -146,21 +146,22 @@ def register():
 
     wm = bpy.context.window_manager
 
-    km = wm.keyconfigs.addon.keymaps.new(name='Object Non-modal')
-    kmi = km.keymap_items.new('wm.call_menu_pie', 'TAB', 'PRESS')
-    kmi.properties.name = 'VIEW3D_PIE_object_mode'
-    kmi = km.keymap_items.new('wm.call_menu_pie', 'Z', 'PRESS')
-    kmi.properties.name = 'VIEW3D_PIE_shade'
-    kmi = km.keymap_items.new('wm.call_menu_pie', 'Q', 'PRESS')
-    kmi.properties.name = 'VIEW3D_PIE_view'
-    kmi = km.keymap_items.new('wm.call_menu_pie', 'SPACE', 'PRESS', ctrl=True)
-    kmi.properties.name = 'VIEW3D_PIE_manipulator'
-    kmi = km.keymap_items.new('wm.call_menu_pie', 'PERIOD', 'PRESS')
-    kmi.properties.name = 'VIEW3D_PIE_pivot'
-    kmi = km.keymap_items.new('wm.call_menu_pie', 'COMMA', 'PRESS')
-    kmi.properties.name = 'VIEW3D_PIE_snap'
+    if wm.keyconfigs.addon:
+        km = wm.keyconfigs.addon.keymaps.new(name='Object Non-modal')
+        kmi = km.keymap_items.new('wm.call_menu_pie', 'TAB', 'PRESS')
+        kmi.properties.name = 'VIEW3D_PIE_object_mode'
+        kmi = km.keymap_items.new('wm.call_menu_pie', 'Z', 'PRESS')
+        kmi.properties.name = 'VIEW3D_PIE_shade'
+        kmi = km.keymap_items.new('wm.call_menu_pie', 'Q', 'PRESS')
+        kmi.properties.name = 'VIEW3D_PIE_view'
+        kmi = km.keymap_items.new('wm.call_menu_pie', 'SPACE', 'PRESS', ctrl=True)
+        kmi.properties.name = 'VIEW3D_PIE_manipulator'
+        kmi = km.keymap_items.new('wm.call_menu_pie', 'PERIOD', 'PRESS')
+        kmi.properties.name = 'VIEW3D_PIE_pivot'
+        kmi = km.keymap_items.new('wm.call_menu_pie', 'COMMA', 'PRESS')
+        kmi.properties.name = 'VIEW3D_PIE_snap'
 
-    addon_keymaps.append(km)
+        addon_keymaps.append(km)
 
 
 def unregister():
@@ -174,11 +175,13 @@ def unregister():
     bpy.utils.unregister_class(VIEW3D_PIE_snap)
 
     wm = bpy.context.window_manager
-    for km in addon_keymaps:
-        for kmi in km.keymap_items:
-            km.keymap_items.remove(kmi)
 
-        wm.keyconfigs.addon.keymaps.remove(km)
+    if wm.keyconfigs.addon:
+        for km in addon_keymaps:
+            for kmi in km.keymap_items:
+                km.keymap_items.remove(kmi)
+
+            wm.keyconfigs.addon.keymaps.remove(km)
 
     # clear the list
     del addon_keymaps[:]
