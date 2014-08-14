@@ -927,7 +927,7 @@ class ObjectWrapper(metaclass=MetaObjectWrapper):
         # NOTE: Only applies to object types supporting this!!! Currently, only meshes and the like...
         # TODO: Check whether this can work for bones too...
         return (scene_data.settings.bake_space_transform and self._tag in {'OB', 'DP'} and
-                self.bdata.type in BLENDER_OBJECT_TYPES_MESHLIKE)
+                self.bdata.type in BLENDER_OBJECT_TYPES_MESHLIKE | {'EMPTY'})
 
     def fbx_object_matrix(self, scene_data, rest=False, local_space=False, global_space=False):
         """
