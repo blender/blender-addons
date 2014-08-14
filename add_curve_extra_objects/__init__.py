@@ -51,7 +51,7 @@ class INFO_MT_curve_extras_add(bpy.types.Menu):
     def draw(self, context):
         layout = self.layout
         layout.operator_context = 'INVOKE_REGION_WIN'
-        layout.operator("mesh.curveaceous_galor e",
+        layout.operator("mesh.curveaceous_galore",
             text="Curves Galore!")
         layout.operator("curve.spirals",
             text="Spirals")

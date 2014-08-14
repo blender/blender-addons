@@ -21,7 +21,7 @@ bl_info = {
     "author": "Brian Hinton (Nichod)",
     "version": (0, 1, 1),
     "blender": (2, 71, 0),
-    "location": "View3D > Add > Mesh",
+    "location": "Toolshelf > Create Tab",
     "description": "Adds Chain with curve guide for easy creation",
     "warning": "",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"

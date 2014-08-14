@@ -25,8 +25,8 @@ bl_info = {
     "name": "3D Navigation",
     "author": "Demohero, uriel",
     "version": (1, 2),
-    "blender": (2, 57, 0),
-    "location": "View3D > Tool Shelf > 3D Nav",
+    "blender": (2, 71, 0),
+    "location": "View3D > Tool Shelf > 3D Navigation Tab",
     "description": "Navigate the Camera & 3D View from the Toolshelf",
     "warning": "",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"

@@ -22,8 +22,8 @@ bl_info = {
     "name": "Layer Management",
     "author": "Alfonso Annarumma",
     "version": (1, 5, 1),
-    "blender": (2, 70, 0),
-    "location": "View3D > Properties panel > Layer Management",
+    "blender": (2, 71, 0),
+    "location": "Toolshelf > Layers Tab",
     "warning": "",
     "description": "Display and Edit Layer Name",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts/3D_interaction/layer_manager",
@@ -510,7 +510,7 @@ class SCENE_UL_namedlayer_groups(UIList):
 class SCENE_PT_namedlayer_groups(bpy.types.Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'TOOLS'
-    bl_category = "Layer"
+    bl_category = "Layers"
     bl_label = "Layer Groups"
     bl_options = {'DEFAULT_CLOSED'}
 
