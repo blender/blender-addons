@@ -61,8 +61,8 @@ class INFO_MT_curve_extras_add(bpy.types.Menu):
 def menu_func(self, context):
     self.layout.operator("mesh.curveaceous_galore",
             text="Curves Galore!")
-    self.layout.operator("curve.spirals",
-            text="Spirals")
+    self.layout.operator("curve.torus_knot_plus",
+            text="Torus Knot Plus")
     self.layout.operator("curve.spirals",
             text="Spirals")
 
