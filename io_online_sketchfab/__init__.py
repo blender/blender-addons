@@ -364,6 +364,7 @@ class SketchfabProps(bpy.types.PropertyGroup):
             name="Password",
             description="Password-protect your model (requires a pro account)",
             default="",
+            subtype="PASSWORD"
             )
     tags = StringProperty(
             name="Tags",
@@ -380,6 +381,7 @@ class SketchfabProps(bpy.types.PropertyGroup):
             description="You can find this on your dashboard at the Sketchfab website",
             default="",
             update=update_token,
+            subtype="PASSWORD"
             )
 
 
