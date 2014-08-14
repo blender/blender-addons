@@ -48,16 +48,23 @@ class INFO_MT_curve_extras_add(bpy.types.Menu):
     bl_idname = "curve_extra_objects_add"
     bl_label = "Extra Objects"
 
-# Define "Extras" menu
-def menu_func(self, context):
+    def draw(self, context):
         layout = self.layout
         layout.operator_context = 'INVOKE_REGION_WIN'
-        layout.operator("mesh.curveaceous_galore",
+        layout.operator("mesh.curveaceous_galor e",
             text="Curves Galore!")
         layout.operator("curve.spirals",
             text="Spirals")
         layout.operator("curve.torus_knot_plus",
             text="Torus Knot Plus")
+# Define "Extras" menu
+def menu_func(self, context):
+    self.layout.operator("mesh.curveaceous_galore",
+            text="Curves Galore!")
+    self.layout.operator("curve.spirals",
+            text="Spirals")
+    self.layout.operator("curve.spirals",
+            text="Spirals")
 
 def register():
     bpy.utils.register_module(__name__)
