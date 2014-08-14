@@ -649,7 +649,7 @@ def fbx_data_camera_elements(root, cam_obj, scene_data):
     elem_props_template_set(tmpl, props, "p_color", b"BackgroundColor", (0.0, 0.0, 0.0))
     elem_props_template_set(tmpl, props, "p_bool", b"DisplayTurnTableIcon", True)
 
-    elem_props_template_set(tmpl, props, "p_double", b"AspectRatioMode", 1.0)  # FixedRatio
+    elem_props_template_set(tmpl, props, "p_enum", b"AspectRatioMode", 2)  # FixedResolution
     elem_props_template_set(tmpl, props, "p_double", b"AspectWidth", float(render.resolution_x))
     elem_props_template_set(tmpl, props, "p_double", b"AspectHeight", float(render.resolution_y))
     elem_props_template_set(tmpl, props, "p_double", b"PixelAspectRatio",

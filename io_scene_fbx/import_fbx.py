@@ -1355,9 +1355,13 @@ def blen_read_camera(fbx_tmpl, fbx_obj, global_scale):
 
     camera = bpy.data.cameras.new(name=elem_name_utf8)
 
+    camera.type = 'ORTHO' if elem_props_get_enum(fbx_props, b'CameraProjectionType', 0) == 1 else 'PERSP'
+
     camera.lens = elem_props_get_number(fbx_props, b'FocalLength', 35.0)
     camera.sensor_width = elem_props_get_number(fbx_props, b'FilmWidth', 32.0 * M2I) / M2I
     camera.sensor_height = elem_props_get_number(fbx_props, b'FilmHeight', 32.0 * M2I) / M2I
+
+    camera.ortho_scale = elem_props_get_number(fbx_props, b'OrthoZoom', 1.0)
 
     filmaspect = camera.sensor_width / camera.sensor_height
     # film offset
