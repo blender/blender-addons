@@ -256,13 +256,14 @@ def register():
 
     # Keymapping (deactivated by default; activated when a library object is selected)
     kc = bpy.context.window_manager.keyconfigs.addon
-    km = kc.keymaps.new(name="3D View", space_type='VIEW_3D')
-    kmi = km.keymap_items.new("object.edit_linked", 'NUMPAD_SLASH', 'PRESS', shift=True)
-    kmi.active = True
-    addon_keymaps.append((km, kmi))
-    kmi = km.keymap_items.new("wm.return_to_original", 'NUMPAD_SLASH', 'PRESS', shift=True)
-    kmi.active = True
-    addon_keymaps.append((km, kmi))
+    if kc:  # don't register keymaps from command line
+        km = kc.keymaps.new(name="3D View", space_type='VIEW_3D')
+        kmi = km.keymap_items.new("object.edit_linked", 'NUMPAD_SLASH', 'PRESS', shift=True)
+        kmi.active = True
+        addon_keymaps.append((km, kmi))
+        kmi = km.keymap_items.new("wm.return_to_original", 'NUMPAD_SLASH', 'PRESS', shift=True)
+        kmi.active = True
+        addon_keymaps.append((km, kmi))
 
 
 def unregister():
