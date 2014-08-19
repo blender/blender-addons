@@ -101,10 +101,10 @@ class TexAtl_Main(Panel):
         # Resolution and Unwrap types (only if Lightmap group is added)
         if context.scene.ms_lightmap_groups:
             group = scene.ms_lightmap_groups[scene.ms_lightmap_groups_index]
-            row.prop(group, 'resolutionX', text='X')
-            row.prop(group, 'resolutionY', text='Y')
+            row.label(text="Resolutiom:")
+            row.prop(group, 'resolutionX', text='')
+            row.prop(group, 'resolutionY', text='')
             row = self.layout.row()
-            row.prop(group, 'unwrap_type', text='Lightmap', expand=True)
             #self.layout.separator()
 
             row = self.layout.row()
@@ -120,13 +120,15 @@ class TexAtl_Main(Panel):
             row.operator("scene.ms_select_group",
                          text="SelectGroup", icon="GROUP")
 
-            self.layout.separator()
+            #self.layout.separator()
+            self.layout.label(text="Autounwrap:")
+            self.layout.prop(group, 'unwrap_type', text='Lightmap', expand=True)
             row = self.layout.row()
             row.operator(
                 "object.ms_auto", text="Auto Unwrap", icon="LAMP_SPOT")
             row.prop(group, 'autoUnwrapPrecision', text='')
-            self.layout.separator()
 
+            self.layout.label(text="Autounwrap:")
             row = self.layout.row()
             row.operator(
                 "object.ms_run", text="StartManualUnwrap", icon="LAMP_SPOT")
