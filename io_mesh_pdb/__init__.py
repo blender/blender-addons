@@ -24,7 +24,7 @@
 #
 #  Start of project              : 2011-08-31 by Clemens Barth
 #  First publication in Blender  : 2011-11-11
-#  Last modified                 : 2013-04-04
+#  Last modified                 : 2014-08-19
 #
 #  Acknowledgements
 #  ================
@@ -33,15 +33,13 @@
 #  Other  : Frank Palmino
 #
 #
-#  To do: 1. Sticks in normal representation: options bonds and colors
-#
 
 bl_info = {
     "name": "Atomic Blender - PDB",
     "description": "Loading and manipulating atoms from PDB files",
     "author": "Clemens Barth",
     "version": (1, 7),
-    "blender": (2, 60, 0),
+    "blender": (2, 71, 0),
     "location": "File -> Import -> PDB (.pdb)",
     "warning": "",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
