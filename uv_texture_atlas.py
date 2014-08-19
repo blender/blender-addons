@@ -121,14 +121,14 @@ class TexAtl_Main(Panel):
                          text="SelectGroup", icon="GROUP")
 
             #self.layout.separator()
-            self.layout.label(text="Autounwrap:")
+            self.layout.label(text="Auto Unwrap:")
             self.layout.prop(group, 'unwrap_type', text='Lightmap', expand=True)
             row = self.layout.row()
             row.operator(
                 "object.ms_auto", text="Auto Unwrap", icon="LAMP_SPOT")
             row.prop(group, 'autoUnwrapPrecision', text='')
 
-            self.layout.label(text="Autounwrap:")
+            self.layout.label(text="Manual Unwrap:")
             row = self.layout.row()
             row.operator(
                 "object.ms_run", text="StartManualUnwrap", icon="LAMP_SPOT")
