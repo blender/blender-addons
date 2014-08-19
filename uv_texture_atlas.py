@@ -101,27 +101,32 @@ class TexAtl_Main(Panel):
         # Resolution and Unwrap types (only if Lightmap group is added)
         if context.scene.ms_lightmap_groups:
             group = scene.ms_lightmap_groups[scene.ms_lightmap_groups_index]
-            row.prop(group, 'resolution', text='Resolution', expand=True)
+            row.prop(group, 'resolutionX', text='X')
+            row.prop(group, 'resolutionY', text='Y')
             row = self.layout.row()
             row.prop(group, 'unwrap_type', text='Lightmap', expand=True)
-            row = self.layout.row()
+            #self.layout.separator()
 
             row = self.layout.row()
             row.operator("scene.ms_remove_other_uv",
                          text="RemoveOtherUVs", icon="GROUP")
             row.operator("scene.ms_remove_selected",
                          text="RemoveSelected", icon="GROUP")
-            row = self.layout.row()
-            row = self.layout.row()
+            #self.layout.separator()
+
             row = self.layout.row()
             row.operator("scene.ms_add_selected_to_group",
                          text="AddSelected", icon="GROUP")
             row.operator("scene.ms_select_group",
                          text="SelectGroup", icon="GROUP")
 
+            self.layout.separator()
             row = self.layout.row()
             row.operator(
                 "object.ms_auto", text="Auto Unwrap", icon="LAMP_SPOT")
+            row.prop(group, 'autoUnwrapPrecision', text='')
+            self.layout.separator()
+
             row = self.layout.row()
             row.operator(
                 "object.ms_run", text="StartManualUnwrap", icon="LAMP_SPOT")
@@ -154,9 +159,10 @@ class TexAtl_RunAuto(Operator):
             isAllObjVisible = check_all_objects_visible(self, context)
 
             if isAllObjVisible is True:
-                res = int(group.resolution)
+                resX = int(group.resolutionX)
+                resY = int(group.resolutionY)
                 bpy.ops.object.ms_create_lightmap(
-                    group_name=group.name, resolution=res)
+                    group_name=group.name, resolutionX=resX, resolutionY=resY)
                 bpy.ops.object.ms_merge_objects(
                     group_name=group.name, unwrap=True)
                 bpy.ops.object.ms_separate_objects(group_name=group.name)
@@ -197,9 +203,10 @@ class TexAtl_RunStart(Operator):
             elif isAllObjVisible is False:
                 self.report({'INFO'}, "Not All Objects Are Visible!!!")
             else:
-                res = int(group.resolution)
+                resX = int(group.resolutionX)
+                resY = int(group.resolutionY)
                 bpy.ops.object.ms_create_lightmap(
-                    group_name=group.name, resolution=res)
+                    group_name=group.name, resolutionX=resX, resolutionY=resY)
                 bpy.ops.object.ms_merge_objects(
                     group_name=group.name, unwrap=False)
 
@@ -265,8 +272,8 @@ class TexAtl_MSLightmapGroups(PropertyGroup):
                ('2', 'No_Unwrap', 'No_Unwrap'),
                ),
     )
-    resolution = EnumProperty(
-        name="resolution",
+    resolutionX = EnumProperty(
+        name="resolutionX",
         items=(('256', '256', ''),
                ('512', '512', ''),
                ('1024', '1024', ''),
@@ -275,6 +282,25 @@ class TexAtl_MSLightmapGroups(PropertyGroup):
                ('8192', '8192', ''),
                ('16384', '16384', ''),
                ),
+        default='1024'
+    )
+    resolutionY = EnumProperty(
+        name="resolutionY",
+        items=(('256', '256', ''),
+               ('512', '512', ''),
+               ('1024', '1024', ''),
+               ('2048', '2048', ''),
+               ('4096', '4096', ''),
+               ('8192', '8192', ''),
+               ('16384', '16384', ''),
+               ),
+        default='1024'
+    )
+    autoUnwrapPrecision = FloatProperty(
+        name="autoUnwrapPrecision",
+        default=0.01,
+        min=0.001,
+        max=10
     )
     template_list_controls = StringProperty(
         default="bake",
@@ -434,7 +460,7 @@ class TexAtl_AddLightmapGroup(Operator):
 
         item = scene.ms_lightmap_groups.add()
         item.name = obj_group.name
-        item.resolution = '1024'
+        #item.resolution = '1024'
         scene.ms_lightmap_groups_index = len(scene.ms_lightmap_groups) - 1
 
         # Add selested objects to group
@@ -486,7 +512,8 @@ class TexAtl_CreateLightmap(Operator):
     bl_description = "Generates a Lightmap"
 
     group_name = StringProperty(default='')
-    resolution = IntProperty(default=1024)
+    resolutionX = IntProperty(default=1024)
+    resolutionY = IntProperty(default=1024)
 
     def execute(self, context):
         scene = context.scene
@@ -495,11 +522,11 @@ class TexAtl_CreateLightmap(Operator):
         image = bpy.data.images.get(self.group_name)
         if image is None:
             image = bpy.data.images.new(
-                name=self.group_name, width=self.resolution, height=self.resolution)
+                name=self.group_name, width=self.resolutionX, height=self.resolutionY)
 
         image.generated_type = 'COLOR_GRID'
-        image.generated_width = self.resolution
-        image.generated_height = self.resolution
+        image.generated_width = self.resolutionX
+        image.generated_height = self.resolutionY
         obj_group = bpy.data.groups[self.group_name]
 
         # non MESH objects for removal list
@@ -656,18 +683,20 @@ class TexAtl_MergeObjects(Operator):
         bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
 
         if self.unwrap is True:
-            unwrapType = scene.ms_lightmap_groups[self.group_name].unwrap_type
+            groupProps = scene.ms_lightmap_groups[self.group_name]
+            unwrapType = groupProps.unwrap_type
 
             if unwrapType == '0' or unwrapType == '1':
                 bpy.ops.object.mode_set(mode='EDIT')
 
             if unwrapType == '0':
+
                 bpy.ops.uv.smart_project(
-                    angle_limit=72.0, island_margin=0.2, user_area_weight=0.0)
+                    angle_limit=72.0, island_margin=groupProps.autoUnwrapPrecision, user_area_weight=0.0)
             elif unwrapType == '1':
                 bpy.ops.uv.lightmap_pack(
                     PREF_CONTEXT='ALL_FACES', PREF_PACK_IN_ONE=True, PREF_NEW_UVLAYER=False,
-                    PREF_APPLY_IMAGE=False, PREF_IMG_PX_SIZE=1024, PREF_BOX_DIV=48, PREF_MARGIN_DIV=0.2)
+                    PREF_APPLY_IMAGE=False, PREF_IMG_PX_SIZE=1024, PREF_BOX_DIV=48, PREF_MARGIN_DIV=groupProps.autoUnwrapPrecision)
             bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
 
         return{'FINISHED'}
