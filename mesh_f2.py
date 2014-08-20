@@ -384,10 +384,11 @@ def register():
         bpy.utils.register_class(c)
 
     # add keymap entry
-    km = bpy.context.window_manager.keyconfigs.addon.keymaps.new(\
-        name='Mesh', space_type='EMPTY')
-    kmi = km.keymap_items.new("mesh.f2", 'F', 'PRESS')
-    addon_keymaps.append((km, kmi))
+    kcfg = bpy.context.window_manager.keyconfigs.addon
+    if kcfg:
+        km = kcfg.keymaps.new(name='Mesh', space_type='EMPTY')
+        kmi = km.keymap_items.new("mesh.f2", 'F', 'PRESS')
+        addon_keymaps.append((km, kmi))
 
 
 def unregister():
