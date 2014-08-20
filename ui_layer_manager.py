@@ -368,7 +368,7 @@ class SCENE_PT_namedlayer_layers(bpy.types.Panel):
     bl_region_type = 'TOOLS'
     bl_label = "Layer Management"
     bl_options = {'DEFAULT_CLOSED'}
-    bl_category = "Layer"
+    bl_category = "Layers"
 
     @classmethod
     def poll(self, context):
