@@ -19,7 +19,7 @@
 bl_info = {
     "name": "Node Wrangler (aka Nodes Efficiency Tools)",
     "author": "Bartek Skorupa, Greg Zaal",
-    "version": (3, 12),
+    "version": (3, 13),
     "blender": (2, 71, 0),
     "location": "Node Editor Properties Panel or Ctrl-Space",
     "description": "Various tools to enhance and speed up node-based workflow",
@@ -1442,8 +1442,8 @@ class NWEmissionViewer(Operator, NWBase):
                         make_links.append((active.outputs[out_i], emission.inputs[0]))
                         make_links.append((emission.outputs[0], materialout.inputs[0]))
                     else:
-                        make_links.append((active.outputs[out_i], materialout.inputs[0]))
-                        # output type is 'SHADER', no Viewer needed. Delete Viewer if exists.
+                        # Output type is 'SHADER', no Viewer needed. Delete Viewer if exists.
+                        make_links.append((active.outputs[out_i], materialout.inputs[1 if active.outputs[out_i].name == "Volume" else 0]))
                         for node in nodes:
                             if node.name == 'Emission Viewer':
                                 node.select = True
