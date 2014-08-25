@@ -19,7 +19,7 @@
 bl_info = {
     "name": "Node Wrangler (aka Nodes Efficiency Tools)",
     "author": "Bartek Skorupa, Greg Zaal",
-    "version": (3, 11),
+    "version": (3, 12),
     "blender": (2, 71, 0),
     "location": "Node Editor Properties Panel or Ctrl-Space",
     "description": "Various tools to enhance and speed up node-based workflow",
@@ -36,6 +36,7 @@ from bpy_extras.io_utils import ImportHelper
 from mathutils import Vector
 from math import cos, sin, pi, hypot
 from os import listdir
+from glob import glob
 
 #################
 # rl_outputs:
@@ -2774,39 +2775,31 @@ class NWAddSequence(Operator, ImportHelper):
             self.report({'ERROR'}, "Unsupported Node Tree type!")
             return {'CANCELLED'}
 
-        # if last digit isn't a number, it's not a sequence
         without_ext = '.'.join(filename.split('.')[:-1])
+
+        # if last digit isn't a number, it's not a sequence
         if without_ext[-1].isdigit():
             without_ext = without_ext[:-1] + '1'
         else:
             self.report({'ERROR'}, filename+" does not seem to be part of a sequence")
             return {'CANCELLED'}
 
-        reverse = without_ext[::-1] # reverse string
-        newreverse = ""
-        non_numbers = ""
-        count_numbers = 0
-        stop = False
-        for char in reverse:
-            if char.isdigit() and stop==False:
-                count_numbers += 1
-                newreverse += '0'  # replace numbers of image sequence with zeros
-            else:
-                stop = True
-                newreverse += char
-                non_numbers = char + non_numbers
 
-        newreverse = '1' + newreverse[1:]
-        without_ext = newreverse[::-1] # reverse string
-
-        # print (without_ext+'.'+filename.split('.')[-1])
-        # print (non_numbers)
         extension = filename.split('.')[-1]
+        reverse = without_ext[::-1] # reverse string
 
-        num_frames = len(list(f for f in listdir(directory) if f.startswith(non_numbers)))
+        count_numbers = 0
+        for char in reverse:
+            if char.isdigit():
+                count_numbers += 1
+            else:
+                break
 
-        for x in range(count_numbers):
-            non_numbers += '#'
+        without_num = without_ext[:count_numbers*-1]
+
+        files = sorted(glob(directory + without_num + "[0-9]"*count_numbers + "." + extension))
+
+        num_frames = len(files)
 
         nodes_list = [node for node in nodes]
         if nodes_list:
@@ -2821,14 +2814,18 @@ class NWAddSequence(Operator, ImportHelper):
             xloc = 0
             yloc = 0
 
+        name_with_hashes = without_num + "#"*count_numbers + '.' + extension
+
         node = nodes.new(node_type)
         node.location.x = xloc
         node.location.y = yloc + 110
-        node.label = non_numbers+'.'+extension
+        node.label = name_with_hashes
 
         img = bpy.data.images.load(directory+(without_ext+'.'+extension))
         img.source = 'SEQUENCE'
+        img.name = name_with_hashes
         node.image = img
+        node.frame_offset = int(files[0][len(without_num)+len(directory):-1*(len(extension)+1)]) - 1  # separate the number from the file name of the first  file
         if context.space_data.node_tree.type == 'SHADER':
             node.image_user.frame_duration = num_frames
         else:
