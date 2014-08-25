@@ -19,8 +19,8 @@
 bl_info = {
     "name": "Export Pointcache Format(.pc2)",
     "author": "Florian Meyer (tstscr)",
-    "version": (1, 0),
-    "blender": (2, 57, 0),
+    "version": (1, 1),
+    "blender": (2, 71, 0),
     "location": "File > Export > Pointcache (.pc2)",
     "description": "Export mesh Pointcache data (.pc2)",
     "warning": "",
@@ -41,16 +41,17 @@ cacheFile -pc2 1 -pcf "<insert filepath of source>" -f "<insert target filename 
 """
 
 import bpy
-from bpy.props import *
-import mathutils, math, struct
-from os import remove
-import time
+from bpy.props import BoolProperty, IntProperty, EnumProperty
+import mathutils
 from bpy_extras.io_utils import ExportHelper
 
-def getSampling(start, end, sampling):
-    samples = [start + x * sampling
-               for x in range(int((end - start) / sampling) + 1)]
-    return samples
+from os import remove
+import time
+import math
+import struct
+
+def get_sampled_frames(start, end, sampling):
+    return [math.modf(start + x * sampling) for x in range(int((end - start) / sampling) + 1)]
 
 def do_export(context, props, filepath):
     mat_x90 = mathutils.Matrix.Rotation(-math.pi/2, 4, 'X')
@@ -62,7 +63,7 @@ def do_export(context, props, filepath):
     apply_modifiers = props.apply_modifiers
     me = ob.to_mesh(sc, apply_modifiers, 'PREVIEW')
     vertCount = len(me.vertices)
-    sampletimes = getSampling(start, end, sampling)
+    sampletimes = get_sampled_frames(start, end, sampling)
     sampleCount = len(sampletimes)
 
     # Create the header
@@ -74,7 +75,7 @@ def do_export(context, props, filepath):
     file.write(headerStr)
 
     for frame in sampletimes:
-        sc.frame_set(frame)
+        sc.frame_set(int(frame[1]), frame[0])  # stupid modf() gives decimal part first!
         me = ob.to_mesh(sc, apply_modifiers, 'PREVIEW')
 
         if len(me.vertices) != vertCount:
