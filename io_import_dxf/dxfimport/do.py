@@ -80,12 +80,12 @@ class Indicator:
     euclidean = False
 
     def __init__(self, i):
-        if i == "spherical":
+        if i.upper() == "SPHERICAL":
             self.spherical = True
-        elif i == "euclidean":
+        elif i.upper() == "EUCLIDEAN":
             self.euclidean = True
         else:
-            raise AttributeError("Indication must be 'spherical' or 'planar'.")
+            raise AttributeError("Indication must be 'spherical' or 'euclidean'. Given: " + str(i))
 
 
 class Do:

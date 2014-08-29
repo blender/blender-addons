@@ -155,9 +155,14 @@ def _update_use_georeferencing_do(self, context):
 
 def _recenter_allowed(self):
     scene = bpy.context.scene
-    return (not (self.use_georeferencing and (self.proj_scene == 'TMERC'
-                 or (not self.create_new_scene and is_ref_scene(scene))))
-            or (not PYPROJ and self.dxf_indi == "EUCLIDEAN"))
+    conditional_requirement = self.proj_scene == 'TMERC' if PYPROJ else self.dxf_indi == "SPHERICAL"
+    return not (
+                    self.use_georeferencing and
+                    (
+                        conditional_requirement or
+                        (not self.create_new_scene and is_ref_scene(scene))
+                    )
+                    )
 
 
 def _set_recenter(self, value):
@@ -410,7 +415,9 @@ class IMPORT_OT_dxf(bpy.types.Operator):
         sub.enabled = not _recenter_allowed(self)
         sub.label("Geo Reference:")
         sub = box.column()
-        sub.enabled = not _recenter_allowed(self) and self.create_new_scene
+        sub.enabled = not _recenter_allowed(self)
+        if is_ref_scene(bpy.context.scene):
+            sub.enabled = False
         sub.prop(self, "merc_scene_lat", text="Lat")
         sub.prop(self, "merc_scene_lon", text="Lon")
 
