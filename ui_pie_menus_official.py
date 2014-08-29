@@ -158,7 +158,7 @@ def register():
         kmi.properties.name = 'VIEW3D_PIE_manipulator'
         kmi = km.keymap_items.new('wm.call_menu_pie', 'PERIOD', 'PRESS')
         kmi.properties.name = 'VIEW3D_PIE_pivot'
-        kmi = km.keymap_items.new('wm.call_menu_pie', 'COMMA', 'PRESS')
+        kmi = km.keymap_items.new('wm.call_menu_pie', 'TAB', 'PRESS', ctrl=True, shift=True)
         kmi.properties.name = 'VIEW3D_PIE_snap'
 
         addon_keymaps.append(km)
