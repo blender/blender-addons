@@ -244,7 +244,7 @@ class AddTree(bpy.types.Operator):
         size=4, update=update_tree)
     scale = FloatProperty(name='Scale',
         description='The tree scale (Scale)',
-        min=0.0,
+        min=0.001,
         default=13.0, update=update_tree)
     scaleV = FloatProperty(name='Scale Variation',
         description='The variation in the tree scale (ScaleV)',
