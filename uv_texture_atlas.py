@@ -80,7 +80,7 @@ class TexAtl_Main(Panel):
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = "render"
-    COMPAT_ENGINES = {'BLENDER_RENDER'}
+    bl_options = {'DEFAULT_CLOSED'}
 
     def draw(self, context):
         scene = context.scene
