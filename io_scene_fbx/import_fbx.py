@@ -2018,7 +2018,8 @@ def load(operator, context, filepath="",
                     continue
                 lnk_prop = n_ctype.props[3]
                 if lnk_prop in {b'Lcl Translation', b'Lcl Rotation', b'Lcl Scaling'}:
-                    ob = fbx_table_nodes[n_uuid][1]
+                    # n_uuid can (????) be linked to root '0' node, instead of a mere object node... See T41712.
+                    ob = fbx_table_nodes.get(n_uuid, (None, None))[1]
                     if ob is None:
                         continue
                     items.append((ob, lnk_prop))
