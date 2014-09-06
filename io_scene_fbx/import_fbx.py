@@ -529,7 +529,8 @@ def blen_read_armatures_add_bone(bl_obj, bl_arm, bones, b_uuid, matrices, fbx_tm
     b_item[1] = bone_name  # since ebo is only valid in Edit mode... :/
 
     # So that our bone gets its final length, but still Y-aligned in armature space.
-    ebo.tail = Vector((0.0, 1.0, 0.0)) * bsize
+    # XXX We now know bsize is not len of bone... but still forbid zero len!
+    ebo.tail = Vector((0.0, 1.0, 0.0)) * max(bsize, 1e-3)
     # And rotate/move it to its final "rest pose".
     ebo.matrix = bmat_arm.normalized()
 
