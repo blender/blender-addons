@@ -498,10 +498,10 @@ def blen_read_armatures_add_bone(bl_obj, bl_arm, bones, b_uuid, matrices, fbx_tm
         mmat_glob = bmat_glob * mmat_bone
 
         # We seek for matrix of bone in armature space...
-        bmat_arm = amat_glob.inverted() * bmat_glob
+        bmat_arm = amat_glob.inverted_safe() * bmat_glob
 
         # Bone correction, works here...
-        bmat_loc = (p_ebo.matrix.inverted() * bmat_arm) if p_ebo else bmat_arm
+        bmat_loc = (p_ebo.matrix.inverted_safe() * bmat_arm) if p_ebo else bmat_arm
         bmat_loc = bmat_loc * MAT_CONVERT_BONE
         bmat_arm = (p_ebo.matrix * bmat_loc) if p_ebo else bmat_loc
     else:
@@ -756,8 +756,8 @@ def blen_read_animations_action_item(action, item, cnodes, force_global, fps, se
             # First, get local (i.e. parentspace) rest pose matrix
             restmat = item.bone.matrix_local
             if item.parent:
-                restmat = item.parent.bone.matrix_local.inverted() * restmat
-            restmat_inv = restmat.inverted()
+                restmat = item.parent.bone.matrix_local.inverted_safe() * restmat
+            restmat_inv = restmat.inverted_safe()
 
         # We assume for now blen init point is frame 1.0, while FBX ktime init point is 0.
         for frame, values in blen_read_animations_curves_iter(fbx_curves, 1.0, 0, fps):
@@ -1970,7 +1970,7 @@ def load(operator, context, filepath="",
                 # Rigged meshes are in global space in FBX...
                 ob_me.matrix_basis = global_matrix * ob_me.matrix_basis
                 # And reverse-apply armature transform, so that it gets valid parented (local) position!
-                ob_me.matrix_parent_inverse = ob_arm.matrix_basis.inverted()
+                ob_me.matrix_parent_inverse = ob_arm.matrix_basis.inverted_safe()
                 force_global_objects.add(ob_me)
     _(); del _
 
