@@ -24,7 +24,7 @@ bl_info = {
     "author": "michaelw",
     "version": (1, 6),
     "blender": (2, 66, 6),
-    "location": "View3D > Q key",
+    "location": "View3D > ctrl-Q key",
     "description": "Menu of material tools (assign, select..)  in the 3D View",
     "warning": "",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
