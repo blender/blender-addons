@@ -624,15 +624,21 @@ def blen_read_geom_array_mapped_vert(
         fbx_layer_data, fbx_layer_index,
         fbx_layer_mapping, fbx_layer_ref,
         stride, item_size, descr,
+        xform=None
         ):
     # TODO, generic mapping apply function
     if fbx_layer_mapping == b'ByVertice':
         if fbx_layer_ref == b'Direct':
             assert(fbx_layer_index is None)
             # TODO, more generic support for mapping types
-            for i, blen_data_item in enumerate(blen_data):
-                setattr(blen_data_item, blend_attr,
-                        fbx_layer_data[(i * stride): (i * stride) + item_size])
+            if xform is None:
+                for i, blen_data_item in enumerate(blen_data):
+                    setattr(blen_data_item, blend_attr,
+                            fbx_layer_data[(i * stride): (i * stride) + item_size])
+            else:
+                for i, blen_data_item in enumerate(blen_data):
+                    setattr(blen_data_item, blend_attr,
+                            xform(fbx_layer_data[(i * stride): (i * stride) + item_size]))
             return True
         else:
             print("warning layer %r ref type unsupported: %r" % (descr, fbx_layer_ref))
@@ -881,7 +887,7 @@ def blen_read_geom_layer_smooth(fbx_obj, mesh):
         return False
 
 
-def blen_read_geom_layer_normal(fbx_obj, mesh):
+def blen_read_geom_layer_normal(fbx_obj, mesh, xform=None):
     fbx_layer = elem_find_first(fbx_obj, b'LayerElementNormal')
 
     if fbx_layer is None:
@@ -902,16 +908,37 @@ def blen_read_geom_layer_normal(fbx_obj, mesh):
         fbx_layer_data, None,
         fbx_layer_mapping, fbx_layer_ref,
         3, 3, layer_id,
+        xform
         )
 
 
 def blen_read_geom(fbx_tmpl, fbx_obj, settings):
+    from mathutils import Matrix, Vector
+    from itertools import chain
+    import array
+
+    # Vertices are in object space, but we are post-multiplying all transforms with the inverse of the
+    # global matrix, so we need to apply the global matrix to the vertices to get the correct result.
+    geom_mat_co = settings.global_matrix if settings.bake_space_transform else None
+    # We need to apply the inverse transpose of the global matrix when transforming normals.
+    geom_mat_no = Matrix(settings.global_matrix_inv_transposed) if settings.bake_space_transform else None
+    if geom_mat_no is not None:
+        # Remove translation & scaling!
+        geom_mat_no.translation = Vector()
+        geom_mat_no.normalize()
+
     # TODO, use 'fbx_tmpl'
     elem_name_utf8 = elem_name_ensure_class(fbx_obj, b'Geometry')
 
     fbx_verts = elem_prop_first(elem_find_first(fbx_obj, b'Vertices'))
     fbx_polys = elem_prop_first(elem_find_first(fbx_obj, b'PolygonVertexIndex'))
     fbx_edges = elem_prop_first(elem_find_first(fbx_obj, b'Edges'))
+
+    if geom_mat_co is not None:
+        def _vcos_transformed_gen(raw_cos, m=None):
+            # Note: we could most likely get much better performances with numpy, but will leave this as TODO for now.
+            return chain(*(m * Vector(v) for v in zip(*(iter(raw_cos),) * 3)))
+        fbx_verts = array.array(fbx_verts.typecode, _vcos_transformed_gen(fbx_verts, geom_mat_co))
 
     if fbx_verts is None:
         fbx_verts = ()
@@ -978,7 +1005,12 @@ def blen_read_geom(fbx_tmpl, fbx_obj, settings):
     # must be after edge, face loading.
     ok_smooth = blen_read_geom_layer_smooth(fbx_obj, mesh)
 
-    ok_normals = blen_read_geom_layer_normal(fbx_obj, mesh)
+    if geom_mat_no is None:
+        ok_normals = blen_read_geom_layer_normal(fbx_obj, mesh)
+    else:
+        def nortrans(v):
+            return geom_mat_no * Vector(v)
+        ok_normals = blen_read_geom_layer_normal(fbx_obj, mesh, nortrans)
 
     mesh.validate()
 
@@ -1274,16 +1306,21 @@ class FbxImportHelperNode:
                 child.ignore = True  # Ignore leaf bone at end of chain
         for child in self.children:
             child.mark_leaf_bones()
-            
-    def find_correction_matrix(self, settings, parent_correction_inv = None):
+
+    def do_bake_transform(self, settings):
+        return (settings.bake_space_transform and self.fbx_type in (b'Mesh', b'Null') and
+                not self.is_armature and not self.is_bone)
+
+    def find_correction_matrix(self, settings, parent_correction_inv=None):
         from bpy_extras.io_utils import axis_conversion
         from mathutils import Matrix, Vector
 
-        if self.parent and self.parent.is_root:
+        if self.parent and (self.parent.is_root or self.parent.do_bake_transform(settings)):
             self.pre_matrix = settings.global_matrix
-        else:
-            self.pre_matrix = parent_correction_inv # if the parent has a correction we need the inverse applied here
-        
+
+        if parent_correction_inv:
+            self.pre_matrix = parent_correction_inv * (self.pre_matrix if self.pre_matrix else Matrix())
+
         correction_matrix = None
 
         if self.is_bone:
@@ -1372,7 +1409,10 @@ class FbxImportHelperNode:
                 correction_matrix = MAT_CONVERT_LAMP
 
         self.post_matrix = correction_matrix
-                    
+
+        if self.do_bake_transform(settings):
+            self.post_matrix = settings.global_matrix_inv * (self.post_matrix if self.post_matrix else Matrix())
+
         # process children
         correction_matrix_inv = correction_matrix.inverted() if correction_matrix else None
         for child in self.children:
@@ -1805,6 +1845,7 @@ def load(operator, context, filepath="",
          axis_forward='-Z',
          axis_up='Y',
          global_scale=1.0,
+         bake_space_transform=False,
          use_cycles=True,
          use_image_search=False,
          use_alpha_decals=False,
@@ -1894,6 +1935,11 @@ def load(operator, context, filepath="",
     global_matrix = (Matrix.Scale(global_scale, 4) *
                      axis_conversion(from_forward=axis_forward, from_up=axis_up).to_4x4())
 
+    # To cancel out unwanted rotation/scale on nodes.
+    global_matrix_inv = global_matrix.inverted()
+    # For transforming mesh normals.
+    global_matrix_inv_transposed = global_matrix_inv.transposed()
+
     # Compute bone correction matrix
     bone_correction_matrix = None  # None means no correction/identity
     if not automatic_bone_orientation:
@@ -1916,6 +1962,7 @@ def load(operator, context, filepath="",
     # store global settings that need to be accessed during conversion
     settings = FBXImportSettings(
         operator.report, (axis_up, axis_forward), global_matrix, global_scale,
+        bake_space_transform, global_matrix_inv, global_matrix_inv_transposed,
         use_cycles, use_image_search,
         use_alpha_decals, decal_offset,
         use_custom_props, use_custom_props_enum_as_string,

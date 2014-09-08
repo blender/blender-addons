@@ -101,6 +101,13 @@ class ImportFBX_experimental(bpy.types.Operator, ImportHelper):
             min=0.001, max=1000.0,
             default=1.0,
             )
+    bake_space_transform = BoolProperty(
+            name="Apply Transform",
+            description=("Bake space transform into object data, avoids getting unwanted rotations to objects when "
+                         "target space is not aligned with Blender's space "
+                         "(WARNING! experimental option, might give odd/wrong results)"),
+            default=False,
+            )
 
     use_image_search = BoolProperty(
             name="Image Search",
@@ -180,6 +187,7 @@ class ImportFBX_experimental(bpy.types.Operator, ImportHelper):
         sub.prop(self, "axis_forward")
         sub.prop(self, "axis_up")
         sub.prop(self, "global_scale")
+        layout.prop(self, "bake_space_transform")
 
         layout.prop(self, "use_image_search")
         # layout.prop(self, "use_alpha_decals")
