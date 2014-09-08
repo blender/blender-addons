@@ -135,6 +135,42 @@ class ImportFBX_experimental(bpy.types.Operator, ImportHelper):
             options={'HIDDEN'},
             )
 
+    ignore_leaf_bones = BoolProperty(
+            name="Ignore leaf bones",
+            description="Ignore the last bone at the end of a chain that is used to mark the length of the previous bone",
+            default=False,
+            options={'HIDDEN'},
+            )
+
+    automatic_bone_orientation = BoolProperty(
+            name="Automatic Bone Orientation",
+            description="Try to align the major bone axis with the bone children",
+            default=False,
+            options={'HIDDEN'},
+            )
+    primary_bone_axis = EnumProperty(
+            name="Primary Bone Axis",
+            items=(('X', "X Axis", ""),
+                   ('Y', "Y Axis", ""),
+                   ('Z', "Z Axis", ""),
+                   ('-X', "-X Axis", ""),
+                   ('-Y', "-Y Axis", ""),
+                   ('-Z', "-Z Axis", ""),
+                   ),
+            default='Y',
+            )
+    secondary_bone_axis = EnumProperty(
+            name="Secondary Bone Axis",
+            items=(('X', "X Axis", ""),
+                   ('Y', "Y Axis", ""),
+                   ('Z', "Z Axis", ""),
+                   ('-X', "-X Axis", ""),
+                   ('-Y', "-Y Axis", ""),
+                   ('-Z', "-Z Axis", ""),
+                   ),
+            default='X',
+            )
+
     def draw(self, context):
         layout = self.layout
 
@@ -153,6 +189,14 @@ class ImportFBX_experimental(bpy.types.Operator, ImportHelper):
         sub = layout.row()
         sub.enabled = self.use_custom_props
         sub.prop(self, "use_custom_props_enum_as_string")
+
+        layout.prop(self, "ignore_leaf_bones")
+
+        layout.prop(self, "automatic_bone_orientation"),
+        sub = layout.column()
+        sub.enabled = not self.automatic_bone_orientation
+        sub.prop(self, "primary_bone_axis")
+        sub.prop(self, "secondary_bone_axis")
 
     def execute(self, context):
         print("Using EXPERIMENTAL FBX export!")

@@ -420,232 +420,6 @@ def blen_read_object_transform_preprocess(fbx_props, fbx_obj, rot_alt_mat):
                             sca, sca_ofs, sca_piv)
 
 
-def blen_read_object(fbx_tmpl, fbx_obj, object_data, settings):
-    elem_name_utf8 = elem_name_ensure_class(fbx_obj)
-
-    # Object data must be created already
-    obj = bpy.data.objects.new(name=elem_name_utf8, object_data=object_data)
-    object_tdata_cache = settings.object_tdata_cache
-
-    fbx_props = (elem_find_first(fbx_obj, b'Properties70'),
-                 elem_find_first(fbx_tmpl, b'Properties70', fbx_elem_nil))
-    assert(fbx_props[0] is not None)
-
-    # ----
-    # Misc Attributes
-
-    obj.color[0:3] = elem_props_get_color_rgb(fbx_props, b'Color', (0.8, 0.8, 0.8))
-    obj.hide = not bool(elem_props_get_visibility(fbx_props, b'Visibility', 1.0))
-
-    # ----
-    # Transformation
-
-    from mathutils import Matrix
-    from math import pi
-
-    # rotation corrections
-    if obj.type == 'CAMERA':
-        rot_alt_mat = MAT_CONVERT_CAMERA
-    elif obj.type == 'LAMP':
-        rot_alt_mat = MAT_CONVERT_LAMP
-    else:
-        rot_alt_mat = Matrix()
-
-    transform_data = object_tdata_cache.get(obj)
-    if transform_data is None:
-        transform_data = blen_read_object_transform_preprocess(fbx_props, fbx_obj, rot_alt_mat)
-        object_tdata_cache[obj] = transform_data
-    obj.matrix_basis = blen_read_object_transform_do(transform_data)
-
-    if settings.use_custom_props:
-        blen_read_custom_properties(fbx_obj, obj, settings)
-
-    return obj
-
-
-# --------
-# Armature
-
-def blen_read_armatures_add_bone(bl_obj, bl_arm, bones, b_uuid, matrices, fbx_tmpl_model):
-    from mathutils import Matrix, Vector
-
-    b_item, bsize, p_uuid, clusters = bones[b_uuid]
-    fbx_bdata, bl_bname = b_item
-    if bl_bname is not None:
-        return bl_arm.edit_bones[bl_bname]  # Have already been created...
-
-    p_ebo = None
-    if p_uuid is not None:
-        # Recurse over parents!
-        p_ebo = blen_read_armatures_add_bone(bl_obj, bl_arm, bones, p_uuid, matrices, fbx_tmpl_model)
-
-    if clusters:
-        # Note in some cases, one bone can have several clusters (kind of LoD?), in Blender we'll always
-        # use only the first, for now.
-        fbx_cdata, meshes, objects = clusters[0]
-        objects = {blen_o for fbx_o, blen_o in objects}
-
-        # We assume matrices in cluster are rest pose of bones (they are in Global space!).
-        # TransformLink is matrix of bone, in global space.
-        # TransformAssociateModel is matrix of armature, in global space (at bind time).
-        elm = elem_find_first(fbx_cdata, b'Transform', default=None)
-        mmat_bone = array_to_matrix4(elm.props[0]) if elm is not None else None
-        elm = elem_find_first(fbx_cdata, b'TransformLink', default=None)
-        bmat_glob = array_to_matrix4(elm.props[0]) if elm is not None else Matrix()
-        elm = elem_find_first(fbx_cdata, b'TransformAssociateModel', default=None)
-        amat_glob = array_to_matrix4(elm.props[0]) if elm is not None else Matrix()
-
-        mmat_glob = bmat_glob * mmat_bone
-
-        # We seek for matrix of bone in armature space...
-        bmat_arm = amat_glob.inverted_safe() * bmat_glob
-
-        # Bone correction, works here...
-        bmat_loc = (p_ebo.matrix.inverted_safe() * bmat_arm) if p_ebo else bmat_arm
-        bmat_loc = bmat_loc * MAT_CONVERT_BONE
-        bmat_arm = (p_ebo.matrix * bmat_loc) if p_ebo else bmat_loc
-    else:
-        # Armature bound to no mesh...
-        fbx_cdata, meshes, objects = (None, (), ())
-        mmat_bone = None
-        amat_glob = bl_obj.matrix_world
-
-        fbx_props = (elem_find_first(fbx_bdata, b'Properties70'),
-                     elem_find_first(fbx_tmpl_model, b'Properties70', fbx_elem_nil))
-        assert(fbx_props[0] is not None)
-
-        # Bone correction, works here...
-        transform_data = blen_read_object_transform_preprocess(fbx_props, fbx_bdata, MAT_CONVERT_BONE)
-        bmat_loc = blen_read_object_transform_do(transform_data)
-        # Bring back matrix in armature space.
-        bmat_arm = (p_ebo.matrix * bmat_loc) if p_ebo else bmat_loc
-
-    # ----
-    # Now, create the (edit)bone.
-    bone_name = elem_name_ensure_class(fbx_bdata, b'Model')
-
-    ebo = bl_arm.edit_bones.new(name=bone_name)
-    bone_name = ebo.name  # Might differ from FBX bone name!
-    b_item[1] = bone_name  # since ebo is only valid in Edit mode... :/
-
-    # So that our bone gets its final length, but still Y-aligned in armature space.
-    # XXX We now know bsize is not len of bone... but still forbid zero len!
-    ebo.tail = Vector((0.0, 1.0, 0.0)) * max(bsize, 1e-3)
-    # And rotate/move it to its final "rest pose".
-    ebo.matrix = bmat_arm.normalized()
-
-    # Connection to parent.
-    if p_ebo is not None:
-        ebo.parent = p_ebo
-        if similar_values_iter(p_ebo.tail, ebo.head):
-            ebo.use_connect = True
-
-    if fbx_cdata is not None:
-        # ----
-        # Add a new vgroup to the meshes (their objects, actually!).
-        # Quite obviously, only one mesh is expected...
-        indices = elem_prop_first(elem_find_first(fbx_cdata, b'Indexes', default=None), default=())
-        weights = elem_prop_first(elem_find_first(fbx_cdata, b'Weights', default=None), default=())
-        add_vgroup_to_objects(indices, weights, bone_name, objects)
-
-    # ----
-    # If we get a valid mesh matrix (in bone space), store armature and mesh global matrices, we need to set temporarily
-    # both objects to those matrices when actually binding them via the modifier.
-    # Note we assume all bones were bound with the same mesh/armature (global) matrix, we do not support otherwise
-    # in Blender anyway!
-    if mmat_bone is not None:
-        for obj in objects:
-            if obj in matrices:
-                continue
-            matrices[obj] = (amat_glob, mmat_glob)
-
-    return ebo
-
-
-def blen_read_armatures(fbx_tmpl, armatures, fbx_bones_to_fake_object, scene, arm_parents, settings):
-    from mathutils import Matrix
-
-    global_matrix = settings.global_matrix
-    assert(global_matrix is not None)
-    object_tdata_cache = settings.object_tdata_cache
-
-    for a_item, bones in armatures:
-        fbx_adata, bl_adata = a_item
-        matrices = {}
-
-        # ----
-        # Armature data.
-        elem_name_utf8 = elem_name_ensure_class(fbx_adata, b'Model')
-        bl_arm = bpy.data.armatures.new(name=elem_name_utf8)
-
-        # Need to create the object right now, since we can only add bones in Edit mode... :/
-        assert(a_item[1] is None)
-
-        if fbx_adata.props[2] in {b'LimbNode', b'Root'}:
-            # rootbone-as-armature case...
-            bl_adata = blen_read_object(fbx_tmpl, fbx_adata, bl_arm, settings)
-            fbx_bones_to_fake_object[fbx_adata.props[0]] = bl_adata
-            # reset transform.
-            bl_adata.matrix_basis = Matrix()
-        else:
-            bl_adata = a_item[1] = blen_read_object(fbx_tmpl, fbx_adata, bl_arm, settings)
-
-        # Instantiate in scene.
-        obj_base = scene.objects.link(bl_adata)
-        obj_base.select = True
-
-        # Switch to Edit mode.
-        scene.objects.active = bl_adata
-        is_hidden = bl_adata.hide
-        bl_adata.hide = False  # Can't switch to Edit mode hidden objects...
-        bpy.ops.object.mode_set(mode='EDIT')
-
-        for b_uuid in bones:
-            blen_read_armatures_add_bone(bl_adata, bl_arm, bones, b_uuid, matrices, fbx_tmpl)
-
-        bpy.ops.object.mode_set(mode='OBJECT')
-        bl_adata.hide = is_hidden
-
-        # Bind armature to objects.
-        arm_mat_back = bl_adata.matrix_basis.copy()
-        for ob_me, (amat, mmat) in matrices.items():
-            # bring global armature & mesh matrices into *Blender* global space.
-            amat = global_matrix * amat
-            mmat = global_matrix * mmat
-
-            bl_adata.matrix_basis = amat
-            me_mat_back = ob_me.matrix_basis.copy()
-            ob_me.matrix_basis = mmat
-
-            mod = ob_me.modifiers.new(elem_name_utf8, 'ARMATURE')
-            mod.object = bl_adata
-
-            ob_me.parent = bl_adata
-            ob_me.matrix_basis = me_mat_back
-            # Store the pair for later space corrections (bring back mesh in parent space).
-            arm_parents.add((bl_adata, ob_me))
-        bl_adata.matrix_basis = arm_mat_back
-
-        # Set Pose transformations...
-        for b_item, _b_size, _p_uuid, _clusters in bones.values():
-            fbx_bdata, bl_bname = b_item
-            fbx_props = (elem_find_first(fbx_bdata, b'Properties70'),
-                         elem_find_first(fbx_tmpl, b'Properties70', fbx_elem_nil))
-            assert(fbx_props[0] is not None)
-
-            pbo = b_item[1] = bl_adata.pose.bones[bl_bname]
-            transform_data = object_tdata_cache.get(pbo)
-            if transform_data is None:
-                # Bone correction, gives a mess as result. :(
-                transform_data = blen_read_object_transform_preprocess(fbx_props, fbx_bdata, MAT_CONVERT_BONE)
-                object_tdata_cache[pbo] = transform_data
-            mat = blen_read_object_transform_do(transform_data)
-            if pbo.parent:
-                # Bring back matrix in armature space.
-                mat = pbo.parent.matrix * mat
-            pbo.matrix = mat
-
-
 # ---------
 # Animation
 def blen_read_animations_curves_iter(fbx_curves, blen_start_offset, fbx_start_offset, fps):
@@ -690,51 +464,52 @@ def blen_read_animations_curves_iter(fbx_curves, blen_start_offset, fbx_start_of
         yield (curr_blenkframe, curr_values)
 
 
-def blen_read_animations_action_item(action, item, cnodes, force_global, fps, settings):
+def blen_read_animations_action_item(action, item, cnodes, fps):
     """
-    'Bake' loc/rot/scale into the action, taking into account global_matrix if no parent is present.
+    'Bake' loc/rot/scale into the action, taking any pre_ and post_ matrix into account to transform from fbx into blender space.
     """
     from bpy.types import Object, PoseBone, ShapeKey
     from mathutils import Euler, Matrix
     from itertools import chain
 
-    global_matrix = settings.global_matrix
-    object_tdata_cache = settings.object_tdata_cache
-    blen_curves = []
     fbx_curves = []
+    for curves, fbxprop in cnodes.values():
+        for (fbx_acdata, _blen_data), channel in curves.values():
+            fbx_curves.append((fbxprop, channel, fbx_acdata))
+
+    # Leave if no curves are attached. (If a blender curve is attached to scale but without keys it defaults to 0.)
+    if len(fbx_curves) == 0:
+        return
+
+    blen_curves = []
     props = []
 
     if isinstance(item, ShapeKey):
         props = [(item.path_from_id("value"), 1, "Key")]
     else:  # Object or PoseBone:
-        if item not in object_tdata_cache:
-            print("ERROR! object '%s' has no transform data, while being animated!" % item.name)
-            return
+        if item.is_bone:
+            bl_obj = item.bl_obj.pose.bones[item.bl_bone]
+        else:
+            bl_obj = item.bl_obj
 
         # We want to create actions for objects, but for bones we 'reuse' armatures' actions!
-        grpname = None
-        if item.id_data != item:
-            grpname = item.name
+        grpname = item.bl_obj.name
 
         # Since we might get other channels animated in the end, due to all FBX transform magic,
         # we need to add curves for whole loc/rot/scale in any case.
-        props = [(item.path_from_id("location"), 3, grpname or "Location"),
+        props = [(bl_obj.path_from_id("location"), 3, grpname or "Location"),
                  None,
-                 (item.path_from_id("scale"), 3, grpname or "Scale")]
-        rot_mode = item.rotation_mode
+                 (bl_obj.path_from_id("scale"), 3, grpname or "Scale")]
+        rot_mode = bl_obj.rotation_mode
         if rot_mode == 'QUATERNION':
-            props[1] = (item.path_from_id("rotation_quaternion"), 4, grpname or "Quaternion Rotation")
+            props[1] = (bl_obj.path_from_id("rotation_quaternion"), 4, grpname or "Quaternion Rotation")
         elif rot_mode == 'AXIS_ANGLE':
-            props[1] = (item.path_from_id("rotation_axis_angle"), 4, grpname or "Axis Angle Rotation")
+            props[1] = (bl_obj.path_from_id("rotation_axis_angle"), 4, grpname or "Axis Angle Rotation")
         else:  # Euler
-            props[1] = (item.path_from_id("rotation_euler"), 3, grpname or "Euler Rotation")
+            props[1] = (bl_obj.path_from_id("rotation_euler"), 3, grpname or "Euler Rotation")
 
     blen_curves = [action.fcurves.new(prop, channel, grpname)
                    for prop, nbr_channels, grpname in props for channel in range(nbr_channels)]
-
-    for curves, fbxprop in cnodes.values():
-        for (fbx_acdata, _blen_data), channel in curves.values():
-            fbx_curves.append((fbxprop, channel, fbx_acdata))
 
     if isinstance(item, ShapeKey):
         # We assume for now blen init point is frame 1.0, while FBX ktime init point is 0.
@@ -749,16 +524,16 @@ def blen_read_animations_action_item(action, item, cnodes, force_global, fps, se
                 fc.keyframe_points.insert(frame, v, {'NEEDED', 'FAST'}).interpolation = 'LINEAR'
 
     else:  # Object or PoseBone:
-        transform_data = object_tdata_cache[item]
-        rot_prev = item.rotation_euler.copy()
+        if item.is_bone:
+            bl_obj = item.bl_obj.pose.bones[item.bl_bone]
+        else:
+            bl_obj = item.bl_obj
+
+        transform_data = item.fbx_transform_data
+        rot_prev = bl_obj.rotation_euler.copy()
 
         # Pre-compute inverted local rest matrix of the bone, if relevant.
-        if isinstance(item, PoseBone):
-            # First, get local (i.e. parentspace) rest pose matrix
-            restmat = item.bone.matrix_local
-            if item.parent:
-                restmat = item.parent.bone.matrix_local.inverted_safe() * restmat
-            restmat_inv = restmat.inverted_safe()
+        restmat_inv = item.get_bind_matrix().inverted() if item.is_bone else None
 
         # We assume for now blen init point is frame 1.0, while FBX ktime init point is 0.
         for frame, values in blen_read_animations_curves_iter(fbx_curves, 1.0, 0, fps):
@@ -770,12 +545,21 @@ def blen_read_animations_action_item(action, item, cnodes, force_global, fps, se
                 elif fbxprop == b'Lcl Scaling':
                     transform_data.sca[channel] = v
             mat = blen_read_object_transform_do(transform_data)
-            # Don't forget global matrix - but never for bones!
-            if isinstance(item, Object):
-                if (not item.parent or force_global) and global_matrix is not None:
-                    mat = global_matrix * mat
-            else:  # PoseBone, Urg!
-                # And now, remove that rest pose matrix from current mat (also in parent space).
+
+            # compensate for changes in the local matrix during processing
+            if item.anim_compensation_matrix:
+                mat = mat * item.anim_compensation_matrix
+
+            # apply pre- and post matrix
+            # post-matrix will contain any correction for lights, camera and bone orientation
+            # pre-matrix will contain any correction for a parent's correction matrix or the global matrix
+            if item.pre_matrix:
+                mat = item.pre_matrix * mat
+            if item.post_matrix:
+                mat = mat * item.post_matrix
+
+            # And now, remove that rest pose matrix from current mat (also in parent space).
+            if restmat_inv:
                 mat = restmat_inv * mat
 
             # Now we have a virtual matrix of transform from AnimCurves, we can insert keyframes!
@@ -796,26 +580,32 @@ def blen_read_animations_action_item(action, item, cnodes, force_global, fps, se
         fc.update()
 
 
-def blen_read_animations(fbx_tmpl_astack, fbx_tmpl_alayer, stacks, scene, force_global_objects, settings):
+def blen_read_animations(fbx_tmpl_astack, fbx_tmpl_alayer, stacks, scene):
     """
     Recreate an action per stack/layer/object combinations.
     Note actions are not linked to objects, this is up to the user!
     """
+    from bpy.types import ShapeKey
+
     actions = {}
     for as_uuid, ((fbx_asdata, _blen_data), alayers) in stacks.items():
         stack_name = elem_name_ensure_class(fbx_asdata, b'AnimStack')
         for al_uuid, ((fbx_aldata, _blen_data), items) in alayers.items():
             layer_name = elem_name_ensure_class(fbx_aldata, b'AnimLayer')
             for item, cnodes in items.items():
-                id_data = item.id_data
+                if isinstance(item, ShapeKey):
+                    id_data = item.id_data
+                else:
+                    id_data = item.bl_obj
+                if id_data is None:
+                    continue
                 key = (as_uuid, al_uuid, id_data)
                 action = actions.get(key)
                 if action is None:
                     action_name = "|".join((id_data.name, stack_name, layer_name))
                     actions[key] = action = bpy.data.actions.new(action_name)
                     action.use_fake_user = True
-                blen_read_animations_action_item(action, item, cnodes,
-                                                 item in force_global_objects, scene.render.fps, settings)
+                blen_read_animations_action_item(action, item, cnodes, scene.render.fps)
 
 
 # ----
@@ -1205,7 +995,7 @@ def blen_read_geom(fbx_tmpl, fbx_obj, settings):
     return mesh
 
 
-def blen_read_shape(fbx_tmpl, fbx_sdata, fbx_bcdata, meshes, scene, settings):
+def blen_read_shape(fbx_tmpl, fbx_sdata, fbx_bcdata, meshes, scene):
     from mathutils import Vector
 
     elem_name_utf8 = elem_name_ensure_class(fbx_sdata, b'Geometry')
@@ -1227,7 +1017,7 @@ def blen_read_shape(fbx_tmpl, fbx_sdata, fbx_bcdata, meshes, scene, settings):
 
     for me, objects in meshes:
         vcos = tuple((idx, me.vertices[idx].co + Vector(dvco)) for idx, dvco in zip(indices, dvcos))
-        objects = list({blen_o for fbx_o, blen_o in objects})
+        objects = list({node.bl_obj for node in objects})
         assert(objects)
 
         if me.shape_keys is None:
@@ -1416,6 +1206,589 @@ def blen_read_light(fbx_tmpl, fbx_obj, global_scale):
     return lamp
 
 
+# ### Import Utility class
+class FbxImportHelperNode:
+    """
+    Temporary helper node to store a hierarchy of fbxNode objects before building
+    Objects, Armatures and Bones. It tries to keep the correction data in one place so it can be applied consistently to the imported data.
+    """
+
+    __slots__ = ('_parent', 'anim_compensation_matrix', 'armature_setup', 'bind_matrix', 'bl_bone', 'bl_data', 'bl_obj', 'bone_child_matrix',
+                 'children', 'clusters', 'fbx_elem', 'fbx_name', 'fbx_transform_data', 'fbx_type', 'has_bone_children', 'ignore', 'is_armature',
+                 'is_bone', 'is_root', 'matrix', 'meshes', 'post_matrix', 'pre_matrix')
+
+    def __init__(self, fbx_elem, bl_data, fbx_transform_data, is_bone):
+        self.fbx_name = elem_name_ensure_class(fbx_elem, b'Model') if fbx_elem else 'Unknown'
+        self.fbx_type = fbx_elem.props[2] if fbx_elem else None
+        self.fbx_elem = fbx_elem
+        self.bl_obj = None
+        self.bl_data = bl_data
+        self.bl_bone = None                     # Name of bone if this is a bone (this may be different to fbx_name if there was a name conflict in Blender!)
+        self.fbx_transform_data = fbx_transform_data
+        self.is_root = False
+        self.is_bone = is_bone
+        self.is_armature = False
+        self.has_bone_children = False          # True if the hierarchy below this node contains bones, important to support mixed hierarchies.
+        self.ignore = False                     # True for leaf-bones added to the end of some bone chains to set the lengths.
+        self.pre_matrix = None                  # correction matrix that needs to be applied before the FBX transform
+        self.bind_matrix = None                 # for bones this is the matrix used to bind to the skin
+        self.matrix = blen_read_object_transform_do(fbx_transform_data) if fbx_transform_data else None
+        self.post_matrix = None                 # correction matrix that needs to be applied after the FBX transform
+        self.bone_child_matrix = None           # Objects attached to a bone end not the beginning, this matrix corrects for that
+        self.anim_compensation_matrix = None    # a mesh moved in the hierarchy may have a different local matrix. This compensates animations for this.
+
+        self.meshes = None                      # List of meshes influenced by this bone.
+        self.clusters = []                      # Deformer Cluster nodes
+        self.armature_setup = None              # mesh and armature matrix when the mesh was bound
+
+        self._parent = None
+        self.children = []
+
+    @property
+    def parent(self):
+        return self._parent
+
+    @parent.setter
+    def parent(self, value):
+        if self._parent is not None:
+            self._parent.children.remove(self)
+        self._parent = value
+        if self._parent is not None:
+            self._parent.children.append(self)
+
+    def print_info(self, indent=0):
+        print(" " * indent + (self.fbx_name if self.fbx_name else "(Null)")
+              + ("[root]" if self.is_root else "")
+              + ("[ignore]" if self.ignore else "")
+              + ("[armature]" if self.is_armature else "")
+              + ("[bone]" if self.is_bone else "")
+              + ("[HBC]" if self.has_bone_children else "")
+              )
+        for c in self.children:
+            c.print_info(indent + 1)
+
+    def mark_leaf_bones(self):
+        if self.is_bone and len(self.children) == 1:
+            child = self.children[0]
+            if child.is_bone and len(child.children) == 0:
+                child.ignore = True  # Ignore leaf bone at end of chain
+        for child in self.children:
+            child.mark_leaf_bones()
+            
+    def find_correction_matrix(self, settings, parent_correction_inv = None):
+        from bpy_extras.io_utils import axis_conversion
+        from mathutils import Matrix, Vector
+
+        if self.parent and self.parent.is_root:
+            self.pre_matrix = settings.global_matrix
+        else:
+            self.pre_matrix = parent_correction_inv # if the parent has a correction we need the inverse applied here
+        
+        correction_matrix = None
+
+        if self.is_bone:
+            if settings.automatic_bone_orientation:
+                # find best orientation to align bone with
+                bone_children = [child for child in self.children if child.is_bone]
+                if len(bone_children) == 0:
+                    # no children, inherit the correction from parent (if possible)
+                    if self.parent and self.parent.is_bone:
+                        correction_matrix = parent_correction_inv.inverted() if parent_correction_inv else None
+                else:
+                    # else find how best to rotate the bone to align the Y axis with the children
+                    best_axis = (1, 0, 0)
+                    if len(bone_children) == 1:
+                        vec = bone_children[0].bind_matrix.to_translation()
+                        best_axis = Vector((0, 0, 1 if vec[2] >= 0 else -1))
+                        if abs(vec[0]) > abs(vec[1]):
+                            if abs(vec[0]) > abs(vec[2]):
+                                best_axis = Vector((1 if vec[0] >= 0 else -1, 0, 0))
+                        elif abs(vec[1]) > abs(vec[2]):
+                            best_axis = Vector((0, 1 if vec[1] >= 0 else -1, 0))
+                    else:
+                        # get the child directions once because they may be checked several times
+                        child_locs = [loc.normalized() for loc in [bind_matrix.to_translation() for bind_matrix in [child.bind_matrix for child in bone_children]] if loc.magnitude > 0.0]
+
+                        # I'm not sure which one I like better...
+                        if False:
+                            best_angle = -1.0
+                            for i in range(6):
+                                a = i // 2
+                                s = -1 if i % 2 == 1 else 1
+                                test_axis = Vector((s if a == 0 else 0, s if a == 1 else 0, s if a == 2 else 0))
+
+                                # find max angle to children
+                                max_angle = 1.0
+                                for loc in child_locs:
+                                    max_angle = min(max_angle, test_axis.dot(loc))
+
+                                # is it better than the last one?
+                                if best_angle < max_angle:
+                                    best_angle = max_angle
+                                    best_axis = test_axis
+                        else:
+                            best_angle = -1.0
+                            for vec in child_locs:
+                                test_axis = Vector((0, 0, 1 if vec[2] >= 0 else -1))
+                                if abs(vec[0]) > abs(vec[1]):
+                                    if abs(vec[0]) > abs(vec[2]):
+                                        test_axis = Vector((1 if vec[0] >= 0 else -1, 0, 0))
+                                elif abs(vec[1]) > abs(vec[2]):
+                                    test_axis = Vector((0, 1 if vec[1] >= 0 else -1, 0))
+
+                                # find max angle to children
+                                max_angle = 1.0
+                                for loc in child_locs:
+                                    max_angle = min(max_angle, test_axis.dot(loc))
+
+                                # is it better than the last one?
+                                if best_angle < max_angle:
+                                    best_angle = max_angle
+                                    best_axis = test_axis
+
+                    # convert best_axis to axis string
+                    to_up = 'Z' if best_axis[2] >= 0 else '-Z'
+                    if abs(best_axis[0]) > abs(best_axis[1]):
+                        if abs(best_axis[0]) > abs(best_axis[2]):
+                            to_up = 'X' if best_axis[0] >= 0 else '-X'
+                    elif abs(best_axis[1]) > abs(best_axis[2]):
+                        to_up = 'Y' if best_axis[1] >= 0 else '-Y'
+                    to_forward = 'X' if to_up not in {'X', '-X'} else 'Y'
+
+                    # Build correction matrix
+                    if (to_up, to_forward) != ('Y', 'X'):
+                        correction_matrix = axis_conversion(from_forward='X',
+                                                            from_up='Y',
+                                                            to_forward=to_forward,
+                                                            to_up=to_up,
+                                                            ).to_4x4()
+            else:
+                correction_matrix = settings.bone_correction_matrix
+        else:
+            # camera and light can be hard wired
+            if self.fbx_type == b'Camera':
+                correction_matrix = MAT_CONVERT_CAMERA
+            elif self.fbx_type == b'Light':
+                correction_matrix = MAT_CONVERT_LAMP
+
+        self.post_matrix = correction_matrix
+                    
+        # process children
+        correction_matrix_inv = correction_matrix.inverted() if correction_matrix else None
+        for child in self.children:
+            child.find_correction_matrix(settings, correction_matrix_inv)
+
+    def find_armatures(self):
+        needs_armature = False
+        for child in self.children:
+            if child.is_bone:
+                needs_armature = True
+                break
+        if needs_armature:
+            if self.fbx_type == b'Null':
+                # if empty then convert into armature
+                self.is_armature = True
+            else:
+                # otherwise insert a new node
+                armature = FbxImportHelperNode(None, None, None, False)
+                armature.fbx_name = "Armature"
+                armature.is_armature = True
+
+                for child in self.children[:]:
+                    if child.is_bone:
+                        child.parent = armature
+
+                armature.parent = self
+
+        for child in self.children:
+            if child.is_armature:
+                continue
+            if child.is_bone:
+                continue
+            child.find_armatures()
+
+    def find_bone_children(self):
+        has_bone_children = False
+        for child in self.children:
+            has_bone_children |= child.find_bone_children()
+        self.has_bone_children = has_bone_children
+        return self.is_bone or has_bone_children
+
+    def find_fake_bones(self, in_armature=False):
+        if in_armature and not self.is_bone and self.has_bone_children:
+            self.is_bone = True
+            # if we are not a null node we need an intermediate node for the data
+            if self.fbx_type != b'Null':
+                node = FbxImportHelperNode(self.fbx_elem, self.bl_data, None, False)
+                self.fbx_elem = None
+                self.bl_data = None
+
+                # transfer children
+                for child in self.children:
+                    if child.is_bone or child.has_bone_children:
+                        continue
+                    child.parent = node
+
+                # attach to parent
+                node.parent = self
+
+        if self.is_armature:
+            in_armature = True
+        for child in self.children:
+            child.find_fake_bones(in_armature)
+
+    def get_world_matrix(self):
+        from mathutils import Matrix
+
+        matrix = self.parent.get_world_matrix() if self.parent else Matrix()
+        if self.matrix:
+            matrix = matrix * self.matrix
+        return matrix
+
+    def get_matrix(self):
+        from mathutils import Matrix
+
+        matrix = self.matrix if self.matrix else Matrix()
+        if self.pre_matrix:
+            matrix = self.pre_matrix * matrix
+        if self.post_matrix:
+            matrix = matrix * self.post_matrix
+        return matrix
+
+    def get_bind_matrix(self):
+        from mathutils import Matrix
+
+        matrix = self.bind_matrix if self.bind_matrix else Matrix()
+        if self.pre_matrix:
+            matrix = self.pre_matrix * matrix
+        if self.post_matrix:
+            matrix = matrix * self.post_matrix
+        return matrix
+
+    def make_bind_pose_local(self, parent_matrix=None):
+        from mathutils import Matrix
+
+        if parent_matrix is None:
+            parent_matrix = Matrix()
+
+        if self.bind_matrix:
+            bind_matrix = parent_matrix.inverted() * self.bind_matrix
+        else:
+            bind_matrix = self.matrix.copy() if self.matrix else None
+
+        self.bind_matrix = bind_matrix
+        if bind_matrix:
+            parent_matrix = parent_matrix * bind_matrix
+
+        for child in self.children:
+            child.make_bind_pose_local(parent_matrix)
+
+    def collect_skeleton_meshes(self, meshes):
+        for _, m in self.clusters:
+            meshes.update(m)
+        for child in self.children:
+            child.collect_skeleton_meshes(meshes)
+
+    def collect_armature_meshes(self):
+        if self.is_armature:
+            armature_matrix_inv = self.get_world_matrix().inverted()
+
+            meshes = set()
+            for child in self.children:
+                child.collect_skeleton_meshes(meshes)
+            for m in meshes:
+                old_matrix = m.matrix
+                m.matrix = armature_matrix_inv * m.get_world_matrix()
+                m.anim_compensation_matrix = old_matrix.inverted() * m.matrix
+                m.parent = self
+            self.meshes = meshes
+        else:
+            for child in self.children:
+                child.collect_armature_meshes()
+
+    def build_skeleton(self, arm, parent_matrix, parent_bone_size=1):
+        from mathutils import Vector, Matrix
+
+        # ----
+        # Now, create the (edit)bone.
+        bone = arm.bl_data.edit_bones.new(name=self.fbx_name)
+        bone.select = True
+        self.bl_obj = arm.bl_obj
+        self.bl_data = arm.bl_data
+        self.bl_bone = bone.name  # Could be different from the FBX name!
+
+        # get average distance to children
+        bone_size = 0.0
+        bone_count = 0
+        for child in self.children:
+            if child.is_bone:
+                bone_size += child.bind_matrix.to_translation().magnitude
+                bone_count += 1
+        if bone_count > 0:
+            bone_size /= bone_count
+        else:
+            bone_size = parent_bone_size
+
+        # So that our bone gets its final length, but still Y-aligned in armature space.
+        # 0-length bones are automatically collapsed into their parent when you leave edit mode, so this enforces a minimum length
+        bone_tail = Vector((0.0, 1.0, 0.0)) * max(0.01, bone_size)
+        bone.tail = bone_tail
+
+        # And rotate/move it to its final "rest pose".
+        bone_matrix = parent_matrix * self.get_bind_matrix().normalized()
+
+        bone.matrix = bone_matrix
+
+        # correction for children attached to a bone. Fbx expects to attach to the head of a bone, while blender attaches to the tail.
+        self.bone_child_matrix = Matrix.Translation(-bone_tail)
+
+        for child in self.children:
+            if child.ignore:
+                continue
+            if child.is_bone:
+                child_bone = child.build_skeleton(arm, bone_matrix, bone_size)
+                # Connection to parent.
+                child_bone.parent = bone
+                if similar_values_iter(bone.tail, child_bone.head):
+                    child_bone.use_connect = True
+
+        return bone
+
+    def build_node(self, fbx_tmpl, settings):
+        # create when linking since we need object data
+        elem_name_utf8 = self.fbx_name
+
+        # Object data must be created already
+        self.bl_obj = obj = bpy.data.objects.new(name=elem_name_utf8, object_data=self.bl_data)
+
+        fbx_props = (elem_find_first(self.fbx_elem, b'Properties70'),
+                     elem_find_first(fbx_tmpl, b'Properties70', fbx_elem_nil))
+        assert(fbx_props[0] is not None)
+
+        # ----
+        # Misc Attributes
+
+        obj.color[0:3] = elem_props_get_color_rgb(fbx_props, b'Color', (0.8, 0.8, 0.8))
+        obj.hide = not bool(elem_props_get_visibility(fbx_props, b'Visibility', 1.0))
+
+        obj.matrix_basis = self.get_matrix()
+
+        if settings.use_custom_props:
+            blen_read_custom_properties(fbx_props[0], obj, settings)
+
+        return obj
+
+    def build_skeleton_children(self, fbx_tmpl, settings, scene):
+        if self.is_bone:
+            for child in self.children:
+                if child.ignore:
+                    continue
+                child_obj = child.build_skeleton_children(fbx_tmpl, settings, scene)
+                if child_obj:
+                    child_obj.parent = self.bl_obj  # get the armature the bone belongs to
+                    child_obj.parent_bone = self.bl_bone
+                    child_obj.parent_type = 'BONE'
+
+                    # Blender attaches to the end of a bone, while FBX attaches to the start. bone_child_matrix corrects for that.
+                    if child.pre_matrix:
+                        child.pre_matrix = self.bone_child_matrix * child.pre_matrix
+                    else:
+                        child.pre_matrix = self.bone_child_matrix
+
+                    child_obj.matrix_basis = child.get_matrix()
+        else:
+            # child is not a bone
+            obj = self.build_node(fbx_tmpl, settings)
+
+            for child in self.children:
+                if child.ignore:
+                    continue
+                child_obj = child.build_skeleton_children(fbx_tmpl, settings, scene)
+                if child_obj:
+                    child_obj.parent = obj
+
+            # instance in scene
+            obj_base = scene.objects.link(obj)
+            obj_base.select = True
+
+            return obj
+
+    def set_pose_matrix(self, arm):
+        pose_bone = arm.bl_obj.pose.bones[self.bl_bone]
+        pose_bone.matrix_basis = self.get_bind_matrix().inverted() * self.get_matrix()
+
+        for child in self.children:
+            if child.ignore:
+                continue
+            if child.is_bone:
+                child.set_pose_matrix(arm)
+
+    def merge_weights(self, combined_weights, fbx_cluster):
+        indices = elem_prop_first(elem_find_first(fbx_cluster, b'Indexes', default=None), default=())
+        weights = elem_prop_first(elem_find_first(fbx_cluster, b'Weights', default=None), default=())
+
+        for index, weight in zip(indices, weights):
+            w = combined_weights.get(index)
+            if w is None:
+                combined_weights[index] = [weight]
+            else:
+                w.append(weight)
+
+    def set_bone_weights(self):
+        ignored_children = [child for child in self.children if child.is_bone and child.ignore and len(child.clusters) > 0]
+
+        if len(ignored_children) > 0:
+            # If we have an ignored child bone we need to merge their weights into the current bone weights.
+            # (This can happen both intentionally and accidentally when skinning a model. Either way, they
+            # need to be moved into a parent bone or they cause animation glitches.)
+
+            for fbx_cluster, meshes in self.clusters:
+                combined_weights = {}
+                self.merge_weights(combined_weights, fbx_cluster)
+
+                for child in ignored_children:
+                    for child_cluster, child_meshes in child.clusters:
+                        if not meshes.isdisjoint(child_meshes):
+                            self.merge_weights(combined_weights, child_cluster)
+
+                # combine child weights
+                indices = []
+                weights = []
+                for i, w in combined_weights.items():
+                    indices.append(i)
+                    if len(w) > 1:
+                        weights.append(sum(w) / len(w))
+                    else:
+                        weights.append(w[0])
+
+                add_vgroup_to_objects(indices, weights, self.bl_bone, [node.bl_obj for node in meshes])
+
+            # clusters that drive meshes not included in a parent don't need to be merged
+            all_meshes = set().union(*[meshes for _, meshes in self.clusters])
+            for child in ignored_children:
+                for child_cluster, child_meshes in child.clusters:
+                    if all_meshes.isdisjoint(child_meshes):
+                        indices = elem_prop_first(elem_find_first(child_cluster, b'Indexes', default=None), default=())
+                        weights = elem_prop_first(elem_find_first(child_cluster, b'Weights', default=None), default=())
+                        add_vgroup_to_objects(indices, weights, self.bl_bone, [node.bl_obj for node in child_meshes])
+        else:
+            # set the vertex weights on meshes
+            for fbx_cluster, meshes in self.clusters:
+                indices = elem_prop_first(elem_find_first(fbx_cluster, b'Indexes', default=None), default=())
+                weights = elem_prop_first(elem_find_first(fbx_cluster, b'Weights', default=None), default=())
+                add_vgroup_to_objects(indices, weights, self.bl_bone, [node.bl_obj for node in meshes])
+
+        for child in self.children:
+            if child.ignore:
+                continue
+            if child.is_bone:
+                child.set_bone_weights()
+
+    def build_hierarchy(self, fbx_tmpl, settings, scene):
+        from mathutils import Matrix
+
+        if self.is_armature:
+            # create when linking since we need object data
+            elem_name_utf8 = self.fbx_name
+
+            self.bl_data = arm_data = bpy.data.armatures.new(name=elem_name_utf8)
+
+            # Object data must be created already
+            self.bl_obj = arm = bpy.data.objects.new(name=elem_name_utf8, object_data=arm_data)
+
+            arm.matrix_basis = self.get_matrix()
+
+            if self.fbx_elem:
+                fbx_props = (elem_find_first(self.fbx_elem, b'Properties70'),
+                             elem_find_first(fbx_tmpl, b'Properties70', fbx_elem_nil))
+                assert(fbx_props[0] is not None)
+
+                if settings.use_custom_props:
+                    blen_read_custom_properties(fbx_props[0], arm, settings)
+
+            # instance in scene
+            obj_base = scene.objects.link(arm)
+            obj_base.select = True
+
+            # Add bones:
+
+            # Switch to Edit mode.
+            scene.objects.active = arm
+            is_hidden = arm.hide
+            arm.hide = False  # Can't switch to Edit mode hidden objects...
+            bpy.ops.object.mode_set(mode='EDIT')
+
+            for child in self.children:
+                if child.ignore:
+                    continue
+                if child.is_bone:
+                    child_obj = child.build_skeleton(self, Matrix())
+
+            bpy.ops.object.mode_set(mode='OBJECT')
+
+            arm.hide = is_hidden
+
+            # Set pose matrix
+            for child in self.children:
+                if child.ignore:
+                    continue
+                if child.is_bone:
+                    child.set_pose_matrix(self)
+
+            # Add bone children:
+            for child in self.children:
+                if child.ignore:
+                    continue
+                child_obj = child.build_skeleton_children(fbx_tmpl, settings, scene)
+                if child_obj:
+                    child_obj.parent = arm
+
+            # Add armature modifiers to the meshes
+            if self.meshes:
+                arm_mat_back = arm.matrix_basis.copy()
+                for mesh in self.meshes:
+                    (amat, mmat) = mesh.armature_setup
+
+                    # bring global armature & mesh matrices into *Blender* global space.
+                    amat = settings.global_matrix * amat
+                    mmat = settings.global_matrix * mmat
+
+                    arm.matrix_basis = amat
+                    me_mat_back = mesh.bl_obj.matrix_basis.copy()
+                    mesh.bl_obj.matrix_basis = mmat
+
+                    mod = mesh.bl_obj.modifiers.new(elem_name_utf8, 'ARMATURE')
+                    mod.object = arm
+
+                    mesh.bl_obj.matrix_basis = me_mat_back
+                arm.matrix_basis = arm_mat_back
+
+            # Add bone weights to the deformers
+            for child in self.children:
+                if child.ignore:
+                    continue
+                if child.is_bone:
+                    child.set_bone_weights()
+
+            return arm
+        elif self.fbx_elem:
+            obj = self.build_node(fbx_tmpl, settings)
+
+            # walk through children
+            for child in self.children:
+                child_obj = child.build_hierarchy(fbx_tmpl, settings, scene)
+                child_obj.parent = obj
+
+            # instance in scene
+            obj_base = scene.objects.link(obj)
+            obj_base.select = True
+
+            return obj
+        else:
+            for child in self.children:
+                child_obj = child.build_hierarchy(fbx_tmpl, settings, scene)
+
+
 def is_ascii(filepath, size):
     with open(filepath, 'r', encoding="utf-8") as f:
         try:
@@ -1437,7 +1810,11 @@ def load(operator, context, filepath="",
          use_alpha_decals=False,
          decal_offset=0.0,
          use_custom_props=True,
-         use_custom_props_enum_as_string=True):
+         use_custom_props_enum_as_string=True,
+         ignore_leaf_bones=False,
+         automatic_bone_orientation=False,
+         primary_bone_axis='Y',
+         secondary_bone_axis='X'):
 
     global fbx_elem_nil
     fbx_elem_nil = FBXElem('', (), (), ())
@@ -1479,7 +1856,6 @@ def load(operator, context, filepath="",
 
     basedir = os.path.dirname(filepath)
 
-    object_tdata_cache = {}
     cycles_material_wrap_map = {}
     image_cache = {}
     if not use_cycles:
@@ -1518,6 +1894,16 @@ def load(operator, context, filepath="",
     global_matrix = (Matrix.Scale(global_scale, 4) *
                      axis_conversion(from_forward=axis_forward, from_up=axis_up).to_4x4())
 
+    # Compute bone correction matrix
+    bone_correction_matrix = None  # None means no correction/identity
+    if not automatic_bone_orientation:
+        if (primary_bone_axis, secondary_bone_axis) != ('Y', 'X'):
+            bone_correction_matrix = axis_conversion(from_forward='X',
+                                                     from_up='Y',
+                                                     to_forward=secondary_bone_axis,
+                                                     to_up=primary_bone_axis,
+                                                     ).to_4x4()
+
     # Compute framerate settings.
     custom_fps = elem_props_get_number(fbx_settings_props, b'CustomFrameRate', 25.0)
     time_mode = elem_props_get_enum(fbx_settings_props, b'TimeMode')
@@ -1533,8 +1919,10 @@ def load(operator, context, filepath="",
         use_cycles, use_image_search,
         use_alpha_decals, decal_offset,
         use_custom_props, use_custom_props_enum_as_string,
-        object_tdata_cache, cycles_material_wrap_map, image_cache,
-    )
+        cycles_material_wrap_map, image_cache,
+        ignore_leaf_bones,
+        automatic_bone_orientation, bone_correction_matrix
+        )
 
     # #### And now, the "real" data.
 
@@ -1688,174 +2076,170 @@ def load(operator, context, filepath="",
     def connection_filter_reverse(fbx_uuid, fbx_id):
         return connection_filter_ex(fbx_uuid, fbx_id, fbx_connection_map_reverse)
 
-    # Armatures pre-processing!
-    fbx_objects_ignore = set()
-    fbx_objects_parent_ignore = set()
-    # Arg! In some case, root bone is used as armature as well, in Blender we have to 'insert'
-    # an armature object between them, so to handle possible parents of root bones we need a mapping
-    # from root bone uuid to Blender's object...
-    fbx_bones_to_fake_object = dict()
-    armatures = []
+    # -- temporary helper hierarchy to build armatures and objects from
+    fbx_helper_nodes = {}  # lookup from uuid to helper node. Used to build parent-child relations and later to look up animated nodes.
 
     def _():
-        nonlocal fbx_objects_ignore, fbx_objects_parent_ignore
-        for a_uuid, a_item in fbx_table_nodes.items():
-            root_bone = False
-            fbx_adata, bl_adata = a_item = fbx_table_nodes.get(a_uuid, (None, None))
-            if fbx_adata is None or fbx_adata.id != b'Model':
-                continue
-            elif fbx_adata.props[2] != b'Null':
-                if fbx_adata.props[2] not in {b'LimbNode', b'Root'}:
-                    continue
-                # In some cases, armatures have no root 'Null' object, we have to consider all root bones
-                # as armatures in this case. :/
-                root_bone = True
-                for p_uuid, p_ctype in fbx_connection_map.get(a_uuid, ()):
-                    if p_ctype.props[0] != b'OO':
-                        continue
-                    fbx_pdata, bl_pdata = p_item = fbx_table_nodes.get(p_uuid, (None, None))
-                    if (fbx_pdata and fbx_pdata.id == b'Model' and
-                        fbx_pdata.props[2] in {b'LimbNode', b'Root', b'Null'}):
-                        # Not a root bone...
-                        root_bone = False
-                if not root_bone:
-                    continue
-                fbx_bones_to_fake_object[a_uuid] = None
+        from mathutils import Matrix
 
-            bones = {}
-            todo_uuids = set() if root_bone else {a_uuid}
-            init_uuids = {a_uuid} if root_bone else set()
-            done_uuids = set()
-            while todo_uuids or init_uuids:
-                if init_uuids:
-                    p_uuid = None
-                    uuids = [(uuid, None) for uuid in init_uuids]
-                    init_uuids = None
-                else:
-                    p_uuid = todo_uuids.pop()
-                    uuids = fbx_connection_map_reverse.get(p_uuid, ())
-                # bone -> cluster -> skin -> mesh.
-                # XXX Note: only LimbNode for now (there are also Limb's :/ ).
-                for b_uuid, b_ctype in uuids:
-                    if b_ctype and b_ctype.props[0] != b'OO':
-                        continue
-                    fbx_bdata, bl_bdata = b_item = fbx_table_nodes.get(b_uuid, (None, None))
-                    if (fbx_bdata is None or fbx_bdata.id != b'Model' or
-                        fbx_bdata.props[2] not in {b'LimbNode', b'Root'}):
-                        continue
+        # We build an intermediate hierarchy
+        # - used to calculate and store bone orientation correction matrices. The same matrices will be reused for animation.
+        # - find/insert armature nodes
+        # - filter leaf bones
 
-                    # Find bone's size.
-                    size = 1.0
-                    for t_uuid, t_ctype in fbx_connection_map_reverse.get(b_uuid, ()):
-                        if t_ctype.props[0] != b'OO':
-                            continue
-                        fbx_tdata, _bl_tdata = fbx_table_nodes.get(t_uuid, (None, None))
-                        if fbx_tdata is None or fbx_tdata.id != b'NodeAttribute' or fbx_tdata.props[2] != b'LimbNode':
-                            continue
-                        fbx_props = (elem_find_first(fbx_tdata, b'Properties70'),)
-                        if fbx_props[0] is not None:  # Some bones have no Properties70 at all...
-                            size = elem_props_get_number(fbx_props, b'Size', default=size)
-                        break  # Only one bone data per bone!
+        # create scene root
+        fbx_helper_nodes[0] = root_helper = FbxImportHelperNode(None, None, None, False)
+        root_helper.is_root = True
 
-                    clusters = []
-                    for c_uuid, c_ctype in fbx_connection_map.get(b_uuid, ()):
-                        if c_ctype.props[0] != b'OO':
-                            continue
-                        fbx_cdata, _bl_cdata = fbx_table_nodes.get(c_uuid, (None, None))
-                        if fbx_cdata is None or fbx_cdata.id != b'Deformer' or fbx_cdata.props[2] != b'Cluster':
-                            continue
-                        meshes = set()
-                        objects = []
-                        for s_uuid, s_ctype in fbx_connection_map.get(c_uuid, ()):
-                            if s_ctype.props[0] != b'OO':
-                                continue
-                            fbx_sdata, _bl_sdata = fbx_table_nodes.get(s_uuid, (None, None))
-                            if fbx_sdata is None or fbx_sdata.id != b'Deformer' or fbx_sdata.props[2] != b'Skin':
-                                continue
-                            for m_uuid, m_ctype in fbx_connection_map.get(s_uuid, ()):
-                                if m_ctype.props[0] != b'OO':
-                                    continue
-                                fbx_mdata, bl_mdata = fbx_table_nodes.get(m_uuid, (None, None))
-                                if fbx_mdata is None or fbx_mdata.id != b'Geometry' or fbx_mdata.props[2] != b'Mesh':
-                                    continue
-                                # Blenmeshes are assumed already created at that time!
-                                assert(isinstance(bl_mdata, bpy.types.Mesh))
-                                # And we have to find all objects using this mesh!
-                                for o_uuid, o_ctype in fbx_connection_map.get(m_uuid, ()):
-                                    if o_ctype.props[0] != b'OO':
-                                        continue
-                                    fbx_odata, bl_odata = o_item = fbx_table_nodes.get(o_uuid, (None, None))
-                                    if fbx_odata is None or fbx_odata.id != b'Model' or fbx_odata.props[2] != b'Mesh':
-                                        continue
-                                    # bl_odata is still None, objects have not yet been created...
-                                    objects.append(o_item)
-                                meshes.add(bl_mdata)
-                            # Skin deformers are only here to connect clusters to meshes, for us, nothing else to do.
-                        clusters.append((fbx_cdata, meshes, objects))
-                    # For now, we assume there is only one cluster & skin per bone (at least for a given armature)!
-                    # XXX This is not true, some apps export several clusters (kind of LoD), we only use first one!
-                    # assert(len(clusters) <= 1)
-                    bones[b_uuid] = (b_item, size, p_uuid if (p_uuid != a_uuid or root_bone) else None, clusters)
-                    fbx_objects_parent_ignore.add(b_uuid)
-                    done_uuids.add(p_uuid)
-                    todo_uuids.add(b_uuid)
-            if bones:
-                # in case we have no Null parent, rootbone will be a_item too...
-                armatures.append((a_item, bones))
-                fbx_objects_ignore.add(a_uuid)
-        fbx_objects_ignore |= fbx_objects_parent_ignore
-        # We need to handle parenting at object-level for rootbones-as-armature case :/
-        fbx_objects_parent_ignore -= set(fbx_bones_to_fake_object.keys())
-    _(); del _
-
-    def _():
+        # add fbx nodes
         fbx_tmpl = fbx_template_get((b'Model', b'KFbxNode'))
-
-        # Link objects, keep first, this also creates objects
-        for fbx_uuid, fbx_item in fbx_table_nodes.items():
-            if fbx_uuid in fbx_objects_ignore:
-                # armatures and bones, handled separately.
-                continue
-            fbx_obj, blen_data = fbx_item
-            if fbx_obj.id != b'Model' or fbx_obj.props[2] in {b'Root', b'LimbNode'}:
+        for a_uuid, a_item in fbx_table_nodes.items():
+            fbx_obj, bl_data = a_item = fbx_table_nodes.get(a_uuid, (None, None))  # why this double lookup?
+            if fbx_obj is None or fbx_obj.id != b'Model':
                 continue
 
-            # Create empty object or search for object data
-            if fbx_obj.props[2] == b'Null':
-                fbx_lnk_item = None
-                ok = True
-            else:
-                ok = False
-                for (fbx_lnk,
-                     fbx_lnk_item,
-                     fbx_lnk_type) in connection_filter_reverse(fbx_uuid, None):
+            fbx_props = (elem_find_first(fbx_obj, b'Properties70'),
+                         elem_find_first(fbx_tmpl, b'Properties70', fbx_elem_nil))
+            assert(fbx_props[0] is not None)
 
-                    if fbx_lnk_type.props[0] != b'OO':
-                        continue
-                    if not isinstance(fbx_lnk_item, bpy.types.ID):
-                        continue
-                    if isinstance(fbx_lnk_item, (bpy.types.Material, bpy.types.Image)):
-                        continue
-                    # Need to check why this happens, Bird_Leg.fbx
-                    # This is basic object parenting, also used by "bones".
-                    if isinstance(fbx_lnk_item, (bpy.types.Object)):
-                        continue
-                    ok = True
-                    break
-            if ok:
-                # create when linking since we need object data
-                obj = blen_read_object(fbx_tmpl, fbx_obj, fbx_lnk_item, settings)
-                assert(fbx_item[1] is None)
-                fbx_item[1] = obj
+            transform_data = blen_read_object_transform_preprocess(fbx_props, fbx_obj, Matrix())
+            is_bone = fbx_obj.props[2] in {b'LimbNode', b'Root'}
+            fbx_helper_nodes[a_uuid] = FbxImportHelperNode(fbx_obj, bl_data, transform_data, is_bone)
 
-                # instance in scene
-                obj_base = scene.objects.link(obj)
-                obj_base.select = True
+        # add parent-child relations and add blender data to the node
+        for fbx_link in fbx_connections.elems:
+            if fbx_link.props[0] != b'OO':
+                continue
+            if fbx_link.props_type[1:3] == b'LL':
+                c_src, c_dst = fbx_link.props[1:3]
+                parent = fbx_helper_nodes.get(c_dst)
+                if parent is None:
+                    continue
+
+                child = fbx_helper_nodes.get(c_src)
+                if child is None:
+                    # add blender data (meshes, lights, cameras, etc.) to a helper node
+                    fbx_sdata, bl_data = p_item = fbx_table_nodes.get(c_src, (None, None))
+                    if fbx_sdata is None:
+                        continue
+                    if fbx_sdata.id in {b'Material', b'Texture', b'Video'}:
+                        continue
+                    parent.bl_data = bl_data
+                else:
+                    # set parent
+                    child.parent = parent
+
+        # find armatures (either an empty below a bone or a new node inserted at the bone
+        root_helper.find_armatures()
+
+        # mark nodes that have bone children
+        root_helper.find_bone_children()
+
+        # mark nodes that need a bone to attach child-bones to
+        root_helper.find_fake_bones()
+
+        # mark leaf nodes that are only required to mark the end of their parent bone
+        if settings.ignore_leaf_bones:
+            root_helper.mark_leaf_bones()
+
+        # What a mess! Some bones have several BindPoses, some have none, clusters contain a bind pose as well, and you can have several clusters per bone!
+        # Maybe some conversion can be applied to put them all into the same frame of reference?
+
+        # get the bind pose from pose elements
+        for a_uuid, a_item in fbx_table_nodes.items():
+            fbx_obj, bl_data = a_item = fbx_table_nodes.get(a_uuid, (None, None))  # why this double lookup?
+            if fbx_obj is None:
+                continue
+            if fbx_obj.id != b'Pose':
+                continue
+            if fbx_obj.props[2] != b'BindPose':
+                continue
+            for fbx_pose_node in fbx_obj.elems:
+                if fbx_pose_node.id != b'PoseNode':
+                    continue
+                node_elem = elem_find_first(fbx_pose_node, b'Node')
+                node = elem_uuid(node_elem)
+                matrix_elem = elem_find_first(fbx_pose_node, b'Matrix')
+                matrix = array_to_matrix4(matrix_elem.props[0]) if matrix_elem else None
+                bone = fbx_helper_nodes.get(node)
+                if bone and matrix:
+                    # Store the matrix in the helper node.
+                    # There may be several bind pose matrices for the same node, but in my tests they seem to be identical.
+                    bone.bind_matrix = matrix  # global space
+
+        # get clusters and bind pose
+        for helper_uuid, helper_node in fbx_helper_nodes.items():
+            if not helper_node.is_bone:
+                continue
+            for cluster_uuid, cluster_link in fbx_connection_map.get(helper_uuid, ()):
+                if cluster_link.props[0] != b'OO':
+                    continue
+                fbx_cluster, _ = fbx_table_nodes.get(cluster_uuid, (None, None))
+                if fbx_cluster is None or fbx_cluster.id != b'Deformer' or fbx_cluster.props[2] != b'Cluster':
+                    continue
+
+                # Get the bind pose from the cluster:
+                transform_elem = elem_find_first(fbx_cluster, b'Transform', default=None)
+                transform = array_to_matrix4(transform_elem.props[0]) if transform_elem else Matrix()
+
+                transform_link_elem = elem_find_first(fbx_cluster, b'TransformLink', default=None)
+                transform_link = array_to_matrix4(transform_link_elem.props[0]) if transform_link_elem else None
+
+                transform_associate_model_elem = elem_find_first(fbx_cluster, b'TransformAssociateModel', default=None)
+                transform_associate_model = array_to_matrix4(transform_associate_model_elem.props[0]) if transform_associate_model_elem else Matrix()
+
+                mesh_matrix = transform
+                armature_matrix = transform_associate_model
+
+                if transform_link:
+                    mesh_matrix = transform_link * mesh_matrix
+                    helper_node.bind_matrix = transform_link  # overwrite the bind matrix
+
+                # Get the meshes driven by this cluster: (Shouldn't that be only one?)
+                meshes = set()
+                for skin_uuid, skin_link in fbx_connection_map.get(cluster_uuid):
+                    if skin_link.props[0] != b'OO':
+                        continue
+                    fbx_skin, _ = fbx_table_nodes.get(skin_uuid, (None, None))
+                    if fbx_skin is None or fbx_skin.id != b'Deformer' or fbx_skin.props[2] != b'Skin':
+                        continue
+                    for mesh_uuid, mesh_link in fbx_connection_map.get(skin_uuid):
+                        if mesh_link.props[0] != b'OO':
+                            continue
+                        fbx_mesh, _ = fbx_table_nodes.get(mesh_uuid, (None, None))
+                        if fbx_mesh is None or fbx_mesh.id != b'Geometry' or fbx_mesh.props[2] != b'Mesh':
+                            continue
+                        for object_uuid, object_link in fbx_connection_map.get(mesh_uuid):
+                            if object_link.props[0] != b'OO':
+                                continue
+                            mesh_node = fbx_helper_nodes[object_uuid]
+                            if mesh_node:
+                                # ----
+                                # If we get a valid mesh matrix (in bone space), store armature and mesh global matrices, we need to set temporarily
+                                # both objects to those matrices when actually binding them via the modifier.
+                                # Note we assume all bones were bound with the same mesh/armature (global) matrix, we do not support otherwise
+                                # in Blender anyway!
+                                mesh_node.armature_setup = (mesh_matrix, armature_matrix)
+                                meshes.add(mesh_node)
+
+                helper_node.clusters.append((fbx_cluster, meshes))
+
+        # convert bind poses from global space into local space
+        root_helper.make_bind_pose_local()
+
+        # collect armature meshes
+        root_helper.collect_armature_meshes()
+
+        # find the correction matrices to align FBX objects with their Blender equivalent
+        root_helper.find_correction_matrix(settings)
+
+        # build the Object/Armature/Bone hierarchy
+        root_helper.build_hierarchy(fbx_tmpl, settings, scene)
+
+        # root_helper.print_info(0)
     _(); del _
 
-    # Now that we have objects...
-
-    # I) We can handle shapes.
+    # We can handle shapes.
     blend_shape_channels = {}  # We do not need Shapes themselves, but keyblocks, for anim.
 
     def _():
@@ -1894,85 +2278,15 @@ def load(operator, context, filepath="",
                         for o_uuid, o_ctype in fbx_connection_map.get(m_uuid, ()):
                             if o_ctype.props[0] != b'OO':
                                 continue
-                            fbx_odata, bl_odata = o_item = fbx_table_nodes.get(o_uuid, (None, None))
-                            if fbx_odata is None or fbx_odata.id != b'Model' or fbx_odata.props[2] != b'Mesh':
-                                continue
-                            # bl_odata is still None, objects have not yet been created...
-                            objects.append(o_item)
+                            node = fbx_helper_nodes[o_uuid]
+                            if node:
+                                objects.append(node)
                         meshes.append((bl_mdata, objects))
                     # BlendShape deformers are only here to connect BlendShapeChannels to meshes, nothing else to do.
 
                 # keyblocks is a list of tuples (mesh, keyblock) matching that shape/blendshapechannel, for animation.
-                keyblocks = blen_read_shape(fbx_tmpl, fbx_sdata, fbx_bcdata, meshes, scene, settings)
+                keyblocks = blen_read_shape(fbx_tmpl, fbx_sdata, fbx_bcdata, meshes, scene)
                 blend_shape_channels[bc_uuid] = keyblocks
-    _(); del _
-
-    # II) We can finish armatures processing.
-    arm_parents = set()
-    force_global_objects = set()
-
-    def _():
-        fbx_tmpl = fbx_template_get((b'Model', b'KFbxNode'))
-
-        blen_read_armatures(fbx_tmpl, armatures, fbx_bones_to_fake_object, scene, arm_parents, settings)
-    _(); del _
-
-    def _():
-        from bpy.types import PoseBone
-
-        # Parent objects, after we created them...
-        for fbx_uuid, fbx_item in fbx_table_nodes.items():
-            if fbx_uuid in fbx_objects_parent_ignore:
-                # Ignore bones, but not armatures here!
-                continue
-            fbx_obj, blen_data = fbx_item
-            if fbx_obj.id != b'Model':
-                continue
-            # Handle rootbone-as-armature case :/
-            t_data = fbx_bones_to_fake_object.get(fbx_uuid)
-            if t_data is not None:
-                blen_data = t_data
-            elif blen_data is None:
-                continue  # no object loaded.. ignore
-
-            for (fbx_lnk,
-                 fbx_lnk_item,
-                 fbx_lnk_type) in connection_filter_forward(fbx_uuid, b'Model'):
-
-                if isinstance(fbx_lnk_item, PoseBone):
-                    blen_data.parent = fbx_lnk_item.id_data  # get the armature the bone belongs to
-                    blen_data.parent_bone = fbx_lnk_item.name
-                    blen_data.parent_type = 'BONE'
-                else:
-                    blen_data.parent = fbx_lnk_item
-    _(); del _
-
-    def _():
-        if global_matrix is not None:
-            # Apply global matrix last (after parenting)
-            for fbx_uuid, fbx_item in fbx_table_nodes.items():
-                if fbx_uuid in fbx_objects_parent_ignore:
-                    # Ignore bones, but not armatures here!
-                    continue
-                fbx_obj, blen_data = fbx_item
-                if fbx_obj.id != b'Model':
-                    continue
-                # Handle rootbone-as-armature case :/
-                t_data = fbx_bones_to_fake_object.get(fbx_uuid)
-                if t_data is not None:
-                    blen_data = t_data
-                elif blen_data is None:
-                    continue  # no object loaded.. ignore
-
-                if blen_data.parent is None:
-                    blen_data.matrix_basis = global_matrix * blen_data.matrix_basis
-
-            for (ob_arm, ob_me) in arm_parents:
-                # Rigged meshes are in global space in FBX...
-                ob_me.matrix_basis = global_matrix * ob_me.matrix_basis
-                # And reverse-apply armature transform, so that it gets valid parented (local) position!
-                ob_me.matrix_parent_inverse = ob_arm.matrix_basis.inverted_safe()
-                force_global_objects.add(ob_me)
     _(); del _
 
     # Animation!
@@ -2020,7 +2334,7 @@ def load(operator, context, filepath="",
                 lnk_prop = n_ctype.props[3]
                 if lnk_prop in {b'Lcl Translation', b'Lcl Rotation', b'Lcl Scaling'}:
                     # n_uuid can (????) be linked to root '0' node, instead of a mere object node... See T41712.
-                    ob = fbx_table_nodes.get(n_uuid, (None, None))[1]
+                    ob = fbx_helper_nodes.get(n_uuid, None)
                     if ob is None:
                         continue
                     items.append((ob, lnk_prop))
@@ -2062,7 +2376,7 @@ def load(operator, context, filepath="",
                 curvenodes[acn_uuid][ac_uuid] = (fbx_acitem, channel)
 
         # And now that we have sorted all this, apply animations!
-        blen_read_animations(fbx_tmpl_astack, fbx_tmpl_alayer, stacks, scene, force_global_objects, settings)
+        blen_read_animations(fbx_tmpl_astack, fbx_tmpl_alayer, stacks, scene)
 
     _(); del _
 
