@@ -317,6 +317,35 @@ class ExportFBX_experimental(bpy.types.Operator, ExportHelper):
             description="Export custom properties",
             default=False,
             )
+    add_leaf_bones = BoolProperty(
+            name="Add leaf bones",
+            description=("Append a last bone to the end of each chain to specify bone length. It is useful to, "
+                         "enable this when exporting into another modelling application and to disable this when"
+                         "exporting into a game engine or real-time viewer."),
+            default=True # False for commit!
+            )
+    primary_bone_axis = EnumProperty(
+            name="Primary Bone Axis",
+            items=(('X', "X Axis", ""),
+                   ('Y', "Y Axis", ""),
+                   ('Z', "Z Axis", ""),
+                   ('-X', "-X Axis", ""),
+                   ('-Y', "-Y Axis", ""),
+                   ('-Z', "-Z Axis", ""),
+                   ),
+            default='Y',
+            )
+    secondary_bone_axis = EnumProperty(
+            name="Secondary Bone Axis",
+            items=(('X', "X Axis", ""),
+                   ('Y', "Y Axis", ""),
+                   ('Z', "Z Axis", ""),
+                   ('-X', "-X Axis", ""),
+                   ('-Y', "-Y Axis", ""),
+                   ('-Z', "-Z Axis", ""),
+                   ),
+            default='X',
+            )
     use_armature_deform_only = BoolProperty(
             name="Only Deform Bones",
             description="Only write deforming bones (and non-deforming ones when they have deforming children)",
@@ -431,6 +460,9 @@ class ExportFBX_experimental(bpy.types.Operator, ExportHelper):
         layout.prop(self, "use_armature_deform_only")
         if is_74bin:
             layout.prop(self, "use_custom_props")
+            layout.prop(self, "add_leaf_bones")
+            layout.prop(self, "primary_bone_axis")
+            layout.prop(self, "secondary_bone_axis")
             layout.prop(self, "bake_anim")
             col = layout.column()
             col.enabled = self.bake_anim

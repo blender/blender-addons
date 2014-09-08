@@ -1379,6 +1379,8 @@ def fbx_data_armature_elements(root, arm_obj, scene_data):
     mat_world_arm = arm_obj.fbx_object_matrix(scene_data, global_space=True)
     bones = tuple(bo_obj for bo_obj in arm_obj.bones if bo_obj in scene_data.objects)
 
+    bone_radius_scale = scene_data.settings.global_scale * 33.0
+
     # Bones "data".
     for bo_obj in bones:
         bo = bo_obj.bdata
@@ -1390,12 +1392,17 @@ def fbx_data_armature_elements(root, arm_obj, scene_data):
 
         tmpl = elem_props_template_init(scene_data.templates, b"Bone")
         props = elem_properties(fbx_bo)
-        elem_props_template_set(tmpl, props, "p_double", b"Size", (bo.tail_local - bo.head_local).length)
+        elem_props_template_set(tmpl, props, "p_double", b"Size", bo.head_radius * bone_radius_scale)
         elem_props_template_finalize(tmpl, props)
 
         # Custom properties.
         if scene_data.settings.use_custom_props:
             fbx_data_element_custom_properties(props, bo)
+
+        # Store Blender bone length
+        # (LimbLength can't be used because it is a scale factor 0-1 for the parent-child distance:
+        # http://docs.autodesk.com/FBX/2014/ENU/FBX-SDK-Documentation/cpp_ref/class_fbx_skeleton.html#a9bbe2a70f4ed82cd162620259e649f0f )
+        elem_props_set(props, "p_double", "BlenderBoneLength".encode(), (bo.tail_local - bo.head_local).length, custom=True)
 
     # Skin deformers and BindPoses.
     # Note: we might also use Deformers for our "parent to vertex" stuff???
@@ -1716,6 +1723,90 @@ def fbx_skeleton_from_armature(scene, settings, arm_obj, objects, data_meshes,
 
     objects.update(bones)
 
+
+def fbx_generate_leaf_bones(settings, data_bones):
+    # find which bons have no children
+    child_count = {bone: 0 for bone,_ in data_bones.items()}
+    for bone,_ in data_bones.items():
+        if bone.parent and bone.parent._tag == 'BO':
+            child_count[bone.parent] += 1
+
+    bone_radius_scale = settings.global_scale * 33.0
+
+    # generate bone data
+    leaf_parents = [bone for bone,count in child_count.items() if count == 0]
+    leaf_bones = []
+    for parent in leaf_parents:
+        node_name = parent.name + "_end"
+        parent_uuid = parent.fbx_uuid
+        node_uuid = get_fbx_uuid_from_key(node_name + "_node")
+        attr_uuid = get_fbx_uuid_from_key(node_name + "_nodeattr")
+
+        hide = parent.bdata.hide
+        size = parent.bdata.head_radius * bone_radius_scale
+        bone_length = (parent.bdata.tail_local - parent.bdata.head_local).length
+        matrix = Matrix.Translation((0, bone_length, 0))
+        if settings.bone_correction_matrix_inv:
+            matrix = settings.bone_correction_matrix_inv * matrix
+        if settings.bone_correction_matrix:
+            matrix = matrix * settings.bone_correction_matrix
+        leaf_bones.append((node_name, parent_uuid, node_uuid, attr_uuid, matrix, hide, size))
+
+    return leaf_bones
+
+def fbx_write_leaf_bone_data(root, scene_data):
+    # Write a dummy leaf bone that is used by applications to show the length of the last bone in a chain
+    for (node_name, _, node_uuid, _, matrix, hide, _) in scene_data.data_leaf_bones:
+        model = elem_data_single_int64(root, b"Model", node_uuid)
+        model.add_string(fbx_name_class(node_name.encode(), b"Model"))
+        model.add_string(b"LimbNode")
+
+        elem_data_single_int32(model, b"Version", FBX_MODELS_VERSION)
+
+        # Object transform info.
+        loc, rot, scale = matrix.decompose()
+        rot = rot.to_euler('XYZ')
+        rot = tuple(convert_rad_to_deg_iter(rot))
+
+        tmpl = elem_props_template_init(scene_data.templates, b"Model")
+        # For now add only loc/rot/scale...
+        props = elem_properties(model)
+        elem_props_template_set(tmpl, props, "p_lcl_translation", b"Lcl Translation", loc)
+        elem_props_template_set(tmpl, props, "p_lcl_rotation", b"Lcl Rotation", rot)
+        elem_props_template_set(tmpl, props, "p_lcl_scaling", b"Lcl Scaling", scale)
+        elem_props_template_set(tmpl, props, "p_visibility", b"Visibility", float(not hide))
+
+        # Absolutely no idea what this is, but seems mandatory for validity of the file, and defaults to
+        # invalid -1 value...
+        elem_props_template_set(tmpl, props, "p_integer", b"DefaultAttributeIndex", 0)
+
+        elem_props_template_set(tmpl, props, "p_enum", b"InheritType", 1)  # RSrs
+
+        # Those settings would obviously need to be edited in a complete version of the exporter, may depends on
+        # object type, etc.
+        elem_data_single_int32(model, b"MultiLayer", 0)
+        elem_data_single_int32(model, b"MultiTake", 0)
+        elem_data_single_bool(model, b"Shading", True)
+        elem_data_single_string(model, b"Culling", b"CullingOff")
+
+        elem_props_template_finalize(tmpl, props)
+
+    for (node_name, _, _, attr_uuid, _, _, size) in scene_data.data_leaf_bones:
+        fbx_bo = elem_data_single_int64(root, b"NodeAttribute", attr_uuid)
+        fbx_bo.add_string(fbx_name_class(node_name.encode(), b"NodeAttribute"))
+        fbx_bo.add_string(b"LimbNode")
+        elem_data_single_string(fbx_bo, b"TypeFlags", b"Skeleton")
+
+        tmpl = elem_props_template_init(scene_data.templates, b"Bone")
+        props = elem_properties(fbx_bo)
+        elem_props_template_set(tmpl, props, "p_double", b"Size", size)
+        elem_props_template_finalize(tmpl, props)
+
+def fbx_write_leaf_bone_connections(connections, leaf_bones):
+    # attach nodes to parents and attributes to nodes
+    for (_, parent_uuid, node_uuid, attr_uuid, _, _, _) in leaf_bones:
+        connections.append((b"OO", node_uuid, parent_uuid, None))
+        connections.append((b"OO", attr_uuid, node_uuid, None))
 
 def fbx_animations_do(scene_data, ref_id, f_start, f_end, start_zero, objects=None, force_keep=False):
     """
@@ -2049,6 +2140,11 @@ def fbx_data_from_scene(scene, settings):
         fbx_skeleton_from_armature(scene, settings, ob_obj, objects, data_meshes,
                                    data_bones, data_deformers_skin, arm_parents)
 
+    # Generate leaf bones
+    data_leaf_bones = None
+    if settings.add_leaf_bones:
+        data_leaf_bones = fbx_generate_leaf_bones(settings, data_bones)
+
     # Some world settings are embedded in FBX materials...
     if scene.world:
         data_world = OrderedDict(((scene.world, get_blenderID_key(scene.world)),))
@@ -2126,6 +2222,7 @@ def fbx_data_from_scene(scene, settings):
             data_empties, data_lamps, data_cameras, data_meshes, None,
             data_bones, data_deformers_skin, data_deformers_shape,
             data_world, data_materials, data_textures, data_videos,
+            data_leaf_bones
         )
         animations, frame_start, frame_end = fbx_animations(tmp_scdata)
 
@@ -2247,6 +2344,10 @@ def fbx_data_from_scene(scene, settings):
                 mesh_key, _me, _free = data_meshes[ob_obj]
                 connections.append((b"OO", get_fbx_uuid_from_key(mesh_key), ob_obj.fbx_uuid, None))
 
+    # Leaf Bones
+    if data_leaf_bones:
+        fbx_write_leaf_bone_connections(connections, data_leaf_bones)
+
     # 'Shape' deformers (shape keys, only for meshes currently)...
     for me_key, shapes_key, shapes in data_deformers_shape.values():
         # shape -> geometry
@@ -2333,6 +2434,7 @@ def fbx_data_from_scene(scene, settings):
         data_empties, data_lamps, data_cameras, data_meshes, mesh_mat_indices,
         data_bones, data_deformers_skin, data_deformers_shape,
         data_world, data_materials, data_textures, data_videos,
+        data_leaf_bones
     )
 
 
@@ -2521,6 +2623,9 @@ def fbx_objects_elements(root, scene_data):
     for cam in scene_data.data_cameras:
         fbx_data_camera_elements(objects, cam, scene_data)
 
+    if scene_data.data_leaf_bones:
+        fbx_write_leaf_bone_data(objects, scene_data)
+
     done_meshes = set()
     for me_obj in scene_data.data_meshes:
         fbx_data_mesh_elements(objects, me_obj, scene_data, done_meshes)
@@ -2604,6 +2709,9 @@ def save_single(operator, scene, filepath="",
                 bake_anim_use_all_actions=True,
                 bake_anim_step=1.0,
                 bake_anim_simplify_factor=1.0,
+                add_leaf_bones=False,
+                primary_bone_axis='Y',
+                secondary_bone_axis='X',
                 use_metadata=True,
                 path_mode='AUTO',
                 use_mesh_edges=True,
@@ -2632,6 +2740,19 @@ def save_single(operator, scene, filepath="",
     if embed_textures and path_mode != 'COPY':
         embed_textures = False
 
+    # Calcuate bone correction matrix
+    bone_correction_matrix = None  # Default is None = no change
+    bone_correction_matrix_inv = None
+    if (primary_bone_axis, secondary_bone_axis) != ('Y', 'X'):
+        from bpy_extras.io_utils import axis_conversion
+        bone_correction_matrix = axis_conversion(from_forward=secondary_bone_axis,
+                                                 from_up=primary_bone_axis,
+                                                 to_forward='X',
+                                                 to_up='Y',
+                                                 ).to_4x4()
+        bone_correction_matrix_inv = bone_correction_matrix.inverted()
+
+
     media_settings = FBXExportSettingsMedia(
         path_mode,
         os.path.dirname(bpy.data.filepath),  # base_src
@@ -2649,6 +2770,7 @@ def save_single(operator, scene, filepath="",
         mesh_smooth_type, use_mesh_edges, use_tspace, use_armature_deform_only,
         bake_anim, bake_anim_use_nla_strips, bake_anim_use_all_actions, bake_anim_step, bake_anim_simplify_factor,
         False, media_settings, use_custom_props,
+        add_leaf_bones, bone_correction_matrix, bone_correction_matrix_inv,
     )
 
     import bpy_extras.io_utils
@@ -2726,6 +2848,9 @@ def defaults_unity3d():
         "bake_anim_step": 1.0,
         "bake_anim_use_nla_strips": True,
         "bake_anim_use_all_actions": True,
+        "add_leaf_bones":False,  # Avoid memory/performance cost for something only useful for modelling
+        "primary_bone_axis": 'Y',  # Doesn't really matter for Unity, so leave unchanged
+        "secondary_bone_axis": 'X',
 
         "path_mode": 'AUTO',
         "embed_textures": False,

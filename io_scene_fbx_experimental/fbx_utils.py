@@ -955,9 +955,12 @@ class ObjectWrapper(metaclass=MetaObjectWrapper):
 
         # Bones, lamps and cameras need to be rotated (in local space!).
         if self._tag == 'BO':
-            # XXX This should work smoothly, but actually is only OK for 'rest' pose, actual pose/animations
-            #     give insane results... :(
-            matrix = matrix * MAT_CONVERT_BONE
+            # if we have a bone parent we need to undo the parent correction
+            if not is_global and scene_data.settings.bone_correction_matrix_inv and parent and parent._tag == 'BO':
+                matrix = scene_data.settings.bone_correction_matrix_inv * matrix
+            # apply the bone correction
+            if scene_data.settings.bone_correction_matrix:
+                matrix = matrix * scene_data.settings.bone_correction_matrix
         elif self.bdata.type == 'LAMP':
             matrix = matrix * MAT_CONVERT_LAMP
         elif self.bdata.type == 'CAMERA':
@@ -1077,6 +1080,7 @@ FBXExportSettings = namedtuple("FBXExportSettings", (
     "mesh_smooth_type", "use_mesh_edges", "use_tspace", "use_armature_deform_only",
     "bake_anim", "bake_anim_use_nla_strips", "bake_anim_use_all_actions", "bake_anim_step", "bake_anim_simplify_factor",
     "use_metadata", "media_settings", "use_custom_props",
+    "add_leaf_bones", "bone_correction_matrix", "bone_correction_matrix_inv",
 ))
 
 # Helper container gathering some data we need multiple times:
@@ -1092,6 +1096,7 @@ FBXExportData = namedtuple("FBXExportData", (
     "data_empties", "data_lamps", "data_cameras", "data_meshes", "mesh_mat_indices",
     "data_bones", "data_deformers_skin", "data_deformers_shape",
     "data_world", "data_materials", "data_textures", "data_videos",
+    "data_leaf_bones",
 ))
 
 # Helper container gathering all importer settings.
