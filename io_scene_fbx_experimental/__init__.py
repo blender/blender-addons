@@ -406,7 +406,6 @@ class ExportFBX_experimental(bpy.types.Operator, ExportHelper):
     def draw(self, context):
         layout = self.layout
 
-        layout.prop(self, "version")
         layout.prop(self, "use_selection")
         layout.prop(self, "global_scale")
         layout.prop(self, "axis_forward")
