@@ -227,14 +227,6 @@ class ExportFBX_experimental(bpy.types.Operator, ExportHelper):
     # List of operator properties, the attributes will be assigned
     # to the class instance from the operator settings before calling.
 
-    version = EnumProperty(
-            items=(('BIN7400', "FBX 7.4 binary", "Newer 7.4 binary version, still in development (no animation yet)"),
-                   ('ASCII6100', "FBX 6.1 ASCII", "Legacy 6.1 ascii version"),
-                   ),
-            name="Version",
-            description="Choose which version of the exporter to use",
-            )
-
     use_selection = BoolProperty(
             name="Selected Objects",
             description="Export selected objects on visible layers",
@@ -269,7 +261,6 @@ class ExportFBX_experimental(bpy.types.Operator, ExportHelper):
                    ),
             default='Y',
             )
-    # 7.4 only
     bake_space_transform = BoolProperty(
             name="Apply Transform",
             description=("Bake space transform into object data, avoids getting unwanted rotations to objects when "
@@ -312,14 +303,12 @@ class ExportFBX_experimental(bpy.types.Operator, ExportHelper):
             description="Export loose edges (as two-vertices polygons)",
             default=False,
             )
-    # 7.4 only
     use_tspace = BoolProperty(
             name="Tangent Space",
             description=("Add binormal and tangent vectors, together with normal they form the tangent space "
                          "(will only work correctly with tris/quads only meshes!)"),
             default=False,
             )
-    # 7.4 only
     use_custom_props = BoolProperty(
             name="Custom Properties",
             description="Export custom properties",
@@ -359,7 +348,7 @@ class ExportFBX_experimental(bpy.types.Operator, ExportHelper):
             description="Only write deforming bones (and non-deforming ones when they have deforming children)",
             default=False,
             )
-    # Anim - 7.4
+    # Anim
     bake_anim = BoolProperty(
             name="Baked Animation",
             description="Export baked keyframe animation",
@@ -390,38 +379,7 @@ class ExportFBX_experimental(bpy.types.Operator, ExportHelper):
             min=0.0, max=10.0,  # No simplification to up to 0.05 slope/100 max_frame_step.
             default=1.0,  # default: min slope: 0.005, max frame step: 10.
             )
-    # Anim - 6.1
-    use_anim = BoolProperty(
-            name="Animation",
-            description="Export keyframe animation",
-            default=True,
-            )
-    use_anim_action_all = BoolProperty(
-            name="All Actions",
-            description=("Export all actions for armatures or just the currently selected action"),
-            default=True,
-            )
-    use_default_take = BoolProperty(
-            name="Default Take",
-            description=("Export currently assigned object and armature animations into a default take from the scene "
-                         "start/end frames"),
-            default=True
-            )
-    use_anim_optimize = BoolProperty(
-            name="Optimize Keyframes",
-            description="Remove double keyframes",
-            default=True,
-            )
-    anim_optimize_precision = FloatProperty(
-            name="Precision",
-            description=("Tolerance for comparing double keyframes (higher for greater accuracy)"),
-            min=0.0, max=20.0,  # from 10^2 to 10^-18 frames precision.
-            soft_min=1.0, soft_max=16.0,
-            default=6.0,  # default: 10^-4 frames.
-            )
-    # End anim
     path_mode = path_reference_mode
-    # 7.4 only
     embed_textures = BoolProperty(
             name="Embed Textures",
             description="Embed textures in FBX binary file (only for \"Copy\" path mode!)",
@@ -447,15 +405,13 @@ class ExportFBX_experimental(bpy.types.Operator, ExportHelper):
 
     def draw(self, context):
         layout = self.layout
-        is_74bin = (self.version == 'BIN7400')
 
         layout.prop(self, "version")
         layout.prop(self, "use_selection")
         layout.prop(self, "global_scale")
         layout.prop(self, "axis_forward")
         layout.prop(self, "axis_up")
-        if is_74bin:
-            layout.prop(self, "bake_space_transform")
+        layout.prop(self, "bake_space_transform")
 
         layout.separator()
         layout.prop(self, "object_types")
@@ -466,33 +422,23 @@ class ExportFBX_experimental(bpy.types.Operator, ExportHelper):
         sub.enabled = self.mesh_smooth_type in {'OFF'}
         sub.prop(self, "use_tspace")
         layout.prop(self, "use_armature_deform_only")
-        if is_74bin:
-            layout.prop(self, "use_custom_props")
-            layout.prop(self, "add_leaf_bones")
-            layout.prop(self, "primary_bone_axis")
-            layout.prop(self, "secondary_bone_axis")
-            layout.prop(self, "bake_anim")
-            col = layout.column()
-            col.enabled = self.bake_anim
-            col.prop(self, "bake_anim_use_nla_strips")
-            col.prop(self, "bake_anim_use_all_actions")
-            col.prop(self, "bake_anim_step")
-            col.prop(self, "bake_anim_simplify_factor")
-        else:
-            layout.prop(self, "use_anim")
-            col = layout.column()
-            col.enabled = self.use_anim
-            col.prop(self, "use_anim_action_all")
-            col.prop(self, "use_default_take")
-            col.prop(self, "use_anim_optimize")
-            col.prop(self, "anim_optimize_precision")
+        layout.prop(self, "use_custom_props")
+        layout.prop(self, "add_leaf_bones")
+        layout.prop(self, "primary_bone_axis")
+        layout.prop(self, "secondary_bone_axis")
+        layout.prop(self, "bake_anim")
+        col = layout.column()
+        col.enabled = self.bake_anim
+        col.prop(self, "bake_anim_use_nla_strips")
+        col.prop(self, "bake_anim_use_all_actions")
+        col.prop(self, "bake_anim_step")
+        col.prop(self, "bake_anim_simplify_factor")
 
         layout.separator()
         layout.prop(self, "path_mode")
-        if is_74bin:
-            col = layout.column()
-            col.enabled = (self.path_mode == 'COPY')
-            col.prop(self, "embed_textures")
+        col = layout.column()
+        col.enabled = (self.path_mode == 'COPY')
+        col.prop(self, "embed_textures")
         layout.prop(self, "batch_mode")
         layout.prop(self, "use_batch_own_dir")
 
@@ -502,6 +448,7 @@ class ExportFBX_experimental(bpy.types.Operator, ExportHelper):
 
     def execute(self, context):
         from mathutils import Matrix
+        from . import export_fbx_bin
         print("Using EXPERIMENTAL FBX import!")
         if not self.filepath:
             raise Exception("filepath not set")
@@ -518,12 +465,7 @@ class ExportFBX_experimental(bpy.types.Operator, ExportHelper):
 
         keywords["global_matrix"] = global_matrix
 
-        if self.version == 'BIN7400':
-            from . import export_fbx_bin
-            return export_fbx_bin.save(self, context, **keywords)
-        else:
-            from . import export_fbx
-            return export_fbx.save(self, context, **keywords)
+        return export_fbx_bin.save(self, context, **keywords)
 
 
 def menu_func_import(self, context):
