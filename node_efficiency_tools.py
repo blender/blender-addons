@@ -19,7 +19,7 @@
 bl_info = {
     "name": "Node Wrangler (aka Nodes Efficiency Tools)",
     "author": "Bartek Skorupa, Greg Zaal",
-    "version": (3, 13),
+    "version": (3, 14),
     "blender": (2, 71, 0),
     "location": "Node Editor Properties Panel or Ctrl-Space",
     "description": "Various tools to enhance and speed up node-based workflow",
@@ -941,12 +941,21 @@ class NWNodeWrangler(bpy.types.AddonPreferences):
                             keystr = "Ctrl " + keystr
                         row.label(keystr)
 
+def nw_check(context):
+    space = context.space_data
+    is_cycles = context.scene.render.engine == 'CYCLES'
+    valid = False
+    if space.type == 'NODE_EDITOR' and space.node_tree is not None:
+        type = space.node_tree.type
+        if type == 'COMPOSITING' or (type == 'SHADER' and is_cycles):
+            valid = True
+        
+    return valid    
 
 class NWBase:
     @classmethod
     def poll(cls, context):
-        space = context.space_data
-        return space.type == 'NODE_EDITOR' and space.node_tree is not None
+        return nw_check(context)
 
 
 # OPERATORS
@@ -1140,10 +1149,9 @@ class NWDeleteUnused(Operator, NWBase):
     @classmethod
     def poll(cls, context):
         valid = False
-        if context.space_data:
-            if context.space_data.node_tree:
-                if context.space_data.node_tree.nodes:
-                    valid = True
+        if nw_check(context):
+            if context.space_data.node_tree.nodes:
+                valid = True
         return valid
 
     def execute(self, context):
@@ -1205,11 +1213,11 @@ class NWSwapLinks(Operator, NWBase):
 
     @classmethod
     def poll(cls, context):
-        snode = context.space_data
-        if context.selected_nodes:
-            return len(context.selected_nodes) <= 2
-        else:
-            return False
+        valid = False
+        if nw_check(context):
+            if context.selected_nodes:
+                valid = len(context.selected_nodes) <= 2
+        return valid
 
     def execute(self, context):
         nodes, links = get_nodes_links(context)
@@ -1318,8 +1326,11 @@ class NWResetBG(Operator, NWBase):
 
     @classmethod
     def poll(cls, context):
-        snode = context.space_data
-        return snode.tree_type == 'CompositorNodeTree'
+        valid = False
+        if nw_check(context):
+            snode = context.space_data
+            valid = snode.tree_type == 'CompositorNodeTree'
+        return valid
 
     def execute(self, context):
         context.space_data.backdrop_zoom = 1
@@ -1350,10 +1361,11 @@ class NWEmissionViewer(Operator, NWBase):
 
     @classmethod
     def poll(cls, context):
-        space = context.space_data
         valid = False
-        if space.type == 'NODE_EDITOR':
-            if space.tree_type == 'ShaderNodeTree' and space.node_tree is not None and (context.active_node.type != "OUTPUT_MATERIAL" or context.active_node.type != "OUTPUT_WORLD"):
+        if nw_check(context):
+            space = context.space_data
+            if space.tree_type == 'ShaderNodeTree' and\
+                (context.active_node.type != "OUTPUT_MATERIAL" or context.active_node.type != "OUTPUT_WORLD"):
                 valid = True
         return valid
 
@@ -1406,17 +1418,23 @@ class NWEmissionViewer(Operator, NWBase):
                     materialout.location.y = sum_yloc / len(nodes)
                     materialout.select = False
                 # Analyze outputs, add "Emission Viewer" if needed, make links
-                out_i = 0  # Start index of node's outputs
+                out_i = None
+                valid_outputs = []
                 for i, out in enumerate(active.outputs):
-                    for out_link in out.links:
+                    if not out.hide:
+                        valid_outputs.append(i)
+                if valid_outputs:
+                    out_i = valid_outputs[0]  # Start index of node's outputs
+                for i, valid_i in enumerate(valid_outputs):
+                    for out_link in active.outputs[valid_i].links:
                         linked_to_out = False
                         if "Emission Viewer" in out_link.to_node.name or out_link.to_node == materialout:
                             linked_to_out = True
                         if linked_to_out:
-                            out_i = i + 1
-                        # If last output is linked to Viewer or materialout - go to first.
-                        if out_i == len(active.outputs):
-                            out_i = 0
+                            if i < len(valid_outputs) - 1:
+                                out_i = valid_outputs[i + 1]
+                            else:
+                                out_i = valid_outputs[0]
                 make_links = []  # store sockets for new links
                 if active.outputs:
                     # If output type not 'SHADER' - "Emission Viewer" needed
@@ -1470,15 +1488,6 @@ class NWFrameSelected(Operator, NWBase):
     color_prop = FloatVectorProperty(name="Color", description="The color of the frame node", default=(0.6, 0.6, 0.6),
                                      min=0, max=1, step=1, precision=3, subtype='COLOR_GAMMA', size=3)
 
-    @classmethod
-    def poll(cls, context):
-        space = context.space_data
-        valid = False
-        if space.type == 'NODE_EDITOR':
-            if space.node_tree is not None:
-                valid = True
-        return valid
-
     def execute(self, context):
         nodes, links = get_nodes_links(context)
         selected = []
@@ -1502,15 +1511,6 @@ class NWReloadImages(Operator, NWBase):
     bl_idname = "node.nw_reload_images"
     bl_label = "Reload Images"
     bl_description = "Update all the image nodes to match their files on disk"
-
-    @classmethod
-    def poll(cls, context):
-        space = context.space_data
-        valid = False
-        if space.type == 'NODE_EDITOR':
-            if space.node_tree is not None:
-                valid = True
-        return valid
 
     def execute(self, context):
         nodes, links = get_nodes_links(context)
@@ -2076,14 +2076,10 @@ class NWCopySettings(Operator, NWBase):
 
     @classmethod
     def poll(cls, context):
-        space = context.space_data
         valid = False
-        if (space.type == 'NODE_EDITOR' and
-                space.node_tree is not None and
-                context.active_node is not None and
-                context.active_node.type is not 'FRAME'
-                ):
-            valid = True
+        if nw_check(context):
+            if context.active_node is not None and context.active_node.type is not 'FRAME':
+                valid = True
         return valid
 
     def execute(self, context):
@@ -2252,10 +2248,10 @@ class NWAddTextureSetup(Operator, NWBase):
 
     @classmethod
     def poll(cls, context):
-        space = context.space_data
         valid = False
-        if space.type == 'NODE_EDITOR':
-            if space.tree_type == 'ShaderNodeTree' and space.node_tree is not None:
+        if nw_check(context):
+            space = context.space_data
+            if space.tree_type == 'ShaderNodeTree':
                 valid = True
         return valid
 
@@ -2425,10 +2421,9 @@ class NWLinkActiveToSelected(Operator, NWBase):
 
     @classmethod
     def poll(cls, context):
-        space = context.space_data
         valid = False
-        if space.type == 'NODE_EDITOR':
-            if space.node_tree is not None and context.active_node is not None:
+        if nw_check(context):
+            if context.active_node is not None:
                 if context.active_node.select:
                     valid = True
         return valid
@@ -2653,13 +2648,17 @@ class NWLinkToOutputNode(Operator, NWBase):
 
     @classmethod
     def poll(cls, context):
-        space = context.space_data
-        return (space.type == 'NODE_EDITOR' and space.node_tree is not None and context.active_node is not None)
+        valid = False
+        if nw_check(context):
+            if context.active_node is not None:
+                valid = True
+        return valid
 
     def execute(self, context):
         nodes, links = get_nodes_links(context)
         active = nodes.active
         output_node = None
+        output_index = None
         tree_type = context.space_data.tree_type
         output_types_shaders = [x[1] for x in shaders_output_nodes_props]
         output_types_compo = ['COMPOSITE']
@@ -2677,9 +2676,12 @@ class NWLinkToOutputNode(Operator, NWBase):
             output_node.location.x = active.location.x + active.dimensions.x + 80
             output_node.location.y = active.location.y
         if (output_node and active.outputs):
-            output_index = 0
             for i, output in enumerate(active.outputs):
-                if output.type == output_node.inputs[0].type:
+                if not output.hide:
+                    output_index = i
+                    break
+            for i, output in enumerate(active.outputs):
+                if output.type == output_node.inputs[0].type and not output.hide:
                     output_index = i
                     break
 
@@ -2704,11 +2706,6 @@ class NWMakeLink(Operator, NWBase):
     from_socket = IntProperty()
     to_socket = IntProperty()
 
-    @classmethod
-    def poll(cls, context):
-        snode = context.space_data
-        return (snode.type == 'NODE_EDITOR' and snode.node_tree is not None)
-
     def execute(self, context):
         nodes, links = get_nodes_links(context)
 
@@ -2728,11 +2725,6 @@ class NWCallInputsMenu(Operator, NWBase):
     bl_label = 'Make Link'
     bl_options = {'REGISTER', 'UNDO'}
     from_socket = IntProperty()
-
-    @classmethod
-    def poll(cls, context):
-        snode = context.space_data
-        return (snode.type == 'NODE_EDITOR' and snode.node_tree is not None)
 
     def execute(self, context):
         nodes, links = get_nodes_links(context)
@@ -2755,11 +2747,6 @@ class NWAddSequence(Operator, ImportHelper):
     bl_options = {'REGISTER', 'UNDO'}
     directory = StringProperty(subtype="DIR_PATH")
     filename = StringProperty(subtype="FILE_NAME")
-
-    @classmethod
-    def poll(cls, context):
-        snode = context.space_data
-        return (snode.type == 'NODE_EDITOR' and snode.node_tree is not None)
 
     def execute(self, context):
         nodes, links = get_nodes_links(context)
@@ -2841,11 +2828,6 @@ class NWAddMultipleImages(Operator, ImportHelper):
     bl_options = {'REGISTER', 'UNDO'}
     directory = StringProperty(subtype="DIR_PATH")
     files = CollectionProperty(type=bpy.types.OperatorFileListElement, options={'HIDDEN', 'SKIP_SAVE'})
-
-    @classmethod
-    def poll(cls, context):
-        snode = context.space_data
-        return (snode.type == 'NODE_EDITOR' and snode.node_tree is not None)
 
     def execute(self, context):
         nodes, links = get_nodes_links(context)
@@ -3221,13 +3203,11 @@ class NWVertColMenu(bpy.types.Menu):
 
     @classmethod
     def poll(cls, context):
-        if context.area.spaces[0].node_tree:
-            if context.area.spaces[0].node_tree.type == 'SHADER':
-                return True
-            else:
-                return False
-        else:
-            return False
+        valid = False
+        if nw_check(context):
+            snode = context.space_data
+            valid = snode.tree_type == 'ShaderNodeTree'
+        return valid
 
     def draw(self, context):
         l = self.layout
@@ -3749,3 +3729,4 @@ def unregister():
 
 if __name__ == "__main__":
     register()
+
