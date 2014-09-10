@@ -1391,7 +1391,10 @@ class NWEmissionViewer(Operator, NWBase):
             valid = False
             if active:
                 if (active.name != "Emission Viewer") and (active.type not in output_types) and not in_group:
-                    valid = True
+                    for out in active.outputs:
+                        if not out.hide:
+                            valid = True
+                            break
             if valid:
                 # get material_output node, store selection, deselect all
                 materialout_exists = False
@@ -2651,7 +2654,10 @@ class NWLinkToOutputNode(Operator, NWBase):
         valid = False
         if nw_check(context):
             if context.active_node is not None:
-                valid = True
+                for out in context.active_node.outputs:
+                    if not out.hide:
+                        valid = True
+                        break
         return valid
 
     def execute(self, context):
@@ -3038,8 +3044,6 @@ class NWConnectionListInputs(Menu, NWBase):
         nodes, links = get_nodes_links(context)
 
         n2 = nodes[context.scene.NWLazyTarget]
-
-        #print (self.from_socket)
 
         index = 0
         for i in n2.inputs:
