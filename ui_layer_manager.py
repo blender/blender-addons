@@ -64,7 +64,7 @@ def check_init_data(scene):
             namedlayers.layers.remove(0)
         for i in range(20):
             layer = namedlayers.layers.add()
-            layer.name = "Layer%.2d" % i
+            layer.name = "Layer%.2d" % (i + 1)  # Blender use layer nums starting from 1, not 0.
         namedlayers.use_init = False
 
 
