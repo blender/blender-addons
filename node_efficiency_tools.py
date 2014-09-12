@@ -19,8 +19,8 @@
 bl_info = {
     "name": "Node Wrangler (aka Nodes Efficiency Tools)",
     "author": "Bartek Skorupa, Greg Zaal",
-    "version": (3, 14),
-    "blender": (2, 71, 0),
+    "version": (3, 15),
+    "blender": (2, 72, 0),
     "location": "Node Editor Properties Panel or Ctrl-Space",
     "description": "Various tools to enhance and speed up node-based workflow",
     "warning": "",
@@ -260,6 +260,7 @@ compo_filter_nodes_props = (
     ('CompositorNodeInpaint', 'INPAINT', 'Inpaint'),
     ('CompositorNodeDBlur', 'DBLUR', 'Directional Blur'),
     ('CompositorNodePixelate', 'PIXELATE', 'Pixelate'),
+    ('CompositorNodeSunBeams', 'SUNBEAMS', 'Sun Beams'),
 )
 # (rna_type.identifier, type, rna_type.name)
 # Keeping mixed case to avoid having to translate entries when adding new nodes in operators.
@@ -3733,4 +3734,3 @@ def unregister():
 
 if __name__ == "__main__":
     register()
-
