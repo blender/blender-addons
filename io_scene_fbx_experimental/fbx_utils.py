@@ -679,7 +679,7 @@ class AnimationCurveNodeWrapper:
         assert(len(values) == len(self.fbx_props[0]))
         self._keys.append((frame, values, [True] * len(values)))  # write everything by default.
 
-    def simplfy(self, fac, step):
+    def simplfy(self, fac, step, force_keep=False):
         """
         Simplifies sampled curves by only enabling samples when:
             * their values differ significantly from the previous sample ones, or
@@ -726,6 +726,12 @@ class AnimationCurveNodeWrapper:
                         p_keyed[idx] = (currframe, val)
                         are_keyed[idx] = True
             p_currframe, p_key, p_key_write = currframe, key, key_write
+
+        # If we write nothing (action doing nothing) and are in 'force_keep' mode, we key everything! :P
+        # See T41766.
+        if (force_keep and not self):
+            are_keyed[:] = [True] * len(are_keyed)
+
         # If we did key something, ensure first and last sampled values are keyed as well.
         for idx, is_keyed in enumerate(are_keyed):
             if is_keyed:
