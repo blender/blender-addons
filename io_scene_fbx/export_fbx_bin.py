@@ -2354,6 +2354,9 @@ def fbx_header_elements(root, scene_data, time=None):
     Write boiling code of FBX root.
     time is expected to be a datetime.datetime object, or None (using now() in this case).
     """
+    app_vendor = "Blender Foundation"
+    app_name = "Blender (stable FBX IO)"
+    app_ver = bpy.app.version_string
     # ##### Start of FBXHeaderExtension element.
     header_ext = elem_empty(root, b"FBXHeaderExtension")
 
@@ -2376,7 +2379,7 @@ def fbx_header_elements(root, scene_data, time=None):
     elem_data_single_int32(elem, b"Second", time.second)
     elem_data_single_int32(elem, b"Millisecond", time.microsecond // 1000)
 
-    elem_data_single_string_unicode(header_ext, b"Creator", "Blender version %s" % bpy.app.version_string)
+    elem_data_single_string_unicode(header_ext, b"Creator", "%s - %s" % (app_name, app_ver))
 
     # 'SceneInfo' seems mandatory to get a valid FBX file...
     # TODO use real values!
@@ -2398,15 +2401,15 @@ def fbx_header_elements(root, scene_data, time=None):
     elem_props_set(props, "p_string_url", b"DocumentUrl", "/foobar.fbx")
     elem_props_set(props, "p_string_url", b"SrcDocumentUrl", "/foobar.fbx")
     original = elem_props_compound(props, b"Original")
-    original("p_string", b"ApplicationVendor", "Blender Foundation")
-    original("p_string", b"ApplicationName", "Blender")
-    original("p_string", b"ApplicationVersion", "2.70")
+    original("p_string", b"ApplicationVendor", app_vendor)
+    original("p_string", b"ApplicationName", app_name)
+    original("p_string", b"ApplicationVersion", app_ver)
     original("p_datetime", b"DateTime_GMT", "01/01/1970 00:00:00.000")
     original("p_string", b"FileName", "/foobar.fbx")
     lastsaved = elem_props_compound(props, b"LastSaved")
-    lastsaved("p_string", b"ApplicationVendor", "Blender Foundation")
-    lastsaved("p_string", b"ApplicationName", "Blender")
-    lastsaved("p_string", b"ApplicationVersion", "2.70")
+    lastsaved("p_string", b"ApplicationVendor", app_vendor)
+    lastsaved("p_string", b"ApplicationName", app_name)
+    lastsaved("p_string", b"ApplicationVersion", app_ver)
     lastsaved("p_datetime", b"DateTime_GMT", "01/01/1970 00:00:00.000")
 
     # ##### End of FBXHeaderExtension element.
@@ -2420,7 +2423,7 @@ def fbx_header_elements(root, scene_data, time=None):
                                     "".format(time.year, time.month, time.day, time.hour, time.minute, time.second,
                                               time.microsecond * 1000))
 
-    elem_data_single_string_unicode(root, b"Creator", "Blender version %s" % bpy.app.version_string)
+    elem_data_single_string_unicode(root, b"Creator", "%s - %s" % (app_name, app_ver))
 
     # ##### Start of GlobalSettings element.
     global_settings = elem_empty(root, b"GlobalSettings")
