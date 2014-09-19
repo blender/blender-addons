@@ -1880,7 +1880,7 @@ def fbx_animations_do(scene_data, ref_id, f_start, f_end, start_zero, objects=No
     # Objects-like loc/rot/scale...
     for ob_obj, anims in animdata_ob.items():
         for anim in anims:
-            anim.simplfy(simplify_fac, bake_step, force_keep)
+            anim.simplify(simplify_fac, bake_step, force_keep)
             if not anim:
                 continue
             for obj_key, group_key, group, fbx_group, fbx_gname in anim.get_final_data(scene, ref_id, force_keep):
@@ -1892,7 +1892,7 @@ def fbx_animations_do(scene_data, ref_id, f_start, f_end, start_zero, objects=No
     # And meshes' shape keys.
     for channel_key, (anim_shape, me, shape) in animdata_shapes.items():
         final_keys = OrderedDict()
-        anim_shape.simplfy(simplify_fac, bake_step, force_keep)
+        anim_shape.simplify(simplify_fac, bake_step, force_keep)
         if not anim_shape:
             continue
         for elem_key, group_key, group, fbx_group, fbx_gname in anim_shape.get_final_data(scene, ref_id, force_keep):

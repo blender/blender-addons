@@ -679,7 +679,7 @@ class AnimationCurveNodeWrapper:
         assert(len(values) == len(self.fbx_props[0]))
         self._keys.append((frame, values, [True] * len(values)))  # write everything by default.
 
-    def simplfy(self, fac, step, force_keep=False):
+    def simplify(self, fac, step, force_keep=False):
         """
         Simplifies sampled curves by only enabling samples when:
             * their values differ significantly from the previous sample ones, or
