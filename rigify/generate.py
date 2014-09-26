@@ -382,6 +382,7 @@ def generate_rig(context, metarig):
     # Create list of layer name/row pairs
     layer_layout = []
     for l in metarig.data.rigify_layers:
+        print( l.name )
         layer_layout += [(l.name, l.row)]
 
     # Generate the UI script

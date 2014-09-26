@@ -91,7 +91,7 @@ class Rig:
         pole_target_base_name = self.params.knee_base_name + "_target"
 
         # Leg is based on common limb
-        self.ik_limb = limb_common.IKLimb(obj, self.org_bones[0], self.org_bones[1], self.org_bones[2], pole_target_base_name, primary_rotation_axis, bend_hint, self.layers, ikfk_switch)
+        self.ik_limb = limb_common.IKLimb(obj, self.org_bones[0], self.org_bones[1], self.org_bones[2], self.org_bones[2], pole_target_base_name, primary_rotation_axis, bend_hint, self.layers, ikfk_switch)
 
     def generate(self):
         """ Generate the rig.

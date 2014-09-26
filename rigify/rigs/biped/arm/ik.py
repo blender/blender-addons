@@ -59,7 +59,7 @@ class Rig:
         pole_target_base_name = self.params.elbow_base_name + "_target"
 
         # Arm is based on common limb
-        self.ik_limb = limb_common.IKLimb(obj, self.org_bones[0], self.org_bones[1], self.org_bones[2], pole_target_base_name, primary_rotation_axis, bend_hint, layers, ikfk_switch)
+        self.ik_limb = limb_common.IKLimb(obj, self.org_bones[0], self.org_bones[1], self.org_bones[2], None, pole_target_base_name, primary_rotation_axis, bend_hint, layers, ikfk_switch)
 
     def generate(self):
         """ Generate the rig.

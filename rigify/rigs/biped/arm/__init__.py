@@ -56,12 +56,14 @@ if is_selected(fk_arm):
 if is_selected(ik_arm):
     layout.prop(pose_bones[ik_arm[2]], '["stretch_length"]', text="Length IK (" + ik_arm[2] + ")", slider=True)
     layout.prop(pose_bones[ik_arm[2]], '["auto_stretch"]', text="Auto-Stretch IK (" + ik_arm[2] + ")", slider=True)
+if is_selected([ik_arm[3]]):
+    layout.prop(pose_bones[ik_arm[3]], '["follow"]', text="Follow Parent (" + ik_arm[3] + ")", slider=True)
 """
 
 hose_script = """
-hose_arm = ["%s", "%s", "%s"]
+hose_arm = ["%s", "%s", "%s", "%s", "%s"]
 if is_selected(hose_arm):
-    layout.prop(pose_bones[hose_arm[1]], '["smooth_bend"]', text="Smooth Elbow (" + hose_arm[1] + ")", slider=True)
+    layout.prop(pose_bones[hose_arm[2]], '["smooth_bend"]', text="Smooth Elbow (" + hose_arm[2] + ")", slider=True)
 """
 
 end_script = """
@@ -104,7 +106,7 @@ class Rig:
         ik_controls = self.ik_rig.generate()
         ui_script = script % (fk_controls[0], fk_controls[1], fk_controls[2], ik_controls[0], ik_controls[1], ik_controls[2], ik_controls[3])
         if self.params.use_complex_arm:
-            ui_script += hose_script % (hose_controls[0], hose_controls[1], hose_controls[2])
+            ui_script += hose_script % (hose_controls[0], hose_controls[1], hose_controls[2], hose_controls[3], hose_controls[4])
         ui_script += end_script
         return [ui_script]
 

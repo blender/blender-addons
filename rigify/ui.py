@@ -125,9 +125,10 @@ class DATA_PT_rigify_layer_names(bpy.types.Panel):
             row = col.row()
             row.prop(arm, "layers", index=i, text="", toggle=True)
             split = row.split(percentage=0.8)
-            split.prop(rigify_layer, "name", text="Layer %d" % (i + 1))
-            split.prop(rigify_layer, "row", text="")
-            #split.prop(rigify_layer, "column", text="")
+            split.prop(rigify_layer, "name",  text="Layer %d" % (i + 1))
+            split.prop(rigify_layer, "row",   text="")
+
+            #split.prop(rigify_layer, "column", text="")  
 
 
 class BONE_PT_rigify_buttons(bpy.types.Panel):
@@ -198,14 +199,9 @@ class BONE_PT_rigify_buttons(bpy.types.Panel):
 
 
 class VIEW3D_PT_tools_rigify_dev(bpy.types.Panel):
-    bl_category = "Tools"
     bl_label = "Rigify Dev Tools"
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'TOOLS'
-
-    @classmethod
-    def poll(cls, context):
-        return context.mode == 'EDIT_ARMATURE' or context.mode == 'EDIT_MESH'
 
     def draw(self, context):
         obj = context.active_object
@@ -424,7 +420,6 @@ def register():
     bpy.utils.register_class(EncodeMetarig)
     bpy.utils.register_class(EncodeMetarigSample)
     bpy.utils.register_class(EncodeWidget)
-
     #space_info.INFO_MT_armature_add.append(ui.menu_func)
 
 
