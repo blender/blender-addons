@@ -30,7 +30,7 @@ from itertools import zip_longest, chain
 import bpy
 import bpy_extras
 from bpy.types import Object, Bone, PoseBone, DupliObject
-from mathutils import Matrix
+from mathutils import Vector, Matrix
 
 from . import encode_bin, data_types
 
@@ -207,6 +207,18 @@ def similar_values_iter(v1, v2, e=1e-6):
         if (v1 != v2) and ((abs(v1 - v2) / max(abs(v1), abs(v2))) > e):
             return False
     return True
+
+def vcos_transformed_gen(raw_cos, m=None):
+    # Note: we could most likely get much better performances with numpy, but will leave this as TODO for now.
+    gen = zip(*(iter(raw_cos),) * 3)
+    return gen if m is None else (m * Vector(v) for v in gen)
+
+def nors_transformed_gen(raw_nors, m=None):
+    # Great, now normals are also expected 4D!
+    # XXX Back to 3D normals for now!
+    # gen = zip(*(iter(raw_nors),) * 3 + (_infinite_gen(1.0),))
+    gen = zip(*(iter(raw_nors),) * 3)
+    return gen if m is None else (m * Vector(v) for v in gen)
 
 
 # ##### UIDs code. #####

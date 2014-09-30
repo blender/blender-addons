@@ -62,6 +62,8 @@ from .fbx_utils import (
     RIGHT_HAND_AXES, FBX_FRAMERATES,
     # Miscellaneous utils.
     units_convertor, units_convertor_iter, matrix4_to_array, similar_values, similar_values_iter,
+    # Mesh transform helpers.
+    vcos_transformed_gen, nors_transformed_gen,
     # UUID from key.
     get_fbx_uuid_from_key,
     # Key generators.
@@ -841,12 +843,7 @@ def fbx_data_mesh_elements(root, me_obj, scene_data, done_meshes):
     # Vertex cos.
     t_co = array.array(data_types.ARRAY_FLOAT64, (0.0,)) * len(me.vertices) * 3
     me.vertices.foreach_get("co", t_co)
-    if geom_mat_co is not None:
-        def _vcos_transformed_gen(raw_cos, m=None):
-            # Note: we could most likely get much better performances with numpy, but will leave this as TODO for now.
-            return chain(*(m * Vector(v) for v in zip(*(iter(raw_cos),) * 3)))
-        t_co = _vcos_transformed_gen(t_co, geom_mat_co)
-    elem_data_single_float64_array(geom, b"Vertices", t_co)
+    elem_data_single_float64_array(geom, b"Vertices", chain(*vcos_transformed_gen(t_co, geom_mat_co)))
     del t_co
 
     # Polygon indices.
@@ -955,16 +952,9 @@ def fbx_data_mesh_elements(root, me_obj, scene_data, done_meshes):
         #     but this does not seem well supported by apps currently...
         me.calc_normals_split()
 
-        def _nortuples_gen(raw_nors, m):
-            # Great, now normals are also expected 4D!
-            # XXX Back to 3D normals for now!
-            # gen = zip(*(iter(raw_nors),) * 3 + (_infinite_gen(1.0),))
-            gen = zip(*(iter(raw_nors),) * 3)
-            return gen if m is None else (m * Vector(v) for v in gen)
-
         t_ln = array.array(data_types.ARRAY_FLOAT64, (0.0,)) * len(me.loops) * 3
         me.loops.foreach_get("normal", t_ln)
-        t_ln = _nortuples_gen(t_ln, geom_mat_no)
+        t_ln = nors_transformed_gen(t_ln, geom_mat_no)
         if 0:
             t_ln = tuple(t_ln)  # No choice... :/
 
@@ -1014,7 +1004,8 @@ def fbx_data_mesh_elements(root, me_obj, scene_data, done_meshes):
                     elem_data_single_string_unicode(lay_nor, b"Name", name)
                     elem_data_single_string(lay_nor, b"MappingInformationType", b"ByPolygonVertex")
                     elem_data_single_string(lay_nor, b"ReferenceInformationType", b"Direct")
-                    elem_data_single_float64_array(lay_nor, b"Binormals", chain(*_nortuples_gen(t_ln, geom_mat_no)))
+                    elem_data_single_float64_array(lay_nor, b"Binormals",
+                                                   chain(*nors_transformed_gen(t_ln, geom_mat_no)))
                     # Binormal weights, no idea what it is.
                     # elem_data_single_float64_array(lay_nor, b"BinormalsW", t_lnw)
 
@@ -1026,7 +1017,8 @@ def fbx_data_mesh_elements(root, me_obj, scene_data, done_meshes):
                     elem_data_single_string_unicode(lay_nor, b"Name", name)
                     elem_data_single_string(lay_nor, b"MappingInformationType", b"ByPolygonVertex")
                     elem_data_single_string(lay_nor, b"ReferenceInformationType", b"Direct")
-                    elem_data_single_float64_array(lay_nor, b"Tangents", chain(*_nortuples_gen(t_ln, geom_mat_no)))
+                    elem_data_single_float64_array(lay_nor, b"Tangents",
+                                                   chain(*nors_transformed_gen(t_ln, geom_mat_no)))
                     # Tangent weights, no idea what it is.
                     # elem_data_single_float64_array(lay_nor, b"TangentsW", t_lnw)
 
@@ -1035,7 +1027,6 @@ def fbx_data_mesh_elements(root, me_obj, scene_data, done_meshes):
                 me.free_tangents()
 
         me.free_normals_split()
-        del _nortuples_gen
 
     # Write VertexColor Layers.
     vcolnumber = len(me.vertex_colors)
@@ -2018,21 +2009,29 @@ def fbx_data_from_scene(scene, settings):
 
     # ShapeKeys.
     data_deformers_shape = OrderedDict()
-    for me_key, me, _org in data_meshes.values():
+    geom_mat_co = settings.global_matrix if settings.bake_space_transform else None
+    for me_obj, (me_key, me, _org) in data_meshes.items():
         if not (me.shape_keys and me.shape_keys.key_blocks):
             continue
+
         shapes_key = get_blender_mesh_shape_key(me)
+        _cos = array.array(data_types.ARRAY_FLOAT64, (0.0,)) * len(me.vertices) * 3
+        me.vertices.foreach_get("co", _cos)
+        v_cos = tuple(vcos_transformed_gen(_cos, geom_mat_co))
         for shape in me.shape_keys.key_blocks:
             # Only write vertices really different from org coordinates!
             # XXX FBX does not like empty shapes (makes Unity crash e.g.), so we have to do this here... :/
             shape_verts_co = []
             shape_verts_idx = []
-            for idx, (sv, v) in enumerate(zip(shape.data, me.vertices)):
-                if similar_values_iter(sv.co, v.co):
+
+            shape.data.foreach_get("co", _cos)
+            sv_cos = tuple(vcos_transformed_gen(_cos, geom_mat_co))
+            for idx, (sv_co, v_co) in enumerate(zip(sv_cos, v_cos)):
+                if similar_values_iter(sv_co, v_co):
                     # Note: Maybe this is a bit too simplistic, should we use real shape base here? Though FBX does not
                     #       have this at all... Anyway, this should cover most common cases imho.
                     continue
-                shape_verts_co.extend(sv.co - v.co)
+                shape_verts_co.extend(sv_co - v_co)
                 shape_verts_idx.append(idx)
             if not shape_verts_co:
                 continue
