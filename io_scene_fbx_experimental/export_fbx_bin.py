@@ -1683,7 +1683,7 @@ def fbx_skeleton_from_armature(scene, settings, arm_obj, objects, data_meshes,
     data_bones.update((bo, get_blender_bone_key(arm_obj.bdata, bo.bdata)) for bo in bones)
 
     for ob_obj in objects:
-        if not (ob_obj.is_object and ob_obj.type == 'MESH' and ob_obj.parent == arm_obj):
+        if not ob_obj.is_deformed_by_armature(arm_obj):
             continue
 
         # Always handled by an Armature modifier...

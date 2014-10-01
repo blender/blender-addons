@@ -1054,6 +1054,15 @@ class ObjectWrapper(metaclass=MetaObjectWrapper):
         return ()
     material_slots = property(get_material_slots)
 
+    def is_deformed_by_armature(self, arm_obj):
+        if not (self.is_object and self.type == 'MESH'):
+            return False
+        if self.parent == arm_obj:
+            return True
+        for mod in self.bdata.modifiers:
+            if mod.type == 'ARMATURE' and mod.object == arm_obj.bdata:
+                return True
+
     # #### Duplis...
     def dupli_list_create(self, scene, settings='PREVIEW'):
         if self._tag == 'OB':
