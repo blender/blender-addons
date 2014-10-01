@@ -2122,7 +2122,7 @@ def fbx_data_from_scene(scene, settings):
                     # Note: Maybe this is a bit too simplistic, should we use real shape base here? Though FBX does not
                     #       have this at all... Anyway, this should cover most common cases imho.
                     continue
-                shape_verts_co.extend(sv_co - v_co)
+                shape_verts_co.extend(Vector(sv_co) - Vector(v_co))
                 shape_verts_idx.append(idx)
             if not shape_verts_co:
                 continue
