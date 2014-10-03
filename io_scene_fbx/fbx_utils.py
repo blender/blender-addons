@@ -671,7 +671,7 @@ class AnimationCurveNodeWrapper:
 
     def __bool__(self):
         # We are 'True' if we do have some validated keyframes...
-        return self._keys and True in ((True in k[2]) for k in self._keys)
+        return bool(self._keys) and (True in ((True in k[2]) for k in self._keys))
 
     def add_group(self, elem_key, fbx_group, fbx_gname, fbx_props):
         """
