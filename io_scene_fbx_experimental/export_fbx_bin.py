@@ -2926,8 +2926,25 @@ def save(operator, context,
                 scene = bpy.data.scenes.new(name="FBX_Temp")
                 scene.layers = [True] * 20
                 # bpy.data.scenes.active = scene # XXX, cant switch
+                src_scenes = {}  # Count how much each 'source' scenes are used.
                 for ob_base in data.objects:
+                    for src_sce in ob_base.users_scene:
+                        if src_sce not in src_scenes:
+                            src_scenes[src_sce] = 0
+                        src_scenes[src_sce] += 1
                     scene.objects.link(ob_base)
+
+                # Find the 'most used' source scene, and use its unit settings. This is somewhat weak, but should work
+                # fine in most cases, and avoids stupid issues like T41931.
+                best_src_scene = None
+                best_src_scene_users = 0
+                for sce, nbr_users in src_scenes.items():
+                    if (nbr_users) > best_src_scene_users:
+                        best_src_scene_users = nbr_users
+                        best_src_scene = sce
+                scene.unit_settings.system = best_src_scene.unit_settings.system
+                scene.unit_settings.system_rotation = best_src_scene.unit_settings.system_rotation
+                scene.unit_settings.scale_length = best_src_scene.unit_settings.scale_length
 
                 scene.update()
                 # TODO - BUMMER! Armatures not in the group wont animate the mesh
