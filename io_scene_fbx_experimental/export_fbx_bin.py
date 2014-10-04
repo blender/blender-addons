@@ -946,7 +946,7 @@ def fbx_data_mesh_elements(root, me_obj, scene_data, done_meshes):
 
     # Loop normals.
     tspacenumber = 0
-    if (write_normals):
+    if write_normals:
         # NOTE: this is not supported by importer currently.
         # XXX Official docs says normals should use IndexToDirect,
         #     but this does not seem well supported by apps currently...
@@ -1116,9 +1116,10 @@ def fbx_data_mesh_elements(root, me_obj, scene_data, done_meshes):
 
     layer = elem_data_single_int32(geom, b"Layer", 0)
     elem_data_single_int32(layer, b"Version", FBX_GEOMETRY_LAYER_VERSION)
-    lay_nor = elem_empty(layer, b"LayerElement")
-    elem_data_single_string(lay_nor, b"Type", b"LayerElementNormal")
-    elem_data_single_int32(lay_nor, b"TypedIndex", 0)
+    if write_normals:
+        lay_nor = elem_empty(layer, b"LayerElement")
+        elem_data_single_string(lay_nor, b"Type", b"LayerElementNormal")
+        elem_data_single_int32(lay_nor, b"TypedIndex", 0)
     if tspacenumber:
         lay_binor = elem_empty(layer, b"LayerElement")
         elem_data_single_string(lay_binor, b"Type", b"LayerElementBinormal")
