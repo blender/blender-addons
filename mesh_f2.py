@@ -50,14 +50,15 @@ def get_uv_layer(ob, bm, mat_index):
             uv = me.uv_textures.active.name
     else:
         mat = ob.material_slots[mat_index].material
-        slot = mat.texture_slots[mat.active_texture_index]
-        if slot and slot.uv_layer:
-            uv = slot.uv_layer
-        else:
-            for tex_slot in mat.texture_slots:
-                if tex_slot and tex_slot.uv_layer:
-                    uv = tex_slot.uv_layer
-                    break
+        if mat is not None:
+            slot = mat.texture_slots[mat.active_texture_index]
+            if slot and slot.uv_layer:
+                uv = slot.uv_layer
+            else:
+                for tex_slot in mat.texture_slots:
+                    if tex_slot and tex_slot.uv_layer:
+                        uv = tex_slot.uv_layer
+                        break
     if uv:
         uv_layer = bm.loops.layers.uv.get(uv)
 
