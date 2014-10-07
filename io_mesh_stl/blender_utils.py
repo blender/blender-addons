@@ -26,7 +26,6 @@ def create_and_link_mesh(name, faces, points, global_matrix):
     Create a blender mesh and object called name from a list of
     *points* and *faces* and link it in the current scene.
     """
-    from mathutils import Vector
 
     mesh = bpy.data.meshes.new(name)
     mesh.from_pydata(points, [], faces)
