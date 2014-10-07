@@ -28,10 +28,9 @@ def create_and_link_mesh(name, faces, points, global_matrix):
     """
     from mathutils import Vector
 
-    points = tuple(global_matrix * Vector(p) for p in points)
-
     mesh = bpy.data.meshes.new(name)
     mesh.from_pydata(points, [], faces)
+    mesh.transform(global_matrix)
 
     # update mesh to allow proper display
     mesh.validate()
