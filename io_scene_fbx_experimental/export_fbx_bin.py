@@ -2739,7 +2739,7 @@ def save_single(operator, scene, filepath="",
     # (1.0 meaning centimeter, afaik). We use that to reflect user's default unit as set in Blender with scale_length.
     # However, we always get values in BU (i.e. meters), so we have to reverse-apply that scale in global matrix...
     if scene.unit_settings.system != 'NONE':
-        global_matrix *= (1.0 / scene.unit_settings.scale_length)
+        global_matrix = global_matrix * Matrix.Scale(1.0 / scene.unit_settings.scale_length, 4)
     global_scale = global_matrix.median_scale
     global_matrix_inv = global_matrix.inverted()
     # For transforming mesh normals.
