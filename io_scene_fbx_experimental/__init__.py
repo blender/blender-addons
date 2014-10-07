@@ -186,7 +186,7 @@ class ImportFBX_experimental(bpy.types.Operator, ImportHelper):
         sub.enabled = self.use_manual_orientation
         sub.prop(self, "axis_forward")
         sub.prop(self, "axis_up")
-        sub.prop(self, "global_scale")
+        layout.prop(self, "global_scale")
         layout.prop(self, "bake_space_transform")
 
         layout.prop(self, "use_image_search")

@@ -2537,7 +2537,6 @@ def fbx_header_elements(root, scene_data, time=None):
     up_axis, front_axis, coord_axis = RIGHT_HAND_AXES[scene_data.settings.to_axes]
     # Currently not sure about that, but looks like default unit of FBX is cm...
     scale_factor = (1.0 if scene.unit_settings.system == 'NONE' else scene.unit_settings.scale_length) * 100
-    scale_factor /= scene_data.settings.global_scale
     elem_props_set(props, "p_integer", b"UpAxis", up_axis[0])
     elem_props_set(props, "p_integer", b"UpAxisSign", up_axis[1])
     elem_props_set(props, "p_integer", b"FrontAxis", front_axis[0])
@@ -2736,6 +2735,11 @@ def save_single(operator, scene, filepath="",
     if 'OTHER' in object_types:
         object_types |= BLENDER_OTHER_OBJECT_TYPES
 
+    # Scale/unit mess. FBX can store the 'reference' unit of a file in its UnitScaleFactor property
+    # (1.0 meaning centimeter, afaik). We use that to reflect user's default unit as set in Blender with scale_length.
+    # However, we always get values in BU (i.e. meters), so we have to reverse-apply that scale in global matrix...
+    if scene.unit_settings.system != 'NONE':
+        global_matrix *= (1.0 / scene.unit_settings.scale_length)
     global_scale = global_matrix.median_scale
     global_matrix_inv = global_matrix.inverted()
     # For transforming mesh normals.

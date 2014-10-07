@@ -1920,6 +1920,8 @@ def load(operator, context, filepath="",
         operator.report({'ERROR'}, "No 'GlobalSettings' found in file %r" % filepath)
         return {'CANCELLED'}
 
+    # FBX default base unit seems to be the centimeter, while raw Blender Unit is equivalent to the meter...
+    global_scale *= elem_props_get_number(fbx_settings_props, b'UnitScaleFactor', 100.0) / 100.0
     # Compute global matrix and scale.
     if not use_manual_orientation:
         axis_forward = (elem_props_get_integer(fbx_settings_props, b'FrontAxis', 1),
@@ -1930,8 +1932,6 @@ def load(operator, context, filepath="",
                       elem_props_get_integer(fbx_settings_props, b'CoordAxisSign', 1))
         axis_key = (axis_up, axis_forward, axis_coord)
         axis_up, axis_forward = {v: k for k, v in RIGHT_HAND_AXES.items()}.get(axis_key, ('Z', 'Y'))
-        # FBX base unit seems to be the centimeter, while raw Blender Unit is equivalent to the meter...
-        global_scale = elem_props_get_number(fbx_settings_props, b'UnitScaleFactor', 100.0) / 100.0
     global_matrix = (Matrix.Scale(global_scale, 4) *
                      axis_conversion(from_forward=axis_forward, from_up=axis_up).to_4x4())
 
