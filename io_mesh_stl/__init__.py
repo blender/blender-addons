@@ -90,12 +90,58 @@ class ImportSTL(Operator, ImportHelper):
             subtype='DIR_PATH',
             )
 
+    axis_forward = EnumProperty(
+            name="Forward",
+            items=(('X', "X Forward", ""),
+                   ('Y', "Y Forward", ""),
+                   ('Z', "Z Forward", ""),
+                   ('-X', "-X Forward", ""),
+                   ('-Y', "-Y Forward", ""),
+                   ('-Z', "-Z Forward", ""),
+                   ),
+            default='Y',
+            )
+    axis_up = EnumProperty(
+            name="Up",
+            items=(('X', "X Up", ""),
+                   ('Y', "Y Up", ""),
+                   ('Z', "Z Up", ""),
+                   ('-X', "-X Up", ""),
+                   ('-Y', "-Y Up", ""),
+                   ('-Z', "-Z Up", ""),
+                   ),
+            default='Z',
+            )
+    global_scale = FloatProperty(
+            name="Scale",
+            min=0.01, max=1000.0,
+            default=1.0,
+            )
+
+    use_scene_unit = BoolProperty(
+            name="Scene Unit",
+            description="Apply current scene's unit (as defined by unit scale) to imported data",
+            default=False,
+            )
+
     def execute(self, context):
         from . import stl_utils
         from . import blender_utils
+        from mathutils import Matrix
 
         paths = [os.path.join(self.directory, name.name)
                  for name in self.files]
+
+        scene = context.scene
+
+        # Take into account scene's unit scale, so that 1 inch in Blender gives 1 inch elsewhere! See T42000.
+        global_scale = self.global_scale
+        if scene.unit_settings.system != 'NONE' and self.use_scene_unit:
+            global_scale /= scene.unit_settings.scale_length
+
+        global_matrix = axis_conversion(from_forward=self.axis_forward,
+                                        from_up=self.axis_up,
+                                        ).to_4x4() * Matrix.Scale(global_scale, 4)
 
         if not paths:
             paths.append(self.filepath)
@@ -109,7 +155,7 @@ class ImportSTL(Operator, ImportHelper):
         for path in paths:
             objName = bpy.path.display_name(os.path.basename(path))
             tris, pts = stl_utils.read_stl(path)
-            blender_utils.create_and_link_mesh(objName, tris, pts)
+            blender_utils.create_and_link_mesh(objName, tris, pts, global_matrix)
 
         return {'FINISHED'}
 
@@ -121,17 +167,6 @@ class ExportSTL(Operator, ExportHelper):
 
     filename_ext = ".stl"
     filter_glob = StringProperty(default="*.stl", options={'HIDDEN'})
-
-    ascii = BoolProperty(
-            name="Ascii",
-            description="Save the file in ASCII file format",
-            default=False,
-            )
-    use_mesh_modifiers = BoolProperty(
-            name="Apply Modifiers",
-            description="Apply the modifiers before saving",
-            default=True,
-            )
 
     axis_forward = EnumProperty(
             name="Forward",
@@ -161,6 +196,23 @@ class ExportSTL(Operator, ExportHelper):
             default=1.0,
             )
 
+    use_scene_unit = BoolProperty(
+            name="Scene Unit",
+            description="Apply current scene's unit (as defined by unit scale) to exported data",
+            default=True,
+            )
+    ascii = BoolProperty(
+            name="Ascii",
+            description="Save the file in ASCII file format",
+            default=False,
+            )
+    use_mesh_modifiers = BoolProperty(
+            name="Apply Modifiers",
+            description="Apply the modifiers before saving",
+            default=False,
+            )
+
+
     def execute(self, context):
         from . import stl_utils
         from . import blender_utils
@@ -171,12 +223,20 @@ class ExportSTL(Operator, ExportHelper):
                                             "global_scale",
                                             "check_existing",
                                             "filter_glob",
+                                            "use_scene_unit",
                                             "use_mesh_modifiers",
                                             ))
 
+        scene = context.scene
+
+        # Take into account scene's unit scale, so that 1 inch in Blender gives 1 inch elsewhere! See T42000.
+        global_scale = self.global_scale
+        if scene.unit_settings.system != 'NONE' and self.use_scene_unit:
+            global_scale *= scene.unit_settings.scale_length
+
         global_matrix = axis_conversion(to_forward=self.axis_forward,
                                         to_up=self.axis_up,
-                                        ).to_4x4() * Matrix.Scale(self.global_scale, 4)
+                                        ).to_4x4() * Matrix.Scale(global_scale, 4)
 
         faces = itertools.chain.from_iterable(
             blender_utils.faces_from_mesh(ob, global_matrix, self.use_mesh_modifiers)
