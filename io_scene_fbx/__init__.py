@@ -19,12 +19,12 @@
 # <pep8 compliant>
 
 bl_info = {
-    "name": "Autodesk FBX format",
-    "author": "Campbell Barton, Bastien Montagne",
-    "version": (3, 1, 0),
-    "blender": (2, 70, 0),
+    "name": "FBX format",
+    "author": "Campbell Barton, Bastien Montagne, Jens Restemeier",
+    "version": (3, 2, 0),
+    "blender": (2, 72, 0),
     "location": "File > Import-Export",
-    "description": "Export FBX meshes, UV's, vertex colors, materials, "
+    "description": "FBX IO meshes, UV's, vertex colors, materials, "
                    "textures, cameras, lamps and actions",
     "warning": "",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
@@ -59,7 +59,7 @@ from bpy_extras.io_utils import (ImportHelper,
 
 
 class ImportFBX(bpy.types.Operator, ImportHelper):
-    """Load a FBX geometry file"""
+    """Load a FBX file"""
     bl_idname = "import_scene.fbx"
     bl_label = "Import FBX"
     bl_options = {'UNDO', 'PRESET'}
@@ -101,6 +101,13 @@ class ImportFBX(bpy.types.Operator, ImportHelper):
             min=0.001, max=1000.0,
             default=1.0,
             )
+    bake_space_transform = BoolProperty(
+            name="Apply Transform",
+            description=("Bake space transform into object data, avoids getting unwanted rotations to objects when "
+                         "target space is not aligned with Blender's space "
+                         "(WARNING! experimental option, might give odd/wrong results)"),
+            default=False,
+            )
 
     use_image_search = BoolProperty(
             name="Image Search",
@@ -135,6 +142,41 @@ class ImportFBX(bpy.types.Operator, ImportHelper):
             options={'HIDDEN'},
             )
 
+    ignore_leaf_bones = BoolProperty(
+            name="Ignore leaf bones",
+            description="Ignore the last bone at the end of a chain that is used to mark the length of the previous bone",
+            default=False,
+            options={'HIDDEN'},
+            )
+    automatic_bone_orientation = BoolProperty(
+            name="Automatic Bone Orientation",
+            description="Try to align the major bone axis with the bone children",
+            default=False,
+            options={'HIDDEN'},
+            )
+    primary_bone_axis = EnumProperty(
+            name="Primary Bone Axis",
+            items=(('X', "X Axis", ""),
+                   ('Y', "Y Axis", ""),
+                   ('Z', "Z Axis", ""),
+                   ('-X', "-X Axis", ""),
+                   ('-Y', "-Y Axis", ""),
+                   ('-Z', "-Z Axis", ""),
+                   ),
+            default='Y',
+            )
+    secondary_bone_axis = EnumProperty(
+            name="Secondary Bone Axis",
+            items=(('X', "X Axis", ""),
+                   ('Y', "Y Axis", ""),
+                   ('Z', "Z Axis", ""),
+                   ('-X', "-X Axis", ""),
+                   ('-Y', "-Y Axis", ""),
+                   ('-Z', "-Z Axis", ""),
+                   ),
+            default='X',
+            )
+
     def draw(self, context):
         layout = self.layout
 
@@ -143,7 +185,8 @@ class ImportFBX(bpy.types.Operator, ImportHelper):
         sub.enabled = self.use_manual_orientation
         sub.prop(self, "axis_forward")
         sub.prop(self, "axis_up")
-        sub.prop(self, "global_scale")
+        layout.prop(self, "global_scale")
+        layout.prop(self, "bake_space_transform")
 
         layout.prop(self, "use_image_search")
         # layout.prop(self, "use_alpha_decals")
@@ -154,6 +197,14 @@ class ImportFBX(bpy.types.Operator, ImportHelper):
         sub.enabled = self.use_custom_props
         sub.prop(self, "use_custom_props_enum_as_string")
 
+        layout.prop(self, "ignore_leaf_bones")
+
+        layout.prop(self, "automatic_bone_orientation"),
+        sub = layout.column()
+        sub.enabled = not self.automatic_bone_orientation
+        sub.prop(self, "primary_bone_axis")
+        sub.prop(self, "secondary_bone_axis")
+
     def execute(self, context):
         keywords = self.as_keywords(ignore=("filter_glob", "directory"))
         keywords["use_cycles"] = (context.scene.render.engine == 'CYCLES')
@@ -163,7 +214,7 @@ class ImportFBX(bpy.types.Operator, ImportHelper):
 
 
 class ExportFBX(bpy.types.Operator, ExportHelper):
-    """Selection to an ASCII Autodesk FBX"""
+    """Write a FBX file"""
     bl_idname = "export_scene.fbx"
     bl_label = "Export FBX"
     bl_options = {'UNDO', 'PRESET'}
@@ -272,6 +323,35 @@ class ExportFBX(bpy.types.Operator, ExportHelper):
             name="Custom Properties",
             description="Export custom properties",
             default=False,
+            )
+    add_leaf_bones = BoolProperty(
+            name="Add leaf bones",
+            description=("Append a last bone to the end of each chain to specify bone length. It is useful to, "
+                         "enable this when exporting into another modelling application and to disable this when"
+                         "exporting into a game engine or real-time viewer."),
+            default=True # False for commit!
+            )
+    primary_bone_axis = EnumProperty(
+            name="Primary Bone Axis",
+            items=(('X', "X Axis", ""),
+                   ('Y', "Y Axis", ""),
+                   ('Z', "Z Axis", ""),
+                   ('-X', "-X Axis", ""),
+                   ('-Y', "-Y Axis", ""),
+                   ('-Z', "-Z Axis", ""),
+                   ),
+            default='Y',
+            )
+    secondary_bone_axis = EnumProperty(
+            name="Secondary Bone Axis",
+            items=(('X', "X Axis", ""),
+                   ('Y', "Y Axis", ""),
+                   ('Z', "Z Axis", ""),
+                   ('-X', "-X Axis", ""),
+                   ('-Y', "-Y Axis", ""),
+                   ('-Z', "-Z Axis", ""),
+                   ),
+            default='X',
             )
     use_armature_deform_only = BoolProperty(
             name="Only Deform Bones",
@@ -387,6 +467,9 @@ class ExportFBX(bpy.types.Operator, ExportHelper):
         layout.prop(self, "use_armature_deform_only")
         if is_74bin:
             layout.prop(self, "use_custom_props")
+            layout.prop(self, "add_leaf_bones")
+            layout.prop(self, "primary_bone_axis")
+            layout.prop(self, "secondary_bone_axis")
             layout.prop(self, "bake_anim")
             col = layout.column()
             col.enabled = self.bake_anim
@@ -442,11 +525,11 @@ class ExportFBX(bpy.types.Operator, ExportHelper):
 
 
 def menu_func_import(self, context):
-    self.layout.operator(ImportFBX.bl_idname, text="Autodesk FBX (.fbx)")
+    self.layout.operator(ImportFBX.bl_idname, text="FBX (.fbx)")
 
 
 def menu_func_export(self, context):
-    self.layout.operator(ExportFBX.bl_idname, text="Autodesk FBX (.fbx)")
+    self.layout.operator(ExportFBX.bl_idname, text="FBX (.fbx)")
 
 
 def register():

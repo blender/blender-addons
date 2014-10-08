@@ -972,9 +972,12 @@ class ObjectWrapper(metaclass=MetaObjectWrapper):
 
         # Bones, lamps and cameras need to be rotated (in local space!).
         if self._tag == 'BO':
-            # XXX This should work smoothly, but actually is only OK for 'rest' pose, actual pose/animations
-            #     give insane results... :(
-            matrix = matrix * MAT_CONVERT_BONE
+            # If we have a bone parent we need to undo the parent correction.
+            if not is_global and scene_data.settings.bone_correction_matrix_inv and parent and parent.is_bone:
+                matrix = scene_data.settings.bone_correction_matrix_inv * matrix
+            # Apply the bone correction.
+            if scene_data.settings.bone_correction_matrix:
+                matrix = matrix * scene_data.settings.bone_correction_matrix
         elif self.bdata.type == 'LAMP':
             matrix = matrix * MAT_CONVERT_LAMP
         elif self.bdata.type == 'CAMERA':
@@ -1100,7 +1103,8 @@ FBXExportSettings = namedtuple("FBXExportSettings", (
     "report", "to_axes", "global_matrix", "global_scale",
     "bake_space_transform", "global_matrix_inv", "global_matrix_inv_transposed",
     "context_objects", "object_types", "use_mesh_modifiers",
-    "mesh_smooth_type", "use_mesh_edges", "use_tspace", "use_armature_deform_only",
+    "mesh_smooth_type", "use_mesh_edges", "use_tspace",
+    "use_armature_deform_only", "add_leaf_bones", "bone_correction_matrix", "bone_correction_matrix_inv",
     "bake_anim", "bake_anim_use_nla_strips", "bake_anim_use_all_actions", "bake_anim_step", "bake_anim_simplify_factor",
     "use_metadata", "media_settings", "use_custom_props",
 ))
@@ -1116,15 +1120,17 @@ FBXExportData = namedtuple("FBXExportData", (
     "templates", "templates_users", "connections",
     "settings", "scene", "objects", "animations", "frame_start", "frame_end",
     "data_empties", "data_lamps", "data_cameras", "data_meshes", "mesh_mat_indices",
-    "data_bones", "data_deformers_skin", "data_deformers_shape",
+    "data_bones", "data_leaf_bones", "data_deformers_skin", "data_deformers_shape",
     "data_world", "data_materials", "data_textures", "data_videos",
 ))
 
 # Helper container gathering all importer settings.
 FBXImportSettings = namedtuple("FBXImportSettings", (
     "report", "to_axes", "global_matrix", "global_scale",
+    "bake_space_transform", "global_matrix_inv", "global_matrix_inv_transposed",
     "use_cycles", "use_image_search",
     "use_alpha_decals", "decal_offset",
     "use_custom_props", "use_custom_props_enum_as_string",
-    "object_tdata_cache", "cycles_material_wrap_map", "image_cache",
+    "cycles_material_wrap_map", "image_cache",
+    "ignore_leaf_bones", "automatic_bone_orientation", "bone_correction_matrix"
 ))
