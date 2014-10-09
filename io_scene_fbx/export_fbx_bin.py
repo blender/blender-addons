@@ -2025,8 +2025,8 @@ def fbx_animations(scene_data):
 
             bpy.data.objects.remove(ob_copy)
 
-    # Global (containing everything) animstack.
-    if not scene_data.settings.bake_anim_use_nla_strips or not animations:
+    # Global (containing everything) animstack, only if not exporting NLA strips and/or all actions.
+    if not scene_data.settings.bake_anim_use_nla_strips and not scene_data.settings.bake_anim_use_all_actions:
         add_anim(animations, fbx_animations_do(scene_data, None, scene.frame_start, scene.frame_end, False))
 
     # Be sure to update all matrices back to org state!
@@ -2908,7 +2908,7 @@ def save(operator, context,
 
         new_fbxpath = fbxpath  # own dir option modifies, we need to keep an original
         for data in data_seq:  # scene or group
-            newname = "_".join((prefix, bpy.path.clean_name(data.name)))
+            newname = "_".join((prefix, bpy.path.clean_name(data.name))) if prefix else bpy.path.clean_name(data.name)
 
             if use_batch_own_dir:
                 new_fbxpath = os.path.join(fbxpath, newname)
