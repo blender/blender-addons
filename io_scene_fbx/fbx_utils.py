@@ -881,7 +881,17 @@ class ObjectWrapper(metaclass=MetaObjectWrapper):
 
     def get_parent(self):
         if self._tag == 'OB':
-            return ObjectWrapper(self.bdata.parent)
+            if (self.bdata.parent and self.bdata.parent.type == 'ARMATURE' and
+                self.bdata.parent_type == 'BONE' and self.bdata.parent_bone):
+                # Try to parent to a bone.
+                bo_par = self.bdata.parent.pose.bones.get(self.bdata.parent_bone, None)
+                if (bo_par):
+                    return ObjectWrapper(bo_par, self.bdata.parent)
+                else:  # Fallback to mere object parenting.
+                    return ObjectWrapper(self.bdata.parent)
+            else:
+                # Mere object parenting.
+                return ObjectWrapper(self.bdata.parent)
         elif self._tag == 'DP':
             return ObjectWrapper(self.bdata.parent or self._ref)
         else:  # self._tag == 'BO'
@@ -982,6 +992,14 @@ class ObjectWrapper(metaclass=MetaObjectWrapper):
             matrix = matrix * MAT_CONVERT_LAMP
         elif self.bdata.type == 'CAMERA':
             matrix = matrix * MAT_CONVERT_CAMERA
+
+        if self._tag in {'DP', 'OB'} and parent:
+            # To get *real* local matrix of a child object, we also need to take into account its inverted par mat!
+            matrix = self.bdata.matrix_parent_inverse * matrix
+            if parent._tag == 'BO':
+                # In bone parent case, we get transformation in **bone tip** space (sigh).
+                # Have to bring it back into bone root, which is FBX expected value.
+                matrix = Matrix.Translation((0, (parent.bdata.tail - parent.bdata.head).length, 0)) * matrix
 
         # Our matrix is in local space, time to bring it in its final desired space.
         if parent:

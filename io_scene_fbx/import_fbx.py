@@ -1288,6 +1288,12 @@ class FbxImportHelperNode:
         if self._parent is not None:
             self._parent.children.append(self)
 
+    def __repr__(self):
+        if self.fbx_elem:
+            return self.fbx_elem.props[1].decode()
+        else:
+            return "None"
+
     def print_info(self, indent=0):
         print(" " * indent + (self.fbx_name if self.fbx_name else "(Null)")
               + ("[root]" if self.is_root else "")
@@ -1636,6 +1642,7 @@ class FbxImportHelperNode:
                         child.pre_matrix = self.bone_child_matrix
 
                     child_obj.matrix_basis = child.get_matrix()
+            return None
         else:
             # child is not a bone
             obj = self.build_node(fbx_tmpl, settings)
