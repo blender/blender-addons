@@ -2343,7 +2343,7 @@ def fbx_data_from_scene(scene, settings):
 
     # Leaf Bones
     for (_node_name, par_uuid, node_uuid, attr_uuid, _matrix, _hide, _size) in data_leaf_bones:
-        connections.append((b"OO", node_uuid, parent_uuid, None))
+        connections.append((b"OO", node_uuid, par_uuid, None))
         connections.append((b"OO", attr_uuid, node_uuid, None))
 
     # 'Shape' deformers (shape keys, only for meshes currently)...
