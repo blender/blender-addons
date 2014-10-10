@@ -328,7 +328,7 @@ class ExportFBX(bpy.types.Operator, ExportHelper):
             name="Add leaf bones",
             description=("Append a last bone to the end of each chain to specify bone length. It is useful to, "
                          "enable this when exporting into another modelling application and to disable this when"
-                         "exporting into a game engine or real-time viewer."),
+                         "exporting into a game engine or real-time viewer"),
             default=True # False for commit!
             )
     primary_bone_axis = EnumProperty(
