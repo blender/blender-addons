@@ -22,8 +22,8 @@ bl_info = {
     "name": "Extra Objects",
     "author": "Multiple Authors",
     "version": (0, 1),
-    "blender": (2, 63, 0),
-    "location": "View3D > Add > Curve > Extra Objects",
+    "blender": (2, 72, 0),
+    "location": "View3D > Add > Curve",
     "description": "Add extra curve object types",
     "warning": "",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"

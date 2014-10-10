@@ -22,9 +22,9 @@ bl_info = {
     "name": "Extra Objects",
     "author": "Multiple Authors",
     "version": (0, 3, 0),
-    "blender": (2, 71, 0),
-    "location": "View3D > Add > Mesh > Extra Objects",
-    "description": "Add extra object types",
+    "blender": (2, 72, 0),
+    "location": "View3D > Add > Mesh",
+    "description": "Add extra mesh object types",
     "warning": "",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
                 "Scripts/Add_Mesh/Add_Extra",
