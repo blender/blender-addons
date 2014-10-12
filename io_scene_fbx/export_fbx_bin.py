@@ -2139,7 +2139,7 @@ def fbx_data_from_scene(scene, settings):
                                    data_bones, data_deformers_skin, arm_parents)
 
     # Generate leaf bones
-    data_leaf_bones = None
+    data_leaf_bones = []
     if settings.add_leaf_bones:
         data_leaf_bones = fbx_generate_leaf_bones(settings, data_bones)
 
