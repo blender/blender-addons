@@ -20,10 +20,10 @@
 
 bl_info = {
     "name": "Dynamic Spacebar Menu",
-    "author": "JayDez, sim88, meta-androcto, sam",
+    "author": "meta-androcto, JayDez, sim88, sam",
     "version": (1, 7, 3),
-    "blender": (2, 60, 0),
-    "location": "View3D > Spacebar Key",
+    "blender": (2, 72, 0),
+    "location": "View3D > Spacebar for menu then 's' key for Search",
     "description": "Context Sensitive Spacebar Menu",
     "warning": "",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
