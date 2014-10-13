@@ -533,12 +533,12 @@ class RenderPovSettingsTexture(PropertyGroup):
 
     modifier_phase = FloatProperty(
             name="Phase",
-            description="The phase value causes the map entries to be shifted so that the map starts and ends at a different place.",
+            description="The phase value causes the map entries to be shifted so that the map starts and ends at a different place",
             min=0.0, max=2.0, default=0.0)
             
     modifier_frequency = FloatProperty(
             name="Frequency",
-            description="The frequency keyword adjusts the number of times that a color map repeats over one cycle of a pattern.",
+            description="The frequency keyword adjusts the number of times that a color map repeats over one cycle of a pattern",
             min=0.0, max=25.0, default=2.0) 
 
     modifier_turbulence = FloatProperty(

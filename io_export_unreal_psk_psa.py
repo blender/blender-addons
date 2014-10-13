@@ -1913,7 +1913,7 @@ bpy.types.Scene.udk_option_clamp_uv = BoolProperty(
 
 bpy.types.Scene.udk_copy_merge = BoolProperty(
         name        = "Merge Mesh",
-        description = "This will copy the mesh(s) and merge the object together and unlink the mesh to be remove while exporting the object.",
+        description = "This will copy the mesh(s) and merge the object together and unlink the mesh to be remove while exporting the object",
         default     = False)
 
 bpy.types.Scene.udk_option_export = EnumProperty(
@@ -1941,27 +1941,27 @@ bpy.types.Scene.udk_option_triangulate = BoolProperty(
 
 bpy.types.Scene.udk_option_selectanimations = BoolProperty(
         name        = "Select Animation(s)",
-        description = "Select animation(s) for export to psa file.",
+        description = "Select animation(s) for export to psa file",
         default     = False)
 
 bpy.types.Scene.udk_option_selectobjects = BoolProperty(
         name        = "Select Object(s)",
-        description = "Select Armature and Mesh(s). Just make sure mesh(s) is parent to armature.",
+        description = "Select Armature and Mesh(s). Just make sure mesh(s) is parent to armature",
         default     = False)
 
 bpy.types.Scene.udk_option_rebuildobjects = BoolProperty(
         name        = "Rebuild Objects",
-        description = "In case of deform skeleton mesh and animations data. This will rebuild objects from raw format on export when checked.",
+        description = "In case of deform skeleton mesh and animations data - This will rebuild objects from raw format on export when checked",
         default     = False)
 
 bpy.types.Scene.udk_option_ignoreactiongroupnames = BoolProperty(
         name        = "Ignore Action Group Names",
-        description = "This will Ignore Action Set Group Names Check With Armature Bones. It will override armature to set action set.",
+        description = "This will Ignore Action Set Group Names Check With Armature Bones. It will override armature to set action set",
         default     = False)
 
 bpy.types.Scene.udk_option_scale = FloatProperty(
     name = "UDK Scale",
-    description = "In case you don't want to scale objects manually. This will just scale position when on export for the skeleton mesh and animation data.",
+    description = "In case you don't want to scale objects manually - This will just scale position when on export for the skeleton mesh and animation data",
     default     = 1)
 
 #===========================================================================
@@ -2011,7 +2011,7 @@ class OBJECT_OT_UTSelectedFaceSmooth(bpy.types.Operator):
         return{'FINISHED'}
 
 class OBJECT_OT_MeshClearWeights(bpy.types.Operator):
-    """Remove all mesh vertex groups weights for the bones."""
+    """Remove all mesh vertex groups weights for the bones"""
     bl_idname = "object.meshclearweights"  # XXX, name???
     bl_label = "Remove Vertex Weights"#"Remove Mesh vertex weights"
 
@@ -2210,7 +2210,7 @@ class UDKActionSetListPG(bpy.types.PropertyGroup):
     bool    = BoolProperty(default=False)
     string  = StringProperty()
     actionname  = StringProperty()
-    bmatch    = BoolProperty(default=False,name="Match", options={"HIDDEN"},description = "This check against bone names and action group names matches and override boolean if true.")
+    bmatch    = BoolProperty(default=False,name="Match", options={"HIDDEN"},description = "This check against bone names and action group names matches and override boolean if true")
     bexport    = BoolProperty(default=False,name="Export",description = "Check this to export the animation")
 
 bpy.utils.register_class(UDKActionSetListPG)
@@ -2243,8 +2243,8 @@ class UL_UDKObjList(bpy.types.UIList):
 class UDKMeshListPG(bpy.types.PropertyGroup):
     bool    = BoolProperty(default=False)
     string  = StringProperty()
-    bexport    = BoolProperty(default=False,name="Export", options={"HIDDEN"},description = "This object will be export when true.")
-    bselect    = BoolProperty(default=False,name="Select", options={"HIDDEN"},description = "Make sure you have Mesh is parent to Armature.")
+    bexport    = BoolProperty(default=False,name="Export", options={"HIDDEN"},description = "This object will be export when true")
+    bselect    = BoolProperty(default=False,name="Select", options={"HIDDEN"},description = "Make sure you have Mesh is parent to Armature")
     otype  = StringProperty(name="Type",description = "This will be ignore when exported")
 
 bpy.utils.register_class(UDKMeshListPG)
@@ -2496,7 +2496,7 @@ def udkcheckmeshline():
 
 class OBJECT_OT_UDKCheckMeshLines(bpy.types.Operator):
     """Select the mesh for export test. This will create dummy mesh to see which area are broken. """ \
-    """If the vertices share the same position it will causes an bug."""
+    """If the vertices share the same position it will cause a bug"""
     bl_idname = "object.udkcheckmeshline"
     bl_label = "Check Mesh Vertices"
 
@@ -2507,7 +2507,7 @@ class OBJECT_OT_UDKCheckMeshLines(bpy.types.Operator):
 
 class OBJECT_OT_ActionSetAnimUpdate(bpy.types.Operator):
     """Select Armture to match the action set groups. """ \
-    """All bones keys must be set to match with number of bones."""
+    """All bones keys must be set to match with number of bones"""
     bl_idname = "action.setanimupdate"
     bl_label = "Update Action Set(s)"
 

@@ -3726,7 +3726,7 @@ class GStretch(bpy.types.Operator):
     conversion_vertices = bpy.props.IntProperty(name = "Vertices",
         description = "Number of vertices grease pencil strokes will "\
             "have, when they are converted to geometry. If strokes have less "\
-            "points than required, the 'Spread evenly' method is used.",
+            "points than required, the 'Spread evenly' method is used",
         default = 32,
         min = 3,
         soft_max = 500)
@@ -4648,7 +4648,7 @@ class LoopToolsProps(bpy.types.PropertyGroup):
     gstretch_conversion_vertices = bpy.props.IntProperty(name = "Vertices",
         description = "Number of vertices grease pencil strokes will "\
             "have, when they are converted to geometry. If strokes have less "\
-            "points than required, the 'Spread evenly' method is used.",
+            "points than required, the 'Spread evenly' method is used",
         default = 32,
         min = 3,
         soft_max = 500)

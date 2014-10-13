@@ -207,7 +207,7 @@ ms3d_str = {
                 " (no gimbal-lock filter available!)",
         'PROP_NAME_USE_JOINT_SIZE': "Override Joint Size",
         'PROP_DESC_USE_JOINT_SIZE': "use value of 'Joint Size', the value of the"\
-                " ms3d file is ignored for representation.",
+                " ms3d file is ignored for representation",
         'PROP_NAME_IMPORT_JOINT_SIZE': "Joint Size",
         'PROP_DESC_IMPORT_JOINT_SIZE': "size of the joint representation in"\
                 " blender",

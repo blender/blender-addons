@@ -69,7 +69,7 @@ class UV_OT_bake_texture_to_vcols(bpy.types.Operator):
        items=mappingModes,
        default="CLIP",
        name="Mapping",
-       description="The mode to use for baking vertices who's UV-coordinates are out of bounds.")
+       description="The mode to use for baking vertices who's UV-coordinates are out of bounds")
 
     blendingModes = [("MIX", "Mix", ""),
                      ("ADD", "Add", ""),
@@ -95,8 +95,8 @@ class UV_OT_bake_texture_to_vcols(bpy.types.Operator):
         name="Blend Type",
         description="The blending mode to use when baking")
 
-    mirror_x = BoolProperty(name="Mirror X", description="Mirror the image on the X-axis.")
-    mirror_y = BoolProperty(name="Mirror Y", description="Mirror the image on the Y-axis.")
+    mirror_x = BoolProperty(name="Mirror X", description="Mirror the image on the X-axis")
+    mirror_y = BoolProperty(name="Mirror Y", description="Mirror the image on the Y-axis")
 
     @classmethod
     def poll(self, context):

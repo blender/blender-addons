@@ -152,7 +152,7 @@ class DXFExporter(bpy.types.Operator):
                                     items=projectionItems)
     
     onlySelected = BoolProperty(name="Only selected", default=True,
-                              description="What object will be exported? Only selected / all objects.")
+                              description="What object will be exported? Only selected / all objects")
     
     apply_modifiers = BoolProperty(name="Apply modifiers", default=True,
                            description="Shall be modifiers applied during export?")
@@ -227,7 +227,7 @@ class DXFExporter(bpy.types.Operator):
 #                                    description='Set default LINETYPE')
     
     verbose = BoolProperty(name="Verbose", default=False,
-                           description="Run the exporter in debug mode.  Check the console for output.")
+                           description="Run the exporter in debug mode.  Check the console for output")
 
     def execute(self, context):
         filePath = bpy.path.ensure_ext(self.filepath, ".dxf")
