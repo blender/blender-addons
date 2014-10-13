@@ -21,7 +21,7 @@
 bl_info = {
     "name": "Pie Menus Official",
     "author": "Antony Riakiotakis",
-    "version": (1, 0, 0),
+    "version": (1, 0, 1),
     "blender": (2, 71, 4),
     "description": "Enable official pie Menus in blender",
     "category": "User Interface",
@@ -42,6 +42,19 @@ class VIEW3D_PIE_object_mode(Menu):
         pie = layout.menu_pie()
         pie.operator_enum("OBJECT_OT_mode_set", "mode")
 
+class VIEW3D_PIE_view_more(Menu):
+    bl_label = "More"
+
+    def draw(self, context):
+        layout = self.layout
+
+        pie = layout.menu_pie()
+        pie.operator("VIEW3D_OT_view_persportho", text="Persp/Ortho", icon='RESTRICT_VIEW_OFF')
+        pie.operator("VIEW3D_OT_camera_to_view")
+        pie.operator("VIEW3D_OT_view_selected")
+        pie.operator("VIEW3D_OT_view_all")
+        pie.operator("VIEW3D_OT_view_localview")
+
 
 class VIEW3D_PIE_view(Menu):
     bl_label = "View"
@@ -51,7 +64,7 @@ class VIEW3D_PIE_view(Menu):
 
         pie = layout.menu_pie()
         pie.operator_enum("VIEW3D_OT_viewnumpad", "type")
-        pie.operator("VIEW3D_OT_view_persportho", text="Persp/Ortho", icon='RESTRICT_VIEW_OFF')
+        pie.operator("wm.call_menu_pie", text="More", icon='PLUS').name = "VIEW3D_PIE_view_more"
 
 
 class VIEW3D_PIE_shade(Menu):
@@ -139,6 +152,7 @@ def register():
     #register menus
     bpy.utils.register_class(VIEW3D_PIE_object_mode)
     bpy.utils.register_class(VIEW3D_PIE_view)
+    bpy.utils.register_class(VIEW3D_PIE_view_more)
     bpy.utils.register_class(VIEW3D_PIE_shade)
     bpy.utils.register_class(VIEW3D_PIE_manipulator)
     bpy.utils.register_class(VIEW3D_PIE_pivot)
@@ -169,6 +183,7 @@ def unregister():
 
     bpy.utils.unregister_class(VIEW3D_PIE_object_mode)
     bpy.utils.unregister_class(VIEW3D_PIE_view)
+    bpy.utils.unregister_class(VIEW3D_PIE_view_more)
     bpy.utils.unregister_class(VIEW3D_PIE_shade)
     bpy.utils.unregister_class(VIEW3D_PIE_manipulator)
     bpy.utils.unregister_class(VIEW3D_PIE_pivot)
