@@ -355,7 +355,7 @@ class Scatter(bpy.types.Operator):
         group = bpy.data.groups.get(self.group)
 
         if not group:
-            self.report({'ERROR'}, "Group %r not found", self.group)
+            self.report({'ERROR'}, "Group %r not found" % self.group)
             return {'CANCELLED'}
 
         _main(self,
