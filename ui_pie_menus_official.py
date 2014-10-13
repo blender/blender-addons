@@ -53,7 +53,7 @@ class VIEW3D_PIE_view_more(Menu):
         pie.operator("VIEW3D_OT_camera_to_view")
         pie.operator("VIEW3D_OT_view_selected")
         pie.operator("VIEW3D_OT_view_all")
-        pie.operator("VIEW3D_OT_view_localview")
+        pie.operator("VIEW3D_OT_localview")
 
 
 class VIEW3D_PIE_view(Menu):
