@@ -103,9 +103,9 @@ class ImportFBX(bpy.types.Operator, ImportHelper):
             )
     bake_space_transform = BoolProperty(
             name="Apply Transform",
-            description=("Bake space transform into object data, avoids getting unwanted rotations to objects when "
-                         "target space is not aligned with Blender's space "
-                         "(WARNING! experimental option, might give odd/wrong results)"),
+            description="Bake space transform into object data, avoids getting unwanted rotations to objects when "
+                        "target space is not aligned with Blender's space "
+                        "(WARNING! experimental option, might give odd/wrong results)",
             default=False,
             )
 
@@ -130,21 +130,21 @@ class ImportFBX(bpy.types.Operator, ImportHelper):
             )
 
     use_custom_props = BoolProperty(
-            name="Import user properties",
+            name="Import User Properties",
             description="Import user properties as custom properties",
             default=True,
             options={'HIDDEN'},
             )
     use_custom_props_enum_as_string = BoolProperty(
-            name="Import enum properties as string",
-            description="Store enumeration values as string",
+            name="Import Enums As Strings",
+            description="Store enumeration values as strings",
             default=True,
             options={'HIDDEN'},
             )
 
     ignore_leaf_bones = BoolProperty(
-            name="Ignore leaf bones",
-            description="Ignore the last bone at the end of a chain that is used to mark the length of the previous bone",
+            name="Ignore Leaf Bones",
+            description="Ignore the last bone at the end of each chain (used to mark the length of the previous bone)",
             default=False,
             options={'HIDDEN'},
             )
@@ -270,9 +270,9 @@ class ExportFBX(bpy.types.Operator, ExportHelper):
     # 7.4 only
     bake_space_transform = BoolProperty(
             name="Apply Transform",
-            description=("Bake space transform into object data, avoids getting unwanted rotations to objects when "
-                         "target space is not aligned with Blender's space "
-                         "(WARNING! experimental option, might give odd/wrong results)"),
+            description="Bake space transform into object data, avoids getting unwanted rotations to objects when "
+                        "target space is not aligned with Blender's space "
+                        "(WARNING! experimental option, might give odd/wrong results)",
             default=False,
             )
 
@@ -302,8 +302,8 @@ class ExportFBX(bpy.types.Operator, ExportHelper):
                    ('FACE', "Face", "Write face smoothing"),
                    ('EDGE', "Edge", "Write edge smoothing"),
                    ),
-            description=("Export smoothing information "
-                         "(prefer 'Off' option if your target importer understand split normals)"),
+            description="Export smoothing information "
+                        "(prefer 'Off' option if your target importer understand split normals)",
             default='OFF',
             )
     use_mesh_edges = BoolProperty(
@@ -314,8 +314,8 @@ class ExportFBX(bpy.types.Operator, ExportHelper):
     # 7.4 only
     use_tspace = BoolProperty(
             name="Tangent Space",
-            description=("Add binormal and tangent vectors, together with normal they form the tangent space "
-                         "(will only work correctly with tris/quads only meshes!)"),
+            description="Add binormal and tangent vectors, together with normal they form the tangent space "
+                        "(will only work correctly with tris/quads only meshes!)",
             default=False,
             )
     # 7.4 only
@@ -325,10 +325,9 @@ class ExportFBX(bpy.types.Operator, ExportHelper):
             default=False,
             )
     add_leaf_bones = BoolProperty(
-            name="Add leaf bones",
-            description=("Append a last bone to the end of each chain to specify bone length - It is useful to, "
-                         "enable this when exporting into another modelling application and to disable this when"
-                         "exporting into a game engine or real-time viewer"),
+            name="Add Leaf Bones",
+            description="Append a final bone to the end of each chain to specify last bone length "
+                        "(use this when you intend to edit the armature from exported data)",
             default=True # False for commit!
             )
     primary_bone_axis = EnumProperty(
@@ -366,26 +365,25 @@ class ExportFBX(bpy.types.Operator, ExportHelper):
             )
     bake_anim_use_nla_strips = BoolProperty(
             name="NLA Strips",
-            description=("Export each non-muted NLA strip as a separated FBX's AnimStack, if any, "
-                         "instead of global scene animation"),
+            description="Export each non-muted NLA strip as a separated FBX's AnimStack, if any, "
+                        "instead of global scene animation",
             default=True,
             )
     bake_anim_use_all_actions = BoolProperty(
             name="All Actions",
-            description=("Export each action as a separated FBX's AnimStack, "
-                         "instead of global scene animation"),
+            description="Export each action as a separated FBX's AnimStack, instead of global scene animation",
             default=True,
             )
     bake_anim_step = FloatProperty(
             name="Sampling Rate",
-            description=("How often to evaluate animated values (in frames)"),
+            description="How often to evaluate animated values (in frames)",
             min=0.01, max=100.0,
             soft_min=0.1, soft_max=10.0,
             default=1.0,
             )
     bake_anim_simplify_factor = FloatProperty(
             name="Simplify",
-            description=("How much to simplify baked values (0.0 to disable, the higher the more simplified"),
+            description="How much to simplify baked values (0.0 to disable, the higher the more simplified)",
             min=0.0, max=10.0,  # No simplification to up to 0.05 slope/100 max_frame_step.
             default=1.0,  # default: min slope: 0.005, max frame step: 10.
             )
@@ -402,8 +400,8 @@ class ExportFBX(bpy.types.Operator, ExportHelper):
             )
     use_default_take = BoolProperty(
             name="Default Take",
-            description=("Export currently assigned object and armature animations into a default take from the scene "
-                         "start/end frames"),
+            description="Export currently assigned object and armature animations into a default take from the scene "
+                        "start/end frames",
             default=True
             )
     use_anim_optimize = BoolProperty(
@@ -413,7 +411,7 @@ class ExportFBX(bpy.types.Operator, ExportHelper):
             )
     anim_optimize_precision = FloatProperty(
             name="Precision",
-            description=("Tolerance for comparing double keyframes (higher for greater accuracy)"),
+            description="Tolerance for comparing double keyframes (higher for greater accuracy)",
             min=0.0, max=20.0,  # from 10^2 to 10^-18 frames precision.
             soft_min=1.0, soft_max=16.0,
             default=6.0,  # default: 10^-4 frames.
