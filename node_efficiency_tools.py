@@ -19,7 +19,7 @@
 bl_info = {
     "name": "Node Wrangler (aka Nodes Efficiency Tools)",
     "author": "Bartek Skorupa, Greg Zaal",
-    "version": (3, 15),
+    "version": (3, 16),
     "blender": (2, 72, 0),
     "location": "Node Editor Properties Panel or Ctrl-Space",
     "description": "Various tools to enhance and speed up node-based workflow",
@@ -3689,13 +3689,16 @@ def register():
     bpy.utils.register_module(__name__)
 
     # keymaps
-    km = bpy.context.window_manager.keyconfigs.addon.keymaps.new(name='Node Editor', space_type="NODE_EDITOR")
-    for (identifier, key, CTRL, SHIFT, ALT, props, nicename) in kmi_defs:
-        kmi = km.keymap_items.new(identifier, key, 'PRESS', ctrl=CTRL, shift=SHIFT, alt=ALT)
-        if props:
-            for prop, value in props:
-                setattr(kmi.properties, prop, value)
-        addon_keymaps.append((km, kmi))
+    addon_keymaps.clear()
+    kc = bpy.context.window_manager.keyconfigs.addon
+    if kc:
+        km = kc.keymaps.new(name='Node Editor', space_type="NODE_EDITOR")
+        for (identifier, key, CTRL, SHIFT, ALT, props, nicename) in kmi_defs:
+            kmi = km.keymap_items.new(identifier, key, 'PRESS', ctrl=CTRL, shift=SHIFT, alt=ALT)
+            if props:
+                for prop, value in props:
+                    setattr(kmi.properties, prop, value)
+            addon_keymaps.append((km, kmi))
 
     # menu items
     bpy.types.NODE_MT_select.append(select_parent_children_buttons)
