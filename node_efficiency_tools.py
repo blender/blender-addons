@@ -19,7 +19,7 @@
 bl_info = {
     "name": "Node Wrangler (aka Nodes Efficiency Tools)",
     "author": "Bartek Skorupa, Greg Zaal",
-    "version": (3, 16),
+    "version": (3, 17),
     "blender": (2, 72, 0),
     "location": "Node Editor Properties Panel or Ctrl-Space",
     "description": "Various tools to enhance and speed up node-based workflow",
@@ -1931,6 +1931,19 @@ class NWMergeNodes(Operator, NWBase):
                 first_selected = nodes[nodes_list[0][0]]
                 # "last" node has been added as first, so its index is count_before.
                 last_add = nodes[count_before]
+                # Special case:
+                # Two nodes were selected and first selected has no output links, second selected has output links.
+                # Then add links from last add to all links 'to_socket' of out links of second selected.
+                if len(nodes_list) == 2:
+                    if not first_selected.outputs[0].links:
+                        second_selected = nodes[nodes_list[1][0]]
+                        for ss_link in second_selected.outputs[0].links:
+                            # Prevent cyclic dependencies when nodes to be marged are linked to one another.
+                            # Create list of invalid indexes.
+                            invalid_i = [n[0] for n in (selected_mix + selected_math + selected_shader + selected_z)]
+                            # Link only if "to_node" index not in invalid indexes list.
+                            if ss_link.to_node not in [nodes[i] for i in invalid_i]:
+                                links.new(last_add.outputs[0], ss_link.to_socket)
                 # add links from last_add to all links 'to_socket' of out links of first selected.
                 for fs_link in first_selected.outputs[0].links:
                     # Prevent cyclic dependencies when nodes to be marged are linked to one another.
