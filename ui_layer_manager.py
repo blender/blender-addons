@@ -423,9 +423,16 @@ class SCENE_PT_namedlayer_layers(bpy.types.Panel):
 
             # layer index
             if use_indices:
-                row.label(text="%.2d." % (layer_idx + 1))
+                sub = row.row(align=True)
+                sub.alignment = 'LEFT'
+                sub.label(text="%.2d." % (layer_idx + 1))
 
             # visualization
+
+            # Name (use special icon for active layer)
+            icon = 'FILE_TICK' if (getattr(layer_cont, "active_layer", -1) == layer_idx) else 'NONE'
+            row.prop(namedlayer, "name", text="", icon=icon)
+
             icon = 'RESTRICT_VIEW_OFF' if layer_cont.layers[layer_idx] else 'RESTRICT_VIEW_ON'
             if use_classic:
                 op = row.operator("scene.namedlayer_toggle_visibility", text="", icon=icon, emboss=True)
@@ -433,10 +440,6 @@ class SCENE_PT_namedlayer_layers(bpy.types.Panel):
                 op.use_spacecheck = use_spacecheck
             else:
                 row.prop(layer_cont, "layers", index=layer_idx, emboss=True, icon=icon, toggle=True, text="")
-
-            # Name (use special icon for active layer).
-            icon = 'FILE_TICK' if (getattr(layer_cont, "active_layer", -1) == layer_idx) else 'NONE'
-            row.prop(namedlayer, "name", text="", icon=icon)
 
             if use_extra:
                 use_lock = namedlayer.use_lock
@@ -465,6 +468,10 @@ class SCENE_PT_namedlayer_layers(bpy.types.Panel):
                 op = row.operator("scene.namedlayer_toggle_wire", text="", emboss=True, icon=icon)
                 op.layer_idx = layer_idx
                 op.use_wire = not use_wire
+
+                if not is_layer_used:
+                    if not (layer_idx + 1) % 5:
+                        col.separator()
 
         if len(scene.objects) == 0:
             layout.label(text="No objects in scene")
