@@ -31,3 +31,9 @@ class HeaderSection(dict):
         groups = TagGroups(tags[2:-1], split_code=9)
         for group in groups:
             self[group[0].value] = group[1].value
+
+
+class MinVersionError(Exception):
+
+    def __init__(self, version):
+        Exception.__init__(self, "Minimum Version DXF12 (AC1009) not met. Version found: %s." % version)
