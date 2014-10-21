@@ -496,7 +496,7 @@ class IMPORT_OT_dxf(bpy.types.Operator):
         proj_scn = None
         dxf_unit_scale = 1.0
         if self.use_georeferencing:
-            dxf_unit_scale = float(self.dxf_scale)
+            dxf_unit_scale = float(self.dxf_scale.replace(",", "."))
             if PYPROJ:
                 if self.proj_dxf != 'NONE':
                     if self.proj_dxf == 'USER':

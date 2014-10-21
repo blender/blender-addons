@@ -306,14 +306,7 @@ class Do:
             e += 2 * pi
         angle = e - s
 
-        # curve == None means arc is called from bulge conversion
-        # nothing should be projected at this stage, since the
-        # lwpolyline (the only entity with bulges) will be projected
-        # as a whole afterwars (small little error; took ages to debug)
-        if curve is not None:
-            vc = self.proj(en.center)
-        else:
-            vc = en.center
+        vc = Vector(en.center)
         x_vec = Vector((1, 0, 0))
         radius = en.radius
 
@@ -365,6 +358,10 @@ class Do:
         if len(spline) % 3 != 1:
             print("DXF-IMPORT: DO ARC: CHECK PLEASE: ", len(spline), spline)
 
+        # curve == None means arc is called from bulge conversion
+        # nothing should be projected at this stage, since the
+        # lwpolyline (the only entity with bulges) will be projected
+        # as a whole afterwards (small little error; took ages to debug)
         if curve is not None:
             self._cubic_bezier_open(spline, curve)
             return spline
