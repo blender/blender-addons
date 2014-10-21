@@ -20,9 +20,9 @@
 #
 bl_info = {
     "name": "Layer Management",
-    "author": "Alfonso Annarumma",
-    "version": (1, 5, 1),
-    "blender": (2, 71, 0),
+    "author": "Alfonso Annarumma, Bastien Montagne",
+    "version": (1, 5, 2),
+    "blender": (2, 72, 0),
     "location": "Toolshelf > Layers Tab",
     "warning": "",
     "description": "Display and Edit Layer Name",
@@ -37,6 +37,9 @@ from bpy.app.handlers import persistent
 
 EDIT_MODES = {'EDIT_MESH', 'EDIT_CURVE', 'EDIT_SURFACE', 'EDIT_METABALL', 'EDIT_TEXT', 'EDIT_ARMATURE'}
 
+NUM_LAYERS = 20
+
+FAKE_LAYER_GROUP = [True] * NUM_LAYERS
 
 class NamedLayer(PropertyGroup):
     name = StringProperty(name="Layer Name")
@@ -62,7 +65,7 @@ def check_init_data(scene):
     if namedlayers.use_init:
         while namedlayers.layers:
             namedlayers.layers.remove(0)
-        for i in range(20):
+        for i in range(NUM_LAYERS):
             layer = namedlayers.layers.add()
             layer.name = "Layer%.2d" % (i + 1)  # Blender use layer nums starting from 1, not 0.
         namedlayers.use_init = False
@@ -73,7 +76,7 @@ class LayerGroup(PropertyGroup):
     use_wire = BoolProperty(name="", default=False)
     use_lock = BoolProperty(name="", default=False)
 
-    layers = BoolVectorProperty(name="Layers", default=([False] * 20), size=20, subtype='LAYER')
+    layers = BoolVectorProperty(name="Layers", default=([False] * NUM_LAYERS), size=NUM_LAYERS, subtype='LAYER')
 
 
 class SCENE_OT_namedlayer_group_add(bpy.types.Operator):
@@ -81,7 +84,7 @@ class SCENE_OT_namedlayer_group_add(bpy.types.Operator):
     bl_idname = "scene.namedlayer_group_add"
     bl_label = "Add Layer Group"
 
-    layers = BoolVectorProperty(name="Layers", default=([False] * 20), size=20)
+    layers = BoolVectorProperty(name="Layers", default=([False] * NUM_LAYERS), size=NUM_LAYERS)
 
     @classmethod
     def poll(cls, context):
@@ -158,7 +161,7 @@ class SCENE_OT_namedlayer_toggle_visibility(bpy.types.Operator):
             if self.extend:
                 layer_cont.layers[layer_idx] = not layer_cont.layers[layer_idx]
             else:
-                layers = [False] * 20
+                layers = [False] * NUM_LAYERS
                 layers[layer_idx] = True
                 layer_cont.layers = layers
         return {'FINISHED'}
@@ -192,7 +195,7 @@ class SCENE_OT_namedlayer_move_to_layer(bpy.types.Operator):
                     if self.extend:
                         obj.layers[layer_idx] = not obj.layers[layer_idx]
                     else:
-                        layer = [False] * 20
+                        layer = [False] * NUM_LAYERS
                         layer[layer_idx] = True
                         obj.layers = layer
         return {'FINISHED'}
@@ -260,7 +263,7 @@ class SCENE_OT_namedlayer_lock_selected(bpy.types.Operator):
         view_3d = context.area.spaces.active
         layer_idx = self.layer_idx
         group_idx = self.group_idx
-        group_layers = scene.layergroups[group_idx].layers
+        group_layers = FAKE_LAYER_GROUP if group_idx < 0 else scene.layergroups[group_idx].layers
         use_lock = self.use_lock
 
         # check if layer have some thing
@@ -350,12 +353,12 @@ class SCENE_OT_namedlayer_show_all(bpy.types.Operator):
         layer_cont = scene if view_3d.lock_camera_and_layers else view_3d
 
         if show:
-            layer_cont.layers[:] = [True] * 20
+            layer_cont.layers[:] = [True] * NUM_LAYERS
             # Restore active layer (stupid, but Scene.active_layer is readonly).
             layer_cont.layers[active_layer] = False
             layer_cont.layers[active_layer] = True
         else:
-            layers = [False] * 20
+            layers = [False] * NUM_LAYERS
             # Keep selection of active layer
             layers[active_layer] = True
             layer_cont.layers[:] = layers
@@ -411,7 +414,7 @@ class SCENE_PT_namedlayer_layers(bpy.types.Panel):
         col.prop(namedlayers, "use_hide_empty_layers", text="Hide Empty")
 
         col = layout.column()
-        for layer_idx in range(20):
+        for layer_idx in range(NUM_LAYERS):
             namedlayer = namedlayers.layers[layer_idx]
             is_layer_used = view_3d.layers_used[layer_idx]
 
@@ -454,6 +457,7 @@ class SCENE_PT_namedlayer_layers(bpy.types.Panel):
                 icon = 'LOCKED' if use_lock else 'UNLOCKED'
                 op = row.operator("scene.namedlayer_lock_selected", text="", emboss=True, icon=icon)
                 op.layer_idx = layer_idx
+                op.group_idx = -1
                 op.use_lock = use_lock
 
                 # Merge layer
@@ -469,9 +473,8 @@ class SCENE_PT_namedlayer_layers(bpy.types.Panel):
                 op.layer_idx = layer_idx
                 op.use_wire = not use_wire
 
-                if not is_layer_used:
-                    if not (layer_idx + 1) % 5:
-                        col.separator()
+            if not (layer_idx + 1) % 5:
+                col.separator()
 
         if len(scene.objects) == 0:
             layout.label(text="No objects in scene")
