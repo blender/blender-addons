@@ -19,7 +19,7 @@
 bl_info = {
     "name": "Node Wrangler (aka Nodes Efficiency Tools)",
     "author": "Bartek Skorupa, Greg Zaal",
-    "version": (3, 17),
+    "version": (3, 18),
     "blender": (2, 72, 0),
     "location": "Node Editor Properties Panel or Ctrl-Space",
     "description": "Various tools to enhance and speed up node-based workflow",
@@ -310,6 +310,137 @@ compo_layout_nodes_props = (
     ('NodeFrame', 'FRAME', 'Frame'),
     ('NodeReroute', 'REROUTE', 'Reroute'),
     ('CompositorNodeSwitch', 'SWITCH', 'Switch'),
+)
+# Blender Render material nodes
+# (rna_type.identifier, type, rna_type.name)
+# Keeping mixed case to avoid having to translate entries when adding new nodes in operators.
+blender_mat_input_nodes_props = (
+    ('ShaderNodeMaterial', 'MATERIAL', 'Material'),
+    ('ShaderNodeCameraData', 'CAMERA', 'Camera Data'),
+    ('ShaderNodeLampData', 'LAMP', 'Lamp Data'),
+    ('ShaderNodeValue', 'VALUE', 'Value'),
+    ('ShaderNodeRGB', 'RGB', 'RGB'),
+    ('ShaderNodeTexture', 'TEXTURE', 'Texture'),
+    ('ShaderNodeGeometry', 'GEOMETRY', 'Geometry'),
+    ('ShaderNodeExtendedMaterial', 'MATERIAL_EXT', 'Extended Material'),
+)
+
+# (rna_type.identifier, type, rna_type.name)
+# Keeping mixed case to avoid having to translate entries when adding new nodes in operators.
+blender_mat_output_nodes_props = (
+    ('ShaderNodeOutput', 'OUTPUT', 'Output'),
+)
+
+# (rna_type.identifier, type, rna_type.name)
+# Keeping mixed case to avoid having to translate entries when adding new nodes in operators.
+blender_mat_color_nodes_props = (
+    ('ShaderNodeMixRGB', 'MIX_RGB', 'MixRGB'),
+    ('ShaderNodeRGBCurve', 'CURVE_RGB', 'RGB Curves'),
+    ('ShaderNodeInvert', 'INVERT', 'Invert'),
+    ('ShaderNodeHueSaturation', 'HUE_SAT', 'Hue/Saturation'),
+)
+
+# (rna_type.identifier, type, rna_type.name)
+# Keeping mixed case to avoid having to translate entries when adding new nodes in operators.
+blender_mat_vector_nodes_props = (
+    ('ShaderNodeNormal', 'NORMAL', 'Normal'),
+    ('ShaderNodeMapping', 'MAPPING', 'Mapping'),
+    ('ShaderNodeVectorCurve', 'CURVE_VEC', 'Vector Curves'),
+)
+
+# (rna_type.identifier, type, rna_type.name)
+# Keeping mixed case to avoid having to translate entries when adding new nodes in operators.
+blender_mat_converter_nodes_props = (
+    ('ShaderNodeValToRGB', 'VALTORGB', 'ColorRamp'),
+    ('ShaderNodeRGBToBW', 'RGBTOBW', 'RGB to BW'),
+    ('ShaderNodeMath', 'MATH', 'Math'),
+    ('ShaderNodeVectorMath', 'VECT_MATH', 'Vector Math'),
+    ('ShaderNodeSqueeze', 'SQUEEZE', 'Squeeze Value'),
+    ('ShaderNodeSeparateRGB', 'SEPRGB', 'Separate RGB'),
+    ('ShaderNodeCombineRGB', 'COMBRGB', 'Combine RGB'),
+    ('ShaderNodeSeparateHSV', 'SEPHSV', 'Separate HSV'),
+    ('ShaderNodeCombineHSV', 'COMBHSV', 'Combine HSV'),
+)
+
+# (rna_type.identifier, type, rna_type.name)
+# Keeping mixed case to avoid having to translate entries when adding new nodes in operators.
+blender_mat_layout_nodes_props = (
+    ('NodeReroute', 'REROUTE', 'Reroute'),
+)
+
+# Texture Nodes
+# (rna_type.identifier, type, rna_type.name)
+# Keeping mixed case to avoid having to translate entries when adding new nodes in operators.
+texture_input_nodes_props = (
+    ('TextureNodeCurveTime', 'CURVE_TIME', 'Curve Time'),
+    ('TextureNodeCoordinates', 'COORD', 'Coordinates'),
+    ('TextureNodeTexture', 'TEXTURE', 'Texture'),
+    ('TextureNodeImage', 'IMAGE', 'Image'),
+)
+
+# (rna_type.identifier, type, rna_type.name)
+# Keeping mixed case to avoid having to translate entries when adding new nodes in operators.
+texture_output_nodes_props = (
+    ('TextureNodeOutput', 'OUTPUT', 'Output'),
+    ('TextureNodeViewer', 'VIEWER', 'Viewer'),
+)
+
+# (rna_type.identifier, type, rna_type.name)
+# Keeping mixed case to avoid having to translate entries when adding new nodes in operators.
+texture_color_nodes_props = (
+    ('TextureNodeMixRGB', 'MIX_RGB', 'Mix RGB'),
+    ('TextureNodeCurveRGB', 'CURVE_RGB', 'RGB Curves'),
+    ('TextureNodeInvert', 'INVERT', 'Invert'),
+    ('TextureNodeHueSaturation', 'HUE_SAT', 'Hue/Saturation'),
+    ('TextureNodeCompose', 'COMPOSE', 'Combine RGBA'),
+    ('TextureNodeDecompose', 'DECOMPOSE', 'Separate RGBA'),
+)
+
+# (rna_type.identifier, type, rna_type.name)
+# Keeping mixed case to avoid having to translate entries when adding new nodes in operators.
+texture_pattern_nodes_props = (
+    ('TextureNodeChecker', 'CHECKER', 'Checker'),
+    ('TextureNodeBricks', 'BRICKS', 'Bricks'),
+)
+
+# (rna_type.identifier, type, rna_type.name)
+# Keeping mixed case to avoid having to translate entries when adding new nodes in operators.
+texture_textures_nodes_props = (
+    ('TextureNodeTexNoise', 'TEX_NOISE', 'Noise'),
+    ('TextureNodeTexDistNoise', 'TEX_DISTNOISE', 'Distorted Noise'),
+    ('TextureNodeTexClouds', 'TEX_CLOUDS', 'Clouds'),
+    ('TextureNodeTexBlend', 'TEX_BLEND', 'Blend'),
+    ('TextureNodeTexVoronoi', 'TEX_VORONOI', 'Voronoi'),
+    ('TextureNodeTexMagic', 'TEX_MAGIC', 'Magic'),
+    ('TextureNodeTexMarble', 'TEX_MARBLE', 'Marble'),
+    ('TextureNodeTexWood', 'TEX_WOOD', 'Wood'),
+    ('TextureNodeTexMusgrave', 'TEX_MUSGRAVE', 'Musgrave'),
+    ('TextureNodeTexStucci', 'TEX_STUCCI', 'Stucci'),
+)
+
+# (rna_type.identifier, type, rna_type.name)
+# Keeping mixed case to avoid having to translate entries when adding new nodes in operators.
+texture_converter_nodes_props = (
+    ('TextureNodeMath', 'MATH', 'Math'),
+    ('TextureNodeValToRGB', 'VALTORGB', 'ColorRamp'),
+    ('TextureNodeRGBToBW', 'RGBTOBW', 'RGB to BW'),
+    ('TextureNodeValToNor', 'VALTONOR', 'Value to Normal'),
+    ('TextureNodeDistance', 'DISTANCE', 'Distance'),
+)
+
+# (rna_type.identifier, type, rna_type.name)
+# Keeping mixed case to avoid having to translate entries when adding new nodes in operators.
+texture_distort_nodes_props = (
+    ('TextureNodeScale', 'SCALE', 'Scale'),
+    ('TextureNodeTranslate', 'TRANSLATE', 'Translate'),
+    ('TextureNodeRotate', 'ROTATE', 'Rotate'),
+    ('TextureNodeAt', 'AT', 'At'),
+)
+
+# (rna_type.identifier, type, rna_type.name)
+# Keeping mixed case to avoid having to translate entries when adding new nodes in operators.
+texture_layout_nodes_props = (
+    ('NodeReroute', 'REROUTE', 'Reroute'),
 )
 
 # list of blend types of "Mix" nodes in a form that can be used as 'items' for EnumProperty.
@@ -944,12 +1075,9 @@ class NWNodeWrangler(bpy.types.AddonPreferences):
 
 def nw_check(context):
     space = context.space_data
-    is_cycles = context.scene.render.engine == 'CYCLES'
     valid = False
     if space.type == 'NODE_EDITOR' and space.node_tree is not None:
-        type = space.node_tree.type
-        if type == 'COMPOSITING' or (type == 'SHADER' and is_cycles):
-            valid = True
+        valid = True
         
     return valid    
 
@@ -1362,10 +1490,11 @@ class NWEmissionViewer(Operator, NWBase):
 
     @classmethod
     def poll(cls, context):
+        is_cycles = context.scene.render.engine == 'CYCLES'
         valid = False
         if nw_check(context):
             space = context.space_data
-            if space.tree_type == 'ShaderNodeTree' and\
+            if space.tree_type == 'ShaderNodeTree' and is_cycles and\
                 (context.active_node.type != "OUTPUT_MATERIAL" or context.active_node.type != "OUTPUT_WORLD"):
                 valid = True
         return valid
@@ -1567,7 +1696,21 @@ class NWSwitchNodeType(Operator, NWBase):
         list(compo_vector_nodes_props) +
         list(compo_matte_nodes_props) +
         list(compo_distort_nodes_props) +
-        list(compo_layout_nodes_props),
+        list(compo_layout_nodes_props) +
+        list(blender_mat_input_nodes_props) +
+        list(blender_mat_output_nodes_props) +
+        list(blender_mat_color_nodes_props) +
+        list(blender_mat_vector_nodes_props) +
+        list(blender_mat_converter_nodes_props) +
+        list(blender_mat_layout_nodes_props) +
+        list(texture_input_nodes_props) +
+        list(texture_output_nodes_props) +
+        list(texture_color_nodes_props) +
+        list(texture_pattern_nodes_props) +
+        list(texture_textures_nodes_props) +
+        list(texture_converter_nodes_props) +
+        list(texture_distort_nodes_props) +
+        list(texture_layout_nodes_props)
     )
 
     def execute(self, context):
@@ -1784,6 +1927,8 @@ class NWMergeNodes(Operator, NWBase):
             node_type = 'CompositorNode'
         elif tree_type == 'SHADER':
             node_type = 'ShaderNode'
+        elif tree_type == 'TEXTURE':
+            node_type = 'TextureNode'
         nodes, links = get_nodes_links(context)
         mode = self.mode
         merge_type = self.merge_type
@@ -2268,7 +2413,7 @@ class NWAddTextureSetup(Operator, NWBase):
         valid = False
         if nw_check(context):
             space = context.space_data
-            if space.tree_type == 'ShaderNodeTree':
+            if space.tree_type == 'ShaderNodeTree' and context.scene.render.engine == 'CYCLES':
                 valid = True
         return valid
 
@@ -2682,7 +2827,9 @@ class NWLinkToOutputNode(Operator, NWBase):
         tree_type = context.space_data.tree_type
         output_types_shaders = [x[1] for x in shaders_output_nodes_props]
         output_types_compo = ['COMPOSITE']
-        output_types = output_types_shaders + output_types_compo
+        output_types_blender_mat = ['OUTPUT']
+        output_types_textures = ['OUTPUT']
+        output_types = output_types_shaders + output_types_compo + output_types_blender_mat
         for node in nodes:
             if node.type in output_types:
                 output_node = node
@@ -2690,9 +2837,14 @@ class NWLinkToOutputNode(Operator, NWBase):
         if not output_node:
             bpy.ops.node.select_all(action="DESELECT")
             if tree_type == 'ShaderNodeTree':
-                output_node = nodes.new('ShaderNodeOutputMaterial')
+                if context.scene.render.engine == 'CYCLES':
+                    output_node = nodes.new('ShaderNodeOutputMaterial')
+                else:
+                    output_node = nodes.new('ShaderNodeOutput')
             elif tree_type == 'CompositorNodeTree':
                 output_node = nodes.new('CompositorNodeComposite')
+            elif tree_type == 'TextureNodeTree':
+                output_node = nodes.new('TextureNodeOutput')
             output_node.location.x = active.location.x + active.dimensions.x + 80
             output_node.location.y = active.location.y
         if (output_node and active.outputs):
@@ -2706,7 +2858,7 @@ class NWLinkToOutputNode(Operator, NWBase):
                     break
 
             out_input_index = 0
-            if tree_type == 'ShaderNodeTree':
+            if tree_type == 'ShaderNodeTree' and context.scene.render.engine == 'CYCLES':
                 if active.outputs[output_index].name == 'Volume':
                     out_input_index = 1
                 elif active.outputs[output_index].type != 'SHADER':  # connect to displacement if not a shader
@@ -2911,7 +3063,7 @@ def drawlayout(context, layout, mode='non-panel'):
     col.menu(NWSwitchNodeTypeMenu.bl_idname, text="Switch Node Type")
     col.separator()
 
-    if tree_type == 'ShaderNodeTree':
+    if tree_type == 'ShaderNodeTree' and context.scene.render.engine == 'CYCLES':
         col = layout.column(align=True)
         col.operator(NWAddTextureSetup.bl_idname, text="Add Texture Setup", icon='NODE_SEL')
         col.separator()
@@ -2990,7 +3142,7 @@ class NWMergeNodesMenu(Menu, NWBase):
     def draw(self, context):
         type = context.space_data.tree_type
         layout = self.layout
-        if type == 'ShaderNodeTree':
+        if type == 'ShaderNodeTree' and context.scene.render.engine == 'CYCLES':
             layout.menu(NWMergeShadersMenu.bl_idname, text="Use Shaders")
         layout.menu(NWMergeMixMenu.bl_idname, text="Use Mix Nodes")
         layout.menu(NWMergeMathMenu.bl_idname, text="Use Math Nodes")
@@ -3224,7 +3376,7 @@ class NWVertColMenu(bpy.types.Menu):
         valid = False
         if nw_check(context):
             snode = context.space_data
-            valid = snode.tree_type == 'ShaderNodeTree'
+            valid = snode.tree_type == 'ShaderNodeTree' and context.scene.render.engine == 'CYCLES'
         return valid
 
     def draw(self, context):
@@ -3259,14 +3411,22 @@ class NWSwitchNodeTypeMenu(Menu, NWBase):
         layout = self.layout
         tree = context.space_data.node_tree
         if tree.type == 'SHADER':
-            layout.menu(NWSwitchShadersInputSubmenu.bl_idname)
-            layout.menu(NWSwitchShadersOutputSubmenu.bl_idname)
-            layout.menu(NWSwitchShadersShaderSubmenu.bl_idname)
-            layout.menu(NWSwitchShadersTextureSubmenu.bl_idname)
-            layout.menu(NWSwitchShadersColorSubmenu.bl_idname)
-            layout.menu(NWSwitchShadersVectorSubmenu.bl_idname)
-            layout.menu(NWSwitchShadersConverterSubmenu.bl_idname)
-            layout.menu(NWSwitchShadersLayoutSubmenu.bl_idname)
+            if context.scene.render.engine == 'CYCLES':
+                layout.menu(NWSwitchShadersInputSubmenu.bl_idname)
+                layout.menu(NWSwitchShadersOutputSubmenu.bl_idname)
+                layout.menu(NWSwitchShadersShaderSubmenu.bl_idname)
+                layout.menu(NWSwitchShadersTextureSubmenu.bl_idname)
+                layout.menu(NWSwitchShadersColorSubmenu.bl_idname)
+                layout.menu(NWSwitchShadersVectorSubmenu.bl_idname)
+                layout.menu(NWSwitchShadersConverterSubmenu.bl_idname)
+                layout.menu(NWSwitchShadersLayoutSubmenu.bl_idname)
+            if context.scene.render.engine != 'CYCLES':
+                layout.menu(NWSwitchMatInputSubmenu.bl_idname)
+                layout.menu(NWSwitchMatOutputSubmenu.bl_idname)
+                layout.menu(NWSwitchMatColorSubmenu.bl_idname)
+                layout.menu(NWSwitchMatVectorSubmenu.bl_idname)
+                layout.menu(NWSwitchMatConverterSubmenu.bl_idname)
+                layout.menu(NWSwitchMatLayoutSubmenu.bl_idname)
         if tree.type == 'COMPOSITING':
             layout.menu(NWSwitchCompoInputSubmenu.bl_idname)
             layout.menu(NWSwitchCompoOutputSubmenu.bl_idname)
@@ -3277,6 +3437,15 @@ class NWSwitchNodeTypeMenu(Menu, NWBase):
             layout.menu(NWSwitchCompoMatteSubmenu.bl_idname)
             layout.menu(NWSwitchCompoDistortSubmenu.bl_idname)
             layout.menu(NWSwitchCompoLayoutSubmenu.bl_idname)
+        if tree.type == 'TEXTURE':
+            layout.menu(NWSwitchTexInputSubmenu.bl_idname)
+            layout.menu(NWSwitchTexOutputSubmenu.bl_idname)
+            layout.menu(NWSwitchTexColorSubmenu.bl_idname)
+            layout.menu(NWSwitchTexPatternSubmenu.bl_idname)
+            layout.menu(NWSwitchTexTexturesSubmenu.bl_idname)
+            layout.menu(NWSwitchTexConverterSubmenu.bl_idname)
+            layout.menu(NWSwitchTexDistortSubmenu.bl_idname)
+            layout.menu(NWSwitchTexLayoutSubmenu.bl_idname)
 
 
 class NWSwitchShadersInputSubmenu(Menu, NWBase):
@@ -3463,6 +3632,162 @@ class NWSwitchCompoLayoutSubmenu(Menu, NWBase):
     def draw(self, context):
         layout = self.layout
         for ident, type, rna_name in compo_layout_nodes_props:
+            if type != 'FRAME':
+                props = layout.operator(NWSwitchNodeType.bl_idname, text=rna_name)
+                props.to_type = ident
+
+
+class NWSwitchMatInputSubmenu(Menu, NWBase):
+    bl_idname = "NODE_MT_nw_switch_mat_input_submenu"
+    bl_label = "Input"
+
+    def draw(self, context):
+        layout = self.layout
+        for ident, type, rna_name in blender_mat_input_nodes_props:
+            props = layout.operator(NWSwitchNodeType.bl_idname, text=rna_name)
+            props.to_type = ident
+
+
+class NWSwitchMatOutputSubmenu(Menu, NWBase):
+    bl_idname = "NODE_MT_nw_switch_mat_output_submenu"
+    bl_label = "Output"
+
+    def draw(self, context):
+        layout = self.layout
+        for ident, type, rna_name in blender_mat_output_nodes_props:
+            props = layout.operator(NWSwitchNodeType.bl_idname, text=rna_name)
+            props.to_type = ident
+
+
+class NWSwitchMatColorSubmenu(Menu, NWBase):
+    bl_idname = "NODE_MT_nw_switch_mat_color_submenu"
+    bl_label = "Color"
+
+    def draw(self, context):
+        layout = self.layout
+        for ident, type, rna_name in blender_mat_color_nodes_props:
+            props = layout.operator(NWSwitchNodeType.bl_idname, text=rna_name)
+            props.to_type = ident
+
+
+class NWSwitchMatVectorSubmenu(Menu, NWBase):
+    bl_idname = "NODE_MT_nw_switch_mat_vector_submenu"
+    bl_label = "Vector"
+
+    def draw(self, context):
+        layout = self.layout
+        for ident, type, rna_name in blender_mat_vector_nodes_props:
+            props = layout.operator(NWSwitchNodeType.bl_idname, text=rna_name)
+            props.to_type = ident
+
+
+class NWSwitchMatConverterSubmenu(Menu, NWBase):
+    bl_idname = "NODE_MT_nw_switch_mat_converter_submenu"
+    bl_label = "Converter"
+
+    def draw(self, context):
+        layout = self.layout
+        for ident, type, rna_name in blender_mat_converter_nodes_props:
+            props = layout.operator(NWSwitchNodeType.bl_idname, text=rna_name)
+            props.to_type = ident
+
+
+class NWSwitchMatLayoutSubmenu(Menu, NWBase):
+    bl_idname = "NODE_MT_nw_switch_mat_layout_submenu"
+    bl_label = "Layout"
+
+    def draw(self, context):
+        layout = self.layout
+        for ident, type, rna_name in blender_mat_layout_nodes_props:
+            if type != 'FRAME':
+                props = layout.operator(NWSwitchNodeType.bl_idname, text=rna_name)
+                props.to_type = ident
+
+
+class NWSwitchTexInputSubmenu(Menu, NWBase):
+    bl_idname = "NODE_MT_nw_switch_tex_input_submenu"
+    bl_label = "Input"
+
+    def draw(self, context):
+        layout = self.layout
+        for ident, type, rna_name in texture_input_nodes_props:
+            props = layout.operator(NWSwitchNodeType.bl_idname, text=rna_name)
+            props.to_type = ident
+
+
+class NWSwitchTexOutputSubmenu(Menu, NWBase):
+    bl_idname = "NODE_MT_nw_switch_tex_output_submenu"
+    bl_label = "Output"
+
+    def draw(self, context):
+        layout = self.layout
+        for ident, type, rna_name in texture_output_nodes_props:
+            props = layout.operator(NWSwitchNodeType.bl_idname, text=rna_name)
+            props.to_type = ident
+
+
+class NWSwitchTexColorSubmenu(Menu, NWBase):
+    bl_idname = "NODE_MT_nw_switch_tex_color_submenu"
+    bl_label = "Color"
+
+    def draw(self, context):
+        layout = self.layout
+        for ident, type, rna_name in texture_color_nodes_props:
+            props = layout.operator(NWSwitchNodeType.bl_idname, text=rna_name)
+            props.to_type = ident
+
+
+class NWSwitchTexPatternSubmenu(Menu, NWBase):
+    bl_idname = "NODE_MT_nw_switch_tex_pattern_submenu"
+    bl_label = "Pattern"
+
+    def draw(self, context):
+        layout = self.layout
+        for ident, type, rna_name in texture_pattern_nodes_props:
+            props = layout.operator(NWSwitchNodeType.bl_idname, text=rna_name)
+            props.to_type = ident
+
+
+class NWSwitchTexTexturesSubmenu(Menu, NWBase):
+    bl_idname = "NODE_MT_nw_switch_tex_textures_submenu"
+    bl_label = "Textures"
+
+    def draw(self, context):
+        layout = self.layout
+        for ident, type, rna_name in texture_textures_nodes_props:
+            props = layout.operator(NWSwitchNodeType.bl_idname, text=rna_name)
+            props.to_type = ident
+
+
+class NWSwitchTexConverterSubmenu(Menu, NWBase):
+    bl_idname = "NODE_MT_nw_switch_tex_converter_submenu"
+    bl_label = "Converter"
+
+    def draw(self, context):
+        layout = self.layout
+        for ident, type, rna_name in texture_converter_nodes_props:
+            props = layout.operator(NWSwitchNodeType.bl_idname, text=rna_name)
+            props.to_type = ident
+
+
+class NWSwitchTexDistortSubmenu(Menu, NWBase):
+    bl_idname = "NODE_MT_nw_switch_tex_distort_submenu"
+    bl_label = "Distort"
+
+    def draw(self, context):
+        layout = self.layout
+        for ident, type, rna_name in texture_distort_nodes_props:
+            props = layout.operator(NWSwitchNodeType.bl_idname, text=rna_name)
+            props.to_type = ident
+
+
+class NWSwitchTexLayoutSubmenu(Menu, NWBase):
+    bl_idname = "NODE_MT_nw_switch_tex_layout_submenu"
+    bl_label = "Layout"
+
+    def draw(self, context):
+        layout = self.layout
+        for ident, type, rna_name in texture_layout_nodes_props:
             if type != 'FRAME':
                 props = layout.operator(NWSwitchNodeType.bl_idname, text=rna_name)
                 props.to_type = ident
