@@ -245,9 +245,9 @@ class SCENE_OT_namedlayer_toggle_wire(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class SCENE_OT_namedlayer_lock_selected(bpy.types.Operator):
-    """Lock all selected objects on this layer"""
-    bl_idname = "scene.namedlayer_lock_selected"
+class SCENE_OT_namedlayer_lock_all(bpy.types.Operator):
+    """Lock all objects on this layer"""
+    bl_idname = "scene.namedlayer_lock_all"
     bl_label = "Lock Objects"
 
     layer_idx = IntProperty()
@@ -431,11 +431,6 @@ class SCENE_PT_namedlayer_layers(bpy.types.Panel):
                 sub.label(text="%.2d." % (layer_idx + 1))
 
             # visualization
-
-            # Name (use special icon for active layer)
-            icon = 'FILE_TICK' if (getattr(layer_cont, "active_layer", -1) == layer_idx) else 'NONE'
-            row.prop(namedlayer, "name", text="", icon=icon)
-
             icon = 'RESTRICT_VIEW_OFF' if layer_cont.layers[layer_idx] else 'RESTRICT_VIEW_ON'
             if use_classic:
                 op = row.operator("scene.namedlayer_toggle_visibility", text="", icon=icon, emboss=True)
@@ -443,6 +438,10 @@ class SCENE_PT_namedlayer_layers(bpy.types.Panel):
                 op.use_spacecheck = use_spacecheck
             else:
                 row.prop(layer_cont, "layers", index=layer_idx, emboss=True, icon=icon, toggle=True, text="")
+
+            # Name (use special icon for active layer)
+            icon = 'FILE_TICK' if (getattr(layer_cont, "active_layer", -1) == layer_idx) else 'NONE'
+            row.prop(namedlayer, "name", text="", icon=icon)
 
             if use_extra:
                 use_lock = namedlayer.use_lock
@@ -455,7 +454,7 @@ class SCENE_PT_namedlayer_layers(bpy.types.Panel):
 
                 # Lock operator
                 icon = 'LOCKED' if use_lock else 'UNLOCKED'
-                op = row.operator("scene.namedlayer_lock_selected", text="", emboss=True, icon=icon)
+                op = row.operator("scene.namedlayer_lock_all", text="", emboss=True, icon=icon)
                 op.layer_idx = layer_idx
                 op.group_idx = -1
                 op.use_lock = use_lock
@@ -493,7 +492,7 @@ class SCENE_UL_namedlayer_groups(UIList):
             # lock operator
             use_lock = layer_group.use_lock
             icon = 'LOCKED' if use_lock else 'UNLOCKED'
-            op = layout.operator("scene.namedlayer_lock_selected", text="", emboss=False, icon=icon)
+            op = layout.operator("scene.namedlayer_lock_all", text="", emboss=False, icon=icon)
             op.use_lock = use_lock
             op.group_idx = index
             op.layer_idx = -1
