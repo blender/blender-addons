@@ -145,13 +145,13 @@ def _property_chart_draw(self, context):
 
         row = layout.row(align=True)
 
-        col = row.column()
+        col = row.column(align=True)
         col.label(text="name")
         for obj, prop_pairs in prop_all:
             col.prop(obj, "name", text="")
 
         for i in range(len(strings)):
-            col = row.column()
+            col = row.column(align=True)
 
             # name and copy button
             rowsub = col.row(align=False)
