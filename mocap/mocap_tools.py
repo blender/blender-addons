@@ -635,22 +635,19 @@ def scale_fix_armature(performer_obj, enduser_obj):
     end_bones = enduser_obj.data.bones
 
     def calculateBoundingRadius(bones):
-        center = Vector()
-        for bone in bones:
-            center += bone.head_local
+        # Calculate the average position of each bone
+        center = sum((bone.head_local for bone in bones), Vector())
         center /= len(bones)
-        radius = 0
-        for bone in bones:
-            dist = (bone.head_local - center).length
-            if dist > radius:
-                radius = dist
+
+        # The radius is defined as the max distance from the center.
+        radius = max((bone.head_local - center).length for bone in bones)
         return radius
 
     perf_rad = calculateBoundingRadius(performer_obj.data.bones)
     end_rad = calculateBoundingRadius(enduser_obj.data.bones)
-    #end_avg = enduser_obj.dimensions
-    factor = end_rad / perf_rad * 1.2
-    performer_obj.scale *= factor
+
+    factor = end_rad / perf_rad
+    performer_obj.scale = factor * Vector((1, 1, 1))
 
 
 #Guess Mapping
