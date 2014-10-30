@@ -26,8 +26,9 @@ bl_info = {
     "name": "Measure Panel",
     "author": "Buerbaum Martin (Pontiac), TNae (Normal patch), "
               "Benjamin Lauritzen (Loonsbury; Volume code), "
-              "Alessandro Sala (patch: Units in 3D View) ",
-    "version": (0, 9, 0),
+              "Alessandro Sala (patch: Units in 3D View), "
+              "Daniel Ashby (callback removal code) ",
+    "version": (0, 9, 1),
     "blender": (2, 60, 0),
     "location": "View3D > Properties > Measure Panel",
     "description": "Measure distances between objects",
@@ -112,7 +113,7 @@ def getUnitsInfo():
         elif unit_system == 'IMPERIAL':
                 scale_steps = ((5280, 'mi'), (1, '\''),
                     (1 / 12, '"'), (1 / 12000, 'thou'))
-                scale /= 0.3048	# BU to feet
+                scale /= 0.3048  # BU to feet
         else:
                 scale_steps = ((1, ' BU'),)
                 separate_units = False
@@ -599,7 +600,7 @@ def scene_update(context):
             if (mode == 'EDIT_MESH'
                 and sce.measure_panel_update):
                 sce.measure_panel_update = 0
-                obj = context.active_object
+                obj = bpy.context.object
 
                 #if obj.is_updated:
                 length_total = objectEdgeLength(obj, True,
@@ -760,13 +761,21 @@ def draw_measurements_callback(self, context):
     #bgl.glVertex2i(80, 100)
     #bgl.glEnd()
 
-    if draw:
-        # Get measured 3D points and colors.
-        line = getMeasurePoints(context)
+    # Get measured 3D points and colors.
+    line = getMeasurePoints(context)
 
-        if line:
-            p1, p2, color = line
+    if line:
+        p1, p2, color = line
 
+        dist = (p1 - p2).length
+
+        # Write distance value into the scene property,
+        # so we can display it in the panel & refresh the panel.
+        if hasattr(sce, "measure_panel_dist"):
+            sce.measure_panel_dist = dist
+            context.area.tag_redraw()
+
+        if draw:
             # Get & convert the Perspective Matrix of the current view/region.
             view3d = bpy.context
             region = view3d.region_data
@@ -866,13 +875,6 @@ def draw_measurements_callback(self, context):
                 context.region,
                 context.space_data.region_3d,
                 p1.lerp(p2, 0.5))
-            dist = (p1 - p2).length
-
-            # Write distance value into the scene property,
-            # so we can display it in the panel & refresh the panel.
-            if hasattr(sce, "measure_panel_dist"):
-                sce.measure_panel_dist = dist
-                context.area.tag_redraw()
 
             texts = [
                 ("Dist:", dist),
@@ -903,39 +905,66 @@ def draw_measurements_callback(self, context):
                 loc_y -= OFFSET_Y
 
 
+# Callback code Daniel Ashby 2014-10-30
 class VIEW3D_OT_display_measurements(bpy.types.Operator):
     """Display the measurements made in the 'Measure' panel"""
     bl_idname = "view3d.display_measurements"
-    bl_label = "Display the measurements made in the" \
+    bl_label = "Display measurements"
+    bl_description = "Display the measurements made in the" \
         " 'Measure' panel in the 3D View"
-    bl_options = {'REGISTER'}
+    bl_options = {'REGISTER'}  # TODO: can this be removed?
+    _handle = None
+
+    @staticmethod
+    def handle_add(self, context):
+        VIEW3D_OT_display_measurements._handle \
+        = bpy.types.SpaceView3D.draw_handler_add(
+                draw_measurements_callback,
+                (self, context),
+                'WINDOW', 'POST_PIXEL')
+
+    @staticmethod
+    def handle_remove(context):
+        if VIEW3D_OT_display_measurements._handle is not None:
+            bpy.types.SpaceView3D.draw_handler_remove(
+                VIEW3D_OT_display_measurements._handle,
+                'WINDOW')
+        VIEW3D_OT_display_measurements._handle = None
 
     def modal(self, context, event):
-        context.area.tag_redraw()
-        return {'FINISHED'}
+        if context.area:
+            context.area.tag_redraw
 
-    def execute(self, context):
+        if not context.window_manager.display_measurements_runstate:
+            #stop script
+            VIEW3D_OT_display_measurements.handle_remove(context)
+            return {'CANCELLED'}
+
+        return {'PASS_THROUGH'}
+
+    def cancel(self, context):
+        if context.window_manager.display_measurements_runstate:
+            display_measurements.handle_remove(context)
+            context.window_manager.display_measurements_runstate = False
+        return {'CANCELLED'}
+
+    def invoke(self, context, event):
         if context.area.type == 'VIEW_3D':
-            mgr_ops = context.window_manager.operators.values()
-            if not self.bl_idname in [op.bl_idname for op in mgr_ops]:
-                # Add the region OpenGL drawing callback
-
-                # XXX, this is never removed!, it should be! (at least when disabling the addon)
-                self._handle = bpy.types.SpaceView3D.draw_handler_add(
-                        draw_measurements_callback,
-                        (self, context),
-                        'WINDOW', 'POST_PIXEL')
-
-                print("Measure panel display callback added")
-
-                # XXX, never removed!
+            if context.window_manager.display_measurements_runstate is False:
+                # operator is called for the first time, start everything
+                context.window_manager.display_measurements_runstate = True
+                VIEW3D_OT_display_measurements.handle_add(self, context)
                 context.window_manager.modal_handler_add(self)
                 return {'RUNNING_MODAL'}
 
-            return {'CANCELLED'}
+            else:
+                # operator is called again, stop displaying
+                context.window_manager.display_measurements_runstate = False
+                return {'CANCELLED'}
 
         else:
-            self.report({'WARNING'}, "View3D not found, cannot run operator")
+            self.report({'WARNING'}, "3D View not found, can't run operator"
+                " for 'Display measurements'")
             return {'CANCELLED'}
 
 
@@ -996,11 +1025,9 @@ class VIEW3D_PT_measure(bpy.types.Panel):
         layout = self.layout
         sce = context.scene
 
-        mgr_ops = context.window_manager.operators.values()
-        if (not "VIEW3D_OT_display_measurements"
-            in [op.bl_idname for op in mgr_ops]):
-            layout.operator("view3d.activate_measure_panel",
-                        text="Activate")
+        if not context.window_manager.display_measurements_runstate:
+            layout.operator("view3d.display_measurements", text="Activate",
+                icon="PLAY")
 
     def draw(self, context):
         layout = self.layout
@@ -1438,10 +1465,13 @@ class VIEW3D_PT_measure(bpy.types.Panel):
                     "measure_panel_transform",
                     expand=True)
 
+classes = (
+    VIEW3D_OT_display_measurements,
+    VIEW3D_OT_reenter_editmode,
+    VIEW3D_PT_measure)
+
 
 def register():
-    bpy.utils.register_module(__name__)
-
     bpy.app.handlers.scene_update_post.append(scene_update)
 
     # Define a temporary attribute for the distance value
@@ -1519,13 +1549,23 @@ def register():
         description="Update CPU heavy calculations",
         default=0)
 
-    pass
+    # Callback code Daniel Ashby 2014-10-30
+    # Runstate initially always set to False
+    # note: it is not stored in the Scene, but in window manager:
+    wm = bpy.types.WindowManager
+    wm.display_measurements_runstate = bpy.props.BoolProperty(default=False)
+
+    for c in classes:
+        bpy.utils.register_class(c)
 
 
 def unregister():
-    bpy.utils.unregister_module(__name__)
-
     bpy.app.handlers.scene_update_post.remove(scene_update)
+
+    VIEW3D_OT_display_measurements.handle_remove(bpy.context)
+
+    for c in classes:
+        bpy.utils.unregister_class(c)
 
     # Remove properties.
     del bpy.types.Scene.measure_panel_dist
@@ -1542,8 +1582,6 @@ def unregister():
     del bpy.types.Scene.measure_panel_calc_area
     del bpy.types.Scene.measure_panel_calc_volume
     del bpy.types.Scene.measure_panel_update
-
-    pass
 
 if __name__ == "__main__":
     register()
