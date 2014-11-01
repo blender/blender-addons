@@ -382,7 +382,7 @@ def add_vgroup_to_objects(vg_indices, vg_weights, vg_name, objects):
                 vg.add((i,), w, 'REPLACE')
 
 
-def blen_read_object_transform_preprocess(fbx_props, fbx_obj, rot_alt_mat):
+def blen_read_object_transform_preprocess(fbx_props, fbx_obj, rot_alt_mat, use_prepost_rot):
     # This is quite involved, 'fbxRNode.cpp' from openscenegraph used as a reference
     const_vector_zero_3d = 0.0, 0.0, 0.0
     const_vector_one_3d = 1.0, 1.0, 1.0
@@ -399,8 +399,12 @@ def blen_read_object_transform_preprocess(fbx_props, fbx_obj, rot_alt_mat):
     is_rot_act = elem_props_get_bool(fbx_props, b'RotationActive', False)
 
     if is_rot_act:
-        pre_rot = elem_props_get_vector_3d(fbx_props, b'PreRotation', const_vector_zero_3d)
-        pst_rot = elem_props_get_vector_3d(fbx_props, b'PostRotation', const_vector_zero_3d)
+        if use_prepost_rot:
+            pre_rot = elem_props_get_vector_3d(fbx_props, b'PreRotation', const_vector_zero_3d)
+            pst_rot = elem_props_get_vector_3d(fbx_props, b'PostRotation', const_vector_zero_3d)
+        else:
+            pre_rot = const_vector_zero_3d
+            pst_rot = const_vector_zero_3d
         rot_ord = {
             0: 'XYZ',
             1: 'XYZ',
@@ -1862,7 +1866,8 @@ def load(operator, context, filepath="",
          ignore_leaf_bones=False,
          automatic_bone_orientation=False,
          primary_bone_axis='Y',
-         secondary_bone_axis='X'):
+         secondary_bone_axis='X',
+         use_prepost_rot=True):
 
     global fbx_elem_nil
     fbx_elem_nil = FBXElem('', (), (), ())
@@ -1975,6 +1980,7 @@ def load(operator, context, filepath="",
         use_custom_props, use_custom_props_enum_as_string,
         cycles_material_wrap_map, image_cache,
         ignore_leaf_bones, automatic_bone_orientation, bone_correction_matrix,
+        use_prepost_rot,
     )
 
     # #### And now, the "real" data.
@@ -2155,7 +2161,7 @@ def load(operator, context, filepath="",
                          elem_find_first(fbx_tmpl, b'Properties70', fbx_elem_nil))
             assert(fbx_props[0] is not None)
 
-            transform_data = blen_read_object_transform_preprocess(fbx_props, fbx_obj, Matrix())
+            transform_data = blen_read_object_transform_preprocess(fbx_props, fbx_obj, Matrix(), use_prepost_rot)
             is_bone = fbx_obj.props[2] in {b'LimbNode', b'Root'}
             fbx_helper_nodes[a_uuid] = FbxImportHelperNode(fbx_obj, bl_data, transform_data, is_bone)
 

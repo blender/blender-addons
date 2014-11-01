@@ -177,6 +177,12 @@ class ImportFBX(bpy.types.Operator, ImportHelper):
             default='X',
             )
 
+    use_prepost_rot = BoolProperty(
+            name="Use Pre/Post Rotation",
+            description="Use pre/post rotation from FBX transform (you may have to disable that in some cases)",
+            default=True,
+            )
+
     def draw(self, context):
         layout = self.layout
 
@@ -204,6 +210,8 @@ class ImportFBX(bpy.types.Operator, ImportHelper):
         sub.enabled = not self.automatic_bone_orientation
         sub.prop(self, "primary_bone_axis")
         sub.prop(self, "secondary_bone_axis")
+
+        layout.prop(self, "use_prepost_rot")
 
     def execute(self, context):
         keywords = self.as_keywords(ignore=("filter_glob", "directory"))
