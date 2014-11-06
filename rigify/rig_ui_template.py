@@ -103,7 +103,7 @@ def set_pose_translation(pose_bone, mat):
     """ Sets the pose bone's translation to the same translation as the given matrix.
         Matrix should be given in bone's local space.
     """
-    if pose_bone.bone.use_local_location == True:
+    if pose_bone.bone.use_local_location is True:
         pose_bone.location = mat.to_translation()
     else:
         loc = mat.to_translation()

@@ -416,7 +416,7 @@ def parameters_ui(layout, params):
 
 def create_square_widget(rig, bone_name, size=1.0, bone_transform_name=None):
     obj = create_widget(rig, bone_name, bone_transform_name)
-    if obj != None:
+    if obj is not None:
         verts = [
             (  0.5 * size, -2.9802322387695312e-08 * size,  0.5 * size ), 
             ( -0.5 * size, -2.9802322387695312e-08 * size,  0.5 * size ), 
