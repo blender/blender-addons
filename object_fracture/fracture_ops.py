@@ -375,6 +375,17 @@ class FractureSimple(bpy.types.Operator):
         max=3.0,
         default=0.5)
 
+    @classmethod
+    def poll(clss, context):
+        if not context.active_object or context.active_object.mode != 'OBJECT':
+            return False
+
+        for ob in context.scene.objects:
+            if ob.select:
+                if ob.type != 'MESH':
+                    return False
+        return True
+
     def execute(self, context):
         #getIslands(context.object)
         if self.exe:
@@ -405,6 +416,17 @@ class FractureGroup(bpy.types.Operator):
 #    group = EnumProperty(name='Group (hit F8 to refresh list)',
 #                         items=e,
 #                         description='Specify the group used for fracturing')
+
+    @classmethod
+    def poll(clss, context):
+        if not context.active_object or context.active_object.mode != 'OBJECT':
+            return False
+
+        for ob in context.scene.objects:
+            if ob.select:
+                if ob.type != 'MESH':
+                    return False
+        return True
 
     def execute(self, context):
         #getIslands(context.object)
