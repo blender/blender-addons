@@ -377,13 +377,9 @@ class FractureSimple(bpy.types.Operator):
 
     @classmethod
     def poll(clss, context):
-        if not context.active_object or context.active_object.mode != 'OBJECT':
+        ob = context.active_object
+        if context.mode != 'OBJECT' or not ob or ob.type != 'MESH':
             return False
-
-        for ob in context.scene.objects:
-            if ob.select:
-                if ob.type != 'MESH':
-                    return False
         return True
 
     def execute(self, context):
@@ -419,13 +415,9 @@ class FractureGroup(bpy.types.Operator):
 
     @classmethod
     def poll(clss, context):
-        if not context.active_object or context.active_object.mode != 'OBJECT':
+        ob = context.active_object
+        if context.mode != 'OBJECT' or not ob or ob.type != 'MESH':
             return False
-
-        for ob in context.scene.objects:
-            if ob.select:
-                if ob.type != 'MESH':
-                    return False
         return True
 
     def execute(self, context):
