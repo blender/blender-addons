@@ -178,8 +178,8 @@ class AddZFunctionSurface(bpy.types.Operator):
         verts = []
         faces = []
 
-        delta_x = size_x / float(div_x - 1)
-        delta_y = size_y / float(div_y - 1)
+        delta_x = size_x / (div_x - 1)
+        delta_y = size_y / (div_y - 1)
         start_x = -(size_x / 2.0)
         start_y = -(size_y / 2.0)
 

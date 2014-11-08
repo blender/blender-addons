@@ -376,7 +376,7 @@ def grid_gen( sub_d, size_me, options ):
     faces = []
     edgeloop_prev = []
 
-    delta = size_me / float(sub_d - 1)
+    delta = size_me / (sub_d - 1)
     start = -(size_me / 2.0)
 
     for row_x in range(sub_d):

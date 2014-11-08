@@ -1009,7 +1009,7 @@ def write_pov(filename, scene=None, info_callback=None):
         focal_point = camera.data.dof_distance
 
         # compute resolution
-        Qsize = float(render.resolution_x) / float(render.resolution_y)
+        Qsize = render.resolution_x / render.resolution_y
         tabWrite("#declare camLocation  = <%.6f, %.6f, %.6f>;\n" %
                  matrix.translation[:])
         tabWrite("#declare camLookAt = <%.6f, %.6f, %.6f>;\n" %

@@ -1530,7 +1530,7 @@ def parse_animation( armature, udk_bones, actions_to_export, psa ):
                 vkey.Orientation    = quat
 
                 # frame delta = 1.0 / fps
-                vkey.Time           = 1.0 / float(anim_rate)    # according to C++ header this is "disregarded"
+                vkey.Time           = 1.0 / anim_rate  # according to C++ header this is "disregarded"
 
                 psa.AddRawKey(vkey)
 
