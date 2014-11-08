@@ -160,6 +160,7 @@ def pVisScaExec(bone, active, context):
 
 def pDrwExec(bone, active, context):
     bone.custom_shape = active.custom_shape
+    bone.bone.show_wire = active.bone.show_wire
 
 
 def pLokExec(bone, active, context):
