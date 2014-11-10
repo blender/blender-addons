@@ -570,39 +570,64 @@ def fcurves_simplify(context, obj, sel_opt="all", error=0.002, group_mode=True):
     return
 
 
-# Implementation of non-linear median filter, with variable kernel size
-# Double pass - one marks spikes, the other smooths them
-# Expects sampled keyframes on everyframe
-# IN: None. Performs the operations on the active_object's fcurves. Expects animation_data.action to exist!
-# OUT: None. Fixes the fcurves "in-place".
-def denoise_median():
-    context = bpy.context
-    obj = context.active_object
-    fcurves = obj.animation_data.action.fcurves
-    medKernel = 1  # actually *2+1... since it this is offset
-    flagKernel = 4
-    highThres = (flagKernel * 2) - 1
-    lowThres = 0
+def detect_min_max(v):
+    """
+    Converted from MATLAB script at http://billauer.co.il/peakdet.html
+
+    Yields indices of peaks, i.e. local minima/maxima.
+
+    % Eli Billauer, 3.4.05 (Explicitly not copyrighted).
+    % This function is released to the public domain; Any use is allowed.
+    """
+
+    min_val, max_val = float('inf'), -float('inf')
+
+    check_max = True
+
+    for i, val in enumerate(v):
+        if val > max_val:
+            max_val = val
+        if val < min_val:
+            min_val = val
+
+        if check_max:
+            if val < max_val:
+                yield i
+                min_val = val
+                check_max = False
+        else:
+            if val > min_val:
+                yield i
+                max_val = val
+                check_max = True
+
+
+def denoise(obj, fcurves):
+    """
+    Implementation of non-linear blur filter.
+    Finds spikes in the fcurve, and replaces spikes that are too big with the average of the surrounding keyframes.
+    """
     for fcurve in fcurves:
-        orgPts = fcurve.keyframe_points[:]
-        flaggedFrames = []
-        # mark frames that are spikes by sorting a large kernel
-        for i in range(flagKernel, len(fcurve.keyframe_points) - flagKernel):
-            center = orgPts[i]
-            neighborhood = orgPts[i - flagKernel: i + flagKernel]
-            neighborhood.sort(key=lambda pt: pt.co[1])
-            weight = neighborhood.index(center)
-            if weight >= highThres or weight <= lowThres:
-                flaggedFrames.append((i, center))
-        # clean marked frames with a simple median filter
-        # averages all frames in the kernel equally, except center which has no weight
-        for i, pt in flaggedFrames:
-            newValue = 0
-            sumWeights = 0
-            neighborhood = [neighpt.co[1] for neighpt in orgPts[i - medKernel: i + medKernel + 1] if neighpt != pt]
-            newValue = sum(neighborhood) / len(neighborhood)
-            pt.co[1] = newValue
-    return
+        org_pts = fcurve.keyframe_points[:]
+
+        for idx in detect_min_max(pt.co.y for pt in fcurve.keyframe_points[1:-1]):
+            # Find the neighbours
+            prev_pt = org_pts[idx - 1].co.y
+            next_pt = org_pts[idx + 1].co.y
+            this_pt = org_pts[idx]
+
+            # Check the distance from the min/max to the average of the surrounding points.
+            avg = (prev_pt + next_pt) / 2
+            is_peak = abs(this_pt.co.y - avg) > avg * 0.02
+
+            if is_peak:
+                diff = avg - fcurve.keyframe_points[idx].co.y
+                fcurve.keyframe_points[idx].co.y = avg
+                fcurve.keyframe_points[idx].handle_left.y += diff
+                fcurve.keyframe_points[idx].handle_right.y += diff
+
+        # Important to update the curve after modifying it!
+        fcurve.update()
 
 
 # Recieves armature, and rotations all bones by 90 degrees along the X axis

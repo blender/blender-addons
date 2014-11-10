@@ -579,18 +579,19 @@ class OBJECT_OT_LooperButton(bpy.types.Operator):
 
 class OBJECT_OT_DenoiseButton(bpy.types.Operator):
     #Operator to denoise impluse noise on the active object's fcurves
-    """Denoise active armature's animation (good for dealing """ \
-    """with 'bad' frames inherent in mocap animation)"""
+    """Removes spikes from all fcurves on the selected object"""
     bl_idname = "mocap.denoise"
     bl_label = "Denoise Mocap"
 
     def execute(self, context):
-        mocap_tools.denoise_median()
+        obj = context.active_object
+        mocap_tools.denoise(obj, obj.animation_data.action.fcurves)
         return {'FINISHED'}
 
     @classmethod
     def poll(cls, context):
-        return context.active_object.animation_data
+        obj = context.active_object
+        return obj and obj.animation_data and obj.animation_data.action
 
 
 class OBJECT_OT_LimitDOFButton(bpy.types.Operator):
