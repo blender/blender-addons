@@ -195,7 +195,7 @@ class AddTree(bpy.types.Operator):
         default=3, update=update_tree)
     length = FloatVectorProperty(name='Length',
         description='The relative lengths of each branch level (nLength)',
-        min=0.000001,
+        min=1e-6,
         default=[1, 0.3, 0.6, 0.45],
         size=4, update=update_tree)
     lengthV = FloatVectorProperty(name='Length Variation',
@@ -258,7 +258,7 @@ class AddTree(bpy.types.Operator):
         default='7', update=update_tree)
     baseSize = FloatProperty(name='Base Size',
         description='Fraction of tree height with no branches (BaseSize)',
-        min=0.0,
+        min=0.001,
         max=1.0,
         default=0.4, update=update_tree)
     ratio = FloatProperty(name='Ratio',

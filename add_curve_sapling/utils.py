@@ -132,14 +132,14 @@ def declination(quat):
 # Determine the length of a child stem
 def lengthChild(lMax,offset,lPar,shape=False,lBase=None):
     if shape:
-        return lPar*lMax*shapeRatio(shape,(lPar - offset)/(lPar - lBase))
+        return lPar*lMax*shapeRatio(shape,(lPar - offset) / max((lPar - lBase), 1e-6))
     else:
         return lMax*(lPar - 0.6*offset)
 
 # Find the actual downAngle taking into account the special case
 def downAngle(downAng,downAngV,lPar=None,offset=None,lBase=None):
     if downAngV < 0:
-        return downAng + (uniform(-downAngV,downAngV)*(1 - 2*shapeRatio(0,(lPar - offset)/(lPar - lBase))))
+        return downAng + (uniform(-downAngV,downAngV)*(1 - 2*shapeRatio(0,(lPar - offset) / max((lPar - lBase), 1e-6))))
     else:
         return downAng + uniform(-downAngV,downAngV)
 
@@ -445,7 +445,7 @@ def create_armature(armAnim, childP, cu, frameRate, leafMesh, leafObj, leafShape
         bxOffset = uniform(0, 2 * pi)
         byOffset = uniform(0, 2 * pi)
         # Set the phase multiplier for the spline
-        bMult = (s.bezier_points[0].radius / splineL) * (1 / 15) * (1 / frameRate)
+        bMult = (s.bezier_points[0].radius / max(splineL, 1e-6)) * (1 / 15) * (1 / frameRate)
         # For all the points in the curve (less the last) add a bone and name it by the spline it will affect
         for n in range(numPoints):
             oldBone = b
@@ -481,7 +481,7 @@ def create_armature(armAnim, childP, cu, frameRate, leafMesh, leafObj, leafShape
             # Add the animation to the armature if required
             if armAnim:
                 # Define all the required parameters of the wind sway by the dimension of the spline
-                a0 = 4 * splineL * (1 - n / (numPoints + 1)) / s.bezier_points[n].radius
+                a0 = 4 * splineL * (1 - n / (numPoints + 1)) / max(s.bezier_points[n].radius, 1e-6)
                 a1 = (windSpeed / 50) * a0
                 a2 = (windGust / 50) * a0 + a1 / 2
 
@@ -592,11 +592,12 @@ def fabricate_stems(addsplinetobone, addstem, baseSize, branches, childP, cu, cu
             if leaves < 0:
                 childStems = False
             else:
-                childStems = leaves * shapeRatio(leafDist, p.offset / max(p.lengthPar, 1e-6))
+                childStems = leaves * shapeRatio(leafDist, p.offset / p.lengthPar)
         elif n == 1:
             # If this is the first level of branching then upward attraction has no effect and a special formula is used to find branch length and the number of child stems
             vertAtt = 0.0
             lMax = length[1] + uniform(-lengthV[1], lengthV[1])
+            lMax += copysign(1e-6, lMax)  # Move away from zero to avoid div by zero
             branchL = p.lengthPar * lMax * shapeRatio(shape,
                                                       (p.lengthPar - p.offset) / (p.lengthPar - baseSize * scaleVal))
             childStems = branches[2] * (0.2 + 0.8 * (branchL / p.lengthPar) / lMax)
@@ -681,10 +682,10 @@ def perform_pruning(baseSize, baseSplits, childP, cu, currentMax, currentMin, cu
             # Check each endpoint to see if it is inside
             for s in splineList:
                 coordMag = (s.spline.bezier_points[-1].co.xy).length
-                ratio = (scaleVal - s.spline.bezier_points[-1].co.z) / (scaleVal * (1 - baseSize))
+                ratio = (scaleVal - s.spline.bezier_points[-1].co.z) / (scaleVal * max(1 - baseSize, 1e-6))
                 # Don't think this if part is needed
                 if (n == 0) and (s.spline.bezier_points[-1].co.z < baseSize * scaleVal):
-                    pass  # insideBool = True
+                    insideBool = True  # Init to avoid UnboundLocalError later
                 else:
                     insideBool = (
                     (coordMag / scaleVal) < pruneWidth * shapeRatio(8, ratio, pruneWidthPeak, prunePowerHigh,
@@ -819,6 +820,7 @@ def addTree(props):
 
     # Fix the scale of the tree now
     scaleVal = scale + uniform(-scaleV,scaleV)
+    scaleVal += copysign(1e-6, scaleVal)  # Move away from zero to avoid div by zero
 
     # If pruning is turned on we need to draw the pruning envelope
     if prune:
