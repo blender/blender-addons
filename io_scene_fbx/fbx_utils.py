@@ -902,11 +902,11 @@ class ObjectWrapper(metaclass=MetaObjectWrapper):
         if self._tag == 'OB':
             return self.bdata.matrix_local.copy()
         elif self._tag == 'DP':
-            return self._ref.matrix_world.inverted() * self._dupli_matrix
+            return self._ref.matrix_world.inverted_safe() * self._dupli_matrix
         else:  # 'BO', current pose
             # PoseBone.matrix is in armature space, bring in back in real local one!
             par = self.bdata.parent
-            par_mat_inv = self._ref.pose.bones[par.name].matrix.inverted() if par else Matrix()
+            par_mat_inv = self._ref.pose.bones[par.name].matrix.inverted_safe() if par else Matrix()
             return par_mat_inv * self._ref.pose.bones[self.bdata.name].matrix
     matrix_local = property(get_matrix_local)
 
@@ -923,7 +923,7 @@ class ObjectWrapper(metaclass=MetaObjectWrapper):
         if self._tag == 'BO':
             # Bone.matrix_local is in armature space, bring in back in real local one!
             par = self.bdata.parent
-            par_mat_inv = par.matrix_local.inverted() if par else Matrix()
+            par_mat_inv = par.matrix_local.inverted_safe() if par else Matrix()
             return par_mat_inv * self.bdata.matrix_local
         else:
             return self.matrix_local
@@ -1012,7 +1012,7 @@ class ObjectWrapper(metaclass=MetaObjectWrapper):
                 matrix = (parent.matrix_rest_local if rest else parent.matrix_local) * matrix
                 # ...and move it back into parent's *FBX* local space.
                 par_mat = parent.fbx_object_matrix(scene_data, rest=rest, local_space=True)
-                matrix = par_mat.inverted() * matrix
+                matrix = par_mat.inverted_safe() * matrix
 
         if self.use_bake_space_transform(scene_data):
             # If we bake the transforms we need to post-multiply inverse global transform.

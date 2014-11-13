@@ -1452,7 +1452,7 @@ def fbx_data_armature_elements(root, arm_obj, scene_data):
                 #          http://area.autodesk.com/forum/autodesk-fbx/fbx-sdk/why-the-values-return-
                 #                 by-fbxcluster-gettransformmatrix-x-not-same-with-the-value-in-ascii-fbx-file/
                 elem_data_single_float64_array(fbx_clstr, b"Transform",
-                                               matrix4_to_array(mat_world_bones[bo_obj].inverted() * mat_world_obj))
+                                               matrix4_to_array(mat_world_bones[bo_obj].inverted_safe() * mat_world_obj))
                 elem_data_single_float64_array(fbx_clstr, b"TransformLink", matrix4_to_array(mat_world_bones[bo_obj]))
                 elem_data_single_float64_array(fbx_clstr, b"TransformAssociateModel", matrix4_to_array(mat_world_arm))
 

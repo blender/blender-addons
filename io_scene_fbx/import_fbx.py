@@ -360,11 +360,11 @@ def blen_read_object_transform_do(transform_data):
         pre_rot *
         lcl_rot *
         pst_rot *
-        rot_piv.inverted() *
+        rot_piv.inverted_safe() *
         sca_ofs *
         sca_piv *
         lcl_scale *
-        sca_piv.inverted()
+        sca_piv.inverted_safe()
     )
 
 
@@ -537,7 +537,7 @@ def blen_read_animations_action_item(action, item, cnodes, fps):
         rot_prev = bl_obj.rotation_euler.copy()
 
         # Pre-compute inverted local rest matrix of the bone, if relevant.
-        restmat_inv = item.get_bind_matrix().inverted() if item.is_bone else None
+        restmat_inv = item.get_bind_matrix().inverted_safe() if item.is_bone else None
 
         # We assume for now blen init point is frame 1.0, while FBX ktime init point is 0.
         for frame, values in blen_read_animations_curves_iter(fbx_curves, 1.0, 0, fps):
@@ -1424,7 +1424,7 @@ class FbxImportHelperNode:
             self.post_matrix = settings.global_matrix_inv * (self.post_matrix if self.post_matrix else Matrix())
 
         # process children
-        correction_matrix_inv = correction_matrix.inverted() if correction_matrix else None
+        correction_matrix_inv = correction_matrix.inverted_safe() if correction_matrix else None
         for child in self.children:
             child.find_correction_matrix(settings, correction_matrix_inv)
 
@@ -1522,7 +1522,7 @@ class FbxImportHelperNode:
             parent_matrix = Matrix()
 
         if self.bind_matrix:
-            bind_matrix = parent_matrix.inverted() * self.bind_matrix
+            bind_matrix = parent_matrix.inverted_safe() * self.bind_matrix
         else:
             bind_matrix = self.matrix.copy() if self.matrix else None
 
@@ -1541,7 +1541,7 @@ class FbxImportHelperNode:
 
     def collect_armature_meshes(self):
         if self.is_armature:
-            armature_matrix_inv = self.get_world_matrix().inverted()
+            armature_matrix_inv = self.get_world_matrix().inverted_safe()
 
             meshes = set()
             for child in self.children:
@@ -1549,7 +1549,7 @@ class FbxImportHelperNode:
             for m in meshes:
                 old_matrix = m.matrix
                 m.matrix = armature_matrix_inv * m.get_world_matrix()
-                m.anim_compensation_matrix = old_matrix.inverted() * m.matrix
+                m.anim_compensation_matrix = old_matrix.inverted_safe() * m.matrix
                 m.parent = self
             self.meshes = meshes
         else:
@@ -1666,7 +1666,7 @@ class FbxImportHelperNode:
 
     def set_pose_matrix(self, arm):
         pose_bone = arm.bl_obj.pose.bones[self.bl_bone]
-        pose_bone.matrix_basis = self.get_bind_matrix().inverted() * self.get_matrix()
+        pose_bone.matrix_basis = self.get_bind_matrix().inverted_safe() * self.get_matrix()
 
         for child in self.children:
             if child.ignore:
