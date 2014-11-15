@@ -21,6 +21,7 @@
 import bpy
 from . import parse_edl
 
+
 def id_animdata_action_ensure(id_data):
     id_data.animation_data_create()
     animation_data = id_data.animation_data
@@ -41,7 +42,7 @@ def scale_meta_speed(sequence_editor, strip_list, strip_movie, scale):
 
     # not working in 2.6x :|
     strip_speed.use_frame_blend = True
-    #meta = sequence_editor.new([strip_movie, strip_speed], 199, strip_movie.channel)
+    # meta = sequence_editor.new([strip_movie, strip_speed], 199, strip_movie.channel)
 
     # XXX-Meta Operator Mess
     scene = sequence_editor.id_data
@@ -129,8 +130,9 @@ def load_edl(scene, filename, reel_files, reel_offsets, global_offset):
             frame_offset = reel_offsets[edit.reel]
 
         src_start = int(edit.srcIn) + frame_offset
-        src_end = int(edit.srcOut) + frame_offset
-        src_length = src_end - src_start
+        # UNUSED
+        # src_end = int(edit.srcOut) + frame_offset
+        # src_length = src_end - src_start
 
         rec_start = int(edit.recIn) + 1
         rec_end = int(edit.recOut) + 1
@@ -140,7 +142,7 @@ def load_edl(scene, filename, reel_files, reel_offsets, global_offset):
         rec_start += global_offset
         rec_end += global_offset
 
-        # print src_length, rec_length, src_start
+        # print(src_length, rec_length, src_start)
 
         if edit.m2 is not None:
             scale = fps / edit.m2.fps
@@ -165,22 +167,22 @@ def load_edl(scene, filename, reel_files, reel_offsets, global_offset):
             strip_list.append(strip)
             final_strips.append(strip)
             strip.color = 0.0, 0.0, 0.0
-            
+
         else:
             path_full = reel_files[edit.reel]
             path_dironly, path_fileonly = os.path.split(path_full)
 
             if edit.edit_type & parse_edl.EDIT_VIDEO:  # and edit.transition_type == parse_edl.TRANSITION_CUT:
 
-                #try:
+                # try:
                 strip = sequence_editor.sequences.new_movie(
                         name=edit.reel,
                         filepath=path_full,
                         channel=track + 1,
                         frame_start=unedited_start + offset_start)
                 strip_list.append(strip)
-                #except:
-                #    return "Invalid input for movie"
+                # except:
+                #     return "Invalid input for movie"
 
                 # Apply scaled rec in bounds
                 if scale != 1.0:
@@ -255,17 +257,16 @@ def load_edl(scene, filename, reel_files, reel_offsets, global_offset):
 
                         # See if there is a wave file there
                         path_full_wav = replace_ext(path_full, "wav")
-                        path_fileonly_wav = replace_ext(path_fileonly, "wav")
 
-                        #try:
+                        # try:
                         strip = sequence_editor.sequences.new_sound(
                                 name=edit.reel,
                                 filepath=path_full_wav,
                                 channel=track + 6,
                                 frame_start=unedited_start + offset_start)
                         strip_list.append(strip)
-                        #except:
-                        #   return "Invalid input for audio"
+                        # except:
+                        #    return "Invalid input for audio"
 
                     final_strip = strip
 
@@ -291,7 +292,7 @@ def load_edl(scene, filename, reel_files, reel_offsets, global_offset):
                 prev_edit = edit
             track += 1
 
-        #break
+        # break
 
     for strip in strip_list:
         strip.update(True)

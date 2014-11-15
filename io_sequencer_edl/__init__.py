@@ -34,14 +34,11 @@ bl_info = {
 import bpy
 
 
-# ImportHelper is a helper class, defines filename and
-# invoke() function which calls the file selector.
-from bpy_extras.io_utils import ImportHelper
-from bpy.props import (StringProperty,
-                       IntProperty,
-                       PointerProperty,
-                       CollectionProperty,
-                       )
+from bpy.props import (
+        StringProperty,
+        IntProperty,
+        PointerProperty,
+        )
 from bpy.types import Operator
 
 # ----------------------------------------------------------------------------
@@ -127,8 +124,8 @@ class FindReelsEDL(Operator):
                     if ext_lower in ext_check:
                         yield os.path.join(dirpath, filename), fileonly
 
-        scene = context.scene
-        edl_import_info = scene.edl_import_info
+        # scene = context.scene
+        # edl_import_info = scene.edl_import_info
 
         bl_reels = FindReelsEDL.missing_reels(context)
         assert(len(bl_reels))
