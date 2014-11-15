@@ -172,7 +172,8 @@ def load_edl(scene, filename, reel_files, reel_offsets, global_offset):
             path_full = reel_files[edit.reel]
             path_dironly, path_fileonly = os.path.split(path_full)
 
-            if edit.edit_type & parse_edl.EDIT_VIDEO:  # and edit.transition_type == parse_edl.TRANSITION_CUT:
+            if edit.edit_type & (parse_edl.EDIT_VIDEO | parse_edl.EDIT_VIDEO_AUDIO):
+                # and edit.transition_type == parse_edl.TRANSITION_CUT:
 
                 # try:
                 strip = sequence_editor.sequences.new_movie(
