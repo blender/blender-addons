@@ -18,8 +18,8 @@
 
 bl_info = {
     "name": "Node Wrangler (aka Nodes Efficiency Tools)",
-    "author": "Bartek Skorupa, Greg Zaal",
-    "version": (3, 18),
+    "author": "Bartek Skorupa, Greg Zaal, Sebastian Koenig",
+    "version": (3, 19),
     "blender": (2, 72, 0),
     "location": "Node Editor Properties Panel or Ctrl-Space",
     "description": "Various tools to enhance and speed up node-based workflow",
@@ -3048,6 +3048,64 @@ class NWAddMultipleImages(Operator, ImportHelper):
         return {'FINISHED'}
 
 
+class NWViewerFocus(bpy.types.Operator):
+    """Set the viewer tile center to the mouse position"""
+    bl_idname = "node.nw_viewer_focus"
+    bl_label = "Viewer Focus"
+
+    x = bpy.props.IntProperty()
+    y = bpy.props.IntProperty()
+
+    @classmethod
+    def poll(cls, context):
+        return nw_check(context) and context.space_data.tree_type == 'CompositorNodeTree'
+
+    def execute(self, context):
+        return {'FINISHED'}
+
+    def invoke(self, context, event):
+        render = context.scene.render
+        space = context.space_data
+        percent = render.resolution_percentage*0.01
+        
+        for n in bpy.context.scene.node_tree.nodes:
+            if n.type == "VIEWER":
+                self.x = event.mouse_region_x
+                self.y = event.mouse_region_y
+
+                region_x=context.region.width
+                region_y=context.region.height
+
+                region_center_x=region_x/2
+                region_center_y=region_y/2
+
+                rel_region_mouse_x=region_x-self.x
+                rel_region_mouse_y=region_y-self.y
+                
+                bd_x = render.resolution_x*percent*space.backdrop_zoom
+                bd_y = render.resolution_y* percent*space.backdrop_zoom
+
+                backdrop_center_x=(bd_x/2)-space.backdrop_x
+                backdrop_center_y=(bd_y/2)-space.backdrop_y
+
+                margin_x = region_center_x-backdrop_center_x
+                margin_y = region_center_y-backdrop_center_y
+                
+                absolute_x_max = margin_x+bd_x
+                absolute_y_max = margin_y+bd_y
+
+                abs_mouse_x = (self.x-margin_x)/bd_x
+                abs_mouse_y = (self.y-margin_y)/bd_y
+
+                rel_bd_x = (bd_x-rel_region_mouse_x)
+                rel_bd_y = (bd_y-rel_region_mouse_y)
+
+                n.center_x = abs_mouse_x
+                n.center_y = abs_mouse_y
+
+        return self.execute(context)
+
+
 #
 #  P A N E L
 #
@@ -3826,182 +3884,184 @@ def bgreset_menu_func(self, context):
 #
 
 addon_keymaps = []
-# kmi_defs entry: (identifier, key, CTRL, SHIFT, ALT, props, nice name)
+# kmi_defs entry: (identifier, key, action, CTRL, SHIFT, ALT, props, nice name)
 # props entry: (property name, property value)
 kmi_defs = (
     # MERGE NODES
     # NWMergeNodes with Ctrl (AUTO).
-    (NWMergeNodes.bl_idname, 'NUMPAD_0', True, False, False,
+    (NWMergeNodes.bl_idname, 'NUMPAD_0', 'PRESS', True, False, False,
         (('mode', 'MIX'), ('merge_type', 'AUTO'),), "Merge Nodes (Automatic)"),
-    (NWMergeNodes.bl_idname, 'ZERO', True, False, False,
+    (NWMergeNodes.bl_idname, 'ZERO', 'PRESS', True, False, False,
         (('mode', 'MIX'), ('merge_type', 'AUTO'),), "Merge Nodes (Automatic)"),
-    (NWMergeNodes.bl_idname, 'NUMPAD_PLUS', True, False, False,
+    (NWMergeNodes.bl_idname, 'NUMPAD_PLUS', 'PRESS', True, False, False,
         (('mode', 'ADD'), ('merge_type', 'AUTO'),), "Merge Nodes (Add)"),
-    (NWMergeNodes.bl_idname, 'EQUAL', True, False, False,
+    (NWMergeNodes.bl_idname, 'EQUAL', 'PRESS', True, False, False,
         (('mode', 'ADD'), ('merge_type', 'AUTO'),), "Merge Nodes (Add)"),
-    (NWMergeNodes.bl_idname, 'NUMPAD_ASTERIX', True, False, False,
+    (NWMergeNodes.bl_idname, 'NUMPAD_ASTERIX', 'PRESS', True, False, False,
         (('mode', 'MULTIPLY'), ('merge_type', 'AUTO'),), "Merge Nodes (Multiply)"),
-    (NWMergeNodes.bl_idname, 'EIGHT', True, False, False,
+    (NWMergeNodes.bl_idname, 'EIGHT', 'PRESS', True, False, False,
         (('mode', 'MULTIPLY'), ('merge_type', 'AUTO'),), "Merge Nodes (Multiply)"),
-    (NWMergeNodes.bl_idname, 'NUMPAD_MINUS', True, False, False,
+    (NWMergeNodes.bl_idname, 'NUMPAD_MINUS', 'PRESS', True, False, False,
         (('mode', 'SUBTRACT'), ('merge_type', 'AUTO'),), "Merge Nodes (Subtract)"),
-    (NWMergeNodes.bl_idname, 'MINUS', True, False, False,
+    (NWMergeNodes.bl_idname, 'MINUS', 'PRESS', True, False, False,
         (('mode', 'SUBTRACT'), ('merge_type', 'AUTO'),), "Merge Nodes (Subtract)"),
-    (NWMergeNodes.bl_idname, 'NUMPAD_SLASH', True, False, False,
+    (NWMergeNodes.bl_idname, 'NUMPAD_SLASH', 'PRESS', True, False, False,
         (('mode', 'DIVIDE'), ('merge_type', 'AUTO'),), "Merge Nodes (Divide)"),
-    (NWMergeNodes.bl_idname, 'SLASH', True, False, False,
+    (NWMergeNodes.bl_idname, 'SLASH', 'PRESS', True, False, False,
         (('mode', 'DIVIDE'), ('merge_type', 'AUTO'),), "Merge Nodes (Divide)"),
-    (NWMergeNodes.bl_idname, 'COMMA', True, False, False,
+    (NWMergeNodes.bl_idname, 'COMMA', 'PRESS', True, False, False,
         (('mode', 'LESS_THAN'), ('merge_type', 'MATH'),), "Merge Nodes (Less than)"),
-    (NWMergeNodes.bl_idname, 'PERIOD', True, False, False,
+    (NWMergeNodes.bl_idname, 'PERIOD', 'PRESS', True, False, False,
         (('mode', 'GREATER_THAN'), ('merge_type', 'MATH'),), "Merge Nodes (Greater than)"),
-    (NWMergeNodes.bl_idname, 'NUMPAD_PERIOD', True, False, False,
+    (NWMergeNodes.bl_idname, 'NUMPAD_PERIOD', 'PRESS', True, False, False,
         (('mode', 'MIX'), ('merge_type', 'ZCOMBINE'),), "Merge Nodes (Z-Combine)"),
     # NWMergeNodes with Ctrl Alt (MIX or ALPHAOVER)
-    (NWMergeNodes.bl_idname, 'NUMPAD_0', True, False, True,
+    (NWMergeNodes.bl_idname, 'NUMPAD_0', 'PRESS', True, False, True,
         (('mode', 'MIX'), ('merge_type', 'ALPHAOVER'),), "Merge Nodes (Alpha Over)"),
-    (NWMergeNodes.bl_idname, 'ZERO', True, False, True,
+    (NWMergeNodes.bl_idname, 'ZERO', 'PRESS', True, False, True,
         (('mode', 'MIX'), ('merge_type', 'ALPHAOVER'),), "Merge Nodes (Alpha Over)"),
-    (NWMergeNodes.bl_idname, 'NUMPAD_PLUS', True, False, True,
+    (NWMergeNodes.bl_idname, 'NUMPAD_PLUS', 'PRESS', True, False, True,
         (('mode', 'ADD'), ('merge_type', 'MIX'),), "Merge Nodes (Color, Add)"),
-    (NWMergeNodes.bl_idname, 'EQUAL', True, False, True,
+    (NWMergeNodes.bl_idname, 'EQUAL', 'PRESS', True, False, True,
         (('mode', 'ADD'), ('merge_type', 'MIX'),), "Merge Nodes (Color, Add)"),
-    (NWMergeNodes.bl_idname, 'NUMPAD_ASTERIX', True, False, True,
+    (NWMergeNodes.bl_idname, 'NUMPAD_ASTERIX', 'PRESS', True, False, True,
         (('mode', 'MULTIPLY'), ('merge_type', 'MIX'),), "Merge Nodes (Color, Multiply)"),
-    (NWMergeNodes.bl_idname, 'EIGHT', True, False, True,
+    (NWMergeNodes.bl_idname, 'EIGHT', 'PRESS', True, False, True,
         (('mode', 'MULTIPLY'), ('merge_type', 'MIX'),), "Merge Nodes (Color, Multiply)"),
-    (NWMergeNodes.bl_idname, 'NUMPAD_MINUS', True, False, True,
+    (NWMergeNodes.bl_idname, 'NUMPAD_MINUS', 'PRESS', True, False, True,
         (('mode', 'SUBTRACT'), ('merge_type', 'MIX'),), "Merge Nodes (Color, Subtract)"),
-    (NWMergeNodes.bl_idname, 'MINUS', True, False, True,
+    (NWMergeNodes.bl_idname, 'MINUS', 'PRESS', True, False, True,
         (('mode', 'SUBTRACT'), ('merge_type', 'MIX'),), "Merge Nodes (Color, Subtract)"),
-    (NWMergeNodes.bl_idname, 'NUMPAD_SLASH', True, False, True,
+    (NWMergeNodes.bl_idname, 'NUMPAD_SLASH', 'PRESS', True, False, True,
         (('mode', 'DIVIDE'), ('merge_type', 'MIX'),), "Merge Nodes (Color, Divide)"),
-    (NWMergeNodes.bl_idname, 'SLASH', True, False, True,
+    (NWMergeNodes.bl_idname, 'SLASH', 'PRESS', True, False, True,
         (('mode', 'DIVIDE'), ('merge_type', 'MIX'),), "Merge Nodes (Color, Divide)"),
     # NWMergeNodes with Ctrl Shift (MATH)
-    (NWMergeNodes.bl_idname, 'NUMPAD_PLUS', True, True, False,
+    (NWMergeNodes.bl_idname, 'NUMPAD_PLUS', 'PRESS', True, True, False,
         (('mode', 'ADD'), ('merge_type', 'MATH'),), "Merge Nodes (Math, Add)"),
-    (NWMergeNodes.bl_idname, 'EQUAL', True, True, False,
+    (NWMergeNodes.bl_idname, 'EQUAL', 'PRESS', True, True, False,
         (('mode', 'ADD'), ('merge_type', 'MATH'),), "Merge Nodes (Math, Add)"),
-    (NWMergeNodes.bl_idname, 'NUMPAD_ASTERIX', True, True, False,
+    (NWMergeNodes.bl_idname, 'NUMPAD_ASTERIX', 'PRESS', True, True, False,
         (('mode', 'MULTIPLY'), ('merge_type', 'MATH'),), "Merge Nodes (Math, Multiply)"),
-    (NWMergeNodes.bl_idname, 'EIGHT', True, True, False,
+    (NWMergeNodes.bl_idname, 'EIGHT', 'PRESS', True, True, False,
         (('mode', 'MULTIPLY'), ('merge_type', 'MATH'),), "Merge Nodes (Math, Multiply)"),
-    (NWMergeNodes.bl_idname, 'NUMPAD_MINUS', True, True, False,
+    (NWMergeNodes.bl_idname, 'NUMPAD_MINUS', 'PRESS', True, True, False,
         (('mode', 'SUBTRACT'), ('merge_type', 'MATH'),), "Merge Nodes (Math, Subtract)"),
-    (NWMergeNodes.bl_idname, 'MINUS', True, True, False,
+    (NWMergeNodes.bl_idname, 'MINUS', 'PRESS', True, True, False,
         (('mode', 'SUBTRACT'), ('merge_type', 'MATH'),), "Merge Nodes (Math, Subtract)"),
-    (NWMergeNodes.bl_idname, 'NUMPAD_SLASH', True, True, False,
+    (NWMergeNodes.bl_idname, 'NUMPAD_SLASH', 'PRESS', True, True, False,
         (('mode', 'DIVIDE'), ('merge_type', 'MATH'),), "Merge Nodes (Math, Divide)"),
-    (NWMergeNodes.bl_idname, 'SLASH', True, True, False,
+    (NWMergeNodes.bl_idname, 'SLASH', 'PRESS', True, True, False,
         (('mode', 'DIVIDE'), ('merge_type', 'MATH'),), "Merge Nodes (Math, Divide)"),
-    (NWMergeNodes.bl_idname, 'COMMA', True, True, False,
+    (NWMergeNodes.bl_idname, 'COMMA', 'PRESS', True, True, False,
         (('mode', 'LESS_THAN'), ('merge_type', 'MATH'),), "Merge Nodes (Math, Less than)"),
-    (NWMergeNodes.bl_idname, 'PERIOD', True, True, False,
+    (NWMergeNodes.bl_idname, 'PERIOD', 'PRESS', True, True, False,
         (('mode', 'GREATER_THAN'), ('merge_type', 'MATH'),), "Merge Nodes (Math, Greater than)"),
     # BATCH CHANGE NODES
     # NWBatchChangeNodes with Alt
-    (NWBatchChangeNodes.bl_idname, 'NUMPAD_0', False, False, True,
+    (NWBatchChangeNodes.bl_idname, 'NUMPAD_0', 'PRESS', False, False, True,
         (('blend_type', 'MIX'), ('operation', 'CURRENT'),), "Batch change blend type (Mix)"),
-    (NWBatchChangeNodes.bl_idname, 'ZERO', False, False, True,
+    (NWBatchChangeNodes.bl_idname, 'ZERO', 'PRESS', False, False, True,
         (('blend_type', 'MIX'), ('operation', 'CURRENT'),), "Batch change blend type (Mix)"),
-    (NWBatchChangeNodes.bl_idname, 'NUMPAD_PLUS', False, False, True,
+    (NWBatchChangeNodes.bl_idname, 'NUMPAD_PLUS', 'PRESS', False, False, True,
         (('blend_type', 'ADD'), ('operation', 'ADD'),), "Batch change blend type (Add)"),
-    (NWBatchChangeNodes.bl_idname, 'EQUAL', False, False, True,
+    (NWBatchChangeNodes.bl_idname, 'EQUAL', 'PRESS', False, False, True,
         (('blend_type', 'ADD'), ('operation', 'ADD'),), "Batch change blend type (Add)"),
-    (NWBatchChangeNodes.bl_idname, 'NUMPAD_ASTERIX', False, False, True,
+    (NWBatchChangeNodes.bl_idname, 'NUMPAD_ASTERIX', 'PRESS', False, False, True,
         (('blend_type', 'MULTIPLY'), ('operation', 'MULTIPLY'),), "Batch change blend type (Multiply)"),
-    (NWBatchChangeNodes.bl_idname, 'EIGHT', False, False, True,
+    (NWBatchChangeNodes.bl_idname, 'EIGHT', 'PRESS', False, False, True,
         (('blend_type', 'MULTIPLY'), ('operation', 'MULTIPLY'),), "Batch change blend type (Multiply)"),
-    (NWBatchChangeNodes.bl_idname, 'NUMPAD_MINUS', False, False, True,
+    (NWBatchChangeNodes.bl_idname, 'NUMPAD_MINUS', 'PRESS', False, False, True,
         (('blend_type', 'SUBTRACT'), ('operation', 'SUBTRACT'),), "Batch change blend type (Subtract)"),
-    (NWBatchChangeNodes.bl_idname, 'MINUS', False, False, True,
+    (NWBatchChangeNodes.bl_idname, 'MINUS', 'PRESS', False, False, True,
         (('blend_type', 'SUBTRACT'), ('operation', 'SUBTRACT'),), "Batch change blend type (Subtract)"),
-    (NWBatchChangeNodes.bl_idname, 'NUMPAD_SLASH', False, False, True,
+    (NWBatchChangeNodes.bl_idname, 'NUMPAD_SLASH', 'PRESS', False, False, True,
         (('blend_type', 'DIVIDE'), ('operation', 'DIVIDE'),), "Batch change blend type (Divide)"),
-    (NWBatchChangeNodes.bl_idname, 'SLASH', False, False, True,
+    (NWBatchChangeNodes.bl_idname, 'SLASH', 'PRESS', False, False, True,
         (('blend_type', 'DIVIDE'), ('operation', 'DIVIDE'),), "Batch change blend type (Divide)"),
-    (NWBatchChangeNodes.bl_idname, 'COMMA', False, False, True,
+    (NWBatchChangeNodes.bl_idname, 'COMMA', 'PRESS', False, False, True,
         (('blend_type', 'CURRENT'), ('operation', 'LESS_THAN'),), "Batch change blend type (Current)"),
-    (NWBatchChangeNodes.bl_idname, 'PERIOD', False, False, True,
+    (NWBatchChangeNodes.bl_idname, 'PERIOD', 'PRESS', False, False, True,
         (('blend_type', 'CURRENT'), ('operation', 'GREATER_THAN'),), "Batch change blend type (Current)"),
-    (NWBatchChangeNodes.bl_idname, 'DOWN_ARROW', False, False, True,
+    (NWBatchChangeNodes.bl_idname, 'DOWN_ARROW', 'PRESS', False, False, True,
         (('blend_type', 'NEXT'), ('operation', 'NEXT'),), "Batch change blend type (Next)"),
-    (NWBatchChangeNodes.bl_idname, 'UP_ARROW', False, False, True,
+    (NWBatchChangeNodes.bl_idname, 'UP_ARROW', 'PRESS', False, False, True,
         (('blend_type', 'PREV'), ('operation', 'PREV'),), "Batch change blend type (Previous)"),
     # LINK ACTIVE TO SELECTED
     # Don't use names, don't replace links (K)
-    (NWLinkActiveToSelected.bl_idname, 'K', False, False, False,
+    (NWLinkActiveToSelected.bl_idname, 'K', 'PRESS', False, False, False,
         (('replace', False), ('use_node_name', False), ('use_outputs_names', False),), "Link active to selected (Don't replace links)"),
     # Don't use names, replace links (Shift K)
-    (NWLinkActiveToSelected.bl_idname, 'K', False, True, False,
+    (NWLinkActiveToSelected.bl_idname, 'K', 'PRESS', False, True, False,
         (('replace', True), ('use_node_name', False), ('use_outputs_names', False),), "Link active to selected (Replace links)"),
     # Use node name, don't replace links (')
-    (NWLinkActiveToSelected.bl_idname, 'QUOTE', False, False, False,
+    (NWLinkActiveToSelected.bl_idname, 'QUOTE', 'PRESS', False, False, False,
         (('replace', False), ('use_node_name', True), ('use_outputs_names', False),), "Link active to selected (Don't replace links, node names)"),
     # Use node name, replace links (Shift ')
-    (NWLinkActiveToSelected.bl_idname, 'QUOTE', False, True, False,
+    (NWLinkActiveToSelected.bl_idname, 'QUOTE', 'PRESS', False, True, False,
         (('replace', True), ('use_node_name', True), ('use_outputs_names', False),), "Link active to selected (Replace links, node names)"),
     # Don't use names, don't replace links (;)
-    (NWLinkActiveToSelected.bl_idname, 'SEMI_COLON', False, False, False,
+    (NWLinkActiveToSelected.bl_idname, 'SEMI_COLON', 'PRESS', False, False, False,
         (('replace', False), ('use_node_name', False), ('use_outputs_names', True),), "Link active to selected (Don't replace links, output names)"),
     # Don't use names, replace links (')
-    (NWLinkActiveToSelected.bl_idname, 'SEMI_COLON', False, True, False,
+    (NWLinkActiveToSelected.bl_idname, 'SEMI_COLON', 'PRESS', False, True, False,
         (('replace', True), ('use_node_name', False), ('use_outputs_names', True),), "Link active to selected (Replace links, output names)"),
     # CHANGE MIX FACTOR
-    (NWChangeMixFactor.bl_idname, 'LEFT_ARROW', False, False, True, (('option', -0.1),), "Reduce Mix Factor by 0.1"),
-    (NWChangeMixFactor.bl_idname, 'RIGHT_ARROW', False, False, True, (('option', 0.1),), "Increase Mix Factor by 0.1"),
-    (NWChangeMixFactor.bl_idname, 'LEFT_ARROW', False, True, True, (('option', -0.01),), "Reduce Mix Factor by 0.01"),
-    (NWChangeMixFactor.bl_idname, 'RIGHT_ARROW', False, True, True, (('option', 0.01),), "Increase Mix Factor by 0.01"),
-    (NWChangeMixFactor.bl_idname, 'LEFT_ARROW', True, True, True, (('option', 0.0),), "Set Mix Factor to 0.0"),
-    (NWChangeMixFactor.bl_idname, 'RIGHT_ARROW', True, True, True, (('option', 1.0),), "Set Mix Factor to 1.0"),
-    (NWChangeMixFactor.bl_idname, 'NUMPAD_0', True, True, True, (('option', 0.0),), "Set Mix Factor to 0.0"),
-    (NWChangeMixFactor.bl_idname, 'ZERO', True, True, True, (('option', 0.0),), "Set Mix Factor to 0.0"),
-    (NWChangeMixFactor.bl_idname, 'NUMPAD_1', True, True, True, (('option', 1.0),), "Mix Factor to 1.0"),
-    (NWChangeMixFactor.bl_idname, 'ONE', True, True, True, (('option', 1.0),), "Set Mix Factor to 1.0"),
+    (NWChangeMixFactor.bl_idname, 'LEFT_ARROW', 'PRESS', False, False, True, (('option', -0.1),), "Reduce Mix Factor by 0.1"),
+    (NWChangeMixFactor.bl_idname, 'RIGHT_ARROW', 'PRESS', False, False, True, (('option', 0.1),), "Increase Mix Factor by 0.1"),
+    (NWChangeMixFactor.bl_idname, 'LEFT_ARROW', 'PRESS', False, True, True, (('option', -0.01),), "Reduce Mix Factor by 0.01"),
+    (NWChangeMixFactor.bl_idname, 'RIGHT_ARROW', 'PRESS', False, True, True, (('option', 0.01),), "Increase Mix Factor by 0.01"),
+    (NWChangeMixFactor.bl_idname, 'LEFT_ARROW', 'PRESS', True, True, True, (('option', 0.0),), "Set Mix Factor to 0.0"),
+    (NWChangeMixFactor.bl_idname, 'RIGHT_ARROW', 'PRESS', True, True, True, (('option', 1.0),), "Set Mix Factor to 1.0"),
+    (NWChangeMixFactor.bl_idname, 'NUMPAD_0', 'PRESS', True, True, True, (('option', 0.0),), "Set Mix Factor to 0.0"),
+    (NWChangeMixFactor.bl_idname, 'ZERO', 'PRESS', True, True, True, (('option', 0.0),), "Set Mix Factor to 0.0"),
+    (NWChangeMixFactor.bl_idname, 'NUMPAD_1', 'PRESS', True, True, True, (('option', 1.0),), "Mix Factor to 1.0"),
+    (NWChangeMixFactor.bl_idname, 'ONE', 'PRESS', True, True, True, (('option', 1.0),), "Set Mix Factor to 1.0"),
     # CLEAR LABEL (Alt L)
-    (NWClearLabel.bl_idname, 'L', False, False, True, (('option', False),), "Clear node labels"),
+    (NWClearLabel.bl_idname, 'L', 'PRESS', False, False, True, (('option', False),), "Clear node labels"),
     # MODIFY LABEL (Alt Shift L)
-    (NWModifyLabels.bl_idname, 'L', False, True, True, None, "Modify node labels"),
+    (NWModifyLabels.bl_idname, 'L', 'PRESS', False, True, True, None, "Modify node labels"),
     # Copy Label from active to selected
-    (NWCopyLabel.bl_idname, 'V', False, True, False, (('option', 'FROM_ACTIVE'),), "Copy label from active to selected"),
+    (NWCopyLabel.bl_idname, 'V', 'PRESS', False, True, False, (('option', 'FROM_ACTIVE'),), "Copy label from active to selected"),
     # DETACH OUTPUTS (Alt Shift D)
-    (NWDetachOutputs.bl_idname, 'D', False, True, True, None, "Detach outputs"),
+    (NWDetachOutputs.bl_idname, 'D', 'PRESS', False, True, True, None, "Detach outputs"),
     # LINK TO OUTPUT NODE (O)
-    (NWLinkToOutputNode.bl_idname, 'O', False, False, False, None, "Link to output node"),
+    (NWLinkToOutputNode.bl_idname, 'O', 'PRESS', False, False, False, None, "Link to output node"),
     # SELECT PARENT/CHILDREN
     # Select Children
-    (NWSelectParentChildren.bl_idname, 'RIGHT_BRACKET', False, False, False, (('option', 'CHILD'),), "Select children"),
+    (NWSelectParentChildren.bl_idname, 'RIGHT_BRACKET', 'PRESS', False, False, False, (('option', 'CHILD'),), "Select children"),
     # Select Parent
-    (NWSelectParentChildren.bl_idname, 'LEFT_BRACKET', False, False, False, (('option', 'PARENT'),), "Select Parent"),
+    (NWSelectParentChildren.bl_idname, 'LEFT_BRACKET', 'PRESS', False, False, False, (('option', 'PARENT'),), "Select Parent"),
     # Add Texture Setup
-    (NWAddTextureSetup.bl_idname, 'T', True, False, False, None, "Add texture setup"),
+    (NWAddTextureSetup.bl_idname, 'T', 'PRESS', True, False, False, None, "Add texture setup"),
     # Reset backdrop
-    (NWResetBG.bl_idname, 'Z', False, False, False, None, "Reset backdrop image zoom"),
+    (NWResetBG.bl_idname, 'Z', 'PRESS', False, False, False, None, "Reset backdrop image zoom"),
     # Delete unused
-    (NWDeleteUnused.bl_idname, 'X', False, False, True, None, "Delete unused nodes"),
+    (NWDeleteUnused.bl_idname, 'X', 'PRESS', False, False, True, None, "Delete unused nodes"),
     # Frame Seleted
-    (NWFrameSelected.bl_idname, 'P', False, True, False, None, "Frame selected nodes"),
+    (NWFrameSelected.bl_idname, 'P', 'PRESS', False, True, False, None, "Frame selected nodes"),
     # Swap Outputs
-    (NWSwapLinks.bl_idname, 'S', False, False, True, None, "Swap Outputs"),
+    (NWSwapLinks.bl_idname, 'S', 'PRESS', False, False, True, None, "Swap Outputs"),
     # Emission Viewer
-    (NWEmissionViewer.bl_idname, 'LEFTMOUSE', True, True, False, None, "Connect to Cycles Viewer node"),
+    (NWEmissionViewer.bl_idname, 'LEFTMOUSE', 'PRESS', True, True, False, None, "Connect to Cycles Viewer node"),
     # Reload Images
-    (NWReloadImages.bl_idname, 'R', False, False, True, None, "Reload images"),
+    (NWReloadImages.bl_idname, 'R', 'PRESS', False, False, True, None, "Reload images"),
     # Lazy Mix
-    (NWLazyMix.bl_idname, 'RIGHTMOUSE', False, False, True, None, "Lazy Mix"),
+    (NWLazyMix.bl_idname, 'RIGHTMOUSE', 'PRESS', False, False, True, None, "Lazy Mix"),
     # Lazy Connect
-    (NWLazyConnect.bl_idname, 'RIGHTMOUSE', True, False, False, None, "Lazy Connect"),
+    (NWLazyConnect.bl_idname, 'RIGHTMOUSE', 'PRESS', True, False, False, None, "Lazy Connect"),
     # Lazy Connect with Menu
-    (NWLazyConnect.bl_idname, 'RIGHTMOUSE', True, True, False, (('with_menu', True),), "Lazy Connect with Socket Menu"),
+    (NWLazyConnect.bl_idname, 'RIGHTMOUSE', 'PRESS', True, True, False, (('with_menu', True),), "Lazy Connect with Socket Menu"),
+    # Viewer Tile Center
+    (NWViewerFocus.bl_idname, 'LEFTMOUSE', 'DOUBLE_CLICK', False, False, False, None, "Set Viewers Tile Center"),
     # MENUS
-    ('wm.call_menu', 'SPACE', True, False, False, (('name', NodeWranglerMenu.bl_idname),), "Node Wranger menu"),
-    ('wm.call_menu', 'SLASH', False, False, False, (('name', NWAddReroutesMenu.bl_idname),), "Add Reroutes menu"),
-    ('wm.call_menu', 'NUMPAD_SLASH', False, False, False, (('name', NWAddReroutesMenu.bl_idname),), "Add Reroutes menu"),
-    ('wm.call_menu', 'EQUAL', False, True, False, (('name', NWNodeAlignMenu.bl_idname),), "Node alignment menu"),
-    ('wm.call_menu', 'BACK_SLASH', False, False, False, (('name', NWLinkActiveToSelectedMenu.bl_idname),), "Link active to selected (menu)"),
-    ('wm.call_menu', 'C', False, True, False, (('name', NWCopyToSelectedMenu.bl_idname),), "Copy to selected (menu)"),
-    ('wm.call_menu', 'S', False, True, False, (('name', NWSwitchNodeTypeMenu.bl_idname),), "Switch node type menu"),
+    ('wm.call_menu', 'SPACE', 'PRESS', True, False, False, (('name', NodeWranglerMenu.bl_idname),), "Node Wranger menu"),
+    ('wm.call_menu', 'SLASH', 'PRESS', False, False, False, (('name', NWAddReroutesMenu.bl_idname),), "Add Reroutes menu"),
+    ('wm.call_menu', 'NUMPAD_SLASH', 'PRESS', False, False, False, (('name', NWAddReroutesMenu.bl_idname),), "Add Reroutes menu"),
+    ('wm.call_menu', 'EQUAL', 'PRESS', False, True, False, (('name', NWNodeAlignMenu.bl_idname),), "Node alignment menu"),
+    ('wm.call_menu', 'BACK_SLASH', 'PRESS', False, False, False, (('name', NWLinkActiveToSelectedMenu.bl_idname),), "Link active to selected (menu)"),
+    ('wm.call_menu', 'C', 'PRESS', False, True, False, (('name', NWCopyToSelectedMenu.bl_idname),), "Copy to selected (menu)"),
+    ('wm.call_menu', 'S', 'PRESS', False, True, False, (('name', NWSwitchNodeTypeMenu.bl_idname),), "Switch node type menu"),
 )
 
 
@@ -4031,8 +4091,8 @@ def register():
     kc = bpy.context.window_manager.keyconfigs.addon
     if kc:
         km = kc.keymaps.new(name='Node Editor', space_type="NODE_EDITOR")
-        for (identifier, key, CTRL, SHIFT, ALT, props, nicename) in kmi_defs:
-            kmi = km.keymap_items.new(identifier, key, 'PRESS', ctrl=CTRL, shift=SHIFT, alt=ALT)
+        for (identifier, key, action, CTRL, SHIFT, ALT, props, nicename) in kmi_defs:
+            kmi = km.keymap_items.new(identifier, key, action, ctrl=CTRL, shift=SHIFT, alt=ALT)
             if props:
                 for prop, value in props:
                     setattr(kmi.properties, prop, value)
