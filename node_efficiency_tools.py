@@ -1058,18 +1058,18 @@ class NWNodeWrangler(bpy.types.AddonPreferences):
             col.prop(self, "hotkey_list_filter", icon="VIEWZOOM")
             col.separator()
             for hotkey in kmi_defs:
-                if hotkey[6]:
-                    hotkey_name = hotkey[6]
+                if hotkey[7]:
+                    hotkey_name = hotkey[7]
 
                     if self.hotkey_list_filter.lower() in hotkey_name.lower():
                         row = col.row(align=True)
                         row.label(hotkey_name)
                         keystr = nice_hotkey_name(hotkey[1])
-                        if hotkey[3]:
-                            keystr = "Shift " + keystr
                         if hotkey[4]:
+                            keystr = "Shift " + keystr
+                        if hotkey[5]:
                             keystr = "Alt " + keystr
-                        if hotkey[2]:
+                        if hotkey[3]:
                             keystr = "Ctrl " + keystr
                         row.label(keystr)
 
