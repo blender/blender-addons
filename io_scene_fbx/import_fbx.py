@@ -587,7 +587,8 @@ def blen_read_animations_action_item(action, item, cnodes, fps):
 def blen_read_animations(fbx_tmpl_astack, fbx_tmpl_alayer, stacks, scene):
     """
     Recreate an action per stack/layer/object combinations.
-    Note actions are not linked to objects, this is up to the user!
+    Only the first found action is linked to objects, more complex setups are not handled,
+    it's up to user to reproduce them!
     """
     from bpy.types import ShapeKey
 
@@ -603,12 +604,19 @@ def blen_read_animations(fbx_tmpl_astack, fbx_tmpl_alayer, stacks, scene):
                     id_data = item.bl_obj
                 if id_data is None:
                     continue
+                # Create new action if needed (should always be needed!
                 key = (as_uuid, al_uuid, id_data)
                 action = actions.get(key)
                 if action is None:
                     action_name = "|".join((id_data.name, stack_name, layer_name))
                     actions[key] = action = bpy.data.actions.new(action_name)
                     action.use_fake_user = True
+                # If none yet assigned, assign this action to id_data.
+                if not id_data.animation_data:
+                    id_data.animation_data_create()
+                if not id_data.animation_data.action:
+                    id_data.animation_data.action = action
+                # And actually populate the action!
                 blen_read_animations_action_item(action, item, cnodes, scene.render.fps)
 
 
