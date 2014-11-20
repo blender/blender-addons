@@ -1515,6 +1515,8 @@ def fbx_data_object_elements(root, ob_obj, scene_data):
     obj_type = b"Null"  # default, sort of empty...
     if ob_obj.is_bone:
         obj_type = b"LimbNode"
+    elif (ob_obj.type == 'ARMATURE'):
+        obj_type = b"Root"
     elif (ob_obj.type in BLENDER_OBJECT_TYPES_MESHLIKE):
         obj_type = b"Mesh"
     elif (ob_obj.type == 'LAMP'):
