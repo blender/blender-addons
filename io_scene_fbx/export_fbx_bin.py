@@ -1842,7 +1842,7 @@ def fbx_animations_do(scene_data, ref_id, f_start, f_end, start_zero, objects=No
     p_rots = {}
 
     currframe = f_start
-    while currframe < f_end:
+    while currframe <= f_end:
         real_currframe = currframe - f_start if start_zero else currframe
         scene.frame_set(int(currframe), currframe - int(currframe))
 
