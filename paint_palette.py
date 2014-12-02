@@ -369,6 +369,7 @@ class IMAGE_OT_select_color(bpy.types.Operator):
     bl_label = ""
     bl_description = "Select this color"
     bl_idname = "paint.select_color"
+    bl_options = {'UNDO'}
 
 
     color_index = IntProperty()
@@ -487,6 +488,7 @@ class VIEW3D_OT_select_weight(bpy.types.Operator):
     bl_label = ""
     bl_description = "Select this weight"
     bl_idname = "paint.select_weight"
+    bl_options = {'UNDO'}
 
     weight_index = IntProperty()
 
