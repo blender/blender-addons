@@ -1158,7 +1158,12 @@ def runMaster(address, broadcast, clear, force, path, update_stats, test_break,u
     httpd.stats = update_stats
     if use_ssl:
         import ssl
-        httpd.socket=ssl.wrap_socket(httpd.socket,certfile=cert_path,server_side=True,keyfile=key_path,ciphers="ALL",ssl_version=ssl.PROTOCOL_SSLv3)
+        httpd.socket = ssl.wrap_socket(
+                server_side=True,
+                keyfile=key_path,
+                ciphers="ALL",
+                ssl_version=ssl.PROTOCOL_SSLv23,
+                )
     if broadcast:
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         s.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
