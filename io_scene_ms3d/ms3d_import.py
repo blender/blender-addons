@@ -378,6 +378,7 @@ class Ms3dImporter():
                 signed_int32 = int.from_bytes(
                         bytes_int32, byteorder='little', signed=True)
                 bmv[layer_extra] = signed_int32
+        bm.verts.ensure_lookup_table()
 
         ##########################
         # blender stuff (uses BMesh stuff):
@@ -527,6 +528,7 @@ class Ms3dImporter():
                         ms3d_model.vertices.append(
                                 ms3d_model.vertices[vert_index])
                         bmv_new = bm.verts.new(bmv.co)
+                        bm.verts.ensure_lookup_table()
                         bmv_new.index = -vert_index
                         bmv_new.normal = blender_normal
                         bmv_new[layer_extra] = bmv[layer_extra]
@@ -563,14 +565,17 @@ class Ms3dImporter():
             bme = bm.edges.get((bmv_list[0], bmv_list[1]))
             if bme is None:
                 bme = bm.edges.new((bmv_list[0], bmv_list[1]))
+                ##bm.edges.ensure_lookup_table()
                 bme.index = len(bm.edges) - 1
             bme = bm.edges.get((bmv_list[1], bmv_list[2]))
             if bme is None:
                 bme = bm.edges.new((bmv_list[1], bmv_list[2]))
+                ##bm.edges.ensure_lookup_table()
                 bme.index = len(bm.edges) - 1
             bme = bm.edges.get((bmv_list[2], bmv_list[0]))
             if bme is None:
                 bme = bm.edges.new((bmv_list[2], bmv_list[0]))
+                ##bm.edges.ensure_lookup_table()
                 bme.index = len(bm.edges) - 1
 
             bmf = bm.faces.get(bmv_list)
@@ -621,6 +626,7 @@ class Ms3dImporter():
                 smoothing_group_blender_faces[ms3d_triangle.smoothing_group] \
                         = smoothing_group_blender_face
             smoothing_group_blender_face.append(bmf)
+        ##bm.faces.ensure_lookup_table()
 
         ##########################
         # BMesh stuff:
