@@ -547,9 +547,11 @@ class SVGPathParser:
                  '_handle',  # Last handle coordinate
                  '_splines',  # List of all splies created during parsing
                  '_spline',  # Currently handling spline
-                 '_commands')  # Hash of all supported path commands
+                 '_commands',   # Hash of all supported path commands
+                 '_use_fill',  # Splines would be filled, so expected to be closed
+                 )
 
-    def __init__(self, d):
+    def __init__(self, d, use_fill):
         """
         Initialize path parser
 
@@ -561,6 +563,7 @@ class SVGPathParser:
         self._handle = None  # Last handle
         self._splines = []   # List of splines in path
         self._spline = None  # Current spline
+        self._use_fill = use_fill
 
         self._commands = {'M': self._pathMoveTo,
                           'L': self._pathLineTo,
@@ -922,6 +925,8 @@ class SVGPathParser:
         Execute parser
         """
 
+        closed = False
+
         while not self._data.eof():
             code = self._data.next()
             cmd = self._commands.get(code)
@@ -929,7 +934,14 @@ class SVGPathParser:
             if cmd is None:
                 raise Exception('Unknown path command: {0}' . format(code))
 
+            if cmd in {'Z', 'z'}:
+                closed =True
+            else:
+                closed = False
+
             cmd(code)
+        if self._use_fill and not closed:
+            self._pathClose('z')
 
     def getSplines(self):
         """
@@ -1161,11 +1173,12 @@ class SVGGeometryPATH(SVGGeometry):
 
         d = self._node.getAttribute('d')
 
-        pathParser = SVGPathParser(d)
+        self._styles = SVGParseStyles(self._node, self._context)
+
+        pathParser = SVGPathParser(d, self._styles['useFill'])
         pathParser.parse()
 
         self._splines = pathParser.getSplines()
-        self._styles = SVGParseStyles(self._node, self._context)
 
     def _doCreateGeom(self, instancing):
         """
