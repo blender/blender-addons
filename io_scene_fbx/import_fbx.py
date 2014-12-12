@@ -2134,8 +2134,8 @@ def load(operator, context, filepath="",
         return [(c_found[0], c_found[1], c_type)
                 for (c_uuid, c_type) in dct.get(fbx_uuid, ())
                 # 0 is used for the root node, which isnt in fbx_table_nodes
-                for c_found in (() if c_uuid is 0 else (fbx_table_nodes[c_uuid],))
-                if (fbx_id is None) or (c_found[0].id == fbx_id)]
+                for c_found in (() if c_uuid is 0 else (fbx_table_nodes.get(c_uuid, (None, None)),))
+                if (fbx_id is None) or (c_found[0] and c_found[0].id == fbx_id)]
 
     def connection_filter_forward(fbx_uuid, fbx_id):
         return connection_filter_ex(fbx_uuid, fbx_id, fbx_connection_map)
@@ -2454,7 +2454,7 @@ def load(operator, context, filepath="",
             if fbx_obj.id != b'Geometry':
                 continue
 
-            mesh = fbx_table_nodes[fbx_uuid][1]
+            mesh = fbx_table_nodes.get(fbx_uuid, (None, None))[1]
 
             # can happen in rare cases
             if mesh is None:
@@ -2537,7 +2537,7 @@ def load(operator, context, filepath="",
             if fbx_obj.id != b'Material':
                 continue
 
-            material = fbx_table_nodes[fbx_uuid][1]
+            material = fbx_table_nodes.get(fbx_uuid, (None, None))[1]
             for (fbx_lnk,
                  image,
                  fbx_lnk_type) in connection_filter_reverse(fbx_uuid, b'Texture'):
@@ -2655,7 +2655,7 @@ def load(operator, context, filepath="",
             fbx_obj, blen_data = fbx_item
             if fbx_obj.id != b'Material':
                 continue
-            material = fbx_table_nodes[fbx_uuid][1]
+            material = fbx_table_nodes.get(fbx_uuid, (None, None))[1]
             image, tex_map = material_images.get(material, {}).get(b'DiffuseColor', (None, None))
             # do we have alpha?
             if image and image.depth == 32:
