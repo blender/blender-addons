@@ -1078,7 +1078,7 @@ class ObjectWrapper(metaclass=MetaObjectWrapper):
     def is_deformed_by_armature(self, arm_obj):
         if not (self.is_object and self.type == 'MESH'):
             return False
-        if self.parent == arm_obj:
+        if self.parent == arm_obj and self.bdata.parent_type == 'ARMATURE':
             return True
         for mod in self.bdata.modifiers:
             if mod.type == 'ARMATURE' and mod.object == arm_obj.bdata:
