@@ -995,7 +995,8 @@ class ObjectWrapper(metaclass=MetaObjectWrapper):
 
         if self._tag in {'DP', 'OB'} and parent:
             # To get *real* local matrix of a child object, we also need to take into account its inverted par mat!
-            matrix = self.bdata.matrix_parent_inverse * matrix
+            # In fact, this is wrong - since we do not store that matrix in FBX at all, we shall not use it here...
+            #~ matrix = self.bdata.matrix_parent_inverse * matrix
             if parent._tag == 'BO':
                 # In bone parent case, we get transformation in **bone tip** space (sigh).
                 # Have to bring it back into bone root, which is FBX expected value.
