@@ -1443,7 +1443,7 @@ class FbxImportHelperNode:
                 needs_armature = True
                 break
         if needs_armature:
-            if self.fbx_type == b'Null':
+            if self.fbx_type in {b'Null', b'Root'}:
                 # if empty then convert into armature
                 self.is_armature = True
             else:
@@ -1476,7 +1476,7 @@ class FbxImportHelperNode:
         if in_armature and not self.is_bone and self.has_bone_children:
             self.is_bone = True
             # if we are not a null node we need an intermediate node for the data
-            if self.fbx_type != b'Null':
+            if self.fbx_type not in {b'Null', b'Root'}:
                 node = FbxImportHelperNode(self.fbx_elem, self.bl_data, None, False)
                 self.fbx_elem = None
                 self.bl_data = None
