@@ -998,9 +998,15 @@ class ObjectWrapper(metaclass=MetaObjectWrapper):
             # In fact, this is wrong - since we do not store that matrix in FBX at all, we shall not use it here...
             #~ matrix = self.bdata.matrix_parent_inverse * matrix
             if parent._tag == 'BO':
+                # In bone parent case, local matrix is in ***armature*** space!!!!!!!!!!!!
+                # So we need to bring it back into parent bone space.
+                matrix = parent._ref.pose.bones[parent.name].matrix.inverted_safe() * matrix
+
                 # In bone parent case, we get transformation in **bone tip** space (sigh).
                 # Have to bring it back into bone root, which is FBX expected value.
-                matrix = Matrix.Translation((0, (parent.bdata.tail - parent.bdata.head).length, 0)) * matrix
+                # Actually, since we parent back to bone space above, we do not need that
+                # correction here it seems...
+                #~ matrix = Matrix.Translation((0, (parent.bdata.tail - parent.bdata.head).length, 0)) * matrix
 
         # Our matrix is in local space, time to bring it in its final desired space.
         if parent:
