@@ -2900,7 +2900,7 @@ def save(operator, context,
             fbxpath = os.path.dirname(fbxpath)
 
         if batch_mode == 'GROUP':
-            data_seq = bpy.data.groups
+            data_seq = tuple(grp for grp in bpy.data.groups if grp.objects)
         else:
             data_seq = bpy.data.scenes
 
