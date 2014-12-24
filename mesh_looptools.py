@@ -19,7 +19,7 @@
 bl_info = {
     "name": "LoopTools",
     "author": "Bart Crouch",
-    "version": (4, 6, 2),
+    "version": (4, 6, 3),
     "blender": (2, 71, 3),
     "location": "View3D > Toolbar and View3D > Specials (W-key)",
     "warning": "",
@@ -206,6 +206,7 @@ def calculate_linear_splines(bm_mod, tknots, knots):
 
 # calculate a best-fit plane to the given vertices
 def calculate_plane(bm_mod, loop, method="best_fit", object=False):
+    bm_mod.verts.ensure_lookup_table() # to work in 2.73 
     # getting the vertex locations
     locs = [bm_mod.verts[v].co.copy() for v in loop[0]]
 
@@ -300,6 +301,7 @@ def calculate_splines(interpolation, bm_mod, tknots, knots):
 # check loops and only return valid ones
 def check_loops(loops, mapping, bm_mod):
     valid_loops = []
+    bm_mod.verts.ensure_lookup_table() # to work in 2.73 
     for loop, circular in loops:
         # loop needs to have at least 3 vertices
         if len(loop) < 3:
@@ -603,6 +605,7 @@ def get_parallel_loops(bm_mod, loops):
     connected_faces = dict_face_faces(bm_mod, edge_faces)
     # turn vertex loops into edge loops
     edgeloops = []
+    bm_mod.faces.ensure_lookup_table() # to work in 2.73 
     for loop in loops:
         edgeloop = [[sorted([loop[0][i], loop[0][i+1]]) for i in \
             range(len(loop[0])-1)], loop[1]]
@@ -673,7 +676,7 @@ def get_parallel_loops(bm_mod, loops):
                 sides.append(side_a)
             if side_b:
                 sides.append(side_b)
-
+      
             for side in sides:
                 extraloop = []
                 for fi in side:
@@ -968,6 +971,7 @@ def bridge_calculate_lines(bm, loops, mode, twist, reverse):
 
     # calculate loop centers
     centers = []
+    bm.verts.ensure_lookup_table() # to work in 2.73 
     for loop in [loop1, loop2]:
         center = mathutils.Vector()
         for vertex in loop:
@@ -1418,7 +1422,10 @@ def bridge_create_faces(object, bm, faces, twist):
 
     new_faces = []
     for i in range(len(faces)):
+        bm.faces.ensure_lookup_table()
+        bm.verts.ensure_lookup_table()
         new_faces.append(bm.faces.new([bm.verts[v] for v in faces[i]]))
+
     bm.normal_update()
     object.data.update(calc_edges=True) # calc_edges prevents memory-corruption
 
@@ -1503,6 +1510,7 @@ def bridge_match_loops(bm, loops):
         normal = mathutils.Vector()
         center = mathutils.Vector()
         for vertex in vertices:
+            bm.verts.ensure_lookup_table()
             normal += bm.verts[vertex].normal
             center += bm.verts[vertex].co
         normals.append(normal / len(vertices) / 10)
@@ -1558,6 +1566,7 @@ def bridge_match_loops(bm, loops):
 # remove old_selected_faces
 def bridge_remove_internal_faces(bm, old_selected_faces):
     # collect bmesh faces and internal bmesh edges
+    bm.faces.ensure_lookup_table()
     remove_faces = [bm.faces[face] for face in old_selected_faces]
     edges = collections.Counter([edge.index for face in remove_faces for \
         edge in face.edges])
@@ -1573,6 +1582,8 @@ def bridge_remove_internal_faces(bm, old_selected_faces):
 # update list of internal faces that are flagged for removal
 def bridge_save_unused_faces(bm, old_selected_faces, loops):
     # key: vertex index, value: lists of selected faces using it
+    bm.faces.ensure_lookup_table()
+
     vertex_to_face = dict([[i, []] for i in range(len(bm.verts))])
     [[vertex_to_face[vertex.index].append(face) for vertex in \
         bm.faces[face].verts] for face in old_selected_faces]
@@ -1776,6 +1787,7 @@ def circle_calculate_verts(flatten, bm_mod, locs_2d, com, p, q, normal):
         vert_edges = dict_vert_edges(bm_mod)
         vert_faces = dict_vert_faces(bm_mod)
         faces = [f for f in bm_mod.faces if not f.hide]
+        bm_mod.faces.ensure_lookup_table() # to work in 2.73 
         rays = [normal, -normal]
         new_locs = []
         for loc in locs_3d:
@@ -2251,7 +2263,7 @@ def curve_get_input(object, bm, boundaries, scene):
     vert_edges = dict_vert_edges(bm_mod)
     edge_faces = dict_edge_faces(bm_mod)
     correct_loops = []
-
+    bm_mod.verts.ensure_lookup_table() # to work in 2.73
     # find loops through each selected vertex
     while len(verts_unsorted) > 0:
         loops = curve_vertex_loops(bm_mod, verts_unsorted[0], vert_edges,
@@ -2366,6 +2378,7 @@ def curve_project_knots(bm_mod, verts_selected, knots, points, circular):
         start = 1
         end = -1
         pknots = [mathutils.Vector(bm_mod.verts[knots[0]].co[:])]
+    bm_mod.verts.ensure_lookup_table() # to work in 2.73 
     for knot in knots[start:end]:
         if knot in verts_selected:
             knot_left = knot_right = False
@@ -2972,6 +2985,7 @@ def relax_calculate_knots(loops):
 def relax_calculate_t(bm_mod, knots, points, regular):
     all_tknots = []
     all_tpoints = []
+    bm_mod.verts.ensure_lookup_table() # to work in 2.73 
     for i in range(len(knots)):
         amount = len(knots[i]) + len(points[i])
         mix  = []
@@ -3054,6 +3068,7 @@ def space_calculate_t(bm_mod, knots):
     tknots = []
     loc_prev = False
     len_total = 0
+    bm_mod.verts.ensure_lookup_table() # to work in 2.73
     for k in knots:
         loc = mathutils.Vector(bm_mod.verts[k].co[:])
         if not loc_prev:
