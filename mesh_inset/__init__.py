@@ -21,8 +21,8 @@
 bl_info = {
     "name": "Inset Polygon",
     "author": "Howard Trickey",
-    "version": (1, 0),
-    "blender": (2, 69, 0),
+    "version": (1, 0. 1),
+    "blender": (2, 73, 0),
     "location": "View3D > Tools",
     "description": "Make an inset polygon inside selection.",
     "warning": "",
@@ -151,10 +151,12 @@ def do_inset(mesh, amount, height, region, as_percent):
     new_faces = []
     start_faces = len(bm.faces)
     for i, newf in enumerate(blender_faces):
+        bm.verts.ensure_lookup_table()
         vs = [bm.verts[j] for j in newf]
         # copy face attributes from old face that it was derived from
         bfi = blender_old_face_index[i]
         if bfi and 0 <= bfi < start_faces:
+            bm.faces.ensure_lookup_table()
             oldface = bm.faces[bfi]
             bfacenew = bm.faces.new(vs, oldface)
             # bfacenew.copy_from_face_interp(oldface)
