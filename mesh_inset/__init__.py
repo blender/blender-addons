@@ -21,7 +21,7 @@
 bl_info = {
     "name": "Inset Polygon",
     "author": "Howard Trickey",
-    "version": (1, 0. 1),
+    "version": (1, 0, 1),
     "blender": (2, 73, 0),
     "location": "View3D > Tools",
     "description": "Make an inset polygon inside selection.",
