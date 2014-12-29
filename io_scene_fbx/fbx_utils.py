@@ -926,14 +926,14 @@ class ObjectWrapper(metaclass=MetaObjectWrapper):
             par_mat_inv = par.matrix_local.inverted_safe() if par else Matrix()
             return par_mat_inv * self.bdata.matrix_local
         else:
-            return self.matrix_local
+            return self.matrix_local.copy()
     matrix_rest_local = property(get_matrix_rest_local)
 
     def get_matrix_rest_global(self):
         if self._tag == 'BO':
             return self._ref.matrix_world * self.bdata.matrix_local
         else:
-            return self.matrix_global
+            return self.matrix_global.copy()
     matrix_rest_global = property(get_matrix_rest_global)
 
     # #### Transform and helpers
@@ -994,19 +994,10 @@ class ObjectWrapper(metaclass=MetaObjectWrapper):
             matrix = matrix * MAT_CONVERT_CAMERA
 
         if self._tag in {'DP', 'OB'} and parent:
-            # To get *real* local matrix of a child object, we also need to take into account its inverted par mat!
-            # In fact, this is wrong - since we do not store that matrix in FBX at all, we shall not use it here...
-            #~ matrix = self.bdata.matrix_parent_inverse * matrix
             if parent._tag == 'BO':
-                # In bone parent case, local matrix is in ***armature*** space!!!!!!!!!!!!
-                # So we need to bring it back into parent bone space.
-                matrix = parent._ref.pose.bones[parent.name].matrix.inverted_safe() * matrix
-
                 # In bone parent case, we get transformation in **bone tip** space (sigh).
                 # Have to bring it back into bone root, which is FBX expected value.
-                # Actually, since we parent back to bone space above, we do not need that
-                # correction here it seems...
-                #~ matrix = Matrix.Translation((0, (parent.bdata.tail - parent.bdata.head).length, 0)) * matrix
+                matrix = Matrix.Translation((0, (parent.bdata.tail - parent.bdata.head).length, 0)) * matrix
 
         # Our matrix is in local space, time to bring it in its final desired space.
         if parent:
