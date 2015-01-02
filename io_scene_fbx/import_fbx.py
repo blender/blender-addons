@@ -631,37 +631,71 @@ def blen_read_geom_layerinfo(fbx_layer):
         )
 
 
+def blen_read_geom_array_setattr(generator, blen_data, blen_attr, fbx_data, stride, item_size, descr, xform):
+    """Generic fbx_layer to blen_data setter, generator is expected to yield tuples (ble_idx, fbx_idx)."""
+    if xform is not None:
+        for blen_idx, fbx_idx in generator:
+            if fbx_idx == -1:
+                continue
+            setattr(blen_data[blen_idx], blen_attr, xform(fbx_data[fbx_idx:fbx_idx + item_size]))
+    else:
+        for blen_idx, fbx_idx in generator:
+            if fbx_idx == -1:
+                continue
+            setattr(blen_data[blen_idx], blen_attr, fbx_data[fbx_idx:fbx_idx + item_size])
+
+
+# generic generators.
+def blen_read_geom_array_gen_direct(fbx_data, stride):
+    fbx_data_len = len(fbx_data)
+    return zip(*(range(fbx_data_len // stride), range(0, fbx_data_len, stride)))
+
+
+def blen_read_geom_array_gen_indextodirect(fbx_layer_index, stride):
+    return ((bi, fi * stride) for bi, fi in enumerate(fbx_layer_index))
+
+
+def blen_read_geom_array_gen_direct_looptovert(mesh, fbx_data, stride):
+    fbx_data_len = len(fbx_data) // stride
+    loops = mesh.loops
+    for p in mesh.polygons:
+        for lidx in p.loop_indices:
+            vidx = loops[lidx].vertex_index
+            if vidx < fbx_data_len:
+                yield lidx, vidx * stride
+
+
+# generic error printers.
+def blen_read_geom_array_error_mapping(descr, fbx_layer_mapping):
+    print("warning layer %r mapping type unsupported: %r" % (descr, fbx_layer_mapping))
+
+
+def blen_read_geom_array_error_ref(descr, fbx_layer_ref):
+    print("warning layer %r ref type unsupported: %r" % (descr, fbx_layer_ref))
+
+
 def blen_read_geom_array_mapped_vert(
-        mesh, blen_data, blend_attr,
+        mesh, blen_data, blen_attr,
         fbx_layer_data, fbx_layer_index,
         fbx_layer_mapping, fbx_layer_ref,
         stride, item_size, descr,
-        xform=None
+        xform=None,
         ):
-    # TODO, generic mapping apply function
     if fbx_layer_mapping == b'ByVertice':
         if fbx_layer_ref == b'Direct':
             assert(fbx_layer_index is None)
-            # TODO, more generic support for mapping types
-            if xform is None:
-                for i, blen_data_item in enumerate(blen_data):
-                    setattr(blen_data_item, blend_attr,
-                            fbx_layer_data[(i * stride): (i * stride) + item_size])
-            else:
-                for i, blen_data_item in enumerate(blen_data):
-                    setattr(blen_data_item, blend_attr,
-                            xform(fbx_layer_data[(i * stride): (i * stride) + item_size]))
+            blen_read_geom_array_setattr(blen_read_geom_array_gen_direct(fbx_layer_data, stride),
+                                         blen_data, blen_attr, fbx_layer_data, stride, item_size, descr, xform)
             return True
-        else:
-            print("warning layer %r ref type unsupported: %r" % (descr, fbx_layer_ref))
+        blen_read_geom_array_error_ref(descr, fbx_layer_ref)
     else:
-        print("warning layer %r mapping type unsupported: %r" % (descr, fbx_layer_mapping))
+        blen_read_geom_array_error_mapping(descr, fbx_layer_mapping)
 
     return False
 
 
 def blen_read_geom_array_mapped_edge(
-        mesh, blen_data, blend_attr,
+        mesh, blen_data, blen_attr,
         fbx_layer_data, fbx_layer_index,
         fbx_layer_mapping, fbx_layer_ref,
         stride, item_size, descr,
@@ -669,99 +703,69 @@ def blen_read_geom_array_mapped_edge(
         ):
     if fbx_layer_mapping == b'ByEdge':
         if fbx_layer_ref == b'Direct':
-            if stride == 1:
-                if xform is None:
-                    for i, blen_data_item in enumerate(blen_data):
-                        setattr(blen_data_item, blend_attr,
-                                fbx_layer_data[i])
-                else:
-                    for i, blen_data_item in enumerate(blen_data):
-                        setattr(blen_data_item, blend_attr,
-                                xform(fbx_layer_data[i]))
-            else:
-                if xform is None:
-                    for i, blen_data_item in enumerate(blen_data):
-                        setattr(blen_data_item, blend_attr,
-                                fbx_layer_data[(i * stride): (i * stride) + item_size])
-                else:
-                    for i, blen_data_item in enumerate(blen_data):
-                        setattr(blen_data_item, blend_attr,
-                                xform(fbx_layer_data[(i * stride): (i * stride) + item_size]))
+            blen_read_geom_array_setattr(blen_read_geom_array_gen_direct(fbx_layer_data, stride),
+                                         blen_data, blen_attr, fbx_layer_data, stride, item_size, descr, xform)
             return True
-        else:
-            print("warning layer %r ref type unsupported: %r" % (descr, fbx_layer_ref))
+        blen_read_geom_array_error_ref(descr, fbx_layer_ref)
     else:
-        print("warning layer %r mapping type unsupported: %r" % (descr, fbx_layer_mapping))
+        blen_read_geom_array_error_mapping(descr, fbx_layer_mapping)
 
     return False
 
 
 def blen_read_geom_array_mapped_polygon(
-        mesh, blen_data, blend_attr,
+        mesh, blen_data, blen_attr,
         fbx_layer_data, fbx_layer_index,
         fbx_layer_mapping, fbx_layer_ref,
         stride, item_size, descr,
         xform=None,
         ):
     if fbx_layer_mapping == b'ByPolygon':
-        if fbx_layer_ref == b'IndexToDirect':
-            if stride == 1:
-                for i, blen_data_item in enumerate(blen_data):
-                    setattr(blen_data_item, blend_attr,
-                            fbx_layer_data[i])
+        if fbx_layer_ref == b'IndexToDirect' and fbx_layer_index is not None:
+            # XXX Looks like we often get no fbx_layer_index in this case, shall not happen but happens...
+            #     We fallback to 'Direct' mapping in this case.
+            #~ assert(fbx_layer_index is not None)
+            if fbx_layer_index is None:
+                blen_read_geom_array_setattr(blen_read_geom_array_gen_direct(fbx_layer_data, stride),
+                                            blen_data, blen_attr, fbx_layer_data, stride, item_size, descr, xform)
             else:
-                for i, blen_data_item in enumerate(blen_data):
-                    setattr(blen_data_item, blend_attr,
-                            fbx_layer_data[(i * stride): (i * stride) + item_size])
+                blen_read_geom_array_setattr(blen_read_geom_array_gen_indextodirect(fbx_layer_index, stride),
+                                             blen_data, blen_attr, fbx_layer_data, stride, item_size, descr, xform)
             return True
         elif fbx_layer_ref == b'Direct':
-            # looks like direct may have different meanings!
-            assert(stride == 1)
-            if xform is None:
-                for i in range(len(fbx_layer_data)):
-                    setattr(blen_data[i], blend_attr, fbx_layer_data[i])
-            else:
-                for i in range(len(fbx_layer_data)):
-                    setattr(blen_data[i], blend_attr, xform(fbx_layer_data[i]))
+            blen_read_geom_array_setattr(blen_read_geom_array_gen_direct(fbx_layer_data, stride),
+                                         blen_data, blen_attr, fbx_layer_data, stride, item_size, descr, xform)
             return True
-        else:
-            print("warning layer %r ref type unsupported: %r" % (descr, fbx_layer_ref))
+        blen_read_geom_array_error_ref(descr, fbx_layer_ref)
     else:
-        print("warning layer %r mapping type unsupported: %r" % (descr, fbx_layer_mapping))
+        blen_read_geom_array_error_mapping(descr, fbx_layer_mapping)
 
     return False
 
 
 def blen_read_geom_array_mapped_polyloop(
-        mesh, blen_data, blend_attr,
+        mesh, blen_data, blen_attr,
         fbx_layer_data, fbx_layer_index,
         fbx_layer_mapping, fbx_layer_ref,
         stride, item_size, descr,
+        xform=None,
         ):
     if fbx_layer_mapping == b'ByPolygonVertex':
         if fbx_layer_ref == b'IndexToDirect':
             assert(fbx_layer_index is not None)
-            for i, j in enumerate(fbx_layer_index):
-                if j != -1:
-                    setattr(blen_data[i], blend_attr,
-                            fbx_layer_data[(j * stride): (j * stride) + item_size])
+            blen_read_geom_array_setattr(blen_read_geom_array_gen_indextodirect(fbx_layer_index, stride),
+                                         blen_data, blen_attr, fbx_layer_data, stride, item_size, descr, xform)
             return True
-        else:
-            print("warning layer %r ref type unsupported: %r" % (descr, fbx_layer_ref))
+        blen_read_geom_array_error_ref(descr, fbx_layer_ref)
     elif fbx_layer_mapping == b'ByVertice':
         if fbx_layer_ref == b'Direct':
             assert(fbx_layer_index is None)
-            loops = mesh.loops
-            polygons = mesh.polygons
-            for p in polygons:
-                for i in p.loop_indices:
-                    j = loops[i].vertex_index
-                    setattr(blen_data[i], blend_attr,
-                            fbx_layer_data[(j * stride): (j * stride) + item_size])
-        else:
-            print("warning layer %r ref type unsupported: %r" % (descr, fbx_layer_ref))
+            blen_read_geom_array_setattr(blen_read_geom_array_gen_direct_looptovert(mesh, fbx_layer_data, stride),
+                                         blen_data, blen_attr, fbx_layer_data, stride, item_size, descr, xform)
+            return True
+        blen_read_geom_array_error_ref(descr, fbx_layer_ref)
     else:
-        print("warning layer %r mapping type unsupported: %r" % (descr, fbx_layer_mapping))
+        blen_read_geom_array_error_mapping(descr, fbx_layer_mapping)
 
     return False
 
