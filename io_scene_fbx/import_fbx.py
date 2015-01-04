@@ -637,12 +637,14 @@ def blen_read_geom_array_setattr(generator, blen_data, blen_attr, fbx_data, stri
         for blen_idx, fbx_idx in generator:
             if fbx_idx == -1:
                 continue
-            setattr(blen_data[blen_idx], blen_attr, xform(fbx_data[fbx_idx:fbx_idx + item_size]))
+            setattr(blen_data[blen_idx], blen_attr,
+                    xform(fbx_data[fbx_idx] if (item_size == 1) else fbx_data[fbx_idx:fbx_idx + item_size]))
     else:
         for blen_idx, fbx_idx in generator:
             if fbx_idx == -1:
                 continue
-            setattr(blen_data[blen_idx], blen_attr, fbx_data[fbx_idx:fbx_idx + item_size])
+            setattr(blen_data[blen_idx], blen_attr,
+                    fbx_data[fbx_idx] if (item_size == 1) else fbx_data[fbx_idx:fbx_idx + item_size])
 
 
 # generic generators.
@@ -721,7 +723,7 @@ def blen_read_geom_array_mapped_polygon(
         xform=None,
         ):
     if fbx_layer_mapping == b'ByPolygon':
-        if fbx_layer_ref == b'IndexToDirect' and fbx_layer_index is not None:
+        if fbx_layer_ref == b'IndexToDirect':
             # XXX Looks like we often get no fbx_layer_index in this case, shall not happen but happens...
             #     We fallback to 'Direct' mapping in this case.
             #~ assert(fbx_layer_index is not None)
