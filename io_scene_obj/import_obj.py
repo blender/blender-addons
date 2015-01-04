@@ -204,38 +204,40 @@ def create_materials(filepath, relpath,
             for line in mtl:  # .readlines():
                 line = line.strip()
                 if not line or line.startswith(b'#'):
-                    pass
-                elif line.startswith(b'newmtl'):
-                    context_material_name = line_value(line.split())
+                    continue
+
+                line_split = line.split()
+                line_id = line_split[0].lower()
+
+                if line_id == b'newmtl':
+                    context_material_name = line_value(line_split)
                     context_material = unique_materials.get(context_material_name)
                     context_material_vars.clear()
 
                 elif context_material:
                     # we need to make a material to assign properties to it.
-                    line_split = line.split()
-                    line_lower = line.lower().lstrip()
-                    if line_lower.startswith(b'ka '):
+                    if line_id == b'ka':
                         context_material.mirror_color = float_func(line_split[1]), float_func(line_split[2]), float_func(line_split[3])
-                    elif line_lower.startswith(b'kd '):
+                    elif line_id == b'kd':
                         context_material.diffuse_color = float_func(line_split[1]), float_func(line_split[2]), float_func(line_split[3])
-                    elif line_lower.startswith(b'ks '):
+                    elif line_id == b'ks':
                         context_material.specular_color = float_func(line_split[1]), float_func(line_split[2]), float_func(line_split[3])
-                    elif line_lower.startswith(b'ns '):
+                    elif line_id == b'ns':
                         context_material.specular_hardness = int((float_func(line_split[1]) * 0.51))
-                    elif line_lower.startswith(b'ni '):  # Refraction index
+                    elif line_id == b'ni':  # Refraction index
                         context_material.raytrace_transparency.ior = max(1, min(float_func(line_split[1]), 3))  # between 1 and 3
                         context_material_vars.add("ior")
-                    elif line_lower.startswith(b'd '):  # dissolve (trancparency)
+                    elif line_id == b'd':  # dissolve (trancparency)
                         context_material.alpha = float_func(line_split[1])
                         context_material.use_transparency = True
                         context_material.transparency_method = 'Z_TRANSPARENCY'
                         context_material_vars.add("alpha")
-                    elif line_lower.startswith(b'tr '):  # trancelucency
+                    elif line_id == b'tr':  # trancelucency
                         context_material.translucency = float_func(line_split[1])
-                    elif line_lower.startswith(b'tf '):
+                    elif line_id == b'tf':
                         # rgb, filter color, blender has no support for this.
                         pass
-                    elif line_lower.startswith(b'illum '):
+                    elif line_id == b'illum':
                         illum = int(line_split[1])
 
                         do_ambient = True
@@ -336,33 +338,33 @@ def create_materials(filepath, relpath,
                         # written when raytracing wasnt default, annoying to disable for blender users.
                         context_material.use_raytrace = True
 
-                    elif line_lower.startswith(b'map_ka '):
+                    elif line_id == b'map_ka':
                         img_filepath = line_value(line.split())
                         if img_filepath:
                             load_material_image(context_material, context_material_name, img_filepath, 'Ka')
-                    elif line_lower.startswith(b'map_ks '):
+                    elif line_id == b'map_ks':
                         img_filepath = line_value(line.split())
                         if img_filepath:
                             load_material_image(context_material, context_material_name, img_filepath, 'Ks')
-                    elif line_lower.startswith(b'map_kd '):
+                    elif line_id == b'map_kd':
                         img_filepath = line_value(line.split())
                         if img_filepath:
                             load_material_image(context_material, context_material_name, img_filepath, 'Kd')
-                    elif line_lower.startswith((b'map_bump ', b'bump ')):  # 'bump' is incorrect but some files use it.
+                    elif line_id in {b'map_bump', b'bump'}:  # 'bump' is incorrect but some files use it.
                         img_filepath = line_value(line.split())
                         if img_filepath:
                             load_material_image(context_material, context_material_name, img_filepath, 'Bump')
-                    elif line_lower.startswith((b'map_d ', b'map_tr ')):  # Alpha map - Dissolve
+                    elif line_id in {b'map_d', b'map_tr'}:  # Alpha map - Dissolve
                         img_filepath = line_value(line.split())
                         if img_filepath:
                             load_material_image(context_material, context_material_name, img_filepath, 'D')
 
-                    elif line_lower.startswith((b'map_disp ', b'disp ')):  # displacementmap
+                    elif line_id in {b'map_disp', b'disp'}:  # displacementmap
                         img_filepath = line_value(line.split())
                         if img_filepath:
                             load_material_image(context_material, context_material_name, img_filepath, 'disp')
 
-                    elif line_lower.startswith((b'map_refl ', b'refl ')):  # reflectionmap
+                    elif line_id in {b'map_refl', b'refl'}:  # reflectionmap
                         img_filepath = line_value(line.split())
                         if img_filepath:
                             load_material_image(context_material, context_material_name, img_filepath, 'refl')
