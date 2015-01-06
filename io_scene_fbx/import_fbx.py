@@ -33,6 +33,7 @@ if "bpy" in locals():
         importlib.reload(fbx_utils)
 
 import bpy
+from mathutils import Matrix, Euler, Vector
 
 # -----
 # Utils
@@ -333,8 +334,6 @@ def blen_read_custom_properties(fbx_obj, blen_obj, settings):
 
 
 def blen_read_object_transform_do(transform_data):
-    from mathutils import Matrix, Euler
-
     # translation
     lcl_translation = Matrix.Translation(transform_data.loc)
 
@@ -470,10 +469,10 @@ def blen_read_animations_curves_iter(fbx_curves, blen_start_offset, fbx_start_of
 
 def blen_read_animations_action_item(action, item, cnodes, fps):
     """
-    'Bake' loc/rot/scale into the action, taking any pre_ and post_ matrix into account to transform from fbx into blender space.
+    'Bake' loc/rot/scale into the action,
+    taking any pre_ and post_ matrix into account to transform from fbx into blender space.
     """
     from bpy.types import Object, PoseBone, ShapeKey
-    from mathutils import Euler, Matrix
     from itertools import chain
 
     fbx_curves = []
@@ -931,7 +930,6 @@ def blen_read_geom_layer_normal(fbx_obj, mesh, xform=None):
 
 
 def blen_read_geom(fbx_tmpl, fbx_obj, settings):
-    from mathutils import Matrix, Vector
     from itertools import chain
     import array
 
@@ -1046,8 +1044,6 @@ def blen_read_geom(fbx_tmpl, fbx_obj, settings):
 
 
 def blen_read_shape(fbx_tmpl, fbx_sdata, fbx_bcdata, meshes, scene):
-    from mathutils import Vector
-
     elem_name_utf8 = elem_name_ensure_class(fbx_sdata, b'Geometry')
     indices = elem_prop_first(elem_find_first(fbx_sdata, b'Indexes'), default=())
     dvcos = tuple(co for co in zip(*[iter(elem_prop_first(elem_find_first(fbx_sdata, b'Vertices'), default=()))] * 3))
@@ -1259,8 +1255,8 @@ def blen_read_light(fbx_tmpl, fbx_obj, global_scale):
 # ### Import Utility class
 class FbxImportHelperNode:
     """
-    Temporary helper node to store a hierarchy of fbxNode objects before building
-    Objects, Armatures and Bones. It tries to keep the correction data in one place so it can be applied consistently to the imported data.
+    Temporary helper node to store a hierarchy of fbxNode objects before building Objects, Armatures and Bones.
+    It tries to keep the correction data in one place so it can be applied consistently to the imported data.
     """
 
     __slots__ = ('_parent', 'anim_compensation_matrix', 'armature_setup', 'bind_matrix', 'bl_bone', 'bl_data', 'bl_obj', 'bone_child_matrix',
@@ -1337,7 +1333,6 @@ class FbxImportHelperNode:
 
     def find_correction_matrix(self, settings, parent_correction_inv=None):
         from bpy_extras.io_utils import axis_conversion
-        from mathutils import Matrix, Vector
 
         if self.parent and (self.parent.is_root or self.parent.do_bake_transform(settings)):
             self.pre_matrix = settings.global_matrix
@@ -1350,7 +1345,7 @@ class FbxImportHelperNode:
         if self.is_bone:
             if settings.automatic_bone_orientation:
                 # find best orientation to align bone with
-                bone_children = [child for child in self.children if child.is_bone]
+                bone_children = tuple(child for child in self.children if child.is_bone)
                 if len(bone_children) == 0:
                     # no children, inherit the correction from parent (if possible)
                     if self.parent and self.parent.is_bone:
@@ -1368,7 +1363,8 @@ class FbxImportHelperNode:
                             best_axis = Vector((0, 1 if vec[1] >= 0 else -1, 0))
                     else:
                         # get the child directions once because they may be checked several times
-                        child_locs = [loc.normalized() for loc in [bind_matrix.to_translation() for bind_matrix in [child.bind_matrix for child in bone_children]] if loc.magnitude > 0.0]
+                        child_locs = (child.bind_matrix.to_translation() for child in bone_children)
+                        child_locs = tuple(loc.normalized() for loc in child_locs if loc.magnitude > 0.0)
 
                         # I'm not sure which one I like better...
                         if False:
@@ -1465,9 +1461,7 @@ class FbxImportHelperNode:
                 armature.parent = self
 
         for child in self.children:
-            if child.is_armature:
-                continue
-            if child.is_bone:
+            if child.is_armature or child.is_bone:
                 continue
             child.find_armatures()
 
@@ -1502,16 +1496,12 @@ class FbxImportHelperNode:
             child.find_fake_bones(in_armature)
 
     def get_world_matrix(self):
-        from mathutils import Matrix
-
         matrix = self.parent.get_world_matrix() if self.parent else Matrix()
         if self.matrix:
             matrix = matrix * self.matrix
         return matrix
 
     def get_matrix(self):
-        from mathutils import Matrix
-
         matrix = self.matrix if self.matrix else Matrix()
         if self.pre_matrix:
             matrix = self.pre_matrix * matrix
@@ -1520,8 +1510,6 @@ class FbxImportHelperNode:
         return matrix
 
     def get_bind_matrix(self):
-        from mathutils import Matrix
-
         matrix = self.bind_matrix if self.bind_matrix else Matrix()
         if self.pre_matrix:
             matrix = self.pre_matrix * matrix
@@ -1530,8 +1518,6 @@ class FbxImportHelperNode:
         return matrix
 
     def make_bind_pose_local(self, parent_matrix=None):
-        from mathutils import Matrix
-
         if parent_matrix is None:
             parent_matrix = Matrix()
 
@@ -1571,8 +1557,6 @@ class FbxImportHelperNode:
                 child.collect_armature_meshes()
 
     def build_skeleton(self, arm, parent_matrix, parent_bone_size=1):
-        from mathutils import Vector, Matrix
-
         # ----
         # Now, create the (edit)bone.
         bone = arm.bl_data.edit_bones.new(name=self.fbx_name)
@@ -1594,7 +1578,8 @@ class FbxImportHelperNode:
             bone_size = parent_bone_size
 
         # So that our bone gets its final length, but still Y-aligned in armature space.
-        # 0-length bones are automatically collapsed into their parent when you leave edit mode, so this enforces a minimum length
+        # 0-length bones are automatically collapsed into their parent when you leave edit mode,
+        # so this enforces a minimum length.
         bone_tail = Vector((0.0, 1.0, 0.0)) * max(0.01, bone_size)
         bone.tail = bone_tail
 
@@ -1603,7 +1588,8 @@ class FbxImportHelperNode:
 
         bone.matrix = bone_matrix
 
-        # correction for children attached to a bone. Fbx expects to attach to the head of a bone, while blender attaches to the tail.
+        # Correction for children attached to a bone. FBX expects to attach to the head of a bone,
+        # while Blender attaches to the tail.
         self.bone_child_matrix = Matrix.Translation(-bone_tail)
 
         for child in self.children:
@@ -1643,8 +1629,6 @@ class FbxImportHelperNode:
         return obj
 
     def build_skeleton_children(self, fbx_tmpl, settings, scene):
-        from mathutils import Matrix
-
         if self.is_bone:
             for child in self.children:
                 if child.ignore:
@@ -1656,7 +1640,8 @@ class FbxImportHelperNode:
                     child_obj.parent_type = 'BONE'
                     child_obj.matrix_parent_inverse = Matrix()
 
-                    # Blender attaches to the end of a bone, while FBX attaches to the start. bone_child_matrix corrects for that.
+                    # Blender attaches to the end of a bone, while FBX attaches to the start.
+                    # bone_child_matrix corrects for that.
                     if child.pre_matrix:
                         child.pre_matrix = self.bone_child_matrix * child.pre_matrix
                     else:
@@ -1703,13 +1688,13 @@ class FbxImportHelperNode:
                 w.append(weight)
 
     def set_bone_weights(self):
-        ignored_children = [child for child in self.children if child.is_bone and child.ignore and len(child.clusters) > 0]
+        ignored_children = tuple(child for child in self.children
+                                       if child.is_bone and child.ignore and len(child.clusters) > 0)
 
         if len(ignored_children) > 0:
             # If we have an ignored child bone we need to merge their weights into the current bone weights.
-            # (This can happen both intentionally and accidentally when skinning a model. Either way, they
-            # need to be moved into a parent bone or they cause animation glitches.)
-
+            # This can happen both intentionally and accidentally when skinning a model. Either way, they
+            # need to be moved into a parent bone or they cause animation glitches.
             for fbx_cluster, meshes in self.clusters:
                 combined_weights = {}
                 self.merge_weights(combined_weights, fbx_cluster)
@@ -1747,14 +1732,10 @@ class FbxImportHelperNode:
                 add_vgroup_to_objects(indices, weights, self.bl_bone, [node.bl_obj for node in meshes])
 
         for child in self.children:
-            if child.ignore:
-                continue
-            if child.is_bone:
+            if child.is_bone and not child.ignore:
                 child.set_bone_weights()
 
     def build_hierarchy(self, fbx_tmpl, settings, scene):
-        from mathutils import Matrix
-
         if self.is_armature:
             # create when linking since we need object data
             elem_name_utf8 = self.fbx_name
@@ -1854,7 +1835,7 @@ class FbxImportHelperNode:
             return obj
         else:
             for child in self.children:
-                child_obj = child.build_hierarchy(fbx_tmpl, settings, scene)
+                child.build_hierarchy(fbx_tmpl, settings, scene)
 
 
 def is_ascii(filepath, size):
@@ -1892,7 +1873,6 @@ def load(operator, context, filepath="",
     import os
     import time
     from bpy_extras.io_utils import axis_conversion
-    from mathutils import Matrix
 
     from . import parse_fbx
     from .fbx_utils import RIGHT_HAND_AXES, FBX_FRAMERATES
@@ -2153,15 +2133,14 @@ def load(operator, context, filepath="",
         return connection_filter_ex(fbx_uuid, fbx_id, fbx_connection_map_reverse)
 
     # -- temporary helper hierarchy to build armatures and objects from
-    fbx_helper_nodes = {}  # lookup from uuid to helper node. Used to build parent-child relations and later to look up animated nodes.
+    # lookup from uuid to helper node. Used to build parent-child relations and later to look up animated nodes.
+    fbx_helper_nodes = {}
 
     def _():
-        from mathutils import Matrix
-
-        # We build an intermediate hierarchy
-        # - used to calculate and store bone orientation correction matrices. The same matrices will be reused for animation.
-        # - find/insert armature nodes
-        # - filter leaf bones
+        # We build an intermediate hierarchy used to:
+        # - Calculate and store bone orientation correction matrices. The same matrices will be reused for animation.
+        # - Find/insert armature nodes.
+        # - Filter leaf bones.
 
         # create scene root
         fbx_helper_nodes[0] = root_helper = FbxImportHelperNode(None, None, None, False)
@@ -2170,7 +2149,7 @@ def load(operator, context, filepath="",
         # add fbx nodes
         fbx_tmpl = fbx_template_get((b'Model', b'KFbxNode'))
         for a_uuid, a_item in fbx_table_nodes.items():
-            fbx_obj, bl_data = a_item = fbx_table_nodes.get(a_uuid, (None, None))  # why this double lookup?
+            fbx_obj, bl_data = a_item
             if fbx_obj is None or fbx_obj.id != b'Model':
                 continue
 
@@ -2218,12 +2197,13 @@ def load(operator, context, filepath="",
         if settings.ignore_leaf_bones:
             root_helper.mark_leaf_bones()
 
-        # What a mess! Some bones have several BindPoses, some have none, clusters contain a bind pose as well, and you can have several clusters per bone!
+        # What a mess! Some bones have several BindPoses, some have none, clusters contain a bind pose as well,
+        # and you can have several clusters per bone!
         # Maybe some conversion can be applied to put them all into the same frame of reference?
 
         # get the bind pose from pose elements
         for a_uuid, a_item in fbx_table_nodes.items():
-            fbx_obj, bl_data = a_item = fbx_table_nodes.get(a_uuid, (None, None))  # why this double lookup?
+            fbx_obj, bl_data = a_item
             if fbx_obj is None:
                 continue
             if fbx_obj.id != b'Pose':
@@ -2240,7 +2220,7 @@ def load(operator, context, filepath="",
                 bone = fbx_helper_nodes.get(node)
                 if bone and matrix:
                     # Store the matrix in the helper node.
-                    # There may be several bind pose matrices for the same node, but in my tests they seem to be identical.
+                    # There may be several bind pose matrices for the same node, but in tests they seem to be identical.
                     bone.bind_matrix = matrix  # global space
 
         # get clusters and bind pose
@@ -2255,21 +2235,21 @@ def load(operator, context, filepath="",
                     continue
 
                 # Get the bind pose from the cluster:
-                transform_elem = elem_find_first(fbx_cluster, b'Transform', default=None)
-                transform = array_to_matrix4(transform_elem.props[0]) if transform_elem else Matrix()
+                tx_mesh_elem = elem_find_first(fbx_cluster, b'Transform', default=None)
+                tx_mesh = array_to_matrix4(tx_mesh_elem.props[0]) if tx_mesh_elem else Matrix()
 
-                transform_link_elem = elem_find_first(fbx_cluster, b'TransformLink', default=None)
-                transform_link = array_to_matrix4(transform_link_elem.props[0]) if transform_link_elem else None
+                tx_bone_elem = elem_find_first(fbx_cluster, b'TransformLink', default=None)
+                tx_bone = array_to_matrix4(tx_bone_elem.props[0]) if tx_bone_elem else None
 
-                transform_associate_model_elem = elem_find_first(fbx_cluster, b'TransformAssociateModel', default=None)
-                transform_associate_model = array_to_matrix4(transform_associate_model_elem.props[0]) if transform_associate_model_elem else Matrix()
+                tx_arm_elem = elem_find_first(fbx_cluster, b'TransformAssociateModel', default=None)
+                tx_arm = array_to_matrix4(tx_arm_elem.props[0]) if tx_arm_elem else Matrix()
 
-                mesh_matrix = transform
-                armature_matrix = transform_associate_model
+                mesh_matrix = tx_mesh
+                armature_matrix = tx_arm
 
-                if transform_link:
-                    mesh_matrix = transform_link * mesh_matrix
-                    helper_node.bind_matrix = transform_link  # overwrite the bind matrix
+                if tx_bone:
+                    mesh_matrix = tx_bone * mesh_matrix
+                    helper_node.bind_matrix = tx_bone  # overwrite the bind matrix
 
                 # Get the meshes driven by this cluster: (Shouldn't that be only one?)
                 meshes = set()
