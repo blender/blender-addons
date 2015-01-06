@@ -270,9 +270,9 @@ from collections import namedtuple
 
 
 FBXTransformData = namedtuple("FBXTransformData", (
-    "loc",
-    "rot", "rot_ofs", "rot_piv", "pre_rot", "pst_rot", "rot_ord", "rot_alt_mat",
-    "sca", "sca_ofs", "sca_piv",
+    "loc", "geom_loc", 
+    "rot", "rot_ofs", "rot_piv", "pre_rot", "pst_rot", "rot_ord", "rot_alt_mat", "geom_rot",
+    "sca", "sca_ofs", "sca_piv", "geom_sca",
 ))
 
 
@@ -334,14 +334,57 @@ def blen_read_custom_properties(fbx_obj, blen_obj, settings):
 
 
 def blen_read_object_transform_do(transform_data):
+    # This is a nightmare. FBX SDK uses Maya way to compute the transformation matrix of a node - utterly simple:
+    #
+    #     WorldTransform = ParentWorldTransform * T * Roff * Rp * Rpre * R * Rpost * Rp-1 * Soff * Sp * S * Sp-1
+    #
+    # Where all those terms are 4 x 4 matrices that contain:
+    #     WorldTransform: Transformation matrix of the node in global space.
+    #     ParentWorldTransform: Transformation matrix of the parent node in global space.
+    #     T: Translation
+    #     Roff: Rotation offset
+    #     Rp: Rotation pivot
+    #     Rpre: Pre-rotation
+    #     R: Rotation
+    #     Rpost: Post-rotation
+    #     Rp-1: Inverse of the rotation pivot
+    #     Soff: Scaling offset
+    #     Sp: Scaling pivot
+    #     S: Scaling
+    #     Sp-1: Inverse of the scaling pivot
+    #
+    # But it was still too simple, and FBX notion of compatibility is... quite specific. So we also have to
+    # support 3DSMax way:
+    #
+    #     WorldTransform = ParentWorldTransform * T * R * S * OT * OR * OS
+    #
+    # Where all those terms are 4 x 4 matrices that contain:
+    #     WorldTransform: Transformation matrix of the node in global space
+    #     ParentWorldTransform: Transformation matrix of the parent node in global space
+    #     T: Translation
+    #     R: Rotation
+    #     S: Scaling
+    #     OT: Geometric transform translation
+    #     OR: Geometric transform rotation
+    #     OS: Geometric transform translation
+    #
+    # Notes:
+    #     Geometric transformations ***are not inherited***: ParentWorldTransform does not contain the OT, OR, OS
+    #     of WorldTransform's parent node.
+    #
+    # Taken from http://download.autodesk.com/us/fbx/20112/FBX_SDK_HELP/
+    #            index.html?url=WS1a9193826455f5ff1f92379812724681e696651.htm,topicNumber=d0e7429
+
     # translation
     lcl_translation = Matrix.Translation(transform_data.loc)
+    geom_loc = Matrix.Translation(transform_data.geom_loc)
 
     # rotation
     to_rot = lambda rot, rot_ord: Euler(convert_deg_to_rad_iter(rot), rot_ord).to_matrix().to_4x4()
     lcl_rot = to_rot(transform_data.rot, transform_data.rot_ord) * transform_data.rot_alt_mat
     pre_rot = to_rot(transform_data.pre_rot, transform_data.rot_ord)
     pst_rot = to_rot(transform_data.pst_rot, transform_data.rot_ord)
+    geom_rot = to_rot(transform_data.geom_rot, transform_data.rot_ord)
 
     rot_ofs = Matrix.Translation(transform_data.rot_ofs)
     rot_piv = Matrix.Translation(transform_data.rot_piv)
@@ -351,8 +394,10 @@ def blen_read_object_transform_do(transform_data):
     # scale
     lcl_scale = Matrix()
     lcl_scale[0][0], lcl_scale[1][1], lcl_scale[2][2] = transform_data.sca
+    geom_scale = Matrix();
+    geom_scale[0][0], geom_scale[1][1], geom_scale[2][2] = transform_data.geom_sca
 
-    return (
+    base_mat = (
         lcl_translation *
         rot_ofs *
         rot_piv *
@@ -365,6 +410,9 @@ def blen_read_object_transform_do(transform_data):
         lcl_scale *
         sca_piv.inverted_safe()
     )
+    geom_mat = geom_loc * geom_rot * geom_scale
+    # We return mat without 'geometric transforms' too, because it is to be used for children, sigh...
+    return (base_mat * geom_mat, base_mat, geom_mat)
 
 
 # XXX This might be weak, now that we can add vgroups from both bones and shapes, name collisions become
@@ -389,6 +437,10 @@ def blen_read_object_transform_preprocess(fbx_props, fbx_obj, rot_alt_mat, use_p
     loc = list(elem_props_get_vector_3d(fbx_props, b'Lcl Translation', const_vector_zero_3d))
     rot = list(elem_props_get_vector_3d(fbx_props, b'Lcl Rotation', const_vector_zero_3d))
     sca = list(elem_props_get_vector_3d(fbx_props, b'Lcl Scaling', const_vector_one_3d))
+
+    geom_loc = list(elem_props_get_vector_3d(fbx_props, b'GeometricTranslation', const_vector_zero_3d))
+    geom_rot = list(elem_props_get_vector_3d(fbx_props, b'GeometricRotation', const_vector_zero_3d))
+    geom_sca = list(elem_props_get_vector_3d(fbx_props, b'GeometricScaling', const_vector_one_3d))
 
     rot_ofs = elem_props_get_vector_3d(fbx_props, b'RotationOffset', const_vector_zero_3d)
     rot_piv = elem_props_get_vector_3d(fbx_props, b'RotationPivot', const_vector_zero_3d)
@@ -418,9 +470,9 @@ def blen_read_object_transform_preprocess(fbx_props, fbx_obj, rot_alt_mat, use_p
         pst_rot = const_vector_zero_3d
         rot_ord = 'XYZ'
 
-    return FBXTransformData(loc,
-                            rot, rot_ofs, rot_piv, pre_rot, pst_rot, rot_ord, rot_alt_mat,
-                            sca, sca_ofs, sca_piv)
+    return FBXTransformData(loc, geom_loc,
+                            rot, rot_ofs, rot_piv, pre_rot, pst_rot, rot_ord, rot_alt_mat, geom_rot,
+                            sca, sca_ofs, sca_piv, geom_sca)
 
 
 # ---------
@@ -547,7 +599,7 @@ def blen_read_animations_action_item(action, item, cnodes, fps):
                     transform_data.rot[channel] = v
                 elif fbxprop == b'Lcl Scaling':
                     transform_data.sca[channel] = v
-            mat = blen_read_object_transform_do(transform_data)
+            mat, _, _ = blen_read_object_transform_do(transform_data)
 
             # compensate for changes in the local matrix during processing
             if item.anim_compensation_matrix:
@@ -1259,9 +1311,10 @@ class FbxImportHelperNode:
     It tries to keep the correction data in one place so it can be applied consistently to the imported data.
     """
 
-    __slots__ = ('_parent', 'anim_compensation_matrix', 'armature_setup', 'bind_matrix', 'bl_bone', 'bl_data', 'bl_obj', 'bone_child_matrix',
-                 'children', 'clusters', 'fbx_elem', 'fbx_name', 'fbx_transform_data', 'fbx_type', 'has_bone_children', 'ignore', 'is_armature',
-                 'is_bone', 'is_root', 'matrix', 'meshes', 'post_matrix', 'pre_matrix')
+    __slots__ = ('_parent', 'anim_compensation_matrix', 'armature_setup', 'bind_matrix',
+                 'bl_bone', 'bl_data', 'bl_obj', 'bone_child_matrix', 'children', 'clusters',
+                 'fbx_elem', 'fbx_name', 'fbx_transform_data', 'fbx_type', 'has_bone_children', 'ignore', 'is_armature',
+                 'is_bone', 'is_root', 'matrix', 'matrix_as_parent', 'matrix_geom', 'meshes', 'post_matrix', 'pre_matrix')
 
     def __init__(self, fbx_elem, bl_data, fbx_transform_data, is_bone):
         self.fbx_name = elem_name_ensure_class(fbx_elem, b'Model') if fbx_elem else 'Unknown'
@@ -1278,7 +1331,10 @@ class FbxImportHelperNode:
         self.ignore = False                     # True for leaf-bones added to the end of some bone chains to set the lengths.
         self.pre_matrix = None                  # correction matrix that needs to be applied before the FBX transform
         self.bind_matrix = None                 # for bones this is the matrix used to bind to the skin
-        self.matrix = blen_read_object_transform_do(fbx_transform_data) if fbx_transform_data else None
+        if fbx_transform_data:
+            self.matrix, self.matrix_as_parent, self.matrix_geom = blen_read_object_transform_do(fbx_transform_data)
+        else:
+            self.matrix, self.matrix_as_parent, self.matrix_geom = (None, None, None)
         self.post_matrix = None                 # correction matrix that needs to be applied after the FBX transform
         self.bone_child_matrix = None           # Objects attached to a bone end not the beginning, this matrix corrects for that
         self.anim_compensation_matrix = None    # a mesh moved in the hierarchy may have a different local matrix. This compensates animations for this.
@@ -1495,8 +1551,14 @@ class FbxImportHelperNode:
         for child in self.children:
             child.find_fake_bones(in_armature)
 
+    def get_world_matrix_as_parent(self):
+        matrix = self.parent.get_world_matrix_as_parent() if self.parent else Matrix()
+        if self.matrix_as_parent:
+            matrix = matrix * self.matrix_as_parent
+        return matrix
+
     def get_world_matrix(self):
-        matrix = self.parent.get_world_matrix() if self.parent else Matrix()
+        matrix = self.parent.get_world_matrix_as_parent() if self.parent else Matrix()
         if self.matrix:
             matrix = matrix * self.matrix
         return matrix
@@ -1794,23 +1856,28 @@ class FbxImportHelperNode:
 
             # Add armature modifiers to the meshes
             if self.meshes:
-                arm_mat_back = arm.matrix_basis.copy()
                 for mesh in self.meshes:
-                    (amat, mmat) = mesh.armature_setup
+                    (mmat, amat) = mesh.armature_setup
+                    me_obj = mesh.bl_obj
 
                     # bring global armature & mesh matrices into *Blender* global space.
-                    amat = settings.global_matrix * amat
+                    # Note: Usage of matrix_geom (local 'diff' transform) here is quite brittle.
+                    #       Among other things, why in hell isn't it taken into account by bindpose & co???
+                    #       Probably because org app (max) handles it completely aside from any parenting stuff,
+                    #       which we obviously cannot do in Blender. :/
+                    amat = settings.global_matrix * (amat if amat is not None else self.bind_matrix)
+                    if self.matrix_geom:
+                        amat = amat * self.matrix_geom
                     mmat = settings.global_matrix * mmat
+                    if mesh.matrix_geom:
+                        mmat = mmat * mesh.matrix_geom
 
-                    arm.matrix_basis = amat
-                    me_mat_back = mesh.bl_obj.matrix_basis.copy()
-                    mesh.bl_obj.matrix_basis = mmat
+                    # Now that we have armature and mesh in there (global) bind 'state' (matrix),
+                    # we can compute inverse parenting matrix of the mesh.
+                    me_obj.matrix_parent_inverse = amat.inverted_safe() * mmat * me_obj.matrix_basis.inverted_safe()
 
                     mod = mesh.bl_obj.modifiers.new(elem_name_utf8, 'ARMATURE')
                     mod.object = arm
-
-                    mesh.bl_obj.matrix_basis = me_mat_back
-                arm.matrix_basis = arm_mat_back
 
             # Add bone weights to the deformers
             for child in self.children:
@@ -2242,7 +2309,7 @@ def load(operator, context, filepath="",
                 tx_bone = array_to_matrix4(tx_bone_elem.props[0]) if tx_bone_elem else None
 
                 tx_arm_elem = elem_find_first(fbx_cluster, b'TransformAssociateModel', default=None)
-                tx_arm = array_to_matrix4(tx_arm_elem.props[0]) if tx_arm_elem else Matrix()
+                tx_arm = array_to_matrix4(tx_arm_elem.props[0]) if tx_arm_elem else None
 
                 mesh_matrix = tx_mesh
                 armature_matrix = tx_arm
@@ -2271,10 +2338,11 @@ def load(operator, context, filepath="",
                             mesh_node = fbx_helper_nodes[object_uuid]
                             if mesh_node:
                                 # ----
-                                # If we get a valid mesh matrix (in bone space), store armature and mesh global matrices, we need to set temporarily
-                                # both objects to those matrices when actually binding them via the modifier.
-                                # Note we assume all bones were bound with the same mesh/armature (global) matrix, we do not support otherwise
-                                # in Blender anyway!
+                                # If we get a valid mesh matrix (in bone space), store armature and
+                                # mesh global matrices, we need them to compute mesh's matrix_parent_inverse
+                                # when actually binding them via the modifier.
+                                # Note we assume all bones were bound with the same mesh/armature (global) matrix,
+                                # we do not support otherwise in Blender anyway!
                                 mesh_node.armature_setup = (mesh_matrix, armature_matrix)
                                 meshes.add(mesh_node)
 
