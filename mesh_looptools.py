@@ -780,6 +780,7 @@ def move_verts(object, bm, mapping, move, lock, influence):
             if influence < 0:
                 new_loc = loc
             else:
+                bm.verts.ensure_lookup_table()
                 new_loc = loc*(influence/100) + \
                     bm.verts[index].co*((100-influence)/100)
             bm.verts[index].co = new_loc
@@ -2801,7 +2802,9 @@ def gstretch_match_loops_strokes(loops, strokes, object, bm_mod):
     loop_centers = []
     for loop in loops:
         center = mathutils.Vector()
+
         for v_index in loop[0]:
+            bm_mod.verts.ensure_lookup_table()
             center += bm_mod.verts[v_index].co
         center /= len(loop[0])
         center = object.matrix_world * center
