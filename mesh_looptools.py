@@ -29,22 +29,6 @@ bl_info = {
     "category": "Mesh",
 }
 
-#    blender 2.73 needs to call ensure_lookup_table() for bm.verts[], bm.edges[], bm.faces[].
-#    generically the fix will do this...
-#    the lookup_table will get "dirty" after:
-#    bm.new(), bm.from_mesh(), bm.from_edit_mesh()
-#    bm.verts.new(), bm.edges.new(), bm.faces.new()
-#    bm.verts.remove(), bm.edges.remove(), bm.faces.remove()
-#    bm.normal_update(), bm.copy()
-#
-#    bm.verts.ensure_lookup_table() ### 2.73
-#    bm.edges.ensure_lookup_table() ### 2.73
-#    bm.faces.ensure_lookup_table() ### 2.73
-
-#    blender 2.73 has a new grease_pencil per object and new per scene
-#    gp = object.grease_pencil
-#    if not gp:
-#        gp = context.scene.grease_pencil
 
 import bmesh
 import bpy
@@ -63,7 +47,6 @@ from bpy_extras import view3d_utils
 looptools_cache = {}
 
 
-### 2.73
 def get_grease_pencil(object, context):
     gp = object.grease_pencil
     if not gp:
@@ -547,9 +530,9 @@ def get_derived_bmesh(object, bm, scene):
         derived = False
         bm_mod = bm
 
-    bm_mod.verts.ensure_lookup_table() ### 2.73
-    bm_mod.edges.ensure_lookup_table() ### 2.73
-    bm_mod.faces.ensure_lookup_table() ### 2.73
+    bm_mod.verts.ensure_lookup_table()
+    bm_mod.edges.ensure_lookup_table()
+    bm_mod.faces.ensure_lookup_table()
 
     return(derived, bm_mod)
 
@@ -765,9 +748,9 @@ def initialise():
         bpy.ops.object.mode_set(mode='EDIT')
     bm = bmesh.from_edit_mesh(object.data)
 
-    bm.verts.ensure_lookup_table() ### 2.73
-    bm.edges.ensure_lookup_table() ### 2.73
-    bm.faces.ensure_lookup_table() ### 2.73
+    bm.verts.ensure_lookup_table()
+    bm.edges.ensure_lookup_table()
+    bm.faces.ensure_lookup_table()
 
     return(global_undo, object, bm)
 
@@ -815,9 +798,9 @@ def move_verts(object, bm, mapping, move, lock, influence):
     bm.normal_update()
     object.data.update()
 
-    bm.verts.ensure_lookup_table() ### 2.73
-    bm.edges.ensure_lookup_table() ### 2.73
-    bm.faces.ensure_lookup_table() ### 2.73
+    bm.verts.ensure_lookup_table()
+    bm.edges.ensure_lookup_table()
+    bm.faces.ensure_lookup_table()
 
 
 # load custom tool settings
@@ -1431,7 +1414,7 @@ edgekey_to_edge):
 def bridge_create_vertices(bm, vertices):
     for i in range(len(vertices)):
         bm.verts.new(vertices[i])
-    bm.verts.ensure_lookup_table() ### 2.73
+    bm.verts.ensure_lookup_table()
 
 
 # add faces to mesh
@@ -1459,9 +1442,9 @@ def bridge_create_faces(object, bm, faces, twist):
     bm.normal_update()
     object.data.update(calc_edges=True) # calc_edges prevents memory-corruption
 
-    bm.verts.ensure_lookup_table() ### 2.73
-    bm.edges.ensure_lookup_table() ### 2.73
-    bm.faces.ensure_lookup_table() ### 2.73
+    bm.verts.ensure_lookup_table()
+    bm.edges.ensure_lookup_table()
+    bm.faces.ensure_lookup_table()
 
     return(new_faces)
 
@@ -1610,9 +1593,9 @@ def bridge_remove_internal_faces(bm, old_selected_faces):
     for edge in remove_edges:
         bm.edges.remove(edge)
 
-    bm.faces.ensure_lookup_table() ### 2.73
-    bm.edges.ensure_lookup_table() ### 2.73
-    bm.verts.ensure_lookup_table() ### 2.73
+    bm.faces.ensure_lookup_table()
+    bm.edges.ensure_lookup_table()
+    bm.verts.ensure_lookup_table()
 
 
 # update list of internal faces that are flagged for removal
@@ -2710,7 +2693,7 @@ conversion_distance, conversion_max, conversion_min, conversion_vertices):
                         mat_world * point.co))
                 # force even spreading of points, so they are placed on stroke
                 method = 'regular'
-    bm_mod.verts.ensure_lookup_table() ### 2.73
+    bm_mod.verts.ensure_lookup_table()
     bm_mod.verts.index_update()
     for stroke, verts_seq in stroke_verts:
         if len(verts_seq) < 2:
@@ -2731,7 +2714,7 @@ conversion_distance, conversion_max, conversion_min, conversion_vertices):
                 if m_stroke != stroke:
                     continue
                 bm_mod.edges.new((vert, verts_seq[point]))
-        bm_mod.edges.ensure_lookup_table() ### 2.73
+        bm_mod.edges.ensure_lookup_table()
     bmesh.update_edit_mesh(object.data)
 
     return(move)
@@ -3876,9 +3859,9 @@ class GStretch(bpy.types.Operator):
                 straightening = True
                 derived = False
                 bm_mod = bm.copy()
-                bm_mod.verts.ensure_lookup_table() ### 2.73
-                bm_mod.edges.ensure_lookup_table() ### 2.73
-                bm_mod.faces.ensure_lookup_table() ### 2.73
+                bm_mod.verts.ensure_lookup_table()
+                bm_mod.edges.ensure_lookup_table()
+                bm_mod.faces.ensure_lookup_table()
                 strokes = gstretch_get_fake_strokes(object, bm_mod, loops)
             if not straightening:
                 derived, bm_mod = get_derived_bmesh(object, bm, context.scene)
@@ -3897,9 +3880,9 @@ class GStretch(bpy.types.Operator):
                 derived = False
                 mapping = False
                 bm_mod = bm.copy()
-                bm_mod.verts.ensure_lookup_table() ### 2.73
-                bm_mod.edges.ensure_lookup_table() ### 2.73
-                bm_mod.faces.ensure_lookup_table() ### 2.73
+                bm_mod.verts.ensure_lookup_table()
+                bm_mod.edges.ensure_lookup_table()
+                bm_mod.faces.ensure_lookup_table()
                 edge_keys = [edgekey(edge) for edge in bm_mod.edges if \
                     edge.select and not edge.hide]
                 loops = get_connected_selections(edge_keys)
