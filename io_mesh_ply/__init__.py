@@ -21,7 +21,7 @@
 bl_info = {
     "name": "Stanford PLY format",
     "author": "Bruce Merry, Campbell Barton",
-    "blender": (2, 57, 0),
+    "blender": (2, 73, 0),
     "location": "File > Import-Export",
     "description": "Import-Export PLY mesh data withs UV's and vertex colors",
     "warning": "",
@@ -53,6 +53,7 @@ from bpy.props import (CollectionProperty,
                        )
 from bpy_extras.io_utils import (ImportHelper,
                                  ExportHelper,
+                                 IOHelperOrientation,
                                  axis_conversion,
                                  )
 
@@ -87,7 +88,7 @@ class ImportPLY(bpy.types.Operator, ImportHelper):
         return {'FINISHED'}
 
 
-class ExportPLY(bpy.types.Operator, ExportHelper):
+class ExportPLY(bpy.types.Operator, ExportHelper, IOHelperOrientation):
     """Export a single object as a Stanford PLY with normals, """ \
     """colors and texture coordinates"""
     bl_idname = "export_mesh.ply"
@@ -120,28 +121,6 @@ class ExportPLY(bpy.types.Operator, ExportHelper):
             default=True,
             )
 
-    axis_forward = EnumProperty(
-            name="Forward",
-            items=(('X', "X Forward", ""),
-                   ('Y', "Y Forward", ""),
-                   ('Z', "Z Forward", ""),
-                   ('-X', "-X Forward", ""),
-                   ('-Y', "-Y Forward", ""),
-                   ('-Z', "-Z Forward", ""),
-                   ),
-            default='Y',
-            )
-    axis_up = EnumProperty(
-            name="Up",
-            items=(('X', "X Up", ""),
-                   ('Y', "Y Up", ""),
-                   ('Z', "Z Up", ""),
-                   ('-X', "-X Up", ""),
-                   ('-Y', "-Y Up", ""),
-                   ('-Z', "-Z Up", ""),
-                   ),
-            default='Z',
-            )
     global_scale = FloatProperty(
             name="Scale",
             min=0.01, max=1000.0,

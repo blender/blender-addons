@@ -21,8 +21,8 @@
 bl_info = {
     "name": "STL format",
     "author": "Guillaume Bouchard (Guillaum)",
-    "version": (1, 0),
-    "blender": (2, 57, 0),
+    "version": (1, 1),
+    "blender": (2, 73, 0),
     "location": "File > Import-Export > Stl",
     "description": "Import-Export STL files",
     "warning": "",
@@ -65,12 +65,13 @@ from bpy.props import (StringProperty,
                        )
 from bpy_extras.io_utils import (ImportHelper,
                                  ExportHelper,
+                                 IOHelperOrientation,
                                  axis_conversion,
                                  )
 from bpy.types import Operator, OperatorFileListElement
 
 
-class ImportSTL(Operator, ImportHelper):
+class ImportSTL(Operator, ImportHelper, IOHelperOrientation):
     """Load STL triangle mesh data"""
     bl_idname = "import_mesh.stl"
     bl_label = "Import STL"
@@ -90,28 +91,6 @@ class ImportSTL(Operator, ImportHelper):
             subtype='DIR_PATH',
             )
 
-    axis_forward = EnumProperty(
-            name="Forward",
-            items=(('X', "X Forward", ""),
-                   ('Y', "Y Forward", ""),
-                   ('Z', "Z Forward", ""),
-                   ('-X', "-X Forward", ""),
-                   ('-Y', "-Y Forward", ""),
-                   ('-Z', "-Z Forward", ""),
-                   ),
-            default='Y',
-            )
-    axis_up = EnumProperty(
-            name="Up",
-            items=(('X', "X Up", ""),
-                   ('Y', "Y Up", ""),
-                   ('Z', "Z Up", ""),
-                   ('-X', "-X Up", ""),
-                   ('-Y', "-Y Up", ""),
-                   ('-Z', "-Z Up", ""),
-                   ),
-            default='Z',
-            )
     global_scale = FloatProperty(
             name="Scale",
             min=0.01, max=1000.0,
@@ -160,7 +139,7 @@ class ImportSTL(Operator, ImportHelper):
         return {'FINISHED'}
 
 
-class ExportSTL(Operator, ExportHelper):
+class ExportSTL(Operator, ExportHelper, IOHelperOrientation):
     """Save STL triangle mesh data from the active object"""
     bl_idname = "export_mesh.stl"
     bl_label = "Export STL"
@@ -168,28 +147,6 @@ class ExportSTL(Operator, ExportHelper):
     filename_ext = ".stl"
     filter_glob = StringProperty(default="*.stl", options={'HIDDEN'})
 
-    axis_forward = EnumProperty(
-            name="Forward",
-            items=(('X', "X Forward", ""),
-                   ('Y', "Y Forward", ""),
-                   ('Z', "Z Forward", ""),
-                   ('-X', "-X Forward", ""),
-                   ('-Y', "-Y Forward", ""),
-                   ('-Z', "-Z Forward", ""),
-                   ),
-            default='Y',
-            )
-    axis_up = EnumProperty(
-            name="Up",
-            items=(('X', "X Up", ""),
-                   ('Y', "Y Up", ""),
-                   ('Z', "Z Up", ""),
-                   ('-X', "-X Up", ""),
-                   ('-Y', "-Y Up", ""),
-                   ('-Z', "-Z Up", ""),
-                   ),
-            default='Z',
-            )
     global_scale = FloatProperty(
             name="Scale",
             min=0.01, max=1000.0,

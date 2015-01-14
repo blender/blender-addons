@@ -21,7 +21,7 @@
 bl_info = {
     "name": "VRML2 (Virtual Reality Modeling Language)",
     "author": "Campbell Barton",
-    "blender": (2, 66, 0),
+    "blender": (2, 73, 0),
     "location": "File > Export",
     "description": "Exports mesh objects to VRML2, supporting vertex and material colors",
     "warning": "",
@@ -45,13 +45,13 @@ from bpy.props import (CollectionProperty,
                        FloatProperty,
                        )
 from bpy_extras.io_utils import (ExportHelper,
+                                 IOHelperOrientation,
                                  path_reference_mode,
                                  axis_conversion,
                                  )
 
-class ExportVRML(bpy.types.Operator, ExportHelper):
-    """Export mesh objects as a VRML2, """ \
-    """colors and texture coordinates"""
+class ExportVRML(bpy.types.Operator, ExportHelper, IOHelperOrientation):
+    """Export mesh objects as a VRML2, colors and texture coordinates"""
     bl_idname = "export_scene.vrml2"
     bl_label = "Export VRML2"
 
@@ -86,28 +86,6 @@ class ExportVRML(bpy.types.Operator, ExportHelper):
             default=True,
             )
 
-    axis_forward = EnumProperty(
-            name="Forward",
-            items=(('X', "X Forward", ""),
-                   ('Y', "Y Forward", ""),
-                   ('Z', "Z Forward", ""),
-                   ('-X', "-X Forward", ""),
-                   ('-Y', "-Y Forward", ""),
-                   ('-Z', "-Z Forward", ""),
-               ),
-        default='Z',
-        )
-    axis_up = EnumProperty(
-            name="Up",
-            items=(('X', "X Up", ""),
-                   ('Y', "Y Up", ""),
-                   ('Z', "Z Up", ""),
-                   ('-X', "-X Up", ""),
-                   ('-Y', "-Y Up", ""),
-                   ('-Z', "-Z Up", ""),
-                   ),
-            default='Y',
-            )
     global_scale = FloatProperty(
             name="Scale",
             min=0.01, max=1000.0,

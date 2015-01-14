@@ -21,7 +21,7 @@
 bl_info = {
     "name": "BioVision Motion Capture (BVH) format",
     "author": "Campbell Barton",
-    "blender": (2, 57, 0),
+    "blender": (2, 73, 0),
     "location": "File > Import-Export",
     "description": "Import-Export BVH from armature objects",
     "warning": "",
@@ -46,11 +46,12 @@ from bpy.props import (StringProperty,
                        )
 from bpy_extras.io_utils import (ImportHelper,
                                  ExportHelper,
+                                 IOHelperOrientation,
                                  axis_conversion,
                                  )
 
 
-class ImportBVH(bpy.types.Operator, ImportHelper):
+class ImportBVH(bpy.types.Operator, ImportHelper, IOHelperOrientation):
     """Load a BVH motion capture file"""
     bl_idname = "import_anim.bvh"
     bl_label = "Import BVH"
@@ -106,30 +107,6 @@ class ImportBVH(bpy.types.Operator, ImportHelper):
                    ('ZYX', "Euler (ZYX)", "Convert rotations to euler ZYX"),
                    ),
             default='NATIVE',
-            )
-
-    axis_forward = EnumProperty(
-            name="Forward",
-            items=(('X', "X Forward", ""),
-                   ('Y', "Y Forward", ""),
-                   ('Z', "Z Forward", ""),
-                   ('-X', "-X Forward", ""),
-                   ('-Y', "-Y Forward", ""),
-                   ('-Z', "-Z Forward", ""),
-                   ),
-            default='-Z',
-            )
-
-    axis_up = EnumProperty(
-            name="Up",
-            items=(('X', "X Up", ""),
-                   ('Y', "Y Up", ""),
-                   ('Z', "Z Up", ""),
-                   ('-X', "-X Up", ""),
-                   ('-Y', "-Y Up", ""),
-                   ('-Z', "-Z Up", ""),
-                   ),
-            default='Y',
             )
 
     def execute(self, context):

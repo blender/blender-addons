@@ -21,7 +21,7 @@
 bl_info = {
     "name": "Web3D X3D/VRML2 format",
     "author": "Campbell Barton, Bart",
-    "blender": (2, 57, 0),
+    "blender": (2, 73, 0),
     "location": "File > Import-Export",
     "description": "Import-Export X3D, Import VRML2",
     "warning": "",
@@ -41,12 +41,13 @@ import bpy
 from bpy.props import StringProperty, BoolProperty, EnumProperty, FloatProperty
 from bpy_extras.io_utils import (ImportHelper,
                                  ExportHelper,
+                                 IOHelperOrientation,
                                  axis_conversion,
                                  path_reference_mode,
                                  )
 
 
-class ImportX3D(bpy.types.Operator, ImportHelper):
+class ImportX3D(bpy.types.Operator, ImportHelper, IOHelperOrientation):
     """Import an X3D or VRML2 file"""
     bl_idname = "import_scene.x3d"
     bl_label = "Import X3D/VRML2"
@@ -54,30 +55,6 @@ class ImportX3D(bpy.types.Operator, ImportHelper):
 
     filename_ext = ".x3d"
     filter_glob = StringProperty(default="*.x3d;*.wrl", options={'HIDDEN'})
-
-    axis_forward = EnumProperty(
-            name="Forward",
-            items=(('X', "X Forward", ""),
-                   ('Y', "Y Forward", ""),
-                   ('Z', "Z Forward", ""),
-                   ('-X', "-X Forward", ""),
-                   ('-Y', "-Y Forward", ""),
-                   ('-Z', "-Z Forward", ""),
-                   ),
-            default='Z',
-            )
-
-    axis_up = EnumProperty(
-            name="Up",
-            items=(('X', "X Up", ""),
-                   ('Y', "Y Up", ""),
-                   ('Z', "Z Up", ""),
-                   ('-X', "-X Up", ""),
-                   ('-Y', "-Y Up", ""),
-                   ('-Z', "-Z Up", ""),
-                   ),
-            default='Y',
-            )
 
     def execute(self, context):
         from . import import_x3d
@@ -94,7 +71,7 @@ class ImportX3D(bpy.types.Operator, ImportHelper):
         return import_x3d.load(self, context, **keywords)
 
 
-class ExportX3D(bpy.types.Operator, ExportHelper):
+class ExportX3D(bpy.types.Operator, ExportHelper, IOHelperOrientation):
     """Export selection to Extensible 3D file (.x3d)"""
     bl_idname = "export_scene.x3d"
     bl_label = 'Export X3D'
@@ -145,28 +122,6 @@ class ExportX3D(bpy.types.Operator, ExportHelper):
             default=False,
             )
 
-    axis_forward = EnumProperty(
-            name="Forward",
-            items=(('X', "X Forward", ""),
-                   ('Y', "Y Forward", ""),
-                   ('Z', "Z Forward", ""),
-                   ('-X', "-X Forward", ""),
-                   ('-Y', "-Y Forward", ""),
-                   ('-Z', "-Z Forward", ""),
-               ),
-        default='Z',
-        )
-    axis_up = EnumProperty(
-            name="Up",
-            items=(('X', "X Up", ""),
-                   ('Y', "Y Up", ""),
-                   ('Z', "Z Up", ""),
-                   ('-X', "-X Up", ""),
-                   ('-Y', "-Y Up", ""),
-                   ('-Z', "-Z Up", ""),
-                   ),
-            default='Y',
-            )
     global_scale = FloatProperty(
             name="Scale",
             min=0.01, max=1000.0,

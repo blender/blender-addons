@@ -21,8 +21,8 @@
 bl_info = {
     "name": "FBX format",
     "author": "Campbell Barton, Bastien Montagne, Jens Restemeier",
-    "version": (3, 2, 0),
-    "blender": (2, 72, 0),
+    "version": (3, 2, 1),
+    "blender": (2, 73, 0),
     "location": "File > Import-Export",
     "description": "FBX IO meshes, UV's, vertex colors, materials, "
                    "textures, cameras, lamps and actions",
@@ -53,12 +53,13 @@ from bpy.props import (StringProperty,
 
 from bpy_extras.io_utils import (ImportHelper,
                                  ExportHelper,
+                                 IOHelperOrientation,
                                  path_reference_mode,
                                  axis_conversion,
                                  )
 
 
-class ImportFBX(bpy.types.Operator, ImportHelper):
+class ImportFBX(bpy.types.Operator, ImportHelper, IOHelperOrientation):
     """Load a FBX file"""
     bl_idname = "import_scene.fbx"
     bl_label = "Import FBX"
@@ -73,28 +74,6 @@ class ImportFBX(bpy.types.Operator, ImportHelper):
             name="Manual Orientation",
             description="Specify orientation and scale, instead of using embedded data in FBX file",
             default=False,
-            )
-    axis_forward = EnumProperty(
-            name="Forward",
-            items=(('X', "X Forward", ""),
-                   ('Y', "Y Forward", ""),
-                   ('Z', "Z Forward", ""),
-                   ('-X', "-X Forward", ""),
-                   ('-Y', "-Y Forward", ""),
-                   ('-Z', "-Z Forward", ""),
-                   ),
-            default='-Z',
-            )
-    axis_up = EnumProperty(
-            name="Up",
-            items=(('X', "X Up", ""),
-                   ('Y', "Y Up", ""),
-                   ('Z', "Z Up", ""),
-                   ('-X', "-X Up", ""),
-                   ('-Y', "-Y Up", ""),
-                   ('-Z', "-Z Up", ""),
-                   ),
-            default='Y',
             )
     global_scale = FloatProperty(
             name="Scale",
@@ -221,7 +200,7 @@ class ImportFBX(bpy.types.Operator, ImportHelper):
         return import_fbx.load(self, context, **keywords)
 
 
-class ExportFBX(bpy.types.Operator, ExportHelper):
+class ExportFBX(bpy.types.Operator, ExportHelper, IOHelperOrientation):
     """Write a FBX file"""
     bl_idname = "export_scene.fbx"
     bl_label = "Export FBX"
@@ -252,28 +231,6 @@ class ExportFBX(bpy.types.Operator, ExportHelper):
             min=0.001, max=1000.0,
             soft_min=0.01, soft_max=1000.0,
             default=1.0,
-            )
-    axis_forward = EnumProperty(
-            name="Forward",
-            items=(('X', "X Forward", ""),
-                   ('Y', "Y Forward", ""),
-                   ('Z', "Z Forward", ""),
-                   ('-X', "-X Forward", ""),
-                   ('-Y', "-Y Forward", ""),
-                   ('-Z', "-Z Forward", ""),
-                   ),
-            default='-Z',
-            )
-    axis_up = EnumProperty(
-            name="Up",
-            items=(('X', "X Up", ""),
-                   ('Y', "Y Up", ""),
-                   ('Z', "Z Up", ""),
-                   ('-X', "-X Up", ""),
-                   ('-Y', "-Y Up", ""),
-                   ('-Z', "-Z Up", ""),
-                   ),
-            default='Y',
             )
     # 7.4 only
     bake_space_transform = BoolProperty(
