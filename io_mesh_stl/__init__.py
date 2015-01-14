@@ -65,13 +65,13 @@ from bpy.props import (StringProperty,
                        )
 from bpy_extras.io_utils import (ImportHelper,
                                  ExportHelper,
-                                 IOHelperOrientation,
+                                 OrientationHelper,
                                  axis_conversion,
                                  )
 from bpy.types import Operator, OperatorFileListElement
 
 
-class ImportSTL(Operator, ImportHelper, IOHelperOrientation):
+class ImportSTL(Operator, ImportHelper, OrientationHelper):
     """Load STL triangle mesh data"""
     bl_idname = "import_mesh.stl"
     bl_label = "Import STL"
@@ -139,7 +139,7 @@ class ImportSTL(Operator, ImportHelper, IOHelperOrientation):
         return {'FINISHED'}
 
 
-class ExportSTL(Operator, ExportHelper, IOHelperOrientation):
+class ExportSTL(Operator, ExportHelper, OrientationHelper):
     """Save STL triangle mesh data from the active object"""
     bl_idname = "export_mesh.stl"
     bl_label = "Export STL"

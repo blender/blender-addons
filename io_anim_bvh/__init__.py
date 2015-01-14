@@ -46,12 +46,12 @@ from bpy.props import (StringProperty,
                        )
 from bpy_extras.io_utils import (ImportHelper,
                                  ExportHelper,
-                                 IOHelperOrientation,
+                                 OrientationHelper,
                                  axis_conversion,
                                  )
 
 
-class ImportBVH(bpy.types.Operator, ImportHelper, IOHelperOrientation):
+class ImportBVH(bpy.types.Operator, ImportHelper, OrientationHelper):
     """Load a BVH motion capture file"""
     bl_idname = "import_anim.bvh"
     bl_label = "Import BVH"

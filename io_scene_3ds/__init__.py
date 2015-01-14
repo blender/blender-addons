@@ -44,12 +44,12 @@ from bpy.props import StringProperty, FloatProperty, BoolProperty, EnumProperty
 
 from bpy_extras.io_utils import (ImportHelper,
                                  ExportHelper,
-                                 IOHelperOrientation,
+                                 OrientationHelper,
                                  axis_conversion,
                                  )
 
 
-class Import3DS(bpy.types.Operator, ImportHelper, IOHelperOrientation):
+class Import3DS(bpy.types.Operator, ImportHelper, OrientationHelper):
     """Import from 3DS file format (.3ds)"""
     bl_idname = "import_scene.autodesk_3ds"
     bl_label = 'Import 3DS'
@@ -95,7 +95,7 @@ class Import3DS(bpy.types.Operator, ImportHelper, IOHelperOrientation):
         return import_3ds.load(self, context, **keywords)
 
 
-class Export3DS(bpy.types.Operator, ExportHelper, IOHelperOrientation):
+class Export3DS(bpy.types.Operator, ExportHelper, OrientationHelper):
     """Export to 3DS file format (.3ds)"""
     bl_idname = "export_scene.autodesk_3ds"
     bl_label = 'Export 3DS'

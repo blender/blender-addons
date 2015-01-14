@@ -41,13 +41,13 @@ import bpy
 from bpy.props import StringProperty, BoolProperty, EnumProperty, FloatProperty
 from bpy_extras.io_utils import (ImportHelper,
                                  ExportHelper,
-                                 IOHelperOrientation,
+                                 OrientationHelper,
                                  axis_conversion,
                                  path_reference_mode,
                                  )
 
 
-class ImportX3D(bpy.types.Operator, ImportHelper, IOHelperOrientation):
+class ImportX3D(bpy.types.Operator, ImportHelper, OrientationHelper):
     """Import an X3D or VRML2 file"""
     bl_idname = "import_scene.x3d"
     bl_label = "Import X3D/VRML2"
@@ -71,7 +71,7 @@ class ImportX3D(bpy.types.Operator, ImportHelper, IOHelperOrientation):
         return import_x3d.load(self, context, **keywords)
 
 
-class ExportX3D(bpy.types.Operator, ExportHelper, IOHelperOrientation):
+class ExportX3D(bpy.types.Operator, ExportHelper, OrientationHelper):
     """Export selection to Extensible 3D file (.x3d)"""
     bl_idname = "export_scene.x3d"
     bl_label = 'Export X3D'

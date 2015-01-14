@@ -53,13 +53,13 @@ from bpy.props import (StringProperty,
 
 from bpy_extras.io_utils import (ImportHelper,
                                  ExportHelper,
-                                 IOHelperOrientation,
+                                 OrientationHelper,
                                  path_reference_mode,
                                  axis_conversion,
                                  )
 
 
-class ImportFBX(bpy.types.Operator, ImportHelper, IOHelperOrientation):
+class ImportFBX(bpy.types.Operator, ImportHelper, OrientationHelper):
     """Load a FBX file"""
     bl_idname = "import_scene.fbx"
     bl_label = "Import FBX"
@@ -200,7 +200,7 @@ class ImportFBX(bpy.types.Operator, ImportHelper, IOHelperOrientation):
         return import_fbx.load(self, context, **keywords)
 
 
-class ExportFBX(bpy.types.Operator, ExportHelper, IOHelperOrientation):
+class ExportFBX(bpy.types.Operator, ExportHelper, OrientationHelper):
     """Write a FBX file"""
     bl_idname = "export_scene.fbx"
     bl_label = "Export FBX"

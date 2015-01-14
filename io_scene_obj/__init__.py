@@ -48,13 +48,13 @@ from bpy.props import (BoolProperty,
                        )
 from bpy_extras.io_utils import (ImportHelper,
                                  ExportHelper,
-                                 IOHelperOrientation,
+                                 OrientationHelper,
                                  path_reference_mode,
                                  axis_conversion,
                                  )
 
 
-class ImportOBJ(bpy.types.Operator, ImportHelper, IOHelperOrientation):
+class ImportOBJ(bpy.types.Operator, ImportHelper, OrientationHelper):
     """Load a Wavefront OBJ File"""
     bl_idname = "import_scene.obj"
     bl_label = "Import OBJ"
@@ -177,7 +177,7 @@ class ImportOBJ(bpy.types.Operator, ImportHelper, IOHelperOrientation):
         layout.prop(self, "use_image_search")
 
 
-class ExportOBJ(bpy.types.Operator, ExportHelper, IOHelperOrientation):
+class ExportOBJ(bpy.types.Operator, ExportHelper, OrientationHelper):
     """Save a Wavefront OBJ File"""
 
     bl_idname = "export_scene.obj"

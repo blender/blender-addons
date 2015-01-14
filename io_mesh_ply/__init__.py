@@ -53,7 +53,7 @@ from bpy.props import (CollectionProperty,
                        )
 from bpy_extras.io_utils import (ImportHelper,
                                  ExportHelper,
-                                 IOHelperOrientation,
+                                 OrientationHelper,
                                  axis_conversion,
                                  )
 
@@ -88,7 +88,7 @@ class ImportPLY(bpy.types.Operator, ImportHelper):
         return {'FINISHED'}
 
 
-class ExportPLY(bpy.types.Operator, ExportHelper, IOHelperOrientation):
+class ExportPLY(bpy.types.Operator, ExportHelper, OrientationHelper):
     """Export a single object as a Stanford PLY with normals, """ \
     """colors and texture coordinates"""
     bl_idname = "export_mesh.ply"
