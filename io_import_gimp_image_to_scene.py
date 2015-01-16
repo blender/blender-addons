@@ -19,8 +19,8 @@
 bl_info = {
     "name": "Import GIMP Image to Scene (.xcf/.xjt)",
     "author": "Daniel Salazar (ZanQdo)",
-    "version": (2, 0, 0),
-    "blender": (2, 57, 0),
+    "version": (2, 0, 1),
+    "blender": (2, 73, 0),
     "location": "File > Import > GIMP Image to Scene(.xcf/.xjt)",
     "description": "Imports GIMP multilayer image files as a series of multiple planes",
     "warning": "XCF import requires xcftools installed",
@@ -33,7 +33,7 @@ bl_info = {
 This script imports GIMP layered image files into 3D Scenes (.xcf, .xjt)
 """
 
-def main(File, Path, LayerViewers, MixerViewers, LayerOffset,
+def main(report, File, Path, LayerViewers, MixerViewers, LayerOffset,
          LayerScale, OpacityMode, AlphaMode, ShadelessMats,
          SetCamera, SetupCompo, GroupUntagged, Ext):
     
@@ -157,13 +157,19 @@ def main(File, Path, LayerViewers, MixerViewers, LayerOffset,
         XCF2PNG = 'xcf2png'
         #-------------------------------------------------
         # INFO XCF
-        
-        CMD = '%s %s%s' % (XCFInfo, Path, File)
-        
-        Info = os.popen(CMD)
-        
+
+        try:
+            Info = subprocess.check_output((XCFInfo, Path+File))
+        except FileNotFoundError as e:
+            if XCFInfo in str(e):
+                report({'ERROR'}, "Please install xcftools, xcfinfo seems to be missing (%s)" % str(e))
+                return False
+            else:
+                raise e
+
+        Info = Info.decode()
         IMGs = []
-        for Line in Info.readlines():
+        for Line in Info.split('\n'):
             if Line.startswith ('+'):
                 
                 Line = Line.split(' ', 4)
@@ -207,13 +213,13 @@ def main(File, Path, LayerViewers, MixerViewers, LayerOffset,
         #-------------------------------------------------
         # EXTRACT XCF
         if OpacityMode == 'BAKE':
-            Opacity = ''
+            Opacity = ()
         else:
-            Opacity = ' --percent 100'
+            Opacity = ("--percent", "100")
+        xcf_path = Path + File
         for Layer in IMGs:
-            CMD = ('%s -C %s%s -o %s%s.png "%s"%s' %
-            (XCF2PNG, Path, File, PathSave, Layer['LayerName'].replace(' ', '_'), Layer['LayerName'], Opacity))
-            os.system(CMD)
+            png_path = "%s%s.png" % (PathSave, Layer['LayerName'].replace(' ', '_'))
+            subprocess.call((XCF2PNG, "-C", xcf_path, "-o", png_path, Layer['LayerName']) + Opacity)
     
     #-------------------------------------------------
     Scene = bpy.context.scene
@@ -532,8 +538,10 @@ def main(File, Path, LayerViewers, MixerViewers, LayerOffset,
             i.location[0] += -250*Offset
             i.location[1] += 150*Offset
 
+    return True
+
 #------------------------------------------------------------------------
-import os
+import os, subprocess
 import bpy
 from bpy.props import *
 from math import pi
@@ -646,11 +654,14 @@ class GIMPImageToScene(bpy.types.Operator):
         
         # Call Main Function
         if Ext:
-            main(filename, directory, LayerViewers, MixerViewers, LayerOffset,
-                 LayerScale, OpacityMode, AlphaMode, ShadelessMats,
-                 SetCamera, SetupCompo, GroupUntagged, Ext)
+            ret = main(self.report, filename, directory, LayerViewers, MixerViewers, LayerOffset,
+                       LayerScale, OpacityMode, AlphaMode, ShadelessMats,
+                       SetCamera, SetupCompo, GroupUntagged, Ext)
+            if not ret:
+                return {'CANCELLED'}
         else:
             self.report({'ERROR'},"Selected file wasn't valid, try .xcf or .xjt")
+            return {'CANCELLED'}
         
         return {'FINISHED'}
 
