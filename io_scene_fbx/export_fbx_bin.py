@@ -950,10 +950,7 @@ def fbx_data_mesh_elements(root, me_obj, scene_data, done_meshes):
         # NOTE: this is not supported by importer currently.
         # XXX Official docs says normals should use IndexToDirect,
         #     but this does not seem well supported by apps currently...
-        if me.use_auto_smooth:
-            me.calc_normals_split(split_angle=me.auto_smooth_angle)
-        else:
-            me.calc_normals_split()
+        me.calc_normals_split()
 
         t_ln = array.array(data_types.ARRAY_FLOAT64, (0.0,)) * len(me.loops) * 3
         me.loops.foreach_get("normal", t_ln)
