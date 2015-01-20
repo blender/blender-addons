@@ -18,7 +18,7 @@
 
 # <pep8 compliant>
 
-from math import sqrt, radians, floor, ceil
+from math import sqrt, radians
 import bpy
 import time
 from mathutils import Vector, Matrix
@@ -106,13 +106,6 @@ class dataPoint:
         self.index = index
         self.co = co
         self.u = u
-
-
-# Helper to convert from a sampled fcurve back to editable keyframes one.
-def make_editable_fcurves(fcurves):
-    for fc in fcurves:
-        if fc.sampled_points:
-            fc.convert_to_keyframes(floor(fc.sampled_points[0].co[0]), ceil(fc.sampled_points[-1].co[0]) + 1)
 
 
 #Cross Correlation Function
@@ -240,6 +233,7 @@ def autoloop_anim():
 #         group_mode - boolean, indicating wether we should place bezier keyframes on the same x (frame), or optimize each individual curve.
 #OUT: None. Deletes the existing curves and creates the new beziers.
 def simplifyCurves(curveGroup, error, reparaError, maxIterations, group_mode):
+
     #Calculates the unit tangent of point v
     def unitTangent(v, data_pts):
         tang = NdVector((0, 0, 0, 0, 0))
@@ -422,17 +416,26 @@ def simplifyCurves(curveGroup, error, reparaError, maxIterations, group_mode):
 
     #Create data_pts, a list of dataPoint type, each is assigned index i, and an NdVector
     def createDataPts(curveGroup, group_mode):
-        make_editable_fcurves(curveGroup if group_mode else (curveGroup,))
-
+        data_pts = []
         if group_mode:
             print([x.data_path for x in curveGroup])
-            comp_cos = (0,) * (4 - len(curveGroup))  # We need to add that number of null cos to get our 5D vector.
-            kframes = sorted(set(kf.co.x for fc in curveGroup for kf in fc.keyframe_points))
-            data_pts = [dataPoint(i, NdVector((fra,) + tuple(fc.evaluate(fra) for fc in curveGroup) + comp_cos))
-                        for i, fra in enumerate(kframes)]
+            for i in range(len(curveGroup[0].keyframe_points)):
+                x = curveGroup[0].keyframe_points[i].co.x
+                y1 = curveGroup[0].evaluate(i)
+                y2 = curveGroup[1].evaluate(i)
+                y3 = curveGroup[2].evaluate(i)
+                y4 = 0
+                if len(curveGroup) == 4:
+                    y4 = curveGroup[3].evaluate(i)
+                data_pts.append(dataPoint(i, NdVector((x, y1, y2, y3, y4))))
         else:
-            data_pts = [dataPoint(i, NdVector((kf.co.x, kf.co.y, 0, 0, 0)))
-                        for i, kf in enumerate(curveGroup.keyframe_points)]
+            for i in range(len(curveGroup.keyframe_points)):
+                x = curveGroup.keyframe_points[i].co.x
+                y1 = curveGroup.keyframe_points[i].co.y
+                y2 = 0
+                y3 = 0
+                y4 = 0
+                data_pts.append(dataPoint(i, NdVector((x, y1, y2, y3, y4))))
         return data_pts
 
     #Recursively fit cubic beziers to the data_pts between s and e
@@ -457,8 +460,8 @@ def simplifyCurves(curveGroup, error, reparaError, maxIterations, group_mode):
                 else:
                     bez = fitSingleCubic(data_pts, s, e)
 
-            #recalculate max error and point where it occurs
-            maxError, maxErrorPt = maxErrorAmount(data_pts, bez, s, e)
+        #recalculate max error and point where it occurs
+        maxError, maxErrorPt = maxErrorAmount(data_pts, bez, s, e)
 
         #repara wasn't enough, we need 2 beziers for this range.
         #Split the bezier at point of maximum error
@@ -476,43 +479,36 @@ def simplifyCurves(curveGroup, error, reparaError, maxIterations, group_mode):
         if group_mode:
             for fcurve in curveGroup:
                 for i in range(len(fcurve.keyframe_points) - 1, 0, -1):
-                    fcurve.keyframe_points.remove(fcurve.keyframe_points[i], fast=True)
+                    fcurve.keyframe_points.remove(fcurve.keyframe_points[i])
         else:
             fcurve = curveGroup
             for i in range(len(fcurve.keyframe_points) - 1, 0, -1):
-                fcurve.keyframe_points.remove(fcurve.keyframe_points[i], fast=True)
+                fcurve.keyframe_points.remove(fcurve.keyframe_points[i])
 
-        #insert the calculated beziers to blender data.
+        #insert the calculated beziers to blender data.\
         if group_mode:
             for fullbez in beziers:
                 for i, fcurve in enumerate(curveGroup):
                     bez = [Vector((vec[0], vec[i + 1])) for vec in fullbez]
-                    newKey = fcurve.keyframe_points.insert(frame=bez[0].x, value=bez[0].y, options={'FAST'})
+                    newKey = fcurve.keyframe_points.insert(frame=bez[0].x, value=bez[0].y)
                     newKey.handle_right = (bez[1].x, bez[1].y)
 
-                    newKey = fcurve.keyframe_points.insert(frame=bez[3].x, value=bez[3].y, options={'FAST'})
+                    newKey = fcurve.keyframe_points.insert(frame=bez[3].x, value=bez[3].y)
                     newKey.handle_left = (bez[2].x, bez[2].y)
         else:
             for bez in beziers:
                 for vec in bez:
                     vec.resize_2d()
-                newKey = fcurve.keyframe_points.insert(frame=bez[0].x, value=bez[0].y, options={'FAST'})
+                newKey = fcurve.keyframe_points.insert(frame=bez[0].x, value=bez[0].y)
                 newKey.handle_right = (bez[1].x, bez[1].y)
 
-                newKey = fcurve.keyframe_points.insert(frame=bez[3].x, value=bez[3].y, options={'FAST'})
+                newKey = fcurve.keyframe_points.insert(frame=bez[3].x, value=bez[3].y)
                 newKey.handle_left = (bez[2].x, bez[2].y)
-
-        # We used fast remove/insert, time to update the curves!
-        for fcurve in (curveGroup if group_mode else (curveGroup,)):
-            fcurve.update()
 
     # indices are detached from data point's frame (x) value and
     # stored in the dataPoint object, represent a range
 
     data_pts = createDataPts(curveGroup, group_mode)
-
-    if not data_pts:
-        return
 
     s = 0  # start
     e = len(data_pts) - 1  # end
@@ -521,7 +517,6 @@ def simplifyCurves(curveGroup, error, reparaError, maxIterations, group_mode):
 
     #begin the recursive fitting algorithm.
     fitCubic(data_pts, s, e)
-
     #remove old Fcurves and insert the new ones
     createNewCurves(curveGroup, beziers, group_mode)
 
@@ -612,8 +607,6 @@ def denoise(obj, fcurves):
     Implementation of non-linear blur filter.
     Finds spikes in the fcurve, and replaces spikes that are too big with the average of the surrounding keyframes.
     """
-    make_editable_fcurves(fcurves)
-
     for fcurve in fcurves:
         org_pts = fcurve.keyframe_points[:]
 

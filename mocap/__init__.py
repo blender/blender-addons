@@ -21,8 +21,8 @@
 bl_info = {
     "name": "Motion Capture Tools",
     "author": "Benjy Cook",
-    "blender": (2, 73, 0),
-    "version": (1, 1, 1),
+    "blender": (2, 72, 0),
+    "version": (1, 0, 1),
     "location": "Object UI > Mocap tools",
     "description": "Various tools for working with motion capture animation",
     "warning": "",
