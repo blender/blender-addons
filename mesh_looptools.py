@@ -2815,7 +2815,7 @@ def gstretch_match_loops_strokes(loops, strokes, object, bm_mod):
 
     # calculate loop centers
     loop_centers = []
-    bm_mod.verts.ensure_lookup_table() # to work in 2.73 
+    bm_mod.verts.ensure_lookup_table()
     for loop in loops:
         center = mathutils.Vector()
         for v_index in loop[0]:
