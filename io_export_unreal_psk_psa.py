@@ -2415,7 +2415,7 @@ def udkupdateobjects():
                 count += 1
 
 class OBJECT_OT_UDKObjUpdate(bpy.types.Operator):
-    """This will update the filter of the mesh and armature."""
+    """This will update the filter of the mesh and armature"""
     bl_idname = "object.selobjectpdate"
     bl_label = "Update Object(s)"
 
