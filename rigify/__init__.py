@@ -32,12 +32,12 @@ bl_info = {
 
 
 if "bpy" in locals():
-    import imp
-    imp.reload(generate)
-    imp.reload(ui)
-    imp.reload(utils)
-    imp.reload(metarig_menu)
-    imp.reload(rig_lists)
+    import importlib
+    importlib.reload(generate)
+    importlib.reload(ui)
+    importlib.reload(utils)
+    importlib.reload(metarig_menu)
+    importlib.reload(rig_lists)
 else:
     from . import utils, rig_lists, generate, ui, metarig_menu
 

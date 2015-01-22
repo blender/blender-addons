@@ -32,7 +32,7 @@ bl_info = {
 
 
 if "bpy" in locals():
-    import imp
+    import importlib
 else:
     from . import geom
     from . import model

@@ -33,10 +33,10 @@ bl_info = {
 
 
 if "bpy" in locals():
-    import imp
-    imp.reload(operator)
-    imp.reload(panel)
-    imp.reload(translations)
+    import importlib
+    importlib.reload(operator)
+    importlib.reload(panel)
+    importlib.reload(translations)
 
 else:
     from . import operator, panel, translations

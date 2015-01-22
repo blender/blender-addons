@@ -31,11 +31,11 @@ bl_info = {
     "category": "Import-Export"}
 
 if "bpy" in locals():
-    import imp
+    import importlib
     if "import_bvh" in locals():
-        imp.reload(import_bvh)
+        importlib.reload(import_bvh)
     if "export_bvh" in locals():
-        imp.reload(export_bvh)
+        importlib.reload(export_bvh)
 
 import bpy
 from bpy.props import (StringProperty,

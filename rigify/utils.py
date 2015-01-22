@@ -19,7 +19,7 @@
 # <pep8 compliant>
 
 import bpy
-import imp
+import importlib
 import importlib
 import math
 import random
@@ -647,7 +647,7 @@ def get_rig_type(rig_type):
     """
     name = ".%s.%s" % (RIG_DIR, rig_type)
     submod = importlib.import_module(name, package=MODULE_NAME)
-    imp.reload(submod)
+    importlib.reload(submod)
     return submod
 
 
@@ -656,7 +656,7 @@ def get_metarig_module(metarig_name):
     """
     name = ".%s.%s" % (METARIG_DIR, metarig_name)
     submod = importlib.import_module(name, package=MODULE_NAME)
-    imp.reload(submod)
+    importlib.reload(submod)
     return submod
 
 

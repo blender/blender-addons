@@ -31,11 +31,11 @@ bl_info = {
     "category": "Import-Export"}
 
 if "bpy" in locals():
-    import imp
+    import importlib
     if "import_x3d" in locals():
-        imp.reload(import_x3d)
+        importlib.reload(import_x3d)
     if "export_x3d" in locals():
-        imp.reload(export_x3d)
+        importlib.reload(export_x3d)
 
 import bpy
 from bpy.props import StringProperty, BoolProperty, EnumProperty, FloatProperty

@@ -31,9 +31,9 @@ bl_info = {
     "category": "Import-Export"}
 
 if "bpy" in locals():
-    import imp
+    import importlib
     if "export_vrml2" in locals():
-        imp.reload(export_vrml2)
+        importlib.reload(export_vrml2)
 
 
 import os

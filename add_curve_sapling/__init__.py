@@ -33,8 +33,8 @@ bl_info = {
 
 
 if "bpy" in locals():
-    import imp
-    imp.reload(utils)
+    import importlib
+    importlib.reload(utils)
 else:
     from add_curve_sapling import utils
 

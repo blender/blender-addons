@@ -33,13 +33,13 @@ bl_info = {
 }
 
 if "bpy" in locals():
-    import imp
+    import importlib
     if "mocap_constraints" in locals():
-        imp.reload(mocap_constraints)
+        importlib.reload(mocap_constraints)
     if "retarget" in locals():
-        imp.reload(retarget)
+        importlib.reload(retarget)
     if "mocap_tools" in locals():
-        imp.reload(mocap_tools)
+        importlib.reload(mocap_tools)
 else:
     import bpy
     from bpy.props import (BoolProperty,

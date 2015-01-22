@@ -46,8 +46,8 @@ bl_info = {
 
 
 if "bpy" in locals():
-    import imp
-    imp.reload(import_img)
+    import importlib
+    importlib.reload(import_img)
 else:
     from . import import_img
 

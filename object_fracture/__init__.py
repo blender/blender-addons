@@ -30,9 +30,9 @@ bl_info = {
 
 
 if "bpy" in locals():
-    import imp
-    imp.reload(fracture_ops)
-    imp.reload(fracture_setup)
+    import importlib
+    importlib.reload(fracture_ops)
+    importlib.reload(fracture_setup)
 else:
     from . import fracture_ops
     from . import fracture_setup

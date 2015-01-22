@@ -32,10 +32,10 @@ bl_info = {
 }
 
 if "bpy" in locals():
-    import imp
-    imp.reload(ui)
-    imp.reload(render)
-    imp.reload(update_files)
+    import importlib
+    importlib.reload(ui)
+    importlib.reload(render)
+    importlib.reload(update_files)
 
 else:
     import bpy

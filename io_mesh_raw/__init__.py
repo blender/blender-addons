@@ -33,11 +33,11 @@ bl_info = {
 }
 
 if "bpy" in locals():
-    import imp
+    import importlib
     if "import_raw" in locals():
-        imp.reload(import_raw)
+        importlib.reload(import_raw)
     if "export_raw" in locals():
-        imp.reload(export_raw)
+        importlib.reload(export_raw)
 else:
     import bpy
 

@@ -36,11 +36,11 @@ bl_info = {
 # To support reload properly, try to access a package var,
 # if it's there, reload everything
 if "bpy" in locals():
-    import imp
+    import importlib
     if "export_ply" in locals():
-        imp.reload(export_ply)
+        importlib.reload(export_ply)
     if "import_ply" in locals():
-        imp.reload(import_ply)
+        importlib.reload(import_ply)
 
 
 import os

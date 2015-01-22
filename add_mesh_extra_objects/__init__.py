@@ -32,20 +32,20 @@ bl_info = {
 }
 
 if "bpy" in locals():
-    import imp
-    imp.reload(add_mesh_extra_objects)
-    imp.reload(add_mesh_twisted_torus)
-    imp.reload(add_mesh_gemstones)
-    imp.reload(add_mesh_gears)
-    imp.reload(add_mesh_3d_function_surface)
-    imp.reload(add_mesh_polysphere)
-    imp.reload(add_mesh_supertoroid)
-    imp.reload(add_mesh_pyramid)
-    imp.reload(add_mesh_torusknot)
-    imp.reload(add_mesh_honeycomb)
-    imp.reload(add_mesh_teapot)
-    imp.reload(add_mesh_pipe_joint)
-    imp.reload(add_mesh_solid)
+    import importlib
+    importlib.reload(add_mesh_extra_objects)
+    importlib.reload(add_mesh_twisted_torus)
+    importlib.reload(add_mesh_gemstones)
+    importlib.reload(add_mesh_gears)
+    importlib.reload(add_mesh_3d_function_surface)
+    importlib.reload(add_mesh_polysphere)
+    importlib.reload(add_mesh_supertoroid)
+    importlib.reload(add_mesh_pyramid)
+    importlib.reload(add_mesh_torusknot)
+    importlib.reload(add_mesh_honeycomb)
+    importlib.reload(add_mesh_teapot)
+    importlib.reload(add_mesh_pipe_joint)
+    importlib.reload(add_mesh_solid)
 
 else:
     from . import add_mesh_extra_objects

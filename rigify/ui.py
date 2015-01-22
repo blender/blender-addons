@@ -277,8 +277,8 @@ class Generate(bpy.types.Operator):
     bl_options = {'UNDO'}
 
     def execute(self, context):
-        import imp
-        imp.reload(generate)
+        import importlib
+        importlib.reload(generate)
 
         use_global_undo = context.user_preferences.edit.use_global_undo
         context.user_preferences.edit.use_global_undo = False

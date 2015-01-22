@@ -31,11 +31,11 @@ bl_info = {
     "category": "Import-Export"}
 
 if "bpy" in locals():
-    import imp
+    import importlib
     if "import_mdd" in locals():
-        imp.reload(import_mdd)
+        importlib.reload(import_mdd)
     if "export_mdd" in locals():
-        imp.reload(export_mdd)
+        importlib.reload(export_mdd)
 
 
 import bpy

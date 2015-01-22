@@ -19,12 +19,12 @@
 # <pep8 compliant>
 
 import bpy
-import imp
+import importlib
 from . import fk, ik, deform
 
-imp.reload(fk)
-imp.reload(ik)
-imp.reload(deform)
+importlib.reload(fk)
+importlib.reload(ik)
+importlib.reload(deform)
 
 script = """
 fk_leg = ["%s", "%s", "%s", "%s"]

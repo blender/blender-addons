@@ -33,9 +33,9 @@ bl_info = {
 
 
 if "bpy" in locals():
-    import imp
-    imp.reload(utils)
-    imp.reload(draw)
+    import importlib
+    importlib.reload(utils)
+    importlib.reload(draw)
 else:
     from . import utils, draw
 

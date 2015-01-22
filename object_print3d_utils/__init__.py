@@ -32,9 +32,9 @@ bl_info = {
 
 
 if "bpy" in locals():
-    import imp
-    imp.reload(ui)
-    imp.reload(operators)
+    import importlib
+    importlib.reload(ui)
+    importlib.reload(operators)
 else:
     import bpy
     from bpy.props import (StringProperty,

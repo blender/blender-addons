@@ -30,8 +30,8 @@ bl_info = {
 
 
 if "bpy" in locals():
-    import imp
-    imp.reload(Boltfactory)
+    import importlib
+    importlib.reload(Boltfactory)
 else:
     from add_mesh_BoltFactory import Boltfactory
 

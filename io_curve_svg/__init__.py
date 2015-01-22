@@ -35,9 +35,9 @@ bl_info = {
 # To support reload properly, try to access a package var,
 # if it's there, reload everything
 if "bpy" in locals():
-    import imp
+    import importlib
     if "import_svg" in locals():
-        imp.reload(import_svg)
+        importlib.reload(import_svg)
 
 
 import bpy

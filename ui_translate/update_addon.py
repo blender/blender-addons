@@ -19,10 +19,10 @@
 # <pep8 compliant>
 
 if "bpy" in locals():
-    import imp
-    imp.reload(settings)
-    imp.reload(utils_i18n)
-    imp.reload(bl_extract_messages)
+    import importlib
+    importlib.reload(settings)
+    importlib.reload(utils_i18n)
+    importlib.reload(bl_extract_messages)
 else:
     import bpy
     from bpy.props import (BoolProperty,

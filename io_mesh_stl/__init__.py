@@ -48,11 +48,11 @@ Import:
 """
 
 if "bpy" in locals():
-    import imp
+    import importlib
     if "stl_utils" in locals():
-        imp.reload(stl_utils)
+        importlib.reload(stl_utils)
     if "blender_utils" in locals():
-        imp.reload(blender_utils)
+        importlib.reload(blender_utils)
 
 import os
 

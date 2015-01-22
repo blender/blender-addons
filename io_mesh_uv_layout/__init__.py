@@ -36,13 +36,13 @@ bl_info = {
 # @todo write the wiki page
 
 if "bpy" in locals():
-    import imp
+    import importlib
     if "export_uv_eps" in locals():
-        imp.reload(export_uv_eps)
+        importlib.reload(export_uv_eps)
     if "export_uv_png" in locals():
-        imp.reload(export_uv_png)
+        importlib.reload(export_uv_png)
     if "export_uv_svg" in locals():
-        imp.reload(export_uv_svg)
+        importlib.reload(export_uv_svg)
 
 import bpy
 

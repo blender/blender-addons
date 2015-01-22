@@ -48,9 +48,9 @@ bl_info = {
 # To support reload properly, try to access a package var,
 # if it's there, reload everything
 if 'bpy' in locals():
-    import imp
+    import importlib
     if 'io_scene_ms3d.ms3d_ui' in locals():
-        imp.reload(io_scene_ms3d.ms3d_ui)
+        importlib.reload(io_scene_ms3d.ms3d_ui)
 else:
     from io_scene_ms3d.ms3d_ui import (
             Ms3dImportOperator,
@@ -74,8 +74,8 @@ from bpy.types import (
 def register():
     ####################
     # F8 - key
-    import imp
-    imp.reload(ms3d_ui)
+    import importlib
+    importlib.reload(ms3d_ui)
     # F8 - key
     ####################
 

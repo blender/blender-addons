@@ -35,11 +35,11 @@ bl_info = {
 # To support reload properly, try to access a package var,
 # if it's there, reload everything
 if "bpy" in locals():
-    import imp
+    import importlib
     if "import_nuke_chan" in locals():
-        imp.reload(import_nuke_chan)
+        importlib.reload(import_nuke_chan)
     if "export_nuke_chan" in locals():
-        imp.reload(export_nuke_chan)
+        importlib.reload(export_nuke_chan)
 
 
 import bpy

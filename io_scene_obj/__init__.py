@@ -33,11 +33,11 @@ bl_info = {
     "category": "Import-Export"}
 
 if "bpy" in locals():
-    import imp
+    import importlib
     if "import_obj" in locals():
-        imp.reload(import_obj)
+        importlib.reload(import_obj)
     if "export_obj" in locals():
-        imp.reload(export_obj)
+        importlib.reload(export_obj)
 
 
 import bpy

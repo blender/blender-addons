@@ -31,10 +31,10 @@ bl_info = {
     "category": "Add Curve"}
 
 if "bpy" in locals():
-    import imp
-    imp.reload(add_curve_aceous_galore)
-    imp.reload(add_curve_spirals)
-    imp.reload(add_curve_torus_knots)
+    import importlib
+    importlib.reload(add_curve_aceous_galore)
+    importlib.reload(add_curve_spirals)
+    importlib.reload(add_curve_torus_knots)
 
 else:
     from . import add_curve_aceous_galore

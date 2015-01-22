@@ -32,8 +32,8 @@ bl_info = {
 
 
 if "bpy" in locals():
-    import imp
-    imp.reload(light_field_tools)
+    import importlib
+    importlib.reload(light_field_tools)
 else:
     from . import light_field_tools
 

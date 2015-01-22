@@ -1,5 +1,5 @@
 import bpy
-import imp
+import importlib
 import importlib
 from   ...utils import create_widget
 
