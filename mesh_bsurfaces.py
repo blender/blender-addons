@@ -2861,6 +2861,8 @@ class GPENCIL_OT_SURFSK_add_surface(bpy.types.Operator):
 
 
     def execute(self, context):
+        self.initial_global_undo_state = bpy.context.user_preferences.edit.use_global_undo
+
         bpy.context.user_preferences.edit.use_global_undo = False
 
         if not self.is_fill_faces:
@@ -2935,7 +2937,7 @@ class GPENCIL_OT_SURFSK_add_surface(bpy.types.Operator):
             bpy.ops.object.editmode_toggle('INVOKE_REGION_WIN')
 
 
-            bpy.context.user_preferences.edit.use_global_undo = self.initial_global_undo_state
+        bpy.context.user_preferences.edit.use_global_undo = self.initial_global_undo_state
 
         return{'FINISHED'}
 
@@ -3200,6 +3202,8 @@ class GPENCIL_OT_SURFSK_add_surface(bpy.types.Operator):
 
             bpy.ops.object.editmode_toggle('INVOKE_REGION_WIN')
 
+            bpy.context.user_preferences.edit.use_global_undo = self.initial_global_undo_state
+
             if created_faces_count == 0:
                 self.report({'WARNING'}, "There aren't any strokes.")
                 return {"CANCELLED"}
@@ -3207,9 +3211,9 @@ class GPENCIL_OT_SURFSK_add_surface(bpy.types.Operator):
                 return {"FINISHED"}
 
 
+        bpy.context.user_preferences.edit.use_global_undo = self.initial_global_undo_state
 
-
-        elif self.strokes_type == "EXTERNAL_NO_CURVE":
+        if self.strokes_type == "EXTERNAL_NO_CURVE":
             self.report({'WARNING'}, "The secondary object is not a Curve.")
             return{"CANCELLED"}
 
