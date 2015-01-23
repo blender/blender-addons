@@ -41,32 +41,6 @@ import mathutils
 
 from bpy_extras.io_utils import create_derived_objects, free_derived_objects
 
-x3d_names_reserved = {'Anchor', 'Appearance', 'Arc2D', 'ArcClose2D', 'AudioClip', 'Background', 'Billboard',
-                      'BooleanFilter', 'BooleanSequencer', 'BooleanToggle', 'BooleanTrigger', 'Box', 'Circle2D',
-                      'Collision', 'Color', 'ColorInterpolator', 'ColorRGBA', 'component', 'Cone', 'connect',
-                      'Contour2D', 'ContourPolyline2D', 'Coordinate', 'CoordinateDouble', 'CoordinateInterpolator',
-                      'CoordinateInterpolator2D', 'Cylinder', 'CylinderSensor', 'DirectionalLight', 'Disk2D',
-                      'ElevationGrid', 'EspduTransform', 'EXPORT', 'ExternProtoDeclare', 'Extrusion', 'field',
-                      'fieldValue', 'FillProperties', 'Fog', 'FontStyle', 'GeoCoordinate', 'GeoElevationGrid',
-                      'GeoLocationLocation', 'GeoLOD', 'GeoMetadata', 'GeoOrigin', 'GeoPositionInterpolator',
-                      'GeoTouchSensor', 'GeoViewpoint', 'Group', 'HAnimDisplacer', 'HAnimHumanoid', 'HAnimJoint',
-                      'HAnimSegment', 'HAnimSite', 'head', 'ImageTexture', 'IMPORT', 'IndexedFaceSet',
-                      'IndexedLineSet', 'IndexedTriangleFanSet', 'IndexedTriangleSet', 'IndexedTriangleStripSet',
-                      'Inline', 'IntegerSequencer', 'IntegerTrigger', 'IS', 'KeySensor', 'LineProperties', 'LineSet',
-                      'LoadSensor', 'LOD', 'Material', 'meta', 'MetadataDouble', 'MetadataFloat', 'MetadataInteger',
-                      'MetadataSet', 'MetadataString', 'MovieTexture', 'MultiTexture', 'MultiTextureCoordinate',
-                      'MultiTextureTransform', 'NavigationInfo', 'Normal', 'NormalInterpolator', 'NurbsCurve',
-                      'NurbsCurve2D', 'NurbsOrientationInterpolator', 'NurbsPatchSurface',
-                      'NurbsPositionInterpolator', 'NurbsSet', 'NurbsSurfaceInterpolator', 'NurbsSweptSurface',
-                      'NurbsSwungSurface', 'NurbsTextureCoordinate', 'NurbsTrimmedSurface', 'OrientationInterpolator',
-                      'PixelTexture', 'PlaneSensor', 'PointLight', 'PointSet', 'Polyline2D', 'Polypoint2D',
-                      'PositionInterpolator', 'PositionInterpolator2D', 'ProtoBody', 'ProtoDeclare', 'ProtoInstance',
-                      'ProtoInterface', 'ProximitySensor', 'ReceiverPdu', 'Rectangle2D', 'ROUTE', 'ScalarInterpolator',
-                      'Scene', 'Script', 'Shape', 'SignalPdu', 'Sound', 'Sphere', 'SphereSensor', 'SpotLight', 'StaticGroup',
-                      'StringSensor', 'Switch', 'Text', 'TextureBackground', 'TextureCoordinate', 'TextureCoordinateGenerator',
-                      'TextureTransform', 'TimeSensor', 'TimeTrigger', 'TouchSensor', 'Transform', 'TransmitterPdu',
-                      'TriangleFanSet', 'TriangleSet', 'TriangleSet2D', 'TriangleStripSet', 'Viewpoint', 'VisibilitySensor',
-                      'WorldInfo', 'X3D', 'XvlShell', 'VertexShader', 'FragmentShader', 'MultiShaderAppearance', 'ShaderAppearance'}
 
 # h3d defines
 H3D_TOP_LEVEL = 'TOP_LEVEL_TI'
@@ -101,54 +75,55 @@ def clean_def(txt):
     # no digit start
     if txt[0] in "1234567890+-":
         txt = "_" + txt
-    return txt.translate({  # control characters 0x0-0x1f
-                            # 0x00: "_",
-                          0x01: "_",
-                          0x02: "_",
-                          0x03: "_",
-                          0x04: "_",
-                          0x05: "_",
-                          0x06: "_",
-                          0x07: "_",
-                          0x08: "_",
-                          0x09: "_",
-                          0x0a: "_",
-                          0x0b: "_",
-                          0x0c: "_",
-                          0x0d: "_",
-                          0x0e: "_",
-                          0x0f: "_",
-                          0x10: "_",
-                          0x11: "_",
-                          0x12: "_",
-                          0x13: "_",
-                          0x14: "_",
-                          0x15: "_",
-                          0x16: "_",
-                          0x17: "_",
-                          0x18: "_",
-                          0x19: "_",
-                          0x1a: "_",
-                          0x1b: "_",
-                          0x1c: "_",
-                          0x1d: "_",
-                          0x1e: "_",
-                          0x1f: "_",
+    return txt.translate({
+        # control characters 0x0-0x1f
+        # 0x00: "_",
+        0x01: "_",
+        0x02: "_",
+        0x03: "_",
+        0x04: "_",
+        0x05: "_",
+        0x06: "_",
+        0x07: "_",
+        0x08: "_",
+        0x09: "_",
+        0x0a: "_",
+        0x0b: "_",
+        0x0c: "_",
+        0x0d: "_",
+        0x0e: "_",
+        0x0f: "_",
+        0x10: "_",
+        0x11: "_",
+        0x12: "_",
+        0x13: "_",
+        0x14: "_",
+        0x15: "_",
+        0x16: "_",
+        0x17: "_",
+        0x18: "_",
+        0x19: "_",
+        0x1a: "_",
+        0x1b: "_",
+        0x1c: "_",
+        0x1d: "_",
+        0x1e: "_",
+        0x1f: "_",
 
-                          0x7f: "_",  # 127
+        0x7f: "_",  # 127
 
-                          0x20: "_",  # space
-                          0x22: "_",  # "
-                          0x27: "_",  # '
-                          0x23: "_",  # #
-                          0x2c: "_",  # ,
-                          0x2e: "_",  # .
-                          0x5b: "_",  # [
-                          0x5d: "_",  # ]
-                          0x5c: "_",  # \
-                          0x7b: "_",  # {
-                          0x7d: "_",  # }
-                          })
+        0x20: "_",  # space
+        0x22: "_",  # "
+        0x27: "_",  # '
+        0x23: "_",  # #
+        0x2c: "_",  # ,
+        0x2e: "_",  # .
+        0x5b: "_",  # [
+        0x5d: "_",  # ]
+        0x5c: "_",  # \
+        0x7b: "_",  # {
+        0x7d: "_",  # }
+        })
 
 
 def build_hierarchy(objects):
