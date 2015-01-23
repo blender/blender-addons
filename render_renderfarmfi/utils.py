@@ -16,7 +16,7 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-import importlib
+import imp
 
 from os.path import join
 
@@ -37,12 +37,12 @@ def _read_credentials():
 
     pwfile = bpy.utils.user_resource('CONFIG', 'rffi', True)
     try:
-        pwmod = implib.find_module('rffi_credentials',[pwfile])
+        pwmod = imp.find_module('rffi_credentials',[pwfile])
     except ImportError:
         _write_credentials('', '')
-        pwmod = implib.find_module('rffi_credentials',[pwfile])
+        pwmod = imp.find_module('rffi_credentials',[pwfile])
     try:
-        user_creds = implib.load_module('rffi_credentials', pwmod[0], pwmod[1], pwmod[2])
+        user_creds = imp.load_module('rffi_credentials', pwmod[0], pwmod[1], pwmod[2])
         bpy.rffi_user = user_creds.user
         bpy.rffi_hash = user_creds.hash
         bpy.rffi_creds_found = True
@@ -50,9 +50,9 @@ def _read_credentials():
         # doesn't exist yet, write template
         _write_credentials('', '')
         pwfile = bpy.utils.user_resource('CONFIG', 'rffi', True)
-        pwmod = implib.find_module('rffi_credentials',[pwfile])
+        pwmod = imp.find_module('rffi_credentials',[pwfile])
         try:
-            user_creds = implib.load_module('rffi_credentials', pwmod[0], pwmod[1], pwmod[2])
+            user_creds = imp.load_module('rffi_credentials', pwmod[0], pwmod[1], pwmod[2])
             bpy.rffi_user = user_creds.user
             bpy.rffi_hash = user_creds.hash
             bpy.rffi_creds_found = True

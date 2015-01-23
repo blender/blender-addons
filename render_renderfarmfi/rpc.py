@@ -17,7 +17,7 @@
 # ##### END GPL LICENSE BLOCK #####
 
 import xmlrpc.client
-import importlib
+import imp
 import time
 import bpy
 
@@ -31,9 +31,9 @@ def _is_dev():
     pwfile = bpy.utils.user_resource('CONFIG', 'rffi', True)
     pwmod = None
     try:
-        pwmod = implib.find_module('rffi_dev',[pwfile])
+        pwmod = imp.find_module('rffi_dev',[pwfile])
         try:
-            user_creds = implib.load_module('rffi_dev', pwmod[0], pwmod[1], pwmod[2])
+            user_creds = imp.load_module('rffi_dev', pwmod[0], pwmod[1], pwmod[2])
             if 'dev' in dir(user_creds) and user_creds.dev:
                 is_dev = True
         except ImportError:
@@ -52,9 +52,9 @@ def _be_verbose():
     pwfile = bpy.utils.user_resource('CONFIG', 'rffi', True)
     pwmod = None
     try:
-        pwmod = implib.find_module('rffi_dev',[pwfile])
+        pwmod = imp.find_module('rffi_dev',[pwfile])
         try:
-            user_creds = implib.load_module('rffi_dev', pwmod[0], pwmod[1], pwmod[2])
+            user_creds = imp.load_module('rffi_dev', pwmod[0], pwmod[1], pwmod[2])
             if 'verbose' in dir(user_creds) and user_creds.verbose:
                 be_verbose = True
         except ImportError:
