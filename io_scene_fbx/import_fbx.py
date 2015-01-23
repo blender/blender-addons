@@ -814,7 +814,7 @@ def blen_read_geom_array_mapped_polygon(
             #~ assert(fbx_layer_index is not None)
             if fbx_layer_index is None:
                 blen_read_geom_array_setattr(blen_read_geom_array_gen_direct(fbx_layer_data, stride),
-                                            blen_data, blen_attr, fbx_layer_data, stride, item_size, descr, xform)
+                                             blen_data, blen_attr, fbx_layer_data, stride, item_size, descr, xform)
             else:
                 blen_read_geom_array_setattr(blen_read_geom_array_gen_indextodirect(fbx_layer_index, stride),
                                              blen_data, blen_attr, fbx_layer_data, stride, item_size, descr, xform)
@@ -846,8 +846,18 @@ def blen_read_geom_array_mapped_polyloop(
         ):
     if fbx_layer_mapping == b'ByPolygonVertex':
         if fbx_layer_ref == b'IndexToDirect':
-            assert(fbx_layer_index is not None)
-            blen_read_geom_array_setattr(blen_read_geom_array_gen_indextodirect(fbx_layer_index, stride),
+            # XXX Looks like we often get no fbx_layer_index in this case, shall not happen but happens...
+            #     We fallback to 'Direct' mapping in this case.
+            #~ assert(fbx_layer_index is not None)
+            if fbx_layer_index is None:
+                blen_read_geom_array_setattr(blen_read_geom_array_gen_direct(fbx_layer_data, stride),
+                                             blen_data, blen_attr, fbx_layer_data, stride, item_size, descr, xform)
+            else:
+                blen_read_geom_array_setattr(blen_read_geom_array_gen_indextodirect(fbx_layer_index, stride),
+                                             blen_data, blen_attr, fbx_layer_data, stride, item_size, descr, xform)
+            return True
+        elif fbx_layer_ref == b'Direct':
+            blen_read_geom_array_setattr(blen_read_geom_array_gen_direct(fbx_layer_data, stride),
                                          blen_data, blen_attr, fbx_layer_data, stride, item_size, descr, xform)
             return True
         blen_read_geom_array_error_ref(descr, fbx_layer_ref)
@@ -1013,16 +1023,15 @@ def blen_read_geom_layer_normal(fbx_obj, mesh, xform=None):
 
     layer_id = b'Normals'
     fbx_layer_data = elem_prop_first(elem_find_first(fbx_layer, layer_id))
+    fbx_layer_index = elem_prop_first(elem_find_first(fbx_layer, b'NormalsIndex'))
 
-    blen_data = mesh.vertices
-
-    return blen_read_geom_array_mapped_vert(
-        mesh, blen_data, "normal",
-        fbx_layer_data, None,
-        fbx_layer_mapping, fbx_layer_ref,
-        3, 3, layer_id,
-        xform
-        )
+    # try loops, then vertices.
+    tries = ((mesh.loops, blen_read_geom_array_mapped_polyloop),
+             (mesh.vertices, blen_read_geom_array_mapped_vert))
+    for blen_data, func in tries:
+        if func(mesh, blen_data, "normal",
+                fbx_layer_data, fbx_layer_index, fbx_layer_mapping, fbx_layer_ref, 3, 3, layer_id, xform):
+            return True
 
 
 def blen_read_geom(fbx_tmpl, fbx_obj, settings):
@@ -1117,6 +1126,9 @@ def blen_read_geom(fbx_tmpl, fbx_obj, settings):
     # must be after edge, face loading.
     ok_smooth = blen_read_geom_layer_smooth(fbx_obj, mesh)
 
+    # Note: we store 'temp' normals in loops, since validate() may alter final mesh,
+    #       we can only set custom lnors *after* calling it.
+    mesh.create_normals_split()
     if geom_mat_no is None:
         ok_normals = blen_read_geom_layer_normal(fbx_obj, mesh)
     else:
@@ -1124,14 +1136,26 @@ def blen_read_geom(fbx_tmpl, fbx_obj, settings):
             return geom_mat_no * Vector(v)
         ok_normals = blen_read_geom_layer_normal(fbx_obj, mesh, nortrans)
 
-    mesh.validate()
+    mesh.validate(cleanup_cddata=False)  # *Very* important to not remove lnors here!
 
-    if not ok_normals:
+    if ok_normals:
+        clnors = array.array('f', [0.0] * (len(mesh.loops) * 3))
+        mesh.loops.foreach_get("normal", clnors)
+
+        if not ok_smooth:
+            mesh.polygons.foreach_set("use_smooth", [True] * len(mesh.polygons))
+            ok_smooth = True
+
+        mesh.normals_split_custom_set(tuple(zip(*(iter(clnors),) * 3)))
+        mesh.use_auto_smooth = True
+        mesh.show_edge_sharp = True
+    else:
         mesh.calc_normals()
 
+    mesh.free_normals_split()
+
     if not ok_smooth:
-        for p in mesh.polygons:
-            p.use_smooth = True
+        mesh.polygons.foreach_set("use_smooth", [True] * len(mesh.polygons))
 
     if settings.use_custom_props:
         blen_read_custom_properties(fbx_obj, mesh, settings)
