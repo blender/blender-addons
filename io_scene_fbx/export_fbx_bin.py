@@ -2182,7 +2182,7 @@ def fbx_data_from_scene(scene, settings):
         if check_skip_material(mat):
             continue
         for tex, use_tex in zip(mat.texture_slots, mat.use_textures):
-            if tex is None or not use_tex:
+            if tex is None or tex.texture is None or not use_tex:
                 continue
             # For now, only consider image textures.
             # Note FBX does has support for procedural, but this is not portable at all (opaque blob),
