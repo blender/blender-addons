@@ -545,6 +545,8 @@ class Do:
         """
         for v in en.vertices:
             bm.verts.new(v.location)
+
+        bm.verts.ensure_lookup_table()
         for subface in en:
             idx = subface.indices()
             points = []
@@ -585,6 +587,7 @@ class Do:
             bm.verts.new(v)
 
         # edges:
+        bm.verts.ensure_lookup_table()
         if any((c < 0 for c in en.edge_crease_list)):
             layerkey = bm.edges.layers.crease.new("SubsurfCrease")
             for i, edge in enumerate(en.edges):
