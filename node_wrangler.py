@@ -19,7 +19,7 @@
 bl_info = {
     "name": "Node Wrangler",
     "author": "Bartek Skorupa, Greg Zaal, Sebastian Koenig",
-    "version": (3, 21),
+    "version": (3, 22),
     "blender": (2, 72, 0),
     "location": "Node Editor Toolbar or Ctrl-Space",
     "description": "Various tools to enhance and speed up node-based workflow",
@@ -1491,13 +1491,15 @@ class NWEmissionViewer(Operator, NWBase):
     @classmethod
     def poll(cls, context):
         is_cycles = context.scene.render.engine == 'CYCLES'
-        valid = False
         if nw_check(context):
             space = context.space_data
-            if space.tree_type == 'ShaderNodeTree' and is_cycles and\
-                (context.active_node.type != "OUTPUT_MATERIAL" or context.active_node.type != "OUTPUT_WORLD"):
-                valid = True
-        return valid
+            if space.tree_type == 'ShaderNodeTree' and is_cycles:
+                if context.active_node:
+                    if context.active_node.type != "OUTPUT_MATERIAL" or context.active_node.type != "OUTPUT_WORLD":
+                        return True
+                else:
+                    return True
+        return False
 
     def invoke(self, context, event):
         shader_type = context.space_data.shader_type
@@ -1527,28 +1529,32 @@ class NWEmissionViewer(Operator, NWBase):
                             break
             if valid:
                 # get material_output node, store selection, deselect all
-                materialout_exists = False
                 materialout = None  # placeholder node
                 selection = []
                 for node in nodes:
                     if node.type == shader_output_type:
-                        materialout_exists = True
                         materialout = node
                     if node.select:
                         selection.append(node.name)
                     node.select = False
                 if not materialout:
-                    materialout = nodes.new(shader_output_ident)
+                    # get right-most location
                     sorted_by_xloc = (sorted(nodes, key=lambda x: x.location.x))
                     max_xloc_node = sorted_by_xloc[-1]
                     if max_xloc_node.name == 'Emission Viewer':
                         max_xloc_node = sorted_by_xloc[-2]
-                    materialout.location.x = max_xloc_node.location.x + max_xloc_node.dimensions.x + 80
+
+                    # get average y location
                     sum_yloc = 0
                     for node in nodes:
                         sum_yloc += node.location.y
-                    # put material output at average y location
-                    materialout.location.y = sum_yloc / len(nodes)
+
+                    new_locx = max_xloc_node.location.x + max_xloc_node.dimensions.x + 80
+                    new_locy = sum_yloc / len(nodes)
+
+                    materialout = nodes.new(shader_output_ident)
+                    materialout.location.x = new_locx
+                    materialout.location.y = new_locy
                     materialout.select = False
                 # Analyze outputs, add "Emission Viewer" if needed, make links
                 out_i = None
