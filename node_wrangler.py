@@ -1502,11 +1502,18 @@ class NWEmissionViewer(Operator, NWBase):
         return False
 
     def invoke(self, context, event):
-        shader_type = context.space_data.shader_type
+        space = context.space_data
+        shader_type = space.shader_type
         if shader_type == 'OBJECT':
-            shader_output_type = "OUTPUT_MATERIAL"
-            shader_output_ident = "ShaderNodeOutputMaterial"
-            shader_viewer_ident = "ShaderNodeEmission"
+            if space.id not in [lamp for lamp in bpy.data.lamps]:  # cannot use bpy.data.lamps directly as iterable
+                shader_output_type = "OUTPUT_MATERIAL"
+                shader_output_ident = "ShaderNodeOutputMaterial"
+                shader_viewer_ident = "ShaderNodeEmission"
+            else:
+                shader_output_type = "OUTPUT_LAMP"
+                shader_output_ident = "ShaderNodeOutputLamp"
+                shader_viewer_ident = "ShaderNodeEmission"
+
         elif shader_type == 'WORLD':
             shader_output_type = "OUTPUT_WORLD"
             shader_output_ident = "ShaderNodeOutputWorld"
@@ -1517,7 +1524,7 @@ class NWEmissionViewer(Operator, NWBase):
         select_node = bpy.ops.node.select(mouse_x=mlocx, mouse_y=mlocy, extend=False)
         if 'FINISHED' in select_node:  # only run if mouse click is on a node
             nodes, links = get_nodes_links(context)
-            in_group = context.active_node != context.space_data.node_tree.nodes.active
+            in_group = context.active_node != space.node_tree.nodes.active
             active = nodes.active
             output_types = [x[1] for x in shaders_output_nodes_props]
             valid = False
