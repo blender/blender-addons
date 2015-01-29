@@ -2244,7 +2244,7 @@ def load(operator, context, filepath="",
                     fbx_sdata, bl_data = p_item = fbx_table_nodes.get(c_src, (None, None))
                     if fbx_sdata is None:
                         continue
-                    if fbx_sdata.id in {b'Material', b'Texture', b'Video'}:
+                    if fbx_sdata.id != b'Geometry':
                         continue
                     parent.bl_data = bl_data
                 else:
