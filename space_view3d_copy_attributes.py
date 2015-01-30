@@ -114,8 +114,9 @@ def rotcopy(item, mat):
     if item.rotation_mode == 'QUATERNION':
         item.rotation_quaternion = mat.to_3x3().to_quaternion()
     elif item.rotation_mode == 'AXIS_ANGLE':
-        quat = mat.to_3x3().to_quaternion()
-        item.rotation_axis_angle = quat.axis[:] + (quat.angle, )
+        rot = mat.to_3x3().to_quaternion().to_axis_angle()  # returns (Vector((x, y, z)), w)
+        axis_angle = rot[1], rot[0][0], rot[0][1], rot[0][2]  # convert to w, x, y, z
+        item.rotation_axis_angle = axis_angle
     else:
         item.rotation_euler = mat.to_3x3().to_euler(item.rotation_mode)
 
