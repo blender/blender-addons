@@ -604,7 +604,8 @@ def hack_force_update(context, nodes):
 
 
 def dpifac():
-    return bpy.context.user_preferences.system.dpi/72
+    retinafac = (2 if bpy.context.user_preferences.system.virtual_pixel_mode == 'DOUBLE' else 1)
+    return bpy.context.user_preferences.system.dpi/(72/retinafac)
 
 
 def is_end_node(node):
