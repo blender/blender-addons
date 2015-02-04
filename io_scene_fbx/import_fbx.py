@@ -85,7 +85,7 @@ def elem_find_first_bytes(elem, id_search, decode=True):
     fbx_item = elem_find_first(elem, id_search)
     if fbx_item is not None:
         assert(len(fbx_item.props) == 1)
-        assert(fbx_item.props_type[0] == data_types.STRING)
+        assert(fbx_item.props_type[0] == data_types.BYTES)
         return fbx_item.props[0]
     return None
 
@@ -677,8 +677,8 @@ def blen_read_animations(fbx_tmpl_astack, fbx_tmpl_alayer, stacks, scene):
 def blen_read_geom_layerinfo(fbx_layer):
     return (
         elem_find_first_string(fbx_layer, b'Name'),
-        elem_find_first_bytes(fbx_layer, b'MappingInformationType'),
-        elem_find_first_bytes(fbx_layer, b'ReferenceInformationType'),
+        elem_find_first_string(fbx_layer, b'MappingInformationType'),
+        elem_find_first_string(fbx_layer, b'ReferenceInformationType'),
         )
 
 
@@ -2244,7 +2244,7 @@ def load(operator, context, filepath="",
                     fbx_sdata, bl_data = p_item = fbx_table_nodes.get(c_src, (None, None))
                     if fbx_sdata is None:
                         continue
-                    if fbx_sdata.id != b'Geometry':
+                    if fbx_sdata.id not in {b'Geometry', b'NodeAttribute'}:
                         continue
                     parent.bl_data = bl_data
                 else:

@@ -2612,7 +2612,7 @@ def fbx_definitions_elements(root, scene_data):
 
 def fbx_objects_elements(root, scene_data):
     """
-    Data (objects, geometry, material, textures, armatures, etc.
+    Data (objects, geometry, material, textures, armatures, etc.).
     """
     objects = elem_empty(root, b"Objects")
 
