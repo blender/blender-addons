@@ -81,6 +81,15 @@ def elem_find_first_string(elem, id_search):
     return None
 
 
+def elem_find_first_string_as_bytes(elem, id_search):
+    fbx_item = elem_find_first(elem, id_search)
+    if fbx_item is not None:
+        assert(len(fbx_item.props) == 1)
+        assert(fbx_item.props_type[0] == data_types.STRING)
+        return fbx_item.props[0]  # Keep it as bytes as requested...
+    return None
+
+
 def elem_find_first_bytes(elem, id_search, decode=True):
     fbx_item = elem_find_first(elem, id_search)
     if fbx_item is not None:
@@ -684,8 +693,8 @@ def blen_read_animations(fbx_tmpl_astack, fbx_tmpl_alayer, stacks, scene):
 def blen_read_geom_layerinfo(fbx_layer):
     return (
         elem_find_first_string(fbx_layer, b'Name'),
-        elem_find_first_string(fbx_layer, b'MappingInformationType'),
-        elem_find_first_string(fbx_layer, b'ReferenceInformationType'),
+        elem_find_first_string_as_bytes(fbx_layer, b'MappingInformationType'),
+        elem_find_first_string_as_bytes(fbx_layer, b'ReferenceInformationType'),
         )
 
 
@@ -706,6 +715,10 @@ def blen_read_geom_array_setattr(generator, blen_data, blen_attr, fbx_data, stri
 
 
 # generic generators.
+def blen_read_geom_array_gen_allsame(data_len):
+    return zip(*(range(data_len), (0,) * data_len))
+
+
 def blen_read_geom_array_gen_direct(fbx_data, stride):
     fbx_data_len = len(fbx_data)
     return zip(*(range(fbx_data_len // stride), range(0, fbx_data_len, stride)))
@@ -748,6 +761,13 @@ def blen_read_geom_array_mapped_vert(
                                          blen_data, blen_attr, fbx_layer_data, stride, item_size, descr, xform)
             return True
         blen_read_geom_array_error_ref(descr, fbx_layer_ref)
+    elif fbx_layer_mapping == b'AllSame':
+        if fbx_layer_ref == b'IndexToDirect':
+            assert(fbx_layer_index is None)
+            blen_read_geom_array_setattr(blen_read_geom_array_gen_allsame(len(blen_data)),
+                                         blen_data, blen_attr, fbx_layer_data, stride, item_size, descr, xform)
+            return True
+        blen_read_geom_array_error_ref(descr, fbx_layer_ref)
     else:
         blen_read_geom_array_error_mapping(descr, fbx_layer_mapping)
 
@@ -764,6 +784,13 @@ def blen_read_geom_array_mapped_edge(
     if fbx_layer_mapping == b'ByEdge':
         if fbx_layer_ref == b'Direct':
             blen_read_geom_array_setattr(blen_read_geom_array_gen_direct(fbx_layer_data, stride),
+                                         blen_data, blen_attr, fbx_layer_data, stride, item_size, descr, xform)
+            return True
+        blen_read_geom_array_error_ref(descr, fbx_layer_ref)
+    elif fbx_layer_mapping == b'AllSame':
+        if fbx_layer_ref == b'IndexToDirect':
+            assert(fbx_layer_index is None)
+            blen_read_geom_array_setattr(blen_read_geom_array_gen_allsame(len(blen_data)),
                                          blen_data, blen_attr, fbx_layer_data, stride, item_size, descr, xform)
             return True
         blen_read_geom_array_error_ref(descr, fbx_layer_ref)
@@ -797,6 +824,13 @@ def blen_read_geom_array_mapped_polygon(
                                          blen_data, blen_attr, fbx_layer_data, stride, item_size, descr, xform)
             return True
         blen_read_geom_array_error_ref(descr, fbx_layer_ref)
+    elif fbx_layer_mapping == b'AllSame':
+        if fbx_layer_ref == b'IndexToDirect':
+            assert(fbx_layer_index is None)
+            blen_read_geom_array_setattr(blen_read_geom_array_gen_allsame(len(blen_data)),
+                                         blen_data, blen_attr, fbx_layer_data, stride, item_size, descr, xform)
+            return True
+        blen_read_geom_array_error_ref(descr, fbx_layer_ref)
     else:
         blen_read_geom_array_error_mapping(descr, fbx_layer_mapping)
 
@@ -824,6 +858,13 @@ def blen_read_geom_array_mapped_polyloop(
                                          blen_data, blen_attr, fbx_layer_data, stride, item_size, descr, xform)
             return True
         blen_read_geom_array_error_ref(descr, fbx_layer_ref)
+    elif fbx_layer_mapping == b'AllSame':
+        if fbx_layer_ref == b'IndexToDirect':
+            assert(fbx_layer_index is None)
+            blen_read_geom_array_setattr(blen_read_geom_array_gen_allsame(len(blen_data)),
+                                         blen_data, blen_attr, fbx_layer_data, stride, item_size, descr, xform)
+            return True
+        blen_read_geom_array_error_ref(descr, fbx_layer_ref)
     else:
         blen_read_geom_array_error_mapping(descr, fbx_layer_mapping)
 
@@ -840,10 +881,6 @@ def blen_read_geom_layer_material(fbx_obj, mesh):
      fbx_layer_mapping,
      fbx_layer_ref,
      ) = blen_read_geom_layerinfo(fbx_layer)
-
-    if fbx_layer_mapping == b'AllSame':
-        # only to quiet warning
-        return
 
     layer_id = b'Materials'
     fbx_layer_data = elem_prop_first(elem_find_first(fbx_layer, layer_id))
@@ -1234,7 +1271,6 @@ def blen_read_texture_image(fbx_tmpl, fbx_obj, basedir, settings):
     data = elem_find_first_bytes(fbx_obj, b'Content')
     if (data):
         data_len = len(data)
-        print(data_len)
         if (data_len):
             image.pack(data=data, data_len=data_len)
 
