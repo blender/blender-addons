@@ -113,6 +113,13 @@ def elem_name_ensure_class(elem, clss=...):
     return elem_name.decode('utf-8')
 
 
+def elem_name_ensure_classes(elem, clss=...):
+    elem_name, elem_class = elem_split_name_class(elem)
+    if clss is not ...:
+        assert(elem_class in clss)
+    return elem_name.decode('utf-8')
+
+
 def elem_split_name_class_nodeattr(elem):
     assert(elem.props_type[-2] == data_types.STRING)
     elem_name, elem_class = elem.props[-2].split(b'\x00\x01')
@@ -1195,21 +1202,22 @@ def blen_read_material(fbx_tmpl, fbx_obj, settings):
 
 
 # -------
-# Texture
+# Image & Texture
 
-def blen_read_texture(fbx_tmpl, fbx_obj, basedir, settings):
+def blen_read_texture_image(fbx_tmpl, fbx_obj, basedir, settings):
     import os
     from bpy_extras import image_utils
 
-    elem_name_utf8 = elem_name_ensure_class(fbx_obj, b'Texture')
+    elem_name_utf8 = elem_name_ensure_classes(fbx_obj, {b'Texture', b'Video'})
 
     image_cache = settings.image_cache
 
-    filepath = elem_find_first_string(fbx_obj, b'FileName')
-    if os.sep == '/':
-        filepath = filepath.replace('\\', '/')
+    filepath = elem_find_first_string(fbx_obj, b'RelativeFileName')
+    if filepath:
+        filepath = os.path.join(basedir, filepath)
     else:
-        filepath = filepath.replace('/', '\\')
+        filepath = elem_find_first_string(fbx_obj, b'FileName')
+    filepath = filepath.replace('\\', '/') if (os.sep == '/') else filepath.replace('/', '\\')
 
     image = image_cache.get(filepath)
     if image is not None:
@@ -1221,6 +1229,14 @@ def blen_read_texture(fbx_tmpl, fbx_obj, basedir, settings):
         place_holder=True,
         recursive=settings.use_image_search,
         )
+
+    # Try to use embedded data, if available!
+    data = elem_find_first_bytes(fbx_obj, b'Content')
+    if (data):
+        data_len = len(data)
+        print(data_len)
+        if (data_len):
+            image.pack(data=data, data_len=data_len)
 
     image_cache[filepath] = image
     # name can be ../a/b/c
@@ -2145,15 +2161,24 @@ def load(operator, context, filepath="",
     _(); del _
 
     # ----
-    # Load image data
+    # Load image & textures data
     def _():
-        fbx_tmpl = fbx_template_get((b'Texture', b'KFbxFileTexture'))
+        fbx_tmpl_tex = fbx_template_get((b'Texture', b'KFbxFileTexture'))
+        fbx_tmpl_img = fbx_template_get((b'Video', b'KFbxVideo'))
 
+        # Important to run all 'Video' ones first, embedded images are stored in those nodes.
+        # XXX Note we simplify things here, assuming both matching Video and Texture will use same file path,
+        #     this may be a bit weak, if issue arise we'll fallback to plain connection stuff...
+        for fbx_uuid, fbx_item in fbx_table_nodes.items():
+            fbx_obj, blen_data = fbx_item
+            if fbx_obj.id != b'Video':
+                continue
+            fbx_item[1] = blen_read_texture_image(fbx_tmpl_img, fbx_obj, basedir, settings)
         for fbx_uuid, fbx_item in fbx_table_nodes.items():
             fbx_obj, blen_data = fbx_item
             if fbx_obj.id != b'Texture':
                 continue
-            fbx_item[1] = blen_read_texture(fbx_tmpl, fbx_obj, basedir, settings)
+            fbx_item[1] = blen_read_texture_image(fbx_tmpl_tex, fbx_obj, basedir, settings)
     _(); del _
 
     # ----
