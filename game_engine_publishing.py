@@ -31,7 +31,7 @@ bl_info = {
     "version": (0, 1, 0),
     "blender": (2, 72, 0),
     "location": "Render Properties > Publishing Info",
-    "description": "",
+    "description": "Publish .blend file as game engine runtime, manage versions and platforms",
     "warning": "beta",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts/Game_Engine/Publishing",
     "category": "Game Engine",
