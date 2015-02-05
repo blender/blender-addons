@@ -154,24 +154,30 @@ class RenderPovSettingsScene(PropertyGroup):
     antialias_method = EnumProperty(
             name="Method",
             description="AA-sampling method. Type 1 is an adaptive, non-recursive, super-sampling "
-                        "method. Type 2 is an adaptive and recursive super-sampling method",
+                        "method. Type 2 is an adaptive and recursive super-sampling method. "
+                        "Type 3 is a stochastic halton based super-sampling method",
             items=(("0", "non-recursive AA", "Type 1 Sampling in POV-Ray"),
-                   ("1", "recursive AA", "Type 2 Sampling in POV-Ray")),
+                   ("1", "recursive AA", "Type 2 Sampling in POV-Ray"),
+                   ("2", "stochastic AA", "Type 3 Sampling in UberPOV")),
             default="1")
-
+    antialias_confidence = FloatProperty(
+            name="Antialias Confidence", description="how surely the computed color "
+                                                     "of a given pixel is indeed"
+                                                     "within the threshold error margin.",
+            min=0.0001, max=1.0000, default=0.9900, precision=4)
     antialias_depth = IntProperty(
             name="Antialias Depth", description="Depth of pixel for sampling",
             min=1, max=9, default=3)
 
     antialias_threshold = FloatProperty(
             name="Antialias Threshold", description="Tolerance for sub-pixels",
-            min=0.0, max=1.0, soft_min=0.05, soft_max=0.5, default=0.1)
+            min=0.0, max=1.0, soft_min=0.05, soft_max=0.5, default=0.03)
 
     jitter_enable = BoolProperty(
             name="Jitter",
             description="Enable Jittering. Adds noise into the sampling process (it should be "
                         "avoided to use jitter in animation)",
-            default=True)
+            default=False)
 
     jitter_amount = FloatProperty(
             name="Jitter Amount", description="Amount of jittering",
@@ -921,29 +927,29 @@ class RenderPovSettingsCamera(PropertyGroup):
             description="Similar to a real camera's aperture effect over focal blur (though not "
                         "in physical units and independant of focal length). "
                         "Increase to get more blur",
-            min=0.01, max=1.00, default=0.25)
+            min=0.01, max=1.00, default=0.50)
 
     # Aperture adaptive sampling
     dof_samples_min = IntProperty(
             name="Samples Min", description="Minimum number of rays to use for each pixel",
-            min=1, max=128, default=96)
+            min=1, max=128, default=3)
 
     dof_samples_max = IntProperty(
             name="Samples Max", description="Maximum number of rays to use for each pixel",
-            min=1, max=128, default=128)
+            min=1, max=128, default=9)
 
     dof_variance = IntProperty(
             name="Variance",
             description="Minimum threshold (fractional value) for adaptive DOF sampling (up "
                         "increases quality and render time). The value for the variance should "
                         "be in the range of the smallest displayable color difference",
-            min=1, max=100000, soft_max=10000, default=256)
+            min=1, max=100000, soft_max=10000, default=8192)
 
     dof_confidence = FloatProperty(
             name="Confidence",
             description="Probability to reach the real color value. Larger confidence values "
                         "will lead to more samples, slower traces and better images",
-            min=0.01, max=0.99, default=0.90)
+            min=0.01, max=0.99, default=0.20)
 
     ##################################CustomPOV Code############################
     # Only DUMMIES below for now:
@@ -970,13 +976,21 @@ class RenderPovSettingsText(PropertyGroup):
 class PovrayPreferences(AddonPreferences):
     bl_idname = __name__
 
+    branch_feature_set_povray = EnumProperty(
+                name="Feature Set",
+                description="Choose between official (POV-Ray) or (UberPOV) development branch features to write in the pov file",
+                items= (('povray', 'Official POV-Ray', '','PLUGIN', 0), ('uberpov', 'Unofficial UberPOV', '', 'PLUGIN', 1)),
+                default='povray'
+                )
+    
     filepath_povray = StringProperty(
-                name="Povray Location",
+                name="Binary Location",
                 description="Path to renderer executable",
                 subtype='FILE_PATH',
                 )
     def draw(self, context):
         layout = self.layout
+        layout.prop(self, "branch_feature_set_povray")
         layout.prop(self, "filepath_povray")
 
     

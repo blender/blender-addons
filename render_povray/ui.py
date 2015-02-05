@@ -269,7 +269,9 @@ class RENDER_PT_povray_antialias(RenderButtonsPanel, bpy.types.Panel):
 
     def draw_header(self, context):
         scene = context.scene
-        if scene.pov.antialias_enable:
+        if bpy.context.user_preferences.addons[__package__].preferences.branch_feature_set_povray != 'uberpov' and scene.pov.antialias_method =='2':
+            self.layout.prop(scene.pov, "antialias_enable", text="", icon='ERROR')
+        elif scene.pov.antialias_enable:
             self.layout.prop(scene.pov, "antialias_enable", text="", icon='ANTIALIASED')
         else:
             self.layout.prop(scene.pov, "antialias_enable", text="", icon='ALIASED')
@@ -281,23 +283,41 @@ class RENDER_PT_povray_antialias(RenderButtonsPanel, bpy.types.Panel):
 
         layout.active = scene.pov.antialias_enable
 
+
         row = layout.row()
         row.prop(scene.pov, "antialias_method", text="")
-        row.prop(scene.pov, "jitter_enable", text="Jitter")
-
-        split = layout.split()
-        col = split.column()
-        col.prop(scene.pov, "antialias_depth", text="AA Depth")
-        sub = split.column()
-        sub.prop(scene.pov, "jitter_amount", text="Jitter Amount")
-        if scene.pov.jitter_enable:
-            sub.enabled = True
+        if bpy.context.user_preferences.addons[__package__].preferences.branch_feature_set_povray != 'uberpov' and scene.pov.antialias_method =='2':
+            col = layout.column()
+            col.alignment = 'CENTER'
+            col.label(text="Stochastic Anti Aliasing is")
+            col.label(text="Only Available with UberPOV")
+            col.label(text="Feature Set in User Preferences.")
+            col.label(text="Using Type 2 (recursive) instead")             
         else:
-            sub.enabled = False
+            row.prop(scene.pov, "jitter_enable", text="Jitter")
 
-        row = layout.row()
-        row.prop(scene.pov, "antialias_threshold", text="AA Threshold")
-        row.prop(scene.pov, "antialias_gamma", text="AA Gamma")
+            split = layout.split()
+            col = split.column()
+            col.prop(scene.pov, "antialias_depth", text="AA Depth")
+            sub = split.column()
+            sub.prop(scene.pov, "jitter_amount", text="Jitter Amount")
+            if scene.pov.jitter_enable:
+                sub.enabled = True
+            else:
+                sub.enabled = False
+
+            row = layout.row()
+            row.prop(scene.pov, "antialias_threshold", text="AA Threshold")
+            row.prop(scene.pov, "antialias_gamma", text="AA Gamma")
+
+            if bpy.context.user_preferences.addons[__package__].preferences.branch_feature_set_povray == 'uberpov':
+                row = layout.row()
+                row.prop(scene.pov, "antialias_confidence", text="AA Confidence")
+                if scene.pov.antialias_method =='2':
+                    row.enabled = True
+                else:
+                    row.enabled = False
+
 
 
 class RENDER_PT_povray_radiosity(RenderButtonsPanel, bpy.types.Panel):

@@ -82,10 +82,40 @@ def imgMap(ts):
     return image_map
 
 
+def imgMapTransforms(ts):
+    # XXX TODO: unchecked textures give error of variable referenced before assignment XXX
+    # POV-Ray "scale" is not a number of repetitions factor, but ,its
+    # inverse, a standard scale factor.
+    # 0.5 Offset is needed relatively to scale because center of the
+    # scale is 0.5,0.5 in blender and 0,0 in POV
+    image_map_transforms = ""
+    image_map_transforms = ("scale <%.4g,%.4g,%.4g> translate <%.4g,%.4g,%.4g>" % \
+                  ( 1.0 / ts.scale.x,
+                  1.0 / ts.scale.y,
+                  1.0 / ts.scale.z,
+                  0.5-(0.5/ts.scale.x) - (ts.offset.x),
+                  0.5-(0.5/ts.scale.y) - (ts.offset.y),
+                  ts.offset.z))    
+    # image_map_transforms = (" translate <-0.5,-0.5,0.0> scale <%.4g,%.4g,%.4g> translate <%.4g,%.4g,%.4g>" % \
+                  # ( 1.0 / ts.scale.x,
+                  # 1.0 / ts.scale.y,
+                  # 1.0 / ts.scale.z,
+                  # (0.5 / ts.scale.x) + ts.offset.x,
+                  # (0.5 / ts.scale.y) + ts.offset.y,
+                  # ts.offset.z))
+    # image_map_transforms = ("translate <-0.5,-0.5,0> scale <-1,-1,1> * <%.4g,%.4g,%.4g> translate <0.5,0.5,0> + <%.4g,%.4g,%.4g>" % \
+                  # (1.0 / ts.scale.x, 
+                  # 1.0 / ts.scale.y,
+                  # 1.0 / ts.scale.z,
+                  # ts.offset.x,
+                  # ts.offset.y,
+                  # ts.offset.z))
+    return image_map_transforms
+
 def imgMapBG(wts):
     image_mapBG = ""
     # texture_coords refers to the mapping of world textures:
-    if wts.texture_coords == 'VIEW':
+    if wts.texture_coords == 'VIEW' or wts.texture_coords == 'GLOBAL':
         image_mapBG = " map_type 0 "
     elif wts.texture_coords == 'ANGMAP':
         image_mapBG = " map_type 1 "
@@ -104,8 +134,8 @@ def imgMapBG(wts):
     #if image_mapBG == "":
     #    print(" No background texture image  found ")
     return image_mapBG
-
-
+    
+    
 def path_image(image):
     return bpy.path.abspath(image.filepath, library=image.library)
 
@@ -153,7 +183,7 @@ def renderable_objects():
 
 tabLevel = 0
 unpacked_images=[]
- 
+
 def exportPattern(texture):
     tex=texture
     pat = tex.pov
@@ -639,8 +669,19 @@ def write_pov(filename, scene=None, info_callback=None):
     world = scene.world
     global_matrix = mathutils.Matrix.Rotation(-pi / 2.0, 4, 'X')
     comments = scene.pov.comments_enable and not scene.pov.tempfiles_enable
-    linebreaksinlists= scene.pov.list_lf_enable and not scene.pov.tempfiles_enable
+    linebreaksinlists = scene.pov.list_lf_enable and not scene.pov.tempfiles_enable
+    feature_set = bpy.context.user_preferences.addons[__package__].preferences.branch_feature_set_povray
+    using_uberpov = (feature_set=='uberpov')
+    pov_binary = PovrayRender._locate_binary()
 
+    if using_uberpov:
+        print("Unofficial UberPOV feature set chosen in preferences")
+    else:
+        print("Official POV-Ray 3.7 feature set chosen in preferences")
+    if 'uber' in pov_binary: 
+        print("probably rendering with Uber POV binary")
+    else:
+        print("probably rendering with standard POV binary")
     def setTab(tabtype, spaces):
         TabStr = ""
         if tabtype == 'NONE':
@@ -933,16 +974,22 @@ def write_pov(filename, scene=None, info_callback=None):
                         raytrace_mirror = material.raytrace_mirror
                         if raytrace_mirror.reflect_factor:
                             tabWrite("reflection {\n")
-                            tabWrite("rgb <%.3g, %.3g, %.3g>" % material.mirror_color[:])
+                            tabWrite("rgb <%.3g, %.3g, %.3g>\n" % material.mirror_color[:])                          
                             if material.pov.mirror_metallic:
-                                tabWrite("metallic %.3g" % (raytrace_mirror.reflect_factor))
+                                tabWrite("metallic %.3g\n" % (raytrace_mirror.reflect_factor))
+                            # Blurry reflections for UberPOV
+                            if using_uberpov and raytrace_mirror.gloss_factor < 1.0:
+                                #tabWrite("#ifdef(unofficial) #if(unofficial = \"patch\") #if(patch(\"upov-reflection-roughness\") > 0)\n")
+                                tabWrite("roughness %.3g\n" % \
+                                         (1.0/raytrace_mirror.gloss_factor))
+                                #tabWrite("#end #end #end\n") # This and previous comment for backward compatibility, messier pov code
                             if material.pov.mirror_use_IOR:  # WORKING ?
                                 # Removed from the line below: gives a more physically correct
                                 # material but needs proper IOR. --Maurice
                                 tabWrite("fresnel 1 ")
                             tabWrite("falloff %.3g exponent %.3g} " % \
                                      (raytrace_mirror.fresnel, raytrace_mirror.fresnel_factor))
-
+                                
                 if material.subsurface_scattering.use:
                     subsurface_scattering = material.subsurface_scattering
                     tabWrite("subsurface { translucency <%.3g, %.3g, %.3g> }\n" % (
@@ -2017,10 +2064,11 @@ def write_pov(filename, scene=None, info_callback=None):
                                             # inverse, a standard scale factor.
                                             # Offset seems needed relatively to scale so probably center of the
                                             # scale is not the same in blender and POV
-                                            mappingSpec = "translate <%.4g,%.4g,%.4g> scale <%.4g,%.4g,%.4g>\n" % \
-                                                          (-t_spec.offset.x, t_spec.offset.y, t_spec.offset.z,
-                                                           1.0 / t_spec.scale.x, 1.0 / t_spec.scale.y,
-                                                           1.0 / t_spec.scale.z)
+                                            mappingSpec =imgMapTransforms(t_spec)
+                                            # mappingSpec = "translate <%.4g,%.4g,%.4g> scale <%.4g,%.4g,%.4g>\n" % \
+                                                          # (-t_spec.offset.x, t_spec.offset.y, t_spec.offset.z,
+                                                           # 1.0 / t_spec.scale.x, 1.0 / t_spec.scale.y,
+                                                           # 1.0 / t_spec.scale.z)
                                             tabWrite("uv_mapping image_map{%s \"%s\" %s}\n" % \
                                                      (imageFormat(texturesSpec), texturesSpec, imgMap(t_spec)))
                                             tabWrite("%s\n" % mappingSpec)
@@ -2038,11 +2086,12 @@ def write_pov(filename, scene=None, info_callback=None):
                                                 # inverse, a standard scale factor.
                                                 # Offset seems needed relatively to scale so probably center of the
                                                 # scale is not the same in blender and POV
-                                                mappingAlpha = " translate <%.4g, %.4g, %.4g> " \
-                                                               "scale <%.4g, %.4g, %.4g>\n" % \
-                                                               (-t_alpha.offset.x, -t_alpha.offset.y,
-                                                                t_alpha.offset.z, 1.0 / t_alpha.scale.x,
-                                                                1.0 / t_alpha.scale.y, 1.0 / t_alpha.scale.z)
+                                                mappingAlpha = imgMapTransforms(t_alpha)
+                                                # mappingAlpha = " translate <%.4g, %.4g, %.4g> " \
+                                                               # "scale <%.4g, %.4g, %.4g>\n" % \
+                                                               # (-t_alpha.offset.x, -t_alpha.offset.y,
+                                                                # t_alpha.offset.z, 1.0 / t_alpha.scale.x,
+                                                                # 1.0 / t_alpha.scale.y, 1.0 / t_alpha.scale.z)
                                                 tabWrite("pigment {pigment_pattern {uv_mapping image_map" \
                                                          "{%s \"%s\" %s}%s" % \
                                                          (imageFormat(texturesAlpha), texturesAlpha,
@@ -2069,24 +2118,15 @@ def write_pov(filename, scene=None, info_callback=None):
                                             tabWrite("finish {%s}\n" % (safety(material_finish, Level=2)))
 
                                     else:
-                                        # POV-Ray "scale" is not a number of repetitions factor, but its
-                                        # inverse, a standard scale factor.
-                                        # Offset seems needed relatively to scale so probably center of the
-                                        # scale is not the same in blender and POV
-                                        mappingDif = ("translate <%.4g,%.4g,%.4g> scale <%.4g,%.4g,%.4g>" % \
-                                                      (-t_dif.offset.x, -t_dif.offset.y, t_dif.offset.z,
-                                                       1.0 / t_dif.scale.x, 1.0 / t_dif.scale.y,
-                                                       1.0 / t_dif.scale.z))
+                                        mappingDif = imgMapTransforms(t_dif)
+
                                         if texturesAlpha != "":
-                                            # POV-Ray "scale" is not a number of repetitions factor, but its
-                                            # inverse, a standard scale factor.
-                                            # Offset seems needed relatively to scale so probably center of the
-                                            # scale is not the same in blender and POV
-                                            mappingAlpha = " translate <%.4g,%.4g,%.4g> " \
-                                                           "scale <%.4g,%.4g,%.4g>" % \
-                                                           (-t_alpha.offset.x, -t_alpha.offset.y,
-                                                            t_alpha.offset.z, 1.0 / t_alpha.scale.x,
-                                                            1.0 / t_alpha.scale.y, 1.0 / t_alpha.scale.z)
+                                            mappingAlpha = imgMapTransforms(t_alpha)
+                                            # mappingAlpha = " translate <%.4g,%.4g,%.4g> " \
+                                                           # "scale <%.4g,%.4g,%.4g>" % \
+                                                           # (-t_alpha.offset.x, -t_alpha.offset.y,
+                                                            # t_alpha.offset.z, 1.0 / t_alpha.scale.x,
+                                                            # 1.0 / t_alpha.scale.y, 1.0 / t_alpha.scale.z)
                                             tabWrite("pigment {\n")
                                             tabWrite("pigment_pattern {\n")
                                             if texturesAlpha and texturesAlpha.startswith("PAT_"):
@@ -2141,10 +2181,11 @@ def write_pov(filename, scene=None, info_callback=None):
                                         # inverse, a standard scale factor.
                                         # Offset seems needed relatively to scale so probably center of the
                                         # scale is not the same in blender and POV
-                                        mappingNor = " translate <%.4g,%.4g,%.4g> scale <%.4g,%.4g,%.4g>" % \
-                                                     (-t_nor.offset.x, -t_nor.offset.y, t_nor.offset.z,
-                                                      1.0 / t_nor.scale.x, 1.0 / t_nor.scale.y,
-                                                      1.0 / t_nor.scale.z)
+                                        mappingNor =imgMapTransforms(t_nor)
+                                        # mappingNor = " translate <%.4g,%.4g,%.4g> scale <%.4g,%.4g,%.4g>" % \
+                                                     # (-t_nor.offset.x, -t_nor.offset.y, t_nor.offset.z,
+                                                      # 1.0 / t_nor.scale.x, 1.0 / t_nor.scale.y,
+                                                      # 1.0 / t_nor.scale.z)
                                         #imageMapNor = ("{bump_map {%s \"%s\" %s mapping}" % \
                                         #               (imageFormat(texturesNorm),texturesNorm,imgMap(t_nor)))
                                         #We were not using the above maybe we should?
@@ -2169,10 +2210,11 @@ def write_pov(filename, scene=None, info_callback=None):
                                         # Strange that the translation factor for scale is not the same as for
                                         # translate.
                                         # TODO: verify both matches with blender internal.
-                                        mappingAlpha = " translate <%.4g,%.4g,%.4g> scale <%.4g,%.4g,%.4g>\n" % \
-                                                       (-t_alpha.offset.x, -t_alpha.offset.y, t_alpha.offset.z,
-                                                        1.0 / t_alpha.scale.x, 1.0 / t_alpha.scale.y,
-                                                        1.0 / t_alpha.scale.z)
+                                        mappingAlpha = imgMapTransforms(t_alpha)
+                                        # mappingAlpha = " translate <%.4g,%.4g,%.4g> scale <%.4g,%.4g,%.4g>\n" % \
+                                                       # (-t_alpha.offset.x, -t_alpha.offset.y, t_alpha.offset.z,
+                                                        # 1.0 / t_alpha.scale.x, 1.0 / t_alpha.scale.y,
+                                                        # 1.0 / t_alpha.scale.z)
                                         if texturesAlpha and texturesAlpha.startswith("PAT_"):
                                             tabWrite("function{f%s(x,y,z).transmit}\n" %texturesAlpha) 
                                         else:
@@ -2205,24 +2247,23 @@ def write_pov(filename, scene=None, info_callback=None):
                                         tabWrite("finish {%s}\n" % (safety(material_finish, Level=2)))
 
                                 elif mater.pov.replacement_text == "":
-                                    # POV-Ray "scale" is not a number of repetitions factor, but its inverse,
-                                    # a standard scale factor.
-                                    # Offset seems needed relatively to scale so probably center of the scale is
-                                    # not the same in blender and POV
-                                    # Strange that the translation factor for scale is not the same as for
-                                    # translate.
-                                    # TODO: verify both matches with blender internal.
-                                    mappingDif = ("translate <%.4g,%.4g,%.4g> scale <%.4g,%.4g,%.4g>" % \
-                                                  (-t_dif.offset.x, -t_dif.offset.y, t_dif.offset.z,
-                                                   1.0 / t_dif.scale.x, 1.0 / t_dif.scale.y, 1.0 / t_dif.scale.z))
+                                    mappingDif = imgMapTransforms(t_dif)
+                                    # mappingDif = ("scale <%.4g,%.4g,%.4g> translate <%.4g,%.4g,%.4g>" % \
+                                                  # ( 1.0 / t_dif.scale.x, 
+                                                  # 1.0 / t_dif.scale.y,
+                                                  # 1.0 / t_dif.scale.z, 
+                                                  # 0.5-(0.5/t_dif.scale.x) + t_dif.offset.x,
+                                                  # 0.5-(0.5/t_dif.scale.y) + t_dif.offset.y,
+                                                  # 0.5-(0.5/t_dif.scale.z) + t_dif.offset.z))
                                     if texturesAlpha != "":
                                         # Strange that the translation factor for scale is not the same as for
                                         # translate.
                                         # TODO: verify both matches with blender internal.
-                                        mappingAlpha = "translate <%.4g,%.4g,%.4g> scale <%.4g,%.4g,%.4g>" % \
-                                                       (-t_alpha.offset.x, -t_alpha.offset.y, t_alpha.offset.z,
-                                                        1.0 / t_alpha.scale.x, 1.0 / t_alpha.scale.y,
-                                                        1.0 / t_alpha.scale.z)
+                                        mappingAlpha = imgMapTransforms(t_alpha)
+                                        # mappingAlpha = "translate <%.4g,%.4g,%.4g> scale <%.4g,%.4g,%.4g>" % \
+                                                       # (-t_alpha.offset.x, -t_alpha.offset.y, t_alpha.offset.z,
+                                                        # 1.0 / t_alpha.scale.x, 1.0 / t_alpha.scale.y,
+                                                        # 1.0 / t_alpha.scale.z)
                                         if texturesAlpha and texturesAlpha.startswith("PAT_"):
                                             tabWrite("pigment{pigment_pattern {function{f%s(x,y,z).transmit}}\n" %texturesAlpha)
                                         else:
@@ -2280,9 +2321,10 @@ def write_pov(filename, scene=None, info_callback=None):
                                     # a standard scale factor.
                                     # Offset seems needed relatively to scale so probably center of the scale is
                                     # not the same in blender and POV
-                                    mappingNor = (" translate <%.4g,%.4g,%.4g> scale <%.4g,%.4g,%.4g>" % \
-                                                  (-t_nor.offset.x, -t_nor.offset.y, t_nor.offset.z,
-                                                   1.0 / t_nor.scale.x, 1.0 / t_nor.scale.y, 1.0 / t_nor.scale.z))
+                                    mappingNor =imgMapTransforms(t_nor)
+                                    # mappingNor = (" translate <%.4g,%.4g,%.4g> scale <%.4g,%.4g,%.4g>" % \
+                                                  # (-t_nor.offset.x, -t_nor.offset.y, t_nor.offset.z,
+                                                   # 1.0 / t_nor.scale.x, 1.0 / t_nor.scale.y, 1.0 / t_nor.scale.z))
                                     #imageMapNor = ("{bump_map {%s \"%s\" %s mapping}" % \
                                     #               (imageFormat(texturesNorm),texturesNorm,imgMap(t_nor)))
                                     #We were not using the above maybe we should?
@@ -2612,11 +2654,21 @@ def write_pov(filename, scene=None, info_callback=None):
                     if t_blend.texture_coords == 'ANGMAP':
                         mappingBlend = ""
                     else:
-                        mappingBlend = " translate <%.4g-0.5,%.4g-0.5,%.4g-0.5> rotate<0,0,0>  " \
-                                       "scale <%.4g,%.4g,%.4g>" % \
-                                       (t_blend.offset.x / 10.0, t_blend.offset.y / 10.0,
-                                        t_blend.offset.z / 10.0, t_blend.scale.x * 0.85,
-                                        t_blend.scale.y * 0.85, t_blend.scale.z * 0.85)
+                        # POV-Ray "scale" is not a number of repetitions factor, but its
+                        # inverse, a standard scale factor.
+                        # 0.5 Offset is needed relatively to scale because center of the
+                        # UV scale is 0.5,0.5 in blender and 0,0 in POV
+                        # Further Scale by 2 and translate by -1 are 
+                        # required for the sky_sphere not to repeat
+                  
+                        mappingBlend = "scale 2 scale <%.4g,%.4g,%.4g> translate -1 translate <%.4g,%.4g,%.4g> " \
+                                       "rotate<0,0,0> " % \
+                                       ((1.0 / t_blend.scale.x), 
+                                       (1.0 / t_blend.scale.y),
+                                       (1.0 / t_blend.scale.z), 
+                                       0.5-(0.5/t_blend.scale.x)- t_blend.offset.x,
+                                       0.5-(0.5/t_blend.scale.y)- t_blend.offset.y,
+                                       t_blend.offset.z)
 
                         # The initial position and rotation of the pov camera is probably creating
                         # the rotation offset should look into it someday but at least background
@@ -2832,6 +2884,8 @@ def write_pov(filename, scene=None, info_callback=None):
 
 
 def write_pov_ini(scene, filename_ini, filename_pov, filename_image):
+    feature_set = bpy.context.user_preferences.addons[__package__].preferences.branch_feature_set_povray
+    using_uberpov = (feature_set=='uberpov')
     #scene = bpy.data.scenes[0]
     render = scene.render
 
@@ -2870,11 +2924,18 @@ def write_pov_ini(scene, filename_ini, filename_pov, filename_image):
         # method 2 (recursive) with higher max subdiv forced because no mipmapping in POV-Ray
         # needs higher sampling.
         # aa_mapping = {"5": 2, "8": 3, "11": 4, "16": 5}
-        method = {"0": 1, "1": 2}
+        if using_uberpov:
+            method = {"0": 1, "1": 2, "2": 3}
+        else:
+            method = {"0": 1, "1": 2, "2": 2}
         file.write("Antialias=on\n")
-        file.write("Sampling_Method=%s\n" % method[scene.pov.antialias_method])
         file.write("Antialias_Depth=%d\n" % scene.pov.antialias_depth)
         file.write("Antialias_Threshold=%.3g\n" % scene.pov.antialias_threshold)
+        if using_uberpov and scene.pov.antialias_method == '2':
+            file.write("Sampling_Method=%s\n" % method[scene.pov.antialias_method])
+            file.write("Antialias_Confidence=%.3g\n" % scene.pov.antialias_confidence)
+        else:
+            file.write("Sampling_Method=%s\n" % method[scene.pov.antialias_method])
         file.write("Antialias_Gamma=%.3g\n" % scene.pov.antialias_gamma)
         if scene.pov.jitter_enable:
             file.write("Jitter=on\n")
@@ -2904,7 +2965,7 @@ class PovrayRender(bpy.types.RenderEngine):
             if os.path.exists(pov_binary):
                 return pov_binary
             else:
-                print("User Preference to povray %r NOT FOUND, checking $PATH" % pov_binary)
+                print("User Preferences path to povray %r NOT FOUND, checking $PATH" % pov_binary)
 
         # Windows Only
         # assume if there is a 64bit binary that the user has a 64bit capable OS
@@ -2913,12 +2974,22 @@ class PovrayRender(bpy.types.RenderEngine):
             win_reg_key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, "Software\\POV-Ray\\v3.7\\Windows")
             win_home = winreg.QueryValueEx(win_reg_key, "Home")[0]
 
-            # First try 64bits
+            # First try 64bits UberPOV
+            pov_binary = os.path.join(win_home, "bin", "uberpov64.exe")
+            if os.path.exists(pov_binary):
+                return pov_binary
+                
+            # Then try 64bits POV
             pov_binary = os.path.join(win_home, "bin", "pvengine64.exe")
             if os.path.exists(pov_binary):
                 return pov_binary
 
-            # Then try 32bits
+            # Then try 32bits UberPOV
+            pov_binary = os.path.join(win_home, "bin", "uberpov32.exe")
+            if os.path.exists(pov_binary):
+                return pov_binary 
+                
+            # Then try 32bits POV
             pov_binary = os.path.join(win_home, "bin", "pvengine.exe")
             if os.path.exists(pov_binary):
                 return pov_binary
@@ -3008,7 +3079,7 @@ class PovrayRender(bpy.types.RenderEngine):
             return False
 
         else:
-            print("POV-Ray 3.7 found")
+            print("Engine ready!...")
             print("Command line arguments passed: " + str(extra_args))
             return True
 
