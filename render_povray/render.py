@@ -981,7 +981,7 @@ def write_pov(filename, scene=None, info_callback=None):
                             if using_uberpov and raytrace_mirror.gloss_factor < 1.0:
                                 #tabWrite("#ifdef(unofficial) #if(unofficial = \"patch\") #if(patch(\"upov-reflection-roughness\") > 0)\n")
                                 tabWrite("roughness %.6f\n" % \
-                                         (0.00001/raytrace_mirror.gloss_factor))
+                                         (0.000001/raytrace_mirror.gloss_factor))
                                 #tabWrite("#end #end #end\n") # This and previous comment for backward compatibility, messier pov code
                             if material.pov.mirror_use_IOR:  # WORKING ?
                                 # Removed from the line below: gives a more physically correct
