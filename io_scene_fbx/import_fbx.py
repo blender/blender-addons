@@ -151,7 +151,9 @@ def elem_prop_first(elem, default=None):
 # Support for
 # Properties70: { ... P:
 def elem_props_find_first(elem, elem_prop_id):
-
+    if elem is None:
+        # When properties are not found... Should never happen, but happens - as usual.
+        return None
     # support for templates (tuple of elems)
     if type(elem) is not FBXElem:
         assert(type(elem) is tuple)
@@ -1273,12 +1275,22 @@ def blen_read_texture_image(fbx_tmpl, fbx_obj, basedir, settings):
 
     image_cache = settings.image_cache
 
-    filepath = elem_find_first_string(fbx_obj, b'RelativeFileName')
+    # Yet another beautiful logic demonstration by Master FBX:
+    # * RelativeFilename in both Video and Texture nodes.
+    # * FileName in texture nodes.
+    # * Filename in video nodes.
+    # Aaaaaaaarrrrrrrrgggggggggggg!!!!!!!!!!!!!!
+    filepath = elem_find_first_string(fbx_obj, b'RelativeFilename')
     if filepath:
         filepath = os.path.join(basedir, filepath)
     else:
         filepath = elem_find_first_string(fbx_obj, b'FileName')
-    filepath = filepath.replace('\\', '/') if (os.sep == '/') else filepath.replace('/', '\\')
+    if not filepath:
+        filepath = elem_find_first_string(fbx_obj, b'Filename')
+    if not filepath:
+        print("Error, could not find any file path in ", fbx_obj)
+    else :
+        filepath = filepath.replace('\\', '/') if (os.sep == '/') else filepath.replace('/', '\\')
 
     image = image_cache.get(filepath)
     if image is not None:
@@ -2631,7 +2643,8 @@ def load(operator, context, filepath="",
             assert(fbx_obj.id == b'Material')
             fbx_props = (elem_find_first(fbx_obj, b'Properties70'),
                          elem_find_first(fbx_tmpl, b'Properties70', fbx_elem_nil))
-            assert(fbx_props[0] is not None)
+            # Do not assert, it can be None actually, sigh...
+            #~ assert(fbx_props[0] is not None)
             # (x / 7.142) is only a guess, cycles usable range is (0.0 -> 0.5)
             return elem_props_get_number(fbx_props, b'BumpFactor', 2.5) / 7.142
 
@@ -2640,7 +2653,8 @@ def load(operator, context, filepath="",
 
             fbx_props = (elem_find_first(fbx_obj, b'Properties70'),
                          elem_find_first(fbx_tmpl, b'Properties70', fbx_elem_nil))
-            assert(fbx_props[0] is not None)
+            # Do not assert, it can be None actually, sigh...
+            #~ assert(fbx_props[0] is not None)
             return (elem_props_get_vector_3d(fbx_props, b'Translation', (0.0, 0.0, 0.0)),
                     elem_props_get_vector_3d(fbx_props, b'Rotation', (0.0, 0.0, 0.0)),
                     elem_props_get_vector_3d(fbx_props, b'Scaling', (1.0, 1.0, 1.0)),
