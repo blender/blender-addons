@@ -351,30 +351,30 @@ class df3:
         return tmp
 
 # -=-=-=- End df3 Class -=-=-=-
+##########DEFAULT EXAMPLES
+# if __name__ == '__main__':
+    # localX = 80
+    # localY = 90
+    # localZ = 100
+    ## Generate an output
+    # temp = df3(localX, localY, localZ)
 
-if __name__ == '__main__':
-    localX = 80
-    localY = 90
-    localZ = 100
-    # Generate an output
-    temp = df3(localX, localY, localZ)
+    # for i in range(localX):
+        # for j in range(localY):
+            # for k in range(localZ):
+                # if (i >= (localX/2)):
+                    # temp.set(i, j, k, 1.0)
 
-    for i in range(localX):
-        for j in range(localY):
-            for k in range(localZ):
-                if (i >= (localX/2)):
-                    temp.set(i, j, k, 1.0)
+    # temp.exportDF3('temp.df3', 16)
+###############################################################################
+    ## Import
+    # temp2 = df3().importDF3('temp.df3')
+    # temp2.mult(1/temp2.max())
 
-    temp.exportDF3('temp.df3', 16)
+    ## Compare
+    # print(temp2.size())
 
-    # Import
-    temp2 = df3().importDF3('temp.df3')
-    temp2.mult(1/temp2.max())
-
-    # Compare
-    print(temp2.size())
-
-    if (temp.compare(temp2) == 0): print("DF3's Do Not Match")
+    # if (temp.compare(temp2) == 0): print("DF3's Do Not Match")
 
 ###############################################################################
 # ChangeLog

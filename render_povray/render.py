@@ -29,6 +29,7 @@ import random
 import platform#
 import subprocess#
 from bpy.types import(Operator)#all added for render preview
+from . import df3 # for smoke rendering
 ##############################SF###########################
 ##############find image texture
 def imageFormat(imgF):
@@ -184,6 +185,13 @@ def renderable_objects():
 tabLevel = 0
 unpacked_images=[]
 
+workDir=os.path.dirname(__file__)      
+previewDir=os.path.join(workDir, "preview")
+## Make sure Preview directory exists and is empty
+if not os.path.isdir(previewDir):
+    os.mkdir(previewDir)
+smokePath = os.path.join(previewDir, "smoke.df3")
+    
 def exportPattern(texture):
     tex=texture
     pat = tex.pov
@@ -679,9 +687,9 @@ def write_pov(filename, scene=None, info_callback=None):
     else:
         print("Official POV-Ray 3.7 feature set chosen in preferences")
     if 'uber' in pov_binary: 
-        print("probably rendering with Uber POV binary")
+        print("The name of the binary suggests you are probably rendering with Uber POV engine")
     else:
-        print("probably rendering with standard POV binary")
+        print("The name of the binary suggests you are probably rendering with standard POV engine")
     def setTab(tabtype, spaces):
         TabStr = ""
         if tabtype == 'NONE':
@@ -1343,7 +1351,172 @@ def write_pov(filename, scene=None, info_callback=None):
                 # Data not yet processed, create a new entry in data_ref.
                 data_ref[dataname] = [(name, MatrixAsPovString(matrix))]
                 return dataname
+           
+             
+        def exportSmoke(smoke_obj_name):
+            #if LuxManager.CurrentScene.name == 'preview':
+                #return 1, 1, 1, 1.0
+            #else:
+            flowtype = -1
+            smoke_obj = bpy.data.objects[smoke_obj_name]
+            domain = None
 
+            # Search smoke domain target for smoke modifiers
+            for mod in smoke_obj.modifiers:
+                if mod.name == 'Smoke':
+                    if mod.smoke_type == 'FLOW':
+                        if mod.flow_settings.smoke_flow_type == 'BOTH':
+                            flowtype = 2
+                        else:
+                            if mod.flow_settings.smoke_flow_type == 'SMOKE':
+                                flowtype = 0
+                            else:
+                                if mod.flow_settings.smoke_flow_type == 'FIRE':
+                                    flowtype = 1
+
+                    if mod.smoke_type == 'DOMAIN':
+                        domain = smoke_obj
+                        smoke_modifier = mod
+
+            eps = 0.000001
+            if domain is not None:
+                #if bpy.app.version[0] >= 2 and bpy.app.version[1] >= 71:
+                # Blender version 2.71 supports direct access to smoke data structure
+                set = mod.domain_settings
+                channeldata = []
+                for v in set.density_grid:
+                    channeldata.append(v.real)
+                    print(v.real)
+                ## Usage en voxel texture:
+                # channeldata = []
+                # if channel == 'density':
+                    # for v in set.density_grid:
+                        # channeldata.append(v.real)
+
+                # if channel == 'fire':
+                    # for v in set.flame_grid:
+                        # channeldata.append(v.real)
+
+                resolution = set.resolution_max
+                big_res = []
+                big_res.append(set.domain_resolution[0])
+                big_res.append(set.domain_resolution[1])
+                big_res.append(set.domain_resolution[2])
+
+                if set.use_high_resolution:
+                    big_res[0] = big_res[0] * (set.amplify + 1)
+                    big_res[1] = big_res[1] * (set.amplify + 1)
+                    big_res[2] = big_res[2] * (set.amplify + 1)
+                # else:
+                    # p = []
+                    ##gather smoke domain settings
+                    # BBox = domain.bound_box
+                    # p.append([BBox[0][0], BBox[0][1], BBox[0][2]])
+                    # p.append([BBox[6][0], BBox[6][1], BBox[6][2]])
+                    # set = mod.domain_settings
+                    # resolution = set.resolution_max
+                    # smokecache = set.point_cache
+                    # ret = read_cache(smokecache, set.use_high_resolution, set.amplify + 1, flowtype)
+                    # res_x = ret[0]
+                    # res_y = ret[1]
+                    # res_z = ret[2]
+                    # density = ret[3]
+                    # fire = ret[4]
+
+                    # if res_x * res_y * res_z > 0:
+                        ##new cache format
+                        # big_res = []
+                        # big_res.append(res_x)
+                        # big_res.append(res_y)
+                        # big_res.append(res_z)
+                    # else:
+                        # max = domain.dimensions[0]
+                        # if (max - domain.dimensions[1]) < -eps:
+                            # max = domain.dimensions[1]
+
+                        # if (max - domain.dimensions[2]) < -eps:
+                            # max = domain.dimensions[2]
+
+                        # big_res = [int(round(resolution * domain.dimensions[0] / max, 0)),
+                                   # int(round(resolution * domain.dimensions[1] / max, 0)),
+                                   # int(round(resolution * domain.dimensions[2] / max, 0))]
+
+                    # if set.use_high_resolution:
+                        # big_res = [big_res[0] * (set.amplify + 1), big_res[1] * (set.amplify + 1),
+                                   # big_res[2] * (set.amplify + 1)]
+
+                    # if channel == 'density':
+                        # channeldata = density
+
+                    # if channel == 'fire':
+                        # channeldata = fire
+
+                        # sc_fr = '%s/%s/%s/%05d' % (efutil.export_path, efutil.scene_filename(), bpy.context.scene.name, bpy.context.scene.frame_current)
+                        #		        if not os.path.exists( sc_fr ):
+                        #			        os.makedirs(sc_fr)
+                        #
+                        #       		smoke_filename = '%s.smoke' % bpy.path.clean_name(domain.name)
+                        #	        	smoke_path = '/'.join([sc_fr, smoke_filename])
+                        #
+                        #		        with open(smoke_path, 'wb') as smoke_file:
+                        #			        # Binary densitygrid file format
+                        #			        #
+                        #			        # File header
+                        #	        		smoke_file.write(b'SMOKE')        #magic number
+                        #		        	smoke_file.write(struct.pack('<I', big_res[0]))
+                        #			        smoke_file.write(struct.pack('<I', big_res[1]))
+                        #       			smoke_file.write(struct.pack('<I', big_res[2]))
+                        # Density data
+                        #       			smoke_file.write(struct.pack('<%df'%len(channeldata), *channeldata))
+                        #
+                        #	        	LuxLog('Binary SMOKE file written: %s' % (smoke_path))
+
+        #return big_res[0], big_res[1], big_res[2], channeldata
+       
+                mydf3 = df3.df3(big_res[0],big_res[1],big_res[2])
+                for x in range(mydf3.sizeX()):
+                    for y in range(mydf3.sizeY()):
+                        for z in range(mydf3.sizeZ()):
+                            mydf3.set(x, y, z, channeldata[((z*mydf3.sizeY()+y)*mydf3.sizeX()+x)]) 
+
+                mydf3.exportDF3(smokePath)
+                print('Binary smoke.df3 file written in preview directory')
+                if comments:
+                    file.write("\n//--Smoke--\n\n")
+
+                # media container shape = blender domain
+                file.write("box{<0,0,0>, <%.4g, %.4g, %.4g>\n"% \
+                            (smoke_obj.dimensions[0], smoke_obj.dimensions[1], smoke_obj.dimensions[2]))
+                file.write("    translate <%.4g, %.4g, %.4g>\n"% \
+                            (smoke_obj.location[0], smoke_obj.location[1], smoke_obj.location[2]))
+                file.write("    pigment{ rgbt 1 }\n")
+                file.write("    hollow\n")
+                file.write("    interior{ //---------------------\n")
+                file.write("        media{ method 3\n")
+                file.write("               emission <1,1,1>*1\n")# 0>1 for dark smoke to white vapour
+                file.write("               scattering{ 1, // Type\n")
+                file.write("                  <1,1,1>*5.00\n")
+                file.write("                } // end scattering\n")
+                file.write("	            density{density_file df3 \"%s\"\n" % (smokePath)) 
+                file.write("                        color_map {\n") 
+                file.write("                        [0.00 rgb 0]\n") 
+                file.write("                        [0.05 rgb 0]\n") 
+                file.write("                        [0.20 rgb 0.2]\n") 
+                file.write("                        [0.30 rgb 0.6]\n") 
+                file.write("                        [0.40 rgb 1]\n") 
+                file.write("                        [1.00 rgb 1]\n") 
+                file.write("                       } // end color_map\n") 
+                file.write("               } // end of density\n") 
+                file.write("               samples 20 // higher = more precise\n")
+                file.write("         } // end of media --------------------------\n")
+                file.write("    } // end of interior\n")
+                file.write("}\n")
+                
+                #file.write("	            interpolate 1\n")
+                #file.write("	            frequency 0\n")
+                #file.write("	}\n")
+                #file.write("}\n")                            
+                
         ob_num = 0
         for ob in sel:
             ob_num += 1
@@ -1352,7 +1525,12 @@ def write_pov(filename, scene=None, info_callback=None):
             #     for object we won't export here!
             if ob.type in {'LAMP', 'CAMERA', 'EMPTY', 'META', 'ARMATURE', 'LATTICE'}:
                 continue
-                   
+
+            for mod in ob.modifiers:
+                if mod and hasattr(mod, 'smoke_type'):
+                    exportSmoke(ob.name)
+                    if (mod.smoke_type == 'DOMAIN') or (mod.smoke_type == 'FLOW'):
+                        continue #don't render domain mesh or flow emitter, skip to next object.
             # Export Hair
             renderEmitter = True
             if hasattr(ob, 'particle_systems'):
