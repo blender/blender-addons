@@ -987,17 +987,21 @@ def blen_read_geom_layer_smooth(fbx_obj, mesh):
     if fbx_layer_mapping == b'ByEdge':
         # some models have bad edge data, we cant use this info...
         if not mesh.edges:
+            print("warning skipping sharp edges data, no valid edges...")
             return False
 
         blen_data = mesh.edges
-        ok_smooth = blen_read_geom_array_mapped_edge(
+        blen_read_geom_array_mapped_edge(
             mesh, blen_data, "use_edge_sharp",
             fbx_layer_data, None,
             fbx_layer_mapping, fbx_layer_ref,
             1, 1, layer_id,
             xform=lambda s: not s,
             )
-        return ok_smooth
+        # We only set sharp edges here, not face smoothing itself...
+        mesh.use_auto_smooth = True
+        mesh.show_edge_sharp = True
+        return False
     elif fbx_layer_mapping == b'ByPolygon':
         blen_data = mesh.polygons
         return blen_read_geom_array_mapped_polygon(

@@ -879,6 +879,7 @@ def fbx_data_mesh_elements(root, me_obj, scene_data, done_meshes):
     if t_ls and t_pvi:
         t_ls = set(t_ls)
         todo_edges = [None] * len(me.edges) * 2
+        # Sigh, cannot access edge.key through foreach_get... :/
         me.edges.foreach_get("vertices", todo_edges)
         todo_edges = set((v1, v2) if v1 < v2 else (v2, v1) for v1, v2 in zip(*(iter(todo_edges),) * 2))
 
@@ -925,11 +926,24 @@ def fbx_data_mesh_elements(root, me_obj, scene_data, done_meshes):
             _map = b"ByPolygon"
         else:  # EDGE
             # Write Edge Smoothing.
+            # Note edge is sharp also if it's used by more than two faces, or one of its faces is flat.
             t_ps = array.array(data_types.ARRAY_INT32, (0,)) * edges_nbr
+            sharp_edges = set()
+            temp_sharp_edges = {}
+            for p in me.polygons:
+                if not p.use_smooth:
+                    sharp_edges.update(p.edge_keys)
+                    continue
+                for k in p.edge_keys:
+                    if temp_sharp_edges.setdefault(k, 0) > 1:
+                        sharp_edges.add(k)
+                    else:
+                        temp_sharp_edges[k] += 1
+            del temp_sharp_edges
             for e in me.edges:
                 if e.key not in edges_map:
                     continue  # Only loose edges, in theory!
-                t_ps[edges_map[e.key]] = not e.use_edge_sharp
+                t_ps[edges_map[e.key]] = not (e.use_edge_sharp or (e.key in sharp_edges))
             _map = b"ByEdge"
         lay_smooth = elem_data_single_int32(geom, b"LayerElementSmoothing", 0)
         elem_data_single_int32(lay_smooth, b"Version", FBX_GEOMETRY_SMOOTHING_VERSION)
