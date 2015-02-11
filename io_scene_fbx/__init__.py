@@ -263,7 +263,7 @@ class ExportFBX(bpy.types.Operator, ExportHelper, OrientationHelper):
             )
     mesh_smooth_type = EnumProperty(
             name="Smoothing",
-            items=(('OFF', "Off", "Don't write smoothing, export normals instead"),
+            items=(('OFF', "Normals", "Export normals instead of writing edge or face smoothing data"),
                    ('FACE', "Face", "Write face smoothing"),
                    ('EDGE', "Edge", "Write edge smoothing"),
                    ),
