@@ -19,7 +19,7 @@
 bl_info = {
     "name": "Node Wrangler",
     "author": "Bartek Skorupa, Greg Zaal, Sebastian Koenig",
-    "version": (3, 23),
+    "version": (3, 24),
     "blender": (2, 72, 0),
     "location": "Node Editor Toolbar or Ctrl-Space",
     "description": "Various tools to enhance and speed up node-based workflow",
@@ -3085,41 +3085,39 @@ class NWViewerFocus(bpy.types.Operator):
         render = context.scene.render
         space = context.space_data
         percent = render.resolution_percentage*0.01
-        
-        for n in bpy.context.scene.node_tree.nodes:
-            if n.type == "VIEWER":
-                self.x = event.mouse_region_x
-                self.y = event.mouse_region_y
 
-                region_x=context.region.width
-                region_y=context.region.height
+        nodes, links = get_nodes_links(context)
+        viewers = [n for n in nodes if n.type == 'VIEWER']
 
-                region_center_x=region_x/2
-                region_center_y=region_y/2
+        if viewers:
+            mlocx = event.mouse_region_x
+            mlocy = event.mouse_region_y
+            select_node = bpy.ops.node.select(mouse_x=mlocx, mouse_y=mlocy, extend=False)
 
-                rel_region_mouse_x=region_x-self.x
-                rel_region_mouse_y=region_y-self.y
+            if not 'FINISHED' in select_node:  # only run if we're not clicking on a node
+                region_x = context.region.width
+                region_y = context.region.height
+
+                region_center_x = context.region.width  / 2
+                region_center_y = context.region.height / 2
                 
-                bd_x = render.resolution_x*percent*space.backdrop_zoom
-                bd_y = render.resolution_y* percent*space.backdrop_zoom
+                bd_x = render.resolution_x * percent * space.backdrop_zoom
+                bd_y = render.resolution_y * percent * space.backdrop_zoom
 
-                backdrop_center_x=(bd_x/2)-space.backdrop_x
-                backdrop_center_y=(bd_y/2)-space.backdrop_y
+                backdrop_center_x = (bd_x / 2) - space.backdrop_x
+                backdrop_center_y = (bd_y / 2) - space.backdrop_y
 
-                margin_x = region_center_x-backdrop_center_x
-                margin_y = region_center_y-backdrop_center_y
+                margin_x = region_center_x - backdrop_center_x
+                margin_y = region_center_y - backdrop_center_y
+
+                abs_mouse_x = (mlocx - margin_x) / bd_x
+                abs_mouse_y = (mlocy - margin_y) / bd_y
                 
-                absolute_x_max = margin_x+bd_x
-                absolute_y_max = margin_y+bd_y
-
-                abs_mouse_x = (self.x-margin_x)/bd_x
-                abs_mouse_y = (self.y-margin_y)/bd_y
-
-                rel_bd_x = (bd_x-rel_region_mouse_x)
-                rel_bd_y = (bd_y-rel_region_mouse_y)
-
-                n.center_x = abs_mouse_x
-                n.center_y = abs_mouse_y
+                for node in viewers:
+                    node.center_x = abs_mouse_x
+                    node.center_y = abs_mouse_y
+            else:
+                return {'PASS_THROUGH'}
 
         return self.execute(context)
 
