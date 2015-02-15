@@ -19,7 +19,7 @@
 bl_info = {
     "name": "Node Wrangler",
     "author": "Bartek Skorupa, Greg Zaal, Sebastian Koenig",
-    "version": (3, 22),
+    "version": (3, 23),
     "blender": (2, 72, 0),
     "location": "Node Editor Toolbar or Ctrl-Space",
     "description": "Various tools to enhance and speed up node-based workflow",
@@ -604,7 +604,11 @@ def hack_force_update(context, nodes):
 
 
 def dpifac():
-    retinafac = (2 if bpy.context.user_preferences.system.virtual_pixel_mode == 'DOUBLE' else 1)
+    prefs = bpy.context.user_preferences.system
+    if hasattr(prefs, 'pixel_size'):  # python access to this was only added recently, assume non-retina display is used if using older blender
+        retinafac = bpy.context.user_preferences.system.pixel_size
+    else:
+        retinafac = 1
     return bpy.context.user_preferences.system.dpi/(72/retinafac)
 
 
