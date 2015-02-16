@@ -20,11 +20,12 @@
 
 bl_info = {
     "name": "Pie Menus Official",
-    "author": "Antony Riakiotakis",
-    "version": (1, 0, 1),
+    "author": "Antony Riakiotakis, Sebastian Koenig",
+    "version": (1, 0, 2),
     "blender": (2, 71, 4),
-    "description": "Enable official pie Menus in blender",
+    "description": "Enable official Pie Menus in Blender",
     "category": "User Interface",
+    "wiki_url": "http://wiki.blender.org/index.php/Dev:Ref/Release_Notes/2.72/UI/Pie_Menus"
 }
 
 
