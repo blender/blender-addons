@@ -284,18 +284,24 @@ def get_key_from_fbx_uuid(uuid):
 
 
 # Blender-specific key generators
+def get_bid_name(bid):
+    if bid.library is not None:
+        return "_L_".join((bid.name, bid.library.name))
+    return bid.name
+
+
 def get_blenderID_key(bid):
     if isinstance(bid, Iterable):
-        return "|".join("B" + e.rna_type.name + "#" + e.name for e in bid)
+        return "|".join("B" + e.rna_type.name + "#" + get_bid_name(e) for e in bid)
     else:
-        return "B" + bid.rna_type.name + "#" + bid.name
+        return "B" + bid.rna_type.name + "#" + get_bid_name(bid)
 
 
 def get_blenderID_name(bid):
     if isinstance(bid, Iterable):
-        return "|".join(e.name for e in bid)
+        return "|".join(get_bid_name(e) for e in bid)
     else:
-        return bid.name
+        return get_bid_name(bid)
 
 
 def get_blender_empty_key(obj):
