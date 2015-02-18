@@ -730,6 +730,25 @@ def load(operator, context, filepath,
     This function passes the file and sends the data off
         to be split into objects and then converted into mesh objects
     """
+
+    def rel_index_process(idx, size):
+        if idx < 0:
+            return size + idx + 1
+        return idx
+
+    def create_face(context_material, context_smooth_group, context_object):
+        face_vert_loc_indices = []
+        face_vert_nor_indices = []
+        face_vert_tex_indices = []
+        return (
+            face_vert_loc_indices,
+            face_vert_nor_indices,
+            face_vert_tex_indices,
+            context_material,
+            context_smooth_group,
+            context_object,
+        )
+
     print('\nimporting obj %r' % filepath)
 
     filepath = os.fsencode(filepath)
@@ -775,9 +794,14 @@ def load(operator, context, filepath,
     # so we need to know whether
     context_multi_line = b''
 
+    # Per-face handling data.
+    face_vert_loc_indices = None
+    face_vert_nor_indices = None
+    face_vert_tex_indices = None
+    face = None
+
     print("\tparsing obj file...")
     time_sub = time.time()
-#     time_sub= sys.time()
 
     file = open(filepath, 'rb')
     for line in file:  # .readlines():
@@ -797,106 +821,57 @@ def load(operator, context, filepath,
         elif line_start == b'vt':
             verts_tex.append((float_func(line_split[1]), float_func(line_split[2])))
 
-        # Handel faces lines (as faces) and the second+ lines of fa multiline face here
+        # Handle faces lines (as faces) and the second+ lines of fa multiline face here
         # use 'f' not 'f ' because some objs (very rare have 'fo ' for faces)
         elif line_start == b'f' or context_multi_line == b'f':
-
-            if context_multi_line:
-                # use face_vert_loc_indices and face_vert_tex_indices previously defined and used the obj_face
-                pass
-
-            else:
+            if not context_multi_line:
                 line_split = line_split[1:]
-                face_vert_loc_indices = []
-                face_vert_nor_indices = []
-                face_vert_tex_indices = []
-
                 # Instance a face
-                faces.append((face_vert_loc_indices,
-                              face_vert_nor_indices,
-                              face_vert_tex_indices,
-                              context_material,
-                              context_smooth_group,
-                              context_object,
-                              ))
+                face = create_face(context_material, context_smooth_group, context_object)
+                face_vert_loc_indices, face_vert_nor_indices, face_vert_tex_indices, _1, _2, _3 = face
+                faces.append(face)
+            # Else, use face_vert_loc_indices and face_vert_tex_indices previously defined and used the obj_face
 
-            if strip_slash(line_split):
-                context_multi_line = b'f'
-            else:
-                context_multi_line = b''
+            context_multi_line = b'f' if strip_slash(line_split) else b''
 
             for v in line_split:
                 obj_vert = v.split(b'/')
-                vert_loc_index = int(obj_vert[0]) - 1
+                vert_loc_index = rel_index_process(int(obj_vert[0]) - 1, len(verts_loc))
                 # Add the vertex to the current group
                 # *warning*, this wont work for files that have groups defined around verts
                 if use_groups_as_vgroups and context_vgroup:
                     vertex_groups[context_vgroup].append(vert_loc_index)
-
-                # Make relative negative vert indices absolute
-                if vert_loc_index < 0:
-                    vert_loc_index = len(verts_loc) + vert_loc_index + 1
-
                 face_vert_loc_indices.append(vert_loc_index)
 
                 # formatting for faces with normals and textures is
                 # loc_index/tex_index/nor_index
                 if len(obj_vert) > 1 and obj_vert[1]:
-                    vert_tex_index = int(obj_vert[1]) - 1
-                    # Make relative negative vert indices absolute
-                    if vert_tex_index < 0:
-                        vert_tex_index = len(verts_tex) + vert_tex_index + 1
-                    face_vert_tex_indices.append(vert_tex_index)
+                    face_vert_tex_indices.append(rel_index_process(int(obj_vert[1]) - 1, len(verts_tex)))
                 else:
                     # dummy
                     face_vert_tex_indices.append(0)
 
                 if len(obj_vert) > 2 and obj_vert[2]:
-                    vert_nor_index = int(obj_vert[2]) - 1
-                    # Make relative negative vert indices absolute
-                    if vert_nor_index < 0:
-                        vert_nor_index = len(verts_nor) + vert_nor_index + 1
-                    face_vert_nor_indices.append(vert_nor_index)
+                    face_vert_nor_indices.append(rel_index_process(int(obj_vert[2]) - 1, len(verts_nor)))
                 else:
                     # dummy
                     face_vert_nor_indices.append(0)
 
         elif use_edges and (line_start == b'l' or context_multi_line == b'l'):
             # very similar to the face load function above with some parts removed
-
-            if context_multi_line:
-                # use face_vert_loc_indices and face_vert_tex_indices previously defined and used the obj_face
-                pass
-
-            else:
+            if not context_multi_line:
                 line_split = line_split[1:]
-                face_vert_loc_indices = []
-                face_vert_nor_indices = []
-                face_vert_tex_indices = []
-
                 # Instance a face
-                faces.append((face_vert_loc_indices,
-                              face_vert_nor_indices,
-                              face_vert_tex_indices,
-                              context_material,
-                              context_smooth_group,
-                              context_object,
-                              ))
+                face = create_face(context_material, context_smooth_group, context_object)
+                face_vert_loc_indices, _1, _2, _3, _4, _5 = face
+                faces.append(face)
+            # Else, use face_vert_loc_indices and face_vert_tex_indices previously defined and used the obj_face
 
-            if strip_slash(line_split):
-                context_multi_line = b'l'
-            else:
-                context_multi_line = b''
+            context_multi_line = b'l' if strip_slash(line_split) else b''
 
             for v in line_split:
                 obj_vert = v.split(b'/')
-                vert_loc_index = int(obj_vert[0]) - 1
-
-                # Make relative negative vert indices absolute
-                if vert_loc_index < 0:
-                    vert_loc_index = len(verts_loc) + vert_loc_index + 1
-
-                face_vert_loc_indices.append(vert_loc_index)
+                face_vert_loc_indices.append(rel_index_process(int(obj_vert[0]) - 1, len(verts_loc)))
 
         elif line_start == b's':
             if use_smooth_groups:
@@ -927,7 +902,9 @@ def load(operator, context, filepath,
             context_material = line_value(line.split())
             unique_materials[context_material] = None
         elif line_start == b'mtllib':  # usemap or usemat
-            material_libs = list(set(material_libs) | set(line.split()[1:]))  # can have multiple mtllib filenames per line, mtllib can appear more than once, so make sure only occurance of material exists
+            # can have multiple mtllib filenames per line, mtllib can appear more than once,
+            # so make sure only occurrence of material exists
+            material_libs = list(set(material_libs) | set(line.split()[1:]))
 
             # Nurbs support
         elif line_start == b'cstype':
@@ -1005,14 +982,16 @@ def load(operator, context, filepath,
 #     scn.objects.selected = []
     new_objects = []  # put new objects here
 
-    print('\tbuilding geometry...\n\tverts:%i faces:%i materials: %i smoothgroups:%i ...' % (len(verts_loc), len(faces), len(unique_materials), len(unique_smooth_groups)))
+    print('\tbuilding geometry...\n\tverts:%i faces:%i materials: %i smoothgroups:%i ...' %
+          (len(verts_loc), len(faces), len(unique_materials), len(unique_smooth_groups)))
     # Split the mesh by objects/materials, may
     if use_split_objects or use_split_groups:
         SPLIT_OB_OR_GROUP = True
     else:
         SPLIT_OB_OR_GROUP = False
 
-    for verts_loc_split, faces_split, unique_materials_split, dataname in split_mesh(verts_loc, faces, unique_materials, filepath, SPLIT_OB_OR_GROUP):
+    for data in split_mesh(verts_loc, faces, unique_materials, filepath, SPLIT_OB_OR_GROUP):
+        verts_loc_split, faces_split, unique_materials_split, dataname = data
         # Create meshes from the data, warning 'vertex_groups' wont support splitting
         create_mesh(new_objects,
                     use_edges,
