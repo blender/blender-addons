@@ -31,6 +31,7 @@ Note, This loads mesh objects and materials only, nurbs and curves are not suppo
 http://wiki.blender.org/index.php/Scripts/Manual/Import/wavefront_obj
 """
 
+import array
 import os
 import time
 import bpy
@@ -379,7 +380,7 @@ def split_mesh(verts_loc, faces, unique_materials, filepath, SPLIT_OB_OR_GROUP):
     oldkey = -1  # initialize to a value that will never match the key
 
     for face in faces:
-        key = face[4]
+        key = face[5]
 
         if oldkey != key:
             # Check the key has changed.
@@ -407,7 +408,7 @@ def split_mesh(verts_loc, faces, unique_materials, filepath, SPLIT_OB_OR_GROUP):
 
             face_vert_loc_indices[enum] = map_index  # remap to the local index
 
-            matname = face[2]
+            matname = face[3]
             if matname and matname not in unique_materials_split:
                 unique_materials_split[matname] = unique_materials[matname]
 
@@ -420,6 +421,7 @@ def split_mesh(verts_loc, faces, unique_materials, filepath, SPLIT_OB_OR_GROUP):
 def create_mesh(new_objects,
                 use_edges,
                 verts_loc,
+                verts_nor,
                 verts_tex,
                 faces,
                 unique_materials,
@@ -446,6 +448,7 @@ def create_mesh(new_objects,
     # reverse loop through face indices
     for f_idx in range(len(faces) - 1, -1, -1):
         (face_vert_loc_indices,
+         face_vert_nor_indices,
          face_vert_tex_indices,
          context_material,
          context_smooth_group,
@@ -522,6 +525,11 @@ def create_mesh(new_objects,
     me.polygons.foreach_set("loop_start", faces_loop_start)
     me.polygons.foreach_set("loop_total", faces_loop_total)
 
+    if verts_nor:
+        # Note: we store 'temp' normals in loops, since validate() may alter final mesh,
+        #       we can only set custom lnors *after* calling it.
+        me.create_normals_split()
+
     if verts_tex and me.polygons:
         me.uv_textures.new()
 
@@ -533,6 +541,7 @@ def create_mesh(new_objects,
             raise Exception("bad face")  # Shall not happen, we got rid of those earlier!
 
         (face_vert_loc_indices,
+         face_vert_nor_indices,
          face_vert_tex_indices,
          context_material,
          context_smooth_group,
@@ -548,6 +557,10 @@ def create_mesh(new_objects,
                 context_material_old = context_material
             blen_poly.material_index = mat
 
+        if verts_nor:
+            for face_noidx, lidx in zip(face_vert_nor_indices, blen_poly.loop_indices):
+                me.loops[lidx].normal[:] = verts_nor[face_noidx]
+
         if verts_tex:
             if context_material:
                 image = unique_material_images[context_material]
@@ -555,8 +568,8 @@ def create_mesh(new_objects,
                     me.uv_textures[0].data[i].image = image
 
             blen_uvs = me.uv_layers[0]
-            for j, lidx in enumerate(blen_poly.loop_indices):
-                blen_uvs.data[lidx].uv = verts_tex[face_vert_tex_indices[j]]
+            for face_uvidx, lidx in zip(face_vert_tex_indices, blen_poly.loop_indices):
+                blen_uvs.data[lidx].uv = verts_tex[face_uvidx]
 
     use_edges = use_edges and bool(edges)
     if use_edges:
@@ -564,13 +577,26 @@ def create_mesh(new_objects,
         # edges should be a list of (a, b) tuples
         me.edges.foreach_set("vertices", unpack_list(edges))
 
-    me.validate()
+    me.validate(cleanup_cddata=False)  # *Very* important to not remove lnors here!
     me.update(calc_edges=use_edges)
 
+    # XXX If validate changes the geometry, this is likely to be broken...
     if unique_smooth_groups and sharp_edges:
         for e in me.edges:
             if e.key in sharp_edges:
                 e.use_edge_sharp = True
+        me.show_edge_sharp = True
+
+    if verts_nor:
+        clnors = array.array('f', [0.0] * (len(me.loops) * 3))
+        me.loops.foreach_get("normal", clnors)
+
+        if not unique_smooth_groups:
+            me.polygons.foreach_set("use_smooth", [True] * len(me.polygons))
+
+        me.normals_split_custom_set(tuple(zip(*(iter(clnors),) * 3)))
+        me.use_auto_smooth = True
+        me.show_edge_sharp = True
 
     ob = bpy.data.objects.new(me.name, me)
     new_objects.append(ob)
@@ -717,6 +743,7 @@ def load(operator, context, filepath,
     time_main = time.time()
 
     verts_loc = []
+    verts_nor = []
     verts_tex = []
     faces = []  # tuples of the faces
     material_libs = []  # filanems to material libs this uses
@@ -735,9 +762,6 @@ def load(operator, context, filepath,
     context_nurbs = {}
     nurbs = []
     context_parm = b''  # used by nurbs too but could be used elsewhere
-
-    has_ngons = False
-    # has_smoothgroups= False - is explicit with len(unique_smooth_groups) being > 0
 
     # Until we can use sets
     unique_materials = {}
@@ -768,7 +792,7 @@ def load(operator, context, filepath,
             verts_loc.append((float_func(line_split[1]), float_func(line_split[2]), float_func(line_split[3])))
 
         elif line_start == b'vn':
-            pass
+            verts_nor.append((float_func(line_split[1]), float_func(line_split[2]), float_func(line_split[3])))
 
         elif line_start == b'vt':
             verts_tex.append((float_func(line_split[1]), float_func(line_split[2])))
@@ -784,10 +808,12 @@ def load(operator, context, filepath,
             else:
                 line_split = line_split[1:]
                 face_vert_loc_indices = []
+                face_vert_nor_indices = []
                 face_vert_tex_indices = []
 
                 # Instance a face
                 faces.append((face_vert_loc_indices,
+                              face_vert_nor_indices,
                               face_vert_tex_indices,
                               context_material,
                               context_smooth_group,
@@ -813,22 +839,27 @@ def load(operator, context, filepath,
 
                 face_vert_loc_indices.append(vert_loc_index)
 
+                # formatting for faces with normals and textures is
+                # loc_index/tex_index/nor_index
                 if len(obj_vert) > 1 and obj_vert[1]:
-                    # formatting for faces with normals and textures us
-                    # loc_index/tex_index/nor_index
-
                     vert_tex_index = int(obj_vert[1]) - 1
                     # Make relative negative vert indices absolute
                     if vert_tex_index < 0:
                         vert_tex_index = len(verts_tex) + vert_tex_index + 1
-
                     face_vert_tex_indices.append(vert_tex_index)
                 else:
                     # dummy
                     face_vert_tex_indices.append(0)
 
-            if len(face_vert_loc_indices) > 4:
-                has_ngons = True
+                if len(obj_vert) > 2 and obj_vert[2]:
+                    vert_nor_index = int(obj_vert[2]) - 1
+                    # Make relative negative vert indices absolute
+                    if vert_nor_index < 0:
+                        vert_nor_index = len(verts_nor) + vert_nor_index + 1
+                    face_vert_nor_indices.append(vert_nor_index)
+                else:
+                    # dummy
+                    face_vert_nor_indices.append(0)
 
         elif use_edges and (line_start == b'l' or context_multi_line == b'l'):
             # very similar to the face load function above with some parts removed
@@ -840,10 +871,12 @@ def load(operator, context, filepath,
             else:
                 line_split = line_split[1:]
                 face_vert_loc_indices = []
+                face_vert_nor_indices = []
                 face_vert_tex_indices = []
 
                 # Instance a face
                 faces.append((face_vert_loc_indices,
+                              face_vert_nor_indices,
                               face_vert_tex_indices,
                               context_material,
                               context_smooth_group,
@@ -854,8 +887,6 @@ def load(operator, context, filepath,
                 context_multi_line = b'l'
             else:
                 context_multi_line = b''
-
-            # isline = line_start == b'l'  # UNUSED
 
             for v in line_split:
                 obj_vert = v.split(b'/')
@@ -986,6 +1017,7 @@ def load(operator, context, filepath,
         create_mesh(new_objects,
                     use_edges,
                     verts_loc_split,
+                    verts_nor,
                     verts_tex,
                     faces_split,
                     unique_materials_split,
