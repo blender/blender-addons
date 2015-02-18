@@ -222,7 +222,7 @@ class ExportOBJ(bpy.types.Operator, ExportHelper, OrientationHelper):
     use_normals = BoolProperty(
             name="Write Normals",
             description="Export one normal per vertex and per face, to represent flat faces and sharp edges",
-            default=False,
+            default=True,
             )
     use_uvs = BoolProperty(
             name="Include UVs",
