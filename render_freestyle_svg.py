@@ -63,6 +63,7 @@ from bpy.props import (
         )
 from bpy.app.handlers import persistent
 from collections import OrderedDict
+from functools import partial
 from mathutils import Vector
 
 
@@ -78,6 +79,14 @@ namespaces = {
     "svg": "http://www.w3.org/2000/svg",
     }
 
+# wrap XMLElem.find, so the namespaces don't need to be given as an argument
+def find_xml_elem(obj, search, namespaces, *, all=False):
+    if all:
+        return obj.findall(search, namespaces=namespaces)
+    return obj.find(search, namespaces=namespaces)
+
+find_svg_elem = partial(find_xml_elem, namespaces=namespaces)
+
 
 def render_height(scene):
     return int(scene.render.resolution_y * scene.render.resolution_percentage / 100)
@@ -87,6 +96,7 @@ def render_width(scene):
     return int(scene.render.resolution_x * scene.render.resolution_percentage / 100)
 
 
+# stores the state of the render, used to differ between animation and single frame renders.
 class RenderState:
     # Note that this flag is set to False only after the first frame
     # has been written to file.
@@ -213,10 +223,10 @@ def write_animation(filepath, frame_begin, fps):
     tree = et.parse(filepath)
     root = tree.getroot()
 
-    linesets = tree.findall(".//svg:g[@inkscape:groupmode='lineset']", namespaces=namespaces)
+    linesets = find_svg_elem(tree, ".//svg:g[@inkscape:groupmode='lineset']", all=True)
     for i, lineset in enumerate(linesets):
         name = lineset.get('id')
-        frames = lineset.findall(".//svg:g[@inkscape:groupmode='frame']", namespaces=namespaces)
+        frames = find_svg_elem(lineset, ".//svg:g[@inkscape:groupmode='frame']", all=True)
         n_of_frames = len(frames)
         keyTimes = ";".join(str(round(x / n_of_frames, 3)) for x in range(n_of_frames)) + ";1"
 
@@ -313,8 +323,9 @@ class SVGPathShader(StrokeShader):
         name = self._name
         scene = bpy.context.scene
 
-        # make <g> for lineset as a whole (don't overwrite)
-        lineset_group = tree.find(".//svg:g[@id='{}']".format(name), namespaces=namespaces)
+        # create <g> for lineset as a whole (don't overwrite)
+        # when rendering an animation, frames will be nested in here, otherwise a group of strokes and optionally fills.
+        lineset_group = find_svg_elem(tree, ".//svg:g[@id='{}']".format(name))
         if lineset_group is None:
             lineset_group = et.XML('<g/>')
             lineset_group.attrib = {
@@ -323,14 +334,10 @@ class SVGPathShader(StrokeShader):
                 'inkscape:groupmode': 'lineset',
                 'inkscape:label': name,
                 }
-            root.insert(0, lineset_group)
+            root.append(lineset_group)
 
-        # make <g> for the current frame
+        # create <g> for the current frame
         id = "frame_{:04n}".format(self.frame_current)
-
-        if scene.svg_export.mode == 'ANIMATION':
-            frame_group = et.XML("<g/>")
-            frame_group.attrib = {'id': id, 'inkscape:groupmode': 'frame', 'inkscape:label': id}
 
         stroke_group = et.XML("<g/>")
         stroke_group.attrib = {'xmlns:inkscape': namespaces["inkscape"],
@@ -340,13 +347,15 @@ class SVGPathShader(StrokeShader):
         # nest the structure
         stroke_group.extend(self.elements)
         if scene.svg_export.mode == 'ANIMATION':
+            frame_group = et.XML("<g/>")
+            frame_group.attrib = {'id': id, 'inkscape:groupmode': 'frame', 'inkscape:label': id}
             frame_group.append(stroke_group)
             lineset_group.append(frame_group)
         else:
             lineset_group.append(stroke_group)
 
         # write SVG to file
-        print("SVG Export: writing to ", self.filepath)
+        print("SVG Export: writing to", self.filepath)
         indent_xml(root)
         tree.write(self.filepath, encoding='ascii', xml_declaration=True)
 
@@ -391,6 +400,7 @@ class SVGFillShader(StrokeShader):
         root = tree.getroot()
         name = self._name
         scene = bpy.context.scene
+        lineset_group = find_svg_elem(tree, ".//svg:g[@id='{}']".format(name))
 
         # create XML elements from the acquired data
         elems = []
@@ -400,39 +410,30 @@ class SVGFillShader(StrokeShader):
             for stroke in strokes:
                 elems.append(et.XML("".join(self.pathgen((sv.point for sv in stroke), p, self.h))))
 
-        # make <g> for lineset as a whole (don't overwrite)
-        lineset_group = tree.find(".//svg:g[@id='{}']".format(name), namespaces=namespaces)
-        if lineset_group is None:
-            lineset_group = et.XML('<g/>')
-            lineset_group.attrib = {
-                'id': name,
-                'xmlns:inkscape': namespaces["inkscape"],
-                'inkscape:groupmode': 'lineset',
-                'inkscape:label': name,
-                }
-            root.insert(0, lineset_group)
-
         if scene.svg_export.mode == 'ANIMATION':
             # add the fills to the <g> of the current frame
-            frame_group = tree.find(".//svg:g[@id='frame_{:04n}']".format(scene.frame_current), namespaces=namespaces)
+            frame_group = find_svg_elem(lineset_group, ".//svg:g[@id='frame_{:04n}']".format(scene.frame_current))
             if frame_group is None:
                 # something has gone very wrong
                 raise RuntimeError("SVGFillShader: frame_group is None")
 
-        # add <g> for the strokes of the current frame
-        stroke_group = et.XML("<g/>")
-        stroke_group.attrib = {'xmlns:inkscape': namespaces["inkscape"],
-                               'inkscape:groupmode': 'layer',
-                               'inkscape:label': 'fills',
-                               'id': 'fills'}
 
-        # reverse fills to get the correct order
-        stroke_group.extend(reversed(elems))
+        # <g> for the fills of the current frame
+        fill_group = et.XML('<g/>')
+        fill_group.attrib = {
+            'xmlns:inkscape': namespaces["inkscape"],
+           'inkscape:groupmode': 'layer',
+           'inkscape:label': 'fills',
+           'id': 'fills'
+           }
 
+        fill_group.extend(reversed(elems))
         if scene.svg_export.mode == 'ANIMATION':
-            frame_group.insert(0, stroke_group)
+            frame_group.insert(0, fill_group)
         else:
-            lineset_group.insert(0, stroke_group)
+            # get the current lineset group. if it's None we're in trouble, so may as well error hard.
+            lineset_group = tree.find(".//svg:g[@id='{}']".format(name), namespaces=namespaces)
+            lineset_group.insert(0, fill_group)
 
         # write SVG to file
         indent_xml(root)
@@ -461,7 +462,7 @@ class SVGPathShaderCallback(ParameterEditorCallback):
         split = scene.svg_export.split_at_invisible
         cls.shader = SVGPathShader.from_lineset(
                 lineset, create_path(scene),
-                render_height(scene), split, scene.frame_current)
+                render_height(scene), split, scene.frame_current, name=layer.name + '_' + lineset.name)
         return [cls.shader]
 
     @classmethod
@@ -489,8 +490,9 @@ class SVGFillShaderCallback(ParameterEditorCallback):
         # sort according to the distance from camera
         Operators.sort(pyZBP1D())
         # render and write fills
-        shader = SVGFillShader(create_path(scene), render_height(scene), lineset.name)
+        shader = SVGFillShader(create_path(scene), render_height(scene), layer.name + '_' + lineset.name)
         Operators.create(TrueUP1D(), [shader, ])
+
         shader.write()
 
 
@@ -559,3 +561,4 @@ def unregister():
 
 if __name__ == "__main__":
     register()
+
