@@ -702,15 +702,29 @@ def blen_read_geom_layerinfo(fbx_layer):
 
 def blen_read_geom_array_setattr(generator, blen_data, blen_attr, fbx_data, stride, item_size, descr, xform):
     """Generic fbx_layer to blen_data setter, generator is expected to yield tuples (ble_idx, fbx_idx)."""
+    max_idx = len(blen_data) - 1
+    print_error = True
+
+    def check_skip(blen_idx, fbx_idx):
+        nonlocal print_error
+        if fbx_idx == -1:
+            return True
+        if blen_idx > max_idx:
+            if print_error:
+                print("ERROR: too much data in this layer, compared to elements in mesh, skipping!")
+                print_error = False
+            return True
+        return False
+
     if xform is not None:
         for blen_idx, fbx_idx in generator:
-            if fbx_idx == -1:
+            if check_skip(blen_idx, fbx_idx):
                 continue
             setattr(blen_data[blen_idx], blen_attr,
                     xform(fbx_data[fbx_idx] if (item_size == 1) else fbx_data[fbx_idx:fbx_idx + item_size]))
     else:
         for blen_idx, fbx_idx in generator:
-            if fbx_idx == -1:
+            if check_skip(blen_idx, fbx_idx):
                 continue
             setattr(blen_data[blen_idx], blen_attr,
                     fbx_data[fbx_idx] if (item_size == 1) else fbx_data[fbx_idx:fbx_idx + item_size])
