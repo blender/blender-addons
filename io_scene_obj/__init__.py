@@ -21,7 +21,7 @@
 bl_info = {
     "name": "Wavefront OBJ format",
     "author": "Campbell Barton, Bastien Montagne",
-    "version": (2, 0, 1),
+    "version": (2, 1, 0),
     "blender": (2, 73, 0),
     "location": "File > Import-Export",
     "description": "Import-Export OBJ, Import OBJ mesh, UV's, "
@@ -66,11 +66,6 @@ class ImportOBJ(bpy.types.Operator, ImportHelper, OrientationHelper):
             options={'HIDDEN'},
             )
 
-    use_ngons = BoolProperty(
-            name="NGons",
-            description="Import faces with more than 4 verts as ngons",
-            default=True,
-            )
     use_edges = BoolProperty(
             name="Lines",
             description="Import lines and faces with 2 verts as edge",
@@ -152,10 +147,8 @@ class ImportOBJ(bpy.types.Operator, ImportHelper, OrientationHelper):
         layout = self.layout
 
         row = layout.row(align=True)
-        row.prop(self, "use_ngons")
+        row.prop(self, "use_smooth_groups")
         row.prop(self, "use_edges")
-
-        layout.prop(self, "use_smooth_groups")
 
         box = layout.box()
         row = box.row()
