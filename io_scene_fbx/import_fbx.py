@@ -1051,7 +1051,12 @@ def blen_read_geom_layer_normal(fbx_obj, mesh, xform=None):
     for blen_data, func in tries:
         if func(mesh, blen_data, "normal",
                 fbx_layer_data, fbx_layer_index, fbx_layer_mapping, fbx_layer_ref, 3, 3, layer_id, xform):
+            if blen_data == mesh.vertices:
+                # We have to copy vnors to lnors! Far from elegant, but simple.
+                for l in mesh.loops:
+                    l.normal[:] = mesh.vertices[l.vertex_index].normal
             return True
+    return False
 
 
 def blen_read_geom(fbx_tmpl, fbx_obj, settings):
