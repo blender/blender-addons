@@ -384,16 +384,7 @@ def split_mesh(verts_loc, faces, unique_materials, filepath, SPLIT_OB_OR_GROUP):
 
         if oldkey != key:
             # Check the key has changed.
-            try:
-                verts_split, faces_split, unique_materials_split, vert_remap = face_split_dict[key]
-            except KeyError:
-                faces_split = []
-                verts_split = []
-                unique_materials_split = {}
-                vert_remap = {}
-
-                face_split_dict[key] = (verts_split, faces_split, unique_materials_split, vert_remap)
-
+            verts_split, faces_split, unique_materials_split, vert_remap = face_split_dict.setdefault(key, ([], [], {}, {}))
             oldkey = key
 
         face_vert_loc_indices = face[0]
@@ -414,8 +405,9 @@ def split_mesh(verts_loc, faces, unique_materials, filepath, SPLIT_OB_OR_GROUP):
 
         faces_split.append(face)
 
-    # remove one of the itemas and reorder
-    return [(value[0], value[1], value[2], key_to_name(key)) for key, value in list(face_split_dict.items())]
+    # remove one of the items and reorder
+    return [(verts_split, faces_split, unique_materials_split, key_to_name(key))
+            for key, (verts_split, faces_split, unique_materials_split, _) in face_split_dict.items()]
 
 
 def create_mesh(new_objects,
@@ -525,7 +517,7 @@ def create_mesh(new_objects,
     me.polygons.foreach_set("loop_start", faces_loop_start)
     me.polygons.foreach_set("loop_total", faces_loop_total)
 
-    if verts_nor:
+    if verts_nor and me.loops:
         # Note: we store 'temp' normals in loops, since validate() may alter final mesh,
         #       we can only set custom lnors *after* calling it.
         me.create_normals_split()
@@ -985,10 +977,7 @@ def load(operator, context, filepath,
     print('\tbuilding geometry...\n\tverts:%i faces:%i materials: %i smoothgroups:%i ...' %
           (len(verts_loc), len(faces), len(unique_materials), len(unique_smooth_groups)))
     # Split the mesh by objects/materials, may
-    if use_split_objects or use_split_groups:
-        SPLIT_OB_OR_GROUP = True
-    else:
-        SPLIT_OB_OR_GROUP = False
+    SPLIT_OB_OR_GROUP = bool(use_split_objects or use_split_groups)
 
     for data in split_mesh(verts_loc, faces, unique_materials, filepath, SPLIT_OB_OR_GROUP):
         verts_loc_split, faces_split, unique_materials_split, dataname = data
