@@ -234,7 +234,7 @@ class CLIP_PIE_marker_pie(Menu):
                 prop.value = 'KEYFRAME'
             else:
                 prop = pie.operator("wm.context_set_enum", text="Match Keyframe", icon='KEY_HLT')
-                prop.data_pat = "space_data.clip.tracking.tracks.active.pattern_match"
+                prop.data_path = "space_data.clip.tracking.tracks.active.pattern_match"
                 prop.value = 'PREV_FRAME'
 
 
