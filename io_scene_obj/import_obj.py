@@ -785,11 +785,6 @@ def load(operator, context, filepath,
         to be split into objects and then converted into mesh objects
     """
 
-    def rel_index_process(idx, size):
-        if idx < 0:
-            return size + idx + 1
-        return idx
-
     def create_face(context_material, context_smooth_group, context_object):
         face_vert_loc_indices = []
         face_vert_nor_indices = []
@@ -884,7 +879,7 @@ def load(operator, context, filepath,
         elif line_start == b'f' or context_multi_line == b'f':
             if not context_multi_line:
                 line_split = line_split[1:]
-                # Instance a face
+                # Instantiate a face
                 face = create_face(context_material, context_smooth_group, context_object)
                 face_vert_loc_indices, face_vert_nor_indices, face_vert_tex_indices, _1, _2, _3, face_invalid_blenpoly = face
                 faces.append(face)
@@ -895,7 +890,8 @@ def load(operator, context, filepath,
 
             for v in line_split:
                 obj_vert = v.split(b'/')
-                vert_loc_index = rel_index_process(int(obj_vert[0]) - 1, len(verts_loc))
+                idx = int(obj_vert[0]) - 1
+                vert_loc_index = (idx + len(verts_loc) + 1) if (idx < 0) else idx
                 # Add the vertex to the current group
                 # *warning*, this wont work for files that have groups defined around verts
                 if use_groups_as_vgroups and context_vgroup:
@@ -913,13 +909,15 @@ def load(operator, context, filepath,
                 # formatting for faces with normals and textures is
                 # loc_index/tex_index/nor_index
                 if len(obj_vert) > 1 and obj_vert[1]:
-                    face_vert_tex_indices.append(rel_index_process(int(obj_vert[1]) - 1, len(verts_tex)))
+                    idx = int(obj_vert[1]) - 1
+                    face_vert_tex_indices.append((idx + len(verts_tex) + 1) if (idx < 0) else idx)
                 else:
                     # dummy
                     face_vert_tex_indices.append(0)
 
                 if len(obj_vert) > 2 and obj_vert[2]:
-                    face_vert_nor_indices.append(rel_index_process(int(obj_vert[2]) - 1, len(verts_nor)))
+                    idx = int(obj_vert[2]) - 1
+                    face_vert_nor_indices.append((idx + len(verts_nor) + 1) if (idx < 0) else idx)
                 else:
                     # dummy
                     face_vert_nor_indices.append(0)
@@ -942,7 +940,7 @@ def load(operator, context, filepath,
             # very similar to the face load function above with some parts removed
             if not context_multi_line:
                 line_split = line_split[1:]
-                # Instance a face
+                # Instantiate a face
                 face = create_face(context_material, context_smooth_group, context_object)
                 face_vert_loc_indices, _1, _2, _3, _4, _5 = face
                 faces.append(face)
@@ -952,7 +950,8 @@ def load(operator, context, filepath,
 
             for v in line_split:
                 obj_vert = v.split(b'/')
-                face_vert_loc_indices.append(rel_index_process(int(obj_vert[0]) - 1, len(verts_loc)))
+                idx = int(obj_vert[0]) - 1
+                face_vert_loc_indices.append((idx + len(verts_loc) + 1) if (idx < 0) else idx)
 
         elif line_start == b's':
             if use_smooth_groups:
