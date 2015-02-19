@@ -432,6 +432,7 @@ def create_mesh(new_objects,
         smooth_group_users = {context_smooth_group: {} for context_smooth_group in unique_smooth_groups.keys()}
         context_smooth_group_old = -1
 
+    fgon_edges = set()  # Used for storing fgon keys whe we need to tesselate/untesselate them (ngons with hole).
     edges = []
     tot_loops = 0
 
@@ -445,6 +446,7 @@ def create_mesh(new_objects,
          context_material,
          context_smooth_group,
          context_object,
+         face_invalid_blenpoly,
          ) = faces[f_idx]
 
         len_face_vert_loc_indices = len(face_vert_loc_indices)
@@ -459,7 +461,6 @@ def create_mesh(new_objects,
             faces.pop(f_idx)
 
         else:
-            tot_loops += len_face_vert_loc_indices
             # Smooth Group
             if unique_smooth_groups and context_smooth_group:
                 # Is a part of of a smooth group and is a face
@@ -467,11 +468,53 @@ def create_mesh(new_objects,
                     edge_dict = smooth_group_users[context_smooth_group]
                     context_smooth_group_old = context_smooth_group
 
-                for i in range(len_face_vert_loc_indices):
-                    i1 = face_vert_loc_indices[i]
-                    i2 = face_vert_loc_indices[i - 1]
-                    edge_key = (i1, i2) if i1 < i2 else (i2, i1)
+                prev_vidx = face_vert_loc_indices[-1]
+                for vidx in face_vert_loc_indices:
+                    edge_key = (prev_vidx, vidx) if (prev_vidx < vidx) else (vidx, prev_vidx)
+                    prev_vidx = vidx
                     edge_dict[edge_key] = edge_dict.get(edge_key, 0) + 1
+
+            # NGons into triangles
+            if face_invalid_blenpoly:
+                from bpy_extras.mesh_utils import ngon_tessellate
+                ngon_face_indices = ngon_tessellate(verts_loc, face_vert_loc_indices)
+                faces.extend([([face_vert_loc_indices[ngon[0]],
+                                face_vert_loc_indices[ngon[1]],
+                                face_vert_loc_indices[ngon[2]],
+                                ],
+                               [face_vert_nor_indices[ngon[0]],
+                                face_vert_nor_indices[ngon[1]],
+                                face_vert_nor_indices[ngon[2]],
+                                ],
+                               [face_vert_tex_indices[ngon[0]],
+                                face_vert_tex_indices[ngon[1]],
+                                face_vert_tex_indices[ngon[2]],
+                                ],
+                               context_material,
+                               context_smooth_group,
+                               context_object,
+                               [],
+                              )
+                             for ngon in ngon_face_indices]
+                            )
+                tot_loops += 3 * len(ngon_face_indices)
+
+                # edges to make ngons
+                edge_users = set()
+                for ngon in ngon_face_indices:
+                    prev_vidx = face_vert_loc_indices[ngon[-1]]
+                    for ngidx in ngon:
+                        vidx = face_vert_loc_indices[ngidx]
+                        edge_key = (prev_vidx, vidx) if (prev_vidx < vidx) else (vidx, prev_vidx)
+                        prev_vidx = vidx
+                        if edge_key in edge_users:
+                            fgon_edges.add(edge_key)
+                        else:
+                            edge_users.add(edge_key)
+
+                faces.pop(f_idx)
+            else:
+                tot_loops += len_face_vert_loc_indices
 
     # Build sharp edges
     if unique_smooth_groups:
@@ -538,6 +581,7 @@ def create_mesh(new_objects,
          context_material,
          context_smooth_group,
          context_object,
+         face_invalid_blenpoly,
          ) = face
 
         if context_smooth_group:
@@ -571,6 +615,24 @@ def create_mesh(new_objects,
 
     me.validate(cleanup_cddata=False)  # *Very* important to not remove lnors here!
     me.update(calc_edges=use_edges)
+
+    # Un-tessellate as much as possible, in case we had to triangulate some ngons...
+    if fgon_edges:
+        import bmesh
+        bm = bmesh.new()
+        bm.from_mesh(me)
+        verts = bm.verts[:]
+        get = bm.edges.get
+        edges = [get((verts[vidx1], verts[vidx2])) for vidx1, vidx2 in fgon_edges]
+        try:
+            bmesh.ops.dissolve_edges(bm, edges=edges, use_verts=False)
+        except:
+            # Possible dissolve fails for some edges, but don't fail silently in case this is a real bug.
+            import traceback
+            traceback.print_exc()
+
+        bm.to_mesh(me)
+        bm.free()
 
     # XXX If validate changes the geometry, this is likely to be broken...
     if unique_smooth_groups and sharp_edges:
@@ -739,6 +801,7 @@ def load(operator, context, filepath,
             context_material,
             context_smooth_group,
             context_object,
+            [],  # If non-empty, that face is a Blender-invalid ngon (holes...), need a mutable object for that...
         )
 
     print('\nimporting obj %r' % filepath)
@@ -790,6 +853,9 @@ def load(operator, context, filepath,
     face_vert_loc_indices = None
     face_vert_nor_indices = None
     face_vert_tex_indices = None
+    face_items_usage = set()
+    face_invalid_blenpoly = None
+    prev_vidx = None
     face = None
 
     print("\tparsing obj file...")
@@ -820,8 +886,9 @@ def load(operator, context, filepath,
                 line_split = line_split[1:]
                 # Instance a face
                 face = create_face(context_material, context_smooth_group, context_object)
-                face_vert_loc_indices, face_vert_nor_indices, face_vert_tex_indices, _1, _2, _3 = face
+                face_vert_loc_indices, face_vert_nor_indices, face_vert_tex_indices, _1, _2, _3, face_invalid_blenpoly = face
                 faces.append(face)
+                face_items_usage.clear()
             # Else, use face_vert_loc_indices and face_vert_tex_indices previously defined and used the obj_face
 
             context_multi_line = b'f' if strip_slash(line_split) else b''
@@ -833,6 +900,14 @@ def load(operator, context, filepath,
                 # *warning*, this wont work for files that have groups defined around verts
                 if use_groups_as_vgroups and context_vgroup:
                     vertex_groups[context_vgroup].append(vert_loc_index)
+                # This a first round to quick-detect ngons that *may* use a same edge more than once.
+                # Potential candidate will be re-checked once we have done parsing the whole face.
+                if not face_invalid_blenpoly:
+                    # If we use more than once a same vertex, invalid ngon is suspected.
+                    if vert_loc_index in face_items_usage:
+                        face_invalid_blenpoly.append(True)
+                    else:
+                        face_items_usage.add(vert_loc_index)
                 face_vert_loc_indices.append(vert_loc_index)
 
                 # formatting for faces with normals and textures is
@@ -848,6 +923,20 @@ def load(operator, context, filepath,
                 else:
                     # dummy
                     face_vert_nor_indices.append(0)
+
+            if not context_multi_line:
+                # Means we have finished a face, we have to do final check if ngon is suspected to be blender-invalid...
+                if face_invalid_blenpoly:
+                    face_invalid_blenpoly.clear()
+                    face_items_usage.clear()
+                    prev_vidx = face_vert_loc_indices[-1]
+                    for vidx in face_vert_loc_indices:
+                        edge_key = (prev_vidx, vidx) if (prev_vidx < vidx) else (vidx, prev_vidx)
+                        if edge_key in face_items_usage:
+                            face_invalid_blenpoly.append(True)
+                            break
+                        face_items_usage.add(edge_key)
+                        prev_vidx = vidx
 
         elif use_edges and (line_start == b'l' or context_multi_line == b'l'):
             # very similar to the face load function above with some parts removed
