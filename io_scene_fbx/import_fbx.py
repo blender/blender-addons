@@ -2746,7 +2746,7 @@ def load(operator, context, filepath="",
                                 "clamp": tex_map[3],
                                 }
 
-                        if lnk_type == b'DiffuseColor':
+                        if lnk_type in {b'DiffuseColor', b'3dsMax|maps|texmap_diffuse'}:
                             ma_wrap.diffuse_image_set(image)
                             if use_mapping:
                                 ma_wrap.diffuse_mapping_set(**tex_map_kw)
@@ -2754,7 +2754,7 @@ def load(operator, context, filepath="",
                             ma_wrap.specular_image_set(image)
                             if use_mapping:
                                 ma_wrap.specular_mapping_set(**tex_map_kw)
-                        elif lnk_type == b'ReflectionColor':
+                        elif lnk_type in {b'ReflectionColor', b'3dsMax|maps|texmap_reflection'}:
                             ma_wrap.reflect_image_set(image)
                             if use_mapping:
                                 ma_wrap.reflect_mapping_set(**tex_map_kw)
@@ -2770,7 +2770,8 @@ def load(operator, context, filepath="",
                             ma_wrap.hardness_image_set(image)
                             if use_mapping:
                                 ma_wrap.hardness_mapping_set(**tex_map_kw)
-                        elif lnk_type == b'NormalMap' or lnk_type == b'Bump':  # XXX, applications abuse bump!
+                        # XXX, applications abuse bump!
+                        elif lnk_type in {b'NormalMap', b'Bump', b'3dsMax|maps|texmap_bump'}:
                             ma_wrap.normal_image_set(image)
                             ma_wrap.normal_factor_set(texture_bumpfac_get(fbx_obj))
                             if use_mapping:
@@ -2795,13 +2796,13 @@ def load(operator, context, filepath="",
 
                         mtex = material_mtex_new(material, image, tex_map)
 
-                        if lnk_type == b'DiffuseColor':
+                        if lnk_type in {b'DiffuseColor', b'3dsMax|maps|texmap_diffuse'}:
                             mtex.use_map_color_diffuse = True
                             mtex.blend_type = 'MULTIPLY'
                         elif lnk_type == b'SpecularColor':
                             mtex.use_map_color_spec = True
                             mtex.blend_type = 'MULTIPLY'
-                        elif lnk_type == b'ReflectionColor':
+                        elif lnk_type in {b'ReflectionColor', b'3dsMax|maps|texmap_reflection'}:
                             mtex.use_map_raymir = True
                         elif lnk_type == b'TransparentColor':  # alpha
                             material.use_transparency = True
@@ -2815,7 +2816,8 @@ def load(operator, context, filepath="",
                             mtex.use_map_diffuse = True
                         elif lnk_type == b'ShininessExponent':
                             mtex.use_map_hardness = True
-                        elif lnk_type == b'NormalMap' or lnk_type == b'Bump':  # XXX, applications abuse bump!
+                        # XXX, applications abuse bump!
+                        elif lnk_type in {b'NormalMap', b'Bump', b'3dsMax|maps|texmap_bump'}:
                             mtex.texture.use_normal_map = True  # not ideal!
                             mtex.use_map_normal = True
                             mtex.normal_factor = texture_bumpfac_get(fbx_obj)
