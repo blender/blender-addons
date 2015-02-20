@@ -21,7 +21,7 @@
 bl_info = {
     "name": "STL format",
     "author": "Guillaume Bouchard (Guillaum)",
-    "version": (1, 1),
+    "version": (1, 1, 1),
     "blender": (2, 73, 0),
     "location": "File > Import-Export > Stl",
     "description": "Import-Export STL files",
@@ -93,7 +93,8 @@ class ImportSTL(Operator, ImportHelper, OrientationHelper):
 
     global_scale = FloatProperty(
             name="Scale",
-            min=0.01, max=1000.0,
+            soft_min=0.001, soft_max=1000.0,
+            min=1e-6, max=1e6,
             default=1.0,
             )
 
