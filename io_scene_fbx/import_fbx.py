@@ -1312,6 +1312,8 @@ def blen_read_texture_image(fbx_tmpl, fbx_obj, basedir, settings):
         filepath = elem_find_first_string(fbx_obj, b'Filename')
     if not filepath:
         print("Error, could not find any file path in ", fbx_obj)
+        print("       Falling back to: ", elem_name_utf8)
+        filepath = elem_name_utf8
     else :
         filepath = filepath.replace('\\', '/') if (os.sep == '/') else filepath.replace('/', '\\')
 
@@ -2055,7 +2057,8 @@ def load(operator, context, filepath="",
     from . import parse_fbx
     from .fbx_utils import RIGHT_HAND_AXES, FBX_FRAMERATES
 
-    start_time = time.process_time()
+    start_time_proc = time.process_time()
+    start_time_sys = time.time()
 
     # detect ascii files
     if is_ascii(filepath, 24):
@@ -2889,5 +2892,6 @@ def load(operator, context, filepath="",
                                 material.use_raytrace = False
     _(); del _
 
-    print('Import finished in %.4f sec.' % (time.process_time() - start_time))
+    print('Import finished in %.4f sec (process time: %.4f sec).' %
+          (time.time() - start_time_sys, time.process_time() - start_time_proc))
     return {'FINISHED'}
