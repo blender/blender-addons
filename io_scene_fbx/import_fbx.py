@@ -717,17 +717,40 @@ def blen_read_geom_array_setattr(generator, blen_data, blen_attr, fbx_data, stri
         return False
 
     if xform is not None:
-        for blen_idx, fbx_idx in generator:
-            if check_skip(blen_idx, fbx_idx):
-                continue
-            setattr(blen_data[blen_idx], blen_attr,
-                    xform(fbx_data[fbx_idx] if (item_size == 1) else fbx_data[fbx_idx:fbx_idx + item_size]))
+        if isinstance(blen_data, list):
+            if item_size == 1:
+                def _process(blend_data, blen_attr, xform, item_size, blen_idx, fbx_idx):
+                    blen_data[blen_idx] = xform(fbx_data[fbx_idx])
+            else:
+                def _process(blend_data, blen_attr, xform, item_size, blen_idx, fbx_idx):
+                    blen_data[blen_idx] = xform(fbx_data[fbx_idx:fbx_idx + item_size])
+        else:
+            if item_size == 1:
+                def _process(blend_data, blen_attr, xform, item_size, blen_idx, fbx_idx):
+                    setattr(blen_data[blen_idx], blen_attr, xform(fbx_data[fbx_idx]))
+            else:
+                def _process(blend_data, blen_attr, xform, item_size, blen_idx, fbx_idx):
+                    setattr(blen_data[blen_idx], blen_attr, xform(fbx_data[fbx_idx:fbx_idx + item_size]))
     else:
-        for blen_idx, fbx_idx in generator:
-            if check_skip(blen_idx, fbx_idx):
-                continue
-            setattr(blen_data[blen_idx], blen_attr,
-                    fbx_data[fbx_idx] if (item_size == 1) else fbx_data[fbx_idx:fbx_idx + item_size])
+        if isinstance(blen_data, list):
+            if item_size == 1:
+                def _process(blend_data, blen_attr, xform, item_size, blen_idx, fbx_idx):
+                    blen_data[blen_idx] = fbx_data[fbx_idx]
+            else:
+                def _process(blend_data, blen_attr, xform, item_size, blen_idx, fbx_idx):
+                    blen_data[blen_idx] = fbx_data[fbx_idx:fbx_idx + item_size]
+        else:
+            if item_size == 1:
+                def _process(blend_data, blen_attr, xform, item_size, blen_idx, fbx_idx):
+                    setattr(blen_data[blen_idx], blen_attr, fbx_data[fbx_idx])
+            else:
+                def _process(blend_data, blen_attr, xform, item_size, blen_idx, fbx_idx):
+                    setattr(blen_data[blen_idx], blen_attr, fbx_data[fbx_idx:fbx_idx + item_size])
+
+    for blen_idx, fbx_idx in generator:
+        if check_skip(blen_idx, fbx_idx):
+            continue
+        _process(blen_data, blen_attr, xform, item_size, blen_idx, fbx_idx)
 
 
 # generic generators.
@@ -1046,15 +1069,21 @@ def blen_read_geom_layer_normal(fbx_obj, mesh, xform=None):
     fbx_layer_index = elem_prop_first(elem_find_first(fbx_layer, b'NormalsIndex'))
 
     # try loops, then vertices.
-    tries = ((mesh.loops, blen_read_geom_array_mapped_polyloop),
-             (mesh.vertices, blen_read_geom_array_mapped_vert))
-    for blen_data, func in tries:
-        if func(mesh, blen_data, "normal",
+    tries = ((mesh.loops, False, blen_read_geom_array_mapped_polyloop),
+             (mesh.polygons, True, blen_read_geom_array_mapped_polygon),
+             (mesh.vertices, True, blen_read_geom_array_mapped_vert))
+    for blen_data, is_fake, func in tries:
+        bdata = [None] * len(blen_data) if is_fake else blen_data
+        if func(mesh, bdata, "normal",
                 fbx_layer_data, fbx_layer_index, fbx_layer_mapping, fbx_layer_ref, 3, 3, layer_id, xform):
-            if blen_data == mesh.vertices:
+            if blen_data is mesh.polygons:
+                for pidx, p in enumerate(mesh.polygons):
+                    for lidx in range(p.loop_start, p.loop_start + p.loop_total):
+                        mesh.loops[lidx].normal[:] = bdata[pidx]
+            elif blen_data is mesh.vertices:
                 # We have to copy vnors to lnors! Far from elegant, but simple.
                 for l in mesh.loops:
-                    l.normal[:] = mesh.vertices[l.vertex_index].normal
+                    l.normal[:] = bdata[l.vertex_index]
             return True
     return False
 
