@@ -285,7 +285,7 @@ def get_key_from_fbx_uuid(uuid):
 
 # Blender-specific key generators
 def get_bid_name(bid):
-    if bid.library is not None:
+    if getattr(bid, 'library', None) is not None:
         return "_L_".join((bid.name, bid.library.name))
     return bid.name
 
