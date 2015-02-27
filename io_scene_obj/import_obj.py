@@ -785,6 +785,16 @@ def load(operator, context, filepath,
         to be split into objects and then converted into mesh objects
     """
 
+    def handle_vec(line_start, context_multi_line, line_split, tag, data, vec):
+        ret_context_multi_line = tag if strip_slash(line_split) else b''
+        if line_start == tag:
+            vec[:] = [float_func(v) for v in line_split[1:]]
+        elif context_multi_line == tag:
+            vec += [float_func(v) for v in line_split]
+        if not ret_context_multi_line:
+            data.append(tuple(vec))
+        return ret_context_multi_line
+
     def create_face(context_material, context_smooth_group, context_object):
         face_vert_loc_indices = []
         face_vert_nor_indices = []
@@ -852,6 +862,7 @@ def load(operator, context, filepath,
     face_invalid_blenpoly = None
     prev_vidx = None
     face = None
+    vec = []
 
     print("\tparsing obj file...")
     time_sub = time.time()
@@ -865,14 +876,14 @@ def load(operator, context, filepath,
 
         line_start = line_split[0]  # we compare with this a _lot_
 
-        if line_start == b'v':
-            verts_loc.append((float_func(line_split[1]), float_func(line_split[2]), float_func(line_split[3])))
+        if line_start == b'v' or context_multi_line == b'v':
+            context_multi_line = handle_vec(line_start, context_multi_line, line_split, b'v', verts_loc, vec)
 
-        elif line_start == b'vn':
-            verts_nor.append((float_func(line_split[1]), float_func(line_split[2]), float_func(line_split[3])))
+        elif line_start == b'vn' or context_multi_line == b'vn':
+            context_multi_line = handle_vec(line_start, context_multi_line, line_split, b'vn', verts_nor, vec)
 
-        elif line_start == b'vt':
-            verts_tex.append((float_func(line_split[1]), float_func(line_split[2])))
+        elif line_start == b'vt' or context_multi_line == b'vt':
+            context_multi_line = handle_vec(line_start, context_multi_line, line_split, b'vt', verts_tex, vec)
 
         # Handle faces lines (as faces) and the second+ lines of fa multiline face here
         # use 'f' not 'f ' because some objs (very rare have 'fo ' for faces)
