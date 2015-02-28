@@ -20,7 +20,7 @@ bl_info = {
     "name": "Sapling",
     "author": "Andrew Hale (TrumanBlending)",
     "version": (0, 2, 6),
-    "blender": (2, 71, 0),
+    "blender": (2, 73, 0),
     "location": "View3D > Add > Curve",
     "description": ("Adds a parametric tree. The method is presented by "
     "Jason Weber & Joseph Penn in their paper 'Creation and Rendering of "
@@ -189,7 +189,7 @@ class AddTree(bpy.types.Operator):
         max=1,
         default=0, update=update_tree)
     levels = IntProperty(name='Levels',
-        description='Number of recursive branches (Levels)',
+        description='Number of recursive branches (Levels, note that last level is also used for generating leaves)',
         min=1,
         max=6,
         default=3, update=update_tree)

@@ -586,7 +586,7 @@ def fabricate_stems(addsplinetobone, addstem, baseSize, branches, childP, cu, cu
         tempPos.rotate(rotMat)
         tempPos.rotate(p.quat)
         newPoint.handle_right = p.co + tempPos
-        if (storeN >= levels):
+        if (storeN == levels - 1):
             # If this is the last level before leaves then we need to generate the child points differently
             branchL = (length[n] + uniform(-lengthV[n], lengthV[n])) * (p.lengthPar - 0.6 * p.offset)
             if leaves < 0:
