@@ -99,7 +99,7 @@ def write_mtl(scene, filepath, path_mode, copy_set, mtl_dict):
                 fw('illum 2\n')  # light normaly
 
         else:
-            #write a dummy material here?
+            # Write a dummy material here?
             fw('Ns 0\n')
             fw('Ka %.6f %.6f %.6f\n' % world_amb[:])  # Ambient, uses mirror color,
             fw('Kd 0.8 0.8 0.8\n')
@@ -151,7 +151,7 @@ def write_mtl(scene, filepath, path_mode, copy_set, mtl_dict):
                         if mtex.use_map_normal:
                             image_map["map_Bump"] = image
                         if mtex.use_map_displacement:
-                            image_map["disp"] = image                      
+                            image_map["disp"] = image
                         if mtex.use_map_color_diffuse and (mtex.texture_coords == 'REFLECTION'):
                             image_map["refl"] = image
                         if mtex.use_map_emit:
@@ -611,7 +611,6 @@ def write_file(filepath, objects, scene,
                         fw('s off\n')
                     contextSmooth = f_smooth
 
-                #f_v = [(vi, me_verts[v_idx]) for vi, v_idx in enumerate(f.vertices)]
                 f_v = [(vi, me_verts[v_idx], l_idx) for vi, (v_idx, l_idx) in enumerate(zip(f.vertices, f.loop_indices))]
 
                 fw('f')

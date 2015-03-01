@@ -36,13 +36,13 @@ import os
 import time
 import bpy
 import mathutils
-from bpy_extras.io_utils import unpack_list, unpack_face_list
+from bpy_extras.io_utils import unpack_list
 from bpy_extras.image_utils import load_image
 
 
 def line_value(line_split):
     """
-    Returns 1 string represneting the value for this line
+    Returns 1 string representing the value for this line
     None will be returned if theres only 1 word
     """
     length = len(line_split)
@@ -79,11 +79,10 @@ def create_materials(filepath, relpath,
     DIR = os.path.dirname(filepath)
     context_material_vars = set()
 
-    #==================================================================================#
-    # This function sets textures defined in .mtl file                                 #
-    #==================================================================================#
     def load_material_image(blender_material, context_material_name, imagepath, type):
-
+        """
+        Set textures defined in .mtl file.
+        """
         texture = bpy.data.textures.new(name=type, type='IMAGE')
 
         # Absolute path - c:\.. etc would work here
@@ -165,7 +164,7 @@ def create_materials(filepath, relpath,
         material_libs.append(temp_mtl)
     del temp_mtl
 
-    #Create new materials
+    # Create new materials
     for name in unique_materials:  # .keys()
         if name is not None:
             unique_materials[name] = bpy.data.materials.new(name.decode('utf-8', "replace"))
@@ -178,7 +177,7 @@ def create_materials(filepath, relpath,
         # print(libname)
         mtlpath = os.path.join(DIR, libname)
         if not os.path.exists(mtlpath):
-            print ("\tMaterial not found MTL: %r" % mtlpath)
+            print("\tMaterial not found MTL: %r" % mtlpath)
         else:
             #print('\t\tloading mtl: %e' % mtlpath)
             context_material = None
@@ -1070,7 +1069,6 @@ def load(operator, context, filepath,
         bpy.ops.object.select_all(action='DESELECT')
 
     scene = context.scene
-#     scn.objects.selected = []
     new_objects = []  # put new objects here
 
     print('\tbuilding geometry...\n\tverts:%i faces:%i materials: %i smoothgroups:%i ...' %
