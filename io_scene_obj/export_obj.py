@@ -128,10 +128,8 @@ def write_mtl(scene, filepath, path_mode, copy_set, mtl_dict):
                     image = mtex.texture.image
                     if image:
                         # texface overrides others
-                        if      (mtex.use_map_color_diffuse and
-                                (face_img is None) and
-                                (mtex.use_map_warp is False) and
-                                (mtex.texture_coords != 'REFLECTION')):
+                        if (mtex.use_map_color_diffuse and (face_img is None) and
+                            (mtex.use_map_warp is False) and (mtex.texture_coords != 'REFLECTION')):
                             image_map["map_Kd"] = image
                         if mtex.use_map_ambient:
                             image_map["map_Ka"] = image
@@ -564,7 +562,7 @@ def write_file(filepath, objects, scene,
                         # Write a null material, since we know the context has changed.
                         if EXPORT_GROUP_BY_MAT:
                             # can be mat_image or (null)
-                            fw("g %s_%s\n" % (name_compat(ob.name), name_compat(ob.data.name)))  # can be mat_image or (null)
+                            fw("g %s_%s\n" % (name_compat(ob.name), name_compat(ob.data.name)))
                         if EXPORT_MTL:
                             fw("usemtl (null)\n")  # mat, image
 
@@ -595,7 +593,8 @@ def write_file(filepath, objects, scene,
                             mtl_rev_dict[mtl_name] = key
 
                         if EXPORT_GROUP_BY_MAT:
-                            fw("g %s_%s_%s\n" % (name_compat(ob.name), name_compat(ob.data.name), mat_data[0]))  # can be mat_image or (null)
+                            # can be mat_image or (null)
+                            fw("g %s_%s_%s\n" % (name_compat(ob.name), name_compat(ob.data.name), mat_data[0]))
                         if EXPORT_MTL:
                             fw("usemtl %s\n" % mat_data[0])  # can be mat_image or (null)
 
@@ -611,23 +610,22 @@ def write_file(filepath, objects, scene,
                         fw('s off\n')
                     contextSmooth = f_smooth
 
-                f_v = [(vi, me_verts[v_idx], l_idx) for vi, (v_idx, l_idx) in enumerate(zip(f.vertices, f.loop_indices))]
+                f_v = [(vi, me_verts[v_idx], l_idx)
+                       for vi, (v_idx, l_idx) in enumerate(zip(f.vertices, f.loop_indices))]
 
                 fw('f')
                 if faceuv:
                     if EXPORT_NORMALS:
                         for vi, v, li in f_v:
-                            fw(" %d/%d/%d" %
-                                       (totverts + v.index,
-                                        totuvco + uv_face_mapping[f_index][vi],
-                                        totno + loops_to_normals[li],
-                                        ))  # vert, uv, normal
+                            fw(" %d/%d/%d" % (totverts + v.index,
+                                              totuvco + uv_face_mapping[f_index][vi],
+                                              totno + loops_to_normals[li],
+                                              ))  # vert, uv, normal
                     else:  # No Normals
                         for vi, v, li in f_v:
-                            fw(" %d/%d" % (
-                                       totverts + v.index,
-                                       totuvco + uv_face_mapping[f_index][vi],
-                                       ))  # vert, uv
+                            fw(" %d/%d" % (totverts + v.index,
+                                           totuvco + uv_face_mapping[f_index][vi],
+                                           ))  # vert, uv
 
                     face_vert_index += len(f_v)
 
@@ -671,25 +669,25 @@ def write_file(filepath, objects, scene,
 
 
 def _write(context, filepath,
-              EXPORT_TRI,  # ok
-              EXPORT_EDGES,
-              EXPORT_SMOOTH_GROUPS,
-              EXPORT_SMOOTH_GROUPS_BITFLAGS,
-              EXPORT_NORMALS,  # not yet
-              EXPORT_UV,  # ok
-              EXPORT_MTL,
-              EXPORT_APPLY_MODIFIERS,  # ok
-              EXPORT_BLEN_OBS,
-              EXPORT_GROUP_BY_OB,
-              EXPORT_GROUP_BY_MAT,
-              EXPORT_KEEP_VERT_ORDER,
-              EXPORT_POLYGROUPS,
-              EXPORT_CURVE_AS_NURBS,
-              EXPORT_SEL_ONLY,  # ok
-              EXPORT_ANIMATION,
-              EXPORT_GLOBAL_MATRIX,
-              EXPORT_PATH_MODE,
-              ):  # Not used
+           EXPORT_TRI,  # ok
+           EXPORT_EDGES,
+           EXPORT_SMOOTH_GROUPS,
+           EXPORT_SMOOTH_GROUPS_BITFLAGS,
+           EXPORT_NORMALS,  # ok
+           EXPORT_UV,  # ok
+           EXPORT_MTL,
+           EXPORT_APPLY_MODIFIERS,  # ok
+           EXPORT_BLEN_OBS,
+           EXPORT_GROUP_BY_OB,
+           EXPORT_GROUP_BY_MAT,
+           EXPORT_KEEP_VERT_ORDER,
+           EXPORT_POLYGROUPS,
+           EXPORT_CURVE_AS_NURBS,
+           EXPORT_SEL_ONLY,  # ok
+           EXPORT_ANIMATION,
+           EXPORT_GLOBAL_MATRIX,
+           EXPORT_PATH_MODE,  # Not used
+           ):
 
     base_name, ext = os.path.splitext(filepath)
     context_name = [base_name, '', '', ext]  # Base name, scene name, frame number, extension

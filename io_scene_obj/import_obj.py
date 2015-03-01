@@ -179,7 +179,7 @@ def create_materials(filepath, relpath,
         if not os.path.exists(mtlpath):
             print("\tMaterial not found MTL: %r" % mtlpath)
         else:
-            #print('\t\tloading mtl: %e' % mtlpath)
+            # print('\t\tloading mtl: %e' % mtlpath)
             context_material = None
             mtl = open(mtlpath, 'rb')
             for line in mtl:  # .readlines():
@@ -198,15 +198,18 @@ def create_materials(filepath, relpath,
                 elif context_material:
                     # we need to make a material to assign properties to it.
                     if line_id == b'ka':
-                        context_material.mirror_color = float_func(line_split[1]), float_func(line_split[2]), float_func(line_split[3])
+                        context_material.mirror_color = (
+                            float_func(line_split[1]), float_func(line_split[2]), float_func(line_split[3]))
                     elif line_id == b'kd':
-                        context_material.diffuse_color = float_func(line_split[1]), float_func(line_split[2]), float_func(line_split[3])
+                        context_material.diffuse_color = (
+                            float_func(line_split[1]), float_func(line_split[2]), float_func(line_split[3]))
                     elif line_id == b'ks':
-                        context_material.specular_color = float_func(line_split[1]), float_func(line_split[2]), float_func(line_split[3])
+                        context_material.specular_color = (
+                            float_func(line_split[1]), float_func(line_split[2]), float_func(line_split[3]))
                     elif line_id == b'ns':
                         context_material.specular_hardness = int((float_func(line_split[1]) * 0.51))
-                    elif line_id == b'ni':  # Refraction index
-                        context_material.raytrace_transparency.ior = max(1, min(float_func(line_split[1]), 3))  # between 1 and 3
+                    elif line_id == b'ni':  # Refraction index (between 1 and 3).
+                        context_material.raytrace_transparency.ior = max(1, min(float_func(line_split[1]), 3))
                         context_material_vars.add("ior")
                     elif line_id == b'd':  # dissolve (trancparency)
                         context_material.alpha = float_func(line_split[1])
@@ -383,7 +386,8 @@ def split_mesh(verts_loc, faces, unique_materials, filepath, SPLIT_OB_OR_GROUP):
 
         if oldkey != key:
             # Check the key has changed.
-            verts_split, faces_split, unique_materials_split, vert_remap = face_split_dict.setdefault(key, ([], [], {}, {}))
+            (verts_split, faces_split,
+             unique_materials_split, vert_remap) = face_split_dict.setdefault(key, ([], [], {}, {}))
             oldkey = key
 
         face_vert_loc_indices = face[0]
@@ -493,9 +497,9 @@ def create_mesh(new_objects,
                                context_smooth_group,
                                context_object,
                                [],
-                              )
+                               )
                              for ngon in ngon_face_indices]
-                            )
+                             )
                 tot_loops += 3 * len(ngon_face_indices)
 
                 # edges to make ngons
@@ -891,7 +895,8 @@ def load(operator, context, filepath,
                 line_split = line_split[1:]
                 # Instantiate a face
                 face = create_face(context_material, context_smooth_group, context_object)
-                face_vert_loc_indices, face_vert_nor_indices, face_vert_tex_indices, _1, _2, _3, face_invalid_blenpoly = face
+                (face_vert_loc_indices, face_vert_nor_indices, face_vert_tex_indices,
+                 _1, _2, _3, face_invalid_blenpoly) = face
                 faces.append(face)
                 face_items_usage.clear()
             # Else, use face_vert_loc_indices and face_vert_tex_indices previously defined and used the obj_face
@@ -1058,7 +1063,8 @@ def load(operator, context, filepath,
     time_sub = time_new
 
     print('\tloading materials and images...')
-    create_materials(filepath, relpath, material_libs, unique_materials, unique_material_images, use_image_search, float_func)
+    create_materials(filepath, relpath, material_libs, unique_materials,
+                     unique_material_images, use_image_search, float_func)
 
     time_new = time.time()
     print("%.4f sec" % (time_new - time_sub))
