@@ -488,7 +488,7 @@ object_copies = (
                 #('obj_dmp', "Damping",
                 #"Copy Damping from Active to Selected"),
                 #('obj_all', "All Physical Attributes",
-                #"Copy Physical Atributes from Active to Selected"),
+                #"Copy Physical Attributes from Active to Selected"),
                 #('obj_prp', "Properties",
                 #"Copy Properties from Active to Selected"),
                 #('obj_log', "Logic Bricks",

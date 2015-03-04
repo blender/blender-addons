@@ -636,7 +636,7 @@ def draw_atoms_one_type(draw_all_atoms_type,
     atom_vertices = []
     for atom in draw_all_atoms_type:
         # In fact, the object is created in the World's origin.
-        # This is why 'object_center_vec' is substracted. At the end
+        # This is why 'object_center_vec' is subtracted. At the end
         # the whole object is translated back to 'object_center_vec'.
         atom_vertices.append(atom[2] - object_center_vec)
 

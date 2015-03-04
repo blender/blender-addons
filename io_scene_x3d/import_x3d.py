@@ -50,7 +50,7 @@ def imageConvertCompat(path):
 # order dosnt matter for loc/size/rot
 # right handed rotation
 # angles are in radians
-# rotation first defines axis then ammount in radians
+# rotation first defines axis then amount in radians
 
 
 # =============================== VRML Spesific

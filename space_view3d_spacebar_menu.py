@@ -1219,7 +1219,7 @@ class VIEW3D_MT_KeyframeMenu(bpy.types.Menu):
     def draw(self, context):
         layout = self.layout
 
-        # Keyframe Bleck
+        # Keyframe Block
         layout.operator("anim.keyframe_insert_menu",
                         text="Insert Keyframe...")
         layout.operator("anim.keyframe_delete_v3d",
