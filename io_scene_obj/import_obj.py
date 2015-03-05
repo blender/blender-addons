@@ -616,7 +616,7 @@ def create_mesh(new_objects,
         # edges should be a list of (a, b) tuples
         me.edges.foreach_set("vertices", unpack_list(edges))
 
-    me.validate(cleanup_cddata=False)  # *Very* important to not remove lnors here!
+    me.validate(clean_customdata=False)  # *Very* important to not remove lnors here!
     me.update(calc_edges=use_edges)
 
     # Un-tessellate as much as possible, in case we had to triangulate some ngons...

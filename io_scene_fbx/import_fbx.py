@@ -1190,7 +1190,7 @@ def blen_read_geom(fbx_tmpl, fbx_obj, settings):
             return geom_mat_no * Vector(v)
         ok_normals = blen_read_geom_layer_normal(fbx_obj, mesh, nortrans)
 
-    mesh.validate(cleanup_cddata=False)  # *Very* important to not remove lnors here!
+    mesh.validate(clean_customdata=False)  # *Very* important to not remove lnors here!
 
     if ok_normals:
         clnors = array.array('f', [0.0] * (len(mesh.loops) * 3))
