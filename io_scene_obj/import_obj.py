@@ -957,7 +957,7 @@ def load(operator, context, filepath,
                 line_split = line_split[1:]
                 # Instantiate a face
                 face = create_face(context_material, context_smooth_group, context_object)
-                face_vert_loc_indices, _1, _2, _3, _4, _5, _6 = face
+                face_vert_loc_indices = face[0]
                 faces.append(face)
             # Else, use face_vert_loc_indices and face_vert_tex_indices previously defined and used the obj_face
 
