@@ -398,6 +398,7 @@ def register():
         kmi.properties.name = 'VIEW3D_PIE_pivot'
         kmi = km.keymap_items.new('wm.call_menu_pie', 'TAB', 'PRESS', ctrl=True, shift=True)
         kmi.properties.name = 'VIEW3D_PIE_snap'
+        addon_keymaps.append(km)
 
         km = wm.keyconfigs.addon.keymaps.new(name="Clip", space_type='CLIP_EDITOR')
         kmi = km.keymap_items.new("wm.call_menu_pie", 'Q', 'PRESS')
@@ -410,6 +411,7 @@ def register():
         kmi.properties.name = "CLIP_PIE_solver_pie"
         kmi = km.keymap_items.new("wm.call_menu_pie", 'W', 'PRESS', shift=True)
         kmi.properties.name = "CLIP_PIE_reconstruction_pie"
+        addon_keymaps.append(km)
 
         km = wm.keyconfigs.addon.keymaps.new(name="Frames")
         kmi = km.keymap_items.new("wm.call_menu_pie", 'A', 'PRESS', oskey=True)
