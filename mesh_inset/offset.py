@@ -463,7 +463,8 @@ class Offset(object):
             newfaces = self.MakeNewFaces(self.endtime)
             # Only do one edge event (handle other simultaneous edge
             # events in subsequent recursive Build calls)
-            splitjoin = self.SplitJoinFaces(newfaces, ee[0])
+            if newfaces:
+                splitjoin = self.SplitJoinFaces(newfaces, ee[0])
         nexttarget = target - self.endtime
         if len(newfaces) > 0:
             pa = geom.PolyArea(points=self.polyarea.points)
