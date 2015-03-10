@@ -719,38 +719,38 @@ def blen_read_geom_array_setattr(generator, blen_data, blen_attr, fbx_data, stri
     if xform is not None:
         if isinstance(blen_data, list):
             if item_size == 1:
-                def _process(blend_data, blen_attr, xform, item_size, blen_idx, fbx_idx):
+                def _process(blend_data, blen_attr, fbx_data, xform, item_size, blen_idx, fbx_idx):
                     blen_data[blen_idx] = xform(fbx_data[fbx_idx])
             else:
-                def _process(blend_data, blen_attr, xform, item_size, blen_idx, fbx_idx):
+                def _process(blend_data, blen_attr, fbx_data, xform, item_size, blen_idx, fbx_idx):
                     blen_data[blen_idx] = xform(fbx_data[fbx_idx:fbx_idx + item_size])
         else:
             if item_size == 1:
-                def _process(blend_data, blen_attr, xform, item_size, blen_idx, fbx_idx):
+                def _process(blend_data, blen_attr, fbx_data, xform, item_size, blen_idx, fbx_idx):
                     setattr(blen_data[blen_idx], blen_attr, xform(fbx_data[fbx_idx]))
             else:
-                def _process(blend_data, blen_attr, xform, item_size, blen_idx, fbx_idx):
+                def _process(blend_data, blen_attr, fbx_data, xform, item_size, blen_idx, fbx_idx):
                     setattr(blen_data[blen_idx], blen_attr, xform(fbx_data[fbx_idx:fbx_idx + item_size]))
     else:
         if isinstance(blen_data, list):
             if item_size == 1:
-                def _process(blend_data, blen_attr, xform, item_size, blen_idx, fbx_idx):
+                def _process(blend_data, blen_attr, fbx_data, xform, item_size, blen_idx, fbx_idx):
                     blen_data[blen_idx] = fbx_data[fbx_idx]
             else:
-                def _process(blend_data, blen_attr, xform, item_size, blen_idx, fbx_idx):
+                def _process(blend_data, blen_attr, fbx_data, xform, item_size, blen_idx, fbx_idx):
                     blen_data[blen_idx] = fbx_data[fbx_idx:fbx_idx + item_size]
         else:
             if item_size == 1:
-                def _process(blend_data, blen_attr, xform, item_size, blen_idx, fbx_idx):
+                def _process(blend_data, blen_attr, fbx_data, xform, item_size, blen_idx, fbx_idx):
                     setattr(blen_data[blen_idx], blen_attr, fbx_data[fbx_idx])
             else:
-                def _process(blend_data, blen_attr, xform, item_size, blen_idx, fbx_idx):
+                def _process(blend_data, blen_attr, fbx_data, xform, item_size, blen_idx, fbx_idx):
                     setattr(blen_data[blen_idx], blen_attr, fbx_data[fbx_idx:fbx_idx + item_size])
 
     for blen_idx, fbx_idx in generator:
         if check_skip(blen_idx, fbx_idx):
             continue
-        _process(blen_data, blen_attr, xform, item_size, blen_idx, fbx_idx)
+        _process(blen_data, blen_attr, fbx_data, xform, item_size, blen_idx, fbx_idx)
 
 
 # generic generators.
@@ -957,7 +957,7 @@ def blen_read_geom_layer_uv(fbx_obj, mesh):
 
             uv_tex = mesh.uv_textures.new(name=fbx_layer_name)
             uv_lay = mesh.uv_layers[-1]
-            blen_data = uv_lay.data[:]
+            blen_data = uv_lay.data
 
             # some valid files omit this data
             if fbx_layer_data is None:
@@ -986,7 +986,7 @@ def blen_read_geom_layer_color(fbx_obj, mesh):
             fbx_layer_index = elem_prop_first(elem_find_first(fbx_layer, b'ColorIndex'))
 
             color_lay = mesh.vertex_colors.new(name=fbx_layer_name)
-            blen_data = color_lay.data[:]
+            blen_data = color_lay.data
 
             # some valid files omit this data
             if fbx_layer_data is None:
