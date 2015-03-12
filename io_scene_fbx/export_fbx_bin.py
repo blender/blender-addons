@@ -738,6 +738,8 @@ def fbx_data_mesh_shapes_elements(root, me_obj, me, scene_data, fbx_me_tmpl, fbx
     if me not in scene_data.data_deformers_shape:
         return
 
+    write_normals = True  # scene_data.settings.mesh_smooth_type in {'OFF'}
+
     # First, write the geometry data itself (i.e. shapes).
     _me_key, shape_key, shapes = scene_data.data_deformers_shape[me]
 
@@ -768,7 +770,8 @@ def fbx_data_mesh_shapes_elements(root, me_obj, me, scene_data, fbx_me_tmpl, fbx
 
         elem_data_single_int32_array(geom, b"Indexes", shape_verts_idx)
         elem_data_single_float64_array(geom, b"Vertices", shape_verts_co)
-        elem_data_single_float64_array(geom, b"Normals", [0.0] * len(shape_verts_co))
+        if write_normals:
+            elem_data_single_float64_array(geom, b"Normals", [0.0] * len(shape_verts_co))
 
     # Yiha! BindPose for shapekeys too! Dodecasigh...
     # XXX Not sure yet whether several bindposes on same mesh are allowed, or not... :/
@@ -813,7 +816,7 @@ def fbx_data_mesh_elements(root, me_obj, scene_data, done_meshes):
 
     # No gscale/gmat here, all data are supposed to be in object space.
     smooth_type = scene_data.settings.mesh_smooth_type
-    write_normals = smooth_type in {'OFF'}
+    write_normals = True  # smooth_type in {'OFF'}
 
     do_bake_space_transform = me_obj.use_bake_space_transform(scene_data)
 

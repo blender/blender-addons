@@ -263,12 +263,12 @@ class ExportFBX(bpy.types.Operator, ExportHelper, OrientationHelper):
             )
     mesh_smooth_type = EnumProperty(
             name="Smoothing",
-            items=(('OFF', "Normals", "Export normals instead of writing edge or face smoothing data"),
+            items=(('OFF', "Normals Only", "Export only normals instead of writing edge or face smoothing data"),
                    ('FACE', "Face", "Write face smoothing"),
                    ('EDGE', "Edge", "Write edge smoothing"),
                    ),
             description="Export smoothing information "
-                        "(prefer 'Off' option if your target importer understand split normals)",
+                        "(prefer 'Normals Only' option if your target importer understand split normals)",
             default='OFF',
             )
     use_mesh_edges = BoolProperty(
@@ -425,7 +425,7 @@ class ExportFBX(bpy.types.Operator, ExportHelper, OrientationHelper):
         layout.prop(self, "mesh_smooth_type")
         layout.prop(self, "use_mesh_edges")
         sub = layout.row()
-        sub.enabled = self.mesh_smooth_type in {'OFF'}
+        #~ sub.enabled = self.mesh_smooth_type in {'OFF'}
         sub.prop(self, "use_tspace")
         layout.prop(self, "use_armature_deform_only")
         if is_74bin:
