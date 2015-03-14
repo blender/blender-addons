@@ -2007,7 +2007,9 @@ class FbxImportHelperNode:
                     #       Among other things, why in hell isn't it taken into account by bindpose & co???
                     #       Probably because org app (max) handles it completely aside from any parenting stuff,
                     #       which we obviously cannot do in Blender. :/
-                    amat = settings.global_matrix * (amat if amat is not None else self.bind_matrix)
+                    if amat is None:
+                        amat = self.bind_matrix
+                    amat = settings.global_matrix * (Matrix() if amat is None else amat)
                     if self.matrix_geom:
                         amat = amat * self.matrix_geom
                     mmat = settings.global_matrix * mmat
