@@ -435,7 +435,7 @@ def create_mesh(new_objects,
         smooth_group_users = {context_smooth_group: {} for context_smooth_group in unique_smooth_groups.keys()}
         context_smooth_group_old = -1
 
-    fgon_edges = set()  # Used for storing fgon keys whe we need to tesselate/untesselate them (ngons with hole).
+    fgon_edges = set()  # Used for storing fgon keys when we need to tesselate/untesselate them (ngons with hole).
     edges = []
     tot_loops = 0
 
@@ -508,6 +508,8 @@ def create_mesh(new_objects,
                     prev_vidx = face_vert_loc_indices[ngon[-1]]
                     for ngidx in ngon:
                         vidx = face_vert_loc_indices[ngidx]
+                        if vidx == prev_vidx:
+                            continue  # broken OBJ... Just skip.
                         edge_key = (prev_vidx, vidx) if (prev_vidx < vidx) else (vidx, prev_vidx)
                         prev_vidx = vidx
                         if edge_key in edge_users:
