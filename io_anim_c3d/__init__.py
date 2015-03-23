@@ -110,10 +110,10 @@ class C3DImporter(bpy.types.Operator):
     Y_up = BoolProperty(
             name="Up vector is Y axis",
             default=False,
-            description="Convert to Blender coordinates",
+            description="Check when the data uses Y-up, uncheck when it uses Z-up",
             )
     from_inches = BoolProperty(
-            name="Convert from inches to metric",
+            name="Convert from inches to meters",
             default=False,
             description="Scale by 2.54/100",
             )
@@ -121,7 +121,7 @@ class C3DImporter(bpy.types.Operator):
             name="Scale",
             default=1.0,
             description="Scale the positions by this value",
-            min=0.0001, max=1000000.0,
+            min=0.0000001, max=1000000.0,
             soft_min=0.001, soft_max=100.0,
             )
     auto_scale = BoolProperty(
@@ -229,7 +229,7 @@ class C3DImporter(bpy.types.Operator):
         # determine the final scale
         height = self.find_height(ms)
         #print('h', height)
-        scale = 1.0 if not self.properties.from_inches else 2.54
+        scale = 1.0 if not self.properties.from_inches else 0.0254
         scale *= ms.scale
         if self.properties.auto_magnitude:
             scale = self.adjust_scale_magnitude(height, scale)
