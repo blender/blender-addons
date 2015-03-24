@@ -333,7 +333,8 @@ class ExportFBX(bpy.types.Operator, ExportHelper, IOFBXOrientationHelper):
             )
     bake_anim_use_all_bones = BoolProperty(
             name="Key All Bones",
-            description="Force exporting at least one key of animation for all bones (needed with some target apps, like UE4)",
+            description="Force exporting at least one key of animation for all bones "
+                        "(needed with some target applications, like UE4)",
             default=True,
             )
     bake_anim_use_nla_strips = BoolProperty(
