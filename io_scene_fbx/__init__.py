@@ -21,7 +21,7 @@
 bl_info = {
     "name": "FBX format",
     "author": "Campbell Barton, Bastien Montagne, Jens Restemeier",
-    "version": (3, 2, 1),
+    "version": (3, 2, 2),
     "blender": (2, 74, 0),
     "location": "File > Import-Export",
     "description": "FBX IO meshes, UV's, vertex colors, materials, "
@@ -331,6 +331,11 @@ class ExportFBX(bpy.types.Operator, ExportHelper, IOFBXOrientationHelper):
             description="Export baked keyframe animation",
             default=True,
             )
+    bake_anim_use_all_bones = BoolProperty(
+            name="Key All Bones",
+            description="Force exporting at least one key of animation for all bones (needed with some target apps, like UE4)",
+            default=True,
+            )
     bake_anim_use_nla_strips = BoolProperty(
             name="NLA Strips",
             description="Export each non-muted NLA strip as a separated FBX's AnimStack, if any, "
@@ -439,6 +444,7 @@ class ExportFBX(bpy.types.Operator, ExportHelper, IOFBXOrientationHelper):
             layout.prop(self, "bake_anim")
             col = layout.column()
             col.enabled = self.bake_anim
+            col.prop(self, "bake_anim_use_all_bones")
             col.prop(self, "bake_anim_use_nla_strips")
             col.prop(self, "bake_anim_use_all_actions")
             col.prop(self, "bake_anim_step")
