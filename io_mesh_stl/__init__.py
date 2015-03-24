@@ -22,7 +22,7 @@ bl_info = {
     "name": "STL format",
     "author": "Guillaume Bouchard (Guillaum)",
     "version": (1, 1, 1),
-    "blender": (2, 73, 0),
+    "blender": (2, 74, 0),
     "location": "File > Import-Export > Stl",
     "description": "Import-Export STL files",
     "warning": "",
@@ -65,13 +65,16 @@ from bpy.props import (StringProperty,
                        )
 from bpy_extras.io_utils import (ImportHelper,
                                  ExportHelper,
-                                 OrientationHelper,
+                                 orientation_helper_factory,
                                  axis_conversion,
                                  )
 from bpy.types import Operator, OperatorFileListElement
 
 
-class ImportSTL(Operator, ImportHelper, OrientationHelper):
+IOSTLOrientationHelper = orientation_helper_factory("IOSTLOrientationHelper", axis_forward='Y', axis_up='Z')
+
+
+class ImportSTL(Operator, ImportHelper, IOSTLOrientationHelper):
     """Load STL triangle mesh data"""
     bl_idname = "import_mesh.stl"
     bl_label = "Import STL"
@@ -140,7 +143,7 @@ class ImportSTL(Operator, ImportHelper, OrientationHelper):
         return {'FINISHED'}
 
 
-class ExportSTL(Operator, ExportHelper, OrientationHelper):
+class ExportSTL(Operator, ExportHelper, IOSTLOrientationHelper):
     """Save STL triangle mesh data from the active object"""
     bl_idname = "export_mesh.stl"
     bl_label = "Export STL"

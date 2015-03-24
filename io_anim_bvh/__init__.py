@@ -21,7 +21,7 @@
 bl_info = {
     "name": "BioVision Motion Capture (BVH) format",
     "author": "Campbell Barton",
-    "blender": (2, 73, 0),
+    "blender": (2, 74, 0),
     "location": "File > Import-Export",
     "description": "Import-Export BVH from armature objects",
     "warning": "",
@@ -46,12 +46,15 @@ from bpy.props import (StringProperty,
                        )
 from bpy_extras.io_utils import (ImportHelper,
                                  ExportHelper,
-                                 OrientationHelper,
+                                 orientation_helper_factory,
                                  axis_conversion,
                                  )
 
 
-class ImportBVH(bpy.types.Operator, ImportHelper, OrientationHelper):
+ImportBVHOrientationHelper = orientation_helper_factory("ImportBVHOrientationHelper", axis_forward='-Z', axis_up='Y')
+
+
+class ImportBVH(bpy.types.Operator, ImportHelper, ImportBVHOrientationHelper):
     """Load a BVH motion capture file"""
     bl_idname = "import_anim.bvh"
     bl_label = "Import BVH"
