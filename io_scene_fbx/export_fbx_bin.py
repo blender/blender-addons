@@ -1820,6 +1820,7 @@ def fbx_animations_do(scene_data, ref_id, f_start, f_end, start_zero, objects=No
     bake_step = scene_data.settings.bake_anim_step
     scene = scene_data.scene
     meshes = scene_data.data_meshes
+    force_keying = scene_data.settings.bake_anim_use_all_bones
 
     if objects is not None:
         # Add bones and duplis!
@@ -1837,9 +1838,12 @@ def fbx_animations_do(scene_data, ref_id, f_start, f_end, start_zero, objects=No
         objects = scene_data.objects
 
     back_currframe = scene.frame_current
-    animdata_ob = OrderedDict((ob_obj, (AnimationCurveNodeWrapper(ob_obj.key, 'LCL_TRANSLATION', (0.0, 0.0, 0.0)),
-                                        AnimationCurveNodeWrapper(ob_obj.key, 'LCL_ROTATION', (0.0, 0.0, 0.0)),
-                                        AnimationCurveNodeWrapper(ob_obj.key, 'LCL_SCALING', (1.0, 1.0, 1.0))))
+    animdata_ob = OrderedDict((ob_obj, (AnimationCurveNodeWrapper(ob_obj.key, 'LCL_TRANSLATION',
+                                                                  ob_obj.is_bone and force_keying, (0.0, 0.0, 0.0)),
+                                        AnimationCurveNodeWrapper(ob_obj.key, 'LCL_ROTATION',
+                                                                  ob_obj.is_bone and force_keying, (0.0, 0.0, 0.0)),
+                                        AnimationCurveNodeWrapper(ob_obj.key, 'LCL_SCALING',
+                                                                  ob_obj.is_bone and force_keying, (1.0, 1.0, 1.0))))
                               for ob_obj in objects)
 
     animdata_shapes = OrderedDict()
@@ -1848,7 +1852,7 @@ def fbx_animations_do(scene_data, ref_id, f_start, f_end, start_zero, objects=No
         if not me.shape_keys.use_relative:
             continue
         for shape, (channel_key, geom_key, _shape_verts_co, _shape_verts_idx) in shapes.items():
-            acnode = AnimationCurveNodeWrapper(channel_key, 'SHAPE_KEY', (0.0,))
+            acnode = AnimationCurveNodeWrapper(channel_key, 'SHAPE_KEY', False, (0.0,))
             # Sooooo happy to have to twist again like a mad snake... Yes, we need to write those curves twice. :/
             acnode.add_group(me_key, shape.name, shape.name, (shape.name,))
             animdata_shapes[channel_key] = (acnode, me, shape)
@@ -2721,6 +2725,7 @@ def save_single(operator, scene, filepath="",
                 mesh_smooth_type='FACE',
                 use_armature_deform_only=False,
                 bake_anim=True,
+                bake_anim_use_all_bones=True,
                 bake_anim_use_nla_strips=True,
                 bake_anim_use_all_actions=True,
                 bake_anim_step=1.0,
@@ -2790,7 +2795,8 @@ def save_single(operator, scene, filepath="",
         context_objects, object_types, use_mesh_modifiers,
         mesh_smooth_type, use_mesh_edges, use_tspace,
         use_armature_deform_only, add_leaf_bones, bone_correction_matrix, bone_correction_matrix_inv,
-        bake_anim, bake_anim_use_nla_strips, bake_anim_use_all_actions, bake_anim_step, bake_anim_simplify_factor,
+        bake_anim, bake_anim_use_all_bones, bake_anim_use_nla_strips, bake_anim_use_all_actions,
+        bake_anim_step, bake_anim_simplify_factor,
         False, media_settings, use_custom_props,
     )
 
