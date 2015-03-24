@@ -21,7 +21,7 @@
 bl_info = {
     "name": "Stanford PLY format",
     "author": "Bruce Merry, Campbell Barton",
-    "blender": (2, 73, 0),
+    "blender": (2, 74, 0),
     "location": "File > Import-Export",
     "description": "Import-Export PLY mesh data withs UV's and vertex colors",
     "warning": "",
@@ -53,9 +53,12 @@ from bpy.props import (CollectionProperty,
                        )
 from bpy_extras.io_utils import (ImportHelper,
                                  ExportHelper,
-                                 OrientationHelper,
+                                 orientation_helper_factory,
                                  axis_conversion,
                                  )
+
+
+IOPLYOrientationHelper = orientation_helper_factory("IOPLYOrientationHelper", axis_forward='Y', axis_up='Z')
 
 
 class ImportPLY(bpy.types.Operator, ImportHelper):
@@ -88,7 +91,7 @@ class ImportPLY(bpy.types.Operator, ImportHelper):
         return {'FINISHED'}
 
 
-class ExportPLY(bpy.types.Operator, ExportHelper, OrientationHelper):
+class ExportPLY(bpy.types.Operator, ExportHelper, IOPLYOrientationHelper):
     """Export a single object as a Stanford PLY with normals, """ \
     """colors and texture coordinates"""
     bl_idname = "export_mesh.ply"

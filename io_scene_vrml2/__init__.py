@@ -21,7 +21,7 @@
 bl_info = {
     "name": "VRML2 (Virtual Reality Modeling Language)",
     "author": "Campbell Barton",
-    "blender": (2, 73, 0),
+    "blender": (2, 74, 0),
     "location": "File > Export",
     "description": "Exports mesh objects to VRML2, supporting vertex and material colors",
     "warning": "",
@@ -45,12 +45,16 @@ from bpy.props import (CollectionProperty,
                        FloatProperty,
                        )
 from bpy_extras.io_utils import (ExportHelper,
-                                 OrientationHelper,
+                                 orientation_helper_factory,
                                  path_reference_mode,
                                  axis_conversion,
                                  )
 
-class ExportVRML(bpy.types.Operator, ExportHelper, OrientationHelper):
+
+ExportVRMLOrientationHelper = orientation_helper_factory("ExportVRMLOrientationHelper", axis_forward='Z', axis_up='Y')
+
+
+class ExportVRML(bpy.types.Operator, ExportHelper, ExportVRMLOrientationHelper):
     """Export mesh objects as a VRML2, colors and texture coordinates"""
     bl_idname = "export_scene.vrml2"
     bl_label = "Export VRML2"

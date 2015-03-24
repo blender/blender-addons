@@ -22,7 +22,7 @@ bl_info = {
     "name": "Wavefront OBJ format",
     "author": "Campbell Barton, Bastien Montagne",
     "version": (2, 1, 0),
-    "blender": (2, 73, 0),
+    "blender": (2, 74, 0),
     "location": "File > Import-Export",
     "description": "Import-Export OBJ, Import OBJ mesh, UV's, "
                    "materials and textures",
@@ -48,13 +48,16 @@ from bpy.props import (BoolProperty,
                        )
 from bpy_extras.io_utils import (ImportHelper,
                                  ExportHelper,
-                                 OrientationHelper,
+                                 orientation_helper_factory,
                                  path_reference_mode,
                                  axis_conversion,
                                  )
 
 
-class ImportOBJ(bpy.types.Operator, ImportHelper, OrientationHelper):
+IOOBJOrientationHelper = orientation_helper_factory("IOOBJOrientationHelper", axis_forward='-Z', axis_up='Y')
+
+
+class ImportOBJ(bpy.types.Operator, ImportHelper, IOOBJOrientationHelper):
     """Load a Wavefront OBJ File"""
     bl_idname = "import_scene.obj"
     bl_label = "Import OBJ"
@@ -170,7 +173,7 @@ class ImportOBJ(bpy.types.Operator, ImportHelper, OrientationHelper):
         layout.prop(self, "use_image_search")
 
 
-class ExportOBJ(bpy.types.Operator, ExportHelper, OrientationHelper):
+class ExportOBJ(bpy.types.Operator, ExportHelper, IOOBJOrientationHelper):
     """Save a Wavefront OBJ File"""
 
     bl_idname = "export_scene.obj"
