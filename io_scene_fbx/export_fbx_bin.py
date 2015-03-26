@@ -2000,7 +2000,8 @@ def fbx_animations(scene_data):
                 'show_only_shape_key', 'use_shape_key_edit_mode', 'active_shape_key_index',
             )
             for p in props:
-                setattr(ob_to, p, getattr(ob_from, p))
+                if not ob_to.is_property_readonly(p):
+                    setattr(ob_to, p, getattr(ob_from, p))
 
         for ob_obj in scene_data.objects:
             # Actions only for objects, not bones!
