@@ -594,7 +594,9 @@ def fabricate_stems(addsplinetobone, addstem, baseSize, branches, childP, cu, cu
             else:
                 childStems = leaves * shapeRatio(leafDist, p.offset / p.lengthPar)
         elif n == 1:
-            # If this is the first level of branching then upward attraction has no effect and a special formula is used to find branch length and the number of child stems
+            # If this is the first level of branching then upward attraction has no effect
+            # and a special formula is used to find branch length and the number of child stems.
+            # This is also here that the shape is used.
             vertAtt = 0.0
             lMax = length[1] + uniform(-lengthV[1], lengthV[1])
             lMax += copysign(1e-6, lMax)  # Move away from zero to avoid div by zero

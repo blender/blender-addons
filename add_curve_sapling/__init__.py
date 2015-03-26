@@ -253,7 +253,7 @@ class AddTree(bpy.types.Operator):
         description='Branch upward attraction',
         default=0.0, update=update_tree)
     shape = EnumProperty(name='Shape',
-        description='The overall shape of the tree (Shape)',
+        description='The overall shape of the tree (Shape) - WARNING: at least three "Levels" of branching are needed',
         items=shapeList,
         default='7', update=update_tree)
     baseSize = FloatProperty(name='Base Size',
@@ -415,7 +415,9 @@ class AddTree(bpy.types.Operator):
             row.prop(self, 'resU')
 
             box.prop(self, 'handleType')
-            box.prop(self, 'shape')
+            sub = box.row()
+            sub.active = self.levels >= 3
+            sub.prop(self, 'shape')
             box.prop(self, 'seed')
             box.prop(self, 'ratio')
 
