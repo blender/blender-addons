@@ -57,18 +57,23 @@ if "bpy" in locals():
 import os
 
 import bpy
-from bpy.props import (StringProperty,
-                       BoolProperty,
-                       CollectionProperty,
-                       EnumProperty,
-                       FloatProperty,
-                       )
-from bpy_extras.io_utils import (ImportHelper,
-                                 ExportHelper,
-                                 orientation_helper_factory,
-                                 axis_conversion,
-                                 )
-from bpy.types import Operator, OperatorFileListElement
+from bpy.props import (
+        StringProperty,
+        BoolProperty,
+        CollectionProperty,
+        EnumProperty,
+        FloatProperty,
+        )
+from bpy_extras.io_utils import (
+        ImportHelper,
+        ExportHelper,
+        orientation_helper_factory,
+        axis_conversion,
+        )
+from bpy.types import (
+        Operator,
+        OperatorFileListElement,
+        )
 
 
 IOSTLOrientationHelper = orientation_helper_factory("IOSTLOrientationHelper", axis_forward='Y', axis_up='Z')
@@ -104,7 +109,7 @@ class ImportSTL(Operator, ImportHelper, IOSTLOrientationHelper):
     use_scene_unit = BoolProperty(
             name="Scene Unit",
             description="Apply current scene's unit (as defined by unit scale) to imported data",
-            default=False,
+            default=True,
             )
 
     def execute(self, context):
