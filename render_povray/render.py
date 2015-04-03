@@ -1472,25 +1472,23 @@ def write_pov(filename, scene=None, info_callback=None):
                         #	        	LuxLog('Binary SMOKE file written: %s' % (smoke_path))
 
         #return big_res[0], big_res[1], big_res[2], channeldata
-       
+
                 mydf3 = df3.df3(big_res[0],big_res[1],big_res[2])
-                for x in range(mydf3.sizeX()):
-                    for y in range(mydf3.sizeY()):
-                        for z in range(mydf3.sizeZ()):
-                            mydf3.set(x, y, z, channeldata[((z*mydf3.sizeY()+y)*mydf3.sizeX()+x)]) 
+                sim_sizeX, sim_sizeY, sim_sizeZ = mydf3.size()
+                for x in range(sim_sizeX):
+                    for y in range(sim_sizeY):
+                        for z in range(sim_sizeZ):
+                            mydf3.set(x, y, z, channeldata[((z * sim_sizeY + y) * sim_sizeX + x)])
 
                 mydf3.exportDF3(smokePath)
                 print('Binary smoke.df3 file written in preview directory')
                 if comments:
                     file.write("\n//--Smoke--\n\n")
 
-                # media container shape = blender domain
-                bbox = smoke_obj.bound_box
-                # Domain is cubic and its dimension is always the biggest
-                dim = [smoke_obj.dimensions.x, smoke_obj.dimensions.y, smoke_obj.dimensions.z]
-                domdim = sorted(dim)[-1]
-                file.write("box{<%.4g,%.4g,%.4g>, <%.4g, %.4g, %.4g>\n"% \
-                            (bbox[0][0], bbox[0][1], bbox[0][2], bbox[6][0], bbox[6][1], bbox[6][2]))
+                # Note: We start with a default unit cube.
+                #       This is mandatory to read correctly df3 data - otherwise we could just directly use bbox
+                #       coordinates from the start, and avoid scale/translate operations at the end...
+                file.write("box{<0,0,0>, <1,1,1>\n")
                 file.write("    pigment{ rgbt 1 }\n")
                 file.write("    hollow\n")
                 file.write("    interior{ //---------------------\n")
@@ -1512,10 +1510,26 @@ def write_pov(filename, scene=None, info_callback=None):
                 file.write("               samples %i // higher = more precise\n" % resolution)
                 file.write("         } // end of media --------------------------\n")
                 file.write("    } // end of interior\n")
-                file.write("scale<%.4g,%.4g,%.4g>\n" % \
-                            (domdim, domdim, domdim))               
-                file.write("translate<%.4g,%.4g,%.4g>\n" % (bbox[0][0], bbox[0][1], bbox[0][2]))
+
+                # START OF TRANSFORMATIONS
+
+                # Size to consider here are bbox dimensions (i.e. still in object space, *before* applying
+                # loc/rot/scale and other transformations (like parent stuff), aka matrix_world).
+                bbox = smoke_obj.bound_box
+                dim = [abs(bbox[6][0] - bbox[0][0]), abs(bbox[6][1] - bbox[0][1]), abs(bbox[6][2] - bbox[0][2])]
+
+                # We scale our cube to get its final size and shapes but still in *object* space (same as Blender's bbox).
+                file.write("scale<%.6g,%.6g,%.6g>\n" % (dim[0], dim[1], dim[2]))
+
+                # We offset our cube such that (0,0,0) coordinate matches Blender's object center.
+                file.write("translate<%.6g,%.6g,%.6g>\n" % (bbox[0][0], bbox[0][1], bbox[0][2]))
+
+                # We apply object's transformations to get final loc/rot/size in world space!
+                # Note: we could combine the two previous transformations with this matrix directly...
                 writeMatrix(global_matrix * smoke_obj.matrix_world)
+
+                # END OF TRANSFORMATIONS
+
                 file.write("}\n")
 
                 
