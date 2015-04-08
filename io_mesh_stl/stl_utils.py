@@ -79,7 +79,7 @@ def _is_ascii_file(data):
     represents a binary file. It can be a (very *RARE* in real life, but
     can easily be forged) ascii file.
     """
-	# Skip header...
+    # Skip header...
     data.seek(BINARY_HEADER)
     size = struct.unpack('<I', data.read(4))[0]
     # Use seek() method to get size of the file.
@@ -87,6 +87,10 @@ def _is_ascii_file(data):
     file_size = data.tell()
     # Reset to the start of the file.
     data.seek(0)
+
+    if size == 0:  # Odds to get that result from an ASCII file are null...
+        print("WARNING! Reported size (facet number) is 0, assuming invalid binary STL file.")
+        return False  # Assume binary in this case.
 
     return (file_size != BINARY_HEADER + 4 + BINARY_STRIDE * size)
 
@@ -105,9 +109,20 @@ def _binary_read(data):
     # STRIDE between each triangle (first normal + coordinates + garbage)
     OFFSET = 12
 
-	# Skip header...
+    # Skip header...
     data.seek(BINARY_HEADER)
     size = struct.unpack('<I', data.read(4))[0]
+
+    if size == 0:
+        # Workaround invalid crap.
+        data.seek(0, os.SEEK_END)
+        file_size = data.tell()
+        # Reset to after-the-size in the file.
+        data.seek(BINARY_HEADER + 4)
+
+        file_size -= BINARY_HEADER + 4
+        size = file_size // BINARY_STRIDE
+        print("WARNING! Reported size (facet number) is 0, inferring %d facets from file size." % size)
 
     # We read 4096 elements at once, avoids too much calls to read()!
     CHUNK_LEN = 4096
