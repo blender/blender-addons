@@ -836,7 +836,7 @@ def register():
     kc = bpy.context.window_manager.keyconfigs.addon
     if kc:
         km = kc.keymaps.new(name="3D View", space_type="VIEW_3D")
-        kmi = km.keymap_items.new('wm.call_menu', 'Q', 'PRESS', ctrl=True)
+        kmi = km.keymap_items.new('wm.call_menu', 'Q', 'PRESS', shift=True)
         kmi.properties.name = "VIEW3D_MT_master_material"
 
 
