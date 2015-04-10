@@ -23,15 +23,16 @@ if "bpy" in locals():
     importlib.reload(settings_i18n)
 else:
     import bpy
-    from bpy.props import (BoolProperty,
-                           CollectionProperty,
-                           EnumProperty,
-                           FloatProperty,
-                           FloatVectorProperty,
-                           IntProperty,
-                           PointerProperty,
-                           StringProperty,
-                           )
+    from bpy.props import (
+            BoolProperty,
+            CollectionProperty,
+            EnumProperty,
+            FloatProperty,
+            FloatVectorProperty,
+            IntProperty,
+            PointerProperty,
+            StringProperty,
+            )
     from bl_i18n_utils import settings as settings_i18n
 
 

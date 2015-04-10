@@ -46,12 +46,13 @@ if "bpy" in locals():
 
 import bpy
 
-from bpy.props import (StringProperty,
-                       BoolProperty,
-                       EnumProperty,
-                       IntVectorProperty,
-                       FloatProperty,
-                       )
+from bpy.props import (
+        StringProperty,
+        BoolProperty,
+        EnumProperty,
+        IntVectorProperty,
+        FloatProperty,
+        )
 
 
 class ExportUVLayout(bpy.types.Operator):

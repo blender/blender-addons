@@ -20,12 +20,14 @@
 
 
 import bpy
-from bpy.props import (StringProperty,
-                       BoolProperty,
-                       IntProperty,
-                       FloatProperty,
-                       FloatVectorProperty,
-                       EnumProperty)
+from bpy.props import (
+        StringProperty,
+        BoolProperty,
+        IntProperty,
+        FloatProperty,
+        FloatVectorProperty,
+        EnumProperty,
+        )
 
 
 def update2_0_0_9():

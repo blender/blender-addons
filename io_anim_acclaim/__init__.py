@@ -39,11 +39,12 @@ import re
 import bpy
 from mathutils import Vector, Matrix
 from math import radians, degrees
-from bpy.props import (StringProperty,
-                       BoolProperty,
-                       FloatProperty,
-                       IntProperty,
-                       )
+from bpy.props import (
+        StringProperty,
+        BoolProperty,
+        FloatProperty,
+        IntProperty,
+        )
 
 
 class DataStructure:

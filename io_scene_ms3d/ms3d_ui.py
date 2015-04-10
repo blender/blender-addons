@@ -392,7 +392,9 @@ class Ms3dImportOperator(Operator, ImportHelper):
     # entrypoint for MS3D -> blender
     def execute(self, blender_context):
         """ start executing """
-        from io_scene_ms3d.ms3d_import import (Ms3dImporter, )
+        from io_scene_ms3d.ms3d_import import (
+                Ms3dImporter,
+                )
         finished = Ms3dImporter(
                 report=self.report,
                 verbose=self.verbose,
@@ -596,7 +598,9 @@ class Ms3dExportOperator(Operator, ExportHelper):
     # entrypoint for blender -> MS3D
     def execute(self, blender_context):
         """start executing"""
-        from io_scene_ms3d.ms3d_export import (Ms3dExporter, )
+        from io_scene_ms3d.ms3d_export import (
+                Ms3dExporter,
+                )
         finished = Ms3dExporter(
                 self.report,
                 verbose=self.verbose,

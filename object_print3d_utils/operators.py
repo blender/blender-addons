@@ -23,17 +23,20 @@
 import bpy
 import bmesh
 from bpy.types import Operator
-from bpy.props import (StringProperty,
-                       BoolProperty,
-                       IntProperty,
-                       FloatProperty,
-                       FloatVectorProperty,
-                       EnumProperty,
-                       PointerProperty,
-                       )
+from bpy.props import (
+        StringProperty,
+        BoolProperty,
+        IntProperty,
+        FloatProperty,
+        FloatVectorProperty,
+        EnumProperty,
+        PointerProperty,
+        )
 
-from . import mesh_helpers
-from . import report
+from . import (
+        mesh_helpers,
+        report,
+        )
 
 
 def clean_float(text):

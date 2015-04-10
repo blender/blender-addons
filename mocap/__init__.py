@@ -42,19 +42,21 @@ if "bpy" in locals():
         importlib.reload(mocap_tools)
 else:
     import bpy
-    from bpy.props import (BoolProperty,
-                           CollectionProperty,
-                           EnumProperty,
-                           FloatProperty,
-                           FloatVectorProperty,
-                           IntProperty,
-                           PointerProperty,
-                           StringProperty,
-                           )
-    from . import (mocap_constraints,
-                   retarget,
-                   mocap_tools,
-                   )
+    from bpy.props import (
+            BoolProperty,
+            CollectionProperty,
+            EnumProperty,
+            FloatProperty,
+            FloatVectorProperty,
+            IntProperty,
+            PointerProperty,
+            StringProperty,
+            )
+    from . import (
+            mocap_constraints,
+            retarget,
+            mocap_tools,
+            )
 
 
 # MocapConstraint class

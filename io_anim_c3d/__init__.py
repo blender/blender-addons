@@ -36,11 +36,12 @@ bl_info = {
 
 
 import bpy
-from bpy.props import (StringProperty,
-                       BoolProperty,
-                       FloatProperty,
-                       IntProperty,
-                       )
+from bpy.props import (
+        StringProperty,
+        BoolProperty,
+        FloatProperty,
+        IntProperty,
+        )
 
 import math
 import time

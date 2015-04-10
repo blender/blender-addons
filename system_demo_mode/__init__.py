@@ -38,11 +38,13 @@ if "bpy" in locals():
 
 
 import bpy
-from bpy.props import (StringProperty,
-                       BoolProperty,
-                       IntProperty,
-                       FloatProperty,
-                       EnumProperty)
+from bpy.props import (
+        StringProperty,
+        BoolProperty,
+        IntProperty,
+        FloatProperty,
+        EnumProperty,
+        )
 
 
 class DemoModeSetup(bpy.types.Operator):

@@ -38,17 +38,19 @@ if "bpy" in locals():
         importlib.reload(export_bvh)
 
 import bpy
-from bpy.props import (StringProperty,
-                       FloatProperty,
-                       IntProperty,
-                       BoolProperty,
-                       EnumProperty,
-                       )
-from bpy_extras.io_utils import (ImportHelper,
-                                 ExportHelper,
-                                 orientation_helper_factory,
-                                 axis_conversion,
-                                 )
+from bpy.props import (
+        StringProperty,
+        FloatProperty,
+        IntProperty,
+        BoolProperty,
+        EnumProperty,
+        )
+from bpy_extras.io_utils import (
+        ImportHelper,
+        ExportHelper,
+        orientation_helper_factory,
+        axis_conversion,
+        )
 
 
 ImportBVHOrientationHelper = orientation_helper_factory("ImportBVHOrientationHelper", axis_forward='-Z', axis_up='Y')

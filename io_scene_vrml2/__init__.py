@@ -38,17 +38,19 @@ if "bpy" in locals():
 
 import os
 import bpy
-from bpy.props import (CollectionProperty,
-                       StringProperty,
-                       BoolProperty,
-                       EnumProperty,
-                       FloatProperty,
-                       )
-from bpy_extras.io_utils import (ExportHelper,
-                                 orientation_helper_factory,
-                                 path_reference_mode,
-                                 axis_conversion,
-                                 )
+from bpy.props import (
+        CollectionProperty,
+        StringProperty,
+        BoolProperty,
+        EnumProperty,
+        FloatProperty,
+        )
+from bpy_extras.io_utils import (
+        ExportHelper,
+        orientation_helper_factory,
+        path_reference_mode,
+        axis_conversion,
+        )
 
 
 ExportVRMLOrientationHelper = orientation_helper_factory("ExportVRMLOrientationHelper", axis_forward='Z', axis_up='Y')

@@ -40,13 +40,18 @@ if "bpy" in locals():
 
 
 import bpy
-from bpy.props import StringProperty, FloatProperty, BoolProperty, EnumProperty
-
-from bpy_extras.io_utils import (ImportHelper,
-                                 ExportHelper,
-                                 orientation_helper_factory,
-                                 axis_conversion,
-                                 )
+from bpy.props import (
+        BoolProperty,
+        EnumProperty,
+        FloatProperty,
+        StringProperty,
+        )
+from bpy_extras.io_utils import (
+        ImportHelper,
+        ExportHelper,
+        orientation_helper_factory,
+        axis_conversion,
+        )
 
 
 IO3DSOrientationHelper = orientation_helper_factory("IO3DSOrientationHelper", axis_forward='Y', axis_up='Z')

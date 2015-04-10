@@ -38,13 +38,19 @@ if "bpy" in locals():
         importlib.reload(export_x3d)
 
 import bpy
-from bpy.props import StringProperty, BoolProperty, EnumProperty, FloatProperty
-from bpy_extras.io_utils import (ImportHelper,
-                                 ExportHelper,
-                                 orientation_helper_factory,
-                                 axis_conversion,
-                                 path_reference_mode,
-                                 )
+from bpy.props import (
+        BoolProperty,
+        EnumProperty,
+        FloatProperty,
+        StringProperty,
+        )
+from bpy_extras.io_utils import (
+        ImportHelper,
+        ExportHelper,
+        orientation_helper_factory,
+        axis_conversion,
+        path_reference_mode,
+        )
 
 
 IOX3DOrientationHelper = orientation_helper_factory("IOX3DOrientationHelper", axis_forward='Z', axis_up='Y')

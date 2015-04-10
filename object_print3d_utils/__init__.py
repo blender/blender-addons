@@ -37,20 +37,24 @@ if "bpy" in locals():
     importlib.reload(operators)
 else:
     import bpy
-    from bpy.props import (StringProperty,
-                           BoolProperty,
-                           IntProperty,
-                           FloatProperty,
-                           FloatVectorProperty,
-                           EnumProperty,
-                           PointerProperty,
-                           )
-    from bpy.types import (Operator,
-                           AddonPreferences,
-                           PropertyGroup,
-                           )
-    from . import ui
-    from . import operators
+    from bpy.props import (
+            StringProperty,
+            BoolProperty,
+            IntProperty,
+            FloatProperty,
+            FloatVectorProperty,
+            EnumProperty,
+            PointerProperty,
+            )
+    from bpy.types import (
+            Operator,
+            AddonPreferences,
+            PropertyGroup,
+            )
+    from . import (
+            ui,
+            operators,
+            )
 
 import math
 

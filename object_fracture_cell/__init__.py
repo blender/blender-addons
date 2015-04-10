@@ -34,12 +34,14 @@ bl_info = {
 #    importlib.reload(fracture_cell_setup)
 
 import bpy
-from bpy.props import (StringProperty,
-                       BoolProperty,
-                       IntProperty,
-                       FloatProperty,
-                       FloatVectorProperty,
-                       EnumProperty)
+from bpy.props import (
+        StringProperty,
+        BoolProperty,
+        IntProperty,
+        FloatProperty,
+        FloatVectorProperty,
+        EnumProperty,
+        )
 
 from bpy.types import Operator
 

@@ -45,10 +45,12 @@ if "bpy" in locals():
 import bpy
 from bpy.types import Operator
 from bpy_extras.io_utils import ImportHelper, ExportHelper
-from bpy.props import (StringProperty,
-                       BoolProperty,
-                       EnumProperty,
-                       FloatProperty)
+from bpy.props import (
+        StringProperty,
+        BoolProperty,
+        EnumProperty,
+        FloatProperty,
+        )
 
 # property shared by both operators
 rotation_order = EnumProperty(

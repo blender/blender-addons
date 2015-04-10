@@ -36,13 +36,14 @@ import mathutils
 import os
 import collections
 
-from bpy.props import (StringProperty,
-                       BoolProperty,
-                       EnumProperty,
-                       IntProperty,
-                       FloatProperty,
-                       CollectionProperty,
-                       )
+from bpy.props import (
+        StringProperty,
+        BoolProperty,
+        EnumProperty,
+        IntProperty,
+        FloatProperty,
+        CollectionProperty,
+        )
 
 from bpy_extras.object_utils import AddObjectHelper, object_data_add
 from bpy_extras.image_utils import load_image

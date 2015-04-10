@@ -41,12 +41,13 @@ if "bpy" in locals():
     importlib.reload(update_ui)
 else:
     import bpy
-    from . import (settings,
-                   edit_translation,
-                   update_svn,
-                   update_addon,
-                   update_ui,
-                  )
+    from . import (
+            settings,
+            edit_translation,
+            update_svn,
+            update_addon,
+            update_ui,
+            )
 
 
 import os

@@ -30,18 +30,19 @@ bl_info = {
 }
 
 import bpy
-from bpy.types import (Operator,
-                       Panel,
-                       PropertyGroup,
-                       )
-
-from bpy.props import (BoolProperty,
-                       CollectionProperty,
-                       EnumProperty,
-                       FloatProperty,
-                       IntProperty,
-                       StringProperty,
-                       )
+from bpy.types import (
+        Operator,
+        Panel,
+        PropertyGroup,
+        )
+from bpy.props import (
+        BoolProperty,
+        CollectionProperty,
+        EnumProperty,
+        FloatProperty,
+        IntProperty,
+        StringProperty,
+        )
 import mathutils
 
 

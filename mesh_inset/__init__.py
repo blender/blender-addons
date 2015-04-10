@@ -34,19 +34,22 @@ bl_info = {
 if "bpy" in locals():
     import importlib
 else:
-    from . import geom
-    from . import model
-    from . import offset
-    from . import triquad
+    from . import (
+            geom,
+            model,
+            offset,
+            triquad,
+            )
 
 import math
 import bpy
 import bmesh
 import mathutils
-from bpy.props import (BoolProperty,
-                       EnumProperty,
-                       FloatProperty,
-                       )
+from bpy.props import (
+        BoolProperty,
+        EnumProperty,
+        FloatProperty,
+        )
 
 
 class Inset(bpy.types.Operator):

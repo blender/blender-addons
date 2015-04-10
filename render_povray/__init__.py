@@ -39,21 +39,25 @@ if "bpy" in locals():
 
 else:
     import bpy
-    from bpy.types import (AddonPreferences,
-                           PropertyGroup,
-                           Operator,
-                           )
-    from bpy.props import (StringProperty,
-                           BoolProperty,
-                           IntProperty,
-                           FloatProperty,
-                           FloatVectorProperty,
-                           EnumProperty,
-                           PointerProperty,
-                           )
-    from . import ui
-    from . import render
-    from . import update_files
+    from bpy.types import (
+            AddonPreferences,
+            PropertyGroup,
+            Operator,
+            )
+    from bpy.props import (
+            StringProperty,
+            BoolProperty,
+            IntProperty,
+            FloatProperty,
+            FloatVectorProperty,
+            EnumProperty,
+            PointerProperty,
+            )
+    from . import (
+            ui,
+            render,
+            update_files,
+            )
 
 def string_strip_hyphen(name):
     return name.replace("-", "")
@@ -161,9 +165,10 @@ class RenderPovSettingsScene(PropertyGroup):
                    ("2", "stochastic AA", "Type 3 Sampling in UberPOV")),
             default="1")
     antialias_confidence = FloatProperty(
-            name="Antialias Confidence", description="how surely the computed color "
-                                                     "of a given pixel is indeed"
-                                                     "within the threshold error margin.",
+            name="Antialias Confidence",
+            description="how surely the computed color "
+                        "of a given pixel is indeed"
+                        "within the threshold error margin",
             min=0.0001, max=1.0000, default=0.9900, precision=4)
     antialias_depth = IntProperty(
             name="Antialias Depth", description="Depth of pixel for sampling",

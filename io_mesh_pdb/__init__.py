@@ -51,14 +51,18 @@ bl_info = {
 import bpy
 from bpy.types import Operator
 from bpy_extras.io_utils import ImportHelper, ExportHelper
-from bpy.props import (StringProperty,
-                       BoolProperty,
-                       EnumProperty,
-                       IntProperty,
-                       FloatProperty)
+from bpy.props import (
+        StringProperty,
+        BoolProperty,
+        EnumProperty,
+        IntProperty,
+        FloatProperty,
+        )
 
-from . import import_pdb
-from . import export_pdb
+from . import (
+        import_pdb,
+        export_pdb,
+        )
 
 # -----------------------------------------------------------------------------
 #                                                                           GUI

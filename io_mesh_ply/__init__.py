@@ -45,17 +45,19 @@ if "bpy" in locals():
 
 import os
 import bpy
-from bpy.props import (CollectionProperty,
-                       StringProperty,
-                       BoolProperty,
-                       EnumProperty,
-                       FloatProperty,
-                       )
-from bpy_extras.io_utils import (ImportHelper,
-                                 ExportHelper,
-                                 orientation_helper_factory,
-                                 axis_conversion,
-                                 )
+from bpy.props import (
+        CollectionProperty,
+        StringProperty,
+        BoolProperty,
+        EnumProperty,
+        FloatProperty,
+        )
+from bpy_extras.io_utils import (
+        ImportHelper,
+        ExportHelper,
+        orientation_helper_factory,
+        axis_conversion,
+        )
 
 
 IOPLYOrientationHelper = orientation_helper_factory("IOPLYOrientationHelper", axis_forward='Y', axis_up='Z')

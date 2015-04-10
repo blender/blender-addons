@@ -45,18 +45,19 @@ if "bpy" in locals():
 
 
 import bpy
-from bpy.props import (StringProperty,
-                       BoolProperty,
-                       FloatProperty,
-                       EnumProperty,
-                       )
-
-from bpy_extras.io_utils import (ImportHelper,
-                                 ExportHelper,
-                                 orientation_helper_factory,
-                                 path_reference_mode,
-                                 axis_conversion,
-                                 )
+from bpy.props import (
+        StringProperty,
+        BoolProperty,
+        FloatProperty,
+        EnumProperty,
+        )
+from bpy_extras.io_utils import (
+        ImportHelper,
+        ExportHelper,
+        orientation_helper_factory,
+        path_reference_mode,
+        axis_conversion,
+        )
 
 
 IOFBXOrientationHelper = orientation_helper_factory("IOFBXOrientationHelper", axis_forward='-Z', axis_up='Y')

@@ -35,11 +35,12 @@ import threading
 import subprocess
 
 from bpy.app.handlers import persistent
-from bpy.props import (StringProperty,
-                       EnumProperty,
-                       BoolProperty,
-                       PointerProperty,
-                       )
+from bpy.props import (
+        StringProperty,
+        EnumProperty,
+        BoolProperty,
+        PointerProperty,
+        )
 
 SKETCHFAB_API_URL = "https://api.sketchfab.com"
 SKETCHFAB_API_MODELS_URL = SKETCHFAB_API_URL + "/v1/models"
