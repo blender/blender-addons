@@ -165,7 +165,7 @@ class ExportSTL(Operator, ExportHelper, IOSTLOrientationHelper):
     use_scene_unit = BoolProperty(
             name="Scene Unit",
             description="Apply current scene's unit (as defined by unit scale) to exported data",
-            default=True,
+            default=False,
             )
     ascii = BoolProperty(
             name="Ascii",
@@ -175,7 +175,7 @@ class ExportSTL(Operator, ExportHelper, IOSTLOrientationHelper):
     use_mesh_modifiers = BoolProperty(
             name="Apply Modifiers",
             description="Apply the modifiers before saving",
-            default=False,
+            default=True,
             )
 
 
