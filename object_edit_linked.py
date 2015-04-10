@@ -20,8 +20,8 @@
 bl_info = {
     "name": "Edit Linked Library",
     "author": "Jason van Gumster (Fweeb), Bassam Kurdali, Pablo Vazquez",
-    "version": (0, 8, 0),
-    "blender": (2, 65, 0),
+    "version": (0, 8, 1),
+    "blender": (2, 74, 0),
     "location": "View3D > Toolshelf > Edit Linked Library",
     "description": "Allows editing of objects linked from a .blend library.",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
@@ -102,6 +102,10 @@ class EditLinked(bpy.types.Operator):
             print(target.name + " is linked to " + targetpath)
 
             if self.use_autosave:
+                if not bpy.data.filepath:
+                    # File is not saved on disk, better to abort!
+                    self.report({'ERROR'}, "Current file does not exist on disk, we cannot autosave it, aborting")
+                    return {'CANCELLED'}
                 bpy.ops.wm.save_mainfile()
 
             settings["original_file"] = bpy.data.filepath
