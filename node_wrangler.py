@@ -760,6 +760,7 @@ def draw_line(x1, y1, x2, y2, size, colour=[1.0, 1.0, 1.0, 0.7]):
     bgl.glEnable(bgl.GL_BLEND)
     bgl.glLineWidth(size)
     bgl.glShadeModel(bgl.GL_SMOOTH)
+    bgl.glEnable(bgl.GL_LINE_SMOOTH)
 
     bgl.glBegin(bgl.GL_LINE_STRIP)
     try:
@@ -771,9 +772,11 @@ def draw_line(x1, y1, x2, y2, size, colour=[1.0, 1.0, 1.0, 0.7]):
         pass
     bgl.glEnd()
     bgl.glShadeModel(bgl.GL_FLAT)
+    bgl.glDisable(bgl.GL_LINE_SMOOTH)
 
 
 def draw_circle(mx, my, radius, colour=[1.0, 1.0, 1.0, 0.7]):
+    bgl.glEnable(bgl.GL_LINE_SMOOTH)
     bgl.glBegin(bgl.GL_TRIANGLE_FAN)
     bgl.glColor4f(colour[0], colour[1], colour[2], colour[3])
     radius = radius
@@ -783,13 +786,12 @@ def draw_circle(mx, my, radius, colour=[1.0, 1.0, 1.0, 0.7]):
         sine = radius * sin(i * 2 * pi / sides) + my
         bgl.glVertex2f(cosine, sine)
     bgl.glEnd()
+    bgl.glDisable(bgl.GL_LINE_SMOOTH)
 
 
 def draw_rounded_node_border(node, radius=8, colour=[1.0, 1.0, 1.0, 0.7]):
     bgl.glEnable(bgl.GL_BLEND)
-    settings = bpy.context.user_preferences.addons[__name__].preferences
-    if settings.bgl_antialiasing:
-        bgl.glEnable(bgl.GL_LINE_SMOOTH)
+    bgl.glEnable(bgl.GL_LINE_SMOOTH)
 
     area_width = bpy.context.area.width - (16*dpifac()) - 1
     bottom_bar = (16*dpifac()) + 1
@@ -926,16 +928,13 @@ def draw_rounded_node_border(node, radius=8, colour=[1.0, 1.0, 1.0, 0.7]):
 
     # Restore defaults
     bgl.glDisable(bgl.GL_BLEND)
-    if settings.bgl_antialiasing:
-        bgl.glDisable(bgl.GL_LINE_SMOOTH)
+    bgl.glDisable(bgl.GL_LINE_SMOOTH)
 
 
 def draw_callback_mixnodes(self, context, mode):
     if self.mouse_path:
         nodes = context.space_data.node_tree.nodes
-        settings = context.user_preferences.addons[__name__].preferences
-        if settings.bgl_antialiasing:
-            bgl.glEnable(bgl.GL_LINE_SMOOTH)
+        bgl.glEnable(bgl.GL_LINE_SMOOTH)
 
         if mode == "LINK":
             col_outer = [1.0, 0.2, 0.2, 0.4]
@@ -980,8 +979,7 @@ def draw_callback_mixnodes(self, context, mode):
         bgl.glDisable(bgl.GL_BLEND)
         bgl.glColor4f(0.0, 0.0, 0.0, 1.0)
 
-        if settings.bgl_antialiasing:
-            bgl.glDisable(bgl.GL_LINE_SMOOTH)
+        bgl.glDisable(bgl.GL_LINE_SMOOTH)
 
 
 def get_nodes_links(context):
@@ -1028,11 +1026,6 @@ class NWNodeWrangler(bpy.types.AddonPreferences):
         ),
         default='CENTER',
         description="When merging nodes with the Ctrl+Numpad0 hotkey (and similar) specifiy the position of the new nodes")
-    bgl_antialiasing = BoolProperty(
-        name="Line Antialiasing",
-        default=False,
-        description="Remove aliasing artifacts on lines drawn in interactive modes such as Lazy Connect (Alt+LMB) and Lazy Merge (Alt+RMB) - this may cause issues on some systems"
-    )
 
     show_hotkey_list = BoolProperty(
         name="Show Hotkey List",
@@ -1050,7 +1043,6 @@ class NWNodeWrangler(bpy.types.AddonPreferences):
         col = layout.column()
         col.prop(self, "merge_position")
         col.prop(self, "merge_hide")
-        col.prop(self, "bgl_antialiasing")
 
         box = col.box()
         col = box.column(align=True)
