@@ -758,7 +758,7 @@ def store_mouse_cursor(context, event):
 
 def draw_line(x1, y1, x2, y2, size, colour=[1.0, 1.0, 1.0, 0.7]):
     bgl.glEnable(bgl.GL_BLEND)
-    bgl.glLineWidth(size)
+    bgl.glLineWidth(size * dpifac())
     bgl.glShadeModel(bgl.GL_SMOOTH)
     bgl.glEnable(bgl.GL_LINE_SMOOTH)
 
@@ -779,8 +779,8 @@ def draw_circle(mx, my, radius, colour=[1.0, 1.0, 1.0, 0.7]):
     bgl.glEnable(bgl.GL_LINE_SMOOTH)
     bgl.glBegin(bgl.GL_TRIANGLE_FAN)
     bgl.glColor4f(colour[0], colour[1], colour[2], colour[3])
-    radius = radius
-    sides = 32
+    radius = radius * dpifac()
+    sides = 12
     for i in range(sides + 1):
         cosine = radius * cos(i * 2 * pi / sides) + mx
         sine = radius * sin(i * 2 * pi / sides) + my
@@ -931,7 +931,7 @@ def draw_rounded_node_border(node, radius=8, colour=[1.0, 1.0, 1.0, 0.7]):
     bgl.glDisable(bgl.GL_LINE_SMOOTH)
 
 
-def draw_callback_mixnodes(self, context, mode):
+def draw_callback_nodeoutline(self, context, mode):
     if self.mouse_path:
         nodes = context.space_data.node_tree.nodes
         bgl.glEnable(bgl.GL_LINE_SMOOTH)
@@ -940,7 +940,7 @@ def draw_callback_mixnodes(self, context, mode):
             col_outer = [1.0, 0.2, 0.2, 0.4]
             col_inner = [0.0, 0.0, 0.0, 0.5]
             col_circle_inner = [0.3, 0.05, 0.05, 1.0]
-        if mode == "LINKMENU":
+        elif mode == "LINKMENU":
             col_outer = [0.4, 0.6, 1.0, 0.4]
             col_inner = [0.0, 0.0, 0.0, 0.5]
             col_circle_inner = [0.08, 0.15, .3, 1.0]
@@ -957,18 +957,22 @@ def draw_callback_mixnodes(self, context, mode):
         n1 = nodes[context.scene.NWLazySource]
         n2 = nodes[context.scene.NWLazyTarget]
 
-        if n1 != n2:
-            draw_rounded_node_border(n1, radius=6, colour=col_outer)  # outline
-            draw_rounded_node_border(n1, radius=5, colour=col_inner)  # inner
-            draw_rounded_node_border(n2, radius=6, colour=col_outer)  # outline
-            draw_rounded_node_border(n2, radius=5, colour=col_inner)  # inner
+        if n1 == n2:
+            col_outer = [0.4, 0.4, 0.4, 0.4]
+            col_inner = [0.0, 0.0, 0.0, 0.5]
+            col_circle_inner = [0.2, 0.2, 0.2, 1.0]
 
-        draw_line(m1x, m1y, m2x, m2y, 4, col_outer)  # line outline
+        draw_rounded_node_border(n1, radius=6, colour=col_outer)  # outline
+        draw_rounded_node_border(n1, radius=5, colour=col_inner)  # inner
+        draw_rounded_node_border(n2, radius=6, colour=col_outer)  # outline
+        draw_rounded_node_border(n2, radius=5, colour=col_inner)  # inner
+
+        draw_line(m1x, m1y, m2x, m2y, 5, col_outer)  # line outline
         draw_line(m1x, m1y, m2x, m2y, 2, col_inner)  # line inner
 
         # circle outline
-        draw_circle(m1x, m1y, 6, col_outer)
-        draw_circle(m2x, m2y, 6, col_outer)
+        draw_circle(m1x, m1y, 7, col_outer)
+        draw_circle(m2x, m2y, 7, col_outer)
 
         # circle inner
         draw_circle(m1x, m1y, 5, col_circle_inner)
@@ -1150,7 +1154,7 @@ class NWLazyMix(Operator, NWBase):
             args = (self, context, 'MIX')
             # Add the region OpenGL drawing callback
             # draw in view space with 'POST_VIEW' and 'PRE_VIEW'
-            self._handle = bpy.types.SpaceNodeEditor.draw_handler_add(draw_callback_mixnodes, args, 'WINDOW', 'POST_PIXEL')
+            self._handle = bpy.types.SpaceNodeEditor.draw_handler_add(draw_callback_nodeoutline, args, 'WINDOW', 'POST_PIXEL')
 
             self.mouse_path = []
 
@@ -1255,7 +1259,7 @@ class NWLazyConnect(Operator, NWBase):
             args = (self, context, mode)
             # Add the region OpenGL drawing callback
             # draw in view space with 'POST_VIEW' and 'PRE_VIEW'
-            self._handle = bpy.types.SpaceNodeEditor.draw_handler_add(draw_callback_mixnodes, args, 'WINDOW', 'POST_PIXEL')
+            self._handle = bpy.types.SpaceNodeEditor.draw_handler_add(draw_callback_nodeoutline, args, 'WINDOW', 'POST_PIXEL')
 
             self.mouse_path = []
 
