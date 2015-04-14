@@ -22,6 +22,7 @@
 
 
 import math
+import time
 
 from collections import namedtuple, OrderedDict
 from collections.abc import Iterable
@@ -146,6 +147,56 @@ FBX_FRAMERATES = (
 
 
 # ##### Misc utilities #####
+
+DO_PERFMON = True
+
+if DO_PERFMON:
+    class PerfMon():
+        def __init__(self):
+            self.level = -1
+            self.ref_time = []
+
+        def level_up(self, message=""):
+            self.level += 1
+            self.ref_time.append(None)
+            if message:
+                print("\t" * self.level, message, sep="")
+
+        def level_down(self, message=""):
+            if not self.ref_time:
+                if message:
+                    print(message)
+                return
+            ref_time = self.ref_time[self.level]
+            print("\t" * self.level,
+                  "\tDone (%f sec)\n" % ((time.process_time() - ref_time) if ref_time is not None else 0.0),
+                  sep="")
+            if message:
+                print("\t" * self.level, message, sep="")
+            del self.ref_time[self.level]
+            self.level -= 1
+
+        def step(self, message=""):
+            ref_time = self.ref_time[self.level]
+            curr_time = time.process_time()
+            if ref_time is not None:
+                print("\t" * self.level, "\tDone (%f sec)\n" % (curr_time - ref_time), sep="")
+            self.ref_time[self.level] = curr_time
+            print("\t" * self.level, message, sep="")
+else:
+    class PerfMon():
+        def __init__(self):
+            pass
+
+        def level_up(self, message=""):
+            pass
+
+        def level_down(self, message=""):
+            pass
+
+        def step(self, message=""):
+            pass
+
 
 # Note: this could be in a utility (math.units e.g.)...
 

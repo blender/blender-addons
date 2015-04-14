@@ -61,7 +61,7 @@ from .fbx_utils import (
     FBX_LIGHT_TYPES, FBX_LIGHT_DECAY_TYPES,
     RIGHT_HAND_AXES, FBX_FRAMERATES,
     # Miscellaneous utils.
-    units_convertor, units_convertor_iter, matrix4_to_array, similar_values, similar_values_iter,
+    PerfMon, units_convertor, units_convertor_iter, matrix4_to_array, similar_values, similar_values_iter,
     # Mesh transform helpers.
     vcos_transformed_gen, nors_transformed_gen,
     # UUID from key.
@@ -2064,8 +2064,12 @@ def fbx_data_from_scene(scene, settings):
     Do some pre-processing over scene's data...
     """
     objtypes = settings.object_types
+    perfmon = PerfMon()
+    perfmon.level_up()
 
     # ##### Gathering data...
+
+    perfmon.step("FBX export prepare: Wrapping Objects...")
 
     # This is rather simple for now, maybe we could end generating templates with most-used values
     # instead of default ones?
@@ -2081,6 +2085,8 @@ def fbx_data_from_scene(scene, settings):
             objects[dp_obj] = None
         ob_obj.dupli_list_clear()
 
+    perfmon.step("FBX export prepare: Wrapping Data (lamps, cameras, empties)...")
+
     data_lamps = OrderedDict((ob_obj.bdata.data, get_blenderID_key(ob_obj.bdata.data))
                              for ob_obj in objects if ob_obj.type == 'LAMP')
     # Unfortunately, FBX camera data contains object-level data (like position, orientation, etc.)...
@@ -2089,6 +2095,8 @@ def fbx_data_from_scene(scene, settings):
     # Yep! Contains nothing, but needed!
     data_empties = OrderedDict((ob_obj, get_blender_empty_key(ob_obj.bdata))
                                for ob_obj in objects if ob_obj.type == 'EMPTY')
+
+    perfmon.step("FBX export prepare: Wrapping Meshes...")
 
     data_meshes = OrderedDict()
     for ob_obj in objects:
@@ -2119,6 +2127,8 @@ def fbx_data_from_scene(scene, settings):
                 mod.show_render = show_render
         if use_org_data:
             data_meshes[ob_obj] = (get_blenderID_key(ob.data), ob.data, False)
+
+    perfmon.step("FBX export prepare: Wrapping ShapeKeys...")
 
     # ShapeKeys.
     data_deformers_shape = OrderedDict()
@@ -2152,6 +2162,8 @@ def fbx_data_from_scene(scene, settings):
             data = (channel_key, geom_key, shape_verts_co, shape_verts_idx)
             data_deformers_shape.setdefault(me, (me_key, shapes_key, OrderedDict()))[2][shape] = data
 
+    perfmon.step("FBX export prepare: Wrapping Armatures...")
+
     # Armatures!
     data_deformers_skin = OrderedDict()
     data_bones = OrderedDict()
@@ -2167,11 +2179,15 @@ def fbx_data_from_scene(scene, settings):
     if settings.add_leaf_bones:
         data_leaf_bones = fbx_generate_leaf_bones(settings, data_bones)
 
+    perfmon.step("FBX export prepare: Wrapping World...")
+
     # Some world settings are embedded in FBX materials...
     if scene.world:
         data_world = OrderedDict(((scene.world, get_blenderID_key(scene.world)),))
     else:
         data_world = OrderedDict()
+
+    perfmon.step("FBX export prepare: Wrapping Materials...")
 
     # TODO: Check all the mat stuff works even when mats are linked to Objects
     #       (we can then have the same mesh used with different materials...).
@@ -2193,6 +2209,8 @@ def fbx_data_from_scene(scene, settings):
                 mat_data[1].append(ob_obj)
             else:
                 data_materials[mat] = (get_blenderID_key(mat), [ob_obj])
+
+    perfmon.step("FBX export prepare: Wrapping Textures...")
 
     # Note FBX textures also hold their mapping info.
     # TODO: Support layers?
@@ -2231,6 +2249,8 @@ def fbx_data_from_scene(scene, settings):
             else:
                 data_videos[img] = (get_blenderID_key(img), [tex])
 
+    perfmon.step("FBX export prepare: Wrapping Animations...")
+
     # Animation...
     animations = ()
     frame_start = scene.frame_start
@@ -2248,6 +2268,8 @@ def fbx_data_from_scene(scene, settings):
         animations, frame_start, frame_end = fbx_animations(tmp_scdata)
 
     # ##### Creation of templates...
+
+    perfmon.step("FBX export prepare: Generating templates...")
 
     templates = OrderedDict()
     templates[b"GlobalSettings"] = fbx_template_def_globalsettings(scene, settings, nbr_users=1)
@@ -2325,6 +2347,8 @@ def fbx_data_from_scene(scene, settings):
     templates_users = sum(tmpl.nbr_users for tmpl in templates.values())
 
     # ##### Creation of connections...
+
+    perfmon.step("FBX export prepare: Generating Connections...")
 
     connections = []
 
@@ -2447,6 +2471,8 @@ def fbx_data_from_scene(scene, settings):
                     if acurve:
                         # Animcurve -> Animcurvenode.
                         connections.append((b"OP", get_fbx_uuid_from_key(acurve_key), acurvenode_id, fbx_item.encode()))
+
+    perfmon.level_down()
 
     # ##### And pack all this!
 
@@ -2636,21 +2662,33 @@ def fbx_objects_elements(root, scene_data):
     """
     Data (objects, geometry, material, textures, armatures, etc.).
     """
+    perfmon = PerfMon()
+    perfmon.level_up()
     objects = elem_empty(root, b"Objects")
+
+    perfmon.step("FBX export fetch empties (%d)..." % len(scene_data.data_empties))
 
     for empty in scene_data.data_empties:
         fbx_data_empty_elements(objects, empty, scene_data)
 
+    perfmon.step("FBX export fetch lamps (%d)..." % len(scene_data.data_lamps))
+
     for lamp in scene_data.data_lamps:
         fbx_data_lamp_elements(objects, lamp, scene_data)
 
+    perfmon.step("FBX export fetch cameras (%d)..." % len(scene_data.data_cameras))
+
     for cam in scene_data.data_cameras:
         fbx_data_camera_elements(objects, cam, scene_data)
+
+    perfmon.step("FBX export fetch meshes (%d)..." % len(scene_data.data_meshes))
 
     done_meshes = set()
     for me_obj in scene_data.data_meshes:
         fbx_data_mesh_elements(objects, me_obj, scene_data, done_meshes)
     del done_meshes
+
+    perfmon.step("FBX export fetch objects (%d)..." % len(scene_data.objects))
 
     for ob_obj in scene_data.objects:
         if ob_obj.is_dupli:
@@ -2662,6 +2700,8 @@ def fbx_objects_elements(root, scene_data):
                 continue
             fbx_data_object_elements(objects, dp_obj, scene_data)
         ob_obj.dupli_list_clear()
+
+    perfmon.step("FBX export fetch remaining...")
 
     for ob_obj in scene_data.objects:
         if not (ob_obj.is_object and ob_obj.type == 'ARMATURE'):
@@ -2680,7 +2720,12 @@ def fbx_objects_elements(root, scene_data):
     for vid in scene_data.data_videos:
         fbx_data_video_elements(objects, vid, scene_data)
 
+    perfmon.step("FBX export fetch animations...")
+    start_time = time.process_time()
+
     fbx_data_animation_elements(objects, scene_data)
+
+    perfmon.level_down()
 
 
 def fbx_connections_elements(root, scene_data):
