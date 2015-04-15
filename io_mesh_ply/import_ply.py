@@ -137,6 +137,7 @@ def read(filepath):
                   b'uint8': 'B',
                   b'int16': 'h',
                   b'uint16': 'H',
+                  b'short': 'h',
                   b'ushort': 'H',
                   b'int': 'i',
                   b'int32': 'i',
