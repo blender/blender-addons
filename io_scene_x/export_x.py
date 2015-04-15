@@ -1144,14 +1144,9 @@ class ArmatureAnimationGenerator(GenericAnimationGenerator):
             for Bone, BoneAnimation in \
                 zip(ArmatureObject.pose.bones, BoneAnimations):
                 
-                RotationMode = Bone.rotation_mode
-                Bone.rotation_mode = 'QUATERNION'
-                
                 Rotation = ArmatureObject.data.bones[Bone.name] \
                     .matrix.to_quaternion() * \
                     Bone.rotation_quaternion
-                
-                Bone.rotation_mode = RotationMode
                 
                 PoseMatrix = Matrix()
                 if Bone.parent:
