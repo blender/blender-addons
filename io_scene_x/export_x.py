@@ -1146,7 +1146,7 @@ class ArmatureAnimationGenerator(GenericAnimationGenerator):
                 
                 Rotation = ArmatureObject.data.bones[Bone.name] \
                     .matrix.to_quaternion() * \
-                    Bone.rotation_quaternion
+                    Bone.matrix_basis.to_quaternion()
                 
                 PoseMatrix = Matrix()
                 if Bone.parent:
