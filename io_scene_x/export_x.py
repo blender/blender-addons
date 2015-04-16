@@ -18,7 +18,7 @@
 
 # <pep8 compliant>
 
-from math import radians
+from math import radians, pi
 
 import bpy
 from mathutils import *
@@ -1144,19 +1144,21 @@ class ArmatureAnimationGenerator(GenericAnimationGenerator):
             for Bone, BoneAnimation in \
                 zip(ArmatureObject.pose.bones, BoneAnimations):
                 
-                Rotation = ArmatureObject.data.bones[Bone.name] \
-                    .matrix.to_quaternion() * \
-                    Bone.matrix_basis.to_quaternion()
-                
                 PoseMatrix = Matrix()
                 if Bone.parent:
                     PoseMatrix = Bone.parent.matrix.inverted()
                 PoseMatrix *= Bone.matrix
                 
+                Rotation = PoseMatrix.to_quaternion().normalized()
+                OldRotation = BoneAnimation.RotationKeys[-1] if \
+                    len(BoneAnimation.RotationKeys) else Rotation
+                
                 Scale = PoseMatrix.to_scale()
+                
                 Position = PoseMatrix.to_translation()
                 
-                BoneAnimation.RotationKeys.append(Rotation)
+                BoneAnimation.RotationKeys.append(Util.CompatibleQuaternion(
+                    Rotation, OldRotation))
                 BoneAnimation.ScaleKeys.append(Scale)
                 BoneAnimation.PositionKeys.append(Position)
         
@@ -1379,3 +1381,11 @@ class Util:
             return x.name
         
         return sorted(List, key=SortKey)
+    
+    # Make A compatible with B
+    @staticmethod
+    def CompatibleQuaternion(A, B):
+        if (A.normalized().conjugated() * B.normalized()).angle > pi:
+            return -A
+        else:
+            return A
