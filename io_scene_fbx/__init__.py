@@ -85,10 +85,10 @@ class ImportFBX(bpy.types.Operator, ImportHelper, IOFBXOrientationHelper):
             default=1.0,
             )
     bake_space_transform = BoolProperty(
-            name="Apply Transform",
+            name="!EXPERIMENTAL! Apply Transform",
             description="Bake space transform into object data, avoids getting unwanted rotations to objects when "
                         "target space is not aligned with Blender's space "
-                        "(WARNING! experimental option, might give odd/wrong results)",
+                        "(WARNING! experimental option, use at own risks, known broken with armatures/animations)",
             default=False,
             )
 
@@ -238,10 +238,10 @@ class ExportFBX(bpy.types.Operator, ExportHelper, IOFBXOrientationHelper):
             )
     # 7.4 only
     bake_space_transform = BoolProperty(
-            name="Apply Transform",
+            name="!EXPERIMENTAL! Apply Transform",
             description="Bake space transform into object data, avoids getting unwanted rotations to objects when "
                         "target space is not aligned with Blender's space "
-                        "(WARNING! experimental option, might give odd/wrong results)",
+                        "(WARNING! experimental option, use at own risks, known broken with armatures/animations)",
             default=False,
             )
 
