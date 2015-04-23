@@ -19,8 +19,8 @@
 bl_info = {
     "name": "AnimAll",
     "author": "Daniel Salazar <zanqdo@gmail.com>",
-    "version": (0, 7),
-    "blender": (2, 69, 7),
+    "version": (0, 8),
+    "blender": (2, 73),
     "location": "Tool bar > Animation tab > AnimAll",
     "description": "Allows animation of mesh, lattice, curve and surface data",
     "warning": "",
@@ -51,9 +51,14 @@ bpy.types.WindowManager.key_uvs = BoolProperty(
     description="Insert keyframes on active UV coordinates",
     default=False)
 
-bpy.types.WindowManager.key_bevel = BoolProperty(
-    name="Bevel",
+bpy.types.WindowManager.key_ebevel = BoolProperty(
+    name="E-Bevel",
     description="Insert keyframes on edge bevel weight",
+    default=False)
+
+bpy.types.WindowManager.key_vbevel = BoolProperty(
+    name="V-Bevel",
+    description="Insert keyframes on vertex bevel weight",
     default=False)
 
 bpy.types.WindowManager.key_crease = BoolProperty(
@@ -62,12 +67,12 @@ bpy.types.WindowManager.key_crease = BoolProperty(
     default=False)
 
 bpy.types.WindowManager.key_vcols = BoolProperty(
-    name="VCols",
+    name="V-Cols",
     description="Insert keyframes on active Vertex Color values",
     default=False)
 
 bpy.types.WindowManager.key_vgroups = BoolProperty(
-    name="VGroups",
+    name="V-Groups",
     description="Insert keyframes on active Vertex Group values",
     default=False)
 
@@ -118,8 +123,9 @@ class VIEW3D_PT_animall(bpy.types.Panel):
             row.prop(context.window_manager, "key_points")
             row.prop(context.window_manager, "key_shape")
             row = col.row()
-            row.prop(context.window_manager, "key_bevel")
-            row.prop(context.window_manager, "key_crease")
+            row.prop(context.window_manager, "key_ebevel")
+            row.prop(context.window_manager, "key_vbevel")
+            col.prop(context.window_manager, "key_crease")
             row = col.row()
             row.prop(context.window_manager, "key_vcols")
             row.prop(context.window_manager, "key_vgroups")
@@ -207,9 +213,13 @@ class ANIM_OT_insert_keyframe_animall(bpy.types.Operator):
                 for Vert in Data.vertices:
                     Vert.keyframe_insert('co')
             
-            if context.window_manager.key_bevel:
+            if context.window_manager.key_ebevel:
                 for Edge in Data.edges:
                     Edge.keyframe_insert('bevel_weight')
+            
+            if context.window_manager.key_vbevel:
+                for Vert in Data.vertices:
+                    Vert.keyframe_insert('bevel_weight')
             
             if context.window_manager.key_crease:
                 for Edge in Data.edges:
@@ -343,9 +353,13 @@ class ANIM_OT_delete_keyframe_animall(bpy.types.Operator):
                 for Vert in Data.vertices:
                     Vert.keyframe_delete('co')
             
-            if context.window_manager.key_bevel:
+            if context.window_manager.key_ebevel:
                 for Edge in Data.edges:
                     Edge.keyframe_delete('bevel_weight')
+            
+            if context.window_manager.key_vbevel:
+                for Vert in Data.vertices:
+                    Vert.keyframe_delete('bevel_weight')
             
             if context.window_manager.key_crease:
                 for Edge in Data.edges:
