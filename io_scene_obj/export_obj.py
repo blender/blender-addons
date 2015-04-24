@@ -73,6 +73,8 @@ def write_mtl(scene, filepath, path_mode, copy_set, mtl_dict):
         fw('\nnewmtl %s\n' % mtl_mat_name)  # Define a new material: matname_imgname
 
         if mat:
+            use_mirror = mat.raytrace_mirror.use and mat.raytrace_mirror.reflect_factor != 0.0
+
             # convert from blenders spec to 0 - 1000 range.
             if mat.specular_shader == 'WARDISO':
                 tspec = (0.4 - mat.specular_slope) / 0.0004
@@ -81,7 +83,10 @@ def write_mtl(scene, filepath, path_mode, copy_set, mtl_dict):
             fw('Ns %.6f\n' % tspec)
             del tspec
 
-            fw('Ka %.6f %.6f %.6f\n' % (mat.ambient * world_amb)[:])  # Ambient, uses mirror color,
+            if use_mirror:
+                fw('Ka %.6f %.6f %.6f\n' % (mat.raytrace_mirror.reflect_factor * mat.mirror_color)[:])
+            else:
+                fw('Ka %.6f %.6f %.6f\n' % (mat.ambient * world_amb)[:])  # Ambient, uses mirror color,
             fw('Kd %.6f %.6f %.6f\n' % (mat.diffuse_intensity * mat.diffuse_color)[:])  # Diffuse
             fw('Ks %.6f %.6f %.6f\n' % (mat.specular_intensity * mat.specular_color)[:])  # Specular
             if hasattr(mat, "raytrace_transparency") and hasattr(mat.raytrace_transparency, "ior"):
@@ -90,11 +95,24 @@ def write_mtl(scene, filepath, path_mode, copy_set, mtl_dict):
                 fw('Ni %.6f\n' % 1.0)
             fw('d %.6f\n' % mat.alpha)  # Alpha (obj uses 'd' for dissolve)
 
-            # 0 to disable lighting, 1 for ambient & diffuse only (specular color set to black), 2 for full lighting.
+            # See http://en.wikipedia.org/wiki/Wavefront_.obj_file for whole list of values...
+            # Note that mapping is rather fuzzy sometimes, trying to do our best here.
             if mat.use_shadeless:
                 fw('illum 0\n')  # ignore lighting
             elif mat.specular_intensity == 0:
                 fw('illum 1\n')  # no specular.
+            elif use_mirror:
+                if mat.use_transparency and mat.transparency_method == 'RAYTRACE':
+                    if mat.raytrace_mirror.fresnel != 0.0:
+                        fw('illum 7\n')  # Reflection, Transparency, Ray trace and Fresnel
+                    else:
+                        fw('illum 6\n')  # Reflection, Transparency, Ray trace
+                elif mat.raytrace_mirror.fresnel != 0.0:
+                    fw('illum 5\n')  # Reflection, Ray trace and Fresnel
+                else:
+                    fw('illum 3\n')  # Reflection and Ray trace
+            elif mat.use_transparency and mat.transparency_method == 'RAYTRACE':
+                fw('illum 9\n')  # 'Glass' transparency and no Ray trace reflection... fuzzy matching, but...
             else:
                 fw('illum 2\n')  # light normaly
 
