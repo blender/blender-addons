@@ -2010,17 +2010,16 @@ def fbx_animations(scene_data):
 
             ob = ob_obj.bdata  # Back to real Blender Object.
 
+            if not ob.animation_data:
+                continue  # Do not export animations for objects that are absolutely not animated, see T44386.
+
             # We can't play with animdata and actions and get back to org state easily.
             # So we have to add a temp copy of the object to the scene, animate it, and remove it... :/
             ob_copy = ob.copy()
             # Great, have to handle bones as well if needed...
             pbones_matrices = [pbo.matrix_basis.copy() for pbo in ob.pose.bones] if ob.type == 'ARMATURE' else ...
 
-            if ob.animation_data:
-                org_act = ob.animation_data.action
-            else:
-                org_act = ...
-                ob.animation_data_create()
+            org_act = ob.animation_data.action
             path_resolve = ob.path_resolve
 
             for act in bpy.data.actions:
@@ -2036,16 +2035,13 @@ def fbx_animations(scene_data):
                 if pbones_matrices is not ...:
                     for pbo, mat in zip(ob.pose.bones, pbones_matrices):
                         pbo.matrix_basis = mat.copy()
-                ob.animation_data.action = None if org_act is ... else org_act
+                ob.animation_data.action = org_act
                 restore_object(ob, ob_copy)
 
             if pbones_matrices is not ...:
                 for pbo, mat in zip(ob.pose.bones, pbones_matrices):
                     pbo.matrix_basis = mat.copy()
-            if org_act is ...:
-                ob.animation_data_clear()
-            else:
-                ob.animation_data.action = org_act
+            ob.animation_data.action = org_act
 
             bpy.data.objects.remove(ob_copy)
 
