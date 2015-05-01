@@ -19,7 +19,7 @@
 bl_info = {
     "name": "Node Wrangler",
     "author": "Bartek Skorupa, Greg Zaal, Sebastian Koenig",
-    "version": (3, 25),
+    "version": (3, 26),
     "blender": (2, 74, 0),
     "location": "Node Editor Toolbar or Ctrl-Space",
     "description": "Various tools to enhance and speed up node-based workflow",
@@ -35,7 +35,7 @@ from bpy.props import FloatProperty, EnumProperty, BoolProperty, IntProperty, St
 from bpy_extras.io_utils import ImportHelper
 from mathutils import Vector
 from math import cos, sin, pi, hypot
-from os import listdir
+from os import listdir, path
 from glob import glob
 
 #################
@@ -2897,28 +2897,44 @@ class NWAddSequence(Operator, ImportHelper):
     bl_label = 'Import Image Sequence'
     bl_options = {'REGISTER', 'UNDO'}
     directory = StringProperty(subtype="DIR_PATH")
-    filename = StringProperty(subtype="FILE_NAME")
+    filename = StringProperty(subtype="FILE_NAME")    
+    files = CollectionProperty(type=bpy.types.OperatorFileListElement, options={'HIDDEN', 'SKIP_SAVE'})
 
     def execute(self, context):
         nodes, links = get_nodes_links(context)
         directory = self.directory
         filename = self.filename
+        files = self.files
+        tree = context.space_data.node_tree
 
+        # DEBUG
+        # print ("\nDIR:", directory)
+        # print ("FN:", filename)
+        # print ("Fs:", list(f.name for f in files), '\n')
 
-        if context.space_data.node_tree.type == 'SHADER':
+        if tree.type == 'SHADER':
             node_type = "ShaderNodeTexImage"
-        elif context.space_data.node_tree.type == 'COMPOSITING':
+        elif tree.type == 'COMPOSITING':
             node_type = "CompositorNodeImage"
         else:
             self.report({'ERROR'}, "Unsupported Node Tree type!")
             return {'CANCELLED'}
 
+        if not files[0].name and not filename:
+            self.report({'ERROR'}, "No file chosen")
+            return {'CANCELLED'}
+        elif files[0].name and (not filename or not path.exists(directory+filename)):
+            # User has selected multiple files without an active one, or the active one is non-existant
+            filename = files[0].name
+
+        if not path.exists(directory+filename):
+            self.report({'ERROR'}, filename+" does not exist!")
+            return {'CANCELLED'}
+
         without_ext = '.'.join(filename.split('.')[:-1])
 
         # if last digit isn't a number, it's not a sequence
-        if without_ext[-1].isdigit():
-            without_ext = without_ext[:-1] + '1'
-        else:
+        if not without_ext[-1].isdigit():
             self.report({'ERROR'}, filename+" does not seem to be part of a sequence")
             return {'CANCELLED'}
 
@@ -2954,20 +2970,17 @@ class NWAddSequence(Operator, ImportHelper):
 
         name_with_hashes = without_num + "#"*count_numbers + '.' + extension
 
-        node = nodes.new(node_type)
-        node.location.x = xloc
-        node.location.y = yloc + 110
+        bpy.ops.node.add_node('INVOKE_DEFAULT', use_transform=True, type=node_type)
+        node = context.space_data.node_tree.nodes.active
         node.label = name_with_hashes
 
         img = bpy.data.images.load(directory+(without_ext+'.'+extension))
         img.source = 'SEQUENCE'
         img.name = name_with_hashes
         node.image = img
-        node.frame_offset = int(files[0][len(without_num)+len(directory):-1*(len(extension)+1)]) - 1  # separate the number from the file name of the first  file
-        if context.space_data.node_tree.type == 'SHADER':
-            node.image_user.frame_duration = num_frames
-        else:
-            node.frame_duration = num_frames
+        image_user = node.image_user if tree.type == 'SHADER' else node
+        image_user.frame_offset = int(files[0][len(without_num)+len(directory):-1*(len(extension)+1)]) - 1  # separate the number from the file name of the first  file
+        image_user.frame_duration = num_frames
 
         return {'FINISHED'}
 
