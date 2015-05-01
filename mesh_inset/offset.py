@@ -706,7 +706,7 @@ class Offset(object):
         # so don't add points that won't be used when
         # really do a Build with a smaller amount
         test_points = geom.Points()
-        test_points.AddPoints(self.polyarea.points)
+        test_points.AddPoints(self.polyarea.points, True)
         save_points = self.polyarea.points
         self.polyarea.points = test_points
         self.Build()

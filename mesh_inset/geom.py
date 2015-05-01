@@ -67,11 +67,12 @@ class Points(object):
 
         return tuple([int(round(v * INVDISTTOL)) for v in p])
 
-    def AddPoint(self, p):
+    def AddPoint(self, p, allowdups = False):
         """Add point p to the Points set and return vertex number.
 
         If there is an existing point which quantizes the same,,
         don't add a new one but instead return existing index.
+        Except if allowdups is True, don't do that deduping.
 
         Args:
           p: tuple of float - coordinates (2-tuple or 3-tuple)
@@ -80,14 +81,14 @@ class Points(object):
         """
 
         qp = Points.Quantize(p)
-        if qp in self.invmap:
+        if qp in self.invmap and not allowdups:
             return self.invmap[qp]
         else:
             self.invmap[qp] = len(self.pos)
             self.pos.append(p)
             return len(self.pos) - 1
 
-    def AddPoints(self, points):
+    def AddPoints(self, points, allowdups = False):
         """Add another set of points to this set.
 
         We need to return a mapping from indices
@@ -102,7 +103,7 @@ class Points(object):
 
         vmap = [0] * len(points.pos)
         for i in range(len(points.pos)):
-            vmap[i] = self.AddPoint(points.pos[i])
+            vmap[i] = self.AddPoint(points.pos[i], allowdups)
         return vmap
 
     def AddZCoord(self, z):
