@@ -1,8 +1,5 @@
-'''
-    "name": "Add Mesh: SuperToroid",
-    "author": "DreamPainter",
-    "version": (1, 0, 0),
-'''
+# GPL # "author": "DreamPainter"
+
 import bpy
 from bpy.props import FloatProperty,BoolProperty,IntProperty
 from math import pi, cos, sin
@@ -28,18 +25,7 @@ def create_mesh_object(context, verts, edges, faces, name):
     return object_utils.object_data_add(context, mesh, operator=None)
 	
 # A very simple "bridge" tool.
-# Connects two equally long vertex rows with faces.
-# Returns a list of the new faces (list of  lists)
-#
-# vertIdx1 ... First vertex list (list of vertex indices).
-# vertIdx2 ... Second vertex list (list of vertex indices).
-# closed ... Creates a loop (first & last are closed).
-# flipped ... Invert the normal of the face(s).
-#
-# Note: You can set vertIdx1 to a single vertex index to create
-#       a fan/star of faces.
-# Note: If both vertex idx list are the same length they have
-#       to have at least 2 vertices.
+
 def createFaces(vertIdx1, vertIdx2, closed=False, flipped=False):
     faces = []
 

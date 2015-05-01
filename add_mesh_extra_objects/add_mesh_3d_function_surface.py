@@ -1,25 +1,4 @@
-# ##### BEGIN GPL LICENSE BLOCK #####
-#
-#  This program is free software; you can redistribute it and/or
-#  modify it under the terms of the GNU General Public License
-#  as published by the Free Software Foundation; either version 2
-#  of the License, or (at your option) any later version.
-#
-#  This program is distributed in the hope that it will be useful,
-#  but WITHOUT ANY WARRANTY; without even the implied warranty of
-#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#  GNU General Public License for more details.
-#
-#  You should have received a copy of the GNU General Public License
-#  along with this program; if not, write to the Free Software Foundation,
-#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-#
-# ##### END GPL LICENSE BLOCK #####
-'''
-    "name": "3D Function Surfaces",
-    "author": "Buerbaum Martin (Pontiac), Elod Csirmaz",
-    "version": (0, 3, 8),
-'''
+# GPL # original by Buerbaum Martin (Pontiac), Elod Csirmaz
 
 import bpy
 from mathutils import *
@@ -66,18 +45,7 @@ def create_mesh_object(context, verts, edges, faces, name):
 
 
 # A very simple "bridge" tool.
-# Connects two equally long vertex rows with faces.
-# Returns a list of the new faces (list of  lists)
-#
-# vertIdx1 ... First vertex list (list of vertex indices).
-# vertIdx2 ... Second vertex list (list of vertex indices).
-# closed ... Creates a loop (first & last are closed).
-# flipped ... Invert the normal of the face(s).
-#
-# Note: You can set vertIdx1 to a single vertex index to create
-#       a fan/star of faces.
-# Note: If both vertex idx list are the same length they have
-#       to have at least 2 vertices.
+
 def createFaces(vertIdx1, vertIdx2, closed=False, flipped=False):
     faces = []
 

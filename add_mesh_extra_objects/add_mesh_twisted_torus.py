@@ -1,34 +1,5 @@
-# add_mesh_twisted_torus.py Copyright (C) 2009-2010, Paulo Gomes
-# tuga3d {at} gmail {dot} com
-# add twisted torus to the blender 2.50 add->mesh menu
-# ***** BEGIN GPL LICENSE BLOCK *****
-#
-#
-# This program is free software; you can redistribute it and/or
-# modify it under the terms of the GNU General Public License
-# as published by the Free Software Foundation; either version 2
-# of the License, or (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software Foundation,
-# Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-#
-# ***** END GPL LICENCE BLOCK *****
-#twisted torus by Paulo_Gomes
-# "version": (0, 11, 1)
+# GPL # by Paulo_Gomes
 
-"""
-Usage:
-
-* Launch from Add Mesh menu
-
-* Modify parameters as desired or keep defaults
-"""
 import bpy
 from bpy.props import *
 
@@ -54,18 +25,6 @@ def create_mesh_object(context, verts, edges, faces, name):
     return object_utils.object_data_add(context, mesh, operator=None)
 
 # A very simple "bridge" tool.
-# Connects two equally long vertex rows with faces.
-# Returns a list of the new faces (list of  lists)
-#
-# vertIdx1 ... First vertex list (list of vertex indices).
-# vertIdx2 ... Second vertex list (list of vertex indices).
-# closed ... Creates a loop (first & last are closed).
-# flipped ... Invert the normal of the face(s).
-#
-# Note: You can set vertIdx1 to a single vertex index to create
-#       a fan/star of faces.
-# Note: If both vertex idx list are the same length they have
-#       to have at least 2 vertices.
 
 def createFaces(vertIdx1, vertIdx2, closed=False, flipped=False):
     faces = []

@@ -1,35 +1,4 @@
-# ***** BEGIN GPL LICENSE BLOCK *****
-#
-#
-# This program is free software; you can redistribute it and/or
-# modify it under the terms of the GNU General Public License
-# as published by the Free Software Foundation; either version 2
-# of the License, or (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software Foundation,
-# Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-#
-# ***** END GPL LICENCE BLOCK *****
-
-# (c) 2011 Phil Cote (cotejrp1)
-'''
-bl_info = {
-    "name": "Mesh Pyramid",
-    "author": "Phil Cote, cotejrp1, (http://www.blenderaddons.com)",
-    "version": (0, 5),
-    "blender": (2, 63, 0),
-    "location": "View3D > Add > Mesh",
-    "description": "Create an egyption-style step pyramid",
-    "warning": "",  # used for warning icon and text in addons panel
-    "category": "Add Mesh",
-}
-'''
+# GPL # "author": "Phil Cote, cotejrp1, (http://www.blenderaddons.com)"
 
 import bpy
 import bmesh
@@ -163,21 +132,3 @@ class AddPyramid(bpy.types.Operator, AddObjectHelper):
     def execute(self, context):
         add_pyramid_object(self, context)
         return {'FINISHED'}
-
-'''
-def menu_func(self, context):
-    self.layout.operator(AddPyramid.bl_idname, icon='PLUGIN')
-
-
-def register():
-    bpy.utils.register_class(AddPyramid)
-    bpy.types.INFO_MT_mesh_add.append(menu_func)
-
-
-def unregister():
-    bpy.utils.unregister_class(AddPyramid)
-    bpy.types.INFO_MT_mesh_add.remove(menu_func)
-
-if __name__ == "__main__":
-    register()
-'''
