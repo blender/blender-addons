@@ -20,7 +20,7 @@ bl_info = {
     "name": "Auto Tile Size",
     "description": "Estimate and set the tile size that will render the fastest",
     "author": "Greg Zaal",
-    "version": (3, 0),
+    "version": (3, 1),
     "blender": (2, 74, 0),
     "location": "Render Settings > Performance",
     "warning": "",
@@ -299,6 +299,12 @@ def do_set_tile_size(context):
             settings.num_tiles = (ceil(xres/tile_x), ceil(yres/tile_y))
     else:
         settings.threads_error = False
+
+    # Make sure tile sizes are within the internal limit
+    tile_x = max(8, tile_x)
+    tile_y = max(8, tile_y)
+    tile_x = min(65536, tile_x)
+    tile_y = min(65536, tile_y)
 
     render.tile_x = tile_x
     render.tile_y = tile_y
