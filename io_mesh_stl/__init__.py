@@ -112,6 +112,12 @@ class ImportSTL(Operator, ImportHelper, IOSTLOrientationHelper):
             default=True,
             )
 
+    use_facet_normal = BoolProperty(
+            name="Facet Normals",
+            description="Use (import) facet normals (note that this will still give flat shading)",
+            default=False,
+            )
+
     def execute(self, context):
         from . import stl_utils
         from . import blender_utils
@@ -142,8 +148,9 @@ class ImportSTL(Operator, ImportHelper, IOSTLOrientationHelper):
 
         for path in paths:
             objName = bpy.path.display_name(os.path.basename(path))
-            tris, pts = stl_utils.read_stl(path)
-            blender_utils.create_and_link_mesh(objName, tris, pts, global_matrix)
+            tris, tri_nors, pts = stl_utils.read_stl(path)
+            tri_nors = tri_nors if self.use_facet_normal else None
+            blender_utils.create_and_link_mesh(objName, tris, tri_nors, pts, global_matrix)
 
         return {'FINISHED'}
 

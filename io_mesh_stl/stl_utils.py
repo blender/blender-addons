@@ -62,6 +62,15 @@ class ListDict(dict):
 
         return value
 
+
+# an stl binary file is
+# - 80 bytes of description
+# - 4 bytes of size (unsigned int)
+# - size triangles :
+#
+#   - 12 bytes of normal
+#   - 9 * 4 bytes of coordinate (3*3 floats)
+#   - 2 bytes of garbage (usually 0)
 BINARY_HEADER = 80
 BINARY_STRIDE = 12 * 4 + 2
 
@@ -96,19 +105,6 @@ def _is_ascii_file(data):
 
 
 def _binary_read(data):
-    # an stl binary file is
-    # - 80 bytes of description
-    # - 4 bytes of size (unsigned int)
-    # - size triangles :
-    #
-    #   - 12 bytes of normal
-    #   - 9 * 4 bytes of coordinate (3*3 floats)
-    #   - 2 bytes of garbage (usually 0)
-
-    # OFFSET is to skip normal bytes
-    # STRIDE between each triangle (first normal + coordinates + garbage)
-    OFFSET = 12
-
     # Skip header...
     data.seek(BINARY_HEADER)
     size = struct.unpack('<I', data.read(4))[0]
@@ -129,15 +125,15 @@ def _binary_read(data):
     chunks = [CHUNK_LEN] * (size // CHUNK_LEN)
     chunks.append(size % CHUNK_LEN)
 
-    unpack = struct.Struct('<9f').unpack_from
+    unpack = struct.Struct('<12f').unpack_from
     for chunk_len in chunks:
         if chunk_len == 0:
             continue
         buf = data.read(BINARY_STRIDE * chunk_len)
         for i in range(chunk_len):
-            # read the points coordinates of each triangle
-            pt = unpack(buf, OFFSET + BINARY_STRIDE * i)
-            yield pt[:3], pt[3:6], pt[6:]
+            # read the normal and points coordinates of each triangle
+            pt = unpack(buf, BINARY_STRIDE * i)
+            yield pt[:3], (pt[3:6], pt[6:9], pt[9:])
 
 
 def _ascii_read(data):
@@ -156,11 +152,15 @@ def _ascii_read(data):
     # strip header
     data.readline()
 
+    curr_nor = None
+
     for l in data:
-        # if we encounter a vertex, read next 2
         l = l.lstrip()
+        if l.startswith(b'facet'):
+            curr_nor = tuple(map(float, l_item.split()[2:]))
+        # if we encounter a vertex, read next 2
         if l.startswith(b'vertex'):
-            yield [tuple(map(float, l_item.split()[1:])) for l_item in (l, data.readline(), data.readline())]
+            yield curr_nor, [tuple(map(float, l_item.split()[1:])) for l_item in (l, data.readline(), data.readline())]
 
 
 def _binary_write(filepath, faces):
@@ -232,11 +232,14 @@ def read_stl(filepath):
     Please note that this process can take lot of time if the file is
     huge (~1m30 for a 1 Go stl file on an quad core i7).
 
-    - returns a tuple(triangles, points).
+    - returns a tuple(triangles, triangles' normals, points).
 
       triangles
           A list of triangles, each triangle as a tuple of 3 index of
           point in *points*.
+
+      triangles' normals
+          A list of vectors3 (tuples, xyz).
 
       points
           An indexed list of points, each point is a tuple of 3 float
@@ -244,7 +247,7 @@ def read_stl(filepath):
 
     Example of use:
 
-       >>> tris, pts = read_stl(filepath, lambda x:)
+       >>> tris, tri_nors, pts = read_stl(filepath)
        >>> pts = list(pts)
        >>>
        >>> # print the coordinate of the triangle n
@@ -253,22 +256,23 @@ def read_stl(filepath):
     import time
     start_time = time.process_time()
 
-    tris, pts = [], ListDict()
+    tris, tri_nors, pts = [], [], ListDict()
 
     with open(filepath, 'rb') as data:
         # check for ascii or binary
         gen = _ascii_read if _is_ascii_file(data) else _binary_read
 
-        for pt in gen(data):
+        for nor, pt in gen(data):
             # Add the triangle and the point.
             # If the point is allready in the list of points, the
             # index returned by pts.add() will be the one from the
             # first equal point inserted.
             tris.append([pts.add(p) for p in pt])
+            tri_nors.append(nor)
 
     print('Import finished in %.4f sec.' % (time.process_time() - start_time))
 
-    return tris, pts.list
+    return tris, tri_nors, pts.list
 
 
 if __name__ == '__main__':
