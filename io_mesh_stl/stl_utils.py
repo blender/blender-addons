@@ -157,7 +157,7 @@ def _ascii_read(data):
     for l in data:
         l = l.lstrip()
         if l.startswith(b'facet'):
-            curr_nor = tuple(map(float, l_item.split()[2:]))
+            curr_nor = tuple(map(float, l.split()[2:]))
         # if we encounter a vertex, read next 2
         if l.startswith(b'vertex'):
             yield curr_nor, [tuple(map(float, l_item.split()[1:])) for l_item in (l, data.readline(), data.readline())]
