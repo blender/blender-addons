@@ -16,13 +16,15 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 # Contributed to by
-# Pontiac, Fourmadmen, varkenvarken, tuga3d, meta-androcto, metalliandy, dreampainter, cotejrp1#
+# Pontiac, Fourmadmen, varkenvarken, tuga3d, meta-androcto, metalliandy, dreampainter, cotejrp1 #
+# liero, Kayo Phoenix, sugiany, dommetysk, Phymec, Anthony D'Agostino, Pablo Vazquez, Richard Wilks #
+# xyz presets by elfnor
 
 bl_info = {
     "name": "Extra Objects",
     "author": "Multiple Authors",
     "version": (0, 3, 0),
-    "blender": (2, 74, 0),
+    "blender": (2, 75, 0),
     "location": "View3D > Add > Mesh",
     "description": "Add extra mesh object types",
     "warning": "",
