@@ -80,7 +80,7 @@ def add_pyramid_object(self, context):
         
         # get the base and cap faces done.
         bm.faces.new(bm.verts[0:self.num_sides])
-        bm.faces.new(bm.verts[-self.num_sides:])
+        bm.faces.new(reversed(bm.verts[-self.num_sides:]))  # otherwise normal faces intern... T44619.
         
         # side faces
         block_vert_sets = split_list(bm.verts, self.num_sides)

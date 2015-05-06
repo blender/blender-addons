@@ -24,12 +24,11 @@ bl_info = {
     "name": "Extra Objects",
     "author": "Multiple Authors",
     "version": (0, 3, 0),
-    "blender": (2, 75, 0),
+    "blender": (2, 74, 5),
     "location": "View3D > Add > Mesh",
     "description": "Add extra mesh object types",
     "warning": "",
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
-                "Scripts/Add_Mesh/Add_Extra",
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts/Add_Mesh/Add_Extra",
     "category": "Add Mesh",
 }
 
@@ -218,11 +217,13 @@ def register():
     # Add "Extras" menu to the "Add Mesh" menu
     bpy.types.INFO_MT_mesh_add.append(menu_func)
 
-def unregister():
-    bpy.utils.unregister_module(__name__)
 
+def unregister():
     # Remove "Extras" menu from the "Add Mesh" menu.
     bpy.types.INFO_MT_mesh_add.remove(menu_func)
+
+    bpy.utils.unregister_module(__name__)
+
 
 if __name__ == "__main__":
     register()
