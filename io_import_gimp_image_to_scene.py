@@ -458,14 +458,14 @@ def main(report, File, Path, LayerViewers, MixerViewers, LayerOffset,
             X_Offset = (500*Offset)
             Y_Offset = (-300*Offset)
             
-            Node = Tree.nodes.new('R_LAYERS')
+            Node = Tree.nodes.new('CompositorNodeRLayers')
             Node.location = (-500+X_Offset, 300+Y_Offset)
             Node.name = 'R_'+ str(Offset)
             Node.scene = Scene
             Node.layer = Layer[0]
             
             if LayerViewers:
-                Node_V = Tree.nodes.new('VIEWER')
+                Node_V = Tree.nodes.new('CompositorNodeViewer')
                 Node_V.name = Layer[0]
                 Node_V.location = (-200+X_Offset, 200+Y_Offset)
                 
@@ -478,9 +478,9 @@ def main(report, File, Path, LayerViewers, MixerViewers, LayerOffset,
                 
                 if not Mode in {'Normal', '-1'}:
                     
-                    Node = Tree.nodes.new('MIX_RGB')
-                    if OpacityMode == 'COMPO': Node.inputs['Fac'].default_value[0] = LayerOpacity
-                    else: Node.inputs['Fac'].default_value[0] = 1
+                    Node = Tree.nodes.new('CompositorNodeMixRGB')
+                    if OpacityMode == 'COMPO': Node.inputs['Fac'].default_value = LayerOpacity
+                    else: Node.inputs['Fac'].default_value = 1
                     Node.use_alpha = True
                     
                     if Mode in {'Addition', '7'}: Node.blend_type = 'ADD'
@@ -502,20 +502,20 @@ def main(report, File, Path, LayerViewers, MixerViewers, LayerOffset,
                     else: pass
                     
                 else:
-                    Node = Tree.nodes.new('ALPHAOVER')
-                    if OpacityMode == 'COMPO': Node.inputs['Fac'].default_value[0] = LayerOpacity
+                    Node = Tree.nodes.new('CompositorNodeAlphaOver')
+                    if OpacityMode == 'COMPO': Node.inputs['Fac'].default_value = LayerOpacity
                 Node.name = 'M_' + str(Offset)
                 Node.location = (300+X_Offset, 250+Y_Offset)
                 
                 if MixerViewers:
-                    Node_V = Tree.nodes.new('VIEWER')
+                    Node_V = Tree.nodes.new('CompositorNodeViewer')
                     Node_V.name = Layer[0]
                     Node_V.location = (500+X_Offset, 350+Y_Offset)
                     
                     Tree.links.new(Node.outputs[0], Node_V.inputs[0])
                 
             else:
-                Node = Tree.nodes.new('COMPOSITE')
+                Node = Tree.nodes.new('CompositorNodeComposite')
                 Node.name = 'Composite'
                 Node.location = (400+X_Offset, 350+Y_Offset)
                 
