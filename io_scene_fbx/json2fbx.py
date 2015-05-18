@@ -65,7 +65,7 @@ ensured to be unique.
 """
 
 
-from . import encode_bin
+import encode_bin
 
 
 def elem_empty(elem, name):
