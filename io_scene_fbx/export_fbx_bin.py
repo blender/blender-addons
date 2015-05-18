@@ -697,7 +697,7 @@ def fbx_data_camera_elements(root, cam_obj, scene_data):
     elem_data_single_float64(cam, b"CameraOrthoZoom", 1.0)
 
 
-def fbx_data_bindpose_element(root, me_obj, me, scene_data, arm_obj=None, bones=[]):
+def fbx_data_bindpose_element(root, me_obj, me, scene_data, arm_obj=None, mat_world_arm=None, bones=[]):
     """
     Helper, since bindpose are used by both meshes shape keys and armature bones...
     """
@@ -719,6 +719,11 @@ def fbx_data_bindpose_element(root, me_obj, me, scene_data, arm_obj=None, bones=
     fbx_posenode = elem_empty(fbx_pose, b"PoseNode")
     elem_data_single_int64(fbx_posenode, b"Node", me_obj.fbx_uuid)
     elem_data_single_float64_array(fbx_posenode, b"Matrix", matrix4_to_array(mat_world_obj))
+    # Second node is armature object itself.
+    if arm_obj != me_obj:
+        fbx_posenode = elem_empty(fbx_pose, b"PoseNode")
+        elem_data_single_int64(fbx_posenode, b"Node", arm_obj.fbx_uuid)
+        elem_data_single_float64_array(fbx_posenode, b"Matrix", matrix4_to_array(mat_world_arm))
     # And all bones of armature!
     mat_world_bones = {}
     for bo_obj in bones:
@@ -1388,7 +1393,7 @@ def fbx_data_armature_elements(root, arm_obj, scene_data):
     mat_world_arm = arm_obj.fbx_object_matrix(scene_data, global_space=True)
     bones = tuple(bo_obj for bo_obj in arm_obj.bones if bo_obj in scene_data.objects)
 
-    bone_radius_scale = scene_data.settings.global_scale * 33.0
+    bone_radius_scale = 33.0
 
     # Bones "data".
     for bo_obj in bones:
@@ -1419,8 +1424,8 @@ def fbx_data_armature_elements(root, arm_obj, scene_data):
     if deformer is not None:
         for me, (skin_key, ob_obj, clusters) in deformer.items():
             # BindPose.
-
-            mat_world_obj, mat_world_bones = fbx_data_bindpose_element(root, ob_obj, me, scene_data, arm_obj, bones)
+            mat_world_obj, mat_world_bones = fbx_data_bindpose_element(root, ob_obj, me, scene_data,
+                                                                       arm_obj, mat_world_arm, bones)
 
             # Deformer.
             fbx_skin = elem_data_single_int64(root, b"Deformer", get_fbx_uuid_from_key(skin_key))
@@ -1471,7 +1476,7 @@ def fbx_data_armature_elements(root, arm_obj, scene_data):
                 elem_data_single_float64_array(fbx_clstr, b"Transform",
                                                matrix4_to_array(mat_world_bones[bo_obj].inverted_safe() * mat_world_obj))
                 elem_data_single_float64_array(fbx_clstr, b"TransformLink", matrix4_to_array(mat_world_bones[bo_obj]))
-                elem_data_single_float64_array(fbx_clstr, b"TransformAssociateModel", matrix4_to_array(mat_world_arm))
+                #~ elem_data_single_float64_array(fbx_clstr, b"TransformAssociateModel", matrix4_to_array(mat_world_arm))
 
 
 def fbx_data_leaf_bone_elements(root, scene_data):
@@ -1533,7 +1538,8 @@ def fbx_data_object_elements(root, ob_obj, scene_data):
     if ob_obj.is_bone:
         obj_type = b"LimbNode"
     elif (ob_obj.type == 'ARMATURE'):
-        obj_type = b"Root"
+        #~ obj_type = b"Root"
+        obj_type = b"Null"
     elif (ob_obj.type in BLENDER_OBJECT_TYPES_MESHLIKE):
         obj_type = b"Mesh"
     elif (ob_obj.type == 'LAMP'):
@@ -1723,13 +1729,16 @@ def fbx_mat_properties_from_texture(tex):
 
 
 def fbx_skeleton_from_armature(scene, settings, arm_obj, objects, data_meshes,
-                               data_bones, data_deformers_skin, arm_parents):
+                               data_bones, data_deformers_skin, data_empties, arm_parents):
     """
     Create skeleton from armature/bones (NodeAttribute/LimbNode and Model/LimbNode), and for each deformed mesh,
     create Pose/BindPose(with sub PoseNode) and Deformer/Skin(with Deformer/SubDeformer/Cluster).
     Also supports "parent to bone" (simple parent to Model/LimbNode).
     arm_parents is a set of tuples (armature, object) for all successful armature bindings.
     """
+    # We need some data for our armature 'object' too!!!
+    data_empties[arm_obj] = get_blender_empty_key(arm_obj.bdata)
+
     arm_data = arm_obj.bdata.data
     bones = OrderedDict()
     for bo in arm_obj.bones:
@@ -1841,13 +1850,16 @@ def fbx_animations_do(scene_data, ref_id, f_start, f_end, start_zero, objects=No
         objects = scene_data.objects
 
     back_currframe = scene.frame_current
-    animdata_ob = OrderedDict((ob_obj, (AnimationCurveNodeWrapper(ob_obj.key, 'LCL_TRANSLATION',
-                                                                  ob_obj.is_bone and force_keying, (0.0, 0.0, 0.0)),
-                                        AnimationCurveNodeWrapper(ob_obj.key, 'LCL_ROTATION',
-                                                                  ob_obj.is_bone and force_keying, (0.0, 0.0, 0.0)),
-                                        AnimationCurveNodeWrapper(ob_obj.key, 'LCL_SCALING',
-                                                                  ob_obj.is_bone and force_keying, (1.0, 1.0, 1.0))))
-                              for ob_obj in objects)
+    animdata_ob = OrderedDict()
+    p_rots = {}
+
+    for ob_obj in objects:
+        ACNW = AnimationCurveNodeWrapper
+        loc, rot, scale, _m, _mr = ob_obj.fbx_object_tx(scene_data)
+        animdata_ob[ob_obj] = (ACNW(ob_obj.key, 'LCL_TRANSLATION', ob_obj.is_bone and force_keying, loc),
+                               ACNW(ob_obj.key, 'LCL_ROTATION', ob_obj.is_bone and force_keying, rot),
+                               ACNW(ob_obj.key, 'LCL_SCALING', ob_obj.is_bone and force_keying, scale))
+        p_rots[ob_obj] = rot
 
     animdata_shapes = OrderedDict()
     for me, (me_key, _shapes_key, shapes) in scene_data.data_deformers_shape.items():
@@ -1859,8 +1871,6 @@ def fbx_animations_do(scene_data, ref_id, f_start, f_end, start_zero, objects=No
             # Sooooo happy to have to twist again like a mad snake... Yes, we need to write those curves twice. :/
             acnode.add_group(me_key, shape.name, shape.name, (shape.name,))
             animdata_shapes[channel_key] = (acnode, me, shape)
-
-    p_rots = {}
 
     currframe = f_start
     while currframe <= f_end:
@@ -2168,7 +2178,7 @@ def fbx_data_from_scene(scene, settings):
         if not (ob_obj.is_object and ob_obj.type in {'ARMATURE'}):
             continue
         fbx_skeleton_from_armature(scene, settings, ob_obj, objects, data_meshes,
-                                   data_bones, data_deformers_skin, arm_parents)
+                                   data_bones, data_deformers_skin, data_empties, arm_parents)
 
     # Generate leaf bones
     data_leaf_bones = []
@@ -2578,7 +2588,8 @@ def fbx_header_elements(root, scene_data, time=None):
     props = elem_properties(global_settings)
     up_axis, front_axis, coord_axis = RIGHT_HAND_AXES[scene_data.settings.to_axes]
     # Currently not sure about that, but looks like default unit of FBX is cm...
-    scale_factor = (1.0 if scene.unit_settings.system == 'NONE' else scene.unit_settings.scale_length) * 100
+    #~ scale_factor = (1.0 if scene.unit_settings.system == 'NONE' else scene.unit_settings.scale_length) * 100 * scene_data.settings.global_scale
+    scale_factor = scene_data.settings.global_scale
     elem_props_set(props, "p_integer", b"UpAxis", up_axis[0])
     elem_props_set(props, "p_integer", b"UpAxisSign", up_axis[1])
     elem_props_set(props, "p_integer", b"FrontAxis", front_axis[0])
@@ -2588,7 +2599,7 @@ def fbx_header_elements(root, scene_data, time=None):
     elem_props_set(props, "p_integer", b"OriginalUpAxis", -1)
     elem_props_set(props, "p_integer", b"OriginalUpAxisSign", 1)
     elem_props_set(props, "p_double", b"UnitScaleFactor", scale_factor)
-    elem_props_set(props, "p_double", b"OriginalUnitScaleFactor", scale_factor)
+    elem_props_set(props, "p_double", b"OriginalUnitScaleFactor", 1.0)
     elem_props_set(props, "p_color_rgb", b"AmbientColor", (0.0, 0.0, 0.0))
     elem_props_set(props, "p_string", b"DefaultCamera", "Producer Perspective")
 
