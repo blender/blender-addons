@@ -1860,8 +1860,9 @@ def fbx_animations_do(scene_data, ref_id, f_start, f_end, start_zero, objects=No
     for ob_obj in objects:
         ACNW = AnimationCurveNodeWrapper
         loc, rot, scale, _m, _mr = ob_obj.fbx_object_tx(scene_data)
+        rot_deg = tuple(convert_rad_to_deg_iter(rot))
         animdata_ob[ob_obj] = (ACNW(ob_obj.key, 'LCL_TRANSLATION', ob_obj.is_bone and force_keying, loc),
-                               ACNW(ob_obj.key, 'LCL_ROTATION', ob_obj.is_bone and force_keying, rot),
+                               ACNW(ob_obj.key, 'LCL_ROTATION', ob_obj.is_bone and force_keying, rot_deg),
                                ACNW(ob_obj.key, 'LCL_SCALING', ob_obj.is_bone and force_keying, scale))
         p_rots[ob_obj] = rot
 
