@@ -24,11 +24,9 @@ bl_info = {
     "version": (3, 2, 5),
     "blender": (2, 74, 0),
     "location": "File > Import-Export",
-    "description": "FBX IO meshes, UV's, vertex colors, materials, "
-                   "textures, cameras, lamps and actions",
+    "description": "FBX IO meshes, UV's, vertex colors, materials, textures, cameras, lamps and actions",
     "warning": "",
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
-                "Scripts/Import-Export/Autodesk_FBX",
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts/Import-Export/Autodesk_FBX",
     "support": 'OFFICIAL',
     "category": "Import-Export",
 }
