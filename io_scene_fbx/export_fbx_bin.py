@@ -712,7 +712,7 @@ def fbx_data_bindpose_element(root, me_obj, me, scene_data, arm_obj=None, mat_wo
 
     elem_data_single_string(fbx_pose, b"Type", b"BindPose")
     elem_data_single_int32(fbx_pose, b"Version", FBX_POSE_BIND_VERSION)
-    elem_data_single_int32(fbx_pose, b"NbPoseNodes", 1 + len(bones))
+    elem_data_single_int32(fbx_pose, b"NbPoseNodes", 1 + (1 if (arm_obj != me_obj) else 0) + len(bones))
 
     # First node is mesh/object.
     mat_world_obj = me_obj.fbx_object_matrix(scene_data, global_space=True)
@@ -1508,6 +1508,7 @@ def fbx_data_leaf_bone_elements(root, scene_data):
         tmpl = elem_props_template_init(scene_data.templates, b"Model")
         # For now add only loc/rot/scale...
         props = elem_properties(model)
+        # Generated leaf bones are obviously never animated!
         elem_props_template_set(tmpl, props, "p_lcl_translation", b"Lcl Translation", loc)
         elem_props_template_set(tmpl, props, "p_lcl_rotation", b"Lcl Rotation", rot)
         elem_props_template_set(tmpl, props, "p_lcl_scaling", b"Lcl Scaling", scale)
@@ -1559,9 +1560,12 @@ def fbx_data_object_elements(root, ob_obj, scene_data):
     tmpl = elem_props_template_init(scene_data.templates, b"Model")
     # For now add only loc/rot/scale...
     props = elem_properties(model)
-    elem_props_template_set(tmpl, props, "p_lcl_translation", b"Lcl Translation", loc)
-    elem_props_template_set(tmpl, props, "p_lcl_rotation", b"Lcl Rotation", rot)
-    elem_props_template_set(tmpl, props, "p_lcl_scaling", b"Lcl Scaling", scale)
+    elem_props_template_set(tmpl, props, "p_lcl_translation", b"Lcl Translation", loc,
+                            animatable=True, animated=((ob_obj.key, "Lcl Translation") in scene_data.animated))
+    elem_props_template_set(tmpl, props, "p_lcl_rotation", b"Lcl Rotation", rot,
+                            animatable=True, animated=((ob_obj.key, "Lcl Rotation") in scene_data.animated))
+    elem_props_template_set(tmpl, props, "p_lcl_scaling", b"Lcl Scaling", scale,
+                            animatable=True, animated=((ob_obj.key, "Lcl Scaling") in scene_data.animated))
     elem_props_template_set(tmpl, props, "p_visibility", b"Visibility", float(not ob_obj.hide))
 
     # Absolutely no idea what this is, but seems mandatory for validity of the file, and defaults to
@@ -1940,10 +1944,11 @@ def fbx_animations(scene_data):
     """
     scene = scene_data.scene
     animations = []
+    animated = set()
     frame_start = 1e100
     frame_end = -1e100
 
-    def add_anim(animations, anim):
+    def add_anim(animations, animated, anim):
         nonlocal frame_start, frame_end
         if anim is not None:
             animations.append(anim)
@@ -1952,6 +1957,11 @@ def fbx_animations(scene_data):
                 frame_start = f_start
             if f_end > frame_end:
                 frame_end = f_end
+
+            _astack_key, astack, _alayer_key, _name, _fstart, _fend = anim
+            for elem_key, (alayer_key, acurvenodes) in astack.items():
+                for fbx_prop, (acurvenode_key, acurves, acurvenode_name) in acurvenodes.items():
+                    animated.add((elem_key, fbx_prop))
 
     # Per-NLA strip animstacks.
     if scene_data.settings.bake_anim_use_nla_strips:
@@ -1974,7 +1984,8 @@ def fbx_animations(scene_data):
 
         for strip in strips:
             strip.mute = False
-            add_anim(animations, fbx_animations_do(scene_data, strip, strip.frame_start, strip.frame_end, True))
+            add_anim(animations, animated,
+                     fbx_animations_do(scene_data, strip, strip.frame_start, strip.frame_end, True))
             strip.mute = True
 
         for strip in strips:
@@ -2039,7 +2050,7 @@ def fbx_animations(scene_data):
                     continue
                 ob.animation_data.action = act
                 frame_start, frame_end = act.frame_range  # sic!
-                add_anim(animations,
+                add_anim(animations, animated,
                          fbx_animations_do(scene_data, (ob, act), frame_start, frame_end, True, {ob_obj}, True))
                 # Ugly! :/
                 if pbones_matrices is not ...:
@@ -2057,12 +2068,12 @@ def fbx_animations(scene_data):
 
     # Global (containing everything) animstack, only if not exporting NLA strips and/or all actions.
     if not scene_data.settings.bake_anim_use_nla_strips and not scene_data.settings.bake_anim_use_all_actions:
-        add_anim(animations, fbx_animations_do(scene_data, None, scene.frame_start, scene.frame_end, False))
+        add_anim(animations, animated, fbx_animations_do(scene_data, None, scene.frame_start, scene.frame_end, False))
 
     # Be sure to update all matrices back to org state!
     scene.frame_set(scene.frame_current, 0.0)
 
-    return animations, frame_start, frame_end
+    return animations, animated, frame_start, frame_end
 
 
 def fbx_data_from_scene(scene, settings):
@@ -2259,6 +2270,7 @@ def fbx_data_from_scene(scene, settings):
 
     # Animation...
     animations = ()
+    animated = set()
     frame_start = scene.frame_start
     frame_end = scene.frame_end
     if settings.bake_anim:
@@ -2266,12 +2278,12 @@ def fbx_data_from_scene(scene, settings):
         # Kind of hack, we need a temp scene_data for object's space handling to bake animations...
         tmp_scdata = FBXExportData(
             None, None, None,
-            settings, scene, objects, None, 0.0, 0.0,
+            settings, scene, objects, None, None, 0.0, 0.0,
             data_empties, data_lamps, data_cameras, data_meshes, None,
             data_bones, data_leaf_bones, data_deformers_skin, data_deformers_shape,
             data_world, data_materials, data_textures, data_videos,
         )
-        animations, frame_start, frame_end = fbx_animations(tmp_scdata)
+        animations, animated, frame_start, frame_end = fbx_animations(tmp_scdata)
 
     # ##### Creation of templates...
 
@@ -2484,7 +2496,7 @@ def fbx_data_from_scene(scene, settings):
 
     return FBXExportData(
         templates, templates_users, connections,
-        settings, scene, objects, animations, frame_start, frame_end,
+        settings, scene, objects, animations, animated, frame_start, frame_end,
         data_empties, data_lamps, data_cameras, data_meshes, mesh_mat_indices,
         data_bones, data_leaf_bones, data_deformers_skin, data_deformers_shape,
         data_world, data_materials, data_textures, data_videos,

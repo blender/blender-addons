@@ -569,25 +569,33 @@ def _elem_props_set(elem, ptype, name, value, flags):
             getattr(p, callback)(val)
 
 
-def _elem_props_flags(animatable, custom):
-    if animatable and custom:
-        return b"AU"
-    elif animatable:
+def _elem_props_flags(animatable, animated, custom):
+    # XXX: There are way more flags, see
+    #      http://help.autodesk.com/view/FBX/2015/ENU/?guid=__cpp_ref_class_fbx_property_flags_html
+    #      Unfortunately, as usual, no doc at all about their 'translation' in actual FBX file format.
+    #      Curse you-know-who.
+    if animatable:
+        if animated:
+            if custom:
+                return b"A+U"
+            return b"A+"
+        if custom:
+            return b"AU"
         return b"A"
-    elif custom:
+    if custom:
         return b"U"
     return b""
 
 
-def elem_props_set(elem, ptype, name, value=None, animatable=False, custom=False):
+def elem_props_set(elem, ptype, name, value=None, animatable=False, animated=False, custom=False):
     ptype = FBX_PROPERTIES_DEFINITIONS[ptype]
-    _elem_props_set(elem, ptype, name, value, _elem_props_flags(animatable, custom))
+    _elem_props_set(elem, ptype, name, value, _elem_props_flags(animatable, animated, custom))
 
 
 def elem_props_compound(elem, cmpd_name, custom=False):
-    def _setter(ptype, name, value, animatable=False, custom=False):
+    def _setter(ptype, name, value, animatable=False, animated=False, custom=False):
         name = cmpd_name + b"|" + name
-        elem_props_set(elem, ptype, name, value, animatable=animatable, custom=custom)
+        elem_props_set(elem, ptype, name, value, animatable=animatable, animated=animated, custom=custom)
 
     elem_props_set(elem, "p_compound", cmpd_name, custom=custom)
     return _setter
@@ -606,7 +614,7 @@ def elem_props_template_init(templates, template_type):
     return ret
 
 
-def elem_props_template_set(template, elem, ptype_name, name, value, animatable=False):
+def elem_props_template_set(template, elem, ptype_name, name, value, animatable=False, animated=False):
     """
     Only add a prop if the same value is not already defined in given template.
     Note it is important to not give iterators as value, here!
@@ -616,15 +624,16 @@ def elem_props_template_set(template, elem, ptype_name, name, value, animatable=
         value = tuple(value)
     tmpl_val, tmpl_ptype, tmpl_animatable, tmpl_written = template.get(name, (None, None, False, False))
     # Note animatable flag from template takes precedence over given one, if applicable.
-    if tmpl_ptype is not None:
+    # However, animated properties are always written, since they cannot match their template!
+    if tmpl_ptype is not None and not animated:
         if (tmpl_written and
             ((len(ptype) == 3 and (tmpl_val, tmpl_ptype) == (value, ptype_name)) or
              (len(ptype) > 3 and (tuple(tmpl_val), tmpl_ptype) == (value, ptype_name)))):
             return  # Already in template and same value.
-        _elem_props_set(elem, ptype, name, value, _elem_props_flags(tmpl_animatable, False))
+        _elem_props_set(elem, ptype, name, value, _elem_props_flags(tmpl_animatable, animated, False))
         template[name][3] = True
     else:
-        _elem_props_set(elem, ptype, name, value, _elem_props_flags(animatable, False))
+        _elem_props_set(elem, ptype, name, value, _elem_props_flags(animatable, animated, False))
 
 
 def elem_props_template_finalize(template, elem):
@@ -639,7 +648,7 @@ def elem_props_template_finalize(template, elem):
         if written:
             continue
         ptype = FBX_PROPERTIES_DEFINITIONS[ptype_name]
-        _elem_props_set(elem, ptype, name, value, _elem_props_flags(animatable, False))
+        _elem_props_set(elem, ptype, name, value, _elem_props_flags(animatable, False, False))
 
 
 # ##### Templates #####
@@ -1196,7 +1205,7 @@ FBXExportSettings = namedtuple("FBXExportSettings", (
 #     * animations.
 FBXExportData = namedtuple("FBXExportData", (
     "templates", "templates_users", "connections",
-    "settings", "scene", "objects", "animations", "frame_start", "frame_end",
+    "settings", "scene", "objects", "animations", "animated", "frame_start", "frame_end",
     "data_empties", "data_lamps", "data_cameras", "data_meshes", "mesh_mat_indices",
     "data_bones", "data_leaf_bones", "data_deformers_skin", "data_deformers_shape",
     "data_world", "data_materials", "data_textures", "data_videos",
