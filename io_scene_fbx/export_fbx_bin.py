@@ -1477,7 +1477,7 @@ def fbx_data_armature_elements(root, arm_obj, scene_data):
                 elem_data_single_float64_array(fbx_clstr, b"Transform",
                                                matrix4_to_array(mat_world_bones[bo_obj].inverted_safe() * mat_world_obj))
                 elem_data_single_float64_array(fbx_clstr, b"TransformLink", matrix4_to_array(mat_world_bones[bo_obj]))
-                #~ elem_data_single_float64_array(fbx_clstr, b"TransformAssociateModel", matrix4_to_array(mat_world_arm))
+                elem_data_single_float64_array(fbx_clstr, b"TransformAssociateModel", matrix4_to_array(mat_world_arm))
 
 
 def fbx_data_leaf_bone_elements(root, scene_data):
@@ -2402,7 +2402,7 @@ def fbx_data_from_scene(scene, settings):
             elif ob_obj.type == 'CAMERA':
                 cam_key = data_cameras[ob_obj]
                 connections.append((b"OO", get_fbx_uuid_from_key(cam_key), ob_obj.fbx_uuid, None))
-            elif ob_obj.type == 'EMPTY':
+            elif ob_obj.type == 'EMPTY' or ob_obj.type == 'ARMATURE':
                 empty_key = data_empties[ob_obj]
                 connections.append((b"OO", get_fbx_uuid_from_key(empty_key), ob_obj.fbx_uuid, None))
             elif ob_obj.type in BLENDER_OBJECT_TYPES_MESHLIKE:
