@@ -1465,8 +1465,9 @@ def fbx_data_armature_elements(root, arm_obj, scene_data):
                 # No idea what that user data might be...
                 fbx_userdata = elem_data_single_string(fbx_clstr, b"UserData", b"")
                 fbx_userdata.add_string(b"")
-                elem_data_single_int32_array(fbx_clstr, b"Indexes", indices)
-                elem_data_single_float64_array(fbx_clstr, b"Weights", weights)
+                if indices:
+                    elem_data_single_int32_array(fbx_clstr, b"Indexes", indices)
+                    elem_data_single_float64_array(fbx_clstr, b"Weights", weights)
                 # Transform, TransformLink and TransformAssociateModel matrices...
                 # They seem to be doublons of BindPose ones??? Have armature (associatemodel) in addition, though.
                 # WARNING! Even though official FBX API presents Transform in global space,
