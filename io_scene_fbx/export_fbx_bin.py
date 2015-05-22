@@ -1377,8 +1377,10 @@ def fbx_data_video_elements(root, vid, scene_data):
             except Exception as e:
                 print("WARNING: embedding file {} failed ({})".format(filepath, e))
                 elem_data_single_bytes(fbx_vid, b"Content", b"")
-    else:
-        elem_data_single_bytes(fbx_vid, b"Content", b"")
+    # Looks like we'd rather not write any 'Content' element in this case (see T44442).
+    # Sounds suspect, but let's try it!
+    #~ else:
+        #~ elem_data_single_bytes(fbx_vid, b"Content", b"")
 
 
 def fbx_data_armature_elements(root, arm_obj, scene_data):
