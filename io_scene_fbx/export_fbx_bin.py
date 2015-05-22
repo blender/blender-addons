@@ -1347,6 +1347,8 @@ def fbx_data_video_elements(root, vid, scene_data):
     """
     Write the actual image data block.
     """
+    msetts = scene_data.settings.media_settings
+
     vid_key, _texs = scene_data.data_videos[vid]
     fname_abs, fname_rel = _gen_vid_path(vid, scene_data)
 
@@ -1368,15 +1370,21 @@ def fbx_data_video_elements(root, vid, scene_data):
 
     if scene_data.settings.media_settings.embed_textures:
         if vid.packed_file is not None:
-            elem_data_single_bytes(fbx_vid, b"Content", vid.packed_file.data)
+            # We only ever embed a given file once!
+            if fname_abs not in msetts.embedded_set:
+                elem_data_single_bytes(fbx_vid, b"Content", vid.packed_file.data)
+                msetts.embedded_set.add(fname_abs)
         else:
             filepath = bpy.path.abspath(vid.filepath)
-            try:
-                with open(filepath, 'br') as f:
-                    elem_data_single_bytes(fbx_vid, b"Content", f.read())
-            except Exception as e:
-                print("WARNING: embedding file {} failed ({})".format(filepath, e))
-                elem_data_single_bytes(fbx_vid, b"Content", b"")
+            # We only ever embed a given file once!
+            if filepath not in msetts.embedded_set:
+                try:
+                    with open(filepath, 'br') as f:
+                        elem_data_single_bytes(fbx_vid, b"Content", f.read())
+                except Exception as e:
+                    print("WARNING: embedding file {} failed ({})".format(filepath, e))
+                    elem_data_single_bytes(fbx_vid, b"Content", b"")
+                msetts.embedded_set.add(filepath)
     # Looks like we'd rather not write any 'Content' element in this case (see T44442).
     # Sounds suspect, but let's try it!
     #~ else:
@@ -2860,6 +2868,7 @@ def save_single(operator, scene, filepath="",
         os.path.splitext(os.path.basename(filepath))[0] + ".fbm",  # subdir
         embed_textures,
         set(),  # copy_set
+        set(),  # embedded_set
     )
 
     settings = FBXExportSettings(

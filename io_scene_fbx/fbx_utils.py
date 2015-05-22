@@ -1181,7 +1181,7 @@ def fbx_name_class(name, cls):
 # Helper sub-container gathering all exporter settings related to media (texture files).
 FBXExportSettingsMedia = namedtuple("FBXExportSettingsMedia", (
     "path_mode", "base_src", "base_dst", "subdir",
-    "embed_textures", "copy_set",
+    "embed_textures", "copy_set", "embedded_set",
 ))
 
 # Helper container gathering all exporter settings.
