@@ -21,9 +21,6 @@ import bpy
 import mathutils
 from bpy.props import *
 from add_mesh_BoltFactory.createMesh import *
-from add_mesh_BoltFactory.preset_utils import *
-
-
 
 ##------------------------------------------------------------
 # calculates the matrix for the new object
@@ -203,24 +200,12 @@ class add_mesh_bolt(bpy.types.Operator):
             min = 0, soft_min = 0, max = MAX_INPUT_NUMBER,
             description='Flat distance of the Hex Nut')
 
-    presets, presetsPath = getPresets()
-
-    bf_presets = EnumProperty(attr='bf_presets',
-            name='Preset',
-            description="Use Preset from File",
-            default='M3.py',
-            items=presets)
-
-    last_preset = None
-
-
     def draw(self, context):
         layout = self.layout
         col = layout.column()
         
         #ENUMS
         col.prop(self, 'bf_Model_Type')
-        col.prop(self, 'bf_presets')
         col.separator()
 
         #Bit
@@ -284,21 +269,8 @@ class add_mesh_bolt(bpy.types.Operator):
     def execute(self, context):
     
         #print('EXECUTING...')
-
-        if not self.last_preset or self.bf_presets != self.last_preset:
-            #print('setting Preset', self.bf_presets)
-            setProps(self, self.bf_presets, self.presetsPath)
-            self.bf_Phillips_Bit_Depth = float(Get_Phillips_Bit_Height(self.bf_Philips_Bit_Dia))
-
-            self.last_preset = self.bf_presets
-
-
-        #self.bf_Phillips_Bit_Depth = float(Get_Phillips_Bit_Height(self.bf_Philips_Bit_Dia))
-        #self.bf_Philips_Bit_Dia = self.bf_Pan_Head_Dia*(1.82/5.6)
-        #self.bf_Minor_Dia = self.bf_Major_Dia - (1.082532 * self.bf_Pitch)
-        
+        self.bf_Phillips_Bit_Depth = float(Get_Phillips_Bit_Height(self.bf_Philips_Bit_Dia))
         Create_New_Mesh(self, context, self.align_matrix)
-
         return {'FINISHED'}
         
     ##### INVOKE #####
