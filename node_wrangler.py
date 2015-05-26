@@ -19,7 +19,7 @@
 bl_info = {
     "name": "Node Wrangler",
     "author": "Bartek Skorupa, Greg Zaal, Sebastian Koenig",
-    "version": (3, 26),
+    "version": (3, 27),
     "blender": (2, 74, 0),
     "location": "Node Editor Toolbar or Ctrl-Space",
     "description": "Various tools to enhance and speed up node-based workflow",
@@ -2671,11 +2671,12 @@ class NWAlignNodes(Operator, NWBase):
     bl_idname = "node.nw_align_nodes"
     bl_label = "Align Nodes"
     bl_options = {'REGISTER', 'UNDO'}
+    margin = IntProperty(name='Margin', default=50, description='The amount of space between nodes')
 
     def execute(self, context):
         # TODO prop: lock active (arrange everything without moving active node)
         nodes, links = get_nodes_links(context)
-        margin = 80
+        margin = self.margin
         
         selection = []
         for node in nodes:
@@ -2705,7 +2706,7 @@ class NWAlignNodes(Operator, NWBase):
         current_pos = 0
         for node in selection:
             current_margin = margin
-            current_margin = current_margin / 2 if node.hide else current_margin  # use a smaller margin for hidden nodes
+            current_margin = current_margin * 0.5 if node.hide else current_margin  # use a smaller margin for hidden nodes
 
             if horizontal:
                 node.location.x = current_pos
@@ -2713,7 +2714,7 @@ class NWAlignNodes(Operator, NWBase):
                 node.location.y = mid_y + (node.dimensions.y / 2)
             else:
                 node.location.y = current_pos
-                current_pos -= (current_margin / 2) + node.dimensions.y  # use half-margin for vertical alignment
+                current_pos -= (current_margin * 0.3) + node.dimensions.y  # use half-margin for vertical alignment
                 node.location.x = mid_x - (node.dimensions.x / 2)
 
         # Position nodes centered around where they used to be
