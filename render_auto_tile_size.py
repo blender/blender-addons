@@ -288,7 +288,8 @@ def do_set_tile_size(context):
         tile_x = target
         tile_y = target
 
-    print("Tile size: %dx%d (%dx%d tiles)" % (tile_x, tile_y, ceil(xres / tile_x), ceil(yres / tile_y)))
+    # Print tile size (for debug purposes)
+    # print("Tile size: %dx%d (%dx%d tiles)" % (tile_x, tile_y, ceil(xres / tile_x), ceil(yres / tile_y)))
 
     # Detect if there are fewer tiles than available threads
     threads = get_threads(context, device)
