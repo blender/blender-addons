@@ -37,21 +37,47 @@ import os
 
 import xml.etree.cElementTree as et
 
+from bpy.app.handlers import persistent
+from collections import OrderedDict
+from functools import partial
+from mathutils import Vector
+
 from freestyle.types import (
         StrokeShader,
         Interface0DIterator,
         Operators,
+        Nature,
+        StrokeVertex,
         )
-from freestyle.utils import getCurrentScene
-from freestyle.functions import GetShapeF1D, CurveMaterialF0D
+from freestyle.utils import (
+    getCurrentScene,
+    BoundingBox,
+    is_poly_clockwise,
+    StrokeCollector,
+    material_from_fedge,
+    get_object_name,
+    )
+from freestyle.functions import (
+    GetShapeF1D, 
+    CurveMaterialF0D,
+    )
 from freestyle.predicates import (
+        AndBP1D,
         AndUP1D,
         ContourUP1D,
-        SameShapeIdBP1D,
+        ExternalContourUP1D,
+        MaterialBP1D,
+        NotBP1D,
         NotUP1D,
-        QuantitativeInvisibilityUP1D,
-        TrueUP1D,
+        OrBP1D,
+        OrUP1D,
+        pyNatureUP1D,
         pyZBP1D,
+        pyZDiscontinuityBP1D,
+        QuantitativeInvisibilityUP1D,
+        SameShapeIdBP1D,
+        TrueBP1D,
+        TrueUP1D,
         )
 from freestyle.chainingiterators import ChainPredicateIterator
 from parameter_editor import get_dashed_pattern
@@ -61,14 +87,12 @@ from bpy.props import (
         EnumProperty,
         PointerProperty,
         )
-from bpy.app.handlers import persistent
-from collections import OrderedDict
-from functools import partial
-from mathutils import Vector
 
 
 # use utf-8 here to keep ElementTree happy, end result is utf-16
 svg_primitive = """<?xml version="1.0" encoding="ascii" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+  "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
 <svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="{:d}" height="{:d}">
 </svg>"""
 
@@ -77,7 +101,10 @@ svg_primitive = """<?xml version="1.0" encoding="ascii" standalone="no"?>
 namespaces = {
     "inkscape": "http://www.inkscape.org/namespaces/inkscape",
     "svg": "http://www.w3.org/2000/svg",
+    "sodipodi": "http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd",
+    "": "http://www.w3.org/2000/svg",
     }
+
 
 # wrap XMLElem.find, so the namespaces don't need to be given as an argument
 def find_xml_elem(obj, search, namespaces, *, all=False):
@@ -98,6 +125,7 @@ def render_width(scene):
 
 # stores the state of the render, used to differ between animation and single frame renders.
 class RenderState:
+
     # Note that this flag is set to False only after the first frame
     # has been written to file.
     is_preview = True
@@ -288,6 +316,7 @@ class SVGPathShader(StrokeShader):
         # return instance
         return cls(name, style, filepath, res_y, split_at_invisible, frame_current)
 
+
     @staticmethod
     def pathgen(stroke, path, height, split_at_invisible, f=lambda v: not v.attribute.visible):
         """Generator that creates SVG paths (as strings) from the current stroke """
@@ -340,10 +369,12 @@ class SVGPathShader(StrokeShader):
         id = "frame_{:04n}".format(self.frame_current)
 
         stroke_group = et.XML("<g/>")
-        stroke_group.attrib = {'xmlns:inkscape': namespaces["inkscape"],
-                               'inkscape:groupmode': 'layer',
-                               'id': 'strokes',
-                               'inkscape:label': 'strokes'}
+        stroke_group.attrib = {
+            'xmlns:inkscape': namespaces["inkscape"],
+            'inkscape:groupmode': 'layer',
+            'id': 'strokes',
+            'inkscape:label': 'strokes'
+            }
         # nest the structure
         stroke_group.extend(self.elements)
         if scene.svg_export.mode == 'ANIMATION':
@@ -360,30 +391,11 @@ class SVGPathShader(StrokeShader):
         tree.write(self.filepath, encoding='ascii', xml_declaration=True)
 
 
-class SVGFillShader(StrokeShader):
-    """Creates SVG fills from the current stroke set"""
+class SVGFillBuilder:
     def __init__(self, filepath, height, name):
-        StrokeShader.__init__(self)
-        # use an ordered dict to maintain input and z-order
-        self.shape_map = OrderedDict()
         self.filepath = filepath
-        self.h = height
         self._name = name
-
-    def shade(self, stroke, func=GetShapeF1D(), curvemat=CurveMaterialF0D()):
-        shape = func(stroke)[0].id.first
-        item = self.shape_map.get(shape)
-        if len(stroke) > 2:
-            if item is not None:
-                item[0].append(stroke)
-            else:
-                # the shape is not yet present, let's create it.
-                material = curvemat(Interface0DIterator(stroke))
-                *color, alpha = material.diffuse
-                self.shape_map[shape] = ([stroke], color, alpha)
-        # make the strokes of the second drawing invisible
-        for v in stroke:
-            v.attribute.visible = False
+        self.stroke_to_fill = partial(self.stroke_to_svg, height=height)
 
     @staticmethod
     def pathgen(vertices, path, height):
@@ -391,54 +403,110 @@ class SVGFillShader(StrokeShader):
         for point in vertices:
             x, y = point
             yield '{:.3f}, {:.3f} '.format(x, height - y)
-        yield 'z" />'  # closes the path; connects the current to the first point
+        yield ' z" />'  # closes the path; connects the current to the first point
 
-    def write(self):
+
+    @staticmethod
+    def get_merged_strokes(strokes):
+        def extend_stroke(stroke, vertices):
+            for vert in map(StrokeVertex, vertices):
+                stroke.insert_vertex(vert, stroke.stroke_vertices_end())
+            return stroke
+
+        base_strokes = tuple(stroke for stroke in strokes if not is_poly_clockwise(stroke))
+        merged_strokes = OrderedDict((s, list()) for s in base_strokes)
+
+        for stroke in filter(is_poly_clockwise, strokes):
+            for base in base_strokes:
+                # don't merge when diffuse colors don't match
+                if diffuse_from_stroke(stroke) != diffuse_from_stroke(stroke):
+                    continue
+                # only merge when the 'hole' is inside the base
+                elif stroke_inside_stroke(stroke, base):
+                    merged_strokes[base].append(stroke)
+                    break
+                # if it isn't a hole, it is likely that there are two strokes belonging
+                # to the same object separated by another object. let's try to join them
+                elif (get_object_name(base) == get_object_name(stroke) and 
+                      diffuse_from_stroke(stroke) == diffuse_from_stroke(stroke)):
+                    base = extend_stroke(base, (sv for sv in stroke))
+                    break
+            else:
+                # if all else fails, treat this stroke as a base stroke
+                merged_strokes.update({stroke:  []})
+        return merged_strokes
+
+
+    def stroke_to_svg(self, stroke, height, parameters=None):
+        if parameters is None:
+            *color, alpha = diffuse_from_stroke(stroke)
+            color = tuple(int(255 * c) for c in color)
+            parameters = {
+                'fill_rule': 'evenodd',
+                'stroke': 'none',
+                'fill-opacity': alpha,
+                'fill': 'rgb' + repr(color),
+            }
+        param_str = " ".join('{}="{}"'.format(k, v) for k, v in parameters.items())
+        path = '<path {} d=" M '.format(param_str)
+        vertices = (svert.point for svert in stroke)
+        s = "".join(self.pathgen(vertices, path, height))
+        result = et.XML(s)
+        return result
+
+    def create_fill_elements(self, strokes):
+        """Creates ElementTree objects by merging stroke objects together and turning them into SVG paths."""
+        merged_strokes = self.get_merged_strokes(strokes)
+        for k, v in merged_strokes.items():
+            base = self.stroke_to_fill(k)
+            fills = (self.stroke_to_fill(stroke).get("d") for stroke in v)
+            merged_points = " ".join(fills)
+            base.attrib['d'] += merged_points
+            yield base 
+
+    def write(self, strokes):
         """Write SVG data tree to file """
-        # initialize SVG
+
         tree = et.parse(self.filepath)
         root = tree.getroot()
-        name = self._name
         scene = bpy.context.scene
-        lineset_group = find_svg_elem(tree, ".//svg:g[@id='{}']".format(name))
-
-        # create XML elements from the acquired data
-        elems = []
-        path = '<path fill-rule="evenodd" stroke="none" fill-opacity="{}" fill="rgb({}, {}, {})"  d=" M '
-        for strokes, col, alpha in self.shape_map.values():
-            p = path.format(alpha, *(int(255 * c) for c in col))
-            for stroke in strokes:
-                elems.append(et.XML("".join(self.pathgen((sv.point for sv in stroke), p, self.h))))
-
-        if scene.svg_export.mode == 'ANIMATION':
-            # add the fills to the <g> of the current frame
-            frame_group = find_svg_elem(lineset_group, ".//svg:g[@id='frame_{:04n}']".format(scene.frame_current))
-            if frame_group is None:
-                # something has gone very wrong
-                raise RuntimeError("SVGFillShader: frame_group is None")
-
+        lineset_group = find_svg_elem(tree, ".//svg:g[@id='{}']".format(self._name))
+        if lineset_group is None:
+            print("searched for {}, but could not find a <g> with that id".format(self._name))
+            return
 
         # <g> for the fills of the current frame
         fill_group = et.XML('<g/>')
         fill_group.attrib = {
             'xmlns:inkscape': namespaces["inkscape"],
-           'inkscape:groupmode': 'layer',
-           'inkscape:label': 'fills',
-           'id': 'fills'
+            'inkscape:groupmode': 'layer',
+            'inkscape:label': 'fills',
+            'id': 'fills'
            }
 
-        fill_group.extend(reversed(elems))
+        fill_elements = self.create_fill_elements(strokes)
+        fill_group.extend(reversed(tuple(fill_elements)))
         if scene.svg_export.mode == 'ANIMATION':
+            # add the fills to the <g> of the current frame
+            frame_group = find_svg_elem(lineset_group, ".//svg:g[@id='frame_{:04n}']".format(scene.frame_current))
             frame_group.insert(0, fill_group)
         else:
-            # get the current lineset group. if it's None we're in trouble, so may as well error hard.
-            lineset_group = tree.find(".//svg:g[@id='{}']".format(name), namespaces=namespaces)
             lineset_group.insert(0, fill_group)
 
         # write SVG to file
         indent_xml(root)
         tree.write(self.filepath, encoding='ascii', xml_declaration=True)
 
+
+def stroke_inside_stroke(a, b):
+    box_a = BoundingBox.from_sequence(svert.point for svert in a)
+    box_b = BoundingBox.from_sequence(svert.point for svert in b)
+    return box_a.inside(box_b)
+
+
+def diffuse_from_stroke(stroke, curvemat=CurveMaterialF0D()):
+    material = curvemat(Interface0DIterator(stroke))
+    return material.diffuse
 
 # - Callbacks - #
 class ParameterEditorCallback(object):
@@ -452,11 +520,19 @@ class ParameterEditorCallback(object):
     def lineset_post(self, scene, layer, lineset):
         raise NotImplementedError()
 
+    @classmethod
+    def evaluate(cls, scene):
+        'Evaluates whether these callbacks should run'
+        return (
+            scene.render.use_freestyle 
+            and scene.svg_export.use_svg_export 
+            )
+
 
 class SVGPathShaderCallback(ParameterEditorCallback):
     @classmethod
     def modifier_post(cls, scene, layer, lineset):
-        if not (scene.render.use_freestyle and scene.svg_export.use_svg_export):
+        if not cls.evaluate(scene):
             return []
 
         split = scene.svg_export.split_at_invisible
@@ -467,9 +543,8 @@ class SVGPathShaderCallback(ParameterEditorCallback):
 
     @classmethod
     def lineset_post(cls, scene, *args):
-        if not (scene.render.use_freestyle and scene.svg_export.use_svg_export):
+        if not cls.evaluate(scene):
             return
-
         cls.shader.write()
 
 
@@ -481,19 +556,33 @@ class SVGFillShaderCallback(ParameterEditorCallback):
 
         # reset the stroke selection (but don't delete the already generated strokes)
         Operators.reset(delete_strokes=False)
-        # shape detection
-        upred = AndUP1D(QuantitativeInvisibilityUP1D(0), ContourUP1D())
+        # Unary Predicates: visible and correct edge nature
+        upred = AndUP1D(
+            QuantitativeInvisibilityUP1D(0), 
+            OrUP1D(ExternalContourUP1D(), 
+                   pyNatureUP1D(Nature.BORDER)),
+            )
+        # select the new edges
         Operators.select(upred)
-        # chain when the same shape and visible
-        bpred = SameShapeIdBP1D()
-        Operators.bidirectional_chain(ChainPredicateIterator(upred, bpred), NotUP1D(QuantitativeInvisibilityUP1D(0)))
-        # sort according to the distance from camera
-        Operators.sort(pyZBP1D())
-        # render and write fills
-        shader = SVGFillShader(create_path(scene), render_height(scene), layer.name + '_' + lineset.name)
-        Operators.create(TrueUP1D(), [shader, ])
+        # Binary Predicates
+        bpred = AndBP1D(
+            MaterialBP1D(), 
+            NotBP1D(pyZDiscontinuityBP1D()),
+            )
+        bpred = OrBP1D(bpred, AndBP1D(NotBP1D(bpred), AndBP1D(SameShapeIdBP1D(), MaterialBP1D())))
+        # chain the edges
+        Operators.bidirectional_chain(ChainPredicateIterator(upred, bpred))
+        # export SVG
+        collector = StrokeCollector()
+        Operators.create(TrueUP1D(), [collector])
 
-        shader.write()
+        builder = SVGFillBuilder(create_path(scene), render_height(scene), layer.name + '_' + lineset.name)
+        builder.write(collector.strokes)
+        # make strokes used for filling invisible
+        for stroke in collector.strokes:
+            for svert in stroke:
+                svert.attribute.visible = False
+
 
 
 def indent_xml(elem, level=0, indentsize=4):
@@ -510,6 +599,12 @@ def indent_xml(elem, level=0, indentsize=4):
             elem.tail = i
     elif level and (not elem.tail or not elem.tail.strip()):
         elem.tail = i
+
+
+def register_namespaces(namespaces=namespaces):
+    for name, url in namespaces.items():
+        if name != 'svg': # creates invalid xml
+            et.register_namespace(name, url)
 
 
 classes = (
@@ -536,9 +631,7 @@ def register():
     parameter_editor.callbacks_lineset_post.append(SVGFillShaderCallback.lineset_post)
 
     # register namespaces
-    et.register_namespace("", "http://www.w3.org/2000/svg")
-    et.register_namespace("inkscape", "http://www.inkscape.org/namespaces/inkscape")
-    et.register_namespace("sodipodi", "http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd")
+    register_namespaces()
 
 
 def unregister():
