@@ -73,7 +73,6 @@ class UI_OT_i18n_updatetranslation_svn_branches(bpy.types.Operator):
                 "--python",
                 os.path.join(os.path.dirname(utils_i18n.__file__), "bl_extract_messages.py"),
                 "--",
-                "bl_extract_messages.py",  # arg parser expects first arg to be prog name!
                 "--settings",
                 self.settings.to_json(),
             )
