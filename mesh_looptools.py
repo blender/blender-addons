@@ -19,7 +19,7 @@
 bl_info = {
     "name": "LoopTools",
     "author": "Bart Crouch",
-    "version": (4, 6, 5),
+    "version": (4, 6, 6),
     "blender": (2, 72, 2),
     "location": "View3D > Toolbar and View3D > Specials (W-key)",
     "warning": "",
@@ -260,15 +260,14 @@ def calculate_plane(bm_mod, loop, method="best_fit", object=False):
         if not normal:
             # warning! this is different from .normalize()
             itermax = 500
-            iter = 0
-            vec = mathutils.Vector((1.0, 1.0, 1.0))
-            vec2 = (mat * vec)/(mat * vec).length
-            while vec != vec2 and iter<itermax:
-                iter+=1
+            vec2 = mathutils.Vector((1.0, 1.0, 1.0))
+            for i in range(itermax):
                 vec = vec2
                 vec2 = mat * vec
                 if vec2.length != 0:
                     vec2 /= vec2.length
+                if vec2 == vec:
+                    break
             if vec2.length == 0:
                 vec2 = mathutils.Vector((1.0, 1.0, 1.0))
             normal = vec2
