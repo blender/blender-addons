@@ -170,8 +170,10 @@ def create_materials(filepath, relpath,
             unique_materials[name] = bpy.data.materials.new(name.decode('utf-8', "replace"))
             unique_material_images[name] = None  # assign None to all material images to start with, add to later.
 
-    unique_materials[None] = None
-    unique_material_images[None] = None
+    # XXX Why was this needed? Cannot find any good reason, and adds stupid empty matslot in case we do not separate
+    #     mesh (see T44947).
+    #~ unique_materials[None] = None
+    #~ unique_material_images[None] = None
 
     for libname in material_libs:
         # print(libname)
