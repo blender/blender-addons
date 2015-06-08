@@ -11,36 +11,36 @@
 # Doc:2.6 --> Doc:FR/2.6
 #
 # The table in the script, contains all of the languages we have in the
-# Blender wiki website, for those other languages that still
+# Blender manual website, for those other languages that still
 # doesn't have a team of translators, and/or don't have a manual for their languages
 # we commented the lines below, you should add them to the language table
-# when they have a proper manual in our Blender wiki, or added
+# when they have a proper manual in our Blender manual, or added
 # to the Blender UI  translation table
-# The Blender wiki manual uses a list of ISO_639-1 codes to convert languages to wiki manual prefixes
+# The Blender manual uses a list of ISO_639-1 codes to convert languages to manual prefixes
 #
-# "DANISH":        "DK",     - Present in the wiki manual, but not present in Blender UI translations table
-# "FARSI":         "FA",     - Present in the wiki manual, but not present in Blender UI translations table
-# "KOREAN":        "KO",     - Present in the wiki manual, but not present in Blender UI translations table
-# "LITHUANIAN":    "LT",     - Present in the wiki manual, but not present in Blender UI translations table
-# "MACEDONIAN":    "MK",     - Present in the wiki manual, but not present in Blender UI translations table
-# "MONGOLIAN":     "MN",     - Present in the wiki manual, but not present in Blender UI translations table
-# "ROMANIAN":      "RO",     - Present in the wiki manual, but not present in Blender UI translations table
+# "DANISH":        "DK",     - Present in the manual, but not present in Blender UI translations table
+# "FARSI":         "FA",     - Present in the manual, but not present in Blender UI translations table
+# "KOREAN":        "KO",     - Present in the manual, but not present in Blender UI translations table
+# "LITHUANIAN":    "LT",     - Present in the manual, but not present in Blender UI translations table
+# "MACEDONIAN":    "MK",     - Present in the manual, but not present in Blender UI translations table
+# "MONGOLIAN":     "MN",     - Present in the manual, but not present in Blender UI translations table
+# "ROMANIAN":      "RO",     - Present in the manual, but not present in Blender UI translations table
 #
-# "ESTONIAN":      "ET",     - Present in the wiki, as an empty page, not present in UI translations table
+# "ESTONIAN":      "ET",     - Present in the manual, as an empty page, not present in UI translations table
 #
-# "CROATIAN":      "HR",     - Present in Blender UI translations table, but without wiki manual
-# "KYRGYZ":        "KY",     - Present in Blender UI translations table, but without wiki manual
-# "NEPALI":        "NE",     - Present in Blender UI translations table, but without wiki manual
-# "PERSIAN":       "FA",     - Present in Blender UI translations table, but without wiki manual
-# "HEBREW":        "HE",     - Present in Blender UI translations table, but without wiki manual
-# "HUNGARIAN":     "HU",     - Present in Blender UI translations table, but without wiki manual
-# "SERBIAN_LATIN": "SR",     - Present in Blender UI translations table, but without wiki manual
+# "CROATIAN":      "HR",     - Present in Blender UI translations table, but without manual
+# "KYRGYZ":        "KY",     - Present in Blender UI translations table, but without manual
+# "NEPALI":        "NE",     - Present in Blender UI translations table, but without manual
+# "PERSIAN":       "FA",     - Present in Blender UI translations table, but without manual
+# "HEBREW":        "HE",     - Present in Blender UI translations table, but without manual
+# "HUNGARIAN":     "HU",     - Present in Blender UI translations table, but without manual
+# "SERBIAN_LATIN": "SR",     - Present in Blender UI translations table, but without manual
 #
 # NOTES:
 #
-#  CHINESE                   - Present in the wiki as simplified chinese, for both the traditional and simplified
-#  PORTUGUESE                - Present in the wiki for both Portuguese and Brazilian Portuguese
-#  THAILANDESE               - It's the same being used for Turkish in the wiki
+#  CHINESE                   - Present in the manual as simplified chinese, for both the traditional and simplified
+#  PORTUGUESE                - Present in the manual for both Portuguese and Brazilian Portuguese
+#  THAILANDESE               - It's the same being used for Turkish in the manual
 #
 # URL prefix is the: url_manual_prefix + url_manual_mapping[id]
 
