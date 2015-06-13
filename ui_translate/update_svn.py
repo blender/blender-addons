@@ -138,6 +138,7 @@ class UI_OT_i18n_updatetranslation_svn_trunk(bpy.types.Operator):
                 po.write(kind="PO", dest=lng.po_path_trunk[:-3] + "_raw.po")
                 po.rtl_process()
             po.write(kind="PO", dest=lng.po_path_trunk)
+            po.write(kind="PO_COMPACT", dest=lng.po_path_git)
             po.write(kind="MO", dest=lng.mo_path_trunk)
             po.update_info()
             stats[lng.uid] = po.nbr_trans_msgs / po.nbr_msgs

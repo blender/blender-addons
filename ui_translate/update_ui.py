@@ -56,6 +56,8 @@ class I18nUpdateTranslationLanguage(bpy.types.PropertyGroup):
                                    description="Path to the relevant po file in trunk")
     mo_path_trunk = StringProperty(name="MO File Path", default="", subtype='FILE_PATH',
                                    description="Path to the relevant mo file")
+    po_path_git = StringProperty(name="PO Git Master File Path", default="", subtype='FILE_PATH',
+                                 description="Path to the relevant po file in Blender's translations git repository")
 
 
 class I18nUpdateTranslationSettings(bpy.types.PropertyGroup):
@@ -125,6 +127,7 @@ class UI_PT_i18n_update_translations_settings(bpy.types.Panel):
                 col.prop(lng, "po_path")
                 col.prop(lng, "po_path_trunk")
                 col.prop(lng, "mo_path_trunk")
+                col.prop(lng, "po_path_git")
             layout.separator()
             layout.prop(i18n_sett, "pot_path")
 
@@ -159,6 +162,7 @@ class UI_OT_i18n_updatetranslation_svn_init_settings(bpy.types.Operator):
         i18n_sett.langs.clear()
         root_br = self.settings.BRANCHES_DIR
         root_tr_po = self.settings.TRUNK_PO_DIR
+        root_git_po = self.settings.GIT_I18N_PO_DIR
         root_tr_mo = os.path.join(self.settings.TRUNK_DIR, self.settings.MO_PATH_TEMPLATE, self.settings.MO_FILE_NAME)
         if not (os.path.isdir(root_br) and os.path.isdir(root_tr_po)):
             return {'CANCELLED'}
@@ -177,6 +181,7 @@ class UI_OT_i18n_updatetranslation_svn_init_settings(bpy.types.Operator):
                 lng.po_path = isocodes[isocode]
                 lng.po_path_trunk = os.path.join(root_tr_po, isocode + ".po")
                 lng.mo_path_trunk = root_tr_mo.format(isocode)
+                lng.po_path_git = os.path.join(root_git_po, isocode + ".po")
             else:
                 lng.use = False
                 language, _1, _2, language_country, language_variant = utils_i18n.locale_explode(uid)
@@ -187,6 +192,7 @@ class UI_OT_i18n_updatetranslation_svn_init_settings(bpy.types.Operator):
                         lng.po_path = p
                         lng.po_path_trunk = os.path.join(root_tr_po, isocode + ".po")
                         lng.mo_path_trunk = root_tr_mo.format(isocode)
+                        lng.po_path_git = os.path.join(root_git_po, isocode + ".po")
                         break
 
         i18n_sett.pot_path = self.settings.FILE_NAME_POT
