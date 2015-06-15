@@ -235,6 +235,13 @@ class ExportFBX(bpy.types.Operator, ExportHelper, IOFBXOrientationHelper):
             default=1.0,
             )
     # 7.4 only
+    apply_unit_scale = BoolProperty(
+            name="Apply Unit",
+            description="Scale all data according to current Blender size, to match default FBX unit "
+                        "(centimeter, some importers do not handle UnitScaleFactor properly)",
+            default=True,
+            )
+    # 7.4 only
     bake_space_transform = BoolProperty(
             name="!EXPERIMENTAL! Apply Transform",
             description="Bake space transform into object data, avoids getting unwanted rotations to objects when "
@@ -424,6 +431,8 @@ class ExportFBX(bpy.types.Operator, ExportHelper, IOFBXOrientationHelper):
         layout.prop(self, "version")
         layout.prop(self, "use_selection")
         layout.prop(self, "global_scale")
+        if is_74bin:
+            layout.prop(self, "apply_unit_scale")
         layout.prop(self, "axis_forward")
         layout.prop(self, "axis_up")
         if is_74bin:

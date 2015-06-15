@@ -2613,9 +2613,13 @@ def fbx_header_elements(root, scene_data, time=None):
 
     props = elem_properties(global_settings)
     up_axis, front_axis, coord_axis = RIGHT_HAND_AXES[scene_data.settings.to_axes]
-    # Currently not sure about that, but looks like default unit of FBX is cm...
-    scale_factor_org = units_blender_to_fbx_factor(scene)
-    scale_factor = scene_data.settings.global_scale * units_blender_to_fbx_factor(scene)
+    if scene_data.settings.apply_unit_scale:
+        # Unit scaling is applied to objects' scale, so our unit is effectively FBX one (centimeter).
+        scale_factor_org = 1.0
+        scale_factor = scene_data.settings.global_scale / units_blender_to_fbx_factor(scene)
+    else:
+        scale_factor_org = units_blender_to_fbx_factor(scene)
+        scale_factor = scene_data.settings.global_scale * units_blender_to_fbx_factor(scene)
     elem_props_set(props, "p_integer", b"UpAxis", up_axis[0])
     elem_props_set(props, "p_integer", b"UpAxisSign", up_axis[1])
     elem_props_set(props, "p_integer", b"FrontAxis", front_axis[0])
@@ -2799,6 +2803,7 @@ def fbx_takes_elements(root, scene_data):
 # This func can be called with just the filepath
 def save_single(operator, scene, filepath="",
                 global_matrix=Matrix(),
+                apply_unit_scale=False,
                 axis_up="Z",
                 axis_forward="Y",
                 context_objects=None,
@@ -2834,7 +2839,8 @@ def save_single(operator, scene, filepath="",
     if 'OTHER' in object_types:
         object_types |= BLENDER_OTHER_OBJECT_TYPES
 
-    #~ global_matrix = global_matrix * Matrix.Scale(units_blender_to_fbx_factor(scene), 4)
+    if apply_unit_scale:
+        global_matrix = global_matrix * Matrix.Scale(units_blender_to_fbx_factor(scene), 4)
     global_scale = global_matrix.median_scale
     global_matrix_inv = global_matrix.inverted()
     # For transforming mesh normals.
@@ -2869,7 +2875,7 @@ def save_single(operator, scene, filepath="",
     )
 
     settings = FBXExportSettings(
-        operator.report, (axis_up, axis_forward), global_matrix, global_scale,
+        operator.report, (axis_up, axis_forward), global_matrix, global_scale, apply_unit_scale,
         bake_space_transform, global_matrix_inv, global_matrix_inv_transposed,
         context_objects, object_types, use_mesh_modifiers,
         mesh_smooth_type, use_mesh_edges, use_tspace,
