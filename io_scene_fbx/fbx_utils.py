@@ -198,6 +198,14 @@ else:
             pass
 
 
+# Scale/unit mess. FBX can store the 'reference' unit of a file in its UnitScaleFactor property
+# (1.0 meaning centimeter, afaik). We use that to reflect user's default unit as set in Blender with scale_length.
+# However, we always get values in BU (i.e. meters), so we have to reverse-apply that scale in global matrix...
+# Note that when no default unit is available, we assume 'meters' (and hence scale by 100).
+def units_blender_to_fbx_factor(scene):
+    return 100.0 if (scene.unit_settings.system == 'NONE') else (100.0 * scene.unit_settings.scale_length)
+
+
 # Note: this could be in a utility (math.units e.g.)...
 
 UNITS = {

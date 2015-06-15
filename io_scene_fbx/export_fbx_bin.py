@@ -61,7 +61,9 @@ from .fbx_utils import (
     FBX_LIGHT_TYPES, FBX_LIGHT_DECAY_TYPES,
     RIGHT_HAND_AXES, FBX_FRAMERATES,
     # Miscellaneous utils.
-    PerfMon, units_convertor, units_convertor_iter, matrix4_to_array, similar_values, similar_values_iter,
+    PerfMon,
+    units_blender_to_fbx_factor, units_convertor, units_convertor_iter,
+    matrix4_to_array, similar_values, similar_values_iter,
     # Mesh transform helpers.
     vcos_transformed_gen, nors_transformed_gen,
     # UUID from key.
@@ -2612,8 +2614,8 @@ def fbx_header_elements(root, scene_data, time=None):
     props = elem_properties(global_settings)
     up_axis, front_axis, coord_axis = RIGHT_HAND_AXES[scene_data.settings.to_axes]
     # Currently not sure about that, but looks like default unit of FBX is cm...
-    scale_factor_org = 100.0 if (scene.unit_settings.system == 'NONE') else (100.0 * scene.unit_settings.scale_length)
-    scale_factor = scene_data.settings.global_scale
+    scale_factor_org = units_blender_to_fbx_factor(scene)
+    scale_factor = scene_data.settings.global_scale * units_blender_to_fbx_factor(scene)
     elem_props_set(props, "p_integer", b"UpAxis", up_axis[0])
     elem_props_set(props, "p_integer", b"UpAxisSign", up_axis[1])
     elem_props_set(props, "p_integer", b"FrontAxis", front_axis[0])
@@ -2832,12 +2834,7 @@ def save_single(operator, scene, filepath="",
     if 'OTHER' in object_types:
         object_types |= BLENDER_OTHER_OBJECT_TYPES
 
-    # Scale/unit mess. FBX can store the 'reference' unit of a file in its UnitScaleFactor property
-    # (1.0 meaning centimeter, afaik). We use that to reflect user's default unit as set in Blender with scale_length.
-    # However, we always get values in BU (i.e. meters), so we have to reverse-apply that scale in global matrix...
-    # Note that when no default unit is available, we assume 'meters' (and hence scale by 100).
-    scale_correction = 100.0 if (scene.unit_settings.system == 'NONE') else (100.0 * scene.unit_settings.scale_length)
-    global_matrix = global_matrix * Matrix.Scale(scale_correction, 4)
+    #~ global_matrix = global_matrix * Matrix.Scale(units_blender_to_fbx_factor(scene), 4)
     global_scale = global_matrix.median_scale
     global_matrix_inv = global_matrix.inverted()
     # For transforming mesh normals.
