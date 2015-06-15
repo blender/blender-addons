@@ -42,6 +42,7 @@ from . import parse_fbx, fbx_utils
 from .parse_fbx import data_types, FBXElem
 from .fbx_utils import (
     PerfMon,
+    units_blender_to_fbx_factor,
     units_convertor_iter,
     array_to_matrix4,
     similar_values,
@@ -2152,7 +2153,7 @@ def load(operator, context, filepath="",
     # FBX default base unit seems to be the centimeter, while raw Blender Unit is equivalent to the meter...
     unit_scale = elem_props_get_number(fbx_settings_props, b'UnitScaleFactor', 1.0)
     unit_scale_org = elem_props_get_number(fbx_settings_props, b'OriginalUnitScaleFactor', 1.0)
-    global_scale *=  unit_scale / unit_scale_org / 100.0
+    global_scale *= (unit_scale / units_blender_to_fbx_factor(context.scene))
     # Compute global matrix and scale.
     if not use_manual_orientation:
         axis_forward = (elem_props_get_integer(fbx_settings_props, b'FrontAxis', 1),
