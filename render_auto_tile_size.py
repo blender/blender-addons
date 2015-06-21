@@ -121,7 +121,7 @@ class AutoTileSizeSettings(bpy.types.PropertyGroup):
     thread_error_correct = bpy.props.BoolProperty(
         name="Fix",
         default=True,
-        description="Reduce the tile size so that all your available threads are used.",
+        description="Reduce the tile size so that all your available threads are used",
         update=_update_tile_size)
 
     # Internally used props (not for GUI)
@@ -384,7 +384,7 @@ def ui_layout(engine, layout, context):
     if settings.threads_error:
         row = sub.row(align=True)
         row.alignment = 'CENTER'
-        row.label(text="Warning: Fewer tiles than threads.", icon='ERROR')
+        row.label(text="Warning: Fewer tiles than threads", icon='ERROR')
         row.prop(settings, 'thread_error_correct')
 
 
