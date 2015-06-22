@@ -200,7 +200,7 @@ class INFO_MT_mesh_pipe_joints_add(bpy.types.Menu):
 def menu_func(self, context):
     self.layout.separator()
     self.layout.menu("INFO_MT_mesh_vert_add", text="Single Vert", icon="LAYER_ACTIVE")
-    self.layout.menu("INFO_MT_mesh_round_cube_add", text="Round Cube", icon="WIRE")
+    self.layout.operator("mesh.primitive_round_cube_add", text="Round Cube", icon="MOD_SUBSURF")
     self.layout.menu("INFO_MT_mesh_math_add", text="Math Function", icon="PACKAGE")
     self.layout.menu("INFO_MT_mesh_pipe_joints_add", text="Pipe Joints", icon="SNAP_PEEL_OBJECT")
     self.layout.menu("INFO_MT_mesh_gears_add", text="Gears", icon="SCRIPTWIN")

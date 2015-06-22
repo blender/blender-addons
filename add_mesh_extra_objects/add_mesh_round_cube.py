@@ -1,4 +1,4 @@
-# GPL #     'author': 'Alain Ducharme (Phymec)'
+# GPL # Author: Alain Ducharme (phymec)
 
 import bpy
 from bpy_extras import object_utils
@@ -15,14 +15,15 @@ def round_cube(radius=1.0, arcdiv=4, lindiv=0., size=(0. ,0. ,0.), div_type='COR
 
     radius = max(radius, 0.)
     if not radius:
+        # No sphere
         arcdiv = 1
+        odd_axis_align = False
 
     if arcdiv <= 0:
         arcdiv = max(round(pi * radius * lindiv * 0.5), 1)
     arcdiv = max(round(arcdiv), 1)
-    if lindiv <= 0.:
-        if radius:
-            lindiv = 1. / (pi / (arcdiv * 2.) * radius)
+    if lindiv <= 0. and radius:
+        lindiv = 1. / (pi / (arcdiv * 2.) * radius)
     lindiv = max(lindiv, 0.)
     if not lindiv:
         subdiv = CORNERS
@@ -72,9 +73,9 @@ def round_cube(radius=1.0, arcdiv=4, lindiv=0., size=(0. ,0. ,0.), div_type='COR
             dvc = arcdiv * 4 * sum(fxyz)
             if subdiv == ALL:
                 dvc += sum(p1 * p2 for p1, p2 in permutations(fxyz, 2))
-            elif subdiv == EDGES:
+            elif subdiv == EDGES and axis_aligned:
                 #      (0, 0, 2, 4) * sum(dxyz) + (0, 0, 2, 6)
-                dvc += ec * ec // 2 * sum(dxyz) + ec * (ec - 1) if axis_aligned else 0
+                dvc += ec * ec // 2 * sum(dxyz) + ec * (ec - 1)
         else:
             dvc = (arcdiv * 4) * ec + ec * (ec - 1) if axis_aligned else 0
         vert_count = int(6 * arcdiv*arcdiv + (0 if odd_aligned else 2) + dvc)
@@ -83,6 +84,7 @@ def round_cube(radius=1.0, arcdiv=4, lindiv=0., size=(0. ,0. ,0.), div_type='COR
         return arcdiv, lindiv, vert_count
 
     if not radius and not max(size) > 0:
+        # Single vertex
         return [(0,0,0)], []
 
     # uv lookup table
@@ -92,11 +94,11 @@ def round_cube(radius=1.0, arcdiv=4, lindiv=0., size=(0. ,0. ,0.), div_type='COR
         v2 = v*v
         uvlt.append((v, v2, radius * sqrt(18. - 6. * v2) / 6.))
         v = vi + j * step_size # v += step_size # instead of accumulating errors
-        # clear precision errors / signs at axis
+        # clear fp errors / signs at axis
         if abs(v) < 1e-10:
             v = 0.0
 
-    # Round cube sides built left to right bottom up
+    # Sides built left to right bottom up
     #         xp yp zp  xd  yd  zd
     sides = ((0, 2, 1, (-1,  1,  1)),   # Y+ Front
              (1, 2, 0, (-1, -1,  1)),   # X- Left
@@ -105,9 +107,10 @@ def round_cube(radius=1.0, arcdiv=4, lindiv=0., size=(0. ,0. ,0.), div_type='COR
              (0, 1, 2, (-1,  1, -1)),   # Z- Bottom
              (0, 1, 2, (-1, -1,  1)))   # Z+ Top
 
-    # side vertex index table
+    # side vertex index table (for sphere)
     svit = [[[] for i in range(steps)] for i in range(6)]
-    # Extend rows for extrusion
+    # Extend svit rows for extrusion
+    yer = zer = 0
     if ey:
         yer = axis_aligned + (dxyz[1] if subdiv else 0)
         svit[4].extend([[] for i in range(yer)])
@@ -116,8 +119,7 @@ def round_cube(radius=1.0, arcdiv=4, lindiv=0., size=(0. ,0. ,0.), div_type='COR
         zer = axis_aligned + (dxyz[2] if subdiv else 0)
         for side in range(4):
             svit[side].extend([[] for i in range(zer)])
-    ryi = rzi = 0 # row vertex indices
-    # Extend rows for odd_aligned
+    # Extend svit rows for odd_aligned
     if odd_aligned:
         for side in range(4):
             svit[side].append([])
@@ -129,117 +131,115 @@ def round_cube(radius=1.0, arcdiv=4, lindiv=0., size=(0. ,0. ,0.), div_type='COR
     verts = []
 
     if arcdiv == 1 and not odd_aligned and subdiv == ALL:
-        # Special case: 3D Grid Cuboid
+        # Special case: Grid Cuboid
         for side, (xp, yp, zp, dir) in enumerate(sides):
             svitc = svit[side]
             rows = len(svitc)
             if rows < dxyz[yp] + 2:
                 svitc.extend([[] for i in range(dxyz[yp] + 2 - rows)])
             vert[zp] = (half_chord + exyz[zp]) * dir[zp]
-            print(dssxyz, half_chord, exyz, dir)
             for j in range(dxyz[yp] + 2):
                 vert[yp] = (j * dssxyz[yp] - half_chord - exyz[yp]) * dir[yp]
                 for i in range(dxyz[xp] + 2):
                     vert[xp] = (i * dssxyz[xp] - half_chord - exyz[xp]) * dir[xp]
                     if (side == 5) or ((i < dxyz[xp] + 1 and j < dxyz[yp] + 1) and (side < 4 or (i and j))):
-                        print(side, vert)
                         svitc[j].append(len(verts))
                         verts.append(tuple(vert))
     else:
-        for j in range(steps):
-            v, v2, mv2 = uvlt[j]
-            tv2mh = 1./3. * v2 - 0.5
-            hv2 = 0.5 * v2
+        for side, (xp, yp, zp, dir) in enumerate(sides):
+            svitc = svit[side]
+            exr = exyz[xp]
+            eyr = exyz[yp]
+            ri = 0 # row index
+            rij = zer if side < 4 else yer
 
-            if j == hemi:
-                # Jump over non-edge row vertex indices
-                if ey:
-                    ryi += yer
-                if ez:
-                    rzi += zer
+            if side == 5:
+                span = range(steps)
+            elif side < 4 or odd_aligned:
+                span = range(arcdiv)
+            else:
+                span = range(1, arcdiv)
+                ri = 1
 
-            for i in range(steps):
-                u, u2, mu2 = uvlt[i]
-                x = u * mv2
-                y = v * mu2
-                z = radius * sqrt(u2 * tv2mh - hv2 + 1.)
+            for j in span: # rows
+                v, v2, mv2 = uvlt[j]
+                tv2mh = 1./3. * v2 - 0.5
+                hv2 = 0.5 * v2
 
-                for side, (xp, yp, zp, dir) in enumerate(sides):
-                    svitc = svit[side]
-                    ri = rzi if side < 4 else ryi
+                if j == hemi and rij:
+                    # Jump over non-edge row indices
+                    ri += rij
 
-                    vert[xp] = x
-                    vert[yp] = y
-                    vert[zp] = z
-                    exr = exyz[xp]
-                    eyr = exyz[yp]
+                for i in span: # columns
+                    u, u2, mu2 = uvlt[i]
+                    vert[xp] = u * mv2
+                    vert[yp] = v * mu2
+                    vert[zp] = radius * sqrt(u2 * tv2mh - hv2 + 1.)
 
-                    if (side == 5) or (i < arcdiv and j < arcdiv and (side < 4 or (i and j or odd_aligned))):
-                        vert[0] = (vert[0] + copysign(ex, vert[0])) * dir[0]
-                        vert[1] = (vert[1] + copysign(ey, vert[1])) * dir[1]
-                        vert[2] = (vert[2] + copysign(ez, vert[2])) * dir[2]
-                        rv = tuple(vert)
+                    vert[0] = (vert[0] + copysign(ex, vert[0])) * dir[0]
+                    vert[1] = (vert[1] + copysign(ey, vert[1])) * dir[1]
+                    vert[2] = (vert[2] + copysign(ez, vert[2])) * dir[2]
+                    rv = tuple(vert)
 
-                        if exr and i == hemi:
-                            rx = vert[xp] # save xp
-                            vert[xp] = rxi = (-exr - half_chord) * dir[xp]
-                            if axis_aligned:
+                    if exr and i == hemi:
+                        rx = vert[xp] # save rotated x
+                        vert[xp] = rxi = (-exr - half_chord) * dir[xp]
+                        if axis_aligned:
+                            svitc[ri].append(len(verts))
+                            verts.append(tuple(vert))
+                        if subdiv:
+                            offsetx = dssxyz[xp] * dir[xp]
+                            for k in range(dxyz[xp]):
+                                vert[xp] += offsetx
                                 svitc[ri].append(len(verts))
                                 verts.append(tuple(vert))
-                            if subdiv:
-                                offsetx = dssxyz[xp] * dir[xp]
-                                for k in range(dxyz[xp]):
-                                    vert[xp] += offsetx
-                                    svitc[ri].append(len(verts))
-                                    verts.append(tuple(vert))
-                            if eyr and j == hemi and axis_aligned:
-                                vert[xp] = rxi
-                                vert[yp] = -eyr * dir[yp]
-                                svitc[hemi].append(len(verts))
-                                verts.append(tuple(vert))
-                                if subdiv:
-                                    offsety = dssxyz[yp] * dir[yp]
-                                    ry = vert[yp]
-                                    for k in range(dxyz[yp]):
-                                        vert[yp] += offsety
-                                        svitc[hemi + axis_aligned + k].append(len(verts))
-                                        verts.append(tuple(vert))
-                                    vert[yp] = ry
-                                    for k in range(dxyz[xp]):
-                                        vert[xp] += offsetx
-                                        svitc[hemi].append(len(verts))
-                                        verts.append(tuple(vert))
-                                        if subdiv & ALL:
-                                            for l in range(dxyz[yp]):
-                                                vert[yp] += offsety
-                                                svitc[hemi + axis_aligned + l].append(len(verts))
-                                                verts.append(tuple(vert))
-                                            vert[yp] = ry
-                            vert[xp] = rx # restore
-
-                        if eyr and j == hemi:
-                            vert[yp] = (-eyr - half_chord) * dir[yp]
-                            if axis_aligned:
-                                svitc[hemi].append(len(verts))
-                                verts.append(tuple(vert))
+                        if eyr and j == hemi and axis_aligned:
+                            vert[xp] = rxi
+                            vert[yp] = -eyr * dir[yp]
+                            svitc[hemi].append(len(verts))
+                            verts.append(tuple(vert))
                             if subdiv:
                                 offsety = dssxyz[yp] * dir[yp]
+                                ry = vert[yp]
                                 for k in range(dxyz[yp]):
                                     vert[yp] += offsety
-                                    if exr and i == hemi and not axis_aligned and subdiv & ALL:
-                                        vert[xp] = rxi
-                                        for l in range(dxyz[xp]):
-                                            vert[xp] += offsetx
-                                            svitc[hemi + k].append(len(verts))
-                                            verts.append(tuple(vert))
-                                        vert[xp] = rx
                                     svitc[hemi + axis_aligned + k].append(len(verts))
                                     verts.append(tuple(vert))
+                                vert[yp] = ry
+                                for k in range(dxyz[xp]):
+                                    vert[xp] += offsetx
+                                    svitc[hemi].append(len(verts))
+                                    verts.append(tuple(vert))
+                                    if subdiv & ALL:
+                                        for l in range(dxyz[yp]):
+                                            vert[yp] += offsety
+                                            svitc[hemi + axis_aligned + l].append(len(verts))
+                                            verts.append(tuple(vert))
+                                        vert[yp] = ry
+                        vert[xp] = rx # restore
 
-                        svitc[ri].append(len(verts))
-                        verts.append(rv)
-            ryi += 1
-            rzi += 1
+                    if eyr and j == hemi:
+                        vert[yp] = (-eyr - half_chord) * dir[yp]
+                        if axis_aligned:
+                            svitc[hemi].append(len(verts))
+                            verts.append(tuple(vert))
+                        if subdiv:
+                            offsety = dssxyz[yp] * dir[yp]
+                            for k in range(dxyz[yp]):
+                                vert[yp] += offsety
+                                if exr and i == hemi and not axis_aligned and subdiv & ALL:
+                                    vert[xp] = rxi
+                                    for l in range(dxyz[xp]):
+                                        vert[xp] += offsetx
+                                        svitc[hemi + k].append(len(verts))
+                                        verts.append(tuple(vert))
+                                    vert[xp] = rx
+                                svitc[hemi + axis_aligned + k].append(len(verts))
+                                verts.append(tuple(vert))
+
+                    svitc[ri].append(len(verts))
+                    verts.append(rv)
+                ri += 1
 
     # Complete svit edges (shared vertices)
     # Sides' right edge
@@ -247,13 +247,9 @@ def round_cube(radius=1.0, arcdiv=4, lindiv=0., size=(0. ,0. ,0.), div_type='COR
         for j, row in enumerate(rows[:-1]):
             svit[3 if not side else side - 1][j].append(row[0])
     # Sides' top edge
-    for j, row in enumerate(svit[5]):
-        if not j:
-            for col in row:
-                svit[0][-1].append(col)
-        if j == len(svit[5]) - 1:
-            for col in reversed(row):
-                svit[2][-1].append(col)
+    svit[0][-1].extend(svit[5][0])
+    svit[2][-1].extend(svit[5][-1][::-1])
+    for row in svit[5]:
         svit[3][-1].insert(0, row[0])
         svit[1][-1].append(row[-1])
     if odd_aligned:
@@ -320,14 +316,15 @@ def round_cube(radius=1.0, arcdiv=4, lindiv=0., size=(0. ,0. ,0.), div_type='COR
 
 from bpy.props import BoolProperty, EnumProperty, FloatProperty, FloatVectorProperty, IntProperty
 
-class AddRoundCube(bpy.types.Operator):
+class AddRoundCube(bpy.types.Operator, object_utils.AddObjectHelper):
     """Add Round Cube Primitive"""
     bl_idname = 'mesh.primitive_round_cube_add'
     bl_label = 'Add Round Cube'
-    bl_description = 'Add mesh primitives: Quadsphere, Capsule, Rounded Cuboid, 3D Grid'
+    bl_description = 'Add mesh primitives: Quadspheres, Capsules, Rounded Cuboids, 3D Grids, etc.'
     bl_options = {'REGISTER', 'UNDO', 'PRESET'}
 
     sanity_check_verts = 200000
+    vert_count = 0
 
     radius = FloatProperty(
             name = 'Radius',
@@ -344,7 +341,7 @@ class AddRoundCube(bpy.types.Operator):
     arc_div = IntProperty(
             name = 'Arc Divisions',
             description = 'Arc curve divisions, per quadrant; 0 = derive from Linear',
-            default = 4, min = 0
+            default = 4, min = 1
             )
 
     lin_div = FloatProperty(
@@ -364,61 +361,23 @@ class AddRoundCube(bpy.types.Operator):
             )
 
     odd_axis_align = BoolProperty(
-            name='Odd Axis Align',
+            name = 'Odd Axis Align',
             description = 'Align odd arc divisions with axes (Note: triangle corners!)',
             )
 
     no_limit = BoolProperty(
-            name='No Limit',
+            name = 'No Limit',
             description = 'Do not limit to '+str(sanity_check_verts)+' vertices (sanity check)',
-            )
-
-    preset = EnumProperty(
-            name = 'Presets',
-            items = (
-                ('CUSTOM', 'Custom', 'Round Cube'),
-                ('SPHERE', 'Sphere', 'Quadsphere'),
-                ('CAPSULE', 'Capsule', 'Capsule'),
-                ('CUBOID', 'Cube', 'Rounded Cuboid'),
-                ('3DGRID', 'Grid', '3D Grid Cube')),
-            default = 'CUSTOM', options={'HIDDEN'}
+            options = {'HIDDEN'}
             )
 
     def execute(self, context):
-        if self.preset == 'SPHERE':
-            self.radius = 1.0
-            self.size = (0.,0.,0.)
-            self.arc_div = max(self.arc_div, 4)
-            self.lin_div = 0.
-            self.div_type = 'CORNERS'
-        elif self.preset == 'CAPSULE':
-            self.radius = 0.5
-            self.size = (0.,0.,3.)
-            self.arc_div = max(self.arc_div, 4)
-            self.lin_div = 0.
-            self.div_type = 'CORNERS'
-        elif self.preset == 'CUBOID':
-            self.radius = 0.25
-            self.size = (2.,2.,2.)
-            self.arc_div = max(self.arc_div, 4)
-            self.lin_div = 0.
-            self.div_type = 'CORNERS'
-        elif self.preset == '3DGRID':
-            self.radius = 1.0
-            self.arc_div = 1
-            self.lin_div = max(self.lin_div, 5.)
-            self.div_type = 'ALL'
-            self.size = (2.,2.,2.)
-            self.odd_axis_align = False
-        self.preset = 'CUSTOM'
-
         if self.arc_div <=0 and self.lin_div <= 0:
             self.report({'ERROR'}, 'Either Arc Divisions or Linear Divisions must be greater than zero!')
             return {'CANCELLED'}
 
         if not self.no_limit:
-            arcdiv, lindiv, vert_count = round_cube(self.radius, self.arc_div, self.lin_div, self.size, self.div_type, self.odd_axis_align, True)
-            if vert_count > self.sanity_check_verts:
+            if self.vert_count > self.sanity_check_verts:
                 self.report({'ERROR'}, 'More than '+str(self.sanity_check_verts)+' vertices!  Check "No Limit" to proceed')
                 return {'CANCELLED'}
 
@@ -426,54 +385,52 @@ class AddRoundCube(bpy.types.Operator):
 
         mesh = bpy.data.meshes.new('Roundcube')
         mesh.from_pydata(verts,[],faces)
-        object_utils.object_data_add(context, mesh, operator=None)
+        object_utils.object_data_add(context, mesh, operator=self)
 
         return {'FINISHED'}
 
+    def check(self, context):
+        self.arcdiv, self.lindiv, self.vert_count = round_cube(self.radius, self.arc_div, self.lin_div, self.size, self.div_type, self.odd_axis_align, True)
+        return True # False
+
+    def invoke(self, context, event):
+        self.check(context)
+        return self.execute(context)
+
     def draw(self, context):
-
-        arcdiv, lindiv, vert_count = round_cube(self.radius, self.arc_div, self.lin_div, self.size, self.div_type, self.odd_axis_align, True)
-
         layout = self.layout
 
         layout.prop(self, 'radius')
-        row = layout.row()
-        row.column().prop(self, 'size', expand=True)
+        layout.column().prop(self, 'size', expand=True)
 
         box = layout.box()
         row = box.row()
         row.alignment = 'CENTER'
         row.scale_y = 0.1
         row.label('Divisions')
-        row = box.row()# align=True)
+        row = box.row()
         col = row.column()
         col.alignment = 'RIGHT'
         col.label('Arc:')
-        col.prop(self, 'arc_div', text="")
-        col.label('[ {} ]'.format(arcdiv))
+        col.prop(self, 'arc_div', text='')
+        col.label('[ {} ]'.format(self.arcdiv))
         col = row.column()
         col.alignment = 'RIGHT'
         col.label('Linear:')
-        col.prop(self, 'lin_div', text="")
-        col.label('[ {:.3g} ]'.format(lindiv))
+        col.prop(self, 'lin_div', text='')
+        col.label('[ {:.3g} ]'.format(self.lindiv))
         box.row().prop(self, 'div_type')
         row = box.row()
-        row.active = arcdiv % 2
+        row.active = self.arcdiv % 2
         row.prop(self, 'odd_axis_align')
 
         row = layout.row()
-        row.alert = vert_count > self.sanity_check_verts
-        row.prop(self, 'no_limit', text='No limit ({})'.format(vert_count))
+        row.alert = self.vert_count > self.sanity_check_verts
+        row.prop(self, 'no_limit', text='No limit ({})'.format(self.vert_count))
 
-class INFO_MT_mesh_round_cube_add(bpy.types.Menu):
-    bl_idname = 'INFO_MT_mesh_round_cube_add'
-    bl_label = 'Round Cube'
-    def draw(self, context):
-        layout = self.layout
-        layout.operator_context = 'INVOKE_REGION_WIN'
-        layout.operator(AddRoundCube.bl_idname, text = 'Custom', icon='MOD_SUBSURF')
-        layout.operator(AddRoundCube.bl_idname, text = 'Sphere', icon='META_BALL').preset = 'SPHERE'
-        layout.operator(AddRoundCube.bl_idname, text = 'Capsule', icon='META_ELLIPSOID').preset = 'CAPSULE'
-        layout.operator(AddRoundCube.bl_idname, text = 'Cube', icon='META_CUBE').preset = 'CUBOID'
-        layout.operator(AddRoundCube.bl_idname, text = 'Grid', icon='META_CUBE').preset = '3DGRID'
+        col = layout.column(align=True)
+        col.prop(self, 'location', expand=True)
+        col = layout.column(align=True)
+        col.prop(self, 'rotation', expand=True)
+
 
