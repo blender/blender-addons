@@ -19,7 +19,7 @@
 bl_info = {
     "name": "Import Images as Planes",
     "author": "Florian Meyer (tstscr), mont29, matali",
-    "version": (2, 0, 1),
+    "version": (2, 0, 2),
     "blender": (2, 74, 0),
     "location": "File > Import > Images as Planes or Add > Mesh > Images as Planes",
     "description": "Imports images and creates planes with the appropriate aspect ratio. "
@@ -382,7 +382,7 @@ class IMPORT_OT_image_to_plane(Operator, AddObjectHelper):
         if plane.mode is not 'OBJECT':
             bpy.ops.object.mode_set(mode='OBJECT')
         plane.dimensions = x, y, 0.0
-        plane.name = material.name
+        plane.data.name = plane.name = material.name
         bpy.ops.object.transform_apply(scale=True)
         plane.data.uv_textures.new()
         plane.data.materials.append(material)
@@ -394,15 +394,11 @@ class IMPORT_OT_image_to_plane(Operator, AddObjectHelper):
 
     def align_planes(self, planes):
         gap = self.align_offset
-        offset = 0
-        for i, plane in enumerate(planes):
-            offset += (plane.dimensions.x / 2.0) + gap
-            if i == 0:
-                continue
-            move_local = mathutils.Vector((offset, 0.0, 0.0))
-            move_world = plane.location + move_local * plane.matrix_world.inverted()
-            plane.location += move_world
-            offset += (plane.dimensions.x / 2.0)
+        offset = (planes[0].dimensions.x / 2.0) + gap
+        for plane in planes[1:]:
+            move_global = mathutils.Vector((offset + (plane.dimensions.x / 2.0), 0.0, 0.0))
+            plane.location = plane.matrix_world * move_global
+            offset += plane.dimensions.x + gap
 
     def generate_paths(self):
         return (fn.name for fn in self.files if is_image_fn(fn.name, self.extension)), self.directory
