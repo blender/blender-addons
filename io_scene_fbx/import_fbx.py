@@ -1762,7 +1762,7 @@ class FbxImportHelperNode:
             for child in self.children:
                 child.collect_armature_meshes()
 
-    def build_skeleton(self, arm, parent_matrix, parent_bone_size=1):
+    def build_skeleton(self, arm, parent_matrix, parent_bone_size=1, force_connect_children=False):
         # ----
         # Now, create the (edit)bone.
         bone = arm.bl_data.edit_bones.new(name=self.fbx_name)
@@ -1802,10 +1802,14 @@ class FbxImportHelperNode:
             if child.ignore:
                 continue
             if child.is_bone:
-                child_bone = child.build_skeleton(arm, bone_matrix, bone_size)
+                child_bone = child.build_skeleton(arm, bone_matrix, bone_size,
+                                                  force_connect_children=force_connect_children)
                 # Connection to parent.
                 child_bone.parent = bone
                 if similar_values_iter(bone.tail, child_bone.head):
+                    child_bone.use_connect = True
+                elif force_connect_children:
+                    bone.tail = child_bone.head
                     child_bone.use_connect = True
 
         return bone
@@ -1977,7 +1981,7 @@ class FbxImportHelperNode:
                 if child.ignore:
                     continue
                 if child.is_bone:
-                    child_obj = child.build_skeleton(self, Matrix())
+                    child.build_skeleton(self, Matrix(), force_connect_children=settings.force_connect_children)
 
             bpy.ops.object.mode_set(mode='OBJECT')
 
@@ -2075,6 +2079,7 @@ def load(operator, context, filepath="",
          use_custom_props=True,
          use_custom_props_enum_as_string=True,
          ignore_leaf_bones=False,
+         force_connect_children=False,
          automatic_bone_orientation=False,
          primary_bone_axis='Y',
          secondary_bone_axis='X',
@@ -2199,7 +2204,7 @@ def load(operator, context, filepath="",
         use_alpha_decals, decal_offset,
         use_custom_props, use_custom_props_enum_as_string,
         cycles_material_wrap_map, image_cache,
-        ignore_leaf_bones, automatic_bone_orientation, bone_correction_matrix,
+        ignore_leaf_bones, force_connect_children, automatic_bone_orientation, bone_correction_matrix,
         use_prepost_rot,
     )
 

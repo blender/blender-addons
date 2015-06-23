@@ -21,7 +21,7 @@
 bl_info = {
     "name": "FBX format",
     "author": "Campbell Barton, Bastien Montagne, Jens Restemeier",
-    "version": (3, 3, 3),
+    "version": (3, 3, 4),
     "blender": (2, 74, 0),
     "location": "File > Import-Export",
     "description": "FBX IO meshes, UV's, vertex colors, materials, textures, cameras, lamps and actions",
@@ -100,40 +100,40 @@ class ImportFBX(bpy.types.Operator, ImportHelper, IOFBXOrientationHelper):
             name="Alpha Decals",
             description="Treat materials with alpha as decals (no shadow casting)",
             default=False,
-            options={'HIDDEN'}
             )
     decal_offset = FloatProperty(
             name="Decal Offset",
             description="Displace geometry of alpha meshes",
             min=0.0, max=1.0,
             default=0.0,
-            options={'HIDDEN'}
             )
 
     use_custom_props = BoolProperty(
             name="Import User Properties",
             description="Import user properties as custom properties",
             default=True,
-            options={'HIDDEN'},
             )
     use_custom_props_enum_as_string = BoolProperty(
             name="Import Enums As Strings",
             description="Store enumeration values as strings",
             default=True,
-            options={'HIDDEN'},
             )
 
     ignore_leaf_bones = BoolProperty(
             name="Ignore Leaf Bones",
             description="Ignore the last bone at the end of each chain (used to mark the length of the previous bone)",
             default=False,
-            options={'HIDDEN'},
+            )
+    force_connect_children = BoolProperty(
+            name="Force Connect Children",
+            description="Force connection of children bones to their parent, even if their computed head/tail "
+                        "positions do not match (can be useful with pure-joints-type armatures)",
+            default=False,
             )
     automatic_bone_orientation = BoolProperty(
             name="Automatic Bone Orientation",
             description="Try to align the major bone axis with the bone children",
             default=False,
-            options={'HIDDEN'},
             )
     primary_bone_axis = EnumProperty(
             name="Primary Bone Axis",
@@ -186,6 +186,7 @@ class ImportFBX(bpy.types.Operator, ImportHelper, IOFBXOrientationHelper):
 
         layout.prop(self, "ignore_leaf_bones")
 
+        layout.prop(self, "force_connect_children"),
         layout.prop(self, "automatic_bone_orientation"),
         sub = layout.column()
         sub.enabled = not self.automatic_bone_orientation
