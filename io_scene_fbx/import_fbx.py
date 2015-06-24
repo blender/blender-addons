@@ -478,12 +478,12 @@ def blen_read_object_transform_preprocess(fbx_props, fbx_obj, rot_alt_mat, use_p
             pst_rot = const_vector_zero_3d
         rot_ord = {
             0: 'XYZ',
-            1: 'XYZ',
-            2: 'XZY',
-            3: 'YZX',
-            4: 'YXZ',
-            5: 'ZXY',
-            6: 'ZYX',
+            1: 'XZY',
+            2: 'YZX',
+            3: 'YXZ',
+            4: 'ZXY',
+            5: 'ZYX',
+            6: 'XYZ',  # XXX eSphericXYZ, not really supported...
             }.get(elem_props_get_enum(fbx_props, b'RotationOrder', 0))
     else:
         pre_rot = const_vector_zero_3d
