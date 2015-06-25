@@ -369,7 +369,7 @@ def split_mesh(verts_loc, faces, unique_materials, filepath, SPLIT_OB_OR_GROUP):
 
     if not SPLIT_OB_OR_GROUP or not faces:
         # use the filename for the object name since we aren't chopping up the mesh.
-        return [(verts_loc, faces, unique_materials, filename)]
+        return [(verts_loc, faces, unique_materials, filename, bool(verts_nor), bool(verts_tex))]
 
     def key_to_name(key):
         # if the key is a tuple, join it to make a string
@@ -388,11 +388,18 @@ def split_mesh(verts_loc, faces, unique_materials, filepath, SPLIT_OB_OR_GROUP):
 
         if oldkey != key:
             # Check the key has changed.
-            (verts_split, faces_split,
-             unique_materials_split, vert_remap) = face_split_dict.setdefault(key, ([], [], {}, {}))
+            (verts_split, faces_split, unique_materials_split, vert_remap,
+             use_verts_nor, use_verts_tex) = face_split_dict.setdefault(key, ([], [], {}, {}, [], []))
             oldkey = key
 
         face_vert_loc_indices = face[0]
+
+        # In case a face only uses zero indices for vnors/vtex (aka UV), we assume it actually does not use those...
+        if not use_verts_nor and face[1]:
+            use_verts_nor.append(True)
+
+        if not use_verts_tex and face[2]:
+            use_verts_tex.append(True)
 
         # Remap verts to new vert list and add where needed
         for enum, i in enumerate(face_vert_loc_indices):
@@ -411,8 +418,9 @@ def split_mesh(verts_loc, faces, unique_materials, filepath, SPLIT_OB_OR_GROUP):
         faces_split.append(face)
 
     # remove one of the items and reorder
-    return [(verts_split, faces_split, unique_materials_split, key_to_name(key))
-            for key, (verts_split, faces_split, unique_materials_split, _) in face_split_dict.items()]
+    return [(verts_split, faces_split, unique_materials_split, key_to_name(key), bool(use_vnor), bool(use_vtex))
+            for key, (verts_split, faces_split, unique_materials_split, _, use_vnor, use_vtex)
+            in face_split_dict.items()]
 
 
 def create_mesh(new_objects,
@@ -459,7 +467,8 @@ def create_mesh(new_objects,
         if len_face_vert_loc_indices == 1:
             faces.pop(f_idx)  # cant add single vert faces
 
-        elif not face_vert_tex_indices or len_face_vert_loc_indices == 2:  # faces that have no texture coords are lines
+        # Face with a single item in face_vert_nor_indices is actually a polyline!
+        elif len(face_vert_nor_indices) == 1 or len_face_vert_loc_indices == 2:
             if use_edges:
                 edges.extend((face_vert_loc_indices[i], face_vert_loc_indices[i + 1])
                              for i in range(len_face_vert_loc_indices - 1))
@@ -490,11 +499,11 @@ def create_mesh(new_objects,
                                [face_vert_nor_indices[ngon[0]],
                                 face_vert_nor_indices[ngon[1]],
                                 face_vert_nor_indices[ngon[2]],
-                                ],
+                                ] if face_vert_nor_indices else [],
                                [face_vert_tex_indices[ngon[0]],
                                 face_vert_tex_indices[ngon[1]],
                                 face_vert_tex_indices[ngon[2]],
-                                ],
+                                ] if face_vert_tex_indices else [],
                                context_material,
                                context_smooth_group,
                                context_object,
@@ -600,11 +609,11 @@ def create_mesh(new_objects,
                 context_material_old = context_material
             blen_poly.material_index = mat
 
-        if verts_nor:
+        if verts_nor and face_vert_nor_indices:
             for face_noidx, lidx in zip(face_vert_nor_indices, blen_poly.loop_indices):
                 me.loops[lidx].normal[:] = verts_nor[face_noidx]
 
-        if verts_tex:
+        if verts_tex and face_vert_tex_indices:
             if context_material:
                 image = unique_material_images[context_material]
                 if image:  # Can be none if the material dosnt have an image.
@@ -865,6 +874,7 @@ def load(operator, context, filepath,
     face_vert_loc_indices = None
     face_vert_nor_indices = None
     face_vert_tex_indices = None
+    face_vert_nor_valid = face_vert_tex_valid = False
     face_items_usage = set()
     face_invalid_blenpoly = None
     prev_vidx = None
@@ -930,6 +940,7 @@ def load(operator, context, filepath,
                 if len(obj_vert) > 1 and obj_vert[1]:
                     idx = int(obj_vert[1]) - 1
                     face_vert_tex_indices.append((idx + len(verts_tex) + 1) if (idx < 0) else idx)
+                    face_vert_tex_valid = True
                 else:
                     # dummy
                     face_vert_tex_indices.append(0)
@@ -937,11 +948,19 @@ def load(operator, context, filepath,
                 if len(obj_vert) > 2 and obj_vert[2]:
                     idx = int(obj_vert[2]) - 1
                     face_vert_nor_indices.append((idx + len(verts_nor) + 1) if (idx < 0) else idx)
+                    face_vert_nor_valid = True
                 else:
                     # dummy
                     face_vert_nor_indices.append(0)
 
             if not context_multi_line:
+                # Clear nor/tex indices in case we had none defined for this face.
+                if not face_vert_nor_valid:
+                    face_vert_nor_indices.clear()
+                if not face_vert_tex_valid:
+                    face_vert_tex_indices.clear()
+                face_vert_nor_valid = face_vert_tex_valid = False
+
                 # Means we have finished a face, we have to do final check if ngon is suspected to be blender-invalid...
                 if face_invalid_blenpoly:
                     face_invalid_blenpoly.clear()
@@ -962,8 +981,11 @@ def load(operator, context, filepath,
                 # Instantiate a face
                 face = create_face(context_material, context_smooth_group, context_object)
                 face_vert_loc_indices = face[0]
+                # XXX A bit hackish, we use special 'value' of face_vert_nor_indices (a single True item) to tag this
+                #     as a polyline, and not a regular face...
+                face[1][:] = [True]
                 faces.append(face)
-            # Else, use face_vert_loc_indices and face_vert_tex_indices previously defined and used the obj_face
+            # Else, use face_vert_loc_indices previously defined and used the obj_face
 
             context_multi_line = b'l' if strip_slash(line_split) else b''
 
@@ -1087,13 +1109,14 @@ def load(operator, context, filepath,
     SPLIT_OB_OR_GROUP = bool(use_split_objects or use_split_groups)
 
     for data in split_mesh(verts_loc, faces, unique_materials, filepath, SPLIT_OB_OR_GROUP):
-        verts_loc_split, faces_split, unique_materials_split, dataname = data
+        verts_loc_split, faces_split, unique_materials_split, dataname, use_vnor, use_vtex = data
         # Create meshes from the data, warning 'vertex_groups' wont support splitting
+        #~ print(dataname, use_vnor, use_vtex)
         create_mesh(new_objects,
                     use_edges,
                     verts_loc_split,
-                    verts_nor,
-                    verts_tex,
+                    verts_nor if use_vnor else [],
+                    verts_tex if use_vtex else [],
                     faces_split,
                     unique_materials_split,
                     unique_material_images,
