@@ -20,7 +20,8 @@
 
 bl_info = {
     "name": "Web3D X3D/VRML2 format",
-    "author": "Campbell Barton, Bart",
+    "author": "Campbell Barton, Bart, Bastien Montagne",
+    "version": (1, 0, 1),
     "blender": (2, 74, 0),
     "location": "File > Import-Export",
     "description": "Import-Export X3D, Import VRML2",

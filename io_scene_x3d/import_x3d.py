@@ -55,6 +55,45 @@ def imageConvertCompat(path):
 
 # =============================== VRML Spesific
 
+def vrml_split_fields(value):
+    """
+    key 0.0 otherkey 1,2,3 opt1 opt1 0.0
+        -> [key 0.0], [otherkey 1,2,3], [opt1 opt1 0.0]
+    """
+    def iskey(k):
+        if k[0] != '"' and k[0].isalpha() and k.upper() not in {'TRUE', 'FALSE'}:
+            return True
+        return False
+
+    field_list = []
+    field_context = []
+
+    for v in value:
+        if iskey(v):
+            if field_context:
+                field_context_len = len(field_context)
+                if (field_context_len > 2) and (field_context[-2] in {'DEF', 'USE'}):
+                    field_context.append(v)
+                elif (not iskey(field_context[-1])) or ((field_context_len == 3 and field_context[1] == 'IS')):
+                    # this IS a key but the previous value was not a key, ot it was a defined field.
+                    field_list.append(field_context)
+                    field_context = [v]
+                else:
+                    # The last item was not a value, multiple keys are needed in some cases.
+                    field_context.append(v)
+            else:
+                # Is empty, just add this on
+                field_context.append(v)
+        else:
+            # Add a value to the list
+            field_context.append(v)
+
+    if field_context:
+        field_list.append(field_context)
+
+    return field_list
+
+
 def vrmlFormat(data):
     """
     Keep this as a valid vrml file, but format in a way we can predict.
@@ -134,6 +173,10 @@ def vrmlFormat(data):
     data = data.replace('[', '\n[\n')
     data = data.replace(']', '\n]\n')
     data = data.replace(',', ' , ')  # make sure comma's separate
+
+    # We need to write one property (field) per line only, otherwise we fail later to detect correctly new nodes.
+    # See T45195 for details.
+    data = '\n'.join([' '.join(value) for l in data.split('\n') for value in vrml_split_fields(l.split())])
 
     if EXTRACT_STRINGS:
         # add strings back in
@@ -1169,43 +1212,7 @@ class vrmlNode(object):
                     # use shlex so we get '"a b" "b v"' --> '"a b"', '"b v"'
                     value_all = shlex.split(value, posix=False)
 
-                    def iskey(k):
-                        if k[0] != '"' and k[0].isalpha() and k.upper() not in {'TRUE', 'FALSE'}:
-                            return True
-                        return False
-
-                    def split_fields(value):
-                        """
-                        key 0.0 otherkey 1,2,3 opt1 opt1 0.0
-                            -> [key 0.0], [otherkey 1,2,3], [opt1 opt1 0.0]
-                        """
-                        field_list = []
-                        field_context = []
-
-                        for j in range(len(value)):
-                            if iskey(value[j]):
-                                if field_context:
-                                    # this IS a key but the previous value was not a key, ot it was a defined field.
-                                    if (not iskey(field_context[-1])) or ((len(field_context) == 3 and field_context[1] == 'IS')):
-                                        field_list.append(field_context)
-
-                                        field_context = [value[j]]
-                                    else:
-                                        # The last item was not a value, multiple keys are needed in some cases.
-                                        field_context.append(value[j])
-                                else:
-                                    # Is empty, just add this on
-                                    field_context.append(value[j])
-                            else:
-                                # Add a value to the list
-                                field_context.append(value[j])
-
-                        if field_context:
-                            field_list.append(field_context)
-
-                        return field_list
-
-                    for value in split_fields(value_all):
+                    for value in vrml_split_fields(value_all):
                         # Split
 
                         if value[0] == 'field':
