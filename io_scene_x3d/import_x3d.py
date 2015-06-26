@@ -370,6 +370,7 @@ class vrmlNode(object):
                  'lineno',
                  'filename',
                  'blendObject',
+                 'blendData',
                  'DEF_NAMESPACE',
                  'ROUTE_IPO_NAMESPACE',
                  'PROTO_NAMESPACE',
@@ -380,6 +381,7 @@ class vrmlNode(object):
         self.node_type = node_type
         self.parent = parent
         self.blendObject = None
+        self.blendData = None
         self.x3dNode = None  # for x3d import only
         if parent:
             parent.children.append(self)
@@ -2037,197 +2039,212 @@ def importMesh_Box(geom, ancestry):
 
 
 def importShape(node, ancestry, global_matrix):
-    vrmlname = node.getDefName()
-    if not vrmlname:
-        vrmlname = 'Shape'
+    def apply_texmtx(blendata, texmtx):
+        for luv in bpydata.uv_layers.active.data:
+            luv.uv = texmtx * luv.uv
 
-    # works 100% in vrml, but not x3d
-    #appr = node.getChildByName('appearance') # , 'Appearance'
-    #geom = node.getChildByName('geometry') # , 'IndexedFaceSet'
+    bpyob = node.getRealNode().blendObject
 
-    # Works in vrml and x3d
-    appr = node.getChildBySpec('Appearance')
-    geom = node.getChildBySpec(['IndexedFaceSet', 'IndexedLineSet', 'PointSet', 'Sphere', 'Box', 'Cylinder', 'Cone'])
+    if bpyob is not None:
+        bpyob = node.blendData = node.blendObject = bpyob.copy()
+        bpy.context.scene.objects.link(bpyob).select = True
+    else:
+        vrmlname = node.getDefName()
+        if not vrmlname:
+            vrmlname = 'Shape'
 
-    # For now only import IndexedFaceSet's
-    if geom:
-        bpymat = None
-        bpyima = None
-        texmtx = None
+        # works 100% in vrml, but not x3d
+        #appr = node.getChildByName('appearance') # , 'Appearance'
+        #geom = node.getChildByName('geometry') # , 'IndexedFaceSet'
 
-        image_depth = 0  # so we can set alpha face flag later
-        is_vcol = (geom.getChildBySpec('Color') is not None)
+        # Works in vrml and x3d
+        appr = node.getChildBySpec('Appearance')
+        geom = node.getChildBySpec(['IndexedFaceSet', 'IndexedLineSet', 'PointSet', 'Sphere', 'Box', 'Cylinder', 'Cone'])
 
-        if appr:
+        # For now only import IndexedFaceSet's
+        if geom:
+            bpymat = None
+            bpyima = None
+            texmtx = None
 
-            #mat = appr.getChildByName('material') # 'Material'
-            #ima = appr.getChildByName('texture') # , 'ImageTexture'
-            #if ima and ima.getSpec() != 'ImageTexture':
-            #   print('\tWarning: texture type "%s" is not supported' % ima.getSpec())
-            #   ima = None
-            # textx = appr.getChildByName('textureTransform')
+            image_depth = 0  # so we can set alpha face flag later
+            is_vcol = (geom.getChildBySpec('Color') is not None)
 
-            mat = appr.getChildBySpec('Material')
-            ima = appr.getChildBySpec('ImageTexture')
+            if appr:
+                #mat = appr.getChildByName('material') # 'Material'
+                #ima = appr.getChildByName('texture') # , 'ImageTexture'
+                #if ima and ima.getSpec() != 'ImageTexture':
+                #   print('\tWarning: texture type "%s" is not supported' % ima.getSpec())
+                #   ima = None
+                # textx = appr.getChildByName('textureTransform')
 
-            textx = appr.getChildBySpec('TextureTransform')
+                mat = appr.getChildBySpec('Material')
+                ima = appr.getChildBySpec('ImageTexture')
 
-            if textx:
-                texmtx = translateTexTransform(textx, ancestry)
+                textx = appr.getChildBySpec('TextureTransform')
 
-            # print(mat, ima)
-            if mat or ima:
+                if textx:
+                    texmtx = translateTexTransform(textx, ancestry)
 
-                if not mat:
-                    mat = ima  # This is a bit dumb, but just means we use default values for all
+                bpymat = appr.getRealNode().blendData
 
-                # all values between 0.0 and 1.0, defaults from VRML docs
-                bpymat = bpy.data.materials.new(vrmlname)
-                bpymat.ambient = mat.getFieldAsFloat('ambientIntensity', 0.2, ancestry)
-                bpymat.diffuse_color = mat.getFieldAsFloatTuple('diffuseColor', [0.8, 0.8, 0.8], ancestry)
+                if bpymat is None:
+                    # print(mat, ima)
+                    if mat or ima:
+                        if not mat:
+                            mat = ima  # This is a bit dumb, but just means we use default values for all
 
-                # NOTE - blender dosnt support emmisive color
-                # Store in mirror color and approximate with emit.
-                emit = mat.getFieldAsFloatTuple('emissiveColor', [0.0, 0.0, 0.0], ancestry)
-                bpymat.mirror_color = emit
-                bpymat.emit = (emit[0] + emit[1] + emit[2]) / 3.0
+                        # all values between 0.0 and 1.0, defaults from VRML docs
+                        bpymat = bpy.data.materials.new(vrmlname)
+                        bpymat.ambient = mat.getFieldAsFloat('ambientIntensity', 0.2, ancestry)
+                        bpymat.diffuse_color = mat.getFieldAsFloatTuple('diffuseColor', [0.8, 0.8, 0.8], ancestry)
 
-                bpymat.specular_hardness = int(1 + (510 * mat.getFieldAsFloat('shininess', 0.2, ancestry)))  # 0-1 -> 1-511
-                bpymat.specular_color = mat.getFieldAsFloatTuple('specularColor', [0.0, 0.0, 0.0], ancestry)
-                bpymat.alpha = 1.0 - mat.getFieldAsFloat('transparency', 0.0, ancestry)
-                if bpymat.alpha < 0.999:
-                    bpymat.use_transparency = True
-                if is_vcol:
-                    bpymat.use_vertex_color_paint = True
+                        # NOTE - blender dosnt support emmisive color
+                        # Store in mirror color and approximate with emit.
+                        emit = mat.getFieldAsFloatTuple('emissiveColor', [0.0, 0.0, 0.0], ancestry)
+                        bpymat.mirror_color = emit
+                        bpymat.emit = (emit[0] + emit[1] + emit[2]) / 3.0
 
-            if ima:
-                ima_urls = ima.getFieldAsString('url', None, ancestry)
-
-                if ima_urls is None:
-                    try:
-                        ima_urls = ima.getFieldAsStringArray('url', ancestry)  # in some cases we get a list of images.
-                    except:
-                        ima_urls = None
-                else:
-                    if '" "' in ima_urls:
-                        # '"foo" "bar"' --> ['foo', 'bar']
-                        ima_urls = [w.strip('"') for w in ima_urls.split('" "')]
-                    else:
-                        ima_urls = [ima_urls]
-                # ima_urls is a list or None
-
-                if ima_urls is None:
-                    print("\twarning, image with no URL, this is odd")
-                else:
-                    bpyima = None
-                    for f in ima_urls:
-                        bpyima = image_utils.load_image(f, os.path.dirname(node.getFilename()), place_holder=False, recursive=False, convert_callback=imageConvertCompat)
-                        if bpyima:
-                            break
-
-                    if bpyima:
-                        texture = bpy.data.textures.new(bpyima.name, 'IMAGE')
-                        texture.image = bpyima
-
-                        # Adds textures for materials (rendering)
-                        try:
-                            image_depth = bpyima.depth
-                        except:
-                            image_depth = -1
-
-                        mtex = bpymat.texture_slots.add()
-                        mtex.texture = texture
-
-                        mtex.texture_coords = 'UV'
-                        mtex.use_map_diffuse = True
-
-                        if image_depth in {32, 128}:
+                        bpymat.specular_hardness = int(1 + (510 * mat.getFieldAsFloat('shininess', 0.2, ancestry)))  # 0-1 -> 1-511
+                        bpymat.specular_color = mat.getFieldAsFloatTuple('specularColor', [0.0, 0.0, 0.0], ancestry)
+                        bpymat.alpha = 1.0 - mat.getFieldAsFloat('transparency', 0.0, ancestry)
+                        if bpymat.alpha < 0.999:
                             bpymat.use_transparency = True
-                            mtex.use_map_alpha = True
-                            mtex.alpha_factor = 0.0
+                        if is_vcol:
+                            bpymat.use_vertex_color_paint = True
 
-                        ima_repS = ima.getFieldAsBool('repeatS', True, ancestry)
-                        ima_repT = ima.getFieldAsBool('repeatT', True, ancestry)
+                    if ima:
+                        bpyima = ima.getRealNode().blendData
 
-                        # To make this work properly we'd need to scale the UV's too, better to ignore th
-                        # texture.repeat =  max(1, ima_repS * 512), max(1, ima_repT * 512)
+                        if bpyima is None:
+                            ima_urls = ima.getFieldAsString('url', None, ancestry)
 
-                        if not ima_repS:
-                            bpyima.use_clamp_x = True
-                        if not ima_repT:
-                            bpyima.use_clamp_y = True
+                            if ima_urls is None:
+                                try:
+                                    ima_urls = ima.getFieldAsStringArray('url', ancestry)  # in some cases we get a list of images.
+                                except:
+                                    ima_urls = None
+                            else:
+                                if '" "' in ima_urls:
+                                    # '"foo" "bar"' --> ['foo', 'bar']
+                                    ima_urls = [w.strip('"') for w in ima_urls.split('" "')]
+                                else:
+                                    ima_urls = [ima_urls]
+                            # ima_urls is a list or None
 
-        bpydata = None
-        geom_spec = geom.getSpec()
-        ccw = True
-        if geom_spec == 'IndexedFaceSet':
-            bpydata, ccw = importMesh_IndexedFaceSet(geom, bpyima, ancestry)
-        elif geom_spec == 'IndexedLineSet':
-            bpydata = importMesh_IndexedLineSet(geom, ancestry)
-        elif geom_spec == 'PointSet':
-            bpydata = importMesh_PointSet(geom, ancestry)
-        elif geom_spec == 'Sphere':
-            bpydata = importMesh_Sphere(geom, ancestry)
-        elif geom_spec == 'Box':
-            bpydata = importMesh_Box(geom, ancestry)
-        elif geom_spec == 'Cylinder':
-            bpydata = importMesh_Cylinder(geom, ancestry)
-        elif geom_spec == 'Cone':
-            bpydata = importMesh_Cone(geom, ancestry)
-        else:
-            print('\tWarning: unsupported type "%s"' % geom_spec)
-            return
+                            if ima_urls is None:
+                                print("\twarning, image with no URL, this is odd")
+                            else:
+                                for f in ima_urls:
+                                    bpyima = image_utils.load_image(f, os.path.dirname(node.getFilename()), place_holder=False,
+                                                                    recursive=False, convert_callback=imageConvertCompat)
+                                    if bpyima:
+                                        break
 
-        if bpydata:
-            vrmlname = vrmlname + geom_spec
+                                if bpyima:
+                                    texture = bpy.data.textures.new(bpyima.name, 'IMAGE')
+                                    texture.image = bpyima
 
-            bpydata.name = vrmlname
+                                    # Adds textures for materials (rendering)
+                                    try:
+                                        image_depth = bpyima.depth
+                                    except:
+                                        image_depth = -1
 
-            bpyob = node.blendObject = bpy.data.objects.new(vrmlname, bpydata)
-            bpy.context.scene.objects.link(bpyob).select = True
+                                    mtex = bpymat.texture_slots.add()
+                                    mtex.texture = texture
 
-            if type(bpydata) == bpy.types.Mesh:
-                is_solid = geom.getFieldAsBool('solid', True, ancestry)
-                creaseAngle = geom.getFieldAsFloat('creaseAngle', None, ancestry)
+                                    mtex.texture_coords = 'UV'
+                                    mtex.use_map_diffuse = True
 
-                if creaseAngle is not None:
-                    bpydata.auto_smooth_angle = creaseAngle
-                    bpydata.use_auto_smooth = True
+                                    if image_depth in {32, 128}:
+                                        bpymat.use_transparency = True
+                                        mtex.use_map_alpha = True
+                                        mtex.alpha_factor = 0.0
 
-                # Only ever 1 material per shape
-                if bpymat:
-                    bpydata.materials.append(bpymat)
+                                    ima_repS = ima.getFieldAsBool('repeatS', True, ancestry)
+                                    ima_repT = ima.getFieldAsBool('repeatT', True, ancestry)
 
-                if bpydata.tessface_uv_textures:
+                                    # To make this work properly we'd need to scale the UV's too, better to ignore th
+                                    # texture.repeat =  max(1, ima_repS * 512), max(1, ima_repT * 512)
 
-                    if image_depth in {32, 128}:  # set the faces alpha flag?
-                        transp = Mesh.FaceTranspModes.ALPHA
-                        for f in bpydata.tessface_uv_textures.active.data:
-                            f.blend_type = 'ALPHA'
+                                    if not ima_repS:
+                                        bpyima.use_clamp_x = True
+                                    if not ima_repT:
+                                        bpyima.use_clamp_y = True
+                elif ima:
+                    bpyima = ima.getRealNode().blendData
 
-                    if texmtx:
-                        # Apply texture transform?
-                        uv_copy = Vector()
-                        for f in bpydata.tessface_uv_textures.active.data:
-                            fuv = f.uv
-                            for i, uv in enumerate(fuv):
-                                uv_copy.x = uv[0]
-                                uv_copy.y = uv[1]
+                appr.blendData = bpymat
+                if ima:
+                    ima.blendData = bpyima
 
-                                fuv[i] = (uv_copy * texmtx)[0:2]
-                # Done transforming the texture
+            bpydata = geom.getRealNode().blendData
+            if bpydata is None:
+                geom_spec = geom.getSpec()
+                ccw = True
+                if geom_spec == 'IndexedFaceSet':
+                    bpydata, ccw = importMesh_IndexedFaceSet(geom, bpyima, ancestry)
+                elif geom_spec == 'IndexedLineSet':
+                    bpydata = importMesh_IndexedLineSet(geom, ancestry)
+                elif geom_spec == 'PointSet':
+                    bpydata = importMesh_PointSet(geom, ancestry)
+                elif geom_spec == 'Sphere':
+                    bpydata = importMesh_Sphere(geom, ancestry)
+                elif geom_spec == 'Box':
+                    bpydata = importMesh_Box(geom, ancestry)
+                elif geom_spec == 'Cylinder':
+                    bpydata = importMesh_Cylinder(geom, ancestry)
+                elif geom_spec == 'Cone':
+                    bpydata = importMesh_Cone(geom, ancestry)
+                else:
+                    print('\tWarning: unsupported type "%s"' % geom_spec)
+                    return
 
-                # Must be here and not in IndexedFaceSet because it needs an object for the flip func. Messy :/
-                if not ccw:
-                    # bpydata.flipNormals()
-                    # XXX25
-                    pass
+                if bpydata:
+                    vrmlname = vrmlname + geom_spec
+                    bpydata.name = vrmlname
 
-            # else could be a curve for example
+                    if type(bpydata) == bpy.types.Mesh:
+                        is_solid = geom.getFieldAsBool('solid', True, ancestry)
+                        creaseAngle = geom.getFieldAsFloat('creaseAngle', None, ancestry)
 
-            # Can transform data or object, better the object so we can instance the data
-            #bpymesh.transform(getFinalMatrix(node))
-            bpyob.matrix_world = getFinalMatrix(node, None, ancestry, global_matrix)
+                        if creaseAngle is not None:
+                            bpydata.auto_smooth_angle = creaseAngle
+                            bpydata.use_auto_smooth = True
+
+                        # Only ever 1 material per shape
+                        if bpymat:
+                            bpydata.materials.append(bpymat)
+
+                        if bpydata.uv_layers:
+                            if texmtx:
+                                # Apply texture transform?
+                                apply_texmtx(blendata, texmtx)
+                        # Done transforming the texture
+
+                        # Must be here and not in IndexedFaceSet because it needs an object for the flip func. Messy :/
+                        if not ccw:
+                            # bpydata.flipNormals()
+                            # XXX25
+                            pass
+
+                    # else could be a curve for example
+
+            # if texmtx is defined, we need specific UVMap, hence a copy of the mesh...
+            elif texmtx and blendata.uv_layers:
+                bpydata = bpydata.copy()
+                apply_texmtx(blendata, texmtx)
+
+            geom.blendData = bpydata
+
+            if bpydata:
+                bpyob = node.blendData = node.blendObject = bpy.data.objects.new(vrmlname, bpydata)
+                bpy.context.scene.objects.link(bpyob).select = True
+
+    if bpyob:
+        # Could transform data, but better the object so we can instance the data
+        bpyob.matrix_world = getFinalMatrix(node, None, ancestry, global_matrix)
 
 
 def importLamp_PointLight(node, ancestry):
@@ -2324,7 +2341,7 @@ def importLamp(node, spec, ancestry, global_matrix):
         print("Error, not a lamp")
         raise ValueError
 
-    bpyob = node.blendObject = bpy.data.objects.new("TODO", bpylamp)
+    bpyob = node.blendData = node.blendObject = bpy.data.objects.new("TODO", bpylamp)
     bpy.context.scene.objects.link(bpyob).select = True
 
     bpyob.matrix_world = getFinalMatrix(node, mtx, ancestry, global_matrix)
@@ -2347,7 +2364,7 @@ def importViewpoint(node, ancestry, global_matrix):
 
     mtx = Matrix.Translation(Vector(position)) * translateRotation(orientation)
 
-    bpyob = node.blendObject = bpy.data.objects.new(name, bpycam)
+    bpyob = node.blendData = node.blendObject = bpy.data.objects.new(name, bpycam)
     bpy.context.scene.objects.link(bpyob).select = True
     bpyob.matrix_world = getFinalMatrix(node, mtx, ancestry, global_matrix)
 
@@ -2357,7 +2374,7 @@ def importTransform(node, ancestry, global_matrix):
     if not name:
         name = 'Transform'
 
-    bpyob = node.blendObject = bpy.data.objects.new(name, None)
+    bpyob = node.blendData = node.blendObject = bpy.data.objects.new(name, None)
     bpy.context.scene.objects.link(bpyob).select = True
 
     bpyob.matrix_world = getFinalMatrix(node, None, ancestry, global_matrix)
@@ -2615,14 +2632,14 @@ def load_web3d(path,
 
                 # Assign anim curves
                 node = defDict[key]
-                if node.blendObject is None:  # Add an object if we need one for animation
-                    node.blendObject = bpy.data.objects.new('AnimOb', None)  # , name)
+                if node.blendData is None:  # Add an object if we need one for animation
+                    node.blendData = node.blendObject = bpy.data.objects.new('AnimOb', None)  # , name)
                     bpy.context.scene.objects.link(node.blendObject).select = True
 
-                if node.blendObject.animation_data is None:
-                    node.blendObject.animation_data_create()
+                if node.blendData.animation_data is None:
+                    node.blendData.animation_data_create()
 
-                node.blendObject.animation_data.action = action
+                node.blendData.animation_data.action = action
 
     # Add in hierarchy
     if PREF_FLAT is False:
