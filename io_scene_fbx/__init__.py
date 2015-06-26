@@ -21,7 +21,7 @@
 bl_info = {
     "name": "FBX format",
     "author": "Campbell Barton, Bastien Montagne, Jens Restemeier",
-    "version": (3, 3, 5),
+    "version": (3, 3, 6),
     "blender": (2, 74, 0),
     "location": "File > Import-Export",
     "description": "FBX IO meshes, UV's, vertex colors, materials, textures, cameras, lamps and actions",
@@ -108,6 +108,12 @@ class ImportFBX(bpy.types.Operator, ImportHelper, IOFBXOrientationHelper):
             default=0.0,
             )
 
+    anim_offset = FloatProperty(
+            name="Animation Offset",
+            description="Offset to apply to animation during import, in frames",
+            default=1.0,
+            )
+
     use_custom_props = BoolProperty(
             name="Import User Properties",
             description="Import user properties as custom properties",
@@ -178,6 +184,8 @@ class ImportFBX(bpy.types.Operator, ImportHelper, IOFBXOrientationHelper):
         layout.prop(self, "use_image_search")
         # layout.prop(self, "use_alpha_decals")
         layout.prop(self, "decal_offset")
+
+        layout.prop(self, "anim_offset")
 
         layout.prop(self, "use_custom_props")
         sub = layout.row()

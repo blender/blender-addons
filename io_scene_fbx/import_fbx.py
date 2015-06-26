@@ -539,7 +539,7 @@ def blen_read_animations_curves_iter(fbx_curves, blen_start_offset, fbx_start_of
         yield (curr_blenkframe, curr_values)
 
 
-def blen_read_animations_action_item(action, item, cnodes, fps):
+def blen_read_animations_action_item(action, item, cnodes, fps, anim_offset):
     """
     'Bake' loc/rot/scale into the action,
     taking any pre_ and post_ matrix into account to transform from fbx into blender space.
@@ -587,8 +587,7 @@ def blen_read_animations_action_item(action, item, cnodes, fps):
                    for prop, nbr_channels, grpname in props for channel in range(nbr_channels)]
 
     if isinstance(item, ShapeKey):
-        # We assume for now blen init point is frame 1.0, while FBX ktime init point is 0.
-        for frame, values in blen_read_animations_curves_iter(fbx_curves, 1.0, 0, fps):
+        for frame, values in blen_read_animations_curves_iter(fbx_curves, anim_offset, 0, fps):
             value = 0.0
             for v, (fbxprop, channel, _fbx_acdata) in values:
                 assert(fbxprop == b'DeformPercent')
@@ -610,8 +609,7 @@ def blen_read_animations_action_item(action, item, cnodes, fps):
         # Pre-compute inverted local rest matrix of the bone, if relevant.
         restmat_inv = item.get_bind_matrix().inverted_safe() if item.is_bone else None
 
-        # We assume for now blen init point is frame 1.0, while FBX ktime init point is 0.
-        for frame, values in blen_read_animations_curves_iter(fbx_curves, 1.0, 0, fps):
+        for frame, values in blen_read_animations_curves_iter(fbx_curves, anim_offset, 0, fps):
             for v, (fbxprop, channel, _fbx_acdata) in values:
                 if fbxprop == b'Lcl Translation':
                     transform_data.loc[channel] = v
@@ -655,7 +653,7 @@ def blen_read_animations_action_item(action, item, cnodes, fps):
         fc.update()
 
 
-def blen_read_animations(fbx_tmpl_astack, fbx_tmpl_alayer, stacks, scene):
+def blen_read_animations(fbx_tmpl_astack, fbx_tmpl_alayer, stacks, scene, anim_offset):
     """
     Recreate an action per stack/layer/object combinations.
     Only the first found action is linked to objects, more complex setups are not handled,
@@ -688,7 +686,7 @@ def blen_read_animations(fbx_tmpl_astack, fbx_tmpl_alayer, stacks, scene):
                 if not id_data.animation_data.action:
                     id_data.animation_data.action = action
                 # And actually populate the action!
-                blen_read_animations_action_item(action, item, cnodes, scene.render.fps)
+                blen_read_animations_action_item(action, item, cnodes, scene.render.fps, anim_offset)
 
 
 # ----
@@ -2076,6 +2074,7 @@ def load(operator, context, filepath="",
          use_image_search=False,
          use_alpha_decals=False,
          decal_offset=0.0,
+         anim_offset=1.0,
          use_custom_props=True,
          use_custom_props_enum_as_string=True,
          ignore_leaf_bones=False,
@@ -2202,6 +2201,7 @@ def load(operator, context, filepath="",
         bake_space_transform, global_matrix_inv, global_matrix_inv_transposed,
         use_cycles, use_image_search,
         use_alpha_decals, decal_offset,
+        anim_offset,
         use_custom_props, use_custom_props_enum_as_string,
         cycles_material_wrap_map, image_cache,
         ignore_leaf_bones, force_connect_children, automatic_bone_orientation, bone_correction_matrix,
@@ -2688,7 +2688,7 @@ def load(operator, context, filepath="",
                 curvenodes[acn_uuid][ac_uuid] = (fbx_acitem, channel)
 
         # And now that we have sorted all this, apply animations!
-        blen_read_animations(fbx_tmpl_astack, fbx_tmpl_alayer, stacks, scene)
+        blen_read_animations(fbx_tmpl_astack, fbx_tmpl_alayer, stacks, scene, settings.anim_offset)
 
     _(); del _
 
