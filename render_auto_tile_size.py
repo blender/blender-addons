@@ -20,7 +20,7 @@ bl_info = {
     "name": "Auto Tile Size",
     "description": "Estimate and set the tile size that will render the fastest",
     "author": "Greg Zaal",
-    "version": (3, 1),
+    "version": (3, 1, 1),
     "blender": (2, 74, 0),
     "location": "Render Settings > Performance",
     "warning": "",
@@ -55,19 +55,19 @@ class AutoTileSizeSettings(bpy.types.PropertyGroup):
         name="Target GPU Tile Size",
         items=TILE_SIZES,
         default='256',
-        description="Square dimentions of tiles for GPU rendering",
+        description="Square dimensions of tiles for GPU rendering",
         update=_update_tile_size)
     cpu_choice = bpy.props.EnumProperty(
         name="Target CPU Tile Size",
         items=TILE_SIZES,
         default='32',
-        description="Square dimentions of tiles for CPU rendering",
+        description="Square dimensions of tiles for CPU rendering",
         update=_update_tile_size)
     bi_choice = bpy.props.EnumProperty(
         name="Target CPU Tile Size",
         items=TILE_SIZES,
         default='64',
-        description="Square dimentions of tiles",
+        description="Square dimensions of tiles",
         update=_update_tile_size)
 
     gpu_custom = bpy.props.IntProperty(
@@ -309,7 +309,6 @@ def do_set_tile_size(context):
 
     render.tile_x = tile_x
     render.tile_y = tile_y
-    
 
     settings.prev_engine = engine
     settings.prev_device = device
