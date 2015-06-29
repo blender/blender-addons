@@ -1806,6 +1806,7 @@ class FbxImportHelperNode:
         # while Blender attaches to the tail.
         self.bone_child_matrix = Matrix.Translation(-bone_tail)
 
+        connected = ...
         for child in self.children:
             if child.ignore:
                 continue
@@ -1816,9 +1817,31 @@ class FbxImportHelperNode:
                 child_bone.parent = bone
                 if similar_values_iter(bone.tail, child_bone.head):
                     child_bone.use_connect = True
-                elif force_connect_children:
-                    bone.tail = child_bone.head
-                    child_bone.use_connect = True
+                    # Disallow any force-connection at this level from now on, since that child was 'really'
+                    # connected, we do not want to move current bone's tail anymore!
+                    if connected is ...:
+                        connected = None
+                    elif connected is not None:
+                        # We already force-connected some children, so we have to store that child_bone in
+                        # force-connected list as well (since current bone's tail is no more in its original position).
+                        connected[1].append(child_bone)
+                elif force_connect_children and connected is not None:
+                    if connected is ...:  # First child bone to force-connect, it's OK so far.
+                        connected = (bone.tail.copy(), [child_bone])
+                        bone.tail = child_bone.head
+                        child_bone.use_connect = True
+                    else:
+                        # We already have at least one child bone force-connected.
+                        # Since we already moved current bone's tail to match that child,
+                        # if current child bone had been 'compatible' (same head position) it would have been
+                        # already handled by code above.
+                        # This means that at this point we know we have several child bones with different head
+                        # positions, hence we cannot force-connect them to current bone. We need to restore
+                        # situation prior to first force-connect!
+                        for cb in connected[1]:
+                            cb.use_connect = False
+                        bone.tail = connected[0]
+                        connected = None
 
         return bone
 
@@ -1880,7 +1903,7 @@ class FbxImportHelperNode:
                 if child.ignore:
                     continue
                 child_obj = child.bl_obj
-                if child_obj:
+                if child_obj and child_obj != self.bl_obj:
                     child_obj.parent = self.bl_obj  # get the armature the bone belongs to
                     child_obj.parent_bone = self.bl_bone
                     child_obj.parent_type = 'BONE'
