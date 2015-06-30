@@ -19,7 +19,7 @@
 bl_info = {
     "name": "Node Wrangler",
     "author": "Bartek Skorupa, Greg Zaal, Sebastian Koenig",
-    "version": (3, 28),
+    "version": (3, 29),
     "blender": (2, 75, 0),
     "location": "Node Editor Toolbar or Ctrl-Space",
     "description": "Various tools to enhance and speed up node-based workflow",
@@ -934,7 +934,7 @@ def draw_rounded_node_border(node, radius=8, colour=[1.0, 1.0, 1.0, 0.7]):
 
 def draw_callback_nodeoutline(self, context, mode):
     if self.mouse_path:
-        nodes = context.space_data.node_tree.nodes
+        nodes, links = get_nodes_links(context)
         bgl.glEnable(bgl.GL_LINE_SMOOTH)
 
         if mode == "LINK":
