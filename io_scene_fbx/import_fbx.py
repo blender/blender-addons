@@ -76,7 +76,7 @@ def elem_find_iter(elem, id_search):
 
 def elem_find_first_string(elem, id_search):
     fbx_item = elem_find_first(elem, id_search)
-    if fbx_item is not None:
+    if fbx_item is not None and fbx_item.props:  # Do not error on complete empty properties (see T45291).
         assert(len(fbx_item.props) == 1)
         assert(fbx_item.props_type[0] == data_types.STRING)
         return fbx_item.props[0].decode('utf-8')
@@ -85,7 +85,7 @@ def elem_find_first_string(elem, id_search):
 
 def elem_find_first_string_as_bytes(elem, id_search):
     fbx_item = elem_find_first(elem, id_search)
-    if fbx_item is not None:
+    if fbx_item is not None and fbx_item.props:  # Do not error on complete empty properties (see T45291).
         assert(len(fbx_item.props) == 1)
         assert(fbx_item.props_type[0] == data_types.STRING)
         return fbx_item.props[0]  # Keep it as bytes as requested...
@@ -94,7 +94,7 @@ def elem_find_first_string_as_bytes(elem, id_search):
 
 def elem_find_first_bytes(elem, id_search, decode=True):
     fbx_item = elem_find_first(elem, id_search)
-    if fbx_item is not None:
+    if fbx_item is not None and fbx_item.props:  # Do not error on complete empty properties (see T45291).
         assert(len(fbx_item.props) == 1)
         assert(fbx_item.props_type[0] == data_types.BYTES)
         return fbx_item.props[0]
