@@ -1323,6 +1323,13 @@ def blen_read_texture_image(fbx_tmpl, fbx_obj, basedir, settings):
     import os
     from bpy_extras import image_utils
 
+    def pack_data_from_content(image, fbx_obj):
+        data = elem_find_first_bytes(fbx_obj, b'Content')
+        if (data):
+            data_len = len(data)
+            if (data_len):
+                image.pack(data=data, data_len=data_len)
+
     elem_name_utf8 = elem_name_ensure_classes(fbx_obj, {b'Texture', b'Video'})
 
     image_cache = settings.image_cache
@@ -1348,6 +1355,9 @@ def blen_read_texture_image(fbx_tmpl, fbx_obj, basedir, settings):
 
     image = image_cache.get(filepath)
     if image is not None:
+        # Data is only embedded once, we may have already created the image but still be missing its data!
+        if not image.has_data:
+            pack_data_from_content(image, fbx_obj)
         return image
 
     image = image_utils.load_image(
@@ -1358,11 +1368,7 @@ def blen_read_texture_image(fbx_tmpl, fbx_obj, basedir, settings):
         )
 
     # Try to use embedded data, if available!
-    data = elem_find_first_bytes(fbx_obj, b'Content')
-    if (data):
-        data_len = len(data)
-        if (data_len):
-            image.pack(data=data, data_len=data_len)
+    pack_data_from_content(image, fbx_obj)
 
     image_cache[filepath] = image
     # name can be ../a/b/c
