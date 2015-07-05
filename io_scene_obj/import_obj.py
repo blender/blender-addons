@@ -116,7 +116,7 @@ def create_materials(filepath, relpath,
 
             mtex.texture = texture
             mtex.texture_coords = 'UV'
-            mtex.use_map_specular = True
+            mtex.use_map_color_spec = True
 
         elif type == 'Bump':
             mtex = blender_material.texture_slots.add()
