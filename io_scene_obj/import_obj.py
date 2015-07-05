@@ -205,11 +205,13 @@ def create_materials(filepath, relpath,
                     elif line_id == b'kd':
                         context_material.diffuse_color = (
                             float_func(line_split[1]), float_func(line_split[2]), float_func(line_split[3]))
+                        context_material.diffuse_intensity = 1.0
                     elif line_id == b'ks':
                         context_material.specular_color = (
                             float_func(line_split[1]), float_func(line_split[2]), float_func(line_split[3]))
+                        context_material.specular_intensity = 1.0
                     elif line_id == b'ns':
-                        context_material.specular_hardness = int((float_func(line_split[1]) * 0.51))
+                        context_material.specular_hardness = int((float_func(line_split[1]) * 0.51) + 1)
                     elif line_id == b'ni':  # Refraction index (between 1 and 3).
                         context_material.raytrace_transparency.ior = max(1, min(float_func(line_split[1]), 3))
                         context_material_vars.add("ior")
