@@ -39,7 +39,10 @@ from mathutils import Matrix, Euler, Vector
 # Utils
 from . import parse_fbx, fbx_utils
 
-from .parse_fbx import data_types, FBXElem
+from .parse_fbx import (
+    data_types,
+    FBXElem,
+)
 from .fbx_utils import (
     PerfMon,
     units_blender_to_fbx_factor,
@@ -47,7 +50,7 @@ from .fbx_utils import (
     array_to_matrix4,
     similar_values,
     similar_values_iter,
-    FBXImportSettings
+    FBXImportSettings,
 )
 
 # global singleton, assign on execution
@@ -1459,10 +1462,12 @@ class FbxImportHelperNode:
     It tries to keep the correction data in one place so it can be applied consistently to the imported data.
     """
 
-    __slots__ = ('_parent', 'anim_compensation_matrix', 'armature_setup', 'armature', 'bind_matrix',
-                 'bl_bone', 'bl_data', 'bl_obj', 'bone_child_matrix', 'children', 'clusters',
-                 'fbx_elem', 'fbx_name', 'fbx_transform_data', 'fbx_type', 'has_bone_children', 'ignore', 'is_armature',
-                 'is_bone', 'is_root', 'matrix', 'matrix_as_parent', 'matrix_geom', 'meshes', 'post_matrix', 'pre_matrix')
+    __slots__ = (
+        '_parent', 'anim_compensation_matrix', 'armature_setup', 'armature', 'bind_matrix',
+        'bl_bone', 'bl_data', 'bl_obj', 'bone_child_matrix', 'children', 'clusters',
+        'fbx_elem', 'fbx_name', 'fbx_transform_data', 'fbx_type',
+        'is_armature', 'has_bone_children', 'is_bone', 'is_root', 'is_leaf',
+        'matrix', 'matrix_as_parent', 'matrix_geom', 'meshes', 'post_matrix', 'pre_matrix')
 
     def __init__(self, fbx_elem, bl_data, fbx_transform_data, is_bone):
         self.fbx_name = elem_name_ensure_class(fbx_elem, b'Model') if fbx_elem else 'Unknown'
@@ -1477,7 +1482,7 @@ class FbxImportHelperNode:
         self.is_armature = False
         self.armature = None                    # For bones only, relevant armature node.
         self.has_bone_children = False          # True if the hierarchy below this node contains bones, important to support mixed hierarchies.
-        self.ignore = False                     # True for leaf-bones added to the end of some bone chains to set the lengths.
+        self.is_leaf = False                    # True for leaf-bones added to the end of some bone chains to set the lengths.
         self.pre_matrix = None                  # correction matrix that needs to be applied before the FBX transform
         self.bind_matrix = None                 # for bones this is the matrix used to bind to the skin
         if fbx_transform_data:
@@ -1507,6 +1512,12 @@ class FbxImportHelperNode:
         if self._parent is not None:
             self._parent.children.append(self)
 
+    @property
+    def ignore(self):
+        # Separating leaf status from ignore status itself.
+        # Currently they are equivalent, but this may change in future.
+        return self.is_leaf
+
     def __repr__(self):
         if self.fbx_elem:
             return self.fbx_elem.props[1].decode()
@@ -1516,6 +1527,7 @@ class FbxImportHelperNode:
     def print_info(self, indent=0):
         print(" " * indent + (self.fbx_name if self.fbx_name else "(Null)")
               + ("[root]" if self.is_root else "")
+              + ("[leaf]" if self.is_leaf else "")
               + ("[ignore]" if self.ignore else "")
               + ("[armature]" if self.is_armature else "")
               + ("[bone]" if self.is_bone else "")
@@ -1528,7 +1540,7 @@ class FbxImportHelperNode:
         if self.is_bone and len(self.children) == 1:
             child = self.children[0]
             if child.is_bone and len(child.children) == 0:
-                child.ignore = True  # Ignore leaf bone at end of chain
+                child.is_leaf = True
         for child in self.children:
             child.mark_leaf_bones()
 
@@ -1777,8 +1789,42 @@ class FbxImportHelperNode:
                 child.collect_armature_meshes()
 
     def build_skeleton(self, arm, parent_matrix, parent_bone_size=1, force_connect_children=False):
-        # ----
-        # Now, create the (edit)bone.
+        def child_connect(par_bone, child_bone, child_head, connect_ctx):
+            # child_bone or child_head may be None.
+            force_connect_children, connected = connect_ctx
+            if child_bone is not None:
+                child_bone.parent = par_bone
+                child_head = child_bone.head
+
+            if similar_values_iter(par_bone.tail, child_head):
+                if child_bone is not None:
+                    child_bone.use_connect = True
+                # Disallow any force-connection at this level from now on, since that child was 'really'
+                # connected, we do not want to move current bone's tail anymore!
+                connected = None
+            elif force_connect_children and connected is not None:
+                # We only store position where tail of par_bone should be in the end.
+                # Actual tail moving and force connection of compatible child bones will happen
+                # once all have been checked.
+                if connected is ...:
+                    connected = ([child_head.copy(), 1], [child_bone] if child_bone is not None else [])
+                else:
+                    connected[0][0] += child_head
+                    connected[0][1] += 1
+                    if child_bone is not None:
+                        connected[1].append(child_bone)
+            connect_ctx[1] = connected
+
+        def child_connect_finalize(par_bone, connect_ctx):
+            force_connect_children, connected = connect_ctx
+            # Do nothing if force connection is not enabled!
+            if force_connect_children and connected is not None and connected is not ...:
+                par_bone.tail = par_tail = connected[0][0] / connected[0][1]
+                for child_bone in connected[1]:
+                    if similar_values_iter(par_tail, child_bone.head):
+                        child_bone.use_connect = True
+
+        # Create the (edit)bone.
         bone = arm.bl_data.edit_bones.new(name=self.fbx_name)
         bone.select = True
         self.bl_obj = arm.bl_obj
@@ -1812,43 +1858,20 @@ class FbxImportHelperNode:
         # while Blender attaches to the tail.
         self.bone_child_matrix = Matrix.Translation(-bone_tail)
 
-        connected = ...
+        connect_ctx = [force_connect_children, ...]
         for child in self.children:
-            if child.ignore:
-                continue
-            if child.is_bone:
+            if child.is_leaf and force_connect_children:
+                # Arggggggggggggggggg! We do not want to create this bone, but we need its 'virtual head' location
+                # to orient current one!!!
+                child_head = (bone_matrix * child.get_bind_matrix().normalized()).translation
+                child_connect(bone, None, child_head, connect_ctx)
+            elif child.is_bone and not child.ignore:
                 child_bone = child.build_skeleton(arm, bone_matrix, bone_size,
                                                   force_connect_children=force_connect_children)
                 # Connection to parent.
-                child_bone.parent = bone
-                if similar_values_iter(bone.tail, child_bone.head):
-                    child_bone.use_connect = True
-                    # Disallow any force-connection at this level from now on, since that child was 'really'
-                    # connected, we do not want to move current bone's tail anymore!
-                    if connected is ...:
-                        connected = None
-                    elif connected is not None:
-                        # We already force-connected some children, so we have to store that child_bone in
-                        # force-connected list as well (since current bone's tail is no more in its original position).
-                        connected[1].append(child_bone)
-                elif force_connect_children and connected is not None:
-                    if connected is ...:  # First child bone to force-connect, it's OK so far.
-                        connected = (bone.tail.copy(), [child_bone])
-                        bone.tail = child_bone.head
-                        child_bone.use_connect = True
-                    else:
-                        # We already have at least one child bone force-connected.
-                        # Since we already moved current bone's tail to match that child,
-                        # if current child bone had been 'compatible' (same head position) it would have been
-                        # already handled by code above.
-                        # This means that at this point we know we have several child bones with different head
-                        # positions, hence we cannot force-connect them to current bone. We need to restore
-                        # situation prior to first force-connect!
-                        for cb in connected[1]:
-                            cb.use_connect = False
-                        bone.tail = connected[0]
-                        connected = None
+                child_connect(bone, child_bone, None, connect_ctx)
 
+        child_connect_finalize(bone, connect_ctx)
         return bone
 
     def build_node_obj(self, fbx_tmpl, settings):
