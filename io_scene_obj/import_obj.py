@@ -181,6 +181,14 @@ def create_materials(filepath, relpath,
         if not os.path.exists(mtlpath):
             print("\tMaterial not found MTL: %r" % mtlpath)
         else:
+            do_ambient = True
+            do_highlight = False
+            do_reflection = False
+            do_transparency = False
+            do_glass = False
+            do_fresnel = False
+            do_raytrace = False
+
             # print('\t\tloading mtl: %e' % mtlpath)
             context_material = None
             mtl = open(mtlpath, 'rb')
@@ -193,15 +201,62 @@ def create_materials(filepath, relpath,
                 line_id = line_split[0].lower()
 
                 if line_id == b'newmtl':
+                    # Finalize preview mat, if any.
+                    if context_material:
+                        if not do_ambient:
+                            context_material.ambient = 0.0
+
+                        if do_highlight:
+                            # FIXME, how else to use this?
+                            context_material.specular_intensity = 1.0
+
+                        if do_reflection:
+                            context_material.raytrace_mirror.use = True
+                            context_material.raytrace_mirror.reflect_factor = 1.0
+
+                        if do_transparency:
+                            context_material.use_transparency = True
+                            context_material.transparency_method = 'RAYTRACE' if do_raytrace else 'Z_TRANSPARENCY'
+                            if "alpha" not in context_material_vars:
+                                context_material.alpha = 0.0
+
+                        if do_glass:
+                            if "ior" not in context_material_vars:
+                                context_material.raytrace_transparency.ior = 1.5
+
+                        if do_fresnel:
+                            context_material.raytrace_mirror.fresnel = 1.0  # could be any value for 'ON'
+
+                        """
+                        if do_raytrace:
+                            context_material.use_raytrace = True
+                        else:
+                            context_material.use_raytrace = False
+                        """
+                        # XXX, this is not following the OBJ spec, but this was
+                        # written when raytracing wasnt default, annoying to disable for blender users.
+                        context_material.use_raytrace = True
+
                     context_material_name = line_value(line_split)
                     context_material = unique_materials.get(context_material_name)
                     context_material_vars.clear()
+
+                    do_ambient = True
+                    do_highlight = False
+                    do_reflection = False
+                    do_transparency = False
+                    do_glass = False
+                    do_fresnel = False
+                    do_raytrace = False
+
 
                 elif context_material:
                     # we need to make a material to assign properties to it.
                     if line_id == b'ka':
                         context_material.mirror_color = (
                             float_func(line_split[1]), float_func(line_split[2]), float_func(line_split[3]))
+                        # This is highly approximated, but let's try to stick as close from exporter as possible... :/
+                        context_material.ambient = sum(context_material.mirror_color) / 3
                     elif line_id == b'kd':
                         context_material.diffuse_color = (
                             float_func(line_split[1]), float_func(line_split[2]), float_func(line_split[3]))
@@ -215,26 +270,18 @@ def create_materials(filepath, relpath,
                     elif line_id == b'ni':  # Refraction index (between 1 and 3).
                         context_material.raytrace_transparency.ior = max(1, min(float_func(line_split[1]), 3))
                         context_material_vars.add("ior")
-                    elif line_id == b'd':  # dissolve (trancparency)
+                    elif line_id == b'd':  # dissolve (transparency)
                         context_material.alpha = float_func(line_split[1])
                         context_material.use_transparency = True
                         context_material.transparency_method = 'Z_TRANSPARENCY'
                         context_material_vars.add("alpha")
-                    elif line_id == b'tr':  # trancelucency
+                    elif line_id == b'tr':  # translucency
                         context_material.translucency = float_func(line_split[1])
                     elif line_id == b'tf':
                         # rgb, filter color, blender has no support for this.
                         pass
                     elif line_id == b'illum':
                         illum = int(line_split[1])
-
-                        do_ambient = True
-                        do_highlight = False
-                        do_reflection = False
-                        do_transparency = False
-                        do_glass = False
-                        do_fresnel = False
-                        do_raytrace = False
 
                         # inline comments are from the spec, v4.2
                         if illum == 0:
@@ -287,44 +334,8 @@ def create_materials(filepath, relpath,
                         elif illum == 10:
                             # Casts shadows onto invisible surfaces
 
-                            # blender cant do this
+                            # blender can't do this
                             pass
-
-                        if do_ambient:
-                            context_material.ambient = 1.0
-                        else:
-                            context_material.ambient = 0.0
-
-                        if do_highlight:
-                            # FIXME, how else to use this?
-                            context_material.specular_intensity = 1.0
-
-                        if do_reflection:
-                            context_material.raytrace_mirror.use = True
-                            context_material.raytrace_mirror.reflect_factor = 1.0
-
-                        if do_transparency:
-                            context_material.use_transparency = True
-                            context_material.transparency_method = 'RAYTRACE' if do_raytrace else 'Z_TRANSPARENCY'
-                            if "alpha" not in context_material_vars:
-                                context_material.alpha = 0.0
-
-                        if do_glass:
-                            if "ior" not in context_material_vars:
-                                context_material.raytrace_transparency.ior = 1.5
-
-                        if do_fresnel:
-                            context_material.raytrace_mirror.fresnel = 1.0  # could be any value for 'ON'
-
-                        """
-                        if do_raytrace:
-                            context_material.use_raytrace = True
-                        else:
-                            context_material.use_raytrace = False
-                        """
-                        # XXX, this is not following the OBJ spec, but this was
-                        # written when raytracing wasnt default, annoying to disable for blender users.
-                        context_material.use_raytrace = True
 
                     elif line_id == b'map_ka':
                         img_filepath = line_value(line.split())

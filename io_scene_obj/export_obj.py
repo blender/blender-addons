@@ -87,7 +87,7 @@ def write_mtl(scene, filepath, path_mode, copy_set, mtl_dict):
             if use_mirror:
                 fw('Ka %.6f %.6f %.6f\n' % (mat.raytrace_mirror.reflect_factor * mat.mirror_color)[:])
             else:
-                fw('Ka %.6f %.6f %.6f\n' % mat.ambient[:])  # Do not use world color!
+                fw('Ka %.6f %.6f %.6f\n' % (mat.ambient, mat.ambient, mat.ambient))  # Do not use world color!
             fw('Kd %.6f %.6f %.6f\n' % (mat.diffuse_intensity * mat.diffuse_color)[:])  # Diffuse
             fw('Ks %.6f %.6f %.6f\n' % (mat.specular_intensity * mat.specular_color)[:])  # Specular
             if hasattr(mat, "raytrace_transparency") and hasattr(mat.raytrace_transparency, "ior"):
