@@ -39,6 +39,8 @@ import mathutils
 from bpy_extras.io_utils import unpack_list
 from bpy_extras.image_utils import load_image
 
+from progress_report import ProgressReport, ProgressReportSubstep
+
 
 def line_value(line_split):
     """
@@ -838,344 +840,334 @@ def load(operator, context, filepath,
             [],  # If non-empty, that face is a Blender-invalid ngon (holes...), need a mutable object for that...
         )
 
-    print('\nimporting obj %r' % filepath)
+    with ProgressReport(context.window_manager) as progress:
+        progress.enter_substeps(1, "Importing OBJ %r..." % filepath)
 
-    filepath = os.fsencode(filepath)
+        if global_matrix is None:
+            global_matrix = mathutils.Matrix()
 
-    if global_matrix is None:
-        global_matrix = mathutils.Matrix()
+        if use_split_objects or use_split_groups:
+            use_groups_as_vgroups = False
 
-    if use_split_objects or use_split_groups:
-        use_groups_as_vgroups = False
+        time_main = time.time()
 
-    time_main = time.time()
+        verts_loc = []
+        verts_nor = []
+        verts_tex = []
+        faces = []  # tuples of the faces
+        material_libs = []  # filanems to material libs this uses
+        vertex_groups = {}  # when use_groups_as_vgroups is true
 
-    verts_loc = []
-    verts_nor = []
-    verts_tex = []
-    faces = []  # tuples of the faces
-    material_libs = []  # filanems to material libs this uses
-    vertex_groups = {}  # when use_groups_as_vgroups is true
+        # Get the string to float conversion func for this file- is 'float' for almost all files.
+        float_func = get_float_func(filepath)
 
-    # Get the string to float conversion func for this file- is 'float' for almost all files.
-    float_func = get_float_func(filepath)
+        # Context variables
+        context_material = None
+        context_smooth_group = None
+        context_object = None
+        context_vgroup = None
 
-    # Context variables
-    context_material = None
-    context_smooth_group = None
-    context_object = None
-    context_vgroup = None
+        # Nurbs
+        context_nurbs = {}
+        nurbs = []
+        context_parm = b''  # used by nurbs too but could be used elsewhere
 
-    # Nurbs
-    context_nurbs = {}
-    nurbs = []
-    context_parm = b''  # used by nurbs too but could be used elsewhere
+        # Until we can use sets
+        unique_materials = {}
+        unique_material_images = {}
+        unique_smooth_groups = {}
+        # unique_obects= {} - no use for this variable since the objects are stored in the face.
 
-    # Until we can use sets
-    unique_materials = {}
-    unique_material_images = {}
-    unique_smooth_groups = {}
-    # unique_obects= {} - no use for this variable since the objects are stored in the face.
+        # when there are faces that end with \
+        # it means they are multiline-
+        # since we use xreadline we cant skip to the next line
+        # so we need to know whether
+        context_multi_line = b''
 
-    # when there are faces that end with \
-    # it means they are multiline-
-    # since we use xreadline we cant skip to the next line
-    # so we need to know whether
-    context_multi_line = b''
+        # Per-face handling data.
+        face_vert_loc_indices = None
+        face_vert_nor_indices = None
+        face_vert_tex_indices = None
+        face_vert_nor_valid = face_vert_tex_valid = False
+        face_items_usage = set()
+        face_invalid_blenpoly = None
+        prev_vidx = None
+        face = None
+        vec = []
 
-    # Per-face handling data.
-    face_vert_loc_indices = None
-    face_vert_nor_indices = None
-    face_vert_tex_indices = None
-    face_vert_nor_valid = face_vert_tex_valid = False
-    face_items_usage = set()
-    face_invalid_blenpoly = None
-    prev_vidx = None
-    face = None
-    vec = []
+        progress.enter_substeps(3, "Parsing OBJ file...")
+        with open(filepath, 'rb') as f:
+            for line in f:  # .readlines():
+                line_split = line.split()
 
-    print("\tparsing obj file...")
-    time_sub = time.time()
+                if not line_split:
+                    continue
 
-    file = open(filepath, 'rb')
-    for line in file:  # .readlines():
-        line_split = line.split()
+                line_start = line_split[0]  # we compare with this a _lot_
 
-        if not line_split:
-            continue
+                if line_start == b'v' or context_multi_line == b'v':
+                    context_multi_line = handle_vec(line_start, context_multi_line, line_split, b'v', verts_loc, vec, 3)
 
-        line_start = line_split[0]  # we compare with this a _lot_
+                elif line_start == b'vn' or context_multi_line == b'vn':
+                    context_multi_line = handle_vec(line_start, context_multi_line, line_split, b'vn', verts_nor, vec, 3)
 
-        if line_start == b'v' or context_multi_line == b'v':
-            context_multi_line = handle_vec(line_start, context_multi_line, line_split, b'v', verts_loc, vec, 3)
+                elif line_start == b'vt' or context_multi_line == b'vt':
+                    context_multi_line = handle_vec(line_start, context_multi_line, line_split, b'vt', verts_tex, vec, 2)
 
-        elif line_start == b'vn' or context_multi_line == b'vn':
-            context_multi_line = handle_vec(line_start, context_multi_line, line_split, b'vn', verts_nor, vec, 3)
+                # Handle faces lines (as faces) and the second+ lines of fa multiline face here
+                # use 'f' not 'f ' because some objs (very rare have 'fo ' for faces)
+                elif line_start == b'f' or context_multi_line == b'f':
+                    if not context_multi_line:
+                        line_split = line_split[1:]
+                        # Instantiate a face
+                        face = create_face(context_material, context_smooth_group, context_object)
+                        (face_vert_loc_indices, face_vert_nor_indices, face_vert_tex_indices,
+                         _1, _2, _3, face_invalid_blenpoly) = face
+                        faces.append(face)
+                        face_items_usage.clear()
+                    # Else, use face_vert_loc_indices and face_vert_tex_indices previously defined and used the obj_face
 
-        elif line_start == b'vt' or context_multi_line == b'vt':
-            context_multi_line = handle_vec(line_start, context_multi_line, line_split, b'vt', verts_tex, vec, 2)
+                    context_multi_line = b'f' if strip_slash(line_split) else b''
 
-        # Handle faces lines (as faces) and the second+ lines of fa multiline face here
-        # use 'f' not 'f ' because some objs (very rare have 'fo ' for faces)
-        elif line_start == b'f' or context_multi_line == b'f':
-            if not context_multi_line:
-                line_split = line_split[1:]
-                # Instantiate a face
-                face = create_face(context_material, context_smooth_group, context_object)
-                (face_vert_loc_indices, face_vert_nor_indices, face_vert_tex_indices,
-                 _1, _2, _3, face_invalid_blenpoly) = face
-                faces.append(face)
-                face_items_usage.clear()
-            # Else, use face_vert_loc_indices and face_vert_tex_indices previously defined and used the obj_face
+                    for v in line_split:
+                        obj_vert = v.split(b'/')
+                        idx = int(obj_vert[0]) - 1
+                        vert_loc_index = (idx + len(verts_loc) + 1) if (idx < 0) else idx
+                        # Add the vertex to the current group
+                        # *warning*, this wont work for files that have groups defined around verts
+                        if use_groups_as_vgroups and context_vgroup:
+                            vertex_groups[context_vgroup].append(vert_loc_index)
+                        # This a first round to quick-detect ngons that *may* use a same edge more than once.
+                        # Potential candidate will be re-checked once we have done parsing the whole face.
+                        if not face_invalid_blenpoly:
+                            # If we use more than once a same vertex, invalid ngon is suspected.
+                            if vert_loc_index in face_items_usage:
+                                face_invalid_blenpoly.append(True)
+                            else:
+                                face_items_usage.add(vert_loc_index)
+                        face_vert_loc_indices.append(vert_loc_index)
 
-            context_multi_line = b'f' if strip_slash(line_split) else b''
+                        # formatting for faces with normals and textures is
+                        # loc_index/tex_index/nor_index
+                        if len(obj_vert) > 1 and obj_vert[1]:
+                            idx = int(obj_vert[1]) - 1
+                            face_vert_tex_indices.append((idx + len(verts_tex) + 1) if (idx < 0) else idx)
+                            face_vert_tex_valid = True
+                        else:
+                            # dummy
+                            face_vert_tex_indices.append(0)
 
-            for v in line_split:
-                obj_vert = v.split(b'/')
-                idx = int(obj_vert[0]) - 1
-                vert_loc_index = (idx + len(verts_loc) + 1) if (idx < 0) else idx
-                # Add the vertex to the current group
-                # *warning*, this wont work for files that have groups defined around verts
-                if use_groups_as_vgroups and context_vgroup:
-                    vertex_groups[context_vgroup].append(vert_loc_index)
-                # This a first round to quick-detect ngons that *may* use a same edge more than once.
-                # Potential candidate will be re-checked once we have done parsing the whole face.
-                if not face_invalid_blenpoly:
-                    # If we use more than once a same vertex, invalid ngon is suspected.
-                    if vert_loc_index in face_items_usage:
-                        face_invalid_blenpoly.append(True)
+                        if len(obj_vert) > 2 and obj_vert[2]:
+                            idx = int(obj_vert[2]) - 1
+                            face_vert_nor_indices.append((idx + len(verts_nor) + 1) if (idx < 0) else idx)
+                            face_vert_nor_valid = True
+                        else:
+                            # dummy
+                            face_vert_nor_indices.append(0)
+
+                    if not context_multi_line:
+                        # Clear nor/tex indices in case we had none defined for this face.
+                        if not face_vert_nor_valid:
+                            face_vert_nor_indices.clear()
+                        if not face_vert_tex_valid:
+                            face_vert_tex_indices.clear()
+                        face_vert_nor_valid = face_vert_tex_valid = False
+
+                        # Means we have finished a face, we have to do final check if ngon is suspected to be blender-invalid...
+                        if face_invalid_blenpoly:
+                            face_invalid_blenpoly.clear()
+                            face_items_usage.clear()
+                            prev_vidx = face_vert_loc_indices[-1]
+                            for vidx in face_vert_loc_indices:
+                                edge_key = (prev_vidx, vidx) if (prev_vidx < vidx) else (vidx, prev_vidx)
+                                if edge_key in face_items_usage:
+                                    face_invalid_blenpoly.append(True)
+                                    break
+                                face_items_usage.add(edge_key)
+                                prev_vidx = vidx
+
+                elif use_edges and (line_start == b'l' or context_multi_line == b'l'):
+                    # very similar to the face load function above with some parts removed
+                    if not context_multi_line:
+                        line_split = line_split[1:]
+                        # Instantiate a face
+                        face = create_face(context_material, context_smooth_group, context_object)
+                        face_vert_loc_indices = face[0]
+                        # XXX A bit hackish, we use special 'value' of face_vert_nor_indices (a single True item) to tag this
+                        #     as a polyline, and not a regular face...
+                        face[1][:] = [True]
+                        faces.append(face)
+                    # Else, use face_vert_loc_indices previously defined and used the obj_face
+
+                    context_multi_line = b'l' if strip_slash(line_split) else b''
+
+                    for v in line_split:
+                        obj_vert = v.split(b'/')
+                        idx = int(obj_vert[0]) - 1
+                        face_vert_loc_indices.append((idx + len(verts_loc) + 1) if (idx < 0) else idx)
+
+                elif line_start == b's':
+                    if use_smooth_groups:
+                        context_smooth_group = line_value(line_split)
+                        if context_smooth_group == b'off':
+                            context_smooth_group = None
+                        elif context_smooth_group:  # is not None
+                            unique_smooth_groups[context_smooth_group] = None
+
+                elif line_start == b'o':
+                    if use_split_objects:
+                        context_object = line_value(line_split)
+                        # unique_obects[context_object]= None
+
+                elif line_start == b'g':
+                    if use_split_groups:
+                        context_object = line_value(line.split())
+                        # print 'context_object', context_object
+                        # unique_obects[context_object]= None
+                    elif use_groups_as_vgroups:
+                        context_vgroup = line_value(line.split())
+                        if context_vgroup and context_vgroup != b'(null)':
+                            vertex_groups.setdefault(context_vgroup, [])
+                        else:
+                            context_vgroup = None  # dont assign a vgroup
+
+                elif line_start == b'usemtl':
+                    context_material = line_value(line.split())
+                    unique_materials[context_material] = None
+                elif line_start == b'mtllib':  # usemap or usemat
+                    # can have multiple mtllib filenames per line, mtllib can appear more than once,
+                    # so make sure only occurrence of material exists
+                    material_libs = list(set(material_libs) | set(line.split()[1:]))
+
+                    # Nurbs support
+                elif line_start == b'cstype':
+                    context_nurbs[b'cstype'] = line_value(line.split())  # 'rat bspline' / 'bspline'
+                elif line_start == b'curv' or context_multi_line == b'curv':
+                    curv_idx = context_nurbs[b'curv_idx'] = context_nurbs.get(b'curv_idx', [])  # in case were multiline
+
+                    if not context_multi_line:
+                        context_nurbs[b'curv_range'] = float_func(line_split[1]), float_func(line_split[2])
+                        line_split[0:3] = []  # remove first 3 items
+
+                    if strip_slash(line_split):
+                        context_multi_line = b'curv'
                     else:
-                        face_items_usage.add(vert_loc_index)
-                face_vert_loc_indices.append(vert_loc_index)
+                        context_multi_line = b''
 
-                # formatting for faces with normals and textures is
-                # loc_index/tex_index/nor_index
-                if len(obj_vert) > 1 and obj_vert[1]:
-                    idx = int(obj_vert[1]) - 1
-                    face_vert_tex_indices.append((idx + len(verts_tex) + 1) if (idx < 0) else idx)
-                    face_vert_tex_valid = True
-                else:
-                    # dummy
-                    face_vert_tex_indices.append(0)
+                    for i in line_split:
+                        vert_loc_index = int(i) - 1
 
-                if len(obj_vert) > 2 and obj_vert[2]:
-                    idx = int(obj_vert[2]) - 1
-                    face_vert_nor_indices.append((idx + len(verts_nor) + 1) if (idx < 0) else idx)
-                    face_vert_nor_valid = True
-                else:
-                    # dummy
-                    face_vert_nor_indices.append(0)
+                        if vert_loc_index < 0:
+                            vert_loc_index = len(verts_loc) + vert_loc_index + 1
 
-            if not context_multi_line:
-                # Clear nor/tex indices in case we had none defined for this face.
-                if not face_vert_nor_valid:
-                    face_vert_nor_indices.clear()
-                if not face_vert_tex_valid:
-                    face_vert_tex_indices.clear()
-                face_vert_nor_valid = face_vert_tex_valid = False
+                        curv_idx.append(vert_loc_index)
 
-                # Means we have finished a face, we have to do final check if ngon is suspected to be blender-invalid...
-                if face_invalid_blenpoly:
-                    face_invalid_blenpoly.clear()
-                    face_items_usage.clear()
-                    prev_vidx = face_vert_loc_indices[-1]
-                    for vidx in face_vert_loc_indices:
-                        edge_key = (prev_vidx, vidx) if (prev_vidx < vidx) else (vidx, prev_vidx)
-                        if edge_key in face_items_usage:
-                            face_invalid_blenpoly.append(True)
-                            break
-                        face_items_usage.add(edge_key)
-                        prev_vidx = vidx
+                elif line_start == b'parm' or context_multi_line == b'parm':
+                    if context_multi_line:
+                        context_multi_line = b''
+                    else:
+                        context_parm = line_split[1]
+                        line_split[0:2] = []  # remove first 2
 
-        elif use_edges and (line_start == b'l' or context_multi_line == b'l'):
-            # very similar to the face load function above with some parts removed
-            if not context_multi_line:
-                line_split = line_split[1:]
-                # Instantiate a face
-                face = create_face(context_material, context_smooth_group, context_object)
-                face_vert_loc_indices = face[0]
-                # XXX A bit hackish, we use special 'value' of face_vert_nor_indices (a single True item) to tag this
-                #     as a polyline, and not a regular face...
-                face[1][:] = [True]
-                faces.append(face)
-            # Else, use face_vert_loc_indices previously defined and used the obj_face
+                    if strip_slash(line_split):
+                        context_multi_line = b'parm'
+                    else:
+                        context_multi_line = b''
 
-            context_multi_line = b'l' if strip_slash(line_split) else b''
+                    if context_parm.lower() == b'u':
+                        context_nurbs.setdefault(b'parm_u', []).extend([float_func(f) for f in line_split])
+                    elif context_parm.lower() == b'v':  # surfaces not supported yet
+                        context_nurbs.setdefault(b'parm_v', []).extend([float_func(f) for f in line_split])
+                    # else: # may want to support other parm's ?
 
-            for v in line_split:
-                obj_vert = v.split(b'/')
-                idx = int(obj_vert[0]) - 1
-                face_vert_loc_indices.append((idx + len(verts_loc) + 1) if (idx < 0) else idx)
+                elif line_start == b'deg':
+                    context_nurbs[b'deg'] = [int(i) for i in line.split()[1:]]
+                elif line_start == b'end':
+                    # Add the nurbs curve
+                    if context_object:
+                        context_nurbs[b'name'] = context_object
+                    nurbs.append(context_nurbs)
+                    context_nurbs = {}
+                    context_parm = b''
 
-        elif line_start == b's':
-            if use_smooth_groups:
-                context_smooth_group = line_value(line_split)
-                if context_smooth_group == b'off':
-                    context_smooth_group = None
-                elif context_smooth_group:  # is not None
-                    unique_smooth_groups[context_smooth_group] = None
+                ''' # How to use usemap? depricated?
+                elif line_start == b'usema': # usemap or usemat
+                    context_image= line_value(line_split)
+                '''
 
-        elif line_start == b'o':
-            if use_split_objects:
-                context_object = line_value(line_split)
-                # unique_obects[context_object]= None
+        progress.step("Done, loading materials and images...")
 
-        elif line_start == b'g':
-            if use_split_groups:
-                context_object = line_value(line.split())
-                # print 'context_object', context_object
-                # unique_obects[context_object]= None
-            elif use_groups_as_vgroups:
-                context_vgroup = line_value(line.split())
-                if context_vgroup and context_vgroup != b'(null)':
-                    vertex_groups.setdefault(context_vgroup, [])
-                else:
-                    context_vgroup = None  # dont assign a vgroup
+        create_materials(filepath.encode(), relpath, material_libs, unique_materials,
+                         unique_material_images, use_image_search, float_func)
 
-        elif line_start == b'usemtl':
-            context_material = line_value(line.split())
-            unique_materials[context_material] = None
-        elif line_start == b'mtllib':  # usemap or usemat
-            # can have multiple mtllib filenames per line, mtllib can appear more than once,
-            # so make sure only occurrence of material exists
-            material_libs = list(set(material_libs) | set(line.split()[1:]))
+        progress.step("Done, building geometries (verts:%i faces:%i materials: %i smoothgroups:%i) ..." %
+                      (len(verts_loc), len(faces), len(unique_materials), len(unique_smooth_groups)))
 
-            # Nurbs support
-        elif line_start == b'cstype':
-            context_nurbs[b'cstype'] = line_value(line.split())  # 'rat bspline' / 'bspline'
-        elif line_start == b'curv' or context_multi_line == b'curv':
-            curv_idx = context_nurbs[b'curv_idx'] = context_nurbs.get(b'curv_idx', [])  # in case were multiline
+        # deselect all
+        if bpy.ops.object.select_all.poll():
+            bpy.ops.object.select_all(action='DESELECT')
 
-            if not context_multi_line:
-                context_nurbs[b'curv_range'] = float_func(line_split[1]), float_func(line_split[2])
-                line_split[0:3] = []  # remove first 3 items
+        scene = context.scene
+        new_objects = []  # put new objects here
 
-            if strip_slash(line_split):
-                context_multi_line = b'curv'
-            else:
-                context_multi_line = b''
+        # Split the mesh by objects/materials, may
+        SPLIT_OB_OR_GROUP = bool(use_split_objects or use_split_groups)
 
-            for i in line_split:
-                vert_loc_index = int(i) - 1
+        for data in split_mesh(verts_loc, faces, unique_materials, filepath, SPLIT_OB_OR_GROUP):
+            verts_loc_split, faces_split, unique_materials_split, dataname, use_vnor, use_vtex = data
+            # Create meshes from the data, warning 'vertex_groups' wont support splitting
+            #~ print(dataname, use_vnor, use_vtex)
+            create_mesh(new_objects,
+                        use_edges,
+                        verts_loc_split,
+                        verts_nor if use_vnor else [],
+                        verts_tex if use_vtex else [],
+                        faces_split,
+                        unique_materials_split,
+                        unique_material_images,
+                        unique_smooth_groups,
+                        vertex_groups,
+                        dataname,
+                        )
 
-                if vert_loc_index < 0:
-                    vert_loc_index = len(verts_loc) + vert_loc_index + 1
+        # nurbs support
+        for context_nurbs in nurbs:
+            create_nurbs(context_nurbs, verts_loc, new_objects)
 
-                curv_idx.append(vert_loc_index)
-
-        elif line_start == b'parm' or context_multi_line == b'parm':
-            if context_multi_line:
-                context_multi_line = b''
-            else:
-                context_parm = line_split[1]
-                line_split[0:2] = []  # remove first 2
-
-            if strip_slash(line_split):
-                context_multi_line = b'parm'
-            else:
-                context_multi_line = b''
-
-            if context_parm.lower() == b'u':
-                context_nurbs.setdefault(b'parm_u', []).extend([float_func(f) for f in line_split])
-            elif context_parm.lower() == b'v':  # surfaces not supported yet
-                context_nurbs.setdefault(b'parm_v', []).extend([float_func(f) for f in line_split])
-            # else: # may want to support other parm's ?
-
-        elif line_start == b'deg':
-            context_nurbs[b'deg'] = [int(i) for i in line.split()[1:]]
-        elif line_start == b'end':
-            # Add the nurbs curve
-            if context_object:
-                context_nurbs[b'name'] = context_object
-            nurbs.append(context_nurbs)
-            context_nurbs = {}
-            context_parm = b''
-
-        ''' # How to use usemap? depricated?
-        elif line_start == b'usema': # usemap or usemat
-            context_image= line_value(line_split)
-        '''
-
-    file.close()
-    time_new = time.time()
-    print("%.4f sec" % (time_new - time_sub))
-    time_sub = time_new
-
-    print('\tloading materials and images...')
-    create_materials(filepath, relpath, material_libs, unique_materials,
-                     unique_material_images, use_image_search, float_func)
-
-    time_new = time.time()
-    print("%.4f sec" % (time_new - time_sub))
-    time_sub = time_new
-
-    # deselect all
-    if bpy.ops.object.select_all.poll():
-        bpy.ops.object.select_all(action='DESELECT')
-
-    scene = context.scene
-    new_objects = []  # put new objects here
-
-    print('\tbuilding geometry...\n\tverts:%i faces:%i materials: %i smoothgroups:%i ...' %
-          (len(verts_loc), len(faces), len(unique_materials), len(unique_smooth_groups)))
-    # Split the mesh by objects/materials, may
-    SPLIT_OB_OR_GROUP = bool(use_split_objects or use_split_groups)
-
-    for data in split_mesh(verts_loc, faces, unique_materials, filepath, SPLIT_OB_OR_GROUP):
-        verts_loc_split, faces_split, unique_materials_split, dataname, use_vnor, use_vtex = data
-        # Create meshes from the data, warning 'vertex_groups' wont support splitting
-        #~ print(dataname, use_vnor, use_vtex)
-        create_mesh(new_objects,
-                    use_edges,
-                    verts_loc_split,
-                    verts_nor if use_vnor else [],
-                    verts_tex if use_vtex else [],
-                    faces_split,
-                    unique_materials_split,
-                    unique_material_images,
-                    unique_smooth_groups,
-                    vertex_groups,
-                    dataname,
-                    )
-
-    # nurbs support
-    for context_nurbs in nurbs:
-        create_nurbs(context_nurbs, verts_loc, new_objects)
-
-    # Create new obj
-    for obj in new_objects:
-        base = scene.objects.link(obj)
-        base.select = True
-
-        # we could apply this anywhere before scaling.
-        obj.matrix_world = global_matrix
-
-    scene.update()
-
-    axis_min = [1000000000] * 3
-    axis_max = [-1000000000] * 3
-
-    if global_clamp_size:
-        # Get all object bounds
-        for ob in new_objects:
-            for v in ob.bound_box:
-                for axis, value in enumerate(v):
-                    if axis_min[axis] > value:
-                        axis_min[axis] = value
-                    if axis_max[axis] < value:
-                        axis_max[axis] = value
-
-        # Scale objects
-        max_axis = max(axis_max[0] - axis_min[0], axis_max[1] - axis_min[1], axis_max[2] - axis_min[2])
-        scale = 1.0
-
-        while global_clamp_size < max_axis * scale:
-            scale = scale / 10.0
-
+        # Create new obj
         for obj in new_objects:
-            obj.scale = scale, scale, scale
+            base = scene.objects.link(obj)
+            base.select = True
 
-    time_new = time.time()
+            # we could apply this anywhere before scaling.
+            obj.matrix_world = global_matrix
 
-    print("finished importing: %r in %.4f sec." % (filepath, (time_new - time_main)))
+        scene.update()
+
+        axis_min = [1000000000] * 3
+        axis_max = [-1000000000] * 3
+
+        if global_clamp_size:
+            # Get all object bounds
+            for ob in new_objects:
+                for v in ob.bound_box:
+                    for axis, value in enumerate(v):
+                        if axis_min[axis] > value:
+                            axis_min[axis] = value
+                        if axis_max[axis] < value:
+                            axis_max[axis] = value
+
+            # Scale objects
+            max_axis = max(axis_max[0] - axis_min[0], axis_max[1] - axis_min[1], axis_max[2] - axis_min[2])
+            scale = 1.0
+
+            while global_clamp_size < max_axis * scale:
+                scale = scale / 10.0
+
+            for obj in new_objects:
+                obj.scale = scale, scale, scale
+
+        progress.leave_substeps("Done.")
+        progress.leave_substeps("Finished importing: %r" % filepath)
+
     return {'FINISHED'}
