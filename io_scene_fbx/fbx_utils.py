@@ -71,8 +71,8 @@ FBX_ANIM_PROPSGROUP_NAME = "d"
 FBX_KTIME = 46186158000  # This is the number of "ktimes" in one second (yep, precision over the nanosecond...)
 
 
-MAT_CONVERT_LAMP = Matrix.Rotation(math.pi / -2.0, 4, 'X')  # Blender is -Z, FBX is +Y.
-MAT_CONVERT_CAMERA = Matrix.Rotation(math.pi / -2.0, 4, 'Y')  # Blender is -Z, FBX is -X.
+MAT_CONVERT_LAMP = Matrix.Rotation(math.pi / 2.0, 4, 'X')  # Blender is -Z, FBX is -Y.
+MAT_CONVERT_CAMERA = Matrix.Rotation(math.pi / 2.0, 4, 'Y')  # Blender is -Z, FBX is +X.
 # XXX I can't get this working :(
 # MAT_CONVERT_BONE = Matrix.Rotation(math.pi / 2.0, 4, 'Z')  # Blender is +Y, FBX is -X.
 MAT_CONVERT_BONE = Matrix()
