@@ -383,15 +383,17 @@ def split_mesh(verts_loc, faces, unique_materials, filepath, SPLIT_OB_OR_GROUP):
     filename = os.path.splitext((os.path.basename(filepath)))[0]
 
     if not SPLIT_OB_OR_GROUP or not faces:
+        use_verts_nor = any((False if f[1] is ... else True) for f in faces)
+        use_verts_tex = any((False if f[2] is ... else True) for f in faces)
         # use the filename for the object name since we aren't chopping up the mesh.
-        return [(verts_loc, faces, unique_materials, filename, bool(verts_nor), bool(verts_tex))]
+        return [(verts_loc, faces, unique_materials, filename, use_verts_nor, use_verts_tex)]
 
     def key_to_name(key):
         # if the key is a tuple, join it to make a string
         if not key:
             return filename  # assume its a string. make sure this is true if the splitting code is changed
         else:
-            return key
+            return key.decode('utf-8', 'replace')
 
     # Return a key that makes the faces unique.
     face_split_dict = {}
@@ -409,11 +411,10 @@ def split_mesh(verts_loc, faces, unique_materials, filepath, SPLIT_OB_OR_GROUP):
 
         face_vert_loc_indices = face[0]
 
-        # In case a face only uses zero indices for vnors/vtex (aka UV), we assume it actually does not use those...
-        if not use_verts_nor and face[1]:
+        if not use_verts_nor and face[1] is not ...:
             use_verts_nor.append(True)
 
-        if not use_verts_tex and face[2]:
+        if not use_verts_tex and face[2] is not ...:
             use_verts_tex.append(True)
 
         # Remap verts to new vert list and add where needed
@@ -562,7 +563,7 @@ def create_mesh(new_objects,
     for name, index in material_mapping.items():
         materials[index] = unique_materials[name]
 
-    me = bpy.data.meshes.new(dataname.decode('utf-8', "replace"))
+    me = bpy.data.meshes.new(dataname)
 
     # make sure the list isnt too big
     for material in materials:
@@ -626,7 +627,7 @@ def create_mesh(new_objects,
 
         if verts_nor and face_vert_nor_indices:
             for face_noidx, lidx in zip(face_vert_nor_indices, blen_poly.loop_indices):
-                me.loops[lidx].normal[:] = verts_nor[face_noidx]
+                me.loops[lidx].normal[:] = verts_nor[0 if (face_noidx is ...) else face_noidx]
 
         if verts_tex and face_vert_tex_indices:
             if context_material:
@@ -636,7 +637,7 @@ def create_mesh(new_objects,
 
             blen_uvs = me.uv_layers[0]
             for face_uvidx, lidx in zip(face_vert_tex_indices, blen_poly.loop_indices):
-                blen_uvs.data[lidx].uv = verts_tex[face_uvidx]
+                blen_uvs.data[lidx].uv = verts_tex[0 if (face_uvidx is ...) else face_uvidx]
 
     use_edges = use_edges and bool(edges)
     if use_edges:
@@ -954,16 +955,14 @@ def load(operator, context, filepath,
                             face_vert_tex_indices.append((idx + len(verts_tex) + 1) if (idx < 0) else idx)
                             face_vert_tex_valid = True
                         else:
-                            # dummy
-                            face_vert_tex_indices.append(0)
+                            face_vert_tex_indices.append(...)
 
                         if len(obj_vert) > 2 and obj_vert[2]:
                             idx = int(obj_vert[2]) - 1
                             face_vert_nor_indices.append((idx + len(verts_nor) + 1) if (idx < 0) else idx)
                             face_vert_nor_valid = True
                         else:
-                            # dummy
-                            face_vert_nor_indices.append(0)
+                            face_vert_nor_indices.append(...)
 
                     if not context_multi_line:
                         # Clear nor/tex indices in case we had none defined for this face.
