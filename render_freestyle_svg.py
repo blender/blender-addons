@@ -58,7 +58,7 @@ from freestyle.utils import (
     get_object_name,
     )
 from freestyle.functions import (
-    GetShapeF1D, 
+    GetShapeF1D,
     CurveMaterialF0D,
     )
 from freestyle.predicates import (
@@ -155,6 +155,30 @@ def create_path(scene):
         frame = "{:04d}-{:04d}".format(scene.frame_start, scene.frame_end)
     return os.path.join(dirname, basename + frame + ".svg")
 
+
+class SVGExporterLinesetPanel(bpy.types.Panel):
+    """Creates a Panel in the Render Layers context of the properties editor"""
+    bl_idname = "RENDER_PT_SVGExporterLinesetPanel"
+    bl_space_type = 'PROPERTIES'
+    bl_label = "Freestyle Line Style SVG Export"
+    bl_region_type = 'WINDOW'
+    bl_context = "render_layer"
+
+    def draw(self, context):
+        layout = self.layout
+
+        scene = context.scene
+        svg = scene.svg_export
+        freestyle = scene.render.layers.active.freestyle_settings
+        linestyle = freestyle.linesets.active.linestyle
+
+        layout.active = (svg.use_svg_export and freestyle.mode != 'SCRIPT')
+        row = layout.row()
+        column = row.column()
+        column.prop(linestyle, 'use_export_strokes')
+        column = row.column()
+        column.active = svg.object_fill
+        column.prop(linestyle, 'use_export_fills')
 
 class SVGExport(bpy.types.PropertyGroup):
     """Implements the properties for the SVG exporter"""
@@ -470,10 +494,20 @@ class SVGFillBuilder:
         tree = et.parse(self.filepath)
         root = tree.getroot()
         scene = bpy.context.scene
+        name = self._name
+
         lineset_group = find_svg_elem(tree, ".//svg:g[@id='{}']".format(self._name))
         if lineset_group is None:
-            print("searched for {}, but could not find a <g> with that id".format(self._name))
-            return
+            lineset_group = et.XML('<g/>')
+            lineset_group.attrib = {
+                'id': name,
+                'xmlns:inkscape': namespaces["inkscape"],
+                'inkscape:groupmode': 'lineset',
+                'inkscape:label': name,
+                }
+            root.append(lineset_group)
+            print('added new lineset group ', name)
+
 
         # <g> for the fills of the current frame
         fill_group = et.XML('<g/>')
@@ -520,19 +554,16 @@ class ParameterEditorCallback(object):
     def lineset_post(self, scene, layer, lineset):
         raise NotImplementedError()
 
-    @classmethod
-    def evaluate(cls, scene):
-        'Evaluates whether these callbacks should run'
-        return (
-            scene.render.use_freestyle 
-            and scene.svg_export.use_svg_export 
-            )
 
 
 class SVGPathShaderCallback(ParameterEditorCallback):
     @classmethod
+    def poll(cls, scene, linestyle):
+        return scene.render.use_freestyle and scene.svg_export.use_svg_export and linestyle.use_export_strokes
+
+    @classmethod
     def modifier_post(cls, scene, layer, lineset):
-        if not cls.evaluate(scene):
+        if not cls.poll(scene, lineset.linestyle):
             return []
 
         split = scene.svg_export.split_at_invisible
@@ -542,31 +573,35 @@ class SVGPathShaderCallback(ParameterEditorCallback):
         return [cls.shader]
 
     @classmethod
-    def lineset_post(cls, scene, *args):
-        if not cls.evaluate(scene):
-            return
+    def lineset_post(cls, scene, layer, lineset):
+        if not cls.poll(scene, lineset.linestyle):
+            return []
         cls.shader.write()
 
 
 class SVGFillShaderCallback(ParameterEditorCallback):
-    @staticmethod
-    def lineset_post(scene, layer, lineset):
-        if not (scene.render.use_freestyle and scene.svg_export.use_svg_export and scene.svg_export.object_fill):
+    @classmethod
+    def poll(cls, scene, linestyle):
+        return scene.render.use_freestyle and scene.svg_export.use_svg_export and scene.svg_export.object_fill and linestyle.use_export_fills
+
+    @classmethod
+    def lineset_post(cls, scene, layer, lineset):
+        if not cls.poll(scene, lineset.linestyle):
             return
 
         # reset the stroke selection (but don't delete the already generated strokes)
         Operators.reset(delete_strokes=False)
         # Unary Predicates: visible and correct edge nature
         upred = AndUP1D(
-            QuantitativeInvisibilityUP1D(0), 
-            OrUP1D(ExternalContourUP1D(), 
+            QuantitativeInvisibilityUP1D(0),
+            OrUP1D(ExternalContourUP1D(),
                    pyNatureUP1D(Nature.BORDER)),
             )
         # select the new edges
         Operators.select(upred)
         # Binary Predicates
         bpred = AndBP1D(
-            MaterialBP1D(), 
+            MaterialBP1D(),
             NotBP1D(pyZDiscontinuityBP1D()),
             )
         bpred = OrBP1D(bpred, AndBP1D(NotBP1D(bpred), AndBP1D(SameShapeIdBP1D(), MaterialBP1D())))
@@ -609,15 +644,28 @@ def register_namespaces(namespaces=namespaces):
 
 classes = (
     SVGExporterPanel,
+    SVGExporterLinesetPanel,
     SVGExport,
     )
 
 
 def register():
+    linestyle = bpy.types.FreestyleLineStyle
+    linestyle.use_export_strokes = BoolProperty(
+            name="Export Strokes",
+            description="Export strokes for this Line Style",
+            default=True,
+            )
+    linestyle.use_export_fills = BoolProperty(
+            name="Export Fills",
+            description="Export fills for this Line Style",
+            default=False,
+            )
 
     for cls in classes:
         bpy.utils.register_class(cls)
     bpy.types.Scene.svg_export = PointerProperty(type=SVGExport)
+
 
     # add callbacks
     bpy.app.handlers.render_init.append(render_init)
@@ -639,6 +687,9 @@ def unregister():
     for cls in classes:
         bpy.utils.unregister_class(cls)
     del bpy.types.Scene.svg_export
+    linestyle = bpy.types.FreestyleLineStyle
+    del linestyle.use_export_strokes
+    del linestyle.use_export_fills
 
     # remove callbacks
     bpy.app.handlers.render_init.remove(render_init)
