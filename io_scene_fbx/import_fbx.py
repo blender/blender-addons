@@ -1183,15 +1183,17 @@ def blen_read_geom(fbx_tmpl, fbx_obj, settings):
     # must be after edge, face loading.
     ok_smooth = blen_read_geom_layer_smooth(fbx_obj, mesh)
 
-    # Note: we store 'temp' normals in loops, since validate() may alter final mesh,
-    #       we can only set custom lnors *after* calling it.
-    mesh.create_normals_split()
-    if geom_mat_no is None:
-        ok_normals = blen_read_geom_layer_normal(fbx_obj, mesh)
-    else:
-        def nortrans(v):
-            return geom_mat_no * Vector(v)
-        ok_normals = blen_read_geom_layer_normal(fbx_obj, mesh, nortrans)
+    ok_normals = False
+    if settings.use_custom_normals:
+        # Note: we store 'temp' normals in loops, since validate() may alter final mesh,
+        #       we can only set custom lnors *after* calling it.
+        mesh.create_normals_split()
+        if geom_mat_no is None:
+            ok_normals = blen_read_geom_layer_normal(fbx_obj, mesh)
+        else:
+            def nortrans(v):
+                return geom_mat_no * Vector(v)
+            ok_normals = blen_read_geom_layer_normal(fbx_obj, mesh, nortrans)
 
     mesh.validate(clean_customdata=False)  # *Very* important to not remove lnors here!
 
@@ -1209,7 +1211,8 @@ def blen_read_geom(fbx_tmpl, fbx_obj, settings):
     else:
         mesh.calc_normals()
 
-    mesh.free_normals_split()
+    if settings.use_custom_normals:
+        mesh.free_normals_split()
 
     if not ok_smooth:
         mesh.polygons.foreach_set("use_smooth", [True] * len(mesh.polygons))
@@ -2182,6 +2185,7 @@ def load(operator, context, filepath="",
          axis_up='Y',
          global_scale=1.0,
          bake_space_transform=False,
+         use_custom_normals=True,
          use_cycles=True,
          use_image_search=False,
          use_alpha_decals=False,
@@ -2311,7 +2315,7 @@ def load(operator, context, filepath="",
     settings = FBXImportSettings(
         operator.report, (axis_up, axis_forward), global_matrix, global_scale,
         bake_space_transform, global_matrix_inv, global_matrix_inv_transposed,
-        use_cycles, use_image_search,
+        use_custom_normals, use_cycles, use_image_search,
         use_alpha_decals, decal_offset,
         anim_offset,
         use_custom_props, use_custom_props_enum_as_string,

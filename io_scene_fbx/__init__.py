@@ -21,7 +21,7 @@
 bl_info = {
     "name": "FBX format",
     "author": "Campbell Barton, Bastien Montagne, Jens Restemeier",
-    "version": (3, 4, 4),
+    "version": (3, 4, 5),
     "blender": (2, 74, 0),
     "location": "File > Import-Export",
     "description": "FBX IO meshes, UV's, vertex colors, materials, textures, cameras, lamps and actions",
@@ -88,6 +88,12 @@ class ImportFBX(bpy.types.Operator, ImportHelper, IOFBXOrientationHelper):
                         "target space is not aligned with Blender's space "
                         "(WARNING! experimental option, use at own risks, known broken with armatures/animations)",
             default=False,
+            )
+
+    use_custom_normals = BoolProperty(
+            name="Import Normals",
+            description="Import custom normals, if available (otherwise Blender will recompute them)",
+            default=True,
             )
 
     use_image_search = BoolProperty(
@@ -180,6 +186,8 @@ class ImportFBX(bpy.types.Operator, ImportHelper, IOFBXOrientationHelper):
         sub.prop(self, "axis_up")
         layout.prop(self, "global_scale")
         layout.prop(self, "bake_space_transform")
+
+        layout.prop(self, "use_custom_normals")
 
         layout.prop(self, "use_image_search")
         # layout.prop(self, "use_alpha_decals")
