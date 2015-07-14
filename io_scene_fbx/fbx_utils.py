@@ -777,7 +777,7 @@ class AnimationCurveNodeWrapper:
         # So that, with default factor and step values (1), we get:
         max_frame_diff = step * fac * 10  # max step of 10 frames.
         value_diff_fac = fac / 1000  # min value evolution: 0.1% of whole range.
-        min_significant_diff = 1.0e-6
+        min_significant_diff = 1.0e-5
         keys = self._keys
 
         extremums = tuple((min(values), max(values)) for values in zip(*(k[1] for k in keys)))
