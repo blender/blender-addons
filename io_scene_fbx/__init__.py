@@ -21,7 +21,7 @@
 bl_info = {
     "name": "FBX format",
     "author": "Campbell Barton, Bastien Montagne, Jens Restemeier",
-    "version": (3, 4, 7),
+    "version": (3, 4, 8),
     "blender": (2, 74, 0),
     "location": "File > Import-Export",
     "description": "FBX IO meshes, UV's, vertex colors, materials, textures, cameras, lamps and actions",
@@ -373,6 +373,11 @@ class ExportFBX(bpy.types.Operator, ExportHelper, IOFBXOrientationHelper):
                         "others will get no animation at all)",
             default=True,
             )
+    bake_anim_force_startend_keying = BoolProperty(
+            name="Force Start/End Keying",
+            description="Always add a keyframe at start and end of actions for animated channels",
+            default=True,
+            )
     bake_anim_step = FloatProperty(
             name="Sampling Rate",
             description="How often to evaluate animated values (in frames)",
@@ -475,6 +480,7 @@ class ExportFBX(bpy.types.Operator, ExportHelper, IOFBXOrientationHelper):
             col.prop(self, "bake_anim_use_all_bones")
             col.prop(self, "bake_anim_use_nla_strips")
             col.prop(self, "bake_anim_use_all_actions")
+            col.prop(self, "bake_anim_force_startend_keying")
             col.prop(self, "bake_anim_step")
             col.prop(self, "bake_anim_simplify_factor")
         else:

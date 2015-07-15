@@ -719,7 +719,9 @@ class AnimationCurveNodeWrapper:
     This class provides a same common interface for all (FBX-wise) AnimationCurveNode and AnimationCurve elements,
     and easy API to handle those.
     """
-    __slots__ = ('elem_keys', '_keys', 'default_values', 'fbx_group', 'fbx_gname', 'fbx_props', 'force_keying')
+    __slots__ = (
+        'elem_keys', '_keys', 'default_values', 'fbx_group', 'fbx_gname', 'fbx_props',
+        'force_keying', 'force_startend_keying')
 
     kinds = {
         'LCL_TRANSLATION': ("Lcl Translation", "T", ("X", "Y", "Z")),
@@ -728,13 +730,14 @@ class AnimationCurveNodeWrapper:
         'SHAPE_KEY': ("DeformPercent", "DeformPercent", ("DeformPercent",)),
     }
 
-    def __init__(self, elem_key, kind, force_keying, default_values=...):
+    def __init__(self, elem_key, kind, force_keying, force_startend_keying, default_values=...):
         self.elem_keys = [elem_key]
         assert(kind in self.kinds)
         self.fbx_group = [self.kinds[kind][0]]
         self.fbx_gname = [self.kinds[kind][1]]
         self.fbx_props = [self.kinds[kind][2]]
         self.force_keying = force_keying
+        self.force_startend_keying = force_startend_keying
         self._keys = []  # (frame, values, write_flags)
         if default_values is not ...:
             assert(len(default_values) == len(self.fbx_props[0]))
@@ -822,9 +825,10 @@ class AnimationCurveNodeWrapper:
             are_keyed[:] = [True] * len(are_keyed)
 
         # If we did key something, ensure first and last sampled values are keyed as well.
-        for idx, is_keyed in enumerate(are_keyed):
-            if is_keyed:
-                keys[0][2][idx] = keys[-1][2][idx] = True
+        if self.force_startend_keying:
+            for idx, is_keyed in enumerate(are_keyed):
+                if is_keyed:
+                    keys[0][2][idx] = keys[-1][2][idx] = True
 
     def get_final_data(self, scene, ref_id, force_keep=False):
         """
@@ -1200,7 +1204,7 @@ FBXExportSettings = namedtuple("FBXExportSettings", (
     "mesh_smooth_type", "use_mesh_edges", "use_tspace",
     "use_armature_deform_only", "add_leaf_bones", "bone_correction_matrix", "bone_correction_matrix_inv",
     "bake_anim", "bake_anim_use_all_bones", "bake_anim_use_nla_strips", "bake_anim_use_all_actions",
-    "bake_anim_step", "bake_anim_simplify_factor",
+    "bake_anim_step", "bake_anim_simplify_factor", "bake_anim_force_startend_keying",
     "use_metadata", "media_settings", "use_custom_props",
 ))
 

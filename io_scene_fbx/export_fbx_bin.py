@@ -1850,6 +1850,7 @@ def fbx_animations_do(scene_data, ref_id, f_start, f_end, start_zero, objects=No
     scene = scene_data.scene
     meshes = scene_data.data_meshes
     force_keying = scene_data.settings.bake_anim_use_all_bones
+    force_sek = scene_data.settings.bake_anim_force_startend_keying
 
     if objects is not None:
         # Add bones and duplis!
@@ -1874,9 +1875,9 @@ def fbx_animations_do(scene_data, ref_id, f_start, f_end, start_zero, objects=No
         ACNW = AnimationCurveNodeWrapper
         loc, rot, scale, _m, _mr = ob_obj.fbx_object_tx(scene_data)
         rot_deg = tuple(convert_rad_to_deg_iter(rot))
-        animdata_ob[ob_obj] = (ACNW(ob_obj.key, 'LCL_TRANSLATION', ob_obj.is_bone and force_keying, loc),
-                               ACNW(ob_obj.key, 'LCL_ROTATION', ob_obj.is_bone and force_keying, rot_deg),
-                               ACNW(ob_obj.key, 'LCL_SCALING', ob_obj.is_bone and force_keying, scale))
+        animdata_ob[ob_obj] = (ACNW(ob_obj.key, 'LCL_TRANSLATION', ob_obj.is_bone and force_keying, force_sek, loc),
+                               ACNW(ob_obj.key, 'LCL_ROTATION', ob_obj.is_bone and force_keying, force_sek, rot_deg),
+                               ACNW(ob_obj.key, 'LCL_SCALING', ob_obj.is_bone and force_keying, force_sek, scale))
         p_rots[ob_obj] = rot
 
     animdata_shapes = OrderedDict()
@@ -1885,7 +1886,7 @@ def fbx_animations_do(scene_data, ref_id, f_start, f_end, start_zero, objects=No
         if not me.shape_keys.use_relative:
             continue
         for shape, (channel_key, geom_key, _shape_verts_co, _shape_verts_idx) in shapes.items():
-            acnode = AnimationCurveNodeWrapper(channel_key, 'SHAPE_KEY', False, (0.0,))
+            acnode = AnimationCurveNodeWrapper(channel_key, 'SHAPE_KEY', False, force_sek, (0.0,))
             # Sooooo happy to have to twist again like a mad snake... Yes, we need to write those curves twice. :/
             acnode.add_group(me_key, shape.name, shape.name, (shape.name,))
             animdata_shapes[channel_key] = (acnode, me, shape)
@@ -2817,6 +2818,7 @@ def save_single(operator, scene, filepath="",
                 bake_anim_use_all_actions=True,
                 bake_anim_step=1.0,
                 bake_anim_simplify_factor=1.0,
+                bake_anim_force_startend_keying=True,
                 add_leaf_bones=False,
                 primary_bone_axis='Y',
                 secondary_bone_axis='X',
@@ -2881,7 +2883,7 @@ def save_single(operator, scene, filepath="",
         mesh_smooth_type, use_mesh_edges, use_tspace,
         use_armature_deform_only, add_leaf_bones, bone_correction_matrix, bone_correction_matrix_inv,
         bake_anim, bake_anim_use_all_bones, bake_anim_use_nla_strips, bake_anim_use_all_actions,
-        bake_anim_step, bake_anim_simplify_factor,
+        bake_anim_step, bake_anim_simplify_factor, bake_anim_force_startend_keying,
         False, media_settings, use_custom_props,
     )
 
