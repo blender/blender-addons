@@ -21,7 +21,7 @@
 bl_info = {
     "name": "FBX format",
     "author": "Campbell Barton, Bastien Montagne, Jens Restemeier",
-    "version": (3, 4, 8),
+    "version": (3, 5, 0),
     "blender": (2, 74, 0),
     "location": "File > Import-Export",
     "description": "FBX IO meshes, UV's, vertex colors, materials, textures, cameras, lamps and actions",
@@ -72,6 +72,14 @@ class ImportFBX(bpy.types.Operator, ImportHelper, IOFBXOrientationHelper):
     filename_ext = ".fbx"
     filter_glob = StringProperty(default="*.fbx", options={'HIDDEN'})
 
+    ui_tab = EnumProperty(
+            items=(('MAIN', "Main", "Main basic settings"),
+                   ('ARMATURE', "Armatures", "Armature-related settings"),
+                   ),
+            name="ui_tab",
+            description="Import options categories",
+            )
+
     use_manual_orientation = BoolProperty(
             name="Manual Orientation",
             description="Specify orientation and scale, instead of using embedded data in FBX file",
@@ -98,7 +106,7 @@ class ImportFBX(bpy.types.Operator, ImportHelper, IOFBXOrientationHelper):
 
     use_image_search = BoolProperty(
             name="Image Search",
-            description="Search subdirs for any associated images (Warning, may be slow)",
+            description="Search subdirs for any associated images (WARNING: may be slow)",
             default=True,
             )
 
@@ -179,37 +187,38 @@ class ImportFBX(bpy.types.Operator, ImportHelper, IOFBXOrientationHelper):
     def draw(self, context):
         layout = self.layout
 
-        layout.prop(self, "use_manual_orientation"),
-        sub = layout.column()
-        sub.enabled = self.use_manual_orientation
-        sub.prop(self, "axis_forward")
-        sub.prop(self, "axis_up")
-        layout.prop(self, "global_scale")
-        layout.prop(self, "bake_space_transform")
+        layout.prop(self, "ui_tab", expand=True)
+        if self.ui_tab == 'MAIN':
+            layout.prop(self, "use_manual_orientation"),
+            sub = layout.column()
+            sub.enabled = self.use_manual_orientation
+            sub.prop(self, "axis_forward")
+            sub.prop(self, "axis_up")
+            layout.prop(self, "global_scale")
+            layout.prop(self, "bake_space_transform")
 
-        layout.prop(self, "use_custom_normals")
+            layout.prop(self, "use_custom_normals")
 
-        layout.prop(self, "use_image_search")
-        # layout.prop(self, "use_alpha_decals")
-        layout.prop(self, "decal_offset")
+            layout.prop(self, "anim_offset")
 
-        layout.prop(self, "anim_offset")
+            layout.prop(self, "use_custom_props")
+            sub = layout.row()
+            sub.enabled = self.use_custom_props
+            sub.prop(self, "use_custom_props_enum_as_string")
 
-        layout.prop(self, "use_custom_props")
-        sub = layout.row()
-        sub.enabled = self.use_custom_props
-        sub.prop(self, "use_custom_props_enum_as_string")
+            layout.prop(self, "use_image_search")
+            # layout.prop(self, "use_alpha_decals")
+            layout.prop(self, "decal_offset")
 
-        layout.prop(self, "ignore_leaf_bones")
-
-        layout.prop(self, "force_connect_children"),
-        layout.prop(self, "automatic_bone_orientation"),
-        sub = layout.column()
-        sub.enabled = not self.automatic_bone_orientation
-        sub.prop(self, "primary_bone_axis")
-        sub.prop(self, "secondary_bone_axis")
-
-        layout.prop(self, "use_prepost_rot")
+            layout.prop(self, "use_prepost_rot")
+        elif self.ui_tab == 'ARMATURE':
+            layout.prop(self, "ignore_leaf_bones")
+            layout.prop(self, "force_connect_children"),
+            layout.prop(self, "automatic_bone_orientation"),
+            sub = layout.column()
+            sub.enabled = not self.automatic_bone_orientation
+            sub.prop(self, "primary_bone_axis")
+            sub.prop(self, "secondary_bone_axis")
 
     def execute(self, context):
         keywords = self.as_keywords(ignore=("filter_glob", "directory"))
@@ -233,10 +242,22 @@ class ExportFBX(bpy.types.Operator, ExportHelper, IOFBXOrientationHelper):
 
     version = EnumProperty(
             items=(('BIN7400', "FBX 7.4 binary", "Modern 7.4 binary version"),
-                   ('ASCII6100', "FBX 6.1 ASCII", "Legacy 6.1 ascii version"),
+                   ('ASCII6100', "FBX 6.1 ASCII",
+                                 "Legacy 6.1 ascii version - WARNING: Deprecated and no more maintained"),
                    ),
             name="Version",
             description="Choose which version of the exporter to use",
+            )
+
+    # 7.4 only
+    ui_tab = EnumProperty(
+            items=(('MAIN', "Main", "Main basic settings"),
+                   ('GEOMETRY', "Geometries", "Geometry-related settings"),
+                   ('ARMATURE', "Armatures", "Armature-related settings"),
+                   ('ANIMATION', "Animation", "Animation-related settings"),
+                   ),
+            name="ui_tab",
+            description="Export options categories",
             )
 
     use_selection = BoolProperty(
@@ -448,42 +469,72 @@ class ExportFBX(bpy.types.Operator, ExportHelper, IOFBXOrientationHelper):
 
     def draw(self, context):
         layout = self.layout
-        is_74bin = (self.version == 'BIN7400')
 
         layout.prop(self, "version")
-        layout.prop(self, "use_selection")
-        layout.prop(self, "global_scale")
-        if is_74bin:
-            layout.prop(self, "apply_unit_scale")
-        layout.prop(self, "axis_forward")
-        layout.prop(self, "axis_up")
-        if is_74bin:
-            layout.prop(self, "bake_space_transform")
 
-        layout.separator()
-        layout.prop(self, "object_types")
-        layout.prop(self, "use_mesh_modifiers")
-        layout.prop(self, "mesh_smooth_type")
-        layout.prop(self, "use_mesh_edges")
-        sub = layout.row()
-        #~ sub.enabled = self.mesh_smooth_type in {'OFF'}
-        sub.prop(self, "use_tspace")
-        layout.prop(self, "use_armature_deform_only")
-        if is_74bin:
-            layout.prop(self, "use_custom_props")
-            layout.prop(self, "add_leaf_bones")
-            layout.prop(self, "primary_bone_axis")
-            layout.prop(self, "secondary_bone_axis")
-            layout.prop(self, "bake_anim")
-            col = layout.column()
-            col.enabled = self.bake_anim
-            col.prop(self, "bake_anim_use_all_bones")
-            col.prop(self, "bake_anim_use_nla_strips")
-            col.prop(self, "bake_anim_use_all_actions")
-            col.prop(self, "bake_anim_force_startend_keying")
-            col.prop(self, "bake_anim_step")
-            col.prop(self, "bake_anim_simplify_factor")
+        if self.version == 'BIN7400':
+            layout.prop(self, "ui_tab", expand=True)
+            if self.ui_tab == 'MAIN':
+                layout.prop(self, "use_selection")
+                row = layout.row(align=True)
+                row.prop(self, "global_scale")
+                sub = row.row(align=True)
+                sub.prop(self, "apply_unit_scale", text="", icon='NDOF_TRANS')
+                layout.prop(self, "axis_forward")
+                layout.prop(self, "axis_up")
+
+                layout.separator()
+                layout.prop(self, "object_types")
+                layout.prop(self, "bake_space_transform")
+                layout.prop(self, "use_custom_props")
+
+                layout.separator()
+                row = layout.row(align=True)
+                row.prop(self, "path_mode")
+                sub = row.row(align=True)
+                sub.enabled = (self.path_mode == 'COPY')
+                sub.prop(self, "embed_textures", text="", icon='PACKAGE' if self.embed_textures else 'UGLYPACKAGE')
+                row = layout.row(align=True)
+                row.prop(self, "batch_mode")
+                sub = row.row(align=True)
+                sub.prop(self, "use_batch_own_dir", text="", icon='NEWFOLDER')
+            elif self.ui_tab == 'GEOMETRY':
+                layout.prop(self, "use_mesh_modifiers")
+                layout.prop(self, "mesh_smooth_type")
+                layout.prop(self, "use_mesh_edges")
+                sub = layout.row()
+                #~ sub.enabled = self.mesh_smooth_type in {'OFF'}
+                sub.prop(self, "use_tspace")
+            elif self.ui_tab == 'ARMATURE':
+                layout.prop(self, "use_armature_deform_only")
+                layout.prop(self, "add_leaf_bones")
+                layout.prop(self, "primary_bone_axis")
+                layout.prop(self, "secondary_bone_axis")
+            elif self.ui_tab == 'ANIMATION':
+                layout.prop(self, "bake_anim")
+                col = layout.column()
+                col.enabled = self.bake_anim
+                col.prop(self, "bake_anim_use_all_bones")
+                col.prop(self, "bake_anim_use_nla_strips")
+                col.prop(self, "bake_anim_use_all_actions")
+                col.prop(self, "bake_anim_force_startend_keying")
+                col.prop(self, "bake_anim_step")
+                col.prop(self, "bake_anim_simplify_factor")
         else:
+            layout.prop(self, "use_selection")
+            layout.prop(self, "global_scale")
+            layout.prop(self, "axis_forward")
+            layout.prop(self, "axis_up")
+
+            layout.separator()
+            layout.prop(self, "object_types")
+            layout.prop(self, "use_mesh_modifiers")
+            layout.prop(self, "mesh_smooth_type")
+            layout.prop(self, "use_mesh_edges")
+            sub = layout.row()
+            #~ sub.enabled = self.mesh_smooth_type in {'OFF'}
+            sub.prop(self, "use_tspace")
+            layout.prop(self, "use_armature_deform_only")
             layout.prop(self, "use_anim")
             col = layout.column()
             col.enabled = self.use_anim
@@ -492,14 +543,11 @@ class ExportFBX(bpy.types.Operator, ExportHelper, IOFBXOrientationHelper):
             col.prop(self, "use_anim_optimize")
             col.prop(self, "anim_optimize_precision")
 
-        layout.separator()
-        layout.prop(self, "path_mode")
-        if is_74bin:
-            col = layout.column()
-            col.enabled = (self.path_mode == 'COPY')
-            col.prop(self, "embed_textures")
-        layout.prop(self, "batch_mode")
-        layout.prop(self, "use_batch_own_dir")
+            layout.separator()
+            layout.prop(self, "path_mode")
+
+            layout.prop(self, "batch_mode")
+            layout.prop(self, "use_batch_own_dir")
 
     @property
     def check_extension(self):
@@ -518,6 +566,7 @@ class ExportFBX(bpy.types.Operator, ExportHelper, IOFBXOrientationHelper):
         keywords = self.as_keywords(ignore=("global_scale",
                                             "check_existing",
                                             "filter_glob",
+                                            "ui_tab",
                                             ))
 
         keywords["global_matrix"] = global_matrix
