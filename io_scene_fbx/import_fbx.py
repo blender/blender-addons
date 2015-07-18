@@ -1664,7 +1664,7 @@ class FbxImportHelperNode:
                 child.armature = armature
                 child.find_armature_bones(armature)
 
-    def find_armatures(self):
+    def find_armatures(self, settings):
         needs_armature = False
         for child in self.children:
             if child.is_bone:
@@ -1681,6 +1681,11 @@ class FbxImportHelperNode:
                 armature.fbx_name = "Armature"
                 armature.is_armature = True
 
+                # if our fake armature is a non-parented object, we need to set a transform
+                # that will result in NOP once applied all corrections...
+                if self.is_root:
+                    armature.matrix = settings.global_matrix_inv
+
                 for child in self.children:
                     if child.is_bone:
                         child.parent = armature
@@ -1692,7 +1697,7 @@ class FbxImportHelperNode:
         for child in self.children:
             if child.is_armature or child.is_bone:
                 continue
-            child.find_armatures()
+            child.find_armatures(settings)
 
     def find_bone_children(self):
         has_bone_children = False
@@ -2525,7 +2530,7 @@ def load(operator, context, filepath="",
             assert(fbx_props[0] is not None)
 
             transform_data = blen_read_object_transform_preprocess(fbx_props, fbx_obj, Matrix(), use_prepost_rot)
-            is_bone = fbx_obj.props[2] in {b'LimbNode'}  # Note: 'Root' "bones" are handled as (armature) objects.
+            is_bone = fbx_obj.props[2] == b'LimbNode'  # Note: 'Root' "bones" are handled as (armature) objects.
             fbx_helper_nodes[a_uuid] = FbxImportHelperNode(fbx_obj, bl_data, transform_data, is_bone)
 
         # add parent-child relations and add blender data to the node
@@ -2552,7 +2557,7 @@ def load(operator, context, filepath="",
                     child.parent = parent
 
         # find armatures (either an empty below a bone or a new node inserted at the bone
-        root_helper.find_armatures()
+        root_helper.find_armatures(settings)
 
         # mark nodes that have bone children
         root_helper.find_bone_children()

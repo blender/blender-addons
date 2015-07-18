@@ -714,7 +714,8 @@ def fbx_data_bindpose_element(root, me_obj, me, scene_data, arm_obj=None, mat_wo
 
     elem_data_single_string(fbx_pose, b"Type", b"BindPose")
     elem_data_single_int32(fbx_pose, b"Version", FBX_POSE_BIND_VERSION)
-    elem_data_single_int32(fbx_pose, b"NbPoseNodes", 1 + (1 if (arm_obj != me_obj) else 0) + len(bones))
+    elem_data_single_int32(fbx_pose, b"NbPoseNodes",
+                           1 + (1 if (arm_obj != me_obj and mat_world_arm) else 0) + len(bones))
 
     # First node is mesh/object.
     mat_world_obj = me_obj.fbx_object_matrix(scene_data, global_space=True)
@@ -722,7 +723,7 @@ def fbx_data_bindpose_element(root, me_obj, me, scene_data, arm_obj=None, mat_wo
     elem_data_single_int64(fbx_posenode, b"Node", me_obj.fbx_uuid)
     elem_data_single_float64_array(fbx_posenode, b"Matrix", matrix4_to_array(mat_world_obj))
     # Second node is armature object itself.
-    if arm_obj != me_obj:
+    if arm_obj != me_obj and mat_world_arm:
         fbx_posenode = elem_empty(fbx_pose, b"PoseNode")
         elem_data_single_int64(fbx_posenode, b"Node", arm_obj.fbx_uuid)
         elem_data_single_float64_array(fbx_posenode, b"Matrix", matrix4_to_array(mat_world_arm))
@@ -1400,10 +1401,10 @@ def fbx_data_armature_elements(root, arm_obj, scene_data):
         * Deformers (i.e. Skin), bind between an armature and a mesh.
         ** SubDeformers (i.e. Cluster), one per bone/vgroup pair.
         * BindPose.
-    Note armature itself has no data, it is a mere "Null" Model...
+    Note armature itself has no data, it is a mere "Null" Model (when exported)...
     """
-    mat_world_arm = arm_obj.fbx_object_matrix(scene_data, global_space=True)
-    bones = tuple(bo_obj for bo_obj in arm_obj.bones if bo_obj in scene_data.objects)
+    mat_world_arm = arm_obj.fbx_object_matrix(scene_data, global_space=True) if not arm_obj.skip_export else None
+    bones = tuple(bo_obj for bo_obj in arm_obj.bones if bo_obj in scene_data.objects and not bo_obj.skip_export)
 
     bone_radius_scale = 33.0
 
@@ -1489,7 +1490,8 @@ def fbx_data_armature_elements(root, arm_obj, scene_data):
                 elem_data_single_float64_array(fbx_clstr, b"Transform",
                                                matrix4_to_array(mat_world_bones[bo_obj].inverted_safe() * mat_world_obj))
                 elem_data_single_float64_array(fbx_clstr, b"TransformLink", matrix4_to_array(mat_world_bones[bo_obj]))
-                elem_data_single_float64_array(fbx_clstr, b"TransformAssociateModel", matrix4_to_array(mat_world_arm))
+                if mat_world_arm:
+                    elem_data_single_float64_array(fbx_clstr, b"TransformAssociateModel", matrix4_to_array(mat_world_arm))
 
 
 def fbx_data_leaf_bone_elements(root, scene_data):
@@ -1753,8 +1755,11 @@ def fbx_skeleton_from_armature(scene, settings, arm_obj, objects, data_meshes,
     Also supports "parent to bone" (simple parent to Model/LimbNode).
     arm_parents is a set of tuples (armature, object) for all successful armature bindings.
     """
-    # We need some data for our armature 'object' too!!!
-    data_empties[arm_obj] = get_blender_empty_key(arm_obj.bdata)
+    if (settings.use_armature_as_root):
+        # We need some data for our armature 'object' too!!!
+        data_empties[arm_obj] = get_blender_empty_key(arm_obj.bdata)
+    else:
+        arm_obj.skip_export = True
 
     arm_data = arm_obj.bdata.data
     bones = OrderedDict()
@@ -1812,11 +1817,14 @@ def fbx_skeleton_from_armature(scene, settings, arm_obj, objects, data_meshes,
 
 
 def fbx_generate_leaf_bones(settings, data_bones):
-    # find which bons have no children
+    # find which bones have no children.
     child_count = {bo: 0 for bo, _bo_key in data_bones.items()}
     for bo, _bo_key in data_bones.items():
-        if bo.parent and bo.parent.is_bone:
-            child_count[bo.parent] += 1
+        if bo.skip_export:
+            continue
+        bo_par = bo.fbx_parent
+        if bo_par and bo_par.is_bone:
+            child_count[bo_par] += 1
 
     bone_radius_scale = settings.global_scale * 33.0
 
@@ -2317,7 +2325,8 @@ def fbx_data_from_scene(scene, settings):
         templates[b"Camera"] = fbx_template_def_camera(scene, settings, nbr_users=len(data_cameras))
 
     if data_bones:
-        templates[b"Bone"] = fbx_template_def_bone(scene, settings, nbr_users=len(data_bones))
+        nbr_users = sum(1 for db in data_bones if not db.skip_export)
+        templates[b"Bone"] = fbx_template_def_bone(scene, settings, nbr_users=nbr_users)
 
     if data_meshes:
         nbr = len(data_meshes)
@@ -2326,7 +2335,8 @@ def fbx_data_from_scene(scene, settings):
         templates[b"Geometry"] = fbx_template_def_geometry(scene, settings, nbr_users=nbr)
 
     if objects:
-        templates[b"Model"] = fbx_template_def_model(scene, settings, nbr_users=len(objects))
+        nbr_users = sum(1 for ob in objects if not ob.skip_export)
+        templates[b"Model"] = fbx_template_def_model(scene, settings, nbr_users=nbr_users)
 
     if arm_parents:
         # Number of Pose|BindPose elements should be the same as number of meshes-parented-to-armatures
@@ -2389,22 +2399,25 @@ def fbx_data_from_scene(scene, settings):
     for ob_obj in objects:
         # Bones are handled later.
         if not ob_obj.is_bone:
-            par_obj = ob_obj.parent
+            par_obj = ob_obj.fbx_parent
             # Meshes parented to armature are handled separately, yet we want the 'no parent' connection (0).
-            if par_obj and ob_obj.has_valid_parent(objects) and (par_obj, ob_obj) not in arm_parents:
+            if par_obj and ob_obj.has_valid_fbx_parent(objects) and (par_obj, ob_obj) not in arm_parents:
                 connections.append((b"OO", ob_obj.fbx_uuid, par_obj.fbx_uuid, None))
             else:
                 connections.append((b"OO", ob_obj.fbx_uuid, 0, None))
 
     # Armature & Bone chains.
     for bo_obj in data_bones.keys():
-        par_obj = bo_obj.parent
-        if par_obj not in objects:
-            continue
-        connections.append((b"OO", bo_obj.fbx_uuid, par_obj.fbx_uuid, None))
+        par_obj = bo_obj.fbx_parent
+        if par_obj is None:
+            connections.append((b"OO", bo_obj.fbx_uuid, 0, None))
+        elif par_obj in objects:
+            connections.append((b"OO", bo_obj.fbx_uuid, par_obj.fbx_uuid, None))
 
     # Object data.
     for ob_obj in objects:
+        if ob_obj.skip_export:
+            continue
         if ob_obj.is_bone:
             bo_data_key = data_bones[ob_obj]
             connections.append((b"OO", get_fbx_uuid_from_key(bo_data_key), ob_obj.fbx_uuid, None))
@@ -2729,7 +2742,7 @@ def fbx_objects_elements(root, scene_data):
     perfmon.step("FBX export fetch objects (%d)..." % len(scene_data.objects))
 
     for ob_obj in scene_data.objects:
-        if ob_obj.is_dupli:
+        if ob_obj.is_dupli or ob_obj.skip_export:
             continue
         fbx_data_object_elements(objects, ob_obj, scene_data)
         ob_obj.dupli_list_create(scene_data.scene, 'RENDER')
@@ -2802,6 +2815,7 @@ def fbx_takes_elements(root, scene_data):
 # ##### "Main" functions. #####
 
 # This func can be called with just the filepath
+# Warning! Arg order is not guaranteed, only use keyargs!
 def save_single(operator, scene, filepath="",
                 global_matrix=Matrix(),
                 apply_unit_scale=False,
@@ -2811,7 +2825,11 @@ def save_single(operator, scene, filepath="",
                 object_types=None,
                 use_mesh_modifiers=True,
                 mesh_smooth_type='FACE',
+                use_armature_as_root=True,
                 use_armature_deform_only=False,
+                add_leaf_bones=False,
+                primary_bone_axis='Y',
+                secondary_bone_axis='X',
                 bake_anim=True,
                 bake_anim_use_all_bones=True,
                 bake_anim_use_nla_strips=True,
@@ -2819,9 +2837,6 @@ def save_single(operator, scene, filepath="",
                 bake_anim_step=1.0,
                 bake_anim_simplify_factor=1.0,
                 bake_anim_force_startend_keying=True,
-                add_leaf_bones=False,
-                primary_bone_axis='Y',
-                secondary_bone_axis='X',
                 use_metadata=True,
                 path_mode='AUTO',
                 use_mesh_edges=True,
@@ -2881,7 +2896,8 @@ def save_single(operator, scene, filepath="",
         bake_space_transform, global_matrix_inv, global_matrix_inv_transposed,
         context_objects, object_types, use_mesh_modifiers,
         mesh_smooth_type, use_mesh_edges, use_tspace,
-        use_armature_deform_only, add_leaf_bones, bone_correction_matrix, bone_correction_matrix_inv,
+        use_armature_as_root, use_armature_deform_only, add_leaf_bones,
+        bone_correction_matrix, bone_correction_matrix_inv,
         bake_anim, bake_anim_use_all_bones, bake_anim_use_nla_strips, bake_anim_use_all_actions,
         bake_anim_step, bake_anim_simplify_factor, bake_anim_force_startend_keying,
         False, media_settings, use_custom_props,

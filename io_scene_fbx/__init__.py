@@ -336,6 +336,17 @@ class ExportFBX(bpy.types.Operator, ExportHelper, IOFBXOrientationHelper):
             description="Export custom properties",
             default=False,
             )
+
+    use_armature_as_root = BoolProperty(
+            name="Export Armature As Root",
+            description="Export armature object itself as an 'empty' FBX object, parent of all bones",
+            default=True,
+            )
+    use_armature_deform_only = BoolProperty(
+            name="Only Deform Bones",
+            description="Only write deforming bones (and non-deforming ones when they have deforming children)",
+            default=False,
+            )
     add_leaf_bones = BoolProperty(
             name="Add Leaf Bones",
             description="Append a final bone to the end of each chain to specify last bone length "
@@ -363,11 +374,6 @@ class ExportFBX(bpy.types.Operator, ExportHelper, IOFBXOrientationHelper):
                    ('-Z', "-Z Axis", ""),
                    ),
             default='X',
-            )
-    use_armature_deform_only = BoolProperty(
-            name="Only Deform Bones",
-            description="Only write deforming bones (and non-deforming ones when they have deforming children)",
-            default=False,
             )
     # Anim - 7.4
     bake_anim = BoolProperty(
@@ -506,6 +512,7 @@ class ExportFBX(bpy.types.Operator, ExportHelper, IOFBXOrientationHelper):
                 #~ sub.enabled = self.mesh_smooth_type in {'OFF'}
                 sub.prop(self, "use_tspace")
             elif self.ui_tab == 'ARMATURE':
+                layout.prop(self, "use_armature_as_root")
                 layout.prop(self, "use_armature_deform_only")
                 layout.prop(self, "add_leaf_bones")
                 layout.prop(self, "primary_bone_axis")
