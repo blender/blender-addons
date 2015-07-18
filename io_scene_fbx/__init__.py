@@ -21,7 +21,7 @@
 bl_info = {
     "name": "FBX format",
     "author": "Campbell Barton, Bastien Montagne, Jens Restemeier",
-    "version": (3, 5, 0),
+    "version": (3, 5, 1),
     "blender": (2, 74, 0),
     "location": "File > Import-Export",
     "description": "FBX IO meshes, UV's, vertex colors, materials, textures, cameras, lamps and actions",
@@ -221,7 +221,7 @@ class ImportFBX(bpy.types.Operator, ImportHelper, IOFBXOrientationHelper):
             sub.prop(self, "secondary_bone_axis")
 
     def execute(self, context):
-        keywords = self.as_keywords(ignore=("filter_glob", "directory"))
+        keywords = self.as_keywords(ignore=("filter_glob", "directory", "ui_tab"))
         keywords["use_cycles"] = (context.scene.render.engine == 'CYCLES')
 
         from . import import_fbx
