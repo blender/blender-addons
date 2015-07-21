@@ -768,7 +768,7 @@ class Curveaceous_galore(bpy.types.Operator):
     bl_options = {'REGISTER', 'UNDO', 'PRESET'}
 
     # align_matrix for the invoke
-    align_matrix = Matrix()
+    align_matrix = None
 
     #### general properties
     GalloreTypes = [
@@ -1106,7 +1106,7 @@ class Curveaceous_galore(bpy.types.Operator):
 
 
         # main function
-        main(context, self, self.align_matrix)
+        main(context, self, self.align_matrix or Matrix())
 
         # restore pre operator undo state
         bpy.context.user_preferences.edit.use_global_undo = undo
