@@ -185,7 +185,7 @@ def renderable_objects():
 tabLevel = 0
 unpacked_images=[]
 
-workDir=os.path.dirname(__file__)      
+workDir = bpy.utils.resource_path('USER')   
 previewDir=os.path.join(workDir, "preview")
 ## Make sure Preview directory exists and is empty
 if not os.path.isdir(previewDir):
@@ -2163,7 +2163,7 @@ def write_pov(filename, scene=None, info_callback=None):
                                             proceduralFlag=False
                                             if t.texture.image.packed_file:
                                                 orig_image_filename=t.texture.image.filepath_raw
-                                                workDir=os.path.dirname(__file__)
+                                                workDir = bpy.utils.resource_path('USER')
                                                 previewDir=os.path.join(workDir, "preview")
                                                 unpackedfilename= os.path.join(previewDir,("unpacked_img_"+(string_strip_hyphen(bpy.path.clean_name(t.texture.name)))))
                                                 if not os.path.exists(unpackedfilename):
@@ -3580,7 +3580,7 @@ class RenderPovTexturePreview(Operator):
     def execute(self, context):
         tex=bpy.context.object.active_material.active_texture #context.texture
         texPrevName=string_strip_hyphen(bpy.path.clean_name(tex.name))+"_prev"
-        workDir=os.path.dirname(__file__)      
+        workDir = bpy.utils.resource_path('USER')    
         previewDir=os.path.join(workDir, "preview")
         
         ## Make sure Preview directory exists and is empty
