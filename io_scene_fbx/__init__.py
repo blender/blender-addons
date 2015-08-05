@@ -21,7 +21,7 @@
 bl_info = {
     "name": "FBX format",
     "author": "Campbell Barton, Bastien Montagne, Jens Restemeier",
-    "version": (3, 5, 2),
+    "version": (3, 5, 3),
     "blender": (2, 74, 0),
     "location": "File > Import-Export",
     "description": "FBX IO meshes, UV's, vertex colors, materials, textures, cameras, lamps and actions",
@@ -294,7 +294,7 @@ class ExportFBX(bpy.types.Operator, ExportHelper, IOFBXOrientationHelper):
             items=(('EMPTY', "Empty", ""),
                    ('CAMERA', "Camera", ""),
                    ('LAMP', "Lamp", ""),
-                   ('ARMATURE', "Armature", ""),
+                   ('ARMATURE', "Armature", "WARNING: not supported in dupli/group instances"),
                    ('MESH', "Mesh", ""),
                    ('OTHER', "Other", "Other geometry types, like curve, metaball, etc. (converted to meshes)"),
                    ),

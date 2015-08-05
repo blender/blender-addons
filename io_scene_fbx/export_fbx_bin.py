@@ -2097,6 +2097,7 @@ def fbx_data_from_scene(scene, settings):
     Do some pre-processing over scene's data...
     """
     objtypes = settings.object_types
+    dp_objtypes = objtypes - {'ARMATURE'}  # Armatures are not supported as dupli instances currently...
     perfmon = PerfMon()
     perfmon.level_up()
 
@@ -2115,6 +2116,8 @@ def fbx_data_from_scene(scene, settings):
         # Duplis...
         ob_obj.dupli_list_create(scene, 'RENDER')
         for dp_obj in ob_obj.dupli_list:
+            if dp_obj.type not in dp_objtypes:
+                continue
             objects[dp_obj] = None
         ob_obj.dupli_list_clear()
 
