@@ -26,7 +26,7 @@ import bpy
 from mathutils import Vector, Euler, Matrix
 
 
-class BVH_Node(object):
+class BVH_Node:
     __slots__ = (
         'name',  # bvh joint name
         'parent',  # BVH_Node type or None for no parent
