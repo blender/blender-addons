@@ -710,7 +710,7 @@ def blen_read_geom_array_setattr(generator, blen_data, blen_attr, fbx_data, stri
 
     def check_skip(blen_idx, fbx_idx):
         nonlocal print_error
-        if fbx_idx == -1:
+        if fbx_idx < 0:  # Negative values mean 'skip'.
             return True
         if blen_idx > max_idx:
             if print_error:
