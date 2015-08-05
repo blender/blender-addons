@@ -2000,7 +2000,7 @@ def fbx_animations(scene_data):
         for strip in strips:
             strip.mute = False
             add_anim(animations, animated,
-                     fbx_animations_do(scene_data, strip, strip.frame_start, strip.frame_end, True))
+                     fbx_animations_do(scene_data, strip, strip.frame_start, strip.frame_end, True, force_keep=True))
             strip.mute = True
 
         for strip in strips:
@@ -2066,7 +2066,8 @@ def fbx_animations(scene_data):
                 ob.animation_data.action = act
                 frame_start, frame_end = act.frame_range  # sic!
                 add_anim(animations, animated,
-                         fbx_animations_do(scene_data, (ob, act), frame_start, frame_end, True, {ob_obj}, True))
+                         fbx_animations_do(scene_data, (ob, act), frame_start, frame_end, True,
+                                           objects={ob_obj}, force_keep=True))
                 # Ugly! :/
                 if pbones_matrices is not ...:
                     for pbo, mat in zip(ob.pose.bones, pbones_matrices):
