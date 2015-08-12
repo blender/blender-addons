@@ -1160,19 +1160,15 @@ class ObjectWrapper(metaclass=MetaObjectWrapper):
 
     # #### Duplis...
     def dupli_list_create(self, scene, settings='PREVIEW'):
-        if self._tag == 'OB':
-            # Sigh, why raise exception here? :/
-            try:
-                self.bdata.dupli_list_create(scene, settings)
-            except:
-                pass
+        if self._tag == 'OB' and self.bdata.is_duplicator:
+            self.bdata.dupli_list_create(scene, settings)
 
     def dupli_list_clear(self):
-        if self._tag == 'OB':
+        if self._tag == 'OB'and self.bdata.is_duplicator:
             self.bdata.dupli_list_clear()
 
     def get_dupli_list(self):
-        if self._tag == 'OB':
+        if self._tag == 'OB'and self.bdata.is_duplicator:
             return (ObjectWrapper(dup) for dup in self.bdata.dupli_list)
         return ()
     dupli_list = property(get_dupli_list)
