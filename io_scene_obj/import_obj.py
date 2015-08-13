@@ -120,6 +120,14 @@ def create_materials(filepath, relpath,
             mtex.texture_coords = 'UV'
             mtex.use_map_color_spec = True
 
+        elif type == 'Ke':
+            mtex = blender_material.texture_slots.add()
+            mtex.use_map_color_diffuse = False
+
+            mtex.texture = texture
+            mtex.texture_coords = 'UV'
+            mtex.use_map_emit = True
+
         elif type == 'Bump':
             mtex = blender_material.texture_slots.add()
             mtex.use_map_color_diffuse = False
@@ -190,6 +198,7 @@ def create_materials(filepath, relpath,
             do_glass = False
             do_fresnel = False
             do_raytrace = False
+            emit_colors = [0.0, 0.0, 0.0]
 
             # print('\t\tloading mtl: %e' % mtlpath)
             context_material = None
@@ -203,8 +212,14 @@ def create_materials(filepath, relpath,
                 line_id = line_split[0].lower()
 
                 if line_id == b'newmtl':
-                    # Finalize preview mat, if any.
+                    # Finalize previous mat, if any.
                     if context_material:
+                        emit_value = sum(emit_colors) / 3.0
+                        if emit_value > 1e-6:
+                            # We have to adapt it to diffuse color too...
+                            emit_value /= sum(context_material.diffuse_color) / 3.0
+                        context_material.emit = emit_value
+
                         if not do_ambient:
                             context_material.ambient = 0.0
 
@@ -243,6 +258,7 @@ def create_materials(filepath, relpath,
                     context_material = unique_materials.get(context_material_name)
                     context_material_vars.clear()
 
+                    emit_colors[:] = [0.0, 0.0, 0.0]
                     do_ambient = True
                     do_highlight = False
                     do_reflection = False
@@ -267,6 +283,10 @@ def create_materials(filepath, relpath,
                         context_material.specular_color = (
                             float_func(line_split[1]), float_func(line_split[2]), float_func(line_split[3]))
                         context_material.specular_intensity = 1.0
+                    elif line_id == b'ke':
+                        # We cannot set context_material.emit right now, we need final diffuse color as well for this.
+                        emit_colors[:] = [
+                            float_func(line_split[1]), float_func(line_split[2]), float_func(line_split[3])]
                     elif line_id == b'ns':
                         context_material.specular_hardness = int((float_func(line_split[1]) * 0.51) + 1)
                     elif line_id == b'ni':  # Refraction index (between 1 and 3).
@@ -351,6 +371,10 @@ def create_materials(filepath, relpath,
                         img_filepath = line_value(line.split())
                         if img_filepath:
                             load_material_image(context_material, context_material_name, img_filepath, 'Kd')
+                    elif line_id == b'map_ke':
+                        img_filepath = line_value(line.split())
+                        if img_filepath:
+                            load_material_image(context_material, context_material_name, img_filepath, 'Ke')
                     elif line_id in {b'map_bump', b'bump'}:  # 'bump' is incorrect but some files use it.
                         img_filepath = line_value(line.split())
                         if img_filepath:
