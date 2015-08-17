@@ -542,8 +542,13 @@ def fbx_data_element_custom_properties(props, bid):
             elem_props_set(props, "p_integer", k.encode(), v, custom=True)
         elif isinstance(v, float):
             elem_props_set(props, "p_double", k.encode(), v, custom=True)
-        elif list_val and len(list_val) == 3:
-            elem_props_set(props, "p_vector", k.encode(), list_val, custom=True)
+        elif list_val:
+            if len(list_val) == 3:
+                elem_props_set(props, "p_vector", k.encode(), list_val, custom=True)
+            else:
+                elem_props_set(props, "p_string", k.encode(), str(list_val), custom=True)
+        else:
+            elem_props_set(props, "p_string", k.encode(), str(v), custom=True)
 
 
 def fbx_data_empty_elements(root, empty, scene_data):
