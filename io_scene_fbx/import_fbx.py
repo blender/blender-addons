@@ -1574,7 +1574,7 @@ class FbxImportHelperNode:
                     # else find how best to rotate the bone to align the Y axis with the children
                     best_axis = (1, 0, 0)
                     if len(bone_children) == 1:
-                        vec = bone_children[0].bind_matrix.to_translation()
+                        vec = bone_children[0].get_bind_matrix().to_translation()
                         best_axis = Vector((0, 0, 1 if vec[2] >= 0 else -1))
                         if abs(vec[0]) > abs(vec[1]):
                             if abs(vec[0]) > abs(vec[2]):
@@ -1583,7 +1583,7 @@ class FbxImportHelperNode:
                             best_axis = Vector((0, 1 if vec[1] >= 0 else -1, 0))
                     else:
                         # get the child directions once because they may be checked several times
-                        child_locs = (child.bind_matrix.to_translation() for child in bone_children)
+                        child_locs = (child.get_bind_matrix().to_translation() for child in bone_children)
                         child_locs = tuple(loc.normalized() for loc in child_locs if loc.magnitude > 0.0)
 
                         # I'm not sure which one I like better...
@@ -1822,7 +1822,12 @@ class FbxImportHelperNode:
             force_connect_children, connected = connect_ctx
             # Do nothing if force connection is not enabled!
             if force_connect_children and connected is not None and connected is not ...:
-                par_bone.tail = par_tail = connected[0][0] / connected[0][1]
+                # Here again we have to be wary about zero-length bones!!!
+                par_tail = connected[0][0] / connected[0][1]
+                if (par_tail - par_bone.head).magnitude < 1e-2:
+                    par_bone_vec = (par_bone.tail - par_bone.head).normalized()
+                    par_tail = par_bone.head + par_bone_vec * 0.01
+                par_bone.tail = par_tail
                 for child_bone in connected[1]:
                     if similar_values_iter(par_tail, child_bone.head):
                         child_bone.use_connect = True
@@ -1839,7 +1844,7 @@ class FbxImportHelperNode:
         bone_count = 0
         for child in self.children:
             if child.is_bone:
-                bone_size += child.bind_matrix.to_translation().magnitude
+                bone_size += child.get_bind_matrix().to_translation().magnitude
                 bone_count += 1
         if bone_count > 0:
             bone_size /= bone_count
@@ -1917,6 +1922,9 @@ class FbxImportHelperNode:
         else:
             # child is not a bone
             obj = self.build_node_obj(fbx_tmpl, settings)
+
+            if obj is None:
+                return None
 
             for child in self.children:
                 if child.ignore:
@@ -2129,7 +2137,7 @@ class FbxImportHelperNode:
                     #       Probably because org app (max) handles it completely aside from any parenting stuff,
                     #       which we obviously cannot do in Blender. :/
                     if amat is None:
-                        amat = self.bind_matrix
+                        amat = self.get_bind_matrix()
                     amat = settings.global_matrix * (Matrix() if amat is None else amat)
                     if self.matrix_geom:
                         amat = amat * self.matrix_geom
