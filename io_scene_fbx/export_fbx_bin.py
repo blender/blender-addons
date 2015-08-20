@@ -2547,6 +2547,11 @@ def fbx_header_elements(root, scene_data, time=None):
     app_vendor = "Blender Foundation"
     app_name = "Blender (stable FBX IO)"
     app_ver = bpy.app.version_string
+
+    import addon_utils
+    import sys
+    addon_ver = addon_utils.module_bl_info(sys.modules[__package__])['version']
+
     # ##### Start of FBXHeaderExtension element.
     header_ext = elem_empty(root, b"FBXHeaderExtension")
 
@@ -2569,7 +2574,8 @@ def fbx_header_elements(root, scene_data, time=None):
     elem_data_single_int32(elem, b"Second", time.second)
     elem_data_single_int32(elem, b"Millisecond", time.microsecond // 1000)
 
-    elem_data_single_string_unicode(header_ext, b"Creator", "%s - %s" % (app_name, app_ver))
+    elem_data_single_string_unicode(header_ext, b"Creator", "%s - %s - %d.%d.%d"
+                                                % (app_name, app_ver, addon_ver[0], addon_ver[1], addon_ver[2]))
 
     # 'SceneInfo' seems mandatory to get a valid FBX file...
     # TODO use real values!
@@ -2613,7 +2619,8 @@ def fbx_header_elements(root, scene_data, time=None):
                                     "".format(time.year, time.month, time.day, time.hour, time.minute, time.second,
                                               time.microsecond * 1000))
 
-    elem_data_single_string_unicode(root, b"Creator", "%s - %s" % (app_name, app_ver))
+    elem_data_single_string_unicode(root, b"Creator", "%s - %s - %d.%d.%d"
+                                          % (app_name, app_ver, addon_ver[0], addon_ver[1], addon_ver[2]))
 
     # ##### Start of GlobalSettings element.
     global_settings = elem_empty(root, b"GlobalSettings")
