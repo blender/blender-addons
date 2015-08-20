@@ -27,7 +27,7 @@ import stat
 
 bl_info = {
     "name": "Game Engine Publishing",
-    "author": "Mitchell Stokes (Moguri)",
+    "author": "Mitchell Stokes (Moguri), Oren Titane (Genome36)",
     "version": (0, 1, 0),
     "blender": (2, 72, 0),
     "location": "Render Properties > Publishing Info",
@@ -310,7 +310,11 @@ class PublishAutoPlatforms(bpy.types.Operator):
     def execute(self, context):
         ps = context.scene.ge_publish_settings
 
+        # verify lib folder
         lib_path = bpy.path.abspath(ps.lib_path)
+        if not os.path.exists(lib_path):
+            self.report({'ERROR'}, "Could not add platforms, lib folder (%s) does not exist" % lib_path)
+            return {'CANCELLED'}
 
         for lib in [i for i in os.listdir(lib_path) if os.path.isdir(os.path.join(lib_path, i))]:
             print("Found folder:", lib)
@@ -352,7 +356,11 @@ class PublishDownloadPlatforms(bpy.types.Operator):
         remote_platforms = []
 
         ps = context.scene.ge_publish_settings
+
+        # create lib folder if not already available
         lib_path = bpy.path.abspath(ps.lib_path)
+        if not os.path.exists(lib_path):
+            os.makedirs(lib_path)
 
         print("Retrieving list of platforms from blender.org...", end=" ", flush=True)
 
