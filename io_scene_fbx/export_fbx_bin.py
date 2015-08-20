@@ -1853,7 +1853,6 @@ def fbx_animations_do(scene_data, ref_id, f_start, f_end, start_zero, objects=No
     """
     bake_step = scene_data.settings.bake_anim_step
     scene = scene_data.scene
-    meshes = scene_data.data_meshes
     force_keying = scene_data.settings.bake_anim_use_all_bones
     force_sek = scene_data.settings.bake_anim_force_startend_keying
 
@@ -2144,9 +2143,16 @@ def fbx_data_from_scene(scene, settings):
         if ob_obj.type not in BLENDER_OBJECT_TYPES_MESHLIKE:
             continue
         ob = ob_obj.bdata
-        if ob in data_meshes:  # Happens with dupli instances.
-            continue
         use_org_data = True
+        org_ob_obj = None
+
+        # Do not want to systematically recreate a new mesh for dupliobject instances, kind of break purpose of those.
+        if ob_obj.is_dupli:
+            org_ob_obj = ObjectWrapper(ob)  # We get the "real" object wrapper from that dupli instance.
+            if org_ob_obj in data_meshes:
+                data_meshes[ob_obj] = data_meshes[org_ob_obj]
+                continue
+
         if settings.use_mesh_modifiers or ob.type in BLENDER_OTHER_OBJECT_TYPES:
             use_org_data = False
             tmp_mods = []
@@ -2169,13 +2175,19 @@ def fbx_data_from_scene(scene, settings):
         if use_org_data:
             data_meshes[ob_obj] = (get_blenderID_key(ob.data), ob.data, False)
 
+        # In case "real" source object of that dupli did not yet still existed in data_meshes, create it now!
+        if org_ob_obj is not None:
+            data_meshes[org_ob_obj] = data_meshes[ob_obj]
+
     perfmon.step("FBX export prepare: Wrapping ShapeKeys...")
 
     # ShapeKeys.
     data_deformers_shape = OrderedDict()
     geom_mat_co = settings.global_matrix if settings.bake_space_transform else None
-    for me_obj, (me_key, me, _org) in data_meshes.items():
+    for me_key, me, _free in data_meshes.values():
         if not (me.shape_keys and me.shape_keys.key_blocks):
+            continue
+        if me in data_deformers_shape:
             continue
 
         shapes_key = get_blender_mesh_shape_key(me)
@@ -2329,7 +2341,7 @@ def fbx_data_from_scene(scene, settings):
         templates[b"Bone"] = fbx_template_def_bone(scene, settings, nbr_users=len(data_bones))
 
     if data_meshes:
-        nbr = len(data_meshes)
+        nbr = len({me_key for me_key, _me, _free in data_meshes.values()})
         if data_deformers_shape:
             nbr += sum(len(shapes[2]) for shapes in data_deformers_shape.values())
         templates[b"Geometry"] = fbx_template_def_geometry(scene, settings, nbr_users=nbr)
@@ -2532,9 +2544,11 @@ def fbx_scene_data_cleanup(scene_data):
     Some final cleanup...
     """
     # Delete temp meshes.
-    for _key, me, free in scene_data.data_meshes.values():
-        if free:
+    done_meshes = set()
+    for me_key, me, free in scene_data.data_meshes.values():
+        if free and me_key not in done_meshes:
             bpy.data.meshes.remove(me)
+            done_meshes.add(me_key)
 
 
 # ##### Top-level FBX elements generators. #####
@@ -2735,7 +2749,8 @@ def fbx_objects_elements(root, scene_data):
     for cam in scene_data.data_cameras:
         fbx_data_camera_elements(objects, cam, scene_data)
 
-    perfmon.step("FBX export fetch meshes (%d)..." % len(scene_data.data_meshes))
+    perfmon.step("FBX export fetch meshes (%d)..."
+                 % len({me_key for me_key, _me, _free in scene_data.data_meshes.values()}))
 
     done_meshes = set()
     for me_obj in scene_data.data_meshes:
