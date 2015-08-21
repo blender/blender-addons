@@ -80,10 +80,9 @@ def WriteRuntime(player_path, output_path, asset_paths, copy_python, overwrite_l
             output_path = bpy.path.ensure_ext(output_path, '.exe')
 
         # Get the player's binary and the offset for the blend
-        file = open(player_path, 'rb')
-        player_d = file.read()
-        offset = file.tell()
-        file.close()
+        with open(player_path, "rb") as file:
+            player_d = file.read()
+            offset = file.tell()
 
         # Create a tmp blend file (Blenderplayer doesn't like compressed blends)
         tempdir = tempfile.mkdtemp()
@@ -95,31 +94,28 @@ def WriteRuntime(player_path, output_path, asset_paths, copy_python, overwrite_l
                                     )
 
         # Get the blend data
-        blend_file = open(blend_path, 'rb')
-        blend_d = blend_file.read()
-        blend_file.close()
+        with open(blend_path, "rb") as blend_file:
+            blend_d = blend_file.read()
 
         # Get rid of the tmp blend, we're done with it
         os.remove(blend_path)
         os.rmdir(tempdir)
 
         # Create a new file for the bundled runtime
-        output = open(output_path, 'wb')
+        with open(output_path, "wb") as output:
+            # Write the player and blend data to the new runtime
+            print("Writing runtime...", end=" ", flush=True)
+            output.write(player_d)
+            output.write(blend_d)
 
-        # Write the player and blend data to the new runtime
-        print("Writing runtime...", end=" ", flush=True)
-        output.write(player_d)
-        output.write(blend_d)
+            # Store the offset (an int is 4 bytes, so we split it up into 4 bytes and save it)
+            output.write(struct.pack('BBBB', (offset >> 24) & 0xFF,
+                                     (offset >> 16) & 0xFF,
+                                     (offset >> 8) & 0xFF,
+                                     (offset >> 0) & 0xFF))
 
-        # Store the offset (an int is 4 bytes, so we split it up into 4 bytes and save it)
-        output.write(struct.pack('BBBB', (offset >> 24) & 0xFF,
-                                 (offset >> 16) & 0xFF,
-                                 (offset >> 8) & 0xFF,
-                                 (offset >> 0) & 0xFF))
-
-        # Stuff for the runtime
-        output.write(b'BRUNTIME')
-        output.close()
+            # Stuff for the runtime
+            output.write(b'BRUNTIME')
 
         print("done", flush=True)
 
