@@ -247,6 +247,22 @@ class PublishAllPlatforms(bpy.types.Operator):
         return {'FINISHED'}
 
 
+class RENDER_UL_assets(bpy.types.UIList):
+    bl_label = "Asset Paths Listing"
+
+    def draw_item(self, context, layout, data, item, icon, active_data, active_propname):
+        layout.prop(item, "name", text="", emboss=False)
+
+
+class RENDER_UL_platforms(bpy.types.UIList):
+    bl_label = "Platforms Listing"
+
+    def draw_item(self, context, layout, data, item, icon, active_data, active_propname):
+        row = layout.row()
+        row.label(item.name)
+        row.prop(item, "publish", text="")
+
+
 class RENDER_PT_publish(bpy.types.Panel):
     bl_label = "Publishing Info"
     bl_space_type = "PROPERTIES"
@@ -262,39 +278,54 @@ class RENDER_PT_publish(bpy.types.Panel):
         ps = context.scene.ge_publish_settings
         layout = self.layout
 
+        # config
         layout.prop(ps, 'output_path')
         layout.prop(ps, 'runtime_name')
         layout.prop(ps, 'lib_path')
         layout.prop(ps, 'make_archive')
 
+        layout.separator()
+
+        # assets list
         layout.label("Asset Paths")
+
+        # UI_UL_list
         row = layout.row()
-        row.template_list("UI_UL_list", "assets_list", ps, 'asset_paths', ps, 'asset_paths_active')
+        row.template_list("RENDER_UL_assets", "assets_list", ps, 'asset_paths', ps, 'asset_paths_active')
+
+        # operators
         col = row.column(align=True)
         col.operator(PublishAddAssetPath.bl_idname, icon='ZOOMIN', text="")
         col.operator(PublishRemoveAssetPath.bl_idname, icon='ZOOMOUT', text="")
 
+        # indexing
         if len(ps.asset_paths) > ps.asset_paths_active >= 0:
             ap = ps.asset_paths[ps.asset_paths_active]
             row = layout.row()
-            row.prop(ap, 'name')
             row.prop(ap, 'overwrite')
 
-        layout.label("Platforms")
-        layout.prop(ps, 'publish_default_platform')
-        row = layout.row()
-        row.template_list("UI_UL_list", "platforms_list", ps, 'platforms', ps, 'platforms_active')
+        layout.separator()
 
+        # publishing list
+        row = layout.row(align=True)
+        row.label("Platforms")
+        row.prop(ps, 'publish_default_platform')
+
+        # UI_UL_list
+        row = layout.row()
+        row.template_list("RENDER_UL_platforms", "platforms_list", ps, 'platforms', ps, 'platforms_active')
+
+        # operators
         col = row.column(align=True)
         col.operator(PublishAddPlatform.bl_idname, icon='ZOOMIN', text="")
         col.operator(PublishRemovePlatform.bl_idname, icon='ZOOMOUT', text="")
         col.menu("PUBLISH_MT_platform_specials", icon='DOWNARROW_HLT', text="")
 
+        # indexing
         if len(ps.platforms) > ps.platforms_active >= 0:
             platform = ps.platforms[ps.platforms_active]
             layout.prop(platform, 'name')
             layout.prop(platform, 'player_path')
-            layout.prop(platform, 'publish')
 
         layout.operator(PublishAllPlatforms.bl_idname, 'Publish Platforms')
 
