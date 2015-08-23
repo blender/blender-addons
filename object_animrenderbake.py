@@ -156,6 +156,7 @@ def register():
     bpy.types.RENDER_PT_bake.prepend(draw)
     bpy.types.CyclesRender_PT_bake.prepend(draw)
 
+
 def unregister():
     bpy.utils.unregister_module(__name__)
 
@@ -165,6 +166,7 @@ def unregister():
 
     bpy.types.RENDER_PT_bake.remove(draw)
     bpy.types.CyclesRender_PT_bake.remove(draw)
+
 
 if __name__ == "__main__":
     register()
