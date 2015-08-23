@@ -2185,29 +2185,36 @@ def fbx_data_from_scene(scene, settings):
     data_deformers_shape = OrderedDict()
     geom_mat_co = settings.global_matrix if settings.bake_space_transform else None
     for me_key, me, _free in data_meshes.values():
-        if not (me.shape_keys and me.shape_keys.key_blocks):
+        if not (me.shape_keys and len(me.shape_keys.key_blocks) > 1):  # We do not want basis-only relative skeys...
             continue
         if me in data_deformers_shape:
             continue
 
         shapes_key = get_blender_mesh_shape_key(me)
+        # We gather all vcos first, since some skeys may be based on others...
         _cos = array.array(data_types.ARRAY_FLOAT64, (0.0,)) * len(me.vertices) * 3
         me.vertices.foreach_get("co", _cos)
         v_cos = tuple(vcos_transformed_gen(_cos, geom_mat_co))
-        for shape in me.shape_keys.key_blocks:
+        sk_cos = {}
+        for shape in me.shape_keys.key_blocks[1:]:
+            shape.data.foreach_get("co", _cos)
+            sk_cos[shape] = tuple(vcos_transformed_gen(_cos, geom_mat_co))
+        sk_base = me.shape_keys.key_blocks[0]
+
+        for shape in me.shape_keys.key_blocks[1:]:
             # Only write vertices really different from org coordinates!
             # XXX FBX does not like empty shapes (makes Unity crash e.g.), so we have to do this here... :/
             shape_verts_co = []
             shape_verts_idx = []
 
-            shape.data.foreach_get("co", _cos)
-            sv_cos = tuple(vcos_transformed_gen(_cos, geom_mat_co))
-            for idx, (sv_co, v_co) in enumerate(zip(sv_cos, v_cos)):
-                if similar_values_iter(sv_co, v_co):
+            sv_cos = sk_cos[shape]
+            ref_cos = v_cos if shape.relative_key == sk_base else sk_cos[shape.relative_key]
+            for idx, (sv_co, ref_co) in enumerate(zip(sv_cos, ref_cos)):
+                if similar_values_iter(sv_co, ref_co):
                     # Note: Maybe this is a bit too simplistic, should we use real shape base here? Though FBX does not
                     #       have this at all... Anyway, this should cover most common cases imho.
                     continue
-                shape_verts_co.extend(Vector(sv_co) - Vector(v_co))
+                shape_verts_co.extend(Vector(sv_co) - Vector(ref_co))
                 shape_verts_idx.append(idx)
             if not shape_verts_co:
                 continue
