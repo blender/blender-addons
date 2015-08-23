@@ -154,7 +154,7 @@ def register():
             default=250)
 
     bpy.types.RENDER_PT_bake.prepend(draw)
-
+    bpy.types.CyclesRender_PT_bake.prepend(draw)
 
 def unregister():
     bpy.utils.unregister_module(__name__)
@@ -164,7 +164,7 @@ def unregister():
     del bpy.types.Scene.animrenderbake_end
 
     bpy.types.RENDER_PT_bake.remove(draw)
-
+    bpy.types.CyclesRender_PT_bake.remove(draw)
 
 if __name__ == "__main__":
     register()
