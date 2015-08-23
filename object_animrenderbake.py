@@ -154,7 +154,9 @@ def register():
             default=250)
 
     bpy.types.RENDER_PT_bake.prepend(draw)
-    bpy.types.CyclesRender_PT_bake.prepend(draw)
+    cycles_panel = getattr(bpy.types, "CyclesRender_PT_bake", None)
+    if cycles_panel:
+        cycles_panel.prepend(draw)
 
 
 def unregister():
@@ -165,7 +167,9 @@ def unregister():
     del bpy.types.Scene.animrenderbake_end
 
     bpy.types.RENDER_PT_bake.remove(draw)
-    bpy.types.CyclesRender_PT_bake.remove(draw)
+    cycles_panel = getattr(bpy.types, "CyclesRender_PT_bake", None)
+    if cycles_panel:
+        cycles_panel.remove(draw)
 
 
 if __name__ == "__main__":
