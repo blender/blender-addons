@@ -19,8 +19,8 @@
 bl_info = {
     "name": "Animated Render Baker",
     "author": "Janne Karhu (jahka)",
-    "version": (1, 0),
-    "blender": (2, 65, 0),
+    "version": (2, 0),
+    "blender": (2, 75, 0),
     "location": "Properties > Render > Bake Panel",
     "description": "Renderbakes a series of frames",
     "category": "Object",
@@ -48,9 +48,10 @@ class OBJECT_OT_animrenderbake(bpy.types.Operator):
 
     def invoke(self, context, event):
         import shutil
-        
+        is_cycles = (context.scene.render.engine == 'CYCLES')
+
         scene = context.scene
-        
+
         start = scene.animrenderbake_start
         end = scene.animrenderbake_end
 
@@ -82,12 +83,46 @@ class OBJECT_OT_animrenderbake(bpy.types.Operator):
 
         # find the image that's used for rendering
         # TODO: support multiple images per bake
-        for uvtex in context.active_object.data.uv_textures:
-            if uvtex.active_render == True:
-                for uvdata in uvtex.data:
-                    if uvdata.image is not None:
-                        img = uvdata.image
+        if is_cycles:
+            # XXX This tries to mimic nodeGetActiveTexture(), but we have no access to 'texture_active' state from RNA...
+            #     IMHO, this should be a func in RNA nodetree struct anyway?
+            inactive = None
+            selected = None
+            for mat_slot in context.active_object.material_slots:
+                mat = mat_slot.material
+                if not mat or not mat.node_tree:
+                    continue
+                trees = [mat.node_tree]
+                while trees and not img:
+                    tree = trees.pop()
+                    node = tree.nodes.active
+                    if node.type in {'TEX_IMAGE', 'TEX_ENVIRONMENT'}:
+                        img = node.image
                         break
+                    for node in tree.nodes:
+                        if node.type in {'TEX_IMAGE', 'TEX_ENVIRONMENT'} and node.image:
+                            if node.select:
+                                if not selected:
+                                    selected = node
+                            else:
+                                if not inactive:
+                                    inactive = node
+                        elif node.type == 'GROUP':
+                            trees.add(node.node_tree)
+                if img:
+                    break
+            if not img:
+                if selected:
+                    img = selected.image
+                elif inactive:
+                    img = inactive.image
+        else:
+            for uvtex in context.active_object.data.uv_textures:
+                if uvtex.active_render == True:
+                    for uvdata in uvtex.data:
+                        if uvdata.image is not None:
+                            img = uvdata.image
+                            break
 
         if img is None:
             self.report({'ERROR'}, "No valid image found to bake to")
@@ -111,7 +146,10 @@ class OBJECT_OT_animrenderbake(bpy.types.Operator):
 
             # update scene to new frame and bake to template image
             scene.frame_set(cfra)
-            ret = bpy.ops.object.bake_image()
+            if is_cycles:
+                ret = bpy.ops.object.bake()
+            else:
+                ret = bpy.ops.object.bake_image()
             if 'CANCELLED' in ret:
                 return {'CANCELLED'}
 
