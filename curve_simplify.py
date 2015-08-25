@@ -39,6 +39,34 @@ from bpy.props import *
 import mathutils
 import math
 
+from bpy.types import Header, Menu
+  
+class GraphPanel(Header):
+    bl_space_type = "GRAPH_EDITOR"
+    def draw(self, context):
+        layout = self.layout
+
+    def invoke(self, context, event):
+       context.window_manager.invoke_props_dialog(self)
+       return {"RUNNING_MODAL"}
+
+def menu_func(self, context):
+ 	self.layout.operator(GRAPH_OT_simplify.bl_idname)
+
+class CurveMenu(Menu):
+    bl_space_type = "3D_VIEW"
+    bl_label = "Simplify Curves"
+    def draw(self, context):
+        layout = self.layout
+
+    def invoke(self, context, event):
+       context.window_manager.invoke_props_dialog(self)
+       return {"RUNNING_MODAL"}
+
+def menu(self, context):
+    self.layout.operator("curve.simplify", text="Curve Simplify", icon="CURVE_DATA")
+    ## Check for curve
+
 ##############################
 #### simplipoly algorithm ####
 ##############################
@@ -364,7 +392,7 @@ class GRAPH_OT_simplify(bpy.types.Operator):
     """"""
     bl_idname = "graph.simplify"
     bl_label = "Simplifiy F-Curves"
-    bl_description = "Simplify selected F-Curves"
+    bl_description = "Simplify selected Curves"
     bl_options = {'REGISTER', 'UNDO'}
 
     ## Properties
@@ -423,6 +451,7 @@ class GRAPH_OT_simplify(bpy.types.Operator):
     def draw(self, context):
         layout = self.layout
         col = layout.column()
+        col.label(text = "Simplify F-Curves")
         col.prop(self, 'error', expand=True)
 
     ## Check for animdata
@@ -460,7 +489,8 @@ class GRAPH_OT_simplify(bpy.types.Operator):
 
         #print("-------END-------")
         return {'FINISHED'}
-
+    def invoke(self, context, event):
+        return context.window_manager.invoke_popup(self, width = 100)
 ###########################
 ##### Curves OPERATOR #####
 ###########################
@@ -549,7 +579,6 @@ class CURVE_OT_simplify(bpy.types.Operator):
         col.prop(self, 'keepShort', expand=True)
 
 
-    ## Check for curve
     @classmethod
     def poll(cls, context):
         obj = context.active_object
@@ -588,12 +617,17 @@ class CURVE_OT_simplify(bpy.types.Operator):
 def register():
     bpy.utils.register_module(__name__)
 
-    pass
+    bpy.types.GRAPH_MT_channel.append(menu_func)
+    bpy.types.DOPESHEET_MT_channel.append(menu_func)
+    bpy.types.INFO_MT_curve_add.append(menu)
 
 def unregister():
+
+    bpy.types.GRAPH_MT_channel.remove(menu_func)
+    bpy.types.DOPESHEET_MT_channel.remove(menu_func)
+    bpy.types.INFO_MT_curve_add.remove(menu)
     bpy.utils.unregister_module(__name__)
 
-    pass
 
 if __name__ == "__main__":
     register()
