@@ -3205,7 +3205,7 @@ class GPENCIL_OT_SURFSK_add_surface(bpy.types.Operator):
             bpy.context.user_preferences.edit.use_global_undo = self.initial_global_undo_state
 
             if created_faces_count == 0:
-                self.report({'WARNING'}, "There aren't any strokes.")
+                self.report({'WARNING'}, "There aren't any strokes attatched to the object")
                 return {"CANCELLED"}
             else:
                 return {"FINISHED"}
@@ -3226,7 +3226,7 @@ class GPENCIL_OT_SURFSK_add_surface(bpy.types.Operator):
             return{"CANCELLED"}
 
         elif self.strokes_type == "NO_STROKES":
-            self.report({'WARNING'}, "There aren't any strokes.")
+            self.report({'WARNING'}, "There aren't any strokes attatched to the object")
             return{"CANCELLED"}
 
         elif self.strokes_type == "CURVE_WITH_NON_BEZIER_SPLINES":
@@ -3298,7 +3298,7 @@ class GPENCIL_OT_SURFSK_edit_strokes(bpy.types.Operator):
             self.report({'WARNING'}, "There shouldn't be more than one secondary object selected.")
             return{"CANCELLED"}
         elif self.strokes_type == "NO_STROKES" or self.strokes_type == "SELECTION_ALONE":
-            self.report({'WARNING'}, "There aren't any strokes.")
+            self.report({'WARNING'}, "There aren't any strokes attatched to the object")
             return{"CANCELLED"}
         else:
             return{"CANCELLED"}
