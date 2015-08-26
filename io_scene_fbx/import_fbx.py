@@ -2198,6 +2198,7 @@ def load(operator, context, filepath="",
          use_image_search=False,
          use_alpha_decals=False,
          decal_offset=0.0,
+         use_anim=True,
          anim_offset=1.0,
          use_custom_props=True,
          use_custom_props_enum_as_string=True,
@@ -2325,7 +2326,7 @@ def load(operator, context, filepath="",
         bake_space_transform, global_matrix_inv, global_matrix_inv_transposed,
         use_custom_normals, use_cycles, use_image_search,
         use_alpha_decals, decal_offset,
-        anim_offset,
+        use_anim, anim_offset,
         use_custom_props, use_custom_props_enum_as_string,
         cycles_material_wrap_map, image_cache,
         ignore_leaf_bones, force_connect_children, automatic_bone_orientation, bone_correction_matrix,
@@ -2726,98 +2727,100 @@ def load(operator, context, filepath="",
                 blend_shape_channels[bc_uuid] = keyblocks
     _(); del _
 
-    perfmon.step("FBX import: Animations...")
+    if use_anim:
+        perfmon.step("FBX import: Animations...")
 
-    # Animation!
-    def _():
-        fbx_tmpl_astack = fbx_template_get((b'AnimationStack', b'FbxAnimStack'))
-        fbx_tmpl_alayer = fbx_template_get((b'AnimationLayer', b'FbxAnimLayer'))
-        stacks = {}
+        # Animation!
+        def _():
+            fbx_tmpl_astack = fbx_template_get((b'AnimationStack', b'FbxAnimStack'))
+            fbx_tmpl_alayer = fbx_template_get((b'AnimationLayer', b'FbxAnimLayer'))
+            stacks = {}
 
-        # AnimationStacks.
-        for as_uuid, fbx_asitem in fbx_table_nodes.items():
-            fbx_asdata, _blen_data = fbx_asitem
-            if fbx_asdata.id != b'AnimationStack' or fbx_asdata.props[2] != b'':
-                continue
-            stacks[as_uuid] = (fbx_asitem, {})
-
-        # AnimationLayers (mixing is completely ignored for now, each layer results in an independent set of actions).
-        def get_astacks_from_alayer(al_uuid):
-            for as_uuid, as_ctype in fbx_connection_map.get(al_uuid, ()):
-                if as_ctype.props[0] != b'OO':
+            # AnimationStacks.
+            for as_uuid, fbx_asitem in fbx_table_nodes.items():
+                fbx_asdata, _blen_data = fbx_asitem
+                if fbx_asdata.id != b'AnimationStack' or fbx_asdata.props[2] != b'':
                     continue
-                fbx_asdata, _bl_asdata = fbx_table_nodes.get(as_uuid, (None, None))
-                if (fbx_asdata is None or fbx_asdata.id != b'AnimationStack' or
-                    fbx_asdata.props[2] != b'' or as_uuid not in stacks):
-                    continue
-                yield as_uuid
-        for al_uuid, fbx_alitem in fbx_table_nodes.items():
-            fbx_aldata, _blen_data = fbx_alitem
-            if fbx_aldata.id != b'AnimationLayer' or fbx_aldata.props[2] != b'':
-                continue
-            for as_uuid in get_astacks_from_alayer(al_uuid):
-                _fbx_asitem, alayers = stacks[as_uuid]
-                alayers[al_uuid] = (fbx_alitem, {})
+                stacks[as_uuid] = (fbx_asitem, {})
 
-        # AnimationCurveNodes (also the ones linked to actual animated data!).
-        curvenodes = {}
-        for acn_uuid, fbx_acnitem in fbx_table_nodes.items():
-            fbx_acndata, _blen_data = fbx_acnitem
-            if fbx_acndata.id != b'AnimationCurveNode' or fbx_acndata.props[2] != b'':
-                continue
-            cnode = curvenodes[acn_uuid] = {}
-            items = []
-            for n_uuid, n_ctype in fbx_connection_map.get(acn_uuid, ()):
-                if n_ctype.props[0] != b'OP':
-                    continue
-                lnk_prop = n_ctype.props[3]
-                if lnk_prop in {b'Lcl Translation', b'Lcl Rotation', b'Lcl Scaling'}:
-                    # n_uuid can (????) be linked to root '0' node, instead of a mere object node... See T41712.
-                    ob = fbx_helper_nodes.get(n_uuid, None)
-                    if ob is None:
+            # AnimationLayers
+            # (mixing is completely ignored for now, each layer results in an independent set of actions).
+            def get_astacks_from_alayer(al_uuid):
+                for as_uuid, as_ctype in fbx_connection_map.get(al_uuid, ()):
+                    if as_ctype.props[0] != b'OO':
                         continue
-                    items.append((ob, lnk_prop))
-                elif lnk_prop == b'DeformPercent':  # Shape keys.
-                    keyblocks = blend_shape_channels.get(n_uuid)
-                    if keyblocks is None:
+                    fbx_asdata, _bl_asdata = fbx_table_nodes.get(as_uuid, (None, None))
+                    if (fbx_asdata is None or fbx_asdata.id != b'AnimationStack' or
+                        fbx_asdata.props[2] != b'' or as_uuid not in stacks):
                         continue
-                    items += [(kb, lnk_prop) for kb in keyblocks]
-            for al_uuid, al_ctype in fbx_connection_map.get(acn_uuid, ()):
-                if al_ctype.props[0] != b'OO':
-                    continue
-                fbx_aldata, _blen_aldata = fbx_alitem = fbx_table_nodes.get(al_uuid, (None, None))
-                if fbx_aldata is None or fbx_aldata.id != b'AnimationLayer' or fbx_aldata.props[2] != b'':
+                    yield as_uuid
+            for al_uuid, fbx_alitem in fbx_table_nodes.items():
+                fbx_aldata, _blen_data = fbx_alitem
+                if fbx_aldata.id != b'AnimationLayer' or fbx_aldata.props[2] != b'':
                     continue
                 for as_uuid in get_astacks_from_alayer(al_uuid):
-                    _fbx_alitem, anim_items = stacks[as_uuid][1][al_uuid]
-                    assert(_fbx_alitem == fbx_alitem)
-                    for item, item_prop in items:
-                        # No need to keep curvenode FBX data here, contains nothing useful for us.
-                        anim_items.setdefault(item, {})[acn_uuid] = (cnode, item_prop)
+                    _fbx_asitem, alayers = stacks[as_uuid]
+                    alayers[al_uuid] = (fbx_alitem, {})
 
-        # AnimationCurves (real animation data).
-        for ac_uuid, fbx_acitem in fbx_table_nodes.items():
-            fbx_acdata, _blen_data = fbx_acitem
-            if fbx_acdata.id != b'AnimationCurve' or fbx_acdata.props[2] != b'':
-                continue
-            for acn_uuid, acn_ctype in fbx_connection_map.get(ac_uuid, ()):
-                if acn_ctype.props[0] != b'OP':
+            # AnimationCurveNodes (also the ones linked to actual animated data!).
+            curvenodes = {}
+            for acn_uuid, fbx_acnitem in fbx_table_nodes.items():
+                fbx_acndata, _blen_data = fbx_acnitem
+                if fbx_acndata.id != b'AnimationCurveNode' or fbx_acndata.props[2] != b'':
                     continue
-                fbx_acndata, _bl_acndata = fbx_table_nodes.get(acn_uuid, (None, None))
-                if (fbx_acndata is None or fbx_acndata.id != b'AnimationCurveNode' or
-                    fbx_acndata.props[2] != b'' or acn_uuid not in curvenodes):
-                    continue
-                # Note this is an infamous simplification of the compound props stuff,
-                # seems to be standard naming but we'll probably have to be smarter to handle more exotic files?
-                channel = {b'd|X': 0, b'd|Y': 1, b'd|Z': 2, b'd|DeformPercent': 0}.get(acn_ctype.props[3], None)
-                if channel is None:
-                    continue
-                curvenodes[acn_uuid][ac_uuid] = (fbx_acitem, channel)
+                cnode = curvenodes[acn_uuid] = {}
+                items = []
+                for n_uuid, n_ctype in fbx_connection_map.get(acn_uuid, ()):
+                    if n_ctype.props[0] != b'OP':
+                        continue
+                    lnk_prop = n_ctype.props[3]
+                    if lnk_prop in {b'Lcl Translation', b'Lcl Rotation', b'Lcl Scaling'}:
+                        # n_uuid can (????) be linked to root '0' node, instead of a mere object node... See T41712.
+                        ob = fbx_helper_nodes.get(n_uuid, None)
+                        if ob is None:
+                            continue
+                        items.append((ob, lnk_prop))
+                    elif lnk_prop == b'DeformPercent':  # Shape keys.
+                        keyblocks = blend_shape_channels.get(n_uuid)
+                        if keyblocks is None:
+                            continue
+                        items += [(kb, lnk_prop) for kb in keyblocks]
+                for al_uuid, al_ctype in fbx_connection_map.get(acn_uuid, ()):
+                    if al_ctype.props[0] != b'OO':
+                        continue
+                    fbx_aldata, _blen_aldata = fbx_alitem = fbx_table_nodes.get(al_uuid, (None, None))
+                    if fbx_aldata is None or fbx_aldata.id != b'AnimationLayer' or fbx_aldata.props[2] != b'':
+                        continue
+                    for as_uuid in get_astacks_from_alayer(al_uuid):
+                        _fbx_alitem, anim_items = stacks[as_uuid][1][al_uuid]
+                        assert(_fbx_alitem == fbx_alitem)
+                        for item, item_prop in items:
+                            # No need to keep curvenode FBX data here, contains nothing useful for us.
+                            anim_items.setdefault(item, {})[acn_uuid] = (cnode, item_prop)
 
-        # And now that we have sorted all this, apply animations!
-        blen_read_animations(fbx_tmpl_astack, fbx_tmpl_alayer, stacks, scene, settings.anim_offset)
+            # AnimationCurves (real animation data).
+            for ac_uuid, fbx_acitem in fbx_table_nodes.items():
+                fbx_acdata, _blen_data = fbx_acitem
+                if fbx_acdata.id != b'AnimationCurve' or fbx_acdata.props[2] != b'':
+                    continue
+                for acn_uuid, acn_ctype in fbx_connection_map.get(ac_uuid, ()):
+                    if acn_ctype.props[0] != b'OP':
+                        continue
+                    fbx_acndata, _bl_acndata = fbx_table_nodes.get(acn_uuid, (None, None))
+                    if (fbx_acndata is None or fbx_acndata.id != b'AnimationCurveNode' or
+                        fbx_acndata.props[2] != b'' or acn_uuid not in curvenodes):
+                        continue
+                    # Note this is an infamous simplification of the compound props stuff,
+                    # seems to be standard naming but we'll probably have to be smarter to handle more exotic files?
+                    channel = {b'd|X': 0, b'd|Y': 1, b'd|Z': 2, b'd|DeformPercent': 0}.get(acn_ctype.props[3], None)
+                    if channel is None:
+                        continue
+                    curvenodes[acn_uuid][ac_uuid] = (fbx_acitem, channel)
 
-    _(); del _
+            # And now that we have sorted all this, apply animations!
+            blen_read_animations(fbx_tmpl_astack, fbx_tmpl_alayer, stacks, scene, settings.anim_offset)
+
+        _(); del _
 
     perfmon.step("FBX import: Assign materials...")
 
