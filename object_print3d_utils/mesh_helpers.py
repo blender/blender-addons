@@ -113,7 +113,6 @@ def bmesh_check_self_intersect_object(obj):
 
     overlap = tree.overlap(tree)
     faces_error = {i for i_pair in overlap for i in i_pair}
-    print(faces_error)
     return array.array('i', faces_error)
 
 
