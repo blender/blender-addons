@@ -29,10 +29,10 @@ bl_info = {
     "name": "Game Engine Publishing",
     "author": "Mitchell Stokes (Moguri), Oren Titane (Genome36)",
     "version": (0, 1, 0),
-    "blender": (2, 72, 0),
+    "blender": (2, 75, 0),
     "location": "Render Properties > Publishing Info",
     "description": "Publish .blend file as game engine runtime, manage versions and platforms",
-    "warning": "beta",
+    "warning": "",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts/Game_Engine/Publishing",
     "category": "Game Engine",
 }
