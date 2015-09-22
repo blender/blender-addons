@@ -320,7 +320,7 @@ class AddRoundCube(bpy.types.Operator, object_utils.AddObjectHelper):
     """Add Round Cube Primitive"""
     bl_idname = 'mesh.primitive_round_cube_add'
     bl_label = 'Add Round Cube'
-    bl_description = 'Add mesh primitives: Quadspheres, Capsules, Rounded Cuboids, 3D Grids, etc.'
+    bl_description = 'Add mesh primitives: Quadspheres, Capsules, Rounded Cuboids, 3D Grids, etc'
     bl_options = {'REGISTER', 'UNDO', 'PRESET'}
 
     sanity_check_verts = 200000
