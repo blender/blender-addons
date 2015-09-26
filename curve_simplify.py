@@ -19,8 +19,8 @@
 bl_info = {
     "name": "Simplify Curves",
     "author": "testscreenings",
-    "version": (1,),
-    "blender": (2, 59, 0),
+    "version": (1, 0, 1),
+    "blender": (2, 75, 0),
     "location": "Search > Simplify Curves",
     "description": "Simplifies 3D Curve objects and animation F-Curves",
     "warning": "",
@@ -39,32 +39,9 @@ from bpy.props import *
 import mathutils
 import math
 
-from bpy.types import Header, Menu
+from bpy.types import Menu
   
-class GraphPanel(Header):
-    bl_space_type = "GRAPH_EDITOR"
-    def draw(self, context):
-        layout = self.layout
 
-    def invoke(self, context, event):
-       context.window_manager.invoke_props_dialog(self)
-       return {"RUNNING_MODAL"}
-
-def menu_func(self, context):
- 	self.layout.operator(GRAPH_OT_simplify.bl_idname)
-
-class CurveMenu(Menu):
-    bl_space_type = "3D_VIEW"
-    bl_label = "Simplify Curves"
-    def draw(self, context):
-        layout = self.layout
-
-    def invoke(self, context, event):
-       context.window_manager.invoke_props_dialog(self)
-       return {"RUNNING_MODAL"}
-
-def menu(self, context):
-    self.layout.operator("curve.simplify", text="Curve Simplify", icon="CURVE_DATA")
     ## Check for curve
 
 ##############################
@@ -385,6 +362,28 @@ def fcurves_simplify(context, obj, options, fcurves):
             #fcurve.points.foreach_set('co', newPoints)
     return
 
+### MENU ###
+
+class GRAPH_OT_simplifyf(bpy.types.Menu):
+    bl_space_type = "GRAPH_EDITOR"
+    bl_label = "Simplify F Curves"
+
+    def draw(self, context):
+        layout = self.layout
+
+def menu_func(self, context):
+ 	self.layout.operator(GRAPH_OT_simplify.bl_idname)
+
+class CurveMenu(Menu):
+    bl_space_type = "3D_VIEW"
+    bl_label = "Simplify Curves"
+
+    def draw(self, context):
+        layout = self.layout
+
+def menu(self, context):
+    self.layout.operator("curve.simplify", text="Curve Simplify", icon="CURVE_DATA")
+
 #################################################
 #### ANIMATION CURVES OPERATOR ##################
 #################################################
@@ -489,8 +488,7 @@ class GRAPH_OT_simplify(bpy.types.Operator):
 
         #print("-------END-------")
         return {'FINISHED'}
-    def invoke(self, context, event):
-        return context.window_manager.invoke_popup(self, width = 100)
+
 ###########################
 ##### Curves OPERATOR #####
 ###########################
@@ -626,8 +624,9 @@ def unregister():
     bpy.types.GRAPH_MT_channel.remove(menu_func)
     bpy.types.DOPESHEET_MT_channel.remove(menu_func)
     bpy.types.INFO_MT_curve_add.remove(menu)
-    bpy.utils.unregister_module(__name__)
 
+    bpy.utils.unregister_module(__name__)
 
 if __name__ == "__main__":
     register()
+
