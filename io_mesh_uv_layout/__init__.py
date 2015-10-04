@@ -21,7 +21,7 @@
 bl_info = {
     "name": "UV Layout",
     "author": "Campbell Barton, Matt Ebb",
-    "version": (1, 1, 2),
+    "version": (1, 1, 1),
     "blender": (2, 75, 0),
     "location": "Image-Window > UVs > Export UV Layout",
     "description": "Export the UV layout as a 2D graphic",
@@ -199,7 +199,7 @@ class ExportUVLayout(bpy.types.Operator):
         else:
             mesh = obj.data
 
-        func(fw, context, mesh, self.size[0], self.size[1], self.opacity,
+        func(fw, mesh, self.size[0], self.size[1], self.opacity,
              lambda: self._face_uv_iter(context, mesh, self.tessellated))
 
         if self.modified:

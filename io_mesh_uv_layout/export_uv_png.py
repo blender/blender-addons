@@ -21,7 +21,7 @@
 import bpy
 
 
-def write(fw, context, mesh_source, image_width, image_height, opacity, face_iter_func):
+def write(fw, mesh_source, image_width, image_height, opacity, face_iter_func):
     filepath = fw.__self__.name
     fw.__self__.close()
 
@@ -133,8 +133,7 @@ def write(fw, context, mesh_source, image_width, image_height, opacity, face_ite
 
     scene.update()
 
-    data_context = context.copy()
-    data_context.update((("blend_data", bpy.context.blend_data), ("scene", scene)))
+    data_context = {"blend_data": bpy.context.blend_data, "scene": scene}
     bpy.ops.render.render(data_context, write_still=True)
 
     # cleanup
