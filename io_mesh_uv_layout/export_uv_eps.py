@@ -21,7 +21,7 @@
 import bpy
 
 
-def write(fw, mesh, image_width, image_height, opacity, face_iter_func):
+def write(fw, context, mesh, image_width, image_height, opacity, face_iter_func):
     fw("%!PS-Adobe-3.0 EPSF-3.0\n")
     fw("%%%%Creator: Blender %s\n" % bpy.app.version_string)
     fw("%%Pages: 1\n")
