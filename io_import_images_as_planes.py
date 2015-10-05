@@ -19,8 +19,8 @@
 bl_info = {
     "name": "Import Images as Planes",
     "author": "Florian Meyer (tstscr), mont29, matali",
-    "version": (2, 0, 2),
-    "blender": (2, 74, 0),
+    "version": (2, 0, 3),
+    "blender": (2, 76, 1),
     "location": "File > Import > Images as Planes or Add > Mesh > Images as Planes",
     "description": "Imports images and creates planes with the appropriate aspect ratio. "
                    "The images are mapped to the planes.",
@@ -179,6 +179,9 @@ class IMPORT_OT_image_to_plane(Operator, AddObjectHelper):
 
     align_offset = FloatProperty(name="Offset", min=0, soft_min=0, default=0.1, description="Space between Planes")
 
+    force_reload = BoolProperty(name="Force Reload", default=False,
+                                description="Force reloading of the image if already opened elsewhere in Blender")
+
     # Callback which will update File window's filter options accordingly to extension setting.
     def update_extensions(self, context):
         if self.extension == DEFAULT_EXT:
@@ -269,6 +272,8 @@ class IMPORT_OT_image_to_plane(Operator, AddObjectHelper):
         box.prop(self, "align_offset")
 
         row = box.row()
+        row.prop(self, "force_reload")
+        row = box.row()
         row.active = bpy.data.is_saved
         row.prop(self, "relative")
         box.prop(self, "match_len")
@@ -327,7 +332,8 @@ class IMPORT_OT_image_to_plane(Operator, AddObjectHelper):
         engine = context.scene.render.engine
         import_list, directory = self.generate_paths()
 
-        images = tuple(load_image(path, directory) for path in import_list)
+        images = tuple(load_image(path, directory, check_existing=True, force_reload=self.force_reload)
+                       for path in import_list)
 
         for img in images:
             self.set_image_options(img)
