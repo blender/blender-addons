@@ -194,7 +194,7 @@ url_manual_mapping = (
     ("bpy.types.Action.*", "animation/basics/actions.html"),
     #("bpy.types.Brush.*", ""),  # TODO - manual has no place for this! XXX
     ("bpy.types.Curve.*", "modeling/curves"),
-    ("bpy.types.GreasePencil.*", "grease_pencil"),
+    ("bpy.types.GreasePencil.*", "interface/grease_pencil/index.html"),
     ("bpy.types.Group.*", "modeling/objects/groups_and_parenting.html#grouping-objects"),
     ("bpy.types.Image.*", "render/blender_render/textures/types/image.html"),
     ("bpy.types.ShapeKey.*", "animation/techs/shape/shape_keys.html"), # not an id but include because of key
@@ -480,7 +480,7 @@ url_manual_mapping = (
     ("bpy.ops.file.*",  ""),
     ("bpy.ops.fluid.*",  "physics/fluid"),
     ("bpy.ops.font.*",  "modeling/texts"),
-    ("bpy.ops.gpencil.*",  "grease_pencil"),
+    ("bpy.ops.gpencil.*",  "interface/grease_pencil/index.html"),
     ("bpy.ops.graph.*",  "editors/graph_editor/fcurves.html"),
     ("bpy.ops.group.*",  "modeling/objects/groups_and_parenting.html#grouping-objects"),
     ("bpy.ops.image.*",  "render/blender_render/textures/types/image.html"),
@@ -540,7 +540,7 @@ url_manual_mapping = (
     ("bpy.ops.transform.push_pull", "modeling/meshes/editing/deforming/push_pull.html"),
     ("bpy.ops.transform.*",  "editors/3dview/transform/transform_control"),
     ("bpy.ops.ui.*",  "interface"),
-    ("bpy.ops.uv.*",  "render/blender_render/textures/mapping/uv/layout_editing.html"),
+    ("bpy.ops.uv.*",  "editors/uv_image/index.html"),
     # ("bpy.ops.view2d.*",  ""),  # TODO
     ("bpy.ops.view3d.*",  "editors/3dview/navigate/3d_view.html"),  # this link is a bit arbitrary
     ("bpy.ops.wm.*",      "interface/window_system"),
