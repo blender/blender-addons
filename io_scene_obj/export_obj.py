@@ -352,18 +352,16 @@ def write_file(filepath, objects, scene,
                     subprogress1.step("Ignoring %s, dupli child..." % ob_main.name)
                     continue
 
-                obs = []
+                obs = [(ob_main, ob_main.matrix_world)]
                 if ob_main.dupli_type != 'NONE':
                     # XXX
                     print('creating dupli_list on', ob_main.name)
                     ob_main.dupli_list_create(scene)
 
-                    obs = [(dob.object, dob.matrix) for dob in ob_main.dupli_list]
+                    obs += [(dob.object, dob.matrix) for dob in ob_main.dupli_list]
 
                     # XXX debug print
-                    print(ob_main.name, 'has', len(obs), 'dupli children')
-                else:
-                    obs = [(ob_main, ob_main.matrix_world)]
+                    print(ob_main.name, 'has', len(obs) - 1, 'dupli children')
 
                 subprogress1.enter_substeps(len(obs))
                 for ob, ob_mat in obs:
