@@ -2315,7 +2315,7 @@ def load(operator, context, filepath="",
     custom_fps = elem_props_get_number(fbx_settings_props, b'CustomFrameRate', 25.0)
     time_mode = elem_props_get_enum(fbx_settings_props, b'TimeMode')
     real_fps = {eid: val for val, eid in FBX_FRAMERATES[1:]}.get(time_mode, custom_fps)
-    if real_fps < 0.0:
+    if real_fps <= 0.0:
         real_fps = 25.0
     scene.render.fps = round(real_fps)
     scene.render.fps_base = scene.render.fps / real_fps
