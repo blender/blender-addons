@@ -81,10 +81,21 @@ def create_materials(filepath, relpath,
     DIR = os.path.dirname(filepath)
     context_material_vars = set()
 
-    def load_material_image(blender_material, context_material_name, imagepath, type):
+    def load_material_image(blender_material, context_material_name, img_data, type):
         """
         Set textures defined in .mtl file.
         """
+        imagepath = img_data[-1]
+        map_options = {}
+
+        curr_token = []
+        for token in img_data[:-1]:
+            if token.startswith(b'-'):
+                if curr_token:
+                    map_options[curr_token[0]] = curr_token[1:]
+                curr_token[:] = []
+            curr_token.append(token)
+
         texture = bpy.data.textures.new(name=type, type='IMAGE')
 
         # Absolute path - c:\.. etc would work here
@@ -136,6 +147,10 @@ def create_materials(filepath, relpath,
             mtex.texture_coords = 'UV'
             mtex.use_map_normal = True
 
+            bump_mult = map_options.get(b'-bm')
+            if bump_mult:
+                mtex.normal_factor = bump_mult[0]
+
         elif type == 'D':
             mtex = blender_material.texture_slots.add()
             mtex.use_map_color_diffuse = False
@@ -164,8 +179,29 @@ def create_materials(filepath, relpath,
             mtex.texture = texture
             mtex.texture_coords = 'REFLECTION'
             mtex.use_map_color_diffuse = True
+
+            map_type = map_options.get(b'-type')
+            if map_type and map_type != [b'sphere']:
+                print("WARNING, unsupported reflection type '%s', defaulting to 'sphere'"
+                      "" % ' '.join(i.decode() for i in map_type))
+            mtex.mapping = 'SPHERE'
         else:
             raise Exception("invalid type %r" % type)
+
+        map_offset = map_options.get(b'-o')
+        map_scale = map_options.get(b'-s')
+        if map_offset:
+            mtex.offset.x = float(map_offset[0])
+            if len(map_offset) >= 2:
+                mtex.offset.y = float(map_offset[1])
+            if len(map_offset) >= 3:
+                mtex.offset.z = float(map_offset[2])
+        if map_scale:
+            mtex.scale.x = float(map_scale[0])
+            if len(map_scale) >= 2:
+                mtex.scale.y = float(map_scale[1])
+            if len(map_scale) >= 3:
+                mtex.scale.z = float(map_scale[2])
 
     # Add an MTL with the same name as the obj if no MTLs are spesified.
     temp_mtl = os.path.splitext((os.path.basename(filepath)))[0] + b'.mtl'
@@ -360,39 +396,39 @@ def create_materials(filepath, relpath,
                             pass
 
                     elif line_id == b'map_ka':
-                        img_filepath = line_value(line.split())
-                        if img_filepath:
-                            load_material_image(context_material, context_material_name, img_filepath, 'Ka')
+                        img_data = line.split()[1:]
+                        if img_data:
+                            load_material_image(context_material, context_material_name, img_data, 'Ka')
                     elif line_id == b'map_ks':
-                        img_filepath = line_value(line.split())
-                        if img_filepath:
-                            load_material_image(context_material, context_material_name, img_filepath, 'Ks')
+                        img_data = line.split()[1:]
+                        if img_data:
+                            load_material_image(context_material, context_material_name, img_data, 'Ks')
                     elif line_id == b'map_kd':
-                        img_filepath = line_value(line.split())
-                        if img_filepath:
-                            load_material_image(context_material, context_material_name, img_filepath, 'Kd')
+                        img_data = line.split()[1:]
+                        if img_data:
+                            load_material_image(context_material, context_material_name, img_data, 'Kd')
                     elif line_id == b'map_ke':
-                        img_filepath = line_value(line.split())
-                        if img_filepath:
-                            load_material_image(context_material, context_material_name, img_filepath, 'Ke')
+                        img_data = line.split()[1:]
+                        if img_data:
+                            load_material_image(context_material, context_material_name, img_data, 'Ke')
                     elif line_id in {b'map_bump', b'bump'}:  # 'bump' is incorrect but some files use it.
-                        img_filepath = line_value(line.split())
-                        if img_filepath:
-                            load_material_image(context_material, context_material_name, img_filepath, 'Bump')
+                        img_data = line.split()[1:]
+                        if img_data:
+                            load_material_image(context_material, context_material_name, img_data, 'Bump')
                     elif line_id in {b'map_d', b'map_tr'}:  # Alpha map - Dissolve
-                        img_filepath = line_value(line.split())
-                        if img_filepath:
-                            load_material_image(context_material, context_material_name, img_filepath, 'D')
+                        img_data = line.split()[1:]
+                        if img_data:
+                            load_material_image(context_material, context_material_name, img_data, 'D')
 
                     elif line_id in {b'map_disp', b'disp'}:  # displacementmap
-                        img_filepath = line_value(line.split())
-                        if img_filepath:
-                            load_material_image(context_material, context_material_name, img_filepath, 'disp')
+                        img_data = line.split()[1:]
+                        if img_data:
+                            load_material_image(context_material, context_material_name, img_data, 'disp')
 
                     elif line_id in {b'map_refl', b'refl'}:  # reflectionmap
-                        img_filepath = line_value(line.split())
-                        if img_filepath:
-                            load_material_image(context_material, context_material_name, img_filepath, 'refl')
+                        img_data = line.split()[1:]
+                        if img_data:
+                            load_material_image(context_material, context_material_name, img_data, 'refl')
                     else:
                         print("\t%r:%r (ignored)" % (filepath, line))
             mtl.close()

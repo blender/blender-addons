@@ -152,35 +152,43 @@ def write_mtl(scene, filepath, path_mode, copy_set, mtl_dict):
                             # texface overrides others
                             if (mtex.use_map_color_diffuse and (face_img is None) and
                                 (mtex.use_map_warp is False) and (mtex.texture_coords != 'REFLECTION')):
-                                image_map["map_Kd"] = image
+                                image_map["map_Kd"] = (mtex, image)
                             if mtex.use_map_ambient:
-                                image_map["map_Ka"] = image
+                                image_map["map_Ka"] = (mtex, image)
                             # this is the Spec intensity channel but Ks stands for specular Color
                             '''
                             if mtex.use_map_specular:
-                                image_map["map_Ks"] = image
+                                image_map["map_Ks"] = (mtex, image)
                             '''
                             if mtex.use_map_color_spec:  # specular color
-                                image_map["map_Ks"] = image
+                                image_map["map_Ks"] = (mtex, image)
                             if mtex.use_map_hardness:  # specular hardness/glossiness
-                                image_map["map_Ns"] = image
+                                image_map["map_Ns"] = (mtex, image)
                             if mtex.use_map_alpha:
-                                image_map["map_d"] = image
+                                image_map["map_d"] = (mtex, image)
                             if mtex.use_map_translucency:
-                                image_map["map_Tr"] = image
+                                image_map["map_Tr"] = (mtex, image)
                             if mtex.use_map_normal:
-                                image_map["map_Bump"] = image
+                                image_map["map_Bump"] = (mtex, image)
                             if mtex.use_map_displacement:
-                                image_map["disp"] = image
+                                image_map["disp"] = (mtex, image)
                             if mtex.use_map_color_diffuse and (mtex.texture_coords == 'REFLECTION'):
-                                image_map["refl"] = image
+                                image_map["refl"] = (mtex, image)
                             if mtex.use_map_emit:
-                                image_map["map_Ke"] = image
+                                image_map["map_Ke"] = (mtex, image)
 
-                for key, image in sorted(image_map.items()):
+                for key, (mtex, image) in sorted(image_map.items()):
                     filepath = bpy_extras.io_utils.path_reference(image.filepath, source_dir, dest_dir,
                                                                   path_mode, "", copy_set, image.library)
-                    fw('%s %s\n' % (key, repr(filepath)[1:-1]))
+                    options = [""]
+                    if key == "map_Bump":
+                        if mtex.normal_factor != 1.0:
+                            options += ['-bm', mtex.normal_factor]
+                    if mtex.offset != Vector((0.0, 0.0, 0.0)):
+                        options += ['-o', mtex.offset.x, mtex.offset.y, mtex.offset.z]
+                    if mtex.scale != Vector((1.0, 1.0, 1.0)):
+                        options += ['-s', mtex.scale.x, mtex.scale.y, mtex.scale.z]
+                    fw('%s%s %s\n' % (key, " ".join(options), repr(filepath)[1:-1]))
 
 
 def test_nurbs_compat(ob):
