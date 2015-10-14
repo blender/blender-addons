@@ -94,7 +94,7 @@ class VIEW3D_PT_tools_SURFSK_curve(bpy.types.Panel):
         row.separator()
         col.operator("curve.surfsk_first_points", text="Set First Points")
         col.operator("curve.switch_direction", text="Switch Direction")
-        col.operator("curve.surfsk_reorder_splines", text="Reorder Splines")
+#        col.operator("curve.surfsk_reorder_splines", text="Reorder Splines")
 
 
 
