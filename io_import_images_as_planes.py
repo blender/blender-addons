@@ -19,7 +19,7 @@
 bl_info = {
     "name": "Import Images as Planes",
     "author": "Florian Meyer (tstscr), mont29, matali",
-    "version": (2, 0, 3),
+    "version": (2, 0, 4),
     "blender": (2, 76, 1),
     "location": "File > Import > Images as Planes or Add > Mesh > Images as Planes",
     "description": "Imports images and creates planes with the appropriate aspect ratio. "
@@ -76,9 +76,7 @@ VID_EXT_FILTER = {e for ext_k, ext_v in EXT_FILTER.items() if ext_k in {"avi", "
 
 CYCLES_SHADERS = (
     ('BSDF_DIFFUSE', "Diffuse", "Diffuse Shader"),
-    ('EMISSION', "Emission", "Emission Shader"),
-    ('BSDF_DIFFUSE_BSDF_TRANSPARENT', "Diffuse & Transparent", "Diffuse and Transparent Mix"),
-    ('EMISSION_BSDF_TRANSPARENT', "Emission & Transparent", "Emission and Transparent Mix")
+    ('EMISSION', "Emission", "Emission Shader")
 )
 
 # -----------------------------------------------------------------------------
@@ -503,37 +501,31 @@ class IMPORT_OT_image_to_plane(Operator, AddObjectHelper):
 
         if self.shader == 'BSDF_DIFFUSE':
             bsdf_diffuse = node_tree.nodes.new('ShaderNodeBsdfDiffuse')
-            node_tree.links.new(out_node.inputs[0], bsdf_diffuse.outputs[0])
             node_tree.links.new(bsdf_diffuse.inputs[0], tex_image.outputs[0])
+            if self.use_transparency:
+                bsdf_transparent = node_tree.nodes.new('ShaderNodeBsdfTransparent')
+                mix_shader = node_tree.nodes.new('ShaderNodeMixShader')
+                node_tree.links.new(out_node.inputs[0], mix_shader.outputs[0])
+                node_tree.links.new(mix_shader.inputs[0], tex_image.outputs[1])
+                node_tree.links.new(mix_shader.inputs[2], bsdf_diffuse.outputs[0])
+                node_tree.links.new(mix_shader.inputs[1], bsdf_transparent.outputs[0])
+            else:
+                node_tree.links.new(out_node.inputs[0], bsdf_diffuse.outputs[0])
 
         elif self.shader == 'EMISSION':
             emission = node_tree.nodes.new('ShaderNodeEmission')
             lightpath = node_tree.nodes.new('ShaderNodeLightPath')
-            node_tree.links.new(out_node.inputs[0], emission.outputs[0])
             node_tree.links.new(emission.inputs[0], tex_image.outputs[0])
             node_tree.links.new(emission.inputs[1], lightpath.outputs[0])
-
-        elif self.shader == 'BSDF_DIFFUSE_BSDF_TRANSPARENT':
-            bsdf_diffuse = node_tree.nodes.new('ShaderNodeBsdfDiffuse')
-            bsdf_transparent = node_tree.nodes.new('ShaderNodeBsdfTransparent')
-            mix_shader = node_tree.nodes.new('ShaderNodeMixShader')
-            node_tree.links.new(out_node.inputs[0], mix_shader.outputs[0])
-            node_tree.links.new(mix_shader.inputs[0], tex_image.outputs[1])
-            node_tree.links.new(mix_shader.inputs[2], bsdf_diffuse.outputs[0])
-            node_tree.links.new(mix_shader.inputs[1], bsdf_transparent.outputs[0])
-            node_tree.links.new(bsdf_diffuse.inputs[0], tex_image.outputs[0])
-
-        elif self.shader == 'EMISSION_BSDF_TRANSPARENT':
-            emission = node_tree.nodes.new('ShaderNodeEmission')
-            lightpath = node_tree.nodes.new('ShaderNodeLightPath')
-            bsdf_transparent = node_tree.nodes.new('ShaderNodeBsdfTransparent')
-            mix_shader = node_tree.nodes.new('ShaderNodeMixShader')
-            node_tree.links.new(out_node.inputs[0], mix_shader.outputs[0])
-            node_tree.links.new(mix_shader.inputs[0], tex_image.outputs[1])
-            node_tree.links.new(mix_shader.inputs[2], emission.outputs[0])
-            node_tree.links.new(mix_shader.inputs[1], bsdf_transparent.outputs[0])
-            node_tree.links.new(emission.inputs[0], tex_image.outputs[0])
-            node_tree.links.new(emission.inputs[1], lightpath.outputs[0])
+            if self.use_transparency:
+                bsdf_transparent = node_tree.nodes.new('ShaderNodeBsdfTransparent')
+                mix_shader = node_tree.nodes.new('ShaderNodeMixShader')
+                node_tree.links.new(out_node.inputs[0], mix_shader.outputs[0])
+                node_tree.links.new(mix_shader.inputs[0], tex_image.outputs[1])
+                node_tree.links.new(mix_shader.inputs[2], emission.outputs[0])
+                node_tree.links.new(mix_shader.inputs[1], bsdf_transparent.outputs[0])
+            else:
+                node_tree.links.new(out_node.inputs[0], emission.outputs[0])
 
         auto_align_nodes(node_tree)
         return material
