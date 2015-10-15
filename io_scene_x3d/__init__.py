@@ -20,16 +20,16 @@
 
 bl_info = {
     "name": "Web3D X3D/VRML2 format",
-    "author": "Campbell Barton, Bart, Bastien Montagne",
-    "version": (1, 1, 0),
-    "blender": (2, 74, 0),
+    "author": "Campbell Barton, Bart, Bastien Montagne, Seva Alekseyev",
+    "version": (1, 2, 0),
+    "blender": (2, 76, 0),
     "location": "File > Import-Export",
     "description": "Import-Export X3D, Import VRML2",
     "warning": "",
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
-                "Scripts/Import-Export/Web3D",
+    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts/Import-Export/Web3D",
     "support": 'OFFICIAL',
-    "category": "Import-Export"}
+    "category": "Import-Export",
+}
 
 if "bpy" in locals():
     import importlib
