@@ -21,7 +21,7 @@ bl_info = {
     "name": "Bsurfaces GPL Edition",
     "author": "Eclectiel",
     "version": (1, 5),
-    "blender": (2, 63, 0),
+    "blender": (2, 76, 0),
     "location": "View3D > EditMode > ToolShelf",
     "description": "Modeling and retopology tool.",
     "wiki_url": "http://wiki.blender.org/index.php/Dev:Ref/Release_Notes/2.64/Bsurfaces_1.5",
@@ -94,7 +94,7 @@ class VIEW3D_PT_tools_SURFSK_curve(bpy.types.Panel):
         row.separator()
         col.operator("curve.surfsk_first_points", text="Set First Points")
         col.operator("curve.switch_direction", text="Switch Direction")
-#        col.operator("curve.surfsk_reorder_splines", text="Reorder Splines")
+        col.operator("curve.surfsk_reorder_splines", text="Reorder Splines")
 
 
 
@@ -3465,7 +3465,7 @@ class CURVE_OT_SURFSK_reorder_splines(bpy.types.Operator):
             self.main_curve.data.splines[0].bezier_points[0].select_control_point = True
 
             bpy.ops.object.editmode_toggle('INVOKE_REGION_WIN')
-            bpy.ops.curve.separate('INVOKE_REGION_WIN')
+            bpy.ops.curve.separate('EXEC_REGION_WIN')
             bpy.ops.object.editmode_toggle('INVOKE_REGION_WIN')
 
 
