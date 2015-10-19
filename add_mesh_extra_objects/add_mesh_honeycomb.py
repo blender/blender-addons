@@ -192,7 +192,12 @@ class add_mesh_honeycomb(bpy.types.Operator):
         name = 'Num of cols', default = 2,
         min = 1, max = 100,
         description='Number of the columns')
-
+    layers = BoolVectorProperty(
+            name="Layers",
+            size=20,
+            subtype='LAYER',
+            options={'HIDDEN', 'SKIP_SAVE'},
+            )
     def fix_edge(self, context):
         m = edge_max(self.diam)
         if self.edge > m: self.edge = m
