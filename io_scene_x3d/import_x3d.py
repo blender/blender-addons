@@ -2253,7 +2253,6 @@ def importMesh_Extrusion(geom, ancestry, bpyima):
 
     bpymesh = bpy.data.meshes.new(name="Extrusion")
     bpymesh.from_pydata(verts, [], faces)
-    bpymesh.validate(True)
 
     # Polygons and loops here, not tessfaces. The way we deal with
     # textures in triangular meshes doesn't apply.
@@ -2310,6 +2309,7 @@ def importMesh_Extrusion(geom, ancestry, bpyima):
                       in scaledLoopVertex(mloops[lb + i].vertex_index % nc)]
         importMesh_ApplyTextureToLoops(bpymesh, bpyima, loops)
 
+    bpymesh.validate(True)
     bpymesh.update()
     return bpymesh
 
