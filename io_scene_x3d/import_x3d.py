@@ -1336,6 +1336,7 @@ class x3dNode(vrmlNode):
 
     def parse(self, IS_PROTO_DATA=False):
         # print(self.x3dNode.tagName)
+        self.lineno = self.x3dNode.parse_position[0]
 
         define = self.x3dNode.getAttributeNode('DEF')
         if define:
@@ -1408,6 +1409,7 @@ def x3d_parse(path):
 
     try:
         import xml.dom.minidom
+        import xml.sax
     except:
         return None, 'Error, import XML parsing module (xml.dom.minidom) failed, install python'
 
@@ -1422,7 +1424,22 @@ def x3d_parse(path):
     if data is None:
         return None, 'Failed to open file: ' + path
 
-    doc = xml.dom.minidom.parseString(data)
+    # Enable line number reporting in the parser - kinda brittle
+    def set_content_handler(dom_handler):
+        def startElementNS(name, tagName, attrs):
+            orig_start_cb(name, tagName, attrs)
+            cur_elem = dom_handler.elementStack[-1]
+            cur_elem.parse_position = (parser._parser.CurrentLineNumber, parser._parser.CurrentColumnNumber)
+
+        orig_start_cb = dom_handler.startElementNS
+        dom_handler.startElementNS = startElementNS
+        orig_set_content_handler(dom_handler)
+
+    parser = xml.sax.make_parser()
+    orig_set_content_handler = parser.setContentHandler
+    parser.setContentHandler = set_content_handler
+
+    doc = xml.dom.minidom.parseString(data, parser)
 
     try:
         x3dnode = doc.getElementsByTagName('X3D')[0]
@@ -1676,10 +1693,10 @@ def importMesh_ApplyTextureToTessfaces(bpymesh, geom, ancestry, bpyima):
 # Common steps for all triangle meshes once the geometry has been set:
 # normals, vertex colors, and texture.
 def importMesh_FinalizeTriangleMesh(bpymesh, geom, ancestry, bpyima):
-    bpymesh.validate()
     importMesh_ApplyNormals(bpymesh, geom, ancestry)
     importMesh_ApplyColors(bpymesh, geom, ancestry)
     importMesh_ApplyTextureToTessfaces(bpymesh, geom, ancestry, bpyima)
+    bpymesh.validate()
     bpymesh.update()
     return bpymesh
 
@@ -2043,7 +2060,6 @@ def importMesh_ElevationGrid(geom, ancestry, bpyima):
                        (z + 1) * x_dim + x if ccw else z * x_dim + x + 1)]
     bpymesh.tessfaces.foreach_set("vertices_raw", verts)
 
-    bpymesh.validate()
     importMesh_ApplyNormals(bpymesh, geom, ancestry)
     # ApplyColors won't work here; faces are quads, and also per-face
     # coloring should be supported
@@ -2104,6 +2120,7 @@ def importMesh_ElevationGrid(geom, ancestry, bpyima):
               for i in coord_points[face.vertices[vno]]]
         d.foreach_set('uv_raw', uv)
 
+    bpymesh.validate()
     bpymesh.update()
     return bpymesh
 
@@ -2870,7 +2887,7 @@ def importShape_LoadAppearance(vrmlname, appr, ancestry, node, is_vcol):
     Vertex coloring is not a part of appearance, but Blender
     has a material flag for it. However, if a mesh has no vertex
     color layer, setting use_vertex_color_paint to true has no
-    effect. So it's fine to reuse the same  material for  meshes
+    effect. So it's fine to reuse the same  material for meshes
     with vertex colors and for ones without.
     It's probably an abuse of Blender of some level.
 
@@ -2960,7 +2977,8 @@ def appearance_LoadPixelTexture(pixelTexture, ancestry):
     return bpyima
 
 
-# Called from importShape to insert a mesh into the scene
+# Called from importShape to insert a data object (typically a mesh)
+# into the scene
 def importShape_ProcessObject(vrmlname, bpydata, geom, geom_spec, node,
                               bpymat, has_alpha, texmtx, ancestry,
                               global_matrix):
@@ -2997,13 +3015,35 @@ def importShape_ProcessObject(vrmlname, bpydata, geom, geom_spec, node,
                         fuv[i] = (uv_copy * texmtx)[0:2]
         # Done transforming the texture
         # TODO: check if per-polygon textures are supported here.
+    elif type(bpydata) == bpy.types.TextCurve:
+        # Text with textures??? Not sure...
+        if bpymat:
+            bpydata.materials.append(bpymat)
 
     # Can transform data or object, better the object so we can instance
     # the data
     # bpymesh.transform(getFinalMatrix(node))
     bpyob = node.blendObject = bpy.data.objects.new(vrmlname, bpydata)
+    bpyob.source_line_no = geom.lineno
+    if type(bpydata) == bpy.types.TextCurve:
+        origin = geom.getFieldAsFloatTuple("origin", (0, 0, 0), ancestry)
+        bpyob.location = origin
+
     bpyob.matrix_world = getFinalMatrix(node, None, ancestry, global_matrix)
     bpy.context.scene.objects.link(bpyob).select = True
+
+
+def importText(geom, ancestry, bpyima):
+    fmt = geom.getChildBySpec('FontStyle')
+    size = fmt.getFieldAsFloat("size", 1, ancestry) if fmt else 1.
+    body = geom.getFieldAsString("string", None, ancestry)
+    body = [w.strip('"') for w in body.split('" "')]
+
+    bpytext = bpy.data.curves.new(name="Text", type='FONT')
+    bpytext.offset_y = - size
+    bpytext.body = "\n".join(body)
+    bpytext.size = size
+    return bpytext
 
 
 # -----------------------------------------------------------------------------------
@@ -3025,7 +3065,8 @@ geometry_importers = {
     'Sphere': importMesh_Sphere,
     'Box': importMesh_Box,
     'Cylinder': importMesh_Cylinder,
-    'Cone': importMesh_Cone}
+    'Cone': importMesh_Cone,
+    'Text': importText}
 
 
 def importShape(node, ancestry, global_matrix):
@@ -3416,6 +3457,12 @@ def load_web3d(path,
 
     # Used when adding blender primitives
     GLOBALS['CIRCLE_DETAIL'] = PREF_CIRCLE_DIV
+
+    # Enable custom property for source line number
+    if "source_line_no" not in bpy.types.Object.__dict__:
+        bpy.types.Object.source_line_no = bpy.props.IntProperty(
+            name="Source Line #",
+            description="Node position in the source X3D/VRML file")
 
     #root_node = vrml_parse('/_Cylinder.wrl')
     if path.lower().endswith('.x3d'):
