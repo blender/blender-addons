@@ -3025,10 +3025,6 @@ def importShape_ProcessObject(vrmlname, bpydata, geom, geom_spec, node,
     # bpymesh.transform(getFinalMatrix(node))
     bpyob = node.blendObject = bpy.data.objects.new(vrmlname, bpydata)
     bpyob.source_line_no = geom.lineno
-    if type(bpydata) == bpy.types.TextCurve:
-        origin = geom.getFieldAsFloatTuple("origin", (0, 0, 0), ancestry)
-        bpyob.location = origin
-
     bpyob.matrix_world = getFinalMatrix(node, None, ancestry, global_matrix)
     bpy.context.scene.objects.link(bpyob).select = True
 
@@ -3459,7 +3455,7 @@ def load_web3d(path,
     GLOBALS['CIRCLE_DETAIL'] = PREF_CIRCLE_DIV
 
     # Enable custom property for source line number
-    if "source_line_no" not in bpy.types.Object.__dict__:
+    if not hasattr(bpy.types.Object, "source_line_no"):
         bpy.types.Object.source_line_no = bpy.props.IntProperty(
             name="Source Line #",
             description="Node position in the source X3D/VRML file")
