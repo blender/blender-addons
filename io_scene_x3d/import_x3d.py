@@ -1406,12 +1406,8 @@ def x3d_parse(path):
     Sets up the root node and returns it so load_web3d() can deal with the blender side of things.
     Return root (x3dNode, '') or (None, 'Error String')
     """
-
-    try:
-        import xml.dom.minidom
-        import xml.sax
-    except:
-        return None, 'Error, import XML parsing module (xml.dom.minidom) failed, install python'
+    import xml.dom.minidom
+    import xml.sax
 
     '''
     try:    doc = xml.dom.minidom.parse(path)
