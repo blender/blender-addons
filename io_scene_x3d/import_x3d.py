@@ -3024,9 +3024,11 @@ def importShape_ProcessObject(vrmlname, bpydata, geom, geom_spec, node,
     # the data
     # bpymesh.transform(getFinalMatrix(node))
     bpyob = node.blendObject = bpy.data.objects.new(vrmlname, bpydata)
-    bpyob.source_line_no = geom.lineno
     bpyob.matrix_world = getFinalMatrix(node, None, ancestry, global_matrix)
     bpy.context.scene.objects.link(bpyob).select = True
+
+    if DEBUG:
+        bpyob["source_line_no"] = geom.lineno
 
 
 def importText(geom, ancestry, bpyima):
@@ -3453,12 +3455,6 @@ def load_web3d(path,
 
     # Used when adding blender primitives
     GLOBALS['CIRCLE_DETAIL'] = PREF_CIRCLE_DIV
-
-    # Enable custom property for source line number
-    if not hasattr(bpy.types.Object, "source_line_no"):
-        bpy.types.Object.source_line_no = bpy.props.IntProperty(
-            name="Source Line #",
-            description="Node position in the source X3D/VRML file")
 
     #root_node = vrml_parse('/_Cylinder.wrl')
     if path.lower().endswith('.x3d'):
