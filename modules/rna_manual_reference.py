@@ -98,54 +98,54 @@ url_manual_mapping = (
 
     # *** Modifiers ***
     # --- Intro ---
-    ("bpy.types.Modifier.show_*", "modifiers/the_stack.html"),
-    ("bpy.types.Modifier.*", "modifiers"),  # catchall for various generic options
+    ("bpy.types.Modifier.show_*", "modeling/modifiers/the_stack.html"),
+    ("bpy.types.Modifier.*", "modeling/modifiers"),  # catchall for various generic options
     # --- Modify Modifiers ---
-    ("bpy.types.MeshCacheModifier.*",              "modifiers/modify/mesh_cache.html"),
-    ("bpy.types.UVProjectModifier.*",              "modifiers/modify/uv_project.html"),
-    ("bpy.types.UVWarpModifier.*",                 "modifiers/modify/uv_warp.html"),
-    ("bpy.types.VertexWeightMixModifier.*",        "modifiers/modify/vertex_weight.html"),
-    ("bpy.types.VertexWeightEditModifier.*",       "modifiers/modify/vertex_weight.html"),
-    ("bpy.types.VertexWeightProximityModifier.*",  "modifiers/modify/vertex_weight.html"),
+    ("bpy.types.MeshCacheModifier.*",              "modeling/modifiers/modify/mesh_cache.html"),
+    ("bpy.types.UVProjectModifier.*",              "modeling/modifiers/modify/uv_project.html"),
+    ("bpy.types.UVWarpModifier.*",                 "modeling/modifiers/modify/uv_warp.html"),
+    ("bpy.types.VertexWeightMixModifier.*",        "modeling/modifiers/modify/vertex_weight.html"),
+    ("bpy.types.VertexWeightEditModifier.*",       "modeling/modifiers/modify/vertex_weight.html"),
+    ("bpy.types.VertexWeightProximityModifier.*",  "modeling/modifiers/modify/vertex_weight.html"),
     # --- Generate Modifiers ---
-    ("bpy.types.ArrayModifier.*",      "modifiers/generate/array.html"),
-    ("bpy.types.BevelModifier.*",      "modifiers/generate/bevel.html"),
-    ("bpy.types.BooleanModifier.*",    "modifiers/generate/booleans.html"),
-    ("bpy.types.BuildModifier.*",      "modifiers/generate/build.html"),
-    ("bpy.types.DecimateModifier.*",   "modifiers/generate/decimate.html"),
-    ("bpy.types.EdgeSplitModifier.*",  "modifiers/generate/edge_split.html"),
-    ("bpy.types.MaskModifier.*",       "modifiers/generate/mask.html"),
-    ("bpy.types.MirrorModifier.*",     "modifiers/generate/mirror.html"),
-    ("bpy.types.MultiresModifier.*",   "modifiers/generate/multiresolution.html"),
-    ("bpy.types.RemeshModifier.*",     "modifiers/generate/remesh.html"),
-    ("bpy.types.ScrewModifier.*",      "modifiers/generate/screw.html"),
-    ("bpy.types.SkinModifier.*",       "modifiers/generate/skin.html"),
-    ("bpy.types.SolidifyModifier.*",   "modifiers/generate/solidify.html"),
-    ("bpy.types.SubsurfModifier.*",    "modifiers/generate/subsurf.html"),
-    ("bpy.types.TriangulateModifier.*","modifiers/generate/triangulate.html"),
+    ("bpy.types.ArrayModifier.*",      "modeling/modifiers/generate/array.html"),
+    ("bpy.types.BevelModifier.*",      "modeling/modifiers/generate/bevel.html"),
+    ("bpy.types.BooleanModifier.*",    "modeling/modifiers/generate/booleans.html"),
+    ("bpy.types.BuildModifier.*",      "modeling/modifiers/generate/build.html"),
+    ("bpy.types.DecimateModifier.*",   "modeling/modifiers/generate/decimate.html"),
+    ("bpy.types.EdgeSplitModifier.*",  "modeling/modifiers/generate/edge_split.html"),
+    ("bpy.types.MaskModifier.*",       "modeling/modifiers/generate/mask.html"),
+    ("bpy.types.MirrorModifier.*",     "modeling/modifiers/generate/mirror.html"),
+    ("bpy.types.MultiresModifier.*",   "modeling/modifiers/generate/multiresolution.html"),
+    ("bpy.types.RemeshModifier.*",     "modeling/modifiers/generate/remesh.html"),
+    ("bpy.types.ScrewModifier.*",      "modeling/modifiers/generate/screw.html"),
+    ("bpy.types.SkinModifier.*",       "modeling/modifiers/generate/skin.html"),
+    ("bpy.types.SolidifyModifier.*",   "modeling/modifiers/generate/solidify.html"),
+    ("bpy.types.SubsurfModifier.*",    "modeling/modifiers/generate/subsurf.html"),
+    ("bpy.types.TriangulateModifier.*","modeling/modifiers/generate/triangulate.html"),
     # --- Deform Modifiers ---
-    ("bpy.types.ArmatureModifier.*",      "modifiers/deform/armature.html"),
-    ("bpy.types.CastModifier.*",          "modifiers/deform/cast.html"),
-    ("bpy.types.CurveModifier.*",         "modifiers/deform/curve.html"),
-    ("bpy.types.DisplaceModifier.*",      "modifiers/deform/displace.html"),
-    ("bpy.types.HookModifier.*",          "modifiers/deform/hooks.html"),
-    ("bpy.types.LaplacianSmoothModifier.*", "modifiers/deform/laplacian_smooth.html"),
-    ("bpy.types.LatticeModifier.*",       "modifiers/deform/lattice.html"),
-    ("bpy.types.MeshDeformModifier.*",    "modifiers/deform/mesh_deform.html"),
-    ("bpy.types.ShrinkwrapModifier.*",    "modifiers/deform/shrinkwrap.html"),
-    ("bpy.types.SimpleDeformModifier.*",  "modifiers/deform/simple_deform.html"),
-    ("bpy.types.SmoothModifier.*",        "modifiers/deform/smooth.html"),
+    ("bpy.types.ArmatureModifier.*",      "modeling/modifiers/deform/armature.html"),
+    ("bpy.types.CastModifier.*",          "modeling/modifiers/deform/cast.html"),
+    ("bpy.types.CurveModifier.*",         "modeling/modifiers/deform/curve.html"),
+    ("bpy.types.DisplaceModifier.*",      "modeling/modifiers/deform/displace.html"),
+    ("bpy.types.HookModifier.*",          "modeling/modifiers/deform/hooks.html"),
+    ("bpy.types.LaplacianSmoothModifier.*", "modeling/modifiers/deform/laplacian_smooth.html"),
+    ("bpy.types.LatticeModifier.*",       "modeling/modifiers/deform/lattice.html"),
+    ("bpy.types.MeshDeformModifier.*",    "modeling/modifiers/deform/mesh_deform.html"),
+    ("bpy.types.ShrinkwrapModifier.*",    "modeling/modifiers/deform/shrinkwrap.html"),
+    ("bpy.types.SimpleDeformModifier.*",  "modeling/modifiers/deform/simple_deform.html"),
+    ("bpy.types.SmoothModifier.*",        "modeling/modifiers/deform/smooth.html"),
     # ("bpy.types.SurfaceModifier.*",     "Modifiers/Deform/"),  # USERS NEVER SEE THIS
-    ("bpy.types.WarpModifier.*",          "modifiers/deform/warp.html"),
-    ("bpy.types.WaveModifier.*",          "modifiers/deform/wave.html"),
+    ("bpy.types.WarpModifier.*",          "modeling/modifiers/deform/warp.html"),
+    ("bpy.types.WaveModifier.*",          "modeling/modifiers/deform/wave.html"),
     # --- Simulate Modifiers ---
     ("bpy.types.ClothModifier.*",             "physics/cloth.html"),
     ("bpy.types.CollisionModifier.*",         "physics/collision.html"),
     ("bpy.types.DynamicPaintModifier.*",      "physics/dynamic_paint"),
-    ("bpy.types.ExplodeModifier.*",           "modifiers/simulate/explode.html"),
+    ("bpy.types.ExplodeModifier.*",           "modeling/modifiers/simulate/explode.html"),
     ("bpy.types.FluidSimulationModifier.*",   "physics/fluid"),
-    ("bpy.types.OceanModifier.*",             "modifiers/simulate/ocean.html"),
-    ("bpy.types.ParticleInstanceModifier.*",  "modifiers/simulate/particle_instance.html"),
+    ("bpy.types.OceanModifier.*",             "modeling/modifiers/simulate/ocean.html"),
+    ("bpy.types.ParticleInstanceModifier.*",  "modeling/modifiers/simulate/particle_instance.html"),
     ("bpy.types.ParticleSystemModifier.*",    "physics/particles"),
     ("bpy.types.SmokeModifier.*",             "physics/smoke"),
     ("bpy.types.SoftBodyModifier.*",          "physics/soft_body"),
@@ -185,20 +185,20 @@ url_manual_mapping = (
     ("bpy.types.RigidBodyJointConstraint.*",  "rigging/constraints/relationship/rigid_body_joint.html"),
     ("bpy.types.ShrinkwrapConstraint.*",      "rigging/constraints/relationship/shrinkwrap.html"),
 
-    ("bpy.types.ImageFormatSettings.*",  "render/output.html#file-type"),
-    ("bpy.types.RenderSettings.filepath",  "render/output.html#file-locations"),
-    ("bpy.types.RenderSettings.display_mode",  "render/display.html#displaying-renders"),
+    ("bpy.types.ImageFormatSettings.*",  "data_system/files/image_formats.html"),
+    ("bpy.types.RenderSettings.filepath",  "render/output/output.html#output-panel"),
+    ("bpy.types.RenderSettings.display_mode",  "render/output/display.html#displaying-renders"),
     ("bpy.types.RenderSettings.*",       "render"),  # catchall, todo - refine
 
     # *** ID Subclasses ***
-    ("bpy.types.Action.*", "animation/basics/actions.html"),
+    ("bpy.types.Action.*", "animation/actions.html"),
     #("bpy.types.Brush.*", ""),  # TODO - manual has no place for this! XXX
     ("bpy.types.Curve.*", "modeling/curves"),
     ("bpy.types.GreasePencil.*", "interface/grease_pencil/index.html"),
     ("bpy.types.Group.*", "modeling/objects/groups_and_parenting.html#grouping-objects"),
     ("bpy.types.Image.*", "render/blender_render/textures/types/image.html"),
-    ("bpy.types.ShapeKey.*", "animation/techs/shape/shape_keys.html"), # not an id but include because of key
-    ("bpy.types.Key.*", "animation/techs/shape/shape_keys.html"),
+    ("bpy.types.ShapeKey.*", "animation/shape_keys.html"), # not an id but include because of key
+    ("bpy.types.Key.*", "animation/shape_keys.html"),
     #("bpy.types.Lattice.*", ""), # TODO - manual has no place for this! XXX
     ("bpy.types.Library.*", "data_system/linked_libraries.html"),
     #("bpy.types.Mask.*", ""), # TODO - manual has no place for this! XXX
@@ -227,7 +227,7 @@ url_manual_mapping = (
     #("bpy.types.NodeTree.*", ""),  # dont document
     ("bpy.types.Object.*",  "modeling/objects"),  # catchall, todo - refine
     ("bpy.types.ParticleSettings.*", "physics/particles"),
-    ("bpy.types.Scene.*", "interface/scenes.html"),
+    ("bpy.types.Scene.*", "data_system/scenes.html"),
     ("bpy.types.Screen.*", "interface/screens.html"),
     #("bpy.types.Sound.*", ""), # TODO - manual has no place for this! XXX
     #("bpy.types.Speaker.*", ""), # TODO - manual has no place for this! XXX
@@ -252,7 +252,7 @@ url_manual_mapping = (
 
     # Currently all manual links on all sockets and values (such as Fac, Roughness, Color...) are NodeSocket* type.
     # It'd be much better if the name of the socket could be used for the manual reference
-    ("bpy.types.NodeSocket*", "editors/node_editor/node_controls.html"),  # no generic socket type page exists, but composite types are the same
+    ("bpy.types.NodeSocket*", "editors/node_editor/node_parts.html"),  # no generic socket type page exists, but composite types are the same
 
     # *** Cycles Material Nodes ***
     # Outputs
@@ -440,7 +440,7 @@ url_manual_mapping = (
     ("bpy.types.Lamp.*",       "render/blender_render/lighting"),             # catchall, todo - refine
 
     # --- Animation ---
-    ("bpy.types.Keyframe.*", "animation/basics/actions.html"),
+    ("bpy.types.Keyframe.*", "animation/actions.html"),
     ("bpy.types.FCurve.*", "editors/graph_editor/fcurves.html"),
 
     # --- Rigging ---
@@ -460,7 +460,7 @@ url_manual_mapping = (
     # Catch all only for now!
     # *** Window/Screen ***
 
-    ("bpy.ops.action.*",  "animation/basics/actions.html"),
+    ("bpy.ops.action.*",  "animation/actions.html"),
     ("bpy.ops.anim.*",  "animation"),
     ("bpy.ops.armature.*",  "rigging/armatures.html"),
     ("bpy.ops.boid.*",  "physics/particles/physics/boids.html"),
@@ -492,7 +492,7 @@ url_manual_mapping = (
     ("bpy.ops.lamp.*",  "render/blender_render/lighting"),  # --- todo ... all below ---
     # ("bpy.ops.lattice.*",  ""),  # TODO
     ("bpy.ops.logic.*",  "game_engine/logic"),
-    ("bpy.ops.marker.*",  "animation/basics/markers.html"),
+    ("bpy.ops.marker.*",  "animation/markers.html"),
     # ("bpy.ops.mask.*",  ""),  # TODO
     ("bpy.ops.material.new",  "render/blender_render/materials/assigning_a_material.html#creating-a-new-material"),
     ("bpy.ops.material.*",  "render/blender_render"),
@@ -510,8 +510,8 @@ url_manual_mapping = (
     ("bpy.ops.mesh.*",  "modeling/meshes"),
     ("bpy.ops.nla.*",  "editors/nla.html"),
     # ("bpy.ops.node.*",  ""),  # TODO
-    ("bpy.ops.object.*shape_key*", "animation/techs/shape/shape_keys.html"),
-    ("bpy.ops.object.join_shapes", "animation/techs/shape/shape_keys.html"),
+    ("bpy.ops.object.*shape_key*", "animation/shape_keys.html"),
+    ("bpy.ops.object.join_shapes", "animation/shape_keys.html"),
     ("bpy.ops.object.*",  "modeling/objects"),
     ("bpy.ops.outliner.*",  "editors/outliner.html"),
     # ("bpy.ops.paint.*",  ""),  # TODO
@@ -520,10 +520,10 @@ url_manual_mapping = (
     ("bpy.ops.poselib.*",  "rigging/posing/pose_library.html"),
     # ("bpy.ops.ptcache.*",  ""),  # TODO
 
-    ("bpy.ops.render.play-rendered-anim",  "render/display.html#animation-playback"),
+    ("bpy.ops.render.play-rendered-anim",  "render/output/display.html#animation-playback"),
     ("bpy.ops.render.*",  "render"),  # catchall
 
-    ("bpy.ops.scene.*",  "interface/scenes.html"),
+    ("bpy.ops.scene.*",  "data_system/scenes.html"),
     ("bpy.ops.screen.*",  "interface/window_system"),
     ("bpy.ops.script.*",  "advanced/scripting"),
     ("bpy.ops.sculpt.*",  "modeling/meshes/editing/sculpt_mode.html"),
