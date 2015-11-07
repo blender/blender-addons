@@ -791,7 +791,9 @@ Currently the exporter lacks these features:
 """
 
 
-def save(operator, context, filepath="",
+def save(context,
+         filepath,
+         *,
          use_triangles=False,
          use_edges=True,
          use_normals=False,

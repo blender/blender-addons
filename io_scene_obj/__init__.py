@@ -144,7 +144,7 @@ class ImportOBJ(bpy.types.Operator, ImportHelper, IOOBJOrientationHelper):
             import os
             keywords["relpath"] = os.path.dirname((bpy.data.path_resolve("filepath", False).as_bytes()))
 
-        return import_obj.load(self, context, **keywords)
+        return import_obj.load(context, **keywords)
 
     def draw(self, context):
         layout = self.layout
@@ -303,7 +303,7 @@ class ExportOBJ(bpy.types.Operator, ExportHelper, IOOBJOrientationHelper):
                                          ).to_4x4())
 
         keywords["global_matrix"] = global_matrix
-        return export_obj.save(self, context, **keywords)
+        return export_obj.save(context, **keywords)
 
 
 def menu_func_import(self, context):

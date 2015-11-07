@@ -859,7 +859,9 @@ def get_float_func(filepath):
     return float
 
 
-def load(operator, context, filepath,
+def load(context,
+         filepath,
+         *,
          global_clamp_size=0.0,
          use_smooth_groups=True,
          use_edges=True,
@@ -868,7 +870,7 @@ def load(operator, context, filepath,
          use_image_search=True,
          use_groups_as_vgroups=False,
          relpath=None,
-         global_matrix=None,
+         global_matrix=None
          ):
     """
     Called by the user interface or another script.
