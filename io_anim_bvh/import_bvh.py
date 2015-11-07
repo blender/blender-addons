@@ -20,7 +20,7 @@
 
 # Script copyright (C) Campbell Barton
 
-from math import radians
+from math import radians, ceil
 
 import bpy
 from mathutils import Vector, Euler, Matrix
@@ -114,6 +114,7 @@ def read_bvh(context, file_path, rotate_mode='XYZ', global_scale=1.0):
 
     bvh_nodes = {None: None}
     bvh_nodes_serial = [None]
+    bvh_frame_count = None
     bvh_frame_time = None
 
     channelIndex = -1
@@ -205,8 +206,13 @@ def read_bvh(context, file_path, rotate_mode='XYZ', global_scale=1.0):
         #  Frames: n
         #  Frame Time: dt
         if len(file_lines[lineIdx]) == 1 and file_lines[lineIdx][0].lower() == 'motion':
-            lineIdx += 2  # Read frame rate.
+            lineIdx += 1  # Read frame count.
+            if (len(file_lines[lineIdx]) == 2 and
+                file_lines[lineIdx][0].lower() == 'frames:'):
 
+                bvh_frame_count = int(file_lines[lineIdx][1])
+
+            lineIdx += 1  # Read frame rate.
             if (len(file_lines[lineIdx]) == 3 and
                 file_lines[lineIdx][0].lower() == 'frame' and
                 file_lines[lineIdx][1].lower() == 'time:'):
@@ -292,7 +298,7 @@ def read_bvh(context, file_path, rotate_mode='XYZ', global_scale=1.0):
             bvh_node.rest_tail_local.y = bvh_node.rest_tail_local.y + global_scale / 10
             bvh_node.rest_tail_world.y = bvh_node.rest_tail_world.y + global_scale / 10
 
-    return bvh_nodes, bvh_frame_time
+    return bvh_nodes, bvh_frame_time, bvh_frame_count
 
 
 def bvh_node_dict2objects(context, bvh_name, bvh_nodes, rotate_mode='NATIVE', frame_start=1, IMPORT_LOOP=False):
@@ -611,13 +617,15 @@ def load(operator,
          frame_start=1,
          global_matrix=None,
          use_fps_scale=False,
+         update_scene_fps=False,
+         update_scene_duration=False
          ):
 
     import time
     t1 = time.time()
     print('\tparsing bvh %r...' % filepath, end="")
 
-    bvh_nodes, bvh_frame_time = read_bvh(context, filepath,
+    bvh_nodes, bvh_frame_time, bvh_frame_count = read_bvh(context, filepath,
             rotate_mode=rotate_mode,
             global_scale=global_scale)
 
@@ -625,9 +633,39 @@ def load(operator,
 
     scene = context.scene
     frame_orig = scene.frame_current
-    fps = scene.render.fps
-    if bvh_frame_time is None:
-        bvh_frame_time = 1.0 / scene.render.fps
+    scene_fps = scene.render.fps / scene.render.fps_base
+
+    if update_scene_fps:
+        # Update the scene's FPS settings from the BVH, but only if the BVH contains enough info.
+        if bvh_frame_time is None:
+            raise ValueError('Unable to update scene frame time, as the BVH file does not '
+                             'contain the frame duration in its MOTION section.')
+
+        new_fps = 1.0 / bvh_frame_time
+        if scene.render.fps != new_fps or scene.render.fps_base != 1.0:
+            print('        updating scene FPS (was %f) to BVH FPS (%f)' % (scene_fps, new_fps))
+        scene.render.fps = new_fps
+        scene.render.fps_base = 1.0
+
+        # Now that we have a 1-to-1 mapping of Blender frames and BVH frames, there is no need
+        # to scale the FPS any more. It's even better not to, to prevent roundoff errors.
+        use_fps_scale = False
+    else:
+        if bvh_frame_time is None:
+            print('BVH did not contain frame duration in its MOTION section, using scene FPS.')
+            bvh_frame_time = 1.0 / scene_fps
+
+    if update_scene_duration:
+        if use_fps_scale:
+            if bvh_frame_count is None:
+                raise ValueError('Unable to extend the scene duration, as the BVH file does not '
+                                 'contain the number of frames in its MOTION section.')
+            scaled_frame_count = int(ceil(bvh_frame_count * bvh_frame_time * scene_fps))
+            bvh_last_frame = frame_start + scaled_frame_count
+        else:
+            bvh_last_frame = frame_start + bvh_frame_count
+        if context.scene.frame_end < bvh_last_frame:
+            context.scene.frame_end = bvh_last_frame
 
     t1 = time.time()
     print('\timporting to blender...', end="")
