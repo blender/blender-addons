@@ -139,7 +139,7 @@ class ImportBVH(bpy.types.Operator, ImportHelper, ImportBVHOrientationHelper):
         keywords["global_matrix"] = global_matrix
 
         from . import import_bvh
-        return import_bvh.load(self, context, **keywords)
+        return import_bvh.load(context, report=self.report, **keywords)
 
 
 class ExportBVH(bpy.types.Operator, ExportHelper):

@@ -607,9 +607,9 @@ def bvh_node_dict2armature(context,
     return arm_ob
 
 
-def load(operator,
-         context,
-         filepath="",
+def load(context,
+         filepath,
+         *,
          target='ARMATURE',
          rotate_mode='NATIVE',
          global_scale=1.0,
@@ -618,7 +618,8 @@ def load(operator,
          global_matrix=None,
          use_fps_scale=False,
          update_scene_fps=False,
-         update_scene_duration=False
+         update_scene_duration=False,
+         report=print
          ):
 
     import time
@@ -633,39 +634,26 @@ def load(operator,
 
     scene = context.scene
     frame_orig = scene.frame_current
-    scene_fps = scene.render.fps / scene.render.fps_base
+
+    # Broken BVH handling: guess frame rate when it is not contained in the file.
+    if bvh_frame_time is None:
+        report({'WARNING'}, 'The BVH file did not contain frame duration in its MOTION '
+                            'section, assuming the BVH and Blender scene have the same '
+                            'frame rate.')
+        bvh_frame_time = scene.render.fps_base / scene.render.fps
+        # No need to scale the frame rate, as they're equal now anyway.
+        use_fps_scale = False
 
     if update_scene_fps:
-        # Update the scene's FPS settings from the BVH, but only if the BVH contains enough info.
-        if bvh_frame_time is None:
-            raise ValueError('Unable to update scene frame time, as the BVH file does not '
-                             'contain the frame duration in its MOTION section.')
-
-        new_fps = 1.0 / bvh_frame_time
-        if scene.render.fps != new_fps or scene.render.fps_base != 1.0:
-            print('        updating scene FPS (was %f) to BVH FPS (%f)' % (scene_fps, new_fps))
-        scene.render.fps = new_fps
-        scene.render.fps_base = 1.0
+        _update_scene_fps(context, report, bvh_frame_time)
 
         # Now that we have a 1-to-1 mapping of Blender frames and BVH frames, there is no need
         # to scale the FPS any more. It's even better not to, to prevent roundoff errors.
         use_fps_scale = False
-    else:
-        if bvh_frame_time is None:
-            print('BVH did not contain frame duration in its MOTION section, using scene FPS.')
-            bvh_frame_time = 1.0 / scene_fps
 
     if update_scene_duration:
-        if use_fps_scale:
-            if bvh_frame_count is None:
-                raise ValueError('Unable to extend the scene duration, as the BVH file does not '
-                                 'contain the number of frames in its MOTION section.')
-            scaled_frame_count = int(ceil(bvh_frame_count * bvh_frame_time * scene_fps))
-            bvh_last_frame = frame_start + scaled_frame_count
-        else:
-            bvh_last_frame = frame_start + bvh_frame_count
-        if context.scene.frame_end < bvh_last_frame:
-            context.scene.frame_end = bvh_last_frame
+        _update_scene_duration(context, report, bvh_frame_count, bvh_frame_time, frame_start,
+                               use_fps_scale)
 
     t1 = time.time()
     print('\timporting to blender...', end="")
@@ -690,10 +678,55 @@ def load(operator,
                               )
 
     else:
-        raise Exception("invalid type")
+        report({'ERROR'}, "Invalid target %r (must be 'ARMATURE' or 'OBJECT')" % target)
+        return {'CANCELLED'}
 
     print('Done in %.4f\n' % (time.time() - t1))
 
     context.scene.frame_set(frame_orig)
 
     return {'FINISHED'}
+
+
+def _update_scene_fps(context, report, bvh_frame_time):
+    """Update the scene's FPS settings from the BVH, but only if the BVH contains enough info."""
+
+    # Broken BVH handling: prevent division by zero.
+    if bvh_frame_time == 0.0:
+        report({'WARNING'}, 'Unable to update scene frame rate, as the BVH file '
+                            'contains a zero frame duration in its MOTION section.')
+        return
+
+    scene = context.scene
+    scene_fps = scene.render.fps / scene.render.fps_base
+    new_fps = 1.0 / bvh_frame_time
+
+    if scene.render.fps != new_fps or scene.render.fps_base != 1.0:
+        print('\tupdating scene FPS (was %f) to BVH FPS (%f)' % (scene_fps, new_fps))
+    scene.render.fps = new_fps
+    scene.render.fps_base = 1.0
+
+
+def _update_scene_duration(context, report, bvh_frame_count, bvh_frame_time, frame_start,
+                           use_fps_scale):
+    """Extend the scene's duration so that the BVH file fits in its entirety."""
+
+    if bvh_frame_count is None:
+        report({'WARNING'}, 'Unable to extend the scene duration, as the BVH file does not '
+                            'contain the number of frames in its MOTION section.')
+        return
+
+    # Not likely, but it can happen when a BVH is just used to store an armature.
+    if bvh_frame_count == 0:
+        return
+
+    if use_fps_scale:
+        scene_fps = context.scene.render.fps / context.scene.render.fps_base
+        scaled_frame_count = int(ceil(bvh_frame_count * bvh_frame_time * scene_fps))
+        bvh_last_frame = frame_start + scaled_frame_count
+    else:
+        bvh_last_frame = frame_start + bvh_frame_count
+
+    # Only extend the scene, never shorten it.
+    if context.scene.frame_end < bvh_last_frame:
+        context.scene.frame_end = bvh_last_frame
