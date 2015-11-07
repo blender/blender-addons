@@ -26,7 +26,7 @@ bl_info = {
     "description": "Import-Export BVH from armature objects",
     "warning": "",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
-                "Scripts/Import-Export/MotionCapture_BVH",
+                "Scripts/Import-Export/BVH_Importer_Exporter",
     "support": 'OFFICIAL',
     "category": "Import-Export"}
 
