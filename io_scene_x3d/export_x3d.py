@@ -1547,7 +1547,9 @@ def gzip_open_utf8(filepath, mode):
     return file
 
 
-def save(operator, context, filepath="",
+def save(context,
+         filepath,
+         *,
          use_selection=True,
          use_mesh_modifiers=False,
          use_triangulate=False,
@@ -1557,7 +1559,7 @@ def save(operator, context, filepath="",
          use_h3d=False,
          global_matrix=None,
          path_mode='AUTO',
-         name_decorations=True,
+         name_decorations=True
          ):
 
     bpy.path.ensure_ext(filepath, '.x3dz' if use_compress else '.x3d')

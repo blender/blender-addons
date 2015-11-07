@@ -78,7 +78,7 @@ class ImportX3D(bpy.types.Operator, ImportHelper, IOX3DOrientationHelper):
                                         ).to_4x4()
         keywords["global_matrix"] = global_matrix
 
-        return import_x3d.load(self, context, **keywords)
+        return import_x3d.load(context, **keywords)
 
 
 class ExportX3D(bpy.types.Operator, ExportHelper, IOX3DOrientationHelper):
@@ -156,7 +156,7 @@ class ExportX3D(bpy.types.Operator, ExportHelper, IOX3DOrientationHelper):
                                         ).to_4x4() * Matrix.Scale(self.global_scale, 4)
         keywords["global_matrix"] = global_matrix
 
-        return export_x3d.save(self, context, **keywords)
+        return export_x3d.save(context, **keywords)
 
 
 def menu_func_import(self, context):
