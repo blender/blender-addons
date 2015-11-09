@@ -79,7 +79,7 @@ class BVH_Node:
         self.anim_data = [(0, 0, 0, 0, 0, 0)]
 
     def __repr__(self):
-        return ('BVH name:"%s", rest_loc:(%.3f,%.3f,%.3f), rest_tail:(%.3f,%.3f,%.3f)' %
+        return ("BVH name: '%s', rest_loc:(%.3f,%.3f,%.3f), rest_tail:(%.3f,%.3f,%.3f)" %
                 (self.name,
                  self.rest_head_world.x, self.rest_head_world.y, self.rest_head_world.z,
                  self.rest_head_world.x, self.rest_head_world.y, self.rest_head_world.z))
@@ -624,22 +624,22 @@ def load(context,
 
     import time
     t1 = time.time()
-    print('\tparsing bvh %r...' % filepath, end="")
+    print("\tparsing bvh %r..." % filepath, end="")
 
     bvh_nodes, bvh_frame_time, bvh_frame_count = read_bvh(context, filepath,
             rotate_mode=rotate_mode,
             global_scale=global_scale)
 
-    print('%.4f' % (time.time() - t1))
+    print("%.4f" % (time.time() - t1))
 
     scene = context.scene
     frame_orig = scene.frame_current
 
     # Broken BVH handling: guess frame rate when it is not contained in the file.
     if bvh_frame_time is None:
-        report({'WARNING'}, 'The BVH file did not contain frame duration in its MOTION '
-                            'section, assuming the BVH and Blender scene have the same '
-                            'frame rate.')
+        report({'WARNING'}, "The BVH file did not contain frame duration in its MOTION "
+                            "section, assuming the BVH and Blender scene have the same "
+                            "frame rate")
         bvh_frame_time = scene.render.fps_base / scene.render.fps
         # No need to scale the frame rate, as they're equal now anyway.
         use_fps_scale = False
@@ -656,7 +656,7 @@ def load(context,
                                use_fps_scale)
 
     t1 = time.time()
-    print('\timporting to blender...', end="")
+    print("\timporting to blender...", end="")
 
     bvh_name = bpy.path.display_name_from_filepath(filepath)
 
@@ -693,8 +693,8 @@ def _update_scene_fps(context, report, bvh_frame_time):
 
     # Broken BVH handling: prevent division by zero.
     if bvh_frame_time == 0.0:
-        report({'WARNING'}, 'Unable to update scene frame rate, as the BVH file '
-                            'contains a zero frame duration in its MOTION section.')
+        report({'WARNING'}, "Unable to update scene frame rate, as the BVH file "
+                            "contains a zero frame duration in its MOTION section")
         return
 
     scene = context.scene
@@ -702,7 +702,7 @@ def _update_scene_fps(context, report, bvh_frame_time):
     new_fps = 1.0 / bvh_frame_time
 
     if scene.render.fps != new_fps or scene.render.fps_base != 1.0:
-        print('\tupdating scene FPS (was %f) to BVH FPS (%f)' % (scene_fps, new_fps))
+        print("\tupdating scene FPS (was %f) to BVH FPS (%f)" % (scene_fps, new_fps))
     scene.render.fps = new_fps
     scene.render.fps_base = 1.0
 
@@ -712,8 +712,8 @@ def _update_scene_duration(context, report, bvh_frame_count, bvh_frame_time, fra
     """Extend the scene's duration so that the BVH file fits in its entirety."""
 
     if bvh_frame_count is None:
-        report({'WARNING'}, 'Unable to extend the scene duration, as the BVH file does not '
-                            'contain the number of frames in its MOTION section.')
+        report({'WARNING'}, "Unable to extend the scene duration, as the BVH file does not "
+                            "contain the number of frames in its MOTION section")
         return
 
     # Not likely, but it can happen when a BVH is just used to store an armature.
