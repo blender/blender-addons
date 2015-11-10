@@ -637,7 +637,7 @@ def load(context,
 
     # Broken BVH handling: guess frame rate when it is not contained in the file.
     if bvh_frame_time is None:
-        report({'WARNING'}, "The BVH file did not contain frame duration in its MOTION "
+        report({'WARNING'}, "The BVH file does not contain frame duration in its MOTION "
                             "section, assuming the BVH and Blender scene have the same "
                             "frame rate")
         bvh_frame_time = scene.render.fps_base / scene.render.fps

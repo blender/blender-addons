@@ -87,21 +87,19 @@ class ImportBVH(bpy.types.Operator, ImportHelper, ImportBVHOrientationHelper):
             )
     use_fps_scale = BoolProperty(
             name="Scale FPS",
-            description=("Scale the framerate from the BVH to "
-                         "the current scenes, otherwise each "
-                         "BVH frame maps directly to a Blender frame"),
+            description=("Scale the framerate from the BVH to the current scenes, "
+                         "otherwise each BVH frame maps directly to a Blender frame"),
             default=False,
             )
     update_scene_fps = BoolProperty(
-            name="Update scene framerate",
-            description="Sets the scene framerate to that of the BVH file. Note that this "
-                        "nullifies the 'Scale FPS' option, as the scale will be 1:1",
+            name="Update Scene FPS",
+            description="Set the scene framerate to that of the BVH file (note that this "
+                        "nullifies the 'Scale FPS' option, as the scale will be 1:1)",
             default=False
             )
     update_scene_duration = BoolProperty(
-            name="Update scene duration",
-            description="Extend the scene's duration to the BVH duration. Does not shorten scene "
-                        "when the BVH fits in its entirety",
+            name="Update Scene Duration",
+            description="Extend the scene's duration to the BVH duration (never shortens the scene)",
             default=False,
             )
     use_cyclic = BoolProperty(
@@ -114,8 +112,8 @@ class ImportBVH(bpy.types.Operator, ImportHelper, ImportBVHOrientationHelper):
             description="Rotation conversion",
             items=(('QUATERNION', "Quaternion",
                     "Convert rotations to quaternions"),
-                   ('NATIVE', "Euler (Native)", ("Use the rotation order "
-                                                 "defined in the BVH file")),
+                   ('NATIVE', "Euler (Native)",
+                              "Use the rotation order defined in the BVH file"),
                    ('XYZ', "Euler (XYZ)", "Convert rotations to euler XYZ"),
                    ('XZY', "Euler (XZY)", "Convert rotations to euler XZY"),
                    ('YXZ', "Euler (YXZ)", "Convert rotations to euler YXZ"),
@@ -174,7 +172,7 @@ class ExportBVH(bpy.types.Operator, ExportHelper):
             name="Rotation",
             description="Rotation conversion",
             items=(('NATIVE', "Euler (Native)",
-                    "Use the rotation order defined in the BVH file"),
+                              "Use the rotation order defined in the BVH file"),
                    ('XYZ', "Euler (XYZ)", "Convert rotations to euler XYZ"),
                    ('XZY', "Euler (XZY)", "Convert rotations to euler XZY"),
                    ('YXZ', "Euler (YXZ)", "Convert rotations to euler YXZ"),
