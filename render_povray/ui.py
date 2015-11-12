@@ -29,6 +29,7 @@ properties_render.RENDER_PT_shading.COMPAT_ENGINES.add('POVRAY_RENDER')
 properties_render.RENDER_PT_output.COMPAT_ENGINES.add('POVRAY_RENDER')
 del properties_render
 
+
 # Use only a subset of the world panels
 from bl_ui import properties_world
 properties_world.WORLD_PT_preview.COMPAT_ENGINES.add('POVRAY_RENDER')
@@ -37,25 +38,8 @@ properties_world.WORLD_PT_world.COMPAT_ENGINES.add('POVRAY_RENDER')
 properties_world.WORLD_PT_mist.COMPAT_ENGINES.add('POVRAY_RENDER')
 del properties_world
 
+
 # Example of wrapping every class 'as is'
-from bl_ui import properties_material
-for member in dir(properties_material):
-    subclass = getattr(properties_material, member)
-    try:
-        subclass.COMPAT_ENGINES.add('POVRAY_RENDER')
-    except:
-        pass
-del properties_material
-
-from bl_ui import properties_data_mesh
-for member in dir(properties_data_mesh):
-    subclass = getattr(properties_data_mesh, member)
-    try:
-        subclass.COMPAT_ENGINES.add('POVRAY_RENDER')
-    except:
-        pass
-del properties_data_mesh
-
 from bl_ui import properties_texture
 from bl_ui.properties_texture import context_tex_datablock
 for member in dir(properties_texture):
@@ -67,6 +51,20 @@ for member in dir(properties_texture):
 del properties_texture
 
 
+# Example of wrapping every class 'as is' except some
+from bl_ui import properties_material
+for member in dir(properties_material):
+    subclass = getattr(properties_material, member)
+    if subclass not in (properties_material.MATERIAL_PT_transp_game,
+                        properties_material.MATERIAL_PT_game_settings,
+                        properties_material.MATERIAL_PT_physics):
+        try:
+            subclass.COMPAT_ENGINES.add('POVRAY_RENDER')
+        except:
+            pass
+del properties_material
+
+
 from bl_ui import properties_data_camera
 for member in dir(properties_data_camera):
     subclass = getattr(properties_data_camera, member)
@@ -76,14 +74,8 @@ for member in dir(properties_data_camera):
         pass
 del properties_data_camera
 
-from bl_ui import properties_data_lamp
-for member in dir(properties_data_lamp):
-    subclass = getattr(properties_data_lamp, member)
-    try:
-        subclass.COMPAT_ENGINES.add('POVRAY_RENDER')
-    except:
-        pass
-del properties_data_lamp
+
+
 
 from bl_ui import properties_particle as properties_particle
 for member in dir(properties_particle):  # add all "particle" panels from blender
@@ -93,7 +85,6 @@ for member in dir(properties_particle):  # add all "particle" panels from blende
     except:
         pass
 del properties_particle
-
 
 class RenderButtonsPanel():
     bl_space_type = 'PROPERTIES'
@@ -153,7 +144,6 @@ class ObjectButtonsPanel():
         rd = context.scene.render
         return obj and (rd.use_game_engine is False) and (rd.engine in cls.COMPAT_ENGINES)
 
-
 class CameraDataButtonsPanel():
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
@@ -190,7 +180,217 @@ class TextButtonsPanel():
         rd = context.scene.render
         return text and (rd.use_game_engine is False) and (rd.engine in cls.COMPAT_ENGINES)
 
+from bl_ui import properties_data_mesh
+# These panels are kept
+properties_data_mesh.DATA_PT_custom_props_mesh.COMPAT_ENGINES.add('POVRAY_RENDER')
+properties_data_mesh.DATA_PT_context_mesh.COMPAT_ENGINES.add('POVRAY_RENDER')
+ 
+## make some native panels contextual to some object variable
+## by recreating custom panels inheriting their properties
+ 
+class PovDataButtonsPanel(properties_data_mesh.MeshButtonsPanel):
+    COMPAT_ENGINES = {'POVRAY_RENDER'}
+    POV_OBJECT_TYPES = {'PLANE', 'BOX', 'SPHERE', 'CYLINDER', 'CONE', 'TORUS', 'BLOB',
+                        'ISOSURFACE', 'SUPERELLIPSOID', 'SUPERTORUS', 'HEIGHT_FIELD',
+                        'PARAMETRIC', 'POLYCIRCLE'}
+ 
+    @classmethod
+    def poll(cls, context):
+        engine = context.scene.render.engine
+        obj = context.object
+        # We use our parent class poll func too, avoids to re-define too much things...
+        return (super(PovDataButtonsPanel, cls).poll(context) and
+                obj and obj.pov.object_as not in cls.POV_OBJECT_TYPES)
+ 
+ 
+# We cannot inherit from RNA classes (like e.g. properties_data_mesh.DATA_PT_vertex_groups).
+# Complex py/bpy/rna interactions (with metaclass and all) simply do not allow it to work.
+# So we simply have to explicitly copy here the interesting bits. ;)
+class DATA_PT_POV_normals(PovDataButtonsPanel, bpy.types.Panel):
+    bl_label = properties_data_mesh.DATA_PT_normals.bl_label
+ 
+    draw = properties_data_mesh.DATA_PT_normals.draw
+ 
 
+class DATA_PT_POV_texture_space(PovDataButtonsPanel, bpy.types.Panel):
+    bl_label = properties_data_mesh.DATA_PT_texture_space.bl_label
+    bl_options = properties_data_mesh.DATA_PT_texture_space.bl_options
+ 
+    draw = properties_data_mesh.DATA_PT_texture_space.draw
+    
+    
+class DATA_PT_POV_vertex_groups(PovDataButtonsPanel, bpy.types.Panel):
+    bl_label = properties_data_mesh.DATA_PT_vertex_groups.bl_label
+ 
+    draw = properties_data_mesh.DATA_PT_vertex_groups.draw
+
+
+class DATA_PT_POV_shape_keys(PovDataButtonsPanel, bpy.types.Panel):
+    bl_label = properties_data_mesh.DATA_PT_shape_keys.bl_label
+ 
+    draw = properties_data_mesh.DATA_PT_shape_keys.draw    
+
+    
+class DATA_PT_uv_texture(PovDataButtonsPanel, bpy.types.Panel):
+    bl_label = properties_data_mesh.DATA_PT_uv_texture.bl_label
+ 
+    draw = properties_data_mesh.DATA_PT_uv_texture.draw    
+    
+    
+class DATA_PT_POV_vertex_colors(PovDataButtonsPanel, bpy.types.Panel):
+    bl_label = properties_data_mesh.DATA_PT_vertex_colors.bl_label
+ 
+    draw = properties_data_mesh.DATA_PT_vertex_colors.draw   
+    
+    
+class DATA_PT_POV_customdata(PovDataButtonsPanel, bpy.types.Panel):
+    bl_label = properties_data_mesh.DATA_PT_customdata.bl_label
+    bl_options = properties_data_mesh.DATA_PT_customdata.bl_options 
+    draw = properties_data_mesh.DATA_PT_customdata.draw
+     
+     
+     
+del properties_data_mesh             
+
+        
+################################################################################
+# from bl_ui import properties_data_lamp
+# for member in dir(properties_data_lamp):
+    # subclass = getattr(properties_data_lamp, member)
+    # try:
+        # subclass.COMPAT_ENGINES.add('POVRAY_RENDER')
+    # except:
+        # pass
+# del properties_data_lamp
+#########################LAMPS################################
+
+from bl_ui import properties_data_lamp
+
+# These panels are kept
+properties_data_lamp.DATA_PT_custom_props_lamp.COMPAT_ENGINES.add('POVRAY_RENDER')
+properties_data_lamp.DATA_PT_context_lamp.COMPAT_ENGINES.add('POVRAY_RENDER')
+ 
+## make some native panels contextual to some object variable
+## by recreating custom panels inheriting their properties
+class PovLampButtonsPanel(properties_data_lamp.DataButtonsPanel):
+    COMPAT_ENGINES = {'POVRAY_RENDER'}
+    POV_OBJECT_TYPES = {'RAINBOW'}
+ 
+    @classmethod
+    def poll(cls, context):
+        engine = context.scene.render.engine
+        obj = context.object
+        # We use our parent class poll func too, avoids to re-define too much things...
+        return (super(PovLampButtonsPanel, cls).poll(context) and
+                obj and obj.pov.object_as not in cls.POV_OBJECT_TYPES)
+ 
+ 
+# We cannot inherit from RNA classes (like e.g. properties_data_mesh.DATA_PT_vertex_groups).
+# Complex py/bpy/rna interactions (with metaclass and all) simply do not allow it to work.
+# So we simply have to explicitly copy here the interesting bits. ;)
+    
+class LAMP_PT_POV_preview(PovLampButtonsPanel, bpy.types.Panel):
+    bl_label = properties_data_lamp.DATA_PT_preview.bl_label
+ 
+    draw = properties_data_lamp.DATA_PT_preview.draw
+
+class LAMP_PT_POV_lamp(PovLampButtonsPanel, bpy.types.Panel):
+    bl_label = properties_data_lamp.DATA_PT_lamp.bl_label
+ 
+    draw = properties_data_lamp.DATA_PT_lamp.draw
+
+class LAMP_PT_POV_sunsky(PovLampButtonsPanel, bpy.types.Panel):
+    bl_label = properties_data_lamp.DATA_PT_sunsky.bl_label
+    
+    @classmethod
+    def poll(cls, context):
+        lamp = context.lamp
+        engine = context.scene.render.engine
+        return (lamp and lamp.type == 'SUN') and (engine in cls.COMPAT_ENGINES)
+
+    draw = properties_data_lamp.DATA_PT_sunsky.draw
+    
+class LAMP_PT_POV_shadow(PovLampButtonsPanel, bpy.types.Panel):
+    bl_label = properties_data_lamp.DATA_PT_shadow.bl_label
+ 
+    draw = properties_data_lamp.DATA_PT_shadow.draw    
+
+class LAMP_PT_POV_area(PovLampButtonsPanel, bpy.types.Panel):
+    bl_label = properties_data_lamp.DATA_PT_area.bl_label
+
+    @classmethod
+    def poll(cls, context):
+        lamp = context.lamp
+        engine = context.scene.render.engine
+        return (lamp and lamp.type == 'AREA') and (engine in cls.COMPAT_ENGINES)
+    
+    draw = properties_data_lamp.DATA_PT_area.draw      
+
+class LAMP_PT_POV_spot(PovLampButtonsPanel, bpy.types.Panel):
+    bl_label = properties_data_lamp.DATA_PT_spot.bl_label
+
+    @classmethod
+    def poll(cls, context):
+        lamp = context.lamp
+        engine = context.scene.render.engine
+        return (lamp and lamp.type == 'SPOT') and (engine in cls.COMPAT_ENGINES)    
+    draw = properties_data_lamp.DATA_PT_spot.draw     
+
+class LAMP_PT_POV_falloff_curve(PovLampButtonsPanel, bpy.types.Panel):
+    bl_label = properties_data_lamp.DATA_PT_falloff_curve.bl_label
+    bl_options = properties_data_lamp.DATA_PT_falloff_curve.bl_options
+    
+    @classmethod
+    def poll(cls, context):
+        lamp = context.lamp
+        engine = context.scene.render.engine
+
+        return (lamp and lamp.type in {'POINT', 'SPOT'} and lamp.falloff_type == 'CUSTOM_CURVE') and (engine in cls.COMPAT_ENGINES)
+    draw = properties_data_lamp.DATA_PT_falloff_curve.draw  
+
+class OBJECT_PT_povray_obj_rainbow(PovLampButtonsPanel, bpy.types.Panel):
+    bl_label = "POV-Ray Rainbow"
+    COMPAT_ENGINES = {'POVRAY_RENDER'}
+    #bl_options = {'HIDE_HEADER'}
+    @classmethod
+    def poll(cls, context):
+        engine = context.scene.render.engine
+        obj = context.object
+        return (obj and obj.pov.object_as == 'RAINBOW' and (engine in cls.COMPAT_ENGINES))    
+    def draw(self, context):
+        layout = self.layout
+
+        obj = context.object
+        
+        col = layout.column()
+
+        if obj.pov.object_as == 'RAINBOW':
+            if obj.pov.unlock_parameters == False:
+                col.prop(obj.pov, "unlock_parameters", text="Exported parameters below", icon='LOCKED') 
+                col.label(text="Rainbow projection angle: " + str(obj.data.spot_size))
+                col.label(text="Rainbow width: " + str(obj.data.spot_blend))
+                col.label(text="Rainbow distance: " + str(obj.data.shadow_buffer_clip_start))
+                col.label(text="Rainbow arc angle: " + str(obj.pov.arc_angle))
+                col.label(text="Rainbow falloff angle: " + str(obj.pov.falloff_angle))
+
+            else:
+                col.prop(obj.pov, "unlock_parameters", text="Edit exported parameters", icon='UNLOCKED') 
+                col.label(text="3D view proxy may get out of synch")
+                col.active = obj.pov.unlock_parameters
+                
+
+                layout.operator("pov.cone_update", text="Update",icon="MESH_CONE")        
+                
+                #col.label(text="Parameters:")
+                col.prop(obj.data, "spot_size", text="Rainbow Projection Angle")
+                col.prop(obj.data, "spot_blend", text="Rainbow width")
+                col.prop(obj.data, "shadow_buffer_clip_start", text="Visibility distance")
+                col.prop(obj.pov, "arc_angle")
+                col.prop(obj.pov, "falloff_angle")
+                
+del properties_data_lamp              
+###############################################################################
+        
 class RENDER_PT_povray_export_settings(RenderButtonsPanel, bpy.types.Panel):
     bl_label = "Export Settings"
     COMPAT_ENGINES = {'POVRAY_RENDER'}
@@ -267,9 +467,11 @@ class RENDER_PT_povray_antialias(RenderButtonsPanel, bpy.types.Panel):
     bl_label = "Anti-Aliasing"
     COMPAT_ENGINES = {'POVRAY_RENDER'}
 
+
     def draw_header(self, context):
+        prefs = bpy.context.user_preferences.addons[__package__].preferences
         scene = context.scene
-        if bpy.context.user_preferences.addons[__package__].preferences.branch_feature_set_povray != 'uberpov' and scene.pov.antialias_method =='2':
+        if prefs.branch_feature_set_povray != 'uberpov' and scene.pov.antialias_method == '2':
             self.layout.prop(scene.pov, "antialias_enable", text="", icon='ERROR')
         elif scene.pov.antialias_enable:
             self.layout.prop(scene.pov, "antialias_enable", text="", icon='ANTIALIASED')
@@ -277,16 +479,16 @@ class RENDER_PT_povray_antialias(RenderButtonsPanel, bpy.types.Panel):
             self.layout.prop(scene.pov, "antialias_enable", text="", icon='ALIASED')
 
     def draw(self, context):
+        prefs = bpy.context.user_preferences.addons[__package__].preferences
         layout = self.layout
-
         scene = context.scene
-
+        
         layout.active = scene.pov.antialias_enable
-
 
         row = layout.row()
         row.prop(scene.pov, "antialias_method", text="")
-        if bpy.context.user_preferences.addons[__package__].preferences.branch_feature_set_povray != 'uberpov' and scene.pov.antialias_method =='2':
+        
+        if prefs.branch_feature_set_povray != 'uberpov' and scene.pov.antialias_method == '2':
             col = layout.column()
             col.alignment = 'CENTER'
             col.label(text="Stochastic Anti Aliasing is")
@@ -309,11 +511,11 @@ class RENDER_PT_povray_antialias(RenderButtonsPanel, bpy.types.Panel):
             row = layout.row()
             row.prop(scene.pov, "antialias_threshold", text="AA Threshold")
             row.prop(scene.pov, "antialias_gamma", text="AA Gamma")
-
-            if bpy.context.user_preferences.addons[__package__].preferences.branch_feature_set_povray == 'uberpov':
+            
+            if prefs.branch_feature_set_povray == 'uberpov':
                 row = layout.row()
                 row.prop(scene.pov, "antialias_confidence", text="AA Confidence")
-                if scene.pov.antialias_method =='2':
+                if scene.pov.antialias_method == '2':
                     row.enabled = True
                 else:
                     row.enabled = False
@@ -691,22 +893,26 @@ class TEXTURE_PT_povray_parameters(TextureButtonsPanel, bpy.types.Panel):
                                          "f_quartic_saddle","f_sphere","f_steiners_roman",
                                          "f_torus_gumdrop","f_umbrella"}:
                     func = 1
-                if tex.pov.func_list in {"f_bicorn","f_bifolia","f_boy_surface","f_superellipsoid","f_torus"}:
+                if tex.pov.func_list in {"f_bicorn","f_bifolia","f_boy_surface","f_superellipsoid",
+                                         "f_torus"}:
                     func = 2
                 if tex.pov.func_list in {"f_ellipsoid","f_folium_surface","f_hyperbolic_torus",
                                          "f_kampyle_of_eudoxus","f_parabolic_torus",
                                          "f_quartic_cylinder","f_torus2"}:
                     func = 3
                 if tex.pov.func_list in {"f_blob2","f_cross_ellipsoids","f_flange_cover",
-                                         "f_isect_ellipsoids","f_kummer_surface_v2","f_ovals_of_cassini",
-                                         "f_rounded_box","f_spikes_2d","f_strophoid"}:
+                                         "f_isect_ellipsoids","f_kummer_surface_v2",
+                                         "f_ovals_of_cassini","f_rounded_box","f_spikes_2d",
+                                         "f_strophoid"}:
                     func = 4
-                if tex.pov.func_list in {"f_algbr_cyl1","f_algbr_cyl2","f_algbr_cyl3","f_algbr_cyl4",
-                                         "f_blob","f_mesh1","f_poly4","f_spikes"}:
+                if tex.pov.func_list in {"f_algbr_cyl1","f_algbr_cyl2","f_algbr_cyl3",
+                                         "f_algbr_cyl4","f_blob","f_mesh1","f_poly4","f_spikes"}:
                     func = 5
-                if tex.pov.func_list in {"f_devils_curve_2d","f_dupin_cyclid","f_folium_surface_2d",
-                                         "f_hetero_mf","f_kampyle_of_eudoxus_2d","f_lemniscate_of_gerono_2d",
-                                         "f_polytubes","f_ridge","f_ridged_mf","f_spiral","f_witch_of_agnesi"}:
+                if tex.pov.func_list in {"f_devils_curve_2d","f_dupin_cyclid",
+                                         "f_folium_surface_2d","f_hetero_mf",
+                                         "f_kampyle_of_eudoxus_2d","f_lemniscate_of_gerono_2d",
+                                         "f_polytubes","f_ridge","f_ridged_mf","f_spiral",
+                                         "f_witch_of_agnesi"}:
                     func = 6
                 if tex.pov.func_list in {"f_helix1","f_helix2","f_piriform_2d","f_strophoid_2d"}:
                     func = 7
@@ -844,6 +1050,249 @@ class OBJECT_PT_povray_obj_importance(ObjectButtonsPanel, bpy.types.Panel):
             col.prop(obj.pov, "spacing_multiplier", text="Photons Spacing Multiplier")
 
 
+class OBJECT_PT_povray_obj_sphere(PovDataButtonsPanel, bpy.types.Panel):
+    bl_label = "POV-Ray Sphere"
+    COMPAT_ENGINES = {'POVRAY_RENDER'}
+    #bl_options = {'HIDE_HEADER'}
+    @classmethod
+    def poll(cls, context):
+        engine = context.scene.render.engine
+        obj = context.object
+        return (obj and obj.pov.object_as == 'SPHERE' and (engine in cls.COMPAT_ENGINES))    
+    def draw(self, context):
+        layout = self.layout
+
+        obj = context.object
+        
+        col = layout.column()
+
+        if obj.pov.object_as == 'SPHERE':
+            if obj.pov.unlock_parameters == False:
+                col.prop(obj.pov, "unlock_parameters", text="Exported parameters below", icon='LOCKED') 
+                col.label(text="Sphere radius: " + str(obj.pov.sphere_radius))
+
+            else:
+                col.prop(obj.pov, "unlock_parameters", text="Edit exported parameters", icon='UNLOCKED') 
+                col.label(text="3D view proxy may get out of synch")
+                col.active = obj.pov.unlock_parameters
+                
+
+                layout.operator("pov.sphere_update", text="Update",icon="SOLID")        
+                
+                #col.label(text="Parameters:")
+                col.prop(obj.pov, "sphere_radius", text="Radius of Sphere")
+
+            
+class OBJECT_PT_povray_obj_cone(PovDataButtonsPanel, bpy.types.Panel):
+    bl_label = "POV-Ray Cone"
+    COMPAT_ENGINES = {'POVRAY_RENDER'}
+    #bl_options = {'HIDE_HEADER'}
+    @classmethod
+    def poll(cls, context):
+        engine = context.scene.render.engine
+        obj = context.object
+        return (obj and obj.pov.object_as == 'CONE' and (engine in cls.COMPAT_ENGINES))    
+    def draw(self, context):
+        layout = self.layout
+
+        obj = context.object
+        
+        col = layout.column()
+
+        if obj.pov.object_as == 'CONE':
+            if obj.pov.unlock_parameters == False:
+                col.prop(obj.pov, "unlock_parameters", text="Exported parameters below", icon='LOCKED') 
+                col.label(text="Cone base radius: " + str(obj.pov.cone_base_radius))
+                col.label(text="Cone cap radius: " + str(obj.pov.cone_cap_radius))
+                col.label(text="Cone proxy segments: " + str(obj.pov.cone_segments))
+                col.label(text="Cone height: " + str(obj.pov.cone_height))
+            else:
+                col.prop(obj.pov, "unlock_parameters", text="Edit exported parameters", icon='UNLOCKED') 
+                col.label(text="3D view proxy may get out of synch")
+                col.active = obj.pov.unlock_parameters
+                
+
+                layout.operator("pov.cone_update", text="Update",icon="MESH_CONE")        
+                
+                #col.label(text="Parameters:")
+                col.prop(obj.pov, "cone_base_radius", text="Radius of Cone Base")
+                col.prop(obj.pov, "cone_cap_radius", text="Radius of Cone Cap")
+                col.prop(obj.pov, "cone_segments", text="Segmentation of Cone proxy")
+                col.prop(obj.pov, "cone_height", text="Height of the cone")
+
+class OBJECT_PT_povray_obj_superellipsoid(PovDataButtonsPanel, bpy.types.Panel):
+    bl_label = "POV-Ray Superquadric ellipsoid"
+    COMPAT_ENGINES = {'POVRAY_RENDER'}
+    #bl_options = {'HIDE_HEADER'}
+    @classmethod
+    def poll(cls, context):
+        engine = context.scene.render.engine
+        obj = context.object
+        return (obj and obj.pov.object_as == 'SUPERELLIPSOID' and (engine in cls.COMPAT_ENGINES))    
+    def draw(self, context):
+        layout = self.layout
+
+        obj = context.object
+        
+        col = layout.column()
+
+        if obj.pov.object_as == 'SUPERELLIPSOID':
+            if obj.pov.unlock_parameters == False:
+                col.prop(obj.pov, "unlock_parameters", text="Exported parameters below", icon='LOCKED') 
+                col.label(text="Radial segmentation: " + str(obj.pov.se_u))
+                col.label(text="Lateral segmentation: " + str(obj.pov.se_v))
+                col.label(text="Ring shape: " + str(obj.pov.se_n1))
+                col.label(text="Cross-section shape: " + str(obj.pov.se_n2))
+                col.label(text="Fill up and down: " + str(obj.pov.se_edit))
+            else:
+                col.prop(obj.pov, "unlock_parameters", text="Edit exported parameters", icon='UNLOCKED') 
+                col.label(text="3D view proxy may get out of synch")
+                col.active = obj.pov.unlock_parameters
+                
+
+                layout.operator("pov.superellipsoid_update", text="Update",icon="MOD_SUBSURF")        
+                
+                #col.label(text="Parameters:")
+                col.prop(obj.pov, "se_u")
+                col.prop(obj.pov, "se_v")
+                col.prop(obj.pov, "se_n1")
+                col.prop(obj.pov, "se_n2")
+                col.prop(obj.pov, "se_edit")
+                
+                
+class OBJECT_PT_povray_obj_torus(PovDataButtonsPanel, bpy.types.Panel):
+    bl_label = "POV-Ray Torus"
+    COMPAT_ENGINES = {'POVRAY_RENDER'}
+    #bl_options = {'HIDE_HEADER'}
+    @classmethod
+    def poll(cls, context):
+        engine = context.scene.render.engine
+        obj = context.object
+        return (obj and obj.pov.object_as == 'TORUS' and (engine in cls.COMPAT_ENGINES))    
+    def draw(self, context):
+        layout = self.layout
+
+        obj = context.object
+        
+        col = layout.column()
+
+        if obj.pov.object_as == 'TORUS':
+            if obj.pov.unlock_parameters == False:
+                col.prop(obj.pov, "unlock_parameters", text="Exported parameters below", icon='LOCKED') 
+                col.label(text="Torus major radius: " + str(obj.pov.torus_major_radius))
+                col.label(text="Torus minor radius: " + str(obj.pov.torus_minor_radius))
+                col.label(text="Torus major segments: " + str(obj.pov.torus_major_segments))
+                col.label(text="Torus minor segments: " + str(obj.pov.torus_minor_segments))
+            else:
+                col.prop(obj.pov, "unlock_parameters", text="Edit exported parameters", icon='UNLOCKED') 
+                col.label(text="3D view proxy may get out of synch")
+                col.active = obj.pov.unlock_parameters
+                
+
+                layout.operator("pov.torus_update", text="Update",icon="MESH_TORUS")        
+                
+                #col.label(text="Parameters:")
+                col.prop(obj.pov, "torus_major_radius")
+                col.prop(obj.pov, "torus_minor_radius")
+                col.prop(obj.pov, "torus_major_segments")
+                col.prop(obj.pov, "torus_minor_segments")
+
+class OBJECT_PT_povray_obj_supertorus(PovDataButtonsPanel, bpy.types.Panel):
+    bl_label = "POV-Ray SuperTorus"
+    COMPAT_ENGINES = {'POVRAY_RENDER'}
+    #bl_options = {'HIDE_HEADER'}
+    @classmethod
+    def poll(cls, context):
+        engine = context.scene.render.engine
+        obj = context.object
+        return (obj and obj.pov.object_as == 'SUPERTORUS' and (engine in cls.COMPAT_ENGINES))    
+    def draw(self, context):
+        layout = self.layout
+
+        obj = context.object
+        
+        col = layout.column()
+
+        if obj.pov.object_as == 'SUPERTORUS':
+            if obj.pov.unlock_parameters == False:
+                col.prop(obj.pov, "unlock_parameters", text="Exported parameters below", icon='LOCKED') 
+                col.label(text="SuperTorus major radius: " + str(obj.pov.st_major_radius))
+                col.label(text="SuperTorus minor radius: " + str(obj.pov.st_minor_radius))
+                col.label(text="SuperTorus major segments: " + str(obj.pov.st_u))
+                col.label(text="SuperTorus minor segments: " + str(obj.pov.st_v))
+                
+                col.label(text="SuperTorus Ring Manipulator: " + str(obj.pov.st_ring))
+                col.label(text="SuperTorus Cross Manipulator: " + str(obj.pov.st_cross))
+                col.label(text="SuperTorus Internal And External radii: " + str(obj.pov.st_ie))
+                
+                col.label(text="SuperTorus accuracy: " + str(ob.pov.st_accuracy))
+                col.label(text="SuperTorus max gradient: " + str(ob.pov.st_max_gradient))
+                
+
+            else:
+                col.prop(obj.pov, "unlock_parameters", text="Edit exported parameters", icon='UNLOCKED') 
+                col.label(text="3D view proxy may get out of synch")
+                col.active = obj.pov.unlock_parameters
+                
+
+                layout.operator("pov.supertorus_update", text="Update",icon="MESH_TORUS")        
+                
+                #col.label(text="Parameters:")
+                col.prop(obj.pov, "st_major_radius")
+                col.prop(obj.pov, "st_minor_radius")
+                col.prop(obj.pov, "st_u")
+                col.prop(obj.pov, "st_v")
+                col.prop(obj.pov, "st_ring")
+                col.prop(obj.pov, "st_cross")
+                col.prop(obj.pov, "st_ie")
+                #col.prop(obj.pov, "st_edit") #?
+                col.prop(obj.pov, "st_accuracy")
+                col.prop(obj.pov, "st_max_gradient")
+                
+class OBJECT_PT_povray_obj_parametric(PovDataButtonsPanel, bpy.types.Panel):
+    bl_label = "POV-Ray Parametric surface"
+    COMPAT_ENGINES = {'POVRAY_RENDER'}
+    #bl_options = {'HIDE_HEADER'}
+    @classmethod
+    def poll(cls, context):
+        engine = context.scene.render.engine
+        obj = context.object
+        return (obj and obj.pov.object_as == 'PARAMETRIC' and (engine in cls.COMPAT_ENGINES))    
+    def draw(self, context):
+        layout = self.layout
+
+        obj = context.object
+        
+        col = layout.column()
+
+        if obj.pov.object_as == 'PARAMETRIC':
+            if obj.pov.unlock_parameters == False:
+                col.prop(obj.pov, "unlock_parameters", text="Exported parameters below", icon='LOCKED') 
+                col.label(text="Minimum U: " + str(obj.pov.u_min))
+                col.label(text="Minimum V: " + str(obj.pov.v_min))
+                col.label(text="Maximum U: " + str(obj.pov.u_max))
+                col.label(text="Minimum V: " + str(obj.pov.v_min))
+                col.label(text="X Function: " + str(obj.pov.x_eq))
+                col.label(text="Y Function: " + str(obj.pov.y_eq))
+                col.label(text="Z Function: " + str(obj.pov.x_eq))
+
+            else:
+                col.prop(obj.pov, "unlock_parameters", text="Edit exported parameters", icon='UNLOCKED') 
+                col.label(text="3D view proxy may get out of synch")
+                col.active = obj.pov.unlock_parameters
+                
+
+                layout.operator("pov.parametric_update", text="Update",icon="SCRIPTPLUGINS")        
+                
+                col.prop(obj.pov, "u_min", text="Minimum U")
+                col.prop(obj.pov, "v_min", text="Minimum V")
+                col.prop(obj.pov, "u_max", text="Maximum U")
+                col.prop(obj.pov, "v_max", text="Minimum V")
+                col.prop(obj.pov, "x_eq", text="X Function")
+                col.prop(obj.pov, "y_eq", text="Y Function")
+                col.prop(obj.pov, "z_eq", text="Z Function")
+
+                
 class OBJECT_PT_povray_replacement_text(ObjectButtonsPanel, bpy.types.Panel):
     bl_label = "Custom POV Code"
     COMPAT_ENGINES = {'POVRAY_RENDER'}
@@ -857,7 +1306,86 @@ class OBJECT_PT_povray_replacement_text(ObjectButtonsPanel, bpy.types.Panel):
         col.label(text="Replace properties with:")
         col.prop(obj.pov, "replacement_text", text="")
 
+###############################################################################
+# Add Povray Objects
+###############################################################################
+        
 
+class Povray_primitives_add_menu(bpy.types.Menu):
+    """Define the menu with presets"""
+    bl_idname = "Povray_primitives_add_menu"
+    bl_label = "Povray"
+    COMPAT_ENGINES = {'POVRAY_RENDER'}
+    
+    @classmethod
+    def poll(cls, context):
+        engine = context.scene.render.engine
+        return (engine == 'POVRAY_RENDER')    
+        
+    def draw(self,context):
+        layout = self.layout
+        layout.operator_context = 'INVOKE_REGION_WIN'
+        layout.menu(BasicShapesMenu.bl_idname, text = "Primitives",icon="GROUP")
+        layout.menu(ImportMenu.bl_idname, text = "Import",icon="IMPORT")
+
+class BasicShapesMenu(bpy.types.Menu):
+    bl_idname = "Basic_shapes_calls"
+    bl_label = "Basic_shapes"
+    
+    def draw(self,context):
+        pov = bpy.types.Object.pov #context.object.pov ? 
+        layout = self.layout
+        layout.operator_context = 'INVOKE_REGION_WIN'
+        layout.operator("pov.addplane", text="Infinite Plane",icon = 'MESH_PLANE')
+        layout.operator("pov.addbox", text="Box",icon = 'MESH_CUBE')
+        layout.operator("pov.addsphere", text="Sphere",icon = 'SOLID')
+        layout.operator("pov.addcylinder", text="Cylinder",icon="MESH_CYLINDER")
+        layout.operator("pov.cone_add", text="Cone",icon="MESH_CONE")
+        layout.operator("pov.addtorus", text="Torus",icon = 'MESH_TORUS')
+        layout.separator()
+        layout.operator("pov.addparametric", text="Parametric",icon = 'SCRIPTPLUGINS')
+        layout.operator("pov.addrainbow", text="Rainbow",icon="COLOR")
+        layout.operator("pov.addlathe", text="Lathe",icon = 'MOD_SCREW')
+        layout.operator("pov.addprism", text="Prism",icon = 'MOD_SOLIDIFY')
+        layout.operator("pov.addsuperellipsoid", text="Superquadric Ellipsoid",icon = 'MOD_SUBSURF')
+        layout.operator("pov.addheightfield", text="Height Field",icon="RNDCURVE")
+        layout.operator("pov.addspheresweep", text="Sphere Sweep",icon = 'FORCE_CURVE')
+        layout.separator()
+        layout.operator("pov.addblobsphere", text="Blob Sphere",icon = 'META_DATA')
+        layout.separator()
+        layout.label("Isosurfaces")
+        layout.operator("pov.addisosurfacebox", text="Isosurface Box",icon="META_CUBE")
+        layout.operator("pov.addisosurfacesphere", text="Isosurface Sphere",icon="META_BALL")
+        layout.operator("pov.addsupertorus", text="Supertorus",icon="SURFACE_NTORUS")
+        layout.separator()
+        layout.label(text = "Macro based")
+        layout.operator("pov.addpolygontocircle", text="Polygon To Circle Blending",icon="RETOPO")
+        layout.operator("pov.addloft", text="Loft",icon="SURFACE_NSURFACE")
+        
+class ImportMenu(bpy.types.Menu):
+    bl_idname = "Importer_calls"
+    bl_label = "Import"
+
+    def draw(self,context):
+        pov = bpy.types.Object.pov #context.object.pov ? 
+        layout = self.layout
+        layout.operator_context = 'INVOKE_REGION_WIN'
+        layout.operator("import_scene.avogadro", text="Avogadro",icon="FORCE_LENNARDJONES")
+
+def menu_func_add(self, context):
+    engine = context.scene.render.engine
+    if engine == 'POVRAY_RENDER':
+        self.layout.menu("Povray_primitives_add_menu", icon="PLUGIN") 
+
+def menu_func_import(self, context):
+    engine = context.scene.render.engine
+    if engine == 'POVRAY_RENDER':
+        self.layout.operator("import_scene.avogadro", text="POV-Ray Avogadro (.pov)",icon="FORCE_LENNARDJONES")
+
+        
+###############################################################################
+# Camera Povray Settings
+############################################################################### 
 class CAMERA_PT_povray_cam_dof(CameraDataButtonsPanel, bpy.types.Panel):
     bl_label = "POV-Ray Depth Of Field"
     COMPAT_ENGINES = {'POVRAY_RENDER'}
@@ -911,3 +1439,4 @@ class TEXT_PT_povray_custom_code(TextButtonsPanel, bpy.types.Panel):
         text = context.space_data.text
         if text:
             layout.prop(text.pov, "custom_code", text="Add as POV code")
+
