@@ -2137,7 +2137,7 @@ class FbxImportHelperNode:
                     #       Probably because org app (max) handles it completely aside from any parenting stuff,
                     #       which we obviously cannot do in Blender. :/
                     if amat is None:
-                        amat = self.get_bind_matrix()
+                        amat = self.bind_matrix
                     amat = settings.global_matrix * (Matrix() if amat is None else amat)
                     if self.matrix_geom:
                         amat = amat * self.matrix_geom
