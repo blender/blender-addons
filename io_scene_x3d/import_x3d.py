@@ -3143,7 +3143,7 @@ def importLamp_PointLight(node, ancestry):
     # is_on = node.getFieldAsBool('on', True, ancestry) # TODO
     radius = node.getFieldAsFloat('radius', 100.0, ancestry)
 
-    bpylamp = bpy.data.lamps.new("ToDo", 'POINT')
+    bpylamp = bpy.data.lamps.new(vrmlname, 'POINT')
     bpylamp.energy = intensity
     bpylamp.distance = radius
     bpylamp.color = color
