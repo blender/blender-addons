@@ -184,7 +184,6 @@ def elem_props_get_color_rgb(elem, elem_prop_id, default=None):
             # FBX version 7300
             assert(elem_prop.props[1] == b'Color')
             assert(elem_prop.props[2] == b'')
-            assert(elem_prop.props[3] in {b'A', b'A+', b'AU'})
         else:
             assert(elem_prop.props[1] == b'ColorRGB')
             assert(elem_prop.props[2] == b'Color')
@@ -211,7 +210,6 @@ def elem_props_get_number(elem, elem_prop_id, default=None):
         else:
             assert(elem_prop.props[1] == b'Number')
             assert(elem_prop.props[2] == b'')
-            assert(elem_prop.props[3] in {b'A', b'A+', b'AU'})
 
         # we could allow other number types
         assert(elem_prop.props_type[4] == data_types.FLOAT64)
@@ -275,7 +273,6 @@ def elem_props_get_visibility(elem, elem_prop_id, default=None):
         assert(elem_prop.props[0] == elem_prop_id)
         assert(elem_prop.props[1] == b'Visibility')
         assert(elem_prop.props[2] == b'')
-        assert(elem_prop.props[3] in {b'A', b'A+', b'AU'})
 
         # we could allow other number types
         assert(elem_prop.props_type[4] == data_types.FLOAT64)
