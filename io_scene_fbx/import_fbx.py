@@ -2092,7 +2092,7 @@ class FbxImportHelperNode:
                 child_obj = child.build_skeleton_children(fbx_tmpl, settings, scene)
 
             return arm
-        elif self.fbx_elem:
+        elif self.fbx_elem and not self.is_bone:
             obj = self.build_node_obj(fbx_tmpl, settings)
 
             # walk through children
@@ -2163,7 +2163,8 @@ class FbxImportHelperNode:
             # walk through children
             for child in self.children:
                 child_obj = child.link_hierarchy(fbx_tmpl, settings, scene)
-                child_obj.parent = obj
+                if child_obj:
+                    child_obj.parent = obj
 
             return obj
         else:
@@ -2241,6 +2242,8 @@ def load(operator, context, filepath="",
     if version < 7100:
         operator.report({'ERROR'}, "Version %r unsupported, must be %r or later" % (version, 7100))
         return {'CANCELLED'}
+
+    print("FBX version: %r" % version)
 
     if bpy.ops.object.mode_set.poll():
         bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
