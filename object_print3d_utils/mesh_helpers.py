@@ -180,10 +180,11 @@ def bmesh_check_thick_object(obj, thickness):
             # Cast the ray backwards
             p_a = p - no_sta
             p_b = p - no_end
+            p_dir = p_b - p_a
 
-            co, no, index = ray_cast(p_a, p_b)
+            ok, co, no, index = ray_cast(p_a, p_dir, p_dir.length)
 
-            if index != -1:
+            if ok:
                 # Add the face we hit
                 for f_iter in (f, bm_faces_new[index]):
                     # if the face wasn't triangulated, just use existing
