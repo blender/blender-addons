@@ -2534,7 +2534,9 @@ def load(operator, context, filepath="",
             assert(fbx_props[0] is not None)
 
             transform_data = blen_read_object_transform_preprocess(fbx_props, fbx_obj, Matrix(), use_prepost_rot)
-            is_bone = fbx_obj.props[2] in {b'LimbNode'}  # Note: 'Root' "bones" are handled as (armature) objects.
+            # Note: 'Root' "bones" are handled as (armature) objects.
+            # Note: See T46912 for first FBX file I ever saw with 'Limb' bones - thought those were totally deprecated.
+            is_bone = fbx_obj.props[2] in {b'LimbNode', b'Limb'}
             fbx_helper_nodes[a_uuid] = FbxImportHelperNode(fbx_obj, bl_data, transform_data, is_bone)
 
         # add parent-child relations and add blender data to the node
