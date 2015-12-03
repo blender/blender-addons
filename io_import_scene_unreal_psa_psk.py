@@ -21,7 +21,7 @@ bl_info = {
     "author": "Darknet, flufy3d, camg188",
     "version": (2, 2),
     "blender": (2, 64, 0),
-    "location": "File > Import > Skeleton Mesh (.psk)/Animation Set (psa)",
+    "location": "File > Import > Skeleton Mesh (.psk)/Animation Set (psa)"
     "description": "Import Skeleleton Mesh/Animation Data",
     "warning": "may produce errors, fix in progress",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.5/Py/"
