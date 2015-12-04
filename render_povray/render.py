@@ -188,14 +188,11 @@ def renderable_objects():
 tabLevel = 0
 unpacked_images=[]
 
-workDir = bpy.utils.resource_path('USER')
-if not os.path.isdir(workDir):
-    os.mkdir(workDir)   
-previewDir=os.path.join(workDir, "preview")
+user_dir = bpy.utils.resource_path('USER')
+preview_dir = os.path.join(user_dir, "preview")
+
 ## Make sure Preview directory exists and is empty
-if not os.path.isdir(previewDir):
-    os.mkdir(previewDir)
-smokePath = os.path.join(previewDir, "smoke.df3")
+smokePath = os.path.join(preview_dir, "smoke.df3")
 
 def write_global_setting(scene,file):
     file.write("global_settings {\n")
@@ -3460,9 +3457,7 @@ def write_pov(filename, scene=None, info_callback=None):
                                                 proceduralFlag=False
                                                 if t.texture.image.packed_file:
                                                     orig_image_filename=t.texture.image.filepath_raw
-                                                    workDir = bpy.utils.resource_path('USER')
-                                                    previewDir=os.path.join(workDir, "preview")
-                                                    unpackedfilename= os.path.join(previewDir,("unpacked_img_"+(string_strip_hyphen(bpy.path.clean_name(t.texture.name)))))
+                                                    unpackedfilename= os.path.join(preview_dir,("unpacked_img_"+(string_strip_hyphen(bpy.path.clean_name(t.texture.name)))))
                                                     if not os.path.exists(unpackedfilename):
                                                         # record which images that were newly copied and can be safely
                                                         # cleaned up
@@ -4571,6 +4566,9 @@ class PovrayRender(bpy.types.RenderEngine):
         def info_callback(txt):
             self.update_stats("", "POV-Ray 3.7: " + txt)
 
+        # os.makedirs(user_dir, exist_ok=True)  # handled with previews
+        os.makedirs(preview_dir, exist_ok=True)
+
         write_pov(self._temp_file_in, scene, info_callback)
 
     def _render(self, scene):
@@ -4917,22 +4915,20 @@ class RenderPovTexturePreview(Operator):
     def execute(self, context):
         tex=bpy.context.object.active_material.active_texture #context.texture
         texPrevName=string_strip_hyphen(bpy.path.clean_name(tex.name))+"_prev"
-        workDir = bpy.utils.resource_path('USER')    
-        previewDir=os.path.join(workDir, "preview")
-        
+
         ## Make sure Preview directory exists and is empty
-        if not os.path.isdir(previewDir):
-            os.mkdir(previewDir)
-        
-        iniPrevFile=os.path.join(previewDir, "Preview.ini")
-        inputPrevFile=os.path.join(previewDir, "Preview.pov")
-        outputPrevFile=os.path.join(previewDir, texPrevName)
+        if not os.path.isdir(preview_dir):
+            os.mkdir(preview_dir)
+
+        iniPrevFile=os.path.join(preview_dir, "Preview.ini")
+        inputPrevFile=os.path.join(preview_dir, "Preview.pov")
+        outputPrevFile=os.path.join(preview_dir, texPrevName)
         ##################### ini ##########################################
         fileIni=open("%s"%iniPrevFile,"w")
         fileIni.write('Version=3.7\n')
         fileIni.write('Input_File_Name="%s"\n'%inputPrevFile)
         fileIni.write('Output_File_Name="%s.png"\n'%outputPrevFile)
-        fileIni.write('Library_Path="%s"\n'%previewDir)
+        fileIni.write('Library_Path="%s"\n' % preview_dir)
         fileIni.write('Width=256\n')
         fileIni.write('Height=256\n')
         fileIni.write('Pause_When_Done=0\n')
