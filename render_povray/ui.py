@@ -231,7 +231,7 @@ class DATA_PT_POV_shape_keys(PovDataButtonsPanel, bpy.types.Panel):
     draw = properties_data_mesh.DATA_PT_shape_keys.draw    
 
     
-class DATA_PT_uv_texture(PovDataButtonsPanel, bpy.types.Panel):
+class DATA_PT_POV_uv_texture(PovDataButtonsPanel, bpy.types.Panel):
     bl_label = properties_data_mesh.DATA_PT_uv_texture.bl_label
  
     draw = properties_data_mesh.DATA_PT_uv_texture.draw    
