@@ -34,9 +34,17 @@ bl_info = {
 ##------------------------------------------------------------
 #### import modules
 import bpy
-from bpy.props import *
-from mathutils import *
-from math import *
+from bpy.props import (
+        BoolProperty,
+        EnumProperty,
+        FloatProperty,
+        IntProperty,
+        )
+from mathutils import (
+        Matrix,
+        Vector,
+        )
+from math import sin, cos, pi
 import mathutils.noise as Noise
 ###------------------------------------------------------------
 #### Some functions to use with others:
@@ -641,13 +649,13 @@ def vertsToPoints(Verts, splineType):
     return vertArray
 
 # create new CurveObject from vertarray and splineType
-def createCurve(vertArray, self, align_matrix):
+def createCurve(context, vertArray, self, align_matrix):
     # options to vars
     splineType = self.outputType    # output splineType 'POLY' 'NURBS' 'BEZIER'
     name = self.GalloreType         # GalloreType as name
 
     # create curve
-    scene = bpy.context.scene
+    scene = context.scene
     newCurve = bpy.data.curves.new(name, type = 'CURVE') # curvedatablock
     newSpline = newCurve.splines.new(type = splineType) # spline
 
@@ -757,7 +765,7 @@ def main(context, self, align_matrix):
     vertArray = vertsToPoints(verts, splineType)
 
     # create object
-    createCurve(vertArray, self, align_matrix)
+    createCurve(context, vertArray, self, align_matrix)
 
     return
 
@@ -1090,8 +1098,8 @@ class Curveaceous_galore(bpy.types.Operator):
     ##### EXECUTE #####
     def execute(self, context):
         # turn off undo
-        undo = bpy.context.user_preferences.edit.use_global_undo
-        bpy.context.user_preferences.edit.use_global_undo = False
+        undo = context.user_preferences.edit.use_global_undo
+        context.user_preferences.edit.use_global_undo = False
 
         # deal with 2D - 3D curve differences
         if self.GalloreType in ['Helix', 'Cycloid']:
@@ -1109,7 +1117,7 @@ class Curveaceous_galore(bpy.types.Operator):
         main(context, self, self.align_matrix or Matrix())
 
         # restore pre operator undo state
-        bpy.context.user_preferences.edit.use_global_undo = undo
+        context.user_preferences.edit.use_global_undo = undo
 
         return {'FINISHED'}
 

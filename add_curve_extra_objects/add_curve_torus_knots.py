@@ -331,211 +331,216 @@ class torus_knot_plus(bpy.types.Operator, AddObjectHelper):
 
     #### GENERAL options
     options_plus = BoolProperty(
-                name="Extra Options",
-                default=False,
-                description="Show more options (the plus part).")
-
+            name="Extra Options",
+            default=False,
+            description="Show more options (the plus part)",
+            )
     absolute_location = BoolProperty(
-                name= "Absolute Location",
-                default=False,
-                description="Set absolute location instead of relative to 3D cursor.")
+            name= "Absolute Location",
+            default=False,
+            description="Set absolute location instead of relative to 3D cursor",
+            )
 
     #### COLOR options
     use_colors = BoolProperty(
-                name="Use Colors",
-                default=False,
-                description="Show torus links in colors.")
-
+            name="Use Colors",
+            default=False,
+            description="Show torus links in colors",
+            )
     colorSet = EnumProperty(
-                name="Color Set",
-                items= (('1', 'RGBish', 'RGBsish ordered colors'),
-                        ('2', 'Rainbow', 'Rainbow ordered colors')))
-
+            name="Color Set",
+            items= (('1', 'RGBish', 'RGBsish ordered colors'),
+                    ('2', 'Rainbow', 'Rainbow ordered colors')),
+            )
     random_colors = BoolProperty(
-                name="Randomize Colors",
-                default=False,
-                description="Randomize link colors.")
-
+            name="Randomize Colors",
+            default=False,
+            description="Randomize link colors",
+            )
     saturation = FloatProperty(
-                name="Saturation",
-                default=0.75,
-                min=0.0, max=1.0,
-                description="Color saturation.")
+            name="Saturation",
+            default=0.75,
+            min=0.0, max=1.0,
+            description="Color saturation",
+            )
 
     #### SURFACE Options
     geo_surface = BoolProperty(
-                name="Surface",
-                default=True,
-                description="Create surface.")
-
+            name="Surface",
+            default=True,
+            description="Create surface",
+            )
     geo_bDepth = FloatProperty(
-                name="Bevel Depth",
-                default=0.04,
-                min=0, soft_min=0,
-                description="Bevel Depth.")
-
+            name="Bevel Depth",
+            default=0.04,
+            min=0, soft_min=0,
+            description="Bevel Depth",
+            )
     geo_bRes = IntProperty(
-                name="Bevel Resolution",
-                default=2,
-                min=0, soft_min=0,
-                max=5, soft_max=5,
-                description="Bevel Resolution.")
-
+            name="Bevel Resolution",
+            default=2,
+            min=0, soft_min=0,
+            max=5, soft_max=5,
+            description="Bevel Resolution"
+            )
     geo_extrude = FloatProperty(
-                name="Extrude",
-                default=0.0,
-                min=0, soft_min=0,
-                description="Amount of curve extrusion.")
-
+            name="Extrude",
+            default=0.0,
+            min=0, soft_min=0,
+            description="Amount of curve extrusion"
+            )
     geo_offset = FloatProperty(
-                name="Offset",
-                default=0.0,
-                min=0, soft_min=0,
-                description="Offset the surface relative to the curve.")
+            name="Offset",
+            default=0.0,
+            min=0, soft_min=0,
+            description="Offset the surface relative to the curve"
+            )
 
     #### TORUS KNOT Options
     torus_p = IntProperty(
-                name="p",
-                default=2,
-                min=1, soft_min=1,
-                description="Number of REVOLUTIONs around the torus hole before closing the knot.")
-
+            name="p",
+            default=2,
+            min=1, soft_min=1,
+            description="Number of REVOLUTIONs around the torus hole before closing the knot"
+            )
     torus_q = IntProperty(
-                name="q",
-                default=3,
-                min=1, soft_min=1,
-                description="Number of SPINs through the torus hole before closing the knot.")
-
+            name="q",
+            default=3,
+            min=1, soft_min=1,
+            description="Number of SPINs through the torus hole before closing the knot"
+            )
     flip_p = BoolProperty(
-                name="Flip p",
-                default=False,
-                description="Flip REVOLUTION direction.")
-
+            name="Flip p",
+            default=False,
+            description="Flip REVOLUTION direction"
+            )
     flip_q = BoolProperty(
-                name="Flip q",
-                default=False,
-                description="Flip SPIN direction.")
-
+            name="Flip q",
+            default=False,
+            description="Flip SPIN direction"
+            )
     multiple_links = BoolProperty(
-                name="Multiple Links",
-                default=True,
-                description="Generate ALL links or just ONE link when q and q are not co-primes.")
-
+            name="Multiple Links",
+            default=True,
+            description="Generate ALL links or just ONE link when q and q are not co-primes"
+            )
     torus_u = IntProperty(
-                name="p multiplier",
-                default=1,
-                min=1, soft_min=1,
-                description="p multiplier.")
-
+            name="p multiplier",
+            default=1,
+            min=1, soft_min=1,
+            description="p multiplier"
+            )
     torus_v = IntProperty(
-                name="q multiplier",
-                default=1,
-                min=1, soft_min=1,
-                description="q multiplier.")
-
+            name="q multiplier",
+            default=1,
+            min=1, soft_min=1,
+            description="q multiplier"
+            )
     torus_rP = FloatProperty(
-                name="Revolution Phase",
-                default=0.0,
-                min=0.0, soft_min=0.0,
-                description="Phase revolutions by this radian amount.")
-
+            name="Revolution Phase",
+            default=0.0,
+            min=0.0, soft_min=0.0,
+            description="Phase revolutions by this radian amount"
+            )
     torus_sP = FloatProperty(
-                name="Spin Phase",
-                default=0.0,
-                min=0.0, soft_min=0.0,
-                description="Phase spins by this radian amount.")
+            name="Spin Phase",
+            default=0.0,
+            min=0.0, soft_min=0.0,
+            description="Phase spins by this radian amount"
+            )
 
     #### TORUS DIMENSIONS options
     mode = EnumProperty(
-                name="Torus Dimensions",
-                items=(("MAJOR_MINOR", "Major/Minor",
-                        "Use the Major/Minor radii for torus dimensions."),
-                       ("EXT_INT", "Exterior/Interior",
-                        "Use the Exterior/Interior radii for torus dimensions.")),
-                update=mode_update_callback)
-
+            name="Torus Dimensions",
+            items=(("MAJOR_MINOR", "Major/Minor",
+                    "Use the Major/Minor radii for torus dimensions."),
+                    ("EXT_INT", "Exterior/Interior",
+                    "Use the Exterior/Interior radii for torus dimensions.")),
+            update=mode_update_callback,
+            )
     torus_R = FloatProperty(
-                name="Major Radius",
-                min=0.00, max=100.0,
-                default=1.0,
-                subtype='DISTANCE',
-                unit='LENGTH',
-                description="Radius from the torus origin to the center of the cross section.")
-
+            name="Major Radius",
+            min=0.00, max=100.0,
+            default=1.0,
+            subtype='DISTANCE',
+            unit='LENGTH',
+            description="Radius from the torus origin to the center of the cross section"
+            )
     torus_r = FloatProperty(
-                name="Minor Radius",
-                min=0.00, max=100.0,
-                default=.25,
-                subtype='DISTANCE',
-                unit='LENGTH',
-                description="Radius of the torus' cross section.")
-
+            name="Minor Radius",
+            min=0.00, max=100.0,
+            default=.25,
+            subtype='DISTANCE',
+            unit='LENGTH',
+            description="Radius of the torus' cross section"
+            )
     torus_iR = FloatProperty(
-                name="Interior Radius",
-                min=0.00, max=100.0,
-                default=.75,
-                subtype='DISTANCE',
-                unit='LENGTH',
-                description="Interior radius of the torus (closest to the torus center).")
-
+            name="Interior Radius",
+            min=0.00, max=100.0,
+            default=.75,
+            subtype='DISTANCE',
+            unit='LENGTH',
+            description="Interior radius of the torus (closest to the torus center)"
+            )
     torus_eR = FloatProperty(
-                name="Exterior Radius",
-                min=0.00, max=100.0,
-                default=1.25,
-                subtype='DISTANCE',
-                unit='LENGTH',
-                description="Exterior radius of the torus (farthest from the torus center).")
-
+            name="Exterior Radius",
+            min=0.00, max=100.0,
+            default=1.25,
+            subtype='DISTANCE',
+            unit='LENGTH',
+            description="Exterior radius of the torus (farthest from the torus center)"
+            )
     torus_s = FloatProperty(
-                name="Scale",
-                min=0.01, max=100.0,
-                default=1.00,
-                description="Scale factor to multiply the radii.")
-
+            name="Scale",
+            min=0.01, max=100.0,
+            default=1.00,
+            description="Scale factor to multiply the radii"
+            )
     torus_h = FloatProperty(
-                name="Height",
-                default=1.0,
-                min=0.0, max=100.0,
-                description="Scale along the local Z axis.")
+            name="Height",
+            default=1.0,
+            min=0.0, max=100.0,
+            description="Scale along the local Z axis"
+            )
 
     #### CURVE options
     torus_res = IntProperty(
-                name="Curve Resolution",
-                default=100,
-                min=3, soft_min=3,
-                description="Number of control vertices in the curve.")
-
+            name="Curve Resolution",
+            default=100,
+            min=3, soft_min=3,
+            description="Number of control vertices in the curve"
+            )
     segment_res = IntProperty(
-                name="Segment Resolution",
-                default=12,
-                min=1, soft_min=1,
-                description="Curve subdivisions per segment.")
-
+            name="Segment Resolution",
+            default=12,
+            min=1, soft_min=1,
+            description="Curve subdivisions per segment"
+            )
     SplineTypes = [
-                ('POLY', 'Poly', 'POLY'),
-                ('NURBS', 'Nurbs', 'NURBS'),
-                ('BEZIER', 'Bezier', 'BEZIER')]
-
+            ('POLY', 'Poly', 'POLY'),
+            ('NURBS', 'Nurbs', 'NURBS'),
+            ('BEZIER', 'Bezier', 'BEZIER')]
     outputType = EnumProperty(
-                name="Output splines",
-                description="Type of splines to output.",
-                default='BEZIER',
-                items=SplineTypes)
-
+            name="Output splines",
+            default='BEZIER',
+            description="Type of splines to output",
+            items=SplineTypes,
+            )
     bezierHandles = [
-                ('VECTOR', 'Vector', 'VECTOR'),
-                ('AUTOMATIC', 'Auto', 'AUTOMATIC')]
-
+            ('VECTOR', 'Vector', 'VECTOR'),
+            ('AUTOMATIC', 'Auto', 'AUTOMATIC'),
+            ]
     handleType = EnumProperty(
-                name="Handle type",
-                description="Bezier handle type.",
-                default='AUTOMATIC',
-                items=bezierHandles)
-
+            name="Handle type",
+            default='AUTOMATIC',
+            items=bezierHandles,
+            description="Bezier handle type",
+            )
     adaptive_resolution = BoolProperty(
-                name="Adaptive Resolution",
-                default=False,
-                description="Auto adjust curve resolution based on TK length.")
+            name="Adaptive Resolution",
+            default=False,
+            description="Auto adjust curve resolution based on TK length",
+            )
 
     ##### DRAW #####
     def draw(self, context):
