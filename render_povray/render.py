@@ -4240,7 +4240,7 @@ def write_pov(filename, scene=None, info_callback=None):
             tabWrite("fog {\n")
             tabWrite("distance %.6f\n" % mist.depth)
             tabWrite("color rgbt<%.3g, %.3g, %.3g, %.3g>\n" % \
-                     (world.horizon_color[:] + (1.0 - mist.intensity,)))
+                     (*world.horizon_color, 1.0 - mist.intensity))
             #tabWrite("fog_offset %.6f\n" % mist.start)
             #tabWrite("fog_alt 5\n")
             #tabWrite("turbulence 0.2\n")
