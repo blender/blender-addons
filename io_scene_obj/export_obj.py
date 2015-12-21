@@ -424,9 +424,8 @@ def write_file(filepath, objects, scene,
                         if EXPORT_NORMALS and face_index_pairs:
                             me.calc_normals_split()
                             # No need to call me.free_normals_split later, as this mesh is deleted anyway!
-                            loops = me.loops
-                        else:
-                            loops = []
+
+                        loops = me.loops
 
                         if (EXPORT_SMOOTH_GROUPS or EXPORT_SMOOTH_GROUPS_BITFLAGS) and face_index_pairs:
                             smooth_groups, smooth_groups_tot = me.calc_smooth_groups(EXPORT_SMOOTH_GROUPS_BITFLAGS)
@@ -513,7 +512,13 @@ def write_file(filepath, objects, scene,
                                 uv_ls = uv_face_mapping[f_index] = []
                                 for uv_index, l_index in enumerate(f.loop_indices):
                                     uv = uv_layer[l_index].uv
-                                    uv_key = veckey2d(uv)
+                                    # include the vertex index in the key so we don't share UV's between vertices,
+                                    # allowed by the OBJ spec but can cause issues for other importers, see: T47010.
+
+                                    # this works too, shared UV's for all verts
+                                    #~ uv_key = veckey2d(uv)
+                                    uv_key = loops[l_index].vertex_index, veckey2d(uv)
+
                                     uv_val = uv_get(uv_key)
                                     if uv_val is None:
                                         uv_val = uv_dict[uv_key] = uv_unique_count
