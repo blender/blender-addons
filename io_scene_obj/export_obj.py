@@ -44,7 +44,7 @@ def mesh_triangulate(me):
 
 
 def write_mtl(scene, filepath, path_mode, copy_set, mtl_dict):
-    from mathutils import Color
+    from mathutils import Color, Vector
 
     world = scene.world
     if world:
