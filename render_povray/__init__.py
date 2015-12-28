@@ -36,6 +36,7 @@ if "bpy" in locals():
     import importlib
     importlib.reload(ui)
     importlib.reload(render)
+    importlib.reload(primitives)
     importlib.reload(update_files)
 
 else:
@@ -59,6 +60,7 @@ else:
     from . import (
             ui,
             render,
+            primitives,
             update_files,
             )
 
