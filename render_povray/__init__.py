@@ -36,7 +36,6 @@ if "bpy" in locals():
     import importlib
     importlib.reload(ui)
     importlib.reload(render)
-    importlib.reload(primitives)
     importlib.reload(update_files)
 
 else:
@@ -60,7 +59,6 @@ else:
     from . import (
             ui,
             render,
-            primitives,
             update_files,
             )
 
@@ -1479,14 +1477,6 @@ def register():
     bpy.types.Material.pov = PointerProperty(type=RenderPovSettingsMaterial)
     bpy.types.Texture.pov = PointerProperty(type=RenderPovSettingsTexture)
     bpy.types.Object.pov = PointerProperty(type=RenderPovSettingsObject)
-    #bpy.types.Object.povsuperellipsoid = CollectionProperty(type=RenderPovSettingsSuperellipsoid_add)
-    #bpy.types.Object.povsupertorus = CollectionProperty(type=RenderPovSettingsSupertorus_add)
-    #bpy.types.Object.povloft = CollectionProperty(type=RenderPovSettingsLoft_add)
-    #bpy.types.Object.povrainbow = CollectionProperty(type=RenderPovSettingsRainbow_add)
-    #bpy.types.Object.povheightfield = CollectionProperty(type=RenderPovSettingsHeightField_add)
-    #bpy.types.Object.povtorus = CollectionProperty(type=RenderPovSettingsTorus_add)
-    #bpy.types.Object.povprism = CollectionProperty(type=RenderPovSettingsPrism_add)
-    #bpy.types.Object.povpolygontocircle = CollectionProperty(type=RenderPovSettingsPolygonToCircle_add)
     bpy.types.Camera.pov = PointerProperty(type=RenderPovSettingsCamera)
     bpy.types.Text.pov = PointerProperty(type=RenderPovSettingsText)
     
@@ -1498,14 +1488,6 @@ def unregister():
     del bpy.types.Material.pov
     del bpy.types.Texture.pov
     del bpy.types.Object.pov
-    #del bpy.types.Object.povsuperellipsoid
-    #del bpy.types.Object.povsupertorus
-    #del bpy.types.Object.povloft
-    #del bpy.types.Object.povrainbow
-    #del bpy.types.Object.povheightfield
-    #del bpy.types.Object.povtorus
-    #del bpy.types.Object.povprism
-    #del bpy.types.Object.povpolygontocircle
     del bpy.types.Camera.pov
     del bpy.types.Text.pov
     
