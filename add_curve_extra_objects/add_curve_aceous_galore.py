@@ -652,7 +652,7 @@ def vertsToPoints(Verts, splineType):
 def createCurve(context, vertArray, self, align_matrix):
     # options to vars
     splineType = self.outputType    # output splineType 'POLY' 'NURBS' 'BEZIER'
-    name = self.GalloreType         # GalloreType as name
+    name = self.ProfileType         # GalloreType as name
 
     # create curve
     scene = context.scene
@@ -694,57 +694,55 @@ def main(context, self, align_matrix):
     bpy.ops.object.select_all(action='DESELECT')
 
     # options
-    galType = self.GalloreType
+    proType = self.ProfileType
     splineType = self.outputType
     innerRadius = self.innerRadius
     middleRadius = self.middleRadius
     outerRadius = self.outerRadius
 
     # get verts
-    if galType == 'Profile':
+    if proType == 'Profile':
         verts = ProfileCurve(self.ProfileCurveType,
                             self.ProfileCurvevar1,
                             self.ProfileCurvevar2)
-    if galType == 'Miscellaneous':
+    if proType == 'Miscellaneous':
         verts = MiscCurve(self.MiscCurveType,
                             self.MiscCurvevar1,
                             self.MiscCurvevar2,
                             self.MiscCurvevar3)
-    if galType == 'Flower':
+    if proType == 'Flower':
         verts = FlowerCurve(self.petals,
                             innerRadius,
                             outerRadius,
                             self.petalWidth)
-    if galType == 'Star':
+    if proType == 'Star':
         verts = StarCurve(self.starPoints,
                             innerRadius,
                             outerRadius,
                             self.starTwist)
-    if galType == 'Arc':
+    if proType == 'Arc':
         verts = ArcCurve(self.arcSides,
                             self.startAngle,
                             self.endAngle,
                             innerRadius,
                             outerRadius,
                             self.arcType)
-    if galType == 'Cogwheel':
+    if proType == 'Cogwheel':
         verts = CogCurve(self.teeth,
                             innerRadius,
                             middleRadius,
                             outerRadius,
                             self.bevel)
-    if galType == 'Nsided':
+    if proType == 'Nsided':
         verts = nSideCurve(self.Nsides,
                             outerRadius)
-
-    if galType == 'Splat':
+    if proType == 'Splat':
         verts = SplatCurve(self.splatSides,
                             self.splatScale,
                             self.seed,
                             self.basis,
                             outerRadius)
-
-    if galType == 'Helix':
+    if proType == 'Helix':
         verts = HelixCurve(self.helixPoints,
                             self.helixHeight,
                             self.helixStart,
@@ -752,7 +750,7 @@ def main(context, self, align_matrix):
                             self.helixWidth,
                             self.helix_a,
                             self.helix_b)
-    if galType == 'Cycloid':
+    if proType == 'Cycloid':
         verts = CycloidCurve(self.cycloPoints,
                             self.cyclo_d,
                             self.cycloType,
@@ -772,14 +770,14 @@ def main(context, self, align_matrix):
 class Curveaceous_galore(bpy.types.Operator):
     """Add many types of curves"""
     bl_idname = "mesh.curveaceous_galore"
-    bl_label = "Curveaceous galore"
+    bl_label = "Curve Profiles"
     bl_options = {'REGISTER', 'UNDO', 'PRESET'}
 
     # align_matrix for the invoke
     align_matrix = None
 
     #### general properties
-    GalloreTypes = [
+    ProfileTypes = [
                 ('Profile', 'Profile', 'Profile'),
                 ('Miscellaneous', 'Miscellaneous', 'Miscellaneous'),
                 ('Flower', 'Flower', 'Flower'),
@@ -790,9 +788,9 @@ class Curveaceous_galore(bpy.types.Operator):
                 ('Splat', 'Splat', 'Splat'),
                 ('Cycloid', 'Cycloid', 'Cycloid'),
                 ('Helix', 'Helix (3D)', 'Helix')]
-    GalloreType = EnumProperty(name="Type",
+    ProfileType = EnumProperty(name="Type",
                 description="Form of Curve to create",
-                items=GalloreTypes)
+                items=ProfileTypes)
     SplineTypes = [
                 ('POLY', 'Poly', 'POLY'),
                 ('NURBS', 'Nurbs', 'NURBS'),
@@ -1001,56 +999,62 @@ class Curveaceous_galore(bpy.types.Operator):
 
         # general options
         col = layout.column()
-        col.prop(self, 'GalloreType')
-        col.label(text=self.GalloreType + " Options:")
+        col.prop(self, 'ProfileType')
+        col.label(text=self.ProfileType + " Options:")
 
-        # options per GalloreType
+        # options per ProfileType
         box = layout.box()
-        if self.GalloreType == 'Profile':
+        if self.ProfileType == 'Profile':
             box.prop(self, 'ProfileCurveType')
             box.prop(self, 'ProfileCurvevar1')
             box.prop(self, 'ProfileCurvevar2')
-        elif self.GalloreType == 'Miscellaneous':
+
+        elif self.ProfileType == 'Miscellaneous':
             box.prop(self, 'MiscCurveType')
             box.prop(self, 'MiscCurvevar1', text='Width')
             box.prop(self, 'MiscCurvevar2', text='Height')
             if self.MiscCurveType == 5:
                 box.prop(self, 'MiscCurvevar3', text='Rounded')
-        elif self.GalloreType == 'Flower':
+
+        elif self.ProfileType == 'Flower':
             box.prop(self, 'petals')
             box.prop(self, 'petalWidth')
             box.prop(self, 'innerRadius')
             box.prop(self, 'outerRadius')
-        elif self.GalloreType == 'Star':
+
+        elif self.ProfileType == 'Star':
             box.prop(self, 'starPoints')
             box.prop(self, 'starTwist')
             box.prop(self, 'innerRadius')
             box.prop(self, 'outerRadius')
-        elif self.GalloreType == 'Arc':
+
+        elif self.ProfileType == 'Arc':
             box.prop(self, 'arcSides')
             box.prop(self, 'arcType') # has only one Type?
             box.prop(self, 'startAngle')
             box.prop(self, 'endAngle')
             box.prop(self, 'innerRadius') # doesn't seem to do anything
             box.prop(self, 'outerRadius')
-        elif self.GalloreType == 'Cogwheel':
+
+        elif self.ProfileType == 'Cogwheel':
             box.prop(self, 'teeth')
             box.prop(self, 'bevel')
             box.prop(self, 'innerRadius')
             box.prop(self, 'middleRadius')
             box.prop(self, 'outerRadius')
-        elif self.GalloreType == 'Nsided':
+
+        elif self.ProfileType == 'Nsided':
             box.prop(self, 'Nsides')
             box.prop(self, 'outerRadius', text='Radius')
 
-        elif self.GalloreType == 'Splat':
+        elif self.ProfileType == 'Splat':
             box.prop(self, 'splatSides')
             box.prop(self, 'outerRadius')
             box.prop(self, 'splatScale')
             box.prop(self, 'seed')
             box.prop(self, 'basis')
 
-        elif self.GalloreType == 'Helix':
+        elif self.ProfileType == 'Helix':
             box.prop(self, 'helixPoints')
             box.prop(self, 'helixHeight')
             box.prop(self, 'helixWidth')
@@ -1058,7 +1062,8 @@ class Curveaceous_galore(bpy.types.Operator):
             box.prop(self, 'helixEnd')
             box.prop(self, 'helix_a')
             box.prop(self, 'helix_b')
-        elif self.GalloreType == 'Cycloid':
+
+        elif self.ProfileType == 'Cycloid':
             box.prop(self, 'cycloPoints')
             #box.prop(self, 'cycloType') # needs the other types first
             box.prop(self, 'cycloStart')
@@ -1089,7 +1094,6 @@ class Curveaceous_galore(bpy.types.Operator):
             box.row().prop(self, 'handleType', expand=True)
             #box.prop(self, 'use_cyclic_u')
 
-
     ##### POLL #####
     @classmethod
     def poll(cls, context):
@@ -1102,16 +1106,15 @@ class Curveaceous_galore(bpy.types.Operator):
         context.user_preferences.edit.use_global_undo = False
 
         # deal with 2D - 3D curve differences
-        if self.GalloreType in ['Helix', 'Cycloid']:
+        if self.ProfileType in ['Helix', 'Cycloid']:
             self.shape = '3D'
         #else:
             #self.shape = '2D'     # someone decide if we want this
 
-        if self.GalloreType in ['Helix']:
+        if self.ProfileType in ['Helix']:
             self.use_cyclic_u = False
         else:
             self.use_cyclic_u = True
-
 
         # main function
         main(context, self, self.align_matrix or Matrix())
