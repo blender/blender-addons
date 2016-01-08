@@ -1761,6 +1761,7 @@ class SVGGeometrySVG(SVGGeometryContainer):
         """
 
         rect = SVGRectFromNode(self._node, self._context)
+        self._pushRect(rect)
 
         matrix = self.getNodeMatrix()
 
@@ -1772,7 +1773,6 @@ class SVGGeometrySVG(SVGGeometryContainer):
             matrix = matrix * Matrix.Translation([0.0, -document_height , 0.0])
 
         self._pushMatrix(matrix)
-        self._pushRect(rect)
 
         super()._doCreateGeom(False)
 
