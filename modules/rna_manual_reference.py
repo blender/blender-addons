@@ -1,4 +1,4 @@
-#  RNA WIKI REFERENCE
+#  RNA MANUAL REFERENCE
 #
 # This file maps RNA to online URL's for right mouse context menu documentation access
 #
@@ -6,9 +6,9 @@
 # pointing the manuals to the proper language,
 # specified in the 'User Preferences Window' by the users
 # Some Languages have their manual page, using a prefix or
-# being preceeded by their respective reference, for example
+# being preceded by their respective reference, for example
 #
-# Doc:2.6 --> Doc:FR/2.6
+# manual/ --> manual/ru/
 #
 # The table in the script, contains all of the languages we have in the
 # Blender manual website, for those other languages that still
@@ -18,66 +18,47 @@
 # to the Blender UI  translation table
 # The Blender manual uses a list of ISO_639-1 codes to convert languages to manual prefixes
 #
-# "DANISH":        "DK",     - Present in the manual, but not present in Blender UI translations table
-# "FARSI":         "FA",     - Present in the manual, but not present in Blender UI translations table
-# "KOREAN":        "KO",     - Present in the manual, but not present in Blender UI translations table
-# "LITHUANIAN":    "LT",     - Present in the manual, but not present in Blender UI translations table
-# "MACEDONIAN":    "MK",     - Present in the manual, but not present in Blender UI translations table
-# "MONGOLIAN":     "MN",     - Present in the manual, but not present in Blender UI translations table
-# "ROMANIAN":      "RO",     - Present in the manual, but not present in Blender UI translations table
-#
-# "ESTONIAN":      "ET",     - Present in the manual, as an empty page, not present in UI translations table
-#
-# "CROATIAN":      "HR",     - Present in Blender UI translations table, but without manual
-# "KYRGYZ":        "KY",     - Present in Blender UI translations table, but without manual
-# "NEPALI":        "NE",     - Present in Blender UI translations table, but without manual
-# "PERSIAN":       "FA",     - Present in Blender UI translations table, but without manual
-# "HEBREW":        "HE",     - Present in Blender UI translations table, but without manual
-# "HUNGARIAN":     "HU",     - Present in Blender UI translations table, but without manual
-# "SERBIAN_LATIN": "SR",     - Present in Blender UI translations table, but without manual
-#
-# NOTES:
-#
-#  CHINESE                   - Present in the manual as simplified chinese, for both the traditional and simplified
-#  PORTUGUESE                - Present in the manual for both Portuguese and Brazilian Portuguese
-#  THAILANDESE               - It's the same being used for Turkish in the manual
-#
-# URL prefix is the: url_manual_prefix + url_manual_mapping[id]
+# URL is the: url_manual_prefix + url_manual_mapping[id]
+
+import bpy
 
 url_manual_prefix = "https://www.blender.org/manual/"
 
-# TODO
-"""
-LANG = {
-    "ARABIC":       "AR",
-    "BULGARIAN":    "BG",
-    "CATALAN":      "CA",
-    "CZECH":        "CZ",
-    "GERMAN":       "DE",
-    "GREEK":        "EL",
-    "RUSSIAN":      "RU",
-    "SERBIAN":      "SR",
-    "SWEDISH":      "SV",
-    "TURKISH":      "TH",
-    "UKRAINIAN":    "UK",
-    "SPANISH":      "ES",
-    "FINNISH":      "FI",
-    "FRENCH":       "FR",
-    "INDONESIAN":   "ID",
-    "ITALIAN":      "IT",
-    "JAPANESE":     "JA",
-    "DUTCH":        "NL",
-    "POLISH":       "PL",
-    "PORTUGUESE":   "PT",
-    "BRAZILIANPORTUGUESE":  "PT",
-    "SIMPLIFIED_CHINESE":   "ZH",
-    "TRADITIONAL_CHINESE":  "ZH",
-}.get(__import__("bpy").context.user_preferences.system.language)
+language = ""
+if bpy.context.user_preferences.system.use_international_fonts:
+    language = bpy.context.user_preferences.system.language
+    if language == 'DEFAULT':
+        import os
+        language = os.getenv('LANG', '').split('.')[0]
 
-url_manual_prefix = url_manual_prefix \
-    if LANG is None \
-    else url_manual_prefix.replace("Doc:2.6", "Doc:" + LANG + "/" + "2.6")
-"""
+LANG = {
+#   "ar_EG":        "ar",
+#   "bg_BG":        "bg",
+#   "ca_AD":        "ca",
+#   "cs_CZ":        "cz",
+    "de_DE":        "de",  # German.
+#   "el_GR":        "el",
+    "ru_RU":        "ru",  # Russian.
+#   "sr_RS":        "sr",
+#   "sv_SE":        "sv",
+#   "tr_TR":        "th",
+#   "uk_UA":        "uk",
+#   "es":           "es",
+#   "fi_FI":        "fi",
+    "fr_FR":        "fr",  # French.
+#   "id_ID":        "id",
+#   "it_IT":        "it",
+#   "ja_JP":        "ja",
+#   "nl_NL":        "nl",
+#   "pl_PL":        "pl",
+#   "pt_PT":        "pt",
+#   "pt_BR":        "pt",
+    "zh_CN":        "zh.cn",  # Chinese - Should be changed to "zh_cn" but there is a bug in sphinx-intl.
+    "zh_TW":        "zh.cn",  # Taiwanese Chinese - for until we have a zh_tw version?
+}.get(language)
+
+if LANG is not None:
+    url_manual_prefix = url_manual_prefix.replace("manual", "manual/" + LANG)
 
 # - The first item is a wildcard - typical file system globbing
 #   using python module 'fnmatch.fnmatch'
