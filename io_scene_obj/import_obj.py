@@ -566,43 +566,46 @@ def create_mesh(new_objects,
 
             # NGons into triangles
             if face_invalid_blenpoly:
-                from bpy_extras.mesh_utils import ngon_tessellate
-                ngon_face_indices = ngon_tessellate(verts_loc, face_vert_loc_indices)
-                faces.extend([([face_vert_loc_indices[ngon[0]],
-                                face_vert_loc_indices[ngon[1]],
-                                face_vert_loc_indices[ngon[2]],
-                                ],
-                               [face_vert_nor_indices[ngon[0]],
-                                face_vert_nor_indices[ngon[1]],
-                                face_vert_nor_indices[ngon[2]],
-                                ] if face_vert_nor_indices else [],
-                               [face_vert_tex_indices[ngon[0]],
-                                face_vert_tex_indices[ngon[1]],
-                                face_vert_tex_indices[ngon[2]],
-                                ] if face_vert_tex_indices else [],
-                               context_material,
-                               context_smooth_group,
-                               context_object,
-                               [],
-                               )
-                             for ngon in ngon_face_indices]
-                             )
-                tot_loops += 3 * len(ngon_face_indices)
+                # ignore triangles with invalid indices
+                if len(face_vert_loc_indices) > 3:
+                    from bpy_extras.mesh_utils import ngon_tessellate
+                    ngon_face_indices = ngon_tessellate(verts_loc, face_vert_loc_indices)
+                    faces.extend([([face_vert_loc_indices[ngon[0]],
+                                    face_vert_loc_indices[ngon[1]],
+                                    face_vert_loc_indices[ngon[2]],
+                                    ],
+                                [face_vert_nor_indices[ngon[0]],
+                                    face_vert_nor_indices[ngon[1]],
+                                    face_vert_nor_indices[ngon[2]],
+                                    ] if face_vert_nor_indices else [],
+                                [face_vert_tex_indices[ngon[0]],
+                                    face_vert_tex_indices[ngon[1]],
+                                    face_vert_tex_indices[ngon[2]],
+                                    ] if face_vert_tex_indices else [],
+                                context_material,
+                                context_smooth_group,
+                                context_object,
+                                [],
+                                )
+                                for ngon in ngon_face_indices]
+                                )
+                    tot_loops += 3 * len(ngon_face_indices)
 
-                # edges to make ngons
-                edge_users = set()
-                for ngon in ngon_face_indices:
-                    prev_vidx = face_vert_loc_indices[ngon[-1]]
-                    for ngidx in ngon:
-                        vidx = face_vert_loc_indices[ngidx]
-                        if vidx == prev_vidx:
-                            continue  # broken OBJ... Just skip.
-                        edge_key = (prev_vidx, vidx) if (prev_vidx < vidx) else (vidx, prev_vidx)
-                        prev_vidx = vidx
-                        if edge_key in edge_users:
-                            fgon_edges.add(edge_key)
-                        else:
-                            edge_users.add(edge_key)
+                    # edges to make ngons
+                    if len(ngon_face_indices) > 1:
+                        edge_users = set()
+                        for ngon in ngon_face_indices:
+                            prev_vidx = face_vert_loc_indices[ngon[-1]]
+                            for ngidx in ngon:
+                                vidx = face_vert_loc_indices[ngidx]
+                                if vidx == prev_vidx:
+                                    continue  # broken OBJ... Just skip.
+                                edge_key = (prev_vidx, vidx) if (prev_vidx < vidx) else (vidx, prev_vidx)
+                                prev_vidx = vidx
+                                if edge_key in edge_users:
+                                    fgon_edges.add(edge_key)
+                                else:
+                                    edge_users.add(edge_key)
 
                 faces.pop(f_idx)
             else:
