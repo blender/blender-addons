@@ -142,7 +142,7 @@ class ImportOBJ(bpy.types.Operator, ImportHelper, IOOBJOrientationHelper):
 
         if bpy.data.is_saved and context.user_preferences.filepaths.use_relative_paths:
             import os
-            keywords["relpath"] = os.path.dirname((bpy.data.path_resolve("filepath", False).as_bytes()))
+            keywords["relpath"] = os.path.dirname(bpy.data.filepath)
 
         return import_obj.load(context, **keywords)
 
