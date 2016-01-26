@@ -109,7 +109,7 @@ class ImportSTL(Operator, ImportHelper, IOSTLOrientationHelper):
     use_scene_unit = BoolProperty(
             name="Scene Unit",
             description="Apply current scene's unit (as defined by unit scale) to imported data",
-            default=True,
+            default=False,
             )
 
     use_facet_normal = BoolProperty(
