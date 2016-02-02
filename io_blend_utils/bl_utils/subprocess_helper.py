@@ -122,7 +122,7 @@ class SubprocessHelper:
 
         if event.type == 'ESC':
             self.cancel(context)
-            self.report({'INFO'}, "Operation aborted by user.")
+            self.report({'INFO'}, "Operation aborted by user")
             return {'CANCELLED'}
 
         elif event.type == 'TIMER':
