@@ -180,15 +180,15 @@ def write_mtl(scene, filepath, path_mode, copy_set, mtl_dict):
                 for key, (mtex, image) in sorted(image_map.items()):
                     filepath = bpy_extras.io_utils.path_reference(image.filepath, source_dir, dest_dir,
                                                                   path_mode, "", copy_set, image.library)
-                    options = [""]
+                    options = []
                     if key == "map_Bump":
                         if mtex.normal_factor != 1.0:
-                            options += ['-bm', mtex.normal_factor]
+                            options.append('-bm %.6f' % mtex.normal_factor)
                     if mtex.offset != Vector((0.0, 0.0, 0.0)):
-                        options += ['-o', mtex.offset.x, mtex.offset.y, mtex.offset.z]
+                        options.append('-o %.6f %.6f %.6f' % mtex.offset[:])
                     if mtex.scale != Vector((1.0, 1.0, 1.0)):
-                        options += ['-s', mtex.scale.x, mtex.scale.y, mtex.scale.z]
-                    fw('%s%s %s\n' % (key, " ".join(options), repr(filepath)[1:-1]))
+                        options.append('-s %.6f %.6f %.6f' % mtex.scale[:])
+                    fw('%s %s %s\n' % (key, " ".join(options), repr(filepath)[1:-1]))
 
 
 def test_nurbs_compat(ob):
