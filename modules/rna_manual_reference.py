@@ -177,13 +177,13 @@ url_manual_mapping = (
     #("bpy.types.Brush.*", ""),   # TODO - manual has no place for this! XXX
     ("bpy.types.Curve.*",         "modeling/curves"),
     ("bpy.types.GreasePencil.*",  "interface/grease_pencil/index.html"),
-    ("bpy.types.Group.*",         "editors/3dview/groups.html"),
+    ("bpy.types.Group.*",         "editors/3dview/relationships/groups.html"),
     ("bpy.types.Image.*",         "render/blender_render/textures/types/image.html"),
     ("bpy.types.ShapeKey.*",      "animation/shape_keys.html"), # not an id but include because of key
     ("bpy.types.Key.*",           "animation/shape_keys.html"),
     #("bpy.types.Lattice.*", ""),  # TODO - manual has no place for this! XXX
     ("bpy.types.Library.*",       "data_system/linked_libraries.html"),
-    #("bpy.types.Mask.*", ""),     # TODO - manual has no place for this! XXX
+    ("bpy.types.Mask.*",          "editors/movie_clip_editor/masking.html"),
 
     # *** Materials (blender internal) ***
     ("bpy.types.Material.diffuse*",  "render/blender_render/materials/properties/diffuse_shaders.html"),
@@ -475,7 +475,7 @@ url_manual_mapping = (
     # ("bpy.ops.lattice.*",  ""),  # TODO
     ("bpy.ops.logic.*",            "game_engine/logic"),
     ("bpy.ops.marker.*",           "animation/markers.html"),
-    # ("bpy.ops.mask.*",  ""),     # TODO
+    ("bpy.ops.mask.*",  "editors/movie_clip_editor/masking.html"),
     ("bpy.ops.material.new",    "render/blender_render/materials/assigning_a_material.html#creating-a-new-material"),
     ("bpy.ops.material.*",      "render/blender_render"),
     ("bpy.ops.mesh.vertices_smooth",      "modeling/meshes/editing/deforming/smooth.html"),
