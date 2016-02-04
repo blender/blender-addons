@@ -1266,13 +1266,14 @@ def gzipOpen(path):
 
     if data is None:
         try:
-            filehandle = open(path, 'rU')
+            filehandle = open(path, 'rU', encoding='utf-8', errors='surrogateescape')
             data = filehandle.read()
             filehandle.close()
         except:
-            pass
+            import traceback
+            traceback.print_exc()
     else:
-        data = data.decode('utf-8', "replace")
+        data = data.decode(encoding='utf-8', errors='surrogateescape')
 
     return data
 
