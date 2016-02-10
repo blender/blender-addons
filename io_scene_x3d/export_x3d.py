@@ -348,7 +348,7 @@ def export(file,
 
         loc, rot, scale = matrix.decompose()
         rot = rot.to_axis_angle()
-        rot = rot[0].normalized()[:] + (rot[1], )
+        rot = (*rot[0].normalized(), rot[1])
 
         ident_step = ident + (' ' * (-len(ident) + \
         fw('%s<Viewpoint ' % ident)))
@@ -395,7 +395,7 @@ def export(file,
 
         loc, rot, sca = matrix.decompose()
         rot = rot.to_axis_angle()
-        rot = rot[0][:] + (rot[1], )
+        rot = (*rot[0], rot[1])
 
         fw(ident_step + 'translation="%.6f %.6f %.6f"\n' % loc[:])
         # fw(ident_step + 'center="%.6f %.6f %.6f"\n' % (0, 0, 0))
@@ -1547,7 +1547,9 @@ def gzip_open_utf8(filepath, mode):
     return file
 
 
-def save(operator, context, filepath="",
+def save(context,
+         filepath,
+         *,
          use_selection=True,
          use_mesh_modifiers=False,
          use_triangulate=False,
@@ -1557,7 +1559,7 @@ def save(operator, context, filepath="",
          use_h3d=False,
          global_matrix=None,
          path_mode='AUTO',
-         name_decorations=True,
+         name_decorations=True
          ):
 
     bpy.path.ensure_ext(filepath, '.x3dz' if use_compress else '.x3d')

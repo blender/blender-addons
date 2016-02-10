@@ -455,7 +455,7 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
                             message = frame.serialize()
                         else:
                             # no such frame
-                            self.send_heat(http.client.NO_CONTENT)
+                            self.send_head(http.client.NO_CONTENT)
                             return
                     else:
                         message = job.serialize()

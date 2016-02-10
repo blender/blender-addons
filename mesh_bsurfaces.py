@@ -21,7 +21,7 @@ bl_info = {
     "name": "Bsurfaces GPL Edition",
     "author": "Eclectiel",
     "version": (1, 5),
-    "blender": (2, 63, 0),
+    "blender": (2, 76, 0),
     "location": "View3D > EditMode > ToolShelf",
     "description": "Modeling and retopology tool.",
     "wiki_url": "http://wiki.blender.org/index.php/Dev:Ref/Release_Notes/2.64/Bsurfaces_1.5",
@@ -3205,7 +3205,7 @@ class GPENCIL_OT_SURFSK_add_surface(bpy.types.Operator):
             bpy.context.user_preferences.edit.use_global_undo = self.initial_global_undo_state
 
             if created_faces_count == 0:
-                self.report({'WARNING'}, "There aren't any strokes.")
+                self.report({'WARNING'}, "There aren't any strokes attatched to the object")
                 return {"CANCELLED"}
             else:
                 return {"FINISHED"}
@@ -3226,7 +3226,7 @@ class GPENCIL_OT_SURFSK_add_surface(bpy.types.Operator):
             return{"CANCELLED"}
 
         elif self.strokes_type == "NO_STROKES":
-            self.report({'WARNING'}, "There aren't any strokes.")
+            self.report({'WARNING'}, "There aren't any strokes attatched to the object")
             return{"CANCELLED"}
 
         elif self.strokes_type == "CURVE_WITH_NON_BEZIER_SPLINES":
@@ -3298,7 +3298,7 @@ class GPENCIL_OT_SURFSK_edit_strokes(bpy.types.Operator):
             self.report({'WARNING'}, "There shouldn't be more than one secondary object selected.")
             return{"CANCELLED"}
         elif self.strokes_type == "NO_STROKES" or self.strokes_type == "SELECTION_ALONE":
-            self.report({'WARNING'}, "There aren't any strokes.")
+            self.report({'WARNING'}, "There aren't any strokes attatched to the object")
             return{"CANCELLED"}
         else:
             return{"CANCELLED"}
@@ -3465,7 +3465,7 @@ class CURVE_OT_SURFSK_reorder_splines(bpy.types.Operator):
             self.main_curve.data.splines[0].bezier_points[0].select_control_point = True
 
             bpy.ops.object.editmode_toggle('INVOKE_REGION_WIN')
-            bpy.ops.curve.separate('INVOKE_REGION_WIN')
+            bpy.ops.curve.separate('EXEC_REGION_WIN')
             bpy.ops.object.editmode_toggle('INVOKE_REGION_WIN')
 
 

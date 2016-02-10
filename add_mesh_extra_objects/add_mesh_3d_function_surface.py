@@ -278,21 +278,12 @@ def xyz_function_surface_faces(self, x_eq, y_eq, z_eq,
 
             # Try to evaluate the equations.
             try:
-                a = float(eval(*expr_args_a))
-                b = float(eval(*expr_args_b))
-                c = float(eval(*expr_args_c))
-
-                safe_dict['a'] = a
-                safe_dict['b'] = b
-                safe_dict['c'] = c
-
-                f = float(eval(*expr_args_f))
-                g = float(eval(*expr_args_g))
-                h = float(eval(*expr_args_h))
-
-                safe_dict['f'] = f
-                safe_dict['g'] = g
-                safe_dict['h'] = h
+                safe_dict['a'] = float(eval(*expr_args_a))
+                safe_dict['b'] = float(eval(*expr_args_b))
+                safe_dict['c'] = float(eval(*expr_args_c))
+                safe_dict['f'] = float(eval(*expr_args_f))
+                safe_dict['g'] = float(eval(*expr_args_g))
+                safe_dict['h'] = float(eval(*expr_args_h))
 
                 verts.append((
                     float(eval(*expr_args_x)),

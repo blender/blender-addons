@@ -27,12 +27,12 @@ import stat
 
 bl_info = {
     "name": "Game Engine Publishing",
-    "author": "Mitchell Stokes (Moguri)",
+    "author": "Mitchell Stokes (Moguri), Oren Titane (Genome36)",
     "version": (0, 1, 0),
-    "blender": (2, 72, 0),
+    "blender": (2, 75, 0),
     "location": "Render Properties > Publishing Info",
     "description": "Publish .blend file as game engine runtime, manage versions and platforms",
-    "warning": "beta",
+    "warning": "",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts/Game_Engine/Publishing",
     "category": "Game Engine",
 }
@@ -80,10 +80,9 @@ def WriteRuntime(player_path, output_path, asset_paths, copy_python, overwrite_l
             output_path = bpy.path.ensure_ext(output_path, '.exe')
 
         # Get the player's binary and the offset for the blend
-        file = open(player_path, 'rb')
-        player_d = file.read()
-        offset = file.tell()
-        file.close()
+        with open(player_path, "rb") as file:
+            player_d = file.read()
+            offset = file.tell()
 
         # Create a tmp blend file (Blenderplayer doesn't like compressed blends)
         tempdir = tempfile.mkdtemp()
@@ -95,31 +94,28 @@ def WriteRuntime(player_path, output_path, asset_paths, copy_python, overwrite_l
                                     )
 
         # Get the blend data
-        blend_file = open(blend_path, 'rb')
-        blend_d = blend_file.read()
-        blend_file.close()
+        with open(blend_path, "rb") as blend_file:
+            blend_d = blend_file.read()
 
         # Get rid of the tmp blend, we're done with it
         os.remove(blend_path)
         os.rmdir(tempdir)
 
         # Create a new file for the bundled runtime
-        output = open(output_path, 'wb')
+        with open(output_path, "wb") as output:
+            # Write the player and blend data to the new runtime
+            print("Writing runtime...", end=" ", flush=True)
+            output.write(player_d)
+            output.write(blend_d)
 
-        # Write the player and blend data to the new runtime
-        print("Writing runtime...", end=" ", flush=True)
-        output.write(player_d)
-        output.write(blend_d)
+            # Store the offset (an int is 4 bytes, so we split it up into 4 bytes and save it)
+            output.write(struct.pack('BBBB', (offset >> 24) & 0xFF,
+                                     (offset >> 16) & 0xFF,
+                                     (offset >> 8) & 0xFF,
+                                     (offset >> 0) & 0xFF))
 
-        # Store the offset (an int is 4 bytes, so we split it up into 4 bytes and save it)
-        output.write(struct.pack('BBBB', (offset >> 24) & 0xFF,
-                                 (offset >> 16) & 0xFF,
-                                 (offset >> 8) & 0xFF,
-                                 (offset >> 0) & 0xFF))
-
-        # Stuff for the runtime
-        output.write(b'BRUNTIME')
-        output.close()
+            # Stuff for the runtime
+            output.write(b'BRUNTIME')
 
         print("done", flush=True)
 
@@ -251,6 +247,22 @@ class PublishAllPlatforms(bpy.types.Operator):
         return {'FINISHED'}
 
 
+class RENDER_UL_assets(bpy.types.UIList):
+    bl_label = "Asset Paths Listing"
+
+    def draw_item(self, context, layout, data, item, icon, active_data, active_propname):
+        layout.prop(item, "name", text="", emboss=False)
+
+
+class RENDER_UL_platforms(bpy.types.UIList):
+    bl_label = "Platforms Listing"
+
+    def draw_item(self, context, layout, data, item, icon, active_data, active_propname):
+        row = layout.row()
+        row.label(item.name)
+        row.prop(item, "publish", text="")
+
+
 class RENDER_PT_publish(bpy.types.Panel):
     bl_label = "Publishing Info"
     bl_space_type = "PROPERTIES"
@@ -266,39 +278,54 @@ class RENDER_PT_publish(bpy.types.Panel):
         ps = context.scene.ge_publish_settings
         layout = self.layout
 
+        # config
         layout.prop(ps, 'output_path')
         layout.prop(ps, 'runtime_name')
         layout.prop(ps, 'lib_path')
         layout.prop(ps, 'make_archive')
 
+        layout.separator()
+
+        # assets list
         layout.label("Asset Paths")
+
+        # UI_UL_list
         row = layout.row()
-        row.template_list("UI_UL_list", "assets_list", ps, 'asset_paths', ps, 'asset_paths_active')
+        row.template_list("RENDER_UL_assets", "assets_list", ps, 'asset_paths', ps, 'asset_paths_active')
+
+        # operators
         col = row.column(align=True)
         col.operator(PublishAddAssetPath.bl_idname, icon='ZOOMIN', text="")
         col.operator(PublishRemoveAssetPath.bl_idname, icon='ZOOMOUT', text="")
 
+        # indexing
         if len(ps.asset_paths) > ps.asset_paths_active >= 0:
             ap = ps.asset_paths[ps.asset_paths_active]
             row = layout.row()
-            row.prop(ap, 'name')
             row.prop(ap, 'overwrite')
 
-        layout.label("Platforms")
-        layout.prop(ps, 'publish_default_platform')
-        row = layout.row()
-        row.template_list("UI_UL_list", "platforms_list", ps, 'platforms', ps, 'platforms_active')
+        layout.separator()
 
+        # publishing list
+        row = layout.row(align=True)
+        row.label("Platforms")
+        row.prop(ps, 'publish_default_platform')
+
+        # UI_UL_list
+        row = layout.row()
+        row.template_list("RENDER_UL_platforms", "platforms_list", ps, 'platforms', ps, 'platforms_active')
+
+        # operators
         col = row.column(align=True)
         col.operator(PublishAddPlatform.bl_idname, icon='ZOOMIN', text="")
         col.operator(PublishRemovePlatform.bl_idname, icon='ZOOMOUT', text="")
         col.menu("PUBLISH_MT_platform_specials", icon='DOWNARROW_HLT', text="")
 
+        # indexing
         if len(ps.platforms) > ps.platforms_active >= 0:
             platform = ps.platforms[ps.platforms_active]
             layout.prop(platform, 'name')
             layout.prop(platform, 'player_path')
-            layout.prop(platform, 'publish')
 
         layout.operator(PublishAllPlatforms.bl_idname, 'Publish Platforms')
 
@@ -310,7 +337,11 @@ class PublishAutoPlatforms(bpy.types.Operator):
     def execute(self, context):
         ps = context.scene.ge_publish_settings
 
+        # verify lib folder
         lib_path = bpy.path.abspath(ps.lib_path)
+        if not os.path.exists(lib_path):
+            self.report({'ERROR'}, "Could not add platforms, lib folder (%s) does not exist" % lib_path)
+            return {'CANCELLED'}
 
         for lib in [i for i in os.listdir(lib_path) if os.path.isdir(os.path.join(lib_path, i))]:
             print("Found folder:", lib)
@@ -352,7 +383,11 @@ class PublishDownloadPlatforms(bpy.types.Operator):
         remote_platforms = []
 
         ps = context.scene.ge_publish_settings
+
+        # create lib folder if not already available
         lib_path = bpy.path.abspath(ps.lib_path)
+        if not os.path.exists(lib_path):
+            os.makedirs(lib_path)
 
         print("Retrieving list of platforms from blender.org...", end=" ", flush=True)
 

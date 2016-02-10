@@ -63,8 +63,8 @@ def obj_image_load(imagepath, DIR, recursive, relpath):
     Mainly uses comprehensiveImageLoad
     but tries to replace '_' with ' ' for Max's exporter replaces spaces with underscores.
     """
-    if b'_' in imagepath:
-        image = load_image(imagepath.replace(b'_', b' '), DIR, recursive=recursive, relpath=relpath)
+    if "_" in imagepath:
+        image = load_image(imagepath.replace("_", " "), DIR, recursive=recursive, relpath=relpath)
         if image:
             return image
 
@@ -81,10 +81,21 @@ def create_materials(filepath, relpath,
     DIR = os.path.dirname(filepath)
     context_material_vars = set()
 
-    def load_material_image(blender_material, context_material_name, imagepath, type):
+    def load_material_image(blender_material, context_material_name, img_data, type):
         """
         Set textures defined in .mtl file.
         """
+        imagepath = os.fsdecode(img_data[-1])
+        map_options = {}
+
+        curr_token = []
+        for token in img_data[:-1]:
+            if token.startswith(b'-'):
+                if curr_token:
+                    map_options[curr_token[0]] = curr_token[1:]
+                curr_token[:] = []
+            curr_token.append(token)
+
         texture = bpy.data.textures.new(name=type, type='IMAGE')
 
         # Absolute path - c:\.. etc would work here
@@ -120,6 +131,14 @@ def create_materials(filepath, relpath,
             mtex.texture_coords = 'UV'
             mtex.use_map_color_spec = True
 
+        elif type == 'Ke':
+            mtex = blender_material.texture_slots.add()
+            mtex.use_map_color_diffuse = False
+
+            mtex.texture = texture
+            mtex.texture_coords = 'UV'
+            mtex.use_map_emit = True
+
         elif type == 'Bump':
             mtex = blender_material.texture_slots.add()
             mtex.use_map_color_diffuse = False
@@ -127,6 +146,10 @@ def create_materials(filepath, relpath,
             mtex.texture = texture
             mtex.texture_coords = 'UV'
             mtex.use_map_normal = True
+
+            bump_mult = map_options.get(b'-bm')
+            if bump_mult:
+                mtex.normal_factor = bump_mult[0]
 
         elif type == 'D':
             mtex = blender_material.texture_slots.add()
@@ -156,14 +179,35 @@ def create_materials(filepath, relpath,
             mtex.texture = texture
             mtex.texture_coords = 'REFLECTION'
             mtex.use_map_color_diffuse = True
+
+            map_type = map_options.get(b'-type')
+            if map_type and map_type != [b'sphere']:
+                print("WARNING, unsupported reflection type '%s', defaulting to 'sphere'"
+                      "" % ' '.join(i.decode() for i in map_type))
+            mtex.mapping = 'SPHERE'
         else:
             raise Exception("invalid type %r" % type)
 
-    # Add an MTL with the same name as the obj if no MTLs are spesified.
-    temp_mtl = os.path.splitext((os.path.basename(filepath)))[0] + b'.mtl'
+        map_offset = map_options.get(b'-o')
+        map_scale = map_options.get(b'-s')
+        if map_offset:
+            mtex.offset.x = float(map_offset[0])
+            if len(map_offset) >= 2:
+                mtex.offset.y = float(map_offset[1])
+            if len(map_offset) >= 3:
+                mtex.offset.z = float(map_offset[2])
+        if map_scale:
+            mtex.scale.x = float(map_scale[0])
+            if len(map_scale) >= 2:
+                mtex.scale.y = float(map_scale[1])
+            if len(map_scale) >= 3:
+                mtex.scale.z = float(map_scale[2])
 
-    if os.path.exists(os.path.join(DIR, temp_mtl)) and temp_mtl not in material_libs:
-        material_libs.append(temp_mtl)
+    # Add an MTL with the same name as the obj if no MTLs are spesified.
+    temp_mtl = os.path.splitext((os.path.basename(filepath)))[0] + ".mtl"
+
+    if os.path.exists(os.path.join(DIR, temp_mtl)):
+        material_libs.add(temp_mtl)
     del temp_mtl
 
     # Create new materials
@@ -177,7 +221,7 @@ def create_materials(filepath, relpath,
     #~ unique_materials[None] = None
     #~ unique_material_images[None] = None
 
-    for libname in material_libs:
+    for libname in sorted(material_libs):
         # print(libname)
         mtlpath = os.path.join(DIR, libname)
         if not os.path.exists(mtlpath):
@@ -190,6 +234,7 @@ def create_materials(filepath, relpath,
             do_glass = False
             do_fresnel = False
             do_raytrace = False
+            emit_colors = [0.0, 0.0, 0.0]
 
             # print('\t\tloading mtl: %e' % mtlpath)
             context_material = None
@@ -203,8 +248,14 @@ def create_materials(filepath, relpath,
                 line_id = line_split[0].lower()
 
                 if line_id == b'newmtl':
-                    # Finalize preview mat, if any.
+                    # Finalize previous mat, if any.
                     if context_material:
+                        emit_value = sum(emit_colors) / 3.0
+                        if emit_value > 1e-6:
+                            # We have to adapt it to diffuse color too...
+                            emit_value /= sum(context_material.diffuse_color) / 3.0
+                        context_material.emit = emit_value
+
                         if not do_ambient:
                             context_material.ambient = 0.0
 
@@ -243,6 +294,7 @@ def create_materials(filepath, relpath,
                     context_material = unique_materials.get(context_material_name)
                     context_material_vars.clear()
 
+                    emit_colors[:] = [0.0, 0.0, 0.0]
                     do_ambient = True
                     do_highlight = False
                     do_reflection = False
@@ -267,6 +319,10 @@ def create_materials(filepath, relpath,
                         context_material.specular_color = (
                             float_func(line_split[1]), float_func(line_split[2]), float_func(line_split[3]))
                         context_material.specular_intensity = 1.0
+                    elif line_id == b'ke':
+                        # We cannot set context_material.emit right now, we need final diffuse color as well for this.
+                        emit_colors[:] = [
+                            float_func(line_split[1]), float_func(line_split[2]), float_func(line_split[3])]
                     elif line_id == b'ns':
                         context_material.specular_hardness = int((float_func(line_split[1]) * 0.51) + 1)
                     elif line_id == b'ni':  # Refraction index (between 1 and 3).
@@ -340,35 +396,39 @@ def create_materials(filepath, relpath,
                             pass
 
                     elif line_id == b'map_ka':
-                        img_filepath = line_value(line.split())
-                        if img_filepath:
-                            load_material_image(context_material, context_material_name, img_filepath, 'Ka')
+                        img_data = line.split()[1:]
+                        if img_data:
+                            load_material_image(context_material, context_material_name, img_data, 'Ka')
                     elif line_id == b'map_ks':
-                        img_filepath = line_value(line.split())
-                        if img_filepath:
-                            load_material_image(context_material, context_material_name, img_filepath, 'Ks')
+                        img_data = line.split()[1:]
+                        if img_data:
+                            load_material_image(context_material, context_material_name, img_data, 'Ks')
                     elif line_id == b'map_kd':
-                        img_filepath = line_value(line.split())
-                        if img_filepath:
-                            load_material_image(context_material, context_material_name, img_filepath, 'Kd')
+                        img_data = line.split()[1:]
+                        if img_data:
+                            load_material_image(context_material, context_material_name, img_data, 'Kd')
+                    elif line_id == b'map_ke':
+                        img_data = line.split()[1:]
+                        if img_data:
+                            load_material_image(context_material, context_material_name, img_data, 'Ke')
                     elif line_id in {b'map_bump', b'bump'}:  # 'bump' is incorrect but some files use it.
-                        img_filepath = line_value(line.split())
-                        if img_filepath:
-                            load_material_image(context_material, context_material_name, img_filepath, 'Bump')
+                        img_data = line.split()[1:]
+                        if img_data:
+                            load_material_image(context_material, context_material_name, img_data, 'Bump')
                     elif line_id in {b'map_d', b'map_tr'}:  # Alpha map - Dissolve
-                        img_filepath = line_value(line.split())
-                        if img_filepath:
-                            load_material_image(context_material, context_material_name, img_filepath, 'D')
+                        img_data = line.split()[1:]
+                        if img_data:
+                            load_material_image(context_material, context_material_name, img_data, 'D')
 
                     elif line_id in {b'map_disp', b'disp'}:  # displacementmap
-                        img_filepath = line_value(line.split())
-                        if img_filepath:
-                            load_material_image(context_material, context_material_name, img_filepath, 'disp')
+                        img_data = line.split()[1:]
+                        if img_data:
+                            load_material_image(context_material, context_material_name, img_data, 'disp')
 
                     elif line_id in {b'map_refl', b'refl'}:  # reflectionmap
-                        img_filepath = line_value(line.split())
-                        if img_filepath:
-                            load_material_image(context_material, context_material_name, img_filepath, 'refl')
+                        img_data = line.split()[1:]
+                        if img_data:
+                            load_material_image(context_material, context_material_name, img_data, 'refl')
                     else:
                         print("\t%r:%r (ignored)" % (filepath, line))
             mtl.close()
@@ -506,43 +566,46 @@ def create_mesh(new_objects,
 
             # NGons into triangles
             if face_invalid_blenpoly:
-                from bpy_extras.mesh_utils import ngon_tessellate
-                ngon_face_indices = ngon_tessellate(verts_loc, face_vert_loc_indices)
-                faces.extend([([face_vert_loc_indices[ngon[0]],
-                                face_vert_loc_indices[ngon[1]],
-                                face_vert_loc_indices[ngon[2]],
-                                ],
-                               [face_vert_nor_indices[ngon[0]],
-                                face_vert_nor_indices[ngon[1]],
-                                face_vert_nor_indices[ngon[2]],
-                                ] if face_vert_nor_indices else [],
-                               [face_vert_tex_indices[ngon[0]],
-                                face_vert_tex_indices[ngon[1]],
-                                face_vert_tex_indices[ngon[2]],
-                                ] if face_vert_tex_indices else [],
-                               context_material,
-                               context_smooth_group,
-                               context_object,
-                               [],
-                               )
-                             for ngon in ngon_face_indices]
-                             )
-                tot_loops += 3 * len(ngon_face_indices)
+                # ignore triangles with invalid indices
+                if len(face_vert_loc_indices) > 3:
+                    from bpy_extras.mesh_utils import ngon_tessellate
+                    ngon_face_indices = ngon_tessellate(verts_loc, face_vert_loc_indices)
+                    faces.extend([([face_vert_loc_indices[ngon[0]],
+                                    face_vert_loc_indices[ngon[1]],
+                                    face_vert_loc_indices[ngon[2]],
+                                    ],
+                                [face_vert_nor_indices[ngon[0]],
+                                    face_vert_nor_indices[ngon[1]],
+                                    face_vert_nor_indices[ngon[2]],
+                                    ] if face_vert_nor_indices else [],
+                                [face_vert_tex_indices[ngon[0]],
+                                    face_vert_tex_indices[ngon[1]],
+                                    face_vert_tex_indices[ngon[2]],
+                                    ] if face_vert_tex_indices else [],
+                                context_material,
+                                context_smooth_group,
+                                context_object,
+                                [],
+                                )
+                                for ngon in ngon_face_indices]
+                                )
+                    tot_loops += 3 * len(ngon_face_indices)
 
-                # edges to make ngons
-                edge_users = set()
-                for ngon in ngon_face_indices:
-                    prev_vidx = face_vert_loc_indices[ngon[-1]]
-                    for ngidx in ngon:
-                        vidx = face_vert_loc_indices[ngidx]
-                        if vidx == prev_vidx:
-                            continue  # broken OBJ... Just skip.
-                        edge_key = (prev_vidx, vidx) if (prev_vidx < vidx) else (vidx, prev_vidx)
-                        prev_vidx = vidx
-                        if edge_key in edge_users:
-                            fgon_edges.add(edge_key)
-                        else:
-                            edge_users.add(edge_key)
+                    # edges to make ngons
+                    if len(ngon_face_indices) > 1:
+                        edge_users = set()
+                        for ngon in ngon_face_indices:
+                            prev_vidx = face_vert_loc_indices[ngon[-1]]
+                            for ngidx in ngon:
+                                vidx = face_vert_loc_indices[ngidx]
+                                if vidx == prev_vidx:
+                                    continue  # broken OBJ... Just skip.
+                                edge_key = (prev_vidx, vidx) if (prev_vidx < vidx) else (vidx, prev_vidx)
+                                prev_vidx = vidx
+                                if edge_key in edge_users:
+                                    fgon_edges.add(edge_key)
+                                else:
+                                    edge_users.add(edge_key)
 
                 faces.pop(f_idx)
             else:
@@ -799,7 +862,9 @@ def get_float_func(filepath):
     return float
 
 
-def load(operator, context, filepath,
+def load(context,
+         filepath,
+         *,
          global_clamp_size=0.0,
          use_smooth_groups=True,
          use_edges=True,
@@ -808,7 +873,7 @@ def load(operator, context, filepath,
          use_image_search=True,
          use_groups_as_vgroups=False,
          relpath=None,
-         global_matrix=None,
+         global_matrix=None
          ):
     """
     Called by the user interface or another script.
@@ -856,7 +921,7 @@ def load(operator, context, filepath,
         verts_nor = []
         verts_tex = []
         faces = []  # tuples of the faces
-        material_libs = []  # filanems to material libs this uses
+        material_libs = set()  # filenames to material libs this OBJ uses
         vertex_groups = {}  # when use_groups_as_vgroups is true
 
         # Get the string to float conversion func for this file- is 'float' for almost all files.
@@ -1036,7 +1101,7 @@ def load(operator, context, filepath,
                 elif line_start == b'mtllib':  # usemap or usemat
                     # can have multiple mtllib filenames per line, mtllib can appear more than once,
                     # so make sure only occurrence of material exists
-                    material_libs = list(set(material_libs) | set(line.split()[1:]))
+                    material_libs |= {os.fsdecode(f) for f in line.split()[1:]}
 
                     # Nurbs support
                 elif line_start == b'cstype':
@@ -1096,7 +1161,7 @@ def load(operator, context, filepath,
 
         progress.step("Done, loading materials and images...")
 
-        create_materials(filepath.encode(), relpath, material_libs, unique_materials,
+        create_materials(filepath, relpath, material_libs, unique_materials,
                          unique_material_images, use_image_search, float_func)
 
         progress.step("Done, building geometries (verts:%i faces:%i materials: %i smoothgroups:%i) ..." %

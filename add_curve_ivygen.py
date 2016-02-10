@@ -402,16 +402,16 @@ def adhesion(loc, ob, max_l):
     # Compute the adhesion vector by finding the nearest point
     nearest_result = ob.closest_point_on_mesh(tran_loc, max_l)
     adhesion_vector = Vector((0.0, 0.0, 0.0))
-    if nearest_result[2] != -1:
+    if nearest_result[0]:
         # Compute the distance to the nearest point
-        adhesion_vector = ob.matrix_world * nearest_result[0] - loc
+        adhesion_vector = ob.matrix_world * nearest_result[1] - loc
         distance = adhesion_vector.length
         # If it's less than the maximum allowed and not 0, continue
         if distance:
             # Compute the direction vector between the closest point and loc
             adhesion_vector.normalize()
             adhesion_vector *= 1.0 - distance / max_l
-            #adhesion_vector *= getFaceWeight(ob.data, nearest_result[2])
+            #adhesion_vector *= getFaceWeight(ob.data, nearest_result[3])
     return adhesion_vector
 
 
@@ -423,15 +423,16 @@ def collision(ob, pos, new_pos):
     tran_mat = ob.matrix_world.inverted()
     tran_pos = tran_mat * pos
     tran_new_pos = tran_mat * new_pos
+    tran_dir = tran_new_pos - tran_pos
 
-    ray_result = ob.ray_cast(tran_pos, tran_new_pos)
+    ray_result = ob.ray_cast(tran_pos, tran_dir, tran_dir.length)
     # If there's a collision we need to check it
-    if ray_result[2] != -1:
+    if ray_result[0]:
         # Check whether the collision is going into the object
-        if (tran_new_pos - tran_pos).dot(ray_result[1]) < 0.0:
+        if tran_dir.dot(ray_result[2]) < 0.0:
             # Find projection of the piont onto the plane
             p0 = tran_new_pos - (tran_new_pos -
-                                          ray_result[0]).project(ray_result[1])
+                                          ray_result[1]).project(ray_result[2])
             # Reflect in the plane
             tran_new_pos += 2 * (p0 - tran_new_pos)
             new_pos *= 0

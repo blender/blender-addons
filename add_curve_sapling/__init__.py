@@ -396,6 +396,10 @@ class AddTree(bpy.types.Operator):
     def poll(cls, context):
         return context.mode == 'OBJECT'
 
+    def check(self, context):
+        # TODO, should check exact vars which require redraw
+        return True
+
     def draw(self, context):
 
         layout = self.layout

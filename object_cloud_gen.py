@@ -22,8 +22,8 @@ bl_info = {
     "name": "Cloud Generator",
     "author": "Nick Keeline(nrk)",
     "version": (1, 0),
-    "blender": (2, 71, 0),
-    "location": "Tool Shelf > Create Tab",
+    "blender": (2, 75, 0),
+    "location": "Blender Render: Tool Shelf > Create Tab",
     "description": "Creates Volumetric Clouds",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
                 "Scripts/Object/Cloud_Gen",
@@ -306,39 +306,43 @@ class VIEW3D_PT_tools_cloud(Panel):
     bl_options = {'DEFAULT_CLOSED'}
 
     def draw(self, context):
-        active_obj = context.active_object
-        layout = self.layout
-        col = layout.column(align=True)
+        if context.scene.render.engine == "BLENDER_RENDER":
+            active_obj = context.active_object
+            layout = self.layout
+            col = layout.column(align=True)
 
-        WhatToDo = getActionToDo(active_obj)
+            WhatToDo = getActionToDo(active_obj)
 
-        if WhatToDo == 'DEGENERATE':
-            col.operator("cloud.generate_cloud", text="DeGenerate")
+            if WhatToDo == 'DEGENERATE':
+                col.operator("cloud.generate_cloud", text="DeGenerate")
 
-        elif WhatToDo == 'CLOUD_CONVERT_TO_MESH':
-            col.operator("cloud.generate_cloud", text="Convert to Mesh")
+            elif WhatToDo == 'CLOUD_CONVERT_TO_MESH':
+                col.operator("cloud.generate_cloud", text="Convert to Mesh")
 
-        elif WhatToDo == 'NO_SELECTION_DO_NOTHING':
-            col.label(text="Select one or more")
-            col.label(text="objects to generate")
-            col.label(text="a cloud")
+            elif WhatToDo == 'NO_SELECTION_DO_NOTHING':
+                col.label(text="Select one or more")
+                col.label(text="objects to generate")
+                col.label(text="a cloud")
 
-        elif WhatToDo == 'CLOUD_DO_NOTHING':
-            col.label(text="Must select")
-            col.label(text="bound box")
+            elif WhatToDo == 'CLOUD_DO_NOTHING':
+                col.label(text="Must select")
+                col.label(text="bound box")
 
-        elif WhatToDo == 'GENERATE':
-            col.operator("cloud.generate_cloud", text="Generate Cloud")
+            elif WhatToDo == 'GENERATE':
+                col.operator("cloud.generate_cloud", text="Generate Cloud")
 
-            col.prop(context.scene, "cloud_type")
-            col.prop(context.scene, "cloudparticles")
-            col.prop(context.scene, "cloudsmoothing")
-        else:
-            col.label(text="Select one or more")
-            col.label(text="objects to generate")
-            col.label(text="a cloud")
+                col.prop(context.scene, "cloud_type")
+                col.prop(context.scene, "cloudparticles")
+                col.prop(context.scene, "cloudsmoothing")
+            else:
+                col.label(text="Select one or more")
+                col.label(text="objects to generate")
+                col.label(text="a cloud")
 
-
+        if context.scene.render.engine == "CYCLES":
+            layout = self.layout
+            layout.label(text="Blender Render Only")
+            
 class GenerateCloud(Operator):
     """Create a Cloud,Undo Cloud, or convert to Mesh Cloud depending on selection"""
     bl_idname = "cloud.generate_cloud"
@@ -353,8 +357,14 @@ class GenerateCloud(Operator):
         else:
             return (context.active_object.type == 'MESH')
 
+
     def execute(self, context):
         # Make variable that is the current .blend file main data blocks
+        space_data = bpy.context.space_data
+
+        if True in space_data.layers_local_view:
+            self.report({'INFO'}, 'Global Perspective mode only unable to continue.')
+            return {'FINISHED'}
         blend_data = context.blend_data
 
         # Make variable that is the active object selected by user

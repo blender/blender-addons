@@ -19,8 +19,8 @@
 bl_info = {
     "name": "Import Images as Planes",
     "author": "Florian Meyer (tstscr), mont29, matali",
-    "version": (2, 0, 2),
-    "blender": (2, 74, 0),
+    "version": (2, 0, 4),
+    "blender": (2, 76, 1),
     "location": "File > Import > Images as Planes or Add > Mesh > Images as Planes",
     "description": "Imports images and creates planes with the appropriate aspect ratio. "
                    "The images are mapped to the planes.",
@@ -76,9 +76,7 @@ VID_EXT_FILTER = {e for ext_k, ext_v in EXT_FILTER.items() if ext_k in {"avi", "
 
 CYCLES_SHADERS = (
     ('BSDF_DIFFUSE', "Diffuse", "Diffuse Shader"),
-    ('EMISSION', "Emission", "Emission Shader"),
-    ('BSDF_DIFFUSE_BSDF_TRANSPARENT', "Diffuse & Transparent", "Diffuse and Transparent Mix"),
-    ('EMISSION_BSDF_TRANSPARENT', "Emission & Transparent", "Emission and Transparent Mix")
+    ('EMISSION', "Emission", "Emission Shader")
 )
 
 # -----------------------------------------------------------------------------
@@ -179,6 +177,9 @@ class IMPORT_OT_image_to_plane(Operator, AddObjectHelper):
 
     align_offset = FloatProperty(name="Offset", min=0, soft_min=0, default=0.1, description="Space between Planes")
 
+    force_reload = BoolProperty(name="Force Reload", default=False,
+                                description="Force reloading of the image if already opened elsewhere in Blender")
+
     # Callback which will update File window's filter options accordingly to extension setting.
     def update_extensions(self, context):
         if self.extension == DEFAULT_EXT:
@@ -269,6 +270,8 @@ class IMPORT_OT_image_to_plane(Operator, AddObjectHelper):
         box.prop(self, "align_offset")
 
         row = box.row()
+        row.prop(self, "force_reload")
+        row = box.row()
         row.active = bpy.data.is_saved
         row.prop(self, "relative")
         box.prop(self, "match_len")
@@ -327,7 +330,8 @@ class IMPORT_OT_image_to_plane(Operator, AddObjectHelper):
         engine = context.scene.render.engine
         import_list, directory = self.generate_paths()
 
-        images = tuple(load_image(path, directory) for path in import_list)
+        images = tuple(load_image(path, directory, check_existing=True, force_reload=self.force_reload)
+                       for path in import_list)
 
         for img in images:
             self.set_image_options(img)
@@ -497,37 +501,31 @@ class IMPORT_OT_image_to_plane(Operator, AddObjectHelper):
 
         if self.shader == 'BSDF_DIFFUSE':
             bsdf_diffuse = node_tree.nodes.new('ShaderNodeBsdfDiffuse')
-            node_tree.links.new(out_node.inputs[0], bsdf_diffuse.outputs[0])
             node_tree.links.new(bsdf_diffuse.inputs[0], tex_image.outputs[0])
+            if self.use_transparency:
+                bsdf_transparent = node_tree.nodes.new('ShaderNodeBsdfTransparent')
+                mix_shader = node_tree.nodes.new('ShaderNodeMixShader')
+                node_tree.links.new(out_node.inputs[0], mix_shader.outputs[0])
+                node_tree.links.new(mix_shader.inputs[0], tex_image.outputs[1])
+                node_tree.links.new(mix_shader.inputs[2], bsdf_diffuse.outputs[0])
+                node_tree.links.new(mix_shader.inputs[1], bsdf_transparent.outputs[0])
+            else:
+                node_tree.links.new(out_node.inputs[0], bsdf_diffuse.outputs[0])
 
         elif self.shader == 'EMISSION':
             emission = node_tree.nodes.new('ShaderNodeEmission')
             lightpath = node_tree.nodes.new('ShaderNodeLightPath')
-            node_tree.links.new(out_node.inputs[0], emission.outputs[0])
             node_tree.links.new(emission.inputs[0], tex_image.outputs[0])
             node_tree.links.new(emission.inputs[1], lightpath.outputs[0])
-
-        elif self.shader == 'BSDF_DIFFUSE_BSDF_TRANSPARENT':
-            bsdf_diffuse = node_tree.nodes.new('ShaderNodeBsdfDiffuse')
-            bsdf_transparent = node_tree.nodes.new('ShaderNodeBsdfTransparent')
-            mix_shader = node_tree.nodes.new('ShaderNodeMixShader')
-            node_tree.links.new(out_node.inputs[0], mix_shader.outputs[0])
-            node_tree.links.new(mix_shader.inputs[0], tex_image.outputs[1])
-            node_tree.links.new(mix_shader.inputs[2], bsdf_diffuse.outputs[0])
-            node_tree.links.new(mix_shader.inputs[1], bsdf_transparent.outputs[0])
-            node_tree.links.new(bsdf_diffuse.inputs[0], tex_image.outputs[0])
-
-        elif self.shader == 'EMISSION_BSDF_TRANSPARENT':
-            emission = node_tree.nodes.new('ShaderNodeEmission')
-            lightpath = node_tree.nodes.new('ShaderNodeLightPath')
-            bsdf_transparent = node_tree.nodes.new('ShaderNodeBsdfTransparent')
-            mix_shader = node_tree.nodes.new('ShaderNodeMixShader')
-            node_tree.links.new(out_node.inputs[0], mix_shader.outputs[0])
-            node_tree.links.new(mix_shader.inputs[0], tex_image.outputs[1])
-            node_tree.links.new(mix_shader.inputs[2], emission.outputs[0])
-            node_tree.links.new(mix_shader.inputs[1], bsdf_transparent.outputs[0])
-            node_tree.links.new(emission.inputs[0], tex_image.outputs[0])
-            node_tree.links.new(emission.inputs[1], lightpath.outputs[0])
+            if self.use_transparency:
+                bsdf_transparent = node_tree.nodes.new('ShaderNodeBsdfTransparent')
+                mix_shader = node_tree.nodes.new('ShaderNodeMixShader')
+                node_tree.links.new(out_node.inputs[0], mix_shader.outputs[0])
+                node_tree.links.new(mix_shader.inputs[0], tex_image.outputs[1])
+                node_tree.links.new(mix_shader.inputs[2], emission.outputs[0])
+                node_tree.links.new(mix_shader.inputs[1], bsdf_transparent.outputs[0])
+            else:
+                node_tree.links.new(out_node.inputs[0], emission.outputs[0])
 
         auto_align_nodes(node_tree)
         return material

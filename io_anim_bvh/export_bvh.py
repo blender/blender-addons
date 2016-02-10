@@ -147,7 +147,7 @@ def write_armature(context,
     # redefine bones as sorted by serialized_names
     # so we can write motion
 
-    class DecoratedBone(object):
+    class DecoratedBone:
         __slots__ = (
             "name",  # bone name, used as key in many places
             "parent",  # decorated bone parent, set in a later loop

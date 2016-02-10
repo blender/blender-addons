@@ -141,7 +141,7 @@ class OBJECT_OT_create_lightfield_rig(bpy.types.Operator):
         cam.data.angle = scene.lightfield.angle
 
         # display options of the camera
-        cam.data.lens_unit = 'DEGREES'
+        cam.data.lens_unit = 'FOV'
 
         # handler parent
         if scene.lightfield.create_handler:
@@ -187,7 +187,7 @@ class OBJECT_OT_create_lightfield_rig(bpy.types.Operator):
 
             # display options of the camera
             cam.data.draw_size = 0.15
-            cam.data.lens_unit = 'DEGREES'
+            cam.data.lens_unit = 'FOV'
 
             # handler parent
             if scene.lightfield.create_handler:

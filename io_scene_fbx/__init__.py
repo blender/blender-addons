@@ -21,8 +21,8 @@
 bl_info = {
     "name": "FBX format",
     "author": "Campbell Barton, Bastien Montagne, Jens Restemeier",
-    "version": (3, 5, 1),
-    "blender": (2, 74, 0),
+    "version": (3, 7, 0),
+    "blender": (2, 76, 0),
     "location": "File > Import-Export",
     "description": "FBX IO meshes, UV's, vertex colors, materials, textures, cameras, lamps and actions",
     "warning": "",
@@ -122,6 +122,11 @@ class ImportFBX(bpy.types.Operator, ImportHelper, IOFBXOrientationHelper):
             default=0.0,
             )
 
+    use_anim = BoolProperty(
+            name="Import Animation",
+            description="Import FBX animation",
+            default=True,
+            )
     anim_offset = FloatProperty(
             name="Animation Offset",
             description="Offset to apply to animation during import, in frames",
@@ -199,6 +204,7 @@ class ImportFBX(bpy.types.Operator, ImportHelper, IOFBXOrientationHelper):
 
             layout.prop(self, "use_custom_normals")
 
+            layout.prop(self, "use_anim")
             layout.prop(self, "anim_offset")
 
             layout.prop(self, "use_custom_props")
@@ -294,7 +300,7 @@ class ExportFBX(bpy.types.Operator, ExportHelper, IOFBXOrientationHelper):
             items=(('EMPTY', "Empty", ""),
                    ('CAMERA', "Camera", ""),
                    ('LAMP', "Lamp", ""),
-                   ('ARMATURE', "Armature", ""),
+                   ('ARMATURE', "Armature", "WARNING: not supported in dupli/group instances"),
                    ('MESH', "Mesh", ""),
                    ('OTHER', "Other", "Other geometry types, like curve, metaball, etc. (converted to meshes)"),
                    ),
@@ -415,7 +421,8 @@ class ExportFBX(bpy.types.Operator, ExportHelper, IOFBXOrientationHelper):
     bake_anim_simplify_factor = FloatProperty(
             name="Simplify",
             description="How much to simplify baked values (0.0 to disable, the higher the more simplified)",
-            min=0.0, max=10.0,  # No simplification to up to 0.05 slope/100 max_frame_step.
+            min=0.0, max=100.0,  # No simplification to up to 10% of current magnitude tolerance.
+            soft_min=0.0, soft_max=10.0,
             default=1.0,  # default: min slope: 0.005, max frame step: 10.
             )
     # Anim - 6.1

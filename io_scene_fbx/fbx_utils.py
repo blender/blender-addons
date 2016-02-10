@@ -770,49 +770,43 @@ class AnimationCurveNodeWrapper:
     def simplify(self, fac, step, force_keep=False):
         """
         Simplifies sampled curves by only enabling samples when:
-            * their values differ significantly from the previous sample ones, or
-            * their values differ significantly from the previous validated sample ones, or
-            * the previous validated samples are far enough from current ones in time.
+            * their values relatively differ from the previous sample ones.
         """
         if not self._keys:
             return
 
         # So that, with default factor and step values (1), we get:
-        max_frame_diff = step * fac * 10  # max step of 10 frames.
-        value_diff_fac = fac / 1000  # min value evolution: 0.1% of whole range.
-        min_significant_diff = 1.0e-5
+        min_reldiff_fac = fac * 1.0e-3  # min relative value evolution: 0.1% of current 'order of magnitude'.
+        min_absdiff_fac = 0.1  # A tenth of reldiff...
         keys = self._keys
 
-        extremums = tuple((min(values), max(values)) for values in zip(*(k[1] for k in keys)))
-        min_diffs = tuple(max((mx - mn) * value_diff_fac, min_significant_diff) for mn, mx in extremums)
-
         p_currframe, p_key, p_key_write = keys[0]
-        p_keyed = [(p_currframe - max_frame_diff, val) for val in p_key]
+        p_keyed = list(p_key)
         are_keyed = [False] * len(p_key)
         for currframe, key, key_write in keys:
             for idx, (val, p_val) in enumerate(zip(key, p_key)):
                 key_write[idx] = False
-                p_keyedframe, p_keyedval = p_keyed[idx]
+                p_keyedval = p_keyed[idx]
                 if val == p_val:
                     # Never write keyframe when value is exactly the same as prev one!
                     continue
-                if abs(val - p_val) >= min_diffs[idx]:
+                # This is contracted form of relative + absolute-near-zero difference:
+                #     absdiff = abs(a - b)
+                #     if absdiff < min_reldiff_fac * min_absdiff_fac:
+                #         return False
+                #     return (absdiff / ((abs(a) + abs(b)) / 2)) > min_reldiff_fac
+                # Note that we ignore the '/ 2' part here, since it's not much significant for us.
+                if abs(val - p_val) > (min_reldiff_fac * max(abs(val) + abs(p_val), min_absdiff_fac)):
                     # If enough difference from previous sampled value, key this value *and* the previous one!
                     key_write[idx] = True
                     p_key_write[idx] = True
-                    p_keyed[idx] = (currframe, val)
+                    p_keyed[idx] = val
                     are_keyed[idx] = True
-                else:
-                    frame_diff = currframe - p_keyedframe
-                    val_diff = abs(val - p_keyedval)
-                    if ((val_diff >= min_diffs[idx]) or
-                        ((val_diff >= min_significant_diff) and (frame_diff >= max_frame_diff))):
-                        # Else, if enough difference from previous keyed value
-                        # (or any significant difference and max gap between keys is reached),
-                        # key this value only!
-                        key_write[idx] = True
-                        p_keyed[idx] = (currframe, val)
-                        are_keyed[idx] = True
+                elif abs(val - p_keyedval) > (min_reldiff_fac * max((abs(val) + abs(p_keyedval)), min_absdiff_fac)):
+                    # Else, if enough difference from previous keyed value, key this value only!
+                    key_write[idx] = True
+                    p_keyed[idx] = val
+                    are_keyed[idx] = True
             p_currframe, p_key, p_key_write = currframe, key, key_write
 
         # If we write nothing (action doing nothing) and are in 'force_keep' mode, we key everything! :P
@@ -1199,19 +1193,15 @@ class ObjectWrapper(metaclass=MetaObjectWrapper):
 
     # #### Duplis...
     def dupli_list_create(self, scene, settings='PREVIEW'):
-        if self._tag == 'OB':
-            # Sigh, why raise exception here? :/
-            try:
-                self.bdata.dupli_list_create(scene, settings)
-            except:
-                pass
+        if self._tag == 'OB' and self.bdata.is_duplicator:
+            self.bdata.dupli_list_create(scene, settings)
 
     def dupli_list_clear(self):
-        if self._tag == 'OB':
+        if self._tag == 'OB'and self.bdata.is_duplicator:
             self.bdata.dupli_list_clear()
 
     def get_dupli_list(self):
-        if self._tag == 'OB':
+        if self._tag == 'OB'and self.bdata.is_duplicator:
             return (ObjectWrapper(dup) for dup in self.bdata.dupli_list)
         return ()
     dupli_list = property(get_dupli_list)
@@ -1263,7 +1253,7 @@ FBXImportSettings = namedtuple("FBXImportSettings", (
     "bake_space_transform", "global_matrix_inv", "global_matrix_inv_transposed",
     "use_custom_normals", "use_cycles", "use_image_search",
     "use_alpha_decals", "decal_offset",
-    "anim_offset",
+    "use_anim", "anim_offset",
     "use_custom_props", "use_custom_props_enum_as_string",
     "cycles_material_wrap_map", "image_cache",
     "ignore_leaf_bones", "force_connect_children", "automatic_bone_orientation", "bone_correction_matrix",

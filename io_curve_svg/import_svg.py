@@ -102,13 +102,10 @@ def SVGParseFloat(s, i=0):
             token += s[i]
             i += 1
 
-            if s[i].isdigit():
-                while i < n and s[i].isdigit():
-                    token += s[i]
-                    i += 1
-            else:
-                raise Exception('Invalid float value near ' +
-                    s[start:start + 10])
+        if s[i].isdigit():
+            while i < n and s[i].isdigit():
+                token += s[i]
+                i += 1
         else:
             raise Exception('Invalid float value near ' + s[start:start + 10])
 
@@ -1761,6 +1758,7 @@ class SVGGeometrySVG(SVGGeometryContainer):
         """
 
         rect = SVGRectFromNode(self._node, self._context)
+        self._pushRect(rect)
 
         matrix = self.getNodeMatrix()
 
@@ -1772,7 +1770,6 @@ class SVGGeometrySVG(SVGGeometryContainer):
             matrix = matrix * Matrix.Translation([0.0, -document_height , 0.0])
 
         self._pushMatrix(matrix)
-        self._pushRect(rect)
 
         super()._doCreateGeom(False)
 

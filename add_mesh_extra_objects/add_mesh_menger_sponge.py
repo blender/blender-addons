@@ -4,7 +4,7 @@
 
 import bpy
 
-from bpy.props import IntProperty, BoolProperty, FloatVectorProperty, FloatProperty
+from bpy.props import IntProperty, BoolProperty, BoolVectorProperty, FloatVectorProperty, FloatProperty
 
 import bpy
 import mathutils
@@ -166,7 +166,12 @@ class AddMengerSponge(bpy.types.Operator):
         name="Rotation",
         subtype='EULER',
         )
-
+    layers = BoolVectorProperty(
+            name="Layers",
+            size=20,
+            subtype='LAYER',
+            options={'HIDDEN', 'SKIP_SAVE'},
+            )
     def execute(self, context):
         sponger = MengerSponge(self.level)
         vertices, faces = sponger.create(self.radius * 2, self.radius * 2)

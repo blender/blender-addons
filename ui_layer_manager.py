@@ -22,7 +22,7 @@ bl_info = {
     "name": "Layer Management",
     "author": "Alfonso Annarumma, Bastien Montagne",
     "version": (1, 5, 2),
-    "blender": (2, 72, 0),
+    "blender": (2, 76, 0),
     "location": "Toolshelf > Layers Tab",
     "warning": "",
     "description": "Display and Edit Layer Name",
@@ -372,6 +372,7 @@ class SCENE_PT_namedlayer_layers(bpy.types.Panel):
     bl_label = "Layer Management"
     bl_options = {'DEFAULT_CLOSED'}
     bl_category = "Layers"
+    bl_context = "objectmode"
 
     @classmethod
     def poll(self, context):
@@ -519,6 +520,7 @@ class SCENE_UL_namedlayer_groups(UIList):
 class SCENE_PT_namedlayer_groups(bpy.types.Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'TOOLS'
+    bl_context = "objectmode"
     bl_category = "Layers"
     bl_label = "Layer Groups"
     bl_options = {'DEFAULT_CLOSED'}

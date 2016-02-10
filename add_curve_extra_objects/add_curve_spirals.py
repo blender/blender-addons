@@ -14,7 +14,11 @@
 }
 '''
 import bpy, time
-from bpy.props import *
+from bpy.props import (
+        BoolProperty,
+        FloatProperty,
+        IntProperty,
+        )
 from math import sin, cos, pi, exp
 from bpy_extras.object_utils import AddObjectHelper, object_data_add
 
@@ -170,8 +174,7 @@ def draw_curve(props, context):
     
     spline.points.add( len(verts)*0.25-1 )                          #Add only one quarter of points as elements in verts, because verts looks like: "x,y,z,?,x,y,z,?,x,..."
     spline.points.foreach_set('co', verts)
-#    new_obj = object_data_add(bpy.context, curve_data)
-    new_obj = object_data_add(context, curve_data)   
+    new_obj = object_data_add(context, curve_data)
 
 class spirals(bpy.types.Operator):
     bl_idname = "curve.spirals"

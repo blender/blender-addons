@@ -106,63 +106,13 @@ def bmesh_check_self_intersect_object(obj):
     if not obj.data.polygons:
         return array.array('i', ())
 
-    # Heres what we do!
-    #
-    # * Take original Mesh.
-    # * Copy it and triangulate it (keeping list of original edge index values)
-    # * Move the BMesh into a temp Mesh.
-    # * Make a temp Object in the scene and assign the temp Mesh.
-    # * For every original edge - ray-cast on the object to find which intersect.
-    # * Report all edge intersections.
-
-    # Triangulate
     bm = bmesh_copy_from_object(obj, transform=False, triangulate=False)
-    face_map_index_org = {f: i for i, f in enumerate(bm.faces)}
-    ret = bmesh.ops.triangulate(bm, faces=bm.faces)
-    face_map = ret["face_map"]
-    # map new index to original index
-    face_map_index = {i: face_map_index_org[face_map.get(f, f)] for i, f in enumerate(bm.faces)}
-    del face_map_index_org
-    del ret
 
-    # Create a real mesh (lame!)
-    scene = bpy.context.scene
-    me_tmp = bpy.data.meshes.new(name="~temp~")
-    bm.to_mesh(me_tmp)
-    bm.free()
-    obj_tmp = bpy.data.objects.new(name=me_tmp.name, object_data=me_tmp)
-    scene.objects.link(obj_tmp)
-    scene.update()
-    ray_cast = obj_tmp.ray_cast
+    import mathutils
+    tree = mathutils.bvhtree.BVHTree.FromBMesh(bm, epsilon=0.00001)
 
-    faces_error = set()
-
-    EPS_NORMAL = 0.000001
-    EPS_CENTER = 0.01  # should always be bigger
-
-    for ed in me_tmp.edges:
-        v1i, v2i = ed.vertices
-        v1 = me_tmp.vertices[v1i]
-        v2 = me_tmp.vertices[v2i]
-
-        # setup the edge with an offset
-        co_1 = v1.co.copy()
-        co_2 = v2.co.copy()
-        co_mid = (co_1 + co_2) * 0.5
-        no_mid = (v1.normal + v2.normal).normalized() * EPS_NORMAL
-        co_1 = co_1.lerp(co_mid, EPS_CENTER) + no_mid
-        co_2 = co_2.lerp(co_mid, EPS_CENTER) + no_mid
-
-        co, no, index = ray_cast(co_1, co_2)
-        if index != -1:
-            faces_error.add(face_map_index[index])
-
-    scene.objects.unlink(obj_tmp)
-    bpy.data.objects.remove(obj_tmp)
-    bpy.data.meshes.remove(me_tmp)
-
-    scene.update()
-
+    overlap = tree.overlap(tree)
+    faces_error = {i for i_pair in overlap for i in i_pair}
     return array.array('i', faces_error)
 
 
@@ -230,10 +180,11 @@ def bmesh_check_thick_object(obj, thickness):
             # Cast the ray backwards
             p_a = p - no_sta
             p_b = p - no_end
+            p_dir = p_b - p_a
 
-            co, no, index = ray_cast(p_a, p_b)
+            ok, co, no, index = ray_cast(p_a, p_dir, p_dir.length)
 
-            if index != -1:
+            if ok:
                 # Add the face we hit
                 for f_iter in (f, bm_faces_new[index]):
                     # if the face wasn't triangulated, just use existing

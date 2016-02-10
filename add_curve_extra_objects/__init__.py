@@ -22,12 +22,13 @@ bl_info = {
     "name": "Extra Objects",
     "author": "Multiple Authors",
     "version": (0, 1),
-    "blender": (2, 63, 0),
+    "blender": (2, 76, 0),
     "location": "View3D > Add > Curve > Extra Objects",
     "description": "Add extra curve object types",
     "warning": "",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
                 "Scripts/Curve/Curve_Objects",
+    "tracker_url": "https://developer.blender.org/maniphest/task/create/?project=3&type=Bug",
     "category": "Add Curve"}
 
 if "bpy" in locals():
@@ -52,7 +53,7 @@ class INFO_MT_curve_extras_add(bpy.types.Menu):
         layout = self.layout
         layout.operator_context = 'INVOKE_REGION_WIN'
         layout.operator("mesh.curveaceous_galore",
-            text="Curves Galore!")
+            text="Curve Profiles")
         layout.operator("curve.spirals",
             text="Spirals")
         layout.operator("curve.torus_knot_plus",
@@ -60,7 +61,7 @@ class INFO_MT_curve_extras_add(bpy.types.Menu):
 # Define "Extras" menu
 def menu_func(self, context):
     self.layout.operator("mesh.curveaceous_galore",
-            text="Curves Galore!")
+            text="Curve Profiles")
     self.layout.operator("curve.torus_knot_plus",
             text="Torus Knot Plus")
     self.layout.operator("curve.spirals",

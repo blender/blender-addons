@@ -161,6 +161,8 @@ def pVisScaExec(bone, active, context):
 
 def pDrwExec(bone, active, context):
     bone.custom_shape = active.custom_shape
+    bone.use_custom_shape_bone_size = active.use_custom_shape_bone_size
+    bone.custom_shape_scale = active.custom_shape_scale
     bone.bone.show_wire = active.bone.show_wire
 
 
@@ -188,7 +190,7 @@ def pIKsExec(bone, active, context):
 def pBBonesExec(bone, active, context):
     object = active.id_data
     generic_copy(
-        object.data.bones[active.name], 
+        object.data.bones[active.name],
         object.data.bones[bone.name],
         "bbone_")
 
