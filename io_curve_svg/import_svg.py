@@ -102,13 +102,10 @@ def SVGParseFloat(s, i=0):
             token += s[i]
             i += 1
 
-            if s[i].isdigit():
-                while i < n and s[i].isdigit():
-                    token += s[i]
-                    i += 1
-            else:
-                raise Exception('Invalid float value near ' +
-                    s[start:start + 10])
+        if s[i].isdigit():
+            while i < n and s[i].isdigit():
+                token += s[i]
+                i += 1
         else:
             raise Exception('Invalid float value near ' + s[start:start + 10])
 
