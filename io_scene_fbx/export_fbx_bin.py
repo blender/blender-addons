@@ -1557,8 +1557,12 @@ def fbx_data_object_elements(root, ob_obj, scene_data):
     if ob_obj.is_bone:
         obj_type = b"LimbNode"
     elif (ob_obj.type == 'ARMATURE'):
-        #~ obj_type = b"Root"
-        obj_type = b"Null"
+        if scene_data.settings.armature_nodetype == 'ROOT':
+            obj_type = b"Root"
+        elif scene_data.settings.armature_nodetype == 'LIMBNODE':
+            obj_type = b"LimbNode"
+        else:  # Default, preferred option...
+            obj_type = b"Null"
     elif (ob_obj.type in BLENDER_OBJECT_TYPES_MESHLIKE):
         obj_type = b"Mesh"
     elif (ob_obj.type == 'LAMP'):
@@ -2867,6 +2871,7 @@ def save_single(operator, scene, filepath="",
                 embed_textures=False,
                 use_custom_props=False,
                 bake_space_transform=False,
+                armature_nodetype='NULL',
                 **kwargs
                 ):
 
@@ -2919,7 +2924,8 @@ def save_single(operator, scene, filepath="",
         bake_space_transform, global_matrix_inv, global_matrix_inv_transposed,
         context_objects, object_types, use_mesh_modifiers,
         mesh_smooth_type, use_mesh_edges, use_tspace,
-        use_armature_deform_only, add_leaf_bones, bone_correction_matrix, bone_correction_matrix_inv,
+        armature_nodetype, use_armature_deform_only,
+        add_leaf_bones, bone_correction_matrix, bone_correction_matrix_inv,
         bake_anim, bake_anim_use_all_bones, bake_anim_use_nla_strips, bake_anim_use_all_actions,
         bake_anim_step, bake_anim_simplify_factor, bake_anim_force_startend_keying,
         False, media_settings, use_custom_props,

@@ -21,7 +21,7 @@
 bl_info = {
     "name": "FBX format",
     "author": "Campbell Barton, Bastien Montagne, Jens Restemeier",
-    "version": (3, 7, 0),
+    "version": (3, 7, 1),
     "blender": (2, 76, 0),
     "location": "File > Import-Export",
     "description": "FBX IO meshes, UV's, vertex colors, materials, textures, cameras, lamps and actions",
@@ -375,6 +375,17 @@ class ExportFBX(bpy.types.Operator, ExportHelper, IOFBXOrientationHelper):
             description="Only write deforming bones (and non-deforming ones when they have deforming children)",
             default=False,
             )
+    armature_nodetype = EnumProperty(
+            name="Armature FBXNode Type",
+            items=(('NULL', "Null", "'Null' FBX node, similar to Blender's Empty (default)"),
+                   ('ROOT', "Root", "'Root' FBX node, supposed to be the root of chains of bones..."),
+                   ('LIMBNODE', "LimbNode", "'LimbNode' FBX node, a regular joint between two bones..."),
+                  ),
+            description="FBX type of node (object) used to represent Blender's armatures "
+                        "(use Null one unless you experience issues with other app, other choices may no import back "
+                        "perfectly in Blender...)",
+            default='NULL',
+            )
     # Anim - 7.4
     bake_anim = BoolProperty(
             name="Baked Animation",
@@ -517,6 +528,7 @@ class ExportFBX(bpy.types.Operator, ExportHelper, IOFBXOrientationHelper):
                 layout.prop(self, "add_leaf_bones")
                 layout.prop(self, "primary_bone_axis")
                 layout.prop(self, "secondary_bone_axis")
+                layout.prop(self, "armature_nodetype")
             elif self.ui_tab == 'ANIMATION':
                 layout.prop(self, "bake_anim")
                 col = layout.column()
