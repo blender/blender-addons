@@ -3030,9 +3030,11 @@ def save(operator, context,
 
     ret = None
 
+    active_object = context.scene.objects.active
+
     org_mode = None
-    if context.active_object and context.active_object.mode != 'OBJECT' and bpy.ops.object.mode_set.poll():
-        org_mode = context.active_object.mode
+    if active_object and active_object.mode != 'OBJECT' and bpy.ops.object.mode_set.poll():
+        org_mode = active_object.mode
         bpy.ops.object.mode_set(mode='OBJECT')
 
     if batch_mode == 'OFF':
@@ -3119,7 +3121,7 @@ def save(operator, context,
 
         ret = {'FINISHED'}  # so the script wont run after we have batch exported.
 
-    if context.active_object and org_mode and bpy.ops.object.mode_set.poll():
+    if active_object and org_mode and bpy.ops.object.mode_set.poll():
         bpy.ops.object.mode_set(mode=org_mode)
 
     return ret
