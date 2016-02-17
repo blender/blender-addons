@@ -775,6 +775,9 @@ class AnimationCurveNodeWrapper:
         if not self._keys:
             return
 
+        if fac == 0.0:
+            return
+
         # So that, with default factor and step values (1), we get:
         min_reldiff_fac = fac * 1.0e-3  # min relative value evolution: 0.1% of current 'order of magnitude'.
         min_absdiff_fac = 0.1  # A tenth of reldiff...

@@ -1856,6 +1856,7 @@ def fbx_animations_do(scene_data, ref_id, f_start, f_end, start_zero, objects=No
     Generate animation data (a single AnimStack) from objects, for a given frame range.
     """
     bake_step = scene_data.settings.bake_anim_step
+    simplify_fac = scene_data.settings.bake_anim_simplify_factor
     scene = scene_data.scene
     force_keying = scene_data.settings.bake_anim_use_all_bones
     force_sek = scene_data.settings.bake_anim_force_startend_keying
@@ -1883,18 +1884,21 @@ def fbx_animations_do(scene_data, ref_id, f_start, f_end, start_zero, objects=No
         ACNW = AnimationCurveNodeWrapper
         loc, rot, scale, _m, _mr = ob_obj.fbx_object_tx(scene_data)
         rot_deg = tuple(convert_rad_to_deg_iter(rot))
-        animdata_ob[ob_obj] = (ACNW(ob_obj.key, 'LCL_TRANSLATION', ob_obj.is_bone and force_keying, force_sek, loc),
-                               ACNW(ob_obj.key, 'LCL_ROTATION', ob_obj.is_bone and force_keying, force_sek, rot_deg),
-                               ACNW(ob_obj.key, 'LCL_SCALING', ob_obj.is_bone and force_keying, force_sek, scale))
+        force_key = (simplify_fac == 0.0) or (ob_obj.is_bone and force_keying)
+        print(force_key, simplify_fac)
+        animdata_ob[ob_obj] = (ACNW(ob_obj.key, 'LCL_TRANSLATION', force_key, force_sek, loc),
+                               ACNW(ob_obj.key, 'LCL_ROTATION', force_key, force_sek, rot_deg),
+                               ACNW(ob_obj.key, 'LCL_SCALING', force_key, force_sek, scale))
         p_rots[ob_obj] = rot
 
     animdata_shapes = OrderedDict()
+    force_key = (simplify_fac == 0.0)
     for me, (me_key, _shapes_key, shapes) in scene_data.data_deformers_shape.items():
         # Ignore absolute shape keys for now!
         if not me.shape_keys.use_relative:
             continue
         for shape, (channel_key, geom_key, _shape_verts_co, _shape_verts_idx) in shapes.items():
-            acnode = AnimationCurveNodeWrapper(channel_key, 'SHAPE_KEY', False, force_sek, (0.0,))
+            acnode = AnimationCurveNodeWrapper(channel_key, 'SHAPE_KEY', force_key, force_sek, (0.0,))
             # Sooooo happy to have to twist again like a mad snake... Yes, we need to write those curves twice. :/
             acnode.add_group(me_key, shape.name, shape.name, (shape.name,))
             animdata_shapes[channel_key] = (acnode, me, shape)
@@ -1923,7 +1927,6 @@ def fbx_animations_do(scene_data, ref_id, f_start, f_end, start_zero, objects=No
     scene.frame_set(back_currframe, 0.0)
 
     animations = OrderedDict()
-    simplify_fac = scene_data.settings.bake_anim_simplify_factor
 
     # And now, produce final data (usable by FBX export code)
     # Objects-like loc/rot/scale...
