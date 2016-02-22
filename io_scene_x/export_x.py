@@ -427,10 +427,11 @@ class MeshExportObject(ExportObject):
         def __init__(self, Mesh):
             MeshExportObject._MeshEnumerator.__init__(self, Mesh)
             
-            self.vertices = tuple()
+            self.vertices = []
             for Polygon in Mesh.polygons:
-                self.vertices += tuple(Mesh.vertices[VertexIndex]
-                    for VertexIndex in Polygon.vertices)
+                self.vertices += [Mesh.vertices[VertexIndex]
+                    for VertexIndex in Polygon.vertices]
+            self.vertices = tuple(self.vertices)
             
             self.PolygonVertexIndices = []
             Index = 0
