@@ -119,7 +119,8 @@ class Rig:
         
         distance = ( eyeL_e.head - eyeR_e.head ) * 3
         distance = distance.cross( (0, 0, 1) )
-        
+        eye_length = eyeL_e.length
+
         eyeL_ctrl_name = strip_org( bones['eyes'][0] )
         eyeR_ctrl_name = strip_org( bones['eyes'][1] )
         
@@ -136,8 +137,8 @@ class Rig:
         eyes_ctrl_e.head[:] =  ( eyeL_ctrl_e.head + eyeR_ctrl_e.head ) / 2
         
         for bone in [ eyeL_ctrl_e, eyeR_ctrl_e, eyes_ctrl_e ]:
-            bone.tail[:] = bone.head + Vector( [ 0, 0, eyeL_e.length * 0.75 ] )
-        
+            bone.tail[:] = bone.head + Vector( [ 0, 0, eye_length * 0.75 ] )
+
         ## Widget for transforming the both eyes
         eye_master_names = []
         for bone in bones['eyes']:
