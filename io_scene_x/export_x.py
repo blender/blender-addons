@@ -701,7 +701,7 @@ class MeshExportObject(ExportObject):
         for Index, Polygon in enumerate(Mesh.polygons):
             self.Exporter.File.Write("{}".format(Polygon.material_index))
             if Index == len(Mesh.polygons) - 1:
-                self.Exporter.File.Write(";;\n", Indent=False)
+                self.Exporter.File.Write(";\n", Indent=False)
             else:
                 self.Exporter.File.Write(",\n", Indent=False)
         
