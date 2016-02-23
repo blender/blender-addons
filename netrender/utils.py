@@ -61,7 +61,7 @@ else:
         def __exit__(self, exc_type, exc_value, traceback):
             pass
 
-if system in {'Windows', 'win32'} and platform.version() >= '5': # Error mode is only available on Win2k or higher, that's version 5
+if system in {"Windows", "win32"}:
     import ctypes
     class NoErrorDialogContext:
         def __init__(self):
