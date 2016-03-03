@@ -207,12 +207,12 @@ url_manual_mapping = (
     ("bpy.types.SpaceClipEditor.*",            "editors/movie_clip_editor/introduction.html"),
     ("bpy.types.ColorManaged*",                "render/post_process/cm_and_exposure.html"),
     #("bpy.types.NodeTree.*", ""),             # dont document
-    ("bpy.types.Object.*",                     "editors/3dview/objects"),  # catchall, todo - refine
+    ("bpy.types.Object.*",                     "editors/3dview/object"),  # catchall, todo - refine
     ("bpy.types.ParticleSettings.*",           "physics/particles"),
     ("bpy.types.Scene.*",                      "data_system/scenes.html"),
     ("bpy.types.Screen.*",                     "interface/screens.html"),
-    ("bpy.types.Sound.*",                      "editors/3dview/objects/types/speaker.html"),
-    ("bpy.types.Speaker.*",                    "editors/3dview/objects/types/speaker.html"),
+    ("bpy.types.Sound.*",                      "editors/3dview/object/types/speaker.html"),
+    ("bpy.types.Speaker.*",                    "editors/3dview/object/types/speaker.html"),
     ("bpy.types.Text.*",                       "editors/text_editor.html"),
     ("bpy.types.Texture.*",                    "render/blender_render/textures"),
     ("bpy.types.VectorFont.*",                 "modeling/texts"),
@@ -464,7 +464,7 @@ url_manual_mapping = (
     ("bpy.ops.font.*",        "modeling/texts"),
     ("bpy.ops.gpencil.*",     "interface/grease_pencil/index.html"),
     ("bpy.ops.graph.*",       "editors/graph_editor/fcurves.html"),
-    ("bpy.ops.group.*",       "editors/3dview/groups.html"),
+    ("bpy.ops.group.*",       "editors/3dview/object/relationships/groups.html"),
     ("bpy.ops.image.*",       "render/blender_render/textures/types/image.html"),
     # ("bpy.ops.import_anim.*",  ""),   # TODO
     # ("bpy.ops.import_curve.*",  ""),  # TODO
