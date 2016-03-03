@@ -227,7 +227,8 @@ class POSE_OT_selection_set_unassign(NeedSelSetPluginOperator):
         selection_set = arm.selection_sets[arm.active_selection_set]
         for bone in pose.bones:
             if bone.bone.select and bone.name in selection_set.bone_ids:
-                selection_set.bone_ids[bone.name].remove()
+                idx = selection_set.bone_ids.find(bone.name)
+                selection_set.bone_ids.remove(idx)
 
         return {'FINISHED'}
 
@@ -298,9 +299,6 @@ def register():
         description="Index of the currently active selection set",
         default=0
     )
-
-    bpy.types.DATA_PT_motion_paths.append(copy_frames_armature)
-    bpy.types.OBJECT_PT_motion_paths.append(copy_frames_object)
 
 
 def unregister():
