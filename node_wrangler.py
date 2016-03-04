@@ -19,7 +19,7 @@
 bl_info = {
     "name": "Node Wrangler",
     "author": "Bartek Skorupa, Greg Zaal, Sebastian Koenig",
-    "version": (3, 29),
+    "version": (3, 30),
     "blender": (2, 75, 0),
     "location": "Node Editor Toolbar or Ctrl-Space",
     "description": "Various tools to enhance and speed up node-based workflow",
@@ -592,16 +592,8 @@ def nice_hotkey_name(punc):
     return nice_punc
 
 
-def hack_force_update(context, nodes):
-    if context.space_data.tree_type == "ShaderNodeTree":
-        node = nodes.new('ShaderNodeMath')
-        node.inputs[0].default_value = 0.0
-        nodes.remove(node)
-    elif context.space_data.tree_type == "CompositorNodeTree":
-        node = nodes.new('CompositorNodeMath')
-        node.inputs[0].default_value = 0.0
-        nodes.remove(node)
-    return False
+def force_update(context):
+    context.space_data.node_tree.update_tag()
 
 
 def dpifac():
@@ -1236,7 +1228,7 @@ class NWLazyConnect(Operator, NWBase):
                         node.select = False
 
             if link_success:
-                hack_force_update(context, nodes)
+                force_update(context)
             context.scene.NWBusyDrawing = ""
             return {'FINISHED'}
 
@@ -1445,7 +1437,7 @@ class NWSwapLinks(Operator, NWBase):
             else:
                 self.report({'WARNING'}, "This node has no inputs to swap!")
 
-        hack_force_update(context, nodes)
+        force_update(context)
         return {'FINISHED'}
 
 
@@ -1621,7 +1613,7 @@ class NWEmissionViewer(Operator, NWBase):
                 for node in nodes:
                     if node.name in selection:
                         node.select = True
-                hack_force_update(context, nodes)
+                force_update(context)
             return {'FINISHED'}
         else:
             return {'CANCELLED'}
@@ -1680,7 +1672,7 @@ class NWReloadImages(Operator, NWBase):
         if num_reloaded:
             self.report({'INFO'}, "Reloaded images")
             print("Reloaded " + str(num_reloaded) + " images")
-            hack_force_update(context, nodes)
+            force_update(context)
             return {'FINISHED'}
         else:
             self.report({'WARNING'}, "No images found to reload in this node tree")
@@ -2853,7 +2845,7 @@ class NWLinkToOutputNode(Operator, NWBase):
                     out_input_index = 2
             links.new(active.outputs[output_index], output_node.inputs[out_input_index])
 
-        hack_force_update(context, nodes)  # viewport render does not update
+        force_update(context)  # viewport render does not update
 
         return {'FINISHED'}
 
@@ -2874,7 +2866,7 @@ class NWMakeLink(Operator, NWBase):
 
         links.new(n1.outputs[self.from_socket], n2.inputs[self.to_socket])
 
-        hack_force_update(context, nodes)
+        force_update(context)
 
         return {'FINISHED'}
 
