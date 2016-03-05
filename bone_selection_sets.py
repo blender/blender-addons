@@ -18,7 +18,7 @@
 
 bl_info = {
     "name": "Bone Selection Sets",
-    "author": "Antony Riakiotakis, Inês Almeida",
+    "author": "Dan Eicher, Antony Riakiotakis, Inês Almeida",
     "version": (2, 0, 0),
     "blender": (2, 75, 0),
     "location": "Properties > Object Data (Armature) > Selection Sets",
@@ -99,11 +99,11 @@ class POSE_PT_selection_sets(Panel):
         row = layout.row()
 
         # UI list
-        rows = 4  #TODO if is being used, else 1
+        rows = 4  if len(arm.selection_sets) > 0 else 1
         row.template_list(
-            "POSE_UL_selection_set", "",
-            arm, "selection_sets",
-            arm, "active_selection_set",
+            "POSE_UL_selection_set", "", # type and unique id
+            arm, "selection_sets", # pointer to the CollectionProperty
+            arm, "active_selection_set", # pointer to the active identifier
             rows=rows
         )
 
@@ -130,7 +130,7 @@ class POSE_PT_selection_sets(Panel):
 
 class POSE_UL_selection_set(UIList):
     def draw_item(self, context, layout, data, set, icon, active_data, active_propname, index):
-        layout.prop(set, "name", text="", emboss=False)
+        layout.prop(set, "name", text="", icon='GROUP_BONE', emboss=False)
 
 
 # Operators ###################################################################
@@ -164,11 +164,13 @@ class POSE_OT_selection_set_add(PluginOperator):
 
         selection_set = arm.selection_sets.add()
 
+        # naming
         selection_set.name  = "SelectionSet"
         if POSE_OT_selection_set_add.created_counter > 0:
             selection_set.name += ".{:03d}".format(POSE_OT_selection_set_add.created_counter)
         POSE_OT_selection_set_add.created_counter += 1
 
+        # select newly created set
         arm.active_selection_set = len(arm.selection_sets) - 1
 
         return {'FINISHED'}
@@ -184,9 +186,12 @@ class POSE_OT_selection_set_remove(NeedSelSetPluginOperator):
         arm = context.object
 
         arm.selection_sets.remove(arm.active_selection_set)
+
+        # change currently active selection set
         numsets = len(arm.selection_sets)
         if (arm.active_selection_set > (numsets - 1) and numsets > 0):
             arm.active_selection_set = len(arm.selection_sets) - 1
+
         return {'FINISHED'}
 
 
@@ -207,7 +212,8 @@ class POSE_OT_selection_set_assign(NeedSelSetPluginOperator):
 
         selection_set = arm.selection_sets[arm.active_selection_set]
         for bone in pose.bones:
-            if bone.bone.select:
+            if (bone.bone.select and not bone.bone.hide
+                and bone.name not in selection_set.bone_ids):
                 bone_id = selection_set.bone_ids.add()
                 bone_id.name = bone.name
 
@@ -225,8 +231,10 @@ class POSE_OT_selection_set_unassign(NeedSelSetPluginOperator):
         pose = arm.pose
 
         selection_set = arm.selection_sets[arm.active_selection_set]
+
         for bone in pose.bones:
-            if bone.bone.select and bone.name in selection_set.bone_ids:
+            if (bone.bone.select and not bone.bone.hide
+                and bone.name in selection_set.bone_ids):
                 idx = selection_set.bone_ids.find(bone.name)
                 selection_set.bone_ids.remove(idx)
 
@@ -245,8 +253,8 @@ class POSE_OT_selection_set_select(NeedSelSetPluginOperator):
 
         selection_set = arm.selection_sets[arm.active_selection_set]
         for bone in pose.bones:
-            if bone.name in selection_set.bone_ids:
-                bone.bone.select = True
+            if not bone.bone.hide and bone.name in selection_set.bone_ids:
+                    bone.bone.select = True
 
         return {'FINISHED'}
 
@@ -263,7 +271,7 @@ class POSE_OT_selection_set_deselect(NeedSelSetPluginOperator):
 
         selection_set = arm.selection_sets[arm.active_selection_set]
         for bone in pose.bones:
-            if bone.name in selection_set.bone_ids:
+            if not bone.bone.hide and bone.name in selection_set.bone_ids:
                 bone.bone.select = False
 
         return {'FINISHED'}
