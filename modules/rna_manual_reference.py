@@ -82,43 +82,48 @@ url_manual_mapping = (
     ("bpy.types.Modifier.show_*", "modeling/modifiers/the_stack.html"),
     ("bpy.types.Modifier.*", "modeling/modifiers"),  # catchall for various generic options
     # --- Modify Modifiers ---
+    ("bpy.types.DataTransferModifier.*",           "modeling/modifiers/modify/data_transfer.html"),
     ("bpy.types.MeshCacheModifier.*",              "modeling/modifiers/modify/mesh_cache.html"),
+    ("bpy.types.NormalEditModifier.*",             "modeling/modifiers/modify/normal_edit.html"),
     ("bpy.types.UVProjectModifier.*",              "modeling/modifiers/modify/uv_project.html"),
     ("bpy.types.UVWarpModifier.*",                 "modeling/modifiers/modify/uv_warp.html"),
     ("bpy.types.VertexWeightMixModifier.*",        "modeling/modifiers/modify/vertex_weight.html"),
     ("bpy.types.VertexWeightEditModifier.*",       "modeling/modifiers/modify/vertex_weight.html"),
     ("bpy.types.VertexWeightProximityModifier.*",  "modeling/modifiers/modify/vertex_weight.html"),
     # --- Generate Modifiers ---
-    ("bpy.types.ArrayModifier.*",      "modeling/modifiers/generate/array.html"),
-    ("bpy.types.BevelModifier.*",      "modeling/modifiers/generate/bevel.html"),
-    ("bpy.types.BooleanModifier.*",    "modeling/modifiers/generate/booleans.html"),
-    ("bpy.types.BuildModifier.*",      "modeling/modifiers/generate/build.html"),
-    ("bpy.types.DecimateModifier.*",   "modeling/modifiers/generate/decimate.html"),
-    ("bpy.types.EdgeSplitModifier.*",  "modeling/modifiers/generate/edge_split.html"),
-    ("bpy.types.MaskModifier.*",       "modeling/modifiers/generate/mask.html"),
-    ("bpy.types.MirrorModifier.*",     "modeling/modifiers/generate/mirror.html"),
-    ("bpy.types.MultiresModifier.*",   "modeling/modifiers/generate/multiresolution.html"),
-    ("bpy.types.RemeshModifier.*",     "modeling/modifiers/generate/remesh.html"),
-    ("bpy.types.ScrewModifier.*",      "modeling/modifiers/generate/screw.html"),
-    ("bpy.types.SkinModifier.*",       "modeling/modifiers/generate/skin.html"),
-    ("bpy.types.SolidifyModifier.*",   "modeling/modifiers/generate/solidify.html"),
-    ("bpy.types.SubsurfModifier.*",    "modeling/modifiers/generate/subsurf.html"),
-    ("bpy.types.TriangulateModifier.*","modeling/modifiers/generate/triangulate.html"),
+    ("bpy.types.ArrayModifier.*",            "modeling/modifiers/generate/array.html"),
+    ("bpy.types.BevelModifier.*",            "modeling/modifiers/generate/bevel.html"),
+    ("bpy.types.BooleanModifier.*",          "modeling/modifiers/generate/booleans.html"),
+    ("bpy.types.BuildModifier.*",            "modeling/modifiers/generate/build.html"),
+    ("bpy.types.DecimateModifier.*",         "modeling/modifiers/generate/decimate.html"),
+    ("bpy.types.EdgeSplitModifier.*",        "modeling/modifiers/generate/edge_split.html"),
+    ("bpy.types.MaskModifier.*",             "modeling/modifiers/generate/mask.html"),
+    ("bpy.types.MirrorModifier.*",           "modeling/modifiers/generate/mirror.html"),
+    ("bpy.types.MultiresModifier.*",         "modeling/modifiers/generate/multiresolution.html"),
+    ("bpy.types.RemeshModifier.*",           "modeling/modifiers/generate/remesh.html"),
+    ("bpy.types.ScrewModifier.*",            "modeling/modifiers/generate/screw.html"),
+    ("bpy.types.SkinModifier.*",             "modeling/modifiers/generate/skin.html"),
+    ("bpy.types.SolidifyModifier.*",         "modeling/modifiers/generate/solidify.html"),
+    ("bpy.types.SubsurfModifier.*",          "modeling/modifiers/generate/subsurf.html"),
+    ("bpy.types.TriangulateModifier.*",      "modeling/modifiers/generate/triangulate.html"),
+    ("bpy.types.WireframeModifier.*",        "modeling/modifiers/generate/wireframe.html"),
     # --- Deform Modifiers ---
-    ("bpy.types.ArmatureModifier.*",      "modeling/modifiers/deform/armature.html"),
-    ("bpy.types.CastModifier.*",          "modeling/modifiers/deform/cast.html"),
-    ("bpy.types.CurveModifier.*",         "modeling/modifiers/deform/curve.html"),
-    ("bpy.types.DisplaceModifier.*",      "modeling/modifiers/deform/displace.html"),
-    ("bpy.types.HookModifier.*",          "modeling/modifiers/deform/hooks.html"),
-    ("bpy.types.LaplacianSmoothModifier.*", "modeling/modifiers/deform/laplacian_smooth.html"),
-    ("bpy.types.LatticeModifier.*",       "modeling/modifiers/deform/lattice.html"),
-    ("bpy.types.MeshDeformModifier.*",    "modeling/modifiers/deform/mesh_deform.html"),
-    ("bpy.types.ShrinkwrapModifier.*",    "modeling/modifiers/deform/shrinkwrap.html"),
-    ("bpy.types.SimpleDeformModifier.*",  "modeling/modifiers/deform/simple_deform.html"),
-    ("bpy.types.SmoothModifier.*",        "modeling/modifiers/deform/smooth.html"),
-    # ("bpy.types.SurfaceModifier.*",     "Modifiers/Deform/"),  # USERS NEVER SEE THIS
-    ("bpy.types.WarpModifier.*",          "modeling/modifiers/deform/warp.html"),
-    ("bpy.types.WaveModifier.*",          "modeling/modifiers/deform/wave.html"),
+    ("bpy.types.ArmatureModifier.*",         "modeling/modifiers/deform/armature.html"),
+    ("bpy.types.CastModifier.*",             "modeling/modifiers/deform/cast.html"),
+    ("bpy.types.CorrectiveSmoothModifier.*", "modeling/modifiers/deform/corrective_smooth.html"),
+    ("bpy.types.CurveModifier.*",            "modeling/modifiers/deform/curve.html"),
+    ("bpy.types.DisplaceModifier.*",         "modeling/modifiers/deform/displace.html"),
+    ("bpy.types.HookModifier.*",             "modeling/modifiers/deform/hooks.html"),
+    ("bpy.types.LaplacianSmoothModifier.*",  "modeling/modifiers/deform/laplacian_smooth.html"),
+    ("bpy.types.LaplacianDeformModifier.*",  "modeling/modifiers/deform/laplacian_deform.html"),
+    ("bpy.types.LatticeModifier.*",          "modeling/modifiers/deform/lattice.html"),
+    ("bpy.types.MeshDeformModifier.*",       "modeling/modifiers/deform/mesh_deform.html"),
+    ("bpy.types.ShrinkwrapModifier.*",       "modeling/modifiers/deform/shrinkwrap.html"),
+    ("bpy.types.SimpleDeformModifier.*",     "modeling/modifiers/deform/simple_deform.html"),
+    ("bpy.types.SmoothModifier.*",           "modeling/modifiers/deform/smooth.html"),
+    # ("bpy.types.SurfaceModifier.*",        "Modifiers/Deform/"),  # USERS NEVER SEE THIS
+    ("bpy.types.WarpModifier.*",             "modeling/modifiers/deform/warp.html"),
+    ("bpy.types.WaveModifier.*",             "modeling/modifiers/deform/wave.html"),
     # --- Simulate Modifiers ---
     ("bpy.types.ClothModifier.*",             "physics/cloth"),
     ("bpy.types.CollisionModifier.*",         "physics/collision.html"),
@@ -172,12 +177,59 @@ url_manual_mapping = (
     ("bpy.types.RenderSettings.display_mode",  "render/output/display.html#displaying-renders"),
     ("bpy.types.RenderSettings.*",             "render"),  # catchall, todo - refine
 
+    # *** FreeStyle ***
+    ("bpy.types.LineStyleAlphaModifier_AlongStroke.*",            "render/freestyle/parameter_editor/line_style/alpha.html#along-stroke"),
+    ("bpy.types.LineStyleAlphaModifier_CreaseAngle.*",            "render/freestyle/parameter_editor/line_style/alpha.html#crease-angle"),
+    ("bpy.types.LineStyleAlphaModifier_Curvature_3D.*",           "render/freestyle/parameter_editor/line_style/alpha.html#d-curvature"),
+    ("bpy.types.LineStyleAlphaModifier_DistanceFromCamera.*",     "render/freestyle/parameter_editor/line_style/alpha.html#distance-from-camera"),
+    ("bpy.types.LineStyleAlphaModifier_DistanceFromObject.*",     "render/freestyle/parameter_editor/line_style/alpha.html#distance-from-object"),
+    ("bpy.types.LineStyleAlphaModifier_Material.*",               "render/freestyle/parameter_editor/line_style/alpha.html#material"),
+    ("bpy.types.LineStyleAlphaModifier_Noise.*",                  "render/freestyle/parameter_editor/line_style/alpha.html#noise"),
+    ("bpy.types.LineStyleAlphaModifier_Tangent.*",                "render/freestyle/parameter_editor/line_style/alpha.html#tangent"),
+    ("bpy.types.LineStyleColorModifier_AlongStroke.*",            "render/freestyle/parameter_editor/line_style/color.html#along-stroke"),
+    ("bpy.types.LineStyleColorModifier_CreaseAngle.*",            "render/freestyle/parameter_editor/line_style/color.html#crease-angle"),
+    ("bpy.types.LineStyleColorModifier_Curvature_3D.*",           "render/freestyle/parameter_editor/line_style/color.html#d-curvature"),
+    ("bpy.types.LineStyleColorModifier_DistanceFromCamera.*",     "render/freestyle/parameter_editor/line_style/color.html#distance-from-camera"),
+    ("bpy.types.LineStyleColorModifier_DistanceFromObject.*",     "render/freestyle/parameter_editor/line_style/color.html#distance-from-object"),
+    ("bpy.types.LineStyleColorModifier_Material.*",               "render/freestyle/parameter_editor/line_style/color.html#material"),
+    ("bpy.types.LineStyleColorModifier_Noise.*",                  "render/freestyle/parameter_editor/line_style/color.html#noise"),
+    ("bpy.types.LineStyleColorModifier_Tangent.*",                "render/freestyle/parameter_editor/line_style/color.html#tangent"),
+    ("bpy.types.LineStyleGeometryModifier_2DOffset.*",            "render/freestyle/parameter_editor/line_style/geometry.html#d-offset"),
+    ("bpy.types.LineStyleGeometryModifier_2DTransform.*",         "render/freestyle/parameter_editor/line_style/geometry.html#d-transform"),
+    ("bpy.types.LineStyleGeometryModifier_BackboneStretcher.*",   "render/freestyle/parameter_editor/line_style/geometry.html#backbone-stretcher"),
+    ("bpy.types.LineStyleGeometryModifier_BezierCurve.*",         "render/freestyle/parameter_editor/line_style/geometry.html#bezier-curve"),
+    ("bpy.types.LineStyleGeometryModifier_Blueprint.*",           "render/freestyle/parameter_editor/line_style/geometry.html#blueprint"),
+    ("bpy.types.LineStyleGeometryModifier_GuidingLines.*",        "render/freestyle/parameter_editor/line_style/geometry.html#guiding-lines"),
+    ("bpy.types.LineStyleGeometryModifier_PerlinNoise1D.*",       "render/freestyle/parameter_editor/line_style/geometry.html#perlin-noise-1d"),
+    ("bpy.types.LineStyleGeometryModifier_PerlinNoise2D.*",       "render/freestyle/parameter_editor/line_style/geometry.html#perlin-noise-2d"),
+    ("bpy.types.LineStyleGeometryModifier_Polygonalization.*",    "render/freestyle/parameter_editor/line_style/geometry.html#polygonization"),
+    ("bpy.types.LineStyleGeometryModifier_Sampling.*",            "render/freestyle/parameter_editor/line_style/geometry.html#sampling"),
+    ("bpy.types.LineStyleGeometryModifier_Simplification.*",      "render/freestyle/parameter_editor/line_style/geometry.html#simplification"),
+    ("bpy.types.LineStyleGeometryModifier_SinusDisplacement.*",   "render/freestyle/parameter_editor/line_style/geometry.html#sinus-displacement"),
+    ("bpy.types.LineStyleGeometryModifier_SpatialNoise.*",        "render/freestyle/parameter_editor/line_style/geometry.html#spatial-noise"),
+    ("bpy.types.LineStyleGeometryModifier_TipRemover.*",          "render/freestyle/parameter_editor/line_style/geometry.html#tip-remover"),
+#   ("bpy.types.LineStyleTextureSlot.*",                          ""), Todo
+    ("bpy.types.LineStyleThicknessModifier_AlongStroke.*",        "render/freestyle/parameter_editor/line_style/thickness.html#along-stroke"),
+    ("bpy.types.LineStyleThicknessModifier_Calligraphy.*",        "render/freestyle/parameter_editor/line_style/thickness.html#calligraphy"),
+    ("bpy.types.LineStyleThicknessModifier_CreaseAngle.*",        "render/freestyle/parameter_editor/line_style/thickness.html#crease-angle"),
+    ("bpy.types.LineStyleThicknessModifier_Curvature_3D.*",       "render/freestyle/parameter_editor/line_style/thickness.html#d-curvature"),
+    ("bpy.types.LineStyleThicknessModifier_DistanceFromCamera.*", "render/freestyle/parameter_editor/line_style/thickness.html#distance-from-camera"),
+    ("bpy.types.LineStyleThicknessModifier_DistanceFromObject.*", "render/freestyle/parameter_editor/line_style/thickness.html#distance-from-object"),
+    ("bpy.types.LineStyleThicknessModifier_Material.*",           "render/freestyle/parameter_editor/line_style/thickness.html#material"),
+    ("bpy.types.LineStyleThicknessModifier_Noise.*",              "render/freestyle/parameter_editor/line_style/thickness.html#noise"),
+    ("bpy.types.LineStyleThicknessModifier_Tangent.*",            "render/freestyle/parameter_editor/line_style/thickness.html#tangent"),
+    ("bpy.types.FreestyleLineSet.*",                              "render/freestyle/parameter_editor/line_set.html"),
+    ("bpy.types.FreestyleLineStyle.*",                            "render/freestyle/parameter_editor/line_style.html"),
+#   ("bpy.types.FreestyleModuleSettings.*",                       ""), Todo
+#   ("bpy.types.FreestyleSettings.*",                             ""), Todo
+    ("bpy.types.Linesets.*",                                      "render/freestyle/parameter_editor/line_set.html"),
+
     # *** ID Subclasses ***
     ("bpy.types.Action.*",        "animation/actions.html"),
     #("bpy.types.Brush.*", ""),   # TODO - manual has no place for this! XXX
     ("bpy.types.Curve.*",         "modeling/curves"),
-    ("bpy.types.GreasePencil.*",  "interface/grease_pencil/index.html"),
-    ("bpy.types.Group.*",         "editors/3dview/relationships/groups.html"),
+    ("bpy.types.GreasePencil.*",  "interface/grease_pencil"),
+    ("bpy.types.Group.*",         "editors/3dview/object/relationships/groups.html"),
     ("bpy.types.Image.*",         "render/blender_render/textures/types/image.html"),
     ("bpy.types.ShapeKey.*",      "animation/shape_keys.html"), # not an id but include because of key
     ("bpy.types.Key.*",           "animation/shape_keys.html"),
@@ -199,9 +251,9 @@ url_manual_mapping = (
     ("bpy.types.MaterialRaytraceMirror.*",        "render/blender_render/materials/properties/mirror.html"),
     ("bpy.types.MaterialRaytraceTransparency.*",  "render/blender_render/materials/properties/transparency.html#raytraced-transparency"),
     # ... todo, many more options
-    ("bpy.types.MovieClip.*",                  "editors/movie_clip_editor/index.html"),
+    ("bpy.types.MovieClip.*",                  "editors/movie_clip_editor"),
     ("bpy.types.MovieTrackingCamera.*",        "editors/movie_clip_editor/tracking/clip.html#tools-available-in-reconstruction-mode"),
-    ("bpy.types.MovieTrackingStabilization.*", "editors/movie_clip_editor/index.html#tools-available-in-reconstruction-mode"),
+    ("bpy.types.MovieTrackingStabilization.*", "editors/movie_clip_editor/tracking/introduction.html#tools-for-scene-orientation-and-stabilization"),
     ("bpy.types.MovieTrackingTrack*",          "editors/movie_clip_editor/index.html#tools-available-in-tracking-mode"),
     ("bpy.types.MovieTracking*",               "editors/movie_clip_editor"),
     ("bpy.types.SpaceClipEditor.*",            "editors/movie_clip_editor/introduction.html"),
@@ -307,13 +359,10 @@ url_manual_mapping = (
     # ("bpy.types.ShaderNodeVectorCurve.*",   ""),
     ("bpy.types.ShaderNodeVectorMath.*",      "render/cycles/nodes/more.html"),  # TODO doc
     ("bpy.types.ShaderNodeVectorTransform.*", "render/cycles/nodes/more.html#vector-transform"),
-
     ("bpy.types.ShaderNodeWavelength.*",      "render/cycles/nodes/more.html#wavelength"),
     ("bpy.types.ShaderNodeWireframe.*",       "render/cycles/nodes/more.html#wireframe"),
-
     ("bpy.types.ShaderNodeGroup.*",           "editors/node_editor/node_groups.html"),
     ("bpy.types.ShaderNode*",                 "render/cycles/nodes"),
-
     ("bpy.types.ShaderNodeScript.*",          "render/cycles/osl.html"),
 
     # *** Compositing Nodes ***
@@ -401,18 +450,59 @@ url_manual_mapping = (
     ("bpy.types.CompositorNodeStabilize.*",        "compositing/types/distort/stabilize_2d.html"),
     ("bpy.types.CompositorNodeTransform.*",        "compositing/types/distort/transform.html"),
     ("bpy.types.CompositorNodeTranslate.*",        "compositing/types/distort/translate.html"),
-    #Other
+    # Other
     ("bpy.types.CompositorNodeGroup.*", "editors/node_editor/node_groups.html"),
     ("bpy.types.CompositorNode*",       "compositing/types"),  # catch anything else
 
-    ("bpy.types.ColorRamp*", "render/blender_render/materials/properties/ramps.html"),
+    ("bpy.types.ColorRamp*", "interface/extended_controls.html#color-ramp-widget"),
+
+    # *** Sequencer ***
+    ("bpy.types.AddSequence.*",            "editors/sequencer/strips/effects/add.html"),
+    ("bpy.types.AdjustmentSequence.*",     "editors/sequencer/strips/effects/adjustment.html"),
+    ("bpy.types.AlphaOverSequence.",       "editors/sequencer/strips/effects/alpha_over_under_overdrop.html"),
+    ("bpy.types.AlphaUnderSequence.*",     "editors/sequencer/strips/effects/alpha_over_under_overdrop.html"),
+    ("bpy.types.ColorSequence.*",          "editors/sequencer/strips/effects/color.html"),
+    ("bpy.types.CrossSequence.*",          "editors/sequencer/strips/effects/cross.html"),
+    ("bpy.types.EffectSequence.*",         "editors/sequencer/strips/effects"),
+    ("bpy.types.GammaCrossSequence.*",     "editors/sequencer/strips/effects/cross.html"),
+    ("bpy.types.GaussianBlurSequence.*",   "editors/sequencer/strips/effects/blur.html"),
+    ("bpy.types.GlowSequence.*",           "editors/sequencer/strips/effects/glow.html"),
+    ("bpy.types.ImageSequence.*",          "editors/sequencer/strips/image_movie.html"),
+    ("bpy.types.MaskSequence.*",           "editors/sequencer/strips/mask.html"),
+    ("bpy.types.MetaSequence.*",           "editors/sequencer/strips/meta.html"),
+    ("bpy.types.MovieSequence.*",          "editors/sequencer/strips/image_movie.html"),
+    ("bpy.types.MulticamSequence.*",       "editors/sequencer/strips/effects/multicam.html"),
+    ("bpy.types.MultiplySequence.*",       "editors/sequencer/strips/effects/multiply.html"),
+    ("bpy.types.OverDropSequence.*",       "editors/sequencer/strips/effects/alpha_over_under_overdrop.html"),
+    ("bpy.types.SceneSequence.*",          "editors/sequencer/strips/scene.html"),
+    ("bpy.types.SoundSequence.*",          "editors/sequencer/strips/audio.html"),
+    ("bpy.types.SpeedControlSequence.*",   "editors/sequencer/strips/effects/speed_control.html"),
+    ("bpy.types.SubtractSequence.*",       "editors/sequencer/strips/effects/subtract.html"),
+    ("bpy.types.TextSequence.*",           "editors/sequencer/strips/effects/text.html"),
+    ("bpy.types.TransformSequence.*",      "editors/sequencer/strips/effects/transform.html"),
+    ("bpy.types.WipeSequence.*",           "editors/sequencer/strips/effects/wipe.html"),
+    # Modifiers
+    ("bpy.types.BrightContrastModifier.*", "editors/sequencer/properties/modifiers.html"),
+    ("bpy.types.ColorBalanceModifier.*",   "editors/sequencer/properties/modifiers.html"),
+    ("bpy.types.CurvesModifier.*",         "editors/sequencer/properties/modifiers.html"),
+    ("bpy.types.HueCorrectModifier.*",     "editors/sequencer/properties/modifiers.html"),
+
+    # ("bpy.types.SequenceColorBalanceData.*", ""),
+    # ("py.types.SequenceCrop.*",              ""),
+    # ("bpy.types.SequenceEditor.*",           ""),
+    # ("bpy.types.SequenceElement.*",          ""),
+    ("bpy.types.SequenceModifier.*",           "editors/sequencer/properties/modifiers.html"),
+    ("bpy.types.SequenceProxy.*",              "editors/sequencer/properties/proxy_timecode.html"),
+    # ("bpy.types.SequenceTransform.*",        ""),
+
+    ("bpy.types.Sequence.*",                   "editors/sequencer"), # catch anything else
 
     # *** ID Subclasses (cont.) Object Data ***
-    ("bpy.types.Mesh.*",       "modeling/meshes"),  # catchall, todo - refine
-    ("bpy.types.MetaBall.*",   "modeling/metas"),  # catchall, todo - refine
-    ("bpy.types.TextCurve.*",  "modeling/texts"),  # catchall, todo - refine
+    ("bpy.types.Mesh.*",       "modeling/meshes"),    # catchall, todo - refine
+    ("bpy.types.MetaBall.*",   "modeling/metas"),     # catchall, todo - refine
+    ("bpy.types.TextCurve.*",  "modeling/texts"),     # catchall, todo - refine
     ("bpy.types.Armature.*",   "rigging/armatures"),  # catchall, todo - refine
-    ("bpy.types.Camera.*",     "render/camera"),  # catchall, todo - refine
+    ("bpy.types.Camera.*",     "render/camera"),      # catchall, todo - refine
 
     ("bpy.types.PointLamp.*",  "render/blender_render/lighting/lamps/point"),  # catchall, todo - refine
     ("bpy.types.AreaLamp.*",   "render/blender_render/lighting/lamps/area"),  # catchall, todo - refine
@@ -436,7 +526,24 @@ url_manual_mapping = (
     ("bpy.types.Texture.*",    "render/blender_render/textures"),
 
     # *** Spaces ***
-    ("bpy.types.SpaceView3D.*",  "editors/3dview"),
+    ("bpy.types.SpaceConsole.*",            "editors/python_console.html"),
+    ("bpy.types.SpaceDopeSheetEditor.*",    "editors/dope_sheet"),
+    ("bpy.types.SpaceFileBrowser.*",        "editors/file_browser/introduction.html"),
+    ("bpy.types.SpaceGraphEditor.*",        "editors/graph_editor"),
+    ("bpy.types.SpaceImageEditor.*",        "editors/uv_image"),
+    ("bpy.types.SpaceInfo.*",               "editors/info"),
+    ("bpy.types.SpaceLogicEditor.*",        "editors/logic_editor.html"),
+    ("bpy.types.SpaceNLA.*",                "editors/nla.html"),
+    ("bpy.types.SpaceNodeEditor.*",         "editors/node_editor"),
+    ("bpy.types.SpaceOutliner.*",           "editors/outliner.html"),
+    ("bpy.types.SpaceProperties.*",         "editors/properties"),
+    ("bpy.types.SpaceSequenceEditor.*",     "editors/sequencer"),
+    ("bpy.types.SpaceTextEditor.*",         "editors/text_editor.html"),
+    ("bpy.types.SpaceTimeline.*",           "editors/timeline.html"),
+    ("bpy.types.SpaceUVEditor.*",           "editors/uv_image"),
+    ("bpy.types.SpaceUserPreferences.*",    "preferences"),
+    ("bpy.types.SpaceView3D.*",             "editors/3dview"),
+    ("bpy.types.Space.*",                   "editors"), # Catchall
 
     # === Operators ===
     # Catch all only for now!
