@@ -599,17 +599,22 @@ def export(file,
             # Check if vertex colors can be exported in per-vertex mode.
             # Do we have just one color per vertex in every face that uses the vertex?
             if is_col: 
-                is_col_per_vertex = True
-                vert_color = dict()
-                for i, face in enumerate(mesh_faces):
-                    fcol = mesh_faces_col[i]
-                    face_colors = (fcol.color1, fcol.color2, fcol.color3, fcol.color4)
-                    for j, vert_index in enumerate(face.vertices):
-                        if vert_index not in vert_color:
-                            vert_color[vert_index] = face_colors[j]
-                        elif vert_color[vert_index] != face_colors[j]:
-                            is_col_per_vertex = False
-                            break
+                def calc_vertex_color():
+                    vert_color = [None] * len(mesh.vertices)
+
+                    for i, face in enumerate(mesh_faces):
+                        fcol = mesh_faces_col[i]
+                        face_colors = (fcol.color1, fcol.color2, fcol.color3, fcol.color4)
+                        for j, vert_index in enumerate(face.vertices):
+                            if vert_color[vert_index] is None:
+                                vert_color[vert_index] = face_colors[j][:]
+                            elif vert_color[vert_index] != face_colors[j][:]:
+                                return False, ()
+
+                    return True, vert_color
+
+                is_col_per_vertex, vert_color = calc_vertex_color()
+                del calc_vertex_color
 
             for (material_index, image), face_group in face_groups_items:  # face_groups.items()
                 if face_group:
@@ -934,7 +939,7 @@ def export(file,
                             fw('%s<Color color="' % ident)
                             if is_col_per_vertex:
                                 for i in range(len(mesh.vertices)):
-                                    fw('%.3f %.3f %.3f ' % (vert_color[i][:] if i in vert_color else (0,0,0)))
+                                    fw('%.3f %.3f %.3f ' % (vert_color[i] or (0.0, 0.0, 0.0)))
                             else: # Export as colors per face. 
                                 # TODO: average them rather than using the first one!
                                 for i in face_group:
