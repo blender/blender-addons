@@ -934,7 +934,7 @@ def export(file,
                             fw('%s<Color color="' % ident)
                             if is_col_per_vertex:
                                 for i in range(len(mesh.vertices)):
-                                    fw('%.3f %.3f %.3f ' % vert_color[i][:])
+                                    fw('%.3f %.3f %.3f ' % (vert_color[i][:] if i in vert_color else (0,0,0)))
                             else: # Export as colors per face. 
                                 # TODO: average them rather than using the first one!
                                 for i in face_group:
