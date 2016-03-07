@@ -592,13 +592,13 @@ def export(file,
             # same as face_groups.items() but sorted so we can get predictable output.
             face_groups_items = list(face_groups.items())
             face_groups_items.sort(key=lambda m: (m[0][0], getattr(m[0][1], 'name', '')))
-            
+
             is_col = (mesh.tessface_vertex_colors.active and (material is None or material.use_vertex_color_paint))
             mesh_faces_col = mesh.tessface_vertex_colors.active.data if is_col else None
-            
+
             # Check if vertex colors can be exported in per-vertex mode.
             # Do we have just one color per vertex in every face that uses the vertex?
-            if is_col: 
+            if is_col:
                 def calc_vertex_color():
                     vert_color = [None] * len(mesh.vertices)
 
@@ -935,12 +935,13 @@ def export(file,
                         if is_col:
                             # Need better logic here, dynamic determination
                             # which of the X3D coloring models fits better this mesh - per face
-                            # or per vertex. Probably with an explicit fallback mode parameter. 
+                            # or per vertex. Probably with an explicit fallback mode parameter.
                             fw('%s<Color color="' % ident)
                             if is_col_per_vertex:
                                 for i in range(len(mesh.vertices)):
+                                    # may be None,
                                     fw('%.3f %.3f %.3f ' % (vert_color[i] or (0.0, 0.0, 0.0)))
-                            else: # Export as colors per face. 
+                            else: # Export as colors per face.
                                 # TODO: average them rather than using the first one!
                                 for i in face_group:
                                     fw('%.3f %.3f %.3f ' % mesh_faces_col[i].color1[:])
