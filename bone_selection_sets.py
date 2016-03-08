@@ -82,8 +82,7 @@ class POSE_PT_selection_sets(Panel):
 
     @classmethod
     def poll(cls, context):
-        return (context.armature
-            and context.object
+        return (context.object
             and context.object.type == 'ARMATURE'
             and context.object.pose
         )
@@ -93,8 +92,6 @@ class POSE_PT_selection_sets(Panel):
 
         ob = context.object
         arm = context.object
-
-        layout.enabled = (ob.proxy is None)
 
         row = layout.row()
 
