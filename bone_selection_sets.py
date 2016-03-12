@@ -84,8 +84,7 @@ class POSE_PT_selection_sets(Panel):
     def poll(cls, context):
         return (context.object
             and context.object.type == 'ARMATURE'
-            and context.object.pose
-        )
+            and context.object.pose)
 
     def draw(self, context):
         layout = self.layout
@@ -94,6 +93,7 @@ class POSE_PT_selection_sets(Panel):
         arm = context.object
 
         row = layout.row()
+        row.enabled = (context.mode == 'POSE')
 
         # UI list
         rows = 4  if len(arm.selection_sets) > 0 else 1
@@ -159,12 +159,12 @@ class POSE_OT_selection_set_add(PluginOperator):
     def execute(self, context):
         arm = context.object
 
-        selection_set = arm.selection_sets.add()
+        new_sel_set = arm.selection_sets.add()
 
         # naming
-        selection_set.name  = "SelectionSet"
+        new_sel_set.name  = "SelectionSet"
         if POSE_OT_selection_set_add.created_counter > 0:
-            selection_set.name += ".{:03d}".format(POSE_OT_selection_set_add.created_counter)
+            new_sel_set.name += ".{:03d}".format(POSE_OT_selection_set_add.created_counter)
         POSE_OT_selection_set_add.created_counter += 1
 
         # select newly created set
@@ -201,17 +201,17 @@ class POSE_OT_selection_set_assign(NeedSelSetPluginOperator):
     def execute(self, context):
         arm = context.object
         pose = arm.pose
+        act_sel_set = arm.selection_sets[arm.active_selection_set]
 
         #if arm.active_selection_set <= 0:
         #    arm.selection_sets.add()
             #TODO naming convention
         #    return {'FINISHED'}
 
-        selection_set = arm.selection_sets[arm.active_selection_set]
-        for bone in pose.bones:
-            if (bone.bone.select and not bone.bone.hide
-                and bone.name not in selection_set.bone_ids):
-                bone_id = selection_set.bone_ids.add()
+        # iterate only the selected bones in current pose that are not hidden
+        for bone in context.selected_pose_bones:
+            if bone.name not in act_sel_set.bone_ids:
+                bone_id = act_sel_set.bone_ids.add()
                 bone_id.name = bone.name
 
         return {'FINISHED'}
@@ -226,14 +226,13 @@ class POSE_OT_selection_set_unassign(NeedSelSetPluginOperator):
     def execute(self, context):
         arm = context.object
         pose = arm.pose
+        act_sel_set = arm.selection_sets[arm.active_selection_set]
 
-        selection_set = arm.selection_sets[arm.active_selection_set]
-
-        for bone in pose.bones:
-            if (bone.bone.select and not bone.bone.hide
-                and bone.name in selection_set.bone_ids):
-                idx = selection_set.bone_ids.find(bone.name)
-                selection_set.bone_ids.remove(idx)
+        # iterate only the selected bones in current pose that are not hidden
+        for bone in context.selected_pose_bones:
+            if bone.name in act_sel_set.bone_ids:
+                idx = act_sel_set.bone_ids.find(bone.name)
+                act_sel_set.bone_ids.remove(idx)
 
         return {'FINISHED'}
 
@@ -247,11 +246,11 @@ class POSE_OT_selection_set_select(NeedSelSetPluginOperator):
     def execute(self, context):
         arm = context.object
         pose = arm.pose
+        act_sel_set = arm.selection_sets[arm.active_selection_set]
 
-        selection_set = arm.selection_sets[arm.active_selection_set]
-        for bone in pose.bones:
-            if not bone.bone.hide and bone.name in selection_set.bone_ids:
-                    bone.bone.select = True
+        for bone in context.visible_pose_bones:
+            if bone.name in act_sel_set.bone_ids:
+                 bone.bone.select = True
 
         return {'FINISHED'}
 
@@ -265,10 +264,10 @@ class POSE_OT_selection_set_deselect(NeedSelSetPluginOperator):
     def execute(self, context):
         arm = context.object
         pose = arm.pose
+        act_sel_set = arm.selection_sets[arm.active_selection_set]
 
-        selection_set = arm.selection_sets[arm.active_selection_set]
-        for bone in pose.bones:
-            if not bone.bone.hide and bone.name in selection_set.bone_ids:
+        for bone in context.selected_pose_bones:
+            if bone.name in act_sel_set.bone_ids:
                 bone.bone.select = False
 
         return {'FINISHED'}
