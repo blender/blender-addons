@@ -400,6 +400,11 @@ def register():
         kmi.properties.name = 'VIEW3D_PIE_snap'
         addon_keymaps.append(km)
 
+        km = wm.keyconfigs.addon.keymaps.new(name='Grease Pencil Stroke Edit Mode')
+        kmi = km.keymap_items.new('wm.call_menu_pie', 'TAB', 'PRESS')
+        kmi.properties.name = 'VIEW3D_PIE_object_mode'
+        addon_keymaps.append(km)
+
         km = wm.keyconfigs.addon.keymaps.new(name="Clip", space_type='CLIP_EDITOR')
         kmi = km.keymap_items.new("wm.call_menu_pie", 'Q', 'PRESS')
         kmi.properties.name = "CLIP_PIE_marker_pie"
