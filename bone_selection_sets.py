@@ -164,7 +164,6 @@ class POSE_OT_selection_set_add(PluginOperator):
     bl_description = "Creates a new empty Selection Set"
     bl_options = {'UNDO', 'REGISTER'}
 
-    created_counter = 0
 
     def execute(self, context):
         arm = context.object
@@ -172,10 +171,23 @@ class POSE_OT_selection_set_add(PluginOperator):
         new_sel_set = arm.selection_sets.add()
 
         # naming
-        new_sel_set.name  = "SelectionSet"
-        if POSE_OT_selection_set_add.created_counter > 0:
-            new_sel_set.name += ".{:03d}".format(POSE_OT_selection_set_add.created_counter)
-        POSE_OT_selection_set_add.created_counter += 1
+        if "SelectionSet" not in arm.selection_sets:
+            new_sel_set.name  = "SelectionSet"
+        else:
+            sorted_sets = []
+            for selset in arm.selection_sets:
+                if selset.name.startswith("SelectionSet."):
+                    index = selset.name[13:]
+                    if index.isdigit():
+                        sorted_sets.append(index)
+            sorted_sets = sorted(sorted_sets)
+            min_index = 1
+            for num in sorted_sets:
+                num = int(num)
+                if min_index < num:
+                    break
+                min_index = num + 1
+            new_sel_set.name = "SelectionSet.{:03d}".format(min_index)
 
         # select newly created set
         arm.active_selection_set = len(arm.selection_sets) - 1
@@ -215,12 +227,10 @@ class POSE_OT_selection_set_assign(PluginOperator):
             bpy.ops.wm.call_menu("INVOKE_DEFAULT",
                 name="pose.selection_set_create_new_popup")
 
-        print("finished invoke")
         return {'FINISHED'}
 
 
     def execute(self, context):
-        print ("execute")
         arm = context.object
         act_sel_set = arm.selection_sets[arm.active_selection_set]
 
@@ -295,7 +305,6 @@ class POSE_OT_selection_set_add_and_assign(PluginOperator):
     def execute(self, context):
         bpy.ops.pose.selection_set_add('EXEC_DEFAULT')
         bpy.ops.pose.selection_set_assign('EXEC_DEFAULT')
-        print("finished special")
         return {'FINISHED'}
 
 # Registry ####################################################################
