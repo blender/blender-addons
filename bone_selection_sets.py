@@ -130,6 +130,16 @@ class POSE_UL_selection_set(UIList):
         layout.prop(set, "name", text="", icon='GROUP_BONE', emboss=False)
 
 
+class POSE_MT_create_new_selection_set(Menu):
+    bl_idname = "pose.selection_set_create_new_popup"
+    bl_label = "Choose Selection Set"
+
+    def draw(self, context):
+        layout = self.layout
+        layout.operator("pose.selection_set_add_and_assign",
+            text="New Selection Set")
+
+
 # Operators ###################################################################
 
 class PluginOperator(Operator):
@@ -192,21 +202,27 @@ class POSE_OT_selection_set_remove(NeedSelSetPluginOperator):
         return {'FINISHED'}
 
 
-class POSE_OT_selection_set_assign(NeedSelSetPluginOperator):
+class POSE_OT_selection_set_assign(PluginOperator):
     bl_idname = "pose.selection_set_assign"
     bl_label = "Add Bones to Selection Set"
     bl_description = "Add selected bones to Selection Set"
     bl_options = {'UNDO', 'REGISTER'}
 
-    def execute(self, context):
+    def invoke(self, context, event):
         arm = context.object
-        pose = arm.pose
-        act_sel_set = arm.selection_sets[arm.active_selection_set]
 
-        #if arm.active_selection_set <= 0:
-        #    arm.selection_sets.add()
-            #TODO naming convention
-        #    return {'FINISHED'}
+        if not (arm.active_selection_set < len(arm.selection_sets)):
+            bpy.ops.wm.call_menu("INVOKE_DEFAULT",
+                name="pose.selection_set_create_new_popup")
+
+        print("finished invoke")
+        return {'FINISHED'}
+
+
+    def execute(self, context):
+        print ("execute")
+        arm = context.object
+        act_sel_set = arm.selection_sets[arm.active_selection_set]
 
         # iterate only the selected bones in current pose that are not hidden
         for bone in context.selected_pose_bones:
@@ -225,7 +241,6 @@ class POSE_OT_selection_set_unassign(NeedSelSetPluginOperator):
 
     def execute(self, context):
         arm = context.object
-        pose = arm.pose
         act_sel_set = arm.selection_sets[arm.active_selection_set]
 
         # iterate only the selected bones in current pose that are not hidden
@@ -245,7 +260,6 @@ class POSE_OT_selection_set_select(NeedSelSetPluginOperator):
 
     def execute(self, context):
         arm = context.object
-        pose = arm.pose
         act_sel_set = arm.selection_sets[arm.active_selection_set]
 
         for bone in context.visible_pose_bones:
@@ -263,7 +277,6 @@ class POSE_OT_selection_set_deselect(NeedSelSetPluginOperator):
 
     def execute(self, context):
         arm = context.object
-        pose = arm.pose
         act_sel_set = arm.selection_sets[arm.active_selection_set]
 
         for bone in context.selected_pose_bones:
@@ -273,9 +286,22 @@ class POSE_OT_selection_set_deselect(NeedSelSetPluginOperator):
         return {'FINISHED'}
 
 
+class POSE_OT_selection_set_add_and_assign(PluginOperator):
+    bl_idname = "pose.selection_set_add_and_assign"
+    bl_label = "Create and Add Bones to Selection Set"
+    bl_description = "Creates a new Selection Set with the currently selected bones"
+    bl_options = {'UNDO', 'REGISTER'}
+
+    def execute(self, context):
+        bpy.ops.pose.selection_set_add('EXEC_DEFAULT')
+        bpy.ops.pose.selection_set_assign('EXEC_DEFAULT')
+        print("finished special")
+        return {'FINISHED'}
+
 # Registry ####################################################################
 
 classes = (
+    POSE_MT_create_new_selection_set,
     POSE_MT_selection_sets_specials,
     POSE_PT_selection_sets,
     POSE_UL_selection_set,
@@ -287,6 +313,7 @@ classes = (
     POSE_OT_selection_set_unassign,
     POSE_OT_selection_set_select,
     POSE_OT_selection_set_deselect,
+    POSE_OT_selection_set_add_and_assign,
 )
 
 def register():
