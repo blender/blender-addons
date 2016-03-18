@@ -230,7 +230,7 @@ url_manual_mapping = (
     ("bpy.types.Curve.*",         "modeling/curves"),
     ("bpy.types.GreasePencil.*",  "interface/grease_pencil"),
     ("bpy.types.Group.*",         "editors/3dview/object/relationships/groups.html"),
-    ("bpy.types.Image.*",         "render/blender_render/textures/types/image.html"),
+    ("bpy.types.Image.*",         "editors/uv_image/texturing/textures/image.html"),
     ("bpy.types.ShapeKey.*",      "animation/shape_keys.html"), # not an id but include because of key
     ("bpy.types.Key.*",           "animation/shape_keys.html"),
     #("bpy.types.Lattice.*", ""),  # TODO - manual has no place for this! XXX
@@ -502,7 +502,7 @@ url_manual_mapping = (
     ("bpy.types.MetaBall.*",   "modeling/metas"),     # catchall, todo - refine
     ("bpy.types.TextCurve.*",  "modeling/texts"),     # catchall, todo - refine
     ("bpy.types.Armature.*",   "rigging/armatures"),  # catchall, todo - refine
-    ("bpy.types.Camera.*",     "render/camera"),      # catchall, todo - refine
+    ("bpy.types.Camera.*",     "editors/3dview/object/types/camera/index.html"),      # catchall, todo - refine
 
     ("bpy.types.PointLamp.*",  "render/blender_render/lighting/lamps/point"),  # catchall, todo - refine
     ("bpy.types.AreaLamp.*",   "render/blender_render/lighting/lamps/area"),  # catchall, todo - refine
@@ -555,7 +555,7 @@ url_manual_mapping = (
     ("bpy.ops.boid.*",        "physics/particles/physics/boids.html"),
     # ("bpy.ops.brush.*",     ""),  # TODO
     ("bpy.ops.buttons.*",     "interface/buttons_and_controls.html"),
-    ("bpy.ops.camera.*",      "render/camera"),
+    ("bpy.ops.camera.*",      "editors/3dview/object/types/camera/index.html"),
     ("bpy.ops.clip.*",        "editors/movie_clip_editor/index.html#movie-clip-editor"),
     ("bpy.ops.cloth.*",       "physics/cloth"),
     ("bpy.ops.console.*",     "editors/python_console.html"),
@@ -572,7 +572,7 @@ url_manual_mapping = (
     ("bpy.ops.gpencil.*",     "interface/grease_pencil/index.html"),
     ("bpy.ops.graph.*",       "editors/graph_editor/fcurves.html"),
     ("bpy.ops.group.*",       "editors/3dview/object/relationships/groups.html"),
-    ("bpy.ops.image.*",       "render/blender_render/textures/types/image.html"),
+    ("bpy.ops.image.*",       "editors/uv_image/texturing/textures/image.html"),
     # ("bpy.ops.import_anim.*",  ""),   # TODO
     # ("bpy.ops.import_curve.*",  ""),  # TODO
     # ("bpy.ops.import_mesh.*",  ""),   # TODO
