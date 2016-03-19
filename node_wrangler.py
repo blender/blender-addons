@@ -1897,6 +1897,7 @@ class NWSwitchNodeType(Operator, NWBase):
                     if new_node.outputs:
                         links.new(new_node.outputs[0], out_src_link.to_socket)
             nodes.remove(node)
+        force_update(context)
         return {'FINISHED'}
 
 
