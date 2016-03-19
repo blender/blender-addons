@@ -1015,14 +1015,14 @@ def load(context,
 
                         # formatting for faces with normals and textures is
                         # loc_index/tex_index/nor_index
-                        if len(obj_vert) > 1 and obj_vert[1]:
+                        if len(obj_vert) > 1 and obj_vert[1] and obj_vert[1] != b'0':
                             idx = int(obj_vert[1]) - 1
                             face_vert_tex_indices.append((idx + len(verts_tex) + 1) if (idx < 0) else idx)
                             face_vert_tex_valid = True
                         else:
                             face_vert_tex_indices.append(...)
 
-                        if len(obj_vert) > 2 and obj_vert[2]:
+                        if len(obj_vert) > 2 and obj_vert[2] and obj_vert[2] != b'0':
                             idx = int(obj_vert[2]) - 1
                             face_vert_nor_indices.append((idx + len(verts_nor) + 1) if (idx < 0) else idx)
                             face_vert_nor_valid = True
