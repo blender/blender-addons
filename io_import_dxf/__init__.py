@@ -35,7 +35,7 @@ except:
 bl_info = {
     "name": "Import AutoCAD DXF Format (.dxf)",
     "author": "Lukas Treyer, Manfred Moitzi (support + dxfgrabber library), Vladimir Elistratov, Bastien Montagne",
-    "version": (0, 8, 5),
+    "version": (0, 8, 6),
     "blender": (2, 7, 1),
     "location": "File > Import > AutoCAD DXF",
     "description": "Import files in the Autocad DXF format (.dxf)",
@@ -81,9 +81,14 @@ __version__ = '.'.join([str(s) for s in bl_info['version']])
 
 BY_LAYER = 0
 BY_DXFTYPE = 1
-SEPARATED = 2
-LINKED_OBJECTS = 3
-GROUP_INSTANCES = 4
+BY_CLOSED_NO_BULGE_POLY = 2
+SEPARATED = 3
+LINKED_OBJECTS = 4
+GROUP_INSTANCES = 5
+BY_BLOCKS = 6
+
+merge_map = {"BY_LAYER": BY_LAYER, "BY_TYPE": BY_DXFTYPE,
+             "BY_CLOSED_NO_BULGE_POLY": BY_CLOSED_NO_BULGE_POLY, "BY_BLOCKS": BY_BLOCKS}
 
 T_Merge = True
 T_ImportText = True
@@ -94,7 +99,7 @@ T_OutlinerGroups = True
 T_Bbox = True
 T_CreateNewScene = False
 T_Recenter = False
-T_ThicknessBevel = False
+T_ThicknessBevel = True
 T_import_atts = True
 
 RELEASE_TEST = False
@@ -180,7 +185,11 @@ def _update_proj_scene_do(self, context):
 
 
 def _update_import_atts_do(self, context):
-    if self.represent_thickness_and_width and self.merge:
+    mo = merge_map[self.merge_options]
+    if mo == BY_CLOSED_NO_BULGE_POLY or mo == BY_BLOCKS:
+        self.import_atts = False
+        self.represent_thickness_and_width = False
+    elif self.represent_thickness_and_width and self.merge:
         self.import_atts = True
     elif not self.merge:
         self.import_atts = False
@@ -216,12 +225,18 @@ class IMPORT_OT_dxf(bpy.types.Operator):
             update=_update_merge
             )
 
+    def _update_merge_options(self, context):
+        _update_import_atts_do(self, context)
+
     merge_options = EnumProperty(
             name="Merge",
             description="Merge multiple DXF entities into one Blender object",
-            items=[('BY_TYPE', "By Layer AND Dxf-Type", "Merge DXF entities by type AND layer"),
-                   ('BY_LAYER', "By Layer", "Merge DXF entities of a layer to an object")],
+            items=[('BY_LAYER', "By Layer", "Merge DXF entities of a layer to an object"),
+                   ('BY_TYPE', "By Layer AND DXF-Type", "Merge DXF entities by type AND layer"),
+                   ('BY_CLOSED_NO_BULGE_POLY', "By Layer AND closed no-bulge polys", "Polys can have a transformation attribute that makes DXF polys resemble Blender mesh faces quite a bit. Merging them results in one MESH object."),
+                   ('BY_BLOCKS', "By Layer AND DXF-Type AND Blocks", "Merging blocks results in all uniformly scaled blocks being referenced by a dupliface mesh instead of object containers. Non-uniformly scaled blocks will be imported as indicated by 'Blocks As'.")],
             default='BY_LAYER',
+            update=_update_merge_options
             )
 
     merge_lines = BoolProperty(
@@ -260,12 +275,15 @@ class IMPORT_OT_dxf(bpy.types.Operator):
             default=T_Bbox
             )
 
+
+
     block_options = EnumProperty(
             name="Blocks As",
             description="Select the representation of DXF blocks: linked objects or group instances",
             items=[('LINKED_OBJECTS', "Linked Objects", "Block objects get imported as linked objects"),
                    ('GROUP_INSTANCES', "Group Instances", "Block objects get imported as group instances")],
             default='LINKED_OBJECTS',
+
             )
 
     def _update_create_new_scene(self, context):
@@ -372,7 +390,9 @@ class IMPORT_OT_dxf(bpy.types.Operator):
         # merge options
         layout.label("Merge Options:")
         box = layout.box()
-        box.prop(self, "block_options")
+        sub = box.row()
+        #sub.enabled = merge_map[self.merge_options] != BY_BLOCKS
+        sub.prop(self, "block_options")
         box.prop(self, "do_bbox")
         box.prop(self, "merge")
         sub = box.row()
@@ -383,6 +403,7 @@ class IMPORT_OT_dxf(bpy.types.Operator):
         # general options
         layout.label("Line thickness and width:")
         box = layout.box()
+        box.enabled = not merge_map[self.merge_options] == BY_CLOSED_NO_BULGE_POLY
         box.prop(self, "represent_thickness_and_width")
         sub = box.row()
         sub.enabled = (not self.represent_thickness_and_width and self.merge)
@@ -483,7 +504,6 @@ class IMPORT_OT_dxf(bpy.types.Operator):
                 box.label('Scene SRID %r is ignored!' % code)
 
     def execute(self, context):
-        merge_map = {"BY_LAYER": BY_LAYER, "BY_TYPE": BY_DXFTYPE}
         block_map = {"LINKED_OBJECTS": LINKED_OBJECTS, "GROUP_INSTANCES": GROUP_INSTANCES}
         merge_options = SEPARATED
         if self.merge:

@@ -18,6 +18,9 @@
 
 # <pep8 compliant>
 
+from mathutils import Vector
+
+
 _MESH_ENTITIES = frozenset(["POLYFACE", "POLYMESH", "MESH", "POINT", "3DFACE", "SOLID", "TRACE"])
 
 
@@ -28,10 +31,14 @@ def mesh_entity(entity):
 def mesh(typestr):
     return typestr in _MESH_ENTITIES
 
+_POLYS = frozenset(["LWPOLYLINE", "POLYLINE"])
+
+def closed_poly_no_bulge(entity):
+    return entity.dxftype in _POLYS and not any([b != 0 for b in entity.bulge]) and entity.is_closed
+
 
 _CURVE_ENTITIES = frozenset(("POLYLINE", "POLYGON", "LWPOLYLINE", "SPLINE",
                              "CIRCLE", "ARC", "ELLIPSE", "LINE", "HELIX"))
-
 
 def curve_entity(entity):
     return entity.dxftype in _CURVE_ENTITIES
@@ -127,3 +134,8 @@ def combined_entity(entity):
 
 def combined(typestr):
     return typestr not in _NOT_COMBINED_ENTITIES
+
+
+def extrusion(entity):
+    return Vector(entity.extrusion) != Vector((0, 0, 1)) \
+                    or (hasattr(entity, "elevation") and entity.elevation != 0)
