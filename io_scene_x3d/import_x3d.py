@@ -1371,10 +1371,14 @@ class x3dNode(vrmlNode):
     def getSpec(self):
         return self.x3dNode.tagName  # should match vrml spec
 
+    # Used to retain object identifiers from X3D to Blender
     def getDefName(self):
-        data = self.x3dNode.getAttributeNode('DEF')
-        if data:
-            data.value  # XXX, return??
+        node_id = self.x3dNode.getAttributeNode('DEF')
+        if node_id:
+            return node_id.value
+        node_id = self.x3dNode.getAttributeNode('USE')
+        if node_id:
+            return "USE_" + node_id.value
         return None
 
     # Other funcs operate from vrml, but this means we can wrap XML fields, still use nice utility funcs
@@ -2981,7 +2985,7 @@ def importShape_ProcessObject(
         bpymat, has_alpha, texmtx, ancestry,
         global_matrix):
 
-    vrmlname += geom_spec
+    vrmlname += "_" + geom_spec
     bpydata.name = vrmlname
 
     if type(bpydata) == bpy.types.Mesh:
