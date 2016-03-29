@@ -81,6 +81,9 @@ def create_materials(filepath, relpath,
     DIR = os.path.dirname(filepath)
     context_material_vars = set()
 
+    # Don't load the same image multiple times
+    context_imagepath_map = {}
+
     def load_material_image(blender_material, context_material_name, img_data, type):
         """
         Set textures defined in .mtl file.
@@ -99,7 +102,10 @@ def create_materials(filepath, relpath,
         texture = bpy.data.textures.new(name=type, type='IMAGE')
 
         # Absolute path - c:\.. etc would work here
-        image = obj_image_load(imagepath, DIR, use_image_search, relpath)
+        image = context_imagepath_map.get(imagepath, ...)
+        if image == ...:
+            image = context_imagepath_map[imagepath] = \
+                    obj_image_load(imagepath, DIR, use_image_search, relpath)
 
         if image is not None:
             texture.image = image
