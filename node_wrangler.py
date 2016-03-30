@@ -1576,7 +1576,7 @@ class NWEmissionViewer(Operator, NWBase):
                 for i, valid_i in enumerate(valid_outputs):
                     for out_link in active.outputs[valid_i].links:
                         linked_to_out = False
-                        if "Emission Viewer" in out_link.to_node.name or out_link.to_node == materialout:
+                        if "Emission Viewer" in out_link.to_node.name or (out_link.to_node == materialout and out_link.to_socket == materialout.inputs[0]):
                             linked_to_out = True
                         if linked_to_out:
                             if i < len(valid_outputs) - 1:
