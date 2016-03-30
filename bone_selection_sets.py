@@ -40,13 +40,9 @@ from bpy.types import (
 
 from bpy.props import (
     StringProperty,
-    BoolProperty,
     IntProperty,
-    FloatProperty,
     EnumProperty,
     CollectionProperty,
-    BoolVectorProperty,
-    FloatVectorProperty,
 )
 
 # Data Structure ##############################################################
@@ -111,7 +107,11 @@ class POSE_PT_selection_sets(Panel):
         # TODO specials like sorting
         #col.menu("POSE_MT_selection_sets_specials", icon='DOWNARROW_HLT', text="")
 
-        # TODO move up/down arrows
+        # move up/down arrows
+        if len(arm.selection_sets) > 0:
+            col.separator()
+            col.operator("pose.selection_set_move", icon='TRIA_UP', text="").direction = 'UP'
+            col.operator("pose.selection_set_move", icon='TRIA_DOWN', text="").direction = 'DOWN'
 
         # buttons
         row = layout.row()
@@ -154,8 +154,47 @@ class NeedSelSetPluginOperator(PluginOperator):
     def poll(self, context):
         if super().poll(context):
             arm =  context.object
-            return (arm.active_selection_set < len(arm.selection_sets))
+            return (arm.active_selection_set < len(arm.selection_sets)
+                and arm.active_selection_set >= 0)
         return False
+
+
+class POSE_OT_selection_set_move(NeedSelSetPluginOperator):
+    bl_idname = "pose.selection_set_move"
+    bl_label = "Move Selection Set in List"
+    bl_description = "Move the active Selection Set up/down the list of sets"
+    bl_options = {'UNDO', 'REGISTER'}
+
+    direction = EnumProperty(
+        name="Move Direction",
+        description="Direction to move the active Selection Set: UP (default) or DOWN",
+        items=[
+            ('UP', "Up", "", -1),
+            ('DOWN', "Down", "", 1),
+        ],
+        default='UP'
+    )
+
+    @classmethod
+    def poll(self, context):
+        if super().poll(context):
+            arm =  context.object
+            return len(arm.selection_sets) > 1
+        return False
+
+    def execute(self, context):
+        arm = context.object
+
+        active_idx = arm.active_selection_set
+        new_idx = active_idx + (-1 if self.direction == 'UP' else 1)
+
+        if new_idx < 0 or new_idx >= len(arm.selection_sets):
+            return {'FINISHED'}
+
+        arm.selection_sets.move(active_idx, new_idx)
+        arm.active_selection_set = new_idx
+
+        return {'FINISHED'}
 
 
 class POSE_OT_selection_set_add(PluginOperator):
@@ -226,6 +265,8 @@ class POSE_OT_selection_set_assign(PluginOperator):
         if not (arm.active_selection_set < len(arm.selection_sets)):
             bpy.ops.wm.call_menu("INVOKE_DEFAULT",
                 name="pose.selection_set_create_new_popup")
+        else:
+            bpy.ops.pose.selection_set_assign('EXEC_DEFAULT')
 
         return {'FINISHED'}
 
@@ -316,6 +357,7 @@ classes = (
     POSE_UL_selection_set,
     SelectionEntry,
     SelectionSet,
+    POSE_OT_selection_set_move,
     POSE_OT_selection_set_add,
     POSE_OT_selection_set_remove,
     POSE_OT_selection_set_assign,
