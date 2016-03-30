@@ -627,7 +627,7 @@ class bf_utils:
 
     def iter_array(block, length=-1):
         assert(block.code == b'DATA')
-        import blendfile
+        from blend import blendfile
         import os
         handle = block.file.handle
         header = block.file.header
