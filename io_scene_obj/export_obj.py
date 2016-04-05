@@ -522,7 +522,7 @@ def write_file(filepath, objects, scene,
                                     uv_val = uv_get(uv_key)
                                     if uv_val is None:
                                         uv_val = uv_dict[uv_key] = uv_unique_count
-                                        fw('vt %.6f %.6f\n' % uv[:])
+                                        fw('vt %.4f %.4f\n' % uv[:])
                                         uv_unique_count += 1
                                     uv_ls.append(uv_val)
 
@@ -543,7 +543,7 @@ def write_file(filepath, objects, scene,
                                     no_val = no_get(no_key)
                                     if no_val is None:
                                         no_val = normals_to_idx[no_key] = no_unique_count
-                                        fw('vn %.6f %.6f %.6f\n' % no_key)
+                                        fw('vn %.4f %.4f %.4f\n' % no_key)
                                         no_unique_count += 1
                                     loops_to_normals[l_idx] = no_val
                             del normals_to_idx, no_get, no_key, no_val
