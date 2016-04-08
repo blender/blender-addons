@@ -2060,6 +2060,9 @@ def fbx_animations(scene_data):
             if not ob.animation_data:
                 continue  # Do not export animations for objects that are absolutely not animated, see T44386.
 
+            if ob.animation_data.is_property_readonly('action'):
+                continue  # Cannot re-assign 'active action' to this object (usually related to NLA usage, see T48089).
+
             # We can't play with animdata and actions and get back to org state easily.
             # So we have to add a temp copy of the object to the scene, animate it, and remove it... :/
             ob_copy = ob.copy()
