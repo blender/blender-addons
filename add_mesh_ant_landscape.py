@@ -19,13 +19,14 @@
 bl_info = {
     "name": "ANT Landscape",
     "author": "Jimmy Hazevoet",
-    "version": (0,1,2),
-    "blender": (2, 61, 0),
+    "version": (0,1,3),
+    "blender": (2, 77, 0),
     "location": "View3D > Add > Mesh",
     "description": "Add a landscape primitive",
     "warning": "", # used for warning icon and text in addons panel
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
                 "Scripts/Add_Mesh/ANT_Landscape",
+    "tracker_url": "https://developer.blender.org/maniphest/task/create/?project=3&type=Bug",
     "category": "Add Mesh",
 }
 
@@ -261,7 +262,7 @@ def strata_hterrain( x,y,z, H, lacunarity, octaves, offset, distort, basis ):
 
 ###------------------------------------------------------------
 # landscape_gen
-def landscape_gen(x,y,z,falloffsize,options=[0,1.0,1, 0,0,1.0,0,6,1.0,2.0,1.0,2.0,0,0,0, 1.0,0.0,1,0.0,1.0,0,0,0]):
+def landscape_gen(x,y,z,falloffsize,options=[0,1.0,1, 0,0,1.0,0,6,1.0,2.0,1.0,2.0,0,0,0, 1.0,0.0,1,0.0,1.0,0,0,0,0.0,0.0]):
 
     # options
     rseed    = options[0]
@@ -288,19 +289,21 @@ def landscape_gen(x,y,z,falloffsize,options=[0,1.0,1, 0,0,1.0,0,6,1.0,2.0,1.0,2.
     strata       = options[21]
     stratatype   = options[22]
     sphere       = options[23]
+    x_offset     = options[24]
+    y_offset     = options[25]
 
-    # origin
+    # origin    
     if rseed == 0:
         origin = 0.0,0.0,0.0
-        origin_x = 0.0
-        origin_y = 0.0
+        origin_x = x_offset
+        origin_y = y_offset
         origin_z = 0.0
     else:
         # randomise origin
         seed_set( rseed )
         origin = random_unit_vector()
-        origin_x = ( 0.5 - origin[0] ) * 1000.0
-        origin_y = ( 0.5 - origin[1] ) * 1000.0
+        origin_x = (( 0.5 - origin[0] ) * 1000.0) + x_offset
+        origin_y = (( 0.5 - origin[1] ) * 1000.0) + y_offset
         origin_z = ( 0.5 - origin[2] ) * 1000.0
 
     # adjust noise size and origin
@@ -459,6 +462,14 @@ class landscape_add(bpy.types.Operator):
                 max=100000.0,
                 default=2.0,
                 description="Mesh size")
+
+    XOffset = FloatProperty(name="X Offset",
+                default=0.0,
+                description="X Offset")
+    
+    YOffset = FloatProperty(name="Y Offset",
+                default=0.0,
+                description="Y Offset")
 
     RandomSeed = IntProperty(name="Random Seed",
                 min=0,
@@ -651,6 +662,8 @@ class landscape_add(bpy.types.Operator):
         box.prop(self, 'SmoothMesh')
         box.prop(self, 'Subdivision')
         box.prop(self, 'MeshSize')
+        box.prop(self, 'XOffset')
+        box.prop(self, 'YOffset')
 
         box = layout.box()
         box.prop(self, 'NoiseType')
@@ -761,7 +774,9 @@ class landscape_add(bpy.types.Operator):
                 self.Plateaulevel,  #20
                 self.Strata,        #21
                 self.StrataType,    #22
-                self.SphereMesh     #23
+                self.SphereMesh,    #23
+                self.XOffset,       #24
+                self.YOffset        #25
                 ]
 
             # Main function
@@ -803,7 +818,7 @@ class landscape_add(bpy.types.Operator):
 
     # Define "Landscape" menu
 def menu_func_landscape(self, context):
-    self.layout.operator(landscape_add.bl_idname, text="Landscape", icon="PLUGIN")
+    self.layout.operator(landscape_add.bl_idname, text="Landscape", icon="RNDCURVE")
 
 def register():
     bpy.utils.register_module(__name__)
