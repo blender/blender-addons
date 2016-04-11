@@ -123,6 +123,10 @@ def render_width(scene):
     return int(scene.render.resolution_x * scene.render.resolution_percentage / 100)
 
 
+def format_rgb(color):
+    return 'rgb({}, {}, {})'.format(*(int(v * 255) for v in color))
+
+
 # stores the state of the render, used to differ between animation and single frame renders.
 class RenderState:
 
@@ -176,9 +180,14 @@ class SVGExporterLinesetPanel(bpy.types.Panel):
         row = layout.row()
         column = row.column()
         column.prop(linestyle, 'use_export_strokes')
+
         column = row.column()
         column.active = svg.object_fill
         column.prop(linestyle, 'use_export_fills')
+
+        row = layout.row()
+        row.prop(linestyle, "stroke_color_mode", expand=True)
+
 
 class SVGExport(bpy.types.PropertyGroup):
     """Implements the properties for the SVG exporter"""
@@ -307,7 +316,7 @@ def write_animation(filepath, frame_begin, fps):
 # - StrokeShaders - #
 class SVGPathShader(StrokeShader):
     """Stroke Shader for writing stroke data to a .svg file."""
-    def __init__(self, name, style, filepath, res_y, split_at_invisible, frame_current):
+    def __init__(self, name, style, filepath, res_y, split_at_invisible, stroke_color_mode, frame_current):
         StrokeShader.__init__(self)
         # attribute 'name' of 'StrokeShader' objects is not writable, so _name is used
         self._name = name
@@ -316,11 +325,12 @@ class SVGPathShader(StrokeShader):
         self.frame_current = frame_current
         self.elements = []
         self.split_at_invisible = split_at_invisible
-        # put style attributes into a single svg path definition
-        self.path = '\n<path ' + "".join('{}="{}" '.format(k, v) for k, v in style.items()) + 'd=" M '
+        self.stroke_color_mode = stroke_color_mode # BASE | FIRST | LAST
+        self.style = style
+
 
     @classmethod
-    def from_lineset(cls, lineset, filepath, res_y, split_at_invisible, frame_current, *, name=""):
+    def from_lineset(cls, lineset, filepath, res_y, split_at_invisible, use_stroke_color, frame_current, *, name=""):
         """Builds a SVGPathShader using data from the given lineset"""
         name = name or lineset.name
         linestyle = lineset.linestyle
@@ -331,19 +341,35 @@ class SVGPathShader(StrokeShader):
             'stroke-width': linestyle.thickness,
             'stroke-linecap': linestyle.caps.lower(),
             'stroke-opacity': linestyle.alpha,
-            'stroke': 'rgb({}, {}, {})'.format(*(int(c * 255) for c in linestyle.color)),
+            'stroke': format_rgb(linestyle.color),
             'stroke-linejoin': svg.line_join_type.lower(),
             }
         # get dashed line pattern (if specified)
         if linestyle.use_dashed_line:
             style['stroke-dasharray'] = ",".join(str(elem) for elem in get_dashed_pattern(linestyle))
         # return instance
-        return cls(name, style, filepath, res_y, split_at_invisible, frame_current)
+        return cls(name, style, filepath, res_y, split_at_invisible, use_stroke_color, frame_current)
 
 
     @staticmethod
-    def pathgen(stroke, path, height, split_at_invisible, f=lambda v: not v.attribute.visible):
+    def pathgen(stroke, style, height, split_at_invisible, stroke_color_mode, f=lambda v: not v.attribute.visible):
         """Generator that creates SVG paths (as strings) from the current stroke """
+        if len(stroke) <= 1:
+            return ""
+
+        if stroke_color_mode != 'BASE':
+            # try to use the color of the first or last vertex
+            try:
+                index = 0 if stroke_color_mode == 'FIRST' else -1
+                color = format_rgb(stroke[index].attribute.color)
+                style["stroke"] = color
+            except (ValueError, IndexError):
+                # default is linestyle base color
+                pass
+
+        # put style attributes into a single svg path definition
+        path = '\n<path ' + "".join('{}="{}" '.format(k, v) for k, v in style.items()) + 'd=" M '
+
         it = iter(stroke)
         # start first path
         yield path
@@ -365,9 +391,9 @@ class SVGPathShader(StrokeShader):
         yield '" />'
 
     def shade(self, stroke):
-        stroke_to_paths = "".join(self.pathgen(stroke, self.path, self.h, self.split_at_invisible)).split("\n")
-        # convert to actual XML, check to prevent empty paths
-        self.elements.extend(et.XML(elem) for elem in stroke_to_paths if len(elem.strip()) > len(self.path))
+        stroke_to_paths = "".join(self.pathgen(stroke, self.style, self.h, self.split_at_invisible, self.stroke_color_mode)).split("\n")
+        # convert to actual XML. Empty strokes are empty strings; they are ignored.
+        self.elements.extend(et.XML(elem) for elem in stroke_to_paths if elem) # if len(elem.strip()) > len(self.path))
 
     def write(self):
         """Write SVG data tree to file """
@@ -567,9 +593,10 @@ class SVGPathShaderCallback(ParameterEditorCallback):
             return []
 
         split = scene.svg_export.split_at_invisible
+        stroke_color_mode = lineset.linestyle.stroke_color_mode
         cls.shader = SVGPathShader.from_lineset(
                 lineset, create_path(scene),
-                render_height(scene), split, scene.frame_current, name=layer.name + '_' + lineset.name)
+                render_height(scene), split, stroke_color_mode, scene.frame_current, name=layer.name + '_' + lineset.name)
         return [cls.shader]
 
     @classmethod
@@ -655,6 +682,15 @@ def register():
             name="Export Strokes",
             description="Export strokes for this Line Style",
             default=True,
+            )
+    linestyle.stroke_color_mode = EnumProperty(
+            name="Stroke Color Mode",
+            items=(
+                ('BASE', "Base Color", "Use the linestyle's base color", 0),
+                ('FIRST', "First Vertex", "Use the color of a stroke's first vertex", 1),
+                ('FINAL', "Final Vertex", "Use the color of a stroke's final vertex", 2),
+                ),
+            default='BASE',
             )
     linestyle.use_export_fills = BoolProperty(
             name="Export Fills",
