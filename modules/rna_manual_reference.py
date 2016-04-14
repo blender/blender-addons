@@ -71,7 +71,7 @@ url_manual_mapping = (
     ("bpy.types.UserPreferencesView.*",            "preferences/interface.html"),
     ("bpy.types.UserPreferencesEdit.*",            "preferences/editing.html"),
     ("bpy.types.UserPreferencesInput.*",           "preferences/input.html"),
-    ("bpy.ops.wm.addon_*",                         "preferences/add_ons.html"),
+    ("bpy.ops.wm.addon_*",                         "preferences/addons.html"),
     ("bpy.types.Theme.*",                          "preferences/themes.html"),
     ("bpy.types.UserPreferencesFilePaths.*",       "preferences/file.html"),
     ("bpy.types.UserPreferencesSystem.*",          "preferences/system.html"),
@@ -230,7 +230,7 @@ url_manual_mapping = (
     ("bpy.types.Curve.*",         "modeling/curves"),
     ("bpy.types.GreasePencil.*",  "interface/grease_pencil"),
     ("bpy.types.Group.*",         "editors/3dview/object/relationships/groups.html"),
-    ("bpy.types.Image.*",         "editors/properties/texture/types/image.html"),
+    ("bpy.types.Image.*",         "render/blender_render/textures/types/image.html"),
     ("bpy.types.ShapeKey.*",      "animation/shape_keys.html"), # not an id but include because of key
     ("bpy.types.Key.*",           "animation/shape_keys.html"),
     #("bpy.types.Lattice.*", ""),  # TODO - manual has no place for this! XXX
@@ -241,7 +241,7 @@ url_manual_mapping = (
     ("bpy.types.Material.diffuse*",  "render/blender_render/materials/properties/diffuse_shaders.html"),
     ("bpy.types.Material.specular*", "render/blender_render/materials/properties/specular_shaders.html"),
     ("bpy.types.Material.ambient*",  "render/blender_render/materials/properties/shading.html"),
-    ("bpy.types.Material.preview_render_type", "editors/properties/material/preview.html"),
+    ("bpy.types.Material.preview_render_type", "editors/properties/material.html#material-preview"),
     ("bpy.types.Material.*",                   "render/blender_render"),  # catchall, until the section is filled in
     # ("bpy.types.MaterialSlot.link", "render/blender_render/materials/options.html#material-naming_and_linking"),  # TODO, T42839
     ("bpy.types.MaterialVolume.*",    "render/blender_render/materials/special_effects/volume.html"),
@@ -286,7 +286,7 @@ url_manual_mapping = (
 
     # Currently all manual links on all sockets and values (such as Fac, Roughness, Color...) are NodeSocket* type.
     # It'd be much better if the name of the socket could be used for the manual reference
-    ("bpy.types.NodeSocket*", "editors/node_editor/node_parts.html"),  # no generic socket type page exists, but composite types are the same
+    ("bpy.types.NodeSocket*", "editors/node_editor/nodes/parts.html"),  # no generic socket type page exists, but composite types are the same
 
     # *** Cycles Material Nodes ***
     # Outputs
@@ -361,7 +361,7 @@ url_manual_mapping = (
     ("bpy.types.ShaderNodeVectorTransform.*", "render/cycles/nodes/more.html#vector-transform"),
     ("bpy.types.ShaderNodeWavelength.*",      "render/cycles/nodes/more.html#wavelength"),
     ("bpy.types.ShaderNodeWireframe.*",       "render/cycles/nodes/more.html#wireframe"),
-    ("bpy.types.ShaderNodeGroup.*",           "editors/node_editor/node_groups.html"),
+    ("bpy.types.ShaderNodeGroup.*",           "editors/node_editor/nodes/groups.html"),
     ("bpy.types.ShaderNode*",                 "render/cycles/nodes"),
     ("bpy.types.ShaderNodeScript.*",          "render/cycles/osl.html"),
 
@@ -516,8 +516,8 @@ url_manual_mapping = (
     ("bpy.types.FCurve.*",     "editors/graph_editor/fcurves.html"),
 
     # --- Rigging ---
-    ("bpy.types.Bone.*",       "rigging/armatures/bones.html"),
-    ("bpy.types.EditBone.*",   "rigging/armatures/bones.html"),
+    ("bpy.types.Bone.*",       "rigging/armatures/bones/introduction.html"),
+    ("bpy.types.EditBone.*",   "rigging/armatures/bones/introduction.html"),
     ("bpy.types.PoseBone.*",   "rigging/posing"),
 
     # --- World ---
@@ -572,7 +572,7 @@ url_manual_mapping = (
     ("bpy.ops.gpencil.*",     "interface/grease_pencil/index.html"),
     ("bpy.ops.graph.*",       "editors/graph_editor/fcurves.html"),
     ("bpy.ops.group.*",       "editors/3dview/object/relationships/groups.html"),
-    ("bpy.ops.image.*",       "editors/properties/texture/types/image.html"),
+    ("bpy.ops.image.*",       "render/blender_render/textures/types/image.html"),
     # ("bpy.ops.import_anim.*",  ""),   # TODO
     # ("bpy.ops.import_curve.*",  ""),  # TODO
     # ("bpy.ops.import_mesh.*",  ""),   # TODO
