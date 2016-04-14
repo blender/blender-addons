@@ -451,10 +451,25 @@ url_manual_mapping = (
     ("bpy.types.CompositorNodeTransform.*",        "compositing/types/distort/transform.html"),
     ("bpy.types.CompositorNodeTranslate.*",        "compositing/types/distort/translate.html"),
     # Other
-    ("bpy.types.CompositorNodeGroup.*", "editors/node_editor/node_groups.html"),
-    ("bpy.types.CompositorNode*",       "compositing/types"),  # catch anything else
+    ("bpy.types.CompositorNodeGroup.*",            "editors/node_editor/node_groups.html"),
+    ("bpy.types.CompositorNode*",                  "compositing/types"),  # catch anything else
 
-    ("bpy.types.ColorRamp*", "interface/extended_controls.html#color-ramp-widget"),
+    ("bpy.types.ColorRamp*",                       "interface/extended_controls.html#color-ramp-widget"),
+
+    # *** Node ***
+    ("bpy.types.Node.*",                           "editors/node_editor/nodes/index.html"),
+    ("bpy.types.NodeCustomGroup.*",                "editors/node_editor/nodes/groups.html"),
+    ("bpy.types.NodeFrame.*",                      ""), # TODO refine
+    ("bpy.types.NodeGroup.*",                      "editors/node_editor/nodes/groups.html"),
+    ("bpy.types.NodeGroupInput.*",                 "editors/node_editor/nodes/groups.html"),
+    ("bpy.types.NodeGroupOutput.*",                "editors/node_editor/nodes/groups.html"),
+    # ("bpy.types.NodeInternalSocketTemplate.*",   ""), # TODO
+    ("bpy.types.NodeLink.*",                       "editors/node_editor/nodes/parts.html#sockets"),
+    # ("bpy.types.NodeOutputFileSlotFile.*",       ""), # TODO
+    # ("bpy.types.NodeOutputFileSlotLayer.*",      ""), # TODO
+    ("bpy.types.NodeSetting.*",                    "editors/node_editor/nodes/parts.html#settings"),
+    ("bpy.types.NodeTree.*",                       "editors/node_editor/nodes/parts.html"),
+    ("bpy.types.NodeTreePath.*",                   "editors/node_editor/nodes/parts.html"),
 
     # *** Sequencer ***
     ("bpy.types.AddSequence.*",            "editors/sequencer/strips/types/effects/add.html"),
@@ -512,8 +527,19 @@ url_manual_mapping = (
     ("bpy.types.Lamp.*",       "render/blender_render/lighting"),             # catchall, todo - refine
 
     # --- Animation ---
-    ("bpy.types.Keyframe.*",   "animation/actions.html"),
-    ("bpy.types.FCurve.*",     "editors/graph_editor/fcurves.html"),
+    ("bpy.types.Keyframe.*",                       "animation/actions.html"),
+    ("bpy.types.FCurve.*",                         "editors/graph_editor/fcurves.html"),
+    ("bpy.types.FCurveModifiers.*",                "editors/graph_editor/fmodifiers.html"),
+    #("bpy.types.FCurveSample.*",                   ""), Todo
+    ("bpy.types.FModifier.*",                      "editors/graph_editor/fmodifiers.html"),
+    ("bpy.types.FModifierCycles.*",                "editors/graph_editor/fmodifiers.html#cycles"),
+    ("bpy.types.FModifierEnvelope.*",              "editors/graph_editor/fmodifiers.html#envelope"),
+    ("bpy.types.FModifierEnvelopeControlPoint.*",  "editors/graph_editor/fmodifiers.html#envelope"),
+    ("bpy.types.FModifierFunctionGenerator.*",     "editors/graph_editor/fmodifiers.html#generator"),
+    ("bpy.types.FModifierGenerator.*",             "editors/graph_editor/fmodifiers.html#generator"),
+    #("bpy.types.FModifierLimits.*",                ""), Todo
+    ("bpy.types.FModifierNoise.*",                 "editors/graph_editor/fmodifiers.html#noise"),
+    ("bpy.types.FModifierStepped.*",               "editors/graph_editor/fmodifiers.html#stepped"),
 
     # --- Rigging ---
     ("bpy.types.Bone.*",       "rigging/armatures/bones/introduction.html"),
@@ -549,42 +575,42 @@ url_manual_mapping = (
     # Catch all only for now!
     # *** Window/Screen ***
 
-    ("bpy.ops.action.*",      "animation/actions.html"),
-    ("bpy.ops.anim.*",        "animation"),
-    ("bpy.ops.armature.*",    "rigging/armatures/"),
-    ("bpy.ops.boid.*",        "physics/particles/physics/boids.html"),
-    # ("bpy.ops.brush.*",     ""),  # TODO
-    ("bpy.ops.buttons.*",     "interface/buttons_and_controls.html"),
-    ("bpy.ops.camera.*",      "editors/3dview/object/types/camera/index.html"),
-    ("bpy.ops.clip.*",        "editors/movie_clip_editor/index.html#movie-clip-editor"),
-    ("bpy.ops.cloth.*",       "physics/cloth"),
-    ("bpy.ops.console.*",     "editors/python_console.html"),
-    ("bpy.ops.constraint.*",  "rigging/constraints"),
-    ("bpy.ops.curve.*",       "modeling/curves"),
-    ("bpy.ops.dpaint.*",      "physics/dynamic_paint"),
-    # ("bpy.ops.ed.*",  ""),           # TODO, this is for internal use only?
-    # ("bpy.ops.export_anim.*",  ""),  # TODO
-    # ("bpy.ops.export_mesh.*",  ""),  # TODO
-    # ("bpy.ops.export_scene.*",  ""), # TODO
-    ("bpy.ops.file.*",  ""),
-    ("bpy.ops.fluid.*",       "physics/fluid"),
-    ("bpy.ops.font.*",        "modeling/texts"),
-    ("bpy.ops.gpencil.*",     "interface/grease_pencil/index.html"),
-    ("bpy.ops.graph.*",       "editors/graph_editor/fcurves.html"),
-    ("bpy.ops.group.*",       "editors/3dview/object/relationships/groups.html"),
-    ("bpy.ops.image.*",       "render/blender_render/textures/types/image.html"),
-    # ("bpy.ops.import_anim.*",  ""),   # TODO
-    # ("bpy.ops.import_curve.*",  ""),  # TODO
-    # ("bpy.ops.import_mesh.*",  ""),   # TODO
-    # ("bpy.ops.import_scene.*",  ""),  # TODO
-    # ("bpy.ops.info.*",  ""),          # TODO
-    ("bpy.ops.lamp.*",             "render/blender_render/lighting"),  # --- todo ... all below ---
-    # ("bpy.ops.lattice.*",  ""),  # TODO
-    ("bpy.ops.logic.*",            "game_engine/logic"),
-    ("bpy.ops.marker.*",           "animation/markers.html"),
-    ("bpy.ops.mask.*",  "editors/movie_clip_editor/masking.html"),
-    ("bpy.ops.material.new",    "render/blender_render/materials/assigning_a_material.html#creating-a-new-material"),
-    ("bpy.ops.material.*",      "render/blender_render"),
+    ("bpy.ops.action.*",                  "animation/actions.html"),
+    ("bpy.ops.anim.*",                    "animation"),
+    ("bpy.ops.armature.*",                "rigging/armatures/"),
+    ("bpy.ops.boid.*",                    "physics/particles/physics/boids.html"),
+    # ("bpy.ops.brush.*",                 ""), # TODO
+    ("bpy.ops.buttons.*",                 "interface/buttons_and_controls.html"),
+    ("bpy.ops.camera.*",                  "editors/3dview/object/types/camera/index.html"),
+    ("bpy.ops.clip.*",                    "editors/movie_clip_editor/index.html#movie-clip-editor"),
+    ("bpy.ops.cloth.*",                   "physics/cloth"),
+    ("bpy.ops.console.*",                 "editors/python_console.html"),
+    ("bpy.ops.constraint.*",              "rigging/constraints"),
+    ("bpy.ops.curve.*",                   "modeling/curves"),
+    ("bpy.ops.dpaint.*",                  "physics/dynamic_paint"),
+    # ("bpy.ops.ed.*",                    ""), # TODO, this is for internal use only?
+    # ("bpy.ops.export_anim.*",           ""), # TODO
+    # ("bpy.ops.export_mesh.*",           ""), # TODO
+    # ("bpy.ops.export_scene.*",          ""), # TODO
+    # ("bpy.ops.file.*",                  ""), # TODO
+    ("bpy.ops.fluid.*",                   "physics/fluid"),
+    ("bpy.ops.font.*",                    "modeling/texts"),
+    ("bpy.ops.gpencil.*",                 "interface/grease_pencil/index.html"),
+    ("bpy.ops.graph.*",                   "editors/graph_editor/fcurves.html"),
+    ("bpy.ops.group.*",                   "editors/3dview/object/relationships/groups.html"),
+    ("bpy.ops.image.*",                   "render/blender_render/textures/types/image.html"),
+    # ("bpy.ops.import_anim.*",           ""), # TODO
+    # ("bpy.ops.import_curve.*",          ""), # TODO
+    # ("bpy.ops.import_mesh.*",           ""), # TODO
+    # ("bpy.ops.import_scene.*",          ""), # TODO
+    # ("bpy.ops.info.*",                  ""), # TODO
+    ("bpy.ops.lamp.*",                    "render/blender_render/lighting"), # TODO
+    # ("bpy.ops.lattice.*",               ""), # TODO
+    ("bpy.ops.logic.*",                   "game_engine/logic"),
+    ("bpy.ops.marker.*",                  "animation/markers.html"),
+    ("bpy.ops.mask.*",                    "editors/movie_clip_editor/masking.html"),
+    ("bpy.ops.material.new",              "render/blender_render/materials/assigning_a_material.html#creating-a-new-material"),
+    ("bpy.ops.material.*",                "render/blender_render"),
     ("bpy.ops.mesh.vertices_smooth",      "modeling/meshes/editing/deforming/smooth.html"),
     ("bpy.ops.view3d.edit_mesh_extrude*", "modeling/meshes/editing/duplicating/extrude.html"),
     ("bpy.ops.mesh.subdivide",            "modeling/meshes/editing/subdividing/subdivide.html"),
@@ -598,7 +624,7 @@ url_manual_mapping = (
     ("bpy.ops.mball.*",                   "modeling/metas"),
     ("bpy.ops.mesh.*",                    "modeling/meshes"),
     ("bpy.ops.nla.*",                     "editors/nla.html"),
-    # ("bpy.ops.node.*",  ""),            # TODO
+    ("bpy.ops.node.*",                    "editors/node_editor/nodes/index.html"),
     ("bpy.ops.object.*shape_key*",        "animation/shape_keys.html"),
     ("bpy.ops.object.join_shapes",        "animation/shape_keys.html"),
     ("bpy.ops.object.*",                  "editors/3dview/transform"),
