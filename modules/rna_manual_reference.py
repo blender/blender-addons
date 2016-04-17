@@ -362,7 +362,7 @@ url_manual_mapping = (
     # ("bpy.types.ShaderNodeCombineHSV.*",    ""),
     # ("bpy.types.ShaderNodeCombineRGB.*",    ""),
     ("bpy.types.ShaderNodeFresnel.*",         "render/cycles/nodes/more.html#fresnel"),
-    # ("bpy.types.ShaderNodeGamma.*", ""),
+    # ("bpy.types.ShaderNodeGamma.*",         ""),
     ("bpy.types.ShaderNodeGeometry.*",        "render/cycles/nodes/more.html#geometry"),
     ("bpy.types.ShaderNodeHairInfo.*",        "render/cycles/nodes/input.html#hair-info"),
     # ("bpy.types.ShaderNodeHueSaturation.*", ""),
@@ -672,7 +672,7 @@ url_manual_mapping = (
     ("bpy.ops.console.*",                 "editors/python_console.html"),
     ("bpy.ops.constraint.*",              "rigging/constraints"),
     ("bpy.ops.curve.*",                   "modeling/curves"),
-    ("bpy.ops.cycles.*",                  "manual/render/cycles")
+    ("bpy.ops.cycles.*",                  "manual/render/cycles"),
     ("bpy.ops.dpaint.*",                  "physics/dynamic_paint"),
     # ("bpy.ops.ed.*",                    ""), # TODO, this is for internal use only?
     # ("bpy.ops.export_anim.*",           ""), # TODO
