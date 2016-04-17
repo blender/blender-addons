@@ -529,7 +529,7 @@ url_manual_mapping = (
     ("bpy.types.ColorBalanceModifier.*",   "editors/sequencer/strips/properties/modifiers.html"),
     ("bpy.types.CurvesModifier.*",         "editors/sequencer/strips/properties/modifiers.html"),
     ("bpy.types.HueCorrectModifier.*",     "editors/sequencer/strips/properties/modifiers.html"),
-    ("bpy.types.WhiteBalanceModifier.*",   "editors/sequencer/strips/properties/modifiers.html")
+    ("bpy.types.WhiteBalanceModifier.*",   "editors/sequencer/strips/properties/modifiers.html"),
     # ("bpy.types.SequenceColorBalanceData.*", ""),
     # ("py.types.SequenceCrop.*",              ""),
     # ("bpy.types.SequenceEditor.*",           ""),
