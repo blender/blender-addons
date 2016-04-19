@@ -333,11 +333,11 @@ url_manual_mapping = (
     ("bpy.types.WorldLighting.*",              "render/blender_render/lighting/ambient_occlusion.html#gather"),
 
     # *** 3D View ***
-    ("bpy.types.GPUDOFSettings.*",             "editors/3dview/display/shading.html#shading-panel"
-    ("bpy.types.GPUFXSettings.*",              "editors/3dview/display/shading.html#shading-panel"
-    ("bpy.types.GPUSSAOSettings.*",            "editors/3dview/display/shading.html#shading-panel"
-    ("bpy.types.BackgroundImage.*",            "editors/3dview/display/background_images.html")
-    ("bpy.types.WalkNavigation.*",             "editors/3dview/navigate/3d_view.html#walk-mode")
+    ("bpy.types.GPUDOFSettings.*",             "editors/3dview/display/shading.html#shading-panel"),
+    ("bpy.types.GPUFXSettings.*",              "editors/3dview/display/shading.html#shading-panel"),
+    ("bpy.types.GPUSSAOSettings.*",            "editors/3dview/display/shading.html#shading-panel"),
+    ("bpy.types.BackgroundImage.*",            "editors/3dview/display/background_images.html"),
+    ("bpy.types.WalkNavigation.*",             "editors/3dview/navigate/3d_view.html#walk-mode"),
 
     # *** Cycles ***
     ("bpy.types.CyclesRenderSettings.*",     "render/cycles/settings/integrator.html"),
@@ -730,8 +730,8 @@ url_manual_mapping = (
     ("bpy.types.PoseBone.*",            "rigging/posing"),
     ("bpy.types.ArmatureBones.*",       "rigging/armatures/bones"),
     ("bpy.types.ArmatureEditBones.*",   "armatures/editing"),
-    ("bpy.types.Pose.*",                "rigging/posing"
-    ("bpy.types.PoseBoneConstraints.*", "rigging/posing/constraints.html"
+    ("bpy.types.Pose.*",                "rigging/posing"),
+    ("bpy.types.PoseBoneConstraints.*", "rigging/posing/constraints.html"),
 
     # --- World ---
     ("bpy.types.World.*",      "render/blender_render/world"),
