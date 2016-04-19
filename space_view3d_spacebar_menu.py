@@ -22,8 +22,8 @@ bl_info = {
     "author": "meta-androcto",
     "version": (1, 8, 0),
     "blender": (2, 77, 0),
-    "location": "View3D > Double right click",
-    "description": "Object Context Sensitive double right click Menu",
+    "location": "View3D > Spacebar",
+    "description": "Object Mode Context Sensitive Spacebar Menu",
     "warning": "",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
                 "Scripts/3D_interaction/Dynamic_Spacebar_Menu",
