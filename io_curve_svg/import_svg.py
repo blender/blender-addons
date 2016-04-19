@@ -205,8 +205,9 @@ def SVGMatrixFromNode(node, context):
 
     m = Matrix.Translation(Vector((x, y, 0.0)))
     if len(context['rects']) > 1:
-        m = m * Matrix.Scale(w / rect[0], 4, Vector((1.0, 0.0, 0.0)))
-        m = m * Matrix.Scale(h / rect[1], 4, Vector((0.0, 1.0, 0.0)))
+        if rect[0] != 0 and rect[1] != 0:
+            m = m * Matrix.Scale(w / rect[0], 4, Vector((1.0, 0.0, 0.0)))
+            m = m * Matrix.Scale(h / rect[1], 4, Vector((0.0, 1.0, 0.0)))
 
     if node.getAttribute('viewBox'):
         viewBox = node.getAttribute('viewBox').replace(',', ' ').split()
@@ -214,6 +215,9 @@ def SVGMatrixFromNode(node, context):
         vy = SVGParseCoord(viewBox[1], h)
         vw = SVGParseCoord(viewBox[2], w)
         vh = SVGParseCoord(viewBox[3], h)
+
+        if vw == 0 or vh == 0:
+            return m
 
         sx = w / vw
         sy = h / vh
