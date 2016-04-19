@@ -353,6 +353,7 @@ url_manual_mapping = (
     ("bpy.types.BackgroundImage.*",            "editors/3dview/display/background_images.html"),
     ("bpy.types.WalkNavigation.*",             "editors/3dview/navigate/3d_view.html#walk-mode"),
     ("bpy.types.SpaceView3D.cursor_location",  "editors/3dview/3d_cursor.html#numeric-input"),
+    ("bpy.types.Object.location",              "editors/3dview/transform/transform_control/numeric_input.html#numeric-input-via-the-properties-shelf"),
 
     # *** Cycles ***
     ("bpy.types.CyclesRenderSettings.*",     "render/cycles/settings/integrator.html"),
@@ -838,7 +839,12 @@ url_manual_mapping = (
     ("bpy.ops.curve.*",                   "modeling/curves"),
     ("bpy.ops.cycles.*",                  "render/cycles"),
     ("bpy.ops.dpaint.*",                  "physics/dynamic_paint"),
-    # ("bpy.ops.ed.*",                    ""),  # TODO, this is for internal use only?
+    ("bpy.ops.ed.*",                      "interface/undo_and_redo.html"),
+    ("bpy.ops.ed.undo",                   "interface/undo_and_redo.html#undo"),
+    ("bpy.ops.ed.redo",                   "interface/undo_and_redo.html#redo"),
+    ("bpy.ops.ed.undo_history",           "interface/undo_and_redo.html#undo-history"),
+    ("bpy.ops.screen.repeat_last",        "interface/undo_and_redo.html#repeat-last"),
+    ("bpy.ops.screen.repeat_history",     "interface/undo_and_redo.html#repeat-history"),
     # ("bpy.ops.export_anim.*",           ""),  # TODO
     # ("bpy.ops.export_mesh.*",           ""),  # TODO
     # ("bpy.ops.export_scene.*",          ""),  # TODO
@@ -900,11 +906,25 @@ url_manual_mapping = (
     ("bpy.ops.text.*",                    "editors/text_editor.html"),
     ("bpy.ops.texture.*",                 "render/blender_render/textures"),
     ("bpy.ops.time.*",                    "editors/timeline.html"),
+    ("bpy.ops.transform.*",               "editors/3dview/transform"),  # catch all
     ("bpy.ops.transform.edge_slide",      "modeling/meshes/editing/edges.html#edge-slide"),
     ("bpy.ops.transform.vert_slide",      "modeling/meshes/editing/vertices.html#vertex-slide"),
     ("bpy.ops.transform.shrink_fatten",   "modeling/meshes/editing/deforming/shrink-fatten.html"),
     ("bpy.ops.transform.push_pull",       "modeling/meshes/editing/deforming/push_pull.html"),
-    ("bpy.ops.transform.*",               "editors/3dview/transform/transform_control"),
+    ("bpy.ops.transform.translate",       "editors/3dview/transform/grab.html"),
+    ("bpy.ops.transform.rotate",          "editors/3dview/transform/rotate.html"),
+    ("bpy.ops.transform.resize",          "editors/3dview/transform/scale.html"),
+    # ("bpy.ops.transform.mirror",        ""),  # TODO
+    ("bpy.ops.object.duplicate_move",     "editors/3dview/transform/duplication/introduction.html#duplicate"),
+    ("bpy.ops.object.duplicate_move_linked",   "3dview/transform/duplication/introduction.html#linked-duplicates"),
+    # ("bpy.ops.object.delete",           ""),
+    ("bpy.ops.object.join",               "editors/3dview/object/editing.html#join"),
+    ("bpy.ops.object.origin_set",         "editors/3dview/transform/origns.html#moving-object-centers"),
+    # ("bpy.ops.object.shade_smooth",     ""),  # TODO
+    # ("bpy.ops.object.shade_flat",       ""),  # TODO
+    ("bpy.ops.object.data_transfer",      ""),
+    # ("bpy.ops.object.datalayout_transfer", ""),  # TODO
+
     ("bpy.ops.ui.*",                      "interface"),
     ("bpy.ops.uv.*",                      "editors/uv_image"),
     # ("bpy.ops.view2d.*",  ""),          #  TODO
