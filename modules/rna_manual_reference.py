@@ -54,7 +54,7 @@ LANG = {
 #   "pt_PT":        "pt",
 #   "pt_BR":        "pt",
     "zh_CN":        "zh.cn",  # Chinese - Should be changed to "zh_cn" but there is a bug in sphinx-intl.
-    "zh_TW":        "zh.cn",  # Taiwanese Chinese - for until we have a zh_tw version?
+    "zh_TW":        "zh.cn",  # Taiwanese Chinese - for until we have a zh_tw version
 }.get(language)
 
 if LANG is not None:
@@ -848,7 +848,7 @@ url_manual_mapping = (
     # ("bpy.ops.export_anim.*",           ""),  # TODO
     # ("bpy.ops.export_mesh.*",           ""),  # TODO
     # ("bpy.ops.export_scene.*",          ""),  # TODO
-    # ("bpy.ops.file.*",                  ""),  # TODO
+    ("bpy.ops.file.*",                    "editors/file_browser/introduction.html"),
     ("bpy.ops.fluid.*",                   "physics/fluid"),
     ("bpy.ops.font.*",                    "modeling/texts"),
     ("bpy.ops.gpencil.*",                 "interface/grease_pencil"),
@@ -916,7 +916,7 @@ url_manual_mapping = (
     ("bpy.ops.transform.resize",          "editors/3dview/transform/scale.html"),
     # ("bpy.ops.transform.mirror",        ""),  # TODO
     ("bpy.ops.object.duplicate_move",     "editors/3dview/transform/duplication/introduction.html#duplicate"),
-    ("bpy.ops.object.duplicate_move_linked",   "3dview/transform/duplication/introduction.html#linked-duplicates"),
+    ("bpy.ops.object.duplicate_move_linked",   "editors/3dview/transform/duplication/introduction.html#linked-duplicates"),
     # ("bpy.ops.object.delete",           ""),
     ("bpy.ops.object.join",               "editors/3dview/object/editing.html#join"),
     ("bpy.ops.object.origin_set",         "editors/3dview/transform/origns.html#moving-object-centers"),
