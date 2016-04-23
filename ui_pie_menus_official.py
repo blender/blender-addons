@@ -37,6 +37,10 @@ from bpy.props import EnumProperty
 class VIEW3D_PIE_object_mode(Menu):
     bl_label = "Mode"
 
+    @classmethod
+    def poll(cls, context):
+        return (context.space_data.type == 'VIEW_3D')
+
     def draw(self, context):
         layout = self.layout
 
