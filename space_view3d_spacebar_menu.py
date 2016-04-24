@@ -27,6 +27,7 @@ bl_info = {
     "warning": "",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
                 "Scripts/3D_interaction/Dynamic_Spacebar_Menu",
+    "tracker_url": "https://developer.blender.org/maniphest/task/create/?project=3&type=Bug",
     "category": "3D View",
 }
 
@@ -581,7 +582,7 @@ class VIEW3D_MT_Object(bpy.types.Menu):
 
         layout.operator("object.delete", text="Delete...").use_global = False
         layout.menu("VIEW3D_MT_object_parent")
-        layout.menu("VIEW3D_MT_duplicate")
+        layout.menu("VIEW3D_MT_Duplicate")
         layout.operator("object.join")
 
         if is_local_view:
@@ -592,7 +593,7 @@ class VIEW3D_MT_Object(bpy.types.Menu):
             layout.operator("object.move_to_layer", text="Move to Layer...")
 
         layout.menu("VIEW3D_MT_make_links", text="Make Links...")
-        layout.menu("INFO_MT_object_data_link")
+        layout.menu("VIEW3D_MT_Object_Data_Link")
         layout.menu("VIEW3D_MT_object_constraints")
         layout.menu("VIEW3D_MT_object_track")
         layout.menu("VIEW3D_MT_object_animation")	
@@ -846,6 +847,29 @@ class VIEW3D_MT_AlignMenu(bpy.types.Menu):
                         text="Align Active Camera to View")
         layout.operator("view3d.view_selected")
         layout.operator("view3d.view_center_cursor")
+
+class VIEW3D_MT_Object_Data_Link(Menu):
+    bl_label = "Object Data"
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.operator_menu_enum("object.make_local", "type", text="Make Local...")
+        layout.menu("VIEW3D_MT_make_single_user")
+        layout.operator("object.proxy_make", text="Make Proxy...")
+        layout.operator("object.make_dupli_face")
+        layout.operator("object.data_transfer")
+        layout.operator("object.datalayout_transfer")
+
+class VIEW3D_MT_Duplicate(Menu):
+    bl_label = "Duplicate"
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.operator("object.duplicate_move")
+        layout.operator("object.duplicate_move_linked")
+        layout.separator()
 
 class VIEW3D_MT_KeyframeMenu(bpy.types.Menu):
     bl_label = "Keyframe"
@@ -1348,17 +1372,17 @@ class VIEW3D_MT_View_Menu(bpy.types.Menu):
     def draw(self, context):
         layout = self.layout
         layout.menu("VIEW3D_MT_view_cameras", text="Cameras")
-        layout.menu("VIEW3D_MT_view_directions")
+        layout.menu("VIEW3D_MT_View_Directions")
         layout.menu("VIEW3D_MT_view_navigation")
         layout.menu("VIEW3D_MT_Shade")
         layout.menu("VIEW3D_MT_view_align")
         layout.menu("VIEW3D_MT_view_align_selected")
-        layout.menu("VIEW3D_MT_view_toggle")
+        layout.menu("VIEW3D_MT_View_Toggle")
         layout.operator("view3d.view_persportho")
         layout.operator("view3d.localview", text="View Global/Local")
         layout.operator("view3d.view_selected").use_all_regions = False
         layout.operator("view3d.view_all").center = False
-        layout.menu("VIEW3D_MT_view_border")
+        layout.menu("VIEW3D_MT_View_Border")
         layout.operator("screen.area_dupli")
         layout.operator("view3d.layers", text="Show All Layers").nr = 0
         layout.operator("screen.animation_play", text="Playback Animation")
@@ -2107,6 +2131,8 @@ classes = [
     VIEW3D_MT_Shade,
     VIEW3D_MT_ManipulatorMenu1,
     SetOriginToSelected,
+    VIEW3D_MT_Object_Data_Link,
+    VIEW3D_MT_Duplicate,
 ]
 
 ## Register Classes ^ & Hotkeys ##
