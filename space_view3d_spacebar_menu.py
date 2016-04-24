@@ -47,8 +47,25 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
         scene = context.scene
         obj = context.object
 
+### No Object Selected ###
+        if not context.active_object:
+            layout.operator_context = 'INVOKE_REGION_WIN'
+            layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
+            layout.separator()
+            layout.menu("VIEW3D_MT_AddMenu", icon='OBJECT_DATAMODE')
+            layout.menu("VIEW3D_MT_View_Directions", icon='ZOOM_ALL')
+            layout.menu("VIEW3D_MT_View_Navigation", icon='ROTATE')
+            layout.menu("VIEW3D_MT_View_Toggle", icon='SPLITSCREEN')
+            layout.operator("view3d.snap_cursor_to_center",
+                            text="Cursor to Center")
+            layout.operator("view3d.snap_cursor_to_grid",
+                            text="Cursor to Grid")
+            layout.menu("VIEW3D_MT_UndoS", icon='ARROW_LEFTRIGHT')
+            layout.operator("view3d.toolshelf", icon='MENU_PANEL')
+            layout.operator("view3d.properties", icon='MENU_PANEL')
+
 ### Mesh Object Mode ###
-        if obj.type == 'MESH' and obj.mode in {'OBJECT'}:
+        if context.object is not None and obj.type == 'MESH' and obj.mode in {'OBJECT'}:
             layout.operator_context = 'INVOKE_REGION_WIN'
             layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
             layout.separator()
@@ -71,7 +88,7 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
             layout.operator("view3d.properties", icon='MENU_PANEL')
 
 ## Mesh Edit Mode ##
-        if obj.type == 'MESH' and obj.mode in {'EDIT'}:
+        if context.object is not None and obj.type == 'MESH' and obj.mode in {'EDIT'}:
             layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
             layout.separator()
             layout.menu("VIEW3D_MT_View_Menu", icon='ZOOM_ALL')
@@ -92,7 +109,7 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
             layout.operator("view3d.properties", icon='MENU_PANEL')
 
 ## Sculpt Mode ##
-        if obj.type == 'MESH' and obj.mode in {'SCULPT'}:
+        if context.object is not None and obj.type == 'MESH' and obj.mode in {'SCULPT'}:
 
             layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
             layout.separator()
@@ -109,7 +126,7 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
             layout.operator("view3d.properties", icon='MENU_PANEL')
 
 ## Vertex Paint ##
-        if obj.type == 'MESH' and obj.mode in {'VERTEX_PAINT'}:
+        if context.object is not None and obj.type == 'MESH' and obj.mode in {'VERTEX_PAINT'}:
 
             layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
             layout.separator()
@@ -123,7 +140,7 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
             layout.operator("view3d.properties", icon='MENU_PANEL')
 
 ## Weight Paint Menu ##
-        if obj.type == 'MESH' and obj.mode in {'WEIGHT_PAINT'}:
+        if context.object is not None and obj.type == 'MESH' and obj.mode in {'WEIGHT_PAINT'}:
 
             layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
             layout.separator()
@@ -136,7 +153,7 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
             layout.operator("view3d.properties", icon='MENU_PANEL')
 
 ## Texture Paint ##
-        if obj.type == 'MESH' and obj.mode in {'TEXTURE_PAINT'}:
+        if context.object is not None and obj.type == 'MESH' and obj.mode in {'TEXTURE_PAINT'}:
 
             layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
             layout.separator()
@@ -148,7 +165,7 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
             layout.operator("view3d.properties", icon='MENU_PANEL')
 
 ### Curve Object Mode ###
-        if obj.type == 'CURVE' and obj.mode in {'OBJECT'}:
+        if context.object is not None and obj.type == 'CURVE' and obj.mode in {'OBJECT'}:
 
             layout.operator_context = 'INVOKE_REGION_WIN'
             layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
@@ -173,7 +190,7 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
             layout.operator("view3d.properties", icon='MENU_PANEL')
 
 ## Edit Curve ##
-        if obj.type == 'CURVE' and obj.mode in {'EDIT'}:
+        if context.object is not None and obj.type == 'CURVE' and obj.mode in {'EDIT'}:
 
             layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
             layout.separator()
@@ -199,7 +216,7 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
             layout.operator("view3d.properties", icon='MENU_PANEL')
 
 ### Surface Object Mode ###
-        if obj.type == 'SURFACE' and obj.mode in {'OBJECT'}:
+        if context.object is not None and obj.type == 'SURFACE' and obj.mode in {'OBJECT'}:
 
             layout.operator_context = 'INVOKE_REGION_WIN'
             layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
@@ -224,7 +241,7 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
             layout.operator("view3d.properties", icon='MENU_PANEL')
 
 ## Edit Surface ##
-        if obj.type == 'SURFACE' and obj.mode in {'EDIT'}:
+        if context.object is not None and obj.type == 'SURFACE' and obj.mode in {'EDIT'}:
 
             layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
             layout.separator()
@@ -249,7 +266,7 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
             layout.operator("view3d.properties", icon='MENU_PANEL')
 
 ### Metaball Object Mode ###
-        if obj.type == 'META' and obj.mode in {'OBJECT'}:
+        if context.object is not None and obj.type == 'META' and obj.mode in {'OBJECT'}:
 
             layout.operator_context = 'INVOKE_REGION_WIN'
             layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
@@ -274,7 +291,7 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
             layout.operator("view3d.properties", icon='MENU_PANEL')
 
 ## Edit Metaball ##
-        if obj.type == 'META' and obj.mode in {'EDIT'}:
+        if context.object is not None and obj.type == 'META' and obj.mode in {'EDIT'}:
 
             layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
             layout.separator()
@@ -298,7 +315,7 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
             layout.operator("view3d.properties", icon='MENU_PANEL')
 
 ### Text Object Mode ###
-        if obj.type == 'FONT' and obj.mode in {'OBJECT'}:
+        if context.object is not None and obj.type == 'FONT' and obj.mode in {'OBJECT'}:
 
             layout.operator_context = 'INVOKE_REGION_WIN'
             layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
@@ -322,7 +339,7 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
             layout.operator("view3d.properties", icon='MENU_PANEL')
 
 ### Text Edit Mode ###
-        if obj.type == 'FONT' and obj.mode in {'EDIT'}:
+        if context.object is not None and obj.type == 'FONT' and obj.mode in {'EDIT'}:
 
             layout.operator_context = 'INVOKE_REGION_WIN'
             layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
@@ -337,7 +354,7 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
             layout.operator("view3d.properties", icon='MENU_PANEL')
 
 ### Camera Object Mode ###
-        if obj.type == 'CAMERA' and obj.mode in {'OBJECT'}:
+        if context.object is not None and obj.type == 'CAMERA' and obj.mode in {'OBJECT'}:
 
             layout.operator_context = 'INVOKE_REGION_WIN'
             layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
@@ -358,7 +375,7 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
             layout.operator("view3d.properties", icon='MENU_PANEL')
 
 ### Lamp Object Mode ###
-        if obj.type == 'LAMP' and obj.mode in {'OBJECT'}:
+        if context.object is not None and obj.type == 'LAMP' and obj.mode in {'OBJECT'}:
 
             layout.operator_context = 'INVOKE_REGION_WIN'
             layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
@@ -379,7 +396,7 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
             layout.operator("view3d.properties", icon='MENU_PANEL')
 
 ### Armature Object Mode ###
-        if obj.type == 'ARMATURE' and obj.mode in {'OBJECT'}:
+        if context.object is not None and obj.type == 'ARMATURE' and obj.mode in {'OBJECT'}:
 
             layout.operator_context = 'INVOKE_REGION_WIN'
             layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
@@ -402,7 +419,7 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
             layout.operator("view3d.properties", icon='MENU_PANEL')
 
 ## Armature Edit ##
-        if obj.type == 'ARMATURE' and obj.mode in {'EDIT'}:
+        if context.object is not None and obj.type == 'ARMATURE' and obj.mode in {'EDIT'}:
 
             layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
             layout.separator()
@@ -430,7 +447,7 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
             layout.operator("view3d.properties", icon='MENU_PANEL')
 
 ## Armature Pose ##
-        if obj.type == 'ARMATURE' and obj.mode in {'POSE'}:
+        if context.object is not None and obj.type == 'ARMATURE' and obj.mode in {'POSE'}:
 
             arm = context.active_object.data
 
@@ -459,7 +476,7 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
             layout.operator("view3d.properties", icon='MENU_PANEL')
 
 ### Lattice Object Mode ###
-        if obj.type == 'LATTICE' and obj.mode in {'OBJECT'}:
+        if context.object is not None and obj.type == 'LATTICE' and obj.mode in {'OBJECT'}:
 
             layout.operator_context = 'INVOKE_REGION_WIN'
             layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
@@ -484,7 +501,7 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
             layout.operator("view3d.properties", icon='MENU_PANEL')
 
 ## Edit Lattice ##
-        if obj.type == 'LATTICE' and obj.mode in {'EDIT'}:
+        if context.object is not None and obj.type == 'LATTICE' and obj.mode in {'EDIT'}:
 
             layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
             layout.separator()
@@ -505,7 +522,7 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
             layout.operator("view3d.properties", icon='MENU_PANEL')
 
 ### Empty Object Mode ###
-        if obj.type == 'EMPTY' and obj.mode in {'OBJECT'}:
+        if context.object is not None and obj.type == 'EMPTY' and obj.mode in {'OBJECT'}:
 
             layout.operator_context = 'INVOKE_REGION_WIN'
             layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
@@ -527,7 +544,7 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
             layout.operator("view3d.properties", icon='MENU_PANEL')
 
 ### Speaker Object Mode ###
-        if obj.type == 'SPEAKER' and obj.mode in {'OBJECT'}:
+        if context.object is not None and obj.type == 'SPEAKER' and obj.mode in {'OBJECT'}:
 
             layout.operator_context = 'INVOKE_REGION_WIN'
             layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
@@ -546,7 +563,7 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
             layout.operator("view3d.properties", icon='MENU_PANEL')
 
 ## Particle Menu ##
-        if  context.mode == 'PARTICLE':
+        if context.object is not None and  context.mode == 'PARTICLE':
 
             layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
             layout.separator()
@@ -561,10 +578,9 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
             layout.menu("VIEW3D_MT_particle_specials", text="Hair Specials", icon='HAIR')
             layout.menu("VIEW3D_MT_Select_Particle",
                         icon='RESTRICT_SELECT_OFF')
-            layout.operator("object.delete", text="Delete Object",
-                            icon='CANCEL')
+            layout.operator("object.delete", text="Delete Object", icon='X_VEC')
             layout.menu("VIEW3D_MT_UndoS", icon='ARROW_LEFTRIGHT')
-            layout.menu("VIEW3D_MT_Object_Interactive_mode", icon='VIEW3D')
+            layout.menu("VIEW3D_MT_Object_Interactive_Mode", icon='VIEW3D')
             layout.operator("view3d.toolshelf", icon='MENU_PANEL')
             layout.operator("view3d.properties", icon='MENU_PANEL')
 
@@ -834,19 +850,6 @@ class VIEW3D_MT_Camera_Options(bpy.types.Menu):
         self.layout.operator("view3d.object_as_camera", text="Object As Camera", icon='OUTLINER_OB_CAMERA')
         self.layout.operator("view3d.viewnumpad", text="View Active Camera" , icon='OUTLINER_OB_CAMERA').type = 'CAMERA'
 
-# ********** Object Align **********
-class VIEW3D_MT_AlignMenu(bpy.types.Menu):
-    bl_label = "Align"
-
-    def draw(self, context):
-        layout = self.layout
-        layout.menu("VIEW3D_MT_view_align_selected")
-        layout.operator("view3d.view_all",
-                        text="Center Cursor and View All").center = True
-        layout.operator("view3d.camera_to_view",
-                        text="Align Active Camera to View")
-        layout.operator("view3d.view_selected")
-        layout.operator("view3d.view_center_cursor")
 
 class VIEW3D_MT_Object_Data_Link(Menu):
     bl_label = "Object Data"
@@ -1366,6 +1369,7 @@ class VIEW3D_MT_View_Toggle(bpy.types.Menu):
         layout.operator("screen.screen_full_area", text="Toggle Maximize Area")
         layout.operator("screen.screen_full_area").use_hide_panels = True
 
+
 class VIEW3D_MT_View_Menu(bpy.types.Menu):
     bl_label = "View"
 
@@ -1373,10 +1377,9 @@ class VIEW3D_MT_View_Menu(bpy.types.Menu):
         layout = self.layout
         layout.menu("VIEW3D_MT_view_cameras", text="Cameras")
         layout.menu("VIEW3D_MT_View_Directions")
-        layout.menu("VIEW3D_MT_view_navigation")
+        layout.menu("VIEW3D_MT_View_Navigation")
         layout.menu("VIEW3D_MT_Shade")
-        layout.menu("VIEW3D_MT_view_align")
-        layout.menu("VIEW3D_MT_view_align_selected")
+        layout.menu("VIEW3D_MT_View_Align")
         layout.menu("VIEW3D_MT_View_Toggle")
         layout.operator("view3d.view_persportho")
         layout.operator("view3d.localview", text="View Global/Local")
