@@ -2076,7 +2076,6 @@ classes = [
     VIEW3D_MT_MirrorMenu,
     VIEW3D_MT_ParentMenu,
     VIEW3D_MT_GroupMenu,
-    VIEW3D_MT_AlignMenu,
     VIEW3D_MT_Select_Object,
     VIEW3D_MT_Select_Object_More_Less,
     VIEW3D_MT_Select_Edit_Mesh,
