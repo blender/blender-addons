@@ -65,7 +65,7 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
             layout.operator("view3d.properties", icon='MENU_PANEL')
 
 ### Mesh Object Mode ###
-        if context.object is not None and obj.type == 'MESH' and obj.mode in {'OBJECT'}:
+        if obj and obj.type == 'MESH' and obj.mode in {'OBJECT'}:
             layout.operator_context = 'INVOKE_REGION_WIN'
             layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
             layout.separator()
@@ -88,7 +88,7 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
             layout.operator("view3d.properties", icon='MENU_PANEL')
 
 ## Mesh Edit Mode ##
-        if context.object is not None and obj.type == 'MESH' and obj.mode in {'EDIT'}:
+        if obj and obj.type == 'MESH' and obj.mode in {'EDIT'}:
             layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
             layout.separator()
             layout.menu("VIEW3D_MT_View_Menu", icon='ZOOM_ALL')
@@ -109,7 +109,7 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
             layout.operator("view3d.properties", icon='MENU_PANEL')
 
 ## Sculpt Mode ##
-        if context.object is not None and obj.type == 'MESH' and obj.mode in {'SCULPT'}:
+        if obj and obj.type == 'MESH' and obj.mode in {'SCULPT'}:
 
             layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
             layout.separator()
@@ -126,7 +126,7 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
             layout.operator("view3d.properties", icon='MENU_PANEL')
 
 ## Vertex Paint ##
-        if context.object is not None and obj.type == 'MESH' and obj.mode in {'VERTEX_PAINT'}:
+        if obj and obj.type == 'MESH' and obj.mode in {'VERTEX_PAINT'}:
 
             layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
             layout.separator()
@@ -140,7 +140,7 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
             layout.operator("view3d.properties", icon='MENU_PANEL')
 
 ## Weight Paint Menu ##
-        if context.object is not None and obj.type == 'MESH' and obj.mode in {'WEIGHT_PAINT'}:
+        if obj and obj.type == 'MESH' and obj.mode in {'WEIGHT_PAINT'}:
 
             layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
             layout.separator()
@@ -153,7 +153,7 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
             layout.operator("view3d.properties", icon='MENU_PANEL')
 
 ## Texture Paint ##
-        if context.object is not None and obj.type == 'MESH' and obj.mode in {'TEXTURE_PAINT'}:
+        if obj and obj.type == 'MESH' and obj.mode in {'TEXTURE_PAINT'}:
 
             layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
             layout.separator()
@@ -165,7 +165,7 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
             layout.operator("view3d.properties", icon='MENU_PANEL')
 
 ### Curve Object Mode ###
-        if context.object is not None and obj.type == 'CURVE' and obj.mode in {'OBJECT'}:
+        if obj and obj.type == 'CURVE' and obj.mode in {'OBJECT'}:
 
             layout.operator_context = 'INVOKE_REGION_WIN'
             layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
@@ -190,7 +190,7 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
             layout.operator("view3d.properties", icon='MENU_PANEL')
 
 ## Edit Curve ##
-        if context.object is not None and obj.type == 'CURVE' and obj.mode in {'EDIT'}:
+        if obj and obj.type == 'CURVE' and obj.mode in {'EDIT'}:
 
             layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
             layout.separator()
@@ -216,7 +216,7 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
             layout.operator("view3d.properties", icon='MENU_PANEL')
 
 ### Surface Object Mode ###
-        if context.object is not None and obj.type == 'SURFACE' and obj.mode in {'OBJECT'}:
+        if obj and obj.type == 'SURFACE' and obj.mode in {'OBJECT'}:
 
             layout.operator_context = 'INVOKE_REGION_WIN'
             layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
@@ -241,7 +241,7 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
             layout.operator("view3d.properties", icon='MENU_PANEL')
 
 ## Edit Surface ##
-        if context.object is not None and obj.type == 'SURFACE' and obj.mode in {'EDIT'}:
+        if obj and obj.type == 'SURFACE' and obj.mode in {'EDIT'}:
 
             layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
             layout.separator()
@@ -266,7 +266,7 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
             layout.operator("view3d.properties", icon='MENU_PANEL')
 
 ### Metaball Object Mode ###
-        if context.object is not None and obj.type == 'META' and obj.mode in {'OBJECT'}:
+        if obj and obj.type == 'META' and obj.mode in {'OBJECT'}:
 
             layout.operator_context = 'INVOKE_REGION_WIN'
             layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
@@ -291,7 +291,7 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
             layout.operator("view3d.properties", icon='MENU_PANEL')
 
 ## Edit Metaball ##
-        if context.object is not None and obj.type == 'META' and obj.mode in {'EDIT'}:
+        if obj and obj.type == 'META' and obj.mode in {'EDIT'}:
 
             layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
             layout.separator()
@@ -315,7 +315,7 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
             layout.operator("view3d.properties", icon='MENU_PANEL')
 
 ### Text Object Mode ###
-        if context.object is not None and obj.type == 'FONT' and obj.mode in {'OBJECT'}:
+        if obj and obj.type == 'FONT' and obj.mode in {'OBJECT'}:
 
             layout.operator_context = 'INVOKE_REGION_WIN'
             layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
@@ -339,7 +339,7 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
             layout.operator("view3d.properties", icon='MENU_PANEL')
 
 ### Text Edit Mode ###
-        if context.object is not None and obj.type == 'FONT' and obj.mode in {'EDIT'}:
+        if obj and obj.type == 'FONT' and obj.mode in {'EDIT'}:
 
             layout.operator_context = 'INVOKE_REGION_WIN'
             layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
@@ -354,7 +354,7 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
             layout.operator("view3d.properties", icon='MENU_PANEL')
 
 ### Camera Object Mode ###
-        if context.object is not None and obj.type == 'CAMERA' and obj.mode in {'OBJECT'}:
+        if obj and obj.type == 'CAMERA' and obj.mode in {'OBJECT'}:
 
             layout.operator_context = 'INVOKE_REGION_WIN'
             layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
@@ -375,7 +375,7 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
             layout.operator("view3d.properties", icon='MENU_PANEL')
 
 ### Lamp Object Mode ###
-        if context.object is not None and obj.type == 'LAMP' and obj.mode in {'OBJECT'}:
+        if obj and obj.type == 'LAMP' and obj.mode in {'OBJECT'}:
 
             layout.operator_context = 'INVOKE_REGION_WIN'
             layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
@@ -396,7 +396,7 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
             layout.operator("view3d.properties", icon='MENU_PANEL')
 
 ### Armature Object Mode ###
-        if context.object is not None and obj.type == 'ARMATURE' and obj.mode in {'OBJECT'}:
+        if obj and obj.type == 'ARMATURE' and obj.mode in {'OBJECT'}:
 
             layout.operator_context = 'INVOKE_REGION_WIN'
             layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
@@ -419,7 +419,7 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
             layout.operator("view3d.properties", icon='MENU_PANEL')
 
 ## Armature Edit ##
-        if context.object is not None and obj.type == 'ARMATURE' and obj.mode in {'EDIT'}:
+        if obj and obj.type == 'ARMATURE' and obj.mode in {'EDIT'}:
 
             layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
             layout.separator()
@@ -447,7 +447,7 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
             layout.operator("view3d.properties", icon='MENU_PANEL')
 
 ## Armature Pose ##
-        if context.object is not None and obj.type == 'ARMATURE' and obj.mode in {'POSE'}:
+        if obj and obj.type == 'ARMATURE' and obj.mode in {'POSE'}:
 
             arm = context.active_object.data
 
@@ -476,7 +476,7 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
             layout.operator("view3d.properties", icon='MENU_PANEL')
 
 ### Lattice Object Mode ###
-        if context.object is not None and obj.type == 'LATTICE' and obj.mode in {'OBJECT'}:
+        if obj and obj.type == 'LATTICE' and obj.mode in {'OBJECT'}:
 
             layout.operator_context = 'INVOKE_REGION_WIN'
             layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
@@ -501,7 +501,7 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
             layout.operator("view3d.properties", icon='MENU_PANEL')
 
 ## Edit Lattice ##
-        if context.object is not None and obj.type == 'LATTICE' and obj.mode in {'EDIT'}:
+        if obj and obj.type == 'LATTICE' and obj.mode in {'EDIT'}:
 
             layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
             layout.separator()
@@ -522,7 +522,7 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
             layout.operator("view3d.properties", icon='MENU_PANEL')
 
 ### Empty Object Mode ###
-        if context.object is not None and obj.type == 'EMPTY' and obj.mode in {'OBJECT'}:
+        if obj and obj.type == 'EMPTY' and obj.mode in {'OBJECT'}:
 
             layout.operator_context = 'INVOKE_REGION_WIN'
             layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
@@ -544,7 +544,7 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
             layout.operator("view3d.properties", icon='MENU_PANEL')
 
 ### Speaker Object Mode ###
-        if context.object is not None and obj.type == 'SPEAKER' and obj.mode in {'OBJECT'}:
+        if obj and obj.type == 'SPEAKER' and obj.mode in {'OBJECT'}:
 
             layout.operator_context = 'INVOKE_REGION_WIN'
             layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
@@ -563,7 +563,7 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
             layout.operator("view3d.properties", icon='MENU_PANEL')
 
 ## Particle Menu ##
-        if context.object is not None and  context.mode == 'PARTICLE':
+        if obj and  context.mode == 'PARTICLE':
 
             layout.operator("wm.search_menu", text="Search", icon='VIEWZOOM')
             layout.separator()
@@ -586,7 +586,7 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
 
 ############ Object Menus #########
 
-# ********** Object Menu **********								  
+# ********** Object Menu **********
 class VIEW3D_MT_Object(bpy.types.Menu):
     bl_context = "objectmode"
     bl_label = "Object"
