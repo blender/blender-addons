@@ -612,7 +612,7 @@ class VIEW3D_MT_Object(bpy.types.Menu):
         layout.menu("VIEW3D_MT_Object_Data_Link")
         layout.menu("VIEW3D_MT_object_constraints")
         layout.menu("VIEW3D_MT_object_track")
-        layout.menu("VIEW3D_MT_object_animation")	
+        layout.menu("VIEW3D_MT_object_animation")
         layout.menu("VIEW3D_MT_object_game")
         layout.menu("VIEW3D_MT_object_showhide")
         layout.operator_menu_enum("object.convert", "target")
@@ -724,7 +724,7 @@ class VIEW3D_Snap_Context(bpy.types.Menu):
         toolsettings = context.tool_settings
         layout.prop(toolsettings, "snap_element", expand=True)
         layout.prop(toolsettings, "use_snap")
-		
+
 class VIEW3D_Snap_Origin(bpy.types.Menu):
     bl_label = "Snap Origin"
 
@@ -793,29 +793,29 @@ class VIEW3D_MT_CursorMenuLite(bpy.types.Menu):
 
 # ********** Object Interactive Mode **********
 class InteractiveMode(bpy.types.Menu):
-	bl_idname = "VIEW3D_MT_Object_Interactive_Mode"
-	bl_label = "Interactive Mode"
-	bl_description = "Menu of objects interactive modes (Window Types)"
-	
-	def draw(self, context):
-		self.layout.operator(SetObjectMode.bl_idname, text="Object", icon="OBJECT_DATAMODE").mode = "OBJECT"
-		self.layout.operator(SetObjectMode.bl_idname, text="Edit", icon="EDITMODE_HLT").mode = "EDIT"
-		self.layout.operator(SetObjectMode.bl_idname, text="Sculpt", icon="SCULPTMODE_HLT").mode = "SCULPT"
-		self.layout.operator(SetObjectMode.bl_idname, text="Vertex Paint", icon="VPAINT_HLT").mode = "VERTEX_PAINT"
-		self.layout.operator(SetObjectMode.bl_idname, text="Weight Paint", icon="WPAINT_HLT").mode = "WEIGHT_PAINT"
-		self.layout.operator(SetObjectMode.bl_idname, text="Texture Paint", icon="TPAINT_HLT").mode = "TEXTURE_PAINT"
-		self.layout.operator(SetObjectMode.bl_idname, text="Particle Edit", icon="PARTICLEMODE").mode = "PARTICLE_EDIT"
+    bl_idname = "VIEW3D_MT_Object_Interactive_Mode"
+    bl_label = "Interactive Mode"
+    bl_description = "Menu of objects interactive modes (Window Types)"
+
+    def draw(self, context):
+        self.layout.operator(SetObjectMode.bl_idname, text="Object", icon="OBJECT_DATAMODE").mode = "OBJECT"
+        self.layout.operator(SetObjectMode.bl_idname, text="Edit", icon="EDITMODE_HLT").mode = "EDIT"
+        self.layout.operator(SetObjectMode.bl_idname, text="Sculpt", icon="SCULPTMODE_HLT").mode = "SCULPT"
+        self.layout.operator(SetObjectMode.bl_idname, text="Vertex Paint", icon="VPAINT_HLT").mode = "VERTEX_PAINT"
+        self.layout.operator(SetObjectMode.bl_idname, text="Weight Paint", icon="WPAINT_HLT").mode = "WEIGHT_PAINT"
+        self.layout.operator(SetObjectMode.bl_idname, text="Texture Paint", icon="TPAINT_HLT").mode = "TEXTURE_PAINT"
+        self.layout.operator(SetObjectMode.bl_idname, text="Particle Edit", icon="PARTICLEMODE").mode = "PARTICLE_EDIT"
 
 # ********** Object Armature Interactive Mode **********
 class InteractiveModeArmature(bpy.types.Menu):
-	bl_idname = "VIEW3D_MT_Object_Interactive_Armature"
-	bl_label = "Interactive Mode"
-	bl_description = "Menu of objects interactive mode"
-	
-	def draw(self, context):
-		self.layout.operator(SetObjectMode.bl_idname, text="Object", icon="OBJECT_DATAMODE").mode = "OBJECT"
-		self.layout.operator(SetObjectMode.bl_idname, text="Edit", icon="EDITMODE_HLT").mode = "EDIT"
-		self.layout.operator(SetObjectMode.bl_idname, text="Pose", icon="POSE_HLT").mode = "POSE"
+    bl_idname = "VIEW3D_MT_Object_Interactive_Armature"
+    bl_label = "Interactive Mode"
+    bl_description = "Menu of objects interactive mode"
+
+    def draw(self, context):
+        self.layout.operator(SetObjectMode.bl_idname, text="Object", icon="OBJECT_DATAMODE").mode = "OBJECT"
+        self.layout.operator(SetObjectMode.bl_idname, text="Edit", icon="EDITMODE_HLT").mode = "EDIT"
+        self.layout.operator(SetObjectMode.bl_idname, text="Pose", icon="POSE_HLT").mode = "POSE"
 
 # ********** Object Parent **********
 class VIEW3D_MT_ParentMenu(bpy.types.Menu):
@@ -1454,7 +1454,7 @@ class VIEW3D_MT_View_Cameras(bpy.types.Menu):
         layout = self.layout
         layout.operator("view3d.object_as_camera")
         layout.operator("view3d.viewnumpad", text="Active Camera").type = 'CAMERA'
-		
+
 class VIEW3D_MT_Shade(Menu):
     bl_label = "Shade"
 
@@ -1824,7 +1824,7 @@ class VIEW3D_MT_Select_Gpencil(bpy.types.Menu):
     # To Do: used in 3dview header might work if mapped to mouse
     # Not in Class List yet
     bl_label = "Select"
-    
+
     def draw(self, context):
         layout = self.layout
 
@@ -2013,23 +2013,23 @@ class VIEW3D_OT_CursorToEdgeIntersection(bpy.types.Operator):
 
 ### Set Mode Operator ###
 
-class SetObjectMode(bpy.types.Operator): 
-	bl_idname = "object.set_object_mode"
-	bl_label = "Set the object interactive mode"
-	bl_description = "I set the interactive mode of object"
-	bl_options = {'REGISTER'}
-	
-	mode = bpy.props.StringProperty(name="Interactive mode", default="OBJECT")
-	
-	def execute(self, context):
-		if (context.active_object):
-			try:
-				bpy.ops.object.mode_set(mode=self.mode)
-			except TypeError:
-				self.report(type={"WARNING"}, message=context.active_object.name+" It is not possible to enter into the interactive mode")
-		else:
-			self.report(type={"WARNING"}, message="There is no active object")
-		return {'FINISHED'}
+class SetObjectMode(bpy.types.Operator):
+    bl_idname = "object.set_object_mode"
+    bl_label = "Set the object interactive mode"
+    bl_description = "I set the interactive mode of object"
+    bl_options = {'REGISTER'}
+
+    mode = bpy.props.StringProperty(name="Interactive mode", default="OBJECT")
+
+    def execute(self, context):
+        if (context.active_object):
+            try:
+                bpy.ops.object.mode_set(mode=self.mode)
+            except TypeError:
+                self.report(type={"WARNING"}, message=context.active_object.name+" It is not possible to enter into the interactive mode")
+        else:
+            self.report(type={"WARNING"}, message="There is no active object")
+        return {'FINISHED'}
 
 ## Origin To Selected Edit Mode ##
 def vfeOrigin(context):
@@ -2043,7 +2043,7 @@ def vfeOrigin(context):
     bpy.context.scene.cursor_location[0] = cursorPositionX
     bpy.context.scene.cursor_location[1] = cursorPositionY
     bpy.context.scene.cursor_location[2] = cursorPositionZ
-    
+
 class SetOriginToSelected(bpy.types.Operator):
     '''Tooltip'''
     bl_idname = "object.setorigintoselected"
@@ -2055,8 +2055,6 @@ class SetOriginToSelected(bpy.types.Operator):
 
     def execute(self, context):
         vfeOrigin(context)
-        
-        
         return {'FINISHED'}
 
 ### List The Classes ###
