@@ -39,7 +39,12 @@ if "bpy" in locals():
 
 
 import bpy
-from bpy.props import StringProperty, IntProperty, FloatProperty
+from bpy.props import (
+        BoolProperty,
+        FloatProperty,
+        IntProperty,
+        StringProperty,
+        )
 from bpy_extras.io_utils import ExportHelper, ImportHelper
 
 
@@ -95,7 +100,7 @@ class ExportMDD(bpy.types.Operator, ExportHelper):
 
     # get first scene to get min and max properties for frames, fps
 
-    minframe = 1
+    minframe = 0
     maxframe = 300000
     minfps = 1.0
     maxfps = 120.0
@@ -119,6 +124,11 @@ class ExportMDD(bpy.types.Operator, ExportHelper):
             description="End frame for baking",
             min=minframe, max=maxframe,
             default=250,
+            )
+    use_rest_frame = BoolProperty(
+            name="Rest Frame",
+            description="Write the rest state at the first frame",
+            default=False,
             )
 
     @classmethod
