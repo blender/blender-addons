@@ -51,7 +51,7 @@ def check_vertcount(mesh, vertcount):
         raise Exception('Error, number of verts has changed during animation, cannot export')
 
 
-def save(operator, context, filepath="", frame_start=1, frame_end=300, fps=25.0):
+def save(context, filepath="", frame_start=1, frame_end=300, fps=25.0):
     """
     Blender.Window.WaitCursor(1)
 

@@ -82,7 +82,7 @@ class ImportMDD(bpy.types.Operator, ImportHelper):
         keywords = self.as_keywords(ignore=("filter_glob",))
 
         from . import import_mdd
-        return import_mdd.load(self, context, **keywords)
+        return import_mdd.load(context, **keywords)
 
 
 class ExportMDD(bpy.types.Operator, ExportHelper):
@@ -138,7 +138,7 @@ class ExportMDD(bpy.types.Operator, ExportHelper):
         keywords = self.as_keywords(ignore=("check_existing", "filter_glob"))
 
         from . import export_mdd
-        return export_mdd.save(self, context, **keywords)
+        return export_mdd.save(context, **keywords)
 
 
 def menu_func_import(self, context):
