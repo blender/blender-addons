@@ -282,7 +282,6 @@ class VIEW3D_MT_Space_Dynamic_Menu(bpy.types.Menu):
             layout.menu("VIEW3D_MT_GroupMenu", icon='GROUP')
             layout.menu("VIEW3D_MT_object_specials", text = "Specials", icon='SOLO_OFF')
             layout.menu("VIEW3D_MT_Camera_Options", icon='OUTLINER_OB_CAMERA')
-            layout.operator_menu_enum("object.modifier_add", "type", icon='MODIFIER')
             layout.operator("object.delete", text="Delete Object", icon='X_VEC')
             layout.menu("VIEW3D_MT_UndoS", icon='ARROW_LEFTRIGHT')
             layout.operator("object.editmode_toggle", text="Enter Edit Mode",
