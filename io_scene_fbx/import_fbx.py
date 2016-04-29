@@ -1305,6 +1305,9 @@ def blen_read_material(fbx_tmpl, fbx_obj, settings):
         ma.diffuse_color = ma_diff
         ma.specular_color = ma_spec
         ma.alpha = ma_alpha
+        if ma_alpha < 1.0:
+            ma.use_transparency = True
+            ma.transparency_method = 'RAYTRACE'
         ma.specular_intensity = ma_spec_intensity
         ma.specular_hardness = ma_spec_hardness * 5.10 + 1.0
 
