@@ -544,14 +544,13 @@ def texface_to_mat():
         bpy.ops.object.mode_set(mode='EDIT')
 
 def remove_materials():
+    for ob in bpy.data.objects:
+        try:
+            bpy.ops.object.material_slot_remove()
+            print ("removed material from " + ob.name)
+        except:
+            print (ob.name + " does not have materials.")
 
-	for ob in bpy.data.objects:
-		print (ob.name)
-		try:
-			bpy.ops.object.material_slot_remove()
-			print ("removed material from " + ob.name)
-		except:
-			print (ob.name + " does not have materials.")
 # -----------------------------------------------------------------------------
 # operator classes:
 

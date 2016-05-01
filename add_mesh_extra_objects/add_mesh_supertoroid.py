@@ -23,7 +23,7 @@ def create_mesh_object(context, verts, edges, faces, name):
 
     from bpy_extras import object_utils
     return object_utils.object_data_add(context, mesh, operator=None)
-	
+
 # A very simple "bridge" tool.
 
 def createFaces(vertIdx1, vertIdx2, closed=False, flipped=False):
@@ -80,7 +80,8 @@ def createFaces(vertIdx1, vertIdx2, closed=False, flipped=False):
             faces.append(face)
 
     return faces
-	
+
+
 def power(a,b):
     if a < 0:
         return -((-a)**b)
