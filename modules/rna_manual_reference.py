@@ -153,7 +153,7 @@ url_manual_mapping = (
     ("bpy.types.ShrinkwrapModifier.*",       "modeling/modifiers/deform/shrinkwrap.html"),
     ("bpy.types.SimpleDeformModifier.*",     "modeling/modifiers/deform/simple_deform.html"),
     ("bpy.types.SmoothModifier.*",           "modeling/modifiers/deform/smooth.html"),
-    # ("bpy.types.SurfaceModifier.*",        "Modifiers/Deform/"),  # USERS NEVER SEE THIS
+    # ("bpy.types.SurfaceModifier.*",        "Modifiers/Deform"),  # USERS NEVER SEE THIS
     ("bpy.types.WarpModifier.*",             "modeling/modifiers/deform/warp.html"),
     ("bpy.types.WaveModifier.*",             "modeling/modifiers/deform/wave.html"),
     # --- Simulate Modifiers ---
@@ -561,7 +561,7 @@ url_manual_mapping = (
     # *** Sequencer ***
     ("bpy.types.AddSequence.*",            "editors/sequencer/strips/types/effects/add.html"),
     ("bpy.types.AdjustmentSequence.*",     "editors/sequencer/strips/types/effects/adjustment.html"),
-    ("bpy.types.AlphaOverSequence.*",       "editors/sequencer/strips/types/effects/alpha_over_under_overdrop.html"),
+    ("bpy.types.AlphaOverSequence.*",      "editors/sequencer/strips/types/effects/alpha_over_under_overdrop.html"),
     ("bpy.types.AlphaUnderSequence.*",     "editors/sequencer/strips/types/effects/alpha_over_under_overdrop.html"),
     ("bpy.types.ColorSequence.*",          "editors/sequencer/strips/types/effects/color.html"),
     ("bpy.types.CrossSequence.*",          "editors/sequencer/strips/types/effects/cross.html"),
@@ -749,7 +749,7 @@ url_manual_mapping = (
     ("bpy.types.EditBone.*",            "rigging/armatures/editing"),
     ("bpy.types.PoseBone.*",            "rigging/posing"),
     ("bpy.types.ArmatureBones.*",       "rigging/armatures/bones"),
-    ("bpy.types.ArmatureEditBones.*",   "rigging/armatures/editing/"),
+    ("bpy.types.ArmatureEditBones.*",   "rigging/armatures/editing"),
     ("bpy.types.Pose.*",                "rigging/posing"),
     ("bpy.types.PoseBoneConstraints.*", "rigging/posing/constraints.html"),
 
@@ -799,7 +799,7 @@ url_manual_mapping = (
     # Actuators
     ("bpy.types.ActionActuator.*",         "game_engine/logic/actuators/types/action.html"),
     ("bpy.types.Actuator.*",               "game_engine/logic/actuators"),
-    ("bpy.types.ArmatureActuator.*",       ""),
+    # ("bpy.types.ArmatureActuator.*",     ""),
     ("bpy.types.CameraActuator.*",         "game_engine/logic/actuators/types/camera.html"),
     ("bpy.types.ConstraintActuator.*",     "game_engine/logic/actuators/types/constraint.html"),
     ("bpy.types.EditObjectActuator.*",     "game_engine/logic/actuators/types/edit_object.html"),
@@ -827,7 +827,7 @@ url_manual_mapping = (
 
     ("bpy.ops.action.*",                  "animation/actions.html"),
     ("bpy.ops.anim.*",                    "animation"),
-    ("bpy.ops.armature.*",                "rigging/armatures/"),
+    ("bpy.ops.armature.*",                "rigging/armatures"),
     ("bpy.ops.boid.*",                    "physics/particles/physics/boids.html"),
     ("bpy.ops.brush.*",                   "painting_sculpting/introduction.html#brush"),  # TODO doc
     ("bpy.ops.buttons.*",                 "interface/buttons_and_controls.html"),
@@ -839,10 +839,10 @@ url_manual_mapping = (
     ("bpy.ops.curve.*",                   "modeling/curves"),
     ("bpy.ops.cycles.*",                  "render/cycles"),
     ("bpy.ops.dpaint.*",                  "physics/dynamic_paint"),
-    ("bpy.ops.ed.*",                      "interface/undo_and_redo.html"),
     ("bpy.ops.ed.undo",                   "interface/undo_and_redo.html#undo"),
     ("bpy.ops.ed.redo",                   "interface/undo_and_redo.html#redo"),
     ("bpy.ops.ed.undo_history",           "interface/undo_and_redo.html#undo-history"),
+    ("bpy.ops.ed.*",                      "interface/undo_and_redo.html"), # Catchall
     ("bpy.ops.screen.repeat_last",        "interface/undo_and_redo.html#repeat-last"),
     ("bpy.ops.screen.repeat_history",     "interface/undo_and_redo.html#repeat-history"),
     # ("bpy.ops.export_anim.*",           ""),  # TODO
@@ -892,7 +892,7 @@ url_manual_mapping = (
     # ("bpy.ops.ptcache.*",               ""),  # TODO
 
     ("bpy.ops.render.play-rendered-anim", "render/output/display.html#animation-playback"),
-    ("bpy.ops.render.*",                  "render"),  # catchall
+    ("bpy.ops.render.*",                  "render"),  # Catchall
     ("bpy.ops.rigidbody.*",               "physics/rigid_body"),
     ("bpy.ops.safe_areas.*",              "editors/3dview/object/types/camera/safe_areas.html"),
     ("bpy.ops.scene.*",                   "data_system/scenes.html"),
@@ -900,13 +900,12 @@ url_manual_mapping = (
     ("bpy.ops.script.*",                  "advanced/scripting"),
     ("bpy.ops.sculpt.*",                  "painting_sculpting/sculpting"),
     ("bpy.ops.sequencer.*",               "editors/sequencer"),
-    # ("bpy.ops.sketch.*",  ""),          #  TODO
+    # ("bpy.ops.sketch.*",                ""),  # TODO
     ("bpy.ops.sound.*",                   "editors/3dview/object/types/speaker.html"),
     ("bpy.ops.surface.*",                 "modeling/surfaces"),
     ("bpy.ops.text.*",                    "editors/text_editor.html"),
     ("bpy.ops.texture.*",                 "render/blender_render/textures"),
     ("bpy.ops.time.*",                    "editors/timeline.html"),
-    ("bpy.ops.transform.*",               "editors/3dview/transform"),  # catch all
     ("bpy.ops.transform.edge_slide",      "modeling/meshes/editing/edges.html#edge-slide"),
     ("bpy.ops.transform.vert_slide",      "modeling/meshes/editing/vertices.html#vertex-slide"),
     ("bpy.ops.transform.shrink_fatten",   "modeling/meshes/editing/deforming/shrink-fatten.html"),
@@ -915,6 +914,7 @@ url_manual_mapping = (
     ("bpy.ops.transform.rotate",          "editors/3dview/transform/rotate.html"),
     ("bpy.ops.transform.resize",          "editors/3dview/transform/scale.html"),
     # ("bpy.ops.transform.mirror",        ""),  # TODO
+    ("bpy.ops.transform.*",               "editors/3dview/transform"),  # Catchall
     ("bpy.ops.object.duplicate_move",     "editors/3dview/transform/duplication/introduction.html#duplicate"),
     ("bpy.ops.object.duplicate_move_linked",   "editors/3dview/transform/duplication/introduction.html#linked-duplicates"),
     # ("bpy.ops.object.delete",           ""),
@@ -928,7 +928,7 @@ url_manual_mapping = (
     ("bpy.ops.ui.*",                      "interface"),
     ("bpy.ops.uv.*",                      "editors/uv_image"),
     # ("bpy.ops.view2d.*",  ""),          #  TODO
-    ("bpy.ops.view3d.*",                  "editors/3dview/"),
+    ("bpy.ops.view3d.*",                  "editors/3dview"),
     ("bpy.ops.wm.*",                      "interface/window_system"),
     ("bpy.ops.world.*",                   "render/blender_render/world"),
 
