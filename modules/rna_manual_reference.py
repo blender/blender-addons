@@ -316,13 +316,13 @@ url_manual_mapping = (
     # ... todo, many more options
 
     # *** Movie Clip ***
-    ("bpy.types.MovieClip.*",                  "editors/movie_clip_editor"),
-    ("bpy.types.MovieTrackingCamera.*",        "editors/movie_clip_editor/tracking/clip.html#tools-available-in-reconstruction-mode"),
-    ("bpy.types.MovieTrackingStabilization.*", "editors/movie_clip_editor/tracking/introduction.html#tools-for-scene-orientation-and-stabilization"),
-    ("bpy.types.MovieTrackingTrack*",          "editors/movie_clip_editor/tracking/clip.html#tracking-mode"),
+    ("bpy.types.MovieTrackingCamera.*",        "editors/movie_clip_editor/tracking/clip/properties.html#camera-data-panel"),
+    ("bpy.types.MovieTrackingStabilization.*", "editors/movie_clip_editor/tracking/clip/properties.html#d-stabilization-panel"),
+    ("bpy.types.MovieTrackingTrack*",          "editors/movie_clip_editor/tracking/clip/properties.html#track-panel"),
     ("bpy.types.MovieTracking*",               "editors/movie_clip_editor/tracking"),
     ("bpy.types.SpaceClipEditor.*",            "editors/movie_clip_editor/introduction.html"),
     ("bpy.types.MovieClipProxy.*",             "editors/movie_clip_editor/properties/proxy.html"),
+    ("bpy.types.MovieClip.*",                  "editors/movie_clip_editor"), # Catchall
 
     ("bpy.types.ColorManaged*",                "render/post_process/cm_and_exposure.html"),
     # ("bpy.types.NodeTree.*",                 ""), # dont document
