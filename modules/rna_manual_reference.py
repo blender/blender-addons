@@ -43,7 +43,7 @@ LANG = {
 #   "sv_SE":        "sv",
 #   "tr_TR":        "th",
 #   "uk_UA":        "uk",
-#   "es":           "es",
+    "es":           "es",  # Spanish.
 #   "fi_FI":        "fi",
     "fr_FR":        "fr",  # French.
 #   "id_ID":        "id",
@@ -51,10 +51,10 @@ LANG = {
 #   "ja_JP":        "ja",
 #   "nl_NL":        "nl",
 #   "pl_PL":        "pl",
-#   "pt_PT":        "pt",
-#   "pt_BR":        "pt",
+    "pt_PT":        "pt",  # Portuguese.
+    "pt_BR":        "pt",  # Portuguese - for until we have a pt_BR version.
     "zh_CN":        "zh.cn",  # Chinese - Should be changed to "zh_cn" but there is a bug in sphinx-intl.
-    "zh_TW":        "zh.cn",  # Taiwanese Chinese - for until we have a zh_tw version
+    "zh_TW":        "zh.cn",  # Taiwanese Chinese - for until we have a zh_tw version.
 }.get(language)
 
 if LANG is not None:
