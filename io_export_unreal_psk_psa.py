@@ -2276,9 +2276,7 @@ class Panel_UDKExport( bpy.types.Panel ):
 
     bl_label        = "UDK Export"
     bl_idname       = "OBJECT_PT_udk_tools"
-    #bl_space_type  = "PROPERTIES"
-    #bl_region_type = "WINDOW"
-    #bl_context     = "object"
+    bl_category     = "Import/Export"
     bl_space_type   = "VIEW_3D"
     bl_region_type  = "TOOLS"
 
