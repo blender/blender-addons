@@ -546,6 +546,36 @@ class SCENE_PT_namedlayer_groups(bpy.types.Panel):
             layout.prop(scene.layergroups[group_idx], "layers", text="", toggle=True)
             layout.prop(scene.layergroups[group_idx], "name", text="Name:")
 
+## Addons Preferences Update Panel
+def update_panel(self, context):
+    try:
+        bpy.utils.unregister_class(SCENE_PT_namedlayer_layers)
+        bpy.utils.unregister_class(SCENE_PT_namedlayer_groups)
+    except:
+        pass
+    SCENE_PT_namedlayer_layers.bl_category = context.user_preferences.addons[__name__].preferences.category
+    bpy.utils.register_class(SCENE_PT_namedlayer_layers) 
+    SCENE_PT_namedlayer_groups.bl_category = context.user_preferences.addons[__name__].preferences.category
+    bpy.utils.register_class(SCENE_PT_namedlayer_groups)    
+
+class LayerMAddonPreferences(bpy.types.AddonPreferences):
+    # this must match the addon name, use '__package__'
+    # when defining this in a submodule of a python package.
+    bl_idname = __name__
+
+    category = bpy.props.StringProperty(
+            name="Category",
+            description="Choose a name for the category of the panel",
+            default="Layers",
+            update=update_panel)
+
+    def draw(self, context):
+
+        layout = self.layout
+        row = layout.row()
+        col = row.column()
+        col.label(text="Category:")
+        col.prop(self, "category", text="")
 
 def register():
     bpy.utils.register_module(__name__)
