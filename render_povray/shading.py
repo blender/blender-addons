@@ -266,7 +266,7 @@ def exportPattern(texture, string_strip_hyphen):
         return colRampStrg
     #much work to be done here only defaults translated for now:
     #pov noise_generator 3 means perlin noise
-    if pat.tex_pattern_type == 'emulator':
+    if tex.type!='NONE' and pat.tex_pattern_type == 'emulator':
         texStrg+="pigment {\n"
         ####################### EMULATE BLENDER VORONOI TEXTURE ####################
         if tex.type == 'VORONOI':  
@@ -547,7 +547,7 @@ def exportPattern(texture, string_strip_hyphen):
         texStrg+="function{pigment{%s}}\n"%PATname       
         texStrg+="\n"
         
-    else:
+    elif pat.tex_pattern_type != 'emulator':
         texStrg+="pigment {\n"
         texStrg+="%s\n"%pat.tex_pattern_type
         if pat.tex_pattern_type == 'agate': 
@@ -706,8 +706,8 @@ def exportPattern(texture, string_strip_hyphen):
     
     
 def writeTextureInfluence(mater, materialNames, LocalMaterialNames, path_image,
-                            imageFormat, imgMap, imgMapTransforms, file,
-                            tabWrite, string_strip_hyphen, safety, col):
+                            imageFormat, imgMap, imgMapTransforms, tabWrite,
+                            string_strip_hyphen, safety, col, os, preview_dir, unpacked_images):
     material_finish = materialNames[mater.name]                        
     if mater.use_transparency:
         trans = 1.0 - mater.alpha
@@ -809,17 +809,17 @@ def writeTextureInfluence(mater, materialNames, LocalMaterialNames, path_image,
     ####################################################################################
 
 
-    file.write("\n")
+    tabWrite("\n")
     # THIS AREA NEEDS TO LEAVE THE TEXTURE OPEN UNTIL ALL MAPS ARE WRITTEN DOWN.
     # --MR
     currentMatName = string_strip_hyphen(materialNames[mater.name])
     LocalMaterialNames.append(currentMatName)
-    file.write("\n#declare MAT_%s = \ntexture{\n" % currentMatName)
+    tabWrite("\n#declare MAT_%s = \ntexture{\n" % currentMatName)
 
     ################################################################################
     
     if mater.pov.replacement_text != "":
-        file.write("%s\n" % mater.pov.replacement_text)
+        tabWrite("%s\n" % mater.pov.replacement_text)
     #################################################################################
     if mater.diffuse_shader == 'MINNAERT':
         tabWrite("\n")
@@ -1107,9 +1107,9 @@ def writeTextureInfluence(mater, materialNames, LocalMaterialNames, path_image,
         ## scale 1 rotate y*0
         #imageMap = ("{image_map {%s \"%s\" %s }" % \
         #            (imageFormat(textures), textures,imgMap(t_dif)))
-        #file.write("\n\t\t\tuv_mapping pigment %s} %s finish {%s}" % \
+        #tabWrite("\n\t\t\tuv_mapping pigment %s} %s finish {%s}" % \
         #           (imageMap, mapping, safety(material_finish)))
-        #file.write("\n\t\t\tpigment {uv_mapping image_map " \
+        #tabWrite("\n\t\t\tpigment {uv_mapping image_map " \
         #           "{%s \"%s\" %s}%s} finish {%s}" % \
         #           (imageFormat(texturesDif), texturesDif,imgMap(t_dif),
         #            mappingDif, safety(material_finish)))
@@ -1170,7 +1170,7 @@ def writeTextureInfluence(mater, materialNames, LocalMaterialNames, path_image,
     
     if colored_specular_found and not special_texture_found:
         if comments:
-            file.write("  // colored highlights with a stransparent metallic layer\n")
+            tabWrite("  // colored highlights with a stransparent metallic layer\n")
         else:
             tabWrite("\n")
     

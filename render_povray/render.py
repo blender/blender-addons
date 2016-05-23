@@ -142,8 +142,9 @@ def imgMapBG(wts):
     
     
 def path_image(image):
-    return bpy.path.abspath(image.filepath, library=image.library)
-
+    return bpy.path.abspath(image.filepath, library=image.library).replace("\\","/")
+    # .replace("\\","/") to get only forward slashes as it's what POV prefers, 
+    # even on windows
 # end find image texture
 # -----------------------------------------------------------------------------
 
@@ -425,7 +426,7 @@ def write_pov(filename, scene=None, info_callback=None):
 
             if material.pov.photons_reflection:
                 pov_photons_reflection = True
-            if material.pov.refraction_type == "0":
+            if not material.pov.refraction_caustics:
                 pov_fake_caustics = False
                 pov_photons_refraction = False
             elif material.pov.refraction_type == "1":
@@ -2709,9 +2710,9 @@ def write_pov(filename, scene=None, info_callback=None):
                                                                         LocalMaterialNames,
                                                                         path_image, imageFormat,
                                                                         imgMap, imgMapTransforms,
-                                                                        file, tabWrite,
+                                                                        tabWrite,
                                                                         string_strip_hyphen,
-                                                                        safety, col)
+                                                                        safety, col, os, preview_dir,  unpacked_images)
                                     ###################################################################
                                     index[0] = idx
                                     idx += 1                                    
@@ -3153,7 +3154,8 @@ def write_pov(filename, scene=None, info_callback=None):
             #string_strip_hyphen(patternNames[texture.name]) #maybe instead of the above
             LocalPatternNames.append(currentPatName) 
             #use above list to prevent writing texture instances several times and assign in mats?
-            file.write("\n#declare PAT_%s = \n" % currentPatName)
+            if (texture.type!='NONE' and texture.pov.tex_pattern_type == 'emulator')or(texture.type =='NONE' and texture.pov.tex_pattern_type != 'emulator'):
+                file.write("\n#declare PAT_%s = \n" % currentPatName)
             file.write(shading.exportPattern(texture, string_strip_hyphen))
             file.write("\n")                
     if comments:

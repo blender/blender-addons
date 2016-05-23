@@ -351,7 +351,7 @@ class RenderPovSettingsScene(PropertyGroup):
 ###############################################################################
 class RenderPovSettingsMaterial(PropertyGroup):
     irid_enable = BoolProperty(
-            name="Enable Iridescence",
+            name="Iridescence coating",
             description="Newton's thin film interference (like an oil slick on a puddle of "
                         "water or the rainbow hues of a soap bubble.)",
             default=False)
@@ -392,7 +392,7 @@ class RenderPovSettingsMaterial(PropertyGroup):
             min=0.0, max=10.0, soft_min=0.000, soft_max=1.0, default=0)
 
     interior_fade_color = FloatVectorProperty(
-            name="Fade Color", description="Color of filtered attenuation for transparent "
+            name="Interior Fade Color", description="Color of filtered attenuation for transparent "
                                            "materials",
             precision=4, step=0.01, min=0.0, soft_max=1.0,
             default=(0, 0, 0), options={'ANIMATABLE'}, subtype='COLOR')
@@ -412,11 +412,11 @@ class RenderPovSettingsMaterial(PropertyGroup):
             description="Values typically range from 0.0 to 1.0 or higher. Zero is no caustics. "
                         "Low, non-zero values give broad hot-spots while higher values give "
                         "tighter, smaller simulated focal points",
-            min=0.00, max=10.0, soft_min=0.00, soft_max=1.10, default=0.5)
+            min=0.00, max=10.0, soft_min=0.00, soft_max=5.0, default=0.07)
 
-    photons_refraction = BoolProperty(
-            name="Refractive Photon Caustics", description="more physically correct",
-            default=False)
+    refraction_caustics = BoolProperty(
+            name="Refractive Caustics", description="hotspots of light focused when going through the material",
+            default=True)
 
     photons_dispersion = FloatProperty(
             name="Chromatic Dispersion",
@@ -435,10 +435,10 @@ class RenderPovSettingsMaterial(PropertyGroup):
             default=False)
 
     refraction_type = EnumProperty(
-            items=[("0", "None", "use only reflective caustics"),
+            items=[
                    ("1", "Fake Caustics", "use fake caustics"),
                    ("2", "Photons Caustics", "use photons for refractive caustics")],
-            name="Refractive",
+            name="Refraction Type:",
             description="use fake caustics (fast) or true photons for refractive Caustics",
             default="1")
 
