@@ -144,7 +144,7 @@ url_manual_mapping = (
 
     # *** Modifiers ***
     # --- Intro ---
-    ("bpy.types.Modifier.show_*", "modeling/modifiers/the_stack.html"),
+    ("bpy.types.Modifier.show_*", "modeling/modifiers/introduction.html#the-modifier-stack"),
     ("bpy.types.Modifier.*", "modeling/modifiers"),  # catchall for various generic options
     # --- Modify Modifiers ---
     ("bpy.types.DataTransferModifier.*",           "modeling/modifiers/modify/data_transfer.html"),
@@ -186,7 +186,7 @@ url_manual_mapping = (
     ("bpy.types.ShrinkwrapModifier.*",       "modeling/modifiers/deform/shrinkwrap.html"),
     ("bpy.types.SimpleDeformModifier.*",     "modeling/modifiers/deform/simple_deform.html"),
     ("bpy.types.SmoothModifier.*",           "modeling/modifiers/deform/smooth.html"),
-    # ("bpy.types.SurfaceModifier.*",        "Modifiers/Deform"),  # USERS NEVER SEE THIS
+    # ("bpy.types.SurfaceModifier.*",        "modeling/modifiers/deform/"),  # USERS NEVER SEE THIS
     ("bpy.types.WarpModifier.*",             "modeling/modifiers/deform/warp.html"),
     ("bpy.types.WaveModifier.*",             "modeling/modifiers/deform/wave.html"),
     # --- Simulate Modifiers ---
@@ -419,9 +419,9 @@ url_manual_mapping = (
     ("bpy.types.ShaderNodeCameraData.*",      "render/cycles/nodes/types/input/camera_data.html"),
     ("bpy.types.ShaderNodeUVMap",             "render/cycles/nodes/types/input/uv_map.html"),
     # Outputs
-    ("bpy.types.ShaderNodeOutputLamp.*",           "render/cycles/nodes/types/output.html#lamp-output"),
-    ("bpy.types.ShaderNodeOutputMaterial.*",       "render/cycles/nodes/types/output.html#material-output"),
-    ("bpy.types.ShaderNodeOutputWorld.*",          "render/cycles/nodes/types/output.html#world-output"),
+    ("bpy.types.ShaderNodeOutputLamp.*",           "render/cycles/nodes/types/output/lamp.html"),
+    ("bpy.types.ShaderNodeOutputMaterial.*",       "render/cycles/nodes/types/output/material.html"),
+    ("bpy.types.ShaderNodeOutputWorld.*",          "render/cycles/nodes/types/output/world.html"),
     # Shaders
     ("bpy.types.ShaderNodeAddShader.*",            "render/cycles/nodes/types/shaders/add.html"),
     ("bpy.types.ShaderNodeAmbientOcclusion.*",     "render/cycles/nodes/types/shaders/ao.html"),
