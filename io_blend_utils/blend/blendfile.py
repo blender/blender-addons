@@ -19,10 +19,10 @@
 # (c) 2009, At Mind B.V. - Jeroen Bakker
 # (c) 2014, Blender Foundation - Campbell Barton
 
+import gzip
+import logging
 import os
 import struct
-import logging
-import gzip
 import tempfile
 
 log = logging.getLogger("blendfile")
@@ -79,9 +79,8 @@ def open_blend(filename, access="rb"):
         raise Exception("filetype not a blend or a gzip blend")
 
 
-def align(offset, by):
-    n = by - 1
-    return (offset + n) & ~n
+def pad_up_4(offset):
+    return (offset + 3) & ~3
 
 
 # -----------------------------------------------------------------------------
@@ -168,10 +167,9 @@ class BlendFile:
         Close the blend file
         writes the blend file to disk if changes has happened
         """
-        if not self.is_modified:
-            self.handle.close()
-        else:
-            handle = self.handle
+        handle = self.handle
+
+        if self.is_modified:
             if self.is_compressed:
                 log.debug("close compressed blend file")
                 handle.seek(os.SEEK_SET, 0)
@@ -184,7 +182,7 @@ class BlendFile:
                 fs.close()
                 log.debug("compressing finished")
 
-            handle.close()
+        handle.close()
 
     def ensure_subtype_smaller(self, sdna_index_curr, sdna_index_next):
         # never refine to a smaller type
@@ -223,7 +221,7 @@ class BlendFile:
             names.append(DNAName(tName))
         del names_len
 
-        offset = align(offset, 4)
+        offset = pad_up_4(offset)
         offset += 4
         types_len = intstruct.unpack_from(data, offset)[0]
         offset += 4
@@ -234,7 +232,7 @@ class BlendFile:
             types.append(DNAStruct(dna_type_id))
             offset += len(dna_type_id) + 1
 
-        offset = align(offset, 4)
+        offset = pad_up_4(offset)
         offset += 4
         log.debug("building #%d type-lengths" % types_len)
         for i in range(types_len):
@@ -243,7 +241,7 @@ class BlendFile:
             types[i].size = tLen
         del types_len
 
-        offset = align(offset, 4)
+        offset = pad_up_4(offset)
         offset += 4
 
         structs_len = intstruct.unpack_from(data, offset)[0]
