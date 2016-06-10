@@ -1992,6 +1992,7 @@ def fbx_animations(scene_data):
     # Per-NLA strip animstacks.
     if scene_data.settings.bake_anim_use_nla_strips:
         strips = []
+        ob_actions = []
         for ob_obj in scene_data.objects:
             # NLA tracks only for objects, not bones!
             if not ob_obj.is_object:
@@ -1999,6 +2000,9 @@ def fbx_animations(scene_data):
             ob = ob_obj.bdata  # Back to real Blender Object.
             if not ob.animation_data:
                 continue
+            # We have to remove active action from objects, it overwrites strips actions otherwise...
+            ob_actions.append((ob, ob.animation_data.action))
+            ob.animation_data.action = None
             for track in ob.animation_data.nla_tracks:
                 if track.mute:
                     continue
@@ -2016,6 +2020,9 @@ def fbx_animations(scene_data):
 
         for strip in strips:
             strip.mute = False
+
+        for ob, ob_act in ob_actions:
+            ob.animation_data.action = ob_act
 
     # All actions.
     if scene_data.settings.bake_anim_use_all_actions:
