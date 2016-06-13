@@ -32,6 +32,14 @@ bl_info = {
     "category": "Add Mesh",
 }
 
+from .geodesic_domes import __init__
+from .geodesic_domes import add_shape_geodesic
+from .geodesic_domes import forms_271
+from .geodesic_domes import geodesic_classes_271
+from .geodesic_domes import third_domes_panel_271
+from .geodesic_domes import vefm_271
+
+
 if "bpy" in locals():
     import importlib
     importlib.reload(add_mesh_star)
@@ -51,6 +59,9 @@ if "bpy" in locals():
     importlib.reload(add_mesh_menger_sponge)
     importlib.reload(add_mesh_vertex)
     importlib.reload(add_empty_as_parent)
+    importlib.reload(mesh_discombobulator)
+    importlib.reload(add_mesh_beam_builder)
+    importlib.reload(Wallfactory)
 else:
     from . import add_mesh_star
     from . import add_mesh_twisted_torus
@@ -69,7 +80,9 @@ else:
     from . import add_mesh_menger_sponge
     from . import add_mesh_vertex
     from . import add_empty_as_parent
-
+    from . import mesh_discombobulator
+    from . import add_mesh_beam_builder
+    from . import Wallfactory
 
 import bpy
 
@@ -146,6 +159,10 @@ class INFO_MT_mesh_extras_add(bpy.types.Menu):
         layout = self.layout
         layout.operator_context = 'INVOKE_REGION_WIN'
         layout.menu("INFO_MT_mesh_diamonds_add", text="Diamonds", icon="PMARKER_SEL")
+        layout.operator("mesh.add_beam",
+            text="Beam Builder")
+        layout.operator("mesh.wall_add",
+            text="Wall Factory")
         layout.operator("mesh.primitive_star_add",
             text="Simple Star")
         layout.operator("mesh.primitive_steppyramid_add",
@@ -202,6 +219,7 @@ def menu_func(self, context):
     self.layout.menu("INFO_MT_mesh_vert_add", text="Single Vert", icon="LAYER_ACTIVE")
     self.layout.operator("mesh.primitive_round_cube_add", text="Round Cube", icon="MOD_SUBSURF")
     self.layout.menu("INFO_MT_mesh_math_add", text="Math Function", icon="PACKAGE")
+    self.layout.operator("mesh.generate_geodesic_dome", text="Geodesic Dome",icon="MESH_ICOSPHERE")
     self.layout.menu("INFO_MT_mesh_pipe_joints_add", text="Pipe Joints", icon="SNAP_PEEL_OBJECT")
     self.layout.menu("INFO_MT_mesh_gears_add", text="Gears", icon="SCRIPTWIN")
     self.layout.menu("INFO_MT_mesh_torus_add", text="Torus Objects", icon="MESH_TORUS")
@@ -213,7 +231,32 @@ def menu_func(self, context):
 
 def register():
     bpy.utils.register_module(__name__)
+    # Protusions Buttons:
+    bpy.types.Scene.repeatprot = bpy.props.IntProperty(name="Repeat protusions", description="make several layers of protusion", default = 1, min = 1, max = 10)
+    bpy.types.Scene.doprots = bpy.props.BoolProperty(name="Make protusions", description = "Check if we want to add protusions to the mesh", default = True)
+    bpy.types.Scene.polygonschangedpercent = bpy.props.FloatProperty(name="Polygon %", description = "Percentage of changed polygons", default = 1.0)
+    bpy.types.Scene.minHeight = bpy.props.FloatProperty(name="Min height", description="Minimal height of the protusions", default=0.2)
+    bpy.types.Scene.maxHeight = bpy.props.FloatProperty(name="Max height", description="Maximal height of the protusions", default = 0.4)
+    bpy.types.Scene.minTaper = bpy.props.FloatProperty(name="Min taper", description="Minimal height of the protusions", default=0.15, min = 0.0, max = 1.0, subtype = 'PERCENTAGE')
+    bpy.types.Scene.maxTaper = bpy.props.FloatProperty(name="Max taper", description="Maximal height of the protusions", default = 0.35, min = 0.0, max = 1.0, subtype = 'PERCENTAGE')
+    bpy.types.Scene.subpolygon1 = bpy.props.BoolProperty(name="1", default = True)
+    bpy.types.Scene.subpolygon2 = bpy.props.BoolProperty(name="2", default = True)
+    bpy.types.Scene.subpolygon3 = bpy.props.BoolProperty(name="3", default = True)
+    bpy.types.Scene.subpolygon4 = bpy.props.BoolProperty(name="4", default = True)
+   
+    # Doodads buttons:
+    bpy.types.Scene.dodoodads = bpy.props.BoolProperty(name="Make doodads", description = "Check if we want to generate doodads", default = True)
+    bpy.types.Scene.mindoodads = bpy.props.IntProperty(name="Minimum doodads number", description = "Ask for the minimum number of doodads to generate per polygon", default = 1, min = 0, max = 50)
+    bpy.types.Scene.maxdoodads = bpy.props.IntProperty(name="Maximum doodads number", description = "Ask for the maximum number of doodads to generate per polygon", default = 6, min = 1, max = 50)
+    bpy.types.Scene.doodMinScale = bpy.props.FloatProperty(name="Scale min", description="Minimum scaling of doodad", default = 0.5, min = 0.0, max = 1.0, subtype = 'PERCENTAGE')
+    bpy.types.Scene.doodMaxScale = bpy.props.FloatProperty(name="Scale max", description="Maximum scaling of doodad", default = 1.0, min = 0.0, max = 1.0, subtype = 'PERCENTAGE')
+   
+    # Materials buttons:
+    bpy.types.Scene.sideProtMat = bpy.props.IntProperty(name="Side's prot mat", description = "Material of protusion's sides", default = 0, min = 0)
+    bpy.types.Scene.topProtMat = bpy.props.IntProperty(name = "Prot's top mat", description = "Material of protusion's top", default = 0, min = 0)
+   
 
+ 
     # Add "Extras" menu to the "Add Mesh" menu
     bpy.types.INFO_MT_mesh_add.append(menu_func)
 
