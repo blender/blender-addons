@@ -32,7 +32,7 @@
 import bpy
 import mathutils
 from bpy.props import *
-from add_mesh_building_objects.Blocks import *
+from add_mesh_extra_objects.Blocks import *
 #from add_mesh_walls.preset_utils import *
 
 

@@ -62,6 +62,7 @@ if "bpy" in locals():
     importlib.reload(mesh_discombobulator)
     importlib.reload(add_mesh_beam_builder)
     importlib.reload(Wallfactory)
+    importlib.reload(Blocks)
 else:
     from . import add_mesh_star
     from . import add_mesh_twisted_torus
@@ -83,7 +84,7 @@ else:
     from . import mesh_discombobulator
     from . import add_mesh_beam_builder
     from . import Wallfactory
-
+    from . import Blocks
 import bpy
 
 
