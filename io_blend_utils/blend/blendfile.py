@@ -795,8 +795,8 @@ class DNAStruct:
             else:
                 return DNA_IO.write_bytes(handle, value, dna_name.array_size)
         else:
-            raise NotImplementedError("Setting %r is not yet supported" %
-                    dna_type[0], dna_name, dna_type)
+            raise NotImplementedError("Setting %r is not yet supported for %r" %
+                                      (dna_type, dna_name), dna_name, dna_type)
 
 
 class DNA_IO:
