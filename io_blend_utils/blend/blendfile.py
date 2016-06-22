@@ -26,7 +26,6 @@ import struct
 import tempfile
 
 log = logging.getLogger("blendfile")
-log.setLevel(logging.ERROR)
 
 FILE_BUFFER_SIZE = 1024 * 1024
 
