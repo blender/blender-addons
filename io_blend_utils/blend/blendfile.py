@@ -613,6 +613,9 @@ class DNAName:
         self.is_method_pointer = self.calc_is_method_pointer()
         self.array_size = self.calc_array_size()
 
+    def __repr__(self):
+        return '%s(%r)' % (type(self).__qualname__, self.name_full)
+
     def as_reference(self, parent):
         if parent is None:
             result = b''
@@ -690,6 +693,9 @@ class DNAStruct:
         self.fields = []
         self.field_from_name = {}
         self.user_data = None
+
+    def __repr__(self):
+        return '%s(%r)' % (type(self).__qualname__, self.dna_type_id)
 
     def field_from_path(self, header, handle, path):
         """
