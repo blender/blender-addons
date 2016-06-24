@@ -1677,11 +1677,12 @@ class FbxImportHelperNode:
                 armature = self
             else:
                 # otherwise insert a new node
+                # XXX Maybe in case self is virtual FBX root node, we should instead add one armature per bone child?
                 armature = FbxImportHelperNode(None, None, None, False)
                 armature.fbx_name = "Armature"
                 armature.is_armature = True
 
-                for child in self.children:
+                for child in tuple(self.children):
                     if child.is_bone:
                         child.parent = armature
 
