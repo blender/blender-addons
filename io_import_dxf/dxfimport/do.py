@@ -147,7 +147,7 @@ class Do:
                     cscn_lat = self.current_scene.get('latitude', 0)
                     cscn_lon = self.current_scene.get('longitude', 0)
                     cscn_alt = self.current_scene.get('altitude', 0)
-                    add = Vector(transform(wgs84, self.pScene, cscn_lat, cscn_lon, cscn_alt))
+                    add = Vector(transform(wgs84, self.pScene, cscn_lon, cscn_lat, cscn_alt))
 
             # projection
             newco = Vector(transform(self.pDXF, self.pScene, c1, c2, c3))
@@ -179,8 +179,8 @@ class Do:
             elif type(self.pScene) is not None:
                 wgs84 = Proj(init="EPSG:4326")
                 latlon = transform(self.pScene, wgs84, center[0], center[1], center[2])
-                scene['latitude'] = latlon[0]
-                scene['longitude'] = latlon[1]
+                scene['longitude'] = latlon[0]
+                scene['latitude'] = latlon[1]
                 scene['altitude'] = latlon[2]
 
     """ GEOMETRY DXF TYPES TO BLENDER CURVES FILTERS"""
