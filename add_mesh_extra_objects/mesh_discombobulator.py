@@ -563,31 +563,27 @@ class discombobulator(bpy.types.Operator):
         return {'FINISHED'}
 
 class discombob_help(bpy.types.Operator):
-	bl_idname = 'help.discombobulator'
-	bl_label = ''
+    bl_idname = 'help.discombobulator'
+    bl_label = ''
 
-	def draw(self, context):
-		layout = self.layout
-		layout.label('To use:')
-		layout.label('Works with Quads only not Ngons.')
-		layout.label('Select a face or faces')
-		layout.label('Press Discombobulate to create greebles')
+    def draw(self, context):
+        layout = self.layout
+        layout.label('To use:')
+        layout.label('Works with Quads only not Ngons.')
+        layout.label('Select a face or faces')
+        layout.label('Press Discombobulate to create greebles')
 
 
 
-	def execute(self, context):
-		return {'FINISHED'}
+    def execute(self, context):
+        return {'FINISHED'}
 
-	def invoke(self, context, event):
-		return context.window_manager.invoke_popup(self, width = 300)
+    def invoke(self, context, event):
+        return context.window_manager.invoke_popup(self, width = 300)
 
-class VIEW3D_PT_tools_discombobulate(bpy.types.Panel):
-    bl_space_type = 'VIEW_3D'
-    bl_region_type = 'TOOLS'
+class VIEW3D_PT_tools_discombobulate(bpy.types.Operator):
+    bl_idname = 'discombobulate.ops'
     bl_label = "Discombobulator"
-    bl_context = "objectmode"
-    bl_options = {'DEFAULT_CLOSED'}
-    bl_category = "Create"
 
     def draw(self, context):
         layout = self.layout
@@ -640,7 +636,11 @@ class VIEW3D_PT_tools_discombobulate(bpy.types.Panel):
         row = box.row()
         row.prop(context.scene, "sideProtMat")
         row = box.row()
+    def execute(self, context):
+        return {'FINISHED'}
 
+    def invoke(self, context, event):
+        return context.window_manager.invoke_popup(self, width = 300)
 # registering and menu integration
 def register():
     # Protusions Buttons:

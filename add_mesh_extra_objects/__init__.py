@@ -221,6 +221,7 @@ def menu_func(self, context):
     self.layout.operator("mesh.primitive_round_cube_add", text="Round Cube", icon="MOD_SUBSURF")
     self.layout.menu("INFO_MT_mesh_math_add", text="Math Function", icon="PACKAGE")
     self.layout.operator("mesh.generate_geodesic_dome", text="Geodesic Dome",icon="MESH_ICOSPHERE")
+    self.layout.operator("discombobulate.ops", text="Discombobulator",icon="MESH_ICOSPHERE")
     self.layout.menu("INFO_MT_mesh_pipe_joints_add", text="Pipe Joints", icon="SNAP_PEEL_OBJECT")
     self.layout.menu("INFO_MT_mesh_gears_add", text="Gears", icon="SCRIPTWIN")
     self.layout.menu("INFO_MT_mesh_torus_add", text="Torus Objects", icon="MESH_TORUS")
