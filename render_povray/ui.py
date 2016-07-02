@@ -1042,7 +1042,41 @@ class OBJECT_PT_povray_obj_sphere(PovDataButtonsPanel, bpy.types.Panel):
                 #col.label(text="Parameters:")
                 col.prop(obj.pov, "sphere_radius", text="Radius of Sphere")
 
-            
+
+class OBJECT_PT_povray_obj_cylinder(PovDataButtonsPanel, bpy.types.Panel):
+    bl_label = "POV-Ray Cylinder"
+    COMPAT_ENGINES = {'POVRAY_RENDER'}
+    #bl_options = {'HIDE_HEADER'}
+    @classmethod
+    def poll(cls, context):
+        engine = context.scene.render.engine
+        obj = context.object
+        return (obj and obj.pov.object_as == 'CYLINDER' and (engine in cls.COMPAT_ENGINES))    
+    def draw(self, context):
+        layout = self.layout
+
+        obj = context.object
+        
+        col = layout.column()
+
+        if obj.pov.object_as == 'CYLINDER':
+            if obj.pov.unlock_parameters == False:
+                col.prop(obj.pov, "unlock_parameters", text="Exported parameters below", icon='LOCKED') 
+                col.label(text="Cylinder radius: " + str(obj.pov.cylinder_radius))
+                col.label(text="Cylinder cap location: " + str(obj.pov.cylinder_location_cap))
+
+            else:
+                col.prop(obj.pov, "unlock_parameters", text="Edit exported parameters", icon='UNLOCKED') 
+                col.label(text="3D view proxy may get out of synch")
+                col.active = obj.pov.unlock_parameters
+                
+
+                layout.operator("pov.cylinder_update", text="Update",icon="MESH_CYLINDER")        
+                
+                #col.label(text="Parameters:")
+                col.prop(obj.pov, "cylinder_radius")
+                col.prop(obj.pov, "cylinder_location_cap")
+
 class OBJECT_PT_povray_obj_cone(PovDataButtonsPanel, bpy.types.Panel):
     bl_label = "POV-Ray Cone"
     COMPAT_ENGINES = {'POVRAY_RENDER'}
@@ -1330,7 +1364,7 @@ class ImportMenu(bpy.types.Menu):
         pov = bpy.types.Object.pov #context.object.pov ? 
         layout = self.layout
         layout.operator_context = 'INVOKE_REGION_WIN'
-        layout.operator("import_scene.avogadro", text="Avogadro",icon="FORCE_LENNARDJONES")
+        layout.operator("import_scene.pov",icon="FORCE_LENNARDJONES")
 
 def menu_func_add(self, context):
     engine = context.scene.render.engine
@@ -1340,7 +1374,7 @@ def menu_func_add(self, context):
 def menu_func_import(self, context):
     engine = context.scene.render.engine
     if engine == 'POVRAY_RENDER':
-        self.layout.operator("import_scene.avogadro", text="POV-Ray Avogadro (.pov)",icon="FORCE_LENNARDJONES")
+        self.layout.operator("import_scene.pov",icon="FORCE_LENNARDJONES")
 
         
 ###############################################################################

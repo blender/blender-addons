@@ -266,7 +266,7 @@ def exportPattern(texture, string_strip_hyphen):
         return colRampStrg
     #much work to be done here only defaults translated for now:
     #pov noise_generator 3 means perlin noise
-    if tex.type!='NONE' and pat.tex_pattern_type == 'emulator':
+    if tex.type not in {'NONE', 'IMAGE'} and pat.tex_pattern_type == 'emulator':
         texStrg+="pigment {\n"
         ####################### EMULATE BLENDER VORONOI TEXTURE ####################
         if tex.type == 'VORONOI':  
@@ -769,7 +769,9 @@ def writeTextureInfluence(mater, materialNames, LocalMaterialNames, path_image,
                     unpacked_images.append(unpackedfilename)                                            
                 t.texture.image.filepath_raw=unpackedfilename
                 t.texture.image.save()
-                image_filename = unpackedfilename
+                image_filename = unpackedfilename.replace("\\","/")
+                # .replace("\\","/") to get only forward slashes as it's what POV prefers, 
+                # even on windows
                 t.texture.image.filepath_raw=orig_image_filename
             else:
                 image_filename = path_image(t.texture.image)

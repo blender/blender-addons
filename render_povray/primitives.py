@@ -1,8 +1,6 @@
 ############ To get POV-Ray specific objects In and Out of Blender ###########
 
 import bpy
-#from . import render
-#from render import POVRAY_RENDER
 from bpy_extras.io_utils import ImportHelper
 from bpy_extras import object_utils
 from math import atan, pi, degrees, sqrt, cos, sin
@@ -19,6 +17,11 @@ from bpy.props import (
         CollectionProperty,
         )
 
+from mathutils import (
+        Vector,
+        )
+        
+#import collections
 
 def pov_define_mesh(mesh, verts, edges, faces, name, hide_geometry=True):
     if mesh is None:
@@ -602,31 +605,115 @@ class POVRAY_OT_box_add(bpy.types.Operator):
         ob.pov.object_as = "BOX"
         return {'FINISHED'}
 
+
+def pov_cylinder_define(context, op, ob, radius, loc, loc_cap):
+    if op:
+        R = op.R
+        loc = bpy.context.scene.cursor_location
+        loc_cap[0] = loc[0]
+        loc_cap[1] = loc[1]
+        loc_cap[2] = (loc[2]+2)
+    vec = Vector(loc_cap) - Vector(loc)
+    depth = vec.length
+    rot = Vector((0, 0, 1)).rotation_difference(vec)  # Rotation from Z axis.
+    trans = rot * Vector((0, 0, depth / 2)) # Such that origin is at center of the base of the cylinder.
+    roteuler = rot.to_euler()
+    if not ob:
+        bpy.ops.object.add(type='MESH', location=loc)
+        ob = context.object
+        ob.name = ob.data.name = "PovCylinder"
+        ob.pov.cylinder_radius = radius
+        ob.pov.cylinder_location_cap = vec
+        ob.pov.object_as = "CYLINDER"
+    else:
+        ob.location = loc
+
+    bpy.ops.object.mode_set(mode="EDIT")
+    bpy.ops.mesh.reveal()
+    bpy.ops.mesh.select_all(action='SELECT')
+    bpy.ops.mesh.delete(type='VERT')
+    bpy.ops.mesh.primitive_cylinder_add(radius=radius, depth=depth, location=loc, rotation=roteuler, end_fill_type='NGON') #'NOTHING'
+    bpy.ops.transform.translate(value=trans)
+
+    bpy.ops.mesh.hide(unselected=False)
+    bpy.ops.object.mode_set(mode="OBJECT")
+    bpy.ops.object.shade_smooth()
+
+
 class POVRAY_OT_cylinder_add(bpy.types.Operator):
     bl_idname = "pov.addcylinder"
     bl_label = "Cylinder"
     bl_description = "Add Cylinder"
     bl_options = {'REGISTER', 'UNDO'}
 
+    # XXX Keep it in sync with __init__'s cylinder Primitive
+    R = FloatProperty(name="Cylinder radius", min=0.00, max=10.0, default=1.0) 
+
+    imported_cyl_loc = FloatVectorProperty(
+        name="Imported Pov base location",
+        precision=6, 
+        default=(0.0, 0.0, 0.0))    
+
+    imported_cyl_loc_cap = FloatVectorProperty(
+        name="Imported Pov cap location",
+        precision=6, 
+        default=(0.0, 0.0, 2.0))
+
     def execute(self,context):
+        props = self.properties
+        R = props.R
+        ob = context.object    
         layers = 20*[False]
         layers[0] = True
-        bpy.ops.mesh.primitive_cylinder_add(layers = layers)
-        ob = context.object
-        ob.name = ob.data.name = 'PovCylinder'
-        bpy.ops.object.mode_set(mode="EDIT")
-        self.report({'WARNING'}, "This native POV-Ray primitive "
-                                 "won't have any vertex to show in edit mode")
-        bpy.ops.mesh.hide(unselected=False)
-        bpy.ops.object.mode_set(mode="OBJECT")
-        ob.pov.object_as = "CYLINDER"
+        if ob:
+            if ob.pov.imported_cyl_loc:
+                LOC = ob.pov.imported_cyl_loc
+            if ob.pov.imported_cyl_loc_cap:
+                LOC_CAP = ob.pov.imported_cyl_loc_cap
+        else:
+            if not props.imported_cyl_loc:
+                LOC_CAP = LOC = bpy.context.scene.cursor_location
+                LOC_CAP[2] += 2.0
+            else:
+                LOC = props.imported_cyl_loc
+                LOC_CAP = props.imported_cyl_loc_cap
+            self.report({'WARNING'}, "This native POV-Ray primitive "
+                                     "won't have any vertex to show in edit mode")            
+
+        pov_cylinder_define(context, self, None, self.R, LOC, LOC_CAP)
 
         return {'FINISHED'}
+
+
+class POVRAY_OT_cylinder_update(bpy.types.Operator):
+    bl_idname = "pov.cylinder_update"
+    bl_label = "Update"
+    bl_description = "Update Cylinder"
+    bl_options = {'REGISTER', 'UNDO'}
+    COMPAT_ENGINES = {'POVRAY_RENDER'}
+
+    @classmethod
+    def poll(cls, context):
+        engine = context.scene.render.engine
+        ob = context.object
+        return (ob and ob.data and ob.type == 'MESH' and ob.pov.object_as == "CYLINDER" and engine in cls.COMPAT_ENGINES)
+
+    def execute(self, context):
+        ob = context.object
+        radius = ob.pov.cylinder_radius
+        loc = ob.location
+        loc_cap = loc + ob.pov.cylinder_location_cap
+
+        pov_cylinder_define(context, None, ob, radius, loc, loc_cap)
+
+        return {'FINISHED'}
+
+
 ################################SPHERE##########################################
 def pov_sphere_define(context, op, ob, loc):
         if op:
             R = op.R
-
+            loc = bpy.context.scene.cursor_location
         else:
             assert(ob)
             R = ob.pov.sphere_radius
@@ -648,6 +735,7 @@ def pov_sphere_define(context, op, ob, loc):
             
             bpy.ops.mesh.hide(unselected=False)
             bpy.ops.object.mode_set(mode="OBJECT")
+            bpy.ops.object.shade_smooth()
             #bpy.ops.transform.rotate(axis=obrot,constraint_orientation='GLOBAL')
 
         if not ob:
@@ -659,6 +747,7 @@ def pov_sphere_define(context, op, ob, loc):
             bpy.ops.object.mode_set(mode="EDIT")
             bpy.ops.mesh.hide(unselected=False)
             bpy.ops.object.mode_set(mode="OBJECT")
+
 class POVRAY_OT_sphere_add(bpy.types.Operator):
     bl_idname = "pov.addsphere"
     bl_label = "Sphere"
@@ -677,14 +766,22 @@ class POVRAY_OT_sphere_add(bpy.types.Operator):
         props = self.properties
         R = props.R
         ob = context.object
+        
+        
+        
         if ob:
             if ob.pov.imported_loc:
                 LOC = ob.pov.imported_loc
         else:
-            LOC = bpy.context.scene.cursor_location
+            if not props.imported_loc:
+                LOC = bpy.context.scene.cursor_location
+                
+            else:
+                LOC = props.imported_loc                
+                self.report({'WARNING'}, "This native POV-Ray primitive "
+                                         "won't have any vertex to show in edit mode")            
         pov_sphere_define(context, self, None, LOC)
-        self.report({'WARNING'}, "This native POV-Ray primitive "
-                                 "won't have any vertex to show in edit mode")
+
         return {'FINISHED'}
         
     # def execute(self,context):
@@ -1355,140 +1452,376 @@ class POVRAY_OT_shape_polygon_to_circle_add(bpy.types.Operator):
         return {'FINISHED'}
         
 #############################IMPORT
-class ImportAvogadroPOV(bpy.types.Operator, ImportHelper):
-    """Load Povray File as output by Avogadro"""
-    bl_idname = "import_scene.avogadro"
-    bl_label = "Import POV Avogadro"
+        
+class ImportPOV(bpy.types.Operator, ImportHelper):
+    """Load Povray files"""
+    bl_idname = "import_scene.pov"
+    bl_label = "POV-Ray files (.pov/.inc)"
     bl_options = {'PRESET', 'UNDO'}
     COMPAT_ENGINES = {'POVRAY_RENDER'}
 
-    filename_ext = ".pov"
+    # -----------
+    # File props.
+    files = CollectionProperty(type=bpy.types.OperatorFileListElement, options={'HIDDEN', 'SKIP_SAVE'})
+    directory = StringProperty(maxlen=1024, subtype='FILE_PATH', options={'HIDDEN', 'SKIP_SAVE'})
+    
+    filename_ext = {".pov",".inc"}
     filter_glob = StringProperty(
-            default="*.pov",
+            default="*.pov;*.inc",
             options={'HIDDEN'},
             )
-
+        
+    import_at_cur = BoolProperty(name="Import at Cursor Location",
+                                    description = "Ignore Object Matrix",
+                                    default=False)
+    
     def execute(self, context):
-        coords=[]
+        from mathutils import Matrix
+        verts = []
+        faces = []
+        materials = []
         colors = []
         matNames = []
-        xall = yall = zall = []
-        layers = 20*[False]
-        layers[0] = True
-        ob = None
-        camloc = (0,0,0)
-        filepov = bpy.path.abspath(self.filepath)
-        for line in open(filepov):
-            string = line.replace("<"," ")
-            chars = [">","{","}",","]
-            for symbol in chars:
-                string = string.replace(symbol," ")
-            split = string.split()
-            if split and split[0] == "location":
-                x = float(split[1])
-                y = float(split[2])
-                z = float(split[3])
-                camloc = ((x,y,z))
-            if split and len(split) == 7:
-                try:
-                    x1 = float(split[0])
-                    coords.append(x1)
-                except:
-                    pass
-                if coords != []:            
-                    x1 = float(split[0])
-                    y1 = float(split[1])
-                    z1 = float(split[2])
-                    x2 = float(split[3])
-                    y2 = float(split[4])
-                    z2 = float(split[5])
-                    xall.append(x1)
-                    yall.append(y1)
-                    zall.append(z1)
-                    xall.append(x2)
-                    yall.append(y2)
-                    zall.append(z2)
-                    radius = float(split[6])
-                    curveData = bpy.data.curves.new('myCurve', type='CURVE')
-                    curveData.dimensions = '3D'
-                    curveData.resolution_u = 2
-                    curveData.fill_mode = "FULL"
-                    curveData.bevel_depth = radius
-                    curveData.bevel_resolution = 5
-                    polyline = curveData.splines.new('POLY')
-                    polyline.points.add(1) 
-                    polyline.points[0].co = (x1, y1, z1, 1)
-                    polyline.points[1].co = (x2, y2, z2, 1)
-                    ob = bpy.data.objects.new('myCurve', curveData)
-                    scn = bpy.context.scene
-                    scn.objects.link(ob)
-                    scn.objects.active = ob
-                    ob.select = True
-                    bpy.ops.object.convert(target='MESH',keep_original=False)
-                    #XXX TODO use a PovCylinder instead of mesh 
-                    #but add end points and radius to addPovcylinder op first
-                    ob.select=False
-                    coords = []
-            if split and len(split) == 4:
-                try:
-                    x = float(split[0])
-                    coords.append(x)
-                except:
-                    pass
-                if coords != []:
-                    x = float(split[0])
-                    y = float(split[1])
-                    z = float(split[2])
-                    xall.append(x)
-                    yall.append(y)
-                    zall.append(z)
-                    radius = float(split[3])
-                    
+        lenverts = None
+        lenfaces = None
+        suffix = -1
+        name = 'Mesh2_%s'%suffix
+        name_search = False
+        verts_search = False
+        faces_search = False
+        plane_search = False
+        box_search = False
+        cylinder_search = False
+        sphere_search = False
+        cone_search = False
+        cache = []
+        matrixes = {}
+        writematrix = False
+        index = None
+        value = None
+        #filepov = bpy.path.abspath(self.filepath) #was used for single files
 
-                    ob.pov.imported_loc=(x, y, z)
-                    bpy.ops.pov.addsphere(R=radius, imported_loc=(x, y, z))
-                    bpy.ops.object.shade_smooth()
-                    ob = bpy.context.object
-                    coords = []        
-            if split and len(split) == 6:
-                if split[0] == "pigment":
-                    r,g,b,t = float(split[2]),float(split[3]),float(split[4]),float(split[5])
-                    color = (r,g,b,t)
-                    if colors == [] or (colors != [] and color not in colors):
-                        colors.append(color)
-                        name = ob.name+"_mat"
-                        matNames.append(name)
-                        mat = bpy.data.materials.new(name)
-                        mat.diffuse_color = (r,g,b)
-                        mat.alpha = 1-t
-                        ob.data.materials.append(mat)
-                        print (colors)
-                    else:
-                        for i in range(len(colors)):
-                            if color == colors[i]:
-                                ob.data.materials.append(bpy.data.materials[matNames[i]])
-        x0 = min(xall)
-        x1 = max(xall)
-        y0 = min(yall)
-        y1 = max(yall)
-        z0 = min(zall)
-        z1 = max(zall)
-        x = (x0+x1)/2
-        y = (y0+y1)/2
-        z = (z0+z1)/2
-        bpy.ops.object.empty_add(layers=layers)
-        ob = bpy.context.object
-        ob.location = ((x,y,z))
-        for obj in bpy.context.scene.objects:
-            if obj.type == "CAMERA":
-                track = obj.constraints.new(type = "TRACK_TO")
-                track.target = ob
-                track.track_axis ="TRACK_NEGATIVE_Z"
-                track.up_axis = "UP_Y"
-                obj.location = camloc
-        for obj in bpy.context.scene.objects:
-            if obj.type == "LAMP":
-                obj.location = camloc
-                obj.pov.light_type = "shadowless"
-                break
-        return {'FINISHED'}
+        def mat_search(cache):
+            r,g,b,t = float(cache[-5]),float(cache[-4]),float(cache[-3]),float(cache[-2])
+            color = (r,g,b,t)
+            if colors == [] or (colors != [] and color not in colors):
+                colors.append(color)
+                name = ob.name+"_mat"
+                matNames.append(name)
+                mat = bpy.data.materials.new(name)
+                mat.diffuse_color = (r,g,b)
+                mat.alpha = 1-t
+                if mat.alpha != 1:
+                    mat.use_transparency=True
+                ob.data.materials.append(mat)
+                print (colors)
+            else:
+                for i in range(len(colors)):
+                    if color == colors[i]:
+                        ob.data.materials.append(bpy.data.materials[matNames[i]])
+        for file in self.files:
+            print ("Importing file: "+ file.name)
+            filepov = self.directory + file.name
+            for line in open(filepov):
+                string = line.replace("{"," ")
+                string = string.replace("}"," ")
+                string = string.replace("<"," ")
+                string = string.replace(">"," ")
+                string = string.replace(","," ")
+                lw = string.split()
+                lenwords = len(lw)
+                if lw:
+                    if lw[0] == "object":
+                        writematrix = True
+                    if writematrix:
+                        if lw[0] not in {"object","matrix"}:
+                            index = lw[0]
+                        if lw[0] in {"matrix"}:
+                            value = [float(lw[1]),float(lw[2]),float(lw[3]),\
+                                        float(lw[4]),float(lw[5]),float(lw[6]),\
+                                        float(lw[7]),float(lw[8]),float(lw[9]),\
+                                        float(lw[10]),float(lw[11]),float(lw[12])]
+                            matrixes[index]=value
+                            writematrix = False
+            for line in open(filepov):
+                S = line.replace("{"," { ")
+                S = S.replace("}"," } ")
+                S = S.replace(","," ")
+                S = S.replace("<","")
+                S = S.replace(">"," ")
+                S = S.replace("="," = ")
+                S = S.replace(";"," ; ")
+                S = S.split()
+                lenS= len(S)
+                for i,word in enumerate(S):
+    ##################Primitives Import##################
+                    if word == 'cone':
+                        cone_search = True
+                        name_search = False
+                    if cone_search:
+                        cache.append(word)
+                        if cache[-1] == '}':
+                            try:
+                                x0 = float(cache[2])
+                                y0 = float(cache[3])
+                                z0 = float(cache[4])
+                                r0 = float(cache[5])
+                                x1 = float(cache[6])
+                                y1 = float(cache[7])
+                                z1 = float(cache[8])
+                                r1 = float(cache[9])
+                                # Y is height in most pov files, not z
+                                bpy.ops.pov.cone_add(base=r0, cap=r1, height=(y1-y0))
+                                ob = context.object
+                                ob.location = (x0,y0,z0)
+                                #ob.scale = (r,r,r)
+                                mat_search(cache) 
+                            except (ValueError):
+                                pass
+                            cache = []
+                            cone_search = False        
+                    if word == 'plane':
+                        plane_search = True
+                        name_search = False
+                    if plane_search:
+                        cache.append(word)
+                        if cache[-1] == '}':
+                            try:
+                                bpy.ops.pov.addplane()
+                                ob = context.object
+                                mat_search(cache) 
+                            except (ValueError):
+                                pass
+                            cache = []
+                            plane_search = False    
+                    if word == 'box':
+                        box_search = True
+                        name_search = False
+                    if box_search:
+                        cache.append(word)
+                        if cache[-1] == '}':
+                            try:
+                                x0 = float(cache[2])
+                                y0 = float(cache[3])
+                                z0 = float(cache[4])
+                                x1 = float(cache[5])
+                                y1 = float(cache[6])
+                                z1 = float(cache[7])
+                                #imported_corner_1=(x0, y0, z0)
+                                #imported_corner_2 =(x1, y1, z1)
+                                center = ((x0 + x1)/2,(y0 + y1)/2,(z0 + z1)/2)
+                                bpy.ops.pov.addbox()
+                                ob = context.object
+                                ob.location = center
+                                mat_search(cache) 
+
+                            except (ValueError):
+                                pass
+                            cache = []
+                            box_search = False    
+                    if word == 'cylinder':
+                        cylinder_search = True
+                        name_search = False
+                    if cylinder_search:
+                        cache.append(word)
+                        if cache[-1] == '}':
+                            try:
+                                x0 = float(cache[2])
+                                y0 = float(cache[3])
+                                z0 = float(cache[4])
+                                x1 = float(cache[5])
+                                y1 = float(cache[6])
+                                z1 = float(cache[7])
+                                imported_cyl_loc=(x0, y0, z0)
+                                imported_cyl_loc_cap =(x1, y1, z1)
+
+                                r = float(cache[8])
+
+                                
+                                vec = Vector(imported_cyl_loc_cap ) - Vector(imported_cyl_loc)
+                                depth = vec.length
+                                rot = Vector((0, 0, 1)).rotation_difference(vec)  # Rotation from Z axis.
+                                trans = rot * Vector((0, 0, depth / 2)) # Such that origin is at center of the base of the cylinder.                        
+                                #center = ((x0 + x1)/2,(y0 + y1)/2,(z0 + z1)/2)
+                                scaleZ = sqrt((x1-x0)**2+(y1-y0)**2+(z1-z0)**2)/2
+                                bpy.ops.pov.addcylinder(R=r, imported_cyl_loc=imported_cyl_loc, imported_cyl_loc_cap=imported_cyl_loc_cap)
+                                ob = context.object
+                                ob.location = (x0, y0, z0)
+                                ob.rotation_euler = rot.to_euler()
+                                ob.scale = (1,1,scaleZ) 
+                                
+                                #scale data rather than obj?
+                                # bpy.ops.object.mode_set(mode='EDIT')
+                                # bpy.ops.mesh.reveal()
+                                # bpy.ops.mesh.select_all(action='SELECT')
+                                # bpy.ops.transform.resize(value=(1,1,scaleZ), constraint_orientation='LOCAL')
+                                # bpy.ops.mesh.hide(unselected=False)
+                                # bpy.ops.object.mode_set(mode='OBJECT')                                
+                                
+                                mat_search(cache) 
+
+                            except (ValueError):
+                                pass
+                            cache = []
+                            cylinder_search = False
+                    if word == 'sphere':
+                        sphere_search = True
+                        name_search = False
+                    if sphere_search:
+                        cache.append(word)
+                        if cache[-1] == '}':
+                            try:
+                                x = float(cache[2])
+                                y = float(cache[3])
+                                z = float(cache[4])
+                                r = float(cache[5])
+                                bpy.ops.pov.addsphere(R=r, imported_loc=(x, y, z))
+                                ob = context.object
+                                ob.location = (x,y,z)
+                                #ob.scale = (r,r,r)
+                                mat_search(cache) 
+                            except (ValueError):
+                                pass
+                            cache = []
+                            sphere_search = False
+    ##################End Primitives Import##################        
+                    if word == '#declare':
+                        name_search = True
+                    if name_search:
+                        cache.append(word)
+                        if word == 'mesh2':
+                            name_search = False
+                            if cache[-2] == '=':
+                                name = cache[-3]
+                            else:
+                                suffix+=1
+                            cache = []
+                        if word in {'texture',';'}:
+                            name_search = False
+                            cache = []
+                    if word == 'vertex_vectors':
+                         verts_search = True               
+                    if verts_search:
+                        cache.append(word)            
+                        if word == '}':
+                            verts_search = False
+                            lenverts=cache[2]
+                            cache.pop()
+                            cache.pop(0)
+                            cache.pop(0)
+                            cache.pop(0)
+                            for i in range(int(lenverts)):
+                                x=i*3
+                                y=(i*3)+1
+                                z=(i*3)+2
+                                verts.append((float(cache[x]),float(cache[y]),float(cache[z])))
+                            cache = []        
+                    if word == 'face_indices':
+                         faces_search = True
+                    if faces_search:
+                        cache.append(word)            
+                        if word == '}':
+                            faces_search = False
+                            lenfaces = cache[2]
+                            cache.pop()
+                            cache.pop(0)
+                            cache.pop(0)
+                            cache.pop(0)
+                            lf = int(lenfaces)
+                            var=int(len(cache)/lf)
+                            for i in range(lf):
+                                if var == 3:
+                                    v0=i*3
+                                    v1=i*3+1
+                                    v2=i*3+2
+                                    faces.append((int(cache[v0]),int(cache[v1]),int(cache[v2])))
+                                if var == 4:
+                                    v0=i*4
+                                    v1=i*4+1
+                                    v2=i*4+2
+                                    m=i*4+3
+                                    materials.append((int(cache[m])))
+                                    faces.append((int(cache[v0]),int(cache[v1]),int(cache[v2])))
+                                if var == 6:
+                                    v0=i*6
+                                    v1=i*6+1
+                                    v2=i*6+2
+                                    m0=i*6+3
+                                    m1=i*6+4
+                                    m2=i*6+5
+                                    materials.append((int(cache[m0]),int(cache[m1]),int(cache[m2])))
+                                    faces.append((int(cache[v0]),int(cache[v1]),int(cache[v2])))
+                            mesh = pov_define_mesh(None, verts, [], faces, name, hide_geometry=False) 
+                            ob_base = object_utils.object_data_add(context, mesh, operator=None)
+                            ob = ob_base.object
+                            cache = []
+                            name_search = True
+                            if name in matrixes and self.import_at_cur==False:
+                                global_matrix = Matrix.Rotation(pi / 2.0, 4, 'X')
+                                ob = bpy.context.object
+                                matrix=ob.matrix_world
+                                v=matrixes[name]
+                                matrix[0][0] = v[0] 
+                                matrix[1][0] = v[1]  
+                                matrix[2][0] = v[2] 
+                                matrix[0][1] = v[3]  
+                                matrix[1][1] = v[4]  
+                                matrix[2][1] = v[5] 
+                                matrix[0][2] = v[6] 
+                                matrix[1][2] = v[7]  
+                                matrix[2][2] = v[8] 
+                                matrix[0][3] = v[9]  
+                                matrix[1][3] = v[10]  
+                                matrix[2][3] = v[11] 
+                                matrix = global_matrix*ob.matrix_world
+                                ob.matrix_world = matrix
+                            verts = []
+                            faces = []
+
+                
+                    # if word == 'pigment':
+                        # try:
+                            # #all indices have been incremented once to fit a bad test file
+                            # r,g,b,t = float(S[2]),float(S[3]),float(S[4]),float(S[5])
+                            # color = (r,g,b,t)  
+
+                        # except (IndexError):
+                            # #all indices have been incremented once to fit alternate test file
+                            # r,g,b,t = float(S[3]),float(S[4]),float(S[5]),float(S[6])
+                            # color = (r,g,b,t)                          
+                        # except UnboundLocalError:
+                            # # In case no transmit is specified ? put it to 0
+                            # r,g,b,t = float(S[2]),float(S[3]),float(S[4],0)
+                            # color = (r,g,b,t)
+                    
+                        # except (ValueError):
+                            # color = (0.8,0.8,0.8,0)
+                            # pass
+          
+                        # if colors == [] or (colors != [] and color not in colors):
+                            # colors.append(color)
+                            # name = ob.name+"_mat"
+                            # matNames.append(name)
+                            # mat = bpy.data.materials.new(name)
+                            # mat.diffuse_color = (r,g,b)
+                            # mat.alpha = 1-t
+                            # if mat.alpha != 1:
+                                # mat.use_transparency=True
+                            # ob.data.materials.append(mat)
+                            # print (colors)
+                        # else:
+                            # for i in range(len(colors)):
+                                # if color == colors[i]:
+                                    # ob.data.materials.append(bpy.data.materials[matNames[i]]) 
+                                    
+        ##To keep Avogadro Camera angle:                            
+        # for obj in bpy.context.scene.objects:
+            # if obj.type == "CAMERA":
+                # track = obj.constraints.new(type = "TRACK_TO")
+                # track.target = ob
+                # track.track_axis ="TRACK_NEGATIVE_Z"
+                # track.up_axis = "UP_Y"
+                # obj.location = (0,0,0)                                    
+        return {'FINISHED'}        
+ 
+        

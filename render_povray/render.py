@@ -2174,7 +2174,16 @@ def write_pov(filename, scene=None, info_callback=None):
                     continue #Don't render proxy mesh, skip to next object
 
                 if ob.pov.object_as == 'CYLINDER':
-                    tabWrite("#declare %s = cylinder { <0,0,1>,<0,0,-1>,1\n"%povdataname)
+                    r = ob.pov.cylinder_radius
+                    x2 = ob.pov.cylinder_location_cap[0]
+                    y2 = ob.pov.cylinder_location_cap[1]
+                    z2 = ob.pov.cylinder_location_cap[2]
+                    tabWrite("#declare %s = cylinder { <0,0,0>,<%6f,%6f,%6f>,%6f\n"%(
+                            povdataname,
+                            x2,
+                            y2,
+                            z2,
+                            r))
                     povMatName = "Default_texture"
                     if ob.active_material:
                         #povMatName = string_strip_hyphen(bpy.path.clean_name(ob.active_material.name))
@@ -2184,6 +2193,7 @@ def write_pov(filename, scene=None, info_callback=None):
                         except IndexError:
                             print(me)
                     #tabWrite("texture {%s}\n"%povMatName)
+                    #cylinders written at origin, translated below
                     write_object_modifiers(scene,ob,file)
                     #tabWrite("rotate x*90\n")
                     tabWrite("}\n")
@@ -3154,7 +3164,7 @@ def write_pov(filename, scene=None, info_callback=None):
             #string_strip_hyphen(patternNames[texture.name]) #maybe instead of the above
             LocalPatternNames.append(currentPatName) 
             #use above list to prevent writing texture instances several times and assign in mats?
-            if (texture.type!='NONE' and texture.pov.tex_pattern_type == 'emulator')or(texture.type =='NONE' and texture.pov.tex_pattern_type != 'emulator'):
+            if (texture.type not in {'NONE', 'IMAGE'} and texture.pov.tex_pattern_type == 'emulator')or(texture.type in {'NONE', 'IMAGE'} and texture.pov.tex_pattern_type != 'emulator'):
                 file.write("\n#declare PAT_%s = \n" % currentPatName)
             file.write(shading.exportPattern(texture, string_strip_hyphen))
             file.write("\n")                

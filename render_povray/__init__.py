@@ -993,6 +993,11 @@ class RenderPovSettingsObject(PropertyGroup):
         name="Imported Pov location",
         precision=6, 
         default=(0.0, 0.0, 0.0))
+        
+    imported_loc_cap = FloatVectorProperty(
+        name="Imported Pov location",
+        precision=6, 
+        default=(0.0, 0.0, 2.0))
 
     unlock_parameters = BoolProperty(name="Lock",default = False)
     
@@ -1061,11 +1066,7 @@ class RenderPovSettingsObject(PropertyGroup):
     addboundorclip = BoolProperty(description="",default=False)
     
     blob_threshold = FloatProperty(name="Threshold",min=0.00, max=10.0, default=0.6)
-    
-    cylinder_radius = FloatProperty(name="Cylinder R",min=0.00, max=10.0, default=0.04)
-    
 
-    
     blob_strength = FloatProperty(name="Strength",min=-10.00, max=10.0, default=1.00)
     
     res_u = IntProperty(name="U",min=100, max=1000, default=500)
@@ -1089,14 +1090,32 @@ class RenderPovSettingsObject(PropertyGroup):
     all_intersections = BoolProperty(name="All Intersections",default=False)
     
     max_trace = IntProperty(name="Max Trace",min=1, max=100,default=1)
-    
-    
-    
+
+
+    def prop_update_cylinder(self, context):
+        if bpy.ops.pov.cylinder_update.poll():
+            bpy.ops.pov.cylinder_update()
+    cylinder_radius = FloatProperty(name="Cylinder R",min=0.00, max=10.0, default=0.04, update=prop_update_cylinder)
+    cylinder_location_cap = FloatVectorProperty(
+            name="Cylinder Cap Location", subtype='TRANSLATION',
+            description="The position of the 'other' end of the cylinder (relative to object location)",
+            default=(0.0, 0.0, 2.0), update=prop_update_cylinder,
+    )
+
+    imported_cyl_loc = FloatVectorProperty(
+        name="Imported Pov location",
+        precision=6, 
+        default=(0.0, 0.0, 0.0))
+        
+    imported_cyl_loc_cap = FloatVectorProperty(
+        name="Imported Pov location",
+        precision=6, 
+        default=(0.0, 0.0, 2.0))
+
     def prop_update_sphere(self, context):
         bpy.ops.pov.sphere_update()
-    sphere_radius = FloatProperty(name="Sphere radius",min=0.00, max=10.0, default=0.5, update=prop_update_sphere)    
+    sphere_radius = FloatProperty(name="Sphere radius",min=0.00, max=10.0, default=0.5, update=prop_update_sphere)
 
-            
 
     def prop_update_cone(self, context):
         bpy.ops.pov.cone_update()
