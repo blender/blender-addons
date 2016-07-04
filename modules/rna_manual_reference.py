@@ -109,19 +109,19 @@ url_manual_mapping = (
     ("bpy.types.AddonPreferences.*",                "advanced/scripting/python/addons.html"),
 
     # *** User Interface ***
-    ("bpy.types.Area.*",                    "interface/window_system/arranging_areas.html"),
-    ("bpy.types.AreaSpaces.*",              "interface/window_system/arranging_areas.html"),
+    ("bpy.types.Area.*",                    "interface/editors/arranging_areas.html"),
+    ("bpy.types.AreaSpaces.*",              "interface/editors/arranging_areas.html"),
     ("bpy.types.ConsoleLine.*",             "advanced/command_line"),
-    ("bpy.types.Header.*",                  "interface/window_system/headers.html"),
-    ("bpy.types.Panel.*",                   "interface/panels.html"),
-    ("bpy.types.Region.*",                  "interface/window_system/arranging_areas.html"),
+    ("bpy.types.Header.*",                  "interface/editors/headers.html"),
+    ("bpy.types.Panel.*",                   "interface/editors/panels.html"),
+    ("bpy.types.Region.*",                  "interface/editors/arranging_areas.html"),
     # ("bpy.types.UILayout.*",              ""),  # Todo
     # ("bpy.types.UIList.*",                ""),  # Todo
-    ("bpy.types.Menu.*",                    "interface/buttons_and_controls.html#menu-buttons"),
-    ("bpy.types.UIPieMenu.*",               "interface/buttons_and_controls.html#pie-menus"),
-    ("bpy.types.UIPopupMenu.*",             "interface/buttons_and_controls.html#pop-up-menus"),
-    ("bpy.types.Window.*",                  "interface/window_system"),
-    ("bpy.types.WindowManager.*",           "interface/window_system"),
+    ("bpy.types.Menu.*",                    "interface/controls/buttons_and_controls.html#menu-buttons"),
+    ("bpy.types.UIPieMenu.*",               "interface/controls/buttons_and_controls.html#pie-menus"),
+    ("bpy.types.UIPopupMenu.*",             "interface/controls/buttons_and_controls.html#pop-up-menus"),
+    ("bpy.types.Window.*",                  "interface/editors"),
+    ("bpy.types.WindowManager.*",           "interface/editors"),
     # --- Spaces ---
     ("bpy.types.SpaceConsole.*",            "editors/python_console.html"),
     ("bpy.types.SpaceDopeSheetEditor.*",    "editors/dope_sheet"),
@@ -237,7 +237,7 @@ url_manual_mapping = (
     ("bpy.types.ShrinkwrapConstraint.*",      "rigging/constraints/relationship/shrinkwrap.html"),
 
     # *** Render Settings ***
-    ("bpy.types.ImageFormatSettings.*",        "data_system/files/image_formats.html"),
+    ("bpy.types.ImageFormatSettings.*",        "data_system/files/media/image_formats.html"),
     ("bpy.types.RenderSettings.filepath",      "render/output/output.html#output-panel"),
     ("bpy.types.RenderSettings.display_mode",  "render/output/display.html#displaying-renders"),
     ("bpy.types.RenderSettings.*",             "render"),  # catchall, todo - refine
@@ -337,16 +337,16 @@ url_manual_mapping = (
     ("bpy.types.VoxelDataTexture.*",          "render/blender_render/textures/types/volume/voxel_data.html"),
     ("bpy.types.WoodTexture.*",               "render/blender_render/textures/types/procedural/wood.html"),
     # Nodes
-    ("bpy.types.TextureNodeBricks.*",        "render/blender_render/textures/nodes/types/patterns.html#bricks"),
-    ("bpy.types.TextureNodeCurveRGB.*",      "render/blender_render/textures/nodes/types/color.html#rgb-curves"),
-    ("bpy.types.TextureNodeCurveTime.*",     "render/blender_render/textures/nodes/types/input.html#time"),
+    ("bpy.types.TextureNodeBricks.*",        "render/blender_render/textures/nodes/types/patterns/bricks.html"),
+    ("bpy.types.TextureNodeCurveRGB.*",      "render/blender_render/textures/nodes/types/color/rgb_curves.html"),
+    ("bpy.types.TextureNodeCurveTime.*",     "render/blender_render/textures/nodes/types/input/time.html"),
     ("bpy.types.TextureNodeGroup.*",         "editors/node_editor/nodes/groups.html"),
-    ("bpy.types.TextureNodeImage.*",         "render/blender_render/textures/nodes/types/input.html#image-node"),
-    ("bpy.types.TextureNodeMath.*",          "render/blender_render/textures/nodes/types/converter.html#math"),
-    ("bpy.types.TextureNodeMixRGB.*",        "render/blender_render/textures/nodes/types/color.html#mix"),
-    ("bpy.types.TextureNodeOutput.*",        "render/blender_render/textures/nodes/types/output.html"),
-    ("bpy.types.TextureNodeTexture.*",       "render/blender_render/textures/nodes/types/input.html#texture-node"),
-    ("bpy.types.TextureNodeValToRGB.*",      "render/blender_render/textures/nodes/types/converter.html#rgb-to-bw-node"),
+    ("bpy.types.TextureNodeImage.*",         "render/blender_render/textures/nodes/types/input/image.html"),
+    ("bpy.types.TextureNodeMath.*",          "render/blender_render/textures/nodes/types/converter/math.html"),
+    ("bpy.types.TextureNodeMixRGB.*",        "render/blender_render/textures/nodes/types/color/mix_rgb.html"),
+    ("bpy.types.TextureNodeOutput.*",        "render/blender_render/textures/nodes/types/output/output.html"),
+    ("bpy.types.TextureNodeTexture.*",       "render/blender_render/textures/nodes/types/input/texture.html"),
+    ("bpy.types.TextureNodeValToRGB.*",      "render/blender_render/textures/nodes/types/converter/rgb_to_bw.html"),
     # ... todo, many more options
 
     # *** Movie Clip ***
@@ -362,7 +362,7 @@ url_manual_mapping = (
     # ("bpy.types.NodeTree.*",                 ""), # dont document
     ("bpy.types.Object.*",                     "editors/3dview/object"),  # catchall, todo - refine
     ("bpy.types.Scene.*",                      "data_system/scenes.html"),
-    ("bpy.types.Screen.*",                     "interface/screens.html"),
+    ("bpy.types.Screen.*",                     "interface/editors/screens.html"),
     ("bpy.types.Sound.*",                      "editors/3dview/object/types/speaker.html"),
     ("bpy.types.Speaker.*",                    "editors/3dview/object/types/speaker.html"),
     ("bpy.types.Text.*",                       "editors/text_editor.html"),
@@ -386,7 +386,7 @@ url_manual_mapping = (
     ("bpy.types.BackgroundImage.*",            "editors/3dview/display/background_images.html"),
     ("bpy.types.WalkNavigation.*",             "editors/3dview/navigate/3d_view.html#walk-mode"),
     ("bpy.types.SpaceView3D.cursor_location",  "editors/3dview/3d_cursor.html#numeric-input"),
-    ("bpy.types.Object.location",              "editors/3dview/transform/transform_control/numeric_input.html#numeric-input-via-the-properties-shelf"),
+    ("bpy.types.Object.location",              "editors/3dview/transform/transform_control/precision/numeric_input.html#numeric-input-via-the-properties-shelf"),
     ("bpy.types.TransformOrientation.*",       "editors/3dview/transform/transform_control/transform_orientations.html"),
 
     # *** Cycles ***
@@ -575,7 +575,7 @@ url_manual_mapping = (
     ("bpy.types.CompositorNodeGroup.*",            "editors/node_editor/nodes/groups.html"),
     ("bpy.types.CompositorNode*",                  "compositing/types"),  # catch anything else
 
-    ("bpy.types.ColorRamp*",                       "interface/extended_controls.html#color-ramp-widget"),
+    ("bpy.types.ColorRamp*",                       "interface/controls/extended_controls.html#color-ramp-widget"),
 
     # *** Node ***
     ("bpy.types.Node.*",                           "editors/node_editor/nodes"),
@@ -848,7 +848,7 @@ url_manual_mapping = (
     ("bpy.ops.armature.*",                "rigging/armatures"),
     ("bpy.ops.boid.*",                    "physics/particles/physics/boids.html"),
     ("bpy.ops.brush.*",                   "painting_sculpting/introduction.html#brush"),  # TODO doc
-    ("bpy.ops.buttons.*",                 "interface/buttons_and_controls.html"),
+    ("bpy.ops.buttons.*",                 "interface/controls/buttons_and_controls.html"),
     ("bpy.ops.camera.*",                  "editors/3dview/object/types/camera"),
     ("bpy.ops.clip.*",                    "editors/movie_clip_editor/index.html#movie-clip-editor"),
     ("bpy.ops.cloth.*",                   "physics/cloth"),
@@ -886,6 +886,7 @@ url_manual_mapping = (
     ("bpy.ops.material.new",              "render/blender_render/materials/assigning_a_material.html#creating-a-new-material"),
     ("bpy.ops.material.*",                "render/blender_render"),
     ("bpy.ops.mesh.vertices_smooth",      "modeling/meshes/editing/deforming/smooth.html"),
+    ("bpy.ops.view3d.ruler*",             "interface/ruler_and_protractor.html"),
     ("bpy.ops.view3d.edit_mesh_extrude*", "modeling/meshes/editing/duplicating/extrude.html"),
     ("bpy.ops.mesh.subdivide",            "modeling/meshes/editing/subdividing/subdivide.html"),
     ("bpy.ops.mesh.loopcut_slide",        "modeling/meshes/editing/subdividing/loop_subdivide.html"),
@@ -914,7 +915,7 @@ url_manual_mapping = (
     ("bpy.ops.rigidbody.*",               "physics/rigid_body"),
     ("bpy.ops.safe_areas.*",              "editors/3dview/object/types/camera/safe_areas.html"),
     ("bpy.ops.scene.*",                   "data_system/scenes.html"),
-    ("bpy.ops.screen.*",                  "interface/window_system"),
+    ("bpy.ops.screen.*",                  "interface/editors/screens.html"),
     ("bpy.ops.script.*",                  "advanced/scripting"),
     ("bpy.ops.sculpt.*",                  "painting_sculpting/sculpting"),
     ("bpy.ops.sequencer.*",               "editors/sequencer"),
@@ -928,15 +929,15 @@ url_manual_mapping = (
     ("bpy.ops.transform.vert_slide",      "modeling/meshes/editing/vertices.html#vertex-slide"),
     ("bpy.ops.transform.shrink_fatten",   "modeling/meshes/editing/deforming/shrink-fatten.html"),
     ("bpy.ops.transform.push_pull",       "modeling/meshes/editing/deforming/push_pull.html"),
-    ("bpy.ops.transform.translate",       "editors/3dview/transform/grab.html"),
-    ("bpy.ops.transform.rotate",          "editors/3dview/transform/rotate.html"),
-    ("bpy.ops.transform.resize",          "editors/3dview/transform/scale.html"),
+    ("bpy.ops.transform.translate",       "editors/3dview/transform/basics/grab.html"),
+    ("bpy.ops.transform.rotate",          "editors/3dview/transform/basics/rotate.html"),
+    ("bpy.ops.transform.resize",          "editors/3dview/transform/basics/scale.html"),
     # ("bpy.ops.transform.mirror",        ""),  # TODO
     ("bpy.ops.transform.*",               "editors/3dview/transform"),  # Catchall
     ("bpy.ops.object.duplicate_move",     "editors/3dview/transform/duplication/introduction.html#duplicate"),
     ("bpy.ops.object.duplicate_move_linked",   "editors/3dview/transform/duplication/introduction.html#linked-duplicates"),
     # ("bpy.ops.object.delete",           ""),
-    ("bpy.ops.object.join",               "editors/3dview/object/editing.html#join"),
+    ("bpy.ops.object.join",               "modeling/meshes/editing/misc.html#join"),
     ("bpy.ops.object.origin_set",         "editors/3dview/transform/origns.html#moving-object-centers"),
     # ("bpy.ops.object.shade_smooth",     ""),  # TODO
     # ("bpy.ops.object.shade_flat",       ""),  # TODO
@@ -945,9 +946,9 @@ url_manual_mapping = (
     ("bpy.ops.ui.*",                      "interface"),
     ("bpy.ops.uv.*",                      "editors/uv_image"),
     # ("bpy.ops.view2d.*",  ""),          #  TODO
-    ("bpy.ops.view3d.*",                  "editors/3dview"),
+    ("bpy.ops.view3d.*",                  "editors/3dview"),  # catchall
     ("bpy.ops.wm.addon_*",                "preferences/addons.html"),
-    ("bpy.ops.wm.*",                      "interface/window_system"),
+    ("bpy.ops.wm.*",                      "interface/editors/"),
     ("bpy.ops.world.*",                   "render/blender_render/world"),
 
     # === Tool Settings ===
