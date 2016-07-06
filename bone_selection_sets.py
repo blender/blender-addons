@@ -18,7 +18,7 @@
 
 bl_info = {
     "name": "Bone Selection Sets",
-    "author": "Dan Eicher, Antony Riakiotakis, Inês Almeida",
+    "author": "Inês Almeida, Antony Riakiotakis, Dan Eicher",
     "version": (2, 0, 0),
     "blender": (2, 75, 0),
     "location": "Properties > Object Data (Armature) > Selection Sets",
@@ -66,8 +66,8 @@ class POSE_MT_selection_sets_specials(Menu):
     def draw(self, context):
         layout = self.layout
 
-        # TODO
-        #layout.operator("pose.selection_sets_sort", icon='SORTALPHA', text="Sort by Name").sort_type = 'NAME'
+        layout.operator("pose.selection_set_delete_all", icon='X')
+        layout.operator("pose.selection_set_remove_bones", icon='X')
 
 
 class POSE_PT_selection_sets(Panel):
@@ -104,8 +104,7 @@ class POSE_PT_selection_sets(Panel):
         col = row.column(align=True)
         col.operator("pose.selection_set_add", icon='ZOOMIN', text="")
         col.operator("pose.selection_set_remove", icon='ZOOMOUT', text="")
-        # TODO specials like sorting
-        #col.menu("POSE_MT_selection_sets_specials", icon='DOWNARROW_HLT', text="")
+        col.menu("POSE_MT_selection_sets_specials", icon='DOWNARROW_HLT', text="")
 
         # move up/down arrows
         if len(arm.selection_sets) > 0:
@@ -157,6 +156,37 @@ class NeedSelSetPluginOperator(PluginOperator):
             return (arm.active_selection_set < len(arm.selection_sets)
                 and arm.active_selection_set >= 0)
         return False
+
+
+class POSE_OT_selection_set_delete_all(PluginOperator):
+    bl_idname = "pose.selection_set_delete_all"
+    bl_label = "Delete All Sets"
+    bl_description = "Deletes All Selection Sets"
+    bl_options = {'UNDO', 'REGISTER'}
+
+    def execute(self, context):
+        arm = context.object
+        arm.selection_sets.clear()
+        return {'FINISHED'}
+
+
+class POSE_OT_selection_set_remove_bones(PluginOperator):
+    bl_idname = "pose.selection_set_remove_bones"
+    bl_label = "Remove Bones from Sets"
+    bl_description = "Removes the Active Bones from All Sets"
+    bl_options = {'UNDO', 'REGISTER'}
+
+    def execute(self, context):
+        arm = context.object
+
+        # iterate only the selected bones in current pose that are not hidden
+        for bone in context.selected_pose_bones:
+            for selset in arm.selection_sets:
+                if bone.name in selset.bone_ids:
+                    idx = selset.bone_ids.find(bone.name)
+                    selset.bone_ids.remove(idx)
+
+        return {'FINISHED'}
 
 
 class POSE_OT_selection_set_move(NeedSelSetPluginOperator):
@@ -357,6 +387,8 @@ classes = (
     POSE_UL_selection_set,
     SelectionEntry,
     SelectionSet,
+    POSE_OT_selection_set_delete_all,
+    POSE_OT_selection_set_remove_bones,
     POSE_OT_selection_set_move,
     POSE_OT_selection_set_add,
     POSE_OT_selection_set_remove,
