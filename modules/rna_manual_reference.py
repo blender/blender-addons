@@ -360,7 +360,6 @@ url_manual_mapping = (
 
     ("bpy.types.ColorManaged*",                "render/post_process/cm_and_exposure.html"),
     # ("bpy.types.NodeTree.*",                 ""), # dont document
-    ("bpy.types.Object.*",                     "editors/3dview/object"),  # catchall, todo - refine
     ("bpy.types.Scene.*",                      "data_system/scenes.html"),
     ("bpy.types.Screen.*",                     "interface/editors/screens.html"),
     ("bpy.types.Sound.*",                      "editors/3dview/object/types/speaker.html"),
@@ -387,6 +386,7 @@ url_manual_mapping = (
     ("bpy.types.WalkNavigation.*",             "editors/3dview/navigate/3d_view.html#walk-mode"),
     ("bpy.types.SpaceView3D.cursor_location",  "editors/3dview/3d_cursor.html#numeric-input"),
     ("bpy.types.Object.location",              "editors/3dview/transform/transform_control/precision/numeric_input.html#numeric-input-via-the-properties-shelf"),
+    ("bpy.types.Object.*",                     "editors/3dview/object"),  # Catchall
     ("bpy.types.TransformOrientation.*",       "editors/3dview/transform/transform_control/transform_orientations.html"),
 
     # *** Cycles ***
@@ -902,7 +902,6 @@ url_manual_mapping = (
     ("bpy.ops.node.*",                    "editors/node_editor/nodes"),
     ("bpy.ops.object.*shape_key*",        "animation/shape_keys.html"),
     ("bpy.ops.object.join_shapes",        "animation/shape_keys.html"),
-    ("bpy.ops.object.*",                  "editors/3dview/transform"),
     ("bpy.ops.outliner.*",                "editors/outliner.html"),
     # ("bpy.ops.paint.*",                 ""),  # TODO
     ("bpy.ops.particle.*",                "physics/particles"),
@@ -932,17 +931,18 @@ url_manual_mapping = (
     ("bpy.ops.transform.translate",       "editors/3dview/transform/basics/grab.html"),
     ("bpy.ops.transform.rotate",          "editors/3dview/transform/basics/rotate.html"),
     ("bpy.ops.transform.resize",          "editors/3dview/transform/basics/scale.html"),
-    # ("bpy.ops.transform.mirror",        ""),  # TODO
+    ("bpy.ops.transform.mirror",          "modeling/meshes/editing/duplicating/mirror.html"),
     ("bpy.ops.transform.*",               "editors/3dview/transform"),  # Catchall
     ("bpy.ops.object.duplicate_move",     "editors/3dview/transform/duplication/introduction.html#duplicate"),
     ("bpy.ops.object.duplicate_move_linked",   "editors/3dview/transform/duplication/introduction.html#linked-duplicates"),
-    # ("bpy.ops.object.delete",           ""),
+    ("bpy.ops.object.delete",             "modeling/meshes/editing/basics/deleting.html#delete"),
     ("bpy.ops.object.join",               "modeling/meshes/editing/misc.html#join"),
     ("bpy.ops.object.origin_set",         "editors/3dview/transform/origns.html#moving-object-centers"),
-    # ("bpy.ops.object.shade_smooth",     ""),  # TODO
-    # ("bpy.ops.object.shade_flat",       ""),  # TODO
-    # ("bpy.ops.object.data_transfer",    ""),
-    # ("bpy.ops.object.datalayout_transfer", ""),  # TODO
+    ("bpy.ops.object.shade_smooth",       "modeling/meshes/smoothing.html#smooth-shading"),
+    ("bpy.ops.object.shade_flat",         "modeling/meshes/smoothing.html#smooth-shading"),
+    ("bpy.ops.object.data_transfer",      "modeling/meshes/editing/data_transfer.html#data"),
+    ("bpy.ops.object.datalayout_transfer", "modeling/meshes/editing/data_transfer.html#data-layout"),
+    ("bpy.ops.object.*",                  "editors/3dview/transform"), # Catchall
     ("bpy.ops.ui.*",                      "interface"),
     ("bpy.ops.uv.*",                      "editors/uv_image"),
     # ("bpy.ops.view2d.*",  ""),          #  TODO
