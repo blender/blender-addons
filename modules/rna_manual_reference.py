@@ -387,6 +387,16 @@ url_manual_mapping = (
     ("bpy.types.WalkNavigation.*",             "editors/3dview/navigate/3d_view.html#walk-mode"),
     ("bpy.types.SpaceView3D.cursor_location",  "editors/3dview/3d_cursor.html#numeric-input"),
     ("bpy.types.Object.location",              "editors/3dview/transform/transform_control/transform_properties.html"),
+    ("bpy.types.Object.lock_location",         "editors/3dview/transform/transform_control/transform_properties.html#transform-properties-locking"),
+    ("bpy.types.Object.rotation_euler",        "editors/3dview/transform/transform_control/transform_properties.html"),
+    ("bpy.types.Object.rotation_quaternion",   "editors/3dview/transform/transform_control/transform_properties.html"),
+    ("bpy.types.Object.rotation_axis_angle",   "editors/3dview/transform/transform_control/transform_properties.html"),
+    ("bpy.types.Object.rotation_mode",         "editors/3dview/transform/transform_control/transform_properties.html"),
+    ("bpy.types.Object.lock_rotations_4d",     "editors/3dview/transform/transform_control/transform_properties.html#transform-properties-locking"),  # Todo
+    ("bpy.types.Object.lock_rotation",         "editors/3dview/transform/transform_control/transform_properties.html#transform-properties-locking"),
+    ("bpy.types.Object.scale",                 "editors/3dview/transform/transform_control/transform_properties.html"),
+    ("bpy.types.Object.lock_scale",            "editors/3dview/transform/transform_control/transform_properties.html#transform-properties-locking"),
+    ("bpy.types.Object.dimensions",            "editors/3dview/transform/transform_control/transform_properties.html"),
     ("bpy.types.Object.*",                     "editors/3dview/object"),  # Catchall
     ("bpy.types.TransformOrientation.*",       "editors/3dview/transform/transform_control/transform_orientations.html"),
 
