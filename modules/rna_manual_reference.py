@@ -139,13 +139,14 @@ url_manual_mapping = (
     ("bpy.types.SpaceTimeline.*",           "editors/timeline.html"),
     ("bpy.types.SpaceUVEditor.*",           "editors/uv_image"),
     ("bpy.types.SpaceUserPreferences.*",    "preferences"),
-    ("bpy.types.SpaceView3D.*",             "editors/3dview"),
+    ("bpy.types.SpaceView3D.show_background_images", "editors/3dview/display/background_images.html"),
+    ("bpy.types.SpaceView3D.*",             "editors/3dview"), # Catchall
     ("bpy.types.Space.*",                   "editors"),  # Catchall
 
     # *** Modifiers ***
     # --- Intro ---
     ("bpy.types.Modifier.show_*", "modeling/modifiers/introduction.html#the-modifier-stack"),
-    ("bpy.types.Modifier.*", "modeling/modifiers"),  # catchall for various generic options
+    ("bpy.types.Modifier.*", "modeling/modifiers"),  # Catchall for various generic options
     # --- Modify Modifiers ---
     ("bpy.types.DataTransferModifier.*",           "modeling/modifiers/modify/data_transfer.html"),
     ("bpy.types.MeshCacheModifier.*",              "modeling/modifiers/modify/mesh_cache.html"),
@@ -240,7 +241,7 @@ url_manual_mapping = (
     ("bpy.types.ImageFormatSettings.*",        "data_system/files/media/image_formats.html"),
     ("bpy.types.RenderSettings.filepath",      "render/output/output.html#output-panel"),
     ("bpy.types.RenderSettings.display_mode",  "render/output/display.html#displaying-renders"),
-    ("bpy.types.RenderSettings.*",             "render"),  # catchall, todo - refine
+    ("bpy.types.RenderSettings.*",             "render"),  # Catchall, todo - refine
     ("bpy.types.RenderEngine.*",               "render/introduction.html#render-engines"),
     ("bpy.types.RenderLayer.*",                "render/post_process/layers.html"),
     ("bpy.types.RenderLayers.*",               "render/post_process/layers.html"),
@@ -313,7 +314,7 @@ url_manual_mapping = (
     ("bpy.types.Material.specular*", "render/blender_render/materials/properties/specular_shaders.html"),
     ("bpy.types.Material.ambient*",  "render/blender_render/materials/properties/shading.html"),
     ("bpy.types.Material.preview_render_type", "editors/properties/material.html#material-preview"),
-    ("bpy.types.Material.*",                   "render/blender_render"),  # catchall, until the section is filled in
+    ("bpy.types.Material.*",                   "render/blender_render"),  # Catchall, until the section is filled in
     # ("bpy.types.MaterialSlot.link", "render/blender_render/materials/options.html#material-naming_and_linking"),  # TODO, T42839
     ("bpy.types.MaterialVolume.*",    "render/blender_render/materials/special_effects/volume.html"),
     ("bpy.types.MaterialHalo.*",      "render/blender_render/materials/special_effects/halo.html"),
@@ -705,19 +706,19 @@ url_manual_mapping = (
     ("bpy.types.Library.*",       "data_system/linked_libraries.html"),
     ("bpy.types.Mask.*",          "editors/movie_clip_editor/masking.html"),
     ("bpy.types.Brush.*",         "painting_sculpting/introduction.html#brush"),
-    ("bpy.types.Mesh.*",          "modeling/meshes"),    # catchall, todo - refine
-    ("bpy.types.MetaBall.*",      "modeling/metas"),     # catchall, todo - refine
+    ("bpy.types.Mesh.*",          "modeling/meshes"),    # Catchall, todo - refine
+    ("bpy.types.MetaBall.*",      "modeling/metas"),     # Catchall, todo - refine
     ("bpy.types.Nodes.*",         "editors/node_editor/nodes"),
-    ("bpy.types.TextCurve.*",     "modeling/texts"),     # catchall, todo - refine
+    ("bpy.types.TextCurve.*",     "modeling/texts"),     # Catchall, todo - refine
     ("bpy.types.TextBox.*",       "modeling/texts/editing.html#text-boxes"),
-    ("bpy.types.Armature.*",      "rigging/armatures"),  # catchall, todo - refine
-    ("bpy.types.Camera.*",        "editors/3dview/object/types/camera"),          # catchall, todo - refine
-    ("bpy.types.PointLamp.*",     "render/blender_render/lighting/lamps/point"),  # catchall, todo - refine
-    ("bpy.types.AreaLamp.*",      "render/blender_render/lighting/lamps/area"),   # catchall, todo - refine
-    ("bpy.types.SpotLamp.*",      "render/blender_render/lighting/lamps/spot"),   # catchall, todo - refine
-    ("bpy.types.SunLamp.*",       "render/blender_render/lighting/lamps/sun"),    # catchall, todo - refine
-    ("bpy.types.HemiLamp.*",      "render/blender_render/lighting/lamps/hemi.html"),  # catchall, todo - refine
-    ("bpy.types.Lamp.*",          "render/blender_render/lighting"),              # catchall, todo - refine
+    ("bpy.types.Armature.*",      "rigging/armatures"),  # Catchall, todo - refine
+    ("bpy.types.Camera.*",        "editors/3dview/object/types/camera"),          # Catchall, todo - refine
+    ("bpy.types.PointLamp.*",     "render/blender_render/lighting/lamps/point"),  # Catchall, todo - refine
+    ("bpy.types.AreaLamp.*",      "render/blender_render/lighting/lamps/area"),   # Catchall, todo - refine
+    ("bpy.types.SpotLamp.*",      "render/blender_render/lighting/lamps/spot"),   # Catchall, todo - refine
+    ("bpy.types.SunLamp.*",       "render/blender_render/lighting/lamps/sun"),    # Catchall, todo - refine
+    ("bpy.types.HemiLamp.*",      "render/blender_render/lighting/lamps/hemi.html"),  # Catchall, todo - refine
+    ("bpy.types.Lamp.*",          "render/blender_render/lighting"),              # Catchall, todo - refine
 
     # *** Blend Data ***
     ("bpy.types.ID.*",                          "data_system/data_blocks.html"),
@@ -946,7 +947,8 @@ url_manual_mapping = (
     ("bpy.ops.ui.*",                      "interface"),
     ("bpy.ops.uv.*",                      "editors/uv_image"),
     # ("bpy.ops.view2d.*",  ""),          #  TODO
-    ("bpy.ops.view3d.*",                  "editors/3dview"),  # catchall
+    ("bpy.ops.view3d.*",                  "editors/3dview"),  # Catchall
+    ("bpy.ops.view3d.background_image_add", "editors/3dview/display/background_images.html"),
     ("bpy.ops.wm.addon_*",                "preferences/addons.html"),
     ("bpy.ops.wm.*",                      "interface/editors/"),
     ("bpy.ops.world.*",                   "render/blender_render/world"),
