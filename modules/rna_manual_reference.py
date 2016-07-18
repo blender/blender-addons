@@ -385,7 +385,7 @@ url_manual_mapping = (
     ("bpy.types.BackgroundImage.*",            "editors/3dview/display/background_images.html"),
     ("bpy.types.WalkNavigation.*",             "editors/3dview/navigate/3d_view.html#walk-mode"),
     ("bpy.types.SpaceView3D.cursor_location",  "editors/3dview/3d_cursor.html#numeric-input"),
-    ("bpy.types.Object.location",              "editors/3dview/transform/transform_control/precision/numeric_input.html#numeric-input-via-the-properties-shelf"),
+    ("bpy.types.Object.location",              "editors/3dview/transform/transform_control/transform_properties.html"),
     ("bpy.types.Object.*",                     "editors/3dview/object"),  # Catchall
     ("bpy.types.TransformOrientation.*",       "editors/3dview/transform/transform_control/transform_orientations.html"),
 
