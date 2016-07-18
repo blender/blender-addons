@@ -69,14 +69,12 @@ class Print3DInfoVolume(Operator):
         bm.free()
 
         info = []
-        info.append(("Volume: %s³" % clean_float("%.8f" % volume),
-                    None))
-        if unit.system == 'IMPERIAL':
-            info.append(("%s \"³" % clean_float("%.4f" % ((volume * (scale ** 3.0)) / (0.0254 ** 3.0))),
-                        None))
+        if unit.system == 'METRIC':
+            info.append(("Volume: %s cm³" % clean_float("%.4f" % ((volume * (scale ** 3.0)) / (0.01 ** 3.0))), None))
+        elif unit.system == 'IMPERIAL':
+            info.append(("Volume: %s \"³" % clean_float("%.4f" % ((volume * (scale ** 3.0)) / (0.0254 ** 3.0))), None))
         else:
-            info.append(("%s cm³" % clean_float("%.4f" % ((volume * (scale ** 3.0)) / (0.01 ** 3.0))),
-                        None))
+            info.append(("Volume: %s³" % clean_float("%.8f" % volume), None))
 
         report.update(*info)
         return {'FINISHED'}
@@ -98,14 +96,13 @@ class Print3DInfoArea(Operator):
         bm.free()
 
         info = []
-        info.append(("Area: %s²" % clean_float("%.8f" % area),
-                    None))
-        if unit.system == 'IMPERIAL':
-            info.append(("%s \"²" % clean_float("%.4f" % ((area * (scale ** 2.0)) / (0.0254 ** 2.0))),
-                        None))
+        if unit.system == 'METRIC':
+            info.append(("Area: %s cm²" % clean_float("%.4f" % ((area * (scale ** 2.0)) / (0.01 ** 2.0))), None))
+        elif unit.system == 'IMPERIAL':
+            info.append(("Area: %s \"²" % clean_float("%.4f" % ((area * (scale ** 2.0)) / (0.0254 ** 2.0))), None))
         else:
-            info.append(("%s cm²" % clean_float("%.4f" % ((area * (scale ** 2.0)) / (0.01 ** 2.0))),
-                        None))
+            info.append(("Area: %s²" % clean_float("%.8f" % area), None))
+ 
         report.update(*info)
         return {'FINISHED'}
 
