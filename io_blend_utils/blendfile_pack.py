@@ -55,7 +55,18 @@ def _relpath_remap(
                 raise Exception("Internal error 'path_src' -> %r must be absolute" % path_src)
 
     path_src = os.path.normpath(path_src)
-    path_dst = os.path.relpath(path_src, base_dir_src)
+    if os.name != "nt":
+        path_dst = os.path.relpath(path_src, base_dir_src)
+    else:
+        # exception for windows, we need to support mapping between drives
+        try:
+            path_dst = os.path.relpath(path_src, base_dir_src)
+        except ValueError:
+            # include the absolute path when the file is on a different drive.
+            path_dst = os.path.relpath(
+                    os.path.join(base_dir_src, b'__' + path_src.replace(b':', b'\\')),
+                    base_dir_src,
+                    )
 
     if blendfile_src_dir_fakeroot is None:
         # /foo/../bar.png --> /foo/__/bar.png
