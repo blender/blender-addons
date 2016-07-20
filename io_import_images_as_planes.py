@@ -19,7 +19,7 @@
 bl_info = {
     "name": "Import Images as Planes",
     "author": "Florian Meyer (tstscr), mont29, matali",
-    "version": (2, 0, 4),
+    "version": (2, 0, 5),
     "blender": (2, 76, 1),
     "location": "File > Import > Images as Planes or Add > Mesh > Images as Planes",
     "description": "Imports images and creates planes with the appropriate aspect ratio. "
@@ -342,6 +342,7 @@ class IMPORT_OT_image_to_plane(Operator, AddObjectHelper):
         elif engine == 'CYCLES':
             materials = (self.create_cycles_material(context, img) for img in images)
         else:
+            self.report({'ERROR'}, "Cannot generate materials for unknown %s render engine" % engine)
             return
 
         planes = tuple(self.create_image_plane(context, mat) for mat in materials)
