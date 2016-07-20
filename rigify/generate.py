@@ -279,7 +279,7 @@ def generate_rig(context, metarig):
             obj.select = True
             bpy.ops.object.mode_set(mode='EDIT')
             scripts = rig.generate()
-            if scripts != None:
+            if scripts is not None:
                 ui_scripts += [scripts[0]]
         t.tick("Generate rigs: ")
     except Exception as e:

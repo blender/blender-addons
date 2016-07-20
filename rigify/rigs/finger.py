@@ -252,7 +252,7 @@ class Rig:
 
         # Create control widgets
         w = create_widget(self.obj, ctrl)
-        if w != None:
+        if w is not None:
             mesh = w.data
             verts = [(0, 0, 0), (0, 1, 0), (0.05, 1, 0), (0.05, 1.1, 0), (-0.05, 1.1, 0), (-0.05, 1, 0)]
             if 'Z' in self.primary_rotation_axis:
