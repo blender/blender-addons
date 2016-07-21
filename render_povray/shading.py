@@ -231,7 +231,6 @@ def writeMaterial(using_uberpov, DEF_MAT_NAME, scene, tabWrite, safety, comments
             # Level=3 Means Maximum Spec and Mirror
             povHasnoSpecularMaps(Level=3)
 
-
 def exportPattern(texture, string_strip_hyphen):
     tex=texture
     pat = tex.pov
@@ -291,8 +290,7 @@ def exportPattern(texture, string_strip_hyphen):
 
             if tex.color_mode == 'POSITION':
                 texStrg+="solid\n"
-            texStrg+="scale 0.25\n"
-            
+            texStrg+="scale 0.25\n"     
             if tex.use_color_ramp == True:
                 texStrg+=exportColorRamp(tex)
             else:
@@ -300,13 +298,14 @@ def exportPattern(texture, string_strip_hyphen):
                 texStrg+="[0 color rgbt<0,0,0,1>]\n"
                 texStrg+="[1 color rgbt<1,1,1,0>]\n" 
                 texStrg+="}\n"            
+
         ####################### EMULATE BLENDER CLOUDS TEXTURE ####################
         if tex.type == 'CLOUDS':  
             if tex.noise_type == 'SOFT_NOISE':
                 texStrg+="wrinkles\n"
                 texStrg+="scale 0.25\n"
             else:
-                texStrg+="granite\n"
+                texStrg+="granite\n"               
             if tex.use_color_ramp == True:
                 texStrg+=exportColorRamp(tex)
             else:
@@ -314,6 +313,7 @@ def exportPattern(texture, string_strip_hyphen):
                 texStrg+="[0 color rgbt<0,0,0,1>]\n"
                 texStrg+="[1 color rgbt<1,1,1,0>]\n" 
                 texStrg+="}\n"
+
         ####################### EMULATE BLENDER WOOD TEXTURE ####################
         if tex.type == 'WOOD':
             if tex.wood_type == 'RINGS':
@@ -346,6 +346,7 @@ def exportPattern(texture, string_strip_hyphen):
                 texStrg+="[0 color rgbt<0,0,0,0>]\n"
                 texStrg+="[1 color rgbt<1,1,1,0>]\n" 
                 texStrg+="}\n"
+ 
         ####################### EMULATE BLENDER STUCCI TEXTURE ####################
         if tex.type == 'STUCCI':  
             texStrg+="bozo\n"
@@ -367,6 +368,7 @@ def exportPattern(texture, string_strip_hyphen):
                     texStrg+="[0 color rgbf<0,0,0,1>]\n"
                     texStrg+="[1 color rgbt<1,1,1,0>]\n"
                     texStrg+="}\n"
+ 
         ####################### EMULATE BLENDER MAGIC TEXTURE ####################
         if tex.type == 'MAGIC':  
             texStrg+="leopard\n"
@@ -381,6 +383,7 @@ def exportPattern(texture, string_strip_hyphen):
                 texStrg+="[1 color rgbf<0,1,0,0.75>]\n"
                 texStrg+="}\n"
             texStrg+="scale 0.1\n"            
+ 
         ####################### EMULATE BLENDER MARBLE TEXTURE ####################
         if tex.type == 'MARBLE':  
             texStrg+="marble\n"
@@ -413,6 +416,7 @@ def exportPattern(texture, string_strip_hyphen):
                 texStrg+="triangle_wave\n"
             if tex.noise_basis_2 == 'SAW':
                 texStrg+="ramp_wave\n"
+ 
         ####################### EMULATE BLENDER BLEND TEXTURE ####################
         if tex.type == 'BLEND':
             if tex.progression=='RADIAL':
@@ -454,7 +458,9 @@ def exportPattern(texture, string_strip_hyphen):
             if tex.progression == 'QUADRATIC': 
                 texStrg+="    poly_wave 2\n"
             if tex.progression == 'EASING':
-                texStrg+="    poly_wave 1.5\n"            
+                texStrg+="    poly_wave 1.5\n"
+                
+
         ####################### EMULATE BLENDER MUSGRAVE TEXTURE ####################
         # if tex.type == 'MUSGRAVE':  
             # texStrg+="function{ f_ridged_mf( x, y, 0, 1, 2, 9, -0.5, 3,3 )*0.5}\n"
@@ -469,7 +475,8 @@ def exportPattern(texture, string_strip_hyphen):
             if tex.use_color_ramp == True:
                 texStrg+=exportColorRamp(tex)
             else: 
-                texStrg+="color_map {[0.5 color rgbf<0,0,0,1>][1 color rgbt<1,1,1,0>]}ramp_wave \n"            
+                texStrg+="color_map {[0.5 color rgbf<0,0,0,1>][1 color rgbt<1,1,1,0>]}ramp_wave \n"
+               
         ####################### EMULATE BLENDER DISTORTED NOISE TEXTURE ####################
         if tex.type == 'DISTORTED_NOISE':  
             texStrg+="average\n"
@@ -525,6 +532,7 @@ def exportPattern(texture, string_strip_hyphen):
                     texStrg+="}\n"
                 texStrg+="]\n"
             texStrg+="  }\n"
+
         ####################### EMULATE BLENDER NOISE TEXTURE ####################
         if tex.type == 'NOISE':  
             texStrg+="cells\n"
@@ -731,6 +739,7 @@ def writeTextureInfluence(mater, materialNames, LocalMaterialNames, path_image,
     texturesAlpha = ""
     #proceduralFlag=False
     for t in mater.texture_slots:
+        # PROCEDURAL
         if t and t.use and t.texture.type != 'IMAGE' and t.texture.type != 'NONE':
             proceduralFlag=True
             image_filename = "PAT_%s"%string_strip_hyphen(bpy.path.clean_name(t.texture.name))
@@ -758,8 +767,10 @@ def writeTextureInfluence(mater, materialNames, LocalMaterialNames, path_image,
                     #was the above used? --MR
                     t_alpha = t
 
+        # RASTER IMAGE            
         if t and t.texture.type == 'IMAGE' and t.use and t.texture.image and t.texture.pov.tex_pattern_type == 'emulator':
             proceduralFlag=False
+            #PACKED
             if t.texture.image.packed_file:
                 orig_image_filename=t.texture.image.filepath_raw
                 unpackedfilename= os.path.join(preview_dir,("unpacked_img_"+(string_strip_hyphen(bpy.path.clean_name(t.texture.name)))))
@@ -773,6 +784,7 @@ def writeTextureInfluence(mater, materialNames, LocalMaterialNames, path_image,
                 # .replace("\\","/") to get only forward slashes as it's what POV prefers, 
                 # even on windows
                 t.texture.image.filepath_raw=orig_image_filename
+            #FILE
             else:
                 image_filename = path_image(t.texture.image)
             # IMAGE SEQUENCE BEGINS
@@ -807,7 +819,7 @@ def writeTextureInfluence(mater, materialNames, LocalMaterialNames, path_image,
                     #textDispName=t.texture.image.name + ".displ"
                     #was the above used? --MR
                     t_alpha = t
-
+        
     ####################################################################################
 
 
@@ -817,7 +829,6 @@ def writeTextureInfluence(mater, materialNames, LocalMaterialNames, path_image,
     currentMatName = string_strip_hyphen(materialNames[mater.name])
     LocalMaterialNames.append(currentMatName)
     tabWrite("\n#declare MAT_%s = \ntexture{\n" % currentMatName)
-
     ################################################################################
     
     if mater.pov.replacement_text != "":
@@ -857,18 +868,13 @@ def writeTextureInfluence(mater, materialNames, LocalMaterialNames, path_image,
         if texturesSpec != "":
             # tabWrite("\n")
             tabWrite("pigment_pattern {\n")
+            
+            mappingSpec =imgMapTransforms(t_spec)
             if texturesSpec and texturesSpec.startswith("PAT_"):
-                tabWrite("function{f%s(x,y,z).grey}" %texturesSpec) 
+                tabWrite("function{f%s(x,y,z).grey}\n" %texturesSpec) 
+                tabWrite("%s\n" % mappingSpec)                
             else:
-                # POV-Ray "scale" is not a number of repetitions factor, but its
-                # inverse, a standard scale factor.
-                # Offset seems needed relatively to scale so probably center of the
-                # scale is not the same in blender and POV
-                mappingSpec =imgMapTransforms(t_spec)
-                # mappingSpec = "translate <%.4g,%.4g,%.4g> scale <%.4g,%.4g,%.4g>\n" % \
-                              # (-t_spec.offset.x, t_spec.offset.y, t_spec.offset.z,
-                               # 1.0 / t_spec.scale.x, 1.0 / t_spec.scale.y,
-                               # 1.0 / t_spec.scale.z)
+
                 tabWrite("uv_mapping image_map{%s \"%s\" %s}\n" % \
                          (imageFormat(texturesSpec), texturesSpec, imgMap(t_spec)))
                 tabWrite("%s\n" % mappingSpec)
@@ -879,19 +885,13 @@ def writeTextureInfluence(mater, materialNames, LocalMaterialNames, path_image,
         if texturesDif == "":
             if texturesAlpha != "":
                 tabWrite("\n")
+
+                mappingAlpha = imgMapTransforms(t_alpha)
+
                 if texturesAlpha and texturesAlpha.startswith("PAT_"):
-                    tabWrite("function{f%s(x,y,z).transmit}\n" %texturesAlpha) 
+                    tabWrite("function{f%s(x,y,z).transmit}%s\n" %(texturesAlpha, mappingAlpha)) 
                 else:
-                    # POV-Ray "scale" is not a number of repetitions factor, but its
-                    # inverse, a standard scale factor.
-                    # Offset seems needed relatively to scale so probably center of the
-                    # scale is not the same in blender and POV
-                    mappingAlpha = imgMapTransforms(t_alpha)
-                    # mappingAlpha = " translate <%.4g, %.4g, %.4g> " \
-                                   # "scale <%.4g, %.4g, %.4g>\n" % \
-                                   # (-t_alpha.offset.x, -t_alpha.offset.y,
-                                    # t_alpha.offset.z, 1.0 / t_alpha.scale.x,
-                                    # 1.0 / t_alpha.scale.y, 1.0 / t_alpha.scale.z)
+ 
                     tabWrite("pigment {pigment_pattern {uv_mapping image_map" \
                              "{%s \"%s\" %s}%s" % \
                              (imageFormat(texturesAlpha), texturesAlpha,
@@ -922,15 +922,11 @@ def writeTextureInfluence(mater, materialNames, LocalMaterialNames, path_image,
 
             if texturesAlpha != "":
                 mappingAlpha = imgMapTransforms(t_alpha)
-                # mappingAlpha = " translate <%.4g,%.4g,%.4g> " \
-                               # "scale <%.4g,%.4g,%.4g>" % \
-                               # (-t_alpha.offset.x, -t_alpha.offset.y,
-                                # t_alpha.offset.z, 1.0 / t_alpha.scale.x,
-                                # 1.0 / t_alpha.scale.y, 1.0 / t_alpha.scale.z)
+
                 tabWrite("pigment {\n")
                 tabWrite("pigment_pattern {\n")
                 if texturesAlpha and texturesAlpha.startswith("PAT_"):
-                    tabWrite("function{f%s(x,y,z).transmit}\n" %texturesAlpha) 
+                    tabWrite("function{f%s(x,y,z).transmit}%s\n" %(texturesAlpha, mappingAlpha)) 
                 else:
                     tabWrite("uv_mapping image_map{%s \"%s\" %s}%s}\n" % \
                              (imageFormat(texturesAlpha), texturesAlpha,
@@ -977,20 +973,11 @@ def writeTextureInfluence(mater, materialNames, LocalMaterialNames, path_image,
             #          mappingDif, safety(material_finish)))
         if texturesNorm != "":
             ## scale 1 rotate y*0
-            # POV-Ray "scale" is not a number of repetitions factor, but its
-            # inverse, a standard scale factor.
-            # Offset seems needed relatively to scale so probably center of the
-            # scale is not the same in blender and POV
+
             mappingNor =imgMapTransforms(t_nor)
-            # mappingNor = " translate <%.4g,%.4g,%.4g> scale <%.4g,%.4g,%.4g>" % \
-                         # (-t_nor.offset.x, -t_nor.offset.y, t_nor.offset.z,
-                          # 1.0 / t_nor.scale.x, 1.0 / t_nor.scale.y,
-                          # 1.0 / t_nor.scale.z)
-            #imageMapNor = ("{bump_map {%s \"%s\" %s mapping}" % \
-            #               (imageFormat(texturesNorm),texturesNorm,imgMap(t_nor)))
-            #We were not using the above maybe we should?
+
             if texturesNorm and texturesNorm.startswith("PAT_"):
-                tabWrite("normal{function{f%s(x,y,z).grey} bump_size %.4g}\n" %(texturesNorm, t_nor.normal_factor * 10)) 
+                tabWrite("normal{function{f%s(x,y,z).grey} bump_size %.4g %s}\n" %(texturesNorm, t_nor.normal_factor * 10, mappingNor)) 
             else:
                 tabWrite("normal {uv_mapping bump_map " \
                          "{%s \"%s\" %s  bump_size %.4g }%s}\n" % \
@@ -1003,20 +990,11 @@ def writeTextureInfluence(mater, materialNames, LocalMaterialNames, path_image,
 
     if texturesDif == "" and mater.pov.replacement_text == "":
         if texturesAlpha != "":
-            # POV-Ray "scale" is not a number of repetitions factor, but its inverse,
-            # a standard scale factor.
-            # Offset seems needed relatively to scale so probably center of the scale
-            # is not the same in blender and POV
-            # Strange that the translation factor for scale is not the same as for
-            # translate.
-            # TODO: verify both matches with blender internal.
+.
             mappingAlpha = imgMapTransforms(t_alpha)
-            # mappingAlpha = " translate <%.4g,%.4g,%.4g> scale <%.4g,%.4g,%.4g>\n" % \
-                           # (-t_alpha.offset.x, -t_alpha.offset.y, t_alpha.offset.z,
-                            # 1.0 / t_alpha.scale.x, 1.0 / t_alpha.scale.y,
-                            # 1.0 / t_alpha.scale.z)
+
             if texturesAlpha and texturesAlpha.startswith("PAT_"):
-                tabWrite("function{f%s(x,y,z).transmit}\n" %texturesAlpha) 
+                tabWrite("function{f%s(x,y,z).transmit %s}\n" %(texturesAlpha, mappingAlpha)) 
             else:
                 tabWrite("pigment {pigment_pattern {uv_mapping image_map" \
                          "{%s \"%s\" %s}%s}\n" % \
@@ -1048,24 +1026,13 @@ def writeTextureInfluence(mater, materialNames, LocalMaterialNames, path_image,
 
     elif mater.pov.replacement_text == "":
         mappingDif = imgMapTransforms(t_dif)
-        # mappingDif = ("scale <%.4g,%.4g,%.4g> translate <%.4g,%.4g,%.4g>" % \
-                      # ( 1.0 / t_dif.scale.x, 
-                      # 1.0 / t_dif.scale.y,
-                      # 1.0 / t_dif.scale.z, 
-                      # 0.5-(0.5/t_dif.scale.x) + t_dif.offset.x,
-                      # 0.5-(0.5/t_dif.scale.y) + t_dif.offset.y,
-                      # 0.5-(0.5/t_dif.scale.z) + t_dif.offset.z))
+
         if texturesAlpha != "":
-            # Strange that the translation factor for scale is not the same as for
-            # translate.
-            # TODO: verify both matches with blender internal.
+
             mappingAlpha = imgMapTransforms(t_alpha)
-            # mappingAlpha = "translate <%.4g,%.4g,%.4g> scale <%.4g,%.4g,%.4g>" % \
-                           # (-t_alpha.offset.x, -t_alpha.offset.y, t_alpha.offset.z,
-                            # 1.0 / t_alpha.scale.x, 1.0 / t_alpha.scale.y,
-                            # 1.0 / t_alpha.scale.z)
+
             if texturesAlpha and texturesAlpha.startswith("PAT_"):
-                tabWrite("pigment{pigment_pattern {function{f%s(x,y,z).transmit}}\n" %texturesAlpha)
+                tabWrite("pigment{pigment_pattern {function{f%s(x,y,z).transmit}%s}\n" %(texturesAlpha, mappingAlpha))
             else:
                 tabWrite("pigment {pigment_pattern {uv_mapping image_map" \
                          "{%s \"%s\" %s}%s}\n" % \
@@ -1074,19 +1041,19 @@ def writeTextureInfluence(mater, materialNames, LocalMaterialNames, path_image,
             tabWrite("pigment_map {\n")
             tabWrite("[0 color rgbft<0,0,0,1,1>]\n")
             if texturesAlpha and texturesAlpha.startswith("PAT_"):
-                tabWrite("[1 function{f%s(x,y,z).transmit}]\n" %texturesAlpha) 
+                tabWrite("[1 function{f%s(x,y,z).transmit}%s]\n" %(texturesAlpha, mappingAlpha)) 
             elif texturesDif and not texturesDif.startswith("PAT_"):                                       
                 tabWrite("[1 uv_mapping image_map {%s \"%s\" %s} %s]\n" % \
                          (imageFormat(texturesDif), texturesDif,
                           (imgMap(t_dif) + imgGamma), mappingDif))
             elif texturesDif and texturesDif.startswith("PAT_"):
-                tabWrite("[1 %s]\n" %texturesDif)
+                tabWrite("[1 %s %s]\n" %(texturesDif, mappingDif))
             tabWrite("}\n")
             tabWrite("}\n")
 
         else:
             if texturesDif and texturesDif.startswith("PAT_"):
-                tabWrite("pigment{%s}\n" %texturesDif) 
+                tabWrite("pigment{%s %s}\n" %(texturesDif, mappingDiff)) 
             else:                                    
                 tabWrite("pigment {\n")
                 tabWrite("uv_mapping image_map {\n")
@@ -1116,20 +1083,12 @@ def writeTextureInfluence(mater, materialNames, LocalMaterialNames, path_image,
         #           (imageFormat(texturesDif), texturesDif,imgMap(t_dif),
         #            mappingDif, safety(material_finish)))
     if texturesNorm != "" and mater.pov.replacement_text == "":
-        ## scale 1 rotate y*0
-        # POV-Ray "scale" is not a number of repetitions factor, but its inverse,
-        # a standard scale factor.
-        # Offset seems needed relatively to scale so probably center of the scale is
-        # not the same in blender and POV
+
+
         mappingNor =imgMapTransforms(t_nor)
-        # mappingNor = (" translate <%.4g,%.4g,%.4g> scale <%.4g,%.4g,%.4g>" % \
-                      # (-t_nor.offset.x, -t_nor.offset.y, t_nor.offset.z,
-                       # 1.0 / t_nor.scale.x, 1.0 / t_nor.scale.y, 1.0 / t_nor.scale.z))
-        #imageMapNor = ("{bump_map {%s \"%s\" %s mapping}" % \
-        #               (imageFormat(texturesNorm),texturesNorm,imgMap(t_nor)))
-        #We were not using the above maybe we should?
+
         if texturesNorm and texturesNorm.startswith("PAT_"):
-            tabWrite("normal{function{f%s(x,y,z).grey} bump_size %.4g}\n" %(texturesNorm, t_nor.normal_factor * 10))
+            tabWrite("normal{function{f%s(x,y,z).grey} bump_size %.4g %s}\n" %(texturesNorm, t_nor.normal_factor * 10, mappingNor))
         else:                                    
             tabWrite("normal {uv_mapping bump_map {%s \"%s\" %s  bump_size %.4g }%s}\n" % \
                      (imageFormat(texturesNorm), texturesNorm, imgMap(t_nor),

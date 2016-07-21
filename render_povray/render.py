@@ -93,6 +93,9 @@ def imgMapTransforms(ts):
     # inverse, a standard scale factor.
     # 0.5 Offset is needed relatively to scale because center of the
     # scale is 0.5,0.5 in blender and 0,0 in POV
+            # Strange that the translation factor for scale is not the same as for
+            # translate.
+            # TODO: verify both matches with blender internal.
     image_map_transforms = ""
     image_map_transforms = ("scale <%.4g,%.4g,%.4g> translate <%.4g,%.4g,%.4g>" % \
                   ( 1.0 / ts.scale.x,
@@ -3159,7 +3162,7 @@ def write_pov(filename, scene=None, info_callback=None):
         file.write("\n//--Patterns Definitions--\n\n")
     LocalPatternNames = []
     for texture in bpy.data.textures: #ok?
-        if texture.users > 0:
+        if texture.users > 0:         
             currentPatName = string_strip_hyphen(bpy.path.clean_name(texture.name)) 
             #string_strip_hyphen(patternNames[texture.name]) #maybe instead of the above
             LocalPatternNames.append(currentPatName) 
