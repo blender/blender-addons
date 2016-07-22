@@ -990,7 +990,6 @@ def writeTextureInfluence(mater, materialNames, LocalMaterialNames, path_image,
 
     if texturesDif == "" and mater.pov.replacement_text == "":
         if texturesAlpha != "":
-.
             mappingAlpha = imgMapTransforms(t_alpha)
 
             if texturesAlpha and texturesAlpha.startswith("PAT_"):
@@ -1053,7 +1052,7 @@ def writeTextureInfluence(mater, materialNames, LocalMaterialNames, path_image,
 
         else:
             if texturesDif and texturesDif.startswith("PAT_"):
-                tabWrite("pigment{%s %s}\n" %(texturesDif, mappingDiff)) 
+                tabWrite("pigment{%s %s}\n" %(texturesDif, mappingDif)) 
             else:                                    
                 tabWrite("pigment {\n")
                 tabWrite("uv_mapping image_map {\n")
