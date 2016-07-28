@@ -32,6 +32,8 @@ from .utils import create_root_widget
 from .utils import random_id
 from .utils import copy_attributes
 from .rig_ui_template import UI_SLIDERS, layers_ui, UI_REGISTER
+from .rig_ui_pitchipoy_template import UI_P_SLIDERS, layers_P_ui, UI_P_REGISTER
+
 
 RIG_MODULE = "rigs"
 ORG_LAYER = [n == 31 for n in range(0, 32)]  # Armature layer that original bones should be moved to.
@@ -385,18 +387,35 @@ def generate_rig(context, metarig):
         print( l.name )
         layer_layout += [(l.name, l.row)]
 
-    # Generate the UI script
-    if "rig_ui.py" in bpy.data.texts:
-        script = bpy.data.texts["rig_ui.py"]
-        script.clear()
+
+    if isPitchipoy(metarig):
+
+        # Generate the UI Pitchipoy script
+        if "rig_ui.py" in bpy.data.texts:
+            script = bpy.data.texts["rig_ui.py"]
+            script.clear()
+        else:
+            script = bpy.data.texts.new("rig_ui.py")
+        script.write(UI_P_SLIDERS % rig_id)
+        for s in ui_scripts:
+            script.write("\n        " + s.replace("\n", "\n        ") + "\n")
+        script.write(layers_P_ui(vis_layers, layer_layout))
+        script.write(UI_P_REGISTER)
+        script.use_module = True
+
     else:
-        script = bpy.data.texts.new("rig_ui.py")
-    script.write(UI_SLIDERS % rig_id)
-    for s in ui_scripts:
-        script.write("\n        " + s.replace("\n", "\n        ") + "\n")
-    script.write(layers_ui(vis_layers, layer_layout))
-    script.write(UI_REGISTER)
-    script.use_module = True
+        # Generate the UI script
+        if "rig_ui.py" in bpy.data.texts:
+            script = bpy.data.texts["rig_ui.py"]
+            script.clear()
+        else:
+            script = bpy.data.texts.new("rig_ui.py")
+        script.write(UI_SLIDERS % rig_id)
+        for s in ui_scripts:
+            script.write("\n        " + s.replace("\n", "\n        ") + "\n")
+        script.write(layers_ui(vis_layers, layer_layout))
+        script.write(UI_REGISTER)
+        script.use_module = True
 
     # Run UI script
     exec(script.as_string(), {})
@@ -451,3 +470,13 @@ def param_name(param_name, rig_type):
     """ Get the actual parameter name, sans-rig-type.
     """
     return param_name[len(rig_type) + 1:]
+
+def isPitchipoy(metarig):
+    """ Returns True if metarig is type pitchipoy.
+    """
+    pbones=metarig.pose.bones
+    for pb in pbones:
+        words = pb.rigify_type.partition('.')
+        if  words[0] == 'pitchipoy':
+            return True
+    return False
