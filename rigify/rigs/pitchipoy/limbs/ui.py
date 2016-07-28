@@ -23,7 +23,11 @@ if is_selected( fk_ctrl ):
     layout.prop( pose_bones[ parent ], '["%s"]', slider = True )
 """ 
 
-def create_script( bones):
+def create_script( bones, limb_type=None):      # limb_type arg is added for future fk/ik
+                                                # switch to add in UI scripts
+                                                # scripts are different between arms and
+                                                # legs and paws
+
     # All ctrls have IK/FK switch
     controls =  [ bones['ik']['ctrl']['limb'] ] + bones['fk']['ctrl']
     controls += bones['ik']['ctrl']['terminal']
