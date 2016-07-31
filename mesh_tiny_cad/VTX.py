@@ -106,7 +106,7 @@ def perform_vtx(bm, pt, edges, pts, vertex_indices):
 
 def do_vtx_if_appropriate(bm, edges):
     vertex_indices = cm.get_vert_indices_from_bmedges(edges)
-    
+
     # test 1, are there shared vers? if so return non-viable
     if not len(set(vertex_indices)) == 4:
         return {'SHARED_VERTEX'}

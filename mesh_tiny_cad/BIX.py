@@ -30,9 +30,8 @@ def add_line_to_bisection(self):
     me = obj.data
     bm = bmesh.from_edit_mesh(me)
 
-    if hasattr(bm.verts, "ensure_lookup_table"):
-        bm.verts.ensure_lookup_table()
-        bm.edges.ensure_lookup_table()
+    bm.verts.ensure_lookup_table()
+    bm.edges.ensure_lookup_table()
 
     edges = [e for e in bm.edges if e.select and not e.hide]
 

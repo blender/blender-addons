@@ -32,6 +32,7 @@ def order_points(edge, point_list):
     ''' order these edges from distance to v1, then
     sandwich the sorted list with v1, v2 '''
     v1, v2 = edge
+
     def dist(co):
         return (v1 - co).length
     point_list = sorted(point_list, key=dist)
@@ -75,9 +76,8 @@ def can_skip(closest_points, vert_vectors):
 
 def get_intersection_dictionary(bm, edge_indices):
 
-    if hasattr(bm.verts, "ensure_lookup_table"):
-        bm.verts.ensure_lookup_table()
-        bm.edges.ensure_lookup_table()
+    bm.verts.ensure_lookup_table()
+    bm.edges.ensure_lookup_table()
 
     permutations = get_valid_permutations(bm, edge_indices)
 
