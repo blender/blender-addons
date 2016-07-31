@@ -19,13 +19,14 @@
 bl_info = {
     "name": "ANT Landscape",
     "author": "Jimmy Hazevoet",
-    "version": (0,1,3),
+    "version": (0, 1, 4),
     "blender": (2, 77, 0),
     "location": "View3D > Add > Mesh",
     "description": "Add a landscape primitive",
     "warning": "", # used for warning icon and text in addons panel
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/"
                 "Scripts/Add_Mesh/ANT_Landscape",
+    "tracker_url": "https://developer.blender.org/maniphest/task/create/?project=3&type=Bug",
     "category": "Add Mesh",
 }
 
@@ -34,15 +35,17 @@ Another Noise Tool: Landscape mesh generator
 
 MESH OPTIONS:
 Mesh update:     Turn this on for interactive mesh update.
-Sphere:          Generate sphere or a grid mesh. (Turn height falloff off for sphere mesh)
+Sphere:          Generate sphere or a grid mesh.
 Smooth:          Generate smooth shaded mesh.
 Subdivision:     Number of mesh subdivisions, higher numbers gives more detail but also slows down the script.
-Mesh size:       X,Y size of the grid mesh (in blender units).
+Mesh size:       X,Y size of the grid mesh in blender units.
+X_Offset:        Noise x offset in blender units (make tiled terrain)
+Y_Offset:        Noise y offset in blender units
 
 NOISE OPTIONS: ( Most of these options are the same as in blender textures. )
 Random seed:     Use this to randomise the origin of the noise function.
 Noise size:      Size of the noise.
-Noise type:      Available noise types: multiFractal, ridgedMFractal, hybridMFractal, heteroTerrain, Turbulence, Distorted Noise, Cellnoise, Shattered_hTerrain, Marble
+Noise type:      Available noise types: multiFractal, ridgedMFractal, fBm, hybridMFractal, heteroTerrain, Turbulence, Distorted Noise, Marble, Shattered_hTerrain, Strata_hTerrain, Planet_noise
 Noise basis:     Blender, Perlin, NewPerlin, Voronoi_F1, Voronoi_F2, Voronoi_F3, Voronoi_F4, Voronoi_F2-F1, Voronoi Crackle, Cellnoise
 VLNoise basis:   Blender, Perlin, NewPerlin, Voronoi_F1, Voronoi_F2, Voronoi_F3, Voronoi_F4, Voronoi_F2-F1, Voronoi Crackle, Cellnoise
 Distortion:      Distortion amount.
@@ -91,75 +94,6 @@ def create_mesh_object(context, verts, edges, faces, name):
 
     from bpy_extras import object_utils
     return object_utils.object_data_add(context, mesh, operator=None)
-
-# A very simple "bridge" tool.
-# Connects two equally long vertex rows with faces.
-# Returns a list of the new faces (list of  lists)
-#
-# vertIdx1 ... First vertex list (list of vertex indices).
-# vertIdx2 ... Second vertex list (list of vertex indices).
-# closed ... Creates a loop (first & last are closed).
-# flipped ... Invert the normal of the face(s).
-#
-# Note: You can set vertIdx1 to a single vertex index to create
-#    a fan/star of faces.
-# Note: If both vertex idx list are the same length they have
-#    to have at least 2 vertices.
-def createFaces(vertIdx1, vertIdx2, closed=False, flipped=False):
-    faces = []
-
-    if not vertIdx1 or not vertIdx2:
-        return None
-
-    if len(vertIdx1) < 2 and len(vertIdx2) < 2:
-        return None
-
-    fan = False
-    if (len(vertIdx1) != len(vertIdx2)):
-        if (len(vertIdx1) == 1 and len(vertIdx2) > 1):
-            fan = True
-        else:
-            return None
-
-    total = len(vertIdx2)
-
-    if closed:
-        # Bridge the start with the end.
-        if flipped:
-            face = [
-                vertIdx1[0],
-                vertIdx2[0],
-                vertIdx2[total - 1]]
-            if not fan:
-                face.append(vertIdx1[total - 1])
-            faces.append(face)
-
-        else:
-            face = [vertIdx2[0], vertIdx1[0]]
-            if not fan:
-                face.append(vertIdx1[total - 1])
-            face.append(vertIdx2[total - 1])
-            faces.append(face)
-
-    # Bridge the rest of the faces.
-    for num in range(total - 1):
-        if flipped:
-            if fan:
-                face = [vertIdx2[num], vertIdx1[0], vertIdx2[num + 1]]
-            else:
-                face = [vertIdx2[num], vertIdx1[num],
-                    vertIdx1[num + 1], vertIdx2[num + 1]]
-            faces.append(face)
-        else:
-            if fan:
-                face = [vertIdx1[0], vertIdx2[num], vertIdx2[num + 1]]
-            else:
-                face = [vertIdx1[num], vertIdx2[num],
-                    vertIdx2[num + 1], vertIdx1[num + 1]]
-            faces.append(face)
-
-    return faces
-
 
 ###------------------------------------------------------------
 ###------------------------------------------------------------
@@ -259,14 +193,30 @@ def strata_hterrain( x,y,z, H, lacunarity, octaves, offset, distort, basis ):
     steps = ( sin( value*(distort*5)*pi ) * ( 0.1/(distort*5)*pi ) )
     return ( value * (1.0-0.5) + steps*0.5 )
 
+# planet_noise by Farsthary: https://blenderartists.org/forum/showthread.php?202944-New-quot-Planet-quot-procedural-texture-by-Farsthary
+def planet_noise(coords, oct=6, hard=0, noisebasis=1, nabla=0.001):
+    x,y,z = coords
+    d = 0.001
+    offset = nabla * 1000
+    x = turbulence((x, y, z), oct, hard, noisebasis)
+    y = turbulence((x + offset, y , z), oct, hard, noisebasis)
+    z = turbulence((x, y + offset, z), oct, hard, noisebasis)
+    xdy = x - turbulence((x, y + d, z), oct, hard, noisebasis)
+    xdz = x - turbulence((x, y, z + d), oct, hard, noisebasis)
+    ydx = y - turbulence((x + d, y, z), oct, hard, noisebasis)
+    ydz = y - turbulence((x, y, z + d), oct, hard, noisebasis)
+    zdx = z - turbulence((x + d, y, z), oct, hard, noisebasis)
+    zdy = z - turbulence((x, y + d, z), oct, hard, noisebasis)
+    return (zdy - ydz), (zdx - xdz), (ydx - xdy)
+
 ###------------------------------------------------------------
 # landscape_gen
-def landscape_gen(x,y,z,falloffsize,options=[0,1.0,1, 0,0,1.0,0,6,1.0,2.0,1.0,2.0,0,0,0, 1.0,0.0,1,0.0,1.0,0,0,0,0.0,0.0]):
+def landscape_gen(x,y,z,falloffsize,options=[0,1.0,'multi_fractal', 0,0,1.0,0,6,1.0,2.0,1.0,2.0,0,0,0, 1.0,0.0,1,0.0,1.0,0,0,0,0.0,0.0]):
 
     # options
     rseed    = options[0]
     nsize    = options[1]
-    ntype      = int( options[2][0] )
+    ntype      = options[2]
     nbasis     = int( options[3][0] )
     vlbasis    = int( options[4][0] )
     distortion = options[5]
@@ -312,16 +262,17 @@ def landscape_gen(x,y,z,falloffsize,options=[0,1.0,1, 0,0,1.0,0,6,1.0,2.0,1.0,2.
     if nbasis == 9: nbasis = 14  # to get cellnoise basis you must set 14 instead of 9
     if vlbasis ==9: vlbasis = 14
     # noise type's
-    if ntype == 0:   value = multi_fractal(        ncoords, dimension, lacunarity, depth, nbasis ) * 0.5
-    elif ntype == 1: value = ridged_multi_fractal( ncoords, dimension, lacunarity, depth, offset, gain, nbasis ) * 0.5
-    elif ntype == 2: value = hybrid_multi_fractal( ncoords, dimension, lacunarity, depth, offset, gain, nbasis ) * 0.5
-    elif ntype == 3: value = hetero_terrain(       ncoords, dimension, lacunarity, depth, offset, nbasis ) * 0.25
-    elif ntype == 4: value = fractal(              ncoords, dimension, lacunarity, depth, nbasis )
-    elif ntype == 5: value = turbulence_vector(    ncoords, depth, hardnoise, nbasis )[0]
-    elif ntype == 6: value = variable_lacunarity(            ncoords, distortion, nbasis, vlbasis ) + 0.5
-    elif ntype == 7: value = marble_noise( x*2.0/falloffsize,y*2.0/falloffsize,z*2/falloffsize, origin, nsize, marbleshape, marblebias, marblesharpnes, distortion, depth, hardnoise, nbasis )
-    elif ntype == 8: value = shattered_hterrain( ncoords[0], ncoords[1], ncoords[2], dimension, lacunarity, depth, offset, distortion, nbasis )
-    elif ntype == 9: value = strata_hterrain( ncoords[0], ncoords[1], ncoords[2], dimension, lacunarity, depth, offset, distortion, nbasis )
+    if ntype ==   'multi_fractal':          value = multi_fractal(        ncoords, dimension, lacunarity, depth, nbasis ) * 0.5
+    elif ntype == 'ridged_multi_fractal':   value = ridged_multi_fractal( ncoords, dimension, lacunarity, depth, offset, gain, nbasis ) * 0.5
+    elif ntype == 'hybrid_multi_fractal':   value = hybrid_multi_fractal( ncoords, dimension, lacunarity, depth, offset, gain, nbasis ) * 0.5
+    elif ntype == 'hetero_terrain':         value = hetero_terrain(       ncoords, dimension, lacunarity, depth, offset, nbasis ) * 0.25
+    elif ntype == 'fractal':                value = fractal(              ncoords, dimension, lacunarity, depth, nbasis )
+    elif ntype == 'turbulence_vector':      value = turbulence_vector(    ncoords, depth, hardnoise, nbasis )[0]
+    elif ntype == 'variable_lacunarity':    value = variable_lacunarity(  ncoords, distortion, nbasis, vlbasis ) + 0.5
+    elif ntype == 'marble_noise':           value = marble_noise( x*2.0/falloffsize,y*2.0/falloffsize,z*2/falloffsize, origin, nsize, marbleshape, marblebias, marblesharpnes, distortion, depth, hardnoise, nbasis )
+    elif ntype == 'shattered_hterrain':     value = shattered_hterrain( ncoords[0], ncoords[1], ncoords[2], dimension, lacunarity, depth, offset, distortion, nbasis )
+    elif ntype == 'strata_hterrain':        value = strata_hterrain( ncoords[0], ncoords[1], ncoords[2], dimension, lacunarity, depth, offset, distortion, nbasis )
+    elif ntype == 'planet_noise':           value = planet_noise(ncoords, depth, hardnoise, nbasis)[2]*0.5+0.5
     else:
         value = 0.0
 
@@ -370,63 +321,72 @@ def landscape_gen(x,y,z,falloffsize,options=[0,1.0,1, 0,0,1.0,0,6,1.0,2.0,1.0,2.
 
     return value
 
-
+###------------------------------------------------------------
 # generate grid
 def grid_gen( sub_d, size_me, options ):
-
+    # mesh arrays
     verts = []
     faces = []
-    edgeloop_prev = []
 
-    delta = size_me / (sub_d - 1)
-    start = -(size_me / 2.0)
-
-    for row_x in range(sub_d):
-        edgeloop_cur = []
-        x = start + row_x * delta
-        for row_y in range(sub_d):
-            y = start + row_y * delta
+    # fill verts array
+    for i in range (0, sub_d):
+        for j in range(0,sub_d):
+            u = (i/sub_d-1/2)
+            v = (j/sub_d-1/2)
+            x = size_me*u
+            y = size_me*v
             z = landscape_gen(x,y,0.0,size_me,options)
+            vert = (x,y,z)
+            verts.append(vert)
 
-            edgeloop_cur.append(len(verts))
-            verts.append((x,y,z))
-
-        if len(edgeloop_prev) > 0:
-            faces_row = createFaces(edgeloop_prev, edgeloop_cur)
-            faces.extend(faces_row)
-
-        edgeloop_prev = edgeloop_cur
-
+    # fill faces array
+    count = 0
+    for i in range (0, sub_d *(sub_d-1)):
+        if count < sub_d-1:
+            A = i+1
+            B = i
+            C = (i+sub_d)
+            D = (i+sub_d)+1
+            face = (A,B,C,D)
+            faces.append(face)
+            count = count + 1
+        else:
+            count = 0
+            
     return verts, faces
-
 
 # generate sphere
 def sphere_gen( sub_d, size_me, options ):
-
+    # mesh arrays
     verts = []
     faces = []
-    edgeloop_prev = []
 
-    for row_x in range(sub_d):
-        edgeloop_cur = []
-        for row_y in range(sub_d):
-            u = sin(row_y*pi*2/(sub_d-1)) * cos(-pi/2+row_x*pi/(sub_d-1)) * size_me/2
-            v = cos(row_y*pi*2/(sub_d-1)) * cos(-pi/2+row_x*pi/(sub_d-1)) * size_me/2
-            w = sin(-pi/2+row_x*pi/(sub_d-1)) * size_me/2
+    # fill verts array
+    for i in range (0, sub_d):
+        for j in range(0,sub_d):
+            u = sin(j*pi*2/(sub_d-1)) * cos(-pi/2+i*pi/(sub_d-1)) * size_me/2
+            v = cos(j*pi*2/(sub_d-1)) * cos(-pi/2+i*pi/(sub_d-1)) * size_me/2
+            w = sin(-pi/2+i*pi/(sub_d-1)) * size_me/2
             h = landscape_gen(u,v,w,size_me,options) / size_me
             u,v,w = u+u*h, v+v*h, w+w*h
+            vert = (u,v,w)
+            verts.append(vert)
 
-            edgeloop_cur.append(len(verts))
-            verts.append((u, v, w))
-
-        if len(edgeloop_prev) > 0:
-            faces_row = createFaces(edgeloop_prev, edgeloop_cur)
-            faces.extend(faces_row)
-
-        edgeloop_prev = edgeloop_cur
-
+    # fill faces array
+    count = 0
+    for i in range (0, sub_d *(sub_d-1)):
+        if count < sub_d-1:
+            A = i+1
+            B = i
+            C = (i+sub_d)
+            D = (i+sub_d)+1
+            face = (A,B,C,D)
+            faces.append(face)
+            count = count + 1
+        else:
+            count = 0
+            
     return verts, faces
-
 
 ###------------------------------------------------------------
 # Add landscape
@@ -453,7 +413,7 @@ class landscape_add(bpy.types.Operator):
     Subdivision = IntProperty(name="Subdivisions",
                 min=4,
                 max=6400,
-                default=64,
+                default=128,
                 description="Mesh x y subdivisions")
 
     MeshSize = FloatProperty(name="Mesh Size",
@@ -483,16 +443,17 @@ class landscape_add(bpy.types.Operator):
                 description="Noise size")
 
     NoiseTypes = [
-                ("0","multiFractal","multiFractal"),
-                ("1","ridgedMFractal","ridgedMFractal"),
-                ("2","hybridMFractal","hybridMFractal"),
-                ("3","heteroTerrain","heteroTerrain"),
-                ("4","fBm","fBm"),
-                ("5","Turbulence","Turbulence"),
-                ("6","Distorted Noise","Distorted Noise"),
-                ("7","Marble","Marble"),
-                ("8","Shattered_hTerrain","Shattered_hTerrain"),
-                ("9","Strata_hTerrain","Strata_hTerrain")]
+                ('multi_fractal',"multiFractal","multiFractal"),
+                ('ridged_multi_fractal',"ridgedMFractal","ridgedMFractal"),
+                ('hybrid_multi_fractal',"hybridMFractal","hybridMFractal"),
+                ('hetero_terrain',"heteroTerrain","heteroTerrain"),
+                ('fractal',"fBm","fBm"),
+                ('turbulence_vector',"Turbulence","Turbulence"),
+                ('variable_lacunarity',"Distorted Noise","Distorted Noise"),
+                ('marble_noise',"Marble","Marble"),
+                ('shattered_hterrain',"Shattered_hTerrain","Shattered_hTerrain"),
+                ('strata_hterrain',"Strata_hTerrain","Strata_hTerrain"),
+                ('planet_noise',"Planet_Noise","Planet_Noise")]
 
     NoiseType = EnumProperty(name="Type",
                 description="Noise type",
@@ -541,7 +502,7 @@ class landscape_add(bpy.types.Operator):
     NoiseDepth = IntProperty(name="Depth",
                 min=1,
                 max=16,
-                default=6,
+                default=8,
                 description="Noise Depth - number of frequencies in the fBm")
 
     mDimension = FloatProperty(name="Dimension",
@@ -637,7 +598,7 @@ class landscape_add(bpy.types.Operator):
     Strata = FloatProperty(name="Strata",
                 min=0.01,
                 max=1000.0,
-                default=3.0,
+                default=5.0,
                 description="Strata amount")
 
     StrataTypes = [
@@ -666,60 +627,63 @@ class landscape_add(bpy.types.Operator):
 
         box = layout.box()
         box.prop(self, 'NoiseType')
-        if self.NoiseType != '7':
+        if self.NoiseType != 'marble_noise':
             box.prop(self, 'BasisType')
         box.prop(self, 'RandomSeed')
         box.prop(self, 'NoiseSize')
-        if self.NoiseType == '0':
+        if self.NoiseType == 'multi_fractal':
             box.prop(self, 'NoiseDepth')
             box.prop(self, 'mDimension')
             box.prop(self, 'mLacunarity')
-        elif self.NoiseType == '1':
-            box.prop(self, 'NoiseDepth')
-            box.prop(self, 'mDimension')
-            box.prop(self, 'mLacunarity')
-            box.prop(self, 'mOffset')
-            box.prop(self, 'mGain')
-        elif self.NoiseType == '2':
+        elif self.NoiseType == 'ridged_multi_fractal':
             box.prop(self, 'NoiseDepth')
             box.prop(self, 'mDimension')
             box.prop(self, 'mLacunarity')
             box.prop(self, 'mOffset')
             box.prop(self, 'mGain')
-        elif self.NoiseType == '3':
+        elif self.NoiseType == 'hybrid_multi_fractal':
             box.prop(self, 'NoiseDepth')
             box.prop(self, 'mDimension')
             box.prop(self, 'mLacunarity')
             box.prop(self, 'mOffset')
-        elif self.NoiseType == '4':
+            box.prop(self, 'mGain')
+        elif self.NoiseType == 'hetero_terrain':
             box.prop(self, 'NoiseDepth')
             box.prop(self, 'mDimension')
             box.prop(self, 'mLacunarity')
-        elif self.NoiseType == '5':
+            box.prop(self, 'mOffset')
+        elif self.NoiseType == 'fractal':
+            box.prop(self, 'NoiseDepth')
+            box.prop(self, 'mDimension')
+            box.prop(self, 'mLacunarity')
+        elif self.NoiseType == 'turbulence_vector':
             box.prop(self, 'NoiseDepth')
             box.prop(self, 'HardNoise')
-        elif self.NoiseType == '6':
+        elif self.NoiseType == 'variable_lacunarity':
             box.prop(self, 'VLBasisType')
             box.prop(self, 'Distortion')
-        elif self.NoiseType == '7':
+        elif self.NoiseType == 'marble_noise':
             box.prop(self, 'MarbleShape')
             box.prop(self, 'MarbleBias')
             box.prop(self, 'MarbleSharp')
             box.prop(self, 'Distortion')
             box.prop(self, 'NoiseDepth')
             box.prop(self, 'HardNoise')
-        elif self.NoiseType == '8':
+        elif self.NoiseType == 'shattered_hterrain':
             box.prop(self, 'NoiseDepth')
             box.prop(self, 'mDimension')
             box.prop(self, 'mLacunarity')
             box.prop(self, 'mOffset')
             box.prop(self, 'Distortion')
-        elif self.NoiseType == '9':
+        elif self.NoiseType == 'strata_hterrain':
             box.prop(self, 'NoiseDepth')
             box.prop(self, 'mDimension')
             box.prop(self, 'mLacunarity')
             box.prop(self, 'mOffset')
             box.prop(self, 'Distortion')
+        elif self.NoiseType == 'planet_noise':
+            box.prop(self, 'NoiseDepth')
+            box.prop(self, 'HardNoise')
 
         box = layout.box()
         box.prop(self, 'Invert')
@@ -788,9 +752,7 @@ class landscape_add(bpy.types.Operator):
 
             # create mesh object
             obj = create_mesh_object(context, verts, [], faces, "Landscape")
-            bpy.ops.object.mode_set(mode='EDIT')
-            bpy.ops.mesh.normals_make_consistent(inside=True)
-            bpy.ops.object.mode_set(mode='OBJECT')
+
             # sphere, remove doubles
             if self.SphereMesh !=0:
                 bpy.ops.object.mode_set(mode='EDIT')
