@@ -671,8 +671,13 @@ def blen_read_animations(fbx_tmpl_astack, fbx_tmpl_alayer, stacks, scene, anim_o
                     id_data = item.id_data
                 else:
                     id_data = item.bl_obj
+                    # XXX Ignore rigged mesh animations - those are a nightmare to handle, see note about it in
+                    #     FbxImportHelperNode class definition.
+                    if id_data.type == 'MESH' and id_data.parent and id_data.parent.type == 'ARMATURE':
+                        continue
                 if id_data is None:
                     continue
+
                 # Create new action if needed (should always be needed!
                 key = (as_uuid, al_uuid, id_data)
                 action = actions.get(key)
@@ -1466,7 +1471,7 @@ class FbxImportHelperNode:
     """
 
     __slots__ = (
-        '_parent', 'anim_compensation_matrix', 'armature_setup', 'armature', 'bind_matrix',
+        '_parent', 'anim_compensation_matrix', 'is_global_animation', 'armature_setup', 'armature', 'bind_matrix',
         'bl_bone', 'bl_data', 'bl_obj', 'bone_child_matrix', 'children', 'clusters',
         'fbx_elem', 'fbx_name', 'fbx_transform_data', 'fbx_type',
         'is_armature', 'has_bone_children', 'is_bone', 'is_root', 'is_leaf',
@@ -1494,7 +1499,15 @@ class FbxImportHelperNode:
             self.matrix, self.matrix_as_parent, self.matrix_geom = (None, None, None)
         self.post_matrix = None                 # correction matrix that needs to be applied after the FBX transform
         self.bone_child_matrix = None           # Objects attached to a bone end not the beginning, this matrix corrects for that
+
+        # XXX Those two are to handle the fact that rigged meshes are not linked to their armature in FBX, which implies
+        #     that their animation is in global space (afaik...).
+        #     This is actually not really solvable currently, since anim_compensation_matrix is not valid if armature
+        #     itself is animated (we'd have to recompute global-to-local anim_compensation_matrix for each frame,
+        #     and for each armature action... beyond being an insane work).
+        #     Solution for now: do not read rigged meshes animations at all! sic...
         self.anim_compensation_matrix = None    # a mesh moved in the hierarchy may have a different local matrix. This compensates animations for this.
+        self.is_global_animation = False
 
         self.meshes = None                      # List of meshes influenced by this bone.
         self.clusters = []                      # Deformer Cluster nodes
@@ -1786,6 +1799,7 @@ class FbxImportHelperNode:
                 old_matrix = m.matrix
                 m.matrix = armature_matrix_inv * m.get_world_matrix()
                 m.anim_compensation_matrix = old_matrix.inverted_safe() * m.matrix
+                m.is_global_animation = True
                 m.parent = self
             self.meshes = meshes
         else:
