@@ -22,7 +22,7 @@ bl_info = {
     "name": "Bool Tool",
     "author": "Vitor Balbio, Mikhail Rachinskiy, TynkaTopi, Meta-Androcto",
     "version": (0, 3, 4),
-    "blender": (2, 78, 0),
+    "blender": (2, 77, 0),
     "location": "View3D > Toolshelf > BoolTool",
     "description": "Bool Tools Hotkey: Ctrl Shift B",
     "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/Scripts/Object/BoolTool",
@@ -32,9 +32,9 @@ bl_info = {
 import bpy
 from bpy.app.handlers import persistent
 from bpy.types import (
-    Operator,
-    Panel,
-)
+        Operator,
+        Panel,
+        )
 
 
 # -------------------  Bool Tool FUNCTIONS------------------------------
@@ -663,15 +663,14 @@ class DirectBooleans:
     bl_options = {'REGISTER', 'UNDO'}
 
     solver = bpy.props.EnumProperty(
-        name='Boolean Solver',
-        items=(
-            ('DEFAULT', 'Default', ''),
-            ('BMESH',   'BMesh',   ''),
-            ('CARVE',   'Carve',   ''),
-        ),
-        default='DEFAULT',
-        description='Specify solver for boolean operations',
-        options={'SKIP_SAVE'})
+            name='Boolean Solver',
+            items=(('DEFAULT', 'Default', ''),
+                   ('BMESH',   'BMesh',   ''),
+                   ('CARVE',   'Carve',   '')),
+            default='DEFAULT',
+            description='Specify solver for boolean operations',
+            options={'SKIP_SAVE'}
+            )
 
     def boolean_each(self, mode):
         context = bpy.context
@@ -1220,37 +1219,41 @@ class BoolTool_Pref(bpy.types.AddonPreferences):
             default=False,
             update=UpdateBoolTool_Pref,
             description=("Replace the Transform HotKeys (G,R,S) "
-                         "for a custom version that can optimize the visualization of Brushes"))
+                         "for a custom version that can optimize the visualization of Brushes")
+            )
 
     make_vertex_groups = bpy.props.BoolProperty(
-        name="Make Vertex Groups",
-        default=False,
-        description="When Apply a Brush to de Object it will create a new vertex group of the new faces")
+            name="Make Vertex Groups",
+            default=False,
+            description="When Apply a Brush to de Object it will create a new vertex group of the new faces"
+            )
 
     make_boundary = bpy.props.BoolProperty(
-        name="Make Boundary",
-        default=False,
-        description="When Apply a Brush to de Object it will create a new vertex group of the bondary boolean area")
+            name="Make Boundary",
+            default=False,
+            description="When Apply a Brush to de Object it will create a new vertex group of the bondary boolean area"
+            )
  
     use_wire = bpy.props.BoolProperty(
-        name="Use Bmesh",
-        default=False,
-        description="Use The Wireframe Instead Of Boolean")
+            name="Use Bmesh",
+            default=False,
+            description="Use The Wireframe Instead Of Boolean"
+            )
 
     category = bpy.props.StringProperty(
-        name="Tab Category",
-        description="Choose a name for the category of the panel",
-        default="Bool Tools",
-        update=update_panel)
+            name="Tab Category",
+            description="Choose a name for the category of the panel",
+            default="Bool Tools",
+            update=update_panel
+            )
 
     solver = bpy.props.EnumProperty(
-        name='Boolean Solver',
-        items=(
-            ('BMESH', 'BMesh', ''),
-            ('CARVE', 'Carve', ''),
-        ),
-        default='BMESH',
-        description='Specify solver for boolean operations')
+            name='Boolean Solver',
+            items=(('BMESH', 'BMesh', ''),
+                   ('CARVE', 'Carve', '')),
+            default='BMESH',
+            description='Specify solver for boolean operations'
+            )
 
     def draw(self, context):
         layout = self.layout
@@ -1336,7 +1339,7 @@ classes = (
     BoolTool_Config,
     BoolTool_BViwer,
     BTool_FastTransform,
-)
+    )
 
 # ------------------- REGISTER ------------------------------------------------
 addon_keymaps = []
